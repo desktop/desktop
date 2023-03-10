@@ -4,7 +4,7 @@ import {
   AutocompletingTextArea,
   AutocompletingInput,
   IAutocompletionProvider,
-  UserAutocompletionProvider,
+  CoAuthorAutocompletionProvider,
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
@@ -132,7 +132,10 @@ interface ICommitMessageState {
   readonly summary: string
   readonly description: string | null
 
-  readonly userAutocompletionProvider: UserAutocompletionProvider | null
+  readonly commitMessageAutocompletionProviders: ReadonlyArray<
+    IAutocompletionProvider<any>
+  >
+  readonly coAuthorAutocompletionProvider: CoAuthorAutocompletionProvider | null
 
   /**
    * Whether or not the description text area has more text that's
@@ -142,11 +145,19 @@ interface ICommitMessageState {
   readonly descriptionObscured: boolean
 }
 
-function findUserAutoCompleteProvider(
+function findCommitMessageAutoCompleteProvider(
   providers: ReadonlyArray<IAutocompletionProvider<any>>
-): UserAutocompletionProvider | null {
+): ReadonlyArray<IAutocompletionProvider<any>> {
+  return providers.filter(
+    provider => !(provider instanceof CoAuthorAutocompletionProvider)
+  )
+}
+
+function findCoAuthorAutoCompleteProvider(
+  providers: ReadonlyArray<IAutocompletionProvider<any>>
+): CoAuthorAutocompletionProvider | null {
   for (const provider of providers) {
-    if (provider instanceof UserAutocompletionProvider) {
+    if (provider instanceof CoAuthorAutocompletionProvider) {
       return provider
     }
   }
@@ -174,7 +185,9 @@ export class CommitMessage extends React.Component<
     this.state = {
       summary: commitMessage ? commitMessage.summary : '',
       description: commitMessage ? commitMessage.description : null,
-      userAutocompletionProvider: findUserAutoCompleteProvider(
+      commitMessageAutocompletionProviders:
+        findCommitMessageAutoCompleteProvider(props.autocompletionProviders),
+      coAuthorAutocompletionProvider: findCoAuthorAutoCompleteProvider(
         props.autocompletionProviders
       ),
       descriptionObscured: false,
@@ -240,7 +253,11 @@ export class CommitMessage extends React.Component<
       this.props.autocompletionProviders !== prevProps.autocompletionProviders
     ) {
       this.setState({
-        userAutocompletionProvider: findUserAutoCompleteProvider(
+        commitMessageAutocompletionProviders:
+          findCommitMessageAutoCompleteProvider(
+            this.props.autocompletionProviders
+          ),
+        coAuthorAutocompletionProvider: findCoAuthorAutoCompleteProvider(
           this.props.autocompletionProviders
         ),
       })
@@ -432,7 +449,7 @@ export class CommitMessage extends React.Component<
       return null
     }
 
-    const autocompletionProvider = this.state.userAutocompletionProvider
+    const autocompletionProvider = this.state.coAuthorAutocompletionProvider
 
     if (!autocompletionProvider) {
       return null
@@ -783,7 +800,9 @@ export class CommitMessage extends React.Component<
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
             onElementRef={this.onSummaryInputRef}
-            autocompletionProviders={this.props.autocompletionProviders}
+            autocompletionProviders={
+              this.state.commitMessageAutocompletionProviders
+            }
             onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={this.props.isCommitting === true}
             spellcheck={this.props.commitSpellcheckEnabled}
@@ -800,7 +819,9 @@ export class CommitMessage extends React.Component<
             placeholder="Description"
             value={this.state.description || ''}
             onValueChanged={this.onDescriptionChanged}
-            autocompletionProviders={this.props.autocompletionProviders}
+            autocompletionProviders={
+              this.state.commitMessageAutocompletionProviders
+            }
             ref={this.onDescriptionFieldRef}
             onElementRef={this.onDescriptionTextAreaRef}
             onContextMenu={this.onAutocompletingInputContextMenu}

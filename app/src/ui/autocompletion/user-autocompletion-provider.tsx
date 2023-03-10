@@ -117,3 +117,9 @@ export class UserAutocompletionProvider
     return userToHit(this.repository, user)
   }
 }
+
+export class CoAuthorAutocompletionProvider extends UserAutocompletionProvider {
+  public getRegExp(): RegExp {
+    return /(?:^|\n| )(?:@)?([a-z\d\\+-][a-z\d_-]*)?/g
+  }
+}
