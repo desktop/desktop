@@ -68,7 +68,7 @@ body:
     id: no-issues-relating-to-this
     attributes:
       label: Duplicate Issues
-      description: Check to make sure there are no existing posts about your problem in the 'issues' section.
+      description: Check to make sure there are no existing posts about your problem in the ['issues'](https://github.com/desktop/desktop/issues) section.
       options:
         - label: There are **no existing posts relating to my problem**
           required: true
