@@ -32,8 +32,11 @@ export class GitEmailNotFoundWarning extends React.Component<IGitEmailNotFoundWa
         <span className="warning-icon">⚠️</span> This email address doesn't
         match {this.getAccountTypeDescription()}, so your commits will be
         wrongly attributed.{' '}
-        <LinkButton uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user">
-          Learn more about commit attribution.
+        <LinkButton
+          ariaLabel="Learn more about commit attribution"
+          uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
+        >
+          Learn more
         </LinkButton>
       </div>
     )
