@@ -39,6 +39,9 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /** Indicates if input field applies spellcheck */
   readonly spellcheck?: boolean
 
+  /** Indicates if it should always try to autocomplete. Optional (defaults to false) */
+  readonly alwaysAutocomplete?: boolean
+
   /**
    * Called when the user changes the value in the input field.
    */
@@ -301,13 +304,33 @@ export abstract class AutocompletingTextInput<
     }
   }
 
-  private renderTextInput() {
-    const autocompleteVisible =
-      this.state.autocompletionState !== null &&
-      this.state.autocompletionState.items.length > 0
+  private getActiveAutocompleteItemId(): string | undefined {
+    const { autocompletionState } = this.state
 
-    const activeAutocompleteItemId: string | undefined =
-      this.state.autocompletionState?.selectedRowId ?? undefined
+    if (autocompletionState === null) {
+      return undefined
+    }
+
+    if (autocompletionState.selectedRowId) {
+      return autocompletionState.selectedRowId
+    }
+
+    if (autocompletionState.selectedItem === null) {
+      return undefined
+    }
+
+    const index = autocompletionState.items.indexOf(
+      autocompletionState.selectedItem
+    )
+
+    return this.autocompletionListRef?.getRowId(index) ?? undefined
+  }
+
+  private renderTextInput() {
+    const { autocompletionState } = this.state
+
+    const autocompleteVisible =
+      autocompletionState !== null && autocompletionState.items.length > 0
 
     const props = {
       type: 'text',
@@ -316,6 +339,7 @@ export abstract class AutocompletingTextInput<
       ref: this.onRef,
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
+      onFocus: this.onFocus,
       onBlur: this.onBlur,
       onContextMenu: this.onContextMenu,
       disabled: this.props.disabled,
@@ -327,7 +351,7 @@ export abstract class AutocompletingTextInput<
       'aria-haspopup': 'listbox' as const,
       'aria-controls': 'autocomplete-container',
       'aria-owns': 'autocomplete-container',
-      'aria-activedescendant': activeAutocompleteItemId,
+      'aria-activedescendant': this.getActiveAutocompleteItemId(),
     }
 
     return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(
@@ -338,6 +362,14 @@ export abstract class AutocompletingTextInput<
 
   private onBlur = (e: React.FocusEvent<ElementType>) => {
     this.close()
+  }
+
+  private onFocus = (e: React.FocusEvent<ElementType>) => {
+    if (!this.props.alwaysAutocomplete || this.element === null) {
+      return
+    }
+
+    this.open(this.element.value)
   }
 
   private onRef = (ref: ElementType | null) => {
@@ -420,7 +452,11 @@ export abstract class AutocompletingTextInput<
 
     this.props.onAutocompleteItemSelected?.(item)
 
-    this.close()
+    if (this.props.alwaysAutocomplete) {
+      this.open('')
+    } else {
+      this.close()
+    }
   }
 
   private getMovementDirection(
@@ -484,7 +520,10 @@ export abstract class AutocompletingTextInput<
 
         this.setState({ autocompletionState: newAutoCompletionState })
       }
-    } else if (event.key === 'Enter' || event.key === 'Tab') {
+    } else if (
+      event.key === 'Enter' ||
+      (event.key === 'Tab' && !event.shiftKey)
+    ) {
       const item = currentAutoCompletionState.selectedItem
       if (item) {
         event.preventDefault()
@@ -518,7 +557,7 @@ export abstract class AutocompletingTextInput<
       while ((result = regex.exec(str))) {
         const index = regex.lastIndex
         const text = result[1] || ''
-        if (index === caretPosition) {
+        if (index === caretPosition || this.props.alwaysAutocomplete) {
           const range = { start: index - text.length, length: text.length }
           const items = await provider.getAutocompletionItems(text)
 
@@ -545,6 +584,10 @@ export abstract class AutocompletingTextInput<
       this.props.onValueChanged(str)
     }
 
+    return this.open(str)
+  }
+
+  private async open(str: string) {
     const element = this.element
 
     if (element === null) {

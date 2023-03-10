@@ -147,6 +147,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
           // className={descriptionClassName}
           placeholder="@username"
           // value={this.state.description || ''}
+          alwaysAutocomplete={true}
           autocompletionProviders={[this.props.autoCompleteProvider]}
           ref={this.autocompletingInputRef}
           onElementRef={this.onInputRef}

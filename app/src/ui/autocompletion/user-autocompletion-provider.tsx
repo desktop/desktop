@@ -92,7 +92,7 @@ export class UserAutocompletionProvider
 
     const hits = filtered.map(x => userToHit(this.repository, x))
 
-    if (includeUnknownUser) {
+    if (includeUnknownUser && text.length > 0) {
       const exactMatch = hits.some(
         hit => hit.username.toLowerCase() === text.toLowerCase()
       )
