@@ -42,6 +42,9 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /** Indicates if it should always try to autocomplete. Optional (defaults to false) */
   readonly alwaysAutocomplete?: boolean
 
+  /** Filter for autocomplete items */
+  readonly autocompleteItemFilter?: (item: AutocompleteItemType) => boolean
+
   /**
    * Called when the user changes the value in the input field.
    */
@@ -79,6 +82,7 @@ interface IAutocompletionState<T> {
   readonly rangeText: string
   readonly selectedItem: T | null
   readonly selectedRowId: string | undefined
+  readonly itemListRowIdPrefix: string
 }
 
 /**
@@ -119,8 +123,6 @@ export abstract class AutocompletingTextInput<
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
 
-  private autocompletionListRef: List | null = null
-
   /**
    * To be implemented by subclasses. It must return the element tag name which
    * should correspond to the ElementType over which it is parameterized.
@@ -132,7 +134,21 @@ export abstract class AutocompletingTextInput<
   ) {
     super(props)
 
-    this.state = { autocompletionState: null }
+    this.state = {
+      autocompletionState: null,
+    }
+  }
+
+  public componentDidUpdate(
+    prevProps: IAutocompletingTextInputProps<ElementType, AutocompleteItemType>
+  ) {
+    if (
+      this.props.autocompletionProviders !==
+        prevProps.autocompletionProviders &&
+      this.state.autocompletionState !== null
+    ) {
+      this.open(this.element?.value ?? '')
+    }
   }
 
   private renderItem = (row: number): JSX.Element | null => {
@@ -216,6 +232,7 @@ export abstract class AutocompletingTextInput<
           ref={this.onAutocompletionListRef}
           rowCount={items.length}
           rowHeight={RowHeight}
+          rowId={this.getRowId}
           selectedRows={[selectedRow]}
           rowRenderer={this.renderItem}
           scrollToRow={selectedRow}
@@ -230,15 +247,23 @@ export abstract class AutocompletingTextInput<
     )
   }
 
+  private getRowId: (row: number) => string = row => {
+    const state = this.state.autocompletionState
+    if (!state) {
+      return ''
+    }
+
+    return `autocomplete-item-row-${state.itemListRowIdPrefix}-${row}`
+  }
+
   private onAutocompletionListRef = (ref: List | null) => {
-    this.autocompletionListRef = ref
     const { autocompletionState } = this.state
     if (ref && autocompletionState && autocompletionState.selectedItem) {
       const { items, selectedItem } = autocompletionState
       this.setState({
         autocompletionState: {
           ...autocompletionState,
-          selectedRowId: ref.getRowId(items.indexOf(selectedItem)),
+          selectedRowId: this.getRowId(items.indexOf(selectedItem)),
         },
       })
     }
@@ -270,10 +295,7 @@ export abstract class AutocompletingTextInput<
     const newAutoCompletionState = {
       ...currentAutoCompletionState,
       selectedItem: newSelectedItem,
-      selectedRowId:
-        newSelectedItem === null
-          ? undefined
-          : this.autocompletionListRef?.getRowId(row) ?? undefined,
+      selectedRowId: newSelectedItem === null ? undefined : this.getRowId(row),
     }
 
     this.setState({ autocompletionState: newAutoCompletionState })
@@ -323,7 +345,7 @@ export abstract class AutocompletingTextInput<
       autocompletionState.selectedItem
     )
 
-    return this.autocompletionListRef?.getRowId(index) ?? undefined
+    return this.getRowId(index)
   }
 
   private renderTextInput() {
@@ -452,10 +474,9 @@ export abstract class AutocompletingTextInput<
 
     this.props.onAutocompleteItemSelected?.(item)
 
+    this.close()
     if (this.props.alwaysAutocomplete) {
       this.open('')
-    } else {
-      this.close()
     }
   }
 
@@ -513,9 +534,7 @@ export abstract class AutocompletingTextInput<
           ...currentAutoCompletionState,
           selectedItem: newSelectedItem,
           selectedRowId:
-            newSelectedItem === null
-              ? undefined
-              : this.autocompletionListRef?.getRowId(nextRow) ?? undefined,
+            newSelectedItem === null ? undefined : this.getRowId(nextRow),
         }
 
         this.setState({ autocompletionState: newAutoCompletionState })
@@ -559,7 +578,11 @@ export abstract class AutocompletingTextInput<
         const text = result[1] || ''
         if (index === caretPosition || this.props.alwaysAutocomplete) {
           const range = { start: index - text.length, length: text.length }
-          const items = await provider.getAutocompletionItems(text)
+          let items = await provider.getAutocompletionItems(text)
+
+          if (this.props.autocompleteItemFilter) {
+            items = items.filter(this.props.autocompleteItemFilter)
+          }
 
           const selectedItem = items[0]
           return {
@@ -569,12 +592,17 @@ export abstract class AutocompletingTextInput<
             selectedItem,
             selectedRowId: undefined,
             rangeText: text,
+            itemListRowIdPrefix: this.buildAutocompleteListRowIdPrefix(),
           }
         }
       }
     }
 
     return null
+  }
+
+  private buildAutocompleteListRowIdPrefix() {
+    return new Date().getTime().toString()
   }
 
   private onChange = async (event: React.FormEvent<ElementType>) => {

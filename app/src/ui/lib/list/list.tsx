@@ -72,6 +72,13 @@ interface IListProps {
   readonly rowHeight: number | ((info: { index: number }) => number)
 
   /**
+   * Function that generates an ID for a given row. This will allow the
+   * container component of the list to have control over the ID of the
+   * row and allow it to be used for things like keyboard navigation.
+   */
+  readonly rowId?: (row: number) => string
+
+  /**
    * The currently selected rows indexes. Used to attach a special
    * selection class on those row's containers as well as being used
    * for keyboard selection.
@@ -362,7 +369,11 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  public getRowId(row: number): string | undefined {
+  private getRowId(row: number): string | undefined {
+    if (this.props.rowId) {
+      return this.props.rowId(row)
+    }
+
     return this.state.rowIdPrefix === undefined
       ? undefined
       : `${this.state.rowIdPrefix}-${row}`
@@ -946,9 +957,7 @@ export class List extends React.Component<IListProps, IListState> {
         row
       )
 
-    const id = this.state.rowIdPrefix
-      ? `${this.state.rowIdPrefix}-${rowIndex}`
-      : undefined
+    const id = this.getRowId(rowIndex)
 
     const ariaLabel =
       this.props.getRowAriaLabel !== undefined

@@ -8,6 +8,7 @@ import {
 } from '../autocompletion'
 import { IAuthor } from '../../models/author'
 import { getLegacyStealthEmailForUser } from '../../lib/email'
+import memoizeOne from 'memoize-one'
 
 interface IAuthorInputProps {
   /**
@@ -118,6 +119,16 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
   private shadowInputRef = React.createRef<HTMLDivElement>()
   private inputRef: HTMLInputElement | null = null
 
+  private getAutocompleteItemFilter = memoizeOne(
+    (authors: ReadonlyArray<IAuthor>) => (item: UserHit) => {
+      if (item.kind !== 'known-user') {
+        return true
+      }
+
+      return !authors.some(a => a.username === item.username)
+    }
+  )
+
   public constructor(props: IAuthorInputProps) {
     super(props)
   }
@@ -144,18 +155,17 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
         <div className="shadow-input" ref={this.shadowInputRef} />
         {this.renderAuthors()}
         <AutocompletingInput<UserHit>
-          // className={descriptionClassName}
           placeholder="@username"
-          // value={this.state.description || ''}
           alwaysAutocomplete={true}
           autocompletionProviders={[this.props.autoCompleteProvider]}
+          autocompleteItemFilter={this.getAutocompleteItemFilter(
+            this.props.authors
+          )}
           ref={this.autocompletingInputRef}
           onElementRef={this.onInputRef}
           onAutocompleteItemSelected={this.onAutocompleteItemSelected}
           onValueChanged={this.onCoAuthorsValueChanged}
-          // onContextMenu={this.onAutocompletingInputContextMenu}
-          // disabled={this.props.isCommitting === true}
-          // spellcheck={this.props.commitSpellcheckEnabled}
+          onKeyDown={this.onInputKeyDown}
         />
       </div>
     )
@@ -201,10 +211,26 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
   private renderAuthors() {
     return this.props.authors.map((author, index) => {
       return (
-        <div key={index} className="handle">
+        <div
+          key={index}
+          className="handle"
+          aria-label={`@${author.username} press backspace or delete to remove`}
+        >
           @{author.username}
         </div>
       )
     })
+  }
+
+  private onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (this.inputRef === null) {
+      return
+    }
+
+    if (event.key === 'Backspace' && this.inputRef.selectionStart === 0) {
+      this.props.onAuthorsUpdated(
+        this.props.authors.slice(0, this.props.authors.length - 1)
+      )
+    }
   }
 }
