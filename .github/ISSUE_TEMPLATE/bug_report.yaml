@@ -64,7 +64,7 @@ body:
       label: Additional context
       description:
         Add any other context about the problem you are experiencing here.
-   - type: checkboxes
+  - type: checkboxes
     id: no-issues-relating-to-this
     attributes:
       label: Duplicate Issues
