@@ -75,8 +75,9 @@ export class UserAutocompletionProvider
     return /(?:^|\n| )(?:@)([a-z\d\\+-][a-z\d_-]*)?/g
   }
 
-  public async getAutocompletionItems(
-    text: string
+  protected async getUserAutocompletionItems(
+    text: string,
+    includeUnknownUser: boolean
   ): Promise<ReadonlyArray<UserHit>> {
     const users = await this.gitHubUserStore.getMentionableUsersMatching(
       this.repository,
@@ -89,7 +90,28 @@ export class UserAutocompletionProvider
       ? users.filter(x => x.login !== account.login)
       : users
 
-    return filtered.map(x => userToHit(this.repository, x))
+    const hits = filtered.map(x => userToHit(this.repository, x))
+
+    if (includeUnknownUser) {
+      const exactMatch = hits.some(
+        hit => hit.username.toLowerCase() === text.toLowerCase()
+      )
+
+      if (!exactMatch) {
+        hits.push({
+          kind: 'unknown-user',
+          username: text,
+        })
+      }
+    }
+
+    return hits
+  }
+
+  public async getAutocompletionItems(
+    text: string
+  ): Promise<ReadonlyArray<UserHit>> {
+    return this.getUserAutocompletionItems(text, false)
   }
 
   public renderItem(item: UserHit): JSX.Element {
@@ -143,7 +165,6 @@ export class CoAuthorAutocompletionProvider extends UserAutocompletionProvider {
   public async getAutocompletionItems(
     text: string
   ): Promise<ReadonlyArray<UserHit>> {
-    const hits = await super.getAutocompletionItems(text)
-    return [...hits, { kind: 'unknown-user', username: text }]
+    return super.getUserAutocompletionItems(text, true)
   }
 }
