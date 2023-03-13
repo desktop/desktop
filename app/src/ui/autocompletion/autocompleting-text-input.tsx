@@ -73,6 +73,8 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
    * in the input field.
    */
   readonly onContextMenu?: (event: React.MouseEvent<any>) => void
+
+  readonly onFocus?: (event: React.FocusEvent<ElementType>) => void
 }
 
 interface IAutocompletionState<T> {
@@ -399,6 +401,8 @@ export abstract class AutocompletingTextInput<
     }
 
     this.open(this.element.value)
+
+    this.props.onFocus?.(e)
   }
 
   private onRef = (ref: ElementType | null) => {

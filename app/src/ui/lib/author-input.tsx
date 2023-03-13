@@ -44,6 +44,10 @@ interface IAuthorInputProps {
   readonly disabled: boolean
 }
 
+interface IAuthorInputState {
+  readonly focusedAuthorIndex: number
+}
+
 /**
  * Comparison method for use in sorting lists of markers in ascending
  * order of start positions.
@@ -98,7 +102,10 @@ function authorFromUserHit(user: KnownUserHit): IAuthor {
  * Intended primarily for co-authors but written in a general enough
  * fashion to deal only with authors in general.
  */
-export class AuthorInput extends React.Component<IAuthorInputProps> {
+export class AuthorInput extends React.Component<
+  IAuthorInputProps,
+  IAuthorInputState
+> {
   /**
    * The internal list of authors. Note that codemirror
    * ultimately is the source of truth for what authors
@@ -118,6 +125,7 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
     React.createRef<AutocompletingInput<UserHit>>()
   private shadowInputRef = React.createRef<HTMLDivElement>()
   private inputRef: HTMLInputElement | null = null
+  private authorContainerRef = React.createRef<HTMLDivElement>()
 
   private getAutocompleteItemFilter = memoizeOne(
     (authors: ReadonlyArray<IAuthor>) => (item: UserHit) => {
@@ -131,6 +139,33 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
 
   public constructor(props: IAuthorInputProps) {
     super(props)
+
+    this.state = {
+      focusedAuthorIndex: -1,
+    }
+  }
+
+  public componentDidUpdate(prevProps: IAuthorInputProps) {
+    if (this.props.authors.length === prevProps.authors.length - 1) {
+      // Check if current authors are a subset of prev authors, meaning an author
+      // was removed
+      const isSubset = this.props.authors.every(author =>
+        prevProps.authors.some(
+          prevAuthor =>
+            prevAuthor.name === author.name &&
+            prevAuthor.email === author.email &&
+            prevAuthor.username === author.username
+        )
+      )
+      if (isSubset) {
+        // Keep focused author except if the last one was focused
+        if (this.state.focusedAuthorIndex >= this.props.authors.length) {
+          this.focusAuthorHandle(-1)
+        } else {
+          this.focusAuthorHandle(this.state.focusedAuthorIndex)
+        }
+      }
+    }
   }
 
   public focus() {
@@ -138,9 +173,6 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
   }
 
   public render() {
-    // const authors = this.props.authors.map(getDisplayTextForAuthor)
-    // const ariaLabel = `Co-Authors: ${authors.join(', ')}`
-
     const className = classNames(
       'author-input-component',
       this.props.className,
@@ -166,22 +198,82 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
           onAutocompleteItemSelected={this.onAutocompleteItemSelected}
           onValueChanged={this.onCoAuthorsValueChanged}
           onKeyDown={this.onInputKeyDown}
+          onFocus={this.onInputFocus}
         />
       </div>
     )
   }
 
+  private onAuthorKeyDown = (event: React.KeyboardEvent<HTMLSpanElement>) => {
+    if (event.key === 'ArrowLeft') {
+      this.focusPreviousAuthor()
+    } else if (event.key === 'ArrowRight') {
+      this.focusNextAuthor()
+    } else if (event.key === 'Backspace' || event.key === 'Delete') {
+      this.removeAuthor(this.state.focusedAuthorIndex)
+    }
+  }
+
+  private removeAuthor(index: number) {
+    const { authors } = this.props
+
+    if (index >= 0 && index < authors.length) {
+      const newAuthors = authors
+        .slice(0, index)
+        .concat(authors.slice(index + 1))
+      this.props.onAuthorsUpdated(newAuthors)
+    }
+  }
+
+  private focusPreviousAuthor() {
+    const { focusedAuthorIndex } = this.state
+    const { authors } = this.props
+
+    if (focusedAuthorIndex === -1) {
+      this.focusAuthorHandle(authors.length - 1)
+    } else if (focusedAuthorIndex > 0) {
+      this.focusAuthorHandle(focusedAuthorIndex - 1)
+    }
+  }
+
+  private focusNextAuthor() {
+    const { focusedAuthorIndex } = this.state
+    const { authors } = this.props
+
+    if (focusedAuthorIndex < authors.length - 1) {
+      this.focusAuthorHandle(focusedAuthorIndex + 1)
+    } else {
+      this.focusAuthorHandle(-1)
+    }
+  }
+
+  private onInputFocus = () => {
+    this.setState({ focusedAuthorIndex: -1 })
+  }
+
   private onCoAuthorsValueChanged = (value: string) => {
     // Set the value to the shadow input div and then measure its width
     // to set the width of the input field.
-    if (this.shadowInputRef.current === null || this.inputRef === null) {
+    if (
+      this.shadowInputRef.current === null ||
+      this.inputRef === null ||
+      this.inputRef.parentElement === null ||
+      this.inputRef.parentElement.parentElement === null
+    ) {
       return
     }
     this.shadowInputRef.current.textContent = value
     const valueWidth = this.shadowInputRef.current.clientWidth
     this.shadowInputRef.current.textContent = this.inputRef.placeholder
     const placeholderWidth = this.shadowInputRef.current.clientWidth
-    this.inputRef.style.width = `${Math.max(valueWidth, placeholderWidth)}px`
+
+    const inputParent = this.inputRef.parentElement
+    const inputGrandparent = this.inputRef.parentElement.parentElement
+
+    inputParent.style.minWidth = `${Math.min(
+      inputGrandparent.getBoundingClientRect().width - 10,
+      Math.max(valueWidth, placeholderWidth)
+    )}px`
   }
 
   private onInputRef = (input: HTMLInputElement | null) => {
@@ -209,17 +301,29 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
   }
 
   private renderAuthors() {
-    return this.props.authors.map((author, index) => {
-      return (
-        <div
-          key={index}
-          className="handle"
-          aria-label={`@${author.username} press backspace or delete to remove`}
-        >
-          @{author.username}
-        </div>
-      )
-    })
+    const { focusedAuthorIndex } = this.state
+    return (
+      <div className="added-author-container" ref={this.authorContainerRef}>
+        {this.props.authors.map((author, index) => {
+          return (
+            <div
+              key={index}
+              className={classNames('handle', {
+                focused: index === focusedAuthorIndex,
+              })}
+              aria-label={`@${author.username} press backspace or delete to remove`}
+              role="option"
+              aria-selected={index === focusedAuthorIndex}
+              onKeyDown={this.onAuthorKeyDown}
+              onClick={this.onAuthorClick}
+              tabIndex={-1}
+            >
+              @{author.username}
+            </div>
+          )
+        })}
+      </div>
+    )
   }
 
   private onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -232,5 +336,31 @@ export class AuthorInput extends React.Component<IAuthorInputProps> {
         this.props.authors.slice(0, this.props.authors.length - 1)
       )
     }
+
+    if (event.key === 'ArrowLeft' && this.inputRef.selectionStart === 0) {
+      this.focusPreviousAuthor()
+    }
+  }
+
+  private focusAuthorHandle(index: number) {
+    if (index === -1) {
+      this.inputRef?.focus()
+    } else {
+      const handle = this.authorContainerRef.current?.getElementsByClassName(
+        'handle'
+      )[index] as HTMLElement | null
+
+      handle?.focus()
+    }
+
+    this.setState({ focusedAuthorIndex: index })
+  }
+
+  private onAuthorClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const handle = event.target as HTMLElement
+    const index = Array.from(handle.parentElement?.children ?? []).indexOf(
+      handle
+    )
+    this.focusAuthorHandle(index)
   }
 }

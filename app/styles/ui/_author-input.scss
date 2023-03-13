@@ -9,6 +9,7 @@
     border: none;
     background: none;
     box-shadow: none;
+    width: 100%;
 
     &:focus {
       outline: none;
@@ -23,6 +24,14 @@
     opacity: 0;
     z-index: -1;
     width: fit-content;
+  }
+
+  .added-author-container {
+    display: contents;
+  }
+
+  .autocompletion-container {
+    cursor: text;
   }
 
   @include textboxish;
@@ -42,17 +51,13 @@
     color: var(--text-secondary-color);
   }
 
-  .placeholder {
-    color: var(--text-secondary-color);
-    cursor: text;
-  }
-
   .handle {
     border-radius: var(--border-radius);
     border: 1px solid var(--co-author-tag-border-color);
     background: var(--co-author-tag-background-color);
     padding: 1px 2px;
     margin: 0px 2px;
+    cursor: pointer;
 
     &.progress {
       background: transparent;
@@ -66,6 +71,12 @@
       svg {
         padding-bottom: 2px;
       }
+    }
+
+    &.focused {
+      background: var(--box-selected-active-background-color);
+      border-color: var(--co-author-tag-selected-border-color);
+      color: var(--box-selected-active-text-color);
     }
 
     &.progress,
