@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { IMenu, ISubmenuItem } from '../../models/app-menu'
-import { MenuListItem } from './menu-list-item'
 import { AppMenu, CloseSource } from './app-menu'
-import { ToolbarDropdown } from '../toolbar'
 import { Dispatcher } from '../dispatcher'
+import { AppMenuDropdown } from './app-menu-dropdown'
+import { MenuListItem } from './menu-list-item'
 
 interface IAppMenuBarButtonProps {
   /**
@@ -140,6 +140,11 @@ interface IAppMenuBarButtonProps {
   ) => void
 
   readonly dispatcher: Dispatcher
+
+  /** Whether or note the menu bar button is in focus, this determines if it's
+   * tab index is 0 or -1. It needs to be 0 when in focus for the screen reader
+   * properly announce it. */
+  readonly isFocused: boolean
 }
 
 /**
@@ -151,7 +156,7 @@ export class AppMenuBarButton extends React.Component<
   IAppMenuBarButtonProps,
   {}
 > {
-  private innerDropDown: ToolbarDropdown | null = null
+  private innerDropDown: AppMenuDropdown | null = null
 
   /**
    * Gets a value indicating whether or not the menu of this
@@ -183,13 +188,13 @@ export class AppMenuBarButton extends React.Component<
   }
 
   public render() {
-    const item = this.props.menuItem
+    const { menuItem, isFocused } = this.props
     const dropDownState = this.isMenuOpen ? 'open' : 'closed'
 
     return (
-      <ToolbarDropdown
+      <AppMenuDropdown
         ref={this.onDropDownRef}
-        key={item.id}
+        key={menuItem.id}
         dropdownState={dropDownState}
         onDropdownStateChanged={this.onDropdownStateChanged}
         dropdownContentRenderer={this.dropDownContentRenderer}
@@ -201,21 +206,21 @@ export class AppMenuBarButton extends React.Component<
         showDisclosureArrow={false}
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}
-        tabIndex={-1}
-        role="menuitem"
+        tabIndex={isFocused ? 0 : -1}
+        buttonRole="menuitem"
       >
         <MenuListItem
-          item={item}
+          item={menuItem}
           highlightAccessKey={this.props.highlightMenuAccessKey}
           renderAcceleratorText={false}
           renderSubMenuArrow={false}
           selected={false}
         />
-      </ToolbarDropdown>
+      </AppMenuDropdown>
     )
   }
 
-  private onDropDownRef = (dropdown: ToolbarDropdown | null) => {
+  private onDropDownRef = (dropdown: AppMenuDropdown | null) => {
     this.innerDropDown = dropdown
   }
 
@@ -274,6 +279,7 @@ export class AppMenuBarButton extends React.Component<
         state={menuState}
         enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
         autoHeight={true}
+        ariaLabel={this.props.menuItem.label}
       />
     )
   }

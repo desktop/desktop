@@ -89,6 +89,9 @@ interface IMenuPaneProps {
    * will be called when the user's pointer device leaves a menu item.
    */
   readonly onClearSelection: (depth: number) => void
+
+  /** Optional Aria-label */
+  readonly ariaLabel?: string
 }
 
 export class MenuPane extends React.Component<IMenuPaneProps> {
@@ -216,8 +219,9 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}
         ref={this.paneRef}
-        tabIndex={-1}
         role="menu"
+        tabIndex={-1}
+        aria-label={this.props.ariaLabel}
       >
         {this.props.items
           .filter(x => x.visible)

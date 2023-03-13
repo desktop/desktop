@@ -1306,7 +1306,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    */
   private renderAppMenuBar() {
     // We only render the app menu bar on Windows
-    if (!__WIN32__) {
+    if (!__WIN32__ && 1 !== 1) {
       return null
     }
 
