@@ -9,7 +9,7 @@ import {
   CommittedFileChange,
 } from '../../models/status'
 import { DiffHunk, DiffHunkExpansionType } from '../../models/diff/raw-diff'
-import { DiffLineType } from '../../models/diff'
+import { DiffLineType, ILargeTextDiff, ITextDiff } from '../../models/diff'
 import { DiffSyntaxToken } from './diff-syntax-mode'
 
 /**
@@ -453,4 +453,40 @@ export function getFirstAndLastClassesUnified(
   }
 
   return classNames
+}
+
+/**
+ * Compares two text diffs for structural equality.
+ *
+ * Components needing to know whether a re-render is necessary after receiving
+ * a diff is the intended use case.
+ */
+export function textDiffEquals(
+  x: ITextDiff | ILargeTextDiff,
+  y: ITextDiff | ILargeTextDiff
+) {
+  if (x === y) {
+    return true
+  }
+
+  if (
+    x.text === y.text &&
+    x.kind === y.kind &&
+    x.hasHiddenBidiChars === y.hasHiddenBidiChars &&
+    x.lineEndingsChange === y.lineEndingsChange &&
+    x.hunks.length === y.hunks.length
+  ) {
+    // This is a performance optimization which lets us avoid iterating over all
+    // lines (deep equality on all hunks). We're already comparing the diff text
+    // above so the only thing that can change with the diff text staying the
+    // same is whether or not the last line is followed by a trailing newline.
+    // That information is encodeded in the noTrailingNewLine property which
+    // exists on all lines but is only ever set on lines in the last hunk
+    return (
+      x.hunks.length === 0 ||
+      x.hunks[x.hunks.length - 1].equals(y.hunks[y.hunks.length - 1])
+    )
+  }
+
+  return false
 }

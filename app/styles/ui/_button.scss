@@ -10,7 +10,7 @@
 
   padding: 0 var(--spacing);
 
-  border: var(--base-border);
+  border: 1px solid var(--secondary-button-border-color);
   height: var(--button-height);
 
   color: var(--secondary-button-text-color);
@@ -23,7 +23,7 @@
       border-width: 2px;
     }
 
-    border-color: var(--secondary-button-focus-border-color);
+    border-color: var(--secondary-button-hover-border-color);
     background-color: var(--secondary-button-hover-background);
   }
 

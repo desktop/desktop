@@ -9,6 +9,7 @@
 
   display: flex;
   background-color: var(--box-alt-background-color);
+
   padding: var(--spacing);
 
   .summary {
@@ -90,7 +91,7 @@
   }
 
   .description-focus-container {
-    border: 1px solid var(--box-border-color);
+    border: var(--contrast-border);
     border-radius: var(--border-radius);
     background: var(--background-color);
     // Fake that we're a text-box
