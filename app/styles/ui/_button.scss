@@ -57,8 +57,8 @@
 
   &:focus {
     background-color: var(--button-hover-background);
-    border: none;
     outline-offset: 3px;
+    border-color: var(--button-background);
   }
 }
 
