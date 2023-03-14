@@ -31,4 +31,10 @@
       margin-bottom: 0;
     }
   }
+
+  .no-remote-publish-message {
+    .link-button-component {
+      display: inline;
+    }
+  }
 }

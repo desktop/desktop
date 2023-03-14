@@ -74,7 +74,10 @@ export class GitEmailNotFoundWarning extends React.Component<
     const info = !isAttributableEmail ? (
       <>
         Your commits will be wrongly attributed.{' '}
-        <LinkButton uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user">
+        <LinkButton
+          ariaLabel="Learn more about commit attribution"
+          uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
+        >
           Learn more.
         </LinkButton>
       </>
