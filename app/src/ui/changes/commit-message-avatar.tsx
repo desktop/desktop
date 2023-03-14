@@ -141,8 +141,11 @@ export class CommitMessageAvatar extends React.Component<
       <Popover
         caretPosition={PopoverCaretPosition.LeftBottom}
         onClickOutside={this.closePopover}
+        ariaLabelledby="misattributed-commit-popover-header"
       >
-        <h3>This commit will be misattributed</h3>
+        <h3 id="misattributed-commit-popover-header">
+          This commit will be misattributed
+        </h3>
         <Row>
           <div>
             The email in your global Git config (
