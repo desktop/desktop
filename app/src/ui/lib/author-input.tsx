@@ -95,7 +95,7 @@ function getEmailAddressForUser(user: KnownUserHit) {
  * If the IUserHit object lacks an email address we'll
  * attempt to create a stealth email address.
  */
-function authorFromUserHit(user: KnownUserHit): Author {
+function authorFromUserHit(user: KnownUserHit): KnownAuthor {
   return {
     kind: 'known',
     name: user.name || user.username,
@@ -290,10 +290,50 @@ export class AuthorInput extends React.Component<
     const newAuthors = [...this.props.authors, authorToAdd]
     this.emitAuthorsUpdated(newAuthors)
 
+    if (!isKnownAuthor(authorToAdd)) {
+      this.attemptUnknownAuthorSearch(authorToAdd)
+    }
+
     if (this.inputRef !== null) {
       this.inputRef.value = ''
       this.onCoAuthorsValueChanged('')
     }
+  }
+
+  private async attemptUnknownAuthorSearch(author: UnknownAuthor) {
+    const knownAuthor = this.props.authors
+      .filter(isKnownAuthor)
+      .find(a => a.username === author.username)
+
+    if (knownAuthor !== undefined) {
+      this.updateUnknownAuthor(knownAuthor)
+      return
+    }
+
+    const hit = await this.props.autoCompleteProvider.exactMatch(
+      author.username
+    )
+
+    if (hit === null || hit.kind !== 'known-user') {
+      const erroredUnknownAuthor: UnknownAuthor = {
+        ...author,
+        state: 'error',
+      }
+
+      this.updateUnknownAuthor(erroredUnknownAuthor)
+      return
+    }
+
+    const hitAuthor = authorFromUserHit(hit)
+    this.updateUnknownAuthor(hitAuthor)
+  }
+
+  private updateUnknownAuthor(author: Author) {
+    const newAuthors = this.props.authors.map(a =>
+      a.username === author.username && !isKnownAuthor(a) ? author : a
+    )
+
+    this.emitAuthorsUpdated(newAuthors)
   }
 
   private renderAuthors() {
