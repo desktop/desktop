@@ -14,6 +14,8 @@ import {
 } from '../../models/author'
 import { getLegacyStealthEmailForUser } from '../../lib/email'
 import memoizeOne from 'memoize-one'
+import { Octicon, syncClockwise } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface IAuthorInputProps {
   /**
@@ -329,18 +331,23 @@ export class AuthorInput extends React.Component<
 
   private renderUnknownAuthor(author: UnknownAuthor, index: number) {
     const { focusedAuthorIndex } = this.state
-    const stateAriaLabel =
-      author.state === 'searching' ? 'searching' : 'search error'
+    const isError = author.state === 'error'
+    const stateAriaLabel = isError ? 'search error' : 'searching'
 
     return (
       <div
         key={index}
         className={classNames('handle', {
           focused: index === focusedAuthorIndex,
-          progress: author.state === 'searching',
-          error: author.state === 'error',
+          progress: !isError,
+          error: isError,
         })}
         aria-label={`@${author.username}, ${stateAriaLabel}, press backspace or delete to remove`}
+        title={
+          isError
+            ? `Could not find user with username ${author.username}`
+            : `Searching for @${author.username}`
+        }
         role="option"
         aria-selected={index === focusedAuthorIndex}
         onKeyDown={this.onAuthorKeyDown}
@@ -348,6 +355,10 @@ export class AuthorInput extends React.Component<
         tabIndex={-1}
       >
         @{author.username}
+        <Octicon
+          className={classNames('icon', { spin: !isError })}
+          symbol={isError ? OcticonSymbol.stop : syncClockwise}
+        />
       </div>
     )
   }
