@@ -393,11 +393,10 @@ export class AuthorInput extends React.Component<
       return
     }
 
-    if (event.key === 'Backspace' && this.inputRef.selectionStart === 0) {
-      this.removeAuthor(this.props.authors.length - 1)
-    }
-
-    if (event.key === 'ArrowLeft' && this.inputRef.selectionStart === 0) {
+    if (
+      (event.key === 'ArrowLeft' || event.key === 'Backspace') &&
+      this.inputRef.selectionStart === 0
+    ) {
       this.focusPreviousAuthor()
     }
 
