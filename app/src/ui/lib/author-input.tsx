@@ -52,7 +52,7 @@ interface IAuthorInputProps {
 }
 
 interface IAuthorInputState {
-  readonly focusedAuthorIndex: number
+  readonly focusedAuthorIndex: number | null
 }
 
 /**
@@ -117,7 +117,7 @@ export class AuthorInput extends React.Component<
     super(props)
 
     this.state = {
-      focusedAuthorIndex: -1,
+      focusedAuthorIndex: null,
     }
   }
 
@@ -162,7 +162,10 @@ export class AuthorInput extends React.Component<
       this.focusPreviousAuthor()
     } else if (event.key === 'ArrowRight') {
       this.focusNextAuthor()
-    } else if (event.key === 'Backspace' || event.key === 'Delete') {
+    } else if (
+      this.state.focusedAuthorIndex !== null &&
+      (event.key === 'Backspace' || event.key === 'Delete')
+    ) {
       this.removeAuthor(this.state.focusedAuthorIndex)
     }
   }
@@ -174,7 +177,7 @@ export class AuthorInput extends React.Component<
       const newAuthors = authors
         .slice(0, index)
         .concat(authors.slice(index + 1))
-      const newFocusedAuthorIndex = index === authors.length - 1 ? -1 : index
+      const newFocusedAuthorIndex = index === authors.length - 1 ? null : index
       this.focusAuthorHandle(newFocusedAuthorIndex)
       this.emitAuthorsUpdated(newAuthors)
     }
@@ -188,7 +191,7 @@ export class AuthorInput extends React.Component<
     const { focusedAuthorIndex } = this.state
     const { authors } = this.props
 
-    if (focusedAuthorIndex === -1) {
+    if (focusedAuthorIndex === null) {
       this.focusAuthorHandle(authors.length - 1)
     } else if (focusedAuthorIndex > 0) {
       this.focusAuthorHandle(focusedAuthorIndex - 1)
@@ -199,15 +202,18 @@ export class AuthorInput extends React.Component<
     const { focusedAuthorIndex } = this.state
     const { authors } = this.props
 
-    if (focusedAuthorIndex < authors.length - 1) {
+    if (
+      focusedAuthorIndex !== null &&
+      focusedAuthorIndex < authors.length - 1
+    ) {
       this.focusAuthorHandle(focusedAuthorIndex + 1)
     } else {
-      this.focusAuthorHandle(-1)
+      this.focusAuthorHandle(null)
     }
   }
 
   private onInputFocus = () => {
-    this.setState({ focusedAuthorIndex: -1 })
+    this.setState({ focusedAuthorIndex: null })
   }
 
   private onCoAuthorsValueChanged = (value: string) => {
@@ -402,8 +408,8 @@ export class AuthorInput extends React.Component<
     }
   }
 
-  private focusAuthorHandle(index: number) {
-    if (index === -1) {
+  private focusAuthorHandle(index: number | null) {
+    if (index === null) {
       this.inputRef?.focus()
     } else {
       const handle = this.authorContainerRef.current?.getElementsByClassName(
