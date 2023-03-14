@@ -595,12 +595,11 @@ export abstract class AutocompletingTextInput<
             items = items.filter(this.props.autocompleteItemFilter)
           }
 
-          const selectedItem = items[0]
           return {
             provider,
             items,
             range,
-            selectedItem,
+            selectedItem: null,
             selectedRowId: undefined,
             rangeText: text,
             itemListRowIdPrefix: this.buildAutocompleteListRowIdPrefix(),
