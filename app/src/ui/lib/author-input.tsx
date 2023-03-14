@@ -6,7 +6,12 @@ import {
   UserHit,
   KnownUserHit,
 } from '../autocompletion'
-import { IAuthor } from '../../models/author'
+import {
+  Author,
+  isKnownAuthor,
+  KnownAuthor,
+  UnknownAuthor,
+} from '../../models/author'
 import { getLegacyStealthEmailForUser } from '../../lib/email'
 import memoizeOne from 'memoize-one'
 
@@ -29,13 +34,13 @@ interface IAuthorInputProps {
    * while the component is mounted it will reset, loosing
    * any text that has not yet been resolved to an author.
    */
-  readonly authors: ReadonlyArray<IAuthor>
+  readonly authors: ReadonlyArray<Author>
 
   /**
    * A method called when authors has been added or removed from the
    * input field.
    */
-  readonly onAuthorsUpdated: (authors: ReadonlyArray<IAuthor>) => void
+  readonly onAuthorsUpdated: (authors: ReadonlyArray<Author>) => void
 
   /**
    * Whether or not the input should be read-only and styled as being
@@ -88,8 +93,9 @@ function getEmailAddressForUser(user: KnownUserHit) {
  * If the IUserHit object lacks an email address we'll
  * attempt to create a stealth email address.
  */
-function authorFromUserHit(user: KnownUserHit): IAuthor {
+function authorFromUserHit(user: KnownUserHit): Author {
   return {
+    kind: 'known',
     name: user.name || user.username,
     email: getEmailAddressForUser(user),
     username: user.username,
@@ -128,12 +134,14 @@ export class AuthorInput extends React.Component<
   private authorContainerRef = React.createRef<HTMLDivElement>()
 
   private getAutocompleteItemFilter = memoizeOne(
-    (authors: ReadonlyArray<IAuthor>) => (item: UserHit) => {
+    (authors: ReadonlyArray<Author>) => (item: UserHit) => {
       if (item.kind !== 'known-user') {
         return true
       }
 
-      return !authors.some(a => a.username === item.username)
+      const usernames = authors.map(a => a.username)
+
+      return !usernames.some(u => u === item.username)
     }
   )
 
@@ -142,29 +150,6 @@ export class AuthorInput extends React.Component<
 
     this.state = {
       focusedAuthorIndex: -1,
-    }
-  }
-
-  public componentDidUpdate(prevProps: IAuthorInputProps) {
-    if (this.props.authors.length === prevProps.authors.length - 1) {
-      // Check if current authors are a subset of prev authors, meaning an author
-      // was removed
-      const isSubset = this.props.authors.every(author =>
-        prevProps.authors.some(
-          prevAuthor =>
-            prevAuthor.name === author.name &&
-            prevAuthor.email === author.email &&
-            prevAuthor.username === author.username
-        )
-      )
-      if (isSubset) {
-        // Keep focused author except if the last one was focused
-        if (this.state.focusedAuthorIndex >= this.props.authors.length) {
-          this.focusAuthorHandle(-1)
-        } else {
-          this.focusAuthorHandle(this.state.focusedAuthorIndex)
-        }
-      }
     }
   }
 
@@ -221,8 +206,14 @@ export class AuthorInput extends React.Component<
       const newAuthors = authors
         .slice(0, index)
         .concat(authors.slice(index + 1))
-      this.props.onAuthorsUpdated(newAuthors)
+      const newFocusedAuthorIndex = index === authors.length - 1 ? -1 : index
+      this.focusAuthorHandle(newFocusedAuthorIndex)
+      this.emitAuthorsUpdated(newAuthors)
     }
+  }
+
+  private emitAuthorsUpdated(addedAuthors: ReadonlyArray<Author>) {
+    this.props.onAuthorsUpdated(addedAuthors)
   }
 
   private focusPreviousAuthor() {
@@ -285,14 +276,17 @@ export class AuthorInput extends React.Component<
   }
 
   private onAutocompleteItemSelected = (item: UserHit) => {
-    if (item.kind !== 'known-user') {
-      return
-    }
+    const authorToAdd: Author =
+      item.kind === 'known-user'
+        ? authorFromUserHit(item)
+        : {
+            kind: 'unknown',
+            username: item.username,
+            state: 'searching',
+          }
 
-    this.props.onAuthorsUpdated([
-      ...this.props.authors,
-      authorFromUserHit(item),
-    ])
+    const newAuthors = [...this.props.authors, authorToAdd]
+    this.emitAuthorsUpdated(newAuthors)
 
     if (this.inputRef !== null) {
       this.inputRef.value = ''
@@ -301,27 +295,59 @@ export class AuthorInput extends React.Component<
   }
 
   private renderAuthors() {
-    const { focusedAuthorIndex } = this.state
     return (
       <div className="added-author-container" ref={this.authorContainerRef}>
         {this.props.authors.map((author, index) => {
-          return (
-            <div
-              key={index}
-              className={classNames('handle', {
-                focused: index === focusedAuthorIndex,
-              })}
-              aria-label={`@${author.username} (${author.name}) press backspace or delete to remove`}
-              role="option"
-              aria-selected={index === focusedAuthorIndex}
-              onKeyDown={this.onAuthorKeyDown}
-              onClick={this.onAuthorClick}
-              tabIndex={-1}
-            >
-              @{author.username}
-            </div>
-          )
+          return isKnownAuthor(author)
+            ? this.renderKnownAuthor(author, index)
+            : this.renderUnknownAuthor(author, index)
         })}
+      </div>
+    )
+  }
+
+  private renderKnownAuthor(author: KnownAuthor, index: number) {
+    const { focusedAuthorIndex } = this.state
+
+    return (
+      <div
+        key={index}
+        className={classNames('handle', {
+          focused: index === focusedAuthorIndex,
+        })}
+        aria-label={`@${author.username} (${author.name}) press backspace or delete to remove`}
+        role="option"
+        aria-selected={index === focusedAuthorIndex}
+        onKeyDown={this.onAuthorKeyDown}
+        onClick={this.onAuthorClick}
+        tabIndex={-1}
+      >
+        @{author.username}
+      </div>
+    )
+  }
+
+  private renderUnknownAuthor(author: UnknownAuthor, index: number) {
+    const { focusedAuthorIndex } = this.state
+    const stateAriaLabel =
+      author.state === 'searching' ? 'searching' : 'search error'
+
+    return (
+      <div
+        key={index}
+        className={classNames('handle', {
+          focused: index === focusedAuthorIndex,
+          progress: author.state === 'searching',
+          error: author.state === 'error',
+        })}
+        aria-label={`@${author.username}, ${stateAriaLabel}, press backspace or delete to remove`}
+        role="option"
+        aria-selected={index === focusedAuthorIndex}
+        onKeyDown={this.onAuthorKeyDown}
+        onClick={this.onAuthorClick}
+        tabIndex={-1}
+      >
+        @{author.username}
       </div>
     )
   }
@@ -332,9 +358,7 @@ export class AuthorInput extends React.Component<
     }
 
     if (event.key === 'Backspace' && this.inputRef.selectionStart === 0) {
-      this.props.onAuthorsUpdated(
-        this.props.authors.slice(0, this.props.authors.length - 1)
-      )
+      this.removeAuthor(this.props.authors.length - 1)
     }
 
     if (event.key === 'ArrowLeft' && this.inputRef.selectionStart === 0) {

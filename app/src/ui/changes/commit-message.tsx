@@ -15,7 +15,7 @@ import { AuthorInput } from '../lib/author-input'
 import { FocusContainer } from '../lib/focus-container'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-import { IAuthor } from '../../models/author'
+import { Author, isKnownAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { Commit, ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
@@ -87,7 +87,7 @@ interface ICommitMessageProps {
    * Co-Authored-By commit message trailers depending on whether
    * the user has chosen to do so.
    */
-  readonly coAuthors: ReadonlyArray<IAuthor>
+  readonly coAuthors: ReadonlyArray<Author>
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge?: boolean
@@ -98,7 +98,7 @@ interface ICommitMessageProps {
   readonly commitButtonText?: string
 
   /** Whether or not to remember the coauthors in the changes state */
-  readonly onCoAuthorsUpdated: (coAuthors: ReadonlyArray<IAuthor>) => void
+  readonly onCoAuthorsUpdated: (coAuthors: ReadonlyArray<Author>) => void
   readonly onShowCoAuthoredByChanged: (showCoAuthoredBy: boolean) => void
 
   /**
@@ -306,7 +306,9 @@ export class CommitMessage extends React.Component<
     const { coAuthors } = this.props
     const token = 'Co-Authored-By'
     return this.isCoAuthorInputEnabled
-      ? coAuthors.map(a => ({ token, value: `${a.name} <${a.email}>` }))
+      ? coAuthors
+          .filter(isKnownAuthor)
+          .map(a => ({ token, value: `${a.name} <${a.email}>` }))
       : []
   }
 
@@ -441,7 +443,7 @@ export class CommitMessage extends React.Component<
     return this.props.showCoAuthoredBy && this.isCoAuthorInputEnabled
   }
 
-  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) =>
+  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<Author>) =>
     this.props.onCoAuthorsUpdated(coAuthors)
 
   private renderCoAuthorInput() {
