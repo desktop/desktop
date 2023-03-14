@@ -288,7 +288,7 @@ export class AuthorInput extends React.Component<
   private async attemptUnknownAuthorSearch(author: UnknownAuthor) {
     const knownAuthor = this.props.authors
       .filter(isKnownAuthor)
-      .find(a => a.username === author.username)
+      .find(a => a.username?.toLowerCase() === author.username.toLowerCase())
 
     if (knownAuthor !== undefined) {
       this.updateUnknownAuthor(knownAuthor)
@@ -315,7 +315,10 @@ export class AuthorInput extends React.Component<
 
   private updateUnknownAuthor(author: Author) {
     const newAuthors = this.props.authors.map(a =>
-      a.username === author.username && !isKnownAuthor(a) ? author : a
+      a.username?.toLowerCase() === author.username?.toLowerCase() &&
+      !isKnownAuthor(a)
+        ? author
+        : a
     )
 
     this.emitAuthorsUpdated(newAuthors)
