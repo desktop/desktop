@@ -374,6 +374,10 @@ export class Preferences extends React.Component<
               this.onConfirmDiscardChangesPermanentlyChanged
             }
             onConfirmUndoCommitChanged={this.onConfirmUndoCommitChanged}
+            uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
+            onUncommittedChangesStrategyChanged={
+              this.onUncommittedChangesStrategyChanged
+            }
           />
         )
         break
@@ -384,12 +388,8 @@ export class Preferences extends React.Component<
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
-            uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
             onOptOutofReportingChanged={this.onOptOutofReportingChanged}
-            onUncommittedChangesStrategyChanged={
-              this.onUncommittedChangesStrategyChanged
-            }
             onRepositoryIndicatorsEnabledChanged={
               this.onRepositoryIndicatorsEnabledChanged
             }
