@@ -311,7 +311,7 @@ export class AuthorInput extends React.Component<
               className={classNames('handle', {
                 focused: index === focusedAuthorIndex,
               })}
-              aria-label={`@${author.username} press backspace or delete to remove`}
+              aria-label={`@${author.username} (${author.name}) press backspace or delete to remove`}
               role="option"
               aria-selected={index === focusedAuthorIndex}
               onKeyDown={this.onAuthorKeyDown}
