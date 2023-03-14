@@ -167,21 +167,40 @@ export class AuthorInput extends React.Component<
       this.state.focusedAuthorIndex !== null &&
       (event.key === 'Backspace' || event.key === 'Delete')
     ) {
-      this.removeAuthor(this.state.focusedAuthorIndex)
+      this.removeAuthor(
+        this.state.focusedAuthorIndex,
+        event.key === 'Backspace' ? 'back' : 'forward'
+      )
     }
   }
 
-  private removeAuthor(index: number) {
+  private removeAuthor(index: number, direction: 'back' | 'forward') {
     const { authors } = this.props
 
-    if (index >= 0 && index < authors.length) {
-      const newAuthors = authors
-        .slice(0, index)
-        .concat(authors.slice(index + 1))
-      const newFocusedAuthorIndex = index === authors.length - 1 ? null : index
-      this.focusAuthorHandle(newFocusedAuthorIndex)
-      this.emitAuthorsUpdated(newAuthors)
+    if (index >= authors.length) {
+      return
     }
+
+    const newAuthors = authors.slice(0, index).concat(authors.slice(index + 1))
+    let newFocusedAuthorIndex: number | null = null
+
+    // Focus next author depending on the "direction" of the removal:
+    // - if we're using backspace, move to the previous author
+    // - if we're using delete, move to the next author (which means staying
+    //   on the same index)
+    if (newAuthors.length > 0) {
+      if (direction === 'back') {
+        newFocusedAuthorIndex = Math.max(0, index - 1)
+      } else {
+        newFocusedAuthorIndex =
+          index === authors.length - 1
+            ? null
+            : Math.min(newAuthors.length - 1, index)
+      }
+    }
+
+    this.focusAuthorHandle(newFocusedAuthorIndex)
+    this.emitAuthorsUpdated(newAuthors)
   }
 
   private emitAuthorsUpdated(addedAuthors: ReadonlyArray<Author>) {
