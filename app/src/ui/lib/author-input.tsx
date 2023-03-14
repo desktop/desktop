@@ -90,7 +90,7 @@ function getEmailAddressForUser(user: KnownUserHit) {
 
 /**
  * Convert a IUserHit object which is returned from
- * user-autocomplete-provider into an IAuthor object.
+ * user-autocomplete-provider into a KnownAuthor object.
  *
  * If the IUserHit object lacks an email address we'll
  * attempt to create a stealth email address.
@@ -114,21 +114,6 @@ export class AuthorInput extends React.Component<
   IAuthorInputProps,
   IAuthorInputState
 > {
-  /**
-   * The internal list of authors. Note that codemirror
-   * ultimately is the source of truth for what authors
-   * are in here but we synchronize that into this field
-   * whenever codemirror reports a change. We also use
-   * this array to detect whether the author props have
-   * change, in which case we blow away everything and
-   * start from scratch.
-   */
-  // private authors: ReadonlyArray<IAuthor> = []
-
-  // For undo association
-  // private readonly markAuthorMap = new Map<ActualTextMarker, IAuthor>()
-  // private readonly authorMarkMap = new Map<IAuthor, ActualTextMarker>()
-
   private autocompletingInputRef =
     React.createRef<AutocompletingInput<UserHit>>()
   private shadowInputRef = React.createRef<HTMLDivElement>()
