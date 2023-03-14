@@ -287,14 +287,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     updateStore.onError(error => {
       log.error(`Error checking for updates`, error)
 
-      // It is possible to obtain an error with no message. This was found to be
-      // the case on a windows instance where there was not space on the hard
-      // drive to download the installer. In this case, we want to override the
-      // error message so the user is not given a blank dialog.
-      const hasErrorMsg = error.message.trim().length > 0
-      this.props.dispatcher.postError(
-        hasErrorMsg ? error : new Error('Checking for updates failed.')
-      )
+      this.props.dispatcher.postError(error)
     })
 
     ipcRenderer.on('launch-timing-stats', (_, stats) => {
