@@ -34,6 +34,10 @@ dialog {
   flex-direction: column;
 
   overflow: unset;
+
+  // This is to ensure that the dialog content is accessible at 200% zoom
+  overflow-y: scroll;
+
   // These are the 24px versions of the alert and stop octicons
   // from oction v10.0.0
   //
