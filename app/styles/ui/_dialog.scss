@@ -211,6 +211,10 @@ dialog {
       &:hover {
         color: var(--text-color);
       }
+
+      &:focus {
+        outline-offset: 3px;
+      }
     }
     @include close-button;
   }

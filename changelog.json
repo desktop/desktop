@@ -1,5 +1,12 @@
 {
   "releases": {
+    "3.2.1-beta1": [
+      "[New] Get notified when someone comments your pull requests - #16226",
+      "[Fixed] Up/down arrow can be used to navigate autocomplete lists like emoji again - #16044",
+      "[Fixed] Large diff messaging styled consistently in pull request preview - #16238",
+      "[Improved] Other email input in \"Git\" preferences/Options and misattributed popover email select have a screen readable label - #16240",
+      "[Improved] Make the add/remove co-authors button keyboard accessible - #16200"
+    ],
     "3.2.0": [
       "[New] Preview your pull request - view a diff of changes in your current branch.",
       "[Added] Add Tabby terminal integration for macOS - #16040. Thanks @ansidev!",
