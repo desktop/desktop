@@ -255,7 +255,7 @@ export class AppMenuBarButton extends React.Component<
     if (this.isMenuOpen) {
       this.props.onClose(this.props.menuItem, source)
     } else {
-      this.props.onOpen(this.props.menuItem)
+      this.props.onOpen(this.props.menuItem, true)
     }
   }
 
