@@ -52,6 +52,7 @@ interface IAuthorInputProps {
 }
 
 interface IAuthorInputState {
+  /** Index of the added author currently focused */
   readonly focusedAuthorIndex: number | null
 }
 
@@ -217,8 +218,6 @@ export class AuthorInput extends React.Component<
   }
 
   private onCoAuthorsValueChanged = (value: string) => {
-    // Set the value to the shadow input div and then measure its width
-    // to set the width of the input field.
     if (
       this.shadowInputRef.current === null ||
       this.inputRef === null ||
@@ -227,6 +226,16 @@ export class AuthorInput extends React.Component<
     ) {
       return
     }
+
+    // HACK: input elements don't behave as expected when we want them to fit
+    // to their content, and expand if there is enough space. They take more
+    // space than needed.
+    // This HACK uses a "shadow" (invisible) element with same styles as the
+    // input element to calculate the width of the input element based on its
+    // content.
+    // We will also take into account the width of the ancestors' width to make
+    // the input element expand as much as possible without overflowing.
+
     this.shadowInputRef.current.textContent = value
     const valueWidth = this.shadowInputRef.current.clientWidth
     this.shadowInputRef.current.textContent = this.inputRef.placeholder
@@ -235,8 +244,9 @@ export class AuthorInput extends React.Component<
     const inputParent = this.inputRef.parentElement
     const inputGrandparent = this.inputRef.parentElement.parentElement
 
+    const grandparentPadding = 10
     inputParent.style.minWidth = `${Math.min(
-      inputGrandparent.getBoundingClientRect().width - 10,
+      inputGrandparent.getBoundingClientRect().width - grandparentPadding,
       Math.max(valueWidth, placeholderWidth)
     )}px`
   }
