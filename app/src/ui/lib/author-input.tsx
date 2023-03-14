@@ -403,6 +403,22 @@ export class AuthorInput extends React.Component<
     if (event.key === 'ArrowLeft' && this.inputRef.selectionStart === 0) {
       this.focusPreviousAuthor()
     }
+
+    // If Space is pressed at the end of the text, attempt to autocomplete
+    if (
+      event.key === ' ' &&
+      this.inputRef.selectionStart === this.inputRef.value.length
+    ) {
+      event.preventDefault()
+
+      const value = this.inputRef.value.trim()
+      if (value.length !== 0) {
+        this.onAutocompleteItemSelected({
+          kind: 'unknown-user',
+          username: value,
+        })
+      }
+    }
   }
 
   private focusAuthorHandle(index: number) {
