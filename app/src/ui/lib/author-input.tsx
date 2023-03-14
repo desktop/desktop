@@ -56,21 +56,6 @@ interface IAuthorInputState {
 }
 
 /**
- * Comparison method for use in sorting lists of markers in ascending
- * order of start positions.
- */
-// function orderByPosition(x: ActualTextMarker, y: ActualTextMarker) {
-//   const xPos = x.find()
-//   const yPos = y.find()
-
-//   if (xPos === undefined || yPos === undefined) {
-//     return compare(xPos, yPos)
-//   }
-
-//   return compare(xPos.from, yPos.from)
-// }
-
-/**
  * Returns an email address which can be used on the host side to
  * look up the user which is to be given attribution.
  *
@@ -83,10 +68,6 @@ function getEmailAddressForUser(user: KnownUserHit) {
     ? user.email
     : getLegacyStealthEmailForUser(user.username, user.endpoint)
 }
-
-// function getDisplayTextForAuthor(author: IAuthor) {
-//   return author.username === null ? author.name : `@${author.username}`
-// }
 
 /**
  * Convert a IUserHit object which is returned from
