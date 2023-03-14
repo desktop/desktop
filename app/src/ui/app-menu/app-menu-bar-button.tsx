@@ -202,7 +202,7 @@ export class AppMenuBarButton extends React.Component<
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}
         tabIndex={-1}
-        role="menuitem"
+        buttonRole="menuitem"
       >
         <MenuListItem
           item={item}
