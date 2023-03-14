@@ -189,6 +189,7 @@ export abstract class AutocompletingTextInput<
 
     const left = coordinates.left
     const top = coordinates.top + YOffset
+    const bottom = coordinates.top + YOffset + 1
     const selectedRow = state.selectedItem
       ? items.indexOf(state.selectedItem)
       : -1
@@ -198,13 +199,22 @@ export abstract class AutocompletingTextInput<
     // The maximum height we can use for the popup without it extending beyond
     // the Window bounds.
     let maxHeight: number
+    let belowElement: boolean = true
     if (
       element.ownerDocument !== null &&
       element.ownerDocument.defaultView !== null
     ) {
       const windowHeight = element.ownerDocument.defaultView.innerHeight
       const spaceToBottomOfWindow = windowHeight - popupAbsoluteTop - YOffset
-      maxHeight = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
+      if (
+        spaceToBottomOfWindow < DefaultPopupHeight &&
+        popupAbsoluteTop >= DefaultPopupHeight
+      ) {
+        maxHeight = DefaultPopupHeight
+        belowElement = false
+      } else {
+        maxHeight = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
+      }
     } else {
       maxHeight = DefaultPopupHeight
     }
@@ -228,7 +238,10 @@ export abstract class AutocompletingTextInput<
     const className = classNames('autocompletion-popup', state.provider.kind)
 
     return (
-      <div className={className} style={{ top, left, height }}>
+      <div
+        className={className}
+        style={belowElement ? { top, left, height } : { bottom, left, height }}
+      >
         <List
           accessibleListId="autocomplete-container"
           ref={this.onAutocompletionListRef}
