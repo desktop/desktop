@@ -150,7 +150,7 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
     })
 
     return (
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events
       <div
         className={className}
         onMouseEnter={this.onMouseEnter}
@@ -158,6 +158,7 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
         onClick={this.onClick}
         ref={this.wrapperRef}
         role="menuitem"
+        tabIndex={-1}
       >
         {this.getIcon(item)}
         <div className="label">
