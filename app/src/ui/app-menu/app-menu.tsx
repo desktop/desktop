@@ -333,7 +333,6 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
     if (this.focusPane >= 0) {
       const pane = this.paneRefs[this.focusPane]
       if (pane) {
-        pane.focus()
         this.focusPane = -1
       }
     }
