@@ -72,6 +72,13 @@ interface IListProps {
   readonly rowHeight: number | ((info: { index: number }) => number)
 
   /**
+   * Function that generates an ID for a given row. This will allow the
+   * container component of the list to have control over the ID of the
+   * row and allow it to be used for things like keyboard navigation.
+   */
+  readonly rowId?: (row: number) => string
+
+  /**
    * The currently selected rows indexes. Used to attach a special
    * selection class on those row's containers as well as being used
    * for keyboard selection.
@@ -228,6 +235,9 @@ interface IListProps {
   /** The unique identifier for the outer element of the component (optional, defaults to null) */
   readonly id?: string
 
+  /** The unique identifier of the accessible list component (optional) */
+  readonly accessibleListId?: string
+
   /** The row that should be scrolled to when the list is rendered. */
   readonly scrollToRow?: number
 
@@ -357,6 +367,16 @@ export class List extends React.Component<IListProps, IListState> {
         }
       })
     }
+  }
+
+  private getRowId(row: number): string | undefined {
+    if (this.props.rowId) {
+      return this.props.rowId(row)
+    }
+
+    return this.state.rowIdPrefix === undefined
+      ? undefined
+      : `${this.state.rowIdPrefix}-${row}`
   }
 
   private onResized = (target: HTMLElement, contentRect: ClientRect) => {
@@ -937,9 +957,7 @@ export class List extends React.Component<IListProps, IListState> {
         row
       )
 
-    const id = this.state.rowIdPrefix
-      ? `${this.state.rowIdPrefix}-${rowIndex}`
-      : undefined
+    const id = this.getRowId(rowIndex)
 
     const ariaLabel =
       this.props.getRowAriaLabel !== undefined
@@ -1043,9 +1061,9 @@ export class List extends React.Component<IListProps, IListState> {
     // we select the last item from the selection array for this prop
     const activeDescendant =
       this.props.selectedRows.length && this.state.rowIdPrefix
-        ? `${this.state.rowIdPrefix}-${
+        ? this.getRowId(
             this.props.selectedRows[this.props.selectedRows.length - 1]
-          }`
+          )
         : undefined
 
     const containerProps = this.getContainerProps(activeDescendant)
@@ -1057,6 +1075,7 @@ export class List extends React.Component<IListProps, IListState> {
         onFocusWithinChanged={this.onFocusWithinChanged}
       >
         <Grid
+          id={this.props.accessibleListId}
           role="listbox"
           ref={this.onGridRef}
           autoContainerWidth={true}
