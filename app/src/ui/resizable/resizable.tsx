@@ -5,6 +5,11 @@ import { clamp } from '../../lib/clamp'
 const DefaultMaxWidth = 350
 const DefaultMinWidth = 200
 
+export enum ResizeDirection {
+  Increase = 'Increase',
+  Decrease = 'Decrease',
+}
+
 /**
  * Component abstracting a resizable panel.
  *

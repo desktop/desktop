@@ -229,6 +229,16 @@ export function buildDefaultMenu({
         accelerator: 'CmdOrCtrl+-',
         click: zoom(ZoomDirection.Out),
       },
+      {
+        label: __DARWIN__ ? 'Decrease Sidebar Width' : 'Decrease sidebar Width',
+        accelerator: 'CmdOrCtrl+Shift+-',
+        click: emit('decrease-sidebar-width'),
+      },
+      {
+        label: __DARWIN__ ? 'Increase Sidebar Width' : 'Increase sidebar width',
+        accelerator: 'CmdOrCtrl+Shift+=',
+        click: emit('increase-sidebar-width'),
+      },
       separator,
       {
         label: '&Reload',

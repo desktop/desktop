@@ -166,6 +166,7 @@ import { DialogStackContext } from './dialog'
 import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 import { PullRequestComment } from './notifications/pull-request-comment'
+import { ResizeDirection } from './resizable'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -457,6 +458,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'show-app-error':
         return this.props.dispatcher.postError(
           new Error('Test Error - to use default error handler' + uuid())
+        )
+      case 'increase-sidebar-width':
+        return this.props.dispatcher.resizeSidebarWidth(
+          ResizeDirection.Increase
+        )
+      case 'decrease-sidebar-width':
+        return this.props.dispatcher.resizeSidebarWidth(
+          ResizeDirection.Decrease
         )
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)

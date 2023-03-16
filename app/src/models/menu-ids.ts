@@ -36,3 +36,5 @@ export type MenuIDs =
   | 'toggle-stashed-changes'
   | 'create-issue-in-repository-on-github'
   | 'preview-pull-request'
+  | 'decrease-sidebar-width'
+  | 'increase-sidebar-width'

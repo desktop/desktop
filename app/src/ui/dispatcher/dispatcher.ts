@@ -122,6 +122,7 @@ import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
 import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
+import { ResizeDirection } from '../resizable'
 
 /**
  * An error handler function.
@@ -956,6 +957,17 @@ export class Dispatcher {
    */
   public setSidebarWidth(width: number): Promise<void> {
     return this.appStore._setSidebarWidth(width)
+  }
+
+  /**
+   * Increases or Decreases the width of the repository sidebar to the given
+   * value. This affects the changes and history sidebar
+   * as well as the first toolbar section which contains
+   * repo selection on all platforms and repo selection and
+   * app menu on Windows.
+   */
+  public resizeSidebarWidth(resizeDirection: ResizeDirection): any {
+    this.appStore._resizeSidebarWidth(resizeDirection)
   }
 
   /**
