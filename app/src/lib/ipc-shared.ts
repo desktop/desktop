@@ -81,6 +81,7 @@ export type RequestChannels = {
   'notification-event': NotificationCallback<DesktopAliveEvent>
   'set-window-zoom-factor': (zoomFactor: number) => void
   'show-installing-update': () => void
+  'accessibility-support-changed': (enabled: boolean) => void
 }
 
 /**
@@ -128,4 +129,5 @@ export type RequestResponseChannels = {
   ) => Promise<string | null>
   'get-notifications-permission': () => Promise<DesktopNotificationPermission>
   'request-notifications-permission': () => Promise<boolean>
+  'is-accessibility-support-enabled': () => Promise<boolean>
 }

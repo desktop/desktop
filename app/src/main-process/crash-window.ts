@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { ICrashDetails, ErrorType } from '../crash/shared'
+import { registerAccessibilitySupportEvents } from '../lib/accessibility-support'
 import { registerWindowStateChangedEvents } from '../lib/window-state'
 import * as ipcMain from './ipc-main'
 import * as ipcWebContents from './ipc-webcontents'
@@ -110,6 +111,7 @@ export class CrashWindow {
     })
 
     registerWindowStateChangedEvents(this.window)
+    registerAccessibilitySupportEvents(this.window)
 
     this.window.loadURL(`file://${__dirname}/crash.html`)
   }

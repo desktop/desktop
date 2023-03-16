@@ -329,6 +329,10 @@ app.on('ready', () => {
     })
   )
 
+  ipcMain.handle('is-accessibility-support-enabled', async _ =>
+    app.isAccessibilitySupportEnabled()
+  )
+
   ipcMain.on('update-accounts', (_, accounts) => updateAccounts(accounts))
 
   ipcMain.on('update-preferred-app-menu-item-labels', (_, labels) => {

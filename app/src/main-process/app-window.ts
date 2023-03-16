@@ -27,6 +27,7 @@ import {
 } from './notifications'
 import { addTrustedIPCSender } from './trusted-ipc-sender'
 import { enablePreventClosingWhileUpdating } from '../lib/feature-flag'
+import { registerAccessibilitySupportEvents } from '../lib/accessibility-support'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -223,6 +224,8 @@ export class AppWindow {
     )
 
     registerWindowStateChangedEvents(this.window)
+    registerAccessibilitySupportEvents(this.window)
+
     this.window.loadURL(encodePathAsUrl(__dirname, 'index.html'))
 
     nativeTheme.addListener('updated', (event: string, userInfo: any) => {

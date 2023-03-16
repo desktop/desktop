@@ -16,6 +16,7 @@ interface IRange {
 
 import getCaretCoordinates from 'textarea-caret'
 import { showContextualMenu } from '../../lib/menu-item'
+import { isAccessibilitySupportEnabled } from '../accessibility-support-listener'
 
 interface IAutocompletingTextInputProps<ElementType> {
   /**
@@ -520,7 +521,12 @@ export abstract class AutocompletingTextInput<
       event.key === 'Enter' ||
       (event.key === 'Tab' && !event.shiftKey)
     ) {
-      const item = currentAutoCompletionState.selectedItem
+      const item =
+        currentAutoCompletionState.selectedItem ??
+        isAccessibilitySupportEnabled()
+          ? undefined
+          : currentAutoCompletionState.items.at(0)
+
       if (item) {
         event.preventDefault()
 

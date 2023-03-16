@@ -316,6 +316,7 @@ import { findContributionTargetDefaultBranch } from '../branch'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
+import { initializeAccessibilitySupportListener } from '../../ui/accessibility-support-listener'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -2109,6 +2110,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         pullRequestSuggestedNextActionKey,
         PullRequestSuggestedNextAction
       ) ?? defaultPullRequestSuggestedNextAction
+
+    await initializeAccessibilitySupportListener()
 
     this.emitUpdateNow()
 
