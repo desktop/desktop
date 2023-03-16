@@ -18,6 +18,7 @@ import { range } from '../../../lib/range'
 import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
 import memoizeOne from 'memoize-one'
+import { AccessibilityProps } from '../accessibility-props'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -248,13 +249,9 @@ interface IListProps {
   readonly setScrollTop?: number
 
   /**
-   * Optional callback for providing an aria label for screen readers for each
-   * row.
-   *
-   * Note: you may need to apply an aria-hidden attribute to any child text
-   * elements for this to take precedence.
+   * Optional callback for providing ane or more aria attributes for a given row
    */
-  readonly getRowAriaLabel?: (row: number) => string | undefined
+  readonly getRowAccessibilityProps?: (row: number) => AccessibilityProps
 }
 
 interface IListState {
@@ -937,11 +934,6 @@ export class List extends React.Component<IListProps, IListState> {
 
     const id = this.getRowId(rowIndex)
 
-    const ariaLabel =
-      this.props.getRowAriaLabel !== undefined
-        ? this.props.getRowAriaLabel(rowIndex)
-        : undefined
-
     return (
       <ListRow
         key={params.key}
@@ -950,7 +942,7 @@ export class List extends React.Component<IListProps, IListState> {
         rowCount={this.props.rowCount}
         rowIndex={rowIndex}
         selected={selected}
-        ariaLabel={ariaLabel}
+        accessibilityProps={this.props.getRowAccessibilityProps?.(rowIndex)}
         onRowClick={this.onRowClick}
         onRowKeyDown={this.onRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}

@@ -54,6 +54,7 @@ import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip, TooltipDirection } from '../lib/tooltip'
 import { Popup } from '../../models/popup'
 import { EOL } from 'os'
+import { AccessibilityProps } from '../lib/accessibility-props'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -327,11 +328,11 @@ export class ChangesList extends React.Component<
     )
   }
 
-  private getFileAriaLabel = (row: number): string => {
+  private getFileAriaProps = (row: number): AccessibilityProps => {
     const { workingDirectory } = this.props
     const { path, status } = workingDirectory.files[row]
 
-    return `${path}  ${mapStatus(status)}`
+    return { 'aria-label': `${path}  ${mapStatus(status)}` }
   }
 
   private onDiscardAllChanges = () => {
@@ -971,7 +972,7 @@ export class ChangesList extends React.Component<
           rowCount={files.length}
           rowHeight={RowHeight}
           rowRenderer={this.renderRow}
-          getRowAriaLabel={this.getFileAriaLabel}
+          getRowAccessibilityProps={this.getFileAriaProps}
           selectedRows={this.state.selectedRows}
           selectionMode="multi"
           onSelectionChanged={this.props.onFileSelectionChanged}

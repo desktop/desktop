@@ -1,5 +1,6 @@
 import * as React from 'react'
 import classNames from 'classnames'
+import { AccessibilityProps } from '../accessibility-props'
 
 interface IListRowProps {
   /** the total number of row in this list */
@@ -65,12 +66,11 @@ interface IListRowProps {
   readonly className?: string
 
   /**
-   * aria label value for screen readers
-   *
-   * Note: you may need to apply an aria-hidden attribute to any child text
-   * elements for this to take precedence.
+   * One or more aria attributes to apply to the Row element. Attributes
+   * provided here will take precedence over attributes that the ListRow
+   * component would otherwise apply.
    */
-  readonly ariaLabel?: string
+  readonly accessibilityProps?: AccessibilityProps
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
@@ -126,11 +126,10 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     return (
       <div
         id={this.props.id}
+        role="option"
         aria-setsize={this.props.rowCount}
         aria-posinset={this.props.rowIndex + 1}
         aria-selected={this.props.selectable ? this.props.selected : undefined}
-        aria-label={this.props.ariaLabel}
-        role="option"
         className={className}
         tabIndex={this.props.tabIndex}
         ref={this.onRef}
@@ -142,6 +141,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         onFocus={this.onFocus}
         onBlur={this.onBlur}
         onContextMenu={this.onContextMenu}
+        {...this.props.accessibilityProps}
       >
         {this.props.children}
       </div>
