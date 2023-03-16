@@ -4,6 +4,7 @@ import { MenuListItem } from './menu-list-item'
 import { AppMenu, CloseSource } from './app-menu'
 import { ToolbarDropdown } from '../toolbar'
 import { Dispatcher } from '../dispatcher'
+import { AriaHasPopup } from '../lib/aria-types'
 
 interface IAppMenuBarButtonProps {
   /**
@@ -203,6 +204,7 @@ export class AppMenuBarButton extends React.Component<
         onKeyDown={this.onKeyDown}
         tabIndex={-1}
         buttonRole="menuitem"
+        buttonAriaHaspopup={AriaHasPopup.Menu}
       >
         <MenuListItem
           item={item}

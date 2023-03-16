@@ -2,6 +2,7 @@ import * as React from 'react'
 import classNames from 'classnames'
 import { Tooltip, TooltipDirection } from './tooltip'
 import { createObservableRef } from './observable-ref'
+import { AriaHasPopupType } from './aria-types'
 
 export interface IButtonProps {
   /**
@@ -76,6 +77,7 @@ export interface IButtonProps {
 
   readonly role?: string
   readonly ariaExpanded?: boolean
+  readonly ariaHaspopup?: AriaHasPopupType
 
   /**
    * Typically the contents of a button serve the purpose of describing the
@@ -142,6 +144,7 @@ export class Button extends React.Component<IButtonProps, {}> {
         aria-expanded={this.props.ariaExpanded}
         aria-disabled={disabled ? 'true' : undefined}
         aria-label={this.props.ariaLabel}
+        aria-haspopup={this.props.ariaHaspopup}
       >
         {tooltip && (
           <Tooltip
