@@ -230,7 +230,7 @@ export function buildDefaultMenu({
         click: zoom(ZoomDirection.Out),
       },
       {
-        label: __DARWIN__ ? 'Decrease Sidebar Width' : 'Decrease sidebar Width',
+        label: __DARWIN__ ? 'Decrease Sidebar Width' : 'Decrease sidebar width',
         accelerator: 'CmdOrCtrl+Shift+-',
         click: emit('decrease-sidebar-width'),
       },
