@@ -1,0 +1,3980 @@
+changed in both
+  base   100644 711354fd6dff0c7cd231a39ef6cfd1c71d80d035 spec/api-browser-window-spec.js
+  our    100644 f4cba12ec19d224bc46fca898db42a99baf4972e spec/api-browser-window-spec.js
+  their  100644 e08cb69dc2de9de419c8a6fa50f1818e9080d8b6 spec/api-browser-window-spec.js
+@@ -1,6 +1,9 @@
+ 'use strict'
+ 
++<<<<<<< .our
+ const assert = require('assert')
++=======
++>>>>>>> .their
+ const chai = require('chai')
+ const dirtyChai = require('dirty-chai')
+ const fs = require('fs')
+@@ -9,7 +12,14 @@
+ const qs = require('querystring')
+ const http = require('http')
+ const {closeWindow} = require('./window-helpers')
++<<<<<<< .our
+ const {emittedOnce} = require('./events-helpers')
++=======
++
++const {expect} = chai
++chai.use(dirtyChai)
++
++>>>>>>> .their
+ const {ipcRenderer, remote, screen} = require('electron')
+ const {app, ipcMain, BrowserWindow, BrowserView, protocol, session, webContents} = remote
+ 
+@@ -18,15 +28,20 @@
+ const isCI = remote.getGlobal('isCi')
+ const nativeModulesEnabled = remote.getGlobal('nativeModulesEnabled')
+ 
++<<<<<<< .our
+ chai.use(dirtyChai)
+ 
+ describe('BrowserWindow module', () => {
++=======
++describe.only('BrowserWindow module', () => {
++>>>>>>> .their
+   const fixtures = path.resolve(__dirname, 'fixtures')
+   let w = null
+   let ws = null
+   let server
+   let postData
+ 
++<<<<<<< .our
+   const defaultOptions = {
+     show: false,
+     width: 400,
+@@ -48,8 +63,11 @@
+   const closeTheWindow = function () {
+     return closeWindow(w).then(() => { w = null })
+   }
++=======
++  const closeTheWindow = () => closeWindow(w).then(() => { w = null })
++>>>>>>> .their
+ 
+-  before((done) => {
++  before(done => {
+     const filePath = path.join(fixtures, 'pages', 'a.html')
+     const fileStats = fs.statSync(filePath)
+     postData = [
+@@ -69,7 +87,7 @@
+       function respond () {
+         if (req.method === 'POST') {
+           let body = ''
+-          req.on('data', (data) => {
++          req.on('data', data => {
+             if (data) body += data
+           })
+           req.on('end', () => {
+@@ -105,16 +123,22 @@
+ 
+   describe('BrowserWindow constructor', () => {
+     it('allows passing void 0 as the webContents', () => {
++<<<<<<< .our
+       openTheWindow({
+         webContents: void 0
+       })
++=======
++      w.close()
++      w = null
++      w = new BrowserWindow({ webContents: void 0 })
++>>>>>>> .their
+     })
+   })
+ 
+   describe('BrowserWindow.close()', () => {
+     let server
+ 
+-    before((done) => {
++    before(done => {
+       server = http.createServer((request, response) => {
+         switch (request.url) {
+           case '/404':
+@@ -148,23 +172,26 @@
+       server = null
+     })
+ 
+-    it('should emit unload handler', (done) => {
++    it('should emit unload handler', done => {
+       w.webContents.on('did-finish-load', () => { w.close() })
+       w.once('closed', () => {
+         const test = path.join(fixtures, 'api', 'unload')
+         const content = fs.readFileSync(test)
+         fs.unlinkSync(test)
+-        assert.equal(String(content), 'unload')
++
++        expect(String(content)).to.equal('unload')
+         done()
+       })
+-      w.loadURL('file://' + path.join(fixtures, 'api', 'unload.html'))
++      w.loadURL(`file://${path.join(fixtures, 'api', 'unload.html')}`)
+     })
+-    it('should emit beforeunload handler', (done) => {
++
++    it('should emit beforeunload handler', done => {
+       w.once('onbeforeunload', () => { done() })
+       w.webContents.on('did-finish-load', () => { w.close() })
+       w.loadURL(`file://${path.join(fixtures, 'api', 'beforeunload-false.html')}`)
+     })
+-    it('should not crash when invoked synchronously inside navigation observer', (done) => {
++
++    it('should not crash when invoked synchronously inside navigation observer', done => {
+       const events = [
+         { name: 'did-start-loading', url: `${server.url}/200` },
+         { name: 'dom-ready', url: `${server.url}/200` },
+@@ -196,17 +223,19 @@
+   })
+ 
+   describe('window.close()', () => {
+-    it('should emit unload handler', (done) => {
++    it('should emit unload handler', done => {
+       w.once('closed', () => {
+         const test = path.join(fixtures, 'api', 'close')
+         const content = fs.readFileSync(test)
+         fs.unlinkSync(test)
+-        assert.equal(String(content), 'close')
++
++        expect(String(content)).to.equal('close')
+         done()
+       })
+       w.loadURL(`file://${path.join(fixtures, 'api', 'close.html')}`)
+     })
+-    it('should emit beforeunload handler', (done) => {
++
++    it('should emit beforeunload handler', done => {
+       w.once('onbeforeunload', () => { done() })
+       w.loadURL(`file://${path.join(fixtures, 'api', 'close-beforeunload-false.html')}`)
+     })
+@@ -216,58 +245,104 @@
+     it('prevents users to access methods of webContents', () => {
+       const contents = w.webContents
+       w.destroy()
++<<<<<<< .our
+       assert.throws(() => {
+         contents.getProcessId()
+       }, /Object has been destroyed/)
++=======
++      expect(() => {
++        contents.getId()
++      }).to.throw(/Object has been destroyed/)
++>>>>>>> .their
+     })
+   })
+ 
+   describe('BrowserWindow.loadURL(url)', () => {
+-    it('should emit did-start-loading event', (done) => {
++    it('should emit did-start-loading event', done => {
+       w.webContents.on('did-start-loading', () => { done() })
+       w.loadURL('about:blank')
+     })
+-    it('should emit ready-to-show event', (done) => {
++
++    it('should emit ready-to-show event', done => {
+       w.on('ready-to-show', () => { done() })
+       w.loadURL('about:blank')
+     })
++<<<<<<< .our
+     it('should emit did-fail-load event for files that do not exist', (done) => {
++=======
++
++    // TODO(nitsakh): Deprecated
++    it('should emit did-get-response-details(deprecated) event', done => {
++      // expected {fileName: resourceType} pairs
++      const expectedResources = {
++        'did-get-response-details.html': 'mainFrame',
++        'logo.png': 'image'
++      }
++
++      let responses = 0
++      w.webContents.on('-did-get-response-details', (event, status, newUrl, oldUrl, responseCode, method, referrer, headers, resourceType) => {
++        responses += 1
++        const fileName = newUrl.slice(newUrl.lastIndexOf('/') + 1)
++        const expectedType = expectedResources[fileName]
++
++        expect(!!expectedType).to.be(true, `Unexpected response details for ${newUrl}`)
++        expect(status).to.be.a('boolean', 'status should be boolean')
++        expect(responseCode).to.equal(200)
++        expect(method).to.equal('GET')
++
++        expect(referrer).to.be.a('string', 'referrer should be string')
++        expect(!!headers).to.equal(true, 'headers should be present')
++
++        expect(headers).to.be.an('object', 'headers should be object')
++        expect(resourceType).to.equal(expectedType, 'Incorrect resourceType')
++
++        if (responses === Object.keys(expectedResources).length) done()
++      })
++      w.loadURL(`file://${path.join(fixtures, 'pages', 'did-get-response-details.html')}`)
++    })
++
++    it('should emit did-fail-load event for files that do not exist', done => {
++>>>>>>> .their
+       w.webContents.on('did-fail-load', (event, code, desc, url, isMainFrame) => {
+-        assert.equal(code, -6)
+-        assert.equal(desc, 'ERR_FILE_NOT_FOUND')
+-        assert.equal(isMainFrame, true)
++        expect(code).to.equal(-6)
++        expect(desc).to.equal('ERR_FILE_NOT_FOUND')
++        expect(isMainFrame).equal(true)
+         done()
+       })
+       w.loadURL('file://a.txt')
+     })
+-    it('should emit did-fail-load event for invalid URL', (done) => {
++
++    it('should emit did-fail-load event for invalid URL', done => {
+       w.webContents.on('did-fail-load', (event, code, desc, url, isMainFrame) => {
+-        assert.equal(desc, 'ERR_INVALID_URL')
+-        assert.equal(code, -300)
+-        assert.equal(isMainFrame, true)
++        expect(desc).to.equal('ERR_INVALID_URL')
++        expect(code).to.equal(-300)
++        expect(isMainFrame).to.equal(true)
+         done()
+       })
+       w.loadURL('http://example:port')
+     })
+-    it('should set `mainFrame = false` on did-fail-load events in iframes', (done) => {
++
++    it('should set `mainFrame = false` on did-fail-load events in iframes', done => {
+       w.webContents.on('did-fail-load', (event, code, desc, url, isMainFrame) => {
+-        assert.equal(isMainFrame, false)
++        expect(isMainFrame).to.equal(false)
+         done()
+       })
+       w.loadURL(`file://${path.join(fixtures, 'api', 'did-fail-load-iframe.html')}`)
+     })
+-    it('does not crash in did-fail-provisional-load handler', (done) => {
++
++    it('does not crash in did-fail-provisional-load handler', done => {
+       w.webContents.once('did-fail-provisional-load', () => {
+         w.loadURL('http://127.0.0.1:11111')
+         done()
+       })
+       w.loadURL('http://127.0.0.1:11111')
+     })
+-    it('should emit did-fail-load event for URL exceeding character limit', (done) => {
++
++    it('should emit did-fail-load event for URL exceeding character limit', done => {
+       w.webContents.on('did-fail-load', (event, code, desc, url, isMainFrame) => {
+-        assert.equal(desc, 'ERR_INVALID_URL')
+-        assert.equal(code, -300)
+-        assert.equal(isMainFrame, true)
++        expect(desc).to.equal('ERR_INVALID_URL')
++        expect(code).to.equal(-300)
++        expect(isMainFrame).to.equal(true)
+         done()
+       })
+       const data = Buffer.alloc(2 * 1024 * 1024).toString('base64')
+@@ -277,14 +352,15 @@
+     describe('POST navigations', () => {
+       afterEach(() => { w.webContents.session.webRequest.onBeforeSendHeaders(null) })
+ 
+-      it('supports specifying POST data', (done) => {
++      it('supports specifying POST data', done => {
+         w.webContents.on('did-finish-load', () => done())
+         w.loadURL(server.url, {postData: postData})
+       })
+-      it('sets the content type header on URL encoded forms', (done) => {
++
++      it('sets the content type header on URL encoded forms', done => {
+         w.webContents.on('did-finish-load', () => {
+           w.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+-            assert.equal(details.requestHeaders['content-type'], 'application/x-www-form-urlencoded')
++            expect(details.requestHeaders['content-type']).to.equal('application/x-www-form-urlencoded')
+             done()
+           })
+           w.webContents.executeJavaScript(`
+@@ -297,10 +373,12 @@
+         })
+         w.loadURL(server.url)
+       })
+-      it('sets the content type header on multi part forms', (done) => {
++
++      it('sets the content type header on multi part forms', done => {
+         w.webContents.on('did-finish-load', () => {
+           w.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+-            assert(details.requestHeaders['content-type'].startsWith('multipart/form-data; boundary=----WebKitFormBoundary'))
++            const headers = details.requestHeaders['content-type']
++            expect(headers).includes('multipart/form-data; boundary=----WebKitFormBoundary')
+             done()
+           })
+           w.webContents.executeJavaScript(`
+@@ -320,9 +398,9 @@
+       })
+     })
+ 
+-    it('should support support base url for data urls', (done) => {
++    it('should support support base url for data urls', done => {
+       ipcMain.once('answer', (event, test) => {
+-        assert.equal(test, 'test')
++        expect(test).to.equal('test')
+         done()
+       })
+       w.loadURL('data:text/html,<script src="loaded-from-dataurl.js"></script>', {baseURLForDataURL: `file://${path.join(fixtures, 'api')}${path.sep}`})
+@@ -330,7 +408,7 @@
+   })
+ 
+   describe('will-navigate event', () => {
+-    it('allows the window to be closed from the event listener', (done) => {
++    it('allows the window to be closed from the event listener', done => {
+       ipcRenderer.send('close-on-will-navigate', w.id)
+       ipcRenderer.once('closed-on-will-navigate', () => { done() })
+       w.loadURL(`file://${fixtures}/pages/will-navigate.html`)
+@@ -346,15 +424,15 @@
+ 
+     it('should focus on window', () => {
+       w.show()
+-      assert(w.isFocused())
++      expect(w.isFocused()).to.equal(true)
+     })
+     it('should make the window visible', () => {
+       w.show()
+-      assert(w.isVisible())
++      expect(w.isVisible()).to.equal(true)
+     })
+-    it('emits when window is shown', (done) => {
++    it('emits when window is shown', done => {
+       w.once('show', () => {
+-        assert.equal(w.isVisible(), true)
++        expect(w.isVisible()).to.equal(true)
+         done()
+       })
+       w.show()
+@@ -370,17 +448,19 @@
+ 
+     it('should defocus on window', () => {
+       w.hide()
+-      assert(!w.isFocused())
++      expect(w.isFocused()).to.equal(false)
+     })
++
+     it('should make the window not visible', () => {
+       w.show()
+       w.hide()
+-      assert(!w.isVisible())
++      expect(!w.isVisible()).to.equal(false)
+     })
+-    it('emits when window is hidden', (done) => {
++
++    it('emits when window is hidden', done => {
+       w.show()
+       w.once('hide', () => {
+-        assert.equal(w.isVisible(), false)
++        expect(w.isVisible()).to.equal(false)
+         done()
+       })
+       w.hide()
+@@ -390,31 +470,36 @@
+   describe('BrowserWindow.showInactive()', () => {
+     it('should not focus on window', () => {
+       w.showInactive()
+-      assert(!w.isFocused())
++      expect(w.isFocused()).to.be(false)
+     })
+   })
+ 
+   describe('BrowserWindow.focus()', () => {
+     it('does not make the window become visible', () => {
+-      assert.equal(w.isVisible(), false)
++      expect(w.isVisible()).to.equal(false)
+       w.focus()
+-      assert.equal(w.isVisible(), false)
++      expect(w.isVisible()).to.equal(false)
+     })
+   })
+ 
+   describe('BrowserWindow.blur()', () => {
+     it('removes focus from window', () => {
+       w.blur()
+-      assert(!w.isFocused())
++      expect(w.isFocused()).to.equal(false)
+     })
+   })
+ 
++<<<<<<< .our
+   // TODO(alexeykuzmin): [Ch66] Enable the test. Passes locally.
+   xdescribe('BrowserWindow.getFocusedWindow()', (done) => {
+     it('returns the opener window when dev tools window is focused', (done) => {
++=======
++  describe('BrowserWindow.getFocusedWindow()', done => {
++    it('returns the opener window when dev tools window is focused', done => {
++>>>>>>> .their
+       w.show()
+       w.webContents.once('devtools-focused', () => {
+-        assert.deepEqual(BrowserWindow.getFocusedWindow(), w)
++        expect(BrowserWindow.getFocusedWindow()).to.deep.equal(w)
+         done()
+       })
+       w.webContents.openDevTools({mode: 'undocked'})
+@@ -422,6 +507,7 @@
+   })
+ 
+   describe('BrowserWindow.capturePage(rect, callback)', () => {
++<<<<<<< .our
+     it('calls the callback with a Buffer', async () => {
+       const image = await new Promise((resolve) => {
+         w.capturePage({
+@@ -430,19 +516,39 @@
+           width: 100,
+           height: 100
+         }, resolve)
++=======
++    it('calls the callback with a Buffer', done => {
++      w.capturePage({
++        x: 0,
++        y: 0,
++        width: 100,
++        height: 100
++      }, (image) => {
++        expect(image.isEmpty()).to.equal(true)
++        done()
++>>>>>>> .their
+       })
+ 
+       expect(image.isEmpty()).to.be.true()
+     })
+ 
++<<<<<<< .our
+     it('preserves transparency', async () => {
+       const w = await openTheWindow({
++=======
++    it('preserves transparency', done => {
++      w.close()
++      const width = 400
++      const height = 400
++      w = new BrowserWindow({
++>>>>>>> .their
+         show: false,
+         width: 400,
+         height: 400,
+         transparent: true
+       })
+       w.loadURL('data:text/html,<html><body background-color: rgba(255,255,255,0)></body></html>')
++<<<<<<< .our
+       await emittedOnce(w, 'ready-to-show')
+       w.show()
+ 
+@@ -452,11 +558,27 @@
+       // Check the 25th byte in the PNG.
+       // Values can be 0,2,3,4, or 6. We want 6, which is RGB + Alpha
+       expect(imgBuffer[25]).to.equal(6)
++=======
++      w.once('ready-to-show', () => {
++        w.show()
++        w.capturePage((image) => {
++          let imgBuffer = image.toPNG()
++          // Check 25th byte in the PNG
++          // Values can be 0,2,3,4, or 6. We want 6, which is RGB + Alpha
++          expect(imgBuffer[25]).to.equal(6)
++          done()
++        })
++      })
++>>>>>>> .their
+     })
+   })
+ 
+   describe('BrowserWindow.setSize(width, height)', () => {
++<<<<<<< .our
+     it('sets the window size', async () => {
++=======
++    it('sets the window size', done => {
++>>>>>>> .their
+       const size = [300, 400]
+ 
+       const resized = emittedOnce(w, 'resize')
+@@ -469,8 +591,8 @@
+ 
+   describe('BrowserWindow.setMinimum/MaximumSize(width, height)', () => {
+     it('sets the maximum and minimum size of the window', () => {
+-      assert.deepEqual(w.getMinimumSize(), [0, 0])
+-      assert.deepEqual(w.getMaximumSize(), [0, 0])
++      expect(w.getMinimumSize()).to.deep.equal([0, 0])
++      expect(w.getMaximumSize()).to.deep.equal([0, 0])
+ 
+       w.setMinimumSize(100, 100)
+       assertBoundsEqual(w.getMinimumSize(), [100, 100])
+@@ -483,7 +605,7 @@
+   })
+ 
+   describe('BrowserWindow.setAspectRatio(ratio)', () => {
+-    it('resets the behaviour when passing in 0', (done) => {
++    it('resets the behaviour when passing in 0', done => {
+       const size = [300, 400]
+       w.setAspectRatio(1 / 2)
+       w.setAspectRatio(0)
+@@ -496,12 +618,12 @@
+   })
+ 
+   describe('BrowserWindow.setPosition(x, y)', () => {
+-    it('sets the window position', (done) => {
++    it('sets the window position', done => {
+       const pos = [10, 10]
+       w.once('move', () => {
+         const newPos = w.getPosition()
+-        assert.equal(newPos[0], pos[0])
+-        assert.equal(newPos[1], pos[1])
++        expect(newPos[0]).to.equal(pos[0])
++        expect(newPos[1]).to.equal(pos[1])
+         done()
+       })
+       w.setPosition(pos[0], pos[1])
+@@ -513,9 +635,10 @@
+       const size = [400, 400]
+       w.setContentSize(size[0], size[1])
+       var after = w.getContentSize()
+-      assert.equal(after[0], size[0])
+-      assert.equal(after[1], size[1])
++      expect(after[0]).to.equal(size[0])
++      expect(after[1]).to.equal(size[1])
+     })
++
+     it('works for a frameless window', () => {
+       w.destroy()
+       w = new BrowserWindow({
+@@ -527,13 +650,13 @@
+       const size = [400, 400]
+       w.setContentSize(size[0], size[1])
+       const after = w.getContentSize()
+-      assert.equal(after[0], size[0])
+-      assert.equal(after[1], size[1])
++      expect(after[0]).to.equal(size[0])
++      expect(after[1]).to.equal(size[1])
+     })
+   })
+ 
+   describe('BrowserWindow.setContentBounds(bounds)', () => {
+-    it('sets the content size and position', (done) => {
++    it('sets the content size and position', done => {
+       const bounds = {x: 10, y: 10, width: 250, height: 250}
+       w.once('resize', () => {
+         assertBoundsEqual(w.getContentBounds(), bounds)
+@@ -541,7 +664,8 @@
+       })
+       w.setContentBounds(bounds)
+     })
+-    it('works for a frameless window', (done) => {
++
++    it('works for a frameless window', done => {
+       w.destroy()
+       w = new BrowserWindow({
+         show: false,
+@@ -551,7 +675,7 @@
+       })
+       const bounds = {x: 10, y: 10, width: 250, height: 250}
+       w.once('resize', () => {
+-        assert.deepEqual(w.getContentBounds(), bounds)
++        expect(w.getContentBounds()).to.deep.equal(bounds)
+         done()
+       })
+       w.setContentBounds(bounds)
+@@ -560,7 +684,7 @@
+ 
+   describe('BrowserWindow.setProgressBar(progress)', () => {
+     it('sets the progress', () => {
+-      assert.doesNotThrow(() => {
++      expect(() => {
+         if (process.platform === 'darwin') {
+           app.dock.setIcon(path.join(fixtures, 'assets', 'logo.png'))
+         }
+@@ -570,35 +694,36 @@
+           app.dock.setIcon(null)
+         }
+         w.setProgressBar(-1)
+-      })
++      }).to.not.throw()
+     })
++
+     it('sets the progress using "paused" mode', () => {
+-      assert.doesNotThrow(() => {
+-        w.setProgressBar(0.5, {mode: 'paused'})
+-      })
++      expect(() => { w.setProgressBar(0.5, {mode: 'paused'}) }).to.not.throw()
+     })
++
+     it('sets the progress using "error" mode', () => {
+-      assert.doesNotThrow(() => {
+-        w.setProgressBar(0.5, {mode: 'error'})
+-      })
++      expect(() => { w.setProgressBar(0.5, {mode: 'error'}) })
+     })
++
+     it('sets the progress using "normal" mode', () => {
+-      assert.doesNotThrow(() => {
+-        w.setProgressBar(0.5, {mode: 'normal'})
+-      })
++      expect(() => { w.setProgressBar(0.5, {mode: 'normal'}) }).to.not.throw()
+     })
+   })
+ 
+   describe('BrowserWindow.setAlwaysOnTop(flag, level)', () => {
+     it('sets the window as always on top', () => {
+-      assert.equal(w.isAlwaysOnTop(), false)
++      expect(w.isAlwaysOnTop()).to.equal(false)
++
+       w.setAlwaysOnTop(true, 'screen-saver')
+-      assert.equal(w.isAlwaysOnTop(), true)
++      expect(w.isAlwaysOnTop()).to.equal(true)
++
+       w.setAlwaysOnTop(false)
+-      assert.equal(w.isAlwaysOnTop(), false)
++      expect(w.isAlwaysOnTop()).to.equal(false)
++
+       w.setAlwaysOnTop(true)
+-      assert.equal(w.isAlwaysOnTop(), true)
++      expect(w.isAlwaysOnTop()).to.equal(true)
+     })
++
+     it('raises an error when relativeLevel is out of bounds', function () {
+       if (process.platform !== 'darwin') {
+         // FIXME(alexeykuzmin): Skip the test instead of marking it as passed.
+@@ -609,13 +734,8 @@
+         return
+       }
+ 
+-      assert.throws(() => {
+-        w.setAlwaysOnTop(true, '', -2147483644)
+-      })
+-
+-      assert.throws(() => {
+-        w.setAlwaysOnTop(true, '', 2147483632)
+-      })
++      expect(() => { w.setAlwaysOnTop(true, '', -2147483644) }).to.throw()
++      expect(() => { w.setAlwaysOnTop(true, '', 2147483632) }).to.throw()
+     })
+   })
+ 
+@@ -628,13 +748,16 @@
+     })
+ 
+     it('resets the windows level on minimize', () => {
+-      assert.equal(w.isAlwaysOnTop(), false)
++      expect(w.isAlwaysOnTop()).to.equal(false)
++
+       w.setAlwaysOnTop(true, 'screen-saver')
+-      assert.equal(w.isAlwaysOnTop(), true)
++      expect(w.isAlwaysOnTop()).to.equal(true)
++
+       w.minimize()
+-      assert.equal(w.isAlwaysOnTop(), false)
++      expect(w.isAlwaysOnTop()).to.equal(false)
++
+       w.restore()
+-      assert.equal(w.isAlwaysOnTop(), true)
++      expect(w.isAlwaysOnTop()).to.equal(true)
+     })
+   })
+ 
+@@ -647,10 +770,10 @@
+       })
+ 
+       it('allows changing cursor auto-hiding', () => {
+-        assert.doesNotThrow(() => {
++        expect(() => {
+           w.setAutoHideCursor(false)
+           w.setAutoHideCursor(true)
+-        })
++        }).to.not.throw()
+       })
+     })
+ 
+@@ -662,7 +785,7 @@
+       })
+ 
+       it('is not available', () => {
+-        assert.ok(!w.setAutoHideCursor)
++        expect(!w.setAutoHideCursor).to.equal(true)
+       })
+     })
+   })
+@@ -675,9 +798,7 @@
+     })
+ 
+     it('does not throw', () => {
+-      assert.doesNotThrow(() => {
+-        w.selectPreviousTab()
+-      })
++      expect(() => { w.selectPreviousTab() }).to.not.throw()
+     })
+   })
+ 
+@@ -689,9 +810,7 @@
+     })
+ 
+     it('does not throw', () => {
+-      assert.doesNotThrow(() => {
+-        w.selectNextTab()
+-      })
++      expect(() => { w.selectNextTab() }).to.not.throw()
+     })
+   })
+ 
+@@ -703,9 +822,7 @@
+     })
+ 
+     it('does not throw', () => {
+-      assert.doesNotThrow(() => {
+-        w.mergeAllWindows()
+-      })
++      expect(() => { w.mergeAllWindows() }).to.not.throw()
+     })
+   })
+ 
+@@ -717,9 +834,7 @@
+     })
+ 
+     it('does not throw', () => {
+-      assert.doesNotThrow(() => {
+-        w.moveTabToNewWindow()
+-      })
++      expect(() => { w.moveTabToNewWindow() }).to.not.throw()
+     })
+   })
+ 
+@@ -731,9 +846,7 @@
+     })
+ 
+     it('does not throw', () => {
+-      assert.doesNotThrow(() => {
+-        w.toggleTabBar()
+-      })
++      expect(() => { w.toggleTabBar() }).to.not.throw()
+     })
+   })
+ 
+@@ -744,24 +857,24 @@
+       }
+     })
+ 
+-    it('does not throw', (done) => {
++    it('does not throw', done => {
+       const tabbedWindow = new BrowserWindow({})
+-      assert.doesNotThrow(() => {
+-        w.addTabbedWindow(tabbedWindow)
+-      })
++      expect(() => { w.addTabbedWindow(tabbedWindow) }).to.not.throw()
+ 
+-      assert.equal(BrowserWindow.getAllWindows().length, 3) // Test window + w + tabbedWindow
++      // Test window + w + tabbedWindow
++      expect(BrowserWindow.getAllWindows()).to.have.length(3)
+ 
+       closeWindow(tabbedWindow, {assertSingleWindow: false}).then(() => {
+-        assert.equal(BrowserWindow.getAllWindows().length, 2) // Test window + w
++        // Test window + w
++        expect(BrowserWindow.getAllWindows()).to.have.length(3)
+         done()
+       })
+     })
+ 
+     it('throws when called on itself', () => {
+-      assert.throws(() => {
++      expect(() => {
+         w.addTabbedWindow(w)
+-      }, /AddTabbedWindow cannot be called by a window on itself./)
++      }).to.throw(/AddTabbedWindow cannot be called by a window on itself./)
+     })
+   })
+ 
+@@ -794,13 +907,13 @@
+ 
+   describe('BrowserWindow.setVibrancy(type)', () => {
+     it('allows setting, changing, and removing the vibrancy', () => {
+-      assert.doesNotThrow(() => {
++      expect(() => {
+         w.setVibrancy('light')
+         w.setVibrancy('dark')
+         w.setVibrancy(null)
+         w.setVibrancy('ultra-dark')
+         w.setVibrancy('')
+-      })
++      }).to.not.throw()
+     })
+   })
+ 
+@@ -814,7 +927,7 @@
+     it('supports setting the app details', () => {
+       const iconPath = path.join(fixtures, 'assets', 'icon.ico')
+ 
+-      assert.doesNotThrow(() => {
++      expect(() => {
+         w.setAppDetails({appId: 'my.app.id'})
+         w.setAppDetails({appIconPath: iconPath, appIconIndex: 0})
+         w.setAppDetails({appIconPath: iconPath})
+@@ -829,17 +942,17 @@
+           relaunchDisplayName: 'My app name'
+         })
+         w.setAppDetails({})
+-      })
++      }).to.not.throw()
+ 
+-      assert.throws(() => {
++      expect(() => {
+         w.setAppDetails()
+-      }, /Insufficient number of arguments\./)
++      }).to.throw(/Insufficient number of arguments\./)
+     })
+   })
+ 
+   describe('BrowserWindow.fromId(id)', () => {
+     it('returns the window with id', () => {
+-      assert.equal(w.id, BrowserWindow.fromId(w.id).id)
++      expect(w.id).to.equal(BrowserWindow.fromId(w.id).id)
+     })
+   })
+ 
+@@ -851,8 +964,8 @@
+     afterEach(() => { contents.destroy() })
+ 
+     it('returns the window with the webContents', () => {
+-      assert.equal(BrowserWindow.fromWebContents(w.webContents).id, w.id)
+-      assert.equal(BrowserWindow.fromWebContents(contents), undefined)
++      expect(BrowserWindow.fromWebContents(w.webContents).id).to.equal(w.id)
++      expect(BrowserWindow.fromWebContents(contents)).to.equal(undefined)
+     })
+   })
+ 
+@@ -863,11 +976,11 @@
+ 
+     afterEach(() => { contents.destroy() })
+ 
+-    it('returns the window with the webContents', (done) => {
++    it('returns the window with the webContents', done => {
+       w.webContents.once('devtools-opened', () => {
+-        assert.equal(BrowserWindow.fromDevToolsWebContents(w.devToolsWebContents).id, w.id)
+-        assert.equal(BrowserWindow.fromDevToolsWebContents(w.webContents), undefined)
+-        assert.equal(BrowserWindow.fromDevToolsWebContents(contents), undefined)
++        expect(BrowserWindow.fromDevToolsWebContents(w.devToolsWebContents).id).to.equal(w.id)
++        expect(BrowserWindow.fromDevToolsWebContents(w.webContents)).to.equal(undefined)
++        expect(BrowserWindow.fromDevToolsWebContents(contents)).to.equal(undefined)
+         done()
+       })
+       w.webContents.openDevTools()
+@@ -896,12 +1009,12 @@
+     })
+ 
+     it('returns the window with the browserView', () => {
+-      assert.equal(BrowserWindow.fromBrowserView(bv).id, w.id)
++      expect(BrowserWindow.fromBrowserView(bv).id).to.equal(w.id)
+     })
+ 
+     it('returns undefined if not attached', () => {
+       w.setBrowserView(null)
+-      assert.equal(BrowserWindow.fromBrowserView(bv), undefined)
++      expect(BrowserWindow.fromBrowserView(bv)).to.equal(undefined)
+     })
+   })
+ 
+@@ -914,16 +1027,17 @@
+         height: 400,
+         opacity: 0.5
+       })
+-      assert.equal(w.getOpacity(), 0.5)
++      expect(w.getOpacity()).to.equal(0.5)
+     })
++
+     it('allows setting the opacity', () => {
+-      assert.doesNotThrow(() => {
++      expect(() => {
+         w.setOpacity(0.0)
+-        assert.equal(w.getOpacity(), 0.0)
++        expect(w.getOpacity()).to.equal(0.0)
+         w.setOpacity(0.5)
+-        assert.equal(w.getOpacity(), 0.5)
++        expect(w.getOpacity()).to.equal(0.5)
+         w.setOpacity(1.0)
+-        assert.equal(w.getOpacity(), 1.0)
++        expect(w.getOpacity()).to.equal(1.0)
+       })
+     })
+   })
+@@ -949,14 +1063,16 @@
+         useContentSize: true
+       })
+       const contentSize = w.getContentSize()
+-      assert.equal(contentSize[0], 400)
+-      assert.equal(contentSize[1], 400)
++      expect(contentSize[0]).to.equal(400)
++      expect(contentSize[1]).to.equal(400)
+     })
++
+     it('make window created with window size when not used', () => {
+       const size = w.getSize()
+-      assert.equal(size[0], 400)
+-      assert.equal(size[1], 400)
++      expect(size[0]).to.equal(400)
++      expect(size[1]).to.equal(400)
+     })
++
+     it('works for a frameless window', () => {
+       w.destroy()
+       w = new BrowserWindow({
+@@ -967,11 +1083,11 @@
+         useContentSize: true
+       })
+       const contentSize = w.getContentSize()
+-      assert.equal(contentSize[0], 400)
+-      assert.equal(contentSize[1], 400)
++      expect(contentSize[0]).to.equal(400)
++      expect(contentSize[1]).to.equal(400)
+       const size = w.getSize()
+-      assert.equal(size[0], 400)
+-      assert.equal(size[1], 400)
++      expect(size[0]).to.equal(400)
++      expect(size[1]).to.equal(400)
+     })
+   })
+ 
+@@ -995,8 +1111,9 @@
+         titleBarStyle: 'hidden'
+       })
+       const contentSize = w.getContentSize()
+-      assert.equal(contentSize[1], 400)
++      expect(contentSize[1]).to.equal(400)
+     })
++
+     it('creates browser window with hidden inset title bar', () => {
+       w.destroy()
+       w = new BrowserWindow({
+@@ -1006,7 +1123,7 @@
+         titleBarStyle: 'hiddenInset'
+       })
+       const contentSize = w.getContentSize()
+-      assert.equal(contentSize[1], 400)
++      expect(contentSize[1]).to.equal(400)
+     })
+   })
+ 
+@@ -1030,9 +1147,10 @@
+     it('can move the window out of screen', () => {
+       w.setPosition(-10, -10)
+       const after = w.getPosition()
+-      assert.equal(after[0], -10)
+-      assert.equal(after[1], -10)
++      expect(after[0]).to.equal(-10)
++      expect(after[1]).to.equal(-10)
+     })
++
+     it('can set the window larger than screen', () => {
+       const size = screen.getPrimaryDisplay().size
+       size.width += 100
+@@ -1058,7 +1176,7 @@
+         zoomToPageWidth: true
+       })
+       w.maximize()
+-      assert.equal(w.getSize()[0], 500)
++      expect(w.getSize()[0]).to.equal(500)
+     })
+   })
+ 
+@@ -1080,10 +1198,10 @@
+     afterEach(() => { ipcMain.removeAllListeners('answer') })
+ 
+     describe('"preload" option', () => {
+-      it('loads the script before other scripts in window', (done) => {
++      it('loads the script before other scripts in window', done => {
+         const preload = path.join(fixtures, 'module', 'set-global.js')
+         ipcMain.once('answer', (event, test) => {
+-          assert.equal(test, 'preload')
++          expect(test).to.equal('preload')
+           done()
+         })
+         w.destroy()
+@@ -1095,10 +1213,11 @@
+         })
+         w.loadURL(`file://${path.join(fixtures, 'api', 'preload.html')}`)
+       })
+-      it('can successfully delete the Buffer global', (done) => {
++
++      it('can successfully delete the Buffer global', done => {
+         const preload = path.join(fixtures, 'module', 'delete-buffer.js')
+         ipcMain.once('answer', (event, test) => {
+-          assert.equal(test.toString(), 'buffer')
++          expect(test.toString()).to.equal('buffer')
+           done()
+         })
+         w.destroy()
+@@ -1112,7 +1231,7 @@
+       })
+     })
+ 
+-    describe('session preload scripts', function () {
++    describe('session preload scripts', () => {
+       const preloads = [
+         path.join(fixtures, 'module', 'set-global-preload-1.js'),
+         path.join(fixtures, 'module', 'set-global-preload-2.js')
+@@ -1120,24 +1239,26 @@
+       const defaultSession = session.defaultSession
+ 
+       beforeEach(() => {
+-        assert.deepEqual(defaultSession.getPreloads(), [])
++        expect(defaultSession.getPreloads()).to.deep.equal([])
+         defaultSession.setPreloads(preloads)
+       })
++
+       afterEach(() => {
+         defaultSession.setPreloads([])
+       })
+ 
+-      it('can set multiple session preload script', function () {
+-        assert.deepEqual(defaultSession.getPreloads(), preloads)
++      it('can set multiple session preload script', () => {
++        expect(defaultSession.getPreloads()).to.deep.equal(preloads)
+       })
+ 
+-      it('loads the script before other scripts in window including normal preloads', function (done) {
+-        ipcMain.once('vars', function (event, preload1, preload2, preload3) {
+-          assert.equal(preload1, 'preload-1')
+-          assert.equal(preload2, 'preload-1-2')
+-          assert.equal(preload3, 'preload-1-2-3')
++      it('loads the script before other scripts in window including normal preloads', done => {
++        ipcMain.once('vars', (event, preload1, preload2, preload3) => {
++          expect(preload1).to.equal('preload-1')
++          expect(preload2).to.equal('preload-1-2')
++          expect(preload3).equal('preload-1-2-3')
+           done()
+         })
++
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1145,15 +1266,15 @@
+             preload: path.join(fixtures, 'module', 'set-global-preload-3.js')
+           }
+         })
+-        w.loadURL('file://' + path.join(fixtures, 'api', 'preloads.html'))
++        w.loadURL(`file://${path.join(fixtures, 'api', 'preloads.html')}`)
+       })
+     })
+ 
+     describe('"additionalArguments" option', () => {
+-      it('adds extra args to process.argv in the renderer process', (done) => {
++      it('adds extra args to process.argv in the renderer process', done => {
+         const preload = path.join(fixtures, 'module', 'check-arguments.js')
+         ipcMain.once('answer', (event, argv) => {
+-          assert.ok(argv.includes('--my-magic-arg'))
++          expect(argv).to.include('--my-magic-arg')
+           done()
+         })
+         w.destroy()
+@@ -1167,12 +1288,13 @@
+         w.loadURL(`file://${path.join(fixtures, 'api', 'blank.html')}`)
+       })
+ 
+-      it('adds extra value args to process.argv in the renderer process', (done) => {
++      it('adds extra value args to process.argv in the renderer process', done => {
+         const preload = path.join(fixtures, 'module', 'check-arguments.js')
+         ipcMain.once('answer', (event, argv) => {
+-          assert.ok(argv.includes('--my-magic-arg=foo'))
++          expect(argv).to.include('--my-magic-arg=foo')
+           done()
+         })
++
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1186,13 +1308,14 @@
+     })
+ 
+     describe('"node-integration" option', () => {
+-      it('disables node integration when specified to false', (done) => {
++      it('disables node integration when specified to false', done => {
+         const preload = path.join(fixtures, 'module', 'send-later.js')
+         ipcMain.once('answer', (event, typeofProcess, typeofBuffer) => {
+-          assert.equal(typeofProcess, 'undefined')
+-          assert.equal(typeofBuffer, 'undefined')
++          expect(typeofProcess).to.equal('undefined')
++          expect(typeofBuffer).to.equal('undefined')
+           done()
+         })
++
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1228,23 +1351,24 @@
+         })
+       }
+ 
+-      before((done) => {
++      before(done => {
+         protocol.interceptStringProtocol('http', crossDomainHandler, () => {
+           done()
+         })
+       })
+ 
+-      after((done) => {
++      after(done => {
+         protocol.uninterceptProtocol('http', () => {
+           done()
+         })
+       })
+ 
+-      it('exposes ipcRenderer to preload script', (done) => {
+-        ipcMain.once('answer', function (event, test) {
+-          assert.equal(test, 'preload')
++      it('exposes ipcRenderer to preload script', done => {
++        ipcMain.once('answer', (event, test) => {
++          expect(test).to.equal('preload')
+           done()
+         })
++
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1253,13 +1377,13 @@
+             preload: preload
+           }
+         })
+-        w.loadURL('file://' + path.join(fixtures, 'api', 'preload.html'))
++        w.loadURL(`file://${path.join(fixtures, 'api', 'preload.html')}`)
+       })
+ 
+-      it('exposes ipcRenderer to preload script (path has special chars)', function (done) {
++      it('exposes ipcRenderer to preload script (path has special chars)', done => {
+         const preloadSpecialChars = path.join(fixtures, 'module', 'preload-sandboxæø åü.js')
+-        ipcMain.once('answer', function (event, test) {
+-          assert.equal(test, 'preload')
++        ipcMain.once('answer', (event, test) => {
++          expect(test).to.equal('preload')
+           done()
+         })
+         w.destroy()
+@@ -1270,10 +1394,10 @@
+             preload: preloadSpecialChars
+           }
+         })
+-        w.loadURL('file://' + path.join(fixtures, 'api', 'preload.html'))
++        w.loadURL(`file://${path.join(fixtures, 'api', 'preload.html')}`)
+       })
+ 
+-      it('exposes "exit" event to preload script', function (done) {
++      it('exposes "exit" event to preload script', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1283,19 +1407,20 @@
+           }
+         })
+         let htmlPath = path.join(fixtures, 'api', 'sandbox.html?exit-event')
+-        const pageUrl = 'file://' + htmlPath
++        const pageUrl = `file://${htmlPath}`
++
+         w.loadURL(pageUrl)
+-        ipcMain.once('answer', function (event, url) {
++        ipcMain.once('answer', (event, url) => {
+           let expectedUrl = pageUrl
+           if (process.platform === 'win32') {
+-            expectedUrl = 'file:///' + htmlPath.replace(/\\/g, '/')
++            expectedUrl = `file:///${htmlPath.replace(/\\/g, '/')}`
+           }
+-          assert.equal(url, expectedUrl)
++          expect(url).to.equal(expectedUrl)
+           done()
+         })
+       })
+ 
+-      it('should open windows in same domain with cross-scripting enabled', (done) => {
++      it('should open windows in same domain with cross-scripting enabled', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1304,27 +1429,30 @@
+             preload: preload
+           }
+         })
++
+         ipcRenderer.send('set-web-preferences-on-next-new-window', w.webContents.id, 'preload', preload)
+         let htmlPath = path.join(fixtures, 'api', 'sandbox.html?window-open')
+-        const pageUrl = 'file://' + htmlPath
++        const pageUrl = `file://${htmlPath}`
+         w.loadURL(pageUrl)
++
+         w.webContents.once('new-window', (e, url, frameName, disposition, options) => {
+           let expectedUrl = pageUrl
+           if (process.platform === 'win32') {
+-            expectedUrl = 'file:///' + htmlPath.replace(/\\/g, '/')
++            expectedUrl = `file:///${htmlPath.replace(/\\/g, '/')}`
+           }
+-          assert.equal(url, expectedUrl)
+-          assert.equal(frameName, 'popup!')
+-          assert.equal(options.width, 500)
+-          assert.equal(options.height, 600)
+-          ipcMain.once('answer', function (event, html) {
+-            assert.equal(html, '<h1>scripting from opener</h1>')
++          expect(url).to.equal(expectedUrl)
++          expect(frameName).to.equal('popup!')
++          expect(options.width).to.equal(500)
++          expect(options.height).to.equal(600)
++
++          ipcMain.once('answer', (event, html) => {
++            expect(html).equal('<h1>scripting from opener</h1>')
+             done()
+           })
+         })
+       })
+ 
+-      it('should open windows in another domain with cross-scripting disabled', (done) => {
++      it('should open windows in another domain with cross-scripting disabled', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1333,20 +1461,23 @@
+             preload: preload
+           }
+         })
++
+         ipcRenderer.send('set-web-preferences-on-next-new-window', w.webContents.id, 'preload', preload)
+         let htmlPath = path.join(fixtures, 'api', 'sandbox.html?window-open-external')
+-        const pageUrl = 'file://' + htmlPath
++        const pageUrl = `file://${htmlPath}`
+         let popupWindow
+         w.loadURL(pageUrl)
++
+         w.webContents.once('new-window', (e, url, frameName, disposition, options) => {
+-          assert.equal(url, 'http://www.google.com/#q=electron')
+-          assert.equal(options.width, 505)
+-          assert.equal(options.height, 605)
+-          ipcMain.once('child-loaded', function (event, openerIsNull, html) {
+-            assert(openerIsNull)
+-            assert.equal(html, '<h1>http://www.google.com/#q=electron</h1>')
+-            ipcMain.once('answer', function (event, exceptionMessage) {
+-              assert(/Blocked a frame with origin/.test(exceptionMessage))
++          expect(url).to.equal('http://www.google.com/#q=electron')
++          expect(options.width).to.equal(505)
++          expect(options.height).to.equal(605)
++
++          ipcMain.once('child-loaded', (event, openerIsNull, html) => {
++            expect(openerIsNull).to.be.true()
++            expect(html).to.equal('<h1>http://www.google.com/#q=electron</h1>')
++            ipcMain.once('answer', (event, exceptionMessage) => {
++              expect(/Blocked a frame with origin/.test(exceptionMessage)).to.be.true()
+ 
+               // FIXME this popup window should be closed in sandbox.html
+               closeWindow(popupWindow, {assertSingleWindow: false}).then(() => {
+@@ -1358,12 +1489,12 @@
+           })
+         })
+ 
+-        app.once('browser-window-created', function (event, window) {
++        app.once('browser-window-created', (event, window) => {
+           popupWindow = window
+         })
+       })
+ 
+-      it('should inherit the sandbox setting in opened windows', (done) => {
++      it('should inherit the sandbox setting in opened windows', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1375,13 +1506,13 @@
+         const preloadPath = path.join(fixtures, 'api', 'new-window-preload.js')
+         ipcRenderer.send('set-web-preferences-on-next-new-window', w.webContents.id, 'preload', preloadPath)
+         ipcMain.once('answer', (event, args) => {
+-          assert.equal(args.includes('--enable-sandbox'), true)
++          expect(args).to.include('--enable-sandbox')
+           done()
+         })
+         w.loadURL(`file://${path.join(fixtures, 'api', 'new-window.html')}`)
+       })
+ 
+-      it('should open windows with the options configured via new-window event listeners', (done) => {
++      it('should open windows with the options configured via new-window event listeners', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1394,13 +1525,13 @@
+         ipcRenderer.send('set-web-preferences-on-next-new-window', w.webContents.id, 'preload', preloadPath)
+         ipcRenderer.send('set-web-preferences-on-next-new-window', w.webContents.id, 'foo', 'bar')
+         ipcMain.once('answer', (event, args, webPreferences) => {
+-          assert.equal(webPreferences.foo, 'bar')
++          expect(webPreferences.foo).to.equal('bar')
+           done()
+         })
+         w.loadURL(`file://${path.join(fixtures, 'api', 'new-window.html')}`)
+       })
+ 
+-      it('should set ipc event sender correctly', (done) => {
++      it('should set ipc event sender correctly', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1409,24 +1540,31 @@
+             preload: preload
+           }
+         })
++<<<<<<< .our
+         ipcRenderer.send('set-web-preferences-on-next-new-window', w.webContents.id, 'preload', preload)
++=======
++>>>>>>> .their
+ 
+         let htmlPath = path.join(fixtures, 'api', 'sandbox.html?verify-ipc-sender')
+-        const pageUrl = 'file://' + htmlPath
++        const pageUrl = `file://${htmlPath}`
+         let childWc
++
+         w.webContents.once('new-window', (e, url, frameName, disposition, options) => {
+           childWc = options.webContents
+-          assert.notEqual(w.webContents, childWc)
++          expect(w.webContents).to.not.equal(childWc)
+         })
+-        ipcMain.once('parent-ready', function (event) {
+-          assert.equal(w.webContents, event.sender)
++
++        ipcMain.once('parent-ready', event => {
++          expect(w.webContents).to.equal(event.sender)
+           event.sender.send('verified')
+         })
+-        ipcMain.once('child-ready', function (event) {
+-          assert(childWc)
+-          assert.equal(childWc, event.sender)
++
++        ipcMain.once('child-ready', event => {
++          expect(childWc).to.exist()
++          expect(childWc).to.equal(event.sender)
+           event.sender.send('verified')
+         })
++
+         waitForEvents(ipcMain, [
+           'parent-answer',
+           'child-answer'
+@@ -1435,23 +1573,23 @@
+       })
+ 
+       describe('event handling', () => {
+-        it('works for window events', (done) => {
++        it('works for window events', done => {
+           waitForEvents(w, [
+             'page-title-updated'
+           ], done)
+-          w.loadURL('file://' + path.join(fixtures, 'api', 'sandbox.html?window-events'))
++          w.loadURL(`file://${path.join(fixtures, 'api', 'sandbox.html?window-events')}`)
+         })
+ 
+-        it('works for stop events', (done) => {
++        it('works for stop events', done => {
+           waitForEvents(w.webContents, [
+             'did-navigate',
+             'did-fail-load',
+             'did-stop-loading'
+           ], done)
+-          w.loadURL('file://' + path.join(fixtures, 'api', 'sandbox.html?webcontents-stop'))
++          w.loadURL(`file://${path.join(fixtures, 'api', 'sandbox.html?webcontents-stop')}`)
+         })
+ 
+-        it('works for web contents events', (done) => {
++        it('works for web contents events', done => {
+           waitForEvents(w.webContents, [
+             'did-finish-load',
+             'did-frame-finish-load',
+@@ -1462,11 +1600,11 @@
+             'did-frame-finish-load',
+             'dom-ready'
+           ], done)
+-          w.loadURL('file://' + path.join(fixtures, 'api', 'sandbox.html?webcontents-events'))
++          w.loadURL(`file://${path.join(fixtures, 'api', 'sandbox.html?webcontents-events')}`)
+         })
+       })
+ 
+-      it('can get printer list', (done) => {
++      it('can get printer list', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1475,15 +1613,16 @@
+             preload: preload
+           }
+         })
++
+         w.loadURL('data:text/html,%3Ch1%3EHello%2C%20World!%3C%2Fh1%3E')
+         w.webContents.once('did-finish-load', () => {
+           const printers = w.webContents.getPrinters()
+-          assert.equal(Array.isArray(printers), true)
++          expect(printers).to.be.an('array')
+           done()
+         })
+       })
+ 
+-      it('can print to PDF', (done) => {
++      it('can print to PDF', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1492,18 +1631,19 @@
+             preload: preload
+           }
+         })
++
+         w.loadURL('data:text/html,%3Ch1%3EHello%2C%20World!%3C%2Fh1%3E')
+         w.webContents.once('did-finish-load', () => {
+-          w.webContents.printToPDF({}, function (error, data) {
+-            assert.equal(error, null)
+-            assert.equal(data instanceof Buffer, true)
+-            assert.notEqual(data.length, 0)
++          w.webContents.printToPDF({}, (error, data) => {
++            expect(error).to.be.null()
++            expect(data).to.be.an.instanceOf('Buffer')
++            expect(data.length).to.not.equal(0)
+             done()
+           })
+         })
+       })
+ 
+-      it('supports calling preventDefault on new-window events', (done) => {
++      it('supports calling preventDefault on new-window events', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1511,20 +1651,21 @@
+             sandbox: true
+           }
+         })
++
+         const initialWebContents = webContents.getAllWebContents().map((i) => i.id)
+         ipcRenderer.send('prevent-next-new-window', w.webContents.id)
+         w.webContents.once('new-window', () => {
+           // We need to give it some time so the windows get properly disposed (at least on OSX).
+           setTimeout(() => {
+             const currentWebContents = webContents.getAllWebContents().map((i) => i.id)
+-            assert.deepEqual(currentWebContents, initialWebContents)
++            expect(currentWebContents).to.deep.equal(initialWebContents)
+             done()
+           }, 100)
+         })
+-        w.loadURL('file://' + path.join(fixtures, 'pages', 'window-open.html'))
++        w.loadURL(`file://${path.join(fixtures, 'pages', 'window-open.html')}`)
+       })
+ 
+-      it('releases memory after popup is closed', (done) => {
++      it('releases memory after popup is closed', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1533,21 +1674,22 @@
+             sandbox: true
+           }
+         })
+-        w.loadURL('file://' + path.join(fixtures, 'api', 'sandbox.html?allocate-memory'))
+-        ipcMain.once('answer', function (event, {bytesBeforeOpen, bytesAfterOpen, bytesAfterClose}) {
++
++        w.loadURL(`file://${path.join(fixtures, 'api', 'sandbox.html?allocate-memory')}`)
++        ipcMain.once('answer', (event, {bytesBeforeOpen, bytesAfterOpen, bytesAfterClose}) => {
+           const memoryIncreaseByOpen = bytesAfterOpen - bytesBeforeOpen
+           const memoryDecreaseByClose = bytesAfterOpen - bytesAfterClose
+           // decreased memory should be less than increased due to factors we
+           // can't control, but given the amount of memory allocated in the
+           // fixture, we can reasonably expect decrease to be at least 70% of
+           // increase
+-          assert(memoryDecreaseByClose > memoryIncreaseByOpen * 0.7)
++          expect(memoryDecreaseByClose > memoryIncreaseByOpen * 0.7).to.be.true()
+           done()
+         })
+       })
+ 
+       // see #9387
+-      it('properly manages remote object references after page reload', (done) => {
++      it('properly manages remote object references after page reload', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1556,31 +1698,31 @@
+             sandbox: true
+           }
+         })
+-        w.loadURL('file://' + path.join(fixtures, 'api', 'sandbox.html?reload-remote'))
++        w.loadURL(`file://${path.join(fixtures, 'api', 'sandbox.html?reload-remote')}`)
+ 
+-        ipcMain.on('get-remote-module-path', (event) => {
++        ipcMain.on('get-remote-module-path', event => {
+           event.returnValue = path.join(fixtures, 'module', 'hello.js')
+         })
+ 
+         let reload = false
+-        ipcMain.on('reloaded', (event) => {
++        ipcMain.on('reloaded', event => {
+           event.returnValue = reload
+           reload = !reload
+         })
+ 
+-        ipcMain.once('reload', (event) => {
++        ipcMain.once('reload', event => {
+           event.sender.reload()
+         })
+ 
+         ipcMain.once('answer', (event, arg) => {
+           ipcMain.removeAllListeners('reloaded')
+           ipcMain.removeAllListeners('get-remote-module-path')
+-          assert.equal(arg, 'hi')
++          expect(arg).to.equal('hi')
+           done()
+         })
+       })
+ 
+-      it('properly manages remote object references after page reload in child window', (done) => {
++      it('properly manages remote object references after page reload in child window', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1589,32 +1731,37 @@
+             sandbox: true
+           }
+         })
++<<<<<<< .our
+         ipcRenderer.send('set-web-preferences-on-next-new-window', w.webContents.id, 'preload', preload)
+ 
+         w.loadURL('file://' + path.join(fixtures, 'api', 'sandbox.html?reload-remote-child'))
++=======
++        w.loadURL(`file://${path.join(fixtures, 'api', 'sandbox.html?reload-remote-child')}`)
++>>>>>>> .their
+ 
+-        ipcMain.on('get-remote-module-path', (event) => {
++        ipcMain.on('get-remote-module-path', event => {
+           event.returnValue = path.join(fixtures, 'module', 'hello-child.js')
+         })
+ 
+         let reload = false
+-        ipcMain.on('reloaded', (event) => {
++        ipcMain.on('reloaded', event => {
+           event.returnValue = reload
+           reload = !reload
+         })
+ 
+-        ipcMain.once('reload', (event) => {
++        ipcMain.once('reload', event => {
+           event.sender.reload()
+         })
+ 
+         ipcMain.once('answer', (event, arg) => {
+           ipcMain.removeAllListeners('reloaded')
+           ipcMain.removeAllListeners('get-remote-module-path')
+-          assert.equal(arg, 'hi child window')
++          expect(arg).to.equal('hi child window')
+           done()
+         })
+       })
+ 
++<<<<<<< .our
+       it('validates process APIs access in sandboxed renderer', (done) => {
+         ipcMain.once('answer', function (event, test) {
+           assert.equal(test.pid, w.webContents.getOSProcessId())
+@@ -1627,8 +1774,14 @@
+           assert.equal(test.type, 'renderer')
+           assert.equal(test.version, remote.process.version)
+           assert.deepEqual(test.versions, remote.process.versions)
++=======
++      it('validate process.env access in sandbox renderer', done => {
++        ipcMain.once('answer', (event, test) => {
++          expect(test).to.equal('foo')
++>>>>>>> .their
+           done()
+         })
++
+         remote.process.env.sandboxmain = 'foo'
+         w.destroy()
+         w = new BrowserWindow({
+@@ -1638,7 +1791,7 @@
+             preload: preload
+           }
+         })
+-        w.loadURL('file://' + path.join(fixtures, 'api', 'preload.html'))
++        w.loadURL(`file://${path.join(fixtures, 'api', 'preload.html')}`)
+       })
+ 
+       it('webview in sandbox renderer', async () => {
+@@ -1670,48 +1823,53 @@
+         })
+       })
+ 
+-      it('opens window of about:blank with cross-scripting enabled', (done) => {
++      it('opens window of about:blank with cross-scripting enabled', done => {
+         ipcMain.once('answer', (event, content) => {
+-          assert.equal(content, 'Hello')
++          expect(content).to.equal('Hello')
+           done()
+         })
+         w.loadURL(`file://${path.join(fixtures, 'api', 'native-window-open-blank.html')}`)
+       })
+-      it('opens window of same domain with cross-scripting enabled', (done) => {
++
++      it('opens window of same domain with cross-scripting enabled', done => {
+         ipcMain.once('answer', (event, content) => {
+-          assert.equal(content, 'Hello')
++          expect(content).to.equal('Hello')
+           done()
+         })
+         w.loadURL(`file://${path.join(fixtures, 'api', 'native-window-open-file.html')}`)
+       })
+-      it('blocks accessing cross-origin frames', (done) => {
++
++      it('blocks accessing cross-origin frames', done => {
+         ipcMain.once('answer', (event, content) => {
+-          assert.equal(content, 'Blocked a frame with origin "file://" from accessing a cross-origin frame.')
++          expect(content).to.equal('Blocked a frame with origin "file://" from accessing a cross-origin frame.')
+           done()
+         })
+         w.loadURL(`file://${path.join(fixtures, 'api', 'native-window-open-cross-origin.html')}`)
+       })
+-      it('opens window from <iframe> tags', (done) => {
++
++      it('opens window from <iframe> tags', done => {
+         ipcMain.once('answer', (event, content) => {
+-          assert.equal(content, 'Hello')
++          expect(content).to.equal('Hello')
+           done()
+         })
+         w.loadURL(`file://${path.join(fixtures, 'api', 'native-window-open-iframe.html')}`)
+       })
+-      it('loads native addons correctly after reload', (done) => {
++
++      it('loads native addons correctly after reload', done => {
+         if (!nativeModulesEnabled) return done()
+ 
+         ipcMain.once('answer', (event, content) => {
+-          assert.equal(content, 'function')
++          expect(content).to.equal('function')
+           ipcMain.once('answer', (event, content) => {
+-            assert.equal(content, 'function')
++            expect(content).to.equal('function')
+             done()
+           })
+           w.reload()
+         })
+         w.loadURL(`file://${path.join(fixtures, 'api', 'native-window-open-native-addon.html')}`)
+       })
+-      it('should inherit the nativeWindowOpen setting in opened windows', (done) => {
++
++      it('should inherit the nativeWindowOpen setting in opened windows', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1723,12 +1881,13 @@
+         const preloadPath = path.join(fixtures, 'api', 'new-window-preload.js')
+         ipcRenderer.send('set-web-preferences-on-next-new-window', w.webContents.id, 'preload', preloadPath)
+         ipcMain.once('answer', (event, args) => {
+-          assert.equal(args.includes('--native-window-open'), true)
++          expect(args).to.include('--native-window-open')
+           done()
+         })
+         w.loadURL(`file://${path.join(fixtures, 'api', 'new-window.html')}`)
+       })
+-      it('should open windows with the options configured via new-window event listeners', (done) => {
++
++      it('should open windows with the options configured via new-window event listeners', done => {
+         w.destroy()
+         w = new BrowserWindow({
+           show: false,
+@@ -1741,11 +1900,12 @@
+         ipcRenderer.send('set-web-preferences-on-next-new-window', w.webContents.id, 'preload', preloadPath)
+         ipcRenderer.send('set-web-preferences-on-next-new-window', w.webContents.id, 'foo', 'bar')
+         ipcMain.once('answer', (event, args, webPreferences) => {
+-          assert.equal(webPreferences.foo, 'bar')
++          expect(webPreferences.foo).to.equal('bar')
+           done()
+         })
+         w.loadURL(`file://${path.join(fixtures, 'api', 'new-window.html')}`)
+       })
++
+       it('retains the original web preferences when window.location is changed to a new origin', async () => {
+         await serveFileFromProtocol('foo', path.join(fixtures, 'api', 'window-open-location-change.html'))
+         await serveFileFromProtocol('bar', path.join(fixtures, 'api', 'window-open-location-final.html'))
+@@ -1762,9 +1922,9 @@
+         return new Promise((resolve, reject) => {
+           ipcRenderer.send('set-web-preferences-on-next-new-window', w.webContents.id, 'preload', path.join(fixtures, 'api', 'window-open-preload.js'))
+           ipcMain.once('answer', (event, args, typeofProcess) => {
+-            assert.equal(args.includes('--node-integration=false'), true)
+-            assert.equal(args.includes('--native-window-open'), true)
+-            assert.equal(typeofProcess, 'undefined')
++            expect(args).to.include('--node-integration=false')
++            expect(args).to.include('--native-window-open')
++            expect(typeofProcess).to.equal('undefined')
+             resolve()
+           })
+           w.loadURL(`file://${path.join(fixtures, 'api', 'window-open-location-open.html')}`)
+@@ -1786,9 +1946,9 @@
+       })
+     })
+ 
+-    it('opens window with cross-scripting enabled from isolated context', (done) => {
++    it('opens window with cross-scripting enabled from isolated context', done => {
+       ipcMain.once('answer', (event, content) => {
+-        assert.equal(content, 'Hello')
++        expect(content).to.equal('Hello')
+         done()
+       })
+       w.loadURL(`file://${path.join(fixtures, 'api', 'native-window-open-isolated.html')}`)
+@@ -1796,19 +1956,22 @@
+   })
+ 
+   describe('beforeunload handler', () => {
+-    it('returning undefined would not prevent close', (done) => {
++    it('returning undefined would not prevent close', done => {
+       w.once('closed', () => { done() })
+-      w.loadURL('file://' + path.join(fixtures, 'api', 'close-beforeunload-undefined.html'))
++      w.loadURL(`file://${path.join(fixtures, 'api', 'close-beforeunload-undefined.html')}`)
+     })
+-    it('returning false would prevent close', (done) => {
++
++    it('returning false would prevent close', done => {
+       w.once('onbeforeunload', () => { done() })
+       w.loadURL(`file://${path.join(fixtures, 'api', 'close-beforeunload-false.html')}`)
+     })
+-    it('returning empty string would prevent close', (done) => {
++
++    it('returning empty string would prevent close', done => {
+       w.once('onbeforeunload', () => { done() })
+       w.loadURL(`file://${path.join(fixtures, 'api', 'close-beforeunload-empty-string.html')}`)
+     })
+-    it('emits for each close attempt', (done) => {
++
++    it('emits for each close attempt', done => {
+       let beforeUnloadCount = 0
+       w.on('onbeforeunload', () => {
+         beforeUnloadCount += 1
+@@ -1821,7 +1984,8 @@
+       w.webContents.once('did-finish-load', () => { w.close() })
+       w.loadURL(`file://${path.join(fixtures, 'api', 'beforeunload-false-prevent3.html')}`)
+     })
+-    it('emits for each reload attempt', (done) => {
++
++    it('emits for each reload attempt', done => {
+       let beforeUnloadCount = 0
+       w.on('onbeforeunload', () => {
+         beforeUnloadCount += 1
+@@ -1833,13 +1997,14 @@
+       })
+       w.webContents.once('did-finish-load', () => {
+         w.webContents.once('did-finish-load', () => {
+-          assert.fail('Reload was not prevented')
++          expect.fail('Reload was not prevented')
+         })
+         w.reload()
+       })
+       w.loadURL(`file://${path.join(fixtures, 'api', 'beforeunload-false-prevent3.html')}`)
+     })
+-    it('emits for each navigation attempt', (done) => {
++
++    it('emits for each navigation attempt', done => {
+       let beforeUnloadCount = 0
+       w.on('onbeforeunload', () => {
+         beforeUnloadCount += 1
+@@ -1851,7 +2016,7 @@
+       })
+       w.webContents.once('did-finish-load', () => {
+         w.webContents.once('did-finish-load', () => {
+-          assert.fail('Navigation was not prevented')
++          expect.fail('Navigation was not prevented')
+         })
+         w.loadURL('about:blank')
+       })
+@@ -1881,7 +2046,7 @@
+ 
+     afterEach(() => { ipcMain.removeAllListeners('pong') })
+ 
+-    it('visibilityState is initially visible despite window being hidden', (done) => {
++    it('visibilityState is initially visible despite window being hidden', done => {
+       w = new BrowserWindow({ show: false, width: 100, height: 100 })
+ 
+       let readyToShow = false
+@@ -1890,25 +2055,26 @@
+       })
+ 
+       onNextVisibilityChange((visibilityState, hidden) => {
+-        assert.equal(readyToShow, false)
+-        assert.equal(visibilityState, 'visible')
+-        assert.equal(hidden, false)
++        expect(readyToShow).to.be.false()
++        expect(visibilityState).to.equal('visible')
++        expect(hidden).to.be.false()
+ 
+         done()
+       })
+ 
+       w.loadURL(`file://${path.join(fixtures, 'pages', 'visibilitychange.html')}`)
+     })
+-    it('visibilityState changes when window is hidden', (done) => {
++
++    it('visibilityState changes when window is hidden', done => {
+       w = new BrowserWindow({width: 100, height: 100})
+ 
+       onNextVisibilityChange((visibilityState, hidden) => {
+-        assert.equal(visibilityState, 'visible')
+-        assert.equal(hidden, false)
++        expect(visibilityState).to.equal('visible')
++        expect(hidden).to.be.false()
+ 
+         onNextVisibilityChange((visibilityState, hidden) => {
+-          assert.equal(visibilityState, 'hidden')
+-          assert.equal(hidden, true)
++          expect(visibilityState).to.equal('hidden')
++          expect(hidden).to.be.true()
+           done()
+         })
+ 
+@@ -1917,13 +2083,14 @@
+ 
+       w.loadURL(`file://${path.join(fixtures, 'pages', 'visibilitychange.html')}`)
+     })
+-    it('visibilityState changes when window is shown', (done) => {
++
++    it('visibilityState changes when window is shown', done => {
+       w = new BrowserWindow({width: 100, height: 100})
+ 
+       onNextVisibilityChange((visibilityState, hidden) => {
+         onVisibilityChange((visibilityState, hidden) => {
+           if (!hidden) {
+-            assert.equal(visibilityState, 'visible')
++            expect(visibilityState).to.equal('visible')
+             done()
+           }
+         })
+@@ -1934,7 +2101,8 @@
+ 
+       w.loadURL(`file://${path.join(fixtures, 'pages', 'visibilitychange.html')}`)
+     })
+-    it('visibilityState changes when window is shown inactive', function (done) {
++
++    it('visibilityState changes when window is shown inactive', done => {
+       if (isCI && process.platform === 'win32') {
+         // FIXME(alexeykuzmin): Skip the test instead of marking it as passed.
+         // afterEach hook won't be run if a test is skipped dynamically.
+@@ -1949,7 +2117,7 @@
+       onNextVisibilityChange((visibilityState, hidden) => {
+         onVisibilityChange((visibilityState, hidden) => {
+           if (!hidden) {
+-            assert.equal(visibilityState, 'visible')
++            expect(visibilityState).to.equal('visible')
+             done()
+           }
+         })
+@@ -1960,7 +2128,8 @@
+ 
+       w.loadURL(`file://${path.join(fixtures, 'pages', 'visibilitychange.html')}`)
+     })
+-    it('visibilityState changes when window is minimized', function (done) {
++
++    it('visibilityState changes when window is minimized', done => {
+       if (isCI && process.platform === 'linux') {
+         // FIXME(alexeykuzmin): Skip the test instead of marking it as passed.
+         // afterEach hook won't be run if a test is skipped dynamically.
+@@ -1973,12 +2142,12 @@
+       w = new BrowserWindow({width: 100, height: 100})
+ 
+       onNextVisibilityChange((visibilityState, hidden) => {
+-        assert.equal(visibilityState, 'visible')
+-        assert.equal(hidden, false)
++        expect(visibilityState).to.equal('visible')
++        expect(hidden).to.be.false()
+ 
+         onNextVisibilityChange((visibilityState, hidden) => {
+-          assert.equal(visibilityState, 'hidden')
+-          assert.equal(hidden, true)
++          expect(visibilityState).to.equal('hidden')
++          expect(hidden).to.be.true()
+           done()
+         })
+ 
+@@ -1987,7 +2156,8 @@
+ 
+       w.loadURL(`file://${path.join(fixtures, 'pages', 'visibilitychange.html')}`)
+     })
+-    it('visibilityState remains visible if backgroundThrottling is disabled', (done) => {
++
++    it('visibilityState remains visible if backgroundThrottling is disabled', done => {
+       w = new BrowserWindow({
+         show: false,
+         width: 100,
+@@ -1998,8 +2168,8 @@
+       })
+ 
+       onNextVisibilityChange((visibilityState, hidden) => {
+-        assert.equal(visibilityState, 'visible')
+-        assert.equal(hidden, false)
++        expect(visibilityState).to.equal('visible')
++        expect(hidden).to.be.false()
+ 
+         onNextVisibilityChange((visibilityState, hidden) => {
+           done(new Error(`Unexpected visibility change event. visibilityState: ${visibilityState} hidden: ${hidden}`))
+@@ -2028,33 +2198,35 @@
+       }
+     })
+ 
+-    it('emits when window.open is called', (done) => {
++    it('emits when window.open is called', done => {
+       w.webContents.once('new-window', (e, url, frameName, disposition, options, additionalFeatures) => {
+         e.preventDefault()
+-        assert.equal(url, 'http://host/')
+-        assert.equal(frameName, 'host')
+-        assert.equal(additionalFeatures[0], 'this-is-not-a-standard-feature')
++        expect(url).to.equal('http://host/')
++        expect(frameName).to.equal('host')
++        expect(additionalFeatures[0]).to.equal('this-is-not-a-standard-feature')
+         done()
+       })
+       w.loadURL(`file://${fixtures}/pages/window-open.html`)
+     })
+-    it('emits when window.open is called with no webPreferences', (done) => {
++
++    it('emits when window.open is called with no webPreferences', done => {
+       w.destroy()
+       w = new BrowserWindow({ show: false })
+-      w.webContents.once('new-window', function (e, url, frameName, disposition, options, additionalFeatures) {
++      w.webContents.once('new-window', (e, url, frameName, disposition, options, additionalFeatures) => {
+         e.preventDefault()
+-        assert.equal(url, 'http://host/')
+-        assert.equal(frameName, 'host')
+-        assert.equal(additionalFeatures[0], 'this-is-not-a-standard-feature')
++        expect(url).to.equal('http://host/')
++        expect(frameName).to.equal('host')
++        expect(additionalFeatures[0]).to.equal('this-is-not-a-standard-feature')
+         done()
+       })
+       w.loadURL(`file://${fixtures}/pages/window-open.html`)
+     })
+-    it('emits when link with target is called', (done) => {
++
++    it('emits when link with target is called', done => {
+       w.webContents.once('new-window', (e, url, frameName) => {
+         e.preventDefault()
+-        assert.equal(url, 'http://host/')
+-        assert.equal(frameName, 'target')
++        expect(url).to.equal('http://host/')
++        expect(frameName).to.equal('target')
+         done()
+       })
+       w.loadURL(`file://${fixtures}/pages/target-name.html`)
+@@ -2064,7 +2236,7 @@
+   describe('maximize event', () => {
+     if (isCI) return
+ 
+-    it('emits when window is maximized', (done) => {
++    it('emits when window is maximized', done => {
+       w.once('maximize', () => { done() })
+       w.show()
+       w.maximize()
+@@ -2074,7 +2246,7 @@
+   describe('unmaximize event', () => {
+     if (isCI) return
+ 
+-    it('emits when window is unmaximized', (done) => {
++    it('emits when window is unmaximized', done => {
+       w.once('unmaximize', () => { done() })
+       w.show()
+       w.maximize()
+@@ -2085,7 +2257,7 @@
+   describe('minimize event', () => {
+     if (isCI) return
+ 
+-    it('emits when window is minimized', (done) => {
++    it('emits when window is minimized', done => {
+       w.once('minimize', () => { done() })
+       w.show()
+       w.minimize()
+@@ -2105,7 +2277,7 @@
+       return closeWindow(sheet, {assertSingleWindow: false}).then(() => { sheet = null })
+     })
+ 
+-    it('emits when window opens a sheet', (done) => {
++    it('emits when window opens a sheet', done => {
+       w.show()
+       w.once('sheet-begin', () => {
+         sheet.close()
+@@ -2131,7 +2303,7 @@
+       return closeWindow(sheet, {assertSingleWindow: false}).then(() => { sheet = null })
+     })
+ 
+-    it('emits when window has closed a sheet', (done) => {
++    it('emits when window has closed a sheet', done => {
+       w.show()
+       sheet = new BrowserWindow({
+         modal: true,
+@@ -2155,37 +2327,39 @@
+       }
+     })
+ 
+-    it('subscribes to frame updates', (done) => {
++    it('subscribes to frame updates', done => {
+       let called = false
+       w.loadURL(`file://${fixtures}/api/frame-subscriber.html`)
+       w.webContents.on('dom-ready', () => {
+-        w.webContents.beginFrameSubscription(function (data) {
++        w.webContents.beginFrameSubscription(data => {
+           // This callback might be called twice.
+           if (called) return
+           called = true
+ 
+-          assert.notEqual(data.length, 0)
++          expect(data.length).to.not.equal(0)
+           w.webContents.endFrameSubscription()
+           done()
+         })
+       })
+     })
+-    it('subscribes to frame updates (only dirty rectangle)', (done) => {
++
++    it('subscribes to frame updates (only dirty rectangle)', done => {
+       let called = false
+       w.loadURL(`file://${fixtures}/api/frame-subscriber.html`)
+       w.webContents.on('dom-ready', () => {
+-        w.webContents.beginFrameSubscription(true, (data) => {
++        w.webContents.beginFrameSubscription(true, data => {
+           // This callback might be called twice.
+           if (called) return
+           called = true
+ 
+-          assert.notEqual(data.length, 0)
++          expect(data.length).to.not.equal(0)
+           w.webContents.endFrameSubscription()
+           done()
+         })
+       })
+     })
+-    it('throws error when subscriber is not well defined', (done) => {
++
++    it('throws error when subscriber is not well defined', done => {
+       w.loadURL(`file://${fixtures}'/api/frame-subscriber.html`)
+       try {
+         w.webContents.beginFrameSubscription(true, true)
+@@ -2213,13 +2387,13 @@
+       }
+     })
+ 
+-    it('should save page to disk', (done) => {
++    it('should save page to disk', done => {
+       w.webContents.on('did-finish-load', () => {
+-        w.webContents.savePage(savePageHtmlPath, 'HTMLComplete', function (error) {
+-          assert.equal(error, null)
+-          assert(fs.existsSync(savePageHtmlPath))
+-          assert(fs.existsSync(savePageJsPath))
+-          assert(fs.existsSync(savePageCssPath))
++        w.webContents.savePage(savePageHtmlPath, 'HTMLComplete', error => {
++          expect(error).to.be.null()
++          expect(fs.existsSync(savePageHtmlPath)).to.be.true()
++          expect(fs.existsSync(savePageJsPath)).to.be.true()
++          expect(fs.existsSync(savePageCssPath)).to.be.true()
+           done()
+         })
+       })
+@@ -2232,8 +2406,8 @@
+       w.destroy()
+       w = new BrowserWindow()
+       const size = w.getSize()
+-      assert.equal(size[0], 800)
+-      assert.equal(size[1], 600)
++      expect(size[0]).to.equal(800)
++      expect(size[1]).to.equal(600)
+     })
+   })
+ 
+@@ -2249,53 +2423,53 @@
+ 
+       w.setMinimizable(false)
+       w.setMinimizable(true)
+-      assert.deepEqual(w.getSize(), [300, 200])
++      expect(w.getSize()).to.deep.equal([300, 200])
+ 
+       w.setResizable(false)
+       w.setResizable(true)
+-      assert.deepEqual(w.getSize(), [300, 200])
++      expect(w.getSize()).to.deep.equal([300, 200])
+ 
+       w.setMaximizable(false)
+       w.setMaximizable(true)
+-      assert.deepEqual(w.getSize(), [300, 200])
++      expect(w.getSize()).to.deep.equal([300, 200])
+ 
+       w.setFullScreenable(false)
+       w.setFullScreenable(true)
+-      assert.deepEqual(w.getSize(), [300, 200])
++      expect(w.getSize()).to.deep.equal([300, 200])
+ 
+       w.setClosable(false)
+       w.setClosable(true)
+-      assert.deepEqual(w.getSize(), [300, 200])
++      expect(w.getSize()).to.deep.equal([300, 200])
+     })
+ 
+     describe('resizable state', () => {
+       it('can be changed with resizable option', () => {
+         w.destroy()
+         w = new BrowserWindow({show: false, resizable: false})
+-        assert.equal(w.isResizable(), false)
++        expect(w.isResizable()).to.equal.false()
+ 
+         if (process.platform === 'darwin') {
+-          assert.equal(w.isMaximizable(), true)
++          expect(w.isResizable()).to.equal.true()
+         }
+       })
+ 
+       it('can be changed with setResizable method', () => {
+-        assert.equal(w.isResizable(), true)
++        expect(w.isResizable()).to.equal.true()
+         w.setResizable(false)
+-        assert.equal(w.isResizable(), false)
++        expect(w.isResizable()).to.equal.false()
+         w.setResizable(true)
+-        assert.equal(w.isResizable(), true)
++        expect(w.isResizable()).to.equal.false()
+       })
+ 
+       it('works for a frameless window', () => {
+         w.destroy()
+         w = new BrowserWindow({show: false, frame: false})
+-        assert.equal(w.isResizable(), true)
++        expect(w.isResizable()).to.equal.true()
+ 
+         if (process.platform === 'win32') {
+           w.destroy()
+           w = new BrowserWindow({show: false, thickFrame: false})
+-          assert.equal(w.isResizable(), false)
++          expect(w.isResizable()).to.equal.false()
+         }
+       })
+ 
+@@ -2319,18 +2493,19 @@
+     })
+ 
+     describe('loading main frame state', () => {
+-      it('is true when the main frame is loading', (done) => {
++      it('is true when the main frame is loading', done => {
+         w.webContents.on('did-start-loading', () => {
+-          assert.equal(w.webContents.isLoadingMainFrame(), true)
++          expect(w.webContents.isLoadingMainFrame()).to.be.true()
+           done()
+         })
+         w.webContents.loadURL(server.url)
+       })
+-      it('is false when only a subframe is loading', (done) => {
++
++      it('is false when only a subframe is loading', done => {
+         w.webContents.once('did-finish-load', () => {
+-          assert.equal(w.webContents.isLoadingMainFrame(), false)
++          expect(w.webContents.isLoadingMainFrame()).to.be.false()
+           w.webContents.on('did-start-loading', () => {
+-            assert.equal(w.webContents.isLoadingMainFrame(), false)
++            expect(w.webContents.isLoadingMainFrame()).to.be.true()
+             done()
+           })
+           w.webContents.executeJavaScript(`
+@@ -2341,11 +2516,12 @@
+         })
+         w.webContents.loadURL(server.url)
+       })
+-      it('is true when navigating to pages from the same origin', (done) => {
++
++      it('is true when navigating to pages from the same origin', done => {
+         w.webContents.once('did-finish-load', () => {
+-          assert.equal(w.webContents.isLoadingMainFrame(), false)
++          expect(w.webContents.isLoadingMainFrame()).to.be.false()
+           w.webContents.on('did-start-loading', () => {
+-            assert.equal(w.webContents.isLoadingMainFrame(), true)
++            expect(w.webContents.isLoadingMainFrame()).to.be.true()
+             done()
+           })
+           w.webContents.loadURL(`${server.url}/page2`)
+@@ -2371,14 +2547,15 @@
+       it('can be changed with movable option', () => {
+         w.destroy()
+         w = new BrowserWindow({show: false, movable: false})
+-        assert.equal(w.isMovable(), false)
++        expect(w.isMovable()).to.be.false()
+       })
++
+       it('can be changed with setMovable method', () => {
+-        assert.equal(w.isMovable(), true)
++        expect(w.isMovable()).to.be.true()
+         w.setMovable(false)
+-        assert.equal(w.isMovable(), false)
++        expect(w.isMovable()).to.be.false()
+         w.setMovable(true)
+-        assert.equal(w.isMovable(), true)
++        expect(w.isMovable()).to.be.true()
+       })
+     })
+ 
+@@ -2386,15 +2563,15 @@
+       it('can be changed with minimizable option', () => {
+         w.destroy()
+         w = new BrowserWindow({show: false, minimizable: false})
+-        assert.equal(w.isMinimizable(), false)
++        expect(w.isMinimizable()).to.be.false()
+       })
+ 
+       it('can be changed with setMinimizable method', () => {
+-        assert.equal(w.isMinimizable(), true)
++        expect(w.isMinimizable()).to.be.true()
+         w.setMinimizable(false)
+-        assert.equal(w.isMinimizable(), false)
++        expect(w.isMinimizable()).to.be.false()
+         w.setMinimizable(true)
+-        assert.equal(w.isMinimizable(), true)
++        expect(w.isMinimizable()).to.be.true()
+       })
+     })
+ 
+@@ -2402,31 +2579,31 @@
+       it('can be changed with maximizable option', () => {
+         w.destroy()
+         w = new BrowserWindow({show: false, maximizable: false})
+-        assert.equal(w.isMaximizable(), false)
++        expect(w.isMaximizable()).to.be.false()
+       })
+ 
+       it('can be changed with setMaximizable method', () => {
+-        assert.equal(w.isMaximizable(), true)
++        expect(w.isMaximizable()).to.be.true()
+         w.setMaximizable(false)
+-        assert.equal(w.isMaximizable(), false)
++        expect(w.isMaximizable()).to.be.false()
+         w.setMaximizable(true)
+-        assert.equal(w.isMaximizable(), true)
++        expect(w.isMaximizable()).to.be.true()
+       })
+ 
+       it('is not affected when changing other states', () => {
+         w.setMaximizable(false)
+-        assert.equal(w.isMaximizable(), false)
++        expect(w.isMaximizable()).to.be.false()
+         w.setMinimizable(false)
+-        assert.equal(w.isMaximizable(), false)
++        expect(w.isMaximizable()).to.be.false()
+         w.setClosable(false)
+-        assert.equal(w.isMaximizable(), false)
++        expect(w.isMaximizable()).to.be.false()
+ 
+         w.setMaximizable(true)
+-        assert.equal(w.isMaximizable(), true)
++        expect(w.isMaximizable()).to.be.true()
+         w.setClosable(true)
+-        assert.equal(w.isMaximizable(), true)
++        expect(w.isMaximizable()).to.be.true()
+         w.setFullScreenable(false)
+-        assert.equal(w.isMaximizable(), true)
++        expect(w.isMaximizable()).to.be.true()
+       })
+     })
+ 
+@@ -2436,7 +2613,7 @@
+ 
+       it('is set to false when resizable state is set to false', () => {
+         w.setResizable(false)
+-        assert.equal(w.isMaximizable(), false)
++        expect(w.isMaximizable()).to.be.false()
+       })
+     })
+ 
+@@ -2451,15 +2628,15 @@
+       it('can be changed with fullscreenable option', () => {
+         w.destroy()
+         w = new BrowserWindow({show: false, fullscreenable: false})
+-        assert.equal(w.isFullScreenable(), false)
++        expect(w.isFullScreenable()).to.be.false()
+       })
+ 
+       it('can be changed with setFullScreenable method', () => {
+-        assert.equal(w.isFullScreenable(), true)
++        expect(w.isFullScreenable()).to.be.true()
+         w.setFullScreenable(false)
+-        assert.equal(w.isFullScreenable(), false)
++        expect(w.isFullScreenable()).to.be.false()
+         w.setFullScreenable(true)
+-        assert.equal(w.isFullScreenable(), true)
++        expect(w.isFullScreenable()).to.be.false()
+       })
+     })
+ 
+@@ -2472,15 +2649,15 @@
+         }
+       })
+ 
+-      it('can be changed with setKiosk method', (done) => {
++      it('can be changed with setKiosk method', done => {
+         w.destroy()
+         w = new BrowserWindow()
+         w.setKiosk(true)
+-        assert.equal(w.isKiosk(), true)
++        expect(w.isKiosk()).to.be.true()
+ 
+         w.once('enter-full-screen', () => {
+           w.setKiosk(false)
+-          assert.equal(w.isKiosk(), false)
++          expect(w.isKiosk()).to.be.false()
+         })
+         w.once('leave-full-screen', () => {
+           done()
+@@ -2496,15 +2673,15 @@
+         }
+       })
+ 
+-      it('resizable flag should be set to true and restored', (done) => {
++      it('resizable flag should be set to true and restored', done => {
+         w.destroy()
+         w = new BrowserWindow({ resizable: false })
+         w.once('enter-full-screen', () => {
+-          assert.equal(w.isResizable(), true)
++          expect(w.isResizable()).to.be.true()
+           w.setFullScreen(false)
+         })
+         w.once('leave-full-screen', () => {
+-          assert.equal(w.isResizable(), false)
++          expect(w.isResizable()).to.be.false()
+           done()
+         })
+         w.setFullScreen(true)
+@@ -2520,32 +2697,32 @@
+         }
+       })
+ 
+-      it('can be changed with setFullScreen method', (done) => {
++      it('can be changed with setFullScreen method', done => {
+         w.destroy()
+         w = new BrowserWindow()
+         w.once('enter-full-screen', () => {
+-          assert.equal(w.isFullScreen(), true)
++          expect(w.isFullScreen()).to.be.true()
+           w.setFullScreen(false)
+         })
+         w.once('leave-full-screen', () => {
+-          assert.equal(w.isFullScreen(), false)
++          expect(w.isFullScreen()).to.be.false()
+           done()
+         })
+         w.setFullScreen(true)
+       })
+ 
+-      it('should not be changed by setKiosk method', (done) => {
++      it('should not be changed by setKiosk method', done => {
+         w.destroy()
+         w = new BrowserWindow()
+         w.once('enter-full-screen', () => {
+-          assert.equal(w.isFullScreen(), true)
++          expect(w.isFullScreen()).to.be.true()
+           w.setKiosk(true)
+           w.setKiosk(false)
+-          assert.equal(w.isFullScreen(), true)
++          expect(w.isFullScreen()).to.be.true()
+           w.setFullScreen(false)
+         })
+         w.once('leave-full-screen', () => {
+-          assert.equal(w.isFullScreen(), false)
++          expect(w.isFullScreen()).to.be.false()
+           done()
+         })
+         w.setFullScreen(true)
+@@ -2556,15 +2733,15 @@
+       it('can be changed with closable option', () => {
+         w.destroy()
+         w = new BrowserWindow({show: false, closable: false})
+-        assert.equal(w.isClosable(), false)
++        expect(w.isClosable()).to.be.false()
+       })
+ 
+       it('can be changed with setClosable method', () => {
+-        assert.equal(w.isClosable(), true)
++        expect(w.isClosable()).to.be.true()
+         w.setClosable(false)
+-        assert.equal(w.isClosable(), false)
++        expect(w.isClosable()).to.be.false()
+         w.setClosable(true)
+-        assert.equal(w.isClosable(), true)
++        expect(w.isClosable()).to.be.true()
+       })
+     })
+ 
+@@ -2575,17 +2752,17 @@
+         w.destroy()
+         let hasShadow = process.platform !== 'darwin'
+         w = new BrowserWindow({show: false, hasShadow: hasShadow})
+-        assert.equal(w.hasShadow(), hasShadow)
++        expect(w.hasShadow()).to.equal(hasShadow)
+       })
+ 
+       it('can be changed with setHasShadow method', () => {
+         if (process.platform !== 'darwin') return
+ 
+-        assert.equal(w.hasShadow(), true)
++        expect(w.hasShadow()).to.be.true()
+         w.setHasShadow(false)
+-        assert.equal(w.hasShadow(), false)
++        expect(w.hasShadow()).to.be.false()
+         w.setHasShadow(true)
+-        assert.equal(w.hasShadow(), true)
++        expect(w.hasShadow()).to.be.true()
+       })
+     })
+   })
+@@ -2626,25 +2803,26 @@
+       }
+     })
+ 
+-    it('should restore a normal visible window from a fullscreen startup state', (done) => {
++    it('should restore a normal visible window from a fullscreen startup state', done => {
+       w.webContents.once('did-finish-load', () => {
+         // start fullscreen and hidden
+         w.setFullScreen(true)
+         w.once('show', () => { w.setFullScreen(false) })
+         w.once('leave-full-screen', () => {
+-          assert.equal(w.isVisible(), true)
+-          assert.equal(w.isFullScreen(), false)
++          expect(w.isVisible()).to.be.true()
++          expect(w.isFullScreen()).to.be.false()
+           done()
+         })
+         w.show()
+       })
+       w.loadURL('about:blank')
+     })
+-    it('should keep window hidden if already in hidden state', (done) => {
++
++    it('should keep window hidden if already in hidden state', done => {
+       w.webContents.once('did-finish-load', () => {
+         w.once('leave-full-screen', () => {
+-          assert.equal(w.isVisible(), false)
+-          assert.equal(w.isFullScreen(), false)
++          expect(w.isVisible()).to.be.false()
++          expect(w.isFullScreen()).to.be.false()
+           done()
+         })
+         w.setFullScreen(false)
+@@ -2692,22 +2870,24 @@
+ 
+     describe('parent option', () => {
+       it('sets parent window', () => {
+-        assert.equal(c.getParentWindow(), w)
++        expect(c.getParentWindow()).to.equal(w)
+       })
++
+       it('adds window to child windows of parent', () => {
+-        assert.deepEqual(w.getChildWindows(), [c])
++        expect(w.getChildWindows()).to.deep.equal([c])
+       })
+-      it('removes from child windows of parent when window is closed', (done) => {
++
++      it('removes from child windows of parent when window is closed', done => {
+         c.once('closed', () => {
+-          assert.deepEqual(w.getChildWindows(), [])
++          expect(w.getChildWindows()).to.deepe.equal([])
+           done()
+         })
+         c.close()
+       })
+ 
+       it('should not affect the show option', () => {
+-        assert.equal(c.isVisible(), false)
+-        assert.equal(c.getParentWindow().isVisible(), false)
++        expect(c.isVisible()).to.be.false()
++        expect(c.getParentWindow().isVisible()).to.be.false()
+       })
+     })
+ 
+@@ -2724,23 +2904,25 @@
+       })
+ 
+       it('sets parent window', () => {
+-        assert.equal(w.getParentWindow(), null)
+-        assert.equal(c.getParentWindow(), null)
++        expect(w.getParentWindow()).to.be.null()
++        expect(c.getParentWindow()).to.be.null()
+         c.setParentWindow(w)
+-        assert.equal(c.getParentWindow(), w)
++        expect(c.getParentWindow()).to.equal(w)
+         c.setParentWindow(null)
+-        assert.equal(c.getParentWindow(), null)
++        expect(c.getParentWindow()).to.be.null()
+       })
++
+       it('adds window to child windows of parent', () => {
+-        assert.deepEqual(w.getChildWindows(), [])
++        expect(w.getChildWindows()).to.deep.equal([])
+         c.setParentWindow(w)
+-        assert.deepEqual(w.getChildWindows(), [c])
++        expect(w.getChildWindows()).to.deep.equal([c])
+         c.setParentWindow(null)
+-        assert.deepEqual(w.getChildWindows(), [])
++        expect(w.getChildWindows()).to.deep.equal([])
+       })
+-      it('removes from child windows of parent when window is closed', (done) => {
++
++      it('removes from child windows of parent when window is closed', done => {
+         c.once('closed', () => {
+-          assert.deepEqual(w.getChildWindows(), [])
++          expect(w.getChildWindows()).to.deep.equal([])
+           done()
+         })
+         c.setParentWindow(w)
+@@ -2762,41 +2944,46 @@
+       })
+ 
+       it('disables parent window', () => {
+-        assert.equal(w.isEnabled(), true)
++        expect(w.isEnabled()).to.be.true()
+         c.show()
+-        assert.equal(w.isEnabled(), false)
++        expect(w.isEnabled()).to.be.false()
+       })
+-      it('enables parent window when closed', (done) => {
++
++      it('enables parent window when closed', done => {
+         c.once('closed', () => {
+-          assert.equal(w.isEnabled(), true)
++          expect(w.isEnabled()).to.be.true()
+           done()
+         })
+         c.show()
+         c.close()
+       })
++
+       it('disables parent window recursively', () => {
+         let c2 = new BrowserWindow({show: false, parent: w, modal: true})
+         c.show()
+-        assert.equal(w.isEnabled(), false)
++        expect(w.isEnabled()).to.be.false()
++
+         c2.show()
+-        assert.equal(w.isEnabled(), false)
++        expect(w.isEnabled()).to.be.false()
++
+         c.destroy()
+-        assert.equal(w.isEnabled(), false)
++        expect(w.isEnabled()).to.be.false()
++
+         c2.destroy()
+-        assert.equal(w.isEnabled(), true)
++        expect(w.isEnabled()).to.be.true()
+       })
+     })
+   })
+ 
+   describe('window.webContents.send(channel, args...)', () => {
+     it('throws an error when the channel is missing', () => {
+-      assert.throws(() => {
++      expect(() => {
+         w.webContents.send()
+-      }, 'Missing required channel argument')
++      }).to.throw('Missing required channel argument')
+ 
+-      assert.throws(() => {
++      expect(() => {
+         w.webContents.send(null)
+-      }, 'Missing required channel argument')
++      }).to.throw('Missing required channel argument')
+     })
+   })
+ 
+@@ -2932,10 +3119,8 @@
+       })
+     })
+ 
+-    it('works when used with partitions', (done) => {
+-      if (w != null) {
+-        w.destroy()
+-      }
++    it('works when used with partitions', done => {
++      if (w != null) w.destroy()
+       w = new BrowserWindow({
+         show: false,
+         webPreferences: {
+@@ -2943,7 +3128,7 @@
+         }
+       })
+ 
+-      var extensionPath = path.join(__dirname, 'fixtures', 'devtools-extensions', 'foo')
++      const extensionPath = path.join(__dirname, 'fixtures', 'devtools-extensions', 'foo')
+       BrowserWindow.removeDevToolsExtension('foo')
+       BrowserWindow.addDevToolsExtension(extensionPath)
+ 
+@@ -2952,34 +3137,34 @@
+       w.loadURL('about:blank')
+       w.webContents.openDevTools({mode: 'bottom'})
+ 
+-      ipcMain.once('answer', function (event, message) {
+-        assert.equal(message.runtimeId, 'foo')
++      ipcMain.once('answer', (event, message) => {
++        expect(message.runtimeId).to.equal('foo')
+         done()
+       })
+     })
+ 
+     it('serializes the registered extensions on quit', () => {
+-      var extensionName = 'foo'
+-      var extensionPath = path.join(__dirname, 'fixtures', 'devtools-extensions', extensionName)
+-      var serializedPath = path.join(app.getPath('userData'), 'DevTools Extensions')
++      const extensionName = 'foo'
++      const extensionPath = path.join(__dirname, 'fixtures', 'devtools-extensions', extensionName)
++      const serializedPath = path.join(app.getPath('userData'), 'DevTools Extensions')
+ 
+       BrowserWindow.addDevToolsExtension(extensionPath)
+       app.emit('will-quit')
+-      assert.deepEqual(JSON.parse(fs.readFileSync(serializedPath)), [extensionPath])
++      expect(JSON.parse(fs.readFileSync(serializedPath))).to.deep.equal([extensionPath])
+ 
+       BrowserWindow.removeDevToolsExtension(extensionName)
+       app.emit('will-quit')
+-      assert.equal(fs.existsSync(serializedPath), false)
++      expect(fs.existsSync(serializedPath)).to.be.false()
+     })
+ 
+     describe('BrowserWindow.addExtension', () => {
+       beforeEach(() => {
+         BrowserWindow.removeExtension('foo')
+-        assert.equal(BrowserWindow.getExtensions().hasOwnProperty('foo'), false)
++        expect(BrowserWindow.getExtensions().hasOwnProperty('foo')).to.be.false()
+ 
+-        var extensionPath = path.join(__dirname, 'fixtures', 'devtools-extensions', 'foo')
++        const extensionPath = path.join(__dirname, 'fixtures', 'devtools-extensions', 'foo')
+         BrowserWindow.addExtension(extensionPath)
+-        assert.equal(BrowserWindow.getExtensions().hasOwnProperty('foo'), true)
++        expect(BrowserWindow.getExtensions().hasOwnProperty('foo')).to.be.true()
+ 
+         showLastDevToolsPanel()
+ 
+@@ -2987,15 +3172,15 @@
+       })
+ 
+       it('throws errors for missing manifest.json files', () => {
+-        assert.throws(() => {
++        expect(() => {
+           BrowserWindow.addExtension(path.join(__dirname, 'does-not-exist'))
+-        }, /ENOENT: no such file or directory/)
++        }).to.throw(/ENOENT: no such file or directory/)
+       })
+ 
+       it('throws errors for invalid manifest.json files', () => {
+-        assert.throws(() => {
++        expect(() => {
+           BrowserWindow.addExtension(path.join(__dirname, 'fixtures', 'devtools-extensions', 'bad-manifest'))
+-        }, /Unexpected token }/)
++        }).to.throw(/Unexpected token }/)
+       })
+     })
+   })
+@@ -3018,62 +3203,70 @@
+ 
+     it('doesnt throw when no calback is provided', () => {
+       const result = ipcRenderer.sendSync('executeJavaScript', code, false)
+-      assert.equal(result, 'success')
++      expect(result).to.equal('success')
+     })
+-    it('returns result when calback is provided', (done) => {
++
++    it('returns result when calback is provided', done => {
+       ipcRenderer.send('executeJavaScript', code, true)
+-      ipcRenderer.once('executeJavaScript-response', function (event, result) {
+-        assert.equal(result, expected)
++      ipcRenderer.once('executeJavaScript-response', (event, result) => {
++        expect(result).to.equal(expected)
+         done()
+       })
+     })
+-    it('returns result if the code returns an asyncronous promise', (done) => {
++
++    it('returns result if the code returns an asyncronous promise', done => {
+       ipcRenderer.send('executeJavaScript', asyncCode, true)
+       ipcRenderer.once('executeJavaScript-response', (event, result) => {
+-        assert.equal(result, expected)
++        expect(result).to.equal(expected)
+         done()
+       })
+     })
+-    it('resolves the returned promise with the result when a callback is specified', (done) => {
++
++    it('resolves the returned promise with the result when a callback is specified', done => {
+       ipcRenderer.send('executeJavaScript', code, true)
+       ipcRenderer.once('executeJavaScript-promise-response', (event, result) => {
+-        assert.equal(result, expected)
++        expect(result).to.equal(expected)
+         done()
+       })
+     })
+-    it('resolves the returned promise with the result when no callback is specified', (done) => {
++
++    it('resolves the returned promise with the result when no callback is specified', done => {
+       ipcRenderer.send('executeJavaScript', code, false)
+       ipcRenderer.once('executeJavaScript-promise-response', (event, result) => {
+-        assert.equal(result, expected)
++        expect(result).to.equal(expected)
+         done()
+       })
+     })
+-    it('resolves the returned promise with the result if the code returns an asyncronous promise', (done) => {
++
++    it('resolves the returned promise with the result if the code returns an asyncronous promise', done => {
+       ipcRenderer.send('executeJavaScript', asyncCode, true)
+       ipcRenderer.once('executeJavaScript-promise-response', (event, result) => {
+-        assert.equal(result, expected)
++        expect(result).to.equal(expected)
+         done()
+       })
+     })
+-    it('rejects the returned promise if an async error is thrown', (done) => {
++
++    it('rejects the returned promise if an async error is thrown', done => {
+       ipcRenderer.send('executeJavaScript', badAsyncCode, true)
+       ipcRenderer.once('executeJavaScript-promise-error', (event, error) => {
+-        assert.equal(error, expectedErrorMsg)
++        expect(error).to.equal(expectedErrorMsg)
+         done()
+       })
+     })
++
+     it('rejects the returned promise with an error if an Error.prototype is thrown', async () => {
+       for (const error in errorTypes) {
+         await new Promise((resolve) => {
+           ipcRenderer.send('executeJavaScript', `Promise.reject(new ${error.name}("Wamp-wamp")`, true)
+           ipcRenderer.once('executeJavaScript-promise-error-name', (event, name) => {
+-            assert.equal(name, error.name)
++            expect(name).to.equal(error.name)
+             resolve()
+           })
+         })
+       }
+     })
+-    it('works after page load and during subframe load', (done) => {
++
++    it('works after page load and during subframe load', done => {
+       w.webContents.once('did-finish-load', () => {
+         // initiate a sub-frame load, then try and execute script during it
+         w.webContents.executeJavaScript(`
+@@ -3088,17 +3281,19 @@
+       })
+       w.loadURL(server.url)
+     })
+-    it('executes after page load', (done) => {
+-      w.webContents.executeJavaScript(code, (result) => {
+-        assert.equal(result, expected)
++
++    it('executes after page load', done => {
++      w.webContents.executeJavaScript(code, result => {
++        expect(result).to.equal(expected)
+         done()
+       })
+       w.loadURL(server.url)
+     })
+-    it('works with result objects that have DOM class prototypes', (done) => {
+-      w.webContents.executeJavaScript('document.location', (result) => {
+-        assert.equal(result.origin, server.url)
+-        assert.equal(result.protocol, 'http:')
++
++    it('works with result objects that have DOM class prototypes', done => {
++      w.webContents.executeJavaScript('document.location', result => {
++        expect(result.origin).to.equal(server.url)
++        expect(result.protocol).to.equal('http:')
+         done()
+       })
+       w.loadURL(server.url)
+@@ -3113,10 +3308,10 @@
+     })
+ 
+     it('opens the path in Quick Look on macOS', () => {
+-      assert.doesNotThrow(() => {
++      expect(() => {
+         w.previewFile(__filename)
+         w.closeFilePreview()
+-      })
++      }).to.not.throw()
+     })
+   })
+ 
+@@ -3167,41 +3362,45 @@
+       if (ws != null) ws.destroy()
+     })
+ 
+-    it('separates the page context from the Electron/preload context', (done) => {
++    it('separates the page context from the Electron/preload context', done => {
+       ipcMain.once('isolated-world', (event, data) => {
+-        assert.deepEqual(data, expectedContextData)
++        expect(data).to.deep.equal(expectedContextData)
+         done()
+       })
+       w.loadURL(`file://${fixtures}/api/isolated.html`)
+     })
+-    it('recreates the contexts on reload', (done) => {
++
++    it('recreates the contexts on reload', done => {
+       w.webContents.once('did-finish-load', () => {
+         ipcMain.once('isolated-world', (event, data) => {
+-          assert.deepEqual(data, expectedContextData)
++          expect(data).to.deep.equal(expectedContextData)
+           done()
+         })
+         w.webContents.reload()
+       })
+       w.loadURL(`file://${fixtures}/api/isolated.html`)
+     })
+-    it('enables context isolation on child windows', (done) => {
++
++    it('enables context isolation on child windows', done => {
+       app.once('browser-window-created', (event, window) => {
+-        assert.equal(window.webContents.getLastWebPreferences().contextIsolation, true)
++        expect(window.webContents.getLastWebPreferences().contextIsolation).to.be.true()
+         done()
+       })
+       w.loadURL(`file://${fixtures}/pages/window-open.html`)
+     })
+-    it('separates the page context from the Electron/preload context with sandbox on', (done) => {
++
++    it('separates the page context from the Electron/preload context with sandbox on', done => {
+       ipcMain.once('isolated-sandbox-world', (event, data) => {
+-        assert.deepEqual(data, expectedContextData)
++        expect(data).to.deep.equal(expectedContextData)
+         done()
+       })
+       w.loadURL(`file://${fixtures}/api/isolated.html`)
+     })
+-    it('recreates the contexts on reload with sandbox on', (done) => {
++
++    it('recreates the contexts on reload with sandbox on', done => {
+       w.webContents.once('did-finish-load', () => {
+         ipcMain.once('isolated-sandbox-world', (event, data) => {
+-          assert.deepEqual(data, expectedContextData)
++          expect(data).to.deep.equal(expectedContextData)
+           done()
+         })
+         w.webContents.reload()
+@@ -3230,85 +3429,85 @@
+       })
+     })
+ 
+-    it('creates offscreen window with correct size', (done) => {
+-      w.webContents.once('paint', function (event, rect, data) {
+-        assert.notEqual(data.length, 0)
++    it('creates offscreen window with correct size', done => {
++      w.webContents.once('paint', (event, rect, data) => {
++        expect(data.length).to.not.equal(0)
+         let size = data.getSize()
+         assertWithinDelta(size.width, 100, 2, 'width')
+         assertWithinDelta(size.height, 100, 2, 'height')
+         done()
+       })
+-      w.loadURL('file://' + fixtures + '/api/offscreen-rendering.html')
++      w.loadURL(`file://${fixtures}/api/offscreen-rendering.html`)
+     })
+ 
+     describe('window.webContents.isOffscreen()', () => {
+       it('is true for offscreen type', () => {
+-        w.loadURL('file://' + fixtures + '/api/offscreen-rendering.html')
+-        assert.equal(w.webContents.isOffscreen(), true)
++        w.loadURL(`file://${fixtures}/api/offscreen-rendering.html`)
++        expect(w.webContents.isOffscreen()).to.be.true()
+       })
+ 
+       it('is false for regular window', () => {
+         let c = new BrowserWindow({show: false})
+-        assert.equal(c.webContents.isOffscreen(), false)
++        expect(c.webContents.isOffscreen()).to.be.false()
+         c.destroy()
+       })
+     })
+ 
+     describe('window.webContents.isPainting()', () => {
+-      it('returns whether is currently painting', (done) => {
+-        w.webContents.once('paint', function (event, rect, data) {
+-          assert.equal(w.webContents.isPainting(), true)
++      it('returns whether is currently painting', done => {
++        w.webContents.once('paint', (event, rect, data) => {
++          expect(w.webContents.isPainting()).to.be.true()
+           done()
+         })
+-        w.loadURL('file://' + fixtures + '/api/offscreen-rendering.html')
++        w.loadURL(`file://{$fixtures}/api/offscreen-rendering.html`)
+       })
+     })
+ 
+     describe('window.webContents.stopPainting()', () => {
+-      it('stops painting', (done) => {
++      it('stops painting', done => {
+         w.webContents.on('dom-ready', () => {
+           w.webContents.stopPainting()
+-          assert.equal(w.webContents.isPainting(), false)
++          expect(w.webContents.isPainting()).to.be.false()
+           done()
+         })
+-        w.loadURL('file://' + fixtures + '/api/offscreen-rendering.html')
++        w.loadURL(`file://${fixtures}/api/offscreen-rendering.html`)
+       })
+     })
+ 
+     describe('window.webContents.startPainting()', () => {
+-      it('starts painting', (done) => {
++      it('starts painting', done => {
+         w.webContents.on('dom-ready', () => {
+           w.webContents.stopPainting()
+           w.webContents.startPainting()
+-          w.webContents.once('paint', function (event, rect, data) {
+-            assert.equal(w.webContents.isPainting(), true)
++          w.webContents.once('paint', (event, rect, data) => {
++            expect(w.webContents.isPainting()).to.be.true()
+             done()
+           })
+         })
+-        w.loadURL('file://' + fixtures + '/api/offscreen-rendering.html')
++        w.loadURL(`file://${fixtures}/api/offscreen-rendering.html`)
+       })
+     })
+ 
+     describe('window.webContents.getFrameRate()', () => {
+-      it('has default frame rate', (done) => {
+-        w.webContents.once('paint', function (event, rect, data) {
+-          assert.equal(w.webContents.getFrameRate(), 60)
++      it('has default frame rate', done => {
++        w.webContents.once('paint', (event, rect, data) => {
++          expect(w.webContents.getFrameRate()).to.equal(60)
+           done()
+         })
+-        w.loadURL('file://' + fixtures + '/api/offscreen-rendering.html')
++        w.loadURL(`file://${fixtures}/api/offscreen-rendering.html`)
+       })
+     })
+ 
+     describe('window.webContents.setFrameRate(frameRate)', () => {
+-      it('sets custom frame rate', (done) => {
++      it('sets custom frame rate', done => {
+         w.webContents.on('dom-ready', () => {
+           w.webContents.setFrameRate(30)
+-          w.webContents.once('paint', function (event, rect, data) {
+-            assert.equal(w.webContents.getFrameRate(), 30)
++          w.webContents.once('paint', (event, rect, data) => {
++            expect(w.webContents.getFrameRate()).to.equal(30)
+             done()
+           })
+         })
+-        w.loadURL('file://' + fixtures + '/api/offscreen-rendering.html')
++        w.loadURL(`file://${fixtures}/api/offscreen-rendering.html`)
+       })
+     })
+   })
+@@ -3316,7 +3515,7 @@
+ 
+ const assertBoundsEqual = (actual, expect) => {
+   if (!isScaleFactorRounding()) {
+-    assert.deepEqual(expect, actual)
++    expect(expect).to.deep.equal(actual)
+   } else if (Array.isArray(actual)) {
+     assertWithinDelta(actual[0], expect[0], 1, 'x')
+     assertWithinDelta(actual[1], expect[1], 1, 'y')
+@@ -3330,7 +3529,7 @@
+ 
+ const assertWithinDelta = (actual, expect, delta, label) => {
+   const result = Math.abs(actual - expect)
+-  assert.ok(result <= delta, `${label} value of ${actual} was not within ${delta} of ${expect}`)
++  expect(result <= delta).to.be.true(`${label} value of ${actual} was not within ${delta} of ${expect}`)
+ }
+ 
+ // Is the display's scale factor possibly causing rounding of pixel coordinate
+added in both
+  our    100644 5bc7ea1f27b7e56669c336a1f6cbae29c662b052 spec/package-lock.json
+  their  100644 16d9e144e8cadc7206d4e2981c4a1855c06dc712 spec/package-lock.json
+@@ -27,12 +27,15 @@
+       "integrity": "sha512-jgsaNduz+ndvGyFt3uSuWqvy4lCnIJiovtouQN5JZHOKCS2QuhEdbcQHFhVksz2N2U9hXJo8odG7ETyWlEeuDw==",
+       "dev": true
+     },
++<<<<<<< .our
+     "async-limiter": {
+       "version": "1.0.0",
+       "resolved": "https://registry.npmjs.org/async-limiter/-/async-limiter-1.0.0.tgz",
+       "integrity": "sha512-jp/uFnooOiO+L211eZOoSyzpOITMXx1rBITauYykG3BRYPu8h0UcxsPNB04RR5vo4Tyz3+ay17tR6JVf9qzYWg==",
+       "dev": true
+     },
++=======
++>>>>>>> .their
+     "balanced-match": {
+       "version": "1.0.0",
+       "resolved": "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.0.tgz",
+@@ -40,6 +43,7 @@
+       "dev": true
+     },
+     "basic-auth": {
++<<<<<<< .our
+       "version": "2.0.0",
+       "resolved": "https://registry.npmjs.org/basic-auth/-/basic-auth-2.0.0.tgz",
+       "integrity": "sha1-AV2z81PgLlY3d1X5YnQuiYHnu7o=",
+@@ -55,6 +59,12 @@
+           "dev": true
+         }
+       }
++=======
++      "version": "1.1.0",
++      "resolved": "https://registry.npmjs.org/basic-auth/-/basic-auth-1.1.0.tgz",
++      "integrity": "sha1-RSIe5Cn37h5QNb4/UVM/HN/SmIQ=",
++      "dev": true
++>>>>>>> .their
+     },
+     "bindings": {
+       "version": "1.3.0",
+@@ -80,6 +90,7 @@
+       }
+     },
+     "browser-stdout": {
++<<<<<<< .our
+       "version": "1.3.1",
+       "resolved": "https://registry.npmjs.org/browser-stdout/-/browser-stdout-1.3.1.tgz",
+       "integrity": "sha512-qhAVI1+Av2X7qelOfAIYwXONood6XlZE/fXaBSmW/T5SzLAmCgzi+eiWE7fUvbHaeNBQH13UftjpXxsfLkMpgw==",
+@@ -89,6 +100,23 @@
+       "version": "4.1.0",
+       "resolved": "https://registry.npmjs.org/camelcase/-/camelcase-4.1.0.tgz",
+       "integrity": "sha1-1UVjW+HjPFQmScaRc+Xeas+uNN0=",
++=======
++      "version": "1.3.0",
++      "resolved": "https://registry.npmjs.org/browser-stdout/-/browser-stdout-1.3.0.tgz",
++      "integrity": "sha1-81HTKWnTL6XXpVZxVCY9korjvR8=",
++      "dev": true
++    },
++    "builtin-modules": {
++      "version": "1.1.1",
++      "resolved": "https://registry.npmjs.org/builtin-modules/-/builtin-modules-1.1.1.tgz",
++      "integrity": "sha1-Jw8HbFpywC9bZaR9+Uxf46J4iS8=",
++      "dev": true
++    },
++    "camelcase": {
++      "version": "3.0.0",
++      "resolved": "https://registry.npmjs.org/camelcase/-/camelcase-3.0.0.tgz",
++      "integrity": "sha1-MvxLn82vhF/N9+c7uXysImHwqwo=",
++>>>>>>> .their
+       "dev": true
+     },
+     "chai": {
+@@ -127,6 +155,7 @@
+       "dev": true
+     },
+     "cliui": {
++<<<<<<< .our
+       "version": "4.1.0",
+       "resolved": "https://registry.npmjs.org/cliui/-/cliui-4.1.0.tgz",
+       "integrity": "sha512-4FG+RSG9DL7uEwRUZXZn3SS34DiDPfzP0VOiEwtUWlE+AR2EIg+hSyvrIgUUfhdgR/UkAeW2QHgeP+hWrXs7jQ==",
+@@ -135,6 +164,33 @@
+         "string-width": "^2.1.1",
+         "strip-ansi": "^4.0.0",
+         "wrap-ansi": "^2.0.0"
++=======
++      "version": "3.2.0",
++      "resolved": "https://registry.npmjs.org/cliui/-/cliui-3.2.0.tgz",
++      "integrity": "sha1-EgYBU3qRbSmUD5NNo7SNWFo5IT0=",
++      "dev": true,
++      "requires": {
++        "string-width": "^1.0.1",
++        "strip-ansi": "^3.0.1",
++        "wrap-ansi": "^2.0.0"
++      },
++      "dependencies": {
++        "ansi-regex": {
++          "version": "2.1.1",
++          "resolved": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-2.1.1.tgz",
++          "integrity": "sha1-w7M6te42DYbg5ijwRorn7yfWVN8=",
++          "dev": true
++        },
++        "strip-ansi": {
++          "version": "3.0.1",
++          "resolved": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-3.0.1.tgz",
++          "integrity": "sha1-ajhfuIU9lS1f8F0Oiq+UJ43GPc8=",
++          "dev": true,
++          "requires": {
++            "ansi-regex": "^2.0.0"
++          }
++        }
++>>>>>>> .their
+       }
+     },
+     "code-point-at": {
+@@ -150,10 +206,20 @@
+       "dev": true
+     },
+     "commander": {
++<<<<<<< .our
+       "version": "2.15.1",
+       "resolved": "https://registry.npmjs.org/commander/-/commander-2.15.1.tgz",
+       "integrity": "sha512-VlfT9F3V0v+jr4yxPc5gg9s62/fIVWsd2Bk2iD435um1NlGMYdVCq+MjcXnhYq2icNOizHr1kK+5TI6H0Hy0ag==",
+       "dev": true
++=======
++      "version": "2.9.0",
++      "resolved": "https://registry.npmjs.org/commander/-/commander-2.9.0.tgz",
++      "integrity": "sha1-nJkJQXbhIkDLItbFFGCYQA/g99Q=",
++      "dev": true,
++      "requires": {
++        "graceful-readlink": ">= 1.0.0"
++      }
++>>>>>>> .their
+     },
+     "concat-map": {
+       "version": "0.0.1",
+@@ -161,6 +227,7 @@
+       "integrity": "sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=",
+       "dev": true
+     },
++<<<<<<< .our
+     "cross-spawn": {
+       "version": "5.1.0",
+       "resolved": "https://registry.npmjs.org/cross-spawn/-/cross-spawn-5.1.0.tgz",
+@@ -172,6 +239,8 @@
+         "which": "^1.2.9"
+       }
+     },
++=======
++>>>>>>> .their
+     "crypt": {
+       "version": "0.0.2",
+       "resolved": "https://registry.npmjs.org/crypt/-/crypt-0.0.2.tgz",
+@@ -195,9 +264,15 @@
+       }
+     },
+     "debug": {
++<<<<<<< .our
+       "version": "2.6.9",
+       "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",
+       "integrity": "sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==",
++=======
++      "version": "2.6.8",
++      "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.8.tgz",
++      "integrity": "sha1-5zFTHKLt4n0YgiJCfaF4IdaP9Pw=",
++>>>>>>> .their
+       "dev": true,
+       "requires": {
+         "ms": "2.0.0"
+@@ -231,9 +306,15 @@
+       "dev": true
+     },
+     "diff": {
++<<<<<<< .our
+       "version": "3.5.0",
+       "resolved": "https://registry.npmjs.org/diff/-/diff-3.5.0.tgz",
+       "integrity": "sha512-A46qtFgd+g7pDZinpnwiRJtxbC1hpgf0uzP3iG89scHk0AUC7A1TGxf5OiiOUv/JMZR8GOt8hL900hV0bOy5xA==",
++=======
++      "version": "3.2.0",
++      "resolved": "https://registry.npmjs.org/diff/-/diff-3.2.0.tgz",
++      "integrity": "sha1-yc45Okt8vQsFinJck98pkCeGj/k=",
++>>>>>>> .their
+       "dev": true
+     },
+     "dirty-chai": {
+@@ -260,6 +341,18 @@
+       "integrity": "sha1-rT/0yG7C0CkyL1oCw6mmBslbP1k=",
+       "dev": true
+     },
++<<<<<<< .our
++=======
++    "error-ex": {
++      "version": "1.3.1",
++      "resolved": "https://registry.npmjs.org/error-ex/-/error-ex-1.3.1.tgz",
++      "integrity": "sha1-+FWobOYa3E6GIcPNoh56dhLDqNw=",
++      "dev": true,
++      "requires": {
++        "is-arrayish": "^0.2.1"
++      }
++    },
++>>>>>>> .their
+     "escape-html": {
+       "version": "1.0.3",
+       "resolved": "https://registry.npmjs.org/escape-html/-/escape-html-1.0.3.tgz",
+@@ -280,7 +373,11 @@
+     },
+     "event-stream": {
+       "version": "3.3.4",
++<<<<<<< .our
+       "resolved": "https://registry.npmjs.org/event-stream/-/event-stream-3.3.4.tgz",
++=======
++      "resolved": "http://registry.npmjs.org/event-stream/-/event-stream-3.3.4.tgz",
++>>>>>>> .their
+       "integrity": "sha1-SrTJoPWlTbkzi0w02Gv86PSzVXE=",
+       "dev": true,
+       "requires": {
+@@ -293,6 +390,7 @@
+         "through": "~2.3.1"
+       }
+     },
++<<<<<<< .our
+     "execa": {
+       "version": "0.7.0",
+       "resolved": "https://registry.npmjs.org/execa/-/execa-0.7.0.tgz",
+@@ -308,6 +406,8 @@
+         "strip-eof": "^1.0.0"
+       }
+     },
++=======
++>>>>>>> .their
+     "fd-slicer": {
+       "version": "1.0.1",
+       "resolved": "https://registry.npmjs.org/fd-slicer/-/fd-slicer-1.0.1.tgz",
+@@ -318,12 +418,22 @@
+       }
+     },
+     "find-up": {
++<<<<<<< .our
+       "version": "2.1.0",
+       "resolved": "https://registry.npmjs.org/find-up/-/find-up-2.1.0.tgz",
+       "integrity": "sha1-RdG35QbHF93UgndaK3eSCjwMV6c=",
+       "dev": true,
+       "requires": {
+         "locate-path": "^2.0.0"
++=======
++      "version": "1.1.2",
++      "resolved": "https://registry.npmjs.org/find-up/-/find-up-1.1.2.tgz",
++      "integrity": "sha1-ay6YIrGizgpgq2TWEOzK1TyyTQ8=",
++      "dev": true,
++      "requires": {
++        "path-exists": "^2.0.0",
++        "pinkie-promise": "^2.0.0"
++>>>>>>> .their
+       }
+     },
+     "fresh": {
+@@ -356,6 +466,7 @@
+       "integrity": "sha1-6td0q+5y4gQJQzoGY2YCPdaIekE=",
+       "dev": true
+     },
++<<<<<<< .our
+     "get-stream": {
+       "version": "3.0.0",
+       "resolved": "https://registry.npmjs.org/get-stream/-/get-stream-3.0.0.tgz",
+@@ -366,12 +477,22 @@
+       "version": "7.1.2",
+       "resolved": "https://registry.npmjs.org/glob/-/glob-7.1.2.tgz",
+       "integrity": "sha512-MJTUg1kjuLeQCJ+ccE4Vpa6kKVXkPYJ2mOCQyUuKLcLQsdrMCpBPUi8qVE6+YuaJkozeA9NusTAw3hLr8Xe5EQ==",
++=======
++    "glob": {
++      "version": "7.1.1",
++      "resolved": "https://registry.npmjs.org/glob/-/glob-7.1.1.tgz",
++      "integrity": "sha1-gFIR3wT6rxxjo2ADBs31reULLsg=",
++>>>>>>> .their
+       "dev": true,
+       "requires": {
+         "fs.realpath": "^1.0.0",
+         "inflight": "^1.0.4",
+         "inherits": "2",
++<<<<<<< .our
+         "minimatch": "^3.0.4",
++=======
++        "minimatch": "^3.0.2",
++>>>>>>> .their
+         "once": "^1.3.0",
+         "path-is-absolute": "^1.0.0"
+       }
+@@ -382,6 +503,7 @@
+       "integrity": "sha1-Dovf5NHduIVNZOBOp8AOKgJuVlg=",
+       "dev": true
+     },
++<<<<<<< .our
+     "growl": {
+       "version": "1.10.5",
+       "resolved": "https://registry.npmjs.org/growl/-/growl-1.10.5.tgz",
+@@ -392,6 +514,24 @@
+       "version": "3.0.0",
+       "resolved": "https://registry.npmjs.org/has-flag/-/has-flag-3.0.0.tgz",
+       "integrity": "sha1-tdRU3CGZriJWmfNGfloH87lVuv0=",
++=======
++    "graceful-readlink": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/graceful-readlink/-/graceful-readlink-1.0.1.tgz",
++      "integrity": "sha1-TK+tdrxi8C+gObL5Tpo906ORpyU=",
++      "dev": true
++    },
++    "growl": {
++      "version": "1.9.2",
++      "resolved": "https://registry.npmjs.org/growl/-/growl-1.9.2.tgz",
++      "integrity": "sha1-Dqd0NxXbjY3ixe3hd14bRayFwC8=",
++      "dev": true
++    },
++    "has-flag": {
++      "version": "1.0.0",
++      "resolved": "https://registry.npmjs.org/has-flag/-/has-flag-1.0.0.tgz",
++      "integrity": "sha1-nZ55MWXOAXoA8AQYxD+UKnsdEfo=",
++>>>>>>> .their
+       "dev": true
+     },
+     "he": {
+@@ -406,6 +546,15 @@
+       "integrity": "sha512-ciq6hFsSG/Bpt2DmrZJtv+56zpPdnq+NQ4ijEFrveKN0ZG1mhl/LdT1NQZ9se6ty1fACcI4d4vYqC9v8EYpH2A==",
+       "dev": true
+     },
++<<<<<<< .our
++=======
++    "hosted-git-info": {
++      "version": "2.6.0",
++      "resolved": "https://registry.npmjs.org/hosted-git-info/-/hosted-git-info-2.6.0.tgz",
++      "integrity": "sha512-lIbgIIQA3lz5XaB6vxakj6sDHADJiZadYEJB+FgA+C4nubM1NwcuvUr9EJPmnH1skZqpqUzWborWo8EIUi0Sdw==",
++      "dev": true
++    },
++>>>>>>> .their
+     "http-errors": {
+       "version": "1.6.3",
+       "resolved": "https://registry.npmjs.org/http-errors/-/http-errors-1.6.3.tgz",
+@@ -440,12 +589,22 @@
+       "integrity": "sha1-EEqOSqym09jNFXqO+L+rLXo//bY=",
+       "dev": true
+     },
++<<<<<<< .our
++=======
++    "is-arrayish": {
++      "version": "0.2.1",
++      "resolved": "https://registry.npmjs.org/is-arrayish/-/is-arrayish-0.2.1.tgz",
++      "integrity": "sha1-d8mYQFJ6qOyxqLppe4BkWnqSap0=",
++      "dev": true
++    },
++>>>>>>> .their
+     "is-buffer": {
+       "version": "1.1.6",
+       "resolved": "https://registry.npmjs.org/is-buffer/-/is-buffer-1.1.6.tgz",
+       "integrity": "sha512-NcdALwpXkTm5Zvvbk7owOUSvVvBKDgKP5/ewfXEznmQFfs4ZRmanOeKBTjRVjka3QFoN6XJ+9F3USqfHqTaU5w==",
+       "dev": true
+     },
++<<<<<<< .our
+     "is-fullwidth-code-point": {
+       "version": "2.0.0",
+       "resolved": "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-2.0.0.tgz",
+@@ -462,6 +621,36 @@
+       "version": "2.0.0",
+       "resolved": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+       "integrity": "sha1-6PvzdNxVb/iUehDcsFctYz8s+hA=",
++=======
++    "is-builtin-module": {
++      "version": "1.0.0",
++      "resolved": "https://registry.npmjs.org/is-builtin-module/-/is-builtin-module-1.0.0.tgz",
++      "integrity": "sha1-VAVy0096wxGfj3bDDLwbHgN6/74=",
++      "dev": true,
++      "requires": {
++        "builtin-modules": "^1.0.0"
++      }
++    },
++    "is-fullwidth-code-point": {
++      "version": "1.0.0",
++      "resolved": "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-1.0.0.tgz",
++      "integrity": "sha1-754xOG8DGn8NZDr4L95QxFfvAMs=",
++      "dev": true,
++      "requires": {
++        "number-is-nan": "^1.0.0"
++      }
++    },
++    "is-utf8": {
++      "version": "0.2.1",
++      "resolved": "https://registry.npmjs.org/is-utf8/-/is-utf8-0.2.1.tgz",
++      "integrity": "sha1-Sw2hRCEE0bM2NA6AeX6GXPOffXI=",
++      "dev": true
++    },
++    "json3": {
++      "version": "3.3.2",
++      "resolved": "https://registry.npmjs.org/json3/-/json3-3.3.2.tgz",
++      "integrity": "sha1-PAQ0dD35Pi9cQq7nsZvLSDV19OE=",
++>>>>>>> .their
+       "dev": true
+     },
+     "lcid": {
+@@ -473,6 +662,7 @@
+         "invert-kv": "^1.0.0"
+       }
+     },
++<<<<<<< .our
+     "locate-path": {
+       "version": "2.0.0",
+       "resolved": "https://registry.npmjs.org/locate-path/-/locate-path-2.0.0.tgz",
+@@ -499,6 +689,95 @@
+         "yallist": "^2.1.2"
+       }
+     },
++=======
++    "load-json-file": {
++      "version": "1.1.0",
++      "resolved": "https://registry.npmjs.org/load-json-file/-/load-json-file-1.1.0.tgz",
++      "integrity": "sha1-lWkFcI1YtLq0wiYbBPWfMcmTdMA=",
++      "dev": true,
++      "requires": {
++        "graceful-fs": "^4.1.2",
++        "parse-json": "^2.2.0",
++        "pify": "^2.0.0",
++        "pinkie-promise": "^2.0.0",
++        "strip-bom": "^2.0.0"
++      }
++    },
++    "lodash._baseassign": {
++      "version": "3.2.0",
++      "resolved": "https://registry.npmjs.org/lodash._baseassign/-/lodash._baseassign-3.2.0.tgz",
++      "integrity": "sha1-jDigmVAPIVrQnlnxci/QxSv+Ck4=",
++      "dev": true,
++      "requires": {
++        "lodash._basecopy": "^3.0.0",
++        "lodash.keys": "^3.0.0"
++      }
++    },
++    "lodash._basecopy": {
++      "version": "3.0.1",
++      "resolved": "https://registry.npmjs.org/lodash._basecopy/-/lodash._basecopy-3.0.1.tgz",
++      "integrity": "sha1-jaDmqHbPNEwK2KVIghEd08XHyjY=",
++      "dev": true
++    },
++    "lodash._basecreate": {
++      "version": "3.0.3",
++      "resolved": "https://registry.npmjs.org/lodash._basecreate/-/lodash._basecreate-3.0.3.tgz",
++      "integrity": "sha1-G8ZhYU2qf8MRt9A78WgGoCE8+CE=",
++      "dev": true
++    },
++    "lodash._getnative": {
++      "version": "3.9.1",
++      "resolved": "https://registry.npmjs.org/lodash._getnative/-/lodash._getnative-3.9.1.tgz",
++      "integrity": "sha1-VwvH3t5G1hzc3mh9ZdPuy6o6r/U=",
++      "dev": true
++    },
++    "lodash._isiterateecall": {
++      "version": "3.0.9",
++      "resolved": "https://registry.npmjs.org/lodash._isiterateecall/-/lodash._isiterateecall-3.0.9.tgz",
++      "integrity": "sha1-UgOte6Ql+uhCRg5pbbnPPmqsBXw=",
++      "dev": true
++    },
++    "lodash.create": {
++      "version": "3.1.1",
++      "resolved": "https://registry.npmjs.org/lodash.create/-/lodash.create-3.1.1.tgz",
++      "integrity": "sha1-1/KEnw29p+BGgruM1yqwIkYd6+c=",
++      "dev": true,
++      "requires": {
++        "lodash._baseassign": "^3.0.0",
++        "lodash._basecreate": "^3.0.0",
++        "lodash._isiterateecall": "^3.0.0"
++      }
++    },
++    "lodash.isarguments": {
++      "version": "3.1.0",
++      "resolved": "https://registry.npmjs.org/lodash.isarguments/-/lodash.isarguments-3.1.0.tgz",
++      "integrity": "sha1-L1c9hcaiQon/AGY7SRwdM4/zRYo=",
++      "dev": true
++    },
++    "lodash.isarray": {
++      "version": "3.0.4",
++      "resolved": "https://registry.npmjs.org/lodash.isarray/-/lodash.isarray-3.0.4.tgz",
++      "integrity": "sha1-eeTriMNqgSKvhvhEqpvNhRtfu1U=",
++      "dev": true
++    },
++    "lodash.keys": {
++      "version": "3.1.2",
++      "resolved": "https://registry.npmjs.org/lodash.keys/-/lodash.keys-3.1.2.tgz",
++      "integrity": "sha1-TbwEcrFWvlCgsoaFXRvQsMZWCYo=",
++      "dev": true,
++      "requires": {
++        "lodash._getnative": "^3.0.0",
++        "lodash.isarguments": "^3.0.0",
++        "lodash.isarray": "^3.0.0"
++      }
++    },
++    "long": {
++      "version": "3.2.0",
++      "resolved": "https://registry.npmjs.org/long/-/long-3.2.0.tgz",
++      "integrity": "sha1-2CG3E4yhy1gcFymQ7xTbIAtcR0s=",
++      "dev": true
++    },
++>>>>>>> .their
+     "map-stream": {
+       "version": "0.1.0",
+       "resolved": "https://registry.npmjs.org/map-stream/-/map-stream-0.1.0.tgz",
+@@ -516,6 +795,7 @@
+         "is-buffer": "~1.1.1"
+       }
+     },
++<<<<<<< .our
+     "mem": {
+       "version": "1.1.0",
+       "resolved": "https://registry.npmjs.org/mem/-/mem-1.1.0.tgz",
+@@ -525,18 +805,23 @@
+         "mimic-fn": "^1.0.0"
+       }
+     },
++=======
++>>>>>>> .their
+     "mime": {
+       "version": "1.4.1",
+       "resolved": "https://registry.npmjs.org/mime/-/mime-1.4.1.tgz",
+       "integrity": "sha512-KI1+qOZu5DcW6wayYHSzR/tXKCDC5Om4s1z2QJjDULzLcmf3DvzS7oluY4HCTrc+9FiKmWUgeNLg7W3uIQvxtQ==",
+       "dev": true
+     },
++<<<<<<< .our
+     "mimic-fn": {
+       "version": "1.2.0",
+       "resolved": "https://registry.npmjs.org/mimic-fn/-/mimic-fn-1.2.0.tgz",
+       "integrity": "sha512-jf84uxzwiuiIVKiOLpfYk7N46TSy8ubTonmneY9vrpHNAnp0QBt2BxWV9dO3/j+BoVAb+a5G6YDPW3M5HOdMWQ==",
+       "dev": true
+     },
++=======
++>>>>>>> .their
+     "minimatch": {
+       "version": "3.0.4",
+       "resolved": "https://registry.npmjs.org/minimatch/-/minimatch-3.0.4.tgz",
+@@ -570,6 +855,7 @@
+       }
+     },
+     "mocha": {
++<<<<<<< .our
+       "version": "5.2.0",
+       "resolved": "https://registry.npmjs.org/mocha/-/mocha-5.2.0.tgz",
+       "integrity": "sha512-2IUgKDhc3J7Uug+FxMXuqIyYzH7gJjXECKe/w43IGgQHTSj3InJi+yAA7T24L9bQMRKiUEHxEX37G5JpVUGLcQ==",
+@@ -597,6 +883,25 @@
+             "ms": "2.0.0"
+           }
+         }
++=======
++      "version": "3.5.3",
++      "resolved": "https://registry.npmjs.org/mocha/-/mocha-3.5.3.tgz",
++      "integrity": "sha512-/6na001MJWEtYxHOV1WLfsmR4YIynkUEhBwzsb+fk2qmQ3iqsi258l/Q2MWHJMImAcNpZ8DEdYAK72NHoIQ9Eg==",
++      "dev": true,
++      "requires": {
++        "browser-stdout": "1.3.0",
++        "commander": "2.9.0",
++        "debug": "2.6.8",
++        "diff": "3.2.0",
++        "escape-string-regexp": "1.0.5",
++        "glob": "7.1.1",
++        "growl": "1.9.2",
++        "he": "1.1.1",
++        "json3": "3.3.2",
++        "lodash.create": "3.1.1",
++        "mkdirp": "0.5.1",
++        "supports-color": "3.1.2"
++>>>>>>> .their
+       }
+     },
+     "mocha-junit-reporter": {
+@@ -634,6 +939,7 @@
+       "integrity": "sha512-bAdJv7fBLhWC+/Bls0Oza+mvTaNQtP+1RyhhhvD95pgUJz6XM5IzgmxOkItJ9tkoCiplvAnXI1tNmmUD/eScyA==",
+       "optional": true
+     },
++<<<<<<< .our
+     "npm-run-path": {
+       "version": "2.0.2",
+       "resolved": "https://registry.npmjs.org/npm-run-path/-/npm-run-path-2.0.2.tgz",
+@@ -641,6 +947,18 @@
+       "dev": true,
+       "requires": {
+         "path-key": "^2.0.0"
++=======
++    "normalize-package-data": {
++      "version": "2.4.0",
++      "resolved": "https://registry.npmjs.org/normalize-package-data/-/normalize-package-data-2.4.0.tgz",
++      "integrity": "sha512-9jjUFbTPfEy3R/ad/2oNbKtW9Hgovl5O1FvFWKkKblNXoN/Oou6+9+KKohPK13Yc3/TyunyWhJp6gvRNR/PPAw==",
++      "dev": true,
++      "requires": {
++        "hosted-git-info": "^2.1.4",
++        "is-builtin-module": "^1.0.0",
++        "semver": "2 || 3 || 4 || 5",
++        "validate-npm-package-license": "^3.0.1"
++>>>>>>> .their
+       }
+     },
+     "number-is-nan": {
+@@ -677,6 +995,7 @@
+         "wordwrap": "~0.0.2"
+       }
+     },
++<<<<<<< .our
+     "os-locale": {
+       "version": "2.1.0",
+       "resolved": "https://registry.npmjs.org/os-locale/-/os-locale-2.1.0.tgz",
+@@ -686,6 +1005,21 @@
+         "execa": "^0.7.0",
+         "lcid": "^1.0.0",
+         "mem": "^1.1.0"
++=======
++    "options": {
++      "version": "0.0.6",
++      "resolved": "https://registry.npmjs.org/options/-/options-0.0.6.tgz",
++      "integrity": "sha1-7CLTEoBrtT5zF3Pnza788cZDEo8=",
++      "dev": true
++    },
++    "os-locale": {
++      "version": "1.4.0",
++      "resolved": "https://registry.npmjs.org/os-locale/-/os-locale-1.4.0.tgz",
++      "integrity": "sha1-IPnxeuKe00XoveWDsT0gCYA8FNk=",
++      "dev": true,
++      "requires": {
++        "lcid": "^1.0.0"
++>>>>>>> .their
+       }
+     },
+     "os-tmpdir": {
+@@ -694,6 +1028,7 @@
+       "integrity": "sha1-u+Z0BseaqFxc/sdm/lc0VV36EnQ=",
+       "dev": true
+     },
++<<<<<<< .our
+     "p-finally": {
+       "version": "1.0.0",
+       "resolved": "https://registry.npmjs.org/p-finally/-/p-finally-1.0.0.tgz",
+@@ -730,17 +1065,50 @@
+       "integrity": "sha1-zg6+ql94yxiSXqfYENe1mwEP1RU=",
+       "dev": true
+     },
++=======
++    "parse-json": {
++      "version": "2.2.0",
++      "resolved": "https://registry.npmjs.org/parse-json/-/parse-json-2.2.0.tgz",
++      "integrity": "sha1-9ID0BDTvgHQfhGkJn43qGPVaTck=",
++      "dev": true,
++      "requires": {
++        "error-ex": "^1.2.0"
++      }
++    },
++    "path-exists": {
++      "version": "2.1.0",
++      "resolved": "https://registry.npmjs.org/path-exists/-/path-exists-2.1.0.tgz",
++      "integrity": "sha1-D+tsZPD8UY2adU3V77YscCJ2H0s=",
++      "dev": true,
++      "requires": {
++        "pinkie-promise": "^2.0.0"
++      }
++    },
++>>>>>>> .their
+     "path-is-absolute": {
+       "version": "1.0.1",
+       "resolved": "https://registry.npmjs.org/path-is-absolute/-/path-is-absolute-1.0.1.tgz",
+       "integrity": "sha1-F0uSaHNVNP+8es5r9TpanhtcX18=",
+       "dev": true
+     },
++<<<<<<< .our
+     "path-key": {
+       "version": "2.0.1",
+       "resolved": "https://registry.npmjs.org/path-key/-/path-key-2.0.1.tgz",
+       "integrity": "sha1-QRyttXTFoUDTpLGRDUDYDMn0C0A=",
+       "dev": true
++=======
++    "path-type": {
++      "version": "1.1.0",
++      "resolved": "https://registry.npmjs.org/path-type/-/path-type-1.1.0.tgz",
++      "integrity": "sha1-WcRPfuSR2nBNpBXaWkBwuk+P5EE=",
++      "dev": true,
++      "requires": {
++        "graceful-fs": "^4.1.2",
++        "pify": "^2.0.0",
++        "pinkie-promise": "^2.0.0"
++      }
++>>>>>>> .their
+     },
+     "pathval": {
+       "version": "1.1.0",
+@@ -763,12 +1131,36 @@
+       "integrity": "sha1-elfrVQpng/kRUzH89GY9XI4AelA=",
+       "dev": true
+     },
++<<<<<<< .our
+     "pseudomap": {
+       "version": "1.0.2",
+       "resolved": "https://registry.npmjs.org/pseudomap/-/pseudomap-1.0.2.tgz",
+       "integrity": "sha1-8FKijacOYYkX7wqKw0wa5aaChrM=",
+       "dev": true
+     },
++=======
++    "pify": {
++      "version": "2.3.0",
++      "resolved": "https://registry.npmjs.org/pify/-/pify-2.3.0.tgz",
++      "integrity": "sha1-7RQaasBDqEnqWISY59yosVMw6Qw=",
++      "dev": true
++    },
++    "pinkie": {
++      "version": "2.0.4",
++      "resolved": "https://registry.npmjs.org/pinkie/-/pinkie-2.0.4.tgz",
++      "integrity": "sha1-clVrgM+g1IqXToDnckjoDtT3+HA=",
++      "dev": true
++    },
++    "pinkie-promise": {
++      "version": "2.0.1",
++      "resolved": "https://registry.npmjs.org/pinkie-promise/-/pinkie-promise-2.0.1.tgz",
++      "integrity": "sha1-ITXW36ejWMBprJsXh3YogihFD/o=",
++      "dev": true,
++      "requires": {
++        "pinkie": "^2.0.0"
++      }
++    },
++>>>>>>> .their
+     "put": {
+       "version": "0.0.6",
+       "resolved": "https://registry.npmjs.org/put/-/put-0.0.6.tgz",
+@@ -787,6 +1179,30 @@
+       "integrity": "sha1-9JvmtIeJTdxA3MlKMi9hEJLgDV4=",
+       "dev": true
+     },
++<<<<<<< .our
++=======
++    "read-pkg": {
++      "version": "1.1.0",
++      "resolved": "https://registry.npmjs.org/read-pkg/-/read-pkg-1.1.0.tgz",
++      "integrity": "sha1-9f+qXs0pyzHAR0vKfXVra7KePyg=",
++      "dev": true,
++      "requires": {
++        "load-json-file": "^1.0.0",
++        "normalize-package-data": "^2.3.2",
++        "path-type": "^1.0.0"
++      }
++    },
++    "read-pkg-up": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/read-pkg-up/-/read-pkg-up-1.0.1.tgz",
++      "integrity": "sha1-nWPBMnbAZZGNV/ACpX9AobZD+wI=",
++      "dev": true,
++      "requires": {
++        "find-up": "^1.0.0",
++        "read-pkg": "^1.0.0"
++      }
++    },
++>>>>>>> .their
+     "require-directory": {
+       "version": "2.1.1",
+       "resolved": "https://registry.npmjs.org/require-directory/-/require-directory-2.1.1.tgz",
+@@ -826,6 +1242,15 @@
+       "integrity": "sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==",
+       "dev": true
+     },
++<<<<<<< .our
++=======
++    "semver": {
++      "version": "5.5.0",
++      "resolved": "https://registry.npmjs.org/semver/-/semver-5.5.0.tgz",
++      "integrity": "sha512-4SJ3dm0WAwWy/NVeioZh5AntkdJoWKxHxcmyP622fOkgHa4z3R0TdBJICINyaSDE6uNwVc8gZr+ZinwZAH4xIA==",
++      "dev": true
++    },
++>>>>>>> .their
+     "send": {
+       "version": "0.16.2",
+       "resolved": "https://registry.npmjs.org/send/-/send-0.16.2.tgz",
+@@ -870,6 +1295,7 @@
+       "integrity": "sha512-BvE/TwpZX4FXExxOxZyRGQQv651MSwmWKZGqvmPcRIjDqWub67kTKuIMx43cZZrS/cBBzwBcNDWoFxt2XEFIpQ==",
+       "dev": true
+     },
++<<<<<<< .our
+     "shebang-command": {
+       "version": "1.2.0",
+       "resolved": "https://registry.npmjs.org/shebang-command/-/shebang-command-1.2.0.tgz",
+@@ -889,6 +1315,38 @@
+       "version": "3.0.2",
+       "resolved": "https://registry.npmjs.org/signal-exit/-/signal-exit-3.0.2.tgz",
+       "integrity": "sha1-tf3AjxKH6hF4Yo5BXiUTK3NkbG0=",
++=======
++    "spdx-correct": {
++      "version": "3.0.0",
++      "resolved": "https://registry.npmjs.org/spdx-correct/-/spdx-correct-3.0.0.tgz",
++      "integrity": "sha512-N19o9z5cEyc8yQQPukRCZ9EUmb4HUpnrmaL/fxS2pBo2jbfcFRVuFZ/oFC+vZz0MNNk0h80iMn5/S6qGZOL5+g==",
++      "dev": true,
++      "requires": {
++        "spdx-expression-parse": "^3.0.0",
++        "spdx-license-ids": "^3.0.0"
++      }
++    },
++    "spdx-exceptions": {
++      "version": "2.1.0",
++      "resolved": "https://registry.npmjs.org/spdx-exceptions/-/spdx-exceptions-2.1.0.tgz",
++      "integrity": "sha512-4K1NsmrlCU1JJgUrtgEeTVyfx8VaYea9J9LvARxhbHtVtohPs/gFGG5yy49beySjlIMhhXZ4QqujIZEfS4l6Cg==",
++      "dev": true
++    },
++    "spdx-expression-parse": {
++      "version": "3.0.0",
++      "resolved": "https://registry.npmjs.org/spdx-expression-parse/-/spdx-expression-parse-3.0.0.tgz",
++      "integrity": "sha512-Yg6D3XpRD4kkOmTpdgbUiEJFKghJH03fiC1OPll5h/0sO6neh2jqRDVHOQ4o/LMea0tgCkbMgea5ip/e+MkWyg==",
++      "dev": true,
++      "requires": {
++        "spdx-exceptions": "^2.1.0",
++        "spdx-license-ids": "^3.0.0"
++      }
++    },
++    "spdx-license-ids": {
++      "version": "3.0.0",
++      "resolved": "https://registry.npmjs.org/spdx-license-ids/-/spdx-license-ids-3.0.0.tgz",
++      "integrity": "sha512-2+EPwgbnmOIl8HjGBXXMd9NAu02vLjOO1nWw4kmeRDFyHn+M/ETfHxQUK0oXg8ctgVnl9t3rosNVsZ1jG61nDA==",
++>>>>>>> .their
+       "dev": true
+     },
+     "split": {
+@@ -916,6 +1374,7 @@
+       }
+     },
+     "string-width": {
++<<<<<<< .our
+       "version": "2.1.1",
+       "resolved": "https://registry.npmjs.org/string-width/-/string-width-2.1.1.tgz",
+       "integrity": "sha512-nOqH59deCq9SRHlxq1Aw85Jnt4w6KvLKqWVik6oA9ZklXLNIOlqg4F2yrT1MVaTjAqvVwdfeZ7w7aCvJD7ugkw==",
+@@ -923,6 +1382,33 @@
+       "requires": {
+         "is-fullwidth-code-point": "^2.0.0",
+         "strip-ansi": "^4.0.0"
++=======
++      "version": "1.0.2",
++      "resolved": "https://registry.npmjs.org/string-width/-/string-width-1.0.2.tgz",
++      "integrity": "sha1-EYvfW4zcUaKn5w0hHgfisLmxB9M=",
++      "dev": true,
++      "requires": {
++        "code-point-at": "^1.0.0",
++        "is-fullwidth-code-point": "^1.0.0",
++        "strip-ansi": "^3.0.0"
++      },
++      "dependencies": {
++        "ansi-regex": {
++          "version": "2.1.1",
++          "resolved": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-2.1.1.tgz",
++          "integrity": "sha1-w7M6te42DYbg5ijwRorn7yfWVN8=",
++          "dev": true
++        },
++        "strip-ansi": {
++          "version": "3.0.1",
++          "resolved": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-3.0.1.tgz",
++          "integrity": "sha1-ajhfuIU9lS1f8F0Oiq+UJ43GPc8=",
++          "dev": true,
++          "requires": {
++            "ansi-regex": "^2.0.0"
++          }
++        }
++>>>>>>> .their
+       }
+     },
+     "strip-ansi": {
+@@ -934,6 +1420,7 @@
+         "ansi-regex": "^3.0.0"
+       }
+     },
++<<<<<<< .our
+     "strip-eof": {
+       "version": "1.0.0",
+       "resolved": "https://registry.npmjs.org/strip-eof/-/strip-eof-1.0.0.tgz",
+@@ -947,6 +1434,24 @@
+       "dev": true,
+       "requires": {
+         "has-flag": "^3.0.0"
++=======
++    "strip-bom": {
++      "version": "2.0.0",
++      "resolved": "https://registry.npmjs.org/strip-bom/-/strip-bom-2.0.0.tgz",
++      "integrity": "sha1-YhmoVhZSBJHzV4i9vxRHqZx+aw4=",
++      "dev": true,
++      "requires": {
++        "is-utf8": "^0.2.0"
++      }
++    },
++    "supports-color": {
++      "version": "3.1.2",
++      "resolved": "https://registry.npmjs.org/supports-color/-/supports-color-3.1.2.tgz",
++      "integrity": "sha1-cqJiiU2dQIuVbKBf83su2KbiotU=",
++      "dev": true,
++      "requires": {
++        "has-flag": "^1.0.0"
++>>>>>>> .their
+       }
+     },
+     "temp": {
+@@ -971,6 +1476,7 @@
+       "integrity": "sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==",
+       "dev": true
+     },
++<<<<<<< .our
+     "walkdir": {
+       "version": "0.0.12",
+       "resolved": "https://registry.npmjs.org/walkdir/-/walkdir-0.0.12.tgz",
+@@ -990,6 +1496,34 @@
+       "version": "2.0.0",
+       "resolved": "https://registry.npmjs.org/which-module/-/which-module-2.0.0.tgz",
+       "integrity": "sha1-2e8H3Od7mQK4o6j6SzHD4/fm6Ho=",
++=======
++    "ultron": {
++      "version": "1.0.2",
++      "resolved": "https://registry.npmjs.org/ultron/-/ultron-1.0.2.tgz",
++      "integrity": "sha1-rOEWq1V80Zc4ak6I9GhTeMiy5Po=",
++      "dev": true
++    },
++    "validate-npm-package-license": {
++      "version": "3.0.3",
++      "resolved": "https://registry.npmjs.org/validate-npm-package-license/-/validate-npm-package-license-3.0.3.tgz",
++      "integrity": "sha512-63ZOUnL4SIXj4L0NixR3L1lcjO38crAbgrTpl28t8jjrfuiOBL5Iygm+60qPs/KsZGzPNg6Smnc/oY16QTjF0g==",
++      "dev": true,
++      "requires": {
++        "spdx-correct": "^3.0.0",
++        "spdx-expression-parse": "^3.0.0"
++      }
++    },
++    "walkdir": {
++      "version": "0.0.11",
++      "resolved": "https://registry.npmjs.org/walkdir/-/walkdir-0.0.11.tgz",
++      "integrity": "sha1-oW0CXrkxvQO1LzCMrtD0D86+lTI=",
++      "dev": true
++    },
++    "which-module": {
++      "version": "1.0.0",
++      "resolved": "https://registry.npmjs.org/which-module/-/which-module-1.0.0.tgz",
++      "integrity": "sha1-u6Y8qGGUiZT/MHc2CJ47lgJsKk8=",
++>>>>>>> .their
+       "dev": true
+     },
+     "winreg": {
+@@ -1020,6 +1554,7 @@
+           "integrity": "sha1-w7M6te42DYbg5ijwRorn7yfWVN8=",
+           "dev": true
+         },
++<<<<<<< .our
+         "is-fullwidth-code-point": {
+           "version": "1.0.0",
+           "resolved": "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-1.0.0.tgz",
+@@ -1040,6 +1575,8 @@
+             "strip-ansi": "^3.0.0"
+           }
+         },
++=======
++>>>>>>> .their
+         "strip-ansi": {
+           "version": "3.0.1",
+           "resolved": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-3.0.1.tgz",
+@@ -1058,12 +1595,22 @@
+       "dev": true
+     },
+     "ws": {
++<<<<<<< .our
+       "version": "5.2.0",
+       "resolved": "https://registry.npmjs.org/ws/-/ws-5.2.0.tgz",
+       "integrity": "sha512-c18dMeW+PEQdDFzkhDsnBAlS4Z8KGStBQQUcQ5mf7Nf689jyGk0594L+i9RaQuf4gog6SvWLJorz2NfSaqxZ7w==",
+       "dev": true,
+       "requires": {
+         "async-limiter": "~1.0.0"
++=======
++      "version": "1.1.5",
++      "resolved": "https://registry.npmjs.org/ws/-/ws-1.1.5.tgz",
++      "integrity": "sha512-o3KqipXNUdS7wpQzBHSe180lBGO60SoK0yVo3CYJgb2MkobuWuBX6dhkYP5ORCLd55y+SaflMOV5fqAB53ux4w==",
++      "dev": true,
++      "requires": {
++        "options": ">=0.0.5",
++        "ultron": "1.0.x"
++>>>>>>> .their
+       }
+     },
+     "xml": {
+@@ -1087,6 +1634,7 @@
+       "integrity": "sha1-bRX7qITAhnnA136I53WegR4H+kE=",
+       "dev": true
+     },
++<<<<<<< .our
+     "yallist": {
+       "version": "2.1.2",
+       "resolved": "https://registry.npmjs.org/yallist/-/yallist-2.1.2.tgz",
+@@ -1120,6 +1668,36 @@
+       "dev": true,
+       "requires": {
+         "camelcase": "^4.1.0"
++=======
++    "yargs": {
++      "version": "6.6.0",
++      "resolved": "https://registry.npmjs.org/yargs/-/yargs-6.6.0.tgz",
++      "integrity": "sha1-eC7CHvQDNF+DCoCMo9UTr1YGUgg=",
++      "dev": true,
++      "requires": {
++        "camelcase": "^3.0.0",
++        "cliui": "^3.2.0",
++        "decamelize": "^1.1.1",
++        "get-caller-file": "^1.0.1",
++        "os-locale": "^1.4.0",
++        "read-pkg-up": "^1.0.1",
++        "require-directory": "^2.1.1",
++        "require-main-filename": "^1.0.1",
++        "set-blocking": "^2.0.0",
++        "string-width": "^1.0.2",
++        "which-module": "^1.0.0",
++        "y18n": "^3.2.1",
++        "yargs-parser": "^4.2.0"
++      }
++    },
++    "yargs-parser": {
++      "version": "4.2.1",
++      "resolved": "https://registry.npmjs.org/yargs-parser/-/yargs-parser-4.2.1.tgz",
++      "integrity": "sha1-KczqwNxPA8bIe0qfIX3RjJ90hxw=",
++      "dev": true,
++      "requires": {
++        "camelcase": "^3.0.0"
++>>>>>>> .their
+       }
+     }
+   }

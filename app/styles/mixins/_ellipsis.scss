@@ -1,0 +1,9 @@
+/**
+ * Enable end-of-line text truncation when text overflows
+ * the horizontal boundary of its container.
+ */
+@mixin ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

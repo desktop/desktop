@@ -1,0 +1,19 @@
+#acknowledgements {
+  width: 600px;
+
+  .dialog-content {
+    height: 300px;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    .license-text {
+      font-family: var(--font-family-monospace);
+      white-space: pre-wrap;
+      margin-bottom: var(--spacing-double);
+
+      // make the text selectable
+      cursor: text;
+      user-select: text;
+    }
+  }
+}

@@ -1,0 +1,19 @@
+.filter-list.clone-github-repo {
+  .no-items {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    margin: var(--spacing-double);
+    width: 100%;
+
+    .octicon {
+      fill: var(--text-secondary-color);
+      margin-right: var(--spacing-half);
+    }
+
+    &.loading {
+      color: var(--text-secondary-color);
+    }
+  }
+}

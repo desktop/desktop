@@ -1,0 +1,133 @@
+#preferences {
+  .preferences-container {
+    display: flex;
+    .tab-container {
+      border-left: var(--base-border);
+      flex: 1;
+    }
+
+    .advanced-section {
+      &:not(:last-child) {
+        margin-bottom: var(--spacing);
+      }
+
+      .checkbox-component:not(:last-child) {
+        margin-bottom: var(--spacing-half);
+      }
+
+      .git-settings-description {
+        margin-top: var(--spacing);
+      }
+
+      .warning-icon {
+        color: var(--warning-badge-icon-color);
+      }
+    }
+  }
+
+  .tab-bar {
+    .icon {
+      width: 16px;
+    }
+  }
+
+  .accounts-tab {
+    .account-info {
+      .avatar {
+        // 32px for the image + 2 on each side for the base border.
+        width: 34px;
+        height: 34px;
+
+        align-self: center;
+      }
+
+      .user-info {
+        flex-grow: 1;
+        align-self: flex-start;
+
+        .name {
+          font-weight: var(--font-weight-semibold);
+          // Tighten it up a little so that the real name and
+          // username lines up with the avatar.
+          margin-top: -2px;
+          margin-bottom: -2px;
+        }
+      }
+    }
+  }
+
+  .no-options-found {
+    label {
+      margin-bottom: 0;
+    }
+
+    span {
+      color: var(--text-secondary-color);
+    }
+  }
+
+  .default-branch-component {
+    margin-top: var(--spacing-double);
+
+    .ref-name-text-box {
+      margin-top: var(--spacing);
+    }
+  }
+
+  .git-settings-description {
+    margin-top: var(--spacing-double);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
+  }
+}
+
+#external-editor-error {
+  width: 450px;
+
+  p {
+    word-wrap: break-word;
+  }
+}
+
+.custom-theme-selector {
+  .custom-theme-selecter-header {
+    display: flex;
+    width: 375px;
+    button {
+      margin-left: auto;
+    }
+    h2 {
+      margin-bottom: 0;
+    }
+  }
+
+  .swatch-box {
+    width: 31%;
+    float: left;
+    background-color: rgb(228, 228, 228);
+    border: 1px solid black;
+    color: black;
+    text-align: center;
+    margin: 1%;
+    padding: 1px;
+    border-radius: 5px;
+  }
+
+  .theme-option-swatch {
+    display: inline-block;
+    border-radius: 5px;
+    border: 1px solid black;
+    width: 100%;
+    height: 50px;
+    &:hover {
+      border-width: 2px;
+      outline: 1px solid rgb(228, 228, 228);
+    }
+    margin: auto;
+  }
+
+  .color-picker-container {
+    position: absolute;
+    width: 100px;
+  }
+}

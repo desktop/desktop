@@ -1,0 +1,10 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+	precomposeunicode = true
+[submodule "foo/submodule"]
+	url = https://github.com/shiftkey/submodule-test-case
+	active = true

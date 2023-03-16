@@ -1,0 +1,14 @@
+#initialize-lfs {
+  .dialog-content ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    margin-bottom: var(--spacing);
+
+    li {
+      padding-left: 0;
+      margin-bottom: 0;
+      font-family: var(--font-family-monospace);
+    }
+  }
+}

@@ -1,0 +1,2 @@
+/app/test/fixtures/** -text
+/app/static/win32/github.sh eol=lf

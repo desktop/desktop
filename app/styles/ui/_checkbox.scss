@@ -1,0 +1,21 @@
+.checkbox-component {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  input {
+    margin: 0;
+
+    // Only add a right margin if there's a label attached to it
+    &:not(:last-child) {
+      margin-right: var(--spacing-half);
+    }
+
+    &:focus {
+      // Don't know why but on Windows this is necessary to
+      // not have a 1px gap around the checkbox on the right
+      // hand side. I'm guessing it's the same on mac?
+      outline-offset: -1px;
+    }
+  }
+}

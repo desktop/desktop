@@ -1,0 +1,69 @@
+@import '../mixins';
+
+.author-input-component {
+  &.disabled .CodeMirror {
+    @include textboxish-disabled-styles;
+  }
+
+  .CodeMirror {
+    @include textboxish;
+
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: 0;
+    height: auto;
+
+    .label {
+      color: var(--text-secondary-color);
+    }
+
+    .placeholder {
+      color: var(--text-secondary-color);
+      cursor: text;
+    }
+
+    .handle {
+      border-radius: var(--border-radius);
+      border: 1px solid var(--co-author-tag-border-color);
+      background: var(--co-author-tag-background-color);
+      padding: 1px 2px;
+      margin: 0px 2px;
+
+      &.progress {
+        background: transparent;
+      }
+
+      &.error {
+        background: var(--form-error-background);
+        color: var(--form-error-text-color);
+        border-color: var(--form-error-border-color);
+
+        svg {
+          padding-bottom: 2px;
+        }
+      }
+
+      &.progress,
+      &.error {
+        svg {
+          height: 9px;
+          margin-left: 3px;
+          margin-right: 3px;
+          vertical-align: middle;
+          fill: currentColor;
+        }
+      }
+    }
+  }
+
+  .CodeMirror-focused {
+    @include textboxish-focus-styles;
+    border-top-width: 1px;
+    border-top-style: solid;
+    margin-top: -1px;
+  }
+
+  .CodeMirror-scroll {
+    max-height: 80px;
+  }
+}

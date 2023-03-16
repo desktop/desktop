@@ -1,0 +1,57 @@
+.toolbar-dropdown.open .pr-badge {
+  background: var(--toolbar-badge-active-background-color);
+}
+
+.toolbar-dropdown:not(.open) .pr-badge {
+  background: var(--toolbar-badge-background-color);
+}
+
+.pr-badge {
+  --height: 18px;
+
+  display: flex;
+  flex-direction: row;
+  height: var(--height);
+
+  // This is necessary for our absolutely positioned progress bar to work.
+  // We position the toolbar button container relatively so that we can
+  // position the progress bar absolutely in relation to the container.
+  // We then explicitly position all child elements of the container
+  // relatively in order for the progress bar not to position itself
+  // above all the other content.
+  //
+  // See toolbar/_button.scss
+  position: relative;
+
+  align-items: center;
+
+  border-radius: var(--border-radius);
+  border-width: 0;
+
+  margin-right: var(--spacing);
+  padding: var(--spacing-half);
+
+  .number {
+    font-size: var(--font-size-sm);
+
+    // We're explicitly providing line-height here so that the text gets
+    // properly vertically centered.
+    line-height: var(--height);
+  }
+
+  .ci-status {
+    margin-left: var(--spacing-half);
+  }
+}
+
+.toolbar-dropdown.open .ci-status-pending {
+  color: $yellow-700;
+}
+
+.toolbar-dropdown.open .ci-status-failure {
+  color: $red-500;
+}
+
+.toolbar-dropdown.open .ci-status-success {
+  color: $green-500;
+}

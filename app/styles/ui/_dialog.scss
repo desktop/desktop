@@ -1,0 +1,501 @@
+@import '../mixins';
+@import 'dialogs/merge';
+@import 'dialogs/conflicts';
+@import 'dialogs/rebase';
+@import 'dialogs/progress-dialog';
+@import 'dialogs/abort-merge';
+@import 'dialogs/push-needs-pull';
+@import 'dialogs/publish-repository';
+@import 'dialogs/repository-settings';
+@import 'dialogs/release-notes';
+@import 'dialogs/usage-reporting';
+@import 'dialogs/stash-changes';
+@import 'dialogs/commit-conflicts-warning';
+@import 'dialogs/create-tutorial-repository';
+@import 'dialogs/create-fork';
+@import 'dialogs/fork-settings';
+@import 'dialogs/cherry-pick';
+@import 'dialogs/thank-you';
+@import 'dialogs/commit-message';
+@import 'dialogs/choose-branch';
+@import 'dialogs/ci-check-run-rerun';
+@import 'dialogs/unreachable-commits';
+@import 'dialogs/open-pull-request';
+@import 'dialogs/installing-update';
+@import 'dialogs/test-notifications';
+@import 'dialogs/pull-request-comment-like';
+
+// The styles herein attempt to follow a flow where margins are only applied
+// to the bottom of elements (with the exception of the last child). This to
+// allow easy layout using generalized components and elements such as <Row>
+// and <p>.
+dialog {
+  display: flex;
+  flex-direction: column;
+
+  overflow: unset;
+  // These are the 24px versions of the alert and stop octicons
+  // from oction v10.0.0
+  //
+  // Related: https://css-tricks.com/probably-dont-base64-svg/
+  --dialog-icon-alert: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M13 17.5a1 1 0 11-2 0 1 1 0 012 0zm-.25-8.25a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0v-4.5z"></path><path fill-rule="evenodd" d="M9.836 3.244c.963-1.665 3.365-1.665 4.328 0l8.967 15.504c.963 1.667-.24 3.752-2.165 3.752H3.034c-1.926 0-3.128-2.085-2.165-3.752L9.836 3.244zm3.03.751a1 1 0 00-1.732 0L2.168 19.499A1 1 0 003.034 21h17.932a1 1 0 00.866-1.5L12.866 3.994z"></path></svg>');
+  --dialog-icon-stop: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M12 7a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0112 7zm0 10a1 1 0 100-2 1 1 0 000 2z"></path><path fill-rule="evenodd" d="M7.328 1.47a.75.75 0 01.53-.22h8.284a.75.75 0 01.53.22l5.858 5.858c.141.14.22.33.22.53v8.284a.75.75 0 01-.22.53l-5.858 5.858a.75.75 0 01-.53.22H7.858a.75.75 0 01-.53-.22L1.47 16.672a.75.75 0 01-.22-.53V7.858a.75.75 0 01.22-.53L7.328 1.47zm.84 1.28L2.75 8.169v7.662l5.419 5.419h7.662l5.419-5.418V8.168L15.832 2.75H8.168z"></path></svg>');
+  --dialog-icon-size: 24px;
+
+  border: var(--base-border);
+  box-shadow: var(--base-box-shadow);
+  padding: 0;
+  border-radius: var(--border-radius);
+
+  color: var(--text-color);
+  background: var(--background-color);
+
+  // This resets the properties we animate in the transition group
+  // such that if there's ever a race condition between the JS timing
+  // and the CSS transition we'll always revert back to a known good
+  // state.
+  transform: scale(1);
+  opacity: 1;
+
+  min-width: 400px;
+  max-width: 600px;
+
+  .secondary-text {
+    color: var(--text-secondary-color);
+  }
+
+  // Substitute the appear/exit animations with a fade in fade out effect if the
+  // user prefers reduced motion.
+  //
+  // https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion
+  @media (prefers-reduced-motion) {
+    transition: opacity 100ms ease-in !important;
+    transform: none !important;
+
+    &.modal-enter {
+      opacity: 0 !important;
+    }
+    &.modal-enter-active {
+      opacity: 1 !important;
+    }
+  }
+
+  // The modal class here is the transition name for the react css transition
+  // group which allows us to apply an animation when the popup appears.
+  &.modal {
+    &-enter {
+      opacity: 1;
+      transform: scale(0.75);
+      pointer-events: none;
+
+      &::backdrop {
+        opacity: 0;
+      }
+    }
+
+    &-enter-active {
+      opacity: 1;
+      transform: scale(1);
+      transition: transform 250ms var(--easing-ease-out-back);
+
+      &::backdrop {
+        opacity: 1;
+        transition: opacity 100ms ease-in;
+      }
+    }
+
+    &-exit {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: none;
+
+      &::backdrop {
+        opacity: 1;
+      }
+    }
+
+    &-exit-active {
+      opacity: 0.01;
+      transform: scale(0.25);
+      transition: opacity 100ms ease-in, transform 100ms var(--easing-ease-in-back);
+
+      &::backdrop {
+        opacity: 0.01;
+        transition: opacity 100ms ease-in;
+      }
+    }
+  }
+
+  &::backdrop {
+    background: var(--overlay-background-color);
+    opacity: 1;
+  }
+
+  &:not([open]) {
+    display: none;
+  }
+
+  // The dialog embeds a fieldset as the first child of the form element
+  // in order to be able to disable all form elements and buttons in one
+  // swoop. This resets all styles for that fieldset.
+  & > form {
+    min-height: 0;
+    height: 100%;
+    & > fieldset {
+      border: 0;
+      margin: 0;
+      padding: 0;
+      min-width: 0;
+      min-height: 0;
+      max-height: 100%;
+      height: 100%;
+
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  .dialog-header {
+    height: 50px;
+    border-bottom: var(--base-border);
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: var(--spacing-double);
+
+    svg.icon {
+      flex-shrink: 0;
+      margin-right: var(--spacing);
+    }
+
+    .spin {
+      margin-left: var(--spacing);
+    }
+
+    h1 {
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-md);
+      margin: 0;
+      padding: 0;
+      width: 100%;
+
+      @include ellipsis;
+    }
+
+    .close {
+      flex-shrink: 0;
+
+      border: 0;
+      height: 16px;
+      width: 16px;
+
+      // Set the left margin to auto so that flexbox positions the button
+      // on the right hand side of the dialog and add a -10px right hand
+      // side margin to put the button where it should be (we use a double
+      // margin for the header itself).
+      margin: 0 calc(var(--spacing) * -1) 0 auto;
+      padding: 0;
+      background: transparent;
+
+      color: var(--text-secondary-color);
+      cursor: pointer;
+
+      // Let the button deal with all mouse events.
+      // Without this the octicon resets the cursor when
+      // hovering over the <path>.
+      .octicon {
+        pointer-events: none;
+      }
+
+      &:hover {
+        color: var(--text-color);
+      }
+
+      &:focus {
+        outline-offset: 3px;
+      }
+    }
+    @include close-button;
+  }
+
+  &.warning,
+  &.error {
+    .dialog-content {
+      position: relative;
+      margin-left: var(--spacing-double);
+      // A zero padding would mean the icon and the text lines up so we
+      // add another double spacing plus the width of the icon to ensure
+      // we have a decently horizontally centered placement of the icon.
+      padding-left: calc(var(--spacing-double) + var(--dialog-icon-size));
+
+      // Ensure that the dialog contents always have room for the icon,
+      // account for two double spacers at top and bottom plus the 5px
+      // icon offset (margin-top) and the size of the icon itself.
+      min-height: calc(var(--spacing-double) * 2 + var(--spacing-half) + var(--dialog-icon-size));
+
+      // We're creating an opaque 24 by 24px div with the background color
+      // that we want the icon to appear in and then apply the icon path
+      // as a mask, that way we can control the color dynamically based on
+      // our variables instead of hardcoding it in the SVG.
+      //
+      // https://codepen.io/noahblon/post/coloring-svgs-in-css-background-images
+      &::before {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 0;
+        height: 24px;
+        width: 24px;
+        -webkit-mask-repeat: no-repeat;
+      }
+    }
+  }
+
+  &.warning {
+    .dialog-content::before {
+      background-color: var(--dialog-warning-color);
+      -webkit-mask: var(--dialog-icon-alert);
+    }
+  }
+
+  &.error {
+    .dialog-content::before {
+      background-color: var(--dialog-error-color);
+      -webkit-mask: var(--dialog-icon-stop);
+    }
+  }
+
+  .dialog-content {
+    padding: var(--spacing-double);
+
+    // This allows for using <Rows> to structure content within dialog content.
+    // All Rows that are direct descendants of dialog content except for the
+    // last one receive a bottom margin.
+    .row-component:not(:last-child) {
+      margin-bottom: var(--spacing);
+    }
+
+    p {
+      margin-top: 0;
+      margin-bottom: var(--spacing);
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    h2,
+    h3 {
+      font-weight: var(--font-weight-semibold);
+      margin-top: 0;
+      margin-bottom: var(--spacing);
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    h2 {
+      font-size: var(--font-size-md);
+    }
+    h3 {
+      font-size: var(--font-size);
+    }
+
+    ul,
+    ol {
+      margin-top: 0;
+      padding-left: var(--spacing-double);
+      list-style-position: outside;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      li {
+        margin-bottom: var(--spacing);
+        padding-left: var(--spacing-half);
+      }
+    }
+  }
+
+  .dialog-footer {
+    display: flex;
+    flex-direction: column;
+
+    border-top: var(--base-border);
+    padding: var(--spacing-double);
+
+    .button-group {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+
+    button {
+      @include ellipsis;
+      margin-right: var(--spacing-half);
+      min-width: 120px;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+
+  // Inline error component rendered at the top of the dialog just below
+  // the header (if the dialog has one).
+  .dialog-error {
+    display: flex;
+    padding: var(--spacing);
+    align-items: center;
+
+    // Error messages may contains newlines which separates sections
+    // of the error of indicate nested errors. We want to preserve these
+    // while still forcing line breaks if necessary.
+    white-space: pre-wrap;
+
+    background: var(--form-error-background);
+    border-bottom: 1px solid var(--form-error-border-color);
+    color: var(--form-error-text-color);
+
+    > .octicon {
+      flex-grow: 0;
+      flex-shrink: 0;
+      margin-right: var(--spacing);
+    }
+
+    div {
+      overflow-wrap: break-word;
+      overflow-x: hidden;
+    }
+  }
+
+  &#app-error {
+    // Use wider dialogs for raw git errors, to make sure we can display lines
+    // up to 80 characters long without wrapping them.
+    &.raw-git-error {
+      max-width: 700px;
+    }
+
+    .dialog-content {
+      p {
+        -webkit-user-select: text;
+        user-select: text;
+        cursor: auto;
+
+        // Preserve newlines and other white space in error messages
+        // but make sure we wrap if necessary.
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+        overflow-x: hidden;
+
+        &.monospace {
+          font-family: var(--font-family-monospace);
+        }
+      }
+
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  }
+
+  &#preferences {
+    width: 600px;
+  }
+  &#about {
+    width: 450px;
+  }
+  &#create-repository {
+    width: 400px;
+  }
+  &#create-branch {
+    width: 400px;
+    .link-button-component {
+      display: inline;
+    }
+  }
+  &#push-branch-commits {
+    width: 450px;
+  }
+  &#publish-branch {
+    width: 450px;
+  }
+  &#generic-git-auth {
+    width: 450px;
+  }
+  &#create-tag {
+    width: 400px;
+
+    // Spacing for list of previous tags
+    .ref-component {
+      margin-right: var(--spacing-half);
+    }
+  }
+
+  &#confirm-remove-repository,
+  &#change-repository-alias {
+    width: 450px;
+
+    .description {
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+  }
+
+  &#sign-in {
+    width: 400px;
+
+    .sign-in-with-browser {
+      display: block;
+      text-align: center;
+
+      .button-component {
+        width: 100%;
+      }
+    }
+
+    .forgot-password-row,
+    .what-is-this-row {
+      font-size: var(--font-size-sm);
+      justify-content: flex-end;
+    }
+
+    .forgot-password-link-sign-in {
+      margin-left: auto;
+    }
+  }
+
+  &#add-existing-repository {
+    width: 400px;
+  }
+
+  &#initialize-lfs {
+    width: 400px;
+  }
+
+  &#lfs-attribute-mismatch {
+    width: 400px;
+  }
+
+  &#pull-request-checks-failed {
+    max-width: none;
+    width: 910px;
+  }
+
+  &#workflow-push-rejected {
+    .ref-component {
+      display: inline-block;
+    }
+  }
+}
+
+.warning-helper-text {
+  font-size: var(--font-size-sm);
+
+  .octicon {
+    fill: var(--dialog-warning-color);
+    margin-right: var(--spacing-half);
+  }
+}

@@ -1,0 +1,209 @@
+@import '../mixins';
+
+.repository-list {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+
+  /**
+   * Inherit the min-width from the ToolbarDropdown so that the repositories
+   * list will always be the width of the button. Otherwise, if the Add
+   * Repository foldout was open, it'd be taken into account as part of the
+   * width and the list wouldn't be the same width as the button.
+   */
+  min-width: inherit;
+
+  /**
+   * Container for repository list items in the sidebar
+   *
+   * Contains two elements, one 16x16 <svg class='octicon'> holding an octicon
+   * representing the repository type (local, private, public, fork)
+   * and one <div class='name'> holding the repository name.
+   */
+  .repository-list-item {
+    padding: 0 var(--spacing);
+
+    // Layout the icon and repository name horizontally
+    display: flex;
+    flex-direction: row;
+    // This makes it so that both the icon and the repo name
+    // is vertically centered.
+    align-items: center;
+
+    // Necessary to limit the width of the repository
+    // name and truncate accordingly
+    width: 100%;
+
+    .icon-for-repository {
+      // Some room between the icon and repository name
+      margin-right: var(--spacing-half);
+
+      // Always let the octicon dictate the amount of space it needs
+      flex-shrink: 0;
+
+      // Force the octicon width
+      width: 16px;
+    }
+
+    .name {
+      // Long repository names truncate and ellipse
+      @include ellipsis;
+
+      .prefix {
+        color: var(--text-secondary-color);
+      }
+
+      /* Used to highlight substring matches in filtered lists */
+      mark {
+        font-weight: bold;
+        /* Reset browser defaults */
+        background-color: inherit;
+        color: currentColor;
+      }
+    }
+
+    .alias {
+      font-style: italic;
+    }
+
+    .repo-indicators {
+      margin-left: auto;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-right: var(--spacing-half);
+    }
+
+    .change-indicator-wrapper {
+      display: flex;
+      min-width: 12px;
+      justify-content: center;
+      align-items: center;
+      margin-left: var(--spacing-half);
+
+      .octicon {
+        color: var(--tab-bar-active-color);
+        width: auto;
+      }
+    }
+
+    .ahead-behind {
+      height: 16px;
+      background: var(--list-item-badge-background-color);
+      color: var(--list-item-badge-color);
+      align-items: center;
+      margin-left: auto;
+
+      // Perfectly round semi circle ends with real tight
+      // padding on either side. Now in two flavors!
+      @include darwin {
+        height: 12px;
+        line-height: 12px;
+      }
+
+      @include win32 {
+        height: 13px;
+        line-height: 13px;
+      }
+
+      .octicon {
+        margin: 0;
+        height: 20px;
+        width: 12px;
+      }
+    }
+  }
+
+  .filter-list-group-header {
+    padding-top: var(--spacing);
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+    white-space: nowrap;
+  }
+
+  .new-repository-button {
+    flex-shrink: 0;
+
+    .octicon {
+      margin-left: 5px;
+    }
+  }
+
+  .no-items {
+    text-align: center;
+    padding: var(--spacing);
+    word-wrap: break-word;
+
+    .blankslate-image {
+      margin: 0 auto;
+      max-width: 300px;
+      min-width: auto;
+    }
+
+    .title {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .protip {
+      padding-top: var(--spacing-double);
+      padding-left: var(--spacing-double);
+      padding-right: var(--spacing-double);
+
+      text-align: center;
+      font-size: var(--font-size-sm);
+
+      .kbd-shortcut {
+        display: inline-block;
+      }
+
+      kbd {
+        border-radius: var(--border-radius);
+        border: var(--base-border);
+        border-color: $gray-300;
+
+        display: inline-block;
+
+        padding: 1px 2px;
+        line-height: 1;
+        min-height: 16px;
+
+        font-family: var(--font-family);
+        text-align: center;
+      }
+    }
+  }
+}
+
+.list-focus-container {
+  /** Ahead/behind badge colors when list item is selected but not focused */
+  .list-item.selected {
+    .repository-list-item {
+      .ahead-behind {
+        background: var(--list-item-selected-badge-background-color);
+        color: var(--list-item-selected-badge-color);
+      }
+    }
+  }
+
+  &.focus-within {
+    /** Ahead/behind badge colors when list item is selected and focused */
+    .list-item.selected {
+      .repository-list-item {
+        .ahead-behind {
+          background: var(--list-item-selected-active-badge-background-color);
+          color: var(--list-item-selected-active-badge-color);
+        }
+
+        .change-indicator-wrapper {
+          .octicon {
+            color: var(--text-color);
+          }
+        }
+      }
+    }
+
+    .change-indicator {
+      color: var(--text-color);
+    }
+  }
+}

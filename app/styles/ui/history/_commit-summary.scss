@@ -1,0 +1,191 @@
+@import '../../mixins';
+
+/** A React component holding the selected commit's detailed information */
+#commit-summary {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  .avatar {
+    width: 16px;
+    height: 16px;
+  }
+
+  .expander {
+    position: absolute;
+    width: 75px;
+    top: var(--spacing);
+    right: var(--spacing);
+
+    svg {
+      vertical-align: text-top;
+      margin-right: var(--spacing-half);
+    }
+  }
+
+  &.expanded {
+    .commit-summary-description-scroll-view {
+      max-height: 400px;
+      overflow: auto;
+      display: revert;
+
+      &:before {
+        content: none;
+      }
+    }
+  }
+
+  &.hide-description-border {
+    .commit-summary-description-container {
+      border-bottom: none;
+    }
+  }
+
+  &.has-expander {
+    .commit-summary-description {
+      padding-right: 100px;
+    }
+
+    // When the description area can be, but isn't yet, expanded
+    // we'll add a small shadow towards the bottom to hint that
+    // there's more content available.
+    &:not(.expanded) {
+      .commit-summary-description:before {
+        content: '';
+        background: var(--box-overflow-shadow-background);
+        position: absolute;
+        height: 30px;
+        bottom: 0px;
+        width: 100%;
+        pointer-events: none;
+      }
+    }
+  }
+
+  .commit-unreachable-info {
+    padding: var(--spacing-half) var(--spacing);
+    border-bottom: var(--base-border);
+    display: flex;
+    align-items: center;
+
+    .octicon {
+      margin-right: var(--spacing-half);
+    }
+
+    .link-button-component {
+      margin-right: var(--spacing-half);
+    }
+  }
+}
+
+// NOTE: This isn't a real class, it's an SCSS hack to allow us to only write
+// the suffixes of class names that all start with commit-summary. It's quite
+// confusing and also has the added downside of making it impossible to search
+// for a class name one finds in tsx. We might want to consider not allowing
+// this in the future but that's for... the future.
+.commit-summary {
+  &-title,
+  &-meta {
+    padding: var(--spacing);
+
+    .lines-added {
+      color: var(--color-new);
+    }
+
+    .lines-deleted {
+      color: var(--color-deleted);
+    }
+  }
+
+  &-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    line-height: 16px;
+    padding: var(--spacing);
+    word-wrap: break-word;
+
+    &.empty-summary {
+      color: var(--text-secondary-color);
+    }
+  }
+
+  &-description-container {
+    display: flex;
+    // So that we have something to position the expander against
+    position: relative;
+    border-bottom: var(--base-border);
+    min-height: 0;
+  }
+
+  &-description-scroll-view {
+    overflow: hidden;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    // Maximum amount of commit description lines to show before collapsing
+    -webkit-line-clamp: 3;
+  }
+
+  // Enable text selection inside the title and description elements.
+  &-title,
+  &-description {
+    user-select: text;
+    cursor: text;
+
+    * {
+      user-select: unset;
+      pointer-events: unset;
+      cursor: text;
+    }
+  }
+
+  &-description {
+    font-family: var(--font-family-monospace);
+    font-size: var(--font-size-sm);
+    word-wrap: break-word;
+    white-space: pre-line;
+    padding: var(--spacing);
+    min-height: 0;
+  }
+
+  &-meta {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0 var(--spacing) var(--spacing);
+  }
+
+  &-meta-item:not(.without-truncation) {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  &-meta-item {
+    display: flex;
+    flex-direction: row;
+    min-width: 0;
+    margin-right: var(--spacing);
+    font-size: var(--font-size-sm);
+    flex-shrink: 0;
+
+    .avatar,
+    .octicon {
+      display: inline-block;
+      margin-right: var(--spacing-third);
+      vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+    }
+
+    .selectable {
+      user-select: text;
+    }
+
+    .tags {
+      @include ellipsis;
+      flex-shrink: 1;
+    }
+  }
+
+  &-header {
+    border-bottom: var(--base-border);
+  }
+}

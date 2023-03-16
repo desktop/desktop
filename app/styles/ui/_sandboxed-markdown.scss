@@ -1,0 +1,21 @@
+.sandboxed-markdown-iframe-container {
+  position: relative;
+
+  .sandboxed-markdown-component {
+    // With combination of setting height of containing div.
+    // These styles remove blocky auto height/scroll of iframe.
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    // strip default styles
+    width: 100%;
+    height: 100%;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+  }
+}

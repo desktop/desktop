@@ -1,0 +1,16 @@
+@import '../mixins';
+
+.text-area-component {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  textarea {
+    @include textboxish;
+    @include textboxish-disabled;
+
+    height: auto;
+    resize: none;
+    min-height: 100px;
+  }
+}

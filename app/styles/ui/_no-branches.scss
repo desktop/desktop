@@ -1,0 +1,35 @@
+.no-branches {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  padding: var(--spacing);
+
+  .title {
+    font-weight: var(--font-weight-semibold);
+    text-align: center;
+  }
+
+  .subtitle {
+    margin-left: var(--spacing-double);
+    margin-right: var(--spacing-double);
+
+    text-align: center;
+    font-size: var(--font-size-sm);
+  }
+
+  .create-branch-button {
+    margin: var(--spacing-double);
+    align-self: stretch;
+  }
+
+  .protip {
+    padding-left: var(--spacing-triple);
+    padding-right: var(--spacing-triple);
+
+    text-align: center;
+    font-size: var(--font-size-sm);
+  }
+}

@@ -1,0 +1,11 @@
+svg.octicon {
+  /* https://css-tricks.com/cascading-svg-fill-color/ */
+  fill: currentColor;
+
+  /* Only height is specified here since not every Octicon is a 16px wide.
+  Forcing a width of 16px would result in some blurry icons showing up.
+  Instead, let's imply width: auto; instead. */
+  height: 16px;
+
+  flex-shrink: 0;
+}

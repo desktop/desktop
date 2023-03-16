@@ -1,0 +1,22 @@
+# Configuration for request-info - https://github.com/behaviorbot/request-info
+
+# *Required* Comment to reply with
+requestInfoReplyComment: >
+  Thanks for reaching out!
+
+  We require the
+  [template](https://github.com/desktop/desktop/blob/development/.github/CONTRIBUTING.md#how-do-i-submit-a-good-bug-report)
+  to be filled out with all new issues. We do this so that we can be certain we
+  have all the information we need to address your submission efficiently. This
+  allows the maintainers to spend more time fixing bugs, implementing
+  enhancements, and reviewing and merging pull requests.
+
+  Thanks for understanding and meeting us halfway. 😀
+
+requestInfoLabelToAdd: more-info-needed
+
+requestInfoOn:
+  pullRequest: false
+  issue: true
+
+checkIssueTemplate: true

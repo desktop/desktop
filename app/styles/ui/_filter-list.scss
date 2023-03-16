@@ -1,0 +1,54 @@
+@import '../mixins';
+
+.filter-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  min-width: inherit;
+
+  .filter-field-row {
+    margin: var(--spacing);
+    min-width: 0;
+
+    .filter-list-filter-field {
+      min-width: 0;
+    }
+  }
+
+  &-container {
+    display: flex;
+    flex: 1;
+    // The filter-list-container div should be scrollable if its contents
+    // are larger than the available space.
+    min-height: 0;
+  }
+}
+
+.filter-list-group-header {
+  padding: 0 var(--spacing);
+  font-weight: var(--font-weight-semibold);
+}
+
+//This is used if there are no results to show in the filter list for cloning a repository
+.no-results-found {
+  width: 100%;
+  text-align: center;
+}
+
+.merge-button {
+  &.button-component {
+    align-self: auto;
+  }
+
+  &-row {
+    display: flex;
+    flex-direction: column;
+    border-top: var(--base-border);
+    padding: var(--spacing);
+  }
+
+  .icon {
+    margin-right: var(--spacing-half);
+  }
+}

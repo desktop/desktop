@@ -1,0 +1,13 @@
+.config-lock-file-exists-component {
+  p:first-child {
+    margin-top: 0;
+  }
+  p:last-child {
+    margin-bottom: 0;
+  }
+  .ref-component {
+    display: inline-block;
+    padding: 0;
+    font-size: var(--font-size-sm);
+  }
+}

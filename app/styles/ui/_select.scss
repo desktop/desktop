@@ -1,0 +1,26 @@
+@import '../mixins';
+
+.select-component {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  label {
+    @include ellipsis;
+    margin-bottom: var(--spacing-third);
+  }
+
+  // Custom styles for select components because a) they look horrible
+  // on Windows and b) because we need them to inherit colors and other
+  // appearance from our global variables. Therefore we treat them more
+  // or less exactly as a text box.
+  select {
+    // Make the select look like a text box.
+    @include textboxish;
+    @include textboxish-disabled;
+
+    // Don't include the default padding from textboxish, it's too much
+    padding: 0;
+    width: 100%;
+  }
+}

@@ -1,0 +1,193 @@
+// Globals
+//
+// This file is for things that have to apply globally, if your style
+// doesn't fit into that description it probably belongs in ui/
+
+// Reset the box-sizing, lifted from bootstrap reboot css, see:
+//   https://github.com/twbs/bootstrap/blob/bfc16c4a829ba596db28f5f42d7a3e429e6ea2e1/scss/_reboot.scss#L9
+//
+// Change from `box-sizing: content-box` to `border-box` so that when you add
+// `padding` or `border`s to an element, the overall declared `width` does not
+// change. For example, `width: 100px;` will always be `100px` despite the
+// `border: 10px solid red;` and `padding: 20px;`.
+//
+// Credit: https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+//
+// Reset HTML, body, and more
+//
+
+// We never want the window to be scrollable, everything has to fit
+// or be placed into a scrollable container.
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+html {
+  // Sets a specific default `font-size` for user with `rem` type scales.
+  font-size: var(--font-size);
+
+  // NB This seems to be necessary on macOS (and possibly others)
+  // for the absolutely positioned foldout to fill the window
+  // when it's being resized.
+  position: relative;
+}
+
+body {
+  // https://css-tricks.com/html-vs-body-in-css/
+  font-family: var(--font-family-sans-serif);
+  font-size: var(--font-size);
+  line-height: 1.5;
+
+  color: var(--text-color);
+  background-color: var(--background-color);
+}
+
+:not(input):not(textarea) {
+  &,
+  &::after,
+  &::before {
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+  }
+}
+
+.selectable-text {
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: auto;
+}
+
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+//
+// Typography
+//
+
+// Remove top margins from headings
+//
+// By default, `<h1>`-`<h6>` all receive top and bottom margins. We nuke the top
+// margin for easier control within type scales as it avoids margin collapsing.
+//
+// From: https://github.com/twbs/bootstrap/blob/a0f10e6dcb9aef2d8e36e57f3c8b1b06034a8877/scss/_reboot.scss
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+code,
+pre {
+  font-family: var(--font-family-monospace);
+}
+
+// Regardless of platform behavior we never want buttons to be
+// app drag targets unless explicitly specified.
+button {
+  -webkit-app-region: no-drag;
+}
+
+#content {
+  display: flex;
+
+  height: 100%;
+  width: 100%;
+}
+
+.blankslate {
+  background: var(--box-alt-background-color);
+  color: var(--text-secondary-color);
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing);
+}
+
+// Stretches an element to fill the entire window (such as an overlay)
+.fill-window {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+// We're using a polyfill for the upcoming CSS4 `:focus-ring` pseudo-selector.
+// This allows us to not have to override default accessibility driven focus
+// styles for buttons in the case when a user clicks on a button. This also
+// gives better visiblity to individuals who navigate with the keyboard.
+//
+// See:
+//   https://github.com/WICG/focus-ring
+//   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
+:focus:not(.focus-ring) {
+  outline: none;
+}
+
+// http://stackoverflow.com/questions/7538771/what-is-webkit-focus-ring-color
+:focus {
+  outline: auto;
+  outline-color: var(--focus-color);
+}
+.more-dropdown {
+  color: var(--text-color) !important;
+  margin-left: var(--spacing);
+
+  .octicon {
+    margin-left: var(--spacing-third);
+    width: 8px;
+  }
+}
+
+.brutalism {
+  background: salmon;
+}
+
+kbd {
+  border-radius: var(--border-radius);
+  border: var(--base-border);
+
+  display: inline-block;
+
+  padding: 1px 2px;
+  line-height: 1;
+  min-height: 16px;
+
+  font-family: var(--font-family);
+  text-align: center;
+  min-width: 1.5em;
+
+  &:not(:last-child) {
+    margin-right: 2px;
+  }
+}

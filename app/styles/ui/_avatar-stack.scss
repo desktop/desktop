@@ -1,0 +1,155 @@
+.AvatarStack {
+  position: relative;
+  min-width: 26px;
+  height: 20px;
+
+  .AvatarStack-body {
+    position: absolute;
+  }
+
+  &.AvatarStack--two {
+    min-width: 36px;
+  }
+
+  &.AvatarStack--three {
+    min-width: 30px;
+  }
+
+  &.AvatarStack--plus {
+    min-width: 46px;
+  }
+
+  &.AvatarStack--small {
+    height: 16px;
+    min-width: 20px;
+
+    .avatar {
+      width: 16px;
+      height: 16px;
+    }
+
+    &.AvatarStack--two {
+      min-width: 25px;
+    }
+
+    &.AvatarStack--three {
+      min-width: 30px;
+    }
+
+    &.AvatarStack--plus {
+      min-width: 40px;
+    }
+
+    .avatar.avatar-more {
+      &::before,
+      &::after {
+        height: 16px;
+      }
+
+      &::before {
+        width: 13px;
+      }
+    }
+
+    &:hover {
+      .avatar {
+        margin-right: 1px;
+      }
+    }
+  }
+}
+
+.AvatarStack-body {
+  display: flex;
+  background: inherit;
+
+  // When the Avatar component fails to load an avatar
+  // image it renders a fallback SVG instead. The symbol is
+  // a generic silhouette of a person and we want to color
+  // that according to the current theme. This is set in
+  // avatar.scss already but duplicated here to override
+  // the specificity of the .avatar background:inherit below.
+  svg.avatar {
+    fill: var(--text-secondary-color);
+    background: var(--box-alt-background-color);
+  }
+
+  .avatar-container:nth-child(n + 5) {
+    .avatar {
+      display: none;
+      opacity: 0;
+    }
+  }
+
+  .avatar {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    width: 20px;
+    height: 20px;
+    box-sizing: content-box;
+    margin-right: -11px;
+    background-color: inherit;
+    box-shadow: 1px 0 0 var(--background-color);
+    border-radius: 50%;
+    transition: margin 0.1s ease-in-out;
+
+    &:first-child {
+      z-index: 3;
+    }
+
+    &:last-child {
+      z-index: 1;
+      box-shadow: none;
+    }
+
+    // stylelint-disable selector-max-type
+    img {
+      border-radius: 50%;
+    }
+  }
+
+  &:hover {
+    .avatar {
+      margin-right: 3px;
+    }
+
+    .avatar-container:nth-child(n + 5) {
+      .avatar {
+        display: flex;
+        opacity: 1;
+      }
+    }
+
+    .avatar-more {
+      display: none !important;
+    }
+  }
+}
+
+.avatar.avatar-more {
+  z-index: 1;
+  margin-right: 0;
+  background: $gray-100;
+  width: 10px !important;
+
+  &::before,
+  &::after {
+    position: absolute;
+    display: block;
+    height: 20px;
+    content: '';
+    border-radius: 50%;
+    outline: 1px solid $white;
+  }
+
+  &::before {
+    width: 17px;
+    background: $gray-200;
+  }
+
+  &::after {
+    width: 14px;
+    background: $gray-300;
+  }
+}

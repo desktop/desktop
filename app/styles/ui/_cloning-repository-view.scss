@@ -1,0 +1,83 @@
+@import '../mixins';
+
+#cloning-repository-view {
+  /* The view's position in relation to its parent, ie full
+   * width, vertically centered...  */
+  justify-content: center;
+  // ... and horizontally centered
+  align-self: center;
+  width: 600px;
+
+  /* TODO: Revisit, this might not be the best way to do it.
+   * We don't want the contents to sit smack on the vertical
+   * midline. The view itself doesn't extend 100% to the top
+   * on most platforms (due to our title bar) and it looks
+   * better if we position it centered on the ~40% line.
+   */
+  margin-top: -60px;
+
+  /* Add a ~20px padding around the view to ensure that
+   * content doesn't touch the edge of the sideline or
+   * window when space is scarce.
+   */
+  padding: var(--spacing-double);
+
+  /*  Center children horizontally */
+  align-items: center;
+
+  /* Holds the icon and title, position them next to each other */
+  .title-container {
+    /* See comment about min-width on #cloning-repository-view,
+     * this ensure that we're filling the x-space available but no more
+     */
+    max-width: 100%;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    margin-bottom: var(--spacing);
+  }
+
+  /* Big clone icon */
+  .octicon {
+    width: 32px;
+    height: 32px;
+
+    /* Space between the icon and title text */
+    margin-right: var(--spacing);
+
+    /* Don't grow nor shrink */
+    flex: none;
+
+    /* Warning: magic number. The icon looks poorly aligned
+     * against the baseline of the title text without this
+     */
+    margin-top: 4px;
+  }
+
+  /* xl-sized title */
+  .title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-light);
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  .details {
+    max-width: 100%;
+    height: 30vh;
+    margin-bottom: 20vh;
+    overflow-wrap: anywhere;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  progress {
+    max-width: 100%;
+    width: 100%;
+    margin-bottom: var(--spacing);
+  }
+}

@@ -1,0 +1,304 @@
+changed in both
+  base   100644 6dcc58cc6dfa78761d182e1fe108085e8dc3d465 src/vs/vscode.proposed.d.ts
+  our    100644 3de4a7af9dda9e3e523ba4b5774f1667d66b0b9b src/vs/vscode.proposed.d.ts
+  their  100644 df388d0bf106c4500005fc11272b36266462c898 src/vs/vscode.proposed.d.ts
+@@ -785,4 +785,85 @@
+ 		export const onDidRenameFile: Event<FileRenameEvent>;
+ 	}
+ 	//#endregion
++<<<<<<< .our
++=======
++
++	//#region Matt: Deinition range
++
++	/**
++	 * Information about where a symbol is defined.
++	 *
++	 * Provides additional metadata over normal [location](#Location) definitions, including the range of
++	 * the defining symbol
++	 */
++	export interface DefinitionLink {
++		/**
++		 * Span of the symbol being defined in the source file.
++		 *
++		 * Used as the underlined span for mouse definition hover. Defaults to the word range at
++		 * the definition position.
++		 */
++		origin?: Range;
++
++		/**
++		 * The resource identifier of the definition.
++		 */
++		uri: Uri;
++
++		/**
++		 * The full range of the definition.
++		 *
++		 * For a class definition for example, this would be the entire body of the class definition.
++		 */
++		range: Range;
++
++		/**
++		 * The span of the symbol definition.
++		 *
++		 * For a class definition, this would be the class name itself in the class definition.
++		 */
++		selectionRange?: Range;
++	}
++
++	export interface DefinitionProvider {
++		provideDefinition2?(document: TextDocument, position: Position, token: CancellationToken): ProviderResult<Definition | DefinitionLink[]>;
++	}
++
++	//#endregion
++
++	//#region scm, Rachel & Peng https://github.com/Microsoft/vscode/issues/53892
++
++	export interface ReadonlySourceControl {
++		/**
++		 * The id of this source control.
++		 */
++		readonly id: string;
++
++		/**
++		 * The human-readable label of this source control.
++		 */
++		readonly label: string;
++
++		/**
++		 * The (optional) Uri of the root of this source control.
++		 */
++		readonly rootUri: Uri | undefined;
++	}
++
++	export namespace scm {
++
++		/**
++		 * The currently visible [source controls](#ReadonlySourceControl).
++		 */
++		export const visibleSourceControls: ReadonlySourceControl[];
++
++
++		/**
++		 * An [event](#Event) which fires when the visible [source controls](#ReadonlySourceControl) have changed.
++		 */
++		export const onDidChangeVisibleSourceControls: Event<ReadonlySourceControl[]>;
++	}
++
++	//#endregion
++>>>>>>> .their
+ }
+changed in both
+  base   100644 8ee8daaee7a6a944575bc9f0093f5925b52afbe8 src/vs/workbench/api/electron-browser/mainThreadSCM.ts
+  our    100644 a6c6f1caa699f0897aa58c37f2ec9eb1ed252503 src/vs/workbench/api/electron-browser/mainThreadSCM.ts
+  their  100644 d66a95d7ad8a9a10b470f4b51fe6bc048505c893 src/vs/workbench/api/electron-browser/mainThreadSCM.ts
+@@ -15,6 +15,7 @@
+ import { Command } from 'vs/editor/common/modes';
+ import { extHostNamedCustomer } from 'vs/workbench/api/electron-browser/extHostCustomers';
+ import { ISplice, Sequence } from 'vs/base/common/sequence';
++import { equals } from 'vs/base/common/arrays';
+ 
+ class MainThreadSCMResourceGroup implements ISCMResourceGroup {
+ 
+@@ -264,6 +265,7 @@
+ 	private _repositories: { [handle: number]: ISCMRepository; } = Object.create(null);
+ 	private _inputDisposables: { [handle: number]: IDisposable; } = Object.create(null);
+ 	private _disposables: IDisposable[] = [];
++	private _selectedRepositories: number[] = [];
+ 
+ 	constructor(
+ 		extHostContext: IExtHostContext,
+@@ -271,8 +273,18 @@
+ 	) {
+ 		this._proxy = extHostContext.getProxy(ExtHostContext.ExtHostSCM);
+ 
++<<<<<<< .our
+ 		debounceEvent(scmService.onDidChangeSelectedRepositories, (_, e) => e, 100)
+ 			(this.onDidChangeSelectedRepositories, this, this._disposables);
++=======
++		this._disposables.push(this.scmService.onDidChangeSelectedRepositories(repositories => {
++			const handles = repositories.map(repo => (<MainThreadSCMProvider>repo.provider).handle);
++			if (!equals(handles, this._selectedRepositories)) {
++				this._selectedRepositories = handles;
++				this._proxy.$onDidChangeVisibleSourceControls(handles);
++			}
++		}));
++>>>>>>> .their
+ 	}
+ 
+ 	dispose(): void {
+@@ -294,6 +306,11 @@
+ 
+ 		const inputDisposable = repository.input.onDidChange(value => this._proxy.$onInputBoxValueChange(handle, value));
+ 		this._inputDisposables[handle] = inputDisposable;
++
++		if (!this._selectedRepositories.length) {
++			this._selectedRepositories.push(handle);
++			this._proxy.$onDidChangeVisibleSourceControls(this._selectedRepositories);
++		}
+ 	}
+ 
+ 	$updateSourceControl(handle: number, features: SCMProviderFeatures): void {
+changed in both
+  base   100644 eea4190baedd577ad17e122f0b48e3b1c15ef95b src/vs/workbench/api/node/extHost.api.impl.ts
+  our    100644 ea64898c5b15cfae4b4ab32d722f4ae4a68f831a src/vs/workbench/api/node/extHost.api.impl.ts
+  their  100644 fb40948c2b31671469c86e1bfd0f0ef8c46edebb src/vs/workbench/api/node/extHost.api.impl.ts
+@@ -611,6 +611,12 @@
+ 			},
+ 			createSourceControl(id: string, label: string, rootUri?: vscode.Uri) {
+ 				return extHostSCM.createSourceControl(extension, id, label, rootUri);
++			},
++			get visibleSourceControls() {
++				return extHostSCM.visibleSourceControls;
++			},
++			get onDidChangeVisibleSourceControls() {
++				return extHostSCM.onDidChangeVisibleSourceControls;
+ 			}
+ 		};
+ 
+changed in both
+  base   100644 c65fd9cf161d1a1cf0a50949d9962ca234440d4f src/vs/workbench/api/node/extHost.protocol.ts
+  our    100644 edb764542adfbf0fba64e1b93de7c309bedf0d12 src/vs/workbench/api/node/extHost.protocol.ts
+  their  100644 90f8e49d979c7567a1e232aa0438d5179ccf2c22 src/vs/workbench/api/node/extHost.protocol.ts
+@@ -882,6 +882,7 @@
+ export interface ExtHostSCMShape {
+ 	$provideOriginalResource(sourceControlHandle: number, uri: UriComponents): TPromise<UriComponents>;
+ 	$onInputBoxValueChange(sourceControlHandle: number, value: string): TPromise<void>;
++	$onDidChangeVisibleSourceControls(sourceControlHandles: number[]): TPromise<void>;
+ 	$executeResourceCommand(sourceControlHandle: number, groupHandle: number, handle: number): TPromise<void>;
+ 	$validateInput(sourceControlHandle: number, value: string, cursorPosition: number): TPromise<[string, number] | undefined>;
+ 	$setSelectedSourceControls(selectedSourceControlHandles: number[]): TPromise<void>;
+changed in both
+  base   100644 eeafdc4a416a2d8a854795b77f4641ad205ec104 src/vs/workbench/api/node/extHostSCM.ts
+  our    100644 2ce26e505301c7bf67464802924edf770775ef05 src/vs/workbench/api/node/extHostSCM.ts
+  their  100644 edd4159d222693e7b0f674bae42d21120da8da05 src/vs/workbench/api/node/extHostSCM.ts
+@@ -18,6 +18,7 @@
+ import * as vscode from 'vscode';
+ import { ISplice } from 'vs/base/common/sequence';
+ import { ILogService } from 'vs/platform/log/common/log';
++import { deepFreeze } from 'vs/base/common/objects';
+ 
+ type ProviderHandle = number;
+ type GroupHandle = number;
+@@ -485,7 +486,14 @@
+ 	private _onDidChangeActiveProvider = new Emitter<vscode.SourceControl>();
+ 	get onDidChangeActiveProvider(): Event<vscode.SourceControl> { return this._onDidChangeActiveProvider.event; }
+ 
++<<<<<<< .our
+ 	private _selectedSourceControlHandles = new Set<number>();
++=======
++	public visibleSourceControls: vscode.ReadonlySourceControl[] = [];
++
++	private _onDidChangeVisibleSourceControls = new Emitter<vscode.ReadonlySourceControl[]>();
++	get onDidChangeVisibleSourceControls(): Event<vscode.ReadonlySourceControl[]> { return this._onDidChangeVisibleSourceControls.event; }
++>>>>>>> .their
+ 
+ 	constructor(
+ 		mainContext: IMainContext,
+@@ -584,6 +592,28 @@
+ 		return TPromise.as(null);
+ 	}
+ 
++	$onDidChangeVisibleSourceControls(sourceControlHandles: number[]): TPromise<void> {
++		this.logService.trace('ExtHostSCM#$onVisibleSouceControlsChange', sourceControlHandles);
++
++		const sourceControls = sourceControlHandles
++			.map(handle => {
++				const sourceControl = this._sourceControls.get(handle);
++				return sourceControl
++					? deepFreeze({
++						id: sourceControl.id,
++						label: sourceControl.label,
++						rootUri: sourceControl.rootUri
++					})
++					: null;
++			})
++			.filter(sourceControl => !!sourceControl);
++
++		this.visibleSourceControls = sourceControls;
++		this._onDidChangeVisibleSourceControls.fire(this.visibleSourceControls);
++
++		return TPromise.as(null);
++	}
++
+ 	$executeResourceCommand(sourceControlHandle: number, groupHandle: number, handle: number): TPromise<void> {
+ 		this.logService.trace('ExtHostSCM#$executeResourceCommand', sourceControlHandle, groupHandle, handle);
+ 
+changed in both
+  base   100644 b369614adb0cdeb13f28ebbfc6094df888e70bef src/vs/workbench/parts/scm/electron-browser/scmViewlet.ts
+  our    100644 4a9da7a25f70fd599ab7b4e7adadf6adf1e52215 src/vs/workbench/parts/scm/electron-browser/scmViewlet.ts
+  their  100644 e6a29091b9972d214d6cf72600713eb47ce838b3 src/vs/workbench/parts/scm/electron-browser/scmViewlet.ts
+@@ -48,7 +48,7 @@
+ import * as platform from 'vs/base/common/platform';
+ import { format } from 'vs/base/common/strings';
+ import { ISpliceable, ISequence, ISplice } from 'vs/base/common/sequence';
+-import { firstIndex } from 'vs/base/common/arrays';
++import { firstIndex, equals } from 'vs/base/common/arrays';
+ import { WorkbenchList } from 'vs/platform/list/browser/listService';
+ import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
+ import { ThrottledDelayer } from 'vs/base/common/async';
+@@ -1278,9 +1278,14 @@
+ 				return panel;
+ 			});
+ 
++		const oldSelectedRepositories = this.selectedRepositories.slice();
++		this.repositoryPanels = [...repositoryPanels, ...newRepositoryPanels];
++		if (this.isVisible() && !equals(oldSelectedRepositories, this.selectedRepositories)) {
++			this.scmService.changeSelectedRepositories(this.selectedRepositories);
++		}
++
+ 		// Add new selected panels
+ 		let index = repositoryPanels.length + (this.mainPanel ? 1 : 0);
+-		this.repositoryPanels = [...repositoryPanels, ...newRepositoryPanels];
+ 		newRepositoryPanels.forEach(panel => {
+ 			this.addPanels([{ panel, size: panel.minimumSize, index: index++ }]);
+ 			panel.repository.focus();
+changed in both
+  base   100644 6a01974b0ee4dad0719e2fa9df44942b20235541 src/vs/workbench/services/scm/common/scm.ts
+  our    100644 40aba5a08c016cd02aec3d4b4d0484bbcdfd4e14 src/vs/workbench/services/scm/common/scm.ts
+  their  100644 50d0386407763cd738b1c98fa7457c134b51ab66 src/vs/workbench/services/scm/common/scm.ts
+@@ -109,10 +109,12 @@
+ 	readonly _serviceBrand: any;
+ 	readonly onDidAddRepository: Event<ISCMRepository>;
+ 	readonly onDidRemoveRepository: Event<ISCMRepository>;
++	readonly onDidChangeSelectedRepositories: Event<ISCMRepository[]>;
+ 
+ 	readonly repositories: ISCMRepository[];
+ 	readonly selectedRepositories: ISCMRepository[];
+ 	readonly onDidChangeSelectedRepositories: Event<ISCMRepository[]>;
+ 
+ 	registerSCMProvider(provider: ISCMProvider): ISCMRepository;
++	changeSelectedRepositories(repositories: ISCMRepository[]);
+ }
+changed in both
+  base   100644 d062ae056334c4950edb0f3d175b7096c40cd42b src/vs/workbench/services/scm/common/scmService.ts
+  our    100644 83b3e88e06dde7b5d286472eb52df964868a803d src/vs/workbench/services/scm/common/scmService.ts
+  their  100644 c0c977a86a3364beedbe9777bf9b1462b1feb964 src/vs/workbench/services/scm/common/scmService.ts
+@@ -112,6 +112,9 @@
+ 	private _onDidRemoveProvider = new Emitter<ISCMRepository>();
+ 	get onDidRemoveRepository(): Event<ISCMRepository> { return this._onDidRemoveProvider.event; }
+ 
++	private _onDidChangeSelectedRepositories = new Emitter<ISCMRepository[]>();
++	get onDidChangeSelectedRepositories(): Event<ISCMRepository[]> { return this._onDidChangeSelectedRepositories.event; }
++
+ 	constructor(@ILogService private logService: ILogService) { }
+ 
+ 	registerSCMProvider(provider: ISCMProvider): ISCMRepository {
+@@ -151,6 +154,7 @@
+ 		return repository;
+ 	}
+ 
++<<<<<<< .our
+ 	private onDidChangeSelection(): void {
+ 		const selectedRepositories = this._repositories.filter(r => r.selected);
+ 
+@@ -160,5 +164,9 @@
+ 
+ 		this._selectedRepositories = this._repositories.filter(r => r.selected);
+ 		this._onDidChangeSelectedRepositories.fire(this.selectedRepositories);
++=======
++	changeSelectedRepositories(repositories: ISCMRepository[]) {
++		this._onDidChangeSelectedRepositories.fire(repositories);
++>>>>>>> .their
+ 	}
+ }

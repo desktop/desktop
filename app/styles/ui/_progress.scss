@@ -1,0 +1,26 @@
+progress {
+  -webkit-appearance: none;
+  height: 10px;
+  background-color: var(--box-alt-background-color);
+
+  &::-webkit-progress-bar {
+    background-color: transparent;
+  }
+
+  &::-webkit-progress-value {
+    background-color: var(--text-color);
+  }
+
+  &:indeterminate {
+    background-image: -webkit-linear-gradient(-45deg, transparent 33%, var(--text-color) 33%, var(--text-color) 66%, transparent 66%);
+    background-size: 25px 10px, 100% 100%, 100% 100%;
+
+    -webkit-animation: progress-indeterminate-animation 5s linear infinite;
+  }
+}
+
+@-webkit-keyframes progress-indeterminate-animation {
+  100% {
+    background-position: 100px 0px;
+  }
+}

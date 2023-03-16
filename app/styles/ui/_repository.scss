@@ -1,0 +1,31 @@
+@import '../mixins';
+
+/** A React component holding the currently selected repository */
+#repository {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+  border-top: var(--base-border);
+  height: 100%;
+  min-height: 0;
+
+  > .focus-container {
+    display: flex;
+  }
+
+  &-sidebar {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--box-border-color);
+
+    .tab-bar {
+      flex-shrink: 0;
+    }
+
+    .panel {
+      height: 100%;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+  }
+}

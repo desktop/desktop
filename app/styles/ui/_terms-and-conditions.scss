@@ -1,0 +1,24 @@
+#terms-and-conditions {
+  width: 550px;
+
+  .dialog-content {
+    height: 250px;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    p,
+    ol,
+    ul,
+    li,
+    h2,
+    h3 {
+      cursor: text;
+      user-select: text;
+    }
+
+    a {
+      cursor: pointer;
+      user-select: text;
+    }
+  }
+}

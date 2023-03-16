@@ -1,0 +1,16 @@
+.avatar {
+  border-radius: 50%;
+}
+
+.avatar-container {
+  line-height: 0;
+}
+
+// When the Avatar component fails to load an avatar
+// image it renders a fallback SVG instead. The symbol is
+// a generic silhouette of a person and we want to color
+// that according to the current theme.
+svg.avatar {
+  fill: var(--text-secondary-color);
+  background: var(--box-alt-background-color);
+}

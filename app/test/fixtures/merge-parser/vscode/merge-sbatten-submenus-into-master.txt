@@ -1,0 +1,296 @@
+changed in both
+  base   100644 3856b7dbeb1930dba4c88f28b2261b3bd7cab065 src/vs/base/browser/dom.ts
+  our    100644 55d7a57ba6a391c964d03038ed5c842483b5d1f7 src/vs/base/browser/dom.ts
+  their  100644 6e7c479e58dd5ead5590edb04545bce315f79ead src/vs/base/browser/dom.ts
+@@ -819,7 +819,10 @@
+ 	MOUSE_OVER: 'mouseover',
+ 	MOUSE_MOVE: 'mousemove',
+ 	MOUSE_OUT: 'mouseout',
++<<<<<<< .our
+ 	MOUSE_ENTER: 'mouseenter',
++=======
++>>>>>>> .their
+ 	MOUSE_LEAVE: 'mouseleave',
+ 	CONTEXT_MENU: 'contextmenu',
+ 	WHEEL: 'wheel',
+changed in both
+  base   100644 a6d79bdbcb0a7e949c8c2a46e60a04a5cf0f337e src/vs/base/browser/ui/actionbar/actionbar.ts
+  our    100644 0dc7a39304b16126c69b25b0abb4a2effaab717d src/vs/base/browser/ui/actionbar/actionbar.ts
+  their  100644 3fa94537ee5cefa8ab5433b73a28d1ed002f5a1e src/vs/base/browser/ui/actionbar/actionbar.ts
+changed in both
+  base   100644 554b91d60de0b9bebb977315ddab661395ececc8 src/vs/base/browser/ui/menu/menu.css
+  our    100644 bea8dd197779b2014b71574a98c635196409f288 src/vs/base/browser/ui/menu/menu.css
+  their  100644 f94140de0f2e5e3e4b309f74038ee7a36eb7e929 src/vs/base/browser/ui/menu/menu.css
+@@ -65,6 +65,12 @@
+ 	line-height: 1;
+ }
+ 
++<<<<<<< .our
++=======
++.monaco-menu .monaco-action-bar.vertical .submenu-indicator {
++	padding: 0.8em .5em;
++}
++>>>>>>> .their
+ 
+ .monaco-menu .monaco-action-bar.vertical .action-item.disabled .keybinding,
+ .monaco-menu .monaco-action-bar.vertical .action-item.disabled .submenu-indicator {
+changed in both
+  base   100644 512d107f156843d26de6ff3a5a5f8f3873fb8cbc src/vs/base/browser/ui/menu/menu.ts
+  our    100644 9f36741df6322654263d676b9900f0f990c3f088 src/vs/base/browser/ui/menu/menu.ts
+  their  100644 5ea5820cce4a4e6a33e61e983e7d39610020ed05 src/vs/base/browser/ui/menu/menu.ts
+@@ -6,6 +6,7 @@
+ 'use strict';
+ 
+ import 'vs/css!./menu';
++<<<<<<< .our
+ import * as nls from 'vs/nls';
+ import { IActionRunner, IAction, Action } from 'vs/base/common/actions';
+ import { ActionBar, IActionItemProvider, ActionsOrientation, Separator, ActionItem, IActionItemOptions, BaseActionItem } from 'vs/base/browser/ui/actionbar/actionbar';
+@@ -14,6 +15,16 @@
+ import { StandardKeyboardEvent } from 'vs/base/browser/keyboardEvent';
+ import { $, Builder } from 'vs/base/browser/builder';
+ import { RunOnceScheduler } from 'vs/base/common/async';
++=======
++import { IDisposable } from 'vs/base/common/lifecycle';
++import { IActionRunner, IAction, Action } from 'vs/base/common/actions';
++import { ActionBar, IActionItemProvider, ActionsOrientation, Separator, ActionItem, IActionItemOptions } from 'vs/base/browser/ui/actionbar/actionbar';
++import { ResolvedKeybinding, KeyCode } from 'vs/base/common/keyCodes';
++import { Event } from 'vs/base/common/event';
++import { addClass, EventType, EventHelper, EventLike } from 'vs/base/browser/dom';
++import { StandardKeyboardEvent } from 'vs/base/browser/keyboardEvent';
++import { $ } from 'vs/base/browser/builder';
++>>>>>>> .their
+ 
+ export interface IMenuOptions {
+ 	context?: any;
+@@ -23,6 +34,22 @@
+ 	ariaLabel?: string;
+ }
+ 
++<<<<<<< .our
++=======
++
++export class SubmenuAction extends Action {
++	constructor(label: string, public entries: (SubmenuAction | IAction)[], cssClass?: string) {
++		super(!!cssClass ? cssClass : 'submenu', label, '', true);
++	}
++}
++
++interface ISubMenuData {
++	parent: Menu;
++	submenu?: Menu;
++}
++
++export class Menu {
++>>>>>>> .their
+ 
+ export class SubmenuAction extends Action {
+ 	constructor(label: string, public entries: (SubmenuAction | IAction)[], cssClass?: string) {
+@@ -45,9 +72,37 @@
+ 		menuContainer.setAttribute('role', 'presentation');
+ 		container.appendChild(menuContainer);
+ 
++<<<<<<< .our
+ 		super(menuContainer, {
+ 			orientation: ActionsOrientation.VERTICAL,
+ 			actionItemProvider: action => this.doGetActionItem(action, options, parentData),
++=======
++		let parentData: ISubMenuData = {
++			parent: this
++		};
++
++		const getActionItem = (action: IAction) => {
++			if (action instanceof Separator) {
++				return new ActionItem(options.context, action, { icon: true });
++			} else if (action instanceof SubmenuAction) {
++				return new SubmenuActionItem(action, action.entries, parentData, options);
++			} else {
++				const menuItemOptions: IActionItemOptions = {};
++				if (options.getKeyBinding) {
++					const keybinding = options.getKeyBinding(action);
++					if (keybinding) {
++						menuItemOptions.keybinding = keybinding.getLabel();
++					}
++				}
++
++				return new MenuActionItem(options.context, action, menuItemOptions);
++			}
++		};
++
++		this.actionBar = new ActionBar(menuContainer, {
++			orientation: ActionsOrientation.VERTICAL,
++			actionItemProvider: options.actionItemProvider ? options.actionItemProvider : getActionItem,
++>>>>>>> .their
+ 			context: options.context,
+ 			actionRunner: options.actionRunner,
+ 			ariaLabel: options.ariaLabel
+@@ -399,4 +454,139 @@
+ 			this.submenuContainer = null;
+ 		}
+ 	}
++}
++
++class MenuActionItem extends ActionItem {
++	static MNEMONIC_REGEX: RegExp = /&&(.)/g;
++
++	constructor(ctx: any, action: IAction, options: IActionItemOptions = {}) {
++		options.isMenu = true;
++		super(action, action, options);
++	}
++
++	private _addMnemonic(action: IAction, actionItemElement: HTMLElement): void {
++		let matches = MenuActionItem.MNEMONIC_REGEX.exec(action.label);
++		if (matches && matches.length === 2) {
++			let mnemonic = matches[1];
++
++			let ariaLabel = action.label.replace(MenuActionItem.MNEMONIC_REGEX, mnemonic);
++
++			actionItemElement.accessKey = mnemonic.toLocaleLowerCase();
++			this.$e.attr('aria-label', ariaLabel);
++		} else {
++			this.$e.attr('aria-label', action.label);
++		}
++	}
++
++	public render(container: HTMLElement): void {
++		super.render(container);
++
++		this._addMnemonic(this.getAction(), container);
++		this.$e.attr('role', 'menuitem');
++	}
++
++	public _updateLabel(): void {
++		if (this.options.label) {
++			let label = this.getAction().label;
++			if (label && this.options.isMenu) {
++				label = label.replace(MenuActionItem.MNEMONIC_REGEX, '$1\u0332');
++			}
++			this.$e.text(label);
++		}
++	}
++}
++
++class SubmenuActionItem extends MenuActionItem {
++	private mysubmenu: Menu;
++
++	constructor(
++		action: IAction,
++		private submenuActions: IAction[],
++		private parentData: ISubMenuData,
++		private submenuOptions?: IMenuOptions
++	) {
++		super(action, action, { label: true, isMenu: true });
++	}
++
++	public render(container: HTMLElement): void {
++		super.render(container);
++
++		this.builder = $(container);
++		$(this.builder).addClass('monaco-submenu-item');
++		$('span.submenu-indicator').text('\u25B6').appendTo(this.builder);
++		this.$e.attr('role', 'menu');
++
++		$(this.builder).on(EventType.KEY_UP, (e) => {
++			let event = new StandardKeyboardEvent(e as KeyboardEvent);
++			if (event.equals(KeyCode.RightArrow)) {
++				EventHelper.stop(e, true);
++
++				this.createSubmenu();
++			}
++		});
++
++		$(this.builder).on(EventType.KEY_DOWN, (e) => {
++			let event = new StandardKeyboardEvent(e as KeyboardEvent);
++			if (event.equals(KeyCode.RightArrow)) {
++				EventHelper.stop(e, true);
++			}
++		});
++
++		$(this.builder).on(EventType.MOUSE_OVER, (e) => {
++			this.cleanupExistingSubmenu(false);
++			this.createSubmenu();
++		});
++
++
++		$(this.builder).on(EventType.MOUSE_LEAVE, (e) => {
++			this.parentData.parent.focus();
++			this.cleanupExistingSubmenu(true);
++		});
++	}
++
++	public onClick(e: EventLike) {
++		// stop clicking from trying to run an action
++		EventHelper.stop(e, true);
++	}
++
++	private cleanupExistingSubmenu(force: boolean) {
++		if (this.parentData.submenu && (force || (this.parentData.submenu !== this.mysubmenu))) {
++			this.parentData.submenu.dispose();
++			this.parentData.submenu = null;
++		}
++	}
++
++	private createSubmenu() {
++		if (!this.parentData.submenu) {
++			const submenuContainer = $(this.builder).div({ class: 'monaco-submenu menubar-menu-items-holder context-view' });
++
++			$(submenuContainer).style({
++				'left': `${$(this.builder).getClientArea().width}px`
++			});
++
++			$(submenuContainer).on(EventType.KEY_UP, (e) => {
++				let event = new StandardKeyboardEvent(e as KeyboardEvent);
++				if (event.equals(KeyCode.LeftArrow)) {
++					EventHelper.stop(e, true);
++
++					this.parentData.parent.focus();
++					this.parentData.submenu.dispose();
++					this.parentData.submenu = null;
++				}
++			});
++
++			$(submenuContainer).on(EventType.KEY_DOWN, (e) => {
++				let event = new StandardKeyboardEvent(e as KeyboardEvent);
++				if (event.equals(KeyCode.LeftArrow)) {
++					EventHelper.stop(e, true);
++				}
++			});
++
++
++			this.parentData.submenu = new Menu(submenuContainer.getHTMLElement(), this.submenuActions, this.submenuOptions);
++			this.parentData.submenu.focus();
++
++			this.mysubmenu = this.parentData.submenu;
++		}
++	}
+ }
+\ No newline at end of file
+changed in both
+  base   100644 6e58a2d23df35954b38b5736bf78b469e845381a src/vs/platform/actions/common/actions.ts
+  our    100644 f0ba370d22dfa5eb5e51b75ad8f132f6de5991a7 src/vs/platform/actions/common/actions.ts
+  their  100644 c4b1e0f958cfbbec0a0675bf94187c9848646de2 src/vs/platform/actions/common/actions.ts
+removed in local
+  base   100644 b551e1158cb9deee86d65b7940e9214176bd8c3b src/vs/workbench/browser/parts/menubar/menubar.contribution.ts
+  their  100644 a156d5fcc77a6eaad31fb95328b440a21aa03cb0 src/vs/workbench/browser/parts/menubar/menubar.contribution.ts
+removed in local
+  base   100644 6ecc50082dc1318e7626903b24bca7721608eef1 src/vs/workbench/browser/parts/menubar/menubarPart.ts
+  their  100644 ab49bdcac269c1be8f84095a60a507eb2dd6e37b src/vs/workbench/browser/parts/menubar/menubarPart.ts
+changed in both
+  base   100644 6748e7384c3e26f5a7d45059898aacc329d80869 src/vs/workbench/electron-browser/media/shell.css
+  our    100644 1ce2598e143da86c4e183d8447113245812e5270 src/vs/workbench/electron-browser/media/shell.css
+  their  100644 436641f4237a469a79dbf4b7c50f4fa285aadc68 src/vs/workbench/electron-browser/media/shell.css
+@@ -104,6 +104,10 @@
+ 	cursor: default;
+ }
+ 
++.monaco-shell .monaco-menu .monaco-action-bar.vertical .submenu-indicator {
++	padding: 0.5em 1em;
++}
++
+ /* START Keyboard Focus Indication Styles */
+ 
+ .monaco-shell [tabindex="0"]:focus,
+changed in both
+  base   100644 0e1dd8af193495fb8c96b904d15e9b2e660ddcdc src/vs/workbench/parts/quickopen/browser/commandsHandler.ts
+  our    100644 1454998d2d97d32be1e2ef89cacfacdd941d1525 src/vs/workbench/parts/quickopen/browser/commandsHandler.ts
+  their  100644 c978a3b0cc7e4aa0597c594001989f8e1d30e671 src/vs/workbench/parts/quickopen/browser/commandsHandler.ts

@@ -1,0 +1,161 @@
+.toolbar-button {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+
+  // Make sure the contents shrink beyond their intrinsic width
+  // See https://css-tricks.com/flexbox-truncated-text/
+  min-width: 0;
+
+  // This is necessary for our absolutely positioned progress bar to work.
+  // We position the toolbar button container relatively so that we can
+  // position the progress bar absolutely in relation to the container.
+  // We then explicitly position all child elements of the container
+  // relatively in order for the progress bar not to position itself
+  // above all the other content.
+  position: relative;
+
+  .toolbar-dropdown-button {
+    width: 40px;
+    height: 49px;
+  }
+
+  // General button behavior, mostly resets.
+  // For the button content styling see second button style. Note that we
+  // explicitly use > here to only target the direct descendant button since
+  // there might be buttons in foldouts which would otherwise be affected
+  // as well.
+  & > button {
+    // Reset styles from global buttons
+    -webkit-appearance: none;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    border-radius: 0;
+    text-align: left;
+    margin: 0;
+    padding: 0;
+
+    &:active {
+      box-shadow: none;
+    }
+
+    &:focus {
+      background-color: var(--toolbar-button-focus-background-color);
+
+      // Prevent the focus-ring from getting clipped by UI elements
+      // outside of the toolbar
+      outline-offset: -4px;
+
+      // Reset
+      border-color: var(--toolbar-button-border-color);
+      box-shadow: none;
+
+      .progress {
+        background: var(--toolbar-button-focus-progress-color);
+      }
+
+      // Focused but not through keyboard navigation
+      &:not(.focus-ring) {
+        outline: none;
+        background-color: var(--toolbar-button-background-color);
+
+        .progress {
+          background: var(--toolbar-button-progress-color);
+        }
+      }
+    }
+
+    &:not(:disabled):hover {
+      background-color: var(--toolbar-button-hover-background-color);
+      color: var(--toolbar-button-hover-color);
+      border-color: var(--toolbar-button-hover-border-color);
+
+      .description {
+        color: var(--toolbar-button-secondary-color);
+      }
+
+      .progress {
+        background: var(--toolbar-button-hover-progress-color);
+      }
+    }
+
+    height: 100%;
+    width: 100%;
+  }
+
+  & > button {
+    position: relative;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    padding: var(--spacing);
+    margin: 0;
+    overflow: hidden;
+
+    background-color: var(--toolbar-button-background-color);
+    color: var(--toolbar-button-color);
+
+    border-right: 1px solid var(--toolbar-button-border-color);
+
+    .icon {
+      flex-shrink: 0;
+      margin-right: var(--spacing);
+      position: relative;
+    }
+
+    .dropdownArrow {
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .text {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      min-width: 0;
+      margin-right: var(--spacing);
+      position: relative;
+    }
+
+    .title {
+      font-weight: var(--font-weight-semibold);
+      position: relative;
+    }
+
+    .description {
+      color: var(--toolbar-button-secondary-color);
+      font-size: var(--font-size-sm);
+      position: relative;
+    }
+
+    .title,
+    .description {
+      @include ellipsis;
+    }
+
+    .progress {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 100%;
+      height: 100%;
+      background: var(--toolbar-button-progress-color);
+      transform-origin: left;
+      pointer-events: none;
+      transition: transform 0.3s var(--easing-ease-out-quint);
+    }
+  }
+
+  &.has-progress > button {
+    // The default disabled opacity for button is 0.6 but when we're showing
+    // progress we want the text to be slightly legible so we'll make it
+    // opaque. Since a toolbar button with progress also shows a spinner
+    // there's plenty of indication that it can't be used.
+    &:disabled {
+      opacity: 1;
+    }
+  }
+}

@@ -1,0 +1,61 @@
+@import '../mixins';
+
+@include win32-context {
+  // Windows native scrollbars are just too outdated to look at so we'll
+  // have to make some ourselves. Unfortunately for us webkit isn't as
+  // flexible as one would hope when it comes to styling scroll bars.
+  //
+  // We're unable to perform any css transition on say width or height
+  // which we'd really like to in order to smoothly grow the scrollbar
+  // when the mouse is close. Nor can we transition on opacity in order
+  // to smoothly show or hide the scroll bar on hover.
+  //
+  // We're not able to use margins/paddings to offset the bar away from
+  // the edge of the container. There's a hack we can employ with
+  // background-clip that lets us use a border to offset though.
+  // See http://stackoverflow.com/a/21684424/2114
+  //
+  // The biggest limitation however is the fact that we're unable to
+  // have the scroll bar sit on top of the content itself. Adding a
+  // scroll bar automatically adds a padding equal to that of the scroll
+  // bar width/height to the container and there's no way (that I've found)
+  // to get around that. The scroll bar seems to sample its background
+  // from the container and never its content.
+  //
+  // We work around that in List elements by introducing a fake overflowing
+  // element which is absolutely positioned on top of the main content.
+  // See List.tsx and _list.scss.
+  ::-webkit-scrollbar {
+    width: var(--win32-scroll-bar-size);
+    height: var(--win32-scroll-bar-size);
+    background: transparent;
+    cursor: pointer;
+
+    &-thumb {
+      background-color: var(--scroll-bar-thumb-background-color);
+      border-radius: var(--win32-scroll-bar-size);
+
+      // This little hack allows us to have a slim scroll bar
+      // with a bigger hit area. The scroll bar width/height
+      // is 10px but we're cutting off 6px using clipping so
+      // that it appears as if it's actually only 4px.
+      border-color: transparent;
+      border-style: solid;
+      border-width: 3px;
+      background-clip: padding-box;
+
+      // ...and when it's pressed we'll up the contrast
+      &:active {
+        background-color: var(--scroll-bar-thumb-background-color-active);
+      }
+
+      // When someone hovers over, or presses the bar we'll expand it to 8px
+      &:hover,
+      &:active {
+        border-width: 1px;
+        background-color: var(--scroll-bar-thumb-background-color-active);
+        cursor: pointer;
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+@import '../mixins';
+
+.file-list {
+  // this value affects virtualized lists, and without it
+  // you'll see react-virtualized just skip rendering
+  // as the available vertical space is computed as zero
+  height: 100%;
+
+  .list-item {
+    border-bottom: var(--base-border);
+  }
+
+  .list-focus-container {
+    // Default to using status aware colors for the change type
+    // octicons (i.e. green for added, yellowish for modified etc)
+    // but fall back to picking up the ambient text color when the
+    // list item is both focused and selected.
+    &.focus-within .list-item:not(.selected),
+    &:not(.focus-within) .list-item {
+      @include octicon-status;
+    }
+  }
+
+  .file {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+
+    // See https://css-tricks.com/flexbox-truncated-text/
+    min-width: 0;
+    height: 100%;
+    padding: 0 var(--spacing);
+
+    .checkbox-component {
+      flex-shrink: 0;
+      width: 20px;
+    }
+
+    input,
+    .status {
+      flex-shrink: 0;
+    }
+
+    .octicon {
+      vertical-align: text-bottom;
+    }
+  }
+}

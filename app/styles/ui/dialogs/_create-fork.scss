@@ -1,0 +1,15 @@
+dialog#create-fork {
+  width: 500px;
+
+  a.link-button-component {
+    display: unset;
+  }
+
+  details {
+    margin-top: var(--spacing-double);
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+    }
+  }
+}

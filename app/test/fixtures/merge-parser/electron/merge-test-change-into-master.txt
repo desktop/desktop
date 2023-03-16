@@ -1,0 +1,2515 @@
+added in both
+  our    100644 67a2b2124619d866f67d849f57f3548ba28be26a appveyor.yml
+  their  100644 cb0c8a67db55630fd6d94204955c56016c9937cf appveyor.yml
+@@ -1,4 +1,5 @@
+ version: 1.0.{build}
++<<<<<<< .our
+ branches:
+   except:
+   - /^release$|^release-\d-\d-x$/
+@@ -6,10 +7,20 @@
+ image: electron-16-vs2017-15.4.5
+ environment:
+   DISABLE_CRASH_REPORTER_TESTS: true
++=======
++build_cloud: electron-16
++image: electron-16-vs2017
++environment:
++  DISABLE_CRASH_REPORTER_TESTS: true
++  matrix:
++  - TARGET_ARCH: ia32
++  - TARGET_ARCH: x64
++>>>>>>> .their
+ build_script:
+ - ps: >-
+     if(($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME -split "/")[0] -eq ($env:APPVEYOR_REPO_NAME -split "/")[0]) {
+       Write-warning "Skipping PR build for branch"; Exit-AppveyorBuild
++<<<<<<< .our
+     } else {
+       Add-Path "$env:ProgramFiles (x86)\Windows Kits\10\Debuggers\x64"
+       $env:path = "$env:ProgramFiles (x86)\Windows Kits\10\Debuggers\x64;$env:path"
+@@ -17,10 +28,24 @@
+         $env:RUN_RELEASE_BUILD = "1"
+       }
+       $Message = (git log --format=%B -n 1 HEAD) | Out-String
++=======
++
++    } else {
++      Add-Path "$env:ProgramFiles (x86)\Windows Kits\10\Debuggers\x64"
++
++      $env:path = "$env:ProgramFiles (x86)\Windows Kits\10\Debuggers\x64;$env:path"
++
++      $Message = (git log --format=%B -n 1 HEAD) | Out-String
++
++>>>>>>> .their
+       if ((Test-Path Env:\RUN_RELEASE_BUILD)) {
+         $env:ELECTRON_RELEASE = '1'
+         Write-Output "release build triggered from api"
+       }
++<<<<<<< .our
++=======
++
++>>>>>>> .their
+       if ((Test-Path Env:\ELECTRON_RELEASE)) {
+         Write-Output "Running release build"
+         python script\bootstrap.py --target_arch=$env:TARGET_ARCH
+@@ -36,21 +61,34 @@
+       } else {
+         "Build succeeded."
+       }
++<<<<<<< .our
+       Push-AppveyorArtifact out
+     }
++=======
++    }
++
++>>>>>>> .their
+ test_script:
+ - ps: >-
+     if (Test-Path Env:\ELECTRON_RELEASE) {
+       Write-Output "Skipping tests for release build"
+     } else {
+       Write-Output "Running tests for debug build"
++<<<<<<< .our
+       python script\test.py --ci --rebuild_native_modules
++=======
++      python script\test.py --ci
++>>>>>>> .their
+       if ($LASTEXITCODE -ne '0') {
+         throw "Tests failed with exit code $LASTEXITCODE"
+       } else {
+         Write-Output "Tests succeeded."
+       }
+       python script\verify-ffmpeg.py
++<<<<<<< .our
++=======
++
++>>>>>>> .their
+       if ($LASTEXITCODE -ne '0') {
+         throw "Verify ffmpeg failed with exit code $LASTEXITCODE"
+       } else {
+@@ -58,6 +96,7 @@
+       }
+     }
+ artifacts:
++<<<<<<< .our
+ - path: test-results.xml
+   name: test-results.xml
+ deploy_script:
+@@ -71,3 +110,7 @@
+         & python script\upload.py
+       }
+     }
++=======
++- path: out
++  name: out
++>>>>>>> .their
+changed in both
+  base   100644 08e0776daf674e01202cdb55435c71ea554a1409 atom/app/atom_main_delegate.cc
+  our    100644 b3b5b8f2a8f24b8928f69a286c80e8a3b8464366 atom/app/atom_main_delegate.cc
+  their  100644 5cb10dece3e145ac5a4a7a3da2e277a511d826e8 atom/app/atom_main_delegate.cc
+changed in both
+  base   100644 c2fdf716cf98bb2b332780d4b948eeeb69c66a8d atom/browser/api/atom_api_app.cc
+  our    100644 089a2b63d1bae3afebea925582a3aac81ddeaa4f atom/browser/api/atom_api_app.cc
+  their  100644 c64a0d1a8a7f23145a724ea7202dda495271fbf9 atom/browser/api/atom_api_app.cc
+changed in both
+  base   100644 ac7c256928d6f941b490853792fddbef92f31829 atom/browser/api/atom_api_app.h
+  our    100644 ee0ad42c05fe33be17146b79cbe3422953516621 atom/browser/api/atom_api_app.h
+  their  100644 332dcbdb015570bea966afab70cee2047192ec9b atom/browser/api/atom_api_app.h
+changed in both
+  base   100644 ee487781528e1e4cc6863817021a5346393e1f45 atom/browser/api/atom_api_browser_window.cc
+  our    100644 d0ae6f4ea78407c70e4cce6ff1181ce01e395133 atom/browser/api/atom_api_browser_window.cc
+  their  100644 37c545cfceb7c4f2c0e60c9579f8228024ba281a atom/browser/api/atom_api_browser_window.cc
+changed in both
+  base   100644 5f9610f3a3c2c2946f7a0ec38e3094f7b494cb29 atom/browser/api/atom_api_browser_window.h
+  our    100644 770181f5b7f4e01f0124f44991ee5332771db6e2 atom/browser/api/atom_api_browser_window.h
+  their  100644 d39a1583b2ec7a488613bff60bb0670b0091711b atom/browser/api/atom_api_browser_window.h
+changed in both
+  base   100644 9c4f2e97f22ada9be327b52862cbf70cc102c95c atom/browser/api/atom_api_cookies.cc
+  our    100644 daccf443927abdf444845613b6e2916d167f96f3 atom/browser/api/atom_api_cookies.cc
+  their  100644 767d920913247f24ae3cff83baec89ed10dd23e9 atom/browser/api/atom_api_cookies.cc
+@@ -232,6 +232,7 @@
+           last_access_time, secure, http_only,
+           net::CookieSameSite::DEFAULT_MODE, net::COOKIE_PRIORITY_DEFAULT));
+   auto completion_callback = base::BindOnce(OnSetCookie, callback);
++<<<<<<< .our
+   if (!canonical_cookie || !canonical_cookie->IsCanonical()) {
+     std::move(completion_callback).Run(false);
+     return;
+@@ -241,6 +242,9 @@
+     return;
+   }
+   if (name.empty()) {
++=======
++  if (!canonical_cookie) {
++>>>>>>> .their
+     std::move(completion_callback).Run(false);
+     return;
+   }
+changed in both
+  base   100644 6307b37f9efa548f54b4294b5352910f7dcfaca4 atom/browser/api/atom_api_debugger.cc
+  our    100644 603382d8a7ac5de596cfdc4ca419f5243287166e atom/browser/api/atom_api_debugger.cc
+  their  100644 f0c4aa5bcbf79c6208404f2ccbc9ecc778b41ea9 atom/browser/api/atom_api_debugger.cc
+changed in both
+  base   100644 7441fac797400cfaab5525a94d5552edc657f7d5 atom/browser/api/atom_api_debugger.h
+  our    100644 d3774dae9dc58ed005274bd756b1b40cb7ca7b0e atom/browser/api/atom_api_debugger.h
+  their  100644 5f600a353dab6486c859292347accb181dfca3e3 atom/browser/api/atom_api_debugger.h
+changed in both
+  base   100644 3bf2df9679a050ddc0ee1e882fdae778bcf2e515 atom/browser/api/atom_api_desktop_capturer.cc
+  our    100644 135b4edd11048a4635f9017f569f4b4ae644a09c atom/browser/api/atom_api_desktop_capturer.cc
+  their  100644 2fc771eb567cf52b40537603ac1c845d0240e86e atom/browser/api/atom_api_desktop_capturer.cc
+@@ -57,6 +57,7 @@
+   cap->Emit("finished", sources);
+ }
+ 
++<<<<<<< .our
+ void StartHandlingTask(bool capture_window,
+                        bool capture_screen,
+                        const gfx::Size& thumbnail_size,
+@@ -71,11 +72,22 @@
+         webrtc::ScreenCapturerWinDirectx::IsSupported();
+   }
+ #endif  // defined(OS_WIN)
++=======
++DesktopCapturer::~DesktopCapturer() {}
++
++void DesktopCapturer::StartHandling(bool capture_window,
++                                    bool capture_screen,
++                                    const gfx::Size& thumbnail_size) {
++>>>>>>> .their
+   std::unique_ptr<webrtc::DesktopCapturer> screen_capturer(
+       capture_screen ? content::desktop_capture::CreateScreenCapturer()
+                      : nullptr);
+   std::unique_ptr<webrtc::DesktopCapturer> window_capturer(
++<<<<<<< .our
+       capture_window ? content::desktop_capture::CreateWindowCapturer()
++=======
++      capture_window ? content::desktop_capture::CreateScreenCapturer()
++>>>>>>> .their
+                      : nullptr);
+   cap->media_list_.reset(new NativeDesktopMediaList(
+       std::move(screen_capturer), std::move(window_capturer)));
+changed in both
+  base   100644 51df0a63a5e835f9eee83c3d957b3269d918bb57 atom/browser/api/atom_api_power_save_blocker.cc
+  our    100644 0b06a9f583782b55296498159059e35b8f27f186 atom/browser/api/atom_api_power_save_blocker.cc
+  their  100644 d16265f50115de48112778c3ede58b423bb2b4d3 atom/browser/api/atom_api_power_save_blocker.cc
+@@ -70,6 +70,7 @@
+   }
+ 
+   if (!power_save_blocker_ || new_blocker_type != current_blocker_type_) {
++<<<<<<< .our
+     auto new_blocker = std::make_unique<device::PowerSaveBlocker>(
+         new_blocker_type, device::mojom::WakeLockReason::kOther,
+         ATOM_PRODUCT_NAME, base::ThreadTaskRunnerHandle::Get(),
+@@ -79,6 +80,18 @@
+         // therefore require a single-thread runner.
+         base::CreateSingleThreadTaskRunnerWithTraits(
+             {base::MayBlock(), base::TaskPriority::BACKGROUND}));
++=======
++    std::unique_ptr<device::PowerSaveBlocker> new_blocker(
++        new device::PowerSaveBlocker(
++            new_blocker_type, device::mojom::WakeLockReason::kOther,
++            ATOM_PRODUCT_NAME, base::ThreadTaskRunnerHandle::Get(),
++            // This task runner may be used by some device service
++            // implementation bits to interface with dbus client code, which in
++            // turn imposes some subtle thread affinity on the clients. We
++            // therefore require a single-thread runner.
++            base::CreateSingleThreadTaskRunnerWithTraits(
++                {base::MayBlock(), base::TaskPriority::BACKGROUND})));
++>>>>>>> .their
+     power_save_blocker_.swap(new_blocker);
+     current_blocker_type_ = new_blocker_type;
+   }
+changed in both
+  base   100644 3668cc8663c6f662cfb542f32daaedaa286cfda5 atom/browser/api/atom_api_session.cc
+  our    100644 658f913bb60b66ae1bf3aae97d7d9158e56f7ee0 atom/browser/api/atom_api_session.cc
+  their  100644 49a9d710b4ef91626d054f1f545dbcaf507cb336 atom/browser/api/atom_api_session.cc
+changed in both
+  base   100644 e51792d1f5165b15c250669623ce3d1c7b2128a6 atom/browser/api/atom_api_web_contents.cc
+  our    100644 20a1ac2e672f08ffea528b6e094ba530ff8083d1 atom/browser/api/atom_api_web_contents.cc
+  their  100644 7af82e9886924ac8c7725744e9e42f35c57bb60e atom/browser/api/atom_api_web_contents.cc
+@@ -752,6 +752,13 @@
+   return dialog_manager_.get();
+ }
+ 
++void WebContents::ResizeDueToAutoResize(content::WebContents* web_contents,
++                                        const gfx::Size& new_size) {
++  if (IsGuest()) {
++    guest_delegate_->ResizeDueToAutoResize(new_size);
++  }
++}
++
+ void WebContents::BeforeUnloadFired(const base::TimeTicks& proceed_time) {
+   // Do nothing, we override this method just to avoid compilation error since
+   // there are two virtual functions named BeforeUnloadFired.
+changed in both
+  base   100644 84c4e3eccba559176e3e7a0bd5c3d1dac033a5d3 atom/browser/api/atom_api_web_contents.h
+  our    100644 7939f8268aa8c3371623e0c15f3b6001d7f1efa4 atom/browser/api/atom_api_web_contents.h
+  their  100644 9ef256350a36ffa5b8a5c1f988e67183b39533f2 atom/browser/api/atom_api_web_contents.h
+@@ -229,9 +229,12 @@
+                       WindowOpenDisposition disposition,
+                       const std::vector<std::string>& features,
+                       const scoped_refptr<network::ResourceRequestBody>& body);
++<<<<<<< .our
+ 
+   // Returns the preload script path of current WebContents.
+   v8::Local<v8::Value> GetPreloadPath(v8::Isolate* isolate) const;
++=======
++>>>>>>> .their
+ 
+   // Returns the web preferences of current WebContents.
+   v8::Local<v8::Value> GetWebPreferences(v8::Isolate* isolate) const;
+@@ -340,6 +343,8 @@
+       const content::BluetoothChooser::EventHandler& handler) override;
+   content::JavaScriptDialogManager* GetJavaScriptDialogManager(
+       content::WebContents* source) override;
++  void ResizeDueToAutoResize(content::WebContents* web_contents,
++                             const gfx::Size& new_size) override;
+ 
+   // content::WebContentsObserver:
+   void BeforeUnloadFired(const base::TimeTicks& proceed_time) override;
+changed in both
+  base   100644 8c2ce34a8a051fefe6a00ac2df33ebcb769b24b2 atom/browser/api/frame_subscriber.cc
+  our    100644 7bcb7ab9370a8b3fe245c9569c93dbbdac0a0697 atom/browser/api/frame_subscriber.cc
+  their  100644 b729a1cf6efc5fa974c609c08c60af2f8675f6d1 atom/browser/api/frame_subscriber.cc
+@@ -12,8 +12,11 @@
+ #include "content/browser/renderer_host/render_widget_host_view_base.h"
+ #include "ui/gfx/geometry/rect_conversions.h"
+ #include "ui/gfx/skbitmap_operations.h"
++<<<<<<< .our
+ 
+ #include "atom/common/node_includes.h"
++=======
++>>>>>>> .their
+ 
+ namespace atom {
+ 
+@@ -26,8 +29,12 @@
+     : content::WebContentsObserver(web_contents),
+       isolate_(isolate),
+       callback_(callback),
++<<<<<<< .our
+       only_dirty_(only_dirty),
+       weak_ptr_factory_(this) {}
++=======
++      only_dirty_(only_dirty) {}
++>>>>>>> .their
+ 
+ FrameSubscriber::~FrameSubscriber() = default;
+ 
+@@ -56,6 +63,7 @@
+   } else {
+     return gfx::Rect();
+   }
++<<<<<<< .our
+ }
+ 
+ void FrameSubscriber::DidReceiveCompositorFrame() {
+@@ -93,6 +101,36 @@
+       mate::Converter<gfx::Rect>::ToV8(isolate_, damage);
+ 
+   callback_.Run(local_buffer, damage_rect);
++=======
++}
++
++void FrameSubscriber::DidReceiveCompositorFrame() {
++  auto* view = web_contents()->GetRenderWidgetHostView();
++  if (view == nullptr)
++    return;
++
++  view->CopyFromSurface(
++      gfx::Rect(), view->GetViewBounds().size(),
++      base::BindOnce(&FrameSubscriber::Done, base::Unretained(this),
++                     GetDamageRect()));
++}
++
++void FrameSubscriber::Done(const gfx::Rect& damage, const SkBitmap& frame) {
++  if (frame.drawsNothing())
++    return;
++
++  const_cast<SkBitmap&>(frame).setAlphaType(kPremul_SkAlphaType);
++  v8::Local<v8::Value> damage_rect =
++      mate::Converter<gfx::Rect>::ToV8(isolate_, damage);
++
++  if (only_dirty_) {
++    const SkBitmap& damageFrame = SkBitmapOperations::CreateTiledBitmap(
++        frame, damage.x(), damage.y(), damage.width(), damage.height());
++    callback_.Run(gfx::Image::CreateFrom1xBitmap(damageFrame), damage_rect);
++  } else {
++    callback_.Run(gfx::Image::CreateFrom1xBitmap(frame), damage_rect);
++  }
++>>>>>>> .their
+ }
+ 
+ }  // namespace api
+changed in both
+  base   100644 4dbef58d9f0bd8591222f88f7cbaa43d32b98ca1 atom/browser/api/frame_subscriber.h
+  our    100644 d3e82855417cb59c0449f1c1b685970ffaea2af6 atom/browser/api/frame_subscriber.h
+  their  100644 1e43bae6035747dffd4a08f952c240c6169a8c21 atom/browser/api/frame_subscriber.h
+@@ -8,7 +8,10 @@
+ #include "content/public/browser/web_contents.h"
+ 
+ #include "base/callback.h"
++<<<<<<< .our
+ #include "base/memory/weak_ptr.h"
++=======
++>>>>>>> .their
+ #include "components/viz/common/frame_sinks/copy_output_result.h"
+ #include "content/public/browser/web_contents_observer.h"
+ #include "ui/gfx/image/image.h"
+@@ -23,13 +26,17 @@
+ class FrameSubscriber : public content::WebContentsObserver {
+  public:
+   using FrameCaptureCallback =
+-      base::Callback<void(v8::Local<v8::Value>, v8::Local<v8::Value>)>;
++      base::Callback<void(const gfx::Image&, v8::Local<v8::Value>)>;
+ 
+   FrameSubscriber(v8::Isolate* isolate,
+                   content::WebContents* web_contents,
+                   const FrameCaptureCallback& callback,
+                   bool only_dirty);
++<<<<<<< .our
+   ~FrameSubscriber() override;
++=======
++  ~FrameSubscriber();
++>>>>>>> .their
+ 
+  private:
+   gfx::Rect GetDamageRect();
+@@ -40,8 +47,11 @@
+   FrameCaptureCallback callback_;
+   bool only_dirty_;
+ 
++<<<<<<< .our
+   base::WeakPtrFactory<FrameSubscriber> weak_ptr_factory_;
+ 
++=======
++>>>>>>> .their
+   DISALLOW_COPY_AND_ASSIGN(FrameSubscriber);
+ };
+ 
+changed in both
+  base   100644 d653c6deb6179f06fe53774773d5502261c43333 atom/browser/atom_browser_client.cc
+  our    100644 57c4ee582405e6d501ec23940ccb10689ecd64a1 atom/browser/atom_browser_client.cc
+  their  100644 f0ace672ffda441e598225475cd5546d6aae96c8 atom/browser/atom_browser_client.cc
+@@ -17,6 +17,7 @@
+ #include "atom/browser/atom_resource_dispatcher_host_delegate.h"
+ #include "atom/browser/atom_speech_recognition_manager_delegate.h"
+ #include "atom/browser/child_web_contents_tracker.h"
++#include "atom/browser/login_handler.h"
+ #include "atom/browser/native_window.h"
+ #include "atom/browser/session_preferences.h"
+ #include "atom/browser/web_contents_permission_helper.h"
+@@ -31,6 +32,10 @@
+ #include "base/strings/string_number_conversions.h"
+ #include "base/strings/string_util.h"
+ #include "chrome/browser/printing/printing_message_filter.h"
++<<<<<<< .our
++=======
++#include "chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.h"
++>>>>>>> .their
+ #include "chrome/browser/speech/tts_message_filter.h"
+ #include "content/public/browser/browser_ppapi_host.h"
+ #include "content/public/browser/client_certificate_delegate.h"
+@@ -60,10 +65,13 @@
+ #include "net/ssl/client_cert_store.h"
+ #endif
+ 
++<<<<<<< .our
+ #if defined(ENABLE_PEPPER_FLASH)
+ #include "chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.h"
+ #endif  // defined(ENABLE_PEPPER_FLASH)
+ 
++=======
++>>>>>>> .their
+ using content::BrowserThread;
+ 
+ namespace atom {
+@@ -484,17 +492,42 @@
+ std::unique_ptr<net::ClientCertStore> AtomBrowserClient::CreateClientCertStore(
+     content::ResourceContext* resource_context) {
+ #if defined(USE_NSS_CERTS)
++<<<<<<< .our
+   return std::make_unique<net::ClientCertStoreNSS>(
+       net::ClientCertStoreNSS::PasswordDelegateFactory());
+ #elif defined(OS_WIN)
+   return std::make_unique<net::ClientCertStoreWin>();
+ #elif defined(OS_MACOSX)
+   return std::make_unique<net::ClientCertStoreMac>();
++=======
++  return std::unique_ptr<net::ClientCertStore>(new net::ClientCertStoreNSS(
++      net::ClientCertStoreNSS::PasswordDelegateFactory()));
++#elif defined(OS_WIN)
++  return std::unique_ptr<net::ClientCertStore>(new net::ClientCertStoreWin());
++#elif defined(OS_MACOSX)
++  return std::unique_ptr<net::ClientCertStore>(new net::ClientCertStoreMac());
++>>>>>>> .their
+ #elif defined(USE_OPENSSL)
+   return std::unique_ptr<net::ClientCertStore>();
+ #endif
+ }
+ 
++<<<<<<< .our
++=======
++content::ResourceDispatcherHostLoginDelegate*
++AtomBrowserClient::CreateLoginDelegate(
++    net::AuthChallengeInfo* auth_info,
++    content::ResourceRequestInfo::WebContentsGetter web_contents_getter,
++    bool is_main_frame,
++    const GURL& url,
++    bool first_auth_attempt,
++    const base::Callback<void(const base::Optional<net::AuthCredentials>&)>&
++        auth_required_callback) {
++  return new LoginHandler(auth_info, web_contents_getter, url,
++                          auth_required_callback);
++}
++
++>>>>>>> .their
+ brightray::BrowserMainParts* AtomBrowserClient::OverrideCreateBrowserMainParts(
+     const content::MainFunctionParams&) {
+   v8::V8::Initialize();  // Init V8 before creating main parts.
+changed in both
+  base   100644 abb592cc90ca8ab84da990eb56814804d1dc8ff2 atom/browser/atom_browser_client.h
+  our    100644 a0284cf3f72e9cd4292b636948f92bb09b97f0ae atom/browser/atom_browser_client.h
+  their  100644 78e81d42dcb4a9a841f2b0c3dce32cf819750e54 atom/browser/atom_browser_client.h
+@@ -106,6 +106,17 @@
+   void SiteInstanceDeleting(content::SiteInstance* site_instance) override;
+   std::unique_ptr<net::ClientCertStore> CreateClientCertStore(
+       content::ResourceContext* resource_context) override;
++<<<<<<< .our
++=======
++  content::ResourceDispatcherHostLoginDelegate* CreateLoginDelegate(
++      net::AuthChallengeInfo* auth_info,
++      content::ResourceRequestInfo::WebContentsGetter web_contents_getter,
++      bool is_main_frame,
++      const GURL& url,
++      bool first_auth_attempt,
++      const base::Callback<void(const base::Optional<net::AuthCredentials>&)>&
++          auth_required_callback) override;
++>>>>>>> .their
+ 
+   // brightray::BrowserClient:
+   brightray::BrowserMainParts* OverrideCreateBrowserMainParts(
+changed in both
+  base   100644 1cc741e2f406187564c95f286a35a77cf3cf98f8 atom/browser/atom_browser_context.cc
+  our    100644 e036cbc8103f19a034ce386940462f8a23ea6807 atom/browser/atom_browser_context.cc
+  their  100644 e3dbfedc0c2d70762301b86f3138cc325131e7f5 atom/browser/atom_browser_context.cc
+@@ -19,6 +19,10 @@
+ #include "base/files/file_path.h"
+ #include "base/path_service.h"
+ #include "base/strings/stringprintf.h"
++<<<<<<< .our
++=======
++#include "base/task_scheduler/post_task.h"
++>>>>>>> .their
+ #include "chrome/common/chrome_paths.h"
+ #include "chrome/common/pref_names.h"
+ #include "components/prefs/pref_registry_simple.h"
+@@ -100,8 +104,29 @@
+   return permission_manager_.get();
+ }
+ 
++<<<<<<< .our
+ storage::SpecialStoragePolicy* AtomBrowserContext::GetSpecialStoragePolicy() {
+   return storage_policy_.get();
++=======
++std::unique_ptr<net::CertVerifier> AtomBrowserContext::CreateCertVerifier(
++    brightray::RequireCTDelegate* ct_delegate) {
++  return base::WrapUnique(new AtomCertVerifier(ct_delegate));
++}
++
++std::vector<std::string> AtomBrowserContext::GetCookieableSchemes() {
++  auto default_schemes = brightray::BrowserContext::GetCookieableSchemes();
++  const auto& standard_schemes = atom::api::GetStandardSchemes();
++  default_schemes.insert(default_schemes.end(), standard_schemes.begin(),
++                         standard_schemes.end());
++  return default_schemes;
++}
++
++void AtomBrowserContext::NotifyCookieChange(const net::CanonicalCookie& cookie,
++                                            bool removed,
++                                            net::CookieChangeCause cause) {
++  CookieDetails cookie_details(&cookie, removed, cause);
++  cookie_change_sub_list_.Notify(&cookie_details);
++>>>>>>> .their
+ }
+ 
+ void AtomBrowserContext::RegisterPrefs(PrefRegistrySimple* pref_registry) {
+changed in both
+  base   100644 f825413a96c6a98cf3de319ca7474554e5238a77 atom/browser/atom_browser_context.h
+  our    100644 9e6a841ceb8d11069a1a094bf7dbbd3a788918b3 atom/browser/atom_browser_context.h
+  their  100644 b60a4e682b0a77acf31def4ea2ef0b7dae187b99 atom/browser/atom_browser_context.h
+@@ -35,7 +35,28 @@
+       const base::DictionaryValue& options = base::DictionaryValue());
+ 
+   void SetUserAgent(const std::string& user_agent);
++<<<<<<< .our
+   AtomBlobReader* GetBlobReader();
++=======
++  // Register callbacks that needs to notified on any cookie store changes.
++  std::unique_ptr<base::CallbackList<void(const CookieDetails*)>::Subscription>
++  RegisterCookieChangeCallback(
++      const base::Callback<void(const CookieDetails*)>& cb);
++
++  // brightray::URLRequestContextGetter::Delegate:
++  std::unique_ptr<net::NetworkDelegate> CreateNetworkDelegate() override;
++  std::string GetUserAgent() override;
++  std::unique_ptr<net::URLRequestJobFactory> CreateURLRequestJobFactory(
++      content::ProtocolHandlerMap* protocol_handlers) override;
++  net::HttpCache::BackendFactory* CreateHttpCacheBackendFactory(
++      const base::FilePath& base_path) override;
++  std::unique_ptr<net::CertVerifier> CreateCertVerifier(
++      brightray::RequireCTDelegate* ct_delegate) override;
++  std::vector<std::string> GetCookieableSchemes() override;
++  void NotifyCookieChange(const net::CanonicalCookie& cookie,
++                          bool removed,
++                          net::CookieChangeCause cause) override;
++>>>>>>> .their
+ 
+   // content::BrowserContext:
+   content::DownloadManagerDelegate* GetDownloadManagerDelegate() override;
+changed in both
+  base   100644 8cccac09931ffbcca0f7b8365dfeb8f8ff7ad9b0 atom/browser/atom_browser_main_parts.cc
+  our    100644 5229b19ca9af7845a3f2f13b7e0913f633b68b1d atom/browser/atom_browser_main_parts.cc
+  their  100644 7e7bc2dcff5fa530d07f9c6f108ccf249e7272cd atom/browser/atom_browser_main_parts.cc
+changed in both
+  base   100644 129ad2d868763c35a4d9cc6d9a8a1ab3f083e888 atom/browser/atom_browser_main_parts.h
+  our    100644 e73f4581202e6853ffc6a51dbd9116c0ab2097d6 atom/browser/atom_browser_main_parts.h
+  their  100644 4f1ecaa6ac224f8956d3904b4e9b7d504996e393 atom/browser/atom_browser_main_parts.h
+changed in both
+  base   100644 791a6f7b67717ccd60b58a3bd2466a6d8a0d4c18 atom/browser/atom_download_manager_delegate.cc
+  our    100644 83276affb18df31ebe64fad6c53960baad498582 atom/browser/atom_download_manager_delegate.cc
+  their  100644 e8e139dcfd3c9122b04674ef6763e83c0614458b atom/browser/atom_download_manager_delegate.cc
+changed in both
+  base   100644 fcbf6ea75e53215365df25ec033c05eab2ad517e atom/browser/atom_javascript_dialog_manager.cc
+  our    100644 25fc326ebac3f2a5beb9199194067dae12c8229b atom/browser/atom_javascript_dialog_manager.cc
+  their  100644 fbb64d3543f8a490d477bc9a9b3a15e31e9e71cf atom/browser/atom_javascript_dialog_manager.cc
+changed in both
+  base   100644 84261e92534c7741df0fe99fe28e7a4dabb3c3a4 atom/browser/atom_resource_dispatcher_host_delegate.cc
+  our    100644 934b0ebaa49b711490c58fc73b91985633cba439 atom/browser/atom_resource_dispatcher_host_delegate.cc
+  their  100644 7382bc44b302fcc3f8ccc43607db8c13952dd6f1 atom/browser/atom_resource_dispatcher_host_delegate.cc
+changed in both
+  base   100644 87774c5bd91ca77d1518bee38765d31fe8fb3890 atom/browser/browser.h
+  our    100644 aed7d25c37da59c0dd5e09940a064c329353a0b2 atom/browser/browser.h
+  their  100644 626666bf2f5073a3c0931b31d5cbc506948b3c5f atom/browser/browser.h
+changed in both
+  base   100644 af9e65a22016df63e27975f3930667dc46d331ee atom/browser/common_web_contents_delegate.cc
+  our    100644 b3b1195e044cd2c74b246aa13e9e85953d694477 atom/browser/common_web_contents_delegate.cc
+  their  100644 4f749ed142398aefc50faabc7817cca1d704c045 atom/browser/common_web_contents_delegate.cc
+@@ -144,7 +144,15 @@
+ }  // namespace
+ 
+ CommonWebContentsDelegate::CommonWebContentsDelegate()
++<<<<<<< .our
+     : devtools_file_system_indexer_(new DevToolsFileSystemIndexer),
++=======
++    : offscreen_(false),
++      ignore_menu_shortcuts_(false),
++      html_fullscreen_(false),
++      native_fullscreen_(false),
++      devtools_file_system_indexer_(new DevToolsFileSystemIndexer),
++>>>>>>> .their
+       file_task_runner_(
+           base::CreateSequencedTaskRunnerWithTraits({base::MayBlock()})) {}
+ 
+changed in both
+  base   100644 5c24e606a73b280ae04a78dcbb2521a9aaecd97e atom/browser/common_web_contents_delegate.h
+  our    100644 5da5d20975b8e795e34c9d8c7649f6f0eb3d0a50 atom/browser/common_web_contents_delegate.h
+  their  100644 3376508f28b00b94ebe97436ff920e2afbb63121 atom/browser/common_web_contents_delegate.h
+changed in both
+  base   100644 c158759e2de8f805455aca97b2323a3febb68102 atom/browser/javascript_environment.cc
+  our    100644 ddb689236bdfd958b05f28e5f5cb8c35ad47902a atom/browser/javascript_environment.cc
+  their  100644 8e5540ce71d190f353c864197073c35f7b629e06 atom/browser/javascript_environment.cc
+changed in both
+  base   100644 2c1f012592576136a2e1632517505a26c3da0f3a atom/browser/login_handler.cc
+  our    100644 2063c6197fce449d1692f1b067c17e043b1d37e4 atom/browser/login_handler.cc
+  their  100644 047903326c33cbae5ab219f4a0173659b296579a atom/browser/login_handler.cc
+@@ -5,7 +5,6 @@
+ #include "atom/browser/login_handler.h"
+ 
+ #include "atom/browser/browser.h"
+-#include "atom/common/native_mate_converters/net_converter.h"
+ #include "base/values.h"
+ #include "content/public/browser/browser_thread.h"
+ #include "content/public/browser/web_contents.h"
+@@ -16,6 +15,7 @@
+ namespace atom {
+ 
+ LoginHandler::LoginHandler(
++<<<<<<< .our
+     net::URLRequest* request,
+     const net::AuthChallengeInfo& auth_info,
+     const net::NetworkDelegate::AuthCallback& callback,
+@@ -33,6 +33,23 @@
+ 
+   web_contents_getter_ =
+       resource_request_info->GetWebContentsGetterForRequest();
++=======
++    net::AuthChallengeInfo* auth_info,
++    content::ResourceRequestInfo::WebContentsGetter web_contents_getter,
++    const GURL& url,
++    const base::Callback<void(const base::Optional<net::AuthCredentials>&)>&
++        auth_required_callback)
++    : handled_auth_(false),
++      auth_info_(auth_info),
++      web_contents_getter_(web_contents_getter),
++      auth_required_callback_(auth_required_callback) {
++  // Fill request details on IO thread.
++  // TODO(deepak1556): Fill in method and referrer details to
++  // avoid breaking the app login event.
++  std::unique_ptr<base::DictionaryValue> request_details(
++      new base::DictionaryValue);
++  request_details->SetKey("url", base::Value(url.spec()));
++>>>>>>> .their
+ 
+   BrowserThread::PostTask(
+       BrowserThread::UI, FROM_HERE,
+@@ -42,6 +59,14 @@
+ 
+ LoginHandler::~LoginHandler() {}
+ 
++<<<<<<< .our
++=======
++content::WebContents* LoginHandler::GetWebContents() const {
++  DCHECK_CURRENTLY_ON(BrowserThread::UI);
++  return web_contents_getter_.Run();
++}
++
++>>>>>>> .their
+ void LoginHandler::Login(const base::string16& username,
+                          const base::string16& password) {
+   DCHECK_CURRENTLY_ON(BrowserThread::UI);
+@@ -60,10 +85,16 @@
+       base::BindOnce(&LoginHandler::DoCancelAuth, weak_factory_.GetWeakPtr()));
+ }
+ 
++<<<<<<< .our
+ void LoginHandler::NotifyRequestDestroyed() {
+   auth_callback_.Reset();
+   credentials_ = nullptr;
+   weak_factory_.InvalidateWeakPtrs();
++=======
++void LoginHandler::OnRequestCancelled() {
++  TestAndSetAuthHandled();
++  auth_required_callback_.Reset();
++>>>>>>> .their
+ }
+ 
+ content::WebContents* LoginHandler::GetWebContents() const {
+@@ -73,18 +104,29 @@
+ 
+ void LoginHandler::DoCancelAuth() {
+   DCHECK_CURRENTLY_ON(BrowserThread::IO);
++<<<<<<< .our
+   if (!auth_callback_.is_null())
+     std::move(auth_callback_)
+         .Run(net::NetworkDelegate::AUTH_REQUIRED_RESPONSE_CANCEL_AUTH);
++=======
++  if (!auth_required_callback_.is_null())
++    std::move(auth_required_callback_).Run(base::nullopt);
++>>>>>>> .their
+ }
+ 
+ void LoginHandler::DoLogin(const base::string16& username,
+                            const base::string16& password) {
+   DCHECK_CURRENTLY_ON(BrowserThread::IO);
++<<<<<<< .our
+   if (!auth_callback_.is_null()) {
+     credentials_->Set(username, password);
+     std::move(auth_callback_)
+         .Run(net::NetworkDelegate::AUTH_REQUIRED_RESPONSE_SET_AUTH);
++=======
++  if (!auth_required_callback_.is_null()) {
++    std::move(auth_required_callback_)
++        .Run(net::AuthCredentials(username, password));
++>>>>>>> .their
+   }
+ }
+ 
+changed in both
+  base   100644 f4cbccd7c2c5ae99f446c042bea0ae00739647c3 atom/browser/login_handler.h
+  our    100644 e7f1c5be0094506e01d2cccc0073fa864dfefb56 atom/browser/login_handler.h
+  their  100644 43d7fb1d19a2b24d5e1b7012bc7246de88a52f54 atom/browser/login_handler.h
+@@ -6,26 +6,55 @@
+ #define ATOM_BROWSER_LOGIN_HANDLER_H_
+ 
+ #include "base/callback.h"
++<<<<<<< .our
+ #include "base/memory/ref_counted.h"
+ #include "base/memory/weak_ptr.h"
+ #include "base/strings/string16.h"
+ #include "content/public/browser/resource_request_info.h"
+ #include "net/base/network_delegate.h"
++=======
++#include "base/optional.h"
++#include "base/strings/string16.h"
++#include "base/synchronization/lock.h"
++#include "content/public/browser/resource_dispatcher_host_login_delegate.h"
++#include "content/public/browser/resource_request_info.h"
++>>>>>>> .their
+ 
+ namespace content {
+ class WebContents;
+ }
+ 
++<<<<<<< .our
++=======
++namespace net {
++class AuthChallengeInfo;
++class AuthCredentials;
++}  // namespace net
++
++>>>>>>> .their
+ namespace atom {
+ 
+ // Handles the HTTP basic auth, must be created on IO thread.
+ class LoginHandler : public base::RefCountedThreadSafe<LoginHandler> {
+  public:
++<<<<<<< .our
+   LoginHandler(net::URLRequest* request,
+                const net::AuthChallengeInfo& auth_info,
+                const net::NetworkDelegate::AuthCallback& callback,
+                net::AuthCredentials* credentials,
+                const content::ResourceRequestInfo* resource_request_info);
++=======
++  LoginHandler(
++      net::AuthChallengeInfo* auth_info,
++      content::ResourceRequestInfo::WebContentsGetter web_contents_getter,
++      const GURL& url,
++      const base::Callback<void(const base::Optional<net::AuthCredentials>&)>&
++          auth_required_callback);
++
++  // Returns the WebContents associated with the request, must be called on UI
++  // thread.
++  content::WebContents* GetWebContents() const;
++>>>>>>> .their
+ 
+   // The auth is cancelled, must be called on UI thread.
+   void CancelAuth();
+@@ -61,10 +90,18 @@
+   // WebContents associated with the login request.
+   content::ResourceRequestInfo::WebContentsGetter web_contents_getter_;
+ 
++<<<<<<< .our
+   // Called with preferred value of net::NetworkDelegate::AuthRequiredResponse.
+   net::NetworkDelegate::AuthCallback auth_callback_;
+ 
+   base::WeakPtrFactory<LoginHandler> weak_factory_;
++=======
++  // WebContents associated with the login request.
++  content::ResourceRequestInfo::WebContentsGetter web_contents_getter_;
++
++  base::Callback<void(const base::Optional<net::AuthCredentials>&)>
++      auth_required_callback_;
++>>>>>>> .their
+ 
+   DISALLOW_COPY_AND_ASSIGN(LoginHandler);
+ };
+changed in both
+  base   100644 8f8ea28cd20f7895d12aa50b98ae89d3365157e5 atom/browser/mac/atom_application_delegate.mm
+  our    100644 683f7a84bcaa2c47bb78cf299314a5afeb15639b atom/browser/mac/atom_application_delegate.mm
+  their  100644 66fe539406a52046d114f52feb1c9f1b8403c828 atom/browser/mac/atom_application_delegate.mm
+changed in both
+  base   100644 feb2f8c6f88d2e094dec19fb84bf187fbecdbbb6 atom/browser/native_window_mac.mm
+  our    100644 004263ec127709067e903ffbf31003b8844226b4 atom/browser/native_window_mac.mm
+  their  100644 e830b8e8b445ace47ec46c84292aacde55bf0099 atom/browser/native_window_mac.mm
+changed in both
+  base   100644 a391bc09c8908249ac188a52e3b45893063fa482 atom/browser/native_window_views.cc
+  our    100644 0dba39942f92d54ba34db7709b73012055680d94 atom/browser/native_window_views.cc
+  their  100644 2b0da73a22ee298f09bbd1190f50b507e37adc94 atom/browser/native_window_views.cc
+changed in both
+  base   100644 fdf5e5772ee8037f5512999631c8eabae5b8c8e0 atom/browser/native_window_views.h
+  our    100644 ef1e4413ca879980e46f301bccd6c8fe2b1a4611 atom/browser/native_window_views.h
+  their  100644 9ae2a5f325611a2baaf6b3f7ffbab2ee5897f128 atom/browser/native_window_views.h
+changed in both
+  base   100644 3471622db0b92b4b3a9d181e3b74053667b58060 atom/browser/net/atom_network_delegate.cc
+  our    100644 e71ea74317b69f31a5aac8e723902748972fed8f atom/browser/net/atom_network_delegate.cc
+  their  100644 21ea34d57739878358d0822f3377cc97fefc4ec0 atom/browser/net/atom_network_delegate.cc
+@@ -342,7 +342,12 @@
+ 
+ void AtomNetworkDelegate::OnResponseStarted(net::URLRequest* request,
+                                             int net_error) {
++<<<<<<< .our
+   if (!base::ContainsKey(simple_listeners_, kOnResponseStarted))
++=======
++  if (!base::ContainsKey(simple_listeners_, kOnResponseStarted)) {
++    brightray::NetworkDelegate::OnResponseStarted(request, net_error);
++>>>>>>> .their
+     return;
+ 
+   if (request->status().status() != net::URLRequestStatus::SUCCESS)
+changed in both
+  base   100644 1ee8d19dc90081a4617f4d27b9efb571d1bf6159 atom/browser/net/atom_network_delegate.h
+  our    100644 39a7a8ddfcda17fd7d022331132b54485d07a279 atom/browser/net/atom_network_delegate.h
+  their  100644 9288b70cb422caf38485d33212ec4a4be4ceb97e atom/browser/net/atom_network_delegate.h
+@@ -103,10 +103,13 @@
+   void OnBeforeRedirect(net::URLRequest* request,
+                         const GURL& new_location) override;
+   void OnResponseStarted(net::URLRequest* request, int net_error) override;
++<<<<<<< .our
+   void OnNetworkBytesReceived(net::URLRequest* request,
+                               int64_t bytes_read) override {}
+   void OnNetworkBytesSent(net::URLRequest* request,
+                           int64_t bytes_sent) override {}
++=======
++>>>>>>> .their
+   void OnCompleted(net::URLRequest* request, bool started) override;
+   void OnURLRequestDestroyed(net::URLRequest* request) override;
+   void OnPACScriptError(int line_number, const base::string16& error) override {
+changed in both
+  base   100644 36d9b6df6d634a08144276d95d741972b8452fb2 atom/browser/net/atom_url_request.cc
+  our    100644 5ffbfd65a48b4459b2ebca66a5c2259f18ed80a8 atom/browser/net/atom_url_request.cc
+  their  100644 a9547a4d2597fca88c30f3d21d0866dc21d3afd6 atom/browser/net/atom_url_request.cc
+changed in both
+  base   100644 654798d8aac82409d3959cd06077c568f1e064d6 atom/browser/net/atom_url_request.h
+  our    100644 fde7b161385fb431b2d807012a00679a4bdb507a atom/browser/net/atom_url_request.h
+  their  100644 e52968efa275397b6f060fbcb89d233a5e764ce1 atom/browser/net/atom_url_request.h
+changed in both
+  base   100644 7b5e20631aaf927b714c4a3edf89c3ab820bc800 atom/browser/net/js_asker.cc
+  our    100644 59e3ab881c2355c2ed29b806de59ef372c170b62 atom/browser/net/js_asker.cc
+  their  100644 daf978082f102937d142dcddbdd860c92c709dbe atom/browser/net/js_asker.cc
+@@ -62,8 +62,13 @@
+     if (dict->GetInteger("error", error))
+       return true;
+   } else if (value->is_int()) {
++<<<<<<< .our
+     *error = value->GetInt();
+     return true;
++=======
++    if (value->GetAsInteger(error))
++      return true;
++>>>>>>> .their
+   }
+   return false;
+ }
+changed in both
+  base   100644 a51e08e486bffb2cf2f8fb6b26358f299f8b2061 atom/browser/net/url_request_async_asar_job.cc
+  our    100644 1c15fd39b9d479b441b0931564f9e2c3f9de37c7 atom/browser/net/url_request_async_asar_job.cc
+  their  100644 06959032411d27e69ec441577b7a1987a2117080 atom/browser/net/url_request_async_asar_job.cc
+@@ -18,6 +18,7 @@
+     : JsAsker<asar::URLRequestAsarJob>(request, network_delegate) {}
+ 
+ void URLRequestAsyncAsarJob::StartAsync(std::unique_ptr<base::Value> options) {
++<<<<<<< .our
+   std::string file_path;
+   if (options->is_dict()) {
+     auto* path_value =
+@@ -26,6 +27,14 @@
+       file_path = path_value->GetString();
+   } else if (options->is_string()) {
+     file_path = options->GetString();
++=======
++  base::FilePath::StringType file_path;
++  if (options->is_dict()) {
++    static_cast<base::DictionaryValue*>(options.get())
++        ->GetString("path", &file_path);
++  } else if (options->is_string()) {
++    options->GetAsString(&file_path);
++>>>>>>> .their
+   }
+ 
+   if (file_path.empty()) {
+changed in both
+  base   100644 7c85835264299ac67d4b33c2370a64850884641a atom/browser/net/url_request_fetch_job.cc
+  our    100644 68539433f4de80a96bc672de3a2834b299d6c04b atom/browser/net/url_request_fetch_job.cc
+  their  100644 b24f3c39c5302938968fb35bb5211211c2e3924f atom/browser/net/url_request_fetch_job.cc
+changed in both
+  base   100644 82d76d2854a2f73f2e997a60df01b4acbee1feb3 atom/browser/net/url_request_string_job.cc
+  our    100644 31381ff118665f10a53e13fbe0044046738ca230 atom/browser/net/url_request_string_job.cc
+  their  100644 453dd0bb6615880d75f73294d22e67ec9975b7c3 atom/browser/net/url_request_string_job.cc
+@@ -25,7 +25,11 @@
+     dict->GetString("charset", &charset_);
+     dict->GetString("data", &data_);
+   } else if (options->is_string()) {
++<<<<<<< .our
+     data_ = options->GetString();
++=======
++    options->GetAsString(&data_);
++>>>>>>> .their
+   }
+   net::URLRequestSimpleJob::Start();
+ }
+changed in both
+  base   100644 025a41d3290a9885f5b6c3e96a8c917e9c8a5d05 atom/browser/osr/osr_render_widget_host_view.cc
+  our    100644 4a2a0747fe2e6bf38c8999b80dbfea31e52a17fd atom/browser/osr/osr_render_widget_host_view.cc
+  their  100644 4675aec058c7df9f501bffc3c7e7fee7199f460f atom/browser/osr/osr_render_widget_host_view.cc
+@@ -280,6 +280,9 @@
+ 
+   local_surface_id_ = local_surface_id_allocator_.GenerateId();
+ 
++  // Surface synchronization is not supported with OSR.
++  DCHECK(!features::IsSurfaceSynchronizationEnabled());
++
+ #if defined(OS_MACOSX)
+   last_frame_root_background_color_ = SK_ColorTRANSPARENT;
+   CreatePlatformWidget(is_guest_view_hack);
+@@ -755,6 +758,18 @@
+   render_widget_host_->DidProcessFrame(frame_token);
+ }
+ 
++<<<<<<< .our
++=======
++void OffScreenRenderWidgetHostView::OnFirstSurfaceActivation(
++    const viz::SurfaceInfo& surface_info) {}
++
++void OffScreenRenderWidgetHostView::OnBeginFrame(base::TimeTicks frame_time) {}
++
++void OffScreenRenderWidgetHostView::OnFrameTokenChanged(uint32_t frame_token) {
++  render_widget_host_->DidProcessFrame(frame_token);
++}
++
++>>>>>>> .their
+ void OffScreenRenderWidgetHostView::DidReceiveFirstFrameAfterNavigation() {
+   render_widget_host_->DidReceiveFirstFrameAfterNavigation();
+ }
+@@ -1060,7 +1075,11 @@
+ 
+ void OffScreenRenderWidgetHostView::SendMouseEvent(
+     const blink::WebMouseEvent& event) {
++<<<<<<< .our
+   for (auto* proxy_view : proxy_views_) {
++=======
++  for (auto proxy_view : proxy_views_) {
++>>>>>>> .their
+     gfx::Rect bounds = proxy_view->GetBounds();
+     if (bounds.Contains(event.PositionInWidget().x,
+                         event.PositionInWidget().y)) {
+@@ -1098,7 +1117,11 @@
+ 
+ void OffScreenRenderWidgetHostView::SendMouseWheelEvent(
+     const blink::WebMouseWheelEvent& event) {
++<<<<<<< .our
+   for (auto* proxy_view : proxy_views_) {
++=======
++  for (auto proxy_view : proxy_views_) {
++>>>>>>> .their
+     gfx::Rect bounds = proxy_view->GetBounds();
+     if (bounds.Contains(event.PositionInWidget().x,
+                         event.PositionInWidget().y)) {
+@@ -1131,11 +1154,16 @@
+                 popup_host_view_->popup_position_.x(),
+             mouse_wheel_event.PositionInWidget().y -
+                 popup_host_view_->popup_position_.y());
++<<<<<<< .our
+         popup_mouse_wheel_event.SetPositionInScreen(
+             popup_mouse_wheel_event.PositionInWidget().x,
+             popup_mouse_wheel_event.PositionInWidget().y);
+ 
+         popup_host_view_->SendMouseWheelEvent(popup_mouse_wheel_event);
++=======
++        popup_host_view_->ProcessMouseWheelEvent(popup_event,
++                                                 ui::LatencyInfo());
++>>>>>>> .their
+         return;
+       } else {
+         // Scrolling outside of the popup widget so destroy it.
+changed in both
+  base   100644 7e237096d06751ae4c66dc03643906f351e9d64f atom/browser/osr/osr_render_widget_host_view.h
+  our    100644 b81f6310f864c00fea50b1aac49dc89173eaa302 atom/browser/osr/osr_render_widget_host_view.h
+  their  100644 40f8cafbacb628c3aec4711341be424f55f90ea3 atom/browser/osr/osr_render_widget_host_view.h
+@@ -170,6 +170,10 @@
+   bool DelegatedFrameCanCreateResizeLock() const override;
+   std::unique_ptr<content::CompositorResizeLock>
+   DelegatedFrameHostCreateResizeLock() override;
++<<<<<<< .our
++=======
++  viz::LocalSurfaceId GetLocalSurfaceId() const override;
++>>>>>>> .their
+   void OnFirstSurfaceActivation(const viz::SurfaceInfo& surface_info) override;
+   void OnBeginFrame(base::TimeTicks frame_time) override;
+   void OnFrameTokenChanged(uint32_t frame_token) override;
+@@ -181,11 +185,14 @@
+   bool IsAutoResizeEnabled() const override;
+ #endif  // !defined(OS_MACOSX)
+ 
++<<<<<<< .our
+   viz::LocalSurfaceId GetLocalSurfaceId() const override;
+   viz::FrameSinkId GetFrameSinkId() override;
+ 
+   void DidNavigate() override;
+ 
++=======
++>>>>>>> .their
+   bool TransformPointToLocalCoordSpace(const gfx::PointF& point,
+                                        const viz::SurfaceId& original_surface,
+                                        gfx::PointF* transformed_point) override;
+changed in both
+  base   100644 4c6f88efb6eb3d6db1235079a18fa27cddee988e atom/browser/osr/osr_render_widget_host_view_mac.mm
+  our    100644 8af4ce6ec263a6fba9f3c736ff74247c86787dbc atom/browser/osr/osr_render_widget_host_view_mac.mm
+  their  100644 81d39897f656613002d24a329eeb92d055d4be20 atom/browser/osr/osr_render_widget_host_view_mac.mm
+@@ -22,7 +22,11 @@
+   virtual ~MacHelper() {}
+ 
+   // content::BrowserCompositorMacClient:
++<<<<<<< .our
+   SkColor BrowserCompositorMacGetGutterColor() const override {
++=======
++  SkColor BrowserCompositorMacGetGutterColor(SkColor color) const override {
++>>>>>>> .their
+     // When making an element on the page fullscreen the element's background
+     // may not match the page's, so use black as the gutter color to avoid
+     // flashes of brighter colors during the transition.
+@@ -81,7 +85,11 @@
+ 
+ void OffScreenRenderWidgetHostView::StopSpeaking() {}
+ 
++<<<<<<< .our
+ bool OffScreenRenderWidgetHostView::ShouldContinueToPauseForFrame() {
++=======
++bool CefRenderWidgetHostViewOSR::ShouldContinueToPauseForFrame() {
++>>>>>>> .their
+   return browser_compositor_->ShouldContinueToPauseForFrame();
+ }
+ 
+changed in both
+  base   100644 6042a9e499e32590b6721ee6acf6fcf1a16288b9 atom/browser/osr/osr_web_contents_view.cc
+  our    100644 c8223df0d8c6f3436d323059686e42684ff98462 atom/browser/osr/osr_web_contents_view.cc
+  their  100644 6be4f0c84b8e0936e98387fb0ee62804ecd4772f atom/browser/osr/osr_web_contents_view.cc
+changed in both
+  base   100644 048bb093dc94ce805f7f706db42d8fc9789600bd atom/browser/osr/osr_web_contents_view.h
+  our    100644 206ab9dd3421af522a12aba615c6f040ba176ba4 atom/browser/osr/osr_web_contents_view.h
+  their  100644 8202eb15a171110a56edea02c32ee9dcb9ed1492 atom/browser/osr/osr_web_contents_view.h
+changed in both
+  base   100644 89b6213a49ebc406a19fc4aae3b1ca718f09fe40 atom/browser/ui/autofill_popup.cc
+  our    100644 f7bd98dacb9812491e80f03a093381f145b03587 atom/browser/ui/autofill_popup.cc
+  their  100644 8719421abefdb4bc634c3eef27390d59a4125823 atom/browser/ui/autofill_popup.cc
+changed in both
+  base   100644 d0fbf08068f849d31de74aac78115382985e3685 atom/browser/ui/autofill_popup.h
+  our    100644 fe1b91760d8628566a858e406a896a006aa5d4ca atom/browser/ui/autofill_popup.h
+  their  100644 7e4f591f7436ced6bccc0032114239b9e50959bf atom/browser/ui/autofill_popup.h
+changed in both
+  base   100644 ac68d8313055f1b9f2c0d5242fda6d8c488d3d10 atom/browser/ui/certificate_trust_win.cc
+  our    100644 f3dc0e0cc6ae044daf9cc499061db98f387d7dea atom/browser/ui/certificate_trust_win.cc
+  their  100644 6179b08607041c38996d7faef8f7f456e42e4ac4 atom/browser/ui/certificate_trust_win.cc
+changed in both
+  base   100644 bea0e949d87dde5816b519088a0719b6643f20a4 atom/browser/ui/views/autofill_popup_view.cc
+  our    100644 e215f0248733d8c68d57cf74e7aade9d72fec2b1 atom/browser/ui/views/autofill_popup_view.cc
+  their  100644 914f1e2f1a0b078e6940bb2b7b8bacc7b6b7ed36 atom/browser/ui/views/autofill_popup_view.cc
+changed in both
+  base   100644 13cf167be38bc4985d6b4b9cea752f46254f7174 atom/browser/ui/views/global_menu_bar_x11.cc
+  our    100644 656bd8f991f87c06a240cdc09a3bfcd500d1c1c8 atom/browser/ui/views/global_menu_bar_x11.cc
+  their  100644 d5fbe03b2f0343698c8e7edb0cfeda09d120f4b7 atom/browser/ui/views/global_menu_bar_x11.cc
+changed in both
+  base   100644 66ad0ededeffca52a597a06799f50c7b80f64006 atom/browser/ui/views/menu_bar.cc
+  our    100644 e838d3cc217b5ffdb77226beff0d7217539f23f9 atom/browser/ui/views/menu_bar.cc
+  their  100644 950a381722803346591ff65ae3ce65813517ad0d atom/browser/ui/views/menu_bar.cc
+@@ -29,8 +29,13 @@
+     : background_color_(kDefaultColor), window_(window) {
+   RefreshColorCache();
+   UpdateViewColors();
++<<<<<<< .our
+   SetLayoutManager(
+       std::make_unique<views::BoxLayout>(views::BoxLayout::kHorizontal));
++=======
++  SetLayoutManager(std::make_unique<views::BoxLayout>(
++      views::BoxLayout::kHorizontal));
++>>>>>>> .their
+   window_->GetFocusManager()->AddFocusChangeListener(this);
+ }
+ 
+changed in both
+  base   100644 e6b5a3e46f897f32131a1c1a4cc459627c2a51e1 atom/browser/ui/win/taskbar_host.h
+  our    100644 2182d377a7736f5e135d2f518c2a0a838cd0d1a0 atom/browser/ui/win/taskbar_host.h
+  their  100644 b0da29e08e035ae17b8714abdf411284f9db8895 atom/browser/ui/win/taskbar_host.h
+changed in both
+  base   100644 e0fbf2a3abc0f048057efafe1f60374b70ff5b59 atom/browser/ui/x/window_state_watcher.cc
+  our    100644 9eebc361d7d0c5915345e73f0a6eba8f5336b003 atom/browser/ui/x/window_state_watcher.cc
+  their  100644 982b230dc95716347a112d702ce3c8090e088912 atom/browser/ui/x/window_state_watcher.cc
+changed in both
+  base   100644 8894c92fa32b61a3caaad9526f65e861d406f6d7 atom/browser/web_view_guest_delegate.cc
+  our    100644 27fbff7e9e3633bd17c54b4c67ba4a1d5993e449 atom/browser/web_view_guest_delegate.cc
+  their  100644 80bd22c01b37d8a58a6b52e4f23636d2fe039bdc atom/browser/web_view_guest_delegate.cc
+@@ -24,6 +24,7 @@
+   ResetZoomController();
+ }
+ 
++<<<<<<< .our
+ void WebViewGuestDelegate::AttachToIframe(
+     content::WebContents* embedder_web_contents,
+     int embedder_frame_id) {
+@@ -41,6 +42,83 @@
+   // frame |embedder_frame| hosts the inner WebContents.
+   api_web_contents_->web_contents()->AttachToOuterWebContentsFrame(
+       embedder_web_contents_, embedder_frame);
++=======
++void WebViewGuestDelegate::SetSize(const SetSizeParams& params) {
++  bool enable_auto_size =
++      params.enable_auto_size ? *params.enable_auto_size : auto_size_enabled_;
++  gfx::Size min_size = params.min_size ? *params.min_size : min_auto_size_;
++  gfx::Size max_size = params.max_size ? *params.max_size : max_auto_size_;
++
++  if (params.normal_size)
++    normal_size_ = *params.normal_size;
++
++  min_auto_size_ = min_size;
++  min_auto_size_.SetToMin(max_size);
++  max_auto_size_ = max_size;
++  max_auto_size_.SetToMax(min_size);
++
++  enable_auto_size &= !min_auto_size_.IsEmpty() && !max_auto_size_.IsEmpty();
++
++  auto* rvh = web_contents()->GetRenderViewHost();
++  if (enable_auto_size) {
++    // Autosize is being enabled.
++    rvh->EnableAutoResize(min_auto_size_, max_auto_size_);
++    normal_size_.SetSize(0, 0);
++  } else {
++    // Autosize is being disabled.
++    // Use default width/height if missing from partially defined normal size.
++    if (normal_size_.width() && !normal_size_.height())
++      normal_size_.set_height(GetDefaultSize().height());
++    if (!normal_size_.width() && normal_size_.height())
++      normal_size_.set_width(GetDefaultSize().width());
++
++    gfx::Size new_size;
++    if (!normal_size_.IsEmpty()) {
++      new_size = normal_size_;
++    } else if (!guest_size_.IsEmpty()) {
++      new_size = guest_size_;
++    } else {
++      new_size = GetDefaultSize();
++    }
++
++    bool changed_due_to_auto_resize = false;
++    if (auto_size_enabled_) {
++      // Autosize was previously enabled.
++      rvh->DisableAutoResize(new_size);
++      changed_due_to_auto_resize = true;
++    } else {
++      // Autosize was already disabled.
++      guest_host_->SizeContents(new_size);
++    }
++
++    UpdateGuestSize(new_size, changed_due_to_auto_resize);
++  }
++
++  auto_size_enabled_ = enable_auto_size;
++}
++
++void WebViewGuestDelegate::ResizeDueToAutoResize(const gfx::Size& new_size) {
++  UpdateGuestSize(new_size, auto_size_enabled_);
++}
++
++void WebViewGuestDelegate::DidFinishNavigation(
++    content::NavigationHandle* navigation_handle) {
++  if (navigation_handle->HasCommitted() && !navigation_handle->IsErrorPage()) {
++    auto is_main_frame = navigation_handle->IsInMainFrame();
++    auto url = navigation_handle->GetURL();
++    api_web_contents_->Emit("load-commit", url, is_main_frame);
++  }
++}
++
++void WebViewGuestDelegate::DidDetach() {
++  attached_ = false;
++  ResetZoomController();
++}
++
++void WebViewGuestDelegate::DidAttach(int guest_proxy_routing_id) {
++  attached_ = true;
++  api_web_contents_->Emit("did-attach");
++>>>>>>> .their
+ 
+   ResetZoomController();
+ 
+@@ -50,11 +128,20 @@
+   auto* zoom_controller = api_web_contents_->GetZoomController();
+   zoom_controller->SetEmbedderZoomController(embedder_zoom_controller_);
+ 
++<<<<<<< .our
+   api_web_contents_->Emit("did-attach");
+ }
+ 
+ void WebViewGuestDelegate::DidDetach() {
+   ResetZoomController();
++=======
++content::WebContents* WebViewGuestDelegate::GetOwnerWebContents() const {
++  return embedder_web_contents_;
++}
++
++void WebViewGuestDelegate::SetGuestHost(content::GuestHost* guest_host) {
++  guest_host_ = guest_host;
++>>>>>>> .their
+ }
+ 
+ content::WebContents* WebViewGuestDelegate::GetOwnerWebContents() const {
+@@ -77,8 +164,28 @@
+   }
+ }
+ 
++<<<<<<< .our
+ void WebViewGuestDelegate::OnZoomControllerWebContentsDestroyed() {
+   ResetZoomController();
++=======
++void WebViewGuestDelegate::UpdateGuestSize(const gfx::Size& new_size,
++                                           bool due_to_auto_resize) {
++  if (due_to_auto_resize)
++    api_web_contents_->Emit("size-changed", guest_size_.width(),
++                            guest_size_.height(), new_size.width(),
++                            new_size.height());
++  guest_size_ = new_size;
++}
++
++gfx::Size WebViewGuestDelegate::GetDefaultSize() const {
++  if (is_full_page_plugin_) {
++    // Full page plugins default to the size of the owner's viewport.
++    return embedder_web_contents_->GetRenderWidgetHostView()
++        ->GetVisibleViewportSize();
++  } else {
++    return gfx::Size(kDefaultWidth, kDefaultHeight);
++  }
++>>>>>>> .their
+ }
+ 
+ void WebViewGuestDelegate::ResetZoomController() {
+changed in both
+  base   100644 e9850076b0746069130d57ac21cf041f597c94bb atom/browser/web_view_guest_delegate.h
+  our    100644 6d9f440588d1d38a869ca6b6a33fd31031091efa atom/browser/web_view_guest_delegate.h
+  their  100644 e9973e9e75e943b85be81eeb5b8542f9ce92f3d0 atom/browser/web_view_guest_delegate.h
+@@ -21,16 +21,44 @@
+                        api::WebContents* api_web_contents);
+   ~WebViewGuestDelegate() override;
+ 
++<<<<<<< .our
+   // Attach to the iframe.
+   void AttachToIframe(content::WebContents* embedder_web_contents,
+                       int embedder_frame_id);
++=======
++  void Initialize(api::WebContents* api_web_contents);
++
++  // Called when the WebContents is going to be destroyed.
++  void Destroy();
++
++  // Used to toggle autosize mode for this GuestView, and set both the automatic
++  // and normal sizes.
++  void SetSize(const SetSizeParams& params);
++
++  // Invoked when the contents auto-resized and the container should match it.
++  void ResizeDueToAutoResize(const gfx::Size& new_size);
++
++  // Return true if attached.
++  bool IsAttached() const { return attached_; }
++>>>>>>> .their
+ 
+  protected:
+   // content::BrowserPluginGuestDelegate:
+   void DidDetach() final;
+   content::WebContents* GetOwnerWebContents() const final;
++<<<<<<< .our
+   content::RenderWidgetHost* GetOwnerRenderWidgetHost() final;
+   content::SiteInstance* GetOwnerSiteInstance() final;
++=======
++  void SetGuestHost(content::GuestHost* guest_host) final;
++  void WillAttach(content::WebContents* embedder_web_contents,
++                  int element_instance_id,
++                  bool is_full_page_plugin,
++                  const base::Closure& completion_callback) final;
++  bool CanBeEmbeddedInsideCrossProcessFrames() override;
++  content::RenderWidgetHost* GetOwnerRenderWidgetHost() override;
++  content::SiteInstance* GetOwnerSiteInstance() override;
++>>>>>>> .their
+   content::WebContents* CreateNewGuestWindow(
+       const content::WebContents::CreateParams& create_params) final;
+ 
+@@ -41,6 +69,19 @@
+   void OnZoomControllerWebContentsDestroyed() override;
+ 
+  private:
++<<<<<<< .our
++=======
++  // This method is invoked when the contents auto-resized to give the container
++  // an opportunity to match it if it wishes.
++  //
++  // This gives the derived class an opportunity to inform its container element
++  // or perform other actions.
++  void UpdateGuestSize(const gfx::Size& new_size, bool due_to_auto_resize);
++
++  // Returns the default size of the guestview.
++  gfx::Size GetDefaultSize() const;
++
++>>>>>>> .their
+   void ResetZoomController();
+ 
+   // The WebContents that attaches this guest view.
+changed in both
+  base   100644 0770f061acf6529ca55207258d70c3a2947e402f atom/common/api/atom_api_v8_util.cc
+  our    100644 3d80db0c0a4cdbb4c7a78fa7e4266fc6fc87193f atom/common/api/atom_api_v8_util.cc
+  their  100644 a7bf28a8e2cfd62ba198aabcc572fbb31cd0a8a7 atom/common/api/atom_api_v8_util.cc
+changed in both
+  base   100644 ccd9ebd6780d2e57de9da3c7246a0b674a7248ea atom/common/api/atom_bindings.cc
+  our    100644 3dba3d63673ca8eb02044bd1335a3095f0194971 atom/common/api/atom_bindings.cc
+  their  100644 41beabf3f6e733b097c7fb3a12db18504e7d9c12 atom/common/api/atom_bindings.cc
+@@ -14,7 +14,10 @@
+ #include "atom/common/native_mate_converters/string16_converter.h"
+ #include "atom/common/node_includes.h"
+ #include "base/logging.h"
++<<<<<<< .our
+ #include "base/process/process_info.h"
++=======
++>>>>>>> .their
+ #include "base/process/process_metrics_iocounters.h"
+ #include "base/sys_info.h"
+ #include "native_mate/dictionary.h"
+changed in both
+  base   100644 4d5465b9c5f264297979112c74909d9c49f53d30 atom/common/asar/archive.cc
+  our    100644 9b37f94a4dc462c0cc84e0182654ff2571952df9 atom/common/asar/archive.cc
+  their  100644 2f3fbc1246284a13fc5b97814714f90ed5855de0 atom/common/asar/archive.cc
+changed in both
+  base   100644 03d72ca70f5f0cc67a010eaa7befdbac40a6e638 atom/common/chrome_version.h
+  our    100644 35666ab599410942900abd2a7d9ad4b3e5c138af atom/common/chrome_version.h
+  their  100644 bb16578f38617d2eb230e4062df17a70916a174d atom/common/chrome_version.h
+@@ -8,7 +8,11 @@
+ #ifndef ATOM_COMMON_CHROME_VERSION_H_
+ #define ATOM_COMMON_CHROME_VERSION_H_
+ 
++<<<<<<< .our
+ #define CHROME_VERSION_STRING "66.0.3359.181"
++=======
++#define CHROME_VERSION_STRING "66.0.3359.117"
++>>>>>>> .their
+ #define CHROME_VERSION "v" CHROME_VERSION_STRING
+ 
+ #endif  // ATOM_COMMON_CHROME_VERSION_H_
+changed in both
+  base   100644 160a0c4ce5f6fbd494bf4f78c406541d7999c069 atom/common/crash_reporter/win/crash_service.h
+  our    100644 93bbb7c36de3d256acae5ff8dfaa447f8a438b14 atom/common/crash_reporter/win/crash_service.h
+  their  100644 72974a1205c65cc4ef9e32e8cfd92200a5e7d4af atom/common/crash_reporter/win/crash_service.h
+changed in both
+  base   100644 a74ae403213bdce8b5b605caaa3c042d08254b28 atom/common/native_mate_converters/content_converter.cc
+  our    100644 2684aa7dda07ac79e47823c3cf9bf00d3f5cf3f5 atom/common/native_mate_converters/content_converter.cc
+  their  100644 46364e21266a93c7c496d87acbf6cc4ff4965194 atom/common/native_mate_converters/content_converter.cc
+changed in both
+  base   100644 54b7cb71c9ff7425efc91a8c59f9d6dd0767fbaa atom/common/native_mate_converters/gfx_converter.cc
+  our    100644 7a7cfd39e061837f7772be91b43f5851d8278c00 atom/common/native_mate_converters/gfx_converter.cc
+  their  100644 9ce2fffc39354ba93d80479d9fd15d3b546e22a1 atom/common/native_mate_converters/gfx_converter.cc
+changed in both
+  base   100644 8e490ca733b4a97ac18f288e0b8c58c812c76a66 atom/common/native_mate_converters/net_converter.cc
+  our    100644 db54210e7c095da593c6f5b9f4ed1eafb91b945d atom/common/native_mate_converters/net_converter.cc
+  their  100644 b95cfbaeb5e0595dd5f22728a575b571a5d50eb3 atom/common/native_mate_converters/net_converter.cc
+added in both
+  our    100644 61a6563a617030684081e4934044865fdc3c6540 atom/common/native_mate_converters/network_converter.cc
+  their  100644 1037e5f111fbea5c780a168305b2d102e41a58d3 atom/common/native_mate_converters/network_converter.cc
+@@ -6,7 +6,10 @@
+ 
+ #include <string>
+ #include <utility>
++<<<<<<< .our
+ #include <vector>
++=======
++>>>>>>> .their
+ 
+ #include "atom/common/native_mate_converters/value_converter.h"
+ #include "native_mate/dictionary.h"
+@@ -21,6 +24,7 @@
+     const scoped_refptr<network::ResourceRequestBody>& val) {
+   if (!val)
+     return v8::Null(isolate);
++<<<<<<< .our
+   auto list = std::make_unique<base::ListValue>();
+   for (const auto& element : *(val->elements())) {
+     auto post_data_dict = std::make_unique<base::DictionaryValue>();
+@@ -28,6 +32,16 @@
+     if (type == network::DataElement::TYPE_BYTES) {
+       auto bytes = std::make_unique<base::Value>(std::vector<char>(
+           element.bytes(), element.bytes() + (element.length())));
++=======
++  std::unique_ptr<base::ListValue> list(new base::ListValue);
++  for (const auto& element : *(val->elements())) {
++    std::unique_ptr<base::DictionaryValue> post_data_dict(
++        new base::DictionaryValue);
++    auto type = element.type();
++    if (type == network::DataElement::TYPE_BYTES) {
++      std::unique_ptr<base::Value> bytes(base::Value::CreateWithCopiedBuffer(
++          element.bytes(), static_cast<size_t>(element.length())));
++>>>>>>> .their
+       post_data_dict->SetString("type", "rawData");
+       post_data_dict->Set("bytes", std::move(bytes));
+     } else if (type == network::DataElement::TYPE_FILE) {
+@@ -52,7 +66,11 @@
+     v8::Isolate* isolate,
+     v8::Local<v8::Value> val,
+     scoped_refptr<network::ResourceRequestBody>* out) {
++<<<<<<< .our
+   auto list = std::make_unique<base::ListValue>();
++=======
++  std::unique_ptr<base::ListValue> list(new base::ListValue);
++>>>>>>> .their
+   if (!ConvertFromV8(isolate, val, list.get()))
+     return false;
+   *out = new network::ResourceRequestBody();
+changed in both
+  base   100644 2e0d594069cbff0f867ba96f5f8e7a70967aeac4 atom/common/native_mate_converters/v8_value_converter.cc
+  our    100644 3fa070771d6843e9428e560c746965b095961e2a atom/common/native_mate_converters/v8_value_converter.cc
+  their  100644 30cfdfabc0670721fe746b617db0623a23547782 atom/common/native_mate_converters/v8_value_converter.cc
+@@ -342,8 +342,13 @@
+   if (val->IsRegExp()) {
+     if (!reg_exp_allowed_)
+       // JSON.stringify converts to an object.
++<<<<<<< .our
+       return FromV8Object(val->ToObject(context).ToLocalChecked(), state,
+                           isolate);
++=======
++      return FromV8Object(val->ToObject(context).ToLocalChecked(),
++          state, isolate);
++>>>>>>> .their
+     return new base::Value(
+         *v8::String::Utf8Value(val->ToString(context).ToLocalChecked()));
+   }
+@@ -356,8 +361,13 @@
+     if (!function_allowed_)
+       // JSON.stringify refuses to convert function(){}.
+       return nullptr;
++<<<<<<< .our
+     return FromV8Object(val->ToObject(context).ToLocalChecked(), state,
+                         isolate);
++=======
++    return FromV8Object(val->ToObject(context).ToLocalChecked(),
++        state, isolate);
++>>>>>>> .their
+   }
+ 
+   if (node::Buffer::HasInstance(val)) {
+@@ -365,8 +375,13 @@
+   }
+ 
+   if (val->IsObject()) {
++<<<<<<< .our
+     return FromV8Object(val->ToObject(context).ToLocalChecked(), state,
+                         isolate);
++=======
++    return FromV8Object(val->ToObject(context).ToLocalChecked(),
++        state, isolate);
++>>>>>>> .their
+   }
+ 
+   LOG(ERROR) << "Unexpected v8 value type encountered.";
+changed in both
+  base   100644 769965f6445b4c9319262c614360da4c3d793201 atom/common/native_mate_converters/value_converter.cc
+  our    100644 a71cc70f83d2526596a75d8daf036f905ca099be atom/common/native_mate_converters/value_converter.cc
+  their  100644 12491806c047e5c8949509d4db2296e9ae26db9c atom/common/native_mate_converters/value_converter.cc
+@@ -14,7 +14,11 @@
+                                               base::DictionaryValue* out) {
+   atom::V8ValueConverter converter;
+   std::unique_ptr<base::Value> value(
++<<<<<<< .our
+       converter.FromV8Value(val, isolate->GetCurrentContext()));
++=======
++      converter->FromV8Value(val, isolate->GetCurrentContext()));
++>>>>>>> .their
+   if (value && value->is_dict()) {
+     out->Swap(static_cast<base::DictionaryValue*>(value.get()));
+     return true;
+@@ -55,7 +59,11 @@
+                                         base::ListValue* out) {
+   atom::V8ValueConverter converter;
+   std::unique_ptr<base::Value> value(
++<<<<<<< .our
+       converter.FromV8Value(val, isolate->GetCurrentContext()));
++=======
++      converter->FromV8Value(val, isolate->GetCurrentContext()));
++>>>>>>> .their
+   if (value->is_list()) {
+     out->Swap(static_cast<base::ListValue*>(value.get()));
+     return true;
+changed in both
+  base   100644 947d3bc1a08b5e5bcd1489c2622ae633c4646651 atom/common/platform_util_win.cc
+  our    100644 34576be95f2552aaa985dacb3f36406dfc29d54c atom/common/platform_util_win.cc
+  their  100644 193e2ece0042367113ee23512b5b3ee6d4785fca atom/common/platform_util_win.cc
+@@ -240,6 +240,36 @@
+   if (dir.empty())
+     return false;
+ 
++<<<<<<< .our
++=======
++  typedef HRESULT(WINAPI * SHOpenFolderAndSelectItemsFuncPtr)(
++      PCIDLIST_ABSOLUTE pidl_Folder, UINT cidl, PCUITEMID_CHILD_ARRAY pidls,
++      DWORD flags);
++
++  static SHOpenFolderAndSelectItemsFuncPtr open_folder_and_select_itemsPtr =
++      NULL;
++  static bool initialize_open_folder_proc = true;
++  if (initialize_open_folder_proc) {
++    initialize_open_folder_proc = false;
++    // The SHOpenFolderAndSelectItems API is exposed by shell32 version 6
++    // and does not exist in Win2K. We attempt to retrieve this function export
++    // from shell32 and if it does not exist, we just invoke ShellExecute to
++    // open the folder thus losing the functionality to select the item in
++    // the process.
++    HMODULE shell32_base = GetModuleHandle(L"shell32.dll");
++    if (!shell32_base) {
++      NOTREACHED() << " " << __FUNCTION__ << "(): Can't open shell32.dll";
++      return false;
++    }
++    open_folder_and_select_itemsPtr =
++        reinterpret_cast<SHOpenFolderAndSelectItemsFuncPtr>(
++            GetProcAddress(shell32_base, "SHOpenFolderAndSelectItems"));
++  }
++  if (!open_folder_and_select_itemsPtr) {
++    return ui::win::OpenFolderViaShell(dir);
++  }
++
++>>>>>>> .their
+   Microsoft::WRL::ComPtr<IShellFolder> desktop;
+   HRESULT hr = SHGetDesktopFolder(desktop.GetAddressOf());
+   if (FAILED(hr))
+changed in both
+  base   100644 1a407ff54e71512bd0b64cb41b1a753de94c4605 brightray/brightray.gyp
+  our    100644 f233257e88bad8f0ff703034bea02e4715a5b5b9 brightray/brightray.gyp
+  their  100644 08dbba5d230f3448c1219eb40905622440db50f0 brightray/brightray.gyp
+@@ -114,6 +114,10 @@
+                   '<(libchromiumcontent_dir)/libbase_static.a',
+                   '<(libchromiumcontent_dir)/libgtkui.a',
+                   '<(libchromiumcontent_dir)/libhttp_server.a',
++<<<<<<< .our
++=======
++                  '<(libchromiumcontent_dir)/libdesktop_capture.a',
++>>>>>>> .their
+                   '<(libchromiumcontent_dir)/libdevice_service.a',
+                   '<(libchromiumcontent_dir)/libdom_keycode_converter.a',
+                   '<(libchromiumcontent_dir)/libsystem_wrappers.a',
+@@ -122,6 +126,7 @@
+                   '<(libchromiumcontent_dir)/libwebrtc_common.a',
+                   '<(libchromiumcontent_dir)/libinit_webrtc.a',
+                   '<(libchromiumcontent_dir)/libyuv.a',
++                  '<(libchromiumcontent_dir)/libpdfium_skia_shared.a',
+                   '<(libchromiumcontent_dir)/librenderer.a',
+                   '<(libchromiumcontent_dir)/libsecurity_state.a',
+                   '<(libchromiumcontent_dir)/libviz_service.a',
+@@ -345,6 +350,10 @@
+                   '<(libchromiumcontent_dir)/sandbox.lib',
+                   '<(libchromiumcontent_dir)/sandbox_helper_win.lib',
+                   '<(libchromiumcontent_dir)/http_server.lib',
++<<<<<<< .our
++=======
++                  '<(libchromiumcontent_dir)/desktop_capture.lib',
++>>>>>>> .their
+                   '<(libchromiumcontent_dir)/device_service.lib',
+                   '<(libchromiumcontent_dir)/dom_keycode_converter.lib',
+                   '<(libchromiumcontent_dir)/rtc_base.lib',
+changed in both
+  base   100644 596b9bd373ed12292dcbb527e8df9c84b7a9bd84 brightray/brightray.gypi
+  our    100644 8a945dc0219293d90e30162e4691a4d871071f4f brightray/brightray.gypi
+  their  100644 07bd6d61f9f6efb2f528fb9de18c2a8537dc1aef brightray/brightray.gypi
+changed in both
+  base   100644 6951bd8f4eab3a51d3e1295bafd8dac7209579f3 brightray/browser/browser_context.cc
+  our    100644 1eff7344e9aef78bb88720c38c0f75fb92e6bc09 brightray/browser/browser_context.cc
+  their  100644 6123937cb564831e21373b48405f7ba8d3f5efe1 brightray/browser/browser_context.cc
+changed in both
+  base   100644 96c3e661d651e0a469b04313ead75d8bf7b03aa9 brightray/browser/browser_context.h
+  our    100644 1fb1c59b8043dbb711a364fca3c357c11993bedc brightray/browser/browser_context.h
+  their  100644 8f3de784cfe25b64b2dd767f5efd91845a3aecb6 brightray/browser/browser_context.h
+@@ -19,6 +19,7 @@
+ 
+ namespace brightray {
+ 
++<<<<<<< .our
+ class BrowserContext;
+ 
+ struct BrowserContextDeleter {
+@@ -28,6 +29,11 @@
+ class BrowserContext
+     : public base::RefCountedThreadSafe<BrowserContext, BrowserContextDeleter>,
+       public content::BrowserContext {
++=======
++class BrowserContext : public base::RefCounted<BrowserContext>,
++                       public content::BrowserContext,
++                       public brightray::URLRequestContextGetter::Delegate {
++>>>>>>> .their
+  public:
+   // Get the BrowserContext according to its |partition| and |in_memory|,
+   // empty pointer when be returned when there is no matching BrowserContext.
+changed in both
+  base   100644 4705abc986661ba3cb6bddfd0e9b70bfd45f19d8 brightray/browser/browser_main_parts.cc
+  our    100644 78d0ef15ef1343e7db123f97182bac7f9a98b3eb brightray/browser/browser_main_parts.cc
+  their  100644 d44ace2dc3306b0f98737297f59292778468e569 brightray/browser/browser_main_parts.cc
+@@ -179,6 +179,7 @@
+ }
+ #endif
+ 
++<<<<<<< .our
+ void BrowserMainParts::InitializeFeatureList() {
+   auto* cmd_line = base::CommandLine::ForCurrentProcess();
+   const auto enable_features =
+@@ -187,6 +188,15 @@
+       cmd_line->GetSwitchValueASCII(switches::kDisableFeatures);
+   auto feature_list = std::make_unique<base::FeatureList>();
+   feature_list->InitializeFromCommandLine(enable_features, disable_features);
++=======
++int BrowserMainParts::PreEarlyInitialization() {
++  std::unique_ptr<base::FeatureList> feature_list(new base::FeatureList);
++  // TODO(deepak1556): Disable guest webcontents based on OOPIF feature.
++  // Disable surface synchronization and async wheel events to make OSR work.
++  feature_list->InitializeFromCommandLine(
++      "",
++      "GuestViewCrossProcessFrames,SurfaceSynchronization,AsyncWheelEvents");
++>>>>>>> .their
+   base::FeatureList::SetInstance(std::move(feature_list));
+ }
+ 
+changed in both
+  base   100644 2173339853647f6d904e8d4822422adc495c7822 brightray/browser/browser_main_parts.h
+  our    100644 cf8e0296585b17f1e7dab1717e0aa80293d902dd brightray/browser/browser_main_parts.h
+  their  100644 0f82ce6daa9a7fc82aa70c68d8d5fd9dc0951a99 brightray/browser/browser_main_parts.h
+@@ -33,7 +33,10 @@
+ 
+  protected:
+   // content::BrowserMainParts:
++<<<<<<< .our
+   bool ShouldContentCreateFeatureList() override;
++=======
++>>>>>>> .their
+   int PreEarlyInitialization() override;
+   void ToolkitInitialized() override;
+   void PreMainMessageLoopStart() override;
+changed in both
+  base   100644 1182073dfac5ffc858a36eded964fe03b44dbe6e brightray/browser/inspectable_web_contents_impl.cc
+  our    100644 32b5743b8db53ef2628d062e9942e30ec7c52b2f brightray/browser/inspectable_web_contents_impl.cc
+  their  100644 70ff7d2ff53611acd21199b35a3912489fe45d13 brightray/browser/inspectable_web_contents_impl.cc
+changed in both
+  base   100644 32145f281fb350df13e105fd835d74f61f4a428d brightray/browser/inspectable_web_contents_impl.h
+  our    100644 3f0fe0093cf724e9f090a036a259e823c12f9294 brightray/browser/inspectable_web_contents_impl.h
+  their  100644 9ebcbfdd1ff3e995ac10e8a7ba07c2bdfe20a692 brightray/browser/inspectable_web_contents_impl.h
+changed in both
+  base   100644 771b5451f109d8dc7323c1773037c0f0271edd3c brightray/browser/net_log.cc
+  our    100644 fb443ea0b72b9659d98d1873fad1a714483bb13f brightray/browser/net_log.cc
+  their  100644 4ab488cf26f4fbe80002aa2dbc2012f7e3ff85bc brightray/browser/net_log.cc
+@@ -46,11 +46,17 @@
+ 
+   base::FilePath log_path =
+       command_line->GetSwitchValuePath(network::switches::kLogNetLog);
++<<<<<<< .our
+   if (log_path.empty())
+     return;
+ 
+   std::unique_ptr<base::Value> constants(GetConstants());  // Net constants
+   net::NetLogCaptureMode capture_mode = net::NetLogCaptureMode::Default();
++=======
++  std::unique_ptr<base::Value> constants(GetConstants());
++  net::NetLogCaptureMode capture_mode =
++      net::NetLogCaptureMode::IncludeCookiesAndCredentials();
++>>>>>>> .their
+ 
+   file_net_log_observer_ =
+       net::FileNetLogObserver::CreateUnbounded(log_path, std::move(constants));
+removed in local
+  base   100644 e5c0186a7b3d12ce8880670d81702757d4e898fb brightray/browser/network_delegate.cc
+  their  100644 32981cb8b8d53ee2b797c366dd80d5efcc82d2c9 brightray/browser/network_delegate.cc
+removed in local
+  base   100644 3c12624b27e1801350945a758e20d2d4ab835cad brightray/browser/network_delegate.h
+  their  100644 77625e5c86b13bdd3619d82d59f98d6acdcf9e36 brightray/browser/network_delegate.h
+changed in both
+  base   100644 7c58f4c2f1ff7e1671bbafc827a21dcd1802d30e brightray/browser/platform_notification_service.cc
+  our    100644 5913de18e298ab6f2388243b42af20ecba9c2ee0 brightray/browser/platform_notification_service.cc
+  their  100644 36b2cfb812f3919d053174bfe4475f4ecb59c319 brightray/browser/platform_notification_service.cc
+removed in local
+  base   100644 a9b45296f0313704eadb4bba69598db7fce8b8a3 brightray/browser/special_storage_policy.cc
+  their  100644 e662441dedbfe3c5cf08e8dcce3413153c1fcf82 brightray/browser/special_storage_policy.cc
+removed in local
+  base   100644 0c89db2d4c511da16fefcf2cf4ea75541ab30e15 brightray/browser/special_storage_policy.h
+  their  100644 2d02cdd293438d4f10863c4cf6a7932dc20a3666 brightray/browser/special_storage_policy.h
+changed in both
+  base   100644 31219c5fa604cd1e8f48715beea394dccf7cf0bc brightray/browser/url_request_context_getter.cc
+  our    100644 c07ba80cbc522030af580adc5d8676ed31d592d1 brightray/browser/url_request_context_getter.cc
+  their  100644 68041972af79509c018d6ec045461bf0b2b50a83 brightray/browser/url_request_context_getter.cc
+@@ -20,7 +20,10 @@
+ #include "content/public/browser/browser_thread.h"
+ #include "content/public/browser/cookie_store_factory.h"
+ #include "content/public/browser/devtools_network_transaction_factory.h"
++<<<<<<< .our
+ #include "content/public/browser/resource_context.h"
++=======
++>>>>>>> .their
+ #include "net/base/host_mapping_rules.h"
+ #include "net/cert/cert_verifier.h"
+ #include "net/cert/ct_known_logs.h"
+@@ -172,7 +175,11 @@
+   // the URLRequestContextStorage on the IO thread in GetURLRequestContext().
+   proxy_config_service_ =
+       net::ProxyResolutionService::CreateSystemProxyConfigService(
++<<<<<<< .our
+           BrowserThread::GetTaskRunnerForThread(BrowserThread::IO));
++=======
++          io_task_runner_);
++>>>>>>> .their
+ }
+ 
+ URLRequestContextGetter::~URLRequestContextGetter() {}
+@@ -191,6 +198,29 @@
+   http_auth_preferences_.reset();
+   host_mapping_rules_.reset();
+   ct_delegate_.reset();
++<<<<<<< .our
++=======
++  net::URLRequestContextGetter::NotifyContextShuttingDown();
++}
++
++void URLRequestContextGetter::OnCookieChanged(
++    const net::CanonicalCookie& cookie,
++    net::CookieChangeCause cause) {
++  DCHECK_CURRENTLY_ON(content::BrowserThread::IO);
++
++  if (!delegate_ || context_shutting_down_)
++    return;
++
++  content::BrowserThread::PostTask(
++      content::BrowserThread::UI, FROM_HERE,
++      base::BindOnce(&Delegate::NotifyCookieChange, base::Unretained(delegate_),
++                     cookie, !(cause == net::CookieChangeCause::INSERTED),
++                     cause));
++}
++
++net::HostResolver* URLRequestContextGetter::host_resolver() {
++  return url_request_context_->host_resolver();
++>>>>>>> .their
+ }
+ 
+ net::URLRequestContext* URLRequestContextGetter::GetURLRequestContext() {
+@@ -218,8 +248,14 @@
+     auto cookie_path = in_memory_
+                            ? base::FilePath()
+                            : base_path_.Append(FILE_PATH_LITERAL("Cookies"));
++<<<<<<< .our
+     std::unique_ptr<net::CookieStore> cookie_store = content::CreateCookieStore(
+         content::CookieStoreConfig(cookie_path, false, false, nullptr));
++=======
++    std::unique_ptr<net::CookieStore> cookie_store =
++        content::CreateCookieStore(content::CookieStoreConfig(
++            cookie_path, false, false, nullptr));
++>>>>>>> .their
+     storage_->set_cookie_store(std::move(cookie_store));
+ 
+     // Set custom schemes that can accept cookies.
+@@ -230,11 +266,19 @@
+     cookie_monster->SetCookieableSchemes(cookie_schemes);
+     // Cookie store will outlive notifier by order of declaration
+     // in the header.
++<<<<<<< .our
+     cookie_change_sub_ = url_request_context_->cookie_store()
+                              ->GetChangeDispatcher()
+                              .AddCallbackForAllChanges(base::Bind(
+                                  &URLRequestContextGetter::OnCookieChanged,
+                                  base::RetainedRef(this)));
++=======
++    cookie_change_sub_ =
++        url_request_context_->cookie_store()
++            ->GetChangeDispatcher()
++            .AddCallbackForAllChanges(
++                base::Bind(&URLRequestContextGetter::OnCookieChanged, this));
++>>>>>>> .their
+ 
+     storage_->set_channel_id_service(std::make_unique<net::ChannelIDService>(
+         new net::DefaultChannelIDStore(nullptr)));
+changed in both
+  base   100644 0cfd921babe5e8595583ad1beed0fa4a2e3ed89a brightray/browser/url_request_context_getter.h
+  our    100644 941a5782b14a941bb25a7a9ef6ca6d73f8bc3ec1 brightray/browser/url_request_context_getter.h
+  their  100644 b990d479a06cb7c26f306bf50179eb87c9af4472 brightray/browser/url_request_context_getter.h
+@@ -54,11 +54,20 @@
+     virtual net::HttpCache::BackendFactory* CreateHttpCacheBackendFactory(
+         const base::FilePath& base_path) = 0;
+     virtual std::unique_ptr<net::CertVerifier> CreateCertVerifier(
++<<<<<<< .our
+         RequireCTDelegate* ct_delegate) = 0;
+     virtual void GetCookieableSchemes(
+         std::vector<std::string>* cookie_schemes) {}
+     virtual void OnCookieChanged(const net::CanonicalCookie& cookie,
+                                  net::CookieChangeCause cause) {}
++=======
++        RequireCTDelegate* ct_delegate);
++    virtual net::SSLConfigService* CreateSSLConfigService();
++    virtual std::vector<std::string> GetCookieableSchemes();
++    virtual void NotifyCookieChange(const net::CanonicalCookie& cookie,
++                                    bool removed,
++                                    net::CookieChangeCause cause) {}
++>>>>>>> .their
+   };
+ 
+   URLRequestContextGetter(
+@@ -70,6 +79,13 @@
+       content::ProtocolHandlerMap* protocol_handlers,
+       content::URLRequestInterceptorScopedVector protocol_interceptors);
+ 
++<<<<<<< .our
++=======
++  // net::CookieChangeDispatcher::CookieChangedCallback implementation.
++  void OnCookieChanged(const net::CanonicalCookie& cookie,
++                       net::CookieChangeCause cause);
++
++>>>>>>> .their
+   // net::URLRequestContextGetter:
+   net::URLRequestContext* GetURLRequestContext() override;
+   scoped_refptr<base::SingleThreadTaskRunner> GetNetworkTaskRunner()
+@@ -129,11 +145,14 @@
+   std::unique_ptr<net::HttpAuthPreferences> http_auth_preferences_;
+   std::unique_ptr<net::HttpNetworkSession> http_network_session_;
+   std::unique_ptr<net::CookieChangeSubscription> cookie_change_sub_;
++<<<<<<< .our
+ 
+   net::URLRequestJobFactory* job_factory_;
+   Delegate* delegate_;
+   NetLog* net_log_;
+   ResourceContext* resource_context_;
++=======
++>>>>>>> .their
+   content::ProtocolHandlerMap protocol_handlers_;
+   content::URLRequestInterceptorScopedVector protocol_interceptors_;
+   base::FilePath base_path_;
+changed in both
+  base   100644 4b14b1cddb06816a1ffbcedf178e6888814f26af brightray/browser/views/views_delegate.cc
+  our    100644 233a595eb38adc189af12736e5cec20a9a8d7d86 brightray/browser/views/views_delegate.cc
+  their  100644 06c7e326ca8614515e009adedb33d19085f1228c brightray/browser/views/views_delegate.cc
+changed in both
+  base   100644 c6c7d4e8e66de2da3ded6b03ef82ac0701c5ef6a brightray/filenames.gypi
+  our    100644 b9e2d96175f8ee2d407db9c49b2e2b74756327de brightray/filenames.gypi
+  their  100644 0d79b5faf74f5e113b69137d6f2ab9986ff79f09 brightray/filenames.gypi
+changed in both
+  base   100644 5da793ec584f1ffcf59e1b288cf28b3e7c43b047 chromium_src/chrome/renderer/media/chrome_key_systems.cc
+  our    100644 c4ab859f06ba0758e857a222d7caf87230adb1fe chromium_src/chrome/renderer/media/chrome_key_systems.cc
+  their  100644 9ab77139c5bc045dd2390f21f849acf7a0d27c19 chromium_src/chrome/renderer/media/chrome_key_systems.cc
+@@ -24,7 +24,12 @@
+ #include "media/base/video_codecs.h"
+ #endif
+ 
++<<<<<<< .our
+ #include "widevine_cdm_version.h"  // In SHARED_INTERMEDIATE_DIR.
++=======
++// #include "widevine_cdm_version.h" // In SHARED_INTERMEDIATE_DIR.
++#include "third_party/widevine/cdm/stub/widevine_cdm_version.h"
++>>>>>>> .their
+ 
+ // The following must be after widevine_cdm_version.h.
+ 
+removed in local
+  base   100644 5aabe7032f4c3e5cebcd9da892ff732cafafc12a chromium_src/chrome/renderer/pepper/pepper_flash_renderer_host.cc
+  their  100644 50015122ccc7e2da02d0e9b2c7014e085c3ffec4 chromium_src/chrome/renderer/pepper/pepper_flash_renderer_host.cc
+changed in both
+  base   100644 a40b669b401517b10def136a1a3b91c04e41f4c1 chromium_src/chrome/renderer/printing/print_web_view_helper.cc
+  our    100644 506223fc82e63ee682a2e608cc6957c55d958115 chromium_src/chrome/renderer/printing/print_web_view_helper.cc
+  their  100644 de79a398e0bd05b50c81ee9db54761d4b06fe5aa chromium_src/chrome/renderer/printing/print_web_view_helper.cc
+changed in both
+  base   100644 5c6677b333ef1c47710499c97e9fd763eebe2aad common.gypi
+  our    100644 676d1e904127066e4a3d313106f15406fcbed8b6 common.gypi
+  their  100644 17d1db1bf3faf3b2175e7b4ac9c8262198f39f9c common.gypi
+changed in both
+  base   100644 35f4e4242c210bd28dce248aaac6550703159d12 docs/api/browser-window.md
+  our    100644 dff61dd336f047cf2f6f06228b2df2b98ff2304d docs/api/browser-window.md
+  their  100644 39120b24e70f19f00e426e481d15296dc8bce844 docs/api/browser-window.md
+changed in both
+  base   100644 a16c887ca2a9fc3da4d862f997b23110a7011c64 docs/api/web-contents.md
+  our    100644 8990fe2e97ab62eafdd3f7a4eb8ee782415124c5 docs/api/web-contents.md
+  their  100644 17513b5b170f2939facc97fba9bff1c93e93f99d docs/api/web-contents.md
+changed in both
+  base   100644 b623db083ee3100b210daeba7b762bf4d4cf9fa3 docs/api/webview-tag.md
+  our    100644 8dc16b4a4e92ad132c7722ac400e2be851723f9b docs/api/webview-tag.md
+  their  100644 e9b9824c0c7adf753df8cd87e0ffd1a8ba3ce0cc docs/api/webview-tag.md
+@@ -266,7 +266,11 @@
+   * `httpReferrer` (String | [Referrer](structures/referrer.md)) (optional) - An HTTP Referrer url.
+   * `userAgent` String (optional) - A user agent originating the request.
+   * `extraHeaders` String (optional) - Extra headers separated by "\n"
++<<<<<<< .our
+   * `postData` ([UploadRawData[]](structures/upload-raw-data.md) | [UploadFile[]](structures/upload-file.md) | [UploadBlob[]](structures/upload-blob.md)) (optional)
++=======
++  * `postData` ([UploadRawData[]](structures/upload-raw-data.md) | [UploadFile[]](structures/upload-file.md) | [UploadBlob[]](structures/upload-blob.md)) (optional) -
++>>>>>>> .their
+   * `baseURLForDataURL` String (optional) - Base url (with trailing path separator) for files to be loaded by the data url. This is needed only if the specified `url` is a data url and needs to load other files.
+ 
+ Loads the `url` in the webview, the `url` must contain the protocol prefix,
+changed in both
+  base   100644 b7b430bdd697780deca40ba36efb68c700594149 docs/tutorial/snapcraft.md
+  our    100644 c188adeea48f2a12dc9cb3b4d67befcb5e871051 docs/tutorial/snapcraft.md
+  their  100644 f26ba7824da31dd303d6135b3b121f4b3b93e094 docs/tutorial/snapcraft.md
+changed in both
+  base   100644 5068d85d034110ab5fe1d6c5bc27b435a69f2492 docs/tutorial/windows-store-guide.md
+  our    100644 1e500b88da84ddf3cca08dd44b0d694e12ef85d9 docs/tutorial/windows-store-guide.md
+  their  100644 bfd9b962a607be92a04a903cab8790f9c4bcb826 docs/tutorial/windows-store-guide.md
+changed in both
+  base   100644 62dfef265ea8b378ba08e76b79ae7efba8773233 electron.gyp
+  our    100644 944ddab2a3fd879044e31677e4bac2843fffbdee electron.gyp
+  their  100644 c273227a661cc8474d2af8a43b417de21a81f44f electron.gyp
+changed in both
+  base   100644 247d828bbc01d4411f82d6a063044504889a757b features.gypi
+  our    100644 86543a4db1195223a3556fa71583038f15d79a0a features.gypi
+  their  100644 405b37c8e232eded3eaf477e32ab5136af035fe0 features.gypi
+@@ -2,8 +2,12 @@
+   # If it looks stupid but it works it ain't stupid.
+   'variables': {
+     'variables': {
++<<<<<<< .our
+       'enable_desktop_capturer%': 1,
+       'enable_osr%': 1,
++=======
++      'enable_osr%': 0,  # FIXME(alexeykuzmin)
++>>>>>>> .their
+       'enable_pdf_viewer%': 0,  # FIXME(deepak1556)
+       'enable_run_as_node%': 1,
+       'enable_view_api%': 0,
+changed in both
+  base   100644 44dcc015d58abeab12e4db6124f9c0798ecb539a filenames.gypi
+  our    100644 f57860558f06b7e5d8a50f48cfc7e53044df0bc6 filenames.gypi
+  their  100644 552d15e093880de1bfc02e889b5661bf881d7575 filenames.gypi
+@@ -608,6 +608,23 @@
+       'chromium_src/chrome/browser/process_singleton_posix.cc',
+       'chromium_src/chrome/browser/process_singleton_win.cc',
+       'chromium_src/chrome/browser/process_singleton.h',
++<<<<<<< .our
++=======
++      'chromium_src/chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.cc',
++      'chromium_src/chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.h',
++      'chromium_src/chrome/browser/renderer_host/pepper/monitor_finder_mac.h',
++      'chromium_src/chrome/browser/renderer_host/pepper/monitor_finder_mac.mm',
++      'chromium_src/chrome/browser/renderer_host/pepper/pepper_broker_message_filter.cc',
++      'chromium_src/chrome/browser/renderer_host/pepper/pepper_broker_message_filter.h',
++      'chromium_src/chrome/browser/renderer_host/pepper/pepper_flash_browser_host.cc',
++      'chromium_src/chrome/browser/renderer_host/pepper/pepper_flash_browser_host.h',
++      'chromium_src/chrome/browser/renderer_host/pepper/pepper_flash_clipboard_message_filter.cc',
++      'chromium_src/chrome/browser/renderer_host/pepper/pepper_flash_clipboard_message_filter.h',
++      'chromium_src/chrome/browser/renderer_host/pepper/pepper_flash_drm_host.cc',
++      'chromium_src/chrome/browser/renderer_host/pepper/pepper_flash_drm_host.h',
++      'chromium_src/chrome/browser/renderer_host/pepper/pepper_isolated_file_system_message_filter.cc',
++      'chromium_src/chrome/browser/renderer_host/pepper/pepper_isolated_file_system_message_filter.h',
++>>>>>>> .their
+       'chromium_src/chrome/browser/speech/tts_controller.h',
+       'chromium_src/chrome/browser/speech/tts_controller_impl.cc',
+       'chromium_src/chrome/browser/speech/tts_controller_impl.h',
+changed in both
+  base   100644 e7f620a6e291fa1af83f025e862b3d3c076a36f2 lib/browser/guest-view-manager.js
+  our    100644 1e4029e39a981c85fb6ff18c5ccd52f81b3c56f2 lib/browser/guest-view-manager.js
+  their  100644 48258d360f6bc39f05c2455350bef7838c934efa lib/browser/guest-view-manager.js
+changed in both
+  base   100644 52ef64cd777769a86dbbac1a16015994b6b81ea1 lib/renderer/web-view/guest-view-internal.js
+  our    100644 6e42c769b70e5223fe97397f87144ec342882f8d lib/renderer/web-view/guest-view-internal.js
+  their  100644 a868b513eb4221bbf311f8f43ad4f94fff323928 lib/renderer/web-view/guest-view-internal.js
+changed in both
+  base   100755 de3b9ffd48156379afd677b98c40c97532cb8367 script/create-dist.py
+  our    100755 4a6c0c7ce8f275175e48c4c380ff33627f7a5961 script/create-dist.py
+  their  100755 646b4c42f095c8eb3a7750a482c25811794fbba0 script/create-dist.py
+merged
+  result 100755 96052162795ed9506073e6cdb8726645f937e0a0 script/update.py
+  our    100755 5b4e201d76ab3689bc8847d6141b2fff1a852174 script/update.py
+@@ -60,8 +60,6 @@
+   env = os.environ.copy()
+   if PLATFORM == 'linux' and target_arch != get_host_arch():
+     env['GYP_CROSSCOMPILE'] = '1'
+-  elif PLATFORM == 'win32':
+-    env['GYP_MSVS_VERSION'] = '2017'
+   python = sys.executable
+   if sys.platform == 'cygwin':
+     # Force using win32 python on cygwin.
+changed in both
+  base   100644 47d8cd1ecf010a00cd74cfcf4fff8e6aca03e7bd spec/api-browser-window-spec.js
+  our    100644 f4cba12ec19d224bc46fca898db42a99baf4972e spec/api-browser-window-spec.js
+  their  100644 edfdb159cab25d35a880957aab479516d6dcf56b spec/api-browser-window-spec.js
+@@ -1,8 +1,12 @@
+ 'use strict'
+ 
+ const assert = require('assert')
++<<<<<<< .our
+ const chai = require('chai')
+ const dirtyChai = require('dirty-chai')
++=======
++const {expect} = require('chai')
++>>>>>>> .their
+ const fs = require('fs')
+ const path = require('path')
+ const os = require('os')
+@@ -2142,7 +2146,9 @@
+     })
+   })
+ 
+-  describe('beginFrameSubscription method', () => {
++  // TODO(alexeykuzmin): It crashes the app.
++  // Fix the crash and enable the tests.
++  xdescribe('beginFrameSubscription method', () => {
+     before(function () {
+       // This test is too slow, only test it on CI.
+       if (!isCI) {
+@@ -2832,16 +2838,28 @@
+       describe('for invalid extensions', () => {
+         it('throws errors for missing manifest.json files', () => {
+           const nonexistentExtensionPath = path.join(__dirname, 'does-not-exist')
++<<<<<<< .our
+           expect(() => {
+             BrowserWindow.addDevToolsExtension(nonexistentExtensionPath)
+           }).to.throw(/ENOENT: no such file or directory/)
++=======
++          assert.throws(() => {
++            BrowserWindow.addDevToolsExtension(nonexistentExtensionPath)
++          }, /ENOENT: no such file or directory/)
++>>>>>>> .their
+         })
+ 
+         it('throws errors for invalid manifest.json files', () => {
+           const badManifestExtensionPath = path.join(__dirname, 'fixtures', 'devtools-extensions', 'bad-manifest')
++<<<<<<< .our
+           expect(() => {
+             BrowserWindow.addDevToolsExtension(badManifestExtensionPath)
+           }).to.throw(/Unexpected token }/)
++=======
++          assert.throws(() => {
++            BrowserWindow.addDevToolsExtension(badManifestExtensionPath)
++          }, /Unexpected token }/)
++>>>>>>> .their
+         })
+       })
+ 
+@@ -2850,13 +2868,21 @@
+ 
+         const removeExtension = () => {
+           BrowserWindow.removeDevToolsExtension('foo')
++<<<<<<< .our
+           expect(BrowserWindow.getDevToolsExtensions().hasOwnProperty(extensionName)).to.equal(false)
++=======
++          assert.equal(BrowserWindow.getDevToolsExtensions().hasOwnProperty(extensionName), false)
++>>>>>>> .their
+         }
+ 
+         const addExtension = () => {
+           const extensionPath = path.join(__dirname, 'fixtures', 'devtools-extensions', 'foo')
+           BrowserWindow.addDevToolsExtension(extensionPath)
++<<<<<<< .our
+           expect(BrowserWindow.getDevToolsExtensions().hasOwnProperty(extensionName)).to.equal(true)
++=======
++          assert.equal(BrowserWindow.getDevToolsExtensions().hasOwnProperty(extensionName), true)
++>>>>>>> .their
+ 
+           showLastDevToolsPanel()
+ 
+@@ -2877,6 +2903,7 @@
+             })
+           })
+ 
++<<<<<<< .our
+           describe('created extension info', function () {
+             it('has proper "runtimeId"', function () {
+               expect(this.message).to.have.own.property('runtimeId')
+@@ -2891,6 +2918,22 @@
+               expect(this.message.i18nString).to.equal('foo - bar (baz)')
+             })
+             it('has "storageItems" with proper contents', function () {
++=======
++          describe('created extension', function () {
++            it('has proper runtimeId', function () {
++              expect(this.message).to.have.own.property('runtimeId')
++              expect(this.message.runtimeId).to.equal(extensionName)
++            })
++            it('has tabId matching webContents id', function () {
++              expect(this.message).to.have.own.property('tabId')
++              expect(this.message.tabId).to.equal(w.webContents.id)
++            })
++            it('has i18nString with proper contents', function () {
++              expect(this.message).to.have.own.property('i18nString')
++              expect(this.message.i18nString).to.equal('foo - bar (baz)')
++            })
++            it('has storageItems with proper contents', function () {
++>>>>>>> .their
+               expect(this.message).to.have.own.property('storageItems')
+               expect(this.message.storageItems).to.deep.equal({
+                 local: {
+@@ -2918,12 +2961,21 @@
+             })
+           })
+ 
++<<<<<<< .our
+           describe('created extension info', function () {
+             it('has proper "runtimeId"', function () {
+               expect(this.message).to.have.own.property('runtimeId')
+               expect(this.message.runtimeId).to.equal(extensionName)
+             })
+             it('has "tabId" matching webContents id', function () {
++=======
++          describe('created extension', function () {
++            it('has proper runtimeId', function () {
++              expect(this.message).to.have.own.property('runtimeId')
++              expect(this.message.runtimeId).to.equal(extensionName)
++            })
++            it('has tabId matching webContents id', function () {
++>>>>>>> .their
+               expect(this.message).to.have.own.property('tabId')
+               expect(this.message.tabId).to.equal(w.webContents.id)
+             })
+changed in both
+  base   100644 c85220bce65785fc2face8a1d2934c9d9c204c79 spec/api-desktop-capturer-spec.js
+  our    100644 339d9756e40f8a532322800349b36d4371a2c9b0 spec/api-desktop-capturer-spec.js
+  their  100644 4ede734e6878ca029d1c67421f1e9de7d087d50c spec/api-desktop-capturer-spec.js
+@@ -8,7 +8,9 @@
+ 
+ const isCI = remote.getGlobal('isCi')
+ 
+-describe('desktopCapturer', () => {
++// FIXME(alexeykuzmin): Crashes the app.
++// Fix the crash and enable the tests.
++xdescribe('desktopCapturer', () => {
+   before(function () {
+     if (!features.isDesktopCapturerEnabled()) {
+       // It's been disabled during build time.
+changed in both
+  base   100644 847462e2f48eca7bd5b5fe442fac4a5765542d88 spec/api-web-contents-spec.js
+  our    100644 be02cb3f84001a541d64b11fe6eda50fc32e8afd spec/api-web-contents-spec.js
+  their  100644 1cb169e769fa5becafebe6349c569e8738652d72 spec/api-web-contents-spec.js
+changed in both
+  base   100644 f87554f32e267b46fe3501405617a289b6cccedb spec/asar-spec.js
+  our    100644 489f68c96d41e80c308560a98486a07756a03be7 spec/asar-spec.js
+  their  100644 f087ceea2df00d05056f524bac2b6d2f43737a5d spec/asar-spec.js
+@@ -789,7 +789,9 @@
+       })
+     })
+ 
+-    describe('child_process.fork', function () {
++    // TODO(alexeykuzmin): Fail on timeout.
++    // Fix them and enable.
++    xdescribe('child_process.fork', function () {
+       it('opens a normal js file', function (done) {
+         var child = ChildProcess.fork(path.join(fixtures, 'asar', 'a.asar', 'ping.js'))
+         child.on('message', function (msg) {
+changed in both
+  base   100644 3567ef56478a91a7b32a3acf7c99b700bdbca680 spec/webview-spec.js
+  our    100644 db75a4e3754e24a5e6740be61be4f4098c58006e spec/webview-spec.js
+  their  100644 649208bdbf290303ae81129c6e276f381330a95f spec/webview-spec.js
+@@ -1,6 +1,10 @@
+ const assert = require('assert')
++<<<<<<< .our
+ const chai = require('chai')
+ const dirtyChai = require('dirty-chai')
++=======
++const {expect} = require('chai')
++>>>>>>> .their
+ const path = require('path')
+ const http = require('http')
+ const url = require('url')
+@@ -895,9 +899,13 @@
+ 
+     it('throws a custom error when an API method is called before the event is emitted', () => {
+       const expectedErrorMessage =
++<<<<<<< .our
+           'Cannot call stop because the webContents is unavailable. ' +
+           'The WebView must be attached to the DOM ' +
+           'and the dom-ready event emitted before this method can be called.'
++=======
++          'Cannot call stop because the webContents is unavailable. The WebView must be attached to the DOM and the dom-ready event emitted before this method can be called.'
++>>>>>>> .their
+       expect(() => { webview.stop() }).to.throw(expectedErrorMessage)
+     })
+   })
+@@ -1134,12 +1142,15 @@
+       const src = 'about:blank'
+       await loadWebView(webview, {src})
+ 
++<<<<<<< .our
+       const webviewContents = webview.getWebContents()
+       assert(webviewContents)
+       expect(webviewContents.getURL()).to.equal(src)
+     })
+   })
+ 
++=======
++>>>>>>> .their
+   describe('document.visibilityState/hidden', () => {
+     afterEach(() => {
+       ipcMain.removeAllListeners('pong')
+@@ -1242,8 +1253,16 @@
+     })
+   })
+ 
++<<<<<<< .our
+   it('loads devtools extensions registered on the parent window', async () => {
+     const w = await openTheWindow({ show: false })
++=======
++  // TODO(alexeykuzmin): Enable the test.
++  // The app crashes if this test and "devtools-opened event" tests
++  // are run at the same time.
++  it('loads devtools extensions registered on the parent window', (done) => {
++    w = new BrowserWindow({ show: false })
++>>>>>>> .their
+     BrowserWindow.removeDevToolsExtension('foo')
+ 
+     const extensionPath = path.join(__dirname, 'fixtures', 'devtools-extensions', 'foo')
+@@ -1251,9 +1270,262 @@
+ 
+     w.loadURL(`file://${fixtures}/pages/webview-devtools.html`)
+ 
++<<<<<<< .our
+     const [, {runtimeId, tabId}] = await emittedOnce(ipcMain, 'answer')
+     expect(runtimeId).to.equal('foo')
+     expect(tabId).to.be.not.equal(w.webContents.id)
++=======
++    ipcMain.once('answer', (event, message) => {
++      assert.equal(message.runtimeId, 'foo')
++      assert.notEqual(message.tabId, w.webContents.id)
++      done()
++    })
++  })
++
++  // TODO(alexeykuzmin): Some tests rashe a renderer process.
++  // Fix them and enable the tests.
++  xdescribe('guestinstance attribute', () => {
++    it('before loading there is no attribute', () => {
++      document.body.appendChild(webview)
++      assert(!webview.hasAttribute('guestinstance'))
++    })
++
++    it('loading a page sets the guest view', (done) => {
++      const loadListener = () => {
++        webview.removeEventListener('did-finish-load', loadListener, false)
++        const instance = webview.getAttribute('guestinstance')
++        assert.equal(instance, parseInt(instance))
++
++        const guest = getGuestWebContents(parseInt(instance))
++        assert.equal(guest, webview.getWebContents())
++        done()
++      }
++      webview.addEventListener('did-finish-load', loadListener, false)
++      webview.src = `file://${fixtures}/api/blank.html`
++      document.body.appendChild(webview)
++    })
++
++    it('deleting the attribute destroys the webview', (done) => {
++      const loadListener = () => {
++        webview.removeEventListener('did-finish-load', loadListener, false)
++        const destroyListener = () => {
++          webview.removeEventListener('destroyed', destroyListener, false)
++          assert.equal(getGuestWebContents(instance), null)
++          done()
++        }
++        webview.addEventListener('destroyed', destroyListener, false)
++
++        const instance = parseInt(webview.getAttribute('guestinstance'))
++        webview.removeAttribute('guestinstance')
++      }
++      webview.addEventListener('did-finish-load', loadListener, false)
++      webview.src = `file://${fixtures}/api/blank.html`
++      document.body.appendChild(webview)
++    })
++
++    it('setting the attribute on a new webview moves the contents', (done) => {
++      const loadListener = () => {
++        webview.removeEventListener('did-finish-load', loadListener, false)
++        const webContents = webview.getWebContents()
++        const instance = webview.getAttribute('guestinstance')
++
++        const destroyListener = () => {
++          webview.removeEventListener('destroyed', destroyListener, false)
++          assert.equal(webContents, webview2.getWebContents())
++          // Make sure that events are hooked up to the right webview now
++          webview2.addEventListener('console-message', (e) => {
++            assert.equal(e.message, 'a')
++            document.body.removeChild(webview2)
++            done()
++          })
++
++          webview2.src = `file://${fixtures}/pages/a.html`
++        }
++        webview.addEventListener('destroyed', destroyListener, false)
++
++        const webview2 = new WebView()
++        webview2.setAttribute('guestinstance', instance)
++        document.body.appendChild(webview2)
++      }
++      webview.addEventListener('did-finish-load', loadListener, false)
++      webview.src = `file://${fixtures}/api/blank.html`
++      document.body.appendChild(webview)
++    })
++
++    it('setting the attribute to an invalid guestinstance does nothing', (done) => {
++      const loadListener = () => {
++        webview.removeEventListener('did-finish-load', loadListener, false)
++        webview.setAttribute('guestinstance', 55)
++
++        // Make sure that events are still hooked up to the webview
++        webview.addEventListener('console-message', (e) => {
++          assert.equal(e.message, 'a')
++          done()
++        })
++        webview.src = `file://${fixtures}/pages/a.html`
++      }
++      webview.addEventListener('did-finish-load', loadListener, false)
++
++      webview.src = `file://${fixtures}/api/blank.html`
++      document.body.appendChild(webview)
++    })
++
++    it('setting the attribute on an existing webview moves the contents', (done) => {
++      const load1Listener = () => {
++        webview.removeEventListener('did-finish-load', load1Listener, false)
++        const webContents = webview.getWebContents()
++        const instance = webview.getAttribute('guestinstance')
++        let destroyedInstance
++
++        const destroyListener = () => {
++          webview.removeEventListener('destroyed', destroyListener, false)
++          assert.equal(webContents, webview2.getWebContents())
++          assert.equal(null, getGuestWebContents(parseInt(destroyedInstance)))
++
++          // Make sure that events are hooked up to the right webview now
++          webview2.addEventListener('console-message', (e) => {
++            assert.equal(e.message, 'a')
++            document.body.removeChild(webview2)
++            done()
++          })
++
++          webview2.src = 'file://' + fixtures + '/pages/a.html'
++        }
++        webview.addEventListener('destroyed', destroyListener, false)
++
++        const webview2 = new WebView()
++        const load2Listener = () => {
++          webview2.removeEventListener('did-finish-load', load2Listener, false)
++          destroyedInstance = webview2.getAttribute('guestinstance')
++          assert.notEqual(instance, destroyedInstance)
++
++          webview2.setAttribute('guestinstance', instance)
++        }
++        webview2.addEventListener('did-finish-load', load2Listener, false)
++        webview2.src = 'file://' + fixtures + '/api/blank.html'
++        document.body.appendChild(webview2)
++      }
++      webview.addEventListener('did-finish-load', load1Listener, false)
++      webview.src = 'file://' + fixtures + '/api/blank.html'
++      document.body.appendChild(webview)
++    })
++
++    it('moving a guest back to its original webview should work', (done) => {
++      const loadListener = () => {
++        webview.removeEventListener('did-finish-load', loadListener, false)
++        const webContents = webview.getWebContents()
++        const instance = webview.getAttribute('guestinstance')
++
++        const destroy1Listener = () => {
++          webview.removeEventListener('destroyed', destroy1Listener, false)
++          assert.equal(webContents, webview2.getWebContents())
++          assert.equal(null, webview.getWebContents())
++
++          const destroy2Listener = () => {
++            webview2.removeEventListener('destroyed', destroy2Listener, false)
++            assert.equal(webContents, webview.getWebContents())
++            assert.equal(null, webview2.getWebContents())
++
++            // Make sure that events are hooked up to the right webview now
++            webview.addEventListener('console-message', (e) => {
++              assert.equal(e.message, 'a')
++              document.body.removeChild(webview2)
++              done()
++            })
++
++            webview.src = `file://${fixtures}/pages/a.html`
++          }
++          webview2.addEventListener('destroyed', destroy2Listener, false)
++          webview.setAttribute('guestinstance', instance)
++        }
++        webview.addEventListener('destroyed', destroy1Listener, false)
++
++        const webview2 = new WebView()
++        webview2.setAttribute('guestinstance', instance)
++        document.body.appendChild(webview2)
++      }
++      webview.addEventListener('did-finish-load', loadListener, false)
++      webview.src = `file://${fixtures}/api/blank.html`
++      document.body.appendChild(webview)
++    })
++
++    it('setting the attribute on a webview in a different window moves the contents', (done) => {
++      const loadListener = () => {
++        webview.removeEventListener('did-finish-load', loadListener, false)
++        const instance = webview.getAttribute('guestinstance')
++
++        w = new BrowserWindow({ show: false })
++        w.webContents.once('did-finish-load', () => {
++          ipcMain.once('pong', () => {
++            assert(!webview.hasAttribute('guestinstance'))
++            done()
++          })
++
++          w.webContents.send('guestinstance', instance)
++        })
++        w.loadURL(`file://${fixtures}/pages/webview-move-to-window.html`)
++      }
++      webview.addEventListener('did-finish-load', loadListener, false)
++      webview.src = `file://${fixtures}/api/blank.html`
++      document.body.appendChild(webview)
++    })
++
++    it('does not delete the guestinstance attribute when moving the webview to another parent node', (done) => {
++      webview.addEventListener('dom-ready', function domReadyListener () {
++        webview.addEventListener('did-attach', () => {
++          assert(webview.guestinstance != null)
++          assert(webview.getWebContents() != null)
++          done()
++        })
++
++        document.body.replaceChild(webview, div)
++      })
++      webview.src = `file://${fixtures}/pages/a.html`
++
++      const div = document.createElement('div')
++      div.appendChild(webview)
++      document.body.appendChild(div)
++    })
++
++    it('does not destroy the webContents when hiding/showing the webview (regression)', (done) => {
++      webview.addEventListener('dom-ready', function domReadyListener () {
++        const instance = webview.getAttribute('guestinstance')
++        assert(instance != null)
++
++        // Wait for event directly since attach happens asynchronously over IPC
++        ipcMain.once('ELECTRON_GUEST_VIEW_MANAGER_ATTACH_GUEST', () => {
++          assert(webview.getWebContents() != null)
++          assert.equal(instance, webview.getAttribute('guestinstance'))
++          done()
++        })
++
++        webview.style.display = 'none'
++        webview.offsetHeight // eslint-disable-line
++        webview.style.display = 'block'
++      })
++      webview.src = `file://${fixtures}/pages/a.html`
++      document.body.appendChild(webview)
++    })
++
++    it('does not reload the webContents when hiding/showing the webview (regression)', (done) => {
++      webview.addEventListener('dom-ready', function domReadyListener () {
++        webview.addEventListener('did-start-loading', () => {
++          done(new Error('webview started loading unexpectedly'))
++        })
++
++        // Wait for event directly since attach happens asynchronously over IPC
++        webview.addEventListener('did-attach', () => {
++          done()
++        })
++
++        webview.style.display = 'none'
++        webview.offsetHeight  // eslint-disable-line
++        webview.style.display = 'block'
++      })
++      webview.src = `file://${fixtures}/pages/a.html`
++      document.body.appendChild(webview)
++    })
++>>>>>>> .their
+   })
+ 
+   describe('DOM events', () => {
+changed in both
+  base   100644 f4cc9df68d54b62358834054f4a4cf129cce59ba toolchain.gypi
+  our    100644 697add78e42191741cee1b015cdcf4f801c570e7 toolchain.gypi
+  their  100644 f1c675ca558181ed847e7aef80d740a7c2fd786c toolchain.gypi
+@@ -36,10 +36,10 @@
+     'use_lto_o2%': 0,
+ 
+     'conditions': [
+-      # Do not use Clang on Windows or when building for mips64el.
+-      ['OS=="win" or target_arch=="mips64el"', {
++      # Do not use Clang when building for mips64el.
++      ['target_arch=="mips64el"', {
+         'clang%': 0,
+-      }],  # OS=="win"
++      }],  # target_arch=="mips64el"
+ 
+       # Search for the available version of SDK.
+       ['OS=="mac"', {
+changed in both
+  base   160000 90df5e9e88810a49a2e0db71f4e8d3a635108efa vendor/libchromiumcontent
+  our    160000 c85470a1c379b1c4bedb372c146521bc4be9b75d vendor/libchromiumcontent
+  their  160000 ce478b8e2ae2da549beb61b521f09e7584eb289e vendor/libchromiumcontent
+removed in local
+  base   160000 02693839ca2570a5f14b4270573c91cbf1bd9b1d vendor/native_mate
+  their  160000 875706f66008e03a0c7a699de16d7e2bde0efb90 vendor/native_mate
+changed in both
+  base   160000 538a5023af0a92ba19de2420a0eada6ad4cd18f6 vendor/node
+  our    160000 ece0a06ac8147efb5b5af431c21f312f1884616e vendor/node
+  their  160000 ea3592dc23ce43feb5aaa2990303fa5683404ff5 vendor/node

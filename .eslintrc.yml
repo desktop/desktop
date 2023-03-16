@@ -1,0 +1,205 @@
+root: true
+parser: '@typescript-eslint/parser'
+plugins:
+  - '@typescript-eslint'
+  - react
+  - json
+  - jsdoc
+
+settings:
+  react:
+    version: '16.3'
+
+extends:
+  - prettier
+  - prettier/react
+  - plugin:@typescript-eslint/recommended
+  - prettier/@typescript-eslint
+  - plugin:github/react
+
+rules:
+  ##########
+  # CUSTOM #
+  ##########
+  insecure-random: error
+  react-no-unbound-dispatcher-props: error
+  react-readonly-props-and-state: error
+  react-proper-lifecycle-methods: error
+  no-loosely-typed-webcontents-ipc: error
+
+  ###########
+  # PLUGINS #
+  ###########
+
+  # TYPESCRIPT
+  '@typescript-eslint/naming-convention':
+    - error
+    - selector: interface
+      format:
+        - PascalCase
+      custom:
+        regex: '^I[A-Z]'
+        match: true
+    - selector: class
+      format:
+        - PascalCase
+    - selector: variableLike
+      format: null
+      custom:
+        # Based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar we
+        # should probably be using the following expression here (newlines added for readability)
+        #
+        #   ^(break|case|catch|class|const|continue|debugger|default|delete|do|else|export|
+        #   extends|finally|for|function|if|import|in|instanceof|new|return|super|switch|this|
+        #   throw|try|typeof|var|void|while|with|yield|enum|implements|interface|let|package|
+        #   private|protected|public|static|await|abstract|boolean|byte|char|double|final|float|
+        #   goto|int|long|native|short|synchronized|throws|transient|volatile|null|true|false)$
+        #
+        # But that'll cause a bunch of errors, for now  we'll stick with replicating what the
+        # variable-name ban-keywords rule did for us in tslint
+        # see https://palantir.github.io/tslint/rules/variable-name/
+        regex: '^(any|Number|number|String|string|Boolean|boolean|Undefined|undefined)$'
+        match: false
+  '@typescript-eslint/consistent-type-assertions':
+    - error
+    - assertionStyle: 'as'
+  '@typescript-eslint/no-unused-expressions': error
+  '@typescript-eslint/explicit-member-accessibility': error
+  '@typescript-eslint/no-unused-vars':
+    - error
+    - args: 'none'
+  '@typescript-eslint/no-use-before-define':
+    - error
+    - functions: false
+      variables: false
+      typedefs: false
+  '@typescript-eslint/member-ordering':
+    - error
+    - default:
+        - static-field
+        - static-method
+        - field
+        - abstract-method
+        - constructor
+        - method
+  '@typescript-eslint/no-extraneous-class': error
+  '@typescript-eslint/no-empty-interface': error
+  # Would love to be able to turn this on eventually
+  '@typescript-eslint/no-non-null-assertion': off
+
+  # This rule does a lot of good but right now it catches way
+  # too many cases, we're gonna want to pay down this debt
+  # incrementally if we want to enable it.
+  '@typescript-eslint/ban-types': off
+
+  # It'd be nice to be able to turn this on eventually
+  '@typescript-eslint/no-var-requires': off
+
+  # Don't particularly care about these
+  '@typescript-eslint/triple-slash-reference': off
+  '@typescript-eslint/explicit-module-boundary-types': off
+  '@typescript-eslint/no-explicit-any': off
+  '@typescript-eslint/no-inferrable-types': off
+  '@typescript-eslint/no-empty-function': off
+  '@typescript-eslint/no-redeclare': error
+
+  # React
+  react/jsx-boolean-value:
+    - error
+    - always
+  react/jsx-key: error
+  react/jsx-no-bind: error
+  react/no-string-refs: error
+  react/jsx-uses-vars: error
+  react/jsx-uses-react: error
+  react/no-unused-state: error
+  react/no-unused-prop-types: error
+  react/prop-types:
+    - error
+    - ignore: ['children']
+
+  # JSDoc
+  jsdoc/check-alignment: error
+  jsdoc/check-tag-names: error
+  jsdoc/check-types: error
+  jsdoc/implements-on-classes: error
+  jsdoc/newline-after-description: error
+  jsdoc/no-undefined-types: error
+  jsdoc/valid-types: error
+
+  # Would love to enable these at some point but
+  # they cause way to many issues now.
+  #jsdoc/check-param-names: error
+  #jsdoc/require-jsdoc:
+  #  - error
+  #  - publicOnly: true
+
+  ###########
+  # BUILTIN #
+  ###########
+  curly: error
+  no-new-wrappers: error
+  # We'll use no-redeclare from @typescript/eslint-plugin instead as that
+  # supports overloads
+  no-redeclare: off
+  no-eval: error
+  no-sync: error
+  no-var: error
+  prefer-const: error
+  eqeqeq:
+    - error
+    - smart
+  strict:
+    - error
+    - global
+  no-buffer-constructor: error
+  no-restricted-imports:
+    - error
+    - paths:
+        - name: electron
+          importNames: ['ipcRenderer']
+          message:
+            "Please use 'import * as ipcRenderer' from 'ipc-renderer' instead to
+            get strongly typed IPC methods."
+        - name: electron/renderer
+          importNames: ['ipcRenderer']
+          message:
+            "Please use 'import * as ipcRenderer' from 'ipc-renderer' instead to
+            get strongly typed IPC methods."
+        - name: electron
+          importNames: ['ipcMain']
+          message:
+            "Please use 'import * as ipcMain' from 'ipc-main' instead to get
+            strongly typed IPC methods."
+        - name: electron/main
+          importNames: ['ipcMain']
+          message:
+            "Please use 'import * as ipcMain' from 'ipc-main' instead to get
+            strongly typed IPC methods."
+
+  ###########
+  # SPECIAL #
+  ###########
+  no-restricted-syntax:
+    - error
+    # no-default-export
+    - selector: ExportDefaultDeclaration
+      message: Use of default exports is forbidden
+
+overrides:
+  - files: '*.d.ts'
+    rules:
+      strict:
+        - error
+        - never
+  - files: 'app/test/**/*'
+    rules:
+      '@typescript-eslint/no-non-null-assertion': off
+  - files: 'script/**/*'
+    rules:
+      '@typescript-eslint/no-non-null-assertion': off
+
+parserOptions:
+  sourceType: module
+  ecmaFeatures:
+    jsx: true

@@ -1,0 +1,221 @@
+@import '../../mixins';
+
+/** A React component holding the commit message entry */
+.commit-message-component {
+  border-top: 1px solid var(--box-border-color);
+  flex-direction: column;
+  flex-shrink: 0;
+  margin-top: auto;
+
+  display: flex;
+  background-color: var(--box-alt-background-color);
+
+  padding: var(--spacing);
+
+  .summary {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+
+    .summary-field {
+      flex: 1;
+      margin-bottom: var(--spacing);
+
+      input {
+        width: 100%;
+      }
+    }
+
+    .avatar {
+      flex-shrink: 0;
+      width: var(--text-field-height);
+      height: var(--text-field-height);
+      margin-right: var(--spacing-half);
+    }
+
+    &.with-length-hint input {
+      padding-right: 20px;
+    }
+
+    .length-hint {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 16px;
+      margin-right: 4px;
+      height: var(--text-field-height);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .octicon {
+        height: 12px;
+      }
+    }
+  }
+
+  &.with-co-authors .description-focus-container {
+    .action-bar,
+    & {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+  .co-authors-toggle {
+    color: var(--text-secondary-color);
+
+    &:hover {
+      color: var(--text-color);
+    }
+
+    &:focus {
+      outline-offset: 2px;
+    }
+  }
+
+  &.with-co-authors .co-authors-toggle {
+    color: var(--link-button-color);
+
+    &:hover {
+      color: var(--link-button-hover-color);
+    }
+  }
+
+  // When we have an action bar we steal most of that
+  // space from the description field and a little from the
+  // changes list
+  &.with-action-bar {
+    .description-field textarea {
+      min-height: 80px;
+
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+  .description-focus-container {
+    border: var(--contrast-border);
+    border-radius: var(--border-radius);
+    background: var(--background-color);
+    // Fake that we're a text-box
+    cursor: text;
+
+    &.focus-within {
+      outline: none;
+      border-color: var(--focus-color);
+      box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+    }
+
+    .description-field.with-overflow {
+      position: relative;
+
+      &:after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        bottom: 0px;
+        height: 5px;
+        background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+        border-bottom: var(--base-border);
+      }
+    }
+
+    textarea {
+      border: none;
+      color: currentColor;
+      font-size: var(--font-size);
+      font-family: var(--font-family-sans-serif);
+      padding: var(--spacing-half);
+      resize: none;
+      min-height: 100px;
+
+      &:focus {
+        outline: 0;
+        border: none;
+        box-shadow: none;
+      }
+    }
+
+    .action-bar {
+      padding: var(--spacing-half);
+      background: var(--box-background-color);
+
+      border-bottom-left-radius: var(--border-radius);
+      border-bottom-right-radius: var(--border-radius);
+
+      // We're not faking being a textbox any more
+      cursor: default;
+
+      // This gets rid of the padding for the action bar
+      // when there's no buttons showing.
+      &:empty {
+        display: none;
+      }
+
+      &.disabled {
+        background: var(--box-alt-background-color);
+      }
+    }
+
+    .co-authors-toggle {
+      // button reset styles
+      border: none;
+      -webkit-appearance: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      text-align: left;
+      align-items: center;
+      display: block;
+
+      height: 16px;
+      width: 18px;
+      cursor: pointer;
+
+      &:after {
+        content: attr(aria-label);
+        position: absolute;
+        margin-left: 3px;
+        margin-top: 1px;
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary-color);
+        opacity: 0;
+        transition: 150ms all ease-in-out;
+        pointer-events: none;
+      }
+
+      &:disabled {
+        pointer-events: none;
+      }
+
+      &:hover {
+        &:after {
+          opacity: 1;
+        }
+      }
+
+      svg {
+        height: 13px;
+        width: 18px;
+        pointer-events: none;
+      }
+    }
+  }
+
+  .commit-button {
+    max-width: 100%;
+    margin-top: var(--spacing);
+
+    @include ellipsis;
+
+    .octicon {
+      flex-shrink: 0;
+      flex-grow: 0;
+      margin-right: var(--spacing-half);
+      height: 12px;
+      // In order to center it vertically in the button
+      margin-bottom: 1px;
+    }
+  }
+}

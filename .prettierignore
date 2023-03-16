@@ -1,0 +1,15 @@
+out/
+dist/
+vendor/
+tslint-rules/*.js
+npm-debug.log
+yarn-error.log
+.DS_Store
+.awcache
+.idea/
+.eslintcache
+app/coverage
+app/static/common
+app/test/fixtures
+gemoji
+*.md

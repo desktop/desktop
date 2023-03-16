@@ -1,0 +1,66 @@
+changed in both
+  base   100644 a265b942f31ff76d7e21da03e7eafb6d164fd610 atom/renderer/api/atom_api_web_frame.cc
+  our    100644 f0f7ef249d73876f7107d3d3865e8fc71ee33945 atom/renderer/api/atom_api_web_frame.cc
+  their  100644 c8b21cd90045ef148841ec8fd93f1a4b634f3dd1 atom/renderer/api/atom_api_web_frame.cc
+@@ -28,7 +28,13 @@
+ #include "third_party/WebKit/public/web/WebLocalFrame.h"
+ #include "third_party/WebKit/public/web/WebScriptExecutionCallback.h"
+ #include "third_party/WebKit/public/web/WebScriptSource.h"
++#include "third_party/WebKit/public/web/WebSecurityPolicy.h"
+ #include "third_party/WebKit/public/web/WebView.h"
++<<<<<<< .our
++=======
++#include "third_party/WebKit/Source/platform/weborigin/SchemeRegistry.h"
++#include "url/gurl.h"
++>>>>>>> .their
+ 
+ #include "atom/common/node_includes.h"
+ 
+@@ -281,6 +287,18 @@
+   }
+ }
+ 
++void WebFrame::AddOriginAccessWhitelistEntry(
++    const std::string& sourceOrigin,
++    const std::string& destinationProtocol,
++    const std::string& destinationHost,
++    bool allowDestinationSubdomains) {
++    blink::WebSecurityPolicy::AddOriginAccessWhitelistEntry(
++        GURL(sourceOrigin.c_str()),
++        blink::WebString::FromUTF8(destinationProtocol),
++        blink::WebString::FromUTF8(destinationHost),
++        allowDestinationSubdomains);
++};
++
+ void WebFrame::InsertText(const std::string& text) {
+   web_frame_->FrameWidget()->GetActiveWebInputMethodController()->CommitText(
+       blink::WebString::FromUTF8(text),
+@@ -497,6 +515,8 @@
+                  &WebFrame::RegisterURLSchemeAsBypassingCSP)
+       .SetMethod("registerURLSchemeAsPrivileged",
+                  &WebFrame::RegisterURLSchemeAsPrivileged)
++      .SetMethod("addOriginAccessWhitelistEntry",
++                 &WebFrame::AddOriginAccessWhitelistEntry)
+       .SetMethod("insertText", &WebFrame::InsertText)
+       .SetMethod("insertCSS", &WebFrame::InsertCSS)
+       .SetMethod("executeJavaScript", &WebFrame::ExecuteJavaScript)
+changed in both
+  base   100644 6c6d0b19f985666449f301b645309c87e4a76e66 atom/renderer/api/atom_api_web_frame.h
+  our    100644 4cc6386abcb41cfa29fdc002f6fb267329bb112d atom/renderer/api/atom_api_web_frame.h
+  their  100644 d2e4c9e0d6fecee98926b906e5355454507eab9d atom/renderer/api/atom_api_web_frame.h
+@@ -64,9 +64,13 @@
+   void RegisterURLSchemeAsBypassingCSP(const std::string& scheme);
+   void RegisterURLSchemeAsPrivileged(const std::string& scheme,
+                                      mate::Arguments* args);
++  void AddOriginAccessWhitelistEntry(const std::string& sourceOrigin,
++                                     const std::string& destinationProtocol,
++                                     const std::string& destinationHost,
++                                     bool allowDestinationSubdomains);
+ 
+-  // Editing.
+-  void InsertText(const std::string& text);
++      // Editing.
++      void InsertText(const std::string& text);
+   void InsertCSS(const std::string& css);
+ 
+   // Executing scripts.

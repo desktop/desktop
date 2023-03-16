@@ -1,0 +1,53 @@
+dialog#about {
+  .dialog-content {
+    .row-component {
+      justify-content: center;
+    }
+
+    p,
+    h2 {
+      text-align: center;
+    }
+
+    // The version, EULA link, and acknowledgements are conceptually two lines
+    // in a paragraph but we don't have a great way of modelling that now
+    // (and don't you say <br/>) so we'll just kill off the bottom margin.
+    p.no-padding {
+      margin-bottom: 0;
+    }
+
+    .version-text {
+      cursor: pointer;
+      .octicon {
+        color: transparentize(black, 0.5);
+        height: 12px;
+        margin-bottom: -1px;
+        transition: color 0.4s;
+        cursor: pointer;
+      }
+      &:hover .octicon {
+        color: black;
+      }
+    }
+  }
+
+  .logo {
+    justify-content: center;
+    svg {
+      width: 64px;
+      height: 64px;
+    }
+  }
+
+  .update-status {
+    .octicon.spin {
+      // Make sure the spinner is aligned with the text.
+      align-self: center;
+
+      // Tighten up the spacing between the spinner and the text
+      &:not(:last-child) {
+        margin-right: 3px;
+      }
+    }
+  }
+}

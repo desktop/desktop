@@ -1,0 +1,82 @@
+merged
+  result 100644 4c4b6c6d0dc41877c19240adbfb7d552e0194239 atom/browser/api/atom_api_browser_view.cc
+  our    100644 bd83208694c61c4d7c43ce4be26939c2682b2a13 atom/browser/api/atom_api_browser_view.cc
+@@ -60,7 +60,7 @@
+                        const mate::Dictionary& options) {
+   mate::Dictionary web_preferences = mate::Dictionary::CreateEmpty(isolate);
+   options.Get(options::kWebPreferences, &web_preferences);
+-  web_preferences.Set("isBrowserView", true);
++  web_preferences.Set("type", "browserView");
+   mate::Handle<class WebContents> web_contents =
+       WebContents::Create(isolate, web_preferences);
+ 
+changed in both
+  base   100644 7a578e153cba0cd75c1fc1ddfc4bd1b9a7490658 atom/browser/api/atom_api_web_contents.cc
+  our    100644 20a1ac2e672f08ffea528b6e094ba530ff8083d1 atom/browser/api/atom_api_web_contents.cc
+  their  100644 26d163eb76204459f5ee32cf07b1e64d066d15b7 atom/browser/api/atom_api_web_contents.cc
+@@ -332,20 +332,16 @@
+   // Read options.
+   options.Get("backgroundThrottling", &background_throttling_);
+ 
+-  // FIXME(zcbenz): We should read "type" parameter for better design, but
+-  // on Windows we have encountered a compiler bug that if we read "type"
+-  // from |options| and then set |type_|, a memory corruption will happen
+-  // and Electron will soon crash.
+-  // Remvoe this after we upgraded to use VS 2015 Update 3.
++  // Get type
++  options.Get("type", &type_);
++
+   bool b = false;
+-  if (options.Get("isGuest", &b) && b)
+-    type_ = WEB_VIEW;
+-  else if (options.Get("isBackgroundPage", &b) && b)
+-    type_ = BACKGROUND_PAGE;
+-  else if (options.Get("isBrowserView", &b) && b)
+-    type_ = BROWSER_VIEW;
+ #if defined(ENABLE_OSR)
++<<<<<<< .our
+   else if (options.Get(options::kOffscreen, &b) && b)
++=======
++  if (options.Get("offscreen", &b) && b)
++>>>>>>> .their
+     type_ = OFF_SCREEN;
+ #endif
+ 
+merged
+  result 100644 e6952bdede4c7560332576a0e208a74c3b52ac41 lib/browser/chrome-extension.js
+  our    100644 4132aedadd759f56db7eceabd6327d1b29aa09eb lib/browser/chrome-extension.js
+@@ -85,7 +85,7 @@
+ 
+   const contents = webContents.create({
+     partition: 'persist:__chrome_extension',
+-    isBackgroundPage: true,
++    type: 'backgroundPage',
+     commandLineSwitches: ['--background-page']
+   })
+   backgroundPages[manifest.extensionId] = { html: html, webContents: contents, name: name }
+changed in both
+  base   100644 e7f620a6e291fa1af83f025e862b3d3c076a36f2 lib/browser/guest-view-manager.js
+  our    100644 1e4029e39a981c85fb6ff18c5ccd52f81b3c56f2 lib/browser/guest-view-manager.js
+  their  100644 96a475c32f35fe411cfe5c3d0429959848ee7f34 lib/browser/guest-view-manager.js
+@@ -59,7 +59,7 @@
+ 
+   const guestInstanceId = getNextGuestInstanceId(embedder)
+   const guest = webContents.create({
+-    isGuest: true,
++    type: 'webView',
+     partition: params.partition,
+     embedder: embedder
+   })
+changed in both
+  base   100644 8e2aa3bb988208ec4f266d3169020daca4068de3 lib/browser/guest-window-manager.js
+  our    100644 7253c1942b0956ae6b9b0c80a23470fc26669b8a lib/browser/guest-window-manager.js
+  their  100644 0c5bf15b49299dd848d1234ea7586e746f1fb30f lib/browser/guest-window-manager.js
+@@ -25,7 +25,7 @@
+ 
+   visited.add(parent)
+   for (const key in parent) {
+-    if (key === 'isBrowserView') continue
++    if (key === 'type') continue
+     if (!hasProp.call(parent, key)) continue
+     if (key in child && key !== 'webPreferences') continue
+ 

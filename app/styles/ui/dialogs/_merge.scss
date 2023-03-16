@@ -1,0 +1,51 @@
+@import '../../mixins';
+
+dialog#merge {
+  width: 450px;
+
+  .branches-list {
+    height: 300px;
+  }
+
+  // We're faking it so that the filter text box appears to reside
+  // withing the header even though our current component structure
+  // make it extremely hard to do so.
+  .dialog-header {
+    border-bottom: none;
+
+    h1 {
+      font-weight: var(--font-weight-light);
+    }
+  }
+
+  .dialog-content {
+    padding: 0;
+
+    .filter-field-row {
+      margin: 0;
+      border-bottom: var(--base-border);
+
+      .filter-list-filter-field {
+        padding: 0 var(--spacing-double);
+        padding-bottom: var(--spacing);
+      }
+    }
+
+    .list-item {
+      padding: 0 var(--spacing-double);
+
+      .filter-list-group-header,
+      .branches-list-item {
+        padding: 0;
+      }
+    }
+  }
+
+  .dialog-footer {
+    button[type='submit'] {
+      height: auto;
+      width: 100%;
+      padding: var(--spacing-half);
+    }
+  }
+}

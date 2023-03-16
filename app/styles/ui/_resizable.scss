@@ -1,0 +1,17 @@
+.resizable-component {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+
+  // This is for the absolutely positioned resize handle
+  position: relative;
+
+  .resize-handle {
+    position: absolute;
+    right: -5px;
+    top: 0px;
+    height: 100%;
+    width: 10px;
+    cursor: ew-resize;
+  }
+}

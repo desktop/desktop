@@ -1,0 +1,17 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+	precomposeunicode = true
+	worktree = ../../../../foo/submodule
+[remote "origin"]
+	url = https://github.com/shiftkey/submodule-test-case
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+[branch "branch-with-tag"]
+	remote = origin
+	merge = refs/heads/branch-with-tag

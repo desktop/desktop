@@ -1,0 +1,37 @@
+#configure-git-user {
+  .form-component {
+    margin: var(--spacing-double) 0;
+  }
+
+  .config-lock-file-exists-component {
+    background: var(--form-error-background);
+    border: 1px solid var(--form-error-border-color);
+    color: var(--form-error-text-color);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-half);
+    border-radius: var(--border-radius);
+  }
+
+  // Styles for the commit list that's shown in the Configure Git component.
+  .commit-list-example {
+    position: relative;
+
+    background: white;
+
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+
+    .header {
+      background: rgb(242, 248, 254);
+      padding: var(--spacing-half) var(--spacing);
+      font-size: var(--font-size-sm);
+    }
+
+    .commit {
+      font-size: var(--font-size);
+      padding: var(--spacing-half) var(--spacing);
+      width: 280px;
+      border-bottom: none;
+    }
+  }
+}

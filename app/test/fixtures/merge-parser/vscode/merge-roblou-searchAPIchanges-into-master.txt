@@ -1,0 +1,1131 @@
+changed in both
+  base   100644 59949ab60c9655824e691cca589b66082141a2db src/vs/vscode.proposed.d.ts
+  our    100644 3de4a7af9dda9e3e523ba4b5774f1667d66b0b9b src/vs/vscode.proposed.d.ts
+  their  100644 949d3e7e4c92ed9fe0bfb76b1d83b344a8dbb1a9 src/vs/vscode.proposed.d.ts
+@@ -161,6 +161,21 @@
+ 		preview: TextSearchResultPreview;
+ 	}
+ 
++	export interface FileIndexProvider {
++		provideFileIndex(options: FileSearchOptions, token: CancellationToken): Thenable<Uri[]>;
++	}
++
++	export interface TextSearchProvider {
++		/**
++		 * Provide results that match the given text pattern.
++		 * @param query The parameters for this query.
++		 * @param options A set of options to consider while searching.
++		 * @param progress A progress callback that must be invoked for all results.
++		 * @param token A cancellation token.
++		 */
++		provideTextSearchResults?(query: TextSearchQuery, options: TextSearchOptions, progress: Progress<TextSearchResult>, token: CancellationToken): Thenable<void>;
++	}
++
+ 	/**
+ 	 * A FileIndexProvider provides a list of files in the given folder. VS Code will filter that list for searching with quickopen or from other extensions.
+ 	 *
+@@ -200,6 +215,7 @@
+ 		 * @param progress A progress callback that must be invoked for all results.
+ 		 * @param token A cancellation token.
+ 		 */
++<<<<<<< .our
+ 		provideFileSearchResults(query: FileSearchQuery, options: FileSearchOptions, token: CancellationToken): Thenable<Uri[]>;
+ 	}
+ 
+@@ -215,6 +231,15 @@
+ 		 * @param token A cancellation token.
+ 		 */
+ 		provideTextSearchResults(query: TextSearchQuery, options: TextSearchOptions, progress: Progress<TextSearchResult>, token: CancellationToken): Thenable<void>;
++=======
++		provideFileSearchResults?(query: FileSearchQuery, options: FileSearchOptions, progress: Progress<Uri>, token: CancellationToken): Thenable<void>;
++
++		/**
++		 * Optional - if the provider makes use of `query.cacheKey`, it can implement this method which is invoked when the cache can be cleared.
++		 * @param cacheKey The same key that was passed as `query.cacheKey`.
++		 */
++		clearCache?(cacheKey: string): void;
++>>>>>>> .their
+ 	}
+ 
+ 	/**
+@@ -285,7 +310,33 @@
+ 		 * @param provider The provider.
+ 		 * @return A [disposable](#Disposable) that unregisters this provider when being disposed.
+ 		 */
++<<<<<<< .our
+ 		export function registerFileSearchProvider(scheme: string, provider: FileSearchProvider): Disposable;
++=======
++		export function registerFileSearchProvider(scheme: string, provider: SearchProvider): Disposable;
++
++		/**
++		 * Register a text search provider.
++		 *
++		 * Only one provider can be registered per scheme.
++		 *
++		 * @param scheme The provider will be invoked for workspace folders that have this file scheme.
++		 * @param provider The provider.
++		 * @return A [disposable](#Disposable) that unregisters this provider when being disposed.
++		 */
++		export function registerTextSearchProvider(scheme: string, provider: TextSearchProvider): Disposable;
++
++		/**
++		 * Register a file index provider.
++		 *
++		 * Only one provider can be registered per scheme.
++		 *
++		 * @param scheme The provider will be invoked for workspace folders that have this file scheme.
++		 * @param provider The provider.
++		 * @return A [disposable](#Disposable) that unregisters this provider when being disposed.
++		 */
++		export function registerFileIndexProvider(scheme: string, provider: FileIndexProvider): Disposable;
++>>>>>>> .their
+ 
+ 		/**
+ 		 * Register a text search provider.
+changed in both
+  base   100644 caffd57767b87abe86ffadfaba7ef7e1baf3d192 src/vs/workbench/api/electron-browser/mainThreadSearch.ts
+  our    100644 9028249c12b6df8911921b0b0ad6980bb9c833d3 src/vs/workbench/api/electron-browser/mainThreadSearch.ts
+  their  100644 d88cda816860304294c20f7bc951816f75d1cbd1 src/vs/workbench/api/electron-browser/mainThreadSearch.ts
+changed in both
+  base   100644 7f33441ca834e00a9790a642d29f418d1f855bed src/vs/workbench/api/node/extHost.api.impl.ts
+  our    100644 ea64898c5b15cfae4b4ab32d722f4ae4a68f831a src/vs/workbench/api/node/extHost.api.impl.ts
+  their  100644 504df828bc76e7354606e96b067681107d9f451b src/vs/workbench/api/node/extHost.api.impl.ts
+@@ -580,10 +580,13 @@
+ 			registerFileSearchProvider: proposedApiFunction(extension, (scheme, provider) => {
+ 				return extHostSearch.registerFileSearchProvider(scheme, provider);
+ 			}),
++<<<<<<< .our
+ 			registerSearchProvider: proposedApiFunction(extension, () => {
+ 				// Temp for live share in Insiders
+ 				return { dispose: () => { } };
+ 			}),
++=======
++>>>>>>> .their
+ 			registerTextSearchProvider: proposedApiFunction(extension, (scheme, provider) => {
+ 				return extHostSearch.registerTextSearchProvider(scheme, provider);
+ 			}),
+changed in both
+  base   100644 11e0707a3467a81757546b271b99e530cd36de74 src/vs/workbench/api/node/extHost.protocol.ts
+  our    100644 edb764542adfbf0fba64e1b93de7c309bedf0d12 src/vs/workbench/api/node/extHost.protocol.ts
+  their  100644 ba37c355b3593a8e2a512b6e4efc47457ca68d11 src/vs/workbench/api/node/extHost.protocol.ts
+added in both
+  our    100644 90b8a578f1cf76a34063d5e958cf1babbb08df87 src/vs/workbench/api/node/extHostSearch.fileIndex.ts
+  their  100644 1cfb58fc3243ee243cecb4a715cf4b76f77d5f5e src/vs/workbench/api/node/extHostSearch.fileIndex.ts
+@@ -12,14 +12,23 @@
+ import * as resources from 'vs/base/common/resources';
+ import * as strings from 'vs/base/common/strings';
+ import URI from 'vs/base/common/uri';
++<<<<<<< .our
+ import { TPromise } from 'vs/base/common/winjs.base';
+ import { compareItemsByScore, IItemAccessor, prepareQuery, ScorerCache } from 'vs/base/parts/quickopen/common/quickOpenScorer';
+ import { IFileMatch, IFolderQuery, IRawSearchQuery, ISearchCompleteStats, ISearchQuery } from 'vs/platform/search/common/search';
++=======
++import { PPromise, TPromise } from 'vs/base/common/winjs.base';
++import { compareItemsByScore, IItemAccessor, prepareQuery, ScorerCache } from 'vs/base/parts/quickopen/common/quickOpenScorer';
++import { ICachedSearchStats, IFileMatch, IFolderQuery, IRawSearchQuery, ISearchCompleteStats, ISearchQuery } from 'vs/platform/search/common/search';
++>>>>>>> .their
+ import * as vscode from 'vscode';
+ 
+ export interface IInternalFileMatch {
+ 	base: URI;
++<<<<<<< .our
+ 	original?: URI;
++=======
++>>>>>>> .their
+ 	relativePath?: string; // Not present for extraFiles or absolute path matches
+ 	basename: string;
+ 	size?: number;
+@@ -135,24 +144,37 @@
+ 	pathToEntries: { [relativePath: string]: IDirectoryEntry[] };
+ }
+ 
++<<<<<<< .our
+ // ???
+ interface IInternalSearchComplete {
+ 	limitHit: boolean;
+ 	results: IInternalFileMatch[];
+ }
+ 
++=======
++>>>>>>> .their
+ export class FileIndexSearchEngine {
+ 	private filePattern: string;
+ 	private normalizedFilePatternLowercase: string;
+ 	private includePattern: glob.ParsedExpression;
+ 	private maxResults: number;
+ 	private exists: boolean;
++<<<<<<< .our
++=======
++	// private maxFilesize: number;
++>>>>>>> .their
+ 	private isLimitHit: boolean;
+ 	private resultCount: number;
+ 	private isCanceled: boolean;
+ 
+ 	private activeCancellationTokens: Set<CancellationTokenSource>;
+ 
++<<<<<<< .our
++=======
++	// private filesWalked: number;
++	// private directoriesWalked: number;
++
++>>>>>>> .their
+ 	private globalExcludePattern: glob.ParsedExpression;
+ 
+ 	constructor(private config: ISearchQuery, private provider: vscode.FileIndexProvider) {
+@@ -160,10 +182,20 @@
+ 		this.includePattern = config.includePattern && glob.parse(config.includePattern);
+ 		this.maxResults = config.maxResults || null;
+ 		this.exists = config.exists;
++<<<<<<< .our
++=======
++		// this.maxFilesize = config.maxFileSize || null;
++>>>>>>> .their
+ 		this.resultCount = 0;
+ 		this.isLimitHit = false;
+ 		this.activeCancellationTokens = new Set<CancellationTokenSource>();
+ 
++<<<<<<< .our
++=======
++		// this.filesWalked = 0;
++		// this.directoriesWalked = 0;
++
++>>>>>>> .their
+ 		if (this.filePattern) {
+ 			this.normalizedFilePatternLowercase = strings.stripWildcards(this.filePattern).toLowerCase();
+ 		}
+@@ -177,6 +209,7 @@
+ 		this.activeCancellationTokens = new Set();
+ 	}
+ 
++<<<<<<< .our
+ 	public search(_onResult: (match: IInternalFileMatch) => void): TPromise<{ isLimitHit: boolean }> {
+ 		if (this.config.folderQueries.length !== 1) {
+ 			throw new Error('Searches just one folder');
+@@ -185,6 +218,12 @@
+ 		const folderQuery = this.config.folderQueries[0];
+ 
+ 		return new TPromise<{ isLimitHit: boolean }>((resolve, reject) => {
++=======
++	public search(): PPromise<{ isLimitHit: boolean }, IInternalFileMatch> {
++		const folderQueries = this.config.folderQueries;
++
++		return new PPromise<{ isLimitHit: boolean }, IInternalFileMatch>((resolve, reject, _onResult) => {
++>>>>>>> .their
+ 			const onResult = (match: IInternalFileMatch) => {
+ 				this.resultCount++;
+ 				_onResult(match);
+@@ -209,6 +248,7 @@
+ 					});
+ 			}
+ 
++<<<<<<< .our
+ 			return this.searchInFolder(folderQuery, _onResult)
+ 				.then(() => {
+ 					resolve({ isLimitHit: this.isLimitHit });
+@@ -225,6 +265,26 @@
+ 	private searchInFolder(fq: IFolderQuery<URI>, onResult: (match: IInternalFileMatch) => void): TPromise<void> {
+ 		let cancellation = new CancellationTokenSource();
+ 		return new TPromise((resolve, reject) => {
++=======
++			// For each root folder
++			PPromise.join(folderQueries.map(fq => {
++				return this.searchInFolder(fq).then(null, null, onResult);
++			})).then(() => {
++				resolve({ isLimitHit: this.isLimitHit });
++			}, (errs: Error[]) => {
++				const errMsg = errs
++					.map(err => toErrorMessage(err))
++					.filter(msg => !!msg)[0];
++
++				reject(new Error(errMsg));
++			});
++		});
++	}
++
++	private searchInFolder(fq: IFolderQuery<URI>): PPromise<void, IInternalFileMatch> {
++		let cancellation = new CancellationTokenSource();
++		return new PPromise((resolve, reject, onResult) => {
++>>>>>>> .their
+ 			const options = this.getSearchOptionsForFolder(fq);
+ 			const tree = this.initDirectoryTree();
+ 
+@@ -240,7 +300,11 @@
+ 				const relativePath = path.relative(fq.folder.path, uri.path);
+ 				if (noSiblingsClauses) {
+ 					const basename = path.basename(uri.path);
++<<<<<<< .our
+ 					this.matchFile(onResult, { base: fq.folder, relativePath, basename, original: uri });
++=======
++					this.matchFile(onResult, { base: fq.folder, relativePath, basename });
++>>>>>>> .their
+ 
+ 					return;
+ 				}
+@@ -276,7 +340,11 @@
+ 		});
+ 	}
+ 
++<<<<<<< .our
+ 	private getSearchOptionsForFolder(fq: IFolderQuery<URI>): vscode.FileIndexOptions {
++=======
++	private getSearchOptionsForFolder(fq: IFolderQuery<URI>): vscode.FileSearchOptions {
++>>>>>>> .their
+ 		const includes = resolvePatternsForProvider(this.config.includePattern, fq.includePattern);
+ 		const excludes = resolvePatternsForProvider(this.config.excludePattern, fq.excludePattern);
+ 
+@@ -361,6 +429,25 @@
+ 		matchDirectory(rootEntries);
+ 	}
+ 
++<<<<<<< .our
++=======
++	public getStats(): any {
++		return null;
++		// return {
++		// 	fromCache: false,
++		// 	traversal: Traversal[this.traversal],
++		// 	errors: this.errors,
++		// 	fileWalkStartTime: this.fileWalkStartTime,
++		// 	fileWalkResultTime: Date.now(),
++		// 	directoriesWalked: this.directoriesWalked,
++		// 	filesWalked: this.filesWalked,
++		// 	resultCount: this.resultCount,
++		// 	cmdForkResultTime: this.cmdForkResultTime,
++		// 	cmdResultCount: this.cmdResultCount
++		// };
++	}
++
++>>>>>>> .their
+ 	private matchFile(onResult: (result: IInternalFileMatch) => void, candidate: IInternalFileMatch): void {
+ 		if (this.isFilePatternMatch(candidate.relativePath) && (!this.includePattern || this.includePattern(candidate.relativePath, candidate.basename))) {
+ 			if (this.exists || (this.maxResults && this.resultCount >= this.maxResults)) {
+@@ -395,9 +482,13 @@
+ 
+ 	private caches: { [cacheKey: string]: Cache; } = Object.create(null);
+ 
++<<<<<<< .our
+ 	private readonly folderCacheKeys = new Map<string, Set<string>>();
+ 
+ 	public fileSearch(config: ISearchQuery, provider: vscode.FileIndexProvider, onBatch: (matches: IFileMatch[]) => void): TPromise<ISearchCompleteStats> {
++=======
++	public fileSearch(config: ISearchQuery, provider: vscode.FileIndexProvider, onResult: (matches: IFileMatch[]) => void): TPromise<ISearchCompleteStats> {
++>>>>>>> .their
+ 		if (config.sortByScore) {
+ 			let sortedSearch = this.trySortedSearchFromCache(config);
+ 			if (!sortedSearch) {
+@@ -409,6 +500,7 @@
+ 					config;
+ 
+ 				const engine = new FileIndexSearchEngine(engineConfig, provider);
++<<<<<<< .our
+ 				sortedSearch = this.doSortedSearch(engine, config);
+ 			}
+ 
+@@ -417,11 +509,25 @@
+ 					this.sendAsBatches(complete.results, onBatch, FileIndexSearchManager.BATCH_SIZE);
+ 					c(complete);
+ 				}, e);
++=======
++				sortedSearch = this.doSortedSearch(engine, provider, config);
++			}
++
++			return new TPromise<ISearchCompleteStats>((c, e) => {
++				process.nextTick(() => { // allow caller to register progress callback first
++					sortedSearch.then(([result, rawMatches]) => {
++						const serializedMatches = rawMatches.map(rawMatch => this.rawMatchToSearchItem(rawMatch));
++						this.sendProgress(serializedMatches, onResult, FileIndexSearchManager.BATCH_SIZE);
++						c(result);
++					}, e, onResult);
++				});
++>>>>>>> .their
+ 			}, () => {
+ 				sortedSearch.cancel();
+ 			});
+ 		}
+ 
++<<<<<<< .our
+ 		const engine = new FileIndexSearchEngine(config, provider);
+ 		return this.doSearch(engine)
+ 			.then(complete => {
+@@ -442,10 +548,27 @@
+ 		this.folderCacheKeys.get(config.cacheKey).add(folderCacheKey);
+ 
+ 		return folderCacheKey;
++=======
++		let searchPromise: TPromise<void, IInternalFileMatch[]>;
++		return new TPromise<ISearchCompleteStats>((c, e) => {
++			const engine = new FileIndexSearchEngine(config, provider);
++			searchPromise = this.doSearch(engine, provider, FileIndexSearchManager.BATCH_SIZE)
++				.then(c, e, progress => {
++					if (Array.isArray(progress)) {
++						onResult(progress.map(m => this.rawMatchToSearchItem(m)));
++					} else if ((<IInternalFileMatch>progress).relativePath) {
++						onResult([this.rawMatchToSearchItem(<IInternalFileMatch>progress)]);
++					}
++				});
++		}, () => {
++			searchPromise.cancel();
++		});
++>>>>>>> .their
+ 	}
+ 
+ 	private rawMatchToSearchItem(match: IInternalFileMatch): IFileMatch {
+ 		return {
++<<<<<<< .our
+ 			resource: match.original || resources.joinPath(match.base, match.relativePath)
+ 		};
+ 	}
+@@ -454,14 +577,40 @@
+ 		let searchPromise: TPromise<void>;
+ 		let allResultsPromise = new TPromise<IInternalSearchComplete>((c, e) => {
+ 			searchPromise = this.doSearch(engine).then(c, e);
++=======
++			resource: resources.joinPath(match.base, match.relativePath)
++		};
++	}
++
++	private doSortedSearch(engine: FileIndexSearchEngine, provider: vscode.FileIndexProvider, config: IRawSearchQuery): PPromise<[ISearchCompleteStats, IInternalFileMatch[]]> {
++		let searchPromise: PPromise<void, IInternalFileMatch[]>;
++		let allResultsPromise = new PPromise<[ISearchCompleteStats, IInternalFileMatch[]], IInternalFileMatch[]>((c, e, p) => {
++			let results: IInternalFileMatch[] = [];
++			searchPromise = this.doSearch(engine, provider, -1)
++				.then(result => {
++					c([result, results]);
++				}, e, progress => {
++					if (Array.isArray(progress)) {
++						results = progress;
++					} else {
++						p(progress);
++					}
++				});
++>>>>>>> .their
+ 		}, () => {
+ 			searchPromise.cancel();
+ 		});
+ 
++<<<<<<< .our
+ 		const folderCacheKey = this.getFolderCacheKey(config);
+ 		let cache: Cache;
+ 		if (folderCacheKey) {
+ 			cache = this.getOrCreateCache(folderCacheKey);
++=======
++		let cache: Cache;
++		if (config.cacheKey) {
++			cache = this.getOrCreateCache(config.cacheKey);
++>>>>>>> .their
+ 			cache.resultsToSearchCache[config.filePattern] = allResultsPromise;
+ 			allResultsPromise.then(null, err => {
+ 				delete cache.resultsToSearchCache[config.filePattern];
+@@ -470,6 +619,7 @@
+ 		}
+ 
+ 		let chained: TPromise<void>;
++<<<<<<< .our
+ 		return new TPromise<IInternalSearchComplete>((c, e) => {
+ 			chained = allResultsPromise.then(complete => {
+ 				const scorerCache: ScorerCache = cache ? cache.scorerCache : Object.create(null);
+@@ -482,6 +632,25 @@
+ 						});
+ 					});
+ 			}, e);
++=======
++		return new PPromise<[ISearchCompleteStats, IInternalFileMatch[]]>((c, e, p) => {
++			chained = allResultsPromise.then(([result, results]) => {
++				const scorerCache: ScorerCache = cache ? cache.scorerCache : Object.create(null);
++				const unsortedResultTime = Date.now();
++				return this.sortResults(config, results, scorerCache)
++					.then(sortedResults => {
++						const sortedResultTime = Date.now();
++
++						c([{
++							stats: {
++								...result.stats,
++								...{ unsortedResultTime, sortedResultTime }
++							},
++							limitHit: result.limitHit || typeof config.maxResults === 'number' && results.length > config.maxResults
++						}, sortedResults]);
++					});
++			}, e, p);
++>>>>>>> .their
+ 		}, () => {
+ 			chained.cancel();
+ 		});
+@@ -495,13 +664,19 @@
+ 		return this.caches[cacheKey] = new Cache();
+ 	}
+ 
++<<<<<<< .our
+ 	private trySortedSearchFromCache(config: ISearchQuery): TPromise<IInternalSearchComplete> {
+ 		const folderCacheKey = this.getFolderCacheKey(config);
+ 		const cache = folderCacheKey && this.caches[folderCacheKey];
++=======
++	private trySortedSearchFromCache(config: IRawSearchQuery): TPromise<[ISearchCompleteStats, IInternalFileMatch[]]> {
++		const cache = config.cacheKey && this.caches[config.cacheKey];
++>>>>>>> .their
+ 		if (!cache) {
+ 			return undefined;
+ 		}
+ 
++<<<<<<< .our
+ 		const cached = this.getResultsFromCache(cache, config.filePattern);
+ 		if (cached) {
+ 			let chained: TPromise<void>;
+@@ -513,6 +688,41 @@
+ 								limitHit: complete.limitHit || typeof config.maxResults === 'number' && complete.results.length > config.maxResults,
+ 								results: sortedResults
+ 							});
++=======
++		const cacheLookupStartTime = Date.now();
++		const cached = this.getResultsFromCache(cache, config.filePattern);
++		if (cached) {
++			let chained: TPromise<void>;
++			return new TPromise<[ISearchCompleteStats, IInternalFileMatch[]]>((c, e) => {
++				chained = cached.then(([result, results, cacheStats]) => {
++					const cacheLookupResultTime = Date.now();
++					return this.sortResults(config, results, cache.scorerCache)
++						.then(sortedResults => {
++							const sortedResultTime = Date.now();
++
++							const stats: ICachedSearchStats = {
++								fromCache: true,
++								cacheLookupStartTime: cacheLookupStartTime,
++								cacheFilterStartTime: cacheStats.cacheFilterStartTime,
++								cacheLookupResultTime: cacheLookupResultTime,
++								cacheEntryCount: cacheStats.cacheFilterResultCount,
++								resultCount: results.length
++							};
++							if (config.sortByScore) {
++								stats.unsortedResultTime = cacheLookupResultTime;
++								stats.sortedResultTime = sortedResultTime;
++							}
++							if (!cacheStats.cacheWasResolved) {
++								stats.joined = result.stats;
++							}
++							c([
++								{
++									limitHit: result.limitHit || typeof config.maxResults === 'number' && results.length > config.maxResults,
++									stats: stats
++								},
++								sortedResults
++							]);
++>>>>>>> .their
+ 						});
+ 				}, e);
+ 			}, () => {
+@@ -533,6 +743,7 @@
+ 		return arrays.topAsync(results, compare, config.maxResults, 10000);
+ 	}
+ 
++<<<<<<< .our
+ 	private sendAsBatches(rawMatches: IInternalFileMatch[], onBatch: (batch: IFileMatch[]) => void, batchSize: number) {
+ 		const serializedMatches = rawMatches.map(rawMatch => this.rawMatchToSearchItem(rawMatch));
+ 		if (batchSize && batchSize > 0) {
+@@ -545,13 +756,31 @@
+ 	}
+ 
+ 	private getResultsFromCache(cache: Cache, searchValue: string): TPromise<IInternalSearchComplete> {
++=======
++	private sendProgress(results: IFileMatch[], progressCb: (batch: IFileMatch[]) => void, batchSize: number) {
++		if (batchSize && batchSize > 0) {
++			for (let i = 0; i < results.length; i += batchSize) {
++				progressCb(results.slice(i, i + batchSize));
++			}
++		} else {
++			progressCb(results);
++		}
++	}
++
++	private getResultsFromCache(cache: Cache, searchValue: string): PPromise<[ISearchCompleteStats, IInternalFileMatch[], CacheStats]> {
++>>>>>>> .their
+ 		if (path.isAbsolute(searchValue)) {
+ 			return null; // bypass cache if user looks up an absolute path where matching goes directly on disk
+ 		}
+ 
+ 		// Find cache entries by prefix of search value
+ 		const hasPathSep = searchValue.indexOf(path.sep) >= 0;
++<<<<<<< .our
+ 		let cached: TPromise<IInternalSearchComplete>;
++=======
++		let cached: PPromise<[ISearchCompleteStats, IInternalFileMatch[]], IInternalFileMatch[]>;
++		let wasResolved: boolean;
++>>>>>>> .their
+ 		for (let previousSearch in cache.resultsToSearchCache) {
+ 
+ 			// If we narrow down, we might be able to reuse the cached results
+@@ -561,6 +790,11 @@
+ 				}
+ 
+ 				const c = cache.resultsToSearchCache[previousSearch];
++<<<<<<< .our
++=======
++				c.then(() => { wasResolved = false; });
++				wasResolved = true;
++>>>>>>> .their
+ 				cached = this.preventCancellation(c);
+ 				break;
+ 			}
+@@ -570,6 +804,7 @@
+ 			return null;
+ 		}
+ 
++<<<<<<< .our
+ 		return new TPromise<IInternalSearchComplete>((c, e) => {
+ 			cached.then(complete => {
+ 				// Pattern match on results
+@@ -577,6 +812,17 @@
+ 				const normalizedSearchValueLowercase = strings.stripWildcards(searchValue).toLowerCase();
+ 				for (let i = 0; i < complete.results.length; i++) {
+ 					let entry = complete.results[i];
++=======
++		return new PPromise<[ISearchCompleteStats, IInternalFileMatch[], CacheStats]>((c, e, p) => {
++			cached.then(([complete, cachedEntries]) => {
++				const cacheFilterStartTime = Date.now();
++
++				// Pattern match on results
++				let results: IInternalFileMatch[] = [];
++				const normalizedSearchValueLowercase = strings.stripWildcards(searchValue).toLowerCase();
++				for (let i = 0; i < cachedEntries.length; i++) {
++					let entry = cachedEntries[i];
++>>>>>>> .their
+ 
+ 					// Check if this entry is a match for the search value
+ 					if (!strings.fuzzyContains(entry.relativePath, normalizedSearchValueLowercase)) {
+@@ -586,16 +832,26 @@
+ 					results.push(entry);
+ 				}
+ 
++<<<<<<< .our
+ 				c({
+ 					limitHit: complete.limitHit,
+ 					results
+ 				});
+ 			}, e);
++=======
++				c([complete, results, {
++					cacheWasResolved: wasResolved,
++					cacheFilterStartTime: cacheFilterStartTime,
++					cacheFilterResultCount: cachedEntries.length
++				}]);
++			}, e, p);
++>>>>>>> .their
+ 		}, () => {
+ 			cached.cancel();
+ 		});
+ 	}
+ 
++<<<<<<< .our
+ 	private doSearch(engine: FileIndexSearchEngine): TPromise<IInternalSearchComplete> {
+ 		const results: IInternalFileMatch[] = [];
+ 		const onResult = match => results.push(match);
+@@ -606,12 +862,46 @@
+ 					results
+ 				});
+ 			}, e);
++=======
++	private doSearch(engine: FileIndexSearchEngine, provider: vscode.FileIndexProvider, batchSize?: number): PPromise<ISearchCompleteStats, IInternalFileMatch[]> {
++		return new PPromise<ISearchCompleteStats, IInternalFileMatch[]>((c, e, p) => {
++			let batch: IInternalFileMatch[] = [];
++			engine.search().then(result => {
++				if (batch.length) {
++					p(batch);
++				}
++
++				c({
++					limitHit: result.isLimitHit,
++					stats: engine.getStats() // TODO@roblou
++				});
++			}, error => {
++				if (batch.length) {
++					p(batch);
++				}
++
++				e(error);
++			}, match => {
++				if (match) {
++					if (batchSize) {
++						batch.push(match);
++						if (batchSize > 0 && batch.length >= batchSize) {
++							p(batch);
++							batch = [];
++						}
++					} else {
++						p([match]);
++					}
++				}
++			});
++>>>>>>> .their
+ 		}, () => {
+ 			engine.cancel();
+ 		});
+ 	}
+ 
+ 	public clearCache(cacheKey: string): TPromise<void> {
++<<<<<<< .our
+ 		if (!this.folderCacheKeys.has(cacheKey)) {
+ 			return TPromise.wrap(undefined);
+ 		}
+@@ -629,6 +919,17 @@
+ 			// Allow for piled up cancellations to come through first.
+ 			process.nextTick(() => {
+ 				promise.then(c, e);
++=======
++		delete this.caches[cacheKey];
++		return TPromise.as(undefined);
++	}
++
++	private preventCancellation<C, P>(promise: PPromise<C, P>): PPromise<C, P> {
++		return new PPromise<C, P>((c, e, p) => {
++			// Allow for piled up cancellations to come through first.
++			process.nextTick(() => {
++				promise.then(c, e, p);
++>>>>>>> .their
+ 			});
+ 		}, () => {
+ 			// Do not propagate.
+@@ -638,7 +939,11 @@
+ 
+ class Cache {
+ 
++<<<<<<< .our
+ 	public resultsToSearchCache: { [searchValue: string]: TPromise<IInternalSearchComplete>; } = Object.create(null);
++=======
++	public resultsToSearchCache: { [searchValue: string]: PPromise<[ISearchCompleteStats, IInternalFileMatch[]], IInternalFileMatch[]>; } = Object.create(null);
++>>>>>>> .their
+ 
+ 	public scorerCache: ScorerCache = Object.create(null);
+ }
+@@ -657,3 +962,12 @@
+ 		return match.relativePath; // e.g. some/path/to/file/myFile.txt
+ 	}
+ };
++<<<<<<< .our
++=======
++
++interface CacheStats {
++	cacheWasResolved: boolean;
++	cacheFilterStartTime: number;
++	cacheFilterResultCount: number;
++}
++>>>>>>> .their
+changed in both
+  base   100644 e7bcb39550d41f561a14b5aee61c9034d27296fc src/vs/workbench/api/node/extHostSearch.ts
+  our    100644 47b7f055eeef31aa7a32eec27d4340e210379b00 src/vs/workbench/api/node/extHostSearch.ts
+  their  100644 fa38ac0c8ca3fdb3a7014900d47a4d4f6abeb133 src/vs/workbench/api/node/extHostSearch.ts
+@@ -25,7 +25,11 @@
+ export class ExtHostSearch implements ExtHostSearchShape {
+ 
+ 	private readonly _proxy: MainThreadSearchShape;
++<<<<<<< .our
+ 	private readonly _fileSearchProvider = new Map<number, vscode.FileSearchProvider>();
++=======
++	private readonly _fileSearchProvider = new Map<number, vscode.SearchProvider>();
++>>>>>>> .their
+ 	private readonly _textSearchProvider = new Map<number, vscode.TextSearchProvider>();
+ 	private readonly _fileIndexProvider = new Map<number, vscode.FileIndexProvider>();
+ 	private _handlePool: number = 0;
+@@ -46,7 +50,11 @@
+ 		return scheme;
+ 	}
+ 
++<<<<<<< .our
+ 	registerFileSearchProvider(scheme: string, provider: vscode.FileSearchProvider) {
++=======
++	registerFileSearchProvider(scheme: string, provider: vscode.SearchProvider) {
++>>>>>>> .their
+ 		const handle = this._handlePool++;
+ 		this._fileSearchProvider.set(handle, provider);
+ 		this._proxy.$registerFileSearchProvider(handle, this._transformScheme(scheme));
+@@ -80,18 +88,38 @@
+ 		const provider = this._fileSearchProvider.get(handle);
+ 		const query = reviveQuery(rawQuery);
+ 		if (provider) {
++<<<<<<< .our
+ 			return this._fileSearchManager.fileSearch(query, provider, batch => {
+ 				this._proxy.$handleFileMatch(handle, session, batch.map(p => p.resource));
++=======
++			return this._fileSearchManager.fileSearch(query, provider, progress => {
++				this._proxy.$handleFileMatch(handle, session, progress.map(p => p.resource));
++>>>>>>> .their
+ 			});
+ 		} else {
+ 			const indexProvider = this._fileIndexProvider.get(handle);
+ 			if (indexProvider) {
++<<<<<<< .our
+ 				return this._fileIndexSearchManager.fileSearch(query, indexProvider, batch => {
+ 					this._proxy.$handleFileMatch(handle, session, batch.map(p => p.resource));
++=======
++				return this._fileIndexSearchManager.fileSearch(query, indexProvider, progress => {
++					this._proxy.$handleFileMatch(handle, session, progress.map(p => p.resource));
++>>>>>>> .their
+ 				});
+ 			} else {
+ 				throw new Error('something went wrong');
+ 			}
++<<<<<<< .our
++=======
++		}
++	}
++
++	$clearCache(handle: number, cacheKey: string): TPromise<void> {
++		const provider = this._fileSearchProvider.get(handle);
++		if (!provider.clearCache) {
++			return TPromise.as(undefined);
++>>>>>>> .their
+ 		}
+ 	}
+ 
+changed in both
+  base   100644 dad4ec1777045a37037a7d1d261f3440a8c17577 src/vs/workbench/services/search/node/searchService.ts
+  our    100644 5bf7b93503cb5ecead2832c567244eabe2f261f3 src/vs/workbench/services/search/node/searchService.ts
+  their  100644 ff28bf7d56c2f38064bb8724120323afb58936c7 src/vs/workbench/services/search/node/searchService.ts
+@@ -53,6 +53,12 @@
+ 	}
+ 
+ 	public registerSearchResultProvider(scheme: string, type: SearchProviderType, provider: ISearchResultProvider): IDisposable {
++<<<<<<< .our
++=======
++		// if (scheme === 'file') {
++		// 	this.fileSearchProvider = provider;
++
++>>>>>>> .their
+ 		let list: Map<string, ISearchResultProvider>;
+ 		if (type === SearchProviderType.file) {
+ 			list = this.fileSearchProviders;
+@@ -126,6 +132,7 @@
+ 			const schemesInQuery = query.folderQueries.map(fq => fq.folder.scheme);
+ 			const providerActivations = schemesInQuery.map(scheme => this.extensionService.activateByEvent(`onSearch:${scheme}`));
+ 
++<<<<<<< .our
+ 			const providerPromise = TPromise.join(providerActivations)
+ 				.then(() => this.searchWithProviders(query, onProviderProgress))
+ 				.then(completes => {
+@@ -147,6 +154,42 @@
+ 					errs = errs.filter(e => !!e);
+ 					return TPromise.wrapError(errs[0]);
+ 				});
++=======
++			const providerPromise = TPromise.join(providerActivations).then(() => {
++				return TPromise.join(query.folderQueries.map(fq => {
++					const oneFolderQuery = {
++						...query,
++						...{
++							folderQueries: [fq]
++						}
++					};
++
++					const provider = query.type === QueryType.File ?
++						this.fileSearchProviders.get(fq.folder.scheme) || this.fileIndexProviders.get(fq.folder.scheme) :
++						this.textSearchProviders.get(fq.folder.scheme);
++
++					return TPromise.as(provider.search(oneFolderQuery, onProviderProgress));
++				})).then(completes => {
++					completes = completes.filter(c => !!c);
++					if (!completes.length) {
++						return null;
++					}
++
++					return <ISearchComplete>{
++						limitHit: completes[0] && completes[0].limitHit,
++						stats: completes[0].stats,
++						results: arrays.flatten(completes.map(c => c.results))
++					};
++				}, errs => {
++					if (!Array.isArray(errs)) {
++						errs = [errs];
++					}
++
++					errs = errs.filter(e => !!e);
++					return TPromise.wrapError(errs[0]);
++				});
++			});
++>>>>>>> .their
+ 
+ 			combinedPromise = providerPromise.then(value => {
+ 				this.logService.debug(`SearchService#search: ${Date.now() - startTime}ms`);
+@@ -295,12 +338,18 @@
+ 	}
+ 
+ 	public clearCache(cacheKey: string): TPromise<void> {
++<<<<<<< .our
+ 		const clearPs = [
+ 			this.diskSearch,
+ 			...values(this.fileIndexProviders)
+ 		].map(provider => provider && provider.clearCache(cacheKey));
+ 
+ 		return TPromise.join(clearPs)
++=======
++		return TPromise.join([
++			this.diskSearch
++		].map(provider => provider && provider.clearCache(cacheKey)))
++>>>>>>> .their
+ 			.then(() => { });
+ 	}
+ }
+changed in both
+  base   100644 bad1d62b9d77b7e7740a662ad44f29e65c866056 src/vs/workbench/test/electron-browser/api/extHostSearch.test.ts
+  our    100644 d1a70c00f48321c7ae746939043c8aac8b164469 src/vs/workbench/test/electron-browser/api/extHostSearch.test.ts
+  their  100644 f5bfd49e6264b2fe9e64fbc6aef387829fa2a72d src/vs/workbench/test/electron-browser/api/extHostSearch.test.ts
+@@ -66,7 +66,11 @@
+ 		await rpcProtocol.sync();
+ 	}
+ 
++<<<<<<< .our
+ 	async function registerTestFileSearchProvider(provider: vscode.FileSearchProvider, scheme = 'file'): Promise<void> {
++=======
++	async function registerTestFileSearchProvider(provider: vscode.SearchProvider, scheme = 'file'): Promise<void> {
++>>>>>>> .their
+ 		disposables.push(extHostSearch.registerFileSearchProvider(scheme, provider));
+ 		await rpcProtocol.sync();
+ 	}
+@@ -167,7 +171,11 @@
+ 
+ 		test('no results', async () => {
+ 			await registerTestFileSearchProvider({
++<<<<<<< .our
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
++=======
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++>>>>>>> .their
+ 					return TPromise.wrap(null);
+ 				}
+ 			});
+@@ -185,8 +193,14 @@
+ 			];
+ 
+ 			await registerTestFileSearchProvider({
++<<<<<<< .our
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
+ 					return TPromise.wrap(reportedResults);
++=======
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++					reportedResults.forEach(r => progress.report(r));
++					return TPromise.wrap(null);
++>>>>>>> .their
+ 				}
+ 			});
+ 
+@@ -199,7 +213,11 @@
+ 		test('Search canceled', async () => {
+ 			let cancelRequested = false;
+ 			await registerTestFileSearchProvider({
++<<<<<<< .our
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
++=======
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++>>>>>>> .their
+ 					return new TPromise((resolve, reject) => {
+ 						token.onCancellationRequested(() => {
+ 							cancelRequested = true;
+@@ -215,9 +233,40 @@
+ 			assert(!results.length);
+ 		});
+ 
++<<<<<<< .our
+ 		test('provider returns null', async () => {
+ 			await registerTestFileSearchProvider({
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
++=======
++		test('provider fail', async () => {
++			const reportedResults = [
++				'file1.ts',
++				'file2.ts',
++				'file3.ts',
++			];
++
++			await registerTestFileSearchProvider({
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++					reportedResults
++						.map(relativePath => joinPath(options.folder, relativePath))
++						.forEach(r => progress.report(r));
++
++					throw new Error('I broke');
++				}
++			});
++
++			try {
++				await runFileSearch(getSimpleQuery());
++				assert(false, 'Expected to fail');
++			} catch {
++				// Expected to throw
++			}
++		});
++
++		test('provider returns null', async () => {
++			await registerTestFileSearchProvider({
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++>>>>>>> .their
+ 					return null;
+ 				}
+ 			});
+@@ -232,7 +281,11 @@
+ 
+ 		test('all provider calls get global include/excludes', async () => {
+ 			await registerTestFileSearchProvider({
++<<<<<<< .our
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
++=======
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++>>>>>>> .their
+ 					assert(options.excludes.length === 2 && options.includes.length === 2, 'Missing global include/excludes');
+ 					return TPromise.wrap(null);
+ 				}
+@@ -261,7 +314,11 @@
+ 
+ 		test('global/local include/excludes combined', async () => {
+ 			await registerTestFileSearchProvider({
++<<<<<<< .our
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
++=======
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++>>>>>>> .their
+ 					if (options.folder.toString() === rootFolderA.toString()) {
+ 						assert.deepEqual(options.includes.sort(), ['*.ts', 'foo']);
+ 						assert.deepEqual(options.excludes.sort(), ['*.js', 'bar']);
+@@ -303,7 +360,11 @@
+ 
+ 		test('include/excludes resolved correctly', async () => {
+ 			await registerTestFileSearchProvider({
++<<<<<<< .our
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
++=======
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++>>>>>>> .their
+ 					assert.deepEqual(options.includes.sort(), ['*.jsx', '*.ts']);
+ 					assert.deepEqual(options.excludes.sort(), []);
+ 
+@@ -346,9 +407,17 @@
+ 			];
+ 
+ 			await registerTestFileSearchProvider({
++<<<<<<< .our
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
+ 					return TPromise.wrap(reportedResults
+ 						.map(relativePath => joinPath(options.folder, relativePath)));
++=======
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++					reportedResults
++						.map(relativePath => joinPath(options.folder, relativePath))
++						.forEach(r => progress.report(r));
++					return TPromise.wrap(null);
++>>>>>>> .their
+ 				}
+ 			});
+ 
+@@ -377,7 +446,11 @@
+ 		test('multiroot sibling exclude clause', async () => {
+ 
+ 			await registerTestFileSearchProvider({
++<<<<<<< .our
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
++=======
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++>>>>>>> .their
+ 					let reportedResults: URI[];
+ 					if (options.folder.fsPath === rootFolderA.fsPath) {
+ 						reportedResults = [
+@@ -447,7 +520,13 @@
+ 
+ 			let wasCanceled = false;
+ 			await registerTestFileSearchProvider({
++<<<<<<< .our
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
++=======
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++					reportedResults
++						.forEach(r => progress.report(r));
++>>>>>>> .their
+ 					token.onCancellationRequested(() => wasCanceled = true);
+ 
+ 					return TPromise.wrap(reportedResults);
+@@ -483,7 +562,12 @@
+ 
+ 			let wasCanceled = false;
+ 			await registerTestFileSearchProvider({
++<<<<<<< .our
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
++=======
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++					reportedResults.forEach(r => progress.report(r));
++>>>>>>> .their
+ 					token.onCancellationRequested(() => wasCanceled = true);
+ 
+ 					return TPromise.wrap(reportedResults);
+@@ -518,7 +602,12 @@
+ 
+ 			let wasCanceled = false;
+ 			await registerTestFileSearchProvider({
++<<<<<<< .our
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
++=======
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++					reportedResults.forEach(r => progress.report(r));
++>>>>>>> .their
+ 					token.onCancellationRequested(() => wasCanceled = true);
+ 
+ 					return TPromise.wrap(reportedResults);
+@@ -548,7 +637,11 @@
+ 		test('multiroot max results', async () => {
+ 			let cancels = 0;
+ 			await registerTestFileSearchProvider({
++<<<<<<< .our
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
++=======
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++>>>>>>> .their
+ 					token.onCancellationRequested(() => cancels++);
+ 
+ 					// Provice results async so it has a chance to invoke every provider
+@@ -593,8 +686,14 @@
+ 			];
+ 
+ 			await registerTestFileSearchProvider({
++<<<<<<< .our
+ 				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, token: vscode.CancellationToken): Thenable<URI[]> {
+ 					return TPromise.wrap(reportedResults);
++=======
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++					reportedResults.forEach(r => progress.report(r));
++					return TPromise.wrap(null);
++>>>>>>> .their
+ 				}
+ 			}, fancyScheme);
+ 
+@@ -611,6 +710,37 @@
+ 			const { results } = await runFileSearch(query);
+ 			compareURIs(results, reportedResults);
+ 		});
++<<<<<<< .our
++=======
++
++		test('uses different cache keys for different folders', async () => {
++			const cacheKeys: string[] = [];
++			await registerTestFileSearchProvider({
++				provideFileSearchResults(query: vscode.FileSearchQuery, options: vscode.FileSearchOptions, progress: vscode.Progress<URI>, token: vscode.CancellationToken): Thenable<void> {
++					cacheKeys.push(query.cacheKey);
++					return TPromise.wrap(null);
++				}
++			});
++
++			const query: ISearchQuery = {
++				type: QueryType.File,
++				filePattern: '',
++				cacheKey: 'cacheKey',
++				folderQueries: [
++					{
++						folder: rootFolderA
++					},
++					{
++						folder: rootFolderB
++					}
++				]
++			};
++
++			await runFileSearch(query);
++			assert.equal(cacheKeys.length, 2);
++			assert.notEqual(cacheKeys[0], cacheKeys[1]);
++		});
++>>>>>>> .their
+ 	});
+ 
+ 	suite('Text:', () => {

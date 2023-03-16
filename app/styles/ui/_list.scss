@@ -1,0 +1,82 @@
+.list {
+  flex-grow: 1;
+  height: 100%;
+
+  // Sane default for flexboxes making lists
+  // constrain to the size of their flexbox
+  // parent.
+  min-width: 0;
+
+  // When zooming the app the Grid may end up extending beyond the
+  // confines of its container by 1px in either direction. That's not
+  // important but if we don't clip the overflow we may end up covering
+  // borders and we don't want that.
+  overflow: hidden;
+
+  .ReactVirtualized__Grid {
+    background: var(--background-color);
+  }
+}
+
+@include win32-context {
+  .list {
+    position: relative;
+
+    // Fake scrollbar hack
+    //
+    // Since we currently can't have scrollbars overlaying their
+    // contents (see _scroll.scss for that sad) we're hacking our
+    // way around that in our custom lists by hiding the actual
+    // scroll bar and creating a fake one on top of the overflowing
+    // content. The fake scroll bar consists of a div wrapped in
+    // another, overflowing, div where the child height is synchronized
+    // with the height of the content in the main container.
+
+    // Hide the actual scroll bar
+    .ReactVirtualized__Grid::-webkit-scrollbar {
+      display: none;
+    }
+
+    // Hide the scroll bar by default
+    .fake-scroll {
+      display: none;
+    }
+
+    &:hover {
+      .fake-scroll {
+        // Show the scroll bar when users hover
+        // the list
+        display: block;
+
+        // Positioning
+        position: absolute;
+        top: 0px;
+        right: 1px;
+        width: 12px;
+
+        // Only support vertical scrolling for now
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+    }
+  }
+}
+
+.list-focus-container {
+  // The selected items must act as the focused element when inside
+  &.focus-within .list-item.selected {
+    --text-color: var(--box-selected-active-text-color);
+    --text-secondary-color: var(--box-selected-active-text-color);
+
+    color: var(--text-color);
+    background-color: var(--box-selected-active-background-color);
+
+    @include high-contrast {
+      border: var(--box-selected-active-border);
+    }
+  }
+}
+
+.list-item {
+  @include list-item;
+}

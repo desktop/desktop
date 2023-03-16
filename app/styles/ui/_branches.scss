@@ -1,0 +1,217 @@
+@import '../mixins';
+
+.branches-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 365px;
+
+  & > .tab-bar {
+    border-top: var(--base-border);
+  }
+
+  .branches-list {
+    width: 365px;
+    min-height: 0;
+  }
+
+  .branches-list-item {
+    height: 100%;
+
+    // While dragging we don't want tooltips from the underlying item to show
+    &.drop-target * {
+      pointer-events: none;
+    }
+
+    &.new-branch-drop {
+      margin-top: var(--spacing-half);
+      height: 30px;
+      flex-grow: revert;
+    }
+  }
+}
+
+.pull-request-tab {
+  display: flex;
+  flex-direction: row;
+
+  align-items: center;
+
+  .count {
+    display: flex;
+
+    background: var(--tab-bar-count-background-color);
+    color: var(--tab-bar-count-color);
+
+    margin-left: var(--spacing-half);
+
+    // Perfectly round semi circle ends with real tight
+    // padding on either side. Now in two flavors!
+    @include darwin {
+      height: 13px;
+      line-height: 13px;
+    }
+
+    @include win32 {
+      height: 14px;
+      line-height: 14px;
+    }
+
+    border-radius: 8px;
+    padding: 0 6px;
+
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+.pull-request-list {
+  height: 100%;
+  width: 100%;
+
+  &.filter-list .filter-field-row {
+    // The rows have built-in margin to their content so
+    // we only need half a spacer here
+    margin-bottom: var(--spacing-half);
+  }
+
+  .list-item.selected:focus {
+    .ci-status {
+      color: inherit;
+    }
+  }
+
+  .pull-request-item {
+    padding: 0 var(--spacing);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    flex-grow: 1;
+    height: 100%;
+
+    // While dragging we don't want tooltips from the underlying item to show
+    &.drop-target div {
+      pointer-events: none;
+    }
+
+    .icon {
+      margin-left: var(--spacing-half);
+      margin-right: var(--spacing);
+      flex-shrink: 0;
+
+      // Align the icon baseline with the title text
+      align-self: flex-start;
+      margin-top: 2px;
+    }
+
+    &.open .icon {
+      color: var(--pr-open-icon-color);
+    }
+    &.draft .icon {
+      color: var(--pr-draft-icon-color);
+    }
+
+    .info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex-grow: 1;
+      margin-right: var(--spacing-half);
+
+      .title {
+        @include ellipsis;
+        min-width: 0;
+        font-weight: var(--font-weight-semibold);
+      }
+
+      .subtitle {
+        @include ellipsis;
+        min-width: 0;
+        font-weight: var(--font-weight-light);
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary-color);
+      }
+    }
+
+    .ci-status-container {
+      margin-right: var(--spacing-half);
+      min-width: 16px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+  }
+
+  .filter-list-group-header {
+    @include ellipsis;
+  }
+}
+
+.branches-list {
+  &-item {
+    padding: 0 var(--spacing);
+  }
+
+  &-item {
+    display: flex;
+    flex-direction: row;
+    min-width: 0;
+    flex-grow: 1;
+    align-items: center;
+
+    .icon {
+      margin-right: var(--spacing-half);
+      width: 16px; // Force a consistent width
+      flex-shrink: 0;
+    }
+
+    .name {
+      flex-grow: 2;
+      @include ellipsis;
+      max-width: 65%;
+      margin-right: var(--spacing-half);
+
+      /* Used to highlight substring matches in filtered lists */
+      mark {
+        font-weight: bold;
+        /* Reset browser defaults */
+        background-color: inherit;
+        color: currentColor;
+      }
+    }
+
+    .description {
+      margin-right: var(--spacing-half);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+      flex-grow: 1;
+      text-align: right;
+      white-space: nowrap;
+    }
+  }
+}
+
+.no-pull-requests {
+  width: 365px;
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing);
+
+  .title {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .no-prs {
+    padding-bottom: var(--spacing);
+  }
+
+  .call-to-action {
+    font-size: var(--font-size-sm);
+    .link-button-component {
+      display: unset;
+    }
+  }
+}
