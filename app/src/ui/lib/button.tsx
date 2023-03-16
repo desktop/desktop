@@ -75,8 +75,39 @@ export interface IButtonProps {
    */
   readonly tabIndex?: number
 
+  /**
+   * ARIA roles provide semantic meaning to content, allowing screen readers and
+   * other tools to present and support interaction with object in a way that is
+   * consistent with user expectations of that type of object. ARIA roles can be
+   * used to describe elements that don't natively exist in HTML or exist but
+   * don't yet have full browser support.
+   *
+   * By default, many semantic elements in HTML have a role; for example, <input
+   * type="radio"> has the "radio" role. Non-semantic elements in HTML do not
+   * have a role; <div> and <span> without added semantics return null. The role
+   * attribute can provide semantics.
+   */
   readonly role?: string
+
+  /**
+   * The aria-expanded attribute is set on an element to indicate if a control
+   * is expanded or collapsed, and whether or not the controlled elements are
+   * displayed or hidden.
+   *
+   * There are several widgets that can be expanded and collapsed, including
+   * menus, dialogs, and accordion panels. Each of these objects, in turn, has
+   * an interactive element that controls their opening and closing. The
+   * aria-expanded attribute is applied to this focusable, interactive control
+   * that toggles the visibility of the object.
+   */
   readonly ariaExpanded?: boolean
+
+  /** An aria attribute indicates the availability and type of interactive popup
+   * element that can be triggered by the element on which the attribute is set
+   *
+   * Notes: The value true is the same as menu. Any other value, including an
+   * empty string or other role, is treated as if false were set.
+   * */
   readonly ariaHaspopup?: AriaHasPopupType
 
   /**
