@@ -49,6 +49,9 @@ interface IAppMenuProps {
    * @default false
    */
   readonly autoHeight?: boolean
+
+  /** The id of the element that serves as the menu's accessibility label */
+  readonly ariaLabelledby: string
 }
 
 export interface IKeyboardCloseSource {
@@ -305,6 +308,7 @@ export class AppMenu extends React.Component<IAppMenuProps, {}> {
         onSelectionChanged={this.onSelectionChanged}
         enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
         onClearSelection={this.onClearSelection}
+        ariaLabelledby={this.props.ariaLabelledby}
       />
     )
   }

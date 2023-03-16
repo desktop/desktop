@@ -207,6 +207,7 @@ export class AppMenuBarButton extends React.Component<
         buttonAriaHaspopup={AriaHasPopup.Menu}
       >
         <MenuListItem
+          menuItemId={`app-menu-${item.label}`}
           item={item}
           highlightAccessKey={this.props.highlightMenuAccessKey}
           renderAcceleratorText={false}
@@ -276,6 +277,7 @@ export class AppMenuBarButton extends React.Component<
         state={menuState}
         enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
         autoHeight={true}
+        ariaLabelledby={`app-menu-${this.props.menuItem.label}`}
       />
     )
   }
