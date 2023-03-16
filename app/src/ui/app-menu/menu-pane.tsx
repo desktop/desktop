@@ -95,8 +95,6 @@ interface IMenuPaneProps {
 }
 
 export class MenuPane extends React.Component<IMenuPaneProps> {
-  private paneRef = React.createRef<HTMLDivElement>()
-
   private onRowClick = (
     item: MenuItem,
     event: React.MouseEvent<HTMLDivElement>
@@ -218,7 +216,6 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
         className={className}
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}
-        ref={this.paneRef}
         tabIndex={-1}
         role="menu"
         aria-labelledby={this.props.ariaLabelledby}
@@ -239,10 +236,6 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
           ))}
       </div>
     )
-  }
-
-  public focus() {
-    this.paneRef.current?.focus()
   }
 }
 
