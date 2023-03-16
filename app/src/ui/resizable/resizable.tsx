@@ -2,8 +2,8 @@
 import * as React from 'react'
 import { clamp } from '../../lib/clamp'
 
-const DefaultMaxWidth = 350
-const DefaultMinWidth = 200
+export const DefaultMaxWidth = 350
+export const DefaultMinWidth = 200
 
 export enum ResizeDirection {
   Increase = 'Increase',

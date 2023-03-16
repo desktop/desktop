@@ -316,6 +316,11 @@ import { findContributionTargetDefaultBranch } from '../branch'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
+import {
+  DefaultMaxWidth,
+  DefaultMinWidth,
+  ResizeDirection,
+} from '../../ui/resizable'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -4892,6 +4897,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setSidebarWidth(width: number): Promise<void> {
     this.sidebarWidth = { ...this.sidebarWidth, value: width }
     setNumber(sidebarWidthConfigKey, width)
+    this.updateResizableConstraints()
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _resizeSidebarWidth(resizeDirection: ResizeDirection): Promise<void> {
+    const { value, min, max } = this.sidebarWidth
+    const changedWidth =
+      resizeDirection === ResizeDirection.Decrease ? value - 1 : value + 1
+
+    const newWidth = clamp(
+      changedWidth,
+      min ?? DefaultMinWidth,
+      max ?? DefaultMaxWidth
+    )
+
+    this.sidebarWidth = { ...this.sidebarWidth, value: newWidth }
+    setNumber(sidebarWidthConfigKey, newWidth)
     this.updateResizableConstraints()
     this.emitUpdate()
 
