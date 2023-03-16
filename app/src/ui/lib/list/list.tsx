@@ -137,8 +137,7 @@ interface IListProps {
    *
    * @param row    - The index of the row that was just selected
    * @param source - The kind of user action that provoked the change, either
-   *                 a pointer device press, hover (if selectOnHover is set) or
-   *                 a keyboard event (arrow up/down)
+   *                 a pointer device press or a keyboard event (arrow up/down)
    */
   readonly onSelectedRowChanged?: (row: number, source: SelectionSource) => void
 
@@ -152,8 +151,7 @@ interface IListProps {
    * @param start  - The index of the first selected row
    * @param end    - The index of the last selected row
    * @param source - The kind of user action that provoked the change, either
-   *                 a pointer device press, hover (if selectOnHover is set) or
-   *                 a keyboard event (arrow up/down)
+   *                 a pointer device press or a keyboard event (arrow up/down)
    */
   readonly onSelectedRangeChanged?: (
     start: number,
@@ -169,8 +167,7 @@ interface IListProps {
    *
    * @param rows   - The indexes of the row(s) that are part of the selection
    * @param source - The kind of user action that provoked the change, either
-   *                 a pointer device press, hover (if selectOnHover is set) or
-   *                 a keyboard event (arrow up/down)
+   *                 a pointer device press or a keyboard event (arrow up/down)
    */
   readonly onSelectionChanged?: (
     rows: ReadonlyArray<number>,
@@ -241,18 +238,8 @@ interface IListProps {
   /** The row that should be scrolled to when the list is rendered. */
   readonly scrollToRow?: number
 
-  /** Whether or not selection should follow pointer device */
-  readonly selectOnHover?: boolean
-
   /** Type of elements that can be inserted in the list via drag & drop. Optional. */
   readonly insertionDragType?: DragType
-
-  /**
-   * Whether or not to explicitly move focus to a row if it was selected
-   * by hovering (has no effect if selectOnHover is not set). Defaults to
-   * true if not defined.
-   */
-  readonly focusOnHover?: boolean
 
   /**
    * The number of pixels from the top of the list indicating
@@ -675,20 +662,6 @@ export class List extends React.Component<IListProps, IListState> {
     this.props.onRowContextMenu?.(row, e)
   }
 
-  private onRowMouseOver = (row: number, event: React.MouseEvent<any>) => {
-    if (this.props.selectOnHover && this.canSelectRow(row)) {
-      if (!this.props.selectedRows.includes(row)) {
-        this.props.onSelectionChanged?.([row], { kind: 'hover', event })
-        // By calling scrollRowToVisible we ensure that hovering over a partially
-        // visible item at the top or bottom of the list scrolls it into view but
-        // more importantly `scrollRowToVisible` automatically manages focus so
-        // using it here allows us to piggy-back on its focus-preserving magic
-        // even though we could theoretically live without scrolling
-        this.scrollRowToVisible(row, this.props.focusOnHover !== false)
-      }
-    }
-  }
-
   /** Convenience method for invoking canSelectRow callback when it exists */
   private canSelectRow = (rowIndex: number) => {
     return this.props.canSelectRow ? this.props.canSelectRow(rowIndex) : true
@@ -982,7 +955,6 @@ export class List extends React.Component<IListProps, IListState> {
         onRowKeyDown={this.onRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}
         onRowMouseUp={this.onRowMouseUp}
-        onRowMouseOver={this.onRowMouseOver}
         onRowFocus={this.onRowFocus}
         onRowBlur={this.onRowBlur}
         onContextMenu={this.onRowContextMenu}
