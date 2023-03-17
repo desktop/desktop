@@ -34,6 +34,7 @@ dialog {
   flex-direction: column;
 
   overflow: unset;
+
   // These are the 24px versions of the alert and stop octicons
   // from oction v10.0.0
   //
@@ -403,7 +404,15 @@ dialog {
 
   &#preferences {
     width: 600px;
+
+    // This is to ensure that the dialog content is accessible when zoomed in
+    @media (max-width: 600px) {
+      overflow-y: auto;
+      width: 100%;
+      max-width: calc(100% - var(--spacing-double));
+    }
   }
+
   &#about {
     width: 450px;
   }
