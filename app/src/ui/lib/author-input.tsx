@@ -122,8 +122,33 @@ export class AuthorInput extends React.Component<
     }
   }
 
+  public componentDidUpdate(
+    prevProps: IAuthorInputProps,
+    prevState: IAuthorInputState
+  ) {
+    if (
+      prevProps.authors.length !== this.props.authors.length ||
+      prevState.focusedAuthorIndex !== this.state.focusedAuthorIndex
+    ) {
+      this.focusAuthorHandle(this.state.focusedAuthorIndex)
+    }
+  }
+
   public focus() {
     this.autocompletingInputRef.current?.focus()
+  }
+
+  private focusAuthorHandle(index: number | null) {
+    if (index === null) {
+      this.inputRef?.focus()
+      return
+    }
+
+    const handle = this.authorContainerRef.current?.getElementsByClassName(
+      'handle'
+    )[index] as HTMLElement | null
+
+    handle?.focus()
   }
 
   public render() {
@@ -199,8 +224,8 @@ export class AuthorInput extends React.Component<
       }
     }
 
-    this.focusAuthorHandle(newFocusedAuthorIndex)
     this.emitAuthorsUpdated(newAuthors)
+    this.setState({ focusedAuthorIndex: newFocusedAuthorIndex })
   }
 
   private emitAuthorsUpdated(addedAuthors: ReadonlyArray<Author>) {
@@ -212,9 +237,9 @@ export class AuthorInput extends React.Component<
     const { authors } = this.props
 
     if (focusedAuthorIndex === null) {
-      this.focusAuthorHandle(authors.length - 1)
+      this.setState({ focusedAuthorIndex: authors.length - 1 })
     } else if (focusedAuthorIndex > 0) {
-      this.focusAuthorHandle(focusedAuthorIndex - 1)
+      this.setState({ focusedAuthorIndex: focusedAuthorIndex - 1 })
     }
   }
 
@@ -226,9 +251,9 @@ export class AuthorInput extends React.Component<
       focusedAuthorIndex !== null &&
       focusedAuthorIndex < authors.length - 1
     ) {
-      this.focusAuthorHandle(focusedAuthorIndex + 1)
+      this.setState({ focusedAuthorIndex: focusedAuthorIndex + 1 })
     } else {
-      this.focusAuthorHandle(null)
+      this.setState({ focusedAuthorIndex: null })
     }
   }
 
@@ -436,25 +461,11 @@ export class AuthorInput extends React.Component<
     }
   }
 
-  private focusAuthorHandle(index: number | null) {
-    if (index === null) {
-      this.inputRef?.focus()
-    } else {
-      const handle = this.authorContainerRef.current?.getElementsByClassName(
-        'handle'
-      )[index] as HTMLElement | null
-
-      handle?.focus()
-    }
-
-    this.setState({ focusedAuthorIndex: index })
-  }
-
   private onAuthorClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const handle = event.target as HTMLElement
     const index = Array.from(handle.parentElement?.children ?? []).indexOf(
       handle
     )
-    this.focusAuthorHandle(index)
+    this.setState({ focusedAuthorIndex: index })
   }
 }
