@@ -4544,7 +4544,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(() =>
-      addRemote(repository, 'origin', apiRepository.clone_url)
+      addRemote(repository, 'github', apiRepository.clone_url)
     )
     await gitStore.loadRemotes()
 

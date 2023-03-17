@@ -49,7 +49,7 @@ describe('Update remote url', () => {
       await repositoriesStore.addRepository(repoPath),
       await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
     )
-    await addRemote(repository, 'origin', remoteUrl || apiRepo.clone_url)
+    await addRemote(repository, 'github', remoteUrl || apiRepo.clone_url)
     gitStore = new GitStore(
       repository,
       shell,

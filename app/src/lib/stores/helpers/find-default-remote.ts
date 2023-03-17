@@ -12,5 +12,5 @@ import { IRemote } from '../../../models/remote'
 export function findDefaultRemote(
   remotes: ReadonlyArray<IRemote>
 ): IRemote | null {
-  return remotes.find(x => x.name === 'origin') || remotes[0] || null
+  return remotes.find(x => x.name === 'github') || remotes[0] || null
 }

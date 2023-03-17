@@ -129,7 +129,7 @@ describe('BranchPruner', () => {
   it('does not prune if there is no default branch', async () => {
     const lastPruneDate = new Date(offsetFromNow(-1, 'day'))
     const repoPath = await setupFixtureRepository('branch-prune-tests')
-    FSE.unlink(path.join(repoPath, '.git', 'refs', 'remotes', 'origin', 'HEAD'))
+    FSE.unlink(path.join(repoPath, '.git', 'refs', 'remotes', 'github', 'HEAD'))
 
     const repo = await setupRepository(
       repoPath,
