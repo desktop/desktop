@@ -24,6 +24,21 @@ interface IUndoCommitProps {
 
 /** The Undo Commit component. */
 export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
+  private button: HTMLButtonElement | null = null
+
+  public componentDidMount(): void {
+    const diff = this.props.commit.author.date.getTime() - Date.now()
+    const duration = Math.abs(diff)
+
+    if (duration < 1000) {
+      this.button?.focus()
+    }
+  }
+
+  private onButtonRef = (button: HTMLButtonElement | null) => {
+    this.button = button
+  }
+
   public render() {
     const disabled =
       this.props.isPushPullFetchInProgress || this.props.isCommitting
@@ -33,8 +48,8 @@ export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
 
     const authorDate = this.props.commit.author.date
     return (
-      <div id="undo-commit" role="group" aria-label="Undo commit">
-        <div className="commit-info">
+      <div id="undo-commit">
+        <div className="commit-info" id="commit-info">
           <div className="ago">
             Committed <RelativeTime date={authorDate} />
           </div>
@@ -44,9 +59,16 @@ export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
             text={this.props.commit.summary}
             renderUrlsAsLinks={false}
           />
+          <span className="sr-only"> Undo </span>
         </div>
         <div className="actions" title={title}>
-          <Button size="small" disabled={disabled} onClick={this.props.onUndo}>
+          <Button
+            onButtonRef={this.onButtonRef}
+            size="small"
+            disabled={disabled}
+            onClick={this.props.onUndo}
+            ariaLabelledby="commit-info"
+          >
             Undo
           </Button>
         </div>

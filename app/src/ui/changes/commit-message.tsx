@@ -36,6 +36,7 @@ import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
+import { delay } from 'lodash'
 
 const addAuthorIcon = {
   w: 18,
@@ -140,6 +141,8 @@ interface ICommitMessageState {
    * false when there's no action bar.
    */
   readonly descriptionObscured: boolean
+
+  readonly isCommittingStatusMessage: string
 }
 
 function findUserAutoCompleteProvider(
@@ -178,6 +181,7 @@ export class CommitMessage extends React.Component<
         props.autocompletionProviders
       ),
       descriptionObscured: false,
+      isCommittingStatusMessage: '',
     }
   }
 
@@ -259,6 +263,21 @@ export class CommitMessage extends React.Component<
       prevProps.repository.id === this.props.repository.id
     ) {
       this.coAuthorInputRef.current?.focus()
+    }
+
+    if (prevProps.isCommitting !== this.props.isCommitting) {
+      const { isCommitting, commitToAmend } = this.props
+
+      if (isCommitting) {
+        const action = commitToAmend !== null ? 'Amending…' : 'Committing…'
+        this.setState({ isCommittingStatusMessage: action })
+      } else {
+        // A commit can happen really fast, we want the screen reader user to
+        // have a chance to hear the status message
+        delay(() => {
+          this.setState({ isCommittingStatusMessage: '' })
+        }, 1000)
+      }
     }
   }
 
@@ -718,6 +737,9 @@ export class CommitMessage extends React.Component<
         <>
           {loading}
           {commitButton}
+          <span className="sr-only" aria-live="polite" aria-atomic="true">
+            {this.state.isCommittingStatusMessage}
+          </span>
         </>
       </Button>
     )
