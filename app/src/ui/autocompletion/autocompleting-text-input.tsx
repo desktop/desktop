@@ -258,11 +258,7 @@ export abstract class AutocompletingTextInput<
           onSelectedRowChanged={this.onSelectedRowChanged}
           invalidationProps={searchText}
         />
-        <div
-          className="screen-reader-only"
-          aria-live="polite"
-          aria-atomic="true"
-        >
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
           {items.length} suggestions
         </div>
       </div>
