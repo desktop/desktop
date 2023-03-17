@@ -27,6 +27,14 @@ export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
   private button: HTMLButtonElement | null = null
 
   public componentDidMount(): void {
+    this.focusButtonIfJustCommitted()
+  }
+
+  public componentDidUpdate(): void {
+    this.focusButtonIfJustCommitted()
+  }
+
+  private focusButtonIfJustCommitted = () => {
     const diff = this.props.commit.author.date.getTime() - Date.now()
     const duration = Math.abs(diff)
 
