@@ -357,7 +357,7 @@ export class AuthorInput extends React.Component<
 
     return (
       <div
-        key={index}
+        key={`${author.username ?? author.name}`}
         className={classNames('handle', {
           focused: index === focusedAuthorIndex,
         })}
@@ -380,7 +380,7 @@ export class AuthorInput extends React.Component<
 
     return (
       <div
-        key={index}
+        key={author.username}
         className={classNames('handle', {
           focused: index === focusedAuthorIndex,
           progress: !isError,
