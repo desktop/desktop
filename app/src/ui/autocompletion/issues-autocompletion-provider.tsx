@@ -53,7 +53,7 @@ export class IssuesAutocompletionProvider
   public renderItem(item: IIssueHit): JSX.Element {
     return (
       <div className="issue" key={item.number}>
-        <span className="number">#{item.number}</span>
+        <span className="number">#{item.number}</span>&nbsp;
         <span className="title">{item.title}</span>
       </div>
     )

@@ -72,6 +72,8 @@ interface IAutocompletionState<T> {
   readonly range: IRange
   readonly rangeText: string
   readonly selectedItem: T | null
+  readonly selectedRowId: string | undefined
+  readonly itemListRowIdPrefix: string
 }
 
 /**
@@ -101,10 +103,11 @@ interface IAutocompletingTextInputState<T> {
 
 /** A text area which provides autocompletions as the user types. */
 export abstract class AutocompletingTextInput<
-  ElementType extends HTMLInputElement | HTMLTextAreaElement
+  ElementType extends HTMLInputElement | HTMLTextAreaElement,
+  AutocompleteItemType extends Object
 > extends React.Component<
   IAutocompletingTextInputProps<ElementType>,
-  IAutocompletingTextInputState<Object>
+  IAutocompletingTextInputState<AutocompleteItemType>
 > {
   private element: ElementType | null = null
 
@@ -159,6 +162,7 @@ export abstract class AutocompletingTextInput<
 
     const left = coordinates.left
     const top = coordinates.top + YOffset
+    const bottom = coordinates.top + YOffset + 1
     const selectedRow = state.selectedItem
       ? items.indexOf(state.selectedItem)
       : -1
@@ -168,13 +172,22 @@ export abstract class AutocompletingTextInput<
     // The maximum height we can use for the popup without it extending beyond
     // the Window bounds.
     let maxHeight: number
+    let belowElement: boolean = true
     if (
       element.ownerDocument !== null &&
       element.ownerDocument.defaultView !== null
     ) {
       const windowHeight = element.ownerDocument.defaultView.innerHeight
       const spaceToBottomOfWindow = windowHeight - popupAbsoluteTop - YOffset
-      maxHeight = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
+      if (
+        spaceToBottomOfWindow < DefaultPopupHeight &&
+        popupAbsoluteTop >= DefaultPopupHeight
+      ) {
+        maxHeight = DefaultPopupHeight
+        belowElement = false
+      } else {
+        maxHeight = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
+      }
     } else {
       maxHeight = DefaultPopupHeight
     }
@@ -198,10 +211,16 @@ export abstract class AutocompletingTextInput<
     const className = classNames('autocompletion-popup', state.provider.kind)
 
     return (
-      <div className={className} style={{ top, left, height }}>
+      <div
+        className={className}
+        style={belowElement ? { top, left, height } : { bottom, left, height }}
+      >
         <List
+          accessibleListId="autocomplete-container"
+          ref={this.onAutocompletionListRef}
           rowCount={items.length}
           rowHeight={RowHeight}
+          rowId={this.getRowId}
           selectedRows={[selectedRow]}
           rowRenderer={this.renderItem}
           scrollToRow={selectedRow}
@@ -212,8 +231,33 @@ export abstract class AutocompletingTextInput<
           onSelectedRowChanged={this.onSelectedRowChanged}
           invalidationProps={searchText}
         />
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          {items.length} suggestions
+        </div>
       </div>
     )
+  }
+
+  private getRowId: (row: number) => string = row => {
+    const state = this.state.autocompletionState
+    if (!state) {
+      return ''
+    }
+
+    return `autocomplete-item-row-${state.itemListRowIdPrefix}-${row}`
+  }
+
+  private onAutocompletionListRef = (ref: List | null) => {
+    const { autocompletionState } = this.state
+    if (ref && autocompletionState && autocompletionState.selectedItem) {
+      const { items, selectedItem } = autocompletionState
+      this.setState({
+        autocompletionState: {
+          ...autocompletionState,
+          selectedRowId: this.getRowId(items.indexOf(selectedItem)),
+        },
+      })
+    }
   }
 
   private onRowMouseDown = (row: number, event: React.MouseEvent<any>) => {
@@ -242,6 +286,7 @@ export abstract class AutocompletingTextInput<
     const newAutoCompletionState = {
       ...currentAutoCompletionState,
       selectedItem: newSelectedItem,
+      selectedRowId: newSelectedItem === null ? undefined : this.getRowId(row),
     }
 
     this.setState({ autocompletionState: newAutoCompletionState })
@@ -272,7 +317,34 @@ export abstract class AutocompletingTextInput<
     }
   }
 
+  private getActiveAutocompleteItemId(): string | undefined {
+    const { autocompletionState } = this.state
+
+    if (autocompletionState === null) {
+      return undefined
+    }
+
+    if (autocompletionState.selectedRowId) {
+      return autocompletionState.selectedRowId
+    }
+
+    if (autocompletionState.selectedItem === null) {
+      return undefined
+    }
+
+    const index = autocompletionState.items.indexOf(
+      autocompletionState.selectedItem
+    )
+
+    return this.getRowId(index)
+  }
+
   private renderTextInput() {
+    const { autocompletionState } = this.state
+
+    const autocompleteVisible =
+      autocompletionState !== null && autocompletionState.items.length > 0
+
     const props = {
       type: 'text',
       placeholder: this.props.placeholder,
@@ -285,6 +357,13 @@ export abstract class AutocompletingTextInput<
       disabled: this.props.disabled,
       'aria-required': this.props.isRequired ? true : false,
       spellCheck: this.props.spellcheck,
+      autoComplete: 'off',
+      'aria-expanded': autocompleteVisible,
+      'aria-autocomplete': 'list' as const,
+      'aria-haspopup': 'listbox' as const,
+      'aria-controls': 'autocomplete-container',
+      'aria-owns': 'autocomplete-container',
+      'aria-activedescendant': this.getActiveAutocompleteItemId(),
     }
 
     return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(
@@ -338,7 +417,10 @@ export abstract class AutocompletingTextInput<
     this.element.selectionEnd = newCaretPosition
   }
 
-  private insertCompletion(item: Object, source: 'mouseclick' | 'keyboard') {
+  private insertCompletion(
+    item: AutocompleteItemType,
+    source: 'mouseclick' | 'keyboard'
+  ) {
     const element = this.element!
     const autocompletionState = this.state.autocompletionState!
     const originalText = element.value
@@ -428,11 +510,16 @@ export abstract class AutocompletingTextInput<
         const newAutoCompletionState = {
           ...currentAutoCompletionState,
           selectedItem: newSelectedItem,
+          selectedRowId:
+            newSelectedItem === null ? undefined : this.getRowId(nextRow),
         }
 
         this.setState({ autocompletionState: newAutoCompletionState })
       }
-    } else if (event.key === 'Enter' || event.key === 'Tab') {
+    } else if (
+      event.key === 'Enter' ||
+      (event.key === 'Tab' && !event.shiftKey)
+    ) {
       const item = currentAutoCompletionState.selectedItem
       if (item) {
         event.preventDefault()
@@ -451,7 +538,7 @@ export abstract class AutocompletingTextInput<
   private async attemptAutocompletion(
     str: string,
     caretPosition: number
-  ): Promise<IAutocompletionState<any> | null> {
+  ): Promise<IAutocompletionState<AutocompleteItemType> | null> {
     for (const provider of this.props.autocompletionProviders) {
       // NB: RegExps are stateful (AAAAAAAAAAAAAAAAAA) so defensively copy the
       // regex we're given.
@@ -470,13 +557,24 @@ export abstract class AutocompletingTextInput<
           const range = { start: index - text.length, length: text.length }
           const items = await provider.getAutocompletionItems(text)
 
-          const selectedItem = items[0]
-          return { provider, items, range, selectedItem, rangeText: text }
+          return {
+            provider,
+            items,
+            range,
+            selectedItem: null,
+            selectedRowId: undefined,
+            rangeText: text,
+            itemListRowIdPrefix: this.buildAutocompleteListRowIdPrefix(),
+          }
         }
       }
     }
 
     return null
+  }
+
+  private buildAutocompleteListRowIdPrefix() {
+    return new Date().getTime().toString()
   }
 
   private onChange = async (event: React.FormEvent<ElementType>) => {
@@ -486,6 +584,10 @@ export abstract class AutocompletingTextInput<
       this.props.onValueChanged(str)
     }
 
+    return this.open(str)
+  }
+
+  private async open(str: string) {
     const element = this.element
 
     if (element === null) {
