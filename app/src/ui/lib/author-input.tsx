@@ -214,6 +214,75 @@ export class AuthorInput extends React.Component<
     )
   }
 
+  private renderAuthors() {
+    return (
+      <div className="added-author-container" ref={this.authorContainerRef}>
+        {this.props.authors.map((author, index) => {
+          return isKnownAuthor(author)
+            ? this.renderKnownAuthor(author, index)
+            : this.renderUnknownAuthor(author, index)
+        })}
+      </div>
+    )
+  }
+
+  private renderKnownAuthor(author: KnownAuthor, index: number) {
+    const { focusedAuthorIndex } = this.state
+
+    return (
+      <div
+        key={`${getFullTextForAuthor(author)}`}
+        className={classNames('handle', {
+          focused: index === focusedAuthorIndex,
+        })}
+        aria-label={`${getFullTextForAuthor(
+          author
+        )} press backspace or delete to remove`}
+        role="option"
+        aria-selected={index === focusedAuthorIndex}
+        onKeyDown={this.onAuthorKeyDown}
+        onClick={this.onAuthorClick}
+        tabIndex={-1}
+      >
+        {getDisplayTextForAuthor(author)}
+      </div>
+    )
+  }
+
+  private renderUnknownAuthor(author: UnknownAuthor, index: number) {
+    const { focusedAuthorIndex } = this.state
+    const isError = author.state === 'error'
+    const stateAriaLabel = isError ? 'search error' : 'searching'
+
+    return (
+      <div
+        key={author.username}
+        className={classNames('handle', {
+          focused: index === focusedAuthorIndex,
+          progress: !isError,
+          error: isError,
+        })}
+        aria-label={`${author.username}, ${stateAriaLabel}, press backspace or delete to remove`}
+        title={
+          isError
+            ? `Could not find user with username ${author.username}`
+            : `Searching for @${author.username}`
+        }
+        role="option"
+        aria-selected={index === focusedAuthorIndex}
+        onKeyDown={this.onAuthorKeyDown}
+        onClick={this.onAuthorClick}
+        tabIndex={-1}
+      >
+        {getDisplayTextForAuthor(author)}
+        <Octicon
+          className={classNames('icon', { spin: !isError })}
+          symbol={isError ? OcticonSymbol.stop : syncClockwise}
+        />
+      </div>
+    )
+  }
+
   private onAuthorKeyDown = (event: React.KeyboardEvent<HTMLSpanElement>) => {
     if (event.key === 'ArrowLeft') {
       this.focusPreviousAuthor()
@@ -412,75 +481,6 @@ export class AuthorInput extends React.Component<
     )
 
     this.emitAuthorsUpdated(newAuthors)
-  }
-
-  private renderAuthors() {
-    return (
-      <div className="added-author-container" ref={this.authorContainerRef}>
-        {this.props.authors.map((author, index) => {
-          return isKnownAuthor(author)
-            ? this.renderKnownAuthor(author, index)
-            : this.renderUnknownAuthor(author, index)
-        })}
-      </div>
-    )
-  }
-
-  private renderKnownAuthor(author: KnownAuthor, index: number) {
-    const { focusedAuthorIndex } = this.state
-
-    return (
-      <div
-        key={`${getFullTextForAuthor(author)}`}
-        className={classNames('handle', {
-          focused: index === focusedAuthorIndex,
-        })}
-        aria-label={`${getFullTextForAuthor(
-          author
-        )} press backspace or delete to remove`}
-        role="option"
-        aria-selected={index === focusedAuthorIndex}
-        onKeyDown={this.onAuthorKeyDown}
-        onClick={this.onAuthorClick}
-        tabIndex={-1}
-      >
-        {getDisplayTextForAuthor(author)}
-      </div>
-    )
-  }
-
-  private renderUnknownAuthor(author: UnknownAuthor, index: number) {
-    const { focusedAuthorIndex } = this.state
-    const isError = author.state === 'error'
-    const stateAriaLabel = isError ? 'search error' : 'searching'
-
-    return (
-      <div
-        key={author.username}
-        className={classNames('handle', {
-          focused: index === focusedAuthorIndex,
-          progress: !isError,
-          error: isError,
-        })}
-        aria-label={`${author.username}, ${stateAriaLabel}, press backspace or delete to remove`}
-        title={
-          isError
-            ? `Could not find user with username ${author.username}`
-            : `Searching for @${author.username}`
-        }
-        role="option"
-        aria-selected={index === focusedAuthorIndex}
-        onKeyDown={this.onAuthorKeyDown}
-        onClick={this.onAuthorClick}
-        tabIndex={-1}
-      >
-        {getDisplayTextForAuthor(author)}
-        <Octicon
-          className={classNames('icon', { spin: !isError })}
-          symbol={isError ? OcticonSymbol.stop : syncClockwise}
-        />
-      </div>
-    )
   }
 
   private onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
