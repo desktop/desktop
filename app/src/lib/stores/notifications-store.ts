@@ -149,9 +149,9 @@ export class NotificationsStore {
 
     if (!this.isValidRepositoryForEvent(repository, event)) {
       if (this.isRecentRepositoryEvent(event)) {
-        this.statsStore.recordPullRequestReviewNotiificationFromRecentRepo()
+        this.statsStore.recordPullRequestReviewNotificationFromRecentRepo()
       } else {
-        this.statsStore.recordPullRequestReviewNotiificationFromNonRecentRepo()
+        this.statsStore.recordPullRequestReviewNotificationFromNonRecentRepo()
       }
       return
     }
@@ -224,9 +224,9 @@ export class NotificationsStore {
 
     if (!this.isValidRepositoryForEvent(repository, event)) {
       if (this.isRecentRepositoryEvent(event)) {
-        this.statsStore.recordPullRequestReviewNotiificationFromRecentRepo()
+        this.statsStore.recordPullRequestReviewNotificationFromRecentRepo()
       } else {
-        this.statsStore.recordPullRequestReviewNotiificationFromNonRecentRepo()
+        this.statsStore.recordPullRequestReviewNotificationFromNonRecentRepo()
       }
       return
     }

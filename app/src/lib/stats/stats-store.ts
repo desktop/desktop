@@ -1875,14 +1875,14 @@ export class StatsStore implements IStatsStore {
     return `pullRequestReview${infixMap[reviewType]}${suffix}`
   }
 
-  public recordPullRequestReviewNotiificationFromRecentRepo(): Promise<void> {
+  public recordPullRequestReviewNotificationFromRecentRepo(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       pullRequestReviewNotificationFromRecentRepoCount:
         m.pullRequestReviewNotificationFromRecentRepoCount + 1,
     }))
   }
 
-  public recordPullRequestReviewNotiificationFromNonRecentRepo(): Promise<void> {
+  public recordPullRequestReviewNotificationFromNonRecentRepo(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       pullRequestReviewNotificationFromNonRecentRepoCount:
         m.pullRequestReviewNotificationFromNonRecentRepoCount + 1,
