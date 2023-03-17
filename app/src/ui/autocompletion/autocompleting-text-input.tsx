@@ -251,7 +251,7 @@ export abstract class AutocompletingTextInput<
           selectedRows={[selectedRow]}
           rowRenderer={this.renderItem}
           scrollToRow={selectedRow}
-          selectOnHover={true}
+          selectOnHover={false}
           focusOnHover={false}
           onRowMouseDown={this.onRowMouseDown}
           onRowClick={this.insertCompletionOnClick}
