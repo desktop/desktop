@@ -145,8 +145,7 @@ export abstract class AutocompletingTextInput<
     prevProps: IAutocompletingTextInputProps<ElementType, AutocompleteItemType>
   ) {
     if (
-      this.props.autocompletionProviders !==
-        prevProps.autocompletionProviders &&
+      this.props.autocompleteItemFilter !== prevProps.autocompleteItemFilter &&
       this.state.autocompletionState !== null
     ) {
       this.open(this.element?.value ?? '')
