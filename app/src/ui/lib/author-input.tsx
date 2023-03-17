@@ -89,6 +89,24 @@ function authorFromUserHit(user: KnownUserHit): KnownAuthor {
   }
 }
 
+function getDisplayTextForAuthor(author: Author) {
+  if (isKnownAuthor(author)) {
+    return author.username === null ? author.name : `@${author.username}`
+  } else {
+    return `@${author.username}`
+  }
+}
+
+function getFullTextForAuthor(author: Author) {
+  if (isKnownAuthor(author)) {
+    return author.username === null
+      ? author.name
+      : `@${author.username} (${author.name})`
+  } else {
+    return `@${author.username}`
+  }
+}
+
 /**
  * Autocompletable input field for possible authors of a commit.
  *
@@ -168,7 +186,8 @@ export class AuthorInput extends React.Component<
       <div
         className={className}
         aria-label={
-          'Co-Authors: ' + this.props.authors.map(a => a.username).join(', ')
+          'Co-Authors: ' +
+          this.props.authors.map(getFullTextForAuthor).join(', ')
         }
       >
         <div className="sr-only" aria-live="polite" aria-atomic="true">
@@ -412,18 +431,20 @@ export class AuthorInput extends React.Component<
 
     return (
       <div
-        key={`${author.username ?? author.name}`}
+        key={`${getFullTextForAuthor(author)}`}
         className={classNames('handle', {
           focused: index === focusedAuthorIndex,
         })}
-        aria-label={`@${author.username} (${author.name}) press backspace or delete to remove`}
+        aria-label={`${getFullTextForAuthor(
+          author
+        )} press backspace or delete to remove`}
         role="option"
         aria-selected={index === focusedAuthorIndex}
         onKeyDown={this.onAuthorKeyDown}
         onClick={this.onAuthorClick}
         tabIndex={-1}
       >
-        @{author.username}
+        {getDisplayTextForAuthor(author)}
       </div>
     )
   }
@@ -441,7 +462,7 @@ export class AuthorInput extends React.Component<
           progress: !isError,
           error: isError,
         })}
-        aria-label={`@${author.username}, ${stateAriaLabel}, press backspace or delete to remove`}
+        aria-label={`${author.username}, ${stateAriaLabel}, press backspace or delete to remove`}
         title={
           isError
             ? `Could not find user with username ${author.username}`
@@ -453,7 +474,7 @@ export class AuthorInput extends React.Component<
         onClick={this.onAuthorClick}
         tabIndex={-1}
       >
-        @{author.username}
+        {getDisplayTextForAuthor(author)}
         <Octicon
           className={classNames('icon', { spin: !isError })}
           symbol={isError ? OcticonSymbol.stop : syncClockwise}
