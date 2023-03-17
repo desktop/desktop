@@ -54,6 +54,9 @@ interface IAuthorInputProps {
 interface IAuthorInputState {
   /** Index of the added author currently focused */
   readonly focusedAuthorIndex: number | null
+
+  /** Last action description to be announced by screen readers */
+  readonly lastActionDescription: string | null
 }
 
 /**
@@ -119,6 +122,7 @@ export class AuthorInput extends React.Component<
 
     this.state = {
       focusedAuthorIndex: null,
+      lastActionDescription: null,
     }
   }
 
@@ -162,6 +166,9 @@ export class AuthorInput extends React.Component<
 
     return (
       <div className={className}>
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          {this.state.lastActionDescription}
+        </div>
         <div className="label">Co-Authors&nbsp;</div>
         <div className="shadow-input" ref={this.shadowInputRef} />
         {this.renderAuthors()}
@@ -206,6 +213,7 @@ export class AuthorInput extends React.Component<
       return
     }
 
+    const authorToRemove = authors[index]
     const newAuthors = authors.slice(0, index).concat(authors.slice(index + 1))
     let newFocusedAuthorIndex: number | null = null
 
@@ -224,8 +232,17 @@ export class AuthorInput extends React.Component<
       }
     }
 
+    let actionDescription = `Removed ${authorToRemove.username}`
+    if (isKnownAuthor(authorToRemove)) {
+      actionDescription += ` (${authorToRemove.name})`
+    }
+
+    this.setState({
+      focusedAuthorIndex: newFocusedAuthorIndex,
+      lastActionDescription: actionDescription,
+    })
+
     this.emitAuthorsUpdated(newAuthors)
-    this.setState({ focusedAuthorIndex: newFocusedAuthorIndex })
   }
 
   private emitAuthorsUpdated(addedAuthors: ReadonlyArray<Author>) {
@@ -316,9 +333,14 @@ export class AuthorInput extends React.Component<
     const newAuthors = [...this.props.authors, authorToAdd]
     this.emitAuthorsUpdated(newAuthors)
 
+    let actionDescription = `Added ${authorToAdd.username}`
     if (!isKnownAuthor(authorToAdd)) {
       this.attemptUnknownAuthorSearch(authorToAdd)
+    } else {
+      actionDescription += ` (${authorToAdd.name})`
     }
+
+    this.setState({ lastActionDescription: actionDescription })
 
     if (this.inputRef !== null) {
       this.inputRef.value = ''
@@ -347,6 +369,9 @@ export class AuthorInput extends React.Component<
       }
 
       this.updateUnknownAuthor(erroredUnknownAuthor)
+      this.setState({
+        lastActionDescription: `Error: user ${author.username} not found`,
+      })
       return
     }
 
