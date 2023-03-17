@@ -252,7 +252,7 @@ export class AuthorInput extends React.Component<
   private renderUnknownAuthor(author: UnknownAuthor, index: number) {
     const { focusedAuthorIndex } = this.state
     const isError = author.state === 'error'
-    const stateAriaLabel = isError ? 'search error' : 'searching'
+    const stateAriaLabel = isError ? 'user not found' : 'searching'
 
     return (
       <div
@@ -274,7 +274,7 @@ export class AuthorInput extends React.Component<
         onClick={this.onAuthorClick}
         tabIndex={-1}
       >
-        {getDisplayTextForAuthor(author)}
+        @{author.username}
         <Octicon
           className={classNames('icon', { spin: !isError })}
           symbol={isError ? OcticonSymbol.stop : syncClockwise}
