@@ -165,7 +165,12 @@ export class AuthorInput extends React.Component<
     )
 
     return (
-      <div className={className}>
+      <div
+        className={className}
+        aria-label={
+          'Co-Authors: ' + this.props.authors.map(a => a.username).join(', ')
+        }
+      >
         <div className="sr-only" aria-live="polite" aria-atomic="true">
           {this.state.lastActionDescription}
         </div>
