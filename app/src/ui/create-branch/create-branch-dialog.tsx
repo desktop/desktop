@@ -28,6 +28,7 @@ import { CommitOneLine } from '../../models/commit'
 import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { isRepositoryWithForkedGitHubRepository } from '../../models/repository'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -44,7 +45,8 @@ interface ICreateBranchProps {
   readonly createBranch?: (
     name: string,
     startPoint: string | null,
-    noTrack: boolean
+    noTrack: boolean,
+    orphan: boolean
   ) => void
   readonly tip: IUnbornRepository | IDetachedHead | IValidBranch
   readonly defaultBranch: Branch | null
@@ -63,6 +65,7 @@ interface ICreateBranchProps {
 }
 
 interface ICreateBranchState {
+  readonly isOrphan: boolean
   readonly currentError: Error | null
   readonly branchName: string
   readonly startPoint: StartPoint
@@ -107,6 +110,7 @@ export class CreateBranch extends React.Component<
     const startPoint = getStartPoint(props, StartPoint.UpstreamDefaultBranch)
 
     this.state = {
+      isOrphan: false,
       currentError: null,
       branchName: props.initialName,
       startPoint,
@@ -313,7 +317,7 @@ export class CreateBranch extends React.Component<
 
       // If createBranch is provided, use it instead of dispatcher
       if (this.props.createBranch !== undefined) {
-        this.props.createBranch(name, startPoint, noTrack)
+        this.props.createBranch(name, startPoint, noTrack, orphan)
         return
       }
 
@@ -322,7 +326,8 @@ export class CreateBranch extends React.Component<
         repository,
         name,
         startPoint,
-        noTrack
+        noTrack,
+        orphan
       )
       timer.done()
       this.props.onDismissed()

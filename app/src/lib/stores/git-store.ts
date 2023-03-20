@@ -319,10 +319,17 @@ export class GitStore extends BaseStore {
   public async createBranch(
     name: string,
     startPoint: string | null,
-    noTrackOption: boolean = false
+    noTrackOption: boolean = false,
+    orphanOption: boolean = false
   ) {
     const createdBranch = await this.performFailableOperation(async () => {
-      await createBranch(this.repository, name, startPoint, noTrackOption)
+      await createBranch(
+        this.repository,
+        name,
+        startPoint,
+        noTrackOption,
+        orphanOption
+      )
       return true
     })
 

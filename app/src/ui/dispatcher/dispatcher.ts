@@ -625,13 +625,15 @@ export class Dispatcher {
     repository: Repository,
     name: string,
     startPoint: string | null,
-    noTrackOption: boolean = false
+    noTrackOption: boolean = false,
+    orphanOption: boolean = false
   ): Promise<Branch | undefined> {
     return this.appStore._createBranch(
       repository,
       name,
       startPoint,
-      noTrackOption
+      noTrackOption,
+      orphanOption
     )
   }
 

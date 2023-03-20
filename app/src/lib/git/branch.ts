@@ -25,7 +25,8 @@ export async function createBranch(
   repository: Repository,
   name: string,
   startPoint: string | null,
-  noTrack?: boolean
+  noTrack?: boolean,
+  orphan?: boolean
 ): Promise<void> {
   const args =
     startPoint !== null ? ['branch', name, startPoint] : ['branch', name]
