@@ -194,6 +194,20 @@ export class CreateBranch extends React.Component<
     }
   }
 
+  private onOrphanChanged = (event: React.FormEvent<HTMLInputElement>) => {
+    this.setState({ isOrphan: event.currentTarget.checked })
+  }
+
+  private renderOrphan() {
+    return (
+      <Checkbox
+        label="Make this branch an orphan"
+        value={this.state.isOrphan ? CheckboxValue.On : CheckboxValue.Off}
+        onChange={this.onOrphanChanged}
+      />
+    )
+  }
+
   private onBaseBranchChanged = (startPoint: StartPoint) => {
     this.setState({
       startPoint,
@@ -231,6 +245,8 @@ export class CreateBranch extends React.Component<
           )}
 
           {this.renderBranchSelection()}
+
+          {this.renderOrphan()}
         </DialogContent>
 
         <DialogFooter>
@@ -279,6 +295,7 @@ export class CreateBranch extends React.Component<
 
   private createBranch = async () => {
     const name = this.state.branchName
+    const orphan = this.state.isOrphan
 
     let startPoint: string | null = null
     let noTrack = false

@@ -28,6 +28,15 @@ export async function createBranch(
   noTrack?: boolean,
   orphan?: boolean
 ): Promise<void> {
+  if (orphan) {
+    await git(
+      ['checkout', '--orphan', name],
+      repository.path,
+      'createOrphanBranch'
+    )
+    return
+  }
+
   const args =
     startPoint !== null ? ['branch', name, startPoint] : ['branch', name]
 
