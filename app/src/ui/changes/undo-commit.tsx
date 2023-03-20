@@ -26,6 +26,14 @@ interface IUndoCommitProps {
 export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
   private button: HTMLButtonElement | null = null
 
+  public componentDidMount(): void {
+    const diff = this.props.commit.author.date.getTime() - Date.now()
+    const duration = Math.abs(diff)
+    if (duration < 1000 && this.props.isCommitting === false) {
+      this.focusButton()
+    }
+  }
+
   public focusButton = () => {
     this.button?.focus()
   }
