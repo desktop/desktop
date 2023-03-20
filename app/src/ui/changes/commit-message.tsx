@@ -681,21 +681,12 @@ export class CommitMessage extends React.Component<
     return isAmending ? amendVerb : commitVerb
   }
 
-  private getCommittingButtonDescription(asString: true): string
-  private getCommittingButtonDescription(asString: false): string | JSX.Element
-  private getCommittingButtonDescription(): string | JSX.Element
-  private getCommittingButtonDescription(
-    asString?: boolean
-  ): string | JSX.Element {
+  private getCommittingButtonText() {
     const { branch } = this.props
     const verb = this.getButtonVerb()
 
     if (branch === null) {
       return verb
-    }
-
-    if (asString === true) {
-      return `${verb} to ${branch}`
     }
 
     return (
@@ -705,7 +696,18 @@ export class CommitMessage extends React.Component<
     )
   }
 
-  private getButtonDescription() {
+  private getCommittingButtonTitle() {
+    const { branch } = this.props
+    const verb = this.getButtonVerb()
+
+    if (branch === null) {
+      return verb
+    }
+
+    return `${verb} to ${branch}`
+  }
+
+  private getButtonText() {
     const { commitToAmend, commitButtonText } = this.props
 
     if (commitButtonText) {
@@ -715,11 +717,20 @@ export class CommitMessage extends React.Component<
     const isAmending = commitToAmend !== null
     return isAmending
       ? `${this.getButtonVerb()} last commit`
-      : this.getCommittingButtonDescription()
+      : this.getCommittingButtonText()
   }
 
-  private getButtonTitle() {
-    return this.getCommittingButtonDescription(true)
+  private getButtonTitle(): string {
+    const { commitToAmend, commitButtonText } = this.props
+
+    if (commitButtonText) {
+      return commitButtonText
+    }
+
+    const isAmending = commitToAmend !== null
+    return isAmending
+      ? `${this.getButtonVerb()} last commit`
+      : this.getCommittingButtonTitle()
   }
 
   private getButtonTooltip(buttonEnabled: boolean) {
@@ -746,7 +757,7 @@ export class CommitMessage extends React.Component<
       (this.canCommit() || this.canAmend()) && !isCommitting && !isSummaryBlank
     const loading = isCommitting ? <Loading /> : undefined
     const tooltip = this.getButtonTooltip(buttonEnabled)
-    const commitButton = this.getButtonDescription()
+    const commitButton = this.getButtonText()
 
     return (
       <Button
