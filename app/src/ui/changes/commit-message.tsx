@@ -715,9 +715,7 @@ export class CommitMessage extends React.Component<
     }
 
     const isAmending = commitToAmend !== null
-    return isAmending
-      ? `${this.getButtonVerb()} last commit`
-      : this.getCommittingButtonText()
+    return isAmending ? this.getButtonTitle() : this.getCommittingButtonText()
   }
 
   private getButtonTitle(): string {
