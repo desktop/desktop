@@ -748,8 +748,6 @@ export class CommitMessage extends React.Component<
     const tooltip = this.getButtonTooltip(buttonEnabled)
     const commitButton = this.getButtonDescription()
 
-    console.log(this.getButtonTitle())
-
     return (
       <Button
         type="submit"
