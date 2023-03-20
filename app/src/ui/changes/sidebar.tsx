@@ -83,6 +83,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     IAutocompletionProvider<any>
   > | null = null
 
+  private undoCommit = React.createRef<UndoCommit>()
+
   public constructor(props: IChangesSidebarProps) {
     super(props)
 
@@ -167,10 +169,16 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       return false
     }
 
-    return this.props.dispatcher.commitIncludedChanges(
+    const commitFinished = await this.props.dispatcher.commitIncludedChanges(
       this.props.repository,
       context
     )
+
+    if (commitFinished) {
+      this.undoCommit.current?.focusButton()
+    }
+
+    return commitFinished
   }
 
   private onFileSelectionChanged = (rows: ReadonlyArray<number>) => {
@@ -319,6 +327,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           timeout={UndoCommitAnimationTimeout}
         >
           <UndoCommit
+            ref={this.undoCommit}
             isPushPullFetchInProgress={this.props.isPushPullFetchInProgress}
             commit={commit}
             onUndo={this.onUndo}

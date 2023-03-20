@@ -36,7 +36,6 @@ import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
-import { delay } from 'lodash'
 
 const addAuthorIcon = {
   w: 18,
@@ -271,12 +270,6 @@ export class CommitMessage extends React.Component<
       if (isCommitting) {
         const action = commitToAmend !== null ? 'Amending…' : 'Committing…'
         this.setState({ isCommittingStatusMessage: action })
-      } else {
-        // A commit can happen really fast, we want the screen reader user to
-        // have a chance to hear the status message
-        delay(() => {
-          this.setState({ isCommittingStatusMessage: '' })
-        }, 1000)
       }
     }
   }
@@ -340,6 +333,7 @@ export class CommitMessage extends React.Component<
 
     if (commitCreated) {
       this.clearCommitMessage()
+      this.setState({ isCommittingStatusMessage: '' })
     }
   }
 
