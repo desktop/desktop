@@ -264,13 +264,13 @@ export class CommitMessage extends React.Component<
       this.coAuthorInputRef.current?.focus()
     }
 
-    if (prevProps.isCommitting !== this.props.isCommitting) {
-      const { isCommitting, commitToAmend } = this.props
-
-      if (isCommitting) {
-        const action = commitToAmend !== null ? 'Amending…' : 'Committing…'
-        this.setState({ isCommittingStatusMessage: action })
-      }
+    if (
+      prevProps.isCommitting !== this.props.isCommitting &&
+      this.props.isCommitting
+    ) {
+      this.setState({
+        isCommittingStatusMessage: this.getButtonTitle(),
+      })
     }
   }
 
@@ -671,53 +671,84 @@ export class CommitMessage extends React.Component<
     this.props.onShowFoldout({ type: FoldoutType.Branch })
   }
 
-  private renderSubmitButton() {
-    const { isCommitting, branch, commitButtonText } = this.props
-    const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
-    const buttonEnabled =
-      (this.canCommit() || this.canAmend()) && !isCommitting && !isSummaryBlank
-
-    const loading = isCommitting ? <Loading /> : undefined
-
-    const isAmending = this.props.commitToAmend !== null
+  private getButtonVerb() {
+    const { isCommitting, commitToAmend } = this.props
 
     const amendVerb = isCommitting ? 'Amending' : 'Amend'
     const commitVerb = isCommitting ? 'Committing' : 'Commit'
+    const isAmending = commitToAmend !== null
 
-    const amendTitle = `${amendVerb} last commit`
-    const commitTitle =
-      branch !== null ? `${commitVerb} to ${branch}` : commitVerb
+    return isAmending ? amendVerb : commitVerb
+  }
 
-    let tooltip: string | undefined = undefined
+  private getCommittingButtonDescription(asString: true): string
+  private getCommittingButtonDescription(asString: false): string | JSX.Element
+  private getCommittingButtonDescription(): string | JSX.Element
+  private getCommittingButtonDescription(
+    asString?: boolean
+  ): string | JSX.Element {
+    const { branch } = this.props
+    const verb = this.getButtonVerb()
 
-    if (buttonEnabled) {
-      tooltip = isAmending ? amendTitle : commitTitle
-    } else {
-      if (isSummaryBlank) {
-        tooltip = `A commit summary is required to commit`
-      } else if (!this.props.anyFilesSelected && this.props.anyFilesAvailable) {
-        tooltip = `Select one or more files to commit`
-      } else if (isCommitting) {
-        tooltip = `Committing changes…`
-      }
+    if (branch === null) {
+      return verb
     }
 
-    const defaultCommitContents =
-      branch !== null ? (
-        <>
-          {commitVerb} to <strong>{branch}</strong>
-        </>
-      ) : (
-        commitVerb
-      )
+    if (asString === true) {
+      return `${verb} to ${branch}`
+    }
 
-    const defaultAmendContents = <>{amendVerb} last commit</>
+    return (
+      <>
+        {verb} to <strong>{branch}</strong>
+      </>
+    )
+  }
 
-    const defaultContents = isAmending
-      ? defaultAmendContents
-      : defaultCommitContents
+  private getButtonDescription() {
+    const { commitToAmend, commitButtonText } = this.props
 
-    const commitButton = commitButtonText ? commitButtonText : defaultContents
+    if (commitButtonText) {
+      return commitButtonText
+    }
+
+    const isAmending = commitToAmend !== null
+    return isAmending
+      ? `${this.getButtonVerb()} last commit`
+      : this.getCommittingButtonDescription()
+  }
+
+  private getButtonTitle() {
+    return this.getCommittingButtonDescription(true)
+  }
+
+  private getButtonTooltip(buttonEnabled: boolean) {
+    if (buttonEnabled) {
+      return this.getButtonTitle()
+    }
+
+    const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
+    if (isSummaryBlank) {
+      return `A commit summary is required to commit`
+    } else if (!this.props.anyFilesSelected && this.props.anyFilesAvailable) {
+      return `Select one or more files to commit`
+    } else if (this.props.isCommitting) {
+      return `Committing changes…`
+    }
+
+    return undefined
+  }
+
+  private renderSubmitButton() {
+    const { isCommitting } = this.props
+    const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
+    const buttonEnabled =
+      (this.canCommit() || this.canAmend()) && !isCommitting && !isSummaryBlank
+    const loading = isCommitting ? <Loading /> : undefined
+    const tooltip = this.getButtonTooltip(buttonEnabled)
+    const commitButton = this.getButtonDescription()
+
+    console.log(this.getButtonTitle())
 
     return (
       <Button
