@@ -552,6 +552,29 @@ export interface IDailyMeasures {
    */
   readonly pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: number
 
+  /** The number of "commented PR" notifications the user received */
+  readonly pullRequestCommentNotificationCount: number
+
+  /** The number of "commented PR" notifications the user clicked */
+  readonly pullRequestCommentNotificationClicked: number
+
+  /**
+   * The number of PR comment notifications the user received for a non-recent
+   * repository other than the selected one.
+   */
+  readonly pullRequestCommentNotificationFromNonRecentRepoCount: number
+  /**
+   * The number of PR comment notifications the user received for a recent
+   * repository other than the selected one.
+   */
+  readonly pullRequestCommentNotificationFromRecentRepoCount: number
+
+  /**
+   * The number of times the user decided to switch to the affected pull request
+   * from the PR comment dialog.
+   */
+  readonly pullRequestCommentDialogSwitchToPullRequestCount: number
+
   /** The number of times the user did a multi commit diff where there were unreachable commits */
   readonly multiCommitDiffWithUnreachableCommitWarningCount: number
 
