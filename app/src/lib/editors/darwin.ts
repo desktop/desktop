@@ -81,7 +81,7 @@ const editors: IDarwinExternalEditor[] = [
   },
   {
     name: 'RStudio',
-    bundleIdentifiers: ['org.rstudio.RStudio'],
+    bundleIdentifiers: ['org.rstudio.RStudio', 'com.rstudio.desktop'],
   },
   {
     name: 'TextMate',
