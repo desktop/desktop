@@ -1,5 +1,3 @@
 import { HTMLAttributes } from 'react'
 
-export type AriaHasPopupType = HTMLAttributes<
-  string | boolean | undefined
->['aria-haspopup']
+export type AriaHasPopupType = HTMLAttributes<HTMLElement>['aria-haspopup']
