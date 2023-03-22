@@ -36,6 +36,7 @@ import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
+import { delay } from 'lodash'
 
 const addAuthorIcon = {
   w: 18,
@@ -97,6 +98,8 @@ interface ICommitMessageProps {
   /** Optional text to override default commit button text */
   readonly commitButtonText?: string
 
+  readonly mostRecentLocalCommit: Commit | null
+
   /** Whether or not to remember the coauthors in the changes state */
   readonly onCoAuthorsUpdated: (coAuthors: ReadonlyArray<IAuthor>) => void
   readonly onShowCoAuthoredByChanged: (showCoAuthoredBy: boolean) => void
@@ -142,6 +145,8 @@ interface ICommitMessageState {
   readonly descriptionObscured: boolean
 
   readonly isCommittingStatusMessage: string
+
+  readonly startedCommitting: number | null
 }
 
 function findUserAutoCompleteProvider(
@@ -181,6 +186,7 @@ export class CommitMessage extends React.Component<
       ),
       descriptionObscured: false,
       isCommittingStatusMessage: '',
+      startedCommitting: null,
     }
   }
 
@@ -266,11 +272,10 @@ export class CommitMessage extends React.Component<
 
     if (
       prevProps.isCommitting !== this.props.isCommitting &&
-      this.props.isCommitting
+      this.props.isCommitting &&
+      this.state.isCommittingStatusMessage === ''
     ) {
-      this.setState({
-        isCommittingStatusMessage: this.getButtonTitle(),
-      })
+      this.setState({ isCommittingStatusMessage: this.getButtonTitle() })
     }
   }
 
@@ -328,13 +333,32 @@ export class CommitMessage extends React.Component<
     }
 
     const timer = startTimer('create commit', this.props.repository)
+    this.setState({ startedCommitting: new Date().getTime() })
     const commitCreated = await this.props.onCreateCommit(commitContext)
     timer.done()
 
     if (commitCreated) {
       this.clearCommitMessage()
-      this.setState({ isCommittingStatusMessage: '' })
+      this.clearCommitStatusMessage()
     }
+  }
+
+  /** We want to give a couple seconds for voice reader to be able to read the
+   * message when commit is fast. */
+  private clearCommitStatusMessage() {
+    const timeSinceStartedCommitting = Math.abs(
+      (this.state.startedCommitting ?? new Date().getTime()) -
+        new Date().getTime()
+    )
+    const delayed = 2000 - timeSinceStartedCommitting
+    delay(
+      () =>
+        this.setState({
+          isCommittingStatusMessage: '',
+          startedCommitting: null,
+        }),
+      delayed
+    )
   }
 
   private canCommit(): boolean {
@@ -769,9 +793,6 @@ export class CommitMessage extends React.Component<
         <>
           {loading}
           {commitButton}
-          <span className="sr-only" aria-live="polite" aria-atomic="true">
-            {this.state.isCommittingStatusMessage}
-          </span>
         </>
       </Button>
     )
@@ -798,6 +819,21 @@ export class CommitMessage extends React.Component<
         <Octicon symbol={OcticonSymbol.lightBulb} />
       </TooltippedContent>
     )
+  }
+
+  private getJustCommittedMessage() {
+    const { mostRecentLocalCommit } = this.props
+    if (mostRecentLocalCommit === null) {
+      return ''
+    }
+
+    const diff = mostRecentLocalCommit.author.date.getTime() - Date.now()
+    const duration = Math.abs(diff)
+    if (duration > 1000 || this.props.isCommitting) {
+      return ''
+    }
+
+    return 'Committed just now'
   }
 
   public render() {
@@ -869,6 +905,12 @@ export class CommitMessage extends React.Component<
         {this.renderPermissionsCommitWarning()}
 
         {this.renderSubmitButton()}
+        <span className="sr-only" aria-live="polite">
+          {this.state.isCommittingStatusMessage}
+        </span>
+        <span className="sr-only" aria-live="polite">
+          {this.getJustCommittedMessage()}
+        </span>
       </div>
     )
   }
