@@ -82,12 +82,12 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
     ) : null
 
     return (
-      <div className="dialog-header">
+      <header className="dialog-header">
         {this.renderTitle()}
         {spinner}
         {this.renderCloseButton()}
         {this.props.children}
-      </div>
+      </header>
     )
   }
 }
