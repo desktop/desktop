@@ -4,6 +4,7 @@ import { CloneOptions } from '../../models/clone-options'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
 import { getDefaultBranch } from '../helpers/default-branch'
 import { envForRemoteOperation } from './environment'
+import * as Path from 'path'
 
 /**
  * Clones a repository from a given url into to the specified path.
@@ -71,7 +72,9 @@ export async function clone(
     args.push('-b', options.branch)
   }
 
-  args.push('--', url, path)
+  const parentPath = Path.dirname(path)
+  const basePath = Path.basename(path)
+  args.push('--', url, basePath)
 
-  await git(args, __dirname, 'clone', opts)
+  await git(args, parentPath, 'clone', opts)
 }
