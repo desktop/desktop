@@ -354,7 +354,7 @@ export class CommitMessage extends React.Component<
     delay(
       () =>
         this.setState({
-          isCommittingStatusMessage: '',
+          isCommittingStatusMessage: 'Committed Just Now',
           startedCommitting: null,
         }),
       delayed
@@ -821,21 +821,6 @@ export class CommitMessage extends React.Component<
     )
   }
 
-  private getJustCommittedMessage() {
-    const { mostRecentLocalCommit } = this.props
-    if (mostRecentLocalCommit === null) {
-      return ''
-    }
-
-    const diff = mostRecentLocalCommit.author.date.getTime() - Date.now()
-    const duration = Math.abs(diff)
-    if (duration > 1000 || this.props.isCommitting) {
-      return ''
-    }
-
-    return 'Committed just now'
-  }
-
   public render() {
     const className = classNames('commit-message-component', {
       'with-action-bar': this.isActionBarEnabled,
@@ -907,9 +892,6 @@ export class CommitMessage extends React.Component<
         {this.renderSubmitButton()}
         <span className="sr-only" aria-live="polite">
           {this.state.isCommittingStatusMessage}
-        </span>
-        <span className="sr-only" aria-live="polite">
-          {this.getJustCommittedMessage()}
         </span>
       </div>
     )
