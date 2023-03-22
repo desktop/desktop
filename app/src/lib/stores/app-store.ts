@@ -5215,7 +5215,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.statsStore.recordOpenShell()
 
     try {
-      const match = await findShellOrDefault(this.selectedShell)
+      const match = await findShellOrDefault(this.selectedShell, path)
       await launchShell(match, path, error => this._pushError(error))
     } catch (error) {
       this.emitError(error)

@@ -62,9 +62,18 @@ export async function getAvailableShells(): Promise<ReadonlyArray<FoundShell>> {
 }
 
 /** Find the given shell or the default if the given shell can't be found. */
-export async function findShellOrDefault(shell: Shell): Promise<FoundShell> {
+export async function findShellOrDefault(
+  shell: Shell,
+  path: string
+): Promise<FoundShell> {
   const available = await getAvailableShells()
-  const found = available.find(s => s.shell === shell)
+  let found = available.find(s => s.shell === shell)
+
+  if (found?.chooseShell) {
+    shell = found.chooseShell(path) as Shell
+    found = available.find(s => s.shell === shell)
+  }
+
   if (found) {
     return found
   } else {

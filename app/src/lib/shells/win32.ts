@@ -7,8 +7,10 @@ import { enableWSLDetection } from '../feature-flag'
 import { findGitOnPath } from '../is-git-on-path'
 import { parseEnumValue } from '../enum'
 import { pathExists } from '../../ui/lib/path-exists'
+import { isWSLPath } from '../path'
 
 export enum Shell {
+  Auto = 'Command Prompt / WSL',
   Cmd = 'Command Prompt',
   PowerShell = 'PowerShell',
   PowerShellCore = 'PowerShell Core',
@@ -31,13 +33,24 @@ export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
   const gitPath = await findGitOnPath()
-  const shells: IFoundShell<Shell>[] = [
-    {
-      shell: Shell.Cmd,
-      path: process.env.comspec || 'C:\\Windows\\System32\\cmd.exe',
-      extraArgs: gitPath ? ['/K', `"doskey git=^"${gitPath}^" $*"`] : [],
-    },
-  ]
+
+  const wslPath = enableWSLDetection() ? await findWSL() : null
+
+  const shells: IFoundShell<Shell>[] = []
+
+  if (wslPath !== null) {
+    shells.push({
+      shell: Shell.Auto,
+      path: '',
+      chooseShell: (path: string) => (isWSLPath(path) ? Shell.WSL : Shell.Cmd),
+    })
+  }
+
+  shells.push({
+    shell: Shell.Cmd,
+    path: process.env.comspec || 'C:\\Windows\\System32\\cmd.exe',
+    extraArgs: gitPath ? ['/K', `"doskey git=^"${gitPath}^" $*"`] : [],
+  })
 
   const powerShellPath = await findPowerShell()
   if (powerShellPath != null) {
@@ -79,14 +92,11 @@ export async function getAvailableShells(): Promise<
     })
   }
 
-  if (enableWSLDetection()) {
-    const wslPath = await findWSL()
-    if (wslPath != null) {
-      shells.push({
-        shell: Shell.WSL,
-        path: wslPath,
-      })
-    }
+  if (wslPath !== null) {
+    shells.push({
+      shell: Shell.WSL,
+      path: wslPath,
+    })
   }
 
   const alacrittyPath = await findAlacritty()
@@ -395,6 +405,10 @@ export function launch(
 ): ChildProcess {
   const shell = foundShell.shell
 
+  if (shell === Shell.Auto) {
+    throw Error('Shell.Auto must be resolved before calling launch')
+  }
+
   switch (shell) {
     case Shell.PowerShell:
       return spawn('START', ['"PowerShell"', `"${foundShell.path}"`], {
@@ -448,10 +462,13 @@ export function launch(
         }
       )
     case Shell.WSL:
-      return spawn('START', ['"WSL"', `"${foundShell.path}"`], {
-        shell: true,
-        cwd: path,
-      })
+      return spawn(
+        'START',
+        ['"WSL"', `"${foundShell.path}"`, '--cd', `"${path}"`],
+        {
+          shell: true,
+        }
+      )
     case Shell.Cmd:
       return spawn(
         'START',
