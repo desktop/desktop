@@ -160,3 +160,20 @@ export const win32 = {
 export const posix = {
   resolveWithin: resolveWithinPosix,
 }
+
+export function parseWSLPath(path: string): {
+  distro: string | undefined
+  wslPath: string | undefined
+} {
+  const [, distro, wslPath] =
+    path.match(/^\\\\wsl(?:\$|\.localhost)\\([^\\]*)(\\.*)$/) ?? []
+
+  return {
+    distro,
+    wslPath: wslPath?.replace(/\\/g, '/'),
+  }
+}
+
+export function isWSLPath(path: string) {
+  return !!parseWSLPath(path).distro
+}

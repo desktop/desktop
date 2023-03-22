@@ -14,6 +14,9 @@ export type FoundEditor = {
    * the editor requires a shell spawn to launch
    */
   usesShell?: boolean
+  readonly executableArgs?:
+    | readonly string[]
+    | ((path: string) => readonly string[] | undefined)
 }
 
 interface IErrorMetadata {
