@@ -83,7 +83,6 @@ export interface IButtonProps {
    * Such as when a button wraps an image and there is no text.
    */
   readonly ariaLabel?: string
-  readonly ariaLabelledby?: string
 
   /**
    * Whether to only show the tooltip when the tooltip target overflows its
@@ -143,7 +142,6 @@ export class Button extends React.Component<IButtonProps, {}> {
         aria-expanded={this.props.ariaExpanded}
         aria-disabled={disabled ? 'true' : undefined}
         aria-label={this.props.ariaLabel}
-        aria-labelledby={this.props.ariaLabelledby}
       >
         {tooltip && (
           <Tooltip
