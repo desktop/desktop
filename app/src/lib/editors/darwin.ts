@@ -160,6 +160,10 @@ const editors: IDarwinExternalEditor[] = [
     name: 'Pulsar',
     bundleIdentifiers: ['dev.pulsar-edit.pulsar'],
   },
+  {
+    name: 'Zed',
+    bundleIdentifiers: ['dev.zed.Zed'],
+  },
 ]
 
 async function findApplication(
