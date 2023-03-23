@@ -161,8 +161,8 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['dev.pulsar-edit.pulsar'],
   },
   {
-      name: 'Zed',
-      bundleIdentifiers: ['dev.zed.Zed'],
+    name: 'Zed',
+    bundleIdentifiers: ['dev.zed.Zed'],
   },
 ]
 
