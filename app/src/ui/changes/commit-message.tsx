@@ -36,7 +36,6 @@ import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
-import { delay } from 'lodash'
 
 const addAuthorIcon = {
   w: 18,
@@ -143,8 +142,6 @@ interface ICommitMessageState {
   readonly descriptionObscured: boolean
 
   readonly isCommittingStatusMessage: string
-
-  readonly startedCommitting: number | null
 }
 
 function findUserAutoCompleteProvider(
@@ -184,7 +181,6 @@ export class CommitMessage extends React.Component<
       ),
       descriptionObscured: false,
       isCommittingStatusMessage: '',
-      startedCommitting: null,
     }
   }
 
@@ -331,7 +327,6 @@ export class CommitMessage extends React.Component<
     }
 
     const timer = startTimer('create commit', this.props.repository)
-    this.setState({ startedCommitting: new Date().getTime() })
     const commitCreated = await this.props.onCreateCommit(commitContext)
     timer.done()
 
@@ -341,22 +336,10 @@ export class CommitMessage extends React.Component<
     }
   }
 
-  /** We want to give a couple seconds for voice reader to be able to read the
-   * in progress message when commit is fast. */
   private updateCommitStatusMessage() {
-    const timeSinceStartedCommitting = Math.abs(
-      (this.state.startedCommitting ?? new Date().getTime()) -
-        new Date().getTime()
-    )
-    const delayed = 2000 - timeSinceStartedCommitting
-    delay(
-      () =>
-        this.setState({
-          isCommittingStatusMessage: 'Committed Just Now',
-          startedCommitting: null,
-        }),
-      delayed > 0 ? delayed : 0
-    )
+    this.setState({
+      isCommittingStatusMessage: 'Committed Just Now',
+    })
   }
 
   private canCommit(): boolean {
