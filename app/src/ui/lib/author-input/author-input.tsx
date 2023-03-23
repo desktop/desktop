@@ -5,18 +5,18 @@ import {
   AutocompletingInput,
   UserHit,
   KnownUserHit,
-} from '../autocompletion'
+} from '../../autocompletion'
 import {
   Author,
   isKnownAuthor,
   KnownAuthor,
   UnknownAuthor,
-} from '../../models/author'
-import { getLegacyStealthEmailForUser } from '../../lib/email'
+} from '../../../models/author'
+import { getLegacyStealthEmailForUser } from '../../../lib/email'
 import memoizeOne from 'memoize-one'
-import { Octicon, syncClockwise } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
-import { FocusContainer } from './focus-container'
+import { FocusContainer } from '../focus-container'
+import { AuthorHandle } from './author-handle'
+import { getFullTextForAuthor } from './author-text'
 
 interface IAuthorInputProps {
   /**
@@ -93,24 +93,6 @@ function authorFromUserHit(user: KnownUserHit): KnownAuthor {
   }
 }
 
-function getDisplayTextForAuthor(author: Author) {
-  if (isKnownAuthor(author)) {
-    return author.username === null ? author.name : `@${author.username}`
-  } else {
-    return `@${author.username}`
-  }
-}
-
-function getFullTextForAuthor(author: Author) {
-  if (isKnownAuthor(author)) {
-    return author.username === null
-      ? author.name
-      : `@${author.username} (${author.name})`
-  } else {
-    return `@${author.username}`
-  }
-}
-
 /**
  * Autocompletable input field for possible authors of a commit.
  *
@@ -174,8 +156,8 @@ export class AuthorInput extends React.Component<
       return
     }
 
-    const handle = this.authorContainerRef.current?.getElementsByClassName(
-      'handle'
+    const handle = this.authorContainerRef.current?.getElementsByTagName(
+      'button'
     )[index] as HTMLElement | null
 
     handle?.focus()
@@ -236,86 +218,27 @@ export class AuthorInput extends React.Component<
   }
 
   private renderAuthor(author: Author, index: number) {
-    const { focusedAuthorIndex, isFocusedWithin: isFocusWithin } = this.state
-    const isLastAuthor = index === this.props.authors.length - 1
-    const isFocused = index === focusedAuthorIndex
-
-    const getTabIndex = () => {
-      // If the component is not focused, then only the first author should be
-      // focusable
-      if (!isFocusWithin) {
-        return index === 0 ? 0 : -1
-      }
-
-      // If the author is focused already, then it should be focusable
-      if (isFocused) {
-        return 0
-      }
-
-      // Otherwise, if the input is focused, then only the last author should be
-      // focusable in order to leave the input with shift+tab
-      return isLastAuthor && focusedAuthorIndex === null ? 0 : -1
-    }
-
-    const getAriaLabel = () => {
-      if (isKnownAuthor(author)) {
-        return `${getFullTextForAuthor(
-          author
-        )} press backspace or delete to remove`
-      }
-
-      const isError = author.state === 'error'
-      const stateAriaLabel = isError ? 'user not found' : 'searching'
-      return `${author.username}, ${stateAriaLabel}, press backspace or delete to remove`
-    }
-
-    const getClassName = () => {
-      const classNamesArr: Array<any> = ['handle', { focused: isFocused }]
-      if (!isKnownAuthor(author)) {
-        const isError = author.state === 'error'
-        classNamesArr.push({ progress: !isError, error: isError })
-      }
-      return classNames(classNamesArr)
-    }
-
-    const getTitle = () => {
-      if (isKnownAuthor(author)) {
-        return undefined
-      }
-
-      return author.state === 'error'
-        ? `Could not find user with username ${author.username}`
-        : `Searching for @${author.username}`
-    }
+    const { focusedAuthorIndex, isFocusedWithin } = this.state
 
     return (
-      <div
+      <AuthorHandle
         key={
           isKnownAuthor(author) ? getFullTextForAuthor(author) : author.username
         }
-        className={getClassName()}
-        aria-label={getAriaLabel()}
-        title={getTitle()}
-        role="option"
-        aria-selected={isFocused}
+        index={index}
+        author={author}
+        isFocusWithinContainer={isFocusedWithin}
+        isFocused={focusedAuthorIndex === index}
+        isLastAuthor={index === this.props.authors.length - 1}
+        isFirstAuthor={index === 0}
+        isInputFocused={focusedAuthorIndex === null}
         onKeyDown={this.onAuthorKeyDown}
-        onClick={this.onAuthorClick}
+        onHandleClick={this.onAuthorClick}
+        onRemoveClick={this.onRemoveAuthorClick}
         onFocus={this.onAuthorFocus}
-        tabIndex={getTabIndex()}
-      >
-        <span aria-hidden="true">{getDisplayTextForAuthor(author)}</span>
-        {!isKnownAuthor(author) && (
-          <Octicon
-            className={classNames('icon', { spin: author.state !== 'error' })}
-            symbol={
-              author.state === 'error' ? OcticonSymbol.stop : syncClockwise
-            }
-          />
-        )}
-      </div>
+      />
     )
   }
-
   private onFocusWithinChanged = (isFocusedWithin: boolean) => {
     const focusedAuthorIndex = isFocusedWithin
       ? this.state.focusedAuthorIndex
@@ -323,7 +246,10 @@ export class AuthorInput extends React.Component<
     this.setState({ focusedAuthorIndex, isFocusedWithin })
   }
 
-  private onAuthorKeyDown = (event: React.KeyboardEvent<HTMLSpanElement>) => {
+  private onAuthorKeyDown = (
+    index: number,
+    event: React.KeyboardEvent<HTMLElement>
+  ) => {
     if (event.key === 'ArrowLeft') {
       this.focusPreviousAuthor()
     } else if (event.key === 'ArrowRight') {
@@ -339,7 +265,7 @@ export class AuthorInput extends React.Component<
     }
   }
 
-  private removeAuthor(index: number, direction: 'back' | 'forward') {
+  private removeAuthor(index: number, direction: 'back' | 'forward' | 'none') {
     const { authors } = this.props
 
     if (index >= authors.length) {
@@ -554,19 +480,15 @@ export class AuthorInput extends React.Component<
     }
   }
 
-  private onAuthorClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    const handle = event.target as HTMLElement
-    const index = Array.from(handle.parentElement?.children ?? []).indexOf(
-      handle
-    )
+  private onAuthorClick = (index: number) => {
     this.setState({ focusedAuthorIndex: index })
   }
 
-  private onAuthorFocus = (event: React.FocusEvent<HTMLDivElement>) => {
-    const handle = event.target as HTMLElement
-    const index = Array.from(handle.parentElement?.children ?? []).indexOf(
-      handle
-    )
+  private onRemoveAuthorClick = (index: number) => {
+    this.removeAuthor(index, 'forward')
+  }
+
+  private onAuthorFocus = (index: number) => {
     this.setState({ focusedAuthorIndex: index })
   }
 }

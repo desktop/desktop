@@ -59,6 +59,10 @@
     margin: 0px 2px;
     cursor: pointer;
 
+    * {
+      cursor: pointer;
+    }
+
     svg {
       cursor: pointer;
     }
@@ -72,7 +76,7 @@
       color: var(--form-error-text-color);
       border-color: var(--form-error-border-color);
 
-      svg {
+      svg.icon {
         padding-bottom: 2px;
       }
     }
@@ -85,10 +89,31 @@
 
     &.progress,
     &.error {
-      svg {
+      svg.icon {
         height: 9px;
         margin-left: 3px;
         margin-right: 3px;
+        vertical-align: middle;
+        fill: currentColor;
+      }
+    }
+
+    > button {
+      -webkit-appearance: none;
+      font-family: inherit;
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin: 0;
+      outline: none;
+
+      color: inherit;
+
+      svg.delete {
+        height: 16px;
+        margin-left: 3px;
+        margin-right: 3px;
+        margin-bottom: 1px;
         vertical-align: middle;
         fill: currentColor;
       }
