@@ -11,7 +11,7 @@
       "[Fixed] Focus history and changes list when accessed via keyboard shortcut or menu - #16360",
       "[Improved] Improve accessibility of dialogs for screen reader users - #16350",
       "[Improved] Make autocompletion suggestions more accessible for screen readers - #16324",
-      "[Improved] Preference dialog, now 99% less jarring - #16313",
+      "[Improved] Preference dialog height doesn't change much between sections - #16313",
       "[Improved] Learn more links are descriptive for screen readers - #16274",
       "[Improved] Popover titles are announced by screen readers - #16270",
       "[Improved] Add offset focus ring for buttons, vertical tabs etc - #16288",
