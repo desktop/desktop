@@ -1,7 +1,7 @@
 {
   "releases": {
     "3.2.1-beta2": [
-      "[Added] Add new RStudio bundle identifier - #16339",
+      "[Fixed] Fix support of newer versions of RStudio - #16339",
       "[Added] Add support for Pulsar code editor on macOS. - #16220. Thanks @mdibella-dev!",
       "[Fixed] On Windows, app level menu bar and menu items are announced by screen readers - #16315",
       "[Fixed] Misattributed warning is announced in 'Git' preferences/options by screen readers - #16239",
