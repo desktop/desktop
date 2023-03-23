@@ -355,7 +355,7 @@ export class CommitMessage extends React.Component<
           isCommittingStatusMessage: 'Committed Just Now',
           startedCommitting: null,
         }),
-      delayed
+      delayed > 0 ? delayed : 0
     )
   }
 
