@@ -80,6 +80,7 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
    */
   readonly onContextMenu?: (event: React.MouseEvent<any>) => void
 
+  /** Called when the input field receives focus. */
   readonly onFocus?: (event: React.FocusEvent<ElementType>) => void
 }
 

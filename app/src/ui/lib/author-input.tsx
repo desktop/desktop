@@ -16,6 +16,7 @@ import { getLegacyStealthEmailForUser } from '../../lib/email'
 import memoizeOne from 'memoize-one'
 import { Octicon, syncClockwise } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
+import { FocusContainer } from './focus-container'
 
 interface IAuthorInputProps {
   /**
@@ -52,6 +53,9 @@ interface IAuthorInputProps {
 }
 
 interface IAuthorInputState {
+  /** Whether or not the focus is within this component */
+  readonly isFocusedWithin: boolean
+
   /** Index of the added author currently focused */
   readonly focusedAuthorIndex: number | null
 
@@ -139,6 +143,7 @@ export class AuthorInput extends React.Component<
     super(props)
 
     this.state = {
+      isFocusedWithin: false,
       focusedAuthorIndex: null,
       lastActionDescription: null,
     }
@@ -148,9 +153,12 @@ export class AuthorInput extends React.Component<
     prevProps: IAuthorInputProps,
     prevState: IAuthorInputState
   ) {
+    // If the focus is inside of the component and _something_ changed that
+    // could affect the focus, make sure the focus is still where it should
     if (
-      prevProps.authors.length !== this.props.authors.length ||
-      prevState.focusedAuthorIndex !== this.state.focusedAuthorIndex
+      this.state.isFocusedWithin &&
+      (prevProps.authors.length !== this.props.authors.length ||
+        prevState.focusedAuthorIndex !== this.state.focusedAuthorIndex)
     ) {
       this.focusAuthorHandle(this.state.focusedAuthorIndex)
     }
@@ -183,12 +191,14 @@ export class AuthorInput extends React.Component<
     )
 
     return (
-      <div
+      <FocusContainer
         className={className}
         aria-label={
           'Co-Authors: ' +
           this.props.authors.map(getFullTextForAuthor).join(', ')
         }
+        role="listbox"
+        onFocusWithinChanged={this.onFocusWithinChanged}
       >
         <div className="sr-only" aria-live="polite" aria-atomic="true">
           {this.state.lastActionDescription}
@@ -211,7 +221,7 @@ export class AuthorInput extends React.Component<
           onKeyDown={this.onInputKeyDown}
           onFocus={this.onInputFocus}
         />
-      </div>
+      </FocusContainer>
     )
   }
 
@@ -226,11 +236,26 @@ export class AuthorInput extends React.Component<
   }
 
   private renderAuthor(author: Author, index: number) {
-    const { focusedAuthorIndex } = this.state
+    const { focusedAuthorIndex, isFocusedWithin: isFocusWithin } = this.state
     const isLastAuthor = index === this.props.authors.length - 1
     const isFocused = index === focusedAuthorIndex
-    const tabIndex =
-      (isLastAuthor && focusedAuthorIndex === null) || isFocused ? 0 : -1
+
+    const getTabIndex = () => {
+      // If the component is not focused, then only the first author should be
+      // focusable
+      if (!isFocusWithin) {
+        return index === 0 ? 0 : -1
+      }
+
+      // If the author is focused already, then it should be focusable
+      if (isFocused) {
+        return 0
+      }
+
+      // Otherwise, if the input is focused, then only the last author should be
+      // focusable in order to leave the input with shift+tab
+      return isLastAuthor && focusedAuthorIndex === null ? 0 : -1
+    }
 
     const getAriaLabel = () => {
       if (isKnownAuthor(author)) {
@@ -275,7 +300,8 @@ export class AuthorInput extends React.Component<
         aria-selected={isFocused}
         onKeyDown={this.onAuthorKeyDown}
         onClick={this.onAuthorClick}
-        tabIndex={tabIndex}
+        onFocus={this.onAuthorFocus}
+        tabIndex={getTabIndex()}
       >
         <span aria-hidden="true">{getDisplayTextForAuthor(author)}</span>
         {!isKnownAuthor(author) && (
@@ -288,6 +314,13 @@ export class AuthorInput extends React.Component<
         )}
       </div>
     )
+  }
+
+  private onFocusWithinChanged = (isFocusedWithin: boolean) => {
+    const focusedAuthorIndex = isFocusedWithin
+      ? this.state.focusedAuthorIndex
+      : null
+    this.setState({ focusedAuthorIndex, isFocusedWithin })
   }
 
   private onAuthorKeyDown = (event: React.KeyboardEvent<HTMLSpanElement>) => {
@@ -375,7 +408,9 @@ export class AuthorInput extends React.Component<
   }
 
   private onInputFocus = () => {
-    this.setState({ focusedAuthorIndex: null })
+    this.setState({
+      focusedAuthorIndex: null,
+    })
   }
 
   private onCoAuthorsValueChanged = (value: string) => {
@@ -520,6 +555,14 @@ export class AuthorInput extends React.Component<
   }
 
   private onAuthorClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const handle = event.target as HTMLElement
+    const index = Array.from(handle.parentElement?.children ?? []).indexOf(
+      handle
+    )
+    this.setState({ focusedAuthorIndex: index })
+  }
+
+  private onAuthorFocus = (event: React.FocusEvent<HTMLDivElement>) => {
     const handle = event.target as HTMLElement
     const index = Array.from(handle.parentElement?.children ?? []).indexOf(
       handle
