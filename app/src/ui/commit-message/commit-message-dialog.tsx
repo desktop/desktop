@@ -112,7 +112,6 @@ export class CommitMessageDialog extends React.Component<
         <DialogContent>
           <CommitMessage
             branch={this.props.branch}
-            mostRecentLocalCommit={null}
             commitAuthor={this.props.commitAuthor}
             isShowingModal={true}
             isShowingFoldout={false}

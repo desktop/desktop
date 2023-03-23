@@ -98,8 +98,6 @@ interface ICommitMessageProps {
   /** Optional text to override default commit button text */
   readonly commitButtonText?: string
 
-  readonly mostRecentLocalCommit: Commit | null
-
   /** Whether or not to remember the coauthors in the changes state */
   readonly onCoAuthorsUpdated: (coAuthors: ReadonlyArray<IAuthor>) => void
   readonly onShowCoAuthoredByChanged: (showCoAuthoredBy: boolean) => void
