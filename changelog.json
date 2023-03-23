@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.2.1-test9": [
+      "[Fixed] Focus history and changes list when accessed via keyboard shortcut or menu"
+    ],
     "3.2.1-beta1": [
       "[New] Get notified when someone comments your pull requests - #16226",
       "[Fixed] Up/down arrow can be used to navigate autocomplete lists like emoji again - #16044",
