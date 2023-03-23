@@ -339,13 +339,13 @@ export class CommitMessage extends React.Component<
 
     if (commitCreated) {
       this.clearCommitMessage()
-      this.clearCommitStatusMessage()
+      this.updateCommitStatusMessage()
     }
   }
 
   /** We want to give a couple seconds for voice reader to be able to read the
-   * message when commit is fast. */
-  private clearCommitStatusMessage() {
+   * in progress message when commit is fast. */
+  private updateCommitStatusMessage() {
     const timeSinceStartedCommitting = Math.abs(
       (this.state.startedCommitting ?? new Date().getTime()) -
         new Date().getTime()
