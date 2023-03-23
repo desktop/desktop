@@ -6,7 +6,7 @@
 }
 
 .menu-pane {
-  overflow-y: scroll;
+  overflow-y: auto;
   padding-bottom: var(--spacing-half);
   // Open panes (except the first one) should have a border on their
   // right hand side to create a divider between them and their parent
