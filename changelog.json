@@ -1,8 +1,8 @@
 {
   "releases": {
     "3.2.1-beta2": [
-      "[Fixed] Fix support of newer versions of RStudio - #16339",
       "[Added] Add support for Pulsar code editor on macOS. - #16220. Thanks @mdibella-dev!",
+      "[Fixed] Fix support of newer versions of RStudio - #16339",
       "[Fixed] On Windows, app level menu bar and menu items are announced by screen readers - #16315",
       "[Fixed] Misattributed warning is announced in 'Git' preferences/options by screen readers - #16239",
       "[Fixed] Remove check for update error modal when no internet connection or computer has been asleep - #16057",
