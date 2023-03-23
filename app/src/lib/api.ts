@@ -56,7 +56,6 @@ interface IFetchAllOptions<T> {
    * `(results) => results.length < 500`
    *
    * @param results  All results retrieved thus far
-   * @param page     The last fetched page of results
    */
   continue?: (results: ReadonlyArray<T>) => boolean | Promise<boolean>
 
