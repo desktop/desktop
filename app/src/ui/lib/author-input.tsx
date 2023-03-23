@@ -219,67 +219,73 @@ export class AuthorInput extends React.Component<
     return (
       <div className="added-author-container" ref={this.authorContainerRef}>
         {this.props.authors.map((author, index) => {
-          return isKnownAuthor(author)
-            ? this.renderKnownAuthor(author, index)
-            : this.renderUnknownAuthor(author, index)
+          return this.renderAuthor(author, index)
         })}
       </div>
     )
   }
 
-  private renderKnownAuthor(author: KnownAuthor, index: number) {
+  private renderAuthor(author: Author, index: number) {
     const { focusedAuthorIndex } = this.state
+    const isLastAuthor = index === this.props.authors.length - 1
+    const isFocused = index === focusedAuthorIndex
+    const tabIndex =
+      (isLastAuthor && focusedAuthorIndex === null) || isFocused ? 0 : -1
 
-    return (
-      <div
-        key={`${getFullTextForAuthor(author)}`}
-        className={classNames('handle', {
-          focused: index === focusedAuthorIndex,
-        })}
-        aria-label={`${getFullTextForAuthor(
+    const getAriaLabel = () => {
+      if (isKnownAuthor(author)) {
+        return `${getFullTextForAuthor(
           author
-        )} press backspace or delete to remove`}
-        role="option"
-        aria-selected={index === focusedAuthorIndex}
-        onKeyDown={this.onAuthorKeyDown}
-        onClick={this.onAuthorClick}
-        tabIndex={-1}
-      >
-        {getDisplayTextForAuthor(author)}
-      </div>
-    )
-  }
+        )} press backspace or delete to remove`
+      }
 
-  private renderUnknownAuthor(author: UnknownAuthor, index: number) {
-    const { focusedAuthorIndex } = this.state
-    const isError = author.state === 'error'
-    const stateAriaLabel = isError ? 'user not found' : 'searching'
+      const isError = author.state === 'error'
+      const stateAriaLabel = isError ? 'user not found' : 'searching'
+      return `${author.username}, ${stateAriaLabel}, press backspace or delete to remove`
+    }
+
+    const getClassName = () => {
+      const classNamesArr: Array<any> = ['handle', { focused: isFocused }]
+      if (!isKnownAuthor(author)) {
+        const isError = author.state === 'error'
+        classNamesArr.push({ progress: !isError, error: isError })
+      }
+      return classNames(classNamesArr)
+    }
+
+    const getTitle = () => {
+      if (isKnownAuthor(author)) {
+        return undefined
+      }
+
+      return author.state === 'error'
+        ? `Could not find user with username ${author.username}`
+        : `Searching for @${author.username}`
+    }
 
     return (
       <div
-        key={author.username}
-        className={classNames('handle', {
-          focused: index === focusedAuthorIndex,
-          progress: !isError,
-          error: isError,
-        })}
-        aria-label={`${author.username}, ${stateAriaLabel}, press backspace or delete to remove`}
-        title={
-          isError
-            ? `Could not find user with username ${author.username}`
-            : `Searching for @${author.username}`
+        key={
+          isKnownAuthor(author) ? getFullTextForAuthor(author) : author.username
         }
+        className={getClassName()}
+        aria-label={getAriaLabel()}
+        title={getTitle()}
         role="option"
-        aria-selected={index === focusedAuthorIndex}
+        aria-selected={isFocused}
         onKeyDown={this.onAuthorKeyDown}
         onClick={this.onAuthorClick}
-        tabIndex={-1}
+        tabIndex={tabIndex}
       >
-        @{author.username}
-        <Octicon
-          className={classNames('icon', { spin: !isError })}
-          symbol={isError ? OcticonSymbol.stop : syncClockwise}
-        />
+        <span aria-hidden="true">{getDisplayTextForAuthor(author)}</span>
+        {!isKnownAuthor(author) && (
+          <Octicon
+            className={classNames('icon', { spin: author.state !== 'error' })}
+            symbol={
+              author.state === 'error' ? OcticonSymbol.stop : syncClockwise
+            }
+          />
+        )}
       </div>
     )
   }

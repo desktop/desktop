@@ -59,6 +59,10 @@
     margin: 0px 2px;
     cursor: pointer;
 
+    svg {
+      cursor: pointer;
+    }
+
     &.progress {
       background: transparent;
     }
