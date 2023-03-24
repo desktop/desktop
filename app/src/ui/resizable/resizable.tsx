@@ -112,7 +112,7 @@ export class Resizable extends React.Component<IResizableProps> {
   private handleMenuResizeEvent(resizeDirection: ResizeDirection) {
     const { width } = this.props
     const changedWidth =
-      resizeDirection === ResizeDirection.Decrease ? width - 1 : width + 1
+      resizeDirection === ResizeDirection.Decrease ? width - 5 : width + 5
 
     const newWidth = this.clampWidth(changedWidth)
 
