@@ -87,9 +87,9 @@ export class Resizable extends React.Component<IResizableProps> {
    * Handler for when a user uses keyboard shortcuts to increase the size the
    * active resizable
    */
-  private handleMenuResizeEventIncrease(
+  private handleMenuResizeEventIncrease = (
     ev?: Event | React.SyntheticEvent<unknown>
-  ) {
+  ) => {
     this.handleMenuResizeEvent(ResizeDirection.Increase)
     ev?.preventDefault()
   }
@@ -98,9 +98,9 @@ export class Resizable extends React.Component<IResizableProps> {
    * Handler for when a user uses keyboard shortcuts to decrease the size the
    * active resizable
    */
-  private handleMenuResizeEventDecrease(
+  private handleMenuResizeEventDecrease = (
     ev?: Event | React.SyntheticEvent<unknown>
-  ) {
+  ) => {
     this.handleMenuResizeEvent(ResizeDirection.Decrease)
     ev?.preventDefault()
   }
