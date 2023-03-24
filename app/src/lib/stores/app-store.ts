@@ -4903,25 +4903,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
-  public _resizeSidebarWidth(resizeDirection: ResizeDirection): Promise<void> {
-    const { value, min, max } = this.sidebarWidth
-    const changedWidth =
-      resizeDirection === ResizeDirection.Decrease ? value - 1 : value + 1
-
-    const newWidth = clamp(
-      changedWidth,
-      min ?? DefaultMinWidth,
-      max ?? DefaultMaxWidth
-    )
-
-    this.sidebarWidth = { ...this.sidebarWidth, value: newWidth }
-    setNumber(sidebarWidthConfigKey, newWidth)
-    this.updateResizableConstraints()
-    this.emitUpdate()
-
-    return Promise.resolve()
-  }
-
   public _resetSidebarWidth(): Promise<void> {
     this.sidebarWidth = { ...this.sidebarWidth, value: defaultSidebarWidth }
     localStorage.removeItem(sidebarWidthConfigKey)
