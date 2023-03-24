@@ -97,6 +97,8 @@ interface ICommitMessageProps {
   /** Optional text to override default commit button text */
   readonly commitButtonText?: string
 
+  readonly mostRecentLocalCommit: Commit | null
+
   /** Whether or not to remember the coauthors in the changes state */
   readonly onCoAuthorsUpdated: (coAuthors: ReadonlyArray<IAuthor>) => void
   readonly onShowCoAuthoredByChanged: (showCoAuthoredBy: boolean) => void
@@ -271,6 +273,16 @@ export class CommitMessage extends React.Component<
     ) {
       this.setState({ isCommittingStatusMessage: this.getButtonTitle() })
     }
+
+    if (
+      prevProps.mostRecentLocalCommit?.sha !==
+        this.props.mostRecentLocalCommit?.sha &&
+      this.props.mostRecentLocalCommit !== null
+    ) {
+      this.setState({
+        isCommittingStatusMessage: `Committed Just now - ${this.props.mostRecentLocalCommit.summary} (Sha: ${this.props.mostRecentLocalCommit.shortSha})`,
+      })
+    }
   }
 
   private clearCommitMessage() {
@@ -332,14 +344,7 @@ export class CommitMessage extends React.Component<
 
     if (commitCreated) {
       this.clearCommitMessage()
-      this.updateCommitStatusMessage()
     }
-  }
-
-  private updateCommitStatusMessage() {
-    this.setState({
-      isCommittingStatusMessage: 'Committed Just Now',
-    })
   }
 
   private canCommit(): boolean {
@@ -871,7 +876,7 @@ export class CommitMessage extends React.Component<
         {this.renderPermissionsCommitWarning()}
 
         {this.renderSubmitButton()}
-        <span className="sr-only" aria-live="polite">
+        <span className="sr-only" aria-live="polite" aria-atomic="true">
           {this.state.isCommittingStatusMessage}
         </span>
       </div>

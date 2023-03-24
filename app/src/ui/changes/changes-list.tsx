@@ -788,6 +788,7 @@ export class ChangesList extends React.Component<
       <CommitMessage
         onCreateCommit={this.props.onCreateCommit}
         branch={this.props.branch}
+        mostRecentLocalCommit={this.props.mostRecentLocalCommit}
         commitAuthor={this.props.commitAuthor}
         isShowingModal={this.props.isShowingModal}
         isShowingFoldout={this.props.isShowingFoldout}
