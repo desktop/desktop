@@ -238,7 +238,7 @@ export function buildDefaultMenu({
       },
       {
         label: __DARWIN__
-          ? 'Increase Active Resizable Widtd'
+          ? 'Increase Active Resizable Width'
           : 'Increase active resizable width',
         accelerator: 'CmdOrCtrl+Shift+=',
         click: emit('increase-active-resizable-width'),
