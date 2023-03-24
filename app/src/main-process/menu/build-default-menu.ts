@@ -230,14 +230,18 @@ export function buildDefaultMenu({
         click: zoom(ZoomDirection.Out),
       },
       {
-        label: __DARWIN__ ? 'Decrease Sidebar Width' : 'Decrease sidebar width',
+        label: __DARWIN__
+          ? 'Decrease Active Resizable Width'
+          : 'Decrease active resizable width',
         accelerator: 'CmdOrCtrl+Shift+-',
-        click: emit('decrease-sidebar-width'),
+        click: emit('decrease-active-resizable-width'),
       },
       {
-        label: __DARWIN__ ? 'Increase Sidebar Width' : 'Increase sidebar width',
+        label: __DARWIN__
+          ? 'Increase Active Resizable Widtd'
+          : 'Increase active resizable width',
         accelerator: 'CmdOrCtrl+Shift+=',
-        click: emit('increase-sidebar-width'),
+        click: emit('increase-active-resizable-width'),
       },
       separator,
       {

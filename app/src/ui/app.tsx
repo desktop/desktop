@@ -166,7 +166,6 @@ import { DialogStackContext } from './dialog'
 import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 import { PullRequestComment } from './notifications/pull-request-comment'
-import { ResizeDirection } from './resizable'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -459,14 +458,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.props.dispatcher.postError(
           new Error('Test Error - to use default error handler' + uuid())
         )
-      case 'increase-sidebar-width':
-        return this.props.dispatcher.resizeSidebarWidth(
-          ResizeDirection.Increase
-        )
-      case 'decrease-sidebar-width':
-        return this.props.dispatcher.resizeSidebarWidth(
-          ResizeDirection.Decrease
-        )
+      case 'increase-active-resizable-width':
+        return this.resizeActiveResizable('increase-active-resizable-width')
+      case 'decrease-active-resizable-width':
+        return this.resizeActiveResizable('decrease-active-resizable-width')
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
@@ -595,6 +590,27 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.appStore._testPruneBranches()
+  }
+
+  /**
+   * Handler for the 'increase-active-resizable-width' and
+   * 'decrease-active-resizable-width' menu event, dispatches a custom DOM event
+   * originating from the element which currently has keyboard focus. Components
+   * have a chance to intercept this event and implement their resize logic.
+   */
+  private resizeActiveResizable(
+    menuId:
+      | 'increase-active-resizable-width'
+      | 'decrease-active-resizable-width'
+  ) {
+    const event = new CustomEvent(menuId, {
+      bubbles: true,
+      cancelable: true,
+    })
+
+    if (document.activeElement != null) {
+      document.activeElement.dispatchEvent(event)
+    }
   }
 
   /**

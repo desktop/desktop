@@ -122,7 +122,6 @@ import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
 import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
-import { ResizeDirection } from '../resizable'
 
 /**
  * An error handler function.
