@@ -231,15 +231,15 @@ export function buildDefaultMenu({
       },
       {
         label: __DARWIN__
-          ? 'Expand Active Resizable'
-          : 'Expand active resizable',
+          ? 'Contract Active Resizable'
+          : 'Contract active resizable',
         accelerator: 'CmdOrCtrl+Shift+-',
         click: emit('decrease-active-resizable-width'),
       },
       {
         label: __DARWIN__
-          ? 'Contract Active Resizable'
-          : 'Contract active resizable',
+          ? 'Expand Active Resizable'
+          : 'Expand active resizable',
         accelerator: 'CmdOrCtrl+Shift+=',
         click: emit('increase-active-resizable-width'),
       },
