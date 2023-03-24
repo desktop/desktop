@@ -316,11 +316,6 @@ import { findContributionTargetDefaultBranch } from '../branch'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
-import {
-  DefaultMaxWidth,
-  DefaultMinWidth,
-  ResizeDirection,
-} from '../../ui/resizable'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
