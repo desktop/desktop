@@ -58,7 +58,7 @@ export class UnknownAuthors extends React.Component<IUnknownAuthorsProps> {
             These users weren't found and won't be added as co-authors of this
             commit. Are you sure you want to commit?
           </p>
-          <div className="file-list">
+          <div className="author-list">
             <ul>
               {this.props.authors.map(a => (
                 <li key={a.username}>
