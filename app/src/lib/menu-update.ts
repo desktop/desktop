@@ -380,6 +380,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
   return getAllMenusEnabledBuilder()
     .merge(getRepositoryMenuBuilder(state))
+    .merge(getAppMenuBuilder())
     .merge(getInWelcomeFlowBuilder(state.showWelcomeFlow))
     .merge(getNoRepositoriesBuilder(state)).state
 }
@@ -426,6 +427,23 @@ function getNoRepositoriesBuilder(state: IAppState): MenuStateBuilder {
       menuStateBuilder.disable(id)
     }
   }
+
+  return menuStateBuilder
+}
+
+function getAppMenuBuilder(): MenuStateBuilder {
+  const menuStateBuilder = new MenuStateBuilder()
+
+  const isResizableActive =
+    document.activeElement?.closest('.resizable-component') !== null
+  menuStateBuilder.setEnabled(
+    'increase-active-resizable-width',
+    isResizableActive
+  )
+  menuStateBuilder.setEnabled(
+    'decrease-active-resizable-width',
+    isResizableActive
+  )
 
   return menuStateBuilder
 }
