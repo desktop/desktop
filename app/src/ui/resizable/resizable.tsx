@@ -119,6 +119,11 @@ export class Resizable extends React.Component<IResizableProps> {
     this.props.onResize(this.clampWidth(newWidth))
   }
 
+  private onFocusChange = (ev: Event) => {
+    this.props.onFocusChanged?.()
+    ev.preventDefault()
+  }
+
   /**
    * Adds and removes listeners for custom events fired when user users keyboard
    * to resize the active resizable
@@ -133,6 +138,8 @@ export class Resizable extends React.Component<IResizableProps> {
         'decrease-active-resizable-width',
         this.handleMenuResizeEventDecrease
       )
+      this.resizeContainer?.removeEventListener('focusin', this.onFocusChange)
+      this.resizeContainer?.removeEventListener('focusout', this.onFocusChange)
     } else {
       ref.addEventListener(
         'increase-active-resizable-width',
@@ -142,7 +149,11 @@ export class Resizable extends React.Component<IResizableProps> {
         'decrease-active-resizable-width',
         this.handleMenuResizeEventDecrease
       )
+
+      ref.addEventListener('focusin', this.onFocusChange)
+      ref.addEventListener('focusout', this.onFocusChange)
     }
+    this.resizeContainer = ref
   }
 
   public render() {
@@ -201,4 +212,6 @@ export interface IResizableProps {
    * on the resize handle).
    */
   readonly onReset: () => void
+
+  readonly onFocusChanged?: () => void
 }

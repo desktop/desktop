@@ -7689,6 +7689,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
   }
+
+  public _onResizableFocusChanged() {
+    const state = this.getState()
+    updateMenuState(state, this.appMenu)
+  }
 }
 
 /**
