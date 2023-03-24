@@ -17,7 +17,7 @@ import {
   Repository,
 } from '../../models/repository'
 import { Account } from '../../models/account'
-import { Author } from '../../models/author'
+import { Author, UnknownAuthor } from '../../models/author'
 import { List, ClickSource } from '../lib/list'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import {
@@ -813,6 +813,9 @@ export class ChangesList extends React.Component<
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
         onCoAuthorsUpdated={this.onCoAuthorsUpdated}
         onShowCoAuthoredByChanged={this.onShowCoAuthoredByChanged}
+        onConfirmCommitWithUnknownCoAuthors={
+          this.onConfirmCommitWithUnknownCoAuthors
+        }
         onPersistCommitMessage={this.onPersistCommitMessage}
         onCommitMessageFocusSet={this.onCommitMessageFocusSet}
         onRefreshAuthor={this.onRefreshAuthor}
@@ -831,6 +834,14 @@ export class ChangesList extends React.Component<
   private onShowCoAuthoredByChanged = (showCoAuthors: boolean) => {
     const { dispatcher, repository } = this.props
     dispatcher.setShowCoAuthoredBy(repository, showCoAuthors)
+  }
+
+  private onConfirmCommitWithUnknownCoAuthors = (
+    coAuthors: ReadonlyArray<UnknownAuthor>,
+    onCommitAnyway: () => void
+  ) => {
+    const { dispatcher } = this.props
+    dispatcher.showUnknownAuthorsCommitWarning(coAuthors, onCommitAnyway)
   }
 
   private onRefreshAuthor = () =>

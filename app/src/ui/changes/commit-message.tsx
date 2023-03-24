@@ -15,7 +15,7 @@ import { AuthorInput } from '../lib/author-input/author-input'
 import { FocusContainer } from '../lib/focus-container'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-import { Author, isKnownAuthor } from '../../models/author'
+import { Author, UnknownAuthor, isKnownAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { Commit, ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
@@ -100,6 +100,10 @@ interface ICommitMessageProps {
   /** Whether or not to remember the coauthors in the changes state */
   readonly onCoAuthorsUpdated: (coAuthors: ReadonlyArray<Author>) => void
   readonly onShowCoAuthoredByChanged: (showCoAuthoredBy: boolean) => void
+  readonly onConfirmCommitWithUnknownCoAuthors: (
+    coAuthors: ReadonlyArray<UnknownAuthor>,
+    onCommitAnyway: () => void
+  ) => void
 
   /**
    * Called when the component unmounts to give callers the ability
@@ -318,11 +322,29 @@ export class CommitMessage extends React.Component<
       : this.state.summary
   }
 
-  private async createCommit() {
+  private forceCreateCommit = async () => {
+    return this.createCommit(false)
+  }
+
+  private async createCommit(warnUnknownAuthors: boolean = true) {
     const { description } = this.state
 
     if (!this.canCommit() && !this.canAmend()) {
       return
+    }
+
+    if (warnUnknownAuthors) {
+      const unknownAuthors = this.props.coAuthors.filter(
+        (author): author is UnknownAuthor => !isKnownAuthor(author)
+      )
+
+      if (unknownAuthors.length > 0) {
+        this.props.onConfirmCommitWithUnknownCoAuthors(
+          unknownAuthors,
+          this.forceCreateCommit
+        )
+        return
+      }
     }
 
     const trailers = this.getCoAuthorTrailers()

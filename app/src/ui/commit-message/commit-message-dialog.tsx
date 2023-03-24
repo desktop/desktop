@@ -9,7 +9,7 @@ import { ICommitContext } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
 import { IAutocompletionProvider } from '../autocompletion'
-import { Author } from '../../models/author'
+import { Author, UnknownAuthor } from '../../models/author'
 import { CommitMessage } from '../changes/commit-message'
 import { noop } from 'lodash'
 import { Popup } from '../../models/popup'
@@ -131,6 +131,9 @@ export class CommitMessageDialog extends React.Component<
             commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
             onCoAuthorsUpdated={this.onCoAuthorsUpdated}
             onShowCoAuthoredByChanged={this.onShowCoAuthorsChanged}
+            onConfirmCommitWithUnknownCoAuthors={
+              this.onConfirmCommitWithUnknownCoAuthors
+            }
             onCreateCommit={this.props.onSubmitCommitMessage}
             anyFilesAvailable={true}
             anyFilesSelected={true}
@@ -155,6 +158,14 @@ export class CommitMessageDialog extends React.Component<
 
   private onShowCoAuthorsChanged = (showCoAuthoredBy: boolean) =>
     this.setState({ showCoAuthoredBy })
+
+  private onConfirmCommitWithUnknownCoAuthors = (
+    coAuthors: ReadonlyArray<UnknownAuthor>,
+    onCommitAnyway: () => void
+  ) => {
+    const { dispatcher } = this.props
+    dispatcher.showUnknownAuthorsCommitWarning(coAuthors, onCommitAnyway)
+  }
 
   private onRefreshAuthor = () =>
     this.props.dispatcher.refreshAuthor(this.props.repository)
