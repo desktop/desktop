@@ -959,16 +959,6 @@ export class Dispatcher {
   }
 
   /**
-   * Increases or decreases the width of the repository sidebar. This affects
-   * the changes and history sidebar as well as the first toolbar section which
-   * contains repo selection on all platforms and repo selection and app menu on
-   * Windows.
-   */
-  public resizeSidebarWidth(resizeDirection: ResizeDirection): any {
-    this.appStore._resizeSidebarWidth(resizeDirection)
-  }
-
-  /**
    * Set the update banner's visibility
    */
   public setUpdateBannerVisibility(isVisible: boolean) {
