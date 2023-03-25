@@ -216,6 +216,9 @@ export interface IAppState {
   /** The external editor to use when opening repositories */
   readonly selectedExternalEditor: string | null
 
+  /** Whether to open WSL repositories in external editor as remote. */
+  readonly wslExternalEditorRemote: boolean
+
   /** Whether or not the app should use Windows' OpenSSH client */
   readonly useWindowsOpenSSH: boolean
 
@@ -248,6 +251,9 @@ export interface IAppState {
 
   /** The user's preferred shell. */
   readonly selectedShell: Shell
+
+  /** Whether to open WSL repositories in WSL shell instead of selectedShell. */
+  readonly wslOwnShell: boolean
 
   /** The current repository filter text. */
   readonly repositoryFilterText: string

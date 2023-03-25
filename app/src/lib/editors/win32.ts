@@ -74,7 +74,7 @@ type WindowsExternalEditor = {
 
   readonly executableArgs?:
     | readonly string[]
-    | ((path: string) => readonly string[] | undefined)
+    | ((path: string, remote: boolean) => readonly string[] | undefined)
 } & WindowsExternalEditorPathInfo
 
 const registryKey = (key: HKEY, ...subKeys: string[]): RegistryKey => ({
@@ -192,9 +192,11 @@ const editors: WindowsExternalEditor[] = [
     executableShimPaths: [['bin', 'code.cmd']],
     displayNamePrefix: 'Microsoft Visual Studio Code',
     publishers: ['Microsoft Corporation'],
-    executableArgs: path => {
+    executableArgs: (path, remote) => {
       const { distro, wslPath = '' } = parseWSLPath(path)
-      return distro ? ['--remote', `wsl+${distro}`, `"${wslPath}"`] : undefined
+      return distro && remote
+        ? ['--remote', `wsl+${distro}`, `"${wslPath}"`]
+        : undefined
     },
   },
   {

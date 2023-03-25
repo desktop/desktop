@@ -1,16 +1,14 @@
-import { spawn, ChildProcess } from 'child_process'
+import { ChildProcess, spawn } from 'child_process'
 import * as Path from 'path'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
+import { pathExists } from '../../ui/lib/path-exists'
+import { parseEnumValue } from '../enum'
 import { assertNever } from '../fatal-error'
-import { IFoundShell } from './found-shell'
 import { enableWSLDetection } from '../feature-flag'
 import { findGitOnPath } from '../is-git-on-path'
-import { parseEnumValue } from '../enum'
-import { pathExists } from '../../ui/lib/path-exists'
-import { isWSLPath } from '../path'
+import { IFoundShell } from './found-shell'
 
 export enum Shell {
-  Auto = 'Command Prompt / WSL',
   Cmd = 'Command Prompt',
   PowerShell = 'PowerShell',
   PowerShellCore = 'PowerShell Core',
@@ -34,23 +32,13 @@ export async function getAvailableShells(): Promise<
 > {
   const gitPath = await findGitOnPath()
 
-  const wslPath = enableWSLDetection() ? await findWSL() : null
-
-  const shells: IFoundShell<Shell>[] = []
-
-  if (wslPath !== null) {
-    shells.push({
-      shell: Shell.Auto,
-      path: '',
-      chooseShell: (path: string) => (isWSLPath(path) ? Shell.WSL : Shell.Cmd),
-    })
-  }
-
-  shells.push({
-    shell: Shell.Cmd,
-    path: process.env.comspec || 'C:\\Windows\\System32\\cmd.exe',
-    extraArgs: gitPath ? ['/K', `"doskey git=^"${gitPath}^" $*"`] : [],
-  })
+  const shells: IFoundShell<Shell>[] = [
+    {
+      shell: Shell.Cmd,
+      path: process.env.comspec || 'C:\\Windows\\System32\\cmd.exe',
+      extraArgs: gitPath ? ['/K', `"doskey git=^"${gitPath}^" $*"`] : [],
+    },
+  ]
 
   const powerShellPath = await findPowerShell()
   if (powerShellPath != null) {
@@ -92,11 +80,15 @@ export async function getAvailableShells(): Promise<
     })
   }
 
-  if (wslPath !== null) {
-    shells.push({
-      shell: Shell.WSL,
-      path: wslPath,
-    })
+  if (enableWSLDetection()) {
+    const wslPath = await findWSL()
+
+    if (wslPath !== null) {
+      shells.push({
+        shell: Shell.WSL,
+        path: wslPath,
+      })
+    }
   }
 
   const alacrittyPath = await findAlacritty()
@@ -404,10 +396,6 @@ export function launch(
   path: string
 ): ChildProcess {
   const shell = foundShell.shell
-
-  if (shell === Shell.Auto) {
-    throw Error('Shell.Auto must be resolved before calling launch')
-  }
 
   switch (shell) {
     case Shell.PowerShell:

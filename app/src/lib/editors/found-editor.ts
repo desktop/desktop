@@ -4,5 +4,5 @@ export interface IFoundEditor<T> {
   readonly usesShell?: boolean
   readonly executableArgs?:
     | readonly string[]
-    | ((path: string) => readonly string[] | undefined)
+    | ((path: string, remote: boolean) => readonly string[] | undefined)
 }

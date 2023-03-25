@@ -13,7 +13,7 @@ import {
   setGlobalConfigValue,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
-import { Shell, getAvailableShells } from '../../lib/shells'
+import { Shell, getAvailableShells, getIsWslAvailable } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
 import {
   gitAuthorNameIsValid,
@@ -60,7 +60,9 @@ interface IPreferencesProps {
   readonly confirmUndoCommit: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly selectedExternalEditor: string | null
+  readonly wslExternalEditorRemote: boolean
   readonly selectedShell: Shell
+  readonly wslOwnShell: boolean
   readonly selectedTheme: ApplicationTheme
   readonly customTheme?: ICustomTheme
   readonly repositoryIndicatorsEnabled: boolean
@@ -85,10 +87,13 @@ interface IPreferencesState {
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
+  readonly isWslAvailable: boolean
   readonly availableEditors: ReadonlyArray<string>
   readonly selectedExternalEditor: string | null
+  readonly wslExternalEditorRemote: boolean
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
+  readonly wslOwnShell: boolean
   /**
    * If unable to save Git configuration values (name, email)
    * due to an existing configuration lock file this property
@@ -131,8 +136,11 @@ export class Preferences extends React.Component<
       confirmUndoCommit: false,
       uncommittedChangesStrategy: defaultUncommittedChangesStrategy,
       selectedExternalEditor: this.props.selectedExternalEditor,
+      wslExternalEditorRemote: this.props.wslExternalEditorRemote,
       availableShells: [],
+      isWslAvailable: false,
       selectedShell: this.props.selectedShell,
+      wslOwnShell: this.props.wslOwnShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
       initiallySelectedTheme: this.props.selectedTheme,
     }
@@ -163,9 +171,10 @@ export class Preferences extends React.Component<
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
-    const [editors, shells] = await Promise.all([
+    const [editors, shells, isWslAvailable] = await Promise.all([
       getAvailableEditors(),
       getAvailableShells(),
+      getIsWslAvailable(),
     ])
 
     const availableEditors = editors.map(e => e.editor)
@@ -190,6 +199,7 @@ export class Preferences extends React.Component<
       confirmUndoCommit: this.props.confirmUndoCommit,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
+      isWslAvailable,
       availableEditors,
     })
   }
@@ -295,12 +305,19 @@ export class Preferences extends React.Component<
       case PreferencesTab.Integrations: {
         View = (
           <Integrations
+            isWslAvailable={this.state.isWslAvailable}
             availableEditors={this.state.availableEditors}
             selectedExternalEditor={this.state.selectedExternalEditor}
             onSelectedEditorChanged={this.onSelectedEditorChanged}
+            wslExternalEditorRemote={this.state.wslExternalEditorRemote}
+            onWslExternalEditorRemoteChanged={
+              this.onWslExternalEditorRemoteChanged
+            }
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
             onSelectedShellChanged={this.onSelectedShellChanged}
+            wslOwnShell={this.state.wslOwnShell}
+            onWslOwnShellChanged={this.onWslOwnShellChanged}
           />
         )
         break
@@ -481,8 +498,18 @@ export class Preferences extends React.Component<
     this.setState({ selectedExternalEditor: editor })
   }
 
+  private onWslExternalEditorRemoteChanged = (
+    wslExternalEditorRemote: boolean
+  ) => {
+    this.setState({ wslExternalEditorRemote })
+  }
+
   private onSelectedShellChanged = (shell: Shell) => {
     this.setState({ selectedShell: shell })
+  }
+
+  private onWslOwnShellChanged = (wslOwnShell: boolean) => {
+    this.setState({ wslOwnShell })
   }
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
@@ -594,7 +621,11 @@ export class Preferences extends React.Component<
         this.state.selectedExternalEditor
       )
     }
+    await this.props.dispatcher.setWslExternalEditorRemote(
+      this.state.wslExternalEditorRemote
+    )
     await this.props.dispatcher.setShell(this.state.selectedShell)
+    await this.props.dispatcher.setWslOwnShell(this.state.wslOwnShell)
     await this.props.dispatcher.setConfirmDiscardChangesSetting(
       this.state.confirmDiscardChanges
     )

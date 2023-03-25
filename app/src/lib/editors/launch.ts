@@ -10,7 +10,8 @@ import { ExternalEditorError, FoundEditor } from './shared'
  */
 export async function launchExternalEditor(
   fullPath: string,
-  editor: FoundEditor
+  editor: FoundEditor,
+  remote: boolean
 ): Promise<void> {
   const editorPath = editor.path
   const exists = await pathExists(editorPath)
@@ -30,7 +31,7 @@ export async function launchExternalEditor(
   }
 
   const args = (editor.executableArgs instanceof Function
-    ? editor.executableArgs(fullPath)
+    ? editor.executableArgs(fullPath, remote)
     : editor.executableArgs) ?? [editor.usesShell ? `"${fullPath}"` : fullPath]
 
   if (editor.usesShell) {

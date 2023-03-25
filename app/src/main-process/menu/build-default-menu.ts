@@ -9,7 +9,7 @@ import * as ipcWebContents from '../ipc-webcontents'
 import { mkdir } from 'fs/promises'
 import { enableStartingPullRequests } from '../../lib/feature-flag'
 
-const platformDefaultShell = __WIN32__ ? 'Auto' : 'Terminal'
+const platformDefaultShell = __WIN32__ ? 'Command Prompt' : 'Terminal'
 const createPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'

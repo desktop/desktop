@@ -16,7 +16,7 @@ export type FoundEditor = {
   usesShell?: boolean
   readonly executableArgs?:
     | readonly string[]
-    | ((path: string) => readonly string[] | undefined)
+    | ((path: string, remote: boolean) => readonly string[] | undefined)
 }
 
 interface IErrorMetadata {

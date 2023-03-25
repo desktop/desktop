@@ -1544,6 +1544,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmUndoCommit={this.state.askForConfirmationOnUndoCommit}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             selectedExternalEditor={this.state.selectedExternalEditor}
+            wslExternalEditorRemote={this.state.wslExternalEditorRemote}
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
             notificationsEnabled={this.state.notificationsEnabled}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
@@ -1551,6 +1552,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
+            wslOwnShell={this.state.wslOwnShell}
             selectedTheme={this.state.selectedTheme}
             customTheme={this.state.customTheme}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}

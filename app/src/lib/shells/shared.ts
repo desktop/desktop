@@ -22,6 +22,8 @@ export const Default = (function () {
   }
 })()
 
+export const WslShell = Win32.Shell.WSL
+
 let shellCache: ReadonlyArray<FoundShell> | null = null
 
 /** Parse the label into the specified shell type. */
@@ -61,18 +63,19 @@ export async function getAvailableShells(): Promise<ReadonlyArray<FoundShell>> {
   )
 }
 
-/** Find the given shell or the default if the given shell can't be found. */
-export async function findShellOrDefault(
-  shell: Shell,
-  path: string
-): Promise<FoundShell> {
-  const available = await getAvailableShells()
-  let found = available.find(s => s.shell === shell)
-
-  if (found?.chooseShell) {
-    shell = found.chooseShell(path) as Shell
-    found = available.find(s => s.shell === shell)
+export async function getIsWslAvailable(): Promise<boolean> {
+  if (__WIN32__) {
+    const availableShells = await getAvailableShells()
+    return availableShells.some(s => s.shell === Win32.Shell.WSL)
+  } else {
+    return false
   }
+}
+
+/** Find the given shell or the default if the given shell can't be found. */
+export async function findShellOrDefault(shell: Shell): Promise<FoundShell> {
+  const available = await getAvailableShells()
+  const found = available.find(s => s.shell === shell)
 
   if (found) {
     return found
