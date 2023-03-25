@@ -32,7 +32,7 @@ import {
 } from '../error-with-metadata'
 import { compare } from '../../lib/compare'
 import { queueWorkHigh } from '../../lib/queue-work'
-import { rm } from 'fs/promises'
+import { unlink } from 'fs/promises'
 
 import {
   reset,
@@ -1522,7 +1522,7 @@ export class GitStore extends BaseStore {
       }
 
       if (file.status.kind === AppFileStatusKind.Untracked && !wasDeleted) {
-        await rm(Path.resolve(this.repository.path, file.path))
+        await unlink(Path.resolve(this.repository.path, file.path))
       }
 
       if (
