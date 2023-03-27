@@ -120,10 +120,12 @@ export class AuthorHandle extends React.Component<IAuthorHandleProps> {
         className={this.getClassName()}
         title={this.getTitle()}
         role="option"
+        aria-label={this.getAriaLabel()}
         aria-selected={isFocused}
         onKeyDown={this.onKeyDown}
         onClick={this.onHandleClick}
-        tabIndex={-1}
+        tabIndex={this.getTabIndex()}
+        onFocus={this.onFocus}
       >
         <span aria-hidden="true">{getDisplayTextForAuthor(author)}</span>
         {!isKnownAuthor(author) && (
@@ -134,12 +136,7 @@ export class AuthorHandle extends React.Component<IAuthorHandleProps> {
             }
           />
         )}
-        <button
-          aria-label={this.getAriaLabel()}
-          onClick={this.onRemoveClick}
-          onFocus={this.onFocus}
-          tabIndex={this.getTabIndex()}
-        >
+        <button onClick={this.onRemoveClick} tabIndex={-1}>
           <Octicon className="delete" symbol={OcticonSymbol.x} />
         </button>
       </div>

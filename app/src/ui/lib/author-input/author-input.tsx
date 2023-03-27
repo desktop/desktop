@@ -156,10 +156,9 @@ export class AuthorInput extends React.Component<
       return
     }
 
-    const handle = this.authorContainerRef.current?.getElementsByTagName(
-      'button'
+    const handle = this.authorContainerRef.current?.getElementsByClassName(
+      'handle'
     )[index] as HTMLElement | null
-
     handle?.focus()
   }
 
@@ -179,7 +178,6 @@ export class AuthorInput extends React.Component<
           'Co-Authors: ' +
           this.props.authors.map(getFullTextForAuthor).join(', ')
         }
-        role="listbox"
         onFocusWithinChanged={this.onFocusWithinChanged}
       >
         <div className="sr-only" aria-live="polite" aria-atomic="true">
@@ -209,7 +207,11 @@ export class AuthorInput extends React.Component<
 
   private renderAuthors() {
     return (
-      <div className="added-author-container" ref={this.authorContainerRef}>
+      <div
+        className="added-author-container"
+        ref={this.authorContainerRef}
+        role="listbox"
+      >
         {this.props.authors.map((author, index) => {
           return this.renderAuthor(author, index)
         })}
