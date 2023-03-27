@@ -12,6 +12,7 @@ import { AppMenu, MenuItem } from '../models/app-menu'
 import { hasConflictedFiles } from './status'
 import { findContributionTargetDefaultBranch } from './branch'
 import { enableStartingPullRequests } from './feature-flag'
+import { getLastResizableFocused } from '../ui/resizable'
 
 export interface IMenuItemState {
   readonly enabled?: boolean
@@ -380,7 +381,7 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
 
   return getAllMenusEnabledBuilder()
     .merge(getRepositoryMenuBuilder(state))
-    .merge(getAppMenuBuilder())
+    .merge(getAppMenuBuilder(state))
     .merge(getInWelcomeFlowBuilder(state.showWelcomeFlow))
     .merge(getNoRepositoriesBuilder(state)).state
 }
@@ -431,18 +432,20 @@ function getNoRepositoriesBuilder(state: IAppState): MenuStateBuilder {
   return menuStateBuilder
 }
 
-function getAppMenuBuilder(): MenuStateBuilder {
+function getAppMenuBuilder(state: IAppState): MenuStateBuilder {
   const menuStateBuilder = new MenuStateBuilder()
 
-  const isResizableActive =
-    document.activeElement?.closest('.resizable-component') !== null
+  const lastResizableFocused = getLastResizableFocused(
+    state.documentFocusedElements
+  )
+
   menuStateBuilder.setEnabled(
     'increase-active-resizable-width',
-    isResizableActive
+    lastResizableFocused !== null
   )
   menuStateBuilder.setEnabled(
     'decrease-active-resizable-width',
-    isResizableActive
+    lastResizableFocused !== null
   )
 
   return menuStateBuilder

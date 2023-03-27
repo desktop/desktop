@@ -307,10 +307,6 @@ export class RepositoryView extends React.Component<
     this.props.dispatcher.setSidebarWidth(width)
   }
 
-  private onResizableFocusChanged = () => {
-    this.props.dispatcher.onResizableFocusChanged()
-  }
-
   private renderSidebar(): JSX.Element {
     return (
       <FocusContainer onFocusWithinChanged={this.onSidebarFocusWithinChanged}>
@@ -321,7 +317,6 @@ export class RepositoryView extends React.Component<
           minimumWidth={this.props.sidebarWidth.min}
           onReset={this.handleSidebarWidthReset}
           onResize={this.handleSidebarResize}
-          onFocusChanged={this.onResizableFocusChanged}
         >
           {this.renderTabs()}
           {this.renderSidebarContents()}

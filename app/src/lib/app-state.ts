@@ -111,6 +111,11 @@ export interface IAppState {
   readonly windowZoomFactor: number
 
   /**
+   * The recently focused elements in the dom not including windows menu items
+   */
+  readonly documentFocusedElements: ReadonlyArray<Element>
+
+  /**
    * A value indicating whether or not the current application
    * window has focus.
    */

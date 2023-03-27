@@ -9,6 +9,11 @@ import { AppMenuBarButton } from './app-menu-bar-button'
 import { Dispatcher } from '../dispatcher'
 import { AppMenuFoldout, FoldoutType } from '../../lib/app-state'
 
+/** This is a class used for the windows app menu and used elsewhere
+ * to determine if the app menu is is focus */
+const appMenuClass = 'app-menu-bar'
+export const appMenuClassSelector = `.${appMenuClass}`
+
 interface IAppMenuBarProps {
   readonly appMenu: ReadonlyArray<IMenu>
   readonly dispatcher: Dispatcher
@@ -160,6 +165,7 @@ export class AppMenuBar extends React.Component<
     return (
       <div
         id="app-menu-bar"
+        className={appMenuClass}
         ref={this.onMenuBarRef}
         role="menubar"
         aria-label="Application menu"

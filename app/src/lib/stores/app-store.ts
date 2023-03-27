@@ -316,6 +316,8 @@ import { findContributionTargetDefaultBranch } from '../branch'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
+import { getLastResizableFocused } from '../../ui/resizable'
+import { appMenuClassSelector } from '../../ui/app-menu'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -449,6 +451,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
+  private documentFocusedElements: Array<Element> = []
   private isUpdateAvailableBannerVisible: boolean = false
   private isUpdateShowcaseVisible: boolean = false
 
@@ -988,6 +991,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       showCIStatusPopover: this.showCIStatusPopover,
       notificationsEnabled: getNotificationsEnabled(),
       pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
+      documentFocusedElements: this.documentFocusedElements,
     }
   }
 
@@ -7666,9 +7670,44 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _onResizableFocusChanged() {
-    const state = this.getState()
-    updateMenuState(state, this.appMenu)
+  public _appFocusedElementChanged() {
+    if (document.activeElement === null) {
+      return
+    }
+
+    // Don't track windows menu items as focused elements for keeping
+    // track of recently focused elements we want to act upon
+    const windowsMenuItem = document.activeElement.closest(appMenuClassSelector)
+
+    if (windowsMenuItem !== null) {
+      return
+    }
+
+    const beforeChange = this.documentFocusedElements.slice()
+
+    this.documentFocusedElements.unshift(document.activeElement)
+
+    if (this.documentFocusedElements.length > 2) {
+      this.documentFocusedElements.pop()
+    }
+
+    this.handleFocusedElementsChanged(
+      beforeChange,
+      this.documentFocusedElements
+    )
+  }
+
+  private handleFocusedElementsChanged(
+    beforeChange: ReadonlyArray<Element>,
+    afterChange: ReadonlyArray<Element>
+  ) {
+    const resizableFocusedBefore =
+      getLastResizableFocused(beforeChange) !== null
+    const resizableFocusedAfter = getLastResizableFocused(afterChange) !== null
+
+    if (resizableFocusedBefore !== resizableFocusedAfter) {
+      updateMenuState(this.getState(), this.appMenu)
+    }
   }
 }
 

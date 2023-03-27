@@ -5,6 +5,21 @@ import { clamp } from '../../lib/clamp'
 export const DefaultMaxWidth = 350
 export const DefaultMinWidth = 200
 
+/** This class is assigned to the containing div of the element and used in
+ * determining whether the resizable is focused. */
+const resizableComponentClass = 'resizable-component'
+
+/** Returns the last element of a focused elements array if it is resizable  */
+export function getLastResizableFocused(
+  documentFocusedElements: ReadonlyArray<Element>
+) {
+  if (documentFocusedElements.length === 0) {
+    return null
+  }
+
+  return documentFocusedElements[0].closest(`.${resizableComponentClass}`)
+}
+
 export enum ResizeDirection {
   Increase = 'Increase',
   Decrease = 'Decrease',
@@ -119,11 +134,6 @@ export class Resizable extends React.Component<IResizableProps> {
     this.props.onResize(this.clampWidth(newWidth))
   }
 
-  private onFocusChange = (ev: Event) => {
-    this.props.onFocusChanged?.()
-    ev.preventDefault()
-  }
-
   /**
    * Adds and removes listeners for custom events fired when user users keyboard
    * to resize the active resizable
@@ -138,8 +148,6 @@ export class Resizable extends React.Component<IResizableProps> {
         'decrease-active-resizable-width',
         this.handleMenuResizeEventDecrease
       )
-      this.resizeContainer?.removeEventListener('focusin', this.onFocusChange)
-      this.resizeContainer?.removeEventListener('focusout', this.onFocusChange)
     } else {
       ref.addEventListener(
         'increase-active-resizable-width',
@@ -149,9 +157,6 @@ export class Resizable extends React.Component<IResizableProps> {
         'decrease-active-resizable-width',
         this.handleMenuResizeEventDecrease
       )
-
-      ref.addEventListener('focusin', this.onFocusChange)
-      ref.addEventListener('focusout', this.onFocusChange)
     }
     this.resizeContainer = ref
   }
@@ -166,7 +171,7 @@ export class Resizable extends React.Component<IResizableProps> {
     return (
       <div
         id={this.props.id}
-        className="resizable-component"
+        className={resizableComponentClass}
         style={style}
         ref={this.onResizableRef}
       >
@@ -212,6 +217,4 @@ export interface IResizableProps {
    * on the resize handle).
    */
   readonly onReset: () => void
-
-  readonly onFocusChanged?: () => void
 }

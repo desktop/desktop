@@ -69,10 +69,6 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
 
   private onReset = () => this.props.dispatcher.resetStashedFilesWidth()
 
-  private onResizableFocusChanged = () => {
-    this.props.dispatcher.onResizableFocusChanged()
-  }
-
   public render() {
     const {
       stashEntry,
@@ -131,7 +127,6 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
             maximumWidth={fileListWidth.max}
             onResize={this.onResize}
             onReset={this.onReset}
-            onFocusChanged={this.onResizableFocusChanged}
           >
             <FileList
               files={files}

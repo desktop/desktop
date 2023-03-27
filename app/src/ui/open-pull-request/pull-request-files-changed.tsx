@@ -244,10 +244,6 @@ export class PullRequestFilesChanged extends React.Component<
     )
   }
 
-  private onResizableFocusChanged = () => {
-    this.props.dispatcher.onResizableFocusChanged()
-  }
-
   private renderFileList() {
     const { files, selectedFile, fileListWidth } = this.props
 
@@ -258,7 +254,6 @@ export class PullRequestFilesChanged extends React.Component<
         maximumWidth={fileListWidth.max}
         onResize={this.onFileListResize}
         onReset={this.onFileListSizeReset}
-        onFocusChanged={this.onResizableFocusChanged}
       >
         <FileList
           files={files}

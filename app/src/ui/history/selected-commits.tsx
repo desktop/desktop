@@ -266,10 +266,6 @@ export class SelectedCommits extends React.Component<
     openFile(fullPath, this.props.dispatcher)
   }
 
-  private onResizableFocusChanged = () => {
-    this.props.dispatcher.onResizableFocusChanged()
-  }
-
   public render() {
     const { selectedCommits, isContiguous } = this.props
 
@@ -297,7 +293,6 @@ export class SelectedCommits extends React.Component<
             maximumWidth={commitSummaryWidth.max}
             onResize={this.onCommitSummaryResize}
             onReset={this.onCommitSummaryReset}
-            onFocusChanged={this.onResizableFocusChanged}
           >
             {this.renderFileList()}
           </Resizable>
