@@ -4,7 +4,7 @@
   max-width: calc(100% - var(--spacing-double) * 4);
   max-height: calc(100% - var(--spacing-double) * 4);
 
-  header.dialog-header {
+  div.dialog-header {
     padding-bottom: var(--spacing);
 
     h1 {
