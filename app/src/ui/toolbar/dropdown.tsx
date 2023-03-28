@@ -10,6 +10,7 @@ import classNames from 'classnames'
 import FocusTrap from 'focus-trap-react'
 import { Options as FocusTrapOptions } from 'focus-trap'
 import { TooltipTarget } from '../lib/tooltip'
+import { AriaHasPopupType } from '../lib/aria-types'
 
 export type DropdownState = 'open' | 'closed'
 
@@ -168,6 +169,7 @@ export interface IToolbarDropdownProps {
 
   readonly role?: string
   readonly buttonRole?: string
+  readonly buttonAriaHaspopup?: AriaHasPopupType
 
   /** Classes to be appended to `ToolbarButton` component */
   readonly buttonClassName?: string
@@ -448,6 +450,7 @@ export class ToolbarDropdown extends React.Component<
             this.props.onlyShowTooltipWhenOverflowed
           }
           isOverflowed={this.props.isOverflowed}
+          ariaHaspopup={this.props.buttonAriaHaspopup}
         >
           {this.props.children}
           {this.props.dropdownStyle !== ToolbarDropdownStyle.MultiOption &&

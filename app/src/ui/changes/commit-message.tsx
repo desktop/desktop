@@ -97,6 +97,8 @@ interface ICommitMessageProps {
   /** Optional text to override default commit button text */
   readonly commitButtonText?: string
 
+  readonly mostRecentLocalCommit: Commit | null
+
   /** Whether or not to remember the coauthors in the changes state */
   readonly onCoAuthorsUpdated: (coAuthors: ReadonlyArray<IAuthor>) => void
   readonly onShowCoAuthoredByChanged: (showCoAuthoredBy: boolean) => void
@@ -140,6 +142,8 @@ interface ICommitMessageState {
    * false when there's no action bar.
    */
   readonly descriptionObscured: boolean
+
+  readonly isCommittingStatusMessage: string
 }
 
 function findUserAutoCompleteProvider(
@@ -178,6 +182,7 @@ export class CommitMessage extends React.Component<
         props.autocompletionProviders
       ),
       descriptionObscured: false,
+      isCommittingStatusMessage: '',
     }
   }
 
@@ -259,6 +264,24 @@ export class CommitMessage extends React.Component<
       prevProps.repository.id === this.props.repository.id
     ) {
       this.coAuthorInputRef.current?.focus()
+    }
+
+    if (
+      prevProps.isCommitting !== this.props.isCommitting &&
+      this.props.isCommitting &&
+      this.state.isCommittingStatusMessage === ''
+    ) {
+      this.setState({ isCommittingStatusMessage: this.getButtonTitle() })
+    }
+
+    if (
+      prevProps.mostRecentLocalCommit?.sha !==
+        this.props.mostRecentLocalCommit?.sha &&
+      this.props.mostRecentLocalCommit !== null
+    ) {
+      this.setState({
+        isCommittingStatusMessage: `Committed Just now - ${this.props.mostRecentLocalCommit.summary} (Sha: ${this.props.mostRecentLocalCommit.shortSha})`,
+      })
     }
   }
 
@@ -658,53 +681,91 @@ export class CommitMessage extends React.Component<
     this.props.onShowFoldout({ type: FoldoutType.Branch })
   }
 
-  private renderSubmitButton() {
-    const { isCommitting, branch, commitButtonText } = this.props
-    const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
-    const buttonEnabled =
-      (this.canCommit() || this.canAmend()) && !isCommitting && !isSummaryBlank
-
-    const loading = isCommitting ? <Loading /> : undefined
-
-    const isAmending = this.props.commitToAmend !== null
+  private getButtonVerb() {
+    const { isCommitting, commitToAmend } = this.props
 
     const amendVerb = isCommitting ? 'Amending' : 'Amend'
     const commitVerb = isCommitting ? 'Committing' : 'Commit'
+    const isAmending = commitToAmend !== null
 
-    const amendTitle = `${amendVerb} last commit`
-    const commitTitle =
-      branch !== null ? `${commitVerb} to ${branch}` : commitVerb
+    return isAmending ? amendVerb : commitVerb
+  }
 
-    let tooltip: string | undefined = undefined
+  private getCommittingButtonText() {
+    const { branch } = this.props
+    const verb = this.getButtonVerb()
 
-    if (buttonEnabled) {
-      tooltip = isAmending ? amendTitle : commitTitle
-    } else {
-      if (isSummaryBlank) {
-        tooltip = `A commit summary is required to commit`
-      } else if (!this.props.anyFilesSelected && this.props.anyFilesAvailable) {
-        tooltip = `Select one or more files to commit`
-      } else if (isCommitting) {
-        tooltip = `Committing changes…`
-      }
+    if (branch === null) {
+      return verb
     }
 
-    const defaultCommitContents =
-      branch !== null ? (
-        <>
-          {commitVerb} to <strong>{branch}</strong>
-        </>
-      ) : (
-        commitVerb
-      )
+    return (
+      <>
+        {verb} to <strong>{branch}</strong>
+      </>
+    )
+  }
 
-    const defaultAmendContents = <>{amendVerb} last commit</>
+  private getCommittingButtonTitle() {
+    const { branch } = this.props
+    const verb = this.getButtonVerb()
 
-    const defaultContents = isAmending
-      ? defaultAmendContents
-      : defaultCommitContents
+    if (branch === null) {
+      return verb
+    }
 
-    const commitButton = commitButtonText ? commitButtonText : defaultContents
+    return `${verb} to ${branch}`
+  }
+
+  private getButtonText() {
+    const { commitToAmend, commitButtonText } = this.props
+
+    if (commitButtonText) {
+      return commitButtonText
+    }
+
+    const isAmending = commitToAmend !== null
+    return isAmending ? this.getButtonTitle() : this.getCommittingButtonText()
+  }
+
+  private getButtonTitle(): string {
+    const { commitToAmend, commitButtonText } = this.props
+
+    if (commitButtonText) {
+      return commitButtonText
+    }
+
+    const isAmending = commitToAmend !== null
+    return isAmending
+      ? `${this.getButtonVerb()} last commit`
+      : this.getCommittingButtonTitle()
+  }
+
+  private getButtonTooltip(buttonEnabled: boolean) {
+    if (buttonEnabled) {
+      return this.getButtonTitle()
+    }
+
+    const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
+    if (isSummaryBlank) {
+      return `A commit summary is required to commit`
+    } else if (!this.props.anyFilesSelected && this.props.anyFilesAvailable) {
+      return `Select one or more files to commit`
+    } else if (this.props.isCommitting) {
+      return `Committing changes…`
+    }
+
+    return undefined
+  }
+
+  private renderSubmitButton() {
+    const { isCommitting } = this.props
+    const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
+    const buttonEnabled =
+      (this.canCommit() || this.canAmend()) && !isCommitting && !isSummaryBlank
+    const loading = isCommitting ? <Loading /> : undefined
+    const tooltip = this.getButtonTooltip(buttonEnabled)
+    const commitButton = this.getButtonText()
 
     return (
       <Button
@@ -815,6 +876,9 @@ export class CommitMessage extends React.Component<
         {this.renderPermissionsCommitWarning()}
 
         {this.renderSubmitButton()}
+        <span className="sr-only" aria-live="polite" aria-atomic="true">
+          {this.state.isCommittingStatusMessage}
+        </span>
       </div>
     )
   }

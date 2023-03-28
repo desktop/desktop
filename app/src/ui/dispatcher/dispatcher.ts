@@ -3981,6 +3981,10 @@ export class Dispatcher {
     this.statsStore.recordPullRequestReviewDialogSwitchToPullRequest(reviewType)
   }
 
+  public recordPullRequestCommentDialogSwitchToPullRequest() {
+    this.statsStore.recordPullRequestCommentDialogSwitchToPullRequest()
+  }
+
   public showUnreachableCommits(selectedTab: UnreachableCommitsTab) {
     this.statsStore.recordMultiCommitDiffUnreachableCommitsDialogOpenedCount()
 

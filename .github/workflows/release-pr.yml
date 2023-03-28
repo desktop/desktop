@@ -37,7 +37,7 @@ jobs:
           private_key: ${{ secrets.DESKTOP_RELEASES_APP_PRIVATE_KEY }}
 
       - name: Create Release Pull Request
-        uses: peter-evans/create-pull-request@v4.2.3
+        uses: peter-evans/create-pull-request@v4.2.4
         if: |
           startsWith(github.ref, 'refs/heads/releases/') && !contains(github.ref, 'test')
         with:

@@ -240,6 +240,7 @@ export class ChangesList extends React.Component<
   IChangesState
 > {
   private headerRef = createObservableRef<HTMLDivElement>()
+  private listRef = React.createRef<List>()
 
   public constructor(props: IChangesListProps) {
     super(props)
@@ -787,6 +788,7 @@ export class ChangesList extends React.Component<
       <CommitMessage
         onCreateCommit={this.props.onCreateCommit}
         branch={this.props.branch}
+        mostRecentLocalCommit={this.props.mostRecentLocalCommit}
         commitAuthor={this.props.commitAuthor}
         isShowingModal={this.props.isShowingModal}
         isShowingFoldout={this.props.isShowingFoldout}
@@ -912,6 +914,10 @@ export class ChangesList extends React.Component<
     return
   }
 
+  public focus() {
+    this.listRef.current?.focus()
+  }
+
   public render() {
     const { workingDirectory, rebaseConflictState, isCommitting } = this.props
     const { files } = workingDirectory
@@ -951,6 +957,7 @@ export class ChangesList extends React.Component<
           />
         </div>
         <List
+          ref={this.listRef}
           id="changes-list"
           rowCount={files.length}
           rowHeight={RowHeight}
