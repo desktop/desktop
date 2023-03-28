@@ -19,6 +19,10 @@
     background: transparent;
     padding: 0;
     border: none;
+    color: var(--text-color);
+    font-size: inherit;
+    font-weight: normal;
+    font-family: inherit;
 
     svg {
       vertical-align: text-top;
