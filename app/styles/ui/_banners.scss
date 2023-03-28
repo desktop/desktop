@@ -35,9 +35,6 @@
     height: 16px;
     margin-right: var(--spacing);
     margin-left: var(--spacing);
-    background: transparent;
-
-    color: var(--text-secondary-color);
 
     &:hover {
       color: var(--text-color);
@@ -45,6 +42,13 @@
 
     &:focus {
       outline: 0;
+    }
+
+    button {
+      border: 0;
+      padding: 0;
+      color: var(--text-secondary-color);
+      background: transparent;
     }
   }
 
