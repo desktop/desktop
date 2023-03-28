@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.2.1-test13": [
+      "[Improved] Status of commit submission is screen reader announced - #16371, #16340"
+    ],
     "3.2.1-beta2": [
       "[Added] Add support for Pulsar code editor on macOS. - #16220. Thanks @mdibella-dev!",
       "[Fixed] Fix support of newer versions of RStudio - #16339",
