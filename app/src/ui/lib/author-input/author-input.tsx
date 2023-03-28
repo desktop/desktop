@@ -174,10 +174,6 @@ export class AuthorInput extends React.Component<
     return (
       <FocusContainer
         className={className}
-        aria-label={
-          'Co-Authors: ' +
-          this.props.authors.map(getFullTextForAuthor).join(', ')
-        }
         onFocusWithinChanged={this.onFocusWithinChanged}
       >
         <div className="sr-only" aria-live="polite" aria-atomic="true">
@@ -196,6 +192,7 @@ export class AuthorInput extends React.Component<
           )}
           ref={this.autocompletingInputRef}
           onElementRef={this.onInputRef}
+          elementAriaLabel="Co-Authors"
           onAutocompleteItemSelected={this.onAutocompleteItemSelected}
           onValueChanged={this.onCoAuthorsValueChanged}
           onKeyDown={this.onInputKeyDown}
@@ -210,6 +207,7 @@ export class AuthorInput extends React.Component<
       <div
         className="added-author-container"
         ref={this.authorContainerRef}
+        aria-label="Added Co-Authors"
         role="listbox"
       >
         {this.props.authors.map((author, index) => {
