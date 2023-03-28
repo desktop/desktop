@@ -14,6 +14,7 @@ const DefaultMinWidth = 200
 export class Resizable extends React.Component<IResizableProps> {
   private startWidth: number | null = null
   private startX: number | null = null
+  private containerRef: HTMLDivElement | null = null
 
   /**
    * Returns the current width as determined by props.
@@ -77,6 +78,24 @@ export class Resizable extends React.Component<IResizableProps> {
     e.preventDefault()
   }
 
+  private onResizeEvent = (event: Event) => {
+    if (event instanceof CustomEvent && !event.defaultPrevented) {
+      const delta = event.detail.delta
+      if (typeof delta === 'number') {
+        this.props.onResize(this.props.width + delta)
+      }
+    }
+  }
+
+  private onResizableRef = (ref: HTMLDivElement | null) => {
+    if (ref) {
+      ref.addEventListener('resize-pane', this.onResizeEvent)
+    } else {
+      this.containerRef?.removeEventListener('resize-pane', this.onResizeEvent)
+    }
+    this.containerRef = ref
+  }
+
   public render() {
     const style: React.CSSProperties = {
       width: this.getCurrentWidth(),
@@ -85,7 +104,12 @@ export class Resizable extends React.Component<IResizableProps> {
     }
 
     return (
-      <div id={this.props.id} className="resizable-component" style={style}>
+      <div
+        id={this.props.id}
+        className="resizable-component"
+        style={style}
+        ref={this.onResizableRef}
+      >
         {this.props.children}
         <div
           onMouseDown={this.handleDragStart}

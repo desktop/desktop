@@ -458,9 +458,23 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.props.dispatcher.postError(
           new Error('Test Error - to use default error handler' + uuid())
         )
+      case 'increase-active-resizable-width':
+        return this.resizeActiveResizable(5)
+      case 'decrease-active-resizable-width':
+        return this.resizeActiveResizable(-5)
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
+  }
+
+  private resizeActiveResizable(delta: number) {
+    document.activeElement?.dispatchEvent(
+      new CustomEvent('resize-pane', {
+        bubbles: true,
+        cancelable: true,
+        detail: { delta },
+      })
+    )
   }
 
   /**
