@@ -16,13 +16,17 @@ interface IRange {
 
 import getCaretCoordinates from 'textarea-caret'
 import { showContextualMenu } from '../../lib/menu-item'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
-interface IAutocompletingTextInputProps<ElementType> {
+interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /**
    * An optional className to be applied to the rendered
    * top level element of the component.
    */
   readonly className?: string
+
+  /** The aria-labelledby attribute for the input field. */
+  readonly elementAriaLabelledBy?: string
 
   /** The placeholder for the input field. */
   readonly placeholder?: string
@@ -36,8 +40,20 @@ interface IAutocompletingTextInputProps<ElementType> {
   /** Indicates if input field should be required */
   readonly isRequired?: boolean
 
+  /**
+   * Indicates if input field should be considered a combobox by assistive
+   * technologies. Optional. Default: false
+   */
+  readonly isCombobox?: boolean
+
   /** Indicates if input field applies spellcheck */
   readonly spellcheck?: boolean
+
+  /** Indicates if it should always try to autocomplete. Optional (defaults to false) */
+  readonly alwaysAutocomplete?: boolean
+
+  /** Filter for autocomplete items */
+  readonly autocompleteItemFilter?: (item: AutocompleteItemType) => boolean
 
   /**
    * Called when the user changes the value in the input field.
@@ -46,6 +62,9 @@ interface IAutocompletingTextInputProps<ElementType> {
 
   /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<ElementType>) => void
+
+  /** Called when an autocomplete item has been selected. */
+  readonly onAutocompleteItemSelected?: (value: AutocompleteItemType) => void
 
   /**
    * A list of autocompletion providers that should be enabled for this
@@ -64,6 +83,9 @@ interface IAutocompletingTextInputProps<ElementType> {
    * in the input field.
    */
   readonly onContextMenu?: (event: React.MouseEvent<any>) => void
+
+  /** Called when the input field receives focus. */
+  readonly onFocus?: (event: React.FocusEvent<ElementType>) => void
 }
 
 interface IAutocompletionState<T> {
@@ -106,10 +128,11 @@ export abstract class AutocompletingTextInput<
   ElementType extends HTMLInputElement | HTMLTextAreaElement,
   AutocompleteItemType extends Object
 > extends React.Component<
-  IAutocompletingTextInputProps<ElementType>,
+  IAutocompletingTextInputProps<ElementType, AutocompleteItemType>,
   IAutocompletingTextInputState<AutocompleteItemType>
 > {
   private element: ElementType | null = null
+  private shouldForceAriaLiveMessage = false
 
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
@@ -120,10 +143,25 @@ export abstract class AutocompletingTextInput<
    */
   protected abstract getElementTagName(): 'textarea' | 'input'
 
-  public constructor(props: IAutocompletingTextInputProps<ElementType>) {
+  public constructor(
+    props: IAutocompletingTextInputProps<ElementType, AutocompleteItemType>
+  ) {
     super(props)
 
-    this.state = { autocompletionState: null }
+    this.state = {
+      autocompletionState: null,
+    }
+  }
+
+  public componentDidUpdate(
+    prevProps: IAutocompletingTextInputProps<ElementType, AutocompleteItemType>
+  ) {
+    if (
+      this.props.autocompleteItemFilter !== prevProps.autocompleteItemFilter &&
+      this.state.autocompletionState !== null
+    ) {
+      this.open(this.element?.value ?? '')
+    }
   }
 
   private renderItem = (row: number): JSX.Element | null => {
@@ -209,6 +247,11 @@ export abstract class AutocompletingTextInput<
     const searchText = state.rangeText
 
     const className = classNames('autocompletion-popup', state.provider.kind)
+    const shouldForceAriaLiveMessage = this.shouldForceAriaLiveMessage
+    this.shouldForceAriaLiveMessage = false
+
+    const suggestionsMessage =
+      items.length === 1 ? '1 suggestion' : `${items.length} suggestions`
 
     return (
       <div
@@ -224,16 +267,16 @@ export abstract class AutocompletingTextInput<
           selectedRows={[selectedRow]}
           rowRenderer={this.renderItem}
           scrollToRow={selectedRow}
-          selectOnHover={true}
+          selectOnHover={false}
           focusOnHover={false}
           onRowMouseDown={this.onRowMouseDown}
           onRowClick={this.insertCompletionOnClick}
           onSelectedRowChanged={this.onSelectedRowChanged}
           invalidationProps={searchText}
         />
-        <div className="sr-only" aria-live="polite" aria-atomic="true">
-          {items.length} suggestions
-        </div>
+        <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>
+          {suggestionsMessage}
+        </AriaLiveContainer>
       </div>
     )
   }
@@ -347,17 +390,20 @@ export abstract class AutocompletingTextInput<
 
     const props = {
       type: 'text',
+      role: this.props.isCombobox ? ('combobox' as const) : undefined,
       placeholder: this.props.placeholder,
       value: this.props.value,
       ref: this.onRef,
       onChange: this.onChange,
       onKeyDown: this.onKeyDown,
+      onFocus: this.onFocus,
       onBlur: this.onBlur,
       onContextMenu: this.onContextMenu,
       disabled: this.props.disabled,
       'aria-required': this.props.isRequired ? true : false,
       spellCheck: this.props.spellcheck,
       autoComplete: 'off',
+      'aria-labelledby': this.props.elementAriaLabelledBy,
       'aria-expanded': autocompleteVisible,
       'aria-autocomplete': 'list' as const,
       'aria-haspopup': 'listbox' as const,
@@ -374,6 +420,16 @@ export abstract class AutocompletingTextInput<
 
   private onBlur = (e: React.FocusEvent<ElementType>) => {
     this.close()
+  }
+
+  private onFocus = (e: React.FocusEvent<ElementType>) => {
+    if (!this.props.alwaysAutocomplete || this.element === null) {
+      return
+    }
+
+    this.open(this.element.value)
+
+    this.props.onFocus?.(e)
   }
 
   private onRef = (ref: ElementType | null) => {
@@ -454,7 +510,12 @@ export abstract class AutocompletingTextInput<
       this.setCursorPosition(newCaretPosition)
     }
 
+    this.props.onAutocompleteItemSelected?.(item)
+
     this.close()
+    if (this.props.alwaysAutocomplete) {
+      this.open('')
+    }
   }
 
   private getMovementDirection(
@@ -553,9 +614,13 @@ export abstract class AutocompletingTextInput<
       while ((result = regex.exec(str))) {
         const index = regex.lastIndex
         const text = result[1] || ''
-        if (index === caretPosition) {
+        if (index === caretPosition || this.props.alwaysAutocomplete) {
           const range = { start: index - text.length, length: text.length }
-          const items = await provider.getAutocompletionItems(text)
+          let items = await provider.getAutocompletionItems(text)
+
+          if (this.props.autocompleteItemFilter) {
+            items = items.filter(this.props.autocompleteItemFilter)
+          }
 
           return {
             provider,
@@ -612,6 +677,7 @@ export abstract class AutocompletingTextInput<
       return
     }
 
+    this.shouldForceAriaLiveMessage = true
     this.setState({ autocompletionState })
   }
 }

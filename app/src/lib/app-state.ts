@@ -15,7 +15,7 @@ import {
   PullRequest,
   PullRequestSuggestedNextAction,
 } from '../models/pull-request'
-import { IAuthor } from '../models/author'
+import { Author } from '../models/author'
 import { MergeTreeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
 import {
@@ -685,7 +685,7 @@ export interface IChangesState {
    * Co-Authored-By commit message trailers depending on whether
    * the user has chosen to do so.
    */
-  readonly coAuthors: ReadonlyArray<IAuthor>
+  readonly coAuthors: ReadonlyArray<Author>
 
   /**
    * Stores information about conflicts in the working directory

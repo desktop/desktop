@@ -87,7 +87,7 @@ import {
   UpstreamRemoteName,
 } from './helpers/find-upstream-remote'
 import { findDefaultRemote } from './helpers/find-default-remote'
-import { IAuthor } from '../../models/author'
+import { Author, isKnownAuthor } from '../../models/author'
 import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
@@ -139,7 +139,7 @@ export class GitStore extends BaseStore {
 
   private _showCoAuthoredBy: boolean = false
 
-  private _coAuthors: ReadonlyArray<IAuthor> = []
+  private _coAuthors: ReadonlyArray<Author> = []
 
   private _aheadBehind: IAheadBehind | null = null
 
@@ -867,7 +867,7 @@ export class GitStore extends BaseStore {
     const extractedAuthors = extractedTrailers.map(t =>
       GitAuthor.parse(t.value)
     )
-    const newAuthors = new Array<IAuthor>()
+    const newAuthors = new Array<Author>()
 
     // Last step, phew! The most likely scenario where we
     // get called is when someone has just made a commit and
@@ -884,10 +884,12 @@ export class GitStore extends BaseStore {
       }
 
       const { name, email } = extractedAuthor
-      const existing = this.coAuthors.find(
-        a => a.name === name && a.email === email && a.username !== null
+      const existing = this.coAuthors
+        .filter(isKnownAuthor)
+        .find(a => a.name === name && a.email === email && a.username !== null)
+      newAuthors.push(
+        existing || { kind: 'known', name, email, username: null }
       )
-      newAuthors.push(existing || { name, email, username: null })
     }
 
     this._coAuthors = newAuthors
@@ -940,7 +942,7 @@ export class GitStore extends BaseStore {
    * Gets a list of co-authors to use when crafting the next
    * commit.
    */
-  public get coAuthors(): ReadonlyArray<IAuthor> {
+  public get coAuthors(): ReadonlyArray<Author> {
     return this._coAuthors
   }
 
@@ -1405,7 +1407,7 @@ export class GitStore extends BaseStore {
    *
    * @param coAuthors  Zero or more authors
    */
-  public setCoAuthors(coAuthors: ReadonlyArray<IAuthor>) {
+  public setCoAuthors(coAuthors: ReadonlyArray<Author>) {
     this._coAuthors = coAuthors
     this.emitUpdate()
   }

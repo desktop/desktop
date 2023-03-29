@@ -17,7 +17,7 @@ import {
   Repository,
 } from '../../models/repository'
 import { Account } from '../../models/account'
-import { IAuthor } from '../../models/author'
+import { Author, UnknownAuthor } from '../../models/author'
 import { List, ClickSource } from '../lib/list'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import {
@@ -190,7 +190,7 @@ interface IChangesListProps {
    * Co-Authored-By commit message trailers depending on whether
    * the user has chosen to do so.
    */
-  readonly coAuthors: ReadonlyArray<IAuthor>
+  readonly coAuthors: ReadonlyArray<Author>
 
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
@@ -815,6 +815,9 @@ export class ChangesList extends React.Component<
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
         onCoAuthorsUpdated={this.onCoAuthorsUpdated}
         onShowCoAuthoredByChanged={this.onShowCoAuthoredByChanged}
+        onConfirmCommitWithUnknownCoAuthors={
+          this.onConfirmCommitWithUnknownCoAuthors
+        }
         onPersistCommitMessage={this.onPersistCommitMessage}
         onCommitMessageFocusSet={this.onCommitMessageFocusSet}
         onRefreshAuthor={this.onRefreshAuthor}
@@ -827,12 +830,20 @@ export class ChangesList extends React.Component<
     )
   }
 
-  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) =>
+  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<Author>) =>
     this.props.dispatcher.setCoAuthors(this.props.repository, coAuthors)
 
   private onShowCoAuthoredByChanged = (showCoAuthors: boolean) => {
     const { dispatcher, repository } = this.props
     dispatcher.setShowCoAuthoredBy(repository, showCoAuthors)
+  }
+
+  private onConfirmCommitWithUnknownCoAuthors = (
+    coAuthors: ReadonlyArray<UnknownAuthor>,
+    onCommitAnyway: () => void
+  ) => {
+    const { dispatcher } = this.props
+    dispatcher.showUnknownAuthorsCommitWarning(coAuthors, onCommitAnyway)
   }
 
   private onRefreshAuthor = () =>
