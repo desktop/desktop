@@ -179,7 +179,9 @@ export class AuthorInput extends React.Component<
         <div className="sr-only" aria-live="polite" aria-atomic="true">
           {this.state.lastActionDescription}
         </div>
-        <div className="label">Co-Authors&nbsp;</div>
+        <div id="author-input-label" className="label">
+          Co-Authors&nbsp;
+        </div>
         <div className="shadow-input" ref={this.shadowInputRef} />
         {this.renderAuthors()}
         <AutocompletingInput<UserHit>
@@ -192,7 +194,7 @@ export class AuthorInput extends React.Component<
           )}
           ref={this.autocompletingInputRef}
           onElementRef={this.onInputRef}
-          elementAriaLabel="Co-Authors"
+          elementAriaLabelledBy="author-input-label"
           onAutocompleteItemSelected={this.onAutocompleteItemSelected}
           onValueChanged={this.onCoAuthorsValueChanged}
           onKeyDown={this.onInputKeyDown}
@@ -207,7 +209,7 @@ export class AuthorInput extends React.Component<
       <div
         className="added-author-container"
         ref={this.authorContainerRef}
-        aria-label="Added Co-Authors"
+        aria-labelledby="author-input-label"
         role="listbox"
       >
         {this.props.authors.map((author, index) => {
