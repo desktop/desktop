@@ -16,6 +16,7 @@ interface IRange {
 
 import getCaretCoordinates from 'textarea-caret'
 import { showContextualMenu } from '../../lib/menu-item'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /**
@@ -131,6 +132,7 @@ export abstract class AutocompletingTextInput<
   IAutocompletingTextInputState<AutocompleteItemType>
 > {
   private element: ElementType | null = null
+  private shouldForceAriaLiveMessage = false
 
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
@@ -245,6 +247,11 @@ export abstract class AutocompletingTextInput<
     const searchText = state.rangeText
 
     const className = classNames('autocompletion-popup', state.provider.kind)
+    const shouldForceAriaLiveMessage = this.shouldForceAriaLiveMessage
+    this.shouldForceAriaLiveMessage = false
+
+    const suggestionsMessage =
+      items.length === 1 ? '1 suggestion' : `${items.length} suggestions`
 
     return (
       <div
@@ -267,9 +274,9 @@ export abstract class AutocompletingTextInput<
           onSelectedRowChanged={this.onSelectedRowChanged}
           invalidationProps={searchText}
         />
-        <div className="sr-only" aria-live="polite" aria-atomic="true">
-          {items.length} suggestions
-        </div>
+        <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>
+          {suggestionsMessage}
+        </AriaLiveContainer>
       </div>
     )
   }
@@ -670,6 +677,7 @@ export abstract class AutocompletingTextInput<
       return
     }
 
+    this.shouldForceAriaLiveMessage = true
     this.setState({ autocompletionState })
   }
 }
