@@ -884,12 +884,10 @@ export class ChangesList extends React.Component<
     )
 
     return (
-      // eslint-disable-next-line jsx-a11y/role-supports-aria-props
       <button
         className={className}
         onClick={this.onStashEntryClicked}
         tabIndex={0}
-        aria-selected={this.props.isShowingStashEntry}
       >
         <Octicon className="stack-icon" symbol={StashIcon} />
         <div className="text">Stashed Changes</div>
