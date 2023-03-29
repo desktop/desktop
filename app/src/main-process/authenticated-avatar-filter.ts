@@ -1,3 +1,4 @@
+import { getDotComAPIEndpoint, getHTMLURL } from '../lib/api'
 import { EndpointToken } from '../lib/endpoint-token'
 import { OrderedWebRequest } from './ordered-webrequest'
 
@@ -46,5 +47,14 @@ export function installAuthenticatedAvatarFilter(
     originTokens = new Map(
       accounts.map(({ endpoint, token }) => [new URL(endpoint).origin, token])
     )
+
+    // If we have a token for api.github.com, add another entry in our
+    // tokens-by-origin map with the same token for github.com. This is
+    // necessary for private image URLs.
+    const dotComAPIEndpoint = getDotComAPIEndpoint()
+    const dotComAPIToken = originTokens.get(dotComAPIEndpoint)
+    if (dotComAPIToken) {
+      originTokens.set(getHTMLURL(dotComAPIEndpoint), dotComAPIToken)
+    }
   }
 }
