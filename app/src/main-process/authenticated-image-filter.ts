@@ -19,7 +19,7 @@ function isGitHubRepoAssetPath(pathname: string) {
  * Returns a method that can be used to update the list of signed-in accounts
  * which is used to resolve which token to use.
  */
-export function installAuthenticatedAvatarFilter(
+export function installAuthenticatedImageFilter(
   orderedWebRequest: OrderedWebRequest
 ) {
   let originTokens = new Map<string, string>()
