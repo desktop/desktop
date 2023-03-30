@@ -252,6 +252,12 @@ interface IListProps {
    * Optional callback for providing ane or more aria attributes for a given row
    */
   readonly getRowAccessibilityProps?: (row: number) => AccessibilityProps
+
+  /** The aria-labelledby attribute for the list component. */
+  readonly 'aria-labelledby'?: string
+
+  /** The aria-label attribute for the list component. */
+  readonly 'aria-label'?: string
 }
 
 interface IListState {
@@ -978,7 +984,13 @@ export class List extends React.Component<IListProps, IListState> {
     }
 
     return (
-      <div ref={this.onRef} id={this.props.id} className="list">
+      <div
+        ref={this.onRef}
+        id={this.props.id}
+        className="list"
+        aria-labelledby={this.props['aria-labelledby']}
+        aria-label={this.props['aria-label']}
+      >
         {content}
       </div>
     )
