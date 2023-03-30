@@ -10,14 +10,7 @@ import {
   AppFileStatusKind,
 } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
-import { CommitIdentity } from '../../models/commit-identity'
-import { ICommitMessage } from '../../models/commit-message'
-import {
-  isRepositoryWithGitHubRepository,
-  Repository,
-} from '../../models/repository'
-import { Account } from '../../models/account'
-import { IAuthor } from '../../models/author'
+import { Repository } from '../../models/repository'
 import { List, ClickSource } from '../lib/list'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import {
@@ -30,51 +23,23 @@ import {
   CopySelectedPathsLabel,
   CopySelectedRelativePathsLabel,
 } from '../lib/context-menu'
-import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
-import { IAutocompletionProvider } from '../autocompletion'
 import { showContextualMenu } from '../../lib/menu-item'
 import { arrayEquals } from '../../lib/equality'
 import { clipboard } from 'electron'
-import { basename } from 'path'
-import { Commit, ICommitContext } from '../../models/commit'
-import {
-  RebaseConflictState,
-  ConflictState,
-  Foldout,
-} from '../../lib/app-state'
-import { ContinueRebase } from './continue-rebase'
-import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import { RebaseConflictState, ConflictState } from '../../lib/app-state'
 import { IStashEntry } from '../../models/stash-entry'
-import classNames from 'classnames'
-import { hasWritePermission } from '../../models/github-repository'
 import { hasConflictedFiles, mapStatus } from '../../lib/status'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip, TooltipDirection } from '../lib/tooltip'
-import { Popup } from '../../models/popup'
 import { EOL } from 'os'
 
 const RowHeight = 29
-const StashIcon: OcticonSymbol.OcticonSymbolType = {
-  w: 16,
-  h: 16,
-  d:
-    'M10.5 1.286h-9a.214.214 0 0 0-.214.214v9a.214.214 0 0 0 .214.214h9a.214.214 0 0 0 ' +
-    '.214-.214v-9a.214.214 0 0 0-.214-.214zM1.5 0h9A1.5 1.5 0 0 1 12 1.5v9a1.5 1.5 0 0 1-1.5 ' +
-    '1.5h-9A1.5 1.5 0 0 1 0 10.5v-9A1.5 1.5 0 0 1 1.5 0zm5.712 7.212a1.714 1.714 0 1 ' +
-    '1-2.424-2.424 1.714 1.714 0 0 1 2.424 2.424zM2.015 12.71c.102.729.728 1.29 1.485 ' +
-    '1.29h9a1.5 1.5 0 0 0 1.5-1.5v-9a1.5 1.5 0 0 0-1.29-1.485v1.442a.216.216 0 0 1 ' +
-    '.004.043v9a.214.214 0 0 1-.214.214h-9a.216.216 0 0 1-.043-.004H2.015zm2 2c.102.729.728 ' +
-    '1.29 1.485 1.29h9a1.5 1.5 0 0 0 1.5-1.5v-9a1.5 1.5 0 0 0-1.29-1.485v1.442a.216.216 0 0 1 ' +
-    '.004.043v9a.214.214 0 0 1-.214.214h-9a.216.216 0 0 1-.043-.004H4.015z',
-  fr: 'evenodd',
-}
 
 const GitIgnoreFileName = '.gitignore'
 
 /** Compute the 'Include All' checkbox value from the repository state */
-function getIncludeAllValue(
+export function getIncludeAllValue(
   workingDirectory: WorkingDirectoryStatus,
   rebaseConflictState: RebaseConflictState | null
 ) {
@@ -114,9 +79,7 @@ function getIncludeAllValue(
 
 interface IChangesListProps {
   readonly repository: Repository
-  readonly repositoryAccount: Account | null
   readonly workingDirectory: WorkingDirectoryStatus
-  readonly mostRecentLocalCommit: Commit | null
   /**
    * An object containing the conflicts in the working directory.
    * When null it means that there are no conflicts.
@@ -127,12 +90,8 @@ interface IChangesListProps {
   readonly onFileSelectionChanged: (rows: ReadonlyArray<number>) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
-  readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
   readonly askForConfirmationOnDiscardChanges: boolean
-  readonly focusCommitMessage: boolean
-  readonly isShowingModal: boolean
-  readonly isShowingFoldout: boolean
   readonly onDiscardChangesFromFiles: (
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges: boolean
@@ -154,43 +113,21 @@ interface IChangesListProps {
    * The currently checked out branch (null if no branch is checked out).
    */
   readonly branch: string | null
-  readonly commitAuthor: CommitIdentity | null
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
   readonly isCommitting: boolean
-  readonly commitToAmend: Commit | null
-  readonly currentBranchProtected: boolean
 
   /**
    * Click event handler passed directly to the onRowClick prop of List, see
    * List Props for documentation.
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
-  readonly commitMessage: ICommitMessage
-
-  /** The autocompletion providers available to the repository. */
-  readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 
   /** Called when the given file should be ignored. */
   readonly onIgnoreFile: (pattern: string | string[]) => void
 
   /** Called when the given pattern should be ignored. */
   readonly onIgnorePattern: (pattern: string | string[]) => void
-
-  /**
-   * Whether or not to show a field for adding co-authors to
-   * a commit (currently only supported for GH/GHE repositories)
-   */
-  readonly showCoAuthoredBy: boolean
-
-  /**
-   * A list of authors (name, email pairs) which have been
-   * entered into the co-authors input box in the commit form
-   * and which _may_ be used in the subsequent commit to add
-   * Co-Authored-By commit message trailers depending on whether
-   * the user has chosen to do so.
-   */
-  readonly coAuthors: ReadonlyArray<IAuthor>
 
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
@@ -203,16 +140,6 @@ interface IChangesListProps {
   readonly onOpenInExternalEditor: (fullPath: string) => void
 
   readonly stashEntry: IStashEntry | null
-
-  readonly isShowingStashEntry: boolean
-
-  /**
-   * Whether we should show the onboarding tutorial nudge
-   * arrow pointing at the commit summary box
-   */
-  readonly shouldNudgeToCommit: boolean
-
-  readonly commitSpellcheckEnabled: boolean
 }
 
 interface IChangesState {
@@ -698,202 +625,8 @@ export class ChangesList extends React.Component<
     showContextualMenu(items)
   }
 
-  private getPlaceholderMessage(
-    files: ReadonlyArray<WorkingDirectoryFileChange>,
-    prepopulateCommitSummary: boolean
-  ) {
-    if (!prepopulateCommitSummary) {
-      return 'Summary (required)'
-    }
-
-    const firstFile = files[0]
-    const fileName = basename(firstFile.path)
-
-    switch (firstFile.status.kind) {
-      case AppFileStatusKind.New:
-      case AppFileStatusKind.Untracked:
-        return `Create ${fileName}`
-      case AppFileStatusKind.Deleted:
-        return `Delete ${fileName}`
-      default:
-        // TODO:
-        // this doesn't feel like a great message for AppFileStatus.Copied or
-        // AppFileStatus.Renamed but without more insight (and whether this
-        // affects other parts of the flow) we can just default to this for now
-        return `Update ${fileName}`
-    }
-  }
-
   private onScroll = (scrollTop: number, clientHeight: number) => {
     this.props.onChangesListScrolled(scrollTop)
-  }
-
-  private renderCommitMessageForm = (): JSX.Element => {
-    const {
-      rebaseConflictState,
-      workingDirectory,
-      repository,
-      repositoryAccount,
-      dispatcher,
-      isCommitting,
-      commitToAmend,
-      currentBranchProtected,
-    } = this.props
-
-    if (rebaseConflictState !== null) {
-      const hasUntrackedChanges = workingDirectory.files.some(
-        f => f.status.kind === AppFileStatusKind.Untracked
-      )
-
-      return (
-        <ContinueRebase
-          dispatcher={dispatcher}
-          repository={repository}
-          rebaseConflictState={rebaseConflictState}
-          workingDirectory={workingDirectory}
-          isCommitting={isCommitting}
-          hasUntrackedChanges={hasUntrackedChanges}
-        />
-      )
-    }
-
-    const fileCount = workingDirectory.files.length
-
-    const includeAllValue = getIncludeAllValue(
-      workingDirectory,
-      rebaseConflictState
-    )
-
-    const anyFilesSelected =
-      fileCount > 0 && includeAllValue !== CheckboxValue.Off
-
-    const filesSelected = workingDirectory.files.filter(
-      f => f.selection.getSelectionType() !== DiffSelectionType.None
-    )
-
-    // When a single file is selected, we use a default commit summary
-    // based on the file name and change status.
-    // However, for onboarding tutorial repositories, we don't want to do this.
-    // See https://github.com/desktop/desktop/issues/8354
-    const prepopulateCommitSummary =
-      filesSelected.length === 1 && !repository.isTutorialRepository
-
-    // if this is not a github repo, we don't want to
-    // restrict what the user can do at all
-    const hasWritePermissionForRepository =
-      this.props.repository.gitHubRepository === null ||
-      hasWritePermission(this.props.repository.gitHubRepository)
-
-    return (
-      <CommitMessage
-        onCreateCommit={this.props.onCreateCommit}
-        branch={this.props.branch}
-        mostRecentLocalCommit={this.props.mostRecentLocalCommit}
-        commitAuthor={this.props.commitAuthor}
-        isShowingModal={this.props.isShowingModal}
-        isShowingFoldout={this.props.isShowingFoldout}
-        anyFilesSelected={anyFilesSelected}
-        anyFilesAvailable={fileCount > 0}
-        repository={repository}
-        repositoryAccount={repositoryAccount}
-        commitMessage={this.props.commitMessage}
-        focusCommitMessage={this.props.focusCommitMessage}
-        autocompletionProviders={this.props.autocompletionProviders}
-        isCommitting={isCommitting}
-        commitToAmend={commitToAmend}
-        showCoAuthoredBy={this.props.showCoAuthoredBy}
-        coAuthors={this.props.coAuthors}
-        placeholder={this.getPlaceholderMessage(
-          filesSelected,
-          prepopulateCommitSummary
-        )}
-        prepopulateCommitSummary={prepopulateCommitSummary}
-        key={repository.id}
-        showBranchProtected={fileCount > 0 && currentBranchProtected}
-        showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
-        shouldNudge={this.props.shouldNudgeToCommit}
-        commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
-        onCoAuthorsUpdated={this.onCoAuthorsUpdated}
-        onShowCoAuthoredByChanged={this.onShowCoAuthoredByChanged}
-        onPersistCommitMessage={this.onPersistCommitMessage}
-        onCommitMessageFocusSet={this.onCommitMessageFocusSet}
-        onRefreshAuthor={this.onRefreshAuthor}
-        onShowPopup={this.onShowPopup}
-        onShowFoldout={this.onShowFoldout}
-        onCommitSpellcheckEnabledChanged={this.onCommitSpellcheckEnabledChanged}
-        onStopAmending={this.onStopAmending}
-        onShowCreateForkDialog={this.onShowCreateForkDialog}
-      />
-    )
-  }
-
-  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) =>
-    this.props.dispatcher.setCoAuthors(this.props.repository, coAuthors)
-
-  private onShowCoAuthoredByChanged = (showCoAuthors: boolean) => {
-    const { dispatcher, repository } = this.props
-    dispatcher.setShowCoAuthoredBy(repository, showCoAuthors)
-  }
-
-  private onRefreshAuthor = () =>
-    this.props.dispatcher.refreshAuthor(this.props.repository)
-
-  private onCommitMessageFocusSet = () =>
-    this.props.dispatcher.setCommitMessageFocus(false)
-
-  private onPersistCommitMessage = (message: ICommitMessage) =>
-    this.props.dispatcher.setCommitMessage(this.props.repository, message)
-
-  private onShowPopup = (p: Popup) => this.props.dispatcher.showPopup(p)
-  private onShowFoldout = (f: Foldout) => this.props.dispatcher.showFoldout(f)
-
-  private onCommitSpellcheckEnabledChanged = (enabled: boolean) =>
-    this.props.dispatcher.setCommitSpellcheckEnabled(enabled)
-
-  private onStopAmending = () =>
-    this.props.dispatcher.stopAmendingRepository(this.props.repository)
-
-  private onShowCreateForkDialog = () => {
-    if (isRepositoryWithGitHubRepository(this.props.repository)) {
-      this.props.dispatcher.showCreateForkDialog(this.props.repository)
-    }
-  }
-
-  private onStashEntryClicked = () => {
-    const { isShowingStashEntry, dispatcher, repository } = this.props
-
-    if (isShowingStashEntry) {
-      dispatcher.selectWorkingDirectoryFiles(repository)
-
-      // If the button is clicked, that implies the stash was not restored or discarded
-      dispatcher.recordNoActionTakenOnStash()
-    } else {
-      dispatcher.selectStashedFile(repository)
-      dispatcher.recordStashView()
-    }
-  }
-
-  private renderStashedChanges() {
-    if (this.props.stashEntry === null) {
-      return null
-    }
-
-    const className = classNames(
-      'stashed-changes-button',
-      this.props.isShowingStashEntry ? 'selected' : null
-    )
-
-    return (
-      <button
-        className={className}
-        onClick={this.onStashEntryClicked}
-        tabIndex={0}
-      >
-        <Octicon className="stack-icon" symbol={StashIcon} />
-        <div className="text">Stashed Changes</div>
-        <Octicon symbol={OcticonSymbol.chevronRight} />
-      </button>
-    )
   }
 
   private onRowKeyDown = (
@@ -974,8 +707,6 @@ export class ChangesList extends React.Component<
           onRowKeyDown={this.onRowKeyDown}
           onRowContextMenu={this.onItemContextMenu}
         />
-        {this.renderStashedChanges()}
-        {this.renderCommitMessageForm()}
       </div>
     )
   }
