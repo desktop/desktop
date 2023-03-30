@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.2.1-test15": [
+      "[Improved] development as of 809e2d3fa, includes resizable pan keyboard shortcuts and misattributed commit popover zoom fix"
+    ],
     "3.2.1-beta2": [
       "[Added] Add support for Pulsar code editor on macOS. - #16220. Thanks @mdibella-dev!",
       "[Fixed] Fix support of newer versions of RStudio - #16339",
