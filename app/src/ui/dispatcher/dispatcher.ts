@@ -4066,4 +4066,8 @@ export class Dispatcher {
   ) {
     return this.appStore._setPullRequestSuggestedNextAction(value)
   }
+
+  public appFocusedElementChanged() {
+    this.appStore._appFocusedElementChanged()
+  }
 }

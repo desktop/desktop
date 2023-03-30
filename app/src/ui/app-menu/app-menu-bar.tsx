@@ -9,6 +9,10 @@ import { AppMenuBarButton } from './app-menu-bar-button'
 import { Dispatcher } from '../dispatcher'
 import { AppMenuFoldout, FoldoutType } from '../../lib/app-state'
 
+/** This is the id used for the windows app menu and used elsewhere
+ * to determine if the app menu is is focus */
+export const appMenuId = 'app-menu-bar'
+
 interface IAppMenuBarProps {
   readonly appMenu: ReadonlyArray<IMenu>
   readonly dispatcher: Dispatcher

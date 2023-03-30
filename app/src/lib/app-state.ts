@@ -111,6 +111,16 @@ export interface IAppState {
   readonly windowZoomFactor: number
 
   /**
+   * Whether or not the currently active element is itself, or is contained
+   * within, a resizable component. This is used to determine whether or not
+   * to enable the Expand/Contract pane menu items. Note that this doesn't
+   * necessarily mean that keyboard resides within the resizable component since
+   * using the Windows in-app menu bar will steal focus from the currently
+   * active element (but return it once closed).
+   */
+  readonly resizablePaneActive: boolean
+
+  /**
    * A value indicating whether or not the current application
    * window has focus.
    */
