@@ -234,7 +234,7 @@ export function buildDefaultMenu({
           ? 'Expand Active Resizable'
           : 'Expand active resizable',
         id: 'increase-active-resizable-width',
-        accelerator: 'CmdOrCtrl+]',
+        accelerator: 'CmdOrCtrl+9',
         click: emit('increase-active-resizable-width'),
       },
       {
@@ -242,7 +242,7 @@ export function buildDefaultMenu({
           ? 'Contract Active Resizable'
           : 'Contract active resizable',
         id: 'decrease-active-resizable-width',
-        accelerator: 'CmdOrCtrl+[',
+        accelerator: 'CmdOrCtrl+8',
         click: emit('decrease-active-resizable-width'),
       },
       separator,
