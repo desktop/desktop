@@ -88,6 +88,17 @@
     bottom: 13px;
 
     width: 300px;
+
+    @media (max-height: 500px) {
+      bottom: -125px;
+
+      &.popover-caret-left-bottom {
+        &::before,
+        &::after {
+          bottom: 158px;
+        }
+      }
+    }
   }
 
   .link-button-component {
