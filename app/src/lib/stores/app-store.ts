@@ -7689,7 +7689,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _appFocusedElementChanged() {
     const resizablePaneActive = this.isResizePaneActive()
-    console.log('resizablePaneActive', resizablePaneActive)
 
     if (resizablePaneActive !== this.resizablePaneActive) {
       this.resizablePaneActive = resizablePaneActive
