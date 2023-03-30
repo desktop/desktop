@@ -316,8 +316,7 @@ import { findContributionTargetDefaultBranch } from '../branch'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
-import { getLastResizableFocused } from '../../ui/resizable'
-import { appMenuClassSelector } from '../../ui/app-menu'
+import { resizableComponentClass } from '../../ui/resizable'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -451,7 +450,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
-  private documentFocusedElements: Array<Element> = []
+  private resizablePaneActive = false
   private isUpdateAvailableBannerVisible: boolean = false
   private isUpdateShowcaseVisible: boolean = false
 
@@ -991,7 +990,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       showCIStatusPopover: this.showCIStatusPopover,
       notificationsEnabled: getNotificationsEnabled(),
       pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
-      documentFocusedElements: this.documentFocusedElements,
+      resizablePaneActive: this.resizablePaneActive,
     }
   }
 
@@ -7670,43 +7669,31 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _appFocusedElementChanged() {
+  private isResizePaneActive() {
     if (document.activeElement === null) {
-      return
+      return false
     }
+
+    const appMenuBar = document.getElementById('app-menu-bar')
 
     // Don't track windows menu items as focused elements for keeping
     // track of recently focused elements we want to act upon
-    const windowsMenuItem = document.activeElement.closest(appMenuClassSelector)
-
-    if (windowsMenuItem !== null) {
-      return
+    if (appMenuBar?.contains(document.activeElement)) {
+      return this.resizablePaneActive
     }
 
-    const beforeChange = this.documentFocusedElements.slice()
-
-    this.documentFocusedElements.unshift(document.activeElement)
-
-    if (this.documentFocusedElements.length > 2) {
-      this.documentFocusedElements.pop()
-    }
-
-    this.handleFocusedElementsChanged(
-      beforeChange,
-      this.documentFocusedElements
+    return (
+      document.activeElement.closest(`.${resizableComponentClass}`) !== null
     )
   }
 
-  private handleFocusedElementsChanged(
-    beforeChange: ReadonlyArray<Element>,
-    afterChange: ReadonlyArray<Element>
-  ) {
-    const resizableFocusedBefore =
-      getLastResizableFocused(beforeChange) !== null
-    const resizableFocusedAfter = getLastResizableFocused(afterChange) !== null
+  public _appFocusedElementChanged() {
+    const resizablePaneActive = this.isResizePaneActive()
+    console.log('resizablePaneActive', resizablePaneActive)
 
-    if (resizableFocusedBefore !== resizableFocusedAfter) {
-      updateMenuState(this.getState(), this.appMenu)
+    if (resizablePaneActive !== this.resizablePaneActive) {
+      this.resizablePaneActive = resizablePaneActive
+      this.emitUpdate()
     }
   }
 }

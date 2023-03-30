@@ -12,7 +12,6 @@ import { AppMenu, MenuItem } from '../models/app-menu'
 import { hasConflictedFiles } from './status'
 import { findContributionTargetDefaultBranch } from './branch'
 import { enableStartingPullRequests } from './feature-flag'
-import { getLastResizableFocused } from '../ui/resizable'
 
 export interface IMenuItemState {
   readonly enabled?: boolean
@@ -434,19 +433,10 @@ function getNoRepositoriesBuilder(state: IAppState): MenuStateBuilder {
 
 function getAppMenuBuilder(state: IAppState): MenuStateBuilder {
   const menuStateBuilder = new MenuStateBuilder()
+  const enabled = state.resizablePaneActive
 
-  const lastResizableFocused = getLastResizableFocused(
-    state.documentFocusedElements
-  )
-
-  menuStateBuilder.setEnabled(
-    'increase-active-resizable-width',
-    lastResizableFocused !== null
-  )
-  menuStateBuilder.setEnabled(
-    'decrease-active-resizable-width',
-    lastResizableFocused !== null
-  )
+  menuStateBuilder.setEnabled('increase-active-resizable-width', enabled)
+  menuStateBuilder.setEnabled('decrease-active-resizable-width', enabled)
 
   return menuStateBuilder
 }

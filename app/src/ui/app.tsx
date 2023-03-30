@@ -166,7 +166,6 @@ import { DialogStackContext } from './dialog'
 import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 import { PullRequestComment } from './notifications/pull-request-comment'
-import { getLastResizableFocused } from './resizable'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -604,16 +603,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       | 'increase-active-resizable-width'
       | 'decrease-active-resizable-width'
   ) {
-    const mostRecentFocusedMenu = getLastResizableFocused(
-      this.state.documentFocusedElements
+    document.activeElement?.dispatchEvent(
+      new CustomEvent(menuId, {
+        bubbles: true,
+        cancelable: true,
+      })
     )
-
-    const event = new CustomEvent(menuId, {
-      bubbles: true,
-      cancelable: true,
-    })
-
-    mostRecentFocusedMenu?.dispatchEvent(event)
   }
 
   /**

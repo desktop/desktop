@@ -7,18 +7,7 @@ export const DefaultMinWidth = 200
 
 /** This class is assigned to the containing div of the element and used in
  * determining whether the resizable is focused. */
-const resizableComponentClass = 'resizable-component'
-
-/** Returns the last element of a focused elements array if it is resizable  */
-export function getLastResizableFocused(
-  documentFocusedElements: ReadonlyArray<Element>
-) {
-  if (documentFocusedElements.length === 0) {
-    return null
-  }
-
-  return documentFocusedElements[0].closest(`.${resizableComponentClass}`)
-}
+export const resizableComponentClass = 'resizable-component'
 
 export enum ResizeDirection {
   Increase = 'Increase',
