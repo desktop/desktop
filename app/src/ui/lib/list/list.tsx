@@ -1020,12 +1020,10 @@ export class List extends React.Component<IListProps, IListState> {
    * @param height - The height of the Grid as given by AutoSizer
    */
   private renderGrid(width: number, height: number) {
-    // The currently selected list item is focusable but if
-    // there's no focused item (and there's items to switch between)
-    // the list itself needs to be focusable so that you can reach
-    // it with keyboard navigation and select an item.
-    const tabIndex =
-      this.props.selectedRows.length < 1 && this.props.rowCount > 0 ? 0 : -1
+    // The currently selected list item is focusable but if there's no focused
+    // item the list itself needs to be focusable so that you can reach it with
+    // keyboard navigation and select an item.
+    const tabIndex = this.props.selectedRows.length < 1 ? 0 : -1
 
     // we select the last item from the selection array for this prop
     const activeDescendant =
