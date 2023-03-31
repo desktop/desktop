@@ -31,7 +31,6 @@ import { openFile } from './lib/open-file'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { DragType } from '../models/drag-drop'
-import { clamp } from '../lib/clamp'
 import { PullRequestSuggestedNextAction } from '../models/pull-request'
 
 interface IRepositoryViewProps {
@@ -209,7 +208,7 @@ export class RepositoryView extends React.Component<
         : null) || null
 
     // -1 Because of right hand side border
-    const availableWidth = clamp(this.props.sidebarWidth) - 1
+    const availableWidth = this.props.sidebarWidth.value - 1
 
     const scrollTop =
       this.previousSection === RepositorySectionTab.History
