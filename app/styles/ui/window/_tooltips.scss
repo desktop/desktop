@@ -210,3 +210,16 @@ body > .tooltip,
   // need to be position: relative or position: absolute.
   position: relative;
 }
+
+button.toggletip {
+  // override default button styles
+  overflow: inherit;
+  text-overflow: inherit;
+  white-space: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  padding: inherit;
+  border: none;
+  color: inherit;
+  background-color: inherit;
+}
