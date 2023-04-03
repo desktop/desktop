@@ -1,5 +1,15 @@
 {
   "releases": {
+    "3.2.1-beta3": [
+      "[Fixed] Add Zed as an external editor option - #16026. Thanks @JosephTLyons!",
+      "[Improved] Show repositories available for cloning as they're received for users with access to lots of repositories - #16276 #8955 #2770",
+      "[Improved] Users can resize the app sidebar via keyboard shortcuts - #16332",
+      "[Improved] Misattributed commit popover does not clip when app is zoomed - #16407",
+      "[Improved] Make co-authors input text accessible - #16335",
+      "[Improved] Commit completion status is announced by screen readers - #16371",
+      "[Improved] Windows menu scroll bars only present when menu is scrollable - #16367",
+      "[Improved] Committing status after submitting a commit is screen reader announced - #16340"
+    ],
     "3.2.1-beta2": [
       "[Added] Add support for Pulsar code editor on macOS. - #16220. Thanks @mdibella-dev!",
       "[Fixed] Fix support of newer versions of RStudio - #16339",
