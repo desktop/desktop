@@ -68,6 +68,10 @@
     &:hover {
       color: var(--text-color);
     }
+
+    &:focus {
+      outline-offset: 2px;
+    }
   }
 
   &.with-co-authors .co-authors-toggle {

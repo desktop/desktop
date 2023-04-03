@@ -1,5 +1,23 @@
 {
   "releases": {
+    "3.2.1-beta2": [
+      "[Added] Add support for Pulsar code editor on macOS. - #16220. Thanks @mdibella-dev!",
+      "[Fixed] Fix support of newer versions of RStudio - #16339",
+      "[Fixed] On Windows, app level menu bar and menu items are announced by screen readers - #16315",
+      "[Fixed] Misattributed warning is announced in 'Git' preferences/options by screen readers - #16239",
+      "[Fixed] Remove check for update error modal when no internet connection or computer has been asleep - #16057",
+      "[Fixed] Update diff after adding or removing trailing newlines to a file - #15638",
+      "[Fixed] The Preferences/Options dialog content is still visible when zoomed - #16317",
+      "[Fixed] Focus history and changes list when accessed via keyboard shortcut or menu - #16360",
+      "[Improved] Improve accessibility of dialogs for screen reader users - #16350",
+      "[Improved] Make autocompletion suggestions more accessible for screen readers - #16324",
+      "[Improved] Preference dialog height doesn't change much between sections - #16313",
+      "[Improved] Learn more links are descriptive for screen readers - #16274",
+      "[Improved] Popover titles are announced by screen readers - #16270",
+      "[Improved] Add offset focus ring for buttons, vertical tabs etc - #16288",
+      "[Improved] Windows app main menu's do not clip when zoom is set to 200% - #16290",
+      "[Improved] Button and text box contrast bumps - #16287"
+    ],
     "3.2.1-beta1": [
       "[New] Get notified when someone comments your pull requests - #16226",
       "[Fixed] Up/down arrow can be used to navigate autocomplete lists like emoji again - #16044",

@@ -229,6 +229,22 @@ export function buildDefaultMenu({
         accelerator: 'CmdOrCtrl+-',
         click: zoom(ZoomDirection.Out),
       },
+      {
+        label: __DARWIN__
+          ? 'Expand Active Resizable'
+          : 'Expand active resizable',
+        id: 'increase-active-resizable-width',
+        accelerator: 'CmdOrCtrl+9',
+        click: emit('increase-active-resizable-width'),
+      },
+      {
+        label: __DARWIN__
+          ? 'Contract Active Resizable'
+          : 'Contract active resizable',
+        id: 'decrease-active-resizable-width',
+        accelerator: 'CmdOrCtrl+8',
+        click: emit('decrease-active-resizable-width'),
+      },
       separator,
       {
         label: '&Reload',

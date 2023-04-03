@@ -28,9 +28,7 @@
   }
 
   &:focus {
-    background-color: var(--secondary-button-hover-background);
-    border-color: var(--secondary-button-focus-border-color);
-    box-shadow: 0 0 0 1px var(--secondary-button-focus-shadow-color);
+    outline-offset: 4px;
   }
 
   &[aria-disabled='true'] {
@@ -58,9 +56,9 @@
   }
 
   &:focus {
-    border: 1px solid var(--button-focus-border-color);
     background-color: var(--button-hover-background);
-    box-shadow: 0 0 0 2px var(--text-field-focus-shadow-color);
+    border-color: var(--button-background);
+    outline-offset: 4px;
   }
 }
 
