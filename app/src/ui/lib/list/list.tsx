@@ -18,7 +18,6 @@ import { range } from '../../../lib/range'
 import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
 import memoizeOne from 'memoize-one'
-import { AccessibilityProps } from '../accessibility-props'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -247,11 +246,6 @@ interface IListProps {
    * where to scroll do on rendering of the list.
    */
   readonly setScrollTop?: number
-
-  /**
-   * Optional callback for providing ane or more aria attributes for a given row
-   */
-  readonly getRowAccessibilityProps?: (row: number) => AccessibilityProps
 
   /** The aria-labelledby attribute for the list component. */
   readonly 'aria-labelledby'?: string
@@ -948,7 +942,6 @@ export class List extends React.Component<IListProps, IListState> {
         rowCount={this.props.rowCount}
         rowIndex={rowIndex}
         selected={selected}
-        accessibilityProps={this.props.getRowAccessibilityProps?.(rowIndex)}
         onRowClick={this.onRowClick}
         onRowKeyDown={this.onRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}

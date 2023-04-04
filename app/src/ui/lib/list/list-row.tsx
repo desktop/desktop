@@ -1,6 +1,5 @@
 import * as React from 'react'
 import classNames from 'classnames'
-import { AccessibilityProps } from '../accessibility-props'
 
 interface IListRowProps {
   /** the total number of row in this list */
@@ -64,13 +63,6 @@ interface IListRowProps {
 
   /** a custom css class to apply to the row */
   readonly className?: string
-
-  /**
-   * One or more aria attributes to apply to the Row element. Attributes
-   * provided here will take precedence over attributes that the ListRow
-   * component would otherwise apply.
-   */
-  readonly accessibilityProps?: AccessibilityProps
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
@@ -141,7 +133,6 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         onFocus={this.onFocus}
         onBlur={this.onBlur}
         onContextMenu={this.onContextMenu}
-        {...this.props.accessibilityProps}
       >
         {this.props.children}
       </div>
