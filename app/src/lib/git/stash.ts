@@ -66,11 +66,11 @@ export async function getStashes(repository: Repository): Promise<StashResult> {
 
   const entries = parse(result.stdout)
 
-  for (const entry of entries) {
-    const branchName = extractBranchFromMessage(entry.message)
+  for (const { name, message, stashSha } of entries) {
+    const branchName = extractBranchFromMessage(message)
 
     if (branchName !== null) {
-      desktopEntries.push({ ...entry, branchName, files })
+      desktopEntries.push({ name, stashSha, branchName, files })
     }
   }
 
