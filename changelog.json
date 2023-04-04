@@ -1,7 +1,6 @@
 {
   "releases": {
     "3.2.1": [
-      "[New] Get notified of comments to your pull requests - #16226",
       "[Added] Add Zed as an external editor option - #16026. Thanks @JosephTLyons!",
       "[Added] Add support for Pulsar code editor on macOS. - #16220. Thanks @mdibella-dev!",
       "[Fixed] Misattributed warning is announced in 'Git' preferences/options by screen readers - #16239",
