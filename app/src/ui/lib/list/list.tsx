@@ -248,10 +248,10 @@ interface IListProps {
   readonly setScrollTop?: number
 
   /** The aria-labelledby attribute for the list component. */
-  readonly 'aria-labelledby'?: string
+  readonly ariaLabelledBy?: string
 
   /** The aria-label attribute for the list component. */
-  readonly 'aria-label'?: string
+  readonly ariaLabel?: string
 }
 
 interface IListState {
@@ -981,8 +981,8 @@ export class List extends React.Component<IListProps, IListState> {
         ref={this.onRef}
         id={this.props.id}
         className="list"
-        aria-labelledby={this.props['aria-labelledby']}
-        aria-label={this.props['aria-label']}
+        aria-labelledby={this.props.ariaLabelledBy}
+        aria-label={this.props.ariaLabel}
       >
         {content}
       </div>

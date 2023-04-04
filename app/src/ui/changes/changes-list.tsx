@@ -976,7 +976,7 @@ export class ChangesList extends React.Component<
           setScrollTop={this.props.changesListScrollTop}
           onRowKeyDown={this.onRowKeyDown}
           onRowContextMenu={this.onItemContextMenu}
-          aria-label={filesDescription}
+          ariaLabel={filesDescription}
         />
         {this.renderStashedChanges()}
         {this.renderCommitMessageForm()}
