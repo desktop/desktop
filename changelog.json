@@ -18,7 +18,6 @@
       "[Improved] Misattributed commit popover does not clip when app is zoomed - #16407",
       "[Improved] Accessibility improvements for the co-authors input - #16335",
       "[Improved] Commit completion status is announced by screen readers - #16371",
-      "[Improved] Windows menu scroll bars only present when menu is scrollable - #16367",
       "[Improved] Committing status after submitting a commit is screen reader announced - #16340",
       "[Improved] Improve accessibility of dialogs for screen reader users - #16350",
       "[Improved] Accessibility improvements for autocompletion suggestions - #16324",
