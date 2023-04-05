@@ -27,31 +27,43 @@ interface IToggledtippedContentProps
   readonly ariaLabel?: string
 }
 
+interface IToggledtippedContentState {
+  /** State of when the tooltip is visible */
+  readonly tooltipVisible: boolean
+}
+
 /**
  * A less keyboard toggleable version of the Tooltip content component for when
  * it's acceptable to add a wrapping element around the content. The content
  * will be wrapped in a button as it is toggleable. supports all the options
  * that the Tooltip component does without having to worry about refs.
  **/
-export class ToggledtippedContent extends React.Component<IToggledtippedContentProps> {
+export class ToggledtippedContent extends React.Component<
+  IToggledtippedContentProps,
+  IToggledtippedContentState
+> {
   private buttonRef = createObservableRef<HTMLButtonElement>()
   private shouldForceAriaLiveMessage = false
-  private tooltipVisible = false
+
+  public constructor(props: IToggledtippedContentProps) {
+    super(props)
+    this.state = {
+      tooltipVisible: false,
+    }
+
+    this.buttonRef.subscribe(this.onButtonRef)
+  }
 
   private onToggle = () => {
     this.shouldForceAriaLiveMessage = !this.shouldForceAriaLiveMessage
   }
 
   private onTooltipVisible = () => {
-    this.tooltipVisible = true
+    this.setState({ tooltipVisible: true })
   }
 
   private onTooltipHidden = () => {
-    this.tooltipVisible = false
-  }
-
-  public componentDidMount(): void {
-    this.buttonRef.subscribe(this.onButtonRef)
+    this.setState({ tooltipVisible: false })
   }
 
   private onButtonRef = (ref: HTMLButtonElement | null) => {
@@ -97,7 +109,7 @@ export class ToggledtippedContent extends React.Component<IToggledtippedContentP
             </Tooltip>
           )}
           {children}
-          {this.tooltipVisible && (
+          {this.state.tooltipVisible && (
             <AriaLiveContainer
               shouldForceChange={this.shouldForceAriaLiveMessage}
             >
