@@ -26,7 +26,7 @@ interface ICheckboxProps {
 
   /** An aria description of a checkbox - intended to provide more verbose
    * information than a label that a the user might need */
-  readonly ariaDescribedby?: string
+  readonly ariaDescribedBy?: string
 }
 
 interface ICheckboxState {
