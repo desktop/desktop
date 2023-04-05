@@ -240,7 +240,7 @@ export class ChangesList extends React.Component<
   IChangesState
 > {
   private headerRef = createObservableRef<HTMLDivElement>()
-  private listRef = React.createRef<List>()
+  private includeAllCheckBoxRef = React.createRef<Checkbox>()
 
   public constructor(props: IChangesListProps) {
     super(props)
@@ -917,7 +917,7 @@ export class ChangesList extends React.Component<
   }
 
   public focus() {
-    this.listRef.current?.focus()
+    this.includeAllCheckBoxRef.current?.focus()
   }
 
   public render() {
@@ -955,6 +955,7 @@ export class ChangesList extends React.Component<
             {selectedChangesDescription}
           </div>
           <Checkbox
+            ref={this.includeAllCheckBoxRef}
             label={filesDescription}
             value={includeAllValue}
             onChange={this.onIncludeAllChanged}
@@ -963,7 +964,6 @@ export class ChangesList extends React.Component<
           />
         </div>
         <List
-          ref={this.listRef}
           id="changes-list"
           rowCount={files.length}
           rowHeight={RowHeight}
