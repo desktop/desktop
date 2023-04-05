@@ -1,5 +1,33 @@
 {
   "releases": {
+    "3.2.1": [
+      "[Added] Add Zed as an external editor option - #16026. Thanks @JosephTLyons!",
+      "[Added] Add support for Pulsar code editor on macOS. - #16220. Thanks @mdibella-dev!",
+      "[Fixed] Misattributed warning is announced in 'Git' preferences/options by screen readers - #16239",
+      "[Fixed] Remove check for update error modal when no internet connection or computer has been asleep - #16057",
+      "[Fixed] Update diff after adding or removing trailing newlines to a file - #15638",
+      "[Fixed] The Preferences/Options dialog content is still visible when zoomed - #16317",
+      "[Fixed] Up/down arrow can be used to navigate autocomplete lists like emoji again - #16044",
+      "[Fixed] Large diff messaging styled consistently in pull request preview - #16238",
+      "[Fixed] Fix support of newer versions of RStudio - #16339",
+      "[Improved] Show repositories available for cloning as they're received for users with access to lots of repositories - #16276 #8955 #2770",
+      "[Improved] Update preferences dialog to maintain a consistent size when switching between tabs - #16313",
+      "[Improved] Focus history and changes list when accessed via keyboard shortcut or menu - #16360",
+      "[Improved] On Windows, app level menu bar and menu items are announced by screen readers - #16315",
+      "[Improved] Keyboard shortcuts for resizing app sidebar and file lists - #16332",
+      "[Improved] Misattributed commit popover does not clip when app is zoomed - #16407",
+      "[Improved] Accessibility improvements for the co-authors input - #16335",
+      "[Improved] Commit completion status is announced by screen readers - #16371, #16340",
+      "[Improved] Improve accessibility of dialogs for screen reader users - #16350",
+      "[Improved] Accessibility improvements for autocompletion suggestions - #16324",
+      "[Improved] Learn more links are descriptive for screen readers - #16274",
+      "[Improved] Popover titles are announced by screen readers - #16270",
+      "[Improved] Show offset focus ring for buttons, vertical tabs etc - #16288",
+      "[Improved] Application main menu on Windows doesn't clip when zoom is set to 200% - #16290",
+      "[Improved] Button and text box contrast bumps - #16287",
+      "[Improved] Other email input in \"Git\" preferences/Options and misattributed popover email select have a screen readable label - #16240",
+      "[Improved] Add/remove co-authors button is now keyboard accessible - #16200"
+    ],
     "3.2.1-beta3": [
       "[Fixed] Add Zed as an external editor option - #16026. Thanks @JosephTLyons!",
       "[Improved] Show repositories available for cloning as they're received for users with access to lots of repositories - #16276 #8955 #2770",
