@@ -966,7 +966,7 @@ export class ChangesList extends React.Component<
             value={includeAllValue}
             onChange={this.onIncludeAllChanged}
             disabled={disableAllCheckbox}
-            ariaDescribedby="changesDescription"
+            ariaDescribedBy="changesDescription"
           />
         </div>
         <List
