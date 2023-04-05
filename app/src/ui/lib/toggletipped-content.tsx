@@ -68,11 +68,11 @@ export class ToggledtippedContent extends React.Component<
 
   private onButtonRef = (ref: HTMLButtonElement | null) => {
     if (ref === null) {
-      this.buttonRef.current?.removeEventListener(
-        'tooltip-shown',
-        this.onTooltipVisible
-      )
+      const currRef = this.buttonRef.current
+      currRef?.removeEventListener('tooltip-shown', this.onTooltipVisible)
+      currRef?.removeEventListener('tooltip-hidden', this.onTooltipHidden)
     } else {
+      ref.addEventListener('tooltip-shown', this.onTooltipVisible)
       ref.addEventListener('tooltip-hidden', this.onTooltipHidden)
     }
   }
