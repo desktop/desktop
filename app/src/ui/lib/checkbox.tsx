@@ -98,7 +98,7 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
           onChange={this.onChange}
           ref={this.onInputRef}
           disabled={this.props.disabled}
-          aria-describedby={this.props.ariaDescribedby}
+          aria-describedby={this.props.ariaDescribedBy}
         />
         {this.renderLabel()}
       </div>
