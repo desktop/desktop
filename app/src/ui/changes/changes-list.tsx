@@ -931,7 +931,7 @@ export class ChangesList extends React.Component<
       file => file.selection.getSelectionType() !== DiffSelectionType.None
     ).length
     const totalFilesPlural = files.length === 1 ? 'file' : 'files'
-    const selectedChangesDescription = `${selectedChangeCount}/${files.length} changed ${totalFilesPlural} selected`
+    const selectedChangesDescription = `${selectedChangeCount}/${files.length} changed ${totalFilesPlural} included`
 
     const includeAllValue = getIncludeAllValue(
       workingDirectory,
@@ -942,45 +942,52 @@ export class ChangesList extends React.Component<
       files.length === 0 || isCommitting || rebaseConflictState !== null
 
     return (
-      <div className="changes-list-container file-list">
-        <div
-          className="header"
-          onContextMenu={this.onContextMenu}
-          ref={this.headerRef}
-        >
-          <Tooltip target={this.headerRef} direction={TooltipDirection.NORTH}>
-            {selectedChangesDescription}
-          </Tooltip>
-          <Checkbox
-            label={filesDescription}
-            value={includeAllValue}
-            onChange={this.onIncludeAllChanged}
-            disabled={disableAllCheckbox}
+      <>
+        <div className="changes-list-container file-list">
+          <div
+            className="header"
+            onContextMenu={this.onContextMenu}
+            ref={this.headerRef}
+          >
+            <Tooltip target={this.headerRef} direction={TooltipDirection.NORTH}>
+              {selectedChangesDescription}
+            </Tooltip>
+            <div className="sr-only" id="changesDescription">
+              {selectedChangesDescription}
+            </div>
+            <Checkbox
+              label={filesDescription}
+              value={includeAllValue}
+              onChange={this.onIncludeAllChanged}
+              disabled={disableAllCheckbox}
+              ariaDescribedBy="changesDescription"
+            />
+          </div>
+          <List
+            ref={this.listRef}
+            id="changes-list"
+            rowCount={files.length}
+            rowHeight={RowHeight}
+            rowRenderer={this.renderRow}
+            selectedRows={this.state.selectedRows}
+            selectionMode="multi"
+            onSelectionChanged={this.props.onFileSelectionChanged}
+            invalidationProps={{
+              workingDirectory: workingDirectory,
+              isCommitting: isCommitting,
+            }}
+            onRowClick={this.props.onRowClick}
+            onScroll={this.onScroll}
+            setScrollTop={this.props.changesListScrollTop}
+            onRowKeyDown={this.onRowKeyDown}
+            onRowContextMenu={this.onItemContextMenu}
+            ariaLabel={filesDescription}
           />
         </div>
-        <List
-          ref={this.listRef}
-          id="changes-list"
-          rowCount={files.length}
-          rowHeight={RowHeight}
-          rowRenderer={this.renderRow}
-          selectedRows={this.state.selectedRows}
-          selectionMode="multi"
-          onSelectionChanged={this.props.onFileSelectionChanged}
-          invalidationProps={{
-            workingDirectory: workingDirectory,
-            isCommitting: isCommitting,
-          }}
-          onRowClick={this.props.onRowClick}
-          onScroll={this.onScroll}
-          setScrollTop={this.props.changesListScrollTop}
-          onRowKeyDown={this.onRowKeyDown}
-          onRowContextMenu={this.onItemContextMenu}
-          ariaLabel={filesDescription}
-        />
+
         {this.renderStashedChanges()}
         {this.renderCommitMessageForm()}
-      </div>
+      </>
     )
   }
 }
