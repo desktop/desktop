@@ -931,7 +931,7 @@ export class ChangesList extends React.Component<
       file => file.selection.getSelectionType() !== DiffSelectionType.None
     ).length
     const totalFilesPlural = files.length === 1 ? 'file' : 'files'
-    const selectedChangesDescription = `${selectedChangeCount}/${files.length} changed ${totalFilesPlural} selected`
+    const selectedChangesDescription = `${selectedChangeCount}/${files.length} changed ${totalFilesPlural} included`
 
     const includeAllValue = getIncludeAllValue(
       workingDirectory,
@@ -952,11 +952,15 @@ export class ChangesList extends React.Component<
             <Tooltip target={this.headerRef} direction={TooltipDirection.NORTH}>
               {selectedChangesDescription}
             </Tooltip>
+            <div className="sr-only" id="changesDescription">
+              {selectedChangesDescription}
+            </div>
             <Checkbox
               label={filesDescription}
               value={includeAllValue}
               onChange={this.onIncludeAllChanged}
               disabled={disableAllCheckbox}
+              ariaDescribedBy="changesDescription"
             />
           </div>
           <List
