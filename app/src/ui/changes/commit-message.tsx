@@ -33,9 +33,9 @@ import { Popup, PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
 import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
-import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
+import { ToggledtippedContent } from '../lib/toggletipped-content'
 
 const addAuthorIcon = {
   w: 18,
@@ -821,7 +821,7 @@ export class CommitMessage extends React.Component<
 
   private renderSummaryLengthHint(): JSX.Element | null {
     return (
-      <TooltippedContent
+      <ToggledtippedContent
         delay={0}
         tooltip={
           <>
@@ -836,9 +836,10 @@ export class CommitMessage extends React.Component<
         direction={TooltipDirection.NORTH}
         className="length-hint"
         tooltipClassName="length-hint-tooltip"
+        ariaLabel="Open Summary Length Info"
       >
         <Octicon symbol={OcticonSymbol.lightBulb} />
-      </TooltippedContent>
+      </ToggledtippedContent>
     )
   }
 
