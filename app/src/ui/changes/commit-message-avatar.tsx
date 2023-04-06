@@ -93,7 +93,7 @@ export class CommitMessageAvatar extends React.Component<
             onClick={this.onAvatarClick}
           >
             {this.renderWarningBadge()}
-            <Avatar user={this.props.user} />
+            <Avatar user={this.props.user} title={null} />
           </Button>
         )}
 
