@@ -144,7 +144,7 @@ export class PullRequestComment extends React.Component<
       await dispatcher.checkoutPullRequest(repository, pullRequest)
       this.setState({ switchingToPullRequest: false })
 
-      // TODO: dispatcher.recordPullRequestReviewDialogSwitchToPullRequest(review.state)
+      dispatcher.recordPullRequestCommentDialogSwitchToPullRequest()
     }
 
     this.props.onDismissed()

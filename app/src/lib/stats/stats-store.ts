@@ -213,6 +213,11 @@ const DefaultDailyMeasures: IDailyMeasures = {
   pullRequestReviewChangesRequestedNotificationCount: 0,
   pullRequestReviewChangesRequestedNotificationClicked: 0,
   pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: 0,
+  pullRequestCommentNotificationCount: 0,
+  pullRequestCommentNotificationClicked: 0,
+  pullRequestCommentNotificationFromRecentRepoCount: 0,
+  pullRequestCommentNotificationFromNonRecentRepoCount: 0,
+  pullRequestCommentDialogSwitchToPullRequestCount: 0,
   multiCommitDiffWithUnreachableCommitWarningCount: 0,
   multiCommitDiffFromHistoryCount: 0,
   multiCommitDiffFromCompareCount: 0,
@@ -1875,14 +1880,14 @@ export class StatsStore implements IStatsStore {
     return `pullRequestReview${infixMap[reviewType]}${suffix}`
   }
 
-  public recordPullRequestReviewNotiificationFromRecentRepo(): Promise<void> {
+  public recordPullRequestReviewNotificationFromRecentRepo(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       pullRequestReviewNotificationFromRecentRepoCount:
         m.pullRequestReviewNotificationFromRecentRepoCount + 1,
     }))
   }
 
-  public recordPullRequestReviewNotiificationFromNonRecentRepo(): Promise<void> {
+  public recordPullRequestReviewNotificationFromNonRecentRepo(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       pullRequestReviewNotificationFromNonRecentRepoCount:
         m.pullRequestReviewNotificationFromNonRecentRepoCount + 1,
@@ -1919,6 +1924,38 @@ export class StatsStore implements IStatsStore {
       reviewType,
       'DialogSwitchToPullRequestCount'
     )
+  }
+
+  public recordPullRequestCommentNotificationShown() {
+    return this.updateDailyMeasures(m => ({
+      pullRequestCommentNotificationCount:
+        m.pullRequestCommentNotificationCount + 1,
+    }))
+  }
+  public recordPullRequestCommentNotificationClicked() {
+    return this.updateDailyMeasures(m => ({
+      pullRequestCommentNotificationClicked:
+        m.pullRequestCommentNotificationClicked + 1,
+    }))
+  }
+  public recordPullRequestCommentNotificationFromNonRecentRepo() {
+    return this.updateDailyMeasures(m => ({
+      pullRequestCommentNotificationFromNonRecentRepoCount:
+        m.pullRequestCommentNotificationFromNonRecentRepoCount + 1,
+    }))
+  }
+  public recordPullRequestCommentNotificationFromRecentRepo() {
+    return this.updateDailyMeasures(m => ({
+      pullRequestCommentNotificationFromRecentRepoCount:
+        m.pullRequestCommentNotificationFromRecentRepoCount + 1,
+    }))
+  }
+
+  public recordPullRequestCommentDialogSwitchToPullRequest() {
+    return this.updateDailyMeasures(m => ({
+      pullRequestCommentDialogSwitchToPullRequestCount:
+        m.pullRequestCommentDialogSwitchToPullRequestCount + 1,
+    }))
   }
 
   public recordSubmoduleDiffViewedFromChangesList(): Promise<void> {

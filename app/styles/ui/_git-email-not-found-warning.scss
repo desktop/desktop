@@ -2,4 +2,22 @@
   .warning-icon {
     color: var(--warning-badge-icon-color);
   }
+
+  .link-button-component {
+    display: inline;
+  }
+
+  .green-circle {
+    background-color: var(--color-new);
+    color: var(--background-color);
+    border-radius: 50%;
+    height: 12px;
+    width: 12px;
+    display: inline-flex;
+    margin-right: var(--spacing-half);
+
+    .octicon {
+      height: 12px;
+    }
+  }
 }

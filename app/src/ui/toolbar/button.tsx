@@ -7,6 +7,7 @@ import { Button } from '../lib/button'
 import { clamp } from '../../lib/clamp'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip, TooltipDirection, TooltipTarget } from '../lib/tooltip'
+import { AriaHasPopupType } from '../lib/aria-types'
 
 /** The button style. */
 export enum ToolbarButtonStyle {
@@ -108,6 +109,7 @@ export interface IToolbarButtonProps {
 
   readonly role?: string
   readonly ariaExpanded?: boolean
+  readonly ariaHaspopup?: AriaHasPopupType
 
   /**
    * Whether to only show the tooltip when the tooltip target overflows its
@@ -221,6 +223,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
           tabIndex={this.props.tabIndex}
           role={this.props.role}
           ariaExpanded={this.props.ariaExpanded}
+          ariaHaspopup={this.props.ariaHaspopup}
         >
           {progress}
           {icon}

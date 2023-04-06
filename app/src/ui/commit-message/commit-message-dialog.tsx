@@ -9,7 +9,7 @@ import { ICommitContext } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
 import { IAutocompletionProvider } from '../autocompletion'
-import { IAuthor } from '../../models/author'
+import { Author, UnknownAuthor } from '../../models/author'
 import { CommitMessage } from '../changes/commit-message'
 import { noop } from 'lodash'
 import { Popup } from '../../models/popup'
@@ -34,7 +34,7 @@ interface ICommitMessageDialogProps {
    * subsequent commit to add Co-Authored-By commit message trailers depending
    * on whether the user has chosen to do so.
    */
-  readonly coAuthors: ReadonlyArray<IAuthor>
+  readonly coAuthors: ReadonlyArray<Author>
 
   /**
    * The name and email that will be used for the author info when committing
@@ -90,7 +90,7 @@ interface ICommitMessageDialogProps {
 
 interface ICommitMessageDialogState {
   readonly showCoAuthoredBy: boolean
-  readonly coAuthors: ReadonlyArray<IAuthor>
+  readonly coAuthors: ReadonlyArray<Author>
 }
 
 export class CommitMessageDialog extends React.Component<
@@ -112,6 +112,7 @@ export class CommitMessageDialog extends React.Component<
         <DialogContent>
           <CommitMessage
             branch={this.props.branch}
+            mostRecentLocalCommit={null}
             commitAuthor={this.props.commitAuthor}
             isShowingModal={true}
             isShowingFoldout={false}
@@ -131,6 +132,9 @@ export class CommitMessageDialog extends React.Component<
             commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
             onCoAuthorsUpdated={this.onCoAuthorsUpdated}
             onShowCoAuthoredByChanged={this.onShowCoAuthorsChanged}
+            onConfirmCommitWithUnknownCoAuthors={
+              this.onConfirmCommitWithUnknownCoAuthors
+            }
             onCreateCommit={this.props.onSubmitCommitMessage}
             anyFilesAvailable={true}
             anyFilesSelected={true}
@@ -150,11 +154,19 @@ export class CommitMessageDialog extends React.Component<
     )
   }
 
-  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) =>
+  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<Author>) =>
     this.setState({ coAuthors })
 
   private onShowCoAuthorsChanged = (showCoAuthoredBy: boolean) =>
     this.setState({ showCoAuthoredBy })
+
+  private onConfirmCommitWithUnknownCoAuthors = (
+    coAuthors: ReadonlyArray<UnknownAuthor>,
+    onCommitAnyway: () => void
+  ) => {
+    const { dispatcher } = this.props
+    dispatcher.showUnknownAuthorsCommitWarning(coAuthors, onCommitAnyway)
+  }
 
   private onRefreshAuthor = () =>
     this.props.dispatcher.refreshAuthor(this.props.repository)

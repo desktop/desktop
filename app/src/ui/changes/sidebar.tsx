@@ -82,6 +82,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private autocompletionProviders: ReadonlyArray<
     IAutocompletionProvider<any>
   > | null = null
+  private changesListRef = React.createRef<ChangesList>()
 
   public constructor(props: IChangesSidebarProps) {
     super(props)
@@ -342,6 +343,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     return this.renderMostRecentLocalCommit()
   }
 
+  public focus() {
+    this.changesListRef.current?.focus()
+  }
+
   public render() {
     const {
       workingDirectory,
@@ -373,6 +378,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     return (
       <div className="panel">
         <ChangesList
+          ref={this.changesListRef}
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           repositoryAccount={repositoryAccount}

@@ -11,6 +11,12 @@ interface IMenuListItemProps {
   readonly item: MenuItem
 
   /**
+   * A unique identifier for the menu item. On use is  to link it to the menu
+   * for accessibility labelling.
+   */
+  readonly menuItemId?: string
+
+  /**
    * Whether or not to highlight the access key of a menu item (if one exists).
    *
    * See the highlight prop of AccessText component for more details.
@@ -150,14 +156,16 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
     })
 
     return (
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events
       <div
+        id={this.props.menuItemId}
         className={className}
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
         onClick={this.onClick}
         ref={this.wrapperRef}
         role="menuitem"
+        tabIndex={-1}
       >
         {this.getIcon(item)}
         <div className="label">
