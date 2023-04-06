@@ -23,7 +23,7 @@ type CheckoutCommitErrorContext = {
   /** The Git operation that triggered the error */
   readonly kind: 'checkout'
 
-  /** The branch associated with the current tip of the repository, "ours" in Git terminology */
+  /** The commit we were trying to checkout */
   readonly commitToCheckout: CommitOneLine
 }
 

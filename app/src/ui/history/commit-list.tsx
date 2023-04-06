@@ -71,7 +71,7 @@ interface ICommitListProps {
   readonly onCreateBranch?: (commit: CommitOneLine) => void
 
   /**
-   * Callback to fire to create a branch from a given commit in the current
+   * Callback to fire to checkout the selected commit in the current
    * repository
    */
   readonly onCheckoutCommit?: (commit: CommitOneLine) => void
