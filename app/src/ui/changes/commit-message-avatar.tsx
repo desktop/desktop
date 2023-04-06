@@ -8,6 +8,8 @@ import { Avatar } from '../lib/avatar'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
+import { ToggledtippedContent } from '../lib/toggletipped-content'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
@@ -61,6 +63,26 @@ export class CommitMessageAvatar extends React.Component<
     }
   }
 
+  private getTitle(): string | JSX.Element | undefined {
+    const { user } = this.props
+
+    if (user === undefined) {
+      return 'Unknown user'
+    }
+
+    const { name, email } = user
+
+    if (user.name) {
+      return (
+        <>
+          Committing as <strong>{name}</strong> {email}
+        </>
+      )
+    }
+
+    return email
+  }
+
   public render() {
     return (
       <div className="commit-message-avatar-component">
@@ -75,7 +97,15 @@ export class CommitMessageAvatar extends React.Component<
           </Button>
         )}
 
-        {!this.props.warningBadgeVisible && <Avatar user={this.props.user} />}
+        {!this.props.warningBadgeVisible && (
+          <ToggledtippedContent
+            tooltip={this.getTitle()}
+            direction={TooltipDirection.NORTH}
+            ariaLabel="Show Commit Author Details"
+          >
+            <Avatar user={this.props.user} title={null} />
+          </ToggledtippedContent>
+        )}
 
         {this.state.isPopoverOpen && this.renderPopover()}
       </div>
