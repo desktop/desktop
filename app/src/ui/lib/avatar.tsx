@@ -4,11 +4,20 @@ import { shallowEquals } from '../../lib/equality'
 import { generateGravatarUrl } from '../../lib/gravatar'
 import { Octicon } from '../octicons'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { TooltippedContent } from './tooltipped-content'
+import { TooltipDirection } from './tooltip'
 import { supportsAvatarsAPI } from '../../lib/endpoint-capabilities'
 
 interface IAvatarProps {
   /** The user whose avatar should be displayed. */
   readonly user?: IAvatarUser
+
+  /**
+   * The title of the avatar.
+   * Defaults to the name and email if undefined and is
+   * skipped completely if title is null
+   */
+  readonly title?: string | JSX.Element | null
 
   /**
    * The what dimensions of avatar the component should
@@ -154,6 +163,37 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     }
   }
 
+  private getTitle(): string | JSX.Element | undefined {
+    if (this.props.title === null) {
+      return undefined
+    }
+
+    if (this.props.title !== undefined) {
+      return this.props.title
+    }
+
+    const user = this.props.user
+    if (user) {
+      if (user.name) {
+        return (
+          <>
+            <Avatar title={null} user={user} />
+            <div>
+              <div>
+                <strong>{user.name}</strong>
+              </div>
+              <div>{user.email}</div>
+            </div>
+          </>
+        )
+      } else {
+        return user.email
+      }
+    }
+
+    return 'Unknown user'
+  }
+
   private onImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     if (this.state.candidates.length > 0) {
       this.setState({ candidates: this.state.candidates.slice(1) })
@@ -161,19 +201,42 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   }
 
   public render() {
+    const title = this.getTitle()
     const { user } = this.props
     const alt = user
       ? `Avatar for ${user.name || user.email}`
       : `Avatar for unknown user`
 
     if (this.state.candidates.length === 0) {
-      return <Octicon symbol={DefaultAvatarSymbol} className="avatar" />
+      return (
+        <Octicon
+          symbol={DefaultAvatarSymbol}
+          className="avatar"
+          title={title}
+        />
+      )
     }
 
     const src = this.state.candidates[0]
 
-    return (
+    const img = (
       <img className="avatar" src={src} alt={alt} onError={this.onImageError} />
+    )
+
+    if (title === undefined) {
+      return img
+    }
+
+    return (
+      <TooltippedContent
+        className="avatar-container"
+        tooltipClassName={this.props.title ? undefined : 'user-info'}
+        tooltip={title}
+        direction={TooltipDirection.NORTH}
+        tagName="div"
+      >
+        {img}
+      </TooltippedContent>
     )
   }
 

@@ -103,7 +103,7 @@ export abstract class PullRequestCommentLike extends React.Component<IPullReques
       <div className="timeline-item-container">
         {this.renderDashedTimelineLine('top')}
         <div className={timelineItemClass}>
-          <Avatar user={userAvatar} size={40} />
+          <Avatar user={userAvatar} title={null} size={40} />
           {this.renderReviewIcon()}
           <div className="summary">
             <LinkButton uri={user.html_url} className="author">
