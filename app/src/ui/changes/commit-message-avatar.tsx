@@ -158,6 +158,11 @@ export class CommitMessageAvatar extends React.Component<
 
     const updateEmailTitle = __DARWIN__ ? 'Update Email' : 'Update email'
 
+    const userName =
+      this.props.user && this.props.user.name
+        ? ` for ${this.props.user.name}`
+        : ''
+
     return (
       <Popover
         caretPosition={PopoverCaretPosition.LeftBottom}
@@ -171,7 +176,7 @@ export class CommitMessageAvatar extends React.Component<
           <div>
             The email in your global Git config (
             <span className="git-email">{this.props.email}</span>) doesn't match
-            your GitHub{accountTypeSuffix} account.{' '}
+            your GitHub{accountTypeSuffix} account{userName}.{' '}
             <LinkButton
               ariaLabel="Learn more about commit attribution"
               uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
