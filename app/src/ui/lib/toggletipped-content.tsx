@@ -42,7 +42,8 @@ export class ToggledtippedContent extends React.Component<
   IToggledtippedContentProps,
   IToggledtippedContentState
 > {
-  private buttonRef = createObservableRef<HTMLButtonElement>()
+  private buttonRef: HTMLButtonElement | null = null
+  private buttonRefObservable = createObservableRef<HTMLButtonElement>()
   private shouldForceAriaLiveMessage = false
 
   public constructor(props: IToggledtippedContentProps) {
@@ -51,7 +52,7 @@ export class ToggledtippedContent extends React.Component<
       tooltipVisible: false,
     }
 
-    this.buttonRef.subscribe(this.onButtonRef)
+    this.buttonRefObservable.subscribe(this.onButtonRef)
   }
 
   private onToggle = () => {
@@ -68,13 +69,14 @@ export class ToggledtippedContent extends React.Component<
 
   private onButtonRef = (ref: HTMLButtonElement | null) => {
     if (ref === null) {
-      const currRef = this.buttonRef.current
+      const currRef = this.buttonRef
       currRef?.removeEventListener('tooltip-shown', this.onTooltipVisible)
       currRef?.removeEventListener('tooltip-hidden', this.onTooltipHidden)
     } else {
       ref.addEventListener('tooltip-shown', this.onTooltipVisible)
       ref.addEventListener('tooltip-hidden', this.onTooltipHidden)
     }
+    this.buttonRef = ref
   }
 
   public render() {
@@ -91,7 +93,7 @@ export class ToggledtippedContent extends React.Component<
 
     return (
       <button
-        ref={this.buttonRef}
+        ref={this.buttonRefObservable}
         className={classes}
         aria-label={ariaLabel}
         aria-haspopup="dialog"
@@ -100,7 +102,7 @@ export class ToggledtippedContent extends React.Component<
         <>
           {tooltip !== undefined && (
             <Tooltip
-              target={this.buttonRef}
+              target={this.buttonRefObservable}
               className={tooltipClassName}
               isToggleTip={true}
               {...rest}
