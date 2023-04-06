@@ -130,12 +130,17 @@ interface IDialogProps {
    * of the loading operation.
    */
   readonly loading?: boolean
+}
 
+/**
+ * If role is alertdialog, ariaDescribedBy is required.
+ */
+interface IAlertDialogProps {
   /** This is used to point to an element containing content pertinent to the
    * users workflow. This should be provided for dialogs that are alerts or
    * confirmations so that that the information that is interrupting the user's
    * workflow is screen reader announced and acquire a response */
-  readonly ariaDescribedBy?: string
+  readonly ariaDescribedBy: string
 
   /** By default, a dialog has role of "dialog" and requires the use of an
    * "aria-label" or "aria-labelledby" to accessibily announce the title or
@@ -157,8 +162,28 @@ interface IDialogProps {
    * alert dialogs from other dialogs so they have the option of giving alert
    * dialogs special treatment, such as playing a system alert sound."
    * */
-  readonly role?: 'alertdialog'
+  readonly role: 'alertdialog'
 }
+
+/**
+ * If role is undefined or dialog, ariaDescribedBy is optional.
+ */
+interface IDescribedByDialogProps {
+  /** This is used to point to an element containing content pertinent to the
+   * users workflow. This should be provided for dialogs that are alerts or
+   * confirmations so that that the information that is interrupting the user's
+   * workflow is screen reader announced and acquire a response */
+  readonly ariaDescribedBy?: string
+
+  /** By default, a dialog has role of "dialog". This is only required for a
+   * role of 'alertdialog' in which case  `ariaDescribedBy` must also be
+   * provided */
+  readonly role?: 'dialog'
+}
+
+/** Interface union to force usage of `ariaDescribedBy` if role of `alertdialog`
+ * is used */
+type DialogProps = IDialogProps & (IAlertDialogProps | IDescribedByDialogProps)
 
 interface IDialogState {
   /**
@@ -191,7 +216,7 @@ interface IDialogState {
  * underlying elements. It's not possible to use the tab key to move focus
  * out of the dialog without first dismissing it.
  */
-export class Dialog extends React.Component<IDialogProps, IDialogState> {
+export class Dialog extends React.Component<DialogProps, IDialogState> {
   public static contextType = DialogStackContext
   public declare context: React.ContextType<typeof DialogStackContext>
 
@@ -218,7 +243,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   private readonly resizeObserver: ResizeObserver
   private resizeDebounceId: number | null = null
 
-  public constructor(props: IDialogProps) {
+  public constructor(props: DialogProps) {
     super(props)
     this.state = { isAppearing: true }
 
@@ -535,7 +560,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     this.checkIsTopMostDialog(false)
   }
 
-  public componentDidUpdate(prevProps: IDialogProps) {
+  public componentDidUpdate(prevProps: DialogProps) {
     if (!this.props.title && this.state.titleId) {
       this.updateTitleId()
     }
