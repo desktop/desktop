@@ -46,17 +46,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, windows-2019, ubuntu-18.04]
+        os: [macos-13, windows-2019, ubuntu-20.04]
         arch: [x64, arm64]
         include:
           - os: macos-13
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             friendlyName: Ubuntu
         exclude:
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             arch: arm64
     timeout-minutes: 60
     env:
@@ -105,11 +105,11 @@ jobs:
         run: yarn test:script
       - name: Package application
         run: yarn run package
-        if: ${{ matrix.os == 'ubuntu-18.04' && matrix.arch == 'x64' }}
+        if: ${{ matrix.os == 'ubuntu-20.04' && matrix.arch == 'x64' }}
       - name: Create Release
         uses: softprops/action-gh-release@v1
         if:
-          ${{ matrix.os == 'ubuntu-18.04' && startsWith(github.ref,
+          ${{ matrix.os == 'ubuntu-20.04' && startsWith(github.ref,
           'refs/tags/') }}
         with:
           files: |
