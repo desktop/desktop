@@ -148,14 +148,14 @@ export class PopupManager {
         oldest.type === PopupType.Error ? `: ${oldest.error.message}` : null
       const justAddedError =
         this.currentPopup?.type === PopupType.Error
-          ? `Just added another Error: ${this.currentPopup.error.message}`
+          ? `Just added another Error: ${this.currentPopup.error.message}.`
           : null
       sendNonFatalException(
         'TooManyPopups',
         new Error(
           `Max number of ${this.popupLimit} popups reached while adding popup of type ${this.currentPopup?.type}.
           Removing last popup from the stack. Type ${oldest.type}${oldestError}.
-          ${justAddedError}.`
+          ${justAddedError}`
         )
       )
       this.popupStack = this.popupStack.slice(1)
