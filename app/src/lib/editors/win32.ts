@@ -211,7 +211,7 @@ const editors: WindowsExternalEditor[] = [
     publishers: ['Microsoft Corporation'],
   },
   {
-    name: 'Visual Studio Codium',
+    name: 'VSCodium',
     registryKeys: [
       // 64-bit version of VSCodium (user)
       CurrentUserUninstallKey('{2E1F05D1-C245-4562-81EE-28188DB6FD17}_is1'),
@@ -245,7 +245,7 @@ const editors: WindowsExternalEditor[] = [
     publishers: ['VSCodium', 'Microsoft Corporation'],
   },
   {
-    name: 'Visual Studio Codium (Insiders)',
+    name: 'VSCodium (Insiders)',
     registryKeys: [
       // 64-bit version of VSCodium - Insiders (user)
       CurrentUserUninstallKey('{20F79D0D-A9AC-4220-9A81-CE675FFB6B41}_is1'),
