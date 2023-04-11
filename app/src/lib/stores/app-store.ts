@@ -232,7 +232,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableMultiCommitDiffs } from '../feature-flag'
+import { enableMoveStash, enableMultiCommitDiffs } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -4015,10 +4015,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
     await gitStore.performFailableOperation(async () => {
       await renameBranch(repository, branch, newName)
-      const stashEntry = gitStore.desktopStashEntries.get(branch.name)
 
-      if (stashEntry) {
-        await moveStashEntry(repository, stashEntry, newName)
+      if (enableMoveStash()) {
+        const stashEntry = gitStore.desktopStashEntries.get(branch.name)
+
+        if (stashEntry) {
+          await moveStashEntry(repository, stashEntry, newName)
+        }
       }
     })
 

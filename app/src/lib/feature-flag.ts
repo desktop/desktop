@@ -132,3 +132,7 @@ export function enablePushPullFetchDropdown(): boolean {
 export function enablePullRequestCommentNotifications(): boolean {
   return enableBetaFeatures()
 }
+
+export function enableMoveStash(): boolean {
+  return enableBetaFeatures()
+}
