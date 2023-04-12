@@ -972,10 +972,7 @@ export class ChangesList extends React.Component<
             selectedRows={this.state.selectedRows}
             selectionMode="multi"
             onSelectionChanged={this.props.onFileSelectionChanged}
-            invalidationProps={{
-              workingDirectory: workingDirectory,
-              isCommitting: isCommitting,
-            }}
+            invalidationProps={{ workingDirectory, isCommitting }}
             onRowClick={this.props.onRowClick}
             onScroll={this.onScroll}
             setScrollTop={this.props.changesListScrollTop}

@@ -143,7 +143,7 @@ export class PullRequestList extends React.Component<
         renderItem={this.renderPullRequest}
         filterText={this.state.filterText}
         onFilterTextChanged={this.onFilterTextChanged}
-        invalidationProps={this.props.pullRequests}
+        invalidationProps={{ pullRequests: this.props.pullRequests }}
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
         onFilterKeyDown={this.props.onFilterKeyDown}

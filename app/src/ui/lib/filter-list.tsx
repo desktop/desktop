@@ -128,7 +128,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly disabled?: boolean
 
   /** Any props which should cause a re-render if they change. */
-  readonly invalidationProps: any
+  readonly invalidationProps?: Record<string, unknown>
 
   /** Called to render content after the filter. */
   readonly renderPostFilter?: () => JSX.Element | null
@@ -185,7 +185,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   public constructor(props: IFilterListProps<T>) {
     super(props)
 
-    this.state = createStateUpdate(props)
+    this.state = createStateUpdate(
+      props.filterText,
+      props.groups,
+      props.renderGroupHeader !== undefined,
+      props.selectedItem
+    )
   }
 
   public componentWillMount() {
@@ -194,14 +199,26 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
   }
 
-  public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
-    this.setState(createStateUpdate(nextProps))
-  }
-
   public componentDidUpdate(
     prevProps: IFilterListProps<T>,
     prevState: IFilterListState<T>
   ) {
+    if (
+      prevProps.selectedItem !== this.props.selectedItem ||
+      prevProps.groups !== this.props.groups ||
+      prevProps.filterText !== this.props.filterText ||
+      prevProps.renderGroupHeader !== this.props.renderGroupHeader
+    ) {
+      this.setState(
+        createStateUpdate(
+          this.props.filterText,
+          this.props.groups,
+          this.props.renderGroupHeader !== undefined,
+          this.props.selectedItem
+        )
+      )
+    }
+
     if (this.props.onSelectionChanged) {
       const oldSelectedItemId = getItemIdFromRowIndex(
         prevState.rows,
@@ -277,6 +294,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public render() {
+    console.log('rerendering filter list!')
     return (
       <div className={classnames('filter-list', this.props.className)}>
         {this.props.renderPreList ? this.props.renderPreList() : null}
@@ -345,7 +363,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
           onRowKeyDown={this.onRowKeyDown}
           canSelectRow={this.canSelectRow}
           invalidationProps={{
-            ...this.props,
+            rows: this.state.rows,
             ...this.props.invalidationProps,
           }}
         />
@@ -536,12 +554,15 @@ export function getText<T extends IFilterListItem>(
 }
 
 function createStateUpdate<T extends IFilterListItem>(
-  props: IFilterListProps<T>
+  filterText: string | undefined,
+  groups: ReadonlyArray<IFilterListGroup<T>>,
+  renderGroupHeader: boolean,
+  selectedItem: T | null
 ) {
   const flattenedRows = new Array<IFilterListRow<T>>()
-  const filter = (props.filterText || '').toLowerCase()
+  const filter = (filterText || '').toLowerCase()
 
-  for (const group of props.groups) {
+  for (const group of groups) {
     const items: ReadonlyArray<IMatch<T>> = filter
       ? match(filter, group.items, getText)
       : group.items.map(item => ({
@@ -554,7 +575,7 @@ function createStateUpdate<T extends IFilterListItem>(
       continue
     }
 
-    if (props.renderGroupHeader) {
+    if (renderGroupHeader) {
       flattenedRows.push({ kind: 'group', identifier: group.identifier })
     }
 
@@ -564,7 +585,7 @@ function createStateUpdate<T extends IFilterListItem>(
   }
 
   let selectedRow = -1
-  const selectedItem = props.selectedItem
+
   if (selectedItem) {
     selectedRow = flattenedRows.findIndex(
       i => i.kind === 'item' && i.item.id === selectedItem.id

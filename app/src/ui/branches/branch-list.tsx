@@ -193,7 +193,7 @@ export class BranchList extends React.Component<
         onSelectionChanged={this.onSelectionChanged}
         onEnterPressedWithoutFilteredItems={this.onCreateNewBranch}
         groups={this.state.groups}
-        invalidationProps={this.props.allBranches}
+        invalidationProps={{ branches: this.props.allBranches }}
         renderPostFilter={this.onRenderNewButton}
         renderNoItems={this.onRenderNoItems}
         filterTextBox={this.props.textbox}

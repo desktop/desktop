@@ -167,7 +167,6 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
         onSelectionChanged={this.onSelectionChanged}
-        invalidationProps={groups}
         groups={groups}
         filterText={this.props.filterText}
         onFilterTextChanged={this.props.onFilterTextChanged}

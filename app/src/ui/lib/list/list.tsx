@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Grid, AutoSizer } from 'react-virtualized'
-import { shallowEquals, arrayEquals } from '../../../lib/equality'
 import { FocusContainer } from '../../lib/focus-container'
 import { ListRow } from './list-row'
 import {
@@ -227,7 +226,7 @@ interface IListProps {
    * above props. So if there are any other properties that also determine
    * whether the list should re-render, List must know about them.
    */
-  readonly invalidationProps?: any
+  readonly invalidationProps?: Record<string, unknown>
 
   /** The unique identifier for the outer element of the component (optional, defaults to null) */
   readonly id?: string
@@ -306,6 +305,20 @@ export class List extends React.Component<IListProps, IListState> {
   private grid: Grid | null = null
   private readonly resizeObserver: ResizeObserver | null = null
   private updateSizeTimeoutId: NodeJS.Immediate | null = null
+
+  /**
+   * Takes a Record-type object and prefixes all keys with __.
+   *
+   * Used to avoid clashes between user-defined properties in invalidationProps
+   * and our own properties.
+   */
+  private getPrefixedInvalidationProps = memoizeOne(
+    (invalidationProps: Record<string, unknown>) =>
+      Object.entries(invalidationProps).reduce((props, [k, v]) => {
+        props[`__${k}`] = v
+        return props
+      }, {} as Record<string, unknown>)
+  )
 
   /**
    * Get the props for the inner scroll container (called containerProps on the
@@ -811,38 +824,6 @@ export class List extends React.Component<IListProps, IListState> {
         this.scrollRowToVisible(scrollToRow, false)
       }
     }
-
-    if (this.grid) {
-      // A non-exhaustive set of checks to see if our current update has already
-      // triggered a re-render of the Grid. In order to do this perfectly we'd
-      // have to do a shallow compare on all the props we pass to Grid but
-      // this should cover the majority of cases.
-      const gridHasUpdatedAlready =
-        this.props.rowCount !== prevProps.rowCount ||
-        this.state.width !== prevState.width ||
-        this.state.height !== prevState.height
-
-      if (!gridHasUpdatedAlready) {
-        const selectedRowChanged = !arrayEquals(
-          prevProps.selectedRows,
-          this.props.selectedRows
-        )
-
-        const invalidationPropsChanged = !shallowEquals(
-          prevProps.invalidationProps,
-          this.props.invalidationProps
-        )
-
-        // Now we need to figure out whether anything changed in such a way that
-        // the Grid has to update regardless of its props. Previously we passed
-        // our selectedRow and invalidationProps down to Grid and figured that
-        // it, being a pure component, would do the right thing but that's not
-        // quite the case since invalidationProps is a complex object.
-        if (selectedRowChanged || invalidationPropsChanged) {
-          this.grid.forceUpdate()
-        }
-      }
-    }
   }
 
   public componentWillMount() {
@@ -1040,6 +1021,10 @@ export class List extends React.Component<IListProps, IListState> {
 
     const containerProps = this.getContainerProps(activeDescendant)
 
+    const prefixedInvalidationProps = this.props.invalidationProps
+      ? this.getPrefixedInvalidationProps(this.props.invalidationProps)
+      : {}
+
     return (
       <FocusContainer
         className="list-focus-container"
@@ -1065,6 +1050,9 @@ export class List extends React.Component<IListProps, IListState> {
           overscanRowCount={4}
           style={this.gridStyle}
           tabIndex={tabIndex}
+          // Invalidation props
+          __selectedRows={this.props.selectedRows.join(',')}
+          {...prefixedInvalidationProps}
         />
       </FocusContainer>
     )

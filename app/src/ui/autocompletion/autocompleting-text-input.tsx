@@ -270,7 +270,7 @@ export abstract class AutocompletingTextInput<
           onRowMouseDown={this.onRowMouseDown}
           onRowClick={this.insertCompletionOnClick}
           onSelectedRowChanged={this.onSelectedRowChanged}
-          invalidationProps={searchText}
+          invalidationProps={{ searchText }}
         />
         <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>
           {suggestionsMessage}
