@@ -1,5 +1,4 @@
 import { match } from '../../src/lib/fuzzy-find'
-import { getText } from '../../src/ui/lib/filter-list'
 describe('fuzzy find', () => {
   const items = [
     {
@@ -17,28 +16,28 @@ describe('fuzzy find', () => {
   ]
 
   it('should find matching item when searching by pull request number', () => {
-    const results = match('4653', items, getText)
+    const results = match('4653', items, x => x.text)
 
     expect(results).toHaveLength(1)
     expect(results[0].item['text'].join('')).toContain('4653')
   })
 
   it('should find matching item when searching by author', () => {
-    const results = match('damaneice', items, getText)
+    const results = match('damaneice', items, x => x.text)
 
     expect(results).toHaveLength(1)
     expect(results[0].item['text'].join('')).toContain('damaneice')
   })
 
   it('should find matching item when by title', () => {
-    const results = match('awesome feature', items, getText)
+    const results = match('awesome feature', items, x => x.text)
 
     expect(results).toHaveLength(1)
     expect(results[0].item['text'].join('')).toContain('awesome feature')
   })
 
   it('should find nothing', () => {
-    const results = match('$%^', items, getText)
+    const results = match('$%^', items, x => x.text)
 
     expect(results).toHaveLength(0)
   })

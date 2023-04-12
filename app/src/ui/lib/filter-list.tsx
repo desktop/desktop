@@ -546,12 +546,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 }
 
-export function getText<T extends IFilterListItem>(
-  item: T
-): ReadonlyArray<string> {
-  return item['text']
-}
-
 function createStateUpdate<T extends IFilterListItem>(
   filterText: string | undefined,
   groups: ReadonlyArray<IFilterListGroup<T>>,
@@ -563,7 +557,7 @@ function createStateUpdate<T extends IFilterListItem>(
 
   for (const group of groups) {
     const items: ReadonlyArray<IMatch<T>> = filter
-      ? match(filter, group.items, getText)
+      ? match(filter, group.items, x => x.text)
       : group.items.map(item => ({
           score: 1,
           matches: { title: [], subtitle: [] },
