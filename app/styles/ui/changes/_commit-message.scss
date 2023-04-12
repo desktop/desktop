@@ -89,6 +89,10 @@
     .description-field textarea {
       min-height: 80px;
 
+      @media (max-height: 500px) {
+        min-height: 10px;
+      }
+
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
     }

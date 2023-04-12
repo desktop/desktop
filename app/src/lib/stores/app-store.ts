@@ -7759,5 +7759,12 @@ function constrain(
   min = -Infinity,
   max = Infinity
 ): IConstrainedValue {
-  return { value: typeof value === 'number' ? value : value.value, min, max }
+  // Match CSS's behavior where min-width takes precedence over max-width
+  // See https://stackoverflow.com/a/16063871
+  const constrainedMax = max < min ? min : max
+  return {
+    value: typeof value === 'number' ? value : value.value,
+    min,
+    max: constrainedMax,
+  }
 }

@@ -22,6 +22,9 @@ interface ITooltippedContentProps
 
   /** An optional class name to set on the wrapper element */
   readonly className?: string
+
+  /** Open on target focus */
+  readonly openOnFocus?: boolean
 }
 
 /**
@@ -45,6 +48,7 @@ export class TooltippedContent extends React.Component<ITooltippedContentProps> 
             <Tooltip
               target={this.wrapperRef}
               className={tooltipClassName}
+              openOnFocus={this.props.openOnFocus}
               {...rest}
             >
               {tooltip}
