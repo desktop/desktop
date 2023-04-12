@@ -135,7 +135,7 @@ interface IDialogProps {
 /**
  * If role is alertdialog, ariaDescribedBy is required.
  */
-interface IAlertDialogProps {
+interface IAlertDialogProps extends IDialogProps {
   /** This is used to point to an element containing content pertinent to the
    * users workflow. This should be provided for dialogs that are alerts or
    * confirmations so that that the information that is interrupting the user's
@@ -168,7 +168,7 @@ interface IAlertDialogProps {
 /**
  * If role is undefined or dialog, ariaDescribedBy is optional.
  */
-interface IDescribedByDialogProps {
+interface IDescribedByDialogProps extends IDialogProps {
   /** This is used to point to an element containing content pertinent to the
    * users workflow. This should be provided for dialogs that are alerts or
    * confirmations so that that the information that is interrupting the user's
@@ -183,7 +183,7 @@ interface IDescribedByDialogProps {
 
 /** Interface union to force usage of `ariaDescribedBy` if role of `alertdialog`
  * is used */
-type DialogProps = IDialogProps & (IAlertDialogProps | IDescribedByDialogProps)
+type DialogProps = IAlertDialogProps | IDescribedByDialogProps
 
 interface IDialogState {
   /**
