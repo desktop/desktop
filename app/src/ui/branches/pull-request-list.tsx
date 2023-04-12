@@ -21,6 +21,7 @@ import { startTimer } from '../lib/timing'
 import { DragType } from '../../models/drag-drop'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { formatRelative } from '../../lib/format-relative'
+import memoizeOne from 'memoize-one'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -80,29 +81,24 @@ interface IPullRequestListProps {
 
 interface IPullRequestListState {
   readonly filterText: string
-  readonly groupedItems: ReadonlyArray<IFilterListGroup<IPullRequestListItem>>
-  readonly selectedItem: IPullRequestListItem | null
 }
 
 function resolveSelectedItem(
-  group: IFilterListGroup<IPullRequestListItem>,
-  props: IPullRequestListProps,
-  currentlySelectedItem: IPullRequestListItem | null
+  groups: ReadonlyArray<IFilterListGroup<IPullRequestListItem>>,
+  selectedPullRequest: PullRequest | null
 ): IPullRequestListItem | null {
-  let selectedItem: IPullRequestListItem | null = null
+  let hit = undefined
+  if (selectedPullRequest !== null) {
+    const needle = selectedPullRequest.pullRequestNumber
 
-  if (props.selectedPullRequest != null) {
-    selectedItem = findItemForPullRequest(group, props.selectedPullRequest)
+    for (let i = 0; i < groups.length && hit === undefined; i++) {
+      hit = groups[i].items.find(
+        i => i.pullRequest.pullRequestNumber === needle
+      )
+    }
   }
 
-  if (selectedItem == null && currentlySelectedItem != null) {
-    selectedItem = findItemForPullRequest(
-      group,
-      currentlySelectedItem.pullRequest
-    )
-  }
-
-  return selectedItem
+  return hit ?? null
 }
 
 /** The list of open pull requests. */
@@ -110,27 +106,24 @@ export class PullRequestList extends React.Component<
   IPullRequestListProps,
   IPullRequestListState
 > {
-  public constructor(props: IPullRequestListProps) {
-    super(props)
+  private memoizedGroupPullRequests = memoizeOne(groupPullRequests)
 
-    const group = createListItems(props.pullRequests)
-    const selectedItem = resolveSelectedItem(group, props, null)
-
-    this.state = {
-      filterText: '',
-      groupedItems: [group],
-      selectedItem,
-    }
+  private get groups() {
+    return this.memoizedGroupPullRequests(this.props.pullRequests)
   }
 
-  public componentWillReceiveProps(nextProps: IPullRequestListProps) {
-    const group = createListItems(nextProps.pullRequests)
-    const selectedItem = resolveSelectedItem(
-      group,
-      nextProps,
-      this.state.selectedItem
+  private memoizedResolveSelectedItem = memoizeOne(resolveSelectedItem)
+
+  private get selectedItem() {
+    return this.memoizedResolveSelectedItem(
+      this.groups,
+      this.props.selectedPullRequest
     )
-    this.setState({ groupedItems: [group], selectedItem })
+  }
+
+  public constructor(props: IPullRequestListProps) {
+    super(props)
+    this.state = { filterText: '' }
   }
 
   public render() {
@@ -138,8 +131,8 @@ export class PullRequestList extends React.Component<
       <FilterList<IPullRequestListItem>
         className="pull-request-list"
         rowHeight={RowHeight}
-        groups={this.state.groupedItems}
-        selectedItem={this.state.selectedItem}
+        groups={this.groups}
+        selectedItem={this.selectedItem}
         renderItem={this.renderPullRequest}
         filterText={this.state.filterText}
         onFilterTextChanged={this.onFilterTextChanged}
@@ -168,11 +161,9 @@ export class PullRequestList extends React.Component<
   }
 
   private renderPullRequest = (
-    item: IPullRequestListItem,
+    { pullRequest: pr }: IPullRequestListItem,
     matches: IMatches
   ) => {
-    const pr = item.pullRequest
-
     return (
       <PullRequestListItem
         title={pr.title}
@@ -318,28 +309,14 @@ function getSubtitle(pr: PullRequest) {
   return `#${pr.pullRequestNumber} opened ${timeAgo} by ${pr.author}`
 }
 
-function createListItems(
+function groupPullRequests(
   pullRequests: ReadonlyArray<PullRequest>
-): IFilterListGroup<IPullRequestListItem> {
+): ReadonlyArray<IFilterListGroup<IPullRequestListItem>> {
   const items = pullRequests.map(pr => ({
     text: [pr.title, getSubtitle(pr)],
     id: pr.pullRequestNumber.toString(),
     pullRequest: pr,
   }))
 
-  return {
-    identifier: 'pull-requests',
-    items,
-  }
-}
-
-function findItemForPullRequest(
-  group: IFilterListGroup<IPullRequestListItem>,
-  pullRequest: PullRequest
-): IPullRequestListItem | null {
-  return (
-    group.items.find(
-      i => i.pullRequest.pullRequestNumber === pullRequest.pullRequestNumber
-    ) || null
-  )
+  return [{ identifier: 'pull-requests', items }]
 }
