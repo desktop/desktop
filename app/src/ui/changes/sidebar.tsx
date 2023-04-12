@@ -376,7 +376,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     )
 
     return (
-      <div className="panel">
+      <div className="panel" role="tabpanel" aria-labelledby="changes-tab">
         <ChangesList
           ref={this.changesListRef}
           dispatcher={this.props.dispatcher}
