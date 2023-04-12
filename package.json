@@ -108,7 +108,7 @@
     "webpack-dev-middleware": "^5.3.1",
     "webpack-hot-middleware": "^2.25.1",
     "webpack-merge": "^5.8.0",
-    "xml2js": "^0.4.16"
+    "xml2js": "^0.5.0"
   },
   "devDependencies": {
     "@github/markdownlint-github": "^0.1.0",

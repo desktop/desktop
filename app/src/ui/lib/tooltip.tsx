@@ -109,6 +109,11 @@ export interface ITooltipProps<T> {
    * element within in iframe.
    */
   readonly tooltipOffset?: DOMRect
+
+  /** Open on target focus - typically only tooltips that target an element with
+   * ":focus-visible open on focus. This means any time the target it focused it
+   * opens." */
+  readonly openOnFocus?: boolean
 }
 
 interface ITooltipState {
@@ -280,6 +285,8 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     elem.addEventListener('mousemove', this.onTargetMouseMove)
     elem.addEventListener('mousedown', this.onTargetMouseDown)
     elem.addEventListener('focus', this.onTargetFocus)
+    elem.addEventListener('focusin', this.onTargetFocusIn)
+    elem.addEventListener('focusout', this.onTargetBlur)
     elem.addEventListener('blur', this.onTargetBlur)
     elem.addEventListener('tooltip-shown', this.onTooltipShown)
     elem.addEventListener('tooltip-hidden', this.onTooltipHidden)
@@ -295,6 +302,8 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       prevTarget.removeEventListener('mousemove', this.onTargetMouseMove)
       prevTarget.removeEventListener('mousedown', this.onTargetMouseDown)
       prevTarget.removeEventListener('focus', this.onTargetFocus)
+      prevTarget.removeEventListener('focusin', this.onTargetFocusIn)
+      prevTarget.removeEventListener('focusout', this.onTargetBlur)
       prevTarget.removeEventListener('blur', this.onTargetBlur)
     }
   }
@@ -326,6 +335,17 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     // keyboard navigation, see
     // https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible
     if (this.state.target?.matches(':focus-visible')) {
+      this.beginShowTooltip()
+    }
+  }
+
+  /**
+   * The focusin event fires when an element has received focus,
+   * after the focus event. The two events differ in that focusin bubbles, while
+   * focus does not.
+   */
+  private onTargetFocusIn = (event: FocusEvent) => {
+    if (this.props.openOnFocus) {
       this.beginShowTooltip()
     }
   }
