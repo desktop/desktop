@@ -173,7 +173,10 @@ export class BranchList extends React.Component<IBranchListProps> {
         onSelectionChanged={this.onSelectionChanged}
         onEnterPressedWithoutFilteredItems={this.onCreateNewBranch}
         groups={this.groups}
-        invalidationProps={{ branches: this.props.allBranches }}
+        invalidationProps={{
+          branches: this.props.allBranches,
+          currentBranch: this.props.currentBranch,
+        }}
         renderPostFilter={this.onRenderNewButton}
         renderNoItems={this.onRenderNoItems}
         filterTextBox={this.props.textbox}
