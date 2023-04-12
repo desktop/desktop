@@ -294,7 +294,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public render() {
-    console.log('rerendering filter list!')
     return (
       <div className={classnames('filter-list', this.props.className)}>
         {this.props.renderPreList ? this.props.renderPreList() : null}
