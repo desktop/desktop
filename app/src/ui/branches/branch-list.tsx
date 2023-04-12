@@ -20,6 +20,7 @@ import {
 } from './group-branches'
 import { NoBranches } from './no-branches'
 import { SelectionDirection, ClickSource } from '../lib/list'
+import memoizeOne from 'memoize-one'
 
 const RowHeight = 30
 
@@ -115,60 +116,40 @@ interface IBranchListProps {
   readonly noBranchesMessage?: string | JSX.Element
 }
 
-interface IBranchListState {
-  /**
-   * The grouped list of branches.
-   *
-   * Groups are currently defined as 'default branch', 'current branch',
-   * 'recent branches' and all branches.
-   */
-  readonly groups: ReadonlyArray<IFilterListGroup<IBranchListItem>>
-
-  /** The selected item in the filtered list */
-  readonly selectedItem: IBranchListItem | null
-}
-
-function createState(props: IBranchListProps): IBranchListState {
-  const groups = groupBranches(
-    props.defaultBranch,
-    props.currentBranch,
-    props.allBranches,
-    props.recentBranches
-  )
-
-  let selectedItem: IBranchListItem | null = null
-  const selectedBranch = props.selectedBranch
-  if (selectedBranch) {
-    for (const group of groups) {
-      selectedItem =
-        group.items.find(i => {
-          const branch = i.branch
-          return branch.name === selectedBranch.name
-        }) || null
-
-      if (selectedItem) {
-        break
-      }
-    }
-  }
-
-  return { groups, selectedItem }
-}
-
 /** The Branches list component. */
-export class BranchList extends React.Component<
-  IBranchListProps,
-  IBranchListState
-> {
+export class BranchList extends React.Component<IBranchListProps> {
   private branchFilterList: FilterList<IBranchListItem> | null = null
 
-  public constructor(props: IBranchListProps) {
-    super(props)
-    this.state = createState(props)
+  private memoizedGroupBranches = memoizeOne(groupBranches)
+
+  private get groups() {
+    return this.memoizedGroupBranches(
+      this.props.defaultBranch,
+      this.props.currentBranch,
+      this.props.allBranches,
+      this.props.recentBranches
+    )
   }
 
-  public componentWillReceiveProps(nextProps: IBranchListProps) {
-    this.setState(createState(nextProps))
+  private memoizedGetSelectedItem = memoizeOne(
+    (
+      selectedBranch: Branch | null,
+      groups: ReadonlyArray<IFilterListGroup<IBranchListItem>>
+    ) => {
+      let hit = undefined
+
+      if (selectedBranch !== null) {
+        for (let i = 0; i < groups.length && hit === undefined; i++) {
+          hit = groups[i].items.find(x => x.branch.name === selectedBranch.name)
+        }
+      }
+
+      return hit ?? null
+    }
+  )
+
+  private get selectedItem() {
+    return this.memoizedGetSelectedItem(this.props.selectedBranch, this.groups)
   }
 
   public selectNextItem(focus: boolean = false, direction: SelectionDirection) {
@@ -186,13 +167,13 @@ export class BranchList extends React.Component<
         filterText={this.props.filterText}
         onFilterTextChanged={this.props.onFilterTextChanged}
         onFilterKeyDown={this.props.onFilterKeyDown}
-        selectedItem={this.state.selectedItem}
+        selectedItem={this.selectedItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
         onEnterPressedWithoutFilteredItems={this.onCreateNewBranch}
-        groups={this.state.groups}
+        groups={this.groups}
         invalidationProps={{ branches: this.props.allBranches }}
         renderPostFilter={this.onRenderNewButton}
         renderNoItems={this.onRenderNoItems}
