@@ -22,37 +22,6 @@ interface IAppearanceState {
   readonly selectedTheme: ApplicationTheme | null
 }
 
-/*
-const systemTheme: ISegmentedItem<ApplicationTheme> = {
-  title: 'System',
-  description: 'Automatically switch theme to match system theme',
-  key: ApplicationTheme.System,
-}
-
-const themes: ReadonlyArray<ISegmentedItem<ApplicationTheme>> = [
-  {
-    title: 'Light',
-    description: 'The default theme of GitHub Desktop',
-    key: ApplicationTheme.Light,
-  },
-  {
-    title: 'Dark',
-    description: 'GitHub Desktop is for you too, creatures of the night',
-    key: ApplicationTheme.Dark,
-  },
-  ...(enableHighContrastTheme()
-    ? [
-        {
-          title: 'High Contrast',
-          description: 'Customizable High Contrast Theme',
-          key: ApplicationTheme.HighContrast,
-        },
-      ]
-    : []),
-  ...(supportsSystemThemeChanges() ? [systemTheme] : []),
-]
-*/
-
 export class Appearance extends React.Component<
   IAppearanceProps,
   IAppearanceState
@@ -116,11 +85,11 @@ export class Appearance extends React.Component<
         <h2 id="theme-heading"> Theme Selection</h2>
         <RadioGroup<ApplicationTheme>
           ariaLabelledBy="theme-heading"
+          className="theme-selector"
           selectedKey={selectedTheme}
           radioButtonKeys={[
             ApplicationTheme.Light,
             ApplicationTheme.Dark,
-            ApplicationTheme.System,
             ...(supportsSystemThemeChanges() ? [ApplicationTheme.System] : []),
             ...(enableHighContrastTheme()
               ? [ApplicationTheme.HighContrast]
