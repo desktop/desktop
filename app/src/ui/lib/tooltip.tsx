@@ -110,6 +110,9 @@ export interface ITooltipProps<T> {
    */
   readonly tooltipOffset?: DOMRect
 
+  /**Optional parameter for toggle tip behavior */
+  readonly isToggleTip?: boolean
+
   /** Open on target focus - typically only tooltips that target an element with
    * ":focus-visible open on focus. This means any time the target it focused it
    * opens." */
@@ -290,6 +293,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     elem.addEventListener('blur', this.onTargetBlur)
     elem.addEventListener('tooltip-shown', this.onTooltipShown)
     elem.addEventListener('tooltip-hidden', this.onTooltipHidden)
+    elem.addEventListener('click', this.onTargetClick)
   }
 
   private removeTooltip(prevTarget: TooltipTarget | null) {
@@ -305,6 +309,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       prevTarget.removeEventListener('focusin', this.onTargetFocusIn)
       prevTarget.removeEventListener('focusout', this.onTargetBlur)
       prevTarget.removeEventListener('blur', this.onTargetBlur)
+      prevTarget.removeEventListener('click', this.onTargetClick)
     }
   }
 
@@ -327,14 +332,26 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   }
 
   private onTargetMouseDown = (event: MouseEvent) => {
-    this.hideTooltip()
+    if (!this.props.isToggleTip) {
+      this.hideTooltip()
+    }
   }
 
   private onTargetFocus = (event: FocusEvent) => {
     // We only want to show the tooltip if the target was focused as a result of
     // keyboard navigation, see
     // https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible
-    if (this.state.target?.matches(':focus-visible')) {
+    if (
+      this.state.target?.matches(':focus-visible') &&
+      !this.props.isToggleTip
+    ) {
+      this.beginShowTooltip()
+    }
+  }
+
+  private onTargetClick = (event: FocusEvent) => {
+    // We only want to handle click events for toggle tips
+    if (!this.state.show && this.props.isToggleTip) {
       this.beginShowTooltip()
     }
   }
