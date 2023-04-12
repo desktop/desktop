@@ -118,7 +118,7 @@ interface IBranchListProps {
 
 /** The Branches list component. */
 export class BranchList extends React.Component<IBranchListProps> {
-  private branchFilterList: FilterList<IBranchListItem> | null = null
+  private branchFilterListRef = React.createRef<FilterList<IBranchListItem>>()
 
   private memoizedGroupBranches = memoizeOne(groupBranches)
 
@@ -152,22 +152,20 @@ export class BranchList extends React.Component<IBranchListProps> {
   }
 
   public selectNextItem(focus: boolean = false, direction: SelectionDirection) {
-    if (this.branchFilterList !== null) {
-      this.branchFilterList.selectNextItem(focus, direction)
-    }
+    this.branchFilterListRef.current?.selectNextItem(focus, direction)
   }
 
   public render() {
     return (
       <FilterList<IBranchListItem>
-        ref={this.onBranchesFilterListRef}
+        ref={this.branchFilterListRef}
         className="branches-list"
         rowHeight={RowHeight}
         filterText={this.props.filterText}
         onFilterTextChanged={this.props.onFilterTextChanged}
         onFilterKeyDown={this.props.onFilterKeyDown}
         selectedItem={this.selectedItem}
-        renderItem={this.renderItem}
+        renderItem={this.props.renderBranch}
         renderGroupHeader={this.renderGroupHeader}
         onItemClick={this.onItemClick}
         onSelectionChanged={this.onSelectionChanged}
@@ -185,16 +183,6 @@ export class BranchList extends React.Component<IBranchListProps> {
         renderPreList={this.props.renderPreList}
       />
     )
-  }
-
-  private onBranchesFilterListRef = (
-    filterList: FilterList<IBranchListItem> | null
-  ) => {
-    this.branchFilterList = filterList
-  }
-
-  private renderItem = (item: IBranchListItem, matches: IMatches) => {
-    return this.props.renderBranch(item, matches)
   }
 
   private parseHeader(label: string): BranchGroupIdentifier | null {
@@ -249,26 +237,17 @@ export class BranchList extends React.Component<IBranchListProps> {
   }
 
   private onItemClick = (item: IBranchListItem, source: ClickSource) => {
-    if (this.props.onItemClick) {
-      this.props.onItemClick(item.branch, source)
-    }
+    this.props.onItemClick?.(item.branch, source)
   }
 
   private onSelectionChanged = (
     selectedItem: IBranchListItem | null,
     source: SelectionSource
   ) => {
-    if (this.props.onSelectionChanged) {
-      this.props.onSelectionChanged(
-        selectedItem ? selectedItem.branch : null,
-        source
-      )
-    }
+    this.props.onSelectionChanged?.(selectedItem?.branch ?? null, source)
   }
 
   private onCreateNewBranch = () => {
-    if (this.props.onCreateNewBranch) {
-      this.props.onCreateNewBranch(this.props.filterText)
-    }
+    this.props.onCreateNewBranch?.(this.props.filterText)
   }
 }
