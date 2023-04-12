@@ -80,6 +80,17 @@ export class Appearance extends React.Component<
       )
     }
 
+    // To be determined... using dotcom for placeholders for now
+    const darkThemeImage =
+      'https://github.githubassets.com/images/modules/settings/color_modes/dark_preview.svg'
+    const lightThemeImage =
+      'https://github.githubassets.com/images/modules/settings/color_modes/light_preview.svg'
+    const highContrastImage =
+      'https://github.githubassets.com/images/modules/settings/color_modes/dark_high_contrast_preview.svg'
+    // Needs a custom one or better would be if you could detect what system is when system isn't selected.
+    const systemThemeImage =
+      'https://github.githubassets.com/images/modules/settings/color_modes/light_preview.svg'
+
     return (
       <DialogContent>
         <h2 id="theme-heading"> Theme Selection</h2>
@@ -98,34 +109,22 @@ export class Appearance extends React.Component<
           onSelectionChanged={this.onSelectedThemeChanged}
         >
           <span>
-            <img
-              src="https://github.githubassets.com/images/modules/settings/color_modes/light_preview.svg"
-              alt=""
-            />
+            <img src={lightThemeImage} alt="" />
             <span className="theme-value-label">Light</span>
           </span>
           <span>
-            <img
-              src="https://github.githubassets.com/images/modules/settings/color_modes/dark_preview.svg"
-              alt=""
-            />
+            <img src={darkThemeImage} alt="" />
             <span className="theme-value-label">Dark</span>
           </span>
           {supportsSystemThemeChanges() && (
             <span>
-              <img
-                src="https://github.githubassets.com/images/modules/settings/color_modes/light_preview.svg"
-                alt=""
-              />
+              <img src={systemThemeImage} alt="" />
               <span className="theme-value-label">System</span>
             </span>
           )}
           {enableHighContrastTheme() && (
             <span>
-              <img
-                src="https://github.githubassets.com/images/modules/settings/color_modes/dark_high_contrast_preview.svg"
-                alt=""
-              />
+              <img src={highContrastImage} alt="" />
               <span className="theme-value-label">High Contrast</span>
             </span>
           )}
