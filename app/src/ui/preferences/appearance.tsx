@@ -7,12 +7,9 @@ import {
 } from '../lib/application-theme'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
-import {
-  VerticalSegmentedControl,
-  ISegmentedItem,
-} from '../lib/vertical-segmented-control'
 import { CustomThemeSelector } from './custom-theme-selector'
-import { enableHighContrastTheme } from '../../lib/feature-flag'
+// import { enableHighContrastTheme } from '../../lib/feature-flag'
+import { RadioGroup } from '../lib/radio-group'
 
 interface IAppearanceProps {
   readonly selectedTheme: ApplicationTheme
@@ -25,6 +22,7 @@ interface IAppearanceState {
   readonly selectedTheme: ApplicationTheme | null
 }
 
+/*
 const systemTheme: ISegmentedItem<ApplicationTheme> = {
   title: 'System',
   description: 'Automatically switch theme to match system theme',
@@ -53,6 +51,7 @@ const themes: ReadonlyArray<ISegmentedItem<ApplicationTheme>> = [
     : []),
   ...(supportsSystemThemeChanges() ? [systemTheme] : []),
 ]
+*/
 
 export class Appearance extends React.Component<
   IAppearanceProps,
@@ -114,13 +113,22 @@ export class Appearance extends React.Component<
 
     return (
       <DialogContent>
-        <Row>
-          <VerticalSegmentedControl
-            items={themes}
-            selectedKey={selectedTheme}
-            onSelectionChanged={this.onSelectedThemeChanged}
-          />
-        </Row>
+        <h2 id="theme-heading"> Theme Selection</h2>
+        <RadioGroup<ApplicationTheme>
+          ariaLabelledBy="theme-heading"
+          selectedKey={selectedTheme}
+          radioButtonKeys={[
+            ApplicationTheme.Light,
+            ApplicationTheme.Dark,
+            ApplicationTheme.System,
+          ]}
+          onSelectionChanged={this.onSelectedThemeChanged}
+        >
+          <span>Light</span>
+          <span>Dark</span>
+          <span>System</span>
+        </RadioGroup>
+
         <Row>
           <CustomThemeSelector
             onCustomThemeChanged={this.onCustomThemeChanged}
