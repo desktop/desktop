@@ -38,12 +38,7 @@ describe('Branches grouping', () => {
   const allBranches = [currentBranch, ...recentBranches, otherBranch]
 
   it('should group branches', () => {
-    const groups = groupBranches(
-      defaultBranch,
-      currentBranch,
-      allBranches,
-      recentBranches
-    )
+    const groups = groupBranches(defaultBranch, allBranches, recentBranches)
     expect(groups).toHaveLength(3)
 
     expect(groups[0].identifier).toBe('default')

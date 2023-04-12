@@ -125,7 +125,6 @@ export class BranchList extends React.Component<IBranchListProps> {
   private get groups() {
     return this.memoizedGroupBranches(
       this.props.defaultBranch,
-      this.props.currentBranch,
       this.props.allBranches,
       this.props.recentBranches
     )

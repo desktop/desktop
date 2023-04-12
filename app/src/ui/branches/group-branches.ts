@@ -11,7 +11,6 @@ export interface IBranchListItem extends IFilterListItem {
 
 export function groupBranches(
   defaultBranch: Branch | null,
-  currentBranch: Branch | null,
   allBranches: ReadonlyArray<Branch>,
   recentBranches: ReadonlyArray<Branch>
 ): ReadonlyArray<IFilterListGroup<IBranchListItem>> {
