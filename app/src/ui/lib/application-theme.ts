@@ -140,9 +140,11 @@ export function supportsSystemThemeChanges(): boolean {
     // was released October 2nd, 2018 and the feature can just be "attained" by upgrading
     // See https://github.com/desktop/desktop/issues/9015 for more
     return isWindows10And1809Preview17666OrLater()
+  } else {
+    // enabling this for Linux users as an experiment to see if distributions
+    // work with how Chromium detects theme changes
+    return true
   }
-
-  return false
 }
 
 function isDarkModeEnabled(): Promise<boolean> {
