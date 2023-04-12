@@ -8,7 +8,7 @@ import {
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import { CustomThemeSelector } from './custom-theme-selector'
-// import { enableHighContrastTheme } from '../../lib/feature-flag'
+import { enableHighContrastTheme } from '../../lib/feature-flag'
 import { RadioGroup } from '../lib/radio-group'
 
 interface IAppearanceProps {
@@ -121,12 +121,53 @@ export class Appearance extends React.Component<
             ApplicationTheme.Light,
             ApplicationTheme.Dark,
             ApplicationTheme.System,
+            ...(supportsSystemThemeChanges() ? [ApplicationTheme.System] : []),
+            ...(enableHighContrastTheme()
+              ? [ApplicationTheme.HighContrast]
+              : []),
           ]}
           onSelectionChanged={this.onSelectedThemeChanged}
         >
-          <span>Light</span>
-          <span>Dark</span>
-          <span>System</span>
+          <span>
+            <img
+              src="https://github.githubassets.com/images/modules/settings/color_modes/light_preview.svg"
+              alt=""
+              width="64"
+              height="64"
+            />
+            <span>Light</span>
+          </span>
+          <span>
+            <img
+              src="https://github.githubassets.com/images/modules/settings/color_modes/dark_preview.svg"
+              alt=""
+              width="64"
+              height="64"
+            />
+            <span>Dark</span>
+          </span>
+          {supportsSystemThemeChanges() && (
+            <span>
+              <img
+                src="https://github.githubassets.com/images/modules/settings/color_modes/light_preview.svg"
+                alt=""
+                width="64"
+                height="64"
+              />
+              <span>System</span>
+            </span>
+          )}
+          {enableHighContrastTheme() && (
+            <span>
+              <img
+                src="https://github.githubassets.com/images/modules/settings/color_modes/dark_high_contrast_preview.svg"
+                alt=""
+                width="64"
+                height="64"
+              />
+              <span>System</span>
+            </span>
+          )}
         </RadioGroup>
 
         <Row>
