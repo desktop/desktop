@@ -15,6 +15,9 @@ interface IRadioGroupProps<T> {
    */
   readonly radioButtonKeys: ReadonlyArray<T>
 
+  /** Optional class for radio group*/
+  readonly className?: string
+
   /**
    * A function that's called whenever the selected item changes, either
    * as a result of a click using a pointer device or as a result of the user
@@ -58,7 +61,11 @@ export class RadioGroup<T extends string> extends React.Component<
 
   public render() {
     return (
-      <div role="radiogroup" aria-labelledby={this.props.ariaLabelledBy}>
+      <div
+        role="radiogroup"
+        aria-labelledby={this.props.ariaLabelledBy}
+        className={this.props.className}
+      >
         {this.renderRadioButtons()}
       </div>
     )
