@@ -101,29 +101,23 @@ export class Appearance extends React.Component<
             <img
               src="https://github.githubassets.com/images/modules/settings/color_modes/light_preview.svg"
               alt=""
-              width="64"
-              height="64"
             />
-            <span>Light</span>
+            <span className="theme-value-label">Light</span>
           </span>
           <span>
             <img
               src="https://github.githubassets.com/images/modules/settings/color_modes/dark_preview.svg"
               alt=""
-              width="64"
-              height="64"
             />
-            <span>Dark</span>
+            <span className="theme-value-label">Dark</span>
           </span>
           {supportsSystemThemeChanges() && (
             <span>
               <img
                 src="https://github.githubassets.com/images/modules/settings/color_modes/light_preview.svg"
                 alt=""
-                width="64"
-                height="64"
               />
-              <span>System</span>
+              <span className="theme-value-label">System</span>
             </span>
           )}
           {enableHighContrastTheme() && (
@@ -131,10 +125,8 @@ export class Appearance extends React.Component<
               <img
                 src="https://github.githubassets.com/images/modules/settings/color_modes/dark_high_contrast_preview.svg"
                 alt=""
-                width="64"
-                height="64"
               />
-              <span>System</span>
+              <span className="theme-value-label">High Contrast</span>
             </span>
           )}
         </RadioGroup>
