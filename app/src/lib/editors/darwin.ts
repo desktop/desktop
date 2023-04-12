@@ -36,6 +36,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.neovide.neovide'],
   },
   {
+    name: 'VimR',
+    bundleIdentifiers: ['com.qvacua.VimR'],
+  },
+  {
     name: 'Visual Studio Code',
     bundleIdentifiers: ['com.microsoft.VSCode'],
   },
