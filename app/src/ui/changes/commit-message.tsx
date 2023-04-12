@@ -426,11 +426,6 @@ export class CommitMessage extends React.Component<
   private renderAvatar() {
     const { commitAuthor, repository } = this.props
     const { gitHubRepository } = repository
-    const avatarTitle = commitAuthor ? (
-      <>
-        Committing as <strong>{commitAuthor.name}</strong> {commitAuthor.email}
-      </>
-    ) : undefined
     const avatarUser: IAvatarUser | undefined =
       commitAuthor !== null
         ? getAvatarUserFromAuthor(commitAuthor, gitHubRepository)
@@ -449,7 +444,6 @@ export class CommitMessage extends React.Component<
     return (
       <CommitMessageAvatar
         user={avatarUser}
-        title={avatarTitle}
         email={commitAuthor?.email}
         isEnterpriseAccount={
           repositoryAccount?.endpoint !== getDotComAPIEndpoint()
