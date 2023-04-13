@@ -7,7 +7,9 @@ import { createReadStream } from 'fs'
 export const getFileHash = (path: string, type: 'sha1' | 'sha256') =>
   new Promise<string>((resolve, reject) => {
     const hash = createHash(type)
-    hash.on('finish', () => resolve(hash.digest('hex'))).on('error', reject)
+
+    hash.on('finish', () => resolve(hash.digest('hex')))
+    hash.on('error', reject)
 
     createReadStream(path).on('error', reject).pipe(hash)
   })
