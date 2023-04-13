@@ -50,7 +50,7 @@ function getSecret() {
 
 console.log('Uploading…')
 
-let uploadPromise = null
+let uploadPromise
 if (process.platform === 'darwin') {
   uploadPromise = uploadOSXAssets()
 } else if (process.platform === 'win32') {
@@ -60,7 +60,7 @@ if (process.platform === 'darwin') {
   process.exit(1)
 }
 
-uploadPromise!
+uploadPromise
   .then(artifacts => {
     const names = artifacts.map(function (item, index) {
       return item.name
