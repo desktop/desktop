@@ -26,8 +26,10 @@ export const getIntlFormatter = mem(createIntlFormatter, {
   cacheKey: ({ name }, ...args) => JSON.stringify([name, ...args]),
 })
 
-const factory = <T, O>(f: { new (l?: Locales, o?: O): T }) => (opts?: O) =>
-  getIntlFormatter(f, getFormattingLocales(), opts)
+const factory =
+  <T, O>(f: { new (l?: Locales, o?: O): T }) =>
+  (opts?: O) =>
+    getIntlFormatter(f, getFormattingLocales(), opts)
 
 export const getDefaultDateTimeFormatter = factory(Intl.DateTimeFormat)
 export const getDefaultRelativeTimeFormatter = factory(Intl.RelativeTimeFormat)
