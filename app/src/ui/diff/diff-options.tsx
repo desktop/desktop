@@ -4,7 +4,6 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RadioButton } from '../lib/radio-button'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
-import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
 
 interface IDiffOptionsProps {
   readonly isInteractiveDiff: boolean
@@ -28,9 +27,6 @@ export class DiffOptions extends React.Component<
   IDiffOptionsProps,
   IDiffOptionsState
 > {
-  readonly toggleHideWhitespaceChangesKey = 'D';
-  readonly toggleDiffDisplayModeKey = 'D';
-
   private diffOptionsRef = React.createRef<HTMLDivElement>()
 
   public constructor(props: IDiffOptionsProps) {
@@ -38,14 +34,6 @@ export class DiffOptions extends React.Component<
     this.state = {
       isPopoverOpen: false,
     }
-  }
-
-  public componentDidMount() {
-    document.addEventListener('keydown', this.onWindowKeyDown)
-  }
-
-  public componentWillUnmount() {
-    document.removeEventListener('keydown', this.onWindowKeyDown)
   }
 
   private onButtonClick = (event: React.FormEvent<HTMLButtonElement>) => {
@@ -83,33 +71,6 @@ export class DiffOptions extends React.Component<
     return this.props.onHideWhitespaceChangesChanged(
       event.currentTarget.checked
     )
-  }
-
-  private onWindowKeyDown = (event: KeyboardEvent) => {
-    if (event.defaultPrevented) {
-      return
-    }
-    const isCmdOrCtrl = __DARWIN__
-      ? event.metaKey && !event.ctrlKey
-      : event.ctrlKey
-    const key = String.fromCharCode(event.keyCode).toUpperCase()
-
-    if (isCmdOrCtrl && !event.shiftKey && event.altKey && key === this.toggleHideWhitespaceChangesKey) {
-      event.preventDefault()
-      this.toggleHideWhitespaceChanges()
-    }
-    else if (isCmdOrCtrl && !event.shiftKey && !event.altKey && key === this.toggleDiffDisplayModeKey) {
-      event.preventDefault()
-      this.toggleDiffDisplayMode()
-    }
-  }
-
-  private toggleHideWhitespaceChanges = () => {
-    this.props.onHideWhitespaceChangesChanged(!this.props.hideWhitespaceChanges)
-  }
-
-  private toggleDiffDisplayMode = () => {
-    this.props.onShowSideBySideDiffChanged(!this.props.showSideBySideDiff)
   }
 
   public render() {
@@ -167,9 +128,6 @@ export class DiffOptions extends React.Component<
           }
           onSelected={this.onSideBySideSelected}
         />
-        <p className="secondary-text">
-          Toggle with {this.renderKeyboardShortcut("CmdOrCtrl+" + this.toggleDiffDisplayModeKey)}
-        </p>
       </section>
     )
   }
@@ -189,9 +147,6 @@ export class DiffOptions extends React.Component<
             __DARWIN__ ? 'Hide Whitespace Changes' : 'Hide whitespace changes'
           }
         />
-        <p className="secondary-text">
-          Toggle with {this.renderKeyboardShortcut("Alt+CmdOrCtrl+" + this.toggleHideWhitespaceChangesKey)}
-        </p>
         {this.props.isInteractiveDiff && (
           <p className="secondary-text">
             Interacting with individual lines or hunks will be disabled while
@@ -200,10 +155,5 @@ export class DiffOptions extends React.Component<
         )}
       </section>
     )
-  }
-
-
-  private renderKeyboardShortcut(shortcut: string) {
-    return shortcut.split('+').map(getPlatformSpecificNameOrSymbolForModifier).map((k, i) => <kbd key={k + i}>{k}</kbd>)
   }
 }
