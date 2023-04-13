@@ -3,6 +3,16 @@ import * as distInfo from './dist-info'
 import * as gitInfo from '../app/git-info'
 import * as packageInfo from '../app/package-info'
 import * as platforms from './build-platforms'
+import * as Fs from 'fs'
+import { execSync } from 'child_process'
+import {
+  BlobServiceClient,
+  StorageSharedKeyCredential,
+} from '@azure/storage-blob'
+import * as Crypto from 'crypto'
+import request from 'request'
+import { getFileHash } from '../app/src/lib/file-system'
+import { stat } from 'fs/promises'
 
 if (!distInfo.isPublishable()) {
   console.log('Not a publishable build. Skipping publish.')
@@ -22,12 +32,6 @@ if (!currentTipSHA.toUpperCase().startsWith(releaseSHA!.toUpperCase())) {
   )
   process.exit(0)
 }
-
-import * as Fs from 'fs'
-import { execSync } from 'child_process'
-import * as Azure from 'azure-storage'
-import * as Crypto from 'crypto'
-import request from 'request'
 
 console.log('Packaging…')
 execSync('yarn package', { stdio: 'inherit' })
@@ -124,70 +128,41 @@ async function upload(assetName: string, assetPath: string) {
   const blob = `releases/${packageInfo.getVersion()}-${sha}/${cleanAssetName}`
   const url = `${process.env.AZURE_STORAGE_URL}/${container}/${blob}`
 
-  return new Promise<IUploadResult>((resolve, reject) => {
-    azureBlobService.createBlockBlobFromLocalFile(
-      container,
-      blob,
-      assetPath,
-      (error: any) => {
-        if (error != null) {
-          reject(error)
-        } else {
-          // eslint-disable-next-line no-sync
-          const stats = Fs.statSync(assetPath)
-          const hash = Crypto.createHash('sha1')
-          hash.setEncoding('hex')
-          const input = Fs.createReadStream(assetPath)
+  const blockBlobClient = azureBlobService.getBlockBlobClient(blob)
 
-          hash.on('finish', () => {
-            resolve({
-              name: assetName,
-              url,
-              size: stats['size'],
-              sha: hash.read() as string,
-            })
-          })
+  await blockBlobClient.uploadFile(assetPath)
 
-          input.pipe(hash)
-        }
-      }
-    )
-  })
+  const { size } = await stat(assetPath)
+  const hash = await getFileHash(assetPath, 'sha1')
+
+  return { name: assetName, url, size, sha: hash }
 }
 
-function getAzureBlobService(): Promise<Azure.BlobService> {
-  return new Promise<Azure.BlobService>((resolve, reject) => {
-    if (
-      process.env.AZURE_STORAGE_ACCOUNT === undefined ||
-      process.env.AZURE_STORAGE_ACCESS_KEY === undefined ||
-      process.env.AZURE_BLOB_CONTAINER === undefined
-    ) {
-      reject('Invalid azure storage credentials')
-      return
-    }
+async function getAzureBlobService() {
+  const {
+    AZURE_STORAGE_ACCOUNT: account,
+    AZURE_STORAGE_ACCESS_KEY: key,
+    AZURE_BLOB_CONTAINER: container,
+  } = process.env
 
-    const blobService = Azure.createBlobService(
-      process.env.AZURE_STORAGE_ACCOUNT,
-      process.env.AZURE_STORAGE_ACCESS_KEY
-    )
+  if (account === undefined || key === undefined || container === undefined) {
+    throw new Error('Invalid azure storage credentials')
+  }
 
-    blobService.createContainerIfNotExists(
-      process.env.AZURE_BLOB_CONTAINER,
-      {
-        publicAccessLevel: 'blob',
-      },
-      (error: any) => {
-        if (error !== null) {
-          console.log(error)
-          reject(
-            `Unable to ensure azure blob container - ${process.env.AZURE_BLOB_CONTAINER}. Deployment aborting...`
-          )
-        } else {
-          resolve(blobService)
-        }
-      }
-    )
-  })
+  const blobServiceClient = new BlobServiceClient(
+    `https://${account}.blob.core.windows.net`,
+    new StorageSharedKeyCredential(account, key)
+  )
+  const containerClient = blobServiceClient.getContainerClient(container)
+
+  try {
+    await containerClient.createIfNotExists({ access: 'blob' })
+  } catch (e) {
+    console.error(e)
+    throw new Error(`Failed ensuring container "${container}" aborting...`)
+  }
+
+  return containerClient
 }
 
 function createSignature(body: any, secret: string) {
