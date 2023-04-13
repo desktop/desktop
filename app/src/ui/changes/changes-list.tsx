@@ -54,7 +54,6 @@ import { createObservableRef } from '../lib/observable-ref'
 import { TooltipDirection } from '../lib/tooltip'
 import { Popup } from '../../models/popup'
 import { formatCount } from '../../lib/format-count'
-import { formatNumber } from '../../lib/format-number'
 import { EOL } from 'os'
 import { TooltippedContent } from '../lib/tooltipped-content'
 
@@ -933,9 +932,7 @@ export class ChangesList extends React.Component<
       file => file.selection.getSelectionType() !== DiffSelectionType.None
     ).length
 
-    const selectedChangesDescription = `${selectedChangeCount}/${
-      files.length
-    } changed ${formatCount(files.length, 'file')} included`
+    const selectedChangesDescription = `${selectedChangeCount}/${filesDescription} included`
 
     const includeAllValue = getIncludeAllValue(
       workingDirectory,
