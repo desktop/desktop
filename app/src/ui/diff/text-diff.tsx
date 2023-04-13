@@ -46,6 +46,7 @@ import {
   getLineWidthFromDigitCount,
   getNumberOfDigits,
   MaxIntraLineDiffStringLength,
+  textDiffEquals,
 } from './diff-helpers'
 import {
   expandTextDiffHunk,
@@ -1490,6 +1491,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       this.initDiffSyntaxMode()
     }
 
+    const isSameDiff = textDiffEquals(this.props.diff, prevProps.diff)
+
     if (canSelect(this.props.file)) {
       if (
         !canSelect(prevProps.file) ||
@@ -1498,17 +1501,15 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
         // If the text has changed the gutters will be recreated
         // regardless but if it hasn't then we'll need to update
         // the viewport.
-        if (this.props.diff.text === prevProps.diff.text) {
+        if (isSameDiff) {
           this.updateViewport()
         }
       }
     }
 
-    if (this.props.diff.text !== prevProps.diff.text) {
+    if (!isSameDiff) {
       this.diffToRestore = null
-      this.setState({
-        diff: this.props.diff,
-      })
+      this.setState({ diff: this.props.diff })
     }
 
     if (snapshot !== null) {

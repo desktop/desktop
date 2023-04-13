@@ -51,7 +51,7 @@ The release notes for the latest beta versions are available [here](https://desk
 
 There are several community-supported package managers that can be used to
 install GitHub Desktop:
- - Windows users can install using [winget](https://docs.microsoft.com/en-us/windows/package-manager/winget/) `c:/> winget install github-desktop` or [Chocolatey](https://chocolatey.org/) `c:\> choco install github-desktop`
+ - Windows users can install using [winget](https://docs.microsoft.com/en-us/windows/package-manager/winget/) `c:\> winget install github-desktop` or [Chocolatey](https://chocolatey.org/) `c:\> choco install github-desktop`
  - macOS users can install using [Homebrew](https://brew.sh/) package manager:
       `$ brew install --cask github`
 
@@ -96,13 +96,12 @@ If you're looking for something to work on, check out the [help wanted](https://
 
 ## Building Desktop
 
-To get your development environment set up for building Desktop, see [setup.md](./docs/contributing/setup.md).
+To setup your development environment for building Desktop, check out: [`setup.md`](./docs/contributing/setup.md).
 
 ## More Resources
 
 See [desktop.github.com](https://desktop.github.com) for more product-oriented
 information about GitHub Desktop.
-
 
 See our [getting started documentation](https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/overview/getting-started-with-github-desktop) for more information on how to set up, authenticate, and configure GitHub Desktop.
 

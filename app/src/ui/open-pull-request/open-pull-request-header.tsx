@@ -7,7 +7,7 @@ import { Ref } from '../lib/ref'
 
 interface IOpenPullRequestDialogHeaderProps {
   /** The base branch of the pull request */
-  readonly baseBranch: Branch
+  readonly baseBranch: Branch | null
 
   /** The branch of the pull request */
   readonly currentBranch: Branch
@@ -18,14 +18,20 @@ interface IOpenPullRequestDialogHeaderProps {
   readonly defaultBranch: Branch | null
 
   /**
-   * See IBranchesState.allBranches
+   * Branches in the repo with the repo's default remote
+   *
+   * We only want branches that are also on dotcom such that, when we ask a user
+   * to create a pull request, the base branch also exists on dotcom.
    */
-  readonly allBranches: ReadonlyArray<Branch>
+  readonly prBaseBranches: ReadonlyArray<Branch>
 
   /**
-   * See IBranchesState.recentBranches
+   * Recent branches with the repo's default remote
+   *
+   * We only want branches that are also on dotcom such that, when we ask a user
+   * to create a pull request, the base branch also exists on dotcom.
    */
-  readonly recentBranches: ReadonlyArray<Branch>
+  readonly prRecentBaseBranches: ReadonlyArray<Branch>
 
   /** The count of commits of the pull request */
   readonly commitCount: number
@@ -73,8 +79,8 @@ export class OpenPullRequestDialogHeader extends React.Component<
       baseBranch,
       currentBranch,
       defaultBranch,
-      allBranches,
-      recentBranches,
+      prBaseBranches,
+      prRecentBaseBranches,
       commitCount,
       onBranchChange,
       onDismissed,
@@ -95,9 +101,15 @@ export class OpenPullRequestDialogHeader extends React.Component<
             branch={baseBranch}
             defaultBranch={defaultBranch}
             currentBranch={currentBranch}
-            allBranches={allBranches}
-            recentBranches={recentBranches}
+            allBranches={prBaseBranches}
+            recentBranches={prRecentBaseBranches}
             onChange={onBranchChange}
+            noBranchesMessage={
+              <>
+                Sorry, I can't find that remote branch. <br />
+                You can only open pull requests against remote branches.
+              </>
+            }
           />{' '}
           from <Ref>{currentBranch.name}</Ref>.
         </div>

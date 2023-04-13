@@ -8,9 +8,6 @@ interface IListRowProps {
   /** the index of the row in the list */
   readonly rowIndex: number
 
-  /** the accessibility mode to assign to the row */
-  readonly ariaMode?: 'list' | 'menu'
-
   /** custom styles to provide to the row */
   readonly style?: React.CSSProperties
 
@@ -25,9 +22,6 @@ interface IListRowProps {
 
   /** callback to fire when the DOM element is created */
   readonly onRowRef?: (index: number, element: HTMLDivElement | null) => void
-
-  /** callback to fire when the row receives a mouseover event */
-  readonly onRowMouseOver: (index: number, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row receives a mousedown event */
   readonly onRowMouseDown: (index: number, e: React.MouseEvent<any>) => void
@@ -53,6 +47,13 @@ interface IListRowProps {
     e: React.FocusEvent<HTMLDivElement>
   ) => void
 
+  /** Called back for when the context menu is invoked (user right clicks of
+   * uses keyboard shortcuts) */
+  readonly onContextMenu?: (
+    index: number,
+    e: React.MouseEvent<HTMLDivElement>
+  ) => void
+
   /**
    * Whether or not this list row is going to be selectable either through
    * keyboard navigation, pointer clicks, or both. This is used to determine
@@ -67,10 +68,6 @@ interface IListRowProps {
 export class ListRow extends React.Component<IListRowProps, {}> {
   private onRef = (elem: HTMLDivElement | null) => {
     this.props.onRowRef?.(this.props.rowIndex, elem)
-  }
-
-  private onRowMouseOver = (e: React.MouseEvent<HTMLDivElement>) => {
-    this.props.onRowMouseOver(this.props.rowIndex, e)
   }
 
   private onRowMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -97,6 +94,10 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     this.props.onRowBlur?.(this.props.rowIndex, e)
   }
 
+  private onContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onContextMenu?.(this.props.rowIndex, e)
+  }
+
   public render() {
     const selected = this.props.selected
     const className = classNames(
@@ -105,8 +106,6 @@ export class ListRow extends React.Component<IListRowProps, {}> {
       { 'not-selectable': this.props.selectable === false },
       this.props.className
     )
-    const role = this.props.ariaMode === 'menu' ? 'menuitem' : 'option'
-
     // react-virtualized gives us an explicit pixel width for rows, but that
     // width doesn't take into account whether or not the scroll bar needs
     // width too, e.g., on macOS when "Show scroll bars" is set to "Always."
@@ -117,17 +116,15 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     const style = { ...this.props.style, width: '100%' }
 
     return (
-      // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events
       <div
         id={this.props.id}
+        role="option"
         aria-setsize={this.props.rowCount}
         aria-posinset={this.props.rowIndex + 1}
-        aria-selected={this.props.selected}
-        role={role}
+        aria-selected={this.props.selectable ? this.props.selected : undefined}
         className={className}
         tabIndex={this.props.tabIndex}
         ref={this.onRef}
-        onMouseOver={this.onRowMouseOver}
         onMouseDown={this.onRowMouseDown}
         onMouseUp={this.onRowMouseUp}
         onClick={this.onRowClick}
@@ -135,6 +132,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         style={style}
         onFocus={this.onFocus}
         onBlur={this.onBlur}
+        onContextMenu={this.onContextMenu}
       >
         {this.props.children}
       </div>

@@ -23,6 +23,10 @@ interface ICheckboxProps {
 
   /** The label for the checkbox. */
   readonly label?: string | JSX.Element
+
+  /** An aria description of a checkbox - intended to provide more verbose
+   * information than a label that a the user might need */
+  readonly ariaDescribedBy?: string
 }
 
 interface ICheckboxState {
@@ -61,6 +65,10 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
     }
   }
 
+  public focus() {
+    this.input?.focus()
+  }
+
   private updateInputState() {
     const input = this.input
     if (input) {
@@ -94,6 +102,7 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
           onChange={this.onChange}
           ref={this.onInputRef}
           disabled={this.props.disabled}
+          aria-describedby={this.props.ariaDescribedBy}
         />
         {this.renderLabel()}
       </div>

@@ -39,6 +39,7 @@ interface IPopoverProps {
   readonly className?: string
   readonly style?: React.CSSProperties
   readonly appearEffect?: PopoverAppearEffect
+  readonly ariaLabelledby?: string
 }
 
 export class Popover extends React.Component<IPopoverProps> {
@@ -105,7 +106,13 @@ export class Popover extends React.Component<IPopoverProps> {
 
     return (
       <FocusTrap active={true} focusTrapOptions={this.focusTrapOptions}>
-        <div className={cn} ref={this.containerDivRef} style={this.props.style}>
+        <div
+          className={cn}
+          ref={this.containerDivRef}
+          style={this.props.style}
+          aria-labelledby={this.props.ariaLabelledby}
+          role="dialog"
+        >
           {this.props.children}
         </div>
       </FocusTrap>

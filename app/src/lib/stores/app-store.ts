@@ -8,10 +8,11 @@ import {
   PullRequestCoordinator,
   RepositoriesStore,
   SignInStore,
+  UpstreamRemoteName,
 } from '.'
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
-import { IAuthor } from '../../models/author'
+import { Author } from '../../models/author'
 import { Branch, BranchType, IAheadBehind } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
@@ -46,6 +47,7 @@ import {
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
   getNonForkGitHubRepository,
+  isForkedRepositoryContributingToParent,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -93,6 +95,7 @@ import {
   IAPIOrganization,
   getEndpointForRepository,
   IAPIFullRepository,
+  IAPIComment,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -313,6 +316,7 @@ import { findContributionTargetDefaultBranch } from '../branch'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
+import { resizableComponentClass } from '../../ui/resizable'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -446,6 +450,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
+  private resizablePaneActive = false
   private isUpdateAvailableBannerVisible: boolean = false
   private isUpdateShowcaseVisible: boolean = false
 
@@ -598,6 +603,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.notificationsStore.onPullRequestReviewSubmitNotification(
       this.onPullRequestReviewSubmitNotification
+    )
+
+    this.notificationsStore.onPullRequestCommentNotification(
+      this.onPullRequestCommentNotification
     )
 
     onShowInstallingUpdate(this.onShowInstallingUpdate)
@@ -930,6 +939,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
       currentPopup: this.popupManager.currentPopup,
+      allPopups: this.popupManager.allPopups,
       currentFoldout: this.currentFoldout,
       errorCount: this.popupManager.getPopupsOfType(PopupType.Error).length,
       showWelcomeFlow: this.showWelcomeFlow,
@@ -980,6 +990,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       showCIStatusPopover: this.showCIStatusPopover,
       notificationsEnabled: getNotificationsEnabled(),
       pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
+      resizablePaneActive: this.resizablePaneActive,
     }
   }
 
@@ -5958,7 +5969,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this._openInBrowser(url.toString())
   }
 
-  public async _createPullRequest(repository: Repository): Promise<void> {
+  public async _createPullRequest(
+    repository: Repository,
+    baseBranch?: Branch
+  ): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return
@@ -5971,24 +5985,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const branch = tip.branch
+    const compareBranch = tip.branch
     const aheadBehind = state.aheadBehind
 
     if (aheadBehind == null) {
       this._showPopup({
         type: PopupType.PushBranchCommits,
         repository,
-        branch,
+        branch: compareBranch,
       })
     } else if (aheadBehind.ahead > 0) {
       this._showPopup({
         type: PopupType.PushBranchCommits,
         repository,
-        branch,
+        branch: compareBranch,
         unPushedCommits: aheadBehind.ahead,
       })
     } else {
-      await this._openCreatePullRequestInBrowser(repository, branch)
+      await this._openCreatePullRequestInBrowser(
+        repository,
+        compareBranch,
+        baseBranch
+      )
     }
   }
 
@@ -6083,15 +6101,38 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public async _openCreatePullRequestInBrowser(
     repository: Repository,
-    branch: Branch
+    compareBranch: Branch,
+    baseBranch?: Branch
   ): Promise<void> {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       return
     }
 
-    const urlEncodedBranchName = encodeURIComponent(branch.nameWithoutRemote)
-    const baseURL = `${gitHubRepository.htmlURL}/pull/new/${urlEncodedBranchName}`
+    const { parent, owner, name, htmlURL } = gitHubRepository
+    const isForkContributingToParent =
+      isForkedRepositoryContributingToParent(repository)
+
+    const baseForkPreface =
+      isForkContributingToParent && parent !== null
+        ? `${parent.owner.login}:${parent.name}:`
+        : ''
+    const encodedBaseBranch =
+      baseBranch !== undefined
+        ? baseForkPreface +
+          encodeURIComponent(baseBranch.nameWithoutRemote) +
+          '...'
+        : ''
+
+    const compareForkPreface = isForkContributingToParent
+      ? `${owner.login}:${name}:`
+      : ''
+
+    const encodedCompareBranch =
+      compareForkPreface + encodeURIComponent(compareBranch.nameWithoutRemote)
+
+    const compareString = `${encodedBaseBranch}${encodedCompareBranch}`
+    const baseURL = `${htmlURL}/pull/new/${compareString}`
 
     await this._openInBrowser(baseURL)
 
@@ -6267,7 +6308,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _setCoAuthors(
     repository: Repository,
-    coAuthors: ReadonlyArray<IAuthor>
+    coAuthors: ReadonlyArray<Author>
   ) {
     this.gitStoreCache.get(repository).setCoAuthors(coAuthors)
     return Promise.resolve()
@@ -7267,8 +7308,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private onPullRequestReviewSubmitNotification = async (
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
-    review: ValidNotificationPullRequestReview,
-    numberOfComments: number
+    review: ValidNotificationPullRequestReview
   ) => {
     const selectedRepository =
       this.selectedRepository ?? (await this._selectRepository(repository))
@@ -7289,28 +7329,59 @@ export class AppStore extends TypedBaseStore<IAppState> {
       review,
       pullRequest,
       repository,
-      numberOfComments,
+    })
+  }
+
+  private onPullRequestCommentNotification = async (
+    repository: RepositoryWithGitHubRepository,
+    pullRequest: PullRequest,
+    comment: IAPIComment
+  ) => {
+    const selectedRepository =
+      this.selectedRepository ?? (await this._selectRepository(repository))
+
+    const state = this.repositoryStateCache.get(repository)
+
+    const { branchesState } = state
+    const { tip } = branchesState
+    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+    return this._showPopup({
+      type: PopupType.PullRequestComment,
+      shouldCheckoutBranch:
+        currentBranch !== null && currentBranch.name !== pullRequest.head.ref,
+      shouldChangeRepository:
+        selectedRepository === null ||
+        selectedRepository.hash !== repository.hash,
+      comment,
+      pullRequest,
+      repository,
     })
   }
 
   public async _startPullRequest(repository: Repository) {
-    const { branchesState } = this.repositoryStateCache.get(repository)
-    const { defaultBranch, tip } = branchesState
+    const { tip, defaultBranch } =
+      this.repositoryStateCache.get(repository).branchesState
 
-    if (defaultBranch === null || tip.kind !== TipState.Valid) {
+    if (tip.kind !== TipState.Valid) {
+      // Shouldn't even be able to get here if so - just a type check
       return
     }
+
     const currentBranch = tip.branch
     this._initializePullRequestPreview(repository, defaultBranch, currentBranch)
   }
 
   private async _initializePullRequestPreview(
     repository: Repository,
-    baseBranch: Branch,
+    baseBranch: Branch | null,
     currentBranch: Branch
   ) {
-    const { branchesState, localCommitSHAs } =
-      this.repositoryStateCache.get(repository)
+    if (baseBranch === null) {
+      this.showPullRequestPopupNoBaseBranch(repository, currentBranch)
+      return
+    }
+
     const gitStore = this.gitStoreCache.get(repository)
 
     const pullRequestCommits = await gitStore.getCommitsBetweenBranches(
@@ -7377,24 +7448,73 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    const { allBranches, recentBranches, defaultBranch } = branchesState
+    this.showPullRequestPopup(repository, currentBranch, commitSHAs)
+  }
+
+  public showPullRequestPopupNoBaseBranch(
+    repository: Repository,
+    currentBranch: Branch
+  ) {
+    this.repositoryStateCache.initializePullRequestState(repository, {
+      baseBranch: null,
+      commitSHAs: null,
+      commitSelection: null,
+      mergeStatus: null,
+    })
+
+    this.emitUpdate()
+
+    this.showPullRequestPopup(repository, currentBranch, [])
+  }
+
+  public showPullRequestPopup(
+    repository: Repository,
+    currentBranch: Branch,
+    commitSHAs: ReadonlyArray<string>
+  ) {
+    if (this.popupManager.areTherePopupsOfType(PopupType.StartPullRequest)) {
+      return
+    }
+
+    this.statsStore.recordPreviewedPullRequest()
+
+    const { branchesState, localCommitSHAs } =
+      this.repositoryStateCache.get(repository)
+    const { allBranches, recentBranches, defaultBranch, currentPullRequest } =
+      branchesState
+    const gitStore = this.gitStoreCache.get(repository)
+    /*  We only want branches that are also on dotcom such that, when we ask a
+     *  user to create a pull request, the base branch also exists on dotcom.
+     */
+    const remote = isForkedRepositoryContributingToParent(repository)
+      ? UpstreamRemoteName
+      : gitStore.defaultRemote?.name
+    const prBaseBranches = allBranches.filter(
+      b => b.upstreamRemoteName === remote || b.remoteName === remote
+    )
+    const prRecentBaseBranches = recentBranches.filter(
+      b => b.upstreamRemoteName === remote || b.remoteName === remote
+    )
     const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
       this.getState()
 
+    const nonLocalCommitSHA =
+      commitSHAs.length > 0 && !localCommitSHAs.includes(commitSHAs[0])
+        ? commitSHAs[0]
+        : null
+
     this._showPopup({
       type: PopupType.StartPullRequest,
-      allBranches,
+      prBaseBranches,
+      prRecentBaseBranches,
       currentBranch,
       defaultBranch,
       imageDiffType,
-      recentBranches,
       repository,
       externalEditorLabel: selectedExternalEditor ?? undefined,
-      nonLocalCommitSHA:
-        commitSHAs.length > 0 && !localCommitSHAs.includes(commitSHAs[0])
-          ? commitSHAs[0]
-          : null,
+      nonLocalCommitSHA,
       showSideBySideDiff,
+      currentBranchHasPullRequest: currentPullRequest !== null,
     })
   }
 
@@ -7414,7 +7534,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const currentBranch = branchesState.tip.branch
     const { baseBranch, commitSHAs } = pullRequestState
-    if (commitSHAs === null) {
+    if (commitSHAs === null || baseBranch === null) {
       return
     }
 
@@ -7548,6 +7668,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
   }
+
+  private isResizePaneActive() {
+    if (document.activeElement === null) {
+      return false
+    }
+
+    const appMenuBar = document.getElementById('app-menu-bar')
+
+    // Don't track windows menu items as focused elements for keeping
+    // track of recently focused elements we want to act upon
+    if (appMenuBar?.contains(document.activeElement)) {
+      return this.resizablePaneActive
+    }
+
+    return (
+      document.activeElement.closest(`.${resizableComponentClass}`) !== null
+    )
+  }
+
+  public _appFocusedElementChanged() {
+    const resizablePaneActive = this.isResizePaneActive()
+
+    if (resizablePaneActive !== this.resizablePaneActive) {
+      this.resizablePaneActive = resizablePaneActive
+      this.emitUpdate()
+    }
+  }
 }
 
 /**
@@ -7612,5 +7759,12 @@ function constrain(
   min = -Infinity,
   max = Infinity
 ): IConstrainedValue {
-  return { value: typeof value === 'number' ? value : value.value, min, max }
+  // Match CSS's behavior where min-width takes precedence over max-width
+  // See https://stackoverflow.com/a/16063871
+  const constrainedMax = max < min ? min : max
+  return {
+    value: typeof value === 'number' ? value : value.value,
+    min,
+    max: constrainedMax,
+  }
 }

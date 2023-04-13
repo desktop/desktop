@@ -22,6 +22,9 @@
 @import 'dialogs/unreachable-commits';
 @import 'dialogs/open-pull-request';
 @import 'dialogs/installing-update';
+@import 'dialogs/test-notifications';
+@import 'dialogs/pull-request-comment-like';
+@import 'dialogs/unknown-authors';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -32,6 +35,7 @@ dialog {
   flex-direction: column;
 
   overflow: unset;
+
   // These are the 24px versions of the alert and stop octicons
   // from oction v10.0.0
   //
@@ -129,6 +133,10 @@ dialog {
     opacity: 1;
   }
 
+  &:not([open]) {
+    display: none;
+  }
+
   // The dialog embeds a fieldset as the first child of the form element
   // in order to be able to disable all form elements and buttons in one
   // swoop. This resets all styles for that fieldset.
@@ -207,7 +215,7 @@ dialog {
       }
 
       &:focus {
-        outline: 0;
+        outline-offset: 3px;
       }
     }
     @include close-button;
@@ -397,7 +405,15 @@ dialog {
 
   &#preferences {
     width: 600px;
+
+    // This is to ensure that the dialog content is accessible when zoomed in
+    @media (max-width: 600px) {
+      overflow-y: auto;
+      width: 100%;
+      max-width: calc(100% - var(--spacing-double));
+    }
   }
+
   &#about {
     width: 450px;
   }

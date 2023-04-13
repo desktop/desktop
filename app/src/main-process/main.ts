@@ -30,7 +30,7 @@ import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
 import { buildContextMenu } from './menu/build-context-menu'
 import { OrderedWebRequest } from './ordered-webrequest'
-import { installAuthenticatedAvatarFilter } from './authenticated-avatar-filter'
+import { installAuthenticatedImageFilter } from './authenticated-image-filter'
 import { installAliveOriginFilter } from './alive-origin-filter'
 import { installSameOriginFilter } from './same-origin-filter'
 import * as ipcMain from './ipc-main'
@@ -317,8 +317,9 @@ app.on('ready', () => {
   // Ensures Alive websocket sessions are initiated with an acceptable Origin
   installAliveOriginFilter(orderedWebRequest)
 
-  // Adds an authorization header for requests of avatars on GHES
-  const updateAccounts = installAuthenticatedAvatarFilter(orderedWebRequest)
+  // Adds an authorization header for requests of avatars on GHES and private
+  // repo assets
+  const updateAccounts = installAuthenticatedImageFilter(orderedWebRequest)
 
   Menu.setApplicationMenu(
     buildDefaultMenu({
@@ -689,11 +690,11 @@ app.on('activate', () => {
 })
 
 app.on('web-contents-created', (event, contents) => {
-  contents.on('new-window', (event, url) => {
-    // Prevent links or window.open from opening new windows
-    event.preventDefault()
+  contents.setWindowOpenHandler(({ url }) => {
     log.warn(`Prevented new window to: ${url}`)
+    return { action: 'deny' }
   })
+
   // prevent link navigation within our windows
   // see https://www.electronjs.org/docs/tutorial/security#12-disable-or-limit-navigation
   contents.on('will-navigate', (event, url) => {
@@ -729,7 +730,13 @@ function createWindow() {
       electron: '>=1.2.1',
     }
 
-    const extensions = [REACT_DEVELOPER_TOOLS, ChromeLens]
+    const axeDevTools = {
+      id: 'lhdoppojpmngadmnindnejefpokejbdd',
+      electron: '>=1.2.1',
+      Permissions: ['tabs', 'debugger'],
+    }
+
+    const extensions = [REACT_DEVELOPER_TOOLS, ChromeLens, axeDevTools]
 
     for (const extension of extensions) {
       try {

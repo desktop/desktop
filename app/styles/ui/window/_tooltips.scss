@@ -193,6 +193,10 @@ body > .tooltip,
         color: var(--color-deleted);
       }
 
+      .files-renamed-icon {
+        color: var(--color-renamed);
+      }
+
       .octicon {
         margin-right: var(--spacing-third);
         vertical-align: bottom; // For some reason, `bottom` places the text in the middle
@@ -205,4 +209,17 @@ body > .tooltip,
   // Tooltips are positioned absolutely relative to their hosts so the hosts
   // need to be position: relative or position: absolute.
   position: relative;
+}
+
+button.toggletip {
+  // override default button styles
+  overflow: inherit;
+  text-overflow: inherit;
+  white-space: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  padding: inherit;
+  border: none;
+  color: inherit;
+  background-color: inherit;
 }

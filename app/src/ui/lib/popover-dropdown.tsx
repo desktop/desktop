@@ -94,9 +94,11 @@ export class PopoverDropdown extends React.Component<
         className="popover-dropdown-popover"
         caretPosition={PopoverCaretPosition.TopLeft}
         onClickOutside={this.closePopover}
+        aria-labelledby="popover-dropdown-header"
       >
         <div className="popover-dropdown-header">
-          {contentTitle}
+          <span id="popover-dropdown-header">{contentTitle}</span>
+
           <button
             className="close"
             onClick={this.closePopover}

@@ -9,6 +9,7 @@
 
   display: flex;
   background-color: var(--box-alt-background-color);
+
   padding: var(--spacing);
 
   .summary {
@@ -67,6 +68,10 @@
     &:hover {
       color: var(--text-color);
     }
+
+    &:focus {
+      outline-offset: 2px;
+    }
   }
 
   &.with-co-authors .co-authors-toggle {
@@ -84,13 +89,17 @@
     .description-field textarea {
       min-height: 80px;
 
+      @media (max-height: 500px) {
+        min-height: 10px;
+      }
+
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
     }
   }
 
   .description-focus-container {
-    border: 1px solid var(--box-border-color);
+    border: var(--contrast-border);
     border-radius: var(--border-radius);
     background: var(--background-color);
     // Fake that we're a text-box

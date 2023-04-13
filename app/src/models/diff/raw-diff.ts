@@ -41,6 +41,21 @@ export class DiffHunk {
     public readonly unifiedDiffEnd: number,
     public readonly expansionType: DiffHunkExpansionType
   ) {}
+
+  public equals(other: DiffHunk) {
+    if (this === other) {
+      return true
+    }
+
+    return (
+      this.header.equals(other.header) &&
+      this.unifiedDiffStart === other.unifiedDiffStart &&
+      this.unifiedDiffEnd === other.unifiedDiffEnd &&
+      this.expansionType === other.expansionType &&
+      this.lines.length === other.lines.length &&
+      this.lines.every((xLine, ix) => xLine.equals(other.lines[ix]))
+    )
+  }
 }
 
 /** details about the start and end of a diff hunk */
@@ -60,6 +75,15 @@ export class DiffHunkHeader {
 
   public toDiffLineRepresentation() {
     return `@@ -${this.oldStartLine},${this.oldLineCount} +${this.newStartLine},${this.newLineCount} @@`
+  }
+
+  public equals(other: DiffHunkHeader) {
+    return (
+      this.oldStartLine === other.oldStartLine &&
+      this.oldLineCount === other.oldLineCount &&
+      this.newStartLine === other.newStartLine &&
+      this.oldStartLine === other.oldStartLine
+    )
   }
 }
 

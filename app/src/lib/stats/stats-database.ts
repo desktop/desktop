@@ -146,8 +146,15 @@ export interface IDailyMeasures {
   /** The number of times the user committed a conflicted merge outside the merge conflicts dialog */
   readonly unguidedConflictedMergeCompletionCount: number
 
-  /** The number of times the user is taken to the create pull request page on dotcom */
+  /** The number of times the user is taken to the create pull request page on dotcom including.
+   *
+   * NB - This metric tracks all times including when
+   * `createPullRequestFromPreviewCount` this is tracked.
+   * */
   readonly createPullRequestCount: number
+
+  /** The number of times the user is taken to the create pull request page on dotcom from the preview dialog */
+  readonly createPullRequestFromPreviewCount: number
 
   /** The number of times the rebase conflicts dialog is dismissed */
   readonly rebaseConflictsDialogDismissalCount: number
@@ -545,6 +552,29 @@ export interface IDailyMeasures {
    */
   readonly pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: number
 
+  /** The number of "commented PR" notifications the user received */
+  readonly pullRequestCommentNotificationCount: number
+
+  /** The number of "commented PR" notifications the user clicked */
+  readonly pullRequestCommentNotificationClicked: number
+
+  /**
+   * The number of PR comment notifications the user received for a non-recent
+   * repository other than the selected one.
+   */
+  readonly pullRequestCommentNotificationFromNonRecentRepoCount: number
+  /**
+   * The number of PR comment notifications the user received for a recent
+   * repository other than the selected one.
+   */
+  readonly pullRequestCommentNotificationFromRecentRepoCount: number
+
+  /**
+   * The number of times the user decided to switch to the affected pull request
+   * from the PR comment dialog.
+   */
+  readonly pullRequestCommentDialogSwitchToPullRequestCount: number
+
   /** The number of times the user did a multi commit diff where there were unreachable commits */
   readonly multiCommitDiffWithUnreachableCommitWarningCount: number
 
@@ -565,6 +595,9 @@ export interface IDailyMeasures {
 
   /** The number of times the user opens a submodule repository from its diff */
   readonly openSubmoduleFromDiffCount: number
+
+  /** The number of times a user has opened the preview pull request dialog */
+  readonly previewedPullRequestCount: number
 }
 
 export class StatsDatabase extends Dexie {

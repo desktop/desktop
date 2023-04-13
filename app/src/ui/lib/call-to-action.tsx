@@ -19,7 +19,10 @@ export class CallToAction extends React.Component<ICallToActionProps, {}> {
     return (
       <Row className="call-to-action">
         {this.props.children}
-        <Button className="action-button" type="submit" onClick={this.onClick}>
+        <Button
+          className="action-button button-component-primary"
+          onClick={this.onClick}
+        >
           {this.props.actionTitle}
         </Button>
       </Row>

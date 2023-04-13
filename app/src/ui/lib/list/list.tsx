@@ -17,6 +17,7 @@ import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
 import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
+import memoizeOne from 'memoize-one'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -69,6 +70,13 @@ interface IListProps {
    * the height of that particular row.
    */
   readonly rowHeight: number | ((info: { index: number }) => number)
+
+  /**
+   * Function that generates an ID for a given row. This will allow the
+   * container component of the list to have control over the ID of the
+   * row and allow it to be used for things like keyboard navigation.
+   */
+  readonly rowId?: (row: number) => string
 
   /**
    * The currently selected rows indexes. Used to attach a special
@@ -129,8 +137,7 @@ interface IListProps {
    *
    * @param row    - The index of the row that was just selected
    * @param source - The kind of user action that provoked the change, either
-   *                 a pointer device press, hover (if selectOnHover is set) or
-   *                 a keyboard event (arrow up/down)
+   *                 a pointer device press or a keyboard event (arrow up/down)
    */
   readonly onSelectedRowChanged?: (row: number, source: SelectionSource) => void
 
@@ -144,8 +151,7 @@ interface IListProps {
    * @param start  - The index of the first selected row
    * @param end    - The index of the last selected row
    * @param source - The kind of user action that provoked the change, either
-   *                 a pointer device press, hover (if selectOnHover is set) or
-   *                 a keyboard event (arrow up/down)
+   *                 a pointer device press or a keyboard event (arrow up/down)
    */
   readonly onSelectedRangeChanged?: (
     start: number,
@@ -161,8 +167,7 @@ interface IListProps {
    *
    * @param rows   - The indexes of the row(s) that are part of the selection
    * @param source - The kind of user action that provoked the change, either
-   *                 a pointer device press, hover (if selectOnHover is set) or
-   *                 a keyboard event (arrow up/down)
+   *                 a pointer device press or a keyboard event (arrow up/down)
    */
   readonly onSelectionChanged?: (
     rows: ReadonlyArray<number>,
@@ -187,6 +192,18 @@ interface IListProps {
    * for every mouse down event, whether the row is selected or not.
    */
   readonly onRowMouseDown?: (row: number, event: React.MouseEvent<any>) => void
+
+  /**
+   * A handler called whenever a context menu event is received on the
+   * row container element.
+   *
+   * The context menu is invoked when a user right clicks the row or
+   * uses keyboard shortcut.
+   */
+  readonly onRowContextMenu?: (
+    row: number,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
 
   /**
    * A handler called whenever the user drops items on the list to be inserted.
@@ -215,29 +232,26 @@ interface IListProps {
   /** The unique identifier for the outer element of the component (optional, defaults to null) */
   readonly id?: string
 
+  /** The unique identifier of the accessible list component (optional) */
+  readonly accessibleListId?: string
+
   /** The row that should be scrolled to when the list is rendered. */
   readonly scrollToRow?: number
 
-  /** Whether or not selection should follow pointer device */
-  readonly selectOnHover?: boolean
-
   /** Type of elements that can be inserted in the list via drag & drop. Optional. */
   readonly insertionDragType?: DragType
-
-  /**
-   * Whether or not to explicitly move focus to a row if it was selected
-   * by hovering (has no effect if selectOnHover is not set). Defaults to
-   * true if not defined.
-   */
-  readonly focusOnHover?: boolean
-
-  readonly ariaMode?: 'list' | 'menu'
 
   /**
    * The number of pixels from the top of the list indicating
    * where to scroll do on rendering of the list.
    */
   readonly setScrollTop?: number
+
+  /** The aria-labelledby attribute for the list component. */
+  readonly ariaLabelledBy?: string
+
+  /** The aria-label attribute for the list component. */
+  readonly ariaLabel?: string
 }
 
 interface IListState {
@@ -293,6 +307,27 @@ export class List extends React.Component<IListProps, IListState> {
   private readonly resizeObserver: ResizeObserver | null = null
   private updateSizeTimeoutId: NodeJS.Immediate | null = null
 
+  /**
+   * Get the props for the inner scroll container (called containerProps on the
+   * Grid component). This is memoized to avoid causing the Grid component to
+   * rerender every time the list component rerenders (the Grid component is a
+   * pure component so a complex object like containerProps being instantiated
+   * on each render would cause it to rerender constantly).
+   */
+  private getContainerProps = memoizeOne(
+    (
+      activeDescendant: string | undefined
+    ): React.HTMLProps<HTMLDivElement> => ({
+      onKeyDown: this.onKeyDown,
+      'aria-activedescendant': activeDescendant,
+      'aria-multiselectable':
+        this.props.selectionMode === 'multi' ||
+        this.props.selectionMode === 'range'
+          ? 'true'
+          : undefined,
+    })
+  )
+
   public constructor(props: IListProps) {
     super(props)
 
@@ -321,6 +356,16 @@ export class List extends React.Component<IListProps, IListState> {
         }
       })
     }
+  }
+
+  private getRowId(row: number): string | undefined {
+    if (this.props.rowId) {
+      return this.props.rowId(row)
+    }
+
+    return this.state.rowIdPrefix === undefined
+      ? undefined
+      : `${this.state.rowIdPrefix}-${row}`
   }
 
   private onResized = (target: HTMLElement, contentRect: ClientRect) => {
@@ -607,18 +652,11 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onRowMouseOver = (row: number, event: React.MouseEvent<any>) => {
-    if (this.props.selectOnHover && this.canSelectRow(row)) {
-      if (!this.props.selectedRows.includes(row)) {
-        this.props.onSelectionChanged?.([row], { kind: 'hover', event })
-        // By calling scrollRowToVisible we ensure that hovering over a partially
-        // visible item at the top or bottom of the list scrolls it into view but
-        // more importantly `scrollRowToVisible` automatically manages focus so
-        // using it here allows us to piggy-back on its focus-preserving magic
-        // even though we could theoretically live without scrolling
-        this.scrollRowToVisible(row, this.props.focusOnHover !== false)
-      }
-    }
+  private onRowContextMenu = (
+    row: number,
+    e: React.MouseEvent<HTMLDivElement>
+  ) => {
+    this.props.onRowContextMenu?.(row, e)
   }
 
   /** Convenience method for invoking canSelectRow callback when it exists */
@@ -770,7 +808,7 @@ export class List extends React.Component<IListProps, IListState> {
     if (scrollToRow !== undefined && prevProps.scrollToRow !== scrollToRow) {
       // Prefer scrollTop position over scrollToRow
       if (setScrollTop === undefined) {
-        this.scrollRowToVisible(scrollToRow)
+        this.scrollRowToVisible(scrollToRow, false)
       }
     }
 
@@ -894,9 +932,7 @@ export class List extends React.Component<IListProps, IListState> {
         row
       )
 
-    const id = this.state.rowIdPrefix
-      ? `${this.state.rowIdPrefix}-${rowIndex}`
-      : undefined
+    const id = this.getRowId(rowIndex)
 
     return (
       <ListRow
@@ -906,14 +942,13 @@ export class List extends React.Component<IListProps, IListState> {
         rowCount={this.props.rowCount}
         rowIndex={rowIndex}
         selected={selected}
-        ariaMode={this.props.ariaMode}
         onRowClick={this.onRowClick}
         onRowKeyDown={this.onRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}
         onRowMouseUp={this.onRowMouseUp}
-        onRowMouseOver={this.onRowMouseOver}
         onRowFocus={this.onRowFocus}
         onRowBlur={this.onRowBlur}
+        onContextMenu={this.onRowContextMenu}
         style={params.style}
         tabIndex={tabIndex}
         children={element}
@@ -941,25 +976,13 @@ export class List extends React.Component<IListProps, IListState> {
       )
     }
 
-    // we select the last item from the selection array for this prop
-    const activeDescendant =
-      this.props.selectedRows.length && this.state.rowIdPrefix
-        ? `${this.state.rowIdPrefix}-${
-            this.props.selectedRows[this.props.selectedRows.length - 1]
-          }`
-        : undefined
-
-    const role = this.props.ariaMode === 'menu' ? 'menu' : 'listbox'
-
     return (
-      // eslint-disable-next-line jsx-a11y/aria-activedescendant-has-tabindex
       <div
         ref={this.onRef}
         id={this.props.id}
         className="list"
-        onKeyDown={this.onKeyDown}
-        role={role}
-        aria-activedescendant={activeDescendant}
+        aria-labelledby={this.props.ariaLabelledBy}
+        aria-label={this.props.ariaLabel}
       >
         {content}
       </div>
@@ -1002,12 +1025,21 @@ export class List extends React.Component<IListProps, IListState> {
    * @param height - The height of the Grid as given by AutoSizer
    */
   private renderGrid(width: number, height: number) {
-    // The currently selected list item is focusable but if
-    // there's no focused item (and there's items to switch between)
-    // the list itself needs to be focusable so that you can reach
-    // it with keyboard navigation and select an item.
-    const tabIndex =
-      this.props.selectedRows.length < 1 && this.props.rowCount > 0 ? 0 : -1
+    // The currently selected list item is focusable but if there's no focused
+    // item the list itself needs to be focusable so that you can reach it with
+    // keyboard navigation and select an item.
+    const tabIndex = this.props.selectedRows.length < 1 ? 0 : -1
+
+    // we select the last item from the selection array for this prop
+    const activeDescendant =
+      this.props.selectedRows.length && this.state.rowIdPrefix
+        ? this.getRowId(
+            this.props.selectedRows[this.props.selectedRows.length - 1]
+          )
+        : undefined
+
+    const containerProps = this.getContainerProps(activeDescendant)
+
     return (
       <FocusContainer
         className="list-focus-container"
@@ -1015,11 +1047,12 @@ export class List extends React.Component<IListProps, IListState> {
         onFocusWithinChanged={this.onFocusWithinChanged}
       >
         <Grid
-          aria-label={''}
-          // eslint-disable-next-line jsx-a11y/aria-role
-          role={''}
+          id={this.props.accessibleListId}
+          role="listbox"
           ref={this.onGridRef}
           autoContainerWidth={true}
+          containerRole="presentation"
+          containerProps={containerProps}
           width={width}
           height={height}
           columnWidth={width}

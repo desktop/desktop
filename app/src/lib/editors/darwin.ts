@@ -36,6 +36,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.neovide.neovide'],
   },
   {
+    name: 'VimR',
+    bundleIdentifiers: ['com.qvacua.VimR'],
+  },
+  {
     name: 'Visual Studio Code',
     bundleIdentifiers: ['com.microsoft.VSCode'],
   },
@@ -72,12 +76,16 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.jetbrains.pycharm.ce'],
   },
   {
+    name: 'DataSpell',
+    bundleIdentifiers: ['com.jetbrains.DataSpell'],
+  },
+  {
     name: 'RubyMine',
     bundleIdentifiers: ['com.jetbrains.RubyMine'],
   },
   {
     name: 'RStudio',
-    bundleIdentifiers: ['org.rstudio.RStudio'],
+    bundleIdentifiers: ['org.rstudio.RStudio', 'com.rstudio.desktop'],
   },
   {
     name: 'TextMate',
@@ -90,6 +98,10 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'WebStorm',
     bundleIdentifiers: ['com.jetbrains.WebStorm'],
+  },
+  {
+    name: 'CLion',
+    bundleIdentifiers: ['com.jetbrains.CLion'],
   },
   {
     name: 'Typora',
@@ -143,6 +155,18 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'Lite XL',
     bundleIdentifiers: ['com.lite-xl'],
+  },
+  {
+    name: 'Fleet',
+    bundleIdentifiers: ['Fleet.app'],
+  },
+  {
+    name: 'Pulsar',
+    bundleIdentifiers: ['dev.pulsar-edit.pulsar'],
+  },
+  {
+    name: 'Zed',
+    bundleIdentifiers: ['dev.zed.Zed'],
   },
 ]
 

@@ -29,6 +29,8 @@ import {
   InvalidGitAuthorNameMessage,
 } from '../lib/identifier-rules'
 import { Account } from '../../models/account'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface IRepositorySettingsProps {
   readonly initialSelectedTab?: RepositorySettingsTab
@@ -178,11 +180,23 @@ export class RepositorySettings extends React.Component<
             selectedIndex={this.state.selectedTab}
             type={TabBarType.Vertical}
           >
-            <span>Remote</span>
-            <span>{__DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
-            <span>{__DARWIN__ ? 'Git Config' : 'Git config'}</span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.server} />
+              Remote
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.file} />
+              {__DARWIN__ ? 'Ignored Files' : 'Ignored files'}
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.gitCommit} />
+              {__DARWIN__ ? 'Git Config' : 'Git config'}
+            </span>
             {showForkSettings && (
-              <span>{__DARWIN__ ? 'Fork Behavior' : 'Fork behavior'}</span>
+              <span>
+                <Octicon className="icon" symbol={OcticonSymbol.repoForked} />
+                {__DARWIN__ ? 'Fork Behavior' : 'Fork behavior'}
+              </span>
             )}
           </TabBar>
 
@@ -288,12 +302,14 @@ export class RepositorySettings extends React.Component<
     const errors = new Array<JSX.Element | string>()
 
     if (this.state.remote && this.props.remote) {
-      if (this.state.remote.url !== this.props.remote.url) {
+      const trimmedUrl = this.state.remote.url.trim()
+
+      if (trimmedUrl !== this.props.remote.url) {
         try {
           await this.props.dispatcher.setRemoteURL(
             this.props.repository,
             this.props.remote.name,
-            this.state.remote.url
+            trimmedUrl
           )
         } catch (e) {
           log.error(
