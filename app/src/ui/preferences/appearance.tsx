@@ -86,7 +86,7 @@ export class Appearance extends React.Component<
 
     return (
       <DialogContent>
-        <h2 id="theme-heading"> Theme Selection</h2>
+        <h2 id="theme-heading">Theme</h2>
         <RadioGroup<ApplicationTheme>
           ariaLabelledBy="theme-heading"
           className="theme-selector"
