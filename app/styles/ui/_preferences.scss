@@ -98,6 +98,7 @@
         float: left;
         overflow: hidden;
         padding-bottom: var(--spacing-half);
+        width: 100%;
 
         .theme-value-label {
           margin-left: var(--spacing-triple);
@@ -118,6 +119,25 @@
 
         &:checked + label {
           border-color: var(--box-selected-active-background-color);
+        }
+      }
+
+      .system-theme-swatch {
+        width: 100%;
+        position: relative;
+        display: block;
+
+        img {
+          position: absolute;
+          top: 0;
+
+          &:first-child {
+            position: inherit;
+          }
+
+          &:last-child {
+            clip-path: polygon(50% 0, 100% 0%, 100% 100%, 50% 100%);
+          }
         }
       }
     }

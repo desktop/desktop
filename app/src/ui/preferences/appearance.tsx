@@ -10,6 +10,7 @@ import { DialogContent } from '../dialog'
 import { CustomThemeSelector } from './custom-theme-selector'
 import { enableHighContrastTheme } from '../../lib/feature-flag'
 import { RadioGroup } from '../lib/radio-group'
+import { encodePathAsUrl } from '../../lib/path'
 
 interface IAppearanceProps {
   readonly selectedTheme: ApplicationTheme
@@ -80,16 +81,8 @@ export class Appearance extends React.Component<
       )
     }
 
-    // To be determined... using dotcom for placeholders for now
-    const darkThemeImage =
-      'https://github.githubassets.com/images/modules/settings/color_modes/dark_preview.svg'
-    const lightThemeImage =
-      'https://github.githubassets.com/images/modules/settings/color_modes/light_preview.svg'
-    const highContrastImage =
-      'https://github.githubassets.com/images/modules/settings/color_modes/dark_high_contrast_preview.svg'
-    // Needs a custom one or better would be if you could detect what system is when system isn't selected.
-    const systemThemeImage =
-      'https://github.githubassets.com/images/modules/settings/color_modes/light_preview.svg'
+    const darkThemeImage = encodePathAsUrl(__dirname, 'static/ghd_dark.svg')
+    const lightThemeImage = encodePathAsUrl(__dirname, 'static/ghd_light.svg')
 
     return (
       <DialogContent>
@@ -118,13 +111,17 @@ export class Appearance extends React.Component<
           </span>
           {supportsSystemThemeChanges() && (
             <span>
-              <img src={systemThemeImage} alt="" />
+              <span className="system-theme-swatch">
+                <img src={lightThemeImage} alt="" />
+                <img src={lightThemeImage} alt="" />
+                <img src={darkThemeImage} alt="" />
+              </span>
               <span className="theme-value-label">System</span>
             </span>
           )}
           {enableHighContrastTheme() && (
             <span>
-              <img src={highContrastImage} alt="" />
+              <img src={darkThemeImage} alt="" />
               <span className="theme-value-label">High Contrast</span>
             </span>
           )}
