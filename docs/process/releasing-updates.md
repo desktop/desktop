@@ -54,35 +54,33 @@ $ set GITHUB_ACCESS_TOKEN={your token here}
 $ $env:GITHUB_ACCESS_TOKEN="{your token here}"
 ```
 
-### 2. Create Release Branch
+### 2. Switch to the Commit of the Release
 
-Create a new branch to represent the work that will be released to users:
+You have to switch to the commit that represents the work that will be released to users:
 
- - for `beta` releases, branch from `development` to ensure the latest changes are published
- - for `production` releases, branch from the latest beta tag
+ - for `beta` releases, switch to `development` to ensure the latest changes are published
+ - for `production` releases, check out the latest beta tag
     - to find this tag: `git tag | grep 'beta' | sort -r | head -n 1`
 
-When naming the branch, ensure you use the `releases/[version]` pattern to ensure all CI platforms are aware of the branch and will build any PRs that target the branch.
-
-### 3. Create Draft Release
+### 3. Create Draft Release and Release Branch
 
 Run the script below (which relies on the your personal access token being set), which will determine the next version from what was previously published, based on the desired channel.
 
 For `production` and `beta` releases, run:
 
 ```shellsession
-$ yarn draft-release (production|beta)
+$ yarn draft-release (production|beta|test)
 ```
 
 If you are creating a new beta release, the `yarn draft-release beta` command will help you find the new release entries for the changelog.
 
 If you are create a new `production` release, you should just combine and sort the previous `beta` changelog entries.
 
-(For `test` releases, follow the directions in the steps below to update `app/package.json`'s `version` to a higher version and add a changelog entry. The script does not support test yet.)
+The script will output a draft changelog, which covers everything that's been merged, and probably needs some love. It will also create the release branch for you. If that fails for whatever reason and you must create the branch manually, ensure you use the `releases/[version]` pattern for its name to ensure all CI platforms are aware of the branch and will build any PRs that target the branch.
 
-The script will output a draft changelog, which covers everything that's been merged, and probably needs some love.
+If you have pretext release note drafted in `app/static/common/pretext-draft.md`, you can add the `--pretext` flag to generate a pretext change log entry it. Example: `yarn draft-release test --pretext`
+
 The output will then explain the next steps:
-
 ```shellsession
 Here's what you should do next:
 
@@ -134,6 +132,8 @@ Add your new changelog entries to `changelog.json`, update the version in `app/p
 
 If a maintainer would like to backport a pull request to the next release, it is their responsibility to co-ordinate with the release owner and ensure they are fine with accepting this work.
 
+After pushing the branch, a [GitHub Action](https://github.com/desktop/desktop/blob/development/.github/workflows/release-pr.yml) will create a release Pull Request for it. If that action fails for whatever reason, you can fall back to using the `yarn draft-release:pr` command, or create it manually.
+
 Once your release branch is ready to review and ship, ask the other maintainers to review and approve the changes!
 
 IMPORTANT NOTE: Do NOT "Update branch" and merge development into the release branch. This might be tempting if the "branch is out-of-date with the base branch" dotcom feature is enabled. However, doing so would inadvertently release everything on development to production or beta 🙀
@@ -154,7 +154,7 @@ IMPORTANT NOTE: Ensure that you indicate which channel to release to. If not, ch
 
 ### 5. Check for Completed Release
 
-Go to [Central's Deployments](https://central.github.com/deployments) to find your release; you'll see something at the top of the page like:
+Go to [Central's Deployments](https://central.githubapp.com/deployments) to find your release; you'll see something at the top of the page like:
 ```
 desktop/desktop deployed from {YOUR_BRANCH}@{HASH_ABBREVIATION_FOR_COMMIT} to {production|beta|test}
 ```
@@ -163,7 +163,11 @@ it will initially specify its state as `State: pending` and will be completed wh
 You will also see this in Chat:
 `desktopbot tagged desktop/release-{YOUR_VERSION}`
 
-### 6. Test that your app auto-updates to new version
+### 6. Enable the Release
+
+Production releases are disabled by default. To enable them, go to [Central's Release Control](https://central.githubapp.com/release_control), select the percentage of users that will be able to auto-update to this new version, and then click the "Apply" button.
+
+### 7. Test that your app auto-updates to new version
 
 When the release in Central is in `State: released` for `beta` or `production`, switch to your installed Desktop instance and make sure that the corresponding (prod|beta) app auto-updates.
 
@@ -173,11 +177,11 @@ If you don't have the app for `beta`, for example, you can always download the p
 
 _Make sure you move your application out of the Downloads folder and into the Applications folder for macOS or it won't auto-update_.
 
-### 7. Merge PR with changelog entries
+### 8. Merge PR with changelog entries
 
 So that we keep the `changelog.json` up to date. Beta entries will be used for the upcoming production release.
 
-### 8. Check Error Reporting
+### 9. Check Error Reporting
 
 If an error occurs during the release process, a needle will be reported to Central's [Haystack](https://haystack.githubapp.com/central).
 
@@ -186,7 +190,7 @@ After the release is deployed, you should monitor Desktop's [Haystack](https://h
 #### Final Beta release
 If the active beta is the last beta prior to a production release, extra care should be taken when looking at Desktop's [Haystack](https://haystack.githubapp.com/desktop) roll-ups. The lead engineer responsible for deployment should produce a _Haystack report_ the day before and after the release. The report should contain a list of any new or unexpected errors from the past beta releases in the milestone and be published to the team's Slack channel.
 
-### 9. Celebrate
+### 10. Celebrate
 
 Once your app updates and you see the visible changes in your app and there are no spikes in errors, celebrate 🎉!!! You did it!
 

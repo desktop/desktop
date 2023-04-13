@@ -1,9 +1,8 @@
 import React from 'react'
-import {
-  getAheadBehind,
-  mergeTree,
-  revSymmetricDifference,
-} from '../../../lib/git'
+import { formatCommitCount } from '../../../lib/format-commit-count'
+import { formatCount } from '../../../lib/format-count'
+import { getAheadBehind, revSymmetricDifference } from '../../../lib/git'
+import { determineMergeability } from '../../../lib/git/merge-tree'
 import { promiseWithMinimumTimeout } from '../../../lib/promise'
 import { Branch } from '../../../models/branch'
 import { ComputedAction } from '../../../models/computed-action'
@@ -94,15 +93,18 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
   }
 
   protected updateStatus = async (branch: Branch) => {
-    const { currentBranch } = this.props
+    const { currentBranch, repository } = this.props
     this.mergeStatus = { kind: ComputedAction.Loading }
     this.updateMergeStatusPreview(branch)
 
     if (currentBranch != null) {
       this.mergeStatus = await promiseWithMinimumTimeout(
-        () => mergeTree(this.props.repository, currentBranch, branch),
+        () => determineMergeability(repository, currentBranch, branch),
         500
-      )
+      ).catch<MergeTreeResult>(e => {
+        log.error('Failed determining mergeability', e)
+        return { kind: ComputedAction.Clean }
+      })
 
       this.updateMergeStatusPreview(branch)
     }
@@ -174,11 +176,9 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
       )
     }
 
-    const pluralized = commitCount === 1 ? 'commit' : 'commits'
     return (
       <React.Fragment>
-        This will merge
-        <strong>{` ${commitCount} ${pluralized}`}</strong>
+        This will merge <strong>{formatCommitCount(commitCount)}</strong>
         {` from `}
         <strong>{branch.name}</strong>
         {` into `}
@@ -200,11 +200,9 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
     currentBranch: Branch,
     count: number
   ) {
-    const pluralized = count === 1 ? 'file' : 'files'
     return (
       <React.Fragment>
-        There will be
-        <strong>{` ${count} conflicted ${pluralized}`}</strong>
+        There will be <strong>{formatCount(count, 'conflicted file')}</strong>
         {` when merging `}
         <strong>{branch.name}</strong>
         {` into `}

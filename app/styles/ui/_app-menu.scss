@@ -1,34 +1,13 @@
 @import '../mixins';
 
 #app-menu-foldout {
-  height: 100%;
   display: flex;
+  max-height: 95%; // When at 100%, can cause some brief shifting of components
 }
 
 .menu-pane {
-  height: 100%;
-  width: 240px;
-
-  // Custom widths for some menus since we don't have
-  // auto-sizeable foldouts at the moment (or rather we
-  // do but our List implementation prevents them from
-  // working). See #3547 for an example.
-  &.menu-pane-branch {
-    width: 275px;
-  }
-
-  &.menu-pane-edit {
-    width: 175px;
-  }
-
-  &.menu-pane-help {
-    width: 220px;
-  }
-
-  &.menu-pane-file {
-    width: 205px;
-  }
-
+  overflow-y: auto;
+  padding-bottom: var(--spacing-half);
   // Open panes (except the first one) should have a border on their
   // right hand side to create a divider between them and their parent
   // menu.
@@ -36,20 +15,8 @@
     border-left: var(--base-border);
   }
 
-  &:not(:last-child) {
-    // We want list items in previous menus to behave as if they have focus
-    // even though they don't, ie we want the selected+focus state
-    // to be in effect for all parent selected menu items as well as
-    // the current
-    .list-item {
-      &.selected {
-        --text-color: var(--box-selected-active-text-color);
-        --text-secondary-color: var(--box-selected-active-text-color);
-
-        color: var(--text-color);
-        background-color: var(--box-selected-active-background-color);
-      }
-    }
+  &:focus {
+    outline: none;
   }
 
   // No focus outline for the list itself. When the app menu is opened without
@@ -62,13 +29,19 @@
   .menu-item {
     display: flex;
     align-items: center;
-
-    height: 100%;
-    width: 100%;
     min-width: 0;
+    height: 30px;
 
     &.disabled {
       opacity: 0.3;
+    }
+
+    &.selected {
+      --text-color: var(--box-selected-active-text-color);
+      --text-secondary-color: var(--box-selected-active-text-color);
+
+      color: var(--text-color);
+      background-color: var(--box-selected-active-background-color);
     }
 
     .label {

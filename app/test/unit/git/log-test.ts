@@ -129,4 +129,14 @@ describe('git/log', () => {
       )
     })
   })
+
+  it('detects submodule changes within commits', async () => {
+    const repoPath = await setupFixtureRepository('submodule-basic-setup')
+    repository = new Repository(repoPath, -1, null, false)
+
+    const changesetData = await getChangedFiles(repository, 'HEAD')
+    expect(changesetData.files).toHaveLength(2)
+    expect(changesetData.files[1].path).toBe('foo/submodule')
+    expect(changesetData.files[1].status.submoduleStatus).not.toBeUndefined()
+  })
 })

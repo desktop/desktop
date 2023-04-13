@@ -8,6 +8,8 @@ import { Avatar } from '../lib/avatar'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
+import { ToggledtippedContent } from '../lib/toggletipped-content'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
@@ -19,13 +21,6 @@ interface ICommitMessageAvatarState {
 interface ICommitMessageAvatarProps {
   /** The user whose avatar should be displayed. */
   readonly user?: IAvatarUser
-
-  /**
-   * The title of the avatar.
-   * Defaults to the name and email if undefined and is
-   * skipped completely if title is null
-   */
-  readonly title?: string | JSX.Element | null
 
   /** Current email address configured by the user. */
   readonly email?: string
@@ -68,13 +63,50 @@ export class CommitMessageAvatar extends React.Component<
     }
   }
 
+  private getTitle(): string | JSX.Element | undefined {
+    const { user } = this.props
+
+    if (user === undefined) {
+      return 'Unknown user'
+    }
+
+    const { name, email } = user
+
+    if (user.name) {
+      return (
+        <>
+          Committing as <strong>{name}</strong> {email}
+        </>
+      )
+    }
+
+    return email
+  }
+
   public render() {
     return (
       <div className="commit-message-avatar-component">
-        <div onClick={this.onAvatarClick}>
-          {this.props.warningBadgeVisible && this.renderWarningBadge()}
-          <Avatar user={this.props.user} title={this.props.title} />
-        </div>
+        {this.props.warningBadgeVisible && (
+          <Button
+            className="avatar-button"
+            ariaLabel="Commit may be misattributed. View warning."
+            onClick={this.onAvatarClick}
+          >
+            {this.renderWarningBadge()}
+            <Avatar user={this.props.user} title={null} />
+          </Button>
+        )}
+
+        {!this.props.warningBadgeVisible && (
+          <ToggledtippedContent
+            tooltip={this.getTitle()}
+            direction={TooltipDirection.NORTH}
+            ariaLabel="Show Commit Author Details"
+          >
+            <Avatar user={this.props.user} title={null} />
+          </ToggledtippedContent>
+        )}
+
         {this.state.isPopoverOpen && this.renderPopover()}
       </div>
     )
@@ -106,7 +138,7 @@ export class CommitMessageAvatar extends React.Component<
     })
   }
 
-  private onAvatarClick = (event: React.FormEvent<HTMLDivElement>) => {
+  private onAvatarClick = (event: React.FormEvent<HTMLButtonElement>) => {
     if (this.props.warningBadgeVisible === false) {
       return
     }
@@ -126,24 +158,36 @@ export class CommitMessageAvatar extends React.Component<
 
     const updateEmailTitle = __DARWIN__ ? 'Update Email' : 'Update email'
 
+    const userName =
+      this.props.user && this.props.user.name
+        ? ` for ${this.props.user.name}`
+        : ''
+
     return (
       <Popover
         caretPosition={PopoverCaretPosition.LeftBottom}
         onClickOutside={this.closePopover}
+        ariaLabelledby="misattributed-commit-popover-header"
       >
-        <h3>This commit will be misattributed</h3>
+        <h3 id="misattributed-commit-popover-header">
+          This commit will be misattributed
+        </h3>
         <Row>
           <div>
             The email in your global Git config (
             <span className="git-email">{this.props.email}</span>) doesn't match
-            your GitHub{accountTypeSuffix} account.{' '}
-            <LinkButton uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user">
-              Learn more.
+            your GitHub{accountTypeSuffix} account{userName}.{' '}
+            <LinkButton
+              ariaLabel="Learn more about commit attribution"
+              uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
+            >
+              Learn more
             </LinkButton>
           </div>
         </Row>
         <Row>
           <Select
+            label="Your Account Emails"
             value={this.state.accountEmail}
             onChange={this.onSelectedGitHubEmailChange}
           >

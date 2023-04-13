@@ -10,7 +10,7 @@ const rootAppDir = Path.resolve(appFolder, '..')
 const updateDotExe = Path.resolve(Path.join(rootAppDir, 'Update.exe'))
 const exeName = Path.basename(process.execPath)
 
-// A lot of this code was cargo-culted from our Atom comrades:
+// A lot of this code was cargo-culted from our Atom collaborators:
 // https://github.com/atom/atom/blob/7c9f39e3f1d05ee423e0093e6b83f042ce11c90a/src/main-process/squirrel-update.coffee.
 
 /**

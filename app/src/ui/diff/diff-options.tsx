@@ -3,17 +3,15 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RadioButton } from '../lib/radio-button'
-import { getBoolean, setBoolean } from '../../lib/local-storage'
 import { Popover, PopoverCaretPosition } from '../lib/popover'
-import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
-import { RepositorySectionTab } from '../../lib/app-state'
+import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
 
 interface IDiffOptionsProps {
-  readonly sourceTab: RepositorySectionTab
+  readonly isInteractiveDiff: boolean
   readonly hideWhitespaceChanges: boolean
   readonly onHideWhitespaceChangesChanged: (
     hideWhitespaceChanges: boolean
-  ) => Promise<void>
+  ) => void
 
   readonly showSideBySideDiff: boolean
   readonly onShowSideBySideDiffChanged: (showSideBySideDiff: boolean) => void
@@ -24,23 +22,30 @@ interface IDiffOptionsProps {
 
 interface IDiffOptionsState {
   readonly isPopoverOpen: boolean
-  readonly showNewCallout: boolean
 }
-
-const HasSeenSplitDiffKey = 'has-seen-split-diff-option'
 
 export class DiffOptions extends React.Component<
   IDiffOptionsProps,
   IDiffOptionsState
 > {
+  readonly toggleHideWhitespaceChangesKey = 'D';
+  readonly toggleDiffDisplayModeKey = 'D';
+
   private diffOptionsRef = React.createRef<HTMLDivElement>()
 
   public constructor(props: IDiffOptionsProps) {
     super(props)
     this.state = {
       isPopoverOpen: false,
-      showNewCallout: getBoolean(HasSeenSplitDiffKey) !== true,
     }
+  }
+
+  public componentDidMount() {
+    document.addEventListener('keydown', this.onWindowKeyDown)
+  }
+
+  public componentWillUnmount() {
+    document.removeEventListener('keydown', this.onWindowKeyDown)
   }
 
   private onButtonClick = (event: React.FormEvent<HTMLButtonElement>) => {
@@ -65,10 +70,7 @@ export class DiffOptions extends React.Component<
   private closePopover = () => {
     this.setState(prevState => {
       if (prevState.isPopoverOpen) {
-        if (this.state.showNewCallout) {
-          setBoolean(HasSeenSplitDiffKey, true)
-        }
-        return { isPopoverOpen: false, showNewCallout: false }
+        return { isPopoverOpen: false }
       }
 
       return null
@@ -83,15 +85,39 @@ export class DiffOptions extends React.Component<
     )
   }
 
+  private onWindowKeyDown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented) {
+      return
+    }
+    const isCmdOrCtrl = __DARWIN__
+      ? event.metaKey && !event.ctrlKey
+      : event.ctrlKey
+    const key = String.fromCharCode(event.keyCode).toUpperCase()
+
+    if (isCmdOrCtrl && !event.shiftKey && event.altKey && key === this.toggleHideWhitespaceChangesKey) {
+      event.preventDefault()
+      this.toggleHideWhitespaceChanges()
+    }
+    else if (isCmdOrCtrl && !event.shiftKey && !event.altKey && key === this.toggleDiffDisplayModeKey) {
+      event.preventDefault()
+      this.toggleDiffDisplayMode()
+    }
+  }
+
+  private toggleHideWhitespaceChanges = () => {
+    this.props.onHideWhitespaceChangesChanged(!this.props.hideWhitespaceChanges)
+  }
+
+  private toggleDiffDisplayMode = () => {
+    this.props.onShowSideBySideDiffChanged(!this.props.showSideBySideDiff)
+  }
+
   public render() {
     return (
       <div className="diff-options-component" ref={this.diffOptionsRef}>
         <button onClick={this.onButtonClick}>
           <Octicon symbol={OcticonSymbol.gear} />
           <Octicon symbol={OcticonSymbol.triangleDown} />
-          {this.state.showNewCallout && (
-            <div className="call-to-action-bubble">New</div>
-          )}
         </button>
         {this.state.isPopoverOpen && this.renderPopover()}
       </div>
@@ -101,9 +127,13 @@ export class DiffOptions extends React.Component<
   private renderPopover() {
     return (
       <Popover
+        ariaLabelledby="diff-options-popover-header"
         caretPosition={PopoverCaretPosition.TopRight}
         onClickOutside={this.closePopover}
       >
+        <h3 id="diff-options-popover-header">
+          Diff {__DARWIN__ ? 'Preferences' : 'Options'}
+        </h3>
         {this.renderHideWhitespaceChanges()}
         {this.renderShowSideBySide()}
       </Popover>
@@ -120,7 +150,7 @@ export class DiffOptions extends React.Component<
   private renderShowSideBySide() {
     return (
       <section>
-        <h3>Diff display</h3>
+        <h4>Diff display</h4>
         <RadioButton
           value="Unified"
           checked={!this.props.showSideBySideDiff}
@@ -133,26 +163,21 @@ export class DiffOptions extends React.Component<
           label={
             <>
               <div>Split</div>
-              <div className="call-to-action-bubble">Beta</div>
             </>
           }
           onSelected={this.onSideBySideSelected}
         />
+        <p className="secondary-text">
+          Toggle with {this.renderKeyboardShortcut("CmdOrCtrl+" + this.toggleDiffDisplayModeKey)}
+        </p>
       </section>
     )
   }
 
   private renderHideWhitespaceChanges() {
-    if (
-      this.props.sourceTab === RepositorySectionTab.Changes &&
-      !enableHideWhitespaceInDiffOption()
-    ) {
-      return
-    }
-
     return (
       <section>
-        <h3>Whitespace</h3>
+        <h4>Whitespace</h4>
         <Checkbox
           value={
             this.props.hideWhitespaceChanges
@@ -164,7 +189,10 @@ export class DiffOptions extends React.Component<
             __DARWIN__ ? 'Hide Whitespace Changes' : 'Hide whitespace changes'
           }
         />
-        {this.props.sourceTab === RepositorySectionTab.Changes && (
+        <p className="secondary-text">
+          Toggle with {this.renderKeyboardShortcut("Alt+CmdOrCtrl+" + this.toggleHideWhitespaceChangesKey)}
+        </p>
+        {this.props.isInteractiveDiff && (
           <p className="secondary-text">
             Interacting with individual lines or hunks will be disabled while
             hiding whitespace.
@@ -172,5 +200,10 @@ export class DiffOptions extends React.Component<
         )}
       </section>
     )
+  }
+
+
+  private renderKeyboardShortcut(shortcut: string) {
+    return shortcut.split('+').map(getPlatformSpecificNameOrSymbolForModifier).map((k, i) => <kbd key={k + i}>{k}</kbd>)
   }
 }

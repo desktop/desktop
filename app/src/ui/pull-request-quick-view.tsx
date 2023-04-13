@@ -206,8 +206,9 @@ export class PullRequestQuickView extends React.Component<
         <SandboxedMarkdown
           markdown={displayBody}
           emoji={this.props.emoji}
-          baseHref={base.gitHubRepository.htmlURL}
+          baseHref={base.gitHubRepository.htmlURL ?? undefined}
           repository={base.gitHubRepository}
+          markdownContext={'PullRequest'}
           onMarkdownLinkClicked={this.onMarkdownLinkClicked}
           onMarkdownParsed={this.onMarkdownParsed}
         />

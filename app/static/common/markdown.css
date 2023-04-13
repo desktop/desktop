@@ -529,3 +529,7 @@ changes from the original, just a note that this will not match 1-1)
   color: var(--md-accent-fg-color);
   text-decoration: none;
 }
+
+.markdown-body .issue-keyword {
+	border-bottom: 1px dotted var(--md-border-default-color);
+}

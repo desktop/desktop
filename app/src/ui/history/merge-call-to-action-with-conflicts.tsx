@@ -14,6 +14,8 @@ import {
 import { getMergeOptions, updateRebasePreview } from '../lib/update-branch'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
 import { RebasePreview } from '../../models/rebase'
+import { formatCommitCount } from '../../lib/format-commit-count'
+import { formatCount } from '../../lib/format-count'
 
 interface IMergeCallToActionWithConflictsProps {
   readonly repository: Repository
@@ -96,25 +98,24 @@ export class MergeCallToActionWithConflicts extends React.Component<
     })
   }
 
-  private onOperationChange = (option: IDropdownSelectButtonOption) => {
-    const value = option.value as MultiCommitOperationKind
-    this.setState({ selectedOperation: value })
-    if (value === MultiCommitOperationKind.Rebase) {
+  private onOperationChange = (
+    option: IDropdownSelectButtonOption<MultiCommitOperationKind>
+  ) => {
+    this.setState({ selectedOperation: option.value })
+    if (option.value === MultiCommitOperationKind.Rebase) {
       this.updateRebasePreview(this.props.comparisonBranch)
     }
   }
 
   private onOperationInvoked = async (
     event: React.MouseEvent<HTMLButtonElement>,
-    selectedOption: IDropdownSelectButtonOption
+    selectedOption: IDropdownSelectButtonOption<MultiCommitOperationKind>
   ) => {
     event.preventDefault()
 
     const { dispatcher, repository } = this.props
 
-    await this.dispatchOperation(
-      selectedOption.value as MultiCommitOperationKind
-    )
+    await this.dispatchOperation(selectedOption.value)
 
     dispatcher.executeCompare(repository, {
       kind: HistoryTabMode.History,
@@ -252,14 +253,12 @@ export class MergeCallToActionWithConflicts extends React.Component<
       return null
     }
 
-    const pluralized = this.commitCount === 1 ? 'commit' : 'commits'
-
     if (this.state.selectedOperation === MultiCommitOperationKind.Rebase) {
       return (
         <div className="merge-message">
           This will update <strong>{currentBranch.name}</strong>
           {` by applying its `}
-          <strong>{`${this.commitCount} ${pluralized}`}</strong>
+          <strong>{`${formatCommitCount(this.commitCount)}`}</strong>
           {` on top of `}
           <strong>{branch.name}</strong>
         </div>
@@ -268,8 +267,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
 
     return (
       <div className="merge-message">
-        This will merge
-        <strong>{` ${this.commitCount} ${pluralized}`}</strong>
+        This will merge <strong>{formatCommitCount(this.commitCount)}</strong>
         {` from `}
         <strong>{branch.name}</strong>
         {` into `}
@@ -299,11 +297,9 @@ export class MergeCallToActionWithConflicts extends React.Component<
     branch: Branch,
     count: number
   ) {
-    const pluralized = count === 1 ? 'file' : 'files'
     return (
       <div className="merge-message">
-        There will be
-        <strong>{` ${count} conflicted ${pluralized}`}</strong>
+        There will be <strong>{formatCount(count, 'conflicted file')}</strong>
         {` when merging `}
         <strong>{branch.name}</strong>
         {` into `}

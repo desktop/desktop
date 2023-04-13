@@ -30,7 +30,7 @@ import { now } from './now'
 import { showUncaughtException } from './show-uncaught-exception'
 import { buildContextMenu } from './menu/build-context-menu'
 import { OrderedWebRequest } from './ordered-webrequest'
-import { installAuthenticatedAvatarFilter } from './authenticated-avatar-filter'
+import { installAuthenticatedImageFilter } from './authenticated-image-filter'
 import { installAliveOriginFilter } from './alive-origin-filter'
 import { installSameOriginFilter } from './same-origin-filter'
 import * as ipcMain from './ipc-main'
@@ -40,6 +40,12 @@ import {
 } from '../lib/get-architecture'
 import { buildSpellCheckMenu } from './menu/build-spell-check-menu'
 import { getMainGUID, saveGUIDFile } from '../lib/get-main-guid'
+import {
+  getNotificationsPermission,
+  requestNotificationsPermission,
+  showNotification,
+} from 'desktop-notifications'
+import { initializeDesktopNotifications } from './notifications'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -144,6 +150,8 @@ if (__WIN32__ && process.argv.length > 1) {
     handlePossibleProtocolLauncherArgs(process.argv)
   }
 }
+
+initializeDesktopNotifications()
 
 function handleAppURL(url: string) {
   log.info('Processing protocol url')
@@ -309,8 +317,9 @@ app.on('ready', () => {
   // Ensures Alive websocket sessions are initiated with an acceptable Origin
   installAliveOriginFilter(orderedWebRequest)
 
-  // Adds an authorization header for requests of avatars on GHES
-  const updateAccounts = installAuthenticatedAvatarFilter(orderedWebRequest)
+  // Adds an authorization header for requests of avatars on GHES and private
+  // repo assets
+  const updateAccounts = installAuthenticatedImageFilter(orderedWebRequest)
 
   Menu.setApplicationMenu(
     buildDefaultMenu({
@@ -482,6 +491,8 @@ app.on('ready', () => {
     mainWindow?.quitAndInstallUpdate()
   )
 
+  ipcMain.on('quit-app', () => app.quit())
+
   ipcMain.on('minimize-window', () => mainWindow?.minimizeWindow())
 
   ipcMain.on('maximize-window', () => mainWindow?.maximizeWindow())
@@ -505,6 +516,10 @@ app.on('ready', () => {
 
   ipcMain.handle('get-current-window-zoom-factor', async () =>
     mainWindow?.getCurrentWindowZoomFactor()
+  )
+
+  ipcMain.on('set-window-zoom-factor', (_, zoomFactor: number) =>
+    mainWindow?.setWindowZoomFactor(zoomFactor)
   )
 
   /**
@@ -655,13 +670,21 @@ app.on('ready', () => {
   ipcMain.handle('get-locale-country-code', async () =>
     app.getLocaleCountryCode()
   )
-  ipcMain.handle('get-guid', () => {
-    return getMainGUID()
-  })
 
-  ipcMain.handle('save-guid', (_, guid) => {
-    return saveGUIDFile(guid)
-  })
+  ipcMain.handle('get-guid', () => getMainGUID())
+
+  ipcMain.handle('save-guid', (_, guid) => saveGUIDFile(guid))
+
+  ipcMain.handle('show-notification', async (_, title, body, userInfo) =>
+    showNotification(title, body, userInfo)
+  )
+
+  ipcMain.handle('get-notifications-permission', async () =>
+    getNotificationsPermission()
+  )
+  ipcMain.handle('request-notifications-permission', async () =>
+    requestNotificationsPermission()
+  )
 })
 
 app.on('activate', () => {
@@ -671,11 +694,11 @@ app.on('activate', () => {
 })
 
 app.on('web-contents-created', (event, contents) => {
-  contents.on('new-window', (event, url) => {
-    // Prevent links or window.open from opening new windows
-    event.preventDefault()
+  contents.setWindowOpenHandler(({ url }) => {
     log.warn(`Prevented new window to: ${url}`)
+    return { action: 'deny' }
   })
+
   // prevent link navigation within our windows
   // see https://www.electronjs.org/docs/tutorial/security#12-disable-or-limit-navigation
   contents.on('will-navigate', (event, url) => {
@@ -711,7 +734,13 @@ function createWindow() {
       electron: '>=1.2.1',
     }
 
-    const extensions = [REACT_DEVELOPER_TOOLS, ChromeLens]
+    const axeDevTools = {
+      id: 'lhdoppojpmngadmnindnejefpokejbdd',
+      electron: '>=1.2.1',
+      Permissions: ['tabs', 'debugger'],
+    }
+
+    const extensions = [REACT_DEVELOPER_TOOLS, ChromeLens, axeDevTools]
 
     for (const extension of extensions) {
       try {
@@ -722,7 +751,7 @@ function createWindow() {
     }
   }
 
-  window.onClose(() => {
+  window.onClosed(() => {
     mainWindow = null
     if (!__DARWIN__ && !preventQuit) {
       app.quit()

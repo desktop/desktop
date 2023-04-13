@@ -90,14 +90,14 @@ export class EmojiAutocompletionProvider
 
     return (
       <div className="emoji" key={emoji}>
-        <img className="icon" src={this.emoji.get(emoji)} />
+        <img className="icon" src={this.emoji.get(emoji)} alt={emoji} />
         {this.renderHighlightedTitle(hit)}
       </div>
     )
   }
 
   private renderHighlightedTitle(hit: IEmojiHit) {
-    const emoji = hit.emoji
+    const emoji = hit.emoji.replaceAll(':', '')
 
     if (!hit.matchLength) {
       return <div className="title">{emoji}</div>

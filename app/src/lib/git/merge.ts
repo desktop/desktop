@@ -3,11 +3,6 @@ import * as Path from 'path'
 import { git } from './core'
 import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
-import { Branch } from '../../models/branch'
-import { MergeTreeResult } from '../../models/merge'
-import { ComputedAction } from '../../models/computed-action'
-import { parseMergeTreeResult } from '../merge-tree-parser'
-import { spawnAndComplete } from './spawn'
 import { pathExists } from '../../ui/lib/path-exists'
 
 export enum MergeResult {
@@ -92,44 +87,6 @@ export async function getMergeBase(
   }
 
   return process.stdout.trim()
-}
-
-/**
- * Generate the merge result from two branches in a repository
- *
- * @param repository The repository containing the branches to merge
- * @param ours The current branch
- * @param theirs Another branch to merge into the current branch
- */
-export async function mergeTree(
-  repository: Repository,
-  ours: Branch,
-  theirs: Branch
-): Promise<MergeTreeResult | null> {
-  const mergeBase = await getMergeBase(repository, ours.tip.sha, theirs.tip.sha)
-
-  if (mergeBase === null) {
-    return { kind: ComputedAction.Invalid }
-  }
-
-  if (mergeBase === ours.tip.sha || mergeBase === theirs.tip.sha) {
-    return { kind: ComputedAction.Clean, entries: [] }
-  }
-
-  const result = await spawnAndComplete(
-    ['merge-tree', mergeBase, ours.tip.sha, theirs.tip.sha],
-    repository.path,
-    'mergeTree'
-  )
-
-  const output = result.output.toString()
-
-  if (output.length === 0) {
-    // the merge commit will be empty - this is fine!
-    return { kind: ComputedAction.Clean, entries: [] }
-  }
-
-  return parseMergeTreeResult(output)
 }
 
 /**

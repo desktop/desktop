@@ -5,7 +5,7 @@ import { Account } from '../../models/account'
 import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
 import { API, getAccountForEndpoint, IAPICheckSuite } from '../api'
-import { IDisposable, Disposable } from 'event-kit'
+import { DisposableLike, Disposable } from 'event-kit'
 import {
   ICombinedRefCheck,
   IRefCheck,
@@ -465,7 +465,7 @@ export class CommitStatusStore {
     ref: string,
     callback: StatusCallBack,
     branchName?: string
-  ): IDisposable {
+  ): DisposableLike {
     const key = getCacheKeyForRepository(repository, ref)
     const subscription = this.getOrCreateSubscription(
       repository,
@@ -549,6 +549,34 @@ export class CommitStatusStore {
 
     const api = API.fromAccount(account)
     return api.rerequestCheckSuite(owner.login, name, checkSuiteId)
+  }
+
+  public async rerunJob(
+    repository: GitHubRepository,
+    jobId: number
+  ): Promise<boolean> {
+    const { owner, name } = repository
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (account === null) {
+      return false
+    }
+
+    const api = API.fromAccount(account)
+    return api.rerunJob(owner.login, name, jobId)
+  }
+
+  public async rerunFailedJobs(
+    repository: GitHubRepository,
+    workflowRunId: number
+  ): Promise<boolean> {
+    const { owner, name } = repository
+    const account = getAccountForEndpoint(this.accounts, repository.endpoint)
+    if (account === null) {
+      return false
+    }
+
+    const api = API.fromAccount(account)
+    return api.rerunFailedJobs(owner.login, name, workflowRunId)
   }
 
   public async fetchCheckSuite(

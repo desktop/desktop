@@ -1,4 +1,5 @@
 import React from 'react'
+import { formatCommitCount } from '../../../lib/format-commit-count'
 import { Branch } from '../../../models/branch'
 import { ComputedAction } from '../../../models/computed-action'
 import { RebasePreview } from '../../../models/rebase'
@@ -144,12 +145,11 @@ export abstract class RebaseChooseBranchDialog extends BaseChooseBranchDialog {
       )
     }
 
-    const pluralized = commitsToRebase === 1 ? 'commit' : 'commits'
     return (
       <>
         This will update <strong>{currentBranch.name}</strong>
         {` by applying its `}
-        <strong>{` ${commitsToRebase} ${pluralized}`}</strong>
+        <strong>{formatCommitCount(commitsToRebase)}</strong>
         {` on top of `}
         <strong>{baseBranch.name}</strong>
       </>

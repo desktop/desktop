@@ -83,30 +83,26 @@
       }
     }
 
-    // 'squashing-enabled' class is due to feature flagging. If feature flag is
-    // removed, we could move .list-item block up under the #commit-list above
-    &.squashing-enabled {
-      // When NOT comparing a branch, the #commit-list is a direct child of
-      // .compare-commit-list which is a direct child of #compare-view and we
-      // only want this highlighting to take effect when not comparing branches.
-      // Note: there is another .compare-commit-list higher up when comparing so
-      // the direct child selector is important.
-      #compare-view {
-        > .compare-commit-list {
-          > #commit-list {
-            .list-item:not(.selected) {
-              .commit:hover {
-                --text-color: var(--box-selected-active-text-color);
-                --text-secondary-color: var(--box-selected-active-text-color);
+    // When NOT comparing a branch, the #commit-list is a direct child of
+    // .compare-commit-list which is a direct child of #compare-view and we
+    // only want this highlighting to take effect when not comparing branches.
+    // Note: there is another .compare-commit-list higher up when comparing so
+    // the direct child selector is important.
+    #compare-view {
+      > .compare-commit-list {
+        > #commit-list {
+          .list-item:not(.selected) {
+            .commit:hover {
+              --text-color: var(--box-selected-active-text-color);
+              --text-secondary-color: var(--box-selected-active-text-color);
 
-                color: var(--text-color);
-                background-color: var(--box-selected-active-background-color);
-              }
+              color: var(--text-color);
+              background-color: var(--box-selected-active-background-color);
+            }
 
-              .commit {
-                div {
-                  pointer-events: none;
-                }
+            .commit {
+              div {
+                pointer-events: none;
               }
             }
           }
@@ -114,4 +110,14 @@
       }
     }
   }
+}
+
+.sr-only {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
 }

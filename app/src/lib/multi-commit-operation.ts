@@ -4,7 +4,6 @@ import {
   conflictSteps,
   MultiCommitOperationStepKind,
 } from '../models/multi-commit-operation'
-import { Popup, PopupType } from '../models/popup'
 import { TipState } from '../models/tip'
 import { IMultiCommitOperationState, IRepositoryState } from './app-state'
 
@@ -39,12 +38,11 @@ export function getMultiCommitOperationChooseBranchStep(
 }
 
 export function isConflictsFlow(
-  currentPopup: Popup | null,
+  isMultiCommitOperationPopupOpen: boolean,
   multiCommitOperationState: IMultiCommitOperationState | null
 ): boolean {
   return (
-    currentPopup !== null &&
-    currentPopup.type === PopupType.MultiCommitOperation &&
+    isMultiCommitOperationPopupOpen &&
     multiCommitOperationState !== null &&
     conflictSteps.includes(multiCommitOperationState.step.kind)
   )

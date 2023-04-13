@@ -20,6 +20,10 @@
       color: var(--text-secondary-color);
     }
 
+    &:focus {
+      outline-offset: 3px;
+    }
+
     .octicon {
       margin-right: 0;
     }

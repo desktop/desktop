@@ -55,6 +55,8 @@ interface IChangesSidebarProps {
   readonly focusCommitMessage: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly accounts: ReadonlyArray<Account>
+  readonly isShowingModal: boolean
+  readonly isShowingFoldout: boolean
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
 
@@ -80,6 +82,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private autocompletionProviders: ReadonlyArray<
     IAutocompletionProvider<any>
   > | null = null
+  private changesListRef = React.createRef<ChangesList>()
 
   public constructor(props: IChangesSidebarProps) {
     super(props)
@@ -340,6 +343,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     return this.renderMostRecentLocalCommit()
   }
 
+  public focus() {
+    this.changesListRef.current?.focus()
+  }
+
   public render() {
     const {
       workingDirectory,
@@ -369,8 +376,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     )
 
     return (
-      <div className="panel">
+      <div className="panel" role="tabpanel" aria-labelledby="changes-tab">
         <ChangesList
+          ref={this.changesListRef}
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           repositoryAccount={repositoryAccount}
@@ -394,6 +402,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           branch={this.props.branch}
           commitMessage={commitMessage}
           focusCommitMessage={this.props.focusCommitMessage}
+          isShowingModal={this.props.isShowingModal}
+          isShowingFoldout={this.props.isShowingFoldout}
           autocompletionProviders={this.autocompletionProviders!}
           availableWidth={this.props.availableWidth}
           onIgnoreFile={this.onIgnoreFile}
