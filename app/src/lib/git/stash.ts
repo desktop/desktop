@@ -13,6 +13,7 @@ import {
 import { parseRawLogWithNumstat } from './log'
 import { stageFiles } from './update-index'
 import { Branch } from '../../models/branch'
+import { createLogParser } from './git-delimiter-parser'
 
 export const DesktopStashEntryMarker = '!!GitHub_Desktop'
 
@@ -41,17 +42,17 @@ type StashResult = {
  * as well as the total amount of stash entries.
  */
 export async function getStashes(repository: Repository): Promise<StashResult> {
-  const delimiter = '1F'
-  const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
-  const format = ['%gD', '%H', '%gs'].join(`%x${delimiter}`)
+  const { formatArgs, parse } = createLogParser({
+    name: '%gD',
+    stashSha: '%H',
+    message: '%gs',
+  })
 
   const result = await git(
-    ['log', '-g', '-z', `--pretty=${format}`, 'refs/stash'],
+    ['log', '-g', ...formatArgs, 'refs/stash'],
     repository.path,
     'getStashEntries',
-    {
-      successExitCodes: new Set([0, 128]),
-    }
+    { successExitCodes: new Set([0, 128]) }
   )
 
   // There's no refs/stashes reflog in the repository or it's not
@@ -60,34 +61,20 @@ export async function getStashes(repository: Repository): Promise<StashResult> {
     return { desktopEntries: [], stashEntryCount: 0 }
   }
 
-  const desktopStashEntries: Array<IStashEntry> = []
-  const files: StashedFileChanges = {
-    kind: StashedChangesLoadStates.NotLoaded,
-  }
+  const desktopEntries: Array<IStashEntry> = []
+  const files: StashedFileChanges = { kind: StashedChangesLoadStates.NotLoaded }
 
-  const entries = result.stdout.split('\0').filter(s => s !== '')
-  for (const entry of entries) {
-    const pieces = entry.split(delimiterString)
+  const entries = parse(result.stdout)
 
-    if (pieces.length === 3) {
-      const [name, stashSha, message] = pieces
-      const branchName = extractBranchFromMessage(message)
+  for (const { name, message, stashSha } of entries) {
+    const branchName = extractBranchFromMessage(message)
 
-      if (branchName !== null) {
-        desktopStashEntries.push({
-          name,
-          branchName,
-          stashSha,
-          files,
-        })
-      }
+    if (branchName !== null) {
+      desktopEntries.push({ name, stashSha, branchName, files })
     }
   }
 
-  return {
-    desktopEntries: desktopStashEntries,
-    stashEntryCount: entries.length - 1,
-  }
+  return { desktopEntries, stashEntryCount: entries.length - 1 }
 }
 
 /**
