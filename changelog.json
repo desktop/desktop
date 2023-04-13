@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.2.2-test4": [
+      "[Fixed] NVDA reads number of suggestions when an autocompletion list shows up"
+    ],
     "3.2.1": [
       "[Added] Add Zed as an external editor option - #16026. Thanks @JosephTLyons!",
       "[Added] Add support for Pulsar code editor on macOS. - #16220. Thanks @mdibella-dev!",
