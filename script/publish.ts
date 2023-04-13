@@ -11,7 +11,7 @@ import {
 } from '@azure/storage-blob'
 import * as Crypto from 'crypto'
 import request from 'request'
-import { getFileHash } from '../app/src/lib/file-system'
+import { getFileHash } from '../app/src/lib/get-file-hash'
 import { stat } from 'fs/promises'
 
 if (!distInfo.isPublishable()) {
