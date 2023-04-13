@@ -10,7 +10,7 @@ import {
   StorageSharedKeyCredential,
 } from '@azure/storage-blob'
 import * as Crypto from 'crypto'
-import request from 'request'
+import fetch from 'node-fetch'
 import { getFileHash } from '../app/src/lib/get-file-hash'
 import { stat } from 'fs/promises'
 
@@ -178,10 +178,10 @@ function getContext() {
   )
 }
 
-function updateDeploy(
+async function updateDeploy(
   artifacts: ReadonlyArray<IUploadResult>,
   secret: string
-): Promise<void> {
+) {
   const { rendererSize, mainSize } = distInfo.getBundleSizes()
   const body = {
     context: getContext(),
@@ -193,36 +193,19 @@ function updateDeploy(
       mainBundleSize: mainSize,
     },
   }
+
   const signature = createSignature(body, secret)
-  const options = {
+  const url = 'https://central.github.com/api/deploy_built'
+
+  const response = await fetch(url, {
     method: 'POST',
-    url: 'https://central.github.com/api/deploy_built',
-    headers: {
-      'X-Hub-Signature': signature,
-    },
-    json: true,
-    body,
-  }
-
-  return new Promise((resolve, reject) => {
-    request(options, (error, response, body) => {
-      if (error) {
-        reject(error)
-        return
-      }
-
-      if (response.statusCode !== 200) {
-        reject(
-          new Error(
-            `Received a non-200 response (${
-              response.statusCode
-            }): ${JSON.stringify(body)}`
-          )
-        )
-        return
-      }
-
-      resolve()
-    })
+    headers: { 'X-Hub-Signature': signature },
+    body: JSON.stringify(body),
   })
+
+  if (!response.ok) {
+    throw new Error(
+      `Unexpected response while updating deploy ${response.status} ${response.statusText}`
+    )
+  }
 }
