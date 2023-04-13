@@ -27,6 +27,9 @@ interface IStashDiffViewerProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
 
+  /** Should the app propt the user to confirm a discard stash */
+  readonly askForConfirmationOnDiscardStash: boolean
+
   /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
 
@@ -47,6 +50,9 @@ interface IStashDiffViewerProps {
 
   /** Called when the user changes the hide whitespace in diffs setting. */
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
+
+  /** Called when the user requests to open a submodule. */
+  readonly onOpenSubmodule: (fullPath: string) => void
 }
 
 /**
@@ -75,6 +81,7 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
       fileListWidth,
       onOpenBinaryFile,
       onChangeImageDiffType,
+      onOpenSubmodule,
     } = this.props
     const files =
       stashEntry.files.kind === StashedChangesLoadStates.Loaded
@@ -96,6 +103,7 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
           onHideWhitespaceInDiffChanged={
             this.props.onHideWhitespaceInDiffChanged
           }
+          onOpenSubmodule={onOpenSubmodule}
         />
       ) : null
 
@@ -108,6 +116,9 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
           repository={repository}
           dispatcher={dispatcher}
           isWorkingTreeClean={isWorkingTreeClean}
+          askForConfirmationOnDiscardStash={
+            this.props.askForConfirmationOnDiscardStash
+          }
         />
         <div className="commit-details">
           <Resizable

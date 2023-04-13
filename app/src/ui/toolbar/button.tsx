@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react'
 import { Octicon, OcticonSymbolType } from '../octicons'
 import classNames from 'classnames'
@@ -6,6 +7,7 @@ import { Button } from '../lib/button'
 import { clamp } from '../../lib/clamp'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip, TooltipDirection, TooltipTarget } from '../lib/tooltip'
+import { AriaHasPopupType } from '../lib/aria-types'
 
 /** The button style. */
 export enum ToolbarButtonStyle {
@@ -37,6 +39,13 @@ export interface IToolbarButtonProps {
    * by a pointer event or by hitting space/enter while focused.
    */
   readonly onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
+
+  /**
+   * An optional event handler for when the button's context menu
+   * is activated by a pointer event or by hitting the menu key
+   * while focused.
+   */
+  readonly onContextMenu?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /**
    * A function that's called when the user hovers over the button with
@@ -100,6 +109,7 @@ export interface IToolbarButtonProps {
 
   readonly role?: string
   readonly ariaExpanded?: boolean
+  readonly ariaHaspopup?: AriaHasPopupType
 
   /**
    * Whether to only show the tooltip when the tooltip target overflows its
@@ -206,12 +216,14 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
         )}
         <Button
           onClick={this.onClick}
+          onContextMenu={this.props.onContextMenu}
           ref={this.onButtonRef}
           disabled={this.props.disabled}
           onMouseEnter={this.props.onMouseEnter}
           tabIndex={this.props.tabIndex}
           role={this.props.role}
           ariaExpanded={this.props.ariaExpanded}
+          ariaHaspopup={this.props.ariaHaspopup}
         >
           {progress}
           {icon}

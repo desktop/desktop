@@ -3,7 +3,6 @@ import { CIStatus } from './ci-status'
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
 import { ICombinedRefCheck } from '../../lib/ci-checks/ci-checks'
-import { enableCICheckRuns } from '../../lib/feature-flag'
 import { getPullRequestCommitRef } from '../../models/pull-request'
 
 interface IPullRequestBadgeProps {
@@ -63,7 +62,7 @@ export class PullRequestBadge extends React.Component<
   private onBadgeClick = (
     event: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => {
-    if (!this.state.isStatusShowing || !enableCICheckRuns()) {
+    if (!this.state.isStatusShowing) {
       return
     }
 
@@ -78,6 +77,7 @@ export class PullRequestBadge extends React.Component<
   public render() {
     const ref = getPullRequestCommitRef(this.props.number)
     return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
       <div className="pr-badge" onClick={this.onBadgeClick} ref={this.onRef}>
         <span className="number">#{this.props.number}</span>
         <CIStatus

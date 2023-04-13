@@ -15,39 +15,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [16.13.0]
-        os: [macos-10.15, windows-2019]
+        node: [16.17.1]
+        os: [macos-11, windows-2019]
         arch: [x64, arm64]
         include:
-          - os: macos-10.15
+          - os: macos-11
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
     timeout-minutes: 60
-    env:
-      # Needed for macOS arm64 until hosted macos-11.0 runners become available
-      SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
-
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-
-      - uses: actions/cache@v2
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-            ${{ runner.os }}-yarn-
+          cache: yarn
 
       # This step can be removed as soon as official Windows arm64 builds are published:
       # https://github.com/nodejs/build/issues/2450#issuecomment-705853342
@@ -60,6 +45,8 @@ jobs:
         env:
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
+      - name: Validate Electron version
+        run: yarn run validate-electron-version
       - name: Lint
         run: yarn lint
       - name: Validate changelog
@@ -83,10 +70,10 @@ jobs:
         run: yarn test:setup
       - name: Run unit tests
         if: matrix.arch == 'x64'
-        run: yarn test:unit:cov
+        run: yarn test:unit
       - name: Run script tests
         if: matrix.arch == 'x64'
-        run: yarn test:script:cov
+        run: yarn test:script
       - name: Publish production app
         run: yarn run publish
         env:

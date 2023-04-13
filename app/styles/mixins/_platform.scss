@@ -41,3 +41,25 @@
     @content;
   }
 }
+
+// A mixin which takes a content block that should only
+// be applied when the current (real or emulated) operating
+// system is Linux.
+//
+// This helper mixin is useful in so far that it allows us
+// to keep platform specific styles next to cross-platform
+// styles instead of splitting them out and possibly forgetting
+// about them.
+@mixin linux {
+  body.platform-linux & {
+    @content;
+  }
+}
+
+// An exact copy of the linux mixin except that it allows for
+// writing base-level rules
+@mixin linux-context {
+  body.platform-linux {
+    @content;
+  }
+}

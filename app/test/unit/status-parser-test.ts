@@ -110,4 +110,12 @@ describe('parsePorcelainStatus', () => {
     expect(entries[0].path).toBe('pdf_linux-x64/lib/libQt5Core.so.5')
     expect(entries[0].statusCode).toBe('.T')
   })
+
+  it('parses submodule changes', () => {
+    const x = `1 .M SCMU 100644 100644 100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 submodule/submodule`
+    const entries = parsePorcelainStatus(x) as ReadonlyArray<IStatusEntry>
+    expect(entries).toHaveLength(1)
+    expect(entries[0].path).toBe('submodule/submodule')
+    expect(entries[0].submoduleStatusCode).toBe('SCMU')
+  })
 })

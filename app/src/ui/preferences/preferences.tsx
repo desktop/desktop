@@ -40,6 +40,7 @@ import {
 } from '../../lib/helpers/default-branch'
 import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
+import { Notifications } from './notifications'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -54,7 +55,9 @@ interface IPreferencesProps {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
+  readonly confirmDiscardStash: boolean
   readonly confirmForcePush: boolean
+  readonly confirmUndoCommit: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
@@ -78,7 +81,9 @@ interface IPreferencesState {
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
+  readonly confirmDiscardStash: boolean
   readonly confirmForcePush: boolean
+  readonly confirmUndoCommit: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly availableEditors: ReadonlyArray<string>
   readonly selectedExternalEditor: string | null
@@ -93,6 +98,8 @@ interface IPreferencesState {
    */
   readonly existingLockFilePath?: string
   readonly repositoryIndicatorsEnabled: boolean
+
+  readonly initiallySelectedTheme: ApplicationTheme
 }
 
 /** The app-level preferences component. */
@@ -119,12 +126,15 @@ export class Preferences extends React.Component<
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
       confirmDiscardChangesPermanently: false,
+      confirmDiscardStash: false,
       confirmForcePush: false,
+      confirmUndoCommit: false,
       uncommittedChangesStrategy: defaultUncommittedChangesStrategy,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
+      initiallySelectedTheme: this.props.selectedTheme,
     }
   }
 
@@ -175,11 +185,21 @@ export class Preferences extends React.Component<
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmDiscardChangesPermanently:
         this.props.confirmDiscardChangesPermanently,
+      confirmDiscardStash: this.props.confirmDiscardStash,
       confirmForcePush: this.props.confirmForcePush,
+      confirmUndoCommit: this.props.confirmUndoCommit,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
       availableEditors,
     })
+  }
+
+  private onCancel = () => {
+    if (this.state.initiallySelectedTheme !== this.props.selectedTheme) {
+      this.onSelectedThemeChanged(this.state.initiallySelectedTheme)
+    }
+
+    this.props.onDismissed()
   }
 
   public render() {
@@ -187,7 +207,7 @@ export class Preferences extends React.Component<
       <Dialog
         id="preferences"
         title={__DARWIN__ ? 'Preferences' : 'Options'}
-        onDismissed={this.props.onDismissed}
+        onDismissed={this.onCancel}
         onSubmit={this.onSave}
       >
         <div className="preferences-container">
@@ -212,6 +232,10 @@ export class Preferences extends React.Component<
             <span>
               <Octicon className="icon" symbol={OcticonSymbol.paintbrush} />
               Appearance
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.bell} />
+              Notifications
             </span>
             <span>
               <Octicon className="icon" symbol={OcticonSymbol.question} />
@@ -321,6 +345,14 @@ export class Preferences extends React.Component<
           />
         )
         break
+      case PreferencesTab.Notifications:
+        View = (
+          <Notifications
+            notificationsEnabled={this.state.notificationsEnabled}
+            onNotificationsEnabledChanged={this.onNotificationsEnabledChanged}
+          />
+        )
+        break
       case PreferencesTab.Prompts: {
         View = (
           <Prompts
@@ -329,14 +361,22 @@ export class Preferences extends React.Component<
             confirmDiscardChangesPermanently={
               this.state.confirmDiscardChangesPermanently
             }
+            confirmDiscardStash={this.state.confirmDiscardStash}
             confirmForcePush={this.state.confirmForcePush}
+            confirmUndoCommit={this.state.confirmUndoCommit}
             onConfirmRepositoryRemovalChanged={
               this.onConfirmRepositoryRemovalChanged
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
+            onConfirmDiscardStashChanged={this.onConfirmDiscardStashChanged}
             onConfirmForcePushChanged={this.onConfirmForcePushChanged}
             onConfirmDiscardChangesPermanentlyChanged={
               this.onConfirmDiscardChangesPermanentlyChanged
+            }
+            onConfirmUndoCommitChanged={this.onConfirmUndoCommitChanged}
+            uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
+            onUncommittedChangesStrategyChanged={
+              this.onUncommittedChangesStrategyChanged
             }
           />
         )
@@ -346,16 +386,10 @@ export class Preferences extends React.Component<
         View = (
           <Advanced
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
-            notificationsEnabled={this.state.notificationsEnabled}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
-            uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
-            onNotificationsEnabledChanged={this.onNotificationsEnabledChanged}
             onOptOutofReportingChanged={this.onOptOutofReportingChanged}
-            onUncommittedChangesStrategyChanged={
-              this.onUncommittedChangesStrategyChanged
-            }
             onRepositoryIndicatorsEnabledChanged={
               this.onRepositoryIndicatorsEnabledChanged
             }
@@ -404,12 +438,20 @@ export class Preferences extends React.Component<
     this.setState({ confirmDiscardChanges: value })
   }
 
+  private onConfirmDiscardStashChanged = (value: boolean) => {
+    this.setState({ confirmDiscardStash: value })
+  }
+
   private onConfirmDiscardChangesPermanentlyChanged = (value: boolean) => {
     this.setState({ confirmDiscardChangesPermanently: value })
   }
 
   private onConfirmForcePushChanged = (value: boolean) => {
     this.setState({ confirmForcePush: value })
+  }
+
+  private onConfirmUndoCommitChanged = (value: boolean) => {
+    this.setState({ confirmUndoCommit: value })
   }
 
   private onUncommittedChangesStrategyChanged = (
@@ -454,27 +496,14 @@ export class Preferences extends React.Component<
   private renderFooter() {
     const hasDisabledError = this.state.disallowedCharactersMessage != null
 
-    const index = this.state.selectedIndex
-    switch (index) {
-      case PreferencesTab.Accounts:
-      case PreferencesTab.Appearance:
-        return null
-      case PreferencesTab.Integrations:
-      case PreferencesTab.Advanced:
-      case PreferencesTab.Prompts:
-      case PreferencesTab.Git: {
-        return (
-          <DialogFooter>
-            <OkCancelButtonGroup
-              okButtonText="Save"
-              okButtonDisabled={hasDisabledError}
-            />
-          </DialogFooter>
-        )
-      }
-      default:
-        return assertNever(index, `Unknown tab index: ${index}`)
-    }
+    return (
+      <DialogFooter>
+        <OkCancelButtonGroup
+          okButtonText="Save"
+          okButtonDisabled={hasDisabledError}
+        />
+      </DialogFooter>
+    )
   }
 
   private onSave = async () => {
@@ -550,6 +579,14 @@ export class Preferences extends React.Component<
 
     await this.props.dispatcher.setConfirmForcePushSetting(
       this.state.confirmForcePush
+    )
+
+    await this.props.dispatcher.setConfirmDiscardStashSetting(
+      this.state.confirmDiscardStash
+    )
+
+    await this.props.dispatcher.setConfirmUndoCommitSetting(
+      this.state.confirmUndoCommit
     )
 
     if (this.state.selectedExternalEditor) {

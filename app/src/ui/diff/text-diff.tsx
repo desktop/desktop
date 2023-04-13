@@ -46,6 +46,7 @@ import {
   getLineWidthFromDigitCount,
   getNumberOfDigits,
   MaxIntraLineDiffStringLength,
+  textDiffEquals,
 } from './diff-helpers'
 import {
   expandTextDiffHunk,
@@ -272,6 +273,7 @@ const defaultEditorOptions: EditorConfiguration = {
     [__DARWIN__ ? 'Shift-Cmd-G' : 'Shift-Ctrl-G']: false, // findPrev
     [__DARWIN__ ? 'Cmd-Alt-F' : 'Shift-Ctrl-F']: false, // replace
     [__DARWIN__ ? 'Shift-Cmd-Alt-F' : 'Shift-Ctrl-R']: false, // replaceAll
+    [__DARWIN__ ? 'Cmd-D' : 'Ctrl-D'] : false, // toggleDiffDisplayMode
     Down: scrollEditorVertically(1, 'line'),
     Up: scrollEditorVertically(-1, 'line'),
     PageDown: scrollEditorVertically(1, 'page'),
@@ -747,6 +749,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
         {
           label: this.getDiscardLabel(range.type, range.to - range.from + 1),
           action: () => this.onDiscardChanges(file, range.from, range.to),
+          enabled: !this.props.hideWhitespaceInDiff,
         },
       ]
     }
@@ -762,7 +765,9 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
         {
           label: this.getDiscardLabel(range.type, 1),
           action: () => this.onDiscardChanges(file, lineNumber),
-          enabled: range.type !== DiffRangeType.Mixed,
+          enabled:
+            range.type !== DiffRangeType.Mixed &&
+            !this.props.hideWhitespaceInDiff,
         },
       ]
     }
@@ -1487,6 +1492,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       this.initDiffSyntaxMode()
     }
 
+    const isSameDiff = textDiffEquals(this.props.diff, prevProps.diff)
+
     if (canSelect(this.props.file)) {
       if (
         !canSelect(prevProps.file) ||
@@ -1495,17 +1502,15 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
         // If the text has changed the gutters will be recreated
         // regardless but if it hasn't then we'll need to update
         // the viewport.
-        if (this.props.diff.text === prevProps.diff.text) {
+        if (isSameDiff) {
           this.updateViewport()
         }
       }
     }
 
-    if (this.props.diff.text !== prevProps.diff.text) {
+    if (!isSameDiff) {
       this.diffToRestore = null
-      this.setState({
-        diff: this.props.diff,
-      })
+      this.setState({ diff: this.props.diff })
     }
 
     if (snapshot !== null) {

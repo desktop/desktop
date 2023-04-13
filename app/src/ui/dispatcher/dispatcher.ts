@@ -1,4 +1,4 @@
-import { Disposable, IDisposable } from 'event-kit'
+import { Disposable, DisposableLike } from 'event-kit'
 
 import {
   IAPIOrganization,
@@ -31,6 +31,7 @@ import {
   getCommitsBetweenCommits,
   getBranches,
   getRebaseSnapshot,
+  getRepositoryType,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -50,13 +51,12 @@ import {
 import { Shell } from '../../lib/shells'
 import { ILaunchStats, StatsStore } from '../../lib/stats'
 import { AppStore } from '../../lib/stores/app-store'
-import { validatedRepositoryPath } from '../../lib/stores/helpers/validated-repository-path'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
 
 import { Account } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
-import { IAuthor } from '../../models/author'
+import { Author, UnknownAuthor } from '../../models/author'
 import { Branch, IAheadBehind } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
@@ -68,7 +68,10 @@ import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { Popup, PopupType } from '../../models/popup'
-import { PullRequest } from '../../models/pull-request'
+import {
+  PullRequest,
+  PullRequestSuggestedNextAction,
+} from '../../models/pull-request'
 import {
   Repository,
   RepositoryWithGitHubRepository,
@@ -106,7 +109,6 @@ import { resolveWithin } from '../../lib/path'
 import { CherryPickResult } from '../../lib/git/cherry-pick'
 import { sleep } from '../../lib/promise'
 import { DragElement, DragType } from '../../models/drag-drop'
-import { findDefaultUpstreamBranch } from '../../lib/branch'
 import { ILastThankYou } from '../../models/last-thank-you'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import {
@@ -116,10 +118,10 @@ import {
   MultiCommitOperationStep,
   MultiCommitOperationStepKind,
 } from '../../models/multi-commit-operation'
-import { DragAndDropIntroType } from '../history/drag-and-drop-intro'
 import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
+import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
 
 /**
  * An error handler function.
@@ -235,9 +237,18 @@ export class Dispatcher {
    */
   public changeCommitSelection(
     repository: Repository,
-    shas: ReadonlyArray<string>
-  ): Promise<void> {
-    return this.appStore._changeCommitSelection(repository, shas)
+    shas: ReadonlyArray<string>,
+    isContiguous: boolean
+  ): void {
+    return this.appStore._changeCommitSelection(repository, shas, isContiguous)
+  }
+
+  /** Update the shas that should be highlighted */
+  public updateShasToHighlight(
+    repository: Repository,
+    shasToHighlight: ReadonlyArray<string>
+  ) {
+    this.appStore._updateShasToHighlight(repository, shasToHighlight)
   }
 
   /**
@@ -374,6 +385,13 @@ export class Dispatcher {
    */
   public closePopup(popupType?: PopupType) {
     return this.appStore._closePopup(popupType)
+  }
+
+  /**
+   * Close the popup with given id.
+   */
+  public closePopupById(popupId: string) {
+    return this.appStore._closePopupById(popupId)
   }
 
   /** Show the foldout. This will close any current popup. */
@@ -757,11 +775,6 @@ export class Dispatcher {
     return this.appStore._pushError(error)
   }
 
-  /** Clear the given error. */
-  public clearError(error: Error): Promise<void> {
-    return this.appStore._clearError(error)
-  }
-
   /**
    * Clone a missing repository to the previous path, and update it's
    * state in the repository list if the clone completes without error.
@@ -950,6 +963,13 @@ export class Dispatcher {
    */
   public setUpdateBannerVisibility(isVisible: boolean) {
     return this.appStore._setUpdateBannerVisibility(isVisible)
+  }
+
+  /**
+   * Set the update show case visibility
+   */
+  public setUpdateShowCaseVisibility(isVisible: boolean) {
+    return this.appStore._setUpdateShowCaseVisibility(isVisible)
   }
 
   /**
@@ -1530,6 +1550,17 @@ export class Dispatcher {
     await this.appStore._showCreateForkDialog(repository)
   }
 
+  public async showUnknownAuthorsCommitWarning(
+    authors: ReadonlyArray<UnknownAuthor>,
+    onCommitAnyway: () => void
+  ) {
+    return this.appStore._showPopup({
+      type: PopupType.UnknownAuthors,
+      authors,
+      onCommit: onCommitAnyway,
+    })
+  }
+
   /**
    * Register a new error handler.
    *
@@ -1807,7 +1838,15 @@ export class Dispatcher {
         // user may accidentally provide a folder within the repository
         // this ensures we use the repository root, if it is actually a repository
         // otherwise we consider it an untracked repository
-        const path = (await validatedRepositoryPath(action.path)) || action.path
+        const path = await getRepositoryType(action.path)
+          .then(t =>
+            t.kind === 'regular' ? t.topLevelWorkingDirectory : action.path
+          )
+          .catch(e => {
+            log.error('Could not determine repository type', e)
+            return action.path
+          })
+
         const { repositories } = this.appStore.getState()
         const existingRepository = matchExistingRepository(repositories, path)
 
@@ -1928,6 +1967,23 @@ export class Dispatcher {
       this.showPopup({
         type: PopupType.CloneRepository,
         initialURL: url,
+      })
+    })
+  }
+
+  public async openOrAddRepository(path: string): Promise<Repository | null> {
+    const state = this.appStore.getState()
+    const repositories = state.repositories
+    const existingRepository = repositories.find(r => r.path === path)
+
+    if (existingRepository) {
+      return await this.selectRepository(existingRepository)
+    }
+
+    return this.appStore._startOpenInDesktop(() => {
+      this.showPopup({
+        type: PopupType.AddRepository,
+        path,
       })
     })
   }
@@ -2082,6 +2138,19 @@ export class Dispatcher {
     )
   }
 
+  /** Change the hide whitespace in pull request diff setting */
+  public onHideWhitespaceInPullRequestDiffChanged(
+    hideWhitespaceInDiff: boolean,
+    repository: Repository,
+    file: CommittedFileChange | null = null
+  ) {
+    this.appStore._setHideWhitespaceInPullRequestDiff(
+      hideWhitespaceInDiff,
+      repository,
+      file
+    )
+  }
+
   /** Change the side by side diff setting */
   public onShowSideBySideDiffChanged(showSideBySideDiff: boolean) {
     return this.appStore._setShowSideBySideDiff(showSideBySideDiff)
@@ -2135,8 +2204,11 @@ export class Dispatcher {
    * openCreatePullRequestInBrowser method which immediately opens the
    * create pull request page without showing a dialog.
    */
-  public createPullRequest(repository: Repository): Promise<void> {
-    return this.appStore._createPullRequest(repository)
+  public createPullRequest(
+    repository: Repository,
+    baseBranch?: Branch
+  ): Promise<void> {
+    return this.appStore._createPullRequest(repository, baseBranch)
   }
 
   /**
@@ -2216,7 +2288,7 @@ export class Dispatcher {
    */
   public setCoAuthors(
     repository: Repository,
-    coAuthors: ReadonlyArray<IAuthor>
+    coAuthors: ReadonlyArray<Author>
   ) {
     return this.appStore._setCoAuthors(repository, coAuthors)
   }
@@ -2298,8 +2370,16 @@ export class Dispatcher {
     await this.appStore._loadStatus(repository)
   }
 
+  public setConfirmDiscardStashSetting(value: boolean) {
+    return this.appStore._setConfirmDiscardStashSetting(value)
+  }
+
   public setConfirmForcePushSetting(value: boolean) {
     return this.appStore._setConfirmForcePushSetting(value)
+  }
+
+  public setConfirmUndoCommitSetting(value: boolean) {
+    return this.appStore._setConfirmUndoCommitSetting(value)
   }
 
   /**
@@ -2327,6 +2407,11 @@ export class Dispatcher {
    */
   public mergeConflictDetectedFromExplicitMerge() {
     return this.statsStore.recordMergeConflictFromExplicitMerge()
+  }
+
+  /** Increments the `openSubmoduleFromDiffCount` metric */
+  public recordOpenSubmoduleFromDiffCount() {
+    return this.statsStore.recordOpenSubmoduleFromDiffCount()
   }
 
   /**
@@ -2384,6 +2469,10 @@ export class Dispatcher {
    */
   public recordCreatePullRequest() {
     return this.statsStore.recordCreatePullRequest()
+  }
+
+  public recordCreatePullRequestFromPreview() {
+    return this.statsStore.recordCreatePullRequestFromPreview()
   }
 
   public recordWelcomeWizardInitiated() {
@@ -2492,7 +2581,7 @@ export class Dispatcher {
     ref: string,
     callback: StatusCallBack,
     branchName?: string
-  ): IDisposable {
+  ): DisposableLike {
     return this.commitStatusStore.subscribe(
       repository,
       ref,
@@ -2522,19 +2611,39 @@ export class Dispatcher {
    */
   public async rerequestCheckSuites(
     repository: GitHubRepository,
-    checkRuns: ReadonlyArray<IRefCheck>
+    checkRuns: ReadonlyArray<IRefCheck>,
+    failedOnly: boolean
   ): Promise<ReadonlyArray<boolean>> {
-    // Get unique set of check suite ids
-    const checkSuiteIds = new Set<number | null>([
-      ...checkRuns.map(cr => cr.checkSuiteId),
-    ])
-
     const promises = new Array<Promise<boolean>>()
 
-    for (const id of checkSuiteIds) {
-      if (id === null) {
+    // If it is one and in actions check, we can rerun it individually.
+    if (checkRuns.length === 1 && checkRuns[0].actionsWorkflow !== undefined) {
+      promises.push(
+        this.commitStatusStore.rerunJob(repository, checkRuns[0].id)
+      )
+      return Promise.all(promises)
+    }
+
+    const checkSuiteIds = new Set<number>()
+    const workflowRunIds = new Set<number>()
+    for (const cr of checkRuns) {
+      if (failedOnly && cr.actionsWorkflow !== undefined) {
+        workflowRunIds.add(cr.actionsWorkflow.id)
         continue
       }
+
+      // There could still be failed ones that are not action and only way to
+      // rerun them is to rerun their whole check suite
+      if (cr.checkSuiteId !== null) {
+        checkSuiteIds.add(cr.checkSuiteId)
+      }
+    }
+
+    for (const id of workflowRunIds) {
+      promises.push(this.commitStatusStore.rerunFailedJobs(repository, id))
+    }
+
+    for (const id of checkSuiteIds) {
       promises.push(this.commitStatusStore.rerequestCheckSuite(repository, id))
     }
 
@@ -2793,7 +2902,6 @@ export class Dispatcher {
 
     this.appStore._initializeCherryPickProgress(repository, commits)
     this.switchMultiCommitOperationToShowProgress(repository)
-    this.markDragAndDropIntroAsSeen(DragAndDropIntroType.CherryPick)
 
     const retry: RetryAction = {
       type: RetryActionType.CherryPick,
@@ -3106,7 +3214,7 @@ export class Dispatcher {
 
     switch (cherryPickResult) {
       case CherryPickResult.CompletedWithoutError:
-        await this.changeCommitSelection(repository, [commits[0].sha])
+        await this.changeCommitSelection(repository, [commits[0].sha], true)
         await this.completeMultiCommitOperation(repository, commits.length)
         break
       case CherryPickResult.ConflictsEncountered:
@@ -3137,11 +3245,6 @@ export class Dispatcher {
     return this.appStore._setCherryPickProgressFromState(repository)
   }
 
-  /** Method to mark a drag & drop intro as seen */
-  public markDragAndDropIntroAsSeen(intro: DragAndDropIntroType): void {
-    this.appStore._markDragAndDropIntroAsSeen(intro)
-  }
-
   /** Method to record cherry pick initiated via the context menu. */
   public recordCherryPickViaContextMenu() {
     this.statsStore.recordCherryPickViaContextMenu()
@@ -3170,7 +3273,8 @@ export class Dispatcher {
     sourceBranch: Branch | null
   ): Promise<void> {
     const { branchesState } = this.repositoryStateManager.get(repository)
-    const { defaultBranch, allBranches, tip } = branchesState
+    const { defaultBranch, upstreamDefaultBranch, allBranches, tip } =
+      branchesState
 
     if (tip.kind !== TipState.Valid) {
       this.appStore._clearCherryPickingHead(repository, null)
@@ -3182,12 +3286,6 @@ export class Dispatcher {
     const isGHRepo = isRepositoryWithGitHubRepository(repository)
     const upstreamGhRepo = isGHRepo
       ? getNonForkGitHubRepository(repository as RepositoryWithGitHubRepository)
-      : null
-    const upstreamDefaultBranch = isGHRepo
-      ? findDefaultUpstreamBranch(
-          repository as RepositoryWithGitHubRepository,
-          allBranches
-        )
       : null
 
     this.initializeMultiCommitOperation(
@@ -3268,8 +3366,6 @@ export class Dispatcher {
     if (this.appStore._checkForUncommittedChanges(repository, retry)) {
       return
     }
-
-    this.markDragAndDropIntroAsSeen(DragAndDropIntroType.Reorder)
 
     const stateBefore = this.repositoryStateManager.get(repository)
     const { tip } = stateBefore.branchesState
@@ -3378,8 +3474,6 @@ export class Dispatcher {
     if (this.appStore._checkForUncommittedChanges(repository, retry)) {
       return
     }
-
-    this.markDragAndDropIntroAsSeen(DragAndDropIntroType.Squash)
 
     const stateBefore = this.repositoryStateManager.get(repository)
     const { tip } = stateBefore.branchesState
@@ -3519,7 +3613,11 @@ export class Dispatcher {
           // TODO: Look at history back to last retained commit and search for
           // squashed commit based on new commit message ... if there is more
           // than one, just take the most recent. (not likely?)
-          await this.changeCommitSelection(repository, [status.currentTip])
+          await this.changeCommitSelection(
+            repository,
+            [status.currentTip],
+            true
+          )
         }
 
         await this.completeMultiCommitOperation(
@@ -3892,5 +3990,84 @@ export class Dispatcher {
     reviewType: ValidNotificationPullRequestReviewState
   ) {
     this.statsStore.recordPullRequestReviewDialogSwitchToPullRequest(reviewType)
+  }
+
+  public recordPullRequestCommentDialogSwitchToPullRequest() {
+    this.statsStore.recordPullRequestCommentDialogSwitchToPullRequest()
+  }
+
+  public showUnreachableCommits(selectedTab: UnreachableCommitsTab) {
+    this.statsStore.recordMultiCommitDiffUnreachableCommitsDialogOpenedCount()
+
+    this.showPopup({
+      type: PopupType.UnreachableCommits,
+      selectedTab,
+    })
+  }
+
+  public startPullRequest(repository: Repository) {
+    this.appStore._startPullRequest(repository)
+  }
+
+  /**
+   * Change the selected changed file of the current pull request state.
+   */
+  public changePullRequestFileSelection(
+    repository: Repository,
+    file: CommittedFileChange
+  ): Promise<void> {
+    return this.appStore._changePullRequestFileSelection(repository, file)
+  }
+
+  /**
+   * Set the width of the file list column in the pull request files changed
+   */
+  public setPullRequestFileListWidth(width: number): Promise<void> {
+    return this.appStore._setPullRequestFileListWidth(width)
+  }
+
+  /**
+   * Reset the width of the file list column in the pull request files changed
+   */
+  public resetPullRequestFileListWidth(): Promise<void> {
+    return this.appStore._resetPullRequestFileListWidth()
+  }
+
+  public updatePullRequestBaseBranch(repository: Repository, branch: Branch) {
+    this.appStore._updatePullRequestBaseBranch(repository, branch)
+  }
+
+  /**
+   * Attempts to quit the app if it's not updating, unless requested to quit
+   * even if it is updating.
+   *
+   * @param evenIfUpdating Whether to quit even if the app is updating.
+   */
+  public quitApp(evenIfUpdating: boolean) {
+    this.appStore._quitApp(evenIfUpdating)
+  }
+
+  /**
+   * Cancels quitting the app. This could be needed if, on macOS, the user tries
+   * to quit the app while an update is in progress, but then after being
+   * informed about the issues that could cause they decided to not close the
+   * app yet.
+   */
+  public cancelQuittingApp() {
+    this.appStore._cancelQuittingApp()
+  }
+
+  /**
+   * Sets the user's preference for which pull request suggested next action to
+   * use
+   */
+  public setPullRequestSuggestedNextAction(
+    value: PullRequestSuggestedNextAction
+  ) {
+    return this.appStore._setPullRequestSuggestedNextAction(value)
+  }
+
+  public appFocusedElementChanged() {
+    this.appStore._appFocusedElementChanged()
   }
 }

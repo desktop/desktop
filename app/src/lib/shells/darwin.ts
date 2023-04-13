@@ -11,7 +11,9 @@ export enum Shell {
   PowerShellCore = 'PowerShell Core',
   Kitty = 'Kitty',
   Alacritty = 'Alacritty',
+  Tabby = 'Tabby',
   WezTerm = 'WezTerm',
+  Warp = 'Warp',
 }
 
 export const Default = Shell.Terminal
@@ -34,8 +36,12 @@ function getBundleID(shell: Shell): string {
       return 'net.kovidgoyal.kitty'
     case Shell.Alacritty:
       return 'io.alacritty'
+    case Shell.Tabby:
+      return 'org.tabby'
     case Shell.WezTerm:
       return 'com.github.wez.wezterm'
+    case Shell.Warp:
+      return 'dev.warp.Warp-Stable'
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
@@ -61,7 +67,9 @@ export async function getAvailableShells(): Promise<
     powerShellCorePath,
     kittyPath,
     alacrittyPath,
+    tabbyPath,
     wezTermPath,
+    warpPath,
   ] = await Promise.all([
     getShellPath(Shell.Terminal),
     getShellPath(Shell.Hyper),
@@ -69,7 +77,9 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.PowerShellCore),
     getShellPath(Shell.Kitty),
     getShellPath(Shell.Alacritty),
+    getShellPath(Shell.Tabby),
     getShellPath(Shell.WezTerm),
+    getShellPath(Shell.Warp),
   ])
 
   const shells: Array<IFoundShell<Shell>> = []
@@ -99,9 +109,19 @@ export async function getAvailableShells(): Promise<
     shells.push({ shell: Shell.Alacritty, path: alacrittyExecutable })
   }
 
+  if (tabbyPath) {
+    const tabbyExecutable = `${tabbyPath}/Contents/MacOS/Tabby`
+    shells.push({ shell: Shell.Tabby, path: tabbyExecutable })
+  }
+
   if (wezTermPath) {
     const wezTermExecutable = `${wezTermPath}/Contents/MacOS/wezterm`
     shells.push({ shell: Shell.WezTerm, path: wezTermExecutable })
+  }
+
+  if (warpPath) {
+    const warpExecutable = `${warpPath}/Contents/MacOS/stable`
+    shells.push({ shell: Shell.Warp, path: warpExecutable })
   }
 
   return shells
@@ -125,6 +145,12 @@ export function launch(
     // It uses --working-directory command to start the shell
     // in the specified working directory.
     return spawn(foundShell.path, ['--working-directory', path])
+  } else if (foundShell.shell === Shell.Tabby) {
+    // Tabby cannot open files in the folder format.
+    //
+    // It uses open command to start the shell
+    // in the specified working directory.
+    return spawn(foundShell.path, ['open', path])
   } else if (foundShell.shell === Shell.WezTerm) {
     // WezTerm, like Alacritty, "cannot open files in the 'folder' format."
     //

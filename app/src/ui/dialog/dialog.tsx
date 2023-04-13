@@ -3,6 +3,32 @@ import classNames from 'classnames'
 import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
+import { isTopMostDialog } from './is-top-most'
+
+export interface IDialogStackContext {
+  /** Whether or not this dialog is the top most one in the stack to be
+   * interacted with by the user. This will also determine if event listeners
+   * will be active or not. */
+  isTopMost: boolean
+}
+
+/**
+ * The DialogStackContext is used to communicate between the `Dialog` and the
+ * `App` information that is mostly unique to the `Dialog` component such as
+ * whether it is at the top of the popup stack. Some, but not the vast majority,
+ * custom popup components in between may also utilize this to enable and
+ * disable event listeners in response to changes in whether it is the top most
+ * popup.
+ *
+ * NB *** React.Context is not the preferred method of passing data to child
+ * components for this code base. We are choosing to use it here as implementing
+ * prop drilling would be extremely tedious and would lead to adding  `Dialog`
+ * props on 60+ components that would not otherwise use them. ***
+ *
+ */
+export const DialogStackContext = React.createContext<IDialogStackContext>({
+  isTopMost: false,
+})
 
 /**
  * The time (in milliseconds) from when the dialog is mounted
@@ -106,6 +132,59 @@ interface IDialogProps {
   readonly loading?: boolean
 }
 
+/**
+ * If role is alertdialog, ariaDescribedBy is required.
+ */
+interface IAlertDialogProps extends IDialogProps {
+  /** This is used to point to an element containing content pertinent to the
+   * users workflow. This should be provided for dialogs that are alerts or
+   * confirmations so that that the information that is interrupting the user's
+   * workflow is screen reader announced and acquire a response */
+  readonly ariaDescribedBy: string
+
+  /** By default, a dialog has role of "dialog" and requires the use of an
+   * "aria-label" or "aria-labelledby" to accessibily announce the title or
+   * purpose of the header. This is typically accomplished by providing the
+   * `title` prop and the dialog component will take care of adding the
+   * `aria-labelledby` attribute.
+   *
+   * However, if the dialog is an alert or confirmation dialog we should use the
+   * role of `alertdialog` AND the `ariaDescribedBy` prop should be provided
+   * containing the id of the element with the information required by the user
+   * to proceed or be made aware of to ensure it is also read by screen readers.
+   *
+   *
+   * https://www.w3.org/TR/wai-aria-1.1/#alertdialog
+   * "An alert dialog is a modal dialog that interrupts the user's workflow to
+   * communicate an important message and acquire a response. Examples include
+   * action confirmation prompts and error message confirmations. The
+   * alertdialog role enables assistive technologies and browsers to distinguish
+   * alert dialogs from other dialogs so they have the option of giving alert
+   * dialogs special treatment, such as playing a system alert sound."
+   * */
+  readonly role: 'alertdialog'
+}
+
+/**
+ * If role is undefined or dialog, ariaDescribedBy is optional.
+ */
+interface IDescribedByDialogProps extends IDialogProps {
+  /** This is used to point to an element containing content pertinent to the
+   * users workflow. This should be provided for dialogs that are alerts or
+   * confirmations so that that the information that is interrupting the user's
+   * workflow is screen reader announced and acquire a response */
+  readonly ariaDescribedBy?: string
+
+  /** By default, a dialog has role of "dialog". This is only required for a
+   * role of 'alertdialog' in which case  `ariaDescribedBy` must also be
+   * provided */
+  readonly role?: 'dialog'
+}
+
+/** Interface union to force usage of `ariaDescribedBy` if role of `alertdialog`
+ * is used */
+type DialogProps = IAlertDialogProps | IDescribedByDialogProps
+
 interface IDialogState {
   /**
    * When a dialog is shown we wait for a few hundred milliseconds before
@@ -137,7 +216,19 @@ interface IDialogState {
  * underlying elements. It's not possible to use the tab key to move focus
  * out of the dialog without first dismissing it.
  */
-export class Dialog extends React.Component<IDialogProps, IDialogState> {
+export class Dialog extends React.Component<DialogProps, IDialogState> {
+  public static contextType = DialogStackContext
+  public declare context: React.ContextType<typeof DialogStackContext>
+
+  private checkIsTopMostDialog = isTopMostDialog(
+    () => {
+      this.onDialogIsTopMost()
+    },
+    () => {
+      this.onDialogIsNotTopMost()
+    }
+  )
+
   private dialogElement: HTMLDialogElement | null = null
   private dismissGraceTimeoutId?: number
 
@@ -152,7 +243,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   private readonly resizeObserver: ResizeObserver
   private resizeDebounceId: number | null = null
 
-  public constructor(props: IDialogProps) {
+  public constructor(props: DialogProps) {
     super(props)
     this.state = { isAppearing: true }
 
@@ -214,6 +305,13 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   private onDismissGraceTimer = () => {
     this.setState({ isAppearing: false })
+
+    this.dialogElement?.dispatchEvent(
+      new CustomEvent('dialog-appeared', {
+        bubbles: true,
+        cancelable: false,
+      })
+    )
   }
 
   private isDismissable() {
@@ -242,11 +340,17 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   public componentDidMount() {
-    if (!this.dialogElement) {
+    this.checkIsTopMostDialog(this.context.isTopMost)
+  }
+
+  protected onDialogIsTopMost() {
+    if (this.dialogElement == null) {
       return
     }
 
-    this.dialogElement.showModal()
+    if (!this.dialogElement.open) {
+      this.dialogElement.showModal()
+    }
 
     // Provide an event that components can subscribe to in order to perform
     // tasks such as re-layout after the dialog is visible
@@ -266,6 +370,20 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
     this.resizeObserver.observe(this.dialogElement)
     window.addEventListener('resize', this.scheduleResizeEvent)
+  }
+
+  protected onDialogIsNotTopMost() {
+    if (this.dialogElement !== null && this.dialogElement.open) {
+      this.dialogElement?.close()
+    }
+
+    this.clearDismissGraceTimeout()
+
+    window.removeEventListener('focus', this.onWindowFocus)
+    document.removeEventListener('mouseup', this.onDocumentMouseUp)
+
+    this.resizeObserver.disconnect()
+    window.removeEventListener('resize', this.scheduleResizeEvent)
   }
 
   /**
@@ -317,8 +435,10 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
    *
    *  4. Any remaining button
    *
+   *  5. The dialog close button
+   *
    */
-  private focusFirstSuitableChild() {
+  public focusFirstSuitableChild() {
     const dialog = this.dialogElement
 
     if (dialog === null) {
@@ -346,6 +466,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     // anchor tag masquerading as a button)
     let firstTabbable: HTMLElement | null = null
 
+    const closeButton = dialog.querySelector(':scope > header button.close')
+
     const excludedInputTypes = [
       ':not([type=button])',
       ':not([type=submit])',
@@ -358,6 +480,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     const inputSelector = `input${excludedInputTypes.join('')}, textarea`
     const buttonSelector =
       'input[type=button], input[type=submit] input[type=reset], button'
+
     const submitSelector = 'input[type=submit], button[type=submit]'
 
     for (const candidate of dialog.querySelectorAll(selector)) {
@@ -379,16 +502,28 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
         candidate.matches(submitSelector)
       ) {
         firstSubmitButton = candidate
-      } else if (firstButton === null && candidate.matches(buttonSelector)) {
+      } else if (
+        firstButton === null &&
+        candidate.matches(buttonSelector) &&
+        candidate !== closeButton
+      ) {
         firstButton = candidate
       }
     }
 
-    const newActive =
-      firstExplicit[1] || firstTabbable || firstSubmitButton || firstButton
+    const focusCandidates = [
+      firstExplicit[1],
+      firstTabbable,
+      firstSubmitButton,
+      firstButton,
+      closeButton,
+    ]
 
-    if (newActive !== null) {
-      newActive.focus()
+    for (const focusCandidate of focusCandidates) {
+      if (focusCandidate instanceof HTMLElement) {
+        focusCandidate.focus()
+        break
+      }
     }
   }
 
@@ -418,23 +553,19 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   public componentWillUnmount() {
-    this.clearDismissGraceTimeout()
-
     if (this.state.titleId) {
       releaseUniqueId(this.state.titleId)
     }
 
-    window.removeEventListener('focus', this.onWindowFocus)
-    document.removeEventListener('mouseup', this.onDocumentMouseUp)
-
-    this.resizeObserver.disconnect()
-    window.removeEventListener('resize', this.scheduleResizeEvent)
+    this.checkIsTopMostDialog(false)
   }
 
-  public componentDidUpdate() {
+  public componentDidUpdate(prevProps: DialogProps) {
     if (!this.props.title && this.state.titleId) {
       this.updateTitleId()
     }
+
+    this.checkIsTopMostDialog(this.context.isTopMost)
   }
 
   private onDialogCancel = (e: Event | React.SyntheticEvent) => {
@@ -590,13 +721,16 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     )
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
       <dialog
         ref={this.onDialogRef}
         id={this.props.id}
+        role={this.props.role}
         onMouseDown={this.onDialogMouseDown}
         onKeyDown={this.onKeyDown}
         className={className}
         aria-labelledby={this.state.titleId}
+        aria-describedby={this.props.ariaDescribedBy}
         tabIndex={-1}
       >
         {this.renderHeader()}

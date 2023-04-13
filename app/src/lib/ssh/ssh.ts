@@ -1,6 +1,5 @@
 import memoizeOne from 'memoize-one'
 import { pathExists } from '../../ui/lib/path-exists'
-import { enableSSHAskPass, enableWindowsOpenSSH } from '../feature-flag'
 import { getBoolean } from '../local-storage'
 import {
   getDesktopTrampolinePath,
@@ -13,7 +12,7 @@ export const UseWindowsOpenSSHKey: string = 'useWindowsOpenSSH'
 
 export const isWindowsOpenSSHAvailable = memoizeOne(
   async (): Promise<boolean> => {
-    if (!__WIN32__ || !enableWindowsOpenSSH()) {
+    if (!__WIN32__) {
       return false
     }
 
@@ -43,13 +42,11 @@ function isWindowsOpenSSHUseEnabled() {
  * context (OS and user settings).
  */
 export async function getSSHEnvironment() {
-  const baseEnv = enableSSHAskPass()
-    ? {
-        SSH_ASKPASS: getDesktopTrampolinePath(),
-        // DISPLAY needs to be set to _something_ so ssh actually uses SSH_ASKPASS
-        DISPLAY: '.',
-      }
-    : {}
+  const baseEnv = {
+    SSH_ASKPASS: getDesktopTrampolinePath(),
+    // DISPLAY needs to be set to _something_ so ssh actually uses SSH_ASKPASS
+    DISPLAY: '.',
+  }
 
   const canUseWindowsSSH = await isWindowsOpenSSHAvailable()
   if (canUseWindowsSSH && isWindowsOpenSSHUseEnabled()) {
@@ -60,7 +57,7 @@ export async function getSSHEnvironment() {
     }
   }
 
-  if (__DARWIN__ && __DEV__ && enableSSHAskPass()) {
+  if (__DARWIN__ && __DEV__) {
     // Replace git ssh command with our wrapper in dev builds, since they are
     // launched from a command line.
     return {

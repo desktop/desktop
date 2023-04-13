@@ -363,6 +363,16 @@ export class SideBySideDiffRow extends React.Component<
     throw new Error(`Unexpected expansion type ${expansionType}`)
   }
 
+  /**
+   * This method returns the width of a line gutter in pixels. For unified diffs
+   * the gutter contains the line number of both before and after sides, whereas
+   * for side-by-side diffs the gutter contains the line number of only one side.
+   */
+  private get lineGutterWidth() {
+    const { showSideBySideDiff, lineNumberWidth } = this.props
+    return showSideBySideDiff ? lineNumberWidth : lineNumberWidth * 2
+  }
+
   private renderHunkExpansionHandle(
     hunkIndex: number,
     expansionType: DiffHunkExpansionType
@@ -372,7 +382,7 @@ export class SideBySideDiffRow extends React.Component<
         <div
           className="hunk-expansion-handle"
           onContextMenu={this.props.onContextMenuExpandHunk}
-          style={{ width: this.props.lineNumberWidth }}
+          style={{ width: this.lineGutterWidth }}
         >
           <span></span>
         </div>
@@ -385,10 +395,11 @@ export class SideBySideDiffRow extends React.Component<
     )
 
     return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
       <div
         className="hunk-expansion-handle selectable hoverable"
         onClick={elementInfo.handler}
-        style={{ width: this.props.lineNumberWidth }}
+        style={{ width: this.lineGutterWidth }}
         onContextMenu={this.props.onContextMenuExpandHunk}
       >
         <TooltippedContent
@@ -425,13 +436,21 @@ export class SideBySideDiffRow extends React.Component<
       return null
     }
 
+    // In unified mode, the hunk handle left position depends on the line gutter
+    // width.
+    const style: React.CSSProperties = this.props.showSideBySideDiff
+      ? {}
+      : { left: this.lineGutterWidth }
+
     return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
       <div
         className="hunk-handle hoverable"
         onMouseEnter={this.onMouseEnterHunk}
         onMouseLeave={this.onMouseLeaveHunk}
         onClick={this.onClickHunk}
         onContextMenu={this.onContextMenuHunk}
+        style={style}
       ></div>
     )
   }
@@ -450,10 +469,7 @@ export class SideBySideDiffRow extends React.Component<
   ) {
     if (!this.props.isDiffSelectable || isSelected === undefined) {
       return (
-        <div
-          className="line-number"
-          style={{ width: this.props.lineNumberWidth }}
-        >
+        <div className="line-number" style={{ width: this.lineGutterWidth }}>
           {lineNumbers.map((lineNumber, index) => (
             <span key={index}>{lineNumber}</span>
           ))}
@@ -462,12 +478,13 @@ export class SideBySideDiffRow extends React.Component<
     }
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
         className={classNames('line-number', 'selectable', 'hoverable', {
           'line-selected': isSelected,
           hover: this.props.isHunkHovered,
         })}
-        style={{ width: this.props.lineNumberWidth }}
+        style={{ width: this.lineGutterWidth }}
         onMouseDown={this.onMouseDownLineNumber}
         onContextMenu={this.onContextMenuLineNumber}
       >
@@ -490,7 +507,7 @@ export class SideBySideDiffRow extends React.Component<
 
     const style: React.CSSProperties = {
       [column === DiffColumn.Before ? 'marginRight' : 'marginLeft']:
-        this.props.lineNumberWidth + 10,
+        this.lineGutterWidth + 10,
       marginTop: -10,
     }
 

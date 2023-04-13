@@ -9,7 +9,6 @@ import {
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
-import { enableHideWhitespaceInDiffOption } from '../../lib/feature-flag'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { PopupType } from '../../models/popup'
 
@@ -29,6 +28,9 @@ interface IChangesProps {
    * system-assigned application for said file type.
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
+
+  /** Called when the user requests to open a submodule. */
+  readonly onOpenSubmodule: (fullPath: string) => void
 
   /**
    * Called when the user is viewing an image diff and requests
@@ -58,10 +60,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
    * progress or if the user has opted to hide whitespace changes.
    */
   private get lineSelectionDisabled() {
-    return (
-      this.props.isCommitting ||
-      (enableHideWhitespaceInDiffOption() && this.props.hideWhitespaceInDiff)
-    )
+    return this.props.isCommitting || this.props.hideWhitespaceInDiff
   }
 
   private onDiffLineIncludeChanged = (selection: DiffSelection) => {
@@ -125,6 +124,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
             this.props.askForConfirmationOnDiscardChanges
           }
           onOpenBinaryFile={this.props.onOpenBinaryFile}
+          onOpenSubmodule={this.props.onOpenSubmodule}
           onChangeImageDiffType={this.props.onChangeImageDiffType}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
         />

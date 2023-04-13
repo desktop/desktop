@@ -1,5 +1,6 @@
 import { DiffHunk } from './raw-diff'
 import { Image } from './image'
+import { SubmoduleStatus } from '../status'
 /**
  * V8 has a limit on the size of string it can create, and unless we want to
  * trigger an unhandled exception we need to do the encoding conversion by hand
@@ -87,6 +88,28 @@ export interface IBinaryDiff {
   readonly kind: DiffType.Binary
 }
 
+export interface ISubmoduleDiff {
+  readonly kind: DiffType.Submodule
+
+  /** Full path of the submodule */
+  readonly fullPath: string
+
+  /** Path of the repository within its container repository */
+  readonly path: string
+
+  /** URL of the submodule */
+  readonly url: string | null
+
+  /** Status of the submodule */
+  readonly status: SubmoduleStatus
+
+  /** Previous SHA of the submodule, or null if it hasn't changed */
+  readonly oldSHA: string | null
+
+  /** New SHA of the submodule, or null if it hasn't changed */
+  readonly newSHA: string | null
+}
+
 export interface ILargeTextDiff extends ITextDiffData {
   readonly kind: DiffType.LargeText
 }
@@ -100,5 +123,6 @@ export type IDiff =
   | ITextDiff
   | IImageDiff
   | IBinaryDiff
+  | ISubmoduleDiff
   | ILargeTextDiff
   | IUnrenderableDiff

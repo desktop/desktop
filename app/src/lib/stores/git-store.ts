@@ -1,5 +1,9 @@
 import * as Path from 'path'
-import { Repository } from '../../models/repository'
+import {
+  getNonForkGitHubRepository,
+  isRepositoryWithForkedGitHubRepository,
+  Repository,
+} from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
@@ -63,7 +67,6 @@ import {
   getAheadBehind,
   revRange,
   revSymmetricDifference,
-  getSymbolicRef,
   getConfigValue,
   removeRemote,
   createTag,
@@ -71,6 +74,8 @@ import {
   deleteTag,
   MergeResult,
   createBranch,
+  updateRemoteHEAD,
+  getRemoteHEAD,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -82,7 +87,7 @@ import {
   UpstreamRemoteName,
 } from './helpers/find-upstream-remote'
 import { findDefaultRemote } from './helpers/find-default-remote'
-import { IAuthor } from '../../models/author'
+import { Author, isKnownAuthor } from '../../models/author'
 import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
@@ -120,6 +125,8 @@ export class GitStore extends BaseStore {
 
   private _defaultBranch: Branch | null = null
 
+  private _upstreamDefaultBranch: Branch | null = null
+
   private _localTags: Map<string, string> | null = null
 
   private _allBranches: ReadonlyArray<Branch> = []
@@ -132,7 +139,7 @@ export class GitStore extends BaseStore {
 
   private _showCoAuthoredBy: boolean = false
 
-  private _coAuthors: ReadonlyArray<IAuthor> = []
+  private _coAuthors: ReadonlyArray<Author> = []
 
   private _aheadBehind: IAheadBehind | null = null
 
@@ -475,6 +482,29 @@ export class GitStore extends BaseStore {
         )
         .sort((x, y) => compare(x.type, y.type))
         .shift() || null
+
+    // The upstream default branch is only relevant for forked GitHub repos when
+    // the fork behavior is contributing to the parent.
+    if (
+      !isRepositoryWithForkedGitHubRepository(this.repository) ||
+      getNonForkGitHubRepository(this.repository) ===
+        this.repository.gitHubRepository
+    ) {
+      this._upstreamDefaultBranch = null
+      return
+    }
+
+    const upstreamDefaultBranch =
+      (await getRemoteHEAD(this.repository, UpstreamRemoteName)) ??
+      defaultBranchName
+
+    this._upstreamDefaultBranch =
+      this._allBranches.find(
+        b =>
+          b.type === BranchType.Remote &&
+          b.remoteName === UpstreamRemoteName &&
+          b.nameWithoutRemote === upstreamDefaultBranch
+      ) || null
   }
 
   private addTagToPush(tagName: string) {
@@ -506,29 +536,16 @@ export class GitStore extends BaseStore {
    * name conventions.
    */
   private async resolveDefaultBranch(): Promise<string> {
-    const { gitHubRepository } = this.repository
-    if (gitHubRepository && gitHubRepository.defaultBranch != null) {
-      return gitHubRepository.defaultBranch
-    }
-
     if (this.currentRemote !== null) {
       // the Git server should use [remote]/HEAD to advertise
       // it's default branch, so see if it exists and matches
       // a valid branch on the remote and attempt to use that
-      const remoteNamespace = `refs/remotes/${this.currentRemote.name}/`
-      const match = await getSymbolicRef(
+      const branchName = await getRemoteHEAD(
         this.repository,
-        `${remoteNamespace}HEAD`
+        this.currentRemote.name
       )
-      if (
-        match != null &&
-        match.length > remoteNamespace.length &&
-        match.startsWith(remoteNamespace)
-      ) {
-        // strip out everything related to the remote because this
-        // is likely to be a tracked branch locally
-        // e.g. `main`, `develop`, etc
-        return match.substring(remoteNamespace.length)
+      if (branchName !== null) {
+        return branchName
       }
     }
 
@@ -585,6 +602,15 @@ export class GitStore extends BaseStore {
   /** The default branch or null if the default branch could not be inferred. */
   public get defaultBranch(): Branch | null {
     return this._defaultBranch
+  }
+
+  /**
+   * The default branch of the upstream remote in a forked GitHub repository
+   * with the ForkContributionTarget.Parent behavior, or null if it cannot be
+   * inferred or is another kind of repository.
+   */
+  public get upstreamDefaultBranch(): Branch | null {
+    return this._upstreamDefaultBranch
   }
 
   /** All branches, including the current branch and the default branch. */
@@ -770,9 +796,8 @@ export class GitStore extends BaseStore {
     const lines = unfolded.split('\n')
 
     // We don't know (I mean, we're fairly sure) what the separator character
-    // used for the trailer is so we call out to git to get all possible
-    // characters. We'll need them in a bit
-    const separators = await getTrailerSeparatorCharacters(this.repository)
+    // used for the trailer is so we call out to git to get all possibilities
+    let separators: string | undefined = undefined
 
     // We know that what we've got now is well formed so we can capture the leading
     // token, followed by the separator char and a single space, followed by the
@@ -787,7 +812,14 @@ export class GitStore extends BaseStore {
       const match = coAuthorRe.exec(line)
 
       // Not a trailer line, we're sure of that
-      if (!match || separators.indexOf(match[1]) === -1) {
+      if (!match) {
+        continue
+      }
+
+      // Only shell out for separators if we really need them
+      separators ??= await getTrailerSeparatorCharacters(this.repository)
+
+      if (separators.indexOf(match[1]) === -1) {
         continue
       }
 
@@ -835,7 +867,7 @@ export class GitStore extends BaseStore {
     const extractedAuthors = extractedTrailers.map(t =>
       GitAuthor.parse(t.value)
     )
-    const newAuthors = new Array<IAuthor>()
+    const newAuthors = new Array<Author>()
 
     // Last step, phew! The most likely scenario where we
     // get called is when someone has just made a commit and
@@ -852,10 +884,12 @@ export class GitStore extends BaseStore {
       }
 
       const { name, email } = extractedAuthor
-      const existing = this.coAuthors.find(
-        a => a.name === name && a.email === email && a.username !== null
+      const existing = this.coAuthors
+        .filter(isKnownAuthor)
+        .find(a => a.name === name && a.email === email && a.username !== null)
+      newAuthors.push(
+        existing || { kind: 'known', name, email, username: null }
       )
-      newAuthors.push(existing || { name, email, username: null })
     }
 
     this._coAuthors = newAuthors
@@ -908,7 +942,7 @@ export class GitStore extends BaseStore {
    * Gets a list of co-authors to use when crafting the next
    * commit.
    */
-  public get coAuthors(): ReadonlyArray<IAuthor> {
+  public get coAuthors(): ReadonlyArray<Author> {
     return this._coAuthors
   }
 
@@ -1037,6 +1071,8 @@ export class GitStore extends BaseStore {
       () => fetchRepo(this.repository, account, remote, progressCallback),
       { backgroundTask, retryAction }
     )
+
+    await updateRemoteHEAD(this.repository, account, remote)
   }
 
   /**
@@ -1371,7 +1407,7 @@ export class GitStore extends BaseStore {
    *
    * @param coAuthors  Zero or more authors
    */
-  public setCoAuthors(coAuthors: ReadonlyArray<IAuthor>) {
+  public setCoAuthors(coAuthors: ReadonlyArray<Author>) {
     this._coAuthors = coAuthors
     this.emitUpdate()
   }
@@ -1651,5 +1687,29 @@ export class GitStore extends BaseStore {
     for (const remote of remotesToPrune) {
       await removeRemote(this.repository, remote.name)
     }
+  }
+
+  /**
+   * Returns the commits associated with merging the comparison branch into the
+   * base branch.
+   */
+  public async getCommitsBetweenBranches(
+    baseBranch: Branch,
+    comparisonBranch: Branch
+  ): Promise<ReadonlyArray<Commit>> {
+    const revisionRange = revRange(baseBranch.name, comparisonBranch.name)
+    const commits = await this.performFailableOperation(() =>
+      getCommits(this.repository, revisionRange)
+    )
+
+    if (commits == null) {
+      return []
+    }
+
+    if (commits.length > 0) {
+      this.storeCommits(commits)
+    }
+
+    return commits
   }
 }

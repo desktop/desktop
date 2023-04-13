@@ -139,6 +139,7 @@ async function primeCaches(
   repositoriesStateCache.updateBranchesState(repository, () => ({
     tip: gitStore.tip,
     defaultBranch: gitStore.defaultBranch,
+    upstreamDefaultBranch: gitStore.upstreamDefaultBranch,
     allBranches: gitStore.allBranches,
     recentBranches: gitStore.recentBranches,
   }))

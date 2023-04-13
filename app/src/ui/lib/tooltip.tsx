@@ -4,7 +4,7 @@ import { ObservableRef } from './observable-ref'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
-import { rectEquals, rectContains } from './rect'
+import { rectEquals, rectContains, offsetRect } from './rect'
 
 export enum TooltipDirection {
   NORTH = 'n',
@@ -101,6 +101,22 @@ export interface ITooltipProps<T> {
    * the tooltip.
    */
   readonly isTargetOverflowed?: ((target: TooltipTarget) => boolean) | boolean
+
+  /**
+   * Optional parameter to be able offset the position of the target element
+   * relative to the window. This can be useful in scenarios where the target's
+   * natural positioning is not already relative to the window such as an
+   * element within in iframe.
+   */
+  readonly tooltipOffset?: DOMRect
+
+  /**Optional parameter for toggle tip behavior */
+  readonly isToggleTip?: boolean
+
+  /** Open on target focus - typically only tooltips that target an element with
+   * ":focus-visible open on focus. This means any time the target it focused it
+   * opens." */
+  readonly openOnFocus?: boolean
 }
 
 interface ITooltipState {
@@ -272,9 +288,12 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     elem.addEventListener('mousemove', this.onTargetMouseMove)
     elem.addEventListener('mousedown', this.onTargetMouseDown)
     elem.addEventListener('focus', this.onTargetFocus)
+    elem.addEventListener('focusin', this.onTargetFocusIn)
+    elem.addEventListener('focusout', this.onTargetBlur)
     elem.addEventListener('blur', this.onTargetBlur)
     elem.addEventListener('tooltip-shown', this.onTooltipShown)
     elem.addEventListener('tooltip-hidden', this.onTooltipHidden)
+    elem.addEventListener('click', this.onTargetClick)
   }
 
   private removeTooltip(prevTarget: TooltipTarget | null) {
@@ -287,11 +306,20 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       prevTarget.removeEventListener('mousemove', this.onTargetMouseMove)
       prevTarget.removeEventListener('mousedown', this.onTargetMouseDown)
       prevTarget.removeEventListener('focus', this.onTargetFocus)
+      prevTarget.removeEventListener('focusin', this.onTargetFocusIn)
+      prevTarget.removeEventListener('focusout', this.onTargetBlur)
       prevTarget.removeEventListener('blur', this.onTargetBlur)
+      prevTarget.removeEventListener('click', this.onTargetClick)
     }
   }
 
+  private updateMouseRect = (event: MouseEvent) => {
+    this.mouseRect = new DOMRect(event.clientX - 10, event.clientY - 10, 20, 20)
+  }
+
   private onTargetMouseEnter = (event: MouseEvent) => {
+    this.updateMouseRect(event)
+
     this.mouseOverTarget = true
     this.cancelHideTooltip()
     if (!this.state.show) {
@@ -300,18 +328,41 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   }
 
   private onTargetMouseMove = (event: MouseEvent) => {
-    this.mouseRect = new DOMRect(event.clientX - 10, event.clientY - 10, 20, 20)
+    this.updateMouseRect(event)
   }
 
   private onTargetMouseDown = (event: MouseEvent) => {
-    this.hideTooltip()
+    if (!this.props.isToggleTip) {
+      this.hideTooltip()
+    }
   }
 
   private onTargetFocus = (event: FocusEvent) => {
     // We only want to show the tooltip if the target was focused as a result of
     // keyboard navigation, see
     // https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible
-    if (this.state.target?.matches(':focus-visible')) {
+    if (
+      this.state.target?.matches(':focus-visible') &&
+      !this.props.isToggleTip
+    ) {
+      this.beginShowTooltip()
+    }
+  }
+
+  private onTargetClick = (event: FocusEvent) => {
+    // We only want to handle click events for toggle tips
+    if (!this.state.show && this.props.isToggleTip) {
+      this.beginShowTooltip()
+    }
+  }
+
+  /**
+   * The focusin event fires when an element has received focus,
+   * after the focus event. The two events differ in that focusin bubbles, while
+   * focus does not.
+   */
+  private onTargetFocusIn = (event: FocusEvent) => {
+    if (this.props.openOnFocus) {
       this.beginShowTooltip()
     }
   }
@@ -393,13 +444,20 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     this.setState({
       measure: true,
       show: false,
-      targetRect:
-        this.props.direction === undefined
-          ? this.mouseRect
-          : target.getBoundingClientRect(),
+      targetRect: this.getTargetRect(target),
       hostRect: tooltipHost.getBoundingClientRect(),
       windowRect: new DOMRect(0, 0, window.innerWidth, window.innerHeight),
     })
+  }
+
+  private getTargetRect(target: TooltipTarget) {
+    const { direction, tooltipOffset } = this.props
+
+    return offsetRect(
+      direction === undefined ? this.mouseRect : target.getBoundingClientRect(),
+      tooltipOffset?.x ?? 0,
+      tooltipOffset?.y ?? 0
+    )
   }
 
   private cancelShowTooltip() {

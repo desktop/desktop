@@ -155,11 +155,17 @@ export const getCurrentWindowZoomFactor = invokeProxy(
   0
 )
 
+/** Tell the main process to set the current window's zoom factor */
+export const setWindowZoomFactor = sendProxy('set-window-zoom-factor', 1)
+
 /** Tell the main process to check for app updates */
 export const checkForUpdates = invokeProxy('check-for-updates', 1)
 
 /** Tell the main process to quit the app and install updates */
 export const quitAndInstallUpdate = sendProxy('quit-and-install-updates', 0)
+
+/** Tell the main process to quit the app */
+export const quitApp = sendProxy('quit-app', 0)
 
 /** Subscribes to auto updater error events originating from the main process */
 export function onAutoUpdaterError(
@@ -195,6 +201,12 @@ export function onAutoUpdaterUpdateDownloaded(eventHandler: () => void) {
 /** Subscribes to the native theme updated event originating from the main process */
 export function onNativeThemeUpdated(eventHandler: () => void) {
   ipcRenderer.on('native-theme-updated', eventHandler)
+}
+
+/** Subscribes to the "show installing update dialog" event originating from the
+ * main process */
+export function onShowInstallingUpdate(eventHandler: () => void) {
+  ipcRenderer.on('show-installing-update', eventHandler)
 }
 
 /** Tell the main process to set the native theme source */
@@ -268,6 +280,29 @@ export const isRunningUnderARM64Translation = invokeProxy(
 export function sendWillQuitSync() {
   // eslint-disable-next-line no-sync
   ipcRenderer.sendSync('will-quit')
+}
+
+/**
+ * Tell the main process that we're going to quit, even if the app is installing
+ * an update. This means it should allow the window to close.
+ *
+ * This event is sent synchronously to avoid any races with subsequent calls
+ * that would tell the app to quit.
+ */
+export function sendWillQuitEvenIfUpdatingSync() {
+  // eslint-disable-next-line no-sync
+  ipcRenderer.sendSync('will-quit-even-if-updating')
+}
+
+/**
+ * Tell the main process that the user cancelled quitting.
+ *
+ * This event is sent synchronously to avoid any races with subsequent calls
+ * that would tell the app to quit.
+ */
+export function sendCancelQuittingSync() {
+  // eslint-disable-next-line no-sync
+  ipcRenderer.sendSync('cancel-quitting')
 }
 
 /**
@@ -346,3 +381,18 @@ export const getLocaleCountryCode = invokeProxy('get-locale-country-code', 0)
 /** Tell the main process read/save the user GUID from/to file */
 export const saveGUID = invokeProxy('save-guid', 1)
 export const getGUID = invokeProxy('get-guid', 0)
+
+/** Tell the main process to show a notification */
+export const showNotification = invokeProxy('show-notification', 3)
+
+/** Tell the main process to obtain the app's permission to display notifications */
+export const getNotificationsPermission = invokeProxy(
+  'get-notifications-permission',
+  0
+)
+
+/** Tell the main process to request the app's permission to display notifications */
+export const requestNotificationsPermission = invokeProxy(
+  'request-notifications-permission',
+  0
+)

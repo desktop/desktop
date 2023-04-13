@@ -5,6 +5,10 @@
     width: 440px;
     top: 60;
     margin-left: -302px;
+
+    &::after {
+      border-bottom-color: var(--box-alt-background-color);
+    }
   }
 
   .ci-check-run-list-header {

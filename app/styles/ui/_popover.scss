@@ -207,3 +207,10 @@
     border-left-color: var(--background-color);
   }
 }
+
+.popover-component.popover-caret-none {
+  &::before,
+  &::after {
+    display: none;
+  }
+}

@@ -47,7 +47,9 @@ export class GitConfigUserForm extends React.Component<
     super(props)
 
     this.state = {
-      emailIsOther: !this.accountEmails.includes(this.props.email),
+      emailIsOther:
+        this.accountEmails.length > 0 &&
+        !this.accountEmails.includes(this.props.email),
     }
   }
 
@@ -67,7 +69,9 @@ export class GitConfigUserForm extends React.Component<
     // from the user, to prevent annoying UI glitches.
     if (prevProps.email !== this.props.email && !isEmailInputFocused) {
       this.setState({
-        emailIsOther: !this.accountEmails.includes(this.props.email),
+        emailIsOther:
+          this.accountEmails.length > 0 &&
+          !this.accountEmails.includes(this.props.email),
       })
     }
 
@@ -97,10 +101,12 @@ export class GitConfigUserForm extends React.Component<
         </Row>
         {this.renderEmailDropdown()}
         {this.renderEmailTextBox()}
-        <GitEmailNotFoundWarning
-          accounts={this.accounts}
-          email={this.props.email}
-        />
+        {this.state.emailIsOther ? (
+          <GitEmailNotFoundWarning
+            accounts={this.accounts}
+            email={this.props.email}
+          />
+        ) : null}
       </div>
     )
   }
@@ -160,6 +166,8 @@ export class GitConfigUserForm extends React.Component<
     // presented independently, without the email dropdown, not when presented
     // as a consequence of the option "Other" selected in the dropdown.
     const label = this.state.emailIsOther ? undefined : 'Email'
+    // If there is not a label, provide a screen reader announcement.
+    const ariaLabel = label ? undefined : 'Email'
 
     return (
       <Row>
@@ -170,6 +178,8 @@ export class GitConfigUserForm extends React.Component<
           value={this.props.email}
           disabled={this.props.disabled}
           onValueChanged={this.props.onEmailChanged}
+          ariaLabel={ariaLabel}
+          ariaControls="git-email-not-found-warning-for-screen-readers"
         />
       </Row>
     )

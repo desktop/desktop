@@ -7,7 +7,8 @@ import {
   createCommit,
   getStatus,
   getAuthorIdentity,
-  isGitRepository,
+  getRepositoryType,
+  RepositoryType,
 } from '../../lib/git'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
 import { TextBox } from '../lib/text-box'
@@ -32,6 +33,10 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { showOpenDialog } from '../main-process-proxy'
 import { pathExists } from '../lib/path-exists'
 import { mkdir } from 'fs/promises'
+import { directoryExists } from '../../lib/directory-exists'
+import { FoldoutType } from '../../lib/app-state'
+import { join } from 'path'
+import { isTopMostDialog } from '../dialog/is-top-most'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -44,12 +49,32 @@ const NoLicenseValue: ILicense = {
   hidden: false,
 }
 
+/** Is the path a git repository? */
+export const isGitRepository = async (path: string) => {
+  const type = await getRepositoryType(path).catch(e => {
+    log.error(`Unable to determine repository type`, e)
+    return { kind: 'missing' } as RepositoryType
+  })
+
+  if (type.kind === 'unsafe') {
+    // If the path is considered unsafe by Git we won't be able to
+    // verify that it's a repository (or worktree). So we'll fall back to this
+    // naive approximation.
+    return directoryExists(join(path, '.git'))
+  }
+
+  return type.kind !== 'missing'
+}
+
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
 
   /** Prefills path input so user doesn't have to. */
   readonly initialPath?: string
+
+  /** Whether the dialog is the top most in the dialog stack */
+  readonly isTopMost: boolean
 }
 
 interface ICreateRepositoryState {
@@ -94,6 +119,16 @@ export class CreateRepository extends React.Component<
   ICreateRepositoryProps,
   ICreateRepositoryState
 > {
+  private checkIsTopMostDialog = isTopMostDialog(
+    () => {
+      this.updateReadMeExists(this.state.path, this.state.name)
+      window.addEventListener('focus', this.onWindowFocus)
+    },
+    () => {
+      window.removeEventListener('focus', this.onWindowFocus)
+    }
+  )
+
   public constructor(props: ICreateRepositoryProps) {
     super(props)
 
@@ -124,47 +159,61 @@ export class CreateRepository extends React.Component<
   }
 
   public async componentDidMount() {
-    window.addEventListener('focus', this.onWindowFocus)
+    this.checkIsTopMostDialog(this.props.isTopMost)
 
     const gitIgnoreNames = await getGitIgnoreNames()
-    this.setState({ gitIgnoreNames })
-
     const licenses = await getLicenses()
-    this.setState({ licenses })
 
-    const path =
-      this.state.path !== null ? this.state.path : await getDefaultDir()
-    const isRepository = await isGitRepository(path)
-    this.setState({ isRepository })
+    this.setState({ gitIgnoreNames, licenses })
 
+    const path = this.state.path ?? (await getDefaultDir())
+
+    this.updateIsRepository(path, this.state.name)
     this.updateReadMeExists(path, this.state.name)
   }
 
-  public componentWillUnmount() {
-    window.removeEventListener('focus', this.onWindowFocus)
+  public componentDidUpdate(): void {
+    this.checkIsTopMostDialog(this.props.isTopMost)
+  }
+
+  public componentWillUnmount(): void {
+    this.checkIsTopMostDialog(false)
   }
 
   private initializePath = async () => {
     const path = await getDefaultDir()
-    this.setState({ path })
+    this.setState(s => (s.path === null ? { path } : null))
   }
 
   private onPathChanged = async (path: string) => {
-    this.setState({ path, isValidPath: null })
+    this.setState({ path, isValidPath: null, isRepository: false })
 
-    const isRepository = await isGitRepository(path)
-
-    // Only update isRepository if the path is still the
-    // same one we were using to check whether it looked
-    // like a repository.
-    this.setState(state => (state.path === path ? { isRepository } : null))
-
+    this.updateIsRepository(path, this.state.name)
     this.updateReadMeExists(path, this.state.name)
   }
 
   private onNameChanged = (name: string) => {
+    const { path } = this.state
+
     this.setState({ name })
+
+    if (path === null) {
+      return
+    }
+
+    this.updateIsRepository(path, name)
     this.updateReadMeExists(this.state.path, name)
+  }
+
+  private async updateIsRepository(path: string, name: string) {
+    const fullPath = Path.join(path, sanitizedRepositoryName(name))
+    const isRepository = await isGitRepository(fullPath)
+
+    // Only update isRepository if the path is still the same one we were using
+    // to check whether it looked like a repository.
+    this.setState(state =>
+      state.path === path && state.name === name ? { isRepository } : null
+    )
   }
 
   private onDescriptionChanged = (description: string) => {
@@ -180,9 +229,8 @@ export class CreateRepository extends React.Component<
       return
     }
 
-    const isRepository = await isGitRepository(path)
-
-    this.setState({ isRepository, path })
+    this.setState({ path, isRepository: false })
+    this.updateIsRepository(path, this.state.name)
   }
 
   private async updateReadMeExists(path: string | null, name: string) {
@@ -362,6 +410,7 @@ export class CreateRepository extends React.Component<
 
     this.updateDefaultDirectory()
 
+    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
     this.props.dispatcher.selectRepository(repository)
     this.props.dispatcher.recordCreateRepository()
     this.props.onDismissed()
@@ -521,15 +570,15 @@ export class CreateRepository extends React.Component<
   }
 
   private onAddRepositoryClicked = () => {
-    if (this.state.path === null) {
-      // Shouldn't be able to even get here if path is null.
-      return
-    }
+    const { path, name } = this.state
 
-    return this.props.dispatcher.showPopup({
-      type: PopupType.AddRepository,
-      path: this.state.path,
-    })
+    // Shouldn't be able to even get here if path is null.
+    if (path !== null) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.AddRepository,
+        path: Path.join(path, sanitizedRepositoryName(name)),
+      })
+    }
   }
 
   public render() {

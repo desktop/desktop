@@ -13,6 +13,9 @@ import { Architecture } from './get-architecture'
 import { EndpointToken } from './endpoint-token'
 import { PathType } from '../ui/lib/app-proxy'
 import { ThemeSource } from '../ui/lib/theme-source'
+import { DesktopNotificationPermission } from 'desktop-notifications/dist/notification-permission'
+import { NotificationCallback } from 'desktop-notifications/dist/notification-callback'
+import { DesktopAliveEvent } from './stores/alive-store'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -43,6 +46,8 @@ export type RequestChannels = {
   'menu-event': (name: MenuEvent) => void
   log: (level: LogLevel, message: string) => void
   'will-quit': () => void
+  'will-quit-even-if-updating': () => void
+  'cancel-quitting': () => void
   'crash-ready': () => void
   'crash-quit': () => void
   'window-state-changed': (windowState: WindowState) => void
@@ -60,6 +65,7 @@ export type RequestChannels = {
   blur: () => void
   'update-accounts': (accounts: ReadonlyArray<EndpointToken>) => void
   'quit-and-install-updates': () => void
+  'quit-app': () => void
   'minimize-window': () => void
   'maximize-window': () => void
   'unmaximize-window': () => void
@@ -72,6 +78,9 @@ export type RequestChannels = {
   'native-theme-updated': () => void
   'set-native-theme-source': (themeName: ThemeSource) => void
   'focus-window': () => void
+  'notification-event': NotificationCallback<DesktopAliveEvent>
+  'set-window-zoom-factor': (zoomFactor: number) => void
+  'show-installing-update': () => void
 }
 
 /**
@@ -113,4 +122,11 @@ export type RequestResponseChannels = {
   'get-locale-country-code': () => Promise<string>
   'save-guid': (guid: string) => Promise<void>
   'get-guid': () => Promise<string>
+  'show-notification': (
+    title: string,
+    body: string,
+    userInfo?: DesktopAliveEvent
+  ) => Promise<string | null>
+  'get-notifications-permission': () => Promise<DesktopNotificationPermission>
+  'request-notifications-permission': () => Promise<boolean>
 }

@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 import classNames from 'classnames'
 import { Disposable } from 'event-kit'
 import * as React from 'react'

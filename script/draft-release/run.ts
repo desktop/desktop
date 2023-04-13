@@ -13,8 +13,9 @@ import { execSync } from 'child_process'
 import { writeFileSync } from 'fs'
 import { join } from 'path'
 import { format } from 'prettier'
-import { assertNever } from '../../app/src/lib/fatal-error'
+import { assertNever, forceUnwrap } from '../../app/src/lib/fatal-error'
 import { sh } from '../sh'
+import { readFile } from 'fs/promises'
 
 const changelogPath = join(__dirname, '..', '..', 'changelog.json')
 
@@ -27,23 +28,41 @@ const changelogPath = join(__dirname, '..', '..', 'changelog.json')
  */
 async function getLatestRelease(options: {
   excludeBetaReleases: boolean
+  excludeTestReleases: boolean
 }): Promise<string> {
   let releaseTags = (await sh('git', 'tag'))
     .split('\n')
     .filter(tag => tag.startsWith('release-'))
     .filter(tag => !tag.includes('-linux'))
-    .filter(tag => !tag.includes('-test'))
 
   if (options.excludeBetaReleases) {
     releaseTags = releaseTags.filter(tag => !tag.includes('-beta'))
   }
 
+  if (options.excludeTestReleases) {
+    releaseTags = releaseTags.filter(tag => !tag.includes('-test'))
+  }
+
   const releaseVersions = releaseTags.map(tag => tag.substring(8))
 
   const sortedTags = semverSort(releaseVersions)
-  const latestTag = sortedTags[sortedTags.length - 1]
+  const latestTag = forceUnwrap(`No tags`, sortedTags.at(-1))
 
   return latestTag instanceof SemVer ? latestTag.raw : latestTag
+}
+
+async function createReleaseBranch(version: string): Promise<void> {
+  try {
+    const versionBranch = `releases/${version}`
+    const currentBranch = (
+      await sh('git', 'rev-parse', '--abbrev-ref', 'HEAD')
+    ).trim()
+    if (currentBranch !== versionBranch) {
+      await sh('git', 'checkout', '-b', versionBranch)
+    }
+  } catch (error) {
+    console.log(`Failed to create release branch: ${error}`)
+  }
 }
 
 /** Converts a string to Channel type if possible */
@@ -103,9 +122,16 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   }
 
   const channel = parseChannel(args[0])
-  const excludeBetaReleases = channel === 'production'
-  const previousVersion = await getLatestRelease({ excludeBetaReleases })
+  const draftPretext = args[1] === '--pretext'
+  const previousVersion = await getLatestRelease({
+    excludeBetaReleases: channel === 'production' || channel === 'test',
+    excludeTestReleases: channel === 'production' || channel === 'beta',
+  })
   const nextVersion = getNextVersionNumber(previousVersion, channel)
+
+  console.log(`Creating release branch for "${nextVersion}"...`)
+  createReleaseBranch(nextVersion)
+  console.log(`Done!`)
 
   console.log(`Setting app version to "${nextVersion}" in app/package.json...`)
 
@@ -127,6 +153,13 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
   const currentChangelog: IChangelog = require(changelogPath)
   const newEntries = new Array<string>()
+
+  if (draftPretext) {
+    const pretext = await getPretext()
+    if (pretext !== null) {
+      newEntries.push(pretext)
+    }
+  }
 
   switch (channel) {
     case 'production': {
@@ -211,4 +244,21 @@ type ChangelogReleases = { [key: string]: ReadonlyArray<string> }
 
 interface IChangelog {
   releases: ChangelogReleases
+}
+
+async function getPretext(): Promise<string | null> {
+  const pretextPath = join(
+    __dirname,
+    '..',
+    '..',
+    'app',
+    'static',
+    'common',
+    'pretext-draft.md'
+  )
+  const pretext = await readFile(pretextPath, 'utf8')
+  if (pretext.trim() === '') {
+    return null
+  }
+  return `[Pretext] ${pretext}`
 }

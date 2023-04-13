@@ -310,5 +310,65 @@ describe('git/status', () => {
         expect(status).toBeNull()
       })
     })
+    describe('with submodules', () => {
+      it('returns the submodule status', async () => {
+        const repoPath = await setupFixtureRepository('submodule-basic-setup')
+        repository = new Repository(repoPath, -1, null, false)
+
+        const submodulePath = path.join(repoPath, 'foo', 'submodule')
+        const checkSubmoduleChanges = async (changes: {
+          modifiedChanges: boolean
+          untrackedChanges: boolean
+          commitChanged: boolean
+        }) => {
+          const status = await getStatusOrThrow(repository)
+          const files = status.workingDirectory.files
+          expect(files).toHaveLength(1)
+
+          const file = files[0]
+          expect(file.path).toBe('foo/submodule')
+          expect(file.status.kind).toBe(AppFileStatusKind.Modified)
+          expect(file.status.submoduleStatus?.modifiedChanges).toBe(
+            changes.modifiedChanges
+          )
+          expect(file.status.submoduleStatus?.untrackedChanges).toBe(
+            changes.untrackedChanges
+          )
+          expect(file.status.submoduleStatus?.commitChanged).toBe(
+            changes.commitChanged
+          )
+        }
+
+        // Modify README.md file. Now the submodule has modified changes.
+        await FSE.writeFile(
+          path.join(submodulePath, 'README.md'),
+          'hello world\n'
+        )
+        await checkSubmoduleChanges({
+          modifiedChanges: true,
+          untrackedChanges: false,
+          commitChanged: false,
+        })
+
+        // Create untracked file in submodule. Now the submodule has both
+        // modified and untracked changes.
+        await FSE.writeFile(path.join(submodulePath, 'test'), 'test\n')
+        await checkSubmoduleChanges({
+          modifiedChanges: true,
+          untrackedChanges: true,
+          commitChanged: false,
+        })
+
+        // Commit the changes within the submodule. Now the submodule has commit
+        // changes.
+        await GitProcess.exec(['add', '.'], submodulePath)
+        await GitProcess.exec(['commit', '-m', 'changes'], submodulePath)
+        await checkSubmoduleChanges({
+          modifiedChanges: false,
+          untrackedChanges: false,
+          commitChanged: true,
+        })
+      })
+    })
   })
 })

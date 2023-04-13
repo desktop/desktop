@@ -45,7 +45,11 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/javascript/javascript'),
     mappings: {
       '.ts': 'text/typescript',
+      '.mts': 'text/typescript',
+      '.cts': 'text/typescript',
       '.js': 'text/javascript',
+      '.mjs': 'text/javascript',
+      '.cjs': 'text/javascript',
       '.json': 'application/json',
     },
   },
@@ -59,7 +63,11 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/jsx/jsx'),
     mappings: {
       '.tsx': 'text/typescript-jsx',
+      '.mtsx': 'text/typescript-jsx',
+      '.ctsx': 'text/typescript-jsx',
       '.jsx': 'text/jsx',
+      '.mjsx': 'text/jsx',
+      '.cjsx': 'text/jsx',
     },
   },
   {
@@ -140,6 +148,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.h': 'text/x-c',
       '.cpp': 'text/x-c++src',
       '.hpp': 'text/x-c++src',
+      '.ino': 'text/x-c++src',
       '.kt': 'text/x-kotlin',
     },
   },
@@ -627,7 +636,11 @@ onmessage = async (ev: MessageEvent) => {
       continue
     }
 
-    const lineCtx = { lines, line: ix }
+    const lineCtx = {
+      lines,
+      line: ix,
+      lookAhead: (n: number) => lines[ix + n],
+    }
     const lineStream = new StringStream(line, tabSize, lineCtx)
 
     while (!lineStream.eol()) {

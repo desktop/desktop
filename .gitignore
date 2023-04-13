@@ -9,6 +9,7 @@ app/node_modules/
 .awcache
 .idea/
 .vs/
+.vscode/*.log
 .eslintcache
 *.iml
 .envrc

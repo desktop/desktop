@@ -51,10 +51,28 @@ export class Draggable extends React.Component<IDraggableProps> {
     this.dragElement = document.getElementById('dragElement')
   }
 
+  /**
+   * A user can drag a commit if they are holding down the left mouse button or
+   * event.button === 0
+   *
+   * Exceptions:
+   *  - macOS allow emulating a right click by holding down the ctrl and left
+   *    mouse button.
+   *  - user can not drag during a shift click
+   *
+   * All other MouseEvent.button values are:
+   * 2: right button/pen barrel button
+   * 1: middle button
+   * X1, X2: mouse back/forward buttons
+   * 5: pen eraser
+   * -1: No button changed
+   *
+   * Ref: https://www.w3.org/TR/pointerevents/#the-button-property
+   *
+   * */
   private canDragCommit(event: React.MouseEvent<HTMLDivElement>): boolean {
-    // right clicks or shift clicks
     const isSpecialClick =
-      event.button === 2 ||
+      event.button !== 0 ||
       (__DARWIN__ && event.button === 0 && event.ctrlKey) ||
       event.shiftKey
 
@@ -174,6 +192,7 @@ export class Draggable extends React.Component<IDraggableProps> {
 
   public render() {
     return (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div className="draggable" onMouseDown={this.onMouseDown}>
         {this.props.children}
       </div>

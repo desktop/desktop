@@ -5,10 +5,13 @@ import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { CICheckRunList } from './ci-check-run-list'
 import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../dispatcher'
-import { APICheckStatus, IAPICheckSuite } from '../../lib/api'
+import {
+  APICheckConclusion,
+  APICheckStatus,
+  IAPICheckSuite,
+} from '../../lib/api'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from './../octicons/octicons.generated'
-import { Row } from '../lib/row'
 import { encodePathAsUrl } from '../../lib/path'
 import { offsetFromNow } from '../../lib/offset-from'
 import { formatCount } from '../../lib/format-count'
@@ -27,6 +30,9 @@ interface ICICheckRunRerunDialogProps {
 
   /** The git reference of the pr */
   readonly prRef: string
+
+  /** Whether to only rerun failed checks */
+  readonly failedOnly: boolean
 
   readonly onDismissed: () => void
 }
@@ -59,7 +65,11 @@ export class CICheckRunRerunDialog extends React.Component<
   private onSubmit = async () => {
     const { dispatcher, repository, prRef } = this.props
     this.setState({ loadingRerun: true })
-    await dispatcher.rerequestCheckSuites(repository, this.state.rerunnable)
+    await dispatcher.rerequestCheckSuites(
+      repository,
+      this.state.rerunnable,
+      this.props.failedOnly
+    )
     await dispatcher.manualRefreshSubscription(
       repository,
       prRef,
@@ -70,9 +80,15 @@ export class CICheckRunRerunDialog extends React.Component<
   }
 
   private determineRerunnability = async () => {
+    const checkRunsToConsider = this.props.failedOnly
+      ? this.props.checkRuns.filter(
+          cr => cr.conclusion === APICheckConclusion.Failure
+        )
+      : this.props.checkRuns
+
     // Get unique set of check suite ids
     const checkSuiteIds = new Set(
-      this.props.checkRuns.map(cr => cr.checkSuiteId)
+      checkRunsToConsider.map(cr => cr.checkSuiteId)
     )
 
     const checkSuitesPromises = new Array<Promise<IAPICheckSuite | null>>()
@@ -102,12 +118,12 @@ export class CICheckRunRerunDialog extends React.Component<
       }
     }
 
-    const rerunnable = this.props.checkRuns.filter(
+    const rerunnable = checkRunsToConsider.filter(
       cr =>
         cr.checkSuiteId !== null &&
         rerequestableCheckSuiteIds.includes(cr.checkSuiteId)
     )
-    const nonRerunnable = this.props.checkRuns.filter(
+    const nonRerunnable = checkRunsToConsider.filter(
       cr =>
         cr.checkSuiteId === null ||
         !rerequestableCheckSuiteIds.includes(cr.checkSuiteId)
@@ -117,10 +133,95 @@ export class CICheckRunRerunDialog extends React.Component<
   }
 
   private renderRerunnableJobsList = () => {
-    if (this.state.loadingCheckSuites) {
+    if (this.state.rerunnable.length === 0) {
+      return null
+    }
+
+    return (
+      <div className="ci-check-run-list check-run-rerun-list">
+        <CICheckRunList
+          checkRuns={this.state.rerunnable}
+          loadingActionLogs={false}
+          loadingActionWorkflows={false}
+          notExpandable={true}
+          isCondensedView={true}
+        />
+      </div>
+    )
+  }
+
+  private renderRerunDependentsMessage = () => {
+    if (this.state.rerunnable.length === 0) {
+      return null
+    }
+
+    const name =
+      this.props.checkRuns.length === 1 ? (
+        <strong>{this.props.checkRuns[0].name}</strong>
+      ) : (
+        'these workflows'
+      )
+    const dependentAdj = this.props.checkRuns.length === 1 ? 'its' : 'their'
+
+    return (
+      <div className="re-run-dependents-message">
+        A new attempt of {name} will be started, including all of {dependentAdj}{' '}
+        dependents:
+      </div>
+    )
+  }
+
+  private renderRerunWarning = () => {
+    if (
+      this.state.loadingCheckSuites ||
+      this.state.nonRerunnable.length === 0
+    ) {
+      return null
+    }
+
+    const { failedOnly } = this.props
+    const notRerunnable = this.state.nonRerunnable.length
+    const verb = notRerunnable !== 1 ? 'are' : 'is'
+    const warningPrefix =
+      this.state.rerunnable.length === 0
+        ? `There are no ${failedOnly ? 'failed ' : ''}checks that can be re-run`
+        : `There ${verb} ${formatCount(
+            notRerunnable,
+            failedOnly ? 'failed check' : 'check'
+          )} that cannot be re-run`
+    return (
+      <div className="non-re-run-info warning-helper-text">
+        <Octicon symbol={OcticonSymbol.alert} />
+
+        {`${warningPrefix}. A check run cannot be re-run if the check is more than one month old,
+          the check or its dependent has not completed, or the check is not configured to be
+          re-run.`}
+      </div>
+    )
+  }
+
+  public getTitle = (showDescriptor: boolean = true) => {
+    const { checkRuns, failedOnly } = this.props
+    const s = checkRuns.length === 1 ? '' : 's'
+    const c = __DARWIN__ ? 'C' : 'c'
+
+    let descriptor = ''
+    if (showDescriptor && checkRuns.length === 1) {
+      descriptor = __DARWIN__ ? 'Single ' : 'single '
+    }
+
+    if (showDescriptor && failedOnly) {
+      descriptor = __DARWIN__ ? 'Failed ' : 'failed '
+    }
+
+    return `Re-run ${descriptor}${c}heck${s}`
+  }
+
+  private renderDialogContent = () => {
+    if (this.state.loadingCheckSuites && this.props.checkRuns.length > 1) {
       return (
         <div className="loading-rerun-checks">
-          <img src={BlankSlateImage} className="blankslate-image" />
+          <img src={BlankSlateImage} className="blankslate-image" alt="" />
           <div className="title">Please wait</div>
           <div className="call-to-action">
             Determining which checks can be re-run.
@@ -130,43 +231,11 @@ export class CICheckRunRerunDialog extends React.Component<
     }
 
     return (
-      <div className="ci-check-run-list check-run-rerun-list">
-        {this.state.rerunnable.length > 0 ? (
-          <CICheckRunList
-            checkRuns={this.state.rerunnable}
-            loadingActionLogs={false}
-            loadingActionWorkflows={false}
-            notExpandable={true}
-          />
-        ) : null}
-      </div>
-    )
-  }
-
-  private renderRerunInfo = () => {
-    if (this.state.loadingCheckSuites) {
-      return null
-    }
-
-    const notRerunnable = this.state.nonRerunnable.length
-    const verb = notRerunnable !== 1 ? 'are' : 'is'
-    return (
-      <Row className="non-re-run-info warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
-
-        {this.state.rerunnable.length === 0
-          ? `There are no checks that can be re-run. `
-          : `There ${verb} ${formatCount(
-              notRerunnable,
-              'check'
-            )} that cannot be re-run. `}
-
-        {notRerunnable > 0
-          ? `A check run cannot be re-run if the check is more than one month old,
-          the check has not completed, or the check is not configured to be
-          re-run.`
-          : null}
-      </Row>
+      <>
+        {this.renderRerunDependentsMessage()}
+        {this.renderRerunnableJobsList()}
+        {this.renderRerunWarning()}
+      </>
     )
   }
 
@@ -174,16 +243,15 @@ export class CICheckRunRerunDialog extends React.Component<
     return (
       <Dialog
         id="rerun-check-runs"
-        title={__DARWIN__ ? 'Re-run Checks' : 'Re-run checks'}
+        title={this.getTitle()}
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
         loading={this.state.loadingCheckSuites || this.state.loadingRerun}
       >
-        <DialogContent>{this.renderRerunnableJobsList()}</DialogContent>
+        <DialogContent>{this.renderDialogContent()}</DialogContent>
         <DialogFooter>
-          {this.renderRerunInfo()}
           <OkCancelButtonGroup
-            okButtonText={__DARWIN__ ? 'Re-run Checks' : 'Re-run checks'}
+            okButtonText={this.getTitle(false)}
             okButtonDisabled={this.state.rerunnable.length === 0}
           />
         </DialogFooter>

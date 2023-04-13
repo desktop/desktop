@@ -4,6 +4,18 @@
   border-bottom: var(--base-border);
   height: auto;
 
+  &.condensed {
+    border-bottom: none;
+    align-items: center;
+    justify-content: center;
+
+    .ci-check-status-symbol {
+      padding: var(--spacing-third);
+      display: flex;
+      margin: 0;
+    }
+  }
+
   &.sticky {
     position: sticky;
     background-color: var(--background-color);
@@ -30,14 +42,23 @@
   }
 
   .ci-check-status-symbol,
-  .job-step-toggled-indicator {
+  .job-step-toggled-indicator,
+  .job-rerun {
     padding: var(--spacing);
-    padding-top: 11px;
+    padding-top: calc(var(--spacing-half) * 3);
   }
 
   .job-step-toggled-indicator {
     padding-left: 0px;
     color: var(--text-secondary-color);
+  }
+
+  .job-rerun {
+    color: var(--text-secondary-color);
+
+    &.not-action-job {
+      color: var(--text-secondary-color-muted);
+    }
   }
 
   .ci-check-list-item-detail {
