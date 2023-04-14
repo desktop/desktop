@@ -328,6 +328,10 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onStashAllChanges = () => {
+    this.props.dispatcher.createStashForCurrentBranch(this.props.repository)
+  }
+  
   private onDiscardAllChanges = () => {
     this.props.onDiscardChangesFromFiles(
       this.props.workingDirectory.files,
@@ -335,8 +339,17 @@ export class ChangesList extends React.Component<
     )
   }
 
-  private onStashChanges = () => {
-    this.props.dispatcher.createStashForCurrentBranch(this.props.repository)
+  private onStashChanges = (files: ReadonlyArray<string>) => {
+    const workingDirectory = this.props.workingDirectory
+    const modifiedFiles = new Array<WorkingDirectoryFileChange>()
+
+    files.forEach(file => {
+      const modifiedFile = workingDirectory.files.find(f => f.path === file)
+
+      if (modifiedFile != null) {
+        modifiedFiles.push(modifiedFile)
+      }
+    })
   }
 
   private onDiscardChanges = (files: ReadonlyArray<string>) => {
@@ -386,6 +399,19 @@ export class ChangesList extends React.Component<
     return this.props.askForConfirmationOnDiscardChanges ? `${label}…` : label
   }
 
+  private getStashChangesMenuItemLabel = (files: ReadonlyArray<string>) => {
+    const label =
+      files.length === 1
+        ? __DARWIN__
+          ? `Stash Changes`
+          : `Stash changes`
+        : __DARWIN__
+        ? `Stash ${files.length} Selected Changes`
+        : `Stash ${files.length} selected changes`
+
+    return this.props.askForConfirmationOnDiscardChanges ? `${label}…` : label
+  }
+
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
@@ -415,7 +441,7 @@ export class ChangesList extends React.Component<
       },
       {
         label: hasStash ? confirmStashAllChangesLabel : stashAllChangesLabel,
-        action: this.onStashChanges,
+        action: this.onStashAllChanges,
         enabled: hasLocalChanges && this.props.branch !== null && !hasConflicts,
       },
     ]
@@ -429,6 +455,15 @@ export class ChangesList extends React.Component<
     return {
       label: this.getDiscardChangesMenuItemLabel(paths),
       action: () => this.onDiscardChanges(paths),
+    }
+  }
+
+  private getStashChangesMenuItem = (
+    paths: ReadonlyArray<string>
+  ): IMenuItem => {
+    return {
+      label: this.getStashChangesMenuItemLabel(paths),
+      action: () => this.onStashChanges(paths),
     }
   }
 
@@ -548,6 +583,7 @@ export class ChangesList extends React.Component<
 
     const items: IMenuItem[] = [
       this.getDiscardChangesMenuItem(paths),
+      this.getStashChangesMenuItem(paths),
       { type: 'separator' },
     ]
     if (paths.length === 1) {
