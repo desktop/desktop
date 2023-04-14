@@ -179,10 +179,14 @@ export class AuthorInput extends React.Component<
         <div className="sr-only" aria-live="polite" aria-atomic="true">
           {this.state.lastActionDescription}
         </div>
-        <div id="author-input-label" className="label">
-          Co-Authors&nbsp;
-        </div>
         <div className="shadow-input" ref={this.shadowInputRef} />
+        <label
+          id="author-input-label"
+          className="label"
+          htmlFor="added-authors"
+        >
+          Co-Authors&nbsp;
+        </label>
         {this.renderAuthors()}
         <AutocompletingInput<UserHit>
           placeholder="@username"
@@ -207,6 +211,7 @@ export class AuthorInput extends React.Component<
   private renderAuthors() {
     return (
       <div
+        id="added-authors"
         className="added-author-container"
         ref={this.authorContainerRef}
         aria-labelledby="author-input-label"

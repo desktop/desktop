@@ -247,11 +247,6 @@ export abstract class AutocompletingTextInput<
     const searchText = state.rangeText
 
     const className = classNames('autocompletion-popup', state.provider.kind)
-    const shouldForceAriaLiveMessage = this.shouldForceAriaLiveMessage
-    this.shouldForceAriaLiveMessage = false
-
-    const suggestionsMessage =
-      items.length === 1 ? '1 suggestion' : `${items.length} suggestions`
 
     return (
       <div
@@ -272,9 +267,6 @@ export abstract class AutocompletingTextInput<
           onSelectedRowChanged={this.onSelectedRowChanged}
           invalidationProps={searchText}
         />
-        <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>
-          {suggestionsMessage}
-        </AriaLiveContainer>
       </div>
     )
   }
@@ -453,10 +445,24 @@ export abstract class AutocompletingTextInput<
         'text-area-component': tagName === 'textarea',
       }
     )
+
+    const shouldForceAriaLiveMessage = this.shouldForceAriaLiveMessage
+    this.shouldForceAriaLiveMessage = false
+
+    const autoCompleteItems = this.state.autocompletionState?.items ?? []
+
+    const suggestionsMessage =
+      autoCompleteItems.length === 1
+        ? '1 suggestion'
+        : `${autoCompleteItems.length} suggestions`
+
     return (
       <div className={className}>
         {this.renderAutocompletions()}
         {this.renderTextInput()}
+        <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>
+          {autoCompleteItems.length > 0 ? suggestionsMessage : ''}
+        </AriaLiveContainer>
       </div>
     )
   }
