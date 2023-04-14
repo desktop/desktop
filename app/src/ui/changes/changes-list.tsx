@@ -358,7 +358,7 @@ export class ChangesList extends React.Component<
     const stashingAllChanges =
           modifiedFiles.length === workingDirectory.files.length
 
-    this.props.onDiscardChangesFromFiles(
+    this.props.onStashChangesFromFiles(
       modifiedFiles,
       stashingAllChanges
     )
