@@ -26,6 +26,9 @@ interface IRadioGroupProps<T> {
    * The key argument corresponds to the key property of the selected item.
    */
   readonly onSelectionChanged: (key: T) => void
+
+  /** Render radio button label contents */
+  readonly renderRadioButtonLabelContents: (key: T) => JSX.Element
 }
 
 /**
@@ -39,11 +42,9 @@ export class RadioGroup<T extends string> extends React.Component<
   }
 
   private renderRadioButtons() {
-    const { children, radioButtonKeys, selectedKey } = this.props
-    const childrenArr = React.Children.toArray(children)
+    const { radioButtonKeys, selectedKey } = this.props
 
-    return childrenArr.map((child, index) => {
-      const key = radioButtonKeys[index]
+    return radioButtonKeys.map(key => {
       const checked = selectedKey === key
       return (
         <RadioButton<T>
@@ -53,7 +54,7 @@ export class RadioGroup<T extends string> extends React.Component<
           onSelected={this.onSelectionChanged}
           tabIndex={checked ? 0 : -1}
         >
-          {child}
+          {this.props.renderRadioButtonLabelContents(key)}
         </RadioButton>
       )
     })
