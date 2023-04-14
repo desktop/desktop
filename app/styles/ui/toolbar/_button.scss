@@ -56,8 +56,7 @@
       }
 
       // Focused but not through keyboard navigation
-      &:not(.focus-visible) {
-        outline: none;
+      &:not(:focus-visible) {
         background-color: var(--toolbar-button-background-color);
 
         .progress {
