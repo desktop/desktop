@@ -479,6 +479,17 @@ const editors: WindowsExternalEditor[] = [
     displayNamePrefix: 'DataSpell ',
     publishers: ['JetBrains s.r.o.'],
   },
+  {
+    name: 'Pulsar',
+    registryKeys: [
+      LocalMachineUninstallKey('0949b555-c22c-56b7-873a-a960bdefa81f'),
+      CurrentUserUninstallKey('0949b555-c22c-56b7-873a-a960bdefa81f'),
+    ],
+    installLocationRegistryKey: 'DisplayIcon',
+    executableShimPaths: [['Pulsar.exe']],
+    displayNamePrefix: 'Pulsar',
+    publishers: ['Pulsar Community'],
+  },
 ]
 
 function getKeyOrEmpty(
