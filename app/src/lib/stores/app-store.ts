@@ -4660,7 +4660,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ) {
     try {
-      //await this.createStashAndDropPreviousEntry(repository, currentBranch)
+      const repositoryState = this.repositoryStateCache.get(repository)
+      const tip = repositoryState.branchesState.tip
+      const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+      if (currentBranch === null) {
+        return
+      }
+      
+      await this.createStashEntries(repository, currentBranch, files)
     } catch (error) {
       if (!(error instanceof StashChangesError)) {
         log.error('Failed stashing changes', error)
@@ -6492,6 +6500,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const untrackedFiles = getUntrackedFiles(workingDirectory)
 
     return createDesktopStashEntry(repository, branch, untrackedFiles)
+  }
+
+  private async createStashEntries(repository: Repository, branch: Branch, files: ReadonlyArray<WorkingDirectoryFileChange>) {
+    return createDesktopStashEntry(repository, branch, files)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
