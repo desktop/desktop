@@ -38,14 +38,6 @@ export const licenseOverrides: LicenseLookup = {
       'Code is licensed under the AFL or BSD 3-Clause license as part of the Persevere project which is administered under the Dojo foundation, and all contributions require a Dojo CLA.',
   },
 
-  'focus-visible@5.2.0': {
-    repository: 'git+https://github.com/WICG/focus-visible',
-    license: 'W3C',
-    source:
-      'https://github.com/WICG/focus-visible/blob/6501c9382d072014e0aa8a816064fc78ae07b36b/LICENSE.md',
-    sourceText: `All Reports in this Repository are licensed by Contributors under the W3C Software and Document License. Contributions to Specifications are made under the W3C CLA.`,
-  },
-
   'tslib@2.0.0': tslibLicenseOverride,
   'tslib@2.3.1': tslibLicenseOverride,
 }

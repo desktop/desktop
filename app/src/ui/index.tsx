@@ -56,18 +56,6 @@ import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
 import { CommitStatusStore } from '../lib/stores/commit-status-store'
 import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
 
-// We're using a polyfill for the upcoming CSS4 `:focus-visible` pseudo-selector.
-// This allows us to not have to override default accessibility driven focus
-// styles for buttons in the case when a user clicks on a button. This also
-// gives better visibility to individuals who navigate with the keyboard.
-// Note: This was previously `:focus-ring` using the `wcig-focus-ring` library,
-// but that one was deprecated in favor of `focus-visible`.
-//
-// See:
-//   https://github.com/WICG/focus-visible
-//   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
-import 'focus-visible'
-
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { enableUnhandledRejectionReporting } from '../lib/feature-flag'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
