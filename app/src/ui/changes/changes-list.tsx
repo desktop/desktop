@@ -138,6 +138,10 @@ interface IChangesListProps {
     files: ReadonlyArray<WorkingDirectoryFileChange>,
     isDiscardingAllChanges: boolean
   ) => void
+  readonly onStashChangesFromFiles: (
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    isStashingAllChanges: boolean
+  ) => void
 
   /** Callback that fires on page scroll to pass the new scrollTop location */
   readonly onChangesListScrolled: (scrollTop: number) => void
@@ -350,6 +354,14 @@ export class ChangesList extends React.Component<
         modifiedFiles.push(modifiedFile)
       }
     })
+
+    const stashingAllChanges =
+          modifiedFiles.length === workingDirectory.files.length
+
+    this.props.onDiscardChangesFromFiles(
+      modifiedFiles,
+      stashingAllChanges
+    )
   }
 
   private onDiscardChanges = (files: ReadonlyArray<string>) => {

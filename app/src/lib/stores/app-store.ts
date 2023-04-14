@@ -275,6 +275,7 @@ import {
   ErrorWithMetadata,
   CheckoutError,
   DiscardChangesError,
+  StashChangesError,
 } from '../error-with-metadata'
 import {
   ShowSideBySideDiffDefault,
@@ -343,12 +344,14 @@ const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const confirmDiscardChangesPermanentlyDefault: boolean = true
+const confirmStashChangesDefault: boolean = true
 const confirmDiscardStashDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
 const confirmUndoCommitDefault: boolean = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
+const confirmStashChangesKey: string = 'confirmStashChanges'
 const confirmDiscardStashKey: string = 'confirmDiscardStash'
 const confirmDiscardChangesPermanentlyKey: string =
   'confirmDiscardChangesPermanentlyKey'
@@ -461,6 +464,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private confirmDiscardChangesPermanently: boolean =
     confirmDiscardChangesPermanentlyDefault
+  private confirmStashChanges: boolean = confirmStashChangesDefault
   private confirmDiscardStash: boolean = confirmDiscardStashDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private confirmUndoCommit: boolean = confirmUndoCommitDefault
@@ -961,6 +965,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnDiscardChangesPermanently:
         this.confirmDiscardChangesPermanently,
+      askForConfirmationOnStashChanges: this.confirmStashChanges,
       askForConfirmationOnDiscardStash: this.confirmDiscardStash,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       askForConfirmationOnUndoCommit: this.confirmUndoCommit,
@@ -2036,6 +2041,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.confirmDiscardChangesPermanently = getBoolean(
       confirmDiscardChangesPermanentlyKey,
       confirmDiscardChangesPermanentlyDefault
+    )
+
+    this.confirmStashChanges = getBoolean(
+      confirmStashChangesKey,
+      confirmStashChangesDefault
     )
 
     this.confirmDiscardStash = getBoolean(
@@ -4645,6 +4655,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
+  public async _stashChanges(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ) {
+    try {
+      //await this.createStashAndDropPreviousEntry(repository, currentBranch)
+    } catch (error) {
+      if (!(error instanceof StashChangesError)) {
+        log.error('Failed stashing changes', error)
+      }
+
+      this.emitError(error)
+      return
+    }
+
+    return this._refreshRepository(repository)
+  }
+
   public async _discardChangesFromSelection(
     repository: Repository,
     filePath: string,
@@ -5299,6 +5327,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.confirmDiscardChanges = value
 
     setBoolean(confirmDiscardChangesKey, value)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setConfirmStashChangesSetting(value: boolean): Promise<void> {
+    this.confirmStashChanges = value
+
+    setBoolean(confirmStashChangesKey, value)
     this.emitUpdate()
 
     return Promise.resolve()
