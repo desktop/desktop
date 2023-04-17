@@ -75,7 +75,7 @@ export function enableResetToCommit(): boolean {
 
 /** Should we allow high contrast theme option */
 export function enableHighContrastTheme(): boolean {
-  return enableBetaFeatures()
+  return false
 }
 
 /** Should we allow customizing a theme */
