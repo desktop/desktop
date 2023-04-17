@@ -11,11 +11,13 @@
       "[Fixed] The changes list header checkbox tooltip description is announced by screen readers - #16457",
       "[Fixed] The changes list header checkbox tooltip is keyboard accessible - #16487",
       "[Fixed] Announce a file's state of inclusion in the commit on the changes list - #16420",
+      "[Fixed] Display focus ring around focused control after dismissing a dialog - #16528",
       "[Improved] Identify the changes list and history commit list as the changes and history tab panels for screen readers - #16463",
       "[Improved] Windows title bar controls do not interrupt screen readers in browse mode - #16483",
       "[Improved] Add icons for tabs in Repository settings dialog - #16432. Thanks @sweezyio!",
       "[Improved] Use correct name for VSCodium editor - #16511. Thanks @GitMensch!",
-      "[Improved] Styling improvements on Linux to scroll bars and default layouts - #16484. Thanks @shiftkey!"
+      "[Improved] Styling improvements on Linux to scroll bars and default layouts - #16484. Thanks @shiftkey!",
+      "[Improved] Make radio theme selection look like radio buttons. - #16525"
     ],
     "3.2.1": [
       "[Added] Add Zed as an external editor option - #16026. Thanks @JosephTLyons!",
