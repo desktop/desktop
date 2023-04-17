@@ -467,7 +467,7 @@ export class GitStore extends BaseStore {
     }
   }
 
-  private async refreshDefaultBranch() {
+  public async refreshDefaultBranch() {
     this._defaultBranch = await findDefaultBranch(
       this.repository,
       this.allBranches,

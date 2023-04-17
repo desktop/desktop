@@ -4558,6 +4558,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this.performPush(repository, account)
     }
 
+    await gitStore.refreshDefaultBranch()
+
     return this.repositoryWithRefreshedGitHubRepository(repository)
   }
 
