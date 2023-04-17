@@ -1,7 +1,11 @@
 import { Branch, BranchType } from '../models/branch'
-import { Repository, getContributionTargetRemote } from '../models/repository'
+import {
+  Repository,
+  isForkedRepositoryContributingToParent,
+} from '../models/repository'
 import { getRemoteHEAD } from './git'
 import { getDefaultBranch } from './helpers/default-branch'
+import { UpstreamRemoteName } from './stores/helpers/find-upstream-remote'
 
 /**
  * Attempts to locate the default branch as determined by the HEAD symbolic link
@@ -16,9 +20,13 @@ import { getDefaultBranch } from './helpers/default-branch'
  */
 export async function findDefaultBranch(
   repository: Repository,
-  branches: ReadonlyArray<Branch>
+  branches: ReadonlyArray<Branch>,
+  defaultRemoteName: string | undefined
 ) {
-  const remoteName = getContributionTargetRemote(repository)
+  const remoteName = isForkedRepositoryContributingToParent(repository)
+    ? UpstreamRemoteName
+    : defaultRemoteName ?? 'origin'
+
   const remoteHead = await getRemoteHEAD(repository, remoteName)
   const defaultBranchName = remoteHead ?? (await getDefaultBranch())
   const remoteRef = remoteHead ? `${remoteName}/${remoteHead}` : undefined

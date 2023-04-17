@@ -225,11 +225,3 @@ export function isForkedRepositoryContributingToParent(
     getForkContributionTarget(repository) === ForkContributionTarget.Parent
   )
 }
-
-/**
- * Returns the remote name of the contribution target repository. For non-forks
- * this will always be 'origin'. For forks, this will be 'upstream' if the user
- * has chosen to contribute primarily to the parent repository.
- */
-export const getContributionTargetRemote = (repository: Repository) =>
-  isForkedRepositoryContributingToParent(repository) ? 'upstream' : 'origin'

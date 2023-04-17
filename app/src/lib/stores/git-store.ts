@@ -470,7 +470,8 @@ export class GitStore extends BaseStore {
   private async refreshDefaultBranch() {
     this._defaultBranch = await findDefaultBranch(
       this.repository,
-      this.allBranches
+      this.allBranches,
+      this.defaultRemote?.name
     )
 
     // The upstream default branch is only relevant for forked GitHub repos when
