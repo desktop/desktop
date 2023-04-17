@@ -142,11 +142,12 @@ button {
   left: 0;
 }
 
-:not(:focus-visible) {
+// By default we don't want to show the focus ring on elements unless the focus
+// occurred as a result of keyboard navigation.
+:focus {
   outline: none;
 }
 
-// http://stackoverflow.com/questions/7538771/what-is-webkit-focus-ring-color
 :focus-visible {
   outline: auto;
   outline-color: var(--focus-color);
