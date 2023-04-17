@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.2.2-test7": [
+      "[Fixed] Display focus ring around focused control after dismissing a dialog"
+    ],
     "3.2.1": [
       "[Added] Add Zed as an external editor option - #16026. Thanks @JosephTLyons!",
       "[Added] Add support for Pulsar code editor on macOS. - #16220. Thanks @mdibella-dev!",
