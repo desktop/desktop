@@ -357,11 +357,6 @@ dexie@^3.2.2:
   resolved "https://registry.yarnpkg.com/dexie/-/dexie-3.2.2.tgz#fa6f2a3c0d6ed0766f8d97a03720056f88fe0e01"
   integrity sha512-q5dC3HPmir2DERlX+toCBbHQXW5MsyrFqPFcovkH9N2S/UW/H3H5AWAB6iEOExeraAu+j+zRDG+zg/D7YhH0qg==
 
-dom-classlist@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/dom-classlist/-/dom-classlist-1.0.1.tgz#722814dc2f509d3d7d06f2533ba9ff48eeea59b9"
-  integrity sha1-cigU3C9QnT19BvJTO6n/SO7qWbk=
-
 "dom-helpers@^2.4.0 || ^3.0.0", dom-helpers@^3.3.1:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/dom-helpers/-/dom-helpers-3.4.0.tgz#e9b369700f959f62ecde5a6babde4bccd9169af8"
@@ -376,11 +371,6 @@ dom-helpers@^5.0.1:
   dependencies:
     "@babel/runtime" "^7.8.7"
     csstype "^3.0.2"
-
-dom-matches@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/dom-matches/-/dom-matches-2.0.0.tgz#d2728b416a87533980eb089b848d253cf23a758c"
-  integrity sha1-0nKLQWqHUzmA6wibhI0lPPI6dYw=
 
 dompurify@^2.3.3:
   version "2.3.3"
@@ -1667,14 +1657,6 @@ which@^1.2.9:
   integrity sha512-HxJdYWq1MTIQbJ3nw0cqssHoTNU267KlrDuGZ1WYlxDStUtKUhOaJmh112/TZmHxxUfuJqPXSOm7tDyas0OSIQ==
   dependencies:
     isexe "^2.0.0"
-
-wicg-focus-ring@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/wicg-focus-ring/-/wicg-focus-ring-1.0.1.tgz#3868c464ed27b5ca0891329b44c5d1144c0b2095"
-  integrity sha1-OGjEZO0ntcoIkTKbRMXRFEwLIJU=
-  dependencies:
-    dom-classlist "^1.0.1"
-    dom-matches "^2.0.0"
 
 wide-align@^1.1.0:
   version "1.1.3"

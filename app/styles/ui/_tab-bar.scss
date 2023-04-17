@@ -92,7 +92,7 @@
       line-height: 1;
     }
 
-    &.focus-ring {
+    &:focus-visible {
       outline-offset: -4px;
     }
 
