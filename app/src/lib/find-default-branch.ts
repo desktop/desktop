@@ -25,9 +25,12 @@ export async function findDefaultBranch(
 ) {
   const remoteName = isForkedRepositoryContributingToParent(repository)
     ? UpstreamRemoteName
-    : defaultRemoteName ?? 'origin'
+    : defaultRemoteName
 
-  const remoteHead = await getRemoteHEAD(repository, remoteName)
+  const remoteHead = remoteName
+    ? await getRemoteHEAD(repository, remoteName)
+    : null
+
   const defaultBranchName = remoteHead ?? (await getDefaultBranch())
   const remoteRef = remoteHead ? `${remoteName}/${remoteHead}` : undefined
 
