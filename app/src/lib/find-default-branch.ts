@@ -1,22 +1,7 @@
 import { Branch, BranchType } from '../models/branch'
-import { Repository, getForkContributionTarget } from '../models/repository'
-import { ForkContributionTarget } from '../models/workflow-preferences'
+import { Repository, getContributionTargetRemote } from '../models/repository'
 import { getRemoteHEAD } from './git'
 import { getDefaultBranch } from './helpers/default-branch'
-
-async function getContributionTargetHead(
-  repository: Repository
-): Promise<[string, string | null]> {
-  if (getForkContributionTarget(repository) === ForkContributionTarget.Parent) {
-    const head = await getRemoteHEAD(repository, 'upstream')
-
-    if (head !== null) {
-      return ['upstream', head]
-    }
-  }
-
-  return ['origin', await getRemoteHEAD(repository, 'origin')]
-}
 
 /**
  * Attempts to locate the default branch as determined by the HEAD symbolic link
@@ -33,9 +18,10 @@ export async function findDefaultBranch(
   repository: Repository,
   branches: ReadonlyArray<Branch>
 ) {
-  const [remote, remoteHead] = await getContributionTargetHead(repository)
+  const remoteName = getContributionTargetRemote(repository)
+  const remoteHead = await getRemoteHEAD(repository, remoteName)
   const defaultBranchName = remoteHead ?? (await getDefaultBranch())
-  const remoteRef = remoteHead ? `${remote}/${remoteHead}` : undefined
+  const remoteRef = remoteHead ? `${remoteName}/${remoteHead}` : undefined
 
   let localHit: Branch | undefined = undefined
   let localTrackingHit: Branch | undefined = undefined
