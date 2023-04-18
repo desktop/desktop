@@ -1116,15 +1116,11 @@ export class StatsStore implements IStatsStore {
 
   /** Onboarding tutorial has been successfully created */
   public recordTutorialRepoCreated() {
-    return this.updateDailyMeasures(() => ({
-      tutorialRepoCreated: true,
-    }))
+    return this.updateDailyMeasures(() => ({ tutorialRepoCreated: true }))
   }
 
   public recordTutorialEditorInstalled() {
-    return this.updateDailyMeasures(() => ({
-      tutorialEditorInstalled: true,
-    }))
+    return this.updateDailyMeasures(() => ({ tutorialEditorInstalled: true }))
   }
 
   public recordTutorialBranchCreated() {
