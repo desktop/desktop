@@ -1,5 +1,24 @@
 {
   "releases": {
+    "3.2.2-beta1": [
+      "[Added] Add support for VimR code editor on macOS. - #16354. Thanks @Elmar-Wiese!",
+      "[Fixed] NVDA reads number of suggestions when an autocompletion list shows up - #16526",
+      "[Fixed] The undo commit confirmation modal message is screen reader announced - #16472",
+      "[Fixed] Clipping and overlapping of the changes list is fixed at 200% zoom - #16425",
+      "[Fixed] Preview pull request button in the no local changes suggested next action isn't intermittently disabled - #16368",
+      "[Fixed] The commit message avatar is now a toggle tip making the commit author details keyboard accessible - #16272",
+      "[Fixed] The commit length hint is keyboard and screen reader accessible - #16449",
+      "[Fixed] The changes list header checkbox tooltip description is announced by screen readers - #16457",
+      "[Fixed] The changes list header checkbox tooltip is keyboard accessible - #16487",
+      "[Fixed] Announce a file's state of inclusion in the commit on the changes list - #16420",
+      "[Fixed] Display focus ring around focused control after dismissing a dialog - #16528",
+      "[Improved] Identify the changes list and history commit list as the changes and history tab panels for screen readers - #16463",
+      "[Improved] Windows title bar controls do not interrupt screen readers in browse mode - #16483",
+      "[Improved] Add icons for tabs in Repository settings dialog - #16432. Thanks @sweezyio!",
+      "[Improved] Use correct name for VSCodium editor - #16511. Thanks @GitMensch!",
+      "[Improved] Styling improvements on Linux to scroll bars and default layouts - #16484. Thanks @shiftkey!",
+      "[Improved] Make radio theme selection look like radio buttons. - #16525"
+    ],
     "3.2.1": [
       "[Added] Add Zed as an external editor option - #16026. Thanks @JosephTLyons!",
       "[Added] Add support for Pulsar code editor on macOS. - #16220. Thanks @mdibella-dev!",
