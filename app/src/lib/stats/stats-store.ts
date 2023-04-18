@@ -237,103 +237,84 @@ type NumericMeasures = {
 
 interface IOnboardingStats {
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user added their first existing repository.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user added their first existing
+   * repository.
    *
-   * A negative value means that this action hasn't yet
-   * taken place while undefined means that the current
-   * user installed desktop prior to this metric being
-   * added and we will thus never be able to provide a
-   * value.
+   * A negative value means that this action hasn't yet taken place while
+   * undefined means that the current user installed desktop prior to this
+   * metric being added and we will thus never be able to provide a value.
    */
   readonly timeToFirstAddedRepository?: number
 
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user cloned their first repository.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user cloned their first repository.
    *
-   * A negative value means that this action hasn't yet
-   * taken place while undefined means that the current
-   * user installed desktop prior to this metric being
-   * added and we will thus never be able to provide a
-   * value.
+   * A negative value means that this action hasn't yet taken place while
+   * undefined means that the current user installed desktop prior to this
+   * metric being added and we will thus never be able to provide a value.
    */
   readonly timeToFirstClonedRepository?: number
 
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user created their first new repository.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user created their first new
+   * repository.
    *
-   * A negative value means that this action hasn't yet
-   * taken place while undefined means that the current
-   * user installed desktop prior to this metric being
-   * added and we will thus never be able to provide a
-   * value.
+   * A negative value means that this action hasn't yet taken place while
+   * undefined means that the current user installed desktop prior to this
+   * metric being added and we will thus never be able to provide a value.
    */
   readonly timeToFirstCreatedRepository?: number
 
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user crafted their first commit.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user crafted their first commit.
    *
-   * A negative value means that this action hasn't yet
-   * taken place while undefined means that the current
-   * user installed desktop prior to this metric being
-   * added and we will thus never be able to provide a
-   * value.
+   * A negative value means that this action hasn't yet taken place while
+   * undefined means that the current user installed desktop prior to this
+   * metric being added and we will thus never be able to provide a value.
    */
   readonly timeToFirstCommit?: number
 
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user performed their first push of a repository
-   * to GitHub.com or GitHub Enterprise. This metric
-   * does not track pushes to non-GitHub remotes.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user performed their first push of a
+   * repository to GitHub.com or GitHub Enterprise. This metric does not track
+   * pushes to non-GitHub remotes.
    */
   readonly timeToFirstGitHubPush?: number
 
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user first checked out a branch in any repository
-   * which is not the default branch of that repository.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user first checked out a branch in any
+   * repository which is not the default branch of that repository.
    *
-   * Note that this metric will be set regardless of whether
-   * that repository was a GitHub.com/GHE repository, local
-   * repository or has a non-GitHub remote.
+   * Note that this metric will be set regardless of whether that repository was
+   * a GitHub.com/GHE repository, local repository or has a non-GitHub remote.
    *
-   * A negative value means that this action hasn't yet
-   * taken place while undefined means that the current
-   * user installed desktop prior to this metric being
-   * added and we will thus never be able to provide a
-   * value.
+   * A negative value means that this action hasn't yet taken place while
+   * undefined means that the current user installed desktop prior to this
+   * metric being added and we will thus never be able to provide a value.
    */
   readonly timeToFirstNonDefaultBranchCheckout?: number
 
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user completed the wizard.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user completed the wizard.
    *
-   * A negative value means that this action hasn't yet
-   * taken place while undefined means that the current
-   * user installed desktop prior to this metric being
-   * added and we will thus never be able to provide a
-   * value.
+   * A negative value means that this action hasn't yet taken place while
+   * undefined means that the current user installed desktop prior to this
+   * metric being added and we will thus never be able to provide a value.
    */
   readonly timeToWelcomeWizardTerminated?: number
 
   /**
-   * The method that was used when authenticating a
-   * user in the welcome flow. If multiple successful
-   * authentications happened during the welcome flow
-   * due to the user stepping back and signing in to
-   * another account this will reflect the last one.
+   * The method that was used when authenticating a user in the welcome flow. If
+   * multiple successful authentications happened during the welcome flow due to
+   * the user stepping back and signing in to another account this will reflect
+   * the last one.
    */
   readonly welcomeWizardSignInMethod?: 'basic' | 'web'
 }
@@ -367,8 +348,8 @@ interface ICalculatedStats {
   readonly enterpriseAccount: boolean
 
   /**
-   * The name of the currently selected theme/application
-   * appearance as set at time of stats submission.
+   * The name of the currently selected theme/application appearance as set at
+   * time of stats submission.
    */
   readonly theme: string
 
@@ -381,12 +362,12 @@ interface ICalculatedStats {
   readonly eventType: 'usage'
 
   /**
-   * _[Forks]_
-   * How many repos did the user commit in without having `write` access?
+   * _[Forks]_ How many repos did the user commit in without having `write`
+   * access?
    *
-   * This is a hack in that its really a "computed daily measure" and the
-   * moment we have another one of those we should consider refactoring
-   * them into their own interface
+   * This is a hack in that its really a "computed daily measure" and the moment
+   * we have another one of those we should consider refactoring them into their
+   * own interface
    */
   readonly repositoriesCommittedInWithoutWriteAccess: number
 
@@ -601,8 +582,8 @@ export class StatsStore implements IStatsStore {
     )
 
     // If we don't have a start time for the wizard none of our other metrics
-    // makes sense. This will happen for users who installed the app before
-    // we started tracking onboarding stats.
+    // makes sense. This will happen for users who installed the app before we
+    // started tracking onboarding stats.
     if (wizardInitiatedAt === null) {
       return {}
     }
@@ -774,7 +755,8 @@ export class StatsStore implements IStatsStore {
   public recordCompareInitiatedMerge = () =>
     this.increment('mergesInitiatedFromComparison')
 
-  /** Record that a merge has been initiated from the `Branch -> Update From Default Branch` menu item */
+  /** Record that a merge has been initiated from the `Branch -> Update From
+   * Default Branch` menu item */
   public recordMenuInitiatedUpdate = () =>
     this.increment('updateFromDefaultBranchMenuCount')
 
@@ -786,7 +768,8 @@ export class StatsStore implements IStatsStore {
   public recordMergeConflictFromExplicitMerge = () =>
     this.increment('mergeConflictFromExplicitMergeCount')
 
-  /** Record that a merge has been initiated from the `Branch -> Merge Into Current Branch` menu item */
+  /** Record that a merge has been initiated from the `Branch -> Merge Into
+   * Current Branch` menu item */
   public recordMenuInitiatedMerge = (isSquash: boolean = false) =>
     this.increment(
       isSquash
@@ -820,14 +803,17 @@ export class StatsStore implements IStatsStore {
    */
   public recordCommitToEnterprise = () => this.increment('enterpriseCommits')
 
-  /** Records that the user made a commit to a repository hosted on GitHub.com */
+  /** Records that the user made a commit to a repository hosted on GitHub.com
+   * */
   public recordCommitToDotcom = () => this.increment('dotcomCommits')
 
-  /** Record the user made a commit to a protected GitHub or GitHub Enterprise repository */
+  /** Record the user made a commit to a protected GitHub or GitHub Enterprise
+   * repository */
   public recordCommitToProtectedBranch = () =>
     this.increment('commitsToProtectedBranch')
 
-  /** Record the user made a commit to repository which has branch protections enabled */
+  /** Record the user made a commit to repository which has branch protections
+   * enabled */
   public recordCommitToRepositoryWithBranchProtections = () =>
     this.increment('commitsToRepositoryWithBranchProtections')
 
@@ -900,15 +886,18 @@ export class StatsStore implements IStatsStore {
         : 'externalPushCount'
     )
 
-  /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
+  /** Record that the user saw a 'merge conflicts' warning but continued with
+   * the merge */
   public recordUserProceededWhileLoading = () =>
     this.increment('mergedWithLoadingHintCount')
 
-  /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
+  /** Record that the user saw a 'merge conflicts' warning but continued with
+   * the merge */
   public recordMergeHintSuccessAndUserProceeded = () =>
     this.increment('mergedWithCleanMergeHintCount')
 
-  /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
+  /** Record that the user saw a 'merge conflicts' warning but continued with
+   * the merge */
   public recordUserProceededAfterConflictWarning = () =>
     this.increment('mergedWithConflictWarningHintCount')
 
@@ -917,7 +906,8 @@ export class StatsStore implements IStatsStore {
     this.increment('mergeConflictsDialogDismissalCount')
 
   /**
-   * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
+   * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount`
+   * metric
    */
   public recordAnyConflictsLeftOnMergeConflictsDialogDismissal = () =>
     this.increment('anyConflictsLeftOnMergeConflictsDialogDismissalCount')
@@ -1011,7 +1001,8 @@ export class StatsStore implements IStatsStore {
   public recordStashViewedAfterCheckout = () =>
     this.increment('stashViewedAfterCheckoutCount')
 
-  /** Record when the user **doesn't** view a stash entry after checking out a branch */
+  /** Record when the user **doesn't** view a stash entry after checking out a
+   * branch */
   public recordStashNotViewedAfterCheckout = () =>
     this.increment('stashNotViewedAfterCheckoutCount')
 
@@ -1036,7 +1027,8 @@ export class StatsStore implements IStatsStore {
   public recordNoActionTakenOnStash = () =>
     this.increment('noActionTakenOnStashCount')
 
-  /** Record the number of stash entries created outside of Desktop for the day */
+  /** Record the number of stash entries created outside of Desktop for the day
+   * */
   public addStashEntriesCreatedOutsideDesktop = (stashCount: number) =>
     this.increment('stashEntriesCreatedOutsideDesktop', stashCount)
 
@@ -1185,11 +1177,11 @@ export class StatsStore implements IStatsStore {
     this.increment('commitsToRepositoryWithoutWriteAccess')
 
   /**
-   * Record that the user made a commit in a repository they don't
-   * have `write` access to. Dedupes based on the database ID provided
+   * Record that the user made a commit in a repository they don't have `write`
+   * access to. Dedupes based on the database ID provided
    *
-   * @param gitHubRepositoryDbId database ID for the GitHubRepository of
-   *                             the local repo this commit was made in
+   * @param gitHubRepositoryDbId database ID for the GitHubRepository of the
+   *                             local repo this commit was made in
    */
   public recordRepositoryCommitedInWithoutWriteAccess(
     gitHubRepositoryDbId: number
@@ -1451,7 +1443,8 @@ export class StatsStore implements IStatsStore {
   public recordPullRequestReviewNotificationFromNonRecentRepo = () =>
     this.increment('pullRequestReviewNotificationFromNonRecentRepoCount')
 
-  // Generic method to record stats related to Pull Request review notifications.
+  // Generic method to record stats related to Pull Request review
+  // notifications.
   private recordPullRequestReviewStat(
     reviewType: ValidNotificationPullRequestReviewState,
     suffix: PullRequestReviewStatFieldSuffix
