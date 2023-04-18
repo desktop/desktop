@@ -516,18 +516,16 @@ export class StatsStore implements IStatsStore {
   }
 
   /**
-   * Clear the stored daily stats. Not meant to be called
-   * directly. Marked as public in order to enable testing
-   * of a specific scenario, see stats-store-tests for more
-   * detail.
+   * Clear the stored daily stats. Not meant to be called directly. Marked as
+   * public in order to enable testing of a specific scenario, see
+   * stats-store-tests for more detail.
    */
   public async clearDailyStats() {
     await this.db.launches.clear()
     await this.db.dailyMeasures.clear()
 
-    // This is a one-off, and the moment we have another
-    // computed daily measure we should consider refactoring
-    // them into their own interface
+    // This is a one-off, and the moment we have another computed daily measure
+    // we should consider refactoring them into their own interface
     localStorage.removeItem(RepositoriesCommittedInWithoutWriteAccessKey)
 
     this.enableUiActivityMonitoring()
@@ -810,16 +808,15 @@ export class StatsStore implements IStatsStore {
     )
 
   /**
-   * Records that the user made a commit using an email address that
-   * was not associated with the user's account on GitHub.com or GitHub
-   * Enterprise, meaning that the commit will not be attributed to the
-   * user's account.
+   * Records that the user made a commit using an email address that was not
+   * associated with the user's account on GitHub.com or GitHub Enterprise,
+   * meaning that the commit will not be attributed to the user's account.
    */
   public recordUnattributedCommit = () => this.increment('unattributedCommits')
 
   /**
-   * Records that the user made a commit to a repository hosted on
-   * a GitHub Enterprise instance
+   * Records that the user made a commit to a repository hosted on a GitHub
+   * Enterprise instance
    */
   public recordCommitToEnterprise = () => this.increment('enterpriseCommits')
 
@@ -890,8 +887,8 @@ export class StatsStore implements IStatsStore {
         : 'enterprisePushCount'
     )
 
-    // Note, this is not a typo. We track both GitHub.com and
-    // GitHub Enterprise under the same key
+    // Note, this is not a typo. We track both GitHub.com and GitHub Enterprise
+    // under the same key
     createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 
@@ -929,68 +926,47 @@ export class StatsStore implements IStatsStore {
   public recordMergeConflictsDialogReopened = () =>
     this.increment('mergeConflictsDialogReopenedCount')
 
-  /**
-   * Increments the `guidedConflictedMergeCompletionCount` metric
-   */
+  /** Increments the `guidedConflictedMergeCompletionCount` metric */
   public recordGuidedConflictedMergeCompletion = () =>
     this.increment('guidedConflictedMergeCompletionCount')
 
-  /**
-   * Increments the `unguidedConflictedMergeCompletionCount` metric
-   */
+  /** Increments the `unguidedConflictedMergeCompletionCount` metric */
   public recordUnguidedConflictedMergeCompletion = () =>
     this.increment('unguidedConflictedMergeCompletionCount')
 
-  /**
-   * Increments the `createPullRequestCount` metric
-   */
+  /** * Increments the `createPullRequestCount` metric */
   public recordCreatePullRequest = () =>
     this.increment('createPullRequestCount')
 
-  /**
-   * Increments the `createPullRequestFromPreviewCount` metric
-   */
+  /** Increments the `createPullRequestFromPreviewCount` metric */
   public recordCreatePullRequestFromPreview = () =>
     this.increment('createPullRequestFromPreviewCount')
 
-  /**
-   * Increments the `rebaseConflictsDialogDismissalCount` metric
-   */
+  /** Increments the `rebaseConflictsDialogDismissalCount` metric */
   public recordRebaseConflictsDialogDismissal = () =>
     this.increment('rebaseConflictsDialogDismissalCount')
 
-  /**
-   * Increments the `rebaseConflictsDialogReopenedCount` metric
-   */
+  /** Increments the `rebaseConflictsDialogReopenedCount` metric */
   public recordRebaseConflictsDialogReopened = () =>
     this.increment('rebaseConflictsDialogReopenedCount')
 
-  /**
-   * Increments the `rebaseAbortedAfterConflictsCount` metric
-   */
+  /** Increments the `rebaseAbortedAfterConflictsCount` metric */
   public recordRebaseAbortedAfterConflicts = () =>
     this.increment('rebaseAbortedAfterConflictsCount')
-  /**
-   * Increments the `pullWithRebaseCount` metric
-   */
+
+  /** Increments the `pullWithRebaseCount` metric */
   public recordPullWithRebaseEnabled = () =>
     this.increment('pullWithRebaseCount')
 
-  /**
-   * Increments the `rebaseSuccessWithoutConflictsCount` metric
-   */
+  /** Increments the `rebaseSuccessWithoutConflictsCount` metric */
   public recordRebaseSuccessWithoutConflicts = () =>
     this.increment('rebaseSuccessWithoutConflictsCount')
 
-  /**
-   * Increments the `rebaseSuccessAfterConflictsCount` metric
-   */
+  /** Increments the `rebaseSuccessAfterConflictsCount` metric */
   public recordRebaseSuccessAfterConflicts = () =>
     this.increment('rebaseSuccessAfterConflictsCount')
 
-  /**
-   * Increments the `pullWithDefaultSettingCount` metric
-   */
+  /** Increments the `pullWithDefaultSettingCount` metric */
   public recordPullWithDefaultSetting = () =>
     this.increment('pullWithDefaultSettingCount')
 
@@ -1065,8 +1041,8 @@ export class StatsStore implements IStatsStore {
     this.increment('stashEntriesCreatedOutsideDesktop', stashCount)
 
   /**
-   * Record the number of times the user experiences the error
-   * "Some of your changes would be overwritten" when switching branches
+   * Record the number of times the user experiences the error "Some of your
+   * changes would be overwritten" when switching branches
    */
   public recordErrorWhenSwitchingBranchesWithUncommmittedChanges = () =>
     this.increment('errorWhenSwitchingBranchesWithUncommmittedChanges')
@@ -1091,6 +1067,7 @@ export class StatsStore implements IStatsStore {
    */
   public recordSuggestedStepViewOnGitHub = () =>
     this.increment('suggestedStepViewOnGitHub')
+
   /**
    * Increment the number of times the user has used the publish repository
    * action from the suggested next steps view
@@ -1099,15 +1076,15 @@ export class StatsStore implements IStatsStore {
     this.increment('suggestedStepPublishRepository')
 
   /**
-   * Increment the number of times the user has used the publish branch
-   * action branch from the suggested next steps view
+   * Increment the number of times the user has used the publish branch action
+   * branch from the suggested next steps view
    */
   public recordSuggestedStepPublishBranch = () =>
     this.increment('suggestedStepPublishBranch')
 
   /**
-   * Increment the number of times the user has used the Create PR suggestion
-   * in the suggested next steps view.
+   * Increment the number of times the user has used the Create PR suggestion in
+   * the suggested next steps view.
    */
   public recordSuggestedStepCreatePullRequest = () =>
     this.increment('suggestedStepCreatePullRequest')
@@ -1130,16 +1107,14 @@ export class StatsStore implements IStatsStore {
    */
 
   /**
-   * Onboarding tutorial has been started, the user has
-   * clicked the button to start the onboarding tutorial.
+   * Onboarding tutorial has been started, the user has clicked the button to
+   * start the onboarding tutorial.
    */
   public recordTutorialStarted() {
     return this.updateDailyMeasures(() => ({ tutorialStarted: true }))
   }
 
-  /**
-   * Onboarding tutorial has been successfully created
-   */
+  /** Onboarding tutorial has been successfully created */
   public recordTutorialRepoCreated() {
     return this.updateDailyMeasures(() => ({
       tutorialRepoCreated: true,
@@ -1556,20 +1531,18 @@ export class StatsStore implements IStatsStore {
   /**
    * Send opt-in ping with details of previous stored value (if known)
    *
-   * @param optOut        Whether or not the user has opted
-   *                      out of usage reporting.
-   * @param previousValue The raw, current value stored for the
-   *                      "stats-opt-out" localStorage key, or
-   *                      undefined if no previously stored value
-   *                      exists.
+   * @param optOut        Whether or not the user has opted out of usage
+   *                      reporting.
+   * @param previousValue The raw, current value stored for the "stats-opt-out"
+   *                      localStorage key, or undefined if no previously stored
+   *                      value exists.
    */
   private async sendOptInStatusPing(
     optOut: boolean,
     previousValue: boolean | undefined
   ): Promise<void> {
-    // The analytics pipeline expects us to submit `optIn` but we
-    // track `optOut` so we need to invert the value before we send
-    // it.
+    // The analytics pipeline expects us to submit `optIn` but we track `optOut`
+    // so we need to invert the value before we send it.
     const optIn = !optOut
     const previousOptInValue =
       previousValue === undefined ? null : !previousValue
@@ -1603,8 +1576,7 @@ export class StatsStore implements IStatsStore {
 /**
  * Store the current date (in unix time) in localStorage.
  *
- * If the provided key already exists it will not be
- * overwritten.
+ * If the provided key already exists it will not be overwritten.
  */
 function createLocalStorageTimestamp(key: string) {
   if (localStorage.getItem(key) === null) {
@@ -1615,8 +1587,8 @@ function createLocalStorageTimestamp(key: string) {
 /**
  * Get a time stamp (in unix time) from localStorage.
  *
- * If the key doesn't exist or if the stored value can't
- * be converted into a number this method will return null.
+ * If the key doesn't exist or if the stored value can't be converted into a
+ * number this method will return null.
  */
 function getLocalStorageTimestamp(key: string): number | null {
   const timestamp = getNumber(key)
@@ -1624,16 +1596,14 @@ function getLocalStorageTimestamp(key: string): number | null {
 }
 
 /**
- * Calculate the duration (in seconds) between the time the
- * welcome wizard was initiated to the time for the given
- * action.
+ * Calculate the duration (in seconds) between the time the welcome wizard was
+ * initiated to the time for the given action.
  *
- * If no time stamp exists for when the welcome wizard was
- * initiated, which would be the case if the user completed
- * the wizard before we introduced onboarding metrics, or if
- * the delta between the two values are negative (which could
- * happen if a user manually manipulated localStorage in order
- * to run the wizard again) this method will return undefined.
+ * If no time stamp exists for when the welcome wizard was initiated, which
+ * would be the case if the user completed the wizard before we introduced
+ * onboarding metrics, or if the delta between the two values are negative
+ * (which could happen if a user manually manipulated localStorage in order to
+ * run the wizard again) this method will return undefined.
  */
 function timeTo(key: string): number | undefined {
   const startTime = getLocalStorageTimestamp(WelcomeWizardInitiatedAtKey)
@@ -1649,11 +1619,10 @@ function timeTo(key: string): number | undefined {
 }
 
 /**
- * Get a string representing the sign in method that was used
- * when authenticating a user in the welcome flow. This method
- * ensures that the reported value is known to the analytics
- * system regardless of whether the enum value of the SignInMethod
- * type changes.
+ * Get a string representing the sign in method that was used when
+ * authenticating a user in the welcome flow. This method ensures that the
+ * reported value is known to the analytics system regardless of whether the
+ * enum value of the SignInMethod type changes.
  */
 function getWelcomeWizardSignInMethod(): 'basic' | 'web' | undefined {
   const method = localStorage.getItem(
