@@ -228,6 +228,13 @@ const DefaultDailyMeasures: IDailyMeasures = {
   previewedPullRequestCount: 0,
 }
 
+// A subtype if IDailyMeasures filtered to contain only its numeric properties
+type NumericMeasures = {
+  [P in keyof IDailyMeasures as IDailyMeasures[P] extends number
+    ? P
+    : never]: IDailyMeasures[P]
+}
+
 interface IOnboardingStats {
   /**
    * Time (in seconds) from when the user first launched
@@ -714,163 +721,93 @@ export class StatsStore implements IStatsStore {
 
   /** Record that a commit was accomplished. */
   public async recordCommit(): Promise<void> {
-    await this.updateDailyMeasures(m => ({
-      commits: m.commits + 1,
-    }))
-
+    await this.increment('commits')
     createLocalStorageTimestamp(FirstCommitCreatedAtKey)
   }
 
   /** Record that a partial commit was accomplished. */
-  public recordPartialCommit(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      partialCommits: m.partialCommits + 1,
-    }))
-  }
+  public recordPartialCommit = () => this.increment('partialCommits')
 
   /** Record that a commit was created with one or more co-authors. */
-  public recordCoAuthoredCommit(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      coAuthoredCommits: m.coAuthoredCommits + 1,
-    }))
-  }
+  public recordCoAuthoredCommit = () => this.increment('coAuthoredCommits')
 
   /**
    * Record that a commit was undone.
    *
    * @param cleanWorkingDirectory Whether the working directory is clean.
    */
-  public recordCommitUndone(cleanWorkingDirectory: boolean): Promise<void> {
-    if (cleanWorkingDirectory) {
-      return this.updateDailyMeasures(m => ({
-        commitsUndoneWithoutChanges: m.commitsUndoneWithoutChanges + 1,
-      }))
-    }
-    return this.updateDailyMeasures(m => ({
-      commitsUndoneWithChanges: m.commitsUndoneWithChanges + 1,
-    }))
-  }
+  public recordCommitUndone = (cleanWorkingDirectory: boolean) =>
+    this.increment(
+      cleanWorkingDirectory
+        ? 'commitsUndoneWithoutChanges'
+        : 'commitsUndoneWithChanges'
+    )
 
   /** Record that the user started amending a commit */
-  public recordAmendCommitStarted(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      amendCommitStartedCount: m.amendCommitStartedCount + 1,
-    }))
-  }
+  public recordAmendCommitStarted = () =>
+    this.increment('amendCommitStartedCount')
 
   /**
    * Record that the user amended a commit.
    *
    * @param withFileChanges Whether the amendment included file changes or not.
    */
-  public recordAmendCommitSuccessful(withFileChanges: boolean): Promise<void> {
-    if (withFileChanges) {
-      return this.updateDailyMeasures(m => ({
-        amendCommitSuccessfulWithFileChangesCount:
-          m.amendCommitSuccessfulWithFileChangesCount + 1,
-      }))
-    }
-
-    return this.updateDailyMeasures(m => ({
-      amendCommitSuccessfulWithoutFileChangesCount:
-        m.amendCommitSuccessfulWithoutFileChangesCount + 1,
-    }))
-  }
+  public recordAmendCommitSuccessful = (withFileChanges: boolean) =>
+    this.increment(
+      withFileChanges
+        ? 'amendCommitSuccessfulWithFileChangesCount'
+        : 'amendCommitSuccessfulWithoutFileChangesCount'
+    )
 
   /** Record that the user reset to a previous commit */
-  public recordResetToCommitCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      resetToCommitCount: m.resetToCommitCount + 1,
-    }))
-  }
+  public recordResetToCommitCount = () => this.increment('resetToCommitCount')
 
   /** Record that the user opened a shell. */
-  public recordOpenShell(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      openShellCount: m.openShellCount + 1,
-    }))
-  }
+  public recordOpenShell = () => this.increment('openShellCount')
 
   /** Record that a branch comparison has been made */
-  public recordBranchComparison(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      branchComparisons: m.branchComparisons + 1,
-    }))
-  }
+  public recordBranchComparison = () => this.increment('branchComparisons')
 
   /** Record that a branch comparison has been made to the default branch */
-  public recordDefaultBranchComparison(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      defaultBranchComparisons: m.defaultBranchComparisons + 1,
-    }))
-  }
+  public recordDefaultBranchComparison = () =>
+    this.increment('defaultBranchComparisons')
 
   /** Record that a merge has been initiated from the `compare` sidebar */
-  public recordCompareInitiatedMerge(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergesInitiatedFromComparison: m.mergesInitiatedFromComparison + 1,
-    }))
-  }
+  public recordCompareInitiatedMerge = () =>
+    this.increment('mergesInitiatedFromComparison')
 
   /** Record that a merge has been initiated from the `Branch -> Update From Default Branch` menu item */
-  public recordMenuInitiatedUpdate(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      updateFromDefaultBranchMenuCount: m.updateFromDefaultBranchMenuCount + 1,
-    }))
-  }
+  public recordMenuInitiatedUpdate = () =>
+    this.increment('updateFromDefaultBranchMenuCount')
 
   /** Record that conflicts were detected by a merge initiated by Desktop */
-  public recordMergeConflictFromPull(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeConflictFromPullCount: m.mergeConflictFromPullCount + 1,
-    }))
-  }
+  public recordMergeConflictFromPull = () =>
+    this.increment('mergeConflictFromPullCount')
 
   /** Record that conflicts were detected by a merge initiated by Desktop */
-  public recordMergeConflictFromExplicitMerge(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeConflictFromExplicitMergeCount:
-        m.mergeConflictFromExplicitMergeCount + 1,
-    }))
-  }
+  public recordMergeConflictFromExplicitMerge = () =>
+    this.increment('mergeConflictFromExplicitMergeCount')
 
   /** Record that a merge has been initiated from the `Branch -> Merge Into Current Branch` menu item */
-  public recordMenuInitiatedMerge(isSquash: boolean = false): Promise<void> {
-    if (isSquash) {
-      return this.updateDailyMeasures(m => ({
-        squashMergeIntoCurrentBranchMenuCount:
-          m.squashMergeIntoCurrentBranchMenuCount + 1,
-      }))
-    }
+  public recordMenuInitiatedMerge = (isSquash: boolean = false) =>
+    this.increment(
+      isSquash
+        ? 'squashMergeIntoCurrentBranchMenuCount'
+        : 'mergeIntoCurrentBranchMenuCount'
+    )
 
-    return this.updateDailyMeasures(m => ({
-      mergeIntoCurrentBranchMenuCount: m.mergeIntoCurrentBranchMenuCount + 1,
-    }))
-  }
-
-  public recordMenuInitiatedRebase(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rebaseCurrentBranchMenuCount: m.rebaseCurrentBranchMenuCount + 1,
-    }))
-  }
+  public recordMenuInitiatedRebase = () =>
+    this.increment('rebaseCurrentBranchMenuCount')
 
   /** Record that the user checked out a PR branch */
-  public recordPRBranchCheckout(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      prBranchCheckouts: m.prBranchCheckouts + 1,
-    }))
-  }
+  public recordPRBranchCheckout = () => this.increment('prBranchCheckouts')
 
-  public recordRepoClicked(repoHasIndicator: boolean): Promise<void> {
-    if (repoHasIndicator) {
-      return this.updateDailyMeasures(m => ({
-        repoWithIndicatorClicked: m.repoWithIndicatorClicked + 1,
-      }))
-    }
-    return this.updateDailyMeasures(m => ({
-      repoWithoutIndicatorClicked: m.repoWithoutIndicatorClicked + 1,
-    }))
-  }
+  public recordRepoClicked = (repoHasIndicator: boolean) =>
+    this.increment(
+      repoHasIndicator
+        ? 'repoWithIndicatorClicked'
+        : 'repoWithoutIndicatorClicked'
+    )
 
   /**
    * Records that the user made a commit using an email address that
@@ -878,43 +815,24 @@ export class StatsStore implements IStatsStore {
    * Enterprise, meaning that the commit will not be attributed to the
    * user's account.
    */
-  public recordUnattributedCommit(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      unattributedCommits: m.unattributedCommits + 1,
-    }))
-  }
+  public recordUnattributedCommit = () => this.increment('unattributedCommits')
 
   /**
    * Records that the user made a commit to a repository hosted on
    * a GitHub Enterprise instance
    */
-  public recordCommitToEnterprise(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      enterpriseCommits: m.enterpriseCommits + 1,
-    }))
-  }
+  public recordCommitToEnterprise = () => this.increment('enterpriseCommits')
 
   /** Records that the user made a commit to a repository hosted on GitHub.com */
-  public recordCommitToDotcom(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      dotcomCommits: m.dotcomCommits + 1,
-    }))
-  }
+  public recordCommitToDotcom = () => this.increment('dotcomCommits')
 
   /** Record the user made a commit to a protected GitHub or GitHub Enterprise repository */
-  public recordCommitToProtectedBranch(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      commitsToProtectedBranch: m.commitsToProtectedBranch + 1,
-    }))
-  }
+  public recordCommitToProtectedBranch = () =>
+    this.increment('commitsToProtectedBranch')
 
   /** Record the user made a commit to repository which has branch protections enabled */
-  public recordCommitToRepositoryWithBranchProtections(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      commitsToRepositoryWithBranchProtections:
-        m.commitsToRepositoryWithBranchProtections + 1,
-    }))
-  }
+  public recordCommitToRepositoryWithBranchProtections = () =>
+    this.increment('commitsToRepositoryWithBranchProtections')
 
   /** Set whether the user has opted out of stats reporting. */
   public async setOptOut(
@@ -954,16 +872,11 @@ export class StatsStore implements IStatsStore {
 
   /** Record that the user pushed to GitHub.com */
   private async recordPushToGitHub(options?: PushOptions): Promise<void> {
-    if (options && options.forceWithLease) {
-      await this.updateDailyMeasures(m => ({
-        dotcomForcePushCount: m.dotcomForcePushCount + 1,
-      }))
-    }
-
-    await this.updateDailyMeasures(m => ({
-      dotcomPushCount: m.dotcomPushCount + 1,
-    }))
-
+    await this.increment(
+      options && options.forceWithLease
+        ? 'dotcomForcePushCount'
+        : 'dotcomPushCount'
+    )
     createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 
@@ -971,15 +884,11 @@ export class StatsStore implements IStatsStore {
   private async recordPushToGitHubEnterprise(
     options?: PushOptions
   ): Promise<void> {
-    if (options && options.forceWithLease) {
-      await this.updateDailyMeasures(m => ({
-        enterpriseForcePushCount: m.enterpriseForcePushCount + 1,
-      }))
-    }
-
-    await this.updateDailyMeasures(m => ({
-      enterprisePushCount: m.enterprisePushCount + 1,
-    }))
+    await this.increment(
+      options && options.forceWithLease
+        ? 'enterpriseForcePushCount'
+        : 'enterprisePushCount'
+    )
 
     // Note, this is not a typo. We track both GitHub.com and
     // GitHub Enterprise under the same key
@@ -987,175 +896,103 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record that the user pushed to a generic remote */
-  private async recordPushToGenericRemote(
-    options?: PushOptions
-  ): Promise<void> {
-    if (options && options.forceWithLease) {
-      await this.updateDailyMeasures(m => ({
-        externalForcePushCount: m.externalForcePushCount + 1,
-      }))
-    }
-
-    await this.updateDailyMeasures(m => ({
-      externalPushCount: m.externalPushCount + 1,
-    }))
-  }
+  private recordPushToGenericRemote = (options?: PushOptions) =>
+    this.increment(
+      options && options.forceWithLease
+        ? 'externalForcePushCount'
+        : 'externalPushCount'
+    )
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public recordUserProceededWhileLoading(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergedWithLoadingHintCount: m.mergedWithLoadingHintCount + 1,
-    }))
-  }
+  public recordUserProceededWhileLoading = () =>
+    this.increment('mergedWithLoadingHintCount')
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public recordMergeHintSuccessAndUserProceeded(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergedWithCleanMergeHintCount: m.mergedWithCleanMergeHintCount + 1,
-    }))
-  }
+  public recordMergeHintSuccessAndUserProceeded = () =>
+    this.increment('mergedWithCleanMergeHintCount')
 
   /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public recordUserProceededAfterConflictWarning(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergedWithConflictWarningHintCount:
-        m.mergedWithConflictWarningHintCount + 1,
-    }))
-  }
+  public recordUserProceededAfterConflictWarning = () =>
+    this.increment('mergedWithConflictWarningHintCount')
 
-  /**
-   * Increments the `mergeConflictsDialogDismissalCount` metric
-   */
-  public recordMergeConflictsDialogDismissal(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeConflictsDialogDismissalCount:
-        m.mergeConflictsDialogDismissalCount + 1,
-    }))
-  }
+  /** Increments the `mergeConflictsDialogDismissalCount` metric */
+  public recordMergeConflictsDialogDismissal = () =>
+    this.increment('mergeConflictsDialogDismissalCount')
 
   /**
    * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
    */
-  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      anyConflictsLeftOnMergeConflictsDialogDismissalCount:
-        m.anyConflictsLeftOnMergeConflictsDialogDismissalCount + 1,
-    }))
-  }
+  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal = () =>
+    this.increment('anyConflictsLeftOnMergeConflictsDialogDismissalCount')
 
-  /**
-   * Increments the `mergeConflictsDialogReopenedCount` metric
-   */
-  public recordMergeConflictsDialogReopened(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeConflictsDialogReopenedCount:
-        m.mergeConflictsDialogReopenedCount + 1,
-    }))
-  }
+  /** Increments the `mergeConflictsDialogReopenedCount` metric */
+  public recordMergeConflictsDialogReopened = () =>
+    this.increment('mergeConflictsDialogReopenedCount')
 
   /**
    * Increments the `guidedConflictedMergeCompletionCount` metric
    */
-  public recordGuidedConflictedMergeCompletion(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      guidedConflictedMergeCompletionCount:
-        m.guidedConflictedMergeCompletionCount + 1,
-    }))
-  }
+  public recordGuidedConflictedMergeCompletion = () =>
+    this.increment('guidedConflictedMergeCompletionCount')
 
   /**
    * Increments the `unguidedConflictedMergeCompletionCount` metric
    */
-  public recordUnguidedConflictedMergeCompletion(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      unguidedConflictedMergeCompletionCount:
-        m.unguidedConflictedMergeCompletionCount + 1,
-    }))
-  }
+  public recordUnguidedConflictedMergeCompletion = () =>
+    this.increment('unguidedConflictedMergeCompletionCount')
 
   /**
    * Increments the `createPullRequestCount` metric
    */
-  public recordCreatePullRequest(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      createPullRequestCount: m.createPullRequestCount + 1,
-    }))
-  }
+  public recordCreatePullRequest = () =>
+    this.increment('createPullRequestCount')
 
   /**
    * Increments the `createPullRequestFromPreviewCount` metric
    */
-  public recordCreatePullRequestFromPreview(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      createPullRequestFromPreviewCount:
-        m.createPullRequestFromPreviewCount + 1,
-    }))
-  }
+  public recordCreatePullRequestFromPreview = () =>
+    this.increment('createPullRequestFromPreviewCount')
 
   /**
    * Increments the `rebaseConflictsDialogDismissalCount` metric
    */
-  public recordRebaseConflictsDialogDismissal(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rebaseConflictsDialogDismissalCount:
-        m.rebaseConflictsDialogDismissalCount + 1,
-    }))
-  }
+  public recordRebaseConflictsDialogDismissal = () =>
+    this.increment('rebaseConflictsDialogDismissalCount')
 
   /**
    * Increments the `rebaseConflictsDialogReopenedCount` metric
    */
-  public recordRebaseConflictsDialogReopened(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rebaseConflictsDialogReopenedCount:
-        m.rebaseConflictsDialogReopenedCount + 1,
-    }))
-  }
+  public recordRebaseConflictsDialogReopened = () =>
+    this.increment('rebaseConflictsDialogReopenedCount')
 
   /**
    * Increments the `rebaseAbortedAfterConflictsCount` metric
    */
-  public recordRebaseAbortedAfterConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rebaseAbortedAfterConflictsCount: m.rebaseAbortedAfterConflictsCount + 1,
-    }))
-  }
+  public recordRebaseAbortedAfterConflicts = () =>
+    this.increment('rebaseAbortedAfterConflictsCount')
   /**
    * Increments the `pullWithRebaseCount` metric
    */
-  public recordPullWithRebaseEnabled() {
-    return this.updateDailyMeasures(m => ({
-      pullWithRebaseCount: m.pullWithRebaseCount + 1,
-    }))
-  }
+  public recordPullWithRebaseEnabled = () =>
+    this.increment('pullWithRebaseCount')
 
   /**
    * Increments the `rebaseSuccessWithoutConflictsCount` metric
    */
-  public recordRebaseSuccessWithoutConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rebaseSuccessWithoutConflictsCount:
-        m.rebaseSuccessWithoutConflictsCount + 1,
-    }))
-  }
+  public recordRebaseSuccessWithoutConflicts = () =>
+    this.increment('rebaseSuccessWithoutConflictsCount')
 
   /**
    * Increments the `rebaseSuccessAfterConflictsCount` metric
    */
-  public recordRebaseSuccessAfterConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rebaseSuccessAfterConflictsCount: m.rebaseSuccessAfterConflictsCount + 1,
-    }))
-  }
+  public recordRebaseSuccessAfterConflicts = () =>
+    this.increment('rebaseSuccessAfterConflictsCount')
 
   /**
    * Increments the `pullWithDefaultSettingCount` metric
    */
-  public recordPullWithDefaultSetting() {
-    return this.updateDailyMeasures(m => ({
-      pullWithDefaultSettingCount: m.pullWithDefaultSettingCount + 1,
-    }))
-  }
+  public recordPullWithDefaultSetting = () =>
+    this.increment('pullWithDefaultSettingCount')
 
   public recordWelcomeWizardInitiated() {
     setNumber(WelcomeWizardInitiatedAtKey, Date.now())
@@ -1187,174 +1024,105 @@ export class StatsStore implements IStatsStore {
   }
 
   /** Record when a conflicted merge was successfully completed by the user */
-  public recordMergeSuccessAfterConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeSuccessAfterConflictsCount: m.mergeSuccessAfterConflictsCount + 1,
-    }))
-  }
+  public recordMergeSuccessAfterConflicts = () =>
+    this.increment('mergeSuccessAfterConflictsCount')
 
   /** Record when a conflicted merge was aborted by the user */
-  public recordMergeAbortedAfterConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeAbortedAfterConflictsCount: m.mergeAbortedAfterConflictsCount + 1,
-    }))
-  }
+  public recordMergeAbortedAfterConflicts = () =>
+    this.increment('mergeAbortedAfterConflictsCount')
 
   /** Record when the user views a stash entry after checking out a branch */
-  public recordStashViewedAfterCheckout(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashViewedAfterCheckoutCount: m.stashViewedAfterCheckoutCount + 1,
-    }))
-  }
+  public recordStashViewedAfterCheckout = () =>
+    this.increment('stashViewedAfterCheckoutCount')
 
   /** Record when the user **doesn't** view a stash entry after checking out a branch */
-  public recordStashNotViewedAfterCheckout(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashNotViewedAfterCheckoutCount: m.stashNotViewedAfterCheckoutCount + 1,
-    }))
-  }
+  public recordStashNotViewedAfterCheckout = () =>
+    this.increment('stashNotViewedAfterCheckoutCount')
 
   /** Record when the user elects to take changes to new branch over stashing */
-  public recordChangesTakenToNewBranch(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      changesTakenToNewBranchCount: m.changesTakenToNewBranchCount + 1,
-    }))
-  }
+  public recordChangesTakenToNewBranch = () =>
+    this.increment('changesTakenToNewBranchCount')
 
   /** Record when the user elects to stash changes on the current branch */
-  public recordStashCreatedOnCurrentBranch(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashCreatedOnCurrentBranchCount: m.stashCreatedOnCurrentBranchCount + 1,
-    }))
-  }
+  public recordStashCreatedOnCurrentBranch = () =>
+    this.increment('stashCreatedOnCurrentBranchCount')
 
   /** Record when the user discards a stash entry */
-  public recordStashDiscard(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashDiscardCount: m.stashDiscardCount + 1,
-    }))
-  }
+  public recordStashDiscard = () => this.increment('stashDiscardCount')
 
   /** Record when the user views a stash entry */
-  public recordStashView(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashViewCount: m.stashViewCount + 1,
-    }))
-  }
+  public recordStashView = () => this.increment('stashViewCount')
 
   /** Record when the user restores a stash entry */
-  public recordStashRestore(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashRestoreCount: m.stashRestoreCount + 1,
-    }))
-  }
+  public recordStashRestore = () => this.increment('stashRestoreCount')
 
   /** Record when the user takes no action on the stash entry */
-  public recordNoActionTakenOnStash(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      noActionTakenOnStashCount: m.noActionTakenOnStashCount + 1,
-    }))
-  }
+  public recordNoActionTakenOnStash = () =>
+    this.increment('noActionTakenOnStashCount')
 
   /** Record the number of stash entries created outside of Desktop for the day */
-  public addStashEntriesCreatedOutsideDesktop(
-    stashCount: number
-  ): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashEntriesCreatedOutsideDesktop:
-        m.stashEntriesCreatedOutsideDesktop + stashCount,
-    }))
-  }
+  public addStashEntriesCreatedOutsideDesktop = (stashCount: number) =>
+    this.increment('stashEntriesCreatedOutsideDesktop', stashCount)
 
   /**
    * Record the number of times the user experiences the error
    * "Some of your changes would be overwritten" when switching branches
    */
-  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      errorWhenSwitchingBranchesWithUncommmittedChanges:
-        m.errorWhenSwitchingBranchesWithUncommmittedChanges + 1,
-    }))
-  }
+  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges = () =>
+    this.increment('errorWhenSwitchingBranchesWithUncommmittedChanges')
 
   /**
    * Increment the number of times the user has opened their external editor
    * from the suggested next steps view
    */
-  public recordSuggestedStepOpenInExternalEditor(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepOpenInExternalEditor:
-        m.suggestedStepOpenInExternalEditor + 1,
-    }))
-  }
+  public recordSuggestedStepOpenInExternalEditor = () =>
+    this.increment('suggestedStepOpenInExternalEditor')
 
   /**
    * Increment the number of times the user has opened their repository in
    * Finder/Explorer from the suggested next steps view
    */
-  public recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepOpenWorkingDirectory:
-        m.suggestedStepOpenWorkingDirectory + 1,
-    }))
-  }
+  public recordSuggestedStepOpenWorkingDirectory = () =>
+    this.increment('suggestedStepOpenWorkingDirectory')
 
   /**
    * Increment the number of times the user has opened their repository on
    * GitHub from the suggested next steps view
    */
-  public recordSuggestedStepViewOnGitHub(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepViewOnGitHub: m.suggestedStepViewOnGitHub + 1,
-    }))
-  }
-
+  public recordSuggestedStepViewOnGitHub = () =>
+    this.increment('suggestedStepViewOnGitHub')
   /**
    * Increment the number of times the user has used the publish repository
    * action from the suggested next steps view
    */
-  public recordSuggestedStepPublishRepository(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepPublishRepository: m.suggestedStepPublishRepository + 1,
-    }))
-  }
+  public recordSuggestedStepPublishRepository = () =>
+    this.increment('suggestedStepPublishRepository')
 
   /**
    * Increment the number of times the user has used the publish branch
    * action branch from the suggested next steps view
    */
-  public recordSuggestedStepPublishBranch(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepPublishBranch: m.suggestedStepPublishBranch + 1,
-    }))
-  }
+  public recordSuggestedStepPublishBranch = () =>
+    this.increment('suggestedStepPublishBranch')
 
   /**
    * Increment the number of times the user has used the Create PR suggestion
    * in the suggested next steps view.
    */
-  public recordSuggestedStepCreatePullRequest(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepCreatePullRequest: m.suggestedStepCreatePullRequest + 1,
-    }))
-  }
+  public recordSuggestedStepCreatePullRequest = () =>
+    this.increment('suggestedStepCreatePullRequest')
 
   /**
    * Increment the number of times the user has used the View Stash suggestion
    * in the suggested next steps view.
    */
-  public recordSuggestedStepViewStash(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepViewStash: m.suggestedStepViewStash + 1,
-    }))
-  }
+  public recordSuggestedStepViewStash = () =>
+    this.increment('suggestedStepViewStash')
 
   private onUiActivity = async () => {
     this.disableUiActivityMonitoring()
 
-    return this.updateDailyMeasures(m => ({
-      active: true,
-    }))
+    return this.updateDailyMeasures(m => ({ active: true }))
   }
 
   /*
@@ -1366,9 +1134,7 @@ export class StatsStore implements IStatsStore {
    * clicked the button to start the onboarding tutorial.
    */
   public recordTutorialStarted() {
-    return this.updateDailyMeasures(() => ({
-      tutorialStarted: true,
-    }))
+    return this.updateDailyMeasures(() => ({ tutorialStarted: true }))
   }
 
   /**
@@ -1432,9 +1198,7 @@ export class StatsStore implements IStatsStore {
   }
 
   public recordTutorialCompleted() {
-    return this.updateDailyMeasures(() => ({
-      tutorialCompleted: true,
-    }))
+    return this.updateDailyMeasures(() => ({ tutorialCompleted: true }))
   }
 
   public recordHighestTutorialStepCompleted(step: number) {
@@ -1446,12 +1210,8 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordCommitToRepositoryWithoutWriteAccess() {
-    return this.updateDailyMeasures(m => ({
-      commitsToRepositoryWithoutWriteAccess:
-        m.commitsToRepositoryWithoutWriteAccess + 1,
-    }))
-  }
+  public recordCommitToRepositoryWithoutWriteAccess = () =>
+    this.increment('commitsToRepositoryWithoutWriteAccess')
 
   /**
    * Record that the user made a commit in a repository they don't
@@ -1472,23 +1232,13 @@ export class StatsStore implements IStatsStore {
     }
   }
 
-  public recordForkCreated() {
-    return this.updateDailyMeasures(m => ({
-      forksCreated: m.forksCreated + 1,
-    }))
-  }
+  public recordForkCreated = () => this.increment('forksCreated')
 
-  public recordIssueCreationWebpageOpened() {
-    return this.updateDailyMeasures(m => ({
-      issueCreationWebpageOpenedCount: m.issueCreationWebpageOpenedCount + 1,
-    }))
-  }
+  public recordIssueCreationWebpageOpened = () =>
+    this.increment('issueCreationWebpageOpenedCount')
 
-  public recordTagCreatedInDesktop() {
-    return this.updateDailyMeasures(m => ({
-      tagsCreatedInDesktop: m.tagsCreatedInDesktop + 1,
-    }))
-  }
+  public recordTagCreatedInDesktop = () =>
+    this.increment('tagsCreatedInDesktop')
 
   public recordTagCreated(numCreatedTags: number) {
     return this.updateDailyMeasures(m => ({
@@ -1496,172 +1246,79 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordTagDeleted() {
-    return this.updateDailyMeasures(m => ({
-      tagsDeleted: m.tagsDeleted + 1,
-    }))
-  }
+  public recordTagDeleted = () => this.increment('tagsDeleted')
 
-  public recordDiffOptionsViewed() {
-    return this.updateDailyMeasures(m => ({
-      diffOptionsViewedCount: m.diffOptionsViewedCount + 1,
-    }))
-  }
+  public recordDiffOptionsViewed = () =>
+    this.increment('diffOptionsViewedCount')
 
-  public recordRepositoryViewChanged() {
-    return this.updateDailyMeasures(m => ({
-      repositoryViewChangeCount: m.repositoryViewChangeCount + 1,
-    }))
-  }
+  public recordRepositoryViewChanged = () =>
+    this.increment('repositoryViewChangeCount')
 
-  public recordDiffModeChanged() {
-    return this.updateDailyMeasures(m => ({
-      diffModeChangeCount: m.diffModeChangeCount + 1,
-    }))
-  }
+  public recordDiffModeChanged = () => this.increment('diffModeChangeCount')
 
-  public recordUnhandledRejection() {
-    return this.updateDailyMeasures(m => ({
-      unhandledRejectionCount: m.unhandledRejectionCount + 1,
-    }))
-  }
+  public recordUnhandledRejection = () =>
+    this.increment('unhandledRejectionCount')
 
-  private recordCherryPickSuccessful(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickSuccessfulCount: m.cherryPickSuccessfulCount + 1,
-    }))
-  }
+  private recordCherryPickSuccessful = () =>
+    this.increment('cherryPickSuccessfulCount')
 
-  public recordCherryPickViaDragAndDrop(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickViaDragAndDropCount: m.cherryPickViaDragAndDropCount + 1,
-    }))
-  }
+  public recordCherryPickViaDragAndDrop = () =>
+    this.increment('cherryPickViaDragAndDropCount')
 
-  public recordCherryPickViaContextMenu(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickViaContextMenuCount: m.cherryPickViaContextMenuCount + 1,
-    }))
-  }
+  public recordCherryPickViaContextMenu = () =>
+    this.increment('cherryPickViaContextMenuCount')
 
-  public recordDragStartedAndCanceled(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      dragStartedAndCanceledCount: m.dragStartedAndCanceledCount + 1,
-    }))
-  }
+  public recordDragStartedAndCanceled = () =>
+    this.increment('dragStartedAndCanceledCount')
 
-  public recordCherryPickConflictsEncountered(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickConflictsEncounteredCount:
-        m.cherryPickConflictsEncounteredCount + 1,
-    }))
-  }
+  public recordCherryPickConflictsEncountered = () =>
+    this.increment('cherryPickConflictsEncounteredCount')
 
-  public recordCherryPickSuccessfulWithConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickSuccessfulWithConflictsCount:
-        m.cherryPickSuccessfulWithConflictsCount + 1,
-    }))
-  }
+  public recordCherryPickSuccessfulWithConflicts = () =>
+    this.increment('cherryPickSuccessfulWithConflictsCount')
 
-  public recordCherryPickMultipleCommits(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickMultipleCommitsCount: m.cherryPickMultipleCommitsCount + 1,
-    }))
-  }
+  public recordCherryPickMultipleCommits = () =>
+    this.increment('cherryPickMultipleCommitsCount')
 
-  private recordCherryPickUndone(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickUndoneCount: m.cherryPickUndoneCount + 1,
-    }))
-  }
+  private recordCherryPickUndone = () => this.increment('cherryPickUndoneCount')
 
-  public recordCherryPickBranchCreatedCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickBranchCreatedCount: m.cherryPickBranchCreatedCount + 1,
-    }))
-  }
+  public recordCherryPickBranchCreatedCount = () =>
+    this.increment('cherryPickBranchCreatedCount')
 
-  private recordReorderSuccessful(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      reorderSuccessfulCount: m.reorderSuccessfulCount + 1,
-    }))
-  }
+  private recordReorderSuccessful = () =>
+    this.increment('reorderSuccessfulCount')
 
-  public recordReorderStarted(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      reorderStartedCount: m.reorderStartedCount + 1,
-    }))
-  }
+  public recordReorderStarted = () => this.increment('reorderStartedCount')
 
-  private recordReorderConflictsEncountered(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      reorderConflictsEncounteredCount: m.reorderConflictsEncounteredCount + 1,
-    }))
-  }
+  private recordReorderConflictsEncountered = () =>
+    this.increment('reorderConflictsEncounteredCount')
 
-  private recordReorderSuccessfulWithConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      reorderSuccessfulWithConflictsCount:
-        m.reorderSuccessfulWithConflictsCount + 1,
-    }))
-  }
+  private recordReorderSuccessfulWithConflicts = () =>
+    this.increment('reorderSuccessfulWithConflictsCount')
 
-  public recordReorderMultipleCommits(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      reorderMultipleCommitsCount: m.reorderMultipleCommitsCount + 1,
-    }))
-  }
+  public recordReorderMultipleCommits = () =>
+    this.increment('reorderMultipleCommitsCount')
 
-  private recordReorderUndone(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      reorderUndoneCount: m.reorderUndoneCount + 1,
-    }))
-  }
+  private recordReorderUndone = () => this.increment('reorderUndoneCount')
 
-  private recordSquashConflictsEncountered(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashConflictsEncounteredCount: m.squashConflictsEncounteredCount + 1,
-    }))
-  }
+  private recordSquashConflictsEncountered = () =>
+    this.increment('squashConflictsEncounteredCount')
 
-  public recordSquashMultipleCommitsInvoked(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashMultipleCommitsInvokedCount:
-        m.squashMultipleCommitsInvokedCount + 1,
-    }))
-  }
+  public recordSquashMultipleCommitsInvoked = () =>
+    this.increment('squashMultipleCommitsInvokedCount')
 
-  private recordSquashSuccessful(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashSuccessfulCount: m.squashSuccessfulCount + 1,
-    }))
-  }
+  private recordSquashSuccessful = () => this.increment('squashSuccessfulCount')
 
-  private recordSquashSuccessfulWithConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashSuccessfulWithConflictsCount:
-        m.squashSuccessfulWithConflictsCount + 1,
-    }))
-  }
+  private recordSquashSuccessfulWithConflicts = () =>
+    this.increment('squashSuccessfulWithConflictsCount')
 
-  public recordSquashViaContextMenuInvoked(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashViaContextMenuInvokedCount: m.squashViaContextMenuInvokedCount + 1,
-    }))
-  }
+  public recordSquashViaContextMenuInvoked = () =>
+    this.increment('squashViaContextMenuInvokedCount')
 
-  public recordSquashViaDragAndDropInvokedCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashViaDragAndDropInvokedCount: m.squashViaDragAndDropInvokedCount + 1,
-    }))
-  }
+  public recordSquashViaDragAndDropInvokedCount = () =>
+    this.increment('squashViaDragAndDropInvokedCount')
 
-  private recordSquashUndone(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashUndoneCount: m.squashUndoneCount + 1,
-    }))
-  }
+  private recordSquashUndone = () => this.increment('squashUndoneCount')
 
   public async recordOperationConflictsEncounteredCount(
     kind: MultiCommitOperationKind
@@ -1748,120 +1405,57 @@ export class StatsStore implements IStatsStore {
     }
   }
 
-  public recordSquashMergeSuccessfulWithConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashMergeSuccessfulWithConflictsCount:
-        m.squashMergeSuccessfulWithConflictsCount + 1,
-    }))
-  }
+  public recordSquashMergeSuccessfulWithConflicts = () =>
+    this.increment('squashMergeSuccessfulWithConflictsCount')
 
-  public recordSquashMergeSuccessful(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashMergeSuccessfulCount: m.squashMergeSuccessfulCount + 1,
-    }))
-  }
+  public recordSquashMergeSuccessful = () =>
+    this.increment('squashMergeSuccessfulCount')
 
-  public recordSquashMergeInvokedCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashMergeInvokedCount: m.squashMergeInvokedCount + 1,
-    }))
-  }
+  public recordSquashMergeInvokedCount = () =>
+    this.increment('squashMergeInvokedCount')
 
-  public recordCheckRunsPopoverOpened(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      opensCheckRunsPopover: m.opensCheckRunsPopover + 1,
-    }))
-  }
+  public recordCheckRunsPopoverOpened = () =>
+    this.increment('opensCheckRunsPopover')
 
-  public recordCheckViewedOnline(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      viewsCheckOnline: m.viewsCheckOnline + 1,
-    }))
-  }
+  public recordCheckViewedOnline = () => this.increment('viewsCheckOnline')
 
-  public recordCheckJobStepViewedOnline(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      viewsCheckJobStepOnline: m.viewsCheckJobStepOnline + 1,
-    }))
-  }
+  public recordCheckJobStepViewedOnline = () =>
+    this.increment('viewsCheckJobStepOnline')
 
-  public recordRerunChecks(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rerunsChecks: m.rerunsChecks + 1,
-    }))
-  }
+  public recordRerunChecks = () => this.increment('rerunsChecks')
 
-  public recordChecksFailedNotificationShown(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedNotificationCount: m.checksFailedNotificationCount + 1,
-    }))
-  }
+  public recordChecksFailedNotificationShown = () =>
+    this.increment('checksFailedNotificationCount')
 
-  public recordChecksFailedNotificationFromRecentRepo(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedNotificationFromRecentRepoCount:
-        m.checksFailedNotificationFromRecentRepoCount + 1,
-    }))
-  }
+  public recordChecksFailedNotificationFromRecentRepo = () =>
+    this.increment('checksFailedNotificationFromRecentRepoCount')
 
-  public recordChecksFailedNotificationFromNonRecentRepo(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedNotificationFromNonRecentRepoCount:
-        m.checksFailedNotificationFromNonRecentRepoCount + 1,
-    }))
-  }
+  public recordChecksFailedNotificationFromNonRecentRepo = () =>
+    this.increment('checksFailedNotificationFromNonRecentRepoCount')
 
-  public recordChecksFailedNotificationClicked(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedNotificationClicked: m.checksFailedNotificationClicked + 1,
-    }))
-  }
+  public recordChecksFailedNotificationClicked = () =>
+    this.increment('checksFailedNotificationClicked')
 
-  public recordChecksFailedDialogOpen(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedDialogOpenCount: m.checksFailedDialogOpenCount + 1,
-    }))
-  }
+  public recordChecksFailedDialogOpen = () =>
+    this.increment('checksFailedDialogOpenCount')
 
-  public recordChecksFailedDialogSwitchToPullRequest(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedDialogSwitchToPullRequestCount:
-        m.checksFailedDialogSwitchToPullRequestCount + 1,
-    }))
-  }
+  public recordChecksFailedDialogSwitchToPullRequest = () =>
+    this.increment('checksFailedDialogSwitchToPullRequestCount')
 
-  public recordChecksFailedDialogRerunChecks(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedDialogRerunChecksCount:
-        m.checksFailedDialogRerunChecksCount + 1,
-    }))
-  }
+  public recordChecksFailedDialogRerunChecks = () =>
+    this.increment('checksFailedDialogRerunChecksCount')
 
-  public recordMultiCommitDiffFromHistoryCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      multiCommitDiffFromHistoryCount: m.multiCommitDiffFromHistoryCount + 1,
-    }))
-  }
+  public recordMultiCommitDiffFromHistoryCount = () =>
+    this.increment('multiCommitDiffFromHistoryCount')
 
-  public recordMultiCommitDiffFromCompareCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      multiCommitDiffFromCompareCount: m.multiCommitDiffFromCompareCount + 1,
-    }))
-  }
+  public recordMultiCommitDiffFromCompareCount = () =>
+    this.increment('multiCommitDiffFromCompareCount')
 
-  public recordMultiCommitDiffWithUnreachableCommitWarningCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      multiCommitDiffWithUnreachableCommitWarningCount:
-        m.multiCommitDiffWithUnreachableCommitWarningCount + 1,
-    }))
-  }
+  public recordMultiCommitDiffWithUnreachableCommitWarningCount = () =>
+    this.increment('multiCommitDiffWithUnreachableCommitWarningCount')
 
-  public recordMultiCommitDiffUnreachableCommitsDialogOpenedCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      multiCommitDiffUnreachableCommitsDialogOpenedCount:
-        m.multiCommitDiffUnreachableCommitsDialogOpenedCount + 1,
-    }))
-  }
+  public recordMultiCommitDiffUnreachableCommitsDialogOpenedCount = () =>
+    this.increment('multiCommitDiffUnreachableCommitsDialogOpenedCount')
 
   // Generates the stat field name for the given PR review type and suffix.
   private getStatFieldForRequestReviewState(
@@ -1880,19 +1474,11 @@ export class StatsStore implements IStatsStore {
     return `pullRequestReview${infixMap[reviewType]}${suffix}`
   }
 
-  public recordPullRequestReviewNotificationFromRecentRepo(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      pullRequestReviewNotificationFromRecentRepoCount:
-        m.pullRequestReviewNotificationFromRecentRepoCount + 1,
-    }))
-  }
+  public recordPullRequestReviewNotificationFromRecentRepo = () =>
+    this.increment('pullRequestReviewNotificationFromRecentRepoCount')
 
-  public recordPullRequestReviewNotificationFromNonRecentRepo(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      pullRequestReviewNotificationFromNonRecentRepoCount:
-        m.pullRequestReviewNotificationFromNonRecentRepoCount + 1,
-    }))
-  }
+  public recordPullRequestReviewNotificationFromNonRecentRepo = () =>
+    this.increment('pullRequestReviewNotificationFromNonRecentRepoCount')
 
   // Generic method to record stats related to Pull Request review notifications.
   private recordPullRequestReviewStat(
@@ -1926,56 +1512,34 @@ export class StatsStore implements IStatsStore {
     )
   }
 
-  public recordPullRequestCommentNotificationShown() {
-    return this.updateDailyMeasures(m => ({
-      pullRequestCommentNotificationCount:
-        m.pullRequestCommentNotificationCount + 1,
-    }))
-  }
-  public recordPullRequestCommentNotificationClicked() {
-    return this.updateDailyMeasures(m => ({
-      pullRequestCommentNotificationClicked:
-        m.pullRequestCommentNotificationClicked + 1,
-    }))
-  }
-  public recordPullRequestCommentNotificationFromNonRecentRepo() {
-    return this.updateDailyMeasures(m => ({
-      pullRequestCommentNotificationFromNonRecentRepoCount:
-        m.pullRequestCommentNotificationFromNonRecentRepoCount + 1,
-    }))
-  }
-  public recordPullRequestCommentNotificationFromRecentRepo() {
-    return this.updateDailyMeasures(m => ({
-      pullRequestCommentNotificationFromRecentRepoCount:
-        m.pullRequestCommentNotificationFromRecentRepoCount + 1,
-    }))
-  }
+  public recordPullRequestCommentNotificationShown = () =>
+    this.increment('pullRequestCommentNotificationCount')
 
-  public recordPullRequestCommentDialogSwitchToPullRequest() {
-    return this.updateDailyMeasures(m => ({
-      pullRequestCommentDialogSwitchToPullRequestCount:
-        m.pullRequestCommentDialogSwitchToPullRequestCount + 1,
-    }))
-  }
+  public recordPullRequestCommentNotificationClicked = () =>
+    this.increment('pullRequestCommentNotificationClicked')
 
-  public recordSubmoduleDiffViewedFromChangesList(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      submoduleDiffViewedFromChangesListCount:
-        m.submoduleDiffViewedFromChangesListCount + 1,
-    }))
-  }
+  public recordPullRequestCommentNotificationFromNonRecentRepo = () =>
+    this.increment('pullRequestCommentNotificationFromNonRecentRepoCount')
 
-  public recordSubmoduleDiffViewedFromHistory(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      submoduleDiffViewedFromHistoryCount:
-        m.submoduleDiffViewedFromHistoryCount + 1,
-    }))
-  }
+  public recordPullRequestCommentNotificationFromRecentRepo = () =>
+    this.increment('pullRequestCommentNotificationFromRecentRepoCount')
 
-  public recordOpenSubmoduleFromDiffCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      openSubmoduleFromDiffCount: m.openSubmoduleFromDiffCount + 1,
-    }))
+  public recordPullRequestCommentDialogSwitchToPullRequest = () =>
+    this.increment('pullRequestCommentDialogSwitchToPullRequestCount')
+
+  public recordSubmoduleDiffViewedFromChangesList = () =>
+    this.increment('submoduleDiffViewedFromChangesListCount')
+
+  public recordSubmoduleDiffViewedFromHistory = () =>
+    this.increment('submoduleDiffViewedFromHistoryCount')
+
+  public recordOpenSubmoduleFromDiffCount = () =>
+    this.increment('openSubmoduleFromDiffCount')
+
+  private async increment(k: keyof NumericMeasures, n = 1) {
+    this.updateDailyMeasures(
+      m => ({ [k]: m[k] + n } as Pick<IDailyMeasures, keyof NumericMeasures>)
+    )
   }
 
   /** Post some data to our stats endpoint. */
@@ -2031,14 +1595,9 @@ export class StatsStore implements IStatsStore {
     }
   }
 
-  /**
-   * Increments the `previewedPullRequestCount` metric
-   */
-  public recordPreviewedPullRequest(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      previewedPullRequestCount: m.previewedPullRequestCount + 1,
-    }))
-  }
+  /** Increments the `previewedPullRequestCount` metric */
+  public recordPreviewedPullRequest = () =>
+    this.increment('previewedPullRequestCount')
 }
 
 /**
