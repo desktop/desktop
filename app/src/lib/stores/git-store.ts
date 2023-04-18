@@ -30,7 +30,6 @@ import {
   ErrorWithMetadata,
   IErrorMetadata,
 } from '../error-with-metadata'
-import { compare } from '../../lib/compare'
 import { queueWorkHigh } from '../../lib/queue-work'
 
 import {
@@ -101,6 +100,7 @@ import { DiffSelection, ITextDiff } from '../../models/diff'
 import { getDefaultBranch } from '../helpers/default-branch'
 import { stat } from 'fs/promises'
 import { findForkedRemotesToPrune } from './helpers/find-forked-remotes-to-prune'
+import { findDefaultBranch } from '../find-default-branch'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -467,21 +467,12 @@ export class GitStore extends BaseStore {
     }
   }
 
-  private async refreshDefaultBranch() {
-    const defaultBranchName = await this.resolveDefaultBranch()
-
-    // Find the default branch among all of our branches, giving
-    // priority to local branches by sorting them before remotes
-    this._defaultBranch =
-      this._allBranches
-        .filter(
-          b =>
-            (b.name === defaultBranchName &&
-              b.upstreamWithoutRemote === null) ||
-            b.upstreamWithoutRemote === defaultBranchName
-        )
-        .sort((x, y) => compare(x.type, y.type))
-        .shift() || null
+  public async refreshDefaultBranch() {
+    this._defaultBranch = await findDefaultBranch(
+      this.repository,
+      this.allBranches,
+      this.defaultRemote?.name
+    )
 
     // The upstream default branch is only relevant for forked GitHub repos when
     // the fork behavior is contributing to the parent.
@@ -496,7 +487,7 @@ export class GitStore extends BaseStore {
 
     const upstreamDefaultBranch =
       (await getRemoteHEAD(this.repository, UpstreamRemoteName)) ??
-      defaultBranchName
+      getDefaultBranch()
 
     this._upstreamDefaultBranch =
       this._allBranches.find(
@@ -504,7 +495,7 @@ export class GitStore extends BaseStore {
           b.type === BranchType.Remote &&
           b.remoteName === UpstreamRemoteName &&
           b.nameWithoutRemote === upstreamDefaultBranch
-      ) || null
+      ) ?? null
   }
 
   private addTagToPush(tagName: string) {
@@ -528,28 +519,6 @@ export class GitStore extends BaseStore {
 
     storeTagsToPush(this.repository, this._tagsToPush)
     this.emitUpdate()
-  }
-
-  /**
-   * Resolve the default branch name for the current repository,
-   * using the available API data, remote information or branch
-   * name conventions.
-   */
-  private async resolveDefaultBranch(): Promise<string> {
-    if (this.currentRemote !== null) {
-      // the Git server should use [remote]/HEAD to advertise
-      // it's default branch, so see if it exists and matches
-      // a valid branch on the remote and attempt to use that
-      const branchName = await getRemoteHEAD(
-        this.repository,
-        this.currentRemote.name
-      )
-      if (branchName !== null) {
-        return branchName
-      }
-    }
-
-    return getDefaultBranch()
   }
 
   private refreshRecentBranches(

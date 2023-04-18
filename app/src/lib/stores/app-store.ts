@@ -3259,6 +3259,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // loadBranches needs the default remote to determine the default branch
+    await gitStore.loadRemotes()
     await gitStore.loadBranches()
 
     const section = state.selectedSection
@@ -3276,7 +3278,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await Promise.all([
-      gitStore.loadRemotes(),
       gitStore.updateLastFetched(),
       gitStore.loadStashEntries(),
       this._refreshAuthor(repository),
@@ -4556,6 +4557,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (gitStore.tip.kind === TipState.Valid) {
       await this.performPush(repository, account)
     }
+
+    await gitStore.refreshDefaultBranch()
 
     return this.repositoryWithRefreshedGitHubRepository(repository)
   }
