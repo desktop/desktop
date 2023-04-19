@@ -89,7 +89,7 @@
     "klaw-sync": "^3.0.0",
     "legal-eagle": "0.16.0",
     "mini-css-extract-plugin": "^2.5.3",
-    "node-fetch": "2.6.6",
+    "node-fetch": "^2.6.9",
     "parallel-webpack": "^2.3.0",
     "prettier": "^2.6.0",
     "rimraf": "^2.5.2",
