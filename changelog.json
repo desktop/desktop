@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.2.2-test8": ["[Fixed] Screen readers announce sign in errors"],
     "3.2.2-beta1": [
       "[Added] Add support for VimR code editor on macOS. - #16354. Thanks @Elmar-Wiese!",
       "[Fixed] NVDA reads number of suggestions when an autocompletion list shows up - #16526",
