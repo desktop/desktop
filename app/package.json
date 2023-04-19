@@ -46,7 +46,6 @@
     "prop-types": "^15.7.2",
     "quick-lru": "^3.0.0",
     "react": "^16.8.4",
-    "react-color": "^2.19.3",
     "react-css-transition-replace": "^3.0.3",
     "react-dom": "^16.8.4",
     "react-transition-group": "^4.4.1",
