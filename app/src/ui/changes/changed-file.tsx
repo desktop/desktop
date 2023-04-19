@@ -16,6 +16,7 @@ interface IChangedFileProps {
   readonly disableSelection: boolean
   readonly checkboxTooltip?: string
   readonly onIncludeChanged: (path: string, include: boolean) => void
+  readonly onDoubleClick: (path: string) => void
 }
 
 /** a changed file in the working directory for a given repository */
@@ -23,6 +24,10 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   private handleCheckboxChange = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
     this.props.onIncludeChanged(this.props.file.path, include)
+  }
+
+  private handleFileDoubleClick = () => {
+    this.props.onDoubleClick(this.props.file.path)
   }
 
   private get checkboxValue(): CheckboxValue {
@@ -61,7 +66,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
         : 'not included'
 
     return (
-      <div className="file">
+      <div className="file" onDoubleClick={this.handleFileDoubleClick}>
         <TooltippedContent
           tooltip={checkboxTooltip}
           direction={TooltipDirection.EAST}
