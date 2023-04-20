@@ -8,6 +8,7 @@ import { Button } from './button'
 import { TextBox } from './text-box'
 import { Errors } from './errors'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { HorizontalRule } from './horizontal-rule'
 
 /** Text to let the user know their browser will send them back to GH Desktop */
 export const BrowserRedirectMessage =
@@ -179,6 +180,7 @@ export class AuthenticationForm extends React.Component<
     ) : (
       <>
         {this.renderSignInWithBrowser()}
+        <HorizontalRule title="or" />
         {this.renderUsernamePassword()}
       </>
     )
