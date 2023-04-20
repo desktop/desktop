@@ -29,6 +29,12 @@ export interface ITextBoxProps {
   readonly required?: boolean
 
   /**
+   * Indicates whether or not the control displays an invalid state.
+   * Default: true
+   */
+  readonly displayInvalidState?: boolean
+
+  /**
    * Called when the user changes the value in the input field.
    *
    * This differs from the onChange event in that it passes only the new
@@ -244,7 +250,11 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     const inputId = label ? this.state.inputId : undefined
 
     return (
-      <div className={classNames('text-box-component', className)}>
+      <div
+        className={classNames('text-box-component', className, {
+          'no-invalid-state': this.props.displayInvalidState === false,
+        })}
+      >
         {label && <label htmlFor={inputId}>{label}</label>}
 
         <input

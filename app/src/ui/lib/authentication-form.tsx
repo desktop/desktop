@@ -105,6 +105,7 @@ export class AuthenticationForm extends React.Component<
           label="Username or email address"
           disabled={disabled}
           required={true}
+          displayInvalidState={false}
           // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={true}
           onValueChanged={this.onUsernameChange}
@@ -115,6 +116,7 @@ export class AuthenticationForm extends React.Component<
           type="password"
           disabled={disabled}
           required={true}
+          displayInvalidState={false}
           onValueChanged={this.onPasswordChange}
         />
 
