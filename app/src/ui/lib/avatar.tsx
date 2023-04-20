@@ -8,6 +8,42 @@ import { TooltippedContent } from './tooltipped-content'
 import { TooltipDirection } from './tooltip'
 import { supportsAvatarsAPI } from '../../lib/endpoint-capabilities'
 
+/**
+ * This maps contains avatar URLs that have failed to load and
+ * the last time they failed to load (in milliseconds since the epoc)
+ *
+ * This is used to prevent us from retrying to load avatars where the
+ * server returned an error (or was unreachable). Since browsers doesn't
+ * cache the error itself and since we re-mount our image tags when
+ * scrolling through our virtualized lists we can end up making a lot
+ * of redundant requests to the server when it's busy or down. So
+ * when an avatar fails to load we'll remember that and not attempt
+ * to load it again for a while (see RetryLimit)
+ */
+const FailingAvatars = new Map<string, number>()
+
+/**
+ * Don't attempt to load an avatar that failed to load more than
+ * once every 5 minutes
+ */
+const RetryLimit = 5 * 60 * 1000
+
+function pruneExpiredFailingAvatars() {
+  const expired = new Array<string>()
+
+  for (const [url, lastError] of FailingAvatars.entries()) {
+    if (Date.now() - lastError > RetryLimit) {
+      expired.push(url)
+    } else {
+      // Map is sorted by insertion order so we can bail out early assuming
+      // we can trust the clock (which I know we can't but it's good enough)
+      break
+    }
+  }
+
+  expired.forEach(url => FailingAvatars.delete(url))
+}
+
 interface IAvatarProps {
   /** The user whose avatar should be displayed. */
   readonly user?: IAvatarUser
@@ -196,7 +232,13 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
 
   private onImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     if (this.state.candidates.length > 0) {
-      this.setState({ candidates: this.state.candidates.slice(1) })
+      const failingUrl = e.currentTarget.src
+      // To keep the map sorted on last failure
+      FailingAvatars.delete(failingUrl)
+      FailingAvatars.set(failingUrl, Date.now())
+      this.setState({
+        candidates: this.state.candidates.filter(x => x !== failingUrl),
+      })
     }
   }
 
@@ -207,7 +249,13 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       ? `Avatar for ${user.name || user.email}`
       : `Avatar for unknown user`
 
-    if (this.state.candidates.length === 0) {
+    const now = Date.now()
+    const src = this.state.candidates.find(c => {
+      const lastFailed = FailingAvatars.get(c)
+      return lastFailed === undefined || now - lastFailed > RetryLimit
+    })
+
+    if (!src) {
       return (
         <Octicon
           symbol={DefaultAvatarSymbol}
@@ -216,8 +264,6 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
         />
       )
     }
-
-    const src = this.state.candidates[0]
 
     const img = (
       <img className="avatar" src={src} alt={alt} onError={this.onImageError} />
@@ -242,6 +288,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
 
   public componentDidMount() {
     window.addEventListener('online', this.onInternetConnected)
+    pruneExpiredFailingAvatars()
   }
 
   public componentWillUnmount() {
@@ -249,6 +296,10 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   }
 
   private onInternetConnected = () => {
+    // Let's assume us being offline was the reason for failing to
+    // load the avatars
+    FailingAvatars.clear()
+
     // If we've been offline and therefore failed to load an avatar
     // we'll automatically retry when the user becomes connected again.
     if (this.state.candidates.length === 0) {
