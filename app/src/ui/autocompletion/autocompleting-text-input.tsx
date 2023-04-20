@@ -38,7 +38,7 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   readonly disabled?: boolean
 
   /** Indicates if input field should be required */
-  readonly isRequired?: boolean
+  readonly required?: boolean
 
   /**
    * Indicates if input field should be considered a combobox by assistive
@@ -390,7 +390,7 @@ export abstract class AutocompletingTextInput<
       onBlur: this.onBlur,
       onContextMenu: this.onContextMenu,
       disabled: this.props.disabled,
-      'aria-required': this.props.isRequired ? true : false,
+      required: this.props.required ? true : false,
       spellCheck: this.props.spellcheck,
       autoComplete: 'off',
       'aria-labelledby': this.props.elementAriaLabelledBy,
@@ -439,6 +439,7 @@ export abstract class AutocompletingTextInput<
     const tagName = this.getElementTagName()
     const className = classNames(
       'autocompletion-container',
+      'no-invalid-state',
       this.props.className,
       {
         'text-box-component': tagName === 'input',

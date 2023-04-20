@@ -25,6 +25,9 @@ export interface ITextBoxProps {
   /** Whether the input field is disabled. */
   readonly disabled?: boolean
 
+  /** Indicates if input field should be required */
+  readonly required?: boolean
+
   /**
    * Called when the user changes the value in the input field.
    *
@@ -262,6 +265,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           spellCheck={this.props.spellcheck === true}
           aria-label={this.props.ariaLabel}
           aria-controls={this.props.ariaControls}
+          required={this.props.required}
         />
       </div>
     )
