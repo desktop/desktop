@@ -56,7 +56,9 @@ export class NoBranches extends React.Component<INoBranchesProps> {
     if (__DARWIN__) {
       return (
         <span>
-          <kbd>⌘</kbd> + <kbd>⇧</kbd> + <kbd>N</kbd>
+          <kbd>⌘</kbd>
+          <kbd>⇧</kbd>
+          <kbd>N</kbd>
         </span>
       )
     } else {

@@ -171,9 +171,7 @@ export class TutorialPanel extends React.Component<
                 </>
               ) : (
                 <>
-                  <kbd>Ctrl</kbd>
-                  <kbd>Shift</kbd>
-                  <kbd>N</kbd>
+                  <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd>
                 </>
               )}
             </div>
@@ -206,9 +204,7 @@ export class TutorialPanel extends React.Component<
                   </>
                 ) : (
                   <>
-                    <kbd>Ctrl</kbd>
-                    <kbd>Shift</kbd>
-                    <kbd>A</kbd>
+                    <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>A</kbd>
                   </>
                 )}
               </div>
@@ -250,8 +246,7 @@ export class TutorialPanel extends React.Component<
                 </>
               ) : (
                 <>
-                  <kbd>Ctrl</kbd>
-                  <kbd>P</kbd>
+                  <kbd>Ctrl</kbd> + <kbd>P</kbd>
                 </>
               )}
             </div>
@@ -283,8 +278,7 @@ export class TutorialPanel extends React.Component<
                 </>
               ) : (
                 <>
-                  <kbd>Ctrl</kbd>
-                  <kbd>R</kbd>
+                  <kbd>Ctrl</kbd> + <kbd>R</kbd>
                 </>
               )}
             </div>
