@@ -73,7 +73,6 @@ import {
   ApplicationTheme,
   getCurrentlyAppliedTheme,
   getPersistedThemeName,
-  ICustomTheme,
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
 import {
@@ -390,7 +389,6 @@ const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
 const MaxInvalidFoldersToDisplay = 3
 
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
-const customThemeKey = 'custom-theme-key'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
@@ -498,7 +496,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.System
-  private customTheme?: ICustomTheme
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
 
   private useWindowsOpenSSH: boolean = false
@@ -977,7 +974,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
-      customTheme: this.customTheme,
       currentTheme: this.currentTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       useWindowsOpenSSH: this.useWindowsOpenSSH,
@@ -2091,14 +2087,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.showSideBySideDiff = getShowSideBySideDiff()
 
     this.selectedTheme = getPersistedThemeName()
-    this.customTheme = getObject<ICustomTheme>(customThemeKey)
     // Make sure the persisted theme is applied
     setPersistedTheme(this.selectedTheme)
 
-    this.currentTheme =
-      this.selectedTheme !== ApplicationTheme.HighContrast
-        ? await getCurrentlyAppliedTheme()
-        : this.selectedTheme
+    this.currentTheme = await getCurrentlyAppliedTheme()
 
     themeChangeMonitor.onThemeChanged(theme => {
       this.currentTheme = theme
@@ -6323,20 +6315,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setSelectedTheme(theme: ApplicationTheme) {
     setPersistedTheme(theme)
     this.selectedTheme = theme
-    if (theme === ApplicationTheme.HighContrast) {
-      this.currentTheme = theme
-    }
-    this.emitUpdate()
-
-    return Promise.resolve()
-  }
-
-  /**
-   * Set the custom application-wide theme
-   */
-  public _setCustomTheme(theme: ICustomTheme) {
-    setObject(customThemeKey, theme)
-    this.customTheme = theme
     this.emitUpdate()
 
     return Promise.resolve()
