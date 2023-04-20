@@ -156,16 +156,6 @@ export class AuthenticationForm extends React.Component<
     )
   }
 
-  private renderSignInWithBrowser() {
-    return (
-      <>
-        {this.renderSignInWithBrowserButton()}
-
-        {this.props.additionalButtons}
-      </>
-    )
-  }
-
   /**
    * Show the sign in locally form
    *
@@ -179,7 +169,7 @@ export class AuthenticationForm extends React.Component<
       this.renderUsernamePassword()
     ) : (
       <>
-        {this.renderSignInWithBrowser()}
+        {this.renderSignInWithBrowserButton()}
         <HorizontalRule title="or" />
         {this.renderUsernamePassword()}
       </>
