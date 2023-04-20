@@ -28,6 +28,9 @@ interface ILinkButtonProps {
 
   /** title-text or tooltip for the link */
   readonly title?: string
+
+  /** aria-label for the link */
+  readonly ariaLabel?: string
 }
 
 /**
@@ -53,6 +56,7 @@ export class LinkButton extends React.Component<ILinkButtonProps, {}> {
         onMouseOut={this.props.onMouseOut}
         onClick={this.onClick}
         tabIndex={this.props.tabIndex}
+        aria-label={this.props.ariaLabel}
       >
         {title && <Tooltip target={this.anchorRef}>{title}</Tooltip>}
         {this.props.children}

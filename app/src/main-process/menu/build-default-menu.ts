@@ -229,6 +229,22 @@ export function buildDefaultMenu({
         accelerator: 'CmdOrCtrl+-',
         click: zoom(ZoomDirection.Out),
       },
+      {
+        label: __DARWIN__
+          ? 'Expand Active Resizable'
+          : 'Expand active resizable',
+        id: 'increase-active-resizable-width',
+        accelerator: 'CmdOrCtrl+9',
+        click: emit('increase-active-resizable-width'),
+      },
+      {
+        label: __DARWIN__
+          ? 'Contract Active Resizable'
+          : 'Contract active resizable',
+        id: 'decrease-active-resizable-width',
+        accelerator: 'CmdOrCtrl+8',
+        click: emit('decrease-active-resizable-width'),
+      },
       separator,
       {
         label: '&Reload',
@@ -284,6 +300,12 @@ export function buildDefaultMenu({
         label: __DARWIN__ ? 'Pull' : 'Pu&ll',
         accelerator: 'CmdOrCtrl+Shift+P',
         click: emit('pull'),
+      },
+      {
+        id: 'fetch',
+        label: __DARWIN__ ? 'Fetch' : '&Fetch',
+        accelerator: 'CmdOrCtrl+Shift+T',
+        click: emit('fetch'),
       },
       {
         label: removeRepoLabel,
@@ -428,12 +450,12 @@ export function buildDefaultMenu({
     },
   ]
 
-  if (!hasCurrentPullRequest && enableStartingPullRequests()) {
+  if (enableStartingPullRequests()) {
     branchSubmenu.push({
-      label: __DARWIN__ ? 'Start Pull Request' : 'Start pull request',
-      id: 'start-pull-request',
+      label: __DARWIN__ ? 'Preview Pull Request' : 'Preview pull request',
+      id: 'preview-pull-request',
       accelerator: 'CmdOrCtrl+Alt+P',
-      click: emit('start-pull-request'),
+      click: emit('preview-pull-request'),
     })
   }
 
@@ -550,6 +572,10 @@ export function buildDefaultMenu({
           {
             label: 'Pull Request Check Run Failed',
             click: emit('pull-request-check-run-failed'),
+          },
+          {
+            label: 'Show App Error',
+            click: emit('show-app-error'),
           },
         ],
       },

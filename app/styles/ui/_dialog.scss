@@ -21,13 +21,21 @@
 @import 'dialogs/ci-check-run-rerun';
 @import 'dialogs/unreachable-commits';
 @import 'dialogs/open-pull-request';
+@import 'dialogs/installing-update';
+@import 'dialogs/test-notifications';
+@import 'dialogs/pull-request-comment-like';
+@import 'dialogs/unknown-authors';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
 // allow easy layout using generalized components and elements such as <Row>
 // and <p>.
 dialog {
+  display: flex;
+  flex-direction: column;
+
   overflow: unset;
+
   // These are the 24px versions of the alert and stop octicons
   // from oction v10.0.0
   //
@@ -125,14 +133,28 @@ dialog {
     opacity: 1;
   }
 
+  &:not([open]) {
+    display: none;
+  }
+
   // The dialog embeds a fieldset as the first child of the form element
   // in order to be able to disable all form elements and buttons in one
   // swoop. This resets all styles for that fieldset.
-  & > form > fieldset {
-    border: 0;
-    margin: 0;
-    padding: 0;
-    min-width: 0;
+  & > form {
+    min-height: 0;
+    height: 100%;
+    & > fieldset {
+      border: 0;
+      margin: 0;
+      padding: 0;
+      min-width: 0;
+      min-height: 0;
+      max-height: 100%;
+      height: 100%;
+
+      display: flex;
+      flex-direction: column;
+    }
   }
 
   .dialog-header {
@@ -193,7 +215,7 @@ dialog {
       }
 
       &:focus {
-        outline: 0;
+        outline-offset: 3px;
       }
     }
     @include close-button;
@@ -383,7 +405,15 @@ dialog {
 
   &#preferences {
     width: 600px;
+
+    // This is to ensure that the dialog content is accessible when zoomed in
+    @media (max-width: 600px) {
+      overflow-y: auto;
+      width: 100%;
+      max-width: calc(100% - var(--spacing-double));
+    }
   }
+
   &#about {
     width: 450px;
   }

@@ -148,6 +148,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.h': 'text/x-c',
       '.cpp': 'text/x-c++src',
       '.hpp': 'text/x-c++src',
+      '.ino': 'text/x-c++src',
       '.kt': 'text/x-kotlin',
     },
   },

@@ -1,62 +1,126 @@
 @import '../mixins';
 
 .author-input-component {
-  &.disabled .CodeMirror {
+  &.disabled {
     @include textboxish-disabled-styles;
   }
 
-  .CodeMirror {
+  input {
+    border: none;
+    background: none;
+    box-shadow: none;
+    width: 100%;
+
+    &:focus {
+      outline: none;
+      border: none;
+      box-shadow: none;
+    }
+  }
+
+  .shadow-input {
     @include textboxish;
+    position: absolute;
+    opacity: 0;
+    z-index: -1;
+    width: fit-content;
+  }
 
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-top: 0;
-    height: auto;
+  .added-author-container {
+    display: contents;
+  }
 
-    .label {
-      color: var(--text-secondary-color);
+  .autocompletion-container {
+    cursor: text;
+  }
+
+  @include textboxish;
+
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: 0;
+
+  height: auto;
+
+  .label {
+    color: var(--text-secondary-color);
+  }
+
+  .handle {
+    border-radius: var(--border-radius);
+    border: 1px solid var(--co-author-tag-border-color);
+    background: var(--co-author-tag-background-color);
+    padding: 1px 2px;
+    margin: 0px 2px;
+    cursor: pointer;
+
+    * {
+      cursor: pointer;
     }
 
-    .placeholder {
-      color: var(--text-secondary-color);
-      cursor: text;
+    svg {
+      cursor: pointer;
     }
 
-    .handle {
-      border-radius: var(--border-radius);
-      border: 1px solid var(--co-author-tag-border-color);
-      background: var(--co-author-tag-background-color);
-      padding: 1px 2px;
-      margin: 0px 2px;
+    &.progress {
+      background: transparent;
+    }
 
-      &.progress {
-        background: transparent;
+    &.error {
+      background: var(--form-error-background);
+      color: var(--form-error-text-color);
+      border-color: var(--form-error-border-color);
+
+      svg.icon {
+        padding-bottom: 2px;
       }
+    }
 
-      &.error {
-        background: var(--form-error-background);
-        color: var(--form-error-text-color);
-        border-color: var(--form-error-border-color);
+    &.focused {
+      background: var(--box-selected-active-background-color);
+      border-color: var(--co-author-tag-selected-border-color);
+      color: var(--box-selected-active-text-color);
+    }
 
-        svg {
-          padding-bottom: 2px;
-        }
+    &.progress,
+    &.error {
+      svg.icon {
+        height: 9px;
+        margin-left: 3px;
+        margin-right: 3px;
+        vertical-align: middle;
+        fill: currentColor;
       }
+    }
 
-      &.progress,
-      &.error {
-        svg {
-          height: 9px;
-          margin-left: 3px;
-          margin-right: 3px;
-          vertical-align: middle;
-          fill: currentColor;
-        }
+    > button {
+      -webkit-appearance: none;
+      font-family: inherit;
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin: 0;
+      outline: none;
+
+      color: inherit;
+
+      svg.delete {
+        height: 16px;
+        margin-left: 3px;
+        margin-right: 3px;
+        margin-bottom: 1px;
+        vertical-align: middle;
+        fill: currentColor;
       }
     }
   }
 
-  .CodeMirror-focused {
+  &:focus-within {
     @include textboxish-focus-styles;
     border-top-width: 1px;
     border-top-style: solid;

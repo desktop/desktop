@@ -2,6 +2,27 @@
   // With this, the popover's absolute position will be relative to its parent
   position: relative;
 
+  .avatar-button {
+    // override default button styles
+    overflow: inherit;
+    text-overflow: inherit;
+    white-space: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    padding: inherit;
+    border: none;
+    height: inherit;
+    color: inherit;
+    background-color: none;
+
+    border-radius: 50%;
+    margin-right: var(--spacing-half);
+  }
+
+  .toggletip {
+    margin-right: var(--spacing-half);
+  }
+
   .warning-badge {
     background-color: var(--commit-warning-badge-background-color);
     border: var(--commit-warning-badge-border-color) 1px solid;
@@ -17,6 +38,7 @@
       height: 10px;
       // With width=100%, the icon will be centered horizontally
       width: 100%;
+      vertical-align: unset;
     }
   }
 
@@ -66,5 +88,20 @@
     bottom: 13px;
 
     width: 300px;
+
+    @media (max-height: 500px) {
+      bottom: -125px;
+
+      &.popover-caret-left-bottom {
+        &::before,
+        &::after {
+          bottom: 158px;
+        }
+      }
+    }
+  }
+
+  .link-button-component {
+    display: inline;
   }
 }

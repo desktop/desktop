@@ -56,7 +56,7 @@ import { getTipSha } from '../../lib/tip'
 
 import { Account } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
-import { IAuthor } from '../../models/author'
+import { Author, UnknownAuthor } from '../../models/author'
 import { Branch, IAheadBehind } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
@@ -68,7 +68,10 @@ import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { Popup, PopupType } from '../../models/popup'
-import { PullRequest } from '../../models/pull-request'
+import {
+  PullRequest,
+  PullRequestSuggestedNextAction,
+} from '../../models/pull-request'
 import {
   Repository,
   RepositoryWithGitHubRepository,
@@ -86,7 +89,7 @@ import {
 import { TipState, IValidBranch } from '../../models/tip'
 import { Banner, BannerType } from '../../models/banner'
 
-import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
+import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
 import {
   executeMenuItem,
@@ -382,6 +385,13 @@ export class Dispatcher {
    */
   public closePopup(popupType?: PopupType) {
     return this.appStore._closePopup(popupType)
+  }
+
+  /**
+   * Close the popup with given id.
+   */
+  public closePopupById(popupId: string) {
+    return this.appStore._closePopupById(popupId)
   }
 
   /** Show the foldout. This will close any current popup. */
@@ -763,11 +773,6 @@ export class Dispatcher {
    */
   public presentError(error: Error): Promise<void> {
     return this.appStore._pushError(error)
-  }
-
-  /** Clear the given error. */
-  public clearError(error: Error): Promise<void> {
-    return this.appStore._clearError(error)
   }
 
   /**
@@ -1545,6 +1550,17 @@ export class Dispatcher {
     await this.appStore._showCreateForkDialog(repository)
   }
 
+  public async showUnknownAuthorsCommitWarning(
+    authors: ReadonlyArray<UnknownAuthor>,
+    onCommitAnyway: () => void
+  ) {
+    return this.appStore._showPopup({
+      type: PopupType.UnknownAuthors,
+      authors,
+      onCommit: onCommitAnyway,
+    })
+  }
+
   /**
    * Register a new error handler.
    *
@@ -2188,8 +2204,11 @@ export class Dispatcher {
    * openCreatePullRequestInBrowser method which immediately opens the
    * create pull request page without showing a dialog.
    */
-  public createPullRequest(repository: Repository): Promise<void> {
-    return this.appStore._createPullRequest(repository)
+  public createPullRequest(
+    repository: Repository,
+    baseBranch?: Branch
+  ): Promise<void> {
+    return this.appStore._createPullRequest(repository, baseBranch)
   }
 
   /**
@@ -2269,7 +2288,7 @@ export class Dispatcher {
    */
   public setCoAuthors(
     repository: Repository,
-    coAuthors: ReadonlyArray<IAuthor>
+    coAuthors: ReadonlyArray<Author>
   ) {
     return this.appStore._setCoAuthors(repository, coAuthors)
   }
@@ -2431,13 +2450,6 @@ export class Dispatcher {
   }
 
   /**
-   * Set the custom application-wide theme
-   */
-  public setCustomTheme(theme: ICustomTheme) {
-    return this.appStore._setCustomTheme(theme)
-  }
-
-  /**
    * Increments either the `repoWithIndicatorClicked` or
    * the `repoWithoutIndicatorClicked` metric
    */
@@ -2450,6 +2462,10 @@ export class Dispatcher {
    */
   public recordCreatePullRequest() {
     return this.statsStore.recordCreatePullRequest()
+  }
+
+  public recordCreatePullRequestFromPreview() {
+    return this.statsStore.recordCreatePullRequestFromPreview()
   }
 
   public recordWelcomeWizardInitiated() {
@@ -3969,6 +3985,10 @@ export class Dispatcher {
     this.statsStore.recordPullRequestReviewDialogSwitchToPullRequest(reviewType)
   }
 
+  public recordPullRequestCommentDialogSwitchToPullRequest() {
+    this.statsStore.recordPullRequestCommentDialogSwitchToPullRequest()
+  }
+
   public showUnreachableCommits(selectedTab: UnreachableCommitsTab) {
     this.statsStore.recordMultiCommitDiffUnreachableCommitsDialogOpenedCount()
 
@@ -4008,5 +4028,39 @@ export class Dispatcher {
 
   public updatePullRequestBaseBranch(repository: Repository, branch: Branch) {
     this.appStore._updatePullRequestBaseBranch(repository, branch)
+  }
+
+  /**
+   * Attempts to quit the app if it's not updating, unless requested to quit
+   * even if it is updating.
+   *
+   * @param evenIfUpdating Whether to quit even if the app is updating.
+   */
+  public quitApp(evenIfUpdating: boolean) {
+    this.appStore._quitApp(evenIfUpdating)
+  }
+
+  /**
+   * Cancels quitting the app. This could be needed if, on macOS, the user tries
+   * to quit the app while an update is in progress, but then after being
+   * informed about the issues that could cause they decided to not close the
+   * app yet.
+   */
+  public cancelQuittingApp() {
+    this.appStore._cancelQuittingApp()
+  }
+
+  /**
+   * Sets the user's preference for which pull request suggested next action to
+   * use
+   */
+  public setPullRequestSuggestedNextAction(
+    value: PullRequestSuggestedNextAction
+  ) {
+    return this.appStore._setPullRequestSuggestedNextAction(value)
+  }
+
+  public appFocusedElementChanged() {
+    this.appStore._appFocusedElementChanged()
   }
 }

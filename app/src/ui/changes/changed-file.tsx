@@ -7,6 +7,7 @@ import { mapStatus } from '../../lib/status'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { TooltipDirection } from '../lib/tooltip'
 import { TooltippedContent } from '../lib/tooltipped-content'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 interface IChangedFileProps {
   readonly file: WorkingDirectoryFileChange
@@ -15,12 +16,6 @@ interface IChangedFileProps {
   readonly disableSelection: boolean
   readonly checkboxTooltip?: string
   readonly onIncludeChanged: (path: string, include: boolean) => void
-
-  /** Callback called when user right-clicks on an item */
-  readonly onContextMenu: (
-    file: WorkingDirectoryFileChange,
-    event: React.MouseEvent<HTMLDivElement>
-  ) => void
 }
 
 /** a changed file in the working directory for a given repository */
@@ -58,8 +53,15 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
       filePadding -
       statusWidth
 
+    const includedText =
+      this.props.include === true
+        ? 'included'
+        : this.props.include === undefined
+        ? 'partially included'
+        : 'not included'
+
     return (
-      <div className="file" onContextMenu={this.onContextMenu}>
+      <div className="file">
         <TooltippedContent
           tooltip={checkboxTooltip}
           direction={TooltipDirection.EAST}
@@ -80,7 +82,12 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           path={path}
           status={status}
           availableWidth={availablePathWidth}
+          ariaHidden={true}
         />
+
+        <AriaLiveContainer>
+          {path} {mapStatus(status)} {includedText}
+        </AriaLiveContainer>
 
         <Octicon
           symbol={iconForStatus(status)}
@@ -90,9 +97,5 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
         />
       </div>
     )
-  }
-
-  private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
-    this.props.onContextMenu(this.props.file, event)
   }
 }

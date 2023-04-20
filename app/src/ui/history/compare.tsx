@@ -53,7 +53,7 @@ interface ICompareSidebarProps {
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
   readonly aheadBehindStore: AheadBehindStore
-  readonly isCherryPickInProgress: boolean
+  readonly isMultiCommitOperationInProgress?: boolean
   readonly shasToHighlight: ReadonlyArray<string>
 }
 
@@ -76,6 +76,7 @@ export class CompareSidebar extends React.Component<
   private textbox: TextBox | null = null
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
   private branchList: BranchList | null = null
+  private commitListRef = React.createRef<CommitList>()
   private loadingMoreCommitsPromise: Promise<void> | null = null
   private resultCount = 0
 
@@ -131,6 +132,10 @@ export class CompareSidebar extends React.Component<
     }
   }
 
+  public focusHistory() {
+    this.commitListRef.current?.focus()
+  }
+
   public componentWillMount() {
     this.props.dispatcher.initializeCompare(this.props.repository)
   }
@@ -150,7 +155,7 @@ export class CompareSidebar extends React.Component<
     const placeholderText = getPlaceholderText(this.props.compareState)
 
     return (
-      <div id="compare-view">
+      <div id="compare-view" role="tabpanel" aria-labelledby="history-tab">
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
@@ -225,6 +230,7 @@ export class CompareSidebar extends React.Component<
 
     return (
       <CommitList
+        ref={this.commitListRef}
         gitHubRepository={this.props.repository.gitHubRepository}
         isLocalRepository={this.props.isLocalRepository}
         commitLookup={this.props.commitLookup}
@@ -258,10 +264,12 @@ export class CompareSidebar extends React.Component<
         onCompareListScrolled={this.props.onCompareListScrolled}
         compareListScrollTop={this.props.compareListScrollTop}
         tagsToPush={this.props.tagsToPush ?? []}
-        isCherryPickInProgress={this.props.isCherryPickInProgress}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveCommitDragElement={this.onRemoveCommitDragElement}
         disableSquashing={formState.kind === HistoryTabMode.Compare}
+        isMultiCommitOperationInProgress={
+          this.props.isMultiCommitOperationInProgress
+        }
       />
     )
   }

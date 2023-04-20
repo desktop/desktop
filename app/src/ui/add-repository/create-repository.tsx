@@ -34,7 +34,9 @@ import { showOpenDialog } from '../main-process-proxy'
 import { pathExists } from '../lib/path-exists'
 import { mkdir } from 'fs/promises'
 import { directoryExists } from '../../lib/directory-exists'
+import { FoldoutType } from '../../lib/app-state'
 import { join } from 'path'
+import { isTopMostDialog } from '../dialog/is-top-most'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -70,6 +72,9 @@ interface ICreateRepositoryProps {
 
   /** Prefills path input so user doesn't have to. */
   readonly initialPath?: string
+
+  /** Whether the dialog is the top most in the dialog stack */
+  readonly isTopMost: boolean
 }
 
 interface ICreateRepositoryState {
@@ -114,6 +119,16 @@ export class CreateRepository extends React.Component<
   ICreateRepositoryProps,
   ICreateRepositoryState
 > {
+  private checkIsTopMostDialog = isTopMostDialog(
+    () => {
+      this.updateReadMeExists(this.state.path, this.state.name)
+      window.addEventListener('focus', this.onWindowFocus)
+    },
+    () => {
+      window.removeEventListener('focus', this.onWindowFocus)
+    }
+  )
+
   public constructor(props: ICreateRepositoryProps) {
     super(props)
 
@@ -144,7 +159,7 @@ export class CreateRepository extends React.Component<
   }
 
   public async componentDidMount() {
-    window.addEventListener('focus', this.onWindowFocus)
+    this.checkIsTopMostDialog(this.props.isTopMost)
 
     const gitIgnoreNames = await getGitIgnoreNames()
     const licenses = await getLicenses()
@@ -157,8 +172,12 @@ export class CreateRepository extends React.Component<
     this.updateReadMeExists(path, this.state.name)
   }
 
-  public componentWillUnmount() {
-    window.removeEventListener('focus', this.onWindowFocus)
+  public componentDidUpdate(): void {
+    this.checkIsTopMostDialog(this.props.isTopMost)
+  }
+
+  public componentWillUnmount(): void {
+    this.checkIsTopMostDialog(false)
   }
 
   private initializePath = async () => {
@@ -391,6 +410,7 @@ export class CreateRepository extends React.Component<
 
     this.updateDefaultDirectory()
 
+    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
     this.props.dispatcher.selectRepository(repository)
     this.props.dispatcher.recordCreateRepository()
     this.props.onDismissed()

@@ -11,8 +11,11 @@ import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
-import { PullRequest } from '../models/pull-request'
-import { IAuthor } from '../models/author'
+import {
+  PullRequest,
+  PullRequestSuggestedNextAction,
+} from '../models/pull-request'
+import { Author } from '../models/author'
 import { MergeTreeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
 import {
@@ -22,18 +25,13 @@ import {
   ICloneProgress,
   IMultiCommitOperationProgress,
 } from '../models/progress'
-import { Popup } from '../models/popup'
 
 import { SignInState } from './stores/sign-in-store'
 
 import { WindowState } from './window-state'
 import { Shell } from './shells'
 
-import {
-  ApplicableTheme,
-  ApplicationTheme,
-  ICustomTheme,
-} from '../ui/lib/application-theme'
+import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
@@ -47,6 +45,7 @@ import {
   MultiCommitOperationStep,
 } from '../models/multi-commit-operation'
 import { IChangesetData } from './git'
+import { Popup } from '../models/popup'
 
 export enum SelectionType {
   Repository,
@@ -108,6 +107,16 @@ export interface IAppState {
   readonly windowZoomFactor: number
 
   /**
+   * Whether or not the currently active element is itself, or is contained
+   * within, a resizable component. This is used to determine whether or not
+   * to enable the Expand/Contract pane menu items. Note that this doesn't
+   * necessarily mean that keyboard resides within the resizable component since
+   * using the Windows in-app menu bar will steal focus from the currently
+   * active element (but return it once closed).
+   */
+  readonly resizablePaneActive: boolean
+
+  /**
    * A value indicating whether or not the current application
    * window has focus.
    */
@@ -116,6 +125,7 @@ export interface IAppState {
   readonly showWelcomeFlow: boolean
   readonly focusCommitMessage: boolean
   readonly currentPopup: Popup | null
+  readonly allPopups: ReadonlyArray<Popup>
   readonly currentFoldout: Foldout | null
   readonly currentBanner: Banner | null
 
@@ -145,7 +155,7 @@ export interface IAppState {
    */
   readonly appMenuState: ReadonlyArray<IMenu>
 
-  readonly errors: ReadonlyArray<Error>
+  readonly errorCount: number
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
@@ -257,9 +267,6 @@ export interface IAppState {
   /** The selected appearance (aka theme) preference */
   readonly selectedTheme: ApplicationTheme
 
-  /** The custom theme  */
-  readonly customTheme?: ICustomTheme
-
   /** The currently applied appearance (aka theme) */
   readonly currentTheme: ApplicableTheme
 
@@ -311,6 +318,11 @@ export interface IAppState {
    * Whether or not the user enabled high-signal notifications.
    */
   readonly notificationsEnabled: boolean
+
+  /** The users last chosen pull request suggested next action. */
+  readonly pullRequestSuggestedNextAction:
+    | PullRequestSuggestedNextAction
+    | undefined
 }
 
 export enum FoldoutType {
@@ -318,6 +330,7 @@ export enum FoldoutType {
   Branch,
   AppMenu,
   AddMenu,
+  PushPull,
 }
 
 export type AppMenuFoldout = {
@@ -349,6 +362,7 @@ export type Foldout =
   | { type: FoldoutType.AddMenu }
   | BranchFoldout
   | AppMenuFoldout
+  | { type: FoldoutType.PushPull }
 
 export enum RepositorySectionTab {
   Changes,
@@ -674,7 +688,7 @@ export interface IChangesState {
    * Co-Authored-By commit message trailers depending on whether
    * the user has chosen to do so.
    */
-  readonly coAuthors: ReadonlyArray<IAuthor>
+  readonly coAuthors: ReadonlyArray<Author>
 
   /**
    * Stores information about conflicts in the working directory
@@ -959,7 +973,7 @@ export interface IPullRequestState {
    * The base branch of a a pull request - the branch the currently checked out
    * branch would merge into
    */
-  readonly baseBranch: Branch
+  readonly baseBranch: Branch | null
 
   /** The SHAs of commits of the pull request */
   readonly commitSHAs: ReadonlyArray<string> | null
@@ -973,7 +987,7 @@ export interface IPullRequestState {
    * repositories commit selection where the diff of all commits represents the
    * diff between the latest commit and the earliest commits parent.
    */
-  readonly commitSelection: ICommitSelection
+  readonly commitSelection: ICommitSelection | null
 
   /** The result of merging the pull request branch into the base branch */
   readonly mergeStatus: MergeTreeResult | null

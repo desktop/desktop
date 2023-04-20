@@ -161,11 +161,12 @@ export abstract class BaseChooseBranchDialog extends React.Component<
     return currentBranch === defaultBranch ? null : defaultBranch
   }
 
-  private onOperationChange = (option: IDropdownSelectButtonOption) => {
-    const value = option.value as MultiCommitOperationKind
+  private onOperationChange = (
+    option: IDropdownSelectButtonOption<MultiCommitOperationKind>
+  ) => {
     const { dispatcher, repository } = this.props
     const { selectedBranch } = this.state
-    switch (value) {
+    switch (option.value) {
       case MultiCommitOperationKind.Merge:
         dispatcher.startMergeBranchOperation(repository, false, selectedBranch)
         break
@@ -179,7 +180,7 @@ export abstract class BaseChooseBranchDialog extends React.Component<
       case MultiCommitOperationKind.Reorder:
         break
       default:
-        assertNever(value, `Unknown operation value: ${option.value}`)
+        assertNever(option.value, `Unknown operation value: ${option.value}`)
     }
   }
 

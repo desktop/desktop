@@ -49,6 +49,7 @@ import {
   getNumberOfDigits,
   MaxIntraLineDiffStringLength,
   getFirstAndLastClassesSideBySide,
+  textDiffEquals,
 } from './diff-helpers'
 import { showContextualMenu } from '../../lib/menu-item'
 import { getTokens } from './diff-syntax-mode'
@@ -256,7 +257,7 @@ export class SideBySideDiff extends React.Component<
         : [DiffLineType.Add, DiffLineType.Context]
       : [DiffLineType.Add, DiffLineType.Delete, DiffLineType.Context]
 
-    const contents = this.props.diff.hunks
+    const contents = this.state.diff.hunks
       .flatMap(h =>
         h.lines
           .filter(line => lineTypes.includes(line.type))
@@ -375,11 +376,9 @@ export class SideBySideDiff extends React.Component<
       this.clearListRowsHeightCache()
     }
 
-    if (this.props.diff.text !== prevProps.diff.text) {
+    if (!textDiffEquals(this.props.diff, prevProps.diff)) {
       this.diffToRestore = null
-      this.setState({
-        diff: this.props.diff,
-      })
+      this.setState({ diff: this.props.diff })
     }
 
     // Scroll to top if we switched to a new file
@@ -478,6 +477,9 @@ export class SideBySideDiff extends React.Component<
                 hoveredHunk={this.state.hoveredHunk}
                 isSelectable={canSelect(this.props.file)}
                 fileSelection={this.getSelection()}
+                // rows are memoized and include things like the
+                // noNewlineIndicator
+                rows={rows}
               />
             )}
           </AutoSizer>

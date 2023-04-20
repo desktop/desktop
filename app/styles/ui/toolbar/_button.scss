@@ -1,4 +1,8 @@
 .toolbar-button {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+
   // Make sure the contents shrink beyond their intrinsic width
   // See https://css-tricks.com/flexbox-truncated-text/
   min-width: 0;
@@ -10,6 +14,11 @@
   // relatively in order for the progress bar not to position itself
   // above all the other content.
   position: relative;
+
+  .toolbar-dropdown-button {
+    width: 40px;
+    height: 49px;
+  }
 
   // General button behavior, mostly resets.
   // For the button content styling see second button style. Note that we
@@ -34,7 +43,7 @@
     &:focus {
       background-color: var(--toolbar-button-focus-background-color);
 
-      // Prevent the focus-ring from getting clipped by UI elements
+      // Prevent the focus ring from getting clipped by UI elements
       // outside of the toolbar
       outline-offset: -4px;
 
@@ -47,8 +56,7 @@
       }
 
       // Focused but not through keyboard navigation
-      &:not(.focus-ring) {
-        outline: none;
+      &:not(:focus-visible) {
         background-color: var(--toolbar-button-background-color);
 
         .progress {

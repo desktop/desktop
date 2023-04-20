@@ -1,0 +1,21 @@
+#unknown-authors {
+  .dialog-content .author-list {
+    max-height: 175px;
+    overflow-y: auto;
+
+    ul {
+      list-style: none;
+      margin: var(--spacing) 0;
+      padding: 0;
+
+      li {
+        padding-left: 0;
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .path-text-component {
+    font-family: var(--font-family-monospace);
+  }
+}

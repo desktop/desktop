@@ -26,6 +26,15 @@ if (envAdditionalCookies !== undefined) {
   document.cookie += '; ' + envAdditionalCookies
 }
 
+type AffiliationFilter =
+  | 'owner'
+  | 'collaborator'
+  | 'organization_member'
+  | 'owner,collabor'
+  | 'owner,organization_member'
+  | 'collaborator,organization_member'
+  | 'owner,collaborator,organization_member'
+
 /**
  * Optional set of configurable settings for the fetchAll method
  */
@@ -48,7 +57,15 @@ interface IFetchAllOptions<T> {
    *
    * @param results  All results retrieved thus far
    */
-  continue?: (results: ReadonlyArray<T>) => boolean
+  continue?: (results: ReadonlyArray<T>) => boolean | Promise<boolean>
+
+  /**
+   * An optional callback which is invoked after each page of results is loaded
+   * from the API. This can be used to enable streaming of results.
+   *
+   * @param page The last fetched page of results
+   */
+  onPage?: (page: ReadonlyArray<T>) => void
 
   /**
    * Calculate the next page path given the response.
@@ -508,6 +525,15 @@ export interface IAPIPullRequestReview {
     | 'CHANGES_REQUESTED'
 }
 
+/** Represents both issue comments and PR review comments */
+export interface IAPIComment {
+  readonly id: number
+  readonly body: string
+  readonly html_url: string
+  readonly user: IAPIIdentity
+  readonly created_at: string
+}
+
 /** The metadata about a GitHub server. */
 export interface IServerMetadata {
   /**
@@ -733,6 +759,79 @@ export class API {
     }
   }
 
+  /**
+   * Fetch an issue comment (i.e. a comment on an issue or pull request).
+   *
+   * @param owner The owner of the repository
+   * @param name The name of the repository
+   * @param commentId The ID of the comment
+   *
+   * @returns The comment if it was found, null if it wasn't, or an error
+   * occurred.
+   */
+  public async fetchIssueComment(
+    owner: string,
+    name: string,
+    commentId: string
+  ): Promise<IAPIComment | null> {
+    try {
+      const response = await this.request(
+        'GET',
+        `repos/${owner}/${name}/issues/comments/${commentId}`
+      )
+      if (response.status === HttpStatusCode.NotFound) {
+        log.warn(
+          `fetchIssueComment: '${owner}/${name}/issues/comments/${commentId}' returned a 404`
+        )
+        return null
+      }
+      return await parsedResponse<IAPIComment>(response)
+    } catch (e) {
+      log.warn(
+        `fetchIssueComment: an error occurred for '${owner}/${name}/issues/comments/${commentId}'`,
+        e
+      )
+      return null
+    }
+  }
+
+  /**
+   * Fetch a pull request review comment (i.e. a comment that was posted as part
+   * of a review of a pull request).
+   *
+   * @param owner The owner of the repository
+   * @param name The name of the repository
+   * @param commentId The ID of the comment
+   *
+   * @returns The comment if it was found, null if it wasn't, or an error
+   * occurred.
+   */
+  public async fetchPullRequestReviewComment(
+    owner: string,
+    name: string,
+    commentId: string
+  ): Promise<IAPIComment | null> {
+    try {
+      const response = await this.request(
+        'GET',
+        `repos/${owner}/${name}/pulls/comments/${commentId}`
+      )
+      if (response.status === HttpStatusCode.NotFound) {
+        log.warn(
+          `fetchPullRequestReviewComment: '${owner}/${name}/pulls/comments/${commentId}' returned a 404`
+        )
+        return null
+      }
+      return await parsedResponse<IAPIComment>(response)
+    } catch (e) {
+      log.warn(
+        `fetchPullRequestReviewComment: an error occurred for '${owner}/${name}/pulls/comments/${commentId}'`,
+        e
+      )
+      return null
+    }
+  }
+
   /** Fetch a repo by its owner and name. */
   public async fetchRepository(
     owner: string,
@@ -793,22 +892,39 @@ export class API {
     }
   }
 
-  /** Fetch all repos a user has access to. */
-  public async fetchRepositories(): Promise<ReadonlyArray<IAPIRepository> | null> {
+  /**
+   * Fetch all repos a user has access to in a streaming fashion. The callback
+   * will be called for each new page fetched from the API.
+   */
+  public async streamUserRepositories(
+    callback: (repos: ReadonlyArray<IAPIRepository>) => void,
+    affiliation?: AffiliationFilter,
+    options?: IFetchAllOptions<IAPIRepository>
+  ) {
     try {
-      const repositories = await this.fetchAll<IAPIRepository>('user/repos')
-      // "But wait, repositories can't have a null owner" you say.
-      // Ordinarily you'd be correct but turns out there's super
-      // rare circumstances where a user has been deleted but the
-      // repository hasn't. Such cases are usually addressed swiftly
-      // but in some cases like GitHub Enterprise instances
-      // they can linger for longer than we'd like so we'll make
-      // sure to exclude any such dangling repository, chances are
-      // they won't be cloneable anyway.
-      return repositories.filter(x => x.owner !== null)
+      const base = 'user/repos'
+      const path = affiliation ? `${base}?affiliation=${affiliation}` : base
+
+      await this.fetchAll<IAPIRepository>(path, {
+        ...options,
+        // "But wait, repositories can't have a null owner" you say.
+        // Ordinarily you'd be correct but turns out there's super
+        // rare circumstances where a user has been deleted but the
+        // repository hasn't. Such cases are usually addressed swiftly
+        // but in some cases like GitHub Enterprise instances
+        // they can linger for longer than we'd like so we'll make
+        // sure to exclude any such dangling repository, chances are
+        // they won't be cloneable anyway.
+        onPage: page => {
+          callback(page.filter(x => x.owner !== null))
+          options?.onPage?.(page)
+        },
+      })
     } catch (error) {
-      log.warn(`fetchRepositories: ${error}`)
-      return null
+      log.warn(
+        `streamUserRepositories: failed with endpoint ${this.endpoint}`,
+        error
+      )
     }
   }
 
@@ -1047,17 +1163,97 @@ export class API {
     }
   }
 
+  /** Fetches all reviews from a given pull request. */
+  public async fetchPullRequestReviews(
+    owner: string,
+    name: string,
+    prNumber: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/reviews`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIPullRequestReview[]>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching PR reviews for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return []
+    }
+  }
+
+  /** Fetches all review comments from a given pull request. */
+  public async fetchPullRequestReviewComments(
+    owner: string,
+    name: string,
+    prNumber: string,
+    reviewId: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/reviews/${reviewId}/comments`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIComment[]>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching PR review comments for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return []
+    }
+  }
+
+  /** Fetches all review comments from a given pull request. */
+  public async fetchPullRequestComments(
+    owner: string,
+    name: string,
+    prNumber: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/pulls/${prNumber}/comments`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIComment[]>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching PR comments for ${owner}/${name}/pulls/${prNumber}`,
+        e
+      )
+      return []
+    }
+  }
+
+  /** Fetches all comments from a given issue. */
+  public async fetchIssueComments(
+    owner: string,
+    name: string,
+    issueNumber: string
+  ) {
+    try {
+      const path = `/repos/${owner}/${name}/issues/${issueNumber}/comments`
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIComment[]>(response)
+    } catch (e) {
+      log.debug(
+        `failed fetching issue comments for ${owner}/${name}/issues/${issueNumber}`,
+        e
+      )
+      return []
+    }
+  }
+
   /**
    * Get the combined status for the given ref.
    */
   public async fetchCombinedRefStatus(
     owner: string,
     name: string,
-    ref: string
+    ref: string,
+    reloadCache: boolean = false
   ): Promise<IAPIRefStatus | null> {
     const safeRef = encodeURIComponent(ref)
     const path = `repos/${owner}/${name}/commits/${safeRef}/status?per_page=100`
-    const response = await this.request('GET', path)
+    const response = await this.request('GET', path, {
+      reloadCache,
+    })
 
     try {
       return await parsedResponse<IAPIRefStatus>(response)
@@ -1076,7 +1272,8 @@ export class API {
   public async fetchRefCheckRuns(
     owner: string,
     name: string,
-    ref: string
+    ref: string,
+    reloadCache: boolean = false
   ): Promise<IAPIRefCheckRuns | null> {
     const safeRef = encodeURIComponent(ref)
     const path = `repos/${owner}/${name}/commits/${safeRef}/check-runs?per_page=100`
@@ -1084,7 +1281,10 @@ export class API {
       Accept: 'application/vnd.github.antiope-preview+json',
     }
 
-    const response = await this.request('GET', path, { customHeaders: headers })
+    const response = await this.request('GET', path, {
+      customHeaders: headers,
+      reloadCache,
+    })
 
     try {
       return await parsedResponse<IAPIRefCheckRuns>(response)
@@ -1368,6 +1568,7 @@ export class API {
     const params = { per_page: `${opts.perPage}` }
 
     let nextPath: string | null = urlWithQueryString(path, params)
+    let page: ReadonlyArray<T> = []
     do {
       const response: Response = await this.request('GET', nextPath)
       if (opts.suppressErrors !== false && !response.ok) {
@@ -1375,15 +1576,16 @@ export class API {
         return buf
       }
 
-      const items = await parsedResponse<ReadonlyArray<T>>(response)
-      if (items) {
-        buf.push(...items)
+      page = await parsedResponse<ReadonlyArray<T>>(response)
+      if (page) {
+        buf.push(...page)
+        opts.onPage?.(page)
       }
 
       nextPath = opts.getNextPagePath
         ? opts.getNextPagePath(response)
         : getNextPagePathFromLink(response)
-    } while (nextPath && (!opts.continue || opts.continue(buf)))
+    } while (nextPath && (!opts.continue || (await opts.continue(buf))))
 
     return buf
   }

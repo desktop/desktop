@@ -85,8 +85,10 @@ export class Start extends React.Component<IStartProps, {}> {
           .<br />
           <br />
           GitHub Desktop sends usage metrics to improve the product and inform
-          feature decisions. Read more about what metrics are sent and how we
-          use them <LinkButton uri={SamplesURL}>here</LinkButton>.
+          feature decisions.{' '}
+          <LinkButton uri={SamplesURL}>
+            Learn more about user metrics.
+          </LinkButton>
         </div>
       </div>
     )

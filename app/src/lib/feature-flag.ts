@@ -46,7 +46,7 @@ export function enableWSLDetection(): boolean {
  * Should we use the new diff viewer for unified diffs?
  */
 export function enableExperimentalDiffViewer(): boolean {
-  return false
+  return enableBetaFeatures()
 }
 
 /**
@@ -71,16 +71,6 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
 /** Should we allow resetting to a previous commit? */
 export function enableResetToCommit(): boolean {
   return enableDevelopmentFeatures()
-}
-
-/** Should we allow high contrast theme option */
-export function enableHighContrastTheme(): boolean {
-  return enableBetaFeatures()
-}
-
-/** Should we allow customizing a theme */
-export function enableCustomizeTheme(): boolean {
-  return enableBetaFeatures()
 }
 
 /** Should ci check runs show logs? */
@@ -110,5 +100,25 @@ export function enableSubmoduleDiff(): boolean {
 
 /** Should we enable starting pull requests? */
 export function enableStartingPullRequests(): boolean {
+  return true
+}
+
+/** Should we enable starting pull requests? */
+export function enableStackedPopups(): boolean {
+  return true
+}
+
+/** Should we enable mechanism to prevent closing while the app is updating? */
+export function enablePreventClosingWhileUpdating(): boolean {
+  return true
+}
+
+/** Should we enable the new push-pull-fetch dropdown? */
+export function enablePushPullFetchDropdown(): boolean {
+  return enableBetaFeatures()
+}
+
+/** Should we enable the new PR comment notifications? */
+export function enablePullRequestCommentNotifications(): boolean {
   return enableBetaFeatures()
 }

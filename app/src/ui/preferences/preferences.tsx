@@ -20,7 +20,7 @@ import {
   InvalidGitAuthorNameMessage,
 } from '../lib/identifier-rules'
 import { Appearance } from './appearance'
-import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
+import { ApplicationTheme } from '../lib/application-theme'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Integrations } from './integrations'
 import {
@@ -40,6 +40,7 @@ import {
 } from '../../lib/helpers/default-branch'
 import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
+import { Notifications } from './notifications'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -61,7 +62,6 @@ interface IPreferencesProps {
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
-  readonly customTheme?: ICustomTheme
   readonly repositoryIndicatorsEnabled: boolean
 }
 
@@ -97,6 +97,8 @@ interface IPreferencesState {
    */
   readonly existingLockFilePath?: string
   readonly repositoryIndicatorsEnabled: boolean
+
+  readonly initiallySelectedTheme: ApplicationTheme
 }
 
 /** The app-level preferences component. */
@@ -131,6 +133,7 @@ export class Preferences extends React.Component<
       availableShells: [],
       selectedShell: this.props.selectedShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
+      initiallySelectedTheme: this.props.selectedTheme,
     }
   }
 
@@ -190,12 +193,20 @@ export class Preferences extends React.Component<
     })
   }
 
+  private onCancel = () => {
+    if (this.state.initiallySelectedTheme !== this.props.selectedTheme) {
+      this.onSelectedThemeChanged(this.state.initiallySelectedTheme)
+    }
+
+    this.props.onDismissed()
+  }
+
   public render() {
     return (
       <Dialog
         id="preferences"
         title={__DARWIN__ ? 'Preferences' : 'Options'}
-        onDismissed={this.props.onDismissed}
+        onDismissed={this.onCancel}
         onSubmit={this.onSave}
       >
         <div className="preferences-container">
@@ -220,6 +231,10 @@ export class Preferences extends React.Component<
             <span>
               <Octicon className="icon" symbol={OcticonSymbol.paintbrush} />
               Appearance
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.bell} />
+              Notifications
             </span>
             <span>
               <Octicon className="icon" symbol={OcticonSymbol.question} />
@@ -323,9 +338,15 @@ export class Preferences extends React.Component<
         View = (
           <Appearance
             selectedTheme={this.props.selectedTheme}
-            customTheme={this.props.customTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
-            onCustomThemeChanged={this.onCustomThemeChanged}
+          />
+        )
+        break
+      case PreferencesTab.Notifications:
+        View = (
+          <Notifications
+            notificationsEnabled={this.state.notificationsEnabled}
+            onNotificationsEnabledChanged={this.onNotificationsEnabledChanged}
           />
         )
         break
@@ -350,6 +371,10 @@ export class Preferences extends React.Component<
               this.onConfirmDiscardChangesPermanentlyChanged
             }
             onConfirmUndoCommitChanged={this.onConfirmUndoCommitChanged}
+            uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
+            onUncommittedChangesStrategyChanged={
+              this.onUncommittedChangesStrategyChanged
+            }
           />
         )
         break
@@ -358,16 +383,10 @@ export class Preferences extends React.Component<
         View = (
           <Advanced
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
-            notificationsEnabled={this.state.notificationsEnabled}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
-            uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
-            onNotificationsEnabledChanged={this.onNotificationsEnabledChanged}
             onOptOutofReportingChanged={this.onOptOutofReportingChanged}
-            onUncommittedChangesStrategyChanged={
-              this.onUncommittedChangesStrategyChanged
-            }
             onRepositoryIndicatorsEnabledChanged={
               this.onRepositoryIndicatorsEnabledChanged
             }
@@ -467,34 +486,17 @@ export class Preferences extends React.Component<
     this.props.dispatcher.setSelectedTheme(theme)
   }
 
-  private onCustomThemeChanged = (theme: ICustomTheme) => {
-    this.props.dispatcher.setCustomTheme(theme)
-  }
-
   private renderFooter() {
     const hasDisabledError = this.state.disallowedCharactersMessage != null
 
-    const index = this.state.selectedIndex
-    switch (index) {
-      case PreferencesTab.Accounts:
-      case PreferencesTab.Appearance:
-        return null
-      case PreferencesTab.Integrations:
-      case PreferencesTab.Advanced:
-      case PreferencesTab.Prompts:
-      case PreferencesTab.Git: {
-        return (
-          <DialogFooter>
-            <OkCancelButtonGroup
-              okButtonText="Save"
-              okButtonDisabled={hasDisabledError}
-            />
-          </DialogFooter>
-        )
-      }
-      default:
-        return assertNever(index, `Unknown tab index: ${index}`)
-    }
+    return (
+      <DialogFooter>
+        <OkCancelButtonGroup
+          okButtonText="Save"
+          okButtonDisabled={hasDisabledError}
+        />
+      </DialogFooter>
+    )
   }
 
   private onSave = async () => {

@@ -30,7 +30,6 @@ import {
   ErrorWithMetadata,
   IErrorMetadata,
 } from '../error-with-metadata'
-import { compare } from '../../lib/compare'
 import { queueWorkHigh } from '../../lib/queue-work'
 
 import {
@@ -87,7 +86,7 @@ import {
   UpstreamRemoteName,
 } from './helpers/find-upstream-remote'
 import { findDefaultRemote } from './helpers/find-default-remote'
-import { IAuthor } from '../../models/author'
+import { Author, isKnownAuthor } from '../../models/author'
 import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
 import { IGitAccount } from '../../models/git-account'
@@ -101,6 +100,7 @@ import { DiffSelection, ITextDiff } from '../../models/diff'
 import { getDefaultBranch } from '../helpers/default-branch'
 import { stat } from 'fs/promises'
 import { findForkedRemotesToPrune } from './helpers/find-forked-remotes-to-prune'
+import { findDefaultBranch } from '../find-default-branch'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -139,7 +139,7 @@ export class GitStore extends BaseStore {
 
   private _showCoAuthoredBy: boolean = false
 
-  private _coAuthors: ReadonlyArray<IAuthor> = []
+  private _coAuthors: ReadonlyArray<Author> = []
 
   private _aheadBehind: IAheadBehind | null = null
 
@@ -467,21 +467,12 @@ export class GitStore extends BaseStore {
     }
   }
 
-  private async refreshDefaultBranch() {
-    const defaultBranchName = await this.resolveDefaultBranch()
-
-    // Find the default branch among all of our branches, giving
-    // priority to local branches by sorting them before remotes
-    this._defaultBranch =
-      this._allBranches
-        .filter(
-          b =>
-            (b.name === defaultBranchName &&
-              b.upstreamWithoutRemote === null) ||
-            b.upstreamWithoutRemote === defaultBranchName
-        )
-        .sort((x, y) => compare(x.type, y.type))
-        .shift() || null
+  public async refreshDefaultBranch() {
+    this._defaultBranch = await findDefaultBranch(
+      this.repository,
+      this.allBranches,
+      this.defaultRemote?.name
+    )
 
     // The upstream default branch is only relevant for forked GitHub repos when
     // the fork behavior is contributing to the parent.
@@ -496,7 +487,7 @@ export class GitStore extends BaseStore {
 
     const upstreamDefaultBranch =
       (await getRemoteHEAD(this.repository, UpstreamRemoteName)) ??
-      defaultBranchName
+      getDefaultBranch()
 
     this._upstreamDefaultBranch =
       this._allBranches.find(
@@ -504,7 +495,7 @@ export class GitStore extends BaseStore {
           b.type === BranchType.Remote &&
           b.remoteName === UpstreamRemoteName &&
           b.nameWithoutRemote === upstreamDefaultBranch
-      ) || null
+      ) ?? null
   }
 
   private addTagToPush(tagName: string) {
@@ -528,28 +519,6 @@ export class GitStore extends BaseStore {
 
     storeTagsToPush(this.repository, this._tagsToPush)
     this.emitUpdate()
-  }
-
-  /**
-   * Resolve the default branch name for the current repository,
-   * using the available API data, remote information or branch
-   * name conventions.
-   */
-  private async resolveDefaultBranch(): Promise<string> {
-    if (this.currentRemote !== null) {
-      // the Git server should use [remote]/HEAD to advertise
-      // it's default branch, so see if it exists and matches
-      // a valid branch on the remote and attempt to use that
-      const branchName = await getRemoteHEAD(
-        this.repository,
-        this.currentRemote.name
-      )
-      if (branchName !== null) {
-        return branchName
-      }
-    }
-
-    return getDefaultBranch()
   }
 
   private refreshRecentBranches(
@@ -867,7 +836,7 @@ export class GitStore extends BaseStore {
     const extractedAuthors = extractedTrailers.map(t =>
       GitAuthor.parse(t.value)
     )
-    const newAuthors = new Array<IAuthor>()
+    const newAuthors = new Array<Author>()
 
     // Last step, phew! The most likely scenario where we
     // get called is when someone has just made a commit and
@@ -884,10 +853,12 @@ export class GitStore extends BaseStore {
       }
 
       const { name, email } = extractedAuthor
-      const existing = this.coAuthors.find(
-        a => a.name === name && a.email === email && a.username !== null
+      const existing = this.coAuthors
+        .filter(isKnownAuthor)
+        .find(a => a.name === name && a.email === email && a.username !== null)
+      newAuthors.push(
+        existing || { kind: 'known', name, email, username: null }
       )
-      newAuthors.push(existing || { name, email, username: null })
     }
 
     this._coAuthors = newAuthors
@@ -940,7 +911,7 @@ export class GitStore extends BaseStore {
    * Gets a list of co-authors to use when crafting the next
    * commit.
    */
-  public get coAuthors(): ReadonlyArray<IAuthor> {
+  public get coAuthors(): ReadonlyArray<Author> {
     return this._coAuthors
   }
 
@@ -1405,7 +1376,7 @@ export class GitStore extends BaseStore {
    *
    * @param coAuthors  Zero or more authors
    */
-  public setCoAuthors(coAuthors: ReadonlyArray<IAuthor>) {
+  public setCoAuthors(coAuthors: ReadonlyArray<Author>) {
     this._coAuthors = coAuthors
     this.emitUpdate()
   }
