@@ -18,7 +18,7 @@ import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { getVersion, getName } from './lib/app-proxy'
-import { getOS } from '../lib/get-os'
+import { getOS, isWindowsAndNoLongerSupportedByElectron } from '../lib/get-os'
 import { MenuEvent } from '../main-process/menu'
 import {
   Repository,
@@ -352,6 +352,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.checkIfThankYouIsInOrder()
+
+    if (isWindowsAndNoLongerSupportedByElectron()) {
+      this.props.dispatcher.setBanner({
+        type: BannerType.WindowsVersionNoLongerSupported,
+      })
+    }
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -671,6 +677,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     skipGuidCheck: boolean = false
   ) {
     if (__LINUX__ || __RELEASE_CHANNEL__ === 'development') {
+      return
+    }
+
+    if (isWindowsAndNoLongerSupportedByElectron()) {
+      log.error(
+        `Can't check for updates on Windows 8.1 or older. Next available update only supports Windows 10 and later`
+      )
       return
     }
 
