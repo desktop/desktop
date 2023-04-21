@@ -35,7 +35,7 @@ To see which packages have newer versions available:
 > yarn outdated
 ```
 
-To upgrade a package to it's latest version:
+To upgrade a package to its latest version:
 
 ```sh
 > yarn upgrade --latest [package-name]
