@@ -58,14 +58,6 @@ export class NoPullRequests extends React.Component<INoPullRequestsProps, {}> {
   }
 
   private renderCallToAction() {
-    if (this.props.isLoadingPullRequests) {
-      return (
-        <div className="call-to-action">
-          Loading pull requests as fast as I can!
-        </div>
-      )
-    }
-
     if (this.props.isOnDefaultBranch) {
       return (
         <div className="call-to-action">
