@@ -249,6 +249,15 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     const fullPath = Path.join(this.props.repository.path, path)
     openFile(fullPath, this.props.dispatcher)
   }
+  /**
+   * Called to open a file it its the default external editor
+   *
+   * @param path The path of the file relative to the root of the repository
+   */
+  private onOpenItemInExternalEditor = (path: string) => {
+    const fullPath = Path.join(this.props.repository.path, path)
+    this.props.onOpenInExternalEditor(fullPath)
+  }
 
   private onRowDoubleClick = (row: number) => {
     const workingDirectory = this.props.changes.workingDirectory
@@ -259,7 +268,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       return
     }
 
-    this.props.dispatcher.openInExternalEditor(file.path)
+    this.onOpenItemInExternalEditor(file.path)
   }
 
   /**
@@ -426,7 +435,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           showCoAuthoredBy={showCoAuthoredBy}
           coAuthors={coAuthors}
           externalEditorLabel={this.props.externalEditorLabel}
-          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+          onOpenItemInExternalEditor={this.onOpenItemInExternalEditor}
           onChangesListScrolled={this.props.onChangesListScrolled}
           changesListScrollTop={this.props.changesListScrollTop}
           stashEntry={this.props.changes.stashEntry}

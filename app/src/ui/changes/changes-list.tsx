@@ -151,6 +151,14 @@ interface IChangesListProps {
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenItem: (path: string) => void
+
+  /**
+   * Called to open a file it its the default external editor
+   *
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenItemInExternalEditor: (path: string) => void
+
   /**
    * The currently checked out branch (null if no branch is checked out).
    */
@@ -196,13 +204,6 @@ interface IChangesListProps {
 
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
-
-  /**
-   * Callback to open a selected file using the configured external editor
-   *
-   * @param fullPath The full path to the file on disk
-   */
-  readonly onOpenInExternalEditor: (fullPath: string) => void
 
   readonly stashEntry: IStashEntry | null
 
@@ -494,7 +495,7 @@ export class ChangesList extends React.Component<
     file: WorkingDirectoryFileChange,
     enabled: boolean
   ): IMenuItem => {
-    const { externalEditorLabel, repository } = this.props
+    const { externalEditorLabel } = this.props
 
     const openInExternalEditor = externalEditorLabel
       ? `Open in ${externalEditorLabel}`
@@ -503,8 +504,7 @@ export class ChangesList extends React.Component<
     return {
       label: openInExternalEditor,
       action: () => {
-        const fullPath = Path.join(repository.path, file.path)
-        this.props.onOpenInExternalEditor(fullPath)
+        this.props.onOpenItemInExternalEditor(file.path)
       },
       enabled,
     }
