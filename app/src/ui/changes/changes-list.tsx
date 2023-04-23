@@ -55,7 +55,6 @@ import { TooltipDirection } from '../lib/tooltip'
 import { Popup } from '../../models/popup'
 import { EOL } from 'os'
 import { TooltippedContent } from '../lib/tooltipped-content'
-import { openFile } from '../lib/open-file'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -168,6 +167,7 @@ interface IChangesListProps {
    * List Props for documentation.
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
+  readonly onRowDoubleClick: (row: number, source: ClickSource) => void
   readonly commitMessage: ICommitMessage
 
   /** The autocompletion providers available to the repository. */
@@ -270,11 +270,6 @@ export class ChangesList extends React.Component<
     this.props.onSelectAll(include)
   }
 
-  private onOpenItem = (path: string) => {
-    const fullPath = Path.join(this.props.repository.path, path)
-    openFile(fullPath, this.props.dispatcher)
-  }
-
   private renderRow = (row: number): JSX.Element => {
     const {
       workingDirectory,
@@ -330,7 +325,6 @@ export class ChangesList extends React.Component<
         availableWidth={availableWidth}
         disableSelection={disableSelection}
         checkboxTooltip={checkboxTooltip}
-        onDoubleClick={this.onOpenItem}
       />
     )
   }
@@ -988,6 +982,7 @@ export class ChangesList extends React.Component<
               isCommitting: isCommitting,
             }}
             onRowClick={this.props.onRowClick}
+            onRowDoubleClick={this.props.onRowDoubleClick}
             onScroll={this.onScroll}
             setScrollTop={this.props.changesListScrollTop}
             onRowKeyDown={this.onRowKeyDown}
