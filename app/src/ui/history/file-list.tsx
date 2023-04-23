@@ -1,13 +1,16 @@
 import * as React from 'react'
 
 import { CommittedFileChange } from '../../models/status'
-import { List } from '../lib/list'
+import { ClickSource, List } from '../lib/list'
 import { CommittedFileItem } from './committed-file-item'
+import { Dispatcher } from '../dispatcher'
 
 interface IFileListProps {
+  readonly dispatcher?: Dispatcher
   readonly files: ReadonlyArray<CommittedFileChange>
   readonly selectedFile: CommittedFileChange | null
   readonly onSelectedFileChanged: (file: CommittedFileChange) => void
+  readonly onRowDoubleClick?: (row: number, source: ClickSource) => void
   readonly availableWidth: number
   readonly onContextMenu?: (
     file: CommittedFileChange,
@@ -22,6 +25,17 @@ export class FileList extends React.Component<IFileListProps> {
   private onSelectedRowChanged = (row: number) => {
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)
+  }
+
+  private onRowDoubleClick = (row: number) => {
+    const file = this.props.files[row]
+
+    if (!file) {
+      console.error('double click on row with no file - what?')
+      return
+    }
+
+    this.props.dispatcher?.openInExternalEditor(file.path)
   }
 
   private renderFile = (row: number) => {
@@ -47,6 +61,7 @@ export class FileList extends React.Component<IFileListProps> {
           rowHeight={29}
           selectedRows={[this.rowForFile(this.props.selectedFile)]}
           onSelectedRowChanged={this.onSelectedRowChanged}
+          onRowDoubleClick={this.onRowDoubleClick}
         />
       </div>
     )

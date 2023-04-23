@@ -247,6 +247,7 @@ export class SelectedCommits extends React.Component<
 
     return (
       <FileList
+        dispatcher={this.props.dispatcher}
         files={files}
         onSelectedFileChanged={this.onFileSelected}
         selectedFile={this.props.selectedFile}
