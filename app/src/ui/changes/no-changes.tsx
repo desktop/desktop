@@ -28,6 +28,7 @@ import {
 } from '../suggested-actions/dropdown-suggested-action'
 import { PullRequestSuggestedNextAction } from '../../models/pull-request'
 import { enableStartingPullRequests } from '../../lib/feature-flag'
+import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -219,26 +220,12 @@ export class NoChanges extends React.Component<
     return (
       <>
         {parentMenusText} menu or{' '}
-        {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
+        <KeyboardShortcut
+          darwinKeys={this.getMenuShortcut(menuItem)}
+          keys={this.getMenuShortcut(menuItem)}
+        />
       </>
     )
-  }
-
-  private renderDiscoverabilityKeyboardShortcut(menuItem: IMenuItemInfo) {
-    return menuItem.acceleratorKeys.map((k, i) => {
-      if (__DARWIN__) {
-        return <kbd key={k + i}>{k}</kbd>
-      } else {
-        return menuItem.acceleratorKeys.length === i + 1 ? (
-          <kbd key={k + i}>{k}</kbd>
-        ) : (
-          <>
-            <kbd key={k + i}>{k}</kbd>
-            <> + </>
-          </>
-        )
-      }
-    })
   }
 
   private renderMenuBackedAction(
@@ -470,7 +457,10 @@ export class NoChanges extends React.Component<
     const discoverabilityContent = (
       <>
         Always available in the toolbar for local repositories or{' '}
-        {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
+        <KeyboardShortcut
+          darwinKeys={this.getMenuShortcut(menuItem)}
+          keys={this.getMenuShortcut(menuItem)}
+        />
       </>
     )
 
@@ -519,7 +509,10 @@ export class NoChanges extends React.Component<
     const discoverabilityContent = (
       <>
         Always available in the toolbar or{' '}
-        {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
+        <KeyboardShortcut
+          darwinKeys={this.getMenuShortcut(menuItem)}
+          keys={this.getMenuShortcut(menuItem)}
+        />
       </>
     )
 
@@ -569,7 +562,10 @@ export class NoChanges extends React.Component<
     const discoverabilityContent = (
       <>
         Always available in the toolbar when there are remote changes or{' '}
-        {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
+        <KeyboardShortcut
+          darwinKeys={this.getMenuShortcut(menuItem)}
+          keys={this.getMenuShortcut(menuItem)}
+        />
       </>
     )
 
@@ -635,7 +631,11 @@ export class NoChanges extends React.Component<
     const discoverabilityContent = (
       <>
         Always available in the toolbar when there are local commits waiting to
-        be pushed or {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
+        be pushed or{' '}
+        <KeyboardShortcut
+          darwinKeys={this.getMenuShortcut(menuItem)}
+          keys={this.getMenuShortcut(menuItem)}
+        />
       </>
     )
 
@@ -770,6 +770,10 @@ export class NoChanges extends React.Component<
         </SuggestedActionGroup>
       </>
     )
+  }
+
+  private getMenuShortcut(menuItemInfo: IMenuItemInfo): Array<string> {
+    return menuItemInfo.acceleratorKeys.map(k => k)
   }
 
   public componentDidMount() {
