@@ -268,11 +268,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
         tagName="div"
       >
         {!this.state.imageLoaded && (
-          <Octicon
-            symbol={DefaultAvatarSymbol}
-            className="avatar"
-            title={title}
-          />
+          <Octicon symbol={DefaultAvatarSymbol} className="avatar" />
         )}
         {src && (
           <img
