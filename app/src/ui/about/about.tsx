@@ -279,7 +279,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           This operating system is no longer supported. Software updates have
           been disabled.{' '}
           <LinkButton uri="https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/overview/supported-operating-systems">
-            Support details
+            Supported operating systems
           </LinkButton>
         </DialogError>
       )
