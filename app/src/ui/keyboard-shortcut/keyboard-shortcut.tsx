@@ -9,19 +9,15 @@ interface IKeyboardShortCutProps {
 
 export class KeyboardShortcut extends React.Component<IKeyboardShortCutProps> {
   public render() {
-    if (__DARWIN__) {
-      return this.props.darwinKeys.map((k, i) => <kbd key={k + i}>{k}</kbd>)
-    } else {
-      return this.props.keys.map((k, i) => {
-        return this.props.keys.length === i + 1 ? (
+    const keys = __DARWIN__ ? this.props.darwinKeys : this.props.keys
+
+    return keys.map((k, i) => {
+      return (
+        <>
           <kbd key={k + i}>{k}</kbd>
-        ) : (
-          <>
-            <kbd key={k + i}>{k}</kbd>
-            <>+</>
-          </>
-        )
-      })
-    }
+          {!__DARWIN__ && i < keys.length - 1 ? <> + </> : null}
+        </>
+      )
+    })
   }
 }
