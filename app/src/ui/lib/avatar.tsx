@@ -249,6 +249,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   public render() {
     const title = this.getTitle()
     const { user } = this.props
+    const { imageLoaded } = this.state
     const alt = user
       ? `Avatar for ${user.name || user.email}`
       : `Avatar for unknown user`
@@ -267,7 +268,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
         direction={TooltipDirection.NORTH}
         tagName="div"
       >
-        {!this.state.imageLoaded && (
+        {!imageLoaded && (
           <Octicon symbol={DefaultAvatarSymbol} className="avatar" />
         )}
         {src && (
@@ -281,7 +282,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
             alt={alt}
             onLoad={this.onImageLoad}
             onError={this.onImageError}
-            style={{ display: this.state.imageLoaded ? undefined : 'none' }}
+            style={{ display: imageLoaded ? undefined : 'none' }}
           />
         )}
       </TooltippedContent>
