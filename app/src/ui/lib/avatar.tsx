@@ -65,6 +65,7 @@ interface IAvatarProps {
 interface IAvatarState {
   readonly user?: IAvatarUser
   readonly candidates: ReadonlyArray<string>
+  readonly imageLoaded: boolean
 }
 
 /**
@@ -184,7 +185,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     const { user, size } = props
     if (!shallowEquals(user, state.user)) {
       const candidates = getAvatarUrlCandidates(user, size)
-      return { user, candidates }
+      return { user, candidates, imageLoaded: false }
     }
     return null
   }
@@ -196,6 +197,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     this.state = {
       user,
       candidates: getAvatarUrlCandidates(user, size),
+      imageLoaded: false,
     }
   }
 
@@ -231,15 +233,17 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   }
 
   private onImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    if (this.state.candidates.length > 0) {
-      const failingUrl = e.currentTarget.src
-      // To keep the map sorted on last failure
-      FailingAvatars.delete(failingUrl)
-      FailingAvatars.set(failingUrl, Date.now())
+    const { candidates } = this.state
+    if (candidates.length > 0) {
       this.setState({
-        candidates: this.state.candidates.filter(x => x !== failingUrl),
+        candidates: candidates.filter(x => x !== e.currentTarget.src),
+        imageLoaded: false,
       })
     }
+  }
+
+  private onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    this.setState({ imageLoaded: true })
   }
 
   public render() {
@@ -255,24 +259,6 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       return lastFailed === undefined || now - lastFailed > RetryLimit
     })
 
-    if (!src) {
-      return (
-        <Octicon
-          symbol={DefaultAvatarSymbol}
-          className="avatar"
-          title={title}
-        />
-      )
-    }
-
-    const img = (
-      <img className="avatar" src={src} alt={alt} onError={this.onImageError} />
-    )
-
-    if (title === undefined) {
-      return img
-    }
-
     return (
       <TooltippedContent
         className="avatar-container"
@@ -281,9 +267,42 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
         direction={TooltipDirection.NORTH}
         tagName="div"
       >
-        {img}
+        {!this.state.imageLoaded && (
+          <Octicon
+            symbol={DefaultAvatarSymbol}
+            className="avatar"
+            title={title}
+          />
+        )}
+        {src && (
+          <img
+            className="avatar"
+            // This is critical for the functionality of onImageRef, we need a
+            // new Image element for each unique url.
+            key={src}
+            ref={this.onImageRef}
+            src={src}
+            alt={alt}
+            onLoad={this.onImageLoad}
+            onError={this.onImageError}
+            style={{ display: this.state.imageLoaded ? undefined : 'none' }}
+          />
+        )}
       </TooltippedContent>
     )
+  }
+
+  private onImageRef = (img: HTMLImageElement | null) => {
+    // This is different from the onImageLoad react event handler because we're
+    // never unsubscribing from this. If we were to use the react event handler
+    // we'd miss errors that happen after the Avatar component (or img
+    // component) has unmounted. We use a `key` on the img element to ensure
+    // we're always using a new img element for each unique url.
+    img?.addEventListener('error', () => {
+      // Keep the map sorted on last failure, see pruneExpiredFailingAvatars
+      FailingAvatars.delete(img.src)
+      FailingAvatars.set(img.src, Date.now())
+    })
   }
 
   public componentDidMount() {
