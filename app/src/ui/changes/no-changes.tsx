@@ -220,11 +220,17 @@ export class NoChanges extends React.Component<
     return (
       <>
         {parentMenusText} menu or{' '}
-        <KeyboardShortcut
-          darwinKeys={this.getMenuShortcut(menuItem)}
-          keys={this.getMenuShortcut(menuItem)}
-        />
+        {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
       </>
+    )
+  }
+
+  private renderDiscoverabilityKeyboardShortcut(menuItemInfo: IMenuItemInfo) {
+    return (
+      <KeyboardShortcut
+        darwinKeys={menuItemInfo.acceleratorKeys}
+        keys={menuItemInfo.acceleratorKeys}
+      />
     )
   }
 
@@ -457,10 +463,7 @@ export class NoChanges extends React.Component<
     const discoverabilityContent = (
       <>
         Always available in the toolbar for local repositories or{' '}
-        <KeyboardShortcut
-          darwinKeys={this.getMenuShortcut(menuItem)}
-          keys={this.getMenuShortcut(menuItem)}
-        />
+        {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
       </>
     )
 
@@ -509,10 +512,7 @@ export class NoChanges extends React.Component<
     const discoverabilityContent = (
       <>
         Always available in the toolbar or{' '}
-        <KeyboardShortcut
-          darwinKeys={this.getMenuShortcut(menuItem)}
-          keys={this.getMenuShortcut(menuItem)}
-        />
+        {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
       </>
     )
 
@@ -562,10 +562,7 @@ export class NoChanges extends React.Component<
     const discoverabilityContent = (
       <>
         Always available in the toolbar when there are remote changes or{' '}
-        <KeyboardShortcut
-          darwinKeys={this.getMenuShortcut(menuItem)}
-          keys={this.getMenuShortcut(menuItem)}
-        />
+        {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
       </>
     )
 
@@ -631,11 +628,7 @@ export class NoChanges extends React.Component<
     const discoverabilityContent = (
       <>
         Always available in the toolbar when there are local commits waiting to
-        be pushed or{' '}
-        <KeyboardShortcut
-          darwinKeys={this.getMenuShortcut(menuItem)}
-          keys={this.getMenuShortcut(menuItem)}
-        />
+        be pushed or {this.renderDiscoverabilityKeyboardShortcut(menuItem)}
       </>
     )
 
@@ -770,10 +763,6 @@ export class NoChanges extends React.Component<
         </SuggestedActionGroup>
       </>
     )
-  }
-
-  private getMenuShortcut(menuItemInfo: IMenuItemInfo): Array<string> {
-    return menuItemInfo.acceleratorKeys.map(k => k)
   }
 
   public componentDidMount() {
