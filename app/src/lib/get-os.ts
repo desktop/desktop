@@ -61,5 +61,5 @@ export const isWindows10And1809Preview17666OrLater = memoizeOne(
 )
 
 export const isWindowsAndNoLongerSupportedByElectron = memoizeOne(
-  () => true || (__WIN32__ && systemVersionLessThan('10'))
+  () => __WIN32__ && systemVersionLessThan('10')
 )
