@@ -286,15 +286,12 @@ export class BranchDropdown extends React.Component<
       return
     }
 
-    const aheadBehind = await dispatcher.getBranchAheadBehind(
-      repository,
-      branch
-    )
+    const { defaultBranch } = this.props.repositoryState.branchesState
     dispatcher.showPopup({
       type: PopupType.DeleteBranch,
       repository,
       branch,
-      existsOnRemote: aheadBehind !== null,
+      defaultBranch: defaultBranch,
     })
   }
 

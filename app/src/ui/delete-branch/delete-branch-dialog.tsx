@@ -7,12 +7,15 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { Loading } from '../lib/loading'
+import { getAheadBehind, revSymmetricDifference } from '../../lib/git'
+import { FetchType } from '../../models/fetch'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
-  readonly existsOnRemote: boolean
+  readonly defaultBranch: Branch | null
   readonly onDismissed: () => void
   readonly onDeleted: (repository: Repository) => void
 }
@@ -20,6 +23,11 @@ interface IDeleteBranchProps {
 interface IDeleteBranchState {
   readonly includeRemoteBranch: boolean
   readonly isDeleting: boolean
+  readonly isLoading: boolean
+  readonly localUnmergedCommits: number
+  readonly unpushedCommits: number
+  readonly remoteUnmergedCommits: number
+  readonly existsOnRemote: boolean
 }
 
 export class DeleteBranch extends React.Component<
@@ -32,6 +40,58 @@ export class DeleteBranch extends React.Component<
     this.state = {
       includeRemoteBranch: false,
       isDeleting: false,
+      isLoading: true,
+      localUnmergedCommits: 0,
+      unpushedCommits: 0,
+      remoteUnmergedCommits: 0,
+      existsOnRemote: true,
+    }
+  }
+
+  public componentDidMount() {
+    this.checkAheadBehind()
+  }
+
+  private checkAheadBehind = async () => {
+    const { branch, defaultBranch, dispatcher, repository } = this.props
+
+    if (!branch?.upstream) {
+      let localAheadBehind = null
+
+      if (defaultBranch?.name) {
+        localAheadBehind = await getAheadBehind(
+          repository,
+          revSymmetricDifference(branch.name, defaultBranch.name)
+        )
+      }
+
+      this.setState({
+        isLoading: false,
+        existsOnRemote: false,
+        localUnmergedCommits: localAheadBehind?.ahead || 0,
+      })
+    } else {
+      await dispatcher.fetch(repository, FetchType.UserInitiatedTask)
+
+      const pushAheadBehind = await getAheadBehind(
+        repository,
+        revSymmetricDifference(branch.name, branch.upstream)
+      )
+
+      let remoteAheadBehind = null
+      if (defaultBranch?.upstream) {
+        remoteAheadBehind = await getAheadBehind(
+          repository,
+          revSymmetricDifference(branch.upstream, defaultBranch.upstream)
+        )
+      }
+
+      this.setState({
+        isLoading: false,
+        existsOnRemote: true,
+        unpushedCommits: pushAheadBehind?.ahead || 0,
+        remoteUnmergedCommits: remoteAheadBehind?.ahead || 0,
+      })
     }
   }
 
@@ -51,25 +111,85 @@ export class DeleteBranch extends React.Component<
             Delete branch <Ref>{this.props.branch.name}</Ref>?<br />
             This action cannot be undone.
           </p>
-
-          {this.renderDeleteOnRemote()}
+          {this.state.isLoading ? (
+            <p>Fetching origin...</p>
+          ) : (
+            <>
+              {this.renderLocalUnmergedWarning(this.state.localUnmergedCommits)}
+              {this.renderUnpushedCommitsWarning(this.state.unpushedCommits)}
+              {this.renderRemoteUnmergedCommitsWarning(
+                this.state.remoteUnmergedCommits
+              )}
+              <br />
+              {this.renderDeleteOnRemote()}
+            </>
+          )}
         </DialogContent>
         <DialogFooter>
-          <OkCancelButtonGroup destructive={true} okButtonText="Delete" />
+          {this.state.isLoading ? (
+            <Loading />
+          ) : (
+            <OkCancelButtonGroup destructive={true} okButtonText="Delete" />
+          )}
         </DialogFooter>
       </Dialog>
     )
   }
 
+  private renderLocalUnmergedWarning(unmergedCommits: number) {
+    if (this.state.existsOnRemote || this.state.localUnmergedCommits <= 0) {
+      return null
+    }
+
+    return (
+      <div>
+        <strong>
+          Warning: This branch has {unmergedCommits} unmerged{' '}
+          {unmergedCommits === 1 ? 'commit' : 'commits'}.
+        </strong>
+      </div>
+    )
+  }
+
+  private renderUnpushedCommitsWarning(unpushedCommits: number) {
+    if (unpushedCommits <= 0) {
+      return null
+    }
+
+    return (
+      <div>
+        <strong>
+          Warning: This branch has {unpushedCommits} unpushed{' '}
+          {unpushedCommits === 1 ? 'commit' : 'commits'}.
+        </strong>
+      </div>
+    )
+  }
+
+  private renderRemoteUnmergedCommitsWarning(unmergedCommits: number) {
+    if (unmergedCommits <= 0) {
+      return null
+    }
+
+    return (
+      <div>
+        <strong>
+          Warning: <Ref>{this.props.branch.upstream}</Ref> has {unmergedCommits}{' '}
+          unmerged {unmergedCommits === 1 ? 'commit' : 'commits'}.
+        </strong>
+      </div>
+    )
+  }
+
   private renderDeleteOnRemote() {
-    if (this.props.branch.upstreamRemoteName && this.props.existsOnRemote) {
+    if (this.props.branch.upstreamRemoteName && this.state.existsOnRemote) {
       return (
         <div>
           <p>
-            <strong>
-              The branch also exists on the remote, do you wish to delete it
-              there as well?
-            </strong>
+            This branch also exists on the remote (
+            <Ref>{this.props.branch.upstream}</Ref>).
+            <br />
+            Do you wish to delete it there as well?
           </p>
           <Checkbox
             label="Yes, delete this branch on the remote"
