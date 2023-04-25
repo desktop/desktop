@@ -180,15 +180,12 @@ export class AuthorInput extends React.Component<
           {this.state.lastActionDescription}
         </div>
         <div className="shadow-input" ref={this.shadowInputRef} />
-        <label
-          id="author-input-label"
-          className="label"
-          htmlFor="added-authors"
-        >
+        <label id="author-input-label" className="label" htmlFor="author-input">
           Co-Authors&nbsp;
         </label>
         {this.renderAuthors()}
         <AutocompletingInput<UserHit>
+          elementId="author-input"
           placeholder="@username"
           isCombobox={true}
           alwaysAutocomplete={true}
@@ -198,7 +195,6 @@ export class AuthorInput extends React.Component<
           )}
           ref={this.autocompletingInputRef}
           onElementRef={this.onInputRef}
-          elementAriaLabelledBy="author-input-label"
           onAutocompleteItemSelected={this.onAutocompleteItemSelected}
           onValueChanged={this.onCoAuthorsValueChanged}
           onKeyDown={this.onInputKeyDown}
@@ -211,7 +207,6 @@ export class AuthorInput extends React.Component<
   private renderAuthors() {
     return (
       <div
-        id="added-authors"
         className="added-author-container"
         ref={this.authorContainerRef}
         aria-labelledby="author-input-label"

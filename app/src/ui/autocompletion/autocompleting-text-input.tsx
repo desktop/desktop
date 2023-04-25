@@ -25,8 +25,8 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
    */
   readonly className?: string
 
-  /** The aria-labelledby attribute for the input field. */
-  readonly elementAriaLabelledBy?: string
+  /** Element ID for the input field. */
+  readonly elementId?: string
 
   /** The placeholder for the input field. */
   readonly placeholder?: string
@@ -380,6 +380,7 @@ export abstract class AutocompletingTextInput<
 
     const props = {
       type: 'text',
+      id: this.props.elementId,
       role: this.props.isCombobox ? ('combobox' as const) : undefined,
       placeholder: this.props.placeholder,
       value: this.props.value,
@@ -393,7 +394,6 @@ export abstract class AutocompletingTextInput<
       required: this.props.required ? true : false,
       spellCheck: this.props.spellcheck,
       autoComplete: 'off',
-      'aria-labelledby': this.props.elementAriaLabelledBy,
       'aria-expanded': autocompleteVisible,
       'aria-autocomplete': 'list' as const,
       'aria-haspopup': 'listbox' as const,
