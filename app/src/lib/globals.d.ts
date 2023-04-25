@@ -158,6 +158,7 @@ declare namespace Electron {
 interface Window {
   Element: typeof Element
   HTMLElement: typeof HTMLElement
+  appProps: import('../ui/app').IAppProps
 }
 
 interface HTMLDialogElement {

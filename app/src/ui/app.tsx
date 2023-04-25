@@ -181,7 +181,7 @@ const UpdateCheckInterval = 4 * HourInMilliseconds
  */
 const SendStatsInterval = 4 * HourInMilliseconds
 
-interface IAppProps {
+export interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly repositoryStateManager: RepositoryStateCache
   readonly appStore: AppStore
@@ -308,6 +308,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     dragAndDropManager.onDragEnded(this.onDragEnd)
+
+    window.appProps = this.props
   }
 
   public componentWillUnmount() {
