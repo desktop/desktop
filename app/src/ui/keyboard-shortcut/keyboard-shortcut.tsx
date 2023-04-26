@@ -15,7 +15,7 @@ export class KeyboardShortcut extends React.Component<IKeyboardShortCutProps> {
       return (
         <>
           <kbd key={k + i}>{k}</kbd>
-          {!__DARWIN__ && i < keys.length - 1 ? <> + </> : null}
+          {!__DARWIN__ && i < keys.length - 1 ? <>+</> : null}
         </>
       )
     })
