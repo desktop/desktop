@@ -1,5 +1,12 @@
 {
   "releases": {
+    "3.2.2-beta2": [
+      "[Improved] Improve accessibility of GitHub Enterprise login flow - #16567",
+      "[Improved] Screen readers announce sign in errors - #16556",
+      "[Improved] Include remote branches in search for default branch - #15754",
+      "[Improved] Upgrade embedded Git to 2.39.3",
+      "[Removed] Remove unshipped high contrast theme and dependencies - #16559"
+    ],
     "3.2.2-beta1": [
       "[Added] Add support for VimR code editor on macOS. - #16354. Thanks @Elmar-Wiese!",
       "[Fixed] NVDA reads number of suggestions when an autocompletion list shows up - #16526",
