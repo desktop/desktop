@@ -797,6 +797,7 @@ export class ChangesList extends React.Component<
         commitToAmend={commitToAmend}
         showCoAuthoredBy={this.props.showCoAuthoredBy}
         coAuthors={this.props.coAuthors}
+        autocompleteContainerIdInfix="changes-list"
         placeholder={this.getPlaceholderMessage(
           filesSelected,
           prepopulateCommitSummary

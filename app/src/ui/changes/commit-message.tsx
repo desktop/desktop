@@ -81,6 +81,14 @@ interface ICommitMessageProps {
   readonly showCoAuthoredBy: boolean
 
   /**
+   * Unique infix for the different autocomplete container IDs. Required since
+   * there can be multiple CommitMessage components simultaneously in the DOM
+   * and their autocomplete containers must be unambiguously referenced for
+   * screen readers.
+   */
+  readonly autocompleteContainerIdInfix: string
+
+  /**
    * A list of authors (name, email pairs) which have been
    * entered into the co-authors input box in the commit form
    * and which _may_ be used in the subsequent commit to add
@@ -861,6 +869,13 @@ export class CommitMessage extends React.Component<
       'nudge-arrow-left': this.props.shouldNudge === true,
     })
 
+    const {
+      placeholder,
+      autocompleteContainerIdInfix,
+      isCommitting,
+      commitSpellcheckEnabled,
+    } = this.props
+
     return (
       // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
       <div
@@ -875,8 +890,9 @@ export class CommitMessage extends React.Component<
 
           <AutocompletingInput
             required={true}
+            autocompleteContainerIdSuffix={`${autocompleteContainerIdInfix}-commit-summary`}
             className={summaryInputClassName}
-            placeholder={this.props.placeholder}
+            placeholder={placeholder}
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
             onElementRef={this.onSummaryInputRef}
@@ -884,8 +900,8 @@ export class CommitMessage extends React.Component<
               this.state.commitMessageAutocompletionProviders
             }
             onContextMenu={this.onAutocompletingInputContextMenu}
-            disabled={this.props.isCommitting === true}
-            spellcheck={this.props.commitSpellcheckEnabled}
+            disabled={isCommitting === true}
+            spellcheck={commitSpellcheckEnabled}
           />
           {showSummaryLengthHint && this.renderSummaryLengthHint()}
         </div>
@@ -896,6 +912,7 @@ export class CommitMessage extends React.Component<
         >
           <AutocompletingTextArea
             className={descriptionClassName}
+            autocompleteContainerIdSuffix={`${autocompleteContainerIdInfix}-commit-description`}
             placeholder="Description"
             value={this.state.description || ''}
             onValueChanged={this.onDescriptionChanged}
@@ -905,8 +922,8 @@ export class CommitMessage extends React.Component<
             ref={this.onDescriptionFieldRef}
             onElementRef={this.onDescriptionTextAreaRef}
             onContextMenu={this.onAutocompletingInputContextMenu}
-            disabled={this.props.isCommitting === true}
-            spellcheck={this.props.commitSpellcheckEnabled}
+            disabled={isCommitting === true}
+            spellcheck={commitSpellcheckEnabled}
           />
           {this.renderActionBar()}
         </FocusContainer>

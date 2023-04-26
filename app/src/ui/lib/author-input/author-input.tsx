@@ -185,6 +185,7 @@ export class AuthorInput extends React.Component<
         </label>
         {this.renderAuthors()}
         <AutocompletingInput<UserHit>
+          autocompleteContainerIdSuffix="author-input"
           elementId="author-input"
           placeholder="@username"
           isCombobox={true}

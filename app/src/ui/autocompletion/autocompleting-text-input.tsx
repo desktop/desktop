@@ -25,6 +25,13 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
    */
   readonly className?: string
 
+  /**
+   * Unique suffix for the autocomplete container ID. Required since there are
+   * many of them simultaneously in the DOM and they must be unambiguously
+   * referenced for screen readers.
+   */
+  readonly autocompleteContainerIdSuffix: string
+
   /** Element ID for the input field. */
   readonly elementId?: string
 
@@ -164,6 +171,10 @@ export abstract class AutocompletingTextInput<
     }
   }
 
+  private get autocompleteContainerId() {
+    return `autocomplete-container-${this.props.autocompleteContainerIdSuffix}`
+  }
+
   private renderItem = (row: number): JSX.Element | null => {
     const state = this.state.autocompletionState
     if (!state) {
@@ -254,7 +265,7 @@ export abstract class AutocompletingTextInput<
         style={belowElement ? { top, left, height } : { bottom, left, height }}
       >
         <List
-          accessibleListId="autocomplete-container"
+          accessibleListId={this.autocompleteContainerId}
           ref={this.onAutocompletionListRef}
           rowCount={items.length}
           rowHeight={RowHeight}
@@ -397,8 +408,8 @@ export abstract class AutocompletingTextInput<
       'aria-expanded': autocompleteVisible,
       'aria-autocomplete': 'list' as const,
       'aria-haspopup': 'listbox' as const,
-      'aria-controls': 'autocomplete-container',
-      'aria-owns': 'autocomplete-container',
+      'aria-controls': this.autocompleteContainerId,
+      'aria-owns': this.autocompleteContainerId,
       'aria-activedescendant': this.getActiveAutocompleteItemId(),
     }
 
