@@ -31,8 +31,8 @@ import { openFile } from './lib/open-file'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { DragType } from '../models/drag-drop'
-import { clamp } from '../lib/clamp'
 import { PullRequestSuggestedNextAction } from '../models/pull-request'
+import { clamp } from '../lib/clamp'
 
 interface IRepositoryViewProps {
   readonly repository: Repository
@@ -177,12 +177,12 @@ export class RepositoryView extends React.Component<
 
     return (
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
-        <span className="with-indicator">
+        <span className="with-indicator" id="changes-tab">
           <span>Changes</span>
           {this.renderChangesBadge()}
         </span>
 
-        <div className="with-indicator">
+        <div className="with-indicator" id="history-tab">
           <span>History</span>
         </div>
       </TabBar>

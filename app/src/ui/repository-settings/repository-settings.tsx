@@ -29,6 +29,8 @@ import {
   InvalidGitAuthorNameMessage,
 } from '../lib/identifier-rules'
 import { Account } from '../../models/account'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface IRepositorySettingsProps {
   readonly initialSelectedTab?: RepositorySettingsTab
@@ -178,11 +180,23 @@ export class RepositorySettings extends React.Component<
             selectedIndex={this.state.selectedTab}
             type={TabBarType.Vertical}
           >
-            <span>Remote</span>
-            <span>{__DARWIN__ ? 'Ignored Files' : 'Ignored files'}</span>
-            <span>{__DARWIN__ ? 'Git Config' : 'Git config'}</span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.server} />
+              Remote
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.file} />
+              {__DARWIN__ ? 'Ignored Files' : 'Ignored files'}
+            </span>
+            <span>
+              <Octicon className="icon" symbol={OcticonSymbol.gitCommit} />
+              {__DARWIN__ ? 'Git Config' : 'Git config'}
+            </span>
             {showForkSettings && (
-              <span>{__DARWIN__ ? 'Fork Behavior' : 'Fork behavior'}</span>
+              <span>
+                <Octicon className="icon" symbol={OcticonSymbol.repoForked} />
+                {__DARWIN__ ? 'Fork Behavior' : 'Fork behavior'}
+              </span>
             )}
           </TabBar>
 

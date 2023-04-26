@@ -102,6 +102,7 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
         tabIndex={-1}
         className={className}
         onClick={onClick}
+        aria-hidden="true"
       >
         <svg aria-hidden="true" version="1.1" width="10" height="10">
           <path d={path} />

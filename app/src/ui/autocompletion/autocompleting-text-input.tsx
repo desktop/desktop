@@ -25,8 +25,8 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
    */
   readonly className?: string
 
-  /** The aria-labelledby attribute for the input field. */
-  readonly elementAriaLabelledBy?: string
+  /** Element ID for the input field. */
+  readonly elementId?: string
 
   /** The placeholder for the input field. */
   readonly placeholder?: string
@@ -38,7 +38,7 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   readonly disabled?: boolean
 
   /** Indicates if input field should be required */
-  readonly isRequired?: boolean
+  readonly required?: boolean
 
   /**
    * Indicates if input field should be considered a combobox by assistive
@@ -247,11 +247,6 @@ export abstract class AutocompletingTextInput<
     const searchText = state.rangeText
 
     const className = classNames('autocompletion-popup', state.provider.kind)
-    const shouldForceAriaLiveMessage = this.shouldForceAriaLiveMessage
-    this.shouldForceAriaLiveMessage = false
-
-    const suggestionsMessage =
-      items.length === 1 ? '1 suggestion' : `${items.length} suggestions`
 
     return (
       <div
@@ -267,16 +262,11 @@ export abstract class AutocompletingTextInput<
           selectedRows={[selectedRow]}
           rowRenderer={this.renderItem}
           scrollToRow={selectedRow}
-          selectOnHover={false}
-          focusOnHover={false}
           onRowMouseDown={this.onRowMouseDown}
           onRowClick={this.insertCompletionOnClick}
           onSelectedRowChanged={this.onSelectedRowChanged}
           invalidationProps={searchText}
         />
-        <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>
-          {suggestionsMessage}
-        </AriaLiveContainer>
       </div>
     )
   }
@@ -390,6 +380,7 @@ export abstract class AutocompletingTextInput<
 
     const props = {
       type: 'text',
+      id: this.props.elementId,
       role: this.props.isCombobox ? ('combobox' as const) : undefined,
       placeholder: this.props.placeholder,
       value: this.props.value,
@@ -400,10 +391,9 @@ export abstract class AutocompletingTextInput<
       onBlur: this.onBlur,
       onContextMenu: this.onContextMenu,
       disabled: this.props.disabled,
-      'aria-required': this.props.isRequired ? true : false,
+      required: this.props.required ? true : false,
       spellCheck: this.props.spellcheck,
       autoComplete: 'off',
-      'aria-labelledby': this.props.elementAriaLabelledBy,
       'aria-expanded': autocompleteVisible,
       'aria-autocomplete': 'list' as const,
       'aria-haspopup': 'listbox' as const,
@@ -449,16 +439,31 @@ export abstract class AutocompletingTextInput<
     const tagName = this.getElementTagName()
     const className = classNames(
       'autocompletion-container',
+      'no-invalid-state',
       this.props.className,
       {
         'text-box-component': tagName === 'input',
         'text-area-component': tagName === 'textarea',
       }
     )
+
+    const shouldForceAriaLiveMessage = this.shouldForceAriaLiveMessage
+    this.shouldForceAriaLiveMessage = false
+
+    const autoCompleteItems = this.state.autocompletionState?.items ?? []
+
+    const suggestionsMessage =
+      autoCompleteItems.length === 1
+        ? '1 suggestion'
+        : `${autoCompleteItems.length} suggestions`
+
     return (
       <div className={className}>
         {this.renderAutocompletions()}
         {this.renderTextInput()}
+        <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>
+          {autoCompleteItems.length > 0 ? suggestionsMessage : ''}
+        </AriaLiveContainer>
       </div>
     )
   }

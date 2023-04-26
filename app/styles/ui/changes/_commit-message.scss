@@ -30,7 +30,6 @@
       flex-shrink: 0;
       width: var(--text-field-height);
       height: var(--text-field-height);
-      margin-right: var(--spacing-half);
     }
 
     &.with-length-hint input {
@@ -88,6 +87,10 @@
   &.with-action-bar {
     .description-field textarea {
       min-height: 80px;
+
+      @media (max-height: 500px) {
+        min-height: 10px;
+      }
 
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
