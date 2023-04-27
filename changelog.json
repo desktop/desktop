@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.2.2": ["[Improved] Upgrade embedded Git to 2.39.3"],
     "3.2.2-beta2": [
       "[Improved] Improve accessibility of GitHub Enterprise login flow - #16567",
       "[Improved] Screen readers announce sign in errors - #16556",
