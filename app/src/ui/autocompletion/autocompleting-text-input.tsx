@@ -35,6 +35,9 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /** Element ID for the input field. */
   readonly elementId?: string
 
+  /** Content of an optional invisible label element for screen readers. */
+  readonly screenReaderLabel?: string
+
   /** The placeholder for the input field. */
   readonly placeholder?: string
 
@@ -465,6 +468,11 @@ export abstract class AutocompletingTextInput<
     return (
       <div className={className}>
         {this.renderAutocompletions()}
+        {this.props.screenReaderLabel && (
+          <label className="sr-only" htmlFor={this.props.elementId}>
+            {this.props.screenReaderLabel}
+          </label>
+        )}
         {this.renderTextInput()}
         <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>
           {autoCompleteItems.length > 0 ? suggestionsMessage : ''}
