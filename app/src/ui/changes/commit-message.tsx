@@ -81,14 +81,6 @@ interface ICommitMessageProps {
   readonly showCoAuthoredBy: boolean
 
   /**
-   * Unique infix for the different autocomplete container IDs. Required since
-   * there can be multiple CommitMessage components simultaneously in the DOM
-   * and their autocomplete containers must be unambiguously referenced for
-   * screen readers.
-   */
-  readonly autocompleteContainerIdInfix: string
-
-  /**
    * A list of authors (name, email pairs) which have been
    * entered into the co-authors input box in the commit form
    * and which _may_ be used in the subsequent commit to add
@@ -869,12 +861,7 @@ export class CommitMessage extends React.Component<
       'nudge-arrow-left': this.props.shouldNudge === true,
     })
 
-    const {
-      placeholder,
-      autocompleteContainerIdInfix: autocompleteElementIdInfix,
-      isCommitting,
-      commitSpellcheckEnabled,
-    } = this.props
+    const { placeholder, isCommitting, commitSpellcheckEnabled } = this.props
 
     return (
       // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
@@ -890,9 +877,7 @@ export class CommitMessage extends React.Component<
 
           <AutocompletingInput
             required={true}
-            elementId={`${autocompleteElementIdInfix}-commit-summary-input`}
             screenReaderLabel="Commit summary"
-            autocompleteContainerIdSuffix={`${autocompleteElementIdInfix}-commit-summary`}
             className={summaryInputClassName}
             placeholder={placeholder}
             value={this.state.summary}
@@ -914,9 +899,7 @@ export class CommitMessage extends React.Component<
         >
           <AutocompletingTextArea
             className={descriptionClassName}
-            elementId={`${autocompleteElementIdInfix}-commit-description-input`}
             screenReaderLabel="Commit description"
-            autocompleteContainerIdSuffix={`${autocompleteElementIdInfix}-commit-description`}
             placeholder="Description"
             value={this.state.description || ''}
             onValueChanged={this.onDescriptionChanged}

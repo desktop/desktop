@@ -17,6 +17,7 @@ interface IRange {
 import getCaretCoordinates from 'textarea-caret'
 import { showContextualMenu } from '../../lib/menu-item'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
+import { uuid } from '../../lib/uuid'
 
 interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /**
@@ -24,13 +25,6 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
    * top level element of the component.
    */
   readonly className?: string
-
-  /**
-   * Unique suffix for the autocomplete container ID. Required since there are
-   * many of them simultaneously in the DOM and they must be unambiguously
-   * referenced for screen readers.
-   */
-  readonly autocompleteContainerIdSuffix: string
 
   /** Element ID for the input field. */
   readonly elementId?: string
@@ -137,6 +131,7 @@ export abstract class AutocompletingTextInput<
 > {
   private element: ElementType | null = null
   private shouldForceAriaLiveMessage = false
+  private uniqueInternalID = uuid()
 
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
@@ -169,7 +164,14 @@ export abstract class AutocompletingTextInput<
   }
 
   private get autocompleteContainerId() {
-    return `autocomplete-container-${this.props.autocompleteContainerIdSuffix}`
+    return `autocomplete-container-${this.uniqueInternalID}`
+  }
+
+  private get elementId() {
+    return (
+      this.props.elementId ??
+      `autocompleting-text-input-${this.uniqueInternalID}`
+    )
   }
 
   private renderItem = (row: number): JSX.Element | null => {
@@ -388,7 +390,7 @@ export abstract class AutocompletingTextInput<
 
     const props = {
       type: 'text',
-      id: this.props.elementId,
+      id: this.elementId,
       role: 'combobox',
       placeholder: this.props.placeholder,
       value: this.props.value,
@@ -469,7 +471,7 @@ export abstract class AutocompletingTextInput<
       <div className={className}>
         {this.renderAutocompletions()}
         {this.props.screenReaderLabel && (
-          <label className="sr-only" htmlFor={this.props.elementId}>
+          <label className="sr-only" htmlFor={this.elementId}>
             {this.props.screenReaderLabel}
           </label>
         )}
