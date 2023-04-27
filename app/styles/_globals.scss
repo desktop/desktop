@@ -181,7 +181,10 @@ kbd {
   text-align: center;
   min-width: 1.5em;
 
-  &:not(:last-child) {
-    margin-right: 2px;
+  @include darwin {
+    // On macOS, kbd elements are not separated by a +, so let's add a margin
+    &:not(:last-child) {
+      margin-right: 2px;
+    }
   }
 }
