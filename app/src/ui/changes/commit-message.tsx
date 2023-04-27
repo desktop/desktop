@@ -871,7 +871,7 @@ export class CommitMessage extends React.Component<
 
     const {
       placeholder,
-      autocompleteContainerIdInfix,
+      autocompleteContainerIdInfix: autocompleteElementIdInfix,
       isCommitting,
       commitSpellcheckEnabled,
     } = this.props
@@ -890,7 +890,9 @@ export class CommitMessage extends React.Component<
 
           <AutocompletingInput
             required={true}
-            autocompleteContainerIdSuffix={`${autocompleteContainerIdInfix}-commit-summary`}
+            elementId={`${autocompleteElementIdInfix}-commit-summary-input`}
+            screenReaderLabel="Commit summary"
+            autocompleteContainerIdSuffix={`${autocompleteElementIdInfix}-commit-summary`}
             className={summaryInputClassName}
             placeholder={placeholder}
             value={this.state.summary}
@@ -912,7 +914,9 @@ export class CommitMessage extends React.Component<
         >
           <AutocompletingTextArea
             className={descriptionClassName}
-            autocompleteContainerIdSuffix={`${autocompleteContainerIdInfix}-commit-description`}
+            elementId={`${autocompleteElementIdInfix}-commit-description-input`}
+            screenReaderLabel="Commit description"
+            autocompleteContainerIdSuffix={`${autocompleteElementIdInfix}-commit-description`}
             placeholder="Description"
             value={this.state.description || ''}
             onValueChanged={this.onDescriptionChanged}
