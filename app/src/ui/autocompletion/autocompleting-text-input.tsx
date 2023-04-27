@@ -47,12 +47,6 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /** Indicates if input field should be required */
   readonly required?: boolean
 
-  /**
-   * Indicates if input field should be considered a combobox by assistive
-   * technologies. Optional. Default: false
-   */
-  readonly isCombobox?: boolean
-
   /** Indicates if input field applies spellcheck */
   readonly spellcheck?: boolean
 
@@ -392,7 +386,7 @@ export abstract class AutocompletingTextInput<
     const props = {
       type: 'text',
       id: this.props.elementId,
-      role: this.props.isCombobox ? ('combobox' as const) : undefined,
+      role: 'combobox',
       placeholder: this.props.placeholder,
       value: this.props.value,
       ref: this.onRef,
