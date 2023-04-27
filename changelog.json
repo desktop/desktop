@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.2.3-test1": [
+      "[Improved] Improve accessibility of autocompleting text inputs"
+    ],
     "3.2.2-beta2": [
       "[Improved] Improve accessibility of GitHub Enterprise login flow - #16567",
       "[Improved] Screen readers announce sign in errors - #16556",
