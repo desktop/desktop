@@ -120,5 +120,5 @@ export function enablePushPullFetchDropdown(): boolean {
 
 /** Should we enable the new PR comment notifications? */
 export function enablePullRequestCommentNotifications(): boolean {
-  return enableBetaFeatures()
+  return true
 }
