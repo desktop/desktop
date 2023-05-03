@@ -79,7 +79,7 @@ interface IRepositoryViewProps {
    * @param fullPath The full path to the file on disk
    * @param line The line number to try to go to
    */
-  readonly onOpenInExternalEditor: (fullPath: string) => void
+  readonly onOpenInExternalEditor: (fullPath: string, line?: number) => void
 
   /**
    * The top-level application menu item.

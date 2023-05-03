@@ -64,8 +64,9 @@ interface IChangesSidebarProps {
    * Callback to open a selected file using the configured external editor
    *
    * @param fullPath The full path to the file on disk
+   * @param line The line number to try to go to
    */
-  readonly onOpenInExternalEditor: (fullPath: string) => void
+  readonly onOpenInExternalEditor: (fullPath: string, line?: number) => void
   readonly onChangesListScrolled: (scrollTop: number) => void
   readonly changesListScrollTop?: number
 
@@ -253,10 +254,11 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
    * Called to open a file it its the default external editor
    *
    * @param path The path of the file relative to the root of the repository
+   * @param line The line number to try to go to
    */
-  private onOpenItemInExternalEditor = (path: string) => {
+  private onOpenItemInExternalEditor = (path: string, line?: number) => {
     const fullPath = Path.join(this.props.repository.path, path)
-    this.props.onOpenInExternalEditor(fullPath)
+    this.props.onOpenInExternalEditor(fullPath, line)
   }
 
   private onRowDoubleClick = (row: number) => {
