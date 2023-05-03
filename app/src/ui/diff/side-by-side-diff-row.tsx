@@ -103,6 +103,12 @@ interface ISideBySideDiffRowProps {
    * (only relevant when isDiffSelectable is true)
    */
   readonly onContextMenuLine: (diffLineNumber: number) => void
+  /**
+   * Called when the user double-clicks a line number.
+   *
+   * @param diffLineNumber The clicked line number
+   */
+  readonly onLineNumberDoubleClick: (diffLineNumber: number) => void
 
   /**
    * Called when the user right-clicks a hunk handle. Called with the start
@@ -471,7 +477,12 @@ export class SideBySideDiffRow extends React.Component<
       return (
         <div className="line-number" style={{ width: this.lineGutterWidth }}>
           {lineNumbers.map((lineNumber, index) => (
-            <span key={index}>{lineNumber}</span>
+            <span
+              key={index}
+              onDoubleClick={this.onDoubleClickLineNumber(lineNumber)}
+            >
+              {lineNumber}
+            </span>
           ))}
         </div>
       )
@@ -489,7 +500,12 @@ export class SideBySideDiffRow extends React.Component<
         onContextMenu={this.onContextMenuLineNumber}
       >
         {lineNumbers.map((lineNumber, index) => (
-          <span key={index}>{lineNumber}</span>
+          <span
+            key={index}
+            onDoubleClick={this.onDoubleClickLineNumber(lineNumber)}
+          >
+            {lineNumber}
+          </span>
         ))}
       </div>
     )
@@ -585,6 +601,15 @@ export class SideBySideDiffRow extends React.Component<
 
     return null
   }
+
+  private onDoubleClickLineNumber =
+    (lineNumber: number | undefined) => (evt: React.MouseEvent) => {
+      if (lineNumber === undefined) {
+        return
+      }
+
+      this.props.onLineNumberDoubleClick(lineNumber)
+    }
 
   private onMouseDownLineNumber = (evt: React.MouseEvent) => {
     if (evt.buttons === 2) {

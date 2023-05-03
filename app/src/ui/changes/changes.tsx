@@ -24,6 +24,14 @@ interface IChangesProps {
   readonly hideWhitespaceInDiff: boolean
 
   /**
+   * Callback to open a selected file using the configured external editor
+   *
+   * @param fullPath The full path to the file on disk
+   * @param line The line number to try to go to
+   */
+  readonly onOpenInExternalEditor: (fullPath: string) => void
+
+  /**
    * Called when the user requests to open a binary file in an the
    * system-assigned application for said file type.
    */
@@ -127,6 +135,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
           onOpenSubmodule={this.props.onOpenSubmodule}
           onChangeImageDiffType={this.props.onChangeImageDiffType}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />
       </div>
     )

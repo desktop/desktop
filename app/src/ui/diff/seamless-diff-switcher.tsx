@@ -66,6 +66,15 @@ interface ISeamlessDiffSwitcherProps {
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
 
+  /**
+   * Callback to open a selected file using the configured external editor
+   *
+   * @param fullPath The full path to the file on disk
+   * @param line The line number to try to go to
+   */
+  readonly onOpenInExternalEditor?: (fullPath: string, line: number) => void
+  //@TODO: should not be optional once added to all renderers
+
   /** Called when the user requests to open a submodule. */
   readonly onOpenSubmodule?: (fullPath: string) => void
 
@@ -313,6 +322,7 @@ export class SeamlessDiffSwitcher extends React.Component<
       onDiscardChanges,
       file,
       onOpenBinaryFile,
+      onOpenInExternalEditor,
       onOpenSubmodule,
       onChangeImageDiffType,
       onHideWhitespaceInDiffChanged,
@@ -348,6 +358,9 @@ export class SeamlessDiffSwitcher extends React.Component<
             onIncludeChanged={isLoadingDiff ? noop : onIncludeChanged}
             onDiscardChanges={isLoadingDiff ? noop : onDiscardChanges}
             onOpenBinaryFile={isLoadingDiff ? noop : onOpenBinaryFile}
+            onOpenInExternalEditor={
+              isLoadingDiff ? noop : onOpenInExternalEditor
+            }
             onOpenSubmodule={isLoadingDiff ? noop : onOpenSubmodule}
             onChangeImageDiffType={isLoadingDiff ? noop : onChangeImageDiffType}
             onHideWhitespaceInDiffChanged={

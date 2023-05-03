@@ -1,4 +1,5 @@
 import * as React from 'react'
+
 import { Repository } from '../../models/repository'
 import {
   ITextDiff,
@@ -106,6 +107,14 @@ interface ISideBySideDiffProps {
    * Contents of the old and new files related to the current text diff.
    */
   readonly fileContents: IFileContents | null
+
+  /**
+   * Callback to open a selected file using the configured external editor
+   *
+   * @param fullPath The full path to the file on disk
+   * @param line The line number to try to go to
+   */
+  readonly onOpenInExternalEditor?: (fullPath: string, line: number) => void
 
   /**
    * Called when the includedness of lines or a range of lines has changed.
@@ -419,6 +428,15 @@ export class SideBySideDiff extends React.Component<
     this.diffContainer = ref
   }
 
+  private onLineNumberDoubleClick = (line: number) => {
+    if (!this.props.onOpenInExternalEditor) {
+      return
+    }
+
+    const filePath = this.props.file.path
+    this.props.onOpenInExternalEditor(filePath, line)
+  }
+
   public render() {
     const { diff } = this.state
 
@@ -574,6 +592,7 @@ export class SideBySideDiff extends React.Component<
             }
             beforeClassNames={beforeClassNames}
             afterClassNames={afterClassNames}
+            onLineNumberDoubleClick={this.onLineNumberDoubleClick}
           />
         </div>
       </CellMeasurer>

@@ -2726,18 +2726,19 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.openShell(repository.path)
   }
 
-  private openFileInExternalEditor = (fullPath: string) => {
-    this.props.dispatcher.openInExternalEditor(fullPath)
+  private openFileInExternalEditor = (fullPath: string, line?: number) => {
+    this.props.dispatcher.openInExternalEditor(fullPath, line)
   }
 
   private openInExternalEditor = (
-    repository: Repository | CloningRepository
+    repository: Repository | CloningRepository,
+    line?: number
   ) => {
     if (!(repository instanceof Repository)) {
       return
     }
 
-    this.props.dispatcher.openInExternalEditor(repository.path)
+    this.props.dispatcher.openInExternalEditor(repository.path, line)
   }
 
   private showRepository = (repository: Repository | CloningRepository) => {

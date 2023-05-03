@@ -1,7 +1,7 @@
 import * as Path from 'path'
 import { execFile } from './exec-file'
 
-const findOnPath = (program: string) => {
+export const findOnPath = (program: string) => {
   if (__WIN32__) {
     const cwd = process.env.SystemRoot || 'C:\\Windows'
     const cmd = Path.join(cwd, 'System32', 'where.exe')

@@ -1383,8 +1383,11 @@ export class Dispatcher {
   /**
    * Opens a path in the external editor selected by the user.
    */
-  public async openInExternalEditor(fullPath: string): Promise<void> {
-    return this.appStore._openInExternalEditor(fullPath)
+  public async openInExternalEditor(
+    fullPath: string,
+    line?: number
+  ): Promise<void> {
+    return this.appStore._openInExternalEditor(fullPath, line)
   }
 
   /**
