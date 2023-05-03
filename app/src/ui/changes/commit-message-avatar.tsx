@@ -17,7 +17,7 @@ interface ICommitMessageAvatarState {
   readonly accountEmail: string
 
   /** Whether the git configuration is local to the repository or global  */
-  isGitConfigLocal: boolean
+  readonly isGitConfigLocal: boolean
 }
 
 interface ICommitMessageAvatarProps {
