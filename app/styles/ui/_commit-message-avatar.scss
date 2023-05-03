@@ -48,12 +48,6 @@
     align-items: center;
   }
 
-  h3 {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-  }
-
   section + section {
     margin-top: var(--spacing);
   }
@@ -83,11 +77,11 @@
       margin-bottom: var(--spacing);
     }
 
-    position: absolute;
-    margin-left: 21px;
-    bottom: 13px;
-
     width: 300px;
+    position: absolute;
+
+    margin-left: 31px;
+    bottom: 3px;
 
     @media (max-height: 500px) {
       bottom: -125px;
