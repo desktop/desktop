@@ -59,6 +59,11 @@
 
   .button-row {
     justify-content: flex-end;
+
+    button {
+      min-width: 120px;
+      margin-right: var(--spacing-half);
+    }
   }
 
   .secondary-text {

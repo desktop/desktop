@@ -8,12 +8,16 @@ import { Avatar } from '../lib/avatar'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
+import { OkCancelButtonGroup } from '../dialog'
 
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
 
   /** Currently selected account email address. */
   readonly accountEmail: string
+
+  /** Whether the git configuration is local to the repository or global  */
+  isGitConfigLocal: boolean
 }
 
 interface ICommitMessageAvatarProps {
@@ -34,6 +38,9 @@ interface ICommitMessageAvatarProps {
 
   /** Preferred email address from the user's account. */
   readonly preferredAccountEmail: string
+
+  /** Whether the git configuration is local to the repository or global  */
+  readonly isGitConfigLocal: Promise<boolean>
 
   readonly onUpdateEmail: (email: string) => void
 
@@ -64,7 +71,25 @@ export class CommitMessageAvatar extends React.Component<
     this.state = {
       isPopoverOpen: false,
       accountEmail: this.props.preferredAccountEmail,
+      isGitConfigLocal: false,
     }
+
+    this.determineGitConfigLocation()
+  }
+
+  public componentDidUpdate(prevProps: ICommitMessageAvatarProps) {
+    if (
+      this.props.user !== prevProps.user ||
+      this.props.user?.name !== prevProps.user?.name ||
+      this.props.user?.email !== prevProps.user?.email
+    ) {
+      this.determineGitConfigLocation()
+    }
+  }
+
+  private async determineGitConfigLocation() {
+    const isGitConfigLocal = await this.props.isGitConfigLocal
+    this.setState({ isGitConfigLocal })
   }
 
   public render() {
@@ -120,20 +145,41 @@ export class CommitMessageAvatar extends React.Component<
 
   private renderGitConfigPopover() {
     const { user } = this.props
+    const { isGitConfigLocal } = this.state
+
+    const location = isGitConfigLocal ? 'local' : 'global'
+    const locationDesc = isGitConfigLocal ? 'for your repository' : ''
+    const settingsName = __DARWIN__ ? 'preferences' : 'options'
+    const settings = isGitConfigLocal
+      ? 'repository settings'
+      : `git ${settingsName}`
+    const buttonText = __DARWIN__ ? 'Update Git Config' : 'Update git config'
+
     return (
       <>
-        <p>Email: {user && user.name && user.email}</p>
+        <p>{user && user.name && `Email: ${user.email}`}</p>
+
         <p>
-          Update your global git configuration in your{' '}
-          <LinkButton onClick={this.onOpenGitSettings}>
-            git {__DARWIN__ ? 'preferences' : 'options'}
-          </LinkButton>
-          , or you can set an email local to this repository in the{' '}
-          <LinkButton onClick={this.onRepositorySettingsClick}>
-            repository settings
-          </LinkButton>{' '}
-          .
+          You can update your {location} git configuration {locationDesc} in
+          your {settings}.
         </p>
+
+        {!isGitConfigLocal && (
+          <p className="secondary-text">
+            You can also set an email local to this repository from the{' '}
+            <LinkButton onClick={this.onRepositorySettingsClick}>
+              repository settings
+            </LinkButton>
+            .
+          </p>
+        )}
+        <Row className="button-row">
+          <OkCancelButtonGroup
+            okButtonText={buttonText}
+            onOkButtonClick={this.onOpenGitSettings}
+            onCancelButtonClick={this.onIgnoreClick}
+          />
+        </Row>
       </>
     )
   }
@@ -248,7 +294,11 @@ export class CommitMessageAvatar extends React.Component<
 
   private onOpenGitSettings = () => {
     this.closePopover()
-    this.props.onOpenGitSettings()
+    if (this.state.isGitConfigLocal) {
+      this.props.onOpenRepositorySettings()
+    } else {
+      this.props.onOpenGitSettings()
+    }
   }
 
   private onIgnoreClick = (event: React.MouseEvent<HTMLButtonElement>) => {
