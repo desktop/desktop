@@ -157,7 +157,7 @@ export class CommitMessageAvatar extends React.Component<
     const settings = isGitConfigLocal
       ? 'repository settings'
       : `git ${settingsName}`
-    const buttonText = __DARWIN__ ? 'Update Git Config' : 'Update git config'
+    const buttonText = __DARWIN__ ? 'Open Git Settings' : 'Open git settings'
 
     return (
       <>
