@@ -85,6 +85,7 @@ export enum PopupType {
   CICheckRunRerun = 'CICheckRunRerun',
   WarnForcePush = 'WarnForcePush',
   DiscardChangesRetry = 'DiscardChangesRetry',
+  RemoveRepositoryRetry = 'RemoveRepositoryRetry',
   PullRequestReview = 'PullRequestReview',
   UnreachableCommits = 'UnreachableCommits',
   StartPullRequest = 'StartPullRequest',
@@ -105,309 +106,313 @@ interface IBasePopup {
 export type PopupDetail =
   | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
   | {
-      type: PopupType.DeleteBranch
-      repository: Repository
-      branch: Branch
-      existsOnRemote: boolean
-    }
+    type: PopupType.DeleteBranch
+    repository: Repository
+    branch: Branch
+    existsOnRemote: boolean
+  }
   | {
-      type: PopupType.DeleteRemoteBranch
-      repository: Repository
-      branch: Branch
-    }
+    type: PopupType.DeleteRemoteBranch
+    repository: Repository
+    branch: Branch
+  }
   | {
-      type: PopupType.ConfirmDiscardChanges
-      repository: Repository
-      files: ReadonlyArray<WorkingDirectoryFileChange>
-      showDiscardChangesSetting?: boolean
-      discardingAllChanges?: boolean
-    }
+    type: PopupType.ConfirmDiscardChanges
+    repository: Repository
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+    showDiscardChangesSetting?: boolean
+    discardingAllChanges?: boolean
+  }
   | {
-      type: PopupType.ConfirmDiscardSelection
-      repository: Repository
-      file: WorkingDirectoryFileChange
-      diff: ITextDiff
-      selection: DiffSelection
-    }
+    type: PopupType.ConfirmDiscardSelection
+    repository: Repository
+    file: WorkingDirectoryFileChange
+    diff: ITextDiff
+    selection: DiffSelection
+  }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
   | {
-      type: PopupType.RepositorySettings
-      repository: Repository
-      initialSelectedTab?: RepositorySettingsTab
-    }
+    type: PopupType.RepositorySettings
+    repository: Repository
+    initialSelectedTab?: RepositorySettingsTab
+  }
   | { type: PopupType.AddRepository; path?: string }
   | { type: PopupType.CreateRepository; path?: string }
   | {
-      type: PopupType.CloneRepository
-      initialURL: string | null
-    }
+    type: PopupType.CloneRepository
+    initialURL: string | null
+  }
   | {
-      type: PopupType.CreateBranch
-      repository: Repository
-      initialName?: string
-      targetCommit?: CommitOneLine
-    }
+    type: PopupType.CreateBranch
+    repository: Repository
+    initialName?: string
+    targetCommit?: CommitOneLine
+  }
   | { type: PopupType.SignIn }
   | { type: PopupType.About }
   | { type: PopupType.InstallGit; path: string }
   | { type: PopupType.PublishRepository; repository: Repository }
   | { type: PopupType.Acknowledgements }
   | {
-      type: PopupType.UntrustedCertificate
-      certificate: Electron.Certificate
-      url: string
-    }
+    type: PopupType.UntrustedCertificate
+    certificate: Electron.Certificate
+    url: string
+  }
   | { type: PopupType.RemoveRepository; repository: Repository }
   | { type: PopupType.TermsAndConditions }
   | {
-      type: PopupType.PushBranchCommits
-      repository: Repository
-      branch: Branch
-      unPushedCommits?: number
-    }
+    type: PopupType.PushBranchCommits
+    repository: Repository
+    branch: Branch
+    unPushedCommits?: number
+  }
   | { type: PopupType.CLIInstalled }
   | {
-      type: PopupType.GenericGitAuthentication
-      hostname: string
-      retryAction: RetryAction
-    }
+    type: PopupType.GenericGitAuthentication
+    hostname: string
+    retryAction: RetryAction
+  }
   | {
-      type: PopupType.ExternalEditorFailed
-      message: string
-      suggestDefaultEditor?: boolean
-      openPreferences?: boolean
-    }
+    type: PopupType.ExternalEditorFailed
+    message: string
+    suggestDefaultEditor?: boolean
+    openPreferences?: boolean
+  }
   | { type: PopupType.OpenShellFailed; message: string }
   | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
   | { type: PopupType.LFSAttributeMismatch }
   | {
-      type: PopupType.UpstreamAlreadyExists
-      repository: Repository
-      existingRemote: IRemote
-    }
+    type: PopupType.UpstreamAlreadyExists
+    repository: Repository
+    existingRemote: IRemote
+  }
   | {
-      type: PopupType.ReleaseNotes
-      newReleases: ReadonlyArray<ReleaseSummary>
-    }
+    type: PopupType.ReleaseNotes
+    newReleases: ReadonlyArray<ReleaseSummary>
+  }
   | {
-      type: PopupType.DeletePullRequest
-      repository: Repository
-      branch: Branch
-      pullRequest: PullRequest
-    }
+    type: PopupType.DeletePullRequest
+    repository: Repository
+    branch: Branch
+    pullRequest: PullRequest
+  }
   | {
-      type: PopupType.OversizedFiles
-      oversizedFiles: ReadonlyArray<string>
-      context: ICommitContext
-      repository: Repository
-    }
+    type: PopupType.OversizedFiles
+    oversizedFiles: ReadonlyArray<string>
+    context: ICommitContext
+    repository: Repository
+  }
   | {
-      type: PopupType.CommitConflictsWarning
-      /** files that were selected for committing that are also conflicted */
-      files: ReadonlyArray<WorkingDirectoryFileChange>
-      /** repository user is committing in */
-      repository: Repository
-      /** information for completing the commit */
-      context: ICommitContext
-    }
+    type: PopupType.CommitConflictsWarning
+    /** files that were selected for committing that are also conflicted */
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+    /** repository user is committing in */
+    repository: Repository
+    /** information for completing the commit */
+    context: ICommitContext
+  }
   | {
-      type: PopupType.PushNeedsPull
-      repository: Repository
-    }
+    type: PopupType.PushNeedsPull
+    repository: Repository
+  }
   | {
-      type: PopupType.ConfirmForcePush
-      repository: Repository
-      upstreamBranch: string
-    }
+    type: PopupType.ConfirmForcePush
+    repository: Repository
+    upstreamBranch: string
+  }
   | {
-      type: PopupType.StashAndSwitchBranch
-      repository: Repository
-      branchToCheckout: Branch
-    }
+    type: PopupType.StashAndSwitchBranch
+    repository: Repository
+    branchToCheckout: Branch
+  }
   | {
-      type: PopupType.ConfirmOverwriteStash
-      repository: Repository
-      branchToCheckout: Branch | null
-    }
+    type: PopupType.ConfirmOverwriteStash
+    repository: Repository
+    branchToCheckout: Branch | null
+  }
   | {
-      type: PopupType.ConfirmDiscardStash
-      repository: Repository
-      stash: IStashEntry
-    }
+    type: PopupType.ConfirmDiscardStash
+    repository: Repository
+    stash: IStashEntry
+  }
   | {
-      type: PopupType.CreateTutorialRepository
-      account: Account
-      progress?: Progress
-    }
+    type: PopupType.CreateTutorialRepository
+    account: Account
+    progress?: Progress
+  }
   | {
-      type: PopupType.ConfirmExitTutorial
-    }
+    type: PopupType.ConfirmExitTutorial
+  }
   | {
-      type: PopupType.PushRejectedDueToMissingWorkflowScope
-      rejectedPath: string
-      repository: RepositoryWithGitHubRepository
-    }
+    type: PopupType.PushRejectedDueToMissingWorkflowScope
+    rejectedPath: string
+    repository: RepositoryWithGitHubRepository
+  }
   | {
-      type: PopupType.SAMLReauthRequired
-      organizationName: string
-      endpoint: string
-      retryAction?: RetryAction
-    }
+    type: PopupType.SAMLReauthRequired
+    organizationName: string
+    endpoint: string
+    retryAction?: RetryAction
+  }
   | {
-      type: PopupType.CreateFork
-      repository: RepositoryWithGitHubRepository
-      account: Account
-    }
+    type: PopupType.CreateFork
+    repository: RepositoryWithGitHubRepository
+    account: Account
+  }
   | {
-      type: PopupType.CreateTag
-      repository: Repository
-      targetCommitSha: string
-      initialName?: string
-      localTags: Map<string, string> | null
-    }
+    type: PopupType.CreateTag
+    repository: Repository
+    targetCommitSha: string
+    initialName?: string
+    localTags: Map<string, string> | null
+  }
   | {
-      type: PopupType.DeleteTag
-      repository: Repository
-      tagName: string
-    }
+    type: PopupType.DeleteTag
+    repository: Repository
+    tagName: string
+  }
   | {
-      type: PopupType.ChooseForkSettings
-      repository: RepositoryWithForkedGitHubRepository
-    }
+    type: PopupType.ChooseForkSettings
+    repository: RepositoryWithForkedGitHubRepository
+  }
   | {
-      type: PopupType.LocalChangesOverwritten
-      repository: Repository
-      retryAction: RetryAction
-      files: ReadonlyArray<string>
-    }
+    type: PopupType.LocalChangesOverwritten
+    repository: Repository
+    retryAction: RetryAction
+    files: ReadonlyArray<string>
+  }
   | { type: PopupType.MoveToApplicationsFolder }
   | { type: PopupType.ChangeRepositoryAlias; repository: Repository }
   | {
-      type: PopupType.ThankYou
-      userContributions: ReadonlyArray<ReleaseNote>
-      friendlyName: string
-      latestVersion: string | null
-    }
+    type: PopupType.ThankYou
+    userContributions: ReadonlyArray<ReleaseNote>
+    friendlyName: string
+    latestVersion: string | null
+  }
   | {
-      type: PopupType.CommitMessage
-      coAuthors: ReadonlyArray<Author>
-      showCoAuthoredBy: boolean
-      commitMessage: ICommitMessage | null
-      dialogTitle: string
-      dialogButtonText: string
-      prepopulateCommitSummary: boolean
-      repository: Repository
-      onSubmitCommitMessage: (context: ICommitContext) => Promise<boolean>
-    }
+    type: PopupType.CommitMessage
+    coAuthors: ReadonlyArray<Author>
+    showCoAuthoredBy: boolean
+    commitMessage: ICommitMessage | null
+    dialogTitle: string
+    dialogButtonText: string
+    prepopulateCommitSummary: boolean
+    repository: Repository
+    onSubmitCommitMessage: (context: ICommitContext) => Promise<boolean>
+  }
   | {
-      type: PopupType.MultiCommitOperation
-      repository: Repository
-    }
+    type: PopupType.MultiCommitOperation
+    repository: Repository
+  }
   | {
-      type: PopupType.WarnLocalChangesBeforeUndo
-      repository: Repository
-      commit: Commit
-      isWorkingDirectoryClean: boolean
-    }
+    type: PopupType.WarnLocalChangesBeforeUndo
+    repository: Repository
+    commit: Commit
+    isWorkingDirectoryClean: boolean
+  }
   | {
-      type: PopupType.WarningBeforeReset
-      repository: Repository
-      commit: Commit
-    }
+    type: PopupType.WarningBeforeReset
+    repository: Repository
+    commit: Commit
+  }
   | {
-      type: PopupType.InvalidatedToken
-      account: Account
-    }
+    type: PopupType.InvalidatedToken
+    account: Account
+  }
   | {
-      type: PopupType.AddSSHHost
-      host: string
-      ip: string
-      keyType: string
-      fingerprint: string
-      onSubmit: (addHost: boolean) => void
-    }
+    type: PopupType.AddSSHHost
+    host: string
+    ip: string
+    keyType: string
+    fingerprint: string
+    onSubmit: (addHost: boolean) => void
+  }
   | {
-      type: PopupType.SSHKeyPassphrase
-      keyPath: string
-      onSubmit: (
-        passphrase: string | undefined,
-        storePassphrase: boolean
-      ) => void
-    }
+    type: PopupType.SSHKeyPassphrase
+    keyPath: string
+    onSubmit: (
+      passphrase: string | undefined,
+      storePassphrase: boolean
+    ) => void
+  }
   | {
-      type: PopupType.SSHUserPassword
-      username: string
-      onSubmit: (password: string | undefined, storePassword: boolean) => void
-    }
+    type: PopupType.SSHUserPassword
+    username: string
+    onSubmit: (password: string | undefined, storePassword: boolean) => void
+  }
   | {
-      type: PopupType.PullRequestChecksFailed
-      repository: RepositoryWithGitHubRepository
-      pullRequest: PullRequest
-      shouldChangeRepository: boolean
-      commitMessage: string
-      commitSha: string
-      checks: ReadonlyArray<IRefCheck>
-    }
+    type: PopupType.PullRequestChecksFailed
+    repository: RepositoryWithGitHubRepository
+    pullRequest: PullRequest
+    shouldChangeRepository: boolean
+    commitMessage: string
+    commitSha: string
+    checks: ReadonlyArray<IRefCheck>
+  }
   | {
-      type: PopupType.CICheckRunRerun
-      checkRuns: ReadonlyArray<IRefCheck>
-      repository: GitHubRepository
-      prRef: string
-      failedOnly: boolean
-    }
+    type: PopupType.CICheckRunRerun
+    checkRuns: ReadonlyArray<IRefCheck>
+    repository: GitHubRepository
+    prRef: string
+    failedOnly: boolean
+  }
   | { type: PopupType.WarnForcePush; operation: string; onBegin: () => void }
   | {
-      type: PopupType.DiscardChangesRetry
-      retryAction: RetryAction
-    }
+    type: PopupType.DiscardChangesRetry
+    retryAction: RetryAction
+  }
   | {
-      type: PopupType.PullRequestReview
-      repository: RepositoryWithGitHubRepository
-      pullRequest: PullRequest
-      review: ValidNotificationPullRequestReview
-      shouldCheckoutBranch: boolean
-      shouldChangeRepository: boolean
-    }
+    type: PopupType.RemoveRepositoryRetry
+    retryAction: RetryAction
+  }
   | {
-      type: PopupType.UnreachableCommits
-      selectedTab: UnreachableCommitsTab
-    }
+    type: PopupType.PullRequestReview
+    repository: RepositoryWithGitHubRepository
+    pullRequest: PullRequest
+    review: ValidNotificationPullRequestReview
+    shouldCheckoutBranch: boolean
+    shouldChangeRepository: boolean
+  }
   | {
-      type: PopupType.StartPullRequest
-      prBaseBranches: ReadonlyArray<Branch>
-      currentBranch: Branch
-      defaultBranch: Branch | null
-      externalEditorLabel?: string
-      imageDiffType: ImageDiffType
-      prRecentBaseBranches: ReadonlyArray<Branch>
-      repository: Repository
-      nonLocalCommitSHA: string | null
-      showSideBySideDiff: boolean
-      currentBranchHasPullRequest: boolean
-    }
+    type: PopupType.UnreachableCommits
+    selectedTab: UnreachableCommitsTab
+  }
   | {
-      type: PopupType.Error
-      error: Error
-    }
+    type: PopupType.StartPullRequest
+    prBaseBranches: ReadonlyArray<Branch>
+    currentBranch: Branch
+    defaultBranch: Branch | null
+    externalEditorLabel?: string
+    imageDiffType: ImageDiffType
+    prRecentBaseBranches: ReadonlyArray<Branch>
+    repository: Repository
+    nonLocalCommitSHA: string | null
+    showSideBySideDiff: boolean
+    currentBranchHasPullRequest: boolean
+  }
   | {
-      type: PopupType.InstallingUpdate
-    }
+    type: PopupType.Error
+    error: Error
+  }
   | {
-      type: PopupType.TestNotifications
-      repository: RepositoryWithGitHubRepository
-    }
+    type: PopupType.InstallingUpdate
+  }
   | {
-      type: PopupType.PullRequestComment
-      repository: RepositoryWithGitHubRepository
-      pullRequest: PullRequest
-      comment: IAPIComment
-      shouldCheckoutBranch: boolean
-      shouldChangeRepository: boolean
-    }
+    type: PopupType.TestNotifications
+    repository: RepositoryWithGitHubRepository
+  }
   | {
-      type: PopupType.UnknownAuthors
-      authors: ReadonlyArray<UnknownAuthor>
-      onCommit: () => void
-    }
+    type: PopupType.PullRequestComment
+    repository: RepositoryWithGitHubRepository
+    pullRequest: PullRequest
+    comment: IAPIComment
+    shouldCheckoutBranch: boolean
+    shouldChangeRepository: boolean
+  }
+  | {
+    type: PopupType.UnknownAuthors
+    authors: ReadonlyArray<UnknownAuthor>
+    onCommit: () => void
+  }
 
 export type Popup = IBasePopup & PopupDetail

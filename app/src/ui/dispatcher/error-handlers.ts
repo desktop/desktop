@@ -8,6 +8,7 @@ import { ExternalEditorError } from '../../lib/editors/shared'
 import {
   DiscardChangesError,
   ErrorWithMetadata,
+  RemoveRepositoryError
 } from '../../lib/error-with-metadata'
 import { AuthenticationErrors } from '../../lib/git/authentication'
 import { GitError, isAuthFailureError } from '../../lib/git/core'
@@ -641,6 +642,34 @@ export async function discardChangesHandler(
   dispatcher.showPopup({
     type: PopupType.DiscardChangesRetry,
     retryAction,
+  })
+
+  return null
+}
+
+/**
+ * Handler for when the user attempts to remove the repository and it
+ * cannot be moved to trash/recycle bin
+ */
+export async function removeRepositoryHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  if (!(error instanceof RemoveRepositoryError)) {
+    return error
+  }
+
+  const { retryAction } = error.metadata
+
+  if (retryAction === undefined) {
+    return error
+  }
+
+  dispatcher.closePopup(PopupType.RemoveRepositoryRetry)
+
+  dispatcher.showPopup({
+    type: PopupType.RemoveRepositoryRetry,
+    retryAction
   })
 
   return null

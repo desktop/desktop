@@ -66,3 +66,19 @@ export class DiscardChangesError extends ErrorWithMetadata {
     })
   }
 }
+
+/**
+ * An error thrown when a failure occurs while moving a repository to trash.
+ * Technically just a convenience class on top of ErrorWithMetadata
+ */
+export class RemoveRepositoryError extends ErrorWithMetadata {
+  public constructor(
+    error: Error,
+    repository: Repository | CloningRepository,
+    moveToTrash: boolean
+  ) {
+    super(error, {
+      retryAction: { type: RetryActionType.RemoveRepository, repository, moveToTrash }
+    })
+  }
+}

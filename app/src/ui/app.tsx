@@ -76,7 +76,7 @@ import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { NoRepositoriesView } from './no-repositories'
-import { ConfirmRemoveRepository } from './remove-repository'
+import { ConfirmRemoveRepository, RemoveRepositoryRetryDialog } from './remove-repository'
 import { TermsAndConditions } from './terms-and-conditions'
 import { PushBranchCommits } from './branches'
 import { CLIInstalled } from './cli-installed'
@@ -1494,7 +1494,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.RenameBranch:
         const stash =
           this.state.selectedState !== null &&
-          this.state.selectedState.type === SelectionType.Repository
+            this.state.selectedState.type === SelectionType.Repository
             ? this.state.selectedState.state.changesState.stashEntry
             : null
         return (
@@ -2055,7 +2055,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const existingStash =
           selectedState !== null &&
-          selectedState.type === SelectionType.Repository
+            selectedState.type === SelectionType.Repository
             ? selectedState.state.changesState.stashEntry
             : null
 
@@ -2310,6 +2310,16 @@ export class App extends React.Component<IAppProps, IAppState> {
             onConfirmDiscardChangesChanged={
               this.onConfirmDiscardChangesPermanentlyChanged
             }
+          />
+        )
+      }
+      case PopupType.RemoveRepositoryRetry: {
+        return (
+          <RemoveRepositoryRetryDialog
+            key="remove-repository-retry"
+            dispatcher={this.props.dispatcher}
+            retryAction={popup.retryAction}
+            onDismissed={onPopupDismissedFn}
           />
         )
       }

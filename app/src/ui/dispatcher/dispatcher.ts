@@ -146,7 +146,7 @@ export class Dispatcher {
     private readonly repositoryStateManager: RepositoryStateCache,
     private readonly statsStore: StatsStore,
     private readonly commitStatusStore: CommitStatusStore
-  ) {}
+  ) { }
 
   /** Load the initial state for the app. */
   public loadInitialState(): Promise<void> {
@@ -1147,7 +1147,7 @@ export class Dispatcher {
     if (
       multiCommitOperationState == null ||
       multiCommitOperationState.operationDetail.kind !==
-        MultiCommitOperationKind.Rebase
+      MultiCommitOperationKind.Rebase
     ) {
       return
     }
@@ -1861,8 +1861,7 @@ export class Dispatcher {
       default:
         const unknownAction: IUnknownAction = action
         log.warn(
-          `Unknown URL action: ${
-            unknownAction.name
+          `Unknown URL action: ${unknownAction.name
           } - payload: ${JSON.stringify(unknownAction)}`
         )
     }
@@ -2103,6 +2102,11 @@ export class Dispatcher {
           retryAction.repository,
           retryAction.files,
           false
+        )
+      case RetryActionType.RemoveRepository:
+        return this.removeRepository(
+          retryAction.repository,
+          retryAction.moveToTrash
         )
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
@@ -3139,7 +3143,7 @@ export class Dispatcher {
       !isCherryPickConflictState(conflictState) ||
       multiCommitOperationState == null ||
       multiCommitOperationState.operationDetail.kind !==
-        MultiCommitOperationKind.CherryPick
+      MultiCommitOperationKind.CherryPick
     ) {
       log.error(
         '[cherryPick] - conflict state was null or not in a cherry-pick conflict state - unable to continue'
@@ -3848,7 +3852,7 @@ export class Dispatcher {
         if (
           multiCommitOperationState !== null &&
           multiCommitOperationState.operationDetail.kind ===
-            MultiCommitOperationKind.CherryPick
+          MultiCommitOperationKind.CherryPick
         ) {
           // TODO: expanded to other types - not functionally necessary; makes
           // progress dialog more accurate; likely only regular rebase has the
