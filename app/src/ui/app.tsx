@@ -98,6 +98,7 @@ import { Banner, BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
+import { ConfirmCheckoutCommitDialog } from './checkout/confirm-checkout-commit'
 import { CreateTutorialRepositoryDialog } from './no-repositories/create-tutorial-repository-dialog'
 import { ConfirmExitTutorial } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
@@ -1439,7 +1440,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.RenameBranch:
         const stash =
           this.state.selectedState !== null &&
-          this.state.selectedState.type === SelectionType.Repository
+            this.state.selectedState.type === SelectionType.Repository
             ? this.state.selectedState.state.changesState.stashEntry
             : null
         return (
@@ -1535,6 +1536,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnDiscardChangesPermanently
             }
             confirmDiscardStash={this.state.askForConfirmationOnDiscardStash}
+            confirmCheckoutCommit={this.state.askForConfirmationOnCheckoutCommit}
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             confirmUndoCommit={this.state.askForConfirmationOnUndoCommit}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
@@ -1915,6 +1917,22 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.ConfirmCheckoutCommit: {
+        const { repository, commit } = popup
+
+        return (
+          <ConfirmCheckoutCommitDialog
+            key="confirm-checkout-commit-dialog"
+            dispatcher={this.props.dispatcher}
+            askForConfirmationOnCheckoutCommit={
+              this.state.askForConfirmationOnDiscardStash
+            }
+            repository={repository}
+            commit={commit}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       case PopupType.CreateTutorialRepository: {
         return (
           <CreateTutorialRepositoryDialog
@@ -2001,7 +2019,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const existingStash =
           selectedState !== null &&
-          selectedState.type === SelectionType.Repository
+            selectedState.type === SelectionType.Repository
             ? selectedState.state.changesState.stashEntry
             : null
 
@@ -3071,6 +3089,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           }
           askForConfirmationOnDiscardStash={
             state.askForConfirmationOnDiscardStash
+          }
+          askForConfirmationOnCheckoutCommit={
+            state.askForConfirmationOnCheckoutCommit
           }
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}

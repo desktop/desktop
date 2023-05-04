@@ -7,11 +7,13 @@ interface IPromptsPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmDiscardStash: boolean
+  readonly confirmCheckoutCommit: boolean
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesPermanentlyChanged: (checked: boolean) => void
   readonly onConfirmDiscardStashChanged: (checked: boolean) => void
+  readonly onConfirmCheckoutCommitChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
   readonly onConfirmUndoCommitChanged: (checked: boolean) => void
@@ -22,6 +24,7 @@ interface IPromptsPreferencesState {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmDiscardStash: boolean
+  readonly confirmCheckoutCommit: boolean
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
 }
@@ -39,6 +42,7 @@ export class Prompts extends React.Component<
       confirmDiscardChangesPermanently:
         this.props.confirmDiscardChangesPermanently,
       confirmDiscardStash: this.props.confirmDiscardStash,
+      confirmCheckoutCommit: this.props.confirmCheckoutCommit,
       confirmForcePush: this.props.confirmForcePush,
       confirmUndoCommit: this.props.confirmUndoCommit,
     }
@@ -69,6 +73,15 @@ export class Prompts extends React.Component<
 
     this.setState({ confirmDiscardStash: value })
     this.props.onConfirmDiscardStashChanged(value)
+  }
+
+  private onConfirmCheckoutCommitChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ confirmCheckoutCommit: value })
+    this.props.onConfirmCheckoutCommitChanged(value)
   }
 
   private onConfirmForcePushChanged = (
@@ -137,6 +150,15 @@ export class Prompts extends React.Component<
               : CheckboxValue.Off
           }
           onChange={this.onConfirmDiscardStashChanged}
+        />
+        <Checkbox
+          label="Checking out a commit"
+          value={
+            this.state.confirmCheckoutCommit
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onConfirmCheckoutCommitChanged}
         />
         <Checkbox
           label="Force pushing"

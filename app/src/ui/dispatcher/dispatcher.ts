@@ -2370,6 +2370,10 @@ export class Dispatcher {
     return this.appStore._setConfirmDiscardStashSetting(value)
   }
 
+  public setConfirmCheckoutCommitSetting(value: boolean) {
+    return this.appStore._setConfirmCheckoutCommitSetting(value)
+  }
+
   public setConfirmForcePushSetting(value: boolean) {
     return this.appStore._setConfirmForcePushSetting(value)
   }

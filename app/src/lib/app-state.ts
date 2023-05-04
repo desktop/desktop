@@ -59,15 +59,15 @@ export enum SelectionType {
 
 export type PossibleSelections =
   | {
-      type: SelectionType.Repository
-      repository: Repository
-      state: IRepositoryState
-    }
+    type: SelectionType.Repository
+    repository: Repository
+    state: IRepositoryState
+  }
   | {
-      type: SelectionType.CloningRepository
-      repository: CloningRepository
-      progress: ICloneProgress
-    }
+    type: SelectionType.CloningRepository
+    repository: CloningRepository
+    progress: ICloneProgress
+  }
   | { type: SelectionType.MissingRepository; repository: Repository }
 
 /** All of the shared app state. */
@@ -204,6 +204,9 @@ export interface IAppState {
   /** Should the app prompt the user to confirm a discard stash */
   readonly askForConfirmationOnDiscardStash: boolean
 
+  /** Should the app prompt the user to confirm a discard stash */
+  readonly askForConfirmationOnCheckoutCommit: boolean
+
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
 
@@ -318,8 +321,8 @@ export interface IAppState {
 
   /** The users last chosen pull request suggested next action. */
   readonly pullRequestSuggestedNextAction:
-    | PullRequestSuggestedNextAction
-    | undefined
+  | PullRequestSuggestedNextAction
+  | undefined
 }
 
 export enum FoldoutType {

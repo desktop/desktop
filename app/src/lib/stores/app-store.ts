@@ -343,12 +343,14 @@ const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const confirmDiscardChangesPermanentlyDefault: boolean = true
 const confirmDiscardStashDefault: boolean = true
+const confirmCheckoutCommitDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
 const confirmUndoCommitDefault: boolean = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmDiscardStashKey: string = 'confirmDiscardStash'
+const confirmCheckoutCommitKey: string = 'confirmCheckoutCommit'
 const confirmDiscardChangesPermanentlyKey: string =
   'confirmDiscardChangesPermanentlyKey'
 const confirmForcePushKey: string = 'confirmForcePush'
@@ -460,6 +462,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private confirmDiscardChangesPermanently: boolean =
     confirmDiscardChangesPermanentlyDefault
   private confirmDiscardStash: boolean = confirmDiscardStashDefault
+  private confirmCheckoutCommit: boolean = confirmCheckoutCommitDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private confirmUndoCommit: boolean = confirmUndoCommitDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
@@ -956,6 +959,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnDiscardChangesPermanently:
         this.confirmDiscardChangesPermanently,
       askForConfirmationOnDiscardStash: this.confirmDiscardStash,
+      askForConfirmationOnCheckoutCommit: this.confirmCheckoutCommit,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       askForConfirmationOnUndoCommit: this.confirmUndoCommit,
       uncommittedChangesStrategy: this.uncommittedChangesStrategy,
@@ -2034,6 +2038,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.confirmDiscardStash = getBoolean(
       confirmDiscardStashKey,
       confirmDiscardStashDefault
+    )
+
+    this.confirmCheckoutCommit = getBoolean(
+      confirmCheckoutCommitKey,
+      confirmCheckoutCommitDefault
     )
 
     this.askForConfirmationOnForcePush = getBoolean(
@@ -5363,6 +5372,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
+  public _setConfirmCheckoutCommitSetting(value: boolean): Promise<void> {
+    this.confirmCheckoutCommit = value
+
+    setBoolean(confirmCheckoutCommitKey, value)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
   public _setConfirmForcePushSetting(value: boolean): Promise<void> {
     this.askForConfirmationOnForcePush = value
     setBoolean(confirmForcePushKey, value)
@@ -6158,8 +6176,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const encodedBaseBranch =
       baseBranch !== undefined
         ? baseForkPreface +
-          encodeURIComponent(baseBranch.nameWithoutRemote) +
-          '...'
+        encodeURIComponent(baseBranch.nameWithoutRemote) +
+        '...'
         : ''
 
     const compareForkPreface = isForkContributingToParent
