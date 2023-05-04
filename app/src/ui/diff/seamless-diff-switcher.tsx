@@ -72,8 +72,7 @@ interface ISeamlessDiffSwitcherProps {
    * @param fullPath The full path to the file on disk
    * @param line The line number to try to go to
    */
-  readonly onOpenInExternalEditor?: (fullPath: string, line: number) => void
-  //@TODO: should not be optional once added to all renderers
+  readonly onOpenInExternalEditor: (fullPath: string, line: number) => void
 
   /** Called when the user requests to open a submodule. */
   readonly onOpenSubmodule?: (fullPath: string) => void

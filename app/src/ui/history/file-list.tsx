@@ -6,7 +6,7 @@ import { CommittedFileItem } from './committed-file-item'
 import { Dispatcher } from '../dispatcher'
 
 interface IFileListProps {
-  readonly dispatcher?: Dispatcher
+  readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<CommittedFileChange>
   readonly selectedFile: CommittedFileChange | null
   readonly onSelectedFileChanged: (file: CommittedFileChange) => void
@@ -34,8 +34,7 @@ export class FileList extends React.Component<IFileListProps> {
       console.error('double click on row with no file - what?')
       return
     }
-
-    this.props.dispatcher?.openInExternalEditor(file.path)
+    this.props.dispatcher.openInExternalEditor(file.path)
   }
 
   private renderFile = (row: number) => {

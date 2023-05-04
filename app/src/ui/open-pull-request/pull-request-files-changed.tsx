@@ -57,6 +57,14 @@ interface IPullRequestFilesChangedProps {
   /** If the latest commit of the pull request is not local, this will contain
    * it's SHA  */
   readonly nonLocalCommitSHA: string | null
+
+  /**
+   * Callback to open a selected file using the configured external editor
+   *
+   * @param fullPath The full path to the file on disk
+   * @param line The line number to try to go to
+   */
+  readonly onOpenInExternalEditor: (fullPath: string, line?: number) => void
 }
 
 interface IPullRequestFilesChangedState {
@@ -261,6 +269,7 @@ export class PullRequestFilesChanged extends React.Component<
           selectedFile={selectedFile}
           availableWidth={clamp(fileListWidth)}
           onContextMenu={this.onFileContextMenu}
+          dispatcher={this.props.dispatcher}
         />
       </Resizable>
     )
@@ -289,6 +298,7 @@ export class PullRequestFilesChanged extends React.Component<
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
       />
     )
   }

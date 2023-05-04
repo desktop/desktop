@@ -53,6 +53,14 @@ interface IStashDiffViewerProps {
 
   /** Called when the user requests to open a submodule. */
   readonly onOpenSubmodule: (fullPath: string) => void
+
+  /**
+   * Called to open a file using the user's configured applications
+   *
+   * @param path The path of the file relative to the root of the repository
+   * @param line The line number to try to go to
+   */
+  readonly onOpenInExternalEditor: (path: string, line?: number) => void
 }
 
 /**
@@ -104,6 +112,7 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
             this.props.onHideWhitespaceInDiffChanged
           }
           onOpenSubmodule={onOpenSubmodule}
+          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />
       ) : null
 
@@ -133,6 +142,7 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
               onSelectedFileChanged={this.onSelectedFileChanged}
               selectedFile={selectedStashedFile}
               availableWidth={availableWidth}
+              dispatcher={this.props.dispatcher}
             />
           </Resizable>
           {diffComponent}

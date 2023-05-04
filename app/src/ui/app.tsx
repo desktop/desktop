@@ -2406,6 +2406,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             showSideBySideDiff={showSideBySideDiff}
             currentBranchHasPullRequest={currentBranchHasPullRequest}
             onDismissed={onPopupDismissedFn}
+            onOpenInExternalEditor={this.onOpenInExternalEditor}
           />
         )
       }
@@ -2739,6 +2740,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.openInExternalEditor(repository.path, line)
+  }
+
+  private onOpenInExternalEditor = (fullPath: string, line?: number) => {
+    this.props.dispatcher.openInExternalEditor(fullPath, line)
   }
 
   private showRepository = (repository: Repository | CloningRepository) => {
@@ -3168,7 +3173,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           resolvedExternalEditor={state.resolvedExternalEditor}
-          onOpenInExternalEditor={this.openFileInExternalEditor}
+          onOpenInExternalEditor={this.onOpenInExternalEditor}
           appMenu={state.appMenuState[0]}
           currentTutorialStep={state.currentOnboardingTutorialStep}
           onExitTutorial={this.onExitTutorial}
