@@ -13,7 +13,6 @@
   padding: var(--spacing);
 
   .summary {
-    position: relative;
     display: flex;
     flex-direction: row;
 
@@ -30,26 +29,6 @@
       flex-shrink: 0;
       width: var(--text-field-height);
       height: var(--text-field-height);
-    }
-
-    &.with-length-hint input {
-      padding-right: 20px;
-    }
-
-    .length-hint {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 16px;
-      margin-right: 4px;
-      height: var(--text-field-height);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      .octicon {
-        height: 12px;
-      }
     }
   }
 

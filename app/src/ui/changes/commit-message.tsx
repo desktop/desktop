@@ -14,7 +14,6 @@ import { Loading } from '../lib/loading'
 import { AuthorInput } from '../lib/author-input/author-input'
 import { FocusContainer } from '../lib/focus-container'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Author, UnknownAuthor, isKnownAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { Commit, ICommitContext } from '../../models/commit'
@@ -31,11 +30,8 @@ import { isAttributableEmailFor, lookupPreferredEmail } from '../../lib/email'
 import { setGlobalConfigValue } from '../../lib/git/config'
 import { Popup, PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
-import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
 import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
-import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
-import { ToggledtippedContent } from '../lib/toggletipped-content'
 
 const addAuthorIcon = {
   w: 18,
@@ -819,30 +815,6 @@ export class CommitMessage extends React.Component<
     )
   }
 
-  private renderSummaryLengthHint(): JSX.Element | null {
-    return (
-      <ToggledtippedContent
-        delay={0}
-        tooltip={
-          <>
-            <div className="title">
-              Great commit summaries contain fewer than 50 characters
-            </div>
-            <div className="description">
-              Place extra information in the description field.
-            </div>
-          </>
-        }
-        direction={TooltipDirection.NORTH}
-        className="length-hint"
-        tooltipClassName="length-hint-tooltip"
-        ariaLabel="Open Summary Length Info"
-      >
-        <Octicon symbol={OcticonSymbol.lightBulb} />
-      </ToggledtippedContent>
-    )
-  }
-
   public render() {
     const className = classNames('commit-message-component', {
       'with-action-bar': this.isActionBarEnabled,
@@ -853,10 +825,6 @@ export class CommitMessage extends React.Component<
       'with-overflow': this.state.descriptionObscured,
     })
 
-    const showSummaryLengthHint = this.state.summary.length > IdealSummaryLength
-    const summaryClassName = classNames('summary', {
-      'with-length-hint': showSummaryLengthHint,
-    })
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
       'nudge-arrow-left': this.props.shouldNudge === true,
     })
@@ -872,7 +840,7 @@ export class CommitMessage extends React.Component<
         onContextMenu={this.onContextMenu}
         onKeyDown={this.onKeyDown}
       >
-        <div className={summaryClassName}>
+        <div className="summary">
           {this.renderAvatar()}
 
           <AutocompletingInput
@@ -890,7 +858,6 @@ export class CommitMessage extends React.Component<
             disabled={isCommitting === true}
             spellcheck={commitSpellcheckEnabled}
           />
-          {showSummaryLengthHint && this.renderSummaryLengthHint()}
         </div>
 
         <FocusContainer
