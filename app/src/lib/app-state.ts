@@ -204,7 +204,7 @@ export interface IAppState {
   /** Should the app prompt the user to confirm a discard stash */
   readonly askForConfirmationOnDiscardStash: boolean
 
-  /** Should the app prompt the user to confirm a discard stash */
+  /** Should the app prompt the user to confirm a commit checkout? */
   readonly askForConfirmationOnCheckoutCommit: boolean
 
   /** Should the app prompt the user to confirm a force push? */
