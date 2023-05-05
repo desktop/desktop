@@ -330,9 +330,7 @@ export class CommitListItem extends React.PureComponent<
         },
       },
       {
-        label: __DARWIN__
-          ? 'Checkout Commit'
-          : 'Checkout commit',
+        label: __DARWIN__ ? 'Checkout Commit' : 'Checkout commit',
         action: () => {
           if (this.props.onCheckoutCommit) {
             this.props.onCheckoutCommit(this.props.commit)

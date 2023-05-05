@@ -273,8 +273,9 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     }
 
     if (numUnpushedTags > 0) {
-      return `This commit has ${numUnpushedTags} tag${numUnpushedTags > 1 ? 's' : ''
-        } to push`
+      return `This commit has ${numUnpushedTags} tag${
+        numUnpushedTags > 1 ? 's' : ''
+      } to push`
     }
 
     return undefined
@@ -414,7 +415,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           onScroll={this.onScroll}
           insertionDragType={
             reorderingEnabled === true &&
-              isMultiCommitOperationInProgress === false
+            isMultiCommitOperationInProgress === false
               ? DragType.Commit
               : undefined
           }

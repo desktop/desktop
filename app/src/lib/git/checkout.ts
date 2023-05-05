@@ -33,12 +33,12 @@ async function getCheckoutArgs(
   if (enableRecurseSubmodulesFlag()) {
     return branch.type === BranchType.Remote
       ? baseArgs.concat(
-        branch.name,
-        '-b',
-        branch.nameWithoutRemote,
-        '--recurse-submodules',
-        '--'
-      )
+          branch.name,
+          '-b',
+          branch.nameWithoutRemote,
+          '--recurse-submodules',
+          '--'
+        )
       : baseArgs.concat(branch.name, '--recurse-submodules', '--')
   } else {
     return branch.type === BranchType.Remote
@@ -153,7 +153,13 @@ export async function checkoutCommit(
           const description = progress.details.text
           const value = progress.percent
 
-          progressCallback({ kind, title, description, value, targetBranch: targetCommit })
+          progressCallback({
+            kind,
+            title,
+            description,
+            value,
+            targetBranch: targetCommit,
+          })
         }
       }
     )
@@ -162,7 +168,7 @@ export async function checkoutCommit(
     progressCallback({ kind, title, value: 0, targetBranch: targetCommit })
   }
 
-  const args = ["checkout", commit.sha]
+  const args = ['checkout', commit.sha]
 
   await git(args, repository.path, 'checkoutCommit', opts)
 

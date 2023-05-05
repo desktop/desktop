@@ -256,7 +256,7 @@ export class RepositoryView extends React.Component<
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
     const scrollTop =
       this.forceCompareListScrollTop ||
-        this.previousSection === RepositorySectionTab.Changes
+      this.previousSection === RepositorySectionTab.Changes
         ? this.state.compareListScrollTop
         : undefined
     this.previousSection = RepositorySectionTab.History
@@ -284,7 +284,9 @@ export class RepositoryView extends React.Component<
         tagsToPush={tagsToPush}
         aheadBehindStore={aheadBehindStore}
         isMultiCommitOperationInProgress={mcos !== null}
-        askForConfirmationOnCheckoutCommit={this.props.askForConfirmationOnCheckoutCommit}
+        askForConfirmationOnCheckoutCommit={
+          this.props.askForConfirmationOnCheckoutCommit
+        }
       />
     )
   }

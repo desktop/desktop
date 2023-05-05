@@ -49,7 +49,10 @@ export class ConfirmCheckoutCommitDialog extends React.Component<
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
-          <Row>Checking out a commit will create a detached HEAD, and you will no longer be on any branch.</Row>
+          <Row>
+            Checking out a commit will create a detached HEAD, and you will no
+            longer be on any branch.
+          </Row>
           <Row>Are you sure you want to checkout this commit?</Row>
           <Row>
             <Checkbox
@@ -86,7 +89,9 @@ export class ConfirmCheckoutCommitDialog extends React.Component<
     })
 
     try {
-      dispatcher.setConfirmCheckoutCommitSetting(this.state.confirmCheckoutCommit)
+      dispatcher.setConfirmCheckoutCommitSetting(
+        this.state.confirmCheckoutCommit
+      )
       await dispatcher.checkoutCommit(repository, commit)
     } finally {
       this.setState({

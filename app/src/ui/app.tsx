@@ -1440,7 +1440,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.RenameBranch:
         const stash =
           this.state.selectedState !== null &&
-            this.state.selectedState.type === SelectionType.Repository
+          this.state.selectedState.type === SelectionType.Repository
             ? this.state.selectedState.state.changesState.stashEntry
             : null
         return (
@@ -1536,7 +1536,9 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnDiscardChangesPermanently
             }
             confirmDiscardStash={this.state.askForConfirmationOnDiscardStash}
-            confirmCheckoutCommit={this.state.askForConfirmationOnCheckoutCommit}
+            confirmCheckoutCommit={
+              this.state.askForConfirmationOnCheckoutCommit
+            }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             confirmUndoCommit={this.state.askForConfirmationOnUndoCommit}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
@@ -2019,7 +2021,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const existingStash =
           selectedState !== null &&
-            selectedState.type === SelectionType.Repository
+          selectedState.type === SelectionType.Repository
             ? selectedState.state.changesState.stashEntry
             : null
 

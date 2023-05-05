@@ -596,7 +596,8 @@ export class CompareSidebar extends React.Component<
   }
 
   private onCheckoutCommit = (commit: CommitOneLine) => {
-    const { repository, dispatcher, askForConfirmationOnCheckoutCommit } = this.props
+    const { repository, dispatcher, askForConfirmationOnCheckoutCommit } =
+      this.props
     // console.log("Confirm checkout" + askForConfirmationOnCheckoutCommit)
     if (!askForConfirmationOnCheckoutCommit) {
       dispatcher.checkoutCommit(repository, commit)
