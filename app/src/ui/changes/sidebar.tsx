@@ -257,8 +257,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
    * @param line The line number to try to go to
    */
   private onOpenItemInExternalEditor = (path: string, line?: number) => {
-    const fullPath = Path.join(this.props.repository.path, path)
-    this.props.onOpenInExternalEditor(fullPath, line)
+    this.props.onOpenInExternalEditor(path, line)
   }
 
   private onRowDoubleClick = (row: number) => {

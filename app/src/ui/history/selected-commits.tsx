@@ -117,6 +117,17 @@ export class SelectedCommits extends React.Component<
     this.props.dispatcher.changeFileSelection(this.props.repository, file)
   }
 
+  private onRowDoubleClick = (row: number) => {
+    const files = this.props.changesetData.files
+    const file = files[row]
+    if (!file) {
+      console.error('double click on row with no file - what?')
+      return
+    }
+
+    this.props.onOpenInExternalEditor(file.path)
+  }
+
   private onHistoryRef = (ref: HTMLDivElement | null) => {
     this.historyRef = ref
   }
@@ -249,12 +260,12 @@ export class SelectedCommits extends React.Component<
 
     return (
       <FileList
-        dispatcher={this.props.dispatcher}
         files={files}
         onSelectedFileChanged={this.onFileSelected}
         selectedFile={this.props.selectedFile}
         availableWidth={availableWidth}
         onContextMenu={this.onContextMenu}
+        onRowDoubleClick={this.onRowDoubleClick}
       />
     )
   }

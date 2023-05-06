@@ -1,4 +1,6 @@
 import * as React from 'react'
+import * as Path from 'path'
+
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import {
   IAppState,
@@ -2742,7 +2744,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.openInExternalEditor(repository.path, line)
   }
 
-  private onOpenInExternalEditor = (fullPath: string, line?: number) => {
+  private onOpenInExternalEditor = (path: string, line?: number) => {
+    const repository = this.state.selectedState?.repository
+    if (repository === undefined) {
+      return
+    }
+
+    const fullPath = Path.join(repository.path, path)
     this.props.dispatcher.openInExternalEditor(fullPath, line)
   }
 
