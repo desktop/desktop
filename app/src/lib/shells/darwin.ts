@@ -48,7 +48,7 @@ function getBundleID(shell: Shell): string {
 }
 
 async function getOldAlacrittyShellPath(): Promise<string | null> {
-  const oldBundleId = 'in.alacritty'
+  const oldBundleId = 'io.alacritty'
   try {
     return await appPath(oldBundleId)
   } catch (e) {
