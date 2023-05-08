@@ -237,8 +237,9 @@ export abstract class AutocompletingTextInput<
     }
 
     const rect = element.getBoundingClientRect()
-    const popupAbsoluteTop = rect.top + coordinates.top
-    const popupAbsoluteLeft = rect.left + coordinates.left
+    const hostRect = autocompletePopupHostFor(element).getBoundingClientRect()
+    const popupAbsoluteTop = rect.top + coordinates.top - hostRect.top
+    const popupAbsoluteLeft = rect.left + coordinates.left - hostRect.left
     const left = popupAbsoluteLeft
     const selectedRow = state.selectedItem
       ? items.indexOf(state.selectedItem)
@@ -494,7 +495,10 @@ export abstract class AutocompletingTextInput<
 
     return (
       <div className={className}>
-        {ReactDOM.createPortal(this.renderAutocompletions(), document.body)}
+        {ReactDOM.createPortal(
+          this.renderAutocompletions(),
+          autocompletePopupHostFor(this.element)
+        )}
         {this.props.screenReaderLabel && (
           <label className="sr-only" htmlFor={this.elementId}>
             {this.props.screenReaderLabel}
@@ -726,3 +730,6 @@ export abstract class AutocompletingTextInput<
     this.setState({ autocompletionState })
   }
 }
+
+const autocompletePopupHostFor = (target: Element | undefined | null) =>
+  target?.closest('.autocomplete-popup-host') ?? document.body
