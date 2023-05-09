@@ -18,7 +18,6 @@ import getCaretCoordinates from 'textarea-caret'
 import { showContextualMenu } from '../../lib/menu-item'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
-import ReactDOM from 'react-dom'
 
 interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /**
@@ -236,13 +235,14 @@ export abstract class AutocompletingTextInput<
       left: coordinates.left - element.scrollLeft,
     }
 
-    const rect = element.getBoundingClientRect()
-    const popupAbsoluteTop = rect.top + coordinates.top
-    const popupAbsoluteLeft = rect.left + coordinates.left
-    const left = popupAbsoluteLeft
+    const left = coordinates.left
+    const top = coordinates.top + YOffset
+    const bottom = coordinates.top + YOffset + 1
     const selectedRow = state.selectedItem
       ? items.indexOf(state.selectedItem)
       : -1
+    const rect = element.getBoundingClientRect()
+    const popupAbsoluteTop = rect.top + coordinates.top
 
     // The maximum height we can use for the popup without it extending beyond
     // the Window bounds.
@@ -275,7 +275,6 @@ export abstract class AutocompletingTextInput<
     const noOverflowItemHeight = RowHeight * items.length
 
     const height = Math.min(noOverflowItemHeight, maxHeight)
-    const top = popupAbsoluteTop + (belowElement ? YOffset + 1 : -height)
 
     // Use the completion text as invalidation props so that highlighting
     // will update as you type even though the number of items matched
@@ -287,7 +286,10 @@ export abstract class AutocompletingTextInput<
     const className = classNames('autocompletion-popup', state.provider.kind)
 
     return (
-      <div className={className} style={{ top, left, height }}>
+      <div
+        className={className}
+        style={belowElement ? { top, left, height } : { bottom, left, height }}
+      >
         <List
           accessibleListId={this.state.autocompleteContainerId}
           ref={this.onAutocompletionListRef}
@@ -494,7 +496,7 @@ export abstract class AutocompletingTextInput<
 
     return (
       <div className={className}>
-        {ReactDOM.createPortal(this.renderAutocompletions(), document.body)}
+        {this.renderAutocompletions()}
         {this.props.screenReaderLabel && (
           <label className="sr-only" htmlFor={this.elementId}>
             {this.props.screenReaderLabel}
