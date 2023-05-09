@@ -717,8 +717,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
         warning: this.props.type === 'warning',
       },
       this.props.className,
-      'tooltip-host',
-      'autocomplete-popup-host'
+      'tooltip-host'
     )
 
     return (
