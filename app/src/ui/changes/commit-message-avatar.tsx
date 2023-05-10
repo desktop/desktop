@@ -11,6 +11,7 @@ import { LinkButton } from '../lib/link-button'
 import { OkCancelButtonGroup } from '../dialog'
 import { getConfigValue } from '../../lib/git/config'
 import { Repository } from '../../models/repository'
+import { useFloating } from '@floating-ui/react-dom'
 
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
@@ -69,6 +70,8 @@ export class CommitMessageAvatar extends React.Component<
   ICommitMessageAvatarProps,
   ICommitMessageAvatarState
 > {
+  public floating = useFloating()
+
   public constructor(props: ICommitMessageAvatarProps) {
     super(props)
 
@@ -78,6 +81,7 @@ export class CommitMessageAvatar extends React.Component<
       isGitConfigLocal: false,
     }
     this.determineGitConfigLocation()
+    console.log(this.floating)
   }
 
   public componentDidUpdate(prevProps: ICommitMessageAvatarProps) {
