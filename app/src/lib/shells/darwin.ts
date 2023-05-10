@@ -10,6 +10,7 @@ export enum Shell {
   iTerm2 = 'iTerm2',
   PowerShellCore = 'PowerShell Core',
   Kitty = 'Kitty',
+  AlacrittyLegacy = 'Alacritty (Legacy)',
   Alacritty = 'Alacritty',
   Tabby = 'Tabby',
   WezTerm = 'WezTerm',
@@ -34,8 +35,10 @@ function getBundleID(shell: Shell): string {
       return 'com.microsoft.powershell'
     case Shell.Kitty:
       return 'net.kovidgoyal.kitty'
-    case Shell.Alacritty:
+    case Shell.AlacrittyLegacy:
       return 'io.alacritty'
+    case Shell.Alacritty:
+      return 'org.alacritty'
     case Shell.Tabby:
       return 'org.tabby'
     case Shell.WezTerm:
@@ -66,6 +69,7 @@ export async function getAvailableShells(): Promise<
     iTermPath,
     powerShellCorePath,
     kittyPath,
+    alacrittyLegacyPath,
     alacrittyPath,
     tabbyPath,
     wezTermPath,
@@ -76,6 +80,7 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.iTerm2),
     getShellPath(Shell.PowerShellCore),
     getShellPath(Shell.Kitty),
+    getShellPath(Shell.AlacrittyLegacy),
     getShellPath(Shell.Alacritty),
     getShellPath(Shell.Tabby),
     getShellPath(Shell.WezTerm),
@@ -102,6 +107,14 @@ export async function getAvailableShells(): Promise<
   if (kittyPath) {
     const kittyExecutable = `${kittyPath}/Contents/MacOS/kitty`
     shells.push({ shell: Shell.Kitty, path: kittyExecutable })
+  }
+
+  if (alacrittyLegacyPath) {
+    const alacrittyLegacyExecutable = `${alacrittyLegacyPath}/Contents/MacOS/alacritty`
+    shells.push({
+      shell: Shell.AlacrittyLegacy,
+      path: alacrittyLegacyExecutable,
+    })
   }
 
   if (alacrittyPath) {
@@ -139,7 +152,10 @@ export function launch(
     // This workaround launches the internal `kitty` executable which
     // will open a new window to the desired path.
     return spawn(foundShell.path, ['--single-instance', '--directory', path])
-  } else if (foundShell.shell === Shell.Alacritty) {
+  } else if (
+    foundShell.shell === Shell.Alacritty ||
+    foundShell.shell === Shell.AlacrittyLegacy
+  ) {
     // Alacritty cannot open files in the folder format.
     //
     // It uses --working-directory command to start the shell
