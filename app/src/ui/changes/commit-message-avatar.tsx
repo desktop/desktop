@@ -11,7 +11,6 @@ import { LinkButton } from '../lib/link-button'
 import { OkCancelButtonGroup } from '../dialog'
 import { getConfigValue } from '../../lib/git/config'
 import { Repository } from '../../models/repository'
-import { useFloating } from '@floating-ui/react-dom'
 
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
@@ -70,7 +69,7 @@ export class CommitMessageAvatar extends React.Component<
   ICommitMessageAvatarProps,
   ICommitMessageAvatarState
 > {
-  public floating = useFloating()
+  private avatarButtonRef: HTMLButtonElement | null = null
 
   public constructor(props: ICommitMessageAvatarProps) {
     super(props)
@@ -81,7 +80,6 @@ export class CommitMessageAvatar extends React.Component<
       isGitConfigLocal: false,
     }
     this.determineGitConfigLocation()
-    console.log(this.floating)
   }
 
   public componentDidUpdate(prevProps: ICommitMessageAvatarProps) {
@@ -105,6 +103,10 @@ export class CommitMessageAvatar extends React.Component<
     return localName !== null || localEmail !== null
   }
 
+  private onButtonRef = (buttonRef: HTMLButtonElement | null) => {
+    this.avatarButtonRef = buttonRef
+  }
+
   public render() {
     const ariaLabel = this.props.warningBadgeVisible
       ? 'Commit may be misattributed. View warning.'
@@ -116,6 +118,7 @@ export class CommitMessageAvatar extends React.Component<
           className="avatar-button"
           ariaLabel={ariaLabel}
           onClick={this.onAvatarClick}
+          onButtonRef={this.onButtonRef}
         >
           {this.props.warningBadgeVisible && this.renderWarningBadge()}
           <Avatar user={this.props.user} title={null} />
@@ -290,6 +293,7 @@ export class CommitMessageAvatar extends React.Component<
         caretPosition={PopoverCaretPosition.LeftBottom}
         onClickOutside={this.closePopover}
         ariaLabelledby="commit-avatar-popover-header"
+        anchor={this.avatarButtonRef}
       >
         <h3 id="commit-avatar-popover-header">
           {warningBadgeVisible
