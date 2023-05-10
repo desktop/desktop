@@ -2,6 +2,12 @@ import * as React from 'react'
 import FocusTrap from 'focus-trap-react'
 import { Options as FocusTrapOptions } from 'focus-trap'
 import classNames from 'classnames'
+import {
+  ComputePositionReturn,
+  ReferenceType,
+  autoUpdate,
+  computePosition,
+} from '@floating-ui/react-dom'
 
 /**
  * Position of the caret relative to the pop up. It's composed by 2 dimensions:
@@ -40,9 +46,15 @@ interface IPopoverProps {
   readonly style?: React.CSSProperties
   readonly appearEffect?: PopoverAppearEffect
   readonly ariaLabelledby?: string
+
+  readonly anchor?: ReferenceType | null
 }
 
-export class Popover extends React.Component<IPopoverProps> {
+interface IPopoverState {
+  readonly position: ComputePositionReturn | null
+}
+
+export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   private focusTrapOptions: FocusTrapOptions
   private containerDivRef = React.createRef<HTMLDivElement>()
 
@@ -54,11 +66,50 @@ export class Popover extends React.Component<IPopoverProps> {
       escapeDeactivates: true,
       onDeactivate: this.props.onClickOutside,
     }
+
+    this.state = { position: null }
+  }
+
+  private async setupPosition() {
+    if (
+      this.props.anchor === null ||
+      this.props.anchor === undefined ||
+      this.containerDivRef.current === null
+    ) {
+      return
+    }
+
+    autoUpdate(
+      this.props.anchor,
+      this.containerDivRef.current,
+      this.updatePosition
+    )
+  }
+
+  private updatePosition = async () => {
+    if (
+      this.props.anchor === null ||
+      this.props.anchor === undefined ||
+      this.containerDivRef.current === null
+    ) {
+      return
+    }
+
+    const position = await computePosition(
+      this.props.anchor,
+      this.containerDivRef.current,
+      { strategy: 'fixed', placement: 'right-end' }
+    )
+
+    this.setState({ position })
+
+    console.log(position)
   }
 
   public componentDidMount() {
     document.addEventListener('click', this.onDocumentClick)
     document.addEventListener('mousedown', this.onDocumentMouseDown)
+    this.setupPosition()
   }
 
   public componentWillUnmount() {
@@ -104,12 +155,17 @@ export class Popover extends React.Component<IPopoverProps> {
       this.props.appearEffect && `appear-${this.props.appearEffect}`
     )
 
+    const { position } = this.state
+    const style = position
+      ? { top: `${position.y}px`, left: `${position.x}px` }
+      : undefined
+
     return (
       <FocusTrap active={true} focusTrapOptions={this.focusTrapOptions}>
         <div
           className={cn}
           ref={this.containerDivRef}
-          style={this.props.style}
+          style={style}
           aria-labelledby={this.props.ariaLabelledby}
           role="dialog"
         >
