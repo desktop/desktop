@@ -12,7 +12,6 @@ interface IStashDiffHeaderProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly askForConfirmationOnDiscardStash: boolean
-  readonly isWorkingTreeClean: boolean
 }
 
 interface IStashDiffHeaderState {
@@ -38,7 +37,6 @@ export class StashDiffHeader extends React.Component<
   }
 
   public render() {
-    const { isWorkingTreeClean } = this.props
     const { isRestoring, isDiscarding } = this.state
 
     return (
@@ -47,9 +45,7 @@ export class StashDiffHeader extends React.Component<
         <div className="row">
           <OkCancelButtonGroup
             okButtonText="Restore"
-            okButtonDisabled={
-              isRestoring || !isWorkingTreeClean || isDiscarding
-            }
+            okButtonDisabled={isRestoring || isDiscarding}
             onOkButtonClick={this.onRestoreClick}
             cancelButtonText="Discard"
             cancelButtonDisabled={isRestoring || isDiscarding}
@@ -62,9 +58,7 @@ export class StashDiffHeader extends React.Component<
   }
 
   private renderExplanatoryText() {
-    const { isWorkingTreeClean } = this.props
-
-    if (isWorkingTreeClean || this.state.isRestoring) {
+    if (this.state.isRestoring) {
       return (
         <div className="explanatory-text">
           <span className="text">
