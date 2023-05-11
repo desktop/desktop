@@ -8,15 +8,14 @@ import {
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
 import classNames from 'classnames'
+import getCaretCoordinates from 'textarea-caret'
+import { showContextualMenu } from '../../lib/menu-item'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 interface IRange {
   readonly start: number
   readonly length: number
 }
-
-import getCaretCoordinates from 'textarea-caret'
-import { showContextualMenu } from '../../lib/menu-item'
-import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /**
@@ -121,6 +120,8 @@ interface IAutocompletingTextInputState<T> {
    * matching autocompletion providers.
    */
   readonly autocompletionState: IAutocompletionState<T> | null
+
+  readonly caretCoordinates: ReturnType<typeof getCaretCoordinates> | null
 }
 
 /** A text area which provides autocompletions as the user types. */
@@ -132,6 +133,7 @@ export abstract class AutocompletingTextInput<
   IAutocompletingTextInputState<AutocompleteItemType>
 > {
   private element: ElementType | null = null
+  private invisibleCaretRef = React.createRef<HTMLDivElement>()
   private shouldForceAriaLiveMessage = false
 
   /** The identifier for each autocompletion request. */
@@ -150,6 +152,7 @@ export abstract class AutocompletingTextInput<
 
     this.state = {
       autocompletionState: null,
+      caretCoordinates: null,
     }
   }
 
@@ -408,6 +411,52 @@ export abstract class AutocompletingTextInput<
     )
   }
 
+  private updateCaretCoordinates = () => {
+    const element = this.element
+    if (!element) {
+      this.setState({ caretCoordinates: null })
+      return
+    }
+
+    const selectionEnd = element.selectionEnd
+    if (selectionEnd === null) {
+      this.setState({ caretCoordinates: null })
+      return
+    }
+
+    const caretCoordinates = getCaretCoordinates(element, selectionEnd)
+    this.setState({
+      caretCoordinates: {
+        top: caretCoordinates.top - element.scrollTop,
+        left: caretCoordinates.left - element.scrollLeft,
+        height: caretCoordinates.height,
+      },
+    })
+  }
+
+  private renderInvisibleCaret = () => {
+    const { caretCoordinates } = this.state
+    if (!caretCoordinates) {
+      return null
+    }
+
+    return (
+      <div
+        style={{
+          backgroundColor: 'transparent',
+          width: 2,
+          height: caretCoordinates.height,
+          position: 'absolute',
+          left: caretCoordinates.left,
+          top: caretCoordinates.top,
+        }}
+        ref={this.invisibleCaretRef}
+      >
+        &nbsp;
+      </div>
+    )
+  }
+
   private onBlur = (e: React.FocusEvent<ElementType>) => {
     this.close()
   }
@@ -424,6 +473,7 @@ export abstract class AutocompletingTextInput<
 
   private onRef = (ref: ElementType | null) => {
     this.element = ref
+    this.updateCaretCoordinates()
     if (this.props.onElementRef) {
       this.props.onElementRef(ref)
     }
@@ -461,6 +511,7 @@ export abstract class AutocompletingTextInput<
       <div className={className}>
         {this.renderAutocompletions()}
         {this.renderTextInput()}
+        {this.renderInvisibleCaret()}
         <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>
           {autoCompleteItems.length > 0 ? suggestionsMessage : ''}
         </AriaLiveContainer>
@@ -653,6 +704,8 @@ export abstract class AutocompletingTextInput<
     if (this.props.onValueChanged) {
       this.props.onValueChanged(str)
     }
+
+    this.updateCaretCoordinates()
 
     return this.open(str)
   }
