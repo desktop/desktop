@@ -77,13 +77,11 @@ export class CommitMessageAvatar extends React.Component<
       accountEmail: this.props.preferredAccountEmail,
       isGitConfigLocal: false,
     }
-
     this.determineGitConfigLocation()
   }
 
   public componentDidUpdate(prevProps: ICommitMessageAvatarProps) {
     if (
-      this.props.user !== prevProps.user ||
       this.props.user?.name !== prevProps.user?.name ||
       this.props.user?.email !== prevProps.user?.email
     ) {
