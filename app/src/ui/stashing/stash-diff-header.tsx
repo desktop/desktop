@@ -3,8 +3,6 @@ import { IStashEntry } from '../../models/stash-entry'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
-import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IStashDiffHeaderProps {
@@ -51,30 +49,13 @@ export class StashDiffHeader extends React.Component<
             cancelButtonDisabled={isRestoring || isDiscarding}
             onCancelButtonClick={this.onDiscardClick}
           />
-          {this.renderExplanatoryText()}
+          <div className="explanatory-text">
+            <span className="text">
+              <strong>Restore</strong> will move your stashed files to the
+              Changes list.
+            </span>
+          </div>
         </div>
-      </div>
-    )
-  }
-
-  private renderExplanatoryText() {
-    if (this.state.isRestoring) {
-      return (
-        <div className="explanatory-text">
-          <span className="text">
-            <strong>Restore</strong> will move your stashed files to the Changes
-            list.
-          </span>
-        </div>
-      )
-    }
-
-    return (
-      <div className="explanatory-text">
-        <Octicon symbol={OcticonSymbol.alert} />
-        <span className="text">
-          Unable to restore stash when changes are present on your branch.
-        </span>
       </div>
     )
   }
