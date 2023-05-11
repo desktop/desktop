@@ -9,6 +9,8 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
 import { OkCancelButtonGroup } from '../dialog'
+import { getConfigValue } from '../../lib/git/config'
+import { Repository } from '../../models/repository'
 
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
@@ -39,8 +41,10 @@ interface ICommitMessageAvatarProps {
   /** Preferred email address from the user's account. */
   readonly preferredAccountEmail: string
 
-  /** Whether the git configuration is local to the repository or global  */
-  readonly isGitConfigLocal: Promise<boolean>
+  /**
+   * The currently selected repository
+   */
+  readonly repository: Repository
 
   readonly onUpdateEmail: (email: string) => void
 
@@ -88,8 +92,15 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   private async determineGitConfigLocation() {
-    const isGitConfigLocal = await this.props.isGitConfigLocal
+    const isGitConfigLocal = await this.isGitConfigLocal()
     this.setState({ isGitConfigLocal })
+  }
+
+  private isGitConfigLocal = async () => {
+    const { repository } = this.props
+    const localName = await getConfigValue(repository, 'user.name', true)
+    const localEmail = await getConfigValue(repository, 'user.email', true)
+    return localName !== null || localEmail !== null
   }
 
   public render() {

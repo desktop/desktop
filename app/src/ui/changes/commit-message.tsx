@@ -28,7 +28,7 @@ import { Account } from '../../models/account'
 import { CommitMessageAvatar } from './commit-message-avatar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { isAttributableEmailFor, lookupPreferredEmail } from '../../lib/email'
-import { getConfigValue, setGlobalConfigValue } from '../../lib/git/config'
+import { setGlobalConfigValue } from '../../lib/git/config'
 import { Popup, PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
@@ -424,13 +424,6 @@ export class CommitMessage extends React.Component<
     }
   }
 
-  private isGitConfigLocal = async () => {
-    const { repository } = this.props
-    const localName = await getConfigValue(repository, 'user.name', true)
-    const localEmail = await getConfigValue(repository, 'user.email', true)
-    return localName !== null || localEmail !== null
-  }
-
   private renderAvatar() {
     const { commitAuthor, repository } = this.props
     const { gitHubRepository } = repository
@@ -466,7 +459,7 @@ export class CommitMessage extends React.Component<
         onUpdateEmail={this.onUpdateUserEmail}
         onOpenRepositorySettings={this.onOpenRepositorySettings}
         onOpenGitSettings={this.onOpenGitSettings}
-        isGitConfigLocal={this.isGitConfigLocal()}
+        repository={repository}
       />
     )
   }
