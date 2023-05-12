@@ -3,20 +3,15 @@ import {
   ApplicationTheme,
   supportsSystemThemeChanges,
   getCurrentlyAppliedTheme,
-  ICustomTheme,
 } from '../lib/application-theme'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
-import { CustomThemeSelector } from './custom-theme-selector'
-import { enableHighContrastTheme } from '../../lib/feature-flag'
 import { RadioGroup } from '../lib/radio-group'
 import { encodePathAsUrl } from '../../lib/path'
 
 interface IAppearanceProps {
   readonly selectedTheme: ApplicationTheme
-  readonly customTheme?: ICustomTheme
   readonly onSelectedThemeChanged: (theme: ApplicationTheme) => void
-  readonly onCustomThemeChanged: (theme: ICustomTheme) => void
 }
 
 interface IAppearanceState {
@@ -66,10 +61,6 @@ export class Appearance extends React.Component<
     this.props.onSelectedThemeChanged(theme)
   }
 
-  private onCustomThemeChanged = (theme: ICustomTheme) => {
-    this.props.onCustomThemeChanged(theme)
-  }
-
   public renderThemeSwatch = (theme: ApplicationTheme) => {
     const darkThemeImage = encodePathAsUrl(__dirname, 'static/ghd_dark.svg')
     const lightThemeImage = encodePathAsUrl(__dirname, 'static/ghd_light.svg')
@@ -104,13 +95,6 @@ export class Appearance extends React.Component<
             <span className="theme-value-label">System</span>
           </span>
         )
-      case ApplicationTheme.HighContrast:
-        return (
-          <span>
-            <img src={darkThemeImage} alt="" />
-            <span className="theme-value-label">High Contrast</span>
-          </span>
-        )
     }
   }
 
@@ -129,7 +113,6 @@ export class Appearance extends React.Component<
       ApplicationTheme.Light,
       ApplicationTheme.Dark,
       ...(supportsSystemThemeChanges() ? [ApplicationTheme.System] : []),
-      ...(enableHighContrastTheme() ? [ApplicationTheme.HighContrast] : []),
     ]
 
     return (
@@ -144,14 +127,6 @@ export class Appearance extends React.Component<
           onSelectionChanged={this.onSelectedThemeChanged}
           renderRadioButtonLabelContents={this.renderThemeSwatch}
         />
-
-        <Row>
-          <CustomThemeSelector
-            onCustomThemeChanged={this.onCustomThemeChanged}
-            selectedTheme={selectedTheme}
-            customTheme={this.props.customTheme}
-          />
-        </Row>
       </DialogContent>
     )
   }

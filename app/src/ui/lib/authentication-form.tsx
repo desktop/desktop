@@ -8,6 +8,7 @@ import { Button } from './button'
 import { TextBox } from './text-box'
 import { Errors } from './errors'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { HorizontalRule } from './horizontal-rule'
 
 /** Text to let the user know their browser will send them back to GH Desktop */
 export const BrowserRedirectMessage =
@@ -104,6 +105,8 @@ export class AuthenticationForm extends React.Component<
         <TextBox
           label="Username or email address"
           disabled={disabled}
+          required={true}
+          displayInvalidState={false}
           // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={true}
           onValueChanged={this.onUsernameChange}
@@ -113,6 +116,8 @@ export class AuthenticationForm extends React.Component<
           label="Password"
           type="password"
           disabled={disabled}
+          required={true}
+          displayInvalidState={false}
           onValueChanged={this.onPasswordChange}
         />
 
@@ -151,16 +156,6 @@ export class AuthenticationForm extends React.Component<
     )
   }
 
-  private renderSignInWithBrowser() {
-    return (
-      <>
-        {this.renderSignInWithBrowserButton()}
-
-        {this.props.additionalButtons}
-      </>
-    )
-  }
-
   /**
    * Show the sign in locally form
    *
@@ -174,7 +169,8 @@ export class AuthenticationForm extends React.Component<
       this.renderUsernamePassword()
     ) : (
       <>
-        {this.renderSignInWithBrowser()}
+        {this.renderSignInWithBrowserButton()}
+        <HorizontalRule title="or" />
         {this.renderUsernamePassword()}
       </>
     )
