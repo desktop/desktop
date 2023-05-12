@@ -44,7 +44,7 @@ interface IPopoverProps {
 
 export class Popover extends React.Component<IPopoverProps> {
   private focusTrapOptions: FocusTrapOptions
-  private containerDivRef = React.createRef<HTMLDivElement>()
+  public containerDivRef = React.createRef<HTMLDivElement>()
 
   public constructor(props: IPopoverProps) {
     super(props)
