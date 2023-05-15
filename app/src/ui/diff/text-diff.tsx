@@ -56,7 +56,7 @@ import {
 import { createOcticonElement } from '../octicons/octicon'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
-import { PopoverCaretPosition } from '../lib/popover'
+import { PopoverAnchorPosition } from '../lib/popover'
 import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
 
 // This is a custom version of the no-newline octicon that's exactly as
@@ -1428,7 +1428,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       // sizer or lines so we'll have to account for the gutter width and
       // the hunk handle.
       const style: React.CSSProperties = { left: diffSize * 2 + 10 }
-      let caretPosition = PopoverCaretPosition.LeftTop
+      let caretPosition = PopoverAnchorPosition.LeftTop
 
       // Offset down by 10px to align the popover arrow.
       container.style.top = `${lineY - 10}px`
@@ -1437,7 +1437,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       // popover to point upwards so as to not get hidden beneath (or above)
       // the scroll boundary.
       if (lineY - scroller.scrollTop > scroller.clientHeight / 2) {
-        caretPosition = PopoverCaretPosition.LeftBottom
+        caretPosition = PopoverAnchorPosition.LeftBottom
         style.bottom = -35
       }
 

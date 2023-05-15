@@ -15,7 +15,7 @@ import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType } from '../../models/diff'
 import { DiffExpansionKind } from './text-diff-expansion'
-import { PopoverCaretPosition } from '../lib/popover'
+import { PopoverAnchorPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
@@ -502,8 +502,8 @@ export class SideBySideDiffRow extends React.Component<
 
     const caretPosition =
       column === DiffColumn.Before
-        ? PopoverCaretPosition.RightTop
-        : PopoverCaretPosition.LeftTop
+        ? PopoverAnchorPosition.RightTop
+        : PopoverAnchorPosition.LeftTop
 
     const style: React.CSSProperties = {
       [column === DiffColumn.Before ? 'marginRight' : 'marginLeft']:

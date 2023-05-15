@@ -12,7 +12,7 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
-import { Popover, PopoverCaretPosition } from '../lib/popover'
+import { Popover, PopoverAnchorPosition } from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
 import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
@@ -45,6 +45,8 @@ interface ICICheckRunPopoverProps {
   /** The bottom of the pull request badge so we can position popover relative
    * to it. */
   readonly badgeBottom: number
+
+  readonly anchor: HTMLElement | null
 
   /** Callback for when popover closes */
   readonly closePopover: (event?: MouseEvent) => void
@@ -407,7 +409,8 @@ export class CICheckRunPopover extends React.PureComponent<
       <div className="ci-check-list-popover">
         <Popover
           ariaLabelledby="ci-check-run-header"
-          caretPosition={PopoverCaretPosition.Top}
+          anchorPosition={PopoverAnchorPosition.Bottom}
+          anchor={this.props.anchor}
           onClickOutside={this.props.closePopover}
           style={this.getPopoverPositioningStyles()}
         >

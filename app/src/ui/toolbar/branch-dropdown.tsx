@@ -75,6 +75,8 @@ export class BranchDropdown extends React.Component<
   IBranchDropdownProps,
   IBranchDropdownState
 > {
+  private badgeRef: HTMLElement | null = null
+
   public constructor(props: IBranchDropdownProps) {
     super(props)
     this.state = {
@@ -362,9 +364,14 @@ export class BranchDropdown extends React.Component<
         repository={pr.base.gitHubRepository}
         branchName={currentBranchName}
         badgeBottom={this.state.badgeBottom}
+        anchor={this.badgeRef}
         closePopover={this.closePopover}
       />
     )
+  }
+
+  private onBadgeRef = (ref: HTMLSpanElement | null) => {
+    this.badgeRef = ref
   }
 
   private renderPullRequestInfo() {
@@ -379,6 +386,7 @@ export class BranchDropdown extends React.Component<
         number={pr.pullRequestNumber}
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
+        onBadgeRef={this.onBadgeRef}
         onBadgeClick={this.onBadgeClick}
         onBadgeBottomPositionUpdate={this.updateBadgeBottomPosition}
       />

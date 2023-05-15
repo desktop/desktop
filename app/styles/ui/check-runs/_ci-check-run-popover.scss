@@ -1,10 +1,9 @@
 .ci-check-list-popover {
   .popover-component {
-    position: absolute;
+    // position: absolute;
     padding: 0px;
     width: 440px;
-    top: 60;
-    margin-left: -302px;
+    z-index: 1000;
 
     &::after {
       border-bottom-color: var(--box-alt-background-color);

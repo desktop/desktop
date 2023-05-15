@@ -8,7 +8,8 @@ import {
   autoUpdate,
   computePosition,
 } from '@floating-ui/react-dom'
-import { arrow, flip, size } from '@floating-ui/core'
+import { arrow, flip, Placement, shift, size } from '@floating-ui/core'
+import { assertNever } from '../../lib/fatal-error'
 
 /**
  * Position of the caret relative to the pop up. It's composed by 2 dimensions:
@@ -22,14 +23,15 @@ import { arrow, flip, size } from '@floating-ui/core'
  * `app/styles/ui/_popover.scss`, where the caret is located for that specific
  * position.
  **/
-export enum PopoverCaretPosition {
+export enum PopoverAnchorPosition {
   Top = 'top',
   TopRight = 'top-right',
   TopLeft = 'top-left',
   LeftTop = 'left-top',
   LeftBottom = 'left-bottom',
+  Bottom = 'bottom',
   RightTop = 'right-top',
-  None = 'none',
+  Right = 'right',
 }
 
 export enum PopoverAppearEffect {
@@ -42,12 +44,13 @@ interface IPopoverProps {
   /** The position of the caret or pointer towards the content to which the the
    * popover refers. If the caret position is not provided, the popup will have
    * no caret.  */
-  readonly caretPosition?: PopoverCaretPosition
+  readonly anchorPosition: PopoverAnchorPosition
   readonly className?: string
   readonly style?: React.CSSProperties
   readonly appearEffect?: PopoverAppearEffect
   readonly ariaLabelledby?: string
   readonly trapFocus?: boolean // Default: true
+  readonly showCaret?: boolean // Default: true
 
   readonly maxHeight?: number
   readonly minHeight?: number
@@ -64,6 +67,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   private containerDivRef = React.createRef<HTMLDivElement>()
   private wrapperDivRef = React.createRef<HTMLDivElement>()
   private caretDivRef = React.createRef<HTMLDivElement>()
+  private floatingCleanUp: (() => void) | null = null
 
   public constructor(props: IPopoverProps) {
     super(props)
@@ -78,6 +82,9 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   }
 
   private async setupPosition() {
+    this.floatingCleanUp?.()
+    console.log('HOLA', this.props.anchor, this.containerDivRef.current)
+
     if (
       this.props.anchor === null ||
       this.props.anchor === undefined ||
@@ -86,7 +93,9 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       return
     }
 
-    autoUpdate(
+    console.log('ADIOS')
+
+    this.floatingCleanUp = autoUpdate(
       this.props.anchor,
       this.containerDivRef.current,
       this.updatePosition
@@ -98,8 +107,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       this.props.anchor === null ||
       this.props.anchor === undefined ||
       this.containerDivRef.current === null ||
-      this.wrapperDivRef.current === null ||
-      this.caretDivRef.current === null
+      this.wrapperDivRef.current === null
     ) {
       return
     }
@@ -108,36 +116,56 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     const caretDiv = this.caretDivRef.current
     const maxHeight = this.props.maxHeight ?? 0
 
+    const middleware = [
+      shift(),
+      flip(),
+      size({
+        apply({ availableHeight, availableWidth }) {
+          Object.assign(wrapperDiv.style, {
+            maxHeight: `${Math.min(availableHeight, maxHeight)}px`,
+          })
+        },
+        padding: 5,
+      }),
+    ]
+
+    if (this.props.showCaret !== false && caretDiv) {
+      middleware.push(arrow({ element: caretDiv }))
+    }
+
+    console.log(
+      'popover rect',
+      this.containerDivRef.current.getBoundingClientRect()
+    )
+
+    console.log('anchor rect', this.props.anchor.getBoundingClientRect())
+
     const position = await computePosition(
       this.props.anchor,
       this.containerDivRef.current,
       {
         strategy: 'fixed',
-        placement: 'right-end',
-        middleware: [
-          flip(),
-          size({
-            apply({ availableHeight }) {
-              Object.assign(wrapperDiv.style, {
-                maxHeight: `${Math.min(availableHeight, maxHeight)}px`,
-              })
-            },
-            padding: 5,
-          }),
-          arrow({ element: caretDiv }),
-        ],
+        placement: this.getFloatingPlacementForAnchorPosition(),
+        middleware,
       }
     )
 
     this.setState({ position })
 
-    console.log(position.middlewareData.arrow)
+    console.log(position)
   }
 
   public componentDidMount() {
     document.addEventListener('click', this.onDocumentClick)
     document.addEventListener('mousedown', this.onDocumentMouseDown)
     this.setupPosition()
+  }
+
+  // in component did update check if anchor changed, and if so setup position again
+  public componentDidUpdate(prevProps: IPopoverProps) {
+    if (prevProps.anchor !== this.props.anchor) {
+      this.setupPosition()
+    }
   }
 
   public componentWillUnmount() {
@@ -182,7 +210,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       appearEffect,
       ariaLabelledby,
       children,
-      caretPosition,
+      showCaret,
       minHeight,
     } = this.props
     const cn = classNames(
@@ -196,13 +224,13 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     const style: React.CSSProperties | undefined = position
       ? {
           position: 'fixed',
-          top: `${position.y}px`,
-          left: `${position.x}px`,
-          height: `${minHeight}px`,
+          top: position.y === undefined ? undefined : `${position.y}px`,
+          left: position.x === undefined ? undefined : `${position.x}px`,
+          height: minHeight === undefined ? undefined : `${minHeight}px`,
           zIndex: 1000,
         }
       : undefined
-
+    console.log(this.props.className, style)
     return (
       <div style={style} ref={this.wrapperDivRef}>
         <FocusTrap
@@ -216,7 +244,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
             role="dialog"
           >
             {children}
-            {caretPosition !== PopoverCaretPosition.None && (
+            {showCaret !== false && (
               <div
                 //className={this.getClassNameForCaret()}
                 style={{
@@ -247,8 +275,33 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   }
 
   private getClassNameForCaret() {
-    return `popover-caret-${
-      this.props.caretPosition ?? PopoverCaretPosition.None
-    }`
+    return `popover-caret-${this.props.anchorPosition}`
+  }
+
+  private getFloatingPlacementForAnchorPosition(): Placement {
+    if (1 !== NaN) {
+      // return 'left'
+    }
+    const { anchorPosition } = this.props
+    switch (anchorPosition) {
+      case PopoverAnchorPosition.Top:
+        return 'top'
+      case PopoverAnchorPosition.TopLeft:
+        return 'top-start'
+      case PopoverAnchorPosition.TopRight:
+        return 'top-end'
+      case PopoverAnchorPosition.LeftTop:
+        return 'left-start'
+      case PopoverAnchorPosition.LeftBottom:
+        return 'left-end'
+      case PopoverAnchorPosition.RightTop:
+        return 'right-start'
+      case PopoverAnchorPosition.Right:
+        return 'right'
+      case PopoverAnchorPosition.Bottom:
+        return 'bottom'
+      default:
+        assertNever(anchorPosition, 'Unknown anchor position')
+    }
   }
 }
