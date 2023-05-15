@@ -5,8 +5,8 @@
     width: 440px;
     z-index: 1000;
 
-    &::after {
-      border-bottom-color: var(--box-alt-background-color);
+    .popover-tip-background {
+      border-right-color: var(--box-alt-background-color);
     }
   }
 

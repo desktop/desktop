@@ -8,7 +8,15 @@ import {
   autoUpdate,
   computePosition,
 } from '@floating-ui/react-dom'
-import { arrow, flip, offset, Placement, shift, size } from '@floating-ui/core'
+import {
+  arrow,
+  flip,
+  offset,
+  Placement,
+  shift,
+  Side,
+  size,
+} from '@floating-ui/core'
 import { assertNever } from '../../lib/fatal-error'
 
 /**
@@ -226,16 +234,48 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     )
 
     const { position } = this.state
-    const style: React.CSSProperties | undefined = position
-      ? {
-          position: 'fixed',
-          top: position.y === undefined ? undefined : `${position.y}px`,
-          left: position.x === undefined ? undefined : `${position.x}px`,
-          height: minHeight === undefined ? undefined : `${minHeight}px`,
-          zIndex: 1000,
+    let style: React.CSSProperties | undefined = undefined
+    let caretStyle: React.CSSProperties = {}
+
+    if (position) {
+      style = {
+        position: 'fixed',
+        top: position.y === undefined ? undefined : `${position.y}px`,
+        left: position.x === undefined ? undefined : `${position.x}px`,
+        height: minHeight === undefined ? undefined : `${minHeight}px`,
+        zIndex: 1000,
+      }
+
+      const arrow = position.middlewareData.arrow
+
+      if (arrow) {
+        const side: Side = position.placement.split('-')[0] as Side
+
+        const staticSide = {
+          top: 'bottom',
+          right: 'left',
+          bottom: 'top',
+          left: 'right',
+        }[side]
+
+        const angle = {
+          top: '270deg',
+          right: '0deg',
+          bottom: '90deg',
+          left: '180deg',
+        }[side]
+
+        caretStyle = {
+          top: arrow.y,
+          left: arrow.x,
+          transform: `rotate(${angle})`,
+          [staticSide]: this.caretDivRef.current
+            ? `${-this.caretDivRef.current.offsetWidth}px`
+            : undefined,
         }
-      : undefined
-    console.log(this.props.className, style)
+      }
+    }
+
     return (
       <FocusTrap
         active={trapFocus !== false}
@@ -251,23 +291,40 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
           {children}
           {showCaret !== false && (
             <div
-              //className={this.getClassNameForCaret()}
+              className="popover-tip"
               style={{
                 position: 'absolute',
-                width: 0,
-                height: 0,
-                border: `${CaretSize}px solid transparent`,
-                borderRight: `${CaretSize}px solid red`,
-                top: position?.middlewareData.arrow?.y ?? -CaretSize * 2,
-                left: position?.middlewareData.arrow?.x ?? -CaretSize * 2,
-                transform: `translate(${
-                  position?.middlewareData.arrow?.x !== undefined ? '-50%' : '0'
-                }, ${
-                  position?.middlewareData.arrow?.y !== undefined ? '-50%' : '0'
-                })`,
+                width: CaretSize * 2,
+                height: CaretSize * 2,
+                ...caretStyle,
               }}
               ref={this.caretDivRef}
-            />
+            >
+              <div
+                className="popover-tip-border"
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  width: 0,
+                  height: 0,
+                  borderWidth: `${CaretSize}px`,
+                  borderRightWidth: `${CaretSize}px`,
+                }}
+                ref={this.caretDivRef}
+              />
+              <div
+                className="popover-tip-background"
+                style={{
+                  position: 'absolute',
+                  right: -1,
+                  width: 0,
+                  height: 0,
+                  borderWidth: `${CaretSize}px`,
+                  borderRightWidth: `${CaretSize - 1}px`,
+                }}
+                ref={this.caretDivRef}
+              />
+            </div>
           )}
         </div>
       </FocusTrap>
