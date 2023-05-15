@@ -42,10 +42,6 @@ interface ICICheckRunPopoverProps {
   /** The pull request's number. */
   readonly prNumber: number
 
-  /** The bottom of the pull request badge so we can position popover relative
-   * to it. */
-  readonly badgeBottom: number
-
   readonly anchor: HTMLElement | null
 
   /** Callback for when popover closes */
@@ -209,20 +205,6 @@ export class CICheckRunPopover extends React.PureComponent<
     })
   }
 
-  private getPopoverPositioningStyles = (): React.CSSProperties => {
-    const top = this.props.badgeBottom + 10
-    return { top }
-  }
-
-  private getListHeightStyles = (): React.CSSProperties => {
-    const headerHeight = 55
-    return {
-      maxHeight: `${
-        window.innerHeight - (this.props.badgeBottom + headerHeight + 20)
-      }px`,
-    }
-  }
-
   private renderRerunButton = () => {
     const { checkRuns } = this.state
     if (!supportsRerunningChecks(this.props.repository.endpoint)) {
@@ -382,10 +364,7 @@ export class CICheckRunPopover extends React.PureComponent<
     }
 
     return (
-      <div
-        className="ci-check-run-list-container"
-        style={this.getListHeightStyles()}
-      >
+      <div className="ci-check-run-list-container">
         <CICheckRunList
           checkRuns={checkRuns}
           loadingActionLogs={loadingActionLogs}
@@ -412,7 +391,6 @@ export class CICheckRunPopover extends React.PureComponent<
           anchorPosition={PopoverAnchorPosition.Bottom}
           anchor={this.props.anchor}
           onClickOutside={this.props.closePopover}
-          style={this.getPopoverPositioningStyles()}
         >
           {this.renderHeader()}
           {this.renderList()}
