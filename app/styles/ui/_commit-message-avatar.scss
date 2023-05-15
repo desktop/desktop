@@ -1,6 +1,8 @@
 .commit-message-avatar-component {
   // With this, the popover's absolute position will be relative to its parent
   position: relative;
+  width: var(--text-field-height);
+  height: var(--text-field-height);
 
   .avatar-button {
     // override default button styles
@@ -16,7 +18,12 @@
     background-color: none;
 
     border-radius: 50%;
-    margin-right: var(--spacing-half);
+
+    .avatar {
+      flex-shrink: 0;
+      width: 100%;
+      height: 100%;
+    }
   }
 
   .toggletip {
@@ -83,7 +90,6 @@
     }
 
     width: 300px;
-    position: fixed;
   }
 
   .link-button-component {
