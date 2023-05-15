@@ -8,6 +8,7 @@ import {
   autoUpdate,
   computePosition,
 } from '@floating-ui/react-dom'
+import { arrow, flip, size } from '@floating-ui/core'
 
 /**
  * Position of the caret relative to the pop up. It's composed by 2 dimensions:
@@ -46,6 +47,10 @@ interface IPopoverProps {
   readonly style?: React.CSSProperties
   readonly appearEffect?: PopoverAppearEffect
   readonly ariaLabelledby?: string
+  readonly trapFocus?: boolean // Default: true
+
+  readonly maxHeight?: number
+  readonly minHeight?: number
 
   readonly anchor?: ReferenceType | null
 }
@@ -57,6 +62,8 @@ interface IPopoverState {
 export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   private focusTrapOptions: FocusTrapOptions
   private containerDivRef = React.createRef<HTMLDivElement>()
+  private wrapperDivRef = React.createRef<HTMLDivElement>()
+  private caretDivRef = React.createRef<HTMLDivElement>()
 
   public constructor(props: IPopoverProps) {
     super(props)
@@ -90,20 +97,41 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     if (
       this.props.anchor === null ||
       this.props.anchor === undefined ||
-      this.containerDivRef.current === null
+      this.containerDivRef.current === null ||
+      this.wrapperDivRef.current === null ||
+      this.caretDivRef.current === null
     ) {
       return
     }
 
+    const wrapperDiv = this.wrapperDivRef.current
+    const caretDiv = this.caretDivRef.current
+    const maxHeight = this.props.maxHeight ?? 0
+
     const position = await computePosition(
       this.props.anchor,
       this.containerDivRef.current,
-      { strategy: 'fixed', placement: 'right-end' }
+      {
+        strategy: 'fixed',
+        placement: 'right-end',
+        middleware: [
+          flip(),
+          size({
+            apply({ availableHeight }) {
+              Object.assign(wrapperDiv.style, {
+                maxHeight: `${Math.min(availableHeight, maxHeight)}px`,
+              })
+            },
+            padding: 5,
+          }),
+          arrow({ element: caretDiv }),
+        ],
+      }
     )
 
     this.setState({ position })
 
-    console.log(position)
+    console.log(position.middlewareData.arrow)
   }
 
   public componentDidMount() {
@@ -148,30 +176,73 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   }
 
   public render() {
+    const {
+      trapFocus,
+      className,
+      appearEffect,
+      ariaLabelledby,
+      children,
+      caretPosition,
+      minHeight,
+    } = this.props
     const cn = classNames(
       'popover-component',
       this.getClassNameForCaret(),
-      this.props.className,
-      this.props.appearEffect && `appear-${this.props.appearEffect}`
+      className,
+      appearEffect && `appear-${appearEffect}`
     )
 
     const { position } = this.state
-    const style = position
-      ? { top: `${position.y}px`, left: `${position.x}px` }
+    const style: React.CSSProperties | undefined = position
+      ? {
+          position: 'fixed',
+          top: `${position.y}px`,
+          left: `${position.x}px`,
+          height: `${minHeight}px`,
+          zIndex: 1000,
+        }
       : undefined
 
     return (
-      <FocusTrap active={true} focusTrapOptions={this.focusTrapOptions}>
-        <div
-          className={cn}
-          ref={this.containerDivRef}
-          style={style}
-          aria-labelledby={this.props.ariaLabelledby}
-          role="dialog"
+      <div style={style} ref={this.wrapperDivRef}>
+        <FocusTrap
+          active={trapFocus !== false}
+          focusTrapOptions={this.focusTrapOptions}
         >
-          {this.props.children}
-        </div>
-      </FocusTrap>
+          <div
+            className={cn}
+            ref={this.containerDivRef}
+            aria-labelledby={ariaLabelledby}
+            role="dialog"
+          >
+            {children}
+            {caretPosition !== PopoverCaretPosition.None && (
+              <div
+                //className={this.getClassNameForCaret()}
+                style={{
+                  position: 'absolute',
+                  width: 0,
+                  height: 0,
+                  border: '8px solid transparent',
+                  borderRight: '8px solid red',
+                  top: position?.middlewareData.arrow?.y ?? -16,
+                  left: position?.middlewareData.arrow?.x ?? -16,
+                  transform: `translate(${
+                    position?.middlewareData.arrow?.x !== undefined
+                      ? '-50%'
+                      : '0'
+                  }, ${
+                    position?.middlewareData.arrow?.y !== undefined
+                      ? '-50%'
+                      : '0'
+                  })`,
+                }}
+                ref={this.caretDivRef}
+              />
+            )}
+          </div>
+        </FocusTrap>
+      </div>
     )
   }
 
