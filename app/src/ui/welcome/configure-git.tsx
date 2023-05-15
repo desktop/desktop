@@ -3,7 +3,6 @@ import { WelcomeStep } from './welcome'
 import { Account } from '../../models/account'
 import { ConfigureGitUser } from '../lib/configure-git-user'
 import { Button } from '../lib/button'
-import { updateDocumentTitle } from '../../lib/document-title-update'
 
 interface IConfigureGitProps {
   readonly accounts: ReadonlyArray<Account>
@@ -13,10 +12,6 @@ interface IConfigureGitProps {
 
 /** The Welcome flow step to configure git. */
 export class ConfigureGit extends React.Component<IConfigureGitProps, {}> {
-  public componentDidMount() {
-    updateDocumentTitle('Configure Git')
-  }
-
   public render() {
     return (
       <div id="configure-git">
