@@ -4,6 +4,7 @@ import { Button } from '../lib/button'
 import { SignIn } from '../lib/sign-in'
 import { Dispatcher } from '../dispatcher'
 import { SignInState } from '../../lib/stores'
+import { updateDocumentTitle } from '../../lib/document-title-update'
 
 interface ISignInEnterpriseProps {
   readonly dispatcher: Dispatcher
@@ -16,6 +17,10 @@ export class SignInEnterprise extends React.Component<
   ISignInEnterpriseProps,
   {}
 > {
+  public componentDidMount() {
+    updateDocumentTitle('Sign in to your GitHub Enterprise')
+  }
+
   public render() {
     const state = this.props.signInState
 

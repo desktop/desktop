@@ -167,6 +167,7 @@ import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 import { PullRequestComment } from './notifications/pull-request-comment'
 import { UnknownAuthors } from './unknown-authors/unknown-authors-dialog'
+import { updateDocumentTitle } from '../lib/document-title-update'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -3129,6 +3130,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         />
       )
     }
+
+    updateDocumentTitle('GitHub Desktop')
 
     const selectedState = state.selectedState
     if (!selectedState) {

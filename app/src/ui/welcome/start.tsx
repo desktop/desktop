@@ -8,6 +8,7 @@ import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { BrowserRedirectMessage } from '../lib/authentication-form'
 import { SamplesURL } from '../../lib/stats'
+import { updateDocumentTitle } from '../../lib/document-title-update'
 
 /**
  * The URL to the sign-up page on GitHub.com. Used in conjunction
@@ -24,6 +25,10 @@ interface IStartProps {
 
 /** The first step of the Welcome flow. */
 export class Start extends React.Component<IStartProps, {}> {
+  public componentDidMount() {
+    updateDocumentTitle('Welcome to GitHub Desktop')
+  }
+
   public render() {
     return (
       <div id="start">
