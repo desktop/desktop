@@ -35,6 +35,7 @@ export enum PopoverAnchorPosition {
   Top = 'top',
   TopRight = 'top-right',
   TopLeft = 'top-left',
+  Left = 'left',
   LeftTop = 'left-top',
   LeftBottom = 'left-bottom',
   Bottom = 'bottom',
@@ -216,7 +217,6 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     } = this.props
     const cn = classNames(
       'popover-component',
-      this.getClassNameForCaret(),
       className,
       appearEffect && `appear-${appearEffect}`
     )
@@ -319,10 +319,6 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     )
   }
 
-  private getClassNameForCaret() {
-    return `popover-caret-${this.props.anchorPosition}`
-  }
-
   private getFloatingPlacementForAnchorPosition(): Placement {
     if (1 !== NaN) {
       // return 'left'
@@ -335,6 +331,8 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
         return 'top-start'
       case PopoverAnchorPosition.TopRight:
         return 'top-end'
+      case PopoverAnchorPosition.Left:
+        return 'left'
       case PopoverAnchorPosition.LeftTop:
         return 'left-start'
       case PopoverAnchorPosition.LeftBottom:
