@@ -356,6 +356,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       conflictState,
       selection,
       currentBranchProtected,
+      currentBranchRulesetInfo,
     } = this.props.changes
     let rebaseConflictState: RebaseConflictState | null = null
     if (conflictState !== null) {
@@ -421,6 +422,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           currentBranchProtected={currentBranchProtected}
           shouldNudgeToCommit={this.props.shouldNudgeToCommit}
           commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
+          currentBranchRulesetInfo={currentBranchRulesetInfo}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

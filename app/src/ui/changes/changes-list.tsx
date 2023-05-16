@@ -55,6 +55,7 @@ import { TooltipDirection } from '../lib/tooltip'
 import { Popup } from '../../models/popup'
 import { EOL } from 'os'
 import { TooltippedContent } from '../lib/tooltipped-content'
+import { BranchRulesetInfo } from '../../models/ruleset-rule'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -161,6 +162,7 @@ interface IChangesListProps {
   readonly isCommitting: boolean
   readonly commitToAmend: Commit | null
   readonly currentBranchProtected: boolean
+  readonly currentBranchRulesetInfo: BranchRulesetInfo
 
   /**
    * Click event handler passed directly to the onRowClick prop of List, see
@@ -732,6 +734,7 @@ export class ChangesList extends React.Component<
       isCommitting,
       commitToAmend,
       currentBranchProtected,
+      currentBranchRulesetInfo,
     } = this.props
 
     if (rebaseConflictState !== null) {
@@ -804,6 +807,7 @@ export class ChangesList extends React.Component<
         prepopulateCommitSummary={prepopulateCommitSummary}
         key={repository.id}
         showBranchProtected={fileCount > 0 && currentBranchProtected}
+        branchRulesetInfo={currentBranchRulesetInfo}
         showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}

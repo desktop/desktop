@@ -36,6 +36,7 @@ import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
 import { ToggledtippedContent } from '../lib/toggletipped-content'
+import { BranchRulesetInfo } from '../../models/ruleset-rule'
 
 const addAuthorIcon = {
   w: 18,
@@ -72,6 +73,7 @@ interface ICommitMessageProps {
   readonly placeholder: string
   readonly prepopulateCommitSummary: boolean
   readonly showBranchProtected: boolean
+  readonly branchRulesetInfo: BranchRulesetInfo
   readonly showNoWriteAccess: boolean
 
   /**
@@ -665,6 +667,7 @@ export class CommitMessage extends React.Component<
     const {
       commitToAmend,
       showBranchProtected,
+      branchRulesetInfo,
       showNoWriteAccess,
       repository,
       branch,
@@ -696,7 +699,7 @@ export class CommitMessage extends React.Component<
         // If the branch is null that means we haven't loaded the tip yet or
         // we're on a detached head. We shouldn't ever end up here with
         // showBranchProtected being true without a branch but who knows
-        // what fun and exiting edge cases the future might hold
+        // what fun and exciting edge cases the future might hold
         return null
       }
 
@@ -705,6 +708,18 @@ export class CommitMessage extends React.Component<
           <strong>{branch}</strong> is a protected branch. Want to{' '}
           <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
           ?
+        </CommitWarning>
+      )
+    } else if (branchRulesetInfo.basicCommitWarning) {
+      let ruleText: string | JSX.Element = `One or more rules`
+      if (repository.gitHubRepository) {
+        const rulesLink = `${repository.gitHubRepository.htmlURL}/rules/?ref=${encodeURIComponent('refs/heads/' + branch)}`
+        ruleText = <LinkButton uri={rulesLink}>{ruleText}</LinkButton>
+      }
+      return (
+        <CommitWarning icon={CommitWarningIcon.Warning}>
+          {ruleText} apply to the branch <strong>{branch}</strong> that may prevent pushing.{' '}
+          Want to <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>?
         </CommitWarning>
       )
     } else {

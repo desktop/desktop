@@ -3,6 +3,7 @@ import { WorkingDirectoryStatus } from '../../src/models/status'
 import { merge } from '../../src/lib/merge'
 import { IStatusResult } from '../../src/lib/git'
 import { DefaultCommitMessage } from '../../src/models/commit-message'
+import { BranchRulesetInfo } from '../../src/models/ruleset-rule'
 
 export function createState<K extends keyof IChangesState>(
   pick: Pick<IChangesState, K>
@@ -20,6 +21,7 @@ export function createState<K extends keyof IChangesState>(
     conflictState: null,
     stashEntry: null,
     currentBranchProtected: false,
+    currentBranchRulesetInfo: new BranchRulesetInfo(),
   }
 
   return merge(baseChangesState, pick)

@@ -316,6 +316,8 @@ import { ValidNotificationPullRequestReview } from '../valid-notification-pull-r
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
 import { resizableComponentClass } from '../../ui/resizable'
+import { parseRulesetRules } from '../helpers/branch-rules'
+import { BranchRulesetInfo } from '../../models/ruleset-rule'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1104,6 +1106,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private clearBranchProtectionState(repository: Repository) {
     this.repositoryStateCache.updateChangesState(repository, () => ({
       currentBranchProtected: false,
+      currentBranchRulesetInfo: new BranchRulesetInfo(),
     }))
     this.emitUpdate()
   }
@@ -1135,6 +1138,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (!hasWritePermission(gitHubRepo)) {
         this.repositoryStateCache.updateChangesState(repository, () => ({
           currentBranchProtected: false,
+          currentBranchRulesetInfo: new BranchRulesetInfo(),
         }))
         this.emitUpdate()
         return
@@ -1147,8 +1151,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const pushControl = await api.fetchPushControl(owner, name, branchName)
       const currentBranchProtected = !isBranchPushable(pushControl)
 
+      const rulesetRules = await api.fetchBranchRules(owner, name, branchName)
+      const currentBranchRulesetInfo = parseRulesetRules(rulesetRules)
+
       this.repositoryStateCache.updateChangesState(repository, () => ({
         currentBranchProtected,
+        currentBranchRulesetInfo
       }))
       this.emitUpdate()
     }

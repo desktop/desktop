@@ -46,6 +46,7 @@ import {
 } from '../models/multi-commit-operation'
 import { IChangesetData } from './git'
 import { Popup } from '../models/popup'
+import { BranchRulesetInfo } from '../models/ruleset-rule'
 
 export enum SelectionType {
   Repository,
@@ -713,6 +714,11 @@ export interface IChangesState {
 
   /** `true` if the GitHub API reports that the branch is protected */
   readonly currentBranchProtected: boolean
+
+  /**
+   * Ruleset rules that apply to the current branch.
+   */
+  readonly currentBranchRulesetInfo: BranchRulesetInfo
 }
 
 /**

@@ -16,6 +16,7 @@ import { Popup } from '../../models/popup'
 import { Foldout } from '../../lib/app-state'
 import { Account } from '../../models/account'
 import { pick } from '../../lib/pick'
+import { BranchRulesetInfo } from '../../models/ruleset-rule'
 
 interface ICommitMessageDialogProps {
   /**
@@ -69,6 +70,9 @@ interface ICommitMessageDialogProps {
 
   /** Whether to warn the user that they are on a protected branch. */
   readonly showBranchProtected: boolean
+
+  /** List of repository rules that apply to the branch. */
+  readonly branchRulesetInfo: BranchRulesetInfo
 
   /**
    * Whether or not to show a field for adding co-authors to a commit
@@ -128,6 +132,7 @@ export class CommitMessageDialog extends React.Component<
             prepopulateCommitSummary={this.props.prepopulateCommitSummary}
             key={this.props.repository.id}
             showBranchProtected={this.props.showBranchProtected}
+            branchRulesetInfo={this.props.branchRulesetInfo}
             showNoWriteAccess={this.props.showNoWriteAccess}
             commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
             onCoAuthorsUpdated={this.onCoAuthorsUpdated}

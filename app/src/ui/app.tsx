@@ -2141,6 +2141,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             showBranchProtected={
               repositoryState.changesState.currentBranchProtected
             }
+            branchRulesetInfo={repositoryState.changesState.currentBranchRulesetInfo}
             showCoAuthoredBy={popup.showCoAuthoredBy}
             showNoWriteAccess={!hasWritePermissionForRepository}
             onDismissed={onPopupDismissedFn}

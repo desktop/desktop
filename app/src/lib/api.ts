@@ -16,6 +16,7 @@ import { GitProtocol } from './remote-parsing'
 import { Emitter } from 'event-kit'
 import JSZip from 'jszip'
 import { updateEndpointVersion } from './endpoint-capabilities'
+import { IRulesetRuleMetadataParameters } from '../models/ruleset-rule'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -483,6 +484,22 @@ export interface IAPIBranch {
    *  - `false` indicates no branch protection set
    */
   readonly protected: boolean
+}
+
+/** Repository rule information returned by the GitHub API */
+export interface IAPIRulesetRule {
+  /**
+   * The type of the rule.
+   */
+  readonly type: string
+
+  /**
+   * The parameters that apply to the rule if it is a metadata rule.
+   * Other rule types may have parameters, but they are not used in
+   * this app so they are ignored. Do not attempt to use this field
+   * unless you know {@link type} matches a metadata rule type.
+   */
+  readonly parameters?: IRulesetRuleMetadataParameters
 }
 
 interface IAPIPullRequestRef {
@@ -1552,6 +1569,27 @@ export class API {
         err
       )
       return new Array<IAPIBranch>()
+    }
+  }
+
+  /**
+   * Fetches all repository rules that apply to the provided branch.
+   */
+  public async fetchBranchRules(
+    owner: string,
+    name: string,
+    branch: string
+  ): Promise<ReadonlyArray<IAPIRulesetRule>> {
+    const path = `repos/${owner}/${name}/rules/branches/${encodeURIComponent(branch)}`
+    try {
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIRulesetRule[]>(response)
+    } catch (err) {
+      log.info(
+        `[fetchBranchRules] unable to fetch branch rules: ${branch} | ${path}`,
+        err
+      )
+      return new Array<IAPIRulesetRule>()
     }
   }
 

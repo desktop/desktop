@@ -25,6 +25,7 @@ import { DefaultCommitMessage } from '../../models/commit-message'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { StatsStore } from '../stats'
 import { enableSubmoduleDiff } from '../feature-flag'
+import { BranchRulesetInfo } from '../../models/ruleset-rule'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
@@ -325,6 +326,7 @@ function getInitialRepositoryState(): IRepositoryState {
       conflictState: null,
       stashEntry: null,
       currentBranchProtected: false,
+      currentBranchRulesetInfo: new BranchRulesetInfo(),
     },
     selectedSection: RepositorySectionTab.Changes,
     branchesState: {
