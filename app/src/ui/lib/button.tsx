@@ -122,6 +122,9 @@ export interface IButtonProps {
    * bounds. Typically this is used in conjunction with an ellipsis CSS ruleset.
    */
   readonly onlyShowTooltipWhenOverflowed?: boolean
+
+  /** Whether the input field should auto focus when mounted. */
+  readonly autoFocus?: boolean
 }
 
 /**
@@ -176,6 +179,7 @@ export class Button extends React.Component<IButtonProps, {}> {
         aria-disabled={disabled ? 'true' : undefined}
         aria-label={this.props.ariaLabel}
         aria-haspopup={this.props.ariaHaspopup}
+        autoFocus={this.props.autoFocus}
       >
         {tooltip && (
           <Tooltip
