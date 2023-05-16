@@ -3,6 +3,7 @@ import { WelcomeStep } from './welcome'
 import { Account } from '../../models/account'
 import { ConfigureGitUser } from '../lib/configure-git-user'
 import { Button } from '../lib/button'
+import { focusFirstSuitableChild } from '../../lib/focus-first-suitable-child'
 
 interface IConfigureGitProps {
   readonly accounts: ReadonlyArray<Account>
@@ -12,9 +13,23 @@ interface IConfigureGitProps {
 
 /** The Welcome flow step to configure git. */
 export class ConfigureGit extends React.Component<IConfigureGitProps, {}> {
+  private configureGitElement = React.createRef<HTMLElement>()
+
+  public componentDidMount() {
+    if (this.configureGitElement.current == null) {
+      return
+    }
+
+    focusFirstSuitableChild(this.configureGitElement.current)
+  }
+
   public render() {
     return (
-      <section ref={this.onRef} id="configure-git" aria-label="Configure Git">
+      <section
+        ref={this.configureGitElement}
+        id="configure-git"
+        aria-label="Configure Git"
+      >
         <h1 className="welcome-title">Configure Git</h1>
         <p className="welcome-text">
           This is used to identify the commits you create. Anyone will be able
