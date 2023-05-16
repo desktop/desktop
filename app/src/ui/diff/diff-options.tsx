@@ -21,7 +21,6 @@ interface IDiffOptionsProps {
 
 interface IDiffOptionsState {
   readonly isPopoverOpen: boolean
-  readonly optionsButtonRef: HTMLButtonElement | null
 }
 
 export class DiffOptions extends React.Component<
@@ -29,17 +28,13 @@ export class DiffOptions extends React.Component<
   IDiffOptionsState
 > {
   private diffOptionsRef = React.createRef<HTMLDivElement>()
+  private gearIconRef = React.createRef<HTMLSpanElement>()
 
   public constructor(props: IDiffOptionsProps) {
     super(props)
     this.state = {
       isPopoverOpen: false,
-      optionsButtonRef: null,
     }
-  }
-
-  private onOptionsButtonRef = (ref: HTMLButtonElement | null) => {
-    this.setState({ optionsButtonRef: ref })
   }
 
   private onButtonClick = (event: React.FormEvent<HTMLButtonElement>) => {
@@ -82,8 +77,10 @@ export class DiffOptions extends React.Component<
   public render() {
     return (
       <div className="diff-options-component" ref={this.diffOptionsRef}>
-        <button onClick={this.onButtonClick} ref={this.onOptionsButtonRef}>
-          <Octicon symbol={OcticonSymbol.gear} />
+        <button onClick={this.onButtonClick}>
+          <span ref={this.gearIconRef}>
+            <Octicon symbol={OcticonSymbol.gear} />
+          </span>
           <Octicon symbol={OcticonSymbol.triangleDown} />
         </button>
         {this.state.isPopoverOpen && this.renderPopover()}
@@ -97,7 +94,7 @@ export class DiffOptions extends React.Component<
         ariaLabelledby="diff-options-popover-header"
         anchorPosition={PopoverAnchorPosition.Bottom}
         onClickOutside={this.closePopover}
-        anchor={this.state.optionsButtonRef}
+        anchor={this.gearIconRef.current}
       >
         <h3 id="diff-options-popover-header">
           Diff {__DARWIN__ ? 'Preferences' : 'Options'}
