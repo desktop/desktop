@@ -61,7 +61,6 @@ export class GenericGitAuthentication extends React.Component<
           <Row>
             <TextBox
               label="Username"
-              // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus={true}
               value={this.state.username}
               onValueChanged={this.onUsernameChange}
