@@ -92,7 +92,6 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
 
   private async setupPosition() {
     this.floatingCleanUp?.()
-    console.log('HOLA', this.props.anchor, this.containerDivRef.current)
 
     if (
       this.props.anchor === null ||
@@ -101,8 +100,6 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     ) {
       return
     }
-
-    console.log('ADIOS')
 
     this.floatingCleanUp = autoUpdate(
       this.props.anchor,
@@ -146,13 +143,6 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       middleware.push(arrow({ element: caretDiv }))
     }
 
-    console.log(
-      'popover rect',
-      this.containerDivRef.current.getBoundingClientRect()
-    )
-
-    console.log('anchor rect', this.props.anchor.getBoundingClientRect())
-
     const position = await computePosition(
       this.props.anchor,
       this.containerDivRef.current,
@@ -164,8 +154,6 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     )
 
     this.setState({ position })
-
-    console.log(position)
   }
 
   public componentDidMount() {
