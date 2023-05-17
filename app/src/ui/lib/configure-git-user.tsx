@@ -276,6 +276,8 @@ export class ConfigureGitUser extends React.Component<
           checked={this.state.useGitHubAuthorInfo}
           onSelected={this.onUseGitHubInfoSelected}
           value="github-account"
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus={true}
         />
         <RadioButton
           label="Configure manually"
