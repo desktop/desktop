@@ -1451,7 +1451,6 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
           onHideWhitespaceInDiffChanged={
             this.props.onHideWhitespaceInDiffChanged
           }
-          style={style}
         />,
         container
       )

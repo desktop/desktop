@@ -12,7 +12,6 @@ interface IWhitespaceHintPopoverProps {
   /** Called when the user changes the hide whitespace in diffs setting. */
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
   readonly onDismissed: () => void
-  readonly style: React.CSSProperties
 }
 
 export class WhitespaceHintPopover extends React.Component<IWhitespaceHintPopoverProps> {
@@ -23,7 +22,6 @@ export class WhitespaceHintPopover extends React.Component<IWhitespaceHintPopove
         anchorPosition={this.props.caretPosition}
         onMousedownOutside={this.onDismissed}
         className={'whitespace-hint'}
-        style={this.props.style}
         appearEffect={PopoverAppearEffect.Shake}
         ariaLabelledby="whitespace-hint-header"
       >

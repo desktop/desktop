@@ -535,17 +535,10 @@ export class SideBySideDiffRow extends React.Component<
         ? PopoverAnchorPosition.Left
         : PopoverAnchorPosition.Right
 
-    const style: React.CSSProperties = {
-      [column === DiffColumn.Before ? 'marginRight' : 'marginLeft']:
-        this.lineGutterWidth + 10,
-      marginTop: -10,
-    }
-
     return (
       <WhitespaceHintPopover
         anchor={anchor}
         caretPosition={caretPosition}
-        style={style}
         onHideWhitespaceInDiffChanged={this.props.onHideWhitespaceInDiffChanged}
         onDismissed={this.onWhitespaceHintClose}
       />
@@ -573,13 +566,7 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private getDiffColumn(targetElement?: Element): DiffColumn | null {
-    const { row, showSideBySideDiff } = this.props
-
-    // On unified diffs we don't have columns so we always use "before" to not
-    // mess up with line selections.
-    if (!showSideBySideDiff) {
-      return DiffColumn.Before
-    }
+    const { row } = this.props
 
     switch (row.type) {
       case DiffRowType.Added:
@@ -631,7 +618,6 @@ export class SideBySideDiffRow extends React.Component<
 
     if (data !== null && column !== null) {
       if (this.props.hideWhitespaceInDiff) {
-        console.log('showing whitespace hint: ', column)
         this.setState({ showWhitespaceHint: column })
         return
       }
