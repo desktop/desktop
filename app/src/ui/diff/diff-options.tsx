@@ -3,11 +3,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RadioButton } from '../lib/radio-button'
-import {
-  Popover,
-  PopoverAnchorPosition,
-  PopoverTipPosition,
-} from '../lib/popover'
+import { Popover, PopoverAnchorPosition } from '../lib/popover'
 
 interface IDiffOptionsProps {
   readonly isInteractiveDiff: boolean
@@ -96,8 +92,7 @@ export class DiffOptions extends React.Component<
     return (
       <Popover
         ariaLabelledby="diff-options-popover-header"
-        anchorPosition={PopoverAnchorPosition.Bottom}
-        tipPosition={PopoverTipPosition.End}
+        anchorPosition={PopoverAnchorPosition.BottomRight}
         onClickOutside={this.closePopover}
         anchor={this.gearIconRef.current}
       >

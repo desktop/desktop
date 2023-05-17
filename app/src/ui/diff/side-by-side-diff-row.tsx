@@ -538,8 +538,8 @@ export class SideBySideDiffRow extends React.Component<
 
     const anchorPosition =
       column === DiffColumn.Before
-        ? PopoverAnchorPosition.Left
-        : PopoverAnchorPosition.Right
+        ? PopoverAnchorPosition.LeftTop
+        : PopoverAnchorPosition.RightTop
 
     return (
       <WhitespaceHintPopover

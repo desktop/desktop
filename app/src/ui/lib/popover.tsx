@@ -6,13 +6,10 @@ import {
   ComputePositionReturn,
   autoUpdate,
   computePosition,
-  limitShift,
 } from '@floating-ui/react-dom'
 import {
   arrow,
   flip,
-  Middleware,
-  MiddlewareState,
   offset,
   Placement,
   shift,
@@ -40,18 +37,10 @@ export enum PopoverAnchorPosition {
   LeftBottom = 'left-bottom',
   Bottom = 'bottom',
   BottomLeft = 'bottom-left',
-  RightTop = 'right-top',
+  BottomRight = 'bottom-right',
   Right = 'right',
-}
-
-/**
- * Position of the tip relative to the pop up in the dimension of the edge at
- * which the tip will be displayed.
- **/
-export enum PopoverTipPosition {
-  Start = 'start',
-  Center = 'center',
-  End = 'end',
+  RightTop = 'right-top',
+  RightBottom = 'right-bottom',
 }
 
 export enum PopoverAppearEffect {
@@ -59,7 +48,7 @@ export enum PopoverAppearEffect {
 }
 
 const TipSize = 8
-const TipCornerPadding = TipSize * 3
+const TipCornerPadding = TipSize
 
 interface IPopoverProps {
   readonly onClickOutside?: (event?: MouseEvent) => void
@@ -72,7 +61,6 @@ interface IPopoverProps {
    * The position of the tip or pointer of the popover relative to the side at
    * which the tip is presented. Optional. Default: Center
    */
-  readonly tipPosition?: PopoverTipPosition
   readonly className?: string
   readonly style?: React.CSSProperties
   readonly appearEffect?: PopoverAppearEffect
@@ -135,50 +123,11 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
 
     const containerDiv = this.containerDivRef.current
     const tipDiv = this.tipDivRef.current
-    const { maxHeight, tipPosition } = this.props
-
-    const shiftForTipAlignment = () =>
-      ({
-        name: 'shiftForTipAlignment',
-        fn: (state: MiddlewareState) => {
-          const side: Side = state.placement.split('-')[0] as Side
-
-          const shiftDimension = {
-            top: 'x' as const,
-            right: 'y' as const,
-            bottom: 'x' as const,
-            left: 'y' as const,
-          }[side]
-
-          const sizeDimension = {
-            x: 'width' as const,
-            y: 'height' as const,
-          }[shiftDimension]
-
-          const factor =
-            tipPosition === PopoverTipPosition.Start
-              ? 1
-              : tipPosition === PopoverTipPosition.End
-              ? -1
-              : 0
-          return {
-            [shiftDimension]:
-              state[shiftDimension] +
-              factor *
-                (state.rects.floating[sizeDimension] / 2 - TipCornerPadding),
-          }
-        },
-      } as Middleware)
+    const { maxHeight } = this.props
 
     const middleware = [
       offset(TipSize),
-      shiftForTipAlignment(),
-      shift({
-        // This will prevent the tip from being too close to corners of the popover
-        limiter: limitShift({
-          offset: TipSize * 3,
-        }),
-      }),
+      shift(),
       flip(),
       size({
         apply({ availableHeight, availableWidth }) {
@@ -190,12 +139,11 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
             maxWidth: `${availableWidth}px`,
           })
         },
-        padding: 5,
       }),
     ]
 
     if (this.props.showTip !== false && tipDiv) {
-      middleware.push(arrow({ element: tipDiv }))
+      middleware.push(arrow({ element: tipDiv, padding: TipCornerPadding }))
     }
 
     const position = await computePosition(
@@ -392,14 +340,18 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
         return 'left-start'
       case PopoverAnchorPosition.LeftBottom:
         return 'left-end'
-      case PopoverAnchorPosition.RightTop:
-        return 'right-start'
       case PopoverAnchorPosition.Right:
         return 'right'
+      case PopoverAnchorPosition.RightTop:
+        return 'right-start'
+      case PopoverAnchorPosition.RightBottom:
+        return 'right-end'
       case PopoverAnchorPosition.Bottom:
         return 'bottom'
       case PopoverAnchorPosition.BottomLeft:
         return 'bottom-start'
+      case PopoverAnchorPosition.BottomRight:
+        return 'bottom-end'
       default:
         assertNever(anchorPosition, 'Unknown anchor position')
     }

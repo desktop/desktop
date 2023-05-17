@@ -2,11 +2,7 @@ import React from 'react'
 import { Select } from '../lib/select'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
-import {
-  Popover,
-  PopoverAnchorPosition,
-  PopoverTipPosition,
-} from '../lib/popover'
+import { Popover, PopoverAnchorPosition } from '../lib/popover'
 import { IAvatarUser } from '../../models/avatar'
 import { Avatar } from '../lib/avatar'
 import { Octicon } from '../octicons'
@@ -294,8 +290,7 @@ export class CommitMessageAvatar extends React.Component<
 
     return (
       <Popover
-        anchorPosition={PopoverAnchorPosition.Right}
-        tipPosition={PopoverTipPosition.End}
+        anchorPosition={PopoverAnchorPosition.RightBottom}
         onClickOutside={this.closePopover}
         ariaLabelledby="commit-avatar-popover-header"
         anchor={this.avatarButtonRef}
