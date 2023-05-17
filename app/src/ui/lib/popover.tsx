@@ -222,17 +222,18 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     )
 
     const { position } = this.state
-    let style: React.CSSProperties | undefined = undefined
+    // Make sure the popover *always* has at least `position: fixed` set, otherwise
+    // it can cause weird layout glitches.
+    const style: React.CSSProperties | undefined = {
+      position: 'fixed',
+      zIndex: 1000,
+    }
     let caretStyle: React.CSSProperties = {}
 
     if (position) {
-      style = {
-        position: 'fixed',
-        top: position.y === undefined ? undefined : `${position.y}px`,
-        left: position.x === undefined ? undefined : `${position.x}px`,
-        height: minHeight === undefined ? undefined : `${minHeight}px`,
-        zIndex: 1000,
-      }
+      style.top = position.y === undefined ? undefined : `${position.y}px`
+      style.left = position.x === undefined ? undefined : `${position.x}px`
+      style.height = minHeight === undefined ? undefined : `${minHeight}px`
 
       const arrow = position.middlewareData.arrow
 
