@@ -12,6 +12,8 @@ import {
 import {
   arrow,
   flip,
+  Middleware,
+  MiddlewareState,
   offset,
   Placement,
   shift,
@@ -44,11 +46,18 @@ export enum PopoverAnchorPosition {
   Right = 'right',
 }
 
+export enum PopoverCaretPosition {
+  Start = 'start',
+  Center = 'center',
+  End = 'end',
+}
+
 export enum PopoverAppearEffect {
   Shake = 'shake',
 }
 
 const CaretSize = 8
+const CaretCornerPadding = CaretSize * 3
 
 interface IPopoverProps {
   readonly onClickOutside?: (event?: MouseEvent) => void
@@ -57,6 +66,7 @@ interface IPopoverProps {
    * popover refers. If the caret position is not provided, the popup will have
    * no caret.  */
   readonly anchorPosition: PopoverAnchorPosition
+  readonly caretPosition?: PopoverCaretPosition // Default: Center
   readonly className?: string
   readonly style?: React.CSSProperties
   readonly appearEffect?: PopoverAppearEffect
@@ -121,10 +131,38 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
 
     const containerDiv = this.containerDivRef.current
     const caretDiv = this.caretDivRef.current
-    const maxHeight = this.props.maxHeight
+    const { maxHeight, caretPosition } = this.props
+
+    const shiftForCaretAlignment = () =>
+      ({
+        name: 'shiftForCaretAlignment',
+        fn: (state: MiddlewareState) => {
+          const side: Side = state.placement.split('-')[0] as Side
+
+          const shiftDimension = {
+            top: 'x' as const,
+            right: 'y' as const,
+            bottom: 'x' as const,
+            left: 'y' as const,
+          }[side]
+
+          const factor =
+            caretPosition === PopoverCaretPosition.Start
+              ? 1
+              : caretPosition === PopoverCaretPosition.End
+              ? -1
+              : 0
+          return {
+            [shiftDimension]:
+              state[shiftDimension] +
+              factor * (state.rects.floating.height / 2 - CaretCornerPadding),
+          }
+        },
+      } as Middleware)
 
     const middleware = [
       offset(CaretSize),
+      shiftForCaretAlignment(),
       shift({
         // This will prevent the tip from being too close to corners of the popover
         limiter: limitShift({
