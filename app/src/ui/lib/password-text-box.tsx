@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { ITextBoxProps, TextBox } from './text-box'
 import { Button } from './button'
-import classNames from 'classnames'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface IPasswordTextBoxState {
   /**
@@ -30,16 +31,22 @@ export class PasswordTextBox extends React.Component<
   }
 
   public render() {
-    const buttonText = this.state.showPassword
-      ? 'Hide Password'
-      : 'Show Password'
+    const buttonIcon = this.state.showPassword
+      ? OcticonSymbol.eye
+      : OcticonSymbol.eyeClosed
     const type = this.state.showPassword ? 'text' : 'password'
-    const className = classNames('password-text-box', this.props.className)
-    const props: ITextBoxProps = { ...this.props, ...{ type, className } }
+    const props: ITextBoxProps = { ...this.props, ...{ type } }
     return (
-      <TextBox {...props} ref={this.textBoxRef}>
-        <Button onClick={this.onTogglePasswordVisibility}>{buttonText}</Button>
-      </TextBox>
+      <div className="password-text-box">
+        <TextBox {...props} ref={this.textBoxRef} />
+        <Button
+          ariaLabel="Toggle password visibility"
+          tooltip="Toggle password visibility"
+          onClick={this.onTogglePasswordVisibility}
+        >
+          <Octicon symbol={buttonIcon} />
+        </Button>
+      </div>
     )
   }
 }

@@ -256,29 +256,25 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         })}
       >
         {label && <label htmlFor={inputId}>{label}</label>}
-
-        <div className="input-wrapper">
-          <input
-            id={inputId}
-            ref={this.onInputRef}
-            onFocus={this.onFocus}
-            onBlur={this.onBlur}
-            autoFocus={this.props.autoFocus}
-            disabled={this.props.disabled}
-            type={this.props.type}
-            placeholder={this.props.placeholder}
-            value={this.state.value}
-            onChange={this.onChange}
-            onKeyDown={this.onKeyDown}
-            tabIndex={this.props.tabIndex}
-            onContextMenu={this.onContextMenu}
-            spellCheck={this.props.spellcheck === true}
-            aria-label={this.props.ariaLabel}
-            aria-controls={this.props.ariaControls}
-            required={this.props.required}
-          />
-          {this.props.children}
-        </div>
+        <input
+          id={inputId}
+          ref={this.onInputRef}
+          onFocus={this.onFocus}
+          onBlur={this.onBlur}
+          autoFocus={this.props.autoFocus}
+          disabled={this.props.disabled}
+          type={this.props.type}
+          placeholder={this.props.placeholder}
+          value={this.state.value}
+          onChange={this.onChange}
+          onKeyDown={this.onKeyDown}
+          tabIndex={this.props.tabIndex}
+          onContextMenu={this.onContextMenu}
+          spellCheck={this.props.spellcheck === true}
+          aria-label={this.props.ariaLabel}
+          aria-controls={this.props.ariaControls}
+          required={this.props.required}
+        />
       </div>
     )
   }
