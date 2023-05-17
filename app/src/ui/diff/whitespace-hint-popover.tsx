@@ -7,7 +7,7 @@ import {
 import { OkCancelButtonGroup } from '../dialog'
 
 interface IWhitespaceHintPopoverProps {
-  readonly anchor?: HTMLElement | null
+  readonly anchor: HTMLElement | null
   readonly anchorPosition: PopoverAnchorPosition
   /** Called when the user changes the hide whitespace in diffs setting. */
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void

@@ -92,7 +92,8 @@ export class PopoverDropdown extends React.Component<
     return (
       <Popover
         className="popover-dropdown-popover"
-        anchorPosition={PopoverAnchorPosition.TopLeft}
+        anchor={this.invokeButtonRef}
+        anchorPosition={PopoverAnchorPosition.BottomLeft}
         onClickOutside={this.closePopover}
         aria-labelledby="popover-dropdown-header"
       >

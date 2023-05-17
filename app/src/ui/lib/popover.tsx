@@ -39,6 +39,7 @@ export enum PopoverAnchorPosition {
   LeftTop = 'left-top',
   LeftBottom = 'left-bottom',
   Bottom = 'bottom',
+  BottomLeft = 'bottom-left',
   RightTop = 'right-top',
   Right = 'right',
 }
@@ -64,7 +65,7 @@ interface IPopoverProps {
   readonly onClickOutside?: (event?: MouseEvent) => void
   readonly onMousedownOutside?: (event?: MouseEvent) => void
   /** Element to anchor the popover to */
-  readonly anchor?: HTMLElement | null
+  readonly anchor: HTMLElement | null
   /** The position of the popover relative to the anchor.  */
   readonly anchorPosition: PopoverAnchorPosition
   /**
@@ -149,6 +150,11 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
             left: 'y' as const,
           }[side]
 
+          const sizeDimension = {
+            x: 'width' as const,
+            y: 'height' as const,
+          }[shiftDimension]
+
           const factor =
             tipPosition === PopoverTipPosition.Start
               ? 1
@@ -158,7 +164,8 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
           return {
             [shiftDimension]:
               state[shiftDimension] +
-              factor * (state.rects.floating.height / 2 - TipCornerPadding),
+              factor *
+                (state.rects.floating[sizeDimension] / 2 - TipCornerPadding),
           }
         },
       } as Middleware)
@@ -391,6 +398,8 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
         return 'right'
       case PopoverAnchorPosition.Bottom:
         return 'bottom'
+      case PopoverAnchorPosition.BottomLeft:
+        return 'bottom-start'
       default:
         assertNever(anchorPosition, 'Unknown anchor position')
     }
