@@ -6,7 +6,7 @@ import { RadioButton } from '../lib/radio-button'
 import {
   Popover,
   PopoverAnchorPosition,
-  PopoverCaretPosition,
+  PopoverTipPosition,
 } from '../lib/popover'
 
 interface IDiffOptionsProps {
@@ -97,7 +97,7 @@ export class DiffOptions extends React.Component<
       <Popover
         ariaLabelledby="diff-options-popover-header"
         anchorPosition={PopoverAnchorPosition.Bottom}
-        caretPosition={PopoverCaretPosition.End}
+        tipPosition={PopoverTipPosition.End}
         onClickOutside={this.closePopover}
         anchor={this.gearIconRef.current}
       >

@@ -4,7 +4,6 @@ import { Options as FocusTrapOptions } from 'focus-trap'
 import classNames from 'classnames'
 import {
   ComputePositionReturn,
-  ReferenceType,
   autoUpdate,
   computePosition,
   limitShift,
@@ -23,16 +22,14 @@ import {
 import { assertNever } from '../../lib/fatal-error'
 
 /**
- * Position of the caret relative to the pop up. It's composed by 2 dimensions:
- * - The first one is the edge on which the caret will rest.
- * - The second one is the alignment of the caret within that edge.
+ * Position of the popover relative to its anchor element. It's composed by 2
+ * dimensions:
+ * - The first one is the edge of the anchor element from which the popover will
+ *   be displayed.
+ * - The second one is the alignment of the popover within that edge.
  *
- * Example: TopRight means the caret will be in the top edge, on its right side.
- *
- * **Note:** If new positions are added to this enum, the value given to them
- * is prepended with `popover-caret-` to create a class name which defines, in
- * `app/styles/ui/_popover.scss`, where the caret is located for that specific
- * position.
+ * Example: BottomRight means the popover will be in the bottom edge of the
+ * anchor element, on its right side.
  **/
 export enum PopoverAnchorPosition {
   Top = 'top',
@@ -46,7 +43,11 @@ export enum PopoverAnchorPosition {
   Right = 'right',
 }
 
-export enum PopoverCaretPosition {
+/**
+ * Position of the tip relative to the pop up in the dimension of the edge at
+ * which the tip will be displayed.
+ **/
+export enum PopoverTipPosition {
   Start = 'start',
   Center = 'center',
   End = 'end',
@@ -56,28 +57,30 @@ export enum PopoverAppearEffect {
   Shake = 'shake',
 }
 
-const CaretSize = 8
-const CaretCornerPadding = CaretSize * 3
+const TipSize = 8
+const TipCornerPadding = TipSize * 3
 
 interface IPopoverProps {
   readonly onClickOutside?: (event?: MouseEvent) => void
   readonly onMousedownOutside?: (event?: MouseEvent) => void
-  /** The position of the caret or pointer towards the content to which the the
-   * popover refers. If the caret position is not provided, the popup will have
-   * no caret.  */
+  /** Element to anchor the popover to */
+  readonly anchor?: HTMLElement | null
+  /** The position of the popover relative to the anchor.  */
   readonly anchorPosition: PopoverAnchorPosition
-  readonly caretPosition?: PopoverCaretPosition // Default: Center
+  /**
+   * The position of the tip or pointer of the popover relative to the side at
+   * which the tip is presented. Optional. Default: Center
+   */
+  readonly tipPosition?: PopoverTipPosition
   readonly className?: string
   readonly style?: React.CSSProperties
   readonly appearEffect?: PopoverAppearEffect
   readonly ariaLabelledby?: string
   readonly trapFocus?: boolean // Default: true
-  readonly showCaret?: boolean // Default: true
+  readonly showTip?: boolean // Default: true
 
   readonly maxHeight?: number
   readonly minHeight?: number
-
-  readonly anchor?: ReferenceType | null
 }
 
 interface IPopoverState {
@@ -87,7 +90,7 @@ interface IPopoverState {
 export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   private focusTrapOptions: FocusTrapOptions
   private containerDivRef = React.createRef<HTMLDivElement>()
-  private caretDivRef = React.createRef<HTMLDivElement>()
+  private tipDivRef = React.createRef<HTMLDivElement>()
   private floatingCleanUp: (() => void) | null = null
 
   public constructor(props: IPopoverProps) {
@@ -130,12 +133,12 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     }
 
     const containerDiv = this.containerDivRef.current
-    const caretDiv = this.caretDivRef.current
-    const { maxHeight, caretPosition } = this.props
+    const tipDiv = this.tipDivRef.current
+    const { maxHeight, tipPosition } = this.props
 
-    const shiftForCaretAlignment = () =>
+    const shiftForTipAlignment = () =>
       ({
-        name: 'shiftForCaretAlignment',
+        name: 'shiftForTipAlignment',
         fn: (state: MiddlewareState) => {
           const side: Side = state.placement.split('-')[0] as Side
 
@@ -147,26 +150,26 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
           }[side]
 
           const factor =
-            caretPosition === PopoverCaretPosition.Start
+            tipPosition === PopoverTipPosition.Start
               ? 1
-              : caretPosition === PopoverCaretPosition.End
+              : tipPosition === PopoverTipPosition.End
               ? -1
               : 0
           return {
             [shiftDimension]:
               state[shiftDimension] +
-              factor * (state.rects.floating.height / 2 - CaretCornerPadding),
+              factor * (state.rects.floating.height / 2 - TipCornerPadding),
           }
         },
       } as Middleware)
 
     const middleware = [
-      offset(CaretSize),
-      shiftForCaretAlignment(),
+      offset(TipSize),
+      shiftForTipAlignment(),
       shift({
         // This will prevent the tip from being too close to corners of the popover
         limiter: limitShift({
-          offset: CaretSize * 3,
+          offset: TipSize * 3,
         }),
       }),
       flip(),
@@ -184,8 +187,8 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       }),
     ]
 
-    if (this.props.showCaret !== false && caretDiv) {
-      middleware.push(arrow({ element: caretDiv }))
+    if (this.props.showTip !== false && tipDiv) {
+      middleware.push(arrow({ element: tipDiv }))
     }
 
     const position = await computePosition(
@@ -256,7 +259,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       appearEffect,
       ariaLabelledby,
       children,
-      showCaret,
+      showTip,
       minHeight,
     } = this.props
     const cn = classNames(
@@ -272,7 +275,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       position: 'fixed',
       zIndex: 1000,
     }
-    let caretStyle: React.CSSProperties = {}
+    let tipStyle: React.CSSProperties = {}
 
     if (position) {
       style.top = position.y === undefined ? undefined : `${position.y}px`
@@ -298,12 +301,12 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
           left: '180deg',
         }[side]
 
-        caretStyle = {
+        tipStyle = {
           top: arrow.y,
           left: arrow.x,
           transform: `rotate(${angle})`,
-          [staticSide]: this.caretDivRef.current
-            ? `${-this.caretDivRef.current.offsetWidth}px`
+          [staticSide]: this.tipDivRef.current
+            ? `${-this.tipDivRef.current.offsetWidth}px`
             : undefined,
         }
       }
@@ -322,16 +325,16 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
           role="dialog"
         >
           {children}
-          {showCaret !== false && (
+          {showTip !== false && (
             <div
               className="popover-tip"
               style={{
                 position: 'absolute',
-                width: CaretSize * 2,
-                height: CaretSize * 2,
-                ...caretStyle,
+                width: TipSize * 2,
+                height: TipSize * 2,
+                ...tipStyle,
               }}
-              ref={this.caretDivRef}
+              ref={this.tipDivRef}
             >
               <div
                 className="popover-tip-border"
@@ -340,10 +343,10 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
                   right: 1,
                   width: 0,
                   height: 0,
-                  borderWidth: `${CaretSize}px`,
-                  borderRightWidth: `${CaretSize - 1}px`,
+                  borderWidth: `${TipSize}px`,
+                  borderRightWidth: `${TipSize - 1}px`,
                 }}
-                ref={this.caretDivRef}
+                ref={this.tipDivRef}
               />
               <div
                 className="popover-tip-background"
@@ -352,10 +355,10 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
                   right: 0,
                   width: 0,
                   height: 0,
-                  borderWidth: `${CaretSize}px`,
-                  borderRightWidth: `${CaretSize - 1}px`,
+                  borderWidth: `${TipSize}px`,
+                  borderRightWidth: `${TipSize - 1}px`,
                 }}
-                ref={this.caretDivRef}
+                ref={this.tipDivRef}
               />
             </div>
           )}

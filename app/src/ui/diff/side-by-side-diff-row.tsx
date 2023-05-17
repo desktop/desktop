@@ -536,7 +536,7 @@ export class SideBySideDiffRow extends React.Component<
       return
     }
 
-    const caretPosition =
+    const anchorPosition =
       column === DiffColumn.Before
         ? PopoverAnchorPosition.Left
         : PopoverAnchorPosition.Right
@@ -544,7 +544,7 @@ export class SideBySideDiffRow extends React.Component<
     return (
       <WhitespaceHintPopover
         anchor={anchor}
-        caretPosition={caretPosition}
+        anchorPosition={anchorPosition}
         onHideWhitespaceInDiffChanged={this.props.onHideWhitespaceInDiffChanged}
         onDismissed={this.onWhitespaceHintClose}
       />

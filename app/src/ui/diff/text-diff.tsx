@@ -1437,7 +1437,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       ReactDOM.render(
         <WhitespaceHintPopover
           anchor={document.getElementById(this.getGutterLineID(index))}
-          caretPosition={PopoverAnchorPosition.Right}
+          anchorPosition={PopoverAnchorPosition.Right}
           onDismissed={this.unmountWhitespaceHint}
           onHideWhitespaceInDiffChanged={
             this.props.onHideWhitespaceInDiffChanged

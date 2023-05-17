@@ -8,7 +8,7 @@ import { OkCancelButtonGroup } from '../dialog'
 
 interface IWhitespaceHintPopoverProps {
   readonly anchor?: HTMLElement | null
-  readonly caretPosition: PopoverAnchorPosition
+  readonly anchorPosition: PopoverAnchorPosition
   /** Called when the user changes the hide whitespace in diffs setting. */
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
   readonly onDismissed: () => void
@@ -19,7 +19,7 @@ export class WhitespaceHintPopover extends React.Component<IWhitespaceHintPopove
     return (
       <Popover
         anchor={this.props.anchor}
-        anchorPosition={this.props.caretPosition}
+        anchorPosition={this.props.anchorPosition}
         onMousedownOutside={this.onDismissed}
         className={'whitespace-hint'}
         appearEffect={PopoverAppearEffect.Shake}

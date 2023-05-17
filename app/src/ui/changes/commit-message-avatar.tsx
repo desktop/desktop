@@ -5,7 +5,7 @@ import { Row } from '../lib/row'
 import {
   Popover,
   PopoverAnchorPosition,
-  PopoverCaretPosition,
+  PopoverTipPosition,
 } from '../lib/popover'
 import { IAvatarUser } from '../../models/avatar'
 import { Avatar } from '../lib/avatar'
@@ -295,7 +295,7 @@ export class CommitMessageAvatar extends React.Component<
     return (
       <Popover
         anchorPosition={PopoverAnchorPosition.Right}
-        caretPosition={PopoverCaretPosition.End}
+        tipPosition={PopoverTipPosition.End}
         onClickOutside={this.closePopover}
         ariaLabelledby="commit-avatar-popover-header"
         anchor={this.avatarButtonRef}
