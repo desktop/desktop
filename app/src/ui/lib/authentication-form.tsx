@@ -9,6 +9,7 @@ import { TextBox } from './text-box'
 import { Errors } from './errors'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { HorizontalRule } from './horizontal-rule'
+import { PasswordTextBox } from './password-text-box'
 
 /** Text to let the user know their browser will send them back to GH Desktop */
 export const BrowserRedirectMessage =
@@ -111,9 +112,8 @@ export class AuthenticationForm extends React.Component<
           onValueChanged={this.onUsernameChange}
         />
 
-        <TextBox
+        <PasswordTextBox
           label="Password"
-          type="password"
           disabled={disabled}
           required={true}
           displayInvalidState={false}
