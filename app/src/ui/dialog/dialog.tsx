@@ -4,10 +4,6 @@ import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
 import { isTopMostDialog } from './is-top-most'
-import {
-  dialogExcludedInputTypes,
-  focusFirstSuitableChild,
-} from '../../lib/focus-first-suitable-child'
 
 export interface IDialogStackContext {
   /** Whether or not this dialog is the top most one in the stack to be
@@ -449,9 +445,86 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       return
     }
 
-    focusFirstSuitableChild(dialog, {
-      excludedInputTypes: dialogExcludedInputTypes,
-    })
+    const selector = [
+      'input:not([type=hidden]):not(:disabled):not([tabindex="-1"])',
+      'textarea:not(:disabled):not([tabindex="-1"])',
+      'button:not(:disabled):not([tabindex="-1"])',
+      '[tabindex]:not(:disabled):not([tabindex="-1"])',
+    ].join(', ')
+
+    // The element which has the lowest explicit tab index (i.e. greater than 0)
+    let firstExplicit: { 0: number; 1: HTMLElement | null } = [Infinity, null]
+
+    // First submit button
+    let firstSubmitButton: HTMLElement | null = null
+
+    // The first button-like element (input, submit, reset etc)
+    let firstButton: HTMLElement | null = null
+
+    // The first element which is either implicitly keyboard focusable (like a
+    // text input field) or explicitly focusable through tabIndex=0 (like an
+    // anchor tag masquerading as a button)
+    let firstTabbable: HTMLElement | null = null
+
+    const closeButton = dialog.querySelector(':scope > header button.close')
+
+    const excludedInputTypes = [
+      ':not([type=button])',
+      ':not([type=submit])',
+      ':not([type=reset])',
+      ':not([type=hidden])',
+      ':not([type=checkbox])',
+      ':not([type=radio])',
+    ]
+
+    const inputSelector = `input${excludedInputTypes.join('')}, textarea`
+    const buttonSelector =
+      'input[type=button], input[type=submit] input[type=reset], button'
+
+    const submitSelector = 'input[type=submit], button[type=submit]'
+
+    for (const candidate of dialog.querySelectorAll(selector)) {
+      if (!(candidate instanceof HTMLElement)) {
+        continue
+      }
+
+      const tabIndex = parseInt(candidate.getAttribute('tabindex') || '', 10)
+
+      if (tabIndex > 0 && tabIndex < firstExplicit[0]) {
+        firstExplicit = [tabIndex, candidate]
+      } else if (
+        firstTabbable === null &&
+        (tabIndex === 0 || candidate.matches(inputSelector))
+      ) {
+        firstTabbable = candidate
+      } else if (
+        firstSubmitButton === null &&
+        candidate.matches(submitSelector)
+      ) {
+        firstSubmitButton = candidate
+      } else if (
+        firstButton === null &&
+        candidate.matches(buttonSelector) &&
+        candidate !== closeButton
+      ) {
+        firstButton = candidate
+      }
+    }
+
+    const focusCandidates = [
+      firstExplicit[1],
+      firstTabbable,
+      firstSubmitButton,
+      firstButton,
+      closeButton,
+    ]
+
+    for (const focusCandidate of focusCandidates) {
+      if (focusCandidate instanceof HTMLElement) {
+        focusCandidate.focus()
+        break
+      }
+    }
   }
 
   private onWindowFocus = () => {
