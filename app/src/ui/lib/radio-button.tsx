@@ -65,7 +65,6 @@ export class RadioButton<T extends string> extends React.Component<
           checked={this.props.checked}
           onChange={this.onSelected}
           tabIndex={this.props.tabIndex}
-          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={this.props.autoFocus}
         />
         <label htmlFor={this.state.inputId}>
