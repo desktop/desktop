@@ -474,6 +474,10 @@ export class SideBySideDiffRow extends React.Component<
     )
   }
 
+  private getLineNumbersContainerID(column: DiffColumn) {
+    return `line-numbers-${this.props.numRow}-${column}`
+  }
+
   /**
    * Renders the line number box.
    *
@@ -487,10 +491,12 @@ export class SideBySideDiffRow extends React.Component<
     column: DiffColumn | undefined,
     isSelected?: boolean
   ) {
+    const wrapperID =
+      column === undefined ? undefined : this.getLineNumbersContainerID(column)
     if (!this.props.isDiffSelectable || isSelected === undefined) {
       return (
         <div
-          id={`line-numbers-${this.props.numRow}-${column}`}
+          id={wrapperID}
           className="line-number"
           style={{ width: this.lineGutterWidth }}
         >
@@ -504,7 +510,7 @@ export class SideBySideDiffRow extends React.Component<
     return (
       // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
-        id={`line-numbers-${this.props.numRow}-${column}`}
+        id={wrapperID}
         className={classNames('line-number', 'selectable', 'hoverable', {
           'line-selected': isSelected,
           hover: this.props.isHunkHovered,
