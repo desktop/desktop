@@ -7,6 +7,7 @@ import {
   ReferenceType,
   autoUpdate,
   computePosition,
+  limitShift,
 } from '@floating-ui/react-dom'
 import {
   arrow,
@@ -124,7 +125,12 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
 
     const middleware = [
       offset(CaretSize),
-      shift(),
+      shift({
+        // This will prevent the tip from being too close to corners of the popover
+        limiter: limitShift({
+          offset: CaretSize * 3,
+        }),
+      }),
       flip(),
       size({
         apply({ availableHeight, availableWidth }) {
@@ -293,11 +299,11 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
                 className="popover-tip-border"
                 style={{
                   position: 'absolute',
-                  right: 0,
+                  right: 1,
                   width: 0,
                   height: 0,
                   borderWidth: `${CaretSize}px`,
-                  borderRightWidth: `${CaretSize}px`,
+                  borderRightWidth: `${CaretSize - 1}px`,
                 }}
                 ref={this.caretDivRef}
               />
@@ -305,7 +311,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
                 className="popover-tip-background"
                 style={{
                   position: 'absolute',
-                  right: -1,
+                  right: 0,
                   width: 0,
                   height: 0,
                   borderWidth: `${CaretSize}px`,
