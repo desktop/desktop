@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/no-autofocus */
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
 import {
