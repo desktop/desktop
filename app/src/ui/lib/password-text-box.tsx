@@ -43,6 +43,7 @@ export class PasswordTextBox extends React.Component<
           ariaLabel="Toggle password visibility"
           tooltip="Toggle password visibility"
           onClick={this.onTogglePasswordVisibility}
+          ariaPressed={this.state.showPassword}
         >
           <Octicon symbol={buttonIcon} />
         </Button>
