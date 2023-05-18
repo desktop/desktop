@@ -96,6 +96,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
 
   private async setupPosition() {
     this.floatingCleanUp?.()
+    this.floatingCleanUp = null
 
     if (
       this.props.anchor === null ||
@@ -178,7 +179,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   }
 
   private onDocumentClick = (event: MouseEvent) => {
-    const { current: ref } = this.containerDivRef
+    const ref = this.containerDivRef.current
     const { target } = event
 
     if (
@@ -193,7 +194,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   }
 
   private onDocumentMouseDown = (event: MouseEvent) => {
-    const { current: ref } = this.containerDivRef
+    const ref = this.containerDivRef.current
     const { target } = event
 
     if (
@@ -301,7 +302,6 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
                   borderWidth: `${TipSize}px`,
                   borderRightWidth: `${TipSize - 1}px`,
                 }}
-                ref={this.tipDivRef}
               />
               <div
                 className="popover-tip-background"
@@ -313,7 +313,6 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
                   borderWidth: `${TipSize}px`,
                   borderRightWidth: `${TipSize - 1}px`,
                 }}
-                ref={this.tipDivRef}
               />
             </div>
           )}
@@ -323,9 +322,6 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   }
 
   private getFloatingPlacementForAnchorPosition(): Placement {
-    if (1 !== NaN) {
-      // return 'left'
-    }
     const { anchorPosition } = this.props
     switch (anchorPosition) {
       case PopoverAnchorPosition.Top:
