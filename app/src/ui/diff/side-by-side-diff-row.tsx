@@ -482,6 +482,7 @@ export class SideBySideDiffRow extends React.Component<
    * Renders the line number box.
    *
    * @param lineNumbers Array with line numbers to display.
+   * @param column      Column to which the line number belongs.
    * @param isSelected  Whether the line has been selected.
    *                    If undefined is passed, the line is treated
    *                    as non-selectable.
@@ -559,6 +560,7 @@ export class SideBySideDiffRow extends React.Component<
    * Renders the line number box.
    *
    * @param lineNumber  Line number to display.
+   * @param column      Column to which the line number belongs.
    * @param isSelected  Whether the line has been selected.
    *                    If undefined is passed, the line is treated
    *                    as non-selectable.
