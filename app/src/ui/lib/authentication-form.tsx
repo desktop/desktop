@@ -108,7 +108,7 @@ export class AuthenticationForm extends React.Component<
           disabled={disabled}
           required={true}
           displayInvalidState={false}
-          autoFocus={true}
+          autoFocus={this.props.endpoint === getDotComAPIEndpoint()}
           onValueChanged={this.onUsernameChange}
         />
 
@@ -195,6 +195,7 @@ export class AuthenticationForm extends React.Component<
         type="submit"
         className="button-with-icon"
         onClick={this.signInWithBrowser}
+        autoFocus={true}
       >
         Sign in using your browser
         <Octicon symbol={OcticonSymbol.linkExternal} />

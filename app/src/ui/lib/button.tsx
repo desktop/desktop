@@ -131,6 +131,9 @@ export interface IButtonProps {
    * change it to "play" when pressed.
    * */
   readonly ariaPressed?: boolean
+
+  /** Whether the input field should auto focus when mounted. */
+  readonly autoFocus?: boolean
 }
 
 /**
@@ -186,6 +189,7 @@ export class Button extends React.Component<IButtonProps, {}> {
         aria-label={this.props.ariaLabel}
         aria-haspopup={this.props.ariaHaspopup}
         aria-pressed={this.props.ariaPressed}
+        autoFocus={this.props.autoFocus}
       >
         {tooltip && (
           <Tooltip
