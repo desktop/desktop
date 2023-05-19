@@ -8,15 +8,19 @@ import {
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
 import classNames from 'classnames'
+import getCaretCoordinates from 'textarea-caret'
+import { showContextualMenu } from '../../lib/menu-item'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
+import {
+  Popover,
+  PopoverAnchorPosition,
+  PopoverDecoration,
+} from '../lib/popover'
 
 interface IRange {
   readonly start: number
   readonly length: number
 }
-
-import getCaretCoordinates from 'textarea-caret'
-import { showContextualMenu } from '../../lib/menu-item'
-import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /**
@@ -104,12 +108,6 @@ interface IAutocompletionState<T> {
 const RowHeight = 29
 
 /**
- * The amount to offset on the Y axis so that the popup is displayed below the
- * current line.
- */
-const YOffset = 20
-
-/**
  * The default height for the popup. Note that the actual height may be
  * smaller in order to fit the popup within the window.
  */
@@ -121,6 +119,8 @@ interface IAutocompletingTextInputState<T> {
    * matching autocompletion providers.
    */
   readonly autocompletionState: IAutocompletionState<T> | null
+
+  readonly caretCoordinates: ReturnType<typeof getCaretCoordinates> | null
 }
 
 /** A text area which provides autocompletions as the user types. */
@@ -132,6 +132,7 @@ export abstract class AutocompletingTextInput<
   IAutocompletingTextInputState<AutocompleteItemType>
 > {
   private element: ElementType | null = null
+  private invisibleCaretRef = React.createRef<HTMLDivElement>()
   private shouldForceAriaLiveMessage = false
 
   /** The identifier for each autocompletion request. */
@@ -150,6 +151,7 @@ export abstract class AutocompletingTextInput<
 
     this.state = {
       autocompletionState: null,
+      caretCoordinates: null,
     }
   }
 
@@ -190,45 +192,9 @@ export abstract class AutocompletingTextInput<
       return null
     }
 
-    const element = this.element!
-    let coordinates = getCaretCoordinates(element, state.range.start)
-    coordinates = {
-      ...coordinates,
-      top: coordinates.top - element.scrollTop,
-      left: coordinates.left - element.scrollLeft,
-    }
-
-    const left = coordinates.left
-    const top = coordinates.top + YOffset
-    const bottom = coordinates.top + YOffset + 1
     const selectedRow = state.selectedItem
       ? items.indexOf(state.selectedItem)
       : -1
-    const rect = element.getBoundingClientRect()
-    const popupAbsoluteTop = rect.top + coordinates.top
-
-    // The maximum height we can use for the popup without it extending beyond
-    // the Window bounds.
-    let maxHeight: number
-    let belowElement: boolean = true
-    if (
-      element.ownerDocument !== null &&
-      element.ownerDocument.defaultView !== null
-    ) {
-      const windowHeight = element.ownerDocument.defaultView.innerHeight
-      const spaceToBottomOfWindow = windowHeight - popupAbsoluteTop - YOffset
-      if (
-        spaceToBottomOfWindow < DefaultPopupHeight &&
-        popupAbsoluteTop >= DefaultPopupHeight
-      ) {
-        maxHeight = DefaultPopupHeight
-        belowElement = false
-      } else {
-        maxHeight = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
-      }
-    } else {
-      maxHeight = DefaultPopupHeight
-    }
 
     // The height needed to accommodate all the matched items without overflowing
     //
@@ -236,8 +202,6 @@ export abstract class AutocompletingTextInput<
     // which we have to account for in case we want to show N number of items
     // without overflowing and triggering the scrollbar.
     const noOverflowItemHeight = RowHeight * items.length
-
-    const height = Math.min(noOverflowItemHeight, maxHeight)
 
     // Use the completion text as invalidation props so that highlighting
     // will update as you type even though the number of items matched
@@ -249,9 +213,13 @@ export abstract class AutocompletingTextInput<
     const className = classNames('autocompletion-popup', state.provider.kind)
 
     return (
-      <div
+      <Popover
+        anchor={this.invisibleCaretRef.current}
+        anchorPosition={PopoverAnchorPosition.BottomLeft}
+        decoration={PopoverDecoration.None}
+        minHeight={Math.min(DefaultPopupHeight, noOverflowItemHeight)}
+        trapFocus={false}
         className={className}
-        style={belowElement ? { top, left, height } : { bottom, left, height }}
       >
         <List
           accessibleListId="autocomplete-container"
@@ -267,7 +235,7 @@ export abstract class AutocompletingTextInput<
           onSelectedRowChanged={this.onSelectedRowChanged}
           invalidationProps={searchText}
         />
-      </div>
+      </Popover>
     )
   }
 
@@ -408,6 +376,52 @@ export abstract class AutocompletingTextInput<
     )
   }
 
+  private updateCaretCoordinates = () => {
+    const element = this.element
+    if (!element) {
+      this.setState({ caretCoordinates: null })
+      return
+    }
+
+    const selectionEnd = element.selectionEnd
+    if (selectionEnd === null) {
+      this.setState({ caretCoordinates: null })
+      return
+    }
+
+    const caretCoordinates = getCaretCoordinates(element, selectionEnd)
+    this.setState({
+      caretCoordinates: {
+        top: caretCoordinates.top - element.scrollTop,
+        left: caretCoordinates.left - element.scrollLeft,
+        height: caretCoordinates.height,
+      },
+    })
+  }
+
+  private renderInvisibleCaret = () => {
+    const { caretCoordinates } = this.state
+    if (!caretCoordinates) {
+      return null
+    }
+
+    return (
+      <div
+        style={{
+          backgroundColor: 'transparent',
+          width: 2,
+          height: caretCoordinates.height,
+          position: 'absolute',
+          left: caretCoordinates.left,
+          top: caretCoordinates.top,
+        }}
+        ref={this.invisibleCaretRef}
+      >
+        &nbsp;
+      </div>
+    )
+  }
+
   private onBlur = (e: React.FocusEvent<ElementType>) => {
     this.close()
   }
@@ -424,6 +438,7 @@ export abstract class AutocompletingTextInput<
 
   private onRef = (ref: ElementType | null) => {
     this.element = ref
+    this.updateCaretCoordinates()
     if (this.props.onElementRef) {
       this.props.onElementRef(ref)
     }
@@ -461,6 +476,7 @@ export abstract class AutocompletingTextInput<
       <div className={className}>
         {this.renderAutocompletions()}
         {this.renderTextInput()}
+        {this.renderInvisibleCaret()}
         <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>
           {autoCompleteItems.length > 0 ? suggestionsMessage : ''}
         </AriaLiveContainer>
@@ -653,6 +669,8 @@ export abstract class AutocompletingTextInput<
     if (this.props.onValueChanged) {
       this.props.onValueChanged(str)
     }
+
+    this.updateCaretCoordinates()
 
     return this.open(str)
   }

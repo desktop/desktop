@@ -119,9 +119,10 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   }
 
   private updatePosition = async () => {
+    const { anchor, decoration, maxHeight } = this.props
     if (
-      this.props.anchor === null ||
-      this.props.anchor === undefined ||
+      anchor === null ||
+      anchor === undefined ||
       this.containerDivRef.current === null
     ) {
       return
@@ -129,10 +130,9 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
 
     const containerDiv = this.containerDivRef.current
     const tipDiv = this.tipDivRef.current
-    const { maxHeight } = this.props
 
     const middleware = [
-      offset(TipSize),
+      offset(decoration === PopoverDecoration.Balloon ? TipSize : 0),
       shift(),
       flip(),
       size({
@@ -148,12 +148,12 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       }),
     ]
 
-    if (this.props.decoration === PopoverDecoration.Balloon && tipDiv) {
+    if (decoration === PopoverDecoration.Balloon && tipDiv) {
       middleware.push(arrow({ element: tipDiv, padding: TipCornerPadding }))
     }
 
     const position = await computePosition(
-      this.props.anchor,
+      anchor,
       this.containerDivRef.current,
       {
         strategy: 'fixed',
@@ -273,56 +273,57 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       }
     }
 
-    return (
-      <FocusTrap
-        active={trapFocus !== false}
-        focusTrapOptions={this.focusTrapOptions}
+    const content = (
+      <div
+        className={cn}
+        style={style}
+        ref={this.containerDivRef}
+        aria-labelledby={ariaLabelledby}
+        role="dialog"
       >
-        <div
-          className={cn}
-          style={style}
-          ref={this.containerDivRef}
-          aria-labelledby={ariaLabelledby}
-          role="dialog"
-        >
-          {children}
-          {decoration === PopoverDecoration.Balloon && (
+        {children}
+        {decoration === PopoverDecoration.Balloon && (
+          <div
+            className="popover-tip"
+            style={{
+              position: 'absolute',
+              width: TipSize * 2,
+              height: TipSize * 2,
+              ...tipStyle,
+            }}
+            ref={this.tipDivRef}
+          >
             <div
-              className="popover-tip"
+              className="popover-tip-border"
               style={{
                 position: 'absolute',
-                width: TipSize * 2,
-                height: TipSize * 2,
-                ...tipStyle,
+                right: 1,
+                width: 0,
+                height: 0,
+                borderWidth: `${TipSize}px`,
+                borderRightWidth: `${TipSize - 1}px`,
               }}
-              ref={this.tipDivRef}
-            >
-              <div
-                className="popover-tip-border"
-                style={{
-                  position: 'absolute',
-                  right: 1,
-                  width: 0,
-                  height: 0,
-                  borderWidth: `${TipSize}px`,
-                  borderRightWidth: `${TipSize - 1}px`,
-                }}
-              />
-              <div
-                className="popover-tip-background"
-                style={{
-                  position: 'absolute',
-                  right: 0,
-                  width: 0,
-                  height: 0,
-                  borderWidth: `${TipSize}px`,
-                  borderRightWidth: `${TipSize - 1}px`,
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </FocusTrap>
+            />
+            <div
+              className="popover-tip-background"
+              style={{
+                position: 'absolute',
+                right: 0,
+                width: 0,
+                height: 0,
+                borderWidth: `${TipSize}px`,
+                borderRightWidth: `${TipSize - 1}px`,
+              }}
+            />
+          </div>
+        )}
+      </div>
+    )
+
+    return trapFocus !== false ? (
+      <FocusTrap focusTrapOptions={this.focusTrapOptions}>{content}</FocusTrap>
+    ) : (
+      content
     )
   }
 
