@@ -30,6 +30,9 @@ interface IRadioButtonProps<T> {
 
   /** Optional: The tab index of the radio button */
   readonly tabIndex?: number
+
+  /** Whether the textarea field should auto focus when mounted. */
+  readonly autoFocus?: boolean
 }
 
 interface IRadioButtonState {
@@ -62,6 +65,7 @@ export class RadioButton<T extends string> extends React.Component<
           checked={this.props.checked}
           onChange={this.onSelected}
           tabIndex={this.props.tabIndex}
+          autoFocus={this.props.autoFocus}
         />
         <label htmlFor={this.state.inputId}>
           {this.props.label ?? this.props.children}
