@@ -84,6 +84,7 @@ interface IPopoverState {
 export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   private focusTrapOptions: FocusTrapOptions
   private containerDivRef = React.createRef<HTMLDivElement>()
+  private contentDivRef = React.createRef<HTMLDivElement>()
   private tipDivRef = React.createRef<HTMLDivElement>()
   private floatingCleanUp: (() => void) | null = null
 
@@ -103,23 +104,8 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     this.floatingCleanUp?.()
     this.floatingCleanUp = null
 
-    if (
-      this.props.anchor === null ||
-      this.props.anchor === undefined ||
-      this.containerDivRef.current === null
-    ) {
-      return
-    }
+    const { anchor } = this.props
 
-    this.floatingCleanUp = autoUpdate(
-      this.props.anchor,
-      this.containerDivRef.current,
-      this.updatePosition
-    )
-  }
-
-  private updatePosition = async () => {
-    const { anchor, decoration, maxHeight } = this.props
     if (
       anchor === null ||
       anchor === undefined ||
@@ -128,16 +114,38 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       return
     }
 
+    this.floatingCleanUp = autoUpdate(
+      anchor,
+      this.containerDivRef.current,
+      this.updatePosition
+    )
+  }
+
+  private updatePosition = async () => {
+    const { anchor, decoration, maxHeight } = this.props
     const containerDiv = this.containerDivRef.current
+    const contentDiv = this.contentDivRef.current
+
+    if (
+      anchor === null ||
+      anchor === undefined ||
+      containerDiv === null ||
+      contentDiv === null
+    ) {
+      return
+    }
+
     const tipDiv = this.tipDivRef.current
+
+    const screenBorderPadding = 10
 
     const middleware = [
       offset(decoration === PopoverDecoration.Balloon ? TipSize : 0),
-      shift(),
-      flip(),
+      shift({ padding: screenBorderPadding }),
+      flip({ padding: screenBorderPadding }),
       size({
         apply({ availableHeight, availableWidth }) {
-          Object.assign(containerDiv.style, {
+          Object.assign(contentDiv.style, {
             maxHeight:
               maxHeight === undefined
                 ? `${availableHeight}px`
@@ -145,6 +153,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
             maxWidth: `${availableWidth}px`,
           })
         },
+        padding: screenBorderPadding,
       }),
     ]
 
@@ -152,15 +161,11 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       middleware.push(arrow({ element: tipDiv, padding: TipCornerPadding }))
     }
 
-    const position = await computePosition(
-      anchor,
-      this.containerDivRef.current,
-      {
-        strategy: 'fixed',
-        placement: this.getFloatingPlacementForAnchorPosition(),
-        middleware,
-      }
-    )
+    const position = await computePosition(anchor, containerDiv, {
+      strategy: 'fixed',
+      placement: this.getFloatingPlacementForAnchorPosition(),
+      middleware,
+    })
 
     this.setState({ position })
   }
@@ -232,16 +237,20 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     const { position } = this.state
     // Make sure the popover *always* has at least `position: fixed` set, otherwise
     // it can cause weird layout glitches.
-    const style: React.CSSProperties | undefined = {
+    const style: React.CSSProperties = {
       position: 'fixed',
       zIndex: 17, // same as --foldout-z-index
+    }
+    const contentStyle: React.CSSProperties = {
+      overflow: 'hidden',
     }
     let tipStyle: React.CSSProperties = {}
 
     if (position) {
       style.top = position.y === undefined ? undefined : `${position.y}px`
       style.left = position.x === undefined ? undefined : `${position.x}px`
-      style.height = minHeight === undefined ? undefined : `${minHeight}px`
+      contentStyle.height =
+        minHeight === undefined ? undefined : `${minHeight}px`
 
       const arrow = position.middlewareData.arrow
 
@@ -281,7 +290,13 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
         aria-labelledby={ariaLabelledby}
         role="dialog"
       >
-        {children}
+        <div
+          className="popover-content"
+          style={contentStyle}
+          ref={this.contentDivRef}
+        >
+          {children}
+        </div>
         {decoration === PopoverDecoration.Balloon && (
           <div
             className="popover-tip"

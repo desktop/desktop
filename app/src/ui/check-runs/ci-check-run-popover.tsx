@@ -397,8 +397,10 @@ export class CICheckRunPopover extends React.PureComponent<
           ariaLabelledby="ci-check-run-header"
           onClickOutside={this.props.closePopover}
         >
-          {this.renderHeader()}
-          {this.renderList()}
+          <div className="ci-check-run-list-wrapper">
+            {this.renderHeader()}
+            {this.renderList()}
+          </div>
         </Popover>
       </div>
     )

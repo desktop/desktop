@@ -11,6 +11,10 @@
 
   box-shadow: var(--base-box-shadow);
 
+  .popover-content {
+    border-radius: var(--border-radius);
+  }
+
   & > p:first-of-type,
   & > h3:first-of-type {
     margin-top: 0;
