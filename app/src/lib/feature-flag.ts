@@ -115,10 +115,10 @@ export function enablePreventClosingWhileUpdating(): boolean {
 
 /** Should we enable the new push-pull-fetch dropdown? */
 export function enablePushPullFetchDropdown(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we enable the new PR comment notifications? */
 export function enablePullRequestCommentNotifications(): boolean {
-  return enableBetaFeatures()
+  return true
 }

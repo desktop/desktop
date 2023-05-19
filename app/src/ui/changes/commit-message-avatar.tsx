@@ -69,6 +69,9 @@ export class CommitMessageAvatar extends React.Component<
   ICommitMessageAvatarProps,
   ICommitMessageAvatarState
 > {
+  private avatarButtonRef: HTMLButtonElement | null = null
+  private popoverRef = React.createRef<Popover>()
+
   public constructor(props: ICommitMessageAvatarProps) {
     super(props)
 
@@ -101,6 +104,10 @@ export class CommitMessageAvatar extends React.Component<
     return localName !== null || localEmail !== null
   }
 
+  private onButtonRef = (buttonRef: HTMLButtonElement | null) => {
+    this.avatarButtonRef = buttonRef
+  }
+
   public render() {
     const ariaLabel = this.props.warningBadgeVisible
       ? 'Commit may be misattributed. View warning.'
@@ -111,6 +118,7 @@ export class CommitMessageAvatar extends React.Component<
         <Button
           className="avatar-button"
           ariaLabel={ariaLabel}
+          onButtonRef={this.onButtonRef}
           onClick={this.onAvatarClick}
         >
           {this.props.warningBadgeVisible && this.renderWarningBadge()}
@@ -197,6 +205,24 @@ export class CommitMessageAvatar extends React.Component<
     )
   }
 
+  private getPopoverPosition(): React.CSSProperties | undefined {
+    if (!this.avatarButtonRef) {
+      return
+    }
+
+    const defaultPopoverHeight = 278
+    const popoverHeight =
+      this.popoverRef.current?.containerDivRef.current?.clientHeight ??
+      defaultPopoverHeight
+    const buttonHeight = this.avatarButtonRef.clientHeight
+    const buttonWidth = this.avatarButtonRef.clientWidth
+    const rect = this.avatarButtonRef.getBoundingClientRect()
+    const top = rect.top - popoverHeight + buttonHeight / 2
+    const left = rect.left + buttonWidth / 2
+
+    return { top, left }
+  }
+
   private renderMisattributedCommitPopover() {
     const accountTypeSuffix = this.props.isEnterpriseAccount
       ? ' Enterprise'
@@ -211,6 +237,9 @@ export class CommitMessageAvatar extends React.Component<
 
     return (
       <>
+        <h3 id="misattributed-commit-popover-header">
+          This commit will be misattributed
+        </h3>
         <Row>
           <div>
             The email in your global Git config (
@@ -285,7 +314,9 @@ export class CommitMessageAvatar extends React.Component<
       <Popover
         caretPosition={PopoverCaretPosition.LeftBottom}
         onClickOutside={this.closePopover}
-        ariaLabelledby="commit-avatar-popover-header"
+        ariaLabelledby="misattributed-commit-popover-header"
+        style={this.getPopoverPosition()}
+        ref={this.popoverRef}
       >
         <h3 id="commit-avatar-popover-header">
           {warningBadgeVisible

@@ -1,5 +1,29 @@
 {
   "releases": {
+    "3.2.3": [
+      "[New] Add fetch and force-push actions in a dropdown as an alternative to the main Pull/Push/Publish action button - #15907",
+      "[New] Get notified when someone comments your pull requests - #16226",
+      "[Added] Add support for VimR code editor on macOS. - #16354. Thanks @Elmar-Wiese!",
+      "[Fixed] Preview pull request button in the no local changes suggested next action isn't intermittently disabled - #16368",
+      "[Fixed] NVDA reads number of suggestions when an autocompletion list shows up - #16526",
+      "[Fixed] The undo commit confirmation modal message is screen reader announced - #16472",
+      "[Fixed] Clipping and overlapping of the changes list is fixed at 200% zoom - #16425",
+      "[Fixed] The commit message avatar is now a toggle tip making the commit author details keyboard accessible - #16272",
+      "[Fixed] The commit length hint is keyboard and screen reader accessible - #16449",
+      "[Fixed] The changes list header checkbox tooltip description is announced by screen readers - #16457",
+      "[Fixed] The changes list header checkbox tooltip is keyboard accessible - #16487",
+      "[Fixed] Announce a file's state of inclusion in the commit on the changes list - #16420",
+      "[Fixed] Display focus ring around focused control after dismissing a dialog - #16528",
+      "[Improved] Add icons for tabs in Repository settings dialog - #16432. Thanks @sweezyio!",
+      "[Improved] Use correct name for VSCodium editor - #16511. Thanks @GitMensch!",
+      "[Improved] Styling improvements on Linux to scroll bars and default layouts - #16484. Thanks @shiftkey!",
+      "[Improved] Include remote branches in search for default branch - #15754",
+      "[Improved] Identify the changes list and history commit list as the changes and history tab panels for screen readers - #16463",
+      "[Improved] Windows title bar controls do not interrupt screen readers in browse mode - #16483",
+      "[Improved] Make radio theme selection look like radio buttons. - #16525",
+      "[Improved] Improve accessibility of GitHub Enterprise login flow - #16567",
+      "[Improved] Screen readers announce sign in errors - #16556"
+    ],
     "3.2.2": ["[Improved] Upgrade embedded Git to 2.39.3"],
     "3.2.2-beta2": [
       "[Improved] Improve accessibility of GitHub Enterprise login flow - #16567",

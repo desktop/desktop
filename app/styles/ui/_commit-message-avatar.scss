@@ -82,19 +82,28 @@
       margin-bottom: var(--spacing);
     }
 
+    position: fixed;
     width: 300px;
-    position: absolute;
-
-    margin-left: 31px;
-    bottom: 3px;
+    margin-left: 5px;
+    margin-top: 5px;
 
     @media (max-height: 500px) {
-      bottom: -125px;
+      bottom: 5px;
+      top: unset !important;
 
       &.popover-caret-left-bottom {
         &::before,
         &::after {
-          bottom: 158px;
+          bottom: 138px;
+        }
+      }
+    }
+
+    @media (max-height: 330px) {
+      &.popover-caret-left-bottom {
+        &::before,
+        &::after {
+          bottom: 118px;
         }
       }
     }
