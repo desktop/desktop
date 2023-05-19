@@ -229,7 +229,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     // it can cause weird layout glitches.
     const style: React.CSSProperties | undefined = {
       position: 'fixed',
-      zIndex: 1000,
+      zIndex: 17, // same as --foldout-z-index
     }
     let tipStyle: React.CSSProperties = {}
 
