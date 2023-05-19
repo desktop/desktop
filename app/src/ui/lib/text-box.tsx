@@ -256,7 +256,6 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         })}
       >
         {label && <label htmlFor={inputId}>{label}</label>}
-
         <input
           id={inputId}
           ref={this.onInputRef}

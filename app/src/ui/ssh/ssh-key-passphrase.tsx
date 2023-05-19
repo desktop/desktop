@@ -2,8 +2,8 @@ import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Row } from '../lib/row'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { TextBox } from '../lib/text-box'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { PasswordTextBox } from '../lib/password-text-box'
 
 interface ISSHKeyPassphraseProps {
   readonly keyPath: string
@@ -43,10 +43,9 @@ export class SSHKeyPassphrase extends React.Component<
       >
         <DialogContent>
           <Row>
-            <TextBox
+            <PasswordTextBox
               label={`Enter passphrase for key '${this.props.keyPath}':`}
               value={this.state.passphrase}
-              type="password"
               onValueChanged={this.onValueChanged}
             />
           </Row>

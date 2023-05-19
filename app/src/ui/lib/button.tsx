@@ -123,6 +123,15 @@ export interface IButtonProps {
    */
   readonly onlyShowTooltipWhenOverflowed?: boolean
 
+  /** The aria-pressed attribute indicates the current "pressed" state of a
+   * toggle button.
+   *
+   * Accessibility notes: Do not change the contents of the label on a toggle
+   * button when the state changes. If a button label says "pause", do not
+   * change it to "play" when pressed.
+   * */
+  readonly ariaPressed?: boolean
+
   /** Whether the input field should auto focus when mounted. */
   readonly autoFocus?: boolean
 }
@@ -179,6 +188,7 @@ export class Button extends React.Component<IButtonProps, {}> {
         aria-disabled={disabled ? 'true' : undefined}
         aria-label={this.props.ariaLabel}
         aria-haspopup={this.props.ariaHaspopup}
+        aria-pressed={this.props.ariaPressed}
         autoFocus={this.props.autoFocus}
       >
         {tooltip && (
