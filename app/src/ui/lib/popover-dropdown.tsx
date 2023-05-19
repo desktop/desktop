@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Button } from './button'
-import { Popover, PopoverAnchorPosition } from './popover'
+import { Popover, PopoverAnchorPosition, PopoverDecoration } from './popover'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import classNames from 'classnames'
@@ -94,6 +94,7 @@ export class PopoverDropdown extends React.Component<
         className="popover-dropdown-popover"
         anchor={this.invokeButtonRef}
         anchorPosition={PopoverAnchorPosition.BottomLeft}
+        decoration={PopoverDecoration.Balloon}
         onClickOutside={this.closePopover}
         aria-labelledby="popover-dropdown-header"
       >

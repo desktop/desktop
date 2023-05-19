@@ -47,6 +47,11 @@ export enum PopoverAppearEffect {
   Shake = 'shake',
 }
 
+export enum PopoverDecoration {
+  None = 'none',
+  Balloon = 'balloon',
+}
+
 const TipSize = 8
 const TipCornerPadding = TipSize
 
@@ -66,7 +71,7 @@ interface IPopoverProps {
   readonly appearEffect?: PopoverAppearEffect
   readonly ariaLabelledby?: string
   readonly trapFocus?: boolean // Default: true
-  readonly showTip?: boolean // Default: true
+  readonly decoration?: PopoverDecoration // Default: none
 
   readonly maxHeight?: number
   readonly minHeight?: number
@@ -143,7 +148,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       }),
     ]
 
-    if (this.props.showTip !== false && tipDiv) {
+    if (this.props.decoration === PopoverDecoration.Balloon && tipDiv) {
       middleware.push(arrow({ element: tipDiv, padding: TipCornerPadding }))
     }
 
@@ -215,11 +220,11 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       appearEffect,
       ariaLabelledby,
       children,
-      showTip,
+      decoration,
       minHeight,
     } = this.props
     const cn = classNames(
-      'popover-component',
+      decoration === PopoverDecoration.Balloon && 'popover-component',
       className,
       appearEffect && `appear-${appearEffect}`
     )
@@ -281,7 +286,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
           role="dialog"
         >
           {children}
-          {showTip !== false && (
+          {decoration === PopoverDecoration.Balloon && (
             <div
               className="popover-tip"
               style={{

@@ -12,7 +12,11 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
 import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
-import { Popover, PopoverAnchorPosition } from '../lib/popover'
+import {
+  Popover,
+  PopoverAnchorPosition,
+  PopoverDecoration,
+} from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
 import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
@@ -387,9 +391,10 @@ export class CICheckRunPopover extends React.PureComponent<
     return (
       <div className="ci-check-list-popover">
         <Popover
-          ariaLabelledby="ci-check-run-header"
-          anchorPosition={PopoverAnchorPosition.Bottom}
           anchor={this.props.anchor}
+          anchorPosition={PopoverAnchorPosition.Bottom}
+          decoration={PopoverDecoration.Balloon}
+          ariaLabelledby="ci-check-run-header"
           onClickOutside={this.props.closePopover}
         >
           {this.renderHeader()}

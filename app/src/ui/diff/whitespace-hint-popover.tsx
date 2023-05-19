@@ -3,6 +3,7 @@ import {
   Popover,
   PopoverAnchorPosition,
   PopoverAppearEffect,
+  PopoverDecoration,
 } from '../lib/popover'
 import { OkCancelButtonGroup } from '../dialog'
 
@@ -20,6 +21,7 @@ export class WhitespaceHintPopover extends React.Component<IWhitespaceHintPopove
       <Popover
         anchor={this.props.anchor}
         anchorPosition={this.props.anchorPosition}
+        decoration={PopoverDecoration.Balloon}
         onMousedownOutside={this.onDismissed}
         className={'whitespace-hint'}
         appearEffect={PopoverAppearEffect.Shake}
