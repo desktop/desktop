@@ -237,9 +237,6 @@ export class CommitMessageAvatar extends React.Component<
 
     return (
       <>
-        <h3 id="misattributed-commit-popover-header">
-          This commit will be misattributed
-        </h3>
         <Row>
           <div>
             The email in your global Git config (
