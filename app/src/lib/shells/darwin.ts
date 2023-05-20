@@ -1,4 +1,4 @@
-import { spawn, ChildProcess } from 'child_process'
+import { ChildProcess, spawn } from 'child_process'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 import appPath from 'app-path'
@@ -35,7 +35,7 @@ function getBundleID(shell: Shell): string {
     case Shell.Kitty:
       return 'net.kovidgoyal.kitty'
     case Shell.Alacritty:
-      return 'io.alacritty'
+      return 'org.alacritty'
     case Shell.Tabby:
       return 'org.tabby'
     case Shell.WezTerm:
@@ -47,11 +47,24 @@ function getBundleID(shell: Shell): string {
   }
 }
 
+async function getOldAlacrittyShellPath(): Promise<string | null> {
+  const oldBundleId = 'io.alacritty'
+  try {
+    return await appPath(oldBundleId)
+  } catch (e) {
+    return null
+  }
+}
+
 async function getShellPath(shell: Shell): Promise<string | null> {
   const bundleId = getBundleID(shell)
+
   try {
     return await appPath(bundleId)
   } catch (e) {
+    if (shell === Shell.Alacritty) {
+      return await getOldAlacrittyShellPath()
+    }
     // `appPath` will raise an error if it cannot find the program.
     return null
   }
