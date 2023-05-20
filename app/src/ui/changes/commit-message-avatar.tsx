@@ -54,6 +54,9 @@ export class CommitMessageAvatar extends React.Component<
   ICommitMessageAvatarProps,
   ICommitMessageAvatarState
 > {
+  private avatarButtonRef: HTMLButtonElement | null = null
+  private popoverRef = React.createRef<Popover>()
+
   public constructor(props: ICommitMessageAvatarProps) {
     super(props)
 
@@ -83,6 +86,10 @@ export class CommitMessageAvatar extends React.Component<
     return email
   }
 
+  private onButtonRef = (buttonRef: HTMLButtonElement | null) => {
+    this.avatarButtonRef = buttonRef
+  }
+
   public render() {
     return (
       <div className="commit-message-avatar-component">
@@ -90,6 +97,7 @@ export class CommitMessageAvatar extends React.Component<
           <Button
             className="avatar-button"
             ariaLabel="Commit may be misattributed. View warning."
+            onButtonRef={this.onButtonRef}
             onClick={this.onAvatarClick}
           >
             {this.renderWarningBadge()}
@@ -151,6 +159,24 @@ export class CommitMessageAvatar extends React.Component<
     }
   }
 
+  private getPopoverPosition(): React.CSSProperties | undefined {
+    if (!this.avatarButtonRef) {
+      return
+    }
+
+    const defaultPopoverHeight = 278
+    const popoverHeight =
+      this.popoverRef.current?.containerDivRef.current?.clientHeight ??
+      defaultPopoverHeight
+    const buttonHeight = this.avatarButtonRef.clientHeight
+    const buttonWidth = this.avatarButtonRef.clientWidth
+    const rect = this.avatarButtonRef.getBoundingClientRect()
+    const top = rect.top - popoverHeight + buttonHeight / 2
+    const left = rect.left + buttonWidth / 2
+
+    return { top, left }
+  }
+
   private renderPopover() {
     const accountTypeSuffix = this.props.isEnterpriseAccount
       ? ' Enterprise'
@@ -168,6 +194,8 @@ export class CommitMessageAvatar extends React.Component<
         caretPosition={PopoverCaretPosition.LeftBottom}
         onClickOutside={this.closePopover}
         ariaLabelledby="misattributed-commit-popover-header"
+        style={this.getPopoverPosition()}
+        ref={this.popoverRef}
       >
         <h3 id="misattributed-commit-popover-header">
           This commit will be misattributed

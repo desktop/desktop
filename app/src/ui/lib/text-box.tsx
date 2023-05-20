@@ -256,13 +256,11 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         })}
       >
         {label && <label htmlFor={inputId}>{label}</label>}
-
         <input
           id={inputId}
           ref={this.onInputRef}
           onFocus={this.onFocus}
           onBlur={this.onBlur}
-          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
           type={this.props.type}

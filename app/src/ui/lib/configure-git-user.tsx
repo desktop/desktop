@@ -276,6 +276,7 @@ export class ConfigureGitUser extends React.Component<
           checked={this.state.useGitHubAuthorInfo}
           onSelected={this.onUseGitHubInfoSelected}
           value="github-account"
+          autoFocus={true}
         />
         <RadioButton
           label="Configure manually"
