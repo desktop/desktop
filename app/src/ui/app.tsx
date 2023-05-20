@@ -2886,6 +2886,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (tip.kind === TipState.Valid && tip.branch.upstreamRemoteName !== null) {
       remoteName = tip.branch.upstreamRemoteName
+
+      if (tip.branch.upstreamWithoutRemote !== tip.branch.name) {
+        remoteName = tip.branch.upstream
+      }
     }
 
     const currentFoldout = this.state.currentFoldout

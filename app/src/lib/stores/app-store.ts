@@ -1179,7 +1179,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const shasInDiff = this.getShasInDiff(shas, isContiguous, commitLookup)
+    const shasInDiff = this.getShasInDiff(
+      this.orderShasByHistory(repository, shas),
+      isContiguous,
+      commitLookup
+    )
 
     if (shas.length > 1 && isContiguous) {
       this.recordMultiCommitDiff(shas, shasInDiff, compareState)
@@ -1567,7 +1571,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
     const changesetData = await gitStore.performFailableOperation(() =>
       currentSHAs.length > 1
-        ? getCommitRangeChangedFiles(repository, currentSHAs)
+        ? getCommitRangeChangedFiles(
+            repository,
+            this.orderShasByHistory(repository, currentSHAs)
+          )
         : getChangedFiles(repository, currentSHAs[0])
     )
     if (!changesetData) {
@@ -1646,7 +1653,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? await getCommitRangeDiff(
             repository,
             file,
-            shas,
+            this.orderShasByHistory(repository, shas),
             this.hideWhitespaceInHistoryDiff
           )
         : await getCommitDiff(
@@ -6648,6 +6655,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return [...commits].sort(
       (a, b) => commitSHAs.indexOf(b.sha) - commitSHAs.indexOf(a.sha)
+    )
+  }
+
+  /**
+   * Multi selection on the commit list can give an order of 1, 5, 3 if that is
+   * how the user selected them. However, sometimes we want them in
+   * chronological ordering of the commits such as when get a range files
+   * changed. Thus, assuming 1 is the first commit made by the user and 5 is the
+   * last. We want the order to be, 1, 3, 5.
+   */
+  private orderShasByHistory(
+    repository: Repository,
+    commits: ReadonlyArray<string>
+  ) {
+    const { compareState } = this.repositoryStateCache.get(repository)
+    const { commitSHAs } = compareState
+
+    return [...commits].sort(
+      (a, b) => commitSHAs.indexOf(b) - commitSHAs.indexOf(a)
     )
   }
 

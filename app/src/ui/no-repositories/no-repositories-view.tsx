@@ -129,26 +129,28 @@ export class NoRepositoriesView extends React.Component<
   public render() {
     return (
       <UiView id="no-repositories">
-        <header>
-          <h1>Let's get started!</h1>
-          <p>Add a repository to GitHub Desktop to start collaborating</p>
-        </header>
+        <section aria-label="Let's get started!">
+          <header>
+            <h1>Let's get started!</h1>
+            <p>Add a repository to GitHub Desktop to start collaborating</p>
+          </header>
 
-        <div className="content">
-          {this.renderGetStartedActions()}
-          {this.renderRepositoryList()}
-        </div>
+          <div className="content">
+            {this.renderGetStartedActions()}
+            {this.renderRepositoryList()}
+          </div>
 
-        <img
-          className="no-repositories-graphic-top"
-          src={WelcomeLeftTopImageUri}
-          alt=""
-        />
-        <img
-          className="no-repositories-graphic-bottom"
-          src={WelcomeLeftBottomImageUri}
-          alt=""
-        />
+          <img
+            className="no-repositories-graphic-top"
+            src={WelcomeLeftTopImageUri}
+            alt=""
+          />
+          <img
+            className="no-repositories-graphic-bottom"
+            src={WelcomeLeftBottomImageUri}
+            alt=""
+          />
+        </section>
       </UiView>
     )
   }
