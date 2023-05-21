@@ -77,9 +77,8 @@ interface IRepositoryViewProps {
    * Callback to open a selected file using the configured external editor
    *
    * @param fullPath The full path to the file on disk
-   * @param line The line number to try to go to
    */
-  readonly onOpenInExternalEditor: (fullPath: string, line?: number) => void
+  readonly onOpenInExternalEditor: (fullPath: string) => void
 
   /**
    * The top-level application menu item.

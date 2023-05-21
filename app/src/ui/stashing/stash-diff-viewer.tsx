@@ -58,9 +58,8 @@ interface IStashDiffViewerProps {
    * Called to open a file using the user's configured applications
    *
    * @param path The path of the file relative to the root of the repository
-   * @param line The line number to try to go to
    */
-  readonly onOpenInExternalEditor: (path: string, line?: number) => void
+  readonly onOpenInExternalEditor: (path: string) => void
 }
 
 /**
@@ -124,7 +123,6 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
             this.props.onHideWhitespaceInDiffChanged
           }
           onOpenSubmodule={onOpenSubmodule}
-          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />
       ) : null
 

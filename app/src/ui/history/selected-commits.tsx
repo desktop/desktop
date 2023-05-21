@@ -57,9 +57,8 @@ interface ISelectedCommitsProps {
    * Called to open a file using the user's configured applications
    *
    * @param path The path of the file relative to the root of the repository
-   * @param line The line number to try to go to
    */
-  readonly onOpenInExternalEditor: (path: string, line?: number) => void
+  readonly onOpenInExternalEditor: (path: string) => void
   readonly onViewCommitOnGitHub: (SHA: string, filePath?: string) => void
   readonly hideWhitespaceInDiff: boolean
 
@@ -177,7 +176,6 @@ export class SelectedCommits extends React.Component<
         onChangeImageDiffType={this.props.onChangeImageDiffType}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
         onOpenSubmodule={this.props.onOpenSubmodule}
-        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
       />
     )
   }

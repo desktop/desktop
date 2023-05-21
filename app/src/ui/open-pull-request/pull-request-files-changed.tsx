@@ -62,9 +62,8 @@ interface IPullRequestFilesChangedProps {
    * Callback to open a selected file using the configured external editor
    *
    * @param fullPath The full path to the file on disk
-   * @param line The line number to try to go to
    */
-  readonly onOpenInExternalEditor: (fullPath: string, line?: number) => void
+  readonly onOpenInExternalEditor: (fullPath: string) => void
 }
 
 interface IPullRequestFilesChangedState {
@@ -309,7 +308,6 @@ export class PullRequestFilesChanged extends React.Component<
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
-        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
       />
     )
   }

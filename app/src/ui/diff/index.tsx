@@ -86,9 +86,8 @@ interface IDiffProps {
    * Callback to open a selected file using the configured external editor
    *
    * @param fullPath The full path to the file on disk
-   * @param line The line number to try to go to
    */
-  readonly onOpenInExternalEditor?: (fullPath: string, line: number) => void
+  readonly onOpenInExternalEditor?: (fullPath: string) => void
 
   /** Called when the user requests to open a submodule. */
   readonly onOpenSubmodule?: (fullPath: string) => void
@@ -286,7 +285,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           file={this.props.file}
           diff={diff}
           fileContents={this.props.fileContents}
-          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onIncludeChanged={this.props.onIncludeChanged}
