@@ -17,6 +17,12 @@ import {
   PopoverDecoration,
 } from '../lib/popover'
 
+/**
+ * The amount to offset on the Y axis so that the popup is displayed below the
+ * current line.
+ */
+const YOffset = 20
+
 interface IRange {
   readonly start: number
   readonly length: number
@@ -390,6 +396,7 @@ export abstract class AutocompletingTextInput<
     }
 
     const caretCoordinates = getCaretCoordinates(element, selectionEnd)
+
     this.setState({
       caretCoordinates: {
         top: caretCoordinates.top - element.scrollTop,
@@ -410,7 +417,7 @@ export abstract class AutocompletingTextInput<
         style={{
           backgroundColor: 'transparent',
           width: 2,
-          height: caretCoordinates.height,
+          height: YOffset,
           position: 'absolute',
           left: caretCoordinates.left,
           top: caretCoordinates.top,
