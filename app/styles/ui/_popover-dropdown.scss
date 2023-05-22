@@ -14,7 +14,10 @@
   .popover-dropdown-popover {
     min-height: 200px;
     width: 365px;
-    padding: 0;
+
+    .popover-content {
+      padding: 0;
+    }
 
     .popover-dropdown-header {
       padding: var(--spacing);
