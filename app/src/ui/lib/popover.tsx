@@ -74,7 +74,7 @@ interface IPopoverProps {
   readonly decoration?: PopoverDecoration // Default: none
 
   readonly maxHeight?: number
-  readonly minHeight?: number
+  readonly defaultHeight?: number
 }
 
 interface IPopoverState {
@@ -226,7 +226,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       ariaLabelledby,
       children,
       decoration,
-      minHeight,
+      defaultHeight,
     } = this.props
     const cn = classNames(
       decoration === PopoverDecoration.Balloon && 'popover-component',
@@ -240,9 +240,11 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     const style: React.CSSProperties = {
       position: 'fixed',
       zIndex: 17, // same as --foldout-z-index
+      height: 'auto',
     }
     const contentStyle: React.CSSProperties = {
       overflow: 'hidden',
+      width: '100%',
     }
     let tipStyle: React.CSSProperties = {}
 
@@ -250,7 +252,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       style.top = position.y === undefined ? undefined : `${position.y}px`
       style.left = position.x === undefined ? undefined : `${position.x}px`
       contentStyle.height =
-        minHeight === undefined ? undefined : `${minHeight}px`
+        defaultHeight === undefined ? undefined : `${defaultHeight}px`
 
       const arrow = position.middlewareData.arrow
 
