@@ -54,6 +54,7 @@ export enum PopoverDecoration {
 
 const TipSize = 8
 const TipCornerPadding = TipSize
+const ScreenBorderPadding = 10
 
 interface IPopoverProps {
   readonly onClickOutside?: (event?: MouseEvent) => void
@@ -139,12 +140,10 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
 
     const tipDiv = this.tipDivRef.current
 
-    const screenBorderPadding = 10
-
     const middleware = [
       offset(decoration === PopoverDecoration.Balloon ? TipSize : 0),
-      shift({ padding: screenBorderPadding }),
-      flip({ padding: screenBorderPadding }),
+      shift({ padding: ScreenBorderPadding }),
+      flip({ padding: ScreenBorderPadding }),
       size({
         apply({ availableHeight, availableWidth }) {
           Object.assign(contentDiv.style, {
@@ -155,7 +154,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
             maxWidth: `${availableWidth}px`,
           })
         },
-        padding: screenBorderPadding,
+        padding: ScreenBorderPadding,
       }),
     ]
 
@@ -178,7 +177,6 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     this.setupPosition()
   }
 
-  // in component did update check if anchor changed, and if so setup position again
   public componentDidUpdate(prevProps: IPopoverProps) {
     if (prevProps.anchor !== this.props.anchor) {
       this.setupPosition()
