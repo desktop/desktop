@@ -217,7 +217,11 @@ export class CommitMessageAvatar extends React.Component<
       return
     }
 
-    const defaultPopoverHeight = this.props.warningBadgeVisible ? 278 : 208
+    const defaultPopoverHeight = this.props.warningBadgeVisible
+      ? 278
+      : this.state.isGitConfigLocal
+      ? 208
+      : 238
     const popoverHeight =
       this.popoverRef.current?.containerDivRef.current?.clientHeight ??
       defaultPopoverHeight
