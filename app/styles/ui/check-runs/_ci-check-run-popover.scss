@@ -1,7 +1,10 @@
 .ci-check-list-popover {
   .popover-component {
-    padding: 0px;
     width: 440px;
+
+    .popover-content {
+      padding: 0px;
+    }
 
     .popover-tip-background {
       border-right-color: var(--box-alt-background-color);

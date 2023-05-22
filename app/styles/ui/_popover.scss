@@ -7,11 +7,10 @@
   border-radius: var(--border-radius);
   border: var(--base-border);
 
-  padding: var(--spacing-double);
-
   box-shadow: var(--base-box-shadow);
 
   .popover-content {
+    padding: var(--spacing-double);
     border-radius: var(--border-radius);
   }
 
