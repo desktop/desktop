@@ -78,6 +78,7 @@ export class GitConfig extends React.Component<IGitConfigProps> {
             disabled={this.props.gitConfigLocation === GitConfigLocation.Global}
             onEmailChanged={this.props.onEmailChanged}
             onNameChanged={this.props.onNameChanged}
+            isLoadingGitConfig={false}
           />
         </div>
       </DialogContent>
