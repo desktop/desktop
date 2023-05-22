@@ -75,6 +75,7 @@ export class CommitMessageAvatar extends React.Component<
   ICommitMessageAvatarState
 > {
   private avatarButtonRef: HTMLButtonElement | null = null
+  private warningBadgeRef = React.createRef<HTMLDivElement>()
 
   public constructor(props: ICommitMessageAvatarProps) {
     super(props)
@@ -141,7 +142,7 @@ export class CommitMessageAvatar extends React.Component<
 
   private renderWarningBadge() {
     return (
-      <div className="warning-badge">
+      <div className="warning-badge" ref={this.warningBadgeRef}>
         <Octicon symbol={OcticonSymbol.alert} />
       </div>
     )
@@ -301,7 +302,11 @@ export class CommitMessageAvatar extends React.Component<
 
     return (
       <Popover
-        anchor={this.avatarButtonRef}
+        anchor={
+          warningBadgeVisible
+            ? this.warningBadgeRef.current
+            : this.avatarButtonRef
+        }
         anchorPosition={PopoverAnchorPosition.RightBottom}
         decoration={PopoverDecoration.Balloon}
         onClickOutside={this.closePopover}
