@@ -14,7 +14,10 @@ import { IMenuItem } from '../../lib/menu-item'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Draggable } from '../lib/draggable'
-import { enableResetToCommit } from '../../lib/feature-flag'
+import {
+  enableCheckoutCommit,
+  enableResetToCommit,
+} from '../../lib/feature-flag'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import {
   DragType,
@@ -306,6 +309,17 @@ export class CommitListItem extends React.PureComponent<
       })
     }
 
+    if (enableCheckoutCommit()) {
+      items.push({
+        label: __DARWIN__ ? 'Checkout Commit' : 'Checkout commit',
+        action: () => {
+          if (this.props.onCheckoutCommit) {
+            this.props.onCheckoutCommit(this.props.commit)
+          }
+        },
+      })
+    }
+
     items.push(
       {
         label: __DARWIN__
@@ -326,14 +340,6 @@ export class CommitListItem extends React.PureComponent<
         action: () => {
           if (this.props.onCreateBranch) {
             this.props.onCreateBranch(this.props.commit)
-          }
-        },
-      },
-      {
-        label: __DARWIN__ ? 'Checkout Commit' : 'Checkout commit',
-        action: () => {
-          if (this.props.onCheckoutCommit) {
-            this.props.onCheckoutCommit(this.props.commit)
           }
         },
       },
