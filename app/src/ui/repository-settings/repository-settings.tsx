@@ -65,6 +65,7 @@ interface IRepositorySettingsState {
   readonly initialCommitterEmail: string | null
   readonly errors?: ReadonlyArray<JSX.Element | string>
   readonly forkContributionTarget: ForkContributionTarget
+  readonly isLoadingGitConfig: boolean
 }
 
 export class RepositorySettings extends React.Component<
@@ -91,6 +92,7 @@ export class RepositorySettings extends React.Component<
       initialGitConfigLocation: GitConfigLocation.Global,
       initialCommitterName: null,
       initialCommitterEmail: null,
+      isLoadingGitConfig: true,
     }
   }
 
@@ -143,6 +145,7 @@ export class RepositorySettings extends React.Component<
       initialGitConfigLocation: gitConfigLocation,
       initialCommitterName: localCommitterName,
       initialCommitterEmail: localCommitterEmail,
+      isLoadingGitConfig: false,
     })
   }
 
@@ -265,6 +268,7 @@ export class RepositorySettings extends React.Component<
             globalEmail={this.state.globalCommitterEmail}
             onNameChanged={this.onCommitterNameChanged}
             onEmailChanged={this.onCommitterEmailChanged}
+            isLoadingGitConfig={this.state.isLoadingGitConfig}
           />
         )
       }
