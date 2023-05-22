@@ -42,8 +42,8 @@ export interface IGenericProgress extends IProgress {
 export interface ICheckoutProgress extends IProgress {
   kind: 'checkout'
 
-  /** The branch that's currently being checked out */
-  readonly targetBranch: string
+  /** The branch or commit that's currently being checked out */
+  readonly target: string
 }
 
 /**

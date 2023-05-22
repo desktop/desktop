@@ -88,13 +88,19 @@ export async function checkoutBranch(
           const description = progress.details.text
           const value = progress.percent
 
-          progressCallback({ kind, title, description, value, targetBranch })
+          progressCallback({
+            kind,
+            title,
+            description,
+            value,
+            target: targetBranch,
+          })
         }
       }
     )
 
     // Initial progress
-    progressCallback({ kind, title, value: 0, targetBranch })
+    progressCallback({ kind, title, value: 0, target: targetBranch })
   }
 
   const args = await getCheckoutArgs(
@@ -158,14 +164,14 @@ export async function checkoutCommit(
             title,
             description,
             value,
-            targetBranch: targetCommit,
+            target: targetCommit,
           })
         }
       }
     )
 
     // Initial progress
-    progressCallback({ kind, title, value: 0, targetBranch: targetCommit })
+    progressCallback({ kind, title, value: 0, target: targetCommit })
   }
 
   const args = ['checkout', commit.sha]

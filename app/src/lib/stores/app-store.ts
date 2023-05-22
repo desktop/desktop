@@ -1335,8 +1335,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // and it also exists in the repository
     const defaultBranch =
       currentBranch != null &&
-      cachedDefaultBranch != null &&
-      currentBranch.name !== cachedDefaultBranch.name
+        cachedDefaultBranch != null &&
+        currentBranch.name !== cachedDefaultBranch.name
         ? cachedDefaultBranch
         : null
 
@@ -1577,9 +1577,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const changesetData = await gitStore.performFailableOperation(() =>
       currentSHAs.length > 1
         ? getCommitRangeChangedFiles(
-            repository,
-            this.orderShasByHistory(repository, currentSHAs)
-          )
+          repository,
+          this.orderShasByHistory(repository, currentSHAs)
+        )
         : getChangedFiles(repository, currentSHAs[0])
     )
     if (!changesetData) {
@@ -1656,17 +1656,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const diff =
       shas.length > 1
         ? await getCommitRangeDiff(
-            repository,
-            file,
-            this.orderShasByHistory(repository, shas),
-            this.hideWhitespaceInHistoryDiff
-          )
+          repository,
+          file,
+          this.orderShasByHistory(repository, shas),
+          this.hideWhitespaceInHistoryDiff
+        )
         : await getCommitDiff(
-            repository,
-            file,
-            shas[0],
-            this.hideWhitespaceInHistoryDiff
-          )
+          repository,
+          file,
+          shas[0],
+          this.hideWhitespaceInHistoryDiff
+        )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
     const { shas: shasAfter } = stateAfterLoad.commitSelection
@@ -2590,7 +2590,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (
         multiCommitOperationState !== null &&
         multiCommitOperationState.operationDetail.kind ===
-          MultiCommitOperationKind.CherryPick &&
+        MultiCommitOperationKind.CherryPick &&
         multiCommitOperationState.operationDetail.sourceBranch !== null
       ) {
         theirBranch =
@@ -2626,7 +2626,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       multiCommitOperationState !== null &&
       multiCommitOperationState.operationDetail.kind ===
-        MultiCommitOperationKind.Merge &&
+      MultiCommitOperationKind.Merge &&
       multiCommitOperationState.operationDetail.sourceBranch !== null
     ) {
       theirBranch = multiCommitOperationState.operationDetail.sourceBranch.name
@@ -2887,7 +2887,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       const currentFiles =
         stashEntry !== null &&
-        stashEntry.files.kind === StashedChangesLoadStates.Loaded
+          stashEntry.files.kind === StashedChangesLoadStates.Loaded
           ? stashEntry.files.files
           : []
 
@@ -2982,7 +2982,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (
       changesStateAfterLoad.selection.kind !== ChangesSelectionKind.Stash ||
       changesStateAfterLoad.selection.selectedStashedFile !==
-        selectionBeforeLoad.selectedStashedFile
+      selectionBeforeLoad.selectedStashedFile
     ) {
       return
     }
@@ -3739,7 +3739,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return this.checkoutImplementation(repository, branch, account, strategy)
         .then(() => this.onSuccessfulCheckout(repository, branch))
         .catch(e => this.emitError(new CheckoutError(e, repository, branch)))
-        .then(() => this.refreshAfterCheckout(repository, branch))
+        .then(() => this.refreshAfterCheckout(repository, branch.name))
         .finally(() => this.updateCheckoutProgress(repository, null))
     })
   }
@@ -3857,16 +3857,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.hasUserViewedStash = false
   }
 
+  /**
+   * @param commitish A branch name or a commit hash
+   */
   private async refreshAfterCheckout(
     repository: Repository,
-    branch: Branch | null = null,
-    commit: CommitOneLine | null = null
+    commitish: string
   ) {
     this.updateCheckoutProgress(repository, {
       kind: 'checkout',
       title: `Refreshing ${__DARWIN__ ? 'Repository' : 'repository'}`,
       value: 1,
-      targetBranch: branch ? branch.name : commit ? commit.sha : 'null',
+      target: commitish,
     })
 
     await this._refreshRepository(repository)
@@ -3906,7 +3908,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             })
           )
         )
-        .then(() => this.refreshAfterCheckout(repository, null, commit))
+        .then(() => this.refreshAfterCheckout(repository, commit.sha))
         .finally(() => this.updateCheckoutProgress(repository, null))
     })
   }
@@ -5869,11 +5871,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return `The following paths aren't Git repositories:\n\n${invalidPaths
       .slice(0, MaxInvalidFoldersToDisplay)
       .map(path => `- ${path}`)
-      .join('\n')}${
-      invalidPaths.length > MaxInvalidFoldersToDisplay
+      .join('\n')}${invalidPaths.length > MaxInvalidFoldersToDisplay
         ? `\n\n(and ${invalidPaths.length - MaxInvalidFoldersToDisplay} more)`
         : ''
-    }`
+      }`
   }
 
   private async withAuthenticatingUser<T>(
@@ -6193,8 +6194,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const encodedBaseBranch =
       baseBranch !== undefined
         ? baseForkPreface +
-          encodeURIComponent(baseBranch.nameWithoutRemote) +
-          '...'
+        encodeURIComponent(baseBranch.nameWithoutRemote) +
+        '...'
         : ''
 
     const compareForkPreface = isForkContributingToParent
@@ -6335,8 +6336,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitError(
         new Error(
           `Couldn't find branch '${headRefName}' in remote '${remote.name}'. ` +
-            `A common reason for this is that the PR author has deleted their ` +
-            `branch or their forked repository.`
+          `A common reason for this is that the PR author has deleted their ` +
+          `branch or their forked repository.`
         )
       )
       return
@@ -6470,7 +6471,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       changesState.conflictState === null ||
       multiCommitOperationState === null ||
       multiCommitOperationState.step.kind !==
-        MultiCommitOperationStepKind.ShowConflicts
+      MultiCommitOperationStepKind.ShowConflicts
     ) {
       return
     }
@@ -7474,13 +7475,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const changesetData =
       commitsBetweenBranches.length > 0
         ? await gitStore.performFailableOperation(() =>
-            getBranchMergeBaseChangedFiles(
-              repository,
-              baseBranch.name,
-              currentBranch.name,
-              commitsBetweenBranches[0]
-            )
+          getBranchMergeBaseChangedFiles(
+            repository,
+            baseBranch.name,
+            currentBranch.name,
+            commitsBetweenBranches[0]
           )
+        )
         : emptyChangeSet
 
     if (changesetData === undefined) {
@@ -7506,10 +7507,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       mergeStatus:
         commitSHAs.length > 0 || !hasMergeBase
           ? {
-              kind: hasMergeBase
-                ? ComputedAction.Loading
-                : ComputedAction.Invalid,
-            }
+            kind: hasMergeBase
+              ? ComputedAction.Loading
+              : ComputedAction.Invalid,
+          }
           : null,
     })
 
