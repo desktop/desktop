@@ -18,12 +18,6 @@ import {
   PopoverDecoration,
 } from '../lib/popover'
 
-/**
- * The amount to offset on the Y axis so that the popup is displayed below the
- * current line.
- */
-const YOffset = 20
-
 interface IRange {
   readonly start: number
   readonly length: number
@@ -110,6 +104,12 @@ interface IAutocompletionState<T> {
  * The height of the autocompletion result rows.
  */
 const RowHeight = 29
+
+/**
+ * The amount to offset on the Y axis so that the popup is displayed below the
+ * current line.
+ */
+const YOffset = 20
 
 /**
  * The default height for the popup. Note that the actual height may be
