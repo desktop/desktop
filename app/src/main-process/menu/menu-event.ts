@@ -45,3 +45,5 @@ export type MenuEvent =
   | 'pull-request-check-run-failed'
   | 'preview-pull-request'
   | 'show-app-error'
+  | 'decrease-active-resizable-width'
+  | 'increase-active-resizable-width'

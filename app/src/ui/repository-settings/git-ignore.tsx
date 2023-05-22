@@ -20,7 +20,7 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, {}> {
           untracked files that Git should ignore. Files already tracked by Git
           are not affected.{' '}
           <LinkButton onClick={this.props.onShowExamples}>
-            Learn more
+            Learn more about gitignore files
           </LinkButton>
         </p>
 
@@ -28,7 +28,7 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, {}> {
           placeholder="Ignored files"
           value={this.props.text || ''}
           onValueChanged={this.props.onIgnoreTextChanged}
-          rows={6}
+          textareaClassName="gitignore"
         />
       </DialogContent>
     )

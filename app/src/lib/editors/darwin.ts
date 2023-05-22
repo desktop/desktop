@@ -36,6 +36,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.neovide.neovide'],
   },
   {
+    name: 'VimR',
+    bundleIdentifiers: ['com.qvacua.VimR'],
+  },
+  {
     name: 'Visual Studio Code',
     bundleIdentifiers: ['com.microsoft.VSCode'],
   },
@@ -81,7 +85,7 @@ const editors: IDarwinExternalEditor[] = [
   },
   {
     name: 'RStudio',
-    bundleIdentifiers: ['org.rstudio.RStudio'],
+    bundleIdentifiers: ['org.rstudio.RStudio', 'com.rstudio.desktop'],
   },
   {
     name: 'TextMate',
@@ -155,6 +159,14 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'Fleet',
     bundleIdentifiers: ['Fleet.app'],
+  },
+  {
+    name: 'Pulsar',
+    bundleIdentifiers: ['dev.pulsar-edit.pulsar'],
+  },
+  {
+    name: 'Zed',
+    bundleIdentifiers: ['dev.zed.Zed'],
   },
 ]
 

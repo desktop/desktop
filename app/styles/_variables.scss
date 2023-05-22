@@ -29,13 +29,15 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --button-border-radius: 6px;
   --button-hover-background: #{lighten($blue, 5%)};
   --button-text-color: #{$white};
-  --button-focus-border-color: #{$blue-600};
+  --button-focus-border-color: #{$blue-100};
 
   --link-button-color: #{$blue};
   --link-button-hover-color: #{$blue-600};
   --link-button-selected-hover-color: #{$blue-200};
 
-  --secondary-button-background: #{$gray-000};
+  --secondary-button-background: #{$gray-100};
+  --secondary-button-border-color: var(--box-border-contrast-color);
+  --secondary-button-hover-border-color: var(--box-border-contrast-color);
   --secondary-button-hover-background: #{$white};
   --secondary-button-text-color: var(--text-color);
   --secondary-button-focus-shadow-color: #{rgba($gray-200, 0.75)};
@@ -81,7 +83,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Background color for custom scroll bars.
    * The color is applied to the thumb part of the scrollbar.
    *
-   * Note: Only applies to win32 platforms
+   * Note: Only applies to win32 and linux platforms
    */
   --scroll-bar-thumb-background-color: rgba(0, 0, 0, 0.2);
 
@@ -89,7 +91,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Background color for custom scroll bars in their active state.
    * The color is applied to the thumb part of the scrollbar.
    *
-   * Note: Only applies to win32 platforms
+   * Note: Only applies to win32 and linux platforms
    */
   --scroll-bar-thumb-background-color-active: rgba(0, 0, 0, 0.5);
 
@@ -113,6 +115,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Border color for boxes.
    */
   --box-border-color: #{$gray-200};
+
+  // darkened version of gray-400 to get 3:1 contrast ratio against --box-alt-background-color
+  --box-border-contrast-color: #{darken($gray-400, 5%)};
   --box-border-accent-color: #{$blue};
 
   /**
@@ -218,6 +223,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   // similar value than Chrome's default outline border radius.
   --outlined-border-radius: 3px;
   --base-border: 1px solid var(--box-border-color);
+  --contrast-border: 1px solid var(--box-border-contrast-color);
 
   --shadow-color: rgba(71, 83, 95, 0.19);
   --base-box-shadow: 0 2px 7px var(--shadow-color);
@@ -295,8 +301,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --list-item-selected-active-badge-background-color: #{$white};
   --list-item-hover-background-color: #{$gray-100};
 
-  /** Win32 has custom scrol bars, see _scroll.scss */
+  /** Windows/Linux have custom scrollbars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
+  --linux-scroll-bar-size: 10px;
 
   /**
    * The z-index for tooltips. Nothing should be higher, but other z-indexes can
@@ -330,12 +337,6 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: #{$blue};
-
-  /**
-   * An alternative focus color to use when the background color of
-   * the focused element is the same as the regular focus color.
-   */
-  --alt-focus-color: #{$blue-800};
 
   /**
    * Variables for form elements

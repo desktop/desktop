@@ -2,9 +2,11 @@
 
 #app-menu-foldout {
   display: flex;
+  max-height: 95%; // When at 100%, can cause some brief shifting of components
 }
 
 .menu-pane {
+  overflow-y: auto;
   padding-bottom: var(--spacing-half);
   // Open panes (except the first one) should have a border on their
   // right hand side to create a divider between them and their parent

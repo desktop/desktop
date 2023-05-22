@@ -32,6 +32,8 @@ body.theme-dark {
   --link-button-selected-hover-color: #{$blue-300};
 
   --secondary-button-background: #{$gray-800};
+  --secondary-button-border-color: var(--box-border-contrast-color);
+  --secondary-button-hover-border-color: #{$gray-300};
   --secondary-button-hover-background: var(--secondary-button-background);
   --secondary-button-text-color: var(--text-color);
   --secondary-button-focus-shadow-color: #{rgba($gray-200, 0.75)};
@@ -47,7 +49,7 @@ body.theme-dark {
    * Background color for custom scroll bars.
    * The color is applied to the thumb part of the scrollbar.
    *
-   * Note: Only applies to win32 platforms
+   * Note: Only applies to win32 and linux platforms
    */
   --scroll-bar-thumb-background-color: rgba(255, 255, 255, 0.2);
 
@@ -55,7 +57,7 @@ body.theme-dark {
    * Background color for custom scroll bars in their active state.
    * The color is applied to the thumb part of the scrollbar.
    *
-   * Note: Only applies to win32 platforms
+   * Note: Only applies to win32 and linux platforms
    */
   --scroll-bar-thumb-background-color-active: rgba(255, 255, 255, 0.5);
 
@@ -67,7 +69,7 @@ body.theme-dark {
   // to decide what states to support (active selection, selection, etc).
 
   --box-background-color: #{darken($gray-900, 3%)};
-  --box-alt-background-color: #{$gray-800};
+  --box-alt-background-color: #{lighten($gray-900, 3%)};
 
   /**
    * Background color for skeleton or "loading" boxes
@@ -79,6 +81,10 @@ body.theme-dark {
    * Border color for boxes.
    */
   --box-border-color: #141414;
+
+  // slightly lighter of gray-500 to get 3:1 contrast ratio against
+  // --box-alt-background-color
+  --box-border-contrast-color: #{lighten($gray-500, 3%)};
   --box-border-accent-color: #{$blue};
 
   /**
@@ -146,6 +152,7 @@ body.theme-dark {
   --co-author-tag-border-color: #{$blue-700};
 
   --base-border: 1px solid var(--box-border-color);
+  --contrast-border: 1px solid var(--box-border-contrast-color);
 
   --shadow-color: #{rgba(black, 0.5)};
   --base-box-shadow: 0 2px 7px var(--shadow-color);
@@ -230,12 +237,6 @@ body.theme-dark {
 
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: #{$blue};
-
-  /**
-   * An alternative focus color to use when the background color of
-   * the focused element is the same as the regular focus color.
-   */
-  --alt-focus-color: #{$blue-800};
 
   /**
    * Variables for form elements

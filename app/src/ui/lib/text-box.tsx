@@ -25,6 +25,15 @@ export interface ITextBoxProps {
   /** Whether the input field is disabled. */
   readonly disabled?: boolean
 
+  /** Indicates if input field should be required */
+  readonly required?: boolean
+
+  /**
+   * Indicates whether or not the control displays an invalid state.
+   * Default: true
+   */
+  readonly displayInvalidState?: boolean
+
   /**
    * Called when the user changes the value in the input field.
    *
@@ -68,6 +77,11 @@ export interface ITextBoxProps {
 
   /** Indicates if input field applies spellcheck */
   readonly spellcheck?: boolean
+
+  /** Optional aria-label attribute */
+  readonly ariaLabel?: string
+
+  readonly ariaControls?: string
 }
 
 interface ITextBoxState {
@@ -236,15 +250,17 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     const inputId = label ? this.state.inputId : undefined
 
     return (
-      <div className={classNames('text-box-component', className)}>
+      <div
+        className={classNames('text-box-component', className, {
+          'no-invalid-state': this.props.displayInvalidState === false,
+        })}
+      >
         {label && <label htmlFor={inputId}>{label}</label>}
-
         <input
           id={inputId}
           ref={this.onInputRef}
           onFocus={this.onFocus}
           onBlur={this.onBlur}
-          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
           type={this.props.type}
@@ -255,6 +271,9 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           tabIndex={this.props.tabIndex}
           onContextMenu={this.onContextMenu}
           spellCheck={this.props.spellcheck === true}
+          aria-label={this.props.ariaLabel}
+          aria-controls={this.props.ariaControls}
+          required={this.props.required}
         />
       </div>
     )

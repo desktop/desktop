@@ -43,7 +43,7 @@
     &:focus {
       background-color: var(--toolbar-button-focus-background-color);
 
-      // Prevent the focus-ring from getting clipped by UI elements
+      // Prevent the focus ring from getting clipped by UI elements
       // outside of the toolbar
       outline-offset: -4px;
 
@@ -56,8 +56,7 @@
       }
 
       // Focused but not through keyboard navigation
-      &:not(.focus-ring) {
-        outline: none;
+      &:not(:focus-visible) {
         background-color: var(--toolbar-button-background-color);
 
         .progress {

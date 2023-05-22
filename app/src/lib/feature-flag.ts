@@ -73,16 +73,6 @@ export function enableResetToCommit(): boolean {
   return enableDevelopmentFeatures()
 }
 
-/** Should we allow high contrast theme option */
-export function enableHighContrastTheme(): boolean {
-  return enableBetaFeatures()
-}
-
-/** Should we allow customizing a theme */
-export function enableCustomizeTheme(): boolean {
-  return enableBetaFeatures()
-}
-
 /** Should ci check runs show logs? */
 export function enableCICheckRunsLogs(): boolean {
   return false
@@ -110,12 +100,12 @@ export function enableSubmoduleDiff(): boolean {
 
 /** Should we enable starting pull requests? */
 export function enableStartingPullRequests(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we enable starting pull requests? */
 export function enableStackedPopups(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we enable mechanism to prevent closing while the app is updating? */
@@ -125,5 +115,10 @@ export function enablePreventClosingWhileUpdating(): boolean {
 
 /** Should we enable the new push-pull-fetch dropdown? */
 export function enablePushPullFetchDropdown(): boolean {
-  return enableBetaFeatures()
+  return true
+}
+
+/** Should we enable the new PR comment notifications? */
+export function enablePullRequestCommentNotifications(): boolean {
+  return true
 }

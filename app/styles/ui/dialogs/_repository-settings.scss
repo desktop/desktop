@@ -1,6 +1,10 @@
 #repository-settings {
   width: 600px;
 
+  .dialog-content {
+    min-height: 240px;
+  }
+
   .no-remote {
     justify-content: space-between;
 
@@ -30,5 +34,15 @@
       padding: 0;
       margin-bottom: 0;
     }
+  }
+
+  .no-remote-publish-message {
+    .link-button-component {
+      display: inline;
+    }
+  }
+
+  textarea.gitignore {
+    height: 130px;
   }
 }

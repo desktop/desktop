@@ -17,11 +17,12 @@ import { Progress } from './progress'
 import { ITextDiff, DiffSelection, ImageDiffType } from './diff'
 import { RepositorySettingsTab } from '../ui/repository-settings/repository-settings'
 import { ICommitMessage } from './commit-message'
-import { IAuthor } from './author'
+import { Author, UnknownAuthor } from './author'
 import { IRefCheck } from '../lib/ci-checks/ci-checks'
 import { GitHubRepository } from './github-repository'
 import { ValidNotificationPullRequestReview } from '../lib/valid-notification-pull-request-review'
 import { UnreachableCommitsTab } from '../ui/history/unreachable-commits-dialog'
+import { IAPIComment } from '../lib/api'
 
 export enum PopupType {
   RenameBranch = 'RenameBranch',
@@ -90,6 +91,9 @@ export enum PopupType {
   StartPullRequest = 'StartPullRequest',
   Error = 'Error',
   InstallingUpdate = 'InstallingUpdate',
+  TestNotifications = 'TestNotifications',
+  PullRequestComment = 'PullRequestComment',
+  UnknownAuthors = 'UnknownAuthors',
 }
 
 interface IBasePopup {
@@ -292,7 +296,7 @@ export type PopupDetail =
     }
   | {
       type: PopupType.CommitMessage
-      coAuthors: ReadonlyArray<IAuthor>
+      coAuthors: ReadonlyArray<Author>
       showCoAuthoredBy: boolean
       commitMessage: ICommitMessage | null
       dialogTitle: string
@@ -367,7 +371,6 @@ export type PopupDetail =
       repository: RepositoryWithGitHubRepository
       pullRequest: PullRequest
       review: ValidNotificationPullRequestReview
-      numberOfComments: number
       shouldCheckoutBranch: boolean
       shouldChangeRepository: boolean
     }
@@ -394,6 +397,23 @@ export type PopupDetail =
     }
   | {
       type: PopupType.InstallingUpdate
+    }
+  | {
+      type: PopupType.TestNotifications
+      repository: RepositoryWithGitHubRepository
+    }
+  | {
+      type: PopupType.PullRequestComment
+      repository: RepositoryWithGitHubRepository
+      pullRequest: PullRequest
+      comment: IAPIComment
+      shouldCheckoutBranch: boolean
+      shouldChangeRepository: boolean
+    }
+  | {
+      type: PopupType.UnknownAuthors
+      authors: ReadonlyArray<UnknownAuthor>
+      onCommit: () => void
     }
 
 export type Popup = IBasePopup & PopupDetail

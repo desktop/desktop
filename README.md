@@ -25,15 +25,7 @@ Download the official installer for your operating system:
  - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
  - [Windows machine-wide install](https://central.github.com/deployments/desktop/desktop/latest/win32?format=msi)
 
-You can install this alongside your existing GitHub Desktop for Mac or GitHub
-Desktop for Windows application.
-
 Linux is not officially supported; however, you can find installers created for Linux from a fork of GitHub Desktop in the [Community Releases](https://github.com/desktop/desktop#community-releases) section.
-
-**NOTE**: There is no current migration path to import your existing
-repositories into the new application - you can drag-and-drop your repositories
-from disk onto the application to get started.
-
 
 ### Beta Channel
 
@@ -51,21 +43,16 @@ The release notes for the latest beta versions are available [here](https://desk
 
 There are several community-supported package managers that can be used to
 install GitHub Desktop:
- - Windows users can install using [winget](https://docs.microsoft.com/en-us/windows/package-manager/winget/) `c:/> winget install github-desktop` or [Chocolatey](https://chocolatey.org/) `c:\> choco install github-desktop`
+ - Windows users can install using [winget](https://docs.microsoft.com/en-us/windows/package-manager/winget/) `c:\> winget install github-desktop` or [Chocolatey](https://chocolatey.org/) `c:\> choco install github-desktop`
  - macOS users can install using [Homebrew](https://brew.sh/) package manager:
       `$ brew install --cask github`
 
 Installers for various Linux distributions can be found on the
 [`shiftkey/desktop`](https://github.com/shiftkey/desktop) fork.
 
-Arch Linux users can install the latest version from the
-[AUR](https://aur.archlinux.org/packages/github-desktop-bin/).
-
 ## Is GitHub Desktop right for me? What are the primary areas of focus?
 
 [This document](https://github.com/desktop/desktop/blob/development/docs/process/what-is-desktop.md) describes the focus of GitHub Desktop and who the product is most useful for.
-
-And to see what the team is working on currently and in the near future, check out the [GitHub Desktop roadmap](https://github.com/desktop/desktop/blob/development/docs/process/roadmap.md).
 
 ## I have a problem with GitHub Desktop
 
@@ -96,13 +83,12 @@ If you're looking for something to work on, check out the [help wanted](https://
 
 ## Building Desktop
 
-To get your development environment set up for building Desktop, see [setup.md](./docs/contributing/setup.md).
+To setup your development environment for building Desktop, check out: [`setup.md`](./docs/contributing/setup.md).
 
 ## More Resources
 
 See [desktop.github.com](https://desktop.github.com) for more product-oriented
 information about GitHub Desktop.
-
 
 See our [getting started documentation](https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/overview/getting-started-with-github-desktop) for more information on how to set up, authenticate, and configure GitHub Desktop.
 

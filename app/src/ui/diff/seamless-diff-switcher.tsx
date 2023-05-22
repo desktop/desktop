@@ -19,6 +19,7 @@ import {
 import { Loading } from '../lib/loading'
 import { getFileContents, IFileContents } from './syntax-highlighting'
 import { getTextDiffWithBottomDummyHunk } from './text-diff-expansion'
+import { textDiffEquals } from './diff-helpers'
 
 /**
  * The time (in milliseconds) we allow when loading a diff before
@@ -127,7 +128,7 @@ function isSameDiff(prevDiff: IDiff, newDiff: IDiff) {
     prevDiff === newDiff ||
     (isTextDiff(prevDiff) &&
       isTextDiff(newDiff) &&
-      prevDiff.text === newDiff.text)
+      textDiffEquals(prevDiff, newDiff))
   )
 }
 
