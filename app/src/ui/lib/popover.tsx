@@ -73,8 +73,8 @@ interface IPopoverProps {
   readonly trapFocus?: boolean // Default: true
   readonly decoration?: PopoverDecoration // Default: none
 
+  /** Maximum height decided by clients of Popover */
   readonly maxHeight?: number
-  readonly defaultHeight?: number
 }
 
 interface IPopoverState {
@@ -226,7 +226,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       ariaLabelledby,
       children,
       decoration,
-      defaultHeight,
+      maxHeight,
     } = this.props
     const cn = classNames(
       decoration === PopoverDecoration.Balloon && 'popover-component',
@@ -252,7 +252,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       style.top = position.y === undefined ? undefined : `${position.y}px`
       style.left = position.x === undefined ? undefined : `${position.x}px`
       contentStyle.height =
-        defaultHeight === undefined ? undefined : `${defaultHeight}px`
+        maxHeight === undefined ? undefined : `${maxHeight}px`
 
       const arrow = position.middlewareData.arrow
 

@@ -261,7 +261,7 @@ export abstract class AutocompletingTextInput<
         anchor={this.invisibleCaretRef.current}
         anchorPosition={PopoverAnchorPosition.BottomLeft}
         decoration={PopoverDecoration.None}
-        defaultHeight={Math.min(DefaultPopupHeight, noOverflowItemHeight)}
+        maxHeight={Math.min(DefaultPopupHeight, noOverflowItemHeight)}
         trapFocus={false}
         className={className}
       >
