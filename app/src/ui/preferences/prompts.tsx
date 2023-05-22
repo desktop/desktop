@@ -129,7 +129,6 @@ export class Prompts extends React.Component<
   public render() {
     return (
       <DialogContent>
-        <h2>Show a confirmation dialog before...</h2>
         <div className="advanced-section">
           <h2>Show a confirmation dialog before...</h2>
           <Checkbox
