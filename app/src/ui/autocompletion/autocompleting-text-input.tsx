@@ -11,6 +11,7 @@ import classNames from 'classnames'
 import getCaretCoordinates from 'textarea-caret'
 import { showContextualMenu } from '../../lib/menu-item'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
+import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import {
   Popover,
   PopoverAnchorPosition,
@@ -38,6 +39,9 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /** Element ID for the input field. */
   readonly elementId?: string
 
+  /** Content of an optional invisible label element for screen readers. */
+  readonly screenReaderLabel?: string
+
   /** The placeholder for the input field. */
   readonly placeholder?: string
 
@@ -49,12 +53,6 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
 
   /** Indicates if input field should be required */
   readonly required?: boolean
-
-  /**
-   * Indicates if input field should be considered a combobox by assistive
-   * technologies. Optional. Default: false
-   */
-  readonly isCombobox?: boolean
 
   /** Indicates if input field applies spellcheck */
   readonly spellcheck?: boolean
@@ -126,7 +124,23 @@ interface IAutocompletingTextInputState<T> {
    */
   readonly autocompletionState: IAutocompletionState<T> | null
 
+  /** Coordinates of the caret in the input/textarea element */
   readonly caretCoordinates: ReturnType<typeof getCaretCoordinates> | null
+
+  /**
+   * An automatically generated id for the text element used to reference
+   * it from the label element. This is generated once via the id pool when the
+   * component is mounted and then released once the component unmounts.
+   */
+  readonly uniqueInternalElementId?: string
+
+  /**
+   * An automatically generated id for the autocomplete container element used
+   * to reference it from the ARIA autocomplete-related attributes. This is
+   * generated once via the id pool when the component is mounted and then
+   * released once the component unmounts.
+   */
+  readonly autocompleteContainerId?: string
 }
 
 /** A text area which provides autocompletions as the user types. */
@@ -161,6 +175,26 @@ export abstract class AutocompletingTextInput<
     }
   }
 
+  public componentWillMount() {
+    const elementId = createUniqueId('autocompleting-text-input')
+    const autocompleteContainerId = createUniqueId('autocomplete-container')
+
+    this.setState({
+      uniqueInternalElementId: elementId,
+      autocompleteContainerId,
+    })
+  }
+
+  public componentWillUnmount() {
+    if (this.state.uniqueInternalElementId) {
+      releaseUniqueId(this.state.uniqueInternalElementId)
+    }
+
+    if (this.state.autocompleteContainerId) {
+      releaseUniqueId(this.state.autocompleteContainerId)
+    }
+  }
+
   public componentDidUpdate(
     prevProps: IAutocompletingTextInputProps<ElementType, AutocompleteItemType>
   ) {
@@ -170,6 +204,10 @@ export abstract class AutocompletingTextInput<
     ) {
       this.open(this.element?.value ?? '')
     }
+  }
+
+  private get elementId() {
+    return this.props.elementId ?? this.state.uniqueInternalElementId
   }
 
   private renderItem = (row: number): JSX.Element | null => {
@@ -228,7 +266,7 @@ export abstract class AutocompletingTextInput<
         className={className}
       >
         <List
-          accessibleListId="autocomplete-container"
+          accessibleListId={this.state.autocompleteContainerId}
           ref={this.onAutocompletionListRef}
           rowCount={items.length}
           rowHeight={RowHeight}
@@ -354,8 +392,8 @@ export abstract class AutocompletingTextInput<
 
     const props = {
       type: 'text',
-      id: this.props.elementId,
-      role: this.props.isCombobox ? ('combobox' as const) : undefined,
+      id: this.elementId,
+      role: 'combobox',
       placeholder: this.props.placeholder,
       value: this.props.value,
       ref: this.onRef,
@@ -371,8 +409,8 @@ export abstract class AutocompletingTextInput<
       'aria-expanded': autocompleteVisible,
       'aria-autocomplete': 'list' as const,
       'aria-haspopup': 'listbox' as const,
-      'aria-controls': 'autocomplete-container',
-      'aria-owns': 'autocomplete-container',
+      'aria-controls': this.state.autocompleteContainerId,
+      'aria-owns': this.state.autocompleteContainerId,
       'aria-activedescendant': this.getActiveAutocompleteItemId(),
     }
 
@@ -482,6 +520,11 @@ export abstract class AutocompletingTextInput<
     return (
       <div className={className}>
         {this.renderAutocompletions()}
+        {this.props.screenReaderLabel && (
+          <label className="sr-only" htmlFor={this.elementId}>
+            {this.props.screenReaderLabel}
+          </label>
+        )}
         {this.renderTextInput()}
         {this.renderInvisibleCaret()}
         <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>

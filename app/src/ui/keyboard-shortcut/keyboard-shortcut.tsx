@@ -13,10 +13,10 @@ export class KeyboardShortcut extends React.Component<IKeyboardShortCutProps> {
 
     return keys.map((k, i) => {
       return (
-        <>
-          <kbd key={k + i}>{k}</kbd>
+        <React.Fragment key={k + i}>
+          <kbd>{k}</kbd>
           {!__DARWIN__ && i < keys.length - 1 ? <>+</> : null}
-        </>
+        </React.Fragment>
       )
     })
   }

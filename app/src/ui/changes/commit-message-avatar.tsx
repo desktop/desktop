@@ -15,6 +15,7 @@ import { LinkButton } from '../lib/link-button'
 import { OkCancelButtonGroup } from '../dialog'
 import { getConfigValue } from '../../lib/git/config'
 import { Repository } from '../../models/repository'
+import classNames from 'classnames'
 
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
@@ -112,20 +113,26 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   public render() {
-    const ariaLabel = this.props.warningBadgeVisible
+    const { warningBadgeVisible, user } = this.props
+
+    const ariaLabel = warningBadgeVisible
       ? 'Commit may be misattributed. View warning.'
       : 'View commit author information'
 
+    const classes = classNames('commit-message-avatar-component', {
+      misattributed: warningBadgeVisible,
+    })
+
     return (
-      <div className="commit-message-avatar-component">
+      <div className={classes}>
         <Button
           className="avatar-button"
           ariaLabel={ariaLabel}
-          onClick={this.onAvatarClick}
           onButtonRef={this.onButtonRef}
+          onClick={this.onAvatarClick}
         >
-          {this.props.warningBadgeVisible && this.renderWarningBadge()}
-          <Avatar user={this.props.user} title={null} />
+          {warningBadgeVisible && this.renderWarningBadge()}
+          <Avatar user={user} title={null} />
         </Button>
         {this.state.isPopoverOpen && this.renderPopover()}
       </div>
@@ -298,7 +305,7 @@ export class CommitMessageAvatar extends React.Component<
         anchorPosition={PopoverAnchorPosition.RightBottom}
         decoration={PopoverDecoration.Balloon}
         onClickOutside={this.closePopover}
-        ariaLabelledby="commit-avatar-popover-header"
+        ariaLabelledby="misattributed-commit-popover-header"
       >
         <h3 id="commit-avatar-popover-header">
           {warningBadgeVisible
