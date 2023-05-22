@@ -75,6 +75,8 @@ interface IPopoverProps {
 
   /** Maximum height decided by clients of Popover */
   readonly maxHeight?: number
+  /** Minimum height decided by clients of Popover */
+  readonly minHeight?: number
 }
 
 interface IPopoverState {
@@ -227,6 +229,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       children,
       decoration,
       maxHeight,
+      minHeight,
     } = this.props
     const cn = classNames(
       decoration === PopoverDecoration.Balloon && 'popover-component',
@@ -251,6 +254,8 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     if (position) {
       style.top = position.y === undefined ? undefined : `${position.y}px`
       style.left = position.x === undefined ? undefined : `${position.x}px`
+      contentStyle.minHeight =
+        minHeight === undefined ? undefined : `${minHeight}px`
       contentStyle.height =
         maxHeight === undefined ? undefined : `${maxHeight}px`
 

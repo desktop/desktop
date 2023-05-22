@@ -247,6 +247,8 @@ export abstract class AutocompletingTextInput<
     // without overflowing and triggering the scrollbar.
     const noOverflowItemHeight = RowHeight * items.length
 
+    const minHeight = RowHeight * Math.min(items.length, 3)
+
     // Use the completion text as invalidation props so that highlighting
     // will update as you type even though the number of items matched
     // remains the same. Additionally we need to be aware that different
@@ -262,6 +264,7 @@ export abstract class AutocompletingTextInput<
         anchorPosition={PopoverAnchorPosition.BottomLeft}
         decoration={PopoverDecoration.None}
         maxHeight={Math.min(DefaultPopupHeight, noOverflowItemHeight)}
+        minHeight={minHeight}
         trapFocus={false}
         className={className}
       >
