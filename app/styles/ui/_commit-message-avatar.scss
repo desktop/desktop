@@ -48,12 +48,6 @@
     align-items: center;
   }
 
-  h3 {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-  }
-
   section + section {
     margin-top: var(--spacing);
   }
@@ -65,6 +59,11 @@
 
   .button-row {
     justify-content: flex-end;
+
+    button {
+      min-width: 120px;
+      margin-right: var(--spacing-half);
+    }
   }
 
   .secondary-text {
@@ -85,8 +84,8 @@
 
     position: fixed;
     width: 300px;
-    margin-left: 5px;
-    margin-top: 5px;
+    margin-left: 19px;
+    margin-top: 18px;
 
     @media (max-height: 500px) {
       bottom: 5px;
@@ -95,7 +94,16 @@
       &.popover-caret-left-bottom {
         &::before,
         &::after {
-          bottom: 138px;
+          bottom: 172px;
+        }
+      }
+    }
+
+    @media (max-height: 400px) {
+      &.popover-caret-left-bottom {
+        &::before,
+        &::after {
+          bottom: 154px;
         }
       }
     }
@@ -104,7 +112,44 @@
       &.popover-caret-left-bottom {
         &::before,
         &::after {
-          bottom: 118px;
+          bottom: 109px;
+        }
+      }
+    }
+  }
+
+  &.misattributed {
+    .popover-component {
+      margin-left: 5px;
+      margin-top: 5px;
+
+      @media (max-height: 500px) {
+        bottom: 5px;
+        top: unset !important;
+
+        &.popover-caret-left-bottom {
+          &::before,
+          &::after {
+            bottom: 183px;
+          }
+        }
+      }
+
+      @media (max-height: 400px) {
+        &.popover-caret-left-bottom {
+          &::before,
+          &::after {
+            bottom: 165px;
+          }
+        }
+      }
+
+      @media (max-height: 330px) {
+        &.popover-caret-left-bottom {
+          &::before,
+          &::after {
+            bottom: 120px;
+          }
         }
       }
     }
