@@ -154,6 +154,18 @@ interface IFilterListProps<T extends IFilterListItem> {
 
   /** If true, we do not render the filter. */
   readonly hideFilterRow?: boolean
+
+  /**
+   * A handler called whenever a context menu event is received on the
+   * row container element.
+   *
+   * The context menu is invoked when a user right clicks the row or
+   * uses keyboard shortcut.s
+   */
+  readonly onItemContextMenu?: (
+    item: T,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
 }
 
 interface IFilterListState<T extends IFilterListItem> {
@@ -342,6 +354,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
           onSelectedRowChanged={this.onSelectedRowChanged}
           onRowClick={this.onRowClick}
           onRowKeyDown={this.onRowKeyDown}
+          onRowContextMenu={this.onRowContextMenu}
           canSelectRow={this.canSelectRow}
           invalidationProps={{
             ...this.props,
@@ -416,6 +429,23 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         this.props.onItemClick(row.item, source)
       }
     }
+  }
+
+  private onRowContextMenu = (
+    index: number,
+    source: React.MouseEvent<HTMLDivElement>
+  ) => {
+    if (!this.props.onItemContextMenu) {
+      return
+    }
+
+    const row = this.state.rows[index]
+
+    if (row.kind !== 'item') {
+      return
+    }
+
+    this.props.onItemContextMenu(row.item, source)
   }
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
