@@ -19,6 +19,12 @@
       padding: 0;
     }
 
+    .popover-dropdown-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
     .popover-dropdown-header {
       padding: var(--spacing);
       font-weight: var(--font-weight-semibold);
@@ -32,6 +38,8 @@
 
     .popover-dropdown-content {
       display: flex;
+      flex-grow: 1;
+      min-height: 0;
     }
   }
 }
