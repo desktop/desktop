@@ -313,9 +313,7 @@ export class CommitListItem extends React.PureComponent<
       items.push({
         label: __DARWIN__ ? 'Checkout Commit' : 'Checkout commit',
         action: () => {
-          if (this.props.onCheckoutCommit) {
-            this.props.onCheckoutCommit(this.props.commit)
-          }
+          this.props.onCheckoutCommit?.(this.props.commit)
         },
       })
     }
