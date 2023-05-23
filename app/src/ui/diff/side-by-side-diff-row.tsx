@@ -15,7 +15,7 @@ import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType } from '../../models/diff'
 import { DiffExpansionKind } from './text-diff-expansion'
-import { PopoverCaretPosition } from '../lib/popover'
+import { PopoverAnchorPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
@@ -173,7 +173,10 @@ export class SideBySideDiffRow extends React.Component<
           return (
             <div className="row context">
               <div className="before">
-                {this.renderLineNumbers([beforeLineNumber, afterLineNumber])}
+                {this.renderLineNumbers(
+                  [beforeLineNumber, afterLineNumber],
+                  undefined
+                )}
                 {this.renderContentFromString(row.content, row.beforeTokens)}
               </div>
             </div>
@@ -183,11 +186,11 @@ export class SideBySideDiffRow extends React.Component<
         return (
           <div className="row context">
             <div className="before">
-              {this.renderLineNumber(beforeLineNumber)}
+              {this.renderLineNumber(beforeLineNumber, DiffColumn.Before)}
               {this.renderContentFromString(row.content, row.beforeTokens)}
             </div>
             <div className="after">
-              {this.renderLineNumber(afterLineNumber)}
+              {this.renderLineNumber(afterLineNumber, DiffColumn.After)}
               {this.renderContentFromString(row.content, row.afterTokens)}
             </div>
           </div>
@@ -202,7 +205,11 @@ export class SideBySideDiffRow extends React.Component<
               onMouseEnter={this.onMouseEnterLineNumber}
             >
               <div className={afterClasses}>
-                {this.renderLineNumbers([undefined, lineNumber], isSelected)}
+                {this.renderLineNumbers(
+                  [undefined, lineNumber],
+                  DiffColumn.After,
+                  isSelected
+                )}
                 {this.renderHunkHandle()}
                 {this.renderContent(row.data)}
                 {this.renderWhitespaceHintPopover(DiffColumn.After)}
@@ -214,12 +221,12 @@ export class SideBySideDiffRow extends React.Component<
         return (
           <div className="row added" onMouseEnter={this.onMouseEnterLineNumber}>
             <div className={beforeClasses}>
-              {this.renderLineNumber()}
+              {this.renderLineNumber(undefined, DiffColumn.Before)}
               {this.renderContentFromString('')}
               {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
             <div className={afterClasses}>
-              {this.renderLineNumber(lineNumber, isSelected)}
+              {this.renderLineNumber(lineNumber, DiffColumn.After, isSelected)}
               {this.renderContent(row.data)}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
@@ -236,7 +243,11 @@ export class SideBySideDiffRow extends React.Component<
               onMouseEnter={this.onMouseEnterLineNumber}
             >
               <div className={beforeClasses}>
-                {this.renderLineNumbers([lineNumber, undefined], isSelected)}
+                {this.renderLineNumbers(
+                  [lineNumber, undefined],
+                  DiffColumn.Before,
+                  isSelected
+                )}
                 {this.renderHunkHandle()}
                 {this.renderContent(row.data)}
                 {this.renderWhitespaceHintPopover(DiffColumn.Before)}
@@ -251,12 +262,12 @@ export class SideBySideDiffRow extends React.Component<
             onMouseEnter={this.onMouseEnterLineNumber}
           >
             <div className={beforeClasses}>
-              {this.renderLineNumber(lineNumber, isSelected)}
+              {this.renderLineNumber(lineNumber, DiffColumn.Before, isSelected)}
               {this.renderContent(row.data)}
               {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
             <div className={afterClasses}>
-              {this.renderLineNumber()}
+              {this.renderLineNumber(undefined, DiffColumn.After)}
               {this.renderContentFromString('')}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
@@ -272,7 +283,11 @@ export class SideBySideDiffRow extends React.Component<
               className={beforeClasses}
               onMouseEnter={this.onMouseEnterLineNumber}
             >
-              {this.renderLineNumber(before.lineNumber, before.isSelected)}
+              {this.renderLineNumber(
+                before.lineNumber,
+                DiffColumn.Before,
+                before.isSelected
+              )}
               {this.renderContent(before)}
               {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
@@ -280,7 +295,11 @@ export class SideBySideDiffRow extends React.Component<
               className={afterClasses}
               onMouseEnter={this.onMouseEnterLineNumber}
             >
-              {this.renderLineNumber(after.lineNumber, after.isSelected)}
+              {this.renderLineNumber(
+                after.lineNumber,
+                DiffColumn.After,
+                after.isSelected
+              )}
               {this.renderContent(after)}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
@@ -455,21 +474,33 @@ export class SideBySideDiffRow extends React.Component<
     )
   }
 
+  private getLineNumbersContainerID(column: DiffColumn) {
+    return `line-numbers-${this.props.numRow}-${column}`
+  }
+
   /**
    * Renders the line number box.
    *
    * @param lineNumbers Array with line numbers to display.
+   * @param column      Column to which the line number belongs.
    * @param isSelected  Whether the line has been selected.
    *                    If undefined is passed, the line is treated
    *                    as non-selectable.
    */
   private renderLineNumbers(
     lineNumbers: Array<number | undefined>,
+    column: DiffColumn | undefined,
     isSelected?: boolean
   ) {
+    const wrapperID =
+      column === undefined ? undefined : this.getLineNumbersContainerID(column)
     if (!this.props.isDiffSelectable || isSelected === undefined) {
       return (
-        <div className="line-number" style={{ width: this.lineGutterWidth }}>
+        <div
+          id={wrapperID}
+          className="line-number"
+          style={{ width: this.lineGutterWidth }}
+        >
           {lineNumbers.map((lineNumber, index) => (
             <span key={index}>{lineNumber}</span>
           ))}
@@ -480,6 +511,7 @@ export class SideBySideDiffRow extends React.Component<
     return (
       // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
+        id={wrapperID}
         className={classNames('line-number', 'selectable', 'hoverable', {
           'line-selected': isSelected,
           hover: this.props.isHunkHovered,
@@ -499,22 +531,21 @@ export class SideBySideDiffRow extends React.Component<
     if (this.state.showWhitespaceHint !== column) {
       return
     }
-
-    const caretPosition =
-      column === DiffColumn.Before
-        ? PopoverCaretPosition.RightTop
-        : PopoverCaretPosition.LeftTop
-
-    const style: React.CSSProperties = {
-      [column === DiffColumn.Before ? 'marginRight' : 'marginLeft']:
-        this.lineGutterWidth + 10,
-      marginTop: -10,
+    const elementID = `line-numbers-${this.props.numRow}-${column}`
+    const anchor = document.getElementById(elementID)
+    if (anchor === null) {
+      return
     }
+
+    const anchorPosition =
+      column === DiffColumn.Before
+        ? PopoverAnchorPosition.LeftTop
+        : PopoverAnchorPosition.RightTop
 
     return (
       <WhitespaceHintPopover
-        caretPosition={caretPosition}
-        style={style}
+        anchor={anchor}
+        anchorPosition={anchorPosition}
         onHideWhitespaceInDiffChanged={this.props.onHideWhitespaceInDiffChanged}
         onDismissed={this.onWhitespaceHintClose}
       />
@@ -529,22 +560,21 @@ export class SideBySideDiffRow extends React.Component<
    * Renders the line number box.
    *
    * @param lineNumber  Line number to display.
+   * @param column      Column to which the line number belongs.
    * @param isSelected  Whether the line has been selected.
    *                    If undefined is passed, the line is treated
    *                    as non-selectable.
    */
-  private renderLineNumber(lineNumber?: number, isSelected?: boolean) {
-    return this.renderLineNumbers([lineNumber], isSelected)
+  private renderLineNumber(
+    lineNumber: number | undefined,
+    column: DiffColumn,
+    isSelected?: boolean
+  ) {
+    return this.renderLineNumbers([lineNumber], column, isSelected)
   }
 
   private getDiffColumn(targetElement?: Element): DiffColumn | null {
-    const { row, showSideBySideDiff } = this.props
-
-    // On unified diffs we don't have columns so we always use "before" to not
-    // mess up with line selections.
-    if (!showSideBySideDiff) {
-      return DiffColumn.Before
-    }
+    const { row } = this.props
 
     switch (row.type) {
       case DiffRowType.Added:

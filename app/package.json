@@ -17,6 +17,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@floating-ui/react-dom": "^2.0.0",
     "@github/alive-client": "^0.0.2",
     "app-path": "^3.3.0",
     "byline": "^5.0.0",

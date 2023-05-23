@@ -2,7 +2,11 @@ import React from 'react'
 import { Select } from '../lib/select'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
-import { Popover, PopoverCaretPosition } from '../lib/popover'
+import {
+  Popover,
+  PopoverAnchorPosition,
+  PopoverDecoration,
+} from '../lib/popover'
 import { IAvatarUser } from '../../models/avatar'
 import { Avatar } from '../lib/avatar'
 import { Octicon } from '../octicons'
@@ -71,7 +75,7 @@ export class CommitMessageAvatar extends React.Component<
   ICommitMessageAvatarState
 > {
   private avatarButtonRef: HTMLButtonElement | null = null
-  private popoverRef = React.createRef<Popover>()
+  private warningBadgeRef = React.createRef<HTMLDivElement>()
 
   public constructor(props: ICommitMessageAvatarProps) {
     super(props)
@@ -138,7 +142,7 @@ export class CommitMessageAvatar extends React.Component<
 
   private renderWarningBadge() {
     return (
-      <div className="warning-badge">
+      <div className="warning-badge" ref={this.warningBadgeRef}>
         <Octicon symbol={OcticonSymbol.alert} />
       </div>
     )
@@ -210,28 +214,6 @@ export class CommitMessageAvatar extends React.Component<
         </Row>
       </>
     )
-  }
-
-  private getPopoverPosition(): React.CSSProperties | undefined {
-    if (!this.avatarButtonRef) {
-      return
-    }
-
-    const defaultPopoverHeight = this.props.warningBadgeVisible
-      ? 278
-      : this.state.isGitConfigLocal
-      ? 208
-      : 238
-    const popoverHeight =
-      this.popoverRef.current?.containerDivRef.current?.clientHeight ??
-      defaultPopoverHeight
-    const buttonHeight = this.avatarButtonRef.clientHeight
-    const buttonWidth = this.avatarButtonRef.clientWidth
-    const rect = this.avatarButtonRef.getBoundingClientRect()
-    const top = rect.top - popoverHeight + buttonHeight / 2
-    const left = rect.left + buttonWidth / 2
-
-    return { top, left }
   }
 
   private renderMisattributedCommitPopover() {
@@ -320,11 +302,15 @@ export class CommitMessageAvatar extends React.Component<
 
     return (
       <Popover
-        caretPosition={PopoverCaretPosition.LeftBottom}
+        anchor={
+          warningBadgeVisible
+            ? this.warningBadgeRef.current
+            : this.avatarButtonRef
+        }
+        anchorPosition={PopoverAnchorPosition.RightBottom}
+        decoration={PopoverDecoration.Balloon}
         onClickOutside={this.closePopover}
         ariaLabelledby="misattributed-commit-popover-header"
-        style={this.getPopoverPosition()}
-        ref={this.popoverRef}
       >
         <h3 id="commit-avatar-popover-header">
           {warningBadgeVisible

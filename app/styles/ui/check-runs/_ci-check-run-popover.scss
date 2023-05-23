@@ -1,14 +1,20 @@
 .ci-check-list-popover {
   .popover-component {
-    position: absolute;
-    padding: 0px;
     width: 440px;
-    top: 60;
-    margin-left: -302px;
 
-    &::after {
-      border-bottom-color: var(--box-alt-background-color);
+    .popover-content {
+      padding: 0px;
     }
+
+    .popover-tip-background {
+      border-right-color: var(--box-alt-background-color);
+    }
+  }
+
+  .ci-check-run-list-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-height: inherit;
   }
 
   .ci-check-run-list-header {

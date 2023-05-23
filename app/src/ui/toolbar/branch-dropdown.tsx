@@ -64,23 +64,12 @@ interface IBranchDropdownProps {
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
 }
-interface IBranchDropdownState {
-  readonly badgeBottom: number
-}
 
 /**
  * A drop down for selecting the currently checked out branch.
  */
-export class BranchDropdown extends React.Component<
-  IBranchDropdownProps,
-  IBranchDropdownState
-> {
-  public constructor(props: IBranchDropdownProps) {
-    super(props)
-    this.state = {
-      badgeBottom: 0,
-    }
-  }
+export class BranchDropdown extends React.Component<IBranchDropdownProps> {
+  private badgeRef: HTMLElement | null = null
 
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
@@ -306,10 +295,6 @@ export class BranchDropdown extends React.Component<
     this.openPopover()
   }
 
-  private updateBadgeBottomPosition = (badgeBottom: number) => {
-    this.setState({ badgeBottom })
-  }
-
   private openPopover = () => {
     this.props.dispatcher.setShowCIStatusPopover(true)
   }
@@ -361,10 +346,14 @@ export class BranchDropdown extends React.Component<
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
         branchName={currentBranchName}
-        badgeBottom={this.state.badgeBottom}
+        anchor={this.badgeRef}
         closePopover={this.closePopover}
       />
     )
+  }
+
+  private onBadgeRef = (ref: HTMLSpanElement | null) => {
+    this.badgeRef = ref
   }
 
   private renderPullRequestInfo() {
@@ -379,8 +368,8 @@ export class BranchDropdown extends React.Component<
         number={pr.pullRequestNumber}
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
+        onBadgeRef={this.onBadgeRef}
         onBadgeClick={this.onBadgeClick}
-        onBadgeBottomPositionUpdate={this.updateBadgeBottomPosition}
       />
     )
   }

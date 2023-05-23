@@ -1,6 +1,8 @@
 .commit-message-avatar-component {
   // With this, the popover's absolute position will be relative to its parent
   position: relative;
+  width: var(--text-field-height);
+  height: var(--text-field-height);
 
   .avatar-button {
     // override default button styles
@@ -16,7 +18,12 @@
     background-color: none;
 
     border-radius: 50%;
-    margin-right: var(--spacing-half);
+
+    .avatar {
+      flex-shrink: 0;
+      width: 100%;
+      height: 100%;
+    }
   }
 
   .toggletip {
@@ -82,77 +89,7 @@
       margin-bottom: var(--spacing);
     }
 
-    position: fixed;
     width: 300px;
-    margin-left: 19px;
-    margin-top: 18px;
-
-    @media (max-height: 500px) {
-      bottom: 5px;
-      top: unset !important;
-
-      &.popover-caret-left-bottom {
-        &::before,
-        &::after {
-          bottom: 172px;
-        }
-      }
-    }
-
-    @media (max-height: 400px) {
-      &.popover-caret-left-bottom {
-        &::before,
-        &::after {
-          bottom: 154px;
-        }
-      }
-    }
-
-    @media (max-height: 330px) {
-      &.popover-caret-left-bottom {
-        &::before,
-        &::after {
-          bottom: 109px;
-        }
-      }
-    }
-  }
-
-  &.misattributed {
-    .popover-component {
-      margin-left: 5px;
-      margin-top: 5px;
-
-      @media (max-height: 500px) {
-        bottom: 5px;
-        top: unset !important;
-
-        &.popover-caret-left-bottom {
-          &::before,
-          &::after {
-            bottom: 183px;
-          }
-        }
-      }
-
-      @media (max-height: 400px) {
-        &.popover-caret-left-bottom {
-          &::before,
-          &::after {
-            bottom: 165px;
-          }
-        }
-      }
-
-      @media (max-height: 330px) {
-        &.popover-caret-left-bottom {
-          &::before,
-          &::after {
-            bottom: 120px;
-          }
-        }
-      }
-    }
   }
 
   .link-button-component {
