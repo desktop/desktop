@@ -3898,16 +3898,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // whether the checkout succeeded or not in order to present the most
       // up-to-date information to the user.
       return this.checkoutCommitDefaultBehaviour(repository, commit, account)
-        .catch(e =>
-          this.emitError(
-            // new CheckoutError(e, repository, branch)
-
-            new ErrorWithMetadata(e, {
-              gitContext: { kind: 'checkout', commitToCheckout: commit },
-              repository,
-            })
-          )
-        )
+        .catch(e => this.emitError(new Error(e)))
         .then(() => this.refreshAfterCheckout(repository, commit.sha))
         .finally(() => this.updateCheckoutProgress(repository, null))
     })
