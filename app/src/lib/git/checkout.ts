@@ -78,7 +78,7 @@ export async function checkoutBranch(
   if (progressCallback) {
     const title = `Checking out branch ${branch.name}`
     const kind = 'checkout'
-    const targetBranch = branch.name
+    const target = branch.name
 
     opts = await executionOptionsWithProgress(
       { ...opts, trackLFSProgress: true },
@@ -93,14 +93,14 @@ export async function checkoutBranch(
             title,
             description,
             value,
-            target: targetBranch,
+            target,
           })
         }
       }
     )
 
     // Initial progress
-    progressCallback({ kind, title, value: 0, target: targetBranch })
+    progressCallback({ kind, title, value: 0, target })
   }
 
   const args = await getCheckoutArgs(
@@ -149,7 +149,7 @@ export async function checkoutCommit(
   if (progressCallback) {
     const title = `Checking out commit ${commit.sha}`
     const kind = 'checkout'
-    const targetCommit = commit.sha
+    const target = commit.sha
 
     opts = await executionOptionsWithProgress(
       { ...opts, trackLFSProgress: true },
@@ -164,14 +164,14 @@ export async function checkoutCommit(
             title,
             description,
             value,
-            target: targetCommit,
+            target,
           })
         }
       }
     )
 
     // Initial progress
-    progressCallback({ kind, title, value: 0, target: targetCommit })
+    progressCallback({ kind, title, value: 0, target })
   }
 
   const args = ['checkout', commit.sha]
