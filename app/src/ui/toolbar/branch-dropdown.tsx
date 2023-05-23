@@ -160,9 +160,7 @@ export class BranchDropdown extends React.Component<
 
     if (checkoutProgress) {
       title = checkoutProgress.target
-      description = __DARWIN__
-        ? 'Checking out the Target'
-        : 'Checking out the target'
+      description = checkoutProgress.description
 
       if (checkoutProgress.value > 0) {
         const friendlyProgress = Math.round(checkoutProgress.value * 100)

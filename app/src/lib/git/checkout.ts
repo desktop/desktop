@@ -15,7 +15,7 @@ import {
 } from './environment'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
-import { CommitOneLine } from '../../models/commit'
+import { CommitOneLine, shortenSHA } from '../../models/commit'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
@@ -100,7 +100,7 @@ export async function checkoutBranch(
     )
 
     // Initial progress
-    progressCallback({ kind, title, value: 0, target })
+    progressCallback({ kind, title, description: `Switching to ${__DARWIN__ ? 'Branch' : 'branch'}`, value: 0, target })
   }
 
   const args = await getCheckoutArgs(
@@ -147,9 +147,9 @@ export async function checkoutCommit(
   }
 
   if (progressCallback) {
-    const title = `Checking out commit ${commit.sha}`
+    const title = 'Checking out commit'
     const kind = 'checkout'
-    const target = commit.sha
+    const target = shortenSHA(commit.sha)
 
     opts = await executionOptionsWithProgress(
       { ...opts, trackLFSProgress: true },
@@ -171,7 +171,9 @@ export async function checkoutCommit(
     )
 
     // Initial progress
-    progressCallback({ kind, title, value: 0, target })
+    progressCallback({
+      kind, title, description: `Checking out ${__DARWIN__ ? 'Commit' : 'commit'}`, value: 0, target
+    })
   }
 
   const args = ['checkout', commit.sha]

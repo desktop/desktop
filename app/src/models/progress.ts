@@ -44,6 +44,11 @@ export interface ICheckoutProgress extends IProgress {
 
   /** The branch or commit that's currently being checked out */
   readonly target: string
+
+  /**
+   * Infotext for the user.
+   */
+  readonly description: string
 }
 
 /**
