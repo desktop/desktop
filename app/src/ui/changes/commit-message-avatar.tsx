@@ -310,7 +310,7 @@ export class CommitMessageAvatar extends React.Component<
         anchorPosition={PopoverAnchorPosition.RightBottom}
         decoration={PopoverDecoration.Balloon}
         onClickOutside={this.closePopover}
-        ariaLabelledby="misattributed-commit-popover-header"
+        ariaLabelledby="commit-avatar-popover-header"
       >
         <h3 id="commit-avatar-popover-header">
           {warningBadgeVisible
