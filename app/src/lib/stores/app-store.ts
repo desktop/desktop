@@ -17,7 +17,7 @@ import { Branch, BranchType, IAheadBehind } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
-import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
+import { Commit, ICommitContext, CommitOneLine, shortenSHA } from '../../models/commit'
 import {
   DiffSelection,
   DiffSelectionType,
@@ -3900,7 +3900,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // up-to-date information to the user.
       return this.checkoutCommitDefaultBehaviour(repository, commit, account)
         .catch(e => this.emitError(new Error(e)))
-        .then(() => this.refreshAfterCheckout(repository, commit.sha))
+        .then(() => this.refreshAfterCheckout(repository, shortenSHA(commit.sha)))
         .finally(() => this.updateCheckoutProgress(repository, null))
     })
   }
