@@ -263,7 +263,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           onBlur={this.onBlur}
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
-          type={this.props.type}
+          type={this.props.type ?? 'text'}
           placeholder={this.props.placeholder}
           value={this.state.value}
           onChange={this.onChange}
