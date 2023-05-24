@@ -12,8 +12,6 @@
 
 .autocompletion-popup {
   display: flex;
-  position: fixed;
-  z-index: var(--popup-z-index);
   width: 250px;
 
   border-radius: var(--border-radius);

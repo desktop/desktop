@@ -2,20 +2,29 @@ import React from 'react'
 import { Select } from '../lib/select'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
-import { Popover, PopoverCaretPosition } from '../lib/popover'
+import {
+  Popover,
+  PopoverAnchorPosition,
+  PopoverDecoration,
+} from '../lib/popover'
 import { IAvatarUser } from '../../models/avatar'
 import { Avatar } from '../lib/avatar'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
-import { ToggledtippedContent } from '../lib/toggletipped-content'
-import { TooltipDirection } from '../lib/tooltip'
+import { OkCancelButtonGroup } from '../dialog'
+import { getConfigValue } from '../../lib/git/config'
+import { Repository } from '../../models/repository'
+import classNames from 'classnames'
 
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
 
   /** Currently selected account email address. */
   readonly accountEmail: string
+
+  /** Whether the git configuration is local to the repository or global  */
+  readonly isGitConfigLocal: boolean
 }
 
 interface ICommitMessageAvatarProps {
@@ -37,6 +46,11 @@ interface ICommitMessageAvatarProps {
   /** Preferred email address from the user's account. */
   readonly preferredAccountEmail: string
 
+  /**
+   * The currently selected repository
+   */
+  readonly repository: Repository
+
   readonly onUpdateEmail: (email: string) => void
 
   /**
@@ -44,6 +58,12 @@ interface ICommitMessageAvatarProps {
    * repository settings dialog
    */
   readonly onOpenRepositorySettings: () => void
+
+  /**
+   * Called when the user has requested to see the Git tab in the user settings
+   * dialog
+   */
+  readonly onOpenGitSettings: () => void
 }
 
 /**
@@ -55,7 +75,7 @@ export class CommitMessageAvatar extends React.Component<
   ICommitMessageAvatarState
 > {
   private avatarButtonRef: HTMLButtonElement | null = null
-  private popoverRef = React.createRef<Popover>()
+  private warningBadgeRef = React.createRef<HTMLDivElement>()
 
   public constructor(props: ICommitMessageAvatarProps) {
     super(props)
@@ -63,27 +83,30 @@ export class CommitMessageAvatar extends React.Component<
     this.state = {
       isPopoverOpen: false,
       accountEmail: this.props.preferredAccountEmail,
+      isGitConfigLocal: false,
+    }
+    this.determineGitConfigLocation()
+  }
+
+  public componentDidUpdate(prevProps: ICommitMessageAvatarProps) {
+    if (
+      this.props.user?.name !== prevProps.user?.name ||
+      this.props.user?.email !== prevProps.user?.email
+    ) {
+      this.determineGitConfigLocation()
     }
   }
 
-  private getTitle(): string | JSX.Element | undefined {
-    const { user } = this.props
+  private async determineGitConfigLocation() {
+    const isGitConfigLocal = await this.isGitConfigLocal()
+    this.setState({ isGitConfigLocal })
+  }
 
-    if (user === undefined) {
-      return 'Unknown user'
-    }
-
-    const { name, email } = user
-
-    if (user.name) {
-      return (
-        <>
-          Committing as <strong>{name}</strong> {email}
-        </>
-      )
-    }
-
-    return email
+  private isGitConfigLocal = async () => {
+    const { repository } = this.props
+    const localName = await getConfigValue(repository, 'user.name', true)
+    const localEmail = await getConfigValue(repository, 'user.email', true)
+    return localName !== null || localEmail !== null
   }
 
   private onButtonRef = (buttonRef: HTMLButtonElement | null) => {
@@ -91,30 +114,27 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   public render() {
+    const { warningBadgeVisible, user } = this.props
+
+    const ariaLabel = warningBadgeVisible
+      ? 'Commit may be misattributed. View warning.'
+      : 'View commit author information'
+
+    const classes = classNames('commit-message-avatar-component', {
+      misattributed: warningBadgeVisible,
+    })
+
     return (
-      <div className="commit-message-avatar-component">
-        {this.props.warningBadgeVisible && (
-          <Button
-            className="avatar-button"
-            ariaLabel="Commit may be misattributed. View warning."
-            onButtonRef={this.onButtonRef}
-            onClick={this.onAvatarClick}
-          >
-            {this.renderWarningBadge()}
-            <Avatar user={this.props.user} title={null} />
-          </Button>
-        )}
-
-        {!this.props.warningBadgeVisible && (
-          <ToggledtippedContent
-            tooltip={this.getTitle()}
-            direction={TooltipDirection.NORTH}
-            ariaLabel="Show Commit Author Details"
-          >
-            <Avatar user={this.props.user} title={null} />
-          </ToggledtippedContent>
-        )}
-
+      <div className={classes}>
+        <Button
+          className="avatar-button"
+          ariaLabel={ariaLabel}
+          onButtonRef={this.onButtonRef}
+          onClick={this.onAvatarClick}
+        >
+          {warningBadgeVisible && this.renderWarningBadge()}
+          <Avatar user={user} title={null} />
+        </Button>
         {this.state.isPopoverOpen && this.renderPopover()}
       </div>
     )
@@ -122,7 +142,7 @@ export class CommitMessageAvatar extends React.Component<
 
   private renderWarningBadge() {
     return (
-      <div className="warning-badge">
+      <div className="warning-badge" ref={this.warningBadgeRef}>
         <Octicon symbol={OcticonSymbol.alert} />
       </div>
     )
@@ -147,10 +167,6 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   private onAvatarClick = (event: React.FormEvent<HTMLButtonElement>) => {
-    if (this.props.warningBadgeVisible === false) {
-      return
-    }
-
     event.preventDefault()
     if (this.state.isPopoverOpen) {
       this.closePopover()
@@ -159,25 +175,48 @@ export class CommitMessageAvatar extends React.Component<
     }
   }
 
-  private getPopoverPosition(): React.CSSProperties | undefined {
-    if (!this.avatarButtonRef) {
-      return
-    }
+  private renderGitConfigPopover() {
+    const { user } = this.props
+    const { isGitConfigLocal } = this.state
 
-    const defaultPopoverHeight = 278
-    const popoverHeight =
-      this.popoverRef.current?.containerDivRef.current?.clientHeight ??
-      defaultPopoverHeight
-    const buttonHeight = this.avatarButtonRef.clientHeight
-    const buttonWidth = this.avatarButtonRef.clientWidth
-    const rect = this.avatarButtonRef.getBoundingClientRect()
-    const top = rect.top - popoverHeight + buttonHeight / 2
-    const left = rect.left + buttonWidth / 2
+    const location = isGitConfigLocal ? 'local' : 'global'
+    const locationDesc = isGitConfigLocal ? 'for your repository' : ''
+    const settingsName = __DARWIN__ ? 'preferences' : 'options'
+    const settings = isGitConfigLocal
+      ? 'repository settings'
+      : `git ${settingsName}`
+    const buttonText = __DARWIN__ ? 'Open Git Settings' : 'Open git settings'
 
-    return { top, left }
+    return (
+      <>
+        <p>{user && user.name && `Email: ${user.email}`}</p>
+
+        <p>
+          You can update your {location} git configuration {locationDesc} in
+          your {settings}.
+        </p>
+
+        {!isGitConfigLocal && (
+          <p className="secondary-text">
+            You can also set an email local to this repository from the{' '}
+            <LinkButton onClick={this.onRepositorySettingsClick}>
+              repository settings
+            </LinkButton>
+            .
+          </p>
+        )}
+        <Row className="button-row">
+          <OkCancelButtonGroup
+            okButtonText={buttonText}
+            onOkButtonClick={this.onOpenGitSettings}
+            onCancelButtonClick={this.onIgnoreClick}
+          />
+        </Row>
+      </>
+    )
   }
 
-  private renderPopover() {
+  private renderMisattributedCommitPopover() {
     const accountTypeSuffix = this.props.isEnterpriseAccount
       ? ' Enterprise'
       : ''
@@ -190,16 +229,7 @@ export class CommitMessageAvatar extends React.Component<
         : ''
 
     return (
-      <Popover
-        caretPosition={PopoverCaretPosition.LeftBottom}
-        onClickOutside={this.closePopover}
-        ariaLabelledby="misattributed-commit-popover-header"
-        style={this.getPopoverPosition()}
-        ref={this.popoverRef}
-      >
-        <h3 id="misattributed-commit-popover-header">
-          This commit will be misattributed
-        </h3>
+      <>
         <Row>
           <div>
             The email in your global Git config (
@@ -243,6 +273,54 @@ export class CommitMessageAvatar extends React.Component<
             {updateEmailTitle}
           </Button>
         </Row>
+      </>
+    )
+  }
+
+  private getCommittingAsTitle(): string | JSX.Element | undefined {
+    const { user } = this.props
+
+    if (user === undefined) {
+      return 'Unknown user'
+    }
+
+    const { name, email } = user
+
+    if (name) {
+      return (
+        <>
+          Committing as <strong>{name}</strong>
+        </>
+      )
+    }
+
+    return <>Committing with {email}</>
+  }
+
+  private renderPopover() {
+    const { warningBadgeVisible } = this.props
+
+    return (
+      <Popover
+        anchor={
+          warningBadgeVisible
+            ? this.warningBadgeRef.current
+            : this.avatarButtonRef
+        }
+        anchorPosition={PopoverAnchorPosition.RightBottom}
+        decoration={PopoverDecoration.Balloon}
+        onClickOutside={this.closePopover}
+        ariaLabelledby="misattributed-commit-popover-header"
+      >
+        <h3 id="commit-avatar-popover-header">
+          {warningBadgeVisible
+            ? 'This commit will be misattributed'
+            : this.getCommittingAsTitle()}
+        </h3>
+
+        {warningBadgeVisible
+          ? this.renderMisattributedCommitPopover()
+          : this.renderGitConfigPopover()}
       </Popover>
     )
   }
@@ -250,6 +328,15 @@ export class CommitMessageAvatar extends React.Component<
   private onRepositorySettingsClick = () => {
     this.closePopover()
     this.props.onOpenRepositorySettings()
+  }
+
+  private onOpenGitSettings = () => {
+    this.closePopover()
+    if (this.state.isGitConfigLocal) {
+      this.props.onOpenRepositorySettings()
+    } else {
+      this.props.onOpenGitSettings()
+    }
   }
 
   private onIgnoreClick = (event: React.MouseEvent<HTMLButtonElement>) => {

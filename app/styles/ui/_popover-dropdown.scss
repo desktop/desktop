@@ -12,11 +12,12 @@
   }
 
   .popover-dropdown-popover {
-    position: absolute;
     min-height: 200px;
     width: 365px;
-    padding: 0;
-    margin-top: 25px;
+
+    .popover-content {
+      padding: 0;
+    }
 
     .popover-dropdown-header {
       padding: var(--spacing);
