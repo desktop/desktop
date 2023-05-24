@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Branch } from '../../models/branch'
+import { Branch, BranchType } from '../../models/branch'
 
 import { assertNever } from '../../lib/fatal-error'
 
@@ -20,6 +20,8 @@ import {
 } from './group-branches'
 import { NoBranches } from './no-branches'
 import { SelectionDirection, ClickSource } from '../lib/list'
+import { generateBranchContextMenuItems } from './branch-list-item-context-menu'
+import { showContextualMenu } from '../../lib/menu-item'
 
 const RowHeight = 30
 
@@ -113,6 +115,12 @@ interface IBranchListProps {
 
   /** Optional: No branches message */
   readonly noBranchesMessage?: string | JSX.Element
+
+  /** Optional: Callback for if rename context menu should exist */
+  readonly onRenameBranch?: (branchName: string) => void
+
+  /** Optional: Callback for if delete context menu should exist */
+  readonly onDeleteBranch?: (branchName: string) => void
 }
 
 interface IBranchListState {
@@ -200,8 +208,32 @@ export class BranchList extends React.Component<
         hideFilterRow={this.props.hideFilterRow}
         onFilterListResultsChanged={this.props.onFilterListResultsChanged}
         renderPreList={this.props.renderPreList}
+        onItemContextMenu={this.onBranchContextMenu}
       />
     )
+  }
+
+  private onBranchContextMenu = (
+    item: IBranchListItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
+    event.preventDefault()
+
+    const { onRenameBranch, onDeleteBranch } = this.props
+    if (onRenameBranch === undefined && onDeleteBranch === undefined) {
+      return
+    }
+
+    const { type, name } = item.branch
+    const isLocal = type === BranchType.Local
+    const items = generateBranchContextMenuItems({
+      name,
+      isLocal,
+      onRenameBranch,
+      onDeleteBranch,
+    })
+
+    showContextualMenu(items)
   }
 
   private onBranchesFilterListRef = (
