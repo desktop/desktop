@@ -100,7 +100,13 @@ export async function checkoutBranch(
     )
 
     // Initial progress
-    progressCallback({ kind, title, description: `Switching to ${__DARWIN__ ? 'Branch' : 'branch'}`, value: 0, target })
+    progressCallback({
+      kind,
+      title,
+      description: `Switching to ${__DARWIN__ ? 'Branch' : 'branch'}`,
+      value: 0,
+      target,
+    })
   }
 
   const args = await getCheckoutArgs(
@@ -172,7 +178,11 @@ export async function checkoutCommit(
 
     // Initial progress
     progressCallback({
-      kind, title, description: `Checking out ${__DARWIN__ ? 'Commit' : 'commit'}`, value: 0, target
+      kind,
+      title,
+      description: `Checking out ${__DARWIN__ ? 'Commit' : 'commit'}`,
+      value: 0,
+      target,
     })
   }
 
