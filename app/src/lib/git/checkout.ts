@@ -176,7 +176,12 @@ export async function checkoutCommit(
     })
   }
 
-  const args = ['checkout', commit.sha]
+  const baseArgs =
+    progressCallback != null
+      ? [...gitNetworkArguments(), 'checkout', '--progress']
+      : [...gitNetworkArguments(), 'checkout']
+
+  const args = [...baseArgs, commit.sha]
 
   await git(args, repository.path, 'checkoutCommit', opts)
 
