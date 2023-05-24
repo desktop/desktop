@@ -358,12 +358,12 @@ export class NoRepositoriesView extends React.Component<
     autoFocus?: boolean
   ) {
     return (
-      <li>
-        <Button onClick={onClick} type={type}>
+      <span>
+        <Button onClick={onClick} type={type} autoFocus={autoFocus}>
           <Octicon symbol={symbol} />
           <div>{title}</div>
         </Button>
-      </li>
+      </span>
     )
   }
 
@@ -429,12 +429,12 @@ export class NoRepositoriesView extends React.Component<
   private renderGetStartedActions() {
     return (
       <div className="content-pane">
-        <ul className="button-group">
+        <div className="button-group">
           {this.renderTutorialRepositoryButton()}
           {this.renderCloneButton()}
           {this.renderCreateRepositoryButton()}
           {this.renderAddExistingRepositoryButton()}
-        </ul>
+        </div>
 
         <div className="drag-drop-info">
           <Octicon symbol={OcticonSymbol.lightBulb} />
