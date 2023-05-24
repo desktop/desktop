@@ -182,6 +182,12 @@ export class NoRepositoriesView extends React.Component<
     }
   }
 
+  private isUserSignedIn() {
+    return (
+      this.props.dotComAccount !== null || this.props.enterpriseAccount !== null
+    )
+  }
+
   private getSelectedAccount() {
     const { selectedTab } = this.state
     if (selectedTab === AccountTab.dotCom) {
@@ -348,7 +354,8 @@ export class NoRepositoriesView extends React.Component<
     symbol: OcticonSymbolType,
     title: string,
     onClick: () => void,
-    type?: 'submit'
+    type?: 'submit',
+    autoFocus?: boolean
   ) {
     return (
       <li>
@@ -362,10 +369,7 @@ export class NoRepositoriesView extends React.Component<
 
   private renderTutorialRepositoryButton() {
     // No tutorial if you're not signed in.
-    if (
-      this.props.dotComAccount === null &&
-      this.props.enterpriseAccount === null
-    ) {
+    if (!this.isUserSignedIn()) {
       return null
     }
 
@@ -396,7 +400,9 @@ export class NoRepositoriesView extends React.Component<
       __DARWIN__
         ? 'Clone a Repository from the Internet…'
         : 'Clone a repository from the Internet…',
-      this.onShowClone
+      this.onShowClone,
+      undefined,
+      !this.isUserSignedIn()
     )
   }
 
