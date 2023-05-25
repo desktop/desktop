@@ -256,6 +256,8 @@ export class ToolbarDropdown extends React.Component<
       <ToolbarButton
         className="toolbar-dropdown-arrow-button"
         onClick={this.onToggleDropdownClick}
+        ariaExpanded={this.isOpen}
+        ariaHaspopup={true}
       >
         {dropdownIcon}
       </ToolbarButton>
@@ -447,7 +449,11 @@ export class ToolbarDropdown extends React.Component<
             this.props.onlyShowTooltipWhenOverflowed
           }
           isOverflowed={this.props.isOverflowed}
-          ariaExpanded={this.isOpen}
+          ariaExpanded={
+            this.props.dropdownStyle === ToolbarDropdownStyle.MultiOption
+              ? undefined
+              : this.isOpen
+          }
           ariaHaspopup={this.props.buttonAriaHaspopup}
         >
           {this.props.children}
