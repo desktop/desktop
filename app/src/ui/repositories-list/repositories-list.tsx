@@ -76,6 +76,10 @@ interface IRepositoriesListProps {
   readonly dispatcher: Dispatcher
 }
 
+interface IRepositoriesListState {
+  readonly newRepositoryMenuExpanded: boolean
+}
+
 const RowHeight = 29
 
 /**
@@ -102,7 +106,7 @@ function findMatchingListItem(
 /** The list of user-added repositories. */
 export class RepositoriesList extends React.Component<
   IRepositoriesListProps,
-  {}
+  IRepositoriesListState
 > {
   /**
    * A memoized function for grouping repositories for display
@@ -130,6 +134,14 @@ export class RepositoriesList extends React.Component<
    * See findMatchingListItem for more details.
    */
   private getSelectedListItem = memoizeOne(findMatchingListItem)
+
+  public constructor(props: IRepositoriesListProps) {
+    super(props)
+
+    this.state = {
+      newRepositoryMenuExpanded: false,
+    }
+  }
 
   private renderItem = (item: IRepositoryListItem, matches: IMatches) => {
     const repository = item.repository
@@ -257,6 +269,7 @@ export class RepositoriesList extends React.Component<
       <Button
         className="new-repository-button"
         onClick={this.onNewRepositoryButtonClick}
+        ariaExpanded={this.state.newRepositoryMenuExpanded}
       >
         Add
         <Octicon symbol={OcticonSymbol.triangleDown} />
@@ -306,7 +319,10 @@ export class RepositoriesList extends React.Component<
       },
     ]
 
-    showContextualMenu(items)
+    this.setState({ newRepositoryMenuExpanded: true })
+    showContextualMenu(items).then(() => {
+      this.setState({ newRepositoryMenuExpanded: false })
+    })
   }
 
   private onCloneRepository = () => {
