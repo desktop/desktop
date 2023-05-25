@@ -44,13 +44,12 @@
       }
     }
 
-    ul.button-group {
-      list-style-type: none;
+    .button-group {
       margin: 0;
       padding: 0;
       flex-grow: 1;
 
-      li {
+      span {
         margin-bottom: var(--spacing);
         width: 100%;
 
