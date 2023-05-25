@@ -299,7 +299,7 @@ export class ConfigureGitUser extends React.Component<
           label="Name"
           placeholder="Your Name"
           value={this.state.gitHubName}
-          disabled={true}
+          readOnly={true}
         />
 
         <Select

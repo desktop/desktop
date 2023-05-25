@@ -25,6 +25,9 @@ export interface ITextBoxProps {
   /** Whether the input field is disabled. */
   readonly disabled?: boolean
 
+  /** Whether the input field is read-only. */
+  readonly readOnly?: boolean
+
   /** Indicates if input field should be required */
   readonly required?: boolean
 
@@ -263,7 +266,8 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           onBlur={this.onBlur}
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
-          type={this.props.type}
+          readOnly={this.props.readOnly}
+          type={this.props.type ?? 'text'}
           placeholder={this.props.placeholder}
           value={this.state.value}
           onChange={this.onChange}
