@@ -1,8 +1,12 @@
 import * as React from 'react'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Branch } from '../../models/branch'
+import { DropdownButton } from '../lib/dropdown-button'
 import { ClickSource } from '../lib/list'
-import { PopoverDropdown } from '../lib/popover-dropdown'
+import {
+  PopoverDropdown,
+  PopoverDropdownAnchorProps,
+} from '../lib/popover-dropdown'
 import { BranchList } from './branch-list'
 import { renderDefaultBranch } from './branch-renderer'
 import { IBranchListItem } from './group-branches'
@@ -90,8 +94,7 @@ export class BranchSelect extends React.Component<
     return (
       <PopoverDropdown
         contentTitle="Choose a base branch"
-        buttonContent={selectedBranch?.name ?? ''}
-        label="base:"
+        renderAnchor={this.renderPopoverDropdownButton}
         ref={this.popoverRef}
       >
         <BranchList
@@ -108,6 +111,19 @@ export class BranchSelect extends React.Component<
           noBranchesMessage={noBranchesMessage}
         />
       </PopoverDropdown>
+    )
+  }
+
+  private renderPopoverDropdownButton = (props: PopoverDropdownAnchorProps) => {
+    const { selectedBranch } = this.state
+
+    return (
+      <DropdownButton
+        buttonContent={selectedBranch?.name ?? ''}
+        label="base:"
+        onClick={props.onClick}
+        onButtonRef={props.onAnchorRef}
+      />
     )
   }
 }

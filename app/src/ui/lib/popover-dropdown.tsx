@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { Button } from './button'
 import { Popover, PopoverAnchorPosition, PopoverDecoration } from './popover'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
@@ -7,11 +6,15 @@ import classNames from 'classnames'
 
 const maxPopoverContentHeight = 500
 
+export type PopoverDropdownAnchorProps = {
+  readonly onClick?: () => void
+  readonly onAnchorRef?: (ref: HTMLElement | null) => void
+}
+
 interface IPopoverDropdownProps {
   readonly className?: string
   readonly contentTitle: string
-  readonly buttonContent: JSX.Element | string
-  readonly label: string
+  readonly renderAnchor: (props: PopoverDropdownAnchorProps) => JSX.Element
 }
 
 interface IPopoverDropdownState {
@@ -26,7 +29,7 @@ export class PopoverDropdown extends React.Component<
   IPopoverDropdownProps,
   IPopoverDropdownState
 > {
-  private invokeButtonRef: HTMLButtonElement | null = null
+  private invokeButtonRef: HTMLElement | null = null
 
   public constructor(props: IPopoverDropdownProps) {
     super(props)
@@ -36,7 +39,7 @@ export class PopoverDropdown extends React.Component<
     }
   }
 
-  private onInvokeButtonRef = (buttonRef: HTMLButtonElement | null) => {
+  private onInvokeButtonRef = (buttonRef: HTMLElement | null) => {
     this.invokeButtonRef = buttonRef
   }
 
@@ -84,19 +87,15 @@ export class PopoverDropdown extends React.Component<
   }
 
   public render() {
-    const { className, buttonContent, label } = this.props
+    const { className, renderAnchor } = this.props
     const cn = classNames('popover-dropdown-component', className)
 
     return (
       <div className={cn}>
-        <Button
-          onClick={this.togglePopover}
-          onButtonRef={this.onInvokeButtonRef}
-        >
-          <span className="popover-dropdown-button-label">{label}</span>
-          <span className="button-content">{buttonContent}</span>
-          <Octicon symbol={OcticonSymbol.triangleDown} />
-        </Button>
+        {renderAnchor({
+          onClick: this.togglePopover,
+          onAnchorRef: this.onInvokeButtonRef,
+        })}
         {this.renderPopover()}
       </div>
     )
