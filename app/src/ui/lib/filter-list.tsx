@@ -12,6 +12,7 @@ import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
 import { match, IMatch, IMatches } from '../../lib/fuzzy-find'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 /** An item in the filter list. */
 export interface IFilterListItem {
@@ -288,8 +289,14 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public render() {
+    const itemRows = this.state.rows.filter(row => row.kind === 'item')
+    const resultsPluralized = itemRows.length === 1 ? 'result' : 'results'
+
     return (
       <div className={classnames('filter-list', this.props.className)}>
+        <AriaLiveContainer>
+          {itemRows.length} {resultsPluralized}
+        </AriaLiveContainer>
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
         {this.renderFilterRow()}
