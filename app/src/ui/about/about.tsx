@@ -171,13 +171,11 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           : ''
 
         return (
-          <>
-            <Row>
-              <Button disabled={disabled} onClick={onClick} tooltip={tooltip}>
-                {buttonTitle}
-              </Button>
-            </Row>
-          </>
+          <Row>
+            <Button disabled={disabled} onClick={onClick} tooltip={tooltip}>
+              {buttonTitle}
+            </Button>
+          </Row>
         )
       default:
         return assertNever(
