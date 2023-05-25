@@ -3,7 +3,7 @@ export type ObservableRef<T> = {
   current: T | null
   subscribe: (cb: RefCallback<T>) => void
   unsubscribe: (cb: RefCallback<T>) => void
-  (instance: T): void
+  (instance: T | null): void
 }
 
 /**

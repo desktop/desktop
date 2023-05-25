@@ -17,6 +17,9 @@ interface ILinkButtonProps {
   /** A function to call when mouse is moved off */
   readonly onMouseOut?: () => void
 
+  /** A function to call when the link ref is available */
+  readonly onAnchorRef?: (ref: HTMLAnchorElement | null) => void
+
   /** CSS classes attached to the component */
   readonly className?: string
 
@@ -49,7 +52,7 @@ export class LinkButton extends React.Component<ILinkButtonProps, {}> {
     return (
       // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events
       <a
-        ref={this.anchorRef}
+        ref={this.onAnchorRef}
         className={className}
         href={href}
         onMouseOver={this.props.onMouseOver}
@@ -62,6 +65,11 @@ export class LinkButton extends React.Component<ILinkButtonProps, {}> {
         {this.props.children}
       </a>
     )
+  }
+
+  private onAnchorRef = (ref: HTMLAnchorElement | null) => {
+    this.props.onAnchorRef?.(ref)
+    this.anchorRef(ref)
   }
 
   private onClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
