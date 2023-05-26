@@ -172,6 +172,7 @@ interface IFilterListProps<T extends IFilterListItem> {
 interface IFilterListState<T extends IFilterListItem> {
   readonly rows: ReadonlyArray<IFilterListRow<T>>
   readonly selectedRow: number
+  readonly filterValue: string
 }
 
 /**
@@ -198,7 +199,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   public constructor(props: IFilterListProps<T>) {
     super(props)
 
-    this.state = createStateUpdate(props)
+    this.state = {
+      ...createStateUpdate(props),
+      filterValue: props.filterText || '',
+    }
   }
 
   public componentWillMount() {
@@ -294,7 +298,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
     return (
       <div className={classnames('filter-list', this.props.className)}>
-        <AriaLiveContainer shouldForceChange={true}>
+        <AriaLiveContainer trackedUserInput={this.state.filterValue}>
           {itemRows.length} {resultsPluralized}
         </AriaLiveContainer>
         {this.props.renderPreList ? this.props.renderPreList() : null}
@@ -392,6 +396,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   private onFilterValueChanged = (text: string) => {
+    this.setState({ filterValue: text })
     if (this.props.onFilterTextChanged) {
       this.props.onFilterTextChanged(text)
     }

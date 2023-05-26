@@ -530,7 +530,7 @@ export abstract class AutocompletingTextInput<
         )}
         {this.renderTextInput()}
         {this.renderInvisibleCaret()}
-        <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>
+        <AriaLiveContainer trackedUserInput={shouldForceAriaLiveMessage}>
           {autoCompleteItems.length > 0 ? suggestionsMessage : ''}
         </AriaLiveContainer>
       </div>

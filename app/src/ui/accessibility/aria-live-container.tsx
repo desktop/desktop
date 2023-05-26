@@ -1,11 +1,14 @@
+import { debounce } from 'lodash'
 import React, { Component } from 'react'
 
 interface IAriaLiveContainerProps {
-  /**
-   * Whether or not the component should make an invisible change to the content
-   * in order to force the screen reader to read the content again.
-   */
-  readonly shouldForceChange?: boolean
+  /** Debounce on change */
+  readonly trackedUserInput?: string | boolean
+}
+
+interface IAriaLiveContainerState {
+  /** The generated message for the screen reader */
+  readonly message: JSX.Element | null
 }
 
 /**
@@ -18,26 +21,46 @@ interface IAriaLiveContainerProps {
  * the screen reader to read the content again. This is useful when the content
  * is the same but the screen reader should read it again.
  */
-export class AriaLiveContainer extends Component<IAriaLiveContainerProps> {
-  private shouldForceChange: boolean = false
+export class AriaLiveContainer extends Component<
+  IAriaLiveContainerProps,
+  IAriaLiveContainerState
+> {
   private suffix: string = ''
+  private onTrackedInputChanged = debounce((message: JSX.Element | null) => {
+    this.setState({ message })
+  }, 1000)
+
+  public constructor(props: IAriaLiveContainerProps) {
+    super(props)
+
+    this.state = {
+      message: this.buildMessage(),
+    }
+  }
 
   public componentDidUpdate(prevProps: IAriaLiveContainerProps) {
-    this.shouldForceChange = prevProps.shouldForceChange ?? false
+    if (prevProps.trackedUserInput === this.props.trackedUserInput) {
+      return
+    }
+
+    this.onTrackedInputChanged(this.buildMessage())
+  }
+
+  private buildMessage() {
+    this.suffix = this.suffix === '' ? '\u00A0' : ''
+
+    return (
+      <>
+        {this.props.children}
+        {this.suffix}
+      </>
+    )
   }
 
   public render() {
-    const shouldForceChange = this.shouldForceChange
-    this.shouldForceChange = false
-
-    if (shouldForceChange) {
-      this.suffix = this.suffix === '' ? '\u00A0' : ''
-    }
-
     return (
       <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {this.props.children}
-        {this.suffix}
+        {this.state.message}
       </div>
     )
   }
