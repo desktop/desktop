@@ -396,7 +396,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   private onFilterValueChanged = (text: string) => {
-    this.setState({ filterValue: text })
     if (this.props.onFilterTextChanged) {
       this.props.onFilterTextChanged(text)
     }
@@ -618,7 +617,7 @@ function createStateUpdate<T extends IFilterListItem>(
     selectedRow = flattenedRows.findIndex(i => i.kind === 'item')
   }
 
-  return { rows: flattenedRows, selectedRow }
+  return { rows: flattenedRows, selectedRow, filterValue: filter }
 }
 
 function getItemFromRowIndex<T extends IFilterListItem>(
