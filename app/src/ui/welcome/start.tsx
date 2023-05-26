@@ -26,7 +26,11 @@ interface IStartProps {
 export class Start extends React.Component<IStartProps, {}> {
   public render() {
     return (
-      <section id="start" aria-label="Welcome to GitHub Desktop">
+      <section
+        id="start"
+        aria-label="Welcome to GitHub Desktop - GitHub Desktop is a seamless way to contribute to projects on
+      GitHub and GitHub Enterprise."
+      >
         <h1 className="welcome-title">Welcome to GitHub&nbsp;Desktop</h1>
         {!this.props.loadingBrowserAuth ? (
           <>
