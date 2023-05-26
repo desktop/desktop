@@ -153,7 +153,6 @@ export abstract class AutocompletingTextInput<
 > {
   private element: ElementType | null = null
   private invisibleCaretRef = React.createRef<HTMLDivElement>()
-  private shouldForceAriaLiveMessage = false
 
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
@@ -510,9 +509,6 @@ export abstract class AutocompletingTextInput<
       }
     )
 
-    const shouldForceAriaLiveMessage = this.shouldForceAriaLiveMessage
-    this.shouldForceAriaLiveMessage = false
-
     const autoCompleteItems = this.state.autocompletionState?.items ?? []
 
     const suggestionsMessage =
@@ -530,7 +526,9 @@ export abstract class AutocompletingTextInput<
         )}
         {this.renderTextInput()}
         {this.renderInvisibleCaret()}
-        <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>
+        <AriaLiveContainer
+          trackedUserInput={this.state.autocompletionState?.rangeText}
+        >
           {autoCompleteItems.length > 0 ? suggestionsMessage : ''}
         </AriaLiveContainer>
       </div>
@@ -753,7 +751,6 @@ export abstract class AutocompletingTextInput<
       return
     }
 
-    this.shouldForceAriaLiveMessage = true
     this.setState({ autocompletionState })
   }
 }

@@ -113,7 +113,7 @@ export class ToggledtippedContent extends React.Component<
           {children}
           {this.state.tooltipVisible && (
             <AriaLiveContainer
-              shouldForceChange={this.shouldForceAriaLiveMessage}
+              trackedUserInput={this.shouldForceAriaLiveMessage}
             >
               {tooltip}
             </AriaLiveContainer>
