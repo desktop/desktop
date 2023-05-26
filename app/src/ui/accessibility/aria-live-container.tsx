@@ -20,6 +20,9 @@ interface IAriaLiveContainerProps {
    * prevent the message from being read too much, we debounce the message.
    */
   readonly trackedUserInput?: string | boolean
+
+  /** Optional id that can be used to associate the message to a control */
+  readonly id?: string
 }
 
 interface IAriaLiveContainerState {
@@ -62,6 +65,10 @@ export class AriaLiveContainer extends Component<
     this.onTrackedInputChanged(this.buildMessage())
   }
 
+  public componentWillUnmount() {
+    this.onTrackedInputChanged.cancel()
+  }
+
   private buildMessage() {
     this.suffix = this.suffix === '' ? '\u00A0' : ''
 
@@ -75,7 +82,12 @@ export class AriaLiveContainer extends Component<
 
   public render() {
     return (
-      <div className="sr-only" aria-live="polite" aria-atomic="true">
+      <div
+        id={this.props.id}
+        className="sr-only"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         {this.state.message}
       </div>
     )
