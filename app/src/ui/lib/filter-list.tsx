@@ -294,7 +294,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
     return (
       <div className={classnames('filter-list', this.props.className)}>
-        <AriaLiveContainer>
+        <AriaLiveContainer shouldForceChange={true}>
           {itemRows.length} {resultsPluralized}
         </AriaLiveContainer>
         {this.props.renderPreList ? this.props.renderPreList() : null}
