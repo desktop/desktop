@@ -2,7 +2,22 @@ import { debounce } from 'lodash'
 import React, { Component } from 'react'
 
 interface IAriaLiveContainerProps {
-  /** Debounce on change */
+  /** There is a common pattern that we may need to announce a message in
+    response to user input. Unfortunately, aria-live announcements are
+    interrupted by continued user input. We can force a rereading of a message
+    by appending an invisible character when the user finishes their input.
+
+    For example, we have a search filter for a list of branches and we need to
+    announce how may results are found. Say a list of branches and the user
+    types "ma", the message becomes "1 result", but if they continue to type
+    "main" the message will have been interrupted.
+
+    This prop allows us to pass in when the user input changes. This can either
+    be directly passing in the user input on change or a boolean representing
+    when we want the message re-read. We can append the invisible character to
+    force the screen reader to read the message again after each input. To
+    prevent the message from being read too much, we debounce the message.
+   */
   readonly trackedUserInput?: string | boolean
 }
 
@@ -34,7 +49,7 @@ export class AriaLiveContainer extends Component<
     super(props)
 
     this.state = {
-      message: this.buildMessage(),
+      message: null,
     }
   }
 
