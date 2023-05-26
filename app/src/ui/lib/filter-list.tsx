@@ -199,10 +199,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   public constructor(props: IFilterListProps<T>) {
     super(props)
 
-    this.state = {
-      ...createStateUpdate(props),
-      filterValue: props.filterText || '',
-    }
+    this.state = createStateUpdate(props),
   }
 
   public componentWillMount() {
