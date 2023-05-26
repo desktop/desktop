@@ -122,3 +122,5 @@ export function enablePushPullFetchDropdown(): boolean {
 export function enablePullRequestCommentNotifications(): boolean {
   return true
 }
+
+export const enableLocaleAwareFormatting = enableDevelopmentFeatures

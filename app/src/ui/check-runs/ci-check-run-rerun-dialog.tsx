@@ -14,6 +14,7 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from './../octicons/octicons.generated'
 import { encodePathAsUrl } from '../../lib/path'
 import { offsetFromNow } from '../../lib/offset-from'
+import { formatCount } from '../../lib/format-count'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -178,16 +179,16 @@ export class CICheckRunRerunDialog extends React.Component<
       return null
     }
 
-    const pluralize = `check${this.state.nonRerunnable.length !== 1 ? 's' : ''}`
-    const verb = this.state.nonRerunnable.length !== 1 ? 'are' : 'is'
+    const { failedOnly } = this.props
+    const notRerunnable = this.state.nonRerunnable.length
+    const verb = notRerunnable !== 1 ? 'are' : 'is'
     const warningPrefix =
       this.state.rerunnable.length === 0
-        ? `There are no ${
-            this.props.failedOnly ? 'failed ' : ''
-          }checks that can be re-run`
-        : `There ${verb} ${this.state.nonRerunnable.length} ${
-            this.props.failedOnly ? 'failed ' : ''
-          }${pluralize} that cannot be re-run`
+        ? `There are no ${failedOnly ? 'failed ' : ''}checks that can be re-run`
+        : `There ${verb} ${formatCount(
+            notRerunnable,
+            failedOnly ? 'failed check' : 'check'
+          )} that cannot be re-run`
     return (
       <div className="non-re-run-info warning-helper-text">
         <Octicon symbol={OcticonSymbol.alert} />

@@ -1,22 +1,7 @@
-import mem from 'mem'
-import QuickLRU from 'quick-lru'
-
-// Initializing a date formatter is expensive but formatting is relatively cheap
-// so we cache them based on the locale and their options. The maxSize of a 100
-// is only as an escape hatch, we don't expect to ever create more than a
-// handful different formatters.
-const getRelativeFormatter = mem(
-  (locale: string, options: Intl.RelativeTimeFormatOptions) =>
-    new Intl.RelativeTimeFormat(locale, options),
-  {
-    cache: new QuickLRU({ maxSize: 100 }),
-    cacheKey: (...args) => JSON.stringify(args),
-  }
-)
+import { getDefaultRelativeTimeFormatter } from './get-intl-formatter'
 
 export function formatRelative(ms: number) {
-  const formatter = getRelativeFormatter('en-US', { numeric: 'auto' })
-
+  const formatter = getDefaultRelativeTimeFormatter({ numeric: 'auto' })
   const sign = ms < 0 ? -1 : 1
 
   // Lifted and adopted from

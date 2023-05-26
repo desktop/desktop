@@ -86,6 +86,7 @@ import {
   sendWillQuitEvenIfUpdatingSync,
   quitApp,
   sendCancelQuittingSync,
+  getLocaleCountryCode,
 } from '../../ui/main-process-proxy'
 import {
   API,
@@ -231,7 +232,10 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableMultiCommitDiffs } from '../feature-flag'
+import {
+  enableLocaleAwareFormatting,
+  enableMultiCommitDiffs,
+} from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -311,6 +315,7 @@ import {
 import * as ipcRenderer from '../ipc-renderer'
 import { pathExists } from '../../ui/lib/path-exists'
 import { offsetFromNow } from '../offset-from'
+import { setFormattingLocaleFromCountryCode } from '../formatting-locale'
 import { findContributionTargetDefaultBranch } from '../branch'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 import { determineMergeability } from '../git/merge-tree'
@@ -1987,6 +1992,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Load the initial state for the app. */
   public async loadInitialState() {
+    const userLocalePromise = this.loadUserLocale()
+
     const [accounts, repositories] = await Promise.all([
       this.accountsStore.getAll(),
       this.repositoriesStore.getAll(),
@@ -2106,6 +2113,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
 
+    await userLocalePromise
     this.pullRequestSuggestedNextAction =
       getEnum(
         pullRequestSuggestedNextActionKey,
@@ -2115,6 +2123,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
+  }
+
+  private async loadUserLocale() {
+    if (!enableLocaleAwareFormatting()) {
+      return
+    }
+
+    try {
+      const countryCode = await getLocaleCountryCode()
+      setFormattingLocaleFromCountryCode(countryCode)
+      log.info(`[AppStore] Set formatting locale region to '${countryCode}'`)
+    } catch (e) {
+      log.error(`[AppStore] Could not resolve user locale`, e)
+    }
   }
 
   /**

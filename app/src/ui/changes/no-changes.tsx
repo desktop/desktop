@@ -22,6 +22,8 @@ import { Dispatcher } from '../dispatcher'
 import { SuggestedActionGroup } from '../suggested-actions'
 import { PreferencesTab } from '../../models/preferences'
 import { PopupType } from '../../models/popup'
+import { formatCommitCount } from '../../lib/format-commit-count'
+import { formatCount } from '../../lib/format-count'
 import {
   DropdownSuggestedAction,
   IDropdownSuggestedActionOption,
@@ -412,8 +414,8 @@ export class NoChanges extends React.Component<
     const numChanges = stashEntry.files.files.length
     const description = (
       <>
-        You have {numChanges} {numChanges === 1 ? 'change' : 'changes'} in
-        progress that you have not yet committed.
+        You have {formatCount(numChanges, 'change')} in progress that you have
+        not yet committed.
       </>
     )
     const discoverabilityContent = (
@@ -566,9 +568,9 @@ export class NoChanges extends React.Component<
       </>
     )
 
-    const title = `Pull ${aheadBehind.behind} ${
-      aheadBehind.behind === 1 ? 'commit' : 'commits'
-    } from the ${remote.name} remote`
+    const title = `Pull ${formatCommitCount(aheadBehind.behind)} from the ${
+      remote.name
+    } remote`
 
     const buttonText = `Pull ${remote.name}`
 
@@ -608,17 +610,13 @@ export class NoChanges extends React.Component<
     if (aheadBehind.ahead > 0) {
       itemsToPushTypes.push('commits')
       itemsToPushDescriptions.push(
-        aheadBehind.ahead === 1
-          ? '1 local commit'
-          : `${aheadBehind.ahead} local commits`
+        formatCount(aheadBehind.ahead, 'local commit')
       )
     }
 
     if (tagsToPush !== null && tagsToPush.length > 0) {
       itemsToPushTypes.push('tags')
-      itemsToPushDescriptions.push(
-        tagsToPush.length === 1 ? '1 tag' : `${tagsToPush.length} tags`
-      )
+      itemsToPushDescriptions.push(formatCount(tagsToPush.length, 'tag'))
     }
 
     const description = `You have ${itemsToPushDescriptions.join(
