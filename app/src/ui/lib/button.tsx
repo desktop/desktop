@@ -2,6 +2,7 @@ import * as React from 'react'
 import classNames from 'classnames'
 import { Tooltip, TooltipDirection } from './tooltip'
 import { createObservableRef } from './observable-ref'
+import { AriaHasPopupType } from './aria-types'
 
 export interface IButtonProps {
   /**
@@ -74,8 +75,40 @@ export interface IButtonProps {
    */
   readonly tabIndex?: number
 
+  /**
+   * ARIA roles provide semantic meaning to content, allowing screen readers and
+   * other tools to present and support interaction with object in a way that is
+   * consistent with user expectations of that type of object. ARIA roles can be
+   * used to describe elements that don't natively exist in HTML or exist but
+   * don't yet have full browser support.
+   *
+   * By default, many semantic elements in HTML have a role; for example, <input
+   * type="radio"> has the "radio" role. Non-semantic elements in HTML do not
+   * have a role; <div> and <span> without added semantics return null. The role
+   * attribute can provide semantics.
+   */
   readonly role?: string
+
+  /**
+   * The aria-expanded attribute is set on an element to indicate if a control
+   * is expanded or collapsed, and whether or not the controlled elements are
+   * displayed or hidden.
+   *
+   * There are several widgets that can be expanded and collapsed, including
+   * menus, dialogs, and accordion panels. Each of these objects, in turn, has
+   * an interactive element that controls their opening and closing. The
+   * aria-expanded attribute is applied to this focusable, interactive control
+   * that toggles the visibility of the object.
+   */
   readonly ariaExpanded?: boolean
+
+  /** An aria attribute indicates the availability and type of interactive popup
+   * element that can be triggered by the element on which the attribute is set
+   *
+   * Notes: The value true is the same as menu. Any other value, including an
+   * empty string or other role, is treated as if false were set.
+   * */
+  readonly ariaHaspopup?: AriaHasPopupType
 
   /**
    * Typically the contents of a button serve the purpose of describing the
@@ -89,6 +122,18 @@ export interface IButtonProps {
    * bounds. Typically this is used in conjunction with an ellipsis CSS ruleset.
    */
   readonly onlyShowTooltipWhenOverflowed?: boolean
+
+  /** The aria-pressed attribute indicates the current "pressed" state of a
+   * toggle button.
+   *
+   * Accessibility notes: Do not change the contents of the label on a toggle
+   * button when the state changes. If a button label says "pause", do not
+   * change it to "play" when pressed.
+   * */
+  readonly ariaPressed?: boolean
+
+  /** Whether the input field should auto focus when mounted. */
+  readonly autoFocus?: boolean
 }
 
 /**
@@ -142,6 +187,9 @@ export class Button extends React.Component<IButtonProps, {}> {
         aria-expanded={this.props.ariaExpanded}
         aria-disabled={disabled ? 'true' : undefined}
         aria-label={this.props.ariaLabel}
+        aria-haspopup={this.props.ariaHaspopup}
+        aria-pressed={this.props.ariaPressed}
+        autoFocus={this.props.autoFocus}
       >
         {tooltip && (
           <Tooltip

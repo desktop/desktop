@@ -79,6 +79,71 @@
     font-size: var(--font-size-sm);
     color: var(--text-secondary-color);
   }
+
+  .theme-selector {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 calc(var(--spacing-half) * -1);
+
+    .radio-button-component {
+      display: block;
+      flex-shrink: 0;
+      padding: var(--spacing-half);
+      position: relative;
+      width: 50%;
+      margin: 0;
+
+      input[type='radio'] {
+        position: absolute;
+        left: calc(var(--spacing) + var(--spacing-half));
+        margin-top: calc(54.5%);
+
+        &:checked + label {
+          border-color: var(--box-selected-active-background-color);
+        }
+      }
+
+      label {
+        border-radius: var(--border-radius);
+        border: var(--base-border);
+        float: left;
+        overflow: hidden;
+        padding-bottom: var(--spacing-half);
+        width: 100%;
+        margin: 0;
+
+        .theme-value-label {
+          margin-left: calc(var(--spacing-triple));
+        }
+
+        img {
+          width: 100%;
+          border-bottom: var(--base-border);
+          margin-bottom: var(--spacing-half);
+          display: block;
+        }
+
+        .system-theme-swatch {
+          width: 100%;
+          position: relative;
+          display: block;
+
+          img {
+            position: absolute;
+            top: 0;
+
+            &:first-child {
+              position: inherit;
+            }
+
+            &:last-child {
+              clip-path: polygon(50% 0, 100% 0%, 100% 100%, 50% 100%);
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 #external-editor-error {

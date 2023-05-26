@@ -26,7 +26,7 @@ interface IStartProps {
 export class Start extends React.Component<IStartProps, {}> {
   public render() {
     return (
-      <div id="start">
+      <section id="start" aria-label="Welcome to GitHub Desktop">
         <h1 className="welcome-title">Welcome to GitHub&nbsp;Desktop</h1>
         {!this.props.loadingBrowserAuth ? (
           <>
@@ -85,10 +85,12 @@ export class Start extends React.Component<IStartProps, {}> {
           .<br />
           <br />
           GitHub Desktop sends usage metrics to improve the product and inform
-          feature decisions. Read more about what metrics are sent and how we
-          use them <LinkButton uri={SamplesURL}>here</LinkButton>.
+          feature decisions.{' '}
+          <LinkButton uri={SamplesURL}>
+            Learn more about user metrics.
+          </LinkButton>
         </div>
-      </div>
+      </section>
     )
   }
 

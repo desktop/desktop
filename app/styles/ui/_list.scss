@@ -70,10 +70,6 @@
 
     color: var(--text-color);
     background-color: var(--box-selected-active-background-color);
-
-    @include high-contrast {
-      border: var(--box-selected-active-border);
-    }
   }
 }
 

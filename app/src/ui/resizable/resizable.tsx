@@ -2,8 +2,17 @@
 import * as React from 'react'
 import { clamp } from '../../lib/clamp'
 
-const DefaultMaxWidth = 350
-const DefaultMinWidth = 200
+export const DefaultMaxWidth = 350
+export const DefaultMinWidth = 200
+
+/** This class is assigned to the containing div of the element and used in
+ * determining whether the resizable is focused. */
+export const resizableComponentClass = 'resizable-component'
+
+export enum ResizeDirection {
+  Increase = 'Increase',
+  Decrease = 'Decrease',
+}
 
 /**
  * Component abstracting a resizable panel.
@@ -12,6 +21,7 @@ const DefaultMinWidth = 200
  * onResize and onReset event and update the width prop accordingly.
  */
 export class Resizable extends React.Component<IResizableProps> {
+  private resizeContainer: HTMLDivElement | null = null
   private startWidth: number | null = null
   private startX: number | null = null
 
@@ -77,6 +87,69 @@ export class Resizable extends React.Component<IResizableProps> {
     e.preventDefault()
   }
 
+  /**
+   * Handler for when a user uses keyboard shortcuts to increase the size the
+   * active resizable
+   */
+  private handleMenuResizeEventIncrease = (
+    ev?: Event | React.SyntheticEvent<unknown>
+  ) => {
+    this.handleMenuResizeEvent(ResizeDirection.Increase)
+    ev?.preventDefault()
+  }
+
+  /**
+   * Handler for when a user uses keyboard shortcuts to decrease the size the
+   * active resizable
+   */
+  private handleMenuResizeEventDecrease = (
+    ev?: Event | React.SyntheticEvent<unknown>
+  ) => {
+    this.handleMenuResizeEvent(ResizeDirection.Decrease)
+    ev?.preventDefault()
+  }
+
+  /**
+   * Handler for when a user uses keyboard shortcuts to resize the size the
+   * active resizable
+   */
+  private handleMenuResizeEvent(resizeDirection: ResizeDirection) {
+    const { width } = this.props
+    const changedWidth =
+      resizeDirection === ResizeDirection.Decrease ? width - 5 : width + 5
+
+    const newWidth = this.clampWidth(changedWidth)
+
+    this.props.onResize(this.clampWidth(newWidth))
+  }
+
+  /**
+   * Adds and removes listeners for custom events fired when user users keyboard
+   * to resize the active resizable
+   */
+  private onResizableRef = (ref: HTMLDivElement | null) => {
+    if (ref === null) {
+      this.resizeContainer?.removeEventListener(
+        'increase-active-resizable-width',
+        this.handleMenuResizeEventIncrease
+      )
+      this.resizeContainer?.removeEventListener(
+        'decrease-active-resizable-width',
+        this.handleMenuResizeEventDecrease
+      )
+    } else {
+      ref.addEventListener(
+        'increase-active-resizable-width',
+        this.handleMenuResizeEventIncrease
+      )
+      ref.addEventListener(
+        'decrease-active-resizable-width',
+        this.handleMenuResizeEventDecrease
+      )
+    }
+    this.resizeContainer = ref
+  }
+
   public render() {
     const style: React.CSSProperties = {
       width: this.getCurrentWidth(),
@@ -85,7 +158,12 @@ export class Resizable extends React.Component<IResizableProps> {
     }
 
     return (
-      <div id={this.props.id} className="resizable-component" style={style}>
+      <div
+        id={this.props.id}
+        className={resizableComponentClass}
+        style={style}
+        ref={this.onResizableRef}
+      >
         {this.props.children}
         <div
           onMouseDown={this.handleDragStart}

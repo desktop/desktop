@@ -77,16 +77,6 @@ export function enableResetToCommit(): boolean {
   return enableDevelopmentFeatures()
 }
 
-/** Should we allow high contrast theme option */
-export function enableHighContrastTheme(): boolean {
-  return enableBetaFeatures()
-}
-
-/** Should we allow customizing a theme */
-export function enableCustomizeTheme(): boolean {
-  return enableBetaFeatures()
-}
-
 /** Should ci check runs show logs? */
 export function enableCICheckRunsLogs(): boolean {
   return false
@@ -129,10 +119,10 @@ export function enablePreventClosingWhileUpdating(): boolean {
 
 /** Should we enable the new push-pull-fetch dropdown? */
 export function enablePushPullFetchDropdown(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we enable the new PR comment notifications? */
 export function enablePullRequestCommentNotifications(): boolean {
-  return enableBetaFeatures()
+  return true
 }

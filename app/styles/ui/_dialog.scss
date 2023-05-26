@@ -24,6 +24,7 @@
 @import 'dialogs/installing-update';
 @import 'dialogs/test-notifications';
 @import 'dialogs/pull-request-comment-like';
+@import 'dialogs/unknown-authors';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -404,6 +405,10 @@ dialog {
 
   &#preferences {
     width: 600px;
+
+    .dialog-content {
+      min-height: 375px;
+    }
 
     // This is to ensure that the dialog content is accessible when zoomed in
     @media (max-width: 600px) {

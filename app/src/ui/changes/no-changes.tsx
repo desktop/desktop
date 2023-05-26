@@ -28,6 +28,7 @@ import {
 } from '../suggested-actions/dropdown-suggested-action'
 import { PullRequestSuggestedNextAction } from '../../models/pull-request'
 import { enableStartingPullRequests } from '../../lib/feature-flag'
+import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 
 function formatMenuItemLabel(text: string) {
   if (__WIN32__ || __LINUX__) {
@@ -224,8 +225,13 @@ export class NoChanges extends React.Component<
     )
   }
 
-  private renderDiscoverabilityKeyboardShortcut(menuItem: IMenuItemInfo) {
-    return menuItem.acceleratorKeys.map((k, i) => <kbd key={k + i}>{k}</kbd>)
+  private renderDiscoverabilityKeyboardShortcut(menuItemInfo: IMenuItemInfo) {
+    return (
+      <KeyboardShortcut
+        darwinKeys={menuItemInfo.acceleratorKeys}
+        keys={menuItemInfo.acceleratorKeys}
+      />
+    )
   }
 
   private renderMenuBackedAction(

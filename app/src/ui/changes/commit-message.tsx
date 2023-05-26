@@ -4,18 +4,18 @@ import {
   AutocompletingTextArea,
   AutocompletingInput,
   IAutocompletionProvider,
-  UserAutocompletionProvider,
+  CoAuthorAutocompletionProvider,
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../models/commit-message'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
-import { AuthorInput } from '../lib/author-input'
+import { AuthorInput } from '../lib/author-input/author-input'
 import { FocusContainer } from '../lib/focus-container'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-import { IAuthor } from '../../models/author'
+import { Author, UnknownAuthor, isKnownAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { Commit, ICommitContext } from '../../models/commit'
 import { startTimer } from '../lib/timing'
@@ -33,9 +33,10 @@ import { Popup, PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
 import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
-import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
+import { ToggledtippedContent } from '../lib/toggletipped-content'
+import { PreferencesTab } from '../../models/preferences'
 
 const addAuthorIcon = {
   w: 18,
@@ -87,7 +88,7 @@ interface ICommitMessageProps {
    * Co-Authored-By commit message trailers depending on whether
    * the user has chosen to do so.
    */
-  readonly coAuthors: ReadonlyArray<IAuthor>
+  readonly coAuthors: ReadonlyArray<Author>
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge?: boolean
@@ -97,9 +98,15 @@ interface ICommitMessageProps {
   /** Optional text to override default commit button text */
   readonly commitButtonText?: string
 
+  readonly mostRecentLocalCommit: Commit | null
+
   /** Whether or not to remember the coauthors in the changes state */
-  readonly onCoAuthorsUpdated: (coAuthors: ReadonlyArray<IAuthor>) => void
+  readonly onCoAuthorsUpdated: (coAuthors: ReadonlyArray<Author>) => void
   readonly onShowCoAuthoredByChanged: (showCoAuthoredBy: boolean) => void
+  readonly onConfirmCommitWithUnknownCoAuthors: (
+    coAuthors: ReadonlyArray<UnknownAuthor>,
+    onCommitAnyway: () => void
+  ) => void
 
   /**
    * Called when the component unmounts to give callers the ability
@@ -132,7 +139,10 @@ interface ICommitMessageState {
   readonly summary: string
   readonly description: string | null
 
-  readonly userAutocompletionProvider: UserAutocompletionProvider | null
+  readonly commitMessageAutocompletionProviders: ReadonlyArray<
+    IAutocompletionProvider<any>
+  >
+  readonly coAuthorAutocompletionProvider: CoAuthorAutocompletionProvider | null
 
   /**
    * Whether or not the description text area has more text that's
@@ -140,13 +150,23 @@ interface ICommitMessageState {
    * false when there's no action bar.
    */
   readonly descriptionObscured: boolean
+
+  readonly isCommittingStatusMessage: string
 }
 
-function findUserAutoCompleteProvider(
+function findCommitMessageAutoCompleteProvider(
   providers: ReadonlyArray<IAutocompletionProvider<any>>
-): UserAutocompletionProvider | null {
+): ReadonlyArray<IAutocompletionProvider<any>> {
+  return providers.filter(
+    provider => !(provider instanceof CoAuthorAutocompletionProvider)
+  )
+}
+
+function findCoAuthorAutoCompleteProvider(
+  providers: ReadonlyArray<IAutocompletionProvider<any>>
+): CoAuthorAutocompletionProvider | null {
   for (const provider of providers) {
-    if (provider instanceof UserAutocompletionProvider) {
+    if (provider instanceof CoAuthorAutocompletionProvider) {
       return provider
     }
   }
@@ -174,10 +194,13 @@ export class CommitMessage extends React.Component<
     this.state = {
       summary: commitMessage ? commitMessage.summary : '',
       description: commitMessage ? commitMessage.description : null,
-      userAutocompletionProvider: findUserAutoCompleteProvider(
+      commitMessageAutocompletionProviders:
+        findCommitMessageAutoCompleteProvider(props.autocompletionProviders),
+      coAuthorAutocompletionProvider: findCoAuthorAutoCompleteProvider(
         props.autocompletionProviders
       ),
       descriptionObscured: false,
+      isCommittingStatusMessage: '',
     }
   }
 
@@ -240,7 +263,11 @@ export class CommitMessage extends React.Component<
       this.props.autocompletionProviders !== prevProps.autocompletionProviders
     ) {
       this.setState({
-        userAutocompletionProvider: findUserAutoCompleteProvider(
+        commitMessageAutocompletionProviders:
+          findCommitMessageAutoCompleteProvider(
+            this.props.autocompletionProviders
+          ),
+        coAuthorAutocompletionProvider: findCoAuthorAutoCompleteProvider(
           this.props.autocompletionProviders
         ),
       })
@@ -259,6 +286,24 @@ export class CommitMessage extends React.Component<
       prevProps.repository.id === this.props.repository.id
     ) {
       this.coAuthorInputRef.current?.focus()
+    }
+
+    if (
+      prevProps.isCommitting !== this.props.isCommitting &&
+      this.props.isCommitting &&
+      this.state.isCommittingStatusMessage === ''
+    ) {
+      this.setState({ isCommittingStatusMessage: this.getButtonTitle() })
+    }
+
+    if (
+      prevProps.mostRecentLocalCommit?.sha !==
+        this.props.mostRecentLocalCommit?.sha &&
+      this.props.mostRecentLocalCommit !== null
+    ) {
+      this.setState({
+        isCommittingStatusMessage: `Committed Just now - ${this.props.mostRecentLocalCommit.summary} (Sha: ${this.props.mostRecentLocalCommit.shortSha})`,
+      })
     }
   }
 
@@ -289,7 +334,9 @@ export class CommitMessage extends React.Component<
     const { coAuthors } = this.props
     const token = 'Co-Authored-By'
     return this.isCoAuthorInputEnabled
-      ? coAuthors.map(a => ({ token, value: `${a.name} <${a.email}>` }))
+      ? coAuthors
+          .filter(isKnownAuthor)
+          .map(a => ({ token, value: `${a.name} <${a.email}>` }))
       : []
   }
 
@@ -299,11 +346,29 @@ export class CommitMessage extends React.Component<
       : this.state.summary
   }
 
-  private async createCommit() {
+  private forceCreateCommit = async () => {
+    return this.createCommit(false)
+  }
+
+  private async createCommit(warnUnknownAuthors: boolean = true) {
     const { description } = this.state
 
     if (!this.canCommit() && !this.canAmend()) {
       return
+    }
+
+    if (warnUnknownAuthors) {
+      const unknownAuthors = this.props.coAuthors.filter(
+        (author): author is UnknownAuthor => !isKnownAuthor(author)
+      )
+
+      if (unknownAuthors.length > 0) {
+        this.props.onConfirmCommitWithUnknownCoAuthors(
+          unknownAuthors,
+          this.forceCreateCommit
+        )
+        return
+      }
     }
 
     const trailers = this.getCoAuthorTrailers()
@@ -362,11 +427,6 @@ export class CommitMessage extends React.Component<
   private renderAvatar() {
     const { commitAuthor, repository } = this.props
     const { gitHubRepository } = repository
-    const avatarTitle = commitAuthor ? (
-      <>
-        Committing as <strong>{commitAuthor.name}</strong> {commitAuthor.email}
-      </>
-    ) : undefined
     const avatarUser: IAvatarUser | undefined =
       commitAuthor !== null
         ? getAvatarUserFromAuthor(commitAuthor, gitHubRepository)
@@ -385,7 +445,6 @@ export class CommitMessage extends React.Component<
     return (
       <CommitMessageAvatar
         user={avatarUser}
-        title={avatarTitle}
         email={commitAuthor?.email}
         isEnterpriseAccount={
           repositoryAccount?.endpoint !== getDotComAPIEndpoint()
@@ -399,6 +458,8 @@ export class CommitMessage extends React.Component<
         }
         onUpdateEmail={this.onUpdateUserEmail}
         onOpenRepositorySettings={this.onOpenRepositorySettings}
+        onOpenGitSettings={this.onOpenGitSettings}
+        repository={repository}
       />
     )
   }
@@ -416,6 +477,13 @@ export class CommitMessage extends React.Component<
     })
   }
 
+  private onOpenGitSettings = () => {
+    this.props.onShowPopup({
+      type: PopupType.Preferences,
+      initialSelectedTab: PreferencesTab.Git,
+    })
+  }
+
   private get isCoAuthorInputEnabled() {
     return this.props.repository.gitHubRepository !== null
   }
@@ -424,7 +492,7 @@ export class CommitMessage extends React.Component<
     return this.props.showCoAuthoredBy && this.isCoAuthorInputEnabled
   }
 
-  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<IAuthor>) =>
+  private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<Author>) =>
     this.props.onCoAuthorsUpdated(coAuthors)
 
   private renderCoAuthorInput() {
@@ -432,7 +500,7 @@ export class CommitMessage extends React.Component<
       return null
     }
 
-    const autocompletionProvider = this.state.userAutocompletionProvider
+    const autocompletionProvider = this.state.coAuthorAutocompletionProvider
 
     if (!autocompletionProvider) {
       return null
@@ -658,53 +726,91 @@ export class CommitMessage extends React.Component<
     this.props.onShowFoldout({ type: FoldoutType.Branch })
   }
 
-  private renderSubmitButton() {
-    const { isCommitting, branch, commitButtonText } = this.props
-    const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
-    const buttonEnabled =
-      (this.canCommit() || this.canAmend()) && !isCommitting && !isSummaryBlank
-
-    const loading = isCommitting ? <Loading /> : undefined
-
-    const isAmending = this.props.commitToAmend !== null
+  private getButtonVerb() {
+    const { isCommitting, commitToAmend } = this.props
 
     const amendVerb = isCommitting ? 'Amending' : 'Amend'
     const commitVerb = isCommitting ? 'Committing' : 'Commit'
+    const isAmending = commitToAmend !== null
 
-    const amendTitle = `${amendVerb} last commit`
-    const commitTitle =
-      branch !== null ? `${commitVerb} to ${branch}` : commitVerb
+    return isAmending ? amendVerb : commitVerb
+  }
 
-    let tooltip: string | undefined = undefined
+  private getCommittingButtonText() {
+    const { branch } = this.props
+    const verb = this.getButtonVerb()
 
-    if (buttonEnabled) {
-      tooltip = isAmending ? amendTitle : commitTitle
-    } else {
-      if (isSummaryBlank) {
-        tooltip = `A commit summary is required to commit`
-      } else if (!this.props.anyFilesSelected && this.props.anyFilesAvailable) {
-        tooltip = `Select one or more files to commit`
-      } else if (isCommitting) {
-        tooltip = `Committing changes…`
-      }
+    if (branch === null) {
+      return verb
     }
 
-    const defaultCommitContents =
-      branch !== null ? (
-        <>
-          {commitVerb} to <strong>{branch}</strong>
-        </>
-      ) : (
-        commitVerb
-      )
+    return (
+      <>
+        {verb} to <strong>{branch}</strong>
+      </>
+    )
+  }
 
-    const defaultAmendContents = <>{amendVerb} last commit</>
+  private getCommittingButtonTitle() {
+    const { branch } = this.props
+    const verb = this.getButtonVerb()
 
-    const defaultContents = isAmending
-      ? defaultAmendContents
-      : defaultCommitContents
+    if (branch === null) {
+      return verb
+    }
 
-    const commitButton = commitButtonText ? commitButtonText : defaultContents
+    return `${verb} to ${branch}`
+  }
+
+  private getButtonText() {
+    const { commitToAmend, commitButtonText } = this.props
+
+    if (commitButtonText) {
+      return commitButtonText
+    }
+
+    const isAmending = commitToAmend !== null
+    return isAmending ? this.getButtonTitle() : this.getCommittingButtonText()
+  }
+
+  private getButtonTitle(): string {
+    const { commitToAmend, commitButtonText } = this.props
+
+    if (commitButtonText) {
+      return commitButtonText
+    }
+
+    const isAmending = commitToAmend !== null
+    return isAmending
+      ? `${this.getButtonVerb()} last commit`
+      : this.getCommittingButtonTitle()
+  }
+
+  private getButtonTooltip(buttonEnabled: boolean) {
+    if (buttonEnabled) {
+      return this.getButtonTitle()
+    }
+
+    const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
+    if (isSummaryBlank) {
+      return `A commit summary is required to commit`
+    } else if (!this.props.anyFilesSelected && this.props.anyFilesAvailable) {
+      return `Select one or more files to commit`
+    } else if (this.props.isCommitting) {
+      return `Committing changes…`
+    }
+
+    return undefined
+  }
+
+  private renderSubmitButton() {
+    const { isCommitting } = this.props
+    const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
+    const buttonEnabled =
+      (this.canCommit() || this.canAmend()) && !isCommitting && !isSummaryBlank
+    const loading = isCommitting ? <Loading /> : undefined
+    const tooltip = this.getButtonTooltip(buttonEnabled)
+    const commitButton = this.getButtonText()
 
     return (
       <Button
@@ -725,7 +831,7 @@ export class CommitMessage extends React.Component<
 
   private renderSummaryLengthHint(): JSX.Element | null {
     return (
-      <TooltippedContent
+      <ToggledtippedContent
         delay={0}
         tooltip={
           <>
@@ -740,9 +846,10 @@ export class CommitMessage extends React.Component<
         direction={TooltipDirection.NORTH}
         className="length-hint"
         tooltipClassName="length-hint-tooltip"
+        ariaLabel="Open Summary Length Info"
       >
         <Octicon symbol={OcticonSymbol.lightBulb} />
-      </TooltippedContent>
+      </ToggledtippedContent>
     )
   }
 
@@ -764,6 +871,8 @@ export class CommitMessage extends React.Component<
       'nudge-arrow-left': this.props.shouldNudge === true,
     })
 
+    const { placeholder, isCommitting, commitSpellcheckEnabled } = this.props
+
     return (
       // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
       <div
@@ -777,16 +886,19 @@ export class CommitMessage extends React.Component<
           {this.renderAvatar()}
 
           <AutocompletingInput
-            isRequired={true}
+            required={true}
+            screenReaderLabel="Commit summary"
             className={summaryInputClassName}
-            placeholder={this.props.placeholder}
+            placeholder={placeholder}
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
             onElementRef={this.onSummaryInputRef}
-            autocompletionProviders={this.props.autocompletionProviders}
+            autocompletionProviders={
+              this.state.commitMessageAutocompletionProviders
+            }
             onContextMenu={this.onAutocompletingInputContextMenu}
-            disabled={this.props.isCommitting === true}
-            spellcheck={this.props.commitSpellcheckEnabled}
+            disabled={isCommitting === true}
+            spellcheck={commitSpellcheckEnabled}
           />
           {showSummaryLengthHint && this.renderSummaryLengthHint()}
         </div>
@@ -797,15 +909,18 @@ export class CommitMessage extends React.Component<
         >
           <AutocompletingTextArea
             className={descriptionClassName}
+            screenReaderLabel="Commit description"
             placeholder="Description"
             value={this.state.description || ''}
             onValueChanged={this.onDescriptionChanged}
-            autocompletionProviders={this.props.autocompletionProviders}
+            autocompletionProviders={
+              this.state.commitMessageAutocompletionProviders
+            }
             ref={this.onDescriptionFieldRef}
             onElementRef={this.onDescriptionTextAreaRef}
             onContextMenu={this.onAutocompletingInputContextMenu}
-            disabled={this.props.isCommitting === true}
-            spellcheck={this.props.commitSpellcheckEnabled}
+            disabled={isCommitting === true}
+            spellcheck={commitSpellcheckEnabled}
           />
           {this.renderActionBar()}
         </FocusContainer>
@@ -815,6 +930,9 @@ export class CommitMessage extends React.Component<
         {this.renderPermissionsCommitWarning()}
 
         {this.renderSubmitButton()}
+        <span className="sr-only" aria-live="polite" aria-atomic="true">
+          {this.state.isCommittingStatusMessage}
+        </span>
       </div>
     )
   }

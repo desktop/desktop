@@ -23,9 +23,6 @@ interface IListRowProps {
   /** callback to fire when the DOM element is created */
   readonly onRowRef?: (index: number, element: HTMLDivElement | null) => void
 
-  /** callback to fire when the row receives a mouseover event */
-  readonly onRowMouseOver: (index: number, e: React.MouseEvent<any>) => void
-
   /** callback to fire when the row receives a mousedown event */
   readonly onRowMouseDown: (index: number, e: React.MouseEvent<any>) => void
 
@@ -66,23 +63,11 @@ interface IListRowProps {
 
   /** a custom css class to apply to the row */
   readonly className?: string
-
-  /**
-   * aria label value for screen readers
-   *
-   * Note: you may need to apply an aria-hidden attribute to any child text
-   * elements for this to take precedence.
-   */
-  readonly ariaLabel?: string
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
   private onRef = (elem: HTMLDivElement | null) => {
     this.props.onRowRef?.(this.props.rowIndex, elem)
-  }
-
-  private onRowMouseOver = (e: React.MouseEvent<HTMLDivElement>) => {
-    this.props.onRowMouseOver(this.props.rowIndex, e)
   }
 
   private onRowMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -131,18 +116,15 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     const style = { ...this.props.style, width: '100%' }
 
     return (
-      // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events
       <div
         id={this.props.id}
+        role="option"
         aria-setsize={this.props.rowCount}
         aria-posinset={this.props.rowIndex + 1}
-        aria-selected={this.props.selected}
-        aria-label={this.props.ariaLabel}
-        role="option"
+        aria-selected={this.props.selectable ? this.props.selected : undefined}
         className={className}
         tabIndex={this.props.tabIndex}
         ref={this.onRef}
-        onMouseOver={this.onRowMouseOver}
         onMouseDown={this.onRowMouseDown}
         onMouseUp={this.onRowMouseUp}
         onClick={this.onRowClick}
