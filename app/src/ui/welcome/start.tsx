@@ -35,15 +35,6 @@ export class Start extends React.Component<IStartProps, {}> {
               GitHub and GitHub Enterprise. Sign in below to get started with
               your existing projects.
             </p>
-            <p className="welcome-text">
-              New to GitHub?{' '}
-              <LinkButton
-                uri={CreateAccountURL}
-                className="create-account-link"
-              >
-                Create your free account.
-              </LinkButton>
-            </p>
           </>
         ) : (
           <p>{BrowserRedirectMessage}</p>
@@ -70,6 +61,12 @@ export class Start extends React.Component<IStartProps, {}> {
           )}
         </div>
         <div className="skip-action-container">
+          <p className="welcome-text">
+            New to GitHub?{' '}
+            <LinkButton uri={CreateAccountURL} className="create-account-link">
+              Create your free account.
+            </LinkButton>
+          </p>
           <LinkButton className="skip-button" onClick={this.skip}>
             Skip this step
           </LinkButton>
