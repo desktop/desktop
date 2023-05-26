@@ -28,13 +28,13 @@ export class Start extends React.Component<IStartProps, {}> {
     return (
       <section
         id="start"
-        aria-label="Welcome to GitHub Desktop - GitHub Desktop is a seamless way to contribute to projects on
-      GitHub and GitHub Enterprise."
+        aria-label="Welcome to GitHub Desktop"
+        aria-describedby="start-description"
       >
         <h1 className="welcome-title">Welcome to GitHub&nbsp;Desktop</h1>
         {!this.props.loadingBrowserAuth ? (
           <>
-            <p className="welcome-text">
+            <p id="start-description" className="welcome-text">
               GitHub Desktop is a seamless way to contribute to projects on
               GitHub and GitHub Enterprise. Sign in below to get started with
               your existing projects.
