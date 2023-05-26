@@ -55,6 +55,7 @@ export class Start extends React.Component<IStartProps, {}> {
             className="button-with-icon"
             disabled={this.props.loadingBrowserAuth}
             onClick={this.signInWithBrowser}
+            autoFocus={true}
           >
             {this.props.loadingBrowserAuth && <Loading />}
             Sign in to GitHub.com
