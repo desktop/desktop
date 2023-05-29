@@ -175,7 +175,6 @@ interface IChangesListProps {
    * List Props for documentation.
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
-  readonly onRowDoubleClick: (row: number, source: ClickSource) => void
   readonly commitMessage: ICommitMessage
 
   /** The autocompletion providers available to the repository. */
@@ -902,6 +901,12 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onRowDoubleClick = (row: number) => {
+    const file = this.props.workingDirectory.files[row]
+
+    this.props.onOpenItemInExternalEditor(file.path)
+  }
+
   private onRowKeyDown = (
     _row: number,
     event: React.KeyboardEvent<HTMLDivElement>
@@ -982,7 +987,7 @@ export class ChangesList extends React.Component<
               isCommitting: isCommitting,
             }}
             onRowClick={this.props.onRowClick}
-            onRowDoubleClick={this.props.onRowDoubleClick}
+            onRowDoubleClick={this.onRowDoubleClick}
             onScroll={this.onScroll}
             setScrollTop={this.props.changesListScrollTop}
             onRowKeyDown={this.onRowKeyDown}

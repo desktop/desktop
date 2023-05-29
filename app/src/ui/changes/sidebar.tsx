@@ -258,13 +258,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     this.props.onOpenInExternalEditor(path)
   }
 
-  private onRowDoubleClick = (row: number) => {
-    const workingDirectory = this.props.changes.workingDirectory
-    const file = workingDirectory.files[row]
-
-    this.onOpenItemInExternalEditor(file.path)
-  }
-
   /**
    * Toggles the selection of a given working directory file.
    * If the file is partially selected it the selection is cleared
@@ -413,7 +406,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onDiscardChangesFromFiles={this.onDiscardChangesFromFiles}
           onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}
-          onRowDoubleClick={this.onRowDoubleClick}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
           commitMessage={commitMessage}
