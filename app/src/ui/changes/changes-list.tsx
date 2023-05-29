@@ -153,7 +153,7 @@ interface IChangesListProps {
   readonly onOpenItem: (path: string) => void
 
   /**
-   * Called to open a file it its the default external editor
+   * Called to open a file in the default external editor
    *
    * @param path The path of the file relative to the root of the repository
    */
