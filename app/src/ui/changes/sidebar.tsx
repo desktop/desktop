@@ -262,11 +262,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     const workingDirectory = this.props.changes.workingDirectory
     const file = workingDirectory.files[row]
 
-    if (!file) {
-      console.error('double click on row with no file - what?')
-      return
-    }
-
     this.onOpenItemInExternalEditor(file.path)
   }
 

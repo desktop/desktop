@@ -234,10 +234,6 @@ export class PullRequestFilesChanged extends React.Component<
   private onRowDoubleClick = (row: number) => {
     const files = this.props.files
     const file = files[row]
-    if (!file) {
-      console.error('double click on row with no file - what?')
-      return
-    }
 
     this.props.onOpenInExternalEditor(file.path)
   }
