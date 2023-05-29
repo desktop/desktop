@@ -881,6 +881,14 @@ export class Dispatcher {
     )
   }
 
+  /** Stash the changes to the given files. */
+  public stashChanges(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ): Promise<void> {
+    return this.appStore._stashChanges(repository, files)
+  }
+
   /** Start amending the most recent commit. */
   public async startAmendingRepository(
     repository: Repository,
@@ -1902,6 +1910,13 @@ export class Dispatcher {
   }
 
   /**
+   * Sets the user's preference so that confirmation to stash changes is not asked
+   */
+  public setConfirmStashChangesSetting(value: boolean): Promise<void> {
+    return this.appStore._setConfirmStashChangesSetting(value)
+  }
+
+  /**
    * Sets the user's preference for handling uncommitted changes when switching branches
    */
   public setUncommittedChangesStrategySetting(
@@ -2104,6 +2119,11 @@ export class Dispatcher {
           retryAction.files,
           false
         )
+        case RetryActionType.StashChanges:
+          return this.stashChanges(
+            retryAction.repository,
+            retryAction.files
+          )
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }

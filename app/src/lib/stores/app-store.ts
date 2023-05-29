@@ -274,6 +274,7 @@ import {
   ErrorWithMetadata,
   CheckoutError,
   DiscardChangesError,
+  StashChangesError,
 } from '../error-with-metadata'
 import {
   ShowSideBySideDiffDefault,
@@ -342,12 +343,14 @@ const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const confirmDiscardChangesPermanentlyDefault: boolean = true
+const confirmStashChangesDefault: boolean = true
 const confirmDiscardStashDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
 const confirmUndoCommitDefault: boolean = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
+const confirmStashChangesKey: string = 'confirmStashChanges'
 const confirmDiscardStashKey: string = 'confirmDiscardStash'
 const confirmDiscardChangesPermanentlyKey: string =
   'confirmDiscardChangesPermanentlyKey'
@@ -459,6 +462,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private confirmDiscardChangesPermanently: boolean =
     confirmDiscardChangesPermanentlyDefault
+  private confirmStashChanges: boolean = confirmStashChangesDefault
   private confirmDiscardStash: boolean = confirmDiscardStashDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private confirmUndoCommit: boolean = confirmUndoCommitDefault
@@ -958,6 +962,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnDiscardChangesPermanently:
         this.confirmDiscardChangesPermanently,
+      askForConfirmationOnStashChanges: this.confirmStashChanges,
       askForConfirmationOnDiscardStash: this.confirmDiscardStash,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       askForConfirmationOnUndoCommit: this.confirmUndoCommit,
@@ -2039,6 +2044,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.confirmDiscardChangesPermanently = getBoolean(
       confirmDiscardChangesPermanentlyKey,
       confirmDiscardChangesPermanentlyDefault
+    )
+
+    this.confirmStashChanges = getBoolean(
+      confirmStashChangesKey,
+      confirmStashChangesDefault
     )
 
     this.confirmDiscardStash = getBoolean(
@@ -4647,6 +4657,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
+  public async _stashChanges(
+    repository: Repository,
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ) {
+    try {
+      const repositoryState = this.repositoryStateCache.get(repository)
+      const tip = repositoryState.branchesState.tip
+      const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
+      if (currentBranch === null) {
+        return
+      }
+      
+      await this.createStashEntries(repository, currentBranch, files)
+    } catch (error) {
+      if (!(error instanceof StashChangesError)) {
+        log.error('Failed stashing changes', error)
+      }
+
+      this.emitError(error)
+      return
+    }
+
+    return this._refreshRepository(repository)
+  }
+
   public async _discardChangesFromSelection(
     repository: Repository,
     filePath: string,
@@ -5301,6 +5337,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.confirmDiscardChanges = value
 
     setBoolean(confirmDiscardChangesKey, value)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setConfirmStashChangesSetting(value: boolean): Promise<void> {
+    this.confirmStashChanges = value
+
+    setBoolean(confirmStashChangesKey, value)
     this.emitUpdate()
 
     return Promise.resolve()
@@ -6438,11 +6483,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private async createStashEntry(repository: Repository, branch: Branch) {
+    const stashEntry = await getLastDesktopStashEntryForBranch(repository, branch)
+    
+    if (stashEntry !== null) {
+      await this._popStashEntry(repository, stashEntry)
+    }
+
     const { changesState } = this.repositoryStateCache.get(repository)
     const { workingDirectory } = changesState
     const untrackedFiles = getUntrackedFiles(workingDirectory)
 
     return createDesktopStashEntry(repository, branch, untrackedFiles)
+  }
+
+  private async createStashEntries(repository: Repository, branch: Branch, files: ReadonlyArray<WorkingDirectoryFileChange>) {
+    const { changesState } = this.repositoryStateCache.get(repository)
+    const { workingDirectory } = changesState
+
+    const stashEntry = await getLastDesktopStashEntryForBranch(repository, branch)
+    
+    if (stashEntry !== null) {
+      await this._popStashEntry(repository, stashEntry)
+    }
+
+    const newChangesState = this.repositoryStateCache.get(repository).changesState
+    const newWorkingDirectory = newChangesState.workingDirectory
+    const stashPoppedFiles = newWorkingDirectory.files.filter(stashFile => workingDirectory.files.findIndex(file => file.path === stashFile.path) === -1)
+
+    return createDesktopStashEntry(repository, branch, [...files, ...stashPoppedFiles])
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

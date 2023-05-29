@@ -179,6 +179,8 @@ export class LocalChangesOverwrittenDialog extends React.Component<
         return 'reorder'
       case RetryActionType.DiscardChanges:
         return 'discard changes'
+      case RetryActionType.StashChanges:
+        return 'stash changes'
       default:
         assertNever(
           this.props.retryAction,
