@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.2.4-test4": [
+      "[Improved] Accessibility: More welcome flow transition improvements, more filter list results announcement improvements, and alias dialog announcements "
+    ],
     "3.2.3": [
       "[New] Add fetch and force-push actions in a dropdown as an alternative to the main Pull/Push/Publish action button - #15907",
       "[New] Get notified when someone comments your pull requests - #16226",
