@@ -18,7 +18,7 @@ import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { getVersion, getName } from './lib/app-proxy'
-import { getOS } from '../lib/get-os'
+import { getOS, isWindowsAndNoLongerSupportedByElectron } from '../lib/get-os'
 import { MenuEvent } from '../main-process/menu'
 import {
   Repository,
@@ -167,6 +167,9 @@ import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 import { PullRequestComment } from './notifications/pull-request-comment'
 import { UnknownAuthors } from './unknown-authors/unknown-authors-dialog'
+import { UnsupportedOSBannerDismissedAtKey } from './banners/windows-version-no-longer-supported-banner'
+import { offsetFromNow } from '../lib/offset-from'
+import { getNumber } from '../lib/local-storage'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -352,6 +355,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.checkIfThankYouIsInOrder()
+
+    if (isWindowsAndNoLongerSupportedByElectron()) {
+      const dismissedAt = getNumber(UnsupportedOSBannerDismissedAtKey, 0)
+
+      // Remind the user that they're running an unsupported OS every 90 days
+      if (dismissedAt < offsetFromNow(-90, 'days')) {
+        this.setBanner({ type: BannerType.WindowsVersionNoLongerSupported })
+      }
+    }
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -671,6 +683,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     skipGuidCheck: boolean = false
   ) {
     if (__LINUX__ || __RELEASE_CHANNEL__ === 'development') {
+      return
+    }
+
+    if (isWindowsAndNoLongerSupportedByElectron()) {
+      log.error(
+        `Can't check for updates on Windows 8.1 or older. Next available update only supports Windows 10 and later`
+      )
       return
     }
 
@@ -2646,6 +2665,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup(popup)
   }
 
+  private setBanner = (banner: Banner) =>
+    this.props.dispatcher.setBanner(banner)
+
   private getDesktopAppContentsClassNames = (): string => {
     const { currentDragElement } = this.state
     const isCommitBeingDragged =
@@ -3398,7 +3420,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       },
     }
-    this.props.dispatcher.setBanner(banner)
+    this.setBanner(banner)
   }
 
   private openThankYouCard = (
