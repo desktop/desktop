@@ -250,7 +250,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     openFile(fullPath, this.props.dispatcher)
   }
   /**
-   * Called to open a file in its the default external editor
+   * Called to open a file in the default external editor
    *
    * @param path The path of the file relative to the root of the repository
    */

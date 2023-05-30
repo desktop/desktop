@@ -146,7 +146,7 @@ interface IChangesListProps {
   readonly changesListScrollTop?: number
 
   /**
-   * Called to open a file it its default application
+   * Called to open a file in its default application
    *
    * @param path The path of the file relative to the root of the repository
    */
