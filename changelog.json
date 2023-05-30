@@ -1,5 +1,27 @@
 {
   "releases": {
+    "3.2.4-beta1": [
+      "[Fixed] Entering in double forward slash does not  target directory in cloning dialog - #15842. Thanks @IgnazioGul!",
+      "[Fixed] In the \"No Repositories\" screen, controls at the bottom stay inside window when it is resized - #16502. Thanks @samuelko123!",
+      "[Fixed] Link to editor settings on the tutorial screen - #16636. Thanks @IgnazioGul!",
+      "[Fixed] Close Squash Commit Message dialog on squash start - #16605",
+      "[Fixed] Multi-commit diffing produces the same results whether you select up to down or down to up - #15883",
+      "[Fixed] The misattributed commit avatar popover no longer causes the changes list to have scrollbars - #16684",
+      "[Fixed] Autocompletion list is always visible regardless of its position on the screen - #16650 #16609",
+      "[Improved] Improve screen reader support of the \"Create Alias\" dialog - #16802",
+      "[Improved] Screen readers announce the number of results in filtered lists (like repositories, branches or pull requests) - #16779",
+      "[Improved] Screen readers announce expanded/collapsed state of dropdowns - #16781",
+      "[Improved] The context menu for a branches list items can be invoked by keyboard shortcuts - #16760",
+      "[Improved] The context menu for a repository list item can be invoked by keyboard shortcuts - #16758",
+      "[Improved] Make floating elements more responsive as the window or the UI are resized - #16717",
+      "[Improved] Adds committing avatar popover to see git configuration and ability to open git configuration settings - #16640",
+      "[Improved] Password inputs have a visibility toggle.  - #16714",
+      "[Improved] Welcome flow screen change in context is announced - #16698",
+      "[Improved] Focus the sign in with browser button on opening the enterprise server login screen - #16706",
+      "[Improved] Show the remote branch name if it does not match the local branch name - #13591. Thanks @samuelko123!",
+      "[Improved] Reduce retries of avatars that fail to load - #16592",
+      "[Removed] Remove support for Windows 7, 8, and 8.1 - #16566"
+    ],
     "3.2.3": [
       "[New] Add fetch and force-push actions in a dropdown as an alternative to the main Pull/Push/Publish action button - #15907",
       "[New] Get notified when someone comments your pull requests - #16226",
@@ -920,7 +942,7 @@
       "[Fixed] Undo cherry-picking onto a remote branch now works as expected - #11921",
       "[Fixed] Dragging commits onto current branch no longer results in a broken state - #11915",
       "[Fixed] Get correct commit summary info in rebase - #11853",
-      "[Improved] Cancel drag operation with escape key - #11925",
+      "[Improved] Cancel drag operation with  target key - #11925",
       "[Improved] Cherry-pick commits onto a pull request with drag and drop - #11922",
       "[Improved] Option to change the spellcheck language to English for Windows users whose system language is not English - #11589",
       "[Improved] Update how privacy and usage stats info is communicated - #11845",
@@ -928,7 +950,7 @@
     ],
     "2.7.2-beta2": [
       "[Fixed] Undo cherry-picking onto a remote branch now works as expected - #11921",
-      "[Improved] Cancel drag operation with escape key - #11925",
+      "[Improved] Cancel drag operation with  target key - #11925",
       "[Improved] Cherry-pick commits onto a pull request with drag and drop - #11922",
       "[Improved] Option to change the spellcheck language to English for Windows users whose system language is not English - #11589"
     ],
@@ -2052,7 +2074,7 @@
       "[Fixed] Prevent avatar duplication when user is co-author and committer - #6135. Thanks @bblarney!",
       "[Fixed] Provide keyboard selection for the \"Clone a Repository\" dialog - #3596. Thanks @a-golovanov!",
       "[Fixed] Close License & Open Source Notices dialog upon pressing \"Enter\" in dialog - #6137. Thanks @bblarney!",
-      "[Fixed] Dismiss \"Merge into Branch\" dialog with escape key - #6154. Thanks @altaf933!",
+      "[Fixed] Dismiss \"Merge into Branch\" dialog with  target key - #6154. Thanks @altaf933!",
       "[Fixed] Focus branch selector when comparing to branch from menu - #5600",
       "[Fixed] Reverse fold/unfold icons for expand/collapse commit summary - #6196. Thanks @HazemAM!",
       "[Improved] Allow toggling between diff modes - #6231. Thanks @06b!",
@@ -2097,7 +2119,7 @@
       "[Fixed] Prevent avatar duplication when user is co-author and committer - #6135. Thanks @bblarney!",
       "[Fixed] Provide keyboard selection for the ‘Clone a Repository’ dialog - #3596. Thanks @a-golovanov!",
       "[Fixed] Close License & Open Source Notices dialog upon pressing \"Enter\" in dialog - #6137. Thanks @bblarney!",
-      "[Fixed] Dismiss \"Merge into Branch\" dialog with escape key - #6154. Thanks @altaf933!",
+      "[Fixed] Dismiss \"Merge into Branch\" dialog with  target key - #6154. Thanks @altaf933!",
       "[Fixed] Focus branch selector when comparing to branch from menu - #5600",
       "[Fixed] Reverse fold/unfold icons for expand/collapse commit summary - #6196. Thanks @HazemAM!"
     ],
@@ -2533,7 +2555,7 @@
       "[Improved] Checking out a Pull Request may skip unnecessary fetch - #4068. Thanks @agisilaos!",
       "[Improved] Commit summary now has a hint to indicate why committing is disabled - #4429.",
       "[Improved] Pull request status text now matches format on GitHub - #3521",
-      "[Improved] Add escape hatch to disable hardware acceleration when launching - #3921"
+      "[Improved] Add  target hatch to disable hardware acceleration when launching - #3921"
     ],
     "1.1.2-beta7": [],
     "1.1.2-beta6": [
@@ -2583,7 +2605,7 @@
       "[Fixed] 'Open File in External Editor' does not use existing window - #4381",
       "[Fixed] Always ask for confirmation when discarding all changes - #4423",
       "[Improved] Pull request status text now matches format on GitHub - #3521",
-      "[Improved] Add escape hatch to disable hardware acceleration when launching - #3921"
+      "[Improved] Add  target hatch to disable hardware acceleration when launching - #3921"
     ],
     "1.1.2-beta1": [],
     "1.1.1": [
