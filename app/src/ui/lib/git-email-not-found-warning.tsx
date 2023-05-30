@@ -5,7 +5,7 @@ import { getDotComAPIEndpoint } from '../../lib/api'
 import { isAttributableEmailFor } from '../../lib/email'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-import { debounce } from 'lodash'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 interface IGitEmailNotFoundWarningProps {
   /** The account the commit should be attributed to. */
@@ -15,41 +15,11 @@ interface IGitEmailNotFoundWarningProps {
   readonly email: string
 }
 
-interface IGitEmailNotFoundWarningState {
-  /** The generated message debounced for the screen reader */
-  readonly debouncedMessage: JSX.Element | null
-}
-
 /**
  * A component which just displays a warning to the user if their git config
  * email doesn't match any of the emails in their GitHub (Enterprise) account.
  */
-export class GitEmailNotFoundWarning extends React.Component<
-  IGitEmailNotFoundWarningProps,
-  IGitEmailNotFoundWarningState
-> {
-  private onEmailChanged = debounce((message: JSX.Element | null) => {
-    this.setState({ debouncedMessage: message })
-  }, 1000)
-
-  public constructor(props: IGitEmailNotFoundWarningProps) {
-    super(props)
-
-    this.state = {
-      debouncedMessage: this.buildMessage(),
-    }
-  }
-
-  public componentDidUpdate(prevProps: IGitEmailNotFoundWarningProps) {
-    if (prevProps.email !== this.props.email) {
-      this.onEmailChanged(this.buildMessage())
-    }
-  }
-
-  public componentWillUnmount() {
-    this.onEmailChanged.cancel()
-  }
-
+export class GitEmailNotFoundWarning extends React.Component<IGitEmailNotFoundWarningProps> {
   private buildMessage() {
     const { accounts, email } = this.props
 
@@ -93,7 +63,6 @@ export class GitEmailNotFoundWarning extends React.Component<
 
   public render() {
     const { accounts, email } = this.props
-    const { debouncedMessage } = this.state
 
     if (accounts.length === 0 || email.trim().length === 0) {
       return null
@@ -108,14 +77,12 @@ export class GitEmailNotFoundWarning extends React.Component<
       <>
         <div className="git-email-not-found-warning">{this.buildMessage()}</div>
 
-        <div
+        <AriaLiveContainer
           id="git-email-not-found-warning-for-screen-readers"
-          className="sr-only"
-          aria-live="polite"
-          aria-atomic="true"
+          trackedUserInput={this.props.email}
         >
-          {debouncedMessage}
-        </div>
+          {this.buildMessage()}
+        </AriaLiveContainer>
       </>
     )
   }

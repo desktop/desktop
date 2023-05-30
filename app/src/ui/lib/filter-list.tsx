@@ -172,6 +172,7 @@ interface IFilterListProps<T extends IFilterListItem> {
 interface IFilterListState<T extends IFilterListItem> {
   readonly rows: ReadonlyArray<IFilterListRow<T>>
   readonly selectedRow: number
+  readonly filterValue: string
 }
 
 /**
@@ -294,7 +295,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
     return (
       <div className={classnames('filter-list', this.props.className)}>
-        <AriaLiveContainer>
+        <AriaLiveContainer trackedUserInput={this.state.filterValue}>
           {itemRows.length} {resultsPluralized}
         </AriaLiveContainer>
         {this.props.renderPreList ? this.props.renderPreList() : null}
@@ -613,7 +614,7 @@ function createStateUpdate<T extends IFilterListItem>(
     selectedRow = flattenedRows.findIndex(i => i.kind === 'item')
   }
 
-  return { rows: flattenedRows, selectedRow }
+  return { rows: flattenedRows, selectedRow, filterValue: filter }
 }
 
 function getItemFromRowIndex<T extends IFilterListItem>(
