@@ -14,7 +14,6 @@ export function fatalError(msg: string): never {
  *                  in an exhaustive check.
  *
  * @param message   The message to be used in the runtime exception.
- *
  */
 export function assertNever(x: never, message: string): never {
   throw new Error(message)
