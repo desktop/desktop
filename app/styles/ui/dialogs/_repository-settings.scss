@@ -1,6 +1,10 @@
 #repository-settings {
   width: 600px;
 
+  .dialog-content {
+    min-height: 305px;
+  }
+
   .no-remote {
     justify-content: space-between;
 
@@ -36,5 +40,9 @@
     .link-button-component {
       display: inline;
     }
+  }
+
+  textarea.gitignore {
+    height: 130px;
   }
 }

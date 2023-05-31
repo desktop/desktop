@@ -96,4 +96,34 @@ describe('URL remote parsing', () => {
     expect(remote!.owner).toBe('hubot')
     expect(remote!.name).toBe('repo')
   })
+
+  it('does not parse invalid HTTP URLs when missing repo name', () => {
+    const remote = parseRemote('https://github.com/someuser//')
+    expect(remote).toBeNull()
+  })
+
+  it('does not parse invalid SSH URLs when missing repo name ', () => {
+    const remote = parseRemote('git@github.com:hubot/')
+    expect(remote).toBeNull()
+  })
+
+  it('does not parse invalid git URLs when missing repo name', () => {
+    const remote = parseRemote('git:github.com/hubot/')
+    expect(remote).toBeNull()
+  })
+
+  it('does not parse invalid HTTP URLs when missing repo owner', () => {
+    const remote = parseRemote('https://github.com//somerepo')
+    expect(remote).toBeNull()
+  })
+
+  it('does not parse invalid SSH URLs when missing repo owner', () => {
+    const remote = parseRemote('git@github.com:/somerepo')
+    expect(remote).toBeNull()
+  })
+
+  it('does not parse invalid git URLs when missing repo owner', () => {
+    const remote = parseRemote('git:github.com/hubot/')
+    expect(remote).toBeNull()
+  })
 })

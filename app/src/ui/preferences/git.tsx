@@ -11,6 +11,7 @@ interface IGitProps {
   readonly name: string
   readonly email: string
   readonly defaultBranch: string
+  readonly isLoadingGitConfig: boolean
 
   readonly dotComAccount: Account | null
   readonly enterpriseAccount: Account | null
@@ -40,17 +41,29 @@ export class Git extends React.Component<IGitProps, IGitState> {
     super(props)
 
     this.state = {
-      defaultBranchIsOther: !SuggestedBranchNames.includes(
-        this.props.defaultBranch
-      ),
+      defaultBranchIsOther: this.isDefaultBranchOther(),
     }
   }
 
+  private isDefaultBranchOther = () => {
+    return (
+      !this.props.isLoadingGitConfig &&
+      !SuggestedBranchNames.includes(this.props.defaultBranch)
+    )
+  }
+
   public componentDidUpdate(prevProps: IGitProps) {
+    if (this.props.defaultBranch === prevProps.defaultBranch) {
+      return
+    }
+
+    this.setState({
+      defaultBranchIsOther: this.isDefaultBranchOther(),
+    })
+
     // Focus the text input that allows the user to enter a custom
     // branch name when the user has selected "Other...".
     if (
-      this.props.defaultBranch !== prevProps.defaultBranch &&
       this.props.defaultBranch === OtherNameForDefaultBranch &&
       this.defaultBranchInputRef.current !== null
     ) {
@@ -72,6 +85,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
       <GitConfigUserForm
         email={this.props.email}
         name={this.props.name}
+        isLoadingGitConfig={this.props.isLoadingGitConfig}
         enterpriseAccount={this.props.enterpriseAccount}
         dotComAccount={this.props.dotComAccount}
         onEmailChanged={this.props.onEmailChanged}
@@ -106,11 +120,13 @@ export class Git extends React.Component<IGitProps, IGitState> {
       <div className="default-branch-component">
         <h2>Default branch name for new repositories</h2>
 
-        {SuggestedBranchNames.map((branchName: string) => (
+        {SuggestedBranchNames.map((branchName: string, i: number) => (
           <RadioButton
             key={branchName}
             checked={
-              !defaultBranchIsOther && this.props.defaultBranch === branchName
+              (!defaultBranchIsOther &&
+                this.props.defaultBranch === branchName) ||
+              (this.props.isLoadingGitConfig && i === 0)
             }
             value={branchName}
             label={branchName}
