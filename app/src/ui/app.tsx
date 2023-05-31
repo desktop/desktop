@@ -1,4 +1,6 @@
 import * as React from 'react'
+import * as Path from 'path'
+
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import {
   IAppState,
@@ -2424,6 +2426,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             showSideBySideDiff={showSideBySideDiff}
             currentBranchHasPullRequest={currentBranchHasPullRequest}
             onDismissed={onPopupDismissedFn}
+            onOpenInExternalEditor={this.onOpenInExternalEditor}
           />
         )
       }
@@ -2759,6 +2762,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.openInExternalEditor(repository.path)
+  }
+
+  private onOpenInExternalEditor = (path: string) => {
+    const repository = this.state.selectedState?.repository
+    if (repository === undefined) {
+      return
+    }
+
+    const fullPath = Path.join(repository.path, path)
+    this.props.dispatcher.openInExternalEditor(fullPath)
   }
 
   private showRepository = (repository: Repository | CloningRepository) => {
@@ -3192,7 +3205,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           resolvedExternalEditor={state.resolvedExternalEditor}
-          onOpenInExternalEditor={this.openFileInExternalEditor}
+          onOpenInExternalEditor={this.onOpenInExternalEditor}
           appMenu={state.appMenuState[0]}
           currentTutorialStep={state.currentOnboardingTutorialStep}
           onExitTutorial={this.onExitTutorial}
