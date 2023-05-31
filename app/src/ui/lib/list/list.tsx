@@ -60,6 +60,8 @@ interface IListProps {
    */
   readonly rowCount: number
 
+  readonly groups?: ReadonlyArray<number>
+
   /**
    * The height of each individual row in the list. This height
    * is enforced for each row container and attempting to render a row
@@ -907,6 +909,26 @@ export class List extends React.Component<IListProps, IListState> {
     return customClasses.length === 0 ? undefined : customClasses.join(' ')
   }
 
+  private getGroupInfoForRow = (rowIndex: number) => {
+    const { groups } = this.props
+    if (groups === undefined) {
+      return undefined
+    }
+
+    for (const group of groups) {
+      // -1 to remove the group header row
+      rowIndex -= 1
+
+      if (rowIndex < group) {
+        return { groupSize: group, inGroupIndex: rowIndex }
+      }
+
+      rowIndex -= group
+    }
+
+    return undefined
+  }
+
   private renderRow = (params: IRowRendererParams) => {
     const rowIndex = params.rowIndex
     const selectable = this.canSelectRow(rowIndex)
@@ -935,6 +957,7 @@ export class List extends React.Component<IListProps, IListState> {
       )
 
     const id = this.getRowId(rowIndex)
+    const groupInfo = this.getGroupInfoForRow(rowIndex)
 
     return (
       <ListRow
@@ -943,6 +966,8 @@ export class List extends React.Component<IListProps, IListState> {
         onRowRef={this.onRowRef}
         rowCount={this.props.rowCount}
         rowIndex={rowIndex}
+        ariaPosInSet={groupInfo?.inGroupIndex}
+        ariaSetSize={groupInfo?.groupSize}
         selected={selected}
         onRowClick={this.onRowClick}
         onRowDoubleClick={this.onRowDoubleClick}

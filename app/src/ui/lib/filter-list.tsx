@@ -348,6 +348,28 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
   }
 
+  private getGroupSizes() {
+    const groupSizes = new Array<number>()
+    let currentGroupSize = 0
+
+    for (const row of this.state.rows) {
+      if (row.kind === 'item') {
+        currentGroupSize++
+      } else {
+        if (currentGroupSize > 0) {
+          groupSizes.push(currentGroupSize)
+          currentGroupSize = 0
+        }
+      }
+    }
+
+    if (currentGroupSize > 0) {
+      groupSizes.push(currentGroupSize)
+    }
+
+    return groupSizes
+  }
+
   private renderContent() {
     if (this.state.rows.length === 0 && this.props.renderNoItems) {
       return this.props.renderNoItems()
@@ -358,6 +380,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
           rowCount={this.state.rows.length}
           rowRenderer={this.renderRow}
           rowHeight={this.props.rowHeight}
+          groups={this.getGroupSizes()}
           selectedRows={[this.state.selectedRow]}
           onSelectedRowChanged={this.onSelectedRowChanged}
           onRowClick={this.onRowClick}

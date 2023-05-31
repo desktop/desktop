@@ -8,6 +8,9 @@ interface IListRowProps {
   /** the index of the row in the list */
   readonly rowIndex: number
 
+  readonly ariaSetSize?: number
+  readonly ariaPosInSet?: number
+
   /** custom styles to provide to the row */
   readonly style?: React.CSSProperties
 
@@ -126,8 +129,8 @@ export class ListRow extends React.Component<IListRowProps, {}> {
       <div
         id={this.props.id}
         role="option"
-        aria-setsize={this.props.rowCount}
-        aria-posinset={this.props.rowIndex + 1}
+        aria-setsize={this.props.ariaSetSize ?? this.props.rowCount}
+        aria-posinset={(this.props.ariaPosInSet ?? this.props.rowIndex) + 1}
         aria-selected={this.props.selectable ? this.props.selected : undefined}
         className={className}
         tabIndex={this.props.tabIndex}
