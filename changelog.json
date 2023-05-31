@@ -1,5 +1,27 @@
 {
   "releases": {
+    "3.2.4-beta1": [
+      "[Fixed] Entering in double forward slash does not  target directory in cloning dialog - #15842. Thanks @IgnazioGul!",
+      "[Fixed] In the \"No Repositories\" screen, controls at the bottom stay inside window when it is resized - #16502. Thanks @samuelko123!",
+      "[Fixed] Link to editor settings on the tutorial screen - #16636. Thanks @IgnazioGul!",
+      "[Fixed] Close Squash Commit Message dialog on squash start - #16605",
+      "[Fixed] Multi-commit diffing produces the same results whether you select up to down or down to up - #15883",
+      "[Fixed] The misattributed commit avatar popover no longer causes the changes list to have scrollbars - #16684",
+      "[Fixed] Autocompletion list is always visible regardless of its position on the screen - #16650 #16609",
+      "[Improved] Improve screen reader support of the \"Create Alias\" dialog - #16802",
+      "[Improved] Screen readers announce the number of results in filtered lists (like repositories, branches or pull requests) - #16779",
+      "[Improved] Screen readers announce expanded/collapsed state of dropdowns - #16781",
+      "[Improved] The context menu for a branches list items can be invoked by keyboard shortcuts - #16760",
+      "[Improved] The context menu for a repository list item can be invoked by keyboard shortcuts - #16758",
+      "[Improved] Make floating elements more responsive as the window or the UI are resized - #16717",
+      "[Improved] Adds committing avatar popover to see git configuration and ability to open git configuration settings - #16640",
+      "[Improved] Password inputs have a visibility toggle.  - #16714",
+      "[Improved] Welcome flow screen change in context is announced - #16698",
+      "[Improved] Focus the sign in with browser button on opening the enterprise server login screen - #16706",
+      "[Improved] Show the remote branch name if it does not match the local branch name - #13591. Thanks @samuelko123!",
+      "[Improved] Reduce retries of avatars that fail to load - #16592",
+      "[Removed] Remove support for Windows 7, 8, and 8.1 - #16566"
+    ],
     "3.2.3": [
       "[New] Add fetch and force-push actions in a dropdown as an alternative to the main Pull/Push/Publish action button - #15907",
       "[New] Get notified when someone comments your pull requests - #16226",
