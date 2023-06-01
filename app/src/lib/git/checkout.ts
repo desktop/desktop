@@ -19,17 +19,14 @@ import { CommitOneLine, shortenSHA } from '../../models/commit'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
-async function getCheckoutArgs(
-  repository: Repository,
-  branch: Branch,
-  account: IGitAccount | null,
-  progressCallback?: ProgressCallback
-) {
-  const baseArgs =
-    progressCallback != null
-      ? [...gitNetworkArguments(), 'checkout', '--progress']
-      : [...gitNetworkArguments(), 'checkout']
+function getCheckoutArgs(progressCallback?: ProgressCallback) {
+  return progressCallback != null
+    ? [...gitNetworkArguments(), 'checkout', '--progress']
+    : [...gitNetworkArguments(), 'checkout']
+}
 
+async function getBranchCheckoutArgs(branch: Branch) {
+  const baseArgs: ReadonlyArray<string> = []
   if (enableRecurseSubmodulesFlag()) {
     return branch.type === BranchType.Remote
       ? baseArgs.concat(
@@ -40,11 +37,62 @@ async function getCheckoutArgs(
           '--'
         )
       : baseArgs.concat(branch.name, '--recurse-submodules', '--')
-  } else {
-    return branch.type === BranchType.Remote
-      ? baseArgs.concat(branch.name, '-b', branch.nameWithoutRemote, '--')
-      : baseArgs.concat(branch.name, '--')
   }
+
+  return branch.type === BranchType.Remote
+    ? baseArgs.concat(branch.name, '-b', branch.nameWithoutRemote, '--')
+    : baseArgs.concat(branch.name, '--')
+}
+
+async function getCheckoutOpts(
+  repository: Repository,
+  account: IGitAccount | null,
+  title: string,
+  target: string,
+  initialDescription?: string,
+  progressCallback?: ProgressCallback
+): Promise<IGitExecutionOptions> {
+  const opts: IGitExecutionOptions = {
+    env: await envForRemoteOperation(
+      account,
+      getFallbackUrlForProxyResolve(account, repository)
+    ),
+    expectedErrors: AuthenticationErrors,
+  }
+
+  if (!progressCallback) {
+    return opts
+  }
+
+  const kind = 'checkout'
+
+  // Initial progress
+  progressCallback({
+    kind,
+    title,
+    description: initialDescription ?? title,
+    value: 0,
+    target,
+  })
+
+  return await executionOptionsWithProgress(
+    { ...opts, trackLFSProgress: true },
+    new CheckoutProgressParser(),
+    progress => {
+      if (progress.kind === 'progress') {
+        const description = progress.details.text
+        const value = progress.percent
+
+        progressCallback({
+          kind,
+          title,
+          description,
+          value,
+          target,
+        })
+      }
+    }
+  )
 }
 
 /**
@@ -67,54 +115,17 @@ export async function checkoutBranch(
   branch: Branch,
   progressCallback?: ProgressCallback
 ): Promise<true> {
-  let opts: IGitExecutionOptions = {
-    env: await envForRemoteOperation(
-      account,
-      getFallbackUrlForProxyResolve(account, repository)
-    ),
-    expectedErrors: AuthenticationErrors,
-  }
-
-  if (progressCallback) {
-    const title = `Checking out branch ${branch.name}`
-    const kind = 'checkout'
-    const target = branch.name
-
-    opts = await executionOptionsWithProgress(
-      { ...opts, trackLFSProgress: true },
-      new CheckoutProgressParser(),
-      progress => {
-        if (progress.kind === 'progress') {
-          const description = progress.details.text
-          const value = progress.percent
-
-          progressCallback({
-            kind,
-            title,
-            description,
-            value,
-            target,
-          })
-        }
-      }
-    )
-
-    // Initial progress
-    progressCallback({
-      kind,
-      title,
-      description: `Switching to ${__DARWIN__ ? 'Branch' : 'branch'}`,
-      value: 0,
-      target,
-    })
-  }
-
-  const args = await getCheckoutArgs(
+  const opts = await getCheckoutOpts(
     repository,
-    branch,
     account,
+    `Checking out branch ${branch.name}`,
+    branch.name,
+    `Switching to ${__DARWIN__ ? 'Branch' : 'branch'}`,
     progressCallback
   )
+
+  const baseArgs = getCheckoutArgs(progressCallback)
+  const args = [...baseArgs, ...(await getBranchCheckoutArgs(branch))]
 
   await git(args, repository.path, 'checkoutBranch', opts)
 
@@ -144,53 +155,17 @@ export async function checkoutCommit(
   commit: CommitOneLine,
   progressCallback?: ProgressCallback
 ): Promise<true> {
-  let opts: IGitExecutionOptions = {
-    env: await envForRemoteOperation(
-      account,
-      getFallbackUrlForProxyResolve(account, repository)
-    ),
-    expectedErrors: AuthenticationErrors,
-  }
+  const title = `Checking out ${__DARWIN__ ? 'Commit' : 'commit'}`
+  const opts = await getCheckoutOpts(
+    repository,
+    account,
+    title,
+    shortenSHA(commit.sha),
+    title,
+    progressCallback
+  )
 
-  if (progressCallback) {
-    const title = 'Checking out commit'
-    const kind = 'checkout'
-    const target = shortenSHA(commit.sha)
-
-    opts = await executionOptionsWithProgress(
-      { ...opts, trackLFSProgress: true },
-      new CheckoutProgressParser(),
-      progress => {
-        if (progress.kind === 'progress') {
-          const description = progress.details.text
-          const value = progress.percent
-
-          progressCallback({
-            kind,
-            title,
-            description,
-            value,
-            target,
-          })
-        }
-      }
-    )
-
-    // Initial progress
-    progressCallback({
-      kind,
-      title,
-      description: `Checking out ${__DARWIN__ ? 'Commit' : 'commit'}`,
-      value: 0,
-      target,
-    })
-  }
-
-  const baseArgs =
-    progressCallback != null
-      ? [...gitNetworkArguments(), 'checkout', '--progress']
-      : [...gitNetworkArguments(), 'checkout']
-
+  const baseArgs = getCheckoutArgs(progressCallback)
   const args = [...baseArgs, commit.sha]
 
   await git(args, repository.path, 'checkoutCommit', opts)
