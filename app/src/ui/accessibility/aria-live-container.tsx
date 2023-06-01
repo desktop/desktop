@@ -81,6 +81,7 @@ export class AriaLiveContainer extends Component<
   }
 
   public render() {
+    const { children } = this.props
     return (
       <div
         id={this.props.id}
@@ -88,7 +89,7 @@ export class AriaLiveContainer extends Component<
         aria-live="polite"
         aria-atomic="true"
       >
-        {this.state.message}
+        {children ? this.state.message : ''}
       </div>
     )
   }
