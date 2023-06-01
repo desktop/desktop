@@ -96,10 +96,7 @@ export class StashDiffHeader extends React.Component<
       this.setState({ isRestoring: true })
       await dispatcher.popStash(repository, stashEntry)
     } catch (err) {
-      dispatcher.showPopup({
-        type: PopupType.Error,
-        error: err,
-      })
+      dispatcher.postError(err)
     } finally {
       this.setState({ isRestoring: false })
     }
