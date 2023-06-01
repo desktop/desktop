@@ -16,6 +16,7 @@ import { FoldoutType } from '../../lib/app-state'
 import untildify from 'untildify'
 import { showOpenDialog } from '../main-process-proxy'
 import { Ref } from '../lib/ref'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -130,71 +131,98 @@ export class AddExistingRepository extends React.Component<
     )
   }
 
-  private renderWarning() {
+  private buildBareRepositoryWarning() {
+    if (
+      !this.state.path.length ||
+      !this.state.showNonGitRepositoryWarning ||
+      !this.state.isRepositoryBare
+    ) {
+      return null
+    }
+
+    return (
+      <p>
+        This directory appears to be a bare repository. Bare repositories are
+        not currently supported.
+      </p>
+    )
+  }
+
+  private buildRepositoryUnsafeWarning() {
+    const { isRepositoryUnsafe, repositoryUnsafePath, path } = this.state
+
+    if (
+      !this.state.path.length ||
+      !this.state.showNonGitRepositoryWarning ||
+      !isRepositoryUnsafe ||
+      repositoryUnsafePath === undefined
+    ) {
+      return null
+    }
+
+    // Git for Windows will replace backslashes with slashes in the error
+    // message so we'll do the same to not show "the repo at path c:/repo"
+    // when the entered path is `c:\repo`.
+    const convertedPath = __WIN32__ ? path.replaceAll('\\', '/') : path
+
+    return (
+      <div>
+        <p>
+          The Git repository
+          {repositoryUnsafePath !== convertedPath && (
+            <>
+              {' at '}
+              <Ref>{repositoryUnsafePath}</Ref>
+            </>
+          )}{' '}
+          appears to be owned by another user on your machine. Adding untrusted
+          repositories may automatically execute files in the repository.
+        </p>
+        <p>
+          If you trust the owner of the directory you can
+          <LinkButton onClick={this.onTrustDirectory}>
+            add an exception for this directory
+          </LinkButton>{' '}
+          in order to continue.
+        </p>
+      </div>
+    )
+  }
+
+  private buildNotAGitRepositoryWarning() {
     if (!this.state.path.length || !this.state.showNonGitRepositoryWarning) {
       return null
     }
 
-    if (this.state.isRepositoryBare) {
-      return (
-        <Row className="warning-helper-text">
-          <Octicon symbol={OcticonSymbol.alert} />
-          <p>
-            This directory appears to be a bare repository. Bare repositories
-            are not currently supported.
-          </p>
-        </Row>
-      )
-    }
+    return (
+      <p>
+        This directory does not appear to be a Git repository.
+        <br />
+        Would you like to{' '}
+        <LinkButton onClick={this.onCreateRepositoryClicked}>
+          create a repository
+        </LinkButton>{' '}
+        here instead?
+      </p>
+    )
+  }
 
-    const { isRepositoryUnsafe, repositoryUnsafePath, path } = this.state
-
-    if (isRepositoryUnsafe && repositoryUnsafePath !== undefined) {
-      // Git for Windows will replace backslashes with slashes in the error
-      // message so we'll do the same to not show "the repo at path c:/repo"
-      // when the entered path is `c:\repo`.
-      const convertedPath = __WIN32__ ? path.replaceAll('\\', '/') : path
-
-      return (
-        <Row className="warning-helper-text">
-          <Octicon symbol={OcticonSymbol.alert} />
-          <div>
-            <p>
-              The Git repository
-              {repositoryUnsafePath !== convertedPath && (
-                <>
-                  {' at '}
-                  <Ref>{repositoryUnsafePath}</Ref>
-                </>
-              )}{' '}
-              appears to be owned by another user on your machine. Adding
-              untrusted repositories may automatically execute files in the
-              repository.
-            </p>
-            <p>
-              If you trust the owner of the directory you can
-              <LinkButton onClick={this.onTrustDirectory}>
-                add an exception for this directory
-              </LinkButton>{' '}
-              in order to continue.
-            </p>
-          </div>
-        </Row>
-      )
-    }
+  private renderWarning() {
+    const msg =
+      this.buildBareRepositoryWarning() ??
+      this.buildRepositoryUnsafeWarning() ??
+      this.buildNotAGitRepositoryWarning()
 
     return (
       <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
-        <p>
-          This directory does not appear to be a Git repository.
-          <br />
-          Would you like to{' '}
-          <LinkButton onClick={this.onCreateRepositoryClicked}>
-            create a repository
-          </LinkButton>{' '}
-          here instead?
-        </p>
+        {msg && <Octicon symbol={OcticonSymbol.alert} />}
+        {msg}
+        <AriaLiveContainer
+          id="add-existing-repository-warning"
+          trackedUserInput={this.state.path + msg}
+        >
+          {msg}
+        </AriaLiveContainer>
       </Row>
     )
   }
@@ -220,6 +248,7 @@ export class AddExistingRepository extends React.Component<
               label={__DARWIN__ ? 'Local Path' : 'Local path'}
               placeholder="repository path"
               onValueChanged={this.onPathChanged}
+              ariaControls="add-existing-repository-warning"
             />
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
