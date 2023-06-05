@@ -1,5 +1,12 @@
 {
   "releases": {
+    "3.2.4": [
+      "[Fixed] The misattributed commit avatar popover no longer causes the changes list to have scrollbars",
+      "[Fixed] Autocompletion list is always visible regardless of its position on the screen",
+      "[Fixed] Close Squash Commit Message dialog on squash start",
+      "[Fixed] Multi-commit diffing produces the same results whether you select up to down or down to up",
+      "[Removed] Remove support for Windows 7, 8, and 8.1"
+    ],
     "3.2.3": [
       "[New] Add fetch and force-push actions in a dropdown as an alternative to the main Pull/Push/Publish action button - #15907",
       "[New] Get notified when someone comments your pull requests - #16226",
