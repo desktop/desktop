@@ -22,14 +22,14 @@ import {
 } from '../../lib/fatal-error'
 import classNames from 'classnames'
 import {
-  List,
-  AutoSizer,
-  CellMeasurerCache,
-  CellMeasurer,
+  VariableSizeList as List,
+  // CellMeasurerCache,
+  // CellMeasurer,
   ListRowProps,
   OverscanIndicesGetterParams,
   defaultOverscanIndicesGetter,
-} from 'react-virtualized'
+} from 'react-window'
+import AutoSizer from 'react-virtualized-auto-sizer'
 import { SideBySideDiffRow } from './side-by-side-diff-row'
 import memoize from 'memoize-one'
 import {
@@ -455,13 +455,13 @@ export class SideBySideDiff extends React.Component<
           ref={this.onDiffContainerRef}
         >
           <AutoSizer onResize={this.clearListRowsHeightCache}>
-            {({ height, width }) => (
+            {({ height, width }: { height: number; width: number }) => (
               <List
-                deferredMeasurementCache={listRowsHeightCache}
+                // deferredMeasurementCache={listRowsHeightCache}
                 width={width}
                 height={height}
-                rowCount={rows.length}
-                rowHeight={this.getRowHeight}
+                itemCount={rows.length}
+                itemSize={this.getRowHeight}
                 rowRenderer={this.renderRow}
                 ref={this.virtualListRef}
                 overscanIndicesGetter={this.overscanIndicesGetter}
@@ -481,7 +481,7 @@ export class SideBySideDiff extends React.Component<
                 // rows are memoized and include things like the
                 // noNewlineIndicator
                 rows={rows}
-              />
+              ></List>
             )}
           </AutoSizer>
         </div>
@@ -581,7 +581,7 @@ export class SideBySideDiff extends React.Component<
     )
   }
 
-  private getRowHeight = (row: { index: number }) => {
+  private getRowHeight = (row: number) => {
     return listRowsHeightCache.rowHeight(row) ?? DefaultRowHeight
   }
 
