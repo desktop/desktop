@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { RowIndexPath } from './list'
 
 export type SelectionDirection = 'up' | 'down'
 
@@ -11,7 +12,7 @@ interface ISelectRowAction {
   /**
    * The starting row index to search from.
    */
-  readonly row: number
+  readonly row: RowIndexPath
 
   /**
    * A flag to indicate or not to look beyond the last or first
@@ -78,11 +79,11 @@ export type SelectionSource =
  * identical to the given row parameter.
  */
 export function findNextSelectableRow(
-  rowCount: number,
+  rowCount: ReadonlyArray<number>,
   action: ISelectRowAction,
-  canSelectRow: (row: number) => boolean = row => true
-): number | null {
-  if (rowCount === 0) {
+  canSelectRow: (row: RowIndexPath) => boolean = row => true
+): RowIndexPath | null {
+  if (rowCount.reduce((a, b) => a + b, 0) === 0) {
     return null
   }
 
@@ -148,9 +149,9 @@ export function findNextSelectableRow(
  */
 export function findLastSelectableRow(
   direction: SelectionDirection,
-  rowCount: number,
-  canSelectRow: (row: number) => boolean
-) {
+  rowCount: ReadonlyArray<number>,
+  canSelectRow: (row: RowIndexPath) => boolean
+): RowIndexPath | null {
   let i = direction === 'up' ? 0 : rowCount - 1
   const delta = direction === 'up' ? 1 : -1
 

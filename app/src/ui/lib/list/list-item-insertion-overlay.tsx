@@ -4,6 +4,7 @@ import { Disposable } from 'event-kit'
 import * as React from 'react'
 import { dragAndDropManager } from '../../../lib/drag-and-drop-manager'
 import { DragData, DragType, DropTargetType } from '../../../models/drag-drop'
+import { RowIndexPath } from './list'
 
 enum InsertionFeedbackType {
   None,
@@ -13,11 +14,11 @@ enum InsertionFeedbackType {
 
 interface IListItemInsertionOverlayProps {
   readonly onDropDataInsertion?: (
-    insertionIndex: number,
+    insertionIndex: RowIndexPath,
     data: DragData
   ) => void
 
-  readonly itemIndex: number
+  readonly itemIndex: RowIndexPath
   readonly dragType: DragType
 }
 
@@ -188,7 +189,10 @@ export class ListItemInsertionOverlay extends React.PureComponent<
       let index = this.props.itemIndex
 
       if (this.state.feedbackType === InsertionFeedbackType.Bottom) {
-        index++
+        index = {
+          ...index,
+          row: index.row + 1,
+        }
       }
       this.props.onDropDataInsertion(index, dragAndDropManager.dragData)
     }

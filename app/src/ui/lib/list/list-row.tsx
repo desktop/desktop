@@ -1,12 +1,13 @@
 import * as React from 'react'
 import classNames from 'classnames'
+import { RowIndexPath } from './list'
 
 interface IListRowProps {
   /** the total number of row in this list */
   readonly rowCount: number
 
   /** the index of the row in the list */
-  readonly rowIndex: number
+  readonly rowIndex: RowIndexPath
 
   /** custom styles to provide to the row */
   readonly style?: React.CSSProperties
@@ -21,39 +22,51 @@ interface IListRowProps {
   readonly selected?: boolean
 
   /** callback to fire when the DOM element is created */
-  readonly onRowRef?: (index: number, element: HTMLDivElement | null) => void
+  readonly onRowRef?: (
+    index: RowIndexPath,
+    element: HTMLDivElement | null
+  ) => void
 
   /** callback to fire when the row receives a mousedown event */
-  readonly onRowMouseDown: (index: number, e: React.MouseEvent<any>) => void
+  readonly onRowMouseDown: (
+    index: RowIndexPath,
+    e: React.MouseEvent<any>
+  ) => void
 
   /** callback to fire when the row receives a mouseup event */
-  readonly onRowMouseUp: (index: number, e: React.MouseEvent<any>) => void
+  readonly onRowMouseUp: (index: RowIndexPath, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row is clicked */
-  readonly onRowClick: (index: number, e: React.MouseEvent<any>) => void
+  readonly onRowClick: (index: RowIndexPath, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row is double clicked */
-  readonly onRowDoubleClick: (index: number, e: React.MouseEvent<any>) => void
+  readonly onRowDoubleClick: (
+    index: RowIndexPath,
+    e: React.MouseEvent<any>
+  ) => void
 
   /** callback to fire when the row receives a keyboard event */
-  readonly onRowKeyDown: (index: number, e: React.KeyboardEvent<any>) => void
+  readonly onRowKeyDown: (
+    index: RowIndexPath,
+    e: React.KeyboardEvent<any>
+  ) => void
 
   /** called when the row (or any of its descendants) receives focus */
   readonly onRowFocus?: (
-    index: number,
+    index: RowIndexPath,
     e: React.FocusEvent<HTMLDivElement>
   ) => void
 
   /** called when the row (and all of its descendants) loses focus */
   readonly onRowBlur?: (
-    index: number,
+    index: RowIndexPath,
     e: React.FocusEvent<HTMLDivElement>
   ) => void
 
   /** Called back for when the context menu is invoked (user right clicks of
    * uses keyboard shortcuts) */
   readonly onContextMenu?: (
-    index: number,
+    index: RowIndexPath,
     e: React.MouseEvent<HTMLDivElement>
   ) => void
 
@@ -127,7 +140,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         id={this.props.id}
         role="option"
         aria-setsize={this.props.rowCount}
-        aria-posinset={this.props.rowIndex + 1}
+        aria-posinset={this.props.rowIndex.row + 1}
         aria-selected={this.props.selectable ? this.props.selected : undefined}
         className={className}
         tabIndex={this.props.tabIndex}
