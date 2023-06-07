@@ -18,11 +18,14 @@ import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
 import memoizeOne from 'memoize-one'
 import {
+  globalIndexToRowIndexPath,
   InvalidRowIndexPath,
   isValidRow,
-  RowIndexPath as indexPath,
+  RowIndexPath,
   rowIndexPathEquals,
+  rowIndexPathToGlobalIndex,
 } from './list-row-index-path'
+import { range } from '../../../lib/range'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -56,7 +59,7 @@ interface IListProps {
    * of the row, only its contents and may return null although
    * that will result in an empty list item.
    */
-  readonly rowRenderer: (row: indexPath) => JSX.Element | null
+  readonly rowRenderer: (row: RowIndexPath) => JSX.Element | null
 
   /**
    * The total number of rows in the list. This is used for
@@ -74,14 +77,14 @@ interface IListProps {
    * are of equal height, or, a function that, given a row index returns
    * the height of that particular row.
    */
-  readonly rowHeight: number | ((info: { index: indexPath }) => number)
+  readonly rowHeight: number | ((info: { index: RowIndexPath }) => number)
 
   /**
    * Function that generates an ID for a given row. This will allow the
    * container component of the list to have control over the ID of the
    * row and allow it to be used for things like keyboard navigation.
    */
-  readonly rowId?: (indexPath: indexPath) => string
+  readonly rowId?: (indexPath: RowIndexPath) => string
 
   /**
    * The currently selected rows indexes. Used to attach a special
@@ -96,12 +99,12 @@ interface IListProps {
    * behaviors when a user modifies their selection via key commands.
    * See #15536 lessons learned.
    */
-  readonly selectedRows: ReadonlyArray<indexPath>
+  readonly selectedRows: ReadonlyArray<RowIndexPath>
 
   /**
    * Used to attach special classes to specific rows
    */
-  readonly rowCustomClassNameMap?: Map<string, ReadonlyArray<indexPath>>
+  readonly rowCustomClassNameMap?: Map<string, ReadonlyArray<RowIndexPath>>
 
   /**
    * This function will be called when a pointer device is pressed and then
@@ -116,10 +119,10 @@ interface IListProps {
    * Consumers of this event do _not_ have to call event.preventDefault,
    * when this event is subscribed to the list will automatically call it.
    */
-  readonly onRowClick?: (row: indexPath, source: ClickSource) => void
+  readonly onRowClick?: (row: RowIndexPath, source: ClickSource) => void
 
   readonly onRowDoubleClick?: (
-    indexPath: indexPath,
+    indexPath: RowIndexPath,
     source: IMouseClickSource
   ) => void
 
@@ -150,7 +153,7 @@ interface IListProps {
    *                 a pointer device press or a keyboard event (arrow up/down)
    */
   readonly onSelectedRowChanged?: (
-    indexPath: indexPath,
+    indexPath: RowIndexPath,
     source: SelectionSource
   ) => void
 
@@ -167,8 +170,8 @@ interface IListProps {
    *                 a pointer device press or a keyboard event (arrow up/down)
    */
   readonly onSelectedRangeChanged?: (
-    start: indexPath,
-    end: indexPath,
+    start: RowIndexPath,
+    end: RowIndexPath,
     source: SelectionSource
   ) => void
 
@@ -183,7 +186,7 @@ interface IListProps {
    *                 a pointer device press or a keyboard event (arrow up/down)
    */
   readonly onSelectionChanged?: (
-    rows: ReadonlyArray<indexPath>,
+    rows: ReadonlyArray<RowIndexPath>,
     source: SelectionSource
   ) => void
 
@@ -198,7 +201,7 @@ interface IListProps {
    * for calling event.preventDefault() when acting on a key press.
    */
   readonly onRowKeyDown?: (
-    indexPath: indexPath,
+    indexPath: RowIndexPath,
     event: React.KeyboardEvent<any>
   ) => void
 
@@ -208,7 +211,7 @@ interface IListProps {
    * for every mouse down event, whether the row is selected or not.
    */
   readonly onRowMouseDown?: (
-    indexPath: indexPath,
+    indexPath: RowIndexPath,
     event: React.MouseEvent<any>
   ) => void
 
@@ -220,7 +223,7 @@ interface IListProps {
    * uses keyboard shortcut.
    */
   readonly onRowContextMenu?: (
-    row: indexPath,
+    row: RowIndexPath,
     event: React.MouseEvent<HTMLDivElement>
   ) => void
 
@@ -231,14 +234,17 @@ interface IListProps {
    *              items.
    * @param data -  The data dropped by the user.
    */
-  readonly onDropDataInsertion?: (indexPath: indexPath, data: DragData) => void
+  readonly onDropDataInsertion?: (
+    indexPath: RowIndexPath,
+    data: DragData
+  ) => void
 
   /**
    * An optional handler called to determine whether a given row is
    * selectable or not. Reasons for why a row might not be selectable
    * includes it being a group header or the item being disabled.
    */
-  readonly canSelectRow?: (row: indexPath) => boolean
+  readonly canSelectRow?: (row: RowIndexPath) => boolean
   readonly onScroll?: (scrollTop: number, clientHeight: number) => void
 
   /**
@@ -255,7 +261,7 @@ interface IListProps {
   readonly accessibleListId?: string
 
   /** The row that should be scrolled to when the list is rendered. */
-  readonly scrollToRow?: indexPath
+  readonly scrollToRow?: RowIndexPath
 
   /** Type of elements that can be inserted in the list via drag & drop. Optional. */
   readonly insertionDragType?: DragType
@@ -290,56 +296,34 @@ interface IListState {
  * inclusive upper and lower bound.
  */
 function createSelectionBetween(
-  firstRow: indexPath,
-  lastRow: indexPath,
+  firstRow: RowIndexPath,
+  lastRow: RowIndexPath,
   rowCount: ReadonlyArray<number>
-): ReadonlyArray<indexPath> {
-  // range is upper bound exclusive
-  const isInverseSelection =
-    lastRow.section > firstRow.section ||
-    (lastRow.section === firstRow.section && lastRow.row > firstRow.row)
-
-  const end = isInverseSelection
-    ? {
-        row: lastRow.row + 1,
-        section: lastRow.section,
-      }
-    : {
-        row: lastRow.row - 1,
-        section: lastRow.section,
-      }
-
-  const step = isInverseSelection ? -1 : 1
-  const result = new Array<indexPath>()
-
-  for (let i = firstRow.section; i <= lastRow.section; i += step) {
-    const sectionRowCount = rowCount[i]
-    if (sectionRowCount === 0) {
-      continue
-    }
-
-    const groupStartRow = isInverseSelection
-      ? sectionRowCount - 1
-      : i === firstRow.section
-      ? firstRow.row
-      : 0
-    const groupEndRow = i === lastRow.section ? end.row : sectionRowCount - 1
-
-    for (let j = groupStartRow; j !== groupEndRow; j += step) {
-      result.push({ section: i, row: j })
-    }
-
-    result.push({ section: i, row: groupEndRow })
+): ReadonlyArray<RowIndexPath> {
+  const firstIndex = rowIndexPathToGlobalIndex(firstRow, rowCount)
+  const lastIndex = rowIndexPathToGlobalIndex(lastRow, rowCount)
+  if (firstIndex === null || lastIndex === null) {
+    return []
   }
 
-  return result
+  const end = lastIndex > firstIndex ? lastIndex + 1 : lastIndex - 1
+  // range is upper bound exclusive
+  const rowRange = range(firstIndex, end)
+  const selection = new Array<RowIndexPath>(rowRange.length)
+  for (let i = 0; i < rowRange.length; i++) {
+    const indexPath = globalIndexToRowIndexPath(rowRange[i], rowCount)
+    if (indexPath !== null) {
+      selection[i] = indexPath
+    }
+  }
+  return selection
 }
 
 export class List extends React.Component<IListProps, IListState> {
   private fakeScroll: HTMLDivElement | null = null
-  private focusRow: indexPath = InvalidRowIndexPath
+  private focusRow: RowIndexPath = InvalidRowIndexPath
 
-  private readonly rowRefs = new Map<indexPath, HTMLDivElement>()
+  private readonly rowRefs = new Map<RowIndexPath, HTMLDivElement>()
 
   /**
    * The style prop for our child Grid. We keep this here in order
@@ -418,7 +402,7 @@ export class List extends React.Component<IListProps, IListState> {
     return this.props.rowCount.reduce((a, b) => a + b, 0)
   }
 
-  private getRowId(row: indexPath): string | undefined {
+  private getRowId(row: RowIndexPath): string | undefined {
     if (this.props.rowId) {
       return this.props.rowId(row)
     }
@@ -452,8 +436,8 @@ export class List extends React.Component<IListProps, IListState> {
     }
 
     const source: ISelectAllSource = { kind: 'select-all' }
-    const firstRow: indexPath = { section: 0, row: 0 }
-    const lastRow: indexPath = {
+    const firstRow: RowIndexPath = { section: 0, row: 0 }
+    const lastRow: RowIndexPath = {
       section: this.props.rowCount.length - 1,
       row: this.props.rowCount[this.props.rowCount.length - 1] - 1,
     }
@@ -600,7 +584,7 @@ export class List extends React.Component<IListProps, IListState> {
 
   private getNextPageRowIndexPath(direction: SelectionDirection) {
     const { selectedRows } = this.props
-    const lastSelection: indexPath = selectedRows.at(-1) ?? {
+    const lastSelection: RowIndexPath = selectedRows.at(-1) ?? {
       row: 0,
       section: 0,
     }
@@ -608,13 +592,13 @@ export class List extends React.Component<IListProps, IListState> {
     return this.findNextPageSelectableRow(lastSelection, direction)
   }
 
-  private getHeightForRowAtIndexPath(index: indexPath) {
+  private getHeightForRowAtIndexPath(index: RowIndexPath) {
     const { rowHeight } = this.props
     return typeof rowHeight === 'number' ? rowHeight : rowHeight({ index })
   }
 
   private findNextPageSelectableRow(
-    fromRow: indexPath,
+    fromRow: RowIndexPath,
     direction: SelectionDirection
   ) {
     const { height: listHeight } = this.state
@@ -656,7 +640,7 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onRowKeyDown = (
-    rowIndex: indexPath,
+    rowIndex: RowIndexPath,
     event: React.KeyboardEvent<any>
   ) => {
     if (this.props.onRowKeyDown) {
@@ -720,14 +704,14 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onRowFocus = (
-    index: indexPath,
+    index: RowIndexPath,
     e: React.FocusEvent<HTMLDivElement>
   ) => {
     this.focusRow = index
   }
 
   private onRowBlur = (
-    index: indexPath,
+    index: RowIndexPath,
     e: React.FocusEvent<HTMLDivElement>
   ) => {
     if (rowIndexPathEquals(this.focusRow, index)) {
@@ -736,13 +720,13 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onRowContextMenu = (
-    row: indexPath,
+    row: RowIndexPath,
     e: React.MouseEvent<HTMLDivElement>
   ) => {
     this.props.onRowContextMenu?.(row, e)
   }
 
-  private get firstRowIndexPath(): indexPath {
+  private get firstRowIndexPath(): RowIndexPath {
     for (let section = 0; section < this.props.rowCount.length; section++) {
       const rowCount = this.props.rowCount[section]
       if (rowCount > 0) {
@@ -754,7 +738,7 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   /** Convenience method for invoking canSelectRow callback when it exists */
-  private canSelectRow = (rowIndex: indexPath) => {
+  private canSelectRow = (rowIndex: RowIndexPath) => {
     return this.props.canSelectRow ? this.props.canSelectRow(rowIndex) : true
   }
 
@@ -854,7 +838,7 @@ export class List extends React.Component<IListProps, IListState> {
     this.scrollRowToVisible(row)
   }
 
-  private moveSelectionTo(row: indexPath, source: SelectionSource) {
+  private moveSelectionTo(row: RowIndexPath, source: SelectionSource) {
     if (this.props.onSelectionChanged) {
       this.props.onSelectionChanged([row], source)
     }
@@ -873,7 +857,7 @@ export class List extends React.Component<IListProps, IListState> {
     this.scrollRowToVisible(row)
   }
 
-  private scrollRowToVisible(row: indexPath, moveFocus = true) {
+  private scrollRowToVisible(row: RowIndexPath, moveFocus = true) {
     const grid = this.grids.get(row.section)
 
     if (grid !== undefined) {
@@ -972,7 +956,10 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onRowRef = (rowIndex: indexPath, element: HTMLDivElement | null) => {
+  private onRowRef = (
+    rowIndex: RowIndexPath,
+    element: HTMLDivElement | null
+  ) => {
     if (element === null) {
       this.rowRefs.delete(rowIndex)
     } else {
@@ -998,7 +985,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private getCustomRowClassNames = (rowIndex: indexPath) => {
+  private getCustomRowClassNames = (rowIndex: RowIndexPath) => {
     const { rowCustomClassNameMap } = this.props
     if (rowCustomClassNameMap === undefined) {
       return undefined
@@ -1006,7 +993,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     const customClasses = new Array<string>()
     rowCustomClassNameMap.forEach(
-      (rows: ReadonlyArray<indexPath>, className: string) => {
+      (rows: ReadonlyArray<RowIndexPath>, className: string) => {
         if (rows.includes(rowIndex)) {
           customClasses.push(className)
         }
@@ -1018,7 +1005,7 @@ export class List extends React.Component<IListProps, IListState> {
 
   private getRowRenderer = (section: number) => {
     return (params: IRowRendererParams) => {
-      const rowIndex: indexPath = {
+      const rowIndex: RowIndexPath = {
         section: section,
         row: params.rowIndex,
       }
@@ -1141,7 +1128,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
 
     return (params: Index) => {
-      const index: indexPath = {
+      const index: RowIndexPath = {
         section: section,
         row: params.index,
       }
@@ -1280,7 +1267,10 @@ export class List extends React.Component<IListProps, IListState> {
     // }
   }
 
-  private onRowMouseDown = (row: indexPath, event: React.MouseEvent<any>) => {
+  private onRowMouseDown = (
+    row: RowIndexPath,
+    event: React.MouseEvent<any>
+  ) => {
     if (this.canSelectRow(row)) {
       if (this.props.onRowMouseDown) {
         this.props.onRowMouseDown(row, event)
@@ -1337,7 +1327,7 @@ export class List extends React.Component<IListProps, IListState> {
          * toggle selection of the targeted row
          */
         if (this.props.onSelectionChanged) {
-          let newSelection: ReadonlyArray<indexPath>
+          let newSelection: ReadonlyArray<RowIndexPath>
           if (this.props.selectedRows.includes(row)) {
             // remove the ability to deselect the last item
             if (this.props.selectedRows.length === 1) {
@@ -1379,7 +1369,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onRowMouseUp = (row: indexPath, event: React.MouseEvent<any>) => {
+  private onRowMouseUp = (row: RowIndexPath, event: React.MouseEvent<any>) => {
     if (!this.canSelectRow(row)) {
       return
     }
@@ -1413,7 +1403,7 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private selectSingleRowAfterMouseEvent(
-    row: indexPath,
+    row: RowIndexPath,
     event: React.MouseEvent<any>
   ): void {
     if (this.props.onSelectionChanged) {
@@ -1439,7 +1429,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onRowClick = (row: indexPath, event: React.MouseEvent<any>) => {
+  private onRowClick = (row: RowIndexPath, event: React.MouseEvent<any>) => {
     if (this.canSelectRow(row) && this.props.onRowClick) {
       if (!isValidRow(row, this.props.rowCount)) {
         log.debug(
@@ -1452,7 +1442,10 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onRowDoubleClick = (row: indexPath, event: React.MouseEvent<any>) => {
+  private onRowDoubleClick = (
+    row: RowIndexPath,
+    event: React.MouseEvent<any>
+  ) => {
     if (!this.props.onRowDoubleClick) {
       return
     }

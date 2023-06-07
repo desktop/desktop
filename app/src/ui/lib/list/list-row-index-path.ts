@@ -56,10 +56,10 @@ export function isValidRow(
   rowCount: ReadonlyArray<number>
 ) {
   return (
-    indexPath.section < 0 ||
-    indexPath.section >= rowCount.length ||
-    indexPath.row < 0 ||
-    indexPath.row >= rowCount[indexPath.section]
+    indexPath.section >= 0 &&
+    indexPath.section < rowCount.length &&
+    indexPath.row >= 0 &&
+    indexPath.row < rowCount[indexPath.section]
   )
 }
 
