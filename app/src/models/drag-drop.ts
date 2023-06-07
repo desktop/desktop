@@ -1,4 +1,4 @@
-import { RowIndexPath } from '../ui/lib/list'
+import { RowIndexPath } from '../ui/lib/list/list-row-index-path'
 import { Commit } from './commit'
 import { GitHubRepository } from './github-repository'
 

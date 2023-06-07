@@ -1,6 +1,6 @@
 import * as React from 'react'
 import classNames from 'classnames'
-import { RowIndexPath } from './list'
+import { RowIndexPath } from './list-row-index-path'
 
 interface IListRowProps {
   /** the total number of row in this list */

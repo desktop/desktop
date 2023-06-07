@@ -19,6 +19,7 @@ import { DialogHeader } from '../dialog/header'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { List } from '../lib/list'
+import { RowIndexPath } from '../lib/list/list-row-index-path'
 import { Loading } from '../lib/loading'
 import { getPullRequestReviewStateIcon } from '../notifications/pull-request-review-helpers'
 import { Octicon } from '../octicons'
@@ -399,7 +400,7 @@ export class TestNotifications extends React.Component<
         Pull requests:
         <List
           rowHeight={40}
-          rowCount={pullRequests.length}
+          rowCount={[pullRequests.length]}
           rowRenderer={this.renderPullRequestRow}
           selectedRows={[]}
           onRowClick={this.onPullRequestRowClick}
@@ -408,8 +409,8 @@ export class TestNotifications extends React.Component<
     )
   }
 
-  private onPullRequestRowClick = (row: number) => {
-    const pullRequest = this.state.pullRequests[row]
+  private onPullRequestRowClick = (indexPath: RowIndexPath) => {
+    const pullRequest = this.state.pullRequests[indexPath.row]
     const stepResults = this.state.stepResults
     stepResults.set(TestNotificationStepKind.SelectPullRequest, {
       kind: TestNotificationStepKind.SelectPullRequest,
@@ -442,7 +443,7 @@ export class TestNotifications extends React.Component<
         Reviews:
         <List
           rowHeight={40}
-          rowCount={reviews.length}
+          rowCount={[reviews.length]}
           rowRenderer={this.renderPullRequestReviewRow}
           selectedRows={[]}
           onRowClick={this.onPullRequestReviewRowClick}
@@ -451,8 +452,8 @@ export class TestNotifications extends React.Component<
     )
   }
 
-  private onPullRequestReviewRowClick = (row: number) => {
-    const review = this.state.reviews[row]
+  private onPullRequestReviewRowClick = (indexPath: RowIndexPath) => {
+    const review = this.state.reviews[indexPath.row]
     const stepResults = this.state.stepResults
     stepResults.set(TestNotificationStepKind.SelectPullRequestReview, {
       kind: TestNotificationStepKind.SelectPullRequestReview,
@@ -485,7 +486,7 @@ export class TestNotifications extends React.Component<
         Comments:
         <List
           rowHeight={40}
-          rowCount={comments.length}
+          rowCount={[comments.length]}
           rowRenderer={this.renderPullRequestCommentRow}
           selectedRows={[]}
           onRowClick={this.onPullRequestCommentRowClick}
@@ -494,8 +495,8 @@ export class TestNotifications extends React.Component<
     )
   }
 
-  private onPullRequestCommentRowClick = (row: number) => {
-    const comment = this.state.comments[row]
+  private onPullRequestCommentRowClick = (indexPath: RowIndexPath) => {
+    const comment = this.state.comments[indexPath.row]
     const stepResults = this.state.stepResults
     stepResults.set(TestNotificationStepKind.SelectPullRequestComment, {
       kind: TestNotificationStepKind.SelectPullRequestComment,
@@ -513,8 +514,8 @@ export class TestNotifications extends React.Component<
     )
   }
 
-  private renderPullRequestCommentRow = (row: number) => {
-    const comment = this.state.comments[row]
+  private renderPullRequestCommentRow = (indexPath: RowIndexPath) => {
+    const comment = this.state.comments[indexPath.row]
     return (
       <TestNotificationItemRowContent
         dispatcher={this.props.dispatcher}
@@ -528,8 +529,8 @@ export class TestNotifications extends React.Component<
     )
   }
 
-  private renderPullRequestReviewRow = (row: number) => {
-    const review = this.state.reviews[row]
+  private renderPullRequestReviewRow = (indexPath: RowIndexPath) => {
+    const review = this.state.reviews[indexPath.row]
 
     return (
       <TestNotificationItemRowContent
@@ -555,8 +556,8 @@ export class TestNotifications extends React.Component<
     )
   }
 
-  private renderPullRequestRow = (row: number) => {
-    const pullRequest = this.state.pullRequests[row]
+  private renderPullRequestRow = (indexPath: RowIndexPath) => {
+    const pullRequest = this.state.pullRequests[indexPath.row]
     const repository = this.props.repository.gitHubRepository
     const endpointHtmlUrl = getHTMLURL(repository.endpoint)
     const htmlURL = `${endpointHtmlUrl}/${repository.owner.login}/${repository.name}/pull/${pullRequest.pullRequestNumber}`

@@ -13,6 +13,7 @@ import { Row } from '../lib/row'
 
 import { match, IMatch, IMatches } from '../../lib/fuzzy-find'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
+import { InvalidRowIndexPath, RowIndexPath } from './list/list-row-index-path'
 
 /** An item in the filter list. */
 export interface IFilterListItem {
@@ -171,7 +172,7 @@ interface IFilterListProps<T extends IFilterListItem> {
 
 interface IFilterListState<T extends IFilterListItem> {
   readonly rows: ReadonlyArray<IFilterListRow<T>>
-  readonly selectedRow: number
+  readonly selectedRow: RowIndexPath
   readonly filterValue: string
 }
 
@@ -314,23 +315,23 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     if (this.list === null) {
       return
     }
-    let next: number | null = null
+    let next: RowIndexPath | null = null
 
     if (
-      this.state.selectedRow === -1 ||
-      this.state.selectedRow === this.state.rows.length
+      this.state.selectedRow.row === -1 ||
+      this.state.selectedRow.row === this.state.rows.length
     ) {
       next = findNextSelectableRow(
-        this.state.rows.length,
+        [this.state.rows.length],
         {
           direction: inDirection,
-          row: -1,
+          row: InvalidRowIndexPath,
         },
         this.canSelectRow
       )
     } else {
       next = findNextSelectableRow(
-        this.state.rows.length,
+        [this.state.rows.length],
         {
           direction: inDirection,
           row: this.state.selectedRow,
@@ -355,7 +356,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return (
         <List
           ref={this.onListRef}
-          rowCount={this.state.rows.length}
+          rowCount={[this.state.rows.length]}
           rowRenderer={this.renderRow}
           rowHeight={this.props.rowHeight}
           selectedRows={[this.state.selectedRow]}
@@ -373,8 +374,8 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
   }
 
-  private renderRow = (index: number) => {
-    const row = this.state.rows[index]
+  private renderRow = (index: RowIndexPath) => {
+    const row = this.state.rows[index.row]
     if (row.kind === 'item') {
       return this.props.renderItem(row.item, row.matches)
     } else if (this.props.renderGroupHeader) {
@@ -409,29 +410,32 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
   }
 
-  private onSelectedRowChanged = (index: number, source: SelectionSource) => {
+  private onSelectedRowChanged = (
+    index: RowIndexPath,
+    source: SelectionSource
+  ) => {
     this.setState({ selectedRow: index })
 
     if (this.props.onSelectionChanged) {
-      const row = this.state.rows[index]
+      const row = this.state.rows[index.row]
       if (row.kind === 'item') {
         this.props.onSelectionChanged(row.item, source)
       }
     }
   }
 
-  private canSelectRow = (index: number) => {
+  private canSelectRow = (index: RowIndexPath) => {
     if (this.props.disabled) {
       return false
     }
 
-    const row = this.state.rows[index]
+    const row = this.state.rows[index.row]
     return row.kind === 'item'
   }
 
-  private onRowClick = (index: number, source: ClickSource) => {
+  private onRowClick = (index: RowIndexPath, source: ClickSource) => {
     if (this.props.onItemClick) {
-      const row = this.state.rows[index]
+      const row = this.state.rows[index.row]
 
       if (row.kind === 'item') {
         this.props.onItemClick(row.item, source)
@@ -440,14 +444,14 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   private onRowContextMenu = (
-    index: number,
+    index: RowIndexPath,
     source: React.MouseEvent<HTMLDivElement>
   ) => {
     if (!this.props.onItemContextMenu) {
       return
     }
 
-    const row = this.state.rows[index]
+    const row = this.state.rows[index.row]
 
     if (row.kind !== 'item') {
       return
@@ -456,7 +460,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     this.props.onItemContextMenu(row.item, source)
   }
 
-  private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
+  private onRowKeyDown = (
+    indexPath: RowIndexPath,
+    event: React.KeyboardEvent<any>
+  ) => {
     const list = this.list
     if (!list) {
       return
@@ -465,21 +472,27 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     const rowCount = this.state.rows.length
 
     const firstSelectableRow = findNextSelectableRow(
-      rowCount,
-      { direction: 'down', row: -1 },
+      [rowCount],
+      { direction: 'down', row: InvalidRowIndexPath },
       this.canSelectRow
     )
     const lastSelectableRow = findNextSelectableRow(
-      rowCount,
-      { direction: 'up', row: 0 },
+      [rowCount],
+      {
+        direction: 'up',
+        row: {
+          section: 0,
+          row: 0,
+        },
+      },
       this.canSelectRow
     )
 
     let shouldFocus = false
 
-    if (event.key === 'ArrowUp' && row === firstSelectableRow) {
+    if (event.key === 'ArrowUp' && indexPath === firstSelectableRow) {
       shouldFocus = true
-    } else if (event.key === 'ArrowDown' && row === lastSelectableRow) {
+    } else if (event.key === 'ArrowDown' && indexPath === lastSelectableRow) {
       shouldFocus = true
     }
 
@@ -514,8 +527,8 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     if (key === 'ArrowDown') {
       if (rowCount > 0) {
         const selectedRow = findNextSelectableRow(
-          rowCount,
-          { direction: 'down', row: -1 },
+          [rowCount],
+          { direction: 'down', row: InvalidRowIndexPath },
           this.canSelectRow
         )
         if (selectedRow != null) {
@@ -529,8 +542,14 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     } else if (key === 'ArrowUp') {
       if (rowCount > 0) {
         const selectedRow = findNextSelectableRow(
-          rowCount,
-          { direction: 'up', row: 0 },
+          [rowCount],
+          {
+            direction: 'up',
+            row: {
+              section: 0,
+              row: 0,
+            },
+          },
           this.canSelectRow
         )
         if (selectedRow != null) {
@@ -554,8 +573,8 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       }
 
       const row = findNextSelectableRow(
-        rowCount,
-        { direction: 'down', row: -1 },
+        [rowCount],
+        { direction: 'down', row: InvalidRowIndexPath },
         this.canSelectRow
       )
 
@@ -600,18 +619,24 @@ function createStateUpdate<T extends IFilterListItem>(
     }
   }
 
-  let selectedRow = -1
+  let selectedRow = InvalidRowIndexPath
   const selectedItem = props.selectedItem
   if (selectedItem) {
-    selectedRow = flattenedRows.findIndex(
-      i => i.kind === 'item' && i.item.id === selectedItem.id
-    )
+    selectedRow = {
+      section: 0,
+      row: flattenedRows.findIndex(
+        i => i.kind === 'item' && i.item.id === selectedItem.id
+      ),
+    }
   }
 
-  if (selectedRow < 0 && filter.length) {
+  if (selectedRow.row < 0 && filter.length) {
     // If the selected item isn't in the list (e.g., filtered out), then
     // select the first visible item.
-    selectedRow = flattenedRows.findIndex(i => i.kind === 'item')
+    selectedRow = {
+      section: 0,
+      row: flattenedRows.findIndex(i => i.kind === 'item'),
+    }
   }
 
   return { rows: flattenedRows, selectedRow, filterValue: filter }
@@ -619,10 +644,10 @@ function createStateUpdate<T extends IFilterListItem>(
 
 function getItemFromRowIndex<T extends IFilterListItem>(
   items: ReadonlyArray<IFilterListRow<T>>,
-  index: number
+  index: RowIndexPath
 ): T | null {
-  if (index >= 0 && index < items.length) {
-    const row = items[index]
+  if (index.row >= 0 && index.row < items.length) {
+    const row = items[index.row]
 
     if (row.kind === 'item') {
       return row.item
@@ -634,7 +659,7 @@ function getItemFromRowIndex<T extends IFilterListItem>(
 
 function getItemIdFromRowIndex<T extends IFilterListItem>(
   items: ReadonlyArray<IFilterListRow<T>>,
-  index: number
+  index: RowIndexPath
 ): string | null {
   const item = getItemFromRowIndex(items, index)
   return item ? item.id : null

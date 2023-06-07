@@ -1,5 +1,13 @@
 import * as React from 'react'
-import { RowIndexPath } from './list'
+import {
+  getTotalRowCount,
+  globalIndexToRowIndexPath,
+  InvalidRowIndexPath,
+  isValidRow,
+  RowIndexPath,
+  rowIndexPathEquals,
+  rowIndexPathToGlobalIndex,
+} from './list-row-index-path'
 
 export type SelectionDirection = 'up' | 'down'
 
@@ -81,14 +89,20 @@ export type SelectionSource =
 export function findNextSelectableRow(
   rowCount: ReadonlyArray<number>,
   action: ISelectRowAction,
-  canSelectRow: (row: RowIndexPath) => boolean = row => true
+  canSelectRow: (indexPath: RowIndexPath) => boolean = row => true
 ): RowIndexPath | null {
-  if (rowCount.reduce((a, b) => a + b, 0) === 0) {
+  const totalRowCount = getTotalRowCount(rowCount)
+  if (totalRowCount === 0) {
     return null
   }
 
   const { direction, row } = action
   const wrap = action.wrap === undefined ? true : action.wrap
+  const rowIndex = rowIndexPathToGlobalIndex(row, rowCount)
+
+  if (rowIndex === null) {
+    return null
+  }
 
   // Ensure the row value is in the range between 0 and rowCount - 1
   //
@@ -98,14 +112,17 @@ export function findNextSelectableRow(
   //  - move in an upward direction -> select last row
   //  - move in a downward direction -> select first row
   //
-  let currentRow =
-    row < 0 || row >= rowCount ? (direction === 'up' ? rowCount - 1 : 0) : row
+  let currentRow = isValidRow(row, rowCount)
+    ? rowIndex
+    : direction === 'up'
+    ? totalRowCount - 1
+    : 0
 
   // handle specific case from switching from filter text to list
   //
   // locking currentRow to [0,rowCount) above means that the below loops
   // will skip over the first entry
-  if (direction === 'down' && row === -1) {
+  if (direction === 'down' && rowIndexPathEquals(row, InvalidRowIndexPath)) {
     currentRow = -1
   }
 
@@ -113,10 +130,10 @@ export function findNextSelectableRow(
 
   // Iterate through all rows (starting offset from the
   // given row and ending on and including the given row)
-  for (let i = 0; i < rowCount; i++) {
+  for (let i = 0; i < totalRowCount; i++) {
     currentRow += delta
 
-    if (currentRow >= rowCount) {
+    if (currentRow >= totalRowCount) {
       // We've hit rock bottom, wrap around to the top
       // if we're allowed to or give up.
       if (wrap) {
@@ -128,14 +145,19 @@ export function findNextSelectableRow(
       // We've reached the top, wrap around to the bottom
       // if we're allowed to or give up
       if (wrap) {
-        currentRow = rowCount - 1
+        currentRow = totalRowCount - 1
       } else {
         break
       }
     }
 
-    if (row !== currentRow && canSelectRow(currentRow)) {
-      return currentRow
+    const currentRowIndexPath = globalIndexToRowIndexPath(currentRow, rowCount)
+    if (
+      currentRowIndexPath !== null &&
+      !rowIndexPathEquals(row, currentRowIndexPath) &&
+      canSelectRow(currentRowIndexPath)
+    ) {
+      return currentRowIndexPath
     }
   }
 
@@ -150,14 +172,16 @@ export function findNextSelectableRow(
 export function findLastSelectableRow(
   direction: SelectionDirection,
   rowCount: ReadonlyArray<number>,
-  canSelectRow: (row: RowIndexPath) => boolean
+  canSelectRow: (indexPath: RowIndexPath) => boolean
 ): RowIndexPath | null {
-  let i = direction === 'up' ? 0 : rowCount - 1
+  const totalRowCount = getTotalRowCount(rowCount)
+  let i = direction === 'up' ? 0 : totalRowCount - 1
   const delta = direction === 'up' ? 1 : -1
 
-  for (; i >= 0 && i < rowCount; i += delta) {
-    if (canSelectRow(i)) {
-      return i
+  for (; i >= 0 && i < totalRowCount; i += delta) {
+    const indexPath = globalIndexToRowIndexPath(i, rowCount)
+    if (indexPath !== null && canSelectRow(indexPath)) {
+      return indexPath
     }
   }
 

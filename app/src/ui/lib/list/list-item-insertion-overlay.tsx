@@ -4,7 +4,7 @@ import { Disposable } from 'event-kit'
 import * as React from 'react'
 import { dragAndDropManager } from '../../../lib/drag-and-drop-manager'
 import { DragData, DragType, DropTargetType } from '../../../models/drag-drop'
-import { RowIndexPath } from './list'
+import { RowIndexPath } from './list-row-index-path'
 
 enum InsertionFeedbackType {
   None,
