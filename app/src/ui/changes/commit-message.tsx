@@ -663,6 +663,23 @@ export class CommitMessage extends React.Component<
     return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
   }
 
+  private renderInvalidCommitMessageWarning() {
+    const {
+      branchRulesetInfo,
+      branch,
+    } = this.props
+
+    if (branchRulesetInfo.commitMessagePattern && !branchRulesetInfo.commitMessagePattern.matcher(`${this.state.summary}\n\n${this.state.description || ''}\n`.replace(/\s+$/, '\n'))) {
+      return (
+        <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={true}>
+          This message does not meet the requirements of a rule for the branch <strong>{branch}</strong>: {branchRulesetInfo.commitMessagePattern.humanDescription}.
+        </CommitWarning>
+      )
+    } else {
+      return null
+    }
+  }
+
   private renderPermissionsCommitWarning() {
     const {
       commitToAmend,
@@ -675,7 +692,7 @@ export class CommitMessage extends React.Component<
 
     if (commitToAmend !== null) {
       return (
-        <CommitWarning icon={CommitWarningIcon.Information}>
+        <CommitWarning icon={CommitWarningIcon.Information} displayingAboveForm={false}>
           Your changes will modify your <strong>most recent commit</strong>.{' '}
           <LinkButton onClick={this.props.onStopAmending}>
             Stop amending
@@ -685,7 +702,7 @@ export class CommitMessage extends React.Component<
       )
     } else if (showNoWriteAccess) {
       return (
-        <CommitWarning icon={CommitWarningIcon.Warning}>
+        <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={false}>
           You don't have write access to <strong>{repository.name}</strong>.
           Want to{' '}
           <LinkButton onClick={this.props.onShowCreateForkDialog}>
@@ -704,7 +721,7 @@ export class CommitMessage extends React.Component<
       }
 
       return (
-        <CommitWarning icon={CommitWarningIcon.Warning}>
+        <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={false}>
           <strong>{branch}</strong> is a protected branch. Want to{' '}
           <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
           ?
@@ -717,7 +734,7 @@ export class CommitMessage extends React.Component<
         ruleText = <LinkButton uri={rulesLink}>{ruleText}</LinkButton>
       }
       return (
-        <CommitWarning icon={CommitWarningIcon.Warning}>
+        <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={false}>
           {ruleText} apply to the branch <strong>{branch}</strong> that may prevent pushing.{' '}
           Want to <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>?
         </CommitWarning>
@@ -887,6 +904,8 @@ export class CommitMessage extends React.Component<
         onContextMenu={this.onContextMenu}
         onKeyDown={this.onKeyDown}
       >
+        {this.renderInvalidCommitMessageWarning()}
+
         <div className={summaryClassName}>
           {this.renderAvatar()}
 

@@ -2,6 +2,7 @@ import * as React from 'react'
 import { assertNever } from '../../lib/fatal-error'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
+import classNames from 'classnames'
 
 export enum CommitWarningIcon {
   Warning,
@@ -28,13 +29,20 @@ const renderIcon = (icon: CommitWarningIcon) => {
   return <Octicon className={className} symbol={symbol} />
 }
 
-/** A warning displayed above the commit button
+/** A warning displayed above the commit button or above the commit form
  */
 export const CommitWarning: React.FunctionComponent<{
-  readonly icon: CommitWarningIcon
+  readonly icon: CommitWarningIcon,
+
+  /**
+   * If true, the warning is being displayed above the form fields. This
+   * only changes some styling, it does not actually change the location
+   * of the warning.
+   */
+  readonly displayingAboveForm: boolean,
 }> = props => {
   return (
-    <div className="commit-warning-component" onContextMenu={ignoreContextMenu}>
+    <div className={classNames('commit-warning-component', {above: props.displayingAboveForm})} onContextMenu={ignoreContextMenu}>
       <div className="warning-icon-container">{renderIcon(props.icon)}</div>
       <div className="warning-message">{props.children}</div>
     </div>

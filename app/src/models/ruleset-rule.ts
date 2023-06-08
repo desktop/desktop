@@ -1,5 +1,5 @@
 /**
- * Ruleset rule info returned from the GitHub API.
+ * Ruleset rule info for the current branch.
  */
 export class BranchRulesetInfo {
   /**
@@ -23,52 +23,24 @@ export class BranchRulesetInfo {
   public deletionRestricted = false
   public pullRequestRequired = false
   public forcePushesBlocked = false
-  public commitMessagePattern?: IRulesetRuleMetadataParameters
-  public commitAuthorEmailPattern?: IRulesetRuleMetadataParameters
-  public committerEmailPattern?: IRulesetRuleMetadataParameters
-  public branchNamePattern?: IRulesetRuleMetadataParameters
-
-
-  // updateRestricted: boolean
-  // linearHistoryRequired: boolean
-  // successfulDeploymentsRequired: boolean
-  // signedCommitsRequired: boolean
-  // statusChecksRequired: boolean
+  public commitMessagePattern?: IMetadataRule
+  public commitAuthorEmailPattern?: IMetadataRule
+  public committerEmailPattern?: IMetadataRule
+  public branchNamePattern?: IMetadataRule
 }
 
-/**
- * Metadata parameters for a ruleset pattern rule.
- */
-export interface IRulesetRuleMetadataParameters {
+export interface IMetadataRule {
   /**
-   * User-supplied name/description of the rule
+   * Function that determines whether the provided string matches the rule.
    */
-  name: string
+  matcher: RulesetMetadataMatcher
 
   /**
-   * Whether the operator is negated. For example, if `true`
-   * and {@link operator} is `starts_with`, then the rule
-   * will be negated to 'does not start with'.
+   * Human-readable description of the rule. For example, a 'starts_with'
+   * rule with the pattern 'abc' that is negated would have a description
+   * of 'must not start with "abc"'.
    */
-  negate: boolean
-
-  /**
-   * The pattern to match against. If the operator is 'regex', then
-   * this is a regex string match. Otherwise, it is a raw string match
-   * of the type specified by {@link operator} with no additional parsing.
-   */
-  pattern: string
-
-  /**
-   * The type of match to use for the pattern. For example, `starts_with`
-   * means {@link pattern} must be at the start of the string.
-   */
-  operator: RepositoryRuleMetadataOperator
+  humanDescription: string
 }
 
-export enum RepositoryRuleMetadataOperator {
-  StartsWith = 'starts_with',
-  EndsWith = 'ends_with',
-  Contains = 'contains',
-  RegexMatch = 'regex',
-}
+export type RulesetMetadataMatcher = (toMatch: string) => boolean

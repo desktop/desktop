@@ -16,7 +16,6 @@ import { GitProtocol } from './remote-parsing'
 import { Emitter } from 'event-kit'
 import JSZip from 'jszip'
 import { updateEndpointVersion } from './endpoint-capabilities'
-import { IRulesetRuleMetadataParameters } from '../models/ruleset-rule'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -499,7 +498,44 @@ export interface IAPIRulesetRule {
    * this app so they are ignored. Do not attempt to use this field
    * unless you know {@link type} matches a metadata rule type.
    */
-  readonly parameters?: IRulesetRuleMetadataParameters
+  readonly parameters?: IAPIRulesetRuleMetadataParameters
+}
+
+/**
+ * Metadata parameters for a ruleset pattern rule.
+ */
+export interface IAPIRulesetRuleMetadataParameters {
+  /**
+   * User-supplied name/description of the rule
+   */
+  name: string
+
+  /**
+   * Whether the operator is negated. For example, if `true`
+   * and {@link operator} is `starts_with`, then the rule
+   * will be negated to 'does not start with'.
+   */
+  negate: boolean
+
+  /**
+   * The pattern to match against. If the operator is 'regex', then
+   * this is a regex string match. Otherwise, it is a raw string match
+   * of the type specified by {@link operator} with no additional parsing.
+   */
+  pattern: string
+
+  /**
+   * The type of match to use for the pattern. For example, `starts_with`
+   * means {@link pattern} must be at the start of the string.
+   */
+  operator: APIRepositoryRuleMetadataOperator
+}
+
+export enum APIRepositoryRuleMetadataOperator {
+  StartsWith = 'starts_with',
+  EndsWith = 'ends_with',
+  Contains = 'contains',
+  RegexMatch = 'regex',
 }
 
 interface IAPIPullRequestRef {

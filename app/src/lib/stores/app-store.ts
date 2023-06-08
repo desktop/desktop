@@ -316,7 +316,7 @@ import { ValidNotificationPullRequestReview } from '../valid-notification-pull-r
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
 import { resizableComponentClass } from '../../ui/resizable'
-import { parseRulesetRules } from '../helpers/branch-rules'
+import { parseRulesetRules } from '../helpers/branch-ruleset'
 import { BranchRulesetInfo } from '../../models/ruleset-rule'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
