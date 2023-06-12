@@ -171,7 +171,7 @@ interface IFilterListProps<T extends IFilterListItem> {
 }
 
 interface IFilterListState<T extends IFilterListItem> {
-  readonly rows: ReadonlyArray<IFilterListRow<T>>
+  readonly rows: ReadonlyArray<ReadonlyArray<IFilterListRow<T>>>
   readonly selectedRow: RowIndexPath
   readonly filterValue: string
 }
@@ -246,9 +246,9 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
 
     if (this.props.onFilterListResultsChanged !== undefined) {
-      const itemCount = this.state.rows.filter(
-        row => row.kind === 'item'
-      ).length
+      const itemCount = this.state.rows
+        .flat()
+        .filter(row => row.kind === 'item').length
 
       this.props.onFilterListResultsChanged(itemCount)
     }
@@ -291,7 +291,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public render() {
-    const itemRows = this.state.rows.filter(row => row.kind === 'item')
+    const itemRows = this.state.rows.flat().filter(row => row.kind === 'item')
     const resultsPluralized = itemRows.length === 1 ? 'result' : 'results'
 
     return (
@@ -375,7 +375,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   private renderRow = (index: RowIndexPath) => {
-    const row = this.state.rows[index.row]
+    const row = this.state.rows[index.section][index.row]
     if (row.kind === 'item') {
       return this.props.renderItem(row.item, row.matches)
     } else if (this.props.renderGroupHeader) {
@@ -417,7 +417,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     this.setState({ selectedRow: index })
 
     if (this.props.onSelectionChanged) {
-      const row = this.state.rows[index.row]
+      const row = this.state.rows[index.section][index.row]
       if (row.kind === 'item') {
         this.props.onSelectionChanged(row.item, source)
       }
@@ -429,13 +429,13 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return false
     }
 
-    const row = this.state.rows[index.row]
+    const row = this.state.rows[index.section][index.row]
     return row.kind === 'item'
   }
 
   private onRowClick = (index: RowIndexPath, source: ClickSource) => {
     if (this.props.onItemClick) {
-      const row = this.state.rows[index.row]
+      const row = this.state.rows[index.section][index.row]
 
       if (row.kind === 'item') {
         this.props.onItemClick(row.item, source)
@@ -451,7 +451,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return
     }
 
-    const row = this.state.rows[index.row]
+    const row = this.state.rows[index.section][index.row]
 
     if (row.kind !== 'item') {
       return
@@ -591,13 +591,33 @@ export function getText<T extends IFilterListItem>(
   return item['text']
 }
 
+function getFirstVisibleRow<T extends IFilterListItem>(
+  rows: ReadonlyArray<ReadonlyArray<IFilterListRow<T>>>
+): RowIndexPath {
+  for (let i = 0; i < rows.length; i++) {
+    const groupRows = rows[i]
+    for (let j = 0; j < groupRows.length; j++) {
+      const row = groupRows[j]
+      if (row.kind === 'item') {
+        return { section: i, row: j }
+      }
+    }
+  }
+
+  return InvalidRowIndexPath
+}
+
 function createStateUpdate<T extends IFilterListItem>(
   props: IFilterListProps<T>
 ) {
-  const flattenedRows = new Array<IFilterListRow<T>>()
+  const rows = new Array<Array<IFilterListRow<T>>>()
   const filter = (props.filterText || '').toLowerCase()
+  let selectedRow = InvalidRowIndexPath
+  let section = 0
+  const selectedItem = props.selectedItem
 
   for (const group of props.groups) {
+    const groupRows = new Array<IFilterListRow<T>>()
     const items: ReadonlyArray<IMatch<T>> = filter
       ? match(filter, group.items, getText)
       : group.items.map(item => ({
@@ -611,54 +631,57 @@ function createStateUpdate<T extends IFilterListItem>(
     }
 
     if (props.renderGroupHeader) {
-      flattenedRows.push({ kind: 'group', identifier: group.identifier })
+      groupRows.push({ kind: 'group', identifier: group.identifier })
     }
 
     for (const { item, matches } of items) {
-      flattenedRows.push({ kind: 'item', item, matches })
-    }
-  }
+      if (selectedItem && item.id === selectedItem.id) {
+        selectedRow = {
+          section,
+          row: groupRows.length,
+        }
+      }
 
-  let selectedRow = InvalidRowIndexPath
-  const selectedItem = props.selectedItem
-  if (selectedItem) {
-    selectedRow = {
-      section: 0,
-      row: flattenedRows.findIndex(
-        i => i.kind === 'item' && i.item.id === selectedItem.id
-      ),
+      groupRows.push({ kind: 'item', item, matches })
     }
+
+    rows.push(groupRows)
+    section++
   }
 
   if (selectedRow.row < 0 && filter.length) {
     // If the selected item isn't in the list (e.g., filtered out), then
     // select the first visible item.
-    selectedRow = {
-      section: 0,
-      row: flattenedRows.findIndex(i => i.kind === 'item'),
-    }
+    selectedRow = getFirstVisibleRow(rows)
   }
 
-  return { rows: flattenedRows, selectedRow, filterValue: filter }
+  return { rows: rows, selectedRow, filterValue: filter }
 }
 
 function getItemFromRowIndex<T extends IFilterListItem>(
-  items: ReadonlyArray<IFilterListRow<T>>,
+  items: ReadonlyArray<ReadonlyArray<IFilterListRow<T>>>,
   index: RowIndexPath
 ): T | null {
-  if (index.row >= 0 && index.row < items.length) {
-    const row = items[index.row]
+  if (index.section < 0 || index.section >= items.length) {
+    return null
+  }
 
-    if (row.kind === 'item') {
-      return row.item
-    }
+  const group = items[index.section]
+  if (index.row < 0 || index.row >= group.length) {
+    return null
+  }
+
+  const row = group[index.row]
+
+  if (row.kind === 'item') {
+    return row.item
   }
 
   return null
 }
 
 function getItemIdFromRowIndex<T extends IFilterListItem>(
-  items: ReadonlyArray<IFilterListRow<T>>,
+  items: ReadonlyArray<ReadonlyArray<IFilterListRow<T>>>,
   index: RowIndexPath
 ): string | null {
   const item = getItemFromRowIndex(items, index)
