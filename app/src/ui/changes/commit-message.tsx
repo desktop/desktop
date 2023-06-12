@@ -669,7 +669,13 @@ export class CommitMessage extends React.Component<
       branch,
     } = this.props
 
-    if (branchRulesetInfo.commitMessagePattern && !branchRulesetInfo.commitMessagePattern.matcher(`${this.state.summary}\n\n${this.state.description || ''}\n`.replace(/\s+$/, '\n'))) {
+    const trimmedDescription = this.state.description?.trim()
+    let toMatch = this.state.summary.trim()
+    if (trimmedDescription) {
+      toMatch += `\n\n${trimmedDescription}`
+    }
+
+    if (branchRulesetInfo.commitMessagePattern && !branchRulesetInfo.commitMessagePattern.matcher(toMatch)) {
       return (
         <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={true}>
           This message does not meet the requirements of a rule for the branch <strong>{branch}</strong>: {branchRulesetInfo.commitMessagePattern.humanDescription}.
