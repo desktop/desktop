@@ -37,6 +37,7 @@ import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
 import { ToggledtippedContent } from '../lib/toggletipped-content'
 import { BranchRulesetInfo } from '../../models/ruleset-rule'
+import { IAheadBehind } from '../../models/branch'
 
 const addAuthorIcon = {
   w: 18,
@@ -74,6 +75,7 @@ interface ICommitMessageProps {
   readonly prepopulateCommitSummary: boolean
   readonly showBranchProtected: boolean
   readonly branchRulesetInfo: BranchRulesetInfo
+  readonly aheadBehind: IAheadBehind | null
   readonly showNoWriteAccess: boolean
 
   /**
@@ -691,6 +693,7 @@ export class CommitMessage extends React.Component<
       commitToAmend,
       showBranchProtected,
       branchRulesetInfo,
+      aheadBehind,
       showNoWriteAccess,
       repository,
       branch,
@@ -743,6 +746,14 @@ export class CommitMessage extends React.Component<
         <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={false}>
           {ruleText} apply to the branch <strong>{branch}</strong> that may prevent pushing.{' '}
           Want to <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>?
+        </CommitWarning>
+      )
+    } else if (branchRulesetInfo.creationRestricted && aheadBehind === null) {
+      // if aheadBehind is null, then the branch hasn't been published
+      return (
+        <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={false}>
+          The branch name <strong>{branch}</strong> conflicts with a rule and may be prevented{' '}
+          from being published. Want to <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>?
         </CommitWarning>
       )
     } else {

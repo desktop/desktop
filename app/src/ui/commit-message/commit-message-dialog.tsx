@@ -17,6 +17,7 @@ import { Foldout } from '../../lib/app-state'
 import { Account } from '../../models/account'
 import { pick } from '../../lib/pick'
 import { BranchRulesetInfo } from '../../models/ruleset-rule'
+import { IAheadBehind } from '../../models/branch'
 
 interface ICommitMessageDialogProps {
   /**
@@ -73,6 +74,8 @@ interface ICommitMessageDialogProps {
 
   /** List of repository rules that apply to the branch. */
   readonly branchRulesetInfo: BranchRulesetInfo
+
+  readonly aheadBehind: IAheadBehind | null
 
   /**
    * Whether or not to show a field for adding co-authors to a commit
@@ -133,6 +136,7 @@ export class CommitMessageDialog extends React.Component<
             key={this.props.repository.id}
             showBranchProtected={this.props.showBranchProtected}
             branchRulesetInfo={this.props.branchRulesetInfo}
+            aheadBehind={this.props.aheadBehind}
             showNoWriteAccess={this.props.showNoWriteAccess}
             commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
             onCoAuthorsUpdated={this.onCoAuthorsUpdated}

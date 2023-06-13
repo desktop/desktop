@@ -56,6 +56,7 @@ import { Popup } from '../../models/popup'
 import { EOL } from 'os'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { BranchRulesetInfo } from '../../models/ruleset-rule'
+import { IAheadBehind } from '../../models/branch'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -163,6 +164,7 @@ interface IChangesListProps {
   readonly commitToAmend: Commit | null
   readonly currentBranchProtected: boolean
   readonly currentBranchRulesetInfo: BranchRulesetInfo
+  readonly aheadBehind: IAheadBehind | null
 
   /**
    * Click event handler passed directly to the onRowClick prop of List, see
@@ -808,6 +810,7 @@ export class ChangesList extends React.Component<
         key={repository.id}
         showBranchProtected={fileCount > 0 && currentBranchProtected}
         branchRulesetInfo={currentBranchRulesetInfo}
+        aheadBehind={this.props.aheadBehind}
         showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
