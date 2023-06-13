@@ -1266,7 +1266,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         shasInDiff.add(sha)
 
         commitLookup.get(sha)?.parentSHAs?.forEach(parentSha => {
-          if (selected.has(parentSha)) {
+          if (selected.has(parentSha) && !shasInDiff.has(parentSha)) {
             shasToTraverse.push(parentSha)
           }
         })
