@@ -269,7 +269,7 @@ export class TutorialPanel extends React.Component<
   private onPreferencesClick = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.Preferences,
-      initialSelectedTab: PreferencesTab.Advanced,
+      initialSelectedTab: PreferencesTab.Integrations,
     })
   }
 }

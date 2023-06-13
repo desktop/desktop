@@ -5,13 +5,11 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { HighlightText } from '../lib/highlight-text'
-import { showContextualMenu } from '../../lib/menu-item'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { RelativeTime } from '../relative-time'
 import classNames from 'classnames'
-import { generateBranchContextMenuItems } from './branch-list-item-context-menu'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -25,13 +23,6 @@ interface IBranchListItemProps {
 
   /** The characters in the branch name to highlight */
   readonly matches: IMatches
-
-  /** Specifies whether the branch is local */
-  readonly isLocal: boolean
-
-  readonly onRenameBranch?: (branchName: string) => void
-
-  readonly onDeleteBranch?: (branchName: string) => void
 
   /** When a drag element has landed on a branch that is not current */
   readonly onDropOntoBranch?: (branchName: string) => void
@@ -57,30 +48,6 @@ export class BranchListItem extends React.Component<
   public constructor(props: IBranchListItemProps) {
     super(props)
     this.state = { isDragInProgress: false }
-  }
-
-  private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
-    event.preventDefault()
-
-    /*
-      There are multiple instances in the application where a branch list item
-      is rendered. We only want to be able to rename or delete them on the
-      branch dropdown menu. Thus, other places simply will not provide these
-      methods, such as the merge and rebase logic.
-    */
-    const { onRenameBranch, onDeleteBranch, name, isLocal } = this.props
-    if (onRenameBranch === undefined && onDeleteBranch === undefined) {
-      return
-    }
-
-    const items = generateBranchContextMenuItems({
-      name,
-      isLocal,
-      onRenameBranch,
-      onDeleteBranch,
-    })
-
-    showContextualMenu(items)
   }
 
   private onMouseEnter = () => {
@@ -133,7 +100,6 @@ export class BranchListItem extends React.Component<
     return (
       // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
-        onContextMenu={this.onContextMenu}
         className={className}
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}

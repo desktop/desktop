@@ -9,6 +9,7 @@ import { TextBox } from './text-box'
 import { Errors } from './errors'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { HorizontalRule } from './horizontal-rule'
+import { PasswordTextBox } from './password-text-box'
 
 /** Text to let the user know their browser will send them back to GH Desktop */
 export const BrowserRedirectMessage =
@@ -107,14 +108,12 @@ export class AuthenticationForm extends React.Component<
           disabled={disabled}
           required={true}
           displayInvalidState={false}
-          // eslint-disable-next-line jsx-a11y/no-autofocus
-          autoFocus={true}
+          autoFocus={this.props.endpoint === getDotComAPIEndpoint()}
           onValueChanged={this.onUsernameChange}
         />
 
-        <TextBox
+        <PasswordTextBox
           label="Password"
-          type="password"
           disabled={disabled}
           required={true}
           displayInvalidState={false}
@@ -196,6 +195,7 @@ export class AuthenticationForm extends React.Component<
         type="submit"
         className="button-with-icon"
         onClick={this.signInWithBrowser}
+        autoFocus={true}
       >
         Sign in using your browser
         <Octicon symbol={OcticonSymbol.linkExternal} />
