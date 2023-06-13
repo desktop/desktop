@@ -34,7 +34,6 @@ import { IChangesetData } from '../../lib/git'
 import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { pathExists } from '../lib/path-exists'
-import { enableMultiCommitDiffs } from '../../lib/feature-flag'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 
 interface ISelectedCommitsProps {
@@ -277,10 +276,7 @@ export class SelectedCommits extends React.Component<
   public render() {
     const { selectedCommits, isContiguous } = this.props
 
-    if (
-      selectedCommits.length > 1 &&
-      (!isContiguous || !enableMultiCommitDiffs())
-    ) {
+    if (selectedCommits.length > 1 && !isContiguous) {
       return this.renderMultipleCommitsBlankSlate()
     }
 
@@ -331,18 +327,13 @@ export class SelectedCommits extends React.Component<
           <img src={BlankSlateImage} className="blankslate-image" alt="" />
           <div>
             <p>
-              Unable to display diff when multiple{' '}
-              {enableMultiCommitDiffs() ? 'non-consecutive ' : ' '}commits are
-              selected.
+              Unable to display diff when multiple non-consecutive selected.
             </p>
             <div>You can:</div>
             <ul>
               <li>
-                Select a single commit{' '}
-                {enableMultiCommitDiffs()
-                  ? 'or a range of consecutive commits '
-                  : ' '}
-                to view a diff.
+                Select a single commit or a range of consecutive commits to view
+                a diff.
               </li>
               <li>Drag the commits to the branch menu to cherry-pick them.</li>
               <li>Drag the commits to squash or reorder them.</li>

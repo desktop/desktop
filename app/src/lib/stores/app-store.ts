@@ -231,7 +231,6 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableMultiCommitDiffs } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -1561,10 +1560,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.repositoryStateCache.get(repository)
     const { commitSelection } = state
     const { shas: currentSHAs, isContiguous } = commitSelection
-    if (
-      currentSHAs.length === 0 ||
-      (currentSHAs.length > 1 && (!enableMultiCommitDiffs() || !isContiguous))
-    ) {
+    if (currentSHAs.length === 0 || (currentSHAs.length > 1 && !isContiguous)) {
       return
     }
 
@@ -1644,7 +1640,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    if (shas.length > 1 && (!enableMultiCommitDiffs() || !isContiguous)) {
+    if (shas.length > 1 && !isContiguous) {
       return
     }
 
