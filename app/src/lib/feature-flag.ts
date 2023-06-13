@@ -93,11 +93,6 @@ export function enableMultiCommitDiffs(): boolean {
   return true
 }
 
-/** Should we enable the new interstitial for submodule diffs? */
-export function enableSubmoduleDiff(): boolean {
-  return true
-}
-
 /** Should we enable starting pull requests? */
 export function enableStartingPullRequests(): boolean {
   return true
