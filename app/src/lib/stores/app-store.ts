@@ -1252,12 +1252,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     isContiguous: boolean,
     commitLookup: Map<string, Commit>
   ) {
-    const shasInDiff = new Set<string>()
-
     if (selectedShas.length <= 1 || !isContiguous) {
       return selectedShas
     }
 
+    const shasInDiff = new Set<string>()
+    const selected = new Set(selectedShas)
     const shasToTraverse = [selectedShas.at(-1)]
     let sha
 
@@ -1266,7 +1266,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         shasInDiff.add(sha)
 
         commitLookup.get(sha)?.parentSHAs?.forEach(parentSha => {
-          if (selectedShas.includes(parentSha)) {
+          if (selected.has(parentSha)) {
             shasToTraverse.push(parentSha)
           }
         })
