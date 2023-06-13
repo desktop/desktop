@@ -88,11 +88,6 @@ export function enablePullRequestQuickView(): boolean {
   return enableDevelopmentFeatures()
 }
 
-/** Should we enable displaying multi commit diffs. This also switches diff logic from one commit */
-export function enableMultiCommitDiffs(): boolean {
-  return true
-}
-
 /** Should we enable starting pull requests? */
 export function enableStartingPullRequests(): boolean {
   return true
