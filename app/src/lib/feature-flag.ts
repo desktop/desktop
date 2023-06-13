@@ -89,11 +89,6 @@ export function enablePullRequestQuickView(): boolean {
 }
 
 /** Should we enable starting pull requests? */
-export function enableStartingPullRequests(): boolean {
-  return true
-}
-
-/** Should we enable starting pull requests? */
 export function enableStackedPopups(): boolean {
   return true
 }
