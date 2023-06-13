@@ -26,7 +26,6 @@ import {
   terminateDesktopNotifications,
 } from './notifications'
 import { addTrustedIPCSender } from './trusted-ipc-sender'
-import { enablePreventClosingWhileUpdating } from '../lib/feature-flag'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -115,7 +114,6 @@ export class AppWindow {
       // app is updating, we will prevent the window from closing only when the
       // app is also quitting.
       if (
-        enablePreventClosingWhileUpdating() &&
         (!__DARWIN__ || quitting) &&
         !quittingEvenIfUpdating &&
         this.isDownloadingUpdate
