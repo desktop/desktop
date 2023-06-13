@@ -179,7 +179,6 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
       buttonClassName: 'push-pull-button',
       style: ToolbarButtonStyle.Subtitle,
       dropdownStyle: ToolbarDropdownStyle.MultiOption,
-      ariaLabel: 'Push, pull, fetch options',
       dropdownState: this.props.isDropdownOpen ? 'open' : 'closed',
       onDropdownStateChanged: this.props.onDropdownStateChanged,
     }
