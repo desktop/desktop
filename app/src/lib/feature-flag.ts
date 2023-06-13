@@ -117,8 +117,3 @@ export function enablePreventClosingWhileUpdating(): boolean {
 export function enablePushPullFetchDropdown(): boolean {
   return true
 }
-
-/** Should we enable the new PR comment notifications? */
-export function enablePullRequestCommentNotifications(): boolean {
-  return true
-}
