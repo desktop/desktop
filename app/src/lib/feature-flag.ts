@@ -87,8 +87,3 @@ export function enablePreviousTagSuggestions(): boolean {
 export function enablePullRequestQuickView(): boolean {
   return enableDevelopmentFeatures()
 }
-
-/** Should we enable starting pull requests? */
-export function enableStackedPopups(): boolean {
-  return true
-}

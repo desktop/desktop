@@ -163,7 +163,6 @@ import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { createCommitURL } from '../lib/commit-url'
 import { uuid } from '../lib/uuid'
 import { InstallingUpdate } from './installing-update/installing-update'
-import { enableStackedPopups } from '../lib/feature-flag'
 import { DialogStackContext } from './dialog'
 import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
@@ -1473,11 +1472,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setUpdateBannerVisibility(false)
 
   private allPopupContent(): JSX.Element | null {
-    let { allPopups } = this.state
-
-    if (!enableStackedPopups() && this.state.currentPopup !== null) {
-      allPopups = [this.state.currentPopup]
-    }
+    const { allPopups } = this.state
 
     if (allPopups.length === 0) {
       return null
