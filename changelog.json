@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.2.5-test1": ["[Fixed] Upgrade electron packager"],
     "3.2.4": [
       "[Fixed] The misattributed commit avatar popover no longer causes the changes list to have scrollbars - #16684",
       "[Fixed] Autocompletion list is always visible regardless of its position on the screen - #16609, #16650",
