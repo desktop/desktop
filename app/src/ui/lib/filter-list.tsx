@@ -356,7 +356,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return (
         <List
           ref={this.onListRef}
-          rowCount={[this.state.rows.length]}
+          rowCount={this.state.rows.map(r => r.length)}
           rowRenderer={this.renderRow}
           rowHeight={this.props.rowHeight}
           selectedRows={[this.state.selectedRow]}

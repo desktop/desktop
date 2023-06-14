@@ -1151,36 +1151,28 @@ export class List extends React.Component<IListProps, IListState> {
     this.fakeScroll = ref
   }
 
-  /**
-   * Renders the react-virtualized Grid component
-   *
-   * @param width - The width of the Grid as given by AutoSizer
-   * @param height - The height of the Grid as given by AutoSizer
-   */
-  private renderGrid(width: number, height: number) {
-    // The currently selected list item is focusable but if there's no focused
-    // item the list itself needs to be focusable so that you can reach it with
-    // keyboard navigation and select an item.
-    const tabIndex = this.props.selectedRows.length < 1 ? 0 : -1
+  private getSectionGridRenderer =
+    (width: number, height: number) => (params: IRowRendererParams) => {
+      const section = params.rowIndex
 
-    // we select the last item from the selection array for this prop
-    const activeDescendant =
-      this.props.selectedRows.length && this.state.rowIdPrefix
-        ? this.getRowId(
-            this.props.selectedRows[this.props.selectedRows.length - 1]
-          )
-        : undefined
+      // The currently selected list item is focusable but if there's no focused
+      // item the list itself needs to be focusable so that you can reach it with
+      // keyboard navigation and select an item.
+      const tabIndex = this.props.selectedRows.some(r => r.section === section)
+        ? 0
+        : -1
+      // we select the last item from the selection array for this prop
+      const activeDescendant =
+        this.props.selectedRows.length && this.state.rowIdPrefix
+          ? this.getRowId(
+              this.props.selectedRows[this.props.selectedRows.length - 1]
+            )
+          : undefined
 
-    const containerProps = this.getContainerProps(activeDescendant)
-    const section = 0
-
-    return (
-      <FocusContainer
-        className="list-focus-container"
-        onKeyDown={this.onFocusContainerKeyDown}
-        onFocusWithinChanged={this.onFocusWithinChanged}
-      >
+      const containerProps = this.getContainerProps(activeDescendant)
+      return (
         <Grid
+          key={section}
           id={this.props.accessibleListId}
           role="listbox"
           ref={this.getOnGridRef(section)}
@@ -1197,8 +1189,59 @@ export class List extends React.Component<IListProps, IListState> {
           onScroll={this.onScroll}
           scrollTop={this.props.setScrollTop}
           overscanRowCount={4}
-          style={this.gridStyle}
+          style={params.style}
           tabIndex={tabIndex}
+        />
+      )
+    }
+
+  private get totalHeight() {
+    let totalHeight = 0
+    for (const section of this.props.rowCount) {
+      if (typeof this.props.rowHeight === 'number') {
+        totalHeight += section * this.props.rowHeight
+      } else {
+        const rows = this.props.rowCount[section]
+        for (let i = 0; i < rows; i++) {
+          totalHeight += this.props.rowHeight({ index: { section, row: i } })
+        }
+      }
+    }
+    return totalHeight
+  }
+
+  /**
+   * Renders the react-virtualized Grid component
+   *
+   * @param width - The width of the Grid as given by AutoSizer
+   * @param height - The height of the Grid as given by AutoSizer
+   */
+  private renderGrid(width: number, height: number) {
+    return (
+      <FocusContainer
+        className="list-focus-container"
+        onKeyDown={this.onFocusContainerKeyDown}
+        onFocusWithinChanged={this.onFocusWithinChanged}
+      >
+        <Grid
+          id={this.props.accessibleListId}
+          role="listbox"
+          //ref={this.getOnGridRef(section)}
+          autoContainerWidth={true}
+          containerRole="presentation"
+          //containerProps={containerProps}
+          width={width}
+          height={height}
+          columnWidth={width}
+          columnCount={1}
+          rowCount={this.props.rowCount.length}
+          rowHeight={this.totalHeight}
+          cellRenderer={this.getSectionGridRenderer(width, height)}
+          onScroll={this.onScroll}
+          scrollTop={this.props.setScrollTop}
+          overscanRowCount={4}
+          style={this.gridStyle}
+          //tabIndex={tabIndex}
         />
       </FocusContainer>
     )
