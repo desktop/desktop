@@ -46,7 +46,7 @@ import {
 } from '../models/multi-commit-operation'
 import { IChangesetData } from './git'
 import { Popup } from '../models/popup'
-import { BranchRulesetInfo } from '../models/ruleset-rule'
+import { RepoRulesInfo } from '../models/repo-rules'
 
 export enum SelectionType {
   Repository,
@@ -716,9 +716,9 @@ export interface IChangesState {
   readonly currentBranchProtected: boolean
 
   /**
-   * Ruleset rules that apply to the current branch.
+   * Repo rules that apply to the current branch.
    */
-  readonly currentBranchRulesetInfo: BranchRulesetInfo
+  readonly currentRepoRulesInfo: RepoRulesInfo
 }
 
 /**

@@ -2,10 +2,10 @@
  * Metadata restrictions for a specific type of rule, as multiple can
  * be configured at once and all apply to the branch.
  */
-export class BranchRulesetMetadataRules {
-  private rules: IBranchRulesetMetadataRule[] = []
+export class RepoRulesMetadataRules {
+  private rules: IRepoRulesMetadataRule[] = []
 
-  public push(rule?: IBranchRulesetMetadataRule): void {
+  public push(rule?: IRepoRulesMetadataRule): void {
     if (rule === undefined) {
       return
     }
@@ -33,14 +33,14 @@ export class BranchRulesetMetadataRules {
 }
 
 /**
- * Ruleset rule info for the current branch.
+ * Parsed repo rule info
  */
-export class BranchRulesetInfo {
+export class RepoRulesInfo {
   /**
    * Many rules are not handled in a special way, they
    * instead just display a warning to the user when they're
    * about to commit. They're lumped together into this flag
-   * for simplicity. See the `parseRulesetRules` function for
+   * for simplicity. See the `parseRepoRules` function for
    * the full list.
    */
   public basicCommitWarning = false
@@ -57,17 +57,17 @@ export class BranchRulesetInfo {
   public deletionRestricted = false
   public pullRequestRequired = false
   public forcePushesBlocked = false
-  public commitMessagePatterns = new BranchRulesetMetadataRules()
-  public commitAuthorEmailPatterns = new BranchRulesetMetadataRules()
-  public committerEmailPatterns = new BranchRulesetMetadataRules()
-  public branchNamePatterns = new BranchRulesetMetadataRules()
+  public commitMessagePatterns = new RepoRulesMetadataRules()
+  public commitAuthorEmailPatterns = new RepoRulesMetadataRules()
+  public committerEmailPatterns = new RepoRulesMetadataRules()
+  public branchNamePatterns = new RepoRulesMetadataRules()
 }
 
-export interface IBranchRulesetMetadataRule {
+export interface IRepoRulesMetadataRule {
   /**
    * Function that determines whether the provided string matches the rule.
    */
-  matcher: RulesetMetadataMatcher
+  matcher: RepoRulesMetadataMatcher
 
   /**
    * Human-readable description of the rule. For example, a 'starts_with'
@@ -77,4 +77,4 @@ export interface IBranchRulesetMetadataRule {
   humanDescription: string
 }
 
-export type RulesetMetadataMatcher = (toMatch: string) => boolean
+export type RepoRulesMetadataMatcher = (toMatch: string) => boolean

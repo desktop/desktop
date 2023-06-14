@@ -55,7 +55,7 @@ import { TooltipDirection } from '../lib/tooltip'
 import { Popup } from '../../models/popup'
 import { EOL } from 'os'
 import { TooltippedContent } from '../lib/tooltipped-content'
-import { BranchRulesetInfo } from '../../models/ruleset-rule'
+import { RepoRulesInfo } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
 
 const RowHeight = 29
@@ -163,7 +163,7 @@ interface IChangesListProps {
   readonly isCommitting: boolean
   readonly commitToAmend: Commit | null
   readonly currentBranchProtected: boolean
-  readonly currentBranchRulesetInfo: BranchRulesetInfo
+  readonly currentRepoRulesInfo: RepoRulesInfo
   readonly aheadBehind: IAheadBehind | null
 
   /**
@@ -736,7 +736,7 @@ export class ChangesList extends React.Component<
       isCommitting,
       commitToAmend,
       currentBranchProtected,
-      currentBranchRulesetInfo,
+      currentRepoRulesInfo: currentRepoRulesInfo,
     } = this.props
 
     if (rebaseConflictState !== null) {
@@ -809,7 +809,7 @@ export class ChangesList extends React.Component<
         prepopulateCommitSummary={prepopulateCommitSummary}
         key={repository.id}
         showBranchProtected={fileCount > 0 && currentBranchProtected}
-        branchRulesetInfo={currentBranchRulesetInfo}
+        repoRulesInfo={currentRepoRulesInfo}
         aheadBehind={this.props.aheadBehind}
         showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}

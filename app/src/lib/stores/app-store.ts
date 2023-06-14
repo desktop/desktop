@@ -316,8 +316,8 @@ import { ValidNotificationPullRequestReview } from '../valid-notification-pull-r
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
 import { resizableComponentClass } from '../../ui/resizable'
-import { parseRulesetRules } from '../helpers/branch-ruleset'
-import { BranchRulesetInfo } from '../../models/ruleset-rule'
+import { parseRepoRules } from '../helpers/repo-rules'
+import { RepoRulesInfo } from '../../models/repo-rules'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1106,7 +1106,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private clearBranchProtectionState(repository: Repository) {
     this.repositoryStateCache.updateChangesState(repository, () => ({
       currentBranchProtected: false,
-      currentBranchRulesetInfo: new BranchRulesetInfo(),
+      currentRepoRulesInfo: new RepoRulesInfo(),
     }))
     this.emitUpdate()
   }
@@ -1138,7 +1138,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (!hasWritePermission(gitHubRepo)) {
         this.repositoryStateCache.updateChangesState(repository, () => ({
           currentBranchProtected: false,
-          currentBranchRulesetInfo: new BranchRulesetInfo(),
+          currentRepoRulesInfo: new RepoRulesInfo(),
         }))
         this.emitUpdate()
         return
@@ -1151,12 +1151,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const pushControl = await api.fetchPushControl(owner, name, branchName)
       const currentBranchProtected = !isBranchPushable(pushControl)
 
-      const rulesetRules = await api.fetchBranchRules(owner, name, branchName)
-      const currentBranchRulesetInfo = parseRulesetRules(rulesetRules)
+      const repoRules = await api.fetchBranchRules(owner, name, branchName)
+      const currentBranchRepoRulesInfo = parseRepoRules(repoRules)
 
       this.repositoryStateCache.updateChangesState(repository, () => ({
         currentBranchProtected,
-        currentBranchRulesetInfo
+        currentRepoRulesInfo: currentBranchRepoRulesInfo
       }))
       this.emitUpdate()
     }

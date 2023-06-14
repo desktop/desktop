@@ -486,7 +486,7 @@ export interface IAPIBranch {
 }
 
 /** Repository rule information returned by the GitHub API */
-export interface IAPIRulesetRule {
+export interface IAPIRepoRule {
   /**
    * The type of the rule.
    */
@@ -498,13 +498,13 @@ export interface IAPIRulesetRule {
    * this app so they are ignored. Do not attempt to use this field
    * unless you know {@link type} matches a metadata rule type.
    */
-  readonly parameters?: IAPIRulesetRuleMetadataParameters
+  readonly parameters?: IAPIRepoRuleMetadataParameters
 }
 
 /**
- * Metadata parameters for a ruleset pattern rule.
+ * Metadata parameters for a repo rule metadata rule.
  */
-export interface IAPIRulesetRuleMetadataParameters {
+export interface IAPIRepoRuleMetadataParameters {
   /**
    * User-supplied name/description of the rule
    */
@@ -528,10 +528,10 @@ export interface IAPIRulesetRuleMetadataParameters {
    * The type of match to use for the pattern. For example, `starts_with`
    * means {@link pattern} must be at the start of the string.
    */
-  operator: APIRepositoryRuleMetadataOperator
+  operator: APIRepoRuleMetadataOperator
 }
 
-export enum APIRepositoryRuleMetadataOperator {
+export enum APIRepoRuleMetadataOperator {
   StartsWith = 'starts_with',
   EndsWith = 'ends_with',
   Contains = 'contains',
@@ -1615,17 +1615,17 @@ export class API {
     owner: string,
     name: string,
     branch: string
-  ): Promise<ReadonlyArray<IAPIRulesetRule>> {
+  ): Promise<ReadonlyArray<IAPIRepoRule>> {
     const path = `repos/${owner}/${name}/rules/branches/${encodeURIComponent(branch)}`
     try {
       const response = await this.request('GET', path)
-      return await parsedResponse<IAPIRulesetRule[]>(response)
+      return await parsedResponse<IAPIRepoRule[]>(response)
     } catch (err) {
       log.info(
         `[fetchBranchRules] unable to fetch branch rules: ${branch} | ${path}`,
         err
       )
-      return new Array<IAPIRulesetRule>()
+      return new Array<IAPIRepoRule>()
     }
   }
 

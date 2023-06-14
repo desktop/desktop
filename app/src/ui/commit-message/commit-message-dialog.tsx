@@ -16,7 +16,7 @@ import { Popup } from '../../models/popup'
 import { Foldout } from '../../lib/app-state'
 import { Account } from '../../models/account'
 import { pick } from '../../lib/pick'
-import { BranchRulesetInfo } from '../../models/ruleset-rule'
+import { RepoRulesInfo } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
 
 interface ICommitMessageDialogProps {
@@ -72,8 +72,8 @@ interface ICommitMessageDialogProps {
   /** Whether to warn the user that they are on a protected branch. */
   readonly showBranchProtected: boolean
 
-  /** List of repository rules that apply to the branch. */
-  readonly branchRulesetInfo: BranchRulesetInfo
+  /** Repository rules that apply to the branch. */
+  readonly repoRulesInfo: RepoRulesInfo
 
   readonly aheadBehind: IAheadBehind | null
 
@@ -135,7 +135,7 @@ export class CommitMessageDialog extends React.Component<
             prepopulateCommitSummary={this.props.prepopulateCommitSummary}
             key={this.props.repository.id}
             showBranchProtected={this.props.showBranchProtected}
-            branchRulesetInfo={this.props.branchRulesetInfo}
+            repoRulesInfo={this.props.repoRulesInfo}
             aheadBehind={this.props.aheadBehind}
             showNoWriteAccess={this.props.showNoWriteAccess}
             commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}

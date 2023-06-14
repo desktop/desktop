@@ -1,13 +1,13 @@
 import { escapeRegExp } from 'lodash'
-import { BranchRulesetInfo, IBranchRulesetMetadataRule, RulesetMetadataMatcher } from "../../models/ruleset-rule";
-import { APIRepositoryRuleMetadataOperator, IAPIRulesetRule, IAPIRulesetRuleMetadataParameters } from "../api";
+import { RepoRulesInfo, IRepoRulesMetadataRule, RepoRulesMetadataMatcher } from "../../models/repo-rules";
+import { APIRepoRuleMetadataOperator, IAPIRepoRule, IAPIRepoRuleMetadataParameters } from "../api";
 
 /**
- * Parses the GitHub API response for a branch's ruleset rules into a more useable
+ * Parses the GitHub API response for a branch's repo rules into a more useable
  * format.
  */
-export function parseRulesetRules(rules: ReadonlyArray<IAPIRulesetRule>): BranchRulesetInfo {
-  const info = new BranchRulesetInfo()
+export function parseRepoRules(rules: ReadonlyArray<IAPIRepoRule>): RepoRulesInfo {
+  const info = new RepoRulesInfo()
 
   for (const rule of rules) {
     switch (rule.type) {
@@ -56,7 +56,7 @@ export function parseRulesetRules(rules: ReadonlyArray<IAPIRulesetRule>): Branch
   return info
 }
 
-function toMetadataRule(apiParams: IAPIRulesetRuleMetadataParameters | undefined): IBranchRulesetMetadataRule | undefined {
+function toMetadataRule(apiParams: IAPIRepoRuleMetadataParameters | undefined): IRepoRulesMetadataRule | undefined {
   if (!apiParams) {
     return undefined
   }
@@ -67,26 +67,26 @@ function toMetadataRule(apiParams: IAPIRulesetRuleMetadataParameters | undefined
   }
 }
 
-function toHumanDescription(apiParams: IAPIRulesetRuleMetadataParameters): string {
+function toHumanDescription(apiParams: IAPIRepoRuleMetadataParameters): string {
   let description = 'must '
   if (apiParams.negate) {
     description += 'not '
   }
 
-  if (apiParams.operator === APIRepositoryRuleMetadataOperator.RegexMatch) {
+  if (apiParams.operator === APIRepoRuleMetadataOperator.RegexMatch) {
     return description + `match the regular expression "${apiParams.pattern}"`
   }
 
   switch (apiParams.operator) {
-    case APIRepositoryRuleMetadataOperator.StartsWith:
+    case APIRepoRuleMetadataOperator.StartsWith:
       description += 'start with '
       break
 
-    case APIRepositoryRuleMetadataOperator.EndsWith:
+    case APIRepoRuleMetadataOperator.EndsWith:
       description += 'end with '
       break
 
-    case APIRepositoryRuleMetadataOperator.Contains:
+    case APIRepoRuleMetadataOperator.Contains:
       description += 'contain '
       break
   }
@@ -97,7 +97,7 @@ function toHumanDescription(apiParams: IAPIRulesetRuleMetadataParameters): strin
 /**
  * Converts the given metadata rule into a matcher function that uses regex to test the rule.
  */
-function toMatcher(rule: IAPIRulesetRuleMetadataParameters | undefined): RulesetMetadataMatcher {
+function toMatcher(rule: IAPIRepoRuleMetadataParameters | undefined): RepoRulesMetadataMatcher {
   if (!rule) {
     return () => false
   }
@@ -105,19 +105,19 @@ function toMatcher(rule: IAPIRulesetRuleMetadataParameters | undefined): Ruleset
   let regex: RegExp
 
   switch (rule.operator) {
-    case APIRepositoryRuleMetadataOperator.StartsWith:
+    case APIRepoRuleMetadataOperator.StartsWith:
       regex = new RegExp(`^${escapeRegExp(rule.pattern)}`)
       break
 
-    case APIRepositoryRuleMetadataOperator.EndsWith:
+    case APIRepoRuleMetadataOperator.EndsWith:
       regex = new RegExp(`${escapeRegExp(rule.pattern)}$`)
       break
 
-    case APIRepositoryRuleMetadataOperator.Contains:
+    case APIRepoRuleMetadataOperator.Contains:
       regex = new RegExp(`.*${escapeRegExp(rule.pattern)}.*`)
       break
 
-    case APIRepositoryRuleMetadataOperator.RegexMatch:
+    case APIRepoRuleMetadataOperator.RegexMatch:
       regex = new RegExp(rule.pattern)
       break
   }

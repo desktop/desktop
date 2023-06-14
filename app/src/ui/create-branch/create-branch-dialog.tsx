@@ -31,7 +31,7 @@ import { isRepositoryWithForkedGitHubRepository } from '../../models/repository'
 import { debounce } from 'lodash'
 import { API } from '../../lib/api'
 import { Account } from '../../models/account'
-import { parseRulesetRules } from '../../lib/helpers/branch-ruleset'
+import { parseRepoRules } from '../../lib/helpers/repo-rules'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -129,7 +129,7 @@ export class CreateBranch extends React.Component<
     }
 
     let errMsg: string | null = null
-    const parsedRules = parseRulesetRules(branchRules)
+    const parsedRules = parseRepoRules(branchRules)
 
     if (parsedRules.creationRestricted) {
       errMsg = `Branch name '${branchName}' is restricted by branch rules`

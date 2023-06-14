@@ -36,7 +36,7 @@ import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
 import { ToggledtippedContent } from '../lib/toggletipped-content'
-import { BranchRulesetInfo } from '../../models/ruleset-rule'
+import { RepoRulesInfo } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
 
 const addAuthorIcon = {
@@ -74,7 +74,7 @@ interface ICommitMessageProps {
   readonly placeholder: string
   readonly prepopulateCommitSummary: boolean
   readonly showBranchProtected: boolean
-  readonly branchRulesetInfo: BranchRulesetInfo
+  readonly repoRulesInfo: RepoRulesInfo
   readonly aheadBehind: IAheadBehind | null
   readonly showNoWriteAccess: boolean
 
@@ -428,7 +428,7 @@ export class CommitMessage extends React.Component<
   }
 
   private renderAvatar() {
-    const { commitAuthor, repository, branchRulesetInfo } = this.props
+    const { commitAuthor, repository, repoRulesInfo } = this.props
     const { gitHubRepository } = repository
     const avatarUser: IAvatarUser | undefined =
       commitAuthor !== null
@@ -442,7 +442,7 @@ export class CommitMessage extends React.Component<
     let warningType: CommitMessageWarningType = 'none'
     let ruleErrors: string[] = []
     if (email !== undefined) {
-      ruleErrors = branchRulesetInfo.commitAuthorEmailPatterns.getFailedRules(email)
+      ruleErrors = repoRulesInfo.commitAuthorEmailPatterns.getFailedRules(email)
       if (ruleErrors.length > 0) {
         warningType = 'disallowedEmail'
       } else if (
@@ -677,7 +677,7 @@ export class CommitMessage extends React.Component<
 
   private renderInvalidCommitMessageWarning() {
     const {
-      branchRulesetInfo,
+      repoRulesInfo,
       branch,
     } = this.props
 
@@ -687,7 +687,7 @@ export class CommitMessage extends React.Component<
       toMatch += `\n\n${trimmedDescription}`
     }
 
-    const failedRules = branchRulesetInfo.commitMessagePatterns.getFailedRules(toMatch)
+    const failedRules = repoRulesInfo.commitMessagePatterns.getFailedRules(toMatch)
     if (failedRules.length > 0) {
       return (
         <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={true}>
@@ -703,7 +703,7 @@ export class CommitMessage extends React.Component<
     const {
       commitToAmend,
       showBranchProtected,
-      branchRulesetInfo,
+      repoRulesInfo,
       aheadBehind,
       showNoWriteAccess,
       repository,
@@ -747,7 +747,7 @@ export class CommitMessage extends React.Component<
           ?
         </CommitWarning>
       )
-    } else if (branchRulesetInfo.basicCommitWarning) {
+    } else if (repoRulesInfo.basicCommitWarning) {
       let ruleText: string | JSX.Element = `One or more rules`
       if (repository.gitHubRepository) {
         const rulesLink = `${repository.gitHubRepository.htmlURL}/rules/?ref=${encodeURIComponent('refs/heads/' + branch)}`
@@ -762,8 +762,8 @@ export class CommitMessage extends React.Component<
     } else if (
       aheadBehind === null
       && branch !== null
-      && (branchRulesetInfo.creationRestricted
-        || branchRulesetInfo.branchNamePatterns.getFailedRules(branch).length > 0)
+      && (repoRulesInfo.creationRestricted
+        || repoRulesInfo.branchNamePatterns.getFailedRules(branch).length > 0)
     ) {
       // if aheadBehind is null, then the branch hasn't been published
       return (

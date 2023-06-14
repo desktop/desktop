@@ -38,7 +38,7 @@ interface ICommitMessageAvatarProps {
   readonly warningType: CommitMessageWarningType
 
   /**
-   * List of email validations that failed for rulesets. Only used if
+   * List of email validations that failed for repo rules. Only used if
    * {@link warningType} is 'disallowedEmail'.
    */
   readonly emailRuleErrors?: ReadonlyArray<string>
