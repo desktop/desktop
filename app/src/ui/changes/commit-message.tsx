@@ -759,7 +759,12 @@ export class CommitMessage extends React.Component<
           Want to <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>?
         </CommitWarning>
       )
-    } else if (branchRulesetInfo.creationRestricted && aheadBehind === null) {
+    } else if (
+      aheadBehind === null
+      && branch !== null
+      && (branchRulesetInfo.creationRestricted
+        || branchRulesetInfo.branchNamePatterns.getFailedRules(branch).length > 0)
+    ) {
       // if aheadBehind is null, then the branch hasn't been published
       return (
         <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={false}>
