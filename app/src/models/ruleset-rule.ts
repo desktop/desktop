@@ -1,4 +1,38 @@
 /**
+ * Metadata restrictions for a specific type of rule, as multiple can
+ * be configured at once and all apply to the branch.
+ */
+export class BranchRulesetMetadataRules {
+  private rules: IBranchRulesetMetadataRule[] = []
+
+  public push(rule?: IBranchRulesetMetadataRule): void {
+    if (rule === undefined) {
+      return
+    }
+
+    this.rules.push(rule)
+  }
+
+  /**
+   * Whether any rules are configured.
+   */
+  public get hasRules(): boolean {
+    return this.rules.length > 0
+  }
+
+  /**
+   * Gets an array of human-readable rules that fail to match
+   * the provided input string. If the returned array is empty,
+   * then all rules match.
+   */
+  public getFailedRules(toMatch: string): string[] {
+    return this.rules
+      .filter(rule => !rule.matcher(toMatch))
+      .map(rule => rule.humanDescription)
+  }
+}
+
+/**
  * Ruleset rule info for the current branch.
  */
 export class BranchRulesetInfo {
@@ -23,13 +57,13 @@ export class BranchRulesetInfo {
   public deletionRestricted = false
   public pullRequestRequired = false
   public forcePushesBlocked = false
-  public commitMessagePattern?: IMetadataRule
-  public commitAuthorEmailPattern?: IMetadataRule
-  public committerEmailPattern?: IMetadataRule
-  public branchNamePattern?: IMetadataRule
+  public commitMessagePatterns = new BranchRulesetMetadataRules()
+  public commitAuthorEmailPatterns = new BranchRulesetMetadataRules()
+  public committerEmailPatterns = new BranchRulesetMetadataRules()
+  public branchNamePatterns = new BranchRulesetMetadataRules()
 }
 
-export interface IMetadataRule {
+export interface IBranchRulesetMetadataRule {
   /**
    * Function that determines whether the provided string matches the rule.
    */

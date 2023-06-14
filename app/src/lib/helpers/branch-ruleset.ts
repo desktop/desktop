@@ -1,5 +1,5 @@
 import { escapeRegExp } from 'lodash'
-import { BranchRulesetInfo, IMetadataRule, RulesetMetadataMatcher } from "../../models/ruleset-rule";
+import { BranchRulesetInfo, IBranchRulesetMetadataRule, RulesetMetadataMatcher } from "../../models/ruleset-rule";
 import { APIRepositoryRuleMetadataOperator, IAPIRulesetRule, IAPIRulesetRuleMetadataParameters } from "../api";
 
 /**
@@ -36,19 +36,19 @@ export function parseRulesetRules(rules: ReadonlyArray<IAPIRulesetRule>): Branch
         break
 
       case 'commit_message_pattern':
-        info.commitMessagePattern = toMetadataRule(rule.parameters)
+        info.commitMessagePatterns.push(toMetadataRule(rule.parameters))
         break
 
       case 'commit_author_email_pattern':
-        info.commitAuthorEmailPattern = toMetadataRule(rule.parameters)
+        info.commitAuthorEmailPatterns.push(toMetadataRule(rule.parameters))
         break
 
       case 'committer_email_pattern':
-        info.committerEmailPattern = toMetadataRule(rule.parameters)
+        info.committerEmailPatterns.push(toMetadataRule(rule.parameters))
         break
 
       case 'branch_name_pattern':
-        info.branchNamePattern = toMetadataRule(rule.parameters)
+        info.branchNamePatterns.push(toMetadataRule(rule.parameters))
         break
     }
   }
@@ -56,7 +56,7 @@ export function parseRulesetRules(rules: ReadonlyArray<IAPIRulesetRule>): Branch
   return info
 }
 
-function toMetadataRule(apiParams: IAPIRulesetRuleMetadataParameters | undefined): IMetadataRule | undefined {
+function toMetadataRule(apiParams: IAPIRulesetRuleMetadataParameters | undefined): IBranchRulesetMetadataRule | undefined {
   if (!apiParams) {
     return undefined
   }
@@ -68,7 +68,6 @@ function toMetadataRule(apiParams: IAPIRulesetRuleMetadataParameters | undefined
 }
 
 function toHumanDescription(apiParams: IAPIRulesetRuleMetadataParameters): string {
-
   let description = 'must '
   if (apiParams.negate) {
     description += 'not '

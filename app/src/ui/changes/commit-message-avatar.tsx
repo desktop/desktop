@@ -18,6 +18,8 @@ interface ICommitMessageAvatarState {
   readonly accountEmail: string
 }
 
+export type CommitMessageWarningType = 'none' | 'misattribution' | 'disallowedEmail'
+
 interface ICommitMessageAvatarProps {
   /** The user whose avatar should be displayed. */
   readonly user?: IAvatarUser
@@ -25,8 +27,21 @@ interface ICommitMessageAvatarProps {
   /** Current email address configured by the user. */
   readonly email?: string
 
-  /** Whether or not the warning badge on the avatar should be visible. */
-  readonly warningBadgeVisible: boolean
+  /**
+   * Controls whether a warning should be displayed.
+   * - 'none': No error is displayed, the field is valid.
+   * - 'misattribution': The user's Git config emails don't match and the
+   * commit may not be attributed to the user.
+   * - 'disallowedEmail': A repository rule may prevent the user from
+   * committing with the selected email address.
+   */
+  readonly warningType: CommitMessageWarningType
+
+  /**
+   * List of email validations that failed for rulesets. Only used if
+   * {@link warningType} is 'disallowedEmail'.
+   */
+  readonly emailRuleErrors?: ReadonlyArray<string>
 
   /** Whether or not the user's account is a GHE account. */
   readonly isEnterpriseAccount: boolean
@@ -84,12 +99,27 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   public render() {
+    let ariaLabel = ''
+    switch (this.props.warningType) {
+      case 'none':
+        ariaLabel = 'Show Commit Author Details'
+        break;
+
+      case 'misattribution':
+        ariaLabel = 'Commit may be misattributed. View warning.'
+        break;
+
+      case 'disallowedEmail':
+        ariaLabel = 'Email address may be disallowed. View warning.'
+        break
+    }
+
     return (
       <div className="commit-message-avatar-component">
-        {this.props.warningBadgeVisible && (
+        {this.props.warningType !== 'none' && (
           <Button
             className="avatar-button"
-            ariaLabel="Commit may be misattributed. View warning."
+            ariaLabel={ariaLabel}
             onClick={this.onAvatarClick}
           >
             {this.renderWarningBadge()}
@@ -97,7 +127,7 @@ export class CommitMessageAvatar extends React.Component<
           </Button>
         )}
 
-        {!this.props.warningBadgeVisible && (
+        {this.props.warningType === 'none' && (
           <ToggledtippedContent
             tooltip={this.getTitle()}
             direction={TooltipDirection.NORTH}
@@ -139,7 +169,7 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   private onAvatarClick = (event: React.FormEvent<HTMLButtonElement>) => {
-    if (this.props.warningBadgeVisible === false) {
+    if (this.props.warningType === 'none') {
       return
     }
 
@@ -163,28 +193,50 @@ export class CommitMessageAvatar extends React.Component<
         ? ` for ${this.props.user.name}`
         : ''
 
+    let header = ''
+    switch (this.props.warningType) {
+      case 'misattribution':
+        header = 'This commit will be misattributed'
+        break
+
+      case 'disallowedEmail':
+        header = 'This email address may be disallowed'
+        break
+    }
+
     return (
       <Popover
         caretPosition={PopoverCaretPosition.LeftBottom}
         onClickOutside={this.closePopover}
-        ariaLabelledby="misattributed-commit-popover-header"
+        ariaLabelledby="commit-message-avatar-popover-header"
       >
-        <h3 id="misattributed-commit-popover-header">
-          This commit will be misattributed
+        <h3 id="commit-message-avatar-popover-header">
+          {header}
         </h3>
-        <Row>
-          <div>
-            The email in your global Git config (
-            <span className="git-email">{this.props.email}</span>) doesn't match
-            your GitHub{accountTypeSuffix} account{userName}.{' '}
-            <LinkButton
-              ariaLabel="Learn more about commit attribution"
-              uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
-            >
-              Learn more
-            </LinkButton>
-          </div>
-        </Row>
+        {this.props.warningType === 'misattribution' && (
+          <Row>
+            <div>
+              The email in your global Git config (
+              <span className="git-email">{this.props.email}</span>) doesn't match
+              your GitHub{accountTypeSuffix} account{userName}.{' '}
+              <LinkButton
+                ariaLabel="Learn more about commit attribution"
+                uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
+              >
+                Learn more
+              </LinkButton>
+            </div>
+          </Row>
+        )}
+        {this.props.warningType === 'disallowedEmail' && (
+          <Row>
+            <div>
+              The email in your global Git config (
+              <span className="git-email">{this.props.email}</span>) may be blocked from pushing
+              to this branch by one or more rules: {this.props.emailRuleErrors?.join(', ')}
+            </div>
+          </Row>
+        )}
         <Row>
           <Select
             label="Your Account Emails"

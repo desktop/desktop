@@ -25,7 +25,7 @@ import { Foldout, FoldoutType } from '../../lib/app-state'
 import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
 import { showContextualMenu } from '../../lib/menu-item'
 import { Account } from '../../models/account'
-import { CommitMessageAvatar } from './commit-message-avatar'
+import { CommitMessageAvatar, CommitMessageWarningType } from './commit-message-avatar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { isAttributableEmailFor, lookupPreferredEmail } from '../../lib/email'
 import { setGlobalConfigValue } from '../../lib/git/config'
@@ -428,7 +428,7 @@ export class CommitMessage extends React.Component<
   }
 
   private renderAvatar() {
-    const { commitAuthor, repository } = this.props
+    const { commitAuthor, repository, branchRulesetInfo } = this.props
     const { gitHubRepository } = repository
     const avatarUser: IAvatarUser | undefined =
       commitAuthor !== null
@@ -439,11 +439,20 @@ export class CommitMessage extends React.Component<
     const accountEmails = repositoryAccount?.emails.map(e => e.email) ?? []
     const email = commitAuthor?.email
 
-    const warningBadgeVisible =
-      email !== undefined &&
-      repositoryAccount !== null &&
-      repositoryAccount !== undefined &&
-      isAttributableEmailFor(repositoryAccount, email) === false
+    let warningType: CommitMessageWarningType = 'none'
+    let ruleErrors: string[] = []
+    if (email !== undefined) {
+      ruleErrors = branchRulesetInfo.commitAuthorEmailPatterns.getFailedRules(email)
+      if (ruleErrors.length > 0) {
+        warningType = 'disallowedEmail'
+      } else if (
+        repositoryAccount !== null &&
+        repositoryAccount !== undefined &&
+        isAttributableEmailFor(repositoryAccount, email) === false
+      ) {
+        warningType = 'misattribution'
+      }
+    }
 
     return (
       <CommitMessageAvatar
@@ -452,7 +461,8 @@ export class CommitMessage extends React.Component<
         isEnterpriseAccount={
           repositoryAccount?.endpoint !== getDotComAPIEndpoint()
         }
-        warningBadgeVisible={warningBadgeVisible}
+        warningType={warningType}
+        emailRuleErrors={ruleErrors}
         accountEmails={accountEmails}
         preferredAccountEmail={
           repositoryAccount !== null && repositoryAccount !== undefined
@@ -677,10 +687,11 @@ export class CommitMessage extends React.Component<
       toMatch += `\n\n${trimmedDescription}`
     }
 
-    if (branchRulesetInfo.commitMessagePattern && !branchRulesetInfo.commitMessagePattern.matcher(toMatch)) {
+    const failedRules = branchRulesetInfo.commitMessagePatterns.getFailedRules(toMatch)
+    if (failedRules.length > 0) {
       return (
         <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={true}>
-          This message does not meet the requirements of a rule for the branch <strong>{branch}</strong>: {branchRulesetInfo.commitMessagePattern.humanDescription}.
+          This message does not meet the requirements of a rule for the branch <strong>{branch}</strong>: {failedRules.join(', ')}.
         </CommitWarning>
       )
     } else {
