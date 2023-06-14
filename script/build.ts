@@ -134,9 +134,6 @@ interface IPackageAdditionalOptions {
     readonly name: string
     readonly schemes: ReadonlyArray<string>
   }>
-  readonly osxSign: OsxSignOptions & {
-    readonly hardenedRuntime?: boolean
-  }
 }
 
 function packageApp() {
@@ -206,17 +203,17 @@ function packageApp() {
     appCategoryType: 'public.app-category.developer-tools',
     darwinDarkModeSupport: true,
     osxSign: {
-      hardenedRuntime: true,
-      entitlements: entitlementsPath,
-      'entitlements-inherit': entitlementsPath,
+      optionsForFile: (path: string) => ({
+        hardenedRuntime: true,
+        entitlements: entitlementsPath,
+      }),
       type: isPublishableBuild ? 'distribution' : 'development',
       // For development, we will use '-' as the identifier so that codesign
       // will sign the app to run locally. We need to disable 'identity-validation'
       // or otherwise it will replace '-' with one of the regular codesigning
       // identities in our system.
       identity: isDevelopmentBuild ? '-' : undefined,
-      'identity-validation': !isDevelopmentBuild,
-      'gatekeeper-assess': !isDevelopmentBuild,
+      identityValidation: !isDevelopmentBuild,
     },
     osxNotarize: notarizationCredentials,
     protocols: [
