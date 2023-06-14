@@ -4,12 +4,7 @@
 import * as path from 'path'
 import * as cp from 'child_process'
 import * as os from 'os'
-import packager, {
-  OfficialArch,
-  OsxNotarizeOptions,
-  OsxSignOptions,
-  Options,
-} from 'electron-packager'
+import packager, { OfficialArch, OsxNotarizeOptions } from 'electron-packager'
 import frontMatter from 'front-matter'
 import { externals } from '../app/webpack.common'
 
@@ -124,18 +119,6 @@ verifyInjectedSassVariables(outRoot)
     console.log(`Built to ${appPaths}`)
   })
 
-/**
- * The additional packager options not included in the existing typing.
- *
- * See https://github.com/desktop/desktop/issues/2429 for some history on this.
- */
-interface IPackageAdditionalOptions {
-  readonly protocols: ReadonlyArray<{
-    readonly name: string
-    readonly schemes: ReadonlyArray<string>
-  }>
-}
-
 function packageApp() {
   // not sure if this is needed anywhere, so I'm just going to inline it here
   // for now and see what the future brings...
@@ -178,7 +161,7 @@ function packageApp() {
     )
   }
 
-  const options: Options & IPackageAdditionalOptions = {
+  return packager({
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
     arch: toPackageArch(process.env.TARGET_ARCH),
@@ -238,9 +221,7 @@ function packageApp() {
       ProductName: getProductName(),
       InternalName: getProductName(),
     },
-  }
-
-  return packager(options)
+  })
 }
 
 function removeAndCopy(source: string, destination: string) {
