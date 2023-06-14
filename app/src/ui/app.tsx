@@ -1681,10 +1681,15 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         let upstreamGhRepo: GitHubRepository | null = null
         let upstreamDefaultBranch: Branch | null = null
+        let accountForRepo: Account | null = null
 
         if (isRepositoryWithGitHubRepository(repository)) {
           upstreamGhRepo = getNonForkGitHubRepository(repository)
           upstreamDefaultBranch = branchesState.upstreamDefaultBranch
+          accountForRepo = getAccountForRepository(
+            this.state.accounts,
+            repository
+          )
         }
 
         return (
@@ -1697,6 +1702,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             targetCommit={popup.targetCommit}
             upstreamGitHubRepository={upstreamGhRepo}
+            gitHubAccount={accountForRepo}
             onBranchCreatedFromCommit={this.onBranchCreatedFromCommit}
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}

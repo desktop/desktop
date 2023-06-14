@@ -130,6 +130,7 @@ export abstract class CherryPick extends BaseMultiCommitOperation {
         defaultBranch={defaultBranch}
         upstreamDefaultBranch={upstreamDefaultBranch}
         upstreamGitHubRepository={upstreamGhRepo}
+        gitHubAccount={null}
         allBranches={allBranches}
         repository={repository}
         onDismissed={this.onFlowEnded}

@@ -28,11 +28,16 @@ import { CommitOneLine } from '../../models/commit'
 import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { isRepositoryWithForkedGitHubRepository } from '../../models/repository'
+import { debounce } from 'lodash'
+import { API } from '../../lib/api'
+import { Account } from '../../models/account'
+import { parseRulesetRules } from '../../lib/helpers/branch-ruleset'
 
 interface ICreateBranchProps {
   readonly repository: Repository
   readonly targetCommit?: CommitOneLine
   readonly upstreamGitHubRepository: GitHubRepository | null
+  readonly gitHubAccount: Account | null
   readonly dispatcher: Dispatcher
   readonly onBranchCreatedFromCommit?: () => void
   readonly onDismissed: () => void
@@ -63,7 +68,7 @@ interface ICreateBranchProps {
 }
 
 interface ICreateBranchState {
-  readonly currentError: Error | null
+  readonly currentError: { error: Error, isBlocking: boolean } | null
   readonly branchName: string
   readonly startPoint: StartPoint
 
@@ -101,8 +106,52 @@ export class CreateBranch extends React.Component<
   ICreateBranchProps,
   ICreateBranchState
 > {
+  private api?: API
+
+  private checkBranchRules = debounce(async (branchName: string) => {
+    if (
+      this.api === undefined ||
+      this.props.upstreamGitHubRepository === null ||
+      branchName === '' ||
+      this.state.currentError !== null
+    ) {
+      return
+    }
+
+    const branchRules = await this.api.fetchBranchRules(
+      this.props.upstreamGitHubRepository.owner.login,
+      this.props.upstreamGitHubRepository.name,
+      branchName
+    )
+
+    if (branchRules.length === 0) {
+      return
+    }
+
+    let errMsg: string | null = null
+    const parsedRules = parseRulesetRules(branchRules)
+
+    if (parsedRules.creationRestricted) {
+      errMsg = `Branch name '${branchName}' is restricted by branch rules`
+    } else if (parsedRules.branchNamePatterns.hasRules) {
+      const errors = parsedRules.branchNamePatterns.getFailedRules(branchName)
+
+      if (errors.length > 0) {
+        errMsg = `Branch name '${branchName}' may be restricted by branch rules: ${errors.join('. ')}`
+      }
+    }
+
+    if (errMsg) {
+      this.setState({ currentError: { error: new Error(errMsg), isBlocking: false }})
+    }
+  }, 500)
+
   public constructor(props: ICreateBranchProps) {
     super(props)
+
+    if (props.upstreamGitHubRepository !== null && props.gitHubAccount !== null) {
+      this.api = API.fromAccount(props.gitHubAccount)
+    }
 
     const startPoint = getStartPoint(props, StartPoint.UpstreamDefaultBranch)
 
@@ -199,9 +248,9 @@ export class CreateBranch extends React.Component<
   public render() {
     const disabled =
       this.state.branchName.length <= 0 ||
-      !!this.state.currentError ||
+      (!!this.state.currentError && this.state.currentError.isBlocking) ||
       /^\s*$/.test(this.state.branchName)
-    const error = this.state.currentError
+    const error = this.state.currentError?.error
 
     return (
       <Dialog
@@ -259,13 +308,17 @@ export class CreateBranch extends React.Component<
     this.updateBranchName(name)
   }
 
-  private updateBranchName(branchName: string) {
+  private async updateBranchName(branchName: string) {
     const alreadyExists =
       this.props.allBranches.findIndex(b => b.name === branchName) > -1
 
     const currentError = alreadyExists
-      ? new Error(`A branch named ${branchName} already exists`)
+      ? { error: new Error(`A branch named ${branchName} already exists`), isBlocking: true }
       : null
+
+    if (!currentError) {
+      await this.checkBranchRules(branchName)
+    }
 
     this.setState({
       branchName,
@@ -288,7 +341,7 @@ export class CreateBranch extends React.Component<
       // to make sure the startPoint state is valid given the current props.
       if (!defaultBranch) {
         this.setState({
-          currentError: new Error('Could not determine the default branch'),
+          currentError: { error: new Error('Could not determine the default branch'), isBlocking: true },
         })
         return
       }
@@ -299,7 +352,7 @@ export class CreateBranch extends React.Component<
       // to make sure the startPoint state is valid given the current props.
       if (!upstreamDefaultBranch) {
         this.setState({
-          currentError: new Error('Could not determine the default branch'),
+          currentError: { error: new Error('Could not determine the default branch'), isBlocking: true },
         })
         return
       }
