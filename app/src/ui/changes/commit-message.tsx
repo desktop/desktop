@@ -777,8 +777,8 @@ export class CommitMessage extends React.Component<
       // if aheadBehind is null, then the branch hasn't been published
       return (
         <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={false}>
-          The branch name <strong>{branch}</strong> conflicts with a rule and may be prevented{' '}
-          from being published. Want to <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>?
+          The branch name <strong>{branch}</strong> conflicts with {getRepoRulesLink(repository.gitHubRepository, branch)}{' '}
+          and it may be prevented from being published. Want to <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>?
         </CommitWarning>
       )
     } else {

@@ -5,7 +5,6 @@ import { APIRepoRuleMetadataOperator, IAPIRepoRule, IAPIRepoRuleMetadataParamete
 import { GitHubRepository } from '../../models/github-repository';
 import { LinkButton } from '../../ui/lib/link-button';
 
-
 export function getRepoRulesLink(repo: GitHubRepository | null, branchName: string | null, capitalize?: boolean): string | JSX.Element {
   let text = 'one'
   if (capitalize) {
