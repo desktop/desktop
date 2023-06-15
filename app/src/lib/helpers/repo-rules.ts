@@ -1,6 +1,26 @@
+import * as React from 'react'
 import { escapeRegExp } from 'lodash'
 import { RepoRulesInfo, IRepoRulesMetadataRule, RepoRulesMetadataMatcher } from "../../models/repo-rules";
 import { APIRepoRuleMetadataOperator, IAPIRepoRule, IAPIRepoRuleMetadataParameters } from "../api";
+import { GitHubRepository } from '../../models/github-repository';
+import { LinkButton } from '../../ui/lib/link-button';
+
+
+export function getRepoRulesLink(repo: GitHubRepository | null, branchName: string | null, capitalize?: boolean): string | JSX.Element {
+  let text = 'one'
+  if (capitalize) {
+    text = 'One'
+  }
+
+  text += ' or more rules'
+
+  if (!repo || !branchName) {
+    return text
+  }
+
+  const link = `${repo.htmlURL}/rules/?ref=${encodeURIComponent('refs/heads/' + branchName)}`
+  return React.createElement(LinkButton, { uri: link }, text)
+}
 
 /**
  * Parses the GitHub API response for a branch's repo rules into a more useable

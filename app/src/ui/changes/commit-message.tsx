@@ -25,7 +25,7 @@ import { Foldout, FoldoutType } from '../../lib/app-state'
 import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
 import { showContextualMenu } from '../../lib/menu-item'
 import { Account } from '../../models/account'
-import { CommitMessageAvatar } from './commit-message-avatar'
+import { CommitMessageAvatar, CommitMessageAvatarWarningType } from './commit-message-avatar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { isAttributableEmailFor, lookupPreferredEmail } from '../../lib/email'
 import { setGlobalConfigValue } from '../../lib/git/config'
@@ -39,6 +39,7 @@ import { ToggledtippedContent } from '../lib/toggletipped-content'
 import { PreferencesTab } from '../../models/preferences'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
+import { getRepoRulesLink } from '../../lib/helpers/repo-rules'
 
 const addAuthorIcon = {
   w: 18,
@@ -429,7 +430,7 @@ export class CommitMessage extends React.Component<
   }
 
   private renderAvatar() {
-    const { commitAuthor, repository } = this.props
+    const { commitAuthor, repository, repoRulesInfo } = this.props
     const { gitHubRepository } = repository
     const avatarUser: IAvatarUser | undefined =
       commitAuthor !== null
@@ -440,11 +441,20 @@ export class CommitMessage extends React.Component<
     const accountEmails = repositoryAccount?.emails.map(e => e.email) ?? []
     const email = commitAuthor?.email
 
-    const warningBadgeVisible =
-      email !== undefined &&
-      repositoryAccount !== null &&
-      repositoryAccount !== undefined &&
-      isAttributableEmailFor(repositoryAccount, email) === false
+    let warningType: CommitMessageAvatarWarningType = 'none'
+    let ruleErrors: string[] = []
+    if (email !== undefined) {
+      ruleErrors = repoRulesInfo.commitAuthorEmailPatterns.getFailedRules(email)
+      if (ruleErrors.length > 0) {
+        warningType = 'disallowedEmail'
+      } else if (
+        repositoryAccount !== null &&
+        repositoryAccount !== undefined &&
+        isAttributableEmailFor(repositoryAccount, email) === false
+      ) {
+        warningType = 'misattribution'
+      }
+    }
 
     return (
       <CommitMessageAvatar
@@ -453,7 +463,9 @@ export class CommitMessage extends React.Component<
         isEnterpriseAccount={
           repositoryAccount?.endpoint !== getDotComAPIEndpoint()
         }
-        warningBadgeVisible={warningBadgeVisible}
+        warningType={warningType}
+        emailRuleErrors={ruleErrors}
+        branchName={this.props.branch}
         accountEmails={accountEmails}
         preferredAccountEmail={
           repositoryAccount !== null && repositoryAccount !== undefined
@@ -691,7 +703,9 @@ export class CommitMessage extends React.Component<
     if (failedRules.length > 0) {
       return (
         <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={true}>
-          This message does not meet the requirements of a rule for the branch <strong>{branch}</strong>: {failedRules.join(', ')}.
+          This message does not meet the requirements of{' '}
+          {getRepoRulesLink(this.props.repository.gitHubRepository, branch)} for the branch{' '}
+          <strong>{branch}</strong>: {failedRules.join(', ')}.
         </CommitWarning>
       )
     } else {
@@ -748,14 +762,9 @@ export class CommitMessage extends React.Component<
         </CommitWarning>
       )
     } else if (repoRulesInfo.basicCommitWarning) {
-      let ruleText: string | JSX.Element = `One or more rules`
-      if (repository.gitHubRepository) {
-        const rulesLink = `${repository.gitHubRepository.htmlURL}/rules/?ref=${encodeURIComponent('refs/heads/' + branch)}`
-        ruleText = <LinkButton uri={rulesLink}>{ruleText}</LinkButton>
-      }
       return (
         <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={false}>
-          {ruleText} apply to the branch <strong>{branch}</strong> that may prevent pushing.{' '}
+          {getRepoRulesLink(repository.gitHubRepository, branch, true)} apply to the branch <strong>{branch}</strong> that may prevent pushing.{' '}
           Want to <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>?
         </CommitWarning>
       )
