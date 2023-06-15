@@ -118,7 +118,7 @@ export class CreateBranch extends React.Component<
       return
     }
 
-    const branchRules = await this.api.fetchBranchRules(
+    const branchRules = await this.api.fetchRepoRulesForBranch(
       this.props.upstreamGitHubRepository.owner.login,
       this.props.upstreamGitHubRepository.name,
       branchName
@@ -132,12 +132,12 @@ export class CreateBranch extends React.Component<
     const parsedRules = parseRepoRules(branchRules)
 
     if (parsedRules.creationRestricted) {
-      errMsg = `Branch name '${branchName}' is restricted by branch rules`
+      errMsg = `Branch name '${branchName}' is restricted by repo rules`
     } else if (parsedRules.branchNamePatterns.hasRules) {
       const errors = parsedRules.branchNamePatterns.getFailedRules(branchName)
 
       if (errors.length > 0) {
-        errMsg = `Branch name '${branchName}' may be restricted by branch rules: ${errors.join('. ')}`
+        errMsg = `Branch name '${branchName}' may be restricted by repo rules: ${errors.join('. ')}`
       }
     }
 

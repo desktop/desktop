@@ -1611,7 +1611,7 @@ export class API {
   /**
    * Fetches all repository rules that apply to the provided branch.
    */
-  public async fetchBranchRules(
+  public async fetchRepoRulesForBranch(
     owner: string,
     name: string,
     branch: string
@@ -1622,7 +1622,7 @@ export class API {
       return await parsedResponse<IAPIRepoRule[]>(response)
     } catch (err) {
       log.info(
-        `[fetchBranchRules] unable to fetch branch rules: ${branch} | ${path}`,
+        `[fetchRepoRulesForBranch] unable to fetch repo rules for branch: ${branch} | ${path}`,
         err
       )
       return new Array<IAPIRepoRule>()

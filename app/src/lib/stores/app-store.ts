@@ -1150,7 +1150,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const pushControl = await api.fetchPushControl(owner, name, branchName)
       const currentBranchProtected = !isBranchPushable(pushControl)
 
-      const repoRules = await api.fetchBranchRules(owner, name, branchName)
+      const repoRules = await api.fetchRepoRulesForBranch(owner, name, branchName)
       const currentBranchRepoRulesInfo = parseRepoRules(repoRules)
 
       this.repositoryStateCache.updateChangesState(repository, () => ({
