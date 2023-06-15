@@ -287,6 +287,8 @@ interface IListState {
   readonly width?: number
 
   readonly rowIdPrefix?: string
+
+  readonly scrollTop: number
 }
 
 /**
@@ -343,6 +345,7 @@ export class List extends React.Component<IListProps, IListState> {
   private lastScroll: 'grid' | 'fake' | null = null
 
   private list: HTMLDivElement | null = null
+  private rootGrid: Grid | null = null
   private grids = new Map<number, Grid>()
   private readonly resizeObserver: ResizeObserver | null = null
   private updateSizeTimeoutId: NodeJS.Immediate | null = null
@@ -371,7 +374,9 @@ export class List extends React.Component<IListProps, IListState> {
   public constructor(props: IListProps) {
     super(props)
 
-    this.state = {}
+    this.state = {
+      scrollTop: 0,
+    }
 
     const ResizeObserverClass: typeof ResizeObserver = (window as any)
       .ResizeObserver
@@ -1137,6 +1142,10 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
+  private onRootGridRef = (ref: Grid | null) => {
+    this.rootGrid = ref
+  }
+
   private getOnGridRef = (section: number) => {
     return (ref: Grid | null) => {
       if (ref === null) {
@@ -1155,20 +1164,26 @@ export class List extends React.Component<IListProps, IListState> {
     (width: number) => (params: IRowRendererParams) => {
       const section = params.rowIndex
 
+      const { selectedRows, rowCount } = this.props
+
       // The currently selected list item is focusable but if there's no focused
       // item the list itself needs to be focusable so that you can reach it with
       // keyboard navigation and select an item.
-      const tabIndex = this.props.selectedRows.some(r => r.section === section)
-        ? 0
-        : -1
+      const tabIndex = selectedRows.some(r => r.section === section) ? 0 : -1
       // we select the last item from the selection array for this prop
       const activeDescendant =
-        this.props.selectedRows.length && this.state.rowIdPrefix
-          ? this.getRowId(
-              this.props.selectedRows[this.props.selectedRows.length - 1]
-            )
+        selectedRows.length && this.state.rowIdPrefix
+          ? this.getRowId(selectedRows[selectedRows.length - 1])
           : undefined
       const height = this.getSectionHeight(section)
+      const offset = rowCount
+        .slice(0, section)
+        .reduce((height, x, idx) => height + this.getSectionHeight(idx), 0)
+
+      const relativeScrollTop = Math.max(
+        0,
+        Math.min(height, this.state.scrollTop - offset)
+      )
       const containerProps = this.getContainerProps(activeDescendant)
       return (
         <Grid
@@ -1186,8 +1201,7 @@ export class List extends React.Component<IListProps, IListState> {
           rowCount={this.props.rowCount[section]}
           rowHeight={this.getRowHeight(section)}
           cellRenderer={this.getRowRenderer(section)}
-          onScroll={this.onScroll}
-          scrollTop={this.props.setScrollTop}
+          scrollTop={relativeScrollTop}
           overscanRowCount={4}
           style={params.style}
           tabIndex={tabIndex}
@@ -1233,7 +1247,7 @@ export class List extends React.Component<IListProps, IListState> {
         <Grid
           id={this.props.accessibleListId}
           role="listbox"
-          //ref={this.getOnGridRef(section)}
+          ref={this.onRootGridRef}
           autoContainerWidth={true}
           containerRole="presentation"
           //containerProps={containerProps}
@@ -1295,14 +1309,14 @@ export class List extends React.Component<IListProps, IListState> {
 
     this.lastScroll = 'fake'
 
-    // TODO: calculate scrollTop of the right grid(s)
+    // TODO: calculate scrollTop of the right grid(s)?
 
-    // if (this.grid) {
-    //   const element = ReactDOM.findDOMNode(this.grid)
-    //   if (element instanceof Element) {
-    //     element.scrollTop = e.currentTarget.scrollTop
-    //   }
-    // }
+    if (this.rootGrid) {
+      const element = ReactDOM.findDOMNode(this.rootGrid)
+      if (element instanceof Element) {
+        element.scrollTop = e.currentTarget.scrollTop
+      }
+    }
   }
 
   private onRowMouseDown = (
@@ -1518,6 +1532,8 @@ export class List extends React.Component<IListProps, IListState> {
 
       this.fakeScroll.scrollTop = scrollTop
     }
+
+    this.setState({ scrollTop })
   }
 
   /**
