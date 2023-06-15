@@ -407,14 +407,14 @@ export class List extends React.Component<IListProps, IListState> {
     return this.props.rowCount.reduce((a, b) => a + b, 0)
   }
 
-  private getRowId(row: RowIndexPath): string | undefined {
+  private getRowId(indexPath: RowIndexPath): string | undefined {
     if (this.props.rowId) {
-      return this.props.rowId(row)
+      return this.props.rowId(indexPath)
     }
 
     return this.state.rowIdPrefix === undefined
       ? undefined
-      : `${this.state.rowIdPrefix}-${row}`
+      : `${this.state.rowIdPrefix}-${indexPath.section}-${indexPath.row}`
   }
 
   private onResized = (target: HTMLElement, contentRect: ClientRect) => {
