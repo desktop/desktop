@@ -25,7 +25,7 @@ import { Foldout, FoldoutType } from '../../lib/app-state'
 import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
 import { showContextualMenu } from '../../lib/menu-item'
 import { Account } from '../../models/account'
-import { CommitMessageAvatar, CommitMessageWarningType } from './commit-message-avatar'
+import { CommitMessageAvatar } from './commit-message-avatar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { isAttributableEmailFor, lookupPreferredEmail } from '../../lib/email'
 import { setGlobalConfigValue } from '../../lib/git/config'
@@ -36,6 +36,7 @@ import { isEmptyOrWhitespace } from '../../lib/is-empty-or-whitespace'
 import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
 import { ToggledtippedContent } from '../lib/toggletipped-content'
+import { PreferencesTab } from '../../models/preferences'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
 
@@ -428,7 +429,7 @@ export class CommitMessage extends React.Component<
   }
 
   private renderAvatar() {
-    const { commitAuthor, repository, repoRulesInfo } = this.props
+    const { commitAuthor, repository } = this.props
     const { gitHubRepository } = repository
     const avatarUser: IAvatarUser | undefined =
       commitAuthor !== null
@@ -439,20 +440,11 @@ export class CommitMessage extends React.Component<
     const accountEmails = repositoryAccount?.emails.map(e => e.email) ?? []
     const email = commitAuthor?.email
 
-    let warningType: CommitMessageWarningType = 'none'
-    let ruleErrors: string[] = []
-    if (email !== undefined) {
-      ruleErrors = repoRulesInfo.commitAuthorEmailPatterns.getFailedRules(email)
-      if (ruleErrors.length > 0) {
-        warningType = 'disallowedEmail'
-      } else if (
-        repositoryAccount !== null &&
-        repositoryAccount !== undefined &&
-        isAttributableEmailFor(repositoryAccount, email) === false
-      ) {
-        warningType = 'misattribution'
-      }
-    }
+    const warningBadgeVisible =
+      email !== undefined &&
+      repositoryAccount !== null &&
+      repositoryAccount !== undefined &&
+      isAttributableEmailFor(repositoryAccount, email) === false
 
     return (
       <CommitMessageAvatar
@@ -461,8 +453,7 @@ export class CommitMessage extends React.Component<
         isEnterpriseAccount={
           repositoryAccount?.endpoint !== getDotComAPIEndpoint()
         }
-        warningType={warningType}
-        emailRuleErrors={ruleErrors}
+        warningBadgeVisible={warningBadgeVisible}
         accountEmails={accountEmails}
         preferredAccountEmail={
           repositoryAccount !== null && repositoryAccount !== undefined
@@ -471,6 +462,8 @@ export class CommitMessage extends React.Component<
         }
         onUpdateEmail={this.onUpdateUserEmail}
         onOpenRepositorySettings={this.onOpenRepositorySettings}
+        onOpenGitSettings={this.onOpenGitSettings}
+        repository={repository}
       />
     )
   }
@@ -485,6 +478,13 @@ export class CommitMessage extends React.Component<
       type: PopupType.RepositorySettings,
       repository: this.props.repository,
       initialSelectedTab: RepositorySettingsTab.GitConfig,
+    })
+  }
+
+  private onOpenGitSettings = () => {
+    this.props.onShowPopup({
+      type: PopupType.Preferences,
+      initialSelectedTab: PreferencesTab.Git,
     })
   }
 

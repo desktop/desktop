@@ -381,6 +381,7 @@ export class RepositoryView extends React.Component<
           onOpenSubmodule={this.onOpenSubmodule}
           onChangeImageDiffType={this.onChangeImageDiffType}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />
       )
     }
@@ -520,6 +521,7 @@ export class RepositoryView extends React.Component<
             this.props.askForConfirmationOnDiscardChanges
           }
           onDiffOptionsOpened={this.onDiffOptionsOpened}
+          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />
       )
     }
