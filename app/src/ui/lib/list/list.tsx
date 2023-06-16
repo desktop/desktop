@@ -1,11 +1,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Grid, AutoSizer, Index } from 'react-virtualized'
-import {
-  shallowEquals,
-  arrayEquals,
-  structuralEquals,
-} from '../../../lib/equality'
+import { shallowEquals, structuralEquals } from '../../../lib/equality'
 import { FocusContainer } from '../../lib/focus-container'
 import { ListRow } from './list-row'
 import {
@@ -912,14 +908,26 @@ export class List extends React.Component<IListProps, IListState> {
     }
 
     if (this.grids.size > 0) {
+      const hasEqualRowCount = structuralEquals(
+        this.props.rowCount,
+        prevProps.rowCount
+      )
+
       // A non-exhaustive set of checks to see if our current update has already
       // triggered a re-render of the Grid. In order to do this perfectly we'd
       // have to do a shallow compare on all the props we pass to Grid but
       // this should cover the majority of cases.
       const gridHasUpdatedAlready =
-        !arrayEquals(this.props.rowCount, prevProps.rowCount) ||
+        !hasEqualRowCount ||
         this.state.width !== prevState.width ||
         this.state.height !== prevState.height
+
+      // If the number of groups doesn't change, but the size of them does, we
+      // need to recompute the grid size to ensure that the rows are laid out
+      // correctly.
+      if (!hasEqualRowCount) {
+        this.rootGrid?.recomputeGridSize()
+      }
 
       if (!gridHasUpdatedAlready) {
         const selectedRowChanged = !structuralEquals(
