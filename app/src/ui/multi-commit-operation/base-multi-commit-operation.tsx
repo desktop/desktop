@@ -12,6 +12,7 @@ import { ConfirmAbortDialog } from './dialog/confirm-abort-dialog'
 import { ProgressDialog } from './dialog/progress-dialog'
 import { WarnForcePushDialog } from './dialog/warn-force-push-dialog'
 import { PopupType } from '../../models/popup'
+import { Account } from '../../models/account'
 
 export interface IMultiCommitOperationProps {
   readonly repository: Repository
@@ -31,6 +32,8 @@ export interface IMultiCommitOperationProps {
 
   /** Whether user should be warned about force pushing */
   readonly askForConfirmationOnForcePush: boolean
+
+  readonly accounts: ReadonlyArray<Account>
 
   /**
    * Callbacks for the conflict selection components to let the user jump out

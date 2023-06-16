@@ -32,12 +32,14 @@ import { debounce } from 'lodash'
 import { API } from '../../lib/api'
 import { Account } from '../../models/account'
 import { parseRepoRules } from '../../lib/helpers/repo-rules'
+import { getAccountForRepository } from '../../lib/get-account-for-repository'
+import { supportsRepoRules } from '../../lib/endpoint-capabilities'
 
 interface ICreateBranchProps {
   readonly repository: Repository
   readonly targetCommit?: CommitOneLine
   readonly upstreamGitHubRepository: GitHubRepository | null
-  readonly gitHubAccount: Account | null
+  readonly accounts: ReadonlyArray<Account>
   readonly dispatcher: Dispatcher
   readonly onBranchCreatedFromCommit?: () => void
   readonly onDismissed: () => void
@@ -106,19 +108,28 @@ export class CreateBranch extends React.Component<
   ICreateBranchProps,
   ICreateBranchState
 > {
-  private api?: API
-
   private checkBranchRules = debounce(async (branchName: string) => {
     if (
-      this.api === undefined ||
+      this.props.accounts.length === 0 ||
       this.props.upstreamGitHubRepository === null ||
       branchName === '' ||
-      this.state.currentError !== null
+      this.state.currentError !== null ||
+      !supportsRepoRules(this.props.upstreamGitHubRepository.endpoint)
     ) {
       return
     }
 
-    const branchRules = await this.api.fetchRepoRulesForBranch(
+    const account = getAccountForRepository(
+      this.props.accounts,
+      this.props.repository
+    )
+
+    if (account === null) {
+      return
+    }
+
+    const api = API.fromAccount(account)
+    const branchRules = await api.fetchRepoRulesForBranch(
       this.props.upstreamGitHubRepository.owner.login,
       this.props.upstreamGitHubRepository.name,
       branchName
@@ -148,10 +159,6 @@ export class CreateBranch extends React.Component<
 
   public constructor(props: ICreateBranchProps) {
     super(props)
-
-    if (props.upstreamGitHubRepository !== null && props.gitHubAccount !== null) {
-      this.api = API.fromAccount(props.gitHubAccount)
-    }
 
     const startPoint = getStartPoint(props, StartPoint.UpstreamDefaultBranch)
 

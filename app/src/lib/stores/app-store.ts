@@ -317,6 +317,7 @@ import { PopupManager } from '../popup-manager'
 import { resizableComponentClass } from '../../ui/resizable'
 import { parseRepoRules } from '../helpers/repo-rules'
 import { RepoRulesInfo } from '../../models/repo-rules'
+import { supportsRepoRules } from '../endpoint-capabilities'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1150,12 +1151,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const pushControl = await api.fetchPushControl(owner, name, branchName)
       const currentBranchProtected = !isBranchPushable(pushControl)
 
-      const repoRules = await api.fetchRepoRulesForBranch(owner, name, branchName)
-      const currentBranchRepoRulesInfo = parseRepoRules(repoRules)
+      let currentRepoRulesInfo = new RepoRulesInfo()
+      if (supportsRepoRules(gitHubRepo.endpoint)) {
+        const repoRules = await api.fetchRepoRulesForBranch(owner, name, branchName)
+        currentRepoRulesInfo = parseRepoRules(repoRules)
+      }
 
       this.repositoryStateCache.updateChangesState(repository, () => ({
         currentBranchProtected,
-        currentRepoRulesInfo: currentBranchRepoRulesInfo
+        currentRepoRulesInfo
       }))
       this.emitUpdate()
     }
