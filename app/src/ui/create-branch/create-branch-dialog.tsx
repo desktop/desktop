@@ -154,7 +154,7 @@ export class CreateBranch extends React.Component<
       }
     }
 
-    if (errMsg) {
+    if (errMsg && branchName === this.state.branchName) {
       this.setState({
         currentError: { error: new Error(errMsg), isBlocking: false },
       })
@@ -315,11 +315,13 @@ export class CreateBranch extends React.Component<
     return __DARWIN__ ? 'Create Branch' : 'Create branch'
   }
 
-  private onBranchNameChange = (name: string) => {
-    this.updateBranchName(name)
+  private onBranchNameChange = async (name: string) => {
+    await this.updateBranchName(name)
   }
 
   private async updateBranchName(branchName: string) {
+    this.setState({ branchName })
+
     const alreadyExists =
       this.props.allBranches.findIndex(b => b.name === branchName) > -1
 
@@ -330,14 +332,13 @@ export class CreateBranch extends React.Component<
         }
       : null
 
-    if (!currentError) {
-      await this.checkBranchRules(branchName)
-    }
+    if (branchName === this.state.branchName) {
+      this.setState({ currentError })
 
-    this.setState({
-      branchName,
-      currentError,
-    })
+      if (!currentError) {
+        await this.checkBranchRules(branchName)
+      }
+    }
   }
 
   private createBranch = async () => {
