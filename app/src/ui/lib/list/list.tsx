@@ -1206,16 +1206,17 @@ export class List extends React.Component<IListProps, IListState> {
           autoContainerWidth={true}
           containerRole="presentation"
           containerProps={containerProps}
-          width={width}
+          // Set the width and columnWidth to a hardcoded large value to prevent
+          columnWidth={10000}
+          width={10000}
           height={height}
-          columnWidth={width}
           columnCount={1}
           rowCount={this.props.rowCount[section]}
           rowHeight={this.getRowHeight(section)}
           cellRenderer={this.getRowRenderer(section)}
           scrollTop={relativeScrollTop}
           overscanRowCount={4}
-          style={params.style}
+          style={{ ...params.style, width: '100%' }}
           tabIndex={tabIndex}
         />
       )
