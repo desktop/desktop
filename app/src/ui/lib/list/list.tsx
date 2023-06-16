@@ -1,7 +1,11 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Grid, AutoSizer, Index } from 'react-virtualized'
-import { shallowEquals, arrayEquals } from '../../../lib/equality'
+import {
+  shallowEquals,
+  arrayEquals,
+  structuralEquals,
+} from '../../../lib/equality'
 import { FocusContainer } from '../../lib/focus-container'
 import { ListRow } from './list-row'
 import {
@@ -918,7 +922,7 @@ export class List extends React.Component<IListProps, IListState> {
         this.state.height !== prevState.height
 
       if (!gridHasUpdatedAlready) {
-        const selectedRowChanged = !arrayEquals(
+        const selectedRowChanged = !structuralEquals(
           prevProps.selectedRows,
           this.props.selectedRows
         )
@@ -1178,7 +1182,7 @@ export class List extends React.Component<IListProps, IListState> {
       const height = this.getSectionHeight(section)
       const offset = rowCount
         .slice(0, section)
-        .reduce((height, x, idx) => height + this.getSectionHeight(idx), 0)
+        .reduce((height, _x, idx) => height + this.getSectionHeight(idx), 0)
 
       const relativeScrollTop = Math.max(
         0,
