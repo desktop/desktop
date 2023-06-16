@@ -25,7 +25,10 @@ import { Foldout, FoldoutType } from '../../lib/app-state'
 import { IAvatarUser, getAvatarUserFromAuthor } from '../../models/avatar'
 import { showContextualMenu } from '../../lib/menu-item'
 import { Account } from '../../models/account'
-import { CommitMessageAvatar, CommitMessageAvatarWarningType } from './commit-message-avatar'
+import {
+  CommitMessageAvatar,
+  CommitMessageAvatarWarningType,
+} from './commit-message-avatar'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { isAttributableEmailFor, lookupPreferredEmail } from '../../lib/email'
 import { setGlobalConfigValue } from '../../lib/git/config'
@@ -688,10 +691,7 @@ export class CommitMessage extends React.Component<
   }
 
   private renderInvalidCommitMessageWarning() {
-    const {
-      repoRulesInfo,
-      branch,
-    } = this.props
+    const { repoRulesInfo, branch } = this.props
 
     const trimmedDescription = this.state.description?.trim()
     let toMatch = this.state.summary.trim()
@@ -699,13 +699,17 @@ export class CommitMessage extends React.Component<
       toMatch += `\n\n${trimmedDescription}`
     }
 
-    const failedRules = repoRulesInfo.commitMessagePatterns.getFailedRules(toMatch)
+    const failedRules =
+      repoRulesInfo.commitMessagePatterns.getFailedRules(toMatch)
     if (failedRules.length > 0) {
       return (
-        <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={true}>
+        <CommitWarning
+          icon={CommitWarningIcon.Warning}
+          displayingAboveForm={true}
+        >
           This message does not meet the requirements of{' '}
-          {getRepoRulesLink(this.props.repository.gitHubRepository, branch)} for the branch{' '}
-          <strong>{branch}</strong>: {failedRules.join(', ')}.
+          {getRepoRulesLink(this.props.repository.gitHubRepository, branch)} for
+          the branch <strong>{branch}</strong>: {failedRules.join(', ')}.
         </CommitWarning>
       )
     } else {
@@ -726,7 +730,10 @@ export class CommitMessage extends React.Component<
 
     if (commitToAmend !== null) {
       return (
-        <CommitWarning icon={CommitWarningIcon.Information} displayingAboveForm={false}>
+        <CommitWarning
+          icon={CommitWarningIcon.Information}
+          displayingAboveForm={false}
+        >
           Your changes will modify your <strong>most recent commit</strong>.{' '}
           <LinkButton onClick={this.props.onStopAmending}>
             Stop amending
@@ -736,7 +743,10 @@ export class CommitMessage extends React.Component<
       )
     } else if (showNoWriteAccess) {
       return (
-        <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={false}>
+        <CommitWarning
+          icon={CommitWarningIcon.Warning}
+          displayingAboveForm={false}
+        >
           You don't have write access to <strong>{repository.name}</strong>.
           Want to{' '}
           <LinkButton onClick={this.props.onShowCreateForkDialog}>
@@ -755,7 +765,10 @@ export class CommitMessage extends React.Component<
       }
 
       return (
-        <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={false}>
+        <CommitWarning
+          icon={CommitWarningIcon.Warning}
+          displayingAboveForm={false}
+        >
           <strong>{branch}</strong> is a protected branch. Want to{' '}
           <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
           ?
@@ -763,22 +776,33 @@ export class CommitMessage extends React.Component<
       )
     } else if (repoRulesInfo.basicCommitWarning) {
       return (
-        <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={false}>
-          {getRepoRulesLink(repository.gitHubRepository, branch, true)} apply to the branch <strong>{branch}</strong> that may prevent pushing.{' '}
-          Want to <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>?
+        <CommitWarning
+          icon={CommitWarningIcon.Warning}
+          displayingAboveForm={false}
+        >
+          {getRepoRulesLink(repository.gitHubRepository, branch, true)} apply to
+          the branch <strong>{branch}</strong> that may prevent pushing. Want to{' '}
+          <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
+          ?
         </CommitWarning>
       )
     } else if (
-      aheadBehind === null
-      && branch !== null
-      && (repoRulesInfo.creationRestricted
-        || repoRulesInfo.branchNamePatterns.getFailedRules(branch).length > 0)
+      aheadBehind === null &&
+      branch !== null &&
+      (repoRulesInfo.creationRestricted ||
+        repoRulesInfo.branchNamePatterns.getFailedRules(branch).length > 0)
     ) {
       // if aheadBehind is null, then the branch hasn't been published
       return (
-        <CommitWarning icon={CommitWarningIcon.Warning} displayingAboveForm={false}>
-          The branch name <strong>{branch}</strong> conflicts with {getRepoRulesLink(repository.gitHubRepository, branch)}{' '}
-          and it may be prevented from being published. Want to <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>?
+        <CommitWarning
+          icon={CommitWarningIcon.Warning}
+          displayingAboveForm={false}
+        >
+          The branch name <strong>{branch}</strong> conflicts with{' '}
+          {getRepoRulesLink(repository.gitHubRepository, branch)} and it may be
+          prevented from being published. Want to{' '}
+          <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
+          ?
         </CommitWarning>
       )
     } else {

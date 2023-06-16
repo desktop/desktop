@@ -18,7 +18,10 @@ import { Repository } from '../../models/repository'
 import classNames from 'classnames'
 import { getRepoRulesLink } from '../../lib/helpers/repo-rules'
 
-export type CommitMessageAvatarWarningType = 'none' | 'misattribution' | 'disallowedEmail'
+export type CommitMessageAvatarWarningType =
+  | 'none'
+  | 'misattribution'
+  | 'disallowedEmail'
 
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
@@ -141,11 +144,11 @@ export class CommitMessageAvatar extends React.Component<
     switch (warningType) {
       case 'none':
         ariaLabel = 'View commit author information'
-        break;
+        break
 
       case 'misattribution':
         ariaLabel = 'Commit may be misattributed. View warning.'
-        break;
+        break
 
       case 'disallowedEmail':
         ariaLabel = 'Email address may be disallowed. View warning.'
@@ -266,8 +269,8 @@ export class CommitMessageAvatar extends React.Component<
           {this.props.warningType === 'misattribution' && (
             <div>
               The email in your global Git config (
-              <span className="git-email">{this.props.email}</span>) doesn't match
-              your GitHub{accountTypeSuffix} account{userName}.{' '}
+              <span className="git-email">{this.props.email}</span>) doesn't
+              match your GitHub{accountTypeSuffix} account{userName}.{' '}
               <LinkButton
                 ariaLabel="Learn more about commit attribution"
                 uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
@@ -278,10 +281,15 @@ export class CommitMessageAvatar extends React.Component<
           )}
           {this.props.warningType === 'disallowedEmail' && (
             <div>
-              This commit may be blocked from pushing because the email in your global Git config (
-              <span className="git-email">{this.props.email}</span>) does not match{' '}
-              {getRepoRulesLink(this.props.repository.gitHubRepository, this.props.branchName)}:{' '}
-              {this.props.emailRuleErrors?.join(', ')}.
+              This commit may be blocked from pushing because the email in your
+              global Git config (
+              <span className="git-email">{this.props.email}</span>) does not
+              match{' '}
+              {getRepoRulesLink(
+                this.props.repository.gitHubRepository,
+                this.props.branchName
+              )}
+              : {this.props.emailRuleErrors?.join(', ')}.
             </div>
           )}
         </Row>
@@ -369,9 +377,7 @@ export class CommitMessageAvatar extends React.Component<
         onClickOutside={this.closePopover}
         ariaLabelledby="commit-avatar-popover-header"
       >
-        <h3 id="commit-avatar-popover-header">
-          {header}
-        </h3>
+        <h3 id="commit-avatar-popover-header">{header}</h3>
 
         {warningType !== 'none'
           ? this.renderWarningPopover()

@@ -32,17 +32,22 @@ const renderIcon = (icon: CommitWarningIcon) => {
 /** A warning displayed above the commit button or above the commit form
  */
 export const CommitWarning: React.FunctionComponent<{
-  readonly icon: CommitWarningIcon,
+  readonly icon: CommitWarningIcon
 
   /**
    * If true, the warning is being displayed above the form fields. This
    * only changes some styling, it does not actually change the location
    * of the warning.
    */
-  readonly displayingAboveForm: boolean,
+  readonly displayingAboveForm: boolean
 }> = props => {
   return (
-    <div className={classNames('commit-warning-component', {above: props.displayingAboveForm})} onContextMenu={ignoreContextMenu}>
+    <div
+      className={classNames('commit-warning-component', {
+        above: props.displayingAboveForm,
+      })}
+      onContextMenu={ignoreContextMenu}
+    >
       <div className="warning-icon-container">{renderIcon(props.icon)}</div>
       <div className="warning-message">{props.children}</div>
     </div>

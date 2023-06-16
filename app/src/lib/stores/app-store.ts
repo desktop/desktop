@@ -1153,13 +1153,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       let currentRepoRulesInfo = new RepoRulesInfo()
       if (supportsRepoRules(gitHubRepo.endpoint)) {
-        const repoRules = await api.fetchRepoRulesForBranch(owner, name, branchName)
+        const repoRules = await api.fetchRepoRulesForBranch(
+          owner,
+          name,
+          branchName
+        )
         currentRepoRulesInfo = parseRepoRules(repoRules)
       }
 
       this.repositoryStateCache.updateChangesState(repository, () => ({
         currentBranchProtected,
-        currentRepoRulesInfo
+        currentRepoRulesInfo,
       }))
       this.emitUpdate()
     }

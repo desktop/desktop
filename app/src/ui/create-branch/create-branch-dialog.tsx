@@ -70,7 +70,7 @@ interface ICreateBranchProps {
 }
 
 interface ICreateBranchState {
-  readonly currentError: { error: Error, isBlocking: boolean } | null
+  readonly currentError: { error: Error; isBlocking: boolean } | null
   readonly branchName: string
   readonly startPoint: StartPoint
 
@@ -148,12 +148,16 @@ export class CreateBranch extends React.Component<
       const errors = parsedRules.branchNamePatterns.getFailedRules(branchName)
 
       if (errors.length > 0) {
-        errMsg = `Branch name '${branchName}' may be restricted by repo rules: ${errors.join('. ')}`
+        errMsg = `Branch name '${branchName}' may be restricted by repo rules: ${errors.join(
+          '. '
+        )}`
       }
     }
 
     if (errMsg) {
-      this.setState({ currentError: { error: new Error(errMsg), isBlocking: false }})
+      this.setState({
+        currentError: { error: new Error(errMsg), isBlocking: false },
+      })
     }
   }, 500)
 
@@ -320,7 +324,10 @@ export class CreateBranch extends React.Component<
       this.props.allBranches.findIndex(b => b.name === branchName) > -1
 
     const currentError = alreadyExists
-      ? { error: new Error(`A branch named ${branchName} already exists`), isBlocking: true }
+      ? {
+          error: new Error(`A branch named ${branchName} already exists`),
+          isBlocking: true,
+        }
       : null
 
     if (!currentError) {
@@ -348,7 +355,10 @@ export class CreateBranch extends React.Component<
       // to make sure the startPoint state is valid given the current props.
       if (!defaultBranch) {
         this.setState({
-          currentError: { error: new Error('Could not determine the default branch'), isBlocking: true },
+          currentError: {
+            error: new Error('Could not determine the default branch'),
+            isBlocking: true,
+          },
         })
         return
       }
@@ -359,7 +369,10 @@ export class CreateBranch extends React.Component<
       // to make sure the startPoint state is valid given the current props.
       if (!upstreamDefaultBranch) {
         this.setState({
-          currentError: { error: new Error('Could not determine the default branch'), isBlocking: true },
+          currentError: {
+            error: new Error('Could not determine the default branch'),
+            isBlocking: true,
+          },
         })
         return
       }

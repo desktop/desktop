@@ -1,11 +1,23 @@
 import * as React from 'react'
 import { escapeRegExp } from 'lodash'
-import { RepoRulesInfo, IRepoRulesMetadataRule, RepoRulesMetadataMatcher } from "../../models/repo-rules";
-import { APIRepoRuleMetadataOperator, IAPIRepoRule, IAPIRepoRuleMetadataParameters } from "../api";
-import { GitHubRepository } from '../../models/github-repository';
-import { LinkButton } from '../../ui/lib/link-button';
+import {
+  RepoRulesInfo,
+  IRepoRulesMetadataRule,
+  RepoRulesMetadataMatcher,
+} from '../../models/repo-rules'
+import {
+  APIRepoRuleMetadataOperator,
+  IAPIRepoRule,
+  IAPIRepoRuleMetadataParameters,
+} from '../api'
+import { GitHubRepository } from '../../models/github-repository'
+import { LinkButton } from '../../ui/lib/link-button'
 
-export function getRepoRulesLink(repo: GitHubRepository | null, branchName: string | null, capitalize?: boolean): string | JSX.Element {
+export function getRepoRulesLink(
+  repo: GitHubRepository | null,
+  branchName: string | null,
+  capitalize?: boolean
+): string | JSX.Element {
   let text = 'one'
   if (capitalize) {
     text = 'One'
@@ -17,7 +29,9 @@ export function getRepoRulesLink(repo: GitHubRepository | null, branchName: stri
     return text
   }
 
-  const link = `${repo.htmlURL}/rules/?ref=${encodeURIComponent('refs/heads/' + branchName)}`
+  const link = `${repo.htmlURL}/rules/?ref=${encodeURIComponent(
+    'refs/heads/' + branchName
+  )}`
   return React.createElement(LinkButton, { uri: link }, text)
 }
 
@@ -25,7 +39,9 @@ export function getRepoRulesLink(repo: GitHubRepository | null, branchName: stri
  * Parses the GitHub API response for a branch's repo rules into a more useable
  * format.
  */
-export function parseRepoRules(rules: ReadonlyArray<IAPIRepoRule>): RepoRulesInfo {
+export function parseRepoRules(
+  rules: ReadonlyArray<IAPIRepoRule>
+): RepoRulesInfo {
   const info = new RepoRulesInfo()
 
   for (const rule of rules) {
@@ -75,7 +91,9 @@ export function parseRepoRules(rules: ReadonlyArray<IAPIRepoRule>): RepoRulesInf
   return info
 }
 
-function toMetadataRule(apiParams: IAPIRepoRuleMetadataParameters | undefined): IRepoRulesMetadataRule | undefined {
+function toMetadataRule(
+  apiParams: IAPIRepoRuleMetadataParameters | undefined
+): IRepoRulesMetadataRule | undefined {
   if (!apiParams) {
     return undefined
   }
@@ -116,7 +134,9 @@ function toHumanDescription(apiParams: IAPIRepoRuleMetadataParameters): string {
 /**
  * Converts the given metadata rule into a matcher function that uses regex to test the rule.
  */
-function toMatcher(rule: IAPIRepoRuleMetadataParameters | undefined): RepoRulesMetadataMatcher {
+function toMatcher(
+  rule: IAPIRepoRuleMetadataParameters | undefined
+): RepoRulesMetadataMatcher {
   if (!rule) {
     return () => false
   }

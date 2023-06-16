@@ -1616,7 +1616,9 @@ export class API {
     name: string,
     branch: string
   ): Promise<ReadonlyArray<IAPIRepoRule>> {
-    const path = `repos/${owner}/${name}/rules/branches/${encodeURIComponent(branch)}`
+    const path = `repos/${owner}/${name}/rules/branches/${encodeURIComponent(
+      branch
+    )}`
     try {
       const response = await this.request('GET', path)
       return await parsedResponse<IAPIRepoRule[]>(response)
