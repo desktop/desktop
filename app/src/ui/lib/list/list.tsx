@@ -1173,7 +1173,7 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private getSectionGridRenderer =
-    (width: number) => (params: IRowRendererParams) => {
+    (width: number, height: number) => (params: IRowRendererParams) => {
       const section = params.rowIndex
 
       const { selectedRows, rowCount } = this.props
@@ -1187,14 +1187,14 @@ export class List extends React.Component<IListProps, IListState> {
         selectedRows.length && this.state.rowIdPrefix
           ? this.getRowId(selectedRows[selectedRows.length - 1])
           : undefined
-      const height = this.getSectionHeight(section)
+      const sectionHeight = this.getSectionHeight(section)
       const offset = rowCount
         .slice(0, section)
         .reduce((height, _x, idx) => height + this.getSectionHeight(idx), 0)
 
       const relativeScrollTop = Math.max(
         0,
-        Math.min(height, this.state.scrollTop - offset)
+        Math.min(sectionHeight, this.state.scrollTop - offset)
       )
       const containerProps = this.getContainerProps(activeDescendant)
       return (
@@ -1209,7 +1209,7 @@ export class List extends React.Component<IListProps, IListState> {
           // Set the width and columnWidth to a hardcoded large value to prevent
           columnWidth={10000}
           width={10000}
-          height={height}
+          height={Math.min(sectionHeight, height)}
           columnCount={1}
           rowCount={this.props.rowCount[section]}
           rowHeight={this.getRowHeight(section)}
@@ -1270,7 +1270,7 @@ export class List extends React.Component<IListProps, IListState> {
           columnCount={1}
           rowCount={this.props.rowCount.length}
           rowHeight={this.sectionHeight}
-          cellRenderer={this.getSectionGridRenderer(width)}
+          cellRenderer={this.getSectionGridRenderer(width, height)}
           onScroll={this.onScroll}
           scrollTop={this.props.setScrollTop}
           overscanRowCount={4}
@@ -1547,6 +1547,9 @@ export class List extends React.Component<IListProps, IListState> {
     }
 
     this.setState({ scrollTop })
+
+    // Make sure the root grid re-renders its children
+    this.rootGrid?.recomputeGridSize()
   }
 
   /**
