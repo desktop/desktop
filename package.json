@@ -158,7 +158,7 @@
     "@types/xml2js": "^0.4.11",
     "electron": "22.0.3",
     "electron-builder": "^23.6.0",
-    "electron-packager": "^15.1.0",
+    "electron-packager": "^17.1.1",
     "electron-winstaller": "^5.0.0",
     "eslint-plugin-github": "^4.3.7",
     "jest-esm-transformer": "^1.0.0",

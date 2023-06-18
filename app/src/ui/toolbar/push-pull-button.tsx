@@ -22,7 +22,6 @@ import {
 import { FoldoutType } from '../../lib/app-state'
 import { ForcePushBranchState } from '../../lib/rebase'
 import { PushPullButtonDropDown } from './push-pull-button-dropdown'
-import { enablePushPullFetchDropdown } from '../../lib/feature-flag'
 
 export const DropdownItemClassName = 'push-pull-dropdown-item'
 
@@ -179,6 +178,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
       buttonClassName: 'push-pull-button',
       style: ToolbarButtonStyle.Subtitle,
       dropdownStyle: ToolbarDropdownStyle.MultiOption,
+      ariaLabel: 'Push, pull, fetch options',
       dropdownState: this.props.isDropdownOpen ? 'open' : 'closed',
       onDropdownStateChanged: this.props.onDropdownStateChanged,
     }
@@ -376,27 +376,6 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
       ? 'Publish this branch to GitHub'
       : 'Publish this branch to the remote'
 
-    if (!enablePushPullFetchDropdown()) {
-      const className = classNames(
-        this.defaultButtonProps().className,
-        'nudge-arrow',
-        {
-          'nudge-arrow-up': shouldNudge,
-        }
-      )
-
-      return (
-        <ToolbarButton
-          {...this.defaultButtonProps()}
-          title="Publish branch"
-          description={description}
-          icon={OcticonSymbol.upload}
-          onClick={onClick}
-          className={className}
-        />
-      )
-    }
-
     const className = classNames(
       this.defaultDropdownProps().className,
       'nudge-arrow',
@@ -456,20 +435,6 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
       dropdownItemTypes.push(DropdownItemType.ForcePush)
     }
 
-    if (!enablePushPullFetchDropdown()) {
-      return (
-        <ToolbarButton
-          {...this.defaultButtonProps()}
-          title={title}
-          description={renderLastFetched(lastFetched)}
-          icon={OcticonSymbol.arrowDown}
-          onClick={onClick}
-        >
-          {renderAheadBehind(aheadBehind, numTagsToPush)}
-        </ToolbarButton>
-      )
-    }
-
     return (
       <ToolbarDropdown
         {...this.defaultDropdownProps()}
@@ -493,20 +458,6 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
     lastFetched: Date | null,
     onClick: () => void
   ) {
-    if (!enablePushPullFetchDropdown()) {
-      return (
-        <ToolbarButton
-          {...this.defaultButtonProps()}
-          title={`Push ${remoteName}`}
-          description={renderLastFetched(lastFetched)}
-          icon={OcticonSymbol.arrowUp}
-          onClick={onClick}
-        >
-          {renderAheadBehind(aheadBehind, numTagsToPush)}
-        </ToolbarButton>
-      )
-    }
-
     return (
       <ToolbarDropdown
         {...this.defaultDropdownProps()}
@@ -530,20 +481,6 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
     lastFetched: Date | null,
     onClick: () => void
   ) {
-    if (!enablePushPullFetchDropdown()) {
-      return (
-        <ToolbarButton
-          {...this.defaultButtonProps()}
-          title={`Force push ${remoteName}`}
-          description={renderLastFetched(lastFetched)}
-          icon={forcePushIcon}
-          onClick={onClick}
-        >
-          {renderAheadBehind(aheadBehind, numTagsToPush)}
-        </ToolbarButton>
-      )
-    }
-
     return (
       <ToolbarDropdown
         {...this.defaultDropdownProps()}
