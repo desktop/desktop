@@ -317,12 +317,13 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
     let next: RowIndexPath | null = null
 
+    const rowCount = this.state.rows.map(r => r.length)
     if (
       this.state.selectedRow.row === -1 ||
       this.state.selectedRow.row === this.state.rows.length
     ) {
       next = findNextSelectableRow(
-        [this.state.rows.length],
+        rowCount,
         {
           direction: inDirection,
           row: InvalidRowIndexPath,
@@ -331,7 +332,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       )
     } else {
       next = findNextSelectableRow(
-        [this.state.rows.length],
+        rowCount,
         {
           direction: inDirection,
           row: this.state.selectedRow,
@@ -469,15 +470,15 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return
     }
 
-    const rowCount = this.state.rows.length
+    const rowCount = this.state.rows.map(r => r.length)
 
     const firstSelectableRow = findNextSelectableRow(
-      [rowCount],
+      rowCount,
       { direction: 'down', row: InvalidRowIndexPath },
       this.canSelectRow
     )
     const lastSelectableRow = findNextSelectableRow(
-      [rowCount],
+      rowCount,
       {
         direction: 'up',
         row: {
@@ -522,12 +523,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       return
     }
 
-    const rowCount = this.state.rows.length
+    const rowCount = this.state.rows.map(r => r.length)
 
     if (key === 'ArrowDown') {
-      if (rowCount > 0) {
+      if (rowCount.length > 0) {
         const selectedRow = findNextSelectableRow(
-          [rowCount],
+          rowCount,
           { direction: 'down', row: InvalidRowIndexPath },
           this.canSelectRow
         )
@@ -540,9 +541,9 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
       event.preventDefault()
     } else if (key === 'ArrowUp') {
-      if (rowCount > 0) {
+      if (rowCount.length > 0) {
         const selectedRow = findNextSelectableRow(
-          [rowCount],
+          rowCount,
           {
             direction: 'up',
             row: {
@@ -562,7 +563,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       event.preventDefault()
     } else if (key === 'Enter') {
       // no repositories currently displayed, bail out
-      if (rowCount === 0) {
+      if (rowCount.length === 0) {
         return event.preventDefault()
       }
 
@@ -573,7 +574,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       }
 
       const row = findNextSelectableRow(
-        [rowCount],
+        rowCount,
         { direction: 'down', row: InvalidRowIndexPath },
         this.canSelectRow
       )
