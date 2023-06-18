@@ -59,7 +59,13 @@ interface IListProps {
    * of the row, only its contents and may return null although
    * that will result in an empty list item.
    */
-  readonly rowRenderer: (row: RowIndexPath) => JSX.Element | null
+  readonly rowRenderer: (indexPath: RowIndexPath) => JSX.Element | null
+
+  /**
+   * Whether or not a given section has a header row at the beginning. When
+   * ommitted, it's assumed the section does NOT have a header row.
+   */
+  readonly sectionHasHeader?: (section: number) => boolean
 
   /**
    * The total number of rows in the list. This is used for
@@ -1059,34 +1065,36 @@ export class List extends React.Component<IListProps, IListState> {
 
   private getRowRenderer = (section: number) => {
     return (params: IRowRendererParams) => {
-      const rowIndex: RowIndexPath = {
+      const indexPath: RowIndexPath = {
         section: section,
         row: params.rowIndex,
       }
 
-      const selectable = this.canSelectRow(rowIndex)
+      const selectable = this.canSelectRow(indexPath)
       const selected =
         this.props.selectedRows.findIndex(r =>
-          rowIndexPathEquals(r, rowIndex)
+          rowIndexPathEquals(r, indexPath)
         ) !== -1
-      const customClasses = this.getCustomRowClassNames(rowIndex)
+      const customClasses = this.getCustomRowClassNames(indexPath)
 
       // An unselectable row shouldn't be focusable
       let tabIndex: number | undefined = undefined
       if (selectable) {
         tabIndex =
-          selected && rowIndexPathEquals(this.props.selectedRows[0], rowIndex)
+          selected && rowIndexPathEquals(this.props.selectedRows[0], indexPath)
             ? 0
             : -1
       }
 
-      const row = this.props.rowRenderer(rowIndex)
+      const row = this.props.rowRenderer(indexPath)
+      const sectionHasHeader =
+        this.props.sectionHasHeader?.(indexPath.section) ?? false
 
       const element =
         this.props.insertionDragType !== undefined ? (
           <ListItemInsertionOverlay
             onDropDataInsertion={this.props.onDropDataInsertion}
-            itemIndex={rowIndex}
+            itemIndex={indexPath}
             dragType={this.props.insertionDragType}
           >
             {row}
@@ -1095,15 +1103,16 @@ export class List extends React.Component<IListProps, IListState> {
           row
         )
 
-      const id = this.getRowId(rowIndex)
+      const id = this.getRowId(indexPath)
 
       return (
         <ListRow
           key={params.key}
           id={id}
+          sectionHasHeader={sectionHasHeader}
           onRowRef={this.onRowRef}
-          rowCount={this.props.rowCount[rowIndex.section]}
-          rowIndex={rowIndex}
+          rowCount={this.props.rowCount[indexPath.section]}
+          rowIndex={indexPath}
           selected={selected}
           onRowClick={this.onRowClick}
           onRowDoubleClick={this.onRowDoubleClick}

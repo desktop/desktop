@@ -3,6 +3,9 @@ import classNames from 'classnames'
 import { RowIndexPath } from './list-row-index-path'
 
 interface IListRowProps {
+  /** whether or not the section to which this row belongs has a header */
+  readonly sectionHasHeader: boolean
+
   /** the total number of row in this list */
   readonly rowCount: number
 
@@ -119,12 +122,23 @@ export class ListRow extends React.Component<IListRowProps, {}> {
   }
 
   public render() {
-    const selected = this.props.selected
-    const className = classNames(
+    const {
+      selected,
+      selectable,
+      className,
+      style,
+      rowCount,
+      id,
+      tabIndex,
+      rowIndex,
+      children,
+      sectionHasHeader,
+    } = this.props
+    const rowClassName = classNames(
       'list-item',
       { selected },
-      { 'not-selectable': this.props.selectable === false },
-      this.props.className
+      { 'not-selectable': selectable === false },
+      className
     )
     // react-virtualized gives us an explicit pixel width for rows, but that
     // width doesn't take into account whether or not the scroll bar needs
@@ -133,29 +147,43 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     // *But* the parent Grid uses `autoContainerWidth` which means its width
     // *does* reflect any width needed by the scroll bar. So we should just use
     // that width.
-    const style = { ...this.props.style, width: '100%' }
+    const fullWidthStyle = { ...style, width: '100%' }
+
+    let ariaSetSize: number | undefined = rowCount
+    let ariaPosInSet: number | undefined = rowIndex.row + 1
+    if (sectionHasHeader) {
+      if (rowIndex.row === 0) {
+        ariaSetSize = undefined
+        ariaPosInSet = undefined
+      } else {
+        ariaSetSize -= 1
+        ariaPosInSet -= 1
+      }
+    }
 
     return (
       <div
-        id={this.props.id}
-        role="option"
-        aria-setsize={this.props.rowCount}
-        aria-posinset={this.props.rowIndex.row + 1}
-        aria-selected={this.props.selectable ? this.props.selected : undefined}
-        className={className}
-        tabIndex={this.props.tabIndex}
+        id={id}
+        role={
+          sectionHasHeader && rowIndex.row === 0 ? 'presentation' : 'option'
+        }
+        aria-setsize={ariaSetSize}
+        aria-posinset={ariaPosInSet}
+        aria-selected={selectable ? selected : undefined}
+        className={rowClassName}
+        tabIndex={tabIndex}
         ref={this.onRef}
         onMouseDown={this.onRowMouseDown}
         onMouseUp={this.onRowMouseUp}
         onClick={this.onRowClick}
         onDoubleClick={this.onRowDoubleClick}
         onKeyDown={this.onRowKeyDown}
-        style={style}
+        style={fullWidthStyle}
         onFocus={this.onFocus}
         onBlur={this.onBlur}
         onContextMenu={this.onContextMenu}
       >
-        {this.props.children}
+        {children}
       </div>
     )
   }

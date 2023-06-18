@@ -359,6 +359,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
           ref={this.onListRef}
           rowCount={this.state.rows.map(r => r.length)}
           rowRenderer={this.renderRow}
+          sectionHasHeader={this.sectionHasHeader}
           rowHeight={this.props.rowHeight}
           selectedRows={[this.state.selectedRow]}
           onSelectedRowChanged={this.onSelectedRowChanged}
@@ -373,6 +374,11 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         />
       )
     }
+  }
+
+  private sectionHasHeader = (section: number) => {
+    const rows = this.state.rows[section]
+    return rows.length > 0 && rows[0].kind === 'group'
   }
 
   private renderRow = (index: RowIndexPath) => {
