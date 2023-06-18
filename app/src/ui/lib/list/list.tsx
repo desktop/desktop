@@ -862,16 +862,31 @@ export class List extends React.Component<IListProps, IListState> {
     this.scrollRowToVisible(row)
   }
 
-  private scrollRowToVisible(row: RowIndexPath, moveFocus = true) {
-    const grid = this.grids.get(row.section)
+  private scrollRowToVisible(indexPath: RowIndexPath, moveFocus = true) {
+    if (this.rootGrid === undefined) {
+      return
+    }
 
-    if (grid !== undefined) {
-      grid.scrollToCell({ rowIndex: row.row, columnIndex: 0 })
+    const sectionGrid = this.grids.get(indexPath.section)
 
-      if (moveFocus) {
-        this.focusRow = row
-        this.rowRefs.get(row)?.focus({ preventScroll: true })
-      }
+    if (sectionGrid === undefined) {
+      return
+    }
+
+    const sectionOffset = this.getSectionScrollOffset(indexPath.section)
+    const cellOffset = sectionGrid.getOffsetForCell({
+      rowIndex: indexPath.row,
+      columnIndex: 0,
+    })
+
+    this.rootGrid?.scrollToPosition({
+      scrollLeft: cellOffset.scrollLeft,
+      scrollTop: sectionOffset + cellOffset.scrollTop,
+    })
+
+    if (moveFocus) {
+      this.focusRow = indexPath
+      this.rowRefs.get(indexPath)?.focus({ preventScroll: true })
     }
   }
 
@@ -1172,11 +1187,16 @@ export class List extends React.Component<IListProps, IListState> {
     this.fakeScroll = ref
   }
 
+  private getSectionScrollOffset = (section: number) =>
+    this.props.rowCount
+      .slice(0, section)
+      .reduce((height, _x, idx) => height + this.getSectionHeight(idx), 0)
+
   private getSectionGridRenderer =
     (width: number, height: number) => (params: IRowRendererParams) => {
       const section = params.rowIndex
 
-      const { selectedRows, rowCount } = this.props
+      const { selectedRows } = this.props
 
       // The currently selected list item is focusable but if there's no focused
       // item the list itself needs to be focusable so that you can reach it with
@@ -1188,9 +1208,7 @@ export class List extends React.Component<IListProps, IListState> {
           ? this.getRowId(selectedRows[selectedRows.length - 1])
           : undefined
       const sectionHeight = this.getSectionHeight(section)
-      const offset = rowCount
-        .slice(0, section)
-        .reduce((height, _x, idx) => height + this.getSectionHeight(idx), 0)
+      const offset = this.getSectionScrollOffset(section)
 
       const relativeScrollTop = Math.max(
         0,
