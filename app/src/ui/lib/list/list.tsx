@@ -321,11 +321,33 @@ function createSelectionBetween(
   return selection
 }
 
+// Since objects cannot be keys in a Map, this class encapsulates the logic for
+// creating a string key from a RowIndexPath.
+class RowRefsMap {
+  private readonly map = new Map<string, HTMLDivElement>()
+
+  private getIndexPathKey(indexPath: RowIndexPath): string {
+    return `${indexPath.section}-${indexPath.row}`
+  }
+
+  public get(indexPath: RowIndexPath): HTMLDivElement | undefined {
+    return this.map.get(this.getIndexPathKey(indexPath))
+  }
+
+  public set(indexPath: RowIndexPath, element: HTMLDivElement) {
+    this.map.set(this.getIndexPathKey(indexPath), element)
+  }
+
+  public delete(indexPath: RowIndexPath) {
+    this.map.delete(this.getIndexPathKey(indexPath))
+  }
+}
+
 export class List extends React.Component<IListProps, IListState> {
   private fakeScroll: HTMLDivElement | null = null
   private focusRow: RowIndexPath = InvalidRowIndexPath
 
-  private readonly rowRefs = new Map<RowIndexPath, HTMLDivElement>()
+  private readonly rowRefs = new RowRefsMap()
 
   /**
    * The style prop for our child Grid. We keep this here in order
@@ -843,23 +865,23 @@ export class List extends React.Component<IListProps, IListState> {
     this.scrollRowToVisible(row)
   }
 
-  private moveSelectionTo(row: RowIndexPath, source: SelectionSource) {
+  private moveSelectionTo(indexPath: RowIndexPath, source: SelectionSource) {
     if (this.props.onSelectionChanged) {
-      this.props.onSelectionChanged([row], source)
+      this.props.onSelectionChanged([indexPath], source)
     }
 
     if (this.props.onSelectedRowChanged) {
-      if (!isValidRow(row, this.props.rowCount)) {
+      if (!isValidRow(indexPath, this.props.rowCount)) {
         log.debug(
-          `[List.moveSelection] unable to onSelectedRowChanged for row '${row}' as it is outside the bounds`
+          `[List.moveSelection] unable to onSelectedRowChanged for row '${indexPath}' as it is outside the bounds`
         )
         return
       }
 
-      this.props.onSelectedRowChanged(row, source)
+      this.props.onSelectedRowChanged(indexPath, source)
     }
 
-    this.scrollRowToVisible(row)
+    this.scrollRowToVisible(indexPath)
   }
 
   private scrollRowToVisible(indexPath: RowIndexPath, moveFocus = true) {
@@ -1203,10 +1225,6 @@ export class List extends React.Component<IListProps, IListState> {
       // keyboard navigation and select an item.
       const tabIndex = selectedRows.some(r => r.section === section) ? 0 : -1
       // we select the last item from the selection array for this prop
-      const activeDescendant =
-        selectedRows.length && this.state.rowIdPrefix
-          ? this.getRowId(selectedRows[selectedRows.length - 1])
-          : undefined
       const sectionHeight = this.getSectionHeight(section)
       const offset = this.getSectionScrollOffset(section)
 
@@ -1214,7 +1232,6 @@ export class List extends React.Component<IListProps, IListState> {
         0,
         Math.min(sectionHeight, this.state.scrollTop - offset)
       )
-      const containerProps = this.getContainerProps(activeDescendant)
       return (
         <Grid
           key={section}
@@ -1223,7 +1240,7 @@ export class List extends React.Component<IListProps, IListState> {
           ref={this.getOnGridRef(section)}
           autoContainerWidth={true}
           containerRole="presentation"
-          containerProps={containerProps}
+          //containerProps={containerProps}
           // Set the width and columnWidth to a hardcoded large value to prevent
           columnWidth={10000}
           width={10000}
@@ -1269,6 +1286,12 @@ export class List extends React.Component<IListProps, IListState> {
    * @param height - The height of the Grid as given by AutoSizer
    */
   private renderGrid(width: number, height: number) {
+    const { selectedRows } = this.props
+    const activeDescendant =
+      selectedRows.length && this.state.rowIdPrefix
+        ? this.getRowId(selectedRows[selectedRows.length - 1])
+        : undefined
+    const containerProps = this.getContainerProps(activeDescendant)
     return (
       <FocusContainer
         className="list-focus-container"
@@ -1281,7 +1304,7 @@ export class List extends React.Component<IListProps, IListState> {
           ref={this.onRootGridRef}
           autoContainerWidth={true}
           containerRole="presentation"
-          //containerProps={containerProps}
+          containerProps={containerProps}
           width={width}
           height={height}
           columnWidth={width}
