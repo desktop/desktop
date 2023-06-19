@@ -1227,12 +1227,6 @@ export class List extends React.Component<IListProps, IListState> {
     (width: number, height: number) => (params: IRowRendererParams) => {
       const section = params.rowIndex
 
-      const { selectedRows } = this.props
-
-      // The currently selected list item is focusable but if there's no focused
-      // item the list itself needs to be focusable so that you can reach it with
-      // keyboard navigation and select an item.
-      const tabIndex = selectedRows.some(r => r.section === section) ? 0 : -1
       // we select the last item from the selection array for this prop
       const sectionHeight = this.getSectionHeight(section)
       const offset = this.getSectionScrollOffset(section)
@@ -1241,6 +1235,11 @@ export class List extends React.Component<IListProps, IListState> {
         0,
         Math.min(sectionHeight, this.state.scrollTop - offset)
       )
+
+      const ariaLabelledBy = this.props.sectionHasHeader?.(section)
+        ? this.getRowId({ section, row: 0 })
+        : undefined
+
       return (
         <Grid
           key={section}
@@ -1249,7 +1248,7 @@ export class List extends React.Component<IListProps, IListState> {
           ref={this.getOnGridRef(section)}
           autoContainerWidth={true}
           containerRole="presentation"
-          //containerProps={containerProps}
+          containerProps={{ 'aria-labelledby': ariaLabelledBy }}
           // Set the width and columnWidth to a hardcoded large value to prevent
           columnWidth={10000}
           width={10000}
@@ -1261,7 +1260,7 @@ export class List extends React.Component<IListProps, IListState> {
           scrollTop={relativeScrollTop}
           overscanRowCount={4}
           style={{ ...params.style, width: '100%' }}
-          tabIndex={tabIndex}
+          tabIndex={-1}
         />
       )
     }
@@ -1301,6 +1300,10 @@ export class List extends React.Component<IListProps, IListState> {
         ? this.getRowId(selectedRows[selectedRows.length - 1])
         : undefined
     const containerProps = this.getContainerProps(activeDescendant)
+    // The currently selected list item is focusable but if there's no focused
+    // item the list itself needs to be focusable so that you can reach it with
+    // keyboard navigation and select an item.
+    const tabIndex = selectedRows.length > 0 ? -1 : 0
     return (
       <FocusContainer
         className="list-focus-container"
@@ -1325,7 +1328,7 @@ export class List extends React.Component<IListProps, IListState> {
           scrollTop={this.props.setScrollTop}
           overscanRowCount={4}
           style={this.gridStyle}
-          //tabIndex={tabIndex}
+          tabIndex={tabIndex}
         />
       </FocusContainer>
     )
