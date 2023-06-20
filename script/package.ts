@@ -13,6 +13,7 @@ import {
   shouldMakeDelta,
   getUpdatesURL,
   getIconFileName,
+  isPublishable,
 } from './dist-info'
 import { isGitHubActions } from './build-platforms'
 import { existsSync, rmSync } from 'fs'
@@ -109,7 +110,7 @@ function packageWindows() {
     options.remoteReleases = url.toString()
   }
 
-  if (isGitHubActions()) {
+  if (isGitHubActions() && isPublishable()) {
     const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
     options.signWithParams = `/f ${certificatePath} /p ${process.env.WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256 /fd sha256`
   }
