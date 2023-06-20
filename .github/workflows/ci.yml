@@ -61,7 +61,6 @@ jobs:
             ${{ secrets.DESKTOP_OAUTH_CLIENT_SECRET }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
@@ -78,7 +77,6 @@ jobs:
         run: yarn run publish
         env:
           npm_config_arch: ${{ matrix.arch }}
-          DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           DEPLOYMENT_SECRET: ${{ secrets.DEPLOYMENT_SECRET }}
