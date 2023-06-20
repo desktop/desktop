@@ -78,7 +78,6 @@ jobs:
         env:
           npm_config_arch: ${{ matrix.arch }}
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           DEPLOYMENT_SECRET: ${{ secrets.DEPLOYMENT_SECRET }}
           AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           AZURE_STORAGE_ACCESS_KEY: ${{ secrets.AZURE_STORAGE_ACCESS_KEY }}
