@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 base64 -D <<<"$APPLE_APPLICATION_CERT" > "$RUNNER_TEMP/cert.p12"
 
