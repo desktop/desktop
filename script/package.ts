@@ -53,7 +53,7 @@ function packageWindows() {
     'cleanup-windows-certificate.ps1'
   )
 
-  if (isGitHubActions()) {
+  if (isGitHubActions() && isPublishable()) {
     console.log('Installing signing certificate…')
     cp.execSync(`powershell ${setupCertificatePath}`, { stdio: 'inherit' })
   }
