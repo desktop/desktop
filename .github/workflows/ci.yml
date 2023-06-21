@@ -119,6 +119,6 @@ jobs:
           name: ${{matrix.friendlyName}}-${{matrix.arch}}
           path: |
             dist/installer/GitHubDesktop-*.nupkg
-            dist/installer/GitHubDesktopSetup-${{matric.arch}}.exe
-            dist/installer/GitHubDesktopSetup-${{matric.arch}}.msi
+            dist/installer/GitHubDesktopSetup-${{matrix.arch}}.exe
+            dist/installer/GitHubDesktopSetup-${{matrix.arch}}.msi
           if-no-files-found: error
