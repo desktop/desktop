@@ -1,6 +1,6 @@
 {
   "releases": {
-    "3.2.5-beta1": [
+    "3.2.6-beta1": [
       "[Fixed] Recreate stash after renaming branch - #16442",
       "[Fixed] Improved performance when selecting and viewing a large number of commits - #16880",
       "[Fixed] Preferences renamed to Settings on macOS to follow platform convention - #16907",
