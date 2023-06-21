@@ -10,7 +10,7 @@ import {
  *
  * Provide `children` elements to render as the content for the error element.
  */
-export class InputError extends React.Component<IBaseInputDescriptionProps> {
+export class InputWarning extends React.Component<IBaseInputDescriptionProps> {
   public render() {
     return (
       <InputDescription
