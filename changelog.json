@@ -4,6 +4,7 @@
       "[Fixed] Entering in double forward slash does not  target directory in cloning dialog - #15842. Thanks @IgnazioGul!",
       "[Fixed] In the \"No Repositories\" screen, controls at the bottom stay inside window when it is resized - #16502. Thanks @samuelko123!",
       "[Fixed] Link to editor settings on the tutorial screen - #16636. Thanks @IgnazioGul!",
+      "[Fixed] Fix crash using Edit -> Copy menu when no text is selected in the diff - #16876",
       "[Improved] Improve screen reader support of the \"Create Alias\" dialog - #16802",
       "[Improved] Screen readers announce the number of results in filtered lists (like repositories, branches or pull requests) - #16779",
       "[Improved] Screen readers announce expanded/collapsed state of dropdowns - #16781",
