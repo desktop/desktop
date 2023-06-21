@@ -14,9 +14,10 @@ import {
   getUpdatesURL,
   getIconFileName,
   isPublishable,
+  getBundleSizes,
 } from './dist-info'
 import { isGitHubActions } from './build-platforms'
-import { existsSync, rmSync } from 'fs'
+import { existsSync, rmSync, writeFileSync } from 'fs'
 
 const distPath = getDistPath()
 const productName = getProductName()
@@ -32,6 +33,11 @@ if (process.platform === 'darwin') {
   console.error(`I dunno how to package for ${process.platform} :(`)
   process.exit(1)
 }
+
+writeFileSync(
+  path.join(getDistPath(), 'bundle-size.json'),
+  JSON.stringify(getBundleSizes())
+)
 
 function packageOSX() {
   const dest = getOSXZipPath()

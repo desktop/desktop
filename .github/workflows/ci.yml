@@ -122,3 +122,9 @@ jobs:
             dist/installer/GitHubDesktopSetup-${{matrix.arch}}.exe
             dist/installer/GitHubDesktopSetup-${{matrix.arch}}.msi
           if-no-files-found: error
+      - name: Upload bundle size info
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{matrix.friendlyName}}-${{matrix.arch}}-bundle-size.json
+          path: dist/bundle-size.json
+          if-no-files-found: error
