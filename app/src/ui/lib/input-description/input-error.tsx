@@ -6,7 +6,7 @@ import {
 } from './input-description'
 
 /**
- * An caption element with app-standard styles for errors to be used with inputs.
+ * An Error component with app-standard styles for errors to be used with inputs.
  *
  * Provide `children` elements to render as the content for the error element.
  */
