@@ -502,6 +502,7 @@ const editors: WindowsExternalEditor[] = [
      * Maybe at that point I could get Daeraxa to be helpful as always and setup
      * linux, so that we get everything working finally, since an awesome
      * community member did the same for macOS.
+     * https://discord.com/channels/992103415163396136/992109539346370661/1120902075002408971
      */
   },
 ]
