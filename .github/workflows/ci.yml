@@ -105,3 +105,20 @@ jobs:
       - name: List assets
         run: ls -R dist
         shell: bash
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v3
+        if: ${{runner.os == 'macOS'}}
+        with:
+          name: ${{runner.os}}-${{matrix.arch}}
+          path: dist/GitHubDesktop-${{matrix.arch}}.zip
+          if-no-files-found: error
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v3
+        if: ${{runner.os == 'Windows'}}
+        with:
+          name: ${{runner.os}}-${{matrix.arch}}
+          path: |
+            dist/installer/GitHubDesktop-*.nupkg
+            dist/installer/GitHubDesktopSetup-${{matric.arch}}.exe
+            dist/installer/GitHubDesktopSetup-${{matric.arch}}.msi
+          if-no-files-found: error
