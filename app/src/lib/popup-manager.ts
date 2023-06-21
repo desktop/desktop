@@ -1,5 +1,4 @@
 import { Popup, PopupType } from '../models/popup'
-import { enableStackedPopups } from './feature-flag'
 import { sendNonFatalException } from './helpers/non-fatal-exception'
 import { uuid } from './uuid'
 
@@ -97,10 +96,6 @@ export class PopupManager {
     const existingPopup = this.getPopupsOfType(popupToAdd.type)
 
     const popup = { id: uuid(), ...popupToAdd }
-    if (!enableStackedPopups()) {
-      this.popupStack = [popup, ...this.getPopupsOfType(PopupType.Error)]
-      return popup
-    }
 
     if (existingPopup.length > 0) {
       log.warn(
@@ -144,10 +139,18 @@ export class PopupManager {
     if (this.popupStack.length > this.popupLimit) {
       // Remove the oldest
       const oldest = this.popupStack[0]
+      const oldestError =
+        oldest.type === PopupType.Error ? `: ${oldest.error.message}` : null
+      const justAddedError =
+        this.currentPopup?.type === PopupType.Error
+          ? `Just added another Error: ${this.currentPopup.error.message}.`
+          : null
       sendNonFatalException(
         'TooManyPopups',
         new Error(
-          `Max number of ${this.popupLimit} popups reached while adding popup of type ${this.currentPopup?.type}. Removing last popup from the stack -> type ${oldest.type} `
+          `Max number of ${this.popupLimit} popups reached while adding popup of type ${this.currentPopup?.type}.
+          Removing last popup from the stack. Type ${oldest.type}${oldestError}.
+          ${justAddedError}`
         )
       )
       this.popupStack = this.popupStack.slice(1)

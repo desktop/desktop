@@ -132,6 +132,59 @@ interface IDialogProps {
   readonly loading?: boolean
 }
 
+/**
+ * If role is alertdialog, ariaDescribedBy is required.
+ */
+interface IAlertDialogProps extends IDialogProps {
+  /** This is used to point to an element containing content pertinent to the
+   * users workflow. This should be provided for dialogs that are alerts or
+   * confirmations so that that the information that is interrupting the user's
+   * workflow is screen reader announced and acquire a response */
+  readonly ariaDescribedBy: string
+
+  /** By default, a dialog has role of "dialog" and requires the use of an
+   * "aria-label" or "aria-labelledby" to accessibily announce the title or
+   * purpose of the header. This is typically accomplished by providing the
+   * `title` prop and the dialog component will take care of adding the
+   * `aria-labelledby` attribute.
+   *
+   * However, if the dialog is an alert or confirmation dialog we should use the
+   * role of `alertdialog` AND the `ariaDescribedBy` prop should be provided
+   * containing the id of the element with the information required by the user
+   * to proceed or be made aware of to ensure it is also read by screen readers.
+   *
+   *
+   * https://www.w3.org/TR/wai-aria-1.1/#alertdialog
+   * "An alert dialog is a modal dialog that interrupts the user's workflow to
+   * communicate an important message and acquire a response. Examples include
+   * action confirmation prompts and error message confirmations. The
+   * alertdialog role enables assistive technologies and browsers to distinguish
+   * alert dialogs from other dialogs so they have the option of giving alert
+   * dialogs special treatment, such as playing a system alert sound."
+   * */
+  readonly role: 'alertdialog'
+}
+
+/**
+ * If role is undefined or dialog, ariaDescribedBy is optional.
+ */
+interface IDescribedByDialogProps extends IDialogProps {
+  /** This is used to point to an element containing content pertinent to the
+   * users workflow. This should be provided for dialogs that are alerts or
+   * confirmations so that that the information that is interrupting the user's
+   * workflow is screen reader announced and acquire a response */
+  readonly ariaDescribedBy?: string
+
+  /** By default, a dialog has role of "dialog". This is only required for a
+   * role of 'alertdialog' in which case  `ariaDescribedBy` must also be
+   * provided */
+  readonly role?: 'dialog'
+}
+
+/** Interface union to force usage of `ariaDescribedBy` if role of `alertdialog`
+ * is used */
+type DialogProps = IAlertDialogProps | IDescribedByDialogProps
+
 interface IDialogState {
   /**
    * When a dialog is shown we wait for a few hundred milliseconds before
@@ -163,7 +216,7 @@ interface IDialogState {
  * underlying elements. It's not possible to use the tab key to move focus
  * out of the dialog without first dismissing it.
  */
-export class Dialog extends React.Component<IDialogProps, IDialogState> {
+export class Dialog extends React.Component<DialogProps, IDialogState> {
   public static contextType = DialogStackContext
   public declare context: React.ContextType<typeof DialogStackContext>
 
@@ -190,7 +243,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   private readonly resizeObserver: ResizeObserver
   private resizeDebounceId: number | null = null
 
-  public constructor(props: IDialogProps) {
+  public constructor(props: DialogProps) {
     super(props)
     this.state = { isAppearing: true }
 
@@ -507,7 +560,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     this.checkIsTopMostDialog(false)
   }
 
-  public componentDidUpdate(prevProps: IDialogProps) {
+  public componentDidUpdate(prevProps: DialogProps) {
     if (!this.props.title && this.state.titleId) {
       this.updateTitleId()
     }
@@ -672,10 +725,12 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       <dialog
         ref={this.onDialogRef}
         id={this.props.id}
+        role={this.props.role}
         onMouseDown={this.onDialogMouseDown}
         onKeyDown={this.onKeyDown}
         className={className}
         aria-labelledby={this.state.titleId}
+        aria-describedby={this.props.ariaDescribedBy}
         tabIndex={-1}
       >
         {this.renderHeader()}

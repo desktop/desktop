@@ -6,27 +6,6 @@
   flex: 1;
   min-height: 0;
 
-  .popover-component {
-    position: absolute;
-    left: 100%;
-    top: 73px;
-    width: 284px;
-
-    .call-to-action-bubble {
-      font-weight: var(--font-weight-semibold);
-      display: inline-block;
-      font-size: var(--font-size-xs);
-      border: 1px solid var(--call-to-action-bubble-border-color);
-      color: var(--call-to-action-bubble-color);
-      padding: 1px 5px;
-      border-radius: var(--border-radius);
-      margin-left: var(--spacing-third);
-    }
-    img {
-      width: 100%;
-    }
-  }
-
   .draggable,
   .commit {
     width: 100%;
@@ -86,14 +65,6 @@
         }
 
         background-color: var(--box-selected-active-background-color);
-      }
-    }
-  }
-
-  @include high-contrast {
-    .list-item:hover {
-      .commit {
-        color: var(--text-color);
       }
     }
   }

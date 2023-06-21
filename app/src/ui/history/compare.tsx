@@ -155,7 +155,7 @@ export class CompareSidebar extends React.Component<
     const placeholderText = getPlaceholderText(this.props.compareState)
 
     return (
-      <div id="compare-view">
+      <div id="compare-view" role="tabpanel" aria-labelledby="history-tab">
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}

@@ -20,7 +20,7 @@ import {
   InvalidGitAuthorNameMessage,
 } from '../lib/identifier-rules'
 import { Appearance } from './appearance'
-import { ApplicationTheme, ICustomTheme } from '../lib/application-theme'
+import { ApplicationTheme } from '../lib/application-theme'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Integrations } from './integrations'
 import {
@@ -62,7 +62,6 @@ interface IPreferencesProps {
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
-  readonly customTheme?: ICustomTheme
   readonly repositoryIndicatorsEnabled: boolean
 }
 
@@ -100,6 +99,8 @@ interface IPreferencesState {
   readonly repositoryIndicatorsEnabled: boolean
 
   readonly initiallySelectedTheme: ApplicationTheme
+
+  readonly isLoadingGitConfig: boolean
 }
 
 /** The app-level preferences component. */
@@ -135,6 +136,7 @@ export class Preferences extends React.Component<
       selectedShell: this.props.selectedShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
       initiallySelectedTheme: this.props.selectedTheme,
+      isLoadingGitConfig: true,
     }
   }
 
@@ -191,6 +193,7 @@ export class Preferences extends React.Component<
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
       availableEditors,
+      isLoadingGitConfig: false,
     })
   }
 
@@ -330,6 +333,7 @@ export class Preferences extends React.Component<
               onNameChanged={this.onCommitterNameChanged}
               onEmailChanged={this.onCommitterEmailChanged}
               onDefaultBranchChanged={this.onDefaultBranchChanged}
+              isLoadingGitConfig={this.state.isLoadingGitConfig}
             />
           </>
         )
@@ -339,9 +343,7 @@ export class Preferences extends React.Component<
         View = (
           <Appearance
             selectedTheme={this.props.selectedTheme}
-            customTheme={this.props.customTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
-            onCustomThemeChanged={this.onCustomThemeChanged}
           />
         )
         break
@@ -487,10 +489,6 @@ export class Preferences extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.dispatcher.setSelectedTheme(theme)
-  }
-
-  private onCustomThemeChanged = (theme: ICustomTheme) => {
-    this.props.dispatcher.setCustomTheme(theme)
   }
 
   private renderFooter() {

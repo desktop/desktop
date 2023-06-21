@@ -73,7 +73,6 @@ import {
   ApplicationTheme,
   getCurrentlyAppliedTheme,
   getPersistedThemeName,
-  ICustomTheme,
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
 import {
@@ -232,7 +231,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableMoveStash, enableMultiCommitDiffs } from '../feature-flag'
+import { enableMoveStash } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -391,7 +390,6 @@ const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
 const MaxInvalidFoldersToDisplay = 3
 
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
-const customThemeKey = 'custom-theme-key'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
@@ -499,7 +497,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.System
-  private customTheme?: ICustomTheme
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
 
   private useWindowsOpenSSH: boolean = false
@@ -978,7 +975,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
-      customTheme: this.customTheme,
       currentTheme: this.currentTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       useWindowsOpenSSH: this.useWindowsOpenSSH,
@@ -1184,7 +1180,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const shasInDiff = this.getShasInDiff(shas, isContiguous, commitLookup)
+    const shasInDiff = this.getShasInDiff(
+      this.orderShasByHistory(repository, shas),
+      isContiguous,
+      commitLookup
+    )
 
     if (shas.length > 1 && isContiguous) {
       this.recordMultiCommitDiff(shas, shasInDiff, compareState)
@@ -1562,17 +1562,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.repositoryStateCache.get(repository)
     const { commitSelection } = state
     const { shas: currentSHAs, isContiguous } = commitSelection
-    if (
-      currentSHAs.length === 0 ||
-      (currentSHAs.length > 1 && (!enableMultiCommitDiffs() || !isContiguous))
-    ) {
+    if (currentSHAs.length === 0 || (currentSHAs.length > 1 && !isContiguous)) {
       return
     }
 
     const gitStore = this.gitStoreCache.get(repository)
     const changesetData = await gitStore.performFailableOperation(() =>
       currentSHAs.length > 1
-        ? getCommitRangeChangedFiles(repository, currentSHAs)
+        ? getCommitRangeChangedFiles(
+            repository,
+            this.orderShasByHistory(repository, currentSHAs)
+          )
         : getChangedFiles(repository, currentSHAs[0])
     )
     if (!changesetData) {
@@ -1642,7 +1642,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    if (shas.length > 1 && (!enableMultiCommitDiffs() || !isContiguous)) {
+    if (shas.length > 1 && !isContiguous) {
       return
     }
 
@@ -1651,7 +1651,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? await getCommitRangeDiff(
             repository,
             file,
-            shas,
+            this.orderShasByHistory(repository, shas),
             this.hideWhitespaceInHistoryDiff
           )
         : await getCommitDiff(
@@ -2092,14 +2092,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.showSideBySideDiff = getShowSideBySideDiff()
 
     this.selectedTheme = getPersistedThemeName()
-    this.customTheme = getObject<ICustomTheme>(customThemeKey)
     // Make sure the persisted theme is applied
     setPersistedTheme(this.selectedTheme)
 
-    this.currentTheme =
-      this.selectedTheme !== ApplicationTheme.HighContrast
-        ? await getCurrentlyAppliedTheme()
-        : this.selectedTheme
+    this.currentTheme = await getCurrentlyAppliedTheme()
 
     themeChangeMonitor.onThemeChanged(theme => {
       this.currentTheme = theme
@@ -3260,6 +3256,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // loadBranches needs the default remote to determine the default branch
+    await gitStore.loadRemotes()
     await gitStore.loadBranches()
 
     const section = state.selectedSection
@@ -3277,7 +3275,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await Promise.all([
-      gitStore.loadRemotes(),
       gitStore.updateLastFetched(),
       gitStore.loadStashEntries(),
       this._refreshAuthor(repository),
@@ -4565,6 +4562,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (gitStore.tip.kind === TipState.Valid) {
       await this.performPush(repository, account)
     }
+
+    await gitStore.refreshDefaultBranch()
 
     return this.repositoryWithRefreshedGitHubRepository(repository)
   }
@@ -6329,20 +6328,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setSelectedTheme(theme: ApplicationTheme) {
     setPersistedTheme(theme)
     this.selectedTheme = theme
-    if (theme === ApplicationTheme.HighContrast) {
-      this.currentTheme = theme
-    }
-    this.emitUpdate()
-
-    return Promise.resolve()
-  }
-
-  /**
-   * Set the custom application-wide theme
-   */
-  public _setCustomTheme(theme: ICustomTheme) {
-    setObject(customThemeKey, theme)
-    this.customTheme = theme
     this.emitUpdate()
 
     return Promise.resolve()
@@ -6676,6 +6661,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return [...commits].sort(
       (a, b) => commitSHAs.indexOf(b.sha) - commitSHAs.indexOf(a.sha)
+    )
+  }
+
+  /**
+   * Multi selection on the commit list can give an order of 1, 5, 3 if that is
+   * how the user selected them. However, sometimes we want them in
+   * chronological ordering of the commits such as when get a range files
+   * changed. Thus, assuming 1 is the first commit made by the user and 5 is the
+   * last. We want the order to be, 1, 3, 5.
+   */
+  private orderShasByHistory(
+    repository: Repository,
+    commits: ReadonlyArray<string>
+  ) {
+    const { compareState } = this.repositoryStateCache.get(repository)
+    const { commitSHAs } = compareState
+
+    return [...commits].sort(
+      (a, b) => commitSHAs.indexOf(b) - commitSHAs.indexOf(a)
     )
   }
 
@@ -7768,5 +7772,12 @@ function constrain(
   min = -Infinity,
   max = Infinity
 ): IConstrainedValue {
-  return { value: typeof value === 'number' ? value : value.value, min, max }
+  // Match CSS's behavior where min-width takes precedence over max-width
+  // See https://stackoverflow.com/a/16063871
+  const constrainedMax = max < min ? min : max
+  return {
+    value: typeof value === 'number' ? value : value.value,
+    min,
+    max: constrainedMax,
+  }
 }

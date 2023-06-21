@@ -49,11 +49,12 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { IStashEntry } from '../../models/stash-entry'
 import classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
-import { hasConflictedFiles, mapStatus } from '../../lib/status'
+import { hasConflictedFiles } from '../../lib/status'
 import { createObservableRef } from '../lib/observable-ref'
-import { Tooltip, TooltipDirection } from '../lib/tooltip'
+import { TooltipDirection } from '../lib/tooltip'
 import { Popup } from '../../models/popup'
 import { EOL } from 'os'
+import { TooltippedContent } from '../lib/tooltipped-content'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -145,11 +146,19 @@ interface IChangesListProps {
   readonly changesListScrollTop?: number
 
   /**
-   * Called to open a file it its default application
+   * Called to open a file in its default application
    *
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenItem: (path: string) => void
+
+  /**
+   * Called to open a file in the default external editor
+   *
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenItemInExternalEditor: (path: string) => void
+
   /**
    * The currently checked out branch (null if no branch is checked out).
    */
@@ -195,13 +204,6 @@ interface IChangesListProps {
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
 
-  /**
-   * Callback to open a selected file using the configured external editor
-   *
-   * @param fullPath The full path to the file on disk
-   */
-  readonly onOpenInExternalEditor: (fullPath: string) => void
-
   readonly stashEntry: IStashEntry | null
 
   readonly isShowingStashEntry: boolean
@@ -240,7 +242,7 @@ export class ChangesList extends React.Component<
   IChangesState
 > {
   private headerRef = createObservableRef<HTMLDivElement>()
-  private listRef = React.createRef<List>()
+  private includeAllCheckBoxRef = React.createRef<Checkbox>()
 
   public constructor(props: IChangesListProps) {
     super(props)
@@ -325,13 +327,6 @@ export class ChangesList extends React.Component<
         checkboxTooltip={checkboxTooltip}
       />
     )
-  }
-
-  private getFileAriaLabel = (row: number): string => {
-    const { workingDirectory } = this.props
-    const { path, status } = workingDirectory.files[row]
-
-    return `${path}  ${mapStatus(status)}`
   }
 
   private onDiscardAllChanges = () => {
@@ -499,7 +494,7 @@ export class ChangesList extends React.Component<
     file: WorkingDirectoryFileChange,
     enabled: boolean
   ): IMenuItem => {
-    const { externalEditorLabel, repository } = this.props
+    const { externalEditorLabel } = this.props
 
     const openInExternalEditor = externalEditorLabel
       ? `Open in ${externalEditorLabel}`
@@ -508,8 +503,7 @@ export class ChangesList extends React.Component<
     return {
       label: openInExternalEditor,
       action: () => {
-        const fullPath = Path.join(repository.path, file.path)
-        this.props.onOpenInExternalEditor(fullPath)
+        this.props.onOpenItemInExternalEditor(file.path)
       },
       enabled,
     }
@@ -907,6 +901,12 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onRowDoubleClick = (row: number) => {
+    const file = this.props.workingDirectory.files[row]
+
+    this.props.onOpenItemInExternalEditor(file.path)
+  }
+
   private onRowKeyDown = (
     _row: number,
     event: React.KeyboardEvent<HTMLDivElement>
@@ -924,7 +924,7 @@ export class ChangesList extends React.Component<
   }
 
   public focus() {
-    this.listRef.current?.focus()
+    this.includeAllCheckBoxRef.current?.focus()
   }
 
   public render() {
@@ -938,7 +938,7 @@ export class ChangesList extends React.Component<
       file => file.selection.getSelectionType() !== DiffSelectionType.None
     ).length
     const totalFilesPlural = files.length === 1 ? 'file' : 'files'
-    const selectedChangesDescription = `${selectedChangeCount}/${files.length} changed ${totalFilesPlural} selected`
+    const selectedChangesDescription = `${selectedChangeCount}/${files.length} changed ${totalFilesPlural} included`
 
     const includeAllValue = getIncludeAllValue(
       workingDirectory,
@@ -949,45 +949,55 @@ export class ChangesList extends React.Component<
       files.length === 0 || isCommitting || rebaseConflictState !== null
 
     return (
-      <div className="changes-list-container file-list">
-        <div
-          className="header"
-          onContextMenu={this.onContextMenu}
-          ref={this.headerRef}
-        >
-          <Tooltip target={this.headerRef} direction={TooltipDirection.NORTH}>
-            {selectedChangesDescription}
-          </Tooltip>
-          <Checkbox
-            label={filesDescription}
-            value={includeAllValue}
-            onChange={this.onIncludeAllChanged}
-            disabled={disableAllCheckbox}
+      <>
+        <div className="changes-list-container file-list">
+          <div
+            className="header"
+            onContextMenu={this.onContextMenu}
+            ref={this.headerRef}
+          >
+            <TooltippedContent
+              tooltip={selectedChangesDescription}
+              direction={TooltipDirection.NORTH}
+              openOnFocus={true}
+            >
+              <Checkbox
+                ref={this.includeAllCheckBoxRef}
+                label={filesDescription}
+                value={includeAllValue}
+                onChange={this.onIncludeAllChanged}
+                disabled={disableAllCheckbox}
+                ariaDescribedBy="changesDescription"
+              />
+            </TooltippedContent>
+            <div className="sr-only" id="changesDescription">
+              {selectedChangesDescription}
+            </div>
+          </div>
+          <List
+            id="changes-list"
+            rowCount={files.length}
+            rowHeight={RowHeight}
+            rowRenderer={this.renderRow}
+            selectedRows={this.state.selectedRows}
+            selectionMode="multi"
+            onSelectionChanged={this.props.onFileSelectionChanged}
+            invalidationProps={{
+              workingDirectory: workingDirectory,
+              isCommitting: isCommitting,
+            }}
+            onRowClick={this.props.onRowClick}
+            onRowDoubleClick={this.onRowDoubleClick}
+            onScroll={this.onScroll}
+            setScrollTop={this.props.changesListScrollTop}
+            onRowKeyDown={this.onRowKeyDown}
+            onRowContextMenu={this.onItemContextMenu}
+            ariaLabel={filesDescription}
           />
         </div>
-        <List
-          ref={this.listRef}
-          id="changes-list"
-          rowCount={files.length}
-          rowHeight={RowHeight}
-          rowRenderer={this.renderRow}
-          getRowAriaLabel={this.getFileAriaLabel}
-          selectedRows={this.state.selectedRows}
-          selectionMode="multi"
-          onSelectionChanged={this.props.onFileSelectionChanged}
-          invalidationProps={{
-            workingDirectory: workingDirectory,
-            isCommitting: isCommitting,
-          }}
-          onRowClick={this.props.onRowClick}
-          onScroll={this.onScroll}
-          setScrollTop={this.props.changesListScrollTop}
-          onRowKeyDown={this.onRowKeyDown}
-          onRowContextMenu={this.onItemContextMenu}
-        />
         {this.renderStashedChanges()}
         {this.renderCommitMessageForm()}
-      </div>
+      </>
     )
   }
 }

@@ -19,14 +19,20 @@ interface IRadioButtonProps<T> {
   readonly checked: boolean
 
   /**
-   * The label of the radio button.
+   * The label of the radio button. If not provided, the children are used
    */
-  readonly label: string | JSX.Element
+  readonly label?: string | JSX.Element
 
   /**
    * The value of the radio button.
    */
   readonly value: T
+
+  /** Optional: The tab index of the radio button */
+  readonly tabIndex?: number
+
+  /** Whether the textarea field should auto focus when mounted. */
+  readonly autoFocus?: boolean
 }
 
 interface IRadioButtonState {
@@ -58,8 +64,12 @@ export class RadioButton<T extends string> extends React.Component<
           value={this.props.value}
           checked={this.props.checked}
           onChange={this.onSelected}
+          tabIndex={this.props.tabIndex}
+          autoFocus={this.props.autoFocus}
         />
-        <label htmlFor={this.state.inputId}>{this.props.label}</label>
+        <label htmlFor={this.state.inputId}>
+          {this.props.label ?? this.props.children}
+        </label>
       </div>
     )
   }

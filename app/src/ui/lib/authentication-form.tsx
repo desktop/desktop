@@ -8,6 +8,8 @@ import { Button } from './button'
 import { TextBox } from './text-box'
 import { Errors } from './errors'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { HorizontalRule } from './horizontal-rule'
+import { PasswordTextBox } from './password-text-box'
 
 /** Text to let the user know their browser will send them back to GH Desktop */
 export const BrowserRedirectMessage =
@@ -104,15 +106,17 @@ export class AuthenticationForm extends React.Component<
         <TextBox
           label="Username or email address"
           disabled={disabled}
-          // eslint-disable-next-line jsx-a11y/no-autofocus
-          autoFocus={true}
+          required={true}
+          displayInvalidState={false}
+          autoFocus={this.props.endpoint === getDotComAPIEndpoint()}
           onValueChanged={this.onUsernameChange}
         />
 
-        <TextBox
+        <PasswordTextBox
           label="Password"
-          type="password"
           disabled={disabled}
+          required={true}
+          displayInvalidState={false}
           onValueChanged={this.onPasswordChange}
         />
 
@@ -151,16 +155,6 @@ export class AuthenticationForm extends React.Component<
     )
   }
 
-  private renderSignInWithBrowser() {
-    return (
-      <>
-        {this.renderSignInWithBrowserButton()}
-
-        {this.props.additionalButtons}
-      </>
-    )
-  }
-
   /**
    * Show the sign in locally form
    *
@@ -174,7 +168,8 @@ export class AuthenticationForm extends React.Component<
       this.renderUsernamePassword()
     ) : (
       <>
-        {this.renderSignInWithBrowser()}
+        {this.renderSignInWithBrowserButton()}
+        <HorizontalRule title="or" />
         {this.renderUsernamePassword()}
       </>
     )
@@ -200,6 +195,7 @@ export class AuthenticationForm extends React.Component<
         type="submit"
         className="button-with-icon"
         onClick={this.signInWithBrowser}
+        autoFocus={true}
       >
         Sign in using your browser
         <Octicon symbol={OcticonSymbol.linkExternal} />
