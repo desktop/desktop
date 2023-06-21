@@ -12,8 +12,26 @@ on:
         default: desktop/desktop
         required: false
         type: string
+      ref:
+        required: true
+        type: string
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.ref }}
+          submodules: recursive
+      - run: yarn
+      - run: yarn validate-electron-version
+      - run: yarn lint
+      - run: yarn validate-changelog
+      - name: Ensure a clean working directory
+        run: git diff --name-status --exit-code
   build:
     name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
@@ -34,6 +52,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.ref }}
           submodules: recursive
       - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v3
@@ -52,14 +71,6 @@ jobs:
         env:
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
-      - name: Validate Electron version
-        run: yarn run validate-electron-version
-      - name: Lint
-        run: yarn lint
-      - name: Validate changelog
-        run: yarn validate-changelog
-      - name: Ensure a clean working directory
-        run: git diff --name-status --exit-code
       - name: Build production app
         run: yarn build:prod
         env:
