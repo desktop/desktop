@@ -195,6 +195,13 @@ export interface IToolbarDropdownProps {
    * the tooltip.
    */
   readonly isOverflowed?: ((target: TooltipTarget) => boolean) | boolean
+
+  /**
+   * Typically the contents of a button serve the purpose of describing the
+   * buttons use. However, ariaLabel can be used if the contents do not suffice.
+   * Such as when a button wraps an image and there is no text.
+   */
+  readonly ariaLabel?: string
 }
 
 interface IToolbarDropdownState {
@@ -258,6 +265,7 @@ export class ToolbarDropdown extends React.Component<
         onClick={this.onToggleDropdownClick}
         ariaExpanded={this.isOpen}
         ariaHaspopup={true}
+        ariaLabel={this.props.ariaLabel}
       >
         {dropdownIcon}
       </ToolbarButton>

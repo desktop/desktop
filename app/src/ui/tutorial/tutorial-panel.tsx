@@ -145,7 +145,7 @@ export class TutorialPanel extends React.Component<
                 <strong>{this.props.resolvedExternalEditor}</strong>. You can
                 change your preferred editor in{' '}
                 <LinkButton onClick={this.onPreferencesClick}>
-                  {__DARWIN__ ? 'Preferences' : 'options'}
+                  {__DARWIN__ ? 'Settings' : 'options'}
                 </LinkButton>
               </p>
             )}

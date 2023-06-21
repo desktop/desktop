@@ -998,7 +998,6 @@ export class List extends React.Component<IListProps, IListState> {
    *
    * @param width - The width of the Grid as given by AutoSizer
    * @param height - The height of the Grid as given by AutoSizer
-   *
    */
   private renderContents(width: number, height: number) {
     if (__WIN32__) {
@@ -1085,7 +1084,6 @@ export class List extends React.Component<IListProps, IListState> {
    * and accurately positions the fake scroll bar.
    *
    * @param height The height of the Grid as given by AutoSizer
-   *
    */
   private renderFakeScroll(height: number) {
     let totalHeight: number = 0

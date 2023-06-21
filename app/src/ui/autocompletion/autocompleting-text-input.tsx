@@ -672,6 +672,8 @@ export abstract class AutocompletingTextInput<
     str: string,
     caretPosition: number
   ): Promise<IAutocompletionState<AutocompleteItemType> | null> {
+    const lowercaseStr = str.toLowerCase()
+
     for (const provider of this.props.autocompletionProviders) {
       // NB: RegExps are stateful (AAAAAAAAAAAAAAAAAA) so defensively copy the
       // regex we're given.
@@ -683,7 +685,7 @@ export abstract class AutocompletingTextInput<
       }
 
       let result: RegExpExecArray | null = null
-      while ((result = regex.exec(str))) {
+      while ((result = regex.exec(lowercaseStr))) {
         const index = regex.lastIndex
         const text = result[1] || ''
         if (index === caretPosition || this.props.alwaysAutocomplete) {
