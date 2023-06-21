@@ -1,5 +1,8 @@
 name: CI
 
+env:
+  NODE_VERSION: 16.17.1
+
 on:
   push:
     branches:
@@ -26,6 +29,11 @@ jobs:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref }}
           submodules: recursive
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
       - run: yarn
       - run: yarn validate-electron-version
       - run: yarn lint
@@ -39,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [16.17.1]
+        node: ${{ env.NODE_VERSION }}
         os: [macos-11, windows-2019]
         arch: [x64, arm64]
         include:
