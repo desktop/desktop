@@ -85,7 +85,7 @@ export interface ITextBoxProps {
   readonly ariaLabel?: string
 
   /** Optional aria-describedby attribute - usually for associating a descriptive
-   * message to the input such as a validation error */
+   * message to the input such as a validation error, warning, or caption */
   readonly ariaDescribedBy?: string
 
   readonly ariaControls?: string
