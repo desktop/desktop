@@ -80,7 +80,6 @@ export class PullRequestCoordinator {
    *    the `Repository`)
    *  * the parent GitHub repo, if the `Repository` has one (the
    *    `upstream` remote for the `Repository`)
-   *
    */
   public onPullRequestsChanged(
     fn: (
@@ -119,7 +118,6 @@ export class PullRequestCoordinator {
    *    the `Repository`)
    *  * the parent GitHub repo, if the `Repository` has one (the
    *    `upstream` remote for the `Repository`)
-   *
    */
   public onIsLoadingPullRequests(
     fn: (

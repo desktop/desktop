@@ -1051,7 +1051,6 @@ export class GitStore extends BaseStore {
    * @param refspec - The association between a remote and local ref to use as
    *                  part of this action. Refer to git-scm for more
    *                  information on refspecs: https://www.git-scm.com/book/tr/v2/Git-Internals-The-Refspec
-   *
    */
   public async fetchRefspec(
     account: IGitAccount | null,
