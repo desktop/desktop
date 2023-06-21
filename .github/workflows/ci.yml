@@ -102,3 +102,6 @@ jobs:
           npm_config_arch: ${{ matrix.arch }}
           WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+      - name: List assets
+        run: ls -R dist
+        shell: bash
