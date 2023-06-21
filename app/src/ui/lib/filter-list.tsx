@@ -13,7 +13,11 @@ import { Row } from '../lib/row'
 
 import { match, IMatch, IMatches } from '../../lib/fuzzy-find'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
-import { InvalidRowIndexPath, RowIndexPath } from './list/list-row-index-path'
+import {
+  InvalidRowIndexPath,
+  RowIndexPath,
+  rowIndexPathEquals,
+} from './list/list-row-index-path'
 
 /** An item in the filter list. */
 export interface IFilterListItem {
@@ -497,9 +501,17 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
     let shouldFocus = false
 
-    if (event.key === 'ArrowUp' && indexPath === firstSelectableRow) {
+    if (
+      event.key === 'ArrowUp' &&
+      firstSelectableRow &&
+      rowIndexPathEquals(indexPath, firstSelectableRow)
+    ) {
       shouldFocus = true
-    } else if (event.key === 'ArrowDown' && indexPath === lastSelectableRow) {
+    } else if (
+      event.key === 'ArrowDown' &&
+      lastSelectableRow &&
+      rowIndexPathEquals(indexPath, lastSelectableRow)
+    ) {
       shouldFocus = true
     }
 

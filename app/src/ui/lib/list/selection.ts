@@ -98,7 +98,9 @@ export function findNextSelectableRow(
 
   const { direction, row } = action
   const wrap = action.wrap === undefined ? true : action.wrap
-  const rowIndex = rowIndexPathToGlobalIndex(row, rowCount)
+  const rowIndex = rowIndexPathEquals(InvalidRowIndexPath, row)
+    ? -1
+    : rowIndexPathToGlobalIndex(row, rowCount)
 
   if (rowIndex === null) {
     return null
