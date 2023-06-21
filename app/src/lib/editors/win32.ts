@@ -479,6 +479,31 @@ const editors: WindowsExternalEditor[] = [
     displayNamePrefix: 'DataSpell ',
     publishers: ['JetBrains s.r.o.'],
   },
+  {
+    name: 'Pulsar',
+    registryKeys: [
+      CurrentUserUninstallKey('0949b555-c22c-56b7-873a-a960bdefa81f')
+    ],
+    installLocationRegistryKey: 'DisplayIcon',
+    //executableShimPaths: [['..', 'pulsar', 'resources', 'pulsar.cmd']],
+    displayNamePrefix: 'Pulsar',
+    publishers: ['Pulsar-Edit'],
+    /**
+     * Alright, so don't commit all this, obviously.
+     * electron-builder sets the 'installLocaitonRegistryKey' as 'Pulsar.exe,0'
+     * If we remove ',0' this works perfectly, but that value is harccoded
+     * in the source for some reason.
+     * So beyond that we could use the 'executableShimPaths' as long as
+     * 'InstallLocation' is set via the registry. Which there is no way to do
+     * from the electron-builder config.
+     * So suppose this means I finally have to make a custom NHS script.
+     * Once that script is done, lets set the 'InstallLocation' properly
+     * then we can go ahead and figure out what the global machine install looks like.
+     * Maybe at that point I could get Daeraxa to be helpful as always and setup
+     * linux, so that we get everything working finally, since an awesome
+     * community member did the same for macOS.
+     */
+  },
 ]
 
 function getKeyOrEmpty(
@@ -525,6 +550,7 @@ async function findApplication(editor: WindowsExternalEditor) {
         : editor.executableShimPaths.map(p => Path.join(installLocation, ...p))
 
     for (const path of executableShimPaths) {
+      console.log(path);
       const exists = await pathExists(path)
       if (exists) {
         return path
