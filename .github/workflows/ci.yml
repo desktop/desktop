@@ -37,7 +37,7 @@ jobs:
       - name: Ensure a clean working directory
         run: git diff --name-status --exit-code
   build:
-    name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
+    name: ${{ runner.os }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     permissions: read-all
     strategy:
@@ -46,11 +46,6 @@ jobs:
         node: [16.17.1]
         os: [macos-11, windows-2019]
         arch: [x64, arm64]
-        include:
-          - os: macos-11
-            friendlyName: macOS
-          - os: windows-2019
-            friendlyName: Windows
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
