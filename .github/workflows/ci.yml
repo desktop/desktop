@@ -110,7 +110,7 @@ jobs:
         if: ${{runner.os == 'macOS'}}
         with:
           name: ${{matrix.friendlyName}}-${{matrix.arch}}
-          path: dist/GitHubDesktop-${{matrix.arch}}.zip
+          path: dist/GitHub Desktop-${{matrix.arch}}.zip
           if-no-files-found: error
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v3
