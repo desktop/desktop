@@ -87,3 +87,7 @@ export function enablePreviousTagSuggestions(): boolean {
 export function enablePullRequestQuickView(): boolean {
   return enableDevelopmentFeatures()
 }
+
+export function enableMoveStash(): boolean {
+  return enableBetaFeatures()
+}

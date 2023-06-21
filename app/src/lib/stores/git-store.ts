@@ -1170,6 +1170,10 @@ export class GitStore extends BaseStore {
       : null
   }
 
+  public get desktopStashEntries(): ReadonlyMap<string, IStashEntry> {
+    return this._desktopStashEntries
+  }
+
   /** The total number of stash entries */
   public get stashEntryCount(): number {
     return this._stashEntryCount

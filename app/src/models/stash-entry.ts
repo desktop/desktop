@@ -12,6 +12,9 @@ export interface IStashEntry {
 
   /** The list of files this stash touches */
   readonly files: StashedFileChanges
+
+  readonly tree: string
+  readonly parents: ReadonlyArray<string>
 }
 
 /** Whether file changes for a stash entry are loaded or not */
