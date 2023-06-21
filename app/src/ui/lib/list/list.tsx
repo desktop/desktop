@@ -891,25 +891,34 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private scrollRowToVisible(indexPath: RowIndexPath, moveFocus = true) {
-    if (this.rootGrid === undefined) {
+    if (this.rootGrid === null) {
       return
     }
 
-    const sectionGrid = this.grids.get(indexPath.section)
+    const { scrollTop } = this.state
 
-    if (sectionGrid === undefined) {
-      return
-    }
-
+    const rowHeight = this.getHeightForRowAtIndexPath(indexPath)
     const sectionOffset = this.getSectionScrollOffset(indexPath.section)
-    const cellOffset = sectionGrid.getOffsetForCell({
-      rowIndex: indexPath.row,
-      columnIndex: 0,
-    })
+    const rowOffsetInSection = this.getRowOffsetInSection(indexPath)
+
+    const grid = ReactDOM.findDOMNode(this.rootGrid)
+    if (!(grid instanceof HTMLElement)) {
+      return
+    }
+    const gridHeight = grid.getBoundingClientRect().height
+
+    const minCellOffset =
+      sectionOffset + rowOffsetInSection + rowHeight - gridHeight
+    const maxCellOffset = sectionOffset + rowOffsetInSection
+
+    const newScrollTop = Math.max(
+      minCellOffset,
+      Math.min(maxCellOffset, scrollTop)
+    )
 
     this.rootGrid?.scrollToPosition({
-      scrollLeft: cellOffset.scrollLeft,
-      scrollTop: sectionOffset + cellOffset.scrollTop,
+      scrollLeft: 0,
+      scrollTop: newScrollTop,
     })
 
     if (moveFocus) {
@@ -1264,6 +1273,18 @@ export class List extends React.Component<IListProps, IListState> {
         />
       )
     }
+
+  private getRowOffsetInSection(indexPath: RowIndexPath) {
+    if (typeof this.props.rowHeight === 'number') {
+      return indexPath.row * this.props.rowHeight
+    }
+
+    let offset = 0
+    for (let i = 0; i < indexPath.row; i++) {
+      offset += this.props.rowHeight({ index: indexPath })
+    }
+    return offset
+  }
 
   private getSectionHeight(section: number) {
     if (typeof this.props.rowHeight === 'number') {
