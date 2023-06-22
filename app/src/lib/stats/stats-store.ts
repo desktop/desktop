@@ -886,7 +886,7 @@ export class StatsStore implements IStatsStore {
 
   /**
    * Records that the user made a commit to a repository hosted on
-   * a GitHub Enterprise instance
+   * a GitHub Enterprise Server instance
    */
   public recordCommitToEnterprise(): Promise<void> {
     return this.updateDailyMeasures(m => ({
@@ -967,7 +967,7 @@ export class StatsStore implements IStatsStore {
     createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 
-  /** Record that the user pushed to a GitHub Enterprise instance */
+  /** Record that the user pushed to a GitHub Enterprise Server instance */
   private async recordPushToGitHubEnterprise(
     options?: PushOptions
   ): Promise<void> {

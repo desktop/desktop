@@ -124,10 +124,10 @@ function getAvatarUrlCandidates(
       candidates.push(avatarURL)
     }
   } else if (endpoint !== null && !isDotCom && !supportsAvatarsAPI(endpoint)) {
-    // We're dealing with an old GitHub Enterprise instance so we're unable to
-    // get to the avatar by requesting the avatarURL due to the private mode
-    // (see https://github.com/desktop/desktop/issues/821). So we have no choice
-    // but to fall back to gravatar for now.
+    // We're dealing with an old GitHub Enterprise Server instance so we're
+    // unable to get to the avatar by requesting the avatarURL due to the
+    // private mode (see https://github.com/desktop/desktop/issues/821). So we
+    // have no choice but to fall back to gravatar for now.
     candidates.push(generateGravatarUrl(email, size))
     return candidates
   }

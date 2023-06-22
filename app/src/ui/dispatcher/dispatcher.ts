@@ -1427,7 +1427,7 @@ export class Dispatcher {
   }
 
   /**
-   * Initiate a sign in flow for a GitHub Enterprise instance. This will
+   * Initiate a sign in flow for a GitHub Enterprise Server instance. This will
    * put the store in the EndpointEntry step ready to receive the url
    * to the enterprise instance.
    */
@@ -1527,7 +1527,7 @@ export class Dispatcher {
 
   /**
    * Launch a sign in dialog for authenticating a user with
-   * a GitHub Enterprise instance.
+   * a GitHub Enterprise Server instance.
    * Optionally, you can provide an endpoint URL.
    */
   public async showEnterpriseSignInDialog(endpoint?: string): Promise<void> {

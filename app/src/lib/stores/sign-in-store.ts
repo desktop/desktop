@@ -92,7 +92,7 @@ export interface IEndpointEntryState extends ISignInState {
  * the user provides credentials and/or initiates a browser
  * OAuth sign in process. This step occurs as the first step
  * when signing in to GitHub.com and as the second step when
- * signing in to a GitHub Enterprise instance.
+ * signing in to a GitHub Enterprise Server instance.
  */
 export interface IAuthenticationState extends ISignInState {
   readonly kind: SignInStep.Authentication
@@ -109,7 +109,7 @@ export interface IAuthenticationState extends ISignInState {
   /**
    * A value indicating whether or not the endpoint supports
    * basic authentication (i.e. username and password). All
-   * GitHub Enterprise instances support OAuth (or web
+   * GitHub Enterprise Server instances support OAuth (or web
    * flow sign-in).
    */
   readonly supportsBasicAuth: boolean
@@ -193,7 +193,7 @@ const ServerMetaDataTimeout = 2000
 
 /**
  * A store encapsulating all logic related to signing in a user
- * to GitHub.com, or a GitHub Enterprise instance.
+ * to GitHub.com, or a GitHub Enterprise Server instance.
  */
 export class SignInStore extends TypedBaseStore<SignInState | null> {
   private state: SignInState | null = null
@@ -488,7 +488,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   }
 
   /**
-   * Initiate a sign in flow for a GitHub Enterprise instance.
+   * Initiate a sign in flow for a GitHub Enterprise Server instance.
    * This will put the store in the EndpointEntry step ready to
    * receive the url to the enterprise instance.
    */

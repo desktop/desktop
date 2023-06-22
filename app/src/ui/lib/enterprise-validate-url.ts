@@ -10,7 +10,7 @@ export const InvalidURLErrorName = 'invalid-url'
 export const InvalidProtocolErrorName = 'invalid-protocol'
 
 /**
- * Validate the URL for a GitHub Enterprise instance.
+ * Validate the URL for a GitHub Enterprise Server instance.
  *
  * Returns the validated URL, or throws if the URL cannot be validated.
  */

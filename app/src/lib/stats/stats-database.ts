@@ -77,10 +77,10 @@ export interface IDailyMeasures {
   /** The number of times the user pushes with `--force-with-lease` to GitHub.com */
   readonly dotcomForcePushCount: number
 
-  /** The number of times the user pushed to a GitHub Enterprise instance */
+  /** The number of times the user pushed to a GitHub Enterprise server instance */
   readonly enterprisePushCount: number
 
-  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise instance */
+  /** The number of times the user pushes with `--force-with-lease` to a GitHub Enterprise Server instance */
   readonly enterpriseForcePushCount: number
 
   /** The number of times the users pushes to a generic remote */
@@ -118,7 +118,7 @@ export interface IDailyMeasures {
 
   /**
    * The number of times the user made a commit to a repo hosted on
-   * a GitHub Enterprise instance
+   * a GitHub Enterprise Server instance
    */
   readonly enterpriseCommits: number
 
