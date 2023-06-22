@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.2.6": [
+      "[Fixed] The list of the repositories under the filter box on the \"Let's get started!\" page is visible - #16955"
+    ],
     "3.2.5": [
       "[Fixed] Entering in double forward slash does not trim the target directory in the cloning dialog - #15842. Thanks @IgnazioGul!",
       "[Fixed] In the \"No Repositories\" screen, controls at the bottom stay inside window when it is resized - #16502. Thanks @samuelko123!",
