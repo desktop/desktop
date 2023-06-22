@@ -54,7 +54,7 @@ export class UntrustedCertificate extends React.Component<
           <ul>
             <li>If this is a GitHub Enterprise trial.</li>
             <li>
-              If your GitHub Enterprise instance is run on an unusual top-level
+              If your GitHub Enterprise Server instance is run on an unusual top-level
               domain.
             </li>
           </ul>

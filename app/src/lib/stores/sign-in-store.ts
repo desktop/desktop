@@ -267,7 +267,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
     }
 
     throw new Error(
-      `Unable to authenticate with the GitHub Enterprise instance. Verify that the URL is correct, that your GitHub Enterprise instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
+      `Unable to authenticate with the GitHub Enterprise Server instance. Verify that the URL is correct, that your GitHub Enterprise Server instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
     )
   }
 
@@ -532,11 +532,11 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       let error = e
       if (e.name === InvalidURLErrorName) {
         error = new Error(
-          `The GitHub Enterprise instance address doesn't appear to be a valid URL. We're expecting something like https://github.example.com.`
+          `The GitHub Enterprise Server instance address doesn't appear to be a valid URL. We're expecting something like https://github.example.com.`
         )
       } else if (e.name === InvalidProtocolErrorName) {
         error = new Error(
-          'Unsupported protocol. Only http or https is supported when authenticating with GitHub Enterprise instances.'
+          'Unsupported protocol. Only http or https is supported when authenticating with GitHub Enterprise Server instances.'
         )
       }
 

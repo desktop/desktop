@@ -243,7 +243,7 @@ function getEndpointRequiresWebFlowMessage(endpoint: string): JSX.Element {
   } else {
     return (
       <p>
-        Your GitHub Enterprise instance requires you to sign in with your
+        Your GitHub Enterprise Server instance requires you to sign in with your
         browser.
       </p>
     )
