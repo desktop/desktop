@@ -7,7 +7,6 @@ import { UNSAFE_openDirectory } from '../shell'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import * as ipcWebContents from '../ipc-webcontents'
 import { mkdir } from 'fs/promises'
-import { enableStartingPullRequests } from '../../lib/feature-flag'
 
 const platformDefaultShell = __WIN32__ ? 'Command Prompt' : 'Terminal'
 const createPullRequestLabel = __DARWIN__
@@ -70,7 +69,7 @@ export function buildDefaultMenu({
         },
         separator,
         {
-          label: 'Preferences…',
+          label: 'Settings…',
           id: 'preferences',
           accelerator: 'CmdOrCtrl+,',
           click: emit('show-preferences'),
@@ -450,14 +449,12 @@ export function buildDefaultMenu({
     },
   ]
 
-  if (enableStartingPullRequests()) {
-    branchSubmenu.push({
-      label: __DARWIN__ ? 'Preview Pull Request' : 'Preview pull request',
-      id: 'preview-pull-request',
-      accelerator: 'CmdOrCtrl+Alt+P',
-      click: emit('preview-pull-request'),
-    })
-  }
+  branchSubmenu.push({
+    label: __DARWIN__ ? 'Preview Pull Request' : 'Preview pull request',
+    id: 'preview-pull-request',
+    accelerator: 'CmdOrCtrl+Alt+P',
+    click: emit('preview-pull-request'),
+  })
 
   branchSubmenu.push({
     label: pullRequestLabel,

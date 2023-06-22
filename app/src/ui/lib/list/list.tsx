@@ -113,6 +113,8 @@ interface IListProps {
    */
   readonly onRowClick?: (row: number, source: ClickSource) => void
 
+  readonly onRowDoubleClick?: (row: number, source: IMouseClickSource) => void
+
   /**
    * This prop defines the behaviour of the selection of items within this list.
    *  - 'single' : (default) single list-item selection. [shift] and [ctrl] have
@@ -943,6 +945,7 @@ export class List extends React.Component<IListProps, IListState> {
         rowIndex={rowIndex}
         selected={selected}
         onRowClick={this.onRowClick}
+        onRowDoubleClick={this.onRowDoubleClick}
         onRowKeyDown={this.onRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}
         onRowMouseUp={this.onRowMouseUp}
@@ -995,7 +998,6 @@ export class List extends React.Component<IListProps, IListState> {
    *
    * @param width - The width of the Grid as given by AutoSizer
    * @param height - The height of the Grid as given by AutoSizer
-   *
    */
   private renderContents(width: number, height: number) {
     if (__WIN32__) {
@@ -1082,7 +1084,6 @@ export class List extends React.Component<IListProps, IListState> {
    * and accurately positions the fake scroll bar.
    *
    * @param height The height of the Grid as given by AutoSizer
-   *
    */
   private renderFakeScroll(height: number) {
     let totalHeight: number = 0
@@ -1298,6 +1299,14 @@ export class List extends React.Component<IListProps, IListState> {
 
       this.props.onRowClick(row, { kind: 'mouseclick', event })
     }
+  }
+
+  private onRowDoubleClick = (row: number, event: React.MouseEvent<any>) => {
+    if (!this.props.onRowDoubleClick) {
+      return
+    }
+
+    this.props.onRowDoubleClick(row, { kind: 'mouseclick', event })
   }
 
   private onScroll = ({

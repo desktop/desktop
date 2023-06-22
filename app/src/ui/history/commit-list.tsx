@@ -7,6 +7,7 @@ import { List } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
 import { DragData, DragType } from '../../models/drag-drop'
 import classNames from 'classnames'
+import memoizeOne from 'memoize-one'
 
 const RowHeight = 50
 
@@ -142,6 +143,11 @@ interface ICommitListProps {
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
+  private commitIndexBySha = memoizeOne(
+    (commitSHAs: ReadonlyArray<string>) =>
+      new Map(commitSHAs.map((sha, index) => [sha, index]))
+  )
+
   private listRef = React.createRef<List>()
 
   private getVisibleCommits(): ReadonlyArray<Commit> {
@@ -345,13 +351,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     this.props.onCompareListScrolled?.(scrollTop)
   }
 
-  private rowForSHA(sha_: string | null): number {
-    const sha = sha_
-    if (!sha) {
-      return -1
-    }
-
-    return this.props.commitSHAs.findIndex(s => s === sha)
+  private rowForSHA(sha: string) {
+    return this.commitIndexBySha(this.props.commitSHAs).get(sha) ?? -1
   }
 
   private getRowCustomClassMap = () => {
