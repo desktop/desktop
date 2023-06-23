@@ -53,7 +53,7 @@ export class AriaLiveContainer extends Component<
     super(props)
 
     this.state = {
-      message: null,
+      message: this.props.children !== null ? this.buildMessage() : null,
     }
   }
 
@@ -62,7 +62,7 @@ export class AriaLiveContainer extends Component<
       return
     }
 
-    this.onTrackedInputChanged(this.buildMessage())
+    this.onTrackedInputChanged()
   }
 
   public componentWillUnmount() {
