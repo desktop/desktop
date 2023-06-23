@@ -94,7 +94,10 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
    * This may be true if the error is displayed in response to a form submission.
    * */
   private getRole() {
-    if (InputDescriptionType.Error && !this.props.trackedUserInput) {
+    if (
+      InputDescriptionType.Error &&
+      this.props.trackedUserInput === undefined
+    ) {
       return 'alert'
     }
 
