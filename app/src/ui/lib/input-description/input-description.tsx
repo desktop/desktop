@@ -15,14 +15,6 @@ export interface IBaseInputDescriptionProps {
    * using the `aria-describedby` attribute for screen reader users. */
   readonly id: string
 
-  /** Whether the description is rendered (both to screen reader and visual
-   * users)
-   *
-   * Defaults to true. This is useful for when the description is rendered
-   * conditionally such as a validation error.
-   */
-  readonly isRendered?: boolean
-
   /**
    * There is a common pattern that we may need to announce a message in
    * response to user input. Unfortunately, aria-live announcements are
@@ -107,10 +99,6 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
   }
 
   public render() {
-    if (this.props.isRendered === false) {
-      return null
-    }
-
     return (
       <>
         <div

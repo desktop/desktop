@@ -206,11 +206,14 @@ export class AddExistingRepository extends React.Component<
       this.buildRepositoryUnsafeError() ??
       this.buildNotAGitRepositoryError()
 
+    if (msg === null) {
+      return null
+    }
+
     return (
       <Row>
         <InputError
           id="add-existing-repository-path-error"
-          isRendered={msg !== null}
           trackedUserInput={this.state.path}
         >
           {msg}
