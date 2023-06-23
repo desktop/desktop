@@ -75,7 +75,10 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
   /** If a input is a warning or an error that is displayed in response to
    * tracked user input. We want it announced on user input debounce. */
   private renderAriaLiveContainer() {
-    if (InputDescriptionType.Caption || !this.props.trackedUserInput) {
+    if (
+      InputDescriptionType.Caption ||
+      this.props.trackedUserInput === undefined
+    ) {
       return null
     }
 
