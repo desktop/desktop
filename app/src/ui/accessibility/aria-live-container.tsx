@@ -45,8 +45,8 @@ export class AriaLiveContainer extends Component<
   IAriaLiveContainerState
 > {
   private suffix: string = ''
-  private onTrackedInputChanged = debounce((message: JSX.Element | null) => {
-    this.setState({ message })
+  private onTrackedInputChanged = debounce(() => {
+    this.setState({ message: this.buildMessage() })
   }, 1000)
 
   public constructor(props: IAriaLiveContainerProps) {
@@ -70,7 +70,9 @@ export class AriaLiveContainer extends Component<
   }
 
   private buildMessage() {
-    this.suffix = this.suffix === '' ? '\u00A0' : ''
+    // We need to toggle from two non-breaking spaces to one non-breaking space
+    // because VoiceOver does not detect the empty string as a change.
+    this.suffix = this.suffix === '\u00A0\u00A0' ? '\u00A0' : '\u00A0\u00A0'
 
     return (
       <>
