@@ -336,10 +336,12 @@ export class CloneRepository extends React.Component<
           return <DialogContent>{this.renderSignIn(tab)}</DialogContent>
         } else {
           const accountState = this.props.apiRepositories.get(account)
+          const loading =
+            accountState === undefined ? true : accountState.loading
+
           const repositories =
             accountState === undefined ? null : accountState.repositories
-          const loading =
-            accountState === undefined ? false : accountState.loading
+
           const tabState = this.getGitHubTabState(tab)
 
           return (

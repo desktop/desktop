@@ -88,12 +88,12 @@ export class CloneGithubRepository extends React.PureComponent<ICloneGithubRepos
           <CloneableRepositoryFilterList
             account={this.props.account}
             selectedItem={this.props.selectedItem}
-            onSelectionChanged={this.props.onSelectionChanged}
+            filterText={this.props.filterText}
+            onRefreshRepositories={this.props.onRefreshRepositories}
             loading={this.props.loading}
             repositories={this.props.repositories}
-            filterText={this.props.filterText}
+            onSelectionChanged={this.props.onSelectionChanged}
             onFilterTextChanged={this.props.onFilterTextChanged}
-            onRefreshRepositories={this.props.onRefreshRepositories}
             onItemClicked={this.props.onItemClicked}
           />
         </Row>
