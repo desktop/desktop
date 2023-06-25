@@ -1,13 +1,14 @@
+import { InvalidRowIndexPath } from '../../src/ui/lib/list/list-row-index-path'
 import { findNextSelectableRow } from '../../src/ui/lib/list/selection'
 
 describe('list-selection', () => {
   describe('findNextSelectableRow', () => {
-    const rowCount = 5
+    const rowCount = [5]
 
     it('returns first row when selecting down outside list (filter text)', () => {
       const selectedRow = findNextSelectableRow(rowCount, {
         direction: 'down',
-        row: -1,
+        row: InvalidRowIndexPath,
       })
       expect(selectedRow).toBe(0)
     })
@@ -17,10 +18,10 @@ describe('list-selection', () => {
         rowCount,
         {
           direction: 'down',
-          row: -1,
+          row: InvalidRowIndexPath,
         },
         row => {
-          if (row === 0) {
+          if (row.section === 0 && row.row === 0) {
             return false
           } else {
             return true
@@ -31,10 +32,13 @@ describe('list-selection', () => {
     })
 
     it('returns first row when selecting down from last row', () => {
-      const lastRow = rowCount - 1
+      const lastRow = rowCount[0] - 1
       const selectedRow = findNextSelectableRow(rowCount, {
         direction: 'down',
-        row: lastRow,
+        row: {
+          section: 0,
+          row: lastRow,
+        },
       })
       expect(selectedRow).toBe(0)
     })
@@ -42,7 +46,10 @@ describe('list-selection', () => {
     it('returns last row when selecting up from top row', () => {
       const selectedRow = findNextSelectableRow(rowCount, {
         direction: 'up',
-        row: 0,
+        row: {
+          section: 0,
+          row: 0,
+        },
       })
       expect(selectedRow).toBe(4)
     })
