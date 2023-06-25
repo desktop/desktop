@@ -3,7 +3,6 @@ import classnames from 'classnames'
 
 import { SectionList, ClickSource } from '../lib/list/section-list'
 import {
-  SelectionSource as ListSelectionSource,
   findNextSelectableRow,
   SelectionDirection,
 } from '../lib/list/section-list-selection'
@@ -17,24 +16,11 @@ import {
   RowIndexPath,
   rowIndexPathEquals,
 } from './list/list-row-index-path'
-
-/** An item in the filter list. */
-export interface IFilterListItem {
-  /** The text which represents the item. This is used for filtering. */
-  readonly text: ReadonlyArray<string>
-
-  /** A unique identifier for the item. */
-  readonly id: string
-}
-
-/** A group of items in the list. */
-export interface IFilterListGroup<T extends IFilterListItem> {
-  /** The identifier for this group. */
-  readonly identifier: string
-
-  /** The items in the group. */
-  readonly items: ReadonlyArray<T>
-}
+import {
+  IFilterListGroup,
+  IFilterListItem,
+  SelectionSource,
+} from './filter-list'
 
 interface IFlattenedGroup {
   readonly kind: 'group'
@@ -56,7 +42,7 @@ type IFilterListRow<T extends IFilterListItem> =
   | IFlattenedGroup
   | IFlattenedItem<T>
 
-interface IFilterListProps<T extends IFilterListItem> {
+interface ISectionFilterListProps<T extends IFilterListItem> {
   /** A class name for the wrapping element. */
   readonly className?: string
 
@@ -179,28 +165,14 @@ interface IFilterListState<T extends IFilterListItem> {
   readonly filterValue: string
 }
 
-/**
- * Interface describing a user initiated selection change event
- * originating from changing the filter text.
- */
-export interface IFilterSelectionSource {
-  kind: 'filter'
-
-  /** The filter text at the time the selection event was raised.  */
-  filterText: string
-}
-
-export type SelectionSource = ListSelectionSource | IFilterSelectionSource
-
 /** A List which includes the ability to filter based on its contents. */
-export class FilterList<T extends IFilterListItem> extends React.Component<
-  IFilterListProps<T>,
-  IFilterListState<T>
-> {
+export class SectionFilterList<
+  T extends IFilterListItem
+> extends React.Component<ISectionFilterListProps<T>, IFilterListState<T>> {
   private list: SectionList | null = null
   private filterTextBox: TextBox | null = null
 
-  public constructor(props: IFilterListProps<T>) {
+  public constructor(props: ISectionFilterListProps<T>) {
     super(props)
 
     this.state = createStateUpdate(props)
@@ -212,12 +184,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     }
   }
 
-  public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
+  public componentWillReceiveProps(nextProps: ISectionFilterListProps<T>) {
     this.setState(createStateUpdate(nextProps))
   }
 
   public componentDidUpdate(
-    prevProps: IFilterListProps<T>,
+    prevProps: ISectionFilterListProps<T>,
     prevState: IFilterListState<T>
   ) {
     if (this.props.onSelectionChanged) {
@@ -626,7 +598,7 @@ function getFirstVisibleRow<T extends IFilterListItem>(
 }
 
 function createStateUpdate<T extends IFilterListItem>(
-  props: IFilterListProps<T>
+  props: ISectionFilterListProps<T>
 ) {
   const rows = new Array<Array<IFilterListRow<T>>>()
   const filter = (props.filterText || '').toLowerCase()
