@@ -1,5 +1,5 @@
 import { InvalidRowIndexPath } from '../../src/ui/lib/list/list-row-index-path'
-import { findNextSelectableRow } from '../../src/ui/lib/list/selection'
+import { findNextSelectableRow } from '../../src/ui/lib/list/section-list-selection'
 
 describe('list-selection', () => {
   describe('findNextSelectableRow', () => {

@@ -571,7 +571,7 @@ export class List extends React.Component<IListProps, IListState> {
       }
       offset += h
 
-      if (this.canSelectRow({ section: 0, row: i })) {
+      if (this.canSelectRow(i)) {
         newSelection = i
       }
     }
@@ -580,11 +580,11 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onRowKeyDown = (
-    rowIndex: number,
+    indexPath: RowIndexPath,
     event: React.KeyboardEvent<any>
   ) => {
     if (this.props.onRowKeyDown) {
-      this.props.onRowKeyDown(rowIndex, event)
+      this.props.onRowKeyDown(indexPath.row, event)
     }
 
     const hasModifier =
@@ -645,28 +645,32 @@ export class List extends React.Component<IListProps, IListState> {
     })
   }
 
-  private onRowFocus = (index: number, e: React.FocusEvent<HTMLDivElement>) => {
-    this.focusRow = index
+  private onRowFocus = (
+    indexPath: RowIndexPath,
+    e: React.FocusEvent<HTMLDivElement>
+  ) => {
+    this.focusRow = indexPath.row
   }
 
-  private onRowBlur = (index: number, e: React.FocusEvent<HTMLDivElement>) => {
-    if (this.focusRow === index) {
+  private onRowBlur = (
+    indexPath: RowIndexPath,
+    e: React.FocusEvent<HTMLDivElement>
+  ) => {
+    if (this.focusRow === indexPath.row) {
       this.focusRow = -1
     }
   }
 
   private onRowContextMenu = (
-    row: number,
+    indexPath: RowIndexPath,
     e: React.MouseEvent<HTMLDivElement>
   ) => {
-    this.props.onRowContextMenu?.(row, e)
+    this.props.onRowContextMenu?.(indexPath.row, e)
   }
 
   /** Convenience method for invoking canSelectRow callback when it exists */
-  private canSelectRow = (indexPath: RowIndexPath) => {
-    return this.props.canSelectRow
-      ? this.props.canSelectRow(indexPath.row)
-      : true
+  private canSelectRow = (rowIndex: number) => {
+    return this.props.canSelectRow ? this.props.canSelectRow(rowIndex) : true
   }
 
   private addSelection(direction: SelectionDirection, source: SelectionSource) {
@@ -680,14 +684,14 @@ export class List extends React.Component<IListProps, IListState> {
     const selectionOrigin = this.props.selectedRows[0]
 
     const newRow = findNextSelectableRow(
-      [this.props.rowCount],
-      { direction, row: { section: 0, row: lastSelection }, wrap: false },
+      this.props.rowCount,
+      { direction, row: lastSelection, wrap: false },
       this.canSelectRow
     )
 
     if (newRow != null) {
       if (this.props.onSelectionChanged) {
-        const newSelection = createSelectionBetween(selectionOrigin, newRow.row)
+        const newSelection = createSelectionBetween(selectionOrigin, newRow)
         this.props.onSelectionChanged(newSelection, source)
       }
 
@@ -695,10 +699,10 @@ export class List extends React.Component<IListProps, IListState> {
         this.props.selectionMode === 'range' &&
         this.props.onSelectedRangeChanged
       ) {
-        this.props.onSelectedRangeChanged(selectionOrigin, newRow.row, source)
+        this.props.onSelectedRangeChanged(selectionOrigin, newRow, source)
       }
 
-      this.scrollRowToVisible(newRow.row)
+      this.scrollRowToVisible(newRow)
     }
   }
 
@@ -712,13 +716,13 @@ export class List extends React.Component<IListProps, IListState> {
         : -1
 
     const newRow = findNextSelectableRow(
-      [this.props.rowCount],
-      { direction, row: { section: 0, row: lastSelection } },
+      this.props.rowCount,
+      { direction, row: lastSelection },
       this.canSelectRow
     )
 
     if (newRow != null) {
-      this.moveSelectionTo(newRow.row, source)
+      this.moveSelectionTo(newRow, source)
     }
   }
 
@@ -728,10 +732,10 @@ export class List extends React.Component<IListProps, IListState> {
   ) {
     const { canSelectRow, props } = this
     const { rowCount } = props
-    const row = findLastSelectableRow(direction, [rowCount], canSelectRow)
+    const row = findLastSelectableRow(direction, rowCount, canSelectRow)
 
     if (row !== null) {
-      this.moveSelectionTo(row.row, source)
+      this.moveSelectionTo(row, source)
     }
   }
 
@@ -741,14 +745,14 @@ export class List extends React.Component<IListProps, IListState> {
   ) {
     const { canSelectRow, props } = this
     const { rowCount, selectedRows } = props
-    const row = findLastSelectableRow(direction, [rowCount], canSelectRow)
+    const row = findLastSelectableRow(direction, rowCount, canSelectRow)
 
     if (row === null) {
       return
     }
 
     const firstSelection = selectedRows[0] ?? 0
-    const range = createSelectionBetween(firstSelection, row.row)
+    const range = createSelectionBetween(firstSelection, row)
 
     this.props.onSelectionChanged?.(range, source)
 
@@ -757,7 +761,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     this.props.onSelectedRangeChanged?.(from, to, source)
 
-    this.scrollRowToVisible(row.row)
+    this.scrollRowToVisible(row)
   }
 
   private moveSelectionTo(row: number, source: SelectionSource) {
@@ -869,14 +873,17 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onRowRef = (rowIndex: number, element: HTMLDivElement | null) => {
+  private onRowRef = (
+    indexPath: RowIndexPath,
+    element: HTMLDivElement | null
+  ) => {
     if (element === null) {
-      this.rowRefs.delete(rowIndex)
+      this.rowRefs.delete(indexPath.row)
     } else {
-      this.rowRefs.set(rowIndex, element)
+      this.rowRefs.set(indexPath.row, element)
     }
 
-    if (rowIndex === this.focusRow) {
+    if (indexPath.row === this.focusRow) {
       // The currently focused row is going being unmounted so we'll move focus
       // programmatically to the grid so that keyboard navigation still works
       if (element === null) {
@@ -910,14 +917,9 @@ export class List extends React.Component<IListProps, IListState> {
     return customClasses.length === 0 ? undefined : customClasses.join(' ')
   }
 
-  private onDropDataInsertion = (
-    insertionIndex: RowIndexPath,
-    data: DragData
-  ) => this.props.onDropDataInsertion?.(insertionIndex.row, data)
-
   private renderRow = (params: IRowRendererParams) => {
     const rowIndex = params.rowIndex
-    const selectable = this.canSelectRow({ section: 0, row: rowIndex })
+    const selectable = this.canSelectRow(rowIndex)
     const selected = this.props.selectedRows.indexOf(rowIndex) !== -1
     const customClasses = this.getCustomRowClassNames(rowIndex)
 
@@ -1140,10 +1142,13 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onRowMouseDown = (row: number, event: React.MouseEvent<any>) => {
-    if (this.canSelectRow(row)) {
+  private onRowMouseDown = (
+    indexPath: RowIndexPath,
+    event: React.MouseEvent<any>
+  ) => {
+    if (this.canSelectRow(indexPath.row)) {
       if (this.props.onRowMouseDown) {
-        this.props.onRowMouseDown(row, event)
+        this.props.onRowMouseDown(indexPath.row, event)
       }
 
       // macOS allow emulating a right click by holding down the ctrl key while
@@ -1153,7 +1158,7 @@ export class List extends React.Component<IListProps, IListState> {
         (__DARWIN__ && event.button === 0 && event.ctrlKey)
 
       // prevent the right-click event from changing the selection if not necessary
-      if (isRightClick && this.props.selectedRows.includes(row)) {
+      if (isRightClick && this.props.selectedRows.includes(indexPath.row)) {
         return
       }
 
@@ -1172,7 +1177,10 @@ export class List extends React.Component<IListProps, IListState> {
         const selectionOrigin = this.props.selectedRows[0]
 
         if (this.props.onSelectionChanged) {
-          const newSelection = createSelectionBetween(selectionOrigin, row)
+          const newSelection = createSelectionBetween(
+            selectionOrigin,
+            indexPath.row
+          )
           this.props.onSelectionChanged(newSelection, {
             kind: 'mouseclick',
             event,
@@ -1182,7 +1190,7 @@ export class List extends React.Component<IListProps, IListState> {
           this.props.selectionMode === 'range' &&
           this.props.onSelectedRangeChanged
         ) {
-          this.props.onSelectedRangeChanged(selectionOrigin, row, {
+          this.props.onSelectedRangeChanged(selectionOrigin, indexPath.row, {
             kind: 'mouseclick',
             event,
           })
@@ -1194,14 +1202,16 @@ export class List extends React.Component<IListProps, IListState> {
          */
         if (this.props.onSelectionChanged) {
           let newSelection: ReadonlyArray<number>
-          if (this.props.selectedRows.includes(row)) {
+          if (this.props.selectedRows.includes(indexPath.row)) {
             // remove the ability to deselect the last item
             if (this.props.selectedRows.length === 1) {
               return
             }
-            newSelection = this.props.selectedRows.filter(ix => ix !== row)
+            newSelection = this.props.selectedRows.filter(
+              ix => ix !== indexPath.row
+            )
           } else {
-            newSelection = [...this.props.selectedRows, row]
+            newSelection = [...this.props.selectedRows, indexPath.row]
           }
 
           this.props.onSelectionChanged(newSelection, {
@@ -1213,7 +1223,7 @@ export class List extends React.Component<IListProps, IListState> {
         (this.props.selectionMode === 'range' ||
           this.props.selectionMode === 'multi') &&
         this.props.selectedRows.length > 1 &&
-        this.props.selectedRows.includes(row)
+        this.props.selectedRows.includes(indexPath.row)
       ) {
         // Do nothing. Multiple rows are already selected. We assume the user is
         // pressing down on multiple and may desire to start dragging. We will
@@ -1222,19 +1232,22 @@ export class List extends React.Component<IListProps, IListState> {
       } else if (
         this.props.selectedRows.length !== 1 ||
         (this.props.selectedRows.length === 1 &&
-          row !== this.props.selectedRows[0])
+          indexPath.row !== this.props.selectedRows[0])
       ) {
         /*
          * if no special key is pressed, and that the selection is different,
          * single selection occurs
          */
-        this.selectSingleRowAfterMouseEvent(row, event)
+        this.selectSingleRowAfterMouseEvent(indexPath.row, event)
       }
     }
   }
 
-  private onRowMouseUp = (row: number, event: React.MouseEvent<any>) => {
-    if (!this.canSelectRow(row)) {
+  private onRowMouseUp = (
+    indexPath: RowIndexPath,
+    event: React.MouseEvent<any>
+  ) => {
+    if (!this.canSelectRow(indexPath.row)) {
       return
     }
 
@@ -1244,7 +1257,7 @@ export class List extends React.Component<IListProps, IListState> {
       event.button === 2 || (__DARWIN__ && event.button === 0 && event.ctrlKey)
 
     // prevent the right-click event from changing the selection if not necessary
-    if (isRightClick && this.props.selectedRows.includes(row)) {
+    if (isRightClick && this.props.selectedRows.includes(indexPath.row)) {
       return
     }
 
@@ -1254,7 +1267,7 @@ export class List extends React.Component<IListProps, IListState> {
       !event.shiftKey &&
       !multiSelectKey &&
       this.props.selectedRows.length > 1 &&
-      this.props.selectedRows.includes(row) &&
+      this.props.selectedRows.includes(indexPath.row) &&
       (this.props.selectionMode === 'range' ||
         this.props.selectionMode === 'multi')
     ) {
@@ -1262,7 +1275,7 @@ export class List extends React.Component<IListProps, IListState> {
       // onRowMouseDown event was ignored for this scenario because the user may
       // desire to started dragging multiple. However, if they let go, we want a
       // new single selection to occur.
-      this.selectSingleRowAfterMouseEvent(row, event)
+      this.selectSingleRowAfterMouseEvent(indexPath.row, event)
     }
   }
 
@@ -1295,11 +1308,15 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
+  private onDropDataInsertion = (indexPath: RowIndexPath, data: DragData) => {
+    this.props.onDropDataInsertion?.(indexPath.row, data)
+  }
+
   private onRowClick = (
     indexPath: RowIndexPath,
     event: React.MouseEvent<any>
   ) => {
-    if (this.canSelectRow(indexPath) && this.props.onRowClick) {
+    if (this.canSelectRow(indexPath.row) && this.props.onRowClick) {
       const rowCount = this.props.rowCount
 
       if (indexPath.row < 0 || indexPath.row >= rowCount) {

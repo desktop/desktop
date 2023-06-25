@@ -12,7 +12,7 @@ import {
   IKeyboardSource,
   ISelectAllSource,
   findLastSelectableRow,
-} from './selection'
+} from './section-list-selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
