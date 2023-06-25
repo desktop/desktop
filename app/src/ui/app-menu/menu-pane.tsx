@@ -17,10 +17,6 @@ import {
 } from '../../models/app-menu'
 import { MenuListItem } from './menu-list-item'
 import { assertNever } from '../../lib/fatal-error'
-import {
-  InvalidRowIndexPath,
-  RowIndexPath,
-} from '../lib/list/list-row-index-path'
 
 interface IMenuPaneProps {
   /**
@@ -114,27 +110,21 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
     source: ClickSource
   ) {
     const { items, selectedItem } = this.props
-    const row: RowIndexPath = selectedItem
-      ? {
-          section: 0,
-          row: items.indexOf(selectedItem),
-        }
-      : InvalidRowIndexPath
+    const row = selectedItem ? items.indexOf(selectedItem) : -1
     const count = items.length
-    const selectable = (ix: RowIndexPath) =>
-      items[ix.row] && itemIsSelectable(items[ix.row])
+    const selectable = (ix: number) => items[ix] && itemIsSelectable(items[ix])
 
-    let ix: RowIndexPath | null = null
+    let ix: number | null = null
 
     if (direction === 'up' || direction === 'down') {
-      ix = findNextSelectableRow([count], { direction, row }, selectable)
+      ix = findNextSelectableRow(count, { direction, row }, selectable)
     } else if (direction === 'first' || direction === 'last') {
       const d = direction === 'first' ? 'up' : 'down'
-      ix = findLastSelectableRow(d, [count], selectable)
+      ix = findLastSelectableRow(d, count, selectable)
     }
 
-    if (ix !== null && items[ix.row] !== undefined) {
-      this.props.onSelectionChanged(this.props.depth, items[ix.row], source)
+    if (ix !== null && items[ix] !== undefined) {
+      this.props.onSelectionChanged(this.props.depth, items[ix], source)
       return true
     }
 

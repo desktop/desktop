@@ -8,10 +8,6 @@ import { arrayEquals } from '../../lib/equality'
 import { DragData, DragType } from '../../models/drag-drop'
 import classNames from 'classnames'
 import memoizeOne from 'memoize-one'
-import {
-  InvalidRowIndexPath,
-  RowIndexPath,
-} from '../lib/list/list-row-index-path'
 
 const RowHeight = 50
 
@@ -149,9 +145,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
   private commitIndexBySha = memoizeOne(
     (commitSHAs: ReadonlyArray<string>) =>
-      new Map<string, RowIndexPath>(
-        commitSHAs.map((sha, index) => [sha, { section: 0, row: index }])
-      )
+      new Map(commitSHAs.map((sha, index) => [sha, index]))
   )
 
   private listRef = React.createRef<List>()
@@ -168,8 +162,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return commits
   }
 
-  private renderCommit = (indexPath: RowIndexPath) => {
-    const sha = this.props.commitSHAs[indexPath.row]
+  private renderCommit = (row: number) => {
+    const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
 
     if (commit == null) {
@@ -196,19 +190,15 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     // They cannot reset to the most recent commit... because they're already
     // in it.
     const isResettableCommit =
-      indexPath.row > 0 && indexPath.row <= this.props.localCommitSHAs.length
+      row > 0 && row <= this.props.localCommitSHAs.length
 
     return (
       <CommitListItem
         key={commit.sha}
         gitHubRepository={this.props.gitHubRepository}
         isLocal={isLocal}
-        canBeUndone={
-          this.props.canUndoCommits === true && isLocal && indexPath.row === 0
-        }
-        canBeAmended={
-          this.props.canAmendCommits === true && indexPath.row === 0
-        }
+        canBeUndone={this.props.canUndoCommits === true && isLocal && row === 0}
+        canBeAmended={this.props.canAmendCommits === true && row === 0}
         canBeResetTo={
           this.props.canResetToCommits === true && isResettableCommit
         }
@@ -291,13 +281,10 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return undefined
   }
 
-  private onSelectionChanged = (rows: ReadonlyArray<RowIndexPath>) => {
-    const selectedShas = rows.map(r => this.props.commitSHAs[r.row])
+  private onSelectionChanged = (rows: ReadonlyArray<number>) => {
+    const selectedShas = rows.map(r => this.props.commitSHAs[r])
     const selectedCommits = this.lookupCommits(selectedShas)
-    this.props.onCommitsSelected?.(
-      selectedCommits,
-      this.isContiguous(rows.map(r => r.row))
-    )
+    this.props.onCommitsSelected?.(selectedCommits, this.isContiguous(rows))
   }
 
   /**
@@ -329,8 +316,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
 
   // This is required along with onSelectedRangeChanged in the case of a user
   // paging up/down or using arrow keys up/down.
-  private onSelectedRowChanged = (indexPath: RowIndexPath) => {
-    const sha = this.props.commitSHAs[indexPath.row]
+  private onSelectedRowChanged = (row: number) => {
+    const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
     if (commit) {
       this.props.onCommitsSelected?.([commit], true)
@@ -365,10 +352,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
   }
 
   private rowForSHA(sha: string) {
-    return (
-      this.commitIndexBySha(this.props.commitSHAs).get(sha) ??
-      InvalidRowIndexPath
-    )
+    return this.commitIndexBySha(this.props.commitSHAs).get(sha) ?? -1
   }
 
   private getRowCustomClassMap = () => {
@@ -385,7 +369,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       return undefined
     }
 
-    const rowClassMap = new Map<string, ReadonlyArray<RowIndexPath>>()
+    const rowClassMap = new Map<string, ReadonlyArray<number>>()
     rowClassMap.set('highlighted', rowsForShasNotInDiff)
     return rowClassMap
   }
@@ -420,7 +404,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       <div id="commit-list" className={classes}>
         <List
           ref={this.listRef}
-          rowCount={[commitSHAs.length]}
+          rowCount={commitSHAs.length}
           rowHeight={RowHeight}
           selectedRows={selectedSHAs.map(sha => this.rowForSHA(sha))}
           rowRenderer={this.renderCommit}
@@ -449,7 +433,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     )
   }
 
-  private onDropDataInsertion = (indexPath: RowIndexPath, data: DragData) => {
+  private onDropDataInsertion = (row: number, data: DragData) => {
     if (
       this.props.onDropCommitInsertion === undefined ||
       data.type !== DragType.Commit
@@ -460,7 +444,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     // The base commit index will be in row - 1, because row is the position
     // where the new item should be inserted, and commits have a reverse order
     // (newer commits are in lower row values) in the list.
-    const baseCommitIndex = indexPath.row === 0 ? null : indexPath.row - 1
+    const baseCommitIndex = row === 0 ? null : row - 1
 
     if (
       this.props.commitSHAs.length === 0 ||

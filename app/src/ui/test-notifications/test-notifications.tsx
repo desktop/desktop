@@ -18,8 +18,8 @@ import {
 import { DialogHeader } from '../dialog/header'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
-import { List } from '../lib/list'
 import { RowIndexPath } from '../lib/list/list-row-index-path'
+import { SectionList } from '../lib/list/section-list'
 import { Loading } from '../lib/loading'
 import { getPullRequestReviewStateIcon } from '../notifications/pull-request-review-helpers'
 import { Octicon } from '../octicons'
@@ -398,7 +398,7 @@ export class TestNotifications extends React.Component<
     return (
       <div>
         Pull requests:
-        <List
+        <SectionList
           rowHeight={40}
           rowCount={[pullRequests.length]}
           rowRenderer={this.renderPullRequestRow}
@@ -441,7 +441,7 @@ export class TestNotifications extends React.Component<
     return (
       <div>
         Reviews:
-        <List
+        <SectionList
           rowHeight={40}
           rowCount={[reviews.length]}
           rowRenderer={this.renderPullRequestReviewRow}
@@ -484,7 +484,7 @@ export class TestNotifications extends React.Component<
     return (
       <div>
         Comments:
-        <List
+        <SectionList
           rowHeight={40}
           rowCount={[comments.length]}
           rowRenderer={this.renderPullRequestCommentRow}

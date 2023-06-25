@@ -2,10 +2,6 @@ import * as React from 'react'
 
 import { CommittedFileChange } from '../../models/status'
 import { ClickSource, List } from '../lib/list'
-import {
-  InvalidRowIndexPath,
-  RowIndexPath,
-} from '../lib/list/list-row-index-path'
 import { CommittedFileItem } from './committed-file-item'
 
 interface IFileListProps {
@@ -24,45 +20,35 @@ interface IFileListProps {
  * Display a list of changed files as part of a commit or stash
  */
 export class FileList extends React.Component<IFileListProps> {
-  private onSelectedRowChanged = (indexPath: RowIndexPath) => {
-    const file = this.props.files[indexPath.row]
+  private onSelectedRowChanged = (row: number) => {
+    const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)
   }
 
-  private onRowDoubleClick = (indexPath: RowIndexPath, source: ClickSource) => {
-    this.props.onRowDoubleClick(indexPath.row, source)
-  }
-
-  private renderFile = (indexPath: RowIndexPath) => {
+  private renderFile = (row: number) => {
     return (
       <CommittedFileItem
-        file={this.props.files[indexPath.row]}
+        file={this.props.files[row]}
         availableWidth={this.props.availableWidth}
         onContextMenu={this.props.onContextMenu}
       />
     )
   }
 
-  private rowForFile(file: CommittedFileChange | null): RowIndexPath {
-    return file
-      ? {
-          section: 0,
-          row: this.props.files.findIndex(f => f.path === file.path),
-        }
-      : InvalidRowIndexPath
+  private rowForFile(file: CommittedFileChange | null): number {
+    return file ? this.props.files.findIndex(f => f.path === file.path) : -1
   }
 
   public render() {
-    const { selectedFile, files } = this.props
     return (
       <div className="file-list">
         <List
           rowRenderer={this.renderFile}
-          rowCount={[files.length]}
+          rowCount={this.props.files.length}
           rowHeight={29}
-          selectedRows={[this.rowForFile(selectedFile)]}
+          selectedRows={[this.rowForFile(this.props.selectedFile)]}
           onSelectedRowChanged={this.onSelectedRowChanged}
-          onRowDoubleClick={this.onRowDoubleClick}
+          onRowDoubleClick={this.props.onRowDoubleClick}
         />
       </div>
     )

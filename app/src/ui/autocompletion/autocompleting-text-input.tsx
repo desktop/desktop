@@ -17,10 +17,6 @@ import {
   PopoverAnchorPosition,
   PopoverDecoration,
 } from '../lib/popover'
-import {
-  InvalidRowIndexPath,
-  RowIndexPath,
-} from '../lib/list/list-row-index-path'
 
 interface IRange {
   readonly start: number
@@ -213,13 +209,13 @@ export abstract class AutocompletingTextInput<
     return this.props.elementId ?? this.state.uniqueInternalElementId
   }
 
-  private renderItem = (indexPath: RowIndexPath): JSX.Element | null => {
+  private renderItem = (row: number): JSX.Element | null => {
     const state = this.state.autocompletionState
     if (!state) {
       return null
     }
 
-    const item = state.items[indexPath.row]
+    const item = state.items[row]
     const selected = item === state.selectedItem ? 'selected' : ''
     return (
       <div className={`autocompletion-item ${selected}`}>
@@ -239,12 +235,9 @@ export abstract class AutocompletingTextInput<
       return null
     }
 
-    const selectedRow: RowIndexPath = state.selectedItem
-      ? {
-          section: 0,
-          row: items.indexOf(state.selectedItem),
-        }
-      : InvalidRowIndexPath
+    const selectedRow = state.selectedItem
+      ? items.indexOf(state.selectedItem)
+      : -1
 
     // The height needed to accommodate all the matched items without overflowing
     //
@@ -277,7 +270,7 @@ export abstract class AutocompletingTextInput<
         <List
           accessibleListId={this.state.autocompleteContainerId}
           ref={this.onAutocompletionListRef}
-          rowCount={[items.length]}
+          rowCount={items.length}
           rowHeight={RowHeight}
           rowId={this.getRowId}
           selectedRows={[selectedRow]}
@@ -292,73 +285,61 @@ export abstract class AutocompletingTextInput<
     )
   }
 
-  private getRowId: (indexPath: RowIndexPath) => string = indexPath => {
+  private getRowId: (row: number) => string = row => {
     const state = this.state.autocompletionState
     if (!state) {
       return ''
     }
 
-    return `autocomplete-item-row-${state.itemListRowIdPrefix}-${indexPath.row}`
+    return `autocomplete-item-row-${state.itemListRowIdPrefix}-${row}`
   }
 
   private onAutocompletionListRef = (ref: List | null) => {
     const { autocompletionState } = this.state
     if (ref && autocompletionState && autocompletionState.selectedItem) {
       const { items, selectedItem } = autocompletionState
-      const indexPath: RowIndexPath = {
-        section: 0,
-        row: items.indexOf(selectedItem),
-      }
-
       this.setState({
         autocompletionState: {
           ...autocompletionState,
-          selectedRowId: this.getRowId(indexPath),
+          selectedRowId: this.getRowId(items.indexOf(selectedItem)),
         },
       })
     }
   }
 
-  private onRowMouseDown = (
-    indexPath: RowIndexPath,
-    event: React.MouseEvent<any>
-  ) => {
+  private onRowMouseDown = (row: number, event: React.MouseEvent<any>) => {
     const currentAutoCompletionState = this.state.autocompletionState
 
     if (!currentAutoCompletionState) {
       return
     }
 
-    const item = currentAutoCompletionState.items[indexPath.row]
+    const item = currentAutoCompletionState.items[row]
 
     if (item) {
       this.insertCompletion(item, 'mouseclick')
     }
   }
 
-  private onSelectedRowChanged = (
-    indexPath: RowIndexPath,
-    source: SelectionSource
-  ) => {
+  private onSelectedRowChanged = (row: number, source: SelectionSource) => {
     const currentAutoCompletionState = this.state.autocompletionState
 
     if (!currentAutoCompletionState) {
       return
     }
 
-    const newSelectedItem = currentAutoCompletionState.items[indexPath.row]
+    const newSelectedItem = currentAutoCompletionState.items[row]
 
     const newAutoCompletionState = {
       ...currentAutoCompletionState,
       selectedItem: newSelectedItem,
-      selectedRowId:
-        newSelectedItem === null ? undefined : this.getRowId(indexPath),
+      selectedRowId: newSelectedItem === null ? undefined : this.getRowId(row),
     }
 
     this.setState({ autocompletionState: newAutoCompletionState })
   }
 
-  private insertCompletionOnClick = (indexPath: RowIndexPath): void => {
+  private insertCompletionOnClick = (row: number): void => {
     const state = this.state.autocompletionState
     if (!state) {
       return
@@ -369,7 +350,7 @@ export abstract class AutocompletingTextInput<
       return
     }
 
-    const item = items[indexPath.row]
+    const item = items[row]
 
     this.insertCompletion(item, 'mouseclick')
   }
@@ -402,10 +383,7 @@ export abstract class AutocompletingTextInput<
       autocompletionState.selectedItem
     )
 
-    return this.getRowId({
-      section: 0,
-      row: index,
-    })
+    return this.getRowId(index)
   }
 
   private renderTextInput() {
@@ -643,27 +621,24 @@ export abstract class AutocompletingTextInput<
       return
     }
 
-    const selectedRow: RowIndexPath = currentAutoCompletionState.selectedItem
-      ? {
-          section: 0,
-          row: currentAutoCompletionState.items.indexOf(
-            currentAutoCompletionState.selectedItem
-          ),
-        }
-      : InvalidRowIndexPath
+    const selectedRow = currentAutoCompletionState.selectedItem
+      ? currentAutoCompletionState.items.indexOf(
+          currentAutoCompletionState.selectedItem
+        )
+      : -1
 
     const direction = this.getMovementDirection(event)
     if (direction) {
       event.preventDefault()
       const rowCount = currentAutoCompletionState.items.length
 
-      const nextRow = findNextSelectableRow([rowCount], {
+      const nextRow = findNextSelectableRow(rowCount, {
         direction,
         row: selectedRow,
       })
 
       if (nextRow !== null) {
-        const newSelectedItem = currentAutoCompletionState.items[nextRow.row]
+        const newSelectedItem = currentAutoCompletionState.items[nextRow]
 
         const newAutoCompletionState = {
           ...currentAutoCompletionState,

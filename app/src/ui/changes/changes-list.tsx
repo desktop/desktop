@@ -55,7 +55,6 @@ import { TooltipDirection } from '../lib/tooltip'
 import { Popup } from '../../models/popup'
 import { EOL } from 'os'
 import { TooltippedContent } from '../lib/tooltipped-content'
-import { RowIndexPath } from '../lib/list/list-row-index-path'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -219,22 +218,19 @@ interface IChangesListProps {
 }
 
 interface IChangesState {
-  readonly selectedRows: ReadonlyArray<RowIndexPath>
+  readonly selectedRows: ReadonlyArray<number>
 }
 
 function getSelectedRowsFromProps(
   props: IChangesListProps
-): ReadonlyArray<RowIndexPath> {
+): ReadonlyArray<number> {
   const selectedFileIDs = props.selectedFileIDs
   const selectedRows = []
 
   for (const id of selectedFileIDs) {
     const ix = props.workingDirectory.findFileIndexByID(id)
     if (ix !== -1) {
-      selectedRows.push({
-        section: 0,
-        row: ix,
-      })
+      selectedRows.push(ix)
     }
   }
 
@@ -274,7 +270,7 @@ export class ChangesList extends React.Component<
     this.props.onSelectAll(include)
   }
 
-  private renderRow = (indexPath: RowIndexPath): JSX.Element => {
+  private renderRow = (row: number): JSX.Element => {
     const {
       workingDirectory,
       rebaseConflictState,
@@ -283,7 +279,7 @@ export class ChangesList extends React.Component<
       availableWidth,
     } = this.props
 
-    const file = workingDirectory.files[indexPath.row]
+    const file = workingDirectory.files[row]
     const selection = file.selection.getSelectionType()
     const { submoduleStatus } = file.status
 
@@ -676,11 +672,11 @@ export class ChangesList extends React.Component<
   }
 
   private onItemContextMenu = (
-    indexPath: RowIndexPath,
+    row: number,
     event: React.MouseEvent<HTMLDivElement>
   ) => {
     const { workingDirectory } = this.props
-    const file = workingDirectory.files[indexPath.row]
+    const file = workingDirectory.files[row]
 
     if (this.props.isCommitting) {
       return
@@ -905,22 +901,14 @@ export class ChangesList extends React.Component<
     )
   }
 
-  private onFileSelectionChanged = (rows: ReadonlyArray<RowIndexPath>) => {
-    this.props.onFileSelectionChanged(rows.map(r => r.row))
-  }
-
-  private onRowClick = (indexPath: RowIndexPath, source: ClickSource) => {
-    this.props.onRowClick?.(indexPath.row, source)
-  }
-
-  private onRowDoubleClick = (indexPath: RowIndexPath) => {
-    const file = this.props.workingDirectory.files[indexPath.row]
+  private onRowDoubleClick = (row: number) => {
+    const file = this.props.workingDirectory.files[row]
 
     this.props.onOpenItemInExternalEditor(file.path)
   }
 
   private onRowKeyDown = (
-    _indexPath: RowIndexPath,
+    _row: number,
     event: React.KeyboardEvent<HTMLDivElement>
   ) => {
     // The commit is already in-flight but this check prevents the
@@ -988,17 +976,17 @@ export class ChangesList extends React.Component<
           </div>
           <List
             id="changes-list"
-            rowCount={[files.length]}
+            rowCount={files.length}
             rowHeight={RowHeight}
             rowRenderer={this.renderRow}
             selectedRows={this.state.selectedRows}
             selectionMode="multi"
-            onSelectionChanged={this.onFileSelectionChanged}
+            onSelectionChanged={this.props.onFileSelectionChanged}
             invalidationProps={{
               workingDirectory: workingDirectory,
               isCommitting: isCommitting,
             }}
-            onRowClick={this.onRowClick}
+            onRowClick={this.props.onRowClick}
             onRowDoubleClick={this.onRowDoubleClick}
             onScroll={this.onScroll}
             setScrollTop={this.props.changesListScrollTop}
