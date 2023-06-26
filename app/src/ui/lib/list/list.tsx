@@ -1321,7 +1321,7 @@ export class List extends React.Component<IListProps, IListState> {
 
       if (indexPath.row < 0 || indexPath.row >= rowCount) {
         log.debug(
-          `[List.onRowClick] unable to onRowClick for row ${indexPath} as it is outside the bounds of the array [0, ${rowCount}]`
+          `[List.onRowClick] unable to onRowClick for row ${indexPath.row} as it is outside the bounds of the array [0, ${rowCount}]`
         )
         return
       }
