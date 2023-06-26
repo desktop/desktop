@@ -1,7 +1,7 @@
 import { InvalidRowIndexPath } from '../../src/ui/lib/list/list-row-index-path'
 import { findNextSelectableRow } from '../../src/ui/lib/list/section-list-selection'
 
-describe('list-selection', () => {
+describe('section-list-selection', () => {
   describe('findNextSelectableRow', () => {
     const rowCount = [5]
 
@@ -10,7 +10,7 @@ describe('list-selection', () => {
         direction: 'down',
         row: InvalidRowIndexPath,
       })
-      expect(selectedRow).toBe(0)
+      expect(selectedRow?.row).toBe(0)
     })
 
     it('returns first selectable row when header is first', () => {
@@ -28,7 +28,7 @@ describe('list-selection', () => {
           }
         }
       )
-      expect(selectedRow).toBe(1)
+      expect(selectedRow?.row).toBe(1)
     })
 
     it('returns first row when selecting down from last row', () => {
@@ -40,7 +40,7 @@ describe('list-selection', () => {
           row: lastRow,
         },
       })
-      expect(selectedRow).toBe(0)
+      expect(selectedRow?.row).toBe(0)
     })
 
     it('returns last row when selecting up from top row', () => {
@@ -51,7 +51,7 @@ describe('list-selection', () => {
           row: 0,
         },
       })
-      expect(selectedRow).toBe(4)
+      expect(selectedRow?.row).toBe(4)
     })
   })
 })
