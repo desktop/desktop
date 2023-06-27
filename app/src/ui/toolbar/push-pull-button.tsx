@@ -226,6 +226,8 @@ export class PushPullButton extends React.Component<
     const message = `${title} ${description ?? 'Hang on…'}`
 
     if (
+      // This is possible if the action originates without button click such as
+      // a periodic repository fetching or app menu item invocation.
       this.state.actionInProgress === null &&
       this.isPullPushFetchProgress(kind)
     ) {
