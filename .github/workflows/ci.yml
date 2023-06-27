@@ -15,6 +15,10 @@ on:
       ref:
         required: true
         type: string
+      upload-artifacts:
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   lint:
@@ -103,29 +107,15 @@ jobs:
           npm_config_arch: ${{ matrix.arch }}
           WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
-      - name: List assets
-        run: ls -R dist
-        shell: bash
-      - name: Upload macOS artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v3
-        if: ${{runner.os == 'macOS'}}
-        with:
-          name: ${{matrix.friendlyName}}-${{matrix.arch}}
-          path: dist/GitHub Desktop-${{matrix.arch}}.zip
-          if-no-files-found: error
-      - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v3
-        if: ${{runner.os == 'Windows'}}
+        if: ${{ inputs.upload-artifacts }}
         with:
           name: ${{matrix.friendlyName}}-${{matrix.arch}}
           path: |
+            dist/GitHub Desktop-${{matrix.arch}}.zip
             dist/installer/GitHubDesktop-*.nupkg
             dist/installer/GitHubDesktopSetup-${{matrix.arch}}.exe
             dist/installer/GitHubDesktopSetup-${{matrix.arch}}.msi
-          if-no-files-found: error
-      - name: Upload bundle size info
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{matrix.friendlyName}}-${{matrix.arch}}-bundle-size.json
-          path: dist/bundle-size.json
+            dist/bundle-size.json
           if-no-files-found: error
