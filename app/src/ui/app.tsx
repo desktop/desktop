@@ -2839,6 +2839,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       top: 0,
     }
 
+    /** The dropdown focus trap will stop focus event propagation we made need
+     * in some of our dialogs (noticed with Lists). Disabled this when dialogs
+     * are open */
+    const enableFocusTrap = this.state.currentPopup === null
+
     return (
       <ToolbarDropdown
         icon={icon}
@@ -2850,6 +2855,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
         dropdownContentRenderer={this.renderRepositoryList}
         dropdownState={currentState}
+        enableFocusTrap={enableFocusTrap}
       />
     )
   }
@@ -2932,6 +2938,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       aheadBehind
     )
 
+    /** The dropdown focus trap will stop focus event propagation we made need
+     * in some of our dialogs (noticed with Lists). Disabled this when dialogs
+     * are open */
+    const enableFocusTrap = this.state.currentPopup === null
+
     return (
       <PushPullButton
         dispatcher={this.props.dispatcher}
@@ -2952,6 +2963,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         isDropdownOpen={isDropdownOpen}
         askForConfirmationOnForcePush={this.state.askForConfirmationOnForcePush}
         onDropdownStateChanged={this.onPushPullDropdownStateChanged}
+        enableFocusTrap={enableFocusTrap}
       />
     )
   }
@@ -3046,6 +3058,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     const repository = selection.repository
     const { branchesState } = selection.state
 
+    /** The dropdown focus trap will stop focus event propagation we made need
+     * in some of our dialogs (noticed with Lists). Disabled this when dialogs
+     * are open */
+    const enableFocusTrap = this.state.currentPopup === null
+
     return (
       <BranchDropdown
         dispatcher={this.props.dispatcher}
@@ -3062,6 +3079,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
         showCIStatusPopover={this.state.showCIStatusPopover}
         emoji={this.state.emoji}
+        enableFocusTrap={enableFocusTrap}
       />
     )
   }

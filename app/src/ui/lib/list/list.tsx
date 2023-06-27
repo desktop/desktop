@@ -18,6 +18,7 @@ import { range } from '../../../lib/range'
 import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
 import memoizeOne from 'memoize-one'
+import { sendNonFatalException } from '../../../lib/helpers/non-fatal-exception'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -1027,6 +1028,18 @@ export class List extends React.Component<IListProps, IListState> {
    * @param height - The height of the Grid as given by AutoSizer
    */
   private renderGrid(width: number, height: number) {
+    // It is possible to send an invalid array such as [-1] to this component,
+    // if you do, you get weird focus problems. We shouldn't be doing this.. but
+    // if we do, send a non fatal exception to tell us about it.
+    if (this.props.selectedRows[0] < 0) {
+      sendNonFatalException(
+        'The selected rows of the List.tsx contained a negative number.',
+        new Error(
+          `Invalid selected rows that contained a negative number passed to List component. This will cause keyboard navigation and focus problems.`
+        )
+      )
+    }
+
     // The currently selected list item is focusable but if there's no focused
     // item the list itself needs to be focusable so that you can reach it with
     // keyboard navigation and select an item.
