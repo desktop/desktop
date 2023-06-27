@@ -39,7 +39,7 @@ jobs:
   build:
     name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
-    permissions: read-all
+    permissions: {}
     strategy:
       fail-fast: false
       matrix:
