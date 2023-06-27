@@ -101,7 +101,7 @@ interface IPushPullButtonProps {
 
 interface IPushPullButtonState {
   readonly screenReaderStateMessage: string | null
-  readonly actionInProgress: 'Push' | 'Pull' | 'Fetch' | 'Force push'
+  readonly actionInProgress: 'push' | 'pull' | 'fetch' | 'force push' | null
 }
 
 export enum DropdownItemType {
@@ -183,8 +183,7 @@ export class PushPullButton extends React.Component<
     super(props)
     this.state = {
       screenReaderStateMessage: null,
-      // Default to fetch, because if not originated by a click, it is a fetch.
-      actionInProgress: 'Fetch',
+      actionInProgress: null,
     }
   }
 
@@ -202,10 +201,18 @@ export class PushPullButton extends React.Component<
 
     if (progressComplete) {
       this.setState({
-        screenReaderStateMessage: `${this.state.actionInProgress} complete`,
-        actionInProgress: 'Fetch',
+        screenReaderStateMessage: `${
+          this.state.actionInProgress ?? 'Pull, push, or fetch'
+        } complete`,
+        actionInProgress: null,
       })
     }
+  }
+
+  private isPullPushFetchProgress(
+    kind: string
+  ): kind is 'push' | 'pull' | 'fetch' {
+    return kind === 'push' || kind === 'pull' || kind === 'fetch'
   }
 
   private setScreenReaderLoadingStateMessage() {
@@ -215,8 +222,16 @@ export class PushPullButton extends React.Component<
       return
     }
 
-    const { description, title } = progress
+    const { description, title, kind } = progress
     const message = `${title} ${description ?? 'Hang on…'}`
+
+    if (
+      this.state.actionInProgress === null &&
+      this.isPullPushFetchProgress(kind)
+    ) {
+      this.setState({ actionInProgress: kind })
+    }
+
     this.setState({ screenReaderStateMessage: message })
   }
 
@@ -251,19 +266,19 @@ export class PushPullButton extends React.Component<
   private push = () => {
     this.closeDropdown()
     this.props.dispatcher.push(this.props.repository)
-    this.setState({ actionInProgress: 'Push' })
+    this.setState({ actionInProgress: 'push' })
   }
 
   private forcePushWithLease = () => {
     this.closeDropdown()
     this.props.dispatcher.confirmOrForcePush(this.props.repository)
-    this.setState({ actionInProgress: 'Force push' })
+    this.setState({ actionInProgress: 'force push' })
   }
 
   private pull = () => {
     this.closeDropdown()
     this.props.dispatcher.pull(this.props.repository)
-    this.setState({ actionInProgress: 'Pull' })
+    this.setState({ actionInProgress: 'pull' })
   }
 
   private fetch = () => {
@@ -272,7 +287,7 @@ export class PushPullButton extends React.Component<
       this.props.repository,
       FetchType.UserInitiatedTask
     )
-    this.setState({ actionInProgress: 'Fetch' })
+    this.setState({ actionInProgress: 'fetch' })
   }
 
   private getDropdownContentRenderer(
