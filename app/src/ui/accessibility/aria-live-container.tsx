@@ -88,7 +88,9 @@ export class AriaLiveContainer extends Component<
         aria-live="polite"
         aria-atomic="true"
       >
-        {this.state.message}
+        {this.props.trackedUserInput === undefined
+          ? this.props.children
+          : this.state.message}
       </div>
     )
   }
