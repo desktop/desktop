@@ -226,8 +226,8 @@ export class PushPullButton extends React.Component<
     const message = `${title} ${description ?? 'Hang on…'}`
 
     if (
-      // This is possible if the action originates without button click such as
-      // a periodic repository fetching or app menu item invocation.
+      // We specify this in the case of force pushing because the progress is
+      // the kind of 'push'.
       this.state.actionInProgress === null &&
       this.isPullPushFetchProgress(kind)
     ) {
@@ -268,7 +268,6 @@ export class PushPullButton extends React.Component<
   private push = () => {
     this.closeDropdown()
     this.props.dispatcher.push(this.props.repository)
-    this.setState({ actionInProgress: 'push' })
   }
 
   private forcePushWithLease = () => {
@@ -280,7 +279,6 @@ export class PushPullButton extends React.Component<
   private pull = () => {
     this.closeDropdown()
     this.props.dispatcher.pull(this.props.repository)
-    this.setState({ actionInProgress: 'pull' })
   }
 
   private fetch = () => {
@@ -289,7 +287,6 @@ export class PushPullButton extends React.Component<
       this.props.repository,
       FetchType.UserInitiatedTask
     )
-    this.setState({ actionInProgress: 'fetch' })
   }
 
   private getDropdownContentRenderer(
