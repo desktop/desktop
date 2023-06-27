@@ -214,6 +214,7 @@ export class BranchList extends React.Component<
         onFilterListResultsChanged={this.props.onFilterListResultsChanged}
         renderPreList={this.props.renderPreList}
         onItemContextMenu={this.onBranchContextMenu}
+        groupAriaLabel={this.groupAriaLabel}
       />
     ) : (
       <FilterList<IBranchListItem>
@@ -287,6 +288,15 @@ export class BranchList extends React.Component<
       default:
         return null
     }
+  }
+
+  private groupAriaLabel = (group: number) => {
+    const GroupIdentifiers: ReadonlyArray<BranchGroupIdentifier> = [
+      'default',
+      'recent',
+      'other',
+    ]
+    return this.getGroupLabel(GroupIdentifiers[group])
   }
 
   private renderGroupHeader = (label: string) => {
