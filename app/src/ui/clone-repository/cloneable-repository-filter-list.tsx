@@ -159,6 +159,13 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
     const { repositories, account, selectedItem } = this.props
 
     const groups = this.getRepositoryGroups(repositories, account.login)
+    const groupAriaLabel = (group: number) => {
+      const groupIdentifier = groups[group].identifier
+      return groupIdentifier === YourRepositoriesIdentifier
+        ? this.getYourRepositoriesLabel()
+        : groupIdentifier
+    }
+
     const selectedListItem = this.getSelectedListItem(groups, selectedItem)
     const ListComponent = enableSectionList() ? SectionFilterList : FilterList
     const filterListProps: typeof ListComponent['prototype']['props'] = {
@@ -176,6 +183,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
       renderPostFilter: this.renderPostFilter,
       onItemClick: this.props.onItemClicked ? this.onItemClick : undefined,
       placeholderText: 'Filter your repositories',
+      groupAriaLabel,
     }
 
     return <ListComponent {...filterListProps} />
@@ -208,10 +216,14 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
     }
   }
 
+  private getYourRepositoriesLabel = () => {
+    return __DARWIN__ ? 'Your Repositories' : 'Your repositories'
+  }
+
   private renderGroupHeader = (identifier: string) => {
     let header = identifier
     if (identifier === YourRepositoriesIdentifier) {
-      header = __DARWIN__ ? 'Your Repositories' : 'Your repositories'
+      header = this.getYourRepositoriesLabel()
     }
     return (
       <div className="clone-repository-list-content clone-repository-list-group-header">
