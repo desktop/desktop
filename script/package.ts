@@ -15,6 +15,7 @@ import {
   getIconFileName,
   isPublishable,
   getBundleSizes,
+  getDistRoot,
 } from './dist-info'
 import { isGitHubActions } from './build-platforms'
 import { existsSync, rmSync, writeFileSync } from 'fs'
@@ -34,8 +35,9 @@ if (process.platform === 'darwin') {
   process.exit(1)
 }
 
+console.log('Writing bundle size info…')
 writeFileSync(
-  path.join(getDistPath(), 'bundle-size.json'),
+  path.join(getDistRoot(), 'bundle-size.json'),
   JSON.stringify(getBundleSizes())
 )
 
