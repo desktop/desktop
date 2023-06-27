@@ -101,13 +101,13 @@ export function getWindowsIdentifierName() {
 }
 
 export function getBundleSizes() {
-  // eslint-disable-next-line no-sync
-  const rendererStats = Fs.statSync(
-    Path.join(projectRoot, 'out', 'renderer.js')
-  )
-  // eslint-disable-next-line no-sync
-  const mainStats = Fs.statSync(Path.join(projectRoot, 'out', 'main.js'))
-  return { rendererSize: rendererStats.size, mainSize: mainStats.size }
+  const outPath = Path.join(projectRoot, 'out')
+  return {
+    // eslint-disable-next-line no-sync
+    rendererBundleSize: Fs.statSync(Path.join(outPath, 'renderer.js')).size,
+    // eslint-disable-next-line no-sync
+    mainBundleSize: Fs.statSync(Path.join(outPath, 'main.js')).size,
+  }
 }
 
 export function isPublishable(): boolean {
@@ -177,8 +177,7 @@ export function getUpdatesURL() {
 export function shouldMakeDelta() {
   // Only production and beta channels include deltas. Test releases aren't
   // necessarily sequential so deltas wouldn't make sense.
-  const channelsWithDeltas = ['production', 'beta']
-  return channelsWithDeltas.indexOf(getChannel()) > -1
+  return ['production', 'beta'].includes(getChannel())
 }
 
 export function getIconFileName(): string {

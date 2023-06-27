@@ -182,15 +182,15 @@ async function updateDeploy(
   artifacts: ReadonlyArray<IUploadResult>,
   secret: string
 ) {
-  const { rendererSize, mainSize } = distInfo.getBundleSizes()
+  const { rendererBundleSize, mainBundleSize } = distInfo.getBundleSizes()
   const body = {
     context: getContext(),
     branch_name: platforms.getReleaseBranchName(),
     artifacts,
     stats: {
       platform: process.platform,
-      rendererBundleSize: rendererSize,
-      mainBundleSize: mainSize,
+      rendererBundleSize,
+      mainBundleSize,
     },
   }
 
