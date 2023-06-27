@@ -80,6 +80,15 @@ interface IPushPullButtonProps {
   /** Will the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
 
+  /** Whether the dropdown will trap focus or not. Defaults to true.
+   *
+   * Example of usage: If a dropdown is open and then a dialog subsequently, the
+   * focus trap logic will stop propagation of the focus event to the dialog.
+   * Thus, we want to disable this when dialogs are open since they will be
+   * using the dialog focus management.
+   */
+  readonly enableFocusTrap: boolean
+
   /**
    * An event handler for when the drop down is opened, or closed, by a pointer
    * event or by pressing the space or enter key while focused.
@@ -180,6 +189,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
       dropdownStyle: ToolbarDropdownStyle.MultiOption,
       ariaLabel: 'Push, pull, fetch options',
       dropdownState: this.props.isDropdownOpen ? 'open' : 'closed',
+      enableFocusTrap: this.props.enableFocusTrap,
       onDropdownStateChanged: this.props.onDropdownStateChanged,
     }
   }

@@ -39,7 +39,7 @@ interface ICommitSummaryProps {
 
   readonly onExpandChanged: (isExpanded: boolean) => void
 
-  readonly onDescriptionBottomChanged: (descriptionBottom: Number) => void
+  readonly onDescriptionBottomChanged: (descriptionBottom: number) => void
 
   readonly hideDescriptionBorder: boolean
 
