@@ -336,7 +336,11 @@ export class SectionFilterList<
           rowRenderer={this.renderRow}
           sectionHasHeader={this.sectionHasHeader}
           rowHeight={this.props.rowHeight}
-          selectedRows={[this.state.selectedRow]}
+          selectedRows={
+            rowIndexPathEquals(this.state.selectedRow, InvalidRowIndexPath)
+              ? []
+              : [this.state.selectedRow]
+          }
           onSelectedRowChanged={this.onSelectedRowChanged}
           onRowClick={this.onRowClick}
           onRowKeyDown={this.onRowKeyDown}

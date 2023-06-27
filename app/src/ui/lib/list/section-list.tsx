@@ -26,6 +26,7 @@ import {
   rowIndexPathToGlobalIndex,
 } from './list-row-index-path'
 import { range } from '../../../lib/range'
+import { sendNonFatalException } from '../../../lib/helpers/non-fatal-exception'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -1321,6 +1322,22 @@ export class SectionList extends React.Component<
    * @param height - The height of the Grid as given by AutoSizer
    */
   private renderGrid(width: number, height: number) {
+    // It is possible to send an invalid array such as [-1] to this component,
+    // if you do, you get weird focus problems. We shouldn't be doing this.. but
+    // if we do, send a non fatal exception to tell us about it.
+    const firstSelectedRow = this.props.selectedRows.at(0)
+    if (
+      firstSelectedRow &&
+      rowIndexPathEquals(firstSelectedRow, InvalidRowIndexPath)
+    ) {
+      sendNonFatalException(
+        'The selected rows of the List.tsx contained a negative number.',
+        new Error(
+          `Invalid selected rows that contained a negative number passed to List component. This will cause keyboard navigation and focus problems.`
+        )
+      )
+    }
+
     const { selectedRows } = this.props
     const activeDescendant =
       selectedRows.length && this.state.rowIdPrefix
