@@ -106,6 +106,9 @@ interface ISectionFilterListProps<T extends IFilterListItem> {
   /** Called when the Enter key is pressed in field of type search */
   readonly onEnterPressedWithoutFilteredItems?: (text: string) => void
 
+  /** Aria label for a specific group */
+  readonly groupAriaLabel?: (group: number) => string | undefined
+
   /** The current filter text to use in the form */
   readonly filterText?: string
 
@@ -335,6 +338,7 @@ export class SectionFilterList<
           rowCount={this.state.rows.map(r => r.length)}
           rowRenderer={this.renderRow}
           sectionHasHeader={this.sectionHasHeader}
+          sectionAriaLabel={this.props.groupAriaLabel}
           rowHeight={this.props.rowHeight}
           selectedRows={
             rowIndexPathEquals(this.state.selectedRow, InvalidRowIndexPath)

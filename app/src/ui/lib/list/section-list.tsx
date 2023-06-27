@@ -68,6 +68,9 @@ interface ISectionListProps {
    */
   readonly sectionHasHeader?: (section: number) => boolean
 
+  /** Aria label for a section in the list. */
+  readonly sectionAriaLabel?: (section: number) => string | undefined
+
   /**
    * The total number of rows in the list. This is used for
    * scroll virtualization purposes when calculating the theoretical
@@ -1252,10 +1255,6 @@ export class SectionList extends React.Component<
         Math.min(sectionHeight, this.state.scrollTop - offset)
       )
 
-      const ariaLabelledBy = this.props.sectionHasHeader?.(section)
-        ? this.getRowId({ section, row: 0 })
-        : undefined
-
       return (
         <Grid
           key={section}
@@ -1264,7 +1263,7 @@ export class SectionList extends React.Component<
           ref={this.getOnGridRef(section)}
           autoContainerWidth={true}
           containerRole="presentation"
-          containerProps={{ 'aria-labelledby': ariaLabelledBy }}
+          aria-label={this.props.sectionAriaLabel?.(section)}
           // Set the width and columnWidth to a hardcoded large value to prevent
           columnWidth={10000}
           width={10000}
