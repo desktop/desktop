@@ -82,6 +82,21 @@ export class AriaLiveContainer extends Component<
     )
   }
 
+  private renderMessage() {
+    // We are just using this as a typical aria-live container where the message
+    // changes per usage - no need to force re-reading of the same message.
+    if (this.props.trackedUserInput === undefined) {
+      return this.props.children
+    }
+
+    // We are using this as a container to force re-reading of the same message,
+    // so we are re-building message based on user input changes.
+    // If we get a null for the children, go ahead an empty out the
+    // message so we don't get an erroneous reading of a message after it is
+    // gone.
+    return this.props.children !== null ? this.state.message : ''
+  }
+
   public render() {
     return (
       <div
@@ -90,7 +105,7 @@ export class AriaLiveContainer extends Component<
         aria-live="polite"
         aria-atomic="true"
       >
-        {this.props.children ? this.state.message : ''}
+        {this.renderMessage()}
       </div>
     )
   }
