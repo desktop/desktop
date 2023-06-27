@@ -114,7 +114,13 @@ export interface IToolbarDropdownProps {
   /** The button's style. Defaults to `ToolbarButtonStyle.Standard`. */
   readonly style?: ToolbarButtonStyle
 
-  /** Whether the dropdown will trap focus or not. Defaults to true. */
+  /** Whether the dropdown will trap focus or not. Defaults to true.
+   *
+   * Example of usage: If a dropdown is open and then a dialog subsequently, the
+   * focus trap logic will stop propagation of the focus event to the dialog.
+   * Thus, we want to disable this when dialogs are open since they will be
+   * using the HTML build in dialog focus management.
+   */
   readonly enableFocusTrap?: boolean
 
   /**
