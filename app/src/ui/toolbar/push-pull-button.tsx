@@ -99,9 +99,11 @@ interface IPushPullButtonProps {
   readonly onDropdownStateChanged: (state: DropdownState) => void
 }
 
+type ActionInProgress = 'push' | 'pull' | 'fetch' | 'force push'
+
 interface IPushPullButtonState {
   readonly screenReaderStateMessage: string | null
-  readonly actionInProgress: 'push' | 'pull' | 'fetch' | 'force push' | null
+  readonly actionInProgress: ActionInProgress | null
 }
 
 export enum DropdownItemType {
@@ -209,9 +211,7 @@ export class PushPullButton extends React.Component<
     }
   }
 
-  private isPullPushFetchProgress(
-    kind: string
-  ): kind is 'push' | 'pull' | 'fetch' {
+  private isPullPushFetchProgress(kind: string): kind is ActionInProgress {
     return kind === 'push' || kind === 'pull' || kind === 'fetch'
   }
 
@@ -223,18 +223,13 @@ export class PushPullButton extends React.Component<
     }
 
     const { description, title, kind } = progress
-    const message = `${title} ${description ?? 'Hang on…'}`
+    const screenReaderStateMessage = `${title} ${description ?? 'Hang on…'}`
+    const actionInProgress: ActionInProgress | null =
+      this.state.actionInProgress === null && this.isPullPushFetchProgress(kind)
+        ? kind
+        : this.state.actionInProgress
 
-    if (
-      // We specify this in the case of force pushing because the progress is
-      // the kind of 'push'.
-      this.state.actionInProgress === null &&
-      this.isPullPushFetchProgress(kind)
-    ) {
-      this.setState({ actionInProgress: kind })
-    }
-
-    this.setState({ screenReaderStateMessage: message })
+    this.setState({ screenReaderStateMessage, actionInProgress })
   }
 
   /** The common props for all button states */
