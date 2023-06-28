@@ -91,3 +91,4 @@ export function enablePullRequestQuickView(): boolean {
 export function enableMoveStash(): boolean {
   return enableBetaFeatures()
 }
+export const enableCustomGitUserAgent = enableBetaFeatures
