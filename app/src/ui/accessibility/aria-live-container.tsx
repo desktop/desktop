@@ -69,6 +69,24 @@ export class AriaLiveContainer extends Component<
     this.onTrackedInputChanged.cancel()
   }
 
+  /** If the children has a tab focusable element such as a link, then we get
+   * hidden tabs on the screen. For screen readers, we only need the text */
+  private getChildrenAsText(children: React.ReactNode): string {
+    return React.Children.map(children, child => {
+      if (React.isValidElement(child)) {
+        return this.getChildrenAsText(child.props.children)
+      }
+
+      if (typeof child === 'string' || typeof child === 'number') {
+        return child.toString()
+      }
+
+      // Assumes that a child is a react component, string , or number
+      // This will exclude all other children
+      return ' '
+    }).join('')
+  }
+
   private buildMessage() {
     // We need to toggle from two non-breaking spaces to one non-breaking space
     // because VoiceOver does not detect the empty string as a change.
@@ -76,7 +94,7 @@ export class AriaLiveContainer extends Component<
 
     return (
       <>
-        {this.props.children}
+        {this.getChildrenAsText(this.props.children)}
         {this.suffix}
       </>
     )
