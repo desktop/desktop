@@ -22,6 +22,7 @@ import {
 import { FoldoutType } from '../../lib/app-state'
 import { ForcePushBranchState } from '../../lib/rebase'
 import { PushPullButtonDropDown } from './push-pull-button-dropdown'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 export const DropdownItemClassName = 'push-pull-dropdown-item'
 
@@ -98,6 +99,13 @@ interface IPushPullButtonProps {
   readonly onDropdownStateChanged: (state: DropdownState) => void
 }
 
+type ActionInProgress = 'push' | 'pull' | 'fetch' | 'force push'
+
+interface IPushPullButtonState {
+  readonly screenReaderStateMessage: string | null
+  readonly actionInProgress: ActionInProgress | null
+}
+
 export enum DropdownItemType {
   Fetch = 'fetch',
   ForcePush = 'force-push',
@@ -169,7 +177,61 @@ export const forcePushIcon: OcticonSymbol.OcticonSymbolType = {
  * A button which pushes, pulls, or updates depending on the state of the
  * repository.
  */
-export class PushPullButton extends React.Component<IPushPullButtonProps> {
+export class PushPullButton extends React.Component<
+  IPushPullButtonProps,
+  IPushPullButtonState
+> {
+  public constructor(props: IPushPullButtonProps) {
+    super(props)
+    this.state = {
+      screenReaderStateMessage: null,
+      actionInProgress: null,
+    }
+  }
+
+  public componentDidUpdate(prevProps: IPushPullButtonProps) {
+    const progressChanged =
+      (this.props.progress !== null && prevProps.progress == null) ||
+      this.props.progress?.title !== prevProps.progress?.title
+
+    const progressComplete =
+      this.props.progress === null && prevProps.progress !== null
+
+    if (progressChanged) {
+      this.setScreenReaderLoadingStateMessage()
+    }
+
+    if (progressComplete) {
+      this.setState({
+        screenReaderStateMessage: `${
+          this.state.actionInProgress ?? 'Pull, push, or fetch'
+        } complete`,
+        actionInProgress: null,
+      })
+    }
+  }
+
+  private isPullPushFetchProgress(kind: string): kind is ActionInProgress {
+    return kind === 'push' || kind === 'pull' || kind === 'fetch'
+  }
+
+  private setScreenReaderLoadingStateMessage() {
+    const { progress } = this.props
+
+    if (progress === null) {
+      return
+    }
+
+    const { description, title, kind } = progress
+    const screenReaderStateMessage = `${title} ${description ?? 'Hang on…'}`
+    const actionInProgress: ActionInProgress | null =
+      this.state.actionInProgress === null && this.isPullPushFetchProgress(kind)
+        ? kind
+        : this.state.actionInProgress
+
+    this.setState({ screenReaderStateMessage, actionInProgress })
+  }
+
   /** The common props for all button states */
   private defaultButtonProps() {
     return {
@@ -206,6 +268,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
   private forcePushWithLease = () => {
     this.closeDropdown()
     this.props.dispatcher.confirmOrForcePush(this.props.repository)
+    this.setState({ actionInProgress: 'force push' })
   }
 
   private pull = () => {
@@ -240,7 +303,14 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
   }
 
   public render() {
-    return this.renderButton()
+    return (
+      <>
+        {this.renderButton()}
+        <AriaLiveContainer>
+          {this.state.screenReaderStateMessage}
+        </AriaLiveContainer>
+      </>
+    )
   }
 
   private renderButton() {
