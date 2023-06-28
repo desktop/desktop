@@ -37,6 +37,8 @@ import { directoryExists } from '../../lib/directory-exists'
 import { FoldoutType } from '../../lib/app-state'
 import { join } from 'path'
 import { isTopMostDialog } from '../dialog/is-top-most'
+import { InputError } from '../lib/input-description/input-error'
+import { InputWarning } from '../lib/input-description/input-warning'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -525,7 +527,7 @@ export class CreateRepository extends React.Component<
     )
   }
 
-  private renderGitRepositoryWarning() {
+  private renderGitRepositoryError() {
     const isRepo = this.state.isRepository
 
     if (!this.state.path || this.state.path.length === 0 || !isRepo) {
@@ -533,15 +535,17 @@ export class CreateRepository extends React.Component<
     }
 
     return (
-      <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
-        <p>
+      <Row>
+        <InputError
+          id="existing-repository-path-error"
+          trackedUserInput={this.state.path + this.state.name}
+        >
           This directory appears to be a Git repository. Would you like to{' '}
           <LinkButton onClick={this.onAddRepositoryClicked}>
             add this repository
           </LinkButton>{' '}
           instead?
-        </p>
+        </InputError>
       </Row>
     )
   }
@@ -559,12 +563,14 @@ export class CreateRepository extends React.Component<
     }
 
     return (
-      <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
-        <p>
+      <Row>
+        <InputWarning
+          id="readme-overwrite-warning"
+          trackedUserInput={this.state.createWithReadme}
+        >
           This directory contains a <Ref>README.md</Ref> file already. Checking
           this box will result in the existing file being overwritten.
-        </p>
+        </InputWarning>
       </Row>
     )
   }
@@ -611,6 +617,7 @@ export class CreateRepository extends React.Component<
               label="Name"
               placeholder="repository name"
               onValueChanged={this.onNameChanged}
+              ariaDescribedBy="existing-repository-path-error"
             />
           </Row>
 
@@ -631,6 +638,7 @@ export class CreateRepository extends React.Component<
               placeholder="repository path"
               onValueChanged={this.onPathChanged}
               disabled={readOnlyPath || loadingDefaultDir}
+              ariaDescribedBy="existing-repository-path-error"
             />
             <Button
               onClick={this.showFilePicker}
@@ -640,7 +648,7 @@ export class CreateRepository extends React.Component<
             </Button>
           </Row>
 
-          {this.renderGitRepositoryWarning()}
+          {this.renderGitRepositoryError()}
 
           <Row>
             <Checkbox
@@ -651,6 +659,7 @@ export class CreateRepository extends React.Component<
                   : CheckboxValue.Off
               }
               onChange={this.onCreateWithReadmeChange}
+              ariaDescribedBy="readme-overwrite-warning"
             />
           </Row>
           {this.renderReadmeOverwriteWarning()}
