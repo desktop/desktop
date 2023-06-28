@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - development
-      - __release-*
   pull_request:
   workflow_call:
     inputs:
