@@ -12,7 +12,3 @@ export function getSha() {
 export function isGitHubActions() {
   return process.env.GITHUB_ACTIONS === 'true'
 }
-
-export function getReleaseBranchName(): string {
-  return process.env.GITHUB_REF?.replace(/^refs\/heads\//, '') ?? ''
-}

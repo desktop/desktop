@@ -19,6 +19,9 @@ on:
         default: false
         required: false
         type: boolean
+      environment:
+        type: string
+        required: true
 
 jobs:
   lint:
@@ -83,6 +86,7 @@ jobs:
       - name: Build production app
         run: yarn build:prod
         env:
+          RELEASE_CHANNEL: ${{ inputs.environment }}
           DESKTOP_OAUTH_CLIENT_ID: ${{ secrets.DESKTOP_OAUTH_CLIENT_ID }}
           DESKTOP_OAUTH_CLIENT_SECRET:
             ${{ secrets.DESKTOP_OAUTH_CLIENT_SECRET }}
