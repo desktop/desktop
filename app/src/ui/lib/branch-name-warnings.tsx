@@ -7,16 +7,16 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Ref } from './ref'
 import { IStashEntry } from '../../models/stash-entry'
 import { enableMoveStash } from '../../lib/feature-flag'
+import { InputWarning } from './input-description/input-warning'
 
 export function renderBranchHasRemoteWarning(branch: Branch) {
   if (branch.upstream != null) {
     return (
-      <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
-        <p>
+      <Row>
+        <InputWarning id="branch-has-remote">
           This branch is tracking <Ref>{branch.upstream}</Ref> and renaming this
           branch will not change the branch name on the remote.
-        </p>
+        </InputWarning>
       </Row>
     )
   } else {
@@ -52,12 +52,11 @@ export function renderStashWillBeLostWarning(stash: IStashEntry | null) {
     return null
   }
   return (
-    <Row className="warning-helper-text">
-      <Octicon symbol={OcticonSymbol.alert} />
-      <p>
+    <Row>
+      <InputWarning id="stash-no-longer-visible">
         Your current stashed changes on this branch will no longer be visible in
         GitHub Desktop if the branch is renamed.
-      </p>
+      </InputWarning>
     </Row>
   )
 }

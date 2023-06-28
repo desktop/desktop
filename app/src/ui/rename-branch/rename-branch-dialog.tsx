@@ -47,6 +47,7 @@ export class RenameBranch extends React.Component<
             label="Name"
             initialValue={this.props.branch.name}
             onValueChange={this.onNameChange}
+            ariaDescribedBy="branch-has-remote stash-no-longer-visible"
           />
           {renderBranchHasRemoteWarning(this.props.branch)}
           {renderStashWillBeLostWarning(this.props.stash)}
