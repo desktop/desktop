@@ -100,7 +100,7 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
    * */
   private getRole() {
     if (
-      InputDescriptionType.Error &&
+      this.props.inputDescriptionType === InputDescriptionType.Error &&
       this.props.trackedUserInput === undefined
     ) {
       return 'alert'
