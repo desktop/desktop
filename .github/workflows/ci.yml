@@ -21,6 +21,15 @@ on:
       environment:
         type: string
         required: true
+    secrets:
+      DESKTOP_OAUTH_CLIENT_ID:
+      DESKTOP_OAUTH_CLIENT_SECRET:
+      APPLE_ID:
+      APPLE_ID_PASSWORD:
+      APPLE_APPLICATION_CERT:
+      APPLE_APPLICATION_CERT_PASSWORD:
+      WINDOWS_CERT_PFX:
+      WINDOWS_CERT_PASSWORD:
 
 jobs:
   lint:
@@ -93,7 +102,7 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_APPLICATION_CERT: ${{ secrets.APPLE_APPLICATION_CERT }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
       - name: Prepare testing environment
