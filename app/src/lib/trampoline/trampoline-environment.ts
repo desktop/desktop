@@ -21,10 +21,13 @@ export const GitUserAgent = memoizeOne(() =>
       log.warn(`Could not get git version information`, e)
       return 'unknown'
     })
-    .then(
-      v =>
-        `git/${v} (GitHub Desktop/${__APP_VERSION__}${__DEV__ ? '-dev' : ''})`
-    )
+    .then(v => {
+      const suffix = __DEV__ ? `-${__SHA__.substring(0, 10)}` : ''
+      const ghdVersion = `GitHub Desktop/${__APP_VERSION__}${suffix}`
+      const { platform, arch } = process
+
+      return `git/${v} (${ghdVersion}; ${platform} ${arch})`
+    })
 )
 
 /**
