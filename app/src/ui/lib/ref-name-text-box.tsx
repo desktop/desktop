@@ -19,6 +19,10 @@ interface IRefNameProps {
    */
   readonly label?: string | JSX.Element
 
+  /** Optional aria-describedby attribute - usually for associating a descriptive
+   * message to the input such as a validation error, warning, or caption */
+  readonly ariaDescribedBy?: string
+
   /**
    * Called when the user changes the ref name.
    *
@@ -86,6 +90,7 @@ export class RefNameTextBox extends React.Component<
           ref={this.textBoxRef}
           onValueChanged={this.onValueChange}
           onBlur={this.onBlur}
+          ariaDescribedBy={this.props.ariaDescribedBy}
         />
 
         {this.renderRefValueWarning()}
