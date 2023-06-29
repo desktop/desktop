@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { encodePathAsUrl } from '../../lib/path'
 import { Button } from '../lib/button'
+import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -38,8 +39,12 @@ export class NoBranches extends React.Component<INoBranchesProps> {
           </Button>
 
           <div className="protip">
-            ProTip! Press {this.renderShortcut()} to quickly create a new branch
-            from anywhere within the app
+            ProTip! Press{' '}
+            <KeyboardShortcut
+              darwinKeys={['⌘', '⇧', 'N']}
+              keys={['Ctrl', 'Shift', 'N']}
+            />{' '}
+            to quickly create a new branch from anywhere within the app
           </div>
         </div>
       )
@@ -50,21 +55,5 @@ export class NoBranches extends React.Component<INoBranchesProps> {
         {this.props.noBranchesMessage ?? "Sorry, I can't find that branch"}
       </div>
     )
-  }
-
-  private renderShortcut() {
-    if (__DARWIN__) {
-      return (
-        <span>
-          <kbd>⌘</kbd> + <kbd>⇧</kbd> + <kbd>N</kbd>
-        </span>
-      )
-    } else {
-      return (
-        <span>
-          <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd>
-        </span>
-      )
-    }
   }
 }

@@ -63,7 +63,6 @@
 
   .row {
     .popover-component.whitespace-hint {
-      position: fixed;
       width: 275px;
     }
   }
@@ -190,19 +189,6 @@
     color: var(--diff-delete-text-color);
     background: var(--diff-delete-background-color);
 
-    @include high-contrast {
-      border-right: var(--hc-diff-delete-border);
-      border-left: var(--hc-diff-delete-border);
-
-      &.is-first {
-        border-top: var(--hc-diff-delete-border);
-      }
-
-      &.is-last {
-        border-bottom: var(--hc-diff-delete-border);
-      }
-    }
-
     .line-number {
       background: var(--diff-delete-gutter-background-color);
       border-color: var(--diff-delete-border-color);
@@ -219,19 +205,6 @@
   .after {
     color: var(--diff-add-text-color);
     background: var(--diff-add-background-color);
-
-    @include high-contrast {
-      border-left: var(--hc-diff-add-border);
-      border-right: var(--hc-diff-add-border);
-
-      &.is-first {
-        border-top: var(--hc-diff-add-border);
-      }
-
-      &.is-last {
-        border-bottom: var(--hc-diff-add-border);
-      }
-    }
 
     .line-number {
       background: var(--diff-add-gutter-background-color);
@@ -273,10 +246,6 @@
     &.deleted .after {
       background: var(--diff-empty-row-background-color);
 
-      @include high-contrast {
-        border: none;
-      }
-
       .line-number {
         background: var(--diff-empty-row-gutter-background-color);
         border-color: var(--diff-border-color);
@@ -301,10 +270,6 @@
     &.context .after {
       background: var(--diff-background-color);
       color: var(--diff-text-color);
-
-      @include high-contrast {
-        border: none;
-      }
 
       .line-number {
         background: var(--diff-gutter-background-color);

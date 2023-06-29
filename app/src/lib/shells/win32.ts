@@ -31,11 +31,13 @@ export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
   const gitPath = await findGitOnPath()
+  const rootDir = process.env.WINDIR || 'C:\\Windows'
+  const dosKeyExePath = `"${rootDir}\\system32\\doskey.exe git=^"${gitPath}^" $*"`
   const shells: IFoundShell<Shell>[] = [
     {
       shell: Shell.Cmd,
       path: process.env.comspec || 'C:\\Windows\\System32\\cmd.exe',
-      extraArgs: gitPath ? ['/K', `"doskey git=^"${gitPath}^" $*"`] : [],
+      extraArgs: gitPath ? ['/K', dosKeyExePath] : [],
     },
   ]
 

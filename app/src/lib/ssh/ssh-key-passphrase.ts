@@ -1,4 +1,4 @@
-import { getFileHash } from '../file-system'
+import { getFileHash } from '../get-file-hash'
 import { TokenStore } from '../stores'
 import {
   getSSHSecretStoreKey,

@@ -56,16 +56,6 @@ import { ApiRepositoriesStore } from '../lib/stores/api-repositories-store'
 import { CommitStatusStore } from '../lib/stores/commit-status-store'
 import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
 
-// We're using a polyfill for the upcoming CSS4 `:focus-ring` pseudo-selector.
-// This allows us to not have to override default accessibility driven focus
-// styles for buttons in the case when a user clicks on a button. This also
-// gives better visibility to individuals who navigate with the keyboard.
-//
-// See:
-//   https://github.com/WICG/focus-ring
-//   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
-import 'wicg-focus-ring'
-
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { enableUnhandledRejectionReporting } from '../lib/feature-flag'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
@@ -204,10 +194,19 @@ process.on(
   }
 )
 
-// HACK: this is a workaround for a known crash in the Dev Tools on Electron 19
-// See https://github.com/electron/electron/issues/34350
-window.onerror = e =>
-  e === 'Uncaught EvalError: Possible side-effect in debug-evaluate'
+// See https://github.com/desktop/desktop/pull/15276 and
+// https://github.com/desktop/desktop/pull/14885. We want to gradually get back
+// to a world where we treat all uncaught exceptions as fatal but as an
+// intermediate step to build confidence we're going to route all uncaught
+// exceptions to our non-fatal bucket.
+if (__RELEASE_CHANNEL__ === 'production') {
+  // See https://github.com/electron/electron/blob/f07b040cb998a6126979cec9d562acbac5a23c4c/lib/renderer/init.ts#L98
+  window.onerror = (_message, _filename, _lineno, _colno, error) => {
+    sendNonFatalException('uncaughtError', error as any)
+    // Keep logging to console during the transition period
+    return false
+  }
+}
 
 /**
  * Chromium won't crash on an unhandled rejection (similar to how it won't crash

@@ -73,7 +73,6 @@ import {
   ApplicationTheme,
   getCurrentlyAppliedTheme,
   getPersistedThemeName,
-  ICustomTheme,
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
 import {
@@ -87,7 +86,6 @@ import {
   sendWillQuitEvenIfUpdatingSync,
   quitApp,
   sendCancelQuittingSync,
-  getLocaleCountryCode,
 } from '../../ui/main-process-proxy'
 import {
   API,
@@ -233,10 +231,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import {
-  enableLocaleAwareFormatting,
-  enableMultiCommitDiffs,
-} from '../feature-flag'
+import { enableMoveStash } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -244,6 +239,7 @@ import {
   getLastDesktopStashEntryForBranch,
   popStashEntry,
   dropDesktopStashEntry,
+  moveStashEntry,
 } from '../git/stash'
 import {
   UncommittedChangesStrategy,
@@ -316,12 +312,12 @@ import {
 import * as ipcRenderer from '../ipc-renderer'
 import { pathExists } from '../../ui/lib/path-exists'
 import { offsetFromNow } from '../offset-from'
-import { setFormattingLocaleFromCountryCode } from '../formatting-locale'
 import { findContributionTargetDefaultBranch } from '../branch'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
 import { resizableComponentClass } from '../../ui/resizable'
+import { compare } from '../compare'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -395,7 +391,6 @@ const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
 const MaxInvalidFoldersToDisplay = 3
 
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
-const customThemeKey = 'custom-theme-key'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
@@ -503,7 +498,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.System
-  private customTheme?: ICustomTheme
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
 
   private useWindowsOpenSSH: boolean = false
@@ -982,7 +976,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
-      customTheme: this.customTheme,
       currentTheme: this.currentTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       useWindowsOpenSSH: this.useWindowsOpenSSH,
@@ -1188,7 +1181,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const shasInDiff = this.getShasInDiff(shas, isContiguous, commitLookup)
+    const shasInDiff = this.getShasInDiff(
+      this.orderShasByHistory(repository, shas),
+      isContiguous,
+      commitLookup
+    )
 
     if (shas.length > 1 && isContiguous) {
       this.recordMultiCommitDiff(shas, shasInDiff, compareState)
@@ -1257,32 +1254,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
     isContiguous: boolean,
     commitLookup: Map<string, Commit>
   ) {
-    const shasInDiff = new Array<string>()
-
     if (selectedShas.length <= 1 || !isContiguous) {
       return selectedShas
     }
 
+    const shasInDiff = new Set<string>()
+    const selected = new Set(selectedShas)
     const shasToTraverse = [selectedShas.at(-1)]
-    do {
-      const currentSha = shasToTraverse.pop()
-      if (currentSha === undefined) {
-        continue
+    let sha
+
+    while ((sha = shasToTraverse.pop()) !== undefined) {
+      if (!shasInDiff.has(sha)) {
+        shasInDiff.add(sha)
+
+        commitLookup.get(sha)?.parentSHAs?.forEach(parentSha => {
+          if (selected.has(parentSha) && !shasInDiff.has(parentSha)) {
+            shasToTraverse.push(parentSha)
+          }
+        })
       }
+    }
 
-      shasInDiff.push(currentSha)
-
-      // shas are selection of history -> should be in lookup ->  `|| []` is for typing sake
-      const parentSHAs = commitLookup.get(currentSha)?.parentSHAs || []
-
-      const parentsInSelection = parentSHAs.filter(parentSha =>
-        selectedShas.includes(parentSha)
-      )
-
-      shasToTraverse.push(...parentsInSelection)
-    } while (shasToTraverse.length > 0)
-
-    return shasInDiff
+    return Array.from(shasInDiff)
   }
 
   private updateOrSelectFirstCommit(
@@ -1566,17 +1559,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.repositoryStateCache.get(repository)
     const { commitSelection } = state
     const { shas: currentSHAs, isContiguous } = commitSelection
-    if (
-      currentSHAs.length === 0 ||
-      (currentSHAs.length > 1 && (!enableMultiCommitDiffs() || !isContiguous))
-    ) {
+    if (currentSHAs.length === 0 || (currentSHAs.length > 1 && !isContiguous)) {
       return
     }
 
     const gitStore = this.gitStoreCache.get(repository)
     const changesetData = await gitStore.performFailableOperation(() =>
       currentSHAs.length > 1
-        ? getCommitRangeChangedFiles(repository, currentSHAs)
+        ? getCommitRangeChangedFiles(
+            repository,
+            this.orderShasByHistory(repository, currentSHAs)
+          )
         : getChangedFiles(repository, currentSHAs[0])
     )
     if (!changesetData) {
@@ -1646,7 +1639,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    if (shas.length > 1 && (!enableMultiCommitDiffs() || !isContiguous)) {
+    if (shas.length > 1 && !isContiguous) {
       return
     }
 
@@ -1655,7 +1648,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? await getCommitRangeDiff(
             repository,
             file,
-            shas,
+            this.orderShasByHistory(repository, shas),
             this.hideWhitespaceInHistoryDiff
           )
         : await getCommitDiff(
@@ -1989,8 +1982,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Load the initial state for the app. */
   public async loadInitialState() {
-    const userLocalePromise = this.loadUserLocale()
-
     const [accounts, repositories] = await Promise.all([
       this.accountsStore.getAll(),
       this.repositoriesStore.getAll(),
@@ -2098,14 +2089,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.showSideBySideDiff = getShowSideBySideDiff()
 
     this.selectedTheme = getPersistedThemeName()
-    this.customTheme = getObject<ICustomTheme>(customThemeKey)
     // Make sure the persisted theme is applied
     setPersistedTheme(this.selectedTheme)
 
-    this.currentTheme =
-      this.selectedTheme !== ApplicationTheme.HighContrast
-        ? await getCurrentlyAppliedTheme()
-        : this.selectedTheme
+    this.currentTheme = await getCurrentlyAppliedTheme()
 
     themeChangeMonitor.onThemeChanged(theme => {
       this.currentTheme = theme
@@ -2114,7 +2101,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
 
-    await userLocalePromise
     this.pullRequestSuggestedNextAction =
       getEnum(
         pullRequestSuggestedNextActionKey,
@@ -2124,20 +2110,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
-  }
-
-  private async loadUserLocale() {
-    if (!enableLocaleAwareFormatting()) {
-      return
-    }
-
-    try {
-      const countryCode = await getLocaleCountryCode()
-      setFormattingLocaleFromCountryCode(countryCode)
-      log.info(`[AppStore] Set formatting locale region to '${countryCode}'`)
-    } catch (e) {
-      log.error(`[AppStore] Could not resolve user locale`, e)
-    }
   }
 
   /**
@@ -3281,6 +3253,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // loadBranches needs the default remote to determine the default branch
+    await gitStore.loadRemotes()
     await gitStore.loadBranches()
 
     const section = state.selectedSection
@@ -3298,7 +3272,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await Promise.all([
-      gitStore.loadRemotes(),
       gitStore.updateLastFetched(),
       gitStore.loadStashEntries(),
       this._refreshAuthor(repository),
@@ -4034,9 +4007,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     newName: string
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.performFailableOperation(() =>
-      renameBranch(repository, branch, newName)
-    )
+    await gitStore.performFailableOperation(async () => {
+      await renameBranch(repository, branch, newName)
+
+      if (enableMoveStash()) {
+        const stashEntry = gitStore.desktopStashEntries.get(branch.name)
+
+        if (stashEntry) {
+          await moveStashEntry(repository, stashEntry, newName)
+        }
+      }
+    })
 
     return this._refreshRepository(repository)
   }
@@ -4578,6 +4559,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (gitStore.tip.kind === TipState.Valid) {
       await this.performPush(repository, account)
     }
+
+    await gitStore.refreshDefaultBranch()
 
     return this.repositoryWithRefreshedGitHubRepository(repository)
   }
@@ -6342,20 +6325,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setSelectedTheme(theme: ApplicationTheme) {
     setPersistedTheme(theme)
     this.selectedTheme = theme
-    if (theme === ApplicationTheme.HighContrast) {
-      this.currentTheme = theme
-    }
-    this.emitUpdate()
-
-    return Promise.resolve()
-  }
-
-  /**
-   * Set the custom application-wide theme
-   */
-  public _setCustomTheme(theme: ICustomTheme) {
-    setObject(customThemeKey, theme)
-    this.customTheme = theme
     this.emitUpdate()
 
     return Promise.resolve()
@@ -6686,9 +6655,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ) {
     const { compareState } = this.repositoryStateCache.get(repository)
     const { commitSHAs } = compareState
+    const commitIndexBySha = new Map(commitSHAs.map((sha, i) => [sha, i]))
 
-    return [...commits].sort(
-      (a, b) => commitSHAs.indexOf(b.sha) - commitSHAs.indexOf(a.sha)
+    return [...commits].sort((a, b) =>
+      compare(commitIndexBySha.get(b.sha), commitIndexBySha.get(a.sha))
+    )
+  }
+
+  /**
+   * Multi selection on the commit list can give an order of 1, 5, 3 if that is
+   * how the user selected them. However, sometimes we want them in
+   * chronological ordering of the commits such as when get a range files
+   * changed. Thus, assuming 1 is the first commit made by the user and 5 is the
+   * last. We want the order to be, 1, 3, 5.
+   */
+  private orderShasByHistory(
+    repository: Repository,
+    commits: ReadonlyArray<string>
+  ) {
+    const { compareState } = this.repositoryStateCache.get(repository)
+    const { commitSHAs } = compareState
+    const commitIndexBySha = new Map(commitSHAs.map((sha, i) => [sha, i]))
+
+    return [...commits].sort((a, b) =>
+      compare(commitIndexBySha.get(b), commitIndexBySha.get(a))
     )
   }
 

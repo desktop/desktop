@@ -18,7 +18,7 @@ import { OpenThankYouCard } from './open-thank-you-card'
 import { SuccessfulSquash } from './successful-squash'
 import { SuccessBanner } from './success-banner'
 import { ConflictsFoundBanner } from './conflicts-found-banner'
-import { formatCommitCount } from '../../lib/format-commit-count'
+import { WindowsVersionNoLongerSupportedBanner } from './windows-version-no-longer-supported-banner'
 
 export function renderBanner(
   banner: Banner,
@@ -121,27 +121,33 @@ export function renderBanner(
         />
       )
     case BannerType.SquashUndone: {
+      const pluralized = banner.commitsCount === 1 ? 'commit' : 'commits'
       return (
         <SuccessBanner timeout={5000} onDismissed={onDismissed}>
-          Squash of {formatCommitCount(banner.commitsCount)} undone.
+          Squash of {banner.commitsCount} {pluralized} undone.
         </SuccessBanner>
       )
     }
     case BannerType.SuccessfulReorder: {
+      const pluralized = banner.count === 1 ? 'commit' : 'commits'
+
       return (
         <SuccessBanner
           timeout={15000}
           onDismissed={onDismissed}
           onUndo={banner.onUndo}
         >
-          <span>Successfully reordered {formatCommitCount(banner.count)}.</span>
+          <span>
+            Successfully reordered {banner.count} {pluralized}.
+          </span>
         </SuccessBanner>
       )
     }
     case BannerType.ReorderUndone: {
+      const pluralized = banner.commitsCount === 1 ? 'commit' : 'commits'
       return (
         <SuccessBanner timeout={5000} onDismissed={onDismissed}>
-          Reorder of {formatCommitCount(banner.commitsCount)} undone.
+          Reorder of {banner.commitsCount} {pluralized} undone.
         </SuccessBanner>
       )
     }
@@ -154,6 +160,8 @@ export function renderBanner(
           key={'conflicts-found'}
         ></ConflictsFoundBanner>
       )
+    case BannerType.WindowsVersionNoLongerSupported:
+      return <WindowsVersionNoLongerSupportedBanner onDismissed={onDismissed} />
     default:
       return assertNever(banner, `Unknown popup type: ${banner}`)
   }

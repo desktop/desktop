@@ -14,6 +14,8 @@ interface IPullRequestBadgeProps {
   /** The GitHub repository to use when looking up commit status. */
   readonly repository: GitHubRepository
 
+  readonly onBadgeRef?: (ref: HTMLDivElement | null) => void
+
   /** The GitHub repository to use when looking up commit status. */
   readonly onBadgeClick?: () => void
 
@@ -57,6 +59,7 @@ export class PullRequestBadge extends React.Component<
 
   private onRef = (badgeRef: HTMLDivElement) => {
     this.badgeRef = badgeRef
+    this.props.onBadgeRef?.(badgeRef)
   }
 
   private onBadgeClick = (

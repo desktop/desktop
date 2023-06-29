@@ -104,7 +104,6 @@
   }
 
   .popover-component.whitespace-hint {
-    position: absolute;
     width: 225px;
   }
 }
@@ -275,39 +274,10 @@
 .CodeMirror-linebackground {
   &.diff-add {
     background: var(--diff-add-background-color);
-
-    @include high-contrast {
-      border-right: var(--hc-diff-add-border);
-      border-left: var(--hc-diff-add-border);
-      margin-top: 1px;
-
-      &.is-first {
-        margin-top: 1px;
-        border-top: var(--hc-diff-add-border);
-      }
-
-      &.is-last {
-        border-bottom: var(--hc-diff-add-border);
-      }
-    }
   }
 
   &.diff-delete {
     background: var(--diff-delete-background-color);
-
-    @include high-contrast {
-      border-right: var(--hc-diff-delete-border);
-      border-left: var(--hc-diff-delete-border);
-
-      &.is-first {
-        margin-top: 1px;
-        border-top: var(--hc-diff-delete-border);
-      }
-
-      &.is-last {
-        border-bottom: var(--hc-diff-delete-border);
-      }
-    }
   }
 
   &.diff-context {

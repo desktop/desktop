@@ -142,23 +142,17 @@ button {
   left: 0;
 }
 
-// We're using a polyfill for the upcoming CSS4 `:focus-ring` pseudo-selector.
-// This allows us to not have to override default accessibility driven focus
-// styles for buttons in the case when a user clicks on a button. This also
-// gives better visiblity to individuals who navigate with the keyboard.
-//
-// See:
-//   https://github.com/WICG/focus-ring
-//   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
-:focus:not(.focus-ring) {
+// By default we don't want to show the focus ring on elements unless the focus
+// occurred as a result of keyboard navigation.
+:focus {
   outline: none;
 }
 
-// http://stackoverflow.com/questions/7538771/what-is-webkit-focus-ring-color
-:focus {
+:focus-visible {
   outline: auto;
   outline-color: var(--focus-color);
 }
+
 .more-dropdown {
   color: var(--text-color) !important;
   margin-left: var(--spacing);
@@ -187,7 +181,10 @@ kbd {
   text-align: center;
   min-width: 1.5em;
 
-  &:not(:last-child) {
-    margin-right: 2px;
+  @include darwin {
+    // On macOS, kbd elements are not separated by a +, so let's add a margin
+    &:not(:last-child) {
+      margin-right: 2px;
+    }
   }
 }

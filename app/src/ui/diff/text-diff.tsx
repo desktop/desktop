@@ -56,7 +56,7 @@ import {
 import { createOcticonElement } from '../octicons/octicon'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
-import { PopoverCaretPosition } from '../lib/popover'
+import { PopoverAnchorPosition } from '../lib/popover'
 import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
 
 // This is a custom version of the no-newline octicon that's exactly as
@@ -982,7 +982,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
           ) {
             const marker = lineInfo.gutterMarkers[diffGutterName]
             if (marker instanceof HTMLElement) {
-              this.updateGutterMarker(marker, hunk, diffLine)
+              this.updateGutterMarker(lineInfo.line, marker, hunk, diffLine)
             }
           } else {
             batchedOps.push(() => {
@@ -1035,6 +1035,10 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
     return inSelection(this.selection, index)
       ? this.selection.isSelected
       : canSelect(file) && file.selection.isSelected(index)
+  }
+
+  private getGutterLineID(index: number) {
+    return `diff-line-gutter-${index}`
   }
 
   private getGutterLineClassNameInfo(
@@ -1175,7 +1179,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       )
     }
 
-    this.updateGutterMarker(marker, hunk, diffLine)
+    this.updateGutterMarker(index, marker, hunk, diffLine)
 
     return marker
   }
@@ -1257,6 +1261,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
   }
 
   private updateGutterMarker(
+    index: number,
     marker: HTMLElement,
     hunk: DiffHunk,
     diffLine: DiffLine
@@ -1269,6 +1274,8 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
         marker.classList.remove(className)
       }
     }
+
+    marker.id = this.getGutterLineID(index)
 
     const hunkExpandWholeHandle = marker.getElementsByClassName(
       'hunk-expand-whole-handle'
@@ -1419,39 +1426,22 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       container.style.position = 'absolute'
       const scroller = cm.getScrollerElement()
 
-      const diffSize = getLineWidthFromDigitCount(
-        getNumberOfDigits(this.state.diff.maxLineNumber)
-      )
-
       const lineY = cm.heightAtLine(index, 'local')
-      // We're positioning relative to the scroll container, not the
-      // sizer or lines so we'll have to account for the gutter width and
-      // the hunk handle.
-      const style: React.CSSProperties = { left: diffSize * 2 + 10 }
-      let caretPosition = PopoverCaretPosition.LeftTop
 
       // Offset down by 10px to align the popover arrow.
       container.style.top = `${lineY - 10}px`
-
-      // If the line is further than 50% down the viewport we'll flip the
-      // popover to point upwards so as to not get hidden beneath (or above)
-      // the scroll boundary.
-      if (lineY - scroller.scrollTop > scroller.clientHeight / 2) {
-        caretPosition = PopoverCaretPosition.LeftBottom
-        style.bottom = -35
-      }
 
       scroller.appendChild(container)
       this.whitespaceHintContainer = container
 
       ReactDOM.render(
         <WhitespaceHintPopover
-          caretPosition={caretPosition}
+          anchor={document.getElementById(this.getGutterLineID(index))}
+          anchorPosition={PopoverAnchorPosition.RightTop}
           onDismissed={this.unmountWhitespaceHint}
           onHideWhitespaceInDiffChanged={
             this.props.onHideWhitespaceInDiffChanged
           }
-          style={style}
         />,
         container
       )
