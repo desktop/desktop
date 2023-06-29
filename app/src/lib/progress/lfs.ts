@@ -1,6 +1,6 @@
 import { getTempFilePath } from '../file-system'
 import { IGitProgress, IGitProgressInfo, IGitOutput } from './git'
-import { formatBytes } from '../../ui/lib/bytes'
+import { formatBytes } from '../../ui/lib/format-bytes'
 import { open } from 'fs/promises'
 
 /** Create the Git LFS progress reporting file and return the path. */
