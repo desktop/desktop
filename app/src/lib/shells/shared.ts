@@ -83,7 +83,7 @@ export async function launchShell(
   // platform-specific build targets.
   const exists = await pathExists(shell.path)
   if (!exists) {
-    const label = __DARWIN__ ? 'Preferences' : 'Options'
+    const label = __DARWIN__ ? 'Settings' : 'Options'
     throw new ShellError(
       `Could not find executable for '${shell.shell}' at path '${shell.path}'.  Please open ${label} and select an available shell.`
     )

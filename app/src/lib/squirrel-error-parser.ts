@@ -14,7 +14,6 @@ const squirrelTimeoutRegex =
  * friendlier message to the user.
  *
  * @param error The underlying error from Squirrel.
- *
  */
 export function parseError(error: Error): Error | null {
   if (squirrelMissingRegex.test(error.message)) {

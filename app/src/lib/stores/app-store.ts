@@ -231,6 +231,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
+import { enableMoveStash } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -238,6 +239,7 @@ import {
   getLastDesktopStashEntryForBranch,
   popStashEntry,
   dropDesktopStashEntry,
+  moveStashEntry,
 } from '../git/stash'
 import {
   UncommittedChangesStrategy,
@@ -315,6 +317,7 @@ import { ValidNotificationPullRequestReview } from '../valid-notification-pull-r
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
 import { resizableComponentClass } from '../../ui/resizable'
+import { compare } from '../compare'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1251,32 +1254,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
     isContiguous: boolean,
     commitLookup: Map<string, Commit>
   ) {
-    const shasInDiff = new Array<string>()
-
     if (selectedShas.length <= 1 || !isContiguous) {
       return selectedShas
     }
 
+    const shasInDiff = new Set<string>()
+    const selected = new Set(selectedShas)
     const shasToTraverse = [selectedShas.at(-1)]
-    do {
-      const currentSha = shasToTraverse.pop()
-      if (currentSha === undefined) {
-        continue
+    let sha
+
+    while ((sha = shasToTraverse.pop()) !== undefined) {
+      if (!shasInDiff.has(sha)) {
+        shasInDiff.add(sha)
+
+        commitLookup.get(sha)?.parentSHAs?.forEach(parentSha => {
+          if (selected.has(parentSha) && !shasInDiff.has(parentSha)) {
+            shasToTraverse.push(parentSha)
+          }
+        })
       }
+    }
 
-      shasInDiff.push(currentSha)
-
-      // shas are selection of history -> should be in lookup ->  `|| []` is for typing sake
-      const parentSHAs = commitLookup.get(currentSha)?.parentSHAs || []
-
-      const parentsInSelection = parentSHAs.filter(parentSha =>
-        selectedShas.includes(parentSha)
-      )
-
-      shasToTraverse.push(...parentsInSelection)
-    } while (shasToTraverse.length > 0)
-
-    return shasInDiff
+    return Array.from(shasInDiff)
   }
 
   private updateOrSelectFirstCommit(
@@ -4008,9 +4007,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     newName: string
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.performFailableOperation(() =>
-      renameBranch(repository, branch, newName)
-    )
+    await gitStore.performFailableOperation(async () => {
+      await renameBranch(repository, branch, newName)
+
+      if (enableMoveStash()) {
+        const stashEntry = gitStore.desktopStashEntries.get(branch.name)
+
+        if (stashEntry) {
+          await moveStashEntry(repository, stashEntry, newName)
+        }
+      }
+    })
 
     return this._refreshRepository(repository)
   }
@@ -6648,9 +6655,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ) {
     const { compareState } = this.repositoryStateCache.get(repository)
     const { commitSHAs } = compareState
+    const commitIndexBySha = new Map(commitSHAs.map((sha, i) => [sha, i]))
 
-    return [...commits].sort(
-      (a, b) => commitSHAs.indexOf(b.sha) - commitSHAs.indexOf(a.sha)
+    return [...commits].sort((a, b) =>
+      compare(commitIndexBySha.get(b.sha), commitIndexBySha.get(a.sha))
     )
   }
 
@@ -6667,9 +6675,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ) {
     const { compareState } = this.repositoryStateCache.get(repository)
     const { commitSHAs } = compareState
+    const commitIndexBySha = new Map(commitSHAs.map((sha, i) => [sha, i]))
 
-    return [...commits].sort(
-      (a, b) => commitSHAs.indexOf(b) - commitSHAs.indexOf(a)
+    return [...commits].sort((a, b) =>
+      compare(commitIndexBySha.get(b), commitIndexBySha.get(a))
     )
   }
 
