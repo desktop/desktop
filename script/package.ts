@@ -137,7 +137,6 @@ function packageWindows() {
       console.error(`Error packaging: ${e}`)
       process.exit(1)
     })
-    .finally(() => cp.execSync(`powershell ${cleanupCertificatePath}`))
 }
 
 function packageLinux() {
