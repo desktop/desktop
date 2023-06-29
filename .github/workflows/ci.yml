@@ -115,12 +115,11 @@ jobs:
         if: matrix.arch == 'x64'
         run: yarn test:script
       - name: Install Windows code signing certificate
+        if: ${{ runner.os == 'Windows' }}
         shell: bash
-        if: runner.os == 'Windows'
         env:
           CERT_CONTENTS: ${{ secrets.WINDOWS_CERT_PFX }}
-        run: |
-          base64 -d <<<"$CERT_CONTENTS" > ./script/windows-certificate.pfx
+        run: base64 -d <<<"$CERT_CONTENTS" > ./script/windows-certificate.pfx
       - name: Package production app
         run: yarn package
         env:
