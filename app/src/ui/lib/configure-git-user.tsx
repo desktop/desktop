@@ -251,6 +251,7 @@ export class ConfigureGitUser extends React.Component<
           canBeUndone={false}
           canBeAmended={false}
           canBeResetTo={false}
+          canBeCheckedOut={false}
           isLocal={false}
           showUnpushedIndicator={false}
           selectedCommits={[dummyCommit]}

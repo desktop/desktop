@@ -202,6 +202,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         canBeResetTo={
           this.props.canResetToCommits === true && isResettableCommit
         }
+        canBeCheckedOut={row > 0} //Cannot checkout the current commit
         showUnpushedIndicator={showUnpushedIndicator}
         unpushedIndicatorTitle={this.getUnpushedIndicatorTitle(
           isLocal,

@@ -35,6 +35,7 @@ interface ICommitProps {
   readonly canBeUndone: boolean
   readonly canBeAmended: boolean
   readonly canBeResetTo: boolean
+  readonly canBeCheckedOut: boolean
   readonly onResetToCommit?: (commit: Commit) => void
   readonly onUndoCommit?: (commit: Commit) => void
   readonly onRevertCommit?: (commit: Commit) => void
@@ -315,6 +316,9 @@ export class CommitListItem extends React.PureComponent<
         action: () => {
           this.props.onCheckoutCommit?.(this.props.commit)
         },
+        enabled:
+          this.props.canBeCheckedOut &&
+          this.props.onCheckoutCommit !== undefined,
       })
     }
 
