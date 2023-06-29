@@ -3895,7 +3895,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { tip } = branchesState
 
     // No point in checking out the currently checked out commit.
-    if (tip.kind === TipState.Valid && tip.branch.tip.sha === commit.sha) {
+    if (
+      (tip.kind === TipState.Valid && tip.branch.tip.sha === commit.sha) ||
+      (tip.kind === TipState.Detached && tip.currentSha === commit.sha)
+    ) {
       return repository
     }
 
