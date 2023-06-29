@@ -49,8 +49,8 @@ async function getCheckoutOpts(
   account: IGitAccount | null,
   title: string,
   target: string,
-  initialDescription?: string,
-  progressCallback?: ProgressCallback
+  progressCallback?: ProgressCallback,
+  initialDescription?: string
 ): Promise<IGitExecutionOptions> {
   const opts: IGitExecutionOptions = {
     env: await envForRemoteOperation(
@@ -120,8 +120,8 @@ export async function checkoutBranch(
     account,
     `Checking out branch ${branch.name}`,
     branch.name,
-    `Switching to ${__DARWIN__ ? 'Branch' : 'branch'}`,
-    progressCallback
+    progressCallback,
+    `Switching to ${__DARWIN__ ? 'Branch' : 'branch'}`
   )
 
   const baseArgs = getCheckoutArgs(progressCallback)
@@ -161,7 +161,6 @@ export async function checkoutCommit(
     account,
     title,
     shortenSHA(commit.sha),
-    title,
     progressCallback
   )
 
