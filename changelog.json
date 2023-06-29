@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.2.7-test2": [
+      "[Improved] Accessibility verification -> announcing pull, push, fetch"
+    ],
     "3.2.7-beta1": [
       "[Fixed] Recreate stash after renaming branch - #16442",
       "[Fixed] Improved performance when selecting and viewing a large number of commits - #16880",
