@@ -114,11 +114,17 @@ jobs:
       - name: Run script tests
         if: matrix.arch == 'x64'
         run: yarn test:script
+      - name: Install Windows code signing certificate
+        shell: bash
+        if: runner.os == 'Windows'
+        env:
+          CERT_CONTENTS: ${{ secrets.WINDOWS_CERT_PFX }}
+        run: |
+          base64 -d <<<"$CERT_CONTENTS" > ./script/windows-certificate.pfx
       - name: Package production app
         run: yarn package
         env:
           npm_config_arch: ${{ matrix.arch }}
-          WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v3

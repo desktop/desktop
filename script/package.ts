@@ -56,20 +56,6 @@ function packageOSX() {
 }
 
 function packageWindows() {
-  const setupCertificatePath = path.join(
-    __dirname,
-    'setup-windows-certificate.ps1'
-  )
-  const cleanupCertificatePath = path.join(
-    __dirname,
-    'cleanup-windows-certificate.ps1'
-  )
-
-  if (isGitHubActions() && isPublishable()) {
-    console.log('Installing signing certificate…')
-    cp.execSync(`powershell ${setupCertificatePath}`, { stdio: 'inherit' })
-  }
-
   const iconSource = path.join(
     __dirname,
     '..',
