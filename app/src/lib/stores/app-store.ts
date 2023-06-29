@@ -12,7 +12,7 @@ import {
 } from '.'
 import { Account } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
-import { Author } from '../../models/author'
+import { IAuthor } from '../../models/author'
 import { Branch, BranchType, IAheadBehind } from '../../models/branch'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
@@ -47,7 +47,7 @@ import {
   isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
   getNonForkGitHubRepository,
-  isForkedRepositoryContributingToParent,
+  isRepositoryAForkContributingToParent,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -73,6 +73,7 @@ import {
   ApplicationTheme,
   getCurrentlyAppliedTheme,
   getPersistedThemeName,
+  ICustomTheme,
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
 import {
@@ -94,7 +95,6 @@ import {
   IAPIOrganization,
   getEndpointForRepository,
   IAPIFullRepository,
-  IAPIComment,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -231,7 +231,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableMoveStash } from '../feature-flag'
+import { enableMultiCommitDiffs } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -239,7 +239,6 @@ import {
   getLastDesktopStashEntryForBranch,
   popStashEntry,
   dropDesktopStashEntry,
-  moveStashEntry,
 } from '../git/stash'
 import {
   UncommittedChangesStrategy,
@@ -316,8 +315,6 @@ import { findContributionTargetDefaultBranch } from '../branch'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
-import { resizableComponentClass } from '../../ui/resizable'
-import { compare } from '../compare'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -391,6 +388,7 @@ const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
 const MaxInvalidFoldersToDisplay = 3
 
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
+const customThemeKey = 'custom-theme-key'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
@@ -450,7 +448,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
-  private resizablePaneActive = false
   private isUpdateAvailableBannerVisible: boolean = false
   private isUpdateShowcaseVisible: boolean = false
 
@@ -498,6 +495,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.System
+  private customTheme?: ICustomTheme
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
 
   private useWindowsOpenSSH: boolean = false
@@ -602,10 +600,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.notificationsStore.onPullRequestReviewSubmitNotification(
       this.onPullRequestReviewSubmitNotification
-    )
-
-    this.notificationsStore.onPullRequestCommentNotification(
-      this.onPullRequestCommentNotification
     )
 
     onShowInstallingUpdate(this.onShowInstallingUpdate)
@@ -938,7 +932,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
       currentPopup: this.popupManager.currentPopup,
-      allPopups: this.popupManager.allPopups,
       currentFoldout: this.currentFoldout,
       errorCount: this.popupManager.getPopupsOfType(PopupType.Error).length,
       showWelcomeFlow: this.showWelcomeFlow,
@@ -976,6 +969,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
+      customTheme: this.customTheme,
       currentTheme: this.currentTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       useWindowsOpenSSH: this.useWindowsOpenSSH,
@@ -988,7 +982,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       showCIStatusPopover: this.showCIStatusPopover,
       notificationsEnabled: getNotificationsEnabled(),
       pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
-      resizablePaneActive: this.resizablePaneActive,
     }
   }
 
@@ -1181,11 +1174,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const shasInDiff = this.getShasInDiff(
-      this.orderShasByHistory(repository, shas),
-      isContiguous,
-      commitLookup
-    )
+    const shasInDiff = this.getShasInDiff(shas, isContiguous, commitLookup)
 
     if (shas.length > 1 && isContiguous) {
       this.recordMultiCommitDiff(shas, shasInDiff, compareState)
@@ -1254,28 +1243,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
     isContiguous: boolean,
     commitLookup: Map<string, Commit>
   ) {
+    const shasInDiff = new Array<string>()
+
     if (selectedShas.length <= 1 || !isContiguous) {
       return selectedShas
     }
 
-    const shasInDiff = new Set<string>()
-    const selected = new Set(selectedShas)
     const shasToTraverse = [selectedShas.at(-1)]
-    let sha
-
-    while ((sha = shasToTraverse.pop()) !== undefined) {
-      if (!shasInDiff.has(sha)) {
-        shasInDiff.add(sha)
-
-        commitLookup.get(sha)?.parentSHAs?.forEach(parentSha => {
-          if (selected.has(parentSha) && !shasInDiff.has(parentSha)) {
-            shasToTraverse.push(parentSha)
-          }
-        })
+    do {
+      const currentSha = shasToTraverse.pop()
+      if (currentSha === undefined) {
+        continue
       }
-    }
 
-    return Array.from(shasInDiff)
+      shasInDiff.push(currentSha)
+
+      // shas are selection of history -> should be in lookup ->  `|| []` is for typing sake
+      const parentSHAs = commitLookup.get(currentSha)?.parentSHAs || []
+
+      const parentsInSelection = parentSHAs.filter(parentSha =>
+        selectedShas.includes(parentSha)
+      )
+
+      shasToTraverse.push(...parentsInSelection)
+    } while (shasToTraverse.length > 0)
+
+    return shasInDiff
   }
 
   private updateOrSelectFirstCommit(
@@ -1559,17 +1552,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const state = this.repositoryStateCache.get(repository)
     const { commitSelection } = state
     const { shas: currentSHAs, isContiguous } = commitSelection
-    if (currentSHAs.length === 0 || (currentSHAs.length > 1 && !isContiguous)) {
+    if (
+      currentSHAs.length === 0 ||
+      (currentSHAs.length > 1 && (!enableMultiCommitDiffs() || !isContiguous))
+    ) {
       return
     }
 
     const gitStore = this.gitStoreCache.get(repository)
     const changesetData = await gitStore.performFailableOperation(() =>
       currentSHAs.length > 1
-        ? getCommitRangeChangedFiles(
-            repository,
-            this.orderShasByHistory(repository, currentSHAs)
-          )
+        ? getCommitRangeChangedFiles(repository, currentSHAs)
         : getChangedFiles(repository, currentSHAs[0])
     )
     if (!changesetData) {
@@ -1639,7 +1632,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    if (shas.length > 1 && !isContiguous) {
+    if (shas.length > 1 && (!enableMultiCommitDiffs() || !isContiguous)) {
       return
     }
 
@@ -1648,7 +1641,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? await getCommitRangeDiff(
             repository,
             file,
-            this.orderShasByHistory(repository, shas),
+            shas,
             this.hideWhitespaceInHistoryDiff
           )
         : await getCommitDiff(
@@ -2089,10 +2082,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.showSideBySideDiff = getShowSideBySideDiff()
 
     this.selectedTheme = getPersistedThemeName()
+    this.customTheme = getObject<ICustomTheme>(customThemeKey)
     // Make sure the persisted theme is applied
     setPersistedTheme(this.selectedTheme)
 
-    this.currentTheme = await getCurrentlyAppliedTheme()
+    this.currentTheme =
+      this.selectedTheme !== ApplicationTheme.HighContrast
+        ? await getCurrentlyAppliedTheme()
+        : this.selectedTheme
 
     themeChangeMonitor.onThemeChanged(theme => {
       this.currentTheme = theme
@@ -3253,8 +3250,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    // loadBranches needs the default remote to determine the default branch
-    await gitStore.loadRemotes()
     await gitStore.loadBranches()
 
     const section = state.selectedSection
@@ -3272,6 +3267,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     await Promise.all([
+      gitStore.loadRemotes(),
       gitStore.updateLastFetched(),
       gitStore.loadStashEntries(),
       this._refreshAuthor(repository),
@@ -4007,17 +4003,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     newName: string
   ): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.performFailableOperation(async () => {
-      await renameBranch(repository, branch, newName)
-
-      if (enableMoveStash()) {
-        const stashEntry = gitStore.desktopStashEntries.get(branch.name)
-
-        if (stashEntry) {
-          await moveStashEntry(repository, stashEntry, newName)
-        }
-      }
-    })
+    await gitStore.performFailableOperation(() =>
+      renameBranch(repository, branch, newName)
+    )
 
     return this._refreshRepository(repository)
   }
@@ -4559,8 +4547,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (gitStore.tip.kind === TipState.Valid) {
       await this.performPush(repository, account)
     }
-
-    await gitStore.refreshDefaultBranch()
 
     return this.repositoryWithRefreshedGitHubRepository(repository)
   }
@@ -6116,7 +6102,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { parent, owner, name, htmlURL } = gitHubRepository
     const isForkContributingToParent =
-      isForkedRepositoryContributingToParent(repository)
+      isRepositoryAForkContributingToParent(repository)
 
     const baseForkPreface =
       isForkContributingToParent && parent !== null
@@ -6313,7 +6299,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public _setCoAuthors(
     repository: Repository,
-    coAuthors: ReadonlyArray<Author>
+    coAuthors: ReadonlyArray<IAuthor>
   ) {
     this.gitStoreCache.get(repository).setCoAuthors(coAuthors)
     return Promise.resolve()
@@ -6325,6 +6311,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setSelectedTheme(theme: ApplicationTheme) {
     setPersistedTheme(theme)
     this.selectedTheme = theme
+    if (theme === ApplicationTheme.HighContrast) {
+      this.currentTheme = theme
+    }
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the custom application-wide theme
+   */
+  public _setCustomTheme(theme: ICustomTheme) {
+    setObject(customThemeKey, theme)
+    this.customTheme = theme
     this.emitUpdate()
 
     return Promise.resolve()
@@ -6655,30 +6655,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ) {
     const { compareState } = this.repositoryStateCache.get(repository)
     const { commitSHAs } = compareState
-    const commitIndexBySha = new Map(commitSHAs.map((sha, i) => [sha, i]))
 
-    return [...commits].sort((a, b) =>
-      compare(commitIndexBySha.get(b.sha), commitIndexBySha.get(a.sha))
-    )
-  }
-
-  /**
-   * Multi selection on the commit list can give an order of 1, 5, 3 if that is
-   * how the user selected them. However, sometimes we want them in
-   * chronological ordering of the commits such as when get a range files
-   * changed. Thus, assuming 1 is the first commit made by the user and 5 is the
-   * last. We want the order to be, 1, 3, 5.
-   */
-  private orderShasByHistory(
-    repository: Repository,
-    commits: ReadonlyArray<string>
-  ) {
-    const { compareState } = this.repositoryStateCache.get(repository)
-    const { commitSHAs } = compareState
-    const commitIndexBySha = new Map(commitSHAs.map((sha, i) => [sha, i]))
-
-    return [...commits].sort((a, b) =>
-      compare(commitIndexBySha.get(b), commitIndexBySha.get(a))
+    return [...commits].sort(
+      (a, b) => commitSHAs.indexOf(b.sha) - commitSHAs.indexOf(a.sha)
     )
   }
 
@@ -7320,7 +7299,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private onPullRequestReviewSubmitNotification = async (
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
-    review: ValidNotificationPullRequestReview
+    review: ValidNotificationPullRequestReview,
+    numberOfComments: number
   ) => {
     const selectedRepository =
       this.selectedRepository ?? (await this._selectRepository(repository))
@@ -7341,59 +7321,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
       review,
       pullRequest,
       repository,
-    })
-  }
-
-  private onPullRequestCommentNotification = async (
-    repository: RepositoryWithGitHubRepository,
-    pullRequest: PullRequest,
-    comment: IAPIComment
-  ) => {
-    const selectedRepository =
-      this.selectedRepository ?? (await this._selectRepository(repository))
-
-    const state = this.repositoryStateCache.get(repository)
-
-    const { branchesState } = state
-    const { tip } = branchesState
-    const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-
-    return this._showPopup({
-      type: PopupType.PullRequestComment,
-      shouldCheckoutBranch:
-        currentBranch !== null && currentBranch.name !== pullRequest.head.ref,
-      shouldChangeRepository:
-        selectedRepository === null ||
-        selectedRepository.hash !== repository.hash,
-      comment,
-      pullRequest,
-      repository,
+      numberOfComments,
     })
   }
 
   public async _startPullRequest(repository: Repository) {
-    const { tip, defaultBranch } =
-      this.repositoryStateCache.get(repository).branchesState
+    await this._fetch(repository, FetchType.UserInitiatedTask)
 
-    if (tip.kind !== TipState.Valid) {
-      // Shouldn't even be able to get here if so - just a type check
+    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { defaultBranch, tip } = branchesState
+
+    if (defaultBranch === null || tip.kind !== TipState.Valid) {
       return
     }
-
     const currentBranch = tip.branch
     this._initializePullRequestPreview(repository, defaultBranch, currentBranch)
   }
 
   private async _initializePullRequestPreview(
     repository: Repository,
-    baseBranch: Branch | null,
+    baseBranch: Branch,
     currentBranch: Branch
   ) {
-    if (baseBranch === null) {
-      this.showPullRequestPopupNoBaseBranch(repository, currentBranch)
-      return
-    }
-
+    const { branchesState, localCommitSHAs } =
+      this.repositoryStateCache.get(repository)
     const gitStore = this.gitStoreCache.get(repository)
 
     const pullRequestCommits = await gitStore.getCommitsBetweenBranches(
@@ -7460,45 +7411,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    this.showPullRequestPopup(repository, currentBranch, commitSHAs)
-  }
-
-  public showPullRequestPopupNoBaseBranch(
-    repository: Repository,
-    currentBranch: Branch
-  ) {
-    this.repositoryStateCache.initializePullRequestState(repository, {
-      baseBranch: null,
-      commitSHAs: null,
-      commitSelection: null,
-      mergeStatus: null,
-    })
-
-    this.emitUpdate()
-
-    this.showPullRequestPopup(repository, currentBranch, [])
-  }
-
-  public showPullRequestPopup(
-    repository: Repository,
-    currentBranch: Branch,
-    commitSHAs: ReadonlyArray<string>
-  ) {
     if (this.popupManager.areTherePopupsOfType(PopupType.StartPullRequest)) {
       return
     }
 
-    this.statsStore.recordPreviewedPullRequest()
-
-    const { branchesState, localCommitSHAs } =
-      this.repositoryStateCache.get(repository)
     const { allBranches, recentBranches, defaultBranch, currentPullRequest } =
       branchesState
-    const gitStore = this.gitStoreCache.get(repository)
     /*  We only want branches that are also on dotcom such that, when we ask a
      *  user to create a pull request, the base branch also exists on dotcom.
      */
-    const remote = isForkedRepositoryContributingToParent(repository)
+    const remote = isRepositoryAForkContributingToParent(repository)
       ? UpstreamRemoteName
       : gitStore.defaultRemote?.name
     const prBaseBranches = allBranches.filter(
@@ -7510,11 +7432,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
       this.getState()
 
-    const nonLocalCommitSHA =
-      commitSHAs.length > 0 && !localCommitSHAs.includes(commitSHAs[0])
-        ? commitSHAs[0]
-        : null
-
     this._showPopup({
       type: PopupType.StartPullRequest,
       prBaseBranches,
@@ -7524,7 +7441,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       imageDiffType,
       repository,
       externalEditorLabel: selectedExternalEditor ?? undefined,
-      nonLocalCommitSHA,
+      nonLocalCommitSHA:
+        commitSHAs.length > 0 && !localCommitSHAs.includes(commitSHAs[0])
+          ? commitSHAs[0]
+          : null,
       showSideBySideDiff,
       currentBranchHasPullRequest: currentPullRequest !== null,
     })
@@ -7546,7 +7466,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const currentBranch = branchesState.tip.branch
     const { baseBranch, commitSHAs } = pullRequestState
-    if (commitSHAs === null || baseBranch === null) {
+    if (commitSHAs === null) {
       return
     }
 
@@ -7680,33 +7600,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
   }
-
-  private isResizePaneActive() {
-    if (document.activeElement === null) {
-      return false
-    }
-
-    const appMenuBar = document.getElementById('app-menu-bar')
-
-    // Don't track windows menu items as focused elements for keeping
-    // track of recently focused elements we want to act upon
-    if (appMenuBar?.contains(document.activeElement)) {
-      return this.resizablePaneActive
-    }
-
-    return (
-      document.activeElement.closest(`.${resizableComponentClass}`) !== null
-    )
-  }
-
-  public _appFocusedElementChanged() {
-    const resizablePaneActive = this.isResizePaneActive()
-
-    if (resizablePaneActive !== this.resizablePaneActive) {
-      this.resizablePaneActive = resizablePaneActive
-      this.emitUpdate()
-    }
-  }
 }
 
 /**
@@ -7771,12 +7664,5 @@ function constrain(
   min = -Infinity,
   max = Infinity
 ): IConstrainedValue {
-  // Match CSS's behavior where min-width takes precedence over max-width
-  // See https://stackoverflow.com/a/16063871
-  const constrainedMax = max < min ? min : max
-  return {
-    value: typeof value === 'number' ? value : value.value,
-    min,
-    max: constrainedMax,
-  }
+  return { value: typeof value === 'number' ? value : value.value, min, max }
 }
