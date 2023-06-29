@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.2.7-test2": ["[New] Deployment process test"],
     "3.2.7-test1": [
       "[Improved] Accessibility fixes -> Inline error messages and clone dialog list issues"
     ],
