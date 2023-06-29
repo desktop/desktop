@@ -19,6 +19,7 @@ import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType } from '../../models/drag-drop'
 import { CICheckRunPopover } from '../check-runs/ci-check-run-popover'
 import { TooltipTarget } from '../lib/tooltip'
+import { formatPercent } from '../../lib/format-number'
 import { BranchType, Branch } from '../../models/branch'
 import { PopupType } from '../../models/popup'
 import { generateBranchContextMenuItems } from '../branches/branch-list-item-context-menu'
@@ -161,8 +162,8 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       description = __DARWIN__ ? 'Switching to Branch' : 'Switching to branch'
 
       if (checkoutProgress.value > 0) {
-        const friendlyProgress = Math.round(checkoutProgress.value * 100)
-        description = `${description} (${friendlyProgress}%)`
+        const friendlyProgress = formatPercent(checkoutProgress.value)
+        description = `${description} (${friendlyProgress})`
       }
 
       tooltip = `Switching to ${checkoutProgress.targetBranch}`

@@ -13,6 +13,7 @@ import {
   renderDefaultBranch,
 } from '../../branches'
 import { ClickSource } from '../../lib/list'
+import { formatCommitCount } from '../../../lib/format-commit-count'
 
 interface IChooseTargetBranchDialogProps {
   /**
@@ -128,6 +129,7 @@ export class ChooseTargetBranchDialog extends React.Component<
   }
 
   private renderOkButtonText() {
+    const { commitCount } = this.props
     const { selectedBranch, isCreateBranchState } = this.state
 
     if (isCreateBranchState) {
@@ -136,8 +138,7 @@ export class ChooseTargetBranchDialog extends React.Component<
         : 'Cherry-pick to new branch'
     }
 
-    const pluralize = this.props.commitCount > 1 ? 'commits' : 'commit'
-    const okButtonText = `Cherry-pick ${this.props.commitCount} ${pluralize}`
+    const okButtonText = `Cherry-pick ${formatCommitCount(commitCount)}`
 
     if (selectedBranch !== null) {
       return (
@@ -164,7 +165,6 @@ export class ChooseTargetBranchDialog extends React.Component<
       ? 'You are not able to cherry-pick from and to the same branch'
       : undefined
 
-    const pluralize = this.props.commitCount > 1 ? 'commits' : 'commit'
     return (
       <Dialog
         id="cherry-pick"
@@ -173,7 +173,7 @@ export class ChooseTargetBranchDialog extends React.Component<
         dismissable={true}
         title={
           <strong>
-            Cherry-pick {this.props.commitCount} {pluralize} to a branch
+            Cherry-pick {formatCommitCount(this.props.commitCount)} to a branch
           </strong>
         }
       >

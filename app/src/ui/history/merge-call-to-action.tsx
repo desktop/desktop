@@ -5,6 +5,7 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
+import { formatCommitCount } from '../../lib/format-commit-count'
 
 interface IMergeCallToActionProps {
   readonly repository: Repository
@@ -48,18 +49,12 @@ export class MergeCallToAction extends React.Component<
     const count = formState.aheadBehind.behind
 
     if (count > 0) {
-      const pluralized = count === 1 ? 'commit' : 'commits'
       return (
         <div className="merge-message merge-message-legacy">
-          This will merge
-          <strong>{` ${count} ${pluralized}`}</strong>
-          {` `}
-          from
-          {` `}
+          This will merge <strong>{formatCommitCount(count)}</strong>
+          {` from `}
           <strong>{branch.name}</strong>
-          {` `}
-          into
-          {` `}
+          {` into `}
           <strong>{currentBranch.name}</strong>
         </div>
       )

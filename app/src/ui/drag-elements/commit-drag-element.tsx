@@ -3,6 +3,7 @@ import { Disposable } from 'event-kit'
 import * as React from 'react'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { assertNever } from '../../lib/fatal-error'
+import { formatCommitCount } from '../../lib/format-commit-count'
 import { Commit } from '../../models/commit'
 import { DragType, DropTarget, DropTargetType } from '../../models/drag-drop'
 import { GitHubRepository } from '../../models/github-repository'
@@ -105,11 +106,10 @@ export class CommitDragElement extends React.Component<
           break
         }
 
-        const pluralized =
-          currentDropTarget.data.commits.length === 1 ? 'commit' : 'commits'
+        const commits = currentDropTarget.data.commits.length
         toolTipContents = (
           <>
-            <span>{`Move ${pluralized} here`}</span>
+            <span>{`Move ${formatCommitCount(commits)} here`}</span>
           </>
         )
         break

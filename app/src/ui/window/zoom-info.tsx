@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
+import { formatPercent } from '../../lib/format-number'
 
 interface IZoomInfoProps {
   readonly windowZoomFactor: number
@@ -88,8 +89,6 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
       return null
     }
 
-    const zoomPercent = `${(this.state.windowZoomFactor * 100).toFixed(0)}%`
-
     return (
       <CSSTransition
         classNames={this.state.transitionName}
@@ -99,7 +98,7 @@ export class ZoomInfo extends React.Component<IZoomInfoProps, IZoomInfoState> {
         timeout={transitionDuration}
       >
         <div>
-          <span>{zoomPercent}</span>
+          <span>{formatPercent(this.state.windowZoomFactor)}</span>
         </div>
       </CSSTransition>
     )

@@ -1,4 +1,6 @@
 import React from 'react'
+import { formatCommitCount } from '../../../lib/format-commit-count'
+import { formatCount } from '../../../lib/format-count'
 import { getAheadBehind, revSymmetricDifference } from '../../../lib/git'
 import { determineMergeability } from '../../../lib/git/merge-tree'
 import { promiseWithMinimumTimeout } from '../../../lib/promise'
@@ -174,11 +176,9 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
       )
     }
 
-    const pluralized = commitCount === 1 ? 'commit' : 'commits'
     return (
       <React.Fragment>
-        This will merge
-        <strong>{` ${commitCount} ${pluralized}`}</strong>
+        This will merge <strong>{formatCommitCount(commitCount)}</strong>
         {` from `}
         <strong>{branch.name}</strong>
         {` into `}
@@ -200,11 +200,9 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
     currentBranch: Branch,
     count: number
   ) {
-    const pluralized = count === 1 ? 'file' : 'files'
     return (
       <React.Fragment>
-        There will be
-        <strong>{` ${count} conflicted ${pluralized}`}</strong>
+        There will be <strong>{formatCount(count, 'conflicted file')}</strong>
         {` when merging `}
         <strong>{branch.name}</strong>
         {` into `}

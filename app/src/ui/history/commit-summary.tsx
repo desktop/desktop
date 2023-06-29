@@ -15,6 +15,8 @@ import { DiffOptions } from '../diff/diff-options'
 import { IChangesetData } from '../../lib/git'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { AppFileStatusKind } from '../../models/status'
+import { formatCount } from '../../lib/format-count'
+import { formatNumber } from '../../lib/format-number'
 import _ from 'lodash'
 import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
@@ -532,8 +534,7 @@ export class CommitSummary extends React.Component<
 
   private renderChangedFilesDescription = () => {
     const fileCount = this.props.changesetData.files.length
-    const filesPlural = fileCount === 1 ? 'file' : 'files'
-    const filesShortDescription = `${fileCount} changed ${filesPlural}`
+    const filesShortDescription = formatCount(fileCount, 'changed file')
 
     let filesAdded = 0
     let filesModified = 0
@@ -566,7 +567,7 @@ export class CommitSummary extends React.Component<
               className="files-added-icon"
               symbol={OcticonSymbol.diffAdded}
             />
-            {filesAdded} added
+            {formatNumber(filesAdded)} added
           </span>
         ) : null}
         {filesModified > 0 ? (
@@ -575,7 +576,7 @@ export class CommitSummary extends React.Component<
               className="files-modified-icon"
               symbol={OcticonSymbol.diffModified}
             />
-            {filesModified} modified
+            {formatNumber(filesModified)} modified
           </span>
         ) : null}
         {filesRemoved > 0 ? (
@@ -584,7 +585,7 @@ export class CommitSummary extends React.Component<
               className="files-deleted-icon"
               symbol={OcticonSymbol.diffRemoved}
             />
-            {filesRemoved} deleted
+            {formatNumber(filesRemoved)} deleted
           </span>
         ) : null}
         {filesRenamed > 0 ? (
@@ -614,30 +615,25 @@ export class CommitSummary extends React.Component<
   }
 
   private renderLinesChanged() {
-    const linesAdded = this.props.changesetData.linesAdded
-    const linesDeleted = this.props.changesetData.linesDeleted
+    const { linesAdded, linesDeleted } = this.props.changesetData
+
     if (linesAdded + linesDeleted === 0) {
       return null
     }
-
-    const linesAddedPlural = linesAdded === 1 ? 'line' : 'lines'
-    const linesDeletedPlural = linesDeleted === 1 ? 'line' : 'lines'
-    const linesAddedTitle = `${linesAdded} ${linesAddedPlural} added`
-    const linesDeletedTitle = `${linesDeleted} ${linesDeletedPlural} deleted`
 
     return (
       <>
         <TooltippedContent
           tagName="li"
           className="commit-summary-meta-item without-truncation lines-added"
-          tooltip={linesAddedTitle}
+          tooltip={`${formatCount(linesAdded, 'line')} added`}
         >
           +{linesAdded}
         </TooltippedContent>
         <TooltippedContent
           tagName="li"
           className="commit-summary-meta-item without-truncation lines-deleted"
-          tooltip={linesDeletedTitle}
+          tooltip={`${formatCount(linesDeleted, 'line')} deleted`}
         >
           -{linesDeleted}
         </TooltippedContent>
