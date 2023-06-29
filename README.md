@@ -52,6 +52,8 @@ Installers for various Linux distributions can be found on the
 
 ## Is GitHub Desktop right for me? What are the primary areas of focus?
 
+Of course Desktop is right for you!
+
 [This document](https://github.com/desktop/desktop/blob/development/docs/process/what-is-desktop.md) describes the focus of GitHub Desktop and who the product is most useful for.
 
 ## I have a problem with GitHub Desktop
