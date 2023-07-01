@@ -40,6 +40,7 @@ interface ICompareSidebarProps {
   readonly emoji: Map<string, string>
   readonly commitLookup: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
+  readonly askForConfirmationOnCheckoutCommit: boolean
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
   readonly selectedCommitShas: ReadonlyArray<string>
@@ -257,6 +258,7 @@ export class CompareSidebar extends React.Component<
         onCommitsSelected={this.onCommitsSelected}
         onScroll={this.onScroll}
         onCreateBranch={this.onCreateBranch}
+        onCheckoutCommit={this.onCheckoutCommit}
         onCreateTag={this.onCreateTag}
         onDeleteTag={this.onDeleteTag}
         onCherryPick={this.onCherryPick}
@@ -599,6 +601,20 @@ export class CompareSidebar extends React.Component<
       repository,
       targetCommit: commit,
     })
+  }
+
+  private onCheckoutCommit = (commit: CommitOneLine) => {
+    const { repository, dispatcher, askForConfirmationOnCheckoutCommit } =
+      this.props
+    if (!askForConfirmationOnCheckoutCommit) {
+      dispatcher.checkoutCommit(repository, commit)
+    } else {
+      dispatcher.showPopup({
+        type: PopupType.ConfirmCheckoutCommit,
+        commit: commit,
+        repository,
+      })
+    }
   }
 
   private onDeleteTag = (tagName: string) => {

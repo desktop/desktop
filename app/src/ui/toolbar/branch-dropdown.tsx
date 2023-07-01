@@ -158,15 +158,15 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     let progressValue: number | undefined = undefined
 
     if (checkoutProgress) {
-      title = checkoutProgress.targetBranch
-      description = __DARWIN__ ? 'Switching to Branch' : 'Switching to branch'
+      title = checkoutProgress.target
+      description = checkoutProgress.description
 
       if (checkoutProgress.value > 0) {
         const friendlyProgress = formatPercent(checkoutProgress.value)
         description = `${description} (${friendlyProgress})`
       }
 
-      tooltip = `Switching to ${checkoutProgress.targetBranch}`
+      tooltip = `Checking out ${checkoutProgress.target}`
       progressValue = checkoutProgress.value
       icon = syncClockwise
       iconClassName = 'spin'
