@@ -14,7 +14,10 @@ import { IMenuItem } from '../../lib/menu-item'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Draggable } from '../lib/draggable'
-import { enableResetToCommit } from '../../lib/feature-flag'
+import {
+  enableCheckoutCommit,
+  enableResetToCommit,
+} from '../../lib/feature-flag'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import {
   DragType,
@@ -32,11 +35,13 @@ interface ICommitProps {
   readonly canBeUndone: boolean
   readonly canBeAmended: boolean
   readonly canBeResetTo: boolean
+  readonly canBeCheckedOut: boolean
   readonly onResetToCommit?: (commit: Commit) => void
   readonly onUndoCommit?: (commit: Commit) => void
   readonly onRevertCommit?: (commit: Commit) => void
   readonly onViewCommitOnGitHub?: (sha: string) => void
   readonly onCreateBranch?: (commit: CommitOneLine) => void
+  readonly onCheckoutCommit?: (commit: CommitOneLine) => void
   readonly onCreateTag?: (targetCommitSha: string) => void
   readonly onDeleteTag?: (tagName: string) => void
   readonly onAmendCommit?: (commit: Commit, isLocalCommit: boolean) => void
@@ -302,6 +307,18 @@ export class CommitListItem extends React.PureComponent<
         },
         enabled:
           this.props.canBeResetTo && this.props.onResetToCommit !== undefined,
+      })
+    }
+
+    if (enableCheckoutCommit()) {
+      items.push({
+        label: __DARWIN__ ? 'Checkout Commit' : 'Checkout commit',
+        action: () => {
+          this.props.onCheckoutCommit?.(this.props.commit)
+        },
+        enabled:
+          this.props.canBeCheckedOut &&
+          this.props.onCheckoutCommit !== undefined,
       })
     }
 

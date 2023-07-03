@@ -51,6 +51,7 @@ interface IRepositoryViewProps {
   readonly showSideBySideDiff: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly askForConfirmationOnDiscardStash: boolean
+  readonly askForConfirmationOnCheckoutCommit: boolean
   readonly focusCommitMessage: boolean
   readonly commitSpellcheckEnabled: boolean
   readonly accounts: ReadonlyArray<Account>
@@ -299,6 +300,9 @@ export class RepositoryView extends React.Component<
         tagsToPush={tagsToPush}
         aheadBehindStore={aheadBehindStore}
         isMultiCommitOperationInProgress={mcos !== null}
+        askForConfirmationOnCheckoutCommit={
+          this.props.askForConfirmationOnCheckoutCommit
+        }
       />
     )
   }
