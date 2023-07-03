@@ -473,7 +473,6 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       ':not([type=submit])',
       ':not([type=reset])',
       ':not([type=hidden])',
-      ':not([type=checkbox])',
       ':not([type=radio])',
     ]
 
