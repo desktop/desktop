@@ -18,6 +18,7 @@ import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
 import memoizeOne from 'memoize-one'
 import {
+  getTotalRowCount,
   globalIndexToRowIndexPath,
   InvalidRowIndexPath,
   isValidRow,
@@ -439,7 +440,7 @@ export class SectionList extends React.Component<
   }
 
   private get totalRowCount() {
-    return this.props.rowCount.reduce((a, b) => a + b, 0)
+    return getTotalRowCount(this.props.rowCount)
   }
 
   private getRowId(indexPath: RowIndexPath): string | undefined {
