@@ -166,6 +166,8 @@ interface IFilterListState<T extends IFilterListItem> {
   readonly rows: ReadonlyArray<ReadonlyArray<IFilterListRow<T>>>
   readonly selectedRow: RowIndexPath
   readonly filterValue: string
+  // Indices of groups in the filtered list
+  readonly groups: ReadonlyArray<number>
 }
 
 /** A List which includes the ability to filter based on its contents. */
@@ -338,7 +340,7 @@ export class SectionFilterList<
           rowCount={this.state.rows.map(r => r.length)}
           rowRenderer={this.renderRow}
           sectionHasHeader={this.sectionHasHeader}
-          getSectionAriaLabel={this.props.getGroupAriaLabel}
+          getSectionAriaLabel={this.getGroupAriaLabel}
           rowHeight={this.props.rowHeight}
           selectedRows={
             rowIndexPathEquals(this.state.selectedRow, InvalidRowIndexPath)
@@ -362,6 +364,10 @@ export class SectionFilterList<
   private sectionHasHeader = (section: number) => {
     const rows = this.state.rows[section]
     return rows.length > 0 && rows[0].kind === 'group'
+  }
+
+  private getGroupAriaLabel = (group: number) => {
+    return this.props.getGroupAriaLabel?.(this.state.groups[group])
   }
 
   private renderRow = (index: RowIndexPath) => {
@@ -613,8 +619,9 @@ function createStateUpdate<T extends IFilterListItem>(
   let selectedRow = InvalidRowIndexPath
   let section = 0
   const selectedItem = props.selectedItem
+  const groupIndices = []
 
-  for (const group of props.groups) {
+  for (const [idx, group] of props.groups.entries()) {
     const groupRows = new Array<IFilterListRow<T>>()
     const items: ReadonlyArray<IMatch<T>> = filter
       ? match(filter, group.items, getText)
@@ -627,6 +634,8 @@ function createStateUpdate<T extends IFilterListItem>(
     if (!items.length) {
       continue
     }
+
+    groupIndices.push(idx)
 
     if (props.renderGroupHeader) {
       groupRows.push({ kind: 'group', identifier: group.identifier })
@@ -653,7 +662,7 @@ function createStateUpdate<T extends IFilterListItem>(
     selectedRow = getFirstVisibleRow(rows)
   }
 
-  return { rows: rows, selectedRow, filterValue: filter }
+  return { rows: rows, selectedRow, filterValue: filter, groups: groupIndices }
 }
 
 function getItemFromRowIndex<T extends IFilterListItem>(
