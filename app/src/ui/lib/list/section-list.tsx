@@ -70,7 +70,7 @@ interface ISectionListProps {
   readonly sectionHasHeader?: (section: number) => boolean
 
   /** Aria label for a section in the list. */
-  readonly sectionAriaLabel?: (section: number) => string | undefined
+  readonly getSectionAriaLabel?: (section: number) => string | undefined
 
   /**
    * The total number of rows in the list. This is used for
@@ -1264,7 +1264,7 @@ export class SectionList extends React.Component<
           ref={this.getOnGridRef(section)}
           autoContainerWidth={true}
           containerRole="presentation"
-          aria-label={this.props.sectionAriaLabel?.(section)}
+          aria-label={this.props.getSectionAriaLabel?.(section)}
           // Set the width and columnWidth to a hardcoded large value to prevent
           columnWidth={10000}
           width={10000}

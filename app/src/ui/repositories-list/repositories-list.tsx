@@ -243,7 +243,7 @@ export class RepositoriesList extends React.Component<
           ]
         : baseGroups
 
-    const groupAriaLabel = (group: number) => groups[group].identifier
+    const getGroupAriaLabel = (group: number) => groups[group].identifier
 
     const ListComponent = enableSectionList() ? SectionFilterList : FilterList
     const filterListProps: typeof ListComponent['prototype']['props'] = {
@@ -262,7 +262,7 @@ export class RepositoriesList extends React.Component<
         filterText: this.props.filterText,
       },
       onItemContextMenu: this.onItemContextMenu,
-      groupAriaLabel,
+      getGroupAriaLabel,
     }
 
     return (

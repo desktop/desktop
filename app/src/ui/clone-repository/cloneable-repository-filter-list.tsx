@@ -159,7 +159,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
     const { repositories, account, selectedItem } = this.props
 
     const groups = this.getRepositoryGroups(repositories, account.login)
-    const groupAriaLabel = (group: number) => {
+    const getGroupAriaLabel = (group: number) => {
       const groupIdentifier = groups[group].identifier
       return groupIdentifier === YourRepositoriesIdentifier
         ? this.getYourRepositoriesLabel()
@@ -183,7 +183,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
       renderPostFilter: this.renderPostFilter,
       onItemClick: this.props.onItemClicked ? this.onItemClick : undefined,
       placeholderText: 'Filter your repositories',
-      groupAriaLabel,
+      getGroupAriaLabel,
     }
 
     return <ListComponent {...filterListProps} />
