@@ -25,10 +25,8 @@ if (process.platform === 'darwin') {
   packageOSX()
 } else if (process.platform === 'win32') {
   packageWindows()
-} else if (process.platform === 'linux') {
-  packageLinux()
 } else {
-  console.error(`I dunno how to package for ${process.platform} :(`)
+  console.error(`I don't know how to package for ${process.platform} :(`)
   process.exit(1)
 }
 
@@ -126,28 +124,4 @@ function packageWindows() {
       console.error(`Error packaging: ${e}`)
       process.exit(1)
     })
-}
-
-function packageLinux() {
-  const electronBuilder = path.resolve(
-    __dirname,
-    '..',
-    'node_modules',
-    '.bin',
-    'electron-builder'
-  )
-
-  const configPath = path.resolve(__dirname, 'electron-builder-linux.yml')
-
-  const args = [
-    'build',
-    '--prepackaged',
-    distPath,
-    '--x64',
-    '--config',
-    configPath,
-  ]
-
-  console.log('Packaging for Linux…')
-  cp.spawnSync(electronBuilder, args, { stdio: 'inherit' })
 }
