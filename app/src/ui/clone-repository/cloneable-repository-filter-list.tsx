@@ -242,6 +242,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
         <div className="name" title={item.text[0]}>
           <HighlightText text={item.text[0]} highlight={matches.title} />
         </div>
+        {item.archived && <div className="archived">Archived</div>}
       </div>
     )
   }
