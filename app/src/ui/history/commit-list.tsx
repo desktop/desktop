@@ -7,6 +7,7 @@ import { List } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
 import { DragData, DragType } from '../../models/drag-drop'
 import classNames from 'classnames'
+import memoizeOne from 'memoize-one'
 
 const RowHeight = 50
 
@@ -69,6 +70,12 @@ interface ICommitListProps {
    * repository
    */
   readonly onCreateBranch?: (commit: CommitOneLine) => void
+
+  /**
+   * Callback to fire to checkout the selected commit in the current
+   * repository
+   */
+  readonly onCheckoutCommit?: (commit: CommitOneLine) => void
 
   /** Callback to fire to open the dialog to create a new tag on the given commit */
   readonly onCreateTag?: (targetCommitSha: string) => void
@@ -142,6 +149,11 @@ interface ICommitListProps {
 /** A component which displays the list of commits. */
 export class CommitList extends React.Component<ICommitListProps, {}> {
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
+  private commitIndexBySha = memoizeOne(
+    (commitSHAs: ReadonlyArray<string>) =>
+      new Map(commitSHAs.map((sha, index) => [sha, index]))
+  )
+
   private listRef = React.createRef<List>()
 
   private getVisibleCommits(): ReadonlyArray<Commit> {
@@ -196,6 +208,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         canBeResetTo={
           this.props.canResetToCommits === true && isResettableCommit
         }
+        canBeCheckedOut={row > 0} //Cannot checkout the current commit
         showUnpushedIndicator={showUnpushedIndicator}
         unpushedIndicatorTitle={this.getUnpushedIndicatorTitle(
           isLocal,
@@ -205,6 +218,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         commit={commit}
         emoji={this.props.emoji}
         onCreateBranch={this.props.onCreateBranch}
+        onCheckoutCommit={this.props.onCheckoutCommit}
         onCreateTag={this.props.onCreateTag}
         onDeleteTag={this.props.onDeleteTag}
         onCherryPick={this.props.onCherryPick}
@@ -345,13 +359,8 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     this.props.onCompareListScrolled?.(scrollTop)
   }
 
-  private rowForSHA(sha_: string | null): number {
-    const sha = sha_
-    if (!sha) {
-      return -1
-    }
-
-    return this.props.commitSHAs.findIndex(s => s === sha)
+  private rowForSHA(sha: string) {
+    return this.commitIndexBySha(this.props.commitSHAs).get(sha) ?? -1
   }
 
   private getRowCustomClassMap = () => {

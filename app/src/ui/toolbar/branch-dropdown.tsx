@@ -63,24 +63,22 @@ interface IBranchDropdownProps {
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
-}
-interface IBranchDropdownState {
-  readonly badgeBottom: number
+
+  /** Whether the dropdown will trap focus or not. Defaults to true.
+   *
+   * Example of usage: If a dropdown is open and then a dialog subsequently, the
+   * focus trap logic will stop propagation of the focus event to the dialog.
+   * Thus, we want to disable this when dialogs are open since they will be
+   * using the dialog focus management.
+   */
+  readonly enableFocusTrap: boolean
 }
 
 /**
  * A drop down for selecting the currently checked out branch.
  */
-export class BranchDropdown extends React.Component<
-  IBranchDropdownProps,
-  IBranchDropdownState
-> {
-  public constructor(props: IBranchDropdownProps) {
-    super(props)
-    this.state = {
-      badgeBottom: 0,
-    }
-  }
+export class BranchDropdown extends React.Component<IBranchDropdownProps> {
+  private badgeRef: HTMLElement | null = null
 
   private renderBranchFoldout = (): JSX.Element | null => {
     const repositoryState = this.props.repositoryState
@@ -117,7 +115,7 @@ export class BranchDropdown extends React.Component<
   }
 
   public render() {
-    const { repositoryState } = this.props
+    const { repositoryState, enableFocusTrap } = this.props
     const { branchesState, checkoutProgress, changesState } = repositoryState
     const { tip } = branchesState
     const { conflictState } = changesState
@@ -159,15 +157,15 @@ export class BranchDropdown extends React.Component<
     let progressValue: number | undefined = undefined
 
     if (checkoutProgress) {
-      title = checkoutProgress.targetBranch
-      description = __DARWIN__ ? 'Switching to Branch' : 'Switching to branch'
+      title = checkoutProgress.target
+      description = checkoutProgress.description
 
       if (checkoutProgress.value > 0) {
         const friendlyProgress = Math.round(checkoutProgress.value * 100)
         description = `${description} (${friendlyProgress}%)`
       }
 
-      tooltip = `Switching to ${checkoutProgress.targetBranch}`
+      tooltip = `Checking out ${checkoutProgress.target}`
       progressValue = checkoutProgress.value
       icon = syncClockwise
       iconClassName = 'spin'
@@ -207,6 +205,7 @@ export class BranchDropdown extends React.Component<
           onMouseEnter={this.onMouseEnter}
           onlyShowTooltipWhenOverflowed={true}
           isOverflowed={isDescriptionOverflowed}
+          enableFocusTrap={enableFocusTrap}
         >
           {this.renderPullRequestInfo()}
         </ToolbarDropdown>
@@ -306,10 +305,6 @@ export class BranchDropdown extends React.Component<
     this.openPopover()
   }
 
-  private updateBadgeBottomPosition = (badgeBottom: number) => {
-    this.setState({ badgeBottom })
-  }
-
   private openPopover = () => {
     this.props.dispatcher.setShowCIStatusPopover(true)
   }
@@ -361,10 +356,14 @@ export class BranchDropdown extends React.Component<
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
         branchName={currentBranchName}
-        badgeBottom={this.state.badgeBottom}
+        anchor={this.badgeRef}
         closePopover={this.closePopover}
       />
     )
+  }
+
+  private onBadgeRef = (ref: HTMLSpanElement | null) => {
+    this.badgeRef = ref
   }
 
   private renderPullRequestInfo() {
@@ -379,8 +378,8 @@ export class BranchDropdown extends React.Component<
         number={pr.pullRequestNumber}
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
+        onBadgeRef={this.onBadgeRef}
         onBadgeClick={this.onBadgeClick}
-        onBadgeBottomPositionUpdate={this.updateBadgeBottomPosition}
       />
     )
   }

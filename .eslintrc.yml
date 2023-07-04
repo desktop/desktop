@@ -123,7 +123,10 @@ rules:
   jsdoc/check-tag-names: error
   jsdoc/check-types: error
   jsdoc/implements-on-classes: error
-  jsdoc/newline-after-description: error
+  jsdoc/tag-lines:
+    - error
+    - any
+    - startLines: 1
   jsdoc/no-undefined-types: error
   jsdoc/valid-types: error
 
@@ -185,6 +188,21 @@ rules:
     # no-default-export
     - selector: ExportDefaultDeclaration
       message: Use of default exports is forbidden
+
+  ###########
+  # jsx-a11y #
+  ###########
+
+  # autofocus is fine when it is being used to set focus to something in a way
+  # that doesn't skip any context or inputs. For example, in a named dialog, if you had
+  # a close button, a heading reflecting the name, and a labelled text input,
+  # focusing the text input wouldn't disadvantage a user because they're not
+  # missing anything of importance before it.  The problem is when it is used on
+  # larger web pages, e.g. to focus a form field in the main content, entirely
+  # skipping the header and often much else besides.
+  jsx-a11y/no-autofocus:
+    - warn
+    - ignoreNonDOM: true
 
 overrides:
   - files: '*.d.ts'

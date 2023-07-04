@@ -1,13 +1,14 @@
 import * as React from 'react'
 
 import { CommittedFileChange } from '../../models/status'
-import { List } from '../lib/list'
+import { ClickSource, List } from '../lib/list'
 import { CommittedFileItem } from './committed-file-item'
 
 interface IFileListProps {
   readonly files: ReadonlyArray<CommittedFileChange>
   readonly selectedFile: CommittedFileChange | null
   readonly onSelectedFileChanged: (file: CommittedFileChange) => void
+  readonly onRowDoubleClick: (row: number, source: ClickSource) => void
   readonly availableWidth: number
   readonly onContextMenu?: (
     file: CommittedFileChange,
@@ -47,6 +48,7 @@ export class FileList extends React.Component<IFileListProps> {
           rowHeight={29}
           selectedRows={[this.rowForFile(this.props.selectedFile)]}
           onSelectedRowChanged={this.onSelectedRowChanged}
+          onRowDoubleClick={this.props.onRowDoubleClick}
         />
       </div>
     )

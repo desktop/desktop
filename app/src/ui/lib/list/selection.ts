@@ -87,7 +87,7 @@ export function findNextSelectableRow(
   }
 
   const { direction, row } = action
-  const wrap = action.wrap === undefined ? true : action.wrap
+  const wrap = action.wrap ?? true
 
   // Ensure the row value is in the range between 0 and rowCount - 1
   //

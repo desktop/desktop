@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Branch } from '../../models/branch'
+import { Branch, BranchType } from '../../models/branch'
 
 import { assertNever } from '../../lib/fatal-error'
 
@@ -20,6 +20,10 @@ import {
 } from './group-branches'
 import { NoBranches } from './no-branches'
 import { SelectionDirection, ClickSource } from '../lib/list'
+import { generateBranchContextMenuItems } from './branch-list-item-context-menu'
+import { showContextualMenu } from '../../lib/menu-item'
+import { enableSectionList } from '../../lib/feature-flag'
+import { SectionFilterList } from '../lib/section-filter-list'
 
 const RowHeight = 30
 
@@ -113,6 +117,12 @@ interface IBranchListProps {
 
   /** Optional: No branches message */
   readonly noBranchesMessage?: string | JSX.Element
+
+  /** Optional: Callback for if rename context menu should exist */
+  readonly onRenameBranch?: (branchName: string) => void
+
+  /** Optional: Callback for if delete context menu should exist */
+  readonly onDeleteBranch?: (branchName: string) => void
 }
 
 interface IBranchListState {
@@ -160,7 +170,10 @@ export class BranchList extends React.Component<
   IBranchListProps,
   IBranchListState
 > {
-  private branchFilterList: FilterList<IBranchListItem> | null = null
+  private branchFilterList:
+    | FilterList<IBranchListItem>
+    | SectionFilterList<IBranchListItem>
+    | null = null
 
   public constructor(props: IBranchListProps) {
     super(props)
@@ -178,7 +191,32 @@ export class BranchList extends React.Component<
   }
 
   public render() {
-    return (
+    return enableSectionList() ? (
+      <SectionFilterList<IBranchListItem>
+        ref={this.onBranchesFilterListRef}
+        className="branches-list"
+        rowHeight={RowHeight}
+        filterText={this.props.filterText}
+        onFilterTextChanged={this.props.onFilterTextChanged}
+        onFilterKeyDown={this.props.onFilterKeyDown}
+        selectedItem={this.state.selectedItem}
+        renderItem={this.renderItem}
+        renderGroupHeader={this.renderGroupHeader}
+        onItemClick={this.onItemClick}
+        onSelectionChanged={this.onSelectionChanged}
+        onEnterPressedWithoutFilteredItems={this.onCreateNewBranch}
+        groups={this.state.groups}
+        invalidationProps={this.props.allBranches}
+        renderPostFilter={this.onRenderNewButton}
+        renderNoItems={this.onRenderNoItems}
+        filterTextBox={this.props.textbox}
+        hideFilterRow={this.props.hideFilterRow}
+        onFilterListResultsChanged={this.props.onFilterListResultsChanged}
+        renderPreList={this.props.renderPreList}
+        onItemContextMenu={this.onBranchContextMenu}
+        getGroupAriaLabel={this.getGroupAriaLabel}
+      />
+    ) : (
       <FilterList<IBranchListItem>
         ref={this.onBranchesFilterListRef}
         className="branches-list"
@@ -200,12 +238,39 @@ export class BranchList extends React.Component<
         hideFilterRow={this.props.hideFilterRow}
         onFilterListResultsChanged={this.props.onFilterListResultsChanged}
         renderPreList={this.props.renderPreList}
+        onItemContextMenu={this.onBranchContextMenu}
       />
     )
   }
 
+  private onBranchContextMenu = (
+    item: IBranchListItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
+    event.preventDefault()
+
+    const { onRenameBranch, onDeleteBranch } = this.props
+    if (onRenameBranch === undefined && onDeleteBranch === undefined) {
+      return
+    }
+
+    const { type, name } = item.branch
+    const isLocal = type === BranchType.Local
+    const items = generateBranchContextMenuItems({
+      name,
+      isLocal,
+      onRenameBranch,
+      onDeleteBranch,
+    })
+
+    showContextualMenu(items)
+  }
+
   private onBranchesFilterListRef = (
-    filterList: FilterList<IBranchListItem> | null
+    filterList:
+      | FilterList<IBranchListItem>
+      | SectionFilterList<IBranchListItem>
+      | null
   ) => {
     this.branchFilterList = filterList
   }
@@ -223,6 +288,15 @@ export class BranchList extends React.Component<
       default:
         return null
     }
+  }
+
+  private getGroupAriaLabel = (group: number) => {
+    const GroupIdentifiers: ReadonlyArray<BranchGroupIdentifier> = [
+      'default',
+      'recent',
+      'other',
+    ]
+    return this.getGroupLabel(GroupIdentifiers[group])
   }
 
   private renderGroupHeader = (label: string) => {

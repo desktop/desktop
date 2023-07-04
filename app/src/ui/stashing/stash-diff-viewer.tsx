@@ -53,6 +53,13 @@ interface IStashDiffViewerProps {
 
   /** Called when the user requests to open a submodule. */
   readonly onOpenSubmodule: (fullPath: string) => void
+
+  /**
+   * Called to open a file using the user's configured applications
+   *
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenInExternalEditor: (path: string) => void
 }
 
 /**
@@ -64,10 +71,22 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
   private onSelectedFileChanged = (file: CommittedFileChange) =>
     this.props.dispatcher.selectStashedFile(this.props.repository, file)
 
+  private onRowDoubleClick = (row: number) => {
+    const files = this.getFiles()
+    const file = files[row]
+
+    this.props.onOpenInExternalEditor(file.path)
+  }
+
   private onResize = (width: number) =>
     this.props.dispatcher.setStashedFilesWidth(width)
 
   private onReset = () => this.props.dispatcher.resetStashedFilesWidth()
+
+  private getFiles = () =>
+    this.props.stashEntry.files.kind === StashedChangesLoadStates.Loaded
+      ? this.props.stashEntry.files.files
+      : new Array<CommittedFileChange>()
 
   public render() {
     const {
@@ -83,10 +102,7 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
       onChangeImageDiffType,
       onOpenSubmodule,
     } = this.props
-    const files =
-      stashEntry.files.kind === StashedChangesLoadStates.Loaded
-        ? stashEntry.files.files
-        : new Array<CommittedFileChange>()
+    const files = this.getFiles()
 
     const diffComponent =
       selectedStashedFile !== null ? (
@@ -133,6 +149,7 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
               onSelectedFileChanged={this.onSelectedFileChanged}
               selectedFile={selectedStashedFile}
               availableWidth={availableWidth}
+              onRowDoubleClick={this.onRowDoubleClick}
             />
           </Resizable>
           {diffComponent}

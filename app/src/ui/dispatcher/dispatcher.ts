@@ -694,6 +694,14 @@ export class Dispatcher {
     return this.appStore._checkoutBranch(repository, branch, strategy)
   }
 
+  /** Check out the given commit. */
+  public checkoutCommit(
+    repository: Repository,
+    commit: CommitOneLine
+  ): Promise<Repository> {
+    return this.appStore._checkoutCommit(repository, commit)
+  }
+
   /** Push the current branch. */
   public push(repository: Repository): Promise<void> {
     return this.appStore._push(repository)
@@ -2374,6 +2382,10 @@ export class Dispatcher {
     return this.appStore._setConfirmDiscardStashSetting(value)
   }
 
+  public setConfirmCheckoutCommitSetting(value: boolean) {
+    return this.appStore._setConfirmCheckoutCommitSetting(value)
+  }
+
   public setConfirmForcePushSetting(value: boolean) {
     return this.appStore._setConfirmForcePushSetting(value)
   }
@@ -3495,6 +3507,7 @@ export class Dispatcher {
       tip.branch.tip.sha
     )
 
+    this.closePopup(PopupType.CommitMessage)
     this.showPopup({
       type: PopupType.MultiCommitOperation,
       repository,
