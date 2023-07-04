@@ -94,7 +94,7 @@
     "rimraf": "^2.5.2",
     "sass": "^1.27.0",
     "sass-loader": "^10.0.3",
-    "semver": "^5.5.0",
+    "semver": "^7.5.2",
     "split2": "^3.2.2",
     "style-loader": "^3.3.1",
     "to-camel-case": "^1.0.0",
