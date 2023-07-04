@@ -96,3 +96,7 @@ export function enablePullRequestQuickView(): boolean {
 export function enableMoveStash(): boolean {
   return enableBetaFeatures()
 }
+
+export function enableSectionList(): boolean {
+  return enableDevelopmentFeatures()
+}
