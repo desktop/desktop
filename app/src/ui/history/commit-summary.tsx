@@ -19,6 +19,7 @@ import _ from 'lodash'
 import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
+import memoizeOne from 'memoize-one'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -38,7 +39,7 @@ interface ICommitSummaryProps {
 
   readonly onExpandChanged: (isExpanded: boolean) => void
 
-  readonly onDescriptionBottomChanged: (descriptionBottom: Number) => void
+  readonly onDescriptionBottomChanged: (descriptionBottom: number) => void
 
   readonly hideDescriptionBorder: boolean
 
@@ -141,21 +142,6 @@ function getCommitSummary(selectedCommits: ReadonlyArray<Commit>) {
     : selectedCommits[0].summary
 }
 
-function getCountCommitsNotInDiff(
-  selectedCommits: ReadonlyArray<Commit>,
-  shasInDiff: ReadonlyArray<string>
-) {
-  if (selectedCommits.length === 1) {
-    return 0
-  }
-
-  const excludedCommits = selectedCommits.filter(
-    ({ sha }) => !shasInDiff.includes(sha)
-  )
-
-  return excludedCommits.length
-}
-
 /**
  * Helper function which determines if two commit objects
  * have the same commit summary and body.
@@ -172,6 +158,23 @@ export class CommitSummary extends React.Component<
   private readonly resizeObserver: ResizeObserver | null = null
   private updateOverflowTimeoutId: NodeJS.Immediate | null = null
   private descriptionRef: HTMLDivElement | null = null
+
+  private getCountCommitsNotInDiff = memoizeOne(
+    (
+      selectedCommits: ReadonlyArray<Commit>,
+      shasInDiff: ReadonlyArray<string>
+    ) => {
+      if (selectedCommits.length === 1) {
+        return 0
+      } else {
+        const shas = new Set(shasInDiff)
+        return selectedCommits.reduce(
+          (acc, c) => acc + (shas.has(c.sha) ? 0 : 1),
+          0
+        )
+      }
+    }
+  )
 
   public constructor(props: ICommitSummaryProps) {
     super(props)
@@ -369,7 +372,7 @@ export class CommitSummary extends React.Component<
       return
     }
 
-    const excludedCommitsCount = getCountCommitsNotInDiff(
+    const excludedCommitsCount = this.getCountCommitsNotInDiff(
       selectedCommits,
       shasInDiff
     )
@@ -455,7 +458,7 @@ export class CommitSummary extends React.Component<
       )
     }
 
-    const commitsNotInDiff = getCountCommitsNotInDiff(
+    const commitsNotInDiff = this.getCountCommitsNotInDiff(
       selectedCommits,
       shasInDiff
     )

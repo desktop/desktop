@@ -181,6 +181,7 @@ export class CommitDragElement extends React.Component<
             canBeUndone={false}
             canBeAmended={false}
             canBeResetTo={false}
+            canBeCheckedOut={false}
             isLocal={false}
             showUnpushedIndicator={false}
           />

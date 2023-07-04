@@ -73,6 +73,11 @@ export function enableResetToCommit(): boolean {
   return enableDevelopmentFeatures()
 }
 
+/** Should we allow checking out a single commit? */
+export function enableCheckoutCommit(): boolean {
+  return enableBetaFeatures()
+}
+
 /** Should ci check runs show logs? */
 export function enableCICheckRunsLogs(): boolean {
   return false
@@ -85,5 +90,13 @@ export function enablePreviousTagSuggestions(): boolean {
 
 /** Should we show a pull-requests quick view? */
 export function enablePullRequestQuickView(): boolean {
+  return enableDevelopmentFeatures()
+}
+
+export function enableMoveStash(): boolean {
+  return enableBetaFeatures()
+}
+
+export function enableSectionList(): boolean {
   return enableDevelopmentFeatures()
 }
