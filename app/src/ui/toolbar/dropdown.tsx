@@ -114,7 +114,13 @@ export interface IToolbarDropdownProps {
   /** The button's style. Defaults to `ToolbarButtonStyle.Standard`. */
   readonly style?: ToolbarButtonStyle
 
-  /** Whether the dropdown will trap focus or not. Defaults to true. */
+  /** Whether the dropdown will trap focus or not. Defaults to true.
+   *
+   * Example of usage: If a dropdown is open and then a dialog subsequently, the
+   * focus trap logic will stop propagation of the focus event to the dialog.
+   * Thus, we want to disable this when dialogs are open since they will be
+   * using the HTML build in dialog focus management.
+   */
   readonly enableFocusTrap?: boolean
 
   /**
@@ -195,6 +201,13 @@ export interface IToolbarDropdownProps {
    * the tooltip.
    */
   readonly isOverflowed?: ((target: TooltipTarget) => boolean) | boolean
+
+  /**
+   * Typically the contents of a button serve the purpose of describing the
+   * buttons use. However, ariaLabel can be used if the contents do not suffice.
+   * Such as when a button wraps an image and there is no text.
+   */
+  readonly ariaLabel?: string
 }
 
 interface IToolbarDropdownState {
@@ -256,6 +269,9 @@ export class ToolbarDropdown extends React.Component<
       <ToolbarButton
         className="toolbar-dropdown-arrow-button"
         onClick={this.onToggleDropdownClick}
+        ariaExpanded={this.isOpen}
+        ariaHaspopup={true}
+        ariaLabel={this.props.ariaLabel}
       >
         {dropdownIcon}
       </ToolbarButton>
@@ -418,14 +434,11 @@ export class ToolbarDropdown extends React.Component<
       this.props.className
     )
 
-    const ariaExpanded = this.props.dropdownState === 'open' ? 'true' : 'false'
-
     return (
       <div
         className={className}
         onKeyDown={this.props.onKeyDown}
         role={this.props.role}
-        aria-expanded={ariaExpanded}
         onDragOver={this.props.onDragOver}
         ref={this.rootDiv}
       >
@@ -450,6 +463,11 @@ export class ToolbarDropdown extends React.Component<
             this.props.onlyShowTooltipWhenOverflowed
           }
           isOverflowed={this.props.isOverflowed}
+          ariaExpanded={
+            this.props.dropdownStyle === ToolbarDropdownStyle.MultiOption
+              ? undefined
+              : this.isOpen
+          }
           ariaHaspopup={this.props.buttonAriaHaspopup}
         >
           {this.props.children}

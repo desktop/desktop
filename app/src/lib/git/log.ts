@@ -16,7 +16,6 @@ import { getCaptures } from '../helpers/regex'
 import { createLogParser } from './git-delimiter-parser'
 import { revRange } from '.'
 import { forceUnwrap } from '../fatal-error'
-import { enableSubmoduleDiff } from '../feature-flag'
 
 // File mode 160000 is used by git specifically for submodules:
 // https://github.com/git/git/blob/v2.37.3/cache.h#L62-L69
@@ -27,10 +26,6 @@ function mapSubmoduleStatusFileModes(
   srcMode: string,
   dstMode: string
 ): SubmoduleStatus | undefined {
-  if (!enableSubmoduleDiff()) {
-    return undefined
-  }
-
   return srcMode === SubmoduleFileMode &&
     dstMode === SubmoduleFileMode &&
     status === 'M'

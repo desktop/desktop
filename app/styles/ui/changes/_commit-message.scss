@@ -16,6 +16,7 @@
     position: relative;
     display: flex;
     flex-direction: row;
+    column-gap: var(--spacing-half);
 
     .summary-field {
       flex: 1;
@@ -24,13 +25,6 @@
       input {
         width: 100%;
       }
-    }
-
-    .avatar {
-      flex-shrink: 0;
-      width: var(--text-field-height);
-      height: var(--text-field-height);
-      margin-right: var(--spacing-half);
     }
 
     &.with-length-hint input {

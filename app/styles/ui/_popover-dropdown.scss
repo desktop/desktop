@@ -12,11 +12,18 @@
   }
 
   .popover-dropdown-popover {
-    position: absolute;
     min-height: 200px;
     width: 365px;
-    padding: 0;
-    margin-top: 25px;
+
+    .popover-content {
+      padding: 0;
+    }
+
+    .popover-dropdown-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
 
     .popover-dropdown-header {
       padding: var(--spacing);
@@ -31,6 +38,8 @@
 
     .popover-dropdown-content {
       display: flex;
+      flex-grow: 1;
+      min-height: 0;
     }
   }
 }

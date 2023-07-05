@@ -36,13 +36,17 @@ export class ChangeRepositoryAlias extends React.Component<
         title={
           __DARWIN__ ? `${verb} Repository Alias` : `${verb} repository alias`
         }
+        ariaDescribedBy="change-repository-alias-description"
         onDismissed={this.props.onDismissed}
         onSubmit={this.changeAlias}
       >
         <DialogContent>
-          <p>Choose a new alias for the repository "{nameOf(repository)}". </p>
+          <p id="change-repository-alias-description">
+            Choose a new alias for the repository "{nameOf(repository)}".{' '}
+          </p>
           <p>
             <TextBox
+              ariaLabel="Alias"
               value={this.state.newAlias}
               onValueChanged={this.onNameChanged}
             />

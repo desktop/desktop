@@ -3,6 +3,13 @@
   padding: calc(var(--spacing) * 6);
   align-items: center;
 
+  > section {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 0;
+  }
+
   header {
     align-self: flex-start;
     margin-bottom: var(--spacing-quad);
@@ -43,13 +50,12 @@
       }
     }
 
-    ul.button-group {
-      list-style-type: none;
+    .button-group {
       margin: 0;
       padding: 0;
       flex-grow: 1;
 
-      li {
+      span {
         margin-bottom: var(--spacing);
         width: 100%;
 

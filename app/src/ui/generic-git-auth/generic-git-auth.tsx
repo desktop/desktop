@@ -7,6 +7,7 @@ import { RetryAction } from '../../models/retry-actions'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
+import { PasswordTextBox } from '../lib/password-text-box'
 
 interface IGenericGitAuthenticationProps {
   /** The hostname with which the user tried to authenticate. */
@@ -61,7 +62,6 @@ export class GenericGitAuthentication extends React.Component<
           <Row>
             <TextBox
               label="Username"
-              // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus={true}
               value={this.state.username}
               onValueChanged={this.onUsernameChange}
@@ -69,9 +69,8 @@ export class GenericGitAuthentication extends React.Component<
           </Row>
 
           <Row>
-            <TextBox
+            <PasswordTextBox
               label="Password"
-              type="password"
               value={this.state.password}
               onValueChanged={this.onPasswordChange}
             />

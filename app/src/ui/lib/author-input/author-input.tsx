@@ -179,14 +179,14 @@ export class AuthorInput extends React.Component<
         <div className="sr-only" aria-live="polite" aria-atomic="true">
           {this.state.lastActionDescription}
         </div>
-        <div id="author-input-label" className="label">
-          Co-Authors&nbsp;
-        </div>
         <div className="shadow-input" ref={this.shadowInputRef} />
+        <label id="author-input-label" className="label" htmlFor="author-input">
+          Co-Authors&nbsp;
+        </label>
         {this.renderAuthors()}
         <AutocompletingInput<UserHit>
+          elementId="author-input"
           placeholder="@username"
-          isCombobox={true}
           alwaysAutocomplete={true}
           autocompletionProviders={[this.props.autoCompleteProvider]}
           autocompleteItemFilter={this.getAutocompleteItemFilter(
@@ -194,7 +194,6 @@ export class AuthorInput extends React.Component<
           )}
           ref={this.autocompletingInputRef}
           onElementRef={this.onInputRef}
-          elementAriaLabelledBy="author-input-label"
           onAutocompleteItemSelected={this.onAutocompleteItemSelected}
           onValueChanged={this.onCoAuthorsValueChanged}
           onKeyDown={this.onInputKeyDown}
