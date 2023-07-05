@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react'
-import { Commit, CommitOneLine } from '../../models/commit'
+import { Commit } from '../../models/commit'
 import { GitHubRepository } from '../../models/github-repository'
 import { IAvatarUser, getAvatarUsersForCommit } from '../../models/avatar'
 import { RichText } from '../lib/rich-text'
@@ -23,7 +23,6 @@ interface ICommitProps {
   readonly commit: Commit
   readonly selectedCommits: ReadonlyArray<Commit>
   readonly emoji: Map<string, string>
-  readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
   readonly onRenderCommitDragElement?: (commit: Commit) => void
   readonly onRemoveDragElement?: () => void
   readonly onSquash?: (
