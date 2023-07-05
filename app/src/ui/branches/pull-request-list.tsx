@@ -289,11 +289,14 @@ export class PullRequestList extends React.Component<
   }
 
   private renderPostFilter = () => {
+    const tooltip = 'Refresh the list of pull requests'
+
     return (
       <Button
         disabled={this.props.isLoadingPullRequests}
         onClick={this.onRefreshPullRequests}
-        tooltip="Refresh the list of pull requests"
+        ariaLabel={tooltip}
+        tooltip={tooltip}
       >
         <Octicon
           symbol={syncClockwise}
