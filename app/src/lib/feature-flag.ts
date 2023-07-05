@@ -100,5 +100,5 @@ export function enableMoveStash(): boolean {
 export const enableCustomGitUserAgent = enableBetaFeatures
 
 export function enableSectionList(): boolean {
-  return enableDevelopmentFeatures()
+  return enableBetaFeatures()
 }
