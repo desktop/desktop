@@ -213,7 +213,7 @@ export class Preferences extends React.Component<
     return (
       <Dialog
         id="preferences"
-        title={__DARWIN__ ? 'Preferences' : 'Options'}
+        title={__DARWIN__ ? 'Settings' : 'Options'}
         onDismissed={this.onCancel}
         onSubmit={this.onSave}
       >

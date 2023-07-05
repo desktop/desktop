@@ -96,5 +96,3 @@ export function enablePullRequestQuickView(): boolean {
 export function enableMoveStash(): boolean {
   return enableBetaFeatures()
 }
-
-export const enableLocaleAwareFormatting = enableDevelopmentFeatures
