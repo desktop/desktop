@@ -1,5 +1,14 @@
 {
   "releases": {
+    "3.2.7-beta2": [
+      "[New] Checkout a commit from the History tab - #10068. Thanks @kitswas!",
+      "[New] Show when a repository has been archived in the clone dialog - #7183",
+      "[Fixed] \"Clone a Repository\" dialog list is keyboard navigable - #16977",
+      "[Improved] Checkboxes in dialogs can receive initial keyboard focus - #17014",
+      "[Improved] The progress state of the pull, push, fetch button is announced by screen readers - #16985",
+      "[Improved] Inline errors are consistently announced by screen readers - #16850",
+      "[Improved] Group title and position is correctly announced by screen readers in repository and branch lists - #16968"
+    ],
     "3.2.7-beta1": [
       "[Fixed] Recreate stash after renaming branch - #16442",
       "[Fixed] Improved performance when selecting and viewing a large number of commits - #16880",

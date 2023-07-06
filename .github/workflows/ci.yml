@@ -4,14 +4,58 @@ on:
   push:
     branches:
       - development
-      - __release-*
   pull_request:
+  workflow_call:
+    inputs:
+      repository:
+        default: desktop/desktop
+        required: false
+        type: string
+      ref:
+        required: true
+        type: string
+      upload-artifacts:
+        default: false
+        required: false
+        type: boolean
+      environment:
+        type: string
+        required: true
+    secrets:
+      DESKTOP_OAUTH_CLIENT_ID:
+      DESKTOP_OAUTH_CLIENT_SECRET:
+      APPLE_ID:
+      APPLE_ID_PASSWORD:
+      APPLE_APPLICATION_CERT:
+      APPLE_APPLICATION_CERT_PASSWORD:
+      WINDOWS_CERT_PFX:
+      WINDOWS_CERT_PASSWORD:
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.ref }}
+          submodules: recursive
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.17.1
+          cache: yarn
+      - run: yarn
+      - run: yarn validate-electron-version
+      - run: yarn lint
+      - run: yarn validate-changelog
+      - name: Ensure a clean working directory
+        run: git diff --name-status --exit-code
   build:
     name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
-    permissions: read-all
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -24,9 +68,13 @@ jobs:
           - os: windows-2019
             friendlyName: Windows
     timeout-minutes: 60
+    env:
+      RELEASE_CHANNEL: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v3
         with:
+          repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.ref }}
           submodules: recursive
       - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v3
@@ -39,20 +87,14 @@ jobs:
       - name: Get NodeJS node-gyp lib for Windows arm64
         if: ${{ matrix.os == 'windows-2019' && matrix.arch == 'arm64' }}
         run: .\script\download-nodejs-win-arm64.ps1 ${{ matrix.node }}
-
+      - name: Get app version
+        id: version
+        run: echo version=$(jq -r ".version" app/package.json) >> $GITHUB_OUTPUT
       - name: Install and build dependencies
         run: yarn
         env:
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
-      - name: Validate Electron version
-        run: yarn run validate-electron-version
-      - name: Lint
-        run: yarn lint
-      - name: Validate changelog
-        run: yarn validate-changelog
-      - name: Ensure a clean working directory
-        run: git diff --name-status --exit-code
       - name: Build production app
         run: yarn build:prod
         env:
@@ -61,8 +103,8 @@ jobs:
             ${{ secrets.DESKTOP_OAUTH_CLIENT_SECRET }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          APPLE_APPLICATION_CERT: ${{ secrets.APPLE_APPLICATION_CERT }}
+          KEY_PASSWORD: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
       - name: Prepare testing environment
@@ -74,15 +116,27 @@ jobs:
       - name: Run script tests
         if: matrix.arch == 'x64'
         run: yarn test:script
-      - name: Publish production app
-        run: yarn run publish
+      - name: Install Windows code signing certificate
+        if: ${{ runner.os == 'Windows' }}
+        shell: bash
+        env:
+          CERT_CONTENTS: ${{ secrets.WINDOWS_CERT_PFX }}
+        run: base64 -d <<<"$CERT_CONTENTS" > ./script/windows-certificate.pfx
+      - name: Package production app
+        run: yarn package
         env:
           npm_config_arch: ${{ matrix.arch }}
-          DESKTOPBOT_TOKEN: ${{ secrets.DESKTOPBOT_TOKEN }}
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          DEPLOYMENT_SECRET: ${{ secrets.DEPLOYMENT_SECRET }}
-          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          AZURE_STORAGE_ACCESS_KEY: ${{ secrets.AZURE_STORAGE_ACCESS_KEY }}
-          AZURE_BLOB_CONTAINER: ${{ secrets.AZURE_BLOB_CONTAINER }}
-          AZURE_STORAGE_URL: ${{ secrets.AZURE_STORAGE_URL }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        if: ${{ inputs.upload-artifacts }}
+        with:
+          name: ${{matrix.friendlyName}}-${{matrix.arch}}
+          path: |
+            dist/GitHub Desktop-${{matrix.arch}}.zip
+            dist/GitHubDesktop-${{ steps.version.outputs.version }}-${{matrix.arch}}-full.nupkg
+            dist/GitHubDesktop-${{ steps.version.outputs.version }}-${{matrix.arch}}-delta.nupkg
+            dist/GitHubDesktopSetup-${{matrix.arch}}.exe
+            dist/GitHubDesktopSetup-${{matrix.arch}}.msi
+            dist/bundle-size.json
+          if-no-files-found: error

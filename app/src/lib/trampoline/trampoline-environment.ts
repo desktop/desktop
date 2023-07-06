@@ -8,6 +8,27 @@ import {
   removePendingSSHSecretToStore,
   storePendingSSHSecret,
 } from '../ssh/ssh-secret-storage'
+import { GitProcess } from 'dugite'
+import memoizeOne from 'memoize-one'
+import { enableCustomGitUserAgent } from '../feature-flag'
+
+export const GitUserAgent = memoizeOne(() =>
+  // Can't use git() as that will call withTrampolineEnv which calls this method
+  GitProcess.exec(['--version'], process.cwd())
+    // https://github.com/git/git/blob/a9e066fa63149291a55f383cfa113d8bdbdaa6b3/help.c#L733-L739
+    .then(r => /git version (.*)/.exec(r.stdout)?.at(1))
+    .catch(e => {
+      log.warn(`Could not get git version information`, e)
+      return 'unknown'
+    })
+    .then(v => {
+      const suffix = __DEV__ ? `-${__SHA__.substring(0, 10)}` : ''
+      const ghdVersion = `GitHub Desktop/${__APP_VERSION__}${suffix}`
+      const { platform, arch } = process
+
+      return `git/${v} (${ghdVersion}; ${platform} ${arch})`
+    })
+)
 
 /**
  * Allows invoking a function with a set of environment variables to use when
@@ -42,6 +63,9 @@ export async function withTrampolineEnv<T>(
         DESKTOP_TRAMPOLINE_TOKEN: token,
         GIT_ASKPASS: getDesktopTrampolinePath(),
         DESKTOP_TRAMPOLINE_IDENTIFIER: TrampolineCommandIdentifier.AskPass,
+        ...(enableCustomGitUserAgent()
+          ? { GIT_USER_AGENT: await GitUserAgent() }
+          : {}),
 
         ...sshEnv,
       })
