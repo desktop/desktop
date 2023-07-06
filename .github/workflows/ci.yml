@@ -87,7 +87,9 @@ jobs:
       - name: Get NodeJS node-gyp lib for Windows arm64
         if: ${{ matrix.os == 'windows-2019' && matrix.arch == 'arm64' }}
         run: .\script\download-nodejs-win-arm64.ps1 ${{ matrix.node }}
-
+      - name: Get app version
+        id: version
+        run: echo version=$(jq -r ".version" app/package.json) >> $GITHUB_OUTPUT
       - name: Install and build dependencies
         run: yarn
         env:
@@ -132,7 +134,8 @@ jobs:
           name: ${{matrix.friendlyName}}-${{matrix.arch}}
           path: |
             dist/GitHub Desktop-${{matrix.arch}}.zip
-            dist/GitHubDesktop-*.nupkg
+            dist/GitHubDesktop-${{ steps.version.outputs.version }}-${{matrix.arch}}-full.nupkg
+            dist/GitHubDesktop-${{ steps.version.outputs.version }}-${{matrix.arch}}-delta.nupkg
             dist/GitHubDesktopSetup-${{matrix.arch}}.exe
             dist/GitHubDesktopSetup-${{matrix.arch}}.msi
             dist/bundle-size.json
