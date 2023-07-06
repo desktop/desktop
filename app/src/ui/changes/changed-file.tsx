@@ -60,6 +60,10 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
         ? 'partially included'
         : 'not included'
 
+    const pathScreenReaderMessage = `${path} ${mapStatus(
+      status
+    )} ${includedText}`
+
     return (
       <div className="file">
         <TooltippedContent
@@ -85,9 +89,9 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           ariaHidden={true}
         />
 
-        <AriaLiveContainer>
-          {path} {mapStatus(status)} {includedText}
-        </AriaLiveContainer>
+        <AriaLiveContainer
+          message={pathScreenReaderMessage}
+        ></AriaLiveContainer>
 
         <Octicon
           symbol={iconForStatus(status)}

@@ -1,7 +1,23 @@
 import { debounce } from 'lodash'
 import React, { Component } from 'react'
 
+export interface IAccessibleMessage {
+  /** A message presented via an aria-live component. */
+  screenReaderMessage: string
+
+  /** A message visually displayed to the user. */
+  displayedMessage: string | JSX.Element
+}
+
 interface IAriaLiveContainerProps {
+  /** The content that will be read by the screen reader.
+   *
+   * Original solution used props.children, but we ran into invisible tab
+   * issues when the message has a link. Thus, we are using a prop instead to
+   * require the message to be a string.
+   */
+  readonly message: string | null
+
   /**
    * There is a common pattern that we may need to announce a message in
    * response to user input. Unfortunately, aria-live announcements are
@@ -53,7 +69,7 @@ export class AriaLiveContainer extends Component<
     super(props)
 
     this.state = {
-      message: this.props.children !== null ? this.buildMessage() : null,
+      message: this.props.message !== null ? this.buildMessage() : null,
     }
   }
 
@@ -69,24 +85,6 @@ export class AriaLiveContainer extends Component<
     this.onTrackedInputChanged.cancel()
   }
 
-  /** If the children has a tab focusable element such as a link, then we get
-   * hidden tabs on the screen. For screen readers, we only need the text */
-  private getChildrenAsText(children: React.ReactNode): string {
-    return React.Children.map(children, child => {
-      if (React.isValidElement(child)) {
-        return this.getChildrenAsText(child.props.children)
-      }
-
-      if (typeof child === 'string' || typeof child === 'number') {
-        return child.toString()
-      }
-
-      // Assumes that a child is a react component, string , or number
-      // This will exclude all other children
-      return ' '
-    }).join('')
-  }
-
   private buildMessage() {
     // We need to toggle from two non-breaking spaces to one non-breaking space
     // because VoiceOver does not detect the empty string as a change.
@@ -94,7 +92,7 @@ export class AriaLiveContainer extends Component<
 
     return (
       <>
-        {this.getChildrenAsText(this.props.children)}
+        {this.props.message}
         {this.suffix}
       </>
     )
@@ -108,7 +106,7 @@ export class AriaLiveContainer extends Component<
         aria-live="polite"
         aria-atomic="true"
       >
-        {this.props.children ? this.state.message : ''}
+        {this.state.message}
       </div>
     )
   }

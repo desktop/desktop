@@ -539,6 +539,9 @@ export class CreateRepository extends React.Component<
         <InputError
           id="existing-repository-path-error"
           trackedUserInput={this.state.path + this.state.name}
+          ariaLiveMessage={
+            'This directory appears to be a Git repository. Would you like to add this repository instead?'
+          }
         >
           This directory appears to be a Git repository. Would you like to{' '}
           <LinkButton onClick={this.onAddRepositoryClicked}>
@@ -567,6 +570,8 @@ export class CreateRepository extends React.Component<
         <InputWarning
           id="readme-overwrite-warning"
           trackedUserInput={this.state.createWithReadme}
+          ariaLiveMessage="This directory contains a README.md file already. Checking
+          this box will result in the existing file being overwritten."
         >
           This directory contains a <Ref>README.md</Ref> file already. Checking
           this box will result in the existing file being overwritten.

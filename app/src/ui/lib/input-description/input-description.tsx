@@ -28,6 +28,8 @@ export interface IBaseInputDescriptionProps {
    * debounce the message.
    */
   readonly trackedUserInput?: string | boolean
+
+  readonly ariaLiveMessage?: string
 }
 
 export interface IInputDescriptionProps extends IBaseInputDescriptionProps {
@@ -82,15 +84,17 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
   private renderAriaLiveContainer() {
     if (
       InputDescriptionType.Caption ||
-      this.props.trackedUserInput === undefined
+      this.props.trackedUserInput === undefined ||
+      this.props.ariaLiveMessage === undefined
     ) {
       return null
     }
 
     return (
-      <AriaLiveContainer trackedUserInput={this.props.trackedUserInput}>
-        {this.props.children}
-      </AriaLiveContainer>
+      <AriaLiveContainer
+        message={this.props.ariaLiveMessage}
+        trackedUserInput={this.props.trackedUserInput}
+      ></AriaLiveContainer>
     )
   }
 

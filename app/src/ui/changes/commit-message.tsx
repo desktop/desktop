@@ -843,6 +843,9 @@ export class CommitMessage extends React.Component<
             </div>
           </>
         }
+        ariaLiveMessage={
+          'Great commit summaries contain fewer than 50 characters. Place extra information in the description field.'
+        }
         direction={TooltipDirection.NORTH}
         className="length-hint"
         tooltipClassName="length-hint-tooltip"
