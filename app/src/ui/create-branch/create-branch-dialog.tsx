@@ -345,13 +345,11 @@ export class CreateBranch extends React.Component<
     return __DARWIN__ ? 'Create Branch' : 'Create branch'
   }
 
-  private onBranchNameChange = async (name: string) => {
-    await this.updateBranchName(name)
+  private onBranchNameChange = (name: string) => {
+    this.updateBranchName(name)
   }
 
   private async updateBranchName(branchName: string) {
-    this.setState({ branchName })
-
     const alreadyExists =
       this.props.allBranches.findIndex(b => b.name === branchName) > -1
 
@@ -362,13 +360,14 @@ export class CreateBranch extends React.Component<
         }
       : null
 
-    if (branchName === this.state.branchName) {
-      this.setState({ currentError })
-
-      if (!currentError) {
-        await this.checkBranchRules(branchName)
-      }
+    if (!currentError) {
+      await this.checkBranchRules(branchName)
     }
+
+    this.setState({
+      branchName,
+      currentError,
+    })
   }
 
   private createBranch = async () => {
