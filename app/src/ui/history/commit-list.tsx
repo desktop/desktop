@@ -599,7 +599,9 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
 
   private canCherryPick(): boolean {
     const { onCherryPick, isMultiCommitOperationInProgress } = this.props
-    return onCherryPick !== undefined && isMultiCommitOperationInProgress === false
+    return (
+      onCherryPick !== undefined && isMultiCommitOperationInProgress === false
+    )
   }
 
   private canSquash(): boolean {
