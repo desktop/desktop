@@ -1,3 +1,8 @@
+export class RepoRulesMetadataFailures {
+  public failed: string[] = []
+  public bypassed: string[] = []
+}
+
 /**
  * Metadata restrictions for a specific type of rule, as multiple can
  * be configured at once and all apply to the branch.
@@ -21,14 +26,23 @@ export class RepoRulesMetadataRules {
   }
 
   /**
-   * Gets an array of human-readable rules that fail to match
-   * the provided input string. If the returned array is empty,
-   * then all rules match.
+   * Gets an object containing arrays of human-readable rules that
+   * fail to match the provided input string. If the returned object
+   * contains only empty arrays, then all rules pass.
    */
-  public getFailedRules(toMatch: string): string[] {
-    return this.rules
-      .filter(rule => !rule.matcher(toMatch))
-      .map(rule => rule.humanDescription)
+  public getFailedRules(toMatch: string): RepoRulesMetadataFailures {
+    const failures = new RepoRulesMetadataFailures()
+    for (const rule of this.rules) {
+      if (!rule.matcher(toMatch)) {
+        if (rule.enforced === 'bypass') {
+          failures.bypassed.push(rule.humanDescription)
+        } else {
+          failures.failed.push(rule.humanDescription)
+        }
+      }
+    }
+
+    return failures
   }
 }
 
@@ -43,20 +57,15 @@ export class RepoRulesInfo {
    * for simplicity. See the `parseRepoRules` function for
    * the full list.
    */
-  public basicCommitWarning = false
+  public basicCommitWarning: RepoRuleEnforced = false
 
   /**
    * If true, the branch's name conflicts with a rule and
    * cannot be created.
    */
-  public creationRestricted = false
+  public creationRestricted: RepoRuleEnforced = false
 
-  /**
-   * If true, the branch cannot be deleted.
-   */
-  public deletionRestricted = false
-  public pullRequestRequired = false
-  public forcePushesBlocked = false
+  public pullRequestRequired: RepoRuleEnforced = false
   public commitMessagePatterns = new RepoRulesMetadataRules()
   public commitAuthorEmailPatterns = new RepoRulesMetadataRules()
   public committerEmailPatterns = new RepoRulesMetadataRules()
@@ -64,6 +73,11 @@ export class RepoRulesInfo {
 }
 
 export interface IRepoRulesMetadataRule {
+  /**
+   * Whether this rule is enforced for the current user.
+   */
+  enforced: RepoRuleEnforced
+
   /**
    * Function that determines whether the provided string matches the rule.
    */
@@ -78,3 +92,4 @@ export interface IRepoRulesMetadataRule {
 }
 
 export type RepoRulesMetadataMatcher = (toMatch: string) => boolean
+export type RepoRuleEnforced = boolean | 'bypass'

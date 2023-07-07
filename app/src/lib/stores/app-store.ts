@@ -95,6 +95,7 @@ import {
   getEndpointForRepository,
   IAPIFullRepository,
   IAPIComment,
+  IAPIRepoRuleset,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -520,6 +521,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private pullRequestSuggestedNextAction:
     | PullRequestSuggestedNextAction
     | undefined = undefined
+
+  private cachedRepoRulesets = new Map<number, IAPIRepoRuleset>()
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -989,6 +992,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       notificationsEnabled: getNotificationsEnabled(),
       pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
       resizablePaneActive: this.resizablePaneActive,
+      cachedRepoRulesets: this.cachedRepoRulesets,
     }
   }
 
@@ -1153,12 +1157,47 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       let currentRepoRulesInfo = new RepoRulesInfo()
       if (supportsRepoRules(gitHubRepo.endpoint)) {
-        const repoRules = await api.fetchRepoRulesForBranch(
+        const slimRulesets = await api.fetchAllRepoRulesets(owner, name)
+
+        // ultimate goal here is to fetch all rulesets that apply to the repo
+        // so they're already cached when needed later on
+        if (slimRulesets?.length) {
+          const rulesetIds = slimRulesets.map(r => r.id)
+
+          const calls: Promise<IAPIRepoRuleset | null>[] = []
+          for (const id of rulesetIds) {
+            // check the cache and don't re-query any that are already in there
+            if (!this.cachedRepoRulesets.has(id)) {
+              calls.push(api.fetchRepoRuleset(owner, name, id))
+            }
+          }
+
+          if (calls.length > 0) {
+            const rulesets = await Promise.all(calls)
+
+            // temporary while API is being worked on, this for block will be completely deleted
+            // before this code is merged
+            for (const rs of rulesets) {
+              if (rs && rs.currentUserCanBypass == null) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                rs.currentUserCanBypass = rs.id % 2 === 0
+              }
+            }
+
+            this._updateCachedRepoRulesets(rulesets)
+          }
+        }
+
+        const branchRules = await api.fetchRepoRulesForBranch(
           owner,
           name,
           branchName
         )
-        currentRepoRulesInfo = parseRepoRules(repoRules)
+
+        if (branchRules.length > 0) {
+          currentRepoRulesInfo = parseRepoRules(branchRules, this.cachedRepoRulesets)
+        }
       }
 
       this.repositoryStateCache.updateChangesState(repository, () => ({
@@ -1166,6 +1205,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
         currentRepoRulesInfo,
       }))
       this.emitUpdate()
+    }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _updateCachedRepoRulesets(rulesets: Array<IAPIRepoRuleset | null>) {
+    for (const rs of rulesets) {
+      if (rs !== null) {
+        this.cachedRepoRulesets.set(rs.id, rs)
+      }
     }
   }
 

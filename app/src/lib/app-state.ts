@@ -47,6 +47,7 @@ import {
 import { IChangesetData } from './git'
 import { Popup } from '../models/popup'
 import { RepoRulesInfo } from '../models/repo-rules'
+import { IAPIRepoRuleset } from './api'
 
 export enum SelectionType {
   Repository,
@@ -324,6 +325,12 @@ export interface IAppState {
   readonly pullRequestSuggestedNextAction:
     | PullRequestSuggestedNextAction
     | undefined
+
+  /**
+   * Cached repo rulesets. Used to prevent repeatedly querying the same
+   * rulesets to check their bypass status.
+   */
+  readonly cachedRepoRulesets: ReadonlyMap<number, IAPIRepoRuleset>
 }
 
 export enum FoldoutType {

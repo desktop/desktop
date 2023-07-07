@@ -17,6 +17,7 @@ import { getConfigValue } from '../../lib/git/config'
 import { Repository } from '../../models/repository'
 import classNames from 'classnames'
 import { getRepoRulesLink } from '../../lib/helpers/repo-rules'
+import { RepoRulesMetadataFailures } from '../../models/repo-rules'
 
 export type CommitMessageAvatarWarningType =
   | 'none'
@@ -54,7 +55,7 @@ interface ICommitMessageAvatarProps {
    * List of validations that failed for repo rules. Only used if
    * {@link warningType} is 'disallowedEmail'.
    */
-  readonly emailRuleErrors?: ReadonlyArray<string>
+  readonly emailRuleFailures?: RepoRulesMetadataFailures
 
   /**
    * Name of the current branch
@@ -263,6 +264,7 @@ export class CommitMessageAvatar extends React.Component<
         ? ` for ${this.props.user.name}`
         : ''
 
+    // TODO bypasses update
     return (
       <>
         <Row>
@@ -289,7 +291,7 @@ export class CommitMessageAvatar extends React.Component<
                 this.props.repository.gitHubRepository,
                 this.props.branchName
               )}
-              : {this.props.emailRuleErrors?.join(', ')}.
+              : {this.props.emailRuleFailures?.failed.join(', ')}.
             </div>
           )}
         </Row>

@@ -13,6 +13,7 @@ import { ProgressDialog } from './dialog/progress-dialog'
 import { WarnForcePushDialog } from './dialog/warn-force-push-dialog'
 import { PopupType } from '../../models/popup'
 import { Account } from '../../models/account'
+import { IAPIRepoRuleset } from '../../lib/api'
 
 export interface IMultiCommitOperationProps {
   readonly repository: Repository
@@ -34,6 +35,7 @@ export interface IMultiCommitOperationProps {
   readonly askForConfirmationOnForcePush: boolean
 
   readonly accounts: ReadonlyArray<Account>
+  readonly cachedRepoRulesets: ReadonlyMap<number, IAPIRepoRuleset>
 
   /**
    * Callbacks for the conflict selection components to let the user jump out

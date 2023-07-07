@@ -4,11 +4,14 @@ import {
   RepoRulesInfo,
   IRepoRulesMetadataRule,
   RepoRulesMetadataMatcher,
+  RepoRuleEnforced,
 } from '../../models/repo-rules'
 import {
   APIRepoRuleMetadataOperator,
+  APIRepoRuleType,
   IAPIRepoRule,
   IAPIRepoRuleMetadataParameters,
+  IAPIRepoRuleset,
 } from '../api'
 import { GitHubRepository } from '../../models/github-repository'
 import { LinkButton } from '../../ui/lib/link-button'
@@ -40,50 +43,65 @@ export function getRepoRulesLink(
  * format.
  */
 export function parseRepoRules(
-  rules: ReadonlyArray<IAPIRepoRule>
+  rules: ReadonlyArray<IAPIRepoRule>,
+  rulesets: ReadonlyMap<number, IAPIRepoRuleset>
 ): RepoRulesInfo {
   const info = new RepoRulesInfo()
 
   for (const rule of rules) {
+    // if a ruleset is null/undefined, then act as if the rule doesn't exist because
+    // we don't know what will happen when they push
+    const ruleset = rulesets.get(rule.ruleset_id)
+    if (ruleset == null) {
+      continue
+    }
+
+    // a rule may be configured multiple times, and the strictest value always applies.
+    // since the rule will not exist in the API response if it's not enforced, we know
+    // we're always assigning either 'bypass' or true below. therefore, we only need
+    // to check if the existing value is true, otherwise it can always be overridden.
+    const enforced = ruleset.currentUserCanBypass ? 'bypass' : true
+
     switch (rule.type) {
-      case 'update':
-      case 'required_linear_history':
-      case 'required_deployments':
-      case 'required_signatures':
-      case 'required_status_checks':
-        info.basicCommitWarning = true
+      case APIRepoRuleType.Update:
+      case APIRepoRuleType.RequiredLinearHistory:
+      case APIRepoRuleType.RequiredDeployments:
+      case APIRepoRuleType.RequiredSignatures:
+      case APIRepoRuleType.RequiredStatusChecks:
+        info.basicCommitWarning =
+          info.basicCommitWarning !== true ? enforced : true
         break
 
-      case 'creation':
-        info.creationRestricted = true
+      case APIRepoRuleType.Creation:
+        info.creationRestricted =
+          info.creationRestricted !== true ? enforced : true
         break
 
-      case 'deletion':
-        info.deletionRestricted = true
+      case APIRepoRuleType.PullRequest:
+        info.pullRequestRequired =
+          info.pullRequestRequired !== true ? enforced : true
         break
 
-      case 'pull_request':
-        info.pullRequestRequired = true
+      case APIRepoRuleType.CommitMessagePattern:
+        info.commitMessagePatterns.push(
+          toMetadataRule(rule.parameters, enforced)
+        )
         break
 
-      case 'non_fast_forward':
-        info.forcePushesBlocked = true
+      case APIRepoRuleType.CommitAuthorEmailPattern:
+        info.commitAuthorEmailPatterns.push(
+          toMetadataRule(rule.parameters, enforced)
+        )
         break
 
-      case 'commit_message_pattern':
-        info.commitMessagePatterns.push(toMetadataRule(rule.parameters))
+      case APIRepoRuleType.CommitterEmailPattern:
+        info.committerEmailPatterns.push(
+          toMetadataRule(rule.parameters, enforced)
+        )
         break
 
-      case 'commit_author_email_pattern':
-        info.commitAuthorEmailPatterns.push(toMetadataRule(rule.parameters))
-        break
-
-      case 'committer_email_pattern':
-        info.committerEmailPatterns.push(toMetadataRule(rule.parameters))
-        break
-
-      case 'branch_name_pattern':
-        info.branchNamePatterns.push(toMetadataRule(rule.parameters))
+      case APIRepoRuleType.BranchNamePattern:
+        info.branchNamePatterns.push(toMetadataRule(rule.parameters, enforced))
         break
     }
   }
@@ -92,13 +110,15 @@ export function parseRepoRules(
 }
 
 function toMetadataRule(
-  apiParams: IAPIRepoRuleMetadataParameters | undefined
+  apiParams: IAPIRepoRuleMetadataParameters | undefined,
+  enforced: RepoRuleEnforced
 ): IRepoRulesMetadataRule | undefined {
   if (!apiParams) {
     return undefined
   }
 
   return {
+    enforced,
     matcher: toMatcher(apiParams),
     humanDescription: toHumanDescription(apiParams),
   }

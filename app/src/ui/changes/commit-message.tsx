@@ -40,7 +40,7 @@ import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
 import { ToggledtippedContent } from '../lib/toggletipped-content'
 import { PreferencesTab } from '../../models/preferences'
-import { RepoRulesInfo } from '../../models/repo-rules'
+import { RepoRulesInfo, RepoRulesMetadataFailures } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
 import { getRepoRulesLink } from '../../lib/helpers/repo-rules'
 
@@ -445,10 +445,11 @@ export class CommitMessage extends React.Component<
     const email = commitAuthor?.email
 
     let warningType: CommitMessageAvatarWarningType = 'none'
-    let ruleErrors: string[] = []
+    let ruleFailures = new RepoRulesMetadataFailures()
     if (email !== undefined) {
-      ruleErrors = repoRulesInfo.commitAuthorEmailPatterns.getFailedRules(email)
-      if (ruleErrors.length > 0) {
+      ruleFailures = repoRulesInfo.commitAuthorEmailPatterns.getFailedRules(email)
+      // TODO bypasses update
+      if (ruleFailures.failed.length > 0) {
         warningType = 'disallowedEmail'
       } else if (
         repositoryAccount !== null &&
@@ -467,7 +468,7 @@ export class CommitMessage extends React.Component<
           repositoryAccount?.endpoint !== getDotComAPIEndpoint()
         }
         warningType={warningType}
-        emailRuleErrors={ruleErrors}
+        emailRuleFailures={ruleFailures}
         branchName={this.props.branch}
         accountEmails={accountEmails}
         preferredAccountEmail={
@@ -699,9 +700,10 @@ export class CommitMessage extends React.Component<
       toMatch += `\n\n${trimmedDescription}`
     }
 
+    // TODO bypasses update
     const failedRules =
       repoRulesInfo.commitMessagePatterns.getFailedRules(toMatch)
-    if (failedRules.length > 0) {
+    if (failedRules.failed.length > 0) {
       return (
         <CommitWarning
           icon={CommitWarningIcon.Warning}
@@ -709,7 +711,7 @@ export class CommitMessage extends React.Component<
         >
           This message does not meet the requirements of{' '}
           {getRepoRulesLink(this.props.repository.gitHubRepository, branch)} for
-          the branch <strong>{branch}</strong>: {failedRules.join(', ')}.
+          the branch <strong>{branch}</strong>: {failedRules.failed.join(', ')}.
         </CommitWarning>
       )
     } else {
@@ -790,7 +792,7 @@ export class CommitMessage extends React.Component<
       aheadBehind === null &&
       branch !== null &&
       (repoRulesInfo.creationRestricted ||
-        repoRulesInfo.branchNamePatterns.getFailedRules(branch).length > 0)
+        repoRulesInfo.branchNamePatterns.getFailedRules(branch).failed.length > 0)
     ) {
       // if aheadBehind is null, then the branch hasn't been published
       return (

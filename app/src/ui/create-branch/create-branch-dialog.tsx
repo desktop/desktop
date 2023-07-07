@@ -29,9 +29,8 @@ import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { isRepositoryWithForkedGitHubRepository } from '../../models/repository'
 import { debounce } from 'lodash'
-import { API } from '../../lib/api'
+import { API, APIRepoRuleType, IAPIRepoRuleset } from '../../lib/api'
 import { Account } from '../../models/account'
-import { parseRepoRules } from '../../lib/helpers/repo-rules'
 import { getAccountForRepository } from '../../lib/get-account-for-repository'
 import { supportsRepoRules } from '../../lib/endpoint-capabilities'
 
@@ -40,6 +39,7 @@ interface ICreateBranchProps {
   readonly targetCommit?: CommitOneLine
   readonly upstreamGitHubRepository: GitHubRepository | null
   readonly accounts: ReadonlyArray<Account>
+  readonly cachedRepoRulesets: ReadonlyMap<number, IAPIRepoRuleset>
   readonly dispatcher: Dispatcher
   readonly onBranchCreatedFromCommit?: () => void
   readonly onDismissed: () => void
@@ -70,7 +70,7 @@ interface ICreateBranchProps {
 }
 
 interface ICreateBranchState {
-  readonly currentError: { error: Error; isBlocking: boolean } | null
+  readonly currentError: { error: Error; isWarning: boolean } | null
   readonly branchName: string
   readonly startPoint: StartPoint
 
@@ -108,6 +108,13 @@ export class CreateBranch extends React.Component<
   ICreateBranchProps,
   ICreateBranchState
 > {
+  /**
+   * Checks repo rules to see if the provided branch name is valid for the
+   * current user and repository. The "get all rules for a branch" endpoint
+   * is called first, and if a "creation" or "branch name" rule is found,
+   * then those rulesets are checked to see if the current user can bypass
+   * them.
+   */
   private checkBranchRules = debounce(async (branchName: string) => {
     if (
       this.props.accounts.length === 0 ||
@@ -135,28 +142,51 @@ export class CreateBranch extends React.Component<
       branchName
     )
 
-    if (branchRules.length === 0) {
+    // filter the rules to only the relevant ones and get their IDs. use a Set to dedupe.
+    const toCheckForBypass = new Set(
+      branchRules
+        .filter(
+          r =>
+            r.type === APIRepoRuleType.Creation ||
+            r.type === APIRepoRuleType.BranchNamePattern
+        )
+        .map(r => r.ruleset_id)
+    )
+
+    // there are no relevant rules for this branch name, so return
+    if (toCheckForBypass.size === 0) {
       return
     }
 
-    let errMsg: string | null = null
-    const parsedRules = parseRepoRules(branchRules)
+    // check cached rulesets to see which ones the user can bypass
+    let cannotBypass = false
+    for (const id of toCheckForBypass) {
+      const rs = this.props.cachedRepoRulesets.get(id)
 
-    if (parsedRules.creationRestricted) {
-      errMsg = `Branch name '${branchName}' is restricted by repo rules`
-    } else if (parsedRules.branchNamePatterns.hasRules) {
-      const errors = parsedRules.branchNamePatterns.getFailedRules(branchName)
-
-      if (errors.length > 0) {
-        errMsg = `Branch name '${branchName}' may be restricted by repo rules: ${errors.join(
-          '. '
-        )}`
+      if (!rs?.currentUserCanBypass) {
+        // the user cannot bypass, so stop checking
+        cannotBypass = true
+        break
       }
     }
 
-    if (errMsg && branchName === this.state.branchName) {
+    if (cannotBypass) {
       this.setState({
-        currentError: { error: new Error(errMsg), isBlocking: false },
+        currentError: {
+          error: new Error(
+            `Branch name '${branchName}' is restricted by repo rules`
+          ),
+          isWarning: false,
+        },
+      })
+    } else {
+      this.setState({
+        currentError: {
+          error: new Error(
+            `Branch name '${branchName}' is restricted by repo rules, but you are able to bypass them. Proceed with caution!`
+          ),
+          isWarning: true,
+        },
       })
     }
   }, 500)
@@ -259,7 +289,7 @@ export class CreateBranch extends React.Component<
   public render() {
     const disabled =
       this.state.branchName.length <= 0 ||
-      (!!this.state.currentError && this.state.currentError.isBlocking) ||
+      (!!this.state.currentError && !this.state.currentError.isWarning) ||
       /^\s*$/.test(this.state.branchName)
     const error = this.state.currentError?.error
 
@@ -328,7 +358,7 @@ export class CreateBranch extends React.Component<
     const currentError = alreadyExists
       ? {
           error: new Error(`A branch named ${branchName} already exists`),
-          isBlocking: true,
+          isWarning: false,
         }
       : null
 
@@ -358,7 +388,7 @@ export class CreateBranch extends React.Component<
         this.setState({
           currentError: {
             error: new Error('Could not determine the default branch'),
-            isBlocking: true,
+            isWarning: false,
           },
         })
         return
@@ -372,7 +402,7 @@ export class CreateBranch extends React.Component<
         this.setState({
           currentError: {
             error: new Error('Could not determine the default branch'),
-            isBlocking: true,
+            isWarning: false,
           },
         })
         return

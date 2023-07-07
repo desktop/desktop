@@ -5,6 +5,7 @@ import {
   IAPIPullRequest,
   IAPIFullRepository,
   IAPICheckSuite,
+  IAPIRepoRuleset,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -4063,5 +4064,9 @@ export class Dispatcher {
 
   public appFocusedElementChanged() {
     this.appStore._appFocusedElementChanged()
+  }
+
+  public updateCachedRepoRulesets(rulesets: Array<IAPIRepoRuleset | null>) {
+    this.appStore._updateCachedRepoRulesets(rulesets)
   }
 }

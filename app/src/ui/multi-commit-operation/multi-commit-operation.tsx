@@ -30,6 +30,7 @@ export class MultiCommitOperation extends React.Component<IMultiCommitOperationP
               this.props.askForConfirmationOnForcePush
             }
             accounts={this.props.accounts}
+            cachedRepoRulesets={this.props.cachedRepoRulesets}
             openFileInExternalEditor={this.props.openFileInExternalEditor}
             resolvedExternalEditor={this.props.resolvedExternalEditor}
             openRepositoryInShell={this.props.openRepositoryInShell}
@@ -48,6 +49,7 @@ export class MultiCommitOperation extends React.Component<IMultiCommitOperationP
               this.props.askForConfirmationOnForcePush
             }
             accounts={this.props.accounts}
+            cachedRepoRulesets={this.props.cachedRepoRulesets}
             openFileInExternalEditor={this.props.openFileInExternalEditor}
             resolvedExternalEditor={this.props.resolvedExternalEditor}
             openRepositoryInShell={this.props.openRepositoryInShell}
@@ -66,6 +68,7 @@ export class MultiCommitOperation extends React.Component<IMultiCommitOperationP
               this.props.askForConfirmationOnForcePush
             }
             accounts={this.props.accounts}
+            cachedRepoRulesets={this.props.cachedRepoRulesets}
             openFileInExternalEditor={this.props.openFileInExternalEditor}
             resolvedExternalEditor={this.props.resolvedExternalEditor}
             openRepositoryInShell={this.props.openRepositoryInShell}

@@ -1714,6 +1714,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             targetCommit={popup.targetCommit}
             upstreamGitHubRepository={upstreamGhRepo}
             accounts={this.state.accounts}
+            cachedRepoRulesets={this.state.cachedRepoRulesets}
             onBranchCreatedFromCommit={this.onBranchCreatedFromCommit}
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
@@ -2199,6 +2200,7 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnForcePush
             }
             accounts={this.state.accounts}
+            cachedRepoRulesets={this.state.cachedRepoRulesets}
             openFileInExternalEditor={this.openFileInExternalEditor}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}
