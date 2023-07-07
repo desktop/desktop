@@ -30,6 +30,8 @@ import { PopupType } from '../../models/popup'
 import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
+import { formatCount } from '../../lib/format-count'
+import { formatCommitCount } from '../../lib/format-commit-count'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -658,6 +660,10 @@ export class CompareSidebar extends React.Component<
 
     this.props.dispatcher.recordSquashInvoked(isInvokedByContextMenu)
 
+    const title = __DARWIN__
+      ? `Squash ${formatCount(allCommitsInSquash.length, 'Commit')}`
+      : `Squash ${formatCommitCount(allCommitsInSquash.length)}`
+
     this.props.dispatcher.showPopup({
       type: PopupType.CommitMessage,
       repository: this.props.repository,
@@ -667,8 +673,8 @@ export class CompareSidebar extends React.Component<
         summary: squashOnto.summary,
         description: squashedDescription,
       },
-      dialogTitle: `Squash ${allCommitsInSquash.length} Commits`,
-      dialogButtonText: `Squash ${allCommitsInSquash.length} Commits`,
+      dialogTitle: title,
+      dialogButtonText: title,
       prepopulateCommitSummary: true,
       onSubmitCommitMessage: async (context: ICommitContext) => {
         this.props.dispatcher.squash(

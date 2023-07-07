@@ -1,4 +1,4 @@
-import { round } from './round'
+import { formatNumber } from '../../lib/format-number'
 
 const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
 
@@ -16,17 +16,22 @@ const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
  *
  * @param bytes       - The number of bytes to reformat into human
  *                      readable form
- * @param decimals    - The number of decimals to round the result
+ * @param precision   - The number of decimals to round the result
  *                      to, defaults to zero
  * @param fixed       - Whether to always include the desired number
  *                      of decimals even though the number could be
  *                      made more compact by removing trailing zeroes.
  */
-export function formatBytes(bytes: number, decimals = 0, fixed = true) {
+export function formatBytes(bytes: number, precision = 0, fixed = true) {
   if (!Number.isFinite(bytes)) {
     return `${bytes}`
   }
+
   const unitIx = Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024))
-  const value = round(bytes / Math.pow(1024, unitIx), decimals)
-  return `${fixed ? value.toFixed(decimals) : value} ${units[unitIx]}`
+  const formatted = formatNumber(bytes / Math.pow(1024, unitIx), {
+    minimumFractionDigits: fixed ? precision : 0,
+    maximumFractionDigits: precision,
+  })
+
+  return `${formatted} ${units[unitIx]}`
 }

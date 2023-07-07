@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Repository } from '../../models/repository'
 import { Ref } from '../lib/ref'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { formatCount } from '../../lib/format-count'
 
 interface IPushBranchCommitsProps {
   readonly dispatcher: Dispatcher
@@ -28,23 +29,6 @@ interface IPushBranchCommitsState {
    * spinner and disables form controls for the duration of the operation.
    */
   readonly isPushingOrPublishing: boolean
-}
-
-/**
- * Returns a string used for communicating the number of commits
- * that will be pushed to the user.
- *
- * @param numberOfCommits The number of commits that will be pushed
- * @param unit            A string written in such a way that without
- *                        modification it can be paired with the digit 1
- *                        such as 'commit' and which, when a 's' is appended
- *                        to it can be paired with a zero digit or a number
- *                        greater than one.
- */
-function pluralize(numberOfCommits: number, unit: string) {
-  return numberOfCommits === 1
-    ? `${numberOfCommits} ${unit}`
-    : `${numberOfCommits} ${unit}s`
 }
 
 /**
@@ -95,19 +79,20 @@ export class PushBranchCommits extends React.Component<
   }
 
   private renderDialogContent() {
-    if (renderPublishView(this.props.unPushedCommits)) {
+    const { unPushedCommits, branch } = this.props
+    if (renderPublishView(unPushedCommits)) {
       return (
         <DialogContent>
           <p>Your branch must be published before opening a pull request.</p>
           <p>
-            Would you like to publish <Ref>{this.props.branch.name}</Ref> now
-            and open a pull request?
+            Would you like to publish <Ref>{branch.name}</Ref> now and open a
+            pull request?
           </p>
         </DialogContent>
       )
     }
 
-    const localCommits = pluralize(this.props.unPushedCommits, 'local commit')
+    const localCommits = formatCount(unPushedCommits, 'local commit')
 
     return (
       <DialogContent>
@@ -115,8 +100,8 @@ export class PushBranchCommits extends React.Component<
           You have {localCommits} that haven't been pushed to the remote yet.
         </p>
         <p>
-          Would you like to push your changes to{' '}
-          <Ref>{this.props.branch.name}</Ref> before creating your pull request?
+          Would you like to push your changes to <Ref>{branch.name}</Ref> before
+          creating your pull request?
         </p>
       </DialogContent>
     )
