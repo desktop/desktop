@@ -16,18 +16,15 @@ import {
 import { GitHubRepository } from '../../models/github-repository'
 import { LinkButton } from '../../ui/lib/link-button'
 
+/**
+ * Gets a link to the webpage showing all repo rules that apply to
+ * the provided branch.
+ */
 export function getRepoRulesLink(
   repo: GitHubRepository | null,
   branchName: string | null,
-  capitalize?: boolean
+  text = 'one or more rules',
 ): string | JSX.Element {
-  let text = 'one'
-  if (capitalize) {
-    text = 'One'
-  }
-
-  text += ' or more rules'
-
   if (!repo || !branchName) {
     return text
   }
@@ -35,6 +32,18 @@ export function getRepoRulesLink(
   const link = `${repo.htmlURL}/rules/?ref=${encodeURIComponent(
     'refs/heads/' + branchName
   )}`
+  return React.createElement(LinkButton, { uri: link }, text)
+}
+
+/**
+ * Gets a link to the webpage for the ruleset with the provided ID within the provided repo.
+ */
+export function getRepoRulesetLink(
+  repo: GitHubRepository,
+  rulesetID: number,
+  text = 'source'
+): JSX.Element {
+  const link = `${repo.htmlURL}/rules/${rulesetID}`
   return React.createElement(LinkButton, { uri: link }, text)
 }
 
@@ -84,24 +93,24 @@ export function parseRepoRules(
 
       case APIRepoRuleType.CommitMessagePattern:
         info.commitMessagePatterns.push(
-          toMetadataRule(rule.parameters, enforced)
+          toMetadataRule(rule, enforced)
         )
         break
 
       case APIRepoRuleType.CommitAuthorEmailPattern:
         info.commitAuthorEmailPatterns.push(
-          toMetadataRule(rule.parameters, enforced)
+          toMetadataRule(rule, enforced)
         )
         break
 
       case APIRepoRuleType.CommitterEmailPattern:
         info.committerEmailPatterns.push(
-          toMetadataRule(rule.parameters, enforced)
+          toMetadataRule(rule, enforced)
         )
         break
 
       case APIRepoRuleType.BranchNamePattern:
-        info.branchNamePatterns.push(toMetadataRule(rule.parameters, enforced))
+        info.branchNamePatterns.push(toMetadataRule(rule, enforced))
         break
     }
   }
@@ -110,17 +119,18 @@ export function parseRepoRules(
 }
 
 function toMetadataRule(
-  apiParams: IAPIRepoRuleMetadataParameters | undefined,
+  rule: IAPIRepoRule | undefined,
   enforced: RepoRuleEnforced
 ): IRepoRulesMetadataRule | undefined {
-  if (!apiParams) {
+  if (!rule?.parameters) {
     return undefined
   }
 
   return {
     enforced,
-    matcher: toMatcher(apiParams),
-    humanDescription: toHumanDescription(apiParams),
+    matcher: toMatcher(rule.parameters),
+    humanDescription: toHumanDescription(rule.parameters),
+    rulesetId: rule.ruleset_id,
   }
 }
 

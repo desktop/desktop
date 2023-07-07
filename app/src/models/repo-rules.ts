@@ -1,6 +1,27 @@
+export type RepoRulesMetadataStatus = 'pass' | 'fail' | 'bypass'
+export type RepoRulesMetadataFailure = { description: string; rulesetId: number }
+
 export class RepoRulesMetadataFailures {
-  public failed: string[] = []
-  public bypassed: string[] = []
+  public failed: RepoRulesMetadataFailure[] = []
+  public bypassed: RepoRulesMetadataFailure[] = []
+
+  /**
+   * Returns the status of the rule based on its failures.
+   * 'pass' means all rules passed, 'bypass' means some rules failed
+   * but the user can bypass all of the failures, and 'fail' means
+   * at least one rule failed that the user cannot bypass.
+   */
+  public get status(): RepoRulesMetadataStatus {
+    if (this.failed.length === 0) {
+      if (this.bypassed.length === 0) {
+        return 'pass'
+      }
+
+      return 'bypass'
+    }
+
+    return 'fail'
+  }
 }
 
 /**
@@ -35,9 +56,9 @@ export class RepoRulesMetadataRules {
     for (const rule of this.rules) {
       if (!rule.matcher(toMatch)) {
         if (rule.enforced === 'bypass') {
-          failures.bypassed.push(rule.humanDescription)
+          failures.bypassed.push({ description: rule.humanDescription, rulesetId: rule.rulesetId })
         } else {
-          failures.failed.push(rule.humanDescription)
+          failures.failed.push({ description: rule.humanDescription, rulesetId: rule.rulesetId })
         }
       }
     }
@@ -89,6 +110,11 @@ export interface IRepoRulesMetadataRule {
    * of 'must not start with "abc"'.
    */
   humanDescription: string
+
+  /**
+   * ID of the ruleset this rule is configured in.
+   */
+  rulesetId: number
 }
 
 export type RepoRulesMetadataMatcher = (toMatch: string) => boolean

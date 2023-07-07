@@ -40,9 +40,10 @@ import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
 import { ToggledtippedContent } from '../lib/toggletipped-content'
 import { PreferencesTab } from '../../models/preferences'
-import { RepoRulesInfo, RepoRulesMetadataFailures } from '../../models/repo-rules'
+import { RepoRulesInfo, RepoRulesMetadataFailure, RepoRulesMetadataFailures } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
-import { getRepoRulesLink } from '../../lib/helpers/repo-rules'
+import { getRepoRulesLink, getRepoRulesetLink } from '../../lib/helpers/repo-rules'
+import { Popover, PopoverAnchorPosition, PopoverDecoration } from '../lib/popover'
 
 const addAuthorIcon = {
   w: 18,
@@ -160,6 +161,7 @@ interface ICommitMessageState {
   readonly descriptionObscured: boolean
 
   readonly isCommittingStatusMessage: string
+  readonly repoRuleFailures: RepoRulesMetadataFailures
 }
 
 function findCommitMessageAutoCompleteProvider(
@@ -209,6 +211,7 @@ export class CommitMessage extends React.Component<
       ),
       descriptionObscured: false,
       isCommittingStatusMessage: '',
+      repoRuleFailures: new RepoRulesMetadataFailures(),
     }
   }
 
@@ -266,7 +269,7 @@ export class CommitMessage extends React.Component<
     })
   }
 
-  public componentDidUpdate(prevProps: ICommitMessageProps) {
+  public componentDidUpdate(prevProps: ICommitMessageProps, prevState: ICommitMessageState) {
     if (
       this.props.autocompletionProviders !== prevProps.autocompletionProviders
     ) {
@@ -312,6 +315,18 @@ export class CommitMessage extends React.Component<
       this.setState({
         isCommittingStatusMessage: `Committed Just now - ${this.props.mostRecentLocalCommit.summary} (Sha: ${this.props.mostRecentLocalCommit.shortSha})`,
       })
+    }
+
+    if (prevState.summary !== this.state.summary || prevState.description !== this.state.description) {
+      const trimmedDescription = this.state.description?.trim()
+      let toMatch = this.state.summary.trim()
+      if (trimmedDescription) {
+        toMatch += `\n\n${trimmedDescription}`
+      }
+  
+      const failedRules =
+        this.props.repoRulesInfo.commitMessagePatterns.getFailedRules(toMatch)
+      this.setState({ repoRuleFailures: failedRules })
     }
   }
 
@@ -691,34 +706,6 @@ export class CommitMessage extends React.Component<
     return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
   }
 
-  private renderInvalidCommitMessageWarning() {
-    const { repoRulesInfo, branch } = this.props
-
-    const trimmedDescription = this.state.description?.trim()
-    let toMatch = this.state.summary.trim()
-    if (trimmedDescription) {
-      toMatch += `\n\n${trimmedDescription}`
-    }
-
-    // TODO bypasses update
-    const failedRules =
-      repoRulesInfo.commitMessagePatterns.getFailedRules(toMatch)
-    if (failedRules.failed.length > 0) {
-      return (
-        <CommitWarning
-          icon={CommitWarningIcon.Warning}
-          displayingAboveForm={true}
-        >
-          This message does not meet the requirements of{' '}
-          {getRepoRulesLink(this.props.repository.gitHubRepository, branch)} for
-          the branch <strong>{branch}</strong>: {failedRules.failed.join(', ')}.
-        </CommitWarning>
-      )
-    } else {
-      return null
-    }
-  }
-
   private renderPermissionsCommitWarning() {
     const {
       commitToAmend,
@@ -734,7 +721,6 @@ export class CommitMessage extends React.Component<
       return (
         <CommitWarning
           icon={CommitWarningIcon.Information}
-          displayingAboveForm={false}
         >
           Your changes will modify your <strong>most recent commit</strong>.{' '}
           <LinkButton onClick={this.props.onStopAmending}>
@@ -747,7 +733,6 @@ export class CommitMessage extends React.Component<
       return (
         <CommitWarning
           icon={CommitWarningIcon.Warning}
-          displayingAboveForm={false}
         >
           You don't have write access to <strong>{repository.name}</strong>.
           Want to{' '}
@@ -769,7 +754,6 @@ export class CommitMessage extends React.Component<
       return (
         <CommitWarning
           icon={CommitWarningIcon.Warning}
-          displayingAboveForm={false}
         >
           <strong>{branch}</strong> is a protected branch. Want to{' '}
           <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
@@ -780,9 +764,8 @@ export class CommitMessage extends React.Component<
       return (
         <CommitWarning
           icon={CommitWarningIcon.Warning}
-          displayingAboveForm={false}
         >
-          {getRepoRulesLink(repository.gitHubRepository, branch, true)} apply to
+          {getRepoRulesLink(repository.gitHubRepository, branch, 'One or more rules')} apply to
           the branch <strong>{branch}</strong> that may prevent pushing. Want to{' '}
           <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
           ?
@@ -798,7 +781,6 @@ export class CommitMessage extends React.Component<
       return (
         <CommitWarning
           icon={CommitWarningIcon.Warning}
-          displayingAboveForm={false}
         >
           The branch name <strong>{branch}</strong> conflicts with{' '}
           {getRepoRulesLink(repository.gitHubRepository, branch)} and it may be
@@ -810,6 +792,81 @@ export class CommitMessage extends React.Component<
     } else {
       return null
     }
+  }
+
+  private renderRuleFailurePopover() {
+    const header = __DARWIN__ ? 'Commit Message Rule Failures' : 'Commit message rule failures'
+    return (
+      <Popover
+        anchor={this.summaryTextInput}
+        anchorPosition={PopoverAnchorPosition.Right}
+        decoration={PopoverDecoration.Balloon}
+        trapFocus={false}
+        ariaLabelledby="commit-message-rule-failure-popover-header"
+      >
+        <h3 id="commit-message-rule-failure-popover-header">{header}</h3>
+
+        {this.renderRuleFailurePopoverContent()}
+      </Popover>
+    )
+  }
+
+  private renderRuleFailurePopoverContent() {
+    const { branch, repository } = this.props
+    const { repoRuleFailures } = this.state
+
+    let endText: string
+    let length: number
+    if (repoRuleFailures.status === 'bypass') {
+      length = repoRuleFailures.bypassed.length
+      endText = `, but you can bypass ${length === 1 ? 'it' : 'them'}. Proceed with caution!`
+    } else {
+      length = repoRuleFailures.failed.length
+      endText = '.'
+    }
+
+    const link = getRepoRulesLink(repository.gitHubRepository, branch, this.rulesLinkText(length))
+    const rulesText = __DARWIN__ ? 'Rules' : 'rules'
+
+    return (
+      <div>
+        <p>
+          This commit message fails {link}{endText}
+        </p>
+        {repoRuleFailures.failed.length > 0 &&
+          <div className="repo-rule-list">
+            <strong>Failed {rulesText}:</strong>
+            <ul>
+              {this.renderRuleFailureList(repoRuleFailures.failed)}
+            </ul>
+          </div>
+        }
+        {repoRuleFailures.bypassed.length > 0 &&
+          <div className="repo-rule-list">
+            <strong>Bypassed {rulesText}:</strong>
+            <ul>
+              {this.renderRuleFailureList(repoRuleFailures.bypassed)}
+            </ul>
+          </div>
+        }
+      </div>
+    )
+  }
+
+  private renderRuleFailureList(failures: RepoRulesMetadataFailure[]) {
+    return (
+      <ul>
+        {failures.map(f => (
+          <li key={`${f.description}-${f.rulesetId}`}>
+            {f.description} ({getRepoRulesetLink(this.props.repository.gitHubRepository!, f.rulesetId)})
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  private rulesLinkText(length: number): string {
+    return `${length} rule${length > 1 ? 's' : ''}`
   }
 
   private onSwitchBranch = () => {
@@ -972,8 +1029,6 @@ export class CommitMessage extends React.Component<
         onContextMenu={this.onContextMenu}
         onKeyDown={this.onKeyDown}
       >
-        {this.renderInvalidCommitMessageWarning()}
-
         <div className={summaryClassName}>
           {this.renderAvatar()}
 
@@ -1016,6 +1071,8 @@ export class CommitMessage extends React.Component<
           />
           {this.renderActionBar()}
         </FocusContainer>
+
+        {this.state.repoRuleFailures.status !== 'pass' && this.renderRuleFailurePopover()}
 
         {this.renderCoAuthorInput()}
 
