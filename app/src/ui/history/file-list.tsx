@@ -17,7 +17,7 @@ interface IFileListProps {
 }
 
 /**
- * Display a list of changeasdfasdd files as part of a commit or stash
+ * Display a list of changed files as part of a commit or stash
  */
 export class FileList extends React.Component<IFileListProps> {
   private onSelectedRowChanged = (row: number) => {
