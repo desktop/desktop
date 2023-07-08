@@ -1,4 +1,5 @@
 import * as React from 'react'
+
 import { Repository } from '../../models/repository'
 import {
   ITextDiff,
@@ -345,6 +346,11 @@ export class SideBySideDiff extends React.Component<
 
   private isEntireDiffSelected(selection = document.getSelection()) {
     const { diffContainer } = this
+
+    if (selection?.rangeCount === 0) {
+      return false
+    }
+
     const ancestor = selection?.getRangeAt(0).commonAncestorContainer
 
     // This is an artefact of the selectAllChildren call in the onSelectAll

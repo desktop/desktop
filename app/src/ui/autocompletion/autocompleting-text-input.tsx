@@ -153,7 +153,6 @@ export abstract class AutocompletingTextInput<
 > {
   private element: ElementType | null = null
   private invisibleCaretRef = React.createRef<HTMLDivElement>()
-  private shouldForceAriaLiveMessage = false
 
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
@@ -510,9 +509,6 @@ export abstract class AutocompletingTextInput<
       }
     )
 
-    const shouldForceAriaLiveMessage = this.shouldForceAriaLiveMessage
-    this.shouldForceAriaLiveMessage = false
-
     const autoCompleteItems = this.state.autocompletionState?.items ?? []
 
     const suggestionsMessage =
@@ -530,7 +526,9 @@ export abstract class AutocompletingTextInput<
         )}
         {this.renderTextInput()}
         {this.renderInvisibleCaret()}
-        <AriaLiveContainer shouldForceChange={shouldForceAriaLiveMessage}>
+        <AriaLiveContainer
+          trackedUserInput={this.state.autocompletionState?.rangeText}
+        >
           {autoCompleteItems.length > 0 ? suggestionsMessage : ''}
         </AriaLiveContainer>
       </div>
@@ -674,6 +672,8 @@ export abstract class AutocompletingTextInput<
     str: string,
     caretPosition: number
   ): Promise<IAutocompletionState<AutocompleteItemType> | null> {
+    const lowercaseStr = str.toLowerCase()
+
     for (const provider of this.props.autocompletionProviders) {
       // NB: RegExps are stateful (AAAAAAAAAAAAAAAAAA) so defensively copy the
       // regex we're given.
@@ -685,7 +685,7 @@ export abstract class AutocompletingTextInput<
       }
 
       let result: RegExpExecArray | null = null
-      while ((result = regex.exec(str))) {
+      while ((result = regex.exec(lowercaseStr))) {
         const index = regex.lastIndex
         const text = result[1] || ''
         if (index === caretPosition || this.props.alwaysAutocomplete) {
@@ -753,7 +753,6 @@ export abstract class AutocompletingTextInput<
       return
     }
 
-    this.shouldForceAriaLiveMessage = true
     this.setState({ autocompletionState })
   }
 }

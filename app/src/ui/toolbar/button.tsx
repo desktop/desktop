@@ -112,6 +112,13 @@ export interface IToolbarButtonProps {
   readonly ariaHaspopup?: AriaHasPopupType
 
   /**
+   * Typically the contents of a button serve the purpose of describing the
+   * buttons use. However, ariaLabel can be used if the contents do not suffice.
+   * Such as when a button wraps an image and there is no text.
+   */
+  readonly ariaLabel?: string
+
+  /**
    * Whether to only show the tooltip when the tooltip target overflows its
    * bounds. Typically this is used in conjunction with an ellipsis CSS ruleset.
    */
@@ -224,6 +231,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
           role={this.props.role}
           ariaExpanded={this.props.ariaExpanded}
           ariaHaspopup={this.props.ariaHaspopup}
+          ariaLabel={this.props.ariaLabel}
         >
           {progress}
           {icon}

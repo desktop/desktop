@@ -16,4 +16,20 @@
       color: var(--text-secondary-color);
     }
   }
+
+  .clone-repository-list-item {
+    .name {
+      flex-grow: 1;
+    }
+
+    .archived {
+      flex-shrink: 0;
+      margin-left: var(--spacing-half);
+      font-size: var(--font-size-xs);
+      border: var(--contrast-border);
+      padding: 1px 3px;
+      border-radius: var(--border-radius);
+      text-transform: uppercase;
+    }
+  }
 }

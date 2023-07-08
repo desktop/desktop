@@ -309,7 +309,7 @@ export function parseConfigLockFilePathFromError(result: IGitResult) {
 function getDescriptionForError(error: DugiteError): string | null {
   if (isAuthFailureError(error)) {
     const menuHint = __DARWIN__
-      ? 'GitHub Desktop > Preferences.'
+      ? 'GitHub Desktop > Settings.'
       : 'File > Options.'
     return `Authentication failed. Some common reasons include:
 

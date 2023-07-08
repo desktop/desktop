@@ -77,6 +77,11 @@ export function enableResetToCommit(): boolean {
   return enableDevelopmentFeatures()
 }
 
+/** Should we allow checking out a single commit? */
+export function enableCheckoutCommit(): boolean {
+  return enableBetaFeatures()
+}
+
 /** Should ci check runs show logs? */
 export function enableCICheckRunsLogs(): boolean {
   return false
@@ -92,37 +97,12 @@ export function enablePullRequestQuickView(): boolean {
   return enableDevelopmentFeatures()
 }
 
-/** Should we enable displaying multi commit diffs. This also switches diff logic from one commit */
-export function enableMultiCommitDiffs(): boolean {
-  return true
+export function enableMoveStash(): boolean {
+  return enableBetaFeatures()
 }
 
-/** Should we enable the new interstitial for submodule diffs? */
-export function enableSubmoduleDiff(): boolean {
-  return true
-}
+export const enableCustomGitUserAgent = enableBetaFeatures
 
-/** Should we enable starting pull requests? */
-export function enableStartingPullRequests(): boolean {
-  return true
-}
-
-/** Should we enable starting pull requests? */
-export function enableStackedPopups(): boolean {
-  return true
-}
-
-/** Should we enable mechanism to prevent closing while the app is updating? */
-export function enablePreventClosingWhileUpdating(): boolean {
-  return true
-}
-
-/** Should we enable the new push-pull-fetch dropdown? */
-export function enablePushPullFetchDropdown(): boolean {
-  return true
-}
-
-/** Should we enable the new PR comment notifications? */
-export function enablePullRequestCommentNotifications(): boolean {
-  return true
+export function enableSectionList(): boolean {
+  return enableBetaFeatures()
 }

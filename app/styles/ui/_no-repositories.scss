@@ -3,6 +3,13 @@
   padding: calc(var(--spacing) * 6);
   align-items: center;
 
+  > section {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 0;
+  }
+
   header {
     align-self: flex-start;
     margin-bottom: var(--spacing-quad);
@@ -24,7 +31,6 @@
     display: flex;
     flex-shrink: 0;
     flex-grow: 1;
-    height: 0;
 
     & > .content-pane {
       display: flex;

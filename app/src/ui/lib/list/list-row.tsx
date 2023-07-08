@@ -1,12 +1,16 @@
 import * as React from 'react'
 import classNames from 'classnames'
+import { RowIndexPath } from './list-row-index-path'
 
 interface IListRowProps {
+  /** whether or not the section to which this row belongs has a header */
+  readonly sectionHasHeader: boolean
+
   /** the total number of row in this list */
   readonly rowCount: number
 
   /** the index of the row in the list */
-  readonly rowIndex: number
+  readonly rowIndex: RowIndexPath
 
   /** custom styles to provide to the row */
   readonly style?: React.CSSProperties
@@ -21,36 +25,51 @@ interface IListRowProps {
   readonly selected?: boolean
 
   /** callback to fire when the DOM element is created */
-  readonly onRowRef?: (index: number, element: HTMLDivElement | null) => void
+  readonly onRowRef?: (
+    index: RowIndexPath,
+    element: HTMLDivElement | null
+  ) => void
 
   /** callback to fire when the row receives a mousedown event */
-  readonly onRowMouseDown: (index: number, e: React.MouseEvent<any>) => void
+  readonly onRowMouseDown: (
+    index: RowIndexPath,
+    e: React.MouseEvent<any>
+  ) => void
 
   /** callback to fire when the row receives a mouseup event */
-  readonly onRowMouseUp: (index: number, e: React.MouseEvent<any>) => void
+  readonly onRowMouseUp: (index: RowIndexPath, e: React.MouseEvent<any>) => void
 
   /** callback to fire when the row is clicked */
-  readonly onRowClick: (index: number, e: React.MouseEvent<any>) => void
+  readonly onRowClick: (index: RowIndexPath, e: React.MouseEvent<any>) => void
+
+  /** callback to fire when the row is double clicked */
+  readonly onRowDoubleClick: (
+    index: RowIndexPath,
+    e: React.MouseEvent<any>
+  ) => void
 
   /** callback to fire when the row receives a keyboard event */
-  readonly onRowKeyDown: (index: number, e: React.KeyboardEvent<any>) => void
+  readonly onRowKeyDown: (
+    index: RowIndexPath,
+    e: React.KeyboardEvent<any>
+  ) => void
 
   /** called when the row (or any of its descendants) receives focus */
   readonly onRowFocus?: (
-    index: number,
+    index: RowIndexPath,
     e: React.FocusEvent<HTMLDivElement>
   ) => void
 
   /** called when the row (and all of its descendants) loses focus */
   readonly onRowBlur?: (
-    index: number,
+    index: RowIndexPath,
     e: React.FocusEvent<HTMLDivElement>
   ) => void
 
   /** Called back for when the context menu is invoked (user right clicks of
    * uses keyboard shortcuts) */
   readonly onContextMenu?: (
-    index: number,
+    index: RowIndexPath,
     e: React.MouseEvent<HTMLDivElement>
   ) => void
 
@@ -82,6 +101,10 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     this.props.onRowClick(this.props.rowIndex, e)
   }
 
+  private onRowDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onRowDoubleClick(this.props.rowIndex, e)
+  }
+
   private onRowKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     this.props.onRowKeyDown(this.props.rowIndex, e)
   }
@@ -99,12 +122,23 @@ export class ListRow extends React.Component<IListRowProps, {}> {
   }
 
   public render() {
-    const selected = this.props.selected
-    const className = classNames(
+    const {
+      selected,
+      selectable,
+      className,
+      style,
+      rowCount,
+      id,
+      tabIndex,
+      rowIndex,
+      children,
+      sectionHasHeader,
+    } = this.props
+    const rowClassName = classNames(
       'list-item',
       { selected },
-      { 'not-selectable': this.props.selectable === false },
-      this.props.className
+      { 'not-selectable': selectable === false },
+      className
     )
     // react-virtualized gives us an explicit pixel width for rows, but that
     // width doesn't take into account whether or not the scroll bar needs
@@ -113,28 +147,43 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     // *But* the parent Grid uses `autoContainerWidth` which means its width
     // *does* reflect any width needed by the scroll bar. So we should just use
     // that width.
-    const style = { ...this.props.style, width: '100%' }
+    const fullWidthStyle = { ...style, width: '100%' }
+
+    let ariaSetSize: number | undefined = rowCount
+    let ariaPosInSet: number | undefined = rowIndex.row + 1
+    if (sectionHasHeader) {
+      if (rowIndex.row === 0) {
+        ariaSetSize = undefined
+        ariaPosInSet = undefined
+      } else {
+        ariaSetSize -= 1
+        ariaPosInSet -= 1
+      }
+    }
 
     return (
       <div
-        id={this.props.id}
-        role="option"
-        aria-setsize={this.props.rowCount}
-        aria-posinset={this.props.rowIndex + 1}
-        aria-selected={this.props.selectable ? this.props.selected : undefined}
-        className={className}
-        tabIndex={this.props.tabIndex}
+        id={id}
+        role={
+          sectionHasHeader && rowIndex.row === 0 ? 'presentation' : 'option'
+        }
+        aria-setsize={ariaSetSize}
+        aria-posinset={ariaPosInSet}
+        aria-selected={selectable ? selected : undefined}
+        className={rowClassName}
+        tabIndex={tabIndex}
         ref={this.onRef}
         onMouseDown={this.onRowMouseDown}
         onMouseUp={this.onRowMouseUp}
         onClick={this.onRowClick}
+        onDoubleClick={this.onRowDoubleClick}
         onKeyDown={this.onRowKeyDown}
-        style={style}
+        style={fullWidthStyle}
         onFocus={this.onFocus}
         onBlur={this.onBlur}
         onContextMenu={this.onContextMenu}
       >
-        {this.props.children}
+        {children}
       </div>
     )
   }

@@ -18,7 +18,6 @@ import {
  * @param repository  - The repository to update
  *
  * @param commit         - The SHA of the commit to be reverted
- *
  */
 export async function revertCommit(
   repository: Repository,

@@ -43,23 +43,3 @@ $ yarn run package
 If you think you've found a solution, please submit a pull request to [`shiftkey/desktop`](https://github.com/shiftkey/desktop) explaining the change and what it fixes. If you're not quite sure, open an issue on the [`shiftkey/desktop`](https://github.com/shiftkey/desktop) fork explaining what you've found and where you think the problem lies. Maybe someone else has insight into the issue.
 
 [**@shiftkey**](https://github.com/shiftkey) will co-ordinate upstreaming merged pull requests to the main repository.
-
-## Technical Details
-
-We use `electron-packager` to generate the artifacts and `electron-builder` to generate the installer.
-
-`electron-packager` details:
-
-* [API options](https://github.com/electron-userland/electron-packager/blob/development/docs/api.md#options)
-* [`dist-info.js` config file](https://github.com/desktop/desktop/blob/development/script/dist-info.js)
-* [Usage in Desktop](https://github.com/desktop/desktop/blob/development/script/build.ts#L98-L151)
-
-`dist-info.js` contains the various metadata we provide to Desktop as part of packaging. This seems fairly stable, but we might need to tweak some things in here for Linux-specific changes.
-
-`electron-builder` details:
-
-* [API options](https://www.electron.build/configuration/linux)
-* [`electron-builder-linux.yml` config file](https://github.com/desktop/desktop/blob/development/script/electron-builder-linux.yml)
-* [Usage in Desktop](https://github.com/desktop/desktop/blob/development/script/package.ts#L124-L145)
-
-We use `electron-builder-linux.yml` to configure the installers, so please investigate the documentation if you find a problem with an installer to see if something has been overlooked and can be fixed fairly easily.
