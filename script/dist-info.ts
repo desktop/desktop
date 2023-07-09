@@ -114,18 +114,13 @@ export const getChannel = () =>
 
 export function getDistArchitecture(): 'arm64' | 'x64' | 'armv7l' {
   // If a specific npm_config_arch is set, we use that one instead of the OS arch (to support cross compilation)
-  if (
-    process.env.npm_config_arch === 'arm64' ||
-    process.env.npm_config_arch === 'x64' ||
-    process.env.npm_config_arch === 'armv7l'
-  ) {
-    return process.env.npm_config_arch
+  const arch = process.env.npm_config_arch || process.arch
+
+  if (arch === 'arm64' || arch === 'x64' || arch === 'armv7l') {
+    return arch
   }
 
-  if (process.arch === 'arm64') {
-    return 'arm64'
-  }
-  if (process.arch === 'arm') {
+  if (arch === 'arm') {
     return 'armv7l'
   }
 

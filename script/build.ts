@@ -3,8 +3,7 @@
 
 import * as path from 'path'
 import * as cp from 'child_process'
-import * as os from 'os'
-import packager, { OfficialArch, OsxNotarizeOptions } from 'electron-packager'
+import packager, { OsxNotarizeOptions } from 'electron-packager'
 import frontMatter from 'front-matter'
 import { externals } from '../app/webpack.common'
 
@@ -131,21 +130,19 @@ function packageApp() {
     )
   }
 
-  const toPackageArch = (targetArch: string | undefined): OfficialArch => {
-    if (targetArch === undefined) {
-      targetArch = os.arch()
+  const getPackageArch = (): 'arm64' | 'x64' | 'armv7l' => {
+    const arch = process.env.npm_config_arch || process.arch
+
+    if (arch === 'arm64' || arch === 'x64') {
+      return arch
     }
 
-    if (
-      targetArch === 'arm64' ||
-      targetArch === 'x64' ||
-      targetArch === 'armv7l'
-    ) {
-      return targetArch
+    if (arch === 'arm') {
+      return 'armv7l'
     }
 
     throw new Error(
-      `Building Desktop for architecture '${targetArch}' is not supported`
+      `Building Desktop for architecture '${arch}' is not supported. Currently these architectures are supported: arm, arm64, x64`
     )
   }
 
@@ -174,7 +171,7 @@ function packageApp() {
   return packager({
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
-    arch: toPackageArch(process.env.TARGET_ARCH),
+    arch: getPackageArch(),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
     icon,

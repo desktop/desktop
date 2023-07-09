@@ -10,7 +10,8 @@ const globPromise = promisify(glob)
 import { getDistPath, getDistRoot } from './dist-info'
 
 function getArchitecture() {
-  switch (process.arch) {
+  const arch = process.env.npm_config_arch || process.arch
+  switch (arch) {
     case 'arm64':
       return '--arm64'
     case 'arm':

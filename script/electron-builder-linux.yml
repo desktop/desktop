@@ -1,4 +1,4 @@
-artifactName: 'GitHubDesktop-${os}-${version}.${ext}'
+artifactName: 'GitHubDesktop-${os}-${arch}-${version}.${ext}'
 linux:
   category: 'GNOME;GTK;Development'
   packageCategory: 'GNOME;GTK;Development'
