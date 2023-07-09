@@ -41,6 +41,7 @@ jobs:
   build:
     name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.image }}
     permissions:
       contents: write
     strategy:
@@ -55,14 +56,61 @@ jobs:
             friendlyName: Windows
           - os: ubuntu-20.04
             friendlyName: Ubuntu
+            image: ubuntu:18.04
+            arch: x64
+            environment:
+              AS: as
+              STRIP: strip
+              AR: ar
+              CC: gcc
+              CPP: cpp
+              CXX: g++
+              LD: ld
+              FC: gfortran
+              PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu/pkgconfig
         exclude:
           - os: ubuntu-20.04
             arch: arm64
     timeout-minutes: 60
     env:
       RELEASE_CHANNEL: ${{ inputs.environment }}
+      AS: ${{ matrix.environment.AS }}
+      STRIP: ${{ matrix.environment.STRIP }}
+      AR: ${{ matrix.environment.AR }}
+      CC: ${{ matrix.environment.CC }}
+      CPP: ${{ matrix.environment.CPP }}
+      CXX: ${{ matrix.environment.CXX }}
+      LD: ${{ matrix.environment.LD }}
+      FC: ${{ matrix.environment.FC }}
+      PKG_CONFIG_PATH: ${{ matrix.environment.PKG_CONFIG_PATH }}
+      npm_config_arch: ${{ matrix.arch }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Install dependencies into dockerfile on Ubuntu
+        if: matrix.friendlyName == 'Ubuntu'
+        run: |
+          # ubuntu dockerfile is very minimal (only 122 packages are installed)
+          # add dependencies expected by scripts
+          apt update
+          apt install -y software-properties-common lsb-release \
+          sudo wget curl build-essential jq autoconf automake \
+          pkg-config ca-certificates rpm
+          # install new enough git to run actions/checkout
+          sudo add-apt-repository ppa:git-core/ppa -y
+          sudo apt update
+          sudo apt install -y git
+          # avoid "fatal: detected dubious ownership in repository at '/__w/shiftkey/desktop'" error
+          git config --global --add safe.directory '*'
+      - name: Add additional dependencies for Ubuntu x64
+        if: ${{ matrix.friendlyName == 'Ubuntu' && matrix.arch == 'x64' }}
+        run: |
+          # add electron unit test dependencies
+          sudo apt install -y libasound2 libatk-bridge2.0-0 libatk1.0-0 \
+          libatspi2.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libdrm2 \
+          libexpat1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 \
+          libnss3 libpango-1.0-0 libx11-6 libxcb1 libxcomposite1 \
+          libxdamage1 libxext6 libxfixes3 libxkbcommon0 libxrandr2 \
+          libsecret-1-0
+      - uses: actions/checkout@v3
         with:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref }}
@@ -71,20 +119,26 @@ jobs:
         with:
           python-version: '3.11'
       - name: Use Node.js ${{ env.NODE_VERSION }}
+        if: matrix.friendlyName != 'Ubuntu'
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: yarn
+      - name: Install unofficial-builds Node.js ${{ matrix.node }} on Ubuntu
+        if: matrix.friendlyName == 'Ubuntu'
+        run: |
+          # This version supports older GLIBC (official builds required a minimum of GLIBC 2.28)
+          # this might break if you bump the `matrix.node` version - ensure you are on the latest version
+          # of which ever major/minor release which should have this variant available
+          #
+          # See https://github.com/nodejs/unofficial-builds/ for more information on these versions.
+          #
+          curl -sL 'https://unofficial-builds.nodejs.org/download/release/v${{ matrix.node }}/node-v${{ matrix.node }}-linux-x64-glibc-217.tar.xz' | xzcat | sudo tar -vx  --strip-components=1 -C /usr/local/
+          sudo npm install --global yarn
       - name: Install and build dependencies
         run: yarn
-        env:
-          npm_config_arch: ${{ matrix.arch }}
-          TARGET_ARCH: ${{ matrix.arch }}
       - name: Build production app
         run: yarn build:prod
-        env:
-          npm_config_arch: ${{ matrix.arch }}
-          TARGET_ARCH: ${{ matrix.arch }}
       - name: Prepare testing environment
         if: matrix.arch == 'x64'
         run: yarn test:setup
@@ -98,11 +152,11 @@ jobs:
         run: yarn test:script
       - name: Package application
         run: yarn run package
-        if: ${{ matrix.os == 'ubuntu-20.04' && matrix.arch == 'x64' }}
+        if: ${{ matrix.friendlyName == 'Ubuntu' }}
       - name: Create Release
         uses: softprops/action-gh-release@v1
         if:
-          ${{ matrix.os == 'ubuntu-20.04' && startsWith(github.ref,
+          ${{ matrix.friendlyName == 'Ubuntu' && startsWith(github.ref,
           'refs/tags/') }}
         with:
           files: |
@@ -113,3 +167,13 @@ jobs:
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload output artifacts
+        uses: actions/upload-artifact@v3
+        if: matrix.friendlyName == 'Ubuntu'
+        with:
+          name: ${{ matrix.friendlyName }}-${{ matrix.arch }}-artifacts
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+          retention-days: 5

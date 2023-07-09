@@ -10,7 +10,8 @@ import { getVersion } from '../app/package-info'
 import { getDistPath, getDistRoot } from './dist-info'
 
 function getArchitecture() {
-  switch (process.arch) {
+  const arch = process.env.npm_config_arch || process.arch
+  switch (arch) {
     case 'arm64':
       return 'arm64'
     case 'arm':
@@ -107,7 +108,7 @@ export async function packageDebian(): Promise<string> {
 
   const oldPath = files[0]
 
-  const newFileName = `GitHubDesktop-linux-${getVersion()}.deb`
+  const newFileName = `GitHubDesktop-linux-${getArchitecture()}-${getVersion()}.deb`
   const newPath = join(distRoot, newFileName)
   await rename(oldPath, newPath)
 
