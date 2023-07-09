@@ -68,9 +68,36 @@ jobs:
               LD: ld
               FC: gfortran
               PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu/pkgconfig
-        exclude:
           - os: ubuntu-20.04
+            friendlyName: Ubuntu
+            image: ubuntu:18.04
             arch: arm64
+            environment:
+              AS: aarch64-linux-gnu-as
+              STRIP: aarch64-linux-gnu-strip
+              AR: aarch64-linux-gnu-ar
+              CC: aarch64-linux-gnu-gcc
+              CPP: aarch64-linux-gnu-cpp
+              CXX: aarch64-linux-gnu-g++
+              LD: aarch64-linux-gnu-ld
+              FC: aarch64-linux-gnu-gfortran
+              PKG_CONFIG_PATH: /usr/lib/aarch64-linux-gnu/pkgconfig
+          - os: ubuntu-20.04
+            friendlyName: Ubuntu
+            image: ubuntu:18.04
+            arch: arm
+            node: 18.16.1
+            environment:
+              AS: arm-linux-gnueabihf-as
+              STRIP: arm-linux-gnueabihf-strip
+              AR: arm-linux-gnueabihf-ar
+              CC: arm-linux-gnueabihf-gcc
+              CPP: arm-linux-gnueabihf-cpp
+              CXX: arm-linux-gnueabihf-g++
+              LD: arm-linux-gnueabihf-ld
+              FC: arm-linux-gnueabihf-gfortran
+              PKG_CONFIG_PATH: /usr/lib/arm-linux-gnueabihf/pkgconfig
+
     timeout-minutes: 60
     env:
       RELEASE_CHANNEL: ${{ inputs.environment }}
@@ -110,6 +137,20 @@ jobs:
           libnss3 libpango-1.0-0 libx11-6 libxcb1 libxcomposite1 \
           libxdamage1 libxext6 libxfixes3 libxkbcommon0 libxrandr2 \
           libsecret-1-0
+      - name: Add additional dependencies for Ubuntu arm64
+        if: ${{ matrix.friendlyName == 'Ubuntu' && matrix.arch == 'arm64' }}
+        run: |
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu
+      - name: Add additional dependencies for Ubuntu arm
+        if: ${{ matrix.friendlyName == 'Ubuntu' && matrix.arch == 'arm' }}
+        run: |
+          sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf pkg-config-arm-linux-gnueabihf
+          sudo sed -i "s/^deb/deb [arch=amd64,i386]/g" /etc/apt/sources.list
+          echo "deb [arch=arm64,armhf] http://ports.ubuntu.com/ $(lsb_release -s -c) main universe multiverse restricted" | sudo tee -a /etc/apt/sources.list
+          echo "deb [arch=arm64,armhf] http://ports.ubuntu.com/ $(lsb_release -s -c)-updates main universe multiverse restricted" | sudo tee -a /etc/apt/sources.list
+          sudo dpkg --add-architecture armhf
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev:armhf libx11-xcb-dev:armhf libxkbfile-dev:armhf libsecret-1-dev:armhf
       - uses: actions/checkout@v3
         with:
           repository: ${{ inputs.repository || github.repository }}
