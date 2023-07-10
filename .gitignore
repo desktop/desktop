@@ -16,3 +16,4 @@ app/node_modules/
 junit*.xml
 *.swp
 tslint-rules/
+script/release_notes.txt

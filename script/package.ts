@@ -204,6 +204,9 @@ async function generateChecksums(files: Array<string>) {
   for (const [fullPath, checksum] of checksums) {
     const fileName = path.basename(fullPath)
     checksumsText += `${checksum} - ${fileName}\n`
+
+    const checksumFilePath = `${fullPath}.sha256`
+    await writeFile(checksumFilePath, checksum)
   }
 
   const checksumFile = path.join(distRoot, 'checksums.txt')
