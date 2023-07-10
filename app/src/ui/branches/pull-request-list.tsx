@@ -134,11 +134,17 @@ export class PullRequestList extends React.Component<
       this.state.selectedItem
     )
 
-    const pullRequestPlural = nextProps.pullRequests.length === 1 ? '' : 's'
-    const screenReaderStateMessage =
+    const loadingStarted =
+      !this.props.isLoadingPullRequests && nextProps.isLoadingPullRequests
+    const loadingComplete =
       this.props.isLoadingPullRequests && !nextProps.isLoadingPullRequests
-        ? `${nextProps.pullRequests.length} pull request${pullRequestPlural} found`
-        : null
+    const numPullRequests = this.props.pullRequests.length
+    const plural = numPullRequests === 1 ? '' : 's'
+    const screenReaderStateMessage = loadingStarted
+      ? 'Hang Tight. Loading pull requests as fast as I can!'
+      : loadingComplete
+      ? `${numPullRequests} pull request${plural} found`
+      : null
 
     this.setState({
       groupedItems: [group],
@@ -304,9 +310,6 @@ export class PullRequestList extends React.Component<
   }
 
   private onRefreshPullRequests = () => {
-    this.setState({
-      screenReaderStateMessage: 'Refreshing pull requests…',
-    })
     this.props.dispatcher.refreshPullRequests(this.props.repository)
   }
 
