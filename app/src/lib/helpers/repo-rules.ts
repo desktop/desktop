@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { escapeRegExp } from 'lodash'
 import {
   RepoRulesInfo,
@@ -13,39 +12,6 @@ import {
   IAPIRepoRuleMetadataParameters,
   IAPIRepoRuleset,
 } from '../api'
-import { GitHubRepository } from '../../models/github-repository'
-import { LinkButton } from '../../ui/lib/link-button'
-
-/**
- * Gets a link to the webpage showing all repo rules that apply to
- * the provided branch.
- */
-export function getRepoRulesLink(
-  repo: GitHubRepository | null,
-  branchName: string | null,
-  text = 'one or more rules',
-): string | JSX.Element {
-  if (!repo || !branchName) {
-    return text
-  }
-
-  const link = `${repo.htmlURL}/rules/?ref=${encodeURIComponent(
-    'refs/heads/' + branchName
-  )}`
-  return React.createElement(LinkButton, { uri: link }, text)
-}
-
-/**
- * Gets a link to the webpage for the ruleset with the provided ID within the provided repo.
- */
-export function getRepoRulesetLink(
-  repo: GitHubRepository,
-  rulesetID: number,
-  text = 'source'
-): JSX.Element {
-  const link = `${repo.htmlURL}/rules/${rulesetID}`
-  return React.createElement(LinkButton, { uri: link }, text)
-}
 
 /**
  * Parses the GitHub API response for a branch's repo rules into a more useable

@@ -16,8 +16,8 @@ import { OkCancelButtonGroup } from '../dialog'
 import { getConfigValue } from '../../lib/git/config'
 import { Repository } from '../../models/repository'
 import classNames from 'classnames'
-import { getRepoRulesLink } from '../../lib/helpers/repo-rules'
 import { RepoRulesMetadataFailures } from '../../models/repo-rules'
+import { RepoRulesetsForBranchLink } from '../repository-rules/repo-rulesets-for-branch-link'
 
 export type CommitMessageAvatarWarningType =
   | 'none'
@@ -60,7 +60,7 @@ interface ICommitMessageAvatarProps {
   /**
    * Name of the current branch
    */
-  readonly branchName: string | null
+  readonly branch: string | null
 
   /** Whether or not the user's account is a GHE account. */
   readonly isEnterpriseAccount: boolean
@@ -287,11 +287,13 @@ export class CommitMessageAvatar extends React.Component<
               global Git config (
               <span className="git-email">{this.props.email}</span>) does not
               match{' '}
-              {getRepoRulesLink(
-                this.props.repository.gitHubRepository,
-                this.props.branchName
-              )}
-              : {this.props.emailRuleFailures?.failed.join(', ')}.
+              <RepoRulesetsForBranchLink
+                repository={this.props.repository.gitHubRepository}
+                branch={this.props.branch}
+              >
+                one or more rules
+              </RepoRulesetsForBranchLink>:
+              {this.props.emailRuleFailures?.failed.join(', ')}.
             </div>
           )}
         </Row>

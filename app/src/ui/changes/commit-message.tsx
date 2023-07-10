@@ -42,8 +42,9 @@ import { ToggledtippedContent } from '../lib/toggletipped-content'
 import { PreferencesTab } from '../../models/preferences'
 import { RepoRulesInfo, RepoRulesMetadataFailure, RepoRulesMetadataFailures } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
-import { getRepoRulesLink, getRepoRulesetLink } from '../../lib/helpers/repo-rules'
 import { Popover, PopoverAnchorPosition, PopoverDecoration } from '../lib/popover'
+import { RepoRulesetsForBranchLink } from '../repository-rules/repo-rulesets-for-branch-link'
+import { RepoRulesetLink } from '../repository-rules/repo-ruleset-link'
 
 const addAuthorIcon = {
   w: 18,
@@ -318,15 +319,19 @@ export class CommitMessage extends React.Component<
     }
 
     if (prevState.summary !== this.state.summary || prevState.description !== this.state.description) {
-      const trimmedDescription = this.state.description?.trim()
-      let toMatch = this.state.summary.trim()
-      if (trimmedDescription) {
-        toMatch += `\n\n${trimmedDescription}`
+      if (!this.state.summary && !this.state.description) {
+        this.setState({ repoRuleFailures: new RepoRulesMetadataFailures() })
+      } else {
+        const trimmedDescription = this.state.description?.trim()
+        let toMatch = this.state.summary.trim()
+        if (trimmedDescription) {
+          toMatch += `\n\n${trimmedDescription}`
+        }
+
+        const failedRules =
+          this.props.repoRulesInfo.commitMessagePatterns.getFailedRules(toMatch)
+        this.setState({ repoRuleFailures: failedRules })
       }
-  
-      const failedRules =
-        this.props.repoRulesInfo.commitMessagePatterns.getFailedRules(toMatch)
-      this.setState({ repoRuleFailures: failedRules })
     }
   }
 
@@ -484,7 +489,7 @@ export class CommitMessage extends React.Component<
         }
         warningType={warningType}
         emailRuleFailures={ruleFailures}
-        branchName={this.props.branch}
+        branch={this.props.branch}
         accountEmails={accountEmails}
         preferredAccountEmail={
           repositoryAccount !== null && repositoryAccount !== undefined
@@ -765,8 +770,13 @@ export class CommitMessage extends React.Component<
         <CommitWarning
           icon={CommitWarningIcon.Warning}
         >
-          {getRepoRulesLink(repository.gitHubRepository, branch, 'One or more rules')} apply to
-          the branch <strong>{branch}</strong> that may prevent pushing. Want to{' '}
+          <RepoRulesetsForBranchLink
+            repository={repository.gitHubRepository}
+            branch={branch}
+          >
+            One or more rules
+          </RepoRulesetsForBranchLink>{' '}
+          apply to the branch <strong>{branch}</strong> that may prevent pushing. Want to{' '}
           <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
           ?
         </CommitWarning>
@@ -783,8 +793,13 @@ export class CommitMessage extends React.Component<
           icon={CommitWarningIcon.Warning}
         >
           The branch name <strong>{branch}</strong> conflicts with{' '}
-          {getRepoRulesLink(repository.gitHubRepository, branch)} and it may be
-          prevented from being published. Want to{' '}
+          <RepoRulesetsForBranchLink
+            repository={repository.gitHubRepository}
+            branch={branch}
+          >
+            one or more rules
+          </RepoRulesetsForBranchLink>{' '}
+          and it may be prevented from being published. Want to{' '}
           <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
           ?
         </CommitWarning>
@@ -825,28 +840,29 @@ export class CommitMessage extends React.Component<
       endText = '.'
     }
 
-    const link = getRepoRulesLink(repository.gitHubRepository, branch, this.rulesLinkText(length))
     const rulesText = __DARWIN__ ? 'Rules' : 'rules'
 
     return (
       <div>
         <p>
-          This commit message fails {link}{endText}
+          This commit message fails{' '}
+          <RepoRulesetsForBranchLink
+            repository={repository.gitHubRepository}
+            branch={branch}
+          >
+            {`${length} rule${length > 1 ? 's' : ''}`}
+          </RepoRulesetsForBranchLink>{endText}
         </p>
         {repoRuleFailures.failed.length > 0 &&
           <div className="repo-rule-list">
             <strong>Failed {rulesText}:</strong>
-            <ul>
-              {this.renderRuleFailureList(repoRuleFailures.failed)}
-            </ul>
+            {this.renderRuleFailureList(repoRuleFailures.failed)}
           </div>
         }
         {repoRuleFailures.bypassed.length > 0 &&
           <div className="repo-rule-list">
             <strong>Bypassed {rulesText}:</strong>
-            <ul>
-              {this.renderRuleFailureList(repoRuleFailures.bypassed)}
-            </ul>
+            {this.renderRuleFailureList(repoRuleFailures.bypassed)}
           </div>
         }
       </div>
@@ -858,15 +874,11 @@ export class CommitMessage extends React.Component<
       <ul>
         {failures.map(f => (
           <li key={`${f.description}-${f.rulesetId}`}>
-            {f.description} ({getRepoRulesetLink(this.props.repository.gitHubRepository!, f.rulesetId)})
+            {f.description} (<RepoRulesetLink repository={this.props.repository.gitHubRepository!} rulesetId={f.rulesetId}>source</RepoRulesetLink>)
           </li>
         ))}
       </ul>
     )
-  }
-
-  private rulesLinkText(length: number): string {
-    return `${length} rule${length > 1 ? 's' : ''}`
   }
 
   private onSwitchBranch = () => {
