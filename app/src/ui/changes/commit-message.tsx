@@ -724,9 +724,7 @@ export class CommitMessage extends React.Component<
 
     if (commitToAmend !== null) {
       return (
-        <CommitWarning
-          icon={CommitWarningIcon.Information}
-        >
+        <CommitWarning icon={CommitWarningIcon.Information}>
           Your changes will modify your <strong>most recent commit</strong>.{' '}
           <LinkButton onClick={this.props.onStopAmending}>
             Stop amending
@@ -736,9 +734,7 @@ export class CommitMessage extends React.Component<
       )
     } else if (showNoWriteAccess) {
       return (
-        <CommitWarning
-          icon={CommitWarningIcon.Warning}
-        >
+        <CommitWarning icon={CommitWarningIcon.Warning}>
           You don't have write access to <strong>{repository.name}</strong>.
           Want to{' '}
           <LinkButton onClick={this.props.onShowCreateForkDialog}>
@@ -757,18 +753,18 @@ export class CommitMessage extends React.Component<
       }
 
       return (
-        <CommitWarning
-          icon={CommitWarningIcon.Warning}
-        >
+        <CommitWarning icon={CommitWarningIcon.Warning}>
           <strong>{branch}</strong> is a protected branch. Want to{' '}
           <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
           ?
         </CommitWarning>
       )
     } else if (repoRulesInfo.basicCommitWarning) {
+      const canBypass = repoRulesInfo.basicCommitWarning === 'bypass'
+
       return (
         <CommitWarning
-          icon={CommitWarningIcon.Warning}
+          icon={canBypass ? CommitWarningIcon.Warning : CommitWarningIcon.Stop}
         >
           <RepoRulesetsForBranchLink
             repository={repository.gitHubRepository}
@@ -776,9 +772,18 @@ export class CommitMessage extends React.Component<
           >
             One or more rules
           </RepoRulesetsForBranchLink>{' '}
-          apply to the branch <strong>{branch}</strong> that may prevent pushing. Want to{' '}
-          <LinkButton onClick={this.onSwitchBranch}>switch branches</LinkButton>
-          ?
+          apply to the branch <strong>{branch}</strong>
+          {canBypass && ', but you can bypass them. Proceed with caution!'}
+          {!canBypass && (
+            <>
+              {' '}
+              that will prevent you from pushing. Want to{' '}
+              <LinkButton onClick={this.onSwitchBranch}>
+                switch branches
+              </LinkButton>
+              ?
+            </>
+          )}
         </CommitWarning>
       )
     } else if (
@@ -789,9 +794,7 @@ export class CommitMessage extends React.Component<
     ) {
       // if aheadBehind is null, then the branch hasn't been published
       return (
-        <CommitWarning
-          icon={CommitWarningIcon.Warning}
-        >
+        <CommitWarning icon={CommitWarningIcon.Warning}>
           The branch name <strong>{branch}</strong> conflicts with{' '}
           <RepoRulesetsForBranchLink
             repository={repository.gitHubRepository}
@@ -853,18 +856,18 @@ export class CommitMessage extends React.Component<
             {`${length} rule${length > 1 ? 's' : ''}`}
           </RepoRulesetsForBranchLink>{endText}
         </p>
-        {repoRuleFailures.failed.length > 0 &&
+        {repoRuleFailures.failed.length > 0 && (
           <div className="repo-rule-list">
             <strong>Failed {rulesText}:</strong>
             {this.renderRuleFailureList(repoRuleFailures.failed)}
           </div>
-        }
-        {repoRuleFailures.bypassed.length > 0 &&
+        )}
+        {repoRuleFailures.bypassed.length > 0 && (
           <div className="repo-rule-list">
             <strong>Bypassed {rulesText}:</strong>
             {this.renderRuleFailureList(repoRuleFailures.bypassed)}
           </div>
-        }
+        )}
       </div>
     )
   }
@@ -874,7 +877,14 @@ export class CommitMessage extends React.Component<
       <ul>
         {failures.map(f => (
           <li key={`${f.description}-${f.rulesetId}`}>
-            {f.description} (<RepoRulesetLink repository={this.props.repository.gitHubRepository!} rulesetId={f.rulesetId}>source</RepoRulesetLink>)
+            {f.description} (
+            <RepoRulesetLink
+              repository={this.props.repository.gitHubRepository!}
+              rulesetId={f.rulesetId}
+            >
+              source
+            </RepoRulesetLink>
+            )
           </li>
         ))}
       </ul>

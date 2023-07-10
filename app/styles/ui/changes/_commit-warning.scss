@@ -26,11 +26,16 @@
     text-align: center;
 
     .warning-icon,
-    .information-icon {
+    .information-icon,
+    .stop-icon {
       color: var(--dialog-warning-color);
 
       &.information-icon {
         color: var(--dialog-information-color);
+      }
+
+      &.stop-icon {
+        color: var(--dialog-error-color);
       }
 
       background: var(--box-alt-background-color);
