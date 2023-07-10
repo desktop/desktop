@@ -17,7 +17,7 @@ import { getConfigValue } from '../../lib/git/config'
 import { Repository } from '../../models/repository'
 import classNames from 'classnames'
 import { RepoRulesMetadataFailures } from '../../models/repo-rules'
-import { RepoRulesetsForBranchLink } from '../repository-rules/repo-rulesets-for-branch-link'
+import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-failure-list'
 
 export type CommitMessageAvatarWarningType =
   | 'none'
@@ -152,7 +152,7 @@ export class CommitMessageAvatar extends React.Component<
         break
 
       case 'disallowedEmail':
-        ariaLabel = 'Email address may be disallowed. View warning.'
+        ariaLabel = 'Email address is disallowed. View warning.'
         break
     }
 
@@ -253,50 +253,19 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   private renderWarningPopover() {
-    const accountTypeSuffix = this.props.isEnterpriseAccount
-      ? ' Enterprise'
-      : ''
+    const { warningType, emailRuleFailures } = this.props
 
     const updateEmailTitle = __DARWIN__ ? 'Update Email' : 'Update email'
 
-    const userName =
-      this.props.user && this.props.user.name
-        ? ` for ${this.props.user.name}`
-        : ''
-
-    // TODO bypasses update
-    return (
+    const sharedHeader = (
       <>
-        <Row>
-          {this.props.warningType === 'misattribution' && (
-            <div>
-              The email in your global Git config (
-              <span className="git-email">{this.props.email}</span>) doesn't
-              match your GitHub{accountTypeSuffix} account{userName}.{' '}
-              <LinkButton
-                ariaLabel="Learn more about commit attribution"
-                uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
-              >
-                Learn more
-              </LinkButton>
-            </div>
-          )}
-          {this.props.warningType === 'disallowedEmail' && (
-            <div>
-              This commit may be blocked from pushing because the email in your
-              global Git config (
-              <span className="git-email">{this.props.email}</span>) does not
-              match{' '}
-              <RepoRulesetsForBranchLink
-                repository={this.props.repository.gitHubRepository}
-                branch={this.props.branch}
-              >
-                one or more rules
-              </RepoRulesetsForBranchLink>:
-              {this.props.emailRuleFailures?.failed.join(', ')}.
-            </div>
-          )}
-        </Row>
+        The email in your global Git config (
+        <span className="git-email">{this.props.email}</span>)
+      </>
+    )
+
+    const sharedFooter = (
+      <>
         <Row>
           <Select
             label="Your Account Emails"
@@ -329,6 +298,48 @@ export class CommitMessageAvatar extends React.Component<
         </Row>
       </>
     )
+
+    if (warningType === 'misattribution') {
+      const accountTypeSuffix = this.props.isEnterpriseAccount
+        ? ' Enterprise'
+        : ''
+
+      const userName =
+        this.props.user && this.props.user.name
+          ? ` for ${this.props.user.name}`
+          : ''
+
+      return (
+        <>
+          <Row>
+            <div>
+              {sharedHeader} doesn't match your GitHub{accountTypeSuffix} account{userName}.{' '}
+              <LinkButton
+                ariaLabel="Learn more about commit attribution"
+                uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
+              >
+                Learn more
+              </LinkButton>
+            </div>
+          </Row>
+          {sharedFooter}
+        </>
+      )
+    } else if (warningType === 'disallowedEmail' && emailRuleFailures && this.props.branch) {
+      return (
+        <>
+          <RepoRulesMetadataFailureList
+            repository={this.props.repository.gitHubRepository!}
+            branch={this.props.branch}
+            failures={emailRuleFailures}
+            leadingText={sharedHeader}
+          />
+          {sharedFooter}
+        </>
+      )
+    }
+
+    return
   }
 
   private getCommittingAsTitle(): string | JSX.Element | undefined {
@@ -361,7 +372,7 @@ export class CommitMessageAvatar extends React.Component<
         break
 
       case 'disallowedEmail':
-        header = 'This email address may be disallowed'
+        header = 'This email address is disallowed'
         break
 
       default:

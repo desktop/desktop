@@ -40,11 +40,12 @@ import { TooltipDirection } from '../lib/tooltip'
 import { pick } from '../../lib/pick'
 import { ToggledtippedContent } from '../lib/toggletipped-content'
 import { PreferencesTab } from '../../models/preferences'
-import { RepoRulesInfo, RepoRulesMetadataFailure, RepoRulesMetadataFailures } from '../../models/repo-rules'
+import { RepoRulesInfo, RepoRulesMetadataFailures } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
 import { Popover, PopoverAnchorPosition, PopoverDecoration } from '../lib/popover'
 import { RepoRulesetsForBranchLink } from '../repository-rules/repo-rulesets-for-branch-link'
-import { RepoRulesetLink } from '../repository-rules/repo-ruleset-link'
+import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-failure-list'
+import { supportsRepoRules } from '../../lib/endpoint-capabilities'
 
 const addAuthorIcon = {
   w: 18,
@@ -465,11 +466,10 @@ export class CommitMessage extends React.Component<
     const email = commitAuthor?.email
 
     let warningType: CommitMessageAvatarWarningType = 'none'
-    let ruleFailures = new RepoRulesMetadataFailures()
+    let ruleFailures: RepoRulesMetadataFailures | undefined
     if (email !== undefined) {
       ruleFailures = repoRulesInfo.commitAuthorEmailPatterns.getFailedRules(email)
-      // TODO bypasses update
-      if (ruleFailures.failed.length > 0) {
+      if (ruleFailures.status !== 'pass') {
         warningType = 'disallowedEmail'
       } else if (
         repositoryAccount !== null &&
@@ -813,6 +813,12 @@ export class CommitMessage extends React.Component<
   }
 
   private renderRuleFailurePopover() {
+    const { branch, repository } = this.props
+
+    if (!branch || !repository.gitHubRepository || !supportsRepoRules(repository.gitHubRepository.endpoint)) {
+      return
+    }
+
     const header = __DARWIN__ ? 'Commit Message Rule Failures' : 'Commit message rule failures'
     return (
       <Popover
@@ -824,70 +830,13 @@ export class CommitMessage extends React.Component<
       >
         <h3 id="commit-message-rule-failure-popover-header">{header}</h3>
 
-        {this.renderRuleFailurePopoverContent()}
+        <RepoRulesMetadataFailureList
+          repository={this.props.repository.gitHubRepository!}
+          branch={branch}
+          failures={this.state.repoRuleFailures}
+          leadingText="This commit message"
+        />
       </Popover>
-    )
-  }
-
-  private renderRuleFailurePopoverContent() {
-    const { branch, repository } = this.props
-    const { repoRuleFailures } = this.state
-
-    let endText: string
-    let length: number
-    if (repoRuleFailures.status === 'bypass') {
-      length = repoRuleFailures.bypassed.length
-      endText = `, but you can bypass ${length === 1 ? 'it' : 'them'}. Proceed with caution!`
-    } else {
-      length = repoRuleFailures.failed.length
-      endText = '.'
-    }
-
-    const rulesText = __DARWIN__ ? 'Rules' : 'rules'
-
-    return (
-      <div>
-        <p>
-          This commit message fails{' '}
-          <RepoRulesetsForBranchLink
-            repository={repository.gitHubRepository}
-            branch={branch}
-          >
-            {`${length} rule${length > 1 ? 's' : ''}`}
-          </RepoRulesetsForBranchLink>{endText}
-        </p>
-        {repoRuleFailures.failed.length > 0 && (
-          <div className="repo-rule-list">
-            <strong>Failed {rulesText}:</strong>
-            {this.renderRuleFailureList(repoRuleFailures.failed)}
-          </div>
-        )}
-        {repoRuleFailures.bypassed.length > 0 && (
-          <div className="repo-rule-list">
-            <strong>Bypassed {rulesText}:</strong>
-            {this.renderRuleFailureList(repoRuleFailures.bypassed)}
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  private renderRuleFailureList(failures: RepoRulesMetadataFailure[]) {
-    return (
-      <ul>
-        {failures.map(f => (
-          <li key={`${f.description}-${f.rulesetId}`}>
-            {f.description} (
-            <RepoRulesetLink
-              repository={this.props.repository.gitHubRepository!}
-              rulesetId={f.rulesetId}
-            >
-              source
-            </RepoRulesetLink>
-            )
-          </li>
-        ))}
-      </ul>
     )
   }
 
