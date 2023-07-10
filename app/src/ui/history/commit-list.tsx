@@ -8,6 +8,13 @@ import { arrayEquals } from '../../lib/equality'
 import { DragData, DragType } from '../../models/drag-drop'
 import classNames from 'classnames'
 import memoizeOne from 'memoize-one'
+import { IMenuItem, showContextualMenu } from '../../lib/menu-item'
+import {
+  enableCheckoutCommit,
+  enableResetToCommit,
+} from '../../lib/feature-flag'
+import { getDotComAPIEndpoint } from '../../lib/api'
+import { clipboard } from 'electron'
 
 const RowHeight = 50
 
@@ -168,6 +175,9 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     return commits
   }
 
+  private isLocalCommit = (sha: string) =>
+    this.props.localCommitSHAs.includes(sha)
+
   private renderCommit = (row: number) => {
     const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
@@ -181,54 +191,27 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       return null
     }
 
-    const tagsToPushSet = new Set(this.props.tagsToPush ?? [])
-
-    const isLocal = this.props.localCommitSHAs.includes(commit.sha)
-    const unpushedTags = commit.tags.filter(tagName =>
-      tagsToPushSet.has(tagName)
-    )
+    const isLocal = this.isLocalCommit(commit.sha)
+    const unpushedTags = this.getUnpushedTags(commit)
 
     const showUnpushedIndicator =
       (isLocal || unpushedTags.length > 0) &&
       this.props.isLocalRepository === false
 
-    // The user can reset to any commit up to the first non-local one (included).
-    // They cannot reset to the most recent commit... because they're already
-    // in it.
-    const isResettableCommit =
-      row > 0 && row <= this.props.localCommitSHAs.length
-
     return (
       <CommitListItem
         key={commit.sha}
         gitHubRepository={this.props.gitHubRepository}
-        isLocal={isLocal}
-        canBeUndone={this.props.canUndoCommits === true && isLocal && row === 0}
-        canBeAmended={this.props.canAmendCommits === true && row === 0}
-        canBeResetTo={
-          this.props.canResetToCommits === true && isResettableCommit
-        }
-        canBeCheckedOut={row > 0} //Cannot checkout the current commit
         showUnpushedIndicator={showUnpushedIndicator}
         unpushedIndicatorTitle={this.getUnpushedIndicatorTitle(
           isLocal,
           unpushedTags.length
         )}
-        unpushedTags={unpushedTags}
         commit={commit}
         emoji={this.props.emoji}
-        onCreateBranch={this.props.onCreateBranch}
-        onCheckoutCommit={this.props.onCheckoutCommit}
-        onCreateTag={this.props.onCreateTag}
-        onDeleteTag={this.props.onDeleteTag}
-        onCherryPick={this.props.onCherryPick}
+        isDraggable={this.props.isMultiCommitOperationInProgress === false}
         onSquash={this.onSquash}
-        onResetToCommit={this.props.onResetToCommit}
-        onUndoCommit={this.props.onUndoCommit}
-        onRevertCommit={this.props.onRevertCommit}
-        onAmendCommit={this.props.onAmendCommit}
-        onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
-        selectedCommits={this.lookupCommits(this.props.selectedSHAs)}
+        selectedCommits={this.selectedCommits}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveDragElement={this.props.onRemoveCommitDragElement}
         disableSquashing={this.props.disableSquashing}
@@ -266,10 +249,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
   }
 
   private onRenderCommitDragElement = (commit: Commit) => {
-    this.props.onRenderCommitDragElement?.(
-      commit,
-      this.lookupCommits(this.props.selectedSHAs)
-    )
+    this.props.onRenderCommitDragElement?.(commit, this.selectedCommits)
   }
 
   private getUnpushedIndicatorTitle(
@@ -287,6 +267,15 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     }
 
     return undefined
+  }
+
+  private get selectedCommits() {
+    return this.lookupCommits(this.props.selectedSHAs)
+  }
+
+  private getUnpushedTags(commit: Commit) {
+    const tagsToPushSet = new Set(this.props.tagsToPush ?? [])
+    return commit.tags.filter(tagName => tagsToPushSet.has(tagName))
   }
 
   private onSelectionChanged = (rows: ReadonlyArray<number>) => {
@@ -419,6 +408,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           onDropDataInsertion={this.onDropDataInsertion}
           onSelectionChanged={this.onSelectionChanged}
           onSelectedRowChanged={this.onSelectedRowChanged}
+          onRowContextMenu={this.onRowContextMenu}
           selectionMode="multi"
           onScroll={this.onScroll}
           insertionDragType={
@@ -439,6 +429,247 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         />
       </div>
     )
+  }
+
+  private onRowContextMenu = (
+    row: number,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
+    event.preventDefault()
+
+    const sha = this.props.commitSHAs[row]
+    const commit = this.props.commitLookup.get(sha)
+    if (commit === undefined) {
+      if (__DEV__) {
+        log.warn(
+          `[CommitList]: the commit '${sha}' does not exist in the cache`
+        )
+      }
+      return
+    }
+
+    let items: IMenuItem[] = []
+    if (this.props.selectedSHAs.length > 1) {
+      items = this.getContextMenuMultipleCommits(commit)
+    } else {
+      items = this.getContextMenuForSingleCommit(row, commit)
+    }
+
+    showContextualMenu(items)
+  }
+
+  private getContextMenuForSingleCommit(
+    row: number,
+    commit: Commit
+  ): IMenuItem[] {
+    const isLocal = this.isLocalCommit(commit.sha)
+
+    const canBeUndone =
+      this.props.canUndoCommits === true && isLocal && row === 0
+    const canBeAmended = this.props.canAmendCommits === true && row === 0
+    // The user can reset to any commit up to the first non-local one (included).
+    // They cannot reset to the most recent commit... because they're already
+    // in it.
+    const isResettableCommit =
+      row > 0 && row <= this.props.localCommitSHAs.length
+    const canBeResetTo =
+      this.props.canResetToCommits === true && isResettableCommit
+    const canBeCheckedOut = row > 0 //Cannot checkout the current commit
+
+    let viewOnGitHubLabel = 'View on GitHub'
+    const gitHubRepository = this.props.gitHubRepository
+
+    if (
+      gitHubRepository &&
+      gitHubRepository.endpoint !== getDotComAPIEndpoint()
+    ) {
+      viewOnGitHubLabel = 'View on GitHub Enterprise'
+    }
+
+    const items: IMenuItem[] = []
+
+    if (canBeAmended) {
+      items.push({
+        label: __DARWIN__ ? 'Amend Commit…' : 'Amend commit…',
+        action: () => this.props.onAmendCommit?.(commit, isLocal),
+      })
+    }
+
+    if (canBeUndone) {
+      items.push({
+        label: __DARWIN__ ? 'Undo Commit…' : 'Undo commit…',
+        action: () => {
+          if (this.props.onUndoCommit) {
+            this.props.onUndoCommit(commit)
+          }
+        },
+        enabled: this.props.onUndoCommit !== undefined,
+      })
+    }
+
+    if (enableResetToCommit()) {
+      items.push({
+        label: __DARWIN__ ? 'Reset to Commit…' : 'Reset to commit…',
+        action: () => {
+          if (this.props.onResetToCommit) {
+            this.props.onResetToCommit(commit)
+          }
+        },
+        enabled: canBeResetTo && this.props.onResetToCommit !== undefined,
+      })
+    }
+
+    if (enableCheckoutCommit()) {
+      items.push({
+        label: __DARWIN__ ? 'Checkout Commit' : 'Checkout commit',
+        action: () => {
+          this.props.onCheckoutCommit?.(commit)
+        },
+        enabled: canBeCheckedOut && this.props.onCheckoutCommit !== undefined,
+      })
+    }
+
+    items.push(
+      {
+        label: __DARWIN__
+          ? 'Revert Changes in Commit'
+          : 'Revert changes in commit',
+        action: () => {
+          if (this.props.onRevertCommit) {
+            this.props.onRevertCommit(commit)
+          }
+        },
+        enabled: this.props.onRevertCommit !== undefined,
+      },
+      { type: 'separator' },
+      {
+        label: __DARWIN__
+          ? 'Create Branch from Commit'
+          : 'Create branch from commit',
+        action: () => {
+          if (this.props.onCreateBranch) {
+            this.props.onCreateBranch(commit)
+          }
+        },
+      },
+      {
+        label: 'Create Tag…',
+        action: () => this.props.onCreateTag?.(commit.sha),
+        enabled: this.props.onCreateTag !== undefined,
+      }
+    )
+
+    const deleteTagsMenuItem = this.getDeleteTagsMenuItem(commit)
+
+    if (deleteTagsMenuItem !== null) {
+      items.push(
+        {
+          type: 'separator',
+        },
+        deleteTagsMenuItem
+      )
+    }
+    const darwinTagsLabel = commit.tags.length > 1 ? 'Copy Tags' : 'Copy Tag'
+    const windowTagsLabel = commit.tags.length > 1 ? 'Copy tags' : 'Copy tag'
+    items.push(
+      {
+        label: __DARWIN__ ? 'Cherry-pick Commit…' : 'Cherry-pick commit…',
+        action: () => this.props.onCherryPick?.(this.selectedCommits),
+        enabled: this.canCherryPick(),
+      },
+      { type: 'separator' },
+      {
+        label: 'Copy SHA',
+        action: () => clipboard.writeText(commit.sha),
+      },
+      {
+        label: __DARWIN__ ? darwinTagsLabel : windowTagsLabel,
+        action: () => clipboard.writeText(commit.tags.join(' ')),
+        enabled: commit.tags.length > 0,
+      },
+      {
+        label: viewOnGitHubLabel,
+        action: () => this.props.onViewCommitOnGitHub?.(commit.sha),
+        enabled: !isLocal && !!gitHubRepository,
+      }
+    )
+
+    return items
+  }
+
+  private canCherryPick(): boolean {
+    const { onCherryPick, isMultiCommitOperationInProgress } = this.props
+    return (
+      onCherryPick !== undefined && isMultiCommitOperationInProgress === false
+    )
+  }
+
+  private canSquash(): boolean {
+    const { onSquash, disableSquashing, isMultiCommitOperationInProgress } =
+      this.props
+    return (
+      onSquash !== undefined &&
+      disableSquashing === false &&
+      isMultiCommitOperationInProgress === false
+    )
+  }
+
+  private getDeleteTagsMenuItem(commit: Commit): IMenuItem | null {
+    const { onDeleteTag } = this.props
+    const unpushedTags = this.getUnpushedTags(commit)
+
+    if (
+      onDeleteTag === undefined ||
+      unpushedTags === undefined ||
+      commit.tags.length === 0
+    ) {
+      return null
+    }
+
+    if (commit.tags.length === 1) {
+      const tagName = commit.tags[0]
+
+      return {
+        label: `Delete tag ${tagName}`,
+        action: () => onDeleteTag(tagName),
+        enabled: unpushedTags.includes(tagName),
+      }
+    }
+
+    // Convert tags to a Set to avoid O(n^2)
+    const unpushedTagsSet = new Set(unpushedTags)
+
+    return {
+      label: 'Delete tag…',
+      submenu: commit.tags.map(tagName => {
+        return {
+          label: tagName,
+          action: () => onDeleteTag(tagName),
+          enabled: unpushedTagsSet.has(tagName),
+        }
+      }),
+    }
+  }
+
+  private getContextMenuMultipleCommits(commit: Commit): IMenuItem[] {
+    const count = this.props.selectedSHAs.length
+
+    return [
+      {
+        label: __DARWIN__
+          ? `Cherry-pick ${count} Commits…`
+          : `Cherry-pick ${count} commits…`,
+        action: () => this.props.onCherryPick?.(this.selectedCommits),
+        enabled: this.canCherryPick(),
+      },
+      {
+        label: __DARWIN__
+          ? `Squash ${count} Commits…`
+          : `Squash ${count} commits…`,
+        action: () => this.onSquash(this.selectedCommits, commit, true),
+        enabled: this.canSquash(),
+      },
+    ]
   }
 
   private onDropDataInsertion = (row: number, data: DragData) => {
