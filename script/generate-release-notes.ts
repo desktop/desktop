@@ -142,8 +142,16 @@ function parseCategory(str: string): ReleaseNotesGroupType | null {
   }
 }
 
+function isInitialTag(tag: string): boolean {
+  return tag.endsWith('-linux1') || tag.endsWith('-test1')
+}
+
+function getVersionWithoutSuffix(tag: string): string {
+  return tag.replace('-linux1', '').replace('-test1', '')
+}
+
 function getReleaseGroups(version: string): ReleaseNotesGroups {
-  if (!version.endsWith('-linux1')) {
+  if (!isInitialTag(version)) {
     return {
       new: [],
       added: [],
@@ -153,7 +161,7 @@ function getReleaseGroups(version: string): ReleaseNotesGroups {
     }
   }
 
-  const upstreamVersion = version.replace('-linux1', '')
+  const upstreamVersion = getVersionWithoutSuffix(version)
   const rootDir = dirname(__dirname)
   const changelogFile = fs.readFileSync(join(rootDir, 'changelog.json'))
   const changelogJson = JSON.parse(changelogFile)
