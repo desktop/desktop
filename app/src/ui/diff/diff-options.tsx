@@ -84,6 +84,7 @@ export class DiffOptions extends React.Component<
         <button
           title={`Diff ${__DARWIN__ ? 'Settings' : 'Options'}`}
           onClick={this.onButtonClick}
+          aria-expanded={this.state.isPopoverOpen}
         >
           <span ref={this.gearIconRef}>
             <Octicon symbol={OcticonSymbol.gear} />
