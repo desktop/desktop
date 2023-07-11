@@ -213,7 +213,7 @@ export class SelectedCommits extends React.Component<
     this.setState({ isExpanded })
   }
 
-  private onDescriptionBottomChanged = (descriptionBottom: Number) => {
+  private onDescriptionBottomChanged = (descriptionBottom: number) => {
     if (this.historyRef) {
       const historyBottom = this.historyRef.getBoundingClientRect().bottom
       this.setState({

@@ -22,6 +22,7 @@ import {
 import { FoldoutType } from '../../lib/app-state'
 import { ForcePushBranchState } from '../../lib/rebase'
 import { PushPullButtonDropDown } from './push-pull-button-dropdown'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 export const DropdownItemClassName = 'push-pull-dropdown-item'
 
@@ -80,6 +81,15 @@ interface IPushPullButtonProps {
   /** Will the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
 
+  /** Whether the dropdown will trap focus or not. Defaults to true.
+   *
+   * Example of usage: If a dropdown is open and then a dialog subsequently, the
+   * focus trap logic will stop propagation of the focus event to the dialog.
+   * Thus, we want to disable this when dialogs are open since they will be
+   * using the dialog focus management.
+   */
+  readonly enableFocusTrap: boolean
+
   /**
    * An event handler for when the drop down is opened, or closed, by a pointer
    * event or by pressing the space or enter key while focused.
@@ -87,6 +97,13 @@ interface IPushPullButtonProps {
    * @param state    - The new state of the drop down
    */
   readonly onDropdownStateChanged: (state: DropdownState) => void
+}
+
+type ActionInProgress = 'push' | 'pull' | 'fetch' | 'force push'
+
+interface IPushPullButtonState {
+  readonly screenReaderStateMessage: string | null
+  readonly actionInProgress: ActionInProgress | null
 }
 
 export enum DropdownItemType {
@@ -160,7 +177,61 @@ export const forcePushIcon: OcticonSymbol.OcticonSymbolType = {
  * A button which pushes, pulls, or updates depending on the state of the
  * repository.
  */
-export class PushPullButton extends React.Component<IPushPullButtonProps> {
+export class PushPullButton extends React.Component<
+  IPushPullButtonProps,
+  IPushPullButtonState
+> {
+  public constructor(props: IPushPullButtonProps) {
+    super(props)
+    this.state = {
+      screenReaderStateMessage: null,
+      actionInProgress: null,
+    }
+  }
+
+  public componentDidUpdate(prevProps: IPushPullButtonProps) {
+    const progressChanged =
+      (this.props.progress !== null && prevProps.progress == null) ||
+      this.props.progress?.title !== prevProps.progress?.title
+
+    const progressComplete =
+      this.props.progress === null && prevProps.progress !== null
+
+    if (progressChanged) {
+      this.setScreenReaderLoadingStateMessage()
+    }
+
+    if (progressComplete) {
+      this.setState({
+        screenReaderStateMessage: `${
+          this.state.actionInProgress ?? 'Pull, push, or fetch'
+        } complete`,
+        actionInProgress: null,
+      })
+    }
+  }
+
+  private isPullPushFetchProgress(kind: string): kind is ActionInProgress {
+    return kind === 'push' || kind === 'pull' || kind === 'fetch'
+  }
+
+  private setScreenReaderLoadingStateMessage() {
+    const { progress } = this.props
+
+    if (progress === null) {
+      return
+    }
+
+    const { description, title, kind } = progress
+    const screenReaderStateMessage = `${title} ${description ?? 'Hang on…'}`
+    const actionInProgress: ActionInProgress | null =
+      this.state.actionInProgress === null && this.isPullPushFetchProgress(kind)
+        ? kind
+        : this.state.actionInProgress
+
+    this.setState({ screenReaderStateMessage, actionInProgress })
+  }
+
   /** The common props for all button states */
   private defaultButtonProps() {
     return {
@@ -180,6 +251,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
       dropdownStyle: ToolbarDropdownStyle.MultiOption,
       ariaLabel: 'Push, pull, fetch options',
       dropdownState: this.props.isDropdownOpen ? 'open' : 'closed',
+      enableFocusTrap: this.props.enableFocusTrap,
       onDropdownStateChanged: this.props.onDropdownStateChanged,
     }
   }
@@ -196,6 +268,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
   private forcePushWithLease = () => {
     this.closeDropdown()
     this.props.dispatcher.confirmOrForcePush(this.props.repository)
+    this.setState({ actionInProgress: 'force push' })
   }
 
   private pull = () => {
@@ -230,7 +303,14 @@ export class PushPullButton extends React.Component<IPushPullButtonProps> {
   }
 
   public render() {
-    return this.renderButton()
+    return (
+      <>
+        {this.renderButton()}
+        <AriaLiveContainer>
+          {this.state.screenReaderStateMessage}
+        </AriaLiveContainer>
+      </>
+    )
   }
 
   private renderButton() {
