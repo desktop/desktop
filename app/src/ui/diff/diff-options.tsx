@@ -123,7 +123,7 @@ export class DiffOptions extends React.Component<
 
   private renderShowSideBySide() {
     return (
-      <fieldset>
+      <fieldset role="radiogroup">
         <legend>Diff display</legend>
         <RadioButton
           value="Unified"
