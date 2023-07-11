@@ -123,8 +123,8 @@ export class DiffOptions extends React.Component<
 
   private renderShowSideBySide() {
     return (
-      <section>
-        <h4>Diff display</h4>
+      <fieldset>
+        <legend>Diff display</legend>
         <RadioButton
           value="Unified"
           checked={!this.props.showSideBySideDiff}
@@ -141,14 +141,14 @@ export class DiffOptions extends React.Component<
           }
           onSelected={this.onSideBySideSelected}
         />
-      </section>
+      </fieldset>
     )
   }
 
   private renderHideWhitespaceChanges() {
     return (
-      <section>
-        <h4>Whitespace</h4>
+      <fieldset>
+        <legend>Whitespace</legend>
         <Checkbox
           value={
             this.props.hideWhitespaceChanges
@@ -166,7 +166,7 @@ export class DiffOptions extends React.Component<
             hiding whitespace.
           </p>
         )}
-      </section>
+      </fieldset>
     )
   }
 }
