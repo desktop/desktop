@@ -81,7 +81,10 @@ export class DiffOptions extends React.Component<
   public render() {
     return (
       <div className="diff-options-component" ref={this.diffOptionsRef}>
-        <button onClick={this.onButtonClick}>
+        <button
+          title={`Diff ${__DARWIN__ ? 'Settings' : 'Options'}`}
+          onClick={this.onButtonClick}
+        >
           <span ref={this.gearIconRef}>
             <Octicon symbol={OcticonSymbol.gear} />
           </span>
