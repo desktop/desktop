@@ -483,7 +483,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       gitHubRepository &&
       gitHubRepository.endpoint !== getDotComAPIEndpoint()
     ) {
-      viewOnGitHubLabel = 'View on GitHub Enterprise'
+      viewOnGitHubLabel = 'View on GitHub Enterprise Server'
     }
 
     const items: IMenuItem[] = []

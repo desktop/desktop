@@ -415,7 +415,7 @@ export class SelectedCommits extends React.Component<
       gitHubRepository &&
       gitHubRepository.endpoint !== getDotComAPIEndpoint()
     ) {
-      viewOnGitHubLabel = 'View on GitHub Enterprise'
+      viewOnGitHubLabel = 'View on GitHub Enterprise Server'
     }
 
     items.push({

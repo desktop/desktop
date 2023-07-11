@@ -26723,7 +26723,7 @@ added in remote
 +        "github.host": {
 +          "type": "string",
 +          "default": "github.com",
-+          "description": "The host name to access GitHub. Change this to your GitHub Enterprise host."
++          "description": "The host name to access GitHub. Change this to your GitHub Enterprise Server host."
 +        },
 +        "github.accessToken": {
 +          "type": [

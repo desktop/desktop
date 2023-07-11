@@ -1289,7 +1289,7 @@ added in remote
 +      // TODO: nail down this flow
 +      //  - if we have existing keys, show and let the user choose
 +      //     - they may wish to skip to instead create a new key
-+      //  - choose a GitHub or GitHub Enterprise account
++      //  - choose a GitHub or GitHub Enterprise Server account
 +      //     - detect whether these accounts have
 +
 +      const foundKeys = 0

@@ -274,7 +274,7 @@ export interface IAppState {
   readonly currentTheme: ApplicableTheme
 
   /**
-   * A map keyed on a user account (GitHub.com or GitHub Enterprise)
+   * A map keyed on a user account (GitHub.com or GitHub Enterprise Server)
    * containing an object with repositories that the authenticated
    * user has explicit permission (:read, :write, or :admin) to access
    * as well as information about whether the list of repositories

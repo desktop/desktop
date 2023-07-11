@@ -441,8 +441,8 @@ export async function getCheckRunActionsWorkflowRuns(
  * desktop releases auto generate a release branch from the release pr branch.
  * The actions teams added a way to retrieve Action workflows via the check
  * suite id to avoid these pitfalls. However, this will not be immediately
- * available for GitHub Enterprise; thus, we keep approach to maintain GitHub
- * Enterprise Server usage.
+ * available for GitHub Enterprise Server; thus, we keep approach to maintain
+ * GitHub Enterprise Server usage.
  */
 async function getCheckRunActionsWorkflowRunsByBranchName(
   api: API,

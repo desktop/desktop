@@ -285,7 +285,7 @@ interface IOnboardingStats {
    * Time (in seconds) from when the user first launched
    * the application and entered the welcome wizard until
    * the user performed their first push of a repository
-   * to GitHub.com or GitHub Enterprise. This metric
+   * to GitHub.com or GitHub Enterprise Server. This metric
    * does not track pushes to non-GitHub remotes.
    */
   readonly timeToFirstGitHubPush?: number
@@ -901,7 +901,7 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  /** Record the user made a commit to a protected GitHub or GitHub Enterprise repository */
+  /** Record the user made a commit to a protected GitHub or GitHub Enterprise Server repository */
   public recordCommitToProtectedBranch(): Promise<void> {
     return this.updateDailyMeasures(m => ({
       commitsToProtectedBranch: m.commitsToProtectedBranch + 1,

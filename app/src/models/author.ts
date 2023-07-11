@@ -9,7 +9,7 @@ export type KnownAuthor = {
   readonly email: string
 
   /**
-   * The GitHub.com or GitHub Enterprise login for
+   * The GitHub.com or GitHub Enterprise Server login for
    * this author or null if that information is not
    * available.
    */
@@ -21,7 +21,7 @@ export type UnknownAuthor = {
   readonly kind: 'unknown'
 
   /**
-   * The GitHub.com or GitHub Enterprise login for this author.
+   * The GitHub.com or GitHub Enterprise Server login for this author.
    */
   readonly username: string
 

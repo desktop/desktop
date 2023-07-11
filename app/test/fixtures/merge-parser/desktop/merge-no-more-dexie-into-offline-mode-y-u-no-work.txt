@@ -1153,7 +1153,7 @@ merged
 +import { getDotComAPIEndpoint, IEmailAPIResult } from '../lib/api'
  
  /**
-  * A GitHub account, representing the user found on GitHub The Website or GitHub Enterprise.
+  * A GitHub account, representing the user found on GitHub The Website or GitHub Enterprise Server.
 @@ -19,7 +19,7 @@
      /** The access token used to perform operations on behalf of this account */
      public readonly token: string,

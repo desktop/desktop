@@ -29,7 +29,7 @@ function getUnverifiedUserErrorMessage(login: string): string {
   return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
 }
 
-const EnterpriseTooOldMessage = `The GitHub Enterprise version does not support GitHub Desktop. Talk to your server's administrator about upgrading to the latest version of GitHub Enterprise.`
+const EnterpriseTooOldMessage = `The GitHub Enterprise Server version does not support GitHub Desktop. Talk to your instance's administrator about upgrading to the latest version of GitHub Enterprise Server.`
 
 /**
  * An enumeration of the possible steps that the sign in
@@ -101,7 +101,7 @@ export interface IAuthenticationState extends ISignInState {
    * The URL to the host which we're currently authenticating
    * against. This will be either https://api.github.com when
    * signing in against GitHub.com or a user-specified
-   * URL when signing in against a GitHub Enterprise
+   * URL when signing in against a GitHub Enterprise Server
    * instance.
    */
   readonly endpoint: string
@@ -124,7 +124,7 @@ export interface IAuthenticationState extends ISignInState {
  * State interface representing the TwoFactorAuthentication
  * step where the user provides an OTP token. This step
  * occurs after the authentication step both for GitHub.com,
- * and GitHub Enterprise when the user has enabled two
+ * and GitHub Enterprise Server when the user has enabled two
  * factor authentication on the host.
  */
 export interface ITwoFactorAuthenticationState extends ISignInState {
@@ -134,7 +134,7 @@ export interface ITwoFactorAuthenticationState extends ISignInState {
    * The URL to the host which we're currently authenticating
    * against. This will be either https://api.github.com when
    * signing in against GitHub.com or a user-specified
-   * URL when signing in against a GitHub Enterprise
+   * URL when signing in against a GitHub Enterprise Server
    * instance.
    */
   readonly endpoint: string

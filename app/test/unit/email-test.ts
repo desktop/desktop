@@ -150,7 +150,7 @@ describe('emails', () => {
       )
     })
 
-    it('returns the noreply if there is no public address for GitHub Enterprise as well', () => {
+    it('returns the noreply if there is no public address for GitHub Enterprise Server as well', () => {
       const emails: IAPIEmail[] = [
         {
           email: 'shiftkey@example.com',
@@ -265,7 +265,7 @@ describe('emails', () => {
       ).toBeTrue()
     })
 
-    it('considers stealth emails for GitHub Enterprise', () => {
+    it('considers stealth emails for GitHub Enterprise Server', () => {
       const endpoint = getDotComAPIEndpoint()
       const account = new Account('niik', endpoint, '', [], '', 123, '')
 

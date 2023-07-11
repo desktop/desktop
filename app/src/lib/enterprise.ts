@@ -1,7 +1,7 @@
 /**
- * The oldest officially supported version of GitHub Enterprise.
+ * The oldest officially supported version of GitHub Enterprise Server.
  * This information is used in user-facing text and shouldn't be
- * considered a hard limit, i.e. older versions of GitHub Enterprise
+ * considered a hard limit, i.e. older versions of GitHub Enterprise Server
  * might (and probably do) work just fine but this should be a fairly
  * recent version that we can safely say that we'll work well with.
  */

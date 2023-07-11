@@ -97,6 +97,6 @@ export class GitEmailNotFoundWarning extends React.Component<IGitEmailNotFoundWa
       return `your ${accountType} account`
     }
 
-    return 'either of your GitHub.com nor GitHub Enterprise accounts'
+    return 'either of your GitHub.com nor GitHub Enterprise Server accounts'
   }
 }

@@ -37,11 +37,11 @@ interface INoRepositoriesProps {
   /** The logged in account for GitHub.com. */
   readonly dotComAccount: Account | null
 
-  /** The logged in account for GitHub Enterprise. */
+  /** The logged in account for GitHub Enterprise Server. */
   readonly enterpriseAccount: Account | null
 
   /**
-   * A map keyed on a user account (GitHub.com or GitHub Enterprise)
+   * A map keyed on a user account (GitHub.com or GitHub Enterprise Server)
    * containing an object with repositories that the authenticated
    * user has explicit permission (:read, :write, or :admin) to access
    * as well as information about whether the list of repositories
@@ -331,7 +331,7 @@ export class NoRepositoriesView extends React.Component<
     return (
       <TabBar selectedIndex={selectedIndex} onTabClicked={this.onTabClicked}>
         <span>GitHub.com</span>
-        <span>GitHub Enterprise</span>
+        <span>GitHub Enterprise Server</span>
       </TabBar>
     )
   }

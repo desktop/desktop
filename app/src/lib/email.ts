@@ -67,7 +67,7 @@ function getStealthEmailHostForEndpoint(endpoint: string) {
  *
  * @param login    The user handle or "login"
  * @param endpoint The API endpoint that this login belongs to,
- *                 either GitHub.com or a GitHub Enterprise
+ *                 either GitHub.com or a GitHub Enterprise Server
  *                 instance
  */
 export function getLegacyStealthEmailForUser(login: string, endpoint: string) {
@@ -86,7 +86,7 @@ export function getLegacyStealthEmailForUser(login: string, endpoint: string) {
  *                 is available.
  * @param login    The user handle or "login"
  * @param endpoint The API endpoint that this login belongs to,
- *                 either GitHub.com or a GitHub Enterprise
+ *                 either GitHub.com or a GitHub Enterprise Server
  *                 instance
  */
 export function getStealthEmailForUser(
