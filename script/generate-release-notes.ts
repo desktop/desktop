@@ -262,7 +262,7 @@ ${itemsText}
 }
 
 function formatEntry(e: ChecksumEntry): string {
-  return `**${e.filename}**\n${e.checksum}\n`
+  return `${e.checksum} ${e.filename}`
 }
 
 function renderArchitectureIfNotEmpty(
@@ -276,11 +276,9 @@ function renderArchitectureIfNotEmpty(
   const itemsText = items.map(formatEntry).join('\n')
 
   return `
-  
 ## ${name}
 
-${itemsText}
-  `
+${itemsText}`
 }
 
 /**
@@ -298,7 +296,6 @@ ${renderSection('Improved', releaseNotesGroups.improved, false)}
 ${renderSection('Removed', releaseNotesGroups.removed)}
 
 ## SHA-256 checksums
-
 ${renderArchitectureIfNotEmpty('x64', shaEntries.x64)}
 ${renderArchitectureIfNotEmpty('ARM64', shaEntries.arm64)}
 ${renderArchitectureIfNotEmpty('ARM', shaEntries.arm)}`
