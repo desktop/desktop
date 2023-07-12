@@ -27,11 +27,12 @@
       }
     }
 
-    &.with-length-hint input {
+    &.with-trailing-icon input {
       padding-right: 20px;
     }
 
-    .length-hint {
+    .length-hint,
+    .commit-message-failure-hint {
       position: absolute;
       top: 0;
       right: 0;
@@ -44,6 +45,19 @@
 
       .octicon {
         height: 12px;
+      }
+    }
+
+    .commit-message-failure-hint {
+      border: none;
+      background: transparent;
+
+      .warning-icon {
+        color: var(--dialog-warning-color)
+      }
+
+      .error-icon {
+        color: var(--dialog-error-color)
       }
     }
   }

@@ -164,6 +164,8 @@ interface ICommitMessageState {
   readonly descriptionObscured: boolean
 
   readonly isCommittingStatusMessage: string
+
+  readonly isRuleFailurePopoverOpen: boolean
 }
 
 function findCommitMessageAutoCompleteProvider(
@@ -198,6 +200,7 @@ export class CommitMessage extends React.Component<
   private descriptionTextAreaScrollDebounceId: number | null = null
 
   private coAuthorInputRef = React.createRef<AuthorInput>()
+  private repoRuleCommitMessageFailureButtonRef: HTMLButtonElement | null = null
 
   private getRepoRuleCommitMessageFailures = memoizeOne((summary: string, description: string | null, repoRulesInfo: RepoRulesInfo): RepoRulesMetadataFailures => {
     if (!summary && !description) {
@@ -252,6 +255,7 @@ export class CommitMessage extends React.Component<
       ),
       descriptionObscured: false,
       isCommittingStatusMessage: '',
+      isRuleFailurePopoverOpen: false,
     }
   }
 
@@ -802,7 +806,7 @@ export class CommitMessage extends React.Component<
 
       return (
         <CommitWarning
-          icon={canBypass ? CommitWarningIcon.Warning : CommitWarningIcon.Stop}
+          icon={canBypass ? CommitWarningIcon.Warning : CommitWarningIcon.Error}
         >
           <RepoRulesetsForBranchLink
             repository={repository.gitHubRepository}
@@ -833,7 +837,7 @@ export class CommitMessage extends React.Component<
       const canBypass = !(repoRulesInfo.creationRestricted === true || this.getRepoRuleBranchNameFailures(this.props.branch, this.props.repoRulesInfo).status === 'fail')
 
       return (
-        <CommitWarning icon={canBypass ? CommitWarningIcon.Warning : CommitWarningIcon.Stop}>
+        <CommitWarning icon={canBypass ? CommitWarningIcon.Warning : CommitWarningIcon.Error}>
           The branch name <strong>{branch}</strong> fails{' '}
           <RepoRulesetsForBranchLink
             repository={repository.gitHubRepository}
@@ -866,11 +870,12 @@ export class CommitMessage extends React.Component<
     const header = __DARWIN__ ? 'Commit Message Rule Failures' : 'Commit message rule failures'
     return (
       <Popover
-        anchor={this.summaryTextInput}
+        anchor={this.repoRuleCommitMessageFailureButtonRef}
         anchorPosition={PopoverAnchorPosition.Right}
         decoration={PopoverDecoration.Balloon}
         trapFocus={false}
         ariaLabelledby="commit-message-rule-failure-popover-header"
+        onClickOutside={this.closeRuleFailurePopover}
       >
         <h3 id="commit-message-rule-failure-popover-header">{header}</h3>
 
@@ -882,6 +887,18 @@ export class CommitMessage extends React.Component<
         />
       </Popover>
     )
+  }
+
+  private onRepoRuleCommitMessageFailureButtonRef = (buttonRef: HTMLButtonElement | null) => {
+    this.repoRuleCommitMessageFailureButtonRef = buttonRef
+  }
+
+  private toggleRuleFailurePopover = () => {
+    this.setState({ isRuleFailurePopoverOpen: !this.state.isRuleFailurePopoverOpen })
+  }
+
+  public closeRuleFailurePopover = () => {
+    this.setState({ isRuleFailurePopoverOpen: false })
   }
 
   private onSwitchBranch = () => {
@@ -1015,6 +1032,24 @@ export class CommitMessage extends React.Component<
     )
   }
 
+  private renderRepoRuleCommitMessageFailureHint(): JSX.Element | null {
+    const failures = this.getRepoRuleCommitMessageFailures(this.summaryOrPlaceholder, this.state.description, this.props.repoRulesInfo)
+    if (failures.status === 'pass') {
+      return null
+    }
+
+    return (
+      <Button
+        className="commit-message-failure-hint"
+        ariaLabel="Commit message fails repository rules. View details."
+        onButtonRef={this.onRepoRuleCommitMessageFailureButtonRef}
+        onClick={this.toggleRuleFailurePopover}
+      >
+        <Octicon symbol={OcticonSymbol.alert} className={failures.status === 'bypass' ? 'warning-icon' : 'error-icon'} />
+      </Button>
+    )
+  }
+
   public render() {
     const className = classNames('commit-message-component', {
       'with-action-bar': this.isActionBarEnabled,
@@ -1025,9 +1060,13 @@ export class CommitMessage extends React.Component<
       'with-overflow': this.state.descriptionObscured,
     })
 
+    const commitMessageFailures = this.getRepoRuleCommitMessageFailures(this.summaryOrPlaceholder, this.state.description, this.props.repoRulesInfo)
+
+    // both of these are calculated, but only the repo rule icon is displayed if both are true, see below
+    const showRepoRuleCommitMessageFailureHint = commitMessageFailures.status !== 'pass'
     const showSummaryLengthHint = this.state.summary.length > IdealSummaryLength
     const summaryClassName = classNames('summary', {
-      'with-length-hint': showSummaryLengthHint,
+      'with-trailing-icon': showRepoRuleCommitMessageFailureHint || showSummaryLengthHint,
     })
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
       'nudge-arrow-left': this.props.shouldNudge === true,
@@ -1062,7 +1101,8 @@ export class CommitMessage extends React.Component<
             disabled={isCommitting === true}
             spellcheck={commitSpellcheckEnabled}
           />
-          {showSummaryLengthHint && this.renderSummaryLengthHint()}
+          {showRepoRuleCommitMessageFailureHint && this.renderRepoRuleCommitMessageFailureHint()}
+          {!showRepoRuleCommitMessageFailureHint && showSummaryLengthHint && this.renderSummaryLengthHint()}
         </div>
 
         <FocusContainer
@@ -1087,7 +1127,7 @@ export class CommitMessage extends React.Component<
           {this.renderActionBar()}
         </FocusContainer>
 
-        {this.getRepoRuleCommitMessageFailures(this.summaryOrPlaceholder, this.state.description, this.props.repoRulesInfo).status !== 'pass' && this.renderRuleFailurePopover()}
+        {this.state.isRuleFailurePopoverOpen && this.renderRuleFailurePopover()}
 
         {this.renderCoAuthorInput()}
 

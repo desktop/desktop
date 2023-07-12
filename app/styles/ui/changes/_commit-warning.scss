@@ -27,14 +27,14 @@
 
     .warning-icon,
     .information-icon,
-    .stop-icon {
+    .error-icon {
       color: var(--dialog-warning-color);
 
       &.information-icon {
         color: var(--dialog-information-color);
       }
 
-      &.stop-icon {
+      &.error-icon {
         color: var(--dialog-error-color);
       }
 
