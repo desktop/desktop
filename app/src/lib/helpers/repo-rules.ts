@@ -39,7 +39,6 @@ export function parseRepoRules(
 
     switch (rule.type) {
       case APIRepoRuleType.Update:
-      case APIRepoRuleType.RequiredLinearHistory:
       case APIRepoRuleType.RequiredDeployments:
       case APIRepoRuleType.RequiredSignatures:
       case APIRepoRuleType.RequiredStatusChecks:

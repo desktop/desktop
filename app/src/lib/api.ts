@@ -513,7 +513,6 @@ export interface IAPIRepoRule {
 export enum APIRepoRuleType {
   Creation = 'creation',
   Update = 'update',
-  RequiredLinearHistory = 'required_linear_history',
   RequiredDeployments = 'required_deployments',
   RequiredSignatures = 'required_signatures',
   RequiredStatusChecks = 'required_status_checks',
