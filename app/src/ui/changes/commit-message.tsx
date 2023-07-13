@@ -47,6 +47,7 @@ import { RepoRulesetsForBranchLink } from '../repository-rules/repo-rulesets-for
 import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-failure-list'
 import { supportsRepoRules } from '../../lib/endpoint-capabilities'
 import memoizeOne from 'memoize-one'
+import { Dispatcher } from '../dispatcher'
 
 const addAuthorIcon = {
   w: 18,
@@ -64,6 +65,7 @@ interface ICommitMessageProps {
   readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
+  readonly dispatcher: Dispatcher
   readonly anyFilesSelected: boolean
   readonly isShowingModal: boolean
   readonly isShowingFoldout: boolean
@@ -382,7 +384,15 @@ export class CommitMessage extends React.Component<
   }
 
   private onSubmit = () => {
-    this.createCommit()
+    if (this.shouldWarnForRepoRuleBypass()) {
+      this.props.dispatcher.showRepoRulesCommitBypassWarning(
+        this.props.repository.gitHubRepository!,
+        this.props.branch!,
+        () => this.createCommit()
+      )
+    } else {
+      this.createCommit()
+    }
   }
 
   private getCoAuthorTrailers() {
@@ -473,6 +483,36 @@ export class CommitMessage extends React.Component<
       || (this.props.aheadBehind === null
         && (this.props.repoRulesInfo.creationRestricted === true ||
           branchNameFailures.status === 'fail'))
+  }
+
+  /**
+   * If true, then rules exist for the branch but the user is bypassing all of them.
+   * Used to display a confirmation prompt.
+   */
+  private shouldWarnForRepoRuleBypass(): boolean {
+    const { aheadBehind, branch, repoRulesInfo } = this.props
+
+    // if all rules pass, then nothing to warn about. if at least one rule fails, then the user won't hit this
+    // in the first place because the button will be disabled. therefore, only need to check if any single
+    // value is 'bypass'.
+
+    if (repoRulesInfo.basicCommitWarning === 'bypass'
+      || repoRulesInfo.pullRequestRequired === 'bypass') {
+      return true
+    }
+
+    const commitMessageFailures = this.getRepoRuleCommitMessageFailures(this.summaryOrPlaceholder, this.state.description, this.props.repoRulesInfo)
+    const commitAuthorFailures = this.getRepoRuleCommitAuthorFailures(this.props.commitAuthor, this.props.repoRulesInfo)
+
+    if (commitMessageFailures.status === 'bypass'
+      || commitAuthorFailures.status === 'bypass') {
+      return true
+    }
+
+    const branchNameFailures = this.getRepoRuleBranchNameFailures(this.props.branch, this.props.repoRulesInfo)
+    return (aheadBehind === null &&
+      branch !== null &&
+      (repoRulesInfo.creationRestricted === 'bypass' || branchNameFailures.status === 'bypass'))
   }
 
   private canExcecuteCommitShortcut(): boolean {

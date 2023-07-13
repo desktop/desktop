@@ -121,6 +121,7 @@ export class CommitMessageDialog extends React.Component<
             branch={this.props.branch}
             mostRecentLocalCommit={null}
             commitAuthor={this.props.commitAuthor}
+            dispatcher={this.props.dispatcher}
             isShowingModal={true}
             isShowingFoldout={false}
             commitButtonText={this.props.dialogButtonText}

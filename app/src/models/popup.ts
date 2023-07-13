@@ -93,6 +93,7 @@ export enum PopupType {
   TestNotifications = 'TestNotifications',
   PullRequestComment = 'PullRequestComment',
   UnknownAuthors = 'UnknownAuthors',
+  ConfirmRepoRulesBypass = 'ConfirmRepoRulesBypass',
 }
 
 interface IBasePopup {
@@ -408,6 +409,12 @@ export type PopupDetail =
       type: PopupType.UnknownAuthors
       authors: ReadonlyArray<UnknownAuthor>
       onCommit: () => void
+    }
+  | {
+      type: PopupType.ConfirmRepoRulesBypass
+      repository: GitHubRepository
+      branch: string
+      onConfirm: () => void
     }
 
 export type Popup = IBasePopup & PopupDetail
