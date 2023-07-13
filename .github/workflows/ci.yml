@@ -241,7 +241,7 @@ jobs:
         run: |
           RELEASE_TAG=${GITHUB_REF/refs\/tags\//}
           echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
-          tagNameWithoutPrefix="${RELEASE_TAG:1}"
+          tagNameWithoutPrefix="${RELEASE_TAG:8}"
           echo "RELEASE_TAG_WITHOUT_PREFIX=${tagNameWithoutPrefix}" >> $GITHUB_ENV
 
       # TODO: generate release notes
@@ -268,9 +268,10 @@ jobs:
           name: GitHub Desktop for Linux ${{ env.RELEASE_TAG_WITHOUT_PREFIX }}
           body_path: script/release_notes.txt
           files: |
-            artifacts/*.AppImage
-            artifacts/*.deb
-            artifacts/*.rpm
+            artifacts/**/*.AppImage
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
           draft: true
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
