@@ -325,11 +325,11 @@ export class CommitMessageAvatar extends React.Component<
           {sharedFooter}
         </>
       )
-    } else if (warningType === 'disallowedEmail' && emailRuleFailures && this.props.branch) {
+    } else if (warningType === 'disallowedEmail' && emailRuleFailures && this.props.branch && this.props.repository.gitHubRepository) {
       return (
         <>
           <RepoRulesMetadataFailureList
-            repository={this.props.repository.gitHubRepository!}
+            repository={this.props.repository.gitHubRepository}
             branch={this.props.branch}
             failures={emailRuleFailures}
             leadingText={sharedHeader}

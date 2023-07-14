@@ -45,7 +45,6 @@ import { IAheadBehind } from '../../models/branch'
 import { Popover, PopoverAnchorPosition, PopoverDecoration } from '../lib/popover'
 import { RepoRulesetsForBranchLink } from '../repository-rules/repo-rulesets-for-branch-link'
 import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-failure-list'
-import { supportsRepoRules } from '../../lib/endpoint-capabilities'
 import memoizeOne from 'memoize-one'
 import { Dispatcher } from '../dispatcher'
 
@@ -383,10 +382,10 @@ export class CommitMessage extends React.Component<
   }
 
   private onSubmit = () => {
-    if (this.shouldWarnForRepoRuleBypass()) {
+    if (this.shouldWarnForRepoRuleBypass() && this.props.repository.gitHubRepository && this.props.branch) {
       this.props.dispatcher.showRepoRulesCommitBypassWarning(
-        this.props.repository.gitHubRepository!,
-        this.props.branch!,
+        this.props.repository.gitHubRepository,
+        this.props.branch,
         () => this.createCommit()
       )
     } else {
@@ -910,8 +909,7 @@ export class CommitMessage extends React.Component<
     // popover will open back up.
     if (!branch ||
       !repository.gitHubRepository ||
-      !supportsRepoRules(repository.gitHubRepository.endpoint)
-      || failures.status === 'pass') {
+      failures.status === 'pass') {
       return
     }
 
@@ -929,7 +927,7 @@ export class CommitMessage extends React.Component<
         <h3 id="commit-message-rule-failure-popover-header">{header}</h3>
 
         <RepoRulesMetadataFailureList
-          repository={this.props.repository.gitHubRepository!}
+          repository={repository.gitHubRepository}
           branch={branch}
           failures={failures}
           leadingText="This commit message"
