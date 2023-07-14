@@ -449,6 +449,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red};
 
+  --dialog-warning-banner-background: #{$yellow-100};
+  --dialog-warning-banner-border-color: #{$yellow-200};
+  --dialog-warning-banner-text-color: #{$yellow-900};
+
   /** File warning */
   --file-warning-background-color: #{$yellow-200};
   --file-warning-color: #{$yellow-800};

@@ -291,7 +291,7 @@ export class CreateBranch extends React.Component<
       this.state.branchName.length <= 0 ||
       (!!this.state.currentError && !this.state.currentError.isWarning) ||
       /^\s*$/.test(this.state.branchName)
-    const error = this.state.currentError?.error
+    const error = this.state.currentError
 
     return (
       <Dialog
@@ -302,7 +302,9 @@ export class CreateBranch extends React.Component<
         loading={this.state.isCreatingBranch}
         disabled={this.state.isCreatingBranch}
       >
-        {error ? <DialogError>{error.message}</DialogError> : null}
+        {error && (
+          <DialogError type={error.isWarning ? 'warning' : 'error'}>{error.error.message}</DialogError>
+        )}
 
         <DialogContent>
           <RefNameTextBox

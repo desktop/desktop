@@ -342,6 +342,10 @@ body.theme-dark {
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red-600};
 
+  --dialog-warning-banner-background: #{darken($yellow-900, 3%)};
+  --dialog-warning-banner-border-color: #{$yellow-900};
+  --dialog-warning-banner-text-color: var(--text-color);
+
   /** File warning */
   --file-warning-background-color: #{rgba($yellow-900, 0.4)};
   --file-warning-color: #{$yellow-700};
