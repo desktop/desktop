@@ -53,6 +53,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   // Colors used for icons that are inside an input box
   --input-icon-warning-color: #{$yellow-800};
   --input-icon-error-color: #{$red-600};
+  --input-icon-hover-background-color: #{$gray-100};
 
   // Colors used for icons in the commit message warning/error area
   --commit-message-icon-warning-color: var(--input-icon-warning-color);

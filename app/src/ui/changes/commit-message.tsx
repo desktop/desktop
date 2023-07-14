@@ -921,6 +921,7 @@ export class CommitMessage extends React.Component<
         anchor={this.summaryTextInput}
         anchorPosition={PopoverAnchorPosition.Right}
         decoration={PopoverDecoration.Balloon}
+        minHeight={200}
         trapFocus={false}
         ariaLabelledby="commit-message-rule-failure-popover-header"
         onClickOutside={this.closeRuleFailurePopover}
