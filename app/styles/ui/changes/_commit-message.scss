@@ -33,14 +33,14 @@
 
     .length-hint,
     .commit-message-failure-hint {
-      $distanceFromTop: 2px;
+      $distanceFromEdge: 2px;
 
       position: absolute;
-      top: $distanceFromTop;
+      top: $distanceFromEdge;
       right: 0;
       width: 16px;
-      margin-right: 4px;
-      height: calc(var(--text-field-height) - #{2 * $distanceFromTop});
+      margin-right: $distanceFromEdge;
+      height: calc(var(--text-field-height) - #{2 * $distanceFromEdge});
       display: flex;
       justify-content: center;
       align-items: center;
