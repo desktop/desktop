@@ -28,14 +28,14 @@
     .warning-icon,
     .information-icon,
     .error-icon {
-      color: var(--dialog-warning-color);
+      color: var(--commit-message-icon-error-color);
 
       &.information-icon {
         color: var(--dialog-information-color);
       }
 
-      &.error-icon {
-        color: var(--dialog-error-color);
+      &.warning-icon {
+        color: var(--commit-message-icon-warning-color);
       }
 
       background: var(--box-alt-background-color);

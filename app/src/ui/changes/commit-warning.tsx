@@ -24,7 +24,7 @@ const renderIcon = (icon: CommitWarningIcon) => {
       break
       case CommitWarningIcon.Error:
         className = 'error-icon'
-        symbol = OcticonSymbol.alert
+        symbol = OcticonSymbol.stop
         break
     default:
       assertNever(icon, `Unexpected icon value ${icon}`)

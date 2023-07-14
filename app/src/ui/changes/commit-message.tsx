@@ -202,7 +202,6 @@ export class CommitMessage extends React.Component<
   private descriptionTextAreaScrollDebounceId: number | null = null
 
   private coAuthorInputRef = React.createRef<AuthorInput>()
-  private repoRuleCommitMessageFailureButtonRef: HTMLButtonElement | null = null
 
   private getRepoRuleCommitMessageFailures = memoizeOne((summary: string, description: string | null, repoRulesInfo: RepoRulesInfo): RepoRulesMetadataFailures => {
     if (!summary && !description) {
@@ -903,14 +902,23 @@ export class CommitMessage extends React.Component<
   private renderRuleFailurePopover() {
     const { branch, repository } = this.props
 
-    if (!branch || !repository.gitHubRepository || !supportsRepoRules(repository.gitHubRepository.endpoint)) {
+    const failures = this.getRepoRuleCommitMessageFailures(this.summaryOrPlaceholder, this.state.description, this.props.repoRulesInfo)
+
+    // the failure status is checked here separately from whether the popover is open. if the
+    // user has it open but rules pass as they're typing, then keep the popover logic open
+    // but just don't render it. as they keep typing, if the message fails again, then the
+    // popover will open back up.
+    if (!branch ||
+      !repository.gitHubRepository ||
+      !supportsRepoRules(repository.gitHubRepository.endpoint)
+      || failures.status === 'pass') {
       return
     }
 
     const header = __DARWIN__ ? 'Commit Message Rule Failures' : 'Commit message rule failures'
     return (
       <Popover
-        anchor={this.repoRuleCommitMessageFailureButtonRef}
+        anchor={this.summaryTextInput}
         anchorPosition={PopoverAnchorPosition.Right}
         decoration={PopoverDecoration.Balloon}
         trapFocus={false}
@@ -922,15 +930,11 @@ export class CommitMessage extends React.Component<
         <RepoRulesMetadataFailureList
           repository={this.props.repository.gitHubRepository!}
           branch={branch}
-          failures={this.getRepoRuleCommitMessageFailures(this.summaryOrPlaceholder, this.state.description, this.props.repoRulesInfo)}
+          failures={failures}
           leadingText="This commit message"
         />
       </Popover>
     )
-  }
-
-  private onRepoRuleCommitMessageFailureButtonRef = (buttonRef: HTMLButtonElement | null) => {
-    this.repoRuleCommitMessageFailureButtonRef = buttonRef
   }
 
   private toggleRuleFailurePopover = () => {
@@ -1078,14 +1082,18 @@ export class CommitMessage extends React.Component<
       return null
     }
 
+    const canBypass = failures.status === 'bypass'
+
     return (
       <Button
         className="commit-message-failure-hint"
         ariaLabel="Commit message fails repository rules. View details."
-        onButtonRef={this.onRepoRuleCommitMessageFailureButtonRef}
         onClick={this.toggleRuleFailurePopover}
       >
-        <Octicon symbol={OcticonSymbol.alert} className={failures.status === 'bypass' ? 'warning-icon' : 'error-icon'} />
+        <Octicon
+          symbol={canBypass ? OcticonSymbol.alert : OcticonSymbol.stop}
+          className={canBypass ? 'warning-icon' : 'error-icon'}
+        />
       </Button>
     )
   }
