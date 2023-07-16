@@ -140,6 +140,15 @@ const executableShimPathsForJetBrainsIDE = (
   ]
 }
 
+// Function to allow for validating a string against the start of strings
+// in an array. Used for validating publisher and display name
+const validateStartsWith = (
+  registryVal: string,
+  definedVal: string[]
+): boolean => {
+  return definedVal.some(subString => registryVal.startsWith(subString))
+}
+
 /**
  * This list contains all the external editors supported on Windows. Add a new
  * entry here to add support for your favorite editor.
@@ -512,7 +521,7 @@ async function findApplication(editor: WindowsExternalEditor) {
     const { displayName, publisher, installLocation } = getAppInfo(editor, keys)
 
     if (
-      !displayName.startsWith(editor.displayNamePrefix) ||
+      !validateStartsWith(displayName, editor.displayNamePrefix) ||
       !editor.publishers.includes(publisher)
     ) {
       log.debug(`Unexpected registry entries for ${editor.name}`)
