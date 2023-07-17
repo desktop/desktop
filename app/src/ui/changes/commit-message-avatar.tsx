@@ -313,7 +313,8 @@ export class CommitMessageAvatar extends React.Component<
         <>
           <Row>
             <div>
-              {sharedHeader} doesn't match your GitHub{accountTypeSuffix} account{userName}.{' '}
+              {sharedHeader} doesn't match your GitHub{accountTypeSuffix}{' '}
+              account{userName}.{' '}
               <LinkButton
                 ariaLabel="Learn more about commit attribution"
                 uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
@@ -325,7 +326,12 @@ export class CommitMessageAvatar extends React.Component<
           {sharedFooter}
         </>
       )
-    } else if (warningType === 'disallowedEmail' && emailRuleFailures && this.props.branch && this.props.repository.gitHubRepository) {
+    } else if (
+      warningType === 'disallowedEmail' &&
+      emailRuleFailures &&
+      this.props.branch &&
+      this.props.repository.gitHubRepository
+    ) {
       return (
         <>
           <RepoRulesMetadataFailureList

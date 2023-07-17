@@ -1209,7 +1209,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
 
         if (branchRules.length > 0) {
-          currentRepoRulesInfo = parseRepoRules(branchRules, this.cachedRepoRulesets)
+          currentRepoRulesInfo = parseRepoRules(
+            branchRules,
+            this.cachedRepoRulesets
+          )
         }
       }
 

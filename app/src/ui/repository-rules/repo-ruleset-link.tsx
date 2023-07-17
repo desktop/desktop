@@ -11,10 +11,13 @@ interface IRepoRulesetLinkProps {
  * Returns a LinkButton to the webpage for the ruleset with the
  * provided ID within the provided repo.
  */
-export class RepoRulesetLink extends React.Component<IRepoRulesetLinkProps, {}> {
+export class RepoRulesetLink extends React.Component<
+  IRepoRulesetLinkProps,
+  {}
+> {
   public render() {
     const { repository, rulesetId, children } = this.props
-  
+
     const link = `${repository.htmlURL}/rules/${rulesetId}`
 
     return (

@@ -57,21 +57,15 @@ export function parseRepoRules(
         break
 
       case APIRepoRuleType.CommitMessagePattern:
-        info.commitMessagePatterns.push(
-          toMetadataRule(rule, enforced)
-        )
+        info.commitMessagePatterns.push(toMetadataRule(rule, enforced))
         break
 
       case APIRepoRuleType.CommitAuthorEmailPattern:
-        info.commitAuthorEmailPatterns.push(
-          toMetadataRule(rule, enforced)
-        )
+        info.commitAuthorEmailPatterns.push(toMetadataRule(rule, enforced))
         break
 
       case APIRepoRuleType.CommitterEmailPattern:
-        info.committerEmailPatterns.push(
-          toMetadataRule(rule, enforced)
-        )
+        info.committerEmailPatterns.push(toMetadataRule(rule, enforced))
         break
 
       case APIRepoRuleType.BranchNamePattern:

@@ -1,5 +1,8 @@
 export type RepoRulesMetadataStatus = 'pass' | 'fail' | 'bypass'
-export type RepoRulesMetadataFailure = { description: string; rulesetId: number }
+export type RepoRulesMetadataFailure = {
+  description: string
+  rulesetId: number
+}
 
 export class RepoRulesMetadataFailures {
   public failed: RepoRulesMetadataFailure[] = []
@@ -56,9 +59,15 @@ export class RepoRulesMetadataRules {
     for (const rule of this.rules) {
       if (!rule.matcher(toMatch)) {
         if (rule.enforced === 'bypass') {
-          failures.bypassed.push({ description: rule.humanDescription, rulesetId: rule.rulesetId })
+          failures.bypassed.push({
+            description: rule.humanDescription,
+            rulesetId: rule.rulesetId,
+          })
         } else {
-          failures.failed.push({ description: rule.humanDescription, rulesetId: rule.rulesetId })
+          failures.failed.push({
+            description: rule.humanDescription,
+            rulesetId: rule.rulesetId,
+          })
         }
       }
     }

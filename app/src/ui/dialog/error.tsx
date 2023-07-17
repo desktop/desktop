@@ -13,7 +13,9 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
  *
  * Provide `children` to display content inside the error dialog.
  */
-export class DialogError extends React.Component<{ type?: 'error' | 'warning' }> {
+export class DialogError extends React.Component<{
+  type?: 'error' | 'warning'
+}> {
   public render() {
     const type = this.props.type ?? 'error'
     const className = `dialog-banner ${type}`

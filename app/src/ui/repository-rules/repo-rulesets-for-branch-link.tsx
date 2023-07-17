@@ -11,14 +11,17 @@ interface IRepoRulesetsForBranchLinkProps {
  * Returns a LinkButton to the rulesets page for the given repository and branch. Returns
  * the raw children with no link if the repository or branch are null.
  */
-export class RepoRulesetsForBranchLink extends React.Component<IRepoRulesetsForBranchLinkProps, {}> {
+export class RepoRulesetsForBranchLink extends React.Component<
+  IRepoRulesetsForBranchLinkProps,
+  {}
+> {
   public render() {
     const { repository, branch, children } = this.props
 
     if (!repository || !branch) {
       return children
     }
-  
+
     const link = `${repository.htmlURL}/rules/?ref=${encodeURIComponent(
       'refs/heads/' + branch
     )}`

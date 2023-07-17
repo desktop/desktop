@@ -1,6 +1,9 @@
 import * as React from 'react'
 import { GitHubRepository } from '../../models/github-repository'
-import { RepoRulesMetadataFailure, RepoRulesMetadataFailures } from '../../models/repo-rules'
+import {
+  RepoRulesMetadataFailure,
+  RepoRulesMetadataFailures,
+} from '../../models/repo-rules'
 import { RepoRulesetsForBranchLink } from './repo-rulesets-for-branch-link'
 import { RepoRulesetLink } from './repo-ruleset-link'
 
@@ -28,7 +31,9 @@ export class RepoRulesMetadataFailureList extends React.Component<IRepoRulesMeta
     let length: number
     if (failures.status === 'bypass') {
       length = failures.bypassed.length
-      endText = `, but you can bypass ${length === 1 ? 'it' : 'them'}. Proceed with caution!`
+      endText = `, but you can bypass ${
+        length === 1 ? 'it' : 'them'
+      }. Proceed with caution!`
     } else {
       length = failures.failed.length
       endText = '.'
@@ -40,12 +45,10 @@ export class RepoRulesMetadataFailureList extends React.Component<IRepoRulesMeta
       <div className="repo-rules-failure-list-component">
         <p>
           {leadingText} fails{' '}
-          <RepoRulesetsForBranchLink
-            repository={repository}
-            branch={branch}
-          >
+          <RepoRulesetsForBranchLink repository={repository} branch={branch}>
             {`${length} rule${length > 1 ? 's' : ''}`}
-          </RepoRulesetsForBranchLink>{endText}
+          </RepoRulesetsForBranchLink>
+          {endText}
         </p>
         {failures.failed.length > 0 && (
           <div className="repo-rule-list">

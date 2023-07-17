@@ -305,7 +305,9 @@ export class CreateBranch extends React.Component<
         disabled={this.state.isCreatingBranch}
       >
         {error && (
-          <DialogError type={error.isWarning ? 'warning' : 'error'}>{error.error.message}</DialogError>
+          <DialogError type={error.isWarning ? 'warning' : 'error'}>
+            {error.error.message}
+          </DialogError>
         )}
 
         <DialogContent>
