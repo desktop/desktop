@@ -47,6 +47,7 @@ import { RepoRulesetsForBranchLink } from '../repository-rules/repo-rulesets-for
 import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-failure-list'
 import memoizeOne from 'memoize-one'
 import { Dispatcher } from '../dispatcher'
+import { enableRepoRules } from '../../lib/feature-flag'
 
 const addAuthorIcon = {
   w: 18,
@@ -472,6 +473,10 @@ export class CommitMessage extends React.Component<
    * Whether the user will be prevented from pushing this commit due to a repo rule failure.
    */
   private hasRepoRuleFailure(): boolean {
+    if (!enableRepoRules()) {
+      return false
+    }
+
     const commitMessageFailures = this.getRepoRuleCommitMessageFailures(this.summaryOrPlaceholder, this.state.description, this.props.repoRulesInfo)
     const commitAuthorFailures = this.getRepoRuleCommitAuthorFailures(this.props.commitAuthor, this.props.repoRulesInfo)
     const branchNameFailures = this.getRepoRuleBranchNameFailures(this.props.branch, this.props.repoRulesInfo)
@@ -489,6 +494,10 @@ export class CommitMessage extends React.Component<
    */
   private shouldWarnForRepoRuleBypass(): boolean {
     const { aheadBehind, branch, repoRulesInfo } = this.props
+
+    if (!enableRepoRules()) {
+      return false
+    }
 
     // if all rules pass, then nothing to warn about. if at least one rule fails, then the user won't hit this
     // in the first place because the button will be disabled. therefore, only need to check if any single
@@ -549,7 +558,7 @@ export class CommitMessage extends React.Component<
     let warningType: CommitMessageAvatarWarningType = 'none'
     const commitAuthorFailures = this.getRepoRuleCommitAuthorFailures(this.props.commitAuthor, this.props.repoRulesInfo)
     if (email !== undefined) {
-      if (commitAuthorFailures.status !== 'pass') {
+      if (enableRepoRules() && commitAuthorFailures.status !== 'pass') {
         warningType = 'disallowedEmail'
       } else if (
         repositoryAccount !== null &&
@@ -839,7 +848,7 @@ export class CommitMessage extends React.Component<
           ?
         </CommitWarning>
       )
-    } else if (repoRulesInfo.basicCommitWarning) {
+    } else if (enableRepoRules() && repoRulesInfo.basicCommitWarning) {
       const canBypass = repoRulesInfo.basicCommitWarning === 'bypass'
 
       return (
@@ -867,6 +876,7 @@ export class CommitMessage extends React.Component<
         </CommitWarning>
       )
     } else if (
+      enableRepoRules() &&
       aheadBehind === null &&
       branch !== null &&
       (repoRulesInfo.creationRestricted ||
@@ -909,6 +919,7 @@ export class CommitMessage extends React.Component<
     // popover will open back up.
     if (!branch ||
       !repository.gitHubRepository ||
+      !enableRepoRules() ||
       failures.status === 'pass') {
       return
     }
@@ -1076,6 +1087,8 @@ export class CommitMessage extends React.Component<
   }
 
   private renderRepoRuleCommitMessageFailureHint(): JSX.Element | null {
+    // enableRepoRules FF is checked before this method
+
     const failures = this.getRepoRuleCommitMessageFailures(this.summaryOrPlaceholder, this.state.description, this.props.repoRulesInfo)
     if (failures.status === 'pass') {
       return null
@@ -1110,7 +1123,7 @@ export class CommitMessage extends React.Component<
     const commitMessageFailures = this.getRepoRuleCommitMessageFailures(this.summaryOrPlaceholder, this.state.description, this.props.repoRulesInfo)
 
     // both of these are calculated, but only the repo rule icon is displayed if both are true, see below
-    const showRepoRuleCommitMessageFailureHint = commitMessageFailures.status !== 'pass'
+    const showRepoRuleCommitMessageFailureHint = enableRepoRules() && commitMessageFailures.status !== 'pass'
     const showSummaryLengthHint = this.state.summary.length > IdealSummaryLength
     const summaryClassName = classNames('summary', {
       'with-trailing-icon': showRepoRuleCommitMessageFailureHint || showSummaryLengthHint,

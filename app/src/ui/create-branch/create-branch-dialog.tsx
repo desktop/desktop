@@ -33,6 +33,7 @@ import { API, APIRepoRuleType, IAPIRepoRuleset } from '../../lib/api'
 import { Account } from '../../models/account'
 import { getAccountForRepository } from '../../lib/get-account-for-repository'
 import { supportsRepoRules } from '../../lib/endpoint-capabilities'
+import { enableRepoRules } from '../../lib/feature-flag'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -121,6 +122,7 @@ export class CreateBranch extends React.Component<
       this.props.upstreamGitHubRepository === null ||
       branchName === '' ||
       this.state.currentError !== null ||
+      !enableRepoRules() ||
       !supportsRepoRules(this.props.upstreamGitHubRepository.endpoint)
     ) {
       return
