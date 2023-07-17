@@ -358,7 +358,9 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
           rowCount={this.state.rows.length}
           rowRenderer={this.renderRow}
           rowHeight={this.props.rowHeight}
-          selectedRows={[this.state.selectedRow]}
+          selectedRows={
+            this.state.selectedRow === -1 ? [] : [this.state.selectedRow]
+          }
           onSelectedRowChanged={this.onSelectedRowChanged}
           onRowClick={this.onRowClick}
           onRowKeyDown={this.onRowKeyDown}

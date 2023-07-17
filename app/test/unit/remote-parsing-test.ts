@@ -41,6 +41,14 @@ describe('URL remote parsing', () => {
     expect(remote!.name).toBe('repo')
   })
 
+  it('parses SSH URLs with custom username', () => {
+    const remote = parseRemote('niik@niik.ghe.com:hubot/repo.git')
+    expect(remote).not.toBeNull()
+    expect(remote!.hostname).toBe('niik.ghe.com')
+    expect(remote!.owner).toBe('hubot')
+    expect(remote!.name).toBe('repo')
+  })
+
   it('parses SSH URLs without the git suffix', () => {
     const remote = parseRemote('git@github.com:hubot/repo')
     expect(remote).not.toBeNull()

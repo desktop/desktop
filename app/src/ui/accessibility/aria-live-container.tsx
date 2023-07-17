@@ -45,15 +45,15 @@ export class AriaLiveContainer extends Component<
   IAriaLiveContainerState
 > {
   private suffix: string = ''
-  private onTrackedInputChanged = debounce((message: JSX.Element | null) => {
-    this.setState({ message })
+  private onTrackedInputChanged = debounce(() => {
+    this.setState({ message: this.buildMessage() })
   }, 1000)
 
   public constructor(props: IAriaLiveContainerProps) {
     super(props)
 
     this.state = {
-      message: null,
+      message: this.props.children !== null ? this.buildMessage() : null,
     }
   }
 
@@ -62,7 +62,7 @@ export class AriaLiveContainer extends Component<
       return
     }
 
-    this.onTrackedInputChanged(this.buildMessage())
+    this.onTrackedInputChanged()
   }
 
   public componentWillUnmount() {
@@ -70,7 +70,9 @@ export class AriaLiveContainer extends Component<
   }
 
   private buildMessage() {
-    this.suffix = this.suffix === '' ? '\u00A0' : ''
+    // We need to toggle from two non-breaking spaces to one non-breaking space
+    // because VoiceOver does not detect the empty string as a change.
+    this.suffix = this.suffix === '\u00A0\u00A0' ? '\u00A0' : '\u00A0\u00A0'
 
     return (
       <>
@@ -78,6 +80,21 @@ export class AriaLiveContainer extends Component<
         {this.suffix}
       </>
     )
+  }
+
+  private renderMessage() {
+    // We are just using this as a typical aria-live container where the message
+    // changes per usage - no need to force re-reading of the same message.
+    if (this.props.trackedUserInput === undefined) {
+      return this.props.children
+    }
+
+    // We are using this as a container to force re-reading of the same message,
+    // so we are re-building message based on user input changes.
+    // If we get a null for the children, go ahead an empty out the
+    // message so we don't get an erroneous reading of a message after it is
+    // gone.
+    return this.props.children !== null ? this.state.message : ''
   }
 
   public render() {
@@ -88,7 +105,7 @@ export class AriaLiveContainer extends Component<
         aria-live="polite"
         aria-atomic="true"
       >
-        {this.state.message}
+        {this.renderMessage()}
       </div>
     )
   }

@@ -69,7 +69,7 @@ export function buildDefaultMenu({
         },
         separator,
         {
-          label: 'Preferences…',
+          label: 'Settings…',
           id: 'preferences',
           accelerator: 'CmdOrCtrl+,',
           click: emit('show-preferences'),
