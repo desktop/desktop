@@ -238,7 +238,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableMoveStash } from '../feature-flag'
+import { enableMoveStash, enableRepoRules } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -1169,7 +1169,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const currentBranchProtected = !isBranchPushable(pushControl)
 
       let currentRepoRulesInfo = new RepoRulesInfo()
-      if (supportsRepoRules(gitHubRepo.endpoint)) {
+      if (enableRepoRules() && supportsRepoRules(gitHubRepo.endpoint)) {
         const slimRulesets = await api.fetchAllRepoRulesets(owner, name)
 
         // ultimate goal here is to fetch all rulesets that apply to the repo
