@@ -348,7 +348,7 @@ dialog {
 
   // Inline error component rendered at the top of the dialog just below
   // the header (if the dialog has one).
-  .dialog-banner {
+  .dialog-error {
     display: flex;
     padding: var(--spacing);
     align-items: center;
@@ -357,6 +357,10 @@ dialog {
     // of the error of indicate nested errors. We want to preserve these
     // while still forcing line breaks if necessary.
     white-space: pre-wrap;
+
+    background: var(--form-error-background);
+    border-bottom: 1px solid var(--form-error-border-color);
+    color: var(--form-error-text-color);
 
     > .octicon {
       flex-grow: 0;
@@ -367,18 +371,6 @@ dialog {
     div {
       overflow-wrap: break-word;
       overflow-x: hidden;
-    }
-
-    &.error {
-      background: var(--form-error-background);
-      border-bottom: 1px solid var(--form-error-border-color);
-      color: var(--form-error-text-color);
-    }
-
-    &.warning {
-      background: var(--dialog-warning-banner-background);
-      border-bottom: 1px solid var(--dialog-warning-banner-border-color);
-      color: var(--dialog-warning-banner-text-color);
     }
   }
 

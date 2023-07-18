@@ -6,7 +6,7 @@ import { Branch, StartPoint } from '../../models/branch'
 import { Row } from '../lib/row'
 import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
-import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import {
   VerticalSegmentedControl,
   ISegmentedItem,
@@ -34,6 +34,8 @@ import { Account } from '../../models/account'
 import { getAccountForRepository } from '../../lib/get-account-for-repository'
 import { supportsRepoRules } from '../../lib/endpoint-capabilities'
 import { enableRepoRules } from '../../lib/feature-flag'
+import { InputError } from '../lib/input-description/input-error'
+import { InputWarning } from '../lib/input-description/input-warning'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -193,6 +195,8 @@ export class CreateBranch extends React.Component<
     }
   }, 500)
 
+  private readonly ERRORS_ID = 'branch-name-errors'
+
   public constructor(props: ICreateBranchProps) {
     super(props)
 
@@ -282,6 +286,37 @@ export class CreateBranch extends React.Component<
     }
   }
 
+  private renderBranchNameErrors() {
+    const { currentError } = this.state
+    if (!currentError) {
+      return null
+    }
+
+    if (currentError.isWarning) {
+      return (
+        <Row>
+          <InputWarning
+            id={this.ERRORS_ID}
+            trackedUserInput={this.state.branchName}
+          >
+            {currentError.error.message}
+          </InputWarning>
+        </Row>
+      )
+    } else {
+      return (
+        <Row>
+          <InputError
+            id={this.ERRORS_ID}
+            trackedUserInput={this.state.branchName}
+          >
+            {currentError.error.message}
+          </InputError>
+        </Row>
+      )
+    }
+  }
+
   private onBaseBranchChanged = (startPoint: StartPoint) => {
     this.setState({
       startPoint,
@@ -293,7 +328,6 @@ export class CreateBranch extends React.Component<
       this.state.branchName.length <= 0 ||
       (!!this.state.currentError && !this.state.currentError.isWarning) ||
       /^\s*$/.test(this.state.branchName)
-    const error = this.state.currentError
 
     return (
       <Dialog
@@ -304,18 +338,15 @@ export class CreateBranch extends React.Component<
         loading={this.state.isCreatingBranch}
         disabled={this.state.isCreatingBranch}
       >
-        {error && (
-          <DialogError type={error.isWarning ? 'warning' : 'error'}>
-            {error.error.message}
-          </DialogError>
-        )}
-
         <DialogContent>
           <RefNameTextBox
             label="Name"
+            ariaDescribedBy={this.ERRORS_ID}
             initialValue={this.props.initialName}
             onValueChange={this.onBranchNameChange}
           />
+
+          {this.renderBranchNameErrors()}
 
           {renderBranchNameExistsOnRemoteWarning(
             this.state.branchName,

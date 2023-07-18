@@ -1264,6 +1264,8 @@ export class CommitMessage extends React.Component<
             this.renderSummaryLengthHint()}
         </div>
 
+        {this.state.isRuleFailurePopoverOpen && this.renderRuleFailurePopover()}
+
         <FocusContainer
           className="description-focus-container"
           onClick={this.onFocusContainerClick}
@@ -1285,8 +1287,6 @@ export class CommitMessage extends React.Component<
           />
           {this.renderActionBar()}
         </FocusContainer>
-
-        {this.state.isRuleFailurePopoverOpen && this.renderRuleFailurePopover()}
 
         {this.renderCoAuthorInput()}
 

@@ -49,11 +49,9 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
   private getClassName() {
     let typeClassName = 'input-description-caption'
 
-    if (InputDescriptionType.Warning) {
+    if (this.props.inputDescriptionType === InputDescriptionType.Warning) {
       typeClassName = 'input-description-warning'
-    }
-
-    if (InputDescriptionType.Error) {
+    } else if (this.props.inputDescriptionType === InputDescriptionType.Error) {
       typeClassName = 'input-description-error'
     }
 
@@ -61,11 +59,11 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
   }
 
   private renderIcon() {
-    if (InputDescriptionType.Error) {
+    if (this.props.inputDescriptionType === InputDescriptionType.Error) {
       return <Octicon symbol={OcticonSymbol.stop} />
     }
 
-    if (InputDescriptionType.Warning) {
+    if (this.props.inputDescriptionType === InputDescriptionType.Warning) {
       return <Octicon symbol={OcticonSymbol.alert} />
     }
 
@@ -76,7 +74,7 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
    * tracked user input. We want it announced on user input debounce. */
   private renderAriaLiveContainer() {
     if (
-      InputDescriptionType.Caption ||
+      this.props.inputDescriptionType === InputDescriptionType.Caption ||
       this.props.trackedUserInput === undefined
     ) {
       return null
@@ -95,7 +93,7 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
    * */
   private getRole() {
     if (
-      InputDescriptionType.Error &&
+      this.props.inputDescriptionType === InputDescriptionType.Error &&
       this.props.trackedUserInput === undefined
     ) {
       return 'alert'
