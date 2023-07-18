@@ -52,9 +52,9 @@ import {
 } from '../lib/popover'
 import { RepoRulesetsForBranchLink } from '../repository-rules/repo-rulesets-for-branch-link'
 import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-failure-list'
-import memoizeOne from 'memoize-one'
 import { Dispatcher } from '../dispatcher'
 import { enableRepoRules } from '../../lib/feature-flag'
+import { formatCommitMessage } from '../../lib/format-commit-message'
 
 const addAuthorIcon = {
   w: 18,
@@ -175,6 +175,10 @@ interface ICommitMessageState {
   readonly isCommittingStatusMessage: string
 
   readonly isRuleFailurePopoverOpen: boolean
+
+  readonly repoRuleCommitMessageFailures: RepoRulesMetadataFailures
+  readonly repoRuleCommitAuthorFailures: RepoRulesMetadataFailures
+  readonly repoRuleBranchNameFailures: RepoRulesMetadataFailures
 }
 
 function findCommitMessageAutoCompleteProvider(
@@ -210,60 +214,6 @@ export class CommitMessage extends React.Component<
 
   private coAuthorInputRef = React.createRef<AuthorInput>()
 
-  private getRepoRuleCommitMessageFailures = memoizeOne(
-    (
-      summary: string,
-      description: string | null,
-      repoRulesInfo: RepoRulesInfo
-    ): RepoRulesMetadataFailures => {
-      if (!summary && !description) {
-        return new RepoRulesMetadataFailures()
-      }
-
-      const trimmedDescription = description?.trim()
-      let toMatch = summary.trim()
-      if (trimmedDescription) {
-        toMatch += `\n\n${trimmedDescription}`
-      }
-
-      const failedRules =
-        repoRulesInfo.commitMessagePatterns.getFailedRules(toMatch)
-      return failedRules
-    }
-  )
-
-  private getRepoRuleCommitAuthorFailures = memoizeOne(
-    (
-      commitAuthor: CommitIdentity | null,
-      repoRulesInfo: RepoRulesInfo
-    ): RepoRulesMetadataFailures => {
-      if (!commitAuthor) {
-        return new RepoRulesMetadataFailures()
-      }
-
-      const failedRules =
-        repoRulesInfo.commitAuthorEmailPatterns.getFailedRules(
-          commitAuthor.email
-        )
-      return failedRules
-    }
-  )
-
-  private getRepoRuleBranchNameFailures = memoizeOne(
-    (
-      branch: string | null,
-      repoRulesInfo: RepoRulesInfo
-    ): RepoRulesMetadataFailures => {
-      if (!branch) {
-        return new RepoRulesMetadataFailures()
-      }
-
-      const failedRules =
-        repoRulesInfo.branchNamePatterns.getFailedRules(branch)
-      return failedRules
-    }
-  )
-
   public constructor(props: ICommitMessageProps) {
     super(props)
     const { commitMessage } = this.props
@@ -279,6 +229,9 @@ export class CommitMessage extends React.Component<
       descriptionObscured: false,
       isCommittingStatusMessage: '',
       isRuleFailurePopoverOpen: false,
+      repoRuleCommitMessageFailures: new RepoRulesMetadataFailures(),
+      repoRuleCommitAuthorFailures: new RepoRulesMetadataFailures(),
+      repoRuleBranchNameFailures: new RepoRulesMetadataFailures(),
     }
   }
 
@@ -289,8 +242,9 @@ export class CommitMessage extends React.Component<
     window.removeEventListener('keydown', this.onKeyDown)
   }
 
-  public componentDidMount() {
+  public async componentDidMount() {
     window.addEventListener('keydown', this.onKeyDown)
+    await this.updateRepoRuleFailures(undefined, undefined, true)
   }
 
   /**
@@ -336,7 +290,7 @@ export class CommitMessage extends React.Component<
     })
   }
 
-  public componentDidUpdate(
+  public async componentDidUpdate(
     prevProps: ICommitMessageProps,
     prevState: ICommitMessageState
   ) {
@@ -385,6 +339,83 @@ export class CommitMessage extends React.Component<
       this.setState({
         isCommittingStatusMessage: `Committed Just now - ${this.props.mostRecentLocalCommit.summary} (Sha: ${this.props.mostRecentLocalCommit.shortSha})`,
       })
+    }
+
+    await this.updateRepoRuleFailures(prevProps, prevState)
+  }
+
+  private async updateRepoRuleFailures(prevProps?: ICommitMessageProps, prevState?: ICommitMessageState, forceUpdate: boolean = false) {
+    if (!enableRepoRules()) {
+      return
+    }
+
+    await this.updateRepoRulesCommitMessageFailures(prevProps, prevState, forceUpdate)
+    this.updateRepoRulesCommitAuthorFailures(prevProps, forceUpdate)
+    this.updateRepoRulesBranchNameFailures(prevProps, forceUpdate)
+  }
+
+  private async updateRepoRulesCommitMessageFailures(prevProps?: ICommitMessageProps, prevState?: ICommitMessageState, forceUpdate?: boolean) {
+    if (forceUpdate ||
+      prevState?.summary !== this.state.summary ||
+      prevState?.description !== this.state.description ||
+      prevProps?.coAuthors !== this.props.coAuthors ||
+      prevProps?.commitToAmend !== this.props.commitToAmend ||
+      prevProps?.repository !== this.props.repository ||
+      prevProps?.repoRulesInfo.commitMessagePatterns !== this.props.repoRulesInfo.commitMessagePatterns
+    ) {
+      let summary = this.state.summary
+      if (!summary && !this.state.description) {
+        summary = this.summaryOrPlaceholder
+      }
+
+      const context: ICommitContext = {
+        summary,
+        description: this.state.description,
+        trailers: this.getCoAuthorTrailers(),
+        amend: this.props.commitToAmend !== null,
+      }
+
+      const msg = await formatCommitMessage(this.props.repository, context)
+      const failures =
+        this.props.repoRulesInfo.commitMessagePatterns.getFailedRules(msg)
+      
+      this.setState({ repoRuleCommitMessageFailures: failures })
+    }
+  }
+
+  private updateRepoRulesCommitAuthorFailures(prevProps?: ICommitMessageProps, forceUpdate?: boolean) {
+    if (forceUpdate ||
+      prevProps?.commitAuthor?.email !== this.props.commitAuthor?.email ||
+      prevProps?.repoRulesInfo.commitAuthorEmailPatterns !== this.props.repoRulesInfo.commitAuthorEmailPatterns
+    ) {
+      const email = this.props.commitAuthor?.email
+      let failures: RepoRulesMetadataFailures
+
+      if (!email) {
+        failures = new RepoRulesMetadataFailures()
+      } else {
+        failures = this.props.repoRulesInfo.commitAuthorEmailPatterns.getFailedRules(email)
+      }
+
+      this.setState({ repoRuleCommitAuthorFailures: failures })
+    }
+  }
+
+  private updateRepoRulesBranchNameFailures(prevProps?: ICommitMessageProps, forceUpdate?: boolean) {
+    if (forceUpdate ||
+      prevProps?.branch !== this.props.branch ||
+      prevProps?.repoRulesInfo.branchNamePatterns !== this.props.repoRulesInfo.branchNamePatterns
+    ) {
+      const branch = this.props.branch
+      let failures: RepoRulesMetadataFailures
+
+      if (!branch) {
+        failures = new RepoRulesMetadataFailures()
+      } else {
+        failures = this.props.repoRulesInfo.branchNamePatterns.getFailedRules(branch)
+      }
+
+      this.setState({ repoRuleBranchNameFailures: failures })
     }
   }
 
@@ -507,26 +538,12 @@ export class CommitMessage extends React.Component<
       return false
     }
 
-    const commitMessageFailures = this.getRepoRuleCommitMessageFailures(
-      this.summaryOrPlaceholder,
-      this.state.description,
-      this.props.repoRulesInfo
-    )
-    const commitAuthorFailures = this.getRepoRuleCommitAuthorFailures(
-      this.props.commitAuthor,
-      this.props.repoRulesInfo
-    )
-    const branchNameFailures = this.getRepoRuleBranchNameFailures(
-      this.props.branch,
-      this.props.repoRulesInfo
-    )
-
     return (
-      commitMessageFailures.status === 'fail' ||
-      commitAuthorFailures.status === 'fail' ||
+      this.state.repoRuleCommitMessageFailures.status === 'fail' ||
+      this.state.repoRuleCommitAuthorFailures.status === 'fail' ||
       (this.props.aheadBehind === null &&
         (this.props.repoRulesInfo.creationRestricted === true ||
-          branchNameFailures.status === 'fail'))
+          this.state.repoRuleBranchNameFailures.status === 'fail'))
     )
   }
 
@@ -552,32 +569,18 @@ export class CommitMessage extends React.Component<
       return true
     }
 
-    const commitMessageFailures = this.getRepoRuleCommitMessageFailures(
-      this.summaryOrPlaceholder,
-      this.state.description,
-      this.props.repoRulesInfo
-    )
-    const commitAuthorFailures = this.getRepoRuleCommitAuthorFailures(
-      this.props.commitAuthor,
-      this.props.repoRulesInfo
-    )
-
     if (
-      commitMessageFailures.status === 'bypass' ||
-      commitAuthorFailures.status === 'bypass'
+      this.state.repoRuleCommitMessageFailures.status === 'bypass' ||
+      this.state.repoRuleCommitAuthorFailures.status === 'bypass'
     ) {
       return true
     }
 
-    const branchNameFailures = this.getRepoRuleBranchNameFailures(
-      this.props.branch,
-      this.props.repoRulesInfo
-    )
     return (
       aheadBehind === null &&
       branch !== null &&
       (repoRulesInfo.creationRestricted === 'bypass' ||
-        branchNameFailures.status === 'bypass')
+        this.state.repoRuleBranchNameFailures.status === 'bypass')
     )
   }
 
@@ -615,12 +618,8 @@ export class CommitMessage extends React.Component<
     const email = commitAuthor?.email
 
     let warningType: CommitMessageAvatarWarningType = 'none'
-    const commitAuthorFailures = this.getRepoRuleCommitAuthorFailures(
-      this.props.commitAuthor,
-      this.props.repoRulesInfo
-    )
     if (email !== undefined) {
-      if (enableRepoRules() && commitAuthorFailures.status !== 'pass') {
+      if (enableRepoRules() && this.state.repoRuleCommitAuthorFailures.status !== 'pass') {
         warningType = 'disallowedEmail'
       } else if (
         repositoryAccount !== null &&
@@ -639,7 +638,7 @@ export class CommitMessage extends React.Component<
           repositoryAccount?.endpoint !== getDotComAPIEndpoint()
         }
         warningType={warningType}
-        emailRuleFailures={commitAuthorFailures}
+        emailRuleFailures={this.state.repoRuleCommitAuthorFailures}
         branch={this.props.branch}
         accountEmails={accountEmails}
         preferredAccountEmail={
@@ -942,17 +941,11 @@ export class CommitMessage extends React.Component<
       aheadBehind === null &&
       branch !== null &&
       (repoRulesInfo.creationRestricted ||
-        this.getRepoRuleBranchNameFailures(
-          this.props.branch,
-          this.props.repoRulesInfo
-        ).status !== 'pass')
+        this.state.repoRuleBranchNameFailures.status !== 'pass')
     ) {
       const canBypass = !(
         repoRulesInfo.creationRestricted === true ||
-        this.getRepoRuleBranchNameFailures(
-          this.props.branch,
-          this.props.repoRulesInfo
-        ).status === 'fail'
+        this.state.repoRuleBranchNameFailures.status === 'fail'
       )
 
       return (
@@ -987,12 +980,6 @@ export class CommitMessage extends React.Component<
   private renderRuleFailurePopover() {
     const { branch, repository } = this.props
 
-    const failures = this.getRepoRuleCommitMessageFailures(
-      this.summaryOrPlaceholder,
-      this.state.description,
-      this.props.repoRulesInfo
-    )
-
     // the failure status is checked here separately from whether the popover is open. if the
     // user has it open but rules pass as they're typing, then keep the popover logic open
     // but just don't render it. as they keep typing, if the message fails again, then the
@@ -1001,7 +988,7 @@ export class CommitMessage extends React.Component<
       !branch ||
       !repository.gitHubRepository ||
       !enableRepoRules() ||
-      failures.status === 'pass'
+      this.state.repoRuleCommitMessageFailures.status === 'pass'
     ) {
       return
     }
@@ -1024,7 +1011,7 @@ export class CommitMessage extends React.Component<
         <RepoRulesMetadataFailureList
           repository={repository.gitHubRepository}
           branch={branch}
-          failures={failures}
+          failures={this.state.repoRuleCommitMessageFailures}
           leadingText="This commit message"
         />
       </Popover>
@@ -1175,16 +1162,11 @@ export class CommitMessage extends React.Component<
   private renderRepoRuleCommitMessageFailureHint(): JSX.Element | null {
     // enableRepoRules FF is checked before this method
 
-    const failures = this.getRepoRuleCommitMessageFailures(
-      this.summaryOrPlaceholder,
-      this.state.description,
-      this.props.repoRulesInfo
-    )
-    if (failures.status === 'pass') {
+    if (this.state.repoRuleCommitMessageFailures.status === 'pass') {
       return null
     }
 
-    const canBypass = failures.status === 'bypass'
+    const canBypass = this.state.repoRuleCommitMessageFailures.status === 'bypass'
 
     return (
       <Button
@@ -1210,15 +1192,9 @@ export class CommitMessage extends React.Component<
       'with-overflow': this.state.descriptionObscured,
     })
 
-    const commitMessageFailures = this.getRepoRuleCommitMessageFailures(
-      this.summaryOrPlaceholder,
-      this.state.description,
-      this.props.repoRulesInfo
-    )
-
     // both of these are calculated, but only the repo rule icon is displayed if both are true, see below
     const showRepoRuleCommitMessageFailureHint =
-      enableRepoRules() && commitMessageFailures.status !== 'pass'
+      enableRepoRules() && this.state.repoRuleCommitMessageFailures.status !== 'pass'
     const showSummaryLengthHint = this.state.summary.length > IdealSummaryLength
     const summaryClassName = classNames('summary', {
       'with-trailing-icon':
