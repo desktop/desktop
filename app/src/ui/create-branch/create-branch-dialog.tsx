@@ -178,7 +178,7 @@ export class CreateBranch extends React.Component<
       this.setState({
         currentError: {
           error: new Error(
-            `Branch name '${branchName}' is restricted by repo rules`
+            `Branch name '${branchName}' is restricted by repo rules.`
           ),
           isWarning: false,
         },
@@ -187,7 +187,7 @@ export class CreateBranch extends React.Component<
       this.setState({
         currentError: {
           error: new Error(
-            `Branch name '${branchName}' is restricted by repo rules, but you are able to bypass them. Proceed with caution!`
+            `Branch name '${branchName}' is restricted by repo rules, but you can bypass them. Proceed with caution!`
           ),
           isWarning: true,
         },
@@ -328,6 +328,7 @@ export class CreateBranch extends React.Component<
       this.state.branchName.length <= 0 ||
       (!!this.state.currentError && !this.state.currentError.isWarning) ||
       /^\s*$/.test(this.state.branchName)
+    const hasError = !!this.state.currentError
 
     return (
       <Dialog
@@ -341,7 +342,7 @@ export class CreateBranch extends React.Component<
         <DialogContent>
           <RefNameTextBox
             label="Name"
-            ariaDescribedBy={this.ERRORS_ID}
+            ariaDescribedBy={hasError ? this.ERRORS_ID : undefined}
             initialValue={this.props.initialName}
             onValueChange={this.onBranchNameChange}
           />
@@ -392,7 +393,7 @@ export class CreateBranch extends React.Component<
 
     const currentError = alreadyExists
       ? {
-          error: new Error(`A branch named ${branchName} already exists`),
+          error: new Error(`A branch named ${branchName} already exists.`),
           isWarning: false,
         }
       : null
@@ -423,7 +424,7 @@ export class CreateBranch extends React.Component<
       if (!defaultBranch) {
         this.setState({
           currentError: {
-            error: new Error('Could not determine the default branch'),
+            error: new Error('Could not determine the default branch.'),
             isWarning: false,
           },
         })
@@ -437,7 +438,7 @@ export class CreateBranch extends React.Component<
       if (!upstreamDefaultBranch) {
         this.setState({
           currentError: {
-            error: new Error('Could not determine the default branch'),
+            error: new Error('Could not determine the default branch.'),
             isWarning: false,
           },
         })

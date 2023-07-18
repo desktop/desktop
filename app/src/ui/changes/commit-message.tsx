@@ -214,6 +214,8 @@ export class CommitMessage extends React.Component<
 
   private coAuthorInputRef = React.createRef<AuthorInput>()
 
+  private readonly COMMIT_MSG_ERROR_BTN_ID = 'commit-message-failure-hint'
+
   public constructor(props: ICommitMessageProps) {
     super(props)
     const { commitMessage } = this.props
@@ -909,33 +911,6 @@ export class CommitMessage extends React.Component<
           ?
         </CommitWarning>
       )
-    } else if (enableRepoRules() && repoRulesInfo.basicCommitWarning) {
-      const canBypass = repoRulesInfo.basicCommitWarning === 'bypass'
-
-      return (
-        <CommitWarning
-          icon={canBypass ? CommitWarningIcon.Warning : CommitWarningIcon.Error}
-        >
-          <RepoRulesetsForBranchLink
-            repository={repository.gitHubRepository}
-            branch={branch}
-          >
-            One or more rules
-          </RepoRulesetsForBranchLink>{' '}
-          apply to the branch <strong>{branch}</strong>
-          {canBypass && ', but you can bypass them. Proceed with caution!'}
-          {!canBypass && (
-            <>
-              {' '}
-              that will prevent you from pushing. Want to{' '}
-              <LinkButton onClick={this.onSwitchBranch}>
-                switch branches
-              </LinkButton>
-              ?
-            </>
-          )}
-        </CommitWarning>
-      )
     } else if (
       enableRepoRules() &&
       aheadBehind === null &&
@@ -958,12 +933,38 @@ export class CommitMessage extends React.Component<
             branch={branch}
           >
             one or more rules
-          </RepoRulesetsForBranchLink>
+          </RepoRulesetsForBranchLink>{' '}
+          that {canBypass ? 'would' : 'will'} prevent it from being published
           {canBypass && ', but you can bypass them. Proceed with caution!'}
           {!canBypass && (
             <>
-              {' '}
-              and it will be prevented from being published. Want to{' '}
+              . Want to{' '}
+              <LinkButton onClick={this.onSwitchBranch}>
+                switch branches
+              </LinkButton>
+              ?
+            </>
+          )}
+        </CommitWarning>
+      )
+    } else if (enableRepoRules() && aheadBehind !== null && repoRulesInfo.basicCommitWarning) {
+      const canBypass = repoRulesInfo.basicCommitWarning === 'bypass'
+
+      return (
+        <CommitWarning
+          icon={canBypass ? CommitWarningIcon.Warning : CommitWarningIcon.Error}
+        >
+          <RepoRulesetsForBranchLink
+            repository={repository.gitHubRepository}
+            branch={branch}
+          >
+            One or more rules
+          </RepoRulesetsForBranchLink>{' '}
+          apply to the branch <strong>{branch}</strong> that {canBypass ? 'would' : 'will'} prevent pushing
+          {canBypass && ', but you can bypass them. Proceed with caution!'}
+          {!canBypass && (
+            <>
+              . Want to{' '}
               <LinkButton onClick={this.onSwitchBranch}>
                 switch branches
               </LinkButton>
@@ -1168,17 +1169,29 @@ export class CommitMessage extends React.Component<
 
     const canBypass = this.state.repoRuleCommitMessageFailures.status === 'bypass'
 
+    let ariaLabelPrefix: string
+    let bypassMessage = ''
+    if (canBypass) {
+      ariaLabelPrefix = 'Warning'
+      bypassMessage = ', but you can bypass them'
+    } else {
+      ariaLabelPrefix = 'Error'
+    }
+
     return (
-      <Button
-        className="commit-message-failure-hint"
-        ariaLabel="Commit message fails repository rules. View details."
+      <button
+        id="commit-message-failure-hint"
+        className="commit-message-failure-hint button-component"
+        aria-label={`${ariaLabelPrefix}: Commit message fails repository rules${bypassMessage}. View details.`}
+        aria-haspopup="dialog"
+        aria-expanded={this.state.isRuleFailurePopoverOpen}
         onClick={this.toggleRuleFailurePopover}
       >
         <Octicon
           symbol={canBypass ? OcticonSymbol.alert : OcticonSymbol.stop}
           className={canBypass ? 'warning-icon' : 'error-icon'}
         />
-      </Button>
+      </button>
     )
   }
 
@@ -1195,7 +1208,7 @@ export class CommitMessage extends React.Component<
     // both of these are calculated, but only the repo rule icon is displayed if both are true, see below
     const showRepoRuleCommitMessageFailureHint =
       enableRepoRules() && this.state.repoRuleCommitMessageFailures.status !== 'pass'
-    const showSummaryLengthHint = this.state.summary.length > IdealSummaryLength
+    const showSummaryLengthHint = !showRepoRuleCommitMessageFailureHint && this.state.summary.length > IdealSummaryLength
     const summaryClassName = classNames('summary', {
       'with-trailing-icon':
         showRepoRuleCommitMessageFailureHint || showSummaryLengthHint,
@@ -1203,6 +1216,8 @@ export class CommitMessage extends React.Component<
     const summaryInputClassName = classNames('summary-field', 'nudge-arrow', {
       'nudge-arrow-left': this.props.shouldNudge === true,
     })
+
+    const ariaDescribedBy = showRepoRuleCommitMessageFailureHint ? this.COMMIT_MSG_ERROR_BTN_ID : undefined
 
     const { placeholder, isCommitting, commitSpellcheckEnabled } = this.props
 
@@ -1229,14 +1244,14 @@ export class CommitMessage extends React.Component<
             autocompletionProviders={
               this.state.commitMessageAutocompletionProviders
             }
+            aria-describedby={ariaDescribedBy}
             onContextMenu={this.onAutocompletingInputContextMenu}
             disabled={isCommitting === true}
             spellcheck={commitSpellcheckEnabled}
           />
           {showRepoRuleCommitMessageFailureHint &&
             this.renderRepoRuleCommitMessageFailureHint()}
-          {!showRepoRuleCommitMessageFailureHint &&
-            showSummaryLengthHint &&
+          {showSummaryLengthHint &&
             this.renderSummaryLengthHint()}
         </div>
 
@@ -1255,6 +1270,7 @@ export class CommitMessage extends React.Component<
             autocompletionProviders={
               this.state.commitMessageAutocompletionProviders
             }
+            aria-describedby={ariaDescribedBy}
             ref={this.onDescriptionFieldRef}
             onElementRef={this.onDescriptionTextAreaRef}
             onContextMenu={this.onAutocompletingInputContextMenu}

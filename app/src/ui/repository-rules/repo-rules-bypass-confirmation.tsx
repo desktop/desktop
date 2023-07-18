@@ -6,6 +6,7 @@ import {
   DialogFooter,
   OkCancelButtonGroup,
 } from '../dialog'
+import { RepoRulesetsForBranchLink } from './repo-rulesets-for-branch-link'
 
 interface IRepoRulesBypassConfirmationProps {
   readonly repository: GitHubRepository
@@ -34,14 +35,20 @@ export class RepoRulesBypassConfirmation extends React.Component<
         type="warning"
       >
         <DialogContent>
-          This commit will bypass one or more repository rules. Are you sure you
+          This commit will bypass{' '}
+          <RepoRulesetsForBranchLink
+            repository={this.props.repository}
+            branch={this.props.branch}
+          >
+            one or more repository rules
+          </RepoRulesetsForBranchLink>. Are you sure you
           want to continue?
         </DialogContent>
 
         <DialogFooter>
           <OkCancelButtonGroup
             destructive={true}
-            okButtonText={__DARWIN__ ? 'Bypass Rules' : 'Bypass rules'}
+            okButtonText={__DARWIN__ ? 'Bypass Rules and Commit' : 'Bypass rules and commit'}
           />
         </DialogFooter>
       </Dialog>

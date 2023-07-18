@@ -44,11 +44,10 @@ export class RepoRulesMetadataFailureList extends React.Component<IRepoRulesMeta
     return (
       <div className="repo-rules-failure-list-component">
         <p>
-          {leadingText} fails{' '}
+          {leadingText} fails {length} rule{length > 1 ? 's' : ''}{endText}{' '}
           <RepoRulesetsForBranchLink repository={repository} branch={branch}>
-            {`${length} rule${length > 1 ? 's' : ''}`}
+            View all rulesets for this branch.
           </RepoRulesetsForBranchLink>
-          {endText}
         </p>
         {failures.failed.length > 0 && (
           <div className="repo-rule-list">
@@ -71,14 +70,12 @@ export class RepoRulesMetadataFailureList extends React.Component<IRepoRulesMeta
       <ul>
         {failures.map(f => (
           <li key={`${f.description}-${f.rulesetId}`}>
-            {f.description} (
             <RepoRulesetLink
               repository={this.props.repository}
               rulesetId={f.rulesetId}
             >
-              source
+              {f.description}
             </RepoRulesetLink>
-            )
           </li>
         ))}
       </ul>
