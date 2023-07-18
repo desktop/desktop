@@ -46,6 +46,7 @@
     "primer-support": "^4.0.0",
     "prop-types": "^15.7.2",
     "quick-lru": "^3.0.0",
+    "re2js": "^0.1.0",
     "react": "^16.8.4",
     "react-css-transition-replace": "^3.0.3",
     "react-dom": "^16.8.4",

@@ -1,4 +1,4 @@
-import { escapeRegExp } from 'lodash'
+import { RE2, RE2JS } from 're2js'
 import {
   RepoRulesInfo,
   IRepoRulesMetadataRule,
@@ -130,31 +130,31 @@ function toMatcher(
     return () => false
   }
 
-  let regex: RegExp
+  let regex: RE2
 
   switch (rule.operator) {
     case APIRepoRuleMetadataOperator.StartsWith:
-      regex = new RegExp(`^${escapeRegExp(rule.pattern)}`)
+      regex = RE2JS.compile(`^${RE2JS.quote(rule.pattern)}`)
       break
 
     case APIRepoRuleMetadataOperator.EndsWith:
-      regex = new RegExp(`${escapeRegExp(rule.pattern)}$`)
+      regex = RE2JS.compile(`${RE2JS.quote(rule.pattern)}$`)
       break
 
     case APIRepoRuleMetadataOperator.Contains:
-      regex = new RegExp(`.*${escapeRegExp(rule.pattern)}.*`)
+      regex = RE2JS.compile(`.*${RE2JS.quote(rule.pattern)}.*`)
       break
 
     case APIRepoRuleMetadataOperator.RegexMatch:
-      regex = new RegExp(rule.pattern)
+      regex = RE2JS.compile(rule.pattern)
       break
   }
 
   if (regex) {
     if (rule.negate) {
-      return (toMatch: string) => !regex.test(toMatch)
+      return (toMatch: string) => !regex.matcher(toMatch).find()
     } else {
-      return (toMatch: string) => regex.test(toMatch)
+      return (toMatch: string) => regex.matcher(toMatch).find()
     }
   } else {
     return () => false
