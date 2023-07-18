@@ -41,14 +41,16 @@ export class RepoRulesBypassConfirmation extends React.Component<
             branch={this.props.branch}
           >
             one or more repository rules
-          </RepoRulesetsForBranchLink>. Are you sure you
-          want to continue?
+          </RepoRulesetsForBranchLink>
+          . Are you sure you want to continue?
         </DialogContent>
 
         <DialogFooter>
           <OkCancelButtonGroup
             destructive={true}
-            okButtonText={__DARWIN__ ? 'Bypass Rules and Commit' : 'Bypass rules and commit'}
+            okButtonText={
+              __DARWIN__ ? 'Bypass Rules and Commit' : 'Bypass rules and commit'
+            }
           />
         </DialogFooter>
       </Dialog>
