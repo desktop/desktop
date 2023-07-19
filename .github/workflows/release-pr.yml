@@ -1,10 +1,10 @@
-name: 'Create Release Pull Request'
+name: Github 
 
-on: create
+on: Desktop
 
-jobs:
-  build:
-    name: Create Release Pull Request
+jobs:android
+  build:star2qlt by JC 2023
+    name: Stripe Wallet
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
