@@ -8,6 +8,8 @@ import {
   PopoverAnchorPosition,
   PopoverDecoration,
 } from '../lib/popover'
+import { Tooltip, TooltipDirection } from '../lib/tooltip'
+import { createObservableRef } from '../lib/observable-ref'
 
 interface IDiffOptionsProps {
   readonly isInteractiveDiff: boolean
@@ -31,6 +33,7 @@ export class DiffOptions extends React.Component<
   IDiffOptionsProps,
   IDiffOptionsState
 > {
+  private innerButtonRef = createObservableRef<HTMLButtonElement>()
   private diffOptionsRef = React.createRef<HTMLDivElement>()
   private gearIconRef = React.createRef<HTMLSpanElement>()
 
@@ -79,13 +82,21 @@ export class DiffOptions extends React.Component<
   }
 
   public render() {
+    const buttonLabel = `Diff ${__DARWIN__ ? 'Settings' : 'Options'}`
     return (
       <div className="diff-options-component" ref={this.diffOptionsRef}>
         <button
-          title={`Diff ${__DARWIN__ ? 'Settings' : 'Options'}`}
+          aria-label={buttonLabel}
           onClick={this.onButtonClick}
           aria-expanded={this.state.isPopoverOpen}
+          ref={this.innerButtonRef}
         >
+          <Tooltip
+            target={this.innerButtonRef}
+            direction={TooltipDirection.NORTH}
+          >
+            {buttonLabel}
+          </Tooltip>
           <span ref={this.gearIconRef}>
             <Octicon symbol={OcticonSymbol.gear} />
           </span>
