@@ -894,15 +894,9 @@ export class CommitMessage extends React.Component<
     return <div className={className}>{this.renderCoAuthorToggleButton()}</div>
   }
 
-  private renderPermissionsCommitWarning() {
+  private renderAmendCommitNotice() {
     const {
       commitToAmend,
-      showBranchProtected,
-      repoRulesInfo,
-      aheadBehind,
-      showNoWriteAccess,
-      repository,
-      branch,
     } = this.props
 
     if (commitToAmend !== null) {
@@ -915,7 +909,22 @@ export class CommitMessage extends React.Component<
           to make these changes as a new commit.
         </CommitWarning>
       )
-    } else if (showNoWriteAccess) {
+    } else {
+      return null
+    }
+  }
+
+  private renderBranchProtectionsRepoRulesCommitWarning() {
+    const {
+      showNoWriteAccess,
+      showBranchProtected,
+      repoRulesInfo,
+      aheadBehind,
+      repository,
+      branch,
+    } = this.props
+
+    if (showNoWriteAccess) {
       return (
         <CommitWarning icon={CommitWarningIcon.Warning}>
           You don't have write access to <strong>{repository.name}</strong>.
@@ -980,7 +989,6 @@ export class CommitMessage extends React.Component<
       )
     } else if (
       enableRepoRules() &&
-      aheadBehind !== null &&
       repoRulesInfo.basicCommitWarning
     ) {
       const canBypass = repoRulesInfo.basicCommitWarning === 'bypass'
@@ -1325,7 +1333,8 @@ export class CommitMessage extends React.Component<
 
         {this.renderCoAuthorInput()}
 
-        {this.renderPermissionsCommitWarning()}
+        {this.renderAmendCommitNotice()}
+        {this.renderBranchProtectionsRepoRulesCommitWarning()}
 
         {this.renderSubmitButton()}
         <span className="sr-only" aria-live="polite" aria-atomic="true">

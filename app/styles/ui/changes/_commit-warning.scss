@@ -1,10 +1,9 @@
 @import '../../mixins';
 
 .commit-warning-component {
-  border-top: 1px solid var(--box-border-color);
   flex-direction: column;
   flex-shrink: 0;
-  margin-top: auto;
+  margin-top: 6px;
 
   display: flex;
   background-color: var(--box-alt-background-color);
