@@ -493,8 +493,8 @@ export class CloneRepository extends React.Component<
             onAction={this.signInEnterprise}
           >
             <div>
-              If you have a GitHub Enterprise Server or GitHub AE account at work, sign in to
-              it to get access to your repositories.
+              If you have a GitHub Enterprise Server or GitHub AE account at
+              work, sign in to it to get access to your repositories.
             </div>
           </CallToAction>
         )

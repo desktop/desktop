@@ -28,7 +28,9 @@ export class SignInEnterprise extends React.Component<
         id="sign-in-enterprise"
         aria-label="Sign in to your GitHub Enterprise Server instance"
       >
-        <h1 className="welcome-title">Sign in to your GitHub Enterprise Server instance</h1>
+        <h1 className="welcome-title">
+          Sign in to your GitHub Enterprise Server instance
+        </h1>
 
         <SignIn signInState={state} dispatcher={this.props.dispatcher}>
           <Button onClick={this.cancel}>Cancel</Button>
