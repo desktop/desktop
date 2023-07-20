@@ -470,10 +470,15 @@ export class CommitSummary extends React.Component<
         aria-label="SHA"
       >
         <Octicon symbol={OcticonSymbol.gitCommit} />
-        {this.props.isExpanded
-          ? `${commit.sha} [${commit.shortSha}]`
-          : commit.shortSha}
+        {commit.shortSha}
         <Octicon symbol={OcticonSymbol.copy} />
+        {this.props.isExpanded && (
+          <>
+            {'<'}
+            {commit.sha}
+            {'>'}
+          </>
+        )}
       </div>
     )
   }
