@@ -11,8 +11,15 @@
     margin-bottom: 5px;
   }
 
-  .changed-files-description {
+  .changed-files-summary {
     display: flex;
+
+    span {
+      margin-right: var(--spacing);
+      &:last-child {
+        margin-right: 0;
+      }
+    }
 
     .files-added-icon {
       color: var(--color-new);
@@ -29,6 +36,11 @@
     .octicon {
       margin-right: var(--spacing-third);
       vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+    }
+
+    .changed-files-description {
+      display: flex;
+      padding-left: var(--spacing-half);
     }
   }
 

@@ -596,6 +596,8 @@ export class CommitSummary extends React.Component<
           filesRenamed += 1
       }
     }
+    const filesChanged = [filesAdded, filesModified, filesRemoved, filesRenamed]
+    const hasMoreThanOneFileType = filesChanged.filter(x => x > 0).length > 1
 
     const hasFileDescription =
       filesAdded + filesModified + filesRemoved + filesRenamed > 0
@@ -641,12 +643,14 @@ export class CommitSummary extends React.Component<
       </>
     )
     return (
-      <div className="commit-summary-meta-item without-truncation">
-        <Octicon symbol={OcticonSymbol.diff} />
-        {filesShortDescription}
-        {this.props.isExpanded && fileCount > 0 && hasFileDescription ? (
+      <div className="commit-summary-meta-item without-truncation changed-files-summary">
+        {hasMoreThanOneFileType && <Octicon symbol={OcticonSymbol.diff} />}
+        {hasMoreThanOneFileType ? filesShortDescription : filesLongDescription}
+        {this.props.isExpanded &&
+        fileCount > 0 &&
+        hasFileDescription &&
+        hasMoreThanOneFileType ? (
           <div className="changed-files-description">
-            {' '}
             ({filesLongDescription} )
           </div>
         ) : undefined}
