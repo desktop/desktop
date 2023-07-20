@@ -6,43 +6,30 @@
   flex-direction: column;
   min-height: 0;
 
-  .changed-files-description-tooltip {
-    .popover-content {
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-third);
-
-      #changed-files-popover-header {
-        font-weight: var(--font-weight-semibold);
-        font-size: var(--font-size-md);
-      }
-
-      .files-added-icon {
-        color: var(--color-new);
-      }
-
-      .files-modified-icon {
-        color: var(--color-modified);
-      }
-
-      .files-deleted-icon {
-        color: var(--color-deleted);
-      }
-
-      .files-renamed-icon {
-        color: var(--color-renamed);
-      }
-
-      .octicon {
-        margin-right: var(--spacing-third);
-        vertical-align: bottom; // For some reason, `bottom` places the text in the middle
-      }
-    }
-  }
-
   .author-deets-container {
     display: flex;
     margin-bottom: 5px;
+  }
+
+  .changed-files-description {
+    display: flex;
+
+    .files-added-icon {
+      color: var(--color-new);
+    }
+    .files-modified-icon {
+      color: var(--color-modified);
+    }
+    .files-deleted-icon {
+      color: var(--color-deleted);
+    }
+    .files-renamed-icon {
+      color: var(--color-renamed);
+    }
+    .octicon {
+      margin-right: var(--spacing-third);
+      vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+    }
   }
 
   .diff-files-summary {
@@ -62,14 +49,6 @@
       color: var(--color-new);
     }
     border-bottom: var(--base-border);
-
-    .changed-files-popover-toggle {
-      padding: 0 var(--spacing-half);
-      border: 0;
-      margin: 0;
-      background: none;
-      height: auto;
-    }
   }
 
   .avatar {

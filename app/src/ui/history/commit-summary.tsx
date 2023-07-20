@@ -19,12 +19,6 @@ import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 import memoizeOne from 'memoize-one'
 import { Avatar } from '../lib/avatar'
-import { Button } from '../lib/button'
-import {
-  Popover,
-  PopoverAnchorPosition,
-  PopoverDecoration,
-} from '../lib/popover'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -99,9 +93,6 @@ interface ICommitSummaryState {
    * the avatar stack and calculated whenever the commit prop changes.
    */
   readonly avatarUsers: ReadonlyArray<IAvatarUser>
-
-  /** changed files drill down */
-  readonly isChangedFilesPopoverOpen: boolean
 }
 
 /**
@@ -118,8 +109,7 @@ interface ICommitSummaryState {
  */
 function createState(
   isOverflowed: boolean,
-  props: ICommitSummaryProps,
-  isChangedFilesPopoverOpen: boolean
+  props: ICommitSummaryProps
 ): ICommitSummaryState {
   const { emoji, repository, selectedCommits } = props
   const tokenizer = new Tokenizer(emoji, repository)
@@ -148,7 +138,6 @@ function createState(
     body,
     avatarUsers,
     hasEmptySummary,
-    isChangedFilesPopoverOpen,
   }
 }
 
@@ -174,7 +163,6 @@ export class CommitSummary extends React.Component<
   private readonly resizeObserver: ResizeObserver | null = null
   private updateOverflowTimeoutId: NodeJS.Immediate | null = null
   private descriptionRef: HTMLDivElement | null = null
-  private changedFilesInfoIconRef: HTMLButtonElement | null = null
 
   private getCountCommitsNotInDiff = memoizeOne(
     (
@@ -196,7 +184,7 @@ export class CommitSummary extends React.Component<
   public constructor(props: ICommitSummaryProps) {
     super(props)
 
-    this.state = createState(false, props, false)
+    this.state = createState(false, props)
 
     const ResizeObserverClass: typeof ResizeObserver = (window as any)
       .ResizeObserver
@@ -303,9 +291,7 @@ export class CommitSummary extends React.Component<
         messageEquals(nextCommit, this.props.selectedCommits[i])
       )
     ) {
-      this.setState(
-        createState(false, nextProps, this.state.isChangedFilesPopoverOpen)
-      )
+      this.setState(createState(false, nextProps))
     }
   }
 
@@ -586,34 +572,7 @@ export class CommitSummary extends React.Component<
     )
   }
 
-  private onButtonRef = (instance: HTMLButtonElement | null) => {
-    this.changedFilesInfoIconRef = instance
-  }
-
   private renderChangedFilesDescription = () => {
-    const fileCount = this.props.changesetData.files.length
-    const filesPlural = fileCount === 1 ? 'file' : 'files'
-    const filesShortDescription = `${fileCount} changed ${filesPlural}`
-
-    return (
-      <div className="commit-summary-meta-item without-truncation">
-        <Octicon symbol={OcticonSymbol.diff} />
-        {filesShortDescription}
-        <Button
-          className="changed-files-popover-toggle"
-          ariaLabel="Changed files drill down"
-          tooltip="Changed files drill down"
-          onClick={this.onChangedFilesInfoToggle}
-          onButtonRef={this.onButtonRef}
-        >
-          <Octicon symbol={OcticonSymbol.info} />
-        </Button>
-        {this.state.isChangedFilesPopoverOpen && this.renderPopover()}
-      </div>
-    )
-  }
-
-  private renderPopover() {
     const fileCount = this.props.changesetData.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesShortDescription = `${fileCount} changed ${filesPlural}`
@@ -681,33 +640,18 @@ export class CommitSummary extends React.Component<
         ) : null}
       </>
     )
-
     return (
-      <Popover
-        ariaLabelledby="changed-files-popover-header"
-        anchor={this.changedFilesInfoIconRef}
-        anchorPosition={PopoverAnchorPosition.BottomRight}
-        decoration={PopoverDecoration.Balloon}
-        onClickOutside={this.closeChangedFilesInfoPopover}
-        className="changed-files-description-tooltip"
-      >
-        <div id="changed-files-popover-header">{filesShortDescription}</div>
-        {fileCount > 0 && hasFileDescription ? filesLongDescription : undefined}
-        <Button onClick={this.closeChangedFilesInfoPopover}>Close</Button>
-      </Popover>
+      <div className="commit-summary-meta-item without-truncation">
+        <Octicon symbol={OcticonSymbol.diff} />
+        {filesShortDescription}
+        {this.props.isExpanded && fileCount > 0 && hasFileDescription ? (
+          <div className="changed-files-description">
+            {' '}
+            ({filesLongDescription} )
+          </div>
+        ) : undefined}
+      </div>
     )
-  }
-
-  private onChangedFilesInfoToggle = () => {
-    this.setState({
-      isChangedFilesPopoverOpen: !this.state.isChangedFilesPopoverOpen,
-    })
-  }
-
-  private closeChangedFilesInfoPopover = () => {
-    this.setState({
-      isChangedFilesPopoverOpen: false,
-    })
   }
 
   private renderLinesChanged() {
