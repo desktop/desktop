@@ -542,7 +542,6 @@ export class CommitSummary extends React.Component<
         <div className="commit-summary-header">
           {this.renderSummary()}
           {this.renderExpander()}
-          {this.renderDescription()}
           <div className="commit-summary-meta">
             {this.renderAuthors()}
             {this.renderCommitRef()}
@@ -565,6 +564,7 @@ export class CommitSummary extends React.Component<
             </div>
           </div>
         </div>
+        {this.renderDescription()}
       </div>
     )
   }

@@ -118,11 +118,6 @@
     .commit-summary-meta {
       display: block;
     }
-
-    .commit-summary-description {
-      background-color: var(--box-alt-background-color);
-      margin: 10px;
-    }
   }
 
   &.hide-description-border {
@@ -132,10 +127,6 @@
   }
 
   &.has-expander {
-    .commit-summary-description {
-      padding-right: 100px;
-    }
-
     // When the description area can be, but isn't yet, expanded
     // we'll add a small shadow towards the bottom to hint that
     // there's more content available.
@@ -144,7 +135,7 @@
         content: '';
         background: var(--box-overflow-shadow-background);
         position: absolute;
-        height: 10px;
+        height: 30px;
         bottom: 0px;
         width: 100%;
         pointer-events: none;
@@ -195,7 +186,7 @@
     display: flex;
     // So that we have something to position the expander against
     position: relative;
-    // border-bottom: var(--base-border);
+    border-bottom: var(--base-border);
     min-height: 0;
   }
 
@@ -205,7 +196,7 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     // Maximum amount of commit description lines to show before collapsing
-    -webkit-line-clamp: 1;
+    -webkit-line-clamp: 3;
   }
 
   // Enable text selection inside the title and description elements.
