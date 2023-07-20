@@ -41,6 +41,7 @@ import { pick } from '../../lib/pick'
 import { ToggledtippedContent } from '../lib/toggletipped-content'
 import { PreferencesTab } from '../../models/preferences'
 import {
+  RepoRuleEnforced,
   RepoRulesInfo,
   RepoRulesMetadataFailures,
 } from '../../models/repo-rules'
@@ -924,6 +925,37 @@ export class CommitMessage extends React.Component<
       branch,
     } = this.props
 
+    const { repoRuleBranchNameFailures } = this.state
+
+    // if one of these is not bypassable, then a failure message needs to be shown rather than just displaying
+    // the first one in the if statement.
+    let repoRuleWarningToDisplay: 'publish' | 'basic' | null = null
+
+    if (enableRepoRules()) {
+      let publishStatus: RepoRuleEnforced = false
+      const basicStatus = repoRulesInfo.basicCommitWarning
+
+      if (aheadBehind === null && branch !== null) {
+        if (repoRulesInfo.creationRestricted === true || repoRuleBranchNameFailures.status === 'fail') {
+          publishStatus = true
+        } else if (repoRulesInfo.creationRestricted === 'bypass' || repoRuleBranchNameFailures.status === 'bypass') {
+          publishStatus = 'bypass'
+        } else {
+          publishStatus = false
+        }
+      }
+
+      if (publishStatus === true && basicStatus) {
+        repoRuleWarningToDisplay = 'publish'
+      } else if (basicStatus === true) {
+        repoRuleWarningToDisplay = 'basic'
+      } else if (publishStatus) {
+        repoRuleWarningToDisplay = 'publish'
+      } else if (basicStatus) {
+        repoRuleWarningToDisplay = 'basic'
+      }
+    }
+
     if (showNoWriteAccess) {
       return (
         <CommitWarning icon={CommitWarningIcon.Warning}>
@@ -951,13 +983,7 @@ export class CommitMessage extends React.Component<
           ?
         </CommitWarning>
       )
-    } else if (
-      enableRepoRules() &&
-      aheadBehind === null &&
-      branch !== null &&
-      (repoRulesInfo.creationRestricted ||
-        this.state.repoRuleBranchNameFailures.status !== 'pass')
-    ) {
+    } else if (repoRuleWarningToDisplay === 'publish') {
       const canBypass = !(
         repoRulesInfo.creationRestricted === true ||
         this.state.repoRuleBranchNameFailures.status === 'fail'
@@ -987,10 +1013,7 @@ export class CommitMessage extends React.Component<
           )}
         </CommitWarning>
       )
-    } else if (
-      enableRepoRules() &&
-      repoRulesInfo.basicCommitWarning
-    ) {
+    } else if (repoRuleWarningToDisplay === 'basic') {
       const canBypass = repoRulesInfo.basicCommitWarning === 'bypass'
 
       return (
