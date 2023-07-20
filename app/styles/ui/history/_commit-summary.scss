@@ -21,9 +21,6 @@
 
     span {
       margin-right: var(--spacing);
-      &:last-child {
-        margin-right: 0;
-      }
     }
 
     .files-added-icon {
@@ -57,7 +54,7 @@
       margin-left: var(--spacing-half);
 
       span {
-        margin-right: var(--spacing);
+        margin-right: var(--spacing-half);
       }
     }
 
@@ -111,6 +108,7 @@
       overflow: visible;
       flex-shrink: inherit;
       white-space: normal;
+      margin-bottom: var(--spacing-half);
     }
 
     .sha-container {
