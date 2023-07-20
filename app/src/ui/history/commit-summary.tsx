@@ -13,13 +13,18 @@ import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 import { DiffOptions } from '../diff/diff-options'
 import { IChangesetData } from '../../lib/git'
-import { TooltippedContent } from '../lib/tooltipped-content'
 import { AppFileStatusKind } from '../../models/status'
 import _ from 'lodash'
 import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
-import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
 import memoizeOne from 'memoize-one'
+import { Avatar } from '../lib/avatar'
+import { Button } from '../lib/button'
+import {
+  Popover,
+  PopoverAnchorPosition,
+  PopoverDecoration,
+} from '../lib/popover'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -94,6 +99,9 @@ interface ICommitSummaryState {
    * the avatar stack and calculated whenever the commit prop changes.
    */
   readonly avatarUsers: ReadonlyArray<IAvatarUser>
+
+  /** changed files drill down */
+  readonly isChangedFilesPopoverOpen: boolean
 }
 
 /**
@@ -110,7 +118,8 @@ interface ICommitSummaryState {
  */
 function createState(
   isOverflowed: boolean,
-  props: ICommitSummaryProps
+  props: ICommitSummaryProps,
+  isChangedFilesPopoverOpen: boolean
 ): ICommitSummaryState {
   const { emoji, repository, selectedCommits } = props
   const tokenizer = new Tokenizer(emoji, repository)
@@ -133,7 +142,14 @@ function createState(
     (a, b) => a.email === b.email && a.name === b.name
   )
 
-  return { isOverflowed, summary, body, avatarUsers, hasEmptySummary }
+  return {
+    isOverflowed,
+    summary,
+    body,
+    avatarUsers,
+    hasEmptySummary,
+    isChangedFilesPopoverOpen,
+  }
 }
 
 function getCommitSummary(selectedCommits: ReadonlyArray<Commit>) {
@@ -143,7 +159,7 @@ function getCommitSummary(selectedCommits: ReadonlyArray<Commit>) {
 }
 
 /**
- * Helper function which determines if two commit objects
+ * Helper function yep which determines if two commit objects
  * have the same commit summary and body.
  */
 function messageEquals(x: Commit, y: Commit) {
@@ -158,6 +174,7 @@ export class CommitSummary extends React.Component<
   private readonly resizeObserver: ResizeObserver | null = null
   private updateOverflowTimeoutId: NodeJS.Immediate | null = null
   private descriptionRef: HTMLDivElement | null = null
+  private changedFilesInfoIconRef: HTMLButtonElement | null = null
 
   private getCountCommitsNotInDiff = memoizeOne(
     (
@@ -179,7 +196,7 @@ export class CommitSummary extends React.Component<
   public constructor(props: ICommitSummaryProps) {
     super(props)
 
-    this.state = createState(false, props)
+    this.state = createState(false, props, false)
 
     const ResizeObserverClass: typeof ResizeObserver = (window as any)
       .ResizeObserver
@@ -235,13 +252,6 @@ export class CommitSummary extends React.Component<
   }
 
   private renderExpander() {
-    if (
-      !this.state.body.length ||
-      (!this.props.isExpanded && !this.state.isOverflowed)
-    ) {
-      return null
-    }
-
     const expanded = this.props.isExpanded
     const onClick = expanded ? this.onCollapse : this.onExpand
     const icon = expanded ? OcticonSymbol.fold : OcticonSymbol.unfold
@@ -293,7 +303,9 @@ export class CommitSummary extends React.Component<
         messageEquals(nextCommit, this.props.selectedCommits[i])
       )
     ) {
-      this.setState(createState(false, nextProps))
+      this.setState(
+        createState(false, nextProps, this.state.isChangedFilesPopoverOpen)
+      )
     }
   }
 
@@ -337,8 +349,6 @@ export class CommitSummary extends React.Component<
             text={this.state.body}
           />
         </div>
-
-        {this.renderExpander()}
       </div>
     )
   }
@@ -385,18 +395,36 @@ export class CommitSummary extends React.Component<
 
     return (
       // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events
-      <div
+      <span
         className="commit-unreachable-info"
         onMouseOver={this.onHighlightShasNotInDiff}
         onMouseOut={this.onRemoveHighlightOfShas}
       >
-        <Octicon symbol={OcticonSymbol.info} />
         <LinkButton onClick={this.showUnreachableCommits}>
           {excludedCommitsCount} unreachable {commitsPluralized}
         </LinkButton>{' '}
         not included.
-      </div>
+      </span>
     )
+  }
+
+  private getTitle(user: IAvatarUser): string | JSX.Element | undefined {
+    if (user) {
+      if (user.name) {
+        return (
+          <>
+            <strong>{user.name}</strong>
+            {' <'}
+            {user.email}
+            {'>'}
+          </>
+        )
+      } else {
+        return user.email
+      }
+    }
+
+    return 'Unknown user'
   }
 
   private renderAuthors = () => {
@@ -406,8 +434,30 @@ export class CommitSummary extends React.Component<
       return
     }
 
+    if (this.props.isExpanded) {
+      const elems = []
+
+      for (let i = 0; i < avatarUsers.length; i++) {
+        elems.push(
+          <div className="author-deets-container">
+            <Avatar key={`${i}`} user={avatarUsers[i]} title={null} />
+            <div className="author-deets">{this.getTitle(avatarUsers[i])}</div>
+          </div>
+        )
+      }
+
+      return (
+        <div
+          className="commit-summary-meta-item without-truncation"
+          aria-label="Author"
+        >
+          <div className="avatar-stack-expanded">{elems}</div>
+        </div>
+      )
+    }
+
     return (
-      <li
+      <div
         className="commit-summary-meta-item without-truncation"
         aria-label="Author"
       >
@@ -416,7 +466,7 @@ export class CommitSummary extends React.Component<
           gitHubRepository={repository.gitHubRepository}
           commits={selectedCommits}
         />
-      </li>
+      </div>
     )
   }
 
@@ -426,17 +476,19 @@ export class CommitSummary extends React.Component<
       return
     }
 
+    const commit = selectedCommits[0]
+
     return (
-      <li
-        className="commit-summary-meta-item without-truncation"
+      <div
+        className="commit-summary-meta-item without-truncation sha-container"
         aria-label="SHA"
       >
         <Octicon symbol={OcticonSymbol.gitCommit} />
-        <TooltippedCommitSHA
-          className="selectable"
-          commit={selectedCommits[0]}
-        />
-      </li>
+        {this.props.isExpanded
+          ? `${commit.sha} [${commit.shortSha}]`
+          : commit.shortSha}
+        <Octicon symbol={OcticonSymbol.copy} />
+      </div>
     )
   }
 
@@ -481,6 +533,7 @@ export class CommitSummary extends React.Component<
             {numInDiff} {commitsPluralized}
           </>
         )}
+        {this.renderCommitsNotReachable()}
       </div>
     )
   }
@@ -497,40 +550,70 @@ export class CommitSummary extends React.Component<
       <div id="commit-summary" className={className}>
         <div className="commit-summary-header">
           {this.renderSummary()}
-          <ul className="commit-summary-meta">
-            {this.renderAuthors()}
-            {this.renderCommitRef()}
-            {this.renderChangedFilesDescription()}
-            {this.renderLinesChanged()}
-            {this.renderTags()}
-
-            <li
-              className="commit-summary-meta-item without-truncation"
-              title="Diff Options"
-            >
-              <DiffOptions
-                isInteractiveDiff={false}
-                hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-                onHideWhitespaceChangesChanged={
-                  this.props.onHideWhitespaceInDiffChanged
-                }
-                showSideBySideDiff={this.props.showSideBySideDiff}
-                onShowSideBySideDiffChanged={
-                  this.props.onShowSideBySideDiffChanged
-                }
-                onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-              />
-            </li>
-          </ul>
+          {this.renderExpander()}
+          {this.renderDescription()}
+          {this.props.selectedCommits.length === 1 && (
+            <div className="commit-summary-meta">
+              {this.renderAuthors()}
+              {this.renderCommitRef()}
+              {this.renderTags()}
+            </div>
+          )}
         </div>
 
-        {this.renderDescription()}
-        {this.renderCommitsNotReachable()}
+        <div className="diff-files-summary">
+          {this.renderChangedFilesDescription()}
+          {this.renderLinesChanged()}
+          <div
+            className="commit-summary-meta-item without-truncation"
+            title="Diff Options"
+          >
+            <DiffOptions
+              isInteractiveDiff={false}
+              hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+              onHideWhitespaceChangesChanged={
+                this.props.onHideWhitespaceInDiffChanged
+              }
+              showSideBySideDiff={this.props.showSideBySideDiff}
+              onShowSideBySideDiffChanged={
+                this.props.onShowSideBySideDiffChanged
+              }
+              onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+            />
+          </div>
+        </div>
       </div>
     )
   }
 
+  private onButtonRef = (instance: HTMLButtonElement | null) => {
+    this.changedFilesInfoIconRef = instance
+  }
+
   private renderChangedFilesDescription = () => {
+    const fileCount = this.props.changesetData.files.length
+    const filesPlural = fileCount === 1 ? 'file' : 'files'
+    const filesShortDescription = `${fileCount} changed ${filesPlural}`
+
+    return (
+      <div className="commit-summary-meta-item without-truncation">
+        <Octicon symbol={OcticonSymbol.diff} />
+        {filesShortDescription}
+        <Button
+          className="changed-files-popover-toggle"
+          ariaLabel="Changed files drill down"
+          tooltip="Changed files drill down"
+          onClick={this.onChangedFilesInfoToggle}
+          onButtonRef={this.onButtonRef}
+        >
+          <Octicon symbol={OcticonSymbol.info} />
+        </Button>
+        {this.state.isChangedFilesPopoverOpen && this.renderPopover()}
+      </div>
+    )
+  }
+
+  private renderPopover() {
     const fileCount = this.props.changesetData.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesShortDescription = `${fileCount} changed ${filesPlural}`
@@ -600,17 +683,31 @@ export class CommitSummary extends React.Component<
     )
 
     return (
-      <TooltippedContent
-        className="commit-summary-meta-item without-truncation"
-        tooltipClassName="changed-files-description-tooltip"
-        tooltip={
-          fileCount > 0 && hasFileDescription ? filesLongDescription : undefined
-        }
+      <Popover
+        ariaLabelledby="changed-files-popover-header"
+        anchor={this.changedFilesInfoIconRef}
+        anchorPosition={PopoverAnchorPosition.BottomRight}
+        decoration={PopoverDecoration.Balloon}
+        onClickOutside={this.closeChangedFilesInfoPopover}
+        className="changed-files-description-tooltip"
       >
-        <Octicon symbol={OcticonSymbol.diff} />
-        {filesShortDescription}
-      </TooltippedContent>
+        <div id="changed-files-popover-header">{filesShortDescription}</div>
+        {fileCount > 0 && hasFileDescription ? filesLongDescription : undefined}
+        <Button onClick={this.closeChangedFilesInfoPopover}>Close</Button>
+      </Popover>
     )
+  }
+
+  private onChangedFilesInfoToggle = () => {
+    this.setState({
+      isChangedFilesPopoverOpen: !this.state.isChangedFilesPopoverOpen,
+    })
+  }
+
+  private closeChangedFilesInfoPopover = () => {
+    this.setState({
+      isChangedFilesPopoverOpen: false,
+    })
   }
 
   private renderLinesChanged() {
@@ -620,27 +717,14 @@ export class CommitSummary extends React.Component<
       return null
     }
 
-    const linesAddedPlural = linesAdded === 1 ? 'line' : 'lines'
-    const linesDeletedPlural = linesDeleted === 1 ? 'line' : 'lines'
-    const linesAddedTitle = `${linesAdded} ${linesAddedPlural} added`
-    const linesDeletedTitle = `${linesDeleted} ${linesDeletedPlural} deleted`
-
     return (
       <>
-        <TooltippedContent
-          tagName="li"
-          className="commit-summary-meta-item without-truncation lines-added"
-          tooltip={linesAddedTitle}
-        >
-          +{linesAdded}
-        </TooltippedContent>
-        <TooltippedContent
-          tagName="li"
-          className="commit-summary-meta-item without-truncation lines-deleted"
-          tooltip={linesDeletedTitle}
-        >
-          -{linesDeleted}
-        </TooltippedContent>
+        <div className="commit-summary-meta-item without-truncation lines-added">
+          +{linesAdded} lines
+        </div>
+        <div className="commit-summary-meta-item without-truncation lines-deleted">
+          -{linesDeleted} lines
+        </div>
       </>
     )
   }

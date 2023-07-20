@@ -6,6 +6,72 @@
   flex-direction: column;
   min-height: 0;
 
+  .changed-files-description-tooltip {
+    .popover-content {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-third);
+
+      #changed-files-popover-header {
+        font-weight: var(--font-weight-semibold);
+        font-size: var(--font-size-md);
+      }
+
+      .files-added-icon {
+        color: var(--color-new);
+      }
+
+      .files-modified-icon {
+        color: var(--color-modified);
+      }
+
+      .files-deleted-icon {
+        color: var(--color-deleted);
+      }
+
+      .files-renamed-icon {
+        color: var(--color-renamed);
+      }
+
+      .octicon {
+        margin-right: var(--spacing-third);
+        vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+      }
+    }
+  }
+
+  .author-deets-container {
+    display: flex;
+    margin-bottom: 5px;
+  }
+
+  .diff-files-summary {
+    background: var(--box-alt-background-color);
+    display: flex;
+    padding: var(--spacing-half);
+    padding-left: var(--spacing);
+    margin-right: calc(-1 * var(--spacing));
+    align-items: center;
+
+    .lines-deleted {
+      flex-grow: 1;
+      color: var(--color-deleted);
+    }
+
+    .lines-added {
+      color: var(--color-new);
+    }
+    border-bottom: var(--base-border);
+
+    .changed-files-popover-toggle {
+      padding: 0 var(--spacing-half);
+      border: 0;
+      margin: 0;
+      background: none;
+      height: auto;
+    }
+  }
+
   .avatar {
     width: 16px;
     height: 16px;
@@ -32,13 +98,26 @@
 
   &.expanded {
     .commit-summary-description-scroll-view {
-      max-height: 400px;
+      max-height: 200px;
       overflow: auto;
       display: revert;
 
       &:before {
         content: none;
       }
+    }
+
+    .sha-container {
+      margin-bottom: 5px;
+    }
+
+    .commit-summary-meta {
+      display: block;
+    }
+
+    .commit-summary-description {
+      background-color: var(--box-alt-background-color);
+      margin: 10px;
     }
   }
 
@@ -61,7 +140,7 @@
         content: '';
         background: var(--box-overflow-shadow-background);
         position: absolute;
-        height: 30px;
+        height: 10px;
         bottom: 0px;
         width: 100%;
         pointer-events: none;
@@ -72,7 +151,6 @@
   .commit-unreachable-info {
     padding: var(--spacing-half) var(--spacing);
     border-bottom: var(--base-border);
-    display: flex;
     align-items: center;
 
     .octicon {
@@ -94,14 +172,6 @@
   &-title,
   &-meta {
     padding: var(--spacing);
-
-    .lines-added {
-      color: var(--color-new);
-    }
-
-    .lines-deleted {
-      color: var(--color-deleted);
-    }
   }
 
   &-title {
@@ -109,6 +179,7 @@
     font-weight: var(--font-weight-semibold);
     line-height: 16px;
     padding: var(--spacing);
+    padding-bottom: var(--spacing-half);
     word-wrap: break-word;
 
     &.empty-summary {
@@ -120,7 +191,7 @@
     display: flex;
     // So that we have something to position the expander against
     position: relative;
-    border-bottom: var(--base-border);
+    // border-bottom: var(--base-border);
     min-height: 0;
   }
 
@@ -130,7 +201,7 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     // Maximum amount of commit description lines to show before collapsing
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 1;
   }
 
   // Enable text selection inside the title and description elements.
@@ -151,7 +222,7 @@
     font-size: var(--font-size-sm);
     word-wrap: break-word;
     white-space: pre-line;
-    padding: var(--spacing);
+    padding: var(--spacing-half) var(--spacing);
     min-height: 0;
   }
 
@@ -159,7 +230,7 @@
     display: flex;
     list-style: none;
     margin: 0;
-    padding: 0 var(--spacing) var(--spacing);
+    padding: var(--spacing-half) var(--spacing) var(--spacing);
   }
 
   &-meta-item:not(.without-truncation) {
@@ -194,5 +265,7 @@
 
   &-header {
     border-bottom: var(--base-border);
+    border-width: 2px;
+    position: relative;
   }
 }
