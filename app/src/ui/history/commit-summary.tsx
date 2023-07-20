@@ -399,7 +399,7 @@ export class CommitSummary extends React.Component<
       if (user.name) {
         return (
           <>
-            <strong>{user.name}</strong>
+            {user.name}
             {' <'}
             {user.email}
             {'>'}
