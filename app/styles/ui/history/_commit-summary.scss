@@ -6,6 +6,11 @@
   flex-direction: column;
   min-height: 0;
 
+  .diff-options-lines-summary {
+    display: flex;
+    flex-grow: 1;
+  }
+
   .author-deets-container {
     display: flex;
     margin-bottom: 5px;
@@ -44,16 +49,17 @@
     }
   }
 
-  .diff-files-summary {
-    background: var(--box-alt-background-color);
-    display: flex;
-    padding: var(--spacing-half);
-    padding-left: var(--spacing);
-    margin-right: calc(-1 * var(--spacing));
-    align-items: center;
+  .commit-summary-meta {
+    .lines-summary {
+      display: flex;
+      flex-grow: 1;
+
+      span {
+        margin-right: var(--spacing);
+      }
+    }
 
     .lines-deleted {
-      flex-grow: 1;
       color: var(--color-deleted);
     }
 
@@ -96,6 +102,18 @@
       &:before {
         content: none;
       }
+    }
+
+    .tags {
+      text-overflow: unset;
+      overflow: visible;
+      flex-shrink: inherit;
+      white-space: normal;
+    }
+
+    .changed-files-summary {
+      margin-top: var(--spacing-half);
+      margin-bottom: var(--spacing-half);
     }
 
     .sha-container {
@@ -256,7 +274,6 @@
 
   &-header {
     border-bottom: var(--base-border);
-    border-width: 2px;
     position: relative;
   }
 }

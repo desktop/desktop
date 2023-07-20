@@ -315,7 +315,7 @@ export class CommitSummary extends React.Component<
   }
 
   private renderDescription() {
-    if (this.state.body.length === 0) {
+    if (this.state.body.length === 0 || this.props.selectedCommits.length > 1) {
       return null
     }
 
@@ -538,34 +538,26 @@ export class CommitSummary extends React.Component<
           {this.renderSummary()}
           {this.renderExpander()}
           {this.renderDescription()}
-          {this.props.selectedCommits.length === 1 && (
-            <div className="commit-summary-meta">
-              {this.renderAuthors()}
-              {this.renderCommitRef()}
-              {this.renderTags()}
+          <div className="commit-summary-meta">
+            {this.renderAuthors()}
+            {this.renderCommitRef()}
+            {this.renderTags()}
+            {this.renderChangedFilesDescription()}
+            <div className="commit-summary-meta-item without-truncation diff-options-lines-summary">
+              {this.renderLinesChanged()}
+              <DiffOptions
+                isInteractiveDiff={false}
+                hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
+                onHideWhitespaceChangesChanged={
+                  this.props.onHideWhitespaceInDiffChanged
+                }
+                showSideBySideDiff={this.props.showSideBySideDiff}
+                onShowSideBySideDiffChanged={
+                  this.props.onShowSideBySideDiffChanged
+                }
+                onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+              />
             </div>
-          )}
-        </div>
-
-        <div className="diff-files-summary">
-          {this.renderChangedFilesDescription()}
-          {this.renderLinesChanged()}
-          <div
-            className="commit-summary-meta-item without-truncation"
-            title="Diff Options"
-          >
-            <DiffOptions
-              isInteractiveDiff={false}
-              hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-              onHideWhitespaceChangesChanged={
-                this.props.onHideWhitespaceInDiffChanged
-              }
-              showSideBySideDiff={this.props.showSideBySideDiff}
-              onShowSideBySideDiffChanged={
-                this.props.onShowSideBySideDiffChanged
-              }
-              onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-            />
           </div>
         </div>
       </div>
@@ -666,14 +658,10 @@ export class CommitSummary extends React.Component<
     }
 
     return (
-      <>
-        <div className="commit-summary-meta-item without-truncation lines-added">
-          +{linesAdded} lines
-        </div>
-        <div className="commit-summary-meta-item without-truncation lines-deleted">
-          -{linesDeleted} lines
-        </div>
-      </>
+      <div className="lines-summary">
+        <span className="lines-added">+{linesAdded} lines</span>
+        <span className="lines-deleted"> -{linesDeleted} lines</span>
+      </div>
     )
   }
 
