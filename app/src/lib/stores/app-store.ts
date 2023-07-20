@@ -1187,17 +1187,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
           if (calls.length > 0) {
             const rulesets = await Promise.all(calls)
-
-            // temporary while API is being worked on, this for block will be completely deleted
-            // before this code is merged
-            for (const rs of rulesets) {
-              if (rs && rs.currentUserCanBypass == null) {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                rs.currentUserCanBypass = rs.id % 2 === 0
-              }
-            }
-
             this._updateCachedRepoRulesets(rulesets)
           }
         }
