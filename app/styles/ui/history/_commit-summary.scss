@@ -53,6 +53,8 @@
     .lines-summary {
       display: flex;
       flex-grow: 1;
+      align-items: center;
+      margin-left: var(--spacing-half);
 
       span {
         margin-right: var(--spacing);
@@ -109,11 +111,6 @@
       overflow: visible;
       flex-shrink: inherit;
       white-space: normal;
-    }
-
-    .changed-files-summary {
-      margin-top: var(--spacing-half);
-      margin-bottom: var(--spacing-half);
     }
 
     .sha-container {

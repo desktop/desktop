@@ -542,8 +542,8 @@ export class CommitSummary extends React.Component<
             {this.renderAuthors()}
             {this.renderCommitRef()}
             {this.renderTags()}
-            {this.renderChangedFilesDescription()}
             <div className="commit-summary-meta-item without-truncation diff-options-lines-summary">
+              {this.renderChangedFilesDescription()}
               {this.renderLinesChanged()}
               <DiffOptions
                 isInteractiveDiff={false}
@@ -635,7 +635,7 @@ export class CommitSummary extends React.Component<
       </>
     )
     return (
-      <div className="commit-summary-meta-item without-truncation changed-files-summary">
+      <div className="changed-files-summary">
         {hasMoreThanOneFileType && <Octicon symbol={OcticonSymbol.diff} />}
         {hasMoreThanOneFileType ? filesShortDescription : filesLongDescription}
         {this.props.isExpanded &&
