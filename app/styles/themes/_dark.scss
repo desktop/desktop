@@ -17,9 +17,9 @@ body.theme-dark {
   --color-renamed: #{$blue};
   --color-conflicted: #{$orange};
 
-  --text-color: #{$gray-300};
-  --text-secondary-color: #{$gray-400};
-  --text-secondary-color-muted: #{darken($gray-500, 10%)};
+  --text-color: #{$gray-100};
+  --text-secondary-color: #{$gray-200};
+  --text-secondary-color-muted: #{darken($gray-300, 10%)};
   --background-color: #{$gray-900};
 
   --button-background: #{$blue};
@@ -27,9 +27,12 @@ body.theme-dark {
   --button-text-color: #{$white};
   --button-focus-border-color: #{$blue-600};
 
-  --link-button-color: #{$blue-300};
-  --link-button-hover-color: #{lighten($blue-300, 3%)};
-  --link-button-selected-hover-color: #{lighten($blue-300, 3%)};
+  // This blue passes WCAG 2 guidelines with $gray-100 fg and $gray-900 bg.
+  $link-color: #2e8fff;
+
+  --link-button-color: #{$link-color};
+  --link-button-hover-color: #{lighten($link-color, 3%)};
+  --link-button-selected-hover-color: #{lighten($link-color, 3%)};
 
   --secondary-button-background: #{$gray-800};
   --secondary-button-border-color: var(--box-border-contrast-color);
