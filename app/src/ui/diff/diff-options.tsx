@@ -8,6 +8,8 @@ import {
   PopoverAnchorPosition,
   PopoverDecoration,
 } from '../lib/popover'
+import { Tooltip, TooltipDirection } from '../lib/tooltip'
+import { createObservableRef } from '../lib/observable-ref'
 
 interface IDiffOptionsProps {
   readonly isInteractiveDiff: boolean
@@ -31,6 +33,7 @@ export class DiffOptions extends React.Component<
   IDiffOptionsProps,
   IDiffOptionsState
 > {
+  private innerButtonRef = createObservableRef<HTMLButtonElement>()
   private diffOptionsRef = React.createRef<HTMLDivElement>()
   private gearIconRef = React.createRef<HTMLSpanElement>()
 
@@ -79,9 +82,21 @@ export class DiffOptions extends React.Component<
   }
 
   public render() {
+    const buttonLabel = `Diff ${__DARWIN__ ? 'Settings' : 'Options'}`
     return (
       <div className="diff-options-component" ref={this.diffOptionsRef}>
-        <button onClick={this.onButtonClick}>
+        <button
+          aria-label={buttonLabel}
+          onClick={this.onButtonClick}
+          aria-expanded={this.state.isPopoverOpen}
+          ref={this.innerButtonRef}
+        >
+          <Tooltip
+            target={this.innerButtonRef}
+            direction={TooltipDirection.NORTH}
+          >
+            {buttonLabel}
+          </Tooltip>
           <span ref={this.gearIconRef}>
             <Octicon symbol={OcticonSymbol.gear} />
           </span>
@@ -119,8 +134,8 @@ export class DiffOptions extends React.Component<
 
   private renderShowSideBySide() {
     return (
-      <section>
-        <h4>Diff display</h4>
+      <fieldset role="radiogroup">
+        <legend>Diff display</legend>
         <RadioButton
           value="Unified"
           checked={!this.props.showSideBySideDiff}
@@ -137,14 +152,14 @@ export class DiffOptions extends React.Component<
           }
           onSelected={this.onSideBySideSelected}
         />
-      </section>
+      </fieldset>
     )
   }
 
   private renderHideWhitespaceChanges() {
     return (
-      <section>
-        <h4>Whitespace</h4>
+      <fieldset>
+        <legend>Whitespace</legend>
         <Checkbox
           value={
             this.props.hideWhitespaceChanges
@@ -162,7 +177,7 @@ export class DiffOptions extends React.Component<
             hiding whitespace.
           </p>
         )}
-      </section>
+      </fieldset>
     )
   }
 }
