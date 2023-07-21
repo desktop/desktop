@@ -896,9 +896,7 @@ export class CommitMessage extends React.Component<
   }
 
   private renderAmendCommitNotice() {
-    const {
-      commitToAmend,
-    } = this.props
+    const { commitToAmend } = this.props
 
     if (commitToAmend !== null) {
       return (
@@ -936,9 +934,15 @@ export class CommitMessage extends React.Component<
       const basicStatus = repoRulesInfo.basicCommitWarning
 
       if (aheadBehind === null && branch !== null) {
-        if (repoRulesInfo.creationRestricted === true || repoRuleBranchNameFailures.status === 'fail') {
+        if (
+          repoRulesInfo.creationRestricted === true ||
+          repoRuleBranchNameFailures.status === 'fail'
+        ) {
           publishStatus = true
-        } else if (repoRulesInfo.creationRestricted === 'bypass' || repoRuleBranchNameFailures.status === 'bypass') {
+        } else if (
+          repoRulesInfo.creationRestricted === 'bypass' ||
+          repoRuleBranchNameFailures.status === 'bypass'
+        ) {
           publishStatus = 'bypass'
         } else {
           publishStatus = false
