@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.2.7-test9": ["[New] Latest development"],
     "3.2.7-beta2": [
       "[New] Checkout a commit from the History tab - #10068. Thanks @kitswas!",
       "[New] Show when a repository has been archived in the clone dialog - #7183",
