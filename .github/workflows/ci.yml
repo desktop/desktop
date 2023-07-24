@@ -63,7 +63,7 @@ jobs:
         os: [macos-13-xl-arm64, windows-2019]
         arch: [x64, arm64]
         include:
-          - os: macos-11
+          - os: macos-13-xl-arm64
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
