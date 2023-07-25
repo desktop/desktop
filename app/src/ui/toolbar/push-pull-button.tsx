@@ -237,7 +237,6 @@ export class PushPullButton extends React.Component<
     return {
       className: 'push-pull-button',
       style: ToolbarButtonStyle.Subtitle,
-      id: 'push-pull-button',
     }
   }
 
