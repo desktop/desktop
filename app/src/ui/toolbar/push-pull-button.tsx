@@ -237,6 +237,7 @@ export class PushPullButton extends React.Component<
     return {
       className: 'push-pull-button',
       style: ToolbarButtonStyle.Subtitle,
+      id: 'push-pull-button',
     }
   }
 
@@ -265,8 +266,37 @@ export class PushPullButton extends React.Component<
     this.props.dispatcher.push(this.props.repository)
   }
 
+  /**
+   * This is a hack to get the screen reader to read the message after the force
+   * push confirm dialog closes.
+   *
+   * Problem: The dialog component sets the focus back to what ever was in the
+   * `document.ActiveElement` when the dialog was opened. However the active
+   * element is the force push button that is replaced with the fetch button.
+   * Thus, the force push element is no longer present when the dialog closes
+   * and the focus defaults to the document body. This means the sr message is
+   * not read.
+   *
+   * Solution: Set the `document.ActiveElement` to an element containing the sr
+   * element before opening the dialog so that it returns the focus to an
+   * element containing the sr. You can do this by calling the `focus` element
+   * of a tab focusable element hence adding the tab index.
+   *
+   * Other notes: If I set the focus to the sr element directly, it causes the
+   * message to be read twice.
+   */
+  private setScreenReaderStateMessageFocus() {
+    const srElement = document.getElementById('push-pull-button-state')
+    if (srElement) {
+      srElement.tabIndex = -1
+      srElement.focus()
+    }
+  }
+
   private forcePushWithLease = () => {
     this.closeDropdown()
+    this.setScreenReaderStateMessageFocus()
+
     this.props.dispatcher.confirmOrForcePush(this.props.repository)
     this.setState({ actionInProgress: 'force push' })
   }
@@ -306,9 +336,11 @@ export class PushPullButton extends React.Component<
     return (
       <>
         {this.renderButton()}
-        <AriaLiveContainer>
-          {this.state.screenReaderStateMessage}
-        </AriaLiveContainer>
+        <span id="push-pull-button-state">
+          <AriaLiveContainer>
+            {this.state.screenReaderStateMessage}
+          </AriaLiveContainer>
+        </span>
       </>
     )
   }
