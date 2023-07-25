@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.2.7-test11": ["[New] Test 11 actually?"],
     "3.2.7": [
       "[Fixed] Improved performance when selecting and viewing a large number of commits - #16880",
       "[Fixed] Fix crash using Edit -> Copy menu when no text is selected in the diff - #16876",
