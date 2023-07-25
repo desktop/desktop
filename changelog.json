@@ -1,6 +1,8 @@
 {
   "releases": {
-    "3.2.7": [],
+    "3.2.7": [
+      "[Fixed] Fix crash using Edit -> Copy menu when no text is selected in the diff - #16876"
+    ],
     "3.2.6": [
       "[Fixed] The list of the repositories under the filter box on the \"Let's get started!\" page is visible - #16955"
     ],
