@@ -4,12 +4,7 @@
 import * as path from 'path'
 import * as cp from 'child_process'
 import * as os from 'os'
-import packager, {
-  OfficialArch,
-  OsxNotarizeOptions,
-  OsxSignOptions,
-  Options,
-} from 'electron-packager'
+import packager, { OfficialArch, OsxNotarizeOptions } from 'electron-packager'
 import frontMatter from 'front-matter'
 import { externals } from '../app/webpack.common'
 
@@ -124,21 +119,6 @@ verifyInjectedSassVariables(outRoot)
     console.log(`Built to ${appPaths}`)
   })
 
-/**
- * The additional packager options not included in the existing typing.
- *
- * See https://github.com/desktop/desktop/issues/2429 for some history on this.
- */
-interface IPackageAdditionalOptions {
-  readonly protocols: ReadonlyArray<{
-    readonly name: string
-    readonly schemes: ReadonlyArray<string>
-  }>
-  readonly osxSign: OsxSignOptions & {
-    readonly hardenedRuntime?: boolean
-  }
-}
-
 function packageApp() {
   // not sure if this is needed anywhere, so I'm just going to inline it here
   // for now and see what the future brings...
@@ -181,7 +161,7 @@ function packageApp() {
     )
   }
 
-  const options: Options & IPackageAdditionalOptions = {
+  return packager({
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
     arch: toPackageArch(process.env.TARGET_ARCH),
@@ -206,17 +186,17 @@ function packageApp() {
     appCategoryType: 'public.app-category.developer-tools',
     darwinDarkModeSupport: true,
     osxSign: {
-      hardenedRuntime: true,
-      entitlements: entitlementsPath,
-      'entitlements-inherit': entitlementsPath,
+      optionsForFile: (path: string) => ({
+        hardenedRuntime: true,
+        entitlements: entitlementsPath,
+      }),
       type: isPublishableBuild ? 'distribution' : 'development',
       // For development, we will use '-' as the identifier so that codesign
       // will sign the app to run locally. We need to disable 'identity-validation'
       // or otherwise it will replace '-' with one of the regular codesigning
       // identities in our system.
       identity: isDevelopmentBuild ? '-' : undefined,
-      'identity-validation': !isDevelopmentBuild,
-      'gatekeeper-assess': !isDevelopmentBuild,
+      identityValidation: !isDevelopmentBuild,
     },
     osxNotarize: notarizationCredentials,
     protocols: [
@@ -241,9 +221,7 @@ function packageApp() {
       ProductName: getProductName(),
       InternalName: getProductName(),
     },
-  }
-
-  return packager(options)
+  })
 }
 
 function removeAndCopy(source: string, destination: string) {

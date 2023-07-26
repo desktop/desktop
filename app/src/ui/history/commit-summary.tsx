@@ -39,7 +39,7 @@ interface ICommitSummaryProps {
 
   readonly onExpandChanged: (isExpanded: boolean) => void
 
-  readonly onDescriptionBottomChanged: (descriptionBottom: Number) => void
+  readonly onDescriptionBottomChanged: (descriptionBottom: number) => void
 
   readonly hideDescriptionBorder: boolean
 
@@ -504,10 +504,7 @@ export class CommitSummary extends React.Component<
             {this.renderLinesChanged()}
             {this.renderTags()}
 
-            <li
-              className="commit-summary-meta-item without-truncation"
-              title="Diff Options"
-            >
+            <li className="commit-summary-meta-item without-truncation">
               <DiffOptions
                 isInteractiveDiff={false}
                 hideWhitespaceChanges={this.props.hideWhitespaceInDiff}

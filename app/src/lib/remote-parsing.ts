@@ -35,6 +35,10 @@ const remoteRegexes: ReadonlyArray<{ protocol: GitProtocol; regex: RegExp }> = [
   },
   {
     protocol: 'ssh',
+    regex: new RegExp('^(?:.+)@(.+.ghe.com):([^/]+)/([^/]+?)(?:/|.git)?$'),
+  },
+  {
+    protocol: 'ssh',
     regex: new RegExp('^git:(.+)/([^/]+)/([^/]+?)(?:/|.git)?$'),
   },
   {

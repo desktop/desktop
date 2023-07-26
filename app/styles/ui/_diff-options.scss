@@ -56,11 +56,20 @@
     align-items: center;
   }
 
-  section + section {
-    margin-top: var(--spacing);
+  legend {
+    margin-top: 0px;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    padding: 0px;
   }
 
-  section.button-group {
+  fieldset {
+    border: none;
+    margin: 0px;
+    padding: 0px;
+  }
+
+  fieldset.button-group {
     display: flex;
     flex-direction: row;
   }

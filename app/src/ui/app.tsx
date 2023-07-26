@@ -1,4 +1,6 @@
 import * as React from 'react'
+import * as Path from 'path'
+
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import {
   IAppState,
@@ -98,6 +100,7 @@ import { Banner, BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
+import { ConfirmCheckoutCommitDialog } from './checkout/confirm-checkout-commit'
 import { CreateTutorialRepositoryDialog } from './no-repositories/create-tutorial-repository-dialog'
 import { ConfirmExitTutorial } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
@@ -161,7 +164,6 @@ import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { createCommitURL } from '../lib/commit-url'
 import { uuid } from '../lib/uuid'
 import { InstallingUpdate } from './installing-update/installing-update'
-import { enableStackedPopups } from '../lib/feature-flag'
 import { DialogStackContext } from './dialog'
 import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
@@ -1471,11 +1473,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setUpdateBannerVisibility(false)
 
   private allPopupContent(): JSX.Element | null {
-    let { allPopups } = this.state
-
-    if (!enableStackedPopups() && this.state.currentPopup !== null) {
-      allPopups = [this.state.currentPopup]
-    }
+    const { allPopups } = this.state
 
     if (allPopups.length === 0) {
       return null
@@ -1609,6 +1607,9 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnDiscardChangesPermanently
             }
             confirmDiscardStash={this.state.askForConfirmationOnDiscardStash}
+            confirmCheckoutCommit={
+              this.state.askForConfirmationOnCheckoutCommit
+            }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             confirmUndoCommit={this.state.askForConfirmationOnUndoCommit}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
@@ -1984,6 +1985,22 @@ export class App extends React.Component<IAppProps, IAppState> {
             }
             repository={repository}
             stash={stash}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.ConfirmCheckoutCommit: {
+        const { repository, commit } = popup
+
+        return (
+          <ConfirmCheckoutCommitDialog
+            key="confirm-checkout-commit-dialog"
+            dispatcher={this.props.dispatcher}
+            askForConfirmationOnCheckoutCommit={
+              this.state.askForConfirmationOnDiscardStash
+            }
+            repository={repository}
+            commit={commit}
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -2424,6 +2441,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             showSideBySideDiff={showSideBySideDiff}
             currentBranchHasPullRequest={currentBranchHasPullRequest}
             onDismissed={onPopupDismissedFn}
+            onOpenInExternalEditor={this.onOpenInExternalEditor}
           />
         )
       }
@@ -2761,6 +2779,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.openInExternalEditor(repository.path)
   }
 
+  private onOpenInExternalEditor = (path: string) => {
+    const repository = this.state.selectedState?.repository
+    if (repository === undefined) {
+      return
+    }
+
+    const fullPath = Path.join(repository.path, path)
+    this.props.dispatcher.openInExternalEditor(fullPath)
+  }
+
   private showRepository = (repository: Repository | CloningRepository) => {
     if (!(repository instanceof Repository)) {
       return
@@ -2831,6 +2859,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       top: 0,
     }
 
+    /** The dropdown focus trap will stop focus event propagation we made need
+     * in some of our dialogs (noticed with Lists). Disabled this when dialogs
+     * are open */
+    const enableFocusTrap = this.state.currentPopup === null
+
     return (
       <ToolbarDropdown
         icon={icon}
@@ -2842,6 +2875,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
         dropdownContentRenderer={this.renderRepositoryList}
         dropdownState={currentState}
+        enableFocusTrap={enableFocusTrap}
       />
     )
   }
@@ -2924,6 +2958,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       aheadBehind
     )
 
+    /** The dropdown focus trap will stop focus event propagation we made need
+     * in some of our dialogs (noticed with Lists). Disabled this when dialogs
+     * are open */
+    const enableFocusTrap = this.state.currentPopup === null
+
     return (
       <PushPullButton
         dispatcher={this.props.dispatcher}
@@ -2944,6 +2983,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         isDropdownOpen={isDropdownOpen}
         askForConfirmationOnForcePush={this.state.askForConfirmationOnForcePush}
         onDropdownStateChanged={this.onPushPullDropdownStateChanged}
+        enableFocusTrap={enableFocusTrap}
       />
     )
   }
@@ -3038,6 +3078,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     const repository = selection.repository
     const { branchesState } = selection.state
 
+    /** The dropdown focus trap will stop focus event propagation we made need
+     * in some of our dialogs (noticed with Lists). Disabled this when dialogs
+     * are open */
+    const enableFocusTrap = this.state.currentPopup === null
+
     return (
       <BranchDropdown
         dispatcher={this.props.dispatcher}
@@ -3054,6 +3099,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
         showCIStatusPopover={this.state.showCIStatusPopover}
         emoji={this.state.emoji}
+        enableFocusTrap={enableFocusTrap}
       />
     )
   }
@@ -3189,10 +3235,13 @@ export class App extends React.Component<IAppProps, IAppState> {
           askForConfirmationOnDiscardStash={
             state.askForConfirmationOnDiscardStash
           }
+          askForConfirmationOnCheckoutCommit={
+            state.askForConfirmationOnCheckoutCommit
+          }
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}
           resolvedExternalEditor={state.resolvedExternalEditor}
-          onOpenInExternalEditor={this.openFileInExternalEditor}
+          onOpenInExternalEditor={this.onOpenInExternalEditor}
           appMenu={state.appMenuState[0]}
           currentTutorialStep={state.currentOnboardingTutorialStep}
           onExitTutorial={this.onExitTutorial}
