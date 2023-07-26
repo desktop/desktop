@@ -1,5 +1,12 @@
 {
   "releases": {
+    "3.2.8-beta1": [
+      "[Fixed] Fix not recognizing remote for partial clone/fetch - #16284. Thanks @mkafrin!",
+      "[Fixed] Fix association of repositories using nonstandard usernames - #17024",
+      "[Improved] Improve accessibility of diff options - #17062",
+      "[Improved] Screen readers announce number of pull requests found after refreshing the list - #17031",
+      "[Improved] The context menu for the History view items can be invoked by keyboard shortcuts - #17035"
+    ],
     "3.2.7-beta2": [
       "[New] Checkout a commit from the History tab - #10068. Thanks @kitswas!",
       "[New] Show when a repository has been archived in the clone dialog - #7183",
