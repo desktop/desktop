@@ -534,7 +534,6 @@ async function findApplication(editor: WindowsExternalEditor) {
         : editor.executableShimPaths.map(p => Path.join(installLocation, ...p))
 
     for (const path of executableShimPaths) {
-      console.log(path);
       const exists = await pathExists(path)
       if (exists) {
         return path
