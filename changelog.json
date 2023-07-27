@@ -1,5 +1,18 @@
 {
   "releases": {
+    "3.2.8-beta1": [
+      "[Fixed] Fix not recognizing remote for partial clone/fetch - #16284. Thanks @mkafrin!",
+      "[Fixed] Fix association of repositories using nonstandard usernames - #17024",
+      "[Improved] Add aria-label and aria-expanded attributes to diff options button - #17062",
+      "[Improved] Screen readers announce number of pull requests found after refreshing the list - #17031",
+      "[Improved] The context menu for the History view items can be invoked by keyboard shortcuts - #17035"
+    ],
+    "3.2.7": [
+      "[Fixed] Improved performance when selecting and viewing a large number of commits - #16880",
+      "[Fixed] Fix crash using Edit -> Copy menu when no text is selected in the diff - #16876",
+      "[Fixed] Emoji autocomplete list highlights filter text correctly - #16899",
+      "[Fixed] Allow filtering autocomplete results using uppercase characters - #16886"
+    ],
     "3.2.7-beta2": [
       "[New] Checkout a commit from the History tab - #10068. Thanks @kitswas!",
       "[New] Show when a repository has been archived in the clone dialog - #7183",
