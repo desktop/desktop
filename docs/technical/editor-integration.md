@@ -46,6 +46,7 @@ These editors are currently supported:
  - [Aptana Studio](http://www.aptana.com/)
  - [JetBrains Fleet](https://www.jetbrains.com/fleet/)
  - [JetBrains DataSpell](https://www.jetbrains.com/dataspell/)
+ - [Zed](https://zed.dev/) - both Stable and Preview channel
 
 These are defined in a list at the top of the file:
 
