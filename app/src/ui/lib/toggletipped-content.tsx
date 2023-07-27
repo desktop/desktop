@@ -121,7 +121,7 @@ export class ToggledtippedContent extends React.Component<
             <AriaLiveContainer
               message={ariaLiveMessage}
               trackedUserInput={this.shouldForceAriaLiveMessage}
-            ></AriaLiveContainer>
+            />
           )}
         </>
       </button>

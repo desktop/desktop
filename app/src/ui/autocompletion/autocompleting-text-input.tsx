@@ -529,7 +529,7 @@ export abstract class AutocompletingTextInput<
         <AriaLiveContainer
           message={autoCompleteItems.length > 0 ? suggestionsMessage : null}
           trackedUserInput={this.state.autocompletionState?.rangeText}
-        ></AriaLiveContainer>
+        />
       </div>
     )
   }
