@@ -1,14 +1,6 @@
 import { debounce } from 'lodash'
 import React, { Component } from 'react'
 
-export interface IAccessibleMessage {
-  /** A message presented via an aria-live component. */
-  screenReaderMessage: string
-
-  /** A message visually displayed to the user. */
-  displayedMessage: string | JSX.Element
-}
-
 interface IAriaLiveContainerProps {
   /** The content that will be read by the screen reader.
    *

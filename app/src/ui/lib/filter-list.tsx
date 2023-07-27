@@ -299,7 +299,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         <AriaLiveContainer
           message={screenReaderMessage}
           trackedUserInput={this.state.filterValue}
-        ></AriaLiveContainer>
+        />
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
         {this.renderFilterRow()}

@@ -15,7 +15,7 @@ import untildify from 'untildify'
 import { showOpenDialog } from '../main-process-proxy'
 import { Ref } from '../lib/ref'
 import { InputError } from '../lib/input-description/input-error'
-import { IAccessibleMessage } from '../accessibility/aria-live-container'
+import { IAccessibleMessage } from '../../models/accessible-message'
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher

@@ -94,7 +94,7 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
       <AriaLiveContainer
         message={this.props.ariaLiveMessage}
         trackedUserInput={this.props.trackedUserInput}
-      ></AriaLiveContainer>
+      />
     )
   }
 

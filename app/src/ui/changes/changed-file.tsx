@@ -89,9 +89,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           ariaHidden={true}
         />
 
-        <AriaLiveContainer
-          message={pathScreenReaderMessage}
-        ></AriaLiveContainer>
+        <AriaLiveContainer message={pathScreenReaderMessage} />
 
         <Octicon
           symbol={iconForStatus(status)}

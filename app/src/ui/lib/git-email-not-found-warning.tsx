@@ -81,7 +81,7 @@ export class GitEmailNotFoundWarning extends React.Component<IGitEmailNotFoundWa
           id="git-email-not-found-warning-for-screen-readers"
           trackedUserInput={this.props.email}
           message={this.buildScreenReaderMessage(isAttributableEmail)}
-        ></AriaLiveContainer>
+        />
       </>
     )
   }
