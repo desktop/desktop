@@ -60,6 +60,10 @@ interface IDialogProps {
    */
   readonly title?: string | JSX.Element
 
+  /** On macOS, if the title attribute above is a string, we will use it's
+   * contents. Otherwise, we need to provide the aria label. */
+  readonly ariaLabel?: string
+
   /**
    * Whether or not the dialog should be dismissable. A dismissable dialog
    * can be dismissed either by clicking on the backdrop or by clicking
@@ -709,6 +713,94 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     )
   }
 
+  private getAriaLabelledby = () => {
+    // if the consumer has provided an aria-label, it takes precedence
+    if (this.props.ariaLabel) {
+      return undefined
+    }
+
+    // windows is happy to work semantically correctly, so we can just use the
+    // title id for the aria-labelledby
+    if (!__DARWIN__) {
+      return this.state.titleId
+    }
+
+    // VoiceOver is finicky so work around below..
+    if (this.props.role === 'alertdialog') {
+      // VoiceOver will ready the aria-labelledby for alert dialogs, but not the
+      // aria-describedby so we need to append the aria-describedby to the
+      // aria-labelledby
+      return `${this.state.titleId} ${this.props.ariaDescribedBy}`
+    }
+
+    // VoiceOver will not read the aria-labelledby for regular dialogs so we
+    // must not used aria-labelled and provide an aria label instead. (made
+    // based on the title prop or the aria-label prop)
+    return undefined
+  }
+
+  private getAriaLabel = () => {
+    // if the consumer has provided an aria-label, it takes precedence They may
+    // also be providing it because it can't be derived from the title prop.
+    if (this.props.ariaLabel) {
+      return this.props.ariaLabel
+    }
+
+    // windows is happy to work semantically correctly, so we can just use the
+    // title id for the aria-labelledby
+    if (!__DARWIN__) {
+      return undefined
+    }
+
+    const title =
+      typeof this.props.title === 'string' ? this.props.title : undefined
+
+    // VoiceOver will gladly use the aria-labelledby for alert dialogs, but not
+    // regular ones, thus we build an aria-label for non-alert dialogs.
+    return this.props.role !== 'alertdialog' ? title : undefined
+  }
+
+  /**
+   * This method returns an object with the aria attributes that should be applied.
+   *
+   * General dialog usage.
+   *   - Proper semantics is that the id of the element that houses title of the
+   *     dialog is referenced by an aria-labelledby attribute.
+   *   - If the dialog is an `alertdialog`, the `aria-describedby` attribute
+   *     should reference the alert message (usally all of the dialog content).
+   *
+   * We provide a title property that is used to generate
+   * the title in the header. That title div has an id automatically applied and
+   * is used in the aria-labelledby. This works great on Windows using NVDA.
+   *
+   * Issue:
+   *  1. macOS VoiceOver will not read the aria-labelledby for regular dialogs.
+   *  2. macOS VoiceOVer will not read the aria-describedby for alert dialogs.
+   *
+   * Solution:
+   *  1. On macOS, for regular dialogs, we need to put the title in the
+   *     aria-label. If the title is not a string, we will need to provide an
+   *     aria-label.
+   *  2. On macOS, for alert dialogs, we need to put the aria-describedby in the
+   *     aria-labelledby.
+   *
+   * If the ariaLabel is provided, we will give it priority over the
+   * aria-labelledby. For it to work, aria-labelledby must be undefined.
+   *
+   */
+  private getAriaAttributes = () => {
+    return {
+      'aria-label': this.getAriaLabel(),
+      'aria-labelledby': this.getAriaLabelledby(),
+      // VoiceOver on macOS will not read the aria-describedby thus we need to put
+      // it in the ariaLabeledBy to make sure it get's read. (See getAriaLabelledby)
+      'aria-describedby':
+        __DARWIN__ && this.props.role === 'alertdialog'
+          ? undefined
+          : this.props.ariaDescribedBy,
+    }
+  }
+
   public render() {
     const className = classNames(
       {
@@ -719,25 +811,6 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       'tooltip-host'
     )
 
-    const ariaLabelledby = [
-      this.state.titleId,
-      // VoiceOver on macOS will not read the aria described by test thus we
-      // need to put it in the ariaLabeledBy
-      __DARWIN__ && this.props.role === 'alertdialog'
-        ? this.props.ariaDescribedBy
-        : null,
-    ].join(' ')
-
-    // VoiceOver on macOS will not read the aria-describedby thus we need to put
-    // it in the ariaLabeledBy to make sure it get's read-> which is only
-    // important on alertdialogs. This is bit hacky as semantically it should be
-    // in the aria-describedby.. maybe VoiceOver will be updated one day and we
-    // can just use the aria described by like we are supposed to.
-    const ariaDescribedBy =
-      __DARWIN__ && this.props.role === 'alertdialog'
-        ? ''
-        : this.props.ariaDescribedBy
-
     return (
       // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
       <dialog
@@ -747,8 +820,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
         onMouseDown={this.onDialogMouseDown}
         onKeyDown={this.onKeyDown}
         className={className}
-        aria-labelledby={ariaLabelledby}
-        aria-describedby={ariaDescribedBy}
+        {...this.getAriaAttributes()}
         tabIndex={-1}
       >
         {this.renderHeader()}

@@ -124,6 +124,11 @@ export class PullRequestChecksFailed extends React.Component<
         id="pull-request-checks-failed"
         type="normal"
         title={header}
+        ariaLabel={
+          __DARWIN__
+            ? `${failedChecks.length} ${pluralChecks} failed in your pull request. ${pullRequest.title} #${pullRequest.pullRequestNumber}`
+            : undefined
+        }
         dismissable={false}
         onSubmit={this.props.onSubmit}
         onDismissed={this.props.onDismissed}

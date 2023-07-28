@@ -33,6 +33,8 @@ export class DeleteRemoteBranch extends React.Component<
     return (
       <Dialog
         id="delete-branch"
+        role="alertdialog"
+        ariaDescribedBy="delete-branch-description"
         title={__DARWIN__ ? 'Delete Remote Branch' : 'Delete remote branch'}
         type="warning"
         onSubmit={this.deleteBranch}
@@ -41,15 +43,17 @@ export class DeleteRemoteBranch extends React.Component<
         loading={this.state.isDeleting}
       >
         <DialogContent>
-          <p>
-            Delete remote branch <Ref>{this.props.branch.name}</Ref>?<br />
-            This action cannot be undone.
-          </p>
+          <div id="delete-branch-description">
+            <p>
+              Delete remote branch <Ref>{this.props.branch.name}</Ref>?<br />
+              This action cannot be undone.
+            </p>
 
-          <p>
-            This branch does not exist locally. Deleting it may impact others
-            collaborating on this branch.
-          </p>
+            <p>
+              This branch does not exist locally. Deleting it may impact others
+              collaborating on this branch.
+            </p>
+          </div>
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup destructive={true} okButtonText="Delete" />

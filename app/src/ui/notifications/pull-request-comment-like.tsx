@@ -62,6 +62,7 @@ export abstract class PullRequestCommentLike extends React.Component<IPullReques
         id={this.props.id}
         type="normal"
         title={header}
+        ariaLabel={__DARWIN__ ? `${title} #${pullRequestNumber}` : undefined}
         dismissable={false}
         onSubmit={this.props.onSubmit}
         onDismissed={this.props.onDismissed}

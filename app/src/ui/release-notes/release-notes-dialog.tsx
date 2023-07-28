@@ -192,6 +192,9 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
         onDismissed={this.props.onDismissed}
         onSubmit={this.updateNow}
         title={dialogHeader}
+        ariaLabel={
+          __DARWIN__ ? `Version ${latestVersion} ${datePublished}` : undefined
+        }
       >
         <DialogContent>
           {this.renderPretext(pretext)}

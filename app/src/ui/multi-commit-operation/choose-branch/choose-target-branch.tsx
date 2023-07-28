@@ -176,6 +176,11 @@ export class ChooseTargetBranchDialog extends React.Component<
             Cherry-pick {this.props.commitCount} {pluralize} to a branch
           </strong>
         }
+        ariaLabel={
+          __DARWIN__
+            ? `Cherry-pick ${this.props.commitCount} ${pluralize} to a branch`
+            : undefined
+        }
       >
         <DialogContent>
           <BranchList

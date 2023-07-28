@@ -103,6 +103,9 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
         id="thank-you-notes"
         onDismissed={this.props.onDismissed}
         title={dialogHeader}
+        ariaLabel={
+          __DARWIN__ ? `Thank you ${this.props.friendlyName}!` : undefined
+        }
       >
         <DialogContent>
           <div className="container">
