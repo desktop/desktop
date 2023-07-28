@@ -719,6 +719,25 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       'tooltip-host'
     )
 
+    const ariaLabelledby = [
+      this.state.titleId,
+      // VoiceOver on macOS will not read the aria described by test thus we
+      // need to put it in the ariaLabeledBy
+      __DARWIN__ && this.props.role === 'alertdialog'
+        ? this.props.ariaDescribedBy
+        : null,
+    ].join(' ')
+
+    // VoiceOver on macOS will not read the aria-describedby thus we need to put
+    // it in the ariaLabeledBy to make sure it get's read-> which is only
+    // important on alertdialogs. This is bit hacky as semantically it should be
+    // in the aria-describedby.. maybe VoiceOver will be updated one day and we
+    // can just use the aria described by like we are supposed to.
+    const ariaDescribedBy =
+      __DARWIN__ && this.props.role === 'alertdialog'
+        ? ''
+        : this.props.ariaDescribedBy
+
     return (
       // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
       <dialog
@@ -728,8 +747,8 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
         onMouseDown={this.onDialogMouseDown}
         onKeyDown={this.onKeyDown}
         className={className}
-        aria-labelledby={this.state.titleId}
-        aria-describedby={this.props.ariaDescribedBy}
+        aria-labelledby={ariaLabelledby}
+        aria-describedby={ariaDescribedBy}
         tabIndex={-1}
       >
         {this.renderHeader()}

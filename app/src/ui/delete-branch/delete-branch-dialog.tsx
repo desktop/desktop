@@ -39,6 +39,8 @@ export class DeleteBranch extends React.Component<
     return (
       <Dialog
         id="delete-branch"
+        role="alertdialog"
+        ariaDescribedBy="delete-branch-description delete-on-remote-message"
         title={__DARWIN__ ? 'Delete Branch' : 'Delete branch'}
         type="warning"
         onSubmit={this.deleteBranch}
@@ -47,7 +49,7 @@ export class DeleteBranch extends React.Component<
         loading={this.state.isDeleting}
       >
         <DialogContent>
-          <p>
+          <p id="delete-branch-description">
             Delete branch <Ref>{this.props.branch.name}</Ref>?<br />
             This action cannot be undone.
           </p>
@@ -65,7 +67,7 @@ export class DeleteBranch extends React.Component<
     if (this.props.branch.upstreamRemoteName && this.props.existsOnRemote) {
       return (
         <div>
-          <p>
+          <p id="delete-on-remote-message">
             <strong>
               The branch also exists on the remote, do you wish to delete it
               there as well?
