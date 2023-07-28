@@ -70,7 +70,13 @@ interface IPopoverProps {
   readonly className?: string
   readonly style?: React.CSSProperties
   readonly appearEffect?: PopoverAppearEffect
-  readonly ariaLabelledby?: string
+  /**
+   * The ariaLabel of the Popover for screen reader users. Typically we would
+   * want to use the `aria-labelledby` attribute instead, however, VoiceOver on
+   * macOS does not read the `aria-labelledby` property. Thus, we are opting for
+   * the ariaLabel attribute that is read by both VoiceOver and NVDA.
+   */
+  readonly ariaLabel?: string
   readonly trapFocus?: boolean // Default: true
   readonly decoration?: PopoverDecoration // Default: none
 
@@ -223,7 +229,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       trapFocus,
       className,
       appearEffect,
-      ariaLabelledby,
+      ariaLabel,
       children,
       decoration,
       maxHeight,
@@ -292,7 +298,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
         className={cn}
         style={style}
         ref={this.containerDivRef}
-        aria-labelledby={ariaLabelledby}
+        aria-label={ariaLabel}
         role="dialog"
       >
         <div

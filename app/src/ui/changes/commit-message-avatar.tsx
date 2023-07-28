@@ -277,7 +277,9 @@ export class CommitMessageAvatar extends React.Component<
     )
   }
 
-  private getCommittingAsTitle(): string | JSX.Element | undefined {
+  private getCommittingAsTitle(asString?: false): string | JSX.Element
+  private getCommittingAsTitle(asString?: true): string
+  private getCommittingAsTitle(asString?: boolean) {
     const { user } = this.props
 
     if (user === undefined) {
@@ -287,6 +289,10 @@ export class CommitMessageAvatar extends React.Component<
     const { name, email } = user
 
     if (name) {
+      if (asString) {
+        return `Committing as ${name}`
+      }
+
       return (
         <>
           Committing as <strong>{name}</strong>
@@ -294,12 +300,11 @@ export class CommitMessageAvatar extends React.Component<
       )
     }
 
-    return <>Committing with {email}</>
+    return `Committing with ${email}`
   }
 
   private renderPopover() {
     const { warningBadgeVisible } = this.props
-
     return (
       <Popover
         anchor={
@@ -310,7 +315,11 @@ export class CommitMessageAvatar extends React.Component<
         anchorPosition={PopoverAnchorPosition.RightBottom}
         decoration={PopoverDecoration.Balloon}
         onClickOutside={this.closePopover}
-        ariaLabelledby="commit-avatar-popover-header"
+        ariaLabel={
+          warningBadgeVisible
+            ? 'This commit will be misattributed'
+            : this.getCommittingAsTitle(true)
+        }
       >
         <h3 id="commit-avatar-popover-header">
           {warningBadgeVisible

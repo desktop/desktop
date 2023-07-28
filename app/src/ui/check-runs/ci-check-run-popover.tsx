@@ -290,8 +290,8 @@ export class CICheckRunPopover extends React.PureComponent<
     return <span className="failure">Some checks were not successful</span>
   }
 
-  private renderHeader = (): JSX.Element => {
-    const { loadingActionWorkflows, checkRuns, checkRunSummary } = this.state
+  private getStatusSummary() {
+    const { loadingActionWorkflows, checkRuns } = this.state
     // Only show loading header status, if there are no cached check runs to display.
     const loading = loadingActionWorkflows && checkRuns.length === 0
 
@@ -309,7 +309,7 @@ export class CICheckRunPopover extends React.PureComponent<
       APICheckConclusion.Neutral,
       APICheckConclusion.Skipped,
     ]
-    const allSuccessIsh =
+    const allSuccess =
       !loading && // quick return: if loading, no list
       !somePendingNoFailures && // quick return: if some pending, can't all be success
       !checkRuns.some(
@@ -327,12 +327,52 @@ export class CICheckRunPopover extends React.PureComponent<
           !FailingCheckConclusions.includes(v.conclusion)
       )
 
+    return {
+      loading,
+      allSuccess,
+      allFailure,
+      somePendingNoFailures,
+    }
+  }
+
+  private getAriaLabel(): string {
+    const { checkRunSummary } = this.state
+    const { loading, allSuccess, allFailure, somePendingNoFailures } =
+      this.getStatusSummary()
+
+    let ariaLabel = ''
+    switch (true) {
+      case loading:
+        ariaLabel = 'Checks Summary'
+        break
+      case somePendingNoFailures:
+        ariaLabel = "Some checks haven't completed yet"
+        break
+      case allFailure:
+        ariaLabel = 'All checks have failed'
+        break
+      case allSuccess:
+        ariaLabel = 'All checks have passed'
+        break
+      default:
+        ariaLabel = 'Some checks were not successful'
+        break
+    }
+
+    return `${ariaLabel} ${checkRunSummary}`
+  }
+
+  private renderHeader = (): JSX.Element => {
+    const { checkRuns, checkRunSummary } = this.state
+    const { loading, allSuccess, allFailure, somePendingNoFailures } =
+      this.getStatusSummary()
+
     return (
       // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       <div className="ci-check-run-list-header" tabIndex={0}>
         <div className="completeness-indicator">
           {this.renderCompletenessIndicator(
-            allSuccessIsh,
+            allSuccess,
             allFailure,
             loading,
             checkRuns
@@ -344,7 +384,7 @@ export class CICheckRunPopover extends React.PureComponent<
         >
           <div className="title">
             {this.getTitle(
-              allSuccessIsh,
+              allSuccess,
               allFailure,
               somePendingNoFailures,
               loading
@@ -394,7 +434,7 @@ export class CICheckRunPopover extends React.PureComponent<
           anchor={this.props.anchor}
           anchorPosition={PopoverAnchorPosition.Bottom}
           decoration={PopoverDecoration.Balloon}
-          ariaLabelledby="ci-check-run-header"
+          ariaLabel={this.getAriaLabel()}
           onClickOutside={this.props.closePopover}
         >
           <div className="ci-check-run-list-wrapper">
