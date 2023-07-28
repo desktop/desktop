@@ -25,7 +25,7 @@ export async function getRemotes(
   const output = result.stdout
   const lines = output.split('\n')
   const remotes = lines
-    .filter(x => x.endsWith('(fetch)'))
+    .filter(x => /\(fetch\)( \[.+\])?$/.test(x))
     .map(x => x.split(/\s+/))
     .map(x => ({ name: x[0], url: x[1] }))
 

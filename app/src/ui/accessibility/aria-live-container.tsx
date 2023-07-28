@@ -2,6 +2,14 @@ import { debounce } from 'lodash'
 import React, { Component } from 'react'
 
 interface IAriaLiveContainerProps {
+  /** The content that will be read by the screen reader.
+   *
+   * Original solution used props.children, but we ran into invisible tab
+   * issues when the message has a link. Thus, we are using a prop instead to
+   * require the message to be a string.
+   */
+  readonly message: string | null
+
   /**
    * There is a common pattern that we may need to announce a message in
    * response to user input. Unfortunately, aria-live announcements are
@@ -53,7 +61,7 @@ export class AriaLiveContainer extends Component<
     super(props)
 
     this.state = {
-      message: this.props.children !== null ? this.buildMessage() : null,
+      message: this.props.message !== null ? this.buildMessage() : null,
     }
   }
 
@@ -76,7 +84,7 @@ export class AriaLiveContainer extends Component<
 
     return (
       <>
-        {this.props.children}
+        {this.props.message}
         {this.suffix}
       </>
     )
@@ -86,7 +94,7 @@ export class AriaLiveContainer extends Component<
     // We are just using this as a typical aria-live container where the message
     // changes per usage - no need to force re-reading of the same message.
     if (this.props.trackedUserInput === undefined) {
-      return this.props.children
+      return this.props.message
     }
 
     // We are using this as a container to force re-reading of the same message,
@@ -94,7 +102,7 @@ export class AriaLiveContainer extends Component<
     // If we get a null for the children, go ahead an empty out the
     // message so we don't get an erroneous reading of a message after it is
     // gone.
-    return this.props.children !== null ? this.state.message : ''
+    return this.props.message !== null ? this.state.message : ''
   }
 
   public render() {

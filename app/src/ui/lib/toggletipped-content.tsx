@@ -13,6 +13,11 @@ interface IToggledtippedContentProps
   /** The tooltip contents */
   readonly tooltip: JSX.Element | string | undefined
 
+  /** Likely the tooltips content as a string - whatever needs to be
+   * communicated to a screen reader user that is communicated through the
+   * tooltip */
+  readonly ariaLiveMessage: string
+
   /**
    * An optional additional class name to set on the tooltip in order to be able
    * to apply specific styles to the tooltip
@@ -86,6 +91,7 @@ export class ToggledtippedContent extends React.Component<
       className,
       tooltipClassName,
       ariaLabel,
+      ariaLiveMessage,
       ...rest
     } = this.props
 
@@ -113,10 +119,9 @@ export class ToggledtippedContent extends React.Component<
           {children}
           {this.state.tooltipVisible && (
             <AriaLiveContainer
+              message={ariaLiveMessage}
               trackedUserInput={this.shouldForceAriaLiveMessage}
-            >
-              {tooltip}
-            </AriaLiveContainer>
+            />
           )}
         </>
       </button>
