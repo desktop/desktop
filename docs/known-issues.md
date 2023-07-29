@@ -14,6 +14,7 @@
 - [Linux](#linux)
    - [I get a white screen when launching Desktop](#i-get-a-white-screen-when-launching-desktop)
    - [I cannot access repositories under my organization](#i-cannot-access-repositories-under-my-organization)
+   - [My shell/terminal is not detected and is stuck on "GNOME Terminal"](#my-shellterminal-is-not-detected-and-is-stuck-on-gnome-terminal)
 
 # Known Issues
 
@@ -271,3 +272,16 @@ used by this fork.
 
 **Workaround:** ask your organization admin to [approve access](https://docs.github.com/en/organizations/restricting-access-to-your-organizations-data/approving-oauth-apps-for-your-organization)
 to the GitHub Desktop development app.
+
+### My shell/terminal is not detected and is stuck on GNOME Terminal
+
+On non-GNOME desktop's the GitHub Desktop application may not correctly set the 
+environment's shell, despite the shell being selected in the application settings.
+
+Attempting to launch the shell from the application will show the error  
+"cannot read property 'path' of undefined".
+
+**Workarounds:** 
+
+- Option 1: install a second different terminal, switch to it, then switch to the terminal you want to use, and then uninstall the second terminal.
+- Option 2: open the application's developer tools and step through the JS calls to correctly set the shell. Further details at https://github.com/shiftkey/desktop/issues/344#issuecomment-1001287110
