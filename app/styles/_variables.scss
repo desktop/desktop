@@ -50,6 +50,15 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --badge-icon-color: #{$white};
   --warning-badge-icon-color: #{$orange};
 
+  // Colors used for icons that are inside an input box
+  --input-icon-warning-color: #{$yellow-800};
+  --input-icon-error-color: #{$red-600};
+  --input-icon-hover-background-color: #{$gray-100};
+
+  // Colors used for icons in the commit message warning/error area
+  --commit-message-icon-warning-color: var(--input-icon-warning-color);
+  --commit-message-icon-error-color: var(--input-icon-error-color);
+
   // Typography
   //
   // Font, line-height, and color for body text, headings, and more.
@@ -439,6 +448,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --dialog-warning-color: #{$yellow-600};
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red};
+  --dialog-error-text-color: #{$red-800};
 
   /** File warning */
   --file-warning-background-color: #{$yellow-200};

@@ -18,10 +18,10 @@
   }
 
   &.input-description-error {
-    color: var(--dialog-error-color);
+    color: var(--dialog-error-text-color);
 
     .octicon {
-      fill: var(--dialog-error-color);
+      fill: var(--dialog-error-text-color);
     }
   }
 }

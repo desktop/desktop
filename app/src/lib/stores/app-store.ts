@@ -100,6 +100,7 @@ import {
   getEndpointForRepository,
   IAPIFullRepository,
   IAPIComment,
+  IAPIRepoRuleset,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -237,7 +238,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableMoveStash } from '../feature-flag'
+import { enableMoveStash, enableRepoRules } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -324,6 +325,9 @@ import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
 import { resizableComponentClass } from '../../ui/resizable'
 import { compare } from '../compare'
+import { parseRepoRules } from '../helpers/repo-rules'
+import { RepoRulesInfo } from '../../models/repo-rules'
+import { supportsRepoRules } from '../endpoint-capabilities'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -529,6 +533,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private pullRequestSuggestedNextAction:
     | PullRequestSuggestedNextAction
     | undefined = undefined
+
+  private cachedRepoRulesets = new Map<number, IAPIRepoRuleset>()
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -999,6 +1005,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       notificationsEnabled: getNotificationsEnabled(),
       pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
       resizablePaneActive: this.resizablePaneActive,
+      cachedRepoRulesets: this.cachedRepoRulesets,
     }
   }
 
@@ -1116,6 +1123,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private clearBranchProtectionState(repository: Repository) {
     this.repositoryStateCache.updateChangesState(repository, () => ({
       currentBranchProtected: false,
+      currentRepoRulesInfo: new RepoRulesInfo(),
     }))
     this.emitUpdate()
   }
@@ -1147,6 +1155,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (!hasWritePermission(gitHubRepo)) {
         this.repositoryStateCache.updateChangesState(repository, () => ({
           currentBranchProtected: false,
+          currentRepoRulesInfo: new RepoRulesInfo(),
         }))
         this.emitUpdate()
         return
@@ -1159,10 +1168,57 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const pushControl = await api.fetchPushControl(owner, name, branchName)
       const currentBranchProtected = !isBranchPushable(pushControl)
 
+      let currentRepoRulesInfo = new RepoRulesInfo()
+      if (enableRepoRules() && supportsRepoRules(gitHubRepo.endpoint)) {
+        const slimRulesets = await api.fetchAllRepoRulesets(owner, name)
+
+        // ultimate goal here is to fetch all rulesets that apply to the repo
+        // so they're already cached when needed later on
+        if (slimRulesets?.length) {
+          const rulesetIds = slimRulesets.map(r => r.id)
+
+          const calls: Promise<IAPIRepoRuleset | null>[] = []
+          for (const id of rulesetIds) {
+            // check the cache and don't re-query any that are already in there
+            if (!this.cachedRepoRulesets.has(id)) {
+              calls.push(api.fetchRepoRuleset(owner, name, id))
+            }
+          }
+
+          if (calls.length > 0) {
+            const rulesets = await Promise.all(calls)
+            this._updateCachedRepoRulesets(rulesets)
+          }
+        }
+
+        const branchRules = await api.fetchRepoRulesForBranch(
+          owner,
+          name,
+          branchName
+        )
+
+        if (branchRules.length > 0) {
+          currentRepoRulesInfo = parseRepoRules(
+            branchRules,
+            this.cachedRepoRulesets
+          )
+        }
+      }
+
       this.repositoryStateCache.updateChangesState(repository, () => ({
         currentBranchProtected,
+        currentRepoRulesInfo,
       }))
       this.emitUpdate()
+    }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _updateCachedRepoRulesets(rulesets: Array<IAPIRepoRuleset | null>) {
+    for (const rs of rulesets) {
+      if (rs !== null) {
+        this.cachedRepoRulesets.set(rs.id, rs)
+      }
     }
   }
 

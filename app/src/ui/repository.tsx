@@ -224,6 +224,7 @@ export class RepositoryView extends React.Component<
         repository={this.props.repository}
         dispatcher={this.props.dispatcher}
         changes={this.props.state.changesState}
+        aheadBehind={this.props.state.aheadBehind}
         branch={branchName}
         commitAuthor={this.props.state.commitAuthor}
         emoji={this.props.emoji}
