@@ -248,11 +248,14 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
   }
 
   private renderPostFilter = () => {
+    const tooltip = 'Refresh the list of repositories'
+
     return (
       <Button
         disabled={this.props.loading}
         onClick={this.refreshRepositories}
-        tooltip="Refresh the list of repositories"
+        ariaLabel={tooltip}
+        tooltip={tooltip}
       >
         <Octicon
           symbol={syncClockwise}

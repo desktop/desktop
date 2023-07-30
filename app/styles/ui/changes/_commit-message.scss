@@ -27,17 +27,20 @@
       }
     }
 
-    &.with-length-hint input {
+    &.with-trailing-icon input {
       padding-right: 20px;
     }
 
-    .length-hint {
+    .length-hint,
+    .commit-message-failure-hint {
+      $distanceFromEdge: 2px;
+
       position: absolute;
-      top: 0;
+      top: $distanceFromEdge;
       right: 0;
       width: 16px;
-      margin-right: 4px;
-      height: var(--text-field-height);
+      margin-right: $distanceFromEdge;
+      height: calc(var(--text-field-height) - #{2 * $distanceFromEdge});
       display: flex;
       justify-content: center;
       align-items: center;
@@ -46,6 +49,29 @@
         height: 12px;
       }
     }
+
+    .commit-message-failure-hint {
+      border: none;
+      background: none;
+
+      &:hover {
+        background: var(--input-icon-hover-background-color);
+      }
+
+      .warning-icon {
+        color: var(--input-icon-warning-color);
+      }
+
+      .error-icon {
+        color: var(--input-icon-error-color);
+      }
+    }
+  }
+
+  .popover-component {
+    // a width of 300px causes more jarring movement when going from 2
+    // failed rules to 1 and the user can bypass, so use a slightly smaller amount
+    width: 298px;
   }
 
   &.with-co-authors .description-focus-container {

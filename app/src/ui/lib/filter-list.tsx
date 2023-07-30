@@ -292,12 +292,14 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   public render() {
     const itemRows = this.state.rows.filter(row => row.kind === 'item')
     const resultsPluralized = itemRows.length === 1 ? 'result' : 'results'
+    const screenReaderMessage = `${itemRows.length} ${resultsPluralized}`
 
     return (
       <div className={classnames('filter-list', this.props.className)}>
-        <AriaLiveContainer trackedUserInput={this.state.filterValue}>
-          {itemRows.length} {resultsPluralized}
-        </AriaLiveContainer>
+        <AriaLiveContainer
+          message={screenReaderMessage}
+          trackedUserInput={this.state.filterValue}
+        />
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
         {this.renderFilterRow()}

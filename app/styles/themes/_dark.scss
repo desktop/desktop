@@ -45,6 +45,15 @@ body.theme-dark {
    */
   --badge-icon-color: #{$gray-300};
 
+  // Colors used for icons that are inside an input box
+  --input-icon-warning-color: #{$yellow-600};
+  --input-icon-error-color: #{$red-400};
+  --input-icon-hover-background-color: #{$gray-800};
+
+  // Colors used for icons in the commit message warning/error area
+  --commit-message-icon-warning-color: var(--input-icon-warning-color);
+  --commit-message-icon-error-color: var(--input-icon-error-color);
+
   /**
    * Background color for custom scroll bars.
    * The color is applied to the thumb part of the scrollbar.
@@ -332,6 +341,7 @@ body.theme-dark {
   --dialog-warning-color: #{$yellow-600};
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red-600};
+  --dialog-error-text-color: #{$red-300};
 
   /** File warning */
   --file-warning-background-color: #{rgba($yellow-900, 0.4)};
