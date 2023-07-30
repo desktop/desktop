@@ -4,6 +4,7 @@ import { CommittedFileChange } from '../../models/status'
 import { mapStatus } from '../../lib/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon, iconForStatus } from '../octicons'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 interface ICommittedFileItemProps {
   readonly availableWidth: number
@@ -23,7 +24,7 @@ export class CommittedFileItem extends React.Component<ICommittedFileItemProps> 
 
   public render() {
     const { file } = this.props
-    const status = file.status
+    const { status, path } = file
     const fileStatus = mapStatus(status)
 
     const listItemPadding = 10 * 2
@@ -35,13 +36,18 @@ export class CommittedFileItem extends React.Component<ICommittedFileItemProps> 
       filePathPadding -
       statusWidth
 
+    const pathScreenReaderMessage = `${path} ${fileStatus}`
+
     return (
       <div className="file" onContextMenu={this.onContextMenu}>
         <PathLabel
           path={file.path}
           status={file.status}
           availableWidth={availablePathWidth}
+          ariaHidden={true}
         />
+
+        <AriaLiveContainer message={pathScreenReaderMessage} />
 
         <Octicon
           symbol={iconForStatus(status)}
