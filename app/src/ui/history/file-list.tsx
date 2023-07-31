@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { mapStatus } from '../../lib/status'
 
 import { CommittedFileChange } from '../../models/status'
 import { ClickSource, List } from '../lib/list'
@@ -44,6 +45,13 @@ export class FileList extends React.Component<IFileListProps> {
   ) => {
     this.props.onContextMenu?.(this.props.files[row], event)
   }
+  
+  private getFileAriaLabel = (row: number) => {
+    const file = this.props.files[row]
+    const { path, status } = file
+    const fileStatus = mapStatus(status)
+    return `${path} ${fileStatus}`
+  }
 
   public render() {
     return (
@@ -56,6 +64,7 @@ export class FileList extends React.Component<IFileListProps> {
           onSelectedRowChanged={this.onSelectedRowChanged}
           onRowDoubleClick={this.props.onRowDoubleClick}
           onRowContextMenu={this.onRowContextMenu}
+          getRowAriaLabel={this.getFileAriaLabel}
         />
       </div>
     )

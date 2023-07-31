@@ -67,11 +67,21 @@
     border: none;
     margin: 0px;
     padding: 0px;
+
+    margin-top: 0.5em;
+    &:not(:last-child) {
+      margin-bottom: 0.5em;
+    }
   }
 
   fieldset.button-group {
     display: flex;
     flex-direction: row;
+  }
+
+  .secondary-text {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
   }
 
   .popover-component {

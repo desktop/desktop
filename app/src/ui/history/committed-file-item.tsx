@@ -13,7 +13,7 @@ interface ICommittedFileItemProps {
 export class CommittedFileItem extends React.Component<ICommittedFileItemProps> {
   public render() {
     const { file } = this.props
-    const status = file.status
+    const { status } = file
     const fileStatus = mapStatus(status)
 
     const listItemPadding = 10 * 2
@@ -31,6 +31,7 @@ export class CommittedFileItem extends React.Component<ICommittedFileItemProps> 
           path={file.path}
           status={file.status}
           availableWidth={availablePathWidth}
+          ariaHidden={true}
         />
 
         <Octicon
