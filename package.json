@@ -160,7 +160,7 @@
     "@types/webpack-merge": "^5.0.0",
     "@types/xml2js": "^0.4.11",
     "electron": "28.2.3",
-    "electron-builder": "^24.4.0",
+    "electron-builder": "^24.13.3",
     "electron-packager": "^17.1.1",
     "eslint-plugin-github": "^4.10.1",
     "markdownlint-cli": "^0.32.2",
