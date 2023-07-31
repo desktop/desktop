@@ -749,7 +749,9 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     }
 
     return {
-      'aria-describedby': `${this.state.titleId} ${this.props.ariaDescribedBy}`,
+      'aria-describedby': `${this.state.titleId} ${
+        this.props.ariaDescribedBy ?? ''
+      }`,
     }
   }
 
