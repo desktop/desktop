@@ -45,7 +45,7 @@ export class FileList extends React.Component<IFileListProps> {
   ) => {
     this.props.onContextMenu?.(this.props.files[row], event)
   }
-  
+
   private getFileAriaLabel = (row: number) => {
     const file = this.props.files[row]
     const { path, status } = file
