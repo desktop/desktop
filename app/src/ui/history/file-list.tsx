@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { mapStatus } from '../../lib/status'
 
 import { CommittedFileChange } from '../../models/status'
 import { ClickSource, List } from '../lib/list'
@@ -39,6 +40,13 @@ export class FileList extends React.Component<IFileListProps> {
     return file ? this.props.files.findIndex(f => f.path === file.path) : -1
   }
 
+  private getFileAriaLabel = (row: number) => {
+    const file = this.props.files[row]
+    const { path, status } = file
+    const fileStatus = mapStatus(status)
+    return `${path} ${fileStatus}`
+  }
+
   public render() {
     return (
       <div className="file-list">
@@ -49,6 +57,7 @@ export class FileList extends React.Component<IFileListProps> {
           selectedRows={[this.rowForFile(this.props.selectedFile)]}
           onSelectedRowChanged={this.onSelectedRowChanged}
           onRowDoubleClick={this.props.onRowDoubleClick}
+          getRowAriaLabel={this.getFileAriaLabel}
         />
       </div>
     )
