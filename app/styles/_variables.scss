@@ -31,7 +31,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --button-text-color: #{$white};
   --button-focus-border-color: #{$blue-100};
 
-  --link-button-color: #{$blue};
+  --link-button-color: #{lighten($blue, 5%)};
   --link-button-hover-color: #{$blue-600};
   --link-button-selected-hover-color: #{$blue-200};
 
