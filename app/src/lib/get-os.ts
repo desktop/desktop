@@ -38,6 +38,14 @@ export function getOS() {
   }
 }
 
+/** We're currently running macOS and it is macOS Ventura. */
+export const isMacOSVentura = memoizeOne(
+  () =>
+    __DARWIN__ &&
+    systemVersionGreaterThanOrEqualTo('13.0') &&
+    systemVersionLessThan('14.0')
+)
+
 /** We're currently running macOS and it is macOS Catalina or earlier. */
 export const isMacOSCatalinaOrEarlier = memoizeOne(
   () => __DARWIN__ && systemVersionLessThan('10.16')
