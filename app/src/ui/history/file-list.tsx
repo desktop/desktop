@@ -31,13 +31,19 @@ export class FileList extends React.Component<IFileListProps> {
       <CommittedFileItem
         file={this.props.files[row]}
         availableWidth={this.props.availableWidth}
-        onContextMenu={this.props.onContextMenu}
       />
     )
   }
 
   private rowForFile(file: CommittedFileChange | null): number {
     return file ? this.props.files.findIndex(f => f.path === file.path) : -1
+  }
+
+  private onRowContextMenu = (
+    row: number,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
+    this.props.onContextMenu?.(this.props.files[row], event)
   }
 
   private getFileAriaLabel = (row: number) => {
@@ -57,6 +63,7 @@ export class FileList extends React.Component<IFileListProps> {
           selectedRows={[this.rowForFile(this.props.selectedFile)]}
           onSelectedRowChanged={this.onSelectedRowChanged}
           onRowDoubleClick={this.props.onRowDoubleClick}
+          onRowContextMenu={this.onRowContextMenu}
           getRowAriaLabel={this.getFileAriaLabel}
         />
       </div>
