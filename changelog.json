@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.2.8-test4": ["[New] Testing just ci.yml update for arch"],
     "3.2.8-beta1": [
       "[Fixed] Fix not recognizing remote for partial clone/fetch - #16284. Thanks @mkafrin!",
       "[Fixed] Fix association of repositories using nonstandard usernames - #17024",
