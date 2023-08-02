@@ -46,6 +46,8 @@ import {
 } from '../models/multi-commit-operation'
 import { IChangesetData } from './git'
 import { Popup } from '../models/popup'
+import { RepoRulesInfo } from '../models/repo-rules'
+import { IAPIRepoRuleset } from './api'
 
 export enum SelectionType {
   Repository,
@@ -210,6 +212,9 @@ export interface IAppState {
   /** Should the app prompt the user to confirm a discard stash */
   readonly askForConfirmationOnDiscardStash: boolean
 
+  /** Should the app prompt the user to confirm a commit checkout? */
+  readonly askForConfirmationOnCheckoutCommit: boolean
+
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
 
@@ -323,6 +328,12 @@ export interface IAppState {
   readonly pullRequestSuggestedNextAction:
     | PullRequestSuggestedNextAction
     | undefined
+
+  /**
+   * Cached repo rulesets. Used to prevent repeatedly querying the same
+   * rulesets to check their bypass status.
+   */
+  readonly cachedRepoRulesets: ReadonlyMap<number, IAPIRepoRuleset>
 }
 
 export enum FoldoutType {
@@ -713,6 +724,11 @@ export interface IChangesState {
 
   /** `true` if the GitHub API reports that the branch is protected */
   readonly currentBranchProtected: boolean
+
+  /**
+   * Repo rules that apply to the current branch.
+   */
+  readonly currentRepoRulesInfo: RepoRulesInfo
 }
 
 /**

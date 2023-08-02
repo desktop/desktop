@@ -5,6 +5,7 @@ import {
   IAPIPullRequest,
   IAPIFullRepository,
   IAPICheckSuite,
+  IAPIRepoRuleset,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -692,6 +693,14 @@ export class Dispatcher {
     strategy?: UncommittedChangesStrategy
   ): Promise<Repository> {
     return this.appStore._checkoutBranch(repository, branch, strategy)
+  }
+
+  /** Check out the given commit. */
+  public checkoutCommit(
+    repository: Repository,
+    commit: CommitOneLine
+  ): Promise<Repository> {
+    return this.appStore._checkoutCommit(repository, commit)
   }
 
   /** Push the current branch. */
@@ -1561,6 +1570,19 @@ export class Dispatcher {
     })
   }
 
+  public async showRepoRulesCommitBypassWarning(
+    repository: GitHubRepository,
+    branch: string,
+    onConfirm: () => void
+  ) {
+    return this.appStore._showPopup({
+      type: PopupType.ConfirmRepoRulesBypass,
+      repository,
+      branch,
+      onConfirm,
+    })
+  }
+
   /**
    * Register a new error handler.
    *
@@ -2372,6 +2394,10 @@ export class Dispatcher {
 
   public setConfirmDiscardStashSetting(value: boolean) {
     return this.appStore._setConfirmDiscardStashSetting(value)
+  }
+
+  public setConfirmCheckoutCommitSetting(value: boolean) {
+    return this.appStore._setConfirmCheckoutCommitSetting(value)
   }
 
   public setConfirmForcePushSetting(value: boolean) {
@@ -4063,5 +4089,9 @@ export class Dispatcher {
 
   public appFocusedElementChanged() {
     this.appStore._appFocusedElementChanged()
+  }
+
+  public updateCachedRepoRulesets(rulesets: Array<IAPIRepoRuleset | null>) {
+    this.appStore._updateCachedRepoRulesets(rulesets)
   }
 }

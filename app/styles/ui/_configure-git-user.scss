@@ -34,4 +34,9 @@
       border-bottom: none;
     }
   }
+
+  .git-config-loading {
+    color: var(--text-secondary-color);
+    height: 107px; // Height of name/email input to prevent jumping
+  }
 }

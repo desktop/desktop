@@ -14,7 +14,7 @@ interface IConfigureGitProps {
 export class ConfigureGit extends React.Component<IConfigureGitProps, {}> {
   public render() {
     return (
-      <div id="configure-git">
+      <section id="configure-git" aria-label="Configure Git">
         <h1 className="welcome-title">Configure Git</h1>
         <p className="welcome-text">
           This is used to identify the commits you create. Anyone will be able
@@ -28,7 +28,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, {}> {
         >
           <Button onClick={this.cancel}>Cancel</Button>
         </ConfigureGitUser>
-      </div>
+      </section>
     )
   }
 

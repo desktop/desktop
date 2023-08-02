@@ -8,22 +8,12 @@ import { Octicon, iconForStatus } from '../octicons'
 interface ICommittedFileItemProps {
   readonly availableWidth: number
   readonly file: CommittedFileChange
-  readonly onContextMenu?: (
-    file: CommittedFileChange,
-    event: React.MouseEvent<HTMLDivElement>
-  ) => void
 }
 
 export class CommittedFileItem extends React.Component<ICommittedFileItemProps> {
-  private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (this.props.onContextMenu !== undefined) {
-      this.props.onContextMenu(this.props.file, event)
-    }
-  }
-
   public render() {
     const { file } = this.props
-    const status = file.status
+    const { status } = file
     const fileStatus = mapStatus(status)
 
     const listItemPadding = 10 * 2
@@ -36,11 +26,12 @@ export class CommittedFileItem extends React.Component<ICommittedFileItemProps> 
       statusWidth
 
     return (
-      <div className="file" onContextMenu={this.onContextMenu}>
+      <div className="file">
         <PathLabel
           path={file.path}
           status={file.status}
           availableWidth={availablePathWidth}
+          ariaHidden={true}
         />
 
         <Octicon

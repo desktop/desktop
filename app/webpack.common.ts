@@ -81,7 +81,7 @@ export const renderer = merge({}, commonConfig, {
       },
       {
         test: /\.cmd$/,
-        loader: 'file-loader',
+        type: 'asset/resource',
       },
     ],
   },

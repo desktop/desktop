@@ -25,6 +25,9 @@ export interface ITextBoxProps {
   /** Whether the input field is disabled. */
   readonly disabled?: boolean
 
+  /** Whether the input field is read-only. */
+  readonly readOnly?: boolean
+
   /** Indicates if input field should be required */
   readonly required?: boolean
 
@@ -80,6 +83,10 @@ export interface ITextBoxProps {
 
   /** Optional aria-label attribute */
   readonly ariaLabel?: string
+
+  /** Optional aria-describedby attribute - usually for associating a descriptive
+   * message to the input such as a validation error, warning, or caption */
+  readonly ariaDescribedBy?: string
 
   readonly ariaControls?: string
 }
@@ -256,16 +263,15 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         })}
       >
         {label && <label htmlFor={inputId}>{label}</label>}
-
         <input
           id={inputId}
           ref={this.onInputRef}
           onFocus={this.onFocus}
           onBlur={this.onBlur}
-          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
-          type={this.props.type}
+          readOnly={this.props.readOnly}
+          type={this.props.type ?? 'text'}
           placeholder={this.props.placeholder}
           value={this.state.value}
           onChange={this.onChange}
@@ -275,6 +281,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           spellCheck={this.props.spellcheck === true}
           aria-label={this.props.ariaLabel}
           aria-controls={this.props.ariaControls}
+          aria-describedby={this.props.ariaDescribedBy}
           required={this.props.required}
         />
       </div>
