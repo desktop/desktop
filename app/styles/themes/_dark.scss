@@ -163,6 +163,12 @@ body.theme-dark {
   --co-author-tag-background-color: #{$blue-800};
   --co-author-tag-border-color: #{$blue-700};
 
+  /**
+   * Commit warning badge icon
+   */
+  --commit-warning-badge-background-color: #{$gray-900};
+  --commit-warning-badge-border-color: #{$gray-700};
+
   --base-border: 1px solid var(--box-border-color);
   --contrast-border: 1px solid var(--box-border-contrast-color);
 
