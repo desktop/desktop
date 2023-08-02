@@ -20,7 +20,6 @@ import { DragData, DragType } from '../../../models/drag-drop'
 import memoizeOne from 'memoize-one'
 import { RowIndexPath } from './list-row-index-path'
 import { sendNonFatalException } from '../../../lib/helpers/non-fatal-exception'
-import { AriaLiveContainer } from '../../accessibility/aria-live-container'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -1028,32 +1027,16 @@ export class List extends React.Component<IListProps, IListState> {
    * @param height - The height of the Grid as given by AutoSizer
    */
   private renderContents(width: number, height: number) {
-    const { selectedRows, selectionMode } = this.props
-    const ariaLiveMessage =
-      selectionMode !== 'single' && selectedRows.length > 0 ? (
-        <AriaLiveContainer
-          message={`${selectedRows.length} item${
-            selectedRows.length > 1 ? 's' : ''
-          } selected`}
-        />
-      ) : null
-
     if (__WIN32__) {
       return (
         <>
-          {ariaLiveMessage}
           {this.renderGrid(width, height)}
           {this.renderFakeScroll(height)}
         </>
       )
     }
 
-    return (
-      <>
-        {ariaLiveMessage}
-        {this.renderGrid(width, height)}
-      </>
-    )
+    return this.renderGrid(width, height)
   }
 
   private onGridRef = (ref: Grid | null) => {
