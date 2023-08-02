@@ -359,8 +359,7 @@ export class RepositoryView extends React.Component<
 
   private renderStashedChangesContent(): JSX.Element | null {
     const { changesState } = this.props.state
-    const { selection, stashEntry, workingDirectory } = changesState
-    const isWorkingTreeClean = workingDirectory.files.length === 0
+    const { selection, stashEntry } = changesState
 
     if (selection.kind !== ChangesSelectionKind.Stash || stashEntry === null) {
       return null
@@ -379,7 +378,6 @@ export class RepositoryView extends React.Component<
           askForConfirmationOnDiscardStash={
             this.props.askForConfirmationOnDiscardStash
           }
-          isWorkingTreeClean={isWorkingTreeClean}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onOpenBinaryFile={this.onOpenBinaryFile}
           onOpenSubmodule={this.onOpenSubmodule}
