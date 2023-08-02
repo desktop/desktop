@@ -67,7 +67,6 @@
   align-items: center;
 
   &:hover {
-    color: var(--link-button-hover-color);
     text-decoration: underline;
   }
 
@@ -75,10 +74,6 @@
     opacity: 0.6;
     cursor: default;
     text-decoration: none;
-  }
-
-  &:focus {
-    color: var(--link-button-selected-hover-color);
   }
 
   &.link-with-icon .octicon {
