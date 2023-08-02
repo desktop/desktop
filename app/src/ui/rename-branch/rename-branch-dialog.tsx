@@ -41,15 +41,16 @@ export class RenameBranch extends React.Component<
         title={__DARWIN__ ? 'Rename Branch' : 'Rename branch'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.renameBranch}
+        focusCloseButtonOnOpen={true}
       >
         <DialogContent>
+          {renderBranchHasRemoteWarning(this.props.branch)}
+          {renderStashWillBeLostWarning(this.props.stash)}
           <RefNameTextBox
             label="Name"
             initialValue={this.props.branch.name}
             onValueChange={this.onNameChange}
           />
-          {renderBranchHasRemoteWarning(this.props.branch)}
-          {renderStashWillBeLostWarning(this.props.stash)}
         </DialogContent>
 
         <DialogFooter>
