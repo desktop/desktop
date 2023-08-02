@@ -44,13 +44,13 @@ export class RenameBranch extends React.Component<
         focusCloseButtonOnOpen={true}
       >
         <DialogContent>
+          {renderBranchHasRemoteWarning(this.props.branch)}
+          {renderStashWillBeLostWarning(this.props.stash)}
           <RefNameTextBox
             label="Name"
             initialValue={this.props.branch.name}
             onValueChange={this.onNameChange}
           />
-          {renderBranchHasRemoteWarning(this.props.branch)}
-          {renderStashWillBeLostWarning(this.props.stash)}
         </DialogContent>
 
         <DialogFooter>
