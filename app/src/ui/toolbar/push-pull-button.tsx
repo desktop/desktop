@@ -546,10 +546,6 @@ export class PushPullButton extends React.Component<
       dropdownItemTypes.push(DropdownItemType.ForcePush)
     }
 
-    const returnFocusOnDeactivate =
-      forcePushBranchState === ForcePushBranchState.NotAvailable ||
-      !this.props.askForConfirmationOnForcePush
-
     return (
       <ToolbarDropdown
         {...this.defaultDropdownProps()}
@@ -560,7 +556,7 @@ export class PushPullButton extends React.Component<
         dropdownContentRenderer={this.getDropdownContentRenderer(
           dropdownItemTypes
         )}
-        returnFocusOnDeactivate={returnFocusOnDeactivate}
+        returnFocusOnDeactivate={this.returnFocusOnDeactivate()}
         onDropdownFocusTrapDeactivate={this.onDropdownFocusTrapDeactivate}
       >
         {renderAheadBehind(aheadBehind, numTagsToPush)}
@@ -568,11 +564,17 @@ export class PushPullButton extends React.Component<
     )
   }
 
+  private returnFocusOnDeactivate = () => {
+    const isForcePushOptionAvailable =
+      this.props.forcePushBranchState !== ForcePushBranchState.NotAvailable
+
+    return (
+      !isForcePushOptionAvailable || !this.props.askForConfirmationOnForcePush
+    )
+  }
+
   private onDropdownFocusTrapDeactivate = () => {
-    if (
-      this.props.forcePushBranchState === ForcePushBranchState.NotAvailable ||
-      !this.props.askForConfirmationOnForcePush
-    ) {
+    if (this.returnFocusOnDeactivate()) {
       return
     }
 
