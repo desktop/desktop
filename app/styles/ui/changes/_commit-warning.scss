@@ -3,7 +3,7 @@
 .commit-warning-component {
   flex-direction: column;
   flex-shrink: 0;
-  margin-top: 6px;
+  margin-top: var(--spacing-half);
 
   display: flex;
   background-color: var(--box-alt-background-color);
