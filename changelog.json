@@ -1,5 +1,14 @@
 {
   "releases": {
+    "3.2.8-beta2": [
+      "[New] Initial support for repository rules - #16707. Thanks @vaindil!",
+      "[Fixed] Enable context menu keyboard shortcut for file lists - #17143",
+      "[Fixed] Adds a workaround for the macOS Ventura `aria-labelledby` and `aria-describedby` regressions such that dialog titles are always announced - #17148",
+      "[Fixed] Screen readers announce branch group names correctly when there are no recent branches - #17142",
+      "[Fixed] Screen readers announce the status of files within a commit - #17144",
+      "[Improved] Improve contrast of text to links in dark and light themes - #17092",
+      "[Improved] The errors and warnings in the \"Create a New Repository\" dialog are screen reader announced - #16993"
+    ],
     "3.2.8-beta1": [
       "[Fixed] Fix not recognizing remote for partial clone/fetch - #16284. Thanks @mkafrin!",
       "[Fixed] Fix association of repositories using nonstandard usernames - #17024",
