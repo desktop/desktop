@@ -4,6 +4,7 @@ import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 
 interface IStashDiffHeaderProps {
   readonly stashEntry: IStashEntry
@@ -96,7 +97,10 @@ export class StashDiffHeader extends React.Component<
       this.setState({ isRestoring: true })
       await dispatcher.popStash(repository, stashEntry)
     } catch (err) {
-      dispatcher.postError(err)
+      const errorWithMetadata = new ErrorWithMetadata(err, {
+        repository: repository,
+      })
+      dispatcher.postError(errorWithMetadata)
     } finally {
       this.setState({ isRestoring: false })
     }
