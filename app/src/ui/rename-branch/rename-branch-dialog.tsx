@@ -41,6 +41,7 @@ export class RenameBranch extends React.Component<
         title={__DARWIN__ ? 'Rename Branch' : 'Rename branch'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.renameBranch}
+        focusCloseButtonOnOpen={true}
       >
         <DialogContent>
           <RefNameTextBox
