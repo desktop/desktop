@@ -181,8 +181,12 @@ export class CommitMessageAvatar extends React.Component<
 
     // the parent component only renders this one if an error/warning is present, so we
     // only need to check which of the two it is here
-    const isError = warningType === 'disallowedEmail' && emailRuleFailures?.status === 'fail'
-    const classes = classNames('warning-badge', { error: isError, warning: !isError })
+    const isError =
+      warningType === 'disallowedEmail' && emailRuleFailures?.status === 'fail'
+    const classes = classNames('warning-badge', {
+      error: isError,
+      warning: !isError,
+    })
     const symbol = isError ? OcticonSymbol.stop : OcticonSymbol.alert
 
     return (
