@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "3.2.7-beta2",
+  "version": "3.2.8-beta2",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -46,6 +46,7 @@
     "primer-support": "^4.0.0",
     "prop-types": "^15.7.2",
     "quick-lru": "^3.0.0",
+    "re2js": "^0.1.0",
     "react": "^16.8.4",
     "react-css-transition-replace": "^3.0.3",
     "react-dom": "^16.8.4",

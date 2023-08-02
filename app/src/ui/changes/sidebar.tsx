@@ -29,6 +29,7 @@ import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { getAccountForRepository } from '../../lib/get-account-for-repository'
+import { IAheadBehind } from '../../models/branch'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -41,6 +42,7 @@ const UndoCommitAnimationTimeout = 500
 interface IChangesSidebarProps {
   readonly repository: Repository
   readonly changes: IChangesState
+  readonly aheadBehind: IAheadBehind | null
   readonly dispatcher: Dispatcher
   readonly commitAuthor: CommitIdentity | null
   readonly branch: string | null
@@ -364,6 +366,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       conflictState,
       selection,
       currentBranchProtected,
+      currentRepoRulesInfo,
     } = this.props.changes
     let rebaseConflictState: RebaseConflictState | null = null
     if (conflictState !== null) {
@@ -429,6 +432,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           currentBranchProtected={currentBranchProtected}
           shouldNudgeToCommit={this.props.shouldNudgeToCommit}
           commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
+          currentRepoRulesInfo={currentRepoRulesInfo}
+          aheadBehind={this.props.aheadBehind}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

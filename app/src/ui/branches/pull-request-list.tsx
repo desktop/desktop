@@ -172,9 +172,7 @@ export class PullRequestList extends React.Component<
           renderNoItems={this.renderNoItems}
           renderPostFilter={this.renderPostFilter}
         />
-        <AriaLiveContainer>
-          {this.state.screenReaderStateMessage}
-        </AriaLiveContainer>
+        <AriaLiveContainer message={this.state.screenReaderStateMessage} />
       </>
     )
   }

@@ -485,6 +485,100 @@ export interface IAPIBranch {
   readonly protected: boolean
 }
 
+/** Repository rule information returned by the GitHub API */
+export interface IAPIRepoRule {
+  /**
+   * The ID of the ruleset this rule is configured in.
+   */
+  readonly ruleset_id: number
+
+  /**
+   * The type of the rule.
+   */
+  readonly type: APIRepoRuleType
+
+  /**
+   * The parameters that apply to the rule if it is a metadata rule.
+   * Other rule types may have parameters, but they are not used in
+   * this app so they are ignored. Do not attempt to use this field
+   * unless you know {@link type} matches a metadata rule type.
+   */
+  readonly parameters?: IAPIRepoRuleMetadataParameters
+}
+
+/**
+ * A non-exhaustive list of rules that can be configured. Only the rule
+ * types used by this app are included.
+ */
+export enum APIRepoRuleType {
+  Creation = 'creation',
+  Update = 'update',
+  RequiredDeployments = 'required_deployments',
+  RequiredSignatures = 'required_signatures',
+  RequiredStatusChecks = 'required_status_checks',
+  PullRequest = 'pull_request',
+  CommitMessagePattern = 'commit_message_pattern',
+  CommitAuthorEmailPattern = 'commit_author_email_pattern',
+  CommitterEmailPattern = 'committer_email_pattern',
+  BranchNamePattern = 'branch_name_pattern',
+}
+
+/**
+ * A ruleset returned from the GitHub API's "get all rulesets for a repo" endpoint.
+ * This endpoint returns a slimmed-down version of the full ruleset object, though
+ * only the ID is used.
+ */
+export interface IAPISlimRepoRuleset {
+  readonly id: number
+}
+
+/**
+ * A ruleset returned from the GitHub API's "get a ruleset for a repo" endpoint.
+ */
+export interface IAPIRepoRuleset extends IAPISlimRepoRuleset {
+  /**
+   * Whether the user making the API request can bypass the ruleset.
+   */
+  readonly current_user_can_bypass: 'always' | 'pull_requests_only' | 'never'
+}
+
+/**
+ * Metadata parameters for a repo rule metadata rule.
+ */
+export interface IAPIRepoRuleMetadataParameters {
+  /**
+   * User-supplied name/description of the rule
+   */
+  name: string
+
+  /**
+   * Whether the operator is negated. For example, if `true`
+   * and {@link operator} is `starts_with`, then the rule
+   * will be negated to 'does not start with'.
+   */
+  negate: boolean
+
+  /**
+   * The pattern to match against. If the operator is 'regex', then
+   * this is a regex string match. Otherwise, it is a raw string match
+   * of the type specified by {@link operator} with no additional parsing.
+   */
+  pattern: string
+
+  /**
+   * The type of match to use for the pattern. For example, `starts_with`
+   * means {@link pattern} must be at the start of the string.
+   */
+  operator: APIRepoRuleMetadataOperator
+}
+
+export enum APIRepoRuleMetadataOperator {
+  StartsWith = 'starts_with',
+  EndsWith = 'ends_with',
+  Contains = 'contains',
+  RegexMatch = 'regex',
+}
+
 interface IAPIPullRequestRef {
   readonly ref: string
   readonly sha: string
@@ -1552,6 +1646,72 @@ export class API {
         err
       )
       return new Array<IAPIBranch>()
+    }
+  }
+
+  /**
+   * Fetches all repository rules that apply to the provided branch.
+   */
+  public async fetchRepoRulesForBranch(
+    owner: string,
+    name: string,
+    branch: string
+  ): Promise<ReadonlyArray<IAPIRepoRule>> {
+    const path = `repos/${owner}/${name}/rules/branches/${encodeURIComponent(
+      branch
+    )}`
+    try {
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIRepoRule[]>(response)
+    } catch (err) {
+      log.info(
+        `[fetchRepoRulesForBranch] unable to fetch repo rules for branch: ${branch} | ${path}`,
+        err
+      )
+      return new Array<IAPIRepoRule>()
+    }
+  }
+
+  /**
+   * Fetches slim versions of all repo rulesets for the given repository. Utilize the cache
+   * in IAppState instead of querying this if possible.
+   */
+  public async fetchAllRepoRulesets(
+    owner: string,
+    name: string
+  ): Promise<ReadonlyArray<IAPISlimRepoRuleset> | null> {
+    const path = `repos/${owner}/${name}/rulesets`
+    try {
+      const response = await this.request('GET', path)
+      return await parsedResponse<ReadonlyArray<IAPISlimRepoRuleset>>(response)
+    } catch (err) {
+      log.info(
+        `[fetchAllRepoRulesets] unable to fetch all repo rulesets | ${path}`,
+        err
+      )
+      return null
+    }
+  }
+
+  /**
+   * Fetches the repo ruleset with the given ID. Utilize the cache in IAppState
+   * instead of querying this if possible.
+   */
+  public async fetchRepoRuleset(
+    owner: string,
+    name: string,
+    id: number
+  ): Promise<IAPIRepoRuleset | null> {
+    const path = `repos/${owner}/${name}/rulesets/${id}`
+    try {
+      const response = await this.request('GET', path)
+      return await parsedResponse<IAPIRepoRuleset>(response)
+    } catch (err) {
+      log.info(
+        `[fetchRepoRuleset] unable to fetch repo ruleset for ID: ${id} | ${path}`,
+        err
+      )
+      return null
     }
   }
 

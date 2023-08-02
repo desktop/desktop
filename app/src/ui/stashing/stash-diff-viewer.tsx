@@ -33,9 +33,6 @@ interface IStashDiffViewerProps {
   /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
 
-  /** Are there any uncommitted changes */
-  readonly isWorkingTreeClean: boolean
-
   /**
    * Called when the user requests to open a binary file in an the
    * system-assigned application for said file type.
@@ -96,7 +93,6 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
       repository,
       dispatcher,
       imageDiffType,
-      isWorkingTreeClean,
       fileListWidth,
       onOpenBinaryFile,
       onChangeImageDiffType,
@@ -131,7 +127,6 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
           stashEntry={stashEntry}
           repository={repository}
           dispatcher={dispatcher}
-          isWorkingTreeClean={isWorkingTreeClean}
           askForConfirmationOnDiscardStash={
             this.props.askForConfirmationOnDiscardStash
           }

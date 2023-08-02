@@ -60,10 +60,10 @@ jobs:
       fail-fast: false
       matrix:
         node: [18.14.0]
-        os: [macos-11, windows-2019]
+        os: [macos-13-xl-arm64, windows-2019]
         arch: [x64, arm64]
         include:
-          - os: macos-11
+          - os: macos-13-xl-arm64
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
@@ -108,6 +108,8 @@ jobs:
       - name: Prepare testing environment
         if: matrix.arch == 'x64'
         run: yarn test:setup
+        env:
+          npm_config_arch: ${{ matrix.arch }}
       - name: Run unit tests
         if: matrix.arch == 'x64'
         run: yarn test:unit

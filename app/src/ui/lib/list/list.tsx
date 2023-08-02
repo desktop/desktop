@@ -256,6 +256,15 @@ interface IListProps {
 
   /** The aria-label attribute for the list component. */
   readonly ariaLabel?: string
+
+  /**
+   * Optional callback for providing an aria label for screen readers for each
+   * row.
+   *
+   * Note: you may need to apply an aria-hidden attribute to any child text
+   * elements for this to take precedence.
+   */
+  readonly getRowAriaLabel?: (row: number) => string | undefined
 }
 
 interface IListState {
@@ -947,6 +956,11 @@ export class List extends React.Component<IListProps, IListState> {
 
     const id = this.getRowId(rowIndex)
 
+    const ariaLabel =
+      this.props.getRowAriaLabel !== undefined
+        ? this.props.getRowAriaLabel(rowIndex)
+        : undefined
+
     return (
       <ListRow
         key={params.key}
@@ -956,6 +970,7 @@ export class List extends React.Component<IListProps, IListState> {
         rowIndex={{ section: 0, row: rowIndex }}
         sectionHasHeader={false}
         selected={selected}
+        ariaLabel={ariaLabel}
         onRowClick={this.onRowClick}
         onRowDoubleClick={this.onRowDoubleClick}
         onRowKeyDown={this.onRowKeyDown}
@@ -1083,6 +1098,9 @@ export class List extends React.Component<IListProps, IListState> {
           height={height}
           columnWidth={width}
           columnCount={1}
+          aria-multiselectable={
+            this.props.selectionMode !== 'single' ? true : undefined
+          }
           rowCount={this.props.rowCount}
           rowHeight={this.props.rowHeight}
           cellRenderer={this.renderRow}

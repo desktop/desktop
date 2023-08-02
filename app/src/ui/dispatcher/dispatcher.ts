@@ -5,6 +5,7 @@ import {
   IAPIPullRequest,
   IAPIFullRepository,
   IAPICheckSuite,
+  IAPIRepoRuleset,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -1566,6 +1567,19 @@ export class Dispatcher {
       type: PopupType.UnknownAuthors,
       authors,
       onCommit: onCommitAnyway,
+    })
+  }
+
+  public async showRepoRulesCommitBypassWarning(
+    repository: GitHubRepository,
+    branch: string,
+    onConfirm: () => void
+  ) {
+    return this.appStore._showPopup({
+      type: PopupType.ConfirmRepoRulesBypass,
+      repository,
+      branch,
+      onConfirm,
     })
   }
 
@@ -4075,5 +4089,9 @@ export class Dispatcher {
 
   public appFocusedElementChanged() {
     this.appStore._appFocusedElementChanged()
+  }
+
+  public updateCachedRepoRulesets(rulesets: Array<IAPIRepoRuleset | null>) {
+    this.appStore._updateCachedRepoRulesets(rulesets)
   }
 }

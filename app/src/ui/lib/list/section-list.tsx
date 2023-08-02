@@ -1265,6 +1265,9 @@ export class SectionList extends React.Component<
           autoContainerWidth={true}
           containerRole="presentation"
           aria-label={this.props.getSectionAriaLabel?.(section)}
+          aria-multiselectable={
+            this.props.selectionMode !== 'single' ? true : undefined
+          }
           // Set the width and columnWidth to a hardcoded large value to prevent
           columnWidth={10000}
           width={10000}

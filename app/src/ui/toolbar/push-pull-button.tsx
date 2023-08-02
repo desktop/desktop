@@ -339,9 +339,7 @@ export class PushPullButton extends React.Component<
       <>
         {this.renderButton()}
         <span id="push-pull-button-state">
-          <AriaLiveContainer>
-            {this.state.screenReaderStateMessage}
-          </AriaLiveContainer>
+          <AriaLiveContainer message={this.state.screenReaderStateMessage} />
         </span>
       </>
     )

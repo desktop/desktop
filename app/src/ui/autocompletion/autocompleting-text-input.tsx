@@ -527,10 +527,9 @@ export abstract class AutocompletingTextInput<
         {this.renderTextInput()}
         {this.renderInvisibleCaret()}
         <AriaLiveContainer
+          message={autoCompleteItems.length > 0 ? suggestionsMessage : null}
           trackedUserInput={this.state.autocompletionState?.rangeText}
-        >
-          {autoCompleteItems.length > 0 ? suggestionsMessage : ''}
-        </AriaLiveContainer>
+        />
       </div>
     )
   }
