@@ -295,10 +295,8 @@ export class PushPullButton extends React.Component<
   private forcePushWithLease = () => {
     this.closeDropdown()
 
-    setTimeout(() => {
-      this.setScreenReaderStateMessageFocus()
-      this.props.dispatcher.confirmOrForcePush(this.props.repository)
-    }, 0)
+    this.setScreenReaderStateMessageFocus()
+    this.props.dispatcher.confirmOrForcePush(this.props.repository)
 
     this.setState({ actionInProgress: 'force push' })
   }
@@ -310,6 +308,7 @@ export class PushPullButton extends React.Component<
 
   private fetch = () => {
     this.closeDropdown()
+
     this.props.dispatcher.fetch(
       this.props.repository,
       FetchType.UserInitiatedTask
@@ -547,6 +546,10 @@ export class PushPullButton extends React.Component<
       dropdownItemTypes.push(DropdownItemType.ForcePush)
     }
 
+    const returnFocusOnDeactivate =
+      forcePushBranchState === ForcePushBranchState.NotAvailable ||
+      !this.props.askForConfirmationOnForcePush
+
     return (
       <ToolbarDropdown
         {...this.defaultDropdownProps()}
@@ -557,10 +560,23 @@ export class PushPullButton extends React.Component<
         dropdownContentRenderer={this.getDropdownContentRenderer(
           dropdownItemTypes
         )}
+        returnFocusOnDeactivate={returnFocusOnDeactivate}
+        onDropdownFocusTrapDeactivate={this.onDropdownFocusTrapDeactivate}
       >
         {renderAheadBehind(aheadBehind, numTagsToPush)}
       </ToolbarDropdown>
     )
+  }
+
+  private onDropdownFocusTrapDeactivate = () => {
+    if (
+      this.props.forcePushBranchState === ForcePushBranchState.NotAvailable ||
+      !this.props.askForConfirmationOnForcePush
+    ) {
+      return
+    }
+
+    this.setScreenReaderStateMessageFocus()
   }
 
   private pushButton(
