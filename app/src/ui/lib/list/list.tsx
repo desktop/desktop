@@ -1098,6 +1098,9 @@ export class List extends React.Component<IListProps, IListState> {
           height={height}
           columnWidth={width}
           columnCount={1}
+          aria-multiselectable={
+            this.props.selectionMode !== 'single' ? true : undefined
+          }
           rowCount={this.props.rowCount}
           rowHeight={this.props.rowHeight}
           cellRenderer={this.renderRow}
