@@ -294,9 +294,12 @@ export class PushPullButton extends React.Component<
 
   private forcePushWithLease = () => {
     this.closeDropdown()
-    this.setScreenReaderStateMessageFocus()
 
-    this.props.dispatcher.confirmOrForcePush(this.props.repository)
+    setTimeout(() => {
+      this.setScreenReaderStateMessageFocus()
+      this.props.dispatcher.confirmOrForcePush(this.props.repository)
+    }, 0)
+
     this.setState({ actionInProgress: 'force push' })
   }
 
