@@ -718,10 +718,7 @@ function createWindow() {
   const window = new AppWindow()
 
   if (__DEV__) {
-    const {
-      default: installExtension,
-      REACT_DEVELOPER_TOOLS,
-    } = require('electron-devtools-installer')
+    const { installExtension, REACT_DEVELOPER_TOOLS } = require('electron-extension-installer')
 
     require('electron-debug')({ showDevTools: true })
 
