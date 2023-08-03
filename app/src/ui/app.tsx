@@ -100,6 +100,7 @@ import { Banner, BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
+import { ConfirmCheckoutCommitDialog } from './checkout/confirm-checkout-commit'
 import { CreateTutorialRepositoryDialog } from './no-repositories/create-tutorial-repository-dialog'
 import { ConfirmExitTutorial } from './tutorial'
 import { TutorialStep, isValidTutorialStep } from '../models/tutorial-step'
@@ -171,6 +172,7 @@ import { UnknownAuthors } from './unknown-authors/unknown-authors-dialog'
 import { UnsupportedOSBannerDismissedAtKey } from './banners/windows-version-no-longer-supported-banner'
 import { offsetFromNow } from '../lib/offset-from'
 import { getNumber } from '../lib/local-storage'
+import { RepoRulesBypassConfirmation } from './repository-rules/repo-rules-bypass-confirmation'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -1606,6 +1608,9 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.state.askForConfirmationOnDiscardChangesPermanently
             }
             confirmDiscardStash={this.state.askForConfirmationOnDiscardStash}
+            confirmCheckoutCommit={
+              this.state.askForConfirmationOnCheckoutCommit
+            }
             confirmForcePush={this.state.askForConfirmationOnForcePush}
             confirmUndoCommit={this.state.askForConfirmationOnUndoCommit}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
@@ -1713,6 +1718,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             targetCommit={popup.targetCommit}
             upstreamGitHubRepository={upstreamGhRepo}
+            accounts={this.state.accounts}
+            cachedRepoRulesets={this.state.cachedRepoRulesets}
             onBranchCreatedFromCommit={this.onBranchCreatedFromCommit}
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
@@ -1985,6 +1992,22 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.ConfirmCheckoutCommit: {
+        const { repository, commit } = popup
+
+        return (
+          <ConfirmCheckoutCommitDialog
+            key="confirm-checkout-commit-dialog"
+            dispatcher={this.props.dispatcher}
+            askForConfirmationOnCheckoutCommit={
+              this.state.askForConfirmationOnDiscardStash
+            }
+            repository={repository}
+            commit={commit}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       case PopupType.CreateTutorialRepository: {
         return (
           <CreateTutorialRepositoryDialog
@@ -2157,6 +2180,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             showBranchProtected={
               repositoryState.changesState.currentBranchProtected
             }
+            repoRulesInfo={repositoryState.changesState.currentRepoRulesInfo}
+            aheadBehind={repositoryState.aheadBehind}
             showCoAuthoredBy={popup.showCoAuthoredBy}
             showNoWriteAccess={!hasWritePermissionForRepository}
             onDismissed={onPopupDismissedFn}
@@ -2195,6 +2220,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             askForConfirmationOnForcePush={
               this.state.askForConfirmationOnForcePush
             }
+            accounts={this.state.accounts}
+            cachedRepoRulesets={this.state.cachedRepoRulesets}
             openFileInExternalEditor={this.openFileInExternalEditor}
             resolvedExternalEditor={this.state.resolvedExternalEditor}
             openRepositoryInShell={this.openCurrentRepositoryInShell}
@@ -2478,6 +2505,17 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="unknown-authors"
             authors={popup.authors}
             onCommit={popup.onCommit}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.ConfirmRepoRulesBypass: {
+        return (
+          <RepoRulesBypassConfirmation
+            key="repo-rules-bypass-confirmation"
+            repository={popup.repository}
+            branch={popup.branch}
+            onConfirm={popup.onConfirm}
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -2839,6 +2877,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       top: 0,
     }
 
+    /** The dropdown focus trap will stop focus event propagation we made need
+     * in some of our dialogs (noticed with Lists). Disabled this when dialogs
+     * are open */
+    const enableFocusTrap = this.state.currentPopup === null
+
     return (
       <ToolbarDropdown
         icon={icon}
@@ -2850,6 +2893,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
         dropdownContentRenderer={this.renderRepositoryList}
         dropdownState={currentState}
+        enableFocusTrap={enableFocusTrap}
       />
     )
   }
@@ -2932,6 +2976,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       aheadBehind
     )
 
+    /** The dropdown focus trap will stop focus event propagation we made need
+     * in some of our dialogs (noticed with Lists). Disabled this when dialogs
+     * are open */
+    const enableFocusTrap = this.state.currentPopup === null
+
     return (
       <PushPullButton
         dispatcher={this.props.dispatcher}
@@ -2952,6 +3001,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         isDropdownOpen={isDropdownOpen}
         askForConfirmationOnForcePush={this.state.askForConfirmationOnForcePush}
         onDropdownStateChanged={this.onPushPullDropdownStateChanged}
+        enableFocusTrap={enableFocusTrap}
       />
     )
   }
@@ -3046,6 +3096,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     const repository = selection.repository
     const { branchesState } = selection.state
 
+    /** The dropdown focus trap will stop focus event propagation we made need
+     * in some of our dialogs (noticed with Lists). Disabled this when dialogs
+     * are open */
+    const enableFocusTrap = this.state.currentPopup === null
+
     return (
       <BranchDropdown
         dispatcher={this.props.dispatcher}
@@ -3062,6 +3117,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
         showCIStatusPopover={this.state.showCIStatusPopover}
         emoji={this.state.emoji}
+        enableFocusTrap={enableFocusTrap}
       />
     )
   }
@@ -3196,6 +3252,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           }
           askForConfirmationOnDiscardStash={
             state.askForConfirmationOnDiscardStash
+          }
+          askForConfirmationOnCheckoutCommit={
+            state.askForConfirmationOnCheckoutCommit
           }
           accounts={state.accounts}
           externalEditorLabel={externalEditorLabel}

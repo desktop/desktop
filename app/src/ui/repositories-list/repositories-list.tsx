@@ -24,6 +24,8 @@ import { TooltippedContent } from '../lib/tooltipped-content'
 import memoizeOne from 'memoize-one'
 import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 import { generateRepositoryListContextMenu } from '../repositories-list/repository-list-item-context-menu'
+import { SectionFilterList } from '../lib/section-filter-list'
+import { enableSectionList } from '../../lib/feature-flag'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 
@@ -241,25 +243,31 @@ export class RepositoriesList extends React.Component<
           ]
         : baseGroups
 
+    const getGroupAriaLabel = (group: number) => groups[group].identifier
+
+    const ListComponent = enableSectionList() ? SectionFilterList : FilterList
+    const filterListProps: typeof ListComponent['prototype']['props'] = {
+      rowHeight: RowHeight,
+      selectedItem: selectedItem,
+      filterText: this.props.filterText,
+      onFilterTextChanged: this.props.onFilterTextChanged,
+      renderItem: this.renderItem,
+      renderGroupHeader: this.renderGroupHeader,
+      onItemClick: this.onItemClick,
+      renderPostFilter: this.renderPostFilter,
+      renderNoItems: this.renderNoItems,
+      groups: groups,
+      invalidationProps: {
+        repositories: this.props.repositories,
+        filterText: this.props.filterText,
+      },
+      onItemContextMenu: this.onItemContextMenu,
+      getGroupAriaLabel,
+    }
+
     return (
       <div className="repository-list">
-        <FilterList<IRepositoryListItem>
-          rowHeight={RowHeight}
-          selectedItem={selectedItem}
-          filterText={this.props.filterText}
-          onFilterTextChanged={this.props.onFilterTextChanged}
-          renderItem={this.renderItem}
-          renderGroupHeader={this.renderGroupHeader}
-          onItemClick={this.onItemClick}
-          renderPostFilter={this.renderPostFilter}
-          renderNoItems={this.renderNoItems}
-          groups={groups}
-          invalidationProps={{
-            repositories: this.props.repositories,
-            filterText: this.props.filterText,
-          }}
-          onItemContextMenu={this.onItemContextMenu}
-        />
+        <ListComponent {...filterListProps} />
       </div>
     )
   }

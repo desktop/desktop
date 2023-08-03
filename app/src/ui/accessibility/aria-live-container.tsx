@@ -2,6 +2,14 @@ import { debounce } from 'lodash'
 import React, { Component } from 'react'
 
 interface IAriaLiveContainerProps {
+  /** The content that will be read by the screen reader.
+   *
+   * Original solution used props.children, but we ran into invisible tab
+   * issues when the message has a link. Thus, we are using a prop instead to
+   * require the message to be a string.
+   */
+  readonly message: string | null
+
   /**
    * There is a common pattern that we may need to announce a message in
    * response to user input. Unfortunately, aria-live announcements are
@@ -45,15 +53,15 @@ export class AriaLiveContainer extends Component<
   IAriaLiveContainerState
 > {
   private suffix: string = ''
-  private onTrackedInputChanged = debounce((message: JSX.Element | null) => {
-    this.setState({ message })
+  private onTrackedInputChanged = debounce(() => {
+    this.setState({ message: this.buildMessage() })
   }, 1000)
 
   public constructor(props: IAriaLiveContainerProps) {
     super(props)
 
     this.state = {
-      message: null,
+      message: this.props.message !== null ? this.buildMessage() : null,
     }
   }
 
@@ -62,7 +70,7 @@ export class AriaLiveContainer extends Component<
       return
     }
 
-    this.onTrackedInputChanged(this.buildMessage())
+    this.onTrackedInputChanged()
   }
 
   public componentWillUnmount() {
@@ -70,14 +78,31 @@ export class AriaLiveContainer extends Component<
   }
 
   private buildMessage() {
-    this.suffix = this.suffix === '' ? '\u00A0' : ''
+    // We need to toggle from two non-breaking spaces to one non-breaking space
+    // because VoiceOver does not detect the empty string as a change.
+    this.suffix = this.suffix === '\u00A0\u00A0' ? '\u00A0' : '\u00A0\u00A0'
 
     return (
       <>
-        {this.props.children}
+        {this.props.message}
         {this.suffix}
       </>
     )
+  }
+
+  private renderMessage() {
+    // We are just using this as a typical aria-live container where the message
+    // changes per usage - no need to force re-reading of the same message.
+    if (this.props.trackedUserInput === undefined) {
+      return this.props.message
+    }
+
+    // We are using this as a container to force re-reading of the same message,
+    // so we are re-building message based on user input changes.
+    // If we get a null for the children, go ahead an empty out the
+    // message so we don't get an erroneous reading of a message after it is
+    // gone.
+    return this.props.message !== null ? this.state.message : ''
   }
 
   public render() {
@@ -88,7 +113,7 @@ export class AriaLiveContainer extends Component<
         aria-live="polite"
         aria-atomic="true"
       >
-        {this.state.message}
+        {this.renderMessage()}
       </div>
     )
   }

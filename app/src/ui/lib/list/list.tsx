@@ -18,6 +18,8 @@ import { range } from '../../../lib/range'
 import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
 import memoizeOne from 'memoize-one'
+import { RowIndexPath } from './list-row-index-path'
+import { sendNonFatalException } from '../../../lib/helpers/non-fatal-exception'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -254,6 +256,15 @@ interface IListProps {
 
   /** The aria-label attribute for the list component. */
   readonly ariaLabel?: string
+
+  /**
+   * Optional callback for providing an aria label for screen readers for each
+   * row.
+   *
+   * Note: you may need to apply an aria-hidden attribute to any child text
+   * elements for this to take precedence.
+   */
+  readonly getRowAriaLabel?: (row: number) => string | undefined
 }
 
 interface IListState {
@@ -579,11 +590,11 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onRowKeyDown = (
-    rowIndex: number,
+    indexPath: RowIndexPath,
     event: React.KeyboardEvent<any>
   ) => {
     if (this.props.onRowKeyDown) {
-      this.props.onRowKeyDown(rowIndex, event)
+      this.props.onRowKeyDown(indexPath.row, event)
     }
 
     const hasModifier =
@@ -644,21 +655,27 @@ export class List extends React.Component<IListProps, IListState> {
     })
   }
 
-  private onRowFocus = (index: number, e: React.FocusEvent<HTMLDivElement>) => {
-    this.focusRow = index
+  private onRowFocus = (
+    indexPath: RowIndexPath,
+    e: React.FocusEvent<HTMLDivElement>
+  ) => {
+    this.focusRow = indexPath.row
   }
 
-  private onRowBlur = (index: number, e: React.FocusEvent<HTMLDivElement>) => {
-    if (this.focusRow === index) {
+  private onRowBlur = (
+    indexPath: RowIndexPath,
+    e: React.FocusEvent<HTMLDivElement>
+  ) => {
+    if (this.focusRow === indexPath.row) {
       this.focusRow = -1
     }
   }
 
   private onRowContextMenu = (
-    row: number,
+    indexPath: RowIndexPath,
     e: React.MouseEvent<HTMLDivElement>
   ) => {
-    this.props.onRowContextMenu?.(row, e)
+    this.props.onRowContextMenu?.(indexPath.row, e)
   }
 
   /** Convenience method for invoking canSelectRow callback when it exists */
@@ -866,14 +883,17 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onRowRef = (rowIndex: number, element: HTMLDivElement | null) => {
+  private onRowRef = (
+    indexPath: RowIndexPath,
+    element: HTMLDivElement | null
+  ) => {
     if (element === null) {
-      this.rowRefs.delete(rowIndex)
+      this.rowRefs.delete(indexPath.row)
     } else {
-      this.rowRefs.set(rowIndex, element)
+      this.rowRefs.set(indexPath.row, element)
     }
 
-    if (rowIndex === this.focusRow) {
+    if (indexPath.row === this.focusRow) {
       // The currently focused row is going being unmounted so we'll move focus
       // programmatically to the grid so that keyboard navigation still works
       if (element === null) {
@@ -924,8 +944,8 @@ export class List extends React.Component<IListProps, IListState> {
     const element =
       this.props.insertionDragType !== undefined ? (
         <ListItemInsertionOverlay
-          onDropDataInsertion={this.props.onDropDataInsertion}
-          itemIndex={rowIndex}
+          onDropDataInsertion={this.onDropDataInsertion}
+          itemIndex={{ section: 0, row: rowIndex }}
           dragType={this.props.insertionDragType}
         >
           {row}
@@ -936,14 +956,21 @@ export class List extends React.Component<IListProps, IListState> {
 
     const id = this.getRowId(rowIndex)
 
+    const ariaLabel =
+      this.props.getRowAriaLabel !== undefined
+        ? this.props.getRowAriaLabel(rowIndex)
+        : undefined
+
     return (
       <ListRow
         key={params.key}
         id={id}
         onRowRef={this.onRowRef}
         rowCount={this.props.rowCount}
-        rowIndex={rowIndex}
+        rowIndex={{ section: 0, row: rowIndex }}
+        sectionHasHeader={false}
         selected={selected}
+        ariaLabel={ariaLabel}
         onRowClick={this.onRowClick}
         onRowDoubleClick={this.onRowDoubleClick}
         onRowKeyDown={this.onRowKeyDown}
@@ -998,7 +1025,6 @@ export class List extends React.Component<IListProps, IListState> {
    *
    * @param width - The width of the Grid as given by AutoSizer
    * @param height - The height of the Grid as given by AutoSizer
-   *
    */
   private renderContents(width: number, height: number) {
     if (__WIN32__) {
@@ -1028,6 +1054,18 @@ export class List extends React.Component<IListProps, IListState> {
    * @param height - The height of the Grid as given by AutoSizer
    */
   private renderGrid(width: number, height: number) {
+    // It is possible to send an invalid array such as [-1] to this component,
+    // if you do, you get weird focus problems. We shouldn't be doing this.. but
+    // if we do, send a non fatal exception to tell us about it.
+    if (this.props.selectedRows[0] < 0) {
+      sendNonFatalException(
+        'The selected rows of the List.tsx contained a negative number.',
+        new Error(
+          `Invalid selected rows that contained a negative number passed to List component. This will cause keyboard navigation and focus problems.`
+        )
+      )
+    }
+
     // The currently selected list item is focusable but if there's no focused
     // item the list itself needs to be focusable so that you can reach it with
     // keyboard navigation and select an item.
@@ -1060,6 +1098,9 @@ export class List extends React.Component<IListProps, IListState> {
           height={height}
           columnWidth={width}
           columnCount={1}
+          aria-multiselectable={
+            this.props.selectionMode !== 'single' ? true : undefined
+          }
           rowCount={this.props.rowCount}
           rowHeight={this.props.rowHeight}
           cellRenderer={this.renderRow}
@@ -1085,7 +1126,6 @@ export class List extends React.Component<IListProps, IListState> {
    * and accurately positions the fake scroll bar.
    *
    * @param height The height of the Grid as given by AutoSizer
-   *
    */
   private renderFakeScroll(height: number) {
     let totalHeight: number = 0
@@ -1133,7 +1173,12 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onRowMouseDown = (row: number, event: React.MouseEvent<any>) => {
+  private onRowMouseDown = (
+    indexPath: RowIndexPath,
+    event: React.MouseEvent<any>
+  ) => {
+    const { row } = indexPath
+
     if (this.canSelectRow(row)) {
       if (this.props.onRowMouseDown) {
         this.props.onRowMouseDown(row, event)
@@ -1226,7 +1271,12 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onRowMouseUp = (row: number, event: React.MouseEvent<any>) => {
+  private onRowMouseUp = (
+    indexPath: RowIndexPath,
+    event: React.MouseEvent<any>
+  ) => {
+    const { row } = indexPath
+
     if (!this.canSelectRow(row)) {
       return
     }
@@ -1288,27 +1338,37 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private onRowClick = (row: number, event: React.MouseEvent<any>) => {
-    if (this.canSelectRow(row) && this.props.onRowClick) {
+  private onDropDataInsertion = (indexPath: RowIndexPath, data: DragData) => {
+    this.props.onDropDataInsertion?.(indexPath.row, data)
+  }
+
+  private onRowClick = (
+    indexPath: RowIndexPath,
+    event: React.MouseEvent<any>
+  ) => {
+    if (this.canSelectRow(indexPath.row) && this.props.onRowClick) {
       const rowCount = this.props.rowCount
 
-      if (row < 0 || row >= rowCount) {
+      if (indexPath.row < 0 || indexPath.row >= rowCount) {
         log.debug(
-          `[List.onRowClick] unable to onRowClick for row ${row} as it is outside the bounds of the array [0, ${rowCount}]`
+          `[List.onRowClick] unable to onRowClick for row ${indexPath.row} as it is outside the bounds of the array [0, ${rowCount}]`
         )
         return
       }
 
-      this.props.onRowClick(row, { kind: 'mouseclick', event })
+      this.props.onRowClick(indexPath.row, { kind: 'mouseclick', event })
     }
   }
 
-  private onRowDoubleClick = (row: number, event: React.MouseEvent<any>) => {
+  private onRowDoubleClick = (
+    indexPath: RowIndexPath,
+    event: React.MouseEvent<any>
+  ) => {
     if (!this.props.onRowDoubleClick) {
       return
     }
 
-    this.props.onRowDoubleClick(row, { kind: 'mouseclick', event })
+    this.props.onRowDoubleClick(indexPath.row, { kind: 'mouseclick', event })
   }
 
   private onScroll = ({

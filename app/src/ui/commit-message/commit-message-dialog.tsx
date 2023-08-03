@@ -16,6 +16,8 @@ import { Popup } from '../../models/popup'
 import { Foldout } from '../../lib/app-state'
 import { Account } from '../../models/account'
 import { pick } from '../../lib/pick'
+import { RepoRulesInfo } from '../../models/repo-rules'
+import { IAheadBehind } from '../../models/branch'
 
 interface ICommitMessageDialogProps {
   /**
@@ -70,6 +72,11 @@ interface ICommitMessageDialogProps {
   /** Whether to warn the user that they are on a protected branch. */
   readonly showBranchProtected: boolean
 
+  /** Repository rules that apply to the branch. */
+  readonly repoRulesInfo: RepoRulesInfo
+
+  readonly aheadBehind: IAheadBehind | null
+
   /**
    * Whether or not to show a field for adding co-authors to a commit
    * (currently only supported for GH/GHE repositories)
@@ -114,6 +121,7 @@ export class CommitMessageDialog extends React.Component<
             branch={this.props.branch}
             mostRecentLocalCommit={null}
             commitAuthor={this.props.commitAuthor}
+            dispatcher={this.props.dispatcher}
             isShowingModal={true}
             isShowingFoldout={false}
             commitButtonText={this.props.dialogButtonText}
@@ -128,6 +136,8 @@ export class CommitMessageDialog extends React.Component<
             prepopulateCommitSummary={this.props.prepopulateCommitSummary}
             key={this.props.repository.id}
             showBranchProtected={this.props.showBranchProtected}
+            repoRulesInfo={this.props.repoRulesInfo}
+            aheadBehind={this.props.aheadBehind}
             showNoWriteAccess={this.props.showNoWriteAccess}
             commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
             onCoAuthorsUpdated={this.onCoAuthorsUpdated}

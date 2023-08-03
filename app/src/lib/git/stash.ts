@@ -46,6 +46,8 @@ export async function getStashes(repository: Repository): Promise<StashResult> {
     name: '%gD',
     stashSha: '%H',
     message: '%gs',
+    tree: '%T',
+    parents: '%P',
   })
 
   const result = await git(
@@ -66,15 +68,50 @@ export async function getStashes(repository: Repository): Promise<StashResult> {
 
   const entries = parse(result.stdout)
 
-  for (const { name, message, stashSha } of entries) {
+  for (const { name, message, stashSha, tree, parents } of entries) {
     const branchName = extractBranchFromMessage(message)
 
     if (branchName !== null) {
-      desktopEntries.push({ name, stashSha, branchName, files })
+      desktopEntries.push({
+        name,
+        stashSha,
+        branchName,
+        tree,
+        parents: parents.length > 0 ? parents.split(' ') : [],
+        files,
+      })
     }
   }
 
   return { desktopEntries, stashEntryCount: entries.length - 1 }
+}
+
+/**
+ * Moves a stash entry to a different branch by means of creating
+ * a new stash entry associated with the new branch and dropping the old
+ * stash entry.
+ */
+export async function moveStashEntry(
+  repository: Repository,
+  { stashSha, parents, tree }: IStashEntry,
+  branchName: string
+) {
+  const message = `On ${branchName}: ${createDesktopStashMessage(branchName)}`
+  const parentArgs = parents.flatMap(p => ['-p', p])
+
+  const { stdout: commitId } = await git(
+    ['commit-tree', ...parentArgs, '-m', message, '--no-gpg-sign', tree],
+    repository.path,
+    'moveStashEntryToBranch'
+  )
+
+  await git(
+    ['stash', 'store', '-m', message, commitId.trim()],
+    repository.path,
+    'moveStashEntryToBranch'
+  )
+
+  await dropDesktopStashEntry(repository, stashSha)
 }
 
 /**

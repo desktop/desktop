@@ -12,7 +12,6 @@
  *               Example:
  *
  *               `const { args, parse } = createLogParser({ sha: '%H' })`
- *
  */
 export function createLogParser<T extends Record<string, string>>(fields: T) {
   const keys: Array<keyof T> = Object.keys(fields)
@@ -49,7 +48,6 @@ export function createLogParser<T extends Record<string, string>>(fields: T) {
  *               Example:
  *
  *               `const { args, parse } = createForEachRefParser({ sha: '%(objectname)' })`
- *
  */
 export function createForEachRefParser<T extends Record<string, string>>(
   fields: T

@@ -36,7 +36,7 @@ import {
   getIconFileName,
   getDistArchitecture,
 } from './dist-info'
-import { isCircleCI, isGitHubActions } from './build-platforms'
+import { isGitHubActions } from './build-platforms'
 
 import { updateLicenseDump } from './licenses/update-license-dump'
 import { verifyInjectedSassVariables } from './validate-sass/validate-all'
@@ -151,7 +151,7 @@ function packageApp() {
     : undefined
   if (
     isPublishableBuild &&
-    (isCircleCI() || isGitHubActions()) &&
+    isGitHubActions() &&
     process.platform === 'darwin' &&
     notarizationCredentials === undefined
   ) {

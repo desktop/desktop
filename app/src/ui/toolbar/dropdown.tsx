@@ -114,7 +114,13 @@ export interface IToolbarDropdownProps {
   /** The button's style. Defaults to `ToolbarButtonStyle.Standard`. */
   readonly style?: ToolbarButtonStyle
 
-  /** Whether the dropdown will trap focus or not. Defaults to true. */
+  /** Whether the dropdown will trap focus or not. Defaults to true.
+   *
+   * Example of usage: If a dropdown is open and then a dialog subsequently, the
+   * focus trap logic will stop propagation of the focus event to the dialog.
+   * Thus, we want to disable this when dialogs are open since they will be
+   * using the HTML build in dialog focus management.
+   */
   readonly enableFocusTrap?: boolean
 
   /**
@@ -202,6 +208,12 @@ export interface IToolbarDropdownProps {
    * Such as when a button wraps an image and there is no text.
    */
   readonly ariaLabel?: string
+
+  /** Whether or not the focus trap should return focus to the activating button  */
+  readonly returnFocusOnDeactivate?: boolean
+
+  /** Callback fro when the focus trap deactivates */
+  readonly onDropdownFocusTrapDeactivate?: () => void
 }
 
 interface IToolbarDropdownState {
@@ -230,6 +242,8 @@ export class ToolbarDropdown extends React.Component<
       // we would lose the "source" of the event (keyboard vs pointer).
       clickOutsideDeactivates: false,
       escapeDeactivates: false,
+      returnFocusOnDeactivate: this.props.returnFocusOnDeactivate,
+      onDeactivate: this.props.onDropdownFocusTrapDeactivate,
     }
   }
 

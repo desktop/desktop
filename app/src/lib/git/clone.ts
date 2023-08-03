@@ -23,7 +23,6 @@ import { envForRemoteOperation } from './environment'
  *                           of the clone operation. When provided this enables
  *                           the '--progress' command line flag for
  *                           'git clone'.
- *
  */
 export async function clone(
   url: string,
