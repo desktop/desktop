@@ -192,8 +192,8 @@ export class BranchesContainer extends React.Component<
         selectedIndex={this.props.selectedTab}
         allowDragOverSwitching={true}
       >
-        <span>Branches</span>
-        <span className="pull-request-tab">
+        <span id="branches-tab">Branches</span>
+        <span id="pull-requests-tab" className="pull-request-tab">
           {__DARWIN__ ? 'Pull Requests' : 'Pull requests'}
           {this.renderOpenPullRequestsBubble()}
         </span>
@@ -213,6 +213,7 @@ export class BranchesContainer extends React.Component<
 
   private renderSelectedTab() {
     let tab = this.props.selectedTab
+
     if (!this.props.repository.gitHubRepository) {
       tab = BranchesTab.Branches
     }
@@ -221,6 +222,8 @@ export class BranchesContainer extends React.Component<
       case BranchesTab.Branches:
         return (
           <BranchList
+            role="tabpanel"
+            labelledBy="branches-tab"
             defaultBranch={this.props.defaultBranch}
             currentBranch={this.props.currentBranch}
             allBranches={this.props.allBranches}
@@ -319,6 +322,8 @@ export class BranchesContainer extends React.Component<
     return (
       <PullRequestList
         key="pr-list"
+        role="tabpanel"
+        labelledBy="pull-requests-tab"
         pullRequests={this.props.pullRequests}
         selectedPullRequest={this.state.selectedPullRequest}
         isOnDefaultBranch={!!isOnDefaultBranch}
