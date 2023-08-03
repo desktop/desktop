@@ -265,12 +265,21 @@ export class PushPullButton extends React.Component<
     this.props.dispatcher.push(this.props.repository)
   }
 
-  /** The focus trap has logic to set the document.ActiveElement to the html
-   * element (in this case the dropdown button) that was clicked to activate the
-   * focus trap. In the case of force push that opens a confirm dialog, we want
-   * to set the focus to the aria live container and therefore we set
-   * returnFocusOnDeactivate to false in this scenario. We also set the
-   * onDeactivate of the focus trap to set that focus. */
+  /**
+   * The dropdown focus trap has logic to set the document.ActiveElement to the
+   * html element (in this case the dropdown button) that was clicked to
+   * activate the focus trap. It also has a returnFocusOnDeactivate prop that is
+   * true by default, but can be set to false to prevent this behavior.
+   *
+   * In the case of force push that opens a confirm dialog, we want to set the
+   * focus to the aria live container and therefore we set
+   * returnFocusOnDeactivate to false. We also provided the onDeactivate
+   * callback of the focus trap to set that focus. See more details in
+   * setScreenReaderStateMessageFocus()
+   *
+   * @returns true - (default behavior) if not force push, or if force and confirmation is off
+   * @returns false -if force push and confirmation is on, so we can manage focus ourselves
+   * */
   private returnFocusOnDeactivate = () => {
     const isForcePushOptionAvailable =
       this.props.forcePushBranchState !== ForcePushBranchState.NotAvailable
@@ -281,13 +290,12 @@ export class PushPullButton extends React.Component<
   }
 
   /**
-   * The focus trap has logic to set the document.ActiveElement to the html
-   * element (in this case the dropdown button) that was clicked to activate the
-   * focus trap. In the case of force push that opens a confirm dialog, we want
-   * to set the focus to the aria live container and we do so on the
-   * onDeactivate callback of the focus trap to set that focus. Additionally, we
-   * set returnFocusOnDeactivate to false to prevent the focus traps default
-   * focus management.*/
+   * In the case of force push that opens a confirm dialog, we want to set the
+   * focus to the aria live container and we do so on the onDeactivate callback
+   * of the focus trap to set that focus. Additionally, we set
+   * returnFocusOnDeactivate to false to prevent the dropdowns focus traps
+   * default focus management.  See more details in
+   * setScreenReaderStateMessageFocus()*/
   private onDropdownFocusTrapDeactivate = () => {
     if (this.returnFocusOnDeactivate()) {
       return
