@@ -301,7 +301,11 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     const screenReaderMessage = `${itemRows.length} ${resultsPluralized}`
 
     return (
-      <div className={classnames('filter-list', this.props.className)} role={this.props.role} aria-labelledby={this.props.labelledBy}>
+      <div
+        className={classnames('filter-list', this.props.className)}
+        role={this.props.role}
+        aria-labelledby={this.props.labelledBy}
+      >
         <AriaLiveContainer
           message={screenReaderMessage}
           trackedUserInput={this.state.filterValue}

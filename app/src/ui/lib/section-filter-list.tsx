@@ -282,7 +282,11 @@ export class SectionFilterList<
     const screenReaderMessage = `${itemRows.length} ${resultsPluralized}`
 
     return (
-      <div className={classnames('filter-list', this.props.className)} role={this.props.role} aria-labelledby={this.props.labelledBy}>
+      <div
+        className={classnames('filter-list', this.props.className)}
+        role={this.props.role}
+        aria-labelledby={this.props.labelledBy}
+      >
         <AriaLiveContainer
           trackedUserInput={this.state.filterValue}
           message={screenReaderMessage}
