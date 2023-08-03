@@ -265,6 +265,37 @@ export class PushPullButton extends React.Component<
     this.props.dispatcher.push(this.props.repository)
   }
 
+  /** The focus trap has logic to set the document.ActiveElement to the html
+   * element (in this case the dropdown button) that was clicked to activate the
+   * focus trap. In the case of force push that opens a confirm dialog, we want
+   * to set the focus to the aria live container and therefore we set
+   * returnFocusOnDeactivate to false in this scenario. We also set the
+   * onDeactivate of the focus trap to set that focus. */
+  private returnFocusOnDeactivate = () => {
+    const isForcePushOptionAvailable =
+      this.props.forcePushBranchState !== ForcePushBranchState.NotAvailable
+
+    return (
+      !isForcePushOptionAvailable || !this.props.askForConfirmationOnForcePush
+    )
+  }
+
+  /**
+   * The focus trap has logic to set the document.ActiveElement to the html
+   * element (in this case the dropdown button) that was clicked to activate the
+   * focus trap. In the case of force push that opens a confirm dialog, we want
+   * to set the focus to the aria live container and we do so on the
+   * onDeactivate callback of the focus trap to set that focus. Additionally, we
+   * set returnFocusOnDeactivate to false to prevent the focus traps default
+   * focus management.*/
+  private onDropdownFocusTrapDeactivate = () => {
+    if (this.returnFocusOnDeactivate()) {
+      return
+    }
+
+    this.setScreenReaderStateMessageFocus()
+  }
+
   /**
    * This is a hack to get the screen reader to read the message after the force
    * push confirm dialog closes.
@@ -562,23 +593,6 @@ export class PushPullButton extends React.Component<
         {renderAheadBehind(aheadBehind, numTagsToPush)}
       </ToolbarDropdown>
     )
-  }
-
-  private returnFocusOnDeactivate = () => {
-    const isForcePushOptionAvailable =
-      this.props.forcePushBranchState !== ForcePushBranchState.NotAvailable
-
-    return (
-      !isForcePushOptionAvailable || !this.props.askForConfirmationOnForcePush
-    )
-  }
-
-  private onDropdownFocusTrapDeactivate = () => {
-    if (this.returnFocusOnDeactivate()) {
-      return
-    }
-
-    this.setScreenReaderStateMessageFocus()
   }
 
   private pushButton(
