@@ -65,12 +65,6 @@ interface IFilterListProps<T extends IFilterListItem> {
   /** The selected item. */
   readonly selectedItem: T | null
 
-  /** ARIA role of this element. */
-  readonly role?: string
-
-  /** ARIA labelledby of this element. */
-  readonly labelledBy?: string
-
   /** Called to render each visible item. */
   readonly renderItem: (item: T, matches: IMatches) => JSX.Element | null
 
@@ -301,11 +295,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     const screenReaderMessage = `${itemRows.length} ${resultsPluralized}`
 
     return (
-      <div
-        className={classnames('filter-list', this.props.className)}
-        role={this.props.role}
-        aria-labelledby={this.props.labelledBy}
-      >
+      <div className={classnames('filter-list', this.props.className)}>
         <AriaLiveContainer
           message={screenReaderMessage}
           trackedUserInput={this.state.filterValue}

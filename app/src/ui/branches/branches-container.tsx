@@ -221,32 +221,44 @@ export class BranchesContainer extends React.Component<
     switch (tab) {
       case BranchesTab.Branches:
         return (
-          <BranchList
+          <div
             role="tabpanel"
-            labelledBy="branches-tab"
-            defaultBranch={this.props.defaultBranch}
-            currentBranch={this.props.currentBranch}
-            allBranches={this.props.allBranches}
-            recentBranches={this.props.recentBranches}
-            onItemClick={this.onBranchItemClick}
-            filterText={this.state.branchFilterText}
-            onFilterTextChanged={this.onBranchFilterTextChanged}
-            selectedBranch={this.state.selectedBranch}
-            onSelectionChanged={this.onBranchSelectionChanged}
-            canCreateNewBranch={true}
-            onCreateNewBranch={this.onCreateBranchWithName}
-            renderBranch={this.renderBranch}
-            hideFilterRow={dragAndDropManager.isDragOfTypeInProgress(
-              DragType.Commit
-            )}
-            renderPreList={this.renderPreList}
-            onRenameBranch={this.props.onRenameBranch}
-            onDeleteBranch={this.props.onDeleteBranch}
-          />
+            aria-labelledby="branches-tab"
+            className="branches-container-panel"
+          >
+            <BranchList
+              defaultBranch={this.props.defaultBranch}
+              currentBranch={this.props.currentBranch}
+              allBranches={this.props.allBranches}
+              recentBranches={this.props.recentBranches}
+              onItemClick={this.onBranchItemClick}
+              filterText={this.state.branchFilterText}
+              onFilterTextChanged={this.onBranchFilterTextChanged}
+              selectedBranch={this.state.selectedBranch}
+              onSelectionChanged={this.onBranchSelectionChanged}
+              canCreateNewBranch={true}
+              onCreateNewBranch={this.onCreateBranchWithName}
+              renderBranch={this.renderBranch}
+              hideFilterRow={dragAndDropManager.isDragOfTypeInProgress(
+                DragType.Commit
+              )}
+              renderPreList={this.renderPreList}
+              onRenameBranch={this.props.onRenameBranch}
+              onDeleteBranch={this.props.onDeleteBranch}
+            />
+          </div>
         )
 
       case BranchesTab.PullRequests: {
-        return this.renderPullRequests()
+        return (
+          <div
+            role="tabpanel"
+            aria-labelledby="pull-requests-tab"
+            className="branches-container-panel"
+          >
+            {this.renderPullRequests()}
+          </div>
+        )
       }
       default:
         return assertNever(tab, `Unknown Branches tab: ${tab}`)
@@ -322,8 +334,6 @@ export class BranchesContainer extends React.Component<
     return (
       <PullRequestList
         key="pr-list"
-        role="tabpanel"
-        labelledBy="pull-requests-tab"
         pullRequests={this.props.pullRequests}
         selectedPullRequest={this.state.selectedPullRequest}
         isOnDefaultBranch={!!isOnDefaultBranch}

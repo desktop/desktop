@@ -53,12 +53,6 @@ interface IBranchListProps {
    */
   readonly selectedBranch: Branch | null
 
-  /** ARIA role of this element. */
-  readonly role?: string
-
-  /** ARIA labelledby of this element. */
-  readonly labelledBy?: string
-
   /**
    * Called when a key down happens in the filter field. Users have a chance to
    * respond or cancel the default behavior by calling `preventDefault`.
@@ -199,8 +193,6 @@ export class BranchList extends React.Component<
   public render() {
     return enableSectionList() ? (
       <SectionFilterList<IBranchListItem>
-        role={this.props.role}
-        labelledBy={this.props.labelledBy}
         ref={this.onBranchesFilterListRef}
         className="branches-list"
         rowHeight={RowHeight}
@@ -226,8 +218,6 @@ export class BranchList extends React.Component<
       />
     ) : (
       <FilterList<IBranchListItem>
-        role={this.props.role}
-        labelledBy={this.props.labelledBy}
         ref={this.onBranchesFilterListRef}
         className="branches-list"
         rowHeight={RowHeight}

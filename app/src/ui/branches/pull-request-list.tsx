@@ -41,12 +41,6 @@ interface IPullRequestListProps {
   /** Is the default branch currently checked out? */
   readonly isOnDefaultBranch: boolean
 
-  /** ARIA role of this element. */
-  readonly role?: string
-
-  /** ARIA labelledby of this element. */
-  readonly labelledBy?: string
-
   /** Called when the user wants to dismiss the foldout. */
   readonly onDismiss: () => void
 
@@ -164,8 +158,6 @@ export class PullRequestList extends React.Component<
       <>
         <FilterList<IPullRequestListItem>
           className="pull-request-list"
-          role={this.props.role}
-          labelledBy={this.props.labelledBy}
           rowHeight={RowHeight}
           groups={this.state.groupedItems}
           selectedItem={this.state.selectedItem}
