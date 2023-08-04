@@ -38,6 +38,28 @@ export const licenseOverrides: LicenseLookup = {
       'Code is licensed under the AFL or BSD 3-Clause license as part of the Persevere project which is administered under the Dojo foundation, and all contributions require a Dojo CLA.',
   },
 
+  'jackspeak@2.2.2': {
+    repository: 'git+https://github.com/isaacs/jackspeak',
+    license: 'BlueOak-1.0.0',
+    source:
+      'LICENSE.md at https://github.com/isaacs/jackspeak/commit/5213154f6761259edb18e6982c305c6ef01f1303',
+    sourceText: `As far as the law allows, this software comes as is,
+      without any warranty or condition, and no contributor
+      will be liable to anyone for any damages related to this
+      software or this license, under any kind of legal claim.`,
+  },
+
+  'path-scurry@1.10.1': {
+    repository: 'git+https://github.com/isaacs/path-scurry',
+    license: 'BlueOak-1.0.0',
+    source:
+      'LICENSE.md at https://github.com/isaacs/path-scurry/commit/7b5aff44c6741a261b878bcb820b4e30a18731c4#diff-4673a3aba01813b595de187a7a6e9e63a3491d55821606fecd9f13a10c188a1d',
+    sourceText: `As far as the law allows, this software comes as is,
+      without any warranty or condition, and no contributor
+      will be liable to anyone for any damages related to this
+      software or this license, under any kind of legal claim.`,
+  },
+
   'tslib@2.0.0': tslibLicenseOverride,
   'tslib@2.3.1': tslibLicenseOverride,
 }
