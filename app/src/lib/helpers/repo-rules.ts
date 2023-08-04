@@ -12,6 +12,55 @@ import {
   IAPIRepoRuleMetadataParameters,
   IAPIRepoRuleset,
 } from '../api'
+import { enableRepoRulesBeta } from '../feature-flag'
+import { supportsRepoRules } from '../endpoint-capabilities'
+import { Account } from '../../models/account'
+import { Repository } from '../../models/repository'
+import { GitHubRepository } from '../../models/github-repository'
+
+/**
+ * Returns whether repo rules could potentially exist for the provided account and repository.
+ * This only performs client-side checks, such as whether the user is on a free plan
+ * and the repo is public.
+ */
+export function useRepoRulesLogic(
+  account: Account | null,
+  repository: Repository | GitHubRepository | null
+): boolean {
+  if (!account || !repository || !enableRepoRulesBeta()) {
+    return false
+  }
+
+  let repo: GitHubRepository
+  if (repository instanceof Repository) {
+    if (!repository.gitHubRepository) {
+      return false
+    }
+
+    repo = repository.gitHubRepository
+  } else {
+    repo = repository
+  }
+
+  if (!supportsRepoRules(repo.endpoint)) {
+    return false
+  }
+
+  // repo owner's plan can't be checked, only the current user's. purposely return true
+  // if the repo owner is someone else, because if the current user is a collaborator on
+  // the free plan but the owner is a pro member, then repo rules could still be enabled.
+  // errors will be thrown by the API in this case, but there's no way to preemptively
+  // check for that.
+  if (
+    account.login === repo.owner.login &&
+    account.plan === 'free' &&
+    repo.isPrivate
+  ) {
+    return false
+  }
+
+  return true
+}
 
 /**
  * Parses the GitHub API response for a branch's repo rules into a more useable
