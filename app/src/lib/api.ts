@@ -241,6 +241,9 @@ interface IAPIFullIdentity {
    */
   readonly email: string | null
   readonly type: GitHubAccountType
+  readonly plan: {
+    readonly name: string
+  }
 }
 
 /** The users we get from the mentionables endpoint. */
@@ -2026,7 +2029,8 @@ export async function fetchUser(
       emails,
       user.avatar_url,
       user.id,
-      user.name || user.login
+      user.name || user.login,
+      user.plan.name
     )
   } catch (e) {
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)
