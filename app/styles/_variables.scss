@@ -199,11 +199,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --co-author-tag-border-color: #{$blue-200};
 
   /**
-   * Author input (co-authors)
+   * Commit warning badge icon
    */
   --commit-warning-badge-background-color: #{$gray-000};
-  --commit-warning-badge-border-color: #{$gray-300};
-  --commit-warning-badge-icon-color: var(--warning-badge-icon-color);
+  --commit-warning-badge-border: #{$gray-300};
 
   /**
    * The height of the title bar area on Win32 platforms
@@ -441,6 +440,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --form-error-border-color: #{$red-200};
   --form-error-text-color: #{$red-800};
 
+  // Inline form errors, displayed after the input field
+  --input-warning-text-color: var(--dialog-warning-color);
+  --input-error-text-color: #{$red-800};
+
   /** Overlay is used as a background for both modals and foldouts */
   --overlay-background-color: #{$overlay-background-color};
 
@@ -448,7 +451,6 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --dialog-warning-color: #{$yellow-600};
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red};
-  --dialog-error-text-color: #{$red-800};
 
   /** File warning */
   --file-warning-background-color: #{$yellow-200};

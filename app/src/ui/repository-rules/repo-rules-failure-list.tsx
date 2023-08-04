@@ -27,15 +27,13 @@ export class RepoRulesMetadataFailureList extends React.Component<IRepoRulesMeta
   public render() {
     const { repository, branch, failures, leadingText } = this.props
 
+    const totalFails = failures.failed.length + failures.bypassed.length
     let endText: string
-    let length: number
     if (failures.status === 'bypass') {
-      length = failures.bypassed.length
       endText = `, but you can bypass ${
-        length === 1 ? 'it' : 'them'
+        totalFails === 1 ? 'it' : 'them'
       }. Proceed with caution!`
     } else {
-      length = failures.failed.length
       endText = '.'
     }
 
@@ -44,7 +42,7 @@ export class RepoRulesMetadataFailureList extends React.Component<IRepoRulesMeta
     return (
       <div className="repo-rules-failure-list-component">
         <p>
-          {leadingText} fails {length} rule{length > 1 ? 's' : ''}
+          {leadingText} fails {totalFails} rule{totalFails > 1 ? 's' : ''}
           {endText}{' '}
           <RepoRulesetsForBranchLink repository={repository} branch={branch}>
             View all rulesets for this branch.

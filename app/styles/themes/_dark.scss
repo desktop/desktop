@@ -163,6 +163,12 @@ body.theme-dark {
   --co-author-tag-background-color: #{$blue-800};
   --co-author-tag-border-color: #{$blue-700};
 
+  /**
+   * Commit warning badge icon
+   */
+  --commit-warning-badge-background-color: #{$gray-900};
+  --commit-warning-badge-border-color: #{$gray-700};
+
   --base-border: 1px solid var(--box-border-color);
   --contrast-border: 1px solid var(--box-border-contrast-color);
 
@@ -337,6 +343,10 @@ body.theme-dark {
   --form-error-border-color: #{$red-900};
   --form-error-text-color: var(--text-color);
 
+  // Inline form errors, displayed after the input field
+  --input-warning-text-color: var(--dialog-warning-color);
+  --input-error-text-color: #{$red-300};
+
   /** Overlay is used as a background for both modals and foldouts */
   --overlay-background-color: rgba(0, 0, 0, 0.5);
 
@@ -344,7 +354,6 @@ body.theme-dark {
   --dialog-warning-color: #{$yellow-600};
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red-600};
-  --dialog-error-text-color: #{$red-300};
 
   /** File warning */
   --file-warning-background-color: #{rgba($yellow-900, 0.4)};
