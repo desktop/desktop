@@ -1,12 +1,8 @@
 /* eslint-disable no-sync */
 
 const glob = require('glob')
-const { basename, dirname, join } = require('path')
+const { dirname, join } = require('path')
 const fs = require('fs')
-
-type ChecksumEntry = { filename: string; checksum: string }
-
-type ChecksumGroups = Record<'x64' | 'arm' | 'arm64', Array<ChecksumEntry>>
 
 type ReleaseNotesGroupType = 'new' | 'added' | 'fixed' | 'improved' | 'removed'
 
@@ -45,51 +41,22 @@ console.log(
 
 const files = new Glob(artifactsDir + '/**/*', { nodir: true })
 
-let countFiles = 0
-const shaEntries = new Array<ChecksumEntry>()
+const matches = files.found as Array<string>
 
-for (const file of files.found) {
-  if (file.endsWith('.sha256')) {
-    shaEntries.push(getShaContents(file))
-  }
+const fileCount = matches.length
 
-  countFiles++
-}
-
-if (SUCCESSFUL_RELEASE_FILE_COUNT !== countFiles) {
+if (SUCCESSFUL_RELEASE_FILE_COUNT !== fileCount) {
   console.error(
-    `🔴 Artifacts folder has ${countFiles} assets, expecting ${SUCCESSFUL_RELEASE_FILE_COUNT}. Please check the GH Actions artifacts to see which are missing.`
+    `🔴 Artifacts folder has ${fileCount} assets, expecting ${SUCCESSFUL_RELEASE_FILE_COUNT}. Please check the GH Actions artifacts to see which are missing.`
   )
   process.exit(1)
 }
 
-const shaEntriesByArchitecture: ChecksumGroups = {
-  x64: shaEntries.filter(
-    e =>
-      e.filename.includes('-linux-x86_64-') ||
-      e.filename.includes('-linux-amd64-')
-  ),
-  arm: shaEntries.filter(
-    e =>
-      e.filename.includes('-linux-armv7l-') ||
-      e.filename.includes('-linux-armhf-')
-  ),
-  arm64: shaEntries.filter(
-    e =>
-      e.filename.includes('-linux-aarch64-') ||
-      e.filename.includes('-linux-arm64-')
-  ),
-}
-
-console.log(`Found ${countFiles} files in artifacts directory`)
-console.log(shaEntriesByArchitecture)
+console.log(`Found ${fileCount} files in artifacts directory`)
 
 const releaseNotesByGroup = getReleaseGroups(releaseTagWithoutPrefix)
 
-const draftReleaseNotes = generateDraftReleaseNotes(
-  releaseNotesByGroup,
-  shaEntriesByArchitecture
-)
+const draftReleaseNotes = generateDraftReleaseNotes(releaseNotesByGroup)
 const releaseNotesPath = join(__dirname, 'release_notes.txt')
 
 fs.writeFileSync(releaseNotesPath, draftReleaseNotes, { encoding: 'utf8' })
@@ -97,19 +64,6 @@ fs.writeFileSync(releaseNotesPath, draftReleaseNotes, { encoding: 'utf8' })
 console.log(
   `✅ All done! The release notes have been written to ${releaseNotesPath}`
 )
-
-/**
- * Returns the filename (excluding .sha256) and its contents (a SHA256 checksum).
- */
-function getShaContents(filePath: string): {
-  filename: string
-  checksum: string
-} {
-  const filename = basename(filePath).slice(0, -7)
-  const checksum = fs.readFileSync(filePath, 'utf8')
-
-  return { filename, checksum }
-}
 
 function extractIds(str: string): Array<number> {
   const idRegex = /#(\d+)/g
@@ -261,44 +215,16 @@ ${itemsText}
   `
 }
 
-function formatEntry(e: ChecksumEntry): string {
-  return `${e.checksum} ${e.filename}`
-}
-
-function renderArchitectureIfNotEmpty(
-  name: string,
-  items: Array<ChecksumEntry>
-): string {
-  if (items.length === 0) {
-    return ''
-  }
-
-  const itemsText = items.map(formatEntry).join('\n')
-
-  return `
-## ${name}
-
-${itemsText}`
-}
-
 /**
  * Takes the release notes entries and the SHA entries, then merges them into the full draft release notes ✨
  */
 function generateDraftReleaseNotes(
-  releaseNotesGroups: ReleaseNotesGroups,
-  shaEntries: ChecksumGroups
+  releaseNotesGroups: ReleaseNotesGroups
 ): string {
-  const draftReleaseNotes = `
+  return `
 ${renderSection('New', releaseNotesGroups.new)}
 ${renderSection('Added', releaseNotesGroups.added)}
 ${renderSection('Fixed', releaseNotesGroups.fixed, false)}
 ${renderSection('Improved', releaseNotesGroups.improved, false)}
-${renderSection('Removed', releaseNotesGroups.removed)}
-
-## SHA-256 checksums
-${renderArchitectureIfNotEmpty('x64', shaEntries.x64)}
-${renderArchitectureIfNotEmpty('ARM64', shaEntries.arm64)}
-${renderArchitectureIfNotEmpty('ARM', shaEntries.arm)}`
-
-  return draftReleaseNotes
+${renderSection('Removed', releaseNotesGroups.removed)}`
 }
