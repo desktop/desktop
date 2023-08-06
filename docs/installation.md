@@ -21,17 +21,6 @@ distribution:
  - AppImage (`.AppImage`)
  - Debian (`.deb`)
  - RPM (`.rpm`)
- - Snap (`.snap`) - also available from [snapcraft.io](https://snapcraft.io/github-desktop)
-
-If you install the Snap package, ensure you also connect it to your password
-manager:
-
-```shellsession
-$ sudo snap connect github-desktop:password-manager-service
-```
-
-Without this, GitHub Desktop cannot store or retrieve account details it
-requires in the user's keychain.
 
 ## Data Directories
 
@@ -50,7 +39,6 @@ GitHub Desktop will create directories to manage the files and data it needs to 
 This varies based on the installer chosen:
 
  - AppImage, Debian and RPM: `~/.config/GitHub Desktop/`
- - Snap: `~/snap/github-desktop/current/.config/GitHub Desktop/`
 
 ## Log Files
 

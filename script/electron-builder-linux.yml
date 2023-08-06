@@ -12,11 +12,4 @@ linux:
     - x-scheme-handler/x-github-desktop-dev-auth
   target:
     - AppImage
-  maintainer: 'GitHub, Inc <opensource+desktop@github.com>'
-rpm:
-  depends:
-    # dugite-native dependencies
-    - libcurl
-    # keytar dependencies
-    - libsecret
-    - gnome-keyring
+  maintainer: 'Brendan Forster<github@brendanforster.com>'

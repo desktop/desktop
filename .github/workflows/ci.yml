@@ -271,6 +271,7 @@ jobs:
             artifacts/**/*.AppImage
             artifacts/**/*.deb
             artifacts/**/*.rpm
+            artifacts/**/*.sha256
           draft: true
           fail_on_unmatched_files: true
         env:
