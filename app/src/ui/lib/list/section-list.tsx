@@ -137,6 +137,15 @@ interface ISectionListProps {
     source: IMouseClickSource
   ) => void
 
+  readonly onRowFocus?: (
+    indexPath: RowIndexPath,
+    source: React.FocusEvent<HTMLDivElement>
+  ) => void
+  readonly onRowBlur?: (
+    indexPath: RowIndexPath,
+    source: React.FocusEvent<HTMLDivElement>
+  ) => void
+
   /**
    * This prop defines the behaviour of the selection of items within this list.
    *  - 'single' : (default) single list-item selection. [shift] and [ctrl] have
@@ -749,6 +758,7 @@ export class SectionList extends React.Component<
     e: React.FocusEvent<HTMLDivElement>
   ) => {
     this.focusRow = index
+    this.props.onRowFocus?.(index, e)
   }
 
   private onRowBlur = (
@@ -758,6 +768,7 @@ export class SectionList extends React.Component<
     if (rowIndexPathEquals(this.focusRow, index)) {
       this.focusRow = InvalidRowIndexPath
     }
+    this.props.onRowBlur?.(index, e)
   }
 
   private onRowContextMenu = (

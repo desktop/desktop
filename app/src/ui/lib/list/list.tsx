@@ -116,6 +116,14 @@ interface IListProps {
   readonly onRowClick?: (row: number, source: ClickSource) => void
 
   readonly onRowDoubleClick?: (row: number, source: IMouseClickSource) => void
+  readonly onRowFocus?: (
+    row: number,
+    source: React.FocusEvent<HTMLDivElement>
+  ) => void
+  readonly onRowBlur?: (
+    row: number,
+    source: React.FocusEvent<HTMLDivElement>
+  ) => void
 
   /**
    * This prop defines the behaviour of the selection of items within this list.
@@ -660,6 +668,7 @@ export class List extends React.Component<IListProps, IListState> {
     e: React.FocusEvent<HTMLDivElement>
   ) => {
     this.focusRow = indexPath.row
+    this.props.onRowFocus?.(indexPath.row, e)
   }
 
   private onRowBlur = (
@@ -669,6 +678,7 @@ export class List extends React.Component<IListProps, IListState> {
     if (this.focusRow === indexPath.row) {
       this.focusRow = -1
     }
+    this.props.onRowBlur?.(indexPath.row, e)
   }
 
   private onRowContextMenu = (
