@@ -212,6 +212,25 @@ export class BranchesContainer extends React.Component<
   }
 
   private renderSelectedTab() {
+    const { selectedTab, repository } = this.props
+
+    const ariaLabelledBy =
+      selectedTab === BranchesTab.Branches || !repository.gitHubRepository
+        ? 'branches-tab'
+        : 'pull-requests-tab'
+
+    return (
+      <div
+        role="tabpanel"
+        aria-labelledby={ariaLabelledBy}
+        className="branches-container-panel"
+      >
+        {this.renderSelectedTabContent()}
+      </div>
+    )
+  }
+
+  private renderSelectedTabContent() {
     let tab = this.props.selectedTab
 
     if (!this.props.repository.gitHubRepository) {
@@ -221,44 +240,29 @@ export class BranchesContainer extends React.Component<
     switch (tab) {
       case BranchesTab.Branches:
         return (
-          <div
-            role="tabpanel"
-            aria-labelledby="branches-tab"
-            className="branches-container-panel"
-          >
-            <BranchList
-              defaultBranch={this.props.defaultBranch}
-              currentBranch={this.props.currentBranch}
-              allBranches={this.props.allBranches}
-              recentBranches={this.props.recentBranches}
-              onItemClick={this.onBranchItemClick}
-              filterText={this.state.branchFilterText}
-              onFilterTextChanged={this.onBranchFilterTextChanged}
-              selectedBranch={this.state.selectedBranch}
-              onSelectionChanged={this.onBranchSelectionChanged}
-              canCreateNewBranch={true}
-              onCreateNewBranch={this.onCreateBranchWithName}
-              renderBranch={this.renderBranch}
-              hideFilterRow={dragAndDropManager.isDragOfTypeInProgress(
-                DragType.Commit
-              )}
-              renderPreList={this.renderPreList}
-              onRenameBranch={this.props.onRenameBranch}
-              onDeleteBranch={this.props.onDeleteBranch}
-            />
-          </div>
+          <BranchList
+            defaultBranch={this.props.defaultBranch}
+            currentBranch={this.props.currentBranch}
+            allBranches={this.props.allBranches}
+            recentBranches={this.props.recentBranches}
+            onItemClick={this.onBranchItemClick}
+            filterText={this.state.branchFilterText}
+            onFilterTextChanged={this.onBranchFilterTextChanged}
+            selectedBranch={this.state.selectedBranch}
+            onSelectionChanged={this.onBranchSelectionChanged}
+            canCreateNewBranch={true}
+            onCreateNewBranch={this.onCreateBranchWithName}
+            renderBranch={this.renderBranch}
+            hideFilterRow={dragAndDropManager.isDragOfTypeInProgress(
+              DragType.Commit
+            )}
+            renderPreList={this.renderPreList}
+            onRenameBranch={this.props.onRenameBranch}
+            onDeleteBranch={this.props.onDeleteBranch}
+          />
         )
-
       case BranchesTab.PullRequests: {
-        return (
-          <div
-            role="tabpanel"
-            aria-labelledby="pull-requests-tab"
-            className="branches-container-panel"
-          >
-            {this.renderPullRequests()}
-          </div>
-        )
+        return this.renderPullRequests()
       }
       default:
         return assertNever(tab, `Unknown Branches tab: ${tab}`)
