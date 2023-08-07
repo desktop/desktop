@@ -117,6 +117,8 @@ export interface ITooltipProps<T> {
    * ":focus-visible open on focus. This means any time the target it focused it
    * opens." */
   readonly openOnFocus?: boolean
+
+  readonly focused?: boolean
 }
 
 interface ITooltipState {
@@ -279,6 +281,24 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       } else {
         target?.removeAttribute('aria-describedby')
       }
+    }
+
+    if (prevProps.focused !== this.props.focused) {
+      this.updateBasedOnFocused()
+    }
+  }
+
+  private updateBasedOnFocused() {
+    const { target } = this.state
+    if (target === null) {
+      return
+    }
+
+    const { focused } = this.props
+    if (focused === true) {
+      this.beginShowTooltip()
+    } else if (focused === false) {
+      this.beginHideTooltip()
     }
   }
 
