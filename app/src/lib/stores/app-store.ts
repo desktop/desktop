@@ -1168,7 +1168,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const currentBranchProtected = !isBranchPushable(pushControl)
 
       let currentRepoRulesInfo = new RepoRulesInfo()
-      if (useRepoRulesLogic(account, gitHubRepo)) {
+      if (useRepoRulesLogic(account, repository)) {
         const slimRulesets = await api.fetchAllRepoRulesets(owner, name)
 
         // ultimate goal here is to fetch all rulesets that apply to the repo

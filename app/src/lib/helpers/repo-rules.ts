@@ -15,8 +15,10 @@ import {
 import { enableRepoRulesBeta } from '../feature-flag'
 import { supportsRepoRules } from '../endpoint-capabilities'
 import { Account } from '../../models/account'
-import { Repository } from '../../models/repository'
-import { GitHubRepository } from '../../models/github-repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
 
 /**
  * Returns whether repo rules could potentially exist for the provided account and repository.
@@ -25,24 +27,20 @@ import { GitHubRepository } from '../../models/github-repository'
  */
 export function useRepoRulesLogic(
   account: Account | null,
-  repository: Repository | GitHubRepository | null
+  repository: Repository
 ): boolean {
-  if (!account || !repository || !enableRepoRulesBeta()) {
+  if (
+    !account ||
+    !repository ||
+    !enableRepoRulesBeta() ||
+    !isRepositoryWithGitHubRepository(repository)
+  ) {
     return false
   }
 
-  let repo: GitHubRepository
-  if (repository instanceof Repository) {
-    if (!repository.gitHubRepository) {
-      return false
-    }
+  const { endpoint, owner, isPrivate } = repository.gitHubRepository
 
-    repo = repository.gitHubRepository
-  } else {
-    repo = repository
-  }
-
-  if (!supportsRepoRules(repo.endpoint)) {
+  if (!supportsRepoRules(endpoint)) {
     return false
   }
 
@@ -51,11 +49,7 @@ export function useRepoRulesLogic(
   // the free plan but the owner is a pro member, then repo rules could still be enabled.
   // errors will be thrown by the API in this case, but there's no way to preemptively
   // check for that.
-  if (
-    account.login === repo.owner.login &&
-    account.plan === 'free' &&
-    repo.isPrivate
-  ) {
+  if (account.login === owner.login && account.plan === 'free' && isPrivate) {
     return false
   }
 
