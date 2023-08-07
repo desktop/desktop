@@ -7,9 +7,7 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Ref } from '../lib/ref'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { Loading } from '../lib/loading'
 import { getAheadBehind, revSymmetricDifference } from '../../lib/git'
-import { FetchType } from '../../models/fetch'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
@@ -23,7 +21,6 @@ interface IDeleteBranchProps {
 interface IDeleteBranchState {
   readonly includeRemoteBranch: boolean
   readonly isDeleting: boolean
-  readonly isLoading: boolean
   readonly localUnmergedCommits: number
   readonly unpushedCommits: number
   readonly remoteUnmergedCommits: number
@@ -40,7 +37,6 @@ export class DeleteBranch extends React.Component<
     this.state = {
       includeRemoteBranch: false,
       isDeleting: false,
-      isLoading: true,
       localUnmergedCommits: 0,
       unpushedCommits: 0,
       remoteUnmergedCommits: 0,
@@ -53,7 +49,7 @@ export class DeleteBranch extends React.Component<
   }
 
   private checkAheadBehind = async () => {
-    const { branch, defaultBranch, dispatcher, repository } = this.props
+    const { branch, defaultBranch, repository } = this.props
 
     if (!branch?.upstream) {
       let localAheadBehind = null
@@ -66,13 +62,10 @@ export class DeleteBranch extends React.Component<
       }
 
       this.setState({
-        isLoading: false,
         existsOnRemote: false,
         localUnmergedCommits: localAheadBehind?.ahead || 0,
       })
     } else {
-      await dispatcher.fetch(repository, FetchType.UserInitiatedTask)
-
       const pushAheadBehind = await getAheadBehind(
         repository,
         revSymmetricDifference(branch.name, branch.upstream)
@@ -87,7 +80,6 @@ export class DeleteBranch extends React.Component<
       }
 
       this.setState({
-        isLoading: false,
         existsOnRemote: true,
         unpushedCommits: pushAheadBehind?.ahead || 0,
         remoteUnmergedCommits: remoteAheadBehind?.ahead || 0,
@@ -111,26 +103,16 @@ export class DeleteBranch extends React.Component<
             Delete branch <Ref>{this.props.branch.name}</Ref>?<br />
             This action cannot be undone.
           </p>
-          {this.state.isLoading ? (
-            <p>Fetching origin...</p>
-          ) : (
-            <>
-              {this.renderLocalUnmergedWarning(this.state.localUnmergedCommits)}
-              {this.renderUnpushedCommitsWarning(this.state.unpushedCommits)}
-              {this.renderRemoteUnmergedCommitsWarning(
-                this.state.remoteUnmergedCommits
-              )}
-              <br />
-              {this.renderDeleteOnRemote()}
-            </>
+          {this.renderLocalUnmergedWarning(this.state.localUnmergedCommits)}
+          {this.renderUnpushedCommitsWarning(this.state.unpushedCommits)}
+          {this.renderRemoteUnmergedCommitsWarning(
+            this.state.remoteUnmergedCommits
           )}
+          <br />
+          {this.renderDeleteOnRemote()}
         </DialogContent>
         <DialogFooter>
-          {this.state.isLoading ? (
-            <Loading />
-          ) : (
-            <OkCancelButtonGroup destructive={true} okButtonText="Delete" />
-          )}
+          <OkCancelButtonGroup destructive={true} okButtonText="Delete" />
         </DialogFooter>
       </Dialog>
     )
