@@ -118,11 +118,11 @@ interface IListProps {
   readonly onRowDoubleClick?: (row: number, source: IMouseClickSource) => void
   readonly onRowFocus?: (
     row: number,
-    source: React.FocusEvent<HTMLDivElement>
+    event: React.FocusEvent<HTMLDivElement>
   ) => void
   readonly onRowBlur?: (
     row: number,
-    source: React.FocusEvent<HTMLDivElement>
+    event: React.FocusEvent<HTMLDivElement>
   ) => void
 
   /**
