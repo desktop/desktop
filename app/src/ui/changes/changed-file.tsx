@@ -92,7 +92,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
 
         <AriaLiveContainer message={pathScreenReaderMessage} />
         <TooltippedContent
-          focused={focused}
+          ancestorFocused={focused}
           openOnFocus={true}
           tooltip={fileStatus}
           direction={TooltipDirection.EAST}

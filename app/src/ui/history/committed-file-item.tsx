@@ -37,7 +37,7 @@ export class CommittedFileItem extends React.Component<ICommittedFileItemProps> 
           ariaHidden={true}
         />
         <TooltippedContent
-          focused={focused}
+          ancestorFocused={focused}
           openOnFocus={true}
           tooltip={fileStatus}
           direction={TooltipDirection.NORTH}
