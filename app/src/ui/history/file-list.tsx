@@ -80,7 +80,7 @@ export class FileList extends React.Component<IFileListProps, IFileListState> {
           onRowKeyboardFocus={this.onRowFocus}
           onRowBlur={this.onRowBlur}
           getRowAriaLabel={this.getFileAriaLabel}
-          invalidationProps={this.state.focusedRow}
+          invalidationProps={{ focusedRow: this.state.focusedRow }}
         />
       </div>
     )
