@@ -77,7 +77,7 @@ export class FileList extends React.Component<IFileListProps, IFileListState> {
           onSelectedRowChanged={this.onSelectedRowChanged}
           onRowDoubleClick={this.props.onRowDoubleClick}
           onRowContextMenu={this.onRowContextMenu}
-          onRowFocus={this.onRowFocus}
+          onRowKeyboardFocus={this.onRowFocus}
           onRowBlur={this.onRowBlur}
           getRowAriaLabel={this.getFileAriaLabel}
           invalidationProps={this.state.focusedRow}

@@ -1000,7 +1000,7 @@ export class ChangesList extends React.Component<
             }}
             onRowClick={this.props.onRowClick}
             onRowDoubleClick={this.onRowDoubleClick}
-            onRowFocus={this.onRowFocus}
+            onRowKeyboardFocus={this.onRowFocus}
             onRowBlur={this.onRowBlur}
             onScroll={this.onScroll}
             setScrollTop={this.props.changesListScrollTop}
