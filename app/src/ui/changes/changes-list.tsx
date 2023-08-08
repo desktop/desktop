@@ -996,6 +996,7 @@ export class ChangesList extends React.Component<
             invalidationProps={{
               workingDirectory: workingDirectory,
               isCommitting: isCommitting,
+              focusedRow: this.state.focusedRow,
             }}
             onRowClick={this.props.onRowClick}
             onRowDoubleClick={this.onRowDoubleClick}
