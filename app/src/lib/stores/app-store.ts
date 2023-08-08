@@ -238,7 +238,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableMoveStash, enableRepoRules } from '../feature-flag'
+import { enableMoveStash } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -325,9 +325,8 @@ import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
 import { resizableComponentClass } from '../../ui/resizable'
 import { compare } from '../compare'
-import { parseRepoRules } from '../helpers/repo-rules'
+import { parseRepoRules, useRepoRulesLogic } from '../helpers/repo-rules'
 import { RepoRulesInfo } from '../../models/repo-rules'
-import { supportsRepoRules } from '../endpoint-capabilities'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1169,7 +1168,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const currentBranchProtected = !isBranchPushable(pushControl)
 
       let currentRepoRulesInfo = new RepoRulesInfo()
-      if (enableRepoRules() && supportsRepoRules(gitHubRepo.endpoint)) {
+      if (useRepoRulesLogic(account, repository)) {
         const slimRulesets = await api.fetchAllRepoRulesets(owner, name)
 
         // ultimate goal here is to fetch all rulesets that apply to the repo

@@ -11,7 +11,16 @@ describe('repository-matching', () => {
   describe('matchGitHubRepository', () => {
     it('matches HTTPS URLs', () => {
       const accounts = [
-        new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
+        new Account(
+          'alovelace',
+          'https://api.github.com',
+          '',
+          [],
+          '',
+          1,
+          '',
+          'free'
+        ),
       ]
       const repo = matchGitHubRepository(
         accounts,
@@ -23,7 +32,16 @@ describe('repository-matching', () => {
 
     it('matches HTTPS URLs without the git extension', () => {
       const accounts = [
-        new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
+        new Account(
+          'alovelace',
+          'https://api.github.com',
+          '',
+          [],
+          '',
+          1,
+          '',
+          'free'
+        ),
       ]
       const repo = matchGitHubRepository(
         accounts,
@@ -35,7 +53,16 @@ describe('repository-matching', () => {
 
     it('matches git URLs', () => {
       const accounts = [
-        new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
+        new Account(
+          'alovelace',
+          'https://api.github.com',
+          '',
+          [],
+          '',
+          1,
+          '',
+          'free'
+        ),
       ]
       const repo = matchGitHubRepository(
         accounts,
@@ -47,7 +74,16 @@ describe('repository-matching', () => {
 
     it('matches SSH URLs', () => {
       const accounts = [
-        new Account('alovelace', 'https://api.github.com', '', [], '', 1, ''),
+        new Account(
+          'alovelace',
+          'https://api.github.com',
+          '',
+          [],
+          '',
+          1,
+          '',
+          'free'
+        ),
       ]
       const repo = matchGitHubRepository(
         accounts,
@@ -66,7 +102,8 @@ describe('repository-matching', () => {
           [],
           '',
           1,
-          ''
+          '',
+          'free'
         ),
       ]
       const repo = matchGitHubRepository(

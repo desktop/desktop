@@ -202,7 +202,16 @@ describe('PopupManager', () => {
 
   describe('updatePopup', () => {
     it('updates the given popup', () => {
-      const mockAccount = new Account('test', '', 'deadbeef', [], '', 1, '')
+      const mockAccount = new Account(
+        'test',
+        '',
+        'deadbeef',
+        [],
+        '',
+        1,
+        '',
+        'free'
+      )
       const popupTutorial: Popup = {
         type: PopupType.CreateTutorialRepository,
         account: mockAccount,
