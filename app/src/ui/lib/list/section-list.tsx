@@ -137,10 +137,19 @@ interface ISectionListProps {
     source: IMouseClickSource
   ) => void
 
+  /** This function will be called when a row obtains focus, no matter how */
   readonly onRowFocus?: (
     indexPath: RowIndexPath,
     source: React.FocusEvent<HTMLDivElement>
   ) => void
+
+  /** This function will be called only when a row obtains focus via keyboard */
+  readonly onRowKeyboardFocus?: (
+    indexPath: RowIndexPath,
+    e: React.KeyboardEvent<any>
+  ) => void
+
+  /** This function will be called when a row loses focus */
   readonly onRowBlur?: (
     indexPath: RowIndexPath,
     source: React.FocusEvent<HTMLDivElement>
@@ -761,6 +770,13 @@ export class SectionList extends React.Component<
     this.props.onRowFocus?.(index, e)
   }
 
+  private onRowKeyboardFocus = (
+    index: RowIndexPath,
+    e: React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    this.props.onRowKeyboardFocus?.(index, e)
+  }
+
   private onRowBlur = (
     index: RowIndexPath,
     e: React.FocusEvent<HTMLDivElement>
@@ -1151,6 +1167,7 @@ export class SectionList extends React.Component<
           onRowMouseDown={this.onRowMouseDown}
           onRowMouseUp={this.onRowMouseUp}
           onRowFocus={this.onRowFocus}
+          onRowKeyboardFocus={this.onRowKeyboardFocus}
           onRowBlur={this.onRowBlur}
           onContextMenu={this.onRowContextMenu}
           style={params.style}
