@@ -117,18 +117,22 @@ interface IListProps {
 
   readonly onRowDoubleClick?: (row: number, source: IMouseClickSource) => void
 
+  /** This function will be called when a row obtains focus, no matter how */
   readonly onRowFocus?: (
     row: number,
     event: React.FocusEvent<HTMLDivElement>
   ) => void
-  readonly onRowBlur?: (
-    row: number,
-    event: React.FocusEvent<HTMLDivElement>
-  ) => void
 
+  /** This function will be called only when a row obtains focus via keyboard */
   readonly onRowKeyboardFocus?: (
     row: number,
     e: React.KeyboardEvent<any>
+  ) => void
+
+  /** This function will be called when a row loses focus */
+  readonly onRowBlur?: (
+    row: number,
+    event: React.FocusEvent<HTMLDivElement>
   ) => void
 
   /**
