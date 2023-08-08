@@ -116,6 +116,7 @@ interface IListProps {
   readonly onRowClick?: (row: number, source: ClickSource) => void
 
   readonly onRowDoubleClick?: (row: number, source: IMouseClickSource) => void
+
   readonly onRowFocus?: (
     row: number,
     event: React.FocusEvent<HTMLDivElement>
@@ -123,6 +124,11 @@ interface IListProps {
   readonly onRowBlur?: (
     row: number,
     event: React.FocusEvent<HTMLDivElement>
+  ) => void
+
+  readonly onRowKeyboardFocus?: (
+    row: number,
+    e: React.KeyboardEvent<any>
   ) => void
 
   /**
@@ -671,6 +677,14 @@ export class List extends React.Component<IListProps, IListState> {
     this.props.onRowFocus?.(indexPath.row, e)
   }
 
+  private onRowKeyboardFocus = (
+    indexPath: RowIndexPath,
+    e: React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    this.focusRow = indexPath.row
+    this.props.onRowKeyboardFocus?.(indexPath.row, e)
+  }
+
   private onRowBlur = (
     indexPath: RowIndexPath,
     e: React.FocusEvent<HTMLDivElement>
@@ -987,6 +1001,7 @@ export class List extends React.Component<IListProps, IListState> {
         onRowMouseDown={this.onRowMouseDown}
         onRowMouseUp={this.onRowMouseUp}
         onRowFocus={this.onRowFocus}
+        onRowKeyboardFocus={this.onRowKeyboardFocus}
         onRowBlur={this.onRowBlur}
         onContextMenu={this.onRowContextMenu}
         style={params.style}
