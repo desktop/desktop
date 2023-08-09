@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.2.8-test6": [
+      "[New] Accessibility verification of screen reader support"
+    ],
     "3.2.8-beta2": [
       "[New] Initial support for repository rules - #16707. Thanks @vaindil!",
       "[Fixed] Enable context menu keyboard shortcut for file lists - #17143",
