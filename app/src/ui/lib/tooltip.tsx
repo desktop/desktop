@@ -117,6 +117,13 @@ export interface ITooltipProps<T> {
    * ":focus-visible open on focus. This means any time the target it focused it
    * opens." */
   readonly openOnFocus?: boolean
+
+  /** Whether or not an ancestor component is focused, used in case we want
+   * the tooltip to be shown when it's focused. Examples of this are how we
+   * want to show the tooltip for file status icons when files in the file
+   * list are focused.
+   */
+  readonly ancestorFocused?: boolean
 }
 
 interface ITooltipState {
@@ -279,6 +286,24 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       } else {
         target?.removeAttribute('aria-describedby')
       }
+    }
+
+    if (prevProps.ancestorFocused !== this.props.ancestorFocused) {
+      this.updateBasedOnAncestorFocused()
+    }
+  }
+
+  private updateBasedOnAncestorFocused() {
+    const { target } = this.state
+    if (target === null) {
+      return
+    }
+
+    const { ancestorFocused } = this.props
+    if (ancestorFocused === true) {
+      this.beginShowTooltip()
+    } else if (ancestorFocused === false) {
+      this.beginHideTooltip()
     }
   }
 

@@ -17,10 +17,22 @@ interface IFileListProps {
   ) => void
 }
 
+interface IFileListState {
+  readonly focusedRow: number | null
+}
+
 /**
  * Display a list of changed files as part of a commit or stash
  */
-export class FileList extends React.Component<IFileListProps> {
+export class FileList extends React.Component<IFileListProps, IFileListState> {
+  public constructor(props: IFileListProps) {
+    super(props)
+
+    this.state = {
+      focusedRow: null,
+    }
+  }
+
   private onSelectedRowChanged = (row: number) => {
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)
@@ -31,6 +43,7 @@ export class FileList extends React.Component<IFileListProps> {
       <CommittedFileItem
         file={this.props.files[row]}
         availableWidth={this.props.availableWidth}
+        focused={this.state.focusedRow === row}
       />
     )
   }
@@ -64,9 +77,22 @@ export class FileList extends React.Component<IFileListProps> {
           onSelectedRowChanged={this.onSelectedRowChanged}
           onRowDoubleClick={this.props.onRowDoubleClick}
           onRowContextMenu={this.onRowContextMenu}
+          onRowKeyboardFocus={this.onRowFocus}
+          onRowBlur={this.onRowBlur}
           getRowAriaLabel={this.getFileAriaLabel}
+          invalidationProps={{ focusedRow: this.state.focusedRow }}
         />
       </div>
     )
+  }
+
+  private onRowFocus = (row: number) => {
+    this.setState({ focusedRow: row })
+  }
+
+  private onRowBlur = (row: number) => {
+    if (this.state.focusedRow === row) {
+      this.setState({ focusedRow: null })
+    }
   }
 }

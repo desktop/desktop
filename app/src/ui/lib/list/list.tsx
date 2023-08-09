@@ -117,6 +117,24 @@ interface IListProps {
 
   readonly onRowDoubleClick?: (row: number, source: IMouseClickSource) => void
 
+  /** This function will be called when a row obtains focus, no matter how */
+  readonly onRowFocus?: (
+    row: number,
+    event: React.FocusEvent<HTMLDivElement>
+  ) => void
+
+  /** This function will be called only when a row obtains focus via keyboard */
+  readonly onRowKeyboardFocus?: (
+    row: number,
+    e: React.KeyboardEvent<any>
+  ) => void
+
+  /** This function will be called when a row loses focus */
+  readonly onRowBlur?: (
+    row: number,
+    event: React.FocusEvent<HTMLDivElement>
+  ) => void
+
   /**
    * This prop defines the behaviour of the selection of items within this list.
    *  - 'single' : (default) single list-item selection. [shift] and [ctrl] have
@@ -660,6 +678,15 @@ export class List extends React.Component<IListProps, IListState> {
     e: React.FocusEvent<HTMLDivElement>
   ) => {
     this.focusRow = indexPath.row
+    this.props.onRowFocus?.(indexPath.row, e)
+  }
+
+  private onRowKeyboardFocus = (
+    indexPath: RowIndexPath,
+    e: React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    this.focusRow = indexPath.row
+    this.props.onRowKeyboardFocus?.(indexPath.row, e)
   }
 
   private onRowBlur = (
@@ -669,6 +696,7 @@ export class List extends React.Component<IListProps, IListState> {
     if (this.focusRow === indexPath.row) {
       this.focusRow = -1
     }
+    this.props.onRowBlur?.(indexPath.row, e)
   }
 
   private onRowContextMenu = (
@@ -977,6 +1005,7 @@ export class List extends React.Component<IListProps, IListState> {
         onRowMouseDown={this.onRowMouseDown}
         onRowMouseUp={this.onRowMouseUp}
         onRowFocus={this.onRowFocus}
+        onRowKeyboardFocus={this.onRowKeyboardFocus}
         onRowBlur={this.onRowBlur}
         onContextMenu={this.onRowContextMenu}
         style={params.style}

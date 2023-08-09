@@ -223,6 +223,7 @@ interface IChangesListProps {
 
 interface IChangesState {
   readonly selectedRows: ReadonlyArray<number>
+  readonly focusedRow: number | null
 }
 
 function getSelectedRowsFromProps(
@@ -252,6 +253,7 @@ export class ChangesList extends React.Component<
     super(props)
     this.state = {
       selectedRows: getSelectedRowsFromProps(props),
+      focusedRow: null,
     }
   }
 
@@ -329,6 +331,7 @@ export class ChangesList extends React.Component<
         availableWidth={availableWidth}
         disableSelection={disableSelection}
         checkboxTooltip={checkboxTooltip}
+        focused={this.state.focusedRow === row}
       />
     )
   }
@@ -993,9 +996,12 @@ export class ChangesList extends React.Component<
             invalidationProps={{
               workingDirectory: workingDirectory,
               isCommitting: isCommitting,
+              focusedRow: this.state.focusedRow,
             }}
             onRowClick={this.props.onRowClick}
             onRowDoubleClick={this.onRowDoubleClick}
+            onRowKeyboardFocus={this.onRowFocus}
+            onRowBlur={this.onRowBlur}
             onScroll={this.onScroll}
             setScrollTop={this.props.changesListScrollTop}
             onRowKeyDown={this.onRowKeyDown}
@@ -1007,5 +1013,15 @@ export class ChangesList extends React.Component<
         {this.renderCommitMessageForm()}
       </>
     )
+  }
+
+  private onRowFocus = (row: number) => {
+    this.setState({ focusedRow: row })
+  }
+
+  private onRowBlur = (row: number) => {
+    if (this.state.focusedRow === row) {
+      this.setState({ focusedRow: null })
+    }
   }
 }

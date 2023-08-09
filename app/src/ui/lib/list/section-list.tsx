@@ -137,6 +137,24 @@ interface ISectionListProps {
     source: IMouseClickSource
   ) => void
 
+  /** This function will be called when a row obtains focus, no matter how */
+  readonly onRowFocus?: (
+    indexPath: RowIndexPath,
+    source: React.FocusEvent<HTMLDivElement>
+  ) => void
+
+  /** This function will be called only when a row obtains focus via keyboard */
+  readonly onRowKeyboardFocus?: (
+    indexPath: RowIndexPath,
+    e: React.KeyboardEvent<any>
+  ) => void
+
+  /** This function will be called when a row loses focus */
+  readonly onRowBlur?: (
+    indexPath: RowIndexPath,
+    source: React.FocusEvent<HTMLDivElement>
+  ) => void
+
   /**
    * This prop defines the behaviour of the selection of items within this list.
    *  - 'single' : (default) single list-item selection. [shift] and [ctrl] have
@@ -749,6 +767,14 @@ export class SectionList extends React.Component<
     e: React.FocusEvent<HTMLDivElement>
   ) => {
     this.focusRow = index
+    this.props.onRowFocus?.(index, e)
+  }
+
+  private onRowKeyboardFocus = (
+    index: RowIndexPath,
+    e: React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    this.props.onRowKeyboardFocus?.(index, e)
   }
 
   private onRowBlur = (
@@ -758,6 +784,7 @@ export class SectionList extends React.Component<
     if (rowIndexPathEquals(this.focusRow, index)) {
       this.focusRow = InvalidRowIndexPath
     }
+    this.props.onRowBlur?.(index, e)
   }
 
   private onRowContextMenu = (
@@ -1140,6 +1167,7 @@ export class SectionList extends React.Component<
           onRowMouseDown={this.onRowMouseDown}
           onRowMouseUp={this.onRowMouseUp}
           onRowFocus={this.onRowFocus}
+          onRowKeyboardFocus={this.onRowKeyboardFocus}
           onRowBlur={this.onRowBlur}
           onContextMenu={this.onRowContextMenu}
           style={params.style}
