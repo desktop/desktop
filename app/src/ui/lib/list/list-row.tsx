@@ -54,13 +54,6 @@ interface IListRowProps {
     e: React.KeyboardEvent<any>
   ) => void
 
-
-  /** callback to fire when the row receives a keyboard event */
-  readonly onRowKeyUp: (
-      index: RowIndexPath,
-      e: React.KeyboardEvent<any>
-  ) => void
-
   /** called when the row (or any of its descendants) receives focus due to a
    * keyboard event
    */
@@ -142,8 +135,6 @@ export class ListRow extends React.Component<IListRowProps, {}> {
   }
 
   private onRowKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    this.props.onRowKeyUp(this.props.rowIndex, e)
-
     if (this.keyboardFocusDetectionState === 'focused') {
       this.props.onRowKeyboardFocus?.(this.props.rowIndex, e)
     }
