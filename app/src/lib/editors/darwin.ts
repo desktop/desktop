@@ -168,6 +168,10 @@ const editors: IDarwinExternalEditor[] = [
     name: 'Zed',
     bundleIdentifiers: ['dev.zed.Zed'],
   },
+  {
+    name: 'Zed (Preview)',
+    bundleIdentifiers: ['dev.zed.Zed-Preview'],
+  },
 ]
 
 async function findApplication(
