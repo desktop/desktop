@@ -117,6 +117,10 @@ export interface IButtonProps {
    */
   readonly ariaLabel?: string
 
+  /** If a button has a sentence type further description than it's label or
+   * contents */
+  readonly ariaDescribedBy?: string
+
   /**
    * Whether to only show the tooltip when the tooltip target overflows its
    * bounds. Typically this is used in conjunction with an ellipsis CSS ruleset.
@@ -187,6 +191,7 @@ export class Button extends React.Component<IButtonProps, {}> {
         aria-expanded={this.props.ariaExpanded}
         aria-disabled={disabled ? 'true' : undefined}
         aria-label={this.props.ariaLabel}
+        aria-describedby={this.props.ariaDescribedBy}
         aria-haspopup={this.props.ariaHaspopup}
         aria-pressed={this.props.ariaPressed}
         autoFocus={this.props.autoFocus}
