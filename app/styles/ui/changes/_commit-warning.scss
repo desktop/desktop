@@ -1,14 +1,12 @@
 @import '../../mixins';
 
 .commit-warning-component {
-  border-top: 1px solid var(--box-border-color);
   flex-direction: column;
   flex-shrink: 0;
-  margin-top: auto;
+  margin-top: var(--spacing-half);
 
   display: flex;
   background-color: var(--box-alt-background-color);
-  padding-top: var(--spacing);
 
   .warning-message {
     margin-bottom: 0;
@@ -27,11 +25,16 @@
     text-align: center;
 
     .warning-icon,
-    .information-icon {
-      color: var(--dialog-warning-color);
+    .information-icon,
+    .error-icon {
+      color: var(--commit-message-icon-error-color);
 
       &.information-icon {
         color: var(--dialog-information-color);
+      }
+
+      &.warning-icon {
+        color: var(--commit-message-icon-warning-color);
       }
 
       background: var(--box-alt-background-color);

@@ -174,3 +174,9 @@ export const supportsAliveSessions = endpointSatisfies({
   ae: false,
   es: false,
 })
+
+export const supportsRepoRules = endpointSatisfies({
+  dotcom: true,
+  ae: false,
+  es: false,
+})

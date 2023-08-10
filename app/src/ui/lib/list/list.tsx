@@ -117,6 +117,24 @@ interface IListProps {
 
   readonly onRowDoubleClick?: (row: number, source: IMouseClickSource) => void
 
+  /** This function will be called when a row obtains focus, no matter how */
+  readonly onRowFocus?: (
+    row: number,
+    event: React.FocusEvent<HTMLDivElement>
+  ) => void
+
+  /** This function will be called only when a row obtains focus via keyboard */
+  readonly onRowKeyboardFocus?: (
+    row: number,
+    e: React.KeyboardEvent<any>
+  ) => void
+
+  /** This function will be called when a row loses focus */
+  readonly onRowBlur?: (
+    row: number,
+    event: React.FocusEvent<HTMLDivElement>
+  ) => void
+
   /**
    * This prop defines the behaviour of the selection of items within this list.
    *  - 'single' : (default) single list-item selection. [shift] and [ctrl] have
@@ -256,6 +274,15 @@ interface IListProps {
 
   /** The aria-label attribute for the list component. */
   readonly ariaLabel?: string
+
+  /**
+   * Optional callback for providing an aria label for screen readers for each
+   * row.
+   *
+   * Note: you may need to apply an aria-hidden attribute to any child text
+   * elements for this to take precedence.
+   */
+  readonly getRowAriaLabel?: (row: number) => string | undefined
 }
 
 interface IListState {
@@ -651,6 +678,15 @@ export class List extends React.Component<IListProps, IListState> {
     e: React.FocusEvent<HTMLDivElement>
   ) => {
     this.focusRow = indexPath.row
+    this.props.onRowFocus?.(indexPath.row, e)
+  }
+
+  private onRowKeyboardFocus = (
+    indexPath: RowIndexPath,
+    e: React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    this.focusRow = indexPath.row
+    this.props.onRowKeyboardFocus?.(indexPath.row, e)
   }
 
   private onRowBlur = (
@@ -660,6 +696,7 @@ export class List extends React.Component<IListProps, IListState> {
     if (this.focusRow === indexPath.row) {
       this.focusRow = -1
     }
+    this.props.onRowBlur?.(indexPath.row, e)
   }
 
   private onRowContextMenu = (
@@ -947,6 +984,11 @@ export class List extends React.Component<IListProps, IListState> {
 
     const id = this.getRowId(rowIndex)
 
+    const ariaLabel =
+      this.props.getRowAriaLabel !== undefined
+        ? this.props.getRowAriaLabel(rowIndex)
+        : undefined
+
     return (
       <ListRow
         key={params.key}
@@ -956,12 +998,14 @@ export class List extends React.Component<IListProps, IListState> {
         rowIndex={{ section: 0, row: rowIndex }}
         sectionHasHeader={false}
         selected={selected}
+        ariaLabel={ariaLabel}
         onRowClick={this.onRowClick}
         onRowDoubleClick={this.onRowDoubleClick}
         onRowKeyDown={this.onRowKeyDown}
         onRowMouseDown={this.onRowMouseDown}
         onRowMouseUp={this.onRowMouseUp}
         onRowFocus={this.onRowFocus}
+        onRowKeyboardFocus={this.onRowKeyboardFocus}
         onRowBlur={this.onRowBlur}
         onContextMenu={this.onRowContextMenu}
         style={params.style}
@@ -1083,6 +1127,9 @@ export class List extends React.Component<IListProps, IListState> {
           height={height}
           columnWidth={width}
           columnCount={1}
+          aria-multiselectable={
+            this.props.selectionMode !== 'single' ? true : undefined
+          }
           rowCount={this.props.rowCount}
           rowHeight={this.props.rowHeight}
           cellRenderer={this.renderRow}

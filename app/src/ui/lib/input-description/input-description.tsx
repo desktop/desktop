@@ -3,6 +3,7 @@ import { Octicon } from '../../octicons'
 import * as OcticonSymbol from '../../octicons/octicons.generated'
 import classNames from 'classnames'
 import { AriaLiveContainer } from '../../accessibility/aria-live-container'
+import { assertNever } from '../../../lib/fatal-error'
 
 export enum InputDescriptionType {
   Caption,
@@ -27,6 +28,8 @@ export interface IBaseInputDescriptionProps {
    * debounce the message.
    */
   readonly trackedUserInput?: string | boolean
+
+  readonly ariaLiveMessage?: string
 }
 
 export interface IInputDescriptionProps extends IBaseInputDescriptionProps {
@@ -47,45 +50,51 @@ export interface IInputDescriptionProps extends IBaseInputDescriptionProps {
  */
 export class InputDescription extends React.Component<IInputDescriptionProps> {
   private getClassName() {
-    let typeClassName = 'input-description-caption'
+    const { inputDescriptionType: type } = this.props
 
-    if (InputDescriptionType.Warning) {
-      typeClassName = 'input-description-warning'
+    switch (type) {
+      case InputDescriptionType.Caption:
+        return classNames('input-description', 'input-description-caption')
+      case InputDescriptionType.Warning:
+        return classNames('input-description', 'input-description-warning')
+      case InputDescriptionType.Error:
+        return classNames('input-description', 'input-description-error')
+      default:
+        return assertNever(type, `Unknown input type  ${type}`)
     }
-
-    if (InputDescriptionType.Error) {
-      typeClassName = 'input-description-error'
-    }
-
-    return classNames('input-description', typeClassName)
   }
 
   private renderIcon() {
-    if (InputDescriptionType.Error) {
-      return <Octicon symbol={OcticonSymbol.stop} />
-    }
+    const { inputDescriptionType: type } = this.props
 
-    if (InputDescriptionType.Warning) {
-      return <Octicon symbol={OcticonSymbol.alert} />
+    switch (type) {
+      case InputDescriptionType.Caption:
+        return null
+      case InputDescriptionType.Warning:
+        return <Octicon symbol={OcticonSymbol.alert} />
+      case InputDescriptionType.Error:
+        return <Octicon symbol={OcticonSymbol.stop} />
+      default:
+        return assertNever(type, `Unknown input type  ${type}`)
     }
-
-    return null
   }
 
   /** If a input is a warning or an error that is displayed in response to
    * tracked user input. We want it announced on user input debounce. */
   private renderAriaLiveContainer() {
     if (
-      InputDescriptionType.Caption ||
-      this.props.trackedUserInput === undefined
+      this.props.inputDescriptionType === InputDescriptionType.Caption ||
+      this.props.trackedUserInput === undefined ||
+      this.props.ariaLiveMessage === undefined
     ) {
       return null
     }
 
     return (
-      <AriaLiveContainer trackedUserInput={this.props.trackedUserInput}>
-        {this.props.children}
-      </AriaLiveContainer>
+      <AriaLiveContainer
+        message={this.props.ariaLiveMessage}
+        trackedUserInput={this.props.trackedUserInput}
+      />
     )
   }
 
@@ -95,7 +104,7 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
    * */
   private getRole() {
     if (
-      InputDescriptionType.Error &&
+      this.props.inputDescriptionType === InputDescriptionType.Error &&
       this.props.trackedUserInput === undefined
     ) {
       return 'alert'

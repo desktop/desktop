@@ -19,7 +19,8 @@ describe('emails', () => {
         [],
         '',
         1234,
-        'Caps Lock'
+        'Caps Lock',
+        'free'
       )
 
       expect(lookupPreferredEmail(account)).toBe(
@@ -35,7 +36,8 @@ describe('emails', () => {
         [],
         '',
         1234,
-        'Caps Lock'
+        'Caps Lock',
+        'free'
       )
 
       expect(lookupPreferredEmail(account)).toBe(
@@ -72,7 +74,8 @@ describe('emails', () => {
         emails,
         '',
         -1,
-        'Caps Lock'
+        'Caps Lock',
+        'free'
       )
 
       expect(lookupPreferredEmail(account)).toBe('my-primary-email@example.com')
@@ -107,7 +110,8 @@ describe('emails', () => {
         emails,
         '',
         -1,
-        'Caps Lock'
+        'Caps Lock',
+        'free'
       )
 
       expect(lookupPreferredEmail(account)).toBe('my-primary-email@example.com')
@@ -142,7 +146,8 @@ describe('emails', () => {
         emails,
         '',
         -1,
-        'Caps Lock'
+        'Caps Lock',
+        'free'
       )
 
       expect(lookupPreferredEmail(account)).toBe(
@@ -179,7 +184,8 @@ describe('emails', () => {
         emails,
         '',
         -1,
-        'Caps Lock'
+        'Caps Lock',
+        'free'
       )
 
       expect(lookupPreferredEmail(account)).toBe(
@@ -210,7 +216,8 @@ describe('emails', () => {
         emails,
         '',
         -1,
-        'Caps Lock'
+        'Caps Lock',
+        'free'
       )
 
       expect(lookupPreferredEmail(account)).toBe('shiftkey@example.com')
@@ -241,7 +248,16 @@ describe('emails', () => {
       ]
 
       const endpoint = getDotComAPIEndpoint()
-      const account = new Account('niik', endpoint, '', emails, '', 123, '')
+      const account = new Account(
+        'niik',
+        endpoint,
+        '',
+        emails,
+        '',
+        123,
+        '',
+        'free'
+      )
 
       expect(isAttributableEmailFor(account, 'personal@gmail.com')).toBeTrue()
       expect(isAttributableEmailFor(account, 'company@github.com')).toBeTrue()
@@ -255,7 +271,7 @@ describe('emails', () => {
 
     it('considers stealth emails when account has no emails', () => {
       const endpoint = getDotComAPIEndpoint()
-      const account = new Account('niik', endpoint, '', [], '', 123, '')
+      const account = new Account('niik', endpoint, '', [], '', 123, '', 'free')
 
       expect(
         isAttributableEmailFor(account, 'niik@users.noreply.github.com')
@@ -267,7 +283,7 @@ describe('emails', () => {
 
     it('considers stealth emails for GitHub Enterprise', () => {
       const endpoint = getDotComAPIEndpoint()
-      const account = new Account('niik', endpoint, '', [], '', 123, '')
+      const account = new Account('niik', endpoint, '', [], '', 123, '', 'free')
 
       expect(
         isAttributableEmailFor(account, 'niik@users.noreply.github.com')
@@ -292,7 +308,8 @@ describe('emails', () => {
         ],
         '',
         123,
-        ''
+        '',
+        'free'
       )
 
       expect(isAttributableEmailFor(account, 'niik@github.com')).toBeTrue()

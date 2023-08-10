@@ -31,7 +31,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --button-text-color: #{$white};
   --button-focus-border-color: #{$blue-100};
 
-  --link-button-color: #{$blue};
+  --link-button-color: #{lighten($blue, 5%)};
   --link-button-hover-color: #{$blue-600};
   --link-button-selected-hover-color: #{$blue-200};
 
@@ -49,6 +49,15 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    */
   --badge-icon-color: #{$white};
   --warning-badge-icon-color: #{$orange};
+
+  // Colors used for icons that are inside an input box
+  --input-icon-warning-color: #{$yellow-800};
+  --input-icon-error-color: #{$red-600};
+  --input-icon-hover-background-color: #{$gray-100};
+
+  // Colors used for icons in the commit message warning/error area
+  --commit-message-icon-warning-color: var(--input-icon-warning-color);
+  --commit-message-icon-error-color: var(--input-icon-error-color);
 
   // Typography
   //
@@ -190,11 +199,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --co-author-tag-border-color: #{$blue-200};
 
   /**
-   * Author input (co-authors)
+   * Commit warning badge icon
    */
   --commit-warning-badge-background-color: #{$gray-000};
-  --commit-warning-badge-border-color: #{$gray-300};
-  --commit-warning-badge-icon-color: var(--warning-badge-icon-color);
+  --commit-warning-badge-border: #{$gray-300};
 
   /**
    * The height of the title bar area on Win32 platforms
@@ -431,6 +439,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --form-error-background: #{$red-100};
   --form-error-border-color: #{$red-200};
   --form-error-text-color: #{$red-800};
+
+  // Inline form errors, displayed after the input field
+  --input-warning-text-color: var(--dialog-warning-color);
+  --input-error-text-color: #{$red-800};
 
   /** Overlay is used as a background for both modals and foldouts */
   --overlay-background-color: #{$overlay-background-color};

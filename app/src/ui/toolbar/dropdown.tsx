@@ -208,6 +208,12 @@ export interface IToolbarDropdownProps {
    * Such as when a button wraps an image and there is no text.
    */
   readonly ariaLabel?: string
+
+  /** Whether or not the focus trap should return focus to the activating button  */
+  readonly returnFocusOnDeactivate?: boolean
+
+  /** Callback fro when the focus trap deactivates */
+  readonly onDropdownFocusTrapDeactivate?: () => void
 }
 
 interface IToolbarDropdownState {
@@ -236,6 +242,8 @@ export class ToolbarDropdown extends React.Component<
       // we would lose the "source" of the event (keyboard vs pointer).
       clickOutsideDeactivates: false,
       escapeDeactivates: false,
+      returnFocusOnDeactivate: this.props.returnFocusOnDeactivate,
+      onDeactivate: this.props.onDropdownFocusTrapDeactivate,
     }
   }
 

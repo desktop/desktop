@@ -16,6 +16,13 @@ import { OkCancelButtonGroup } from '../dialog'
 import { getConfigValue } from '../../lib/git/config'
 import { Repository } from '../../models/repository'
 import classNames from 'classnames'
+import { RepoRulesMetadataFailures } from '../../models/repo-rules'
+import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-failure-list'
+
+export type CommitMessageAvatarWarningType =
+  | 'none'
+  | 'misattribution'
+  | 'disallowedEmail'
 
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
@@ -34,8 +41,26 @@ interface ICommitMessageAvatarProps {
   /** Current email address configured by the user. */
   readonly email?: string
 
-  /** Whether or not the warning badge on the avatar should be visible. */
-  readonly warningBadgeVisible: boolean
+  /**
+   * Controls whether a warning should be displayed.
+   * - 'none': No error is displayed, the field is valid.
+   * - 'misattribution': The user's Git config emails don't match and the
+   * commit may not be attributed to the user.
+   * - 'disallowedEmail': A repository rule may prevent the user from
+   * committing with the selected email address.
+   */
+  readonly warningType: CommitMessageAvatarWarningType
+
+  /**
+   * List of validations that failed for repo rules. Only used if
+   * {@link warningType} is 'disallowedEmail'.
+   */
+  readonly emailRuleFailures?: RepoRulesMetadataFailures
+
+  /**
+   * Name of the current branch
+   */
+  readonly branch: string | null
 
   /** Whether or not the user's account is a GHE account. */
   readonly isEnterpriseAccount: boolean
@@ -114,14 +139,25 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   public render() {
-    const { warningBadgeVisible, user } = this.props
+    const { warningType, user } = this.props
 
-    const ariaLabel = warningBadgeVisible
-      ? 'Commit may be misattributed. View warning.'
-      : 'View commit author information'
+    let ariaLabel = ''
+    switch (warningType) {
+      case 'none':
+        ariaLabel = 'View commit author information'
+        break
+
+      case 'misattribution':
+        ariaLabel = 'Commit may be misattributed. View warning.'
+        break
+
+      case 'disallowedEmail':
+        ariaLabel = 'Email address is disallowed. View warning.'
+        break
+    }
 
     const classes = classNames('commit-message-avatar-component', {
-      misattributed: warningBadgeVisible,
+      misattributed: warningType !== 'none',
     })
 
     return (
@@ -132,7 +168,7 @@ export class CommitMessageAvatar extends React.Component<
           onButtonRef={this.onButtonRef}
           onClick={this.onAvatarClick}
         >
-          {warningBadgeVisible && this.renderWarningBadge()}
+          {warningType !== 'none' && this.renderWarningBadge()}
           <Avatar user={user} title={null} />
         </Button>
         {this.state.isPopoverOpen && this.renderPopover()}
@@ -141,9 +177,21 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   private renderWarningBadge() {
+    const { warningType, emailRuleFailures } = this.props
+
+    // the parent component only renders this one if an error/warning is present, so we
+    // only need to check which of the two it is here
+    const isError =
+      warningType === 'disallowedEmail' && emailRuleFailures?.status === 'fail'
+    const classes = classNames('warning-badge', {
+      error: isError,
+      warning: !isError,
+    })
+    const symbol = isError ? OcticonSymbol.stop : OcticonSymbol.alert
+
     return (
-      <div className="warning-badge" ref={this.warningBadgeRef}>
-        <Octicon symbol={OcticonSymbol.alert} />
+      <div className={classes} ref={this.warningBadgeRef}>
+        <Octicon symbol={symbol} />
       </div>
     )
   }
@@ -216,33 +264,20 @@ export class CommitMessageAvatar extends React.Component<
     )
   }
 
-  private renderMisattributedCommitPopover() {
-    const accountTypeSuffix = this.props.isEnterpriseAccount
-      ? ' Enterprise'
-      : ''
+  private renderWarningPopover() {
+    const { warningType, emailRuleFailures } = this.props
 
     const updateEmailTitle = __DARWIN__ ? 'Update Email' : 'Update email'
 
-    const userName =
-      this.props.user && this.props.user.name
-        ? ` for ${this.props.user.name}`
-        : ''
-
-    return (
+    const sharedHeader = (
       <>
-        <Row>
-          <div>
-            The email in your global Git config (
-            <span className="git-email">{this.props.email}</span>) doesn't match
-            your GitHub{accountTypeSuffix} account{userName}.{' '}
-            <LinkButton
-              ariaLabel="Learn more about commit attribution"
-              uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
-            >
-              Learn more
-            </LinkButton>
-          </div>
-        </Row>
+        The email in your global Git config (
+        <span className="git-email">{this.props.email}</span>)
+      </>
+    )
+
+    const sharedFooter = (
+      <>
         <Row>
           <Select
             label="Your Account Emails"
@@ -275,6 +310,54 @@ export class CommitMessageAvatar extends React.Component<
         </Row>
       </>
     )
+
+    if (warningType === 'misattribution') {
+      const accountTypeSuffix = this.props.isEnterpriseAccount
+        ? ' Enterprise'
+        : ''
+
+      const userName =
+        this.props.user && this.props.user.name
+          ? ` for ${this.props.user.name}`
+          : ''
+
+      return (
+        <>
+          <Row>
+            <div>
+              {sharedHeader} doesn't match your GitHub{accountTypeSuffix}{' '}
+              account{userName}.{' '}
+              <LinkButton
+                ariaLabel="Learn more about commit attribution"
+                uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
+              >
+                Learn more
+              </LinkButton>
+            </div>
+          </Row>
+          {sharedFooter}
+        </>
+      )
+    } else if (
+      warningType === 'disallowedEmail' &&
+      emailRuleFailures &&
+      this.props.branch &&
+      this.props.repository.gitHubRepository
+    ) {
+      return (
+        <>
+          <RepoRulesMetadataFailureList
+            repository={this.props.repository.gitHubRepository}
+            branch={this.props.branch}
+            failures={emailRuleFailures}
+            leadingText={sharedHeader}
+          />
+          {sharedFooter}
+        </>
+      )
+    }
+
+    return
   }
 
   private getCommittingAsTitle(): string | JSX.Element | undefined {
@@ -298,12 +381,27 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   private renderPopover() {
-    const { warningBadgeVisible } = this.props
+    const { warningType } = this.props
+
+    let header: string | JSX.Element | undefined = ''
+    switch (this.props.warningType) {
+      case 'misattribution':
+        header = 'This commit will be misattributed'
+        break
+
+      case 'disallowedEmail':
+        header = 'This email address is disallowed'
+        break
+
+      default:
+        header = this.getCommittingAsTitle()
+        break
+    }
 
     return (
       <Popover
         anchor={
-          warningBadgeVisible
+          warningType !== 'none'
             ? this.warningBadgeRef.current
             : this.avatarButtonRef
         }
@@ -312,14 +410,10 @@ export class CommitMessageAvatar extends React.Component<
         onClickOutside={this.closePopover}
         ariaLabelledby="commit-avatar-popover-header"
       >
-        <h3 id="commit-avatar-popover-header">
-          {warningBadgeVisible
-            ? 'This commit will be misattributed'
-            : this.getCommittingAsTitle()}
-        </h3>
+        <h3 id="commit-avatar-popover-header">{header}</h3>
 
-        {warningBadgeVisible
-          ? this.renderMisattributedCommitPopover()
+        {warningType !== 'none'
+          ? this.renderWarningPopover()
           : this.renderGitConfigPopover()}
       </Popover>
     )

@@ -60,10 +60,10 @@ jobs:
       fail-fast: false
       matrix:
         node: [18.14.0]
-        os: [macos-11, windows-2019]
+        os: [macos-13-xl-arm64, windows-2019]
         arch: [x64, arm64]
         include:
-          - os: macos-11
+          - os: macos-13-xl-arm64
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
@@ -87,9 +87,7 @@ jobs:
       - name: Get NodeJS node-gyp lib for Windows arm64
         if: ${{ matrix.os == 'windows-2019' && matrix.arch == 'arm64' }}
         run: .\script\download-nodejs-win-arm64.ps1 ${{ matrix.node }}
-      - name: Get app version
-        id: version
-        run: echo version=$(jq -r ".version" app/package.json) >> $GITHUB_OUTPUT
+
       - name: Install and build dependencies
         run: yarn
         env:
@@ -110,6 +108,8 @@ jobs:
       - name: Prepare testing environment
         if: matrix.arch == 'x64'
         run: yarn test:setup
+        env:
+          npm_config_arch: ${{ matrix.arch }}
       - name: Run unit tests
         if: matrix.arch == 'x64'
         run: yarn test:unit
@@ -134,8 +134,7 @@ jobs:
           name: ${{matrix.friendlyName}}-${{matrix.arch}}
           path: |
             dist/GitHub Desktop-${{matrix.arch}}.zip
-            dist/GitHubDesktop-${{ steps.version.outputs.version }}-${{matrix.arch}}-full.nupkg
-            dist/GitHubDesktop-${{ steps.version.outputs.version }}-${{matrix.arch}}-delta.nupkg
+            dist/GitHubDesktop-*.nupkg
             dist/GitHubDesktopSetup-${{matrix.arch}}.exe
             dist/GitHubDesktopSetup-${{matrix.arch}}.msi
             dist/bundle-size.json

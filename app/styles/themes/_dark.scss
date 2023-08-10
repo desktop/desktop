@@ -10,6 +10,9 @@
 // See https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme
 // https://www.electronjs.org/docs/api/native-theme#nativethemethemesource
 
+// This blue passes WCAG 2 guidelines with $gray-100 fg and $gray-900 bg.
+$link-color: #2e8fff;
+
 body.theme-dark {
   --color-new: #{$green};
   --color-deleted: #{$red};
@@ -17,7 +20,7 @@ body.theme-dark {
   --color-renamed: #{$blue};
   --color-conflicted: #{$orange};
 
-  --text-color: #{$gray-300};
+  --text-color: #{$gray-100};
   --text-secondary-color: #{$gray-400};
   --text-secondary-color-muted: #{darken($gray-500, 10%)};
   --background-color: #{$gray-900};
@@ -27,9 +30,9 @@ body.theme-dark {
   --button-text-color: #{$white};
   --button-focus-border-color: #{$blue-600};
 
-  --link-button-color: #{lighten($blue-400, 3%)};
-  --link-button-hover-color: #{$blue-400};
-  --link-button-selected-hover-color: #{$blue-300};
+  --link-button-color: #{$link-color};
+  --link-button-hover-color: #{lighten($link-color, 3%)};
+  --link-button-selected-hover-color: #{$link-color};
 
   --secondary-button-background: #{$gray-800};
   --secondary-button-border-color: var(--box-border-contrast-color);
@@ -44,6 +47,15 @@ body.theme-dark {
    * (like a circle badge icon)
    */
   --badge-icon-color: #{$gray-300};
+
+  // Colors used for icons that are inside an input box
+  --input-icon-warning-color: #{$yellow-600};
+  --input-icon-error-color: #{$red-400};
+  --input-icon-hover-background-color: #{$gray-800};
+
+  // Colors used for icons in the commit message warning/error area
+  --commit-message-icon-warning-color: var(--input-icon-warning-color);
+  --commit-message-icon-error-color: var(--input-icon-error-color);
 
   /**
    * Background color for custom scroll bars.
@@ -150,6 +162,12 @@ body.theme-dark {
    */
   --co-author-tag-background-color: #{$blue-800};
   --co-author-tag-border-color: #{$blue-700};
+
+  /**
+   * Commit warning badge icon
+   */
+  --commit-warning-badge-background-color: #{$gray-900};
+  --commit-warning-badge-border-color: #{$gray-700};
 
   --base-border: 1px solid var(--box-border-color);
   --contrast-border: 1px solid var(--box-border-contrast-color);
@@ -324,6 +342,10 @@ body.theme-dark {
   --form-error-background: #{darken($red-900, 3%)};
   --form-error-border-color: #{$red-900};
   --form-error-text-color: var(--text-color);
+
+  // Inline form errors, displayed after the input field
+  --input-warning-text-color: var(--dialog-warning-color);
+  --input-error-text-color: #{$red-300};
 
   /** Overlay is used as a background for both modals and foldouts */
   --overlay-background-color: rgba(0, 0, 0, 0.5);

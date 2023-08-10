@@ -291,12 +291,9 @@ export class BranchList extends React.Component<
   }
 
   private getGroupAriaLabel = (group: number) => {
-    const GroupIdentifiers: ReadonlyArray<BranchGroupIdentifier> = [
-      'default',
-      'recent',
-      'other',
-    ]
-    return this.getGroupLabel(GroupIdentifiers[group])
+    const identifier = this.state.groups[group]
+      .identifier as BranchGroupIdentifier
+    return this.getGroupLabel(identifier)
   }
 
   private renderGroupHeader = (label: string) => {
