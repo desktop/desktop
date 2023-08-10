@@ -49,8 +49,9 @@ export class StashDiffHeader extends React.Component<
             cancelButtonText="Discard"
             cancelButtonDisabled={isRestoring || isDiscarding}
             onCancelButtonClick={this.onDiscardClick}
+            okButtonAriaDescribedBy="restore-description"
           />
-          <div className="explanatory-text">
+          <div className="explanatory-text" id="restore-description">
             <span className="text">
               <strong>Restore</strong> will move your stashed files to the
               Changes list.
