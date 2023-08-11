@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.2.8-beta4": [
+      "[Fixed] Fix selecting/deselecting changed files with the keyboard - #17207. Thanks @koenpunt!",
+      "[Improved] The stash restore button's description is associated to the restore button - #17204",
+      "[Improved] The delete branch dialog's contents are announced as alert dialogs. - #17210"
+    ],
     "3.2.8-beta3": [
       "[Added] Add Zed Preview as an external editor option - #17097. Thanks @filiptronicek!",
       "[Added] Add support for Pulsar code editor on Windows - #17120. Thanks @confused-Techie!",
