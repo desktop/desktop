@@ -1,4 +1,4 @@
-import { RE2, RE2JS } from 're2js'
+import { RE2JS } from 're2js'
 import {
   RepoRulesInfo,
   IRepoRulesMetadataRule,
@@ -174,7 +174,7 @@ function toMatcher(
     return () => false
   }
 
-  let regex: RE2
+  let regex: RE2JS
 
   switch (rule.operator) {
     case APIRepoRuleMetadataOperator.StartsWith:
