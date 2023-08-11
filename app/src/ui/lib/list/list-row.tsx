@@ -135,8 +135,6 @@ export class ListRow extends React.Component<IListRowProps, {}> {
   }
 
   private onRowKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    this.props.onRowKeyDown(this.props.rowIndex, e)
-
     if (this.keyboardFocusDetectionState === 'focused') {
       this.props.onRowKeyboardFocus?.(this.props.rowIndex, e)
     }
