@@ -17,7 +17,6 @@ import { DiffHunkExpansionType } from '../../models/diff'
 import { DiffExpansionKind } from './text-diff-expansion'
 import { PopoverAnchorPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
-import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
 import { Button } from '../lib/button'
 

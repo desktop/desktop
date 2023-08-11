@@ -127,6 +127,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      outline-offset: 0;
     }
 
     width: var(--width-line-number);
