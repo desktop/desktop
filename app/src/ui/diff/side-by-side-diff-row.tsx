@@ -19,6 +19,7 @@ import { PopoverAnchorPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
+import { Button } from '../lib/button'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -419,17 +420,14 @@ export class SideBySideDiffRow extends React.Component<
         className="hunk-expansion-handle selectable hoverable"
         style={{ width: this.lineGutterWidth }}
       >
-        <button
+        <Button
           onClick={elementInfo.handler}
           onContextMenu={this.props.onContextMenuExpandHunk}
+          tooltip={elementInfo.title}
+          toolTipDirection={TooltipDirection.SOUTH}
         >
-          <TooltippedContent
-            direction={TooltipDirection.SOUTH}
-            tooltip={elementInfo.title}
-          >
-            <Octicon symbol={elementInfo.icon} />
-          </TooltippedContent>
-        </button>
+          <Octicon symbol={elementInfo.icon} />
+        </Button>
       </div>
     )
   }
