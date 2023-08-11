@@ -400,10 +400,11 @@ export class SideBySideDiffRow extends React.Component<
       return (
         <div
           className="hunk-expansion-handle"
-          onContextMenu={this.props.onContextMenuExpandHunk}
           style={{ width: this.lineGutterWidth }}
         >
-          <span></span>
+          <button onContextMenu={this.props.onContextMenuExpandHunk}>
+            <span></span>
+          </button>
         </div>
       )
     }
@@ -414,19 +415,21 @@ export class SideBySideDiffRow extends React.Component<
     )
 
     return (
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
       <div
         className="hunk-expansion-handle selectable hoverable"
-        onClick={elementInfo.handler}
         style={{ width: this.lineGutterWidth }}
-        onContextMenu={this.props.onContextMenuExpandHunk}
       >
-        <TooltippedContent
-          direction={TooltipDirection.SOUTH}
-          tooltip={elementInfo.title}
+        <button
+          onClick={elementInfo.handler}
+          onContextMenu={this.props.onContextMenuExpandHunk}
         >
-          <Octicon symbol={elementInfo.icon} />
-        </TooltippedContent>
+          <TooltippedContent
+            direction={TooltipDirection.SOUTH}
+            tooltip={elementInfo.title}
+          >
+            <Octicon symbol={elementInfo.icon} />
+          </TooltippedContent>
+        </button>
       </div>
     )
   }

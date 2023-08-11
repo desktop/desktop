@@ -108,6 +108,21 @@
   }
 
   .row .hunk-expansion-handle {
+    button {
+      overflow: inherit;
+      text-overflow: inherit;
+      white-space: inherit;
+      font-family: inherit;
+      font-size: inherit;
+      padding: inherit;
+      border: none;
+      height: inherit;
+      color: inherit;
+      background-color: inherit;
+      width: 100%;
+      margin: 1px;
+    }
+
     width: var(--width-line-number);
     flex-shrink: 0;
     background: var(--diff-hunk-background-color);
