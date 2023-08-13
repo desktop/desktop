@@ -60,6 +60,7 @@ export enum PopupType {
   StashAndSwitchBranch = 'StashAndSwitchBranch',
   ConfirmOverwriteStash = 'ConfirmOverwriteStash',
   ConfirmDiscardStash = 'ConfirmDiscardStash',
+  ConfirmCheckoutCommit = 'ConfirmCheckoutCommit',
   CreateTutorialRepository = 'CreateTutorialRepository',
   ConfirmExitTutorial = 'ConfirmExitTutorial',
   PushRejectedDueToMissingWorkflowScope = 'PushRejectedDueToMissingWorkflowScope',
@@ -93,6 +94,7 @@ export enum PopupType {
   TestNotifications = 'TestNotifications',
   PullRequestComment = 'PullRequestComment',
   UnknownAuthors = 'UnknownAuthors',
+  ConfirmRepoRulesBypass = 'ConfirmRepoRulesBypass',
 }
 
 interface IBasePopup {
@@ -233,6 +235,11 @@ export type PopupDetail =
       type: PopupType.ConfirmDiscardStash
       repository: Repository
       stash: IStashEntry
+    }
+  | {
+      type: PopupType.ConfirmCheckoutCommit
+      repository: Repository
+      commit: CommitOneLine
     }
   | {
       type: PopupType.CreateTutorialRepository
@@ -408,6 +415,12 @@ export type PopupDetail =
       type: PopupType.UnknownAuthors
       authors: ReadonlyArray<UnknownAuthor>
       onCommit: () => void
+    }
+  | {
+      type: PopupType.ConfirmRepoRulesBypass
+      repository: GitHubRepository
+      branch: string
+      onConfirm: () => void
     }
 
 export type Popup = IBasePopup & PopupDetail

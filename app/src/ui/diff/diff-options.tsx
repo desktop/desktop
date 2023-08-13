@@ -3,7 +3,13 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RadioButton } from '../lib/radio-button'
-import { Popover, PopoverCaretPosition } from '../lib/popover'
+import {
+  Popover,
+  PopoverAnchorPosition,
+  PopoverDecoration,
+} from '../lib/popover'
+import { Tooltip, TooltipDirection } from '../lib/tooltip'
+import { createObservableRef } from '../lib/observable-ref'
 
 interface IDiffOptionsProps {
   readonly isInteractiveDiff: boolean
@@ -27,7 +33,9 @@ export class DiffOptions extends React.Component<
   IDiffOptionsProps,
   IDiffOptionsState
 > {
+  private innerButtonRef = createObservableRef<HTMLButtonElement>()
   private diffOptionsRef = React.createRef<HTMLDivElement>()
+  private gearIconRef = React.createRef<HTMLSpanElement>()
 
   public constructor(props: IDiffOptionsProps) {
     super(props)
@@ -74,10 +82,24 @@ export class DiffOptions extends React.Component<
   }
 
   public render() {
+    const buttonLabel = `Diff ${__DARWIN__ ? 'Settings' : 'Options'}`
     return (
       <div className="diff-options-component" ref={this.diffOptionsRef}>
-        <button onClick={this.onButtonClick}>
-          <Octicon symbol={OcticonSymbol.gear} />
+        <button
+          aria-label={buttonLabel}
+          onClick={this.onButtonClick}
+          aria-expanded={this.state.isPopoverOpen}
+          ref={this.innerButtonRef}
+        >
+          <Tooltip
+            target={this.innerButtonRef}
+            direction={TooltipDirection.NORTH}
+          >
+            {buttonLabel}
+          </Tooltip>
+          <span ref={this.gearIconRef}>
+            <Octicon symbol={OcticonSymbol.gear} />
+          </span>
           <Octicon symbol={OcticonSymbol.triangleDown} />
         </button>
         {this.state.isPopoverOpen && this.renderPopover()}
@@ -89,11 +111,13 @@ export class DiffOptions extends React.Component<
     return (
       <Popover
         ariaLabelledby="diff-options-popover-header"
-        caretPosition={PopoverCaretPosition.TopRight}
+        anchor={this.gearIconRef.current}
+        anchorPosition={PopoverAnchorPosition.BottomRight}
+        decoration={PopoverDecoration.Balloon}
         onClickOutside={this.closePopover}
       >
         <h3 id="diff-options-popover-header">
-          Diff {__DARWIN__ ? 'Preferences' : 'Options'}
+          Diff {__DARWIN__ ? 'Settings' : 'Options'}
         </h3>
         {this.renderHideWhitespaceChanges()}
         {this.renderShowSideBySide()}
@@ -110,8 +134,8 @@ export class DiffOptions extends React.Component<
 
   private renderShowSideBySide() {
     return (
-      <section>
-        <h4>Diff display</h4>
+      <fieldset role="radiogroup">
+        <legend>Diff display</legend>
         <RadioButton
           value="Unified"
           checked={!this.props.showSideBySideDiff}
@@ -128,14 +152,14 @@ export class DiffOptions extends React.Component<
           }
           onSelected={this.onSideBySideSelected}
         />
-      </section>
+      </fieldset>
     )
   }
 
   private renderHideWhitespaceChanges() {
     return (
-      <section>
-        <h4>Whitespace</h4>
+      <fieldset>
+        <legend>Whitespace</legend>
         <Checkbox
           value={
             this.props.hideWhitespaceChanges
@@ -153,7 +177,7 @@ export class DiffOptions extends React.Component<
             hiding whitespace.
           </p>
         )}
-      </section>
+      </fieldset>
     )
   }
 }

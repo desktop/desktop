@@ -25,6 +25,13 @@ interface ITooltippedContentProps
 
   /** Open on target focus */
   readonly openOnFocus?: boolean
+
+  /** Whether or not an ancestor component is focused, used in case we want
+   * the tooltip to be shown when it's focused. Examples of this are how we
+   * want to show the tooltip for file status icons when files in the file
+   * list are focused.
+   */
+  readonly ancestorFocused?: boolean
 }
 
 /**
@@ -48,7 +55,6 @@ export class TooltippedContent extends React.Component<ITooltippedContentProps> 
             <Tooltip
               target={this.wrapperRef}
               className={tooltipClassName}
-              openOnFocus={this.props.openOnFocus}
               {...rest}
             >
               {tooltip}

@@ -55,6 +55,8 @@ import { TooltipDirection } from '../lib/tooltip'
 import { Popup } from '../../models/popup'
 import { EOL } from 'os'
 import { TooltippedContent } from '../lib/tooltipped-content'
+import { RepoRulesInfo } from '../../models/repo-rules'
+import { IAheadBehind } from '../../models/branch'
 
 const RowHeight = 29
 const StashIcon: OcticonSymbol.OcticonSymbolType = {
@@ -146,11 +148,19 @@ interface IChangesListProps {
   readonly changesListScrollTop?: number
 
   /**
-   * Called to open a file it its default application
+   * Called to open a file in its default application
    *
    * @param path The path of the file relative to the root of the repository
    */
   readonly onOpenItem: (path: string) => void
+
+  /**
+   * Called to open a file in the default external editor
+   *
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenItemInExternalEditor: (path: string) => void
+
   /**
    * The currently checked out branch (null if no branch is checked out).
    */
@@ -161,6 +171,8 @@ interface IChangesListProps {
   readonly isCommitting: boolean
   readonly commitToAmend: Commit | null
   readonly currentBranchProtected: boolean
+  readonly currentRepoRulesInfo: RepoRulesInfo
+  readonly aheadBehind: IAheadBehind | null
 
   /**
    * Click event handler passed directly to the onRowClick prop of List, see
@@ -196,13 +208,6 @@ interface IChangesListProps {
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
 
-  /**
-   * Callback to open a selected file using the configured external editor
-   *
-   * @param fullPath The full path to the file on disk
-   */
-  readonly onOpenInExternalEditor: (fullPath: string) => void
-
   readonly stashEntry: IStashEntry | null
 
   readonly isShowingStashEntry: boolean
@@ -218,6 +223,7 @@ interface IChangesListProps {
 
 interface IChangesState {
   readonly selectedRows: ReadonlyArray<number>
+  readonly focusedRow: number | null
 }
 
 function getSelectedRowsFromProps(
@@ -247,6 +253,7 @@ export class ChangesList extends React.Component<
     super(props)
     this.state = {
       selectedRows: getSelectedRowsFromProps(props),
+      focusedRow: null,
     }
   }
 
@@ -324,6 +331,7 @@ export class ChangesList extends React.Component<
         availableWidth={availableWidth}
         disableSelection={disableSelection}
         checkboxTooltip={checkboxTooltip}
+        focused={this.state.focusedRow === row}
       />
     )
   }
@@ -493,7 +501,7 @@ export class ChangesList extends React.Component<
     file: WorkingDirectoryFileChange,
     enabled: boolean
   ): IMenuItem => {
-    const { externalEditorLabel, repository } = this.props
+    const { externalEditorLabel } = this.props
 
     const openInExternalEditor = externalEditorLabel
       ? `Open in ${externalEditorLabel}`
@@ -502,8 +510,7 @@ export class ChangesList extends React.Component<
     return {
       label: openInExternalEditor,
       action: () => {
-        const fullPath = Path.join(repository.path, file.path)
-        this.props.onOpenInExternalEditor(fullPath)
+        this.props.onOpenItemInExternalEditor(file.path)
       },
       enabled,
     }
@@ -732,6 +739,7 @@ export class ChangesList extends React.Component<
       isCommitting,
       commitToAmend,
       currentBranchProtected,
+      currentRepoRulesInfo: currentRepoRulesInfo,
     } = this.props
 
     if (rebaseConflictState !== null) {
@@ -784,6 +792,7 @@ export class ChangesList extends React.Component<
         branch={this.props.branch}
         mostRecentLocalCommit={this.props.mostRecentLocalCommit}
         commitAuthor={this.props.commitAuthor}
+        dispatcher={this.props.dispatcher}
         isShowingModal={this.props.isShowingModal}
         isShowingFoldout={this.props.isShowingFoldout}
         anyFilesSelected={anyFilesSelected}
@@ -804,6 +813,8 @@ export class ChangesList extends React.Component<
         prepopulateCommitSummary={prepopulateCommitSummary}
         key={repository.id}
         showBranchProtected={fileCount > 0 && currentBranchProtected}
+        repoRulesInfo={currentRepoRulesInfo}
+        aheadBehind={this.props.aheadBehind}
         showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
@@ -901,6 +912,12 @@ export class ChangesList extends React.Component<
     )
   }
 
+  private onRowDoubleClick = (row: number) => {
+    const file = this.props.workingDirectory.files[row]
+
+    this.props.onOpenItemInExternalEditor(file.path)
+  }
+
   private onRowKeyDown = (
     _row: number,
     event: React.KeyboardEvent<HTMLDivElement>
@@ -979,8 +996,12 @@ export class ChangesList extends React.Component<
             invalidationProps={{
               workingDirectory: workingDirectory,
               isCommitting: isCommitting,
+              focusedRow: this.state.focusedRow,
             }}
             onRowClick={this.props.onRowClick}
+            onRowDoubleClick={this.onRowDoubleClick}
+            onRowKeyboardFocus={this.onRowFocus}
+            onRowBlur={this.onRowBlur}
             onScroll={this.onScroll}
             setScrollTop={this.props.changesListScrollTop}
             onRowKeyDown={this.onRowKeyDown}
@@ -992,5 +1013,15 @@ export class ChangesList extends React.Component<
         {this.renderCommitMessageForm()}
       </>
     )
+  }
+
+  private onRowFocus = (row: number) => {
+    this.setState({ focusedRow: row })
+  }
+
+  private onRowBlur = (row: number) => {
+    if (this.state.focusedRow === row) {
+      this.setState({ focusedRow: null })
+    }
   }
 }

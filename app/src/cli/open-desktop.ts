@@ -14,6 +14,8 @@ export function openDesktop(url: string = '') {
     // https://github.com/nodejs/node/blob/b39dabefe6d/lib/child_process.js#L565-L577
     const shell = process.env.comspec || 'cmd.exe'
     return ChildProcess.spawn(shell, ['/d', '/c', 'start', url], { env })
+  } else if (__LINUX__) {
+    return ChildProcess.spawn('xdg-open', [url], { env })
   } else {
     throw new Error(
       `Desktop command line interface not currently supported on platform ${process.platform}`

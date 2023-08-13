@@ -41,6 +41,14 @@ describe('URL remote parsing', () => {
     expect(remote!.name).toBe('repo')
   })
 
+  it('parses SSH URLs with custom username', () => {
+    const remote = parseRemote('niik@niik.ghe.com:hubot/repo.git')
+    expect(remote).not.toBeNull()
+    expect(remote!.hostname).toBe('niik.ghe.com')
+    expect(remote!.owner).toBe('hubot')
+    expect(remote!.name).toBe('repo')
+  })
+
   it('parses SSH URLs without the git suffix', () => {
     const remote = parseRemote('git@github.com:hubot/repo')
     expect(remote).not.toBeNull()
@@ -95,5 +103,35 @@ describe('URL remote parsing', () => {
     expect(remote!.hostname).toBe('github.com')
     expect(remote!.owner).toBe('hubot')
     expect(remote!.name).toBe('repo')
+  })
+
+  it('does not parse invalid HTTP URLs when missing repo name', () => {
+    const remote = parseRemote('https://github.com/someuser//')
+    expect(remote).toBeNull()
+  })
+
+  it('does not parse invalid SSH URLs when missing repo name ', () => {
+    const remote = parseRemote('git@github.com:hubot/')
+    expect(remote).toBeNull()
+  })
+
+  it('does not parse invalid git URLs when missing repo name', () => {
+    const remote = parseRemote('git:github.com/hubot/')
+    expect(remote).toBeNull()
+  })
+
+  it('does not parse invalid HTTP URLs when missing repo owner', () => {
+    const remote = parseRemote('https://github.com//somerepo')
+    expect(remote).toBeNull()
+  })
+
+  it('does not parse invalid SSH URLs when missing repo owner', () => {
+    const remote = parseRemote('git@github.com:/somerepo')
+    expect(remote).toBeNull()
+  })
+
+  it('does not parse invalid git URLs when missing repo owner', () => {
+    const remote = parseRemote('git:github.com/hubot/')
+    expect(remote).toBeNull()
   })
 })

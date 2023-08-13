@@ -97,9 +97,11 @@ export class DeleteBranch extends React.Component<
         onDismissed={this.props.onDismissed}
         disabled={this.state.isDeleting}
         loading={this.state.isDeleting}
+        role="alertdialog"
+        ariaDescribedBy="delete-branch-confirmation-message delete-branch-confirmation-message-remote"
       >
         <DialogContent>
-          <p>
+          <p id="delete-branch-confirmation-message">
             Delete branch <Ref>{this.props.branch.name}</Ref>?<br />
             This action cannot be undone.
           </p>

@@ -195,6 +195,8 @@ describe('git/stash', () => {
         name: 'refs/stash@{0}',
         branchName: 'master',
         stashSha: 'xyz',
+        tree: 'xyz',
+        parents: ['abc'],
         files: { kind: StashedChangesLoadStates.NotLoaded },
       }
 
@@ -213,6 +215,8 @@ describe('git/stash', () => {
         name: 'refs/stash@{4}',
         branchName: 'master',
         stashSha: 'xyz',
+        tree: 'xyz',
+        parents: ['abc'],
         files: { kind: StashedChangesLoadStates.NotLoaded },
       }
       await generateTestStashEntry(repository, 'master', true)

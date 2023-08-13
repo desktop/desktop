@@ -103,13 +103,15 @@ export class EmojiAutocompletionProvider
       return <div className="title">{emoji}</div>
     }
 
+    // Offset the match start by one to account for the leading ':' that was
+    // removed from the emoji string
+    const matchStart = hit.matchStart - 1
+
     return (
       <div className="title">
-        {emoji.substring(0, hit.matchStart)}
-        <mark>
-          {emoji.substring(hit.matchStart, hit.matchStart + hit.matchLength)}
-        </mark>
-        {emoji.substring(hit.matchStart + hit.matchLength)}
+        {emoji.substring(0, matchStart)}
+        <mark>{emoji.substring(matchStart, matchStart + hit.matchLength)}</mark>
+        {emoji.substring(matchStart + hit.matchLength)}
       </div>
     )
   }

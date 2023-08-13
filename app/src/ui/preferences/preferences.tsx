@@ -56,6 +56,7 @@ interface IPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmDiscardStash: boolean
+  readonly confirmCheckoutCommit: boolean
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
@@ -81,6 +82,7 @@ interface IPreferencesState {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmDiscardStash: boolean
+  readonly confirmCheckoutCommit: boolean
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
@@ -99,6 +101,8 @@ interface IPreferencesState {
   readonly repositoryIndicatorsEnabled: boolean
 
   readonly initiallySelectedTheme: ApplicationTheme
+
+  readonly isLoadingGitConfig: boolean
 }
 
 /** The app-level preferences component. */
@@ -126,6 +130,7 @@ export class Preferences extends React.Component<
       confirmDiscardChanges: false,
       confirmDiscardChangesPermanently: false,
       confirmDiscardStash: false,
+      confirmCheckoutCommit: false,
       confirmForcePush: false,
       confirmUndoCommit: false,
       uncommittedChangesStrategy: defaultUncommittedChangesStrategy,
@@ -134,6 +139,7 @@ export class Preferences extends React.Component<
       selectedShell: this.props.selectedShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
       initiallySelectedTheme: this.props.selectedTheme,
+      isLoadingGitConfig: true,
     }
   }
 
@@ -185,11 +191,13 @@ export class Preferences extends React.Component<
       confirmDiscardChangesPermanently:
         this.props.confirmDiscardChangesPermanently,
       confirmDiscardStash: this.props.confirmDiscardStash,
+      confirmCheckoutCommit: this.props.confirmCheckoutCommit,
       confirmForcePush: this.props.confirmForcePush,
       confirmUndoCommit: this.props.confirmUndoCommit,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
       availableEditors,
+      isLoadingGitConfig: false,
     })
   }
 
@@ -205,7 +213,7 @@ export class Preferences extends React.Component<
     return (
       <Dialog
         id="preferences"
-        title={__DARWIN__ ? 'Preferences' : 'Options'}
+        title={__DARWIN__ ? 'Settings' : 'Options'}
         onDismissed={this.onCancel}
         onSubmit={this.onSave}
       >
@@ -329,6 +337,7 @@ export class Preferences extends React.Component<
               onNameChanged={this.onCommitterNameChanged}
               onEmailChanged={this.onCommitterEmailChanged}
               onDefaultBranchChanged={this.onDefaultBranchChanged}
+              isLoadingGitConfig={this.state.isLoadingGitConfig}
             />
           </>
         )
@@ -359,6 +368,7 @@ export class Preferences extends React.Component<
               this.state.confirmDiscardChangesPermanently
             }
             confirmDiscardStash={this.state.confirmDiscardStash}
+            confirmCheckoutCommit={this.state.confirmCheckoutCommit}
             confirmForcePush={this.state.confirmForcePush}
             confirmUndoCommit={this.state.confirmUndoCommit}
             onConfirmRepositoryRemovalChanged={
@@ -366,6 +376,7 @@ export class Preferences extends React.Component<
             }
             onConfirmDiscardChangesChanged={this.onConfirmDiscardChangesChanged}
             onConfirmDiscardStashChanged={this.onConfirmDiscardStashChanged}
+            onConfirmCheckoutCommitChanged={this.onConfirmCheckoutCommitChanged}
             onConfirmForcePushChanged={this.onConfirmForcePushChanged}
             onConfirmDiscardChangesPermanentlyChanged={
               this.onConfirmDiscardChangesPermanentlyChanged
@@ -437,6 +448,10 @@ export class Preferences extends React.Component<
 
   private onConfirmDiscardStashChanged = (value: boolean) => {
     this.setState({ confirmDiscardStash: value })
+  }
+
+  private onConfirmCheckoutCommitChanged = (value: boolean) => {
+    this.setState({ confirmCheckoutCommit: value })
   }
 
   private onConfirmDiscardChangesPermanentlyChanged = (value: boolean) => {
@@ -576,6 +591,10 @@ export class Preferences extends React.Component<
 
     await this.props.dispatcher.setConfirmDiscardStashSetting(
       this.state.confirmDiscardStash
+    )
+
+    await this.props.dispatcher.setConfirmCheckoutCommitSetting(
+      this.state.confirmCheckoutCommit
     )
 
     await this.props.dispatcher.setConfirmUndoCommitSetting(

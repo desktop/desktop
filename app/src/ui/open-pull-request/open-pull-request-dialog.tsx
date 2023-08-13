@@ -61,6 +61,13 @@ interface IOpenPullRequestDialogProps {
   /** Label for selected external editor */
   readonly externalEditorLabel?: string
 
+  /**
+   * Callback to open a selected file using the configured external editor
+   *
+   * @param fullPath The full path to the file on disk
+   */
+  readonly onOpenInExternalEditor: (fullPath: string) => void
+
   /** Width to use for the files list pane in the files changed view */
   readonly fileListWidth: IConstrainedValue
 
@@ -168,6 +175,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         selectedFile={file}
         showSideBySideDiff={this.props.showSideBySideDiff}
         repository={repository}
+        onOpenInExternalEditor={this.props.onOpenInExternalEditor}
       />
     )
   }

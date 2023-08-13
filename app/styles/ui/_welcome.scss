@@ -38,6 +38,10 @@
   #sign-in-enterprise {
     .sign-in-form {
       margin-top: 0;
+
+      > button {
+        margin-right: 0;
+      }
     }
 
     .sign-in-footer {

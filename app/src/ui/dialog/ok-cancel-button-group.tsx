@@ -21,6 +21,9 @@ interface IOkCancelButtonGroupProps {
   /** An optional title (i.e. tooltip) for the Ok button, defaults to none */
   readonly okButtonTitle?: string
 
+  /** Aria description of the ok button */
+  readonly okButtonAriaDescribedBy?: string
+
   /**
    * An optional event handler for when the Ok button is clicked (either
    * explicitly or as the result of a form keyboard submission). If specified
@@ -145,6 +148,7 @@ export class OkCancelButtonGroup extends React.Component<
         disabled={this.props.okButtonDisabled}
         tooltip={this.props.okButtonTitle}
         type={this.props.destructive === true ? 'button' : 'submit'}
+        ariaDescribedBy={this.props.okButtonAriaDescribedBy}
       >
         {this.props.okButtonText || 'Ok'}
       </Button>

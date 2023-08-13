@@ -56,21 +56,35 @@
     align-items: center;
   }
 
-  section + section {
-    margin-top: var(--spacing);
+  legend {
+    margin-top: 0px;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    padding: 0px;
   }
 
-  section.button-group {
+  fieldset {
+    border: none;
+    margin: 0px;
+    padding: 0px;
+
+    margin-top: 0.5em;
+    &:not(:last-child) {
+      margin-bottom: 0.5em;
+    }
+  }
+
+  fieldset.button-group {
     display: flex;
     flex-direction: row;
   }
 
-  .popover-component {
-    position: absolute;
-    left: 28px;
-    margin-left: -250px;
-    top: 27px;
+  .secondary-text {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
 
+  .popover-component {
     width: 250px;
   }
 }
