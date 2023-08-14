@@ -174,19 +174,3 @@ type Length<T extends any[]> = T extends { length: infer L } ? L : never
 
 /** Obtain the the number of parameters of a function type */
 type ParameterCount<T extends (...args: any) => any> = Length<Parameters<T>>
-
-// used for repository rules
-declare module 're2js' {
-  export class RE2 {
-    public matcher(toCheck: string): RE2Matcher
-  }
-
-  export class RE2Matcher {
-    public find(): boolean
-  }
-
-  export namespace RE2JS {
-    export function compile(regex: string): RE2
-    export function quote(regex: string): string
-  }
-}
