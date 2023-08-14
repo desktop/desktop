@@ -173,6 +173,7 @@ interface IFilterListState<T extends IFilterListItem> {
   readonly rows: ReadonlyArray<IFilterListRow<T>>
   readonly selectedRow: number
   readonly filterValue: string
+  readonly filterValueChanged: boolean
 }
 
 /**
@@ -199,7 +200,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   public constructor(props: IFilterListProps<T>) {
     super(props)
 
-    this.state = createStateUpdate(props)
+    this.state = {
+      filterValueChanged: false,
+      ...createStateUpdate(props),
+    }
   }
 
   public componentWillMount() {
@@ -276,6 +280,23 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     )
   }
 
+  public renderLiveContainer() {
+    if (!this.state.filterValueChanged) {
+      return null
+    }
+
+    const itemRows = this.state.rows.filter(row => row.kind === 'item')
+    const resultsPluralized = itemRows.length === 1 ? 'result' : 'results'
+    const screenReaderMessage = `${itemRows.length} ${resultsPluralized}`
+
+    return (
+      <AriaLiveContainer
+        message={screenReaderMessage}
+        trackedUserInput={this.state.filterValue}
+      />
+    )
+  }
+
   public renderFilterRow() {
     if (this.props.hideFilterRow === true) {
       return null
@@ -290,16 +311,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public render() {
-    const itemRows = this.state.rows.filter(row => row.kind === 'item')
-    const resultsPluralized = itemRows.length === 1 ? 'result' : 'results'
-    const screenReaderMessage = `${itemRows.length} ${resultsPluralized}`
-
     return (
       <div className={classnames('filter-list', this.props.className)}>
-        <AriaLiveContainer
-          message={screenReaderMessage}
-          trackedUserInput={this.state.filterValue}
-        />
+        {this.renderLiveContainer()}
+
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
         {this.renderFilterRow()}
@@ -397,6 +412,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   private onFilterValueChanged = (text: string) => {
+    if (!this.state.filterValueChanged) {
+      this.setState({ filterValueChanged: true })
+    }
+
     if (this.props.onFilterTextChanged) {
       this.props.onFilterTextChanged(text)
     }
