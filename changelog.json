@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.2.8-test7": ["[New]  Accessibility verification of text color contrast"],
     "3.2.8-beta4": [
       "[Fixed] Fix selecting/deselecting changed files with the keyboard - #17207. Thanks @koenpunt!",
       "[Improved] The stash restore button's description is associated to the restore button - #17204",
