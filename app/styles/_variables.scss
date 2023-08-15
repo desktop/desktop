@@ -12,8 +12,8 @@
 $overlay-background-color: rgba(0, 0, 0, 0.4);
 
 :root {
-  --color-new: #{$green};
-  --color-deleted: #{$red};
+  --color-new: #{$green-600};
+  --color-deleted: #{$red-600};
   --color-modified: #{$yellow-700};
   --color-renamed: #{$blue};
   --color-conflicted: #{$orange};
