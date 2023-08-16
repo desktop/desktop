@@ -167,9 +167,7 @@
       "[Improved] Improve accessibility of GitHub Enterprise login flow - #16567",
       "[Improved] Screen readers announce sign in errors - #16556"
     ],
-    "3.2.2": [
-      "[Improved] Upgrade embedded Git to 2.39.3"
-    ],
+    "3.2.2": ["[Improved] Upgrade embedded Git to 2.39.3"],
     "3.2.2-beta2": [
       "[Improved] Improve accessibility of GitHub Enterprise login flow - #16567",
       "[Improved] Screen readers announce sign in errors - #16556",
@@ -273,9 +271,7 @@
       "[Improved] Focus on first suitable child in sign in flow - #16125",
       "[Improved] The misattributed warning popover is accessible through keyboard navigation - #16100"
     ],
-    "3.1.9-beta2": [
-      "[Fixed] Fixed production build startup crash - #16191"
-    ],
+    "3.1.9-beta2": ["[Fixed] Fixed production build startup crash - #16191"],
     "3.1.9-beta1": [
       "[Added] Add Tabby terminal integration for macOS - #16040. Thanks @ansidev!",
       "[Added] Add JetBrains DataSpell support on Windows - #16020. Thanks @tsvetilian-ty!",
@@ -297,12 +293,8 @@
       "[Fixed] Fix support for the latest versions of RStudio on Windows - #15810",
       "[Fixed] Fix support for latest versions of VSCodium on Windows - #15585. Thanks @voidei!"
     ],
-    "3.1.7": [
-      "[Improved] Upgrade embedded Git to 2.39.2"
-    ],
-    "3.1.7-beta1": [
-      "[Improved] Upgrade embedded Git to 2.39.2"
-    ],
+    "3.1.7": ["[Improved] Upgrade embedded Git to 2.39.2"],
+    "3.1.7-beta1": ["[Improved] Upgrade embedded Git to 2.39.2"],
     "3.1.6": [
       "[Improved] Upgrade embedded Git to 2.39.1 and Git LFS to 3.3.0 - #15915"
     ],
@@ -343,9 +335,7 @@
       "[Improved] Close repository list after creating or adding repositories - #15508. Thanks @angusdev!",
       "[Improved] Always show an error message when an update fails - #15530"
     ],
-    "3.1.4": [
-      "[Improved] Upgrade embedded Git to 2.35.6"
-    ],
+    "3.1.4": ["[Improved] Upgrade embedded Git to 2.35.6"],
     "3.1.4-beta1": [
       "[Added] Add support for JetBrains Toolbox and JetBrains Fleet editor for Windows - #12912. Thanks @tsvetilian-ty!",
       "[Added] Add support for Emacs editor for Linux - #15857. Thanks @zipperer!",
@@ -398,12 +388,8 @@
       "[Fixed] Fix commit shortcut (Ctrl/Cmd + Enter) while amending a commit - #15445",
       "[Improved] Pull request preview dialog width and height is responsive - #15500"
     ],
-    "3.1.3-beta1": [
-      "[Improved] Upgrade embedded Git to 2.35.5"
-    ],
-    "3.1.2": [
-      "[Improved] Upgrade embedded Git to 2.35.5"
-    ],
+    "3.1.3-beta1": ["[Improved] Upgrade embedded Git to 2.35.5"],
+    "3.1.2": ["[Improved] Upgrade embedded Git to 2.35.5"],
     "3.1.2-beta1": [
       "[Added] You can preview the changes a pull request from your current branch would make - #11517",
       "[Fixed] App correctly remembers undo commit prompt setting - #15408",
@@ -494,12 +480,8 @@
     "3.0.5-beta1": [
       "[Fixed] Surface again Git's warning about unsafe directories and provide a way to trust repositories not owned by the current user"
     ],
-    "3.0.4": [
-      "[Improved] Upgrade embedded Git to 2.35.4"
-    ],
-    "3.0.4-beta1": [
-      "[Improved] Upgrade embedded Git to 2.35.4"
-    ],
+    "3.0.4": ["[Improved] Upgrade embedded Git to 2.35.4"],
+    "3.0.4-beta1": ["[Improved] Upgrade embedded Git to 2.35.4"],
     "3.0.3": [
       "[Added] Add Aptana Studio support - #14669. Thanks @tsvetilian-ty!",
       "[Fixed] Fix crash when user's locale is unsupported by the spellchecker - #14817. Thanks @tsvetilian-ty!",
@@ -899,9 +881,7 @@
       "[Added] Add syntax highlighting for dart - #12827. Thanks @say25!",
       "[Fixed] Fix scrolling performance issue for large diffs."
     ],
-    "2.9.2": [
-      "[Fixed] Fix scrolling performance issue for large diffs."
-    ],
+    "2.9.2": ["[Fixed] Fix scrolling performance issue for large diffs."],
     "2.9.1": [
       "[Added] Add Fluent Terminal shell support - #12305. Thanks @Idered!",
       "[Added] Add support for IntelliJ CE for macOS - #12748. Thanks @T41US!",
@@ -1150,9 +1130,7 @@
       "[Fixed] Performing remote Git operations in rare cases displays an error message instead of crashing the app - #11694",
       "[Improved] Clicking on \"Add Co-Author\" moves the focus to the co-authors text field - #11621"
     ],
-    "2.6.5": [
-      "[Fixed] Performing remote Git operations could crash the app"
-    ],
+    "2.6.5": ["[Fixed] Performing remote Git operations could crash the app"],
     "2.6.4": [
       "[Added] Allow users to rename and delete branches via a new context menu on branches in the branches list - #5803 #10432",
       "[Fixed] Allow users to modify git config on a per repository basis - #9449. Thanks @say25!",
@@ -1190,9 +1168,7 @@
       "[Fixed] Remote git operations (like cloning a repo) won't fail on old macOS versions - #11516",
       "[Fixed] Updated about modal dialog on macOS to match the new Big Sur icon - #11511"
     ],
-    "2.6.3-beta2": [
-      "[Improved] Update app icon for macOS Big Sur - #10855"
-    ],
+    "2.6.3-beta2": ["[Improved] Update app icon for macOS Big Sur - #10855"],
     "2.6.3-beta1": [
       "[Fixed] Fast-forward all possible branches except the current branch when fetching - #11387",
       "[Improved] Enable spellcheck on commit summary and description - #1597",
@@ -1216,9 +1192,7 @@
       "[Fixed] Fork behavior changes are now reflected in the app immediately - #11327",
       "[Fixed] Commit message remains in text box until user chooses to commit - #7251"
     ],
-    "2.6.2-beta3": [
-      "[Removed] Release removed in favor of 2.6.2-beta4"
-    ],
+    "2.6.2-beta3": ["[Removed] Release removed in favor of 2.6.2-beta4"],
     "2.6.2-beta2": [
       "[Fixed] Forked repository remotes are no longer removed when there's local branches tracking them - #11266",
       "[Fixed] Avoid bright flash for users of the dark theme when launching the app maximized - #5631. Thanks @AndreiMaga!",
@@ -1279,12 +1253,8 @@
       "[Fixed] Fixes overflow issues with long branch names - #5970. Thanks @juliarvalenti!",
       "[Removed] Sign in to GitHub.com with username/password is no longer supported"
     ],
-    "2.5.8-beta1": [
-      "[Improved] Upgrade embedded Git LFS - #10973"
-    ],
-    "2.5.7": [
-      "[Improved] Upgrade embedded Git LFS - #10973"
-    ],
+    "2.5.8-beta1": ["[Improved] Upgrade embedded Git LFS - #10973"],
+    "2.5.7": ["[Improved] Upgrade embedded Git LFS - #10973"],
     "2.5.7-beta2": [
       "[New] Search text within split diffs - #10755",
       "[Improved] Use Page down, Page up, Home, and End keys to navigate and select items in lists - #10837",
@@ -1629,12 +1599,8 @@
       "[Improved] Format errors containing raw Git output with fixed-width font - #8964",
       "[Improved] Upgrade to Electron 7 - #8967"
     ],
-    "2.3.0-test2": [
-      "Testing upgrade from Electron v6 to v7"
-    ],
-    "2.3.0-test1": [
-      "Testing upgrade from Electron v5 to v6"
-    ],
+    "2.3.0-test2": ["Testing upgrade from Electron v6 to v7"],
+    "2.3.0-test1": ["Testing upgrade from Electron v5 to v6"],
     "2.3.2-beta1": [],
     "2.3.1": [
       "[Fixed] Don't display erroneous Git error when creating a fork - #9004",
@@ -1677,9 +1643,7 @@
       "[Fixed] Update branch protection state for checkout outside of Desktop - #8790",
       "[Improved] Re-designed preferences dialog - #8774"
     ],
-    "2.2.5-test1": [
-      "[Fixed] Sign Windows installers using SHA256 file digest"
-    ],
+    "2.2.5-test1": ["[Fixed] Sign Windows installers using SHA256 file digest"],
     "2.2.4": [
       "[New] Warn when committing to a protected branch - #7023",
       "[New] Warn when committing to a repository you don't have write access to - #8665",
@@ -1728,21 +1692,11 @@
       "[Fixed] Address warnings on macOS Catalina preventing app from opening after install - #8555",
       "[Improved] Update to most recent gitignore templates - #8527"
     ],
-    "2.2.3-test5": [
-      "Testing entitlements + notarization for mac app"
-    ],
-    "2.2.3-test4": [
-      "Testing entitlements + notarization for mac app"
-    ],
-    "2.2.3-test3": [
-      "Testing entitlements + notarization for mac app"
-    ],
-    "2.2.3-test2": [
-      "Testing notarization for mac app"
-    ],
-    "2.2.3-test1": [
-      "Testing notarization for mac app"
-    ],
+    "2.2.3-test5": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test4": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test3": ["Testing entitlements + notarization for mac app"],
+    "2.2.3-test2": ["Testing notarization for mac app"],
+    "2.2.3-test1": ["Testing notarization for mac app"],
     "2.2.2": [
       "[Added] Onboarding tutorial animations help guide users to the next action - #8487",
       "[Added] Prompt users to re-authenticate if they are unable to push changes to a workflow file - #8357",
@@ -1842,9 +1796,7 @@
       "[Improved] Always fast forward recent branches after fetch - #7761",
       "[Improved] Ensure recent branches are updated during remote interactions - #8081"
     ],
-    "2.1.2-beta2": [
-      "[Fixed] Update embedded Git on Windows - #8133"
-    ],
+    "2.1.2-beta2": ["[Fixed] Update embedded Git on Windows - #8133"],
     "2.1.2-beta1": [
       "[Added] Option to hide whitespace in historical commits - #8045. Thanks @say25!",
       "[Fixed] Small images are scaled down too much in two-up image rendering - #7520",
@@ -1914,9 +1866,7 @@
       "[Improved] Update license and .gitignore templates for initializing a new repository - #7548 #7661. Thanks @VADS!",
       "[Improved] \"Authentication failed\" dialog provides more help to diagnose issue -  #7622"
     ],
-    "2.0.4-test2": [
-      "Upgrading infrastructure to Node 10"
-    ],
+    "2.0.4-test2": ["Upgrading infrastructure to Node 10"],
     "2.0.4": [
       "[Fixed] Refresh for Enterprise repositories did not handle API error querying branches - #7713",
       "[Fixed] Missing \"Discard all changes\" context menu in Changes header - #7696",
@@ -2503,24 +2453,12 @@
       "[Fixed] User can toggle files when commit is in progress - #5341. Thanks @masungwon!",
       "[Improved] Repository indicator background work - #5317 #5326 #5363 #5241 #5320"
     ],
-    "1.3.3-test6": [
-      "Testing infrastructure changes"
-    ],
-    "1.3.3-test5": [
-      "Testing the new CircleCI config changes"
-    ],
-    "1.3.3-test4": [
-      "Testing the new CircleCI config changes"
-    ],
-    "1.3.3-test3": [
-      "Testing the new CircleCI config changes"
-    ],
-    "1.3.3-test2": [
-      "Testing the new CircleCI config changes"
-    ],
-    "1.3.3-test1": [
-      "Testing the new CircleCI config changes"
-    ],
+    "1.3.3-test6": ["Testing infrastructure changes"],
+    "1.3.3-test5": ["Testing the new CircleCI config changes"],
+    "1.3.3-test4": ["Testing the new CircleCI config changes"],
+    "1.3.3-test3": ["Testing the new CircleCI config changes"],
+    "1.3.3-test2": ["Testing the new CircleCI config changes"],
+    "1.3.3-test1": ["Testing the new CircleCI config changes"],
     "1.3.2": [
       "[Fixed] Bugfix for background checks not being aware of missing repositories - #5282",
       "[Fixed] Check the local state of a repository before performing Git operations - #5289",
@@ -2605,9 +2543,7 @@
       "[Fixed] Markdown header elements hard to read in dark mode - #5133. Thanks @agisilaos!",
       "[Improved] Diff gutter elements should be considered button elements when interacting - #5158"
     ],
-    "1.2.7-test3": [
-      "Test deployment for electron version bump."
-    ],
+    "1.2.7-test3": ["Test deployment for electron version bump."],
     "1.3.0-beta1": [
       "[New] Notification displayed in History tab when the base branch moves ahead of the current branch - #4768",
       "[New] Repository list displays uncommitted changes count and ahead/behind information - #2259",
@@ -2620,12 +2556,8 @@
       "[Improved] Repository list badge style tweaks and tweaks for dark theme - #5095",
       "[Improved] Change primary button color to blue for dark theme - #5074"
     ],
-    "1.2.7-test2": [
-      "Test deployment for electron version bump."
-    ],
-    "1.2.7-test1": [
-      "Sanity check deployment for refactored scripts"
-    ],
+    "1.2.7-test2": ["Test deployment for electron version bump."],
+    "1.2.7-test1": ["Sanity check deployment for refactored scripts"],
     "1.2.7-beta0": [
       "[Fixed] Visual indicator for upcoming feature should not be shown - #5026"
     ],
@@ -2705,9 +2637,7 @@
       "[Fixed] Updated embedded Git to 2.17.1 to address upstream security issue - #4791",
       "[Improved] Display the difference in file size of an image in the diff view - #4380. Thanks @ggajos!"
     ],
-    "1.2.1-test1": [
-      "Upgraded embedded Git to 2.17.0"
-    ],
+    "1.2.1-test1": ["Upgraded embedded Git to 2.17.0"],
     "1.2.1-beta1": [
       "[Added] Brackets support for macOS - #4608. Thanks @3raxton!",
       "[Added] Pull request number and author are included in fuzzy-find filtering - #4653. Thanks @damaneice!",
@@ -2716,9 +2646,7 @@
       "[Improved] Display the difference in file size of an image in the diff view - #4380. Thanks @ggajos!"
     ],
     "1.2.1-beta0": [],
-    "1.1.2-test6": [
-      "Testing the Webpack v4 output from the project"
-    ],
+    "1.1.2-test6": ["Testing the Webpack v4 output from the project"],
     "1.2.0": [
       "[New] History now has ability to compare to another branch and merge outstanding commits",
       "[New] Support for selecting more than one file in the changes list - #1712. Thanks @icosamuel!",
@@ -2757,12 +2685,8 @@
       "[Fixed] Keyboard focus issues when navigating Pull Request list - #4673",
       "[Improved] Automatically add valid repository when using command line interface - #4513. Thanks @ggajos!"
     ],
-    "1.1.2-test5": [
-      "Actually upgrading fs-extra to v6 in the app"
-    ],
-    "1.1.2-test4": [
-      "Upgrading fs-extra to v6"
-    ],
+    "1.1.2-test5": ["Actually upgrading fs-extra to v6 in the app"],
+    "1.1.2-test4": ["Upgrading fs-extra to v6"],
     "1.1.2-beta5": [
       "[Added] Syntax highlighting for JavaServer Pages (JSP) - #4470. Thanks @damaneice!",
       "[Fixed] Prevent icon from shrinking in rename dialog - #4566"
@@ -2788,9 +2712,7 @@
       "[Improved] Checking out a Pull Request may skip unnecessary fetch - #4068. Thanks @agisilaos!",
       "[Improved] Commit summary now has a hint to indicate why committing is disabled - #4429."
     ],
-    "1.1.2-test3": [
-      "[New] Comparison Branch demo build"
-    ],
+    "1.1.2-test3": ["[New] Comparison Branch demo build"],
     "1.1.2-test2": [
       "Refactoring the diff internals to potentially land some SVG improvements"
     ],
@@ -2870,9 +2792,7 @@
       "[Improved] Move forget password link to after the password dialog to maintain expected tab order - #4283. Thanks @iamnapo!",
       "[Improved] More descriptive text in repository toolbar button when no repositories are tracked - #4268. Thanks @agisilaos!"
     ],
-    "1.1.1-test2": [
-      "[Improved] Electron 1.8.3 upgrade (again)"
-    ],
+    "1.1.1-test2": ["[Improved] Electron 1.8.3 upgrade (again)"],
     "1.1.1-test1": [
       "[Improved] Forcing a focus on the window after the OAuth dance is done"
     ],
@@ -2928,9 +2848,7 @@
       "[Improved] Enable fuzzy search in the repository, branch, PR, and clone FilterLists - #911. Thanks @j-f1!",
       "[Improved] Tidy up commit summary and description layout in commit list - #3922. Thanks @willnode!"
     ],
-    "1.0.14-test1": [
-      "[Improved] Electron 1.8.2 upgrade"
-    ],
+    "1.0.14-test1": ["[Improved] Electron 1.8.2 upgrade"],
     "1.0.14-beta3": [
       "[Added] Add TextMate support for macOS - #3910. Thanks @caiofbpa!",
       "[Fixed] Handle Git errors when .gitmodules are malformed - #3912",
@@ -2946,9 +2864,7 @@
       "[Fixed] Ignore action assumes CRLF when core.autocrlf is unset - #3514",
       "[Improved] Use smaller default size when rendering Gravatar avatars - #3911"
     ],
-    "1.0.14-beta1": [
-      "[New] Commit together with co-authors - #3879"
-    ],
+    "1.0.14-beta1": ["[New] Commit together with co-authors - #3879"],
     "1.0.13": [
       "[New] Commit together with co-authors - #3879",
       "[New] PhpStorm is now a supported external editor on macOS - #3749. Thanks @hubgit!",
@@ -3478,9 +3394,7 @@
     "0.7.3-beta2": [],
     "0.7.3-beta1": [],
     "0.7.3-beta0": [],
-    "0.7.2": [
-      "[Fixed] Issues with auto-updating to 0.7.1."
-    ],
+    "0.7.2": ["[Fixed] Issues with auto-updating to 0.7.1."],
     "0.7.2-beta0": [],
     "0.7.1": [
       "[Improved] Redesigned error and warning dialogs to be clearer - #2277",
@@ -3699,9 +3613,7 @@
       "[Improved] Performance updating menu items - #1321",
       "[Improved] Windows: Dim the title bar when the app loses focus - #1189"
     ],
-    "0.0.39": [
-      "[Fixed] An uncaught exception when adding a user - #1394"
-    ],
+    "0.0.39": ["[Fixed] An uncaught exception when adding a user - #1394"],
     "0.0.38": [
       "[New] Shiny new icon! - #1221",
       "[New] More helpful blank slate view - #871",
@@ -3773,9 +3685,7 @@
       "[Improved] Command or control-W now closes open dialogs - #949",
       "[Improved] Less memory usage while parsing large diffs - #1235"
     ],
-    "0.0.33": [
-      "[Fixed] Update Now wouldn't update now - #1209"
-    ],
+    "0.0.33": ["[Fixed] Update Now wouldn't update now - #1209"],
     "0.0.32": [
       "[New] You can now disable stats reporting from Preferences > Advanced - #1120",
       "[New] Acknowledgements are now available from About - #810",
@@ -3820,9 +3730,7 @@
       "[Fixed] Protected branches show a descriptive error when the push is rejected - #1036",
       "[Fixed] 'Open in shell' on Windows opens to repository location - #1037"
     ],
-    "0.0.28": [
-      "[Fixed] Bumping release notes to test deployments again"
-    ],
+    "0.0.28": ["[Fixed] Bumping release notes to test deployments again"],
     "0.0.27": [
       "[Fixed] 2FA dialog when authenticating has information for SMS authentication - #1009",
       "[Fixed] Autocomplete for users handles accounts containing `-` - #1008"
@@ -3843,9 +3751,6 @@
       "[Fixed] Application creates repository path if it doesn't exist on disk - #925",
       "[Improved] Preferences sign-in flow updated to standalone dialogs - #961"
     ],
-    "0.0.24": [
-      "Changed a thing",
-      "Added another thing"
-    ]
+    "0.0.24": ["Changed a thing", "Added another thing"]
   }
 }
