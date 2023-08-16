@@ -111,6 +111,18 @@ export interface IButtonProps {
   readonly ariaHaspopup?: AriaHasPopupType
 
   /**
+   * The aria-selected attribute is applied to an element when it is selected.
+   */
+  readonly ariaSelected?: boolean
+
+  /**
+   * The aria-checked attribute is used to indicate the state of a checkbox or
+   * radio button. In this case, it will be used when the button is used as one
+   * of those elements (e.g. in the merge options dropdown).
+   */
+  readonly ariaChecked?: boolean
+
+  /**
    * Typically the contents of a button serve the purpose of describing the
    * buttons use. However, ariaLabel can be used if the contents do not suffice.
    * Such as when a button wraps an image and there is no text.
@@ -197,6 +209,8 @@ export class Button extends React.Component<IButtonProps, {}> {
         aria-describedby={this.props.ariaDescribedBy}
         aria-haspopup={this.props.ariaHaspopup}
         aria-pressed={this.props.ariaPressed}
+        aria-selected={this.props.ariaSelected}
+        aria-checked={this.props.ariaChecked}
         autoFocus={this.props.autoFocus}
       >
         {tooltip && (

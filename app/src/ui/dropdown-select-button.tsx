@@ -47,6 +47,9 @@ interface IDropdownSelectButtonState<T extends string> {
   /** The currently selected option */
   readonly selectedOption: IDropdownSelectButtonOption<T> | null
 
+  /** Index of the currently focused option */
+  readonly focusedOptionIndex: number | null
+
   /**
    * The adjusting position of the options popover. This is calculated based
    * on if there is enough room to show the options below the dropdown button.
@@ -69,6 +72,7 @@ export class DropdownSelectButton<
     this.state = {
       showButtonOptions: false,
       selectedOption: this.getSelectedOption(props.selectedValue),
+      focusedOptionIndex: null,
     }
   }
 
@@ -200,9 +204,14 @@ export class DropdownSelectButton<
     )
   }
 
-  private renderOption = (o: IDropdownSelectButtonOption<T>) => {
+  private renderOption = (o: IDropdownSelectButtonOption<T>, index: number) => {
     return (
-      <Button key={o.value} onClick={this.onSelectionChange(o)}>
+      <Button
+        key={o.value}
+        onClick={this.onSelectionChange(o)}
+        ariaSelected={this.state.focusedOptionIndex === index}
+        ariaChecked={o.value === this.state.selectedOption?.value}
+      >
         {this.renderSelectedIcon(o)}
         <div className="option-title">{o.label}</div>
         <div className="option-description">{o.description}</div>
@@ -226,7 +235,7 @@ export class DropdownSelectButton<
         style={{ bottom }}
         ref={this.onOptionsContainerRef}
       >
-        {options.map(o => this.renderOption(o))}
+        {options.map((o, index) => this.renderOption(o, index))}
       </div>
     )
   }
