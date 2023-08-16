@@ -8,7 +8,7 @@
       "[Added] Add support for Pulsar code editor on Windows - #17120. Thanks @confused-Techie!",
       "[Fixed] The force push loading state is screen reader announced - #17116",
       "[Fixed] Improve readability of file statuses for keyboard-only users - #17192",
-      "[Fixed] Fix detection of VSCodium Insiders for Windows - #17078. Thanks @voidei!",   
+      "[Fixed] Fix detection of VSCodium Insiders for Windows - #17078. Thanks @voidei!",
       "[Fixed] Enable context menu keyboard shortcut for file lists - #17143",
       "[Fixed] Adds a workaround for the macOS Ventura `aria-labelledby` and `aria-describedby` regressions such that dialog titles are always announced - #17148",
       "[Fixed] Screen readers announce the status of files within a commit - #17144",
