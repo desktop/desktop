@@ -3,7 +3,7 @@
     "3.2.9-beta1": [
       "[Fixed] Double clicking the checkbox of a changed file does not open that file in the external editor - #17229",
       "[Fixed] Expand buttons in the diff are keyboard navigable. - #17212",
-      "[New] Improve light mode color contrast of lines added and deleted - #17206"
+      "[Improved] Improve light mode color contrast of lines added and deleted - #17206"
     ],
     "3.2.8": [
       "[New] Checkout a commit from the History tab - #10068. Thanks @kitswas!",
