@@ -183,6 +183,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
         <DropdownSelectButton
           selectedValue={this.state.selectedOperation}
           options={getMergeOptions()}
+          dropdownAriaLabel="Merge options"
           disabled={disabled}
           onSelectChange={this.onOperationChange}
           onSubmit={this.onOperationInvoked}

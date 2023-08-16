@@ -162,6 +162,7 @@ export class DropdownSuggestedAction<T extends string> extends React.Component<
             value,
           }))}
           disabled={disabled}
+          dropdownAriaLabel="Suggested actions for this branch"
           onSelectChange={this.onActionSelectionChange}
           onSubmit={this.onActionSubmitted}
         />
