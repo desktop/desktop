@@ -108,22 +108,34 @@
   }
 
   .row .hunk-expansion-handle {
+    button {
+      overflow: inherit;
+      text-overflow: inherit;
+      white-space: inherit;
+      font-family: inherit;
+      font-size: inherit;
+      border: none;
+      height: inherit;
+      color: inherit;
+      background-color: inherit;
+      width: calc(100% - 2px);
+      height: calc(100% - var(--spacing));
+      padding: 0px;
+      padding-top: 4px;
+      padding-bottom: 1px;
+      margin: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      outline-offset: 0;
+    }
+
     width: var(--width-line-number);
     flex-shrink: 0;
     background: var(--diff-hunk-background-color);
     color: var(--diff-hunk-text-color);
     display: flex;
     box-sizing: content-box;
-
-    span {
-      width: 100%;
-      height: 100%;
-      padding: 0 var(--spacing-half);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 4px 0;
-    }
 
     &.selectable.hoverable {
       * {
