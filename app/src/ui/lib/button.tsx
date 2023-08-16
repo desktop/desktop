@@ -204,7 +204,7 @@ export class Button extends React.Component<IButtonProps, {}> {
             target={this.innerButtonRef}
             direction={this.props.toolTipDirection ?? TooltipDirection.NORTH}
             // Show the tooltip immediately on hover if the button is disabled
-            delay={disabled && Tooltip ? 0 : undefined}
+            delay={disabled ? 0 : undefined}
             onlyWhenOverflowed={this.props.onlyShowTooltipWhenOverflowed}
           >
             {tooltip}
