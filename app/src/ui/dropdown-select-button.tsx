@@ -275,6 +275,8 @@ export class DropdownSelectButton<
             className={dropdownClasses}
             onClick={this.openSplitButtonDropdown}
             type="button"
+            ariaExpanded={showButtonOptions}
+            ariaHaspopup={true}
           >
             <Octicon symbol={OcticonSymbol.triangleDown} />
           </Button>
