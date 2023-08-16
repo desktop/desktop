@@ -17,8 +17,8 @@ import { DiffHunkExpansionType } from '../../models/diff'
 import { DiffExpansionKind } from './text-diff-expansion'
 import { PopoverAnchorPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
-import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
+import { Button } from '../lib/button'
 
 interface ISideBySideDiffRowProps {
   /**
@@ -400,10 +400,11 @@ export class SideBySideDiffRow extends React.Component<
       return (
         <div
           className="hunk-expansion-handle"
-          onContextMenu={this.props.onContextMenuExpandHunk}
           style={{ width: this.lineGutterWidth }}
         >
-          <span></span>
+          <button onContextMenu={this.props.onContextMenuExpandHunk}>
+            <span></span>
+          </button>
         </div>
       )
     }
@@ -414,19 +415,18 @@ export class SideBySideDiffRow extends React.Component<
     )
 
     return (
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
       <div
         className="hunk-expansion-handle selectable hoverable"
-        onClick={elementInfo.handler}
         style={{ width: this.lineGutterWidth }}
-        onContextMenu={this.props.onContextMenuExpandHunk}
       >
-        <TooltippedContent
-          direction={TooltipDirection.SOUTH}
+        <Button
+          onClick={elementInfo.handler}
+          onContextMenu={this.props.onContextMenuExpandHunk}
           tooltip={elementInfo.title}
+          toolTipDirection={TooltipDirection.SOUTH}
         >
           <Octicon symbol={elementInfo.icon} />
-        </TooltippedContent>
+        </Button>
       </div>
     )
   }
