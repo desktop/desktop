@@ -75,7 +75,7 @@ export function enableResetToCommit(): boolean {
 
 /** Should we allow checking out a single commit? */
 export function enableCheckoutCommit(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should ci check runs show logs? */
