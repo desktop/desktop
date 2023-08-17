@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.2.9": ["[Fixed] Fix the inability to log into GHES - #17237"],
     "3.2.8": [
       "[New] Checkout a commit from the History tab - #10068. Thanks @kitswas!",
       "[New] Add Double Click to Open in Default Editor - #2620. Thanks @digitalmaster!",
