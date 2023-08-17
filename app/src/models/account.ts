@@ -42,7 +42,7 @@ export class Account {
     public readonly avatarURL: string,
     public readonly id: number,
     public readonly name: string,
-    public readonly plan: string
+    public readonly plan?: string
   ) {}
 
   public withToken(token: string): Account {
