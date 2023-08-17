@@ -43,7 +43,7 @@ interface IAccount {
   readonly avatarURL: string
   readonly id: number
   readonly name: string
-  readonly plan: string
+  readonly plan?: string
 }
 
 /** The store for logged in accounts. */
