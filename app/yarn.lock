@@ -1103,10 +1103,10 @@ rc@^1.2.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-re2js@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/re2js/-/re2js-0.1.0.tgz#d473179f355133de922dad5efd8dba46d21d3ac2"
-  integrity sha512-bPaft3p8HMOwdN6dX2Pv0NMT1RDxZT2OrDSv5hyxAVZsUpIbCy1YURaz9LtpPyen7oOdzKpWe3/qqfqD34It0Q==
+re2js@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/re2js/-/re2js-0.3.0.tgz#4d69d9bee8cb9eaf5ac35f9db36b23640e533ace"
+  integrity sha512-FKfaeBtpUIbtqSBy5KnlRG3jVRCCPul5EUPzhaTfJ8peGZOVHl90c3jslCv6sW6/vmwMJ3eBXe8zLpoAdDDN8w==
 
 react-css-transition-replace@^3.0.3:
   version "3.0.3"

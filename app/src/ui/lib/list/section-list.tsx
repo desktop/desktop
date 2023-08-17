@@ -1362,9 +1362,9 @@ export class SectionList extends React.Component<
       rowIndexPathEquals(firstSelectedRow, InvalidRowIndexPath)
     ) {
       sendNonFatalException(
-        'The selected rows of the List.tsx contained a negative number.',
+        'The selected rows of the section-list.tsx contained a negative number.',
         new Error(
-          `Invalid selected rows that contained a negative number passed to List component. This will cause keyboard navigation and focus problems.`
+          `Invalid selected rows that contained a negative number passed to SectionList component. This will cause keyboard navigation and focus problems.`
         )
       )
     }

@@ -581,15 +581,19 @@ export class CommitMessage extends React.Component<
    * Whether the user will be prevented from pushing this commit due to a repo rule failure.
    */
   private hasRepoRuleFailure(): boolean {
+    const { aheadBehind, repoRulesInfo } = this.props
+
     if (!this.state.repoRulesEnabled) {
       return false
     }
 
     return (
+      repoRulesInfo.basicCommitWarning === true ||
+      repoRulesInfo.pullRequestRequired === true ||
       this.state.repoRuleCommitMessageFailures.status === 'fail' ||
       this.state.repoRuleCommitAuthorFailures.status === 'fail' ||
-      (this.props.aheadBehind === null &&
-        (this.props.repoRulesInfo.creationRestricted === true ||
+      (aheadBehind === null &&
+        (repoRulesInfo.creationRestricted === true ||
           this.state.repoRuleBranchNameFailures.status === 'fail'))
     )
   }
