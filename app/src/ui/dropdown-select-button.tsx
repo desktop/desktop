@@ -128,9 +128,10 @@ export class DropdownSelectButton<
       return
     }
 
-    const foundCurrentIndex = [...buttons].findIndex(b =>
-      b.className.includes('focus')
-    )
+    const foundCurrentIndex =
+      document.activeElement === null
+        ? -1
+        : [...buttons].indexOf(document.activeElement)
 
     let focusedOptionIndex = -1
     if (foundCurrentIndex !== -1) {
