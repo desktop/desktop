@@ -170,6 +170,8 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
         onMouseLeave={this.onMouseLeave}
         onClick={this.onClick}
         ref={this.wrapperRef}
+        // Root menu items are wrapped in AppMenuBarButton components which
+        // already have the role="menuitem" attribute.
         role={this.props.rootItem ? undefined : 'menuitem'}
         tabIndex={-1}
       >
