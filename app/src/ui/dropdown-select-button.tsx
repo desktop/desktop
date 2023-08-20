@@ -214,6 +214,7 @@ export class DropdownSelectButton<
         onClick={this.onSelectionChange(o)}
         ariaSelected={this.state.focusedOptionIndex === index}
         ariaChecked={o.value === this.state.selectedOption?.value}
+        role="menuitemradio"
       >
         {this.renderSelectedIcon(o)}
         <div className="option-title">{o.label}</div>
@@ -237,6 +238,7 @@ export class DropdownSelectButton<
         className={classes}
         style={{ bottom }}
         ref={this.onOptionsContainerRef}
+        role="menu"
       >
         {options.map((o, index) => this.renderOption(o, index))}
       </div>
