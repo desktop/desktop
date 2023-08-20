@@ -108,15 +108,15 @@ export class DropdownSelectButton<
 
   private onKeyDown = (event: KeyboardEvent) => {
     const { key } = event
-    if (this.state.showButtonOptions && key === 'Escape') {
+    const { showButtonOptions } = this.state
+    const { options } = this.props
+
+    if (showButtonOptions && key === 'Escape') {
       this.setState({ showButtonOptions: false })
       return
     }
 
-    if (
-      !this.state.showButtonOptions ||
-      !['ArrowUp', 'ArrowDown'].includes(key)
-    ) {
+    if (!showButtonOptions || !['ArrowUp', 'ArrowDown'].includes(key)) {
       return
     }
 
@@ -136,17 +136,13 @@ export class DropdownSelectButton<
     if (foundCurrentIndex !== -1) {
       if (key === 'ArrowUp') {
         focusedOptionIndex =
-          foundCurrentIndex !== 0
-            ? foundCurrentIndex - 1
-            : this.props.options.length - 1
+          foundCurrentIndex !== 0 ? foundCurrentIndex - 1 : options.length - 1
       } else {
         focusedOptionIndex =
-          foundCurrentIndex !== this.props.options.length - 1
-            ? foundCurrentIndex + 1
-            : 0
+          foundCurrentIndex !== options.length - 1 ? foundCurrentIndex + 1 : 0
       }
     } else {
-      focusedOptionIndex = key === 'ArrowUp' ? this.props.options.length - 1 : 0
+      focusedOptionIndex = key === 'ArrowUp' ? options.length - 1 : 0
     }
 
     const button = buttons?.item(focusedOptionIndex) as HTMLButtonElement
@@ -208,12 +204,14 @@ export class DropdownSelectButton<
   }
 
   private renderOption = (o: IDropdownSelectButtonOption<T>, index: number) => {
+    const { selectedOption, focusedOptionIndex } = this.state
+
     return (
       <Button
         key={o.value}
         onClick={this.onSelectionChange(o)}
-        ariaSelected={this.state.focusedOptionIndex === index}
-        ariaChecked={o.value === this.state.selectedOption?.value}
+        ariaSelected={focusedOptionIndex === index}
+        ariaChecked={o.value === selectedOption?.value}
         role="menuitemradio"
       >
         {this.renderSelectedIcon(o)}
