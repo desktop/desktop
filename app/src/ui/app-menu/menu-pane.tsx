@@ -232,6 +232,7 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
               onMouseLeave={this.onRowMouseLeave}
               onClick={this.onRowClick}
               focusOnSelection={true}
+              rootItem={false}
             />
           ))}
       </div>
