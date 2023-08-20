@@ -1,4 +1,6 @@
 import classNames from 'classnames'
+import FocusTrap from 'focus-trap-react'
+import { Options as FocusTrapOptions } from 'focus-trap'
 import React from 'react'
 import { Button } from './lib/button'
 import { Octicon } from './octicons'
@@ -68,6 +70,7 @@ export class DropdownSelectButton<
 > {
   private invokeButtonRef: HTMLButtonElement | null = null
   private optionsContainerRef: HTMLDivElement | null = null
+  private focusTrapOptions: FocusTrapOptions
 
   public constructor(props: IDropdownSelectButtonProps<T>) {
     super(props)
@@ -76,6 +79,11 @@ export class DropdownSelectButton<
       showButtonOptions: false,
       selectedOption: this.getSelectedOption(props.selectedValue),
       focusedOptionIndex: null,
+    }
+
+    this.focusTrapOptions = {
+      clickOutsideDeactivates: true,
+      onDeactivate: this.onFocusTrapDeactivate,
     }
   }
 
@@ -104,6 +112,10 @@ export class DropdownSelectButton<
 
   public componentWillUnmount() {
     window.removeEventListener('keydown', this.onKeyDown)
+  }
+
+  private onFocusTrapDeactivate = () => {
+    this.setState({ showButtonOptions: false })
   }
 
   private onKeyDown = (event: KeyboardEvent) => {
@@ -233,14 +245,16 @@ export class DropdownSelectButton<
     const classes = classNames('dropdown-select-button-options', openClass)
 
     return (
-      <div
-        className={classes}
-        style={{ bottom }}
-        ref={this.onOptionsContainerRef}
-        role="menu"
-      >
-        {options.map((o, index) => this.renderOption(o, index))}
-      </div>
+      <FocusTrap focusTrapOptions={this.focusTrapOptions}>
+        <div
+          className={classes}
+          style={{ bottom }}
+          ref={this.onOptionsContainerRef}
+          role="menu"
+        >
+          {options.map((o, index) => this.renderOption(o, index))}
+        </div>
+      </FocusTrap>
     )
   }
 
