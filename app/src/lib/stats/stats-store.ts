@@ -982,7 +982,7 @@ export class StatsStore implements IStatsStore {
     }))
 
     // Note, this is not a typo. We track both GitHub.com and
-    // GitHub Enterprise under the same key
+    // GitHub Enterprise Server under the same key
     createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 
