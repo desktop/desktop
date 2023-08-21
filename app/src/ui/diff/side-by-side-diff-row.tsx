@@ -86,7 +86,10 @@ interface ISideBySideDiffRowProps {
    */
   readonly onMouseLeaveHunk: (hunkStartLine: number) => void
 
-  readonly onExpandHunk: (hunkIndex: number, kind: DiffHunkExpansionType) => void
+  readonly onExpandHunk: (
+    hunkIndex: number,
+    kind: DiffHunkExpansionType
+  ) => void
 
   /**
    * Called when the user clicks on the hunk handle. Called with the start
@@ -134,7 +137,10 @@ interface ISideBySideDiffRowProps {
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 
   /* This tracks the last expanded hunk index so that we can refocus the expander after rerender */
-  readonly lastExpandedHunk: {index: number, expansionType: DiffHunkExpansionType} | null
+  readonly lastExpandedHunk: {
+    index: number
+    expansionType: DiffHunkExpansionType
+  } | null
 }
 
 interface ISideBySideDiffRowState {
@@ -416,7 +422,7 @@ export class SideBySideDiffRow extends React.Component<
       expansionType
     )
 
-    /** 
+    /**
      * For accessibility, when a button is focused, it should maintain focus.
      * This sets the autofocus of the button if the last expanded button at the
      * position was the same type. The +1 is to handle the last hunk index which
@@ -426,13 +432,13 @@ export class SideBySideDiffRow extends React.Component<
      *
      * Other notes: the expand up buttons already worked. This is
      * for expand all and expand down buttons.
-      */
+     */
     const { lastExpandedHunk } = this.props
     const focusButton =
-    lastExpandedHunk !== null &&
+      lastExpandedHunk !== null &&
       expansionType === lastExpandedHunk.expansionType
         ? hunkIndex === lastExpandedHunk.index ||
-          hunkIndex === lastExpandedHunk.index + 1 
+          hunkIndex === lastExpandedHunk.index + 1
         : false
 
     return (
@@ -682,9 +688,10 @@ export class SideBySideDiffRow extends React.Component<
     }
   }
 
-  private onExpandHunk = (hunkIndex: number, kind: DiffHunkExpansionType) => () => {
-    this.props.onExpandHunk(hunkIndex, kind)
-  }
+  private onExpandHunk =
+    (hunkIndex: number, kind: DiffHunkExpansionType) => () => {
+      this.props.onExpandHunk(hunkIndex, kind)
+    }
 
   private onClickHunk = () => {
     if (this.props.hideWhitespaceInDiff) {

@@ -203,7 +203,10 @@ interface ISideBySideDiffState {
   readonly selectedSearchResult: number | undefined
 
   /** This tracks the last expanded hunk index so that we can refocus the expander after rerender */
-  readonly lastExpandedHunk: {index: number, expansionType: DiffHunkExpansionType} | null
+  readonly lastExpandedHunk: {
+    index: number
+    expansionType: DiffHunkExpansionType
+  } | null
 }
 
 const listRowsHeightCache = new CellMeasurerCache({
@@ -916,17 +919,20 @@ export class SideBySideDiff extends React.Component<
     this.setState({ hoveredHunk: undefined })
   }
 
-  private onExpandHunk = (hunkIndex: number, expansionType: DiffHunkExpansionType) => {
+  private onExpandHunk = (
+    hunkIndex: number,
+    expansionType: DiffHunkExpansionType
+  ) => {
     const { diff } = this.state
 
     if (hunkIndex === -1 || hunkIndex >= diff.hunks.length) {
       return
     }
 
-    this.setState({ lastExpandedHunk: {index: hunkIndex, expansionType} })
+    this.setState({ lastExpandedHunk: { index: hunkIndex, expansionType } })
 
     const kind = expansionType === DiffHunkExpansionType.Down ? 'down' : 'up'
-    
+
     this.expandHunk(diff.hunks[hunkIndex], kind)
   }
 
