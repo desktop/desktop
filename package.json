@@ -161,7 +161,7 @@
     "@types/xml2js": "^0.4.11",
     "electron": "28.2.3",
     "electron-builder": "^24.13.3",
-    "electron-packager": "^17.1.1",
+    "electron-packager": "^17.1.2",
     "eslint-plugin-github": "^4.10.1",
     "markdownlint-cli": "^0.32.2",
     "patch-package": "^6.5.1",
