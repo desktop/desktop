@@ -156,7 +156,7 @@
     "diff": "^7.0.0",
     "electron": "38.2.0",
     "electron-builder": "^24.13.3",
-    "electron-packager": "^17.1.1",
+    "electron-packager": "^17.1.2",
     "eslint-plugin-github": "^5.1.5",
     "markdownlint-cli": "^0.32.2",
     "node-test-github-reporter": "^1.2.0",
