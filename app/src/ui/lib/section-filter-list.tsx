@@ -262,20 +262,20 @@ export class SectionFilterList<
   }
 
   public renderLiveContainer() {
+    if (!this.state.filterValueChanged) {
+      return null
+    }
+
     const itemRows = this.state.rows.flat().filter(row => row.kind === 'item')
     const resultsPluralized = itemRows.length === 1 ? 'result' : 'results'
     const screenReaderMessage = `${itemRows.length} ${resultsPluralized}`
 
-    if (this.state.filterValueChanged) {
-      return (
-        <AriaLiveContainer
-          trackedUserInput={this.state.filterValue}
-          message={screenReaderMessage}
-        />
-      )
-    } else {
-      return <span className="sr-only">{screenReaderMessage}</span>
-    }
+    return (
+      <AriaLiveContainer
+        trackedUserInput={this.state.filterValue}
+        message={screenReaderMessage}
+      />
+    )
   }
 
   public renderFilterRow() {

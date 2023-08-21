@@ -281,20 +281,20 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public renderLiveContainer() {
+    if (!this.state.filterValueChanged) {
+      return null
+    }
+
     const itemRows = this.state.rows.filter(row => row.kind === 'item')
     const resultsPluralized = itemRows.length === 1 ? 'result' : 'results'
     const screenReaderMessage = `${itemRows.length} ${resultsPluralized}`
 
-    if (this.state.filterValueChanged) {
-      return (
-        <AriaLiveContainer
-          message={screenReaderMessage}
-          trackedUserInput={this.state.filterValue}
-        />
-      )
-    } else {
-      return <span className="sr-only">{screenReaderMessage}</span>
-    }
+    return (
+      <AriaLiveContainer
+        message={screenReaderMessage}
+        trackedUserInput={this.state.filterValue}
+      />
+    )
   }
 
   public renderFilterRow() {
