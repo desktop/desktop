@@ -212,6 +212,7 @@ export class AppMenuBarButton extends React.Component<
           renderAcceleratorText={false}
           renderSubMenuArrow={false}
           selected={false}
+          rootItem={true}
         />
       </ToolbarDropdown>
     )

@@ -47,6 +47,12 @@ interface IMenuListItemProps {
    */
   readonly selected: boolean
 
+  /**
+   * Whether or not this is a root menu item (i.e. the ones shown in the app
+   * menu bar).
+   */
+  readonly rootItem: boolean
+
   /** Called when the user's pointer device enter the list item */
   readonly onMouseEnter?: (
     item: MenuItem,
@@ -164,7 +170,9 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
         onMouseLeave={this.onMouseLeave}
         onClick={this.onClick}
         ref={this.wrapperRef}
-        role="menuitem"
+        // Root menu items are wrapped in AppMenuBarButton components which
+        // already have the role="menuitem" attribute.
+        role={this.props.rootItem ? undefined : 'menuitem'}
         tabIndex={-1}
       >
         {this.getIcon(item)}
