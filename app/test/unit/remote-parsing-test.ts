@@ -9,6 +9,22 @@ describe('URL remote parsing', () => {
     expect(remote!.name).toBe('repo')
   })
 
+  it('parses HTTPS URLs with a trailing -git suffix', () => {
+    const remote = parseRemote('https://github.com/hubot/repo-git')
+    expect(remote).not.toBeNull()
+    expect(remote!.hostname).toBe('github.com')
+    expect(remote!.owner).toBe('hubot')
+    expect(remote!.name).toBe('repo-git')
+  })
+
+  it('parses HTTPS URLs with a trailing -git and .git suffixes', () => {
+    const remote = parseRemote('https://github.com/hubot/repo-git.git')
+    expect(remote).not.toBeNull()
+    expect(remote!.hostname).toBe('github.com')
+    expect(remote!.owner).toBe('hubot')
+    expect(remote!.name).toBe('repo-git')
+  })
+
   it('parses HTTPS URLs without a trailing git suffix', () => {
     const remote = parseRemote('https://github.com/hubot/repo')
     expect(remote).not.toBeNull()
@@ -55,6 +71,22 @@ describe('URL remote parsing', () => {
     expect(remote!.hostname).toBe('github.com')
     expect(remote!.owner).toBe('hubot')
     expect(remote!.name).toBe('repo')
+  })
+
+  it('parses SSH URLs without the git suffix but with -git suffix', () => {
+    const remote = parseRemote('git@github.com:hubot/repo-git')
+    expect(remote).not.toBeNull()
+    expect(remote!.hostname).toBe('github.com')
+    expect(remote!.owner).toBe('hubot')
+    expect(remote!.name).toBe('repo-git')
+  })
+
+  it('parses SSH URLs with the .git suffix and -git suffix', () => {
+    const remote = parseRemote('git@github.com:hubot/repo-git.git')
+    expect(remote).not.toBeNull()
+    expect(remote!.hostname).toBe('github.com')
+    expect(remote!.owner).toBe('hubot')
+    expect(remote!.name).toBe('repo-git')
   })
 
   it('parses SSH URLs with a trailing slash', () => {
