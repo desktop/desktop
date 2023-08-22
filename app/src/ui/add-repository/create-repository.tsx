@@ -581,6 +581,8 @@ export class CreateRepository extends React.Component<
   }
 
   private onAddRepositoryClicked = () => {
+    this.props.onDismissed()
+
     const { path, name } = this.state
 
     // Shouldn't be able to even get here if path is null.
