@@ -240,11 +240,11 @@ export abstract class BaseChooseBranchDialog extends React.Component<
         <DialogFooter>
           {this.renderStatusPreview()}
           <DropdownSelectButton
-            selectedValue={operation}
+            checkedOption={operation}
             options={getMergeOptions()}
             disabled={!this.canStart()}
             tooltip={this.getSubmitButtonToolTip()}
-            onSelectChange={this.onOperationChange}
+            onCheckedOptionChange={this.onOperationChange}
           />
         </DialogFooter>
       </Dialog>

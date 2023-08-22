@@ -156,13 +156,13 @@ export class DropdownSuggestedAction<T extends string> extends React.Component<
           )}
         </div>
         <DropdownSelectButton<T>
-          selectedValue={value}
+          checkedOption={value}
           options={this.props.suggestedActions.map(({ label, value }) => ({
             label,
             value,
           }))}
           disabled={disabled}
-          onSelectChange={this.onActionSelectionChange}
+          onCheckedOptionChange={this.onActionSelectionChange}
           onSubmit={this.onActionSubmitted}
         />
       </div>

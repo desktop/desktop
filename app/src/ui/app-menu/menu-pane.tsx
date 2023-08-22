@@ -82,7 +82,7 @@ interface IMenuPaneProps {
    * enables access key highlighting for applicable menu items as well as
    * keyboard navigation by pressing access keys.
    */
-  readonly enableAccessKeyNavigation: boolean
+  readonly enableAccessKeyNavigation?: boolean
 
   /**
    * Called to deselect the currently selected menu item (if any). This
@@ -91,7 +91,7 @@ interface IMenuPaneProps {
   readonly onClearSelection: (depth: number) => void
 
   /** The id of the element that serves as the menu's accessibility label */
-  readonly ariaLabelledby: string
+  readonly ariaLabelledby?: string
 }
 
 export class MenuPane extends React.Component<IMenuPaneProps> {
@@ -226,13 +226,12 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
             <MenuListItem
               key={ix + item.id}
               item={item}
-              highlightAccessKey={this.props.enableAccessKeyNavigation}
+              highlightAccessKey={this.props.enableAccessKeyNavigation === true}
               selected={item.id === this.props.selectedItem?.id}
               onMouseEnter={this.onRowMouseEnter}
               onMouseLeave={this.onRowMouseLeave}
               onClick={this.onRowClick}
               focusOnSelection={true}
-              rootItem={false}
             />
           ))}
       </div>
