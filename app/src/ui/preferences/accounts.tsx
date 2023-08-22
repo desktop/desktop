@@ -32,7 +32,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
           ? this.renderAccount(this.props.dotComAccount)
           : this.renderSignIn(SignInType.DotCom)}
 
-        <h2>GitHub Enterprise Server</h2>
+        <h2>GitHub Enterprise Server or GitHub AE</h2>
         {this.props.enterpriseAccount
           ? this.renderAccount(this.props.enterpriseAccount)
           : this.renderSignIn(SignInType.Enterprise)}
