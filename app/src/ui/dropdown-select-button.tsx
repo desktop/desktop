@@ -130,7 +130,7 @@ export class DropdownSelectButton<
   }
 
   private onClearSelection = () => {
-    this.setState({ showButtonOptions: false })
+    this.setState({ selectedOption: null })
   }
 
   private onPaneKeyDown = (
