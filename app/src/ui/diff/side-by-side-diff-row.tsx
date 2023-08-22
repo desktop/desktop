@@ -339,7 +339,10 @@ export class SideBySideDiffRow extends React.Component<
     data: Pick<IDiffRowData, 'content' | 'noNewLineIndicator' | 'tokens'>
   ) {
     return (
-      <div className="content" onContextMenu={this.props.onContextMenuText}>
+      <div
+        className="content"
+        style={{ left: `calc(${this.lineGutterWidth}px + var(--spacing))` }}
+        onContextMenu={this.props.onContextMenuText}>
         {syntaxHighlightLine(data.content, data.tokens)}
         {data.noNewLineIndicator && (
           <Octicon

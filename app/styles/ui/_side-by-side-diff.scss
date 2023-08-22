@@ -163,7 +163,7 @@
   }
 
   .content {
-    padding-left: var(--spacing);
+    padding-left: calc(var(--spacing-double) + var(--border-radius));
     white-space: pre-wrap;
     overflow-y: auto;
     flex-grow: 1;
@@ -177,7 +177,8 @@
 
     &:before {
       content: ' ';
-      padding-right: var(--spacing);
+      position: absolute;
+      left: inherit;
     }
 
     .octicon {
@@ -299,6 +300,10 @@
         width: 100% !important;
         border: none;
         flex-direction: row;
+
+        .content:before {
+          left: inherit;
+        }
       }
 
       .hunk-handle {

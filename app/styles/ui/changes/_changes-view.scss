@@ -44,4 +44,12 @@
       margin-right: var(--spacing-half);
     }
   }
+
+  // This view has .before line numbers at the end,
+  // account for with standard space offset
+  .row {
+    .before .content:before {
+      left: var(--spacing);
+    }
+  }
 }
