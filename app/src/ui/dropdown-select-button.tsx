@@ -31,6 +31,9 @@ interface IDropdownSelectButtonProps<T extends string> {
   /** tooltip for the button */
   readonly tooltip?: string
 
+   /** aria label for the button */
+   readonly dropdownAriaLabel: string
+
   /** Callback for when the button selection changes*/
   readonly onCheckedOptionChange?: (
     selectedOption: IDropdownSelectButtonOption<T>
@@ -237,7 +240,7 @@ export class DropdownSelectButton<
   }
 
   public render() {
-    const { options, disabled } = this.props
+    const { options, disabled, dropdownAriaLabel } = this.props
     const {
       checkedOption: selectedOption,
       optionsPositionBottom,
@@ -274,6 +277,9 @@ export class DropdownSelectButton<
             className={dropdownClasses}
             onClick={this.openSplitButtonDropdown}
             type="button"
+            ariaExpanded={showButtonOptions}
+            ariaHaspopup={true}
+            ariaLabel={dropdownAriaLabel}
           >
             <Octicon symbol={OcticonSymbol.triangleDown} />
           </Button>

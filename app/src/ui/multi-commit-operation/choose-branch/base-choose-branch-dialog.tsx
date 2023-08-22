@@ -243,6 +243,7 @@ export abstract class BaseChooseBranchDialog extends React.Component<
             checkedOption={operation}
             options={getMergeOptions()}
             disabled={!this.canStart()}
+            dropdownAriaLabel="Merge options"
             tooltip={this.getSubmitButtonToolTip()}
             onCheckedOptionChange={this.onOperationChange}
           />
