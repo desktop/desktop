@@ -70,6 +70,7 @@ export class DropdownSelectButton extends React.Component<
   private invokeButtonRef: HTMLButtonElement | null = null
   private dropdownButtonRef: HTMLButtonElement | null = null
   private optionsContainerRef: HTMLDivElement | null = null
+  private dropdownSelectContainerRef = React.createRef<HTMLDivElement>()
 
   public constructor(props: IDropdownSelectButtonProps) {
     super(props)
@@ -78,6 +79,36 @@ export class DropdownSelectButton extends React.Component<
       showButtonOptions: false,
       checkedOption: this.getCheckedOption(props.checkedOption),
       selectedOption: this.getCheckedOption(props.checkedOption),
+    }
+  }
+
+  public componentDidMount(): void {
+    if (this.dropdownSelectContainerRef.current) {
+      this.dropdownSelectContainerRef.current.addEventListener(
+        'focusout',
+        this.onFocusOut
+      )
+    }
+  }
+
+  public componentWillUnmount(): void {
+    if (this.dropdownSelectContainerRef.current) {
+      this.dropdownSelectContainerRef.current.removeEventListener(
+        'focusout',
+        this.onFocusOut
+      )
+    }
+  }
+
+  private onFocusOut = (event: FocusEvent) => {
+    if (
+      this.state.showButtonOptions &&
+      event.relatedTarget &&
+      !this.dropdownSelectContainerRef.current?.contains(
+        event.relatedTarget as Node
+      )
+    ) {
+      this.setState({ showButtonOptions: false })
     }
   }
 
@@ -329,7 +360,7 @@ export class DropdownSelectButton extends React.Component<
     // The button is type of submit so that it will trigger a form's onSubmit
     // method.
     return (
-      <div className={containerClasses}>
+      <div className={containerClasses} ref={this.dropdownSelectContainerRef}>
         <div className="dropdown-button-wrappers">
           <Button
             className="invoke-button"
