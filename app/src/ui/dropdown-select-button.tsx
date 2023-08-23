@@ -4,7 +4,7 @@ import { Button } from './lib/button'
 import { Octicon } from './octicons'
 import * as OcticonSymbol from './octicons/octicons.generated'
 import { MenuPane } from './app-menu'
-import { ICheckboxMenuItem, MenuItem } from '../models/app-menu'
+import { IRadioMenuItem, MenuItem } from '../models/app-menu'
 import { ClickSource, SelectionSource } from './lib/list'
 
 export interface IDropdownSelectButtonOption {
@@ -272,8 +272,8 @@ export class DropdownSelectButton extends React.Component<
     options: ReadonlyArray<IDropdownSelectButtonOption>,
     checkedOptionId: string | undefined
   ): ReadonlyArray<MenuItem> {
-    const defaultCheckBoxMenuItem: ICheckboxMenuItem = {
-      type: 'checkbox',
+    const defaultCheckBoxMenuItem: IRadioMenuItem = {
+      type: 'radio',
       id: '',
       label: '',
       checked: false,
