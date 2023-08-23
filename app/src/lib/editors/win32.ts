@@ -492,6 +492,7 @@ const editors: WindowsExternalEditor[] = [
     name: 'Pulsar',
     registryKeys: [
       CurrentUserUninstallKey('0949b555-c22c-56b7-873a-a960bdefa81f'),
+      LocalMachineUninstallKey('0949b555-c22c-56b7-873a-a960bdefa81f'),
     ],
     executableShimPaths: [['..', 'pulsar', 'Pulsar.exe']],
     displayNamePrefixes: ['Pulsar'],
