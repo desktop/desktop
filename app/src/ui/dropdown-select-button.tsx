@@ -4,7 +4,7 @@ import { Button } from './lib/button'
 import { Octicon } from './octicons'
 import * as OcticonSymbol from './octicons/octicons.generated'
 import { MenuPane } from './app-menu'
-import { MenuItem } from '../models/app-menu'
+import { ICheckboxMenuItem, MenuItem } from '../models/app-menu'
 import { ClickSource, SelectionSource } from './lib/list'
 
 export interface IDropdownSelectButtonOption {
@@ -237,6 +237,27 @@ export class DropdownSelectButton extends React.Component<
     )
   }
 
+  private getMenuItems(
+    options: ReadonlyArray<IDropdownSelectButtonOption>,
+    checkedOptionId: string | undefined
+  ): ReadonlyArray<MenuItem> {
+    const defaultCheckBoxMenuItem: ICheckboxMenuItem = {
+      type: 'checkbox',
+      id: '',
+      label: '',
+      checked: false,
+      enabled: true,
+      visible: true,
+      accelerator: null,
+      accessKey: null,
+    }
+
+    return options.map(({ id, label }) => {
+      const checked = checkedOptionId === id
+      return { ...defaultCheckBoxMenuItem, ...{ id, label, checked } }
+    })
+  }
+
   private renderSplitButtonOptions() {
     const {
       showButtonOptions,
@@ -244,23 +265,14 @@ export class DropdownSelectButton extends React.Component<
       selectedOption,
       optionsPositionBottom: bottom,
     } = this.state
+
     if (!showButtonOptions) {
       return
     }
 
     const { options } = this.props
 
-    const items: ReadonlyArray<MenuItem> = options.map(o => ({
-      type: 'checkbox',
-      id: o.id,
-      enabled: true,
-      visible: true,
-      label: o.label,
-      accelerator: null,
-      accessKey: null,
-      checked: checkedOption?.id === o.id,
-    }))
-
+    const items = this.getMenuItems(options, checkedOption?.id)
     const selectedItem = items.find(i => i.id === selectedOption?.id)
     const openClass = bottom !== undefined ? 'open-top' : 'open-bottom'
     const classes = classNames('dropdown-select-button-options', openClass)
