@@ -56,7 +56,7 @@ export function isIdPullRequestSuggestedNextAction(
   | PullRequestSuggestedNextAction.CreatePullRequest {
   return (
     id === PullRequestSuggestedNextAction.PreviewPullRequest ||
-    id === PullRequestSuggestedNextAction.CreatePullRequest 
+    id === PullRequestSuggestedNextAction.CreatePullRequest
   )
 }
 

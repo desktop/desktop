@@ -103,9 +103,7 @@ export class DropdownSuggestedAction extends React.Component<
     }
   }
 
-  private onActionSelectionChange = (
-    option: IDropdownSelectButtonOption
-  ) => {
+  private onActionSelectionChange = (option: IDropdownSelectButtonOption) => {
     this.setState({ selectedActionValue: option.id })
     this.props.onSuggestedActionChanged(option.id)
   }

@@ -12,7 +12,10 @@ import {
   IDropdownSelectButtonOption,
 } from '../dropdown-select-button'
 import { getMergeOptions, updateRebasePreview } from '../lib/update-branch'
-import { MultiCommitOperationKind, isIdMultiCommitOperation } from '../../models/multi-commit-operation'
+import {
+  MultiCommitOperationKind,
+  isIdMultiCommitOperation,
+} from '../../models/multi-commit-operation'
 import { RebasePreview } from '../../models/rebase'
 
 interface IMergeCallToActionWithConflictsProps {
@@ -97,7 +100,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
   }
 
   private onOperationChange = (option: IDropdownSelectButtonOption) => {
-    if(!isIdMultiCommitOperation(option.id)) {
+    if (!isIdMultiCommitOperation(option.id)) {
       return
     }
 
@@ -111,7 +114,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
     event: React.MouseEvent<HTMLButtonElement>,
     selectedOption: IDropdownSelectButtonOption
   ) => {
-    if(!isIdMultiCommitOperation(selectedOption.id)) {
+    if (!isIdMultiCommitOperation(selectedOption.id)) {
       return
     }
     event.preventDefault()

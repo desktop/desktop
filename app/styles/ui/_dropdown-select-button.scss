@@ -93,6 +93,10 @@
       padding-bottom: 0;
     }
 
+    :first-child.menu-item {
+      border-top: 1px solid var(--box-border-color);
+    }
+
     .menu-item {
       border-bottom: 1px solid var(--box-border-color);
       height: auto;

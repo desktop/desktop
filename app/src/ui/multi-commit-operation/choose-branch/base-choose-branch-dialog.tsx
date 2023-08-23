@@ -15,7 +15,10 @@ import {
   DropdownSelectButton,
   IDropdownSelectButtonOption,
 } from '../../dropdown-select-button'
-import { MultiCommitOperationKind, isIdMultiCommitOperation } from '../../../models/multi-commit-operation'
+import {
+  MultiCommitOperationKind,
+  isIdMultiCommitOperation,
+} from '../../../models/multi-commit-operation'
 import { assertNever } from '../../../lib/fatal-error'
 import { getMergeOptions } from '../../lib/update-branch'
 
@@ -161,13 +164,11 @@ export abstract class BaseChooseBranchDialog extends React.Component<
     return currentBranch === defaultBranch ? null : defaultBranch
   }
 
-  private onOperationChange = (
-    option: IDropdownSelectButtonOption
-  ) => {
-    if(!isIdMultiCommitOperation(option.id)) {
+  private onOperationChange = (option: IDropdownSelectButtonOption) => {
+    if (!isIdMultiCommitOperation(option.id)) {
       return
     }
-    
+
     const { dispatcher, repository } = this.props
     const { selectedBranch } = this.state
     switch (option.id) {
