@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.2.10-test1": ["[New] Accessibility verification"],
     "3.2.10-beta1": ["[Fixed] Fix the inability to log into GHES - #17237"],
     "3.2.9": ["[Fixed] Fix the inability to log into GHES - #17237"],
     "3.2.9-beta1": [
