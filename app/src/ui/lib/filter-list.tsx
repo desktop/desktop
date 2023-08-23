@@ -415,10 +415,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   private onFilterValueChanged = (text: string) => {
-    if (!this.state.filterValueChanged) {
-      this.setState({ filterValueChanged: true })
-    }
-
     if (this.props.onFilterTextChanged) {
       this.props.onFilterTextChanged(text)
     }

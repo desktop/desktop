@@ -411,10 +411,6 @@ export class SectionFilterList<
   }
 
   private onFilterValueChanged = (text: string) => {
-    if (!this.state.filterValueChanged) {
-      this.setState({ filterValueChanged: true })
-    }
-
     if (this.props.onFilterTextChanged) {
       this.props.onFilterTextChanged(text)
     }
