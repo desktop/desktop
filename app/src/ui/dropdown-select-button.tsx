@@ -175,11 +175,16 @@ export class DropdownSelectButton<
     this.optionsContainerRef = ref
   }
 
-  private renderOption = (o: IDropdownSelectButtonOption<T>) => {
+  private renderOption = (item: MenuItem) => {
+    const option = this.props.options.find(o => o.value === item.id)
+    if(!option) {
+      return
+    }
+    
     return (
       <>
-        <div className="option-title">{o.label}</div>
-        <div className="option-description">{o.description}</div>
+        <div className="option-title">{option.label}</div>
+        <div className="option-description">{option.description}</div>
       </>
     )
   }
@@ -202,7 +207,7 @@ export class DropdownSelectButton<
       id: o.value,
       enabled: true,
       visible: true,
-      label: this.renderOption(o),
+      label: o.label as string, // TODO: Accept string - use render for jsx
       accelerator: null,
       accessKey: null,
       checked: checkedOption?.value === o.value,
@@ -226,6 +231,7 @@ export class DropdownSelectButton<
           onKeyDown={this.onPaneKeyDown}
           onSelectionChanged={this.onSelectionChanged}
           onClearSelection={this.onClearSelection}
+          renderLabel={this.renderOption}
         />
       </div>
     )

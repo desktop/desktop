@@ -92,6 +92,7 @@ interface IMenuPaneProps {
 
   /** The id of the element that serves as the menu's accessibility label */
   readonly ariaLabelledby?: string
+  readonly renderLabel?: (item: MenuItem) => JSX.Element | undefined
 }
 
 export class MenuPane extends React.Component<IMenuPaneProps> {
@@ -231,6 +232,7 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
               onMouseEnter={this.onRowMouseEnter}
               onMouseLeave={this.onRowMouseLeave}
               onClick={this.onRowClick}
+              renderLabel={this.props.renderLabel}
               focusOnSelection={true}
             />
           ))}

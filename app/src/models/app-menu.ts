@@ -19,7 +19,7 @@ interface IBaseMenuItem {
   readonly id: string
   readonly enabled: boolean
   readonly visible: boolean
-  readonly label: string | JSX.Element
+  readonly label: string
 }
 
 /**

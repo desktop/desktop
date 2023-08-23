@@ -74,6 +74,8 @@ interface IMenuListItemProps {
    * false.
    */
   readonly focusOnSelection?: boolean
+
+  readonly renderLabel?: (item: MenuItem) => JSX.Element | undefined
 }
 
 /**
@@ -127,21 +129,22 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
   }
 
   private renderLabel() {
-    const { item } = this.props
+    const { item, renderLabel } = this.props
+
+    if(renderLabel !== undefined) {
+      return renderLabel(item)
+    }
+
     if (item.type === 'separator') {
       return
     }
-
-    if (typeof item.label === 'string') {
-      return (
-        <AccessText
-          text={item.label}
-          highlight={this.props.highlightAccessKey}
-        />
-      )
-    }
-
-    return item.label
+  
+    return (
+      <AccessText
+        text={item.label}
+        highlight={this.props.highlightAccessKey}
+      />
+    )
   }
 
   public render() {
