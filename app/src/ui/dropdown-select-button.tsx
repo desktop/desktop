@@ -117,7 +117,7 @@ export class DropdownSelectButton<
   }
 
   private onItemClick = (
-    depth: number | undefined,
+    depth: number,
     item: MenuItem,
     source: ClickSource
   ) => {
@@ -150,7 +150,7 @@ export class DropdownSelectButton<
   }
 
   private onSelectionChanged = (
-    depth: number = 0,
+    depth: number,
     item: MenuItem,
     source: SelectionSource
   ) => {
