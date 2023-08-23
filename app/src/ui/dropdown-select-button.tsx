@@ -7,23 +7,23 @@ import { MenuPane } from './app-menu'
 import { MenuItem } from '../models/app-menu'
 import { ClickSource, SelectionSource } from './lib/list'
 
-export interface IDropdownSelectButtonOption<T extends string> {
+export interface IDropdownSelectButtonOption {
   /** The select option header label. */
-  readonly label?: string | JSX.Element
+  readonly label: string
 
   /** The select option description */
   readonly description?: string | JSX.Element
 
   /** The select option's value */
-  readonly value: T
+  readonly id: string
 }
 
-interface IDropdownSelectButtonProps<T extends string> {
+interface IDropdownSelectButtonProps {
   /** The selection button options */
-  readonly options: ReadonlyArray<IDropdownSelectButtonOption<T>>
+  readonly options: ReadonlyArray<IDropdownSelectButtonOption>
 
   /** The selection option value */
-  readonly checkedOption?: T
+  readonly checkedOption?: string
 
   /** Whether or not the button is enabled */
   readonly disabled?: boolean
@@ -36,25 +36,25 @@ interface IDropdownSelectButtonProps<T extends string> {
 
   /** Callback for when the button selection changes*/
   readonly onCheckedOptionChange?: (
-    selectedOption: IDropdownSelectButtonOption<T>
+    selectedOption: IDropdownSelectButtonOption
   ) => void
 
   /** Callback for when button is selected option button is clicked */
   readonly onSubmit?: (
     event: React.MouseEvent<HTMLButtonElement>,
-    selectedOption: IDropdownSelectButtonOption<T>
+    selectedOption: IDropdownSelectButtonOption
   ) => void
 }
 
-interface IDropdownSelectButtonState<T extends string> {
+interface IDropdownSelectButtonState {
   /** Whether the options are rendered */
   readonly showButtonOptions: boolean
 
   /** The currently checked option (not necessarily highlighted, but is the only option checked) */
-  readonly checkedOption: IDropdownSelectButtonOption<T> | null
+  readonly checkedOption: IDropdownSelectButtonOption | null
 
   /** The currently selected option -> The option highlighted that if clicked or hit enter on would become checked */
-  readonly selectedOption: IDropdownSelectButtonOption<T> | null
+  readonly selectedOption: IDropdownSelectButtonOption | null
 
   /**
    * The adjusting position of the options popover. This is calculated based
@@ -63,17 +63,15 @@ interface IDropdownSelectButtonState<T extends string> {
   readonly optionsPositionBottom?: string
 }
 
-export class DropdownSelectButton<
-  T extends string = string
-> extends React.Component<
-  IDropdownSelectButtonProps<T>,
-  IDropdownSelectButtonState<T>
+export class DropdownSelectButton extends React.Component<
+  IDropdownSelectButtonProps,
+  IDropdownSelectButtonState
 > {
   private invokeButtonRef: HTMLButtonElement | null = null
   private dropdownButtonRef: HTMLButtonElement | null = null
   private optionsContainerRef: HTMLDivElement | null = null
 
-  public constructor(props: IDropdownSelectButtonProps<T>) {
+  public constructor(props: IDropdownSelectButtonProps) {
     super(props)
 
     this.state = {
@@ -103,14 +101,14 @@ export class DropdownSelectButton<
   }
 
   private getCheckedOption(
-    selectedValue: T | undefined
-  ): IDropdownSelectButtonOption<T> | null {
+    selectedValue: string | undefined
+  ): IDropdownSelectButtonOption | null {
     const { options } = this.props
     if (options.length === 0) {
       return null
     }
 
-    const selectedOption = options.find(o => o.value === selectedValue)
+    const selectedOption = options.find(o => o.id === selectedValue)
     if (selectedOption === undefined) {
       return options[0]
     }
@@ -122,7 +120,7 @@ export class DropdownSelectButton<
     item: MenuItem,
     source: ClickSource
   ) => {
-    const selectedOption = this.props.options.find(o => o.value === item.id)
+    const selectedOption = this.props.options.find(o => o.id === item.id)
 
     if (!selectedOption) {
       return
@@ -156,7 +154,7 @@ export class DropdownSelectButton<
     item: MenuItem,
     source: SelectionSource
   ) => {
-    const selectedOption = this.props.options.find(o => o.value === item.id)
+    const selectedOption = this.props.options.find(o => o.id === item.id)
 
     if (!selectedOption) {
       return
@@ -226,7 +224,7 @@ export class DropdownSelectButton<
   }
 
   private renderOption = (item: MenuItem) => {
-    const option = this.props.options.find(o => o.value === item.id)
+    const option = this.props.options.find(o => o.id === item.id)
     if (!option) {
       return
     }
@@ -254,16 +252,16 @@ export class DropdownSelectButton<
 
     const items: ReadonlyArray<MenuItem> = options.map(o => ({
       type: 'checkbox',
-      id: o.value,
+      id: o.id,
       enabled: true,
       visible: true,
-      label: o.label as string, // TODO: Accept string - use render for jsx
+      label: o.label,
       accelerator: null,
       accessKey: null,
-      checked: checkedOption?.value === o.value,
+      checked: checkedOption?.id === o.id,
     }))
 
-    const selectedItem = items.find(i => i.id === selectedOption?.value)
+    const selectedItem = items.find(i => i.id === selectedOption?.id)
     const openClass = bottom !== undefined ? 'open-top' : 'open-bottom'
     const classes = classNames('dropdown-select-button-options', openClass)
 

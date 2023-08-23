@@ -26,7 +26,7 @@ import {
   DropdownSuggestedAction,
   IDropdownSuggestedActionOption,
 } from '../suggested-actions/dropdown-suggested-action'
-import { PullRequestSuggestedNextAction } from '../../models/pull-request'
+import { PullRequestSuggestedNextAction, isIdPullRequestSuggestedNextAction } from '../../models/pull-request'
 import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 
 function formatMenuItemLabel(text: string) {
@@ -652,9 +652,11 @@ export class NoChanges extends React.Component<
   }
 
   private onPullRequestSuggestedActionChanged = (
-    action: PullRequestSuggestedNextAction
+    action: string
   ) => {
-    this.props.dispatcher.setPullRequestSuggestedNextAction(action)
+    if(isIdPullRequestSuggestedNextAction(action)){
+      this.props.dispatcher.setPullRequestSuggestedNextAction(action)
+    }
   }
 
   private renderCreatePullRequestAction(tip: IValidBranch) {
@@ -682,12 +684,12 @@ export class NoChanges extends React.Component<
       return null
     }
 
-    const createPullRequestAction: IDropdownSuggestedActionOption<PullRequestSuggestedNextAction> =
+    const createPullRequestAction: IDropdownSuggestedActionOption =
       {
         title,
         label: buttonText,
         description,
-        value: PullRequestSuggestedNextAction.CreatePullRequest,
+        id: PullRequestSuggestedNextAction.CreatePullRequest,
         menuItemId: 'create-pull-request',
         discoverabilityContent:
           this.renderDiscoverabilityElements(createMenuItem),
@@ -695,7 +697,7 @@ export class NoChanges extends React.Component<
         onClick: this.onCreatePullRequestClicked,
       }
 
-    const previewPullRequestAction: IDropdownSuggestedActionOption<PullRequestSuggestedNextAction> =
+    const previewPullRequestAction: IDropdownSuggestedActionOption =
       {
         title: `Preview the Pull Request from your current branch`,
         label: 'Preview Pull Request',
@@ -706,7 +708,7 @@ export class NoChanges extends React.Component<
             before proposing your changes.
           </>
         ),
-        value: PullRequestSuggestedNextAction.PreviewPullRequest,
+        id: PullRequestSuggestedNextAction.PreviewPullRequest,
         menuItemId: 'preview-pull-request',
         discoverabilityContent:
           this.renderDiscoverabilityElements(previewPullMenuItem),

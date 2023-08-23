@@ -18,6 +18,24 @@ export const enum MultiCommitOperationKind {
   Reorder = 'Reorder',
 }
 
+/** Type guard which narrows a string to a MultiCommitOperationKind */
+export function isIdMultiCommitOperation(
+  id: string
+): id is
+  | MultiCommitOperationKind.Rebase
+  | MultiCommitOperationKind.CherryPick
+  | MultiCommitOperationKind.Squash
+  | MultiCommitOperationKind.Merge
+  | MultiCommitOperationKind.Reorder {
+  return (
+    id === MultiCommitOperationKind.Rebase ||
+    id === MultiCommitOperationKind.CherryPick ||
+    id === MultiCommitOperationKind.Squash ||
+    id === MultiCommitOperationKind.Merge ||
+    id === MultiCommitOperationKind.Reorder
+  )
+}
+
 /**
  * Union type representing the possible states of an multi commit operation
  * such as rebase, interactive rebase, cherry-pick.
