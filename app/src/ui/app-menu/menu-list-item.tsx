@@ -180,7 +180,7 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
 
     const role = this.props.hasNoRole
       ? undefined
-      : type === 'radio'
+      : type === 'checkbox'
       ? 'menuitemradio'
       : 'menuitem'
     const ariaChecked = type === 'checkbox' ? item.checked : undefined
