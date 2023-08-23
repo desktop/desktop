@@ -145,6 +145,7 @@ export class DropdownSelectButton<
     }
 
     event.preventDefault()
+    event.stopPropagation()
     this.setState({ showButtonOptions: false })
   }
 
