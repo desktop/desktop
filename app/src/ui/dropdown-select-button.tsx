@@ -129,7 +129,7 @@ export class DropdownSelectButton<
     }
 
     this.setState({ checkedOption: selectedOption, showButtonOptions: false })
-
+    this.dropdownButtonRef?.focus()
     this.props.onCheckedOptionChange?.(selectedOption)
   }
 
