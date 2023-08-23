@@ -349,6 +349,7 @@ export class CreateBranch extends React.Component<
    */
   private checkBranchRules = async (branchName: string) => {
     if (
+      this.state.branchName !== branchName ||
       this.props.accounts.length === 0 ||
       this.props.upstreamGitHubRepository === null ||
       branchName === '' ||
