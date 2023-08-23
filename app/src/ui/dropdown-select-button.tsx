@@ -31,8 +31,8 @@ interface IDropdownSelectButtonProps<T extends string> {
   /** tooltip for the button */
   readonly tooltip?: string
 
-   /** aria label for the button */
-   readonly dropdownAriaLabel: string
+  /** aria label for the button */
+  readonly dropdownAriaLabel: string
 
   /** Callback for when the button selection changes*/
   readonly onCheckedOptionChange?: (
@@ -227,10 +227,10 @@ export class DropdownSelectButton<
 
   private renderOption = (item: MenuItem) => {
     const option = this.props.options.find(o => o.value === item.id)
-    if(!option) {
+    if (!option) {
       return
     }
-    
+
     return (
       <>
         <div className="option-title">{option.label}</div>
