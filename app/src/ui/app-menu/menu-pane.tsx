@@ -138,21 +138,27 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
   }
 
   private tryMoveSelectionByFirstCharacter(key: string, source: ClickSource) {
-    if (key.length > 1 || !isPrintableCharacterKey(key) || !this.props.allowFirstCharacterNavigation) {
+    if (
+      key.length > 1 ||
+      !isPrintableCharacterKey(key) ||
+      !this.props.allowFirstCharacterNavigation
+    ) {
       return
     }
     const { items, selectedItem } = this.props
-    const char = key.toLowerCase();
+    const char = key.toLowerCase()
     const currentRow = selectedItem ? items.indexOf(selectedItem) + 1 : 0
-    const start = currentRow + 1 > items.length ? 0 : currentRow + 1;
+    const start = currentRow + 1 > items.length ? 0 : currentRow + 1
 
-    const firstChars = items.map(v => v.type === 'separator' ? '' : v.label.trim()[0].toLowerCase())
-  
+    const firstChars = items.map(v =>
+      v.type === 'separator' ? '' : v.label.trim()[0].toLowerCase()
+    )
+
     // Check menu items after selected
     let ix: number = firstChars.indexOf(char, start)
 
     // check menu items before selected
-    if(ix === -1) {
+    if (ix === -1) {
       ix = firstChars.indexOf(char, 0)
     }
 
@@ -286,5 +292,5 @@ const supportedKeys = [
 const isSupportedKey = (key: string): key is typeof supportedKeys[number] =>
   (supportedKeys as readonly string[]).includes(key)
 
-const isPrintableCharacterKey = (key: string) => key.length === 1 && key.match(/\S/);
-  
+const isPrintableCharacterKey = (key: string) =>
+  key.length === 1 && key.match(/\S/)

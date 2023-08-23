@@ -70,6 +70,7 @@ export class DropdownSelectButton<
   IDropdownSelectButtonState<T>
 > {
   private invokeButtonRef: HTMLButtonElement | null = null
+  private dropdownButtonRef: HTMLButtonElement | null = null
   private optionsContainerRef: HTMLDivElement | null = null
 
   public constructor(props: IDropdownSelectButtonProps<T>) {
@@ -140,12 +141,13 @@ export class DropdownSelectButton<
     depth: number | undefined,
     event: React.KeyboardEvent<HTMLDivElement>
   ) => {
-    if (event.key !== 'Escape') {
+    if (event.key !== 'Escape' && event.key !== 'Esc') {
       return
     }
 
     event.preventDefault()
     event.stopPropagation()
+    this.dropdownButtonRef?.focus()
     this.setState({ showButtonOptions: false })
   }
 
@@ -167,8 +169,56 @@ export class DropdownSelectButton<
     this.setState({ showButtonOptions: !this.state.showButtonOptions })
   }
 
+  private onDropdownButtonKeyDown = (
+    event: React.KeyboardEvent<HTMLButtonElement>
+  ) => {
+    const { key } = event
+    let flag = false
+
+    switch (key) {
+      case ' ':
+      case 'Enter':
+      case 'ArrowDown':
+      case 'Down':
+        this.setState({
+          selectedOption: this.props.options.at(0) ?? null,
+          showButtonOptions: true,
+        })
+        flag = true
+        break
+
+      case 'Esc':
+      case 'Escape':
+        this.dropdownButtonRef?.focus()
+        this.setState({ showButtonOptions: false })
+        flag = true
+        break
+
+      case 'Up':
+      case 'ArrowUp':
+        this.setState({
+          selectedOption: this.props.options.at(-1) ?? null,
+          showButtonOptions: true,
+        })
+        flag = true
+        break
+
+      default:
+        break
+    }
+
+    if (flag) {
+      event.stopPropagation()
+      event.preventDefault()
+    }
+  }
+
   private onInvokeButtonRef = (buttonRef: HTMLButtonElement | null) => {
     this.invokeButtonRef = buttonRef
+  }
+
+  private onDropdownButtonRef = (buttonRef: HTMLButtonElement | null) => {
+    this.dropdownButtonRef = buttonRef
   }
 
   private onOptionsContainerRef = (ref: HTMLDivElement | null) => {
@@ -284,6 +334,8 @@ export class DropdownSelectButton<
           <Button
             className={dropdownClasses}
             onClick={this.openSplitButtonDropdown}
+            onKeyDown={this.onDropdownButtonKeyDown}
+            onButtonRef={this.onDropdownButtonRef}
             type="button"
             ariaExpanded={showButtonOptions}
             ariaHaspopup={true}

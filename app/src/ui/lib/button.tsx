@@ -27,6 +27,12 @@ export interface IButtonProps {
    */
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
+  /**
+   * A function that's called when the user moves over the button with
+   * a pointer device.
+   */
+  readonly onKeyDown?: (event: React.KeyboardEvent<HTMLButtonElement>) => void
+
   /** An optional tooltip to render when hovering over the button */
   readonly tooltip?: string
 
@@ -185,6 +191,7 @@ export class Button extends React.Component<IButtonProps, {}> {
       <button
         className={className}
         onClick={disabled ? preventDefault : this.onClick}
+        onKeyDown={this.props.onKeyDown}
         onContextMenu={disabled ? preventDefault : this.onContextMenu}
         type={this.props.type || 'button'}
         ref={this.innerButtonRef}

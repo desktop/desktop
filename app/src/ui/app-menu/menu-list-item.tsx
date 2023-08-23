@@ -131,19 +131,16 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
   private renderLabel() {
     const { item, renderLabel } = this.props
 
-    if(renderLabel !== undefined) {
+    if (renderLabel !== undefined) {
       return renderLabel(item)
     }
 
     if (item.type === 'separator') {
       return
     }
-  
+
     return (
-      <AccessText
-        text={item.label}
-        highlight={this.props.highlightAccessKey}
-      />
+      <AccessText text={item.label} highlight={this.props.highlightAccessKey} />
     )
   }
 
