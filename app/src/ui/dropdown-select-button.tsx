@@ -231,6 +231,7 @@ export class DropdownSelectButton<
           onKeyDown={this.onPaneKeyDown}
           onSelectionChanged={this.onSelectionChanged}
           onClearSelection={this.onClearSelection}
+          allowFirstCharacterNavigation={true}
           renderLabel={this.renderOption}
         />
       </div>
