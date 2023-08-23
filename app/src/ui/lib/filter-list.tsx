@@ -194,26 +194,29 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   IFilterListProps<T>,
   IFilterListState<T>
 > {
+  public static getDerivedStateFromProps(
+    props: IFilterListProps<IFilterListItem>,
+    state: IFilterListState<IFilterListItem>
+  ) {
+    return createStateUpdate(props, state)
+  }
+
+  public state: IFilterListState<T> = {
+    rows: new Array<IFilterListRow<T>>(),
+    selectedRow: -1,
+    filterValue: '',
+    filterValueChanged: false,
+  }
+
   private list: List | null = null
   private filterTextBox: TextBox | null = null
 
   public constructor(props: IFilterListProps<T>) {
     super(props)
 
-    this.state = {
-      filterValueChanged: false,
-      ...createStateUpdate(props),
+    if (props.filterTextBox !== undefined) {
+      this.filterTextBox = props.filterTextBox
     }
-  }
-
-  public componentWillMount() {
-    if (this.props.filterTextBox !== undefined) {
-      this.filterTextBox = this.props.filterTextBox
-    }
-  }
-
-  public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
-    this.setState(createStateUpdate(nextProps))
   }
 
   public componentDidUpdate(
@@ -596,7 +599,8 @@ export function getText<T extends IFilterListItem>(
 }
 
 function createStateUpdate<T extends IFilterListItem>(
-  props: IFilterListProps<T>
+  props: IFilterListProps<T>,
+  state: IFilterListState<T>
 ) {
   const flattenedRows = new Array<IFilterListRow<T>>()
   const filter = (props.filterText || '').toLowerCase()
@@ -637,7 +641,18 @@ function createStateUpdate<T extends IFilterListItem>(
     selectedRow = flattenedRows.findIndex(i => i.kind === 'item')
   }
 
-  return { rows: flattenedRows, selectedRow, filterValue: filter }
+  let filterChanged = state.filterValueChanged
+
+  if (!filterChanged && filter.length) {
+    filterChanged = true
+  }
+
+  return {
+    rows: flattenedRows,
+    selectedRow,
+    filterValue: filter,
+    filterValueChanged: filterChanged,
+  }
 }
 
 function getItemFromRowIndex<T extends IFilterListItem>(

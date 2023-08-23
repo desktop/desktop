@@ -175,26 +175,30 @@ interface IFilterListState<T extends IFilterListItem> {
 export class SectionFilterList<
   T extends IFilterListItem
 > extends React.Component<ISectionFilterListProps<T>, IFilterListState<T>> {
+  public static getDerivedStateFromProps(
+    props: ISectionFilterListProps<IFilterListItem>,
+    state: IFilterListState<IFilterListItem>
+  ) {
+    return createStateUpdate(props, state)
+  }
+
+  public state: IFilterListState<T> = {
+    rows: new Array<Array<IFilterListRow<T>>>(),
+    selectedRow: InvalidRowIndexPath,
+    filterValue: '',
+    filterValueChanged: false,
+    groups: [],
+  }
+
   private list: SectionList | null = null
   private filterTextBox: TextBox | null = null
 
   public constructor(props: ISectionFilterListProps<T>) {
     super(props)
 
-    this.state = {
-      filterValueChanged: false,
-      ...createStateUpdate(props),
+    if (props.filterTextBox !== undefined) {
+      this.filterTextBox = props.filterTextBox
     }
-  }
-
-  public componentWillMount() {
-    if (this.props.filterTextBox !== undefined) {
-      this.filterTextBox = this.props.filterTextBox
-    }
-  }
-
-  public componentWillReceiveProps(nextProps: ISectionFilterListProps<T>) {
-    this.setState(createStateUpdate(nextProps))
   }
 
   public componentDidUpdate(
@@ -633,7 +637,8 @@ function getFirstVisibleRow<T extends IFilterListItem>(
 }
 
 function createStateUpdate<T extends IFilterListItem>(
-  props: ISectionFilterListProps<T>
+  props: ISectionFilterListProps<T>,
+  state: IFilterListState<T>
 ) {
   const rows = new Array<Array<IFilterListRow<T>>>()
   const filter = (props.filterText || '').toLowerCase()
@@ -683,7 +688,19 @@ function createStateUpdate<T extends IFilterListItem>(
     selectedRow = getFirstVisibleRow(rows)
   }
 
-  return { rows: rows, selectedRow, filterValue: filter, groups: groupIndices }
+  let filterChanged = state.filterValueChanged
+
+  if (!filterChanged && filter.length) {
+    filterChanged = true
+  }
+
+  return {
+    rows: rows,
+    selectedRow,
+    filterValue: filter,
+    filterValueChanged: filterChanged,
+    groups: groupIndices,
+  }
 }
 
 function getItemFromRowIndex<T extends IFilterListItem>(
