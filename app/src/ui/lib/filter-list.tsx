@@ -201,13 +201,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     return createStateUpdate(props, state)
   }
 
-  public state: IFilterListState<T> = {
-    rows: new Array<IFilterListRow<T>>(),
-    selectedRow: -1,
-    filterValue: '',
-    filterValueChanged: false,
-  }
-
   private list: List | null = null
   private filterTextBox: TextBox | null = null
 
@@ -216,6 +209,15 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
 
     if (props.filterTextBox !== undefined) {
       this.filterTextBox = props.filterTextBox
+    }
+
+    const filterValue = (props.filterText || '').toLowerCase()
+
+    this.state = {
+      rows: new Array<IFilterListRow<T>>(),
+      selectedRow: -1,
+      filterValue,
+      filterValueChanged: filterValue.length > 0,
     }
   }
 
@@ -637,17 +639,14 @@ function createStateUpdate<T extends IFilterListItem>(
     selectedRow = flattenedRows.findIndex(i => i.kind === 'item')
   }
 
-  let filterChanged = state.filterValueChanged
-
-  if (!filterChanged && filter.length) {
-    filterChanged = true
-  }
+  // Stay true if already set, otherwise become true if the filter has content
+  const filterValueChanged = state.filterValueChanged ? true : filter.length > 0
 
   return {
     rows: flattenedRows,
     selectedRow,
     filterValue: filter,
-    filterValueChanged: filterChanged,
+    filterValueChanged,
   }
 }
 

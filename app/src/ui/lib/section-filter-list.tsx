@@ -182,14 +182,6 @@ export class SectionFilterList<
     return createStateUpdate(props, state)
   }
 
-  public state: IFilterListState<T> = {
-    rows: new Array<Array<IFilterListRow<T>>>(),
-    selectedRow: InvalidRowIndexPath,
-    filterValue: '',
-    filterValueChanged: false,
-    groups: [],
-  }
-
   private list: SectionList | null = null
   private filterTextBox: TextBox | null = null
 
@@ -198,6 +190,16 @@ export class SectionFilterList<
 
     if (props.filterTextBox !== undefined) {
       this.filterTextBox = props.filterTextBox
+    }
+
+    const filterValue = (props.filterText || '').toLowerCase()
+
+    this.state = {
+      rows: new Array<Array<IFilterListRow<T>>>(),
+      selectedRow: InvalidRowIndexPath,
+      filterValue,
+      filterValueChanged: filterValue.length > 0,
+      groups: [],
     }
   }
 
@@ -684,17 +686,14 @@ function createStateUpdate<T extends IFilterListItem>(
     selectedRow = getFirstVisibleRow(rows)
   }
 
-  let filterChanged = state.filterValueChanged
-
-  if (!filterChanged && filter.length) {
-    filterChanged = true
-  }
+  // Stay true if already set, otherwise become true if the filter has content
+  const filterValueChanged = state.filterValueChanged ? true : filter.length > 0
 
   return {
     rows: rows,
     selectedRow,
     filterValue: filter,
-    filterValueChanged: filterChanged,
+    filterValueChanged,
     groups: groupIndices,
   }
 }
