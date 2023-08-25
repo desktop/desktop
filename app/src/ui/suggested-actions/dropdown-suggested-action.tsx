@@ -128,14 +128,8 @@ export class DropdownSuggestedAction extends React.Component<
       return
     }
 
-    const {
-      description,
-      image,
-      discoverabilityContent,
-      disabled,
-      id,
-      title,
-    } = this.selectedAction
+    const { description, image, discoverabilityContent, disabled, id, title } =
+      this.selectedAction
 
     const className = classNames(
       'suggested-action',
