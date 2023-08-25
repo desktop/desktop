@@ -7,27 +7,25 @@ import { RebasePreview } from '../../models/rebase'
 import { Repository } from '../../models/repository'
 import { IDropdownSelectButtonOption } from '../dropdown-select-button'
 
-export function getMergeOptions(): ReadonlyArray<
-  IDropdownSelectButtonOption<MultiCommitOperationKind>
-> {
+export function getMergeOptions(): ReadonlyArray<IDropdownSelectButtonOption> {
   return [
     {
       label: 'Create a merge commit',
       description:
         'The commits from the selected branch will be added to the current branch via a merge commit.',
-      value: MultiCommitOperationKind.Merge,
+      id: MultiCommitOperationKind.Merge,
     },
     {
       label: 'Squash and merge',
       description:
         'The commits in the selected branch will be combined into one commit in the current branch.',
-      value: MultiCommitOperationKind.Squash,
+      id: MultiCommitOperationKind.Squash,
     },
     {
       label: 'Rebase',
       description:
         'The commits from the selected branch will be rebased and added to the current branch.',
-      value: MultiCommitOperationKind.Rebase,
+      id: MultiCommitOperationKind.Rebase,
     },
   ]
 }
