@@ -1,5 +1,13 @@
 {
   "releases": {
+    "3.2.10-beta2": [
+      "[Fixed] Fix loop creating a new repository that already exists, or trying to add a repository that doesn't exist - #17262",
+      "[Fixed] Allow cloning repositories that have git as suffix - #17221",
+      "[Fixed] Fix accessibility semantics of root items of the app menu bar - #17254",
+      "[Improved] Dropdown select buttons have aria semantics  - #17271",
+      "[Improved] Dropdown select buttons menu is keyboard navigable and aria semantics - #17271",
+      "[Improved] Prevent interupting verbose annoucements of branch count on branch dropdown open for screen reader users - #17225"
+    ],
     "3.2.10-beta1": ["[Fixed] Fix the inability to log into GHES - #17237"],
     "3.2.9": ["[Fixed] Fix the inability to log into GHES - #17237"],
     "3.2.9-beta1": [
