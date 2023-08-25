@@ -154,7 +154,7 @@ export class DropdownSuggestedAction extends React.Component<
           )}
         </div>
         <DropdownSelectButton
-          checkedOption={value}
+          checkedOption={id}
           options={this.props.suggestedActions.map(({ label, id }) => ({
             label,
             id,
