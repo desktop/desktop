@@ -133,7 +133,7 @@ export class DropdownSuggestedAction extends React.Component<
       image,
       discoverabilityContent,
       disabled,
-      id: value,
+      id,
       title,
     } = this.selectedAction
 
