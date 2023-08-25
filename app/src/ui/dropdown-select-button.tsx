@@ -140,10 +140,7 @@ export class DropdownSelectButton extends React.Component<
     }
 
     const selectedOption = options.find(o => o.id === selectedValue)
-    if (selectedOption === undefined) {
-      return options[0]
-    }
-    return selectedOption
+    return selectedOption ?? options[0]
   }
 
   private onItemClick = (
