@@ -27,10 +27,7 @@ export interface IButtonProps {
    */
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
-  /**
-   * A function that's called when the user moves over the button with
-   * a pointer device.
-   */
+  /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLButtonElement>) => void
 
   /** An optional tooltip to render when hovering over the button */
