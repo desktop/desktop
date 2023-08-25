@@ -261,7 +261,14 @@ export function parseRawLogWithNumstat(
   const lines = stdout.split('\0')
 
   for (let i = 0; i < lines.length - 1; i++) {
-    const line = lines[i]
+    // Sometimes the first line (before the first \0) has one or multiple
+    // warnings, like:
+    //    warning: exhaustive rename detection was skipped due to too many files.\n
+    //    warning: you may want to set your diff.renameLimit variable to at least 2326 and retry the command.\n
+    //    :100644 100644 c32d90aa4 ca2eff0d9 M\0
+    // These make our parser fail, so let's remove them.
+    const line = lines[i].replaceAll(/warning: .+\n/g, '')
+
     if (line.startsWith(':')) {
       const lineComponents = line.split(' ')
       const srcMode = forceUnwrap(
