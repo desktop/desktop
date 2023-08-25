@@ -28,7 +28,6 @@ import { CommitOneLine } from '../../models/commit'
 import { PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { isRepositoryWithForkedGitHubRepository } from '../../models/repository'
-import { debounce } from 'lodash'
 import { API, APIRepoRuleType, IAPIRepoRuleset } from '../../lib/api'
 import { Account } from '../../models/account'
 import { getAccountForRepository } from '../../lib/get-account-for-repository'
@@ -110,90 +109,7 @@ export class CreateBranch extends React.Component<
   ICreateBranchProps,
   ICreateBranchState
 > {
-  /**
-   * Checks repo rules to see if the provided branch name is valid for the
-   * current user and repository. The "get all rules for a branch" endpoint
-   * is called first, and if a "creation" or "branch name" rule is found,
-   * then those rulesets are checked to see if the current user can bypass
-   * them.
-   */
-  private checkBranchRules = debounce(async (branchName: string) => {
-    if (
-      this.props.accounts.length === 0 ||
-      this.props.upstreamGitHubRepository === null ||
-      branchName === '' ||
-      this.state.currentError !== null
-    ) {
-      return
-    }
-
-    const account = getAccountForRepository(
-      this.props.accounts,
-      this.props.repository
-    )
-
-    if (
-      account === null ||
-      !useRepoRulesLogic(account, this.props.repository)
-    ) {
-      return
-    }
-
-    const api = API.fromAccount(account)
-    const branchRules = await api.fetchRepoRulesForBranch(
-      this.props.upstreamGitHubRepository.owner.login,
-      this.props.upstreamGitHubRepository.name,
-      branchName
-    )
-
-    // filter the rules to only the relevant ones and get their IDs. use a Set to dedupe.
-    const toCheckForBypass = new Set(
-      branchRules
-        .filter(
-          r =>
-            r.type === APIRepoRuleType.Creation ||
-            r.type === APIRepoRuleType.BranchNamePattern
-        )
-        .map(r => r.ruleset_id)
-    )
-
-    // there are no relevant rules for this branch name, so return
-    if (toCheckForBypass.size === 0) {
-      return
-    }
-
-    // check cached rulesets to see which ones the user can bypass
-    let cannotBypass = false
-    for (const id of toCheckForBypass) {
-      const rs = this.props.cachedRepoRulesets.get(id)
-
-      if (rs?.current_user_can_bypass !== 'always') {
-        // the user cannot bypass, so stop checking
-        cannotBypass = true
-        break
-      }
-    }
-
-    if (cannotBypass) {
-      this.setState({
-        currentError: {
-          error: new Error(
-            `Branch name '${branchName}' is restricted by repo rules.`
-          ),
-          isWarning: false,
-        },
-      })
-    } else {
-      this.setState({
-        currentError: {
-          error: new Error(
-            `Branch name '${branchName}' is restricted by repo rules, but you can bypass them. Proceed with caution!`
-          ),
-          isWarning: true,
-        },
-      })
-    }
-  }, 500)
+  private branchRulesDebounceId: number | null = null
 
   private readonly ERRORS_ID = 'branch-name-errors'
 
@@ -230,6 +146,12 @@ export class CreateBranch extends React.Component<
           nextProps
         ),
       })
+    }
+  }
+
+  public componentWillUnmount() {
+    if (this.branchRulesDebounceId !== null) {
+      window.clearTimeout(this.branchRulesDebounceId)
     }
   }
 
@@ -388,6 +310,8 @@ export class CreateBranch extends React.Component<
   }
 
   private async updateBranchName(branchName: string) {
+    this.setState({ branchName })
+
     const alreadyExists =
       this.props.allBranches.findIndex(b => b.name === branchName) > -1
 
@@ -399,13 +323,111 @@ export class CreateBranch extends React.Component<
       : null
 
     if (!currentError) {
-      await this.checkBranchRules(branchName)
+      if (this.branchRulesDebounceId !== null) {
+        window.clearTimeout(this.branchRulesDebounceId)
+      }
+
+      this.branchRulesDebounceId = window.setTimeout(
+        this.checkBranchRules,
+        500,
+        branchName
+      )
     }
 
     this.setState({
       branchName,
       currentError,
     })
+  }
+
+  /**
+   * Checks repo rules to see if the provided branch name is valid for the
+   * current user and repository. The "get all rules for a branch" endpoint
+   * is called first, and if a "creation" or "branch name" rule is found,
+   * then those rulesets are checked to see if the current user can bypass
+   * them.
+   */
+  private checkBranchRules = async (branchName: string) => {
+    if (
+      this.state.branchName !== branchName ||
+      this.props.accounts.length === 0 ||
+      this.props.upstreamGitHubRepository === null ||
+      branchName === '' ||
+      this.state.currentError !== null
+    ) {
+      return
+    }
+
+    const account = getAccountForRepository(
+      this.props.accounts,
+      this.props.repository
+    )
+
+    if (
+      account === null ||
+      !useRepoRulesLogic(account, this.props.repository)
+    ) {
+      return
+    }
+
+    const api = API.fromAccount(account)
+    const branchRules = await api.fetchRepoRulesForBranch(
+      this.props.upstreamGitHubRepository.owner.login,
+      this.props.upstreamGitHubRepository.name,
+      branchName
+    )
+
+    // filter the rules to only the relevant ones and get their IDs. use a Set to dedupe.
+    const toCheckForBypass = new Set(
+      branchRules
+        .filter(
+          r =>
+            r.type === APIRepoRuleType.Creation ||
+            r.type === APIRepoRuleType.BranchNamePattern
+        )
+        .map(r => r.ruleset_id)
+    )
+
+    // there are no relevant rules for this branch name, so return
+    if (toCheckForBypass.size === 0) {
+      return
+    }
+
+    // check cached rulesets to see which ones the user can bypass
+    let cannotBypass = false
+    for (const id of toCheckForBypass) {
+      const rs = this.props.cachedRepoRulesets.get(id)
+
+      if (rs?.current_user_can_bypass !== 'always') {
+        // the user cannot bypass, so stop checking
+        cannotBypass = true
+        break
+      }
+    }
+
+    if (this.state.branchName !== branchName) {
+      return
+    }
+
+    if (cannotBypass) {
+      this.setState({
+        currentError: {
+          error: new Error(
+            `Branch name '${branchName}' is restricted by repo rules.`
+          ),
+          isWarning: false,
+        },
+      })
+    } else {
+      this.setState({
+        currentError: {
+          error: new Error(
+            `Branch name '${branchName}' is restricted by repo rules, but you can bypass them. Proceed with caution!`
+          ),
+          isWarning: true,
+        },
+      })
+    }
   }
 
   private createBranch = async () => {
