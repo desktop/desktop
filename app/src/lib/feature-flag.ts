@@ -103,4 +103,4 @@ export function enableSectionList(): boolean {
   return enableBetaFeatures()
 }
 
-export const enableRepoRulesBeta = enableBetaFeatures
+export const enableRepoRulesBeta = true
