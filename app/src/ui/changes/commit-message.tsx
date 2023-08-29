@@ -756,7 +756,7 @@ export class CommitMessage extends React.Component<
         onAuthorsUpdated={this.onCoAuthorsUpdated}
         authors={this.props.coAuthors}
         autoCompleteProvider={autocompletionProvider}
-        readonly={this.props.isCommitting === true}
+        disabled={this.props.isCommitting === true}
       />
     )
   }
@@ -1347,7 +1347,7 @@ export class CommitMessage extends React.Component<
             }
             aria-describedby={ariaDescribedBy}
             onContextMenu={this.onAutocompletingInputContextMenu}
-            readonly={isCommitting === true}
+            disabled={isCommitting === true}
             spellcheck={commitSpellcheckEnabled}
           />
           {showRepoRuleCommitMessageFailureHint &&
