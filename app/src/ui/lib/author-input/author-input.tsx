@@ -198,6 +198,7 @@ export class AuthorInput extends React.Component<
           onValueChanged={this.onCoAuthorsValueChanged}
           onKeyDown={this.onInputKeyDown}
           onFocus={this.onInputFocus}
+          readonly={this.props.disabled}
         />
       </FocusContainer>
     )
