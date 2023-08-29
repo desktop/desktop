@@ -1,5 +1,17 @@
 {
   "releases": {
+    "3.3.0": [
+      "[New] Initial support for repository rules - #16707.",
+      "[Fixed] Fix loop creating a new repository that already exists, or trying to add a repository that doesn't exist - #17262",
+      "[Fixed] Allow cloning repositories that have git as a suffix - #17221",
+      "[Fixed] Fix accessibility semantics of root items of the app menu bar - #17254",
+      "[Fixed] Double clicking the checkbox of a changed file does not open that file in the external editor - #17229",
+      "[Fixed] Expand buttons in the diff are keyboard navigable. - #17212",
+      "[Improved] Improve light mode color contrast of lines added and deleted - #17206",
+      "[Improved] Dropdown select buttons have aria attributes  - #17271",
+      "[Improved] Dropdown select button menu items are keyboard navigable and have aria attributes - #17271",
+      "[Improved] Prevent interupting verbose annoucements of branch count on branch dropdown open for screen reader users - #17225"
+    ],
     "3.2.10-beta2": [
       "[Fixed] Fix loop creating a new repository that already exists, or trying to add a repository that doesn't exist - #17262",
       "[Fixed] Allow cloning repositories that have git as suffix - #17221",
