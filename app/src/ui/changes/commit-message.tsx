@@ -756,7 +756,7 @@ export class CommitMessage extends React.Component<
         onAuthorsUpdated={this.onCoAuthorsUpdated}
         authors={this.props.coAuthors}
         autoCompleteProvider={autocompletionProvider}
-        disabled={this.props.isCommitting === true}
+        readonly={this.props.isCommitting === true}
       />
     )
   }
@@ -1374,7 +1374,7 @@ export class CommitMessage extends React.Component<
             ref={this.onDescriptionFieldRef}
             onElementRef={this.onDescriptionTextAreaRef}
             onContextMenu={this.onAutocompletingInputContextMenu}
-            readonly={isCommitting === true}
+            disabled={isCommitting === true}
             spellcheck={commitSpellcheckEnabled}
           />
           {this.renderActionBar()}

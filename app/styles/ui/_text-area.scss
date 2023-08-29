@@ -7,7 +7,6 @@
 
   textarea {
     @include textboxish;
-    @include textboxish-disabled;
 
     height: auto;
     resize: none;

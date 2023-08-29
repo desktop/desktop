@@ -42,11 +42,8 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /** The current value of the input field. */
   readonly value?: string
 
-  /** Disabled state for input field. */
+  /** Whether or not the input should be read-only and styled as disabled */
   readonly disabled?: boolean
-
-  /** Whether or not the text input should be read-only. */
-  readonly readonly?: boolean
 
   /** Indicates if input field should be required */
   readonly required?: boolean
@@ -407,8 +404,7 @@ export abstract class AutocompletingTextInput<
       onFocus: this.onFocus,
       onBlur: this.onBlur,
       onContextMenu: this.onContextMenu,
-      disabled: this.props.disabled,
-      readOnly: this.props.readonly,
+      readOnly: this.props.disabled,
       required: this.props.required ? true : false,
       spellCheck: this.props.spellcheck,
       autoComplete: 'off',
@@ -418,6 +414,7 @@ export abstract class AutocompletingTextInput<
       'aria-controls': this.state.autocompleteContainerId,
       'aria-owns': this.state.autocompleteContainerId,
       'aria-activedescendant': this.getActiveAutocompleteItemId(),
+      'aria-disabled': this.props.disabled,
     }
 
     return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(

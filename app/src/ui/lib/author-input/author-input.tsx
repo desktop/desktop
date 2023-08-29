@@ -46,8 +46,7 @@ interface IAuthorInputProps {
   readonly onAuthorsUpdated: (authors: ReadonlyArray<Author>) => void
 
   /**
-   * Whether or not the input should be read-only and styled as being
-   * disabled. When disabled the component will not accept focus.
+   * Whether or not the input should be read-only and styled as being disabled.
    */
   readonly disabled: boolean
 }
@@ -198,7 +197,7 @@ export class AuthorInput extends React.Component<
           onValueChanged={this.onCoAuthorsValueChanged}
           onKeyDown={this.onInputKeyDown}
           onFocus={this.onInputFocus}
-          readonly={this.props.disabled}
+          disabled={this.props.disabled}
         />
       </FocusContainer>
     )
