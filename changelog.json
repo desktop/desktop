@@ -1,7 +1,7 @@
 {
   "releases": {
     "3.3.0": [
-      "[New] Initial support for repository rules - #16707.",
+      "[New] Initial support for repository rules - #16707",
       "[Fixed] Recreate stash after renaming branch - #16442",
       "[Fixed] Fix loop creating a new repository that already exists, or trying to add a repository that doesn't exist - #17262",
       "[Fixed] Allow cloning repositories that have git as a suffix - #17221",
