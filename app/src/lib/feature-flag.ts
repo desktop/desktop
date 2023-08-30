@@ -94,7 +94,7 @@ export function enablePullRequestQuickView(): boolean {
 }
 
 export function enableMoveStash(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 export const enableCustomGitUserAgent = enableBetaFeatures
@@ -103,4 +103,4 @@ export function enableSectionList(): boolean {
   return enableBetaFeatures()
 }
 
-export const enableRepoRulesBeta = enableBetaFeatures
+export const enableRepoRulesBeta = () => true
