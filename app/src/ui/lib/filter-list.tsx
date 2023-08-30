@@ -194,13 +194,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   IFilterListProps<T>,
   IFilterListState<T>
 > {
-  public static getDerivedStateFromProps(
-    props: IFilterListProps<IFilterListItem>,
-    state: IFilterListState<IFilterListItem>
-  ) {
-    return createStateUpdate(props, state)
-  }
-
   private list: List | null = null
   private filterTextBox: TextBox | null = null
 
@@ -211,14 +204,11 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
       this.filterTextBox = props.filterTextBox
     }
 
-    const filterValue = (props.filterText || '').toLowerCase()
+    this.state = createStateUpdate(props, null)
+  }
 
-    this.state = {
-      rows: new Array<IFilterListRow<T>>(),
-      selectedRow: -1,
-      filterValue,
-      filterValueChanged: filterValue.length > 0,
-    }
+  public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
+    this.setState(createStateUpdate(nextProps, this.state))
   }
 
   public componentDidUpdate(
@@ -598,7 +588,7 @@ export function getText<T extends IFilterListItem>(
 
 function createStateUpdate<T extends IFilterListItem>(
   props: IFilterListProps<T>,
-  state: IFilterListState<T>
+  state: IFilterListState<T> | null
 ) {
   const flattenedRows = new Array<IFilterListRow<T>>()
   const filter = (props.filterText || '').toLowerCase()
@@ -640,7 +630,9 @@ function createStateUpdate<T extends IFilterListItem>(
   }
 
   // Stay true if already set, otherwise become true if the filter has content
-  const filterValueChanged = state.filterValueChanged ? true : filter.length > 0
+  const filterValueChanged = state?.filterValueChanged
+    ? true
+    : filter.length > 0
 
   return {
     rows: flattenedRows,
