@@ -175,13 +175,6 @@ interface IFilterListState<T extends IFilterListItem> {
 export class SectionFilterList<
   T extends IFilterListItem
 > extends React.Component<ISectionFilterListProps<T>, IFilterListState<T>> {
-  public static getDerivedStateFromProps(
-    props: ISectionFilterListProps<IFilterListItem>,
-    state: IFilterListState<IFilterListItem>
-  ) {
-    return createStateUpdate(props, state)
-  }
-
   private list: SectionList | null = null
   private filterTextBox: TextBox | null = null
 
@@ -192,15 +185,11 @@ export class SectionFilterList<
       this.filterTextBox = props.filterTextBox
     }
 
-    const filterValue = (props.filterText || '').toLowerCase()
+    this.state = createStateUpdate(props, null)
+  }
 
-    this.state = {
-      rows: new Array<Array<IFilterListRow<T>>>(),
-      selectedRow: InvalidRowIndexPath,
-      filterValue,
-      filterValueChanged: filterValue.length > 0,
-      groups: [],
-    }
+  public componentWillReceiveProps(nextProps: ISectionFilterListProps<T>) {
+    this.setState(createStateUpdate(nextProps, this.state))
   }
 
   public componentDidUpdate(
@@ -636,7 +625,7 @@ function getFirstVisibleRow<T extends IFilterListItem>(
 
 function createStateUpdate<T extends IFilterListItem>(
   props: ISectionFilterListProps<T>,
-  state: IFilterListState<T>
+  state: IFilterListState<T> | null
 ) {
   const rows = new Array<Array<IFilterListRow<T>>>()
   const filter = (props.filterText || '').toLowerCase()
@@ -687,7 +676,9 @@ function createStateUpdate<T extends IFilterListItem>(
   }
 
   // Stay true if already set, otherwise become true if the filter has content
-  const filterValueChanged = state.filterValueChanged ? true : filter.length > 0
+  const filterValueChanged = state?.filterValueChanged
+    ? true
+    : filter.length > 0
 
   return {
     rows: rows,
