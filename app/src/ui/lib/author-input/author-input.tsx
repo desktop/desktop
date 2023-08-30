@@ -48,7 +48,7 @@ interface IAuthorInputProps {
   /**
    * Whether or not the input should be read-only and styled as being disabled.
    */
-  readonly disabled: boolean
+  readonly readOnly: boolean
 }
 
 interface IAuthorInputState {
@@ -166,7 +166,7 @@ export class AuthorInput extends React.Component<
       'author-input-component',
       this.props.className,
       {
-        disabled: this.props.disabled,
+        disabled: this.props.readOnly,
       }
     )
 
@@ -197,7 +197,7 @@ export class AuthorInput extends React.Component<
           onValueChanged={this.onCoAuthorsValueChanged}
           onKeyDown={this.onInputKeyDown}
           onFocus={this.onInputFocus}
-          disabled={this.props.disabled}
+          readOnly={this.props.readOnly}
         />
       </FocusContainer>
     )
