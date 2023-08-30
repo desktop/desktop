@@ -8,6 +8,10 @@
   textarea {
     @include textboxish;
 
+    &:read-only {
+      @include textboxish-disabled-styles;
+    }
+
     height: auto;
     resize: none;
     min-height: 100px;

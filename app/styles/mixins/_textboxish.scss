@@ -22,7 +22,7 @@
     color: var(--box-placeholder-color);
   }
 
-  &[aria-disabled='true'] {
+  &:disabled {
     @include textboxish-disabled-styles;
   }
 }

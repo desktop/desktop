@@ -414,7 +414,6 @@ export abstract class AutocompletingTextInput<
       'aria-controls': this.state.autocompleteContainerId,
       'aria-owns': this.state.autocompleteContainerId,
       'aria-activedescendant': this.getActiveAutocompleteItemId(),
-      'aria-disabled': this.props.disabled,
     }
 
     return React.createElement<React.HTMLAttributes<ElementType>, ElementType>(

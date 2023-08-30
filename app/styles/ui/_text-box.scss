@@ -13,6 +13,10 @@
   input {
     @include textboxish;
 
+    &:read-only {
+      @include textboxish-disabled-styles;
+    }
+
     // Customize the "clear" icon on search text inputs to match our
     // theme icons and colors.
     //
