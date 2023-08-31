@@ -71,7 +71,7 @@ export async function parseRepoRules(
   repository: Repository
 ): Promise<RepoRulesInfo> {
   const info = new RepoRulesInfo()
-  let gitConfigKeySet: boolean | null = null
+  let gpgSignEnabled: boolean | undefined = undefined
 
   for (const rule of rules) {
     // if a ruleset is null/undefined, then act as if the rule doesn't exist because
@@ -102,17 +102,12 @@ export async function parseRepoRules(
         break
 
       case APIRepoRuleType.RequiredSignatures:
-        // check if the user has commit signing configured. if they do, the rule passes
-        // and doesn't need to be warned about.
-        if (gitConfigKeySet === null) {
-          gitConfigKeySet = await getBooleanConfigValue(
-            repository,
-            'commit.gpgsign',
-            false
-          )
-        }
+        // check if the user has commit signing configured. if they do, the rule
+        // passes and doesn't need to be warned about.
+        gpgSignEnabled ??=
+          (await getBooleanConfigValue(repository, 'commit.gpgsign')) ?? false
 
-        if (gitConfigKeySet !== true) {
+        if (gpgSignEnabled !== true) {
           info.signedCommitsRequired =
             info.signedCommitsRequired !== true ? enforced : true
         }
