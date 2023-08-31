@@ -173,7 +173,6 @@ interface IFilterListState<T extends IFilterListItem> {
   readonly rows: ReadonlyArray<IFilterListRow<T>>
   readonly selectedRow: number
   readonly filterValue: string
-  readonly filterValueChanged: boolean
 }
 
 /**
@@ -194,31 +193,23 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   IFilterListProps<T>,
   IFilterListState<T>
 > {
-  public static getDerivedStateFromProps(
-    props: IFilterListProps<IFilterListItem>,
-    state: IFilterListState<IFilterListItem>
-  ) {
-    return createStateUpdate(props, state)
-  }
-
   private list: List | null = null
   private filterTextBox: TextBox | null = null
 
   public constructor(props: IFilterListProps<T>) {
     super(props)
 
-    if (props.filterTextBox !== undefined) {
-      this.filterTextBox = props.filterTextBox
-    }
+    this.state = createStateUpdate(props)
+  }
 
-    const filterValue = (props.filterText || '').toLowerCase()
-
-    this.state = {
-      rows: new Array<IFilterListRow<T>>(),
-      selectedRow: -1,
-      filterValue,
-      filterValueChanged: filterValue.length > 0,
+  public componentWillMount() {
+    if (this.props.filterTextBox !== undefined) {
+      this.filterTextBox = this.props.filterTextBox
     }
+  }
+
+  public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
+    this.setState(createStateUpdate(nextProps))
   }
 
   public componentDidUpdate(
@@ -285,23 +276,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     )
   }
 
-  public renderLiveContainer() {
-    if (!this.state.filterValueChanged) {
-      return null
-    }
-
-    const itemRows = this.state.rows.filter(row => row.kind === 'item')
-    const resultsPluralized = itemRows.length === 1 ? 'result' : 'results'
-    const screenReaderMessage = `${itemRows.length} ${resultsPluralized}`
-
-    return (
-      <AriaLiveContainer
-        message={screenReaderMessage}
-        trackedUserInput={this.state.filterValue}
-      />
-    )
-  }
-
   public renderFilterRow() {
     if (this.props.hideFilterRow === true) {
       return null
@@ -316,10 +290,16 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   }
 
   public render() {
+    const itemRows = this.state.rows.filter(row => row.kind === 'item')
+    const resultsPluralized = itemRows.length === 1 ? 'result' : 'results'
+    const screenReaderMessage = `${itemRows.length} ${resultsPluralized}`
+
     return (
       <div className={classnames('filter-list', this.props.className)}>
-        {this.renderLiveContainer()}
-
+        <AriaLiveContainer
+          message={screenReaderMessage}
+          trackedUserInput={this.state.filterValue}
+        />
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
         {this.renderFilterRow()}
@@ -597,8 +577,7 @@ export function getText<T extends IFilterListItem>(
 }
 
 function createStateUpdate<T extends IFilterListItem>(
-  props: IFilterListProps<T>,
-  state: IFilterListState<T>
+  props: IFilterListProps<T>
 ) {
   const flattenedRows = new Array<IFilterListRow<T>>()
   const filter = (props.filterText || '').toLowerCase()
@@ -639,15 +618,7 @@ function createStateUpdate<T extends IFilterListItem>(
     selectedRow = flattenedRows.findIndex(i => i.kind === 'item')
   }
 
-  // Stay true if already set, otherwise become true if the filter has content
-  const filterValueChanged = state.filterValueChanged ? true : filter.length > 0
-
-  return {
-    rows: flattenedRows,
-    selectedRow,
-    filterValue: filter,
-    filterValueChanged,
-  }
+  return { rows: flattenedRows, selectedRow, filterValue: filter }
 }
 
 function getItemFromRowIndex<T extends IFilterListItem>(
