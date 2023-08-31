@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.3.1": [
+      "[Fixed] Support the repository rule to enforce commit signing - #17310",
+      "[Fixed] Keyboard navigation in lists reintroduced - #17313"
+    ],
     "3.3.0": [
       "[New] Initial support for repository rules - #16707",
       "[Fixed] Recreate stash after renaming branch - #16442",
