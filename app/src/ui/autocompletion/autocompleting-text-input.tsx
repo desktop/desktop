@@ -42,8 +42,8 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /** The current value of the input field. */
   readonly value?: string
 
-  /** Disabled state for input field. */
-  readonly disabled?: boolean
+  /** Whether or not the input should be read-only and styled as disabled */
+  readonly readOnly?: boolean
 
   /** Indicates if input field should be required */
   readonly required?: boolean
@@ -404,7 +404,7 @@ export abstract class AutocompletingTextInput<
       onFocus: this.onFocus,
       onBlur: this.onBlur,
       onContextMenu: this.onContextMenu,
-      disabled: this.props.disabled,
+      readOnly: this.props.readOnly,
       required: this.props.required ? true : false,
       spellCheck: this.props.spellcheck,
       autoComplete: 'off',
