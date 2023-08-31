@@ -711,6 +711,16 @@ export class List extends React.Component<IListProps, IListState> {
     return this.props.canSelectRow ? this.props.canSelectRow(rowIndex) : true
   }
 
+  private getFirstSelectableRowIndexPath(): number | null {
+    for (let i = 0; i < this.props.rowCount; i++) {
+      if (this.canSelectRow(i)) {
+        return i
+      }
+    }
+
+    return null
+  }
+
   private addSelection(direction: SelectionDirection, source: SelectionSource) {
     if (this.props.selectedRows.length === 0) {
       return this.moveSelection(direction, source)
@@ -955,66 +965,73 @@ export class List extends React.Component<IListProps, IListState> {
     return customClasses.length === 0 ? undefined : customClasses.join(' ')
   }
 
-  private renderRow = (params: IRowRendererParams) => {
-    const rowIndex = params.rowIndex
-    const selectable = this.canSelectRow(rowIndex)
-    const selected = this.props.selectedRows.indexOf(rowIndex) !== -1
-    const customClasses = this.getCustomRowClassNames(rowIndex)
+  private getRowRenderer = (firstSelectableRowIndex: number | null) => {
+    return (params: IRowRendererParams) => {
+      const { selectedRows } = this.props
+      const rowIndex = params.rowIndex
+      const selectable = this.canSelectRow(rowIndex)
+      const selected = selectedRows.indexOf(rowIndex) !== -1
+      const customClasses = this.getCustomRowClassNames(rowIndex)
 
-    // An unselectable row shouldn't be focusable
-    let tabIndex: number | undefined = undefined
-    if (selectable) {
-      tabIndex = selected && this.props.selectedRows[0] === rowIndex ? 0 : -1
-    }
+      // An unselectable row shouldn't be focusable
+      let tabIndex: number | undefined = undefined
+      if (selectable) {
+        tabIndex =
+          (selected && selectedRows[0] === rowIndex) ||
+          (selectedRows.length === 0 && firstSelectableRowIndex === rowIndex)
+            ? 0
+            : -1
+      }
 
-    const row = this.props.rowRenderer(rowIndex)
+      const row = this.props.rowRenderer(rowIndex)
 
-    const element =
-      this.props.insertionDragType !== undefined ? (
-        <ListItemInsertionOverlay
-          onDropDataInsertion={this.onDropDataInsertion}
-          itemIndex={{ section: 0, row: rowIndex }}
-          dragType={this.props.insertionDragType}
-        >
-          {row}
-        </ListItemInsertionOverlay>
-      ) : (
-        row
+      const element =
+        this.props.insertionDragType !== undefined ? (
+          <ListItemInsertionOverlay
+            onDropDataInsertion={this.onDropDataInsertion}
+            itemIndex={{ section: 0, row: rowIndex }}
+            dragType={this.props.insertionDragType}
+          >
+            {row}
+          </ListItemInsertionOverlay>
+        ) : (
+          row
+        )
+
+      const id = this.getRowId(rowIndex)
+
+      const ariaLabel =
+        this.props.getRowAriaLabel !== undefined
+          ? this.props.getRowAriaLabel(rowIndex)
+          : undefined
+
+      return (
+        <ListRow
+          key={params.key}
+          id={id}
+          onRowRef={this.onRowRef}
+          rowCount={this.props.rowCount}
+          rowIndex={{ section: 0, row: rowIndex }}
+          sectionHasHeader={false}
+          selected={selected}
+          ariaLabel={ariaLabel}
+          onRowClick={this.onRowClick}
+          onRowDoubleClick={this.onRowDoubleClick}
+          onRowKeyDown={this.onRowKeyDown}
+          onRowMouseDown={this.onRowMouseDown}
+          onRowMouseUp={this.onRowMouseUp}
+          onRowFocus={this.onRowFocus}
+          onRowKeyboardFocus={this.onRowKeyboardFocus}
+          onRowBlur={this.onRowBlur}
+          onContextMenu={this.onRowContextMenu}
+          style={params.style}
+          tabIndex={tabIndex}
+          children={element}
+          selectable={selectable}
+          className={customClasses}
+        />
       )
-
-    const id = this.getRowId(rowIndex)
-
-    const ariaLabel =
-      this.props.getRowAriaLabel !== undefined
-        ? this.props.getRowAriaLabel(rowIndex)
-        : undefined
-
-    return (
-      <ListRow
-        key={params.key}
-        id={id}
-        onRowRef={this.onRowRef}
-        rowCount={this.props.rowCount}
-        rowIndex={{ section: 0, row: rowIndex }}
-        sectionHasHeader={false}
-        selected={selected}
-        ariaLabel={ariaLabel}
-        onRowClick={this.onRowClick}
-        onRowDoubleClick={this.onRowDoubleClick}
-        onRowKeyDown={this.onRowKeyDown}
-        onRowMouseDown={this.onRowMouseDown}
-        onRowMouseUp={this.onRowMouseUp}
-        onRowFocus={this.onRowFocus}
-        onRowKeyboardFocus={this.onRowKeyboardFocus}
-        onRowBlur={this.onRowBlur}
-        onContextMenu={this.onRowContextMenu}
-        style={params.style}
-        tabIndex={tabIndex}
-        children={element}
-        selectable={selectable}
-        className={customClasses}
-      />
-    )
+    }
   }
 
   public render() {
@@ -1132,7 +1149,9 @@ export class List extends React.Component<IListProps, IListState> {
           }
           rowCount={this.props.rowCount}
           rowHeight={this.props.rowHeight}
-          cellRenderer={this.renderRow}
+          cellRenderer={this.getRowRenderer(
+            this.getFirstSelectableRowIndexPath()
+          )}
           onScroll={this.onScroll}
           scrollTop={this.props.setScrollTop}
           overscanRowCount={4}
