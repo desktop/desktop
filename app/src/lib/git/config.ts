@@ -29,6 +29,31 @@ export function getGlobalConfigValue(
 }
 
 /**
+ * Look up a config value by name.
+ *
+ * Treats the returned value as a boolean as per Git's
+ * own definition of a boolean configuration value (i.e.
+ * 0 -> false, "off" -> false, "yes" -> true etc)
+ */
+export async function getBooleanConfigValue(
+  repository: Repository,
+  name: string,
+  onlyLocal: boolean = false,
+  env?: {
+    HOME: string
+  }
+): Promise<boolean | null> {
+  const value = await getConfigValueInPath(
+    name,
+    repository.path,
+    onlyLocal,
+    'bool',
+    env
+  )
+  return value === null ? null : value !== 'false'
+}
+
+/**
  * Look up a global config value by name.
  *
  * Treats the returned value as a boolean as per Git's

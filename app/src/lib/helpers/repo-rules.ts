@@ -19,6 +19,7 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
+import { getBooleanConfigValue } from '../git'
 
 /**
  * Returns whether repo rules could potentially exist for the provided account and repository.
@@ -64,11 +65,13 @@ export function useRepoRulesLogic(
  * Parses the GitHub API response for a branch's repo rules into a more useable
  * format.
  */
-export function parseRepoRules(
+export async function parseRepoRules(
   rules: ReadonlyArray<IAPIRepoRule>,
-  rulesets: ReadonlyMap<number, IAPIRepoRuleset>
-): RepoRulesInfo {
+  rulesets: ReadonlyMap<number, IAPIRepoRuleset>,
+  repository: Repository
+): Promise<RepoRulesInfo> {
   const info = new RepoRulesInfo()
+  let gpgSignEnabled: boolean | undefined = undefined
 
   for (const rule of rules) {
     // if a ruleset is null/undefined, then act as if the rule doesn't exist because
@@ -88,7 +91,6 @@ export function parseRepoRules(
     switch (rule.type) {
       case APIRepoRuleType.Update:
       case APIRepoRuleType.RequiredDeployments:
-      case APIRepoRuleType.RequiredSignatures:
       case APIRepoRuleType.RequiredStatusChecks:
         info.basicCommitWarning =
           info.basicCommitWarning !== true ? enforced : true
@@ -97,6 +99,18 @@ export function parseRepoRules(
       case APIRepoRuleType.Creation:
         info.creationRestricted =
           info.creationRestricted !== true ? enforced : true
+        break
+
+      case APIRepoRuleType.RequiredSignatures:
+        // check if the user has commit signing configured. if they do, the rule
+        // passes and doesn't need to be warned about.
+        gpgSignEnabled ??=
+          (await getBooleanConfigValue(repository, 'commit.gpgsign')) ?? false
+
+        if (gpgSignEnabled !== true) {
+          info.signedCommitsRequired =
+            info.signedCommitsRequired !== true ? enforced : true
+        }
         break
 
       case APIRepoRuleType.PullRequest:
