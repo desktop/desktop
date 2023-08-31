@@ -1,5 +1,6 @@
 .panel {
   display: flex;
+  overflow-y: visible;
   flex-direction: column;
   flex: 1;
 }
