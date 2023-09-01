@@ -160,7 +160,7 @@ export class CompareSidebar extends React.Component<
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
-            type="search"
+            displayClearButton={true}
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             value={filterText}

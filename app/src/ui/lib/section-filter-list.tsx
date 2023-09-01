@@ -244,7 +244,7 @@ export class SectionFilterList<
     return (
       <TextBox
         ref={this.onTextBoxRef}
-        type="search"
+        displayClearButton={true}
         autoFocus={true}
         placeholder={this.props.placeholderText || 'Filter'}
         className="filter-list-filter-field"

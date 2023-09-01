@@ -2,6 +2,8 @@ import * as React from 'react'
 import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import { showContextualMenu } from '../../lib/menu-item'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 export interface ITextBoxProps {
   /** The label for the input field. */
@@ -36,6 +38,12 @@ export interface ITextBoxProps {
    * Default: true
    */
   readonly displayInvalidState?: boolean
+
+  /**
+   * Whether or not the control displays a clear button when it has text.
+   * Default: false
+   */
+  readonly displayClearButton?: boolean
 
   /**
    * Called when the user changes the value in the input field.
@@ -176,10 +184,21 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     })
   }
 
-  private onSearchTextCleared = () => {
-    if (this.props.onSearchCleared != null) {
-      this.props.onSearchCleared()
+  private clearSearchText = () => {
+    if (this.inputElement === null) {
+      return
     }
+
+    this.inputElement.value = ''
+
+    this.setState({ value: '' }, () => {
+      if (this.props.onValueChanged) {
+        this.props.onValueChanged('')
+      }
+      this.props.onSearchCleared?.()
+    })
+
+    this.inputElement.focus()
   }
 
   /**
@@ -194,15 +213,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
    *
    */
   private onInputRef = (element: HTMLInputElement | null) => {
-    if (this.inputElement != null && this.props.type === 'search') {
-      this.inputElement.removeEventListener('search', this.onSearchTextCleared)
-    }
-
     this.inputElement = element
-
-    if (this.inputElement != null && this.props.type === 'search') {
-      this.inputElement.addEventListener('search', this.onSearchTextCleared)
-    }
   }
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
@@ -284,6 +295,13 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           aria-describedby={this.props.ariaDescribedBy}
           required={this.props.required}
         />
+        {this.props.displayClearButton &&
+          this.state.value !== undefined &&
+          this.state.value !== '' && (
+            <button className="clear-button" onClick={this.clearSearchText}>
+              <Octicon symbol={OcticonSymbol.x} />
+            </button>
+          )}
       </div>
     )
   }
