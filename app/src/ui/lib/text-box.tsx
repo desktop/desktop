@@ -271,6 +271,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
       <div
         className={classNames('text-box-component', className, {
           'no-invalid-state': this.props.displayInvalidState === false,
+          'display-clear-button': this.props.displayClearButton === true,
         })}
       >
         {label && <label htmlFor={inputId}>{label}</label>}
