@@ -33,6 +33,7 @@ import {
   getBranches,
   getRebaseSnapshot,
   getRepositoryType,
+  isSuccessfulRebaseResult,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -1211,7 +1212,7 @@ export class Dispatcher {
         baseBranch.name,
         targetBranch.name
       )
-    } else if (result === RebaseResult.CompletedWithoutError) {
+    } else if (isSuccessfulRebaseResult(result)) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
           `[rebase] tip after completing rebase is ${tip.kind} but this should be a valid tip if the rebase completed without error`
@@ -1259,7 +1260,7 @@ export class Dispatcher {
       manualResolutions
     )
 
-    if (result === RebaseResult.CompletedWithoutError) {
+    if (result === RebaseResult.ConflictsEncountered) {
       this.statsStore.recordOperationSuccessfulWithConflicts(kind)
     }
 
@@ -3627,7 +3628,8 @@ export class Dispatcher {
     // conflict flow if squash results in conflict.
     const status = await this.appStore._loadStatus(repository)
     switch (result) {
-      case RebaseResult.CompletedWithoutError:
+      case (RebaseResult.CompletedWithoutError,
+      RebaseResult.BranchAlreadyUpToDate):
         if (status !== null && status.currentTip !== undefined) {
           // This sets the history to the current tip
           // TODO: Look at history back to last retained commit and search for
@@ -3642,7 +3644,9 @@ export class Dispatcher {
 
         await this.completeMultiCommitOperation(
           repository,
-          totalNumberOfCommits
+          result === RebaseResult.BranchAlreadyUpToDate
+            ? 0
+            : totalNumberOfCommits
         )
         break
       case RebaseResult.ConflictsEncountered:

@@ -38,6 +38,11 @@ export enum RebaseResult {
    */
   CompletedWithoutError = 'CompletedWithoutError',
   /**
+   * Git completed the rebase without reporting any errors, but the branch was
+   * already up to date and there was nothing to do.
+   */
+  BranchAlreadyUpToDate = 'BranchAlreadyUpToDate',
+  /**
    * The rebase encountered conflicts while attempting to rebase, and these
    * need to be resolved by the user before the rebase can continue.
    */
@@ -59,6 +64,17 @@ export enum RebaseResult {
    * Check the logs to find the relevant Git details.
    */
   Error = 'Error',
+}
+
+export function isSuccessfulRebaseResult(
+  result: RebaseResult
+): result is
+  | RebaseResult.CompletedWithoutError
+  | RebaseResult.BranchAlreadyUpToDate {
+  return [
+    RebaseResult.CompletedWithoutError,
+    RebaseResult.BranchAlreadyUpToDate,
+  ].includes(result)
 }
 
 /**
@@ -402,6 +418,10 @@ export async function abortRebase(repository: Repository) {
 
 function parseRebaseResult(result: IGitResult): RebaseResult {
   if (result.exitCode === 0) {
+    if (result.stdout.trim().match(/^Current branch [^ ]+ is up to date.$/i)) {
+      return RebaseResult.BranchAlreadyUpToDate
+    }
+
     return RebaseResult.CompletedWithoutError
   }
 
