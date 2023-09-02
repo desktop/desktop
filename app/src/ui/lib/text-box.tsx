@@ -4,6 +4,7 @@ import { createUniqueId, releaseUniqueId } from './id-pool'
 import { showContextualMenu } from '../../lib/menu-item'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 export interface ITextBoxProps {
   /** The label for the input field. */
@@ -111,6 +112,11 @@ interface ITextBoxState {
    * Text to display in the underlying input element
    */
   readonly value?: string
+
+  /**
+   * Input just cleared via clear button.
+   */
+  readonly valueCleared: boolean
 }
 
 /** An input element with app-standard styles. */
@@ -121,7 +127,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     const friendlyName = this.props.label || this.props.placeholder
     const inputId = createUniqueId(`TextBox_${friendlyName}`)
 
-    this.setState({ inputId, value: this.props.value })
+    this.setState({ inputId, value: this.props.value, valueCleared: false })
   }
 
   public componentWillUnmount() {
@@ -177,7 +183,9 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = event.currentTarget.value
 
-    this.setState({ value }, () => {
+    // Even when the new value is '', we don't want to render the aria-live
+    // message saying "input cleared", so we set valueCleared to false.
+    this.setState({ value, valueCleared: false }, () => {
       if (this.props.onValueChanged) {
         this.props.onValueChanged(value)
       }
@@ -191,7 +199,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
     this.inputElement.value = ''
 
-    this.setState({ value: '' }, () => {
+    this.setState({ value: '', valueCleared: true }, () => {
       if (this.props.onValueChanged) {
         this.props.onValueChanged('')
       }
@@ -299,10 +307,17 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         {this.props.displayClearButton &&
           this.state.value !== undefined &&
           this.state.value !== '' && (
-            <button className="clear-button" onClick={this.clearSearchText}>
+            <button
+              className="clear-button"
+              aria-label="Clear"
+              onClick={this.clearSearchText}
+            >
               <Octicon symbol={OcticonSymbol.x} />
             </button>
           )}
+        {this.state.valueCleared && (
+          <AriaLiveContainer message="Input cleared" />
+        )}
       </div>
     )
   }
