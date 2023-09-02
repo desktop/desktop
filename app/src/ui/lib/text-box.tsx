@@ -209,9 +209,8 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         this.props.onValueChanged('')
       }
       this.props.onSearchCleared?.()
+      this.focus()
     })
-
-    this.inputElement.focus()
   }
 
   /**
