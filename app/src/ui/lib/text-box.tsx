@@ -192,6 +192,11 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     })
   }
 
+  private onSearchTextCleared = () => {
+    this.setState({ valueCleared: true })
+    this.props.onSearchCleared?.()
+  }
+
   private clearSearchText = () => {
     if (this.inputElement === null) {
       return
@@ -221,7 +226,15 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
    *
    */
   private onInputRef = (element: HTMLInputElement | null) => {
+    if (this.inputElement != null && this.props.type === 'search') {
+      this.inputElement.removeEventListener('search', this.onSearchTextCleared)
+    }
+
     this.inputElement = element
+
+    if (this.inputElement != null && this.props.type === 'search') {
+      this.inputElement.addEventListener('search', this.onSearchTextCleared)
+    }
   }
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
