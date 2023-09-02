@@ -44,14 +44,13 @@
 
   button.clear-button {
     position: absolute;
-    right: 0;
-    margin: auto;
+    right: 1px;
     border: 0;
     background: none;
     width: var(--text-field-height);
-    height: var(--text-field-height);
+    height: calc(100%);
     color: var(--text-color);
-    padding: 0;
+    padding: 1px 0 0 0;
   }
 
   &:not(.no-invalid-state) :not(:focus):invalid {
