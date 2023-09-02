@@ -691,8 +691,8 @@ function getPlaceholderText(state: ICompareState) {
     return __DARWIN__ ? 'No Branches to Compare' : 'No branches to compare'
   } else if (formState.kind === HistoryTabMode.History) {
     return __DARWIN__
-      ? 'Select Branch to Compare...'
-      : 'Select branch to compare...'
+      ? 'Select Branch to Compare…'
+      : 'Select branch to compare…'
   } else {
     return undefined
   }
