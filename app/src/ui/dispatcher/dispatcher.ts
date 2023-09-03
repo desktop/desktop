@@ -1221,7 +1221,10 @@ export class Dispatcher {
       }
 
       this.statsStore.recordRebaseSuccessWithoutConflicts()
-      await this.completeMultiCommitOperation(repository, commits.length)
+      await this.completeMultiCommitOperation(
+        repository,
+        result === RebaseResult.AlreadyUpToDate ? 0 : commits.length
+      )
     } else if (result === RebaseResult.Error) {
       // we were unable to successfully start the rebase, and an error should
       // be shown through the default error handling infrastructure, so we can
@@ -3786,11 +3789,22 @@ export class Dispatcher {
           operationDetail.kind === MultiCommitOperationKind.Rebase
             ? operationDetail.sourceBranch
             : null
-        banner = {
-          type: BannerType.SuccessfulRebase,
-          targetBranch: targetBranch !== null ? targetBranch.name : '',
-          baseBranch: sourceBranch !== null ? sourceBranch.name : undefined,
-        }
+
+        const ourBranch = targetBranch !== null ? targetBranch.name : ''
+        const theirBranch = sourceBranch !== null ? sourceBranch.name : ''
+
+        banner =
+          count === 0
+            ? {
+                type: BannerType.BranchAlreadyUpToDate,
+                ourBranch,
+                theirBranch,
+              }
+            : {
+                type: BannerType.SuccessfulRebase,
+                targetBranch: ourBranch,
+                baseBranch: theirBranch,
+              }
         break
       case MultiCommitOperationKind.Merge:
         throw new Error(`Unexpected multi commit operation kind ${kind}`)
