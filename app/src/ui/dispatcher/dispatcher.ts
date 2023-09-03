@@ -3628,8 +3628,7 @@ export class Dispatcher {
     // conflict flow if squash results in conflict.
     const status = await this.appStore._loadStatus(repository)
     switch (result) {
-      case (RebaseResult.CompletedWithoutError,
-      RebaseResult.BranchAlreadyUpToDate):
+      case (RebaseResult.CompletedWithoutError, RebaseResult.AlreadyUpToDate):
         if (status !== null && status.currentTip !== undefined) {
           // This sets the history to the current tip
           // TODO: Look at history back to last retained commit and search for
@@ -3644,9 +3643,7 @@ export class Dispatcher {
 
         await this.completeMultiCommitOperation(
           repository,
-          result === RebaseResult.BranchAlreadyUpToDate
-            ? 0
-            : totalNumberOfCommits
+          result === RebaseResult.AlreadyUpToDate ? 0 : totalNumberOfCommits
         )
         break
       case RebaseResult.ConflictsEncountered:
