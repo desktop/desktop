@@ -11,9 +11,13 @@
 .clone-github-repo {
   height: 250px;
 
-  &.filter-list .filter-field-row {
-    margin: var(--spacing-double);
-    margin-bottom: var(--spacing);
+  &.filter-list {
+    max-width: 100%;
+
+    .filter-field-row {
+      margin: var(--spacing-double);
+      margin-bottom: var(--spacing);
+    }
   }
 
   .clone-repository-list {
@@ -63,5 +67,12 @@
   .local-path-field {
     border-top: var(--base-border);
     padding: var(--spacing-double);
+  }
+
+  // This is to ensure that the dialog content is accessible when zoomed in
+  @media (max-width: 600px) {
+    overflow-y: auto;
+    width: 100%;
+    max-width: calc(100% - var(--spacing-double));
   }
 }
