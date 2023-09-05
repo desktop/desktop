@@ -742,6 +742,11 @@ export class SectionList extends React.Component<
     // focused list item if it scrolls back into view.
     if (!focusWithin) {
       this.focusRow = InvalidRowIndexPath
+    } else if (this.props.selectedRows.length === 0) {
+      const firstSelectableRowIndexPath = this.getFirstSelectableRowIndexPath()
+      if (firstSelectableRowIndexPath !== null) {
+        this.moveSelectionTo(firstSelectableRowIndexPath, { kind: 'focus' })
+      }
     }
   }
 
@@ -808,6 +813,22 @@ export class SectionList extends React.Component<
   /** Convenience method for invoking canSelectRow callback when it exists */
   private canSelectRow = (rowIndex: RowIndexPath) => {
     return this.props.canSelectRow ? this.props.canSelectRow(rowIndex) : true
+  }
+
+  private getFirstSelectableRowIndexPath(): RowIndexPath | null {
+    const { rowCount } = this.props
+
+    for (let section = 0; section < rowCount.length; section++) {
+      const rowCountInSection = rowCount[section]
+      for (let row = 0; row < rowCountInSection; row++) {
+        const indexPath = { section, row }
+        if (this.canSelectRow(indexPath)) {
+          return indexPath
+        }
+      }
+    }
+
+    return null
   }
 
   private addSelection(direction: SelectionDirection, source: SelectionSource) {
@@ -1110,8 +1131,12 @@ export class SectionList extends React.Component<
     return customClasses.length === 0 ? undefined : customClasses.join(' ')
   }
 
-  private getRowRenderer = (section: number) => {
+  private getRowRenderer = (
+    section: number,
+    firstSelectableRowIndexPath: RowIndexPath | null
+  ) => {
     return (params: IRowRendererParams) => {
+      const { selectedRows } = this.props
       const indexPath: RowIndexPath = {
         section: section,
         row: params.rowIndex,
@@ -1119,16 +1144,17 @@ export class SectionList extends React.Component<
 
       const selectable = this.canSelectRow(indexPath)
       const selected =
-        this.props.selectedRows.findIndex(r =>
-          rowIndexPathEquals(r, indexPath)
-        ) !== -1
+        selectedRows.findIndex(r => rowIndexPathEquals(r, indexPath)) !== -1
       const customClasses = this.getCustomRowClassNames(indexPath)
 
       // An unselectable row shouldn't be focusable
       let tabIndex: number | undefined = undefined
       if (selectable) {
         tabIndex =
-          selected && rowIndexPathEquals(this.props.selectedRows[0], indexPath)
+          (selected && rowIndexPathEquals(selectedRows[0], indexPath)) ||
+          (selectedRows.length === 0 &&
+            firstSelectableRowIndexPath !== null &&
+            rowIndexPathEquals(firstSelectableRowIndexPath, indexPath))
             ? 0
             : -1
       }
@@ -1303,7 +1329,10 @@ export class SectionList extends React.Component<
           columnCount={1}
           rowCount={this.props.rowCount[section]}
           rowHeight={this.getRowHeight(section)}
-          cellRenderer={this.getRowRenderer(section)}
+          cellRenderer={this.getRowRenderer(
+            section,
+            this.getFirstSelectableRowIndexPath()
+          )}
           scrollTop={relativeScrollTop}
           overscanRowCount={4}
           style={{ ...params.style, width: '100%' }}
