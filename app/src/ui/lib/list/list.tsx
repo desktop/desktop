@@ -651,6 +651,11 @@ export class List extends React.Component<IListProps, IListState> {
     // focused list item if it scrolls back into view.
     if (!focusWithin) {
       this.focusRow = -1
+    } else if (this.props.selectedRows.length === 0) {
+      const firstSelectableRowIndexPath = this.getFirstSelectableRowIndexPath()
+      if (firstSelectableRowIndexPath !== null) {
+        this.moveSelectionTo(firstSelectableRowIndexPath, { kind: 'focus' })
+      }
     }
   }
 
