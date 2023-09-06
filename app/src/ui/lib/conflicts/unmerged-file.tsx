@@ -261,6 +261,8 @@ const renderConflictedFileWithConflictMarkers: React.FunctionComponent<{
         <Button
           onClick={onDropdownClick}
           className="small-button button-group-item arrow-menu"
+          ariaLabel="Resolution options"
+          ariaHaspopup="menu"
         >
           <Octicon symbol={OcticonSymbol.triangleDown} />
         </Button>
