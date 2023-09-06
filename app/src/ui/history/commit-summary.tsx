@@ -212,26 +212,24 @@ export class CommitSummary extends React.Component<
       'empty-summary': hasEmptySummary,
     })
 
+    let summaryContent;
+
     if (selectedCommits.length === 1) {
-      return (
+      summaryContent = 
         <RichText
-          className={summaryClassNames}
           emoji={this.props.emoji}
           repository={this.props.repository}
           text={summary}
         />
+    } else {
+      const commitsNotInDiff = this.getCountCommitsNotInDiff(
+        selectedCommits,
+        shasInDiff
       )
-    }
+      const numInDiff = selectedCommits.length - commitsNotInDiff
+      const commitsPluralized = numInDiff > 1 ? 'commits' : 'commit'
 
-    const commitsNotInDiff = this.getCountCommitsNotInDiff(
-      selectedCommits,
-      shasInDiff
-    )
-    const numInDiff = selectedCommits.length - commitsNotInDiff
-    const commitsPluralized = numInDiff > 1 ? 'commits' : 'commit'
-    return (
-      <div className={summaryClassNames}>
-        Showing changes from{' '}
+      summaryContent = <>Showing changes from{' '}
         {commitsNotInDiff > 0 ? (
           <LinkButton
             onMouseOver={this.onHighlightShasInDiff}
@@ -245,16 +243,20 @@ export class CommitSummary extends React.Component<
             {' '}
             {numInDiff} {commitsPluralized}
           </>
-        )}
+        )}</>
+    }
+
+    
+    return (
+      <div className={summaryClassNames}>
+        {summaryContent}
+        {this.renderExpander()}
       </div>
     )
   }
 
   private renderExpander() {
     const { isExpanded } = this.props
-    if (!isExpanded) {
-      return null
-    }
     const icon = isExpanded ? OcticonSymbol.fold : OcticonSymbol.unfold
 
     return (
@@ -519,7 +521,6 @@ export class CommitSummary extends React.Component<
       <div id="commit-summary" className={className}>
         <div className="commit-summary-header">
           {this.renderSummary()}
-          {this.renderExpander()}
           {this.renderDescription()}
           {this.renderCommitMetaData()}
         </div>

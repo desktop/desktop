@@ -11,25 +11,6 @@
     height: 16px;
   }
 
-  .expander {
-    position: absolute;
-    width: 75px;
-    top: var(--spacing);
-    right: var(--spacing);
-    background: transparent;
-    padding: 0;
-    border: none;
-    color: var(--text-color);
-    font-size: inherit;
-    font-weight: normal;
-    font-family: inherit;
-
-    svg {
-      vertical-align: text-top;
-      margin-right: var(--spacing-half);
-    }
-  }
-
   &.expanded {
     .commit-summary-description-scroll-view {
       max-height: 400px;
@@ -40,6 +21,14 @@
         content: none;
       }
     }
+  }
+
+  .lines-added {
+    color: var(--color-new);
+  }
+
+  .lines-deleted {
+    color: var(--color-deleted);
   }
 
   .commit-unreachable-info {
@@ -57,32 +46,54 @@
     }
   }
 
+  .commit-summary-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    line-height: 16px;
+    padding: var(--spacing);
+    word-wrap: break-word;
+    display: flex;
+
+    &.empty-summary {
+      color: var(--text-secondary-color);
+    }
+
+    .expander {
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: var(--text-color);
+      font-size: inherit;
+      font-weight: normal;
+      font-family: inherit;
+      margin-left: var(--spacing);
+  
+      svg {
+        vertical-align: text-top;
+        margin-right: var(--spacing-half);
+      }
+    }
+  }
+
+
+  .commit-summary-title, .commit-summary-meta {
+    padding: var(--spacing);
+  }
+
+   // Enable text selection inside the title and description elements.
+  .commit-summary-title, .commit-summary-description {
+    user-select: text;
+    cursor: text;
+
+    * {
+      user-select: unset;
+      pointer-events: unset;
+      cursor: text;
+    }
+  }
+
+  
   .commit-summary {
-    &-title,
-    &-meta {
-      padding: var(--spacing);
-
-      .lines-added {
-        color: var(--color-new);
-      }
-
-      .lines-deleted {
-        color: var(--color-deleted);
-      }
-    }
-
-    &-title {
-      font-size: var(--font-size-md);
-      font-weight: var(--font-weight-semibold);
-      line-height: 16px;
-      padding: var(--spacing);
-      word-wrap: break-word;
-
-      &.empty-summary {
-        color: var(--text-secondary-color);
-      }
-    }
-
     &-description-container {
       display: flex;
       // So that we have something to position the expander against
@@ -98,19 +109,6 @@
       -webkit-box-orient: vertical;
       // Maximum amount of commit description lines to show before collapsing
       -webkit-line-clamp: 3;
-    }
-
-    // Enable text selection inside the title and description elements.
-    &-title,
-    &-description {
-      user-select: text;
-      cursor: text;
-
-      * {
-        user-select: unset;
-        pointer-events: unset;
-        cursor: text;
-      }
     }
 
     &-description {
