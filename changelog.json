@@ -1,5 +1,14 @@
 {
   "releases": {
+    "3.3.2-beta1": [
+      "[Fixed] Support the repository rule to enforce commit signing - #17310",
+      "[Fixed] Make clear button in input text boxes keyboard accessible - #17324",
+      "[Fixed] Make the create and clone repository dialogs accessible when the app is zoomed in and the window is small - #17337",
+      "[Fixed] Fix keyboard navigation in filtered lists - #17311",
+      "[Fixed] Pressing Tab from the \"Select branch to compare…\" filter input textbox focuses on the first branch in the list - #17314",
+      "[Fixed] Fix \"Invalid numstat line\" error when trying to preview a pull request - #17267",
+      "[Improved] Commit text inputs retain focus while committing - #17283"
+    ],
     "3.3.1": [
       "[Fixed] Support the repository rule to enforce commit signing - #17310",
       "[Fixed] Keyboard navigation in lists reintroduced - #17313"
