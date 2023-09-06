@@ -3804,10 +3804,7 @@ export class Dispatcher {
         }
         break
       case MultiCommitOperationKind.Rebase:
-        const sourceBranch =
-          operationDetail.kind === MultiCommitOperationKind.Rebase
-            ? operationDetail.sourceBranch
-            : null
+        const { sourceBranch } = operationDetail
         banner = {
           type: BannerType.SuccessfulRebase,
           targetBranch: targetBranch !== null ? targetBranch.name : '',
