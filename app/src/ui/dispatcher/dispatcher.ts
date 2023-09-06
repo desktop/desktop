@@ -1284,7 +1284,12 @@ export class Dispatcher {
       manualResolutions
     )
 
-    if (result === RebaseResult.ConflictsEncountered) {
+    // At this point, given continueRebase was invoked, we can assume that the
+    // rebase encountered some conflicts and they have been resolved. Getting
+    // now a CompletedWithoutError result means that the rebase has completed
+    // successfully and there aren't more conflicts to resolve, therefore we can
+    // track this as a successful rebase with conflicts.
+    if (result === RebaseResult.CompletedWithoutError) {
       this.statsStore.recordOperationSuccessfulWithConflicts(kind)
     }
 
