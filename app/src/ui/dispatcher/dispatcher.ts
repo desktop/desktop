@@ -1231,6 +1231,8 @@ export class Dispatcher {
         theirBranch,
       }
 
+      this.statsStore.recordRebaseWithBranchAlreadyUpToDate()
+
       this.setBanner(banner)
       this.endMultiCommitOperation(repository)
       await this.refreshRepository(repository)
