@@ -2657,6 +2657,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       assertNever(conflictState, `Unsupported conflict kind`)
     }
 
+    this.statsStore.recordMergeConflictFromExplicitMerge()
+
     this._setMultiCommitOperationStep(repository, {
       kind: MultiCommitOperationStepKind.ShowConflicts,
       conflictState: {
