@@ -33,7 +33,6 @@ import {
   getBranches,
   getRebaseSnapshot,
   getRepositoryType,
-  isSuccessfulRebaseResult,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -1212,7 +1211,30 @@ export class Dispatcher {
         baseBranch.name,
         targetBranch.name
       )
-    } else if (isSuccessfulRebaseResult(result)) {
+    } else if (result === RebaseResult.AlreadyUpToDate) {
+      if (tip.kind !== TipState.Valid) {
+        log.warn(
+          `[rebase] tip after already up to date is ${tip.kind} but this should be a valid tip if the rebase completed without error`
+        )
+        return
+      }
+
+      const { operationDetail } = multiCommitOperationState
+      const { sourceBranch } = operationDetail
+
+      const ourBranch = targetBranch !== null ? targetBranch.name : ''
+      const theirBranch = sourceBranch !== null ? sourceBranch.name : ''
+
+      const banner: Banner = {
+        type: BannerType.BranchAlreadyUpToDate,
+        ourBranch,
+        theirBranch,
+      }
+
+      this.setBanner(banner)
+      this.endMultiCommitOperation(repository)
+      await this.refreshRepository(repository)
+    } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
           `[rebase] tip after completing rebase is ${tip.kind} but this should be a valid tip if the rebase completed without error`
@@ -1221,10 +1243,7 @@ export class Dispatcher {
       }
 
       this.statsStore.recordRebaseSuccessWithoutConflicts()
-      await this.completeMultiCommitOperation(
-        repository,
-        result === RebaseResult.AlreadyUpToDate ? 0 : commits.length
-      )
+      await this.completeMultiCommitOperation(repository, commits.length)
     } else if (result === RebaseResult.Error) {
       // we were unable to successfully start the rebase, and an error should
       // be shown through the default error handling infrastructure, so we can
@@ -3789,22 +3808,11 @@ export class Dispatcher {
           operationDetail.kind === MultiCommitOperationKind.Rebase
             ? operationDetail.sourceBranch
             : null
-
-        const ourBranch = targetBranch !== null ? targetBranch.name : ''
-        const theirBranch = sourceBranch !== null ? sourceBranch.name : ''
-
-        banner =
-          count === 0
-            ? {
-                type: BannerType.BranchAlreadyUpToDate,
-                ourBranch,
-                theirBranch,
-              }
-            : {
-                type: BannerType.SuccessfulRebase,
-                targetBranch: ourBranch,
-                baseBranch: theirBranch,
-              }
+        banner = {
+          type: BannerType.SuccessfulRebase,
+          targetBranch: targetBranch !== null ? targetBranch.name : '',
+          baseBranch: sourceBranch !== null ? sourceBranch.name : undefined,
+        }
         break
       case MultiCommitOperationKind.Merge:
         throw new Error(`Unexpected multi commit operation kind ${kind}`)

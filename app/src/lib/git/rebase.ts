@@ -66,15 +66,6 @@ export enum RebaseResult {
   Error = 'Error',
 }
 
-export function isSuccessfulRebaseResult(
-  result: RebaseResult
-): result is RebaseResult.CompletedWithoutError | RebaseResult.AlreadyUpToDate {
-  return [
-    RebaseResult.CompletedWithoutError,
-    RebaseResult.AlreadyUpToDate,
-  ].includes(result)
-}
-
 /**
  * Check the `.git/REBASE_HEAD` file exists in a repository to confirm
  * a rebase operation is underway.
