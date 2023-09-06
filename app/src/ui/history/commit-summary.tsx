@@ -11,7 +11,6 @@ import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
-import { DiffOptions } from '../diff/diff-options'
 import { IChangesetData } from '../../lib/git'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { AppFileStatusKind } from '../../models/status'
@@ -84,12 +83,6 @@ interface ICommitSummaryState {
   readonly body: ReadonlyArray<TokenResult>
 
   /**
-   * Whether or not the commit body text overflows its container. Used in
-   * conjunction with the isExpanded prop.
-   */
-  readonly isOverflowed: boolean
-
-  /**
    * The avatars associated with this commit. Used when rendering
    * the avatar stack and calculated whenever the commit prop changes.
    */
@@ -108,10 +101,7 @@ interface ICommitSummaryState {
  *
  * @param props        The current commit summary prop object.
  */
-function createState(
-  isOverflowed: boolean,
-  props: ICommitSummaryProps
-): ICommitSummaryState {
+function createState(props: ICommitSummaryProps): ICommitSummaryState {
   const { emoji, repository, selectedCommits } = props
   const tokenizer = new Tokenizer(emoji, repository)
 
@@ -133,7 +123,7 @@ function createState(
     (a, b) => a.email === b.email && a.name === b.name
   )
 
-  return { isOverflowed, summary, body, avatarUsers, hasEmptySummary }
+  return { summary, body, avatarUsers, hasEmptySummary }
 }
 
 function getCommitSummary(selectedCommits: ReadonlyArray<Commit>) {
@@ -154,11 +144,6 @@ export class CommitSummary extends React.Component<
   ICommitSummaryProps,
   ICommitSummaryState
 > {
-  private descriptionScrollViewRef: HTMLDivElement | null = null
-  private readonly resizeObserver: ResizeObserver | null = null
-  private updateOverflowTimeoutId: NodeJS.Immediate | null = null
-  private descriptionRef: HTMLDivElement | null = null
-
   private getCountCommitsNotInDiff = memoizeOne(
     (
       selectedCommits: ReadonlyArray<Commit>,
@@ -179,111 +164,7 @@ export class CommitSummary extends React.Component<
   public constructor(props: ICommitSummaryProps) {
     super(props)
 
-    this.state = createState(false, props)
-
-    const ResizeObserverClass: typeof ResizeObserver = (window as any)
-      .ResizeObserver
-
-    if (ResizeObserverClass || false) {
-      this.resizeObserver = new ResizeObserverClass(entries => {
-        for (const entry of entries) {
-          if (entry.target === this.descriptionScrollViewRef) {
-            // We might end up causing a recursive update by updating the state
-            // when we're reacting to a resize so we'll defer it until after
-            // react is done with this frame.
-            if (this.updateOverflowTimeoutId !== null) {
-              clearImmediate(this.updateOverflowTimeoutId)
-            }
-
-            this.updateOverflowTimeoutId = setImmediate(this.onResized)
-          }
-        }
-      })
-    }
-  }
-
-  private onResized = () => {
-    if (this.descriptionRef) {
-      const descriptionBottom =
-        this.descriptionRef.getBoundingClientRect().bottom
-      this.props.onDescriptionBottomChanged(descriptionBottom)
-    }
-
-    if (this.props.isExpanded) {
-      return
-    }
-
-    this.updateOverflow()
-  }
-
-  private onDescriptionScrollViewRef = (ref: HTMLDivElement | null) => {
-    this.descriptionScrollViewRef = ref
-
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect()
-
-      if (ref) {
-        this.resizeObserver.observe(ref)
-      } else {
-        this.setState({ isOverflowed: false })
-      }
-    }
-  }
-
-  private onDescriptionRef = (ref: HTMLDivElement | null) => {
-    this.descriptionRef = ref
-  }
-
-  private renderExpander() {
-    if (
-      !this.state.body.length ||
-      (!this.props.isExpanded && !this.state.isOverflowed)
-    ) {
-      return null
-    }
-
-    const expanded = this.props.isExpanded
-    const onClick = expanded ? this.onCollapse : this.onExpand
-    const icon = expanded ? OcticonSymbol.fold : OcticonSymbol.unfold
-
-    return (
-      <button onClick={onClick} className="expander">
-        <Octicon symbol={icon} />
-        {expanded ? 'Collapse' : 'Expand'}
-      </button>
-    )
-  }
-
-  private onExpand = () => {
-    this.props.onExpandChanged(true)
-  }
-
-  private onCollapse = () => {
-    if (this.descriptionScrollViewRef) {
-      this.descriptionScrollViewRef.scrollTop = 0
-    }
-
-    this.props.onExpandChanged(false)
-  }
-
-  private updateOverflow() {
-    const scrollView = this.descriptionScrollViewRef
-    if (scrollView) {
-      this.setState({
-        isOverflowed: scrollView.scrollHeight > scrollView.offsetHeight,
-      })
-    } else {
-      if (this.state.isOverflowed) {
-        this.setState({ isOverflowed: false })
-      }
-    }
-  }
-
-  public componentDidMount() {
-    // No need to check if it overflows if we're expanded
-    if (!this.props.isExpanded) {
-      this.updateOverflow()
-    }
+    this.state = createState(props)
   }
 
   public componentWillUpdate(nextProps: ICommitSummaryProps) {
@@ -293,54 +174,12 @@ export class CommitSummary extends React.Component<
         messageEquals(nextCommit, this.props.selectedCommits[i])
       )
     ) {
-      this.setState(createState(false, nextProps))
+      this.setState(createState(nextProps))
     }
   }
 
-  public componentDidUpdate(
-    prevProps: ICommitSummaryProps,
-    prevState: ICommitSummaryState
-  ) {
-    // No need to check if it overflows if we're expanded
-    if (!this.props.isExpanded) {
-      // If the body has changed or we've just toggled the expanded
-      // state we'll recalculate whether we overflow or not.
-      if (prevState.body !== this.state.body || prevProps.isExpanded) {
-        this.updateOverflow()
-      }
-    } else {
-      // Clear overflow state if we're expanded, we don't need it.
-      if (this.state.isOverflowed) {
-        this.setState({ isOverflowed: false })
-      }
-    }
-  }
-
-  private renderDescription() {
-    if (this.state.body.length === 0) {
-      return null
-    }
-
-    return (
-      <div
-        className="commit-summary-description-container"
-        ref={this.onDescriptionRef}
-      >
-        <div
-          className="commit-summary-description-scroll-view"
-          ref={this.onDescriptionScrollViewRef}
-        >
-          <RichText
-            className="commit-summary-description"
-            emoji={this.props.emoji}
-            repository={this.props.repository}
-            text={this.state.body}
-          />
-        </div>
-
-        {this.renderExpander()}
-      </div>
-    )
+  private onExpandChanged = () => {
+    this.props.onExpandChanged(!this.props.isExpanded)
   }
 
   private onHighlightShasInDiff = () => {
@@ -364,80 +203,6 @@ export class CommitSummary extends React.Component<
 
   private showReachableCommits = () => {
     this.props.showUnreachableCommits(UnreachableCommitsTab.Reachable)
-  }
-
-  private renderCommitsNotReachable = () => {
-    const { selectedCommits, shasInDiff } = this.props
-    if (selectedCommits.length === 1) {
-      return
-    }
-
-    const excludedCommitsCount = this.getCountCommitsNotInDiff(
-      selectedCommits,
-      shasInDiff
-    )
-
-    if (excludedCommitsCount === 0) {
-      return
-    }
-
-    const commitsPluralized = excludedCommitsCount > 1 ? 'commits' : 'commit'
-
-    return (
-      // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events
-      <div
-        className="commit-unreachable-info"
-        onMouseOver={this.onHighlightShasNotInDiff}
-        onMouseOut={this.onRemoveHighlightOfShas}
-      >
-        <Octicon symbol={OcticonSymbol.info} />
-        <LinkButton onClick={this.showUnreachableCommits}>
-          {excludedCommitsCount} unreachable {commitsPluralized}
-        </LinkButton>{' '}
-        not included.
-      </div>
-    )
-  }
-
-  private renderAuthors = () => {
-    const { selectedCommits, repository } = this.props
-    const { avatarUsers } = this.state
-    if (selectedCommits.length > 1) {
-      return
-    }
-
-    return (
-      <li
-        className="commit-summary-meta-item without-truncation"
-        aria-label="Author"
-      >
-        <AvatarStack users={avatarUsers} />
-        <CommitAttribution
-          gitHubRepository={repository.gitHubRepository}
-          commits={selectedCommits}
-        />
-      </li>
-    )
-  }
-
-  private renderCommitRef = () => {
-    const { selectedCommits } = this.props
-    if (selectedCommits.length > 1) {
-      return
-    }
-
-    return (
-      <li
-        className="commit-summary-meta-item without-truncation"
-        aria-label="SHA"
-      >
-        <Octicon symbol={OcticonSymbol.gitCommit} />
-        <TooltippedCommitSHA
-          className="selectable"
-          commit={selectedCommits[0]}
-        />
-      </li>
-    )
   }
 
   private renderSummary = () => {
@@ -485,45 +250,92 @@ export class CommitSummary extends React.Component<
     )
   }
 
-  public render() {
-    const className = classNames({
-      expanded: this.props.isExpanded,
-      collapsed: !this.props.isExpanded,
-      'has-expander': this.props.isExpanded || this.state.isOverflowed,
-      'hide-description-border': this.props.hideDescriptionBorder,
-    })
+  private renderExpander() {
+    const { isExpanded } = this.props
+    if (!isExpanded) {
+      return null
+    }
+    const icon = isExpanded ? OcticonSymbol.fold : OcticonSymbol.unfold
 
     return (
-      <div id="commit-summary" className={className}>
-        <div className="commit-summary-header">
-          {this.renderSummary()}
-          <ul className="commit-summary-meta">
-            {this.renderAuthors()}
-            {this.renderCommitRef()}
-            {this.renderChangedFilesDescription()}
-            {this.renderLinesChanged()}
-            {this.renderTags()}
+      <button onClick={this.onExpandChanged} className="expander">
+        <Octicon symbol={icon} />
+        {isExpanded ? 'Collapse' : 'Expand'}
+      </button>
+    )
+  }
 
-            <li className="commit-summary-meta-item without-truncation">
-              <DiffOptions
-                isInteractiveDiff={false}
-                hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-                onHideWhitespaceChangesChanged={
-                  this.props.onHideWhitespaceInDiffChanged
-                }
-                showSideBySideDiff={this.props.showSideBySideDiff}
-                onShowSideBySideDiffChanged={
-                  this.props.onShowSideBySideDiffChanged
-                }
-                onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-              />
-            </li>
-          </ul>
+  private renderDescription() {
+    if (this.state.body.length === 0) {
+      return null
+    }
+
+    return (
+      <div className="commit-summary-description-container">
+        <div className="commit-summary-description-scroll-view">
+          <RichText
+            className="commit-summary-description"
+            emoji={this.props.emoji}
+            repository={this.props.repository}
+            text={this.state.body}
+          />
         </div>
 
-        {this.renderDescription()}
-        {this.renderCommitsNotReachable()}
+        {this.renderExpander()}
       </div>
+    )
+  }
+
+  private renderCommitMetaData = () => {
+    return (
+      <ul className="commit-summary-meta">
+        {this.renderAuthors()}
+        {this.renderCommitRef()}
+        {this.renderChangedFilesDescription()}
+        {this.renderLinesChanged()}
+        {this.renderTags()}
+      </ul>
+    )
+  }
+
+  private renderAuthors = () => {
+    const { selectedCommits, repository } = this.props
+    const { avatarUsers } = this.state
+    if (selectedCommits.length > 1) {
+      return
+    }
+
+    return (
+      <li
+        className="commit-summary-meta-item without-truncation"
+        aria-label="Author"
+      >
+        <AvatarStack users={avatarUsers} />
+        <CommitAttribution
+          gitHubRepository={repository.gitHubRepository}
+          commits={selectedCommits}
+        />
+      </li>
+    )
+  }
+
+  private renderCommitRef = () => {
+    const { selectedCommits } = this.props
+    if (selectedCommits.length > 1) {
+      return
+    }
+
+    return (
+      <li
+        className="commit-summary-meta-item without-truncation"
+        aria-label="SHA"
+      >
+        <Octicon symbol={OcticonSymbol.gitCommit} />
+        <TooltippedCommitSHA
+          className="selectable"
+          commit={selectedCommits[0]}
+        />
+      </li>
     )
   }
 
@@ -662,6 +474,58 @@ export class CommitSummary extends React.Component<
 
         <span className="tags selectable">{tags.join(', ')}</span>
       </li>
+    )
+  }
+
+  private renderCommitsNotReachable = () => {
+    const { selectedCommits, shasInDiff } = this.props
+    if (selectedCommits.length === 1) {
+      return
+    }
+
+    const excludedCommitsCount = this.getCountCommitsNotInDiff(
+      selectedCommits,
+      shasInDiff
+    )
+
+    if (excludedCommitsCount === 0) {
+      return
+    }
+
+    const commitsPluralized = excludedCommitsCount > 1 ? 'commits' : 'commit'
+
+    return (
+      // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events
+      <div
+        className="commit-unreachable-info"
+        onMouseOver={this.onHighlightShasNotInDiff}
+        onMouseOut={this.onRemoveHighlightOfShas}
+      >
+        <Octicon symbol={OcticonSymbol.info} />
+        <LinkButton onClick={this.showUnreachableCommits}>
+          {excludedCommitsCount} unreachable {commitsPluralized}
+        </LinkButton>{' '}
+        not included.
+      </div>
+    )
+  }
+
+  public render() {
+    const className = classNames({
+      expanded: this.props.isExpanded
+    })
+
+    return (
+      <div id="commit-summary" className={className}>
+        <div className="commit-summary-header">
+          {this.renderSummary()}
+          {this.renderExpander()}
+          {this.renderDescription()}
+          {this.renderCommitMetaData()}
+        </div>
+
+        {this.renderCommitsNotReachable()}
+      </div>
     )
   }
 }
