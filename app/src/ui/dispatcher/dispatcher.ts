@@ -123,6 +123,7 @@ import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
 import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
+import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 
 /**
  * An error handler function.
@@ -3657,7 +3658,15 @@ export class Dispatcher {
     // conflict flow if squash results in conflict.
     const status = await this.appStore._loadStatus(repository)
     switch (result) {
-      case (RebaseResult.CompletedWithoutError, RebaseResult.AlreadyUpToDate):
+      case RebaseResult.AlreadyUpToDate:
+        sendNonFatalException(
+          'rebaseConflictsWithBranchAlreadyUpToDate',
+          new Error(
+            `processMultiCommitOperationRebaseResult was invoked (which means Desktop went into a conflicts-found state) but the branch was already up-to-date, so there couldn't be any conflicts at all`
+          )
+        )
+        break
+      case RebaseResult.CompletedWithoutError:
         if (status !== null && status.currentTip !== undefined) {
           // This sets the history to the current tip
           // TODO: Look at history back to last retained commit and search for
@@ -3672,7 +3681,7 @@ export class Dispatcher {
 
         await this.completeMultiCommitOperation(
           repository,
-          result === RebaseResult.AlreadyUpToDate ? 0 : totalNumberOfCommits
+          totalNumberOfCommits
         )
         break
       case RebaseResult.ConflictsEncountered:
