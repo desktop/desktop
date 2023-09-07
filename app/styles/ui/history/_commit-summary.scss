@@ -11,18 +11,6 @@
     height: 16px;
   }
 
-  &.expanded {
-    .commit-summary-description-scroll-view {
-      max-height: 400px;
-      overflow: auto;
-      display: revert;
-
-      &:before {
-        content: none;
-      }
-    }
-  }
-
   .lines-added {
     color: var(--color-new);
   }
@@ -67,7 +55,7 @@
       font-weight: normal;
       font-family: inherit;
       margin-left: var(--spacing);
-  
+
       svg {
         vertical-align: text-top;
         margin-right: var(--spacing-half);
@@ -75,13 +63,14 @@
     }
   }
 
-
-  .commit-summary-title, .commit-summary-meta {
+  .commit-summary-title,
+  .commit-summary-meta {
     padding: var(--spacing);
   }
 
-   // Enable text selection inside the title and description elements.
-  .commit-summary-title, .commit-summary-description {
+  // Enable text selection inside the summary and body elements.
+  .commit-summary-title,
+  .commit-body {
     user-select: text;
     cursor: text;
 
@@ -92,34 +81,22 @@
     }
   }
 
-  
+  .commit-body {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    // Maximum amount of commit description lines to show before collapsing
+    -webkit-line-clamp: 1;
+    font-family: var(--font-family-monospace);
+    font-size: var(--font-size-sm);
+    word-wrap: break-word;
+    white-space: pre-line;
+    padding: 0 var(--spacing);
+    margin-bottom: var(--spacing);
+    min-height: 0;
+  }
+
   .commit-summary {
-    &-description-container {
-      display: flex;
-      // So that we have something to position the expander against
-      position: relative;
-      border-bottom: var(--base-border);
-      min-height: 0;
-    }
-
-    &-description-scroll-view {
-      overflow: hidden;
-      flex: 1;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      // Maximum amount of commit description lines to show before collapsing
-      -webkit-line-clamp: 3;
-    }
-
-    &-description {
-      font-family: var(--font-family-monospace);
-      font-size: var(--font-size-sm);
-      word-wrap: break-word;
-      white-space: pre-line;
-      padding: var(--spacing);
-      min-height: 0;
-    }
-
     &-meta {
       display: flex;
       list-style: none;
@@ -159,6 +136,16 @@
 
     .commit-summary-header {
       border-bottom: var(--base-border);
+    }
+  }
+
+  &.expanded {
+    .commit-body {
+      -webkit-line-clamp: unset;
+      margin: var(--spacing);
+      margin-top: 0;
+      background-color: var(--box-alt-background-color);
+      padding: var(--spacing);
     }
   }
 }

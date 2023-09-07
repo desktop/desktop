@@ -212,15 +212,16 @@ export class CommitSummary extends React.Component<
       'empty-summary': hasEmptySummary,
     })
 
-    let summaryContent;
+    let summaryContent
 
     if (selectedCommits.length === 1) {
-      summaryContent = 
+      summaryContent = (
         <RichText
           emoji={this.props.emoji}
           repository={this.props.repository}
           text={summary}
         />
+      )
     } else {
       const commitsNotInDiff = this.getCountCommitsNotInDiff(
         selectedCommits,
@@ -229,24 +230,27 @@ export class CommitSummary extends React.Component<
       const numInDiff = selectedCommits.length - commitsNotInDiff
       const commitsPluralized = numInDiff > 1 ? 'commits' : 'commit'
 
-      summaryContent = <>Showing changes from{' '}
-        {commitsNotInDiff > 0 ? (
-          <LinkButton
-            onMouseOver={this.onHighlightShasInDiff}
-            onMouseOut={this.onRemoveHighlightOfShas}
-            onClick={this.showReachableCommits}
-          >
-            {numInDiff} {commitsPluralized}
-          </LinkButton>
-        ) : (
-          <>
-            {' '}
-            {numInDiff} {commitsPluralized}
-          </>
-        )}</>
+      summaryContent = (
+        <>
+          Showing changes from{' '}
+          {commitsNotInDiff > 0 ? (
+            <LinkButton
+              onMouseOver={this.onHighlightShasInDiff}
+              onMouseOut={this.onRemoveHighlightOfShas}
+              onClick={this.showReachableCommits}
+            >
+              {numInDiff} {commitsPluralized}
+            </LinkButton>
+          ) : (
+            <>
+              {' '}
+              {numInDiff} {commitsPluralized}
+            </>
+          )}
+        </>
+      )
     }
 
-    
     return (
       <div className={summaryClassNames}>
         {summaryContent}
@@ -273,18 +277,12 @@ export class CommitSummary extends React.Component<
     }
 
     return (
-      <div className="commit-summary-description-container">
-        <div className="commit-summary-description-scroll-view">
-          <RichText
-            className="commit-summary-description"
-            emoji={this.props.emoji}
-            repository={this.props.repository}
-            text={this.state.body}
-          />
-        </div>
-
-        {this.renderExpander()}
-      </div>
+      <RichText
+        className="commit-body"
+        emoji={this.props.emoji}
+        repository={this.props.repository}
+        text={this.state.body}
+      />
     )
   }
 
@@ -514,7 +512,7 @@ export class CommitSummary extends React.Component<
 
   public render() {
     const className = classNames({
-      expanded: this.props.isExpanded
+      expanded: this.props.isExpanded,
     })
 
     return (
