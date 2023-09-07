@@ -11,12 +11,35 @@
     height: 16px;
   }
 
+  .authors {
+    .avatar,
+    .octicon {
+      display: inline-block;
+      vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+    }
+
+    .author {
+      display: flex;
+
+      .avatar-container {
+        margin-right: var(--spacing-half);
+      }
+    }
+  }
+  
+
   .lines-added {
     color: var(--color-new);
   }
 
   .lines-deleted {
     color: var(--color-deleted);
+  }
+
+  .tags {
+    @include ellipsis;
+    flex-shrink: 1;
+    user-select: text;
   }
 
   .commit-unreachable-info {
@@ -96,47 +119,23 @@
     min-height: 0;
   }
 
-  .commit-summary {
-    &-meta {
-      display: flex;
-      list-style: none;
-      margin: 0;
-      padding: 0 var(--spacing) var(--spacing);
-    }
+  .commit-summary-meta {
+    display: flex;
+    margin: 0;
+    padding: 0 var(--spacing) var(--spacing);
 
-    &-meta-item:not(.without-truncation) {
-      flex-shrink: 1;
-      min-width: 0;
-    }
-
-    &-meta-item {
+    .commit-summary-meta-item {
       display: flex;
       flex-direction: row;
       min-width: 0;
       margin-right: var(--spacing);
       font-size: var(--font-size-sm);
       flex-shrink: 0;
-
-      .avatar,
-      .octicon {
-        display: inline-block;
-        margin-right: var(--spacing-third);
-        vertical-align: bottom; // For some reason, `bottom` places the text in the middle
-      }
-
-      .selectable {
-        user-select: text;
-      }
-
-      .tags {
-        @include ellipsis;
-        flex-shrink: 1;
-      }
     }
+  }
 
-    .commit-summary-header {
-      border-bottom: var(--base-border);
-    }
+  .commit-summary-header {
+    border-bottom: var(--base-border);
   }
 
   &.expanded {
@@ -146,6 +145,14 @@
       margin-top: 0;
       background-color: var(--box-alt-background-color);
       padding: var(--spacing);
+    }
+
+    .commit-summary-meta {
+      display: block;
+
+      .commit-summary-meta-item {
+        display: block;
+      }
     }
   }
 }

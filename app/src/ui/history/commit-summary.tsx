@@ -19,6 +19,7 @@ import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
 import memoizeOne from 'memoize-one'
+import { Avatar } from '../lib/avatar'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -288,34 +289,81 @@ export class CommitSummary extends React.Component<
 
   private renderCommitMetaData = () => {
     return (
-      <ul className="commit-summary-meta">
+      <div className="commit-summary-meta">
         {this.renderAuthors()}
         {this.renderCommitRef()}
         {this.renderChangedFilesDescription()}
         {this.renderLinesChanged()}
         {this.renderTags()}
-      </ul>
+      </div>
     )
   }
 
-  private renderAuthors = () => {
-    const { selectedCommits, repository } = this.props
-    const { avatarUsers } = this.state
-    if (selectedCommits.length > 1) {
-      return
+  private renderExpandedAuthor(
+    user: IAvatarUser
+  ): string | JSX.Element | undefined {
+    if (user) {
+      if (user.name) {
+        return (
+          <>
+            {user.name}
+            {' <'}
+            {user.email}
+            {'>'}
+          </>
+        )
+      } else {
+        return user.email
+      }
     }
 
+    return 'Unknown user'
+  }
+
+  private renderAuthorStack = () => {
+    const { selectedCommits, repository } = this.props
+    const { avatarUsers } = this.state
+
     return (
-      <li
-        className="commit-summary-meta-item without-truncation"
-        aria-label="Author"
-      >
+      <>
         <AvatarStack users={avatarUsers} />
         <CommitAttribution
           gitHubRepository={repository.gitHubRepository}
           commits={selectedCommits}
         />
-      </li>
+      </>
+    )
+  }
+
+  private renderAuthorList = () => {
+    const { avatarUsers } = this.state
+    const elems = []
+
+    for (let i = 0; i < avatarUsers.length; i++) {
+      elems.push(
+        <div className="author">
+          <Avatar key={`${i}`} user={avatarUsers[i]} title={null} />
+          <div>{this.renderExpandedAuthor(avatarUsers[i])}</div>
+        </div>
+      )
+    }
+
+    return elems
+  }
+
+  private renderAuthors = () => {
+    const { selectedCommits } = this.props
+
+    if (selectedCommits.length > 1) {
+      return
+    }
+
+    return (
+      <div className="commit-summary-meta-item authors">
+        {this.props.isExpanded
+          ? this.renderAuthorList()
+          : this.renderAuthorStack()}
+      </div>
     )
   }
 
@@ -472,7 +520,7 @@ export class CommitSummary extends React.Component<
           <Octicon symbol={OcticonSymbol.tag} />
         </span>
 
-        <span className="tags selectable">{tags.join(', ')}</span>
+        <span className="tags">{tags.join(', ')}</span>
       </li>
     )
   }
