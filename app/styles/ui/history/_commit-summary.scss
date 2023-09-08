@@ -21,12 +21,23 @@
     .author {
       display: flex;
 
+      > div {
+        // Enable text selection inside the summary and body elements.
+        user-select: text;
+        cursor: text;
+
+        * {
+          user-select: unset;
+          pointer-events: unset;
+          cursor: text;
+        }
+      }
+
       .avatar-container {
         margin-right: var(--spacing-half);
       }
     }
   }
-  
 
   .lines-added {
     color: var(--color-new);
