@@ -46,6 +46,24 @@
     color: var(--color-deleted);
   }
 
+  .commit-ref {
+    .ref {
+      padding-left: var(--spacing-half);
+    }
+
+    .copy-button {
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin-left: var(--spacing-half);
+      height: auto;
+
+      :hover {
+        color: var(--text-secondary-color);
+      }
+    }
+  }
+
   .tags {
     @include ellipsis;
     flex-shrink: 1;
@@ -146,10 +164,6 @@
 
     .commit-summary-meta {
       display: block;
-
-      .commit-summary-meta-item {
-        display: block;
-      }
     }
   }
 }

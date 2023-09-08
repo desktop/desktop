@@ -17,9 +17,9 @@ import { AppFileStatusKind } from '../../models/status'
 import _ from 'lodash'
 import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
-import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
 import memoizeOne from 'memoize-one'
 import { Avatar } from '../lib/avatar'
+import { CopyButton } from '../copy-button'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -368,22 +368,19 @@ export class CommitSummary extends React.Component<
   }
 
   private renderCommitRef = () => {
-    const { selectedCommits } = this.props
+    const { selectedCommits, isExpanded } = this.props
     if (selectedCommits.length > 1) {
       return
     }
 
+    const { shortSha, sha } = selectedCommits[0]
+
     return (
-      <li
-        className="commit-summary-meta-item without-truncation"
-        aria-label="SHA"
-      >
+      <div className="commit-summary-meta-item commit-ref">
         <Octicon symbol={OcticonSymbol.gitCommit} />
-        <TooltippedCommitSHA
-          className="selectable"
-          commit={selectedCommits[0]}
-        />
-      </li>
+        <div className="ref selectable">{isExpanded ? sha : shortSha}</div>
+        <CopyButton ariaLabel="Copy the full SHA" copyContent={sha} />
+      </div>
     )
   }
 
