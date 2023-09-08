@@ -341,8 +341,8 @@ export class CommitSummary extends React.Component<
 
     for (let i = 0; i < avatarUsers.length; i++) {
       elems.push(
-        <div className="author">
-          <Avatar key={`${i}`} user={avatarUsers[i]} title={null} />
+        <div className="author" key={i}>
+          <Avatar user={avatarUsers[i]} title={null} />
           <div>{this.renderExpandedAuthor(avatarUsers[i])}</div>
         </div>
       )
