@@ -209,7 +209,7 @@ export class CommitSummary extends React.Component<
   private renderSummary = () => {
     const { selectedCommits, shasInDiff } = this.props
     const { summary, hasEmptySummary } = this.state
-    const summaryClassNames = classNames('commit-summary-title', {
+    const summaryClassNames = classNames('commit-summary-title', 'selectable', {
       'empty-summary': hasEmptySummary,
     })
 
@@ -279,7 +279,7 @@ export class CommitSummary extends React.Component<
 
     return (
       <RichText
-        className="commit-body"
+        className="commit-body selectable"
         emoji={this.props.emoji}
         repository={this.props.repository}
         text={this.state.body}
@@ -341,7 +341,7 @@ export class CommitSummary extends React.Component<
 
     for (let i = 0; i < avatarUsers.length; i++) {
       elems.push(
-        <div className="author" key={i}>
+        <div className="author selectable" key={i}>
           <Avatar user={avatarUsers[i]} title={null} />
           <div>{this.renderExpandedAuthor(avatarUsers[i])}</div>
         </div>

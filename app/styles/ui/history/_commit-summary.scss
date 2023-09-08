@@ -21,21 +21,20 @@
     .author {
       display: flex;
 
-      > div {
-        // Enable text selection inside the summary and body elements.
-        user-select: text;
-        cursor: text;
-
-        * {
-          user-select: unset;
-          pointer-events: unset;
-          cursor: text;
-        }
-      }
-
       .avatar-container {
         margin-right: var(--spacing-half);
       }
+    }
+  }
+
+  .selectable {
+    user-select: text;
+    cursor: text;
+
+    * {
+      user-select: unset;
+      pointer-events: unset;
+      cursor: text;
     }
   }
 
@@ -100,19 +99,6 @@
   .commit-summary-title,
   .commit-summary-meta {
     padding: var(--spacing);
-  }
-
-  // Enable text selection inside the summary and body elements.
-  .commit-summary-title,
-  .commit-body {
-    user-select: text;
-    cursor: text;
-
-    * {
-      user-select: unset;
-      pointer-events: unset;
-      cursor: text;
-    }
   }
 
   .commit-body {
