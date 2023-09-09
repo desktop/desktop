@@ -269,6 +269,7 @@ export function mapStatus(
       index: GitStatusEntry.Renamed,
       workingTree: GitStatusEntry.Unchanged,
       submoduleStatus,
+      hasUnstagedModifications: false,
     }
   }
 
@@ -278,6 +279,7 @@ export function mapStatus(
       index: GitStatusEntry.Unchanged,
       workingTree: GitStatusEntry.Renamed,
       submoduleStatus,
+      hasUnstagedModifications: false,
     }
   }
 
@@ -325,6 +327,7 @@ export function mapStatus(
       index: GitStatusEntry.Renamed,
       workingTree: GitStatusEntry.Modified,
       submoduleStatus,
+      hasUnstagedModifications: true,
     }
   }
 
@@ -334,6 +337,7 @@ export function mapStatus(
       index: GitStatusEntry.Renamed,
       workingTree: GitStatusEntry.Deleted,
       submoduleStatus,
+      hasUnstagedModifications: false,
     }
   }
 

@@ -163,12 +163,14 @@ function convertToAppStatus(
       kind: AppFileStatusKind.Copied,
       oldPath,
       submoduleStatus: entry.submoduleStatus,
+      hasUnstagedModifications: entry.hasUnstagedModifications,
     }
   } else if (entry.kind === 'renamed' && oldPath != null) {
     return {
       kind: AppFileStatusKind.Renamed,
       oldPath,
       submoduleStatus: entry.submoduleStatus,
+      hasUnstagedModifications: entry.hasUnstagedModifications,
     }
   } else if (entry.kind === 'untracked') {
     return {
@@ -325,8 +327,8 @@ function buildStatusMap(
 
   const initialSelectionType =
     appStatus.kind === AppFileStatusKind.Modified &&
-    appStatus.submoduleStatus !== undefined &&
-    !appStatus.submoduleStatus.commitChanged
+      appStatus.submoduleStatus !== undefined &&
+      !appStatus.submoduleStatus.commitChanged
       ? DiffSelectionType.None
       : DiffSelectionType.All
 
@@ -413,7 +415,7 @@ async function getWorkingDirectoryConflictDetails(repository: Repository) {
   try {
     // its totally fine if HEAD doesn't exist, which throws an error
     binaryFilePaths = await getBinaryPaths(repository, 'HEAD')
-  } catch (error) {}
+  } catch (error) { }
 
   return {
     conflictCountsByPath,

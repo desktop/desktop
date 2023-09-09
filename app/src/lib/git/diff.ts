@@ -367,14 +367,15 @@ export async function getWorkingDirectoryDiff(
     successExitCodes.add(1)
     args.push('--no-index', '--', '/dev/null', file.path)
   } else if (file.status.kind === AppFileStatusKind.Renamed) {
-    // NB: Technically this is incorrect, the best kind of incorrect.
-    // In order to show exactly what will end up in the commit we should
-    // perform a diff between the new file and the old file as it appears
-    // in HEAD. By diffing against the index we won't show any changes
-    // already staged to the renamed file which differs from our other diffs.
-    // The closest I got to that was running hash-object and then using
-    // git diff <blob> <blob> but that seems a bit excessive.
-    args.push('--', file.path)
+    // If there are unstaged changed, we can get staged differences from the
+    // original file or unstaged changes for the file. This prefers the
+    // unstaged changed.
+    if (file.status.hasUnstagedModifications) {
+      args.push('--', 'HEAD:' + file.status.oldPath, file.path)
+    } else {
+      // If there no unstaged changes, we can show the full set of changes after renaming.
+      args.push('--cached', '--', file.status.oldPath, file.path)
+    }
   } else {
     args.push('HEAD', '--', file.path)
   }

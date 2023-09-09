@@ -31,9 +31,9 @@ export enum AppFileStatusKind {
  */
 export type PlainFileStatus = {
   kind:
-    | AppFileStatusKind.New
-    | AppFileStatusKind.Modified
-    | AppFileStatusKind.Deleted
+  | AppFileStatusKind.New
+  | AppFileStatusKind.Modified
+  | AppFileStatusKind.Deleted
   submoduleStatus?: SubmoduleStatus
 }
 
@@ -48,6 +48,7 @@ export type CopiedOrRenamedFileStatus = {
   kind: AppFileStatusKind.Copied | AppFileStatusKind.Renamed
   oldPath: string
   submoduleStatus?: SubmoduleStatus
+  hasUnstagedModifications?: boolean
 }
 
 /**
@@ -146,6 +147,8 @@ type RenamedOrCopiedEntry = {
   readonly workingTree?: GitStatusEntry
   /** the submodule status for this entry */
   readonly submoduleStatus?: SubmoduleStatus
+  /** whether there are also unstaged changes */
+  readonly hasUnstagedModifications?: boolean;
 }
 
 export enum UnmergedEntrySummary {
@@ -164,15 +167,15 @@ export enum UnmergedEntrySummary {
  */
 type TextConflictDetails =
   | {
-      readonly action: UnmergedEntrySummary.BothAdded
-      readonly us: GitStatusEntry.Added
-      readonly them: GitStatusEntry.Added
-    }
+    readonly action: UnmergedEntrySummary.BothAdded
+    readonly us: GitStatusEntry.Added
+    readonly them: GitStatusEntry.Added
+  }
   | {
-      readonly action: UnmergedEntrySummary.BothModified
-      readonly us: GitStatusEntry.UpdatedButUnmerged
-      readonly them: GitStatusEntry.UpdatedButUnmerged
-    }
+    readonly action: UnmergedEntrySummary.BothModified
+    readonly us: GitStatusEntry.UpdatedButUnmerged
+    readonly them: GitStatusEntry.UpdatedButUnmerged
+  }
 
 type TextConflictEntry = {
   readonly kind: 'conflicted'
@@ -188,42 +191,42 @@ type ManualConflictDetails = {
   /** the submodule status for this entry */
   readonly submoduleStatus?: SubmoduleStatus
 } & (
-  | {
+    | {
       readonly action: UnmergedEntrySummary.BothAdded
       readonly us: GitStatusEntry.Added
       readonly them: GitStatusEntry.Added
     }
-  | {
+    | {
       readonly action: UnmergedEntrySummary.BothModified
       readonly us: GitStatusEntry.UpdatedButUnmerged
       readonly them: GitStatusEntry.UpdatedButUnmerged
     }
-  | {
+    | {
       readonly action: UnmergedEntrySummary.AddedByUs
       readonly us: GitStatusEntry.Added
       readonly them: GitStatusEntry.UpdatedButUnmerged
     }
-  | {
+    | {
       readonly action: UnmergedEntrySummary.DeletedByThem
       readonly us: GitStatusEntry.UpdatedButUnmerged
       readonly them: GitStatusEntry.Deleted
     }
-  | {
+    | {
       readonly action: UnmergedEntrySummary.AddedByThem
       readonly us: GitStatusEntry.UpdatedButUnmerged
       readonly them: GitStatusEntry.Added
     }
-  | {
+    | {
       readonly action: UnmergedEntrySummary.DeletedByUs
       readonly us: GitStatusEntry.Deleted
       readonly them: GitStatusEntry.UpdatedButUnmerged
     }
-  | {
+    | {
       readonly action: UnmergedEntrySummary.BothDeleted
       readonly us: GitStatusEntry.Deleted
       readonly them: GitStatusEntry.Deleted
     }
-)
+  )
 
 type ManualConflictEntry = {
   readonly kind: 'conflicted'

@@ -30,18 +30,18 @@ function mapSubmoduleStatusFileModes(
     dstMode === SubmoduleFileMode &&
     status === 'M'
     ? {
-        commitChanged: true,
-        untrackedChanges: false,
-        modifiedChanges: false,
-      }
+      commitChanged: true,
+      untrackedChanges: false,
+      modifiedChanges: false,
+    }
     : (srcMode === SubmoduleFileMode && status === 'D') ||
       (dstMode === SubmoduleFileMode && status === 'A')
-    ? {
+      ? {
         commitChanged: false,
         untrackedChanges: false,
         modifiedChanges: false,
       }
-    : undefined
+      : undefined
 }
 
 /**
@@ -70,20 +70,20 @@ function mapStatus(
     return { kind: AppFileStatusKind.Deleted, submoduleStatus }
   } // deleted
   if (status === 'R' && oldPath != null) {
-    return { kind: AppFileStatusKind.Renamed, oldPath, submoduleStatus }
+    return { kind: AppFileStatusKind.Renamed, oldPath, submoduleStatus, hasUnstagedModifications: false }
   } // renamed
   if (status === 'C' && oldPath != null) {
-    return { kind: AppFileStatusKind.Copied, oldPath, submoduleStatus }
+    return { kind: AppFileStatusKind.Copied, oldPath, submoduleStatus, hasUnstagedModifications: false }
   } // copied
 
   // git log -M --name-status will return a RXXX - where XXX is a percentage
   if (status.match(/R[0-9]+/) && oldPath != null) {
-    return { kind: AppFileStatusKind.Renamed, oldPath, submoduleStatus }
+    return { kind: AppFileStatusKind.Renamed, oldPath, submoduleStatus, hasUnstagedModifications: true }
   }
 
   // git log -C --name-status will return a CXXX - where XXX is a percentage
   if (status.match(/C[0-9]+/) && oldPath != null) {
-    return { kind: AppFileStatusKind.Copied, oldPath, submoduleStatus }
+    return { kind: AppFileStatusKind.Copied, oldPath, submoduleStatus, hasUnstagedModifications: true }
   }
 
   return { kind: AppFileStatusKind.Modified, submoduleStatus }
