@@ -85,6 +85,32 @@ Related issue: [#2107](https://github.com/desktop/desktop/issues/2107)
 This is related to Desktop tracking the window position between launches, but not changes to your display configuration such as removing the secondary monitor where Desktop was positioned.
 
 **Workaround:**
+from-downstream [OPTIONS] [PATH_OR_URL]
+
+  Copy synced files from Fedora dist-git into upstream by opening a pull
+  request.
+
+  PATH_OR_URL argument is a local path or a URL to the upstream git
+  repository, it defaults to the current working directory
+
+Options:
+  --dist-git-branch TEXT  Comma separated list of target branches in dist-git
+                          to sync from. (defaults to repo's default branch)
+  --upstream-branch TEXT  Target branch in upstream to sync to. (defaults to
+                          repo's default branch)
+  --no-pr                 Do not create a pull request to upstream repository.
+  --fork / --no-fork      Push to a fork before creating a pull request.
+  --remote-to-push TEXT   Name of the remote where packit should push. If this
+                          is not specified, push to a fork if the repo can be
+                          forked.
+  -f, --force             Don't discard changes in the git repo by default,
+                          unless this is set.
+  -p, --package TEXT      Package to sync back, if more than one available,
+                          like in a monorepo configuration. Use it multiple
+                          times to select multiple packages.Defaults to all
+                          the packages listed inside the config.
+  -x, --exclude TEXT      File to exclude from sync
+  -h, --help              Show this message and exit.
 
  - Remove `%APPDATA%\GitHub Desktop\window-state.json`
  - Restart Desktop
