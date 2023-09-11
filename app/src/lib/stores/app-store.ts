@@ -351,6 +351,7 @@ const pullRequestFileListConfigKey: string = 'pull-request-files-width'
 
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
+const showCommitLengthWarningDefault: boolean = false
 const confirmDiscardChangesDefault: boolean = true
 const confirmDiscardChangesPermanentlyDefault: boolean = true
 const confirmDiscardStashDefault: boolean = true
@@ -359,6 +360,7 @@ const askForConfirmationOnForcePushDefault = true
 const confirmUndoCommitDefault: boolean = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
+const showCommitLengthWarningKey: string = 'showCommitLengthWarning'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmDiscardStashKey: string = 'confirmDiscardStash'
 const confirmCheckoutCommitKey: string = 'confirmCheckoutCommit'
@@ -556,8 +558,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (__WIN32__) {
       const useWindowsOpenSSH = getBoolean(UseWindowsOpenSSHKey)
-      // TODO: is it ok to use a string literal here?
-      this.showCommitLengthWarning = getBoolean("showCommitLengthWarning") === true
 
       // If the user never selected whether to use Windows OpenSSH or not, use it
       // by default if we have to show the welcome flow (i.e. if it's a new install)
@@ -2095,6 +2095,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.askForConfirmationOnRepositoryRemoval = getBoolean(
       confirmRepoRemovalKey,
       confirmRepoRemovalDefault
+    )
+
+      this.showCommitLengthWarning = getBoolean(
+      showCommitLengthWarningKey,
+      showCommitLengthWarningDefault
     )
 
     this.confirmDiscardChanges = getBoolean(
