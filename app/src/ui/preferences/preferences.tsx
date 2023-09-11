@@ -391,7 +391,9 @@ export class Preferences extends React.Component<
               this.onUncommittedChangesStrategyChanged
             }
             showCommitLengthWarning={this.state.showCommitLengthWarning}
-            onShowCommitLengthWarningChanged={this.onShowCommitLengthWarningChanged}
+            onShowCommitLengthWarningChanged={
+              this.onShowCommitLengthWarningChanged
+            }
           />
         )
         break
@@ -436,7 +438,9 @@ export class Preferences extends React.Component<
     this.setState({ useWindowsOpenSSH })
   }
 
-  private onShowCommitLengthWarningChanged = (showCommitLengthWarning: boolean) => {
+  private onShowCommitLengthWarningChanged = (
+    showCommitLengthWarning: boolean
+  ) => {
     this.setState({ showCommitLengthWarning })
   }
 
@@ -583,7 +587,9 @@ export class Preferences extends React.Component<
     }
 
     this.props.dispatcher.setUseWindowsOpenSSH(this.state.useWindowsOpenSSH)
-    this.props.dispatcher.setShowCommitLengthWarning(this.state.showCommitLengthWarning)
+    this.props.dispatcher.setShowCommitLengthWarning(
+      this.state.showCommitLengthWarning
+    )
     this.props.dispatcher.setNotificationsEnabled(
       this.state.notificationsEnabled
     )

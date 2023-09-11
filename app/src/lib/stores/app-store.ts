@@ -517,7 +517,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private useWindowsOpenSSH: boolean = false
 
   private showCommitLengthWarning: boolean = false
-    
+
   private hasUserViewedStash = false
 
   private repositoryIndicatorsEnabled: boolean
@@ -2097,7 +2097,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       confirmRepoRemovalDefault
     )
 
-      this.showCommitLengthWarning = getBoolean(
+    this.showCommitLengthWarning = getBoolean(
       showCommitLengthWarningKey,
       showCommitLengthWarningDefault
     )
@@ -3543,9 +3543,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _setShowCommitLengthWarning(showCommitLengthWarning: boolean) {
-      setBoolean("showCommitLengthWarning", showCommitLengthWarning)
-      this.showCommitLengthWarning = showCommitLengthWarning
-      this.emitUpdate()
+    setBoolean('showCommitLengthWarning', showCommitLengthWarning)
+    this.showCommitLengthWarning = showCommitLengthWarning
+    this.emitUpdate()
   }
 
   public _setNotificationsEnabled(notificationsEnabled: boolean) {

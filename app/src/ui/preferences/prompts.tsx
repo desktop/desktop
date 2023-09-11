@@ -237,11 +237,13 @@ export class Prompts extends React.Component<
         <div className="advanced-section">
           <h2>Style Guides</h2>
           <Checkbox
-          label="Show commit length warning"
-          value={
-            this.props.showCommitLengthWarning ? CheckboxValue.On : CheckboxValue.Off
-          }
-          onChange={this.onShowCommitLengthWarningChanged}
+            label="Show commit length warning"
+            value={
+              this.props.showCommitLengthWarning
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onShowCommitLengthWarningChanged}
           />
         </div>
       </DialogContent>

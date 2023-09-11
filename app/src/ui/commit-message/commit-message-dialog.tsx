@@ -159,7 +159,7 @@ export class CommitMessageDialog extends React.Component<
               this.onCommitSpellcheckEnabledChanged
             }
             onShowCommitLengthWarningChanged={
-                this.onShowCommitLengthWarningChanged
+              this.onShowCommitLengthWarningChanged
             }
             repositoryAccount={this.props.repositoryAccount}
             onStopAmending={this.onStopAmending}

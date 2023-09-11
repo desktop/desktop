@@ -119,7 +119,6 @@ interface ICommitMessageProps {
 
   readonly showCommitLengthWarning: boolean
 
-
   /** Optional text to override default commit button text */
   readonly commitButtonText?: string
 
@@ -1364,7 +1363,12 @@ export class CommitMessage extends React.Component<
       ? this.COMMIT_MSG_ERROR_BTN_ID
       : undefined
 
-    const { placeholder, isCommitting, commitSpellcheckEnabled, showCommitLengthWarning } = this.props
+    const {
+      placeholder,
+      isCommitting,
+      commitSpellcheckEnabled,
+      showCommitLengthWarning,
+    } = this.props
 
     return (
       // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
