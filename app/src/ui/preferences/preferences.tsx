@@ -390,6 +390,8 @@ export class Preferences extends React.Component<
             onUncommittedChangesStrategyChanged={
               this.onUncommittedChangesStrategyChanged
             }
+            showCommitLengthWarning={this.state.showCommitLengthWarning}
+            onShowCommitLengthWarningChanged={this.onShowCommitLengthWarningChanged}
           />
         )
         break
@@ -398,11 +400,9 @@ export class Preferences extends React.Component<
         View = (
           <Advanced
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
-            showCommitLengthWarning={this.state.showCommitLengthWarning}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
-            onShowCommitLengthWarningChanged={this.onShowCommitLengthWarningChanged}
             onOptOutofReportingChanged={this.onOptOutofReportingChanged}
             onRepositoryIndicatorsEnabledChanged={
               this.onRepositoryIndicatorsEnabledChanged

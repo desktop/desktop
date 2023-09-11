@@ -7,11 +7,9 @@ import { isWindowsOpenSSHAvailable } from '../../lib/ssh/ssh'
 
 interface IAdvancedPreferencesProps {
   readonly useWindowsOpenSSH: boolean
-  readonly showCommitLengthWarning: boolean
   readonly optOutOfUsageTracking: boolean
   readonly repositoryIndicatorsEnabled: boolean
   readonly onUseWindowsOpenSSHChanged: (checked: boolean) => void
-  readonly onShowCommitLengthWarningChanged: (checked: boolean) => void
   readonly onOptOutofReportingChanged: (checked: boolean) => void
   readonly onRepositoryIndicatorsEnabledChanged: (enabled: boolean) => void
 }
@@ -63,12 +61,6 @@ export class Advanced extends React.Component<
     this.props.onUseWindowsOpenSSHChanged(event.currentTarget.checked)
   }
 
-    private onShowCommitLengthWarningChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    this.props.onShowCommitLengthWarningChanged(event.currentTarget.checked)
-  }
-
   private reportDesktopUsageLabel() {
     return (
       <span>
@@ -108,16 +100,6 @@ export class Advanced extends React.Component<
                 : CheckboxValue.On
             }
             onChange={this.onReportingOptOutChanged}
-          />
-        </div>
-        <div className="advanced-section">
-          <h2>Style Guides</h2>
-          <Checkbox
-          label="Show commit length warning"
-          value={
-            this.props.showCommitLengthWarning ? CheckboxValue.On : CheckboxValue.Off
-          }
-          onChange={this.onShowCommitLengthWarningChanged}
           />
         </div>
       </DialogContent>
