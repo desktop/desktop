@@ -3543,7 +3543,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _setShowCommitLengthWarning(showCommitLengthWarning: boolean) {
-    setBoolean('showCommitLengthWarning', showCommitLengthWarning)
+    setBoolean(showCommitLengthWarningKey, showCommitLengthWarning)
     this.showCommitLengthWarning = showCommitLengthWarning
     this.emitUpdate()
   }
