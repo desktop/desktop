@@ -179,6 +179,8 @@ interface ICommitMessageState {
 
   readonly isRuleFailurePopoverOpen: boolean
 
+  readonly showCommitLengthWarning: boolean
+
   readonly repoRuleCommitMessageFailures: RepoRulesMetadataFailures
   readonly repoRuleCommitAuthorFailures: RepoRulesMetadataFailures
   readonly repoRuleBranchNameFailures: RepoRulesMetadataFailures
@@ -235,6 +237,9 @@ export class CommitMessage extends React.Component<
       isCommittingStatusMessage: '',
       repoRulesEnabled: false,
       isRuleFailurePopoverOpen: false,
+      // TODO: do a proper retrieval rather than pinging localStorage (use AppState?)
+      // (current solution requires a tab switch to hot reload)
+      showCommitLengthWarning: localStorage.getItem("showCommitLengthWarning") === "1",
       repoRuleCommitMessageFailures: new RepoRulesMetadataFailures(),
       repoRuleCommitAuthorFailures: new RepoRulesMetadataFailures(),
       repoRuleBranchNameFailures: new RepoRulesMetadataFailures(),
@@ -1344,6 +1349,7 @@ export class CommitMessage extends React.Component<
       this.state.repoRuleCommitMessageFailures.status !== 'pass'
 
     const showSummaryLengthHint =
+      this.state.showCommitLengthWarning &&
       !showRepoRuleCommitMessageFailureHint &&
       this.state.summary.length > IdealSummaryLength
 

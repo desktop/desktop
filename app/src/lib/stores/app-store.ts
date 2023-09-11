@@ -514,6 +514,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private useWindowsOpenSSH: boolean = false
 
+  private showCommitLengthWarning: boolean = false
+    
   private hasUserViewedStash = false
 
   private repositoryIndicatorsEnabled: boolean
@@ -554,6 +556,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (__WIN32__) {
       const useWindowsOpenSSH = getBoolean(UseWindowsOpenSSHKey)
+      // TODO: is it ok to use a string literal here?
+      this.showCommitLengthWarning = getBoolean("showCommitLengthWarning") === true
 
       // If the user never selected whether to use Windows OpenSSH or not, use it
       // by default if we have to show the welcome flow (i.e. if it's a new install)
@@ -994,6 +998,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentTheme: this.currentTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       useWindowsOpenSSH: this.useWindowsOpenSSH,
+      showCommitLengthWarning: this.showCommitLengthWarning,
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
@@ -3530,6 +3535,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.useWindowsOpenSSH = useWindowsOpenSSH
 
     this.emitUpdate()
+  }
+
+  public _setShowCommitLengthWarning(showCommitLengthWarning: boolean) {
+      setBoolean("showCommitLengthWarning", showCommitLengthWarning)
+      this.showCommitLengthWarning = showCommitLengthWarning
+      this.emitUpdate()
   }
 
   public _setNotificationsEnabled(notificationsEnabled: boolean) {
