@@ -23,7 +23,6 @@ import { openFile } from '../open-file'
 import { shell } from 'electron'
 import { Button } from '../button'
 import { IMenuItem } from '../../../lib/menu-item'
-import { LinkButton } from '../link-button'
 import {
   hasUnresolvedConflicts,
   getUnmergedStatusEntryDescription,
@@ -140,6 +139,16 @@ const renderResolvedFile: React.FunctionComponent<{
           dispatcher: props.dispatcher,
         })}
       </div>
+      <Button
+        className="undo-button"
+        onClick={makeUndoManualResolutionClickHandler(
+          props.path,
+          props.repository,
+          props.dispatcher
+        )}
+      >
+        Undo
+      </Button>
       <div className="green-circle">
         <Octicon symbol={OcticonSymbol.check} />
       </div>
@@ -409,21 +418,7 @@ const renderResolvedFileStatusSummary: React.FunctionComponent<{
     props.branch
   )
 
-  return (
-    <div className="file-conflicts-status">
-      {statusString}
-      &nbsp;
-      <LinkButton
-        onClick={makeUndoManualResolutionClickHandler(
-          props.path,
-          props.repository,
-          props.dispatcher
-        )}
-      >
-        Undo
-      </LinkButton>
-    </div>
-  )
+  return <div className="file-conflicts-status">{statusString}</div>
 }
 
 /** returns the name of the branch that corresponds to the chosen manual resolution */
