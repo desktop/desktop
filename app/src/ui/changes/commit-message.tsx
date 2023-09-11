@@ -117,6 +117,9 @@ interface ICommitMessageProps {
 
   readonly commitSpellcheckEnabled: boolean
 
+  readonly showCommitLengthWarning: boolean
+
+
   /** Optional text to override default commit button text */
   readonly commitButtonText?: string
 
@@ -153,6 +156,7 @@ interface ICommitMessageProps {
   readonly onShowPopup: (popup: Popup) => void
   readonly onShowFoldout: (foldout: Foldout) => void
   readonly onCommitSpellcheckEnabledChanged: (enabled: boolean) => void
+  readonly onShowCommitLengthWarningChanged: (enabled: boolean) => void
   readonly onStopAmending: () => void
   readonly onShowCreateForkDialog: () => void
 }
@@ -178,8 +182,6 @@ interface ICommitMessageState {
   readonly repoRulesEnabled: boolean
 
   readonly isRuleFailurePopoverOpen: boolean
-
-  readonly showCommitLengthWarning: boolean
 
   readonly repoRuleCommitMessageFailures: RepoRulesMetadataFailures
   readonly repoRuleCommitAuthorFailures: RepoRulesMetadataFailures
@@ -237,9 +239,6 @@ export class CommitMessage extends React.Component<
       isCommittingStatusMessage: '',
       repoRulesEnabled: false,
       isRuleFailurePopoverOpen: false,
-      // TODO: do a proper retrieval rather than pinging localStorage (use AppState?)
-      // (current solution requires a tab switch to hot reload)
-      showCommitLengthWarning: localStorage.getItem("showCommitLengthWarning") === "1",
       repoRuleCommitMessageFailures: new RepoRulesMetadataFailures(),
       repoRuleCommitAuthorFailures: new RepoRulesMetadataFailures(),
       repoRuleBranchNameFailures: new RepoRulesMetadataFailures(),
@@ -1349,7 +1348,7 @@ export class CommitMessage extends React.Component<
       this.state.repoRuleCommitMessageFailures.status !== 'pass'
 
     const showSummaryLengthHint =
-      this.state.showCommitLengthWarning &&
+      this.props.showCommitLengthWarning &&
       !showRepoRuleCommitMessageFailureHint &&
       this.state.summary.length > IdealSummaryLength
 
@@ -1365,7 +1364,7 @@ export class CommitMessage extends React.Component<
       ? this.COMMIT_MSG_ERROR_BTN_ID
       : undefined
 
-    const { placeholder, isCommitting, commitSpellcheckEnabled } = this.props
+    const { placeholder, isCommitting, commitSpellcheckEnabled, showCommitLengthWarning } = this.props
 
     return (
       // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
@@ -1394,6 +1393,7 @@ export class CommitMessage extends React.Component<
             onContextMenu={this.onAutocompletingInputContextMenu}
             readOnly={isCommitting === true}
             spellcheck={commitSpellcheckEnabled}
+            showCommitLengthWarning={showCommitLengthWarning}
           />
           {showRepoRuleCommitMessageFailureHint &&
             this.renderRepoRuleCommitMessageFailureHint()}
@@ -1421,6 +1421,7 @@ export class CommitMessage extends React.Component<
             onContextMenu={this.onAutocompletingInputContextMenu}
             readOnly={isCommitting === true}
             spellcheck={commitSpellcheckEnabled}
+            showCommitLengthWarning={showCommitLengthWarning}
           />
           {this.renderActionBar()}
         </FocusContainer>

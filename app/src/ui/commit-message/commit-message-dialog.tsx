@@ -54,6 +54,8 @@ interface ICommitMessageDialogProps {
    */
   readonly commitSpellcheckEnabled: boolean
 
+  readonly showCommitLengthWarning: boolean
+
   /** Text for the ok button */
   readonly dialogButtonText: string
 
@@ -140,6 +142,7 @@ export class CommitMessageDialog extends React.Component<
             aheadBehind={this.props.aheadBehind}
             showNoWriteAccess={this.props.showNoWriteAccess}
             commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
+            showCommitLengthWarning={this.props.showCommitLengthWarning}
             onCoAuthorsUpdated={this.onCoAuthorsUpdated}
             onShowCoAuthoredByChanged={this.onShowCoAuthorsChanged}
             onConfirmCommitWithUnknownCoAuthors={
@@ -154,6 +157,9 @@ export class CommitMessageDialog extends React.Component<
             onShowFoldout={this.onShowFoldout}
             onCommitSpellcheckEnabledChanged={
               this.onCommitSpellcheckEnabledChanged
+            }
+            onShowCommitLengthWarningChanged={
+                this.onShowCommitLengthWarningChanged
             }
             repositoryAccount={this.props.repositoryAccount}
             onStopAmending={this.onStopAmending}
@@ -186,6 +192,9 @@ export class CommitMessageDialog extends React.Component<
 
   private onCommitSpellcheckEnabledChanged = (enabled: boolean) =>
     this.props.dispatcher.setCommitSpellcheckEnabled(enabled)
+
+  private onShowCommitLengthWarningChanged = (enabled: boolean) =>
+    this.props.dispatcher.setShowCommitLengthWarning(enabled)
 
   private onStopAmending = () =>
     this.props.dispatcher.stopAmendingRepository(this.props.repository)

@@ -219,6 +219,8 @@ interface IChangesListProps {
   readonly shouldNudgeToCommit: boolean
 
   readonly commitSpellcheckEnabled: boolean
+
+  readonly showCommitLengthWarning: boolean
 }
 
 interface IChangesState {
@@ -818,6 +820,7 @@ export class ChangesList extends React.Component<
         showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
+        showCommitLengthWarning={this.props.showCommitLengthWarning}
         onCoAuthorsUpdated={this.onCoAuthorsUpdated}
         onShowCoAuthoredByChanged={this.onShowCoAuthoredByChanged}
         onConfirmCommitWithUnknownCoAuthors={
@@ -829,6 +832,7 @@ export class ChangesList extends React.Component<
         onShowPopup={this.onShowPopup}
         onShowFoldout={this.onShowFoldout}
         onCommitSpellcheckEnabledChanged={this.onCommitSpellcheckEnabledChanged}
+        onShowCommitLengthWarningChanged={this.onShowCommitLengthWarningChanged}
         onStopAmending={this.onStopAmending}
         onShowCreateForkDialog={this.onShowCreateForkDialog}
       />
@@ -865,6 +869,9 @@ export class ChangesList extends React.Component<
 
   private onCommitSpellcheckEnabledChanged = (enabled: boolean) =>
     this.props.dispatcher.setCommitSpellcheckEnabled(enabled)
+
+  private onShowCommitLengthWarningChanged = (enabled: boolean) =>
+    this.props.dispatcher.setShowCommitLengthWarning(enabled)
 
   private onStopAmending = () =>
     this.props.dispatcher.stopAmendingRepository(this.props.repository)
