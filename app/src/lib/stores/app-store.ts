@@ -351,7 +351,7 @@ const pullRequestFileListConfigKey: string = 'pull-request-files-width'
 
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
-const showCommitLengthWarningDefault: boolean = false
+const showCommitLengthWarningDefault: boolean = true
 const confirmDiscardChangesDefault: boolean = true
 const confirmDiscardChangesPermanentlyDefault: boolean = true
 const confirmDiscardStashDefault: boolean = true
