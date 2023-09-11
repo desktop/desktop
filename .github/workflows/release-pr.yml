@@ -28,7 +28,7 @@ jobs:
           echo "$PR_TITLE" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - uses: tibdex/github-app-token@v1
+      - uses: tibdex/github-app-token@v2
         id: generate-token
         if: |
           startsWith(github.ref, 'refs/heads/releases/') && !contains(github.ref, 'test')
