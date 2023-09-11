@@ -123,6 +123,7 @@ import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
 import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
+import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 
 /**
  * An error handler function.
@@ -1211,6 +1212,31 @@ export class Dispatcher {
         baseBranch.name,
         targetBranch.name
       )
+    } else if (result === RebaseResult.AlreadyUpToDate) {
+      if (tip.kind !== TipState.Valid) {
+        log.warn(
+          `[rebase] tip after already up to date is ${tip.kind} but this should be a valid tip if the rebase completed without error`
+        )
+        return
+      }
+
+      const { operationDetail } = multiCommitOperationState
+      const { sourceBranch } = operationDetail
+
+      const ourBranch = targetBranch !== null ? targetBranch.name : ''
+      const theirBranch = sourceBranch !== null ? sourceBranch.name : ''
+
+      const banner: Banner = {
+        type: BannerType.BranchAlreadyUpToDate,
+        ourBranch,
+        theirBranch,
+      }
+
+      this.statsStore.recordRebaseWithBranchAlreadyUpToDate()
+
+      this.setBanner(banner)
+      this.endMultiCommitOperation(repository)
+      await this.refreshRepository(repository)
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
@@ -1259,6 +1285,11 @@ export class Dispatcher {
       manualResolutions
     )
 
+    // At this point, given continueRebase was invoked, we can assume that the
+    // rebase encountered some conflicts and they have been resolved. Getting
+    // now a CompletedWithoutError result means that the rebase has completed
+    // successfully and there aren't more conflicts to resolve, therefore we can
+    // track this as a successful rebase with conflicts.
     if (result === RebaseResult.CompletedWithoutError) {
       this.statsStore.recordOperationSuccessfulWithConflicts(kind)
     }
@@ -3627,6 +3658,14 @@ export class Dispatcher {
     // conflict flow if squash results in conflict.
     const status = await this.appStore._loadStatus(repository)
     switch (result) {
+      case RebaseResult.AlreadyUpToDate:
+        sendNonFatalException(
+          'rebaseConflictsWithBranchAlreadyUpToDate',
+          new Error(
+            `processMultiCommitOperationRebaseResult was invoked (which means Desktop went into a conflicts-found state) but the branch was already up-to-date, so there couldn't be any conflicts at all`
+          )
+        )
+        break
       case RebaseResult.CompletedWithoutError:
         if (status !== null && status.currentTip !== undefined) {
           // This sets the history to the current tip
@@ -3781,10 +3820,7 @@ export class Dispatcher {
         }
         break
       case MultiCommitOperationKind.Rebase:
-        const sourceBranch =
-          operationDetail.kind === MultiCommitOperationKind.Rebase
-            ? operationDetail.sourceBranch
-            : null
+        const { sourceBranch } = operationDetail
         banner = {
           type: BannerType.SuccessfulRebase,
           targetBranch: targetBranch !== null ? targetBranch.name : '',
