@@ -1,6 +1,6 @@
 name: CI
 
-on:
+on:[![.github/workflows/ci.yml](https://github.com/farahmandakbar26/desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/farahmandakbar26/desktop/actions/workflows/ci.yml)
   push:
     branches:
       - development
