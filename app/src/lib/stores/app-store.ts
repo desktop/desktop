@@ -2752,8 +2752,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (forceButtonFocus) {
-      const buttons = document.getElementsByClassName('tab-bar-item selected')
-      const button = buttons[0] as HTMLButtonElement
+      const repoSideBar = document.getElementById('repository-sidebar')
+      const button = repoSideBar?.querySelector(
+        '.tab-bar-item.selected'
+      ) as HTMLButtonElement
       button?.focus()
     }
   }
