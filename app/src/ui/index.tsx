@@ -71,6 +71,7 @@ import { migrateRendererGUID } from '../lib/get-renderer-guid'
 import { initializeRendererNotificationHandler } from '../lib/notifications/notification-handler'
 import { Grid } from 'react-virtualized'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
+import { LocalStorageManager } from '../lib/local-storage'
 
 if (__DEV__) {
   installDevGlobals()
@@ -274,6 +275,8 @@ const notificationsDebugStore = new NotificationsDebugStore(
   pullRequestCoordinator
 )
 
+const localStorageManger = new LocalStorageManager()
+
 const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
@@ -285,7 +288,8 @@ const appStore = new AppStore(
   pullRequestCoordinator,
   repositoryStateManager,
   apiRepositoriesStore,
-  notificationsStore
+  notificationsStore,
+  localStorageManger
 )
 
 appStore.onDidUpdate(state => {

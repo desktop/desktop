@@ -33,6 +33,7 @@ import { AheadBehindStore } from '../../src/lib/stores/ahead-behind-store'
 import { AliveStore } from '../../src/lib/stores/alive-store'
 import { NotificationsStore } from '../../src/lib/stores/notifications-store'
 import { NotificationsDebugStore } from '../../src/lib/stores/notifications-debug-store'
+import { LocalStorageManager } from '../../src/lib/local-storage'
 
 describe('App', () => {
   let appStore: AppStore
@@ -94,6 +95,8 @@ describe('App', () => {
       pullRequestCoordinator
     )
 
+    const localStorageManager = new LocalStorageManager()
+
     appStore = new AppStore(
       githubUserStore,
       new CloningRepositoriesStore(),
@@ -105,7 +108,8 @@ describe('App', () => {
       pullRequestCoordinator,
       repositoryStateManager,
       apiRepositoriesStore,
-      notificationsStore
+      notificationsStore,
+      localStorageManager
     )
 
     dispatcher = new InMemoryDispatcher(

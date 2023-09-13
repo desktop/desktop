@@ -1,4 +1,7 @@
+import { ImageDiffType } from '../models/diff'
 import { parseEnumValue } from './enum'
+import { fatalError } from './fatal-error'
+import { ILastThankYou } from '../models/last-thank-you'
 
 /**
  * Returns the value for the provided key from local storage interpreted as a
@@ -237,4 +240,213 @@ export function getObject<T>(key: string): T | undefined {
 export function setObject(key: string, value: object) {
   const rawData = JSON.stringify(value)
   localStorage.setItem(key, rawData)
+}
+
+const LocalStorageKeys = [
+  'askToMoveToApplicationsFolder',
+  'commit-spellcheck-enabled',
+  'commit-summary-width',
+  'confirmCheckoutCommit',
+  'confirmDiscardChanges',
+  'confirmDiscardChangesPermanentlyKey',
+  'confirmDiscardStash',
+  'confirmForcePush',
+  'confirmRepoRemoval',
+  'confirmUndoCommit',
+  'externalEditor',
+  'hide-whitespace-in-changes-diff',
+  'hide-whitespace-in-diff',
+  'hide-whitespace-in-pull-request-diff',
+  'image-diff-type',
+  'last-selected-repository-id',
+  'version-and-users-of-last-thank-you',
+  'pull-request-files-width',
+  'pull-request-suggested-next-action-key',
+  'recently-selected-repositories',
+  'enable-repository-indicators',
+  'showCommitLengthWarning',
+  'shell',
+  'sidebar-width',
+  'stashed-files-width',
+  'uncommittedChangesStrategyKind',
+] as const
+
+export type LocalStorageKey = typeof LocalStorageKeys[number]
+
+const LocalStorageDefaults: Record<
+  LocalStorageKey,
+  boolean | number | object | null
+> = {
+  askToMoveToApplicationsFolder: true,
+  'commit-spellcheck-enabled': true,
+  'commit-summary-width': 250,
+  confirmCheckoutCommit: true,
+  confirmDiscardChanges: true,
+  confirmDiscardChangesPermanentlyKey: true,
+  confirmDiscardStash: true,
+  confirmForcePush: true,
+  confirmRepoRemoval: true,
+  confirmUndoCommit: true,
+  externalEditor: null,
+  'hide-whitespace-in-changes-diff': false,
+  'hide-whitespace-in-diff': false,
+  'hide-whitespace-in-pull-request-diff': false,
+  'image-diff-type': ImageDiffType.TwoUp,
+  'last-selected-repository-id': 0,
+  'version-and-users-of-last-thank-you': null,
+  'pull-request-files-width': 250,
+  'pull-request-suggested-next-action-key': 0,
+  'recently-selected-repositories': 0,
+  'enable-repository-indicators': 0,
+  showCommitLengthWarning: false,
+  shell: 0,
+  'sidebar-width': 250,
+  'stashed-files-width': 250,
+  uncommittedChangesStrategyKind: 0,
+}
+
+export class LocalStorageManager {
+  private readonly storage = new Map<
+    string,
+    boolean | string | object | number | null
+  >()
+
+  public constructor() {
+    this.intialize()
+  }
+
+  public get<T extends typeof LocalStorageDefaults[LocalStorageKey]>(
+    key: LocalStorageKey
+  ): T {
+    const value = this.storage.get(key)
+
+    if (value === undefined) {
+      fatalError(`Unknown key: ${key}`)
+    }
+
+    if (typeof value !== typeof LocalStorageDefaults[key]) {
+      fatalError(`Incorrect Type: ${key}`)
+    }
+
+    // Not sure if this casting is safe..
+    return value as T
+  }
+
+  public set(key: LocalStorageKey, value: boolean | string | object | number) {
+    switch (typeof value) {
+      case 'boolean':
+        setBoolean(key, value)
+        break
+      case 'number':
+        setNumber(key, value)
+        break
+      case 'object':
+        setObject(key, value)
+        break
+      default:
+        fatalError(`Unexpected default value type: ${typeof value}`)
+    }
+
+    this.storage.set(key, value)
+  }
+
+  private intialize() {
+    this.applySchema()
+
+    LocalStorageKeys.forEach(key => {
+      this.initializeValue(key)
+    })
+  }
+
+  /**
+   * We are implementing a versioning of our localStorage config so that we can
+   * migrate new users to new app defaults while keeping existing users on their
+   * current configuration. Starting the versioning at 1.
+   *
+   * Another way to say this, is this provides a way to override the default
+   * values. If a config is not set in this versioning, the user will receive the
+   * default values defined in `LocalStorageDefaults`
+   */
+  private applySchema() {
+    const latestSchemaVersion = 1
+
+    // If config version doesn't exist (new installation), set it to the latest.
+    if (getNumber('config-version') === undefined) {
+      setNumber('config-version', latestSchemaVersion)
+    }
+
+    const userConfig = getNumber('config-version', latestSchemaVersion)
+
+    if (userConfig <= 1) {
+      this.overrideValue('enable-repository-indicators', true)
+      this.overrideValue('showCommitLengthWarning', true)
+    }
+  }
+
+  private overrideValue(
+    key: LocalStorageKey,
+    value: boolean | string | object | number
+  ) {
+    switch (typeof value) {
+      case 'boolean':
+        if (getBoolean(key) === undefined) {
+          setBoolean(key, value)
+        }
+        break
+      case 'number':
+        if (getNumber(key) === undefined) {
+          setNumber(key, value)
+        }
+        break
+      case 'object':
+        if (getObject(key) === undefined) {
+          setObject(key, value)
+        }
+        break
+      default:
+        fatalError(`Unexpected default value type: ${typeof value}`)
+    }
+  }
+
+  private initializeValue(key: LocalStorageKey) {
+    const defaultValue: boolean | number | object | null =
+      LocalStorageDefaults[key]
+
+    switch (typeof defaultValue) {
+      case 'boolean':
+        const booleanValue = getBoolean(key, defaultValue)
+        this.storage.set(key, booleanValue)
+        break
+      case 'number':
+        const numberValue = getNumber(key, defaultValue)
+        this.storage.set(key, numberValue)
+        break
+      case 'object':
+        this.intializeObjectValue(key, defaultValue)
+        break
+      default:
+        fatalError(`Unexpected default value type: ${typeof defaultValue}`)
+    }
+  }
+
+  private intializeObjectValue(
+    key: LocalStorageKey,
+    defaultValue: object | null
+  ) {
+    if (key === 'image-diff-type') {
+      const imageDiffTypeStoredValue = localStorage.getItem(key)
+      const value =
+        imageDiffTypeStoredValue === null
+          ? defaultValue
+          : parseInt(imageDiffTypeStoredValue)
+      this.storage.set(key, value)
+      return
+    }
+
+    if (key === 'version-and-users-of-last-thank-you') {
+      const storedValue = getObject<ILastThankYou>(key) ?? null
+      this.storage.set(key, storedValue)
+      return
+    }
+  }
 }

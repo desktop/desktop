@@ -45,6 +45,7 @@ import { AppFileStatusKind } from '../../src/models/status'
 import { ManualConflictResolution } from '../../src/models/manual-conflict-resolution'
 import { AliveStore } from '../../src/lib/stores/alive-store'
 import { NotificationsStore } from '../../src/lib/stores/notifications-store'
+import { LocalStorageManager } from '../../src/lib/local-storage'
 
 // enable mocked version
 jest.mock('../../src/lib/window-state')
@@ -92,6 +93,8 @@ describe('AppStore', () => {
     )
     notificationsStore.setNotificationsEnabled(false)
 
+    const localStorageManager = new LocalStorageManager()
+
     const appStore = new AppStore(
       githubUserStore,
       new CloningRepositoriesStore(),
@@ -103,7 +106,8 @@ describe('AppStore', () => {
       pullRequestCoordinator,
       repositoryStateManager,
       apiRepositoriesStore,
-      notificationsStore
+      notificationsStore,
+      localStorageManager
     )
 
     return { appStore, repositoriesStore }
