@@ -76,17 +76,22 @@ export class Advanced extends React.Component<
         <div className="advanced-section">
           <h2>Background updates</h2>
           <Checkbox
-            label="Periodically fetch and refresh status of all repositories"
+            label="Periodically refresh the status indicators in repository list"
             value={
               this.props.repositoryIndicatorsEnabled
                 ? CheckboxValue.On
                 : CheckboxValue.Off
             }
             onChange={this.onRepositoryIndicatorsEnabledChanged}
+            ariaDescribedBy="periodic-fecth-desription"
           />
-          <p className="git-settings-description">
-            Allows the display of up-to-date status indicators in the repository
-            list. Disabling this may improve performance with many repositories.
+          <p
+            id="periodic-fecth-desription"
+            className="git-settings-description"
+          >
+            This requires the periodic fetching of repositories that are not
+            currently open. Turning this off will not stop the periodic fetching
+            of your open repository.
           </p>
         </div>
         {this.renderSSHSettings()}
