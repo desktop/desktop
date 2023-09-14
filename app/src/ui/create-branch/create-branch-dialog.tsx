@@ -1,6 +1,9 @@
 import * as React from 'react'
 
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Branch, StartPoint } from '../../models/branch'
 import { Row } from '../lib/row'
@@ -351,7 +354,7 @@ export class CreateBranch extends React.Component<
     if (
       this.state.branchName !== branchName ||
       this.props.accounts.length === 0 ||
-      this.props.upstreamGitHubRepository === null ||
+      !isRepositoryWithGitHubRepository(this.props.repository) ||
       branchName === '' ||
       this.state.currentError !== null
     ) {
@@ -372,8 +375,8 @@ export class CreateBranch extends React.Component<
 
     const api = API.fromAccount(account)
     const branchRules = await api.fetchRepoRulesForBranch(
-      this.props.upstreamGitHubRepository.owner.login,
-      this.props.upstreamGitHubRepository.name,
+      this.props.repository.gitHubRepository.owner.login,
+      this.props.repository.gitHubRepository.name,
       branchName
     )
 
