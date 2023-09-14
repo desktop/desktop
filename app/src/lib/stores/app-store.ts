@@ -2731,7 +2731,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeRepositorySection(
     repository: Repository,
-    selectedSection: RepositorySectionTab
+    selectedSection: RepositorySectionTab,
+    forceButtonFocus: boolean = false
   ): Promise<void> {
     this.repositoryStateCache.update(repository, state => {
       if (state.selectedSection !== selectedSection) {
@@ -2742,12 +2743,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     if (selectedSection === RepositorySectionTab.History) {
-      return this.refreshHistorySection(repository)
+      await this.refreshHistorySection(repository)
     } else if (selectedSection === RepositorySectionTab.Changes) {
-      return this.refreshChangesSection(repository, {
+      await this.refreshChangesSection(repository, {
         includingStatus: true,
         clearPartialState: false,
       })
+    }
+
+    if (forceButtonFocus) {
+      const repoSideBar = document.getElementById('repository-sidebar')
+      const button = repoSideBar?.querySelector(
+        '.tab-bar-item.selected'
+      ) as HTMLButtonElement
+      button?.focus()
     }
   }
 
@@ -4829,7 +4838,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // Make sure we show the changes after undoing the commit
     await this._changeRepositorySection(
       repository,
-      RepositorySectionTab.Changes
+      RepositorySectionTab.Changes,
+      true
     )
 
     await gitStore.undoCommit(commit)
