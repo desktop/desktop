@@ -1,5 +1,12 @@
 {
   "releases": {
+    "3.3.2-beta2": [
+      "[Fixed] Use forked repository when checking repo rules on forks - #17382. Thanks @vaindil!",
+      "[Fixed] On macOs, the scroll bar only present when scrolling no longer overlaps conflict resolution buttons - #17374",
+      "[Fixed] Allow rebasing even when the branch is a direct descendant of the base branch - #17260",
+      "[Fixed] Branch name pattern regex no longer causes an automatic failure in the \"Create a Branch\" dialog. - #17392",
+      "[Improved] After undo, the focus is set to the changes tab instead of the entire document body - #17387"
+    ],
     "3.3.2-beta1": [
       "[Fixed] Support the repository rule to enforce commit signing - #17310",
       "[Fixed] Make clear button in input text boxes keyboard accessible - #17324",
