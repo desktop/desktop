@@ -150,6 +150,10 @@ export class CreateBranch extends React.Component<
         ),
       })
     }
+
+    if (nextProps.initialName.length > 0) {
+      this.checkBranchRules(nextProps.initialName)
+    }
   }
 
   public componentWillUnmount() {
