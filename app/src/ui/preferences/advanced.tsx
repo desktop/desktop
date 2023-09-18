@@ -76,7 +76,7 @@ export class Advanced extends React.Component<
         <div className="advanced-section">
           <h2>Background updates</h2>
           <Checkbox
-            label="Show status icons depicting the state of local or remote changes in the repository list"
+            label="Show icons depicting the state of local or remote changes in the repository list"
             value={
               this.props.repositoryIndicatorsEnabled
                 ? CheckboxValue.On
