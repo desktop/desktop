@@ -73,7 +73,6 @@ export class Advanced extends React.Component<
   public render() {
     return (
       <DialogContent>
-        x
         <div className="advanced-section">
           <h2>Background updates</h2>
           <Checkbox
