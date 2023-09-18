@@ -92,7 +92,8 @@ export class Advanced extends React.Component<
           >
             This requires the periodic fetching of repositories that are not
             currently selected. Turning this off will not stop the periodic
-            fetching of your currently selected repository.
+            fetching of your currently selected repository, but may improve
+            overall performance of the app for users with many repositories.
           </p>
         </div>
         {this.renderSSHSettings()}
