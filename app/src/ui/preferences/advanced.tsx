@@ -73,6 +73,7 @@ export class Advanced extends React.Component<
   public render() {
     return (
       <DialogContent>
+        x
         <div className="advanced-section">
           <h2>Background updates</h2>
           <Checkbox
@@ -90,8 +91,8 @@ export class Advanced extends React.Component<
             className="git-settings-description"
           >
             This requires the periodic fetching of repositories that are not
-            currently open. Turning this off will not stop the periodic fetching
-            of your open repository.
+            currently selected. Turning this off will not stop the periodic
+            fetching of your currently selected repository.
           </p>
         </div>
         {this.renderSSHSettings()}
