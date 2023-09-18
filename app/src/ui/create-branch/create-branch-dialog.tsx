@@ -412,6 +412,12 @@ export class CreateBranch extends React.Component<
       this.props.repository
     )
 
+    // Make sure user branch name hasn't changed during parsing of repo rules
+    // (async due to a config retrieval of users with commit signing repo rules)
+    if (this.state.branchName !== branchName) {
+      return
+    }
+
     const { status } = branchNamePatterns.getFailedRules(branchName)
 
     // Only possible kind of failures is branch name pattern failures and creation restriction
