@@ -126,7 +126,7 @@
     border-radius: var(--border-radius);
     min-width: 150px;
 
-    &:focus {
+    &:focus-visible {
       border-radius: var(--outlined-border-radius);
       outline-offset: 3px;
     }
