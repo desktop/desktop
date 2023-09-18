@@ -36,7 +36,7 @@ import { Account } from '../../models/account'
 import { getAccountForRepository } from '../../lib/get-account-for-repository'
 import { InputError } from '../lib/input-description/input-error'
 import { InputWarning } from '../lib/input-description/input-warning'
-import { useRepoRulesLogic } from '../../lib/helpers/repo-rules'
+import { parseRepoRules, useRepoRulesLogic } from '../../lib/helpers/repo-rules'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -149,6 +149,10 @@ export class CreateBranch extends React.Component<
           nextProps
         ),
       })
+    }
+
+    if (nextProps.initialName.length > 0) {
+      this.checkBranchRules(nextProps.initialName)
     }
   }
 
@@ -380,8 +384,13 @@ export class CreateBranch extends React.Component<
       branchName
     )
 
+    // Make sure user branch name hasn't changed during api call
+    if (this.state.branchName !== branchName) {
+      return
+    }
+
     // filter the rules to only the relevant ones and get their IDs. use a Set to dedupe.
-    const toCheckForBypass = new Set(
+    const toCheck = new Set(
       branchRules
         .filter(
           r =>
@@ -392,13 +401,33 @@ export class CreateBranch extends React.Component<
     )
 
     // there are no relevant rules for this branch name, so return
-    if (toCheckForBypass.size === 0) {
+    if (toCheck.size === 0) {
+      return
+    }
+
+    // check for actual failures
+    const { branchNamePatterns, creationRestricted } = await parseRepoRules(
+      branchRules,
+      this.props.cachedRepoRulesets,
+      this.props.repository
+    )
+
+    // Make sure user branch name hasn't changed during parsing of repo rules
+    // (async due to a config retrieval of users with commit signing repo rules)
+    if (this.state.branchName !== branchName) {
+      return
+    }
+
+    const { status } = branchNamePatterns.getFailedRules(branchName)
+
+    // Only possible kind of failures is branch name pattern failures and creation restriction
+    if (creationRestricted !== true && status === 'pass') {
       return
     }
 
     // check cached rulesets to see which ones the user can bypass
     let cannotBypass = false
-    for (const id of toCheckForBypass) {
+    for (const id of toCheck) {
       const rs = this.props.cachedRepoRulesets.get(id)
 
       if (rs?.current_user_can_bypass !== 'always') {
@@ -406,10 +435,6 @@ export class CreateBranch extends React.Component<
         cannotBypass = true
         break
       }
-    }
-
-    if (this.state.branchName !== branchName) {
-      return
     }
 
     if (cannotBypass) {
