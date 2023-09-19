@@ -76,7 +76,7 @@ export class Advanced extends React.Component<
         <div className="advanced-section">
           <h2>Background updates</h2>
           <Checkbox
-            label="Show icons depicting the state of local or remote changes in the repository list"
+            label="Show status icons in the repository list"
             value={
               this.props.repositoryIndicatorsEnabled
                 ? CheckboxValue.On
@@ -89,10 +89,16 @@ export class Advanced extends React.Component<
             id="periodic-fecth-description"
             className="git-settings-description"
           >
-            This requires the periodic fetching of repositories that are not
-            currently selected. Turning this off will not stop the periodic
-            fetching of your currently selected repository, but may improve
-            overall performance of the app for users with many repositories.
+            <p>
+              These icons indicate which repositories have local or remote
+              changes, and require the periodic fetching of repositories that
+              are not currently selected.
+            </p>
+            <p>
+              Turning this off will not stop the periodic fetching of your
+              currently selected repository, but may improve overall app
+              performance for users with many repositories.
+            </p>
           </p>
         </div>
         {this.renderSSHSettings()}
