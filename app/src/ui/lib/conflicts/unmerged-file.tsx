@@ -73,8 +73,10 @@ export const renderUnmergedFile: React.FunctionComponent<{
   readonly resolvedExternalEditor: string | null
   readonly openFileInExternalEditor: (path: string) => void
   readonly dispatcher: Dispatcher
-  readonly isFileResolutionOptionsMenuOpen: boolean,
-  readonly setFileResolutionOptionsMenu: (isFileResolutionOptionsMenuOpen: boolean) => void
+  readonly isFileResolutionOptionsMenuOpen: boolean
+  readonly setFileResolutionOptionsMenu: (
+    isFileResolutionOptionsMenuOpen: boolean
+  ) => void
 }> = props => {
   if (
     isConflictWithMarkers(props.status) &&
@@ -91,7 +93,7 @@ export const renderUnmergedFile: React.FunctionComponent<{
       ourBranch: props.ourBranch,
       theirBranch: props.theirBranch,
       isFileResolutionOptionsMenuOpen: props.isFileResolutionOptionsMenuOpen,
-      setFileResolutionOptionsMenu: props.setFileResolutionOptionsMenu
+      setFileResolutionOptionsMenu: props.setFileResolutionOptionsMenu,
     })
   }
   if (
@@ -227,8 +229,10 @@ const renderConflictedFileWithConflictMarkers: React.FunctionComponent<{
   readonly dispatcher: Dispatcher
   readonly ourBranch?: string
   readonly theirBranch?: string
-  readonly isFileResolutionOptionsMenuOpen: boolean,
-  readonly setFileResolutionOptionsMenu: (isFileResolutionOptionsMenuOpen: boolean) => void
+  readonly isFileResolutionOptionsMenuOpen: boolean
+  readonly setFileResolutionOptionsMenu: (
+    isFileResolutionOptionsMenuOpen: boolean
+  ) => void
 }> = props => {
   const humanReadableConflicts = calculateConflicts(
     props.status.conflictMarkerCount
@@ -325,7 +329,9 @@ const makeMarkerConflictDropdownClickHandler = (
   status: ConflictsWithMarkers,
   ourBranch: string | undefined,
   theirBranch: string | undefined,
-  setFileResolutionOptionsMenu: (isFileResolutionOptionsMenuOpen: boolean) => void
+  setFileResolutionOptionsMenu: (
+    isFileResolutionOptionsMenuOpen: boolean
+  ) => void
 ) => {
   return () => {
     const absoluteFilePath = join(repository.path, relativeFilePath)
