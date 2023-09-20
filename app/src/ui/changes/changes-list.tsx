@@ -219,6 +219,8 @@ interface IChangesListProps {
   readonly shouldNudgeToCommit: boolean
 
   readonly commitSpellcheckEnabled: boolean
+
+  readonly showCommitLengthWarning: boolean
 }
 
 interface IChangesState {
@@ -818,6 +820,7 @@ export class ChangesList extends React.Component<
         showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
         shouldNudge={this.props.shouldNudgeToCommit}
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
+        showCommitLengthWarning={this.props.showCommitLengthWarning}
         onCoAuthorsUpdated={this.onCoAuthorsUpdated}
         onShowCoAuthoredByChanged={this.onShowCoAuthoredByChanged}
         onConfirmCommitWithUnknownCoAuthors={

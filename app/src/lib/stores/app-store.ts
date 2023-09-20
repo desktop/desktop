@@ -351,6 +351,7 @@ const pullRequestFileListConfigKey: string = 'pull-request-files-width'
 
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
+const showCommitLengthWarningDefault: boolean = false
 const confirmDiscardChangesDefault: boolean = true
 const confirmDiscardChangesPermanentlyDefault: boolean = true
 const confirmDiscardStashDefault: boolean = true
@@ -359,6 +360,7 @@ const askForConfirmationOnForcePushDefault = true
 const confirmUndoCommitDefault: boolean = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
+const showCommitLengthWarningKey: string = 'showCommitLengthWarning'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmDiscardStashKey: string = 'confirmDiscardStash'
 const confirmCheckoutCommitKey: string = 'confirmCheckoutCommit'
@@ -513,6 +515,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
 
   private useWindowsOpenSSH: boolean = false
+
+  private showCommitLengthWarning: boolean = showCommitLengthWarningDefault
 
   private hasUserViewedStash = false
 
@@ -994,6 +998,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentTheme: this.currentTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       useWindowsOpenSSH: this.useWindowsOpenSSH,
+      showCommitLengthWarning: this.showCommitLengthWarning,
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
@@ -2090,6 +2095,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.askForConfirmationOnRepositoryRemoval = getBoolean(
       confirmRepoRemovalKey,
       confirmRepoRemovalDefault
+    )
+
+    // We're planning to flip the default value to false. As such we'll
+    // start persisting the current behavior to localstorage, so we
+    // can change the default in the future without affecting current
+    // users by removing this if statement.
+    if (getBoolean(showCommitLengthWarningKey) === undefined) {
+      setBoolean(showCommitLengthWarningKey, true)
+    }
+
+    this.showCommitLengthWarning = getBoolean(
+      showCommitLengthWarningKey,
+      showCommitLengthWarningDefault
     )
 
     this.confirmDiscardChanges = getBoolean(
@@ -3538,6 +3556,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     setBoolean(UseWindowsOpenSSHKey, useWindowsOpenSSH)
     this.useWindowsOpenSSH = useWindowsOpenSSH
 
+    this.emitUpdate()
+  }
+
+  public _setShowCommitLengthWarning(showCommitLengthWarning: boolean) {
+    setBoolean(showCommitLengthWarningKey, showCommitLengthWarning)
+    this.showCommitLengthWarning = showCommitLengthWarning
     this.emitUpdate()
   }
 

@@ -117,6 +117,8 @@ interface ICommitMessageProps {
 
   readonly commitSpellcheckEnabled: boolean
 
+  readonly showCommitLengthWarning: boolean
+
   /** Optional text to override default commit button text */
   readonly commitButtonText?: string
 
@@ -1344,6 +1346,7 @@ export class CommitMessage extends React.Component<
       this.state.repoRuleCommitMessageFailures.status !== 'pass'
 
     const showSummaryLengthHint =
+      this.props.showCommitLengthWarning &&
       !showRepoRuleCommitMessageFailureHint &&
       this.state.summary.length > IdealSummaryLength
 
