@@ -1362,12 +1362,7 @@ export class CommitMessage extends React.Component<
       ? this.COMMIT_MSG_ERROR_BTN_ID
       : undefined
 
-    const {
-      placeholder,
-      isCommitting,
-      commitSpellcheckEnabled,
-      showCommitLengthWarning,
-    } = this.props
+    const { placeholder, isCommitting, commitSpellcheckEnabled } = this.props
 
     return (
       // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions

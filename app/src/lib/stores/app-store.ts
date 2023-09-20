@@ -2102,7 +2102,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // can change the default in the future without affecting current
     // users by removing this if statement.
     if (getBoolean(showCommitLengthWarningKey) === undefined) {
-      setBoolean( showCommitLengthWarningKey, true)
+      setBoolean(showCommitLengthWarningKey, true)
     }
 
     this.showCommitLengthWarning = getBoolean(
