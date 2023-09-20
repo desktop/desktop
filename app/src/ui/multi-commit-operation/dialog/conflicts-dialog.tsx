@@ -118,7 +118,7 @@ export class ConflictsDialog extends React.Component<
   private openThisRepositoryInShell = () =>
     this.props.openRepositoryInShell(this.props.repository)
 
-  private setFileResolutionOptionsMenu = (
+  private setIsFileResolutionOptionsMenuOpen = (
     isFileResolutionOptionsMenuOpen: boolean
   ) => {
     this.setState({ isFileResolutionOptionsMenuOpen })
@@ -146,7 +146,7 @@ export class ConflictsDialog extends React.Component<
                 theirBranch: this.props.theirBranch,
                 isFileResolutionOptionsMenuOpen:
                   this.state.isFileResolutionOptionsMenuOpen,
-                setFileResolutionOptionsMenu: this.setFileResolutionOptionsMenu,
+                setIsFileResolutionOptionsMenuOpen: this.setIsFileResolutionOptionsMenuOpen,
               })
             : null
         )}

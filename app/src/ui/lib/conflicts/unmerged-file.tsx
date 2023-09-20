@@ -74,7 +74,7 @@ export const renderUnmergedFile: React.FunctionComponent<{
   readonly openFileInExternalEditor: (path: string) => void
   readonly dispatcher: Dispatcher
   readonly isFileResolutionOptionsMenuOpen: boolean
-  readonly setFileResolutionOptionsMenu: (
+  readonly setIsFileResolutionOptionsMenuOpen: (
     isFileResolutionOptionsMenuOpen: boolean
   ) => void
 }> = props => {
@@ -93,7 +93,7 @@ export const renderUnmergedFile: React.FunctionComponent<{
       ourBranch: props.ourBranch,
       theirBranch: props.theirBranch,
       isFileResolutionOptionsMenuOpen: props.isFileResolutionOptionsMenuOpen,
-      setFileResolutionOptionsMenu: props.setFileResolutionOptionsMenu,
+      setIsFileResolutionOptionsMenuOpen: props.setIsFileResolutionOptionsMenuOpen,
     })
   }
   if (
@@ -230,7 +230,7 @@ const renderConflictedFileWithConflictMarkers: React.FunctionComponent<{
   readonly ourBranch?: string
   readonly theirBranch?: string
   readonly isFileResolutionOptionsMenuOpen: boolean
-  readonly setFileResolutionOptionsMenu: (
+  readonly setIsFileResolutionOptionsMenuOpen: (
     isFileResolutionOptionsMenuOpen: boolean
   ) => void
 }> = props => {
@@ -251,7 +251,7 @@ const renderConflictedFileWithConflictMarkers: React.FunctionComponent<{
     props.status,
     props.ourBranch,
     props.theirBranch,
-    props.setFileResolutionOptionsMenu
+    props.setIsFileResolutionOptionsMenuOpen
   )
 
   const content = (
@@ -329,7 +329,7 @@ const makeMarkerConflictDropdownClickHandler = (
   status: ConflictsWithMarkers,
   ourBranch: string | undefined,
   theirBranch: string | undefined,
-  setFileResolutionOptionsMenu: (
+  setIsFileResolutionOptionsMenuOpen: (
     isFileResolutionOptionsMenuOpen: boolean
   ) => void
 ) => {
@@ -356,9 +356,9 @@ const makeMarkerConflictDropdownClickHandler = (
         theirBranch
       ),
     ]
-    setFileResolutionOptionsMenu(true)
+    setIsFileResolutionOptionsMenuOpen(true)
     showContextualMenu(items).then(() => {
-      setFileResolutionOptionsMenu(false)
+      setIsFileResolutionOptionsMenuOpen(false)
     })
   }
 }
