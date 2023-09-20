@@ -72,6 +72,10 @@ export const renderUnmergedFile: React.FunctionComponent<{
   readonly resolvedExternalEditor: string | null
   readonly openFileInExternalEditor: (path: string) => void
   readonly dispatcher: Dispatcher
+  readonly isFileResolutionOptionsMenuOpen: boolean
+  readonly setIsFileResolutionOptionsMenuOpen: (
+    isFileResolutionOptionsMenuOpen: boolean
+  ) => void
 }> = props => {
   if (
     isConflictWithMarkers(props.status) &&
@@ -87,6 +91,9 @@ export const renderUnmergedFile: React.FunctionComponent<{
       dispatcher: props.dispatcher,
       ourBranch: props.ourBranch,
       theirBranch: props.theirBranch,
+      isFileResolutionOptionsMenuOpen: props.isFileResolutionOptionsMenuOpen,
+      setIsFileResolutionOptionsMenuOpen:
+        props.setIsFileResolutionOptionsMenuOpen,
     })
   }
   if (
@@ -232,6 +239,10 @@ const renderConflictedFileWithConflictMarkers: React.FunctionComponent<{
   readonly dispatcher: Dispatcher
   readonly ourBranch?: string
   readonly theirBranch?: string
+  readonly isFileResolutionOptionsMenuOpen: boolean
+  readonly setIsFileResolutionOptionsMenuOpen: (
+    isFileResolutionOptionsMenuOpen: boolean
+  ) => void
 }> = props => {
   const humanReadableConflicts = calculateConflicts(
     props.status.conflictMarkerCount
@@ -249,7 +260,8 @@ const renderConflictedFileWithConflictMarkers: React.FunctionComponent<{
     props.dispatcher,
     props.status,
     props.ourBranch,
-    props.theirBranch
+    props.theirBranch,
+    props.setIsFileResolutionOptionsMenuOpen
   )
 
   const content = (
@@ -270,6 +282,9 @@ const renderConflictedFileWithConflictMarkers: React.FunctionComponent<{
         <Button
           onClick={onDropdownClick}
           className="small-button button-group-item arrow-menu"
+          ariaLabel="File resolution options"
+          ariaHaspopup="menu"
+          ariaExpanded={props.isFileResolutionOptionsMenuOpen}
         >
           <Octicon symbol={OcticonSymbol.triangleDown} />
         </Button>
@@ -322,8 +337,11 @@ const makeMarkerConflictDropdownClickHandler = (
   repository: Repository,
   dispatcher: Dispatcher,
   status: ConflictsWithMarkers,
-  ourBranch?: string,
-  theirBranch?: string
+  ourBranch: string | undefined,
+  theirBranch: string | undefined,
+  setIsFileResolutionOptionsMenuOpen: (
+    isFileResolutionOptionsMenuOpen: boolean
+  ) => void
 ) => {
   return () => {
     const absoluteFilePath = join(repository.path, relativeFilePath)
@@ -348,7 +366,10 @@ const makeMarkerConflictDropdownClickHandler = (
         theirBranch
       ),
     ]
-    showContextualMenu(items)
+    setIsFileResolutionOptionsMenuOpen(true)
+    showContextualMenu(items).then(() => {
+      setIsFileResolutionOptionsMenuOpen(false)
+    })
   }
 }
 

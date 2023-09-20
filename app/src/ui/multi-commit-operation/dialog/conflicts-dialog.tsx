@@ -45,6 +45,7 @@ interface IConflictsDialogProps {
 interface IConflictsDialogState {
   readonly isCommitting: boolean
   readonly isAborting: boolean
+  readonly isFileResolutionOptionsMenuOpen: boolean
 }
 
 /**
@@ -61,6 +62,7 @@ export class ConflictsDialog extends React.Component<
     this.state = {
       isCommitting: false,
       isAborting: false,
+      isFileResolutionOptionsMenuOpen: false,
     }
   }
 
@@ -116,6 +118,12 @@ export class ConflictsDialog extends React.Component<
   private openThisRepositoryInShell = () =>
     this.props.openRepositoryInShell(this.props.repository)
 
+  private setIsFileResolutionOptionsMenuOpen = (
+    isFileResolutionOptionsMenuOpen: boolean
+  ) => {
+    this.setState({ isFileResolutionOptionsMenuOpen })
+  }
+
   /**
    *  Renders the list of conflicts in the dialog
    */
@@ -136,6 +144,10 @@ export class ConflictsDialog extends React.Component<
                 manualResolution: this.props.manualResolutions.get(f.path),
                 ourBranch: this.props.ourBranch,
                 theirBranch: this.props.theirBranch,
+                isFileResolutionOptionsMenuOpen:
+                  this.state.isFileResolutionOptionsMenuOpen,
+                setIsFileResolutionOptionsMenuOpen:
+                  this.setIsFileResolutionOptionsMenuOpen,
               })
             : null
         )}
