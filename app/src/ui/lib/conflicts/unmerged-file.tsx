@@ -93,7 +93,8 @@ export const renderUnmergedFile: React.FunctionComponent<{
       ourBranch: props.ourBranch,
       theirBranch: props.theirBranch,
       isFileResolutionOptionsMenuOpen: props.isFileResolutionOptionsMenuOpen,
-      setIsFileResolutionOptionsMenuOpen: props.setIsFileResolutionOptionsMenuOpen,
+      setIsFileResolutionOptionsMenuOpen:
+        props.setIsFileResolutionOptionsMenuOpen,
     })
   }
   if (

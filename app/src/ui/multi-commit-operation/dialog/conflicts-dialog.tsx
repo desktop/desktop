@@ -146,7 +146,8 @@ export class ConflictsDialog extends React.Component<
                 theirBranch: this.props.theirBranch,
                 isFileResolutionOptionsMenuOpen:
                   this.state.isFileResolutionOptionsMenuOpen,
-                setIsFileResolutionOptionsMenuOpen: this.setIsFileResolutionOptionsMenuOpen,
+                setIsFileResolutionOptionsMenuOpen:
+                  this.setIsFileResolutionOptionsMenuOpen,
               })
             : null
         )}
