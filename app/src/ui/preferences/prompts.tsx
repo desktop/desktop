@@ -235,7 +235,7 @@ export class Prompts extends React.Component<
           />
         </div>
         <div className="advanced-section">
-          <h2>Style Guides</h2>
+          <h2>Commit Length</h2>
           <Checkbox
             label="Show commit length warning"
             value={

@@ -51,8 +51,6 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /** Indicates if input field applies spellcheck */
   readonly spellcheck?: boolean
 
-  readonly showCommitLengthWarning?: boolean
-
   /** Indicates if it should always try to autocomplete. Optional (defaults to false) */
   readonly alwaysAutocomplete?: boolean
 

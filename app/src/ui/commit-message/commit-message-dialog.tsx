@@ -158,9 +158,6 @@ export class CommitMessageDialog extends React.Component<
             onCommitSpellcheckEnabledChanged={
               this.onCommitSpellcheckEnabledChanged
             }
-            onShowCommitLengthWarningChanged={
-              this.onShowCommitLengthWarningChanged
-            }
             repositoryAccount={this.props.repositoryAccount}
             onStopAmending={this.onStopAmending}
             onShowCreateForkDialog={this.onShowCreateForkDialog}
@@ -192,9 +189,6 @@ export class CommitMessageDialog extends React.Component<
 
   private onCommitSpellcheckEnabledChanged = (enabled: boolean) =>
     this.props.dispatcher.setCommitSpellcheckEnabled(enabled)
-
-  private onShowCommitLengthWarningChanged = (enabled: boolean) =>
-    this.props.dispatcher.setShowCommitLengthWarning(enabled)
 
   private onStopAmending = () =>
     this.props.dispatcher.stopAmendingRepository(this.props.repository)

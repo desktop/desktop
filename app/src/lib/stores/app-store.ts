@@ -351,7 +351,7 @@ const pullRequestFileListConfigKey: string = 'pull-request-files-width'
 
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
-const showCommitLengthWarningDefault: boolean = true
+const showCommitLengthWarningDefault: boolean = false
 const confirmDiscardChangesDefault: boolean = true
 const confirmDiscardChangesPermanentlyDefault: boolean = true
 const confirmDiscardStashDefault: boolean = true
@@ -516,7 +516,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private useWindowsOpenSSH: boolean = false
 
-  private showCommitLengthWarning: boolean = false
+  private showCommitLengthWarning: boolean = showCommitLengthWarningDefault
 
   private hasUserViewedStash = false
 
@@ -2096,6 +2096,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       confirmRepoRemovalKey,
       confirmRepoRemovalDefault
     )
+
+    // We're planning to flip the default value to false. As such we'll
+    // start persisting the current behavior to localstorage, so we
+    // can change the default in the future without affecting current
+    // users by removing this if statement.
+    if (getBoolean(showCommitLengthWarningKey) === undefined) {
+      setBoolean( showCommitLengthWarningKey, true)
+    }
 
     this.showCommitLengthWarning = getBoolean(
       showCommitLengthWarningKey,

@@ -155,7 +155,6 @@ interface ICommitMessageProps {
   readonly onShowPopup: (popup: Popup) => void
   readonly onShowFoldout: (foldout: Foldout) => void
   readonly onCommitSpellcheckEnabledChanged: (enabled: boolean) => void
-  readonly onShowCommitLengthWarningChanged: (enabled: boolean) => void
   readonly onStopAmending: () => void
   readonly onShowCreateForkDialog: () => void
 }
@@ -1397,7 +1396,6 @@ export class CommitMessage extends React.Component<
             onContextMenu={this.onAutocompletingInputContextMenu}
             readOnly={isCommitting === true}
             spellcheck={commitSpellcheckEnabled}
-            showCommitLengthWarning={showCommitLengthWarning}
           />
           {showRepoRuleCommitMessageFailureHint &&
             this.renderRepoRuleCommitMessageFailureHint()}
@@ -1425,7 +1423,6 @@ export class CommitMessage extends React.Component<
             onContextMenu={this.onAutocompletingInputContextMenu}
             readOnly={isCommitting === true}
             spellcheck={commitSpellcheckEnabled}
-            showCommitLengthWarning={showCommitLengthWarning}
           />
           {this.renderActionBar()}
         </FocusContainer>
