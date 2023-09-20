@@ -247,6 +247,8 @@ The source for the editor integration on macOS is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/)
+ - [Eclipse](https://www.eclipse.org/downloads/packages/release/)
+     - All IDE variants (Java, JavaEE, C/C++, PHP, etc.) are supported.
  - [MacVim](https://macvim-dev.github.io/macvim/)
  - [Neovide](https://github.com/neovide/neovide)
  - [VimR](https://github.com/qvacua/vimr)
