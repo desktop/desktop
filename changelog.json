@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.3.3": ["[Improved] Upgrade to Electron v24.8.3 - #17416"],
     "3.3.2": [
       "[Fixed] Use forked repository when checking repo rules on forks - #17382. Thanks @vaindil!",
       "[Fixed] On macOs, the scroll bar only present when scrolling no longer overlaps conflict resolution buttons - #17374",
