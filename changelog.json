@@ -1,5 +1,13 @@
 {
   "releases": {
+    "3.3.3-beta1": [
+      "[Added] Add support for Pulsar code editor on Linux - #17397. Thanks @Daeraxa!",
+      "[Added] Add Eclipse IDE integrations for macOS - #16991. Thanks @yuzawa-san!",
+      "[Improved] Added a setting to allow toggling the availability of the commit message length warning - #17370. Thanks @rystills!",
+      "[Improved] Clarified the outcome of toggling the setting under \"Background Updates\" in the \"Advanced\" settings - #17389",
+      "[Fixed] Tip of comment bubbles in Pull Request notifications is rendered correctly - #17411",
+      "[Improved] Undo link when resolving conflicts is now a button - #17373"
+    ],
     "3.3.2": [
       "[Fixed] Use forked repository when checking repo rules on forks - #17382. Thanks @vaindil!",
       "[Fixed] On macOs, the scroll bar only present when scrolling no longer overlaps conflict resolution buttons - #17374",
