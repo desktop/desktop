@@ -352,7 +352,7 @@ export class ToolbarDropdown extends React.Component<
     }
 
     return {
-      position: 'absolute',
+      position: 'fixed',
       top: rect.bottom,
       left: 0,
       width: '100%',
