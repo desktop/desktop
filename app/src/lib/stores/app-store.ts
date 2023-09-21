@@ -349,6 +349,9 @@ const stashedFilesWidthConfigKey: string = 'stashed-files-width'
 const defaultPullRequestFileListWidth: number = 250
 const pullRequestFileListConfigKey: string = 'pull-request-files-width'
 
+const defaultBranchDropdownWidth: number = 230
+const branchDropdownWidthConfigKey: string = 'branch-dropdown-width'
+
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
 const showCommitLengthWarningDefault: boolean = false
@@ -460,6 +463,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private commitSummaryWidth = constrain(defaultCommitSummaryWidth)
   private stashedFilesWidth = constrain(defaultStashedFilesWidth)
   private pullRequestFileListWidth = constrain(defaultPullRequestFileListWidth)
+  private branchDropdownWidth = constrain(defaultBranchDropdownWidth)
 
   private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
@@ -971,6 +975,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       focusCommitMessage: this.focusCommitMessage,
       emoji: this.emoji,
       sidebarWidth: this.sidebarWidth,
+      branchDropdownWidth: this.branchDropdownWidth,
       commitSummaryWidth: this.commitSummaryWidth,
       stashedFilesWidth: this.stashedFilesWidth,
       pullRequestFilesListWidth: this.pullRequestFileListWidth,
@@ -2091,6 +2096,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     this.pullRequestFileListWidth = constrain(
       getNumber(pullRequestFileListConfigKey, defaultPullRequestFileListWidth)
+    )
+    this.branchDropdownWidth = constrain(
+      getNumber(branchDropdownWidthConfigKey, defaultBranchDropdownWidth)
     )
 
     this.updateResizableConstraints()
@@ -5119,6 +5127,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _resetSidebarWidth(): Promise<void> {
     this.sidebarWidth = { ...this.sidebarWidth, value: defaultSidebarWidth }
     localStorage.removeItem(sidebarWidthConfigKey)
+    this.updateResizableConstraints()
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setBranchDropdownWidth(width: number): Promise<void> {
+    this.branchDropdownWidth = { ...this.branchDropdownWidth, value: width }
+    setNumber(branchDropdownWidthConfigKey, width)
+    this.updateResizableConstraints()
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _resetBranchDropdownWidth(): Promise<void> {
+    this.branchDropdownWidth = {
+      ...this.branchDropdownWidth,
+      value: defaultBranchDropdownWidth,
+    }
+    localStorage.removeItem(branchDropdownWidthConfigKey)
     this.updateResizableConstraints()
     this.emitUpdate()
 

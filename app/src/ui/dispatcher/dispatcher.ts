@@ -953,6 +953,14 @@ export class Dispatcher {
     return this.appStore._setSidebarWidth(width)
   }
 
+  public setBranchDropdownWidth(width: number): Promise<void> {
+    return this.appStore._setBranchDropdownWidth(width)
+  }
+
+  public resetBranchDropdownWidth(): Promise<void> {
+    return this.appStore._resetBranchDropdownWidth()
+  }
+
   /**
    * Set the update banner's visibility
    */

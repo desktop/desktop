@@ -185,6 +185,9 @@ export interface IAppState {
   /** The width of the files list in the pull request files changed view */
   readonly pullRequestFilesListWidth: IConstrainedValue
 
+  /** The width of the resizable branch drop down button in the toolbar. */
+  readonly branchDropdownWidth: IConstrainedValue
+
   /**
    * Used to highlight access keys throughout the app when the
    * Alt key is pressed. Only applicable on non-macOS platforms.

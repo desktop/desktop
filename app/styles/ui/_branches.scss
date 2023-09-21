@@ -4,14 +4,14 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  width: 365px;
+  width: 100%;
 
   & > .tab-bar {
     border-top: var(--base-border);
   }
 
   .branches-list {
-    width: 365px;
+    width: 100%;
     min-height: 0;
   }
 
