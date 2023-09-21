@@ -54,8 +54,8 @@ dialog#conflicts-dialog {
       .column-left {
         display: flex;
         flex-flow: column nowrap;
+        flex-grow: 1;
         align-items: start;
-        max-width: 50%;
         padding-right: var(--spacing);
 
         .path-text-component {
@@ -77,11 +77,16 @@ dialog#conflicts-dialog {
         }
       }
 
+      .undo-button {
+        align-self: center;
+        margin-right: var(--spacing-half);
+      }
+
       .green-circle:last-child {
         margin-left: auto;
-        margin-top: var(--spacing);
         flex-shrink: 0;
         flex: 0 1 auto;
+        align-self: center;
       }
     }
 

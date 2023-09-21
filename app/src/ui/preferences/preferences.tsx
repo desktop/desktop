@@ -49,6 +49,7 @@ interface IPreferencesProps {
   readonly repository: Repository | null
   readonly onDismissed: () => void
   readonly useWindowsOpenSSH: boolean
+  readonly showCommitLengthWarning: boolean
   readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
   readonly initialSelectedTab?: PreferencesTab
@@ -76,6 +77,7 @@ interface IPreferencesState {
   readonly initialDefaultBranch: string | null
   readonly disallowedCharactersMessage: string | null
   readonly useWindowsOpenSSH: boolean
+  readonly showCommitLengthWarning: boolean
   readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
   readonly confirmRepositoryRemoval: boolean
@@ -124,6 +126,7 @@ export class Preferences extends React.Component<
       disallowedCharactersMessage: null,
       availableEditors: [],
       useWindowsOpenSSH: false,
+      showCommitLengthWarning: false,
       notificationsEnabled: true,
       optOutOfUsageTracking: false,
       confirmRepositoryRemoval: false,
@@ -184,6 +187,7 @@ export class Preferences extends React.Component<
       initialCommitterEmail,
       initialDefaultBranch,
       useWindowsOpenSSH: this.props.useWindowsOpenSSH,
+      showCommitLengthWarning: this.props.showCommitLengthWarning,
       notificationsEnabled: this.props.notificationsEnabled,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
@@ -386,6 +390,10 @@ export class Preferences extends React.Component<
             onUncommittedChangesStrategyChanged={
               this.onUncommittedChangesStrategyChanged
             }
+            showCommitLengthWarning={this.state.showCommitLengthWarning}
+            onShowCommitLengthWarningChanged={
+              this.onShowCommitLengthWarningChanged
+            }
           />
         )
         break
@@ -428,6 +436,12 @@ export class Preferences extends React.Component<
 
   private onUseWindowsOpenSSHChanged = (useWindowsOpenSSH: boolean) => {
     this.setState({ useWindowsOpenSSH })
+  }
+
+  private onShowCommitLengthWarningChanged = (
+    showCommitLengthWarning: boolean
+  ) => {
+    this.setState({ showCommitLengthWarning })
   }
 
   private onNotificationsEnabledChanged = (notificationsEnabled: boolean) => {
@@ -573,6 +587,9 @@ export class Preferences extends React.Component<
     }
 
     this.props.dispatcher.setUseWindowsOpenSSH(this.state.useWindowsOpenSSH)
+    this.props.dispatcher.setShowCommitLengthWarning(
+      this.state.showCommitLengthWarning
+    )
     this.props.dispatcher.setNotificationsEnabled(
       this.state.notificationsEnabled
     )
