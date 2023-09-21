@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.3.3": ["[Improved] Upgrade to Electron v24.8.3 - #17416"],
     "3.3.3-beta2": ["[Improved] Upgrade to Electron v24.8.3 - #17416"],
     "3.3.3-beta1": [
       "[Added] Add support for Pulsar code editor on Linux - #17397. Thanks @Daeraxa!",
