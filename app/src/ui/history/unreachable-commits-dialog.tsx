@@ -34,6 +34,9 @@ interface IUnreachableCommitsDialogProps {
 interface IUnreachableCommitsDialogState {
   /** The currently select tab. */
   readonly selectedTab: UnreachableCommitsTab
+
+  /** The currently selected sha in the list */
+  readonly selectedSHAs: ReadonlyArray<string>
 }
 
 /** The component for for viewing the unreachable commits in the current diff a repository. */
@@ -46,6 +49,7 @@ export class UnreachableCommitsDialog extends React.Component<
 
     this.state = {
       selectedTab: props.selectedTab,
+      selectedSHAs: [],
     }
   }
 
@@ -72,6 +76,13 @@ export class UnreachableCommitsDialog extends React.Component<
     return selectedShas.filter(sha => !shasInDiff.includes(sha))
   }
 
+  private onCommitsSelected = (
+    commits: ReadonlyArray<Commit>,
+    isContiguous: boolean
+  ) => {
+    this.setState({ selectedSHAs: commits.map(c => c.sha) })
+  }
+
   private renderTabs() {
     return (
       <TabBar
@@ -96,9 +107,10 @@ export class UnreachableCommitsDialog extends React.Component<
             isLocalRepository={true}
             commitLookup={commitLookup}
             commitSHAs={this.getShasToDisplay()}
-            selectedSHAs={[]}
+            selectedSHAs={this.state.selectedSHAs}
             localCommitSHAs={[]}
             emoji={emoji}
+            onCommitsSelected={this.onCommitsSelected}
           />
         </div>
       </>
