@@ -163,7 +163,7 @@
   }
 
   .content {
-    padding-left: var(--spacing);
+    display: flex;
     white-space: pre-wrap;
     overflow-y: auto;
     flex-grow: 1;
@@ -175,9 +175,8 @@
       user-select: text;
     }
 
-    &:before {
-      content: ' ';
-      padding-right: var(--spacing);
+    .prefix {
+      user-select: none;
     }
 
     .octicon {
@@ -261,20 +260,6 @@
       .line-number {
         background: var(--diff-empty-row-gutter-background-color);
         border-color: var(--diff-border-color);
-      }
-    }
-
-    &.added,
-    &.modified {
-      .after .content:before {
-        content: '+';
-      }
-    }
-
-    &.deleted,
-    &.modified {
-      .before .content:before {
-        content: '-';
       }
     }
 
