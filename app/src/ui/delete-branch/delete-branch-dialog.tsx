@@ -129,7 +129,8 @@ export class DeleteBranch extends React.Component<
       <div>
         <strong>
           Warning: This branch has {unmergedCommits} unmerged{' '}
-          {unmergedCommits === 1 ? 'commit' : 'commits'}.
+          {unmergedCommits === 1 ? 'commit' : 'commits'} when compared to{' '}
+          <Ref>{this.props.defaultBranch?.name}</Ref>.
         </strong>
       </div>
     )
@@ -159,7 +160,8 @@ export class DeleteBranch extends React.Component<
       <div>
         <strong>
           Warning: <Ref>{this.props.branch.upstream}</Ref> has {unmergedCommits}{' '}
-          unmerged {unmergedCommits === 1 ? 'commit' : 'commits'}.
+          unmerged {unmergedCommits === 1 ? 'commit' : 'commits'} when compared
+          to <Ref>{this.props.defaultBranch?.upstream}</Ref>.
         </strong>
       </div>
     )
@@ -169,7 +171,7 @@ export class DeleteBranch extends React.Component<
     if (this.props.branch.upstreamRemoteName && this.state.existsOnRemote) {
       return (
         <div>
-          <p>
+          <p id="delete-branch-confirmation-message-remote">
             This branch also exists on the remote (
             <Ref>{this.props.branch.upstream}</Ref>).
             <br />
