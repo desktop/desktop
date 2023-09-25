@@ -194,20 +194,6 @@ process.on(
   }
 )
 
-// See https://github.com/desktop/desktop/pull/15276 and
-// https://github.com/desktop/desktop/pull/14885. We want to gradually get back
-// to a world where we treat all uncaught exceptions as fatal but as an
-// intermediate step to build confidence we're going to route all uncaught
-// exceptions to our non-fatal bucket.
-if (__RELEASE_CHANNEL__ === 'production') {
-  // See https://github.com/electron/electron/blob/f07b040cb998a6126979cec9d562acbac5a23c4c/lib/renderer/init.ts#L98
-  window.onerror = (_message, _filename, _lineno, _colno, error) => {
-    sendNonFatalException('uncaughtError', error as any)
-    // Keep logging to console during the transition period
-    return false
-  }
-}
-
 /**
  * Chromium won't crash on an unhandled rejection (similar to how it won't crash
  * on an unhandled error). We've taken the approach that unhandled errors should

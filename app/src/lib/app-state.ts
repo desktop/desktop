@@ -230,6 +230,9 @@ export interface IAppState {
   /** Whether or not the app should use Windows' OpenSSH client */
   readonly useWindowsOpenSSH: boolean
 
+  /** Whether or not the app should show the commit length warning */
+  readonly showCommitLengthWarning: boolean
+
   /** The current setting for whether the user has disable usage reports */
   readonly optOutOfUsageTracking: boolean
   /**
