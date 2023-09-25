@@ -10,7 +10,7 @@ import { DiffOptions } from '../diff/diff-options'
 interface IChangedFileDetailsProps {
   readonly path: string
   readonly status: AppFileStatus
-  readonly diff: IDiff | null
+  readonly diff?: IDiff | null
 
   /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
@@ -75,7 +75,7 @@ export class ChangedFileDetails extends React.Component<
   private renderDecorator() {
     const diff = this.props.diff
 
-    if (diff === null) {
+    if (diff === null || diff === undefined) {
       return null
     }
 

@@ -35,6 +35,7 @@ import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { pathExists } from '../lib/path-exists'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
+import { ChangedFileDetails } from '../changes/changed-file-details'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository
@@ -142,6 +143,27 @@ export class SelectedCommits extends React.Component<
     this.loadChangedFilesScheduler.clear()
   }
 
+  private renderDiffHeader() {
+    const { selectedFile } = this.props
+    if (selectedFile === null) {
+      return null
+    }
+
+    const { path, status } = selectedFile
+
+    return (
+      <ChangedFileDetails
+        path={path}
+        status={status}
+        showSideBySideDiff={this.props.showSideBySideDiff}
+        onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+        onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+      />
+    )
+  }
+
   private renderDiff() {
     const file = this.props.selectedFile
     const diff = this.props.currentDiff
@@ -159,19 +181,22 @@ export class SelectedCommits extends React.Component<
     }
 
     return (
-      <SeamlessDiffSwitcher
-        repository={this.props.repository}
-        imageDiffType={this.props.selectedDiffType}
-        file={file}
-        diff={diff}
-        readOnly={true}
-        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-        showSideBySideDiff={this.props.showSideBySideDiff}
-        onOpenBinaryFile={this.props.onOpenBinaryFile}
-        onChangeImageDiffType={this.props.onChangeImageDiffType}
-        onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
-        onOpenSubmodule={this.props.onOpenSubmodule}
-      />
+      <div className="file-history-diff">
+        {this.renderDiffHeader()}
+        <SeamlessDiffSwitcher
+          repository={this.props.repository}
+          imageDiffType={this.props.selectedDiffType}
+          file={file}
+          diff={diff}
+          readOnly={true}
+          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          showSideBySideDiff={this.props.showSideBySideDiff}
+          onOpenBinaryFile={this.props.onOpenBinaryFile}
+          onChangeImageDiffType={this.props.onChangeImageDiffType}
+          onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+          onOpenSubmodule={this.props.onOpenSubmodule}
+        />
+      </div>
     )
   }
 

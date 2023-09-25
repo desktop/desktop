@@ -10,6 +10,13 @@
   // Necessary so that the diff doesn't expand
   // beyond the width of the history
   min-width: 0;
+
+  .file-history-diff {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 0;
+  }
 }
 
 #commit-summary-container {
