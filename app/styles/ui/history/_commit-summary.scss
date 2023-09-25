@@ -160,6 +160,8 @@
       margin-top: 0;
       background-color: var(--box-alt-background-color);
       padding: var(--spacing);
+      max-height: 100px;
+      overflow-y: auto;
     }
 
     .commit-summary-meta {
