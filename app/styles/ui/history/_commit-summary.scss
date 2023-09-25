@@ -38,12 +38,18 @@
     }
   }
 
-  .lines-added {
-    color: var(--color-new);
-  }
+  .lines-added-deleted {
+    div {
+      padding-right: var(--spacing-half);
+    }
 
-  .lines-deleted {
-    color: var(--color-deleted);
+    .lines-added {
+      color: var(--color-new);
+    }
+
+    .lines-deleted {
+      color: var(--color-deleted);
+    }
   }
 
   .commit-ref {

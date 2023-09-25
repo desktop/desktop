@@ -474,28 +474,12 @@ export class CommitSummary extends React.Component<
       return null
     }
 
-    const linesAddedPlural = linesAdded === 1 ? 'line' : 'lines'
-    const linesDeletedPlural = linesDeleted === 1 ? 'line' : 'lines'
-    const linesAddedTitle = `${linesAdded} ${linesAddedPlural} added`
-    const linesDeletedTitle = `${linesDeleted} ${linesDeletedPlural} deleted`
-
     return (
-      <>
-        <TooltippedContent
-          tagName="li"
-          className="commit-summary-meta-item without-truncation lines-added"
-          tooltip={linesAddedTitle}
-        >
-          +{linesAdded}
-        </TooltippedContent>
-        <TooltippedContent
-          tagName="li"
-          className="commit-summary-meta-item without-truncation lines-deleted"
-          tooltip={linesDeletedTitle}
-        >
-          -{linesDeleted}
-        </TooltippedContent>
-      </>
+      <div className="commit-summary-meta-item lines-added-deleted">
+        <div className="lines-added">+{linesAdded}</div>
+        <div className="lines-deleted">-{linesDeleted}</div>
+        <div>lines</div>
+      </div>
     )
   }
 
