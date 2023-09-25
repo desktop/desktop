@@ -177,5 +177,9 @@
     .authors {
       display: block;
     }
+
+    .commit-summary-meta-item {
+      margin-bottom: var(--spacing-half);
+    }
   }
 }
