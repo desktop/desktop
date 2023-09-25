@@ -18,6 +18,11 @@ import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 import memoizeOne from 'memoize-one'
 import { Avatar } from '../lib/avatar'
 import { CopyButton } from '../copy-button'
+import { Button } from '../lib/button'
+
+const useEllipsis = false
+
+const useDetails = false
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -253,25 +258,57 @@ export class CommitSummary extends React.Component<
 
     return (
       <div className={summaryClassNames}>
+        {this.renderDetailsExpander()}
         {summaryContent}
         {this.renderExpander()}
       </div>
     )
   }
 
-  private renderExpander() {
-    if (this.props.selectedCommits.length > 1) {
+  private renderDetailsExpander() {
+    if (this.props.selectedCommits.length > 1 || !useDetails) {
       return null
     }
 
     const { isExpanded } = this.props
-    const icon = isExpanded ? OcticonSymbol.fold : OcticonSymbol.unfold
 
     return (
-      <button onClick={this.onExpandChanged} className="expander">
+      <Button
+        onClick={this.onExpandChanged}
+        className={'details-expander'}
+        tooltip={isExpanded ? 'Collapse' : 'Expand'}
+      >
+        <Octicon
+          symbol={
+            isExpanded ? OcticonSymbol.chevronDown : OcticonSymbol.chevronRight
+          }
+        />
+      </Button>
+    )
+  }
+
+  private renderExpander() {
+    if (this.props.selectedCommits.length > 1 || useDetails) {
+      return null
+    }
+
+    const { isExpanded } = this.props
+    const icon = useEllipsis
+      ? OcticonSymbol.ellipsis
+      : isExpanded
+      ? OcticonSymbol.fold
+      : OcticonSymbol.unfold
+
+    const className = classNames('expander', { useEllipsis })
+
+    return (
+      <Button
+        onClick={this.onExpandChanged}
+        className={className}
+        tooltip={isExpanded ? 'Collapse' : 'Expand'}
+      >
         <Octicon symbol={icon} />
-        {isExpanded ? 'Collapse' : 'Expand'}
-      </button>
+      </Button>
     )
   }
 
@@ -465,6 +502,7 @@ export class CommitSummary extends React.Component<
   public render() {
     const className = classNames({
       expanded: this.props.isExpanded,
+      details: useDetails,
     })
 
     return (

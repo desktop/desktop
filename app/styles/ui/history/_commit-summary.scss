@@ -40,7 +40,7 @@
   .commit-summary-title {
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-semibold);
-    line-height: 16px;
+    line-height: 18px;
     padding: var(--spacing);
     word-wrap: break-word;
     display: flex;
@@ -58,11 +58,31 @@
       font-weight: normal;
       font-family: inherit;
       margin-left: var(--spacing);
+      height: auto;
 
       svg {
         vertical-align: text-top;
-        margin-right: var(--spacing-half);
       }
+
+      &.useEllipsis {
+        svg {
+          margin-right: 0;
+        }
+
+        color: var(--text-secondary-color);
+      }
+    }
+
+    .details-expander {
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: var(--text-secondary-color);
+      font-size: inherit;
+      font-weight: normal;
+      font-family: inherit;
+      height: auto;
+      margin-right: var(--spacing);
     }
 
     .commits-in-diff {
@@ -192,6 +212,15 @@
           white-space: unset;
           overflow: unset;
         }
+      }
+    }
+
+    &.details {
+      .commit-body {
+        margin-left: 15px;
+      }
+      .commit-summary-meta {
+        margin-left: 5px;
       }
     }
   }
