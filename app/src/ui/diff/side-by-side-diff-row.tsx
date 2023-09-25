@@ -277,12 +277,12 @@ export class SideBySideDiffRow extends React.Component<
           >
             <div className={beforeClasses}>
               {this.renderLineNumber(lineNumber, DiffColumn.Before, isSelected)}
-              {this.renderContent(row.data)}
+              {this.renderContent(row.data, DiffRowPrefix.Deleted)}
               {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
             <div className={afterClasses}>
               {this.renderLineNumber(undefined, DiffColumn.After)}
-              {this.renderContentFromString('', [], DiffRowPrefix.Deleted)}
+              {this.renderContentFromString('', [])}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
             {this.renderHunkHandle()}
