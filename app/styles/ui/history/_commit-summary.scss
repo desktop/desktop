@@ -23,6 +23,7 @@
 
   .commit-unreachable-info {
     padding: var(--spacing-half) var(--spacing);
+    padding-top: 0;
     border-bottom: var(--base-border);
     display: flex;
     align-items: center;
@@ -62,6 +63,10 @@
         vertical-align: text-top;
         margin-right: var(--spacing-half);
       }
+    }
+
+    .commits-in-diff {
+      padding-left: var(--spacing-half);
     }
   }
 

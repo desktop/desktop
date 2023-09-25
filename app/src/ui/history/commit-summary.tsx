@@ -234,6 +234,7 @@ export class CommitSummary extends React.Component<
           Showing changes from{' '}
           {commitsNotInDiff > 0 ? (
             <LinkButton
+              className="commits-in-diff"
               onMouseOver={this.onHighlightShasInDiff}
               onMouseOut={this.onRemoveHighlightOfShas}
               onClick={this.showReachableCommits}
@@ -472,9 +473,8 @@ export class CommitSummary extends React.Component<
           {this.renderSummary()}
           {this.renderDescription()}
           {this.renderCommitMetaData()}
+          {this.renderCommitsNotReachable()}
         </div>
-
-        {this.renderCommitsNotReachable()}
       </div>
     )
   }
