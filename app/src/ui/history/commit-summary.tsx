@@ -496,13 +496,10 @@ export class CommitSummary extends React.Component<
     }
 
     return (
-      <li className="commit-summary-meta-item" title={tags.join('\n')}>
-        <span aria-label="Tags">
-          <Octicon symbol={OcticonSymbol.tag} />
-        </span>
-
+      <div className="commit-summary-meta-item tags-item">
+        <Octicon symbol={OcticonSymbol.tag} />
         <span className="tags">{tags.join(', ')}</span>
-      </li>
+      </div>
     )
   }
 

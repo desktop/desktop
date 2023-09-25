@@ -6,25 +6,8 @@
   flex-direction: column;
   min-height: 0;
 
-  .avatar {
-    width: 16px;
-    height: 16px;
-  }
-
-  .authors {
-    .avatar,
-    .octicon {
-      display: inline-block;
-      vertical-align: bottom; // For some reason, `bottom` places the text in the middle
-    }
-
-    .author {
-      display: flex;
-
-      .avatar-container {
-        margin-right: var(--spacing-half);
-      }
-    }
+  .commit-summary-header {
+    border-bottom: var(--base-border);
   }
 
   .selectable {
@@ -36,44 +19,6 @@
       pointer-events: unset;
       cursor: text;
     }
-  }
-
-  .lines-added-deleted {
-    div {
-      padding-right: var(--spacing-half);
-    }
-
-    .lines-added {
-      color: var(--color-new);
-    }
-
-    .lines-deleted {
-      color: var(--color-deleted);
-    }
-  }
-
-  .commit-ref {
-    .ref {
-      padding-left: var(--spacing-half);
-    }
-
-    .copy-button {
-      background: transparent;
-      border: none;
-      padding: 0;
-      margin-left: var(--spacing-half);
-      height: auto;
-
-      :hover {
-        color: var(--text-secondary-color);
-      }
-    }
-  }
-
-  .tags {
-    @include ellipsis;
-    flex-shrink: 1;
-    user-select: text;
   }
 
   .commit-unreachable-info {
@@ -152,11 +97,70 @@
       margin-right: var(--spacing);
       font-size: var(--font-size-sm);
       flex-shrink: 0;
-    }
-  }
 
-  .commit-summary-header {
-    border-bottom: var(--base-border);
+      &.authors {
+        .avatar {
+          width: 16px;
+          height: 16px;
+        }
+
+        .avatar,
+        .octicon {
+          display: inline-block;
+          vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+        }
+
+        .author {
+          display: flex;
+
+          .avatar-container {
+            margin-right: var(--spacing-half);
+          }
+        }
+      }
+
+      &.commit-ref {
+        .ref {
+          padding-left: var(--spacing-half);
+        }
+
+        .copy-button {
+          background: transparent;
+          border: none;
+          padding: 0;
+          margin-left: var(--spacing-half);
+          height: auto;
+
+          :hover {
+            color: var(--text-secondary-color);
+          }
+        }
+      }
+
+      &.lines-added-deleted {
+        div {
+          padding-right: var(--spacing-half);
+        }
+
+        .lines-added {
+          color: var(--color-new);
+        }
+
+        .lines-deleted {
+          color: var(--color-deleted);
+        }
+      }
+
+      &.tags-item {
+        flex-shrink: 1;
+        user-select: text;
+
+        .tags {
+          padding-left: var(--spacing-half);
+          @include ellipsis;
+        }
+      }
+    }
   }
 
   &.expanded {
@@ -172,14 +176,19 @@
 
     .commit-summary-meta {
       display: block;
-    }
 
-    .authors {
-      display: block;
-    }
+      .commit-summary-meta-item {
+        margin-bottom: var(--spacing-half);
 
-    .commit-summary-meta-item {
-      margin-bottom: var(--spacing-half);
+        &.authors {
+          display: block;
+        }
+
+        .tags {
+          white-space: unset;
+          overflow: unset;
+        }
+      }
     }
   }
 }
