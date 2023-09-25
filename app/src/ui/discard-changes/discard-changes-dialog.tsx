@@ -35,9 +35,9 @@ interface IDiscardChangesState {
   readonly confirmDiscardChanges: boolean
 
   /**
-   * Whether to permanently discard changes instead of moving them to the trash.
+   * Whether to move the discarded changes to the trash
    */
-  readonly permanentDiscard: boolean
+  readonly moveToTrash: boolean
 }
 
 /**
@@ -57,7 +57,7 @@ export class DiscardChanges extends React.Component<
     this.state = {
       isDiscardingChanges: false,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
-      permanentDiscard: false,
+      moveToTrash: true,
     }
   }
 
@@ -94,14 +94,11 @@ export class DiscardChanges extends React.Component<
         <DialogContent>
           {this.renderFileList()}
           <Checkbox
-            label={
-              'Permanently discard all changes instead of moving them to ' +
-              TrashNameLabel
-            }
+            label={'Also move the discarded changes to ' + TrashNameLabel}
             value={
-              this.state.permanentDiscard ? CheckboxValue.On : CheckboxValue.Off
+              this.state.moveToTrash ? CheckboxValue.On : CheckboxValue.Off
             }
-            onChange={this.onConfirmPermanentDiscardChanged}
+            onChange={this.onConfirmMoveToTrashChanged}
           />
           {this.renderConfirmDiscardChanges()}
         </DialogContent>
@@ -169,7 +166,7 @@ export class DiscardChanges extends React.Component<
     await this.props.dispatcher.discardChanges(
       this.props.repository,
       this.props.files,
-      this.state.permanentDiscard
+      this.state.moveToTrash
     )
 
     this.props.onConfirmDiscardChangesChanged(this.state.confirmDiscardChanges)
@@ -184,11 +181,11 @@ export class DiscardChanges extends React.Component<
     this.setState({ confirmDiscardChanges: value })
   }
 
-  private onConfirmPermanentDiscardChanged = (
+  private onConfirmMoveToTrashChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
     const value = event.currentTarget.checked
 
-    this.setState({ permanentDiscard: value })
+    this.setState({ moveToTrash: value })
   }
 }
