@@ -259,6 +259,10 @@ export class CommitSummary extends React.Component<
   }
 
   private renderExpander() {
+    if (this.props.selectedCommits.length > 1) {
+      return null
+    }
+
     const { isExpanded } = this.props
     const icon = isExpanded ? OcticonSymbol.fold : OcticonSymbol.unfold
 
@@ -271,7 +275,7 @@ export class CommitSummary extends React.Component<
   }
 
   private renderDescription() {
-    if (this.state.body.length === 0) {
+    if (this.state.body.length === 0 || this.props.selectedCommits.length > 1) {
       return null
     }
 
@@ -286,6 +290,10 @@ export class CommitSummary extends React.Component<
   }
 
   private renderCommitMetaData = () => {
+    if (this.props.selectedCommits.length > 1) {
+      return null
+    }
+
     return (
       <div className="commit-summary-meta">
         {this.renderAuthors()}
@@ -384,7 +392,10 @@ export class CommitSummary extends React.Component<
   private renderLinesChanged() {
     const linesAdded = this.props.changesetData.linesAdded
     const linesDeleted = this.props.changesetData.linesDeleted
-    if (linesAdded + linesDeleted === 0) {
+    if (
+      (linesAdded === 0 && linesDeleted === 0) ||
+      this.props.selectedCommits.length > 1
+    ) {
       return null
     }
 
