@@ -182,6 +182,10 @@
 
         &.authors {
           display: block;
+
+          .author {
+            margin-bottom: 2px;
+          }
         }
 
         .tags {
