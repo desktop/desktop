@@ -357,13 +357,15 @@ export class SideBySideDiffRow extends React.Component<
     return (
       <div className="content" onContextMenu={this.props.onContextMenuText}>
         <div className="prefix">&nbsp;&nbsp;{prefix}&nbsp;&nbsp;</div>
-        {syntaxHighlightLine(data.content, data.tokens)}
-        {data.noNewLineIndicator && (
-          <Octicon
-            symbol={narrowNoNewlineSymbol}
-            title="No newline at end of file"
-          />
-        )}
+        <div className="content-wrapper">
+          {syntaxHighlightLine(data.content, data.tokens)}
+          {data.noNewLineIndicator && (
+            <Octicon
+              symbol={narrowNoNewlineSymbol}
+              title="No newline at end of file"
+            />
+          )}
+        </div>
       </div>
     )
   }
