@@ -72,7 +72,7 @@ export class PopoverDropdown extends React.Component<
             <button
               className="close"
               onClick={this.closePopover}
-              aria-label="close"
+              aria-label="Close"
             >
               <Octicon symbol={OcticonSymbol.x} />
             </button>
