@@ -48,6 +48,7 @@
     "quick-lru": "^3.0.0",
     "re2js": "^0.3.0",
     "react": "^16.8.4",
+    "react-confetti": "^6.1.0",
     "react-css-transition-replace": "^3.0.3",
     "react-dom": "^16.8.4",
     "react-transition-group": "^4.4.1",

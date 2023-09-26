@@ -5,6 +5,7 @@ import { DesktopFakeRepository } from '../../lib/desktop-fake-repository'
 import { ReleaseNote } from '../../models/release-notes'
 import { Dialog, DialogContent } from '../dialog'
 import { RichText } from '../lib/rich-text'
+import Confetti from 'react-confetti'
 
 interface IThankYouProps {
   readonly onDismissed: () => void
@@ -14,7 +15,16 @@ interface IThankYouProps {
   readonly latestVersion: string | null
 }
 
-export class ThankYou extends React.Component<IThankYouProps, {}> {
+interface IThankYouState {
+  readonly confettiHost?: HTMLDialogElement
+  readonly confettiRect?: DOMRect
+}
+
+export class ThankYou extends React.Component<IThankYouProps, IThankYouState> {
+  public constructor(props: IThankYouProps) {
+    super(props)
+    this.state = {}
+  }
   private renderList(
     releaseEntries: ReadonlyArray<ReleaseNote>
   ): JSX.Element | null {
@@ -44,15 +54,45 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
     )
   }
 
-  private renderConfetti(): JSX.Element | null {
-    const confetti = new Array<JSX.Element>()
+  private renderConfetti() {
+    const { confettiHost } = this.state
+    if (confettiHost) {
+      const { left, top } = this.state.confettiRect ?? { x: 0, y: 0 }
 
-    const howMuchConfetti = 750
-    for (let i = 0; i < howMuchConfetti; i++) {
-      confetti.push(<div key={i} className="confetti"></div>)
+      return (
+        <Confetti
+          recycle={false}
+          numberOfPieces={750}
+          width={window.innerWidth}
+          height={window.innerHeight}
+          style={{ left, top }}
+        />
+      )
     }
 
-    return <>{confetti}</>
+    return undefined
+  }
+
+  private updateConfettiRect = (e: Event) => {
+    if (e.currentTarget instanceof HTMLElement) {
+      const { x, y } = e.currentTarget.getBoundingClientRect()
+      this.setState({
+        confettiRect: new DOMRect(
+          -Math.round(x),
+          -Math.round(y),
+          window.innerWidth,
+          window.innerHeight
+        ),
+      })
+    }
+  }
+
+  private onDialogRef = (dialog: HTMLDialogElement | null) => {
+    this.setState({
+      confettiHost: dialog ?? undefined,
+    })
+
+    dialog?.addEventListener('dialog-show', this.updateConfettiRect)
   }
 
   public render() {
@@ -71,6 +111,7 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
         id="thank-you-notes"
         onDismissed={this.props.onDismissed}
         title={`Thank you ${this.props.friendlyName}! 🎉`}
+        onDialogRef={this.onDialogRef}
       >
         <DialogContent>
           <div className="container">
@@ -79,13 +120,7 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
             <div className="contributions">
               {this.renderList(this.props.userContributions)}
             </div>
-            <div
-              className="confetti-container"
-              onClick={this.props.onDismissed}
-            >
-              {this.renderConfetti()}
-            </div>
-            <div className="footer"></div>
+            {this.renderConfetti()}
           </div>
         </DialogContent>
       </Dialog>
