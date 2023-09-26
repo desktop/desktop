@@ -1225,6 +1225,7 @@ export class SectionList extends React.Component<
     }
 
     return (
+      // eslint-disable-next-line github/a11y-role-supports-aria-props
       <div
         ref={this.onRef}
         id={this.props.id}
