@@ -75,15 +75,10 @@ export class ThankYou extends React.Component<IThankYouProps, IThankYouState> {
 
   private updateConfettiRect = (e: Event) => {
     if (e.currentTarget instanceof HTMLElement) {
-      const { x, y } = e.currentTarget.getBoundingClientRect()
-      this.setState({
-        confettiRect: new DOMRect(
-          -Math.round(x),
-          -Math.round(y),
-          window.innerWidth,
-          window.innerHeight
-        ),
-      })
+      const { offsetLeft: x, offsetTop: y } = e.currentTarget
+      const { innerWidth: w, innerHeight: h } = window
+      const confettiRect = new DOMRect(-Math.round(x), -Math.round(y), w, h)
+      this.setState({ confettiRect })
     }
   }
 
