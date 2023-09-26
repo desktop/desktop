@@ -57,7 +57,7 @@ export class ThankYou extends React.Component<IThankYouProps, IThankYouState> {
   private renderConfetti() {
     const { confettiHost } = this.state
     if (confettiHost) {
-      const { left, top } = this.state.confettiRect ?? { x: 0, y: 0 }
+      const { left, top } = this.state.confettiRect ?? { left: 0, top: 0 }
 
       return (
         <Confetti
