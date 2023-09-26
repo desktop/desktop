@@ -13,54 +13,10 @@
   .dialog-header {
     height: 88px;
     position: relative;
+    text-align: center;
 
-    .release-notes-header {
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      padding: 0 var(--spacing-double);
-    }
-
-    .header-graphics {
-      display: flex;
-
-      .img-space {
-        flex-grow: 2;
-        display: flex;
-      }
-    }
-
-    .release-note-graphic-left {
-      margin-right: 20px;
-    }
-
-    .release-note-graphic-right {
-      margin-left: 20px;
-    }
-
-    .title {
-      text-align: center;
-      position: absolute;
-      width: 100%;
-      top: 0;
-      left: 0;
-      padding-top: 6%;
-
-      .thank-you-note {
-        font-size: var(--font-size-md);
-        font-weight: normal;
-      }
-
-      .thank-you {
-        font-size: var(--font-size-md);
-        font-weight: var(--font-weight-semibold);
-        div {
-          display: inline;
-        }
-      }
-    }
+    background: url('../static/common/release-note-header-left.svg') no-repeat left var(--spacing-double) top var(--spacing-half) / auto 78px,
+      url('../static/common/release-note-header-right.svg') no-repeat right var(--spacing-double) top var(--spacing-half) / auto 78px;
   }
 
   ul {

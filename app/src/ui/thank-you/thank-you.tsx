@@ -2,10 +2,6 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import * as React from 'react'
 import { DesktopFakeRepository } from '../../lib/desktop-fake-repository'
-import {
-  ReleaseNoteHeaderLeftUri,
-  ReleaseNoteHeaderRightUri,
-} from '../../lib/release-notes'
 import { ReleaseNote } from '../../models/release-notes'
 import { Dialog, DialogContent } from '../dialog'
 import { RichText } from '../lib/rich-text'
@@ -60,34 +56,6 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
   }
 
   public render() {
-    const dialogHeader = (
-      <div className="release-notes-header">
-        <div className="header-graphics">
-          <img
-            className="release-note-graphic-left"
-            src={ReleaseNoteHeaderLeftUri}
-            alt=""
-          />
-          <div className="img-space"></div>
-          <img
-            className="release-note-graphic-right"
-            src={ReleaseNoteHeaderRightUri}
-            alt=""
-          />
-        </div>
-        <div className="title">
-          <div className="thank-you">
-            Thank you {this.props.friendlyName}!{' '}
-            <RichText
-              text={':tada:'}
-              emoji={this.props.emoji}
-              renderUrlsAsLinks={true}
-            />
-          </div>
-        </div>
-      </div>
-    )
-
     const version =
       this.props.latestVersion !== null ? ` ${this.props.latestVersion}` : ''
     const thankYouNote = (
@@ -102,7 +70,7 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
       <Dialog
         id="thank-you-notes"
         onDismissed={this.props.onDismissed}
-        title={dialogHeader}
+        title={`Thank you ${this.props.friendlyName}! 🎉`}
       >
         <DialogContent>
           <div className="container">
