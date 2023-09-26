@@ -22,7 +22,7 @@ import { Button } from '../lib/button'
 enum DiffRowPrefix {
   Added = '+',
   Deleted = '-',
-  Nothing = ' ',
+  Nothing = '\u{A0}',
 }
 
 interface ISideBySideDiffRowProps {
