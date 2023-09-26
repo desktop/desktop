@@ -198,7 +198,6 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     }
 
     return (
-      // eslint-disable-next-line github/a11y-role-supports-aria-props
       <div
         id={id}
         role={
