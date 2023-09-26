@@ -83,10 +83,7 @@ export class ThankYou extends React.Component<IThankYouProps, IThankYouState> {
   }
 
   private onDialogRef = (dialog: HTMLDialogElement | null) => {
-    this.setState({
-      confettiHost: dialog ?? undefined,
-    })
-
+    this.setState({ confettiHost: dialog ?? undefined })
     dialog?.addEventListener('dialog-show', this.updateConfettiRect)
   }
 
