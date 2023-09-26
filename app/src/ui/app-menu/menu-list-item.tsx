@@ -186,7 +186,7 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
     const ariaChecked = type === 'checkbox' ? item.checked : undefined
 
     return (
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, github/a11y-role-supports-aria-props
       <div
         id={this.props.menuItemId}
         className={className}
