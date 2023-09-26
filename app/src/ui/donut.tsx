@@ -26,6 +26,10 @@ interface IDonutProps {
    * the segments green and red.
    */
   readonly valueMap: Map<string, number>
+
+  /** Accessible label for the generated donut. Note: If the donut rendering is
+   * purely decorative, you can hide it with aria-hiden. */
+  readonly ariaLabel?: string
 }
 
 /**
@@ -44,7 +48,13 @@ export class Donut extends React.Component<IDonutProps, {}> {
     })
 
     return (
-      <svg className="donut" version="1.1" viewBox={viewBox} tabIndex={-1}>
+      <svg
+        aria-label={this.props.ariaLabel}
+        className="donut"
+        version="1.1"
+        viewBox={viewBox}
+        tabIndex={-1}
+      >
         {svgPaths}
       </svg>
     )
