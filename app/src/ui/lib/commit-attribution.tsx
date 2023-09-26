@@ -40,23 +40,15 @@ export class CommitAttribution extends React.Component<
         <span className="authors">{this.renderAuthorInline(authors[0])}</span>
       )
     } else if (authors.length === 2) {
-      const title = authors.map(a => a.name).join(', ')
-
       return (
-        <span className="authors" title={title}>
+        <span className="authors">
           {this.renderAuthorInline(authors[0])}
           {`, `}
           {this.renderAuthorInline(authors[1])}
         </span>
       )
     } else {
-      const title = authors.map(a => a.name).join(', ')
-
-      return (
-        <span className="authors" title={title}>
-          {authors.length} people
-        </span>
-      )
+      return <span className="authors">{authors.length} people</span>
     }
   }
 
