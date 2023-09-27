@@ -567,6 +567,10 @@ export function buildDefaultMenu({
             click: emit('show-release-notes-popup'),
           },
           {
+            label: 'Thank you',
+            click: emit('show-thank-you-popup'),
+          },
+          {
             label: 'Pull Request Check Run Failed',
             click: emit('pull-request-check-run-failed'),
           },

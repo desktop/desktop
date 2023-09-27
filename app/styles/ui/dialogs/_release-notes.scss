@@ -14,41 +14,18 @@
 
   .dialog-header {
     height: 100px;
-    position: relative;
 
-    .release-notes-header {
-      display: flex;
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      padding: 0 var(--spacing-double);
-    }
+    background: url('../static/common/release-note-header-left.svg') no-repeat left var(--spacing-double) top var(--spacing-half) / auto 90px,
+      url('../static/common/release-note-header-right.svg') no-repeat right var(--spacing-double) top var(--spacing-half) / auto 90px;
 
-    .release-note-graphic-left {
-      margin-right: 20px;
-    }
-
-    .release-note-graphic-right {
-      margin-left: 20px;
-    }
-
-    .title {
+    h1 {
       display: flex;
       flex-direction: column;
-      flex-grow: 1;
-      justify-content: center;
       text-align: center;
-
-      p {
-        margin: 0;
-      }
 
       .version {
         font-size: 14px;
         font-weight: var(--font-weight-semibold);
-        margin-bottom: 0;
       }
 
       .date {

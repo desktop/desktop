@@ -458,6 +458,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.selectAll()
       case 'show-release-notes-popup':
         return this.showFakeReleaseNotesPopup()
+      case 'show-thank-you-popup':
+        return this.showFakeThankYouPopup()
       case 'show-stashed-changes':
         return this.showStashedChanges()
       case 'hide-stashed-changes':
@@ -493,6 +495,22 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.showPopup({
         type: PopupType.ReleaseNotes,
         newReleases: await generateDevReleaseSummary(),
+      })
+    }
+  }
+
+  private showFakeThankYouPopup() {
+    if (__DEV__) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ThankYou,
+        userContributions: [
+          {
+            kind: 'new',
+            message: '[New] Added fake thank you dialog',
+          },
+        ],
+        friendlyName: 'kind contributor',
+        latestVersion: '3.0.0',
       })
     }
   }

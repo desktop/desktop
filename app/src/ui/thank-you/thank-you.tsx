@@ -2,13 +2,10 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import * as React from 'react'
 import { DesktopFakeRepository } from '../../lib/desktop-fake-repository'
-import {
-  ReleaseNoteHeaderLeftUri,
-  ReleaseNoteHeaderRightUri,
-} from '../../lib/release-notes'
 import { ReleaseNote } from '../../models/release-notes'
 import { Dialog, DialogContent } from '../dialog'
 import { RichText } from '../lib/rich-text'
+import Confetti from 'react-confetti'
 
 interface IThankYouProps {
   readonly onDismissed: () => void
@@ -18,7 +15,16 @@ interface IThankYouProps {
   readonly latestVersion: string | null
 }
 
-export class ThankYou extends React.Component<IThankYouProps, {}> {
+interface IThankYouState {
+  readonly confettiHost?: HTMLDialogElement
+  readonly confettiRect?: DOMRect
+}
+
+export class ThankYou extends React.Component<IThankYouProps, IThankYouState> {
+  public constructor(props: IThankYouProps) {
+    super(props)
+    this.state = {}
+  }
   private renderList(
     releaseEntries: ReadonlyArray<ReleaseNote>
   ): JSX.Element | null {
@@ -48,46 +54,40 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
     )
   }
 
-  private renderConfetti(): JSX.Element | null {
-    const confetti = new Array<JSX.Element>()
+  private renderConfetti() {
+    const { confettiHost } = this.state
+    if (confettiHost) {
+      const { left, top } = this.state.confettiRect ?? { left: 0, top: 0 }
 
-    const howMuchConfetti = 750
-    for (let i = 0; i < howMuchConfetti; i++) {
-      confetti.push(<div key={i} className="confetti"></div>)
+      return (
+        <Confetti
+          recycle={false}
+          numberOfPieces={750}
+          width={window.innerWidth}
+          height={window.innerHeight}
+          style={{ left, top }}
+        />
+      )
     }
 
-    return <>{confetti}</>
+    return undefined
+  }
+
+  private updateConfettiRect = (e: Event) => {
+    if (e.currentTarget instanceof HTMLElement) {
+      const { offsetLeft: x, offsetTop: y } = e.currentTarget
+      const { innerWidth: w, innerHeight: h } = window
+      const confettiRect = new DOMRect(-Math.round(x), -Math.round(y), w, h)
+      this.setState({ confettiRect })
+    }
+  }
+
+  private onDialogRef = (dialog: HTMLDialogElement | null) => {
+    this.setState({ confettiHost: dialog ?? undefined })
+    dialog?.addEventListener('dialog-show', this.updateConfettiRect)
   }
 
   public render() {
-    const dialogHeader = (
-      <div className="release-notes-header">
-        <div className="header-graphics">
-          <img
-            className="release-note-graphic-left"
-            src={ReleaseNoteHeaderLeftUri}
-            alt=""
-          />
-          <div className="img-space"></div>
-          <img
-            className="release-note-graphic-right"
-            src={ReleaseNoteHeaderRightUri}
-            alt=""
-          />
-        </div>
-        <div className="title">
-          <div className="thank-you">
-            Thank you {this.props.friendlyName}!{' '}
-            <RichText
-              text={':tada:'}
-              emoji={this.props.emoji}
-              renderUrlsAsLinks={true}
-            />
-          </div>
-        </div>
-      </div>
-    )
-
     const version =
       this.props.latestVersion !== null ? ` ${this.props.latestVersion}` : ''
     const thankYouNote = (
@@ -102,7 +102,8 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
       <Dialog
         id="thank-you-notes"
         onDismissed={this.props.onDismissed}
-        title={dialogHeader}
+        title={`Thank you ${this.props.friendlyName}! 🎉`}
+        onDialogRef={this.onDialogRef}
       >
         <DialogContent>
           <div className="container">
@@ -111,13 +112,7 @@ export class ThankYou extends React.Component<IThankYouProps, {}> {
             <div className="contributions">
               {this.renderList(this.props.userContributions)}
             </div>
-            <div
-              className="confetti-container"
-              onClick={this.props.onDismissed}
-            >
-              {this.renderConfetti()}
-            </div>
-            <div className="footer"></div>
+            {this.renderConfetti()}
           </div>
         </DialogContent>
       </Dialog>

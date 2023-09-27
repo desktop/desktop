@@ -134,6 +134,8 @@ interface IDialogProps {
 
   /** Whether or not to override focus of first element with close button */
   readonly focusCloseButtonOnOpen?: boolean
+
+  readonly onDialogRef?: (ref: HTMLDialogElement | null) => void
 }
 
 /**
@@ -677,6 +679,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     }
 
     this.dialogElement = e
+    this.props.onDialogRef?.(e)
   }
 
   private onKeyDown = (event: React.KeyboardEvent) => {
