@@ -82,7 +82,7 @@ export async function launchShell(
   // type. This is less than ideal, but maybe the best we can do without
   // platform-specific build targets.
   const exists = await pathExists(shell.path)
-  if (!exists) {
+  if (!exists || 1 === 1) {
     const label = __DARWIN__ ? 'Settings' : 'Options'
     throw new ShellError(
       `Could not find executable for '${shell.shell}' at path '${shell.path}'.  Please open ${label} and select an available shell.`
