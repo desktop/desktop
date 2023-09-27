@@ -265,6 +265,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --toolbar-dropdown-text-warning-color: #{$yellow-800};
   --toolbar-dropdown-text-hover-color: var(--box-hover-text-color);
 
+  --toolbar-tooltip-background-color: #{$gray-800};
+  --toolbar-tooltip-shadow-color: black;
+
   /**
    * App menu bar colors (Windows/Linux only)
    */
