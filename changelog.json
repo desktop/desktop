@@ -4,10 +4,7 @@
       "[Fixed] Close button in release notes dialog can be clicked - #17438",
       "[Fixed] Scrolling works as expected in the \"Commit Reachability\" dialog - #17421",
       "[Fixed] Tip of comment bubbles in Pull Request notifications is rendered correctly - #17411",
-      "[Improved] Upgrade to Electron v26.2.1 - #17408",
-      "[Improved] Add commit message length warning toggle - #17370. Thanks @rystills!",
-      "[Improved] Clarified the outcome of toggling the setting under \"Background Updates\" in the \"Advanced\" settings - #17389",
-      "[Improved] Undo link when resolving conflicts is now a button - #17373"
+      "[Improved] Upgrade to Electron v26.2.1 - #17408"
     ],
     "3.3.3": ["[Improved] Upgrade to Electron v24.8.3 - #17416"],
     "3.3.3-beta2": ["[Improved] Upgrade to Electron v24.8.3 - #17416"],
