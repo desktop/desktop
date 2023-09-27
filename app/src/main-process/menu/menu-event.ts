@@ -48,3 +48,4 @@ export type MenuEvent =
   | 'decrease-active-resizable-width'
   | 'increase-active-resizable-width'
   | 'show-thank-you-popup'
+  | 'generic-git-authentication-failed'

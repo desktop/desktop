@@ -588,10 +588,21 @@ export function buildDefaultMenu({
   }
 
   if (__RELEASE_CHANNEL__ === 'development' || __RELEASE_CHANNEL__ === 'test') {
-    helpItems.push({
-      label: 'Show notification',
-      click: emit('test-show-notification'),
-    })
+    helpItems.push(
+      {
+        label: 'Show notification',
+        click: emit('test-show-notification'),
+      },
+      {
+        label: 'Show Error Dialogs',
+        submenu: [
+          {
+            label: 'Generic Git Authentication Failed',
+            click: emit('generic-git-authentication-failed'),
+          },
+        ],
+      }
+    )
   }
 
   if (__DARWIN__) {

@@ -14,7 +14,7 @@ import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { shell } from '../lib/app-shell'
 import { updateStore, UpdateStatus } from './lib/update-store'
-import { RetryAction } from '../models/retry-actions'
+import { RetryAction, RetryActionType } from '../models/retry-actions'
 import { FetchType } from '../models/fetch'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
@@ -480,9 +480,23 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.resizeActiveResizable('increase-active-resizable-width')
       case 'decrease-active-resizable-width':
         return this.resizeActiveResizable('decrease-active-resizable-width')
+      case 'generic-git-authentication-failed':
+        return this.mockPromtForGenericGitAuthentication()
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
+  }
+
+  private mockPromtForGenericGitAuthentication() {
+    const repository = this.getRepository()
+    if (repository == null || repository instanceof CloningRepository) {
+      return
+    }
+
+    return this.props.dispatcher.promptForGenericGitAuthentication(repository, {
+      type: RetryActionType.Push,
+      repository,
+    })
   }
 
   /**
