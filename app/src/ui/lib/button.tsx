@@ -120,6 +120,13 @@ export interface IButtonProps {
    */
   readonly ariaLabel?: string
 
+  /** Whether the button is hidden from screen readers Caution: very rare
+   * instances where a button should be hidden from screen readers. Example:
+   * Windows "Minimize", "Maximize", "Close" are hidden per operating system
+   * convention.
+   */
+  readonly ariaHidden?: boolean
+
   /** If a button has a sentence type further description than it's label or
    * contents */
   readonly ariaDescribedBy?: string
@@ -144,6 +151,9 @@ export interface IButtonProps {
 
   /** Specify the direction of the tooltip */
   readonly toolTipDirection?: TooltipDirection
+
+  /** Specify custom classes for the button's tooltip */
+  readonly tooltipClassName?: string
 }
 
 /**
@@ -201,10 +211,12 @@ export class Button extends React.Component<IButtonProps, {}> {
         aria-describedby={this.props.ariaDescribedBy}
         aria-haspopup={this.props.ariaHaspopup}
         aria-pressed={this.props.ariaPressed}
+        aria-hidden={this.props.ariaHidden}
         autoFocus={this.props.autoFocus}
       >
         {tooltip && (
           <Tooltip
+            className={this.props.tooltipClassName}
             target={this.innerButtonRef}
             direction={this.props.toolTipDirection ?? TooltipDirection.NORTH}
             // Show the tooltip immediately on hover if the button is disabled
