@@ -277,12 +277,7 @@ export class CICheckRunPopover extends React.PureComponent<
       valueMap.get(APICheckStatus.Queued) ?? 0
     } queued.`
 
-    return (
-      <Donut
-        ariaLabel={ariaLabel}
-        valueMap={valueMap}
-      />
-    )
+    return <Donut ariaLabel={ariaLabel} valueMap={valueMap} />
   }
 
   private getTitle(
