@@ -604,6 +604,28 @@ export function buildDefaultMenu({
             label: 'Push Needs Pull Error Handler',
             click: emit('push-needs-pull-error-handler'),
           },
+          {
+            label: 'LFS Attribute Mismatch Error Handler',
+            click: emit('lfs-attribute-mismatch-error-handler'),
+          },
+          {
+            label: 'Upstream Already Exists Error Handler',
+            click: emit('upstream-already-exists-error-handler'),
+          },
+          {
+            label: 'Push Rejected Due To Missing Workflow Scope Handler',
+            click: emit('push-rejected-missing-workflow-error-handler'),
+          },
+          {
+            label: 'SAML Reauth Required Error Handler',
+            click: emit('saml-reauth-required-error-handler'),
+          },
+          {
+            label: 'Insufficient GitHub Repo Permissions Create Fork Handler',
+            click: emit(
+              'insufficient-github-repo-permissions-create-fork-error-handler'
+            ),
+          },
         ],
       }
     )

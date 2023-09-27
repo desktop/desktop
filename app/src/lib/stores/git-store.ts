@@ -1483,7 +1483,7 @@ export class GitStore extends BaseStore {
         // as many animation frames as it needs to.
         try {
           await this.shell.moveItemToTrash(
-            Path.resolve(this.repository.path, file.path)
+            Path.resolve(this.repository.path, file.path + 1)
           )
         } catch (e) {
           if (askForConfirmationOnDiscardChangesPermanently) {

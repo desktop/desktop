@@ -50,3 +50,8 @@ export type MenuEvent =
   | 'show-thank-you-popup'
   | 'generic-git-authentication-failed'
   | 'push-needs-pull-error-handler'
+  | 'lfs-attribute-mismatch-error-handler'
+  | 'upstream-already-exists-error-handler'
+  | 'push-rejected-missing-workflow-error-handler'
+  | 'saml-reauth-required-error-handler'
+  | 'insufficient-github-repo-permissions-create-fork-error-handler'

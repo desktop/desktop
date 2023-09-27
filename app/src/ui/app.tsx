@@ -484,9 +484,89 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.mockPromptForGenericGitAuthentication()
       case 'push-needs-pull-error-handler':
         return this.mockPushNeedsPullErrorHandler()
+      case 'lfs-attribute-mismatch-error-handler':
+        return this.mockLFSAttributeMismatchErrorHandler()
+      case 'upstream-already-exists-error-handler':
+        return this.mockUpstreamAlreadyExistsErrorHandler()
+      case 'push-rejected-missing-workflow-error-handler':
+        return this.mockPushRejectedMissingWorkflowErrorHandler()
+      case 'saml-reauth-required-error-handler':
+        return this.mockSAMLReauthRequiredErrorHandler()
+      case 'insufficient-github-repo-permissions-create-fork-error-handler':
+        return this.mockInsufficientGitHubRepoPermissionsCreateForkErrorHandler()
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
+  }
+
+  private mockInsufficientGitHubRepoPermissionsCreateForkErrorHandler() {
+    const repository = this.getRepository()
+    if (
+      repository == null ||
+      repository instanceof CloningRepository ||
+      !isRepositoryWithGitHubRepository(repository)
+    ) {
+      return
+    }
+
+    this.props.dispatcher.showCreateForkDialog(repository)
+  }
+
+  private mockSAMLReauthRequiredErrorHandler() {
+    const repository = this.getRepository()
+    if (
+      repository == null ||
+      repository instanceof CloningRepository ||
+      !isRepositoryWithGitHubRepository(repository)
+    ) {
+      return
+    }
+
+    return this.props.dispatcher.showPopup({
+      type: PopupType.SAMLReauthRequired,
+      organizationName: 'GitHub',
+      endpoint: repository.gitHubRepository.endpoint,
+      retryAction: {
+        type: RetryActionType.Push,
+        repository,
+      },
+    })
+  }
+
+  private mockPushRejectedMissingWorkflowErrorHandler() {
+    const repository = this.getRepository()
+    if (
+      repository == null ||
+      repository instanceof CloningRepository ||
+      !isRepositoryWithGitHubRepository(repository)
+    ) {
+      return
+    }
+
+    return this.props.dispatcher.showPopup({
+      type: PopupType.PushRejectedDueToMissingWorkflowScope,
+      repository,
+      rejectedPath: '.github/workflows/cd.yml',
+    })
+  }
+
+  private mockUpstreamAlreadyExistsErrorHandler() {
+    const repository = this.getRepository()
+    if (repository == null || repository instanceof CloningRepository) {
+      return
+    }
+
+    debugger
+
+    return this.props.dispatcher.showPopup({
+      type: PopupType.UpstreamAlreadyExists,
+      repository,
+      existingRemote: { name: repository.name, url: repository.path },
+    })
+  }
+
+  private mockLFSAttributeMismatchErrorHandler() {
+    this.props.dispatcher.showPopup({ type: PopupType.LFSAttributeMismatch })
   }
 
   private mockPromptForGenericGitAuthentication() {
