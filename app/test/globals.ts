@@ -25,3 +25,20 @@ g['log'] = {
   info: () => {},
   debug: () => {},
 } as IDesktopLogger
+
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
+g.DOMRect = class DOMRect {
+  public constructor() {}
+}
+
+g.ResizeObserver = class ResizeObserver {
+  public constructor(cb: any) {
+    ;(this as any).cb = cb
+  }
+
+  public observe() {
+    ;(this as any).cb([{ borderBoxSize: { inlineSize: 0, blockSize: 0 } }])
+  }
+
+  public unobserve() {}
+}
