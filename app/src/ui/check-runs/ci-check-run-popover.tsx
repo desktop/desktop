@@ -280,7 +280,7 @@ export class CICheckRunPopover extends React.PureComponent<
     return (
       <Donut
         ariaLabel={ariaLabel}
-        valueMap={getCheckStatusCountMap(checkRuns)}
+        valueMap={valueMap}
       />
     )
   }
