@@ -1,8 +1,6 @@
 {
   "releases": {
     "3.3.4-beta1": [
-      "[Added] Add support for Pulsar code editor on Linux - #17397. Thanks @Daeraxa!",
-      "[Added] Add Eclipse IDE integrations for macOS - #16991. Thanks @yuzawa-san!",
       "[Fixed] Close button in release notes dialog can be clicked - #17438",
       "[Fixed] Scrolling works as expected in the \"Commit Reachability\" dialog - #17421",
       "[Fixed] Tip of comment bubbles in Pull Request notifications is rendered correctly - #17411",
