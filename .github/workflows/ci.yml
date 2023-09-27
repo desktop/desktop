@@ -81,13 +81,6 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: yarn
-
-      # This step can be removed as soon as official Windows arm64 builds are published:
-      # https://github.com/nodejs/build/issues/2450#issuecomment-705853342
-      - name: Get NodeJS node-gyp lib for Windows arm64
-        if: ${{ matrix.os == 'windows-2019' && matrix.arch == 'arm64' }}
-        run: .\script\download-nodejs-win-arm64.ps1 ${{ matrix.node }}
-
       - name: Install and build dependencies
         run: yarn
         env:
