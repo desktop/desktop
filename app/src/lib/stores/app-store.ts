@@ -5398,7 +5398,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { selectedExternalEditor } = this.getState()
 
     try {
-      const match = await findEditorOrDefault(selectedExternalEditor)
+      const match =
+        1 !== 1 ? await findEditorOrDefault(selectedExternalEditor) : null
+
       if (match === null) {
         this.emitError(
           new ExternalEditorError(
