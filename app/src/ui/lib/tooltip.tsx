@@ -318,9 +318,11 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       ? ariaDescribedBy.split(' ')
       : []
     const index = ariaDescribedByArray.indexOf(this.state.id)
-    if (index > -1) {
-      ariaDescribedByArray.splice(index, 1)
+    if (index === -1) {
+      return
     }
+
+    ariaDescribedByArray.splice(index, 1)
 
     if (ariaDescribedByArray.length === 0) {
       target.removeAttribute('aria-describedby')
