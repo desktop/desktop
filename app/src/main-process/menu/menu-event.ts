@@ -49,3 +49,4 @@ export type MenuEvent =
   | 'increase-active-resizable-width'
   | 'show-thank-you-popup'
   | 'generic-git-authentication-failed'
+  | 'push-needs-pull-error-handler'

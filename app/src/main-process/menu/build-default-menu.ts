@@ -600,6 +600,10 @@ export function buildDefaultMenu({
             label: 'Generic Git Authentication Failed',
             click: emit('generic-git-authentication-failed'),
           },
+          {
+            label: 'Push Needs Pull Error Handler',
+            click: emit('push-needs-pull-error-handler'),
+          },
         ],
       }
     )

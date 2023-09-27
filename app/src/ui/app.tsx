@@ -481,13 +481,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'decrease-active-resizable-width':
         return this.resizeActiveResizable('decrease-active-resizable-width')
       case 'generic-git-authentication-failed':
-        return this.mockPromtForGenericGitAuthentication()
+        return this.mockPromptForGenericGitAuthentication()
+      case 'push-needs-pull-error-handler':
+        return this.mockPushNeedsPullErrorHandler()
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
   }
 
-  private mockPromtForGenericGitAuthentication() {
+  private mockPromptForGenericGitAuthentication() {
     const repository = this.getRepository()
     if (repository == null || repository instanceof CloningRepository) {
       return
@@ -495,6 +497,18 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     return this.props.dispatcher.promptForGenericGitAuthentication(repository, {
       type: RetryActionType.Push,
+      repository,
+    })
+  }
+
+  private mockPushNeedsPullErrorHandler() {
+    const repository = this.getRepository()
+    if (repository == null || repository instanceof CloningRepository) {
+      return
+    }
+
+    return this.props.dispatcher.showPopup({
+      type: PopupType.PushNeedsPull,
       repository,
     })
   }
