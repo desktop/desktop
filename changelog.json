@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.3.4-test1": ["[New] Accessibility Audit Error Dialog "],
     "3.3.3": ["[Improved] Upgrade to Electron v24.8.3 - #17416"],
     "3.3.3-beta2": ["[Improved] Upgrade to Electron v24.8.3 - #17416"],
     "3.3.3-beta1": [
