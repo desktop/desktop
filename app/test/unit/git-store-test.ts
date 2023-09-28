@@ -8,7 +8,6 @@ import {
   setupFixtureRepository,
 } from '../helpers/repositories'
 import { GitStore } from '../../src/lib/stores'
-import { AppFileStatusKind } from '../../src/models/status'
 import { Repository } from '../../src/models/repository'
 import { Commit } from '../../src/models/commit'
 import { TipState, IValidBranch } from '../../src/models/tip'
