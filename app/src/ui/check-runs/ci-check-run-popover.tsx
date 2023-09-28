@@ -11,7 +11,11 @@ import {
   FailingCheckConclusions,
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
-import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
+import {
+  APICheckConclusion,
+  APICheckStatus,
+  IAPIWorkflowJobStep,
+} from '../../lib/api'
 import {
   Popover,
   PopoverAnchorPosition,
@@ -265,7 +269,15 @@ export class CICheckRunPopover extends React.PureComponent<
       }
     }
 
-    return <Donut valueMap={getCheckStatusCountMap(checkRuns)} />
+    const valueMap = getCheckStatusCountMap(checkRuns)
+
+    const ariaLabel = `Completeness indicator. ${
+      valueMap.get(APICheckStatus.Completed) ?? 0
+    } completed, ${valueMap.get(APICheckStatus.InProgress) ?? 0} in progress, ${
+      valueMap.get(APICheckStatus.Queued) ?? 0
+    } queued.`
+
+    return <Donut ariaLabel={ariaLabel} valueMap={valueMap} />
   }
 
   private getTitle(
