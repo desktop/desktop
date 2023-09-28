@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.3.4-beta1": [
+      "[Fixed] Close button in release notes dialog can be clicked - #17438",
+      "[Fixed] Scrolling works as expected in the \"Commit Reachability\" dialog - #17421",
+      "[Improved] Upgrade to Electron v26.2.1 - #17408"
+    ],
     "3.3.3": ["[Improved] Upgrade to Electron v24.8.3 - #17416"],
     "3.3.3-beta2": ["[Improved] Upgrade to Electron v24.8.3 - #17416"],
     "3.3.3-beta1": [
