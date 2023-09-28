@@ -78,11 +78,6 @@ export function enableCheckoutCommit(): boolean {
   return true
 }
 
-/** Should ci check runs show logs? */
-export function enableCICheckRunsLogs(): boolean {
-  return false
-}
-
 /** Should we show previous tags as suggestions? */
 export function enablePreviousTagSuggestions(): boolean {
   return enableBetaFeatures()
