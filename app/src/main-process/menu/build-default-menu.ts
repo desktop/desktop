@@ -626,6 +626,22 @@ export function buildDefaultMenu({
               'insufficient-github-repo-permissions-create-fork-error-handler'
             ),
           },
+          {
+            label: 'Unable to locate git error handler',
+            click: emit('unable-to-locate-git-error-handler'),
+          },
+          {
+            label: 'Invalidated Token Error Handler',
+            click: emit('invalidated-token-error-handler'),
+          },
+          {
+            label: 'Oversize Files Error Handler',
+            click: emit('oversize-files-error-handler'),
+          },
+          {
+            label: 'Untrusted Certificate Error Handler',
+            click: emit('untrusted-certificate-error-handler'),
+          },
         ],
       }
     )

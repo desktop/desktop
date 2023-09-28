@@ -714,6 +714,15 @@ app.on(
   }
 )
 
+app.on(
+  'select-client-certificate',
+  (event, webContents, url, list, callback) => {
+    event.preventDefault()
+    console.log('select-client-certificate', list, url)
+    callback(list[0])
+  }
+)
+
 function createWindow() {
   const window = new AppWindow()
 

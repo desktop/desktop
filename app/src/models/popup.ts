@@ -156,7 +156,7 @@ export type PopupDetail =
   | { type: PopupType.Acknowledgements }
   | {
       type: PopupType.UntrustedCertificate
-      certificate: Electron.Certificate
+      certificate: any
       url: string
     }
   | { type: PopupType.RemoveRepository; repository: Repository }

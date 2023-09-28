@@ -4134,4 +4134,8 @@ export class Dispatcher {
   public updateCachedRepoRulesets(rulesets: Array<IAPIRepoRuleset | null>) {
     this.appStore._updateCachedRepoRulesets(rulesets)
   }
+
+  public mockOnTokenInvalidated(repository: RepositoryWithGitHubRepository) {
+    this.appStore._mockOnTokenInvalidated(repository.gitHubRepository.endpoint)
+  }
 }

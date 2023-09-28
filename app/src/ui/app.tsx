@@ -494,9 +494,66 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.mockSAMLReauthRequiredErrorHandler()
       case 'insufficient-github-repo-permissions-create-fork-error-handler':
         return this.mockInsufficientGitHubRepoPermissionsCreateForkErrorHandler()
+      case 'unable-to-locate-git-error-handler':
+        return this.mockUnableToLocateGitErrorHandler()
+      case 'invalidated-token-error-handler':
+        return this.mockInvalidatedTokenErrorHandler()
+      case 'oversize-files-error-handler':
+        return this.mockOversizeFilesErrorHandler()
+      case 'untrusted-certificate-error-handler':
+        return this.mockUntrustedCertificateErrorHandler()
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
+  }
+
+  private mockUntrustedCertificateErrorHandler() {
+    this.props.dispatcher.showPopup({
+      type: PopupType.UntrustedCertificate,
+      certificate: {
+        subjectName: 'Mock Subject Name',
+      },
+      url: 'https://github.com/desktop/desktop',
+    })
+  }
+
+  private mockOversizeFilesErrorHandler() {
+    const repository = this.getRepository()
+    if (repository == null || repository instanceof CloningRepository) {
+      return
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.OversizedFiles,
+      oversizedFiles: [
+        '/Users/tidy-dev/Documents/GitHub/desktop/app/src/main-process/menu/build-default-menu.ts',
+      ],
+      context: {
+        summary: 'Update build-default-menut.ts',
+        description: '',
+      },
+      repository,
+    })
+  }
+
+  private mockInvalidatedTokenErrorHandler() {
+    const repository = this.getRepository()
+    if (
+      repository == null ||
+      repository instanceof CloningRepository ||
+      !isRepositoryWithGitHubRepository(repository)
+    ) {
+      return
+    }
+
+    this.props.dispatcher.mockOnTokenInvalidated(repository)
+  }
+
+  private mockUnableToLocateGitErrorHandler() {
+    this.props.dispatcher.showPopup({
+      type: PopupType.InstallGit,
+      path: '',
+    })
   }
 
   private mockInsufficientGitHubRepoPermissionsCreateForkErrorHandler() {

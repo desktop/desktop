@@ -5,7 +5,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IUntrustedCertificateProps {
   /** The untrusted certificate. */
-  readonly certificate: Electron.Certificate
+  readonly certificate: any
 
   /** The URL which was being accessed. */
   readonly url: string
@@ -17,7 +17,7 @@ interface IUntrustedCertificateProps {
    * The function to call when the user chooses to continue in the process of
    * trusting the certificate.
    */
-  readonly onContinue: (certificate: Electron.Certificate) => void
+  readonly onContinue: (certificate: any) => void
 }
 
 /**

@@ -55,3 +55,7 @@ export type MenuEvent =
   | 'push-rejected-missing-workflow-error-handler'
   | 'saml-reauth-required-error-handler'
   | 'insufficient-github-repo-permissions-create-fork-error-handler'
+  | 'unable-to-locate-git-error-handler'
+  | 'invalidated-token-error-handler'
+  | 'oversize-files-error-handler'
+  | 'untrusted-certificate-error-handler'

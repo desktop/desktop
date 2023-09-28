@@ -674,6 +674,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return zoomFactor
   }
 
+  public _mockOnTokenInvalidated = (endpoint: string) => {
+    const account = getAccountForEndpoint(this.accounts, endpoint)
+
+    if (account === null) {
+      return
+    }
+
+    this._showPopup({
+      type: PopupType.InvalidatedToken,
+      account,
+    })
+  }
+
   private onTokenInvalidated = (endpoint: string) => {
     const account = getAccountForEndpoint(this.accounts, endpoint)
 
