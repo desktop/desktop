@@ -75,6 +75,6 @@ export class UntrustedCertificate extends React.Component<
 
   private onContinue = () => {
     this.props.onDismissed()
-    this.props.onContinue(this.props.certificate)
+    // Prevent crash for lack of real cert.. this.props.onContinue(this.props.certificate)
   }
 }
