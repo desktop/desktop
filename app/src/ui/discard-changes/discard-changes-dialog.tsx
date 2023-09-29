@@ -21,6 +21,7 @@ interface IDiscardChangesProps {
    */
   readonly discardingAllChanges: boolean
   readonly showDiscardChangesSetting: boolean
+  readonly discardToTrash: boolean
   readonly onDismissed: () => void
   readonly onConfirmDiscardChangesChanged: (optOut: boolean) => void
 }
@@ -57,7 +58,7 @@ export class DiscardChanges extends React.Component<
     this.state = {
       isDiscardingChanges: false,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
-      moveToTrash: true,
+      moveToTrash: this.props.discardToTrash,
     }
   }
 

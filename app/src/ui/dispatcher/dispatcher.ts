@@ -2884,6 +2884,10 @@ export class Dispatcher {
     this.appStore._setUseWindowsOpenSSH(useWindowsOpenSSH)
   }
 
+  public setDiscardToTrash(discardToTrash: boolean) {
+    this.appStore._setDiscardToTrash(discardToTrash)
+  }
+
   public setShowCommitLengthWarning(showCommitLengthWarning: boolean) {
     this.appStore._setShowCommitLengthWarning(showCommitLengthWarning)
   }

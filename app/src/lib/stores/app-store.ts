@@ -351,6 +351,7 @@ const pullRequestFileListConfigKey: string = 'pull-request-files-width'
 
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
+const discardToTrashDefault: boolean = true
 const showCommitLengthWarningDefault: boolean = false
 const confirmDiscardChangesDefault: boolean = true
 const confirmDiscardChangesPermanentlyDefault: boolean = true
@@ -360,6 +361,7 @@ const askForConfirmationOnForcePushDefault = true
 const confirmUndoCommitDefault: boolean = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
+const discardToTrashKey: string = 'discardToTrash'
 const showCommitLengthWarningKey: string = 'showCommitLengthWarning'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmDiscardStashKey: string = 'confirmDiscardStash'
@@ -515,6 +517,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
 
   private useWindowsOpenSSH: boolean = false
+
+  private discardToTrash: boolean = discardToTrashDefault
 
   private showCommitLengthWarning: boolean = showCommitLengthWarningDefault
 
@@ -998,6 +1002,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentTheme: this.currentTheme,
       apiRepositories: this.apiRepositoriesStore.getState(),
       useWindowsOpenSSH: this.useWindowsOpenSSH,
+      discardToTrash: this.discardToTrash,
       showCommitLengthWarning: this.showCommitLengthWarning,
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
@@ -2104,6 +2109,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (getBoolean(showCommitLengthWarningKey) === undefined) {
       setBoolean(showCommitLengthWarningKey, true)
     }
+
+    this.discardToTrash = getBoolean(discardToTrashKey, discardToTrashDefault)
 
     this.showCommitLengthWarning = getBoolean(
       showCommitLengthWarningKey,
@@ -3555,6 +3562,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setUseWindowsOpenSSH(useWindowsOpenSSH: boolean) {
     setBoolean(UseWindowsOpenSSHKey, useWindowsOpenSSH)
     this.useWindowsOpenSSH = useWindowsOpenSSH
+
+    this.emitUpdate()
+  }
+
+  public _setDiscardToTrash(discardToTrash: boolean) {
+    setBoolean(discardToTrashKey, discardToTrash)
+    this.discardToTrash = discardToTrash
 
     this.emitUpdate()
   }

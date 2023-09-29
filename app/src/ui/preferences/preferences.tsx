@@ -88,6 +88,7 @@ interface IPreferencesState {
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
+  readonly discardToTrash: boolean
   readonly availableEditors: ReadonlyArray<string>
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
@@ -137,6 +138,7 @@ export class Preferences extends React.Component<
       confirmForcePush: false,
       confirmUndoCommit: false,
       uncommittedChangesStrategy: defaultUncommittedChangesStrategy,
+      discardToTrash: true,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
@@ -375,6 +377,7 @@ export class Preferences extends React.Component<
             confirmCheckoutCommit={this.state.confirmCheckoutCommit}
             confirmForcePush={this.state.confirmForcePush}
             confirmUndoCommit={this.state.confirmUndoCommit}
+            discardToTrash={this.state.discardToTrash}
             onConfirmRepositoryRemovalChanged={
               this.onConfirmRepositoryRemovalChanged
             }
@@ -394,6 +397,7 @@ export class Preferences extends React.Component<
             onShowCommitLengthWarningChanged={
               this.onShowCommitLengthWarningChanged
             }
+            onDiscardToTrashChanged={this.onDiscardToTrashChanged}
           />
         )
         break
@@ -484,6 +488,10 @@ export class Preferences extends React.Component<
     uncommittedChangesStrategy: UncommittedChangesStrategy
   ) => {
     this.setState({ uncommittedChangesStrategy })
+  }
+
+  private onDiscardToTrashChanged = (discardToTrash: boolean) => {
+    this.setState({ discardToTrash })
   }
 
   private onCommitterNameChanged = (committerName: string) => {
@@ -587,6 +595,7 @@ export class Preferences extends React.Component<
     }
 
     this.props.dispatcher.setUseWindowsOpenSSH(this.state.useWindowsOpenSSH)
+    this.props.dispatcher.setDiscardToTrash(this.state.discardToTrash)
     this.props.dispatcher.setShowCommitLengthWarning(
       this.state.showCommitLengthWarning
     )
