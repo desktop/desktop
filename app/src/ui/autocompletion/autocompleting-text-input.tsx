@@ -440,7 +440,7 @@ export abstract class AutocompletingTextInput<
     this.setState({
       caretCoordinates: {
         top: caretCoordinates.top - element.scrollTop,
-        left: caretCoordinates.left - element.scrollLeft,
+        left: element.scrollLeft && caretCoordinates.left - element.scrollLeft,
         height: caretCoordinates.height,
       },
     })
