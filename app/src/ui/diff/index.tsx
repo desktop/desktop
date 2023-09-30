@@ -33,6 +33,8 @@ import { SideBySideDiff } from './side-by-side-diff'
 import { enableExperimentalDiffViewer } from '../../lib/feature-flag'
 import { IFileContents } from './syntax-highlighting'
 import { SubmoduleDiff } from './submodule-diff'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 // image used when no diff is displayed
 const NoDiffImage = encodePathAsUrl(__dirname, 'static/ufo-alert.svg')
@@ -229,11 +231,24 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       }
 
       if (this.props.file.status.kind === AppFileStatusKind.Renamed) {
-        return (
-          <div className="panel renamed">
-            The file was renamed but not changed
-          </div>
-        )
+        // Check if it was changed too
+        if (this.props.file.status.renameIncludesModifications)
+        {
+          return (
+            <div className="panel renamed">
+               <Octicon symbol={OcticonSymbol.alert} />
+              The file was renamed and includes changes.
+            </div>
+          )
+        }
+        else
+        {
+          return (
+            <div className="panel renamed">
+              The file was renamed but not changed
+            </div>
+          )
+        }
       }
 
       if (
