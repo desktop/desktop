@@ -2442,6 +2442,13 @@ export class Dispatcher {
   }
 
   /**
+   * Set the application-wide tab size
+   */
+  public setSelectedTabSize(tabSize: number) {
+    return this.appStore._setSelectedTabSize(tabSize)
+  }
+
+  /**
    * Increments either the `repoWithIndicatorClicked` or
    * the `repoWithoutIndicatorClicked` metric
    */
