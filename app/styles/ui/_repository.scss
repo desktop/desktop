@@ -9,7 +9,7 @@
   height: 100%;
   min-height: 0;
 
-  > .focus-container {
+  >.focus-container {
     display: flex;
   }
 
@@ -26,6 +26,7 @@
       height: 100%;
       flex: 1 1 auto;
       min-height: 0;
+      overflow-x: hidden;
       overflow-y: auto;
     }
   }
