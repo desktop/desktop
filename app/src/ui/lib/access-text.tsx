@@ -78,6 +78,11 @@ export class AccessText extends React.Component<IAccessTextProps, {}> {
 
     const plainText = `${preText}${accessKeyText}${postText}`
 
+    // When adding this linter disable, I thought about changing this to use a
+    // screen reader only span instead of aria-label as I believe the purpose to
+    // to provide a label for screen readers... But wasn't 100% sure if that is
+    // it's purpose to be dug into later.
+    // eslint-disable-next-line github/a11y-role-supports-aria-props
     return <span aria-label={plainText}>{elements}</span>
   }
 }

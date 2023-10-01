@@ -54,6 +54,8 @@ interface ICommitMessageDialogProps {
    */
   readonly commitSpellcheckEnabled: boolean
 
+  readonly showCommitLengthWarning: boolean
+
   /** Text for the ok button */
   readonly dialogButtonText: string
 
@@ -140,6 +142,7 @@ export class CommitMessageDialog extends React.Component<
             aheadBehind={this.props.aheadBehind}
             showNoWriteAccess={this.props.showNoWriteAccess}
             commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
+            showCommitLengthWarning={this.props.showCommitLengthWarning}
             onCoAuthorsUpdated={this.onCoAuthorsUpdated}
             onShowCoAuthoredByChanged={this.onShowCoAuthorsChanged}
             onConfirmCommitWithUnknownCoAuthors={

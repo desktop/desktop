@@ -8,6 +8,7 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
 import { Repository } from '../../models/repository'
 import { DisposableLike } from 'event-kit'
+import { TooltippedContent } from '../lib/tooltipped-content'
 
 interface ICompareBranchListItemProps {
   readonly branch: Branch
@@ -126,12 +127,17 @@ export class CompareBranchListItem extends React.Component<
     return (
       <div className="branches-list-item">
         <Octicon className="icon" symbol={icon} />
-        <div className="name" title={branch.name}>
+        <TooltippedContent
+          className="name"
+          tooltip={branch.name}
+          onlyWhenOverflowed={true}
+          tagName="div"
+        >
           <HighlightText
             text={branch.name}
             highlight={this.props.matches.title}
           />
-        </div>
+        </TooltippedContent>
         {aheadBehindElement}
       </div>
     )

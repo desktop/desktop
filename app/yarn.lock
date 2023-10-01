@@ -1108,6 +1108,13 @@ re2js@^0.3.0:
   resolved "https://registry.yarnpkg.com/re2js/-/re2js-0.3.0.tgz#4d69d9bee8cb9eaf5ac35f9db36b23640e533ace"
   integrity sha512-FKfaeBtpUIbtqSBy5KnlRG3jVRCCPul5EUPzhaTfJ8peGZOVHl90c3jslCv6sW6/vmwMJ3eBXe8zLpoAdDDN8w==
 
+react-confetti@^6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/react-confetti/-/react-confetti-6.1.0.tgz#03dc4340d955acd10b174dbf301f374a06e29ce6"
+  integrity sha512-7Ypx4vz0+g8ECVxr88W9zhcQpbeujJAVqL14ZnXJ3I23mOI9/oBVTQ3dkJhUmB0D6XOtCZEM6N0Gm9PMngkORw==
+  dependencies:
+    tween-functions "^1.2.0"
+
 react-css-transition-replace@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/react-css-transition-replace/-/react-css-transition-replace-3.0.3.tgz#23d3ed17f54e41435c0485300adb75d2e6e24aad"
@@ -1475,6 +1482,11 @@ tunnel-agent@^0.6.0:
   integrity sha1-J6XeoGs2sEoKmWZ3SykIaPD8QP0=
   dependencies:
     safe-buffer "^5.0.1"
+
+tween-functions@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/tween-functions/-/tween-functions-1.2.0.tgz#1ae3a50e7c60bb3def774eac707acbca73bbc3ff"
+  integrity sha512-PZBtLYcCLtEcjL14Fzb1gSxPBeL7nWvGhO5ZFPGqziCcr8uvHp0NDmdjBchp6KHL+tExcg0m3NISmKxhU394dA==
 
 untildify@^3.0.2:
   version "3.0.2"

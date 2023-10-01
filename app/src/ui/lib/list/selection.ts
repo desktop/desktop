@@ -62,12 +62,21 @@ export interface ISelectAllSource {
   readonly kind: 'select-all'
 }
 
+/**
+ * Interface describing a user initiated selection change event originating
+ * when focusing the list when it has no selection.
+ */
+export interface IFocusSource {
+  readonly kind: 'focus'
+}
+
 /** A type union of possible sources of a selection changed event */
 export type SelectionSource =
   | IMouseClickSource
   | IHoverSource
   | IKeyboardSource
   | ISelectAllSource
+  | IFocusSource
 
 /**
  * Determine the next selectable row, given the direction and a starting

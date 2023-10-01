@@ -31,7 +31,10 @@ interface IDropdownSelectButtonProps {
   /** tooltip for the button */
   readonly tooltip?: string
 
-  /** aria label for the button */
+  /** aria-describedby for the button */
+  readonly ariaDescribedBy?: string
+
+  /** aria-label for the dropdown button */
   readonly dropdownAriaLabel: string
 
   /** Callback for when the button selection changes*/
@@ -363,6 +366,7 @@ export class DropdownSelectButton extends React.Component<
             className="invoke-button"
             disabled={disabled}
             type="submit"
+            ariaDescribedBy={this.props.ariaDescribedBy}
             tooltip={this.props.tooltip}
             onButtonRef={this.onInvokeButtonRef}
             onClick={this.onSubmit}

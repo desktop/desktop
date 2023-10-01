@@ -45,8 +45,13 @@ export class UndoCommit extends React.Component<IUndoCommitProps, {}> {
             renderUrlsAsLinks={false}
           />
         </div>
-        <div className="actions" title={title}>
-          <Button size="small" disabled={disabled} onClick={this.props.onUndo}>
+        <div className="actions">
+          <Button
+            size="small"
+            disabled={disabled}
+            onClick={this.props.onUndo}
+            tooltip={title}
+          >
             Undo
           </Button>
         </div>
