@@ -400,6 +400,7 @@ export abstract class AutocompletingTextInput<
       value: this.props.value,
       ref: this.onRef,
       onChange: this.onChange,
+      onScroll: this.onScroll,
       onKeyDown: this.onKeyDown,
       onFocus: this.onFocus,
       onBlur: this.onBlur,
@@ -422,6 +423,11 @@ export abstract class AutocompletingTextInput<
     )
   }
 
+  // This will update the caret coordinates in the componen state, so that the
+  // "invisible caret" can be positioned correctly.
+  // Given the outcome of this function depends on both the caret coordinates
+  // and the scroll position, it should be called whenever the caret moves (on
+  // text changes) or the scroll position changes.
   private updateCaretCoordinates = () => {
     const element = this.element
     if (!element) {
@@ -713,6 +719,10 @@ export abstract class AutocompletingTextInput<
 
   private buildAutocompleteListRowIdPrefix() {
     return new Date().getTime().toString()
+  }
+
+  private onScroll = () => {
+    this.updateCaretCoordinates()
   }
 
   private onChange = async (event: React.FormEvent<ElementType>) => {
