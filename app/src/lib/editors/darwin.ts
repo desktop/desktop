@@ -220,6 +220,10 @@ const editors: IDarwinExternalEditor[] = [
     name: 'Cursor',
     bundleIdentifiers: ['com.todesktop.230313mzl4w4u92'],
   },
+  {
+    name: 'RustRover',
+    bundleIdentifiers: ['com.jetbrains.RustRover'],
+  },
 ]
 
 async function findApplication(

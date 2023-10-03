@@ -39,6 +39,7 @@ These editors are currently supported:
  - [JetBrains PyCharm](https://www.jetbrains.com/pycharm/)
  - [JetBrains RubyMine](https://www.jetbrains.com/rubymine/)
  - [JetBrains GoLand](https://www.jetbrains.com/go/)
+- [JetBrains RustRover](https://www.jetbrains.com/rust/)
  - [Android Studio](https://developer.android.com/studio)
  - [Brackets](http://brackets.io/)
  - [Notepad++](https://notepad-plus-plus.org/)

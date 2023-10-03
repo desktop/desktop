@@ -151,6 +151,13 @@ const editors: ILinuxExternalEditor[] = [
     name: 'Pulsar',
     paths: ['/usr/bin/pulsar'],
   },
+  {
+    name: 'JetBrains RustRover',
+    paths: [
+      '/snap/bin/rustrover',
+      '.local/share/JetBrains/Toolbox/scripts/rustrover',
+    ],
+  },
 ]
 
 async function getAvailablePath(paths: string[]): Promise<string | null> {

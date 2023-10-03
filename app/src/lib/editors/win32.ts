@@ -498,6 +498,14 @@ const editors: WindowsExternalEditor[] = [
     displayNamePrefixes: ['Pulsar'],
     publishers: ['Pulsar-Edit'],
   },
+  {
+    name: 'JetBrains RustRover',
+    registryKeys: registryKeysForJetBrainsIDE('RustRover'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('rustrover'),
+    jetBrainsToolboxScriptName: 'rustrover',
+    displayNamePrefixes: ['RustRover '],
+    publishers: ['JetBrains s.r.o.'],
+  },
 ]
 
 function getKeyOrEmpty(
