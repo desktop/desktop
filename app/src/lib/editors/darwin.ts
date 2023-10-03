@@ -219,7 +219,7 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'Cursor',
     bundleIdentifiers: ['com.todesktop.230313mzl4w4u92'],
-  }
+  },
 ]
 
 async function findApplication(
