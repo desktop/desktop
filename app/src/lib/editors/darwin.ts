@@ -216,6 +216,10 @@ const editors: IDarwinExternalEditor[] = [
     name: 'Zed (Preview)',
     bundleIdentifiers: ['dev.zed.Zed-Preview'],
   },
+  {
+    name: 'Cursor',
+    bundleIdentifiers: ['com.todesktop.230313mzl4w4u92'],
+  },
 ]
 
 async function findApplication(
