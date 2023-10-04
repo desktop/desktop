@@ -63,6 +63,7 @@ import {
 import { IMenuItem } from '../../lib/menu-item'
 import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
 import { escapeRegExp } from 'lodash'
+import { findDOMNode } from 'react-dom'
 
 const DefaultRowHeight = 20
 
@@ -226,6 +227,11 @@ export class SideBySideDiff extends React.Component<
 
   private textSelectionStartRow: number | undefined = undefined
   private textSelectionEndRow: number | undefined = undefined
+
+  private readonly hunkExpansionRefs = new Map<
+    number,
+    { expansionType: DiffHunkExpansionType; button: HTMLButtonElement }
+  >()
 
   public constructor(props: ISideBySideDiffProps) {
     super(props)
@@ -412,6 +418,41 @@ export class SideBySideDiff extends React.Component<
         }
       }
     }
+
+    if (this.state.lastExpandedHunk !== prevState.lastExpandedHunk) {
+      this.focusAfterLastExpandedHunkChange()
+    }
+  }
+
+  private focusAfterLastExpandedHunkChange() {
+    if (this.state.lastExpandedHunk === null) {
+      return
+    }
+
+    const diffNode = findDOMNode(this.virtualListRef.current)
+    const diff = diffNode instanceof HTMLElement ? diffNode : null
+
+    if (this.hunkExpansionRefs.size === 0) {
+      diff?.focus()
+      return
+    }
+
+    const { expansionType, index } = this.state.lastExpandedHunk
+
+    const hunk = this.hunkExpansionRefs.get(index)
+    const lastHunk = this.hunkExpansionRefs.get(this.hunkExpansionRefs.size - 1)
+
+    if (hunk?.expansionType === expansionType) {
+      hunk?.button.focus()
+      return
+    }
+
+    if (lastHunk?.expansionType === expansionType) {
+      lastHunk?.button.focus()
+      return
+    }
+
+    diff?.focus()
   }
 
   private canExpandDiff() {
@@ -587,11 +628,23 @@ export class SideBySideDiff extends React.Component<
             }
             beforeClassNames={beforeClassNames}
             afterClassNames={afterClassNames}
-            lastExpandedHunk={this.state.lastExpandedHunk}
+            onHunkExpansionRef={this.onHunkExpansionRef}
           />
         </div>
       </CellMeasurer>
     )
+  }
+
+  private onHunkExpansionRef = (
+    hunkIndex: number,
+    expansionType: DiffHunkExpansionType,
+    button: HTMLButtonElement | null
+  ) => {
+    if (button === null) {
+      this.hunkExpansionRefs.delete(hunkIndex)
+    } else {
+      this.hunkExpansionRefs.set(hunkIndex, { expansionType, button })
+    }
   }
 
   private getRowHeight = (row: { index: number }) => {
