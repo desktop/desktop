@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-autofocus */
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
 import {
@@ -265,8 +266,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             label="Authentication code"
             value={this.state.otpToken}
             onValueChanged={this.onOTPTokenChanged}
-            labelLinkText={`What's this?`}
-            labelLinkUri="https://help.github.com/articles/providing-your-2fa-authentication-code/"
             autoFocus={true}
           />
         </Row>

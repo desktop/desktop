@@ -520,6 +520,27 @@ export interface IDailyMeasures {
    * from the "changes requested" dialog.
    */
   readonly pullRequestReviewChangesRequestedDialogSwitchToPullRequestCount: number
+
+  /** The number of times the user did a multi commit diff where there were unreachable commits */
+  readonly multiCommitDiffWithUnreachableCommitWarningCount: number
+
+  /** The number of times the user does a multi commit diff from the history view */
+  readonly multiCommitDiffFromHistoryCount: number
+
+  /** The number of times the user does a multi commit diff from the compare */
+  readonly multiCommitDiffFromCompareCount: number
+
+  /** The number of times the user opens the unreachable commits dialog */
+  readonly multiCommitDiffUnreachableCommitsDialogOpenedCount: number
+
+  /** The number of times the user opens a submodule diff from the changes list */
+  readonly submoduleDiffViewedFromChangesListCount: number
+
+  /** The number of times the user opens a submodule diff from the History view */
+  readonly submoduleDiffViewedFromHistoryCount: number
+
+  /** The number of times the user opens a submodule repository from its diff */
+  readonly openSubmoduleFromDiffCount: number
 }
 
 export class StatsDatabase extends Dexie {

@@ -16,7 +16,7 @@ import { AccountsStore } from './accounts-store'
 import { getCommit } from '../git'
 import { GitHubRepository } from '../../models/github-repository'
 import { PullRequestCoordinator } from './pull-request-coordinator'
-import { Commit } from '../../models/commit'
+import { Commit, shortenSHA } from '../../models/commit'
 import {
   AliveStore,
   DesktopAliveEvent,
@@ -28,7 +28,6 @@ import { showNotification } from '../notifications/show-notification'
 import { StatsStore } from '../stats'
 import { truncateWithEllipsis } from '../truncate-with-ellipsis'
 import { getVerbForPullRequestReview } from '../../ui/notifications/pull-request-review-helpers'
-import { enablePullRequestReviewNotifications } from '../feature-flag'
 import {
   isValidNotificationPullRequestReview,
   ValidNotificationPullRequestReview,
@@ -117,10 +116,6 @@ export class NotificationsStore {
     event: IDesktopPullRequestReviewSubmitAliveEvent,
     skipNotification: boolean
   ) {
-    if (!enablePullRequestReviewNotifications()) {
-      return
-    }
-
     const repository = this.repository
     if (repository === null) {
       return
@@ -258,7 +253,7 @@ export class NotificationsStore {
     const pluralChecks =
       numberOfFailedChecks === 1 ? 'check was' : 'checks were'
 
-    const shortSHA = commitSHA.slice(0, 9)
+    const shortSHA = shortenSHA(commitSHA)
     const title = 'Pull Request checks failed'
     const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
     const onClick = () => {

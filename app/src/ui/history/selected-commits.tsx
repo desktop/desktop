@@ -35,6 +35,7 @@ import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { pathExists } from '../lib/path-exists'
 import { enableMultiCommitDiffs } from '../../lib/feature-flag'
+import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository
@@ -42,6 +43,7 @@ interface ISelectedCommitsProps {
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly selectedCommits: ReadonlyArray<Commit>
+  readonly shasInDiff: ReadonlyArray<string>
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly changesetData: IChangesetData
   readonly selectedFile: CommittedFileChange | null
@@ -68,6 +70,9 @@ interface ISelectedCommitsProps {
    * system-assigned application for said file type.
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
+
+  /** Called when the user requests to open a submodule. */
+  readonly onOpenSubmodule: (fullPath: string) => void
 
   /**
    * Called when the user is viewing an image diff and requests
@@ -159,6 +164,7 @@ export class SelectedCommits extends React.Component<
         onOpenBinaryFile={this.props.onOpenBinaryFile}
         onChangeImageDiffType={this.props.onChangeImageDiffType}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+        onOpenSubmodule={this.props.onOpenSubmodule}
       />
     )
   }
@@ -166,7 +172,8 @@ export class SelectedCommits extends React.Component<
   private renderCommitSummary(commits: ReadonlyArray<Commit>) {
     return (
       <CommitSummary
-        commits={commits}
+        selectedCommits={commits}
+        shasInDiff={this.props.shasInDiff}
         changesetData={this.props.changesetData}
         emoji={this.props.emoji}
         repository={this.props.repository}
@@ -179,7 +186,20 @@ export class SelectedCommits extends React.Component<
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
         onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
         onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+        onHighlightShas={this.onHighlightShas}
+        showUnreachableCommits={this.showUnreachableCommits}
       />
+    )
+  }
+
+  private showUnreachableCommits = (selectedTab: UnreachableCommitsTab) => {
+    this.props.dispatcher.showUnreachableCommits(selectedTab)
+  }
+
+  private onHighlightShas = (shasToHighlight: ReadonlyArray<string>) => {
+    this.props.dispatcher.updateShasToHighlight(
+      this.props.repository,
+      shasToHighlight
     )
   }
 
@@ -300,7 +320,7 @@ export class SelectedCommits extends React.Component<
     return (
       <div id="multiple-commits-selected" className="blankslate">
         <div className="panel blankslate">
-          <img src={BlankSlateImage} className="blankslate-image" />
+          <img src={BlankSlateImage} className="blankslate-image" alt="" />
           <div>
             <p>
               Unable to display diff when multiple{' '}
@@ -425,7 +445,7 @@ function NoCommitSelected() {
 
   return (
     <div className="panel blankslate">
-      <img src={BlankSlateImage} className="blankslate-image" />
+      <img src={BlankSlateImage} className="blankslate-image" alt="" />
       No commit selected
     </div>
   )

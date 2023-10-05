@@ -20,7 +20,12 @@ export class ImageContainer extends React.Component<IImageProps, {}> {
 
     return (
       <div className="image-wrapper">
-        <img src={imageSource} style={this.props.style} onLoad={this.onLoad} />
+        <img
+          src={imageSource}
+          style={this.props.style}
+          onLoad={this.onLoad}
+          alt=""
+        />
       </div>
     )
   }

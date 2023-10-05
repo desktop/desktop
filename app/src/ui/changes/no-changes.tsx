@@ -704,9 +704,9 @@ export class NoChanges extends React.Component<
 
   public render() {
     return (
-      <div id="no-changes">
+      <div className="changes-interstitial">
         <div className="content">
-          <div className="header">
+          <div className="interstitial-header">
             <div className="text">
               <h1>No local changes</h1>
               <p>
@@ -714,7 +714,7 @@ export class NoChanges extends React.Component<
                 some friendly suggestions for what to do next.
               </p>
             </div>
-            <img src={PaperStackImage} className="blankslate-image" />
+            <img src={PaperStackImage} className="blankslate-image" alt="" />
           </div>
           {this.renderActions()}
         </div>

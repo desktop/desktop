@@ -27,6 +27,7 @@
     .commit-summary-description-scroll-view {
       max-height: 400px;
       overflow: auto;
+      display: revert;
 
       &:before {
         content: none;
@@ -58,6 +59,21 @@
         width: 100%;
         pointer-events: none;
       }
+    }
+  }
+
+  .commit-unreachable-info {
+    padding: var(--spacing-half) var(--spacing);
+    border-bottom: var(--base-border);
+    display: flex;
+    align-items: center;
+
+    .octicon {
+      margin-right: var(--spacing-half);
+    }
+
+    .link-button-component {
+      margin-right: var(--spacing-half);
     }
   }
 }
@@ -103,9 +119,11 @@
 
   &-description-scroll-view {
     overflow: hidden;
-    // The extra pixel makes the space align up with the commit list.
-    max-height: 69px;
     flex: 1;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    // Maximum amount of commit description lines to show before collapsing
+    -webkit-line-clamp: 3;
   }
 
   // Enable text selection inside the title and description elements.

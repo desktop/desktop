@@ -258,6 +258,7 @@ export class BranchesContainer extends React.Component<
     const label = __DARWIN__ ? 'New Branch' : 'New branch'
 
     return (
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
         className="branches-list-item new-branch-drop"
         onMouseEnter={this.onMouseEnterNewBranchDrop}

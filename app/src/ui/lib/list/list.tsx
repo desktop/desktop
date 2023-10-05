@@ -78,6 +78,11 @@ interface IListProps {
   readonly selectedRows: ReadonlyArray<number>
 
   /**
+   * Used to attach special classes to specific rows
+   */
+  readonly rowCustomClassNameMap?: Map<string, ReadonlyArray<number>>
+
+  /**
    * This function will be called when a pointer device is pressed and then
    * released on a selectable row. Note that this follows the conventions
    * of button elements such that pressing Enter or Space on a keyboard
@@ -524,11 +529,15 @@ export class List extends React.Component<IListProps, IListState> {
       this.props.onRowKeyDown(rowIndex, event)
     }
 
+    const hasModifier =
+      event.altKey || event.ctrlKey || event.metaKey || event.shiftKey
+
     // We give consumers the power to prevent the onRowClick event by subscribing
     // to the onRowKeyDown event and calling event.preventDefault. This lets
     // consumers add their own semantics for keyboard presses.
     if (
       !event.defaultPrevented &&
+      !hasModifier &&
       (event.key === 'Enter' || event.key === ' ')
     ) {
       this.toggleSelection(event)
@@ -537,8 +546,12 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private onFocusContainerKeyDown = (event: React.KeyboardEvent<any>) => {
+    const hasModifier =
+      event.altKey || event.ctrlKey || event.metaKey || event.shiftKey
+
     if (
       !event.defaultPrevented &&
+      !hasModifier &&
       (event.key === 'Enter' || event.key === ' ')
     ) {
       this.toggleSelection(event)
@@ -791,10 +804,30 @@ export class List extends React.Component<IListProps, IListState> {
     this.focusRow = -1
   }
 
+  private getCustomRowClassNames = (rowIndex: number) => {
+    const { rowCustomClassNameMap } = this.props
+    if (rowCustomClassNameMap === undefined) {
+      return undefined
+    }
+
+    const customClasses = new Array<string>()
+    rowCustomClassNameMap.forEach(
+      (rows: ReadonlyArray<number>, className: string) => {
+        if (rows.includes(rowIndex)) {
+          customClasses.push(className)
+        }
+      }
+    )
+
+    return customClasses.length === 0 ? undefined : customClasses.join(' ')
+  }
+
   private renderRow = (params: IRowRendererParams) => {
     const rowIndex = params.rowIndex
     const selectable = this.canSelectRow(rowIndex)
     const selected = this.props.selectedRows.indexOf(rowIndex) !== -1
+    const customClasses = this.getCustomRowClassNames(rowIndex)
+
     const focused = rowIndex === this.focusRow
 
     // An unselectable row shouldn't be focusable
@@ -843,13 +876,13 @@ export class List extends React.Component<IListProps, IListState> {
         tabIndex={tabIndex}
         children={element}
         selectable={selectable}
+        className={customClasses}
       />
     )
   }
 
   public render() {
     let content: JSX.Element[] | JSX.Element | null
-
     if (this.resizeObserver) {
       content = this.renderContents(
         this.state.width ?? 0,
@@ -877,6 +910,7 @@ export class List extends React.Component<IListProps, IListState> {
     const role = this.props.ariaMode === 'menu' ? 'menu' : 'listbox'
 
     return (
+      // eslint-disable-next-line jsx-a11y/aria-activedescendant-has-tabindex
       <div
         ref={this.onRef}
         id={this.props.id}
@@ -932,7 +966,6 @@ export class List extends React.Component<IListProps, IListState> {
     // it with keyboard navigation and select an item.
     const tabIndex =
       this.props.selectedRows.length < 1 && this.props.rowCount > 0 ? 0 : -1
-
     return (
       <FocusContainer
         className="list-focus-container"
@@ -940,6 +973,7 @@ export class List extends React.Component<IListProps, IListState> {
       >
         <Grid
           aria-label={''}
+          // eslint-disable-next-line jsx-a11y/aria-role
           role={''}
           ref={this.onGridRef}
           autoContainerWidth={true}

@@ -14,13 +14,14 @@ import { Commit, CommitOneLine, ICommitContext } from './commit'
 import { IStashEntry } from './stash-entry'
 import { Account } from '../models/account'
 import { Progress } from './progress'
-import { ITextDiff, DiffSelection } from './diff'
+import { ITextDiff, DiffSelection, ImageDiffType } from './diff'
 import { RepositorySettingsTab } from '../ui/repository-settings/repository-settings'
 import { ICommitMessage } from './commit-message'
 import { IAuthor } from './author'
 import { IRefCheck } from '../lib/ci-checks/ci-checks'
 import { GitHubRepository } from './github-repository'
 import { ValidNotificationPullRequestReview } from '../lib/valid-notification-pull-request-review'
+import { UnreachableCommitsTab } from '../ui/history/unreachable-commits-dialog'
 
 export enum PopupType {
   RenameBranch = 1,
@@ -84,6 +85,8 @@ export enum PopupType {
   WarnForcePush,
   DiscardChangesRetry,
   PullRequestReview,
+  UnreachableCommits,
+  StartPullRequest,
 }
 
 export type Popup =
@@ -352,4 +355,20 @@ export type Popup =
       numberOfComments: number
       shouldCheckoutBranch: boolean
       shouldChangeRepository: boolean
+    }
+  | {
+      type: PopupType.UnreachableCommits
+      selectedTab: UnreachableCommitsTab
+    }
+  | {
+      type: PopupType.StartPullRequest
+      allBranches: ReadonlyArray<Branch>
+      currentBranch: Branch
+      defaultBranch: Branch | null
+      externalEditorLabel?: string
+      imageDiffType: ImageDiffType
+      recentBranches: ReadonlyArray<Branch>
+      repository: Repository
+      nonLocalCommitSHA: string | null
+      showSideBySideDiff: boolean
     }

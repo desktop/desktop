@@ -50,6 +50,7 @@ interface IRepositoryViewProps {
   readonly hideWhitespaceInHistoryDiff: boolean
   readonly showSideBySideDiff: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
+  readonly askForConfirmationOnDiscardStash: boolean
   readonly focusCommitMessage: boolean
   readonly commitSpellcheckEnabled: boolean
   readonly accounts: ReadonlyArray<Account>
@@ -219,6 +220,8 @@ export class RepositoryView extends React.Component<
           this.props.askForConfirmationOnDiscardChanges
         }
         accounts={this.props.accounts}
+        isShowingModal={this.props.isShowingModal}
+        isShowingFoldout={this.props.isShowingFoldout}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         onChangesListScrolled={this.onChangesListScrolled}
@@ -265,6 +268,7 @@ export class RepositoryView extends React.Component<
         isLocalRepository={remote === null}
         compareState={compareState}
         selectedCommitShas={shas}
+        shasToHighlight={compareState.shasToHighlight}
         currentBranch={currentBranch}
         emoji={emoji}
         commitLookup={commitLookup}
@@ -352,9 +356,13 @@ export class RepositoryView extends React.Component<
           fileListWidth={this.props.stashedFilesWidth}
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
+          askForConfirmationOnDiscardStash={
+            this.props.askForConfirmationOnDiscardStash
+          }
           isWorkingTreeClean={isWorkingTreeClean}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onOpenBinaryFile={this.onOpenBinaryFile}
+          onOpenSubmodule={this.onOpenSubmodule}
           onChangeImageDiffType={this.onChangeImageDiffType}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
         />
@@ -373,7 +381,8 @@ export class RepositoryView extends React.Component<
 
   private renderContentForHistory(): JSX.Element {
     const { commitSelection, commitLookup, localCommitSHAs } = this.props.state
-    const { changesetData, file, diff, shas, isContiguous } = commitSelection
+    const { changesetData, file, diff, shas, shasInDiff, isContiguous } =
+      commitSelection
 
     const selectedCommits = []
     for (const sha of shas) {
@@ -393,6 +402,7 @@ export class RepositoryView extends React.Component<
         isLocalRepository={this.props.state.remote === null}
         dispatcher={this.props.dispatcher}
         selectedCommits={selectedCommits}
+        shasInDiff={shasInDiff}
         isContiguous={isContiguous}
         localCommitSHAs={localCommitSHAs}
         changesetData={changesetData}
@@ -407,6 +417,7 @@ export class RepositoryView extends React.Component<
         hideWhitespaceInDiff={this.props.hideWhitespaceInHistoryDiff}
         showSideBySideDiff={this.props.showSideBySideDiff}
         onOpenBinaryFile={this.onOpenBinaryFile}
+        onOpenSubmodule={this.onOpenSubmodule}
         onChangeImageDiffType={this.onChangeImageDiffType}
         onDiffOptionsOpened={this.onDiffOptionsOpened}
         showDragOverlay={showDragOverlay}
@@ -484,6 +495,7 @@ export class RepositoryView extends React.Component<
           hideWhitespaceInDiff={this.props.hideWhitespaceInChangesDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onOpenBinaryFile={this.onOpenBinaryFile}
+          onOpenSubmodule={this.onOpenSubmodule}
           onChangeImageDiffType={this.onChangeImageDiffType}
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
@@ -496,6 +508,11 @@ export class RepositoryView extends React.Component<
 
   private onOpenBinaryFile = (fullPath: string) => {
     openFile(fullPath, this.props.dispatcher)
+  }
+
+  private onOpenSubmodule = (fullPath: string) => {
+    this.props.dispatcher.recordOpenSubmoduleFromDiffCount()
+    this.props.dispatcher.openOrAddRepository(fullPath)
   }
 
   private onChangeImageDiffType = (imageDiffType: ImageDiffType) => {

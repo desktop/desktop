@@ -201,7 +201,9 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   }
 
   private renderBackgroundGraphics() {
-    return <img className="background-graphic-bottom" src={BottomImageUri} />
+    return (
+      <img className="background-graphic-bottom" alt="" src={BottomImageUri} />
+    )
   }
 
   public render() {

@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react'
 import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
@@ -8,7 +10,6 @@ import { TooltippedContent } from '../lib/tooltipped-content'
 import { CICheckRunActionsJobStepList } from './ci-check-run-actions-job-step-list'
 import { IAPIWorkflowJobStep } from '../../lib/api'
 import { TooltipDirection } from '../lib/tooltip'
-import { enableReRunFailedAndSingleCheckJobs } from '../../lib/feature-flag'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -170,11 +171,7 @@ export class CICheckRunListItem extends React.PureComponent<
     const { checkRun, onRerunJob } = this.props
     const { isMouseOver } = this.state
 
-    if (
-      !isMouseOver ||
-      onRerunJob === undefined ||
-      !enableReRunFailedAndSingleCheckJobs()
-    ) {
+    if (!isMouseOver || onRerunJob === undefined) {
       return null
     }
 
@@ -214,6 +211,7 @@ export class CICheckRunListItem extends React.PureComponent<
         <div
           className={classes}
           onClick={this.toggleCheckRunExpansion}
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
           tabIndex={0}
         >
           {this.renderCheckStatusSymbol()}

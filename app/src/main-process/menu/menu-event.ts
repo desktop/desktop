@@ -16,7 +16,7 @@ export type MenuEvent =
   | 'show-preferences'
   | 'choose-repository'
   | 'open-working-directory'
-  | 'update-branch'
+  | 'update-branch-with-contribution-target-branch'
   | 'compare-to-branch'
   | 'merge-branch'
   | 'squash-and-merge-branch'
@@ -42,3 +42,4 @@ export type MenuEvent =
   | 'find-text'
   | 'create-issue-in-repository-on-github'
   | 'pull-request-check-run-failed'
+  | 'start-pull-request'

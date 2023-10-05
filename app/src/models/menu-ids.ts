@@ -5,7 +5,7 @@ export type MenuIDs =
   | 'discard-all-changes'
   | 'stash-all-changes'
   | 'preferences'
-  | 'update-branch'
+  | 'update-branch-with-contribution-target-branch'
   | 'merge-branch'
   | 'squash-and-merge-branch'
   | 'rebase-branch'
@@ -35,3 +35,4 @@ export type MenuIDs =
   | 'compare-to-branch'
   | 'toggle-stashed-changes'
   | 'create-issue-in-repository-on-github'
+  | 'start-pull-request'

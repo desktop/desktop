@@ -106,7 +106,6 @@ import { resolveWithin } from '../../lib/path'
 import { CherryPickResult } from '../../lib/git/cherry-pick'
 import { sleep } from '../../lib/promise'
 import { DragElement, DragType } from '../../models/drag-drop'
-import { findDefaultUpstreamBranch } from '../../lib/branch'
 import { ILastThankYou } from '../../models/last-thank-you'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import {
@@ -119,7 +118,7 @@ import {
 import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
-import { enableReRunFailedAndSingleCheckJobs } from '../../lib/feature-flag'
+import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
 
 /**
  * An error handler function.
@@ -237,8 +236,16 @@ export class Dispatcher {
     repository: Repository,
     shas: ReadonlyArray<string>,
     isContiguous: boolean
-  ): Promise<void> {
+  ): void {
     return this.appStore._changeCommitSelection(repository, shas, isContiguous)
+  }
+
+  /** Update the shas that should be highlighted */
+  public updateShasToHighlight(
+    repository: Repository,
+    shasToHighlight: ReadonlyArray<string>
+  ) {
+    this.appStore._updateShasToHighlight(repository, shasToHighlight)
   }
 
   /**
@@ -1948,6 +1955,23 @@ export class Dispatcher {
     })
   }
 
+  public async openOrAddRepository(path: string): Promise<Repository | null> {
+    const state = this.appStore.getState()
+    const repositories = state.repositories
+    const existingRepository = repositories.find(r => r.path === path)
+
+    if (existingRepository) {
+      return await this.selectRepository(existingRepository)
+    }
+
+    return this.appStore._startOpenInDesktop(() => {
+      this.showPopup({
+        type: PopupType.AddRepository,
+        path,
+      })
+    })
+  }
+
   /**
    * Install the CLI tool.
    *
@@ -2092,6 +2116,19 @@ export class Dispatcher {
     file: CommittedFileChange | null = null
   ): Promise<void> {
     return this.appStore._setHideWhitespaceInHistoryDiff(
+      hideWhitespaceInDiff,
+      repository,
+      file
+    )
+  }
+
+  /** Change the hide whitespace in pull request diff setting */
+  public onHideWhitespaceInPullRequestDiffChanged(
+    hideWhitespaceInDiff: boolean,
+    repository: Repository,
+    file: CommittedFileChange | null = null
+  ) {
+    this.appStore._setHideWhitespaceInPullRequestDiff(
       hideWhitespaceInDiff,
       repository,
       file
@@ -2314,8 +2351,16 @@ export class Dispatcher {
     await this.appStore._loadStatus(repository)
   }
 
+  public setConfirmDiscardStashSetting(value: boolean) {
+    return this.appStore._setConfirmDiscardStashSetting(value)
+  }
+
   public setConfirmForcePushSetting(value: boolean) {
     return this.appStore._setConfirmForcePushSetting(value)
+  }
+
+  public setConfirmUndoCommitSetting(value: boolean) {
+    return this.appStore._setConfirmUndoCommitSetting(value)
   }
 
   /**
@@ -2343,6 +2388,11 @@ export class Dispatcher {
    */
   public mergeConflictDetectedFromExplicitMerge() {
     return this.statsStore.recordMergeConflictFromExplicitMerge()
+  }
+
+  /** Increments the `openSubmoduleFromDiffCount` metric */
+  public recordOpenSubmoduleFromDiffCount() {
+    return this.statsStore.recordOpenSubmoduleFromDiffCount()
   }
 
   /**
@@ -2544,11 +2594,7 @@ export class Dispatcher {
     const promises = new Array<Promise<boolean>>()
 
     // If it is one and in actions check, we can rerun it individually.
-    if (
-      checkRuns.length === 1 &&
-      checkRuns[0].actionsWorkflow !== undefined &&
-      enableReRunFailedAndSingleCheckJobs()
-    ) {
+    if (checkRuns.length === 1 && checkRuns[0].actionsWorkflow !== undefined) {
       promises.push(
         this.commitStatusStore.rerunJob(repository, checkRuns[0].id)
       )
@@ -2558,11 +2604,7 @@ export class Dispatcher {
     const checkSuiteIds = new Set<number>()
     const workflowRunIds = new Set<number>()
     for (const cr of checkRuns) {
-      if (
-        failedOnly &&
-        cr.actionsWorkflow !== undefined &&
-        enableReRunFailedAndSingleCheckJobs()
-      ) {
+      if (failedOnly && cr.actionsWorkflow !== undefined) {
         workflowRunIds.add(cr.actionsWorkflow.id)
         continue
       }
@@ -3208,7 +3250,8 @@ export class Dispatcher {
     sourceBranch: Branch | null
   ): Promise<void> {
     const { branchesState } = this.repositoryStateManager.get(repository)
-    const { defaultBranch, allBranches, tip } = branchesState
+    const { defaultBranch, upstreamDefaultBranch, allBranches, tip } =
+      branchesState
 
     if (tip.kind !== TipState.Valid) {
       this.appStore._clearCherryPickingHead(repository, null)
@@ -3220,12 +3263,6 @@ export class Dispatcher {
     const isGHRepo = isRepositoryWithGitHubRepository(repository)
     const upstreamGhRepo = isGHRepo
       ? getNonForkGitHubRepository(repository as RepositoryWithGitHubRepository)
-      : null
-    const upstreamDefaultBranch = isGHRepo
-      ? findDefaultUpstreamBranch(
-          repository as RepositoryWithGitHubRepository,
-          allBranches
-        )
       : null
 
     this.initializeMultiCommitOperation(
@@ -3930,5 +3967,46 @@ export class Dispatcher {
     reviewType: ValidNotificationPullRequestReviewState
   ) {
     this.statsStore.recordPullRequestReviewDialogSwitchToPullRequest(reviewType)
+  }
+
+  public showUnreachableCommits(selectedTab: UnreachableCommitsTab) {
+    this.statsStore.recordMultiCommitDiffUnreachableCommitsDialogOpenedCount()
+
+    this.showPopup({
+      type: PopupType.UnreachableCommits,
+      selectedTab,
+    })
+  }
+
+  public startPullRequest(repository: Repository) {
+    this.appStore._startPullRequest(repository)
+  }
+
+  /**
+   * Change the selected changed file of the current pull request state.
+   */
+  public changePullRequestFileSelection(
+    repository: Repository,
+    file: CommittedFileChange
+  ): Promise<void> {
+    return this.appStore._changePullRequestFileSelection(repository, file)
+  }
+
+  /**
+   * Set the width of the file list column in the pull request files changed
+   */
+  public setPullRequestFileListWidth(width: number): Promise<void> {
+    return this.appStore._setPullRequestFileListWidth(width)
+  }
+
+  /**
+   * Reset the width of the file list column in the pull request files changed
+   */
+  public resetPullRequestFileListWidth(): Promise<void> {
+    return this.appStore._resetPullRequestFileListWidth()
+  }
+
+  public updatePullRequestBaseBranch(repository: Repository, branch: Branch) {
+    this.appStore._updatePullRequestBaseBranch(repository, branch)
   }
 }

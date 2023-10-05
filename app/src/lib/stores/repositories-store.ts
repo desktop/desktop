@@ -28,7 +28,6 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
-import { enableRepositoryAliases } from '../feature-flag'
 
 type AddRepositoryOptions = {
   missing?: boolean
@@ -130,7 +129,6 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.id,
       repo.private,
       repo.htmlURL,
-      repo.defaultBranch,
       repo.cloneURL,
       repo.issuesEnabled,
       repo.isArchived,
@@ -152,7 +150,7 @@ export class RepositoriesStore extends TypedBaseStore<
         ? await this.findGitHubRepositoryByID(repo.gitHubRepositoryID)
         : await Promise.resolve(null), // Dexie gets confused if we return null
       repo.missing,
-      enableRepositoryAliases() ? repo.alias : null,
+      repo.alias,
       repo.workflowPreferences,
       repo.isTutorialRepository
     )
@@ -449,7 +447,6 @@ export class RepositoriesStore extends TypedBaseStore<
 
         const skeletonRepo: IDatabaseGitHubRepository = {
           cloneURL: null,
-          defaultBranch: null,
           htmlURL: null,
           lastPruneDate: null,
           name: match.name,
@@ -557,7 +554,6 @@ export class RepositoriesStore extends TypedBaseStore<
       name: gitHubRepository.name,
       private: gitHubRepository.private,
       htmlURL: gitHubRepository.html_url,
-      defaultBranch: gitHubRepository.default_branch,
       cloneURL: gitHubRepository.clone_url,
       parentID,
       lastPruneDate: existingRepo?.lastPruneDate ?? null,

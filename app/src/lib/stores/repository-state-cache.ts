@@ -18,13 +18,18 @@ import {
   ChangesSelectionKind,
   IMultiCommitOperationUndoState,
   IMultiCommitOperationState,
+  IPullRequestState,
 } from '../app-state'
 import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
+import { StatsStore } from '../stats'
+import { enableSubmoduleDiff } from '../feature-flag'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
+
+  public constructor(private readonly statsStore: StatsStore) {}
 
   /** Get the state for the repository. */
   public get(repository: Repository): IRepositoryState {
@@ -84,8 +89,49 @@ export class RepositoryStateCache {
     this.update(repository, state => {
       const changesState = state.changesState
       const newState = merge(changesState, fn(changesState))
+      this.recordSubmoduleDiffViewedFromChangesListIfNeeded(
+        changesState,
+        newState
+      )
       return { changesState: newState }
     })
+  }
+
+  private recordSubmoduleDiffViewedFromChangesListIfNeeded(
+    oldState: IChangesState,
+    newState: IChangesState
+  ) {
+    if (!enableSubmoduleDiff()) {
+      return
+    }
+
+    // Make sure only one file is selected from the current commit
+    if (
+      newState.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
+      newState.selection.selectedFileIDs.length !== 1
+    ) {
+      return
+    }
+
+    const newFile = newState.workingDirectory.findFileWithID(
+      newState.selection.selectedFileIDs[0]
+    )
+
+    // Make sure that file is a submodule
+    if (newFile === null || newFile.status.submoduleStatus === undefined) {
+      return
+    }
+
+    // If the old state was also a submodule, make sure it's a different one
+    if (
+      oldState.selection.kind === ChangesSelectionKind.WorkingDirectory &&
+      oldState.selection.selectedFileIDs.length === 1 &&
+      oldState.selection.selectedFileIDs[0] === newFile.id
+    ) {
+      return
+    }
+
+    this.statsStore.recordSubmoduleDiffViewedFromChangesList()
   }
 
   public updateCommitSelection<K extends keyof ICommitSelection>(
@@ -95,8 +141,30 @@ export class RepositoryStateCache {
     this.update(repository, state => {
       const { commitSelection } = state
       const newState = merge(commitSelection, fn(commitSelection))
+      this.recordSubmoduleDiffViewedFromHistoryIfNeeded(
+        commitSelection,
+        newState
+      )
       return { commitSelection: newState }
     })
+  }
+
+  private recordSubmoduleDiffViewedFromHistoryIfNeeded(
+    oldState: ICommitSelection,
+    newState: ICommitSelection
+  ) {
+    if (!enableSubmoduleDiff()) {
+      return
+    }
+
+    // Just detect when the app is gonna show the diff of a different submodule
+    // and record that in the stats.
+    if (
+      oldState.file?.id !== newState.file?.id &&
+      newState.file?.status.submoduleStatus !== undefined
+    ) {
+      this.statsStore.recordSubmoduleDiffViewedFromHistory()
+    }
   }
 
   public updateBranchesState<K extends keyof IBranchesState>(
@@ -172,12 +240,70 @@ export class RepositoryStateCache {
       return { multiCommitOperationState: null }
     })
   }
+
+  public initializePullRequestState(
+    repository: Repository,
+    pullRequestState: IPullRequestState | null
+  ) {
+    this.update(repository, () => {
+      return { pullRequestState }
+    })
+  }
+
+  private sendPullRequestStateNotExistsException() {
+    sendNonFatalException(
+      'PullRequestState',
+      new Error(`Cannot update a null pull request state`)
+    )
+  }
+
+  public updatePullRequestState<K extends keyof IPullRequestState>(
+    repository: Repository,
+    fn: (pullRequestState: IPullRequestState) => Pick<IPullRequestState, K>
+  ) {
+    const { pullRequestState } = this.get(repository)
+    if (pullRequestState === null) {
+      this.sendPullRequestStateNotExistsException()
+      return
+    }
+
+    this.update(repository, state => {
+      const oldState = state.pullRequestState
+      const pullRequestState =
+        oldState === null ? null : merge(oldState, fn(oldState))
+      return { pullRequestState }
+    })
+  }
+
+  public updatePullRequestCommitSelection<K extends keyof ICommitSelection>(
+    repository: Repository,
+    fn: (prCommitSelection: ICommitSelection) => Pick<ICommitSelection, K>
+  ) {
+    const { pullRequestState } = this.get(repository)
+    if (pullRequestState === null) {
+      this.sendPullRequestStateNotExistsException()
+      return
+    }
+
+    const oldState = pullRequestState.commitSelection
+    const commitSelection = merge(oldState, fn(oldState))
+    this.updatePullRequestState(repository, () => ({
+      commitSelection,
+    }))
+  }
+
+  public clearPullRequestState(repository: Repository) {
+    this.update(repository, () => {
+      return { pullRequestState: null }
+    })
+  }
 }
 
 function getInitialRepositoryState(): IRepositoryState {
   return {
     commitSelection: {
       shas: [],
+      shasInDiff: [],
       isContiguous: true,
       file: null,
       changesetData: { files: [], linesAdded: 0, linesDeleted: 0 },
@@ -203,6 +329,7 @@ function getInitialRepositoryState(): IRepositoryState {
     branchesState: {
       tip: { kind: TipState.Unknown },
       defaultBranch: null,
+      upstreamDefaultBranch: null,
       allBranches: new Array<Branch>(),
       recentBranches: new Array<Branch>(),
       openPullRequests: new Array<PullRequest>(),
@@ -219,10 +346,12 @@ function getInitialRepositoryState(): IRepositoryState {
       showBranchList: false,
       filterText: '',
       commitSHAs: [],
+      shasToHighlight: [],
       branches: new Array<Branch>(),
       recentBranches: new Array<Branch>(),
       defaultBranch: null,
     },
+    pullRequestState: null,
     commitAuthor: null,
     commitLookup: new Map<string, Commit>(),
     localCommitSHAs: [],
