@@ -401,10 +401,13 @@ type DailyStats = ICalculatedStats &
  *
  */
 export interface IStatsStore {
-  recordMergeAbortedAfterConflicts: () => void
-  recordMergeSuccessAfterConflicts: () => void
-  recordRebaseAbortedAfterConflicts: () => void
-  recordRebaseSuccessAfterConflicts: () => void
+  increment: (
+    metric:
+      | 'mergeAbortedAfterConflictsCount'
+      | 'rebaseAbortedAfterConflictsCount'
+      | 'mergeSuccessAfterConflictsCount'
+      | 'rebaseSuccessAfterConflictsCount'
+  ) => void
 }
 
 /** The store for the app's stats. */
@@ -434,7 +437,7 @@ export class StatsStore implements IStatsStore {
 
     window.addEventListener('unhandledrejection', async () => {
       try {
-        this.recordUnhandledRejection()
+        this.increment('unhandledRejectionCount')
       } catch (err) {
         log.error(`Failed recording unhandled rejection`, err)
       }
@@ -705,12 +708,6 @@ export class StatsStore implements IStatsStore {
     createLocalStorageTimestamp(FirstCommitCreatedAtKey)
   }
 
-  /** Record that a partial commit was accomplished. */
-  public recordPartialCommit = () => this.increment('partialCommits')
-
-  /** Record that a commit was created with one or more co-authors. */
-  public recordCoAuthoredCommit = () => this.increment('coAuthoredCommits')
-
   /**
    * Record that a commit was undone.
    *
@@ -722,10 +719,6 @@ export class StatsStore implements IStatsStore {
         ? 'commitsUndoneWithoutChanges'
         : 'commitsUndoneWithChanges'
     )
-
-  /** Record that the user started amending a commit */
-  public recordAmendCommitStarted = () =>
-    this.increment('amendCommitStartedCount')
 
   /**
    * Record that the user amended a commit.
@@ -739,36 +732,6 @@ export class StatsStore implements IStatsStore {
         : 'amendCommitSuccessfulWithoutFileChangesCount'
     )
 
-  /** Record that the user reset to a previous commit */
-  public recordResetToCommitCount = () => this.increment('resetToCommitCount')
-
-  /** Record that the user opened a shell. */
-  public recordOpenShell = () => this.increment('openShellCount')
-
-  /** Record that a branch comparison has been made */
-  public recordBranchComparison = () => this.increment('branchComparisons')
-
-  /** Record that a branch comparison has been made to the default branch */
-  public recordDefaultBranchComparison = () =>
-    this.increment('defaultBranchComparisons')
-
-  /** Record that a merge has been initiated from the `compare` sidebar */
-  public recordCompareInitiatedMerge = () =>
-    this.increment('mergesInitiatedFromComparison')
-
-  /** Record that a merge has been initiated from the `Branch -> Update From
-   * Default Branch` menu item */
-  public recordMenuInitiatedUpdate = () =>
-    this.increment('updateFromDefaultBranchMenuCount')
-
-  /** Record that conflicts were detected by a merge initiated by Desktop */
-  public recordMergeConflictFromPull = () =>
-    this.increment('mergeConflictFromPullCount')
-
-  /** Record that conflicts were detected by a merge initiated by Desktop */
-  public recordMergeConflictFromExplicitMerge = () =>
-    this.increment('mergeConflictFromExplicitMergeCount')
-
   /** Record that a merge has been initiated from the `Branch -> Merge Into
    * Current Branch` menu item */
   public recordMenuInitiatedMerge = (isSquash: boolean = false) =>
@@ -778,45 +741,12 @@ export class StatsStore implements IStatsStore {
         : 'mergeIntoCurrentBranchMenuCount'
     )
 
-  public recordMenuInitiatedRebase = () =>
-    this.increment('rebaseCurrentBranchMenuCount')
-
-  /** Record that the user checked out a PR branch */
-  public recordPRBranchCheckout = () => this.increment('prBranchCheckouts')
-
   public recordRepoClicked = (repoHasIndicator: boolean) =>
     this.increment(
       repoHasIndicator
         ? 'repoWithIndicatorClicked'
         : 'repoWithoutIndicatorClicked'
     )
-
-  /**
-   * Records that the user made a commit using an email address that was not
-   * associated with the user's account on GitHub.com or GitHub Enterprise,
-   * meaning that the commit will not be attributed to the user's account.
-   */
-  public recordUnattributedCommit = () => this.increment('unattributedCommits')
-
-  /**
-   * Records that the user made a commit to a repository hosted on a GitHub
-   * Enterprise instance
-   */
-  public recordCommitToEnterprise = () => this.increment('enterpriseCommits')
-
-  /** Records that the user made a commit to a repository hosted on GitHub.com
-   * */
-  public recordCommitToDotcom = () => this.increment('dotcomCommits')
-
-  /** Record the user made a commit to a protected GitHub or GitHub Enterprise
-   * repository */
-  public recordCommitToProtectedBranch = () =>
-    this.increment('commitsToProtectedBranch')
-
-  /** Record the user made a commit to repository which has branch protections
-   * enabled */
-  public recordCommitToRepositoryWithBranchProtections = () =>
-    this.increment('commitsToRepositoryWithBranchProtections')
 
   /** Set whether the user has opted out of stats reporting. */
   public async setOptOut(
@@ -887,88 +817,6 @@ export class StatsStore implements IStatsStore {
         : 'externalPushCount'
     )
 
-  /** Record that the user saw a 'merge conflicts' warning but continued with
-   * the merge */
-  public recordUserProceededWhileLoading = () =>
-    this.increment('mergedWithLoadingHintCount')
-
-  /** Record that the user saw a 'merge conflicts' warning but continued with
-   * the merge */
-  public recordMergeHintSuccessAndUserProceeded = () =>
-    this.increment('mergedWithCleanMergeHintCount')
-
-  /** Record that the user saw a 'merge conflicts' warning but continued with
-   * the merge */
-  public recordUserProceededAfterConflictWarning = () =>
-    this.increment('mergedWithConflictWarningHintCount')
-
-  /** Increments the `mergeConflictsDialogDismissalCount` metric */
-  public recordMergeConflictsDialogDismissal = () =>
-    this.increment('mergeConflictsDialogDismissalCount')
-
-  /**
-   * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount`
-   * metric
-   */
-  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal = () =>
-    this.increment('anyConflictsLeftOnMergeConflictsDialogDismissalCount')
-
-  /** Increments the `mergeConflictsDialogReopenedCount` metric */
-  public recordMergeConflictsDialogReopened = () =>
-    this.increment('mergeConflictsDialogReopenedCount')
-
-  /** Increments the `guidedConflictedMergeCompletionCount` metric */
-  public recordGuidedConflictedMergeCompletion = () =>
-    this.increment('guidedConflictedMergeCompletionCount')
-
-  /** Increments the `unguidedConflictedMergeCompletionCount` metric */
-  public recordUnguidedConflictedMergeCompletion = () =>
-    this.increment('unguidedConflictedMergeCompletionCount')
-
-  /** * Increments the `createPullRequestCount` metric */
-  public recordCreatePullRequest = () =>
-    this.increment('createPullRequestCount')
-
-  /** Increments the `createPullRequestFromPreviewCount` metric */
-  public recordCreatePullRequestFromPreview = () =>
-    this.increment('createPullRequestFromPreviewCount')
-
-  /** Increments the `rebaseConflictsDialogDismissalCount` metric */
-  public recordRebaseConflictsDialogDismissal = () =>
-    this.increment('rebaseConflictsDialogDismissalCount')
-
-  /** Increments the `rebaseConflictsDialogReopenedCount` metric */
-  public recordRebaseConflictsDialogReopened = () =>
-    this.increment('rebaseConflictsDialogReopenedCount')
-
-  /** Increments the `rebaseAbortedAfterConflictsCount` metric */
-  public recordRebaseAbortedAfterConflicts = () =>
-    this.increment('rebaseAbortedAfterConflictsCount')
-
-  /** Increments the `pullWithRebaseCount` metric */
-  public recordPullWithRebaseEnabled = () =>
-    this.increment('pullWithRebaseCount')
-
-  /**
-   * Increments the `rebaseWithBranchAlreadyUpToDateCount` metric
-   */
-  public recordRebaseWithBranchAlreadyUpToDate = () =>
-    this.increment('rebaseWithBranchAlreadyUpToDateCount')
-
-  /**
-   * Increments the `rebaseSuccessWithoutConflictsCount` metric
-   */
-  public recordRebaseSuccessWithoutConflicts = () =>
-    this.increment('rebaseSuccessWithoutConflictsCount')
-
-  /** Increments the `rebaseSuccessAfterConflictsCount` metric */
-  public recordRebaseSuccessAfterConflicts = () =>
-    this.increment('rebaseSuccessAfterConflictsCount')
-
-  /** Increments the `pullWithDefaultSettingCount` metric */
-  public recordPullWithDefaultSetting = () =>
-    this.increment('pullWithDefaultSettingCount')
-
   public recordWelcomeWizardInitiated() {
     setNumber(WelcomeWizardInitiatedAtKey, Date.now())
     localStorage.removeItem(WelcomeWizardCompletedAtKey)
@@ -998,104 +846,10 @@ export class StatsStore implements IStatsStore {
     localStorage.setItem(WelcomeWizardSignInMethodKey, method)
   }
 
-  /** Record when a conflicted merge was successfully completed by the user */
-  public recordMergeSuccessAfterConflicts = () =>
-    this.increment('mergeSuccessAfterConflictsCount')
-
-  /** Record when a conflicted merge was aborted by the user */
-  public recordMergeAbortedAfterConflicts = () =>
-    this.increment('mergeAbortedAfterConflictsCount')
-
-  /** Record when the user views a stash entry after checking out a branch */
-  public recordStashViewedAfterCheckout = () =>
-    this.increment('stashViewedAfterCheckoutCount')
-
-  /** Record when the user **doesn't** view a stash entry after checking out a
-   * branch */
-  public recordStashNotViewedAfterCheckout = () =>
-    this.increment('stashNotViewedAfterCheckoutCount')
-
-  /** Record when the user elects to take changes to new branch over stashing */
-  public recordChangesTakenToNewBranch = () =>
-    this.increment('changesTakenToNewBranchCount')
-
-  /** Record when the user elects to stash changes on the current branch */
-  public recordStashCreatedOnCurrentBranch = () =>
-    this.increment('stashCreatedOnCurrentBranchCount')
-
-  /** Record when the user discards a stash entry */
-  public recordStashDiscard = () => this.increment('stashDiscardCount')
-
-  /** Record when the user views a stash entry */
-  public recordStashView = () => this.increment('stashViewCount')
-
-  /** Record when the user restores a stash entry */
-  public recordStashRestore = () => this.increment('stashRestoreCount')
-
-  /** Record when the user takes no action on the stash entry */
-  public recordNoActionTakenOnStash = () =>
-    this.increment('noActionTakenOnStashCount')
-
   /** Record the number of stash entries created outside of Desktop for the day
    * */
   public addStashEntriesCreatedOutsideDesktop = (stashCount: number) =>
     this.increment('stashEntriesCreatedOutsideDesktop', stashCount)
-
-  /**
-   * Record the number of times the user experiences the error "Some of your
-   * changes would be overwritten" when switching branches
-   */
-  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges = () =>
-    this.increment('errorWhenSwitchingBranchesWithUncommmittedChanges')
-
-  /**
-   * Increment the number of times the user has opened their external editor
-   * from the suggested next steps view
-   */
-  public recordSuggestedStepOpenInExternalEditor = () =>
-    this.increment('suggestedStepOpenInExternalEditor')
-
-  /**
-   * Increment the number of times the user has opened their repository in
-   * Finder/Explorer from the suggested next steps view
-   */
-  public recordSuggestedStepOpenWorkingDirectory = () =>
-    this.increment('suggestedStepOpenWorkingDirectory')
-
-  /**
-   * Increment the number of times the user has opened their repository on
-   * GitHub from the suggested next steps view
-   */
-  public recordSuggestedStepViewOnGitHub = () =>
-    this.increment('suggestedStepViewOnGitHub')
-
-  /**
-   * Increment the number of times the user has used the publish repository
-   * action from the suggested next steps view
-   */
-  public recordSuggestedStepPublishRepository = () =>
-    this.increment('suggestedStepPublishRepository')
-
-  /**
-   * Increment the number of times the user has used the publish branch action
-   * branch from the suggested next steps view
-   */
-  public recordSuggestedStepPublishBranch = () =>
-    this.increment('suggestedStepPublishBranch')
-
-  /**
-   * Increment the number of times the user has used the Create PR suggestion in
-   * the suggested next steps view.
-   */
-  public recordSuggestedStepCreatePullRequest = () =>
-    this.increment('suggestedStepCreatePullRequest')
-
-  /**
-   * Increment the number of times the user has used the View Stash suggestion
-   * in the suggested next steps view.
-   */
-  public recordSuggestedStepViewStash = () =>
-    this.increment('suggestedStepViewStash')
 
   private onUiActivity = async () => {
     this.disableUiActivityMonitoring()
@@ -1182,9 +936,6 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordCommitToRepositoryWithoutWriteAccess = () =>
-    this.increment('commitsToRepositoryWithoutWriteAccess')
-
   /**
    * Record that the user made a commit in a repository they don't have `write`
    * access to. Dedupes based on the database ID provided
@@ -1204,91 +955,8 @@ export class StatsStore implements IStatsStore {
     }
   }
 
-  public recordForkCreated = () => this.increment('forksCreated')
-
-  public recordIssueCreationWebpageOpened = () =>
-    this.increment('issueCreationWebpageOpenedCount')
-
-  public recordTagCreatedInDesktop = () =>
-    this.increment('tagsCreatedInDesktop')
-
-  public recordTagCreated(numCreatedTags: number) {
-    return this.updateDailyMeasures(m => ({
-      tagsCreated: m.tagsCreated + numCreatedTags,
-    }))
-  }
-
-  public recordTagDeleted = () => this.increment('tagsDeleted')
-
-  public recordDiffOptionsViewed = () =>
-    this.increment('diffOptionsViewedCount')
-
-  public recordRepositoryViewChanged = () =>
-    this.increment('repositoryViewChangeCount')
-
-  public recordDiffModeChanged = () => this.increment('diffModeChangeCount')
-
-  public recordUnhandledRejection = () =>
-    this.increment('unhandledRejectionCount')
-
-  private recordCherryPickSuccessful = () =>
-    this.increment('cherryPickSuccessfulCount')
-
-  public recordCherryPickViaDragAndDrop = () =>
-    this.increment('cherryPickViaDragAndDropCount')
-
-  public recordCherryPickViaContextMenu = () =>
-    this.increment('cherryPickViaContextMenuCount')
-
-  public recordDragStartedAndCanceled = () =>
-    this.increment('dragStartedAndCanceledCount')
-
-  public recordCherryPickConflictsEncountered = () =>
-    this.increment('cherryPickConflictsEncounteredCount')
-
-  public recordCherryPickSuccessfulWithConflicts = () =>
-    this.increment('cherryPickSuccessfulWithConflictsCount')
-
-  public recordCherryPickMultipleCommits = () =>
-    this.increment('cherryPickMultipleCommitsCount')
-
-  private recordCherryPickUndone = () => this.increment('cherryPickUndoneCount')
-
-  public recordCherryPickBranchCreatedCount = () =>
-    this.increment('cherryPickBranchCreatedCount')
-
-  private recordReorderSuccessful = () =>
-    this.increment('reorderSuccessfulCount')
-
-  public recordReorderStarted = () => this.increment('reorderStartedCount')
-
-  private recordReorderConflictsEncountered = () =>
-    this.increment('reorderConflictsEncounteredCount')
-
-  private recordReorderSuccessfulWithConflicts = () =>
-    this.increment('reorderSuccessfulWithConflictsCount')
-
-  public recordReorderMultipleCommits = () =>
-    this.increment('reorderMultipleCommitsCount')
-
-  private recordReorderUndone = () => this.increment('reorderUndoneCount')
-
-  private recordSquashConflictsEncountered = () =>
-    this.increment('squashConflictsEncounteredCount')
-
-  public recordSquashMultipleCommitsInvoked = () =>
-    this.increment('squashMultipleCommitsInvokedCount')
-
-  private recordSquashSuccessful = () => this.increment('squashSuccessfulCount')
-
-  private recordSquashSuccessfulWithConflicts = () =>
-    this.increment('squashSuccessfulWithConflictsCount')
-
-  public recordSquashViaContextMenuInvoked = () =>
-    this.increment('squashViaContextMenuInvokedCount')
-
-  public recordSquashViaDragAndDropInvokedCount = () =>
-    this.increment('squashViaDragAndDropInvokedCount')
+  public recordTagCreated = (numCreatedTags: number) =>
+    this.increment('tagsCreated', numCreatedTags)
 
   private recordSquashUndone = () => this.increment('squashUndoneCount')
 
@@ -1297,9 +965,9 @@ export class StatsStore implements IStatsStore {
   ): Promise<void> {
     switch (kind) {
       case MultiCommitOperationKind.Squash:
-        return this.recordSquashConflictsEncountered()
+        return this.increment('squashConflictsEncounteredCount')
       case MultiCommitOperationKind.Reorder:
-        return this.recordReorderConflictsEncountered()
+        return this.increment('reorderConflictsEncounteredCount')
       case MultiCommitOperationKind.Rebase:
         // ignored because rebase records different stats
         return
@@ -1319,11 +987,11 @@ export class StatsStore implements IStatsStore {
   ): Promise<void> {
     switch (kind) {
       case MultiCommitOperationKind.Squash:
-        return this.recordSquashSuccessful()
+        return this.increment('squashSuccessfulCount')
       case MultiCommitOperationKind.Reorder:
-        return this.recordReorderSuccessful()
+        return this.increment('reorderSuccessfulCount')
       case MultiCommitOperationKind.CherryPick:
-        return this.recordCherryPickSuccessful()
+        return this.increment('cherryPickSuccessfulCount')
       case MultiCommitOperationKind.Rebase:
         // ignored because rebase records different stats
         return
@@ -1342,11 +1010,11 @@ export class StatsStore implements IStatsStore {
   ): Promise<void> {
     switch (kind) {
       case MultiCommitOperationKind.Squash:
-        return this.recordSquashSuccessfulWithConflicts()
+        return this.increment('squashSuccessfulWithConflictsCount')
       case MultiCommitOperationKind.Reorder:
-        return this.recordReorderSuccessfulWithConflicts()
+        return this.increment('reorderSuccessfulWithConflictsCount')
       case MultiCommitOperationKind.Rebase:
-        return this.recordRebaseSuccessAfterConflicts()
+        return this.increment('rebaseSuccessAfterConflictsCount')
       case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Merge:
         log.error(
@@ -1365,9 +1033,9 @@ export class StatsStore implements IStatsStore {
       case MultiCommitOperationKind.Squash:
         return this.recordSquashUndone()
       case MultiCommitOperationKind.Reorder:
-        return this.recordReorderUndone()
+        return this.increment('reorderUndoneCount')
       case MultiCommitOperationKind.CherryPick:
-        return this.recordCherryPickUndone()
+        return this.increment('cherryPickUndoneCount')
       case MultiCommitOperationKind.Rebase:
       case MultiCommitOperationKind.Merge:
         log.error(`[recordOperationUndone] - Operation not supported: ${kind}`)
@@ -1376,58 +1044,6 @@ export class StatsStore implements IStatsStore {
         return assertNever(kind, `Unknown operation kind of ${kind}.`)
     }
   }
-
-  public recordSquashMergeSuccessfulWithConflicts = () =>
-    this.increment('squashMergeSuccessfulWithConflictsCount')
-
-  public recordSquashMergeSuccessful = () =>
-    this.increment('squashMergeSuccessfulCount')
-
-  public recordSquashMergeInvokedCount = () =>
-    this.increment('squashMergeInvokedCount')
-
-  public recordCheckRunsPopoverOpened = () =>
-    this.increment('opensCheckRunsPopover')
-
-  public recordCheckViewedOnline = () => this.increment('viewsCheckOnline')
-
-  public recordCheckJobStepViewedOnline = () =>
-    this.increment('viewsCheckJobStepOnline')
-
-  public recordRerunChecks = () => this.increment('rerunsChecks')
-
-  public recordChecksFailedNotificationShown = () =>
-    this.increment('checksFailedNotificationCount')
-
-  public recordChecksFailedNotificationFromRecentRepo = () =>
-    this.increment('checksFailedNotificationFromRecentRepoCount')
-
-  public recordChecksFailedNotificationFromNonRecentRepo = () =>
-    this.increment('checksFailedNotificationFromNonRecentRepoCount')
-
-  public recordChecksFailedNotificationClicked = () =>
-    this.increment('checksFailedNotificationClicked')
-
-  public recordChecksFailedDialogOpen = () =>
-    this.increment('checksFailedDialogOpenCount')
-
-  public recordChecksFailedDialogSwitchToPullRequest = () =>
-    this.increment('checksFailedDialogSwitchToPullRequestCount')
-
-  public recordChecksFailedDialogRerunChecks = () =>
-    this.increment('checksFailedDialogRerunChecksCount')
-
-  public recordMultiCommitDiffFromHistoryCount = () =>
-    this.increment('multiCommitDiffFromHistoryCount')
-
-  public recordMultiCommitDiffFromCompareCount = () =>
-    this.increment('multiCommitDiffFromCompareCount')
-
-  public recordMultiCommitDiffWithUnreachableCommitWarningCount = () =>
-    this.increment('multiCommitDiffWithUnreachableCommitWarningCount')
-
-  public recordMultiCommitDiffUnreachableCommitsDialogOpenedCount = () =>
-    this.increment('multiCommitDiffUnreachableCommitsDialogOpenedCount')
 
   // Generates the stat field name for the given PR review type and suffix.
   private getStatFieldForRequestReviewState(
@@ -1446,12 +1062,6 @@ export class StatsStore implements IStatsStore {
     return `pullRequestReview${infixMap[reviewType]}${suffix}`
   }
 
-  public recordPullRequestReviewNotificationFromRecentRepo = () =>
-    this.increment('pullRequestReviewNotificationFromRecentRepoCount')
-
-  public recordPullRequestReviewNotificationFromNonRecentRepo = () =>
-    this.increment('pullRequestReviewNotificationFromNonRecentRepoCount')
-
   // Generic method to record stats related to Pull Request review
   // notifications.
   private recordPullRequestReviewStat(
@@ -1459,9 +1069,7 @@ export class StatsStore implements IStatsStore {
     suffix: PullRequestReviewStatFieldSuffix
   ) {
     const statField = this.getStatFieldForRequestReviewState(reviewType, suffix)
-    return this.updateDailyMeasures(
-      m => ({ [statField]: m[statField] + 1 } as any)
-    )
+    return this.increment(statField)
   }
 
   public recordPullRequestReviewNotificationShown(
@@ -1485,31 +1093,7 @@ export class StatsStore implements IStatsStore {
     )
   }
 
-  public recordPullRequestCommentNotificationShown = () =>
-    this.increment('pullRequestCommentNotificationCount')
-
-  public recordPullRequestCommentNotificationClicked = () =>
-    this.increment('pullRequestCommentNotificationClicked')
-
-  public recordPullRequestCommentNotificationFromNonRecentRepo = () =>
-    this.increment('pullRequestCommentNotificationFromNonRecentRepoCount')
-
-  public recordPullRequestCommentNotificationFromRecentRepo = () =>
-    this.increment('pullRequestCommentNotificationFromRecentRepoCount')
-
-  public recordPullRequestCommentDialogSwitchToPullRequest = () =>
-    this.increment('pullRequestCommentDialogSwitchToPullRequestCount')
-
-  public recordSubmoduleDiffViewedFromChangesList = () =>
-    this.increment('submoduleDiffViewedFromChangesListCount')
-
-  public recordSubmoduleDiffViewedFromHistory = () =>
-    this.increment('submoduleDiffViewedFromHistoryCount')
-
-  public recordOpenSubmoduleFromDiffCount = () =>
-    this.increment('openSubmoduleFromDiffCount')
-
-  private increment = (k: keyof NumericMeasures, n = 1) =>
+  public increment = (k: keyof NumericMeasures, n = 1) =>
     this.updateDailyMeasures(
       m => ({ [k]: m[k] + n } as Pick<IDailyMeasures, keyof NumericMeasures>)
     )
@@ -1561,10 +1145,6 @@ export class StatsStore implements IStatsStore {
       log.error(`Error reporting opt ${direction}:`, e)
     }
   }
-
-  /** Increments the `previewedPullRequestCount` metric */
-  public recordPreviewedPullRequest = () =>
-    this.increment('previewedPullRequestCount')
 }
 
 /**
