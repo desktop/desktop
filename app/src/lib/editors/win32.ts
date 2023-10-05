@@ -370,7 +370,7 @@ const editors: WindowsExternalEditor[] = [
     publishers: ['JetBrains s.r.o.'],
   },
   {
-    name: 'JetBrains Phpstorm',
+    name: 'JetBrains PhpStorm',
     registryKeys: registryKeysForJetBrainsIDE('PhpStorm'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('phpstorm'),
     jetBrainsToolboxScriptName: 'phpstorm',
