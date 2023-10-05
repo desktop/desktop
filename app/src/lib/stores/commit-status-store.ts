@@ -17,7 +17,7 @@ import {
   getCheckRunActionsWorkflowRuns,
   manuallySetChecksToPending,
 } from '../ci-checks/ci-checks'
-import _ from 'lodash'
+import xor from 'lodash/xor'
 import { offsetFromNow } from '../offset-from'
 
 interface ICommitStatusCacheEntry {
@@ -343,7 +343,7 @@ export class CommitStatusStore {
       existingChecks !== undefined &&
       existingChecks.check !== null &&
       existingChecks.check.checks.some(c => c.actionsWorkflow !== undefined) &&
-      _.xor(
+      xor(
         existingChecks.check.checks.map(cr => cr.id),
         checks.map(cr => cr.id)
       ).length === 0

@@ -1,7 +1,7 @@
 import { INodeFilter } from './node-filter'
 import { fileURLToPath } from 'url'
 import { readFile } from 'fs/promises'
-import { escapeRegExp } from 'lodash'
+import escapeRegExp from 'lodash/escapeRegExp'
 
 /**
  * The Emoji Markdown filter will take a text node and create multiple text and
