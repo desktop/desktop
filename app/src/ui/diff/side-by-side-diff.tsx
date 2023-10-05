@@ -62,8 +62,8 @@ import {
 } from './text-diff-expansion'
 import { IMenuItem } from '../../lib/menu-item'
 import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
-import { escapeRegExp } from 'lodash'
 import { findDOMNode } from 'react-dom'
+import escapeRegExp from 'lodash/escapeRegExp'
 
 const DefaultRowHeight = 20
 

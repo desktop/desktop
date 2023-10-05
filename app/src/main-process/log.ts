@@ -1,7 +1,7 @@
 import * as winston from 'winston'
 import { getLogDirectoryPath } from '../lib/logging/get-log-path'
 import { LogLevel } from '../lib/logging/log-level'
-import { noop } from 'lodash'
+import noop from 'lodash/noop'
 import { DesktopConsoleTransport } from './desktop-console-transport'
 import memoizeOne from 'memoize-one'
 import { mkdir } from 'fs/promises'

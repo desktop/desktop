@@ -20,6 +20,7 @@ import { Loading } from '../lib/loading'
 import { getFileContents, IFileContents } from './syntax-highlighting'
 import { getTextDiffWithBottomDummyHunk } from './text-diff-expansion'
 import { textDiffEquals } from './diff-helpers'
+import noop from 'lodash/noop'
 
 /**
  * The time (in milliseconds) we allow when loading a diff before
@@ -115,9 +116,6 @@ interface ISeamlessDiffSwitcherState {
   /** Contents of the old and new files related to the current text diff. */
   readonly fileContents: IFileContents | null
 }
-
-/** I'm super useful */
-function noop() {}
 
 function isSameFile(prevFile: ChangedFile, newFile: ChangedFile) {
   return prevFile === newFile || prevFile.id === newFile.id
