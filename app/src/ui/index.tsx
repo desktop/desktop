@@ -69,7 +69,7 @@ import { NotificationsStore } from '../lib/stores/notifications-store'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { migrateRendererGUID } from '../lib/get-renderer-guid'
 import { initializeRendererNotificationHandler } from '../lib/notifications/notification-handler'
-import { Grid } from 'react-virtualized'
+// import { Grid } from 'react-virtualized'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 
 if (__DEV__) {
@@ -351,15 +351,15 @@ ipcRenderer.on('url-action', (_, action) =>
 //
 // 1. https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-label
 // 2. https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-readonly
-;(function (
-  defaults: Record<string, unknown> | undefined,
-  types: Record<string, unknown> | undefined
-) {
-  ;['aria-label', 'aria-readonly'].forEach(k => {
-    delete defaults?.[k]
-    delete types?.[k]
-  })
-})(Grid.defaultProps, Grid.propTypes)
+// ;(function (
+//   defaults: Record<string, unknown> | undefined,
+//   types: Record<string, unknown> | undefined
+// ) {
+//   ;['aria-label', 'aria-readonly'].forEach(k => {
+//     delete defaults?.[k]
+//     delete types?.[k]
+//   })
+// })(Grid.defaultProps, Grid.propTypes)
 
 ReactDOM.render(
   <App
