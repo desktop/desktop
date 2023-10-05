@@ -116,7 +116,7 @@ describe('updateConflictState', () => {
       updateConflictState(prevState, status, statsStore)
 
       expect(statsStore.increment).toHaveBeenCalledWith(
-        'mergeAbortedAfterConflicts'
+        'mergeAbortedAfterConflictsCount'
       )
     })
 
@@ -138,7 +138,7 @@ describe('updateConflictState', () => {
       updateConflictState(prevState, status, statsStore)
 
       expect(statsStore.increment).toHaveBeenCalledWith(
-        'mergeAbortedAfterConflicts'
+        'mergeAbortedAfterConflictsCount'
       )
     })
 
