@@ -1,6 +1,7 @@
 import { IMultiCommitOperationProgress } from './progress'
 import { ComputedAction } from './computed-action'
 import { CommitOneLine } from './commit'
+import { Branch } from './branch'
 
 /**
  * Rebase internal state used to track how and where the rebase is applied to
@@ -30,21 +31,27 @@ export type RebaseProgressOptions = {
   progressCallback: (progress: IMultiCommitOperationProgress) => void
 }
 
-export type CleanRebase = {
-  readonly kind: ComputedAction.Clean
+interface ISupportedRebaseInfo {
+  readonly baseBranch: Branch
   readonly commits: ReadonlyArray<CommitOneLine>
 }
 
+export type CleanRebase = {
+  readonly kind: ComputedAction.Clean
+} & ISupportedRebaseInfo
+
 export type RebaseWithConflicts = {
   readonly kind: ComputedAction.Conflicts
-}
+} & ISupportedRebaseInfo
 
 export type RebaseNotSupported = {
   readonly kind: ComputedAction.Invalid
+  readonly baseBranch: Branch
 }
 
 export type RebaseLoading = {
   readonly kind: ComputedAction.Loading
+  readonly baseBranch: Branch
 }
 
 export type RebasePreview =
