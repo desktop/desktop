@@ -1500,8 +1500,8 @@ export class StatsStore implements IStatsStore {
   public recordOpenSubmoduleFromDiffCount = () =>
     this.increment('openSubmoduleFromDiffCount')
 
-  private async increment(k: keyof NumericMeasures, n = 1) {
-    this.updateDailyMeasures(
+  private increment(k: keyof NumericMeasures, n = 1) {
+    return this.updateDailyMeasures(
       m => ({ [k]: m[k] + n } as Pick<IDailyMeasures, keyof NumericMeasures>)
     )
   }
