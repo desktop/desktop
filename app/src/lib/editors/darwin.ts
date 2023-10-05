@@ -28,6 +28,50 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['aptana.studio'],
   },
   {
+    name: 'Eclipse IDE for Java Developers',
+    bundleIdentifiers: ['epp.package.java'],
+  },
+  {
+    name: 'Eclipse IDE for Enterprise Java and Web Developers',
+    bundleIdentifiers: ['epp.package.jee'],
+  },
+  {
+    name: 'Eclipse IDE for C/C++ Developers',
+    bundleIdentifiers: ['epp.package.cpp'],
+  },
+  {
+    name: 'Eclipse IDE for Eclipse Committers',
+    bundleIdentifiers: ['epp.package.committers'],
+  },
+  {
+    name: 'Eclipse IDE for Embedded C/C++ Developers',
+    bundleIdentifiers: ['epp.package.embedcpp'],
+  },
+  {
+    name: 'Eclipse IDE for PHP Developers',
+    bundleIdentifiers: ['epp.package.php'],
+  },
+  {
+    name: 'Eclipse IDE for Java and DSL Developers',
+    bundleIdentifiers: ['epp.package.dsl'],
+  },
+  {
+    name: 'Eclipse IDE for RCP and RAP Developers',
+    bundleIdentifiers: ['epp.package.rcp'],
+  },
+  {
+    name: 'Eclipse Modeling Tools',
+    bundleIdentifiers: ['epp.package.modeling'],
+  },
+  {
+    name: 'Eclipse IDE for Scientific Computing',
+    bundleIdentifiers: ['epp.package.parallel'],
+  },
+  {
+    name: 'Eclipse IDE for Scout Developers',
+    bundleIdentifiers: ['epp.package.scout'],
+  },
+  {
     name: 'MacVim',
     bundleIdentifiers: ['org.vim.MacVim'],
   },
@@ -167,6 +211,14 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'Zed',
     bundleIdentifiers: ['dev.zed.Zed'],
+  },
+  {
+    name: 'Zed (Preview)',
+    bundleIdentifiers: ['dev.zed.Zed-Preview'],
+  },
+  {
+    name: 'Cursor',
+    bundleIdentifiers: ['com.todesktop.230313mzl4w4u92'],
   },
 ]
 

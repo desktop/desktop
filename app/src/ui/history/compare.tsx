@@ -38,6 +38,7 @@ interface ICompareSidebarProps {
   readonly emoji: Map<string, string>
   readonly commitLookup: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
+  readonly askForConfirmationOnCheckoutCommit: boolean
   readonly dispatcher: Dispatcher
   readonly currentBranch: Branch | null
   readonly selectedCommitShas: ReadonlyArray<string>
@@ -159,7 +160,7 @@ export class CompareSidebar extends React.Component<
         <div className="compare-form">
           <FancyTextBox
             symbol={OcticonSymbol.gitBranch}
-            type="search"
+            displayClearButton={true}
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             value={filterText}
@@ -255,6 +256,7 @@ export class CompareSidebar extends React.Component<
         onCommitsSelected={this.onCommitsSelected}
         onScroll={this.onScroll}
         onCreateBranch={this.onCreateBranch}
+        onCheckoutCommit={this.onCheckoutCommit}
         onCreateTag={this.onCreateTag}
         onDeleteTag={this.onDeleteTag}
         onCherryPick={this.onCherryPick}
@@ -599,6 +601,20 @@ export class CompareSidebar extends React.Component<
     })
   }
 
+  private onCheckoutCommit = (commit: CommitOneLine) => {
+    const { repository, dispatcher, askForConfirmationOnCheckoutCommit } =
+      this.props
+    if (!askForConfirmationOnCheckoutCommit) {
+      dispatcher.checkoutCommit(repository, commit)
+    } else {
+      dispatcher.showPopup({
+        type: PopupType.ConfirmCheckoutCommit,
+        commit: commit,
+        repository,
+      })
+    }
+  }
+
   private onDeleteTag = (tagName: string) => {
     this.props.dispatcher.showDeleteTagDialog(this.props.repository, tagName)
   }
@@ -675,8 +691,8 @@ function getPlaceholderText(state: ICompareState) {
     return __DARWIN__ ? 'No Branches to Compare' : 'No branches to compare'
   } else if (formState.kind === HistoryTabMode.History) {
     return __DARWIN__
-      ? 'Select Branch to Compare...'
-      : 'Select branch to compare...'
+      ? 'Select Branch to Compare…'
+      : 'Select branch to compare…'
   } else {
     return undefined
   }

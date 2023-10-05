@@ -155,7 +155,7 @@ body > .tooltip,
     flex-direction: row;
     padding: var(--spacing-half) 0;
 
-    img {
+    .avatar {
       width: 32px;
       height: 32px;
       margin-right: var(--spacing);
@@ -201,6 +201,15 @@ body > .tooltip,
         margin-right: var(--spacing-third);
         vertical-align: bottom; // For some reason, `bottom` places the text in the middle
       }
+    }
+  }
+
+  &.window-controls-tooltip {
+    background-color: var(--toolbar-tooltip-background-color);
+    box-shadow: 0 8px 24px var(--toolbar-tooltip-shadow-color);
+
+    &::before {
+      border-bottom-color: var(--toolbar-tooltip-background-color);
     }
   }
 }

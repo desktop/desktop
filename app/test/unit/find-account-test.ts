@@ -38,7 +38,8 @@ describe('findAccountForRemoteURL', () => {
       [],
       '',
       1,
-      'GitHub'
+      'GitHub',
+      'free'
     ),
     new Account(
       'joel',
@@ -47,7 +48,8 @@ describe('findAccountForRemoteURL', () => {
       [],
       '',
       2,
-      'My Company'
+      'My Company',
+      'free'
     ),
   ]
 

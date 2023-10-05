@@ -85,7 +85,7 @@ function printInstructions(nextVersion: string, entries: Array<string>) {
     'Revise the release notes according to https://github.com/desktop/desktop/blob/development/docs/process/writing-release-notes.md',
     'Lint them with: yarn draft-release:format',
     'Commit these changes (on a "release" branch) and push them to GitHub',
-    'Read this to perform the release: https://github.com/desktop/desktop/blob/development/docs/process/releasing-updates.md',
+    'See the deploy repo for details on performing the release: https://github.com/desktop/deploy',
   ]
   // if an empty list, we assume the new entries have already been
   // written to the changelog file

@@ -1,6 +1,8 @@
 .commit-message-avatar-component {
   // With this, the popover's absolute position will be relative to its parent
   position: relative;
+  width: var(--text-field-height);
+  height: var(--text-field-height);
 
   .avatar-button {
     // override default button styles
@@ -16,7 +18,12 @@
     background-color: none;
 
     border-radius: 50%;
-    margin-right: var(--spacing-half);
+
+    .avatar {
+      flex-shrink: 0;
+      width: 100%;
+      height: 100%;
+    }
   }
 
   .toggletip {
@@ -34,21 +41,22 @@
     border-radius: 9px;
 
     > svg {
-      color: var(--commit-warning-badge-icon-color);
       height: 10px;
       // With width=100%, the icon will be centered horizontally
       width: 100%;
-      vertical-align: unset;
+      vertical-align: middle;
+    }
+
+    &.warning > svg {
+      color: var(--input-icon-warning-color);
+    }
+
+    &.error > svg {
+      color: var(--input-icon-error-color);
     }
   }
 
   label {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-  }
-
-  h3 {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -65,6 +73,11 @@
 
   .button-row {
     justify-content: flex-end;
+
+    button {
+      min-width: 120px;
+      margin-right: var(--spacing-half);
+    }
   }
 
   .secondary-text {
@@ -83,22 +96,7 @@
       margin-bottom: var(--spacing);
     }
 
-    position: absolute;
-    margin-left: 21px;
-    bottom: 13px;
-
     width: 300px;
-
-    @media (max-height: 500px) {
-      bottom: -125px;
-
-      &.popover-caret-left-bottom {
-        &::before,
-        &::after {
-          bottom: 158px;
-        }
-      }
-    }
   }
 
   .link-button-component {

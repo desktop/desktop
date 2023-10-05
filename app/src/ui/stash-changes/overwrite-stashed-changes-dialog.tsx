@@ -42,9 +42,11 @@ export class OverwriteStash extends React.Component<
         disabled={this.state.isLoading}
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
+        role="alertdialog"
+        ariaDescribedBy="overwrite-stash-warning-message"
       >
         <DialogContent>
-          <Row>
+          <Row id="overwrite-stash-warning-message">
             Are you sure you want to proceed? This will overwrite your existing
             stash with your current changes.
           </Row>

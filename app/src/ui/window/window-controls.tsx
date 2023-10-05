@@ -9,6 +9,7 @@ import {
   restoreWindow,
 } from '../main-process-proxy'
 import * as ipcRenderer from '../../lib/ipc-renderer'
+import { Button } from '../lib/button'
 
 // These paths are all drawn to a 10x10 view box and replicate the symbols
 // seen on Windows 10 window controls.
@@ -96,18 +97,19 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
     const title = name[0].toUpperCase() + name.substring(1)
 
     return (
-      <button
-        aria-label={name}
-        title={title}
+      <Button
+        ariaLabel={title}
+        ariaHidden={true}
         tabIndex={-1}
         className={className}
         onClick={onClick}
-        aria-hidden="true"
+        tooltip={title}
+        tooltipClassName="window-controls-tooltip"
       >
         <svg aria-hidden="true" version="1.1" width="10" height="10">
           <path d={path} />
         </svg>
-      </button>
+      </Button>
     )
   }
 

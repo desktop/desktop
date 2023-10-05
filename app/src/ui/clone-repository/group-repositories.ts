@@ -23,6 +23,9 @@ export interface ICloneableRepositoryListItem extends IFilterListItem {
 
   /** The clone URL. */
   readonly url: string
+
+  /** Whether or not the repository is archived */
+  readonly archived?: boolean
 }
 
 function getIcon(gitHubRepo: IAPIRepository): OcticonSymbolType {
@@ -44,6 +47,7 @@ const toListItems = (repositories: ReadonlyArray<IAPIRepository>) =>
       url: repo.clone_url,
       name: repo.name,
       icon: getIcon(repo),
+      archived: repo.archived,
     }))
     .sort((x, y) => compare(x.name, y.name))
 

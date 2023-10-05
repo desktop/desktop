@@ -34,7 +34,6 @@ import { IChangesetData } from '../../lib/git'
 import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { pathExists } from '../lib/path-exists'
-import { enableMultiCommitDiffs } from '../../lib/feature-flag'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 
 interface ISelectedCommitsProps {
@@ -114,6 +113,13 @@ export class SelectedCommits extends React.Component<
 
   private onFileSelected = (file: CommittedFileChange) => {
     this.props.dispatcher.changeFileSelection(this.props.repository, file)
+  }
+
+  private onRowDoubleClick = (row: number) => {
+    const files = this.props.changesetData.files
+    const file = files[row]
+
+    this.props.onOpenInExternalEditor(file.path)
   }
 
   private onHistoryRef = (ref: HTMLDivElement | null) => {
@@ -207,7 +213,7 @@ export class SelectedCommits extends React.Component<
     this.setState({ isExpanded })
   }
 
-  private onDescriptionBottomChanged = (descriptionBottom: Number) => {
+  private onDescriptionBottomChanged = (descriptionBottom: number) => {
     if (this.historyRef) {
       const historyBottom = this.historyRef.getBoundingClientRect().bottom
       this.setState({
@@ -252,6 +258,7 @@ export class SelectedCommits extends React.Component<
         selectedFile={this.props.selectedFile}
         availableWidth={availableWidth}
         onContextMenu={this.onContextMenu}
+        onRowDoubleClick={this.onRowDoubleClick}
       />
     )
   }
@@ -269,10 +276,7 @@ export class SelectedCommits extends React.Component<
   public render() {
     const { selectedCommits, isContiguous } = this.props
 
-    if (
-      selectedCommits.length > 1 &&
-      (!isContiguous || !enableMultiCommitDiffs())
-    ) {
+    if (selectedCommits.length > 1 && !isContiguous) {
       return this.renderMultipleCommitsBlankSlate()
     }
 
@@ -323,18 +327,13 @@ export class SelectedCommits extends React.Component<
           <img src={BlankSlateImage} className="blankslate-image" alt="" />
           <div>
             <p>
-              Unable to display diff when multiple{' '}
-              {enableMultiCommitDiffs() ? 'non-consecutive ' : ' '}commits are
-              selected.
+              Unable to display diff when multiple non-consecutive selected.
             </p>
             <div>You can:</div>
             <ul>
               <li>
-                Select a single commit{' '}
-                {enableMultiCommitDiffs()
-                  ? 'or a range of consecutive commits '
-                  : ' '}
-                to view a diff.
+                Select a single commit or a range of consecutive commits to view
+                a diff.
               </li>
               <li>Drag the commits to the branch menu to cherry-pick them.</li>
               <li>Drag the commits to squash or reorder them.</li>
@@ -389,7 +388,7 @@ export class SelectedCommits extends React.Component<
       },
       {
         label: openInExternalEditor,
-        action: () => this.props.onOpenInExternalEditor(fullPath),
+        action: () => this.props.onOpenInExternalEditor(file.path),
         enabled: fileExistsOnDisk,
       },
       {

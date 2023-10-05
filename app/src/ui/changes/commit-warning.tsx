@@ -6,6 +6,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 export enum CommitWarningIcon {
   Warning,
   Information,
+  Error,
 }
 
 const renderIcon = (icon: CommitWarningIcon) => {
@@ -20,6 +21,10 @@ const renderIcon = (icon: CommitWarningIcon) => {
     case CommitWarningIcon.Information:
       className = 'information-icon'
       symbol = OcticonSymbol.info
+      break
+    case CommitWarningIcon.Error:
+      className = 'error-icon'
+      symbol = OcticonSymbol.stop
       break
     default:
       assertNever(icon, `Unexpected icon value ${icon}`)

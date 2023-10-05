@@ -31,6 +31,11 @@
   }
 }
 
+.branches-container-panel {
+  display: flex;
+  flex: 1;
+}
+
 .pull-request-tab {
   display: flex;
   flex-direction: row;

@@ -41,7 +41,8 @@ describe('git/tag', () => {
       [],
       '',
       -1,
-      'Mona Lisa'
+      'Mona Lisa',
+      'free'
     )
   })
 

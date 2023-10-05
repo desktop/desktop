@@ -11,8 +11,16 @@ import {
   FailingCheckConclusions,
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
-import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
-import { Popover, PopoverCaretPosition } from '../lib/popover'
+import {
+  APICheckConclusion,
+  APICheckStatus,
+  IAPIWorkflowJobStep,
+} from '../../lib/api'
+import {
+  Popover,
+  PopoverAnchorPosition,
+  PopoverDecoration,
+} from '../lib/popover'
 import { CICheckRunList } from './ci-check-run-list'
 import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
@@ -42,9 +50,7 @@ interface ICICheckRunPopoverProps {
   /** The pull request's number. */
   readonly prNumber: number
 
-  /** The bottom of the pull request badge so we can position popover relative
-   * to it. */
-  readonly badgeBottom: number
+  readonly anchor: HTMLElement | null
 
   /** Callback for when popover closes */
   readonly closePopover: (event?: MouseEvent) => void
@@ -207,20 +213,6 @@ export class CICheckRunPopover extends React.PureComponent<
     })
   }
 
-  private getPopoverPositioningStyles = (): React.CSSProperties => {
-    const top = this.props.badgeBottom + 10
-    return { top }
-  }
-
-  private getListHeightStyles = (): React.CSSProperties => {
-    const headerHeight = 55
-    return {
-      maxHeight: `${
-        window.innerHeight - (this.props.badgeBottom + headerHeight + 20)
-      }px`,
-    }
-  }
-
   private renderRerunButton = () => {
     const { checkRuns } = this.state
     if (!supportsRerunningChecks(this.props.repository.endpoint)) {
@@ -277,7 +269,15 @@ export class CICheckRunPopover extends React.PureComponent<
       }
     }
 
-    return <Donut valueMap={getCheckStatusCountMap(checkRuns)} />
+    const valueMap = getCheckStatusCountMap(checkRuns)
+
+    const ariaLabel = `Completeness indicator. ${
+      valueMap.get(APICheckStatus.Completed) ?? 0
+    } completed, ${valueMap.get(APICheckStatus.InProgress) ?? 0} in progress, ${
+      valueMap.get(APICheckStatus.Queued) ?? 0
+    } queued.`
+
+    return <Donut ariaLabel={ariaLabel} valueMap={valueMap} />
   }
 
   private getTitle(
@@ -380,10 +380,7 @@ export class CICheckRunPopover extends React.PureComponent<
     }
 
     return (
-      <div
-        className="ci-check-run-list-container"
-        style={this.getListHeightStyles()}
-      >
+      <div className="ci-check-run-list-container">
         <CICheckRunList
           checkRuns={checkRuns}
           loadingActionLogs={loadingActionLogs}
@@ -406,13 +403,16 @@ export class CICheckRunPopover extends React.PureComponent<
     return (
       <div className="ci-check-list-popover">
         <Popover
+          anchor={this.props.anchor}
+          anchorPosition={PopoverAnchorPosition.Bottom}
+          decoration={PopoverDecoration.Balloon}
           ariaLabelledby="ci-check-run-header"
-          caretPosition={PopoverCaretPosition.Top}
           onClickOutside={this.props.closePopover}
-          style={this.getPopoverPositioningStyles()}
         >
-          {this.renderHeader()}
-          {this.renderList()}
+          <div className="ci-check-run-list-wrapper">
+            {this.renderHeader()}
+            {this.renderList()}
+          </div>
         </Popover>
       </div>
     )

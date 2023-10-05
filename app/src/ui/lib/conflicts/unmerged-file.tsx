@@ -23,7 +23,6 @@ import { openFile } from '../open-file'
 import { shell } from 'electron'
 import { Button } from '../button'
 import { IMenuItem } from '../../../lib/menu-item'
-import { LinkButton } from '../link-button'
 import {
   hasUnresolvedConflicts,
   getUnmergedStatusEntryDescription,
@@ -73,6 +72,10 @@ export const renderUnmergedFile: React.FunctionComponent<{
   readonly resolvedExternalEditor: string | null
   readonly openFileInExternalEditor: (path: string) => void
   readonly dispatcher: Dispatcher
+  readonly isFileResolutionOptionsMenuOpen: boolean
+  readonly setIsFileResolutionOptionsMenuOpen: (
+    isFileResolutionOptionsMenuOpen: boolean
+  ) => void
 }> = props => {
   if (
     isConflictWithMarkers(props.status) &&
@@ -88,6 +91,9 @@ export const renderUnmergedFile: React.FunctionComponent<{
       dispatcher: props.dispatcher,
       ourBranch: props.ourBranch,
       theirBranch: props.theirBranch,
+      isFileResolutionOptionsMenuOpen: props.isFileResolutionOptionsMenuOpen,
+      setIsFileResolutionOptionsMenuOpen:
+        props.setIsFileResolutionOptionsMenuOpen,
     })
   }
   if (
@@ -140,6 +146,16 @@ const renderResolvedFile: React.FunctionComponent<{
           dispatcher: props.dispatcher,
         })}
       </div>
+      <Button
+        className="undo-button"
+        onClick={makeUndoManualResolutionClickHandler(
+          props.path,
+          props.repository,
+          props.dispatcher
+        )}
+      >
+        Undo
+      </Button>
       <div className="green-circle">
         <Octicon symbol={OcticonSymbol.check} />
       </div>
@@ -223,6 +239,10 @@ const renderConflictedFileWithConflictMarkers: React.FunctionComponent<{
   readonly dispatcher: Dispatcher
   readonly ourBranch?: string
   readonly theirBranch?: string
+  readonly isFileResolutionOptionsMenuOpen: boolean
+  readonly setIsFileResolutionOptionsMenuOpen: (
+    isFileResolutionOptionsMenuOpen: boolean
+  ) => void
 }> = props => {
   const humanReadableConflicts = calculateConflicts(
     props.status.conflictMarkerCount
@@ -240,7 +260,8 @@ const renderConflictedFileWithConflictMarkers: React.FunctionComponent<{
     props.dispatcher,
     props.status,
     props.ourBranch,
-    props.theirBranch
+    props.theirBranch,
+    props.setIsFileResolutionOptionsMenuOpen
   )
 
   const content = (
@@ -261,6 +282,9 @@ const renderConflictedFileWithConflictMarkers: React.FunctionComponent<{
         <Button
           onClick={onDropdownClick}
           className="small-button button-group-item arrow-menu"
+          ariaLabel="File resolution options"
+          ariaHaspopup="menu"
+          ariaExpanded={props.isFileResolutionOptionsMenuOpen}
         >
           <Octicon symbol={OcticonSymbol.triangleDown} />
         </Button>
@@ -313,8 +337,11 @@ const makeMarkerConflictDropdownClickHandler = (
   repository: Repository,
   dispatcher: Dispatcher,
   status: ConflictsWithMarkers,
-  ourBranch?: string,
-  theirBranch?: string
+  ourBranch: string | undefined,
+  theirBranch: string | undefined,
+  setIsFileResolutionOptionsMenuOpen: (
+    isFileResolutionOptionsMenuOpen: boolean
+  ) => void
 ) => {
   return () => {
     const absoluteFilePath = join(repository.path, relativeFilePath)
@@ -339,7 +366,10 @@ const makeMarkerConflictDropdownClickHandler = (
         theirBranch
       ),
     ]
-    showContextualMenu(items)
+    setIsFileResolutionOptionsMenuOpen(true)
+    showContextualMenu(items).then(() => {
+      setIsFileResolutionOptionsMenuOpen(false)
+    })
   }
 }
 
@@ -409,21 +439,7 @@ const renderResolvedFileStatusSummary: React.FunctionComponent<{
     props.branch
   )
 
-  return (
-    <div className="file-conflicts-status">
-      {statusString}
-      &nbsp;
-      <LinkButton
-        onClick={makeUndoManualResolutionClickHandler(
-          props.path,
-          props.repository,
-          props.dispatcher
-        )}
-      >
-        Undo
-      </LinkButton>
-    </div>
-  )
+  return <div className="file-conflicts-status">{statusString}</div>
 }
 
 /** returns the name of the branch that corresponds to the chosen manual resolution */

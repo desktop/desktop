@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "3.2.2",
+  "version": "3.3.4-beta1",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -17,6 +17,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@floating-ui/react-dom": "^2.0.0",
     "@github/alive-client": "^0.0.2",
     "app-path": "^3.3.0",
     "byline": "^5.0.0",
@@ -45,7 +46,9 @@
     "primer-support": "^4.0.0",
     "prop-types": "^15.7.2",
     "quick-lru": "^3.0.0",
+    "re2js": "^0.3.0",
     "react": "^16.8.4",
+    "react-confetti": "^6.1.0",
     "react-css-transition-replace": "^3.0.3",
     "react-dom": "^16.8.4",
     "react-transition-group": "^4.4.1",

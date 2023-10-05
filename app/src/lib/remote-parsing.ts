@@ -27,19 +27,27 @@ interface IGitRemoteURL {
 const remoteRegexes: ReadonlyArray<{ protocol: GitProtocol; regex: RegExp }> = [
   {
     protocol: 'https',
-    regex: new RegExp('^https?://(?:.+@)?(.+)/(.+)/(.+?)(?:/|.git/?)?$'),
+    regex: new RegExp(
+      '^https?://(?:.+@)?(.+)/([^/]+)/([^/]+?)(?:/|\\.git/?)?$'
+    ),
   },
   {
     protocol: 'ssh',
-    regex: new RegExp('^git@(.+):(.+)/(.+?)(?:/|.git)?$'),
+    regex: new RegExp('^git@(.+):([^/]+)/([^/]+?)(?:/|\\.git)?$'),
   },
   {
     protocol: 'ssh',
-    regex: new RegExp('^git:(.+)/(.+)/(.+?)(?:/|.git)?$'),
+    regex: new RegExp(
+      '^(?:.+)@(.+\\.ghe\\.com):([^/]+)/([^/]+?)(?:/|\\.git)?$'
+    ),
   },
   {
     protocol: 'ssh',
-    regex: new RegExp('^ssh://git@(.+)/(.+)/(.+?)(?:/|.git)?$'),
+    regex: new RegExp('^git:(.+)/([^/]+)/([^/]+?)(?:/|\\.git)?$'),
+  },
+  {
+    protocol: 'ssh',
+    regex: new RegExp('^ssh://git@(.+)/(.+)/(.+?)(?:/|\\.git)?$'),
   },
 ]
 

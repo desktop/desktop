@@ -147,6 +147,10 @@ const editors: ILinuxExternalEditor[] = [
     name: 'Mousepad',
     paths: ['/usr/bin/mousepad'],
   },
+  {
+    name: 'Pulsar',
+    paths: ['/usr/bin/pulsar'],
+  },
 ]
 
 async function getAvailablePath(paths: string[]): Promise<string | null> {

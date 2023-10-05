@@ -41,11 +41,11 @@ export class FancyTextBox extends React.Component<
           value={this.props.value}
           onFocus={this.onFocus}
           onBlur={this.onBlur}
-          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
           type={this.props.type}
           placeholder={this.props.placeholder}
+          displayClearButton={this.props.displayClearButton}
           onKeyDown={this.props.onKeyDown}
           onValueChanged={this.props.onValueChanged}
           onSearchCleared={this.props.onSearchCleared}

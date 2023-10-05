@@ -212,6 +212,9 @@ export class AppMenuBarButton extends React.Component<
           renderAcceleratorText={false}
           renderSubMenuArrow={false}
           selected={false}
+          // Root menu items are wrapped in AppMenuBarButton components which
+          // already have the role="menuitem" attribute.
+          hasNoRole={true}
         />
       </ToolbarDropdown>
     )
