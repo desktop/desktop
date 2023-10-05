@@ -6,7 +6,7 @@ import { readFile } from 'fs/promises'
 import { Tooltip } from './tooltip'
 import { createObservableRef } from './observable-ref'
 import { getObjectId } from './object-id'
-import { debounce } from 'lodash'
+import debounce from 'lodash/debounce'
 import {
   MarkdownEmitter,
   parseMarkdown,
