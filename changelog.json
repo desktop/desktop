@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.3.4-test2": [
+      "[Improved] For accessibility verification of diff expansion button focus - #17416"
+    ],
     "3.3.4-beta1": [
       "[Fixed] Close button in release notes dialog can be clicked - #17438",
       "[Fixed] Scrolling works as expected in the \"Commit Reachability\" dialog - #17421",
