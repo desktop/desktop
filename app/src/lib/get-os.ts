@@ -38,6 +38,14 @@ export function getOS() {
   }
 }
 
+/** We're currently running macOS and it is macOS Ventura. */
+export const isMacOSVentura = memoizeOne(
+  () =>
+    __DARWIN__ &&
+    systemVersionGreaterThanOrEqualTo('13.0') &&
+    systemVersionLessThan('14.0')
+)
+
 /** We're currently running macOS and it is macOS Catalina or earlier. */
 export const isMacOSCatalinaOrEarlier = memoizeOne(
   () => __DARWIN__ && systemVersionLessThan('10.16')
@@ -58,4 +66,8 @@ export const isMacOSBigSurOrLater = memoizeOne(
 /** We're currently running Windows 10 and it is at least 1809 Preview Build 17666. */
 export const isWindows10And1809Preview17666OrLater = memoizeOne(
   () => __WIN32__ && systemVersionGreaterThanOrEqualTo('10.0.17666')
+)
+
+export const isWindowsAndNoLongerSupportedByElectron = memoizeOne(
+  () => __WIN32__ && systemVersionLessThan('10')
 )

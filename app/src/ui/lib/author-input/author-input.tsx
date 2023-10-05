@@ -46,10 +46,9 @@ interface IAuthorInputProps {
   readonly onAuthorsUpdated: (authors: ReadonlyArray<Author>) => void
 
   /**
-   * Whether or not the input should be read-only and styled as being
-   * disabled. When disabled the component will not accept focus.
+   * Whether or not the input should be read-only and styled as being disabled.
    */
-  readonly disabled: boolean
+  readonly readOnly: boolean
 }
 
 interface IAuthorInputState {
@@ -167,7 +166,7 @@ export class AuthorInput extends React.Component<
       'author-input-component',
       this.props.className,
       {
-        disabled: this.props.disabled,
+        disabled: this.props.readOnly,
       }
     )
 
@@ -180,17 +179,13 @@ export class AuthorInput extends React.Component<
           {this.state.lastActionDescription}
         </div>
         <div className="shadow-input" ref={this.shadowInputRef} />
-        <label
-          id="author-input-label"
-          className="label"
-          htmlFor="added-authors"
-        >
+        <label id="author-input-label" className="label" htmlFor="author-input">
           Co-Authors&nbsp;
         </label>
         {this.renderAuthors()}
         <AutocompletingInput<UserHit>
+          elementId="author-input"
           placeholder="@username"
-          isCombobox={true}
           alwaysAutocomplete={true}
           autocompletionProviders={[this.props.autoCompleteProvider]}
           autocompleteItemFilter={this.getAutocompleteItemFilter(
@@ -198,11 +193,11 @@ export class AuthorInput extends React.Component<
           )}
           ref={this.autocompletingInputRef}
           onElementRef={this.onInputRef}
-          elementAriaLabelledBy="author-input-label"
           onAutocompleteItemSelected={this.onAutocompleteItemSelected}
           onValueChanged={this.onCoAuthorsValueChanged}
           onKeyDown={this.onInputKeyDown}
           onFocus={this.onInputFocus}
+          readOnly={this.props.readOnly}
         />
       </FocusContainer>
     )
@@ -211,7 +206,6 @@ export class AuthorInput extends React.Component<
   private renderAuthors() {
     return (
       <div
-        id="added-authors"
         className="added-author-container"
         ref={this.authorContainerRef}
         aria-labelledby="author-input-label"

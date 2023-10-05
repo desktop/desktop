@@ -61,9 +61,11 @@ export class ConfirmAbortDialog extends React.Component<
         onSubmit={this.onSubmit}
         disabled={this.state.isAborting}
         type="warning"
+        role="alertdialog"
+        ariaDescribedBy="abort-operation-confirmation"
       >
         <DialogContent>
-          <div className="column-left">
+          <div className="column-left" id="abort-operation-confirmation">
             <p>
               Are you sure you want to abort this {operation.toLowerCase()}?
             </p>

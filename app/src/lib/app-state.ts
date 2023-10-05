@@ -31,11 +31,7 @@ import { SignInState } from './stores/sign-in-store'
 import { WindowState } from './window-state'
 import { Shell } from './shells'
 
-import {
-  ApplicableTheme,
-  ApplicationTheme,
-  ICustomTheme,
-} from '../ui/lib/application-theme'
+import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
@@ -50,6 +46,8 @@ import {
 } from '../models/multi-commit-operation'
 import { IChangesetData } from './git'
 import { Popup } from '../models/popup'
+import { RepoRulesInfo } from '../models/repo-rules'
+import { IAPIRepoRuleset } from './api'
 
 export enum SelectionType {
   Repository,
@@ -214,6 +212,9 @@ export interface IAppState {
   /** Should the app prompt the user to confirm a discard stash */
   readonly askForConfirmationOnDiscardStash: boolean
 
+  /** Should the app prompt the user to confirm a commit checkout? */
+  readonly askForConfirmationOnCheckoutCommit: boolean
+
   /** Should the app prompt the user to confirm a force push? */
   readonly askForConfirmationOnForcePush: boolean
 
@@ -228,6 +229,9 @@ export interface IAppState {
 
   /** Whether or not the app should use Windows' OpenSSH client */
   readonly useWindowsOpenSSH: boolean
+
+  /** Whether or not the app should show the commit length warning */
+  readonly showCommitLengthWarning: boolean
 
   /** The current setting for whether the user has disable usage reports */
   readonly optOutOfUsageTracking: boolean
@@ -270,9 +274,6 @@ export interface IAppState {
 
   /** The selected appearance (aka theme) preference */
   readonly selectedTheme: ApplicationTheme
-
-  /** The custom theme  */
-  readonly customTheme?: ICustomTheme
 
   /** The currently applied appearance (aka theme) */
   readonly currentTheme: ApplicableTheme
@@ -330,6 +331,12 @@ export interface IAppState {
   readonly pullRequestSuggestedNextAction:
     | PullRequestSuggestedNextAction
     | undefined
+
+  /**
+   * Cached repo rulesets. Used to prevent repeatedly querying the same
+   * rulesets to check their bypass status.
+   */
+  readonly cachedRepoRulesets: ReadonlyMap<number, IAPIRepoRuleset>
 }
 
 export enum FoldoutType {
@@ -720,6 +727,11 @@ export interface IChangesState {
 
   /** `true` if the GitHub API reports that the branch is protected */
   readonly currentBranchProtected: boolean
+
+  /**
+   * Repo rules that apply to the current branch.
+   */
+  readonly currentRepoRulesInfo: RepoRulesInfo
 }
 
 /**

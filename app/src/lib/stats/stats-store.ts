@@ -118,6 +118,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   rebaseAbortedAfterConflictsCount: 0,
   rebaseSuccessAfterConflictsCount: 0,
   rebaseSuccessWithoutConflictsCount: 0,
+  rebaseWithBranchAlreadyUpToDateCount: 0,
   pullWithRebaseCount: 0,
   pullWithDefaultSettingCount: 0,
   stashEntriesCreatedOutsideDesktop: 0,
@@ -948,7 +949,15 @@ export class StatsStore implements IStatsStore {
   public recordPullWithRebaseEnabled = () =>
     this.increment('pullWithRebaseCount')
 
-  /** Increments the `rebaseSuccessWithoutConflictsCount` metric */
+  /**
+   * Increments the `rebaseWithBranchAlreadyUpToDateCount` metric
+   */
+  public recordRebaseWithBranchAlreadyUpToDate = () =>
+    this.increment('rebaseWithBranchAlreadyUpToDateCount')
+
+  /**
+   * Increments the `rebaseSuccessWithoutConflictsCount` metric
+   */
   public recordRebaseSuccessWithoutConflicts = () =>
     this.increment('rebaseSuccessWithoutConflictsCount')
 

@@ -140,6 +140,7 @@ export abstract class PullRequestCommentLike extends React.Component<IPullReques
   private renderDashedTimelineLine(type: 'top' | 'bottom') {
     return (
       <svg
+        aria-hidden="true"
         xmlns="http://www.w3.org/2000/svg"
         className={`timeline-line ${type}`}
       >

@@ -47,6 +47,11 @@ interface IMenuListItemProps {
    */
   readonly selected: boolean
 
+  /**
+   * Whether or not this menu item should have a role applied
+   */
+  readonly hasNoRole?: boolean
+
   /** Called when the user's pointer device enter the list item */
   readonly onMouseEnter?: (
     item: MenuItem,
@@ -69,6 +74,8 @@ interface IMenuListItemProps {
    * false.
    */
   readonly focusOnSelection?: boolean
+
+  readonly renderLabel?: (item: MenuItem) => JSX.Element | undefined
 }
 
 /**
@@ -121,6 +128,22 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
     }
   }
 
+  private renderLabel() {
+    const { item, renderLabel } = this.props
+
+    if (renderLabel !== undefined) {
+      return renderLabel(item)
+    }
+
+    if (item.type === 'separator') {
+      return
+    }
+
+    return (
+      <AccessText text={item.label} highlight={this.props.highlightAccessKey} />
+    )
+  }
+
   public render() {
     const item = this.props.item
 
@@ -155,6 +178,13 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
       selected: this.props.selected,
     })
 
+    const role = this.props.hasNoRole
+      ? undefined
+      : type === 'checkbox'
+      ? 'menuitemradio'
+      : 'menuitem'
+    const ariaChecked = type === 'checkbox' ? item.checked : undefined
+
     return (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events
       <div
@@ -164,16 +194,12 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
         onMouseLeave={this.onMouseLeave}
         onClick={this.onClick}
         ref={this.wrapperRef}
-        role="menuitem"
+        role={role}
         tabIndex={-1}
+        aria-checked={ariaChecked}
       >
         {this.getIcon(item)}
-        <div className="label">
-          <AccessText
-            text={item.label}
-            highlight={this.props.highlightAccessKey}
-          />
-        </div>
+        <div className="label">{this.renderLabel()}</div>
         {accelerator}
         {arrow}
       </div>

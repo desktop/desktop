@@ -19,10 +19,6 @@
   border-radius: var(--button-border-radius);
 
   &:not([aria-disabled='true']):hover {
-    @include high-contrast {
-      border-width: 2px;
-    }
-
     border-color: var(--secondary-button-hover-border-color);
     background-color: var(--secondary-button-hover-background);
   }

@@ -15,6 +15,7 @@ interface IChangedFileProps {
   readonly availableWidth: number
   readonly disableSelection: boolean
   readonly checkboxTooltip?: string
+  readonly focused: boolean
   readonly onIncludeChanged: (path: string, include: boolean) => void
 }
 
@@ -36,7 +37,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   }
 
   public render() {
-    const { file, availableWidth, disableSelection, checkboxTooltip } =
+    const { file, availableWidth, disableSelection, checkboxTooltip, focused } =
       this.props
     const { status, path } = file
     const fileStatus = mapStatus(status)
@@ -59,6 +60,10 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
         : this.props.include === undefined
         ? 'partially included'
         : 'not included'
+
+    const pathScreenReaderMessage = `${path} ${mapStatus(
+      status
+    )} ${includedText}`
 
     return (
       <div className="file">
@@ -85,16 +90,18 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
           ariaHidden={true}
         />
 
-        <AriaLiveContainer>
-          {path} {mapStatus(status)} {includedText}
-        </AriaLiveContainer>
-
-        <Octicon
-          symbol={iconForStatus(status)}
-          className={'status status-' + fileStatus.toLowerCase()}
-          title={fileStatus}
-          tooltipDirection={TooltipDirection.EAST}
-        />
+        <AriaLiveContainer message={pathScreenReaderMessage} />
+        <TooltippedContent
+          ancestorFocused={focused}
+          openOnFocus={true}
+          tooltip={fileStatus}
+          direction={TooltipDirection.EAST}
+        >
+          <Octicon
+            symbol={iconForStatus(status)}
+            className={'status status-' + fileStatus.toLowerCase()}
+          />
+        </TooltippedContent>
       </div>
     )
   }

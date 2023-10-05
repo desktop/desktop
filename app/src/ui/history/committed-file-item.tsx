@@ -4,26 +4,19 @@ import { CommittedFileChange } from '../../models/status'
 import { mapStatus } from '../../lib/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon, iconForStatus } from '../octicons'
+import { TooltippedContent } from '../lib/tooltipped-content'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface ICommittedFileItemProps {
   readonly availableWidth: number
   readonly file: CommittedFileChange
-  readonly onContextMenu?: (
-    file: CommittedFileChange,
-    event: React.MouseEvent<HTMLDivElement>
-  ) => void
+  readonly focused: boolean
 }
 
 export class CommittedFileItem extends React.Component<ICommittedFileItemProps> {
-  private onContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (this.props.onContextMenu !== undefined) {
-      this.props.onContextMenu(this.props.file, event)
-    }
-  }
-
   public render() {
-    const { file } = this.props
-    const status = file.status
+    const { file, focused } = this.props
+    const { status } = file
     const fileStatus = mapStatus(status)
 
     const listItemPadding = 10 * 2
@@ -36,18 +29,24 @@ export class CommittedFileItem extends React.Component<ICommittedFileItemProps> 
       statusWidth
 
     return (
-      <div className="file" onContextMenu={this.onContextMenu}>
+      <div className="file">
         <PathLabel
           path={file.path}
           status={file.status}
           availableWidth={availablePathWidth}
+          ariaHidden={true}
         />
-
-        <Octicon
-          symbol={iconForStatus(status)}
-          className={'status status-' + fileStatus.toLowerCase()}
-          title={fileStatus}
-        />
+        <TooltippedContent
+          ancestorFocused={focused}
+          openOnFocus={true}
+          tooltip={fileStatus}
+          direction={TooltipDirection.NORTH}
+        >
+          <Octicon
+            symbol={iconForStatus(status)}
+            className={'status status-' + fileStatus.toLowerCase()}
+          />
+        </TooltippedContent>
       </div>
     )
   }

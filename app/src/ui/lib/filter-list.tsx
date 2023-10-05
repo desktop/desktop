@@ -12,6 +12,7 @@ import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
 import { match, IMatch, IMatches } from '../../lib/fuzzy-find'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 /** An item in the filter list. */
 export interface IFilterListItem {
@@ -154,11 +155,25 @@ interface IFilterListProps<T extends IFilterListItem> {
 
   /** If true, we do not render the filter. */
   readonly hideFilterRow?: boolean
+
+  /**
+   * A handler called whenever a context menu event is received on the
+   * row container element.
+   *
+   * The context menu is invoked when a user right clicks the row or
+   * uses keyboard shortcut.s
+   */
+  readonly onItemContextMenu?: (
+    item: T,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
 }
 
 interface IFilterListState<T extends IFilterListItem> {
   readonly rows: ReadonlyArray<IFilterListRow<T>>
   readonly selectedRow: number
+  readonly filterValue: string
+  readonly filterValueChanged: boolean
 }
 
 /**
@@ -185,17 +200,15 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   public constructor(props: IFilterListProps<T>) {
     super(props)
 
-    this.state = createStateUpdate(props)
-  }
-
-  public componentWillMount() {
-    if (this.props.filterTextBox !== undefined) {
-      this.filterTextBox = this.props.filterTextBox
+    if (props.filterTextBox !== undefined) {
+      this.filterTextBox = props.filterTextBox
     }
+
+    this.state = createStateUpdate(props, null)
   }
 
   public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
-    this.setState(createStateUpdate(nextProps))
+    this.setState(createStateUpdate(nextProps, this.state))
   }
 
   public componentDidUpdate(
@@ -249,8 +262,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
     return (
       <TextBox
         ref={this.onTextBoxRef}
-        type="search"
-        // eslint-disable-next-line jsx-a11y/no-autofocus
+        displayClearButton={true}
         autoFocus={true}
         placeholder={this.props.placeholderText || 'Filter'}
         className="filter-list-filter-field"
@@ -259,6 +271,23 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         onKeyDown={this.onKeyDown}
         value={this.props.filterText}
         disabled={this.props.disabled}
+      />
+    )
+  }
+
+  public renderLiveContainer() {
+    if (!this.state.filterValueChanged) {
+      return null
+    }
+
+    const itemRows = this.state.rows.filter(row => row.kind === 'item')
+    const resultsPluralized = itemRows.length === 1 ? 'result' : 'results'
+    const screenReaderMessage = `${itemRows.length} ${resultsPluralized}`
+
+    return (
+      <AriaLiveContainer
+        message={screenReaderMessage}
+        trackedUserInput={this.state.filterValue}
       />
     )
   }
@@ -279,6 +308,8 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
   public render() {
     return (
       <div className={classnames('filter-list', this.props.className)}>
+        {this.renderLiveContainer()}
+
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
         {this.renderFilterRow()}
@@ -339,10 +370,13 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
           rowCount={this.state.rows.length}
           rowRenderer={this.renderRow}
           rowHeight={this.props.rowHeight}
-          selectedRows={[this.state.selectedRow]}
+          selectedRows={
+            this.state.selectedRow === -1 ? [] : [this.state.selectedRow]
+          }
           onSelectedRowChanged={this.onSelectedRowChanged}
           onRowClick={this.onRowClick}
           onRowKeyDown={this.onRowKeyDown}
+          onRowContextMenu={this.onRowContextMenu}
           canSelectRow={this.canSelectRow}
           invalidationProps={{
             ...this.props,
@@ -417,6 +451,23 @@ export class FilterList<T extends IFilterListItem> extends React.Component<
         this.props.onItemClick(row.item, source)
       }
     }
+  }
+
+  private onRowContextMenu = (
+    index: number,
+    source: React.MouseEvent<HTMLDivElement>
+  ) => {
+    if (!this.props.onItemContextMenu) {
+      return
+    }
+
+    const row = this.state.rows[index]
+
+    if (row.kind !== 'item') {
+      return
+    }
+
+    this.props.onItemContextMenu(row.item, source)
   }
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
@@ -536,7 +587,8 @@ export function getText<T extends IFilterListItem>(
 }
 
 function createStateUpdate<T extends IFilterListItem>(
-  props: IFilterListProps<T>
+  props: IFilterListProps<T>,
+  state: IFilterListState<T> | null
 ) {
   const flattenedRows = new Array<IFilterListRow<T>>()
   const filter = (props.filterText || '').toLowerCase()
@@ -577,7 +629,17 @@ function createStateUpdate<T extends IFilterListItem>(
     selectedRow = flattenedRows.findIndex(i => i.kind === 'item')
   }
 
-  return { rows: flattenedRows, selectedRow }
+  // Stay true if already set, otherwise become true if the filter has content
+  const filterValueChanged = state?.filterValueChanged
+    ? true
+    : filter.length > 0
+
+  return {
+    rows: flattenedRows,
+    selectedRow,
+    filterValue: filter,
+    filterValueChanged,
+  }
 }
 
 function getItemFromRowIndex<T extends IFilterListItem>(

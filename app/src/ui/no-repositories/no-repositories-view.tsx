@@ -129,26 +129,28 @@ export class NoRepositoriesView extends React.Component<
   public render() {
     return (
       <UiView id="no-repositories">
-        <header>
-          <h1>Let's get started!</h1>
-          <p>Add a repository to GitHub Desktop to start collaborating</p>
-        </header>
+        <section aria-label="Let's get started!">
+          <header>
+            <h1>Let's get started!</h1>
+            <p>Add a repository to GitHub Desktop to start collaborating</p>
+          </header>
 
-        <div className="content">
-          {this.renderGetStartedActions()}
-          {this.renderRepositoryList()}
-        </div>
+          <div className="content">
+            {this.renderGetStartedActions()}
+            {this.renderRepositoryList()}
+          </div>
 
-        <img
-          className="no-repositories-graphic-top"
-          src={WelcomeLeftTopImageUri}
-          alt=""
-        />
-        <img
-          className="no-repositories-graphic-bottom"
-          src={WelcomeLeftBottomImageUri}
-          alt=""
-        />
+          <img
+            className="no-repositories-graphic-top"
+            src={WelcomeLeftTopImageUri}
+            alt=""
+          />
+          <img
+            className="no-repositories-graphic-bottom"
+            src={WelcomeLeftBottomImageUri}
+            alt=""
+          />
+        </section>
       </UiView>
     )
   }
@@ -178,6 +180,12 @@ export class NoRepositoriesView extends React.Component<
         this.props.onRefreshRepositories(account)
       }
     }
+  }
+
+  private isUserSignedIn() {
+    return (
+      this.props.dotComAccount !== null || this.props.enterpriseAccount !== null
+    )
   }
 
   private getSelectedAccount() {
@@ -346,24 +354,22 @@ export class NoRepositoriesView extends React.Component<
     symbol: OcticonSymbolType,
     title: string,
     onClick: () => void,
-    type?: 'submit'
+    type?: 'submit',
+    autoFocus?: boolean
   ) {
     return (
-      <li>
-        <Button onClick={onClick} type={type}>
+      <span>
+        <Button onClick={onClick} type={type} autoFocus={autoFocus}>
           <Octicon symbol={symbol} />
           <div>{title}</div>
         </Button>
-      </li>
+      </span>
     )
   }
 
   private renderTutorialRepositoryButton() {
     // No tutorial if you're not signed in.
-    if (
-      this.props.dotComAccount === null &&
-      this.props.enterpriseAccount === null
-    ) {
+    if (!this.isUserSignedIn()) {
       return null
     }
 
@@ -394,7 +400,9 @@ export class NoRepositoriesView extends React.Component<
       __DARWIN__
         ? 'Clone a Repository from the Internet…'
         : 'Clone a repository from the Internet…',
-      this.onShowClone
+      this.onShowClone,
+      undefined,
+      !this.isUserSignedIn()
     )
   }
 
@@ -421,12 +429,12 @@ export class NoRepositoriesView extends React.Component<
   private renderGetStartedActions() {
     return (
       <div className="content-pane">
-        <ul className="button-group">
+        <div className="button-group">
           {this.renderTutorialRepositoryButton()}
           {this.renderCloneButton()}
           {this.renderCreateRepositoryButton()}
           {this.renderAddExistingRepositoryButton()}
-        </ul>
+        </div>
 
         <div className="drag-drop-info">
           <Octicon symbol={OcticonSymbol.lightBulb} />

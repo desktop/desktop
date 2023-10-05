@@ -26,23 +26,18 @@ interface IStartProps {
 export class Start extends React.Component<IStartProps, {}> {
   public render() {
     return (
-      <div id="start">
+      <section
+        id="start"
+        aria-label="Welcome to GitHub Desktop"
+        aria-describedby="start-description"
+      >
         <h1 className="welcome-title">Welcome to GitHub&nbsp;Desktop</h1>
         {!this.props.loadingBrowserAuth ? (
           <>
-            <p className="welcome-text">
+            <p id="start-description" className="welcome-text">
               GitHub Desktop is a seamless way to contribute to projects on
               GitHub and GitHub Enterprise. Sign in below to get started with
               your existing projects.
-            </p>
-            <p className="welcome-text">
-              New to GitHub?{' '}
-              <LinkButton
-                uri={CreateAccountURL}
-                className="create-account-link"
-              >
-                Create your free account.
-              </LinkButton>
             </p>
           </>
         ) : (
@@ -55,6 +50,7 @@ export class Start extends React.Component<IStartProps, {}> {
             className="button-with-icon"
             disabled={this.props.loadingBrowserAuth}
             onClick={this.signInWithBrowser}
+            autoFocus={true}
           >
             {this.props.loadingBrowserAuth && <Loading />}
             Sign in to GitHub.com
@@ -69,6 +65,12 @@ export class Start extends React.Component<IStartProps, {}> {
           )}
         </div>
         <div className="skip-action-container">
+          <p className="welcome-text">
+            New to GitHub?{' '}
+            <LinkButton uri={CreateAccountURL} className="create-account-link">
+              Create your free account.
+            </LinkButton>
+          </p>
           <LinkButton className="skip-button" onClick={this.skip}>
             Skip this step
           </LinkButton>
@@ -85,10 +87,12 @@ export class Start extends React.Component<IStartProps, {}> {
           .<br />
           <br />
           GitHub Desktop sends usage metrics to improve the product and inform
-          feature decisions. Read more about what metrics are sent and how we
-          use them <LinkButton uri={SamplesURL}>here</LinkButton>.
+          feature decisions.{' '}
+          <LinkButton uri={SamplesURL}>
+            Learn more about user metrics.
+          </LinkButton>
         </div>
-      </div>
+      </section>
     )
   }
 

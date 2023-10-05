@@ -17,6 +17,7 @@ import { PreferencesTab } from '../../models/preferences'
 import { Ref } from '../lib/ref'
 import { suggestedExternalEditor } from '../../lib/editors/shared'
 import { TutorialStepInstructions } from './tutorial-step-instruction'
+import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 
 const TutorialPanelImage = encodePathAsUrl(
   __dirname,
@@ -144,7 +145,7 @@ export class TutorialPanel extends React.Component<
                 <strong>{this.props.resolvedExternalEditor}</strong>. You can
                 change your preferred editor in{' '}
                 <LinkButton onClick={this.onPreferencesClick}>
-                  {__DARWIN__ ? 'Preferences' : 'options'}
+                  {__DARWIN__ ? 'Settings' : 'options'}
                 </LinkButton>
               </p>
             )}
@@ -163,19 +164,10 @@ export class TutorialPanel extends React.Component<
               clicking "${__DARWIN__ ? 'New Branch' : 'New branch'}".`}
             </p>
             <div className="action">
-              {__DARWIN__ ? (
-                <>
-                  <kbd>⌘</kbd>
-                  <kbd>⇧</kbd>
-                  <kbd>N</kbd>
-                </>
-              ) : (
-                <>
-                  <kbd>Ctrl</kbd>
-                  <kbd>Shift</kbd>
-                  <kbd>N</kbd>
-                </>
-              )}
+              <KeyboardShortcut
+                darwinKeys={['⌘', '⇧', 'N']}
+                keys={['Ctrl', 'Shift', 'N']}
+              />
             </div>
           </TutorialStepInstructions>
           <TutorialStepInstructions
@@ -198,19 +190,10 @@ export class TutorialPanel extends React.Component<
                 <Button onClick={this.openTutorialFileInEditor}>
                   {__DARWIN__ ? 'Open Editor' : 'Open editor'}
                 </Button>
-                {__DARWIN__ ? (
-                  <>
-                    <kbd>⌘</kbd>
-                    <kbd>⇧</kbd>
-                    <kbd>A</kbd>
-                  </>
-                ) : (
-                  <>
-                    <kbd>Ctrl</kbd>
-                    <kbd>Shift</kbd>
-                    <kbd>A</kbd>
-                  </>
-                )}
+                <KeyboardShortcut
+                  darwinKeys={['⌘', '⇧', 'A']}
+                  keys={['Ctrl', 'Shift', 'A']}
+                />
               </div>
             )}
           </TutorialStepInstructions>
@@ -243,17 +226,7 @@ export class TutorialPanel extends React.Component<
               top bar.
             </p>
             <div className="action">
-              {__DARWIN__ ? (
-                <>
-                  <kbd>⌘</kbd>
-                  <kbd>P</kbd>
-                </>
-              ) : (
-                <>
-                  <kbd>Ctrl</kbd>
-                  <kbd>P</kbd>
-                </>
-              )}
+              <KeyboardShortcut darwinKeys={['⌘', 'P']} keys={['Ctrl', 'P']} />
             </div>
           </TutorialStepInstructions>
           <TutorialStepInstructions
@@ -276,17 +249,7 @@ export class TutorialPanel extends React.Component<
                 {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
                 <Octicon symbol={OcticonSymbol.linkExternal} />
               </Button>
-              {__DARWIN__ ? (
-                <>
-                  <kbd>⌘</kbd>
-                  <kbd>R</kbd>
-                </>
-              ) : (
-                <>
-                  <kbd>Ctrl</kbd>
-                  <kbd>R</kbd>
-                </>
-              )}
+              <KeyboardShortcut darwinKeys={['⌘', 'R']} keys={['Ctrl', 'R']} />
             </div>
           </TutorialStepInstructions>
         </ol>
@@ -306,7 +269,7 @@ export class TutorialPanel extends React.Component<
   private onPreferencesClick = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.Preferences,
-      initialSelectedTab: PreferencesTab.Advanced,
+      initialSelectedTab: PreferencesTab.Integrations,
     })
   }
 }

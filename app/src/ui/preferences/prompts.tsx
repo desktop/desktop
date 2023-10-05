@@ -9,15 +9,19 @@ interface IPromptsPreferencesProps {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmDiscardStash: boolean
+  readonly confirmCheckoutCommit: boolean
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
+  readonly showCommitLengthWarning: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesPermanentlyChanged: (checked: boolean) => void
   readonly onConfirmDiscardStashChanged: (checked: boolean) => void
+  readonly onConfirmCheckoutCommitChanged: (checked: boolean) => void
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
   readonly onConfirmUndoCommitChanged: (checked: boolean) => void
+  readonly onShowCommitLengthWarningChanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyChanged: (
     value: UncommittedChangesStrategy
   ) => void
@@ -28,6 +32,7 @@ interface IPromptsPreferencesState {
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmDiscardStash: boolean
+  readonly confirmCheckoutCommit: boolean
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
@@ -46,6 +51,7 @@ export class Prompts extends React.Component<
       confirmDiscardChangesPermanently:
         this.props.confirmDiscardChangesPermanently,
       confirmDiscardStash: this.props.confirmDiscardStash,
+      confirmCheckoutCommit: this.props.confirmCheckoutCommit,
       confirmForcePush: this.props.confirmForcePush,
       confirmUndoCommit: this.props.confirmUndoCommit,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
@@ -77,6 +83,15 @@ export class Prompts extends React.Component<
 
     this.setState({ confirmDiscardStash: value })
     this.props.onConfirmDiscardStashChanged(value)
+  }
+
+  private onConfirmCheckoutCommitChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ confirmCheckoutCommit: value })
+    this.props.onConfirmCheckoutCommitChanged(value)
   }
 
   private onConfirmForcePushChanged = (
@@ -111,6 +126,12 @@ export class Prompts extends React.Component<
   ) => {
     this.setState({ uncommittedChangesStrategy: value })
     this.props.onUncommittedChangesStrategyChanged(value)
+  }
+
+  private onShowCommitLengthWarningChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onShowCommitLengthWarningChanged(event.currentTarget.checked)
   }
 
   public render() {
@@ -153,6 +174,15 @@ export class Prompts extends React.Component<
                 : CheckboxValue.Off
             }
             onChange={this.onConfirmDiscardStashChanged}
+          />
+          <Checkbox
+            label="Checking out a commit"
+            value={
+              this.state.confirmCheckoutCommit
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onConfirmCheckoutCommitChanged}
           />
           <Checkbox
             label="Force pushing"
@@ -202,6 +232,18 @@ export class Prompts extends React.Component<
             }
             label="Always stash and leave my changes on the current branch"
             onSelected={this.onUncommittedChangesStrategyChanged}
+          />
+        </div>
+        <div className="advanced-section">
+          <h2>Commit Length</h2>
+          <Checkbox
+            label="Show commit length warning"
+            value={
+              this.props.showCommitLengthWarning
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onShowCommitLengthWarningChanged}
           />
         </div>
       </DialogContent>

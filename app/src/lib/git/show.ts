@@ -1,11 +1,9 @@
 import { ChildProcess } from 'child_process'
 
 import { git } from './core'
-import { spawnAndComplete } from './spawn'
 
 import { Repository } from '../../models/repository'
 import { GitError } from 'dugite'
-import { enableMultiCommitDiffs } from '../feature-flag'
 
 /**
  * Retrieve the binary contents of a blob from the repository at a given
@@ -76,28 +74,12 @@ export async function getPartialBlobContents(
   path: string,
   length: number
 ): Promise<Buffer | null> {
-  if (enableMultiCommitDiffs()) {
-    return getPartialBlobContentsCatchPathNotInRef(
-      repository,
-      commitish,
-      path,
-      length
-    )
-  }
-
-  const successExitCodes = new Set([0, 1])
-
-  const args = ['show', `${commitish}:${path}`]
-
-  const { output } = await spawnAndComplete(
-    args,
-    repository.path,
-    'getPartialBlobContents',
-    successExitCodes,
+  return getPartialBlobContentsCatchPathNotInRef(
+    repository,
+    commitish,
+    path,
     length
   )
-
-  return output
 }
 
 export async function getPartialBlobContentsCatchPathNotInRef(

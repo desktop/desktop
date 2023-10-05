@@ -227,10 +227,14 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         className={
           isRawGitError(this.state.error) ? 'raw-git-error' : undefined
         }
+        role="alertdialog"
+        ariaDescribedBy="app-error-description"
       >
         <DialogContent onRef={this.onDialogContentRef}>
-          {this.renderErrorMessage(error)}
-          {this.renderContentAfterErrorMessage(error)}
+          <div id="app-error-description">
+            {this.renderErrorMessage(error)}
+            {this.renderContentAfterErrorMessage(error)}
+          </div>
         </DialogContent>
         {this.renderFooter(error)}
       </Dialog>

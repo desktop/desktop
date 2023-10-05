@@ -2,6 +2,9 @@ import * as React from 'react'
 import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import { showContextualMenu } from '../../lib/menu-item'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 export interface ITextBoxProps {
   /** The label for the input field. */
@@ -24,6 +27,24 @@ export interface ITextBoxProps {
 
   /** Whether the input field is disabled. */
   readonly disabled?: boolean
+
+  /** Whether the input field is read-only. */
+  readonly readOnly?: boolean
+
+  /** Indicates if input field should be required */
+  readonly required?: boolean
+
+  /**
+   * Indicates whether or not the control displays an invalid state.
+   * Default: true
+   */
+  readonly displayInvalidState?: boolean
+
+  /**
+   * Whether or not the control displays a clear button when it has text.
+   * Default: false
+   */
+  readonly displayClearButton?: boolean
 
   /**
    * Called when the user changes the value in the input field.
@@ -72,6 +93,10 @@ export interface ITextBoxProps {
   /** Optional aria-label attribute */
   readonly ariaLabel?: string
 
+  /** Optional aria-describedby attribute - usually for associating a descriptive
+   * message to the input such as a validation error, warning, or caption */
+  readonly ariaDescribedBy?: string
+
   readonly ariaControls?: string
 }
 
@@ -87,6 +112,11 @@ interface ITextBoxState {
    * Text to display in the underlying input element
    */
   readonly value?: string
+
+  /**
+   * Input just cleared via clear button.
+   */
+  readonly valueCleared: boolean
 }
 
 /** An input element with app-standard styles. */
@@ -97,7 +127,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     const friendlyName = this.props.label || this.props.placeholder
     const inputId = createUniqueId(`TextBox_${friendlyName}`)
 
-    this.setState({ inputId, value: this.props.value })
+    this.setState({ inputId, value: this.props.value, valueCleared: false })
   }
 
   public componentWillUnmount() {
@@ -153,7 +183,9 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = event.currentTarget.value
 
-    this.setState({ value }, () => {
+    // Even when the new value is '', we don't want to render the aria-live
+    // message saying "input cleared", so we set valueCleared to false.
+    this.setState({ value, valueCleared: false }, () => {
       if (this.props.onValueChanged) {
         this.props.onValueChanged(value)
       }
@@ -161,9 +193,24 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   }
 
   private onSearchTextCleared = () => {
-    if (this.props.onSearchCleared != null) {
-      this.props.onSearchCleared()
+    this.setState({ valueCleared: true })
+    this.props.onSearchCleared?.()
+  }
+
+  private clearSearchText = () => {
+    if (this.inputElement === null) {
+      return
     }
+
+    this.inputElement.value = ''
+
+    this.setState({ value: '', valueCleared: true }, () => {
+      if (this.props.onValueChanged) {
+        this.props.onValueChanged('')
+      }
+      this.props.onSearchCleared?.()
+      this.focus()
+    })
   }
 
   /**
@@ -241,18 +288,22 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     const inputId = label ? this.state.inputId : undefined
 
     return (
-      <div className={classNames('text-box-component', className)}>
+      <div
+        className={classNames('text-box-component', className, {
+          'no-invalid-state': this.props.displayInvalidState === false,
+          'display-clear-button': this.props.displayClearButton === true,
+        })}
+      >
         {label && <label htmlFor={inputId}>{label}</label>}
-
         <input
           id={inputId}
           ref={this.onInputRef}
           onFocus={this.onFocus}
           onBlur={this.onBlur}
-          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
-          type={this.props.type}
+          readOnly={this.props.readOnly}
+          type={this.props.type ?? 'text'}
           placeholder={this.props.placeholder}
           value={this.state.value}
           onChange={this.onChange}
@@ -262,7 +313,23 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           spellCheck={this.props.spellcheck === true}
           aria-label={this.props.ariaLabel}
           aria-controls={this.props.ariaControls}
+          aria-describedby={this.props.ariaDescribedBy}
+          required={this.props.required}
         />
+        {this.props.displayClearButton &&
+          this.state.value !== undefined &&
+          this.state.value !== '' && (
+            <button
+              className="clear-button"
+              aria-label="Clear"
+              onClick={this.clearSearchText}
+            >
+              <Octicon symbol={OcticonSymbol.x} />
+            </button>
+          )}
+        {this.state.valueCleared && (
+          <AriaLiveContainer message="Input cleared" />
+        )}
       </div>
     )
   }

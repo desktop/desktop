@@ -104,7 +104,6 @@
   }
 
   .popover-component.whitespace-hint {
-    position: absolute;
     width: 225px;
   }
 }
@@ -131,31 +130,37 @@
     top: 0;
   }
 
-  .hunk-expand-up-handle {
-    position: absolute;
-    height: 50%;
-    width: 100%;
-    right: 0;
-    bottom: 0;
-    text-align: center;
-  }
+  .hunk-expander {
+    overflow: inherit;
+    text-overflow: inherit;
+    white-space: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    padding: inherit;
+    border: none;
+    height: inherit;
+    color: inherit;
+    background-color: inherit;
 
-  .hunk-expand-down-handle {
     position: absolute;
-    height: 50%;
-    width: 100%;
     right: 0;
-    top: 0;
+    width: 100%;
     text-align: center;
-  }
 
-  .hunk-expand-whole-handle {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    right: 0;
-    bottom: 0;
-    text-align: center;
+    &.hunk-expand-up-handle {
+      height: 50%;
+      bottom: 0;
+    }
+
+    &.hunk-expand-down-handle {
+      height: 50%;
+      top: 0;
+    }
+
+    &.hunk-expand-whole-handle {
+      height: 100%;
+      bottom: 0;
+    }
   }
 
   &:not(.includeable) {
@@ -275,39 +280,10 @@
 .CodeMirror-linebackground {
   &.diff-add {
     background: var(--diff-add-background-color);
-
-    @include high-contrast {
-      border-right: var(--hc-diff-add-border);
-      border-left: var(--hc-diff-add-border);
-      margin-top: 1px;
-
-      &.is-first {
-        margin-top: 1px;
-        border-top: var(--hc-diff-add-border);
-      }
-
-      &.is-last {
-        border-bottom: var(--hc-diff-add-border);
-      }
-    }
   }
 
   &.diff-delete {
     background: var(--diff-delete-background-color);
-
-    @include high-contrast {
-      border-right: var(--hc-diff-delete-border);
-      border-left: var(--hc-diff-delete-border);
-
-      &.is-first {
-        margin-top: 1px;
-        border-top: var(--hc-diff-delete-border);
-      }
-
-      &.is-last {
-        border-bottom: var(--hc-diff-delete-border);
-      }
-    }
   }
 
   &.diff-context {

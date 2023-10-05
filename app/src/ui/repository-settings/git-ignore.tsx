@@ -28,7 +28,7 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, {}> {
           placeholder="Ignored files"
           value={this.props.text || ''}
           onValueChanged={this.props.onIgnoreTextChanged}
-          rows={6}
+          textareaClassName="gitignore"
         />
       </DialogContent>
     )

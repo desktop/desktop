@@ -17,7 +17,6 @@
     .dropdown-select-button-options {
       border-top-right-radius: 0;
       border-top-left-radius: 0;
-      border-top: none;
     }
   }
 
@@ -33,7 +32,6 @@
     .dropdown-select-button-options {
       border-bottom-right-radius: 0;
       border-bottom-left-radius: 0;
-      border-bottom: none;
     }
   }
 
@@ -80,46 +78,33 @@
     color: var(--text-color);
     background-color: var(--box-alt-background-color);
     background-clip: padding-box;
-    border: 1px solid var(--box-border-color);
     border-radius: var(--border-radius);
     z-index: 100;
     box-shadow: var(--base-box-shadow);
-    width: 99.9%;
-
+    width: 100%;
     padding: 0;
     margin: 0;
+    outline: 1px solid var(--box-border-color);
 
-    :first-child.button-component {
-      border-top: 1px solid var(--box-border-color);
+    .menu-pane {
+      padding-bottom: 0;
     }
 
-    .button-component {
-      padding: var(--spacing) var(--spacing-double);
-      padding-left: var(--spacing-triple);
+    .menu-item {
       border-bottom: 1px solid var(--box-border-color);
       height: auto;
       padding: var(--spacing) var(--spacing-double);
       padding-left: var(--spacing-triple);
-      border-bottom: 1px solid var(--box-border-color);
-      text-align: inherit;
-      white-space: normal;
+      align-items: normal;
       border-radius: 0;
-      line-height: 1.5;
-      margin: 0;
-      border-right: 0;
-      border-left: 0;
-      border-top: 0;
-      width: 100%;
 
-      &:hover,
-      &:focus {
+      &:focus-visible {
         outline: none;
-        color: var(--box-selected-active-text-color);
-        background-color: var(--box-selected-active-background-color);
+      }
 
-        .option-description {
-          color: var(--box-selected-active-text-color);
-        }
+      .label {
+        margin-left: 0;
+        white-space: inherit;
       }
 
       .option-description {
@@ -127,7 +112,7 @@
         font-size: var(--font-size-sm);
       }
 
-      .selected-option-indicator {
+      .icon {
         position: absolute;
         left: var(--spacing);
       }

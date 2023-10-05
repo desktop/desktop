@@ -1,7 +1,0 @@
-// A mixin which takes a content block that should only
-// be applied when we are using the high-contrast theme
-@mixin high-contrast {
-  body.theme-high-contrast & {
-    @content;
-  }
-}

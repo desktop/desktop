@@ -2,15 +2,9 @@ import * as path from 'path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import webpack from 'webpack'
 import merge from 'webpack-merge'
-import { getChannel } from '../script/dist-info'
 import { getReplacements } from './app-info'
 
-const channel = getChannel()
-
 export const externals = ['7zip']
-if (channel === 'development') {
-  externals.push('devtron')
-}
 
 const outputDir = 'out'
 export const replacements = getReplacements()
@@ -81,7 +75,7 @@ export const renderer = merge({}, commonConfig, {
       },
       {
         test: /\.cmd$/,
-        loader: 'file-loader',
+        type: 'asset/resource',
       },
     ],
   },

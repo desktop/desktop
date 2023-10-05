@@ -47,3 +47,4 @@ export type MenuEvent =
   | 'show-app-error'
   | 'decrease-active-resizable-width'
   | 'increase-active-resizable-width'
+  | 'show-thank-you-popup'

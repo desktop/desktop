@@ -723,8 +723,6 @@ function createWindow() {
       REACT_DEVELOPER_TOOLS,
     } = require('electron-devtools-installer')
 
-    require('electron-debug')({ showDevTools: true })
-
     const ChromeLens = {
       id: 'idikgljglpfilbhaboonnpnnincjhjkd',
       electron: '>=1.2.1',

@@ -116,6 +116,7 @@ export class AuthorHandle extends React.Component<IAuthorHandleProps> {
     const { author, isFocused } = this.props
 
     return (
+      // eslint-disable-next-line github/a11y-no-title-attribute
       <div
         className={this.getClassName()}
         title={this.getTitle()}
