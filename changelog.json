@@ -5,6 +5,7 @@
       "[Fixed] Screen readers announce contents of app error dialogs - #17479",
       "[Fixed] Screen readers announce contents of abort multi-commit operation confirmation dialogs - #17478",
       "[Fixed] Pasting long texts in the commit summary textbox does not show a scrollbar in the left pane - #17472",
+      "[Fixed] Tab characters in diffs are rendered correctly - #8616",
       "[Improved] Added accessibility label to filter textbox in the History tab - #17488",
       "[Improved] Improved clarity of the structure of dialogs by using `h2` elements for their titles - #17483",
       "[Improved] Display co-authors button additional information when it's focused via keyboard navigation - #17464",
