@@ -229,7 +229,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   previewedPullRequestCount: 0,
 }
 
-// A subtype if IDailyMeasures filtered to contain only its numeric properties
+// A subtype of IDailyMeasures filtered to contain only its numeric properties
 type NumericMeasures = {
   [P in keyof IDailyMeasures as IDailyMeasures[P] extends number
     ? P
