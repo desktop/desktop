@@ -12,7 +12,6 @@ import { Tooltip, TooltipDirection } from '../lib/tooltip'
 import { createObservableRef } from '../lib/observable-ref'
 
 interface IDiffOptionsProps {
-  readonly isInteractiveDiff: boolean
   readonly hideWhitespaceChanges: boolean
   readonly onHideWhitespaceChangesChanged: (
     hideWhitespaceChanges: boolean
@@ -171,12 +170,6 @@ export class DiffOptions extends React.Component<
             __DARWIN__ ? 'Hide Whitespace Changes' : 'Hide whitespace changes'
           }
         />
-        {this.props.isInteractiveDiff && (
-          <p className="secondary-text">
-            Interacting with individual lines or hunks will be disabled while
-            hiding whitespace.
-          </p>
-        )}
       </fieldset>
     )
   }

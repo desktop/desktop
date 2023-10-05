@@ -60,7 +60,6 @@ export class ChangedFileDetails extends React.Component<
 
     return (
       <DiffOptions
-        isInteractiveDiff={true}
         onHideWhitespaceChangesChanged={
           this.props.onHideWhitespaceInDiffChanged
         }

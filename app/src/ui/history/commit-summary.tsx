@@ -503,7 +503,6 @@ export class CommitSummary extends React.Component<
 
             <li className="commit-summary-meta-item without-truncation">
               <DiffOptions
-                isInteractiveDiff={false}
                 hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
                 onHideWhitespaceChangesChanged={
                   this.props.onHideWhitespaceInDiffChanged

@@ -247,7 +247,6 @@ export class PullRequestFilesChanged extends React.Component<
           Showing changes from all commits
         </div>
         <DiffOptions
-          isInteractiveDiff={false}
           hideWhitespaceChanges={hideWhitespaceInDiff}
           onHideWhitespaceChangesChanged={this.onHideWhitespaceInDiffChanged}
           showSideBySideDiff={showSideBySideDiff}
