@@ -424,6 +424,24 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
+  /**
+   * This handles app focus after a user has clicked on an diff expansion
+   * button. With the exception of the top expand up button, the expansion
+   * buttons disappear after clicking and by default the focus moves to the app
+   * body. This is not ideal for accessibilty as a keyboard user must then tab
+   * all the way back to the diff to continut to interact with it.
+   *
+   * If an expansion button of the type clicked is available, we focus it.
+   * Otherwise, we focus the diff container. This makes it so if a user expands
+   * down and can expand down further, they will automatically be focused on the
+   * next expand down.
+   *
+   * Other context: When a user clicks on a diff expansion button, the
+   * lastExpandedHunk state is updated. In the componentDidUpdate, we detect
+   * that change in order to call this after the new expansion buttons have
+   * rendered. The rendered expansion buttons are stored in a map.
+   *
+   */
   private focusAfterLastExpandedHunkChange() {
     if (this.state.lastExpandedHunk === null) {
       return
