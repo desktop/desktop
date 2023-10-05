@@ -2677,7 +2677,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       assertNever(conflictState, `Unsupported conflict kind`)
     }
 
-    this.statsStore.recordMergeConflictFromExplicitMerge()
+    this.statsStore.increment('mergeConflictFromExplicitMergeCount')
 
     this._setMultiCommitOperationStep(repository, {
       kind: MultiCommitOperationStepKind.ShowConflicts,
@@ -4043,7 +4043,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (await this.createStashAndDropPreviousEntry(repository, currentBranch)) {
-      this.statsStore.recordStashCreatedOnCurrentBranch()
+      this.statsStore.increment('stashCreatedOnCurrentBranchCount')
       await this._refreshRepository(repository)
       return true
     }

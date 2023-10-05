@@ -447,7 +447,7 @@ export class RepositoryView extends React.Component<
   }
 
   private onDiffOptionsOpened = () => {
-    this.props.dispatcher.recordDiffOptionsViewed()
+    this.props.dispatcher.incrementMetric('diffOptionsViewedCount')
   }
 
   private renderTutorialPane(): JSX.Element {
@@ -536,7 +536,7 @@ export class RepositoryView extends React.Component<
   }
 
   private onOpenSubmodule = (fullPath: string) => {
-    this.props.dispatcher.recordOpenSubmoduleFromDiffCount()
+    this.props.dispatcher.incrementMetric('openSubmoduleFromDiffCount')
     this.props.dispatcher.openOrAddRepository(fullPath)
   }
 

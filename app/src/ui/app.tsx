@@ -413,7 +413,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'open-working-directory':
         return this.openCurrentRepositoryWorkingDirectory()
       case 'update-branch-with-contribution-target-branch':
-        this.props.dispatcher.recordMenuInitiatedUpdate()
+        this.props.dispatcher.incrementMetric(
+          'updateFromDefaultBranchMenuCount'
+        )
         return this.updateBranchWithContributionTargetBranch()
       case 'compare-to-branch':
         return this.showHistory(false, true)
@@ -424,7 +426,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         this.props.dispatcher.recordMenuInitiatedMerge(true)
         return this.mergeBranch(true)
       case 'rebase-branch':
-        this.props.dispatcher.recordMenuInitiatedRebase()
+        this.props.dispatcher.incrementMetric('rebaseCurrentBranchMenuCount')
         return this.showRebaseDialog()
       case 'show-repository-settings':
         return this.showRepositorySettings()
@@ -3062,7 +3064,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (currentPullRequest == null) {
       dispatcher.createPullRequest(state.repository)
-      dispatcher.recordCreatePullRequest()
+      dispatcher.incrementMetric('createPullRequestCount')
     } else {
       dispatcher.showPullRequest(state.repository)
     }
@@ -3440,7 +3442,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const initialStep = getMultiCommitOperationChooseBranchStep(repositoryState)
 
     this.props.dispatcher.setMultiCommitOperationStep(repository, initialStep)
-    this.props.dispatcher.recordCherryPickViaContextMenu()
+    this.props.dispatcher.incrementMetric('cherryPickViaContextMenuCount')
 
     this.showPopup({
       type: PopupType.MultiCommitOperation,
@@ -3534,7 +3536,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onDragEnd = (dropTargetSelector: DropTargetSelector | undefined) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     if (dropTargetSelector === undefined) {
-      this.props.dispatcher.recordDragStartedAndCanceled()
+      this.props.dispatcher.incrementMetric('dragStartedAndCanceledCount')
     }
   }
 }
