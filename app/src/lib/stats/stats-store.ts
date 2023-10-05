@@ -1500,22 +1500,18 @@ export class StatsStore implements IStatsStore {
   public recordOpenSubmoduleFromDiffCount = () =>
     this.increment('openSubmoduleFromDiffCount')
 
-  private increment(k: keyof NumericMeasures, n = 1) {
-    return this.updateDailyMeasures(
+  private increment = (k: keyof NumericMeasures, n = 1) =>
+    this.updateDailyMeasures(
       m => ({ [k]: m[k] + n } as Pick<IDailyMeasures, keyof NumericMeasures>)
     )
-  }
 
   /** Post some data to our stats endpoint. */
-  private post(body: object): Promise<Response> {
-    const options: RequestInit = {
+  private post = (body: object) =>
+    fetch(StatsEndpoint, {
       method: 'POST',
       headers: new Headers({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(body),
-    }
-
-    return fetch(StatsEndpoint, options)
-  }
+    })
 
   /**
    * Send opt-in ping with details of previous stored value (if known)
@@ -1580,8 +1576,7 @@ function createLocalStorageTimestamp(key: string) {
  * number this method will return null.
  */
 function getLocalStorageTimestamp(key: string): number | null {
-  const timestamp = getNumber(key)
-  return timestamp === undefined ? null : timestamp
+  return getNumber(key) ?? null
 }
 
 /**
@@ -1614,24 +1609,14 @@ function timeTo(key: string): number | undefined {
  * enum value of the SignInMethod type changes.
  */
 function getWelcomeWizardSignInMethod(): 'basic' | 'web' | undefined {
-  const method = localStorage.getItem(
-    WelcomeWizardSignInMethodKey
-  ) as SignInMethod | null
+  const method = localStorage.getItem(WelcomeWizardSignInMethodKey) ?? undefined
 
-  try {
-    switch (method) {
-      case SignInMethod.Basic:
-      case SignInMethod.Web:
-        return method
-      case null:
-        return undefined
-      default:
-        return assertNever(method, `Unknown sign in method: ${method}`)
-    }
-  } catch (ex) {
-    log.error(`Could not parse welcome wizard sign in method`, ex)
-    return undefined
+  if (method === 'basic' || method === 'web' || method === undefined) {
+    return method
   }
+
+  log.error(`Could not parse welcome wizard sign in method: ${method}`)
+  return undefined
 }
 
 /**
