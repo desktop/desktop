@@ -1,5 +1,16 @@
 {
   "releases": {
+    "3.3.4-beta2": [
+      "[Added] Added Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
+      "[Fixed] Screen readers announce contents of app error dialogs - #17479",
+      "[Fixed] Screen readers announce contents of merge, rebase, interactive rebase abort confirmation dialogs - #17478",
+      "[Fixed] Pasting long texts in the commit summary textbox does not show a scrollbar in the left pane - #17472",
+      "[Fixed] Tab characters in diffs are rendered correctly - #8616",
+      "[Improved] Added accessibility label to filter textbox in the History tab - #17488",
+      "[Improved] Improved clarity of the structure of dialogs by using `h2` elements for their titles - #17483",
+      "[Improved] Display co-authors button additional information when it's focused via keyboard navigation - #17464",
+      "[Improved] When focusing the rebase/merge/squash button, screen readers announce the outcome of the operation - #17448"
+    ],
     "3.3.4-beta1": [
       "[Fixed] Close button in release notes dialog can be clicked - #17438",
       "[Fixed] Scrolling works as expected in the \"Commit Reachability\" dialog - #17421",
