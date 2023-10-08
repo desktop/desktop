@@ -4,18 +4,32 @@ import {
   supportsSystemThemeChanges,
   getCurrentlyAppliedTheme,
 } from '../lib/application-theme'
+import { TitleBarStyle } from '../lib/title-bar-style'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import { RadioGroup } from '../lib/radio-group'
+import { Select } from '../lib/select'
 import { encodePathAsUrl } from '../../lib/path'
 
 interface IAppearanceProps {
   readonly selectedTheme: ApplicationTheme
   readonly onSelectedThemeChanged: (theme: ApplicationTheme) => void
+  readonly titleBarStyle: TitleBarStyle
+  readonly onTitleBarStyleChanged: (titleBarStyle: TitleBarStyle) => void
 }
 
 interface IAppearanceState {
   readonly selectedTheme: ApplicationTheme | null
+  readonly titleBarStyle: TitleBarStyle
+}
+
+function getTitleBarStyleDescription(titleBarStyle: TitleBarStyle): string {
+  switch (titleBarStyle) {
+    case 'custom':
+      return 'Uses the menu system provided by GitHub Desktop, hiding the default chrome provided by your window manager.'
+    case 'native':
+      return 'Uses the menu system and chrome provided by your window manager.'
+  }
 }
 
 export class Appearance extends React.Component<
@@ -29,7 +43,10 @@ export class Appearance extends React.Component<
       props.selectedTheme !== ApplicationTheme.System ||
       supportsSystemThemeChanges()
 
-    this.state = { selectedTheme: usePropTheme ? props.selectedTheme : null }
+    this.state = {
+      selectedTheme: usePropTheme ? props.selectedTheme : null,
+      titleBarStyle: props.titleBarStyle,
+    }
 
     if (!usePropTheme) {
       this.initializeSelectedTheme()
@@ -59,6 +76,12 @@ export class Appearance extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.onSelectedThemeChanged(theme)
+  }
+
+  private onSelectChanged = (event: React.FormEvent<HTMLSelectElement>) => {
+    const titleBarStyle = event.currentTarget.value as TitleBarStyle
+    this.setState({ titleBarStyle })
+    this.props.onTitleBarStyleChanged(titleBarStyle)
   }
 
   public renderThemeSwatch = (theme: ApplicationTheme) => {
@@ -98,6 +121,29 @@ export class Appearance extends React.Component<
     }
   }
 
+  private renderTitleBarStyleDropdown() {
+    const { titleBarStyle } = this.state
+    const titleBarStyleDescription = getTitleBarStyleDescription(titleBarStyle)
+
+    return (
+      <div className="advanced-section">
+        <h2>Title bar style</h2>
+
+        <Select
+          value={this.state.titleBarStyle}
+          onChange={this.onSelectChanged}
+        >
+          <option value="native">Native</option>
+          <option value="custom">Custom</option>
+        </Select>
+
+        <div className="git-settings-description">
+          {titleBarStyleDescription}
+        </div>
+      </div>
+    )
+  }
+
   public render() {
     const { selectedTheme } = this.state
 
@@ -118,15 +164,18 @@ export class Appearance extends React.Component<
     return (
       <DialogContent>
         <h2 id="theme-heading">Theme</h2>
+        <Row>
+          <RadioGroup<ApplicationTheme>
+            ariaLabelledBy="theme-heading"
+            className="theme-selector"
+            selectedKey={selectedTheme}
+            radioButtonKeys={themes}
+            onSelectionChanged={this.onSelectedThemeChanged}
+            renderRadioButtonLabelContents={this.renderThemeSwatch}
+          />
+        </Row>
 
-        <RadioGroup<ApplicationTheme>
-          ariaLabelledBy="theme-heading"
-          className="theme-selector"
-          selectedKey={selectedTheme}
-          radioButtonKeys={themes}
-          onSelectionChanged={this.onSelectedThemeChanged}
-          renderRadioButtonLabelContents={this.renderThemeSwatch}
-        />
+        {this.renderTitleBarStyleDropdown()}
       </DialogContent>
     )
   }

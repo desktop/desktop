@@ -71,6 +71,7 @@ import { Welcome } from './welcome'
 import { AppMenuBar } from './app-menu'
 import { UpdateAvailable, renderBanner } from './banners'
 import { Preferences } from './preferences'
+import { ConfirmRestart } from './preferences/confirm-restart'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
 import { MissingRepository } from './missing-repository'
@@ -1427,8 +1428,8 @@ export class App extends React.Component<IAppProps, IAppState> {
    * on Windows.
    */
   private renderAppMenuBar() {
-    // We only render the app menu bar on Windows
-    if (!__WIN32__) {
+    // We do not render the app menu bar on macOS
+    if (__DARWIN__) {
       return null
     }
 
@@ -1479,9 +1480,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.state.currentFoldout &&
       this.state.currentFoldout.type === FoldoutType.AppMenu
 
-    // As Linux still uses the classic Electron menu, we are opting out of the
-    // custom menu that is shown as part of the title bar below
-    if (__LINUX__) {
+    // We do not render the app menu bar on Linux when the user has selected
+    // the "native" menu option
+    if (__LINUX__ && this.state.titleBarStyle === 'native') {
       return null
     }
 
@@ -1489,12 +1490,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     // the title bar when the menu bar is active. On other platforms we
     // never render the title bar while in full-screen mode.
     if (inFullScreen) {
-      if (!__WIN32__ || !menuBarActive) {
+      if (__DARWIN__ || !menuBarActive) {
         return null
       }
     }
 
-    const showAppIcon = __WIN32__ && !this.state.showWelcomeFlow
+    const showAppIcon = !__DARWIN__ && !this.state.showWelcomeFlow
     const inWelcomeFlow = this.state.showWelcomeFlow
     const inNoRepositoriesView = this.inNoRepositoriesViewState()
 
@@ -1687,6 +1688,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
+            titleBarStyle={this.state.titleBarStyle}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             onOpenFileInExternalEditor={this.openFileInExternalEditor}
             underlineLinks={this.state.underlineLinks}
@@ -2598,6 +2600,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
           />
         )
+      }
+      case PopupType.ConfirmRestart: {
+        return <ConfirmRestart onDismissed={onPopupDismissedFn} />
       }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)

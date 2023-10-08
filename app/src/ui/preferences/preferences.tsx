@@ -22,6 +22,7 @@ import {
 } from '../lib/identifier-rules'
 import { Appearance } from './appearance'
 import { ApplicationTheme } from '../lib/application-theme'
+import { TitleBarStyle } from '../lib/title-bar-style'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Integrations } from './integrations'
 import {
@@ -67,6 +68,7 @@ interface IPreferencesProps {
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
+  readonly titleBarStyle: TitleBarStyle
   readonly repositoryIndicatorsEnabled: boolean
   readonly onOpenFileInExternalEditor: (path: string) => void
   readonly underlineLinks: boolean
@@ -98,7 +100,7 @@ interface IPreferencesState {
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
-
+  readonly titleBarStyle: TitleBarStyle
   /**
    * If unable to save Git configuration values (name, email)
    * due to an existing configuration lock file this property
@@ -152,6 +154,7 @@ export class Preferences extends React.Component<
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
+      titleBarStyle: this.props.titleBarStyle,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
       initiallySelectedTheme: this.props.selectedTheme,
       isLoadingGitConfig: true,
@@ -379,6 +382,8 @@ export class Preferences extends React.Component<
           <Appearance
             selectedTheme={this.props.selectedTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
+            titleBarStyle={this.props.titleBarStyle}
+            onTitleBarStyleChanged={this.onTitleBarStyleChanged}
           />
         )
         break
@@ -560,6 +565,10 @@ export class Preferences extends React.Component<
     this.setState({ showDiffCheckMarks })
   }
 
+  private onTitleBarStyleChanged = (titleBarStyle: TitleBarStyle) => {
+    this.setState({ titleBarStyle })
+  }
+
   private renderFooter() {
     const hasDisabledError = this.state.disallowedCharactersMessage != null
 
@@ -669,6 +678,7 @@ export class Preferences extends React.Component<
       )
     }
     await this.props.dispatcher.setShell(this.state.selectedShell)
+    await this.props.dispatcher.setTitleBarStyle(this.state.titleBarStyle)
     await this.props.dispatcher.setConfirmDiscardChangesSetting(
       this.state.confirmDiscardChanges
     )
