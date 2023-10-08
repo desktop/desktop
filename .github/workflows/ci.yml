@@ -228,6 +228,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Use Node.js 18.14.0
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.14.0
+          cache: yarn
+
       - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
@@ -250,6 +256,7 @@ jobs:
 
       - name: Generate release notes
         run: |
+          node -v
           yarn
           node -r ts-node/register script/generate-release-notes.ts "${{ github.workspace }}/artifacts" "${{ env.RELEASE_TAG_WITHOUT_PREFIX }}"
           RELEASE_NOTES_FILE=script/release_notes.txt
