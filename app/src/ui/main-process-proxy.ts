@@ -167,6 +167,9 @@ export const checkForUpdates = invokeProxy('check-for-updates', 1)
 /** Tell the main process to quit the app and install updates */
 export const quitAndInstallUpdate = sendProxy('quit-and-install-updates', 0)
 
+/** Tell the main process to restart the app */
+export const restartApp = sendProxy('restart-app', 0)
+
 /** Tell the main process to quit the app */
 export const quitApp = sendProxy('quit-app', 0)
 
@@ -381,6 +384,10 @@ export const showOpenDialog = invokeProxy('show-open-dialog', 1)
 /** Tell the main process read/save the user GUID from/to file */
 export const saveGUID = invokeProxy('save-guid', 1)
 export const getGUID = invokeProxy('get-guid', 0)
+
+/** Tell the main process read/save the the title bar style */
+export const saveTitleBarStyle = invokeProxy('save-title-bar-style', 1)
+export const getTitleBarStyle = invokeProxy('get-title-bar-style', 0)
 
 /** Tell the main process to show a notification */
 export const showNotification = invokeProxy('show-notification', 3)

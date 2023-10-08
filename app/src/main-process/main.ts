@@ -45,6 +45,10 @@ import {
 import { buildSpellCheckMenu } from './menu/build-spell-check-menu'
 import { getMainGUID, saveGUIDFile } from '../lib/get-main-guid'
 import {
+  readTitleBarConfigFileSync,
+  saveTitleBarConfigFile,
+} from '../lib/get-title-bar-config'
+import {
   getNotificationsPermission,
   requestNotificationsPermission,
   showNotification,
@@ -509,6 +513,11 @@ app.on('ready', () => {
     mainWindow?.quitAndInstallUpdate()
   )
 
+  ipcMain.on('restart-app', () => {
+    app.relaunch()
+    app.exit()
+  })
+
   ipcMain.on('quit-app', () => app.quit())
 
   ipcMain.on('minimize-window', () => mainWindow?.minimizeWindow())
@@ -696,6 +705,16 @@ app.on('ready', () => {
   ipcMain.handle('get-guid', () => getMainGUID())
 
   ipcMain.handle('save-guid', (_, guid) => saveGUIDFile(guid))
+
+  ipcMain.handle(
+    'get-title-bar-style',
+    async () => readTitleBarConfigFileSync().titleBarStyle
+  )
+
+  ipcMain.handle(
+    'save-title-bar-style',
+    async (_, titleBarStyle) => await saveTitleBarConfigFile({ titleBarStyle })
+  )
 
   ipcMain.handle('show-notification', async (_, title, body, userInfo) =>
     showNotification(title, body, userInfo)

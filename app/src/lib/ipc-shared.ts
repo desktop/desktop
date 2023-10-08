@@ -13,6 +13,7 @@ import { Architecture } from './get-architecture'
 import { EndpointToken } from './endpoint-token'
 import { PathType } from '../ui/lib/app-proxy'
 import { ThemeSource } from '../ui/lib/theme-source'
+import { TitleBarStyle } from '../ui/lib/title-bar-style'
 import { DesktopNotificationPermission } from 'desktop-notifications/dist/notification-permission'
 import { NotificationCallback } from 'desktop-notifications/dist/notification-callback'
 import { DesktopAliveEvent } from './stores/alive-store'
@@ -66,6 +67,7 @@ export type RequestChannels = {
   blur: () => void
   'update-accounts': (accounts: ReadonlyArray<EndpointToken>) => void
   'quit-and-install-updates': () => void
+  'restart-app': () => void
   'quit-app': () => void
   'minimize-window': () => void
   'maximize-window': () => void
@@ -124,6 +126,8 @@ export type RequestResponseChannels = {
   'should-use-dark-colors': () => Promise<boolean>
   'save-guid': (guid: string) => Promise<void>
   'get-guid': () => Promise<string>
+  'save-title-bar-style': (titleBarStyle: TitleBarStyle) => Promise<void>
+  'get-title-bar-style': () => Promise<TitleBarStyle>
   'show-notification': (
     title: string,
     body: string,

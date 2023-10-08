@@ -87,6 +87,7 @@ import { TipState, IValidBranch } from '../../models/tip'
 import { Banner, BannerType } from '../../models/banner'
 
 import { ApplicationTheme } from '../lib/application-theme'
+import { TitleBarStyle } from '../lib/title-bar-style'
 import { installCLI } from '../lib/install-cli'
 import {
   executeMenuItem,
@@ -2463,6 +2464,19 @@ export class Dispatcher {
    */
   public setSelectedTabSize(tabSize: number) {
     return this.appStore._setSelectedTabSize(tabSize)
+  }
+  /*
+   * Set the title bar style for the application
+   */
+  public async setTitleBarStyle(titleBarStyle: TitleBarStyle) {
+    const existingState = this.appStore.getState()
+    const { titleBarStyle: existingTitleBarStyle } = existingState
+
+    await this.appStore._setTitleBarStyle(titleBarStyle)
+
+    if (titleBarStyle !== existingTitleBarStyle) {
+      this.showPopup({ type: PopupType.ConfirmRestart })
+    }
   }
 
   /**

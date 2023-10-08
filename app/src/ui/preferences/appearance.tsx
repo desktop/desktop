@@ -4,6 +4,7 @@ import {
   supportsSystemThemeChanges,
   getCurrentlyAppliedTheme,
 } from '../lib/application-theme'
+import { TitleBarStyle } from '../lib/title-bar-style'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import { RadioGroup } from '../lib/radio-group'
@@ -16,11 +17,23 @@ interface IAppearanceProps {
   readonly onSelectedThemeChanged: (theme: ApplicationTheme) => void
   readonly selectedTabSize: number
   readonly onSelectedTabSizeChanged: (tabSize: number) => void
+  readonly titleBarStyle: TitleBarStyle
+  readonly onTitleBarStyleChanged: (titleBarStyle: TitleBarStyle) => void
 }
 
 interface IAppearanceState {
   readonly selectedTheme: ApplicationTheme | null
   readonly selectedTabSize: number
+  readonly titleBarStyle: TitleBarStyle
+}
+
+function getTitleBarStyleDescription(titleBarStyle: TitleBarStyle): string {
+  switch (titleBarStyle) {
+    case 'custom':
+      return 'Uses the menu system provided by GitHub Desktop, hiding the default chrome provided by your window manager.'
+    case 'native':
+      return 'Uses the menu system and chrome provided by your window manager.'
+  }
 }
 
 export class Appearance extends React.Component<
@@ -37,6 +50,7 @@ export class Appearance extends React.Component<
     this.state = {
       selectedTheme: usePropTheme ? props.selectedTheme : null,
       selectedTabSize: props.selectedTabSize,
+      titleBarStyle: props.titleBarStyle,
     }
 
     if (!usePropTheme) {
@@ -78,6 +92,12 @@ export class Appearance extends React.Component<
     this.props.onSelectedTabSizeChanged(parseInt(event.currentTarget.value))
   }
 
+  private onSelectChanged = (event: React.FormEvent<HTMLSelectElement>) => {
+    const titleBarStyle = event.currentTarget.value as TitleBarStyle
+    this.setState({ titleBarStyle })
+    this.props.onTitleBarStyleChanged(titleBarStyle)
+  }
+
   public renderThemeSwatch = (theme: ApplicationTheme) => {
     const darkThemeImage = encodePathAsUrl(__dirname, 'static/ghd_dark.svg')
     const lightThemeImage = encodePathAsUrl(__dirname, 'static/ghd_light.svg')
@@ -115,8 +135,31 @@ export class Appearance extends React.Component<
     }
   }
 
+  private renderTitleBarStyleDropdown() {
+    const { titleBarStyle } = this.state
+    const titleBarStyleDescription = getTitleBarStyleDescription(titleBarStyle)
+
+    return (
+      <div className="advanced-section">
+        <h2>Title bar style</h2>
+
+        <Select
+          value={this.state.titleBarStyle}
+          onChange={this.onSelectChanged}
+        >
+          <option value="native">Native</option>
+          <option value="custom">Custom</option>
+        </Select>
+
+        <div className="git-settings-description">
+          {titleBarStyleDescription}
+        </div>
+      </div>
+    )
+  }
+
   private renderSelectedTheme() {
-    const selectedTheme = this.state.selectedTheme
+    const { selectedTheme } = this.state
 
     if (selectedTheme == null) {
       return <Row>Loading system theme</Row>
@@ -131,15 +174,16 @@ export class Appearance extends React.Component<
     return (
       <div className="appearance-section">
         <h2 id="theme-heading">Theme</h2>
-
-        <RadioGroup<ApplicationTheme>
-          ariaLabelledBy="theme-heading"
-          className="theme-selector"
-          selectedKey={selectedTheme}
-          radioButtonKeys={themes}
-          onSelectionChanged={this.onSelectedThemeChanged}
-          renderRadioButtonLabelContents={this.renderThemeSwatch}
-        />
+        <Row>
+          <RadioGroup<ApplicationTheme>
+            ariaLabelledBy="theme-heading"
+            className="theme-selector"
+            selectedKey={selectedTheme}
+            radioButtonKeys={themes}
+            onSelectionChanged={this.onSelectedThemeChanged}
+            renderRadioButtonLabelContents={this.renderThemeSwatch}
+          />
+        </Row>
       </div>
     )
   }
@@ -171,6 +215,7 @@ export class Appearance extends React.Component<
       <DialogContent>
         {this.renderSelectedTheme()}
         {this.renderSelectedTabSize()}
+        {this.renderTitleBarStyleDropdown()}
       </DialogContent>
     )
   }

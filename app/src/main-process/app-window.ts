@@ -14,6 +14,7 @@ import {
   getWindowState,
   registerWindowStateChangedEvents,
 } from '../lib/window-state'
+import { readTitleBarConfigFileSync } from '../lib/get-title-bar-config'
 import { MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-app-url'
 import { ILaunchStats } from '../lib/stats'
@@ -77,6 +78,9 @@ export class AppWindow {
     } else if (__WIN32__) {
       windowOptions.frame = false
     } else if (__LINUX__) {
+      if (readTitleBarConfigFileSync().titleBarStyle === 'custom') {
+        windowOptions.frame = false
+      }
       windowOptions.icon = join(__dirname, 'static', 'logos', '512x512.png')
 
       // relax restriction here for users trying to run app at a small
