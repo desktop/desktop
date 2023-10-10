@@ -159,6 +159,7 @@ export class CompareSidebar extends React.Component<
       <div id="compare-view" role="tabpanel" aria-labelledby="history-tab">
         <div className="compare-form">
           <FancyTextBox
+            ariaLabel="Branch filter"
             symbol={OcticonSymbol.gitBranch}
             displayClearButton={true}
             placeholder={placeholderText}

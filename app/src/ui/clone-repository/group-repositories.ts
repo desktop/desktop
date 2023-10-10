@@ -2,7 +2,8 @@ import { IAPIRepository } from '../../lib/api'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { OcticonSymbolType } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-import { entries, groupBy } from 'lodash'
+import entries from 'lodash/entries'
+import groupBy from 'lodash/groupBy'
 import { caseInsensitiveEquals, compare } from '../../lib/compare'
 
 /** The identifier for the "Your Repositories" grouping. */

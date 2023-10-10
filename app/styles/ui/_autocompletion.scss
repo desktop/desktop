@@ -4,6 +4,11 @@
   position: relative;
   display: flex;
   flex-direction: column;
+
+  // Overflow must be hidden to prevent the "invisible caret" to generate an
+  // horizontal scrollbar when, due to scrolling, that caret is outside the
+  // visible area.
+  overflow: hidden;
 }
 
 .autocompletion-popup {

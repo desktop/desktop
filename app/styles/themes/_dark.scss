@@ -202,6 +202,9 @@ body.theme-dark {
   --toolbar-dropdown-text-warning-color: #{$yellow-700};
   --toolbar-dropdown-text-hover-color: #{$white};
 
+  --toolbar-tooltip-background-color: #{$gray-800};
+  --toolbar-tooltip-shadow-color: black;
+
   /**
     * App menu bar colors (Windows/Linux only)
     */

@@ -213,7 +213,8 @@
         pointer-events: none;
       }
 
-      &:hover {
+      &:hover,
+      &:focus-visible {
         &:after {
           opacity: 1;
         }

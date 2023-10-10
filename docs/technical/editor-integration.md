@@ -33,7 +33,7 @@ These editors are currently supported:
  - [SlickEdit](https://www.slickedit.com)
  - [JetBrains IntelliJ Idea](https://www.jetbrains.com/idea/)
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
- - [JetBrains Phpstorm](https://www.jetbrains.com/phpstorm/)
+ - [JetBrains PhpStorm](https://www.jetbrains.com/phpstorm/)
  - [JetBrains Rider](https://www.jetbrains.com/rider/)
  - [JetBrains CLion](https://www.jetbrains.com/clion/)
  - [JetBrains PyCharm](https://www.jetbrains.com/pycharm/)
@@ -281,6 +281,7 @@ These editors are currently supported:
  - [JetBrains Fleet](https://www.jetbrains.com/fleet/)
  - [JetBrains DataSpell](https://www.jetbrains.com/dataspell/)
  - [Pulsar](https://pulsar-edit.dev/)
+ - [Cursor](https://www.cursor.so/)
 
 These are defined in a list at the top of the file:
 

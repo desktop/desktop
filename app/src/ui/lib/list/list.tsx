@@ -1058,6 +1058,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
 
     return (
+      // eslint-disable-next-line github/a11y-role-supports-aria-props
       <div
         ref={this.onRef}
         id={this.props.id}

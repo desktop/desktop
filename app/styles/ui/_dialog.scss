@@ -1,7 +1,5 @@
 @import '../mixins';
-@import 'dialogs/merge';
 @import 'dialogs/conflicts';
-@import 'dialogs/rebase';
 @import 'dialogs/progress-dialog';
 @import 'dialogs/abort-merge';
 @import 'dialogs/push-needs-pull';
@@ -175,7 +173,7 @@ dialog {
       margin-left: var(--spacing);
     }
 
-    h1 {
+    h2 {
       font-weight: var(--font-weight-semibold);
       font-size: var(--font-size-md);
       margin: 0;

@@ -14,7 +14,6 @@ import { uuid } from './uuid'
 import username from 'username'
 import { GitProtocol } from './remote-parsing'
 import { Emitter } from 'event-kit'
-import JSZip from 'jszip'
 import { updateEndpointVersion } from './endpoint-capabilities'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
@@ -1479,31 +1478,6 @@ export class API {
         `Failed fetching workflow jobs (${owner}/${name}) workflow run: ${workflowRunId}`
       )
     }
-    return null
-  }
-
-  /**
-   * Get JSZip for a workflow run log archive.
-   *
-   * If it fails to retrieve or parse the zip file, it will return null.
-   */
-  public async fetchWorkflowRunJobLogs(logsUrl: string): Promise<JSZip | null> {
-    const customHeaders = {
-      Accept: 'application/vnd.github.antiope-preview+json',
-    }
-    const response = await this.request('GET', logsUrl, {
-      customHeaders,
-    })
-
-    try {
-      const zipBlob = await response.blob()
-      return new JSZip().loadAsync(zipBlob)
-    } catch (e) {
-      // Sometimes a workflow provides a log url, but still returns a 404
-      // because a log file doesn't make sense for the workflow. Thus, we just
-      // want to fail without raising an error.
-    }
-
     return null
   }
 

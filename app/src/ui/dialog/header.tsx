@@ -65,7 +65,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
       <button
         className="close"
         onClick={this.onCloseButtonClick}
-        aria-label="close"
+        aria-label="Close"
       >
         <Octicon symbol={OcticonSymbol.x} />
       </button>
@@ -79,7 +79,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
 
     return (
       <div className="dialog-header">
-        <h1 id={this.props.titleId}>{this.props.title}</h1>
+        <h2 id={this.props.titleId}>{this.props.title}</h2>
         {spinner}
         {this.renderCloseButton()}
         {this.props.children}

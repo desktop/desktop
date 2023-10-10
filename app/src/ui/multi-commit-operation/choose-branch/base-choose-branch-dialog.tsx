@@ -205,7 +205,9 @@ export abstract class BaseChooseBranchDialog extends React.Component<
     return (
       <div className="merge-status-component">
         {this.renderActionStatusIcon()}
-        <p className="merge-info">{preview}</p>
+        <p className="merge-info" id="merge-status-preview">
+          {preview}
+        </p>
       </div>
     )
   }
@@ -248,6 +250,7 @@ export abstract class BaseChooseBranchDialog extends React.Component<
             checkedOption={operation}
             options={getMergeOptions()}
             disabled={!this.canStart()}
+            ariaDescribedBy="merge-status-preview"
             dropdownAriaLabel="Merge options"
             tooltip={this.getSubmitButtonToolTip()}
             onCheckedOptionChange={this.onOperationChange}
