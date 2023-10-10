@@ -19,7 +19,7 @@ versions look similar to the below output:
 
 ```shellsession
 $ node -v
-v18.14.0
+v18.16.1
 
 $ yarn -v
 1.21.1
