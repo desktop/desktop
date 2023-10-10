@@ -99,3 +99,5 @@ export function enableSectionList(): boolean {
 }
 
 export const enableRepoRulesBeta = () => true
+
+export const enableCommitDetailsHeaderExpansion = enableDevelopmentFeatures
