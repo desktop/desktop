@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18.14.0]
+        node: [18.16.1]
         os: [macos-13-xl-arm64, windows-2019]
         arch: [x64, arm64]
         include:
