@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.3.4-test3": ["[Improved] Latest of Error dialog tests #17459 PR"],
     "3.3.4-beta2": [
       "[Added] Added Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
       "[Fixed] Screen readers announce contents of app error dialogs - #17479",
