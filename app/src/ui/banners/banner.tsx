@@ -14,7 +14,7 @@ export class Banner extends React.Component<IBannerProps, {}> {
 
   public render() {
     return (
-      <div id={this.props.id} className="banner">
+      <div id={this.props.id} className="banner" role="alert">
         <div className="contents">{this.props.children}</div>
         {this.renderCloseButton()}
       </div>
