@@ -48,3 +48,5 @@ export type MenuEvent =
   | 'decrease-active-resizable-width'
   | 'increase-active-resizable-width'
   | 'show-thank-you-popup'
+  | 'show-test-reorder-banner'
+  | 'show-test-undone-banner'

@@ -480,6 +480,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.resizeActiveResizable('increase-active-resizable-width')
       case 'decrease-active-resizable-width':
         return this.resizeActiveResizable('decrease-active-resizable-width')
+      case 'show-test-reorder-banner':
+        return this.showFakeReorderBanner()
+      case 'show-test-undone-banner':
+        return this.showFakeUndoneBanner()
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
@@ -511,6 +515,25 @@ export class App extends React.Component<IAppProps, IAppState> {
         ],
         friendlyName: 'kind contributor',
         latestVersion: '3.0.0',
+      })
+    }
+  }
+
+  private async showFakeReorderBanner() {
+    if (__DEV__) {
+      this.props.dispatcher.setBanner({
+        type: BannerType.SuccessfulReorder,
+        count: 1,
+        onUndo: () => {},
+      })
+    }
+  }
+
+  private async showFakeUndoneBanner() {
+    if (__DEV__) {
+      this.props.dispatcher.setBanner({
+        type: BannerType.ReorderUndone,
+        commitsCount: 1,
       })
     }
   }

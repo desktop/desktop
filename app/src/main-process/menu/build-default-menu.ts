@@ -581,6 +581,19 @@ export function buildDefaultMenu({
         ],
       },
       {
+        label: 'Show banner',
+        submenu: [
+          {
+            label: 'Reorder Successful',
+            click: emit('show-test-reorder-banner'),
+          },
+          {
+            label: 'Reorder Undone',
+            click: emit('show-test-undone-banner'),
+          },
+        ],
+      },
+      {
         label: 'Prune branches',
         click: emit('test-prune-branches'),
       }
