@@ -105,7 +105,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
 
   public render() {
     return (
-      <div className="changed-file">
+      <div className="diff-container">
         <DiffHeader
           path={this.props.file.path}
           status={this.props.file.status}
