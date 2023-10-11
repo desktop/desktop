@@ -35,6 +35,8 @@ import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
 import { pathExists } from '../lib/path-exists'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
+import { enableCommitDetailsHeaderExpansion } from '../../lib/feature-flag'
+import { ExpandableCommitSummary } from './expandable-commit-summary'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository
@@ -176,6 +178,28 @@ export class SelectedCommits extends React.Component<
   }
 
   private renderCommitSummary(commits: ReadonlyArray<Commit>) {
+    if (enableCommitDetailsHeaderExpansion()) {
+      return (
+        <ExpandableCommitSummary
+          selectedCommits={commits}
+          shasInDiff={this.props.shasInDiff}
+          changesetData={this.props.changesetData}
+          emoji={this.props.emoji}
+          repository={this.props.repository}
+          onExpandChanged={this.onExpandChanged}
+          isExpanded={this.state.isExpanded}
+          onDescriptionBottomChanged={this.onDescriptionBottomChanged}
+          hideDescriptionBorder={this.state.hideDescriptionBorder}
+          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          showSideBySideDiff={this.props.showSideBySideDiff}
+          onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+          onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+          onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+          onHighlightShas={this.onHighlightShas}
+          showUnreachableCommits={this.showUnreachableCommits}
+        />
+      )
+    }
     return (
       <CommitSummary
         selectedCommits={commits}
