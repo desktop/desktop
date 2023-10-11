@@ -85,6 +85,10 @@
     word-wrap: break-word;
     display: flex;
 
+    .commits-in-diff {
+      margin-left: var(--spacing-half);
+    }
+
     &.empty-summary {
       color: var(--text-secondary-color);
     }
