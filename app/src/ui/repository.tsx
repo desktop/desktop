@@ -54,6 +54,7 @@ interface IRepositoryViewProps {
   readonly askForConfirmationOnCheckoutCommit: boolean
   readonly focusCommitMessage: boolean
   readonly commitSpellcheckEnabled: boolean
+  readonly showCommitLengthWarning: boolean
   readonly accounts: ReadonlyArray<Account>
 
   /**
@@ -250,6 +251,7 @@ export class RepositoryView extends React.Component<
           this.props.currentTutorialStep === TutorialStep.MakeCommit
         }
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
+        showCommitLengthWarning={this.props.showCommitLengthWarning}
       />
     )
   }

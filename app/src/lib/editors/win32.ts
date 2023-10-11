@@ -370,7 +370,7 @@ const editors: WindowsExternalEditor[] = [
     publishers: ['JetBrains s.r.o.'],
   },
   {
-    name: 'JetBrains Phpstorm',
+    name: 'JetBrains PhpStorm',
     registryKeys: registryKeysForJetBrainsIDE('PhpStorm'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('phpstorm'),
     jetBrainsToolboxScriptName: 'phpstorm',
@@ -487,6 +487,16 @@ const editors: WindowsExternalEditor[] = [
     jetBrainsToolboxScriptName: 'dataspell',
     displayNamePrefixes: ['DataSpell '],
     publishers: ['JetBrains s.r.o.'],
+  },
+  {
+    name: 'Pulsar',
+    registryKeys: [
+      CurrentUserUninstallKey('0949b555-c22c-56b7-873a-a960bdefa81f'),
+      LocalMachineUninstallKey('0949b555-c22c-56b7-873a-a960bdefa81f'),
+    ],
+    executableShimPaths: [['..', 'pulsar', 'Pulsar.exe']],
+    displayNamePrefixes: ['Pulsar'],
+    publishers: ['Pulsar-Edit'],
   },
 ]
 

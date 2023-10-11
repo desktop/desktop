@@ -17,6 +17,7 @@ import { LinkButton } from '../lib/link-button'
 import { Ref } from '../lib/ref'
 import { enableSectionList } from '../../lib/feature-flag'
 import { SectionFilterList } from '../lib/section-filter-list'
+import { TooltippedContent } from '../lib/tooltipped-content'
 
 interface ICloneableRepositoryFilterListProps {
   /** The account to clone from. */
@@ -239,9 +240,14 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
     return (
       <div className="clone-repository-list-item">
         <Octicon className="icon" symbol={item.icon} />
-        <div className="name" title={item.text[0]}>
+        <TooltippedContent
+          className="name"
+          tooltip={item.text[0]}
+          onlyWhenOverflowed={true}
+          tagName="div"
+        >
           <HighlightText text={item.text[0]} highlight={matches.title} />
-        </div>
+        </TooltippedContent>
         {item.archived && <div className="archived">Archived</div>}
       </div>
     )

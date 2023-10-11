@@ -1,4 +1,4 @@
-import { escapeRegExp } from 'lodash'
+import escapeRegExp from 'lodash/escapeRegExp'
 import { GitHubRepository } from '../../models/github-repository'
 import { getHTMLURL } from '../api'
 import { INodeFilter } from './node-filter'

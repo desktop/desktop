@@ -313,6 +313,8 @@ export class AddExistingRepository extends React.Component<
   }
 
   private onCreateRepositoryClicked = () => {
+    this.props.onDismissed()
+
     const resolvedPath = this.resolvedPath(this.state.path)
 
     return this.props.dispatcher.showPopup({

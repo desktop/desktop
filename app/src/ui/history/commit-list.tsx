@@ -397,13 +397,17 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         shasToHighlight !== undefined && shasToHighlight.length > 0,
     })
 
+    const selectedRows = selectedSHAs
+      .map(sha => this.rowForSHA(sha))
+      .filter(r => r !== -1)
+
     return (
       <div id="commit-list" className={classes}>
         <List
           ref={this.listRef}
           rowCount={commitSHAs.length}
           rowHeight={RowHeight}
-          selectedRows={selectedSHAs.map(sha => this.rowForSHA(sha))}
+          selectedRows={selectedRows}
           rowRenderer={this.renderCommit}
           onDropDataInsertion={this.onDropDataInsertion}
           onSelectionChanged={this.onSelectionChanged}

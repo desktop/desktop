@@ -175,12 +175,7 @@ export async function getBranchMergeBaseDiff(
     maxBuffer: Infinity,
   })
 
-  return buildDiff(
-    Buffer.from(result.combinedOutput),
-    repository,
-    file,
-    latestCommit
-  )
+  return buildDiff(Buffer.from(result.stdout), repository, file, latestCommit)
 }
 
 /**
@@ -237,12 +232,7 @@ export async function getCommitRangeDiff(
     )
   }
 
-  return buildDiff(
-    Buffer.from(result.combinedOutput),
-    repository,
-    file,
-    latestCommit
-  )
+  return buildDiff(Buffer.from(result.stdout), repository, file, latestCommit)
 }
 
 /**
@@ -285,7 +275,7 @@ export async function getBranchMergeBaseChangedFiles(
   )
 
   return parseRawLogWithNumstat(
-    result.combinedOutput,
+    result.stdout,
     `${latestComparisonBranchCommitRef}`,
     mergeBaseCommit
   )

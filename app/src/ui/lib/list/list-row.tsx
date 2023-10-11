@@ -54,6 +54,14 @@ interface IListRowProps {
     e: React.KeyboardEvent<any>
   ) => void
 
+  /** called when the row (or any of its descendants) receives focus due to a
+   * keyboard event
+   */
+  readonly onRowKeyboardFocus?: (
+    index: RowIndexPath,
+    e: React.KeyboardEvent<any>
+  ) => void
+
   /** called when the row (or any of its descendants) receives focus */
   readonly onRowFocus?: (
     index: RowIndexPath,
@@ -93,6 +101,14 @@ interface IListRowProps {
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
+  // Since there is no way of knowing when a row has been focused via keyboard
+  // or mouse interaction, we will use the keyDown and keyUp events to track
+  // what the user did to get the row in a focused state.
+  // The heuristic is that we should receive a focus event followed by a keyUp
+  // event, with no keyDown events (since that keyDown event should've happened
+  // in the component that previously had focus).
+  private keyboardFocusDetectionState: 'ready' | 'failed' | 'focused' = 'ready'
+
   private onRef = (elem: HTMLDivElement | null) => {
     this.props.onRowRef?.(this.props.rowIndex, elem)
   }
@@ -115,13 +131,25 @@ export class ListRow extends React.Component<IListRowProps, {}> {
 
   private onRowKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     this.props.onRowKeyDown(this.props.rowIndex, e)
+    this.keyboardFocusDetectionState = 'failed'
+  }
+
+  private onRowKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (this.keyboardFocusDetectionState === 'focused') {
+      this.props.onRowKeyboardFocus?.(this.props.rowIndex, e)
+    }
+    this.keyboardFocusDetectionState = 'ready'
   }
 
   private onFocus = (e: React.FocusEvent<HTMLDivElement>) => {
     this.props.onRowFocus?.(this.props.rowIndex, e)
+    if (this.keyboardFocusDetectionState === 'ready') {
+      this.keyboardFocusDetectionState = 'focused'
+    }
   }
 
   private onBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    this.keyboardFocusDetectionState = 'ready'
     this.props.onRowBlur?.(this.props.rowIndex, e)
   }
 
@@ -187,6 +215,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         onClick={this.onRowClick}
         onDoubleClick={this.onRowDoubleClick}
         onKeyDown={this.onRowKeyDown}
+        onKeyUp={this.onRowKeyUp}
         style={fullWidthStyle}
         onFocus={this.onFocus}
         onBlur={this.onBlur}

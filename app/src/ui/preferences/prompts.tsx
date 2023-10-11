@@ -12,6 +12,7 @@ interface IPromptsPreferencesProps {
   readonly confirmCheckoutCommit: boolean
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
+  readonly showCommitLengthWarning: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesPermanentlyChanged: (checked: boolean) => void
@@ -20,6 +21,7 @@ interface IPromptsPreferencesProps {
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
   readonly onConfirmUndoCommitChanged: (checked: boolean) => void
+  readonly onShowCommitLengthWarningChanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyChanged: (
     value: UncommittedChangesStrategy
   ) => void
@@ -126,6 +128,12 @@ export class Prompts extends React.Component<
     this.props.onUncommittedChangesStrategyChanged(value)
   }
 
+  private onShowCommitLengthWarningChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onShowCommitLengthWarningChanged(event.currentTarget.checked)
+  }
+
   public render() {
     return (
       <DialogContent>
@@ -224,6 +232,18 @@ export class Prompts extends React.Component<
             }
             label="Always stash and leave my changes on the current branch"
             onSelected={this.onUncommittedChangesStrategyChanged}
+          />
+        </div>
+        <div className="advanced-section">
+          <h2>Commit Length</h2>
+          <Checkbox
+            label="Show commit length warning"
+            value={
+              this.props.showCommitLengthWarning
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onShowCommitLengthWarningChanged}
           />
         </div>
       </DialogContent>

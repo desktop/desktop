@@ -36,7 +36,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref }}
@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18.14.0]
+        node: [18.16.1]
         os: [macos-13-xl-arm64, windows-2019]
         arch: [x64, arm64]
         include:
@@ -71,7 +71,7 @@ jobs:
     env:
       RELEASE_CHANNEL: ${{ inputs.environment }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref }}

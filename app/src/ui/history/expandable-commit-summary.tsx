@@ -11,17 +11,15 @@ import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
-import { DiffOptions } from '../diff/diff-options'
 import { IChangesetData } from '../../lib/git'
 import { TooltippedContent } from '../lib/tooltipped-content'
-import { AppFileStatusKind } from '../../models/status'
 import uniqWith from 'lodash/uniqWith'
 import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
 import memoizeOne from 'memoize-one'
 
-interface ICommitSummaryProps {
+interface IExpandableCommitSummaryProps {
   readonly repository: Repository
   readonly selectedCommits: ReadonlyArray<Commit>
   readonly shasInDiff: ReadonlyArray<string>
@@ -43,18 +41,6 @@ interface ICommitSummaryProps {
 
   readonly hideDescriptionBorder: boolean
 
-  readonly hideWhitespaceInDiff: boolean
-
-  /** Whether we should display side by side diffs. */
-  readonly showSideBySideDiff: boolean
-  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => Promise<void>
-
-  /** Called when the user changes the side by side diffs setting. */
-  readonly onShowSideBySideDiffChanged: (checked: boolean) => void
-
-  /** Called when the user opens the diff options popover */
-  readonly onDiffOptionsOpened: () => void
-
   /** Called to highlight certain shas in the history */
   readonly onHighlightShas: (shasToHighlight: ReadonlyArray<string>) => void
 
@@ -62,7 +48,7 @@ interface ICommitSummaryProps {
   readonly showUnreachableCommits: (tab: UnreachableCommitsTab) => void
 }
 
-interface ICommitSummaryState {
+interface IExpandableCommitSummaryState {
   /**
    * The commit message summary, i.e. the first line in the commit message.
    * Note that this may differ from the body property in the commit object
@@ -97,7 +83,7 @@ interface ICommitSummaryState {
 }
 
 /**
- * Creates the state object for the CommitSummary component.
+ * Creates the state object for the ExpandableCommitSummary component.
  *
  * Ensures that the commit summary never exceeds 72 characters and wraps it
  * into the commit body if it does.
@@ -110,8 +96,8 @@ interface ICommitSummaryState {
  */
 function createState(
   isOverflowed: boolean,
-  props: ICommitSummaryProps
-): ICommitSummaryState {
+  props: IExpandableCommitSummaryProps
+): IExpandableCommitSummaryState {
   const { emoji, repository, selectedCommits } = props
   const tokenizer = new Tokenizer(emoji, repository)
 
@@ -150,9 +136,9 @@ function messageEquals(x: Commit, y: Commit) {
   return x.summary === y.summary && x.body === y.body
 }
 
-export class CommitSummary extends React.Component<
-  ICommitSummaryProps,
-  ICommitSummaryState
+export class ExpandableCommitSummary extends React.Component<
+  IExpandableCommitSummaryProps,
+  IExpandableCommitSummaryState
 > {
   private descriptionScrollViewRef: HTMLDivElement | null = null
   private readonly resizeObserver: ResizeObserver | null = null
@@ -176,7 +162,7 @@ export class CommitSummary extends React.Component<
     }
   )
 
-  public constructor(props: ICommitSummaryProps) {
+  public constructor(props: IExpandableCommitSummaryProps) {
     super(props)
 
     this.state = createState(false, props)
@@ -286,7 +272,7 @@ export class CommitSummary extends React.Component<
     }
   }
 
-  public componentWillUpdate(nextProps: ICommitSummaryProps) {
+  public componentWillUpdate(nextProps: IExpandableCommitSummaryProps) {
     if (
       nextProps.selectedCommits.length !== this.props.selectedCommits.length ||
       !nextProps.selectedCommits.every((nextCommit, i) =>
@@ -298,8 +284,8 @@ export class CommitSummary extends React.Component<
   }
 
   public componentDidUpdate(
-    prevProps: ICommitSummaryProps,
-    prevState: ICommitSummaryState
+    prevProps: IExpandableCommitSummaryProps,
+    prevState: IExpandableCommitSummaryState
   ) {
     // No need to check if it overflows if we're expanded
     if (!this.props.isExpanded) {
@@ -497,113 +483,14 @@ export class CommitSummary extends React.Component<
           <ul className="commit-summary-meta">
             {this.renderAuthors()}
             {this.renderCommitRef()}
-            {this.renderChangedFilesDescription()}
             {this.renderLinesChanged()}
             {this.renderTags()}
-
-            <li className="commit-summary-meta-item without-truncation">
-              <DiffOptions
-                isInteractiveDiff={false}
-                hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-                onHideWhitespaceChangesChanged={
-                  this.props.onHideWhitespaceInDiffChanged
-                }
-                showSideBySideDiff={this.props.showSideBySideDiff}
-                onShowSideBySideDiffChanged={
-                  this.props.onShowSideBySideDiffChanged
-                }
-                onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-              />
-            </li>
           </ul>
         </div>
 
         {this.renderDescription()}
         {this.renderCommitsNotReachable()}
       </div>
-    )
-  }
-
-  private renderChangedFilesDescription = () => {
-    const fileCount = this.props.changesetData.files.length
-    const filesPlural = fileCount === 1 ? 'file' : 'files'
-    const filesShortDescription = `${fileCount} changed ${filesPlural}`
-
-    let filesAdded = 0
-    let filesModified = 0
-    let filesRemoved = 0
-    let filesRenamed = 0
-    for (const file of this.props.changesetData.files) {
-      switch (file.status.kind) {
-        case AppFileStatusKind.New:
-          filesAdded += 1
-          break
-        case AppFileStatusKind.Modified:
-          filesModified += 1
-          break
-        case AppFileStatusKind.Deleted:
-          filesRemoved += 1
-          break
-        case AppFileStatusKind.Renamed:
-          filesRenamed += 1
-      }
-    }
-
-    const hasFileDescription =
-      filesAdded + filesModified + filesRemoved + filesRenamed > 0
-
-    const filesLongDescription = (
-      <>
-        {filesAdded > 0 ? (
-          <span>
-            <Octicon
-              className="files-added-icon"
-              symbol={OcticonSymbol.diffAdded}
-            />
-            {filesAdded} added
-          </span>
-        ) : null}
-        {filesModified > 0 ? (
-          <span>
-            <Octicon
-              className="files-modified-icon"
-              symbol={OcticonSymbol.diffModified}
-            />
-            {filesModified} modified
-          </span>
-        ) : null}
-        {filesRemoved > 0 ? (
-          <span>
-            <Octicon
-              className="files-deleted-icon"
-              symbol={OcticonSymbol.diffRemoved}
-            />
-            {filesRemoved} deleted
-          </span>
-        ) : null}
-        {filesRenamed > 0 ? (
-          <span>
-            <Octicon
-              className="files-renamed-icon"
-              symbol={OcticonSymbol.diffRenamed}
-            />
-            {filesRenamed} renamed
-          </span>
-        ) : null}
-      </>
-    )
-
-    return (
-      <TooltippedContent
-        className="commit-summary-meta-item without-truncation"
-        tooltipClassName="changed-files-description-tooltip"
-        tooltip={
-          fileCount > 0 && hasFileDescription ? filesLongDescription : undefined
-        }
-      >
-        <Octicon symbol={OcticonSymbol.diff} />
-        {filesShortDescription}
-      </TooltippedContent>
     )
   }
 

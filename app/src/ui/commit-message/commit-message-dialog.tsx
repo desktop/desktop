@@ -11,7 +11,7 @@ import { ICommitMessage } from '../../models/commit-message'
 import { IAutocompletionProvider } from '../autocompletion'
 import { Author, UnknownAuthor } from '../../models/author'
 import { CommitMessage } from '../changes/commit-message'
-import { noop } from 'lodash'
+import noop from 'lodash/noop'
 import { Popup } from '../../models/popup'
 import { Foldout } from '../../lib/app-state'
 import { Account } from '../../models/account'
@@ -53,6 +53,8 @@ interface ICommitMessageDialogProps {
    * Whether or not the app should use spell check on commit summary and description
    */
   readonly commitSpellcheckEnabled: boolean
+
+  readonly showCommitLengthWarning: boolean
 
   /** Text for the ok button */
   readonly dialogButtonText: string
@@ -140,6 +142,7 @@ export class CommitMessageDialog extends React.Component<
             aheadBehind={this.props.aheadBehind}
             showNoWriteAccess={this.props.showNoWriteAccess}
             commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
+            showCommitLengthWarning={this.props.showCommitLengthWarning}
             onCoAuthorsUpdated={this.onCoAuthorsUpdated}
             onShowCoAuthoredByChanged={this.onShowCoAuthorsChanged}
             onConfirmCommitWithUnknownCoAuthors={

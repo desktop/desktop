@@ -82,7 +82,7 @@ interface IMenuPaneProps {
    * enables access key highlighting for applicable menu items as well as
    * keyboard navigation by pressing access keys.
    */
-  readonly enableAccessKeyNavigation: boolean
+  readonly enableAccessKeyNavigation?: boolean
 
   /**
    * Called to deselect the currently selected menu item (if any). This
@@ -91,7 +91,13 @@ interface IMenuPaneProps {
   readonly onClearSelection: (depth: number) => void
 
   /** The id of the element that serves as the menu's accessibility label */
-  readonly ariaLabelledby: string
+  readonly ariaLabelledby?: string
+
+  /** Whether we move focus to the next menu item with a label that starts with
+   * the typed character if such an menu item exists. */
+  readonly allowFirstCharacterNavigation?: boolean
+
+  readonly renderLabel?: (item: MenuItem) => JSX.Element | undefined
 }
 
 export class MenuPane extends React.Component<IMenuPaneProps> {
@@ -131,6 +137,39 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
     return false
   }
 
+  private tryMoveSelectionByFirstCharacter(key: string, source: ClickSource) {
+    if (
+      key.length > 1 ||
+      !isPrintableCharacterKey(key) ||
+      !this.props.allowFirstCharacterNavigation
+    ) {
+      return
+    }
+    const { items, selectedItem } = this.props
+    const char = key.toLowerCase()
+    const currentRow = selectedItem ? items.indexOf(selectedItem) + 1 : 0
+    const start = currentRow + 1 > items.length ? 0 : currentRow + 1
+
+    const firstChars = items.map(v =>
+      v.type === 'separator' ? '' : v.label.trim()[0].toLowerCase()
+    )
+
+    // Check menu items after selected
+    let ix: number = firstChars.indexOf(char, start)
+
+    // check menu items before selected
+    if (ix === -1) {
+      ix = firstChars.indexOf(char, 0)
+    }
+
+    if (ix >= 0 && items[ix] !== undefined) {
+      this.props.onSelectionChanged(this.props.depth, items[ix], source)
+      return true
+    }
+
+    return false
+  }
+
   private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.defaultPrevented) {
       return
@@ -161,6 +200,8 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
         assertNever(key, 'Unsupported key')
       }
     }
+
+    this.tryMoveSelectionByFirstCharacter(key, source)
 
     // If we weren't opened with the Alt key we ignore key presses other than
     // arrow keys and Enter/Space etc.
@@ -226,11 +267,12 @@ export class MenuPane extends React.Component<IMenuPaneProps> {
             <MenuListItem
               key={ix + item.id}
               item={item}
-              highlightAccessKey={this.props.enableAccessKeyNavigation}
+              highlightAccessKey={this.props.enableAccessKeyNavigation === true}
               selected={item.id === this.props.selectedItem?.id}
               onMouseEnter={this.onRowMouseEnter}
               onMouseLeave={this.onRowMouseLeave}
               onClick={this.onRowClick}
+              renderLabel={this.props.renderLabel}
               focusOnSelection={true}
             />
           ))}
@@ -249,3 +291,6 @@ const supportedKeys = [
 ] as const
 const isSupportedKey = (key: string): key is typeof supportedKeys[number] =>
   (supportedKeys as readonly string[]).includes(key)
+
+const isPrintableCharacterKey = (key: string) =>
+  key.length === 1 && key.match(/\S/)

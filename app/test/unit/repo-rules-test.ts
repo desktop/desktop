@@ -9,6 +9,7 @@ import {
   RepoRulesMetadataFailures,
   RepoRulesMetadataStatus,
 } from '../../src/models/repo-rules'
+import { Repository } from '../../src/models/repository'
 
 const creationRule: IAPIRepoRule = {
   ruleset_id: 1,
@@ -141,43 +142,45 @@ function validateMetadataRules(
   expect(rules.failed.length).toBe(failuresExpected)
 }
 
-describe('parseRepoRules', () => {
-  it('cannot bypass when bypass is "never"', () => {
+const repo = new Repository('repo1', 1, null, false)
+
+describe('await parseRepoRules', () => {
+  it('cannot bypass when bypass is "never"', async () => {
     // the creation rule references ruleset ID 1, which has a bypass of 'never'
     const rules = [creationRule]
-    const result = parseRepoRules(rules, rulesets)
+    const result = await parseRepoRules(rules, rulesets, repo)
     expect(result.creationRestricted).toBe(true)
   })
 
-  it('can bypass when bypass is "always"', () => {
+  it('can bypass when bypass is "always"', async () => {
     // the creationBypass rule references ruleset ID 2, which has a bypass of 'always'
     const rules = [creationBypassAlwaysRule]
-    const result = parseRepoRules(rules, rulesets)
+    const result = await parseRepoRules(rules, rulesets, repo)
     expect(result.creationRestricted).toBe('bypass')
   })
 
-  it('cannot bypass when at least one bypass mode is "never" or "pull_requests_only"', () => {
+  it('cannot bypass when at least one bypass mode is "never" or "pull_requests_only"', async () => {
     const rules = [creationRule, creationBypassAlwaysRule]
-    const result = parseRepoRules(rules, rulesets)
+    const result = await parseRepoRules(rules, rulesets, repo)
     expect(result.creationRestricted).toBe(true)
 
     const rules2 = [creationRule, creationBypassPullRequestsOnlyRule]
-    const result2 = parseRepoRules(rules2, rulesets)
+    const result2 = await parseRepoRules(rules2, rulesets, repo)
     expect(result2.creationRestricted).toBe(true)
   })
 
-  it('is not enforced when no rules are provided', () => {
+  it('is not enforced when no rules are provided', async () => {
     const rules: IAPIRepoRule[] = []
-    const repoRulesInfo = parseRepoRules(rules, rulesets)
+    const repoRulesInfo = await parseRepoRules(rules, rulesets, repo)
     expect(repoRulesInfo.creationRestricted).toBe(false)
   })
 })
 
 describe('repo metadata rules', () => {
   describe('startsWith rule', () => {
-    it('shows no rules and passes everything when no rules are provided', () => {
+    it('shows no rules and passes everything when no rules are provided', async () => {
       const rules: IAPIRepoRule[] = []
-      const repoRulesInfo = parseRepoRules(rules, rulesets)
+      const repoRulesInfo = await parseRepoRules(rules, rulesets, repo)
       expect(repoRulesInfo.commitMessagePatterns.hasRules).toBe(false)
 
       const failedRules =
@@ -185,9 +188,9 @@ describe('repo metadata rules', () => {
       validateMetadataRules(failedRules, 'pass', 0, 0)
     })
 
-    it('has correct matching logic for StartsWith rule', () => {
+    it('has correct matching logic for StartsWith rule', async () => {
       const rules = [commitMessagePatternStartsWithRule]
-      const repoRulesInfo = parseRepoRules(rules, rulesets)
+      const repoRulesInfo = await parseRepoRules(rules, rulesets, repo)
       expect(repoRulesInfo.commitMessagePatterns.hasRules).toBe(true)
 
       const failedRules =
@@ -196,9 +199,9 @@ describe('repo metadata rules', () => {
       expect(failedRules.failed[0].description).toBe('must start with "abc"')
     })
 
-    it('has correct bypass logic for StartsWith rule', () => {
+    it('has correct bypass logic for StartsWith rule', async () => {
       const rules = [commitMessagePatternStartsWithBypassRule]
-      const repoRulesInfo = parseRepoRules(rules, rulesets)
+      const repoRulesInfo = await parseRepoRules(rules, rulesets, repo)
 
       const failedRules =
         repoRulesInfo.commitMessagePatterns.getFailedRules('def')
@@ -206,12 +209,12 @@ describe('repo metadata rules', () => {
       expect(failedRules.bypassed[0].description).toBe('must start with "abc"')
     })
 
-    it('has correct logic when bypassed rule is included with non-bypassed rule', () => {
+    it('has correct logic when bypassed rule is included with non-bypassed rule', async () => {
       const rules = [
         commitMessagePatternStartsWithRule,
         commitMessagePatternStartsWithBypassRule,
       ]
-      const repoRulesInfo = parseRepoRules(rules, rulesets)
+      const repoRulesInfo = await parseRepoRules(rules, rulesets, repo)
 
       const failedRules =
         repoRulesInfo.commitMessagePatterns.getFailedRules('def')
@@ -220,9 +223,9 @@ describe('repo metadata rules', () => {
       expect(failedRules.failed[0].description).toBe('must start with "abc"')
     })
 
-    it('escapes special characters and otherwise handles regex properly', () => {
+    it('escapes special characters and otherwise handles regex properly', async () => {
       const rules = [commitMessagePatternSpecialCharactersRule]
-      const repoRulesInfo = parseRepoRules(rules, rulesets)
+      const repoRulesInfo = await parseRepoRules(rules, rulesets, repo)
 
       // if the . in the pattern is interpreted as a regex special character, this will pass
       const rules1 =
@@ -239,9 +242,9 @@ describe('repo metadata rules', () => {
   })
 
   describe('endsWith rule', () => {
-    it('has correct matching logic for negated EndsWith rule', () => {
+    it('has correct matching logic for negated EndsWith rule', async () => {
       const rules = [commitMessagePatternEndsWithRule]
-      const repoRulesInfo = parseRepoRules(rules, rulesets)
+      const repoRulesInfo = await parseRepoRules(rules, rulesets, repo)
 
       const failedRules =
         repoRulesInfo.commitMessagePatterns.getFailedRules('end')
@@ -255,9 +258,9 @@ describe('repo metadata rules', () => {
   })
 
   describe('contains rule', () => {
-    it('has correct matching logic for Contains rule', () => {
+    it('has correct matching logic for Contains rule', async () => {
       const rules = [commitMessagePatternContainsRule]
-      const repoRulesInfo = parseRepoRules(rules, rulesets)
+      const repoRulesInfo = await parseRepoRules(rules, rulesets, repo)
 
       const failedRules =
         repoRulesInfo.commitMessagePatterns.getFailedRules('fooconbar')
@@ -271,12 +274,12 @@ describe('repo metadata rules', () => {
   })
 
   describe('regex rule', () => {
-    it('has correct matching logic for RegexMatch rule', () => {
+    it('has correct matching logic for RegexMatch rule', async () => {
       const rules = [
         commitMessagePatternRegexRule1,
         commitMessagePatternRegexRule2,
       ]
-      const repoRulesInfo = parseRepoRules(rules, rulesets)
+      const repoRulesInfo = await parseRepoRules(rules, rulesets, repo)
 
       const results1 =
         repoRulesInfo.commitMessagePatterns.getFailedRules('doo5')
@@ -307,9 +310,9 @@ describe('repo metadata rules', () => {
       )
     })
 
-    it('has correct matching logic for multi-line data', () => {
+    it('has correct matching logic for multi-line data', async () => {
       const rules = [commitMessagePatternRegexMultiLineRule]
-      const repoRulesInfo = parseRepoRules(rules, rulesets)
+      const repoRulesInfo = await parseRepoRules(rules, rulesets, repo)
 
       const results1 =
         repoRulesInfo.commitMessagePatterns.getFailedRules('first line\nfoo')

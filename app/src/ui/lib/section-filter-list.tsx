@@ -166,6 +166,7 @@ interface IFilterListState<T extends IFilterListItem> {
   readonly rows: ReadonlyArray<ReadonlyArray<IFilterListRow<T>>>
   readonly selectedRow: RowIndexPath
   readonly filterValue: string
+  readonly filterValueChanged: boolean
   // Indices of groups in the filtered list
   readonly groups: ReadonlyArray<number>
 }
@@ -180,17 +181,15 @@ export class SectionFilterList<
   public constructor(props: ISectionFilterListProps<T>) {
     super(props)
 
-    this.state = createStateUpdate(props)
-  }
-
-  public componentWillMount() {
-    if (this.props.filterTextBox !== undefined) {
-      this.filterTextBox = this.props.filterTextBox
+    if (props.filterTextBox !== undefined) {
+      this.filterTextBox = props.filterTextBox
     }
+
+    this.state = createStateUpdate(props, null)
   }
 
   public componentWillReceiveProps(nextProps: ISectionFilterListProps<T>) {
-    this.setState(createStateUpdate(nextProps))
+    this.setState(createStateUpdate(nextProps, this.state))
   }
 
   public componentDidUpdate(
@@ -244,7 +243,7 @@ export class SectionFilterList<
     return (
       <TextBox
         ref={this.onTextBoxRef}
-        type="search"
+        displayClearButton={true}
         autoFocus={true}
         placeholder={this.props.placeholderText || 'Filter'}
         className="filter-list-filter-field"
@@ -253,6 +252,23 @@ export class SectionFilterList<
         onKeyDown={this.onKeyDown}
         value={this.props.filterText}
         disabled={this.props.disabled}
+      />
+    )
+  }
+
+  public renderLiveContainer() {
+    if (!this.state.filterValueChanged) {
+      return null
+    }
+
+    const itemRows = this.state.rows.flat().filter(row => row.kind === 'item')
+    const resultsPluralized = itemRows.length === 1 ? 'result' : 'results'
+    const screenReaderMessage = `${itemRows.length} ${resultsPluralized}`
+
+    return (
+      <AriaLiveContainer
+        trackedUserInput={this.state.filterValue}
+        message={screenReaderMessage}
       />
     )
   }
@@ -271,16 +287,10 @@ export class SectionFilterList<
   }
 
   public render() {
-    const itemRows = this.state.rows.flat().filter(row => row.kind === 'item')
-    const resultsPluralized = itemRows.length === 1 ? 'result' : 'results'
-    const screenReaderMessage = `${itemRows.length} ${resultsPluralized}`
-
     return (
       <div className={classnames('filter-list', this.props.className)}>
-        <AriaLiveContainer
-          trackedUserInput={this.state.filterValue}
-          message={screenReaderMessage}
-        />
+        {this.renderLiveContainer()}
+
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
         {this.renderFilterRow()}
@@ -614,7 +624,8 @@ function getFirstVisibleRow<T extends IFilterListItem>(
 }
 
 function createStateUpdate<T extends IFilterListItem>(
-  props: ISectionFilterListProps<T>
+  props: ISectionFilterListProps<T>,
+  state: IFilterListState<T> | null
 ) {
   const rows = new Array<Array<IFilterListRow<T>>>()
   const filter = (props.filterText || '').toLowerCase()
@@ -664,7 +675,18 @@ function createStateUpdate<T extends IFilterListItem>(
     selectedRow = getFirstVisibleRow(rows)
   }
 
-  return { rows: rows, selectedRow, filterValue: filter, groups: groupIndices }
+  // Stay true if already set, otherwise become true if the filter has content
+  const filterValueChanged = state?.filterValueChanged
+    ? true
+    : filter.length > 0
+
+  return {
+    rows: rows,
+    selectedRow,
+    filterValue: filter,
+    filterValueChanged,
+    groups: groupIndices,
+  }
 }
 
 function getItemFromRowIndex<T extends IFilterListItem>(

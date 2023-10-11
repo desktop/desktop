@@ -4,15 +4,18 @@ import { CommittedFileChange } from '../../models/status'
 import { mapStatus } from '../../lib/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon, iconForStatus } from '../octicons'
+import { TooltippedContent } from '../lib/tooltipped-content'
+import { TooltipDirection } from '../lib/tooltip'
 
 interface ICommittedFileItemProps {
   readonly availableWidth: number
   readonly file: CommittedFileChange
+  readonly focused: boolean
 }
 
 export class CommittedFileItem extends React.Component<ICommittedFileItemProps> {
   public render() {
-    const { file } = this.props
+    const { file, focused } = this.props
     const { status } = file
     const fileStatus = mapStatus(status)
 
@@ -33,12 +36,17 @@ export class CommittedFileItem extends React.Component<ICommittedFileItemProps> 
           availableWidth={availablePathWidth}
           ariaHidden={true}
         />
-
-        <Octicon
-          symbol={iconForStatus(status)}
-          className={'status status-' + fileStatus.toLowerCase()}
-          title={fileStatus}
-        />
+        <TooltippedContent
+          ancestorFocused={focused}
+          openOnFocus={true}
+          tooltip={fileStatus}
+          direction={TooltipDirection.NORTH}
+        >
+          <Octicon
+            symbol={iconForStatus(status)}
+            className={'status status-' + fileStatus.toLowerCase()}
+          />
+        </TooltippedContent>
       </div>
     )
   }

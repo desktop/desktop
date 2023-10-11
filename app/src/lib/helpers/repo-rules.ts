@@ -1,4 +1,4 @@
-import { RE2, RE2JS } from 're2js'
+import { RE2JS } from 're2js'
 import {
   RepoRulesInfo,
   IRepoRulesMetadataRule,
@@ -12,16 +12,66 @@ import {
   IAPIRepoRuleMetadataParameters,
   IAPIRepoRuleset,
 } from '../api'
+import { enableRepoRulesBeta } from '../feature-flag'
+import { supportsRepoRules } from '../endpoint-capabilities'
+import { Account } from '../../models/account'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
+import { getBooleanConfigValue } from '../git'
+
+/**
+ * Returns whether repo rules could potentially exist for the provided account and repository.
+ * This only performs client-side checks, such as whether the user is on a free plan
+ * and the repo is public.
+ */
+export function useRepoRulesLogic(
+  account: Account | null,
+  repository: Repository
+): boolean {
+  if (
+    !account ||
+    !repository ||
+    !enableRepoRulesBeta() ||
+    !isRepositoryWithGitHubRepository(repository)
+  ) {
+    return false
+  }
+
+  const { endpoint, owner, isPrivate } = repository.gitHubRepository
+
+  if (!supportsRepoRules(endpoint)) {
+    return false
+  }
+
+  // repo owner's plan can't be checked, only the current user's. purposely return true
+  // if the repo owner is someone else, because if the current user is a collaborator on
+  // the free plan but the owner is a pro member, then repo rules could still be enabled.
+  // errors will be thrown by the API in this case, but there's no way to preemptively
+  // check for that.
+  if (
+    account.login === owner.login &&
+    (!account.plan || account.plan === 'free') &&
+    isPrivate
+  ) {
+    return false
+  }
+
+  return true
+}
 
 /**
  * Parses the GitHub API response for a branch's repo rules into a more useable
  * format.
  */
-export function parseRepoRules(
+export async function parseRepoRules(
   rules: ReadonlyArray<IAPIRepoRule>,
-  rulesets: ReadonlyMap<number, IAPIRepoRuleset>
-): RepoRulesInfo {
+  rulesets: ReadonlyMap<number, IAPIRepoRuleset>,
+  repository: Repository
+): Promise<RepoRulesInfo> {
   const info = new RepoRulesInfo()
+  let gpgSignEnabled: boolean | undefined = undefined
 
   for (const rule of rules) {
     // if a ruleset is null/undefined, then act as if the rule doesn't exist because
@@ -41,7 +91,6 @@ export function parseRepoRules(
     switch (rule.type) {
       case APIRepoRuleType.Update:
       case APIRepoRuleType.RequiredDeployments:
-      case APIRepoRuleType.RequiredSignatures:
       case APIRepoRuleType.RequiredStatusChecks:
         info.basicCommitWarning =
           info.basicCommitWarning !== true ? enforced : true
@@ -50,6 +99,18 @@ export function parseRepoRules(
       case APIRepoRuleType.Creation:
         info.creationRestricted =
           info.creationRestricted !== true ? enforced : true
+        break
+
+      case APIRepoRuleType.RequiredSignatures:
+        // check if the user has commit signing configured. if they do, the rule
+        // passes and doesn't need to be warned about.
+        gpgSignEnabled ??=
+          (await getBooleanConfigValue(repository, 'commit.gpgsign')) ?? false
+
+        if (gpgSignEnabled !== true) {
+          info.signedCommitsRequired =
+            info.signedCommitsRequired !== true ? enforced : true
+        }
         break
 
       case APIRepoRuleType.PullRequest:
@@ -131,7 +192,7 @@ function toMatcher(
     return () => false
   }
 
-  let regex: RE2
+  let regex: RE2JS
 
   switch (rule.operator) {
     case APIRepoRuleMetadataOperator.StartsWith:

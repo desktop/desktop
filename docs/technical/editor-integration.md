@@ -33,7 +33,7 @@ These editors are currently supported:
  - [SlickEdit](https://www.slickedit.com)
  - [JetBrains IntelliJ Idea](https://www.jetbrains.com/idea/)
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
- - [JetBrains Phpstorm](https://www.jetbrains.com/phpstorm/)
+ - [JetBrains PhpStorm](https://www.jetbrains.com/phpstorm/)
  - [JetBrains Rider](https://www.jetbrains.com/rider/)
  - [JetBrains CLion](https://www.jetbrains.com/clion/)
  - [JetBrains PyCharm](https://www.jetbrains.com/pycharm/)
@@ -46,6 +46,9 @@ These editors are currently supported:
  - [Aptana Studio](http://www.aptana.com/)
  - [JetBrains Fleet](https://www.jetbrains.com/fleet/)
  - [JetBrains DataSpell](https://www.jetbrains.com/dataspell/)
+ - [Zed](https://zed.dev/) - both Stable and Preview channel
+ - [Pulsar](https://pulsar-edit.dev/)
+
 
 These are defined in a list at the top of the file:
 
@@ -244,6 +247,8 @@ The source for the editor integration on macOS is found in
 These editors are currently supported:
 
  - [Atom](https://atom.io/)
+ - [Eclipse](https://www.eclipse.org/downloads/packages/release/)
+     - All IDE variants (Java, JavaEE, C/C++, PHP, etc.) are supported.
  - [MacVim](https://macvim-dev.github.io/macvim/)
  - [Neovide](https://github.com/neovide/neovide)
  - [VimR](https://github.com/qvacua/vimr)
@@ -276,6 +281,7 @@ These editors are currently supported:
  - [JetBrains Fleet](https://www.jetbrains.com/fleet/)
  - [JetBrains DataSpell](https://www.jetbrains.com/dataspell/)
  - [Pulsar](https://pulsar-edit.dev/)
+ - [Cursor](https://www.cursor.so/)
 
 These are defined in a list at the top of the file:
 
@@ -348,6 +354,7 @@ These editors are currently supported:
  - [JetBrains PHPStorm](https://www.jetbrains.com/phpstorm/)
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
  - [Emacs](https://www.gnu.org/software/emacs/)
+ - [Pulsar](https://pulsar-edit.dev/)
 
 These are defined in a list at the top of the file:
 

@@ -26,7 +26,10 @@ import {
   DropdownSuggestedAction,
   IDropdownSuggestedActionOption,
 } from '../suggested-actions/dropdown-suggested-action'
-import { PullRequestSuggestedNextAction } from '../../models/pull-request'
+import {
+  PullRequestSuggestedNextAction,
+  isIdPullRequestSuggestedNextAction,
+} from '../../models/pull-request'
 import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 
 function formatMenuItemLabel(text: string) {
@@ -159,7 +162,7 @@ function buildMenuItemInfoMap(
     }
 
     const infoItem: IMenuItemInfo = {
-      label: item.label,
+      label: item.label as string,
       acceleratorKeys: getItemAcceleratorKeys(item),
       parentMenuLabels:
         parent === undefined ? [] : [parent.label, ...parent.parentMenuLabels],
@@ -651,10 +654,10 @@ export class NoChanges extends React.Component<
     )
   }
 
-  private onPullRequestSuggestedActionChanged = (
-    action: PullRequestSuggestedNextAction
-  ) => {
-    this.props.dispatcher.setPullRequestSuggestedNextAction(action)
+  private onPullRequestSuggestedActionChanged = (action: string) => {
+    if (isIdPullRequestSuggestedNextAction(action)) {
+      this.props.dispatcher.setPullRequestSuggestedNextAction(action)
+    }
   }
 
   private renderCreatePullRequestAction(tip: IValidBranch) {
@@ -682,36 +685,34 @@ export class NoChanges extends React.Component<
       return null
     }
 
-    const createPullRequestAction: IDropdownSuggestedActionOption<PullRequestSuggestedNextAction> =
-      {
-        title,
-        label: buttonText,
-        description,
-        value: PullRequestSuggestedNextAction.CreatePullRequest,
-        menuItemId: 'create-pull-request',
-        discoverabilityContent:
-          this.renderDiscoverabilityElements(createMenuItem),
-        disabled: !createMenuItem.enabled,
-        onClick: this.onCreatePullRequestClicked,
-      }
+    const createPullRequestAction: IDropdownSuggestedActionOption = {
+      title,
+      label: buttonText,
+      description,
+      id: PullRequestSuggestedNextAction.CreatePullRequest,
+      menuItemId: 'create-pull-request',
+      discoverabilityContent:
+        this.renderDiscoverabilityElements(createMenuItem),
+      disabled: !createMenuItem.enabled,
+      onClick: this.onCreatePullRequestClicked,
+    }
 
-    const previewPullRequestAction: IDropdownSuggestedActionOption<PullRequestSuggestedNextAction> =
-      {
-        title: `Preview the Pull Request from your current branch`,
-        label: 'Preview Pull Request',
-        description: (
-          <>
-            The current branch (<Ref>{tip.branch.name}</Ref>) is already
-            published to GitHub. Preview the changes this pull request will have
-            before proposing your changes.
-          </>
-        ),
-        value: PullRequestSuggestedNextAction.PreviewPullRequest,
-        menuItemId: 'preview-pull-request',
-        discoverabilityContent:
-          this.renderDiscoverabilityElements(previewPullMenuItem),
-        disabled: !previewPullMenuItem.enabled,
-      }
+    const previewPullRequestAction: IDropdownSuggestedActionOption = {
+      title: `Preview the Pull Request from your current branch`,
+      label: 'Preview Pull Request',
+      description: (
+        <>
+          The current branch (<Ref>{tip.branch.name}</Ref>) is already published
+          to GitHub. Preview the changes this pull request will have before
+          proposing your changes.
+        </>
+      ),
+      id: PullRequestSuggestedNextAction.PreviewPullRequest,
+      menuItemId: 'preview-pull-request',
+      discoverabilityContent:
+        this.renderDiscoverabilityElements(previewPullMenuItem),
+      disabled: !previewPullMenuItem.enabled,
+    }
 
     return (
       <DropdownSuggestedAction

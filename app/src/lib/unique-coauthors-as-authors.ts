@@ -1,16 +1,13 @@
-import _ from 'lodash'
+import uniqWith from 'lodash/uniqWith'
 import { KnownAuthor } from '../models/author'
 import { Commit } from '../models/commit'
-import { GitAuthor } from '../models/git-author'
 
 export function getUniqueCoauthorsAsAuthors(
   commits: ReadonlyArray<Commit>
 ): ReadonlyArray<KnownAuthor> {
-  const allCommitsCoAuthors: GitAuthor[] = _.flatten(
-    commits.map(c => c.coAuthors)
-  )
+  const allCommitsCoAuthors = commits.flatMap(c => c.coAuthors)
 
-  const uniqueCoAuthors = _.uniqWith(
+  const uniqueCoAuthors = uniqWith(
     allCommitsCoAuthors,
     (a, b) => a.email === b.email && a.name === b.name
   )

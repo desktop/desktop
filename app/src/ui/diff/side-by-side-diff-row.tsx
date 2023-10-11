@@ -14,11 +14,16 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType } from '../../models/diff'
-import { DiffExpansionKind } from './text-diff-expansion'
 import { PopoverAnchorPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
-import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
+import { Button } from '../lib/button'
+
+enum DiffRowPrefix {
+  Added = '+',
+  Deleted = '-',
+  Nothing = '\u{A0}',
+}
 
 interface ISideBySideDiffRowProps {
   /**
@@ -87,7 +92,10 @@ interface ISideBySideDiffRowProps {
    */
   readonly onMouseLeaveHunk: (hunkStartLine: number) => void
 
-  readonly onExpandHunk: (hunkIndex: number, kind: DiffExpansionKind) => void
+  readonly onExpandHunk: (
+    hunkIndex: number,
+    kind: DiffHunkExpansionType
+  ) => void
 
   /**
    * Called when the user clicks on the hunk handle. Called with the start
@@ -133,6 +141,12 @@ interface ISideBySideDiffRowProps {
 
   /** Called when the user changes the hide whitespace in diffs setting. */
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
+
+  /* This tracks the last expanded hunk index so that we can refocus the expander after rerender */
+  readonly lastExpandedHunk: {
+    index: number
+    expansionType: DiffHunkExpansionType
+  } | null
 }
 
 interface ISideBySideDiffRowState {
@@ -211,7 +225,7 @@ export class SideBySideDiffRow extends React.Component<
                   isSelected
                 )}
                 {this.renderHunkHandle()}
-                {this.renderContent(row.data)}
+                {this.renderContent(row.data, DiffRowPrefix.Added)}
                 {this.renderWhitespaceHintPopover(DiffColumn.After)}
               </div>
             </div>
@@ -227,7 +241,7 @@ export class SideBySideDiffRow extends React.Component<
             </div>
             <div className={afterClasses}>
               {this.renderLineNumber(lineNumber, DiffColumn.After, isSelected)}
-              {this.renderContent(row.data)}
+              {this.renderContent(row.data, DiffRowPrefix.Added)}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
             {this.renderHunkHandle()}
@@ -249,7 +263,7 @@ export class SideBySideDiffRow extends React.Component<
                   isSelected
                 )}
                 {this.renderHunkHandle()}
-                {this.renderContent(row.data)}
+                {this.renderContent(row.data, DiffRowPrefix.Deleted)}
                 {this.renderWhitespaceHintPopover(DiffColumn.Before)}
               </div>
             </div>
@@ -263,12 +277,12 @@ export class SideBySideDiffRow extends React.Component<
           >
             <div className={beforeClasses}>
               {this.renderLineNumber(lineNumber, DiffColumn.Before, isSelected)}
-              {this.renderContent(row.data)}
+              {this.renderContent(row.data, DiffRowPrefix.Deleted)}
               {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
             <div className={afterClasses}>
               {this.renderLineNumber(undefined, DiffColumn.After)}
-              {this.renderContentFromString('')}
+              {this.renderContentFromString('', [])}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
             {this.renderHunkHandle()}
@@ -288,7 +302,7 @@ export class SideBySideDiffRow extends React.Component<
                 DiffColumn.Before,
                 before.isSelected
               )}
-              {this.renderContent(before)}
+              {this.renderContent(before, DiffRowPrefix.Deleted)}
               {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
             <div
@@ -300,7 +314,7 @@ export class SideBySideDiffRow extends React.Component<
                 DiffColumn.After,
                 after.isSelected
               )}
-              {this.renderContent(after)}
+              {this.renderContent(after, DiffRowPrefix.Added)}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
             {this.renderHunkHandle()}
@@ -330,23 +344,28 @@ export class SideBySideDiffRow extends React.Component<
 
   private renderContentFromString(
     content: string,
-    tokens: ReadonlyArray<ILineTokens> = []
+    tokens: ReadonlyArray<ILineTokens> = [],
+    prefix: DiffRowPrefix = DiffRowPrefix.Nothing
   ) {
     return this.renderContent({ content, tokens, noNewLineIndicator: false })
   }
 
   private renderContent(
-    data: Pick<IDiffRowData, 'content' | 'noNewLineIndicator' | 'tokens'>
+    data: Pick<IDiffRowData, 'content' | 'noNewLineIndicator' | 'tokens'>,
+    prefix: DiffRowPrefix = DiffRowPrefix.Nothing
   ) {
     return (
       <div className="content" onContextMenu={this.props.onContextMenuText}>
-        {syntaxHighlightLine(data.content, data.tokens)}
-        {data.noNewLineIndicator && (
-          <Octicon
-            symbol={narrowNoNewlineSymbol}
-            title="No newline at end of file"
-          />
-        )}
+        <div className="prefix">&nbsp;&nbsp;{prefix}&nbsp;&nbsp;</div>
+        <div className="content-wrapper">
+          {syntaxHighlightLine(data.content, data.tokens)}
+          {data.noNewLineIndicator && (
+            <Octicon
+              symbol={narrowNoNewlineSymbol}
+              title="No newline at end of file"
+            />
+          )}
+        </div>
       </div>
     )
   }
@@ -361,7 +380,7 @@ export class SideBySideDiffRow extends React.Component<
         return {
           icon: OcticonSymbol.foldUp,
           title: 'Expand Up',
-          handler: this.onExpandHunk(hunkIndex, 'up'),
+          handler: this.onExpandHunk(hunkIndex, expansionType),
         }
       // This can only be the last dummy hunk. In this case, we expand the
       // second to last hunk down.
@@ -369,13 +388,13 @@ export class SideBySideDiffRow extends React.Component<
         return {
           icon: OcticonSymbol.foldDown,
           title: 'Expand Down',
-          handler: this.onExpandHunk(hunkIndex - 1, 'down'),
+          handler: this.onExpandHunk(hunkIndex - 1, expansionType),
         }
       case DiffHunkExpansionType.Short:
         return {
           icon: OcticonSymbol.fold,
           title: 'Expand All',
-          handler: this.onExpandHunk(hunkIndex, 'up'),
+          handler: this.onExpandHunk(hunkIndex, expansionType),
         }
     }
 
@@ -400,10 +419,11 @@ export class SideBySideDiffRow extends React.Component<
       return (
         <div
           className="hunk-expansion-handle"
-          onContextMenu={this.props.onContextMenuExpandHunk}
           style={{ width: this.lineGutterWidth }}
         >
-          <span></span>
+          <button onContextMenu={this.props.onContextMenuExpandHunk}>
+            <span></span>
+          </button>
         </div>
       )
     }
@@ -413,20 +433,40 @@ export class SideBySideDiffRow extends React.Component<
       expansionType
     )
 
+    /**
+     * For accessibility, when a button is focused, it should maintain focus.
+     * This sets the autofocus of the button if the last expanded button at the
+     * position was the same type. The +1 is to handle the last hunk index which
+     * is one off, and if there are two hunks with the same expansion types on
+     * after each other we just want the first one and autofocus will go to the
+     * first one automatically.
+     *
+     * Other notes: the expand up buttons already worked. This is
+     * for expand all and expand down buttons.
+     */
+    const { lastExpandedHunk } = this.props
+    const focusButton =
+      lastExpandedHunk !== null &&
+      expansionType === lastExpandedHunk.expansionType
+        ? hunkIndex === lastExpandedHunk.index ||
+          hunkIndex === lastExpandedHunk.index + 1
+        : false
+
     return (
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
       <div
         className="hunk-expansion-handle selectable hoverable"
-        onClick={elementInfo.handler}
         style={{ width: this.lineGutterWidth }}
-        onContextMenu={this.props.onContextMenuExpandHunk}
       >
-        <TooltippedContent
-          direction={TooltipDirection.SOUTH}
+        <Button
+          onClick={elementInfo.handler}
+          onContextMenu={this.props.onContextMenuExpandHunk}
           tooltip={elementInfo.title}
+          toolTipDirection={TooltipDirection.SOUTH}
+          autoFocus={focusButton}
+          ariaLabel={elementInfo.title}
         >
           <Octicon symbol={elementInfo.icon} />
-        </TooltippedContent>
+        </Button>
       </div>
     )
   }
@@ -659,9 +699,10 @@ export class SideBySideDiffRow extends React.Component<
     }
   }
 
-  private onExpandHunk = (hunkIndex: number, kind: DiffExpansionKind) => () => {
-    this.props.onExpandHunk(hunkIndex, kind)
-  }
+  private onExpandHunk =
+    (hunkIndex: number, kind: DiffHunkExpansionType) => () => {
+      this.props.onExpandHunk(hunkIndex, kind)
+    }
 
   private onClickHunk = () => {
     if (this.props.hideWhitespaceInDiff) {

@@ -27,6 +27,9 @@ export interface IButtonProps {
    */
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
+  /** Called on key down. */
+  readonly onKeyDown?: (event: React.KeyboardEvent<HTMLButtonElement>) => void
+
   /** An optional tooltip to render when hovering over the button */
   readonly tooltip?: string
 
@@ -117,6 +120,17 @@ export interface IButtonProps {
    */
   readonly ariaLabel?: string
 
+  /** Whether the button is hidden from screen readers Caution: very rare
+   * instances where a button should be hidden from screen readers. Example:
+   * Windows "Minimize", "Maximize", "Close" are hidden per operating system
+   * convention.
+   */
+  readonly ariaHidden?: boolean
+
+  /** If a button has a sentence type further description than it's label or
+   * contents */
+  readonly ariaDescribedBy?: string
+
   /**
    * Whether to only show the tooltip when the tooltip target overflows its
    * bounds. Typically this is used in conjunction with an ellipsis CSS ruleset.
@@ -134,6 +148,12 @@ export interface IButtonProps {
 
   /** Whether the input field should auto focus when mounted. */
   readonly autoFocus?: boolean
+
+  /** Specify the direction of the tooltip */
+  readonly toolTipDirection?: TooltipDirection
+
+  /** Specify custom classes for the button's tooltip */
+  readonly tooltipClassName?: string
 }
 
 /**
@@ -178,6 +198,7 @@ export class Button extends React.Component<IButtonProps, {}> {
       <button
         className={className}
         onClick={disabled ? preventDefault : this.onClick}
+        onKeyDown={this.props.onKeyDown}
         onContextMenu={disabled ? preventDefault : this.onContextMenu}
         type={this.props.type || 'button'}
         ref={this.innerButtonRef}
@@ -187,16 +208,19 @@ export class Button extends React.Component<IButtonProps, {}> {
         aria-expanded={this.props.ariaExpanded}
         aria-disabled={disabled ? 'true' : undefined}
         aria-label={this.props.ariaLabel}
+        aria-describedby={this.props.ariaDescribedBy}
         aria-haspopup={this.props.ariaHaspopup}
         aria-pressed={this.props.ariaPressed}
+        aria-hidden={this.props.ariaHidden}
         autoFocus={this.props.autoFocus}
       >
         {tooltip && (
           <Tooltip
+            className={this.props.tooltipClassName}
             target={this.innerButtonRef}
-            direction={TooltipDirection.NORTH}
+            direction={this.props.toolTipDirection ?? TooltipDirection.NORTH}
             // Show the tooltip immediately on hover if the button is disabled
-            delay={disabled && tooltip ? 0 : undefined}
+            delay={disabled ? 0 : undefined}
             onlyWhenOverflowed={this.props.onlyShowTooltipWhenOverflowed}
           >
             {tooltip}

@@ -137,6 +137,24 @@ interface ISectionListProps {
     source: IMouseClickSource
   ) => void
 
+  /** This function will be called when a row obtains focus, no matter how */
+  readonly onRowFocus?: (
+    indexPath: RowIndexPath,
+    source: React.FocusEvent<HTMLDivElement>
+  ) => void
+
+  /** This function will be called only when a row obtains focus via keyboard */
+  readonly onRowKeyboardFocus?: (
+    indexPath: RowIndexPath,
+    e: React.KeyboardEvent<any>
+  ) => void
+
+  /** This function will be called when a row loses focus */
+  readonly onRowBlur?: (
+    indexPath: RowIndexPath,
+    source: React.FocusEvent<HTMLDivElement>
+  ) => void
+
   /**
    * This prop defines the behaviour of the selection of items within this list.
    *  - 'single' : (default) single list-item selection. [shift] and [ctrl] have
@@ -724,6 +742,11 @@ export class SectionList extends React.Component<
     // focused list item if it scrolls back into view.
     if (!focusWithin) {
       this.focusRow = InvalidRowIndexPath
+    } else if (this.props.selectedRows.length === 0) {
+      const firstSelectableRowIndexPath = this.getFirstSelectableRowIndexPath()
+      if (firstSelectableRowIndexPath !== null) {
+        this.moveSelectionTo(firstSelectableRowIndexPath, { kind: 'focus' })
+      }
     }
   }
 
@@ -749,6 +772,14 @@ export class SectionList extends React.Component<
     e: React.FocusEvent<HTMLDivElement>
   ) => {
     this.focusRow = index
+    this.props.onRowFocus?.(index, e)
+  }
+
+  private onRowKeyboardFocus = (
+    index: RowIndexPath,
+    e: React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    this.props.onRowKeyboardFocus?.(index, e)
   }
 
   private onRowBlur = (
@@ -758,6 +789,7 @@ export class SectionList extends React.Component<
     if (rowIndexPathEquals(this.focusRow, index)) {
       this.focusRow = InvalidRowIndexPath
     }
+    this.props.onRowBlur?.(index, e)
   }
 
   private onRowContextMenu = (
@@ -781,6 +813,22 @@ export class SectionList extends React.Component<
   /** Convenience method for invoking canSelectRow callback when it exists */
   private canSelectRow = (rowIndex: RowIndexPath) => {
     return this.props.canSelectRow ? this.props.canSelectRow(rowIndex) : true
+  }
+
+  private getFirstSelectableRowIndexPath(): RowIndexPath | null {
+    const { rowCount } = this.props
+
+    for (let section = 0; section < rowCount.length; section++) {
+      const rowCountInSection = rowCount[section]
+      for (let row = 0; row < rowCountInSection; row++) {
+        const indexPath = { section, row }
+        if (this.canSelectRow(indexPath)) {
+          return indexPath
+        }
+      }
+    }
+
+    return null
   }
 
   private addSelection(direction: SelectionDirection, source: SelectionSource) {
@@ -1083,8 +1131,12 @@ export class SectionList extends React.Component<
     return customClasses.length === 0 ? undefined : customClasses.join(' ')
   }
 
-  private getRowRenderer = (section: number) => {
+  private getRowRenderer = (
+    section: number,
+    firstSelectableRowIndexPath: RowIndexPath | null
+  ) => {
     return (params: IRowRendererParams) => {
+      const { selectedRows } = this.props
       const indexPath: RowIndexPath = {
         section: section,
         row: params.rowIndex,
@@ -1092,16 +1144,17 @@ export class SectionList extends React.Component<
 
       const selectable = this.canSelectRow(indexPath)
       const selected =
-        this.props.selectedRows.findIndex(r =>
-          rowIndexPathEquals(r, indexPath)
-        ) !== -1
+        selectedRows.findIndex(r => rowIndexPathEquals(r, indexPath)) !== -1
       const customClasses = this.getCustomRowClassNames(indexPath)
 
       // An unselectable row shouldn't be focusable
       let tabIndex: number | undefined = undefined
       if (selectable) {
         tabIndex =
-          selected && rowIndexPathEquals(this.props.selectedRows[0], indexPath)
+          (selected && rowIndexPathEquals(selectedRows[0], indexPath)) ||
+          (selectedRows.length === 0 &&
+            firstSelectableRowIndexPath !== null &&
+            rowIndexPathEquals(firstSelectableRowIndexPath, indexPath))
             ? 0
             : -1
       }
@@ -1140,6 +1193,7 @@ export class SectionList extends React.Component<
           onRowMouseDown={this.onRowMouseDown}
           onRowMouseUp={this.onRowMouseUp}
           onRowFocus={this.onRowFocus}
+          onRowKeyboardFocus={this.onRowKeyboardFocus}
           onRowBlur={this.onRowBlur}
           onContextMenu={this.onRowContextMenu}
           style={params.style}
@@ -1171,6 +1225,7 @@ export class SectionList extends React.Component<
     }
 
     return (
+      // eslint-disable-next-line github/a11y-role-supports-aria-props
       <div
         ref={this.onRef}
         id={this.props.id}
@@ -1275,7 +1330,10 @@ export class SectionList extends React.Component<
           columnCount={1}
           rowCount={this.props.rowCount[section]}
           rowHeight={this.getRowHeight(section)}
-          cellRenderer={this.getRowRenderer(section)}
+          cellRenderer={this.getRowRenderer(
+            section,
+            this.getFirstSelectableRowIndexPath()
+          )}
           scrollTop={relativeScrollTop}
           overscanRowCount={4}
           style={{ ...params.style, width: '100%' }}
@@ -1334,9 +1392,9 @@ export class SectionList extends React.Component<
       rowIndexPathEquals(firstSelectedRow, InvalidRowIndexPath)
     ) {
       sendNonFatalException(
-        'The selected rows of the List.tsx contained a negative number.',
+        'The selected rows of the section-list.tsx contained a negative number.',
         new Error(
-          `Invalid selected rows that contained a negative number passed to List component. This will cause keyboard navigation and focus problems.`
+          `Invalid selected rows that contained a negative number passed to SectionList component. This will cause keyboard navigation and focus problems.`
         )
       )
     }

@@ -5,9 +5,9 @@ import { IDiff, DiffType } from '../../models/diff'
 import { Octicon, iconForStatus } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { mapStatus } from '../../lib/status'
-import { DiffOptions } from '../diff/diff-options'
+import { DiffOptions } from './diff-options'
 
-interface IChangedFileDetailsProps {
+interface IDiffHeaderProps {
   readonly path: string
   readonly status: AppFileStatus
   readonly diff: IDiff | null
@@ -29,10 +29,7 @@ interface IChangedFileDetailsProps {
 }
 
 /** Displays information about a file */
-export class ChangedFileDetails extends React.Component<
-  IChangedFileDetailsProps,
-  {}
-> {
+export class DiffHeader extends React.Component<IDiffHeaderProps, {}> {
   public render() {
     const status = this.props.status
     const fileStatus = mapStatus(status)

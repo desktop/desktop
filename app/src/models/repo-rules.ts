@@ -95,6 +95,12 @@ export class RepoRulesInfo {
    */
   public creationRestricted: RepoRuleEnforced = false
 
+  /**
+   * Whether signed commits are required. `parseRepoRules` will
+   * set this to `false` if the user has commit signing configured.
+   */
+  public signedCommitsRequired: RepoRuleEnforced = false
+
   public pullRequestRequired: RepoRuleEnforced = false
   public commitMessagePatterns = new RepoRulesMetadataRules()
   public commitAuthorEmailPatterns = new RepoRulesMetadataRules()

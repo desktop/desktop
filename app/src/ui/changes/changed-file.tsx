@@ -15,6 +15,7 @@ interface IChangedFileProps {
   readonly availableWidth: number
   readonly disableSelection: boolean
   readonly checkboxTooltip?: string
+  readonly focused: boolean
   readonly onIncludeChanged: (path: string, include: boolean) => void
 }
 
@@ -36,7 +37,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
   }
 
   public render() {
-    const { file, availableWidth, disableSelection, checkboxTooltip } =
+    const { file, availableWidth, disableSelection, checkboxTooltip, focused } =
       this.props
     const { status, path } = file
     const fileStatus = mapStatus(status)
@@ -90,13 +91,17 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
         />
 
         <AriaLiveContainer message={pathScreenReaderMessage} />
-
-        <Octicon
-          symbol={iconForStatus(status)}
-          className={'status status-' + fileStatus.toLowerCase()}
-          title={fileStatus}
-          tooltipDirection={TooltipDirection.EAST}
-        />
+        <TooltippedContent
+          ancestorFocused={focused}
+          openOnFocus={true}
+          tooltip={fileStatus}
+          direction={TooltipDirection.EAST}
+        >
+          <Octicon
+            symbol={iconForStatus(status)}
+            className={'status status-' + fileStatus.toLowerCase()}
+          />
+        </TooltippedContent>
       </div>
     )
   }

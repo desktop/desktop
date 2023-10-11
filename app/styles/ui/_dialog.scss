@@ -1,7 +1,5 @@
 @import '../mixins';
-@import 'dialogs/merge';
 @import 'dialogs/conflicts';
-@import 'dialogs/rebase';
 @import 'dialogs/progress-dialog';
 @import 'dialogs/abort-merge';
 @import 'dialogs/push-needs-pull';
@@ -175,7 +173,7 @@ dialog {
       margin-left: var(--spacing);
     }
 
-    h1 {
+    h2 {
       font-weight: var(--font-weight-semibold);
       font-size: var(--font-size-md);
       margin: 0;
@@ -423,6 +421,13 @@ dialog {
   }
   &#create-repository {
     width: 400px;
+
+    // This is to ensure that the dialog content is accessible when zoomed in
+    @media (max-width: 600px) {
+      overflow-y: auto;
+      width: 100%;
+      max-width: calc(100% - var(--spacing-double));
+    }
   }
   &#create-branch {
     width: 400px;

@@ -14,7 +14,6 @@ import { uuid } from './uuid'
 import username from 'username'
 import { GitProtocol } from './remote-parsing'
 import { Emitter } from 'event-kit'
-import JSZip from 'jszip'
 import { updateEndpointVersion } from './endpoint-capabilities'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
@@ -241,6 +240,9 @@ interface IAPIFullIdentity {
    */
   readonly email: string | null
   readonly type: GitHubAccountType
+  readonly plan?: {
+    readonly name: string
+  }
 }
 
 /** The users we get from the mentionables endpoint. */
@@ -1480,31 +1482,6 @@ export class API {
   }
 
   /**
-   * Get JSZip for a workflow run log archive.
-   *
-   * If it fails to retrieve or parse the zip file, it will return null.
-   */
-  public async fetchWorkflowRunJobLogs(logsUrl: string): Promise<JSZip | null> {
-    const customHeaders = {
-      Accept: 'application/vnd.github.antiope-preview+json',
-    }
-    const response = await this.request('GET', logsUrl, {
-      customHeaders,
-    })
-
-    try {
-      const zipBlob = await response.blob()
-      return new JSZip().loadAsync(zipBlob)
-    } catch (e) {
-      // Sometimes a workflow provides a log url, but still returns a 404
-      // because a log file doesn't make sense for the workflow. Thus, we just
-      // want to fail without raising an error.
-    }
-
-    return null
-  }
-
-  /**
    * Triggers GitHub to rerequest an existing check suite, without pushing new
    * code to a repository.
    */
@@ -2026,7 +2003,8 @@ export async function fetchUser(
       emails,
       user.avatar_url,
       user.id,
-      user.name || user.login
+      user.name || user.login,
+      user.plan?.name
     )
   } catch (e) {
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)
