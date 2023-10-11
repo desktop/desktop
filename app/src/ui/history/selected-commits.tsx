@@ -297,14 +297,31 @@ export class SelectedCommits extends React.Component<
     const availableWidth = clamp(this.props.commitSummaryWidth) - 1
 
     return (
-      <FileList
-        files={files}
-        onSelectedFileChanged={this.onFileSelected}
-        selectedFile={this.props.selectedFile}
-        availableWidth={availableWidth}
-        onContextMenu={this.onContextMenu}
-        onRowDoubleClick={this.onRowDoubleClick}
-      />
+      <>
+        {this.renderFileHeader()}
+        <FileList
+          files={files}
+          onSelectedFileChanged={this.onFileSelected}
+          selectedFile={this.props.selectedFile}
+          availableWidth={availableWidth}
+          onContextMenu={this.onContextMenu}
+          onRowDoubleClick={this.onRowDoubleClick}
+        />
+      </>
+    )
+  }
+
+  private renderFileHeader() {
+    if (!enableCommitDetailsHeaderExpansion()) {
+      return null
+    }
+
+    const fileCount = this.props.changesetData.files.length
+    const filesPlural = fileCount === 1 ? 'file' : 'files'
+    return (
+      <div className="file-list-header">
+        {fileCount} changed {filesPlural}
+      </div>
     )
   }
 
