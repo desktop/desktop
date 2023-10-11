@@ -232,6 +232,7 @@ export class ExpandableCommitSummary extends React.Component<
         onClick={isExpanded ? this.onCollapse : this.onExpand}
         className="expander"
         tooltip={isExpanded ? 'Collapse' : 'Expand'}
+        ariaExpanded={isExpanded}
       >
         <Octicon
           symbol={isExpanded ? OcticonSymbol.fold : OcticonSymbol.unfold}
