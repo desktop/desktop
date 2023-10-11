@@ -216,11 +216,6 @@ export class SelectedCommits extends React.Component<
           isExpanded={this.state.isExpanded}
           onDescriptionBottomChanged={this.onDescriptionBottomChanged}
           hideDescriptionBorder={this.state.hideDescriptionBorder}
-          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-          showSideBySideDiff={this.props.showSideBySideDiff}
-          onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
-          onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
-          onDiffOptionsOpened={this.props.onDiffOptionsOpened}
           onHighlightShas={this.onHighlightShas}
           showUnreachableCommits={this.showUnreachableCommits}
         />

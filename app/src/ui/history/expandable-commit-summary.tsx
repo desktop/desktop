@@ -11,7 +11,6 @@ import { AvatarStack } from '../lib/avatar-stack'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
-import { DiffOptions } from '../diff/diff-options'
 import { IChangesetData } from '../../lib/git'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { AppFileStatusKind } from '../../models/status'
@@ -42,18 +41,6 @@ interface IExpandableCommitSummaryProps {
   readonly onDescriptionBottomChanged: (descriptionBottom: number) => void
 
   readonly hideDescriptionBorder: boolean
-
-  readonly hideWhitespaceInDiff: boolean
-
-  /** Whether we should display side by side diffs. */
-  readonly showSideBySideDiff: boolean
-  readonly onHideWhitespaceInDiffChanged: (checked: boolean) => Promise<void>
-
-  /** Called when the user changes the side by side diffs setting. */
-  readonly onShowSideBySideDiffChanged: (checked: boolean) => void
-
-  /** Called when the user opens the diff options popover */
-  readonly onDiffOptionsOpened: () => void
 
   /** Called to highlight certain shas in the history */
   readonly onHighlightShas: (shasToHighlight: ReadonlyArray<string>) => void
@@ -500,21 +487,6 @@ export class ExpandableCommitSummary extends React.Component<
             {this.renderChangedFilesDescription()}
             {this.renderLinesChanged()}
             {this.renderTags()}
-
-            <li className="commit-summary-meta-item without-truncation">
-              <DiffOptions
-                isInteractiveDiff={false}
-                hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-                onHideWhitespaceChangesChanged={
-                  this.props.onHideWhitespaceInDiffChanged
-                }
-                showSideBySideDiff={this.props.showSideBySideDiff}
-                onShowSideBySideDiffChanged={
-                  this.props.onShowSideBySideDiffChanged
-                }
-                onDiffOptionsOpened={this.props.onDiffOptionsOpened}
-              />
-            </li>
           </ul>
         </div>
 
