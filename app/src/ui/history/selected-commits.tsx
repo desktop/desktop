@@ -37,6 +37,7 @@ import { pathExists } from '../lib/path-exists'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 import { enableCommitDetailsHeaderExpansion } from '../../lib/feature-flag'
 import { ExpandableCommitSummary } from './expandable-commit-summary'
+import { DiffHeader } from '../diff/diff-header'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository
@@ -161,18 +162,43 @@ export class SelectedCommits extends React.Component<
     }
 
     return (
-      <SeamlessDiffSwitcher
-        repository={this.props.repository}
-        imageDiffType={this.props.selectedDiffType}
-        file={file}
-        diff={diff}
-        readOnly={true}
-        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+      <div className="diff-container">
+        {this.renderDiffHeader()}
+        <SeamlessDiffSwitcher
+          repository={this.props.repository}
+          imageDiffType={this.props.selectedDiffType}
+          file={file}
+          diff={diff}
+          readOnly={true}
+          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          showSideBySideDiff={this.props.showSideBySideDiff}
+          onOpenBinaryFile={this.props.onOpenBinaryFile}
+          onChangeImageDiffType={this.props.onChangeImageDiffType}
+          onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+          onOpenSubmodule={this.props.onOpenSubmodule}
+        />
+      </div>
+    )
+  }
+
+  private renderDiffHeader() {
+    const { selectedFile } = this.props
+    if (selectedFile === null || !enableCommitDetailsHeaderExpansion()) {
+      return null
+    }
+
+    const { path, status } = selectedFile
+
+    return (
+      <DiffHeader
+        diff={this.props.currentDiff}
+        path={path}
+        status={status}
         showSideBySideDiff={this.props.showSideBySideDiff}
-        onOpenBinaryFile={this.props.onOpenBinaryFile}
-        onChangeImageDiffType={this.props.onChangeImageDiffType}
+        onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
-        onOpenSubmodule={this.props.onOpenSubmodule}
+        onDiffOptionsOpened={this.props.onDiffOptionsOpened}
       />
     )
   }
