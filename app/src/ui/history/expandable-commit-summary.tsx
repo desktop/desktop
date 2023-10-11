@@ -468,7 +468,7 @@ export class ExpandableCommitSummary extends React.Component<
 
   private renderSummary = () => {
     const { hasEmptySummary } = this.state
-    const summaryClassNames = classNames('commit-summary-title', {
+    const summaryClassNames = classNames('ecs-title', {
       'empty-summary': hasEmptySummary,
     })
 
