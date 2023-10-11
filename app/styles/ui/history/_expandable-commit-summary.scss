@@ -185,4 +185,14 @@
   .commit-summary-header {
     border-bottom: var(--base-border);
   }
+
+  &.expanded {
+    .commit-summary-meta {
+      display: block;
+
+      .commit-summary-meta-item {
+        margin-bottom: var(--spacing-half);
+      }
+    }
+  }
 }
