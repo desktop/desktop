@@ -64,7 +64,7 @@
     }
   }
 
-  .commit-summary-title,
+  .ecs-title,
   .commit-summary-meta {
     padding: var(--spacing);
 
@@ -123,7 +123,7 @@
     -webkit-line-clamp: 3;
   }
 
-  .commit-summary-title,
+  .ecs-title,
   .commit-summary-description {
     // Enable text selection inside the title and description elements.
     user-select: text;
