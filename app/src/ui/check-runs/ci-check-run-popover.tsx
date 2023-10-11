@@ -151,7 +151,7 @@ export class CICheckRunPopover extends React.PureComponent<
       `${this.props.repository.htmlURL}/pull/${this.props.prNumber}`
 
     this.props.dispatcher.openInBrowser(url)
-    this.props.dispatcher.incrementMetric('opensCheckRunsPopover')
+    this.props.dispatcher.incrementMetric('viewsCheckOnline')
   }
 
   private onViewJobStep = (

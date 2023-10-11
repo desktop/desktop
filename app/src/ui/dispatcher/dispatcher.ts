@@ -2991,7 +2991,7 @@ export class Dispatcher {
     )
 
     if (result === CherryPickResult.CompletedWithoutError) {
-      this.statsStore.increment('cherryPickSuccessfulCount')
+      this.statsStore.increment('cherryPickSuccessfulWithConflictsCount')
     }
 
     this.processCherryPickResult(
