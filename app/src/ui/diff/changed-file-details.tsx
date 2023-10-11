@@ -5,7 +5,7 @@ import { IDiff, DiffType } from '../../models/diff'
 import { Octicon, iconForStatus } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { mapStatus } from '../../lib/status'
-import { DiffOptions } from '../diff/diff-options'
+import { DiffOptions } from './diff-options'
 
 interface IChangedFileDetailsProps {
   readonly path: string

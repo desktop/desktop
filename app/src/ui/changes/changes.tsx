@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ChangedFileDetails } from './changed-file-details'
+import { ChangedFileDetails } from '../diff/changed-file-details'
 import {
   DiffSelection,
   IDiff,
