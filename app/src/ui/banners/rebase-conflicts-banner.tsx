@@ -3,7 +3,6 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Banner } from './banner'
 import { Dispatcher } from '../dispatcher'
-import { LinkButton } from '../lib/link-button'
 
 interface IRebaseConflictsBannerProps {
   readonly dispatcher: Dispatcher
@@ -44,7 +43,9 @@ export class RebaseConflictsBanner extends React.Component<
             Resolve conflicts to continue rebasing{' '}
             <strong>{this.props.targetBranch}</strong>.
           </span>
-          <LinkButton onClick={this.openDialog}>View conflicts</LinkButton>
+          <button onClick={this.openDialog} autoFocus={true}>
+            View conflicts
+          </button>
         </div>
       </Banner>
     )

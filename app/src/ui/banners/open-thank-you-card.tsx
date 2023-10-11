@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { LinkButton } from '../lib/link-button'
 import { RichText } from '../lib/rich-text'
 import { Banner } from './banner'
 
@@ -22,17 +21,16 @@ export class OpenThankYouCard extends React.Component<
       <Banner id="open-thank-you-card" onDismissed={this.props.onDismissed}>
         <span onSubmit={this.props.onOpenCard}>
           The Desktop team would like to thank you for your contributions.{' '}
-          <LinkButton onClick={this.props.onOpenCard}>
+          <button onClick={this.props.onOpenCard} autoFocus={true}>
             Open Your Card
-          </LinkButton>{' '}
+          </button>{' '}
           <RichText
             className="thank-you-banner-emoji"
             text={':tada:'}
             emoji={this.props.emoji}
             renderUrlsAsLinks={true}
           />
-          or{' '}
-          <LinkButton onClick={this.onThrowCardAway}>Throw It Away</LinkButton>{' '}
+          or <button onClick={this.onThrowCardAway}>Throw It Away</button>{' '}
           <RichText
             className="thank-you-banner-emoji"
             text={':sob:'}

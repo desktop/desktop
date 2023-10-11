@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { LinkButton } from '../lib/link-button'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Banner } from './banner'
@@ -25,7 +24,11 @@ export class SuccessBanner extends React.Component<ISuccessBannerProps, {}> {
     if (this.props.onUndo === undefined) {
       return
     }
-    return <LinkButton onClick={this.undo}>Undo</LinkButton>
+    return (
+      <button onClick={this.undo} autoFocus={true}>
+        Undo
+      </button>
+    )
   }
 
   public render() {
