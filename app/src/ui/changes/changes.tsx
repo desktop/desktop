@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ChangedFileDetails } from '../diff/changed-file-details'
+import { DiffHeader } from '../diff/diff-header'
 import {
   DiffSelection,
   IDiff,
@@ -106,7 +106,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
   public render() {
     return (
       <div className="changed-file">
-        <ChangedFileDetails
+        <DiffHeader
           path={this.props.file.path}
           status={this.props.file.status}
           diff={this.props.diff}
