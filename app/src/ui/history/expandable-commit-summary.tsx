@@ -471,7 +471,6 @@ export class ExpandableCommitSummary extends React.Component<
   public render() {
     const className = classNames('expandable-commit-summary', {
       expanded: this.props.isExpanded,
-      collapsed: !this.props.isExpanded,
       'has-expander': this.props.isExpanded || this.state.isOverflowed,
       'hide-description-border': this.props.hideDescriptionBorder,
     })
