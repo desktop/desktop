@@ -13,7 +13,6 @@ import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 import { IChangesetData } from '../../lib/git'
 import { TooltippedContent } from '../lib/tooltipped-content'
-import { AppFileStatusKind } from '../../models/status'
 import uniqWith from 'lodash/uniqWith'
 import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
@@ -484,7 +483,6 @@ export class ExpandableCommitSummary extends React.Component<
           <ul className="commit-summary-meta">
             {this.renderAuthors()}
             {this.renderCommitRef()}
-            {this.renderChangedFilesDescription()}
             {this.renderLinesChanged()}
             {this.renderTags()}
           </ul>
@@ -493,89 +491,6 @@ export class ExpandableCommitSummary extends React.Component<
         {this.renderDescription()}
         {this.renderCommitsNotReachable()}
       </div>
-    )
-  }
-
-  private renderChangedFilesDescription = () => {
-    const fileCount = this.props.changesetData.files.length
-    const filesPlural = fileCount === 1 ? 'file' : 'files'
-    const filesShortDescription = `${fileCount} changed ${filesPlural}`
-
-    let filesAdded = 0
-    let filesModified = 0
-    let filesRemoved = 0
-    let filesRenamed = 0
-    for (const file of this.props.changesetData.files) {
-      switch (file.status.kind) {
-        case AppFileStatusKind.New:
-          filesAdded += 1
-          break
-        case AppFileStatusKind.Modified:
-          filesModified += 1
-          break
-        case AppFileStatusKind.Deleted:
-          filesRemoved += 1
-          break
-        case AppFileStatusKind.Renamed:
-          filesRenamed += 1
-      }
-    }
-
-    const hasFileDescription =
-      filesAdded + filesModified + filesRemoved + filesRenamed > 0
-
-    const filesLongDescription = (
-      <>
-        {filesAdded > 0 ? (
-          <span>
-            <Octicon
-              className="files-added-icon"
-              symbol={OcticonSymbol.diffAdded}
-            />
-            {filesAdded} added
-          </span>
-        ) : null}
-        {filesModified > 0 ? (
-          <span>
-            <Octicon
-              className="files-modified-icon"
-              symbol={OcticonSymbol.diffModified}
-            />
-            {filesModified} modified
-          </span>
-        ) : null}
-        {filesRemoved > 0 ? (
-          <span>
-            <Octicon
-              className="files-deleted-icon"
-              symbol={OcticonSymbol.diffRemoved}
-            />
-            {filesRemoved} deleted
-          </span>
-        ) : null}
-        {filesRenamed > 0 ? (
-          <span>
-            <Octicon
-              className="files-renamed-icon"
-              symbol={OcticonSymbol.diffRenamed}
-            />
-            {filesRenamed} renamed
-          </span>
-        ) : null}
-      </>
-    )
-
-    return (
-      <TooltippedContent
-        className="commit-summary-meta-item without-truncation"
-        tooltipClassName="changed-files-description-tooltip"
-        tooltip={
-          fileCount > 0 && hasFileDescription ? filesLongDescription : undefined
-        }
-      >
-        <Octicon symbol={OcticonSymbol.diff} />
-        {filesShortDescription}
-      </TooltippedContent>
     )
   }
 
