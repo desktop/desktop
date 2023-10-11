@@ -18,6 +18,7 @@ import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
 import memoizeOne from 'memoize-one'
+import { Button } from '../lib/button'
 
 interface IExpandableCommitSummaryProps {
   readonly repository: Repository
@@ -221,22 +222,21 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderExpander() {
-    if (
-      !this.state.body.length ||
-      (!this.props.isExpanded && !this.state.isOverflowed)
-    ) {
+    const { selectedCommits, isExpanded } = this.props
+    if (selectedCommits.length > 1) {
       return null
     }
 
-    const expanded = this.props.isExpanded
-    const onClick = expanded ? this.onCollapse : this.onExpand
-    const icon = expanded ? OcticonSymbol.fold : OcticonSymbol.unfold
-
     return (
-      <button onClick={onClick} className="expander">
-        <Octicon symbol={icon} />
-        {expanded ? 'Collapse' : 'Expand'}
-      </button>
+      <Button
+        onClick={isExpanded ? this.onCollapse : this.onExpand}
+        className="expander"
+        tooltip={isExpanded ? 'Collapse' : 'Expand'}
+      >
+        <Octicon
+          symbol={isExpanded ? OcticonSymbol.fold : OcticonSymbol.unfold}
+        />
+      </Button>
     )
   }
 
@@ -423,17 +423,13 @@ export class ExpandableCommitSummary extends React.Component<
     )
   }
 
-  private renderSummary = () => {
+  private renderSummaryText = () => {
     const { selectedCommits, shasInDiff } = this.props
-    const { summary, hasEmptySummary } = this.state
-    const summaryClassNames = classNames('commit-summary-title', {
-      'empty-summary': hasEmptySummary,
-    })
+    const { summary } = this.state
 
     if (selectedCommits.length === 1) {
       return (
         <RichText
-          className={summaryClassNames}
           emoji={this.props.emoji}
           repository={this.props.repository}
           text={summary}
@@ -447,11 +443,13 @@ export class ExpandableCommitSummary extends React.Component<
     )
     const numInDiff = selectedCommits.length - commitsNotInDiff
     const commitsPluralized = numInDiff > 1 ? 'commits' : 'commit'
+
     return (
-      <div className={summaryClassNames}>
+      <>
         Showing changes from{' '}
         {commitsNotInDiff > 0 ? (
           <LinkButton
+            className="commits-in-diff"
             onMouseOver={this.onHighlightShasInDiff}
             onMouseOut={this.onRemoveHighlightOfShas}
             onClick={this.showReachableCommits}
@@ -464,6 +462,20 @@ export class ExpandableCommitSummary extends React.Component<
             {numInDiff} {commitsPluralized}
           </>
         )}
+      </>
+    )
+  }
+
+  private renderSummary = () => {
+    const { hasEmptySummary } = this.state
+    const summaryClassNames = classNames('commit-summary-title', {
+      'empty-summary': hasEmptySummary,
+    })
+
+    return (
+      <div className={summaryClassNames}>
+        {this.renderSummaryText()}
+        {this.renderExpander()}
       </div>
     )
   }
