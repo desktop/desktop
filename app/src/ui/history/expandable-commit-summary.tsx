@@ -323,8 +323,6 @@ export class ExpandableCommitSummary extends React.Component<
             text={this.state.body}
           />
         </div>
-
-        {this.renderExpander()}
       </div>
     )
   }
