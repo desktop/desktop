@@ -32,7 +32,7 @@ export class CopyButton extends React.Component<
 
     this.setState({ showCopied: true })
 
-    await sleep(1500)
+    await sleep(2000)
 
     this.setState({ showCopied: false })
   }
@@ -55,6 +55,7 @@ export class CopyButton extends React.Component<
         tooltip={showCopied ? 'Copied!' : ariaLabel}
         ariaLabel={ariaLabel}
         onClick={this.onCopy}
+        isToggleTip={true}
       >
         {this.renderSymbol()}
       </Button>
