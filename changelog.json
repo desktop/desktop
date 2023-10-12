@@ -4,6 +4,7 @@
       "[Fixed] Screen readers announce contents of error dialog when attempting to perform certain operations while local changes are present - #17519",
       "[Fixed] Fix JetBrains PhpStorm capitalization - #17505. Thanks @imkylecat!",
       "[Improved] Upgrade to Electron v26.2.4 - #17524",
+      "[Improved] Upgrade node to 18.16.1 - #17453",
       "[Improved] Upgrade node to 18.16.1 - #17453"
     ],
     "3.3.4-beta2": [
