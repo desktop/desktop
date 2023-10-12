@@ -547,7 +547,7 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderLinesChanged() {
-    const { changesetData, selectedCommits } = this.props
+    const { changesetData, selectedCommits, isExpanded } = this.props
     const { linesAdded, linesDeleted } = changesetData
 
     if (
@@ -559,9 +559,17 @@ export class ExpandableCommitSummary extends React.Component<
 
     return (
       <div className="ecs-meta-item lines-added-deleted">
-        <div className="lines-added">+{linesAdded}</div>
-        <div className="lines-deleted">-{linesDeleted}</div>
-        <div>lines</div>
+        <div className="lines-added">
+          {!isExpanded ? <>+{linesAdded}</> : <>{linesAdded} added lines</>}
+        </div>
+        <div className="lines-deleted">
+          {!isExpanded ? (
+            <>-{linesDeleted}</>
+          ) : (
+            <>{linesDeleted} removed lines</>
+          )}
+        </div>
+        {!isExpanded ? <div>lines</div> : null}
       </div>
     )
   }
