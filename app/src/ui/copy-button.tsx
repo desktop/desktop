@@ -4,6 +4,7 @@ import * as OcticonSymbol from './octicons/octicons.generated'
 import { Octicon } from './octicons'
 import { sleep } from '../lib/promise'
 import { Button } from './lib/button'
+import { AriaLiveContainer } from './accessibility/aria-live-container'
 
 interface ICopyButtonProps {
   readonly copyContent: string
@@ -49,15 +50,18 @@ export class CopyButton extends React.Component<
     const { ariaLabel } = this.props
     const { showCopied } = this.state
 
+    const label = showCopied ? 'Copied!' : ariaLabel
+    const ariaMessage = showCopied ? label : ''
     return (
       <Button
         className="copy-button"
-        tooltip={showCopied ? 'Copied!' : ariaLabel}
-        ariaLabel={ariaLabel}
+        tooltip={label}
+        ariaLabel={label}
         onClick={this.onCopy}
         isToggleTip={true}
       >
         {this.renderSymbol()}
+        <AriaLiveContainer message={'Copied!'} trackedUserInput={ariaMessage} />
       </Button>
     )
   }
