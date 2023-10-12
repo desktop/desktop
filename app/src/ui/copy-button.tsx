@@ -50,18 +50,21 @@ export class CopyButton extends React.Component<
     const { ariaLabel } = this.props
     const { showCopied } = this.state
 
-    const label = showCopied ? 'Copied!' : ariaLabel
-    const ariaMessage = showCopied ? label : ''
+    const copiedMessage = 'Copied!'
+    const ariaMessage = showCopied ? copiedMessage : ''
     return (
       <Button
         className="copy-button"
-        tooltip={label}
-        ariaLabel={label}
+        tooltip={showCopied ? copiedMessage : ariaLabel}
+        ariaLabel={ariaLabel}
         onClick={this.onCopy}
-        isToggleTip={true}
+        openTooltipOnClick={true}
       >
         {this.renderSymbol()}
-        <AriaLiveContainer message={'Copied!'} trackedUserInput={ariaMessage} />
+        <AriaLiveContainer
+          message={copiedMessage}
+          trackedUserInput={ariaMessage}
+        />
       </Button>
     )
   }
