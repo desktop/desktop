@@ -16,10 +16,10 @@ import { TooltippedContent } from '../lib/tooltipped-content'
 import uniqWith from 'lodash/uniqWith'
 import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
-import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
 import memoizeOne from 'memoize-one'
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
+import { CopyButton } from '../copy-button'
 
 interface IExpandableCommitSummaryProps {
   readonly repository: Repository
@@ -452,18 +452,18 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderCommitRef = () => {
-    const { selectedCommits } = this.props
+    const { selectedCommits, isExpanded } = this.props
     if (selectedCommits.length > 1) {
       return
     }
 
+    const { shortSha, sha } = selectedCommits[0]
+
     return (
-      <div className="ecs-meta-item without-truncation">
+      <div className="ecs-meta-item commit-ref">
         <Octicon symbol={OcticonSymbol.gitCommit} />
-        <TooltippedCommitSHA
-          className="selectable"
-          commit={selectedCommits[0]}
-        />
+        <div className="ref selectable">{isExpanded ? sha : shortSha}</div>
+        <CopyButton ariaLabel="Copy the full SHA" copyContent={sha} />
       </div>
     )
   }

@@ -138,6 +138,7 @@
       margin-right: var(--spacing);
       font-size: var(--font-size-sm);
       flex-shrink: 0;
+      align-items: center;
 
       &.authors {
         .avatar {
@@ -148,6 +149,24 @@
         .author {
           .avatar-container {
             margin-right: var(--spacing-half);
+          }
+        }
+      }
+
+      &.commit-ref {
+        .ref {
+          padding-left: var(--spacing-half);
+        }
+
+        .copy-button {
+          background: transparent;
+          border: none;
+          padding: 0;
+          margin-left: var(--spacing-half);
+          height: auto;
+
+          :hover {
+            color: var(--text-secondary-color);
           }
         }
       }
