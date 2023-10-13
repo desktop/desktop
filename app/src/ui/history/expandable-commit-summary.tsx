@@ -40,8 +40,6 @@ interface IExpandableCommitSummaryProps {
 
   readonly onDescriptionBottomChanged: (descriptionBottom: number) => void
 
-  readonly hideDescriptionBorder: boolean
-
   /** Called to highlight certain shas in the history */
   readonly onHighlightShas: (shasToHighlight: ReadonlyArray<string>) => void
 
@@ -311,17 +309,18 @@ export class ExpandableCommitSummary extends React.Component<
       return null
     }
 
+    const className = classNames('ecs-description', {
+      overflowed: this.state.isOverflowed,
+    })
+
     return (
-      <div
-        className="commit-summary-description-container"
-        ref={this.onDescriptionRef}
-      >
+      <div className={className} ref={this.onDescriptionRef}>
         <div
-          className="commit-summary-description-scroll-view"
+          className="ecs-description-scroll-view"
           ref={this.onDescriptionScrollViewRef}
         >
           <RichText
-            className="commit-summary-description"
+            className="ecs-description-text selectable"
             emoji={this.props.emoji}
             repository={this.props.repository}
             text={this.state.body}
@@ -512,7 +511,7 @@ export class ExpandableCommitSummary extends React.Component<
 
   private renderSummary = () => {
     const { hasEmptySummary } = this.state
-    const summaryClassNames = classNames('ecs-title', {
+    const summaryClassNames = classNames('ecs-title', 'selectable', {
       'empty-summary': hasEmptySummary,
     })
 
@@ -527,20 +526,18 @@ export class ExpandableCommitSummary extends React.Component<
   public render() {
     const className = classNames('expandable-commit-summary', {
       expanded: this.props.isExpanded,
-      'has-expander': this.props.isExpanded || this.state.isOverflowed,
-      'hide-description-border': this.props.hideDescriptionBorder,
     })
 
     return (
       <div className={className}>
         {this.renderSummary()}
+        {this.renderDescription()}
         <div className="ecs-meta">
           {this.renderAuthors()}
           {this.renderCommitRef()}
           {this.renderLinesChanged()}
           {this.renderTags()}
         </div>
-        {this.renderDescription()}
         {this.renderCommitsNotReachable()}
       </div>
     )
