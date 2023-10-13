@@ -236,6 +236,7 @@ export class ExpandableCommitSummary extends React.Component<
         ariaLabel={
           isExpanded ? 'Collapse commit details' : 'Expand commit details'
         }
+        ariaControls="expandable-commit-summary"
       >
         <Octicon
           symbol={isExpanded ? OcticonSymbol.fold : OcticonSymbol.unfold}
@@ -480,14 +481,14 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   public render() {
-    const className = classNames('expandable-commit-summary', {
+    const className = classNames({
       expanded: this.props.isExpanded,
       'has-expander': this.props.isExpanded || this.state.isOverflowed,
       'hide-description-border': this.props.hideDescriptionBorder,
     })
 
     return (
-      <div className={className}>
+      <div id="expandable-commit-summary" className={className}>
         {this.renderSummary()}
         <div className="ecs-meta">
           {this.renderAuthors()}
