@@ -305,7 +305,7 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderDescription() {
-    if (this.state.body.length === 0) {
+    if (this.state.body.length === 0 || this.props.selectedCommits.length > 1) {
       return null
     }
 
@@ -523,6 +523,21 @@ export class ExpandableCommitSummary extends React.Component<
     )
   }
 
+  private renderMetaItems = () => {
+    if (this.props.selectedCommits.length > 1) {
+      return null
+    }
+
+    return (
+      <div className="ecs-meta">
+        {this.renderAuthors()}
+        {this.renderCommitRef()}
+        {this.renderLinesChanged()}
+        {this.renderTags()}
+      </div>
+    )
+  }
+
   public render() {
     const className = classNames('expandable-commit-summary', {
       expanded: this.props.isExpanded,
@@ -532,12 +547,7 @@ export class ExpandableCommitSummary extends React.Component<
       <div className={className}>
         {this.renderSummary()}
         {this.renderDescription()}
-        <div className="ecs-meta">
-          {this.renderAuthors()}
-          {this.renderCommitRef()}
-          {this.renderLinesChanged()}
-          {this.renderTags()}
-        </div>
+        {this.renderMetaItems()}
         {this.renderCommitsNotReachable()}
       </div>
     )
