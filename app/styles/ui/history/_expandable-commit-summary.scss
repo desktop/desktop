@@ -10,25 +10,6 @@
     height: 16px;
   }
 
-  .expander {
-    position: absolute;
-    width: 75px;
-    top: var(--spacing);
-    right: var(--spacing);
-    background: transparent;
-    padding: 0;
-    border: none;
-    color: var(--text-color);
-    font-size: inherit;
-    font-weight: normal;
-    font-family: inherit;
-
-    svg {
-      vertical-align: text-top;
-      margin-right: var(--spacing-half);
-    }
-  }
-
   &.expanded {
     .commit-summary-description-scroll-view {
       max-height: 400px;
@@ -83,7 +64,7 @@
     }
   }
 
-  .commit-summary-title,
+  .ecs-title,
   .commit-summary-meta {
     padding: var(--spacing);
 
@@ -96,15 +77,36 @@
     }
   }
 
-  .commit-summary-title {
+  .ecs-title {
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-semibold);
     line-height: 16px;
     padding: var(--spacing);
     word-wrap: break-word;
+    display: flex;
+
+    .commits-in-diff {
+      margin-left: var(--spacing-half);
+    }
 
     &.empty-summary {
       color: var(--text-secondary-color);
+    }
+
+    .expander {
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: var(--text-color);
+      font-size: inherit;
+      font-weight: normal;
+      font-family: inherit;
+      margin-left: var(--spacing);
+      height: auto;
+
+      svg {
+        vertical-align: text-top;
+      }
     }
   }
 
@@ -125,7 +127,7 @@
     -webkit-line-clamp: 3;
   }
 
-  .commit-summary-title,
+  .ecs-title,
   .commit-summary-description {
     // Enable text selection inside the title and description elements.
     user-select: text;
@@ -186,5 +188,15 @@
 
   .commit-summary-header {
     border-bottom: var(--base-border);
+  }
+
+  &.expanded {
+    .commit-summary-meta {
+      display: block;
+
+      .commit-summary-meta-item {
+        margin-bottom: var(--spacing-half);
+      }
+    }
   }
 }
