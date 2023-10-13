@@ -1,7 +1,6 @@
 @import '../../mixins';
 
-/** A React component holding the selected commit's detailed information */
-#commit-summary {
+.expandable-commit-summary {
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -83,16 +82,9 @@
       margin-right: var(--spacing-half);
     }
   }
-}
 
-// NOTE: This isn't a real class, it's an SCSS hack to allow us to only write
-// the suffixes of class names that all start with commit-summary. It's quite
-// confusing and also has the added downside of making it impossible to search
-// for a class name one finds in tsx. We might want to consider not allowing
-// this in the future but that's for... the future.
-.commit-summary {
-  &-title,
-  &-meta {
+  .commit-summary-title,
+  .commit-summary-meta {
     padding: var(--spacing);
 
     .lines-added {
@@ -104,7 +96,7 @@
     }
   }
 
-  &-title {
+  .commit-summary-title {
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-semibold);
     line-height: 16px;
@@ -116,7 +108,7 @@
     }
   }
 
-  &-description-container {
+  .commit-summary-description-container {
     display: flex;
     // So that we have something to position the expander against
     position: relative;
@@ -124,7 +116,7 @@
     min-height: 0;
   }
 
-  &-description-scroll-view {
+  .commit-summary-description-scroll-view {
     overflow: hidden;
     flex: 1;
     display: -webkit-box;
@@ -133,9 +125,9 @@
     -webkit-line-clamp: 3;
   }
 
-  // Enable text selection inside the title and description elements.
-  &-title,
-  &-description {
+  .commit-summary-title,
+  .commit-summary-description {
+    // Enable text selection inside the title and description elements.
     user-select: text;
     cursor: text;
 
@@ -146,7 +138,7 @@
     }
   }
 
-  &-description {
+  .commit-summary-description {
     font-family: var(--font-family-monospace);
     font-size: var(--font-size-sm);
     word-wrap: break-word;
@@ -155,19 +147,19 @@
     min-height: 0;
   }
 
-  &-meta {
+  .commit-summary-meta {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0 var(--spacing) var(--spacing);
   }
 
-  &-meta-item:not(.without-truncation) {
+  .commit-summary-meta-item:not(.without-truncation) {
     flex-shrink: 1;
     min-width: 0;
   }
 
-  &-meta-item {
+  .commit-summary-meta-item {
     display: flex;
     flex-direction: row;
     min-width: 0;
@@ -192,7 +184,7 @@
     }
   }
 
-  &-header {
+  .commit-summary-header {
     border-bottom: var(--base-border);
   }
 }
