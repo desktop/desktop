@@ -579,12 +579,9 @@ export class ExpandableCommitSummary extends React.Component<
     }
 
     return (
-      <div className="ecs-meta-ite-item">
-        <span>
-          <Octicon symbol={OcticonSymbol.tag} />
-        </span>
-
-        <span className="tags selectable">{tags.join(', ')}</span>
+      <div className="ecs-meta-item tags selectable">
+        <Octicon symbol={OcticonSymbol.tag} />
+        <span>{tags.join(', ')}</span>
       </div>
     )
   }
