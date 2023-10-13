@@ -4,23 +4,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-
-  .avatar {
-    width: 16px;
-    height: 16px;
-  }
-
-  &.expanded {
-    .commit-summary-description-scroll-view {
-      max-height: 400px;
-      overflow: auto;
-      display: revert;
-
-      &:before {
-        content: none;
-      }
-    }
-  }
+  border-bottom: var(--base-border);
 
   &.hide-description-border {
     .commit-summary-description-container {
@@ -61,19 +45,6 @@
 
     .link-button-component {
       margin-right: var(--spacing-half);
-    }
-  }
-
-  .ecs-title,
-  .commit-summary-meta {
-    padding: var(--spacing);
-
-    .lines-added {
-      color: var(--color-new);
-    }
-
-    .lines-deleted {
-      color: var(--color-deleted);
     }
   }
 
@@ -149,53 +120,72 @@
     min-height: 0;
   }
 
-  .commit-summary-meta {
+  .ecs-meta {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0 var(--spacing) var(--spacing);
-  }
 
-  .commit-summary-meta-item:not(.without-truncation) {
-    flex-shrink: 1;
-    min-width: 0;
-  }
-
-  .commit-summary-meta-item {
-    display: flex;
-    flex-direction: row;
-    min-width: 0;
-    margin-right: var(--spacing);
-    font-size: var(--font-size-sm);
-    flex-shrink: 0;
-
-    .avatar,
-    .octicon {
-      display: inline-block;
-      margin-right: var(--spacing-third);
-      vertical-align: bottom; // For some reason, `bottom` places the text in the middle
-    }
-
-    .selectable {
-      user-select: text;
-    }
-
-    .tags {
-      @include ellipsis;
+    .ecs-item:not(.without-truncation) {
       flex-shrink: 1;
+      min-width: 0;
     }
-  }
 
-  .commit-summary-header {
-    border-bottom: var(--base-border);
+    .ecs-meta-item {
+      display: flex;
+      flex-direction: row;
+      min-width: 0;
+      margin-right: var(--spacing);
+      font-size: var(--font-size-sm);
+      flex-shrink: 0;
+
+      .avatar,
+      .octicon {
+        display: inline-block;
+        margin-right: var(--spacing-third);
+        vertical-align: bottom; // For some reason, `bottom` places the text in the middle
+      }
+
+      .avatar {
+        width: 16px;
+        height: 16px;
+      }
+
+      .selectable {
+        user-select: text;
+      }
+
+      &.lines-added {
+        color: var(--color-new);
+      }
+
+      &.lines-deleted {
+        color: var(--color-deleted);
+      }
+
+      .tags {
+        @include ellipsis;
+        flex-shrink: 1;
+      }
+    }
   }
 
   &.expanded {
-    .commit-summary-meta {
+    .ecs-meta {
       display: block;
 
-      .commit-summary-meta-item {
+      .ecs-meta-item {
         margin-bottom: var(--spacing-half);
+      }
+    }
+
+    .commit-summary-description-scroll-view {
+      max-height: 400px;
+      overflow: auto;
+      display: revert;
+
+      &:before {
+        content: none;
       }
     }
   }

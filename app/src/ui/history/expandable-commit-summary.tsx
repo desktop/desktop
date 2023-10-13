@@ -395,13 +395,13 @@ export class ExpandableCommitSummary extends React.Component<
     }
 
     return (
-      <li className="commit-summary-meta-item without-truncation">
+      <div className="ecs-meta-item without-truncation">
         <AvatarStack users={avatarUsers} />
         <CommitAttribution
           gitHubRepository={repository.gitHubRepository}
           commits={selectedCommits}
         />
-      </li>
+      </div>
     )
   }
 
@@ -412,16 +412,13 @@ export class ExpandableCommitSummary extends React.Component<
     }
 
     return (
-      <li
-        className="commit-summary-meta-item without-truncation"
-        aria-label="SHA"
-      >
+      <div className="ecs-meta-item without-truncation">
         <Octicon symbol={OcticonSymbol.gitCommit} />
         <TooltippedCommitSHA
           className="selectable"
           commit={selectedCommits[0]}
         />
-      </li>
+      </div>
     )
   }
 
@@ -491,16 +488,13 @@ export class ExpandableCommitSummary extends React.Component<
 
     return (
       <div className={className}>
-        <div className="commit-summary-header">
-          {this.renderSummary()}
-          <ul className="commit-summary-meta">
-            {this.renderAuthors()}
-            {this.renderCommitRef()}
-            {this.renderLinesChanged()}
-            {this.renderTags()}
-          </ul>
+        {this.renderSummary()}
+        <div className="ecs-meta">
+          {this.renderAuthors()}
+          {this.renderCommitRef()}
+          {this.renderLinesChanged()}
+          {this.renderTags()}
         </div>
-
         {this.renderDescription()}
         {this.renderCommitsNotReachable()}
       </div>
@@ -522,15 +516,15 @@ export class ExpandableCommitSummary extends React.Component<
     return (
       <>
         <TooltippedContent
-          tagName="li"
-          className="commit-summary-meta-item without-truncation lines-added"
+          tagName="div"
+          className="ecs-meta-item without-truncation lines-added"
           tooltip={linesAddedTitle}
         >
           +{linesAdded}
         </TooltippedContent>
         <TooltippedContent
-          tagName="li"
-          className="commit-summary-meta-item without-truncation lines-deleted"
+          tagName="div"
+          className="ecs-meta-item without-truncation lines-deleted"
           tooltip={linesDeletedTitle}
         >
           -{linesDeleted}
@@ -552,13 +546,13 @@ export class ExpandableCommitSummary extends React.Component<
     }
 
     return (
-      <li className="commit-summary-meta-item" title={tags.join('\n')}>
+      <div className="ecs-meta-ite-item">
         <span>
           <Octicon symbol={OcticonSymbol.tag} />
         </span>
 
         <span className="tags selectable">{tags.join(', ')}</span>
-      </li>
+      </div>
     )
   }
 }
