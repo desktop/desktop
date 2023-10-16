@@ -222,7 +222,7 @@ const editors: IDarwinExternalEditor[] = [
   },
   {
     name: 'RustRover',
-    bundleIdentifiers: ['com.jetbrains.RustRover'],
+    bundleIdentifiers: ['com.jetbrains.rustrover-EAP'],
   },
 ]
 
