@@ -19,6 +19,7 @@ import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
 import memoizeOne from 'memoize-one'
 import { Button } from '../lib/button'
+import { Avatar } from '../lib/avatar'
 
 interface IExpandableCommitSummaryProps {
   readonly repository: Repository
@@ -388,20 +389,60 @@ export class ExpandableCommitSummary extends React.Component<
     )
   }
 
-  private renderAuthors = () => {
-    const { selectedCommits, repository } = this.props
-    const { avatarUsers } = this.state
-    if (selectedCommits.length > 1) {
-      return
+  private renderExpandedAuthor(user: IAvatarUser): string | JSX.Element {
+    if (!user) {
+      return 'Unknown user'
     }
 
+    if (user.name) {
+      return (
+        <>
+          {user.name}
+          {' <'}
+          {user.email}
+          {'>'}
+        </>
+      )
+    }
+
+    return user.email
+  }
+
+  private renderAuthorList = () => {
+    return this.state.avatarUsers.map((user, i) => {
+      return (
+        <div className="author selectable" key={i}>
+          <Avatar user={user} title={null} />
+          <div>{this.renderExpandedAuthor(user)}</div>
+        </div>
+      )
+    })
+  }
+
+  private renderAuthorStack = () => {
+    const { selectedCommits, repository } = this.props
+    const { avatarUsers } = this.state
+
     return (
-      <div className="ecs-meta-item without-truncation">
+      <>
         <AvatarStack users={avatarUsers} />
         <CommitAttribution
           gitHubRepository={repository.gitHubRepository}
           commits={selectedCommits}
         />
+      </>
+    )
+  }
+
+  private renderAuthors = () => {
+    const { selectedCommits, isExpanded } = this.props
+    if (selectedCommits.length > 1) {
+      return
+    }
+
+    return (
+      <div className="ecs-meta-item authors">
+        {isExpanded ? this.renderAuthorList() : this.renderAuthorStack()}
       </div>
     )
   }

@@ -139,20 +139,17 @@
       font-size: var(--font-size-sm);
       flex-shrink: 0;
 
-      .avatar,
-      .octicon {
-        display: inline-block;
-        margin-right: var(--spacing-third);
-        vertical-align: bottom; // For some reason, `bottom` places the text in the middle
-      }
+      &.authors {
+        .avatar {
+          width: 16px;
+          height: 16px;
+        }
 
-      .avatar {
-        width: 16px;
-        height: 16px;
-      }
-
-      .selectable {
-        user-select: text;
+        .author {
+          .avatar-container {
+            margin-right: var(--spacing-half);
+          }
+        }
       }
 
       &.lines-added {
@@ -176,6 +173,15 @@
 
       .ecs-meta-item {
         margin-bottom: var(--spacing-half);
+
+        &.authors {
+          display: block;
+
+          .author {
+            margin-bottom: 2px;
+            display: flex;
+          }
+        }
       }
     }
 
@@ -187,6 +193,17 @@
       &:before {
         content: none;
       }
+    }
+  }
+
+  .selectable {
+    user-select: text;
+    cursor: text;
+
+    * {
+      user-select: unset;
+      pointer-events: unset;
+      cursor: text;
     }
   }
 }
