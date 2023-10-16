@@ -46,6 +46,7 @@
     }
     &.toolbar-dropdown-arrow-button {
       width: 39px;
+      flex-shrink: 0;
     }
   }
 }
