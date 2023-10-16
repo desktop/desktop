@@ -1417,7 +1417,7 @@ export class SectionList extends React.Component<
       >
         <Grid
           id={this.props.accessibleListId}
-          role="listbox"
+          role="presentation"
           ref={this.onRootGridRef}
           autoContainerWidth={true}
           containerRole="presentation"
