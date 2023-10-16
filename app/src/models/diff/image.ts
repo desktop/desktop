@@ -12,5 +12,5 @@ export class Image {
     public readonly contents: string,
     public readonly mediaType: string,
     public readonly bytes: number
-  ) { }
+  ) {}
 }

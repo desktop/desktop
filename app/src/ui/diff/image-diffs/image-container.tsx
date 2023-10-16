@@ -51,14 +51,18 @@ export class ImageContainer extends React.Component<IImageProps, IImageState> {
 
   public componentDidUpdate(prevProps: IImageProps) {
     const { image } = this.props
-    if (image === prevProps.image) return
+    if (image === prevProps.image) {
+      return
+    }
 
     this.loadImage(image)
   }
 
   public render() {
     const { imageSource } = this.state
-    if (!imageSource) return null
+    if (!imageSource) {
+      return null
+    }
 
     return (
       <div className="image-wrapper">

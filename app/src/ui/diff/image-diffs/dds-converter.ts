@@ -37,16 +37,28 @@ function getFormat(ext: WEBGL_compressed_texture_s3tc, ddsFormat: string) {
   }
 }
 
-function drawToCanvas(canvas: HTMLCanvasElement, format: string, width: number, height: number, imageData: ArrayBufferView) {
+function drawToCanvas(
+  canvas: HTMLCanvasElement,
+  format: string,
+  width: number,
+  height: number,
+  imageData: ArrayBufferView
+) {
   canvas.width = width
   canvas.height = height
   const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: true })
-  if (!gl) throw new Error('Failed to get webgl2 context')
+  if (!gl) {
+    throw new Error('Failed to get webgl2 context')
+  }
+
   gl.bindTexture(gl.TEXTURE_2D, gl.createTexture())
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
   const ext = gl.getExtension('WEBGL_compressed_texture_s3tc')
-  if (!ext) throw new Error('Failed to get WEBGL_compressed_texture_s3tc extension')
+  if (!ext) {
+    throw new Error('Failed to get WEBGL_compressed_texture_s3tc extension')
+  }
+
   const internalFormat = getFormat(ext, format)
   gl.compressedTexImage2D(
     gl.TEXTURE_2D,
