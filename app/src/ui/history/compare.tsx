@@ -351,6 +351,7 @@ export class CompareSidebar extends React.Component<
         onItemClick={this.onBranchItemClicked}
         onFilterTextChanged={this.onBranchFilterTextChanged}
         renderBranch={this.renderCompareBranchListItem}
+        getBranchAriaLabel={this.getBranchAriaLabel}
         onFilterListResultsChanged={this.filterListResultsChanged}
       />
     )
@@ -419,6 +420,10 @@ export class CompareSidebar extends React.Component<
         aheadBehindStore={this.props.aheadBehindStore}
       />
     )
+  }
+
+  private getBranchAriaLabel = (item: IBranchListItem): string => {
+    return item.branch.name
   }
 
   private onBranchFilterKeyDown = (
