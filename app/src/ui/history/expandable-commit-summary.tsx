@@ -408,19 +408,14 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderAuthorList = () => {
-    const { avatarUsers } = this.state
-    const elems = []
-
-    for (let i = 0; i < avatarUsers.length; i++) {
-      elems.push(
+    return this.state.avatarUsers.map((user, i) => {
+      return (
         <div className="author selectable" key={i}>
-          <Avatar user={avatarUsers[i]} title={null} />
-          <div>{this.renderExpandedAuthor(avatarUsers[i])}</div>
+          <Avatar user={user} title={null} />
+          <div>{this.renderExpandedAuthor(user)}</div>
         </div>
       )
-    }
-
-    return elems
+    })
   }
 
   private renderAuthorStack = () => {
