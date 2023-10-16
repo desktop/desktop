@@ -5,6 +5,7 @@ import { Branch } from '../../models/branch'
 import { IBranchListItem } from './group-branches'
 import { BranchListItem } from './branch-list-item'
 import { IMatches } from '../../lib/fuzzy-find'
+import { getRelativeTimeInfoFromDate } from '../relative-time'
 
 export function renderDefaultBranch(
   item: IBranchListItem,
@@ -26,4 +27,18 @@ export function renderDefaultBranch(
       onDropOntoCurrentBranch={onDropOntoCurrentBranch}
     />
   )
+}
+
+export function getDefaultAriaLabelForBranch(item: IBranchListItem): string {
+  const branch = item.branch
+
+  const commit = branch.tip
+  const date = commit ? commit.author.date : null
+
+  if (!date) {
+    return branch.name
+  }
+
+  const { relativeText } = getRelativeTimeInfoFromDate(date, true)
+  return `${item.branch.name} ${relativeText}`
 }
