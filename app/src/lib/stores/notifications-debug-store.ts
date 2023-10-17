@@ -67,7 +67,7 @@ export class NotificationsDebugStore {
 
         if (cachedComments && cachedComments.length > 0) {
           filteredPrs.push(pr)
-          break
+          continue
         }
 
         const comments = await this.getPullRequestComments(
@@ -86,7 +86,7 @@ export class NotificationsDebugStore {
 
         if (cachedReviews && cachedReviews.length > 0) {
           filteredPrs.push(pr)
-          break
+          continue
         }
 
         const reviews = await this.getPullRequestReviews(
