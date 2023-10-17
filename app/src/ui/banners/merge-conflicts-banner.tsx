@@ -4,6 +4,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Banner } from './banner'
 import { Dispatcher } from '../dispatcher'
 import { Popup } from '../../models/popup'
+import { LinkButton } from '../lib/link-button'
 
 interface IMergeConflictsBannerProps {
   readonly dispatcher: Dispatcher
@@ -36,9 +37,7 @@ export class MergeConflictsBanner extends React.Component<
             Resolve conflicts and commit to merge into{' '}
             <strong>{this.props.ourBranch}</strong>.
           </span>
-          <button onClick={this.openDialog} autoFocus={true}>
-            View conflicts
-          </button>
+          <LinkButton onClick={this.openDialog}>View conflicts</LinkButton>
         </div>
       </Banner>
     )

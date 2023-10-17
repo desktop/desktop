@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Banner } from './banner'
+import { LinkButton } from '../lib/link-button'
 
 interface IConflictsFoundBannerProps {
   /**
@@ -45,9 +46,7 @@ export class ConflictsFoundBanner extends React.Component<
           <span>
             Resolve conflicts to continue {this.props.operationDescription}.
           </span>
-          <button onClick={this.openDialog} autoFocus={true}>
-            View conflicts
-          </button>
+          <LinkButton onClick={this.openDialog}>View conflicts</LinkButton>
         </div>
       </Banner>
     )
