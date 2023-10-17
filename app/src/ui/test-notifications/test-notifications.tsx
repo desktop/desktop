@@ -24,6 +24,14 @@ import { Loading } from '../lib/loading'
 import { getPullRequestReviewStateIcon } from '../notifications/pull-request-review-helpers'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
+import {
+  getNotificationSettingsUrl,
+  getNotificationsPermission,
+  requestNotificationsPermission,
+  supportsNotifications,
+  supportsNotificationsPermissionRequest,
+} from 'desktop-notifications'
+import { LinkButton } from '../lib/link-button'
 
 enum TestNotificationType {
   PullRequestReview,
@@ -93,6 +101,10 @@ interface ITestNotificationsState {
   readonly reviews: ReadonlyArray<ValidNotificationPullRequestReview>
   readonly comments: ReadonlyArray<IAPIComment>
   readonly selectedRows: ReadonlyArray<RowIndexPath>
+
+  readonly suggestGrantNotificationPermission: boolean
+  readonly warnNotificationsDenied: boolean
+  readonly suggestConfigureNotifications: boolean
 }
 
 interface ITestNotificationsProps {
@@ -152,7 +164,93 @@ export class TestNotifications extends React.Component<
       reviews: [],
       comments: [],
       selectedRows: [],
+      suggestGrantNotificationPermission: false,
+      warnNotificationsDenied: false,
+      suggestConfigureNotifications: false,
     }
+  }
+
+  public componentDidMount() {
+    this.updateNotificationsState()
+  }
+
+  private async updateNotificationsState() {
+    const notificationsPermission = await getNotificationsPermission()
+    this.setState({
+      suggestGrantNotificationPermission:
+        supportsNotificationsPermissionRequest() &&
+        notificationsPermission === 'default',
+      warnNotificationsDenied: notificationsPermission === 'denied',
+      suggestConfigureNotifications: notificationsPermission === 'granted',
+    })
+  }
+
+  private onGrantNotificationPermission = async () => {
+    await requestNotificationsPermission()
+    this.updateNotificationsState()
+  }
+
+  private renderNotificationHint() {
+    // No need to bother the user if their environment doesn't support our
+    // notifications or if they've been explicitly disabled.
+    if (!supportsNotifications()) {
+      return null
+    }
+
+    const {
+      suggestGrantNotificationPermission,
+      warnNotificationsDenied,
+      suggestConfigureNotifications,
+    } = this.state
+
+    if (suggestGrantNotificationPermission) {
+      return (
+        <>
+          {' '}
+          You need to{' '}
+          <LinkButton onClick={this.onGrantNotificationPermission}>
+            grant permission
+          </LinkButton>{' '}
+          to display these notifications from GitHub Desktop.
+        </>
+      )
+    }
+
+    const notificationSettingsURL = getNotificationSettingsUrl()
+
+    if (notificationSettingsURL === null) {
+      return null
+    }
+
+    if (warnNotificationsDenied) {
+      return (
+        <>
+          <br />
+          <br />
+          <span className="warning-icon">⚠️</span> GitHub Desktop has no
+          permission to display notifications. Please, enable them in the{' '}
+          <LinkButton uri={notificationSettingsURL}>
+            Notifications Settings
+          </LinkButton>
+          .
+        </>
+      )
+    }
+
+    const verb = suggestConfigureNotifications
+      ? 'properly configured'
+      : 'enabled'
+
+    return (
+      <>
+        {' '}
+        Make sure notifications are {verb} for GitHub Desktop in the{' '}
+        <LinkButton uri={notificationSettingsURL}>
+          Notifications Settings
+        </LinkButton>
+        .
+      </>
+    )
   }
 
   private onDismissed = () => {
@@ -620,7 +718,11 @@ export class TestNotifications extends React.Component<
           dismissable={true}
           onDismissed={this.onDismissed}
         />
-        <DialogContent>{this.renderCurrentStep()}</DialogContent>
+
+        <DialogContent>
+          <div>{this.renderNotificationHint()}</div>
+          {this.renderCurrentStep()}
+        </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
             okButtonText="Close"
