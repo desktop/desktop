@@ -368,7 +368,14 @@ export class TestNotifications extends React.Component<
         })
 
         this.props.notificationsDebugStore
-          .getPullRequests(this.props.repository)
+          .getPullRequests(this.props.repository, {
+            filterByComments:
+              this.state.selectedFlow?.type ===
+              TestNotificationType.PullRequestComment,
+            filterByReviews:
+              this.state.selectedFlow?.type ===
+              TestNotificationType.PullRequestReview,
+          })
           .then(pullRequests => {
             this.setState({
               pullRequests,

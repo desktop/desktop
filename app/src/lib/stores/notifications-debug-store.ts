@@ -20,6 +20,12 @@ import { PullRequestCoordinator } from './pull-request-coordinator'
  * notifications.
  */
 export class NotificationsDebugStore {
+  private cachedComments: Map<number, ReadonlyArray<IAPIComment>> = new Map()
+  private cachedReviews: Map<
+    number,
+    ReadonlyArray<ValidNotificationPullRequestReview>
+  > = new Map()
+
   public constructor(
     private readonly accountsStore: AccountsStore,
     private readonly notificationsStore: NotificationsStore,
@@ -44,8 +50,57 @@ export class NotificationsDebugStore {
   }
 
   /** Fetch all pull requests for the given repository. */
-  public async getPullRequests(repository: RepositoryWithGitHubRepository) {
-    return this.pullRequestCoordinator.getAllPullRequests(repository)
+  public async getPullRequests(
+    repository: RepositoryWithGitHubRepository,
+    options: { filterByComments?: boolean; filterByReviews?: boolean }
+  ) {
+    const prs = await this.pullRequestCoordinator.getAllPullRequests(repository)
+
+    if (!options.filterByComments && !options.filterByReviews) {
+      return prs
+    }
+
+    const filteredPrs = []
+    for (const pr of prs) {
+      if (options.filterByComments) {
+        const cachedComments = this.cachedComments.get(pr.pullRequestNumber)
+
+        if (cachedComments && cachedComments.length > 0) {
+          filteredPrs.push(pr)
+        }
+
+        const comments = await this.getPullRequestComments(
+          repository,
+          pr.pullRequestNumber
+        )
+        this.cachedComments.set(pr.pullRequestNumber, comments)
+
+        if (comments.length > 0) {
+          filteredPrs.push(pr)
+        }
+      }
+
+      if (options.filterByReviews) {
+        const cachedReviews = this.cachedReviews.get(pr.pullRequestNumber)
+
+        if (cachedReviews && cachedReviews.length > 0) {
+          filteredPrs.push(pr)
+        }
+
+        const reviews = await this.getPullRequestReviews(
+          repository,
+          pr.pullRequestNumber
+        )
+
+        this.cachedReviews.set(pr.pullRequestNumber, reviews)
+
+        if (reviews.length > 0) {
+          filteredPrs.push(pr)
+        }
+      }
+    }
+
+    return filteredPrs
   }
 
   /** Fetch all reviews for the given pull request. */
@@ -53,6 +108,11 @@ export class NotificationsDebugStore {
     repository: RepositoryWithGitHubRepository,
     pullRequestNumber: number
   ) {
+    const cachedReviews = this.cachedReviews.get(pullRequestNumber)
+    if (cachedReviews) {
+      return cachedReviews
+    }
+
     const api = await this.getAPIForRepository(repository.gitHubRepository)
     if (api === null) {
       return []
@@ -74,6 +134,11 @@ export class NotificationsDebugStore {
     repository: RepositoryWithGitHubRepository,
     pullRequestNumber: number
   ) {
+    const cachedComments = this.cachedComments.get(pullRequestNumber)
+    if (cachedComments) {
+      return cachedComments
+    }
+
     const api = await this.getAPIForRepository(repository.gitHubRepository)
     if (api === null) {
       return []
