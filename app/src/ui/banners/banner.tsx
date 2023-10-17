@@ -9,6 +9,10 @@ interface IBannerProps {
 }
 
 export class Banner extends React.Component<IBannerProps, {}> {
+  private contents = React.createRef<HTMLDivElement>()
+  private closeButton = React.createRef<HTMLButtonElement>()
+  private focusTimeoutId: number | null = null
+
   public render() {
     return (
       <div
@@ -17,15 +21,18 @@ export class Banner extends React.Component<IBannerProps, {}> {
         aria-atomic="true"
         role="alert"
       >
+        <div className="contents" ref={this.contents}>
+          {this.props.children}
+        </div>
         {this.renderCloseButton()}
-        <div className="contents">{this.props.children}</div>
       </div>
     )
   }
 
   private renderCloseButton() {
     const { dismissable } = this.props
-    if (dismissable === undefined || dismissable === false) {
+
+    if (dismissable === false) {
       return null
     }
 
@@ -34,11 +41,27 @@ export class Banner extends React.Component<IBannerProps, {}> {
         <button
           onClick={this.props.onDismissed}
           aria-label="Dismiss this message"
-          autoFocus={true}
+          ref={this.closeButton}
         >
           <Octicon symbol={OcticonSymbol.x} />
         </button>
       </div>
     )
+  }
+
+  public componentDidMount(): void {
+    this.focusTimeoutId = window.setTimeout(() => {
+      if (this.closeButton.current) {
+        this.closeButton.current.focus()
+      } else {
+        this.contents.current?.querySelector('a')?.focus()
+      }
+    }, 200)
+  }
+
+  public componentWillUnmount(): void {
+    if (this.focusTimeoutId !== null) {
+      window.clearTimeout(this.focusTimeoutId)
+    }
   }
 }
