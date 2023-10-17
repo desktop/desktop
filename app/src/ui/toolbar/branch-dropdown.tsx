@@ -199,7 +199,8 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
           width={this.props.branchDropdownWidth.value}
           onReset={this.onReset}
           onResize={this.onResize}
-          maximumWidth={600}
+          maximumWidth={this.props.branchDropdownWidth.max}
+          minimumWidth={this.props.branchDropdownWidth.min}
         >
           <ToolbarDropdown
             className="branch-button"
