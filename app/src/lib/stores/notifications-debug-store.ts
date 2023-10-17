@@ -131,7 +131,7 @@ export class NotificationsDebugStore {
     })
   }
 
-  /** Simulate a notification for the given pull request comment. */
+  /** Simulate a notification for pull request checks failure for the given PR. */
   public async simulatePullRequestChecksFailed(
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
