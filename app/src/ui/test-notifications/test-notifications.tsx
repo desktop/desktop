@@ -28,7 +28,6 @@ import {
   getNotificationSettingsUrl,
   getNotificationsPermission,
   requestNotificationsPermission,
-  supportsNotifications,
   supportsNotificationsPermissionRequest,
 } from 'desktop-notifications'
 import { LinkButton } from '../lib/link-button'
@@ -196,12 +195,6 @@ export class TestNotifications extends React.Component<
   }
 
   private renderNotificationHint() {
-    // No need to bother the user if their environment doesn't support our
-    // notifications or if they've been explicitly disabled.
-    if (!supportsNotifications()) {
-      return null
-    }
-
     const {
       suggestGrantNotificationPermission,
       warnNotificationsDenied,
@@ -230,8 +223,6 @@ export class TestNotifications extends React.Component<
     if (warnNotificationsDenied) {
       return (
         <>
-          <br />
-          <br />
           <span className="warning-icon">⚠️</span> GitHub Desktop has no
           permission to display notifications. Please, enable them in the{' '}
           <LinkButton uri={notificationSettingsURL}>
@@ -248,7 +239,6 @@ export class TestNotifications extends React.Component<
 
     return (
       <>
-        {' '}
         Make sure notifications are {verb} for GitHub Desktop in the{' '}
         <LinkButton uri={notificationSettingsURL}>
           Notifications Settings
@@ -262,9 +252,7 @@ export class TestNotifications extends React.Component<
     this.props.dispatcher.closePopup()
   }
 
-  private renderNotificationType = (
-    type: TestNotificationType
-  ): JSX.Element => {
+  private getTypeFriendlyName(type?: TestNotificationType): string {
     const titleMap = new Map<TestNotificationType, string>([
       [TestNotificationType.PullRequestReview, 'Pull Request Review'],
       [TestNotificationType.PullRequestComment, 'Pull Request Comment'],
@@ -272,8 +260,20 @@ export class TestNotifications extends React.Component<
     ])
 
     return (
+      titleMap.get(
+        type ??
+          this.state.selectedFlow?.type ??
+          TestNotificationType.PullRequestReview
+      ) ?? ''
+    )
+  }
+
+  private renderNotificationType = (
+    type: TestNotificationType
+  ): JSX.Element => {
+    return (
       <Button onClick={this.getOnNotificationTypeClick(type)}>
-        {titleMap.get(type)}
+        {this.getTypeFriendlyName(type)}
       </Button>
     )
   }
@@ -530,7 +530,7 @@ export class TestNotifications extends React.Component<
 
     return (
       <div>
-        Pull requests:
+        Pull requests for {this.getTypeFriendlyName()}:
         <SectionList
           rowHeight={40}
           rowCount={[pullRequests.length]}
@@ -750,7 +750,7 @@ export class TestNotifications extends React.Component<
         />
 
         <DialogContent>
-          <div>{this.renderNotificationHint()}</div>
+          <p>{this.renderNotificationHint()}</p>
           {this.renderCurrentStep()}
         </DialogContent>
         <DialogFooter>
