@@ -50,3 +50,4 @@ export type MenuEvent =
   | 'show-thank-you-popup'
   | 'show-test-reorder-banner'
   | 'show-test-undone-banner'
+  | 'show-test-cherry-pick-conflicts-banner'

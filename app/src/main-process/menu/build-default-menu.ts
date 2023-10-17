@@ -591,6 +591,10 @@ export function buildDefaultMenu({
             label: 'Reorder Undone',
             click: emit('show-test-undone-banner'),
           },
+          {
+            label: 'Cherry Pick Conflicts',
+            click: emit('show-test-cherry-pick-conflicts-banner'),
+          },
         ],
       },
       {
