@@ -2284,6 +2284,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.commitSummaryWidth = constrain(this.commitSummaryWidth, 100, filesMax)
     this.stashedFilesWidth = constrain(this.stashedFilesWidth, 100, filesMax)
+
+    // Update the maximum width available for the branch dropdown resizable.
+    // The branch dropdown can only be as wide as the available space
+    // after taking the sidebar and pull fetch button widths.
+    const branchDropdownMax = available - 230
+    this.branchDropdownWidth = constrain(
+      this.branchDropdownWidth,
+      defaultBranchDropdownWidth,
+      branchDropdownMax
+    )
   }
 
   /**
