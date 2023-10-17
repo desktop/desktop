@@ -1,12 +1,17 @@
+import { shortenSHA } from '../../models/commit'
 import { GitHubRepository } from '../../models/github-repository'
-import { PullRequest } from '../../models/pull-request'
+import { PullRequest, getPullRequestCommitRef } from '../../models/pull-request'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
-import { API, IAPIComment } from '../api'
+import { Dispatcher, defaultErrorHandler } from '../../ui/dispatcher'
+import { API, APICheckConclusion, IAPIComment } from '../api'
+import { getCommit } from '../git'
+import { showNotification } from '../notifications/show-notification'
 import {
   isValidNotificationPullRequestReview,
   ValidNotificationPullRequestReview,
 } from '../valid-notification-pull-request-review'
 import { AccountsStore } from './accounts-store'
+import { IDesktopChecksFailedAliveEvent } from './alive-store'
 import { NotificationsStore } from './notifications-store'
 import { PullRequestCoordinator } from './pull-request-coordinator'
 
@@ -123,6 +128,64 @@ export class NotificationsDebugStore {
       repo: repository.name,
       pull_request_number: pullRequest.pullRequestNumber,
       comment_id: comment.id.toString(),
+    })
+  }
+
+  /** Simulate a notification for the given pull request comment. */
+  public async simulatePullRequestChecksFailed(
+    repository: RepositoryWithGitHubRepository,
+    pullRequest: PullRequest,
+    dispatcher: Dispatcher
+  ) {
+    const commitSha = pullRequest.head.sha
+    const commitRef = getPullRequestCommitRef(pullRequest.pullRequestNumber)
+    const checks = await this.notificationsStore.getChecksForRef(
+      repository.gitHubRepository,
+      commitRef
+    )
+
+    if (!checks) {
+      defaultErrorHandler(new Error('Could not get checks for PR'), dispatcher)
+      return
+    }
+
+    const event: IDesktopChecksFailedAliveEvent = {
+      type: 'pr-checks-failed',
+      timestamp: new Date(pullRequest.created).getTime(),
+      owner: repository.gitHubRepository.owner.login,
+      repo: repository.name,
+      pull_request_number: pullRequest.pullRequestNumber,
+      check_suite_id: checks[0].checkSuiteId ?? 0,
+      commit_sha: commitSha,
+    }
+
+    const commit = await getCommit(repository, commitSha)
+
+    const numberOfFailedChecks = checks.filter(
+      check => check.conclusion === APICheckConclusion.Failure
+    ).length
+
+    const pluralChecks =
+      numberOfFailedChecks === 1 ? 'check was' : 'checks were'
+
+    const shortSHA = shortenSHA(commitSha)
+    const title = 'Pull Request checks failed'
+    const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
+    const onClick = () => {
+      dispatcher.onChecksFailedNotification(
+        repository,
+        pullRequest,
+        commit?.summary ?? 'Could not load commit summary',
+        commitSha,
+        checks
+      )
+    }
+
+    showNotification({
+      title,
+      body,
+      userInfo: event,
+      onClick,
     })
   }
 }

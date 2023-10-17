@@ -36,6 +36,7 @@ import { LinkButton } from '../lib/link-button'
 enum TestNotificationType {
   PullRequestReview,
   PullRequestComment,
+  ChecksFailed,
 }
 
 enum TestNotificationStepKind {
@@ -63,6 +64,10 @@ const TestNotificationFlows: ReadonlyArray<TestNotificationFlow> = [
       TestNotificationStepKind.SelectPullRequest,
       TestNotificationStepKind.SelectPullRequestComment,
     ],
+  },
+  {
+    type: TestNotificationType.ChecksFailed,
+    steps: [TestNotificationStepKind.SelectPullRequest],
   },
 ]
 
@@ -260,13 +265,16 @@ export class TestNotifications extends React.Component<
   private renderNotificationType = (
     type: TestNotificationType
   ): JSX.Element => {
-    const title =
-      type === TestNotificationType.PullRequestReview
-        ? 'Pull Request Review'
-        : 'Pull Request Comment'
+    const titleMap = new Map<TestNotificationType, string>([
+      [TestNotificationType.PullRequestReview, 'Pull Request Review'],
+      [TestNotificationType.PullRequestComment, 'Pull Request Comment'],
+      [TestNotificationType.ChecksFailed, 'Pull Request Checks Failed'],
+    ])
 
     return (
-      <Button onClick={this.getOnNotificationTypeClick(type)}>{title}</Button>
+      <Button onClick={this.getOnNotificationTypeClick(type)}>
+        {titleMap.get(type)}
+      </Button>
     )
   }
 
@@ -322,6 +330,20 @@ export class TestNotifications extends React.Component<
           pullRequest,
           comment,
           isIssueComment
+        )
+        break
+      }
+      case TestNotificationType.ChecksFailed: {
+        const pullRequest = this.getPullRequest()
+
+        if (pullRequest === null) {
+          return
+        }
+
+        this.props.notificationsDebugStore.simulatePullRequestChecksFailed(
+          this.props.repository,
+          pullRequest,
+          this.props.dispatcher
         )
         break
       }
@@ -462,6 +484,7 @@ export class TestNotifications extends React.Component<
             {this.renderNotificationType(
               TestNotificationType.PullRequestComment
             )}
+            {this.renderNotificationType(TestNotificationType.ChecksFailed)}
           </div>
         </div>
       )

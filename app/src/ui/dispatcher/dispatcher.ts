@@ -4134,4 +4134,20 @@ export class Dispatcher {
   public updateCachedRepoRulesets(rulesets: Array<IAPIRepoRuleset | null>) {
     this.appStore._updateCachedRepoRulesets(rulesets)
   }
+
+  public onChecksFailedNotification(
+    repository: RepositoryWithGitHubRepository,
+    pullRequest: PullRequest,
+    commitMessage: string,
+    commitSha: string,
+    checks: ReadonlyArray<IRefCheck>
+  ) {
+    this.appStore.onChecksFailedNotification(
+      repository,
+      pullRequest,
+      commitMessage,
+      commitSha,
+      checks
+    )
+  }
 }
