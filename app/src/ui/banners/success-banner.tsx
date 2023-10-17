@@ -4,7 +4,6 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Banner } from './banner'
 
 interface ISuccessBannerProps {
-  readonly timeout: number
   readonly onDismissed: () => void
   readonly onUndo?: () => void
 }
@@ -33,11 +32,7 @@ export class SuccessBanner extends React.Component<ISuccessBannerProps, {}> {
 
   public render() {
     return (
-      <Banner
-        id="successful"
-        timeout={this.props.timeout}
-        onDismissed={this.props.onDismissed}
-      >
+      <Banner id="successful" onDismissed={this.props.onDismissed}>
         <div className="green-circle">
           <Octicon className="check-icon" symbol={OcticonSymbol.check} />
         </div>

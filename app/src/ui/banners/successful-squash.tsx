@@ -17,7 +17,7 @@ export class SuccessfulSquash extends React.Component<
     const pluralized = count === 1 ? 'commit' : 'commits'
 
     return (
-      <SuccessBanner timeout={15000} onDismissed={onDismissed} onUndo={onUndo}>
+      <SuccessBanner onDismissed={onDismissed} onUndo={onUndo}>
         <span>
           Successfully squashed {count} {pluralized}.
         </span>

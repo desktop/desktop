@@ -27,7 +27,7 @@ export function BranchAlreadyUpToDate({
     )
 
   return (
-    <Banner id="successful-merge" timeout={5000} onDismissed={onDismissed}>
+    <Banner id="successful-merge" onDismissed={onDismissed}>
       <div className="green-circle">
         <Octicon className="check-icon" symbol={OcticonSymbol.check} />
       </div>
