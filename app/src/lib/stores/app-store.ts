@@ -2257,7 +2257,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // Since the repository list toolbar button width is tied to the width of
     // the sidebar we can't let it push the branch, and push/pull/fetch buttons
     // off screen.
-    const toolbarButtonsWidth = 460
+    const toolbarButtonsMinWidth = 460
 
     // Start with all the available width
     let available = window.innerWidth
@@ -2268,7 +2268,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // 220 was determined as the minimum value since it is the smallest width
     // that will still fit the placeholder text in the branch selector textbox
     // of the history tab
-    const maxSidebarWidth = available - toolbarButtonsWidth
+    const maxSidebarWidth = available - toolbarButtonsMinWidth
     this.sidebarWidth = constrain(this.sidebarWidth, 220, maxSidebarWidth)
 
     // Now calculate the width we have left to distribute for the other panes
