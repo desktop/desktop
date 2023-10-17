@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.3.5-test3": [
+      "[Improved] Accessibility Audit build for notifications - #17577"
+    ],
     "3.3.4": [
       "[Added] Added Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
       "[Added] Add support for Pulsar code editor on Linux - #17397. Thanks @Daeraxa!",
