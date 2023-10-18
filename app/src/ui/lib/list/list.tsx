@@ -15,7 +15,10 @@ import {
 } from './selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
-import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
+import {
+  InsertionFeedbackType,
+  ListItemInsertionOverlay,
+} from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
 import memoizeOne from 'memoize-one'
 import { RowIndexPath } from './list-row-index-path'
@@ -99,6 +102,13 @@ interface IListProps {
    * Used to attach special classes to specific rows
    */
   readonly rowCustomClassNameMap?: Map<string, ReadonlyArray<number>>
+
+  /**
+   * Data to be inserted via keyboard. When this is not undefined, the list enters
+   * into a "keyboard insertion mode". This mode is used as a keyboard-accessible
+   * alternative to drag & drop for certain operations like reordering commits.
+   */
+  readonly keyboardInsertionData?: DragData
 
   /**
    * This function will be called when a pointer device is pressed and then
@@ -293,6 +303,8 @@ interface IListState {
   readonly width?: number
 
   readonly rowIdPrefix?: string
+
+  readonly keyboardInsertionIndexPath: RowIndexPath | null
 }
 
 /**
@@ -362,7 +374,7 @@ export class List extends React.Component<IListProps, IListState> {
   public constructor(props: IListProps) {
     super(props)
 
-    this.state = {}
+    this.state = { keyboardInsertionIndexPath: null }
 
     const ResizeObserverClass: typeof ResizeObserver = (window as any)
       .ResizeObserver
@@ -972,7 +984,8 @@ export class List extends React.Component<IListProps, IListState> {
 
   private getRowRenderer = (firstSelectableRowIndex: number | null) => {
     return (params: IRowRendererParams) => {
-      const { selectedRows } = this.props
+      const { selectedRows, keyboardInsertionData } = this.props
+      const { keyboardInsertionIndexPath } = this.state
       const rowIndex = params.rowIndex
       const selectable = this.canSelectRow(rowIndex)
       const selected = selectedRows.indexOf(rowIndex) !== -1
@@ -989,6 +1002,15 @@ export class List extends React.Component<IListProps, IListState> {
       }
 
       const row = this.props.rowRenderer(rowIndex)
+      let forcedFeedbackType = InsertionFeedbackType.None
+
+      if (keyboardInsertionData && keyboardInsertionIndexPath) {
+        if (keyboardInsertionIndexPath.row === rowIndex) {
+          forcedFeedbackType = InsertionFeedbackType.Top
+        } else if (keyboardInsertionIndexPath.row === rowIndex + 1) {
+          forcedFeedbackType = InsertionFeedbackType.Bottom
+        }
+      }
 
       const element =
         this.props.insertionDragType !== undefined ? (
@@ -996,6 +1018,7 @@ export class List extends React.Component<IListProps, IListState> {
             onDropDataInsertion={this.onDropDataInsertion}
             itemIndex={{ section: 0, row: rowIndex }}
             dragType={this.props.insertionDragType}
+            forcedFeedbackType={forcedFeedbackType}
           >
             {row}
           </ListItemInsertionOverlay>
