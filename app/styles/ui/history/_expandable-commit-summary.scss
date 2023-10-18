@@ -126,11 +126,6 @@
     margin: 0;
     padding: 0 var(--spacing) var(--spacing);
 
-    .ecs-item:not(.without-truncation) {
-      flex-shrink: 1;
-      min-width: 0;
-    }
-
     .ecs-meta-item {
       display: flex;
       flex-direction: row;
@@ -185,9 +180,16 @@
         }
       }
 
-      .tags {
-        @include ellipsis;
+      &.tags {
         flex-shrink: 1;
+
+        .octicon {
+          padding-right: var(--spacing-half);
+        }
+
+        span {
+          @include ellipsis;
+        }
       }
     }
   }
@@ -198,6 +200,7 @@
 
       .ecs-meta-item {
         margin-bottom: var(--spacing-half);
+        align-items: unset;
 
         &.authors {
           display: block;
@@ -205,6 +208,12 @@
           .author {
             margin-bottom: 2px;
             display: flex;
+          }
+        }
+
+        &.tags {
+          span {
+            white-space: normal;
           }
         }
       }
