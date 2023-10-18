@@ -601,11 +601,11 @@ export function buildDefaultMenu({
             click: emit('show-update-banner'),
           },
           {
-            label: `Show Showcase Update banner`,
+            label: `Showcase Update banner`,
             click: emit('show-showcase-update-banner'),
           },
           {
-            label: `Show ${__DARWIN__ ? 'Apple silicon' : 'Arm64'} banner`,
+            label: `${__DARWIN__ ? 'Apple silicon' : 'Arm64'} banner`,
             click: emit('show-arm64-banner'),
           },
           {
