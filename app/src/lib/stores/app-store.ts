@@ -352,6 +352,8 @@ const pullRequestFileListConfigKey: string = 'pull-request-files-width'
 const defaultBranchDropdownWidth: number = 230
 const branchDropdownWidthConfigKey: string = 'branch-dropdown-width'
 
+const defaultPushFetchButtonWidth: number = 230
+
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
 const showCommitLengthWarningDefault: boolean = false
@@ -2228,7 +2230,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // Since the repository list toolbar button width is tied to the width of
     // the sidebar we can't let it push the branch, and push/pull/fetch buttons
     // off screen.
-    const toolbarButtonsMinWidth = 460
+    const toolbarButtonsMinWidth =
+      defaultPushFetchButtonWidth + defaultBranchDropdownWidth
 
     // Start with all the available width
     let available = window.innerWidth
@@ -2259,7 +2262,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // Update the maximum width available for the branch dropdown resizable.
     // The branch dropdown can only be as wide as the available space
     // after taking the sidebar and pull fetch button widths.
-    const branchDropdownMax = available - 230
+    const branchDropdownMax = available - defaultPushFetchButtonWidth
     this.branchDropdownWidth = constrain(
       this.branchDropdownWidth,
       defaultBranchDropdownWidth,
