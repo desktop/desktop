@@ -107,6 +107,9 @@ interface ICommitListProps {
   /** Callback to fire to cherry picking the commit  */
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
 
+  /** Callback to fire to reordering commits  */
+  readonly onReorder?: (toReorder: ReadonlyArray<Commit>) => void
+
   /** Callback to fire to squashing commits  */
   readonly onSquash?: (
     toSquash: ReadonlyArray<Commit>,
@@ -145,6 +148,9 @@ interface ICommitListProps {
 
   /** Callback to remove commit drag element */
   readonly onRemoveCommitDragElement?: () => void
+
+  /** Whether reordering should be enabled on the commit list */
+  readonly disableReordering?: boolean
 
   /** Whether squashing should be enabled on the commit list */
   readonly disableSquashing?: boolean
@@ -533,6 +539,14 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       })
     }
 
+    items.push({
+      label: __DARWIN__ ? 'Reorder Commit' : 'Reorder commit',
+      action: () => {
+        this.props.onReorder?.([commit])
+      },
+      enabled: this.canReorder(),
+    })
+
     items.push(
       {
         label: __DARWIN__
@@ -608,6 +622,16 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     )
   }
 
+  private canReorder(): boolean {
+    const { onReorder, disableReordering, isMultiCommitOperationInProgress } =
+      this.props
+    return (
+      onReorder !== undefined &&
+      disableReordering === false &&
+      isMultiCommitOperationInProgress === false
+    )
+  }
+
   private canSquash(): boolean {
     const { onSquash, disableSquashing, isMultiCommitOperationInProgress } =
       this.props
@@ -672,6 +696,13 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           : `Squash ${count} commits…`,
         action: () => this.onSquash(this.selectedCommits, commit, true),
         enabled: this.canSquash(),
+      },
+      {
+        label: __DARWIN__
+          ? `Reorder ${count} Commits…`
+          : `Reorder ${count} commits…`,
+        action: () => this.props.onReorder?.(this.selectedCommits),
+        enabled: this.canReorder(),
       },
     ]
   }

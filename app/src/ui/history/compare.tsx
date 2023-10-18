@@ -269,6 +269,7 @@ export class CompareSidebar extends React.Component<
         tagsToPush={this.props.tagsToPush ?? []}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveCommitDragElement={this.onRemoveCommitDragElement}
+        disableReordering={formState.kind === HistoryTabMode.Compare}
         disableSquashing={formState.kind === HistoryTabMode.Compare}
         isMultiCommitOperationInProgress={
           this.props.isMultiCommitOperationInProgress
