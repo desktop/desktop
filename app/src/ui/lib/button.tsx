@@ -164,6 +164,9 @@ export interface IButtonProps {
 
   /** Specify custom classes for the button's tooltip */
   readonly tooltipClassName?: string
+
+  /** Whether the button's tooltip opens on click  */
+  readonly openTooltipOnClick?: boolean
 }
 
 /**
@@ -233,6 +236,7 @@ export class Button extends React.Component<IButtonProps, {}> {
             // Show the tooltip immediately on hover if the button is disabled
             delay={disabled ? 0 : undefined}
             onlyWhenOverflowed={this.props.onlyShowTooltipWhenOverflowed}
+            openOnTargetClick={this.props.openTooltipOnClick}
           >
             {tooltip}
           </Tooltip>

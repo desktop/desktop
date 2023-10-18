@@ -110,8 +110,19 @@ export interface ITooltipProps<T> {
    */
   readonly tooltipOffset?: DOMRect
 
-  /**Optional parameter for toggle tip behavior */
+  /** Optional parameter for toggle tip behavior.
+   *
+   * This means that on target click
+   * the tooltip will be shown but not on target focus.
+   */
   readonly isToggleTip?: boolean
+
+  /** Optional parameter for to open on target click
+   *
+   * If you are looking for toggle tip behavior (tooltip does not open on
+   * focus), use isToggleTip instead.
+   */
+  readonly openOnTargetClick?: boolean
 
   /** Open on target focus - typically only tooltips that target an element with
    * ":focus-visible open on focus. This means any time the target it focused it
@@ -414,7 +425,10 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
 
   private onTargetClick = (event: FocusEvent) => {
     // We only want to handle click events for toggle tips
-    if (!this.state.show && this.props.isToggleTip) {
+    if (
+      !this.state.show &&
+      (this.props.isToggleTip || this.props.openOnTargetClick)
+    ) {
       this.beginShowTooltip()
     }
   }
