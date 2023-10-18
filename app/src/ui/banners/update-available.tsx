@@ -124,6 +124,14 @@ export class UpdateAvailable extends React.Component<
   }
 
   private updateNow = () => {
+    if (
+      __RELEASE_CHANNEL__ === 'development' ||
+      __RELEASE_CHANNEL__ === 'test'
+    ) {
+      this.props.onDismissed()
+      return // causes a crash.. if no update is available
+    }
+
     updateStore.quitAndInstallUpdate()
   }
 }
