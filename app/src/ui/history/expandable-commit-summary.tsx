@@ -569,7 +569,6 @@ export class ExpandableCommitSummary extends React.Component<
             <>{linesDeleted} removed lines</>
           )}
         </div>
-        {!isExpanded ? <div>lines</div> : null}
       </div>
     )
   }
