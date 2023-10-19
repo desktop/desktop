@@ -226,11 +226,12 @@ export class ListRow extends React.Component<IListRowProps, {}> {
           // child elements are not exposed to the screen reader, otherwise
           // VoiceOver will decide to read the children elements instead of the
           // ariaLabel.
-          this.props.ariaLabel === undefined ? (
-            children
-          ) : (
-            <div aria-hidden={true}>{children}</div>
-          )
+          <div
+            className="list-item-content-wrapper"
+            aria-hidden={this.props.ariaLabel !== undefined}
+          >
+            {children}
+          </div>
         }
       </div>
     )
