@@ -170,7 +170,7 @@ export class MergeCallToActionWithConflicts extends React.Component<
       [],
       currentBranch.tip.sha
     )
-    dispatcher.recordCompareInitiatedMerge()
+    dispatcher.incrementMetric('mergesInitiatedFromComparison')
 
     return dispatcher.mergeBranch(
       repository,

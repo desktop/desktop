@@ -151,7 +151,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
     if (conflictedFilesLeft.length === 0) {
       this.props.dispatcher.clearBanner()
-      this.props.dispatcher.recordUnguidedConflictedMergeCompletion()
+      this.props.dispatcher.incrementMetric(
+        'unguidedConflictedMergeCompletionCount'
+      )
     }
 
     // which of the files selected for committing are conflicted (with markers)?
