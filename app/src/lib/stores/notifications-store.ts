@@ -38,7 +38,7 @@ import {
 } from '../valid-notification-pull-request-review'
 import { NotificationCallback } from 'desktop-notifications/dist/notification-callback'
 
-type OnChecksFailedCallback = (
+export type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
   pullRequest: PullRequest,
   commitMessage: string,
@@ -518,7 +518,7 @@ export class NotificationsStore {
     return API.fromAccount(account)
   }
 
-  private async getChecksForRef(repository: GitHubRepository, ref: string) {
+  public async getChecksForRef(repository: GitHubRepository, ref: string) {
     const { owner, name } = repository
 
     const api = await this.getAPIForRepository(repository)
