@@ -215,7 +215,6 @@ export class SelectedCommits extends React.Component<
           onExpandChanged={this.onExpandChanged}
           isExpanded={this.state.isExpanded}
           onDescriptionBottomChanged={this.onDescriptionBottomChanged}
-          hideDescriptionBorder={this.state.hideDescriptionBorder}
           onHighlightShas={this.onHighlightShas}
           showUnreachableCommits={this.showUnreachableCommits}
         />

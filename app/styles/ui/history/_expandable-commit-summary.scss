@@ -6,33 +6,6 @@
   min-height: 0;
   border-bottom: var(--base-border);
 
-  &.hide-description-border {
-    .commit-summary-description-container {
-      border-bottom: none;
-    }
-  }
-
-  &.has-expander {
-    .commit-summary-description {
-      padding-right: 100px;
-    }
-
-    // When the description area can be, but isn't yet, expanded
-    // we'll add a small shadow towards the bottom to hint that
-    // there's more content available.
-    &:not(.expanded) {
-      .commit-summary-description:before {
-        content: '';
-        background: var(--box-overflow-shadow-background);
-        position: absolute;
-        height: 30px;
-        bottom: 0px;
-        width: 100%;
-        pointer-events: none;
-      }
-    }
-  }
-
   .commit-unreachable-info {
     padding: var(--spacing-half) var(--spacing);
     border-bottom: var(--base-border);
@@ -81,43 +54,45 @@
     }
   }
 
-  .commit-summary-description-container {
+  .ecs-description {
     display: flex;
-    // So that we have something to position the expander against
     position: relative;
-    border-bottom: var(--base-border);
+    margin-bottom: var(--spacing);
     min-height: 0;
-  }
 
-  .commit-summary-description-scroll-view {
-    overflow: hidden;
-    flex: 1;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    // Maximum amount of commit description lines to show before collapsing
-    -webkit-line-clamp: 3;
-  }
+    &.overflowed {
+      // When the description area can be, but isn't yet, expanded
+      // we'll add a small shadow towards the bottom to hint that
+      // there's more content available.
 
-  .ecs-title,
-  .commit-summary-description {
-    // Enable text selection inside the title and description elements.
-    user-select: text;
-    cursor: text;
-
-    * {
-      user-select: unset;
-      pointer-events: unset;
-      cursor: text;
+      .ecs-description-text:before {
+        content: '';
+        background: var(--box-overflow-shadow-background);
+        position: absolute;
+        height: 30px;
+        bottom: 0px;
+        width: 100%;
+        pointer-events: none;
+      }
     }
-  }
 
-  .commit-summary-description {
-    font-family: var(--font-family-monospace);
-    font-size: var(--font-size-sm);
-    word-wrap: break-word;
-    white-space: pre-line;
-    padding: var(--spacing);
-    min-height: 0;
+    .ecs-description-scroll-view {
+      overflow: hidden;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      // Maximum amount of commit description lines to show before collapsing
+      -webkit-line-clamp: 3;
+    }
+
+    .ecs-description-text {
+      font-family: var(--font-family-monospace);
+      font-size: var(--font-size-sm);
+      word-wrap: break-word;
+      white-space: pre-line;
+      padding: 0 var(--spacing);
+      min-height: 0;
+    }
   }
 
   .ecs-meta {
@@ -219,7 +194,7 @@
       }
     }
 
-    .commit-summary-description-scroll-view {
+    .ecs-description-scroll-view {
       max-height: 400px;
       overflow: auto;
       display: revert;
@@ -234,7 +209,7 @@
     user-select: text;
     cursor: text;
 
-    * {
+    description {
       user-select: unset;
       pointer-events: unset;
       cursor: text;
