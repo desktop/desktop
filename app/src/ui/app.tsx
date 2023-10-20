@@ -172,6 +172,7 @@ import { UnsupportedOSBannerDismissedAtKey } from './banners/windows-version-no-
 import { offsetFromNow } from '../lib/offset-from'
 import { getNumber } from '../lib/local-storage'
 import { RepoRulesBypassConfirmation } from './repository-rules/repo-rules-bypass-confirmation'
+import { ChangeRepositoryGroup } from './change-repository-group/change-repository-group-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2064,6 +2065,15 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.ChangeRepositoryGroup: {
+        return (
+          <ChangeRepositoryGroup
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       case PopupType.ThankYou:
         return (
           <ThankYou
@@ -2857,6 +2867,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.changeRepositoryAlias(repository, null)
     }
 
+    const onChangeRepositoryGroup = (repository: Repository) => {
+      this.props.dispatcher.showPopup({
+        type: PopupType.ChangeRepositoryGroup,
+        repository,
+      })
+    }
+
+    const onRemoveRepositoryGroup = (repository: Repository) => {
+      this.props.dispatcher.changeRepositoryGroup(repository, null)
+    }
+
     const items = generateRepositoryListContextMenu({
       onRemoveRepository: this.removeRepository,
       onShowRepository: this.showRepository,
@@ -2867,6 +2888,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       externalEditorLabel: externalEditorLabel,
       onChangeRepositoryAlias: onChangeRepositoryAlias,
       onRemoveRepositoryAlias: onRemoveRepositoryAlias,
+      onChangeRepositoryGroup: onChangeRepositoryGroup,
+      onRemoveRepositoryGroup: onRemoveRepositoryGroup,
       onViewOnGitHub: this.viewOnGitHub,
       repository: repository,
       shellLabel: this.state.selectedShell,

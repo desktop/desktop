@@ -48,8 +48,12 @@ export function groupRepositories(
   for (const repository of repositories) {
     const gitHubRepository =
       repository instanceof Repository ? repository.gitHubRepository : null
+    const repositoryGroup =
+      repository instanceof Repository ? repository.group : null
     let group: RepositoryGroupIdentifier = KnownRepositoryGroup.NonGitHub
-    if (gitHubRepository) {
+    if (repositoryGroup) {
+      group = repositoryGroup
+    } else if (gitHubRepository) {
       if (gitHubRepository.endpoint === getDotComAPIEndpoint()) {
         group = gitHubRepository.owner.login
         gitHubOwners.add(group)
@@ -107,12 +111,21 @@ export function groupRepositories(
     groups.push({ identifier, items })
   }
 
-  // NB: This ordering reflects the order in the repositories sidebar.
+  //NB: This ordering reflects the order in the repositories sidebar.
   const owners = [...gitHubOwners.values()]
   owners.sort(caseInsensitiveCompare)
   owners.forEach(addGroup)
 
   addGroup(KnownRepositoryGroup.Enterprise)
+  const localGroupFilter = new Set([
+    ...owners,
+    KnownRepositoryGroup.Enterprise,
+    KnownRepositoryGroup.NonGitHub,
+  ])
+  Array.from(grouped.keys())
+    .filter(group => !localGroupFilter.has(group))
+    .sort(caseInsensitiveCompare)
+    .forEach(addGroup)
   addGroup(KnownRepositoryGroup.NonGitHub)
 
   return groups

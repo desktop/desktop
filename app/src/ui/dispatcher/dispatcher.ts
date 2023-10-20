@@ -839,6 +839,14 @@ export class Dispatcher {
     return this.appStore._changeRepositoryAlias(repository, newAlias)
   }
 
+  /** Changes the repository group to a new name. */
+  public changeRepositoryGroup(
+    repository: Repository,
+    newGroup: string | null
+  ): Promise<void> {
+    return this.appStore._changeRepositoryGroup(repository, newGroup)
+  }
+
   /** Rename the branch to a new name. */
   public renameBranch(
     repository: Repository,

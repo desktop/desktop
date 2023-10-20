@@ -51,6 +51,7 @@ export interface IDatabaseRepository {
   readonly gitHubRepositoryID: number | null
   readonly path: string
   readonly alias: string | null
+  readonly group: string | null
   readonly missing: boolean
 
   /** The last time the stash entries were checked for the repository */

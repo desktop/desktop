@@ -212,6 +212,8 @@ export class RepositoriesList extends React.Component<
       externalEditorLabel: this.props.externalEditorLabel,
       onChangeRepositoryAlias: this.onChangeRepositoryAlias,
       onRemoveRepositoryAlias: this.onRemoveRepositoryAlias,
+      onChangeRepositoryGroup: this.onChangeRepositoryGroup,
+      onRemoveRepositoryGroup: this.onRemoveRepositoryGroup,
       onViewOnGitHub: this.props.onViewOnGitHub,
       repository: item.repository,
       shellLabel: this.props.shellLabel,
@@ -359,5 +361,16 @@ export class RepositoriesList extends React.Component<
 
   private onRemoveRepositoryAlias = (repository: Repository) => {
     this.props.dispatcher.changeRepositoryAlias(repository, null)
+  }
+
+  private onChangeRepositoryGroup = (repository: Repository) => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.ChangeRepositoryGroup,
+      repository,
+    })
+  }
+
+  private onRemoveRepositoryGroup = (repository: Repository) => {
+    this.props.dispatcher.changeRepositoryGroup(repository, null)
   }
 }

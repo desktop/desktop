@@ -19,6 +19,8 @@ interface IRepositoryListItemContextMenuConfig {
   onRemoveRepository: (repository: Repositoryish) => void
   onChangeRepositoryAlias: (repository: Repository) => void
   onRemoveRepositoryAlias: (repository: Repository) => void
+  onChangeRepositoryGroup: (repository: Repository) => void
+  onRemoveRepositoryGroup: (repository: Repository) => void
 }
 
 export const generateRepositoryListContextMenu = (
@@ -34,6 +36,7 @@ export const generateRepositoryListContextMenu = (
 
   const items: ReadonlyArray<IMenuItem> = [
     ...buildAliasMenuItems(config),
+    ...buildGroupMenuItems(config),
     {
       label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
       action: () => clipboard.writeText(repository.name),
@@ -94,6 +97,33 @@ const buildAliasMenuItems = (
     items.push({
       label: __DARWIN__ ? 'Remove Alias' : 'Remove alias',
       action: () => config.onRemoveRepositoryAlias(repository),
+    })
+  }
+
+  return items
+}
+
+const buildGroupMenuItems = (
+  config: IRepositoryListItemContextMenuConfig
+): ReadonlyArray<IMenuItem> => {
+  const { repository } = config
+
+  if (!(repository instanceof Repository)) {
+    return []
+  }
+
+  const verb = repository.group == null ? 'Set' : 'Change'
+  const items: Array<IMenuItem> = [
+    {
+      label: __DARWIN__ ? `${verb} Group` : `${verb} group`,
+      action: () => config.onChangeRepositoryGroup(repository),
+    },
+  ]
+
+  if (repository.group !== null) {
+    items.push({
+      label: __DARWIN__ ? 'Remove Group' : 'Remove group',
+      action: () => config.onRemoveRepositoryGroup(repository),
     })
   }
 

@@ -152,7 +152,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.missing,
       repo.alias,
       repo.workflowPreferences,
-      repo.isTutorialRepository
+      repo.isTutorialRepository,
+      repo.group
     )
   }
 
@@ -214,6 +215,7 @@ export class RepositoriesStore extends TypedBaseStore<
           ...(existingRepo?.id !== undefined && { id: existingRepo.id }),
           path,
           alias: null,
+          group: null,
           gitHubRepositoryID: ghRepo.dbID,
           missing: false,
           lastStashCheckDate: null,
@@ -252,6 +254,7 @@ export class RepositoriesStore extends TypedBaseStore<
           missing: opts?.missing ?? false,
           lastStashCheckDate: null,
           alias: null,
+          group: null,
         }
         const id = await this.db.repositories.add(dbRepo)
         return this.toRepository({ id, ...dbRepo })
@@ -287,7 +290,8 @@ export class RepositoriesStore extends TypedBaseStore<
       missing,
       repository.alias,
       repository.workflowPreferences,
-      repository.isTutorialRepository
+      repository.isTutorialRepository,
+      repository.group
     )
   }
 
@@ -302,6 +306,21 @@ export class RepositoriesStore extends TypedBaseStore<
     alias: string | null
   ): Promise<void> {
     await this.db.repositories.update(repository.id, { alias })
+
+    this.emitUpdatedRepositories()
+  }
+
+  /**
+   * Update the group for the specified repository.
+   *
+   * @param repository  The repository to update.
+   * @param group       The new group to use.
+   */
+  public async updateRepositoryGroup(
+    repository: Repository,
+    group: string | null
+  ): Promise<void> {
+    await this.db.repositories.update(repository.id, { group })
 
     this.emitUpdatedRepositories()
   }
@@ -337,7 +356,8 @@ export class RepositoriesStore extends TypedBaseStore<
       false,
       repository.alias,
       repository.workflowPreferences,
-      repository.isTutorialRepository
+      repository.isTutorialRepository,
+      repository.group
     )
   }
 
@@ -483,7 +503,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.missing,
       repo.alias,
       repo.workflowPreferences,
-      repo.isTutorialRepository
+      repo.isTutorialRepository,
+      repo.group
     )
 
     assertIsRepositoryWithGitHubRepository(updatedRepo)
