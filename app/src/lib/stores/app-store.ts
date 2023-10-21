@@ -362,6 +362,7 @@ const defaultBranchDropdownWidth: number = 230
 const branchDropdownWidthConfigKey: string = 'branch-dropdown-width'
 
 const defaultPushPullButtonWidth: number = 230
+const pushPullButtonWidthConfigKey: string = 'push-pull-button-width'
 
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
@@ -481,6 +482,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private stashedFilesWidth = constrain(defaultStashedFilesWidth)
   private pullRequestFileListWidth = constrain(defaultPullRequestFileListWidth)
   private branchDropdownWidth = constrain(defaultBranchDropdownWidth)
+  private pushPullButtonWidth = constrain(defaultPushPullButtonWidth)
 
   private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
@@ -1001,6 +1003,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       emoji: this.emoji,
       sidebarWidth: this.sidebarWidth,
       branchDropdownWidth: this.branchDropdownWidth,
+      pushPullButtonWidth: this.pushPullButtonWidth,
       commitSummaryWidth: this.commitSummaryWidth,
       stashedFilesWidth: this.stashedFilesWidth,
       pullRequestFilesListWidth: this.pullRequestFileListWidth,
@@ -2122,6 +2125,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.branchDropdownWidth = constrain(
       getNumber(branchDropdownWidthConfigKey, defaultBranchDropdownWidth)
     )
+    this.pushPullButtonWidth = constrain(
+      getNumber(pushPullButtonWidthConfigKey, defaultPushPullButtonWidth)
+    )
 
     this.updateResizableConstraints()
     // TODO: Initiliaze here for now... maybe move to dialog mounting
@@ -2296,6 +2302,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.branchDropdownWidth,
       defaultBranchDropdownWidth,
       branchDropdownMax
+    )
+
+    const pushPullButtonMaxWidth = available - this.branchDropdownWidth.value
+    this.pushPullButtonWidth = constrain(
+      this.pushPullButtonWidth,
+      defaultPushPullButtonWidth,
+      pushPullButtonMaxWidth
     )
   }
 
@@ -5201,6 +5214,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
       value: defaultBranchDropdownWidth,
     }
     localStorage.removeItem(branchDropdownWidthConfigKey)
+    this.updateResizableConstraints()
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setPushPullButtonWidth(width: number): Promise<void> {
+    this.pushPullButtonWidth = { ...this.pushPullButtonWidth, value: width }
+    setNumber(pushPullButtonWidthConfigKey, width)
+    this.updateResizableConstraints()
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _resetPushPullButtonWidth(): Promise<void> {
+    this.pushPullButtonWidth = {
+      ...this.pushPullButtonWidth,
+      value: defaultPushPullButtonWidth,
+    }
+    localStorage.removeItem(pushPullButtonWidthConfigKey)
     this.updateResizableConstraints()
     this.emitUpdate()
 
