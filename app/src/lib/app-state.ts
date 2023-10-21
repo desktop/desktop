@@ -188,6 +188,9 @@ export interface IAppState {
   /** The width of the resizable branch drop down button in the toolbar. */
   readonly branchDropdownWidth: IConstrainedValue
 
+  /** The width of the resizable push/pull button in the toolbar. */
+  readonly pushPullButtonWidth: IConstrainedValue
+
   /**
    * Used to highlight access keys throughout the app when the
    * Alt key is pressed. Only applicable on non-macOS platforms.
