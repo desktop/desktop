@@ -35,7 +35,7 @@ interface IBranchDropdownProps {
   /** The current repository state as derived from AppState */
   readonly repositoryState: IRepositoryState
 
-  /** The width of the resisable branch drop down button, as derived from AppState. */
+  /** The width of the resizable branch dropdown button, as derived from AppState. */
   readonly branchDropdownWidth: IConstrainedValue
 
   /** Whether or not the branch dropdown is currently open */
