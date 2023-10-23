@@ -234,6 +234,7 @@ export class ExpandableCommitSummary extends React.Component<
         ariaLabel={
           isExpanded ? 'Collapse commit details' : 'Expand commit details'
         }
+        ariaControls="expandable-commit-summary"
       >
         <Octicon
           symbol={isExpanded ? OcticonSymbol.fold : OcticonSymbol.unfold}
@@ -406,19 +407,14 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderAuthorList = () => {
-    const { avatarUsers } = this.state
-    const elems = []
-
-    for (let i = 0; i < avatarUsers.length; i++) {
-      elems.push(
+    return this.state.avatarUsers.map((user, i) => {
+      return (
         <div className="author selectable" key={i}>
-          <Avatar user={avatarUsers[i]} title={null} />
-          <div>{this.renderExpandedAuthor(avatarUsers[i])}</div>
+          <Avatar user={user} title={null} />
+          <div>{this.renderExpandedAuthor(user)}</div>
         </div>
       )
-    }
-
-    return elems
+    })
   }
 
   private renderAuthorStack = () => {
@@ -539,12 +535,12 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   public render() {
-    const className = classNames('expandable-commit-summary', {
+    const className = classNames({
       expanded: this.props.isExpanded,
     })
 
     return (
-      <div className={className}>
+      <div id="expandable-commit-summary" className={className}>
         {this.renderSummary()}
         {this.renderDescription()}
         {this.renderMetaItems()}
@@ -554,7 +550,7 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderLinesChanged() {
-    const { changesetData, selectedCommits } = this.props
+    const { changesetData, selectedCommits, isExpanded } = this.props
     const { linesAdded, linesDeleted } = changesetData
 
     if (
@@ -566,9 +562,16 @@ export class ExpandableCommitSummary extends React.Component<
 
     return (
       <div className="ecs-meta-item lines-added-deleted">
-        <div className="lines-added">+{linesAdded}</div>
-        <div className="lines-deleted">-{linesDeleted}</div>
-        <div>lines</div>
+        <div className="lines-added">
+          {!isExpanded ? <>+{linesAdded}</> : <>{linesAdded} added lines</>}
+        </div>
+        <div className="lines-deleted">
+          {!isExpanded ? (
+            <>-{linesDeleted}</>
+          ) : (
+            <>{linesDeleted} removed lines</>
+          )}
+        </div>
       </div>
     )
   }

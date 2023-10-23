@@ -571,10 +571,6 @@ export function buildDefaultMenu({
             click: emit('show-thank-you-popup'),
           },
           {
-            label: 'Pull Request Check Run Failed',
-            click: emit('pull-request-check-run-failed'),
-          },
-          {
             label: 'Show App Error',
             click: emit('show-app-error'),
           },

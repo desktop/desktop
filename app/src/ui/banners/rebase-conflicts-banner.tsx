@@ -22,7 +22,7 @@ export class RebaseConflictsBanner extends React.Component<
   private openDialog = async () => {
     this.props.onDismissed()
     this.props.onOpenDialog()
-    this.props.dispatcher.recordRebaseConflictsDialogReopened()
+    this.props.dispatcher.incrementMetric('rebaseConflictsDialogReopenedCount')
   }
 
   private onDismissed = () => {

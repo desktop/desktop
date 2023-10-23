@@ -9,7 +9,7 @@ import {
   SelectionType,
   HistoryTabMode,
 } from '../lib/app-state'
-import { defaultErrorHandler, Dispatcher } from './dispatcher'
+import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { shell } from '../lib/app-shell'
@@ -154,7 +154,6 @@ import * as ipcRenderer from '../lib/ipc-renderer'
 import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
 import { generateDevReleaseSummary } from '../lib/release-notes'
 import { PullRequestReview } from './notifications/pull-request-review'
-import { getPullRequestCommitRef } from '../models/pull-request'
 import { getRepositoryType } from '../lib/git'
 import { SSHUserPassword } from './ssh/ssh-user-password'
 import { showContextualMenu } from '../lib/menu-item'
@@ -413,7 +412,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'open-working-directory':
         return this.openCurrentRepositoryWorkingDirectory()
       case 'update-branch-with-contribution-target-branch':
-        this.props.dispatcher.recordMenuInitiatedUpdate()
+        this.props.dispatcher.incrementMetric(
+          'updateFromDefaultBranchMenuCount'
+        )
         return this.updateBranchWithContributionTargetBranch()
       case 'compare-to-branch':
         return this.showHistory(false, true)
@@ -424,7 +425,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         this.props.dispatcher.recordMenuInitiatedMerge(true)
         return this.mergeBranch(true)
       case 'rebase-branch':
-        this.props.dispatcher.recordMenuInitiatedRebase()
+        this.props.dispatcher.incrementMetric('rebaseCurrentBranchMenuCount')
         return this.showRebaseDialog()
       case 'show-repository-settings':
         return this.showRepositorySettings()
@@ -470,8 +471,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.testPruneBranches()
       case 'find-text':
         return this.findText()
-      case 'pull-request-check-run-failed':
-        return this.testPullRequestCheckRunFailed()
       case 'show-app-error':
         return this.props.dispatcher.postError(
           new Error('Test Error - to use default error handler' + uuid())
@@ -537,85 +536,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       type: PopupType.TestNotifications,
       repository,
     })
-  }
-
-  private testPullRequestCheckRunFailed() {
-    if (
-      __RELEASE_CHANNEL__ !== 'development' &&
-      __RELEASE_CHANNEL__ !== 'test'
-    ) {
-      return
-    }
-
-    const { selectedState } = this.state
-    if (
-      selectedState == null ||
-      selectedState.type !== SelectionType.Repository
-    ) {
-      defaultErrorHandler(
-        new Error(
-          'You must be in a GitHub repo, on a pull request branch, and your branch tip must be in a valid state.'
-        ),
-        this.props.dispatcher
-      )
-      return
-    }
-
-    const {
-      repository,
-      state: {
-        branchesState: { currentPullRequest: pullRequest, tip },
-      },
-    } = selectedState
-
-    const currentBranchName =
-      tip.kind === TipState.Valid
-        ? tip.branch.upstreamWithoutRemote ?? tip.branch.name
-        : ''
-
-    if (
-      !isRepositoryWithGitHubRepository(repository) ||
-      pullRequest === null ||
-      currentBranchName === ''
-    ) {
-      defaultErrorHandler(
-        new Error(
-          'You must be in a GitHub repo, on a pull request branch, and your branch tip must be in a valid state.'
-        ),
-        this.props.dispatcher
-      )
-      return
-    }
-
-    const cachedStatus = this.props.dispatcher.tryGetCommitStatus(
-      repository.gitHubRepository,
-      getPullRequestCommitRef(pullRequest.pullRequestNumber)
-    )
-
-    if (cachedStatus?.checks === undefined) {
-      // Probably be hard for this to happen as the checks start loading in the background for pr statuses
-      defaultErrorHandler(
-        new Error(
-          'Your pull request must have cached checks. Try opening the checks popover and then try again.'
-        ),
-        this.props.dispatcher
-      )
-      return
-    }
-
-    const { checks } = cachedStatus
-
-    const popup: Popup = {
-      type: PopupType.PullRequestChecksFailed,
-      pullRequest,
-      repository,
-      shouldChangeRepository: true,
-      commitMessage: 'Adding this feature',
-      commitSha: pullRequest.head.sha,
-      checks,
-    }
-
-    this.showPopup(popup)
   }
 
   private testPruneBranches() {
@@ -3062,7 +2982,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (currentPullRequest == null) {
       dispatcher.createPullRequest(state.repository)
-      dispatcher.recordCreatePullRequest()
+      dispatcher.incrementMetric('createPullRequestCount')
     } else {
       dispatcher.showPullRequest(state.repository)
     }
@@ -3440,7 +3360,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const initialStep = getMultiCommitOperationChooseBranchStep(repositoryState)
 
     this.props.dispatcher.setMultiCommitOperationStep(repository, initialStep)
-    this.props.dispatcher.recordCherryPickViaContextMenu()
+    this.props.dispatcher.incrementMetric('cherryPickViaContextMenuCount')
 
     this.showPopup({
       type: PopupType.MultiCommitOperation,
@@ -3534,7 +3454,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onDragEnd = (dropTargetSelector: DropTargetSelector | undefined) => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
     if (dropTargetSelector === undefined) {
-      this.props.dispatcher.recordDragStartedAndCanceled()
+      this.props.dispatcher.incrementMetric('dragStartedAndCanceledCount')
     }
   }
 }

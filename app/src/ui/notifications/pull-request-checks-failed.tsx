@@ -291,7 +291,7 @@ export class PullRequestChecksFailed extends React.Component<
     failedOnly: boolean,
     checks?: ReadonlyArray<IRefCheck>
   ) => {
-    this.props.dispatcher.recordChecksFailedDialogRerunChecks()
+    this.props.dispatcher.incrementMetric('checksFailedDialogRerunChecksCount')
 
     const prRef = getPullRequestCommitRef(
       this.props.pullRequest.pullRequestNumber
@@ -395,7 +395,9 @@ export class PullRequestChecksFailed extends React.Component<
     event.preventDefault()
     const { dispatcher, repository, pullRequest } = this.props
 
-    this.props.dispatcher.recordChecksFailedDialogSwitchToPullRequest()
+    this.props.dispatcher.incrementMetric(
+      'checksFailedDialogSwitchToPullRequestCount'
+    )
 
     this.setState({ switchingToPullRequest: true })
     await dispatcher.selectRepository(repository)

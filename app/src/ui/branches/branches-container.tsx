@@ -23,7 +23,10 @@ import { Button } from '../lib/button'
 import { BranchList } from './branch-list'
 import { PullRequestList } from './pull-request-list'
 import { IBranchListItem } from './group-branches'
-import { renderDefaultBranch } from './branch-renderer'
+import {
+  getDefaultAriaLabelForBranch,
+  renderDefaultBranch,
+} from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
@@ -213,6 +216,10 @@ export class BranchesContainer extends React.Component<
     )
   }
 
+  private getBranchAriaLabel = (item: IBranchListItem): string => {
+    return getDefaultAriaLabelForBranch(item)
+  }
+
   private renderSelectedTab() {
     const { selectedTab, repository } = this.props
 
@@ -255,6 +262,7 @@ export class BranchesContainer extends React.Component<
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
             renderBranch={this.renderBranch}
+            getBranchAriaLabel={this.getBranchAriaLabel}
             hideFilterRow={dragAndDropManager.isDragOfTypeInProgress(
               DragType.Commit
             )}
@@ -455,7 +463,7 @@ export class BranchesContainer extends React.Component<
 
   private onDropOntoCurrentBranch = () => {
     if (dragAndDropManager.isDragOfType(DragType.Commit)) {
-      this.props.dispatcher.recordDragStartedAndCanceled()
+      this.props.dispatcher.incrementMetric('dragStartedAndCanceledCount')
     }
   }
 

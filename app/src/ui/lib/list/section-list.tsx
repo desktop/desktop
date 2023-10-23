@@ -69,9 +69,6 @@ interface ISectionListProps {
    */
   readonly sectionHasHeader?: (section: number) => boolean
 
-  /** Aria label for a section in the list. */
-  readonly getSectionAriaLabel?: (section: number) => string | undefined
-
   /**
    * The total number of rows in the list. This is used for
    * scroll virtualization purposes when calculating the theoretical
@@ -306,6 +303,15 @@ interface ISectionListProps {
 
   /** The aria-label attribute for the list component. */
   readonly ariaLabel?: string
+
+  /**
+   * Optional callback for providing an aria label for screen readers for each
+   * row.
+   *
+   * Note: you may need to apply an aria-hidden attribute to any child text
+   * elements for this to take precedence.
+   */
+  readonly getRowAriaLabel?: (indexPath: RowIndexPath) => string | undefined
 }
 
 interface ISectionListState {
@@ -1178,10 +1184,16 @@ export class SectionList extends React.Component<
 
       const id = this.getRowId(indexPath)
 
+      const ariaLabel =
+        this.props.getRowAriaLabel !== undefined
+          ? this.props.getRowAriaLabel(indexPath)
+          : undefined
+
       return (
         <ListRow
           key={params.key}
           id={id}
+          ariaLabel={ariaLabel}
           sectionHasHeader={sectionHasHeader}
           onRowRef={this.onRowRef}
           rowCount={this.props.rowCount[indexPath.section]}
@@ -1319,7 +1331,6 @@ export class SectionList extends React.Component<
           ref={this.getOnGridRef(section)}
           autoContainerWidth={true}
           containerRole="presentation"
-          aria-label={this.props.getSectionAriaLabel?.(section)}
           aria-multiselectable={
             this.props.selectionMode !== 'single' ? true : undefined
           }
@@ -1417,7 +1428,7 @@ export class SectionList extends React.Component<
       >
         <Grid
           id={this.props.accessibleListId}
-          role="listbox"
+          role="presentation"
           ref={this.onRootGridRef}
           autoContainerWidth={true}
           containerRole="presentation"
