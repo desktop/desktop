@@ -5,27 +5,12 @@
   flex-direction: column;
   min-height: 0;
   border-bottom: var(--base-border);
-
-  .commit-unreachable-info {
-    padding: var(--spacing-half) var(--spacing);
-    border-bottom: var(--base-border);
-    display: flex;
-    align-items: center;
-
-    .octicon {
-      margin-right: var(--spacing-half);
-    }
-
-    .link-button-component {
-      margin-right: var(--spacing-half);
-    }
-  }
+  padding: var(--spacing);
 
   .ecs-title {
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-semibold);
     line-height: 16px;
-    padding: var(--spacing);
     word-wrap: break-word;
     display: flex;
 
@@ -57,7 +42,7 @@
   .ecs-description {
     display: flex;
     position: relative;
-    margin-bottom: var(--spacing);
+    margin-top: var(--spacing-half);
     min-height: 0;
 
     &.overflowed {
@@ -90,27 +75,23 @@
       font-size: var(--font-size-sm);
       word-wrap: break-word;
       white-space: pre-line;
-      padding: 0 var(--spacing);
       min-height: 0;
     }
   }
 
   .ecs-meta {
     display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0 var(--spacing) var(--spacing);
+    margin-top: var(--spacing-half);
 
     .ecs-meta-item {
       display: flex;
-      flex-direction: row;
-      min-width: 0;
       margin-right: var(--spacing);
       font-size: var(--font-size-sm);
-      flex-shrink: 0;
       align-items: center;
 
       &.authors {
+        margin-left: 0;
+
         .avatar {
           width: 16px;
           height: 16px;
@@ -118,7 +99,7 @@
 
         .author {
           .avatar-container {
-            margin-right: var(--spacing-half);
+            margin-right: 4px;
           }
         }
       }
@@ -129,10 +110,12 @@
         }
 
         .copy-button {
+          margin-left: var(--spacing-half);
+
+          // Removing default button styles
           background: transparent;
           border: none;
           padding: 0;
-          margin-left: var(--spacing-half);
           height: auto;
 
           :hover {
@@ -157,6 +140,7 @@
 
       &.tags {
         flex-shrink: 1;
+        min-width: 0;
 
         .octicon {
           padding-right: var(--spacing-half);
@@ -176,6 +160,11 @@
       .ecs-meta-item {
         margin-bottom: var(--spacing-half);
         align-items: unset;
+        margin-right: 0;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
 
         &.authors {
           display: block;
@@ -183,6 +172,12 @@
           .author {
             margin-bottom: 2px;
             display: flex;
+          }
+        }
+
+        &.lines-added-deleted {
+          .lines-added {
+            padding-left: var(--spacing-half);
           }
         }
 
@@ -198,10 +193,20 @@
       max-height: 400px;
       overflow: auto;
       display: revert;
+    }
+  }
 
-      &:before {
-        content: none;
-      }
+  .commit-unreachable-info {
+    display: flex;
+    align-items: center;
+    margin-top: var(--spacing);
+
+    .octicon {
+      margin-right: var(--spacing-half);
+    }
+
+    .link-button-component {
+      margin-right: var(--spacing-half);
     }
   }
 
@@ -209,7 +214,7 @@
     user-select: text;
     cursor: text;
 
-    description {
+    * {
       user-select: unset;
       pointer-events: unset;
       cursor: text;

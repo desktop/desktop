@@ -306,7 +306,7 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderDescription() {
-    if (this.state.body.length === 0) {
+    if (this.state.body.length === 0 || this.props.selectedCommits.length > 1) {
       return null
     }
 
@@ -519,6 +519,21 @@ export class ExpandableCommitSummary extends React.Component<
     )
   }
 
+  private renderMetaItems = () => {
+    if (this.props.selectedCommits.length > 1) {
+      return null
+    }
+
+    return (
+      <div className="ecs-meta">
+        {this.renderAuthors()}
+        {this.renderCommitRef()}
+        {this.renderLinesChanged()}
+        {this.renderTags()}
+      </div>
+    )
+  }
+
   public render() {
     const className = classNames({
       expanded: this.props.isExpanded,
@@ -528,12 +543,7 @@ export class ExpandableCommitSummary extends React.Component<
       <div id="expandable-commit-summary" className={className}>
         {this.renderSummary()}
         {this.renderDescription()}
-        <div className="ecs-meta">
-          {this.renderAuthors()}
-          {this.renderCommitRef()}
-          {this.renderLinesChanged()}
-          {this.renderTags()}
-        </div>
+        {this.renderMetaItems()}
         {this.renderCommitsNotReachable()}
       </div>
     )
@@ -552,6 +562,7 @@ export class ExpandableCommitSummary extends React.Component<
 
     return (
       <div className="ecs-meta-item lines-added-deleted">
+        {isExpanded ? <Octicon symbol={OcticonSymbol.diff} /> : null}
         <div className="lines-added">
           {!isExpanded ? <>+{linesAdded}</> : <>{linesAdded} added lines</>}
         </div>
