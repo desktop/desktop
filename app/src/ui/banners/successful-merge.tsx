@@ -26,7 +26,7 @@ export function SuccessfulMerge({
     )
 
   return (
-    <SuccessBanner onDismissed={onDismissed}>
+    <SuccessBanner timeout={5000} onDismissed={onDismissed}>
       <div className="banner-message">{message}</div>
     </SuccessBanner>
   )
