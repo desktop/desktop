@@ -153,3 +153,21 @@ export function getIconFileName(): string {
   const baseName = 'icon-logo'
   return getChannel() === 'development' ? `${baseName}-yellow` : baseName
 }
+
+export function getChannelFromReleaseBranch(): string {
+  const branchName = process.env.GITHUB_HEAD_REF ?? ''
+
+  if (!branchName.includes('releases/')) {
+    return 'development'
+  }
+
+  if (getVersion().includes('test')) {
+    return 'test'
+  }
+
+  if (getVersion().includes('beta')) {
+    return 'beta'
+  }
+
+  return 'production'
+}
