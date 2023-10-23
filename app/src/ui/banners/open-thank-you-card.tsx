@@ -31,7 +31,8 @@ export class OpenThankYouCard extends React.Component<
             emoji={this.props.emoji}
             renderUrlsAsLinks={true}
           />
-          or <button onClick={this.onThrowCardAway}>Throw It Away</button>{' '}
+          or{' '}
+          <LinkButton onClick={this.onThrowCardAway}>Throw It Away</LinkButton>{' '}
           <RichText
             className="thank-you-banner-emoji"
             text={':sob:'}
