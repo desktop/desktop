@@ -19,7 +19,8 @@ const ValidElectronVersions: Record<ChannelToValidate, string> = {
   beta: '26.2.4',
 }
 
-const channel = distInfo.getChannelFromReleaseBranch()
+const channel =
+  process.env.RELEASE_CHANNEL || distInfo.getChannelFromReleaseBranch()
 
 if (!isChannelToValidate(channel)) {
   console.log(`No need to validate the Electron version of a ${channel} build.`)
