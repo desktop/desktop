@@ -497,7 +497,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     isArm64?: boolean
     isShowcase?: boolean
   }) {
-    updateStore.setIsx64ToARM64ImmediateAutoUpdate(options.isArm64)
+    updateStore.setIsx64ToARM64ImmediateAutoUpdate(options.isArm64 === true)
 
     if (options.isShowcase) {
       this.props.dispatcher.setUpdateShowCaseVisibility(true)
