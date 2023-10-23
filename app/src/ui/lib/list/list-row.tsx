@@ -221,7 +221,18 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         onBlur={this.onBlur}
         onContextMenu={this.onContextMenu}
       >
-        {children}
+        {
+          // HACK: When we have an ariaLabel we need to make sure that the
+          // child elements are not exposed to the screen reader, otherwise
+          // VoiceOver will decide to read the children elements instead of the
+          // ariaLabel.
+          <div
+            className="list-item-content-wrapper"
+            aria-hidden={this.props.ariaLabel !== undefined}
+          >
+            {children}
+          </div>
+        }
       </div>
     )
   }

@@ -38,7 +38,7 @@ import {
 } from '../valid-notification-pull-request-review'
 import { NotificationCallback } from 'desktop-notifications/dist/notification-callback'
 
-type OnChecksFailedCallback = (
+export type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
   pullRequest: PullRequest,
   commitMessage: string,
@@ -144,9 +144,13 @@ export class NotificationsStore {
 
     if (!this.isValidRepositoryForEvent(repository, event)) {
       if (this.isRecentRepositoryEvent(event)) {
-        this.statsStore.recordPullRequestCommentNotificationFromRecentRepo()
+        this.statsStore.increment(
+          'pullRequestCommentNotificationFromRecentRepoCount'
+        )
       } else {
-        this.statsStore.recordPullRequestCommentNotificationFromNonRecentRepo()
+        this.statsStore.increment(
+          'pullRequestCommentNotificationFromNonRecentRepoCount'
+        )
       }
       return
     }
@@ -188,7 +192,7 @@ export class NotificationsStore {
       pullRequest.pullRequestNumber
     }\n${truncateWithEllipsis(comment.body, 50)}`
     const onClick = () => {
-      this.statsStore.recordPullRequestCommentNotificationClicked()
+      this.statsStore.increment('pullRequestCommentNotificationClicked')
 
       this.onPullRequestCommentCallback?.(repository, pullRequest, comment)
     }
@@ -205,7 +209,7 @@ export class NotificationsStore {
       onClick,
     })
 
-    this.statsStore.recordPullRequestCommentNotificationShown()
+    this.statsStore.increment('pullRequestCommentNotificationCount')
   }
 
   private async handlePullRequestReviewSubmitEvent(
@@ -219,9 +223,13 @@ export class NotificationsStore {
 
     if (!this.isValidRepositoryForEvent(repository, event)) {
       if (this.isRecentRepositoryEvent(event)) {
-        this.statsStore.recordPullRequestReviewNotificationFromRecentRepo()
+        this.statsStore.increment(
+          'pullRequestReviewNotificationFromRecentRepoCount'
+        )
       } else {
-        this.statsStore.recordPullRequestReviewNotificationFromNonRecentRepo()
+        this.statsStore.increment(
+          'pullRequestReviewNotificationFromNonRecentRepoCount'
+        )
       }
       return
     }
@@ -295,9 +303,11 @@ export class NotificationsStore {
 
     if (!this.isValidRepositoryForEvent(repository, event)) {
       if (this.isRecentRepositoryEvent(event)) {
-        this.statsStore.recordChecksFailedNotificationFromRecentRepo()
+        this.statsStore.increment('checksFailedNotificationFromRecentRepoCount')
       } else {
-        this.statsStore.recordChecksFailedNotificationFromNonRecentRepo()
+        this.statsStore.increment(
+          'checksFailedNotificationFromNonRecentRepoCount'
+        )
       }
       return
     }
@@ -391,7 +401,7 @@ export class NotificationsStore {
     const title = 'Pull Request checks failed'
     const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
     const onClick = () => {
-      this.statsStore.recordChecksFailedNotificationClicked()
+      this.statsStore.increment('checksFailedNotificationClicked')
 
       this.onChecksFailedCallback?.(
         repository,
@@ -414,7 +424,7 @@ export class NotificationsStore {
       onClick,
     })
 
-    this.statsStore.recordChecksFailedNotificationShown()
+    this.statsStore.increment('checksFailedNotificationCount')
   }
 
   private getContributingRepository(
@@ -508,7 +518,7 @@ export class NotificationsStore {
     return API.fromAccount(account)
   }
 
-  private async getChecksForRef(repository: GitHubRepository, ref: string) {
+  public async getChecksForRef(repository: GitHubRepository, ref: string) {
     const { owner, name } = repository
 
     const api = await this.getAPIForRepository(repository)

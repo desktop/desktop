@@ -885,10 +885,10 @@ export class ChangesList extends React.Component<
       dispatcher.selectWorkingDirectoryFiles(repository)
 
       // If the button is clicked, that implies the stash was not restored or discarded
-      dispatcher.recordNoActionTakenOnStash()
+      dispatcher.incrementMetric('noActionTakenOnStashCount')
     } else {
       dispatcher.selectStashedFile(repository)
-      dispatcher.recordStashView()
+      dispatcher.incrementMetric('stashViewCount')
     }
   }
 

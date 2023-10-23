@@ -153,7 +153,7 @@
     "@types/webpack-hot-middleware": "^2.25.6",
     "@types/webpack-merge": "^5.0.0",
     "@types/xml2js": "^0.4.11",
-    "electron": "26.2.1",
+    "electron": "26.2.4",
     "electron-packager": "^17.1.1",
     "electron-winstaller": "^5.0.0",
     "eslint-plugin-github": "^4.10.1",

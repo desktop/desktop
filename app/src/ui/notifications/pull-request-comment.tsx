@@ -144,7 +144,9 @@ export class PullRequestComment extends React.Component<
       await dispatcher.checkoutPullRequest(repository, pullRequest)
       this.setState({ switchingToPullRequest: false })
 
-      dispatcher.recordPullRequestCommentDialogSwitchToPullRequest()
+      dispatcher.incrementMetric(
+        'pullRequestCommentDialogSwitchToPullRequestCount'
+      )
     }
 
     this.props.onDismissed()

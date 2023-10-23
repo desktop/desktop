@@ -146,6 +146,16 @@ export interface IButtonProps {
    * */
   readonly ariaPressed?: boolean
 
+  /**
+   * Identifies the element (or elements) whose contents or presence are
+   * controlledby this button.
+   *
+   * For example:
+   * - A button may control the visibility content of a neighboring div.
+   * - A tab controls the display of its associated tab panel.
+   * */
+  readonly ariaControls?: string
+
   /** Whether the input field should auto focus when mounted. */
   readonly autoFocus?: boolean
 
@@ -154,6 +164,9 @@ export interface IButtonProps {
 
   /** Specify custom classes for the button's tooltip */
   readonly tooltipClassName?: string
+
+  /** Whether the button's tooltip opens on click  */
+  readonly openTooltipOnClick?: boolean
 }
 
 /**
@@ -212,6 +225,7 @@ export class Button extends React.Component<IButtonProps, {}> {
         aria-haspopup={this.props.ariaHaspopup}
         aria-pressed={this.props.ariaPressed}
         aria-hidden={this.props.ariaHidden}
+        aria-controls={this.props.ariaControls}
         autoFocus={this.props.autoFocus}
       >
         {tooltip && (
@@ -222,6 +236,7 @@ export class Button extends React.Component<IButtonProps, {}> {
             // Show the tooltip immediately on hover if the button is disabled
             delay={disabled ? 0 : undefined}
             onlyWhenOverflowed={this.props.onlyShowTooltipWhenOverflowed}
+            openOnTargetClick={this.props.openTooltipOnClick}
           >
             {tooltip}
           </Tooltip>

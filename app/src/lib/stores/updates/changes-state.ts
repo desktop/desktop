@@ -193,7 +193,7 @@ function performEffectsForMergeStateChange(
 
   // The branch name has changed while remaining conflicted -> the merge must have been aborted
   if (branchNameChanged) {
-    statsStore.recordMergeAbortedAfterConflicts()
+    statsStore.increment('mergeAbortedAfterConflictsCount')
     return
   }
 
@@ -208,9 +208,9 @@ function performEffectsForMergeStateChange(
     const previousTip = prevConflictState.currentTip
 
     if (previousTip !== currentTip) {
-      statsStore.recordMergeSuccessAfterConflicts()
+      statsStore.increment('mergeSuccessAfterConflictsCount')
     } else {
-      statsStore.recordMergeAbortedAfterConflicts()
+      statsStore.increment('mergeAbortedAfterConflictsCount')
     }
   }
 }
@@ -233,7 +233,7 @@ function performEffectsForRebaseStateChange(
 
   // The branch name has changed while remaining conflicted -> the rebase must have been aborted
   if (branchNameChanged) {
-    statsStore.recordRebaseAbortedAfterConflicts()
+    statsStore.increment('rebaseAbortedAfterConflictsCount')
     return
   }
 
@@ -253,7 +253,7 @@ function performEffectsForRebaseStateChange(
       currentBranch === prevConflictState.targetBranch
 
     if (!previousTipChanged) {
-      statsStore.recordRebaseAbortedAfterConflicts()
+      statsStore.increment('rebaseAbortedAfterConflictsCount')
     }
   }
 

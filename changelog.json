@@ -1,5 +1,32 @@
 {
   "releases": {
+    "3.3.4": [
+      "[Added] Added Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
+      "[Added] Add support for Pulsar code editor on Linux - #17397. Thanks @Daeraxa!",
+      "[Added] Add Eclipse IDE integrations for macOS - #16991. Thanks @yuzawa-san!",
+      "[Fixed] Fix JetBrains PhpStorm capitalization - #17505. Thanks @imkylecat!",
+      "[Fixed] Screen readers announce contents of error dialog when attempting to perform certain operations while local changes are present - #17519",
+      "[Fixed] Screen readers announce contents of app error dialogs - #17479",
+      "[Fixed] Screen readers announce contents of merge, rebase, interactive rebase abort confirmation dialogs - #17478",
+      "[Fixed] Pasting long texts in the commit summary textbox does not show a scrollbar in the left pane - #17472",
+      "[Fixed] Tab characters in diffs are rendered correctly - #8616",
+      "[Fixed] Close button in release notes dialog can be clicked - #17438",
+      "[Fixed] Scrolling works as expected in the \"Commit Reachability\" dialog - #17421",
+      "[Fixed] Tip of comment bubbles in Pull Request notifications is rendered correctly - #17411",
+      "[Improved] Added a setting to allow toggling the availability of the commit message length warning - #17370. Thanks @rystills!",
+      "[Improved] Added accessibility label to filter textbox in the History tab - #17488",
+      "[Improved] Improved clarity of the structure of dialogs by using `h2` elements for their titles - #17483",
+      "[Improved] Display co-authors button additional information when it's focused via keyboard navigation - #17464",
+      "[Improved] When focusing the rebase/merge/squash button, screen readers announce the outcome of the operation - #17448",
+      "[Improved] Clarified the outcome of toggling the setting under \"Background Updates\" in the \"Advanced\" settings - #17389",
+      "[Improved] Undo link when resolving conflicts is now a button - #17373"
+    ],
+    "3.3.4-beta3": [
+      "[Fixed] Screen readers announce contents of error dialog when attempting to perform certain operations while local changes are present - #17519",
+      "[Fixed] Fix JetBrains PhpStorm capitalization - #17505. Thanks @imkylecat!",
+      "[Improved] Upgrade to Electron v26.2.4 - #17524",
+      "[Improved] Upgrade node to 18.16.1 - #17453"
+    ],
     "3.3.4-beta2": [
       "[Added] Added Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
       "[Fixed] Screen readers announce contents of app error dialogs - #17479",

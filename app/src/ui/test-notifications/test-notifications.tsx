@@ -24,10 +24,18 @@ import { Loading } from '../lib/loading'
 import { getPullRequestReviewStateIcon } from '../notifications/pull-request-review-helpers'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
+import {
+  getNotificationSettingsUrl,
+  getNotificationsPermission,
+  requestNotificationsPermission,
+  supportsNotificationsPermissionRequest,
+} from 'desktop-notifications'
+import { LinkButton } from '../lib/link-button'
 
 enum TestNotificationType {
   PullRequestReview,
   PullRequestComment,
+  ChecksFailed,
 }
 
 enum TestNotificationStepKind {
@@ -55,6 +63,10 @@ const TestNotificationFlows: ReadonlyArray<TestNotificationFlow> = [
       TestNotificationStepKind.SelectPullRequest,
       TestNotificationStepKind.SelectPullRequestComment,
     ],
+  },
+  {
+    type: TestNotificationType.ChecksFailed,
+    steps: [TestNotificationStepKind.SelectPullRequest],
   },
 ]
 
@@ -93,6 +105,10 @@ interface ITestNotificationsState {
   readonly reviews: ReadonlyArray<ValidNotificationPullRequestReview>
   readonly comments: ReadonlyArray<IAPIComment>
   readonly selectedRows: ReadonlyArray<RowIndexPath>
+
+  readonly suggestGrantNotificationPermission: boolean
+  readonly warnNotificationsDenied: boolean
+  readonly suggestConfigureNotifications: boolean
 }
 
 interface ITestNotificationsProps {
@@ -152,23 +168,113 @@ export class TestNotifications extends React.Component<
       reviews: [],
       comments: [],
       selectedRows: [],
+      suggestGrantNotificationPermission: false,
+      warnNotificationsDenied: false,
+      suggestConfigureNotifications: false,
     }
+  }
+
+  public componentDidMount() {
+    this.updateNotificationsState()
+  }
+
+  private async updateNotificationsState() {
+    const notificationsPermission = await getNotificationsPermission()
+    this.setState({
+      suggestGrantNotificationPermission:
+        supportsNotificationsPermissionRequest() &&
+        notificationsPermission === 'default',
+      warnNotificationsDenied: notificationsPermission === 'denied',
+      suggestConfigureNotifications: notificationsPermission === 'granted',
+    })
+  }
+
+  private onGrantNotificationPermission = async () => {
+    await requestNotificationsPermission()
+    this.updateNotificationsState()
+  }
+
+  private renderNotificationHint() {
+    const {
+      suggestGrantNotificationPermission,
+      warnNotificationsDenied,
+      suggestConfigureNotifications,
+    } = this.state
+
+    if (suggestGrantNotificationPermission) {
+      return (
+        <>
+          {' '}
+          You need to{' '}
+          <LinkButton onClick={this.onGrantNotificationPermission}>
+            grant permission
+          </LinkButton>{' '}
+          to display these notifications from GitHub Desktop.
+        </>
+      )
+    }
+
+    const notificationSettingsURL = getNotificationSettingsUrl()
+
+    if (notificationSettingsURL === null) {
+      return null
+    }
+
+    if (warnNotificationsDenied) {
+      return (
+        <>
+          <span className="warning-icon">⚠️</span> GitHub Desktop has no
+          permission to display notifications. Please, enable them in the{' '}
+          <LinkButton uri={notificationSettingsURL}>
+            Notifications Settings
+          </LinkButton>
+          .
+        </>
+      )
+    }
+
+    const verb = suggestConfigureNotifications
+      ? 'properly configured'
+      : 'enabled'
+
+    return (
+      <>
+        Make sure notifications are {verb} for GitHub Desktop in the{' '}
+        <LinkButton uri={notificationSettingsURL}>
+          Notifications Settings
+        </LinkButton>
+        .
+      </>
+    )
   }
 
   private onDismissed = () => {
     this.props.dispatcher.closePopup()
   }
 
+  private getTypeFriendlyName(type?: TestNotificationType): string {
+    const titleMap = new Map<TestNotificationType, string>([
+      [TestNotificationType.PullRequestReview, 'Pull Request Review'],
+      [TestNotificationType.PullRequestComment, 'Pull Request Comment'],
+      [TestNotificationType.ChecksFailed, 'Pull Request Checks Failed'],
+    ])
+
+    return (
+      titleMap.get(
+        type ??
+          this.state.selectedFlow?.type ??
+          TestNotificationType.PullRequestReview
+      ) ?? ''
+    )
+  }
+
   private renderNotificationType = (
     type: TestNotificationType
   ): JSX.Element => {
-    const title =
-      type === TestNotificationType.PullRequestReview
-        ? 'Pull Request Review'
-        : 'Pull Request Comment'
-
     return (
-      <Button onClick={this.getOnNotificationTypeClick(type)}>{title}</Button>
+      <Button onClick={this.getOnNotificationTypeClick(type)}>
+        {this.getTypeFriendlyName(type)}
+      </Button>
     )
   }
 
@@ -227,6 +333,20 @@ export class TestNotifications extends React.Component<
         )
         break
       }
+      case TestNotificationType.ChecksFailed: {
+        const pullRequest = this.getPullRequest()
+
+        if (pullRequest === null) {
+          return
+        }
+
+        this.props.notificationsDebugStore.simulatePullRequestChecksFailed(
+          this.props.repository,
+          pullRequest,
+          this.props.dispatcher
+        )
+        break
+      }
       default:
         assertNever(selectedFlow.type, `Unknown flow type: ${selectedFlow}`)
     }
@@ -248,7 +368,14 @@ export class TestNotifications extends React.Component<
         })
 
         this.props.notificationsDebugStore
-          .getPullRequests(this.props.repository)
+          .getPullRequests(this.props.repository, {
+            filterByComments:
+              this.state.selectedFlow?.type ===
+              TestNotificationType.PullRequestComment,
+            filterByReviews:
+              this.state.selectedFlow?.type ===
+              TestNotificationType.PullRequestReview,
+          })
           .then(pullRequests => {
             this.setState({
               pullRequests,
@@ -364,6 +491,7 @@ export class TestNotifications extends React.Component<
             {this.renderNotificationType(
               TestNotificationType.PullRequestComment
             )}
+            {this.renderNotificationType(TestNotificationType.ChecksFailed)}
           </div>
         </div>
       )
@@ -402,7 +530,7 @@ export class TestNotifications extends React.Component<
 
     return (
       <div>
-        Pull requests:
+        Pull requests for {this.getTypeFriendlyName()}:
         <SectionList
           rowHeight={40}
           rowCount={[pullRequests.length]}
@@ -620,7 +748,11 @@ export class TestNotifications extends React.Component<
           dismissable={true}
           onDismissed={this.onDismissed}
         />
-        <DialogContent>{this.renderCurrentStep()}</DialogContent>
+
+        <DialogContent>
+          <p>{this.renderNotificationHint()}</p>
+          {this.renderCurrentStep()}
+        </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
             okButtonText="Close"

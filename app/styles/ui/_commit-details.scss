@@ -11,4 +11,15 @@
     // look right alongside blank diff
     border-right: var(--base-border);
   }
+
+  .file-list-header {
+    background: var(--box-alt-background-color);
+    border-bottom: 1px solid var(--box-border-color);
+    border-right: var(--base-border);
+    height: 30px;
+    line-height: 30px;
+    flex: 0 0 auto;
+    padding: 0 var(--spacing);
+    text-align: center;
+  }
 }

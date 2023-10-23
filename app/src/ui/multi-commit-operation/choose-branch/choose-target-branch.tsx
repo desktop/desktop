@@ -13,6 +13,7 @@ import {
   renderDefaultBranch,
 } from '../../branches'
 import { ClickSource } from '../../lib/list'
+import { getDefaultAriaLabelForBranch } from '../../branches/branch-renderer'
 
 interface IChooseTargetBranchDialogProps {
   /**
@@ -94,6 +95,10 @@ export class ChooseTargetBranchDialog extends React.Component<
 
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
     return renderDefaultBranch(item, matches, this.props.currentBranch)
+  }
+
+  private getBranchAriaLabel = (item: IBranchListItem): string => {
+    return getDefaultAriaLabelForBranch(item)
   }
 
   private onEnterPressed = (branch: Branch, source: ClickSource) => {
@@ -191,6 +196,7 @@ export class ChooseTargetBranchDialog extends React.Component<
             canCreateNewBranch={true}
             onCreateNewBranch={this.props.onCreateNewBranch}
             renderBranch={this.renderBranch}
+            getBranchAriaLabel={this.getBranchAriaLabel}
             onItemClick={this.onEnterPressed}
           />
         </DialogContent>
