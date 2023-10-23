@@ -90,7 +90,7 @@
       align-items: center;
 
       &.authors {
-        margin-left: calc(-1 * var(--spacing-half));
+        margin-left: 0;
 
         .avatar {
           width: 16px;
@@ -168,7 +168,6 @@
 
         &.authors {
           display: block;
-          margin-left: 0;
 
           .author {
             margin-bottom: 2px;
