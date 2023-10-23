@@ -47,3 +47,7 @@ export type MenuEvent =
   | 'decrease-active-resizable-width'
   | 'increase-active-resizable-width'
   | 'show-thank-you-popup'
+  | 'show-update-banner'
+  | 'show-thank-you-banner'
+  | 'show-arm64-banner'
+  | 'show-showcase-update-banner'

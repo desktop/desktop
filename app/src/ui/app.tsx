@@ -479,9 +479,56 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.resizeActiveResizable('increase-active-resizable-width')
       case 'decrease-active-resizable-width':
         return this.resizeActiveResizable('decrease-active-resizable-width')
+      case 'show-update-banner':
+        return this.showFakeUpdateBanner({})
+      case 'show-arm64-banner':
+        return this.showFakeUpdateBanner({ isArm64: true })
+      case 'show-showcase-update-banner':
+        return this.showFakeUpdateBanner({ isShowcase: true })
+      case 'show-thank-you-banner':
+        return this.showFakeThankYouBanner()
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
+  }
+
+  private showFakeUpdateBanner(options: {
+    isArm64?: boolean
+    isShowcase?: boolean
+  }) {
+    updateStore.setIsx64ToARM64ImmediateAutoUpdate(options.isArm64 === true)
+
+    if (options.isShowcase) {
+      this.props.dispatcher.setUpdateShowCaseVisibility(true)
+      return
+    }
+
+    this.props.dispatcher.setUpdateBannerVisibility(true)
+  }
+
+  private showFakeThankYouBanner() {
+    const userContributions: ReadonlyArray<ReleaseNote> = [
+      {
+        kind: 'fixed',
+        message: 'A totally awesome fix that fixes something - #123. Thanks!',
+      },
+      {
+        kind: 'added',
+        message:
+          'You can now do this new thing that was added here - #456. Thanks!',
+      },
+    ]
+
+    const banner: Banner = {
+      type: BannerType.OpenThankYouCard,
+      // Grab emoji's by reference because we could still be loading emoji's
+      emoji: this.state.emoji,
+      onOpenCard: () => this.openThankYouCard(userContributions, getVersion()),
+      onThrowCardAway: () => {
+        console.log('Thrown away :(....')
+      },
+    }
+    this.setBanner(banner)
   }
 
   /**

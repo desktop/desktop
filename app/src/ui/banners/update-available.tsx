@@ -1,7 +1,11 @@
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher/index'
 import { LinkButton } from '../lib/link-button'
-import { lastShowCaseVersionSeen, updateStore } from '../lib/update-store'
+import {
+  UpdateStatus,
+  lastShowCaseVersionSeen,
+  updateStore,
+} from '../lib/update-store'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { PopupType } from '../../models/popup'
@@ -124,6 +128,15 @@ export class UpdateAvailable extends React.Component<
   }
 
   private updateNow = () => {
+    if (
+      (__RELEASE_CHANNEL__ === 'development' ||
+        __RELEASE_CHANNEL__ === 'test') &&
+      updateStore.state.status !== UpdateStatus.UpdateReady
+    ) {
+      this.props.onDismissed()
+      return // causes a crash.. if no update is available
+    }
+
     updateStore.quitAndInstallUpdate()
   }
 }
