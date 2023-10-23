@@ -562,6 +562,7 @@ export class ExpandableCommitSummary extends React.Component<
 
     return (
       <div className="ecs-meta-item lines-added-deleted">
+        {isExpanded ? <Octicon symbol={OcticonSymbol.diff} /> : null}
         <div className="lines-added">
           {!isExpanded ? <>+{linesAdded}</> : <>{linesAdded} added lines</>}
         </div>

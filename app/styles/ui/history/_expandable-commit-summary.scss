@@ -175,6 +175,12 @@
           }
         }
 
+        &.lines-added-deleted {
+          .lines-added {
+            padding-left: var(--spacing-half);
+          }
+        }
+
         &.tags {
           span {
             white-space: normal;
