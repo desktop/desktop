@@ -572,7 +572,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.setBanner({
         type: BannerType.SuccessfulReorder,
         count: 1,
-        onUndo: () => {},
+        onUndo: () => {
+          this.props.dispatcher.setBanner({
+            type: BannerType.ReorderUndone,
+            commitsCount: 1,
+          })
+        },
       })
     }
   }
