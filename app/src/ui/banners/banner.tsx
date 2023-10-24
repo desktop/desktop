@@ -51,13 +51,9 @@ export class Banner extends React.Component<IBannerProps, {}> {
 
   public componentDidMount() {
     this.focusTimeoutId = window.setTimeout(() => {
-      const target =
-        this.banner.current?.querySelector('a') ||
-        this.banner.current?.querySelector('button')
-      target?.focus()
+      this.focusOnFirstSuitableElement()
     }, 200)
-
-    this.addFocusListeners()
+    this.addDismissalFocusListeners()
   }
 
   public componentWillUnmount() {
@@ -66,15 +62,22 @@ export class Banner extends React.Component<IBannerProps, {}> {
       this.focusTimeoutId = null
     }
 
-    this.removeFocusListeners()
+    this.removeDismissalFocusListeners()
   }
 
-  private addFocusListeners() {
+  private focusOnFirstSuitableElement = () => {
+    const target =
+      this.banner.current?.querySelector('a') ||
+      this.banner.current?.querySelector('button')
+    target?.focus()
+  }
+
+  private addDismissalFocusListeners() {
     this.banner.current?.addEventListener('focusin', this.onFocusIn)
     this.banner.current?.addEventListener('focusout', this.onFocusOut)
   }
 
-  private removeFocusListeners() {
+  private removeDismissalFocusListeners() {
     this.banner.current?.removeEventListener('focusout', this.onFocusOut)
     this.banner.current?.removeEventListener('focusin', this.onFocusIn)
   }
