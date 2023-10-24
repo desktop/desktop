@@ -1,5 +1,11 @@
 {
   "releases": {
+    "3.3.5-beta1": [
+      "[Added] Syntax highlighting now supports .cc files - #17503. Thanks @DylanDevelops!",
+      "[Fixed] Long file paths are correctly truncated in the conflicts dialog - #17595",
+      "[Fixed] Screen readers announce group name when navigating through grouped lists - #17567",
+      "[Fixed] The history commit summary header is now expandable making the tool-tipped meta data keyboard accessible - #17557."
+    ],
     "3.3.4": [
       "[Added] Added Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
       "[Added] Add support for Pulsar code editor on Linux - #17397. Thanks @Daeraxa!",
