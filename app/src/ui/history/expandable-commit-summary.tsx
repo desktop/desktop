@@ -542,8 +542,10 @@ export class ExpandableCommitSummary extends React.Component<
     return (
       <div id="expandable-commit-summary" className={className}>
         {this.renderSummary()}
-        {this.renderDescription()}
-        {this.renderMetaItems()}
+        <div className="beneath-summary">
+          {this.renderDescription()}
+          {this.renderMetaItems()}
+        </div>
         {this.renderCommitsNotReachable()}
       </div>
     )
