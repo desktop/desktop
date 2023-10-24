@@ -51,3 +51,6 @@ export type MenuEvent =
   | 'show-thank-you-banner'
   | 'show-arm64-banner'
   | 'show-showcase-update-banner'
+  | 'show-test-reorder-banner'
+  | 'show-test-undone-banner'
+  | 'show-test-cherry-pick-conflicts-banner'

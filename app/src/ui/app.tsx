@@ -487,6 +487,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showFakeUpdateBanner({ isShowcase: true })
       case 'show-thank-you-banner':
         return this.showFakeThankYouBanner()
+      case 'show-test-reorder-banner':
+        return this.showFakeReorderBanner()
+      case 'show-test-undone-banner':
+        return this.showFakeUndoneBanner()
+      case 'show-test-cherry-pick-conflicts-banner':
+        return this.showFakeCherryPickConflictBanner()
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
@@ -557,6 +563,40 @@ export class App extends React.Component<IAppProps, IAppState> {
         ],
         friendlyName: 'kind contributor',
         latestVersion: '3.0.0',
+      })
+    }
+  }
+
+  private async showFakeReorderBanner() {
+    if (__DEV__) {
+      this.props.dispatcher.setBanner({
+        type: BannerType.SuccessfulReorder,
+        count: 1,
+        onUndo: () => {
+          this.props.dispatcher.setBanner({
+            type: BannerType.ReorderUndone,
+            commitsCount: 1,
+          })
+        },
+      })
+    }
+  }
+
+  private async showFakeUndoneBanner() {
+    if (__DEV__) {
+      this.props.dispatcher.setBanner({
+        type: BannerType.ReorderUndone,
+        commitsCount: 1,
+      })
+    }
+  }
+
+  private async showFakeCherryPickConflictBanner() {
+    if (__DEV__) {
+      this.props.dispatcher.setBanner({
+        type: BannerType.CherryPickConflictsFound,
+        targetBranchName: 'fake-branch-yo',
+        onOpenConflictsDialog: () => {},
       })
     }
   }
