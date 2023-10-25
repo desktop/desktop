@@ -127,7 +127,7 @@ function packageWindows() {
     }
     writeFileSync(metadataPath, JSON.stringify(acsMetadata, null, 2), 'utf8')
 
-    options.signWithParams = `/v /debug /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "${dlibPath}" /dmdf "${metadataPath}"`
+    options.signWithParams = `/v /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "${dlibPath}" /dmdf "${metadataPath}"`
   }
 
   console.log('Packaging for Windows…')
