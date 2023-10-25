@@ -107,8 +107,23 @@ function packageWindows() {
   }
 
   if (isGitHubActions() && isPublishable()) {
-    const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
-    options.signWithParams = `/f ${certificatePath} /p ${process.env.WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256 /fd sha256`
+    const dlibPath = join(
+      outputDir,
+      'Azure.CodeSigning.Client.1.0.38',
+      'bin',
+      'x64',
+      'Azure.CodeSigning.Dlib.dll'
+    )
+    const metadataPath = join(outputDir, 'acs-metadata.json')
+    const acsMetadata = {
+      Endpoint: 'https://eus.codesigning.azure.net/',
+      CodeSigningAccountName: 'github-desktop',
+      CertificateProfileName: 'desktop',
+      CorrelationId: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+    }
+    writeFileSync(metadataPath, JSON.stringify(acsMetadata, null, 2), 'utf8')
+
+    options.signWithParams = `/v /debug /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "${dlibPath}" /dmdf "${metadataPath}"`
   }
 
   console.log('Packaging for Windows…')
