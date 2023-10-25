@@ -32,13 +32,16 @@
       font-size: 11px;
       position: absolute;
       top: -22px;
-      left: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
       border-radius: 100%;
     }
+  }
+
+  &:not(.keyboard-insertion) .commit-box .count {
+    left: 20px;
   }
 
   .tool-tip-contents {

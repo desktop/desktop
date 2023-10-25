@@ -294,6 +294,10 @@ interface IListProps {
    */
   readonly getRowAriaLabel?: (row: number) => string | undefined
 
+  readonly keyboardInsertionElementRenderer?: (
+    data: DragData
+  ) => JSX.Element | null
+
   readonly onCancelKeyboardInsertion?: () => void
   readonly onConfirmKeyboardInsertion?: (
     indexPath: RowIndexPath,
@@ -333,6 +337,9 @@ export class List extends React.Component<IListProps, IListState> {
   private focusRow = -1
 
   private readonly rowRefs = new Map<number, HTMLDivElement>()
+
+  private readonly keyboardInsertionElementRef =
+    React.createRef<HTMLDivElement>()
 
   /**
    * The style prop for our child Grid. We keep this here in order
@@ -1010,6 +1017,13 @@ export class List extends React.Component<IListProps, IListState> {
             : { section: 0, row: 0 },
       })
     }
+
+    if (
+      prevState.keyboardInsertionIndexPath !==
+      this.state.keyboardInsertionIndexPath
+    ) {
+      this.updateKeyboardInsertionElementPosition()
+    }
   }
 
   public componentWillMount() {
@@ -1183,8 +1197,54 @@ export class List extends React.Component<IListProps, IListState> {
         aria-label={this.props.ariaLabel}
       >
         {content}
+        {this.renderKeyboardInsertionElement()}
       </div>
     )
+  }
+
+  private renderKeyboardInsertionElement = () => {
+    if (
+      !this.props.keyboardInsertionData ||
+      !this.state.keyboardInsertionIndexPath
+    ) {
+      return null
+    }
+
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          zIndex: 1000,
+          top: 0,
+          left: 0,
+        }}
+        ref={this.keyboardInsertionElementRef}
+      >
+        {this.props.keyboardInsertionElementRenderer?.(
+          this.props.keyboardInsertionData
+        )}
+      </div>
+    )
+  }
+
+  private updateKeyboardInsertionElementPosition = () => {
+    const { keyboardInsertionData } = this.props
+    const { keyboardInsertionIndexPath } = this.state
+    const element = this.keyboardInsertionElementRef.current
+
+    if (!keyboardInsertionData || !keyboardInsertionIndexPath || !element) {
+      return
+    }
+
+    const rowElement = this.rowRefs.get(keyboardInsertionIndexPath.row)
+
+    if (!rowElement) {
+      return
+    }
+
+    const rowRect = rowElement.getBoundingClientRect()
+    element.style.top = `${rowRect.top}px`
+    element.style.left = `${rowRect.right + 20}px`
   }
 
   /**
@@ -1568,6 +1628,8 @@ export class List extends React.Component<IListProps, IListState> {
 
       this.fakeScroll.scrollTop = scrollTop
     }
+
+    this.updateKeyboardInsertionElementPosition()
   }
 
   /**

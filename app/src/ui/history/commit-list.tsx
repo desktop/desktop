@@ -16,6 +16,8 @@ import {
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { clipboard } from 'electron'
 import { RowIndexPath } from '../lib/list/list-row-index-path'
+import { assertNever } from '../../lib/fatal-error'
+import { CommitDragElement } from '../drag-elements/commit-drag-element'
 
 const RowHeight = 50
 
@@ -438,6 +440,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           selectionMode="multi"
           onScroll={this.onScroll}
           keyboardInsertionData={this.props.keyboardReorderData}
+          keyboardInsertionElementRenderer={this.renderKeyboardInsertionElement}
           insertionDragType={
             reorderingEnabled === true &&
             isMultiCommitOperationInProgress === false
@@ -456,6 +459,32 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         />
       </div>
     )
+  }
+
+  private renderKeyboardInsertionElement = (
+    data: DragData
+  ): JSX.Element | null => {
+    const { emoji, gitHubRepository } = this.props
+    const { commits } = data
+
+    if (commits.length === 0) {
+      return null
+    }
+
+    switch (data.type) {
+      case DragType.Commit:
+        return (
+          <CommitDragElement
+            gitHubRepository={gitHubRepository}
+            commit={commits[0]}
+            selectedCommits={commits}
+            isKeyboardInsertion={true}
+            emoji={emoji}
+          />
+        )
+      default:
+        return assertNever(data.type, `Unknown drag element type: ${data}`)
+    }
   }
 
   private onRowContextMenu = (
