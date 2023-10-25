@@ -101,6 +101,19 @@ jobs:
         env:
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
+      - name: Install Azure Code Signing Client
+        if: ${{ runner.os == 'Windows' && inputs.SIGN }}
+        run:
+          nuget install Azure.CodeSigning.Client -Version 1.0.38 -NonInteractive
+          -OutputDirectory "${{ runner.temp }}\acs"
+      - name: Try signing random dll
+        if: ${{ runner.os == 'Windows' }}
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_SECRET }}
+        run: |
+          "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe" sign /v /debug /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "D:\a\_temp\acs\Azure.CodeSigning.Client.1.0.38\bin\x64\Azure.CodeSigning.Dlib.dll" /dmdf "D:\a\_temp\acs\acs-metadata.json" D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\7z.dll
       - name: Build production app
         run: yarn build:prod
         env:
@@ -125,19 +138,6 @@ jobs:
       #- name: Run script tests
       #  if: matrix.arch == 'x64'
       #  run: yarn test:script
-      - name: Install Azure Code Signing Client
-        if: ${{ runner.os == 'Windows' && inputs.SIGN }}
-        run:
-          nuget install Azure.CodeSigning.Client -Version 1.0.38 -NonInteractive
-          -OutputDirectory "${{ runner.temp }}\acs"
-      - name: Try signing random dll
-        if: ${{ runner.os == 'Windows' }}
-        env:
-          AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_SECRET }}
-        run: |
-          "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe" sign /v /debug /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "D:\a\_temp\acs\Azure.CodeSigning.Client.1.0.38\bin\x64\Azure.CodeSigning.Dlib.dll" /dmdf "D:\a\_temp\acs\acs-metadata.json" D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\7z.dll
       - name: Package production app
         run: yarn package
         env:
