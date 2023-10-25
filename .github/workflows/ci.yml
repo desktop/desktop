@@ -134,7 +134,9 @@ jobs:
         run: yarn package
         env:
           npm_config_arch: ${{ matrix.arch }}
-          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_SECRET }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         if: ${{ inputs.upload-artifacts }}
