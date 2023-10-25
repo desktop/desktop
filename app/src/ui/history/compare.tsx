@@ -25,11 +25,12 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
-import { DragType } from '../../models/drag-drop'
+import { CommitDragData, DragType } from '../../models/drag-drop'
 import { PopupType } from '../../models/popup'
 import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
+import { RowIndexPath } from '../lib/list/list-row-index-path'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -65,6 +66,8 @@ interface ICompareSidebarState {
    * For all other cases, use the prop
    */
   readonly focusedBranch: Branch | null
+
+  readonly keyboardReorderData?: CommitDragData
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -262,6 +265,9 @@ export class CompareSidebar extends React.Component<
         onDeleteTag={this.onDeleteTag}
         onCherryPick={this.onCherryPick}
         onDropCommitInsertion={this.onDropCommitInsertion}
+        onKeyboardReorder={this.onKeyboardReorder}
+        onCancelKeyboardReorder={this.onCancelKeyboardReorder}
+        onConfirmKeyboardReorder={this.onConfirmKeyboardReorder}
         onSquash={this.onSquash}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
@@ -274,8 +280,27 @@ export class CompareSidebar extends React.Component<
         isMultiCommitOperationInProgress={
           this.props.isMultiCommitOperationInProgress
         }
+        keyboardReorderData={this.state.keyboardReorderData}
       />
     )
+  }
+
+  private onCancelKeyboardReorder = () => {
+    this.setState({
+      keyboardReorderData: undefined,
+    })
+  }
+
+  private onConfirmKeyboardReorder = (indexPath: RowIndexPath) => {
+    const { keyboardReorderData } = this.state
+    if (!keyboardReorderData) {
+      return
+    }
+
+    this.onDropCommitInsertion(null, keyboardReorderData.commits, null)
+    this.setState({
+      keyboardReorderData: undefined,
+    })
   }
 
   private onDropCommitInsertion = async (
@@ -283,6 +308,10 @@ export class CompareSidebar extends React.Component<
     commitsToInsert: ReadonlyArray<Commit>,
     lastRetainedCommitRef: string | null
   ) => {
+    this.setState({
+      keyboardReorderData: undefined,
+    })
+
     if (
       await doMergeCommitsExistAfterCommit(
         this.props.repository,
@@ -628,6 +657,15 @@ export class CompareSidebar extends React.Component<
 
   private onCherryPick = (commits: ReadonlyArray<CommitOneLine>) => {
     this.props.onCherryPick(this.props.repository, commits)
+  }
+
+  private onKeyboardReorder = (toReorder: ReadonlyArray<Commit>) => {
+    this.setState({
+      keyboardReorderData: {
+        type: DragType.Commit,
+        commits: toReorder,
+      },
+    })
   }
 
   private onSquash = async (

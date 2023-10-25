@@ -5,7 +5,7 @@ import { Commit, CommitOneLine } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
 import { List } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
-import { DragData, DragType } from '../../models/drag-drop'
+import { CommitDragData, DragData, DragType } from '../../models/drag-drop'
 import classNames from 'classnames'
 import memoizeOne from 'memoize-one'
 import { IMenuItem, showContextualMenu } from '../../lib/menu-item'
@@ -15,6 +15,7 @@ import {
 } from '../../lib/feature-flag'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { clipboard } from 'electron'
+import { RowIndexPath } from '../lib/list/list-row-index-path'
 
 const RowHeight = 50
 
@@ -49,6 +50,9 @@ interface ICommitListProps {
   /** The message to display inside the list when no results are displayed */
   readonly emptyListMessage?: JSX.Element | string
 
+  /**  */
+  readonly keyboardReorderData?: CommitDragData
+
   /** Callback which fires when a commit has been selected in the list */
   readonly onCommitsSelected?: (
     commits: ReadonlyArray<Commit>,
@@ -71,6 +75,9 @@ interface ICommitListProps {
 
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub?: (sha: string) => void
+
+  readonly onCancelKeyboardReorder?: () => void
+  readonly onConfirmKeyboardReorder?: (indexPath: RowIndexPath) => void
 
   /**
    * Callback to fire to create a branch from a given commit in the current
@@ -107,8 +114,8 @@ interface ICommitListProps {
   /** Callback to fire to cherry picking the commit  */
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
 
-  /** Callback to fire to reordering commits  */
-  readonly onReorder?: (toReorder: ReadonlyArray<Commit>) => void
+  /** Callback to fire to reordering commits with the keyboard */
+  readonly onKeyboardReorder?: (toReorder: ReadonlyArray<Commit>) => void
 
   /** Callback to fire to squashing commits  */
   readonly onSquash?: (
@@ -215,7 +222,10 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         )}
         commit={commit}
         emoji={this.props.emoji}
-        isDraggable={this.props.isMultiCommitOperationInProgress === false}
+        isDraggable={
+          this.props.isMultiCommitOperationInProgress === false &&
+          !this.inKeyboardReorderMode
+        }
         onSquash={this.onSquash}
         selectedCommits={this.selectedCommits}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
@@ -226,6 +236,10 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         }
       />
     )
+  }
+
+  private get inKeyboardReorderMode() {
+    return this.props.keyboardReorderData !== undefined
   }
 
   private getLastRetainedCommitRef(indexes: ReadonlyArray<number>) {
@@ -418,9 +432,12 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           onDropDataInsertion={this.onDropDataInsertion}
           onSelectionChanged={this.onSelectionChanged}
           onSelectedRowChanged={this.onSelectedRowChanged}
+          onCancelKeyboardInsertion={this.props.onCancelKeyboardReorder}
+          onConfirmKeyboardInsertion={this.onConfirmKeyboardReorder}
           onRowContextMenu={this.onRowContextMenu}
           selectionMode="multi"
           onScroll={this.onScroll}
+          keyboardInsertionData={this.props.keyboardReorderData}
           insertionDragType={
             reorderingEnabled === true &&
             isMultiCommitOperationInProgress === false
@@ -542,7 +559,7 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     items.push({
       label: __DARWIN__ ? 'Reorder Commit' : 'Reorder commit',
       action: () => {
-        this.props.onReorder?.([commit])
+        this.props.onKeyboardReorder?.([commit])
       },
       enabled: this.canReorder(),
     })
@@ -623,8 +640,11 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
   }
 
   private canReorder(): boolean {
-    const { onReorder, disableReordering, isMultiCommitOperationInProgress } =
-      this.props
+    const {
+      onKeyboardReorder: onReorder,
+      disableReordering,
+      isMultiCommitOperationInProgress,
+    } = this.props
     return (
       onReorder !== undefined &&
       disableReordering === false &&
@@ -701,10 +721,17 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         label: __DARWIN__
           ? `Reorder ${count} Commits…`
           : `Reorder ${count} commits…`,
-        action: () => this.props.onReorder?.(this.selectedCommits),
+        action: () => this.props.onKeyboardReorder?.(this.selectedCommits),
         enabled: this.canReorder(),
       },
     ]
+  }
+
+  private onConfirmKeyboardReorder = (
+    indexPath: RowIndexPath,
+    data: DragData
+  ) => {
+    this.onDropDataInsertion(indexPath.row, data)
   }
 
   private onDropDataInsertion = (row: number, data: DragData) => {
