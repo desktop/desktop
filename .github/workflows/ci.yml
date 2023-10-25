@@ -128,8 +128,8 @@ jobs:
       - name: Install Azure Code Signing Client
         if: ${{ runner.os == 'Windows' && inputs.SIGN }}
         run:
-          nuget install Azure.CodeSigning.Client -Version 1.0.38
-          -OutputDirectory build
+          nuget install Azure.CodeSigning.Client -Version 1.0.38 -NonInteractive
+          -OutputDirectory "${{ runner.temp }}\acs"
       - name: Package production app
         run: yarn package
         env:

@@ -23,6 +23,7 @@ import { existsSync, rmSync, writeFileSync } from 'fs'
 import { getVersion } from '../app/package-info'
 import { rename } from 'fs/promises'
 import { join } from 'path'
+import { assertNonNullable } from '../app/src/lib/fatal-error'
 
 const distPath = getDistPath()
 const productName = getProductName()
@@ -107,14 +108,17 @@ function packageWindows() {
   }
 
   if (isGitHubActions() && isPublishable()) {
+    assertNonNullable(process.env.RUNNER_TEMP, 'Missing RUNNER_TEMP env var')
+
+    const acsPath = join(process.env.RUNNER_TEMP, 'acs')
     const dlibPath = join(
-      outputDir,
+      acsPath,
       'Azure.CodeSigning.Client.1.0.38',
       'bin',
       'x64',
       'Azure.CodeSigning.Dlib.dll'
     )
-    const metadataPath = join(outputDir, 'acs-metadata.json')
+    const metadataPath = join(acsPath, 'acs-metadata.json')
     const acsMetadata = {
       Endpoint: 'https://eus.codesigning.azure.net/',
       CodeSigningAccountName: 'github-desktop',
