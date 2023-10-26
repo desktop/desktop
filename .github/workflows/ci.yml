@@ -79,6 +79,9 @@ jobs:
     env:
       RELEASE_CHANNEL: ${{ inputs.environment }}
     steps:
+      - name: Unconditionally fail on macOS
+        if: ${{ runner.os == 'macOS'}}
+        run: exit 1
       - uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repository || github.repository }}
