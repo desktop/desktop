@@ -143,6 +143,14 @@ jobs:
       #- name: Run script tests
       #  if: matrix.arch == 'x64'
       #  run: yarn test:script
+      - name: Replace signtool.exe
+        if: ${{ runner.os == 'Windows' }}
+        run: |
+          Get-ChildItem -ErrorAction SilentlyContinue 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe'
+          Get-ChildItem -ErrorAction SilentlyContinue 'D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\signtool.exe'
+          Copy-Item -Path "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe" -Destination "node_modules\electron-winstaller\vendor\signtool.exe" -Force
+          Get-ChildItem -ErrorAction SilentlyContinue 'D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\signtool.exe'
+          Get-ChildItem -Filter signtool.exe -ErrorAction SilentlyContinue -Recurse
       - name: Package production app
         run: yarn package
         continue-on-error: true
@@ -163,6 +171,8 @@ jobs:
           Get-ChildItem -ErrorAction SilentlyContinue 'D:\a\_temp\acs\Azure.CodeSigning.Client.1.0.38\bin\x64\Azure.CodeSigning.Dlib.dll'
           Get-ChildItem -ErrorAction SilentlyContinue 'D:\a\_temp\acs\acs-metadata.json'
           Get-ChildItem -ErrorAction SilentlyContinue 'C:\Users\runneradmin\AppData\Local\SquirrelTemp\tempa\lib\net45\ffmpeg.dll'
+          Get-ChildItem -ErrorAction SilentlyContinue 'D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\signtool.exe'
+          Get-ChildItem -ErrorAction SilentlyContinue 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe'
           & 'D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\signtool.exe' sign /v /debug /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "D:\a\_temp\acs\Azure.CodeSigning.Client.1.0.38\bin\x64\Azure.CodeSigning.Dlib.dll" /dmdf "D:\a\_temp\acs\acs-metadata.json" "D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\7z.dll"
           & 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe' sign /v /debug /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "D:\a\_temp\acs\Azure.CodeSigning.Client.1.0.38\bin\x64\Azure.CodeSigning.Dlib.dll" /dmdf "D:\a\_temp\acs\acs-metadata.json" "D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\7z.dll"
       - name: Unconditionally fail
