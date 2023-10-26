@@ -148,11 +148,11 @@ export class LocalChangesOverwrittenDialog extends React.Component<
       false
     )
 
+    this.props.onDismissed()
+
     if (createdStash) {
       await dispatcher.performRetry(retryAction)
     }
-
-    this.props.onDismissed()
   }
 
   /**
