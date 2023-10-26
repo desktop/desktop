@@ -48,7 +48,10 @@ export const isMacOSVentura = memoizeOne(
 
 /** We're currently running macOS and it is macOS Ventura. */
 export const isMacOSSonoma = memoizeOne(
-  () => __DARWIN__ && systemVersionGreaterThanOrEqualTo('14.0')
+  () =>
+    __DARWIN__ &&
+    systemVersionGreaterThanOrEqualTo('14.0') &&
+    systemVersionLessThan('15.0')
 )
 
 /** We're currently running macOS and it is macOS Catalina or earlier. */
