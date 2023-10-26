@@ -115,10 +115,6 @@ jobs:
         run: |
           Get-ChildItem -Filter signtool.exe -Path 'C:\Program Files (x86)\Windows Kits\10\bin' -ErrorAction SilentlyContinue -Recurse | select FullName
           Get-ChildItem -Filter *.dll -ErrorAction SilentlyContinue -Recurse | select FullName
-      - name: Replace signtool.exe
-        if: ${{ runner.os == 'Windows' }}
-        run: |
-          Copy-Item -Path "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe" -Destination "node_modules\electron-winstaller\vendor\signtool.exe" -Force
       - name: Build production app
         run: yarn build:prod
         env:
@@ -146,11 +142,9 @@ jobs:
       - name: Replace signtool.exe
         if: ${{ runner.os == 'Windows' }}
         run: |
-          Get-ChildItem -ErrorAction SilentlyContinue 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe'
-          Get-ChildItem -ErrorAction SilentlyContinue 'D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\signtool.exe'
-          Copy-Item -Path "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe" -Destination "node_modules\electron-winstaller\vendor\signtool.exe" -Force
-          Get-ChildItem -ErrorAction SilentlyContinue 'D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\signtool.exe'
-          Get-ChildItem -Filter signtool.exe -ErrorAction SilentlyContinue -Recurse
+          Get-ChildItem "node_modules\electron-winstaller\vendor"
+          Copy-Item -Path "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\*" -Include signtool.exe,signtool.exe.manifest,Microsoft.Windows.Build.Signing.mssign32.dll.manifest,mssign32.dll,Microsoft.Windows.Build.Signing.wintrust.dll.manifest,wintrust.dll,Microsoft.Windows.Build.Appx.AppxSip.dll.manifest,AppxSip.dll,Microsoft.Windows.Build.Appx.AppxPackaging.dll.manifest,AppxPackaging.dll,Microsoft.Windows.Build.Appx.OpcServices.dll.manifest,OpcServices.dll -Destination "node_modules\electron-winstaller\vendor" -Verbose
+          Get-ChildItem "node_modules\electron-winstaller\vendor"
       - name: Package production app
         run: yarn package
         continue-on-error: true
