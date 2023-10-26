@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.3.5-test7": ["[New] Azure Code Signing"],
     "3.3.5-beta1": [
       "[Added] Syntax highlighting now supports .cc files - #17503. Thanks @DylanDevelops!",
       "[Fixed] Long file paths are correctly truncated in the conflicts dialog - #17595",
