@@ -63,7 +63,7 @@ export class PopoverDropdown extends React.Component<
         maxHeight={maxPopoverContentHeight}
         decoration={PopoverDecoration.Balloon}
         onClickOutside={this.closePopover}
-        aria-labelledby="popover-dropdown-header"
+        ariaLabelledby="popover-dropdown-header"
       >
         <div className="popover-dropdown-wrapper">
           <div className="popover-dropdown-header">
