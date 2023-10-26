@@ -67,7 +67,7 @@ export class PopoverDropdown extends React.Component<
       >
         <div className="popover-dropdown-wrapper">
           <div className="popover-dropdown-header">
-            <span id="popover-dropdown-header">{contentTitle}</span>
+            <h3 id="popover-dropdown-header">{contentTitle}</h3>
 
             <button
               className="close"
