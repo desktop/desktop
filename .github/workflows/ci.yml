@@ -126,7 +126,7 @@ jobs:
         if: matrix.arch == 'x64'
         run: yarn test:script
       - name: Install Azure Code Signing Client
-        if: ${{ runner.os == 'Windows' && inputs.SIGN }}
+        if: ${{ runner.os == 'Windows' && inputs.sign }}
         run: |
           $acsZip = Join-Path $env:RUNNER_TEMP "acs.zip"
           $acsDir = Join-Path $env:RUNNER_TEMP "acs"
@@ -136,7 +136,6 @@ jobs:
           Copy-Item -Path "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\*" -Include signtool.exe,signtool.exe.manifest,Microsoft.Windows.Build.Signing.mssign32.dll.manifest,mssign32.dll,Microsoft.Windows.Build.Signing.wintrust.dll.manifest,wintrust.dll,Microsoft.Windows.Build.Appx.AppxSip.dll.manifest,AppxSip.dll,Microsoft.Windows.Build.Appx.AppxPackaging.dll.manifest,AppxPackaging.dll,Microsoft.Windows.Build.Appx.OpcServices.dll.manifest,OpcServices.dll -Destination "node_modules\electron-winstaller\vendor" -Verbose
       - name: Package production app
         run: yarn package
-        if: ${{ inputs.sign }}
         env:
           npm_config_arch: ${{ matrix.arch }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
