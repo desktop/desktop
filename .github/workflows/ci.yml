@@ -162,7 +162,10 @@ jobs:
           Get-ChildItem 'D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\7z.dll'
           Get-ChildItem 'D:\a\_temp\acs\Azure.CodeSigning.Client.1.0.38\bin\x64\Azure.CodeSigning.Dlib.dll'
           Get-ChildItem 'D:\a\_temp\acs\acs-metadata.json'
+          Get-ChildItem 'C:\Users\runneradmin\AppData\Local\SquirrelTemp\tempa\lib\net45\ffmpeg.dll'
           & 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe' sign /v /debug /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "D:\a\_temp\acs\Azure.CodeSigning.Client.1.0.38\bin\x64\Azure.CodeSigning.Dlib.dll" /dmdf "D:\a\_temp\acs\acs-metadata.json" "D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\7z.dll"
+          & 'D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\signtool.exe' sign /v /debug /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "D:\a\_temp\acs\Azure.CodeSigning.Client.1.0.38\bin\x64\Azure.CodeSigning.Dlib.dll" /dmdf "D:\a\_temp\acs\acs-metadata.json" "D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\7z.dll"
+          & 'D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\signtool.exe' sign /v /debug /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "D:\a\_temp\acs\Azure.CodeSigning.Client.1.0.38\bin\x64\Azure.CodeSigning.Dlib.dll" /dmdf "D:\a\_temp\acs\acs-metadata.json" "C:\Users\runneradmin\AppData\Local\SquirrelTemp\tempa\lib\net45\ffmpeg.dll"
       - name: Unconditionally fail
         run: exit 1
       - name: Upload artifacts
