@@ -112,15 +112,6 @@ jobs:
         run: |
           Get-ChildItem -Filter signtool.exe -Path 'C:\Program Files (x86)\Windows Kits\10\bin' -ErrorAction SilentlyContinue -Recurse | select FullName
           Get-ChildItem -Filter *.dll -ErrorAction SilentlyContinue -Recurse | select FullName
-      - name: Try signing random dll
-        if: ${{ runner.os == 'Windows' }}
-        continue-on-error: true
-        env:
-          AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_SECRET }}
-        run: |
-          & 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe' sign /v /debug /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "D:\a\_temp\acs\Azure.CodeSigning.Client.1.0.38\bin\x64\Azure.CodeSigning.Dlib.dll" /dmdf "D:\a\_temp\acs\acs-metadata.json" node_modules\electron-winstaller\vendor\7z.dll
       - name: Replace signtool.exe
         if: ${{ runner.os == 'Windows' }}
         run: |
@@ -138,6 +129,18 @@ jobs:
           KEY_PASSWORD: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
+      - name: Try signing random dll
+        if: ${{ runner.os == 'Windows' }}
+        continue-on-error: true
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_SECRET }}
+        run: |
+          Get-ChildItem 'D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\7z.dll'
+          Get-ChildItem 'D:\a\_temp\acs\Azure.CodeSigning.Client.1.0.38\bin\x64\Azure.CodeSigning.Dlib.dll'
+          Get-ChildItem 'D:\a\_temp\acs\acs-metadata.json'
+          & 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe' sign /v /debug /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "D:\a\_temp\acs\Azure.CodeSigning.Client.1.0.38\bin\x64\Azure.CodeSigning.Dlib.dll" /dmdf "D:\a\_temp\acs\acs-metadata.json" "D:\a\deploy\deploy\node_modules\electron-winstaller\vendor\7z.dll"
       #- name: Prepare testing environment
       #  if: matrix.arch == 'x64'
       #  run: yarn test:setup
@@ -151,11 +154,14 @@ jobs:
       #  run: yarn test:script
       - name: Package production app
         run: yarn package
+        continue-on-error: true
         env:
           npm_config_arch: ${{ matrix.arch }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_SECRET }}
+      - name: Unconditionally fail
+        run: exit 1
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         if: ${{ inputs.upload-artifacts }}
