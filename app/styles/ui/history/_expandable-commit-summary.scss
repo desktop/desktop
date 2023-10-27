@@ -79,7 +79,7 @@
       display: -webkit-box;
       -webkit-box-orient: vertical;
       // Maximum amount of commit description lines to show before collapsing
-      -webkit-line-clamp: 3;
+      -webkit-line-clamp: 2;
     }
 
     .ecs-description-text {
@@ -170,10 +170,17 @@
   &.expanded {
     display: block;
 
-    .ecs-description-scroll-view {
-      overflow: hidden;
-      display: block;
-      -webkit-line-clamp: none;
+    .ecs-description {
+      .ecs-description-text {
+        background-color: var(--box-alt-background-color);
+        padding: var(--spacing-half);
+      }
+
+      .ecs-description-scroll-view {
+        overflow: hidden;
+        display: block;
+        -webkit-line-clamp: none;
+      }
     }
 
     .ecs-meta {

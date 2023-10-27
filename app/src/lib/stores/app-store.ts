@@ -6303,7 +6303,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       : ''
 
     const encodedCompareBranch =
-      compareForkPreface + encodeURIComponent(compareBranch.nameWithoutRemote)
+      compareForkPreface +
+      encodeURIComponent(
+        compareBranch.upstreamWithoutRemote ?? compareBranch.nameWithoutRemote
+      )
 
     const compareString = `${encodedBaseBranch}${encodedCompareBranch}`
     const baseURL = `${htmlURL}/pull/new/${compareString}`

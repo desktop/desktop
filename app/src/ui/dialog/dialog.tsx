@@ -4,7 +4,7 @@ import { DialogHeader } from './header'
 import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
 import { isTopMostDialog } from './is-top-most'
-import { isMacOSVentura } from '../../lib/get-os'
+import { isMacOSSonoma, isMacOSVentura } from '../../lib/get-os'
 
 export interface IDialogStackContext {
   /** Whether or not this dialog is the top most one in the stack to be
@@ -734,47 +734,59 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
    * aria-labelledby and the aria-describedby is optional unless the dialog has
    * a role of alertdialog, in which case both are required.
    *
-   * However, macOs Ventura introduced a regression in that:
-   *
-   * For role of 'dialog' (default),  the aria-labelledby is not announced and
-   *    if provided prevents the aria-describedby from being announced. Thus,
-   *    this method will add the aria-labelledby to the aria-describedby in this
-   *    case.
-   *
-   * For role of 'alertdialog', the aria-labelledby is announced but not the
-   *    aria-describedby. Thus, this method will add both to the
-   *    aria-labelledby.
-   *
-   * Neither of the above is semantically correct tho, hopefully, macOs will be
-   * fixed in a future release. The issue is known for macOS versions 13.0 to
-   * the current version of 13.5 as of 2023-07-31.
-   *
-   * A known macOS behavior is that if two ids are provided to the
-   * aria-describedby only the first one is announced with a note about the
-   * second one existing. This currently does not impact us as we only provide
-   * one id for non-alert dialogs and the alert dialogs are handled with the
-   * `aria-labelledby` where both ids are announced.
-   *
+   * However, macOS VoiceOver is not consistent. We have different implementations for it.
    */
   private getAriaAttributes() {
-    if (!isMacOSVentura()) {
-      // correct semantics for all other os
+    if (isMacOSVentura()) {
+      /*
+       * macOs Ventura introduced a regression in that:
+       *
+       * For role of 'dialog' (default),  the aria-labelledby is not announced and
+       *    if provided prevents the aria-describedby from being announced. Thus,
+       *    this method will add the aria-labelledby to the aria-describedby in this
+       *    case.
+       *
+       * For role of 'alertdialog', the aria-labelledby is announced but not the
+       *    aria-describedby. Thus, this method will add both to the
+       *    aria-labelledby.
+       *
+       * Neither of the above is semantically correct tho, hopefully, macOs will be
+       * fixed in a future release. The issue is known for macOS versions 13.0 to
+       * the current version of 13.5 as of 2023-07-31.
+       *
+       * A known macOS behavior is that if two ids are provided to the
+       * aria-describedby only the first one is announced with a note about the
+       * second one existing. This currently does not impact us as we only provide
+       * one id for non-alert dialogs and the alert dialogs are handled with the
+       * `aria-labelledby` where both ids are announced
+       */
+      if (this.props.role === 'alertdialog') {
+        return {
+          'aria-labelledby': `${this.state.titleId} ${this.props.ariaDescribedBy}`,
+        }
+      }
+
       return {
-        'aria-labelledby': this.state.titleId,
+        'aria-describedby': `${this.state.titleId} ${
+          this.props.ariaDescribedBy ?? ''
+        }`,
+      }
+    }
+
+    if (isMacOSSonoma() && this.props.role !== 'alertdialog') {
+      // macOS Sonoma introduced a regression in that: For role of 'dialog', the
+      // aria-labelledby is not announced. However, if the dialog has a child
+      // with a role of header (aka h* elemeent) it will be announced as long as
+      // the aria-labelledby is NOT provided.
+      return {
         'aria-describedby': this.props.ariaDescribedBy,
       }
     }
 
-    if (this.props.role === 'alertdialog') {
-      return {
-        'aria-labelledby': `${this.state.titleId} ${this.props.ariaDescribedBy}`,
-      }
-    }
-
+    // correct semantics
     return {
-      'aria-describedby': `${this.state.titleId} ${
-        this.props.ariaDescribedBy ?? ''
-      }`,
+      'aria-labelledby': this.state.titleId,
+      'aria-describedby': this.props.ariaDescribedBy,
     }
   }
 
