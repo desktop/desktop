@@ -525,12 +525,12 @@ export class List extends React.Component<IListProps, IListState> {
         )
       } else if (isHomeKey) {
         this.setState({ keyboardInsertionIndexPath: { section: 0, row: 0 } })
-        this.scrollRowToVisible(0)
+        this.scrollRowToVisible(0, false)
       } else if (isEndKey) {
         // There is no -1 here because you can insert _after_ the last row
         const row = this.props.rowCount
         this.setState({ keyboardInsertionIndexPath: { section: 0, row } })
-        this.scrollRowToVisible(row)
+        this.scrollRowToVisible(row, false)
       } else if (event.key === 'ArrowUp') {
         this.moveKeyboardInsertion('up')
       } else if (event.key === 'ArrowDown') {
@@ -608,7 +608,7 @@ export class List extends React.Component<IListProps, IListState> {
       },
     })
 
-    this.scrollRowToVisible(row)
+    this.scrollRowToVisible(row, false)
   }
 
   private moveSelectionByPage(
@@ -806,10 +806,6 @@ export class List extends React.Component<IListProps, IListState> {
 
   /** Convenience method for invoking canSelectRow callback when it exists */
   private canSelectRow = (rowIndex: number) => {
-    if (this.inKeyboardInsertionMode) {
-      return false
-    }
-
     return this.props.canSelectRow ? this.props.canSelectRow(rowIndex) : true
   }
 
@@ -1407,6 +1403,10 @@ export class List extends React.Component<IListProps, IListState> {
     indexPath: RowIndexPath,
     event: React.MouseEvent<any>
   ) => {
+    if (this.inKeyboardInsertionMode) {
+      return
+    }
+
     const { row } = indexPath
 
     if (this.canSelectRow(row)) {
@@ -1505,6 +1505,10 @@ export class List extends React.Component<IListProps, IListState> {
     indexPath: RowIndexPath,
     event: React.MouseEvent<any>
   ) => {
+    if (this.inKeyboardInsertionMode) {
+      return
+    }
+
     const { row } = indexPath
 
     if (!this.canSelectRow(row)) {
@@ -1576,6 +1580,10 @@ export class List extends React.Component<IListProps, IListState> {
     indexPath: RowIndexPath,
     event: React.MouseEvent<any>
   ) => {
+    if (this.inKeyboardInsertionMode) {
+      return
+    }
+
     if (this.canSelectRow(indexPath.row) && this.props.onRowClick) {
       const rowCount = this.props.rowCount
 
@@ -1594,6 +1602,10 @@ export class List extends React.Component<IListProps, IListState> {
     indexPath: RowIndexPath,
     event: React.MouseEvent<any>
   ) => {
+    if (this.inKeyboardInsertionMode) {
+      return
+    }
+
     if (!this.props.onRowDoubleClick) {
       return
     }
