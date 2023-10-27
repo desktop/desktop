@@ -5,18 +5,16 @@
   flex-direction: column;
   min-height: 0;
   border-bottom: var(--base-border);
-  padding: var(--spacing);
 
   .beneath-summary {
     max-height: 50vh;
     overflow-y: auto;
-    // grabbed below from https://stackoverflow.com/questions/44793453/how-do-i-add-a-top-and-bottom-shadow-while-scrolling-but-only-when-needed
-    background: /* Shadow covers */ linear-gradient(white 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), white 70%) 0 100%,
-      /* Shadows */ radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
+    background: var(--box-overflow-shadow-background-two);
     background-repeat: no-repeat;
-    background-color: white;
-    background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+    background-size: 100% 30px, 100% 30px, 100% 30px, 100% 30px;
     background-attachment: local, local, scroll, scroll;
+    padding: var(--spacing);
+    padding-top: 0;
   }
 
   .ecs-title {
@@ -25,6 +23,8 @@
     line-height: 16px;
     word-wrap: break-word;
     display: flex;
+    padding: var(--spacing);
+    padding-bottom: var(--spacing-half);
 
     .commits-in-diff {
       margin-left: var(--spacing-half);
@@ -54,7 +54,6 @@
   .ecs-description {
     display: flex;
     position: relative;
-    margin-top: var(--spacing-half);
     min-height: 0;
 
     &.overflowed {
@@ -172,7 +171,7 @@
 
     .ecs-description {
       .ecs-description-text {
-        background-color: var(--box-alt-background-color);
+        background: rgba(#959da5, 0.1);
         padding: var(--spacing-half);
       }
 
