@@ -1,4 +1,4 @@
-# [GitHub Desktop](https://desktop.github.com)
+ [GitHub Desktop](https://desktop.github.com)
 
 [GitHub Desktop](https://desktop.github.com/) is an open source [Electron](https://www.electronjs.org/)-based
 GitHub app. It is written in [TypeScript](https://www.typescriptlang.org) and
@@ -75,7 +75,7 @@ If nobody has responded to your issue in a few days, you're welcome to respond t
 
 ## How can I contribute to GitHub Desktop?
 
-The [CONTRIBUTING.md](./.github/CONTRIBUTING.md) document will help you get setup and
+The [CONTRIBUTING.md][def] document will help you get setup and
 familiar with the source. The [documentation](docs/) folder also contains more
 resources relevant to the project.
 
@@ -83,7 +83,7 @@ If you're looking for something to work on, check out the [help wanted](https://
 
 ## Building Desktop
 
-To setup your development environment for building Desktop, check out: [`setup.md`](./docs/contributing/setup.md).
+To setup your development environment for building Desktop, check out: [`setup.md`][def2].
 
 ## More Resources
 
@@ -101,7 +101,10 @@ designs. GitHub reserves all trademark and copyright rights in and to all
 GitHub trademarks. GitHub's logos include, for instance, the stylized
 Invertocat designs that include "logo" in the file title in the following
 folder: [logos](app/static/logos).
-
 GitHub® and its stylized versions and the Invertocat mark are GitHub's
 Trademarks or registered Trademarks. When using GitHub's logos, be sure to
 follow the GitHub [logo guidelines](https://github.com/logos).
+
+
+[def]: ./.github/CONTRIBUTING.md
+**[def2]: ./docs/contributing/setup.md**
