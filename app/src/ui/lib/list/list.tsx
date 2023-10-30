@@ -1200,10 +1200,11 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private renderKeyboardInsertionElement = () => {
-    if (
-      !this.props.keyboardInsertionData ||
-      !this.state.keyboardInsertionIndexPath
-    ) {
+    const { keyboardInsertionData, keyboardInsertionElementRenderer } =
+      this.props
+    const { keyboardInsertionIndexPath } = this.state
+
+    if (!keyboardInsertionData || !keyboardInsertionIndexPath) {
       return null
     }
 
@@ -1217,9 +1218,7 @@ export class List extends React.Component<IListProps, IListState> {
         }}
         ref={this.keyboardInsertionElementRef}
       >
-        {this.props.keyboardInsertionElementRenderer?.(
-          this.props.keyboardInsertionData
-        )}
+        {keyboardInsertionElementRenderer?.(keyboardInsertionData)}
       </div>
     )
   }
@@ -1235,12 +1234,14 @@ export class List extends React.Component<IListProps, IListState> {
 
     const rowElement = this.rowRefs.get(keyboardInsertionIndexPath.row)
 
-    if (!rowElement) {
+    if (!rowElement || !this.list) {
       return
     }
 
     const rowRect = rowElement.getBoundingClientRect()
-    element.style.top = `${rowRect.top}px`
+    const listRect = this.list.getBoundingClientRect()
+
+    element.style.top = `${Math.max(listRect.top, rowRect.top)}px`
     element.style.left = `${rowRect.right + 20}px`
   }
 
