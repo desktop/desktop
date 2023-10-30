@@ -79,9 +79,6 @@ jobs:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref }}
           submodules: recursive
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
       - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v3
         with:
@@ -99,6 +96,9 @@ jobs:
         env:
           npm_config_arch: ${{ matrix.arch }}
           TARGET_ARCH: ${{ matrix.arch }}
+      - name: Install Windows and build dependencies
+        if: ${{ runner.os == 'Windows' }}
+        run: yarn add registry-js@1.15.0
       - name: Build production app
         run: yarn build:prod
         env:

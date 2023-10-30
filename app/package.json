@@ -54,7 +54,6 @@
     "react-dom": "^16.8.4",
     "react-transition-group": "^4.4.1",
     "react-virtualized": "^9.20.0",
-    "registry-js": "^1.15.0",
     "source-map-support": "^0.4.15",
     "strip-ansi": "^4.0.0",
     "textarea-caret": "^3.0.2",
