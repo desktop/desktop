@@ -9,10 +9,6 @@
   .beneath-summary {
     max-height: 50vh;
     overflow-y: auto;
-    background: var(--box-overflow-shadow-background-two);
-    background-repeat: no-repeat;
-    background-size: 100% 30px, 100% 30px, 100% 15px, 100% 15px;
-    background-attachment: local, local, scroll, scroll;
     padding: var(--spacing);
     padding-top: 0;
   }
@@ -168,6 +164,13 @@
 
   &.expanded {
     display: block;
+
+    .beneath-summary {
+      background: var(--box-overflow-shadow-background-two);
+      background-repeat: no-repeat;
+      background-size: 100% 30px, 100% 30px, 100% 15px, 100% 15px;
+      background-attachment: local, local, scroll, scroll;
+    }
 
     .ecs-description {
       .ecs-description-text {
