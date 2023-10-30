@@ -157,10 +157,11 @@ body.theme-dark {
    * for use when content can be expanded through other means than
    * scrolling. Used in conjuction with background-size, background-attachment, background-repeat.
    */
-  --no-shadow: #{linear-gradient($gray-900, $gray-900)};
+  --no-shadow-top: #{linear-gradient($gray-900, rgba(255, 255, 255, 0))};
+  --no-shadow-bottom: #{linear-gradient(rgba(255, 255, 255, 0), $gray-900)};
   --top-shadow: #{linear-gradient(0deg, rgba($gray-900, 0) 0%, rgba(black, 0.6) 90%, rgba(black, 1) 100%)};
   --bottom-shadow: #{linear-gradient(180deg, rgba($gray-900, 0) 0%, rgba(black, 0.6) 90%, rgba(black, 1) 100%) 0 100%};
-  --box-overflow-shadow-background-two: #{var(--no-shadow), var(--no-shadow) 0 100%, var(--top-shadow), var(--bottom-shadow)};
+  --box-overflow-shadow-background-two: #{var(--no-shadow-top), var(--no-shadow-bottom) 0 100%, var(--top-shadow), var(--bottom-shadow)};
 
   /**
    * Placeholder color for input boxes
