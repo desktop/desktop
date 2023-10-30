@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.3.5": [
+      "[Added] Syntax highlighting now supports .cc files - #17503. Thanks @DylanDevelops!",
+      "[Fixed] Long file paths are correctly truncated in the conflicts dialog - #17595",
+      "[Fixed] Screen readers announce group name when navigating through grouped lists - #17567"
+    ],
     "3.3.5-beta1": [
       "[Added] Syntax highlighting now supports .cc files - #17503. Thanks @DylanDevelops!",
       "[Fixed] Long file paths are correctly truncated in the conflicts dialog - #17595",
