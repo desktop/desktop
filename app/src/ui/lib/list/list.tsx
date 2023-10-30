@@ -23,6 +23,7 @@ import { DragData, DragType } from '../../../models/drag-drop'
 import memoizeOne from 'memoize-one'
 import { RowIndexPath } from './list-row-index-path'
 import { sendNonFatalException } from '../../../lib/helpers/non-fatal-exception'
+import classNames from 'classnames'
 
 /**
  * Describe the first argument given to the cellRenderer,
@@ -1305,9 +1306,13 @@ export class List extends React.Component<IListProps, IListState> {
 
     const containerProps = this.getContainerProps(activeDescendant)
 
+    const className = classNames('list-focus-container', {
+      'keyboard-insertion': this.inKeyboardInsertionMode,
+    })
+
     return (
       <FocusContainer
-        className="list-focus-container"
+        className={className}
         onKeyDown={this.onFocusContainerKeyDown}
         onFocusWithinChanged={this.onFocusWithinChanged}
       >

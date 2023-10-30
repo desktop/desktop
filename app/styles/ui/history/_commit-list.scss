@@ -47,7 +47,7 @@
     }
   }
 
-  .focus-within {
+  .focus-within:not(.keyboard-insertion) {
     .list-item.selected {
       .commit {
         .unpushed-indicator {
@@ -65,6 +65,18 @@
         }
 
         background-color: var(--box-selected-active-background-color);
+      }
+    }
+  }
+
+  .focus-within.keyboard-insertion {
+    .list-item.selected {
+      .commit {
+        color: var(--box-selected-text-color);
+
+        .byline {
+          color: var(--box-selected-text-color);
+        }
       }
     }
   }
