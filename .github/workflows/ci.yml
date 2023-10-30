@@ -77,6 +77,9 @@ jobs:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref }}
           submodules: recursive
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9.5'
       - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v3
         with:
