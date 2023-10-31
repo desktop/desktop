@@ -118,6 +118,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     mappings: {
       '.xml': 'text/xml',
       '.xaml': 'text/xml',
+      '.xsd': 'text/xml',
       '.csproj': 'text/xml',
       '.fsproj': 'text/xml',
       '.vcxproj': 'text/xml',
@@ -149,6 +150,10 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.cpp': 'text/x-c++src',
       '.hpp': 'text/x-c++src',
       '.cc': 'text/x-c++src',
+      '.hh': 'text/x-c++src',
+      '.hxx': 'text/x-c++src',
+      '.cxx': 'text/x-c++src',
+      '.cmake': 'text/x-c++src',
       '.ino': 'text/x-c++src',
       '.kt': 'text/x-kotlin',
     },
@@ -172,6 +177,8 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/shell/shell'),
     mappings: {
       '.sh': 'text/x-sh',
+      '.bat': 'text/x-sh',
+      '.cmd': 'text/x-sh',
     },
   },
   {
