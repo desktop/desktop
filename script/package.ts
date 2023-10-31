@@ -23,10 +23,17 @@ import { existsSync, rmSync, writeFileSync } from 'fs'
 import { getVersion } from '../app/package-info'
 import { rename } from 'fs/promises'
 import { join } from 'path'
+import { assertNonNullable } from '../app/src/lib/fatal-error'
 
 const distPath = getDistPath()
 const productName = getProductName()
 const outputDir = getDistRoot()
+
+const assertExistsSync = (path: string) => {
+  if (!existsSync(path)) {
+    throw new Error(`Expected ${path} to exist`)
+  }
+}
 
 if (process.platform === 'darwin') {
   packageOSX()
@@ -107,8 +114,23 @@ function packageWindows() {
   }
 
   if (isGitHubActions() && isPublishable()) {
-    const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
-    options.signWithParams = `/f ${certificatePath} /p ${process.env.WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256 /fd sha256`
+    assertNonNullable(process.env.RUNNER_TEMP, 'Missing RUNNER_TEMP env var')
+
+    const acsPath = join(process.env.RUNNER_TEMP, 'acs')
+    const dlibPath = join(acsPath, 'bin', 'x64', 'Azure.CodeSigning.Dlib.dll')
+
+    assertExistsSync(dlibPath)
+
+    const metadataPath = join(acsPath, 'metadata.json')
+    const acsMetadata = {
+      Endpoint: 'https://eus.codesigning.azure.net/',
+      CodeSigningAccountName: 'github-desktop',
+      CertificateProfileName: 'desktop',
+      CorrelationId: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+    }
+    writeFileSync(metadataPath, JSON.stringify(acsMetadata))
+
+    options.signWithParams = `/v /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "${dlibPath}" /dmdf "${metadataPath}"`
   }
 
   console.log('Packaging for Windows…')

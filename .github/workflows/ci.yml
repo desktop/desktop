@@ -21,7 +21,14 @@ on:
       environment:
         type: string
         required: true
+      sign:
+        type: boolean
+        default: true
+        required: false
     secrets:
+      AZURE_CODE_SIGNING_TENANT_ID:
+      AZURE_CODE_SIGNING_CLIENT_ID:
+      AZURE_CODE_SIGNING_CLIENT_SECRET:
       DESKTOP_OAUTH_CLIENT_ID:
       DESKTOP_OAUTH_CLIENT_SECRET:
       APPLE_ID:
@@ -29,8 +36,6 @@ on:
       APPLE_TEAM_ID:
       APPLE_APPLICATION_CERT:
       APPLE_APPLICATION_CERT_PASSWORD:
-      WINDOWS_CERT_PFX:
-      WINDOWS_CERT_PASSWORD:
 
 jobs:
   lint:
@@ -79,6 +84,9 @@ jobs:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref }}
           submodules: recursive
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
       - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v3
         with:
@@ -120,17 +128,22 @@ jobs:
       - name: Run script tests
         if: matrix.arch == 'x64'
         run: yarn test:script
-      - name: Install Windows code signing certificate
-        if: ${{ runner.os == 'Windows' }}
-        shell: bash
-        env:
-          CERT_CONTENTS: ${{ secrets.WINDOWS_CERT_PFX }}
-        run: base64 -d <<<"$CERT_CONTENTS" > ./script/windows-certificate.pfx
+      - name: Install Azure Code Signing Client
+        if: ${{ runner.os == 'Windows' && inputs.sign }}
+        run: |
+          $acsZip = Join-Path $env:RUNNER_TEMP "acs.zip"
+          $acsDir = Join-Path $env:RUNNER_TEMP "acs"
+          Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Azure.CodeSigning.Client/1.0.38 -OutFile $acsZip -Verbose
+          Expand-Archive $acsZip -Destination $acsDir -Force -Verbose
+          # Replace ancient signtool in electron-winstall with one that supports ACS
+          Copy-Item -Path "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\*" -Include signtool.exe,signtool.exe.manifest,Microsoft.Windows.Build.Signing.mssign32.dll.manifest,mssign32.dll,Microsoft.Windows.Build.Signing.wintrust.dll.manifest,wintrust.dll,Microsoft.Windows.Build.Appx.AppxSip.dll.manifest,AppxSip.dll,Microsoft.Windows.Build.Appx.AppxPackaging.dll.manifest,AppxPackaging.dll,Microsoft.Windows.Build.Appx.OpcServices.dll.manifest,OpcServices.dll -Destination "node_modules\electron-winstaller\vendor" -Verbose
       - name: Package production app
         run: yarn package
         env:
           npm_config_arch: ${{ matrix.arch }}
-          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_SECRET }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         if: ${{ inputs.upload-artifacts }}
