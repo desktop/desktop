@@ -6,6 +6,7 @@ import { Ref } from '../lib/ref'
 import { RadioButton } from '../lib/radio-button'
 import { Account } from '../../models/account'
 import { GitConfigUserForm } from '../lib/git-config-user-form'
+import { getGlobalConfigPath } from '../../lib/git'
 
 interface IGitProps {
   readonly name: string
@@ -28,6 +29,7 @@ interface IGitState {
    * enter a custom branch name.
    */
   readonly defaultBranchIsOther: boolean
+  readonly globalGitConfigPath?: string
 }
 
 // This will be the prepopulated branch name on the "other" input
@@ -68,6 +70,13 @@ export class Git extends React.Component<IGitProps, IGitState> {
       this.defaultBranchInputRef.current !== null
     ) {
       this.defaultBranchInputRef.current.focus()
+    }
+  }
+
+  public async componentDidMount() {
+    const globalGitConfigPath = await getGlobalConfigPath()
+    if (globalGitConfigPath !== null) {
+      this.setState({ globalGitConfigPath })
     }
   }
 
@@ -114,7 +123,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
   }
 
   private renderDefaultBranchSetting() {
-    const { defaultBranchIsOther } = this.state
+    const { defaultBranchIsOther, globalGitConfigPath } = this.state
 
     return (
       <div className="default-branch-component">
@@ -151,7 +160,8 @@ export class Git extends React.Component<IGitProps, IGitState> {
         )}
 
         <p className="git-settings-description">
-          These preferences will edit your global Git config.
+          These preferences will edit your global Git config.{' '}
+          {globalGitConfigPath}
         </p>
       </div>
     )
