@@ -166,7 +166,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
 
         <p className="git-settings-description">
           These preferences will{' '}
-          {this.props.selectedExternalEditor
+          {this.props.selectedExternalEditor && this.state.globalGitConfigPath
             ? (
                 <LinkButton onClick={this.openGlobalGitConfigInEditor}>
                   edit your global Git config file
