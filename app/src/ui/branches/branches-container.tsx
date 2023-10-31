@@ -23,7 +23,10 @@ import { Button } from '../lib/button'
 import { BranchList } from './branch-list'
 import { PullRequestList } from './pull-request-list'
 import { IBranchListItem } from './group-branches'
-import { renderDefaultBranch } from './branch-renderer'
+import {
+  getDefaultAriaLabelForBranch,
+  renderDefaultBranch,
+} from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
@@ -161,11 +164,13 @@ export class BranchesContainer extends React.Component<
 
     return (
       <Row className="merge-button-row">
-        <Button className="merge-button" onClick={this.onMergeClick}>
+        <Button
+          className="merge-button"
+          onClick={this.onMergeClick}
+          tooltip={`Choose a branch to merge into ${currentBranch.name}`}
+        >
           <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
-          <span title={`Merge a branch into ${currentBranch.name}`}>
-            Choose a branch to merge into <strong>{currentBranch.name}</strong>
-          </span>
+          Choose a branch to merge into <strong>{currentBranch.name}</strong>
         </Button>
       </Row>
     )
@@ -192,8 +197,8 @@ export class BranchesContainer extends React.Component<
         selectedIndex={this.props.selectedTab}
         allowDragOverSwitching={true}
       >
-        <span>Branches</span>
-        <span className="pull-request-tab">
+        <span id="branches-tab">Branches</span>
+        <span id="pull-requests-tab" className="pull-request-tab">
           {__DARWIN__ ? 'Pull Requests' : 'Pull requests'}
           {this.renderOpenPullRequestsBubble()}
         </span>
@@ -211,8 +216,32 @@ export class BranchesContainer extends React.Component<
     )
   }
 
+  private getBranchAriaLabel = (item: IBranchListItem): string => {
+    return getDefaultAriaLabelForBranch(item)
+  }
+
   private renderSelectedTab() {
+    const { selectedTab, repository } = this.props
+
+    const ariaLabelledBy =
+      selectedTab === BranchesTab.Branches || !repository.gitHubRepository
+        ? 'branches-tab'
+        : 'pull-requests-tab'
+
+    return (
+      <div
+        role="tabpanel"
+        aria-labelledby={ariaLabelledBy}
+        className="branches-container-panel"
+      >
+        {this.renderSelectedTabContent()}
+      </div>
+    )
+  }
+
+  private renderSelectedTabContent() {
     let tab = this.props.selectedTab
+
     if (!this.props.repository.gitHubRepository) {
       tab = BranchesTab.Branches
     }
@@ -233,6 +262,7 @@ export class BranchesContainer extends React.Component<
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
             renderBranch={this.renderBranch}
+            getBranchAriaLabel={this.getBranchAriaLabel}
             hideFilterRow={dragAndDropManager.isDragOfTypeInProgress(
               DragType.Commit
             )}
@@ -241,7 +271,6 @@ export class BranchesContainer extends React.Component<
             onDeleteBranch={this.props.onDeleteBranch}
           />
         )
-
       case BranchesTab.PullRequests: {
         return this.renderPullRequests()
       }
@@ -434,7 +463,7 @@ export class BranchesContainer extends React.Component<
 
   private onDropOntoCurrentBranch = () => {
     if (dragAndDropManager.isDragOfType(DragType.Commit)) {
-      this.props.dispatcher.recordDragStartedAndCanceled()
+      this.props.dispatcher.incrementMetric('dragStartedAndCanceledCount')
     }
   }
 

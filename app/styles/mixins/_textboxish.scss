@@ -21,6 +21,10 @@
   &::-webkit-input-placeholder {
     color: var(--box-placeholder-color);
   }
+
+  &:disabled {
+    @include textboxish-disabled-styles;
+  }
 }
 
 @mixin textboxish-focus-styles {
@@ -32,10 +36,4 @@
 @mixin textboxish-disabled-styles {
   background: var(--box-alt-background-color);
   color: var(--text-secondary-color);
-}
-
-@mixin textboxish-disabled {
-  &:disabled {
-    @include textboxish-disabled-styles;
-  }
 }

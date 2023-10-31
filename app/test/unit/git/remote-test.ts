@@ -61,6 +61,32 @@ describe('git/remote', () => {
       const remotes = await getRemotes(repository)
       expect(remotes).toHaveLength(0)
     })
+
+    it('returns promisor remote', async () => {
+      const repository = await setupEmptyRepository()
+
+      // Add a remote
+      const url = 'https://github.com/desktop/not-found.git'
+      await GitProcess.exec(
+        ['remote', 'add', 'hasBlobFilter', url],
+        repository.path
+      )
+
+      // Fetch a remote and add a filter
+      await GitProcess.exec(['fetch', '--filter=blob:none'], repository.path)
+
+      // Shows that the new remote does have a filter
+      const rawGetRemote = await GitProcess.exec(
+        ['remote', '-v'],
+        repository.path
+      )
+      expect(rawGetRemote.stdout).toContain(url + ' (fetch) [blob:none]')
+
+      // Shows that the `getRemote` returns that remote
+      const result = await getRemotes(repository)
+      expect(result).toHaveLength(1)
+      expect(result[0].name).toEqual('hasBlobFilter')
+    })
   })
 
   describe('findDefaultRemote', () => {

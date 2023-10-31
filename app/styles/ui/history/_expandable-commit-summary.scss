@@ -1,0 +1,230 @@
+@import '../../mixins';
+
+#expandable-commit-summary {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-bottom: var(--base-border);
+  padding: var(--spacing);
+
+  .ecs-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    line-height: 16px;
+    word-wrap: break-word;
+    display: flex;
+
+    .commits-in-diff {
+      margin-left: var(--spacing-half);
+    }
+
+    &.empty-summary {
+      color: var(--text-secondary-color);
+    }
+
+    .expander {
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: var(--text-color);
+      font-size: inherit;
+      font-weight: normal;
+      font-family: inherit;
+      margin-left: var(--spacing);
+      height: auto;
+
+      svg {
+        vertical-align: text-top;
+      }
+    }
+  }
+
+  .ecs-description {
+    display: flex;
+    position: relative;
+    margin-top: var(--spacing-half);
+    min-height: 0;
+
+    &.overflowed {
+      // When the description area can be, but isn't yet, expanded
+      // we'll add a small shadow towards the bottom to hint that
+      // there's more content available.
+
+      .ecs-description-text:before {
+        content: '';
+        background: var(--box-overflow-shadow-background);
+        position: absolute;
+        height: 30px;
+        bottom: 0px;
+        width: 100%;
+        pointer-events: none;
+      }
+    }
+
+    .ecs-description-scroll-view {
+      overflow: hidden;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      // Maximum amount of commit description lines to show before collapsing
+      -webkit-line-clamp: 2;
+    }
+
+    .ecs-description-text {
+      font-family: var(--font-family-monospace);
+      font-size: var(--font-size-sm);
+      word-wrap: break-word;
+      white-space: pre-line;
+      min-height: 0;
+    }
+  }
+
+  .ecs-meta {
+    display: flex;
+    margin-top: var(--spacing-half);
+
+    .ecs-meta-item {
+      display: flex;
+      margin-right: var(--spacing);
+      font-size: var(--font-size-sm);
+      align-items: center;
+
+      &.authors {
+        margin-left: 0;
+
+        .avatar {
+          width: 16px;
+          height: 16px;
+        }
+
+        .author {
+          .avatar-container {
+            margin-right: 4px;
+          }
+        }
+      }
+
+      &.commit-ref {
+        .ref {
+          padding-left: var(--spacing-half);
+        }
+
+        .copy-button {
+          margin-left: var(--spacing-half);
+
+          // Removing default button styles
+          background: transparent;
+          border: none;
+          padding: 0;
+          height: auto;
+
+          :hover {
+            color: var(--text-secondary-color);
+          }
+        }
+      }
+
+      &.lines-added-deleted {
+        div {
+          padding-right: var(--spacing-half);
+        }
+
+        .lines-added {
+          color: var(--color-new);
+        }
+
+        .lines-deleted {
+          color: var(--color-deleted);
+        }
+      }
+
+      &.tags {
+        flex-shrink: 1;
+        min-width: 0;
+
+        .octicon {
+          padding-right: var(--spacing-half);
+        }
+
+        span {
+          @include ellipsis;
+        }
+      }
+    }
+  }
+
+  &.expanded {
+    .ecs-description {
+      .ecs-description-text {
+        background-color: var(--box-alt-background-color);
+        padding: var(--spacing-half);
+      }
+    }
+
+    .ecs-meta {
+      display: block;
+
+      .ecs-meta-item {
+        margin-bottom: var(--spacing-half);
+        align-items: unset;
+        margin-right: 0;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        &.authors {
+          display: block;
+
+          .author {
+            margin-bottom: 2px;
+            display: flex;
+          }
+        }
+
+        &.lines-added-deleted {
+          .lines-added {
+            padding-left: var(--spacing-half);
+          }
+        }
+
+        &.tags {
+          span {
+            white-space: normal;
+          }
+        }
+      }
+    }
+
+    .ecs-description-scroll-view {
+      max-height: 400px;
+      overflow: auto;
+      display: revert;
+    }
+  }
+
+  .commit-unreachable-info {
+    display: flex;
+    align-items: center;
+    margin-top: var(--spacing);
+
+    .octicon {
+      margin-right: var(--spacing-half);
+    }
+
+    .link-button-component {
+      margin-right: var(--spacing-half);
+    }
+  }
+
+  .selectable {
+    user-select: text;
+    cursor: text;
+
+    * {
+      user-select: unset;
+      pointer-events: unset;
+      cursor: text;
+    }
+  }
+}

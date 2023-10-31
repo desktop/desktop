@@ -201,8 +201,7 @@ rules:
   # larger web pages, e.g. to focus a form field in the main content, entirely
   # skipping the header and often much else besides.
   jsx-a11y/no-autofocus:
-    - warn
-    - ignoreNonDOM: true
+    - off
 
 overrides:
   - files: '*.d.ts'

@@ -41,11 +41,18 @@
     border-radius: 9px;
 
     > svg {
-      color: var(--commit-warning-badge-icon-color);
       height: 10px;
       // With width=100%, the icon will be centered horizontally
       width: 100%;
-      vertical-align: unset;
+      vertical-align: middle;
+    }
+
+    &.warning > svg {
+      color: var(--input-icon-warning-color);
+    }
+
+    &.error > svg {
+      color: var(--input-icon-error-color);
     }
   }
 

@@ -17,6 +17,7 @@ import {
   size,
 } from '@floating-ui/core'
 import { assertNever } from '../../lib/fatal-error'
+import { isMacOSSonoma, isMacOSVentura } from '../../lib/get-os'
 
 /**
  * Position of the popover relative to its anchor element. It's composed by 2
@@ -218,12 +219,46 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     }
   }
 
+  /**
+   * Gets the aria-labelledby or aria-describedby attribute
+   *
+   * The correct semantics are that a dialog element (which this is) should have
+   * an aria-labelledby for it's title.
+   *
+   * However, macOs VoiceOver is not reliable so we have some workarounds...
+   */
+  private getAriaAttributes() {
+    if (isMacOSVentura()) {
+      /* macOs Ventura introduced a regression in that the aria-labelledby
+       * is not announced and if provided prevents the aria-describedby from being
+       * announced. Thus, this method will use aria-describedby instead of the
+       * aria-labelledby for macOs Ventura. This is not semantically correct tho,
+       * hopefully, macOs will be fixed in a future release. The issue is known for
+       * macOS versions 13.0 to the current version of 13.5 as of 2023-07-31. */
+      return {
+        'aria-describedby': this.props.ariaLabelledby,
+      }
+    }
+
+    if (isMacOSSonoma()) {
+      // macOS Sonoma introduced a regression in that: For role of 'dialog', the
+      // aria-labelledby is not announced. However, if the dialog has a child
+      // with a role of header (aka h* elemeent) it will be announced as long as
+      // the aria-labelledby is not provided.
+      return {}
+    }
+
+    // correct semantics
+    return {
+      'aria-labelledby': this.props.ariaLabelledby,
+    }
+  }
+
   public render() {
     const {
       trapFocus,
       className,
       appearEffect,
-      ariaLabelledby,
       children,
       decoration,
       maxHeight,
@@ -292,7 +327,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
         className={cn}
         style={style}
         ref={this.containerDivRef}
-        aria-labelledby={ariaLabelledby}
+        {...this.getAriaAttributes()}
         role="dialog"
       >
         <div

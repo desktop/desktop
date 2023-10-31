@@ -15,6 +15,7 @@ import untildify from 'untildify'
 import { showOpenDialog } from '../main-process-proxy'
 import { Ref } from '../lib/ref'
 import { InputError } from '../lib/input-description/input-error'
+import { IAccessibleMessage } from '../../models/accessible-message'
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -138,7 +139,10 @@ export class AddExistingRepository extends React.Component<
       return null
     }
 
-    return 'This directory appears to be a bare repository. Bare repositories are not currently supported.'
+    const msg =
+      'This directory appears to be a bare repository. Bare repositories are not currently supported.'
+
+    return { screenReaderMessage: msg, displayedMessage: msg }
   }
 
   private buildRepositoryUnsafeError() {
@@ -157,7 +161,7 @@ export class AddExistingRepository extends React.Component<
     // when the entered path is `c:\repo`.
     const convertedPath = __WIN32__ ? path.replaceAll('\\', '/') : path
 
-    return (
+    const displayedMessage = (
       <>
         <p>
           The Git repository
@@ -180,14 +184,20 @@ export class AddExistingRepository extends React.Component<
         </p>
       </>
     )
+
+    const screenReaderMessage = `The Git repository appears to be owned by another user on your machine.
+      Adding untrusted repositories may automatically execute files in the repository.
+      If you trust the owner of the directory you can add an exception for this directory in order to continue.`
+
+    return { screenReaderMessage, displayedMessage }
   }
 
-  private buildNotAGitRepositoryError() {
+  private buildNotAGitRepositoryError(): IAccessibleMessage | null {
     if (!this.state.path.length || !this.state.showNonGitRepositoryWarning) {
       return null
     }
 
-    return (
+    const displayedMessage = (
       <>
         This directory does not appear to be a Git repository.
         <br />
@@ -198,10 +208,15 @@ export class AddExistingRepository extends React.Component<
         here instead?
       </>
     )
+
+    const screenReaderMessage =
+      'This directory does not appear to be a Git repository. Would you like to create a repository here instead?'
+
+    return { screenReaderMessage, displayedMessage }
   }
 
   private renderErrors() {
-    const msg =
+    const msg: IAccessibleMessage | null =
       this.buildBareRepositoryError() ??
       this.buildRepositoryUnsafeError() ??
       this.buildNotAGitRepositoryError()
@@ -215,8 +230,9 @@ export class AddExistingRepository extends React.Component<
         <InputError
           id="add-existing-repository-path-error"
           trackedUserInput={this.state.path}
+          ariaLiveMessage={msg.screenReaderMessage}
         >
-          {msg}
+          {msg.displayedMessage}
         </InputError>
       </Row>
     )
@@ -297,6 +313,8 @@ export class AddExistingRepository extends React.Component<
   }
 
   private onCreateRepositoryClicked = () => {
+    this.props.onDismissed()
+
     const resolvedPath = this.resolvedPath(this.state.path)
 
     return this.props.dispatcher.showPopup({

@@ -111,7 +111,7 @@ export class PullRequestFilesChanged extends React.Component<
   }
 
   private onDiffOptionsOpened = () => {
-    this.props.dispatcher.recordDiffOptionsViewed()
+    this.props.dispatcher.incrementMetric('diffOptionsViewedCount')
   }
 
   /**

@@ -11,7 +11,11 @@ import {
   FailingCheckConclusions,
 } from '../../lib/ci-checks/ci-checks'
 import { Octicon, syncClockwise } from '../octicons'
-import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
+import {
+  APICheckConclusion,
+  APICheckStatus,
+  IAPIWorkflowJobStep,
+} from '../../lib/api'
 import {
   Popover,
   PopoverAnchorPosition,
@@ -147,7 +151,7 @@ export class CICheckRunPopover extends React.PureComponent<
       `${this.props.repository.htmlURL}/pull/${this.props.prNumber}`
 
     this.props.dispatcher.openInBrowser(url)
-    this.props.dispatcher.recordCheckViewedOnline()
+    this.props.dispatcher.incrementMetric('viewsCheckOnline')
   }
 
   private onViewJobStep = (
@@ -160,7 +164,7 @@ export class CICheckRunPopover extends React.PureComponent<
 
     if (url !== null) {
       dispatcher.openInBrowser(url)
-      this.props.dispatcher.recordCheckJobStepViewedOnline()
+      this.props.dispatcher.incrementMetric('viewsCheckJobStepOnline')
     }
   }
 
@@ -265,7 +269,15 @@ export class CICheckRunPopover extends React.PureComponent<
       }
     }
 
-    return <Donut valueMap={getCheckStatusCountMap(checkRuns)} />
+    const valueMap = getCheckStatusCountMap(checkRuns)
+
+    const ariaLabel = `Completeness indicator. ${
+      valueMap.get(APICheckStatus.Completed) ?? 0
+    } completed, ${valueMap.get(APICheckStatus.InProgress) ?? 0} in progress, ${
+      valueMap.get(APICheckStatus.Queued) ?? 0
+    } queued.`
+
+    return <Donut ariaLabel={ariaLabel} valueMap={valueMap} />
   }
 
   private getTitle(

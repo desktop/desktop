@@ -5,6 +5,7 @@ import {
   IAPIPullRequest,
   IAPIFullRepository,
   IAPICheckSuite,
+  IAPIRepoRuleset,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -122,6 +123,7 @@ import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
 import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
+import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 
 /**
  * An error handler function.
@@ -140,13 +142,16 @@ export type ErrorHandler = (
  */
 export class Dispatcher {
   private readonly errorHandlers = new Array<ErrorHandler>()
+  public incrementMetric: StatsStore['increment']
 
   public constructor(
     private readonly appStore: AppStore,
     private readonly repositoryStateManager: RepositoryStateCache,
     private readonly statsStore: StatsStore,
     private readonly commitStatusStore: CommitStatusStore
-  ) {}
+  ) {
+    this.incrementMetric = statsStore.increment.bind(statsStore)
+  }
 
   /** Load the initial state for the app. */
   public loadInitialState(): Promise<void> {
@@ -919,7 +924,7 @@ export class Dispatcher {
 
     this.appStore._setRepositoryCommitToAmend(repository, commit)
 
-    this.statsStore.recordAmendCommitStarted()
+    this.statsStore.increment('amendCommitStartedCount')
   }
 
   /** Stop amending the most recent commit. */
@@ -942,7 +947,7 @@ export class Dispatcher {
     commit: Commit,
     showConfirmationDialog: boolean = true
   ): Promise<void> {
-    this.statsStore.recordResetToCommitCount()
+    this.statsStore.increment('resetToCommitCount')
     return this.appStore._resetToCommit(
       repository,
       commit,
@@ -1210,6 +1215,31 @@ export class Dispatcher {
         baseBranch.name,
         targetBranch.name
       )
+    } else if (result === RebaseResult.AlreadyUpToDate) {
+      if (tip.kind !== TipState.Valid) {
+        log.warn(
+          `[rebase] tip after already up to date is ${tip.kind} but this should be a valid tip if the rebase completed without error`
+        )
+        return
+      }
+
+      const { operationDetail } = multiCommitOperationState
+      const { sourceBranch } = operationDetail
+
+      const ourBranch = targetBranch !== null ? targetBranch.name : ''
+      const theirBranch = sourceBranch !== null ? sourceBranch.name : ''
+
+      const banner: Banner = {
+        type: BannerType.BranchAlreadyUpToDate,
+        ourBranch,
+        theirBranch,
+      }
+
+      this.statsStore.increment('rebaseWithBranchAlreadyUpToDateCount')
+
+      this.setBanner(banner)
+      this.endMultiCommitOperation(repository)
+      await this.refreshRepository(repository)
     } else if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind !== TipState.Valid) {
         log.warn(
@@ -1218,7 +1248,7 @@ export class Dispatcher {
         return
       }
 
-      this.statsStore.recordRebaseSuccessWithoutConflicts()
+      this.statsStore.increment('rebaseSuccessWithoutConflictsCount')
       await this.completeMultiCommitOperation(repository, commits.length)
     } else if (result === RebaseResult.Error) {
       // we were unable to successfully start the rebase, and an error should
@@ -1258,6 +1288,11 @@ export class Dispatcher {
       manualResolutions
     )
 
+    // At this point, given continueRebase was invoked, we can assume that the
+    // rebase encountered some conflicts and they have been resolved. Getting
+    // now a CompletedWithoutError result means that the rebase has completed
+    // successfully and there aren't more conflicts to resolve, therefore we can
+    // track this as a successful rebase with conflicts.
     if (result === RebaseResult.CompletedWithoutError) {
       this.statsStore.recordOperationSuccessfulWithConflicts(kind)
     }
@@ -1322,8 +1357,8 @@ export class Dispatcher {
         // app-store._mergeBranch because it only records there when there are
         // no conflicts. Thus, recordSquashMergeSuccessful is done here in order
         // to capture all successful squash merges under this metric.
-        this.statsStore.recordSquashMergeSuccessful()
-        this.statsStore.recordSquashMergeSuccessfulWithConflicts()
+        this.statsStore.increment('squashMergeSuccessfulCount')
+        this.statsStore.increment('squashMergeSuccessfulWithConflictsCount')
       }
     }
   }
@@ -1566,6 +1601,19 @@ export class Dispatcher {
       type: PopupType.UnknownAuthors,
       authors,
       onCommit: onCommitAnyway,
+    })
+  }
+
+  public async showRepoRulesCommitBypassWarning(
+    repository: GitHubRepository,
+    branch: string,
+    onConfirm: () => void
+  ) {
+    return this.appStore._showPopup({
+      type: PopupType.ConfirmRepoRulesBypass,
+      repository,
+      branch,
+      onConfirm,
     })
   }
 
@@ -2422,52 +2470,10 @@ export class Dispatcher {
   }
 
   /**
-   * Updates the application state to indicate a conflict is in-progress
-   * as a result of a pull and increments the relevant metric.
-   */
-  public mergeConflictDetectedFromPull() {
-    return this.statsStore.recordMergeConflictFromPull()
-  }
-
-  /**
-   * Updates the application state to indicate a conflict is in-progress
-   * as a result of a merge and increments the relevant metric.
-   */
-  public mergeConflictDetectedFromExplicitMerge() {
-    return this.statsStore.recordMergeConflictFromExplicitMerge()
-  }
-
-  /** Increments the `openSubmoduleFromDiffCount` metric */
-  public recordOpenSubmoduleFromDiffCount() {
-    return this.statsStore.recordOpenSubmoduleFromDiffCount()
-  }
-
-  /**
    * Increments the `mergeIntoCurrentBranchMenuCount` metric
    */
   public recordMenuInitiatedMerge(isSquash: boolean = true) {
     return this.statsStore.recordMenuInitiatedMerge(isSquash)
-  }
-
-  /**
-   * Increments the `rebaseIntoCurrentBranchMenuCount` metric
-   */
-  public recordMenuInitiatedRebase() {
-    return this.statsStore.recordMenuInitiatedRebase()
-  }
-
-  /**
-   * Increments the `updateFromDefaultBranchMenuCount` metric
-   */
-  public recordMenuInitiatedUpdate() {
-    return this.statsStore.recordMenuInitiatedUpdate()
-  }
-
-  /**
-   * Increments the `mergesInitiatedFromComparison` metric
-   */
-  public recordCompareInitiatedMerge() {
-    return this.statsStore.recordCompareInitiatedMerge()
   }
 
   /**
@@ -2485,17 +2491,6 @@ export class Dispatcher {
     return this.statsStore.recordRepoClicked(repoHasIndicator)
   }
 
-  /**
-   * Increments the `createPullRequestCount` metric
-   */
-  public recordCreatePullRequest() {
-    return this.statsStore.recordCreatePullRequest()
-  }
-
-  public recordCreatePullRequestFromPreview() {
-    return this.statsStore.recordCreatePullRequestFromPreview()
-  }
-
   public recordWelcomeWizardInitiated() {
     return this.statsStore.recordWelcomeWizardInitiated()
   }
@@ -2508,61 +2503,7 @@ export class Dispatcher {
     this.statsStore.recordAddExistingRepository()
   }
 
-  /**
-   * Increments the `mergeConflictsDialogDismissalCount` metric
-   */
-  public recordMergeConflictsDialogDismissal() {
-    this.statsStore.recordMergeConflictsDialogDismissal()
-  }
-
-  /**
-   * Increments the `mergeConflictsDialogReopenedCount` metric
-   */
-  public recordMergeConflictsDialogReopened() {
-    this.statsStore.recordMergeConflictsDialogReopened()
-  }
-
-  /**
-   * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
-   */
-  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal() {
-    this.statsStore.recordAnyConflictsLeftOnMergeConflictsDialogDismissal()
-  }
-
-  /**
-   * Increments the `guidedConflictedMergeCompletionCount` metric
-   */
-  public recordGuidedConflictedMergeCompletion() {
-    this.statsStore.recordGuidedConflictedMergeCompletion()
-  }
-
-  /**
-   * Increments the `unguidedConflictedMergeCompletionCount` metric
-   */
-  public recordUnguidedConflictedMergeCompletion() {
-    this.statsStore.recordUnguidedConflictedMergeCompletion()
-  }
-
   // TODO: more rebase-related actions
-
-  /**
-   * Increments the `rebaseConflictsDialogDismissalCount` metric
-   */
-  public recordRebaseConflictsDialogDismissal() {
-    this.statsStore.recordRebaseConflictsDialogDismissal()
-  }
-
-  /**
-   * Increments the `rebaseConflictsDialogReopenedCount` metric
-   */
-  public recordRebaseConflictsDialogReopened() {
-    this.statsStore.recordRebaseConflictsDialogReopened()
-  }
-
-  /** Increments the `errorWhenSwitchingBranchesWithUncommmittedChanges` metric */
-  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges() {
-    return this.statsStore.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
-  }
 
   /**
    * Refresh the list of open pull requests for the given repository.
@@ -2730,72 +2671,6 @@ export class Dispatcher {
     return this.appStore._hideStashedChanges(repository)
   }
 
-  /**
-   * Increment the number of times the user has opened their external editor
-   * from the suggested next steps view
-   */
-  public recordSuggestedStepOpenInExternalEditor(): Promise<void> {
-    return this.statsStore.recordSuggestedStepOpenInExternalEditor()
-  }
-
-  /**
-   * Increment the number of times the user has opened their repository in
-   * Finder/Explorer from the suggested next steps view
-   */
-  public recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
-    return this.statsStore.recordSuggestedStepOpenWorkingDirectory()
-  }
-
-  /**
-   * Increment the number of times the user has opened their repository on
-   * GitHub from the suggested next steps view
-   */
-  public recordSuggestedStepViewOnGitHub(): Promise<void> {
-    return this.statsStore.recordSuggestedStepViewOnGitHub()
-  }
-
-  /**
-   * Increment the number of times the user has used the publish repository
-   * action from the suggested next steps view
-   */
-  public recordSuggestedStepPublishRepository(): Promise<void> {
-    return this.statsStore.recordSuggestedStepPublishRepository()
-  }
-
-  /**
-   * Increment the number of times the user has used the publish branch
-   * action branch from the suggested next steps view
-   */
-  public recordSuggestedStepPublishBranch(): Promise<void> {
-    return this.statsStore.recordSuggestedStepPublishBranch()
-  }
-
-  /**
-   * Increment the number of times the user has used the Create PR suggestion
-   * in the suggested next steps view.
-   */
-  public recordSuggestedStepCreatePullRequest(): Promise<void> {
-    return this.statsStore.recordSuggestedStepCreatePullRequest()
-  }
-
-  /**
-   * Increment the number of times the user has used the View Stash suggestion
-   * in the suggested next steps view.
-   */
-  public recordSuggestedStepViewStash(): Promise<void> {
-    return this.statsStore.recordSuggestedStepViewStash()
-  }
-
-  /** Record when the user takes no action on the stash entry */
-  public recordNoActionTakenOnStash(): Promise<void> {
-    return this.statsStore.recordNoActionTakenOnStash()
-  }
-
-  /** Record when the user views the stash entry */
-  public recordStashView(): Promise<void> {
-    return this.statsStore.recordStashView()
-  }
-
   /** Call when the user opts to skip the pick editor step of the onboarding tutorial */
   public skipPickEditorTutorialStep(repository: Repository) {
     return this.appStore._skipPickEditorTutorialStep(repository)
@@ -2807,15 +2682,6 @@ export class Dispatcher {
    */
   public markPullRequestTutorialStepAsComplete(repository: Repository) {
     return this.appStore._markPullRequestTutorialStepAsComplete(repository)
-  }
-
-  /**
-   * Increments the `forksCreated ` metric` indicating that the user has
-   * elected to create a fork when presented with a dialog informing
-   * them that they don't have write access to the current repository.
-   */
-  public recordForkCreated() {
-    return this.statsStore.recordForkCreated()
   }
 
   /**
@@ -2836,7 +2702,7 @@ export class Dispatcher {
     // See https://github.com/desktop/desktop/issues/9232 for rationale
     const url = getGitHubHtmlUrl(repository)
     if (url !== null) {
-      this.statsStore.recordIssueCreationWebpageOpened()
+      this.statsStore.increment('issueCreationWebpageOpenedCount')
       return this.appStore._openInBrowser(`${url}/issues/new/choose`)
     } else {
       return false
@@ -2855,12 +2721,12 @@ export class Dispatcher {
     this.appStore._setUseWindowsOpenSSH(useWindowsOpenSSH)
   }
 
-  public setNotificationsEnabled(notificationsEnabled: boolean) {
-    this.appStore._setNotificationsEnabled(notificationsEnabled)
+  public setShowCommitLengthWarning(showCommitLengthWarning: boolean) {
+    this.appStore._setShowCommitLengthWarning(showCommitLengthWarning)
   }
 
-  public recordDiffOptionsViewed() {
-    return this.statsStore.recordDiffOptionsViewed()
+  public setNotificationsEnabled(notificationsEnabled: boolean) {
+    this.appStore._setNotificationsEnabled(notificationsEnabled)
   }
 
   private logHowToRevertCherryPick(
@@ -2947,7 +2813,7 @@ export class Dispatcher {
     )
 
     if (commits.length > 1) {
-      this.statsStore.recordCherryPickMultipleCommits()
+      this.statsStore.increment('cherryPickMultipleCommitsCount')
     }
 
     const nameAfterCheckout = await this.appStore._checkoutBranchReturnName(
@@ -3025,7 +2891,7 @@ export class Dispatcher {
     )
     this.appStore._setMultiCommitOperationTargetBranch(repository, targetBranch)
     this.appStore._setCherryPickBranchCreated(repository, true)
-    this.statsStore.recordCherryPickBranchCreatedCount()
+    this.statsStore.increment('cherryPickBranchCreatedCount')
     return this.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
 
@@ -3080,7 +2946,7 @@ export class Dispatcher {
       repository,
     })
 
-    this.statsStore.recordCherryPickViaDragAndDrop()
+    this.statsStore.increment('cherryPickViaDragAndDropCount')
     this.setCherryPickBranchCreated(repository, false)
     this.cherryPick(repository, targetBranch, commits, sourceBranch)
   }
@@ -3141,7 +3007,7 @@ export class Dispatcher {
     )
 
     if (result === CherryPickResult.CompletedWithoutError) {
-      this.statsStore.recordCherryPickSuccessfulWithConflicts()
+      this.statsStore.increment('cherryPickSuccessfulWithConflictsCount')
     }
 
     this.processCherryPickResult(
@@ -3188,7 +3054,7 @@ export class Dispatcher {
       },
     })
 
-    this.statsStore.recordCherryPickConflictsEncountered()
+    this.statsStore.increment('cherryPickConflictsEncounteredCount')
   }
 
   /** Aborts an ongoing cherry pick and switches back to the source branch. */
@@ -3264,16 +3130,6 @@ export class Dispatcher {
    */
   public setCherryPickProgressFromState(repository: Repository) {
     return this.appStore._setCherryPickProgressFromState(repository)
-  }
-
-  /** Method to record cherry pick initiated via the context menu. */
-  public recordCherryPickViaContextMenu() {
-    this.statsStore.recordCherryPickViaContextMenu()
-  }
-
-  /** Method to record an operation started via drag and drop and canceled. */
-  public recordDragStartedAndCanceled() {
-    this.statsStore.recordDragStartedAndCanceled()
   }
 
   /** Method to set the drag element */
@@ -3396,10 +3252,10 @@ export class Dispatcher {
       return
     }
 
-    this.statsStore.recordReorderStarted()
+    this.statsStore.increment('reorderStartedCount')
 
     if (commitsToReorder.length > 1) {
-      this.statsStore.recordReorderMultipleCommits()
+      this.statsStore.increment('reorderMultipleCommitsCount')
     }
 
     this.appStore._initializeMultiCommitOperation(
@@ -3505,7 +3361,7 @@ export class Dispatcher {
     }
 
     if (toSquash.length > 1) {
-      this.statsStore.recordSquashMultipleCommitsInvoked()
+      this.statsStore.increment('squashMultipleCommitsInvokedCount')
     }
 
     this.initializeMultiCommitOperation(
@@ -3629,6 +3485,14 @@ export class Dispatcher {
     // conflict flow if squash results in conflict.
     const status = await this.appStore._loadStatus(repository)
     switch (result) {
+      case RebaseResult.AlreadyUpToDate:
+        sendNonFatalException(
+          'rebaseConflictsWithBranchAlreadyUpToDate',
+          new Error(
+            `processMultiCommitOperationRebaseResult was invoked (which means Desktop went into a conflicts-found state) but the branch was already up-to-date, so there couldn't be any conflicts at all`
+          )
+        )
+        break
       case RebaseResult.CompletedWithoutError:
         if (status !== null && status.currentTip !== undefined) {
           // This sets the history to the current tip
@@ -3783,10 +3647,7 @@ export class Dispatcher {
         }
         break
       case MultiCommitOperationKind.Rebase:
-        const sourceBranch =
-          operationDetail.kind === MultiCommitOperationKind.Rebase
-            ? operationDetail.sourceBranch
-            : null
+        const { sourceBranch } = operationDetail
         banner = {
           type: BannerType.SuccessfulRebase,
           targetBranch: targetBranch !== null ? targetBranch.name : '',
@@ -3939,9 +3800,9 @@ export class Dispatcher {
   /** Records the squash that a squash has been invoked by either drag and drop or context menu */
   public recordSquashInvoked(isInvokedByContextMenu: boolean): void {
     if (isInvokedByContextMenu) {
-      this.statsStore.recordSquashViaContextMenuInvoked()
+      this.statsStore.increment('squashViaContextMenuInvokedCount')
     } else {
-      this.statsStore.recordSquashViaDragAndDropInvokedCount()
+      this.statsStore.increment('squashViaDragAndDropInvokedCount')
     }
   }
 
@@ -3980,32 +3841,12 @@ export class Dispatcher {
   public setShowCIStatusPopover(showCIStatusPopover: boolean) {
     this.appStore._setShowCIStatusPopover(showCIStatusPopover)
     if (showCIStatusPopover) {
-      this.statsStore.recordCheckRunsPopoverOpened()
+      this.statsStore.increment('opensCheckRunsPopover')
     }
   }
 
   public _toggleCIStatusPopover() {
     this.appStore._toggleCIStatusPopover()
-  }
-
-  public recordCheckViewedOnline() {
-    this.statsStore.recordCheckViewedOnline()
-  }
-
-  public recordCheckJobStepViewedOnline() {
-    this.statsStore.recordCheckJobStepViewedOnline()
-  }
-
-  public recordRerunChecks() {
-    this.statsStore.recordRerunChecks()
-  }
-
-  public recordChecksFailedDialogSwitchToPullRequest() {
-    this.statsStore.recordChecksFailedDialogSwitchToPullRequest()
-  }
-
-  public recordChecksFailedDialogRerunChecks() {
-    this.statsStore.recordChecksFailedDialogRerunChecks()
   }
 
   public recordPullRequestReviewDialogSwitchToPullRequest(
@@ -4014,12 +3855,10 @@ export class Dispatcher {
     this.statsStore.recordPullRequestReviewDialogSwitchToPullRequest(reviewType)
   }
 
-  public recordPullRequestCommentDialogSwitchToPullRequest() {
-    this.statsStore.recordPullRequestCommentDialogSwitchToPullRequest()
-  }
-
   public showUnreachableCommits(selectedTab: UnreachableCommitsTab) {
-    this.statsStore.recordMultiCommitDiffUnreachableCommitsDialogOpenedCount()
+    this.statsStore.increment(
+      'multiCommitDiffUnreachableCommitsDialogOpenedCount'
+    )
 
     this.showPopup({
       type: PopupType.UnreachableCommits,
@@ -4091,5 +3930,25 @@ export class Dispatcher {
 
   public appFocusedElementChanged() {
     this.appStore._appFocusedElementChanged()
+  }
+
+  public updateCachedRepoRulesets(rulesets: Array<IAPIRepoRuleset | null>) {
+    this.appStore._updateCachedRepoRulesets(rulesets)
+  }
+
+  public onChecksFailedNotification(
+    repository: RepositoryWithGitHubRepository,
+    pullRequest: PullRequest,
+    commitMessage: string,
+    commitSha: string,
+    checks: ReadonlyArray<IRefCheck>
+  ) {
+    this.appStore.onChecksFailedNotification(
+      repository,
+      pullRequest,
+      commitMessage,
+      commitSha,
+      checks
+    )
   }
 }

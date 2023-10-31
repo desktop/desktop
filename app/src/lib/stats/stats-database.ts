@@ -171,6 +171,9 @@ export interface IDailyMeasures {
   /** The number of times a successful rebase without conflicts is detected */
   readonly rebaseSuccessWithoutConflictsCount: number
 
+  /** The number of times a rebase finishes without effect because the branch was already up-to-date */
+  readonly rebaseWithBranchAlreadyUpToDateCount: number
+
   /** The number of times a user performed a pull with `pull.rebase` in config set to `true` */
   readonly pullWithRebaseCount: number
 

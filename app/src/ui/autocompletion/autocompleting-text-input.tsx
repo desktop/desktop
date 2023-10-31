@@ -42,8 +42,8 @@ interface IAutocompletingTextInputProps<ElementType, AutocompleteItemType> {
   /** The current value of the input field. */
   readonly value?: string
 
-  /** Disabled state for input field. */
-  readonly disabled?: boolean
+  /** Whether or not the input should be read-only and styled as disabled */
+  readonly readOnly?: boolean
 
   /** Indicates if input field should be required */
   readonly required?: boolean
@@ -400,11 +400,12 @@ export abstract class AutocompletingTextInput<
       value: this.props.value,
       ref: this.onRef,
       onChange: this.onChange,
+      onScroll: this.onScroll,
       onKeyDown: this.onKeyDown,
       onFocus: this.onFocus,
       onBlur: this.onBlur,
       onContextMenu: this.onContextMenu,
-      disabled: this.props.disabled,
+      readOnly: this.props.readOnly,
       required: this.props.required ? true : false,
       spellCheck: this.props.spellcheck,
       autoComplete: 'off',
@@ -422,6 +423,11 @@ export abstract class AutocompletingTextInput<
     )
   }
 
+  // This will update the caret coordinates in the componen state, so that the
+  // "invisible caret" can be positioned correctly.
+  // Given the outcome of this function depends on both the caret coordinates
+  // and the scroll position, it should be called whenever the caret moves (on
+  // text changes) or the scroll position changes.
   private updateCaretCoordinates = () => {
     const element = this.element
     if (!element) {
@@ -527,10 +533,9 @@ export abstract class AutocompletingTextInput<
         {this.renderTextInput()}
         {this.renderInvisibleCaret()}
         <AriaLiveContainer
+          message={autoCompleteItems.length > 0 ? suggestionsMessage : null}
           trackedUserInput={this.state.autocompletionState?.rangeText}
-        >
-          {autoCompleteItems.length > 0 ? suggestionsMessage : ''}
-        </AriaLiveContainer>
+        />
       </div>
     )
   }
@@ -714,6 +719,10 @@ export abstract class AutocompletingTextInput<
 
   private buildAutocompleteListRowIdPrefix() {
     return new Date().getTime().toString()
+  }
+
+  private onScroll = () => {
+    this.updateCaretCoordinates()
   }
 
   private onChange = async (event: React.FormEvent<ElementType>) => {

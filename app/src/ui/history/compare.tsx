@@ -159,8 +159,9 @@ export class CompareSidebar extends React.Component<
       <div id="compare-view" role="tabpanel" aria-labelledby="history-tab">
         <div className="compare-form">
           <FancyTextBox
+            ariaLabel="Branch filter"
             symbol={OcticonSymbol.gitBranch}
-            type="search"
+            displayClearButton={true}
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
             value={filterText}
@@ -350,6 +351,7 @@ export class CompareSidebar extends React.Component<
         onItemClick={this.onBranchItemClicked}
         onFilterTextChanged={this.onBranchFilterTextChanged}
         renderBranch={this.renderCompareBranchListItem}
+        getBranchAriaLabel={this.getBranchAriaLabel}
         onFilterListResultsChanged={this.filterListResultsChanged}
       />
     )
@@ -418,6 +420,10 @@ export class CompareSidebar extends React.Component<
         aheadBehindStore={this.props.aheadBehindStore}
       />
     )
+  }
+
+  private getBranchAriaLabel = (item: IBranchListItem): string => {
+    return item.branch.name
   }
 
   private onBranchFilterKeyDown = (
@@ -691,8 +697,8 @@ function getPlaceholderText(state: ICompareState) {
     return __DARWIN__ ? 'No Branches to Compare' : 'No branches to compare'
   } else if (formState.kind === HistoryTabMode.History) {
     return __DARWIN__
-      ? 'Select Branch to Compare...'
-      : 'Select branch to compare...'
+      ? 'Select Branch to Compare…'
+      : 'Select branch to compare…'
   } else {
     return undefined
   }

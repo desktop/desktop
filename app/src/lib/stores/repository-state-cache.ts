@@ -24,6 +24,7 @@ import { merge } from '../merge'
 import { DefaultCommitMessage } from '../../models/commit-message'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { StatsStore } from '../stats'
+import { RepoRulesInfo } from '../../models/repo-rules'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
@@ -126,7 +127,7 @@ export class RepositoryStateCache {
       return
     }
 
-    this.statsStore.recordSubmoduleDiffViewedFromChangesList()
+    this.statsStore.increment('submoduleDiffViewedFromChangesListCount')
   }
 
   public updateCommitSelection<K extends keyof ICommitSelection>(
@@ -154,7 +155,7 @@ export class RepositoryStateCache {
       oldState.file?.id !== newState.file?.id &&
       newState.file?.status.submoduleStatus !== undefined
     ) {
-      this.statsStore.recordSubmoduleDiffViewedFromHistory()
+      this.statsStore.increment('submoduleDiffViewedFromHistoryCount')
     }
   }
 
@@ -316,6 +317,7 @@ function getInitialRepositoryState(): IRepositoryState {
       conflictState: null,
       stashEntry: null,
       currentBranchProtected: false,
+      currentRepoRulesInfo: new RepoRulesInfo(),
     },
     selectedSection: RepositorySectionTab.Changes,
     branchesState: {

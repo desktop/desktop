@@ -48,5 +48,17 @@ export enum PullRequestSuggestedNextAction {
   CreatePullRequest = 'CreatePullRequest',
 }
 
+/** Type guard which narrows a string to a PullRequestSuggestedNextAction */
+export function isIdPullRequestSuggestedNextAction(
+  id: string
+): id is
+  | PullRequestSuggestedNextAction.PreviewPullRequest
+  | PullRequestSuggestedNextAction.CreatePullRequest {
+  return (
+    id === PullRequestSuggestedNextAction.PreviewPullRequest ||
+    id === PullRequestSuggestedNextAction.CreatePullRequest
+  )
+}
+
 export const defaultPullRequestSuggestedNextAction =
   PullRequestSuggestedNextAction.PreviewPullRequest

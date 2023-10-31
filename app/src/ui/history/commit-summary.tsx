@@ -15,7 +15,7 @@ import { DiffOptions } from '../diff/diff-options'
 import { IChangesetData } from '../../lib/git'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { AppFileStatusKind } from '../../models/status'
-import _ from 'lodash'
+import uniqWith from 'lodash/uniqWith'
 import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
@@ -128,7 +128,7 @@ function createState(
     getAvatarUsersForCommit(repository.gitHubRepository, c)
   )
 
-  const avatarUsers = _.uniqWith(
+  const avatarUsers = uniqWith(
     allAvatarUsers,
     (a, b) => a.email === b.email && a.name === b.name
   )
@@ -407,10 +407,7 @@ export class CommitSummary extends React.Component<
     }
 
     return (
-      <li
-        className="commit-summary-meta-item without-truncation"
-        aria-label="Author"
-      >
+      <li className="commit-summary-meta-item without-truncation">
         <AvatarStack users={avatarUsers} />
         <CommitAttribution
           gitHubRepository={repository.gitHubRepository}
@@ -504,10 +501,7 @@ export class CommitSummary extends React.Component<
             {this.renderLinesChanged()}
             {this.renderTags()}
 
-            <li
-              className="commit-summary-meta-item without-truncation"
-              title="Diff Options"
-            >
+            <li className="commit-summary-meta-item without-truncation">
               <DiffOptions
                 isInteractiveDiff={false}
                 hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
@@ -659,7 +653,7 @@ export class CommitSummary extends React.Component<
 
     return (
       <li className="commit-summary-meta-item" title={tags.join('\n')}>
-        <span aria-label="Tags">
+        <span>
           <Octicon symbol={OcticonSymbol.tag} />
         </span>
 

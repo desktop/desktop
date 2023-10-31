@@ -13,15 +13,15 @@
 
   &.input-description-warning {
     .octicon {
-      fill: var(--dialog-warning-color);
+      fill: var(--input-warning-text-color);
     }
   }
 
   &.input-description-error {
-    color: var(--dialog-error-color);
+    color: var(--input-error-text-color);
 
     .octicon {
-      fill: var(--dialog-error-color);
+      fill: var(--input-error-text-color);
     }
   }
 }

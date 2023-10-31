@@ -15,9 +15,13 @@ import {
   DropdownSelectButton,
   IDropdownSelectButtonOption,
 } from '../../dropdown-select-button'
-import { MultiCommitOperationKind } from '../../../models/multi-commit-operation'
+import {
+  MultiCommitOperationKind,
+  isIdMultiCommitOperation,
+} from '../../../models/multi-commit-operation'
 import { assertNever } from '../../../lib/fatal-error'
 import { getMergeOptions } from '../../lib/update-branch'
+import { getDefaultAriaLabelForBranch } from '../../branches/branch-renderer'
 
 interface IBaseChooseBranchDialogProps {
   readonly dispatcher: Dispatcher
@@ -161,12 +165,14 @@ export abstract class BaseChooseBranchDialog extends React.Component<
     return currentBranch === defaultBranch ? null : defaultBranch
   }
 
-  private onOperationChange = (
-    option: IDropdownSelectButtonOption<MultiCommitOperationKind>
-  ) => {
+  private onOperationChange = (option: IDropdownSelectButtonOption) => {
+    if (!isIdMultiCommitOperation(option.id)) {
+      return
+    }
+
     const { dispatcher, repository } = this.props
     const { selectedBranch } = this.state
-    switch (option.value) {
+    switch (option.id) {
       case MultiCommitOperationKind.Merge:
         dispatcher.startMergeBranchOperation(repository, false, selectedBranch)
         break
@@ -180,7 +186,7 @@ export abstract class BaseChooseBranchDialog extends React.Component<
       case MultiCommitOperationKind.Reorder:
         break
       default:
-        assertNever(option.value, `Unknown operation value: ${option.value}`)
+        assertNever(option.id, `Unknown operation value: ${option.id}`)
     }
   }
 
@@ -200,13 +206,19 @@ export abstract class BaseChooseBranchDialog extends React.Component<
     return (
       <div className="merge-status-component">
         {this.renderActionStatusIcon()}
-        <p className="merge-info">{preview}</p>
+        <p className="merge-info" id="merge-status-preview">
+          {preview}
+        </p>
       </div>
     )
   }
 
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
     return renderDefaultBranch(item, matches, this.props.currentBranch)
+  }
+
+  private getBranchAriaLabel = (item: IBranchListItem): string => {
+    return getDefaultAriaLabelForBranch(item)
   }
 
   public render() {
@@ -234,17 +246,20 @@ export abstract class BaseChooseBranchDialog extends React.Component<
             onSelectionChanged={this.onSelectionChanged}
             canCreateNewBranch={false}
             renderBranch={this.renderBranch}
+            getBranchAriaLabel={this.getBranchAriaLabel}
             onItemClick={this.onItemClick}
           />
         </DialogContent>
         <DialogFooter>
           {this.renderStatusPreview()}
           <DropdownSelectButton
-            selectedValue={operation}
+            checkedOption={operation}
             options={getMergeOptions()}
             disabled={!this.canStart()}
+            ariaDescribedBy="merge-status-preview"
+            dropdownAriaLabel="Merge options"
             tooltip={this.getSubmitButtonToolTip()}
-            onSelectChange={this.onOperationChange}
+            onCheckedOptionChange={this.onOperationChange}
           />
         </DialogFooter>
       </Dialog>

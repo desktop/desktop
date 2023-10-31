@@ -96,6 +96,9 @@ interface IBranchListProps {
 
   readonly textbox?: TextBox
 
+  /** Aria label for a specific row */
+  readonly getBranchAriaLabel: (item: IBranchListItem) => string | undefined
+
   /**
    * Render function to apply to each branch in the list
    */
@@ -214,6 +217,7 @@ export class BranchList extends React.Component<
         onFilterListResultsChanged={this.props.onFilterListResultsChanged}
         renderPreList={this.props.renderPreList}
         onItemContextMenu={this.onBranchContextMenu}
+        getItemAriaLabel={this.getItemAriaLabel}
         getGroupAriaLabel={this.getGroupAriaLabel}
       />
     ) : (
@@ -290,13 +294,14 @@ export class BranchList extends React.Component<
     }
   }
 
+  private getItemAriaLabel = (item: IBranchListItem) => {
+    return this.props.getBranchAriaLabel?.(item)
+  }
+
   private getGroupAriaLabel = (group: number) => {
-    const GroupIdentifiers: ReadonlyArray<BranchGroupIdentifier> = [
-      'default',
-      'recent',
-      'other',
-    ]
-    return this.getGroupLabel(GroupIdentifiers[group])
+    const identifier = this.state.groups[group]
+      .identifier as BranchGroupIdentifier
+    return this.getGroupLabel(identifier)
   }
 
   private renderGroupHeader = (label: string) => {

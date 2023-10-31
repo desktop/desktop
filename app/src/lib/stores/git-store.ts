@@ -350,7 +350,7 @@ export class GitStore extends BaseStore {
     await this.refreshTags()
     this.addTagToPush(name)
 
-    this.statsStore.recordTagCreatedInDesktop()
+    this.statsStore.increment('tagsCreatedInDesktop')
   }
 
   public async deleteTag(name: string) {
@@ -366,7 +366,7 @@ export class GitStore extends BaseStore {
     await this.refreshTags()
     this.removeTagToPush(name)
 
-    this.statsStore.recordTagDeleted()
+    this.statsStore.increment('tagsDeleted')
   }
 
   /** The list of ordered SHAs. */

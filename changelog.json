@@ -1,5 +1,203 @@
 {
   "releases": {
+    "3.3.6-beta1": [
+      "[Fixed] Creating pull requests from a renamed branch uses the branch name in the remote - #17628",
+      "[Fixed] On macOS Sonoma, the VoiceOver regression preventing our dialog headers announcements has been fixed. - #17631",
+      "[Improved] The pull request branch selection popover header is announced by screen readers. - #17631",
+      "[Improved] Improve keyboard and screen reader support for banners - #17542",
+      "[Improved] The commit summary description overflow is limited to two lines when collapsed. - #17618",
+      "[Improved] The commit summary description has a grey background color when expanded. - #17618"
+    ],
+    "3.3.5": [
+      "[Added] Syntax highlighting now supports .cc files - #17503. Thanks @DylanDevelops!",
+      "[Fixed] Long file paths are correctly truncated in the conflicts dialog - #17595"
+    ],
+    "3.3.5-beta1": [
+      "[Added] Syntax highlighting now supports .cc files - #17503. Thanks @DylanDevelops!",
+      "[Fixed] Long file paths are correctly truncated in the conflicts dialog - #17595",
+      "[Fixed] Screen readers announce group name when navigating through grouped lists - #17567",
+      "[Fixed] The history commit summary header is now expandable making the tool-tipped meta data keyboard accessible - #17557."
+    ],
+    "3.3.4": [
+      "[Added] Added Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
+      "[Added] Add support for Pulsar code editor on Linux - #17397. Thanks @Daeraxa!",
+      "[Added] Add Eclipse IDE integrations for macOS - #16991. Thanks @yuzawa-san!",
+      "[Fixed] Fix JetBrains PhpStorm capitalization - #17505. Thanks @imkylecat!",
+      "[Fixed] Screen readers announce contents of error dialog when attempting to perform certain operations while local changes are present - #17519",
+      "[Fixed] Screen readers announce contents of app error dialogs - #17479",
+      "[Fixed] Screen readers announce contents of merge, rebase, interactive rebase abort confirmation dialogs - #17478",
+      "[Fixed] Pasting long texts in the commit summary textbox does not show a scrollbar in the left pane - #17472",
+      "[Fixed] Tab characters in diffs are rendered correctly - #8616",
+      "[Fixed] Close button in release notes dialog can be clicked - #17438",
+      "[Fixed] Scrolling works as expected in the \"Commit Reachability\" dialog - #17421",
+      "[Fixed] Tip of comment bubbles in Pull Request notifications is rendered correctly - #17411",
+      "[Improved] Added a setting to allow toggling the availability of the commit message length warning - #17370. Thanks @rystills!",
+      "[Improved] Added accessibility label to filter textbox in the History tab - #17488",
+      "[Improved] Improved clarity of the structure of dialogs by using `h2` elements for their titles - #17483",
+      "[Improved] Display co-authors button additional information when it's focused via keyboard navigation - #17464",
+      "[Improved] When focusing the rebase/merge/squash button, screen readers announce the outcome of the operation - #17448",
+      "[Improved] Clarified the outcome of toggling the setting under \"Background Updates\" in the \"Advanced\" settings - #17389",
+      "[Improved] Undo link when resolving conflicts is now a button - #17373"
+    ],
+    "3.3.4-beta3": [
+      "[Fixed] Screen readers announce contents of error dialog when attempting to perform certain operations while local changes are present - #17519",
+      "[Fixed] Fix JetBrains PhpStorm capitalization - #17505. Thanks @imkylecat!",
+      "[Improved] Upgrade to Electron v26.2.4 - #17524",
+      "[Improved] Upgrade node to 18.16.1 - #17453"
+    ],
+    "3.3.4-beta2": [
+      "[Added] Added Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
+      "[Fixed] Screen readers announce contents of app error dialogs - #17479",
+      "[Fixed] Screen readers announce contents of merge, rebase, interactive rebase abort confirmation dialogs - #17478",
+      "[Fixed] Pasting long texts in the commit summary textbox does not show a scrollbar in the left pane - #17472",
+      "[Fixed] Tab characters in diffs are rendered correctly - #8616",
+      "[Improved] Added accessibility label to filter textbox in the History tab - #17488",
+      "[Improved] Improved clarity of the structure of dialogs by using `h2` elements for their titles - #17483",
+      "[Improved] Display co-authors button additional information when it's focused via keyboard navigation - #17464",
+      "[Improved] When focusing the rebase/merge/squash button, screen readers announce the outcome of the operation - #17448"
+    ],
+    "3.3.4-beta1": [
+      "[Fixed] Close button in release notes dialog can be clicked - #17438",
+      "[Fixed] Scrolling works as expected in the \"Commit Reachability\" dialog - #17421",
+      "[Improved] Upgrade to Electron v26.2.1 - #17408"
+    ],
+    "3.3.3": ["[Improved] Upgrade to Electron v24.8.3 - #17416"],
+    "3.3.3-beta2": ["[Improved] Upgrade to Electron v24.8.3 - #17416"],
+    "3.3.3-beta1": [
+      "[Added] Add support for Pulsar code editor on Linux - #17397. Thanks @Daeraxa!",
+      "[Added] Add Eclipse IDE integrations for macOS - #16991. Thanks @yuzawa-san!",
+      "[Improved] Added a setting to allow toggling the availability of the commit message length warning - #17370. Thanks @rystills!",
+      "[Improved] Clarified the outcome of toggling the setting under \"Background Updates\" in the \"Advanced\" settings - #17389",
+      "[Fixed] Tip of comment bubbles in Pull Request notifications is rendered correctly - #17411",
+      "[Improved] Undo link when resolving conflicts is now a button - #17373"
+    ],
+    "3.3.2": [
+      "[Fixed] Use forked repository when checking repo rules on forks - #17382. Thanks @vaindil!",
+      "[Fixed] On macOs, the scroll bar only present when scrolling no longer overlaps conflict resolution buttons - #17374",
+      "[Fixed] Allow rebasing even when the branch is a direct descendant of the base branch - #17260",
+      "[Fixed] Branch name pattern regex no longer causes an automatic failure in the \"Create a Branch\" dialog. - #17392",
+      "[Fixed] Make clear button in input text boxes keyboard accessible - #17324",
+      "[Fixed] Make the create and clone repository dialogs accessible when the app is zoomed in and the window is small - #17337",
+      "[Fixed] Fix keyboard navigation in filtered lists - #17311",
+      "[Fixed] Pressing Tab from the \"Select branch to compare…\" filter input textbox focuses on the first branch in the list - #17314",
+      "[Fixed] Fix \"Invalid numstat line\" error when trying to preview a pull request - #17267",
+      "[Improved] After undo, the focus is set to the changes tab instead of the entire document body - #17387",
+      "[Improved] Commit text inputs retain focus while committing - #17283"
+    ],
+    "3.3.2-beta2": [
+      "[Fixed] Use forked repository when checking repo rules on forks - #17382. Thanks @vaindil!",
+      "[Fixed] On macOs, the scroll bar only present when scrolling no longer overlaps conflict resolution buttons - #17374",
+      "[Fixed] Allow rebasing even when the branch is a direct descendant of the base branch - #17260",
+      "[Fixed] Branch name pattern regex no longer causes an automatic failure in the \"Create a Branch\" dialog. - #17392",
+      "[Improved] After undo, the focus is set to the changes tab instead of the entire document body - #17387"
+    ],
+    "3.3.2-beta1": [
+      "[Fixed] Support the repository rule to enforce commit signing - #17310",
+      "[Fixed] Make clear button in input text boxes keyboard accessible - #17324",
+      "[Fixed] Make the create and clone repository dialogs accessible when the app is zoomed in and the window is small - #17337",
+      "[Fixed] Fix keyboard navigation in filtered lists - #17311",
+      "[Fixed] Pressing Tab from the \"Select branch to compare…\" filter input textbox focuses on the first branch in the list - #17314",
+      "[Fixed] Fix \"Invalid numstat line\" error when trying to preview a pull request - #17267",
+      "[Improved] Commit text inputs retain focus while committing - #17283"
+    ],
+    "3.3.1": [
+      "[Fixed] Support the repository rule to enforce commit signing - #17310",
+      "[Fixed] Keyboard navigation in lists reintroduced - #17313"
+    ],
+    "3.3.0": [
+      "[New] Initial support for repository rules - #16707",
+      "[Fixed] Recreate stash after renaming branch - #16442",
+      "[Fixed] Fix loop creating a new repository that already exists, or trying to add a repository that doesn't exist - #17262",
+      "[Fixed] Allow cloning repositories that have git as a suffix - #17221",
+      "[Fixed] Fix accessibility semantics of root items of the app menu bar - #17254",
+      "[Fixed] Double clicking the checkbox of a changed file does not open that file in the external editor - #17229",
+      "[Fixed] Expand buttons in the diff are keyboard navigable. - #17212",
+      "[Improved] Improve light mode color contrast of lines added and deleted - #17206",
+      "[Improved] Dropdown select buttons have aria attributes  - #17271",
+      "[Improved] Dropdown select button menu items are keyboard navigable and have aria attributes - #17271",
+      "[Improved] Prevent interrupting verbose announcements of branch count on branch dropdown open for screen reader users - #17225"
+    ],
+    "3.2.10-beta2": [
+      "[Fixed] Fix loop creating a new repository that already exists, or trying to add a repository that doesn't exist - #17262",
+      "[Fixed] Allow cloning repositories that have git as suffix - #17221",
+      "[Fixed] Fix accessibility semantics of root items of the app menu bar - #17254",
+      "[Improved] Dropdown select buttons have aria attributes  - #17271",
+      "[Improved] Dropdown select buttons menu is keyboard navigable and have aria attributes - #17271",
+      "[Improved] Prevent interrupting verbose announcements of branch count on branch dropdown open for screen reader users - #17225"
+    ],
+    "3.2.10-beta1": ["[Fixed] Fix the inability to log into GHES - #17237"],
+    "3.2.9": ["[Fixed] Fix the inability to log into GHES - #17237"],
+    "3.2.9-beta1": [
+      "[Fixed] Double clicking the checkbox of a changed file does not open that file in the external editor - #17229",
+      "[Fixed] Expand buttons in the diff are keyboard navigable. - #17212",
+      "[Improved] Improve light mode color contrast of lines added and deleted - #17206"
+    ],
+    "3.2.8": [
+      "[New] Checkout a commit from the History tab - #10068. Thanks @kitswas!",
+      "[New] Add Double Click to Open in Default Editor - #2620. Thanks @digitalmaster!",
+      "[New] Show when a repository has been archived in the clone dialog - #7183",
+      "[Added] Add Zed Preview as an external editor option - #17097. Thanks @filiptronicek!",
+      "[Added] Add support for Pulsar code editor on Windows - #17120. Thanks @confused-Techie!",
+      "[Fixed] The force push loading state is screen reader announced - #17116",
+      "[Fixed] Improve readability of file statuses for keyboard-only users - #17192",
+      "[Fixed] Fix detection of VSCodium Insiders for Windows - #17078. Thanks @voidei!",
+      "[Fixed] Enable context menu keyboard shortcut for file lists - #17143",
+      "[Fixed] Adds a workaround for the macOS Ventura `aria-labelledby` and `aria-describedby` regressions such that dialog titles are always announced - #17148",
+      "[Fixed] Screen readers announce the status of files within a commit - #17144",
+      "[Fixed] Fix not recognizing remote for partial clone/fetch - #16284. Thanks @mkafrin!",
+      "[Fixed] Fix association of repositories using nonstandard usernames - #17024",
+      "[Improved] Screen readers announce \"overwrite stash\" and \"discard stash\" confirmation dialogs - #17197",
+      "[Improved] Screen readers announce contents of Delete Tag confirmation dialog - #17166",
+      "[Improved] The stash restore button's description is associated to the restore button - #17204",
+      "[Improved] The delete branch dialog's contents are announced as alert dialogs. - #17210",
+      "[Improved] Improve branch dropdown tabs screen reader support - #17172",
+      "[Improved] The rename dialog warnings are placed before the branch name input - #17164",
+      "[Improved] The \"Restore\" button in stashed changes is not disabled when uncommitted changes are present - #12994. Thanks @samuelko123!",
+      "[Improved] Improve contrast of text to links in dark and light themes - #17092",
+      "[Improved] The errors and warnings in the \"Create a New Repository\" dialog are screen reader announced - #16993",
+      "[Improved] Add `aria-label` and `aria-expanded` attributes to diff options button - #17062",
+      "[Improved] Screen readers announce the number of pull requests found after refreshing the list - #17031",
+      "[Improved] The context menu for the History view items can be invoked by keyboard shortcuts - #17035"
+    ],
+    "3.2.8-beta4": [
+      "[Fixed] Fix selecting/deselecting changed files with the keyboard - #17207. Thanks @koenpunt!",
+      "[Improved] The stash restore button's description is associated to the restore button - #17204",
+      "[Improved] The delete branch dialog's contents are announced as alert dialogs. - #17210"
+    ],
+    "3.2.8-beta3": [
+      "[Added] Add Zed Preview as an external editor option - #17097. Thanks @filiptronicek!",
+      "[Added] Add support for Pulsar code editor on Windows - #17120. Thanks @confused-Techie!",
+      "[Fixed] The force push loading state is screen reader announced - #17116",
+      "[Fixed] Allow screen readers to announce \"overwrite stash\" and \"discard stash\" confirmation dialogs - #17197",
+      "[Fixed] Improve readability of file statuses for keyboard-only users - #17192",
+      "[Fixed] Screen readers announce contents of Delete Tag confirmation dialog - #17166",
+      "[Fixed] Fix detection of VSCodium Insiders for Windows - #17078. Thanks @voidei!",
+      "[Improved] Improve branch dropdown tabs screen reader support - #17172",
+      "[Improved] The rename dialog warnings are placed before the branch name input - #17164",
+      "[Improved] The \"Restore\" button in stashed changes is not disabled when uncommitted changes are present - #12994. Thanks @samuelko123!"
+    ],
+    "3.2.8-beta2": [
+      "[New] Initial support for repository rules - #16707. Thanks @vaindil!",
+      "[Fixed] Enable context menu keyboard shortcut for file lists - #17143",
+      "[Fixed] Adds a workaround for the macOS Ventura `aria-labelledby` and `aria-describedby` regressions such that dialog titles are always announced - #17148",
+      "[Fixed] Screen readers announce branch group names correctly when there are no recent branches - #17142",
+      "[Fixed] Screen readers announce the status of files within a commit - #17144",
+      "[Improved] Improve contrast of text to links in dark and light themes - #17092",
+      "[Improved] The errors and warnings in the \"Create a New Repository\" dialog are screen reader announced - #16993"
+    ],
+    "3.2.8-beta1": [
+      "[Fixed] Fix not recognizing remote for partial clone/fetch - #16284. Thanks @mkafrin!",
+      "[Fixed] Fix association of repositories using nonstandard usernames - #17024",
+      "[Improved] Add aria-label and aria-expanded attributes to diff options button - #17062",
+      "[Improved] Screen readers announce number of pull requests found after refreshing the list - #17031",
+      "[Improved] The context menu for the History view items can be invoked by keyboard shortcuts - #17035"
+    ],
+    "3.2.7": [
+      "[Fixed] Improved performance when selecting and viewing a large number of commits - #16880",
+      "[Fixed] Fix crash using Edit -> Copy menu when no text is selected in the diff - #16876",
+      "[Fixed] Emoji autocomplete list highlights filter text correctly - #16899",
+      "[Fixed] Allow filtering autocomplete results using uppercase characters - #16886"
+    ],
     "3.2.7-beta2": [
       "[New] Checkout a commit from the History tab - #10068. Thanks @kitswas!",
       "[New] Show when a repository has been archived in the clone dialog - #7183",

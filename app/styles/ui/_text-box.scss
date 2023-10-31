@@ -4,6 +4,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  position: relative;
 
   & > label {
     overflow-wrap: anywhere;
@@ -12,7 +13,10 @@
 
   input {
     @include textboxish;
-    @include textboxish-disabled;
+
+    &:read-only {
+      @include textboxish-disabled-styles;
+    }
 
     // Customize the "clear" icon on search text inputs to match our
     // theme icons and colors.
@@ -32,10 +36,21 @@
       -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"/></svg>');
       -webkit-mask-repeat: no-repeat;
     }
+  }
 
-    &:read-only {
-      @include textboxish-disabled-styles;
-    }
+  &.display-clear-button input {
+    padding-inline-end: var(--text-field-height);
+  }
+
+  button.clear-button {
+    position: absolute;
+    right: 1px;
+    border: 0;
+    background: none;
+    width: var(--text-field-height);
+    height: calc(100%);
+    color: var(--text-color);
+    padding: 1px 0 0 0;
   }
 
   &:not(.no-invalid-state) :not(:focus):invalid {

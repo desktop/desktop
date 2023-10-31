@@ -1,5 +1,5 @@
 import { access } from 'fs/promises'
-import { constant } from 'lodash'
+import constant from 'lodash/constant'
 
 /**
  * Returns a value indicating whether or not the provided path exists (as in

@@ -1,4 +1,4 @@
-import { escapeRegExp } from 'lodash'
+import escapeRegExp from 'lodash/escapeRegExp'
 
 const user_images_cdn_url = 'https://user-images.githubusercontent.com'
 

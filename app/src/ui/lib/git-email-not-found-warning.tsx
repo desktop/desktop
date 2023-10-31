@@ -20,7 +20,42 @@ interface IGitEmailNotFoundWarningProps {
  * email doesn't match any of the emails in their GitHub (Enterprise) account.
  */
 export class GitEmailNotFoundWarning extends React.Component<IGitEmailNotFoundWarningProps> {
-  private buildMessage() {
+  private buildMessage(isAttributableEmail: boolean) {
+    const indicatorIcon = !isAttributableEmail ? (
+      <span className="warning-icon">⚠️</span>
+    ) : (
+      <span className="green-circle">
+        <Octicon className="check-icon" symbol={OcticonSymbol.check} />
+      </span>
+    )
+
+    const learnMore = !isAttributableEmail ? (
+      <LinkButton
+        ariaLabel="Learn more about commit attribution"
+        uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
+      >
+        Learn more.
+      </LinkButton>
+    ) : null
+
+    return (
+      <>
+        {indicatorIcon}
+        {this.buildScreenReaderMessage(isAttributableEmail)}
+        {learnMore}
+      </>
+    )
+  }
+
+  private buildScreenReaderMessage(isAttributableEmail: boolean) {
+    const verb = !isAttributableEmail ? 'does not match' : 'matches'
+    const info = !isAttributableEmail
+      ? 'Your commits will be wrongly attributed. '
+      : ''
+    return `This email address ${verb} ${this.getAccountTypeDescription()}. ${info}`
+  }
+
+  public render() {
     const { accounts, email } = this.props
 
     if (accounts.length === 0 || email.trim().length === 0) {
@@ -31,43 +66,6 @@ export class GitEmailNotFoundWarning extends React.Component<IGitEmailNotFoundWa
       isAttributableEmailFor(account, email)
     )
 
-    const verb = !isAttributableEmail ? 'does not match' : 'matches'
-
-    const indicatorIcon = !isAttributableEmail ? (
-      <span className="warning-icon">⚠️</span>
-    ) : (
-      <span className="green-circle">
-        <Octicon className="check-icon" symbol={OcticonSymbol.check} />
-      </span>
-    )
-
-    const info = !isAttributableEmail ? (
-      <>
-        Your commits will be wrongly attributed.{' '}
-        <LinkButton
-          ariaLabel="Learn more about commit attribution"
-          uri="https://docs.github.com/en/github/committing-changes-to-your-project/why-are-my-commits-linked-to-the-wrong-user"
-        >
-          Learn more.
-        </LinkButton>
-      </>
-    ) : null
-
-    return (
-      <>
-        {indicatorIcon}
-        This email address {verb} {this.getAccountTypeDescription()}. {info}
-      </>
-    )
-  }
-
-  public render() {
-    const { accounts, email } = this.props
-
-    if (accounts.length === 0 || email.trim().length === 0) {
-      return null
-    }
-
     /**
      * Here we put the message in the top div for visual users immediately  and
      * in the bottom div for screen readers. The screen reader content is
@@ -75,14 +73,15 @@ export class GitEmailNotFoundWarning extends React.Component<IGitEmailNotFoundWa
      */
     return (
       <>
-        <div className="git-email-not-found-warning">{this.buildMessage()}</div>
+        <div className="git-email-not-found-warning">
+          {this.buildMessage(isAttributableEmail)}
+        </div>
 
         <AriaLiveContainer
           id="git-email-not-found-warning-for-screen-readers"
           trackedUserInput={this.props.email}
-        >
-          {this.buildMessage()}
-        </AriaLiveContainer>
+          message={this.buildScreenReaderMessage(isAttributableEmail)}
+        />
       </>
     )
   }

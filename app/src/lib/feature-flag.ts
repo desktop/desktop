@@ -50,7 +50,7 @@ export function enableWSLDetection(): boolean {
  * Should we use the new diff viewer for unified diffs?
  */
 export function enableExperimentalDiffViewer(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /**
@@ -79,12 +79,7 @@ export function enableResetToCommit(): boolean {
 
 /** Should we allow checking out a single commit? */
 export function enableCheckoutCommit(): boolean {
-  return enableBetaFeatures()
-}
-
-/** Should ci check runs show logs? */
-export function enableCICheckRunsLogs(): boolean {
-  return false
+  return true
 }
 
 /** Should we show previous tags as suggestions? */
@@ -98,7 +93,7 @@ export function enablePullRequestQuickView(): boolean {
 }
 
 export function enableMoveStash(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 export const enableCustomGitUserAgent = enableBetaFeatures
@@ -106,3 +101,7 @@ export const enableCustomGitUserAgent = enableBetaFeatures
 export function enableSectionList(): boolean {
   return enableBetaFeatures()
 }
+
+export const enableRepoRulesBeta = () => true
+
+export const enableCommitDetailsHeaderExpansion = enableBetaFeatures

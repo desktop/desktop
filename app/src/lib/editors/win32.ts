@@ -57,7 +57,7 @@ type WindowsExternalEditor = {
   readonly registryKeys: ReadonlyArray<RegistryKey>
 
   /** Prefix of the DisplayName registry key that belongs to this editor. */
-  readonly displayNamePrefix: string
+  readonly displayNamePrefixes: string[]
 
   /** Value of the Publisher registry key that belongs to this editor. */
   readonly publishers: string[]
@@ -145,6 +145,15 @@ const executableShimPathsForJetBrainsIDE = (
   ]
 }
 
+// Function to allow for validating a string against the start of strings
+// in an array. Used for validating publisher and display name
+const validateStartsWith = (
+  registryVal: string,
+  definedVal: string[]
+): boolean => {
+  return definedVal.some(subString => registryVal.startsWith(subString))
+}
+
 /**
  * This list contains all the external editors supported on Windows. Add a new
  * entry here to add support for your favorite editor.
@@ -154,21 +163,21 @@ const editors: WindowsExternalEditor[] = [
     name: 'Atom',
     registryKeys: [CurrentUserUninstallKey('atom')],
     executableShimPaths: [['bin', 'atom.cmd']],
-    displayNamePrefix: 'Atom',
+    displayNamePrefixes: ['Atom'],
     publishers: ['GitHub Inc.'],
   },
   {
     name: 'Atom Beta',
     registryKeys: [CurrentUserUninstallKey('atom-beta')],
     executableShimPaths: [['bin', 'atom-beta.cmd']],
-    displayNamePrefix: 'Atom Beta',
+    displayNamePrefixes: ['Atom Beta'],
     publishers: ['GitHub Inc.'],
   },
   {
     name: 'Atom Nightly',
     registryKeys: [CurrentUserUninstallKey('atom-nightly')],
     executableShimPaths: [['bin', 'atom-nightly.cmd']],
-    displayNamePrefix: 'Atom Nightly',
+    displayNamePrefixes: ['Atom Nightly'],
     publishers: ['GitHub Inc.'],
   },
   {
@@ -190,7 +199,7 @@ const editors: WindowsExternalEditor[] = [
       LocalMachineUninstallKey('{A5270FC5-65AD-483E-AC30-2C276B63D0AC}_is1'),
     ],
     executableShimPaths: [['bin', 'code.cmd']],
-    displayNamePrefix: 'Microsoft Visual Studio Code',
+    displayNamePrefixes: ['Microsoft Visual Studio Code'],
     publishers: ['Microsoft Corporation'],
     executableArgs: (path, remote) => {
       const { distro, wslPath = '' } = parseWSLPath(path)
@@ -218,7 +227,7 @@ const editors: WindowsExternalEditor[] = [
       LocalMachineUninstallKey('{0AEDB616-9614-463B-97D7-119DD86CCA64}_is1'),
     ],
     executableShimPaths: [['bin', 'code-insiders.cmd']],
-    displayNamePrefix: 'Microsoft Visual Studio Code Insiders',
+    displayNamePrefixes: ['Microsoft Visual Studio Code Insiders'],
     publishers: ['Microsoft Corporation'],
   },
   {
@@ -252,7 +261,7 @@ const editors: WindowsExternalEditor[] = [
       LocalMachineUninstallKey('{D1ACE434-89C5-48D1-88D3-E2991DF85475}_is1'),
     ],
     executableShimPaths: [['bin', 'codium.cmd']],
-    displayNamePrefix: 'VSCodium',
+    displayNamePrefixes: ['VSCodium'],
     publishers: ['VSCodium', 'Microsoft Corporation'],
   },
   {
@@ -274,7 +283,7 @@ const editors: WindowsExternalEditor[] = [
       LocalMachineUninstallKey('{44721278-64C6-4513-BC45-D48E07830599}_is1'),
     ],
     executableShimPaths: [['bin', 'codium-insiders.cmd']],
-    displayNamePrefix: 'VSCodium (Insiders)',
+    displayNamePrefixes: ['VSCodium Insiders', 'VSCodium (Insiders)'],
     publishers: ['VSCodium'],
   },
   {
@@ -286,7 +295,7 @@ const editors: WindowsExternalEditor[] = [
       LocalMachineUninstallKey('Sublime Text 3_is1'),
     ],
     executableShimPaths: [['subl.exe']],
-    displayNamePrefix: 'Sublime Text',
+    displayNamePrefixes: ['Sublime Text'],
     publishers: ['Sublime HQ Pty Ltd'],
   },
   {
@@ -295,7 +304,7 @@ const editors: WindowsExternalEditor[] = [
       Wow64LocalMachineUninstallKey('{4F3B6E8C-401B-4EDE-A423-6481C239D6FF}'),
     ],
     executableShimPaths: [['Brackets.exe']],
-    displayNamePrefix: 'Brackets',
+    displayNamePrefixes: ['Brackets'],
     publishers: ['brackets.io'],
   },
   {
@@ -307,7 +316,7 @@ const editors: WindowsExternalEditor[] = [
       LocalMachineUninstallKey('Adobe ColdFusion Builder 2016'),
     ],
     executableShimPaths: [['CFBuilder.exe']],
-    displayNamePrefix: 'Adobe ColdFusion Builder',
+    displayNamePrefixes: ['Adobe ColdFusion Builder'],
     publishers: ['Adobe Systems Incorporated'],
   },
   {
@@ -321,7 +330,7 @@ const editors: WindowsExternalEditor[] = [
       ),
     ],
     executableShimPaths: [['typora.exe']],
-    displayNamePrefix: 'Typora',
+    displayNamePrefixes: ['Typora'],
     publishers: ['typora.io'],
   },
   {
@@ -351,7 +360,7 @@ const editors: WindowsExternalEditor[] = [
       LocalMachineUninstallKey('{7CC0E567-ACD6-41E8-95DA-154CEEDB0A18}'),
     ],
     executableShimPaths: [['win', 'vs.exe']],
-    displayNamePrefix: 'SlickEdit',
+    displayNamePrefixes: ['SlickEdit'],
     publishers: ['SlickEdit Inc.'],
   },
   {
@@ -360,7 +369,7 @@ const editors: WindowsExternalEditor[] = [
       Wow64LocalMachineUninstallKey('{2D6C1116-78C6-469C-9923-3E549218773F}'),
     ],
     executableShimPaths: [['AptanaStudio3.exe']],
-    displayNamePrefix: 'Aptana Studio',
+    displayNamePrefixes: ['Aptana Studio'],
     publishers: ['Appcelerator'],
   },
   {
@@ -368,15 +377,15 @@ const editors: WindowsExternalEditor[] = [
     registryKeys: registryKeysForJetBrainsIDE('WebStorm'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('webstorm'),
     jetBrainsToolboxScriptName: 'webstorm',
-    displayNamePrefix: 'WebStorm',
+    displayNamePrefixes: ['WebStorm'],
     publishers: ['JetBrains s.r.o.'],
   },
   {
-    name: 'JetBrains Phpstorm',
+    name: 'JetBrains PhpStorm',
     registryKeys: registryKeysForJetBrainsIDE('PhpStorm'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('phpstorm'),
     jetBrainsToolboxScriptName: 'phpstorm',
-    displayNamePrefix: 'PhpStorm',
+    displayNamePrefixes: ['PhpStorm'],
     publishers: ['JetBrains s.r.o.'],
   },
   {
@@ -388,7 +397,7 @@ const editors: WindowsExternalEditor[] = [
       ['..', 'bin', `studio64.exe`],
       ['..', 'bin', `studio.exe`],
     ],
-    displayNamePrefix: 'Android Studio',
+    displayNamePrefixes: ['Android Studio'],
     publishers: ['Google LLC'],
   },
   {
@@ -400,7 +409,7 @@ const editors: WindowsExternalEditor[] = [
       Wow64LocalMachineUninstallKey('Notepad++'),
     ],
     installLocationRegistryKey: 'DisplayIcon',
-    displayNamePrefix: 'Notepad++',
+    displayNamePrefixes: ['Notepad++'],
     publishers: ['Notepad++ Team'],
   },
   {
@@ -408,14 +417,14 @@ const editors: WindowsExternalEditor[] = [
     registryKeys: registryKeysForJetBrainsIDE('JetBrains Rider'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('rider'),
     jetBrainsToolboxScriptName: 'rider',
-    displayNamePrefix: 'JetBrains Rider',
+    displayNamePrefixes: ['JetBrains Rider'],
     publishers: ['JetBrains s.r.o.'],
   },
   {
     name: 'RStudio',
     registryKeys: [Wow64LocalMachineUninstallKey('RStudio')],
     installLocationRegistryKey: 'DisplayIcon',
-    displayNamePrefix: 'RStudio',
+    displayNamePrefixes: ['RStudio'],
     publishers: ['RStudio', 'Posit Software'],
   },
   {
@@ -423,7 +432,7 @@ const editors: WindowsExternalEditor[] = [
     registryKeys: registryKeysForJetBrainsIDE('IntelliJ IDEA'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('idea'),
     jetBrainsToolboxScriptName: 'idea',
-    displayNamePrefix: 'IntelliJ IDEA ',
+    displayNamePrefixes: ['IntelliJ IDEA '],
     publishers: ['JetBrains s.r.o.'],
   },
   {
@@ -432,7 +441,7 @@ const editors: WindowsExternalEditor[] = [
       'IntelliJ IDEA Community Edition'
     ),
     executableShimPaths: executableShimPathsForJetBrainsIDE('idea'),
-    displayNamePrefix: 'IntelliJ IDEA Community Edition ',
+    displayNamePrefixes: ['IntelliJ IDEA Community Edition '],
     publishers: ['JetBrains s.r.o.'],
   },
   {
@@ -440,14 +449,14 @@ const editors: WindowsExternalEditor[] = [
     registryKeys: registryKeysForJetBrainsIDE('PyCharm'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('pycharm'),
     jetBrainsToolboxScriptName: 'pycharm',
-    displayNamePrefix: 'PyCharm ',
+    displayNamePrefixes: ['PyCharm '],
     publishers: ['JetBrains s.r.o.'],
   },
   {
     name: 'JetBrains PyCharm Community Edition',
     registryKeys: registryKeysForJetBrainsIDE('PyCharm Community Edition'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('pycharm'),
-    displayNamePrefix: 'PyCharm Community Edition',
+    displayNamePrefixes: ['PyCharm Community Edition'],
     publishers: ['JetBrains s.r.o.'],
   },
   {
@@ -455,7 +464,7 @@ const editors: WindowsExternalEditor[] = [
     registryKeys: registryKeysForJetBrainsIDE('CLion'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('clion'),
     jetBrainsToolboxScriptName: 'clion',
-    displayNamePrefix: 'CLion ',
+    displayNamePrefixes: ['CLion '],
     publishers: ['JetBrains s.r.o.'],
   },
   {
@@ -463,7 +472,7 @@ const editors: WindowsExternalEditor[] = [
     registryKeys: registryKeysForJetBrainsIDE('RubyMine'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('rubymine'),
     jetBrainsToolboxScriptName: 'rubymine',
-    displayNamePrefix: 'RubyMine ',
+    displayNamePrefixes: ['RubyMine '],
     publishers: ['JetBrains s.r.o.'],
   },
   {
@@ -471,7 +480,7 @@ const editors: WindowsExternalEditor[] = [
     registryKeys: registryKeysForJetBrainsIDE('GoLand'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('goland'),
     jetBrainsToolboxScriptName: 'goland',
-    displayNamePrefix: 'GoLand ',
+    displayNamePrefixes: ['GoLand '],
     publishers: ['JetBrains s.r.o.'],
   },
   {
@@ -479,7 +488,7 @@ const editors: WindowsExternalEditor[] = [
     registryKeys: [LocalMachineUninstallKey('Fleet')],
     jetBrainsToolboxScriptName: 'fleet',
     installLocationRegistryKey: 'DisplayIcon',
-    displayNamePrefix: 'Fleet ',
+    displayNamePrefixes: ['Fleet '],
     publishers: ['JetBrains s.r.o.'],
   },
   {
@@ -487,8 +496,18 @@ const editors: WindowsExternalEditor[] = [
     registryKeys: registryKeysForJetBrainsIDE('DataSpell'),
     executableShimPaths: executableShimPathsForJetBrainsIDE('dataspell'),
     jetBrainsToolboxScriptName: 'dataspell',
-    displayNamePrefix: 'DataSpell ',
+    displayNamePrefixes: ['DataSpell '],
     publishers: ['JetBrains s.r.o.'],
+  },
+  {
+    name: 'Pulsar',
+    registryKeys: [
+      CurrentUserUninstallKey('0949b555-c22c-56b7-873a-a960bdefa81f'),
+      LocalMachineUninstallKey('0949b555-c22c-56b7-873a-a960bdefa81f'),
+    ],
+    executableShimPaths: [['..', 'pulsar', 'Pulsar.exe']],
+    displayNamePrefixes: ['Pulsar'],
+    publishers: ['Pulsar-Edit'],
   },
 ]
 
@@ -523,7 +542,7 @@ async function findApplication(editor: WindowsExternalEditor) {
     const { displayName, publisher, installLocation } = getAppInfo(editor, keys)
 
     if (
-      !displayName.startsWith(editor.displayNamePrefix) ||
+      !validateStartsWith(displayName, editor.displayNamePrefixes) ||
       !editor.publishers.includes(publisher)
     ) {
       log.debug(`Unexpected registry entries for ${editor.name}`)

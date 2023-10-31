@@ -74,7 +74,7 @@ export class CICheckRunRerunDialog extends React.Component<
       prRef,
       this.state.rerunnable
     )
-    dispatcher.recordRerunChecks()
+    dispatcher.incrementMetric('rerunsChecks')
     this.props.onDismissed()
   }
 
