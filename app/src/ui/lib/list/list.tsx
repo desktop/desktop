@@ -1208,18 +1208,51 @@ export class List extends React.Component<IListProps, IListState> {
       return null
     }
 
+    if (!this.list) {
+      return
+    }
+
+    const listRect = this.list.getBoundingClientRect()
+
+    const renderOverlay = (
+      top: number | string,
+      left: number | string,
+      width: number | string,
+      height: number | string
+    ) => {
+      return (
+        <div
+          style={{
+            position: 'fixed',
+            zIndex: 1000,
+            top,
+            left,
+            width,
+            height,
+          }}
+          className="overlay"
+        />
+      )
+    }
+
     return (
-      <div
-        style={{
-          position: 'fixed',
-          zIndex: 1000,
-          top: 0,
-          left: 0,
-        }}
-        ref={this.keyboardInsertionElementRef}
-      >
-        {keyboardInsertionElementRenderer?.(keyboardInsertionData)}
-      </div>
+      <>
+        {renderOverlay(0, 0, '100%', listRect.top)}
+        {renderOverlay(listRect.top, 0, listRect.left, listRect.height)}
+        {renderOverlay(listRect.top, listRect.right, '100%', listRect.height)}
+        {renderOverlay(listRect.bottom, 0, '100%', '100%')}
+        <div
+          style={{
+            position: 'fixed',
+            zIndex: 1000,
+            top: 0,
+            left: 0,
+          }}
+          ref={this.keyboardInsertionElementRef}
+        >
+          {keyboardInsertionElementRenderer?.(keyboardInsertionData)}
+        </div>
+      </>
     )
   }
 

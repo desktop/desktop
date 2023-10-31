@@ -16,6 +16,10 @@
   .ReactVirtualized__Grid {
     background: var(--background-color);
   }
+
+  .overlay {
+    background: var(--overlay-background-color);
+  }
 }
 
 @include win32-context {
