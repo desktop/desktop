@@ -23,6 +23,7 @@ interface IGitProps {
   readonly onDefaultBranchChanged: (defaultBranch: string) => void
 
   readonly selectedExternalEditor: string | null
+  readonly onOpenFileInExternalEditor: (path: string) => void
 }
 
 interface IGitState {
@@ -166,13 +167,15 @@ export class Git extends React.Component<IGitProps, IGitState> {
 
         <p className="git-settings-description">
           These preferences will{' '}
-          {this.props.selectedExternalEditor && this.state.globalGitConfigPath
-            ? (
-                <LinkButton onClick={this.openGlobalGitConfigInEditor}>
-                  edit your global Git config file
-                </LinkButton>
-              ) + '.'
-            : 'edit your global Git config file.'}
+          {this.props.selectedExternalEditor &&
+          this.state.globalGitConfigPath ? (
+            <LinkButton onClick={this.openGlobalGitConfigInEditor}>
+              edit your global Git config file
+            </LinkButton>
+          ) : (
+            'edit your global Git config file'
+          )}
+          .
         </p>
       </div>
     )
@@ -200,7 +203,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
   // user's default editor.
   private openGlobalGitConfigInEditor = () => {
     if (this.state.globalGitConfigPath) {
-      this.props.onOpenItemInExternalEditor(this.state.globalGitConfigPath)
+      this.props.onOpenFileInExternalEditor(this.state.globalGitConfigPath)
     }
   }
 }

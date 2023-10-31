@@ -1563,6 +1563,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
+            onOpenFileInExternalEditor={this.openFileInExternalEditor}
           />
         )
       case PopupType.RepositorySettings: {

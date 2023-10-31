@@ -65,6 +65,7 @@ interface IPreferencesProps {
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
   readonly repositoryIndicatorsEnabled: boolean
+  readonly onOpenFileInExternalEditor: (path: string) => void
 }
 
 interface IPreferencesState {
@@ -343,6 +344,7 @@ export class Preferences extends React.Component<
               onDefaultBranchChanged={this.onDefaultBranchChanged}
               isLoadingGitConfig={this.state.isLoadingGitConfig}
               selectedExternalEditor={this.props.selectedExternalEditor}
+              onOpenFileInExternalEditor={this.props.onOpenFileInExternalEditor}
             />
           </>
         )
