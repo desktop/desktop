@@ -17,7 +17,14 @@
     background: var(--background-color);
   }
 
+  .keyboard-insertion-element {
+    position: fixed;
+    z-index: 1000;
+  }
+
   .overlay {
+    position: fixed;
+    z-index: 1000;
     background: var(--overlay-background-color);
   }
 }

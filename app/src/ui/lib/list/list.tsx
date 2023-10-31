@@ -1231,8 +1231,6 @@ export class List extends React.Component<IListProps, IListState> {
       return (
         <div
           style={{
-            position: 'fixed',
-            zIndex: 1000,
             top,
             left,
             width,
@@ -1250,9 +1248,8 @@ export class List extends React.Component<IListProps, IListState> {
         {renderOverlay(listRect.top, listRect.right, '100%', listRect.height)}
         {renderOverlay(listRect.bottom, 0, '100%', '100%')}
         <div
+          className="keyboard-insertion-element"
           style={{
-            position: 'fixed',
-            zIndex: 1000,
             top: 0,
             left: 0,
           }}
