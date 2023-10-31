@@ -1125,7 +1125,9 @@ export class List extends React.Component<IListProps, IListState> {
       const element =
         this.props.insertionDragType !== undefined ? (
           <ListItemInsertionOverlay
+            isKeyboardInsertion={this.inKeyboardInsertionMode}
             onDropDataInsertion={this.onDropDataInsertion}
+            onInsertionAreaMouseEnter={this.onInsertionAreaMouseEnter}
             itemIndex={{ section: 0, row: rowIndex }}
             dragType={this.props.insertionDragType}
             forcedFeedbackType={forcedFeedbackType}
@@ -1621,11 +1623,25 @@ export class List extends React.Component<IListProps, IListState> {
     this.props.onDropDataInsertion?.(indexPath.row, data)
   }
 
+  private onInsertionAreaMouseEnter = (indexPath: RowIndexPath) => {
+    if (!this.inKeyboardInsertionMode) {
+      return
+    }
+
+    this.setState({ keyboardInsertionIndexPath: indexPath })
+  }
+
   private onRowClick = (
     indexPath: RowIndexPath,
     event: React.MouseEvent<any>
   ) => {
     if (this.inKeyboardInsertionMode) {
+      const { keyboardInsertionData, onConfirmKeyboardInsertion } = this.props
+
+      if (keyboardInsertionData) {
+        onConfirmKeyboardInsertion?.(indexPath, keyboardInsertionData)
+      }
+
       return
     }
 
