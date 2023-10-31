@@ -342,6 +342,7 @@ export class Preferences extends React.Component<
               onEmailChanged={this.onCommitterEmailChanged}
               onDefaultBranchChanged={this.onDefaultBranchChanged}
               isLoadingGitConfig={this.state.isLoadingGitConfig}
+              selectedExternalEditor={this.props.selectedExternalEditor}
             />
           </>
         )
