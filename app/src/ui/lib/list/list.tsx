@@ -745,6 +745,12 @@ export class List extends React.Component<IListProps, IListState> {
     // focused list item if it scrolls back into view.
     if (!focusWithin) {
       this.focusRow = -1
+
+      // If we're in keyboard insertion mode, we need to cancel it
+      // when the list loses focus.
+      if (this.inKeyboardInsertionMode) {
+        this.props.onCancelKeyboardInsertion?.()
+      }
     } else if (this.props.selectedRows.length === 0) {
       const firstSelectableRowIndexPath = this.getFirstSelectableRowIndexPath()
       if (firstSelectableRowIndexPath !== null) {
