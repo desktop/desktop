@@ -1279,7 +1279,11 @@ export class List extends React.Component<IListProps, IListState> {
     const rowRect = rowElement.getBoundingClientRect()
     const listRect = this.list.getBoundingClientRect()
 
-    element.style.top = `${Math.max(listRect.top, rowRect.top)}px`
+    const top = Math.min(
+      Math.max(listRect.top, rowRect.top),
+      listRect.top + listRect.height - element.clientHeight
+    )
+    element.style.top = `${top}px`
     element.style.left = `${rowRect.right + 20}px`
   }
 
