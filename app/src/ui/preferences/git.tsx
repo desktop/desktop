@@ -14,6 +14,7 @@ interface IGitProps {
   readonly email: string
   readonly defaultBranch: string
   readonly isLoadingGitConfig: boolean
+  readonly globalGitConfigPath: string | null
 
   readonly dotComAccount: Account | null
   readonly enterpriseAccount: Account | null
