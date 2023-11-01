@@ -358,6 +358,9 @@ export class SideBySideDiffRow extends React.Component<
       <div className="content" onContextMenu={this.props.onContextMenuText}>
         <div className="prefix">&nbsp;&nbsp;{prefix}&nbsp;&nbsp;</div>
         <div className="content-wrapper">
+          {/* Copy to clipboard will ignore empty "lines" unless we add br */}
+          {data.content.length === 0 && <br />}
+
           {syntaxHighlightLine(data.content, data.tokens)}
           {data.noNewLineIndicator && (
             <Octicon
