@@ -1,6 +1,5 @@
 import parseDDS from 'parse-dds'
 import triangle from 'a-big-triangle'
-import createShader from 'gl-shader'
 
 const vert = `
 attribute vec2 position;
@@ -23,6 +22,62 @@ void main() {
   gl_FragColor = texture2D(tex0, vUv);
 }
 `
+
+function compileShader(
+  gl: WebGL2RenderingContext,
+  type: number,
+  source: string
+) {
+  const shader = gl.createShader(type)
+  if (!shader) {
+    return null
+  }
+  gl.shaderSource(shader, source)
+  gl.compileShader(shader)
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    const errLog = gl.getShaderInfoLog(shader)
+    throw new Error('Error compiling shader:\n' + errLog)
+  }
+  return shader
+}
+
+function linkProgram(
+  gl: WebGL2RenderingContext,
+  vertShader: WebGLShader,
+  fragShader: WebGLShader
+) {
+  const program = gl.createProgram()
+  if (!program) {
+    return null
+  }
+  gl.attachShader(program, vertShader)
+  gl.attachShader(program, fragShader)
+  gl.linkProgram(program)
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    const errLog = gl.getProgramInfoLog(program)
+    throw new Error('Error linking program: ' + errLog)
+  }
+  return program
+}
+
+function compileProgram(
+  gl: WebGL2RenderingContext,
+  vertSource: string,
+  fragSource: string
+) {
+  const vertShader = compileShader(gl, gl.VERTEX_SHADER, vertSource)
+  if (!vertShader) {
+    throw new Error('Failed to compile vertex shader')
+  }
+
+  const fragShader = compileShader(gl, gl.FRAGMENT_SHADER, fragSource)
+  if (!fragShader) {
+    throw new Error('Failed to compile fragment shader')
+  }
+
+  const program = linkProgram(gl, vertShader, fragShader)
+  return program
+}
 
 function getFormat(ext: WEBGL_compressed_texture_s3tc, ddsFormat: string) {
   switch (ddsFormat) {
@@ -70,8 +125,8 @@ function drawToCanvas(
     imageData
   )
 
-  const shader = createShader(gl, vert, frag)
-  shader.bind()
+  const program = compileProgram(gl, vert, frag)
+  gl.useProgram(program)
 
   gl.viewport(0, 0, width, height)
   triangle(gl)
