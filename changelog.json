@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.3.6-beta2": [
+      "[Fixed] Empty lines are included when copying text from diffs - #17652"
+    ],
     "3.3.6-beta1": [
       "[Fixed] Creating pull requests from a renamed branch uses the branch name in the remote - #17628",
       "[Fixed] On macOS Sonoma, the VoiceOver regression preventing our dialog headers announcements has been fixed. - #17631",
