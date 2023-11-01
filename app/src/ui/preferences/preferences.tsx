@@ -184,7 +184,6 @@ export class Preferences extends React.Component<
     const availableShells = shells.map(e => e.shell)
 
     const globalGitConfigPath = await getGlobalConfigPath()
-    this.setState({ globalGitConfigPath })
 
     this.setState({
       committerName,
@@ -209,6 +208,7 @@ export class Preferences extends React.Component<
       availableShells,
       availableEditors,
       isLoadingGitConfig: false,
+      globalGitConfigPath,
     })
   }
 

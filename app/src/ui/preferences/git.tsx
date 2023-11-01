@@ -7,7 +7,6 @@ import { RadioButton } from '../lib/radio-button'
 import { LinkButton } from '../lib/link-button'
 import { Account } from '../../models/account'
 import { GitConfigUserForm } from '../lib/git-config-user-form'
-import { getGlobalConfigPath } from '../../lib/git'
 
 interface IGitProps {
   readonly name: string
@@ -34,7 +33,6 @@ interface IGitState {
    * enter a custom branch name.
    */
   readonly defaultBranchIsOther: boolean
-  readonly globalGitConfigPath?: string
 }
 
 // This will be the prepopulated branch name on the "other" input
@@ -75,15 +73,6 @@ export class Git extends React.Component<IGitProps, IGitState> {
       this.defaultBranchInputRef.current !== null
     ) {
       this.defaultBranchInputRef.current.focus()
-    }
-  }
-
-  // This is called when the component is mounted and it's used to
-  // get the path to the global git config file.
-  public async componentDidMount() {
-    const globalGitConfigPath = await getGlobalConfigPath()
-    if (globalGitConfigPath !== null) {
-      this.setState({ globalGitConfigPath })
     }
   }
 
@@ -169,7 +158,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
         <p className="git-settings-description">
           These preferences will{' '}
           {this.props.selectedExternalEditor &&
-          this.state.globalGitConfigPath ? (
+          this.props.globalGitConfigPath ? (
             <LinkButton onClick={this.openGlobalGitConfigInEditor}>
               edit your global Git config file
             </LinkButton>
@@ -203,8 +192,8 @@ export class Git extends React.Component<IGitProps, IGitState> {
   // This function is called to open the global git config file in the
   // user's default editor.
   private openGlobalGitConfigInEditor = () => {
-    if (this.state.globalGitConfigPath) {
-      this.props.onOpenFileInExternalEditor(this.state.globalGitConfigPath)
+    if (this.props.globalGitConfigPath) {
+      this.props.onOpenFileInExternalEditor(this.props.globalGitConfigPath)
     }
   }
 }
