@@ -29,6 +29,8 @@ import {
   getLabelForManualResolutionOption,
 } from '../../../lib/status'
 
+const defaultConflictsResolvedMessage = 'No conflicts remaining'
+
 /**
  * Renders an unmerged file status and associated buttons for the merge conflicts modal
  * (An "unmerged file" can be conflicted _and_ resolved or _just_ conflicted)
@@ -132,30 +134,31 @@ const renderResolvedFile: React.FunctionComponent<{
   readonly branch?: string
   readonly dispatcher: Dispatcher
 }> = props => {
+  const fileStatusSummary = getResolvedFileStatusSummary(
+    props.status,
+    props.manualResolution,
+    props.branch
+  )
   return (
     <li key={props.path} className="unmerged-file-status-resolved">
       <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
-      <div className="column-left">
+      <div className="column-left" id={props.path}>
         <PathText path={props.path} />
-        {renderResolvedFileStatusSummary({
-          path: props.path,
-          status: props.status,
-          branch: props.branch,
-          manualResolution: props.manualResolution,
-          repository: props.repository,
-          dispatcher: props.dispatcher,
-        })}
+        <div className="file-conflicts-status">{fileStatusSummary}</div>
       </div>
-      <Button
-        className="undo-button"
-        onClick={makeUndoManualResolutionClickHandler(
-          props.path,
-          props.repository,
-          props.dispatcher
-        )}
-      >
-        Undo
-      </Button>
+      {fileStatusSummary === defaultConflictsResolvedMessage ? null : (
+        <Button
+          className="undo-button"
+          onClick={makeUndoManualResolutionClickHandler(
+            props.path,
+            props.repository,
+            props.dispatcher
+          )}
+          ariaDescribedBy={props.path}
+        >
+          Undo
+        </Button>
+      )}
       <div className="green-circle">
         <Octicon symbol={OcticonSymbol.check} />
       </div>
@@ -415,31 +418,20 @@ function resolvedFileStatusString(
   if (manualResolution === ManualConflictResolution.theirs) {
     return getUnmergedStatusEntryDescription(status.entry.them, branch)
   }
-  return 'No conflicts remaining'
+  return defaultConflictsResolvedMessage
 }
 
-const renderResolvedFileStatusSummary: React.FunctionComponent<{
-  path: string
-  status: ConflictedFileStatus
-  repository: Repository
-  dispatcher: Dispatcher
-  manualResolution?: ManualConflictResolution
+const getResolvedFileStatusSummary = (
+  status: ConflictedFileStatus,
+  manualResolution?: ManualConflictResolution,
   branch?: string
-}> = props => {
-  if (
-    isConflictWithMarkers(props.status) &&
-    props.status.conflictMarkerCount === 0
-  ) {
-    return <div className="file-conflicts-status">No conflicts remaining</div>
-  }
+) => {
+  const noConflictMarkers =
+    isConflictWithMarkers(status) && status.conflictMarkerCount === 0
 
-  const statusString = resolvedFileStatusString(
-    props.status,
-    props.manualResolution,
-    props.branch
-  )
-
-  return <div className="file-conflicts-status">{statusString}</div>
+  return noConflictMarkers
+    ? defaultConflictsResolvedMessage
+    : resolvedFileStatusString(status, manualResolution, branch)
 }
 
 /** returns the name of the branch that corresponds to the chosen manual resolution */

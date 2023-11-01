@@ -3,6 +3,17 @@
 dialog#conflicts-dialog {
   width: 500px;
 
+  .information-banner {
+    padding: var(--spacing) var(--spacing-double);
+    border-bottom: var(--base-border);
+    display: flex;
+    align-items: center;
+
+    .contents {
+      margin-left: var(--spacing);
+    }
+  }
+
   .summary {
     margin-bottom: 20px;
   }
