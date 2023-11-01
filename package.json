@@ -59,7 +59,6 @@
     "@typescript-eslint/experimental-utils": "^5.62.0",
     "@typescript-eslint/parser": "^6.13.2",
     "@typescript-eslint/typescript-estree": "^6.13.2",
-    "a-big-triangle": "^1.0.3",
     "airbnb-browser-shims": "^3.0.0",
     "awesome-node-loader": "^1.1.1",
     "chalk": "^5.3.0",
@@ -104,7 +103,6 @@
   },
   "devDependencies": {
     "@github/markdownlint-github": "^0.1.0",
-    "@types/a-big-triangle": "^1.0.3",
     "@types/byline": "^4.2.31",
     "@types/classnames": "^2.2.2",
     "@types/codemirror": "^5.60.15",

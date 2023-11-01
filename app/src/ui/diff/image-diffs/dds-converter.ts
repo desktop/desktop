@@ -1,5 +1,4 @@
 import parseDDS from 'parse-dds'
-import triangle from 'a-big-triangle'
 
 const vert = `
 attribute vec2 position;
@@ -77,6 +76,60 @@ function compileProgram(
 
   const program = linkProgram(gl, vertShader, fragShader)
   return program
+}
+
+function createBuffer(gl: WebGL2RenderingContext, data: Float32Array) {
+  const handle = gl.createBuffer()
+
+  // Bind (setup) buffer
+  gl.bindBuffer(gl.ARRAY_BUFFER, handle)
+
+  // Initialize the buffer's data store
+  gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW)
+
+  return handle
+}
+
+function createVertexArray(gl: WebGL2RenderingContext, buffer: WebGLBuffer) {
+  const handle = gl.createVertexArray()
+  if (!handle) {
+    throw new Error('Failed to create WebGLVertexArrayObject')
+  }
+
+  // Bind (setup) vertex array and buffer
+  gl.bindVertexArray(handle)
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+
+  // Enable the first generic vertex attribute array
+  gl.enableVertexAttribArray(0)
+
+  // Bind the buffer we just bound to `gl.ARRAY_BUFFER` to a generic vertex attribute of the current vertex buffer object
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
+
+  // Unbind (cleanup) vertex array
+  gl.bindVertexArray(null)
+
+  return handle
+}
+
+function triangle(gl: WebGL2RenderingContext) {
+  const buffer = createBuffer(gl, new Float32Array([-1, -1, -1, 4, 4, -1]))
+  if (!buffer) {
+    throw new Error('Failed to create WebGLBuffer')
+  }
+
+  // Bind (setup) vertex array and buffer
+  const vertexArray = createVertexArray(gl, buffer)
+  gl.bindVertexArray(vertexArray)
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+
+  // Draw triangle
+  gl.drawArrays(gl.TRIANGLES, 0, 3)
+
+  // Unbind (cleanup) vertex array and buffer
+  gl.bindVertexArray(null)
+  gl.bindBuffer(gl.ARRAY_BUFFER, null)
 }
 
 function getFormat(ext: WEBGL_compressed_texture_s3tc, ddsFormat: string) {
