@@ -4,7 +4,6 @@
   width: 100%;
   overflow: hidden;
   flex-grow: 1;
-  user-select: contain;
   position: relative;
 
   &:not(:focus-within) .content {
