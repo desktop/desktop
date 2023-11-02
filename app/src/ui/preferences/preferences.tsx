@@ -12,6 +12,7 @@ import {
   getGlobalConfigValue,
   setGlobalConfigValue,
 } from '../../lib/git/config'
+import { getGlobalConfigPath } from '../../lib/git'
 import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
@@ -65,6 +66,7 @@ interface IPreferencesProps {
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
   readonly repositoryIndicatorsEnabled: boolean
+  readonly onOpenFileInExternalEditor: (path: string) => void
 }
 
 interface IPreferencesState {
@@ -105,6 +107,7 @@ interface IPreferencesState {
   readonly initiallySelectedTheme: ApplicationTheme
 
   readonly isLoadingGitConfig: boolean
+  readonly globalGitConfigPath: string | null
 }
 
 /** The app-level preferences component. */
@@ -143,6 +146,7 @@ export class Preferences extends React.Component<
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
       initiallySelectedTheme: this.props.selectedTheme,
       isLoadingGitConfig: true,
+      globalGitConfigPath: null,
     }
   }
 
@@ -179,6 +183,8 @@ export class Preferences extends React.Component<
     const availableEditors = editors.map(e => e.editor)
     const availableShells = shells.map(e => e.shell)
 
+    const globalGitConfigPath = await getGlobalConfigPath()
+
     this.setState({
       committerName,
       committerEmail,
@@ -202,6 +208,7 @@ export class Preferences extends React.Component<
       availableShells,
       availableEditors,
       isLoadingGitConfig: false,
+      globalGitConfigPath,
     })
   }
 
@@ -342,6 +349,9 @@ export class Preferences extends React.Component<
               onEmailChanged={this.onCommitterEmailChanged}
               onDefaultBranchChanged={this.onDefaultBranchChanged}
               isLoadingGitConfig={this.state.isLoadingGitConfig}
+              selectedExternalEditor={this.props.selectedExternalEditor}
+              onOpenFileInExternalEditor={this.props.onOpenFileInExternalEditor}
+              globalGitConfigPath={this.state.globalGitConfigPath}
             />
           </>
         )
