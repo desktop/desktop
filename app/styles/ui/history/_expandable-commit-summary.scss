@@ -5,7 +5,13 @@
   flex-direction: column;
   min-height: 0;
   border-bottom: var(--base-border);
-  padding: var(--spacing);
+
+  .beneath-summary {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: var(--spacing);
+    padding-top: 0;
+  }
 
   .ecs-title {
     font-size: var(--font-size-md);
@@ -13,6 +19,8 @@
     line-height: 16px;
     word-wrap: break-word;
     display: flex;
+    padding: var(--spacing);
+    padding-bottom: var(--spacing-half);
 
     .commits-in-diff {
       margin-left: var(--spacing-half);
@@ -42,7 +50,6 @@
   .ecs-description {
     display: flex;
     position: relative;
-    margin-top: var(--spacing-half);
     min-height: 0;
 
     &.overflowed {
@@ -82,6 +89,7 @@
   .ecs-meta {
     display: flex;
     margin-top: var(--spacing-half);
+    flex-wrap: wrap;
 
     .ecs-meta-item {
       display: flex;
@@ -117,6 +125,7 @@
           border: none;
           padding: 0;
           height: auto;
+          min-width: 16px;
 
           :hover {
             color: var(--text-secondary-color);
@@ -154,10 +163,25 @@
   }
 
   &.expanded {
+    display: block;
+
+    .beneath-summary {
+      background: var(--box-overflow-shadow-background-two);
+      background-repeat: no-repeat;
+      background-size: 100% 60px, 100% 60px, 100% 30px, 100% 30px;
+      background-attachment: local, local, scroll, scroll;
+    }
+
     .ecs-description {
       .ecs-description-text {
-        background-color: var(--box-alt-background-color);
+        background: rgba(#959da5, 0.1);
         padding: var(--spacing-half);
+      }
+
+      .ecs-description-scroll-view {
+        overflow: hidden;
+        display: block;
+        -webkit-line-clamp: none;
       }
     }
 
@@ -179,6 +203,18 @@
           .author {
             margin-bottom: 2px;
             display: flex;
+
+            div {
+              &:last-child {
+                overflow-wrap: anywhere;
+              }
+            }
+          }
+        }
+
+        &.commit-ref {
+          .ref {
+            overflow-wrap: anywhere;
           }
         }
 
@@ -194,12 +230,6 @@
           }
         }
       }
-    }
-
-    .ecs-description-scroll-view {
-      max-height: 400px;
-      overflow: auto;
-      display: revert;
     }
   }
 
