@@ -24,6 +24,11 @@ interface IListRowProps {
   /** whether the row should be rendered as selected */
   readonly selected?: boolean
 
+  /** whether the row should be rendered as selected for keyboard insertion*/
+  readonly selectedForKeyboardInsertion?: boolean
+
+  readonly inKeyboardInsertionMode: boolean
+
   /** callback to fire when the DOM element is created */
   readonly onRowRef?: (
     index: RowIndexPath,
@@ -160,7 +165,9 @@ export class ListRow extends React.Component<IListRowProps, {}> {
   public render() {
     const {
       selected,
+      selectedForKeyboardInsertion,
       selectable,
+      inKeyboardInsertionMode,
       className,
       style,
       rowCount,
@@ -172,8 +179,11 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     } = this.props
     const rowClassName = classNames(
       'list-item',
-      { selected },
-      { 'not-selectable': selectable === false },
+      {
+        selected,
+        'selected-for-keyboard-insertion': selectedForKeyboardInsertion,
+        'not-selectable': selectable === false,
+      },
       className
     )
     // react-virtualized gives us an explicit pixel width for rows, but that
@@ -197,6 +207,12 @@ export class ListRow extends React.Component<IListRowProps, {}> {
       }
     }
 
+    const ariaSelected = inKeyboardInsertionMode
+      ? selectedForKeyboardInsertion
+      : selectable
+      ? selected
+      : undefined
+
     return (
       <div
         id={id}
@@ -205,7 +221,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         }
         aria-setsize={ariaSetSize}
         aria-posinset={ariaPosInSet}
-        aria-selected={selectable ? selected : undefined}
+        aria-selected={ariaSelected}
         aria-label={this.props.ariaLabel}
         className={rowClassName}
         tabIndex={tabIndex}

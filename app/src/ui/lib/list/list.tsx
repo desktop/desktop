@@ -518,36 +518,50 @@ export class List extends React.Component<IListProps, IListState> {
       ? event.metaKey && event.key === 'ArrowDown'
       : event.key === 'End'
 
-    if (this.props.keyboardInsertionData !== undefined) {
+    const { keyboardInsertionData } = this.props
+
+    if (keyboardInsertionData !== undefined) {
       if (event.key === 'Escape') {
         this.props.onCancelKeyboardInsertion?.()
-      } else if (
-        event.key === 'Enter' &&
-        this.state.keyboardInsertionIndexPath
-      ) {
-        this.props.onConfirmKeyboardInsertion?.(
-          this.state.keyboardInsertionIndexPath,
-          this.props.keyboardInsertionData
-        )
-      } else if (isHomeKey) {
-        const indexPath: RowIndexPath = { section: 0, row: 0 }
-        this.setState({ keyboardInsertionIndexPath: indexPath })
-        this.props.onKeyboardInsertionIndexPathChanged?.(indexPath)
+        event.preventDefault()
+        return
+      }
 
-        this.scrollRowToVisible(0, false)
+      const { keyboardInsertionIndexPath } = this.state
+      if (event.key === 'Enter' && keyboardInsertionIndexPath) {
+        this.props.onConfirmKeyboardInsertion?.(
+          keyboardInsertionIndexPath,
+          keyboardInsertionData
+        )
+        event.preventDefault()
+        return
+      }
+
+      const { rowCount } = this.props
+      let row = -1
+
+      if (isHomeKey) {
+        row = 0
       } else if (isEndKey) {
         // There is no -1 here because you can insert _after_ the last row
-        const row = this.props.rowCount
-        const indexPath: RowIndexPath = { section: 0, row }
-        this.setState({ keyboardInsertionIndexPath: indexPath })
-        this.props.onKeyboardInsertionIndexPathChanged?.(indexPath)
-
-        this.scrollRowToVisible(row, false)
-      } else if (event.key === 'ArrowUp') {
-        this.moveKeyboardInsertion('up')
-      } else if (event.key === 'ArrowDown') {
-        this.moveKeyboardInsertion('down')
+        row = rowCount
+      } else if (keyboardInsertionIndexPath) {
+        if (event.key === 'ArrowUp') {
+          row = Math.max(keyboardInsertionIndexPath.row - 1, 0)
+        } else if (event.key === 'ArrowDown') {
+          row = Math.min(
+            keyboardInsertionIndexPath.row + 1,
+            // There is no -1 here because you can insert _after_ the last row
+            rowCount
+          )
+        }
       }
+
+      const indexPath: RowIndexPath = { section: 0, row }
+      this.setState({ keyboardInsertionIndexPath: indexPath })
+      this.props.onKeyboardInsertionIndexPathChanged?.(indexPath)
+
+      this.moveSelectionTo(Math.min(row, rowCount - 1), source)
 
       event.preventDefault()
       return
@@ -594,31 +608,6 @@ export class List extends React.Component<IListProps, IListState> {
 
   private get inKeyboardInsertionMode() {
     return this.props.keyboardInsertionData !== undefined
-  }
-
-  private moveKeyboardInsertion(direction: SelectionDirection) {
-    const increment = direction === 'up' ? -1 : 1
-    const { keyboardInsertionIndexPath } = this.state
-
-    if (keyboardInsertionIndexPath === null) {
-      return
-    }
-
-    const row = Math.max(
-      Math.min(
-        keyboardInsertionIndexPath.row + increment,
-        // There is no -1 here because you can insert _after_ the last row
-        this.props.rowCount
-      ),
-      0
-    )
-
-    const indexPath: RowIndexPath = { section: 0, row }
-
-    this.setState({ keyboardInsertionIndexPath: indexPath })
-    this.props.onKeyboardInsertionIndexPathChanged?.(indexPath)
-
-    this.scrollRowToVisible(row, false)
   }
 
   private moveSelectionByPage(
@@ -1163,6 +1152,12 @@ export class List extends React.Component<IListProps, IListState> {
           rowIndex={{ section: 0, row: rowIndex }}
           sectionHasHeader={false}
           selected={selected}
+          selectedForKeyboardInsertion={
+            keyboardInsertionData !== undefined &&
+            keyboardInsertionIndexPath !== null &&
+            keyboardInsertionIndexPath.row === rowIndex
+          }
+          inKeyboardInsertionMode={this.inKeyboardInsertionMode}
           ariaLabel={ariaLabel}
           onRowClick={this.onRowClick}
           onRowDoubleClick={this.onRowDoubleClick}

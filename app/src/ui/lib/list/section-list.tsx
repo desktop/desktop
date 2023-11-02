@@ -1203,6 +1203,7 @@ export class SectionList extends React.Component<
           rowCount={this.props.rowCount[indexPath.section]}
           rowIndex={indexPath}
           selected={selected}
+          inKeyboardInsertionMode={false}
           onRowClick={this.onRowClick}
           onRowDoubleClick={this.onRowDoubleClick}
           onRowKeyDown={this.onRowKeyDown}

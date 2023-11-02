@@ -201,10 +201,13 @@ export class CommitList extends React.Component<
       if (insertionIndexPath !== null) {
         const { row } = insertionIndexPath
 
+        const insertionPoint =
+          row < this.props.commitSHAs.length
+            ? `before commit ${row + 1}`
+            : `after commit ${row}`
+
         this.setState({
-          reorderingMessage: `Press Enter to insert the selected commit${plural} before commit ${
-            row + 1
-          } or Escape to cancel.`,
+          reorderingMessage: `Press Enter to insert the selected commit${plural} ${insertionPoint} or Escape to cancel.`,
         })
         return
       }
