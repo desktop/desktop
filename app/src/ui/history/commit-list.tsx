@@ -18,6 +18,8 @@ import { clipboard } from 'electron'
 import { RowIndexPath } from '../lib/list/list-row-index-path'
 import { assertNever } from '../../lib/fatal-error'
 import { CommitDragElement } from '../drag-elements/commit-drag-element'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
+import { debounce } from 'lodash'
 
 const RowHeight = 50
 
@@ -168,8 +170,15 @@ interface ICommitListProps {
   readonly shasToHighlight?: ReadonlyArray<string>
 }
 
+interface ICommitListState {
+  readonly reorderingMessage: string
+}
+
 /** A component which displays the list of commits. */
-export class CommitList extends React.Component<ICommitListProps, {}> {
+export class CommitList extends React.Component<
+  ICommitListProps,
+  ICommitListState
+> {
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
   private commitIndexBySha = memoizeOne(
     (commitSHAs: ReadonlyArray<string>) =>
@@ -177,6 +186,47 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
   )
 
   private listRef = React.createRef<List>()
+
+  private updateKeyboardReorderMessage = debounce(
+    (insertionIndexPath: RowIndexPath | null) => {
+      const { keyboardReorderData } = this.props
+
+      if (keyboardReorderData === undefined) {
+        this.setState({ reorderingMessage: '' })
+        return
+      }
+
+      const plural = keyboardReorderData.commits.length === 1 ? '' : 's'
+
+      if (insertionIndexPath !== null) {
+        const { row } = insertionIndexPath
+
+        this.setState({
+          reorderingMessage: `Press Enter to insert the selected commit${plural} before commit ${
+            row + 1
+          } or Escape to cancel.`,
+        })
+        return
+      }
+
+      this.setState({
+        reorderingMessage: `Use the Up and Down arrow keys to move the selected commit${plural}, then press Enter to confirm or Escape to cancel.`,
+      })
+    },
+    500
+  )
+
+  public constructor(props: ICommitListProps) {
+    super(props)
+
+    this.state = { reorderingMessage: '' }
+  }
+
+  public componentDidUpdate(prevProps: ICommitListProps) {
+    if (this.props.keyboardReorderData !== prevProps.keyboardReorderData) {
+      this.updateKeyboardReorderMessage(null)
+    }
+  }
 
   private getVisibleCommits(): ReadonlyArray<Commit> {
     const commits = new Array<Commit>()
@@ -434,6 +484,9 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           onDropDataInsertion={this.onDropDataInsertion}
           onSelectionChanged={this.onSelectionChanged}
           onSelectedRowChanged={this.onSelectedRowChanged}
+          onKeyboardInsertionIndexPathChanged={
+            this.onKeyboardInsertionIndexPathChanged
+          }
           onCancelKeyboardInsertion={this.props.onCancelKeyboardReorder}
           onConfirmKeyboardInsertion={this.onConfirmKeyboardReorder}
           onRowContextMenu={this.onRowContextMenu}
@@ -457,6 +510,9 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           setScrollTop={this.props.compareListScrollTop}
           rowCustomClassNameMap={this.getRowCustomClassMap()}
         />
+        {this.state.reorderingMessage && (
+          <AriaLiveContainer message={this.state.reorderingMessage} />
+        )}
       </div>
     )
   }
@@ -754,6 +810,10 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         enabled: this.canReorder(),
       },
     ]
+  }
+
+  private onKeyboardInsertionIndexPathChanged = (indexPath: RowIndexPath) => {
+    this.updateKeyboardReorderMessage(indexPath)
   }
 
   private onConfirmKeyboardReorder = (

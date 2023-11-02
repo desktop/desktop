@@ -299,7 +299,12 @@ interface IListProps {
     data: DragData
   ) => JSX.Element | null
 
+  readonly onKeyboardInsertionIndexPathChanged?: (
+    indexPath: RowIndexPath
+  ) => void
+
   readonly onCancelKeyboardInsertion?: () => void
+
   readonly onConfirmKeyboardInsertion?: (
     indexPath: RowIndexPath,
     data: DragData
@@ -525,12 +530,18 @@ export class List extends React.Component<IListProps, IListState> {
           this.props.keyboardInsertionData
         )
       } else if (isHomeKey) {
-        this.setState({ keyboardInsertionIndexPath: { section: 0, row: 0 } })
+        const indexPath: RowIndexPath = { section: 0, row: 0 }
+        this.setState({ keyboardInsertionIndexPath: indexPath })
+        this.props.onKeyboardInsertionIndexPathChanged?.(indexPath)
+
         this.scrollRowToVisible(0, false)
       } else if (isEndKey) {
         // There is no -1 here because you can insert _after_ the last row
         const row = this.props.rowCount
-        this.setState({ keyboardInsertionIndexPath: { section: 0, row } })
+        const indexPath: RowIndexPath = { section: 0, row }
+        this.setState({ keyboardInsertionIndexPath: indexPath })
+        this.props.onKeyboardInsertionIndexPathChanged?.(indexPath)
+
         this.scrollRowToVisible(row, false)
       } else if (event.key === 'ArrowUp') {
         this.moveKeyboardInsertion('up')
@@ -602,12 +613,10 @@ export class List extends React.Component<IListProps, IListState> {
       0
     )
 
-    this.setState({
-      keyboardInsertionIndexPath: {
-        section: 0,
-        row,
-      },
-    })
+    const indexPath: RowIndexPath = { section: 0, row }
+
+    this.setState({ keyboardInsertionIndexPath: indexPath })
+    this.props.onKeyboardInsertionIndexPathChanged?.(indexPath)
 
     this.scrollRowToVisible(row, false)
   }
@@ -1630,6 +1639,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
 
     this.setState({ keyboardInsertionIndexPath: indexPath })
+    this.props.onKeyboardInsertionIndexPathChanged?.(indexPath)
   }
 
   private onRowClick = (
