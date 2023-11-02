@@ -153,7 +153,6 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.hh': 'text/x-c++src',
       '.hxx': 'text/x-c++src',
       '.cxx': 'text/x-c++src',
-      '.cmake': 'text/x-c++src',
       '.ino': 'text/x-c++src',
       '.kt': 'text/x-kotlin',
     },
@@ -177,8 +176,6 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/shell/shell'),
     mappings: {
       '.sh': 'text/x-sh',
-      '.bat': 'text/x-sh',
-      '.cmd': 'text/x-sh',
     },
   },
   {
@@ -430,6 +427,12 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/dart/dart'),
     mappings: {
       '.dart': 'application/dart',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/cmake/cmake'),
+    mappings: {
+      '.cmake': 'text/x-cmake',
     },
   },
 ]
