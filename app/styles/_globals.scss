@@ -58,7 +58,7 @@ body {
   background-color: var(--background-color);
 }
 
-:not(input):not(textarea) {
+:not(input, textarea) {
   &,
   &::after,
   &::before {
