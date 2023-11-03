@@ -920,11 +920,11 @@ export class List extends React.Component<IListProps, IListState> {
   }
 
   private moveSelectionTo(row: number, source: SelectionSource) {
-    if (this.props.onSelectionChanged) {
+    if (this.props.onSelectionChanged && !this.inKeyboardInsertionMode) {
       this.props.onSelectionChanged([row], source)
     }
 
-    if (this.props.onSelectedRowChanged) {
+    if (this.props.onSelectedRowChanged && !this.inKeyboardInsertionMode) {
       const rowCount = this.props.rowCount
 
       if (row < 0 || row >= rowCount) {
