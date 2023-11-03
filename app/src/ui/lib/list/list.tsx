@@ -558,7 +558,11 @@ export class List extends React.Component<IListProps, IListState> {
             // There is no -1 here because you can insert _after_ the last row
             rowCount
           )
+        } else {
+          return
         }
+      } else {
+        return
       }
 
       const indexPath: RowIndexPath = { section: 0, row }
