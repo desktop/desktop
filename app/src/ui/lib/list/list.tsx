@@ -1657,12 +1657,6 @@ export class List extends React.Component<IListProps, IListState> {
     event: React.MouseEvent<any>
   ) => {
     if (this.inKeyboardInsertionMode) {
-      const { keyboardInsertionData, onConfirmKeyboardInsertion } = this.props
-
-      if (keyboardInsertionData) {
-        onConfirmKeyboardInsertion?.(indexPath, keyboardInsertionData)
-      }
-
       return
     }
 
