@@ -68,6 +68,7 @@ interface ICompareSidebarState {
    */
   readonly focusedBranch: Branch | null
 
+  /** Data to be reordered via keyboard */
   readonly keyboardReorderData?: KeyboardInsertionData
 }
 
@@ -287,9 +288,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private onCancelKeyboardReorder = () => {
-    this.setState({
-      keyboardReorderData: undefined,
-    })
+    this.setState({ keyboardReorderData: undefined })
   }
 
   private onConfirmKeyboardReorder = (indexPath: RowIndexPath) => {
@@ -299,9 +298,7 @@ export class CompareSidebar extends React.Component<
     }
 
     this.onDropCommitInsertion(null, keyboardReorderData.commits, null)
-    this.setState({
-      keyboardReorderData: undefined,
-    })
+    this.setState({ keyboardReorderData: undefined })
   }
 
   private onDropCommitInsertion = async (
@@ -309,9 +306,7 @@ export class CompareSidebar extends React.Component<
     commitsToInsert: ReadonlyArray<Commit>,
     lastRetainedCommitRef: string | null
   ) => {
-    this.setState({
-      keyboardReorderData: undefined,
-    })
+    this.setState({ keyboardReorderData: undefined })
 
     if (
       await doMergeCommitsExistAfterCommit(
