@@ -15,7 +15,7 @@
     "jsx": "react",
     "strict": true,
     "outDir": "./out",
-    "useUnknownInCatchVariables": false
+    "useUnknownInCatchVariables": true
   },
   "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],
   "exclude": [
