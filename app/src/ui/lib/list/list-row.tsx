@@ -209,12 +209,6 @@ export class ListRow extends React.Component<IListRowProps, {}> {
       }
     }
 
-    const ariaSelected = inKeyboardInsertionMode
-      ? selectedForKeyboardInsertion
-      : selectable
-      ? selected
-      : undefined
-
     return (
       <div
         id={id}
@@ -223,7 +217,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         }
         aria-setsize={ariaSetSize}
         aria-posinset={ariaPosInSet}
-        aria-selected={ariaSelected}
+        aria-selected={selectable ? selected : undefined}
         aria-label={this.props.ariaLabel}
         className={rowClassName}
         tabIndex={tabIndex}
