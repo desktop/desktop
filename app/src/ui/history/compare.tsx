@@ -30,7 +30,6 @@ import { PopupType } from '../../models/popup'
 import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
-import { RowIndexPath } from '../lib/list/list-row-index-path'
 import { KeyboardInsertionData } from '../lib/list'
 
 interface ICompareSidebarProps {
@@ -269,7 +268,6 @@ export class CompareSidebar extends React.Component<
         onDropCommitInsertion={this.onDropCommitInsertion}
         onKeyboardReorder={this.onKeyboardReorder}
         onCancelKeyboardReorder={this.onCancelKeyboardReorder}
-        onConfirmKeyboardReorder={this.onConfirmKeyboardReorder}
         onSquash={this.onSquash}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
@@ -288,16 +286,6 @@ export class CompareSidebar extends React.Component<
   }
 
   private onCancelKeyboardReorder = () => {
-    this.setState({ keyboardReorderData: undefined })
-  }
-
-  private onConfirmKeyboardReorder = (indexPath: RowIndexPath) => {
-    const { keyboardReorderData } = this.state
-    if (!keyboardReorderData) {
-      return
-    }
-
-    this.onDropCommitInsertion(null, keyboardReorderData.commits, null)
     this.setState({ keyboardReorderData: undefined })
   }
 

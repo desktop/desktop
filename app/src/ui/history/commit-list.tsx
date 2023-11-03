@@ -83,9 +83,6 @@ interface ICommitListProps {
   /** Callback to fire to cancel a keyboard reordering operation */
   readonly onCancelKeyboardReorder?: () => void
 
-  /** Callback to fire to confirm a keyboard reordering operation */
-  readonly onConfirmKeyboardReorder?: (indexPath: RowIndexPath) => void
-
   /**
    * Callback to fire to create a branch from a given commit in the current
    * repository
