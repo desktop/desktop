@@ -552,6 +552,10 @@ export class CommitList extends React.Component<
   ) => {
     event.preventDefault()
 
+    if (this.inKeyboardReorderMode) {
+      return
+    }
+
     const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
     if (commit === undefined) {
