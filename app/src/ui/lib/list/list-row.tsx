@@ -27,6 +27,7 @@ interface IListRowProps {
   /** whether the row should be rendered as selected for keyboard insertion*/
   readonly selectedForKeyboardInsertion?: boolean
 
+  /** whether the list to which this row belongs is in keyboard insertion mode */
   readonly inKeyboardInsertionMode: boolean
 
   /** callback to fire when the DOM element is created */
