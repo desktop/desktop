@@ -54,7 +54,7 @@ interface ICommitListProps {
   /** The message to display inside the list when no results are displayed */
   readonly emptyListMessage?: JSX.Element | string
 
-  /**  */
+  /** Data to be reordered via keyboard */
   readonly keyboardReorderData?: KeyboardInsertionData
 
   /** Callback which fires when a commit has been selected in the list */
@@ -80,7 +80,10 @@ interface ICommitListProps {
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub?: (sha: string) => void
 
+  /** Callback to fire to cancel a keyboard reordering operation */
   readonly onCancelKeyboardReorder?: () => void
+
+  /** Callback to fire to confirm a keyboard reordering operation */
   readonly onConfirmKeyboardReorder?: (indexPath: RowIndexPath) => void
 
   /**
@@ -118,7 +121,7 @@ interface ICommitListProps {
   /** Callback to fire to cherry picking the commit  */
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
 
-  /** Callback to fire to reordering commits with the keyboard */
+  /** Callback to fire to start reordering commits with the keyboard */
   readonly onKeyboardReorder?: (toReorder: ReadonlyArray<Commit>) => void
 
   /** Callback to fire to squashing commits  */
@@ -171,6 +174,10 @@ interface ICommitListProps {
 }
 
 interface ICommitListState {
+  /**
+   * Aria live message used to guide users through the keyboard reordering
+   * process.
+   */
   readonly reorderingMessage: string
 }
 
@@ -187,7 +194,7 @@ export class CommitList extends React.Component<
 
   private listRef = React.createRef<List>()
 
-  private updateKeyboardReorderMessage = debounce(
+  private updateKeyboardReorderingMessage = debounce(
     (insertionIndexPath: RowIndexPath | null) => {
       const { keyboardReorderData } = this.props
 
@@ -227,7 +234,7 @@ export class CommitList extends React.Component<
 
   public componentDidUpdate(prevProps: ICommitListProps) {
     if (this.props.keyboardReorderData !== prevProps.keyboardReorderData) {
-      this.updateKeyboardReorderMessage(null)
+      this.updateKeyboardReorderingMessage(null)
     }
   }
 
@@ -820,7 +827,7 @@ export class CommitList extends React.Component<
   }
 
   private onKeyboardInsertionIndexPathChanged = (indexPath: RowIndexPath) => {
-    this.updateKeyboardReorderMessage(indexPath)
+    this.updateKeyboardReorderingMessage(indexPath)
   }
 
   private onConfirmKeyboardReorder = (
