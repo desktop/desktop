@@ -14,7 +14,6 @@ export type DragData = CommitDragData
 export type CommitDragData = {
   type: DragType.Commit
   commits: ReadonlyArray<Commit>
-  commitIndices?: ReadonlyArray<number>
 }
 
 export enum DragType {
