@@ -50,7 +50,12 @@ export interface IRowRendererParams {
 
 export type ClickSource = IMouseClickSource | IKeyboardSource
 
+/**
+ * Represents data that can be inserted/reordered via keyboard, as an alternative
+ * method to drag & drop.
+ */
 export type KeyboardInsertionData = {
+  /** Indices in the list of the items being reordered, if any. */
   readonly itemIndices: ReadonlyArray<number>
 } & DragData
 
@@ -299,16 +304,26 @@ interface IListProps {
    */
   readonly getRowAriaLabel?: (row: number) => string | undefined
 
+  /**
+   * Renderer of the floating element that will be shown right next to the list
+   * and that represents the element being inserted/reordered.
+   */
   readonly keyboardInsertionElementRenderer?: (
     data: KeyboardInsertionData
   ) => JSX.Element | null
 
+  /**
+   * Callback to fire when the index path of the position to insert items via
+   * keyboard changes.
+   */
   readonly onKeyboardInsertionIndexPathChanged?: (
     indexPath: RowIndexPath
   ) => void
 
+  /** Callback to fire when keyboard-based insertion is cancelled. */
   readonly onCancelKeyboardInsertion?: () => void
 
+  /** Callback to fire when keyboard-based insertion is confirmed. */
   readonly onConfirmKeyboardInsertion?: (
     indexPath: RowIndexPath,
     data: KeyboardInsertionData
@@ -324,6 +339,9 @@ interface IListState {
 
   readonly rowIdPrefix?: string
 
+  /**
+   * The index path of the position where user wants to insert items via keyboard.
+   */
   readonly keyboardInsertionIndexPath: RowIndexPath | null
 }
 
