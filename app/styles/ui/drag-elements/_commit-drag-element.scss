@@ -40,7 +40,7 @@
     }
   }
 
-  &:not(.keyboard-insertion) .commit-box .count {
+  &:not(.in-keyboard-insertion-mode) .commit-box .count {
     left: 20px;
   }
 

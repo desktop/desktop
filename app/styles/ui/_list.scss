@@ -76,7 +76,7 @@
 
 .list-focus-container {
   // The selected items must act as the focused element when inside
-  &.focus-within .list-item.selected {
+  &.focus-within .list-item.selected:not(.in-keyboard-insertion-mode) {
     --text-color: var(--box-selected-active-text-color);
     --text-secondary-color: var(--box-selected-active-text-color);
 

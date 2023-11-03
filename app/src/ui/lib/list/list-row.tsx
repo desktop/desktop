@@ -181,6 +181,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
       'list-item',
       {
         selected,
+        'in-keyboard-insertion-mode': inKeyboardInsertionMode,
         'selected-for-keyboard-insertion': selectedForKeyboardInsertion,
         'not-selectable': selectable === false,
       },

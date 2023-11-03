@@ -1361,7 +1361,7 @@ export class List extends React.Component<IListProps, IListState> {
     const containerProps = this.getContainerProps(activeDescendant)
 
     const className = classNames('list-focus-container', {
-      'keyboard-insertion': this.inKeyboardInsertionMode,
+      'in-keyboard-insertion-mode': this.inKeyboardInsertionMode,
     })
 
     return (

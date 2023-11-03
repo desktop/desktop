@@ -12,7 +12,7 @@
     height: 100%;
   }
 
-  .list-item.selected {
+  .list-item.selected:not(.in-keyboard-insertion-mode) {
     .commit {
       .unpushed-indicator {
         background: var(--list-item-selected-badge-background-color);
@@ -47,7 +47,7 @@
     }
   }
 
-  .focus-within:not(.keyboard-insertion) {
+  .focus-within:not(.in-keyboard-insertion-mode) {
     .list-item.selected {
       .commit {
         .unpushed-indicator {
@@ -69,14 +69,13 @@
     }
   }
 
-  .focus-within.keyboard-insertion {
-    .list-item.selected {
-      .commit {
-        color: var(--box-selected-text-color);
+  .list-item.selected-for-keyboard-insertion {
+    .commit {
+      color: var(--box-selected-text-color);
+      background-color: var(--box-selected-background-color);
 
-        .byline {
-          color: var(--box-selected-text-color);
-        }
+      .byline {
+        color: var(--box-selected-text-color);
       }
     }
   }
