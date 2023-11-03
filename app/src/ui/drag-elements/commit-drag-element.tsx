@@ -175,7 +175,7 @@ export class CommitDragElement extends React.Component<
 
     const className = classNames({
       'multiple-selected': count > 1,
-      'keyboard-insertion': this.props.isKeyboardInsertion ?? false,
+      'in-keyboard-insertion-mode': this.props.isKeyboardInsertion ?? false,
     })
     return (
       <div id="commit-drag-element" className={className}>
