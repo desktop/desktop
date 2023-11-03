@@ -1151,7 +1151,6 @@ export class List extends React.Component<IListProps, IListState> {
           <ListItemInsertionOverlay
             isKeyboardInsertion={this.inKeyboardInsertionMode}
             onDropDataInsertion={this.onDropDataInsertion}
-            onInsertionAreaMouseEnter={this.onInsertionAreaMouseEnter}
             itemIndex={{ section: 0, row: rowIndex }}
             dragType={this.props.insertionDragType}
             forcedFeedbackType={forcedFeedbackType}
@@ -1651,15 +1650,6 @@ export class List extends React.Component<IListProps, IListState> {
 
   private onDropDataInsertion = (indexPath: RowIndexPath, data: DragData) => {
     this.props.onDropDataInsertion?.(indexPath.row, data)
-  }
-
-  private onInsertionAreaMouseEnter = (indexPath: RowIndexPath) => {
-    if (!this.inKeyboardInsertionMode) {
-      return
-    }
-
-    this.setState({ keyboardInsertionIndexPath: indexPath })
-    this.props.onKeyboardInsertionIndexPathChanged?.(indexPath)
   }
 
   private onRowClick = (

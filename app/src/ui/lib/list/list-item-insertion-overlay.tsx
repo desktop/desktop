@@ -18,8 +18,6 @@ interface IListItemInsertionOverlayProps {
     data: DragData
   ) => void
 
-  readonly onInsertionAreaMouseEnter?: (insertionIndex: RowIndexPath) => void
-
   readonly itemIndex: RowIndexPath
   readonly dragType: DragType
   readonly forcedFeedbackType: InsertionFeedbackType
@@ -111,16 +109,8 @@ export class ListItemInsertionOverlay extends React.PureComponent<
   private renderTopElements() {
     if (this.props.isKeyboardInsertion === true) {
       return (
-        <>
-          <div
-            className="list-insertion-point top"
-            onMouseEnter={this.getOnInsertionAreaMouseEnter(
-              InsertionFeedbackType.Top
-            )}
-          />
-          {this.props.forcedFeedbackType === InsertionFeedbackType.Top &&
-            this.renderInsertionIndicator(InsertionFeedbackType.Top)}
-        </>
+        this.props.forcedFeedbackType === InsertionFeedbackType.Top &&
+        this.renderInsertionIndicator(InsertionFeedbackType.Top)
       )
     }
 
@@ -147,16 +137,8 @@ export class ListItemInsertionOverlay extends React.PureComponent<
   private renderBottomElements() {
     if (this.props.isKeyboardInsertion === true) {
       return (
-        <>
-          {this.props.forcedFeedbackType === InsertionFeedbackType.Bottom &&
-            this.renderInsertionIndicator(InsertionFeedbackType.Bottom)}
-          <div
-            className="list-insertion-point bottom"
-            onMouseEnter={this.getOnInsertionAreaMouseEnter(
-              InsertionFeedbackType.Bottom
-            )}
-          />
-        </>
+        this.props.forcedFeedbackType === InsertionFeedbackType.Bottom &&
+        this.renderInsertionIndicator(InsertionFeedbackType.Bottom)
       )
     }
 
@@ -187,13 +169,6 @@ export class ListItemInsertionOverlay extends React.PureComponent<
   private getOnInsertionAreaMouseEnter(feedbackType: InsertionFeedbackType) {
     return (event: React.MouseEvent) => {
       this.switchToInsertionFeedbackType(feedbackType)
-
-      const { itemIndex } = this.props
-      this.props.onInsertionAreaMouseEnter?.({
-        section: itemIndex.section,
-        row:
-          itemIndex.row + (feedbackType === InsertionFeedbackType.Top ? 0 : 1),
-      })
     }
   }
 
