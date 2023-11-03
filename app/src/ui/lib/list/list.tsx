@@ -50,6 +50,10 @@ export interface IRowRendererParams {
 
 export type ClickSource = IMouseClickSource | IKeyboardSource
 
+export type KeyboardInsertionData = {
+  readonly itemIndices: ReadonlyArray<number>
+} & DragData
+
 interface IListProps {
   /**
    * Mandatory callback for rendering the contents of a particular
@@ -109,7 +113,7 @@ interface IListProps {
    * into a "keyboard insertion mode". This mode is used as a keyboard-accessible
    * alternative to drag & drop for certain operations like reordering commits.
    */
-  readonly keyboardInsertionData?: DragData
+  readonly keyboardInsertionData?: KeyboardInsertionData
 
   /**
    * This function will be called when a pointer device is pressed and then
@@ -296,7 +300,7 @@ interface IListProps {
   readonly getRowAriaLabel?: (row: number) => string | undefined
 
   readonly keyboardInsertionElementRenderer?: (
-    data: DragData
+    data: KeyboardInsertionData
   ) => JSX.Element | null
 
   readonly onKeyboardInsertionIndexPathChanged?: (
@@ -307,7 +311,7 @@ interface IListProps {
 
   readonly onConfirmKeyboardInsertion?: (
     indexPath: RowIndexPath,
-    data: DragData
+    data: KeyboardInsertionData
   ) => void
 }
 
@@ -1154,8 +1158,7 @@ export class List extends React.Component<IListProps, IListState> {
           selected={selected}
           selectedForKeyboardInsertion={
             keyboardInsertionData !== undefined &&
-            keyboardInsertionIndexPath !== null &&
-            keyboardInsertionIndexPath.row === rowIndex
+            keyboardInsertionData.itemIndices.includes(rowIndex)
           }
           inKeyboardInsertionMode={this.inKeyboardInsertionMode}
           ariaLabel={ariaLabel}

@@ -3,9 +3,9 @@ import memoize from 'memoize-one'
 import { GitHubRepository } from '../../models/github-repository'
 import { Commit, CommitOneLine } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
-import { List } from '../lib/list'
+import { KeyboardInsertionData, List } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
-import { CommitDragData, DragData, DragType } from '../../models/drag-drop'
+import { DragData, DragType } from '../../models/drag-drop'
 import classNames from 'classnames'
 import memoizeOne from 'memoize-one'
 import { IMenuItem, showContextualMenu } from '../../lib/menu-item'
@@ -55,7 +55,7 @@ interface ICommitListProps {
   readonly emptyListMessage?: JSX.Element | string
 
   /**  */
-  readonly keyboardReorderData?: CommitDragData
+  readonly keyboardReorderData?: KeyboardInsertionData
 
   /** Callback which fires when a commit has been selected in the list */
   readonly onCommitsSelected?: (
@@ -521,7 +521,7 @@ export class CommitList extends React.Component<
   }
 
   private renderKeyboardInsertionElement = (
-    data: DragData
+    data: KeyboardInsertionData
   ): JSX.Element | null => {
     const { emoji, gitHubRepository } = this.props
     const { commits } = data
@@ -825,7 +825,7 @@ export class CommitList extends React.Component<
 
   private onConfirmKeyboardReorder = (
     indexPath: RowIndexPath,
-    data: DragData
+    data: KeyboardInsertionData
   ) => {
     this.onDropDataInsertion(indexPath.row, data)
   }

@@ -25,12 +25,13 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
 import { MergeCallToActionWithConflicts } from './merge-call-to-action-with-conflicts'
 import { AheadBehindStore } from '../../lib/stores/ahead-behind-store'
-import { CommitDragData, DragType } from '../../models/drag-drop'
+import { DragType } from '../../models/drag-drop'
 import { PopupType } from '../../models/popup'
 import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
 import { RowIndexPath } from '../lib/list/list-row-index-path'
+import { KeyboardInsertionData } from '../lib/list'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -67,7 +68,7 @@ interface ICompareSidebarState {
    */
   readonly focusedBranch: Branch | null
 
-  readonly keyboardReorderData?: CommitDragData
+  readonly keyboardReorderData?: KeyboardInsertionData
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -660,10 +661,13 @@ export class CompareSidebar extends React.Component<
   }
 
   private onKeyboardReorder = (toReorder: ReadonlyArray<Commit>) => {
+    const { commitSHAs } = this.props.compareState
+
     this.setState({
       keyboardReorderData: {
         type: DragType.Commit,
         commits: toReorder,
+        itemIndices: toReorder.map(c => commitSHAs.indexOf(c.sha)),
       },
     })
   }
