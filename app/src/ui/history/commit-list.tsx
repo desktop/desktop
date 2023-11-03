@@ -194,6 +194,8 @@ export class CommitList extends React.Component<
 
   private listRef = React.createRef<List>()
 
+  // This function is debounced to avoid updating the aria live region too
+  // frequently on every key press.
   private updateKeyboardReorderingMessage = debounce(
     (insertionIndexPath: RowIndexPath | null) => {
       const { keyboardReorderData } = this.props
