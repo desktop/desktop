@@ -43,6 +43,9 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
    * This affects error handling and UI such as credential prompts.
    */
   readonly isBackgroundTask?: boolean
+
+  /** Pass stdin to executed command */
+  readonly stdin?: string | Buffer
 }
 
 /**

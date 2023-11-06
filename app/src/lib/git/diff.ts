@@ -1,6 +1,6 @@
 import * as Path from 'path'
 
-import { getBlobContents } from './show'
+import { getBlobContents, getLFSBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import {
@@ -12,6 +12,8 @@ import {
 } from '../../models/status'
 import {
   DiffType,
+  DiffHunk,
+  DiffLineType,
   IRawDiff,
   IDiff,
   IImageDiff,
@@ -97,6 +99,11 @@ const imageFileExtensions = new Set([
   '.bmp',
   '.avif',
 ])
+
+/**
+ *  Defining the LFS version string
+ */
+const LFSVersionString: string = "version https://git-lfs.github.com/spec/v1"
 
 /**
  * Render the difference between a file in the given commit and its parent
@@ -467,6 +474,64 @@ async function getImageDiff(
   }
 }
 
+async function getLFSImageDiff(
+  repository: Repository,
+  file: FileChange,
+  hunk: DiffHunk
+): Promise<IImageDiff> {
+  let current: Image | undefined = undefined
+  let previous: Image | undefined = undefined
+
+  let previousStr: string = ""
+  let currentStr: string = ""
+
+  for (let i = 0; i < hunk.lines.length; i++) {
+    const element = hunk.lines[i];
+    if (element.type == DiffLineType.Delete) {
+      let delIdx = element.text.indexOf('-');
+      if (delIdx > -1) {
+        delIdx += '-'.length;
+        previousStr += element.text.substring(delIdx) + '\n';
+      }
+    }
+
+    if (element.type == DiffLineType.Add) {
+      let addIdx = element.text.indexOf('+');
+      if (addIdx > -1) {
+        addIdx += '+'.length;
+        currentStr += element.text.substring(addIdx) + '\n';
+      }
+    }
+  }
+
+  if (previousStr.length > 0 && currentStr.length > 0) {
+    previousStr = LFSVersionString + '\n' + previousStr;
+    currentStr = LFSVersionString + '\n' + currentStr;
+  }
+
+  if (previousStr.length > 0) {
+    previous = await getLFSBlobImage(
+      repository,
+      getOldPathOrDefault(file),
+      previousStr
+    )
+  }
+
+  if (currentStr.length > 0) {
+    current = await getLFSBlobImage(
+      repository,
+      getOldPathOrDefault(file),
+      currentStr
+    )
+  }
+
+  return {
+    kind: DiffType.Image,
+    previous: previous,
+    current: current,
+  }
+}
+
 export async function convertDiff(
   repository: Repository,
   file: FileChange,
@@ -487,6 +552,19 @@ export async function convertDiff(
     }
   }
 
+  if (diff.hunks.length > 0) {
+    const hunk = diff.hunks[0];
+    if (hunk.lines.length > 1) {
+      const line = hunk.lines[1];
+      // search for LFS string in first second line of diff
+      if (line.text.indexOf(LFSVersionString) > -1) {
+        if (imageFileExtensions.has(extension)) {
+          return getLFSImageDiff(repository, file, hunk);
+        }
+      }
+    }
+  }
+ 
   return {
     kind: DiffType.Text,
     text: diff.contents,
@@ -684,6 +762,30 @@ export async function getBlobImage(
     contents.length
   )
 }
+
+/**
+ * Retrieve the binary contents of a blob from the LFS object database
+ *
+ * Returns an image object containing the base64 encoded string,
+ * as <img> tags support the data URI scheme instead of
+ * needing to reference a file:// URI
+ *
+ * https://en.wikipedia.org/wiki/Data_URI_scheme
+ */
+export async function getLFSBlobImage(
+  repository: Repository,
+  path: string,
+  LFSMetadata: string
+): Promise<Image> {
+  const extension = Path.extname(path)
+  const contents = await getLFSBlobContents(repository, LFSMetadata)
+  return new Image(
+    contents.toString('base64'),
+    getMediaType(extension),
+    contents.length
+  )
+}
+
 /**
  * Retrieve the binary contents of a blob from the working directory
  *
