@@ -63,6 +63,7 @@ import {
 import { IMenuItem } from '../../lib/menu-item'
 import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
 import escapeRegExp from 'lodash/escapeRegExp'
+import ReactDOM from 'react-dom'
 
 const DefaultRowHeight = 20
 
@@ -376,6 +377,7 @@ export class SideBySideDiff extends React.Component<
       'selectionchange',
       this.onDocumentSelectionChange
     )
+    document.removeEventListener('mousemove', this.onUpdateSelection)
   }
 
   public componentDidUpdate(
@@ -432,14 +434,20 @@ export class SideBySideDiff extends React.Component<
     this.diffContainer = ref
   }
 
-  public render() {
+  private getCurrentDiffRows() {
     const { diff } = this.state
 
-    const rows = getDiffRows(
+    return getDiffRows(
       diff,
       this.props.showSideBySideDiff,
       this.canExpandDiff()
     )
+  }
+
+  public render() {
+    const { diff } = this.state
+
+    const rows = this.getCurrentDiffRows()
     const containerClassName = classNames('side-by-side-diff-container', {
       'unified-diff': !this.props.showSideBySideDiff,
       [`selecting-${this.state.selectingTextInRow}`]:
@@ -573,7 +581,6 @@ export class SideBySideDiff extends React.Component<
             showSideBySideDiff={this.props.showSideBySideDiff}
             hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
             onStartSelection={this.onStartSelection}
-            onUpdateSelection={this.onUpdateSelection}
             onMouseEnterHunk={this.onMouseEnterHunk}
             onMouseLeaveHunk={this.onMouseLeaveHunk}
             onExpandHunk={this.onExpandHunk}
@@ -867,16 +874,67 @@ export class SideBySideDiff extends React.Component<
     this.setState({ temporarySelection })
 
     document.addEventListener('mouseup', this.onEndSelection, { once: true })
+    document.addEventListener('mousemove', this.onUpdateSelection)
   }
 
-  private onUpdateSelection = (row: number, column: DiffColumn) => {
+  private onUpdateSelection = (ev: MouseEvent) => {
     const { temporarySelection } = this.state
-    if (temporarySelection === undefined) {
+    const list = this.virtualListRef.current
+    if (!temporarySelection || !list) {
       return
     }
 
-    const to = { row, column }
-    this.setState({ temporarySelection: { ...temporarySelection, to } })
+    const listNode = ReactDOM.findDOMNode(list)
+    if (!(listNode instanceof Element)) {
+      return
+    }
+
+    const rect = listNode.getBoundingClientRect()
+    const offsetInList = ev.clientY - rect.top
+    const offsetInListScroll = offsetInList + listNode.scrollTop
+
+    const totalRows = this.getCurrentDiffRows().length - 1
+
+    let column = temporarySelection.from.column
+    if (this.props.showSideBySideDiff) {
+      column =
+        ev.clientX <= rect.left + rect.width / 2
+          ? DiffColumn.Before
+          : DiffColumn.After
+    }
+
+    let rowOffset = 0
+
+    // I haven't found an easy way to calculate which row the mouse is over,
+    // especially since react-virtualized's `getOffsetForRow` is buggy (see
+    // https://github.com/bvaughn/react-virtualized/issues/1422).
+    // Instead, the approach here is to iterate over all rows and sum their
+    // heights to calculate the offset of each row. Once we find the row that
+    // contains the mouse, we scroll to it and update the temporary selection.
+    for (let row = 0; row < totalRows; row++) {
+      // Use row height cache in order to do the math faster
+      let height = listRowsHeightCache.getHeight(row, 0)
+      if (height === undefined) {
+        list.recomputeRowHeights(row)
+        height = listRowsHeightCache.getHeight(row, 0) ?? DefaultRowHeight
+      }
+
+      if (
+        offsetInListScroll >= rowOffset &&
+        offsetInListScroll < rowOffset + height
+      ) {
+        list.scrollToRow(row)
+        this.setState({
+          temporarySelection: {
+            ...temporarySelection,
+            to: { column, row },
+          },
+        })
+        return
+      }
+
+      rowOffset += height
+    }
   }
 
   private onEndSelection = () => {
