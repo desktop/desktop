@@ -188,18 +188,28 @@ export class ConflictsDialog extends React.Component<
     )
   }
 
-  public renderBanner() {
+  public renderBanner(conflictedFilesCount: number) {
     const { countResolved } = this.state
     if (countResolved === null) {
       return
     }
 
+    if (countResolved === 0) {
+      return <DialogSuccess>All resolutions have been undone.</DialogSuccess>
+    }
+
+    if (conflictedFilesCount === 0) {
+      return (
+        <DialogSuccess>All conflicted files have been resolved. </DialogSuccess>
+      )
+    }
+
     const conflictPluralized = countResolved === 1 ? 'file has' : 'files have'
-    const msg =
-      countResolved === 0
-        ? 'All resolutions have been undone.'
-        : `${countResolved} conflicted ${conflictPluralized} been resolved.`
-    return <DialogSuccess>{msg}</DialogSuccess>
+    return (
+      <DialogSuccess>
+        {countResolved} conflicted {conflictPluralized} been resolved.
+      </DialogSuccess>
+    )
   }
 
   public render() {
@@ -232,7 +242,7 @@ export class ConflictsDialog extends React.Component<
         loading={this.state.isCommitting}
         disabled={this.state.isCommitting}
       >
-        {this.renderBanner()}
+        {this.renderBanner(conflictedFiles.length)}
         <DialogContent>
           {this.renderContent(unmergedFiles, conflictedFiles.length)}
         </DialogContent>
