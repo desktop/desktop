@@ -650,7 +650,7 @@ export class SideBySideDiff extends React.Component<
         data: this.getRowDataPopulated(
           row.data,
           numRow,
-          this.props.showSideBySideDiff ? DiffColumn.After : DiffColumn.Before,
+          DiffColumn.After,
           this.state.afterTokens
         ),
       }
