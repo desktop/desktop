@@ -189,7 +189,7 @@ export class ConflictsDialog extends React.Component<
     )
   }
 
-  public renderInformationBanner() {
+  public renderBanner() {
     const { countResolved } = this.state
     if (countResolved === null) {
       return
@@ -233,7 +233,7 @@ export class ConflictsDialog extends React.Component<
         loading={this.state.isCommitting}
         disabled={this.state.isCommitting}
       >
-        {this.renderInformationBanner()}
+        {this.renderBanner()}
         <DialogContent>
           {this.renderContent(unmergedFiles, conflictedFiles.length)}
         </DialogContent>
