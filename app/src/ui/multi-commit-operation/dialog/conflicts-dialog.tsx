@@ -109,7 +109,6 @@ export class ConflictsDialog extends React.Component<
 
     if (resolvedConflicts.length !== (this.state.countResolved ?? 0)) {
       this.setState({ countResolved: resolvedConflicts.length })
-      console.log('We have modified the resolved amount!')
     }
   }
 
