@@ -20,8 +20,7 @@ import {
 } from '../../lib/conflicts'
 import { ManualConflictResolution } from '../../../models/manual-conflict-resolution'
 import { OkCancelButtonGroup } from '../../dialog/ok-cancel-button-group'
-import { Octicon } from '../../octicons'
-import * as OcticonSymbol from '../../octicons/octicons.generated'
+import { DialogSuccess } from '../../dialog/success'
 
 interface IConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -196,19 +195,12 @@ export class ConflictsDialog extends React.Component<
       return
     }
 
-    const conflictPluralized = countResolved === 1 ? 'conflict' : 'conflicts'
-    const symbolClass = countResolved > 0 ? 'green-circle' : ''
-    const symbol = countResolved > 0 ? OcticonSymbol.check : OcticonSymbol.info
-    return (
-      <div className="information-banner" role="alert">
-        <div className={symbolClass}>
-          <Octicon className="check-icon" symbol={symbol} />
-        </div>
-        <div className="contents">
-          {countResolved} {conflictPluralized} have been resolved.
-        </div>
-      </div>
-    )
+    const conflictPluralized = countResolved === 1 ? 'file has' : 'files have'
+    const msg =
+      countResolved === 0
+        ? 'All resolutions have been undone.'
+        : `${countResolved} conflicted ${conflictPluralized} been resolved.`
+    return <DialogSuccess>{msg}</DialogSuccess>
   }
 
   public render() {
