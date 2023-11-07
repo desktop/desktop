@@ -519,9 +519,7 @@ export class CommitList extends React.Component<
           setScrollTop={this.props.compareListScrollTop}
           rowCustomClassNameMap={this.getRowCustomClassMap()}
         />
-        {this.state.reorderingMessage && (
-          <AriaLiveContainer message={this.state.reorderingMessage} />
-        )}
+        <AriaLiveContainer message={this.state.reorderingMessage} />
       </div>
     )
   }
