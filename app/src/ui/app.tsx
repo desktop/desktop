@@ -3185,13 +3185,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       banner = this.renderUpdateBanner()
     }
     return (
-      <TransitionGroup>
-        {banner && (
-          <CSSTransition classNames="banner" timeout={bannerTransitionTimeout}>
-            {banner}
-          </CSSTransition>
-        )}
-      </TransitionGroup>
+      <div role="alert" aria-atomic="false">
+        <TransitionGroup>
+          {banner && (
+            <CSSTransition classNames="banner" timeout={bannerTransitionTimeout}>
+              {banner}
+            </CSSTransition>
+          )}
+        </TransitionGroup>
+      </div>
     )
   }
 

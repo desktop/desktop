@@ -23,8 +23,6 @@ export class Banner extends React.Component<IBannerProps, {}> {
       <div
         id={this.props.id}
         className="banner"
-        aria-atomic="true"
-        role="alert"
         ref={this.banner}
       >
         <div className="contents">{this.props.children}</div>
