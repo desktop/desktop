@@ -83,10 +83,10 @@ export class Advanced extends React.Component<
                 : CheckboxValue.Off
             }
             onChange={this.onRepositoryIndicatorsEnabledChanged}
-            ariaDescribedBy="periodic-fecth-description"
+            ariaDescribedBy="periodic-fetch-description"
           />
           <p
-            id="periodic-fecth-description"
+            id="periodic-fetch-description"
             className="git-settings-description"
           >
             <p>
