@@ -85,7 +85,7 @@ export class Advanced extends React.Component<
             onChange={this.onRepositoryIndicatorsEnabledChanged}
             ariaDescribedBy="periodic-fetch-description"
           />
-          <p
+          <div
             id="periodic-fetch-description"
             className="git-settings-description"
           >
@@ -99,7 +99,7 @@ export class Advanced extends React.Component<
               currently selected repository, but may improve overall app
               performance for users with many repositories.
             </p>
-          </p>
+          </div>
         </div>
         {this.renderSSHSettings()}
         <div className="advanced-section">
