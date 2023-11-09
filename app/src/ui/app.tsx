@@ -3188,7 +3188,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       <div role="alert" aria-atomic="false">
         <TransitionGroup>
           {banner && (
-            <CSSTransition classNames="banner" timeout={bannerTransitionTimeout}>
+            <CSSTransition
+              classNames="banner"
+              timeout={bannerTransitionTimeout}
+            >
               {banner}
             </CSSTransition>
           )}
