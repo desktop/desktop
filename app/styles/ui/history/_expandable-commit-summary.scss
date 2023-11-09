@@ -49,11 +49,11 @@
   .ecs-description {
     display: flex;
     position: relative;
-    min-height: 0;
+    min-height: 70px;
 
     .ecs-description-scroll-view {
       overflow: hidden;
-      overflow-y: scroll;
+      overflow-y: auto;
       flex: 1;
     }
 
@@ -155,13 +155,15 @@
   &:not(.expanded) {
     .ecs-description-scroll-view {
       max-height: 80px;
+      min-height: 30px;
     }
   }
 
   &.expanded {
     .beneath-summary {
+      background: var(--box-overflow-shadow-background-two);
       background-repeat: no-repeat;
-      background-size: 100% 60px, 100% 60px, 100% 30px, 100% 30px;
+      background-size: 100% 20px, 100% 20px, 100% 10px, 100% 10px;
       background-attachment: local, local, scroll, scroll;
     }
 
@@ -235,6 +237,26 @@
       user-select: unset;
       pointer-events: unset;
       cursor: text;
+    }
+  }
+}
+
+// This make it so there is not a double scroll bar when zoomed in on a very
+// small screen.
+@media (max-width: 650px) {
+  #expandable-commit-summary {
+    &.expanded {
+      .beneath-summary {
+        display: block;
+      }
+
+      .ecs-description {
+        height: auto;
+
+        .ecs-description-text {
+          background: rgba(#959da5, 0.1);
+        }
+      }
     }
   }
 }
