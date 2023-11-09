@@ -59,6 +59,7 @@ export class CopyButton extends React.Component<
         ariaLabel={ariaLabel}
         onClick={this.onCopy}
         openTooltipOnClick={true}
+        applyTooltipAriaDescribedBy={false}
       >
         {this.renderSymbol()}
         <AriaLiveContainer
