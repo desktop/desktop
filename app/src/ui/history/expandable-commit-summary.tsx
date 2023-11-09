@@ -471,6 +471,7 @@ export class ExpandableCommitSummary extends React.Component<
         <RichText
           emoji={this.props.emoji}
           repository={this.props.repository}
+          className="selectable"
           text={summary}
         />
       )
@@ -507,7 +508,7 @@ export class ExpandableCommitSummary extends React.Component<
 
   private renderSummary = () => {
     const { hasEmptySummary } = this.state
-    const summaryClassNames = classNames('ecs-title', 'selectable', {
+    const summaryClassNames = classNames('ecs-title', {
       'empty-summary': hasEmptySummary,
     })
 
