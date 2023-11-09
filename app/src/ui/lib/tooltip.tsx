@@ -135,6 +135,19 @@ export interface ITooltipProps<T> {
    * list are focused.
    */
   readonly ancestorFocused?: boolean
+
+  /** Whether or not to apply the aria-desribedby to the target element.
+   *
+   * Sometimes the target element maybe something like a button that already has
+   * an aria label that is the same as the tooltip content, if so this should be
+   * false.
+   *
+   * Note: If the tooltip does provide more context than the targets accessible
+   * label (visual or aria), this should be true.
+   *
+   * Default: true
+   * */
+  readonly applyAriaDescribedBy?: boolean
 }
 
 interface ITooltipState {
@@ -305,7 +318,11 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   }
 
   private addToTargetAriaDescribedBy(target: TooltipTarget | null) {
-    if (!target || !this.state.id) {
+    if (
+      !target ||
+      !this.state.id ||
+      this.props.applyAriaDescribedBy === false
+    ) {
       return
     }
 
@@ -320,7 +337,11 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   }
 
   private removeFromTargetAriaDescribedBy(target: TooltipTarget | null) {
-    if (!target || !this.state.id) {
+    if (
+      !target ||
+      !this.state.id ||
+      this.props.applyAriaDescribedBy === false
+    ) {
       return
     }
 

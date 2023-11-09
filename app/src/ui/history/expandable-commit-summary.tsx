@@ -230,6 +230,7 @@ export class ExpandableCommitSummary extends React.Component<
         onClick={isExpanded ? this.onCollapse : this.onExpand}
         className="expander"
         tooltip={isExpanded ? 'Collapse' : 'Expand'}
+        applyTooltipAriaDescribedBy={false}
         ariaExpanded={isExpanded}
         ariaLabel={
           isExpanded ? 'Collapse commit details' : 'Expand commit details'
