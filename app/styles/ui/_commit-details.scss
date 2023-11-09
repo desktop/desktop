@@ -5,6 +5,7 @@
   flex-direction: row;
   flex: 1;
   overflow: hidden;
+  min-height: 150px;
 
   .fill-window {
     // necessary for "no files in commit" view to
