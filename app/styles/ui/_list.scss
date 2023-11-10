@@ -25,7 +25,7 @@
 
   .overlay {
     position: fixed;
-    z-index: 1000;
+    z-index: var(--drag-overlay-z-index);
     background: var(--overlay-background-color);
   }
 }
