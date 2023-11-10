@@ -1250,24 +1250,10 @@ export class List extends React.Component<IListProps, IListState> {
 
     const listRect = this.list.getBoundingClientRect()
 
-    const renderOverlay = (
-      top: number | string,
-      left: number | string,
-      width: number | string,
-      height: number | string
-    ) => {
-      return (
-        <div
-          style={{
-            top,
-            left,
-            width,
-            height,
-          }}
-          className="overlay"
-        />
-      )
-    }
+    type U = number | string
+    const renderOverlay = (top: U, left: U, width: U, height: U) => (
+      <div style={{ top, left, width, height }} className="overlay" />
+    )
 
     return (
       <>
