@@ -1263,10 +1263,7 @@ export class List extends React.Component<IListProps, IListState> {
         {renderOverlay(listRect.bottom, 0, '100%', '100%')}
         <div
           className="keyboard-insertion-element"
-          style={{
-            top: 0,
-            left: 0,
-          }}
+          style={{ top: 0, left: 0 }}
           ref={this.keyboardInsertionElementRef}
         >
           {keyboardInsertionElementRenderer?.(keyboardInsertionData)}
