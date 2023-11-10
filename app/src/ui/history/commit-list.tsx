@@ -735,18 +735,10 @@ export class CommitList extends React.Component<
     )
   }
 
-  private canReorder(): boolean {
-    const {
-      onKeyboardReorder: onReorder,
-      disableReordering,
-      isMultiCommitOperationInProgress,
-    } = this.props
-    return (
-      onReorder !== undefined &&
-      disableReordering === false &&
-      isMultiCommitOperationInProgress === false
-    )
-  }
+  private canReorder = () =>
+    this.props.onKeyboardReorder !== undefined &&
+    this.props.disableReordering === false &&
+    this.props.isMultiCommitOperationInProgress === false
 
   private canSquash(): boolean {
     const { onSquash, disableSquashing, isMultiCommitOperationInProgress } =
