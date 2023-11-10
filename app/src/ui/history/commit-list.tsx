@@ -20,6 +20,12 @@ import { assertNever } from '../../lib/fatal-error'
 import { CommitDragElement } from '../drag-elements/commit-drag-element'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 import { debounce } from 'lodash'
+import {
+  Popover,
+  PopoverAnchorPosition,
+  PopoverDecoration,
+  PopoverScreenBorderPadding,
+} from '../lib/popover'
 
 const RowHeight = 50
 
@@ -189,6 +195,7 @@ export class CommitList extends React.Component<
       new Map(commitSHAs.map((sha, index) => [sha, index]))
   )
 
+  private containerRef = React.createRef<HTMLDivElement>()
   private listRef = React.createRef<List>()
 
   // This function is debounced to avoid updating the aria live region too
@@ -482,8 +489,24 @@ export class CommitList extends React.Component<
       .map(sha => this.rowForSHA(sha))
       .filter(r => r !== -1)
 
+    const containerWidth = this.containerRef.current?.clientWidth ?? 0
+
     return (
-      <div id="commit-list" className={classes}>
+      <div id="commit-list" className={classes} ref={this.containerRef}>
+        {this.inKeyboardReorderMode && (
+          <Popover
+            anchor={this.containerRef.current}
+            anchorPosition={PopoverAnchorPosition.Top}
+            decoration={PopoverDecoration.Balloon}
+            trapFocus={false}
+            style={{
+              width: `${containerWidth - 2 * PopoverScreenBorderPadding}px`,
+            }}
+          >
+            Use the Up and Down arrow keys to move the commits, then press Enter
+            to confirm.
+          </Popover>
+        )}
         <List
           ref={this.listRef}
           rowCount={commitSHAs.length}
