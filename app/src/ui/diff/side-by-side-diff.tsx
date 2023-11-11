@@ -67,14 +67,13 @@ import ReactDOM from 'react-dom'
 
 const DefaultRowHeight = 20
 
-export interface ISelectionPoint {
-  readonly column: DiffColumn
-  readonly row: number
-}
-
 export interface ISelection {
-  readonly from: ISelectionPoint
-  readonly to: ISelectionPoint
+  /// Initial diff line number in the selection
+  readonly from: number
+
+  /// Last diff line number in the selection
+  readonly to: number
+
   readonly isSelected: boolean
 }
 
@@ -744,7 +743,7 @@ export class SideBySideDiff extends React.Component<
       tokens: finalTokens,
       isSelected:
         data.diffLineNumber !== null &&
-        isInSelection(
+        this.isInSelection(
           data.diffLineNumber,
           row,
           column,
@@ -752,6 +751,49 @@ export class SideBySideDiff extends React.Component<
           this.state.temporarySelection
         ),
     }
+  }
+
+  private isInSelection(
+    diffLineNumber: number,
+    row: number,
+    column: DiffColumn,
+    selection: DiffSelection | undefined,
+    temporarySelection: ISelection | undefined
+  ) {
+    const isInStoredSelection = selection?.isSelected(diffLineNumber) ?? false
+
+    if (temporarySelection === undefined) {
+      return isInStoredSelection
+    }
+
+    const isInTemporary = this.isInTemporarySelection(
+      diffLineNumber,
+      temporarySelection
+    )
+
+    if (temporarySelection.isSelected) {
+      return isInStoredSelection || isInTemporary
+    } else {
+      return isInStoredSelection && !isInTemporary
+    }
+  }
+
+  private isInTemporarySelection(
+    diffLineNumber: number,
+    selection: ISelection | undefined
+  ): selection is ISelection {
+    if (selection === undefined) {
+      return false
+    }
+
+    if (
+      diffLineNumber >= Math.min(selection.from, selection.to) &&
+      diffLineNumber <= Math.max(selection.to, selection.from)
+    ) {
+      return true
+    }
+
+    return false
   }
 
   private getSearchTokens(row: number, column: DiffColumn) {
@@ -869,8 +911,11 @@ export class SideBySideDiff extends React.Component<
     column: DiffColumn,
     isSelected: boolean
   ) => {
-    const point: ISelectionPoint = { row, column }
-    const temporarySelection = { from: point, to: point, isSelected }
+    const line = this.getDiffLineNumber(row, column)
+    if (line === null) {
+      return
+    }
+    const temporarySelection = { from: line, to: line, isSelected }
     this.setState({ temporarySelection })
 
     document.addEventListener('mouseup', this.onEndSelection, { once: true })
@@ -947,20 +992,11 @@ export class SideBySideDiff extends React.Component<
 
     const { from: tmpFrom, to: tmpTo, isSelected } = temporarySelection
 
-    const fromRow = Math.min(tmpFrom.row, tmpTo.row)
-    const toRow = Math.max(tmpFrom.row, tmpTo.row)
+    const fromLine = Math.min(tmpFrom, tmpTo)
+    const toLine = Math.max(tmpFrom, tmpTo)
 
-    for (let row = fromRow; row <= toRow; row++) {
-      const lineBefore = this.getDiffLineNumber(row, tmpFrom.column)
-      const lineAfter = this.getDiffLineNumber(row, tmpTo.column)
-
-      if (lineBefore !== null) {
-        selection = selection.withLineSelection(lineBefore, isSelected)
-      }
-
-      if (lineAfter !== null) {
-        selection = selection.withLineSelection(lineAfter, isSelected)
-      }
+    for (let line = fromLine; line <= toLine; line++) {
+      selection = selection.withLineSelection(line, isSelected)
     }
 
     this.props.onIncludeChanged?.(selection)
@@ -1667,46 +1703,4 @@ function* enumerateColumnContents(
   } else {
     assertNever(row, `Unknown row type ${row}`)
   }
-}
-
-function isInSelection(
-  diffLineNumber: number,
-  row: number,
-  column: DiffColumn,
-  selection: DiffSelection | undefined,
-  temporarySelection: ISelection | undefined
-) {
-  const isInStoredSelection = selection?.isSelected(diffLineNumber) ?? false
-
-  if (temporarySelection === undefined) {
-    return isInStoredSelection
-  }
-
-  const isInTemporary = isInTemporarySelection(row, column, temporarySelection)
-
-  if (temporarySelection.isSelected) {
-    return isInStoredSelection || isInTemporary
-  } else {
-    return isInStoredSelection && !isInTemporary
-  }
-}
-
-export function isInTemporarySelection(
-  row: number,
-  column: DiffColumn,
-  selection: ISelection | undefined
-): selection is ISelection {
-  if (selection === undefined) {
-    return false
-  }
-
-  if (
-    row >= Math.min(selection.from.row, selection.to.row) &&
-    row <= Math.max(selection.to.row, selection.from.row) &&
-    (column === selection.from.column || column === selection.to.column)
-  ) {
-    return true
-  }
-
-  return false
 }
