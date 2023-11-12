@@ -842,6 +842,10 @@ export class SideBySideDiff extends React.Component<
       return null
     }
 
+    return this.getDiffRowLineNumber(row, column)
+  }
+
+  private getDiffRowLineNumber(row: SimplifiedDiffRow, column: DiffColumn) {
     if (row.type === DiffRowType.Added || row.type === DiffRowType.Deleted) {
       return row.data.diffLineNumber
     }
@@ -938,15 +942,8 @@ export class SideBySideDiff extends React.Component<
     const offsetInList = ev.clientY - rect.top
     const offsetInListScroll = offsetInList + listNode.scrollTop
 
-    const totalRows = this.getCurrentDiffRows().length - 1
-
-    let column = temporarySelection.from.column
-    if (this.props.showSideBySideDiff) {
-      column =
-        ev.clientX <= rect.left + rect.width / 2
-          ? DiffColumn.Before
-          : DiffColumn.After
-    }
+    const rows = this.getCurrentDiffRows()
+    const totalRows = rows.length - 1
 
     let rowOffset = 0
 
@@ -956,23 +953,41 @@ export class SideBySideDiff extends React.Component<
     // Instead, the approach here is to iterate over all rows and sum their
     // heights to calculate the offset of each row. Once we find the row that
     // contains the mouse, we scroll to it and update the temporary selection.
-    for (let row = 0; row < totalRows; row++) {
+    for (let index = 0; index < totalRows; index++) {
       // Use row height cache in order to do the math faster
-      let height = listRowsHeightCache.getHeight(row, 0)
+      let height = listRowsHeightCache.getHeight(index, 0)
       if (height === undefined) {
-        list.recomputeRowHeights(row)
-        height = listRowsHeightCache.getHeight(row, 0) ?? DefaultRowHeight
+        list.recomputeRowHeights(index)
+        height = listRowsHeightCache.getHeight(index, 0) ?? DefaultRowHeight
       }
 
       if (
         offsetInListScroll >= rowOffset &&
         offsetInListScroll < rowOffset + height
       ) {
-        list.scrollToRow(row)
+        const row = rows[index]
+        let column = DiffColumn.Before
+
+        if (this.props.showSideBySideDiff) {
+          column =
+            ev.clientX <= rect.left + rect.width / 2
+              ? DiffColumn.Before
+              : DiffColumn.After
+        } else {
+          // `column` is irrelevant in unified diff because there aren't rows of
+          // type Modified (see `getModifiedRows`)
+        }
+        const diffLineNumber = this.getDiffRowLineNumber(row, column)
+
+        if (diffLineNumber === null) {
+          return
+        }
+
+        list.scrollToRow(index)
         this.setState({
           temporarySelection: {
             ...temporarySelection,
-            to: { column, row },
+            to: diffLineNumber,
           },
         })
         return
