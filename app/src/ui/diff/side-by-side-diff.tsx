@@ -743,57 +743,12 @@ export class SideBySideDiff extends React.Component<
       tokens: finalTokens,
       isSelected:
         data.diffLineNumber !== null &&
-        this.isInSelection(
+        isInSelection(
           data.diffLineNumber,
-          row,
-          column,
           this.getSelection(),
           this.state.temporarySelection
         ),
     }
-  }
-
-  private isInSelection(
-    diffLineNumber: number,
-    row: number,
-    column: DiffColumn,
-    selection: DiffSelection | undefined,
-    temporarySelection: ISelection | undefined
-  ) {
-    const isInStoredSelection = selection?.isSelected(diffLineNumber) ?? false
-
-    if (temporarySelection === undefined) {
-      return isInStoredSelection
-    }
-
-    const isInTemporary = this.isInTemporarySelection(
-      diffLineNumber,
-      temporarySelection
-    )
-
-    if (temporarySelection.isSelected) {
-      return isInStoredSelection || isInTemporary
-    } else {
-      return isInStoredSelection && !isInTemporary
-    }
-  }
-
-  private isInTemporarySelection(
-    diffLineNumber: number,
-    selection: ISelection | undefined
-  ): selection is ISelection {
-    if (selection === undefined) {
-      return false
-    }
-
-    if (
-      diffLineNumber >= Math.min(selection.from, selection.to) &&
-      diffLineNumber <= Math.max(selection.to, selection.from)
-    ) {
-      return true
-    }
-
-    return false
   }
 
   private getSearchTokens(row: number, column: DiffColumn) {
@@ -1718,4 +1673,45 @@ function* enumerateColumnContents(
   } else {
     assertNever(row, `Unknown row type ${row}`)
   }
+}
+
+function isInSelection(
+  diffLineNumber: number,
+  selection: DiffSelection | undefined,
+  temporarySelection: ISelection | undefined
+) {
+  const isInStoredSelection = selection?.isSelected(diffLineNumber) ?? false
+
+  if (temporarySelection === undefined) {
+    return isInStoredSelection
+  }
+
+  const isInTemporary = isInTemporarySelection(
+    diffLineNumber,
+    temporarySelection
+  )
+
+  if (temporarySelection.isSelected) {
+    return isInStoredSelection || isInTemporary
+  } else {
+    return isInStoredSelection && !isInTemporary
+  }
+}
+
+function isInTemporarySelection(
+  diffLineNumber: number,
+  selection: ISelection | undefined
+): selection is ISelection {
+  if (selection === undefined) {
+    return false
+  }
+
+  if (
+    diffLineNumber >= Math.min(selection.from, selection.to) &&
+    diffLineNumber <= Math.max(selection.to, selection.from)
+  ) {
+    return true
+  }
+
+  return false
 }
