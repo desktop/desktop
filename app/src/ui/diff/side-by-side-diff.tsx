@@ -934,17 +934,16 @@ export class SideBySideDiff extends React.Component<
         }
         const diffLineNumber = this.getDiffRowLineNumber(row, column)
 
-        if (diffLineNumber === null) {
-          return
+        if (diffLineNumber !== null) {
+          list.scrollToRow(index)
+          this.setState({
+            temporarySelection: {
+              ...temporarySelection,
+              to: diffLineNumber,
+            },
+          })
         }
 
-        list.scrollToRow(index)
-        this.setState({
-          temporarySelection: {
-            ...temporarySelection,
-            to: diffLineNumber,
-          },
-        })
         return
       }
 
