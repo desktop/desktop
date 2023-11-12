@@ -41,7 +41,7 @@ export async function launchExternalEditor(
     }
   } catch (error) {
     log.error(`Error while launching ${editor.editor}`, error)
-    if (error.code === 'EACCES') {
+    if (error?.code === 'EACCES') {
       throw new ExternalEditorError(
         `GitHub Desktop doesn't have the proper permissions to start '${editor.editor}'. Please open ${label} and try another editor.`,
         { openPreferences: true }
