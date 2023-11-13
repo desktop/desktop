@@ -26,6 +26,7 @@ import {
   PopoverDecoration,
   PopoverScreenBorderPadding,
 } from '../lib/popover'
+import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 
 const RowHeight = 50
 
@@ -493,20 +494,28 @@ export class CommitList extends React.Component<
 
     return (
       <div id="commit-list" className={classes} ref={this.containerRef}>
-        {this.inKeyboardReorderMode && (
-          <Popover
-            anchor={this.containerRef.current}
-            anchorPosition={PopoverAnchorPosition.Top}
-            decoration={PopoverDecoration.Balloon}
-            trapFocus={false}
-            style={{
-              width: `${containerWidth - 2 * PopoverScreenBorderPadding}px`,
-            }}
-          >
-            Use the Up and Down arrow keys to move the commits, then press Enter
-            to confirm.
-          </Popover>
-        )}
+        {this.inKeyboardReorderMode ||
+          (1 == 1 && (
+            <Popover
+              anchor={this.containerRef.current}
+              anchorPosition={PopoverAnchorPosition.Top}
+              decoration={PopoverDecoration.Balloon}
+              trapFocus={false}
+              style={{
+                width: `${containerWidth - 2 * PopoverScreenBorderPadding}px`,
+              }}
+            >
+              <p>
+                <KeyboardShortcut darwinKeys={['↑']} keys={['↑']} />
+                <KeyboardShortcut darwinKeys={['↓']} keys={['↓']} />
+                Use the Up and Down arrow keys to move the commits.
+              </p>
+              <p>
+                <KeyboardShortcut darwinKeys={['⏎']} keys={['⏎']} />
+                Press Enter to confirm.
+              </p>
+            </Popover>
+          ))}
         <List
           ref={this.listRef}
           rowCount={commitSHAs.length}
