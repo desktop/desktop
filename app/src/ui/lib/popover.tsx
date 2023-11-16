@@ -62,6 +62,8 @@ interface IPopoverProps {
   readonly onMousedownOutside?: (event?: MouseEvent) => void
   /** Element to anchor the popover to */
   readonly anchor: HTMLElement | null
+  /** Offset to apply to the distance from the anchor */
+  readonly anchorOffset?: number
   /** The position of the popover relative to the anchor.  */
   readonly anchorPosition: PopoverAnchorPosition
   /**
@@ -126,7 +128,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   }
 
   private updatePosition = async () => {
-    const { anchor, decoration, maxHeight } = this.props
+    const { anchor, anchorOffset, decoration, maxHeight } = this.props
     const containerDiv = this.containerDivRef.current
     const contentDiv = this.contentDivRef.current
 
@@ -140,9 +142,11 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     }
 
     const tipDiv = this.tipDivRef.current
+    const extraOffset = anchorOffset ?? 0
+    const popoverOffset = decoration === PopoverDecoration.Balloon ? TipSize : 0
 
     const middleware = [
-      offset(decoration === PopoverDecoration.Balloon ? TipSize : 0),
+      offset(popoverOffset + extraOffset),
       shift({ padding: PopoverScreenBorderPadding }),
       flip({ padding: PopoverScreenBorderPadding }),
       size({
