@@ -55,7 +55,7 @@ export enum PopoverDecoration {
 
 const TipSize = 8
 const TipCornerPadding = TipSize
-const ScreenBorderPadding = 10
+export const PopoverScreenBorderPadding = 10
 
 interface IPopoverProps {
   readonly onClickOutside?: (event?: MouseEvent) => void
@@ -143,8 +143,8 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
 
     const middleware = [
       offset(decoration === PopoverDecoration.Balloon ? TipSize : 0),
-      shift({ padding: ScreenBorderPadding }),
-      flip({ padding: ScreenBorderPadding }),
+      shift({ padding: PopoverScreenBorderPadding }),
+      flip({ padding: PopoverScreenBorderPadding }),
       size({
         apply({ availableHeight, availableWidth }) {
           Object.assign(contentDiv.style, {
@@ -155,7 +155,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
             maxWidth: `${availableWidth}px`,
           })
         },
-        padding: ScreenBorderPadding,
+        padding: PopoverScreenBorderPadding,
       }),
     ]
 
@@ -277,6 +277,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       position: 'fixed',
       zIndex: 17, // same as --foldout-z-index
       height: 'auto',
+      ...this.props.style,
     }
     const contentStyle: React.CSSProperties = {
       overflow: 'hidden',

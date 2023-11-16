@@ -3,7 +3,7 @@ import memoize from 'memoize-one'
 import { GitHubRepository } from '../../models/github-repository'
 import { Commit, CommitOneLine } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
-import { List } from '../lib/list'
+import { KeyboardInsertionData, List } from '../lib/list'
 import { arrayEquals } from '../../lib/equality'
 import { DragData, DragType } from '../../models/drag-drop'
 import classNames from 'classnames'
@@ -15,6 +15,17 @@ import {
 } from '../../lib/feature-flag'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { clipboard } from 'electron'
+import { RowIndexPath } from '../lib/list/list-row-index-path'
+import { assertNever } from '../../lib/fatal-error'
+import { CommitDragElement } from '../drag-elements/commit-drag-element'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
+import { debounce } from 'lodash'
+import {
+  Popover,
+  PopoverAnchorPosition,
+  PopoverDecoration,
+  PopoverScreenBorderPadding,
+} from '../lib/popover'
 
 const RowHeight = 50
 
@@ -49,6 +60,9 @@ interface ICommitListProps {
   /** The message to display inside the list when no results are displayed */
   readonly emptyListMessage?: JSX.Element | string
 
+  /** Data to be reordered via keyboard */
+  readonly keyboardReorderData?: KeyboardInsertionData
+
   /** Callback which fires when a commit has been selected in the list */
   readonly onCommitsSelected?: (
     commits: ReadonlyArray<Commit>,
@@ -71,6 +85,9 @@ interface ICommitListProps {
 
   /** Callback to fire to open a given commit on GitHub */
   readonly onViewCommitOnGitHub?: (sha: string) => void
+
+  /** Callback to fire to cancel a keyboard reordering operation */
+  readonly onCancelKeyboardReorder?: () => void
 
   /**
    * Callback to fire to create a branch from a given commit in the current
@@ -106,6 +123,9 @@ interface ICommitListProps {
 
   /** Callback to fire to cherry picking the commit  */
   readonly onCherryPick?: (commits: ReadonlyArray<CommitOneLine>) => void
+
+  /** Callback to fire to start reordering commits with the keyboard */
+  readonly onKeyboardReorder?: (toReorder: ReadonlyArray<Commit>) => void
 
   /** Callback to fire to squashing commits  */
   readonly onSquash?: (
@@ -146,6 +166,9 @@ interface ICommitListProps {
   /** Callback to remove commit drag element */
   readonly onRemoveCommitDragElement?: () => void
 
+  /** Whether reordering should be enabled on the commit list */
+  readonly disableReordering?: boolean
+
   /** Whether squashing should be enabled on the commit list */
   readonly disableSquashing?: boolean
 
@@ -153,15 +176,73 @@ interface ICommitListProps {
   readonly shasToHighlight?: ReadonlyArray<string>
 }
 
+interface ICommitListState {
+  /**
+   * Aria live message used to guide users through the keyboard reordering
+   * process.
+   */
+  readonly reorderingMessage: string
+}
+
 /** A component which displays the list of commits. */
-export class CommitList extends React.Component<ICommitListProps, {}> {
+export class CommitList extends React.Component<
+  ICommitListProps,
+  ICommitListState
+> {
   private commitsHash = memoize(makeCommitsHash, arrayEquals)
   private commitIndexBySha = memoizeOne(
     (commitSHAs: ReadonlyArray<string>) =>
       new Map(commitSHAs.map((sha, index) => [sha, index]))
   )
 
+  private containerRef = React.createRef<HTMLDivElement>()
   private listRef = React.createRef<List>()
+
+  // This function is debounced to avoid updating the aria live region too
+  // frequently on every key press.
+  private updateKeyboardReorderingMessage = debounce(
+    (insertionIndexPath: RowIndexPath | null) => {
+      const { keyboardReorderData } = this.props
+
+      if (keyboardReorderData === undefined) {
+        this.setState({ reorderingMessage: '' })
+        return
+      }
+
+      const plural = keyboardReorderData.commits.length === 1 ? '' : 's'
+
+      if (insertionIndexPath !== null) {
+        const { row } = insertionIndexPath
+
+        const insertionPoint =
+          row < this.props.commitSHAs.length
+            ? `before commit ${row + 1}`
+            : `after commit ${row}`
+
+        this.setState({
+          reorderingMessage: `Press Enter to insert the selected commit${plural} ${insertionPoint} or Escape to cancel.`,
+        })
+        return
+      }
+
+      this.setState({
+        reorderingMessage: `Use the Up and Down arrow keys to move the selected commit${plural}, then press Enter to confirm or Escape to cancel.`,
+      })
+    },
+    500
+  )
+
+  public constructor(props: ICommitListProps) {
+    super(props)
+
+    this.state = { reorderingMessage: '' }
+  }
+
+  public componentDidUpdate(prevProps: ICommitListProps) {
+    if (this.props.keyboardReorderData !== prevProps.keyboardReorderData) {
+      this.updateKeyboardReorderingMessage(null)
+    }
+  }
 
   private getVisibleCommits(): ReadonlyArray<Commit> {
     const commits = new Array<Commit>()
@@ -209,7 +290,10 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         )}
         commit={commit}
         emoji={this.props.emoji}
-        isDraggable={this.props.isMultiCommitOperationInProgress === false}
+        isDraggable={
+          this.props.isMultiCommitOperationInProgress === false &&
+          !this.inKeyboardReorderMode
+        }
         onSquash={this.onSquash}
         selectedCommits={this.selectedCommits}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
@@ -220,6 +304,10 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         }
       />
     )
+  }
+
+  private get inKeyboardReorderMode() {
+    return this.props.keyboardReorderData !== undefined
   }
 
   private getLastRetainedCommitRef(indexes: ReadonlyArray<number>) {
@@ -401,8 +489,24 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       .map(sha => this.rowForSHA(sha))
       .filter(r => r !== -1)
 
+    const containerWidth = this.containerRef.current?.clientWidth ?? 0
+
     return (
-      <div id="commit-list" className={classes}>
+      <div id="commit-list" className={classes} ref={this.containerRef}>
+        {this.inKeyboardReorderMode && (
+          <Popover
+            anchor={this.containerRef.current}
+            anchorPosition={PopoverAnchorPosition.Top}
+            decoration={PopoverDecoration.Balloon}
+            trapFocus={false}
+            style={{
+              width: `${containerWidth - 2 * PopoverScreenBorderPadding}px`,
+            }}
+          >
+            Use the Up and Down arrow keys to move the commits, then press Enter
+            to confirm.
+          </Popover>
+        )}
         <List
           ref={this.listRef}
           rowCount={commitSHAs.length}
@@ -412,9 +516,16 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           onDropDataInsertion={this.onDropDataInsertion}
           onSelectionChanged={this.onSelectionChanged}
           onSelectedRowChanged={this.onSelectedRowChanged}
+          onKeyboardInsertionIndexPathChanged={
+            this.onKeyboardInsertionIndexPathChanged
+          }
+          onCancelKeyboardInsertion={this.props.onCancelKeyboardReorder}
+          onConfirmKeyboardInsertion={this.onConfirmKeyboardReorder}
           onRowContextMenu={this.onRowContextMenu}
           selectionMode="multi"
           onScroll={this.onScroll}
+          keyboardInsertionData={this.props.keyboardReorderData}
+          keyboardInsertionElementRenderer={this.renderKeyboardInsertionElement}
           insertionDragType={
             reorderingEnabled === true &&
             isMultiCommitOperationInProgress === false
@@ -431,8 +542,35 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
           setScrollTop={this.props.compareListScrollTop}
           rowCustomClassNameMap={this.getRowCustomClassMap()}
         />
+        <AriaLiveContainer message={this.state.reorderingMessage} />
       </div>
     )
+  }
+
+  private renderKeyboardInsertionElement = (
+    data: KeyboardInsertionData
+  ): JSX.Element | null => {
+    const { emoji, gitHubRepository } = this.props
+    const { commits } = data
+
+    if (commits.length === 0) {
+      return null
+    }
+
+    switch (data.type) {
+      case DragType.Commit:
+        return (
+          <CommitDragElement
+            gitHubRepository={gitHubRepository}
+            commit={commits[0]}
+            selectedCommits={commits}
+            isKeyboardInsertion={true}
+            emoji={emoji}
+          />
+        )
+      default:
+        return assertNever(data.type, `Unknown drag element type: ${data}`)
+    }
   }
 
   private onRowContextMenu = (
@@ -440,6 +578,10 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     event: React.MouseEvent<HTMLDivElement>
   ) => {
     event.preventDefault()
+
+    if (this.inKeyboardReorderMode) {
+      return
+    }
 
     const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
@@ -533,6 +675,14 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
       })
     }
 
+    items.push({
+      label: __DARWIN__ ? 'Reorder Commit' : 'Reorder commit',
+      action: () => {
+        this.props.onKeyboardReorder?.([commit])
+      },
+      enabled: this.canReorder(),
+    })
+
     items.push(
       {
         label: __DARWIN__
@@ -608,6 +758,11 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     )
   }
 
+  private canReorder = () =>
+    this.props.onKeyboardReorder !== undefined &&
+    this.props.disableReordering === false &&
+    this.props.isMultiCommitOperationInProgress === false
+
   private canSquash(): boolean {
     const { onSquash, disableSquashing, isMultiCommitOperationInProgress } =
       this.props
@@ -673,7 +828,25 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         action: () => this.onSquash(this.selectedCommits, commit, true),
         enabled: this.canSquash(),
       },
+      {
+        label: __DARWIN__
+          ? `Reorder ${count} Commits…`
+          : `Reorder ${count} commits…`,
+        action: () => this.props.onKeyboardReorder?.(this.selectedCommits),
+        enabled: this.canReorder(),
+      },
     ]
+  }
+
+  private onKeyboardInsertionIndexPathChanged = (indexPath: RowIndexPath) => {
+    this.updateKeyboardReorderingMessage(indexPath)
+  }
+
+  private onConfirmKeyboardReorder = (
+    indexPath: RowIndexPath,
+    data: KeyboardInsertionData
+  ) => {
+    this.onDropDataInsertion(indexPath.row, data)
   }
 
   private onDropDataInsertion = (row: number, data: DragData) => {

@@ -6,7 +6,7 @@ import { dragAndDropManager } from '../../../lib/drag-and-drop-manager'
 import { DragData, DragType, DropTargetType } from '../../../models/drag-drop'
 import { RowIndexPath } from './list-row-index-path'
 
-enum InsertionFeedbackType {
+export enum InsertionFeedbackType {
   None,
   Top,
   Bottom,
@@ -20,6 +20,8 @@ interface IListItemInsertionOverlayProps {
 
   readonly itemIndex: RowIndexPath
   readonly dragType: DragType
+  readonly forcedFeedbackType: InsertionFeedbackType
+  readonly isKeyboardInsertion?: boolean
 }
 
 interface IListItemInsertionOverlayState {
@@ -97,14 +99,25 @@ export class ListItemInsertionOverlay extends React.PureComponent<
     // from them).
     return (
       <div className="list-item-insertion-overlay">
-        {this.state.isDragInProgress && this.renderTopElements()}
+        {this.renderTopElements()}
         {this.props.children}
-        {this.state.isDragInProgress && this.renderBottomElements()}
+        {this.renderBottomElements()}
       </div>
     )
   }
 
   private renderTopElements() {
+    if (this.props.isKeyboardInsertion === true) {
+      return (
+        this.props.forcedFeedbackType === InsertionFeedbackType.Top &&
+        this.renderInsertionIndicator(InsertionFeedbackType.Top)
+      )
+    }
+
+    if (!this.state.isDragInProgress) {
+      return null
+    }
+
     return (
       <>
         <div
@@ -122,6 +135,17 @@ export class ListItemInsertionOverlay extends React.PureComponent<
   }
 
   private renderBottomElements() {
+    if (this.props.isKeyboardInsertion === true) {
+      return (
+        this.props.forcedFeedbackType === InsertionFeedbackType.Bottom &&
+        this.renderInsertionIndicator(InsertionFeedbackType.Bottom)
+      )
+    }
+
+    if (!this.state.isDragInProgress) {
+      return null
+    }
+
     return (
       <>
         {this.state.feedbackType === InsertionFeedbackType.Bottom &&
