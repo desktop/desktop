@@ -23,7 +23,6 @@ import { debounce } from 'lodash'
 import {
   Popover,
   PopoverAnchorPosition,
-  PopoverDecoration,
   PopoverScreenBorderPadding,
 } from '../lib/popover'
 import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
@@ -491,31 +490,36 @@ export class CommitList extends React.Component<
       .filter(r => r !== -1)
 
     const containerWidth = this.containerRef.current?.clientWidth ?? 0
+    const reorderCommitsHintTitle = __DARWIN__
+      ? 'Reorder Commits'
+      : 'Reorder commits'
 
     return (
       <div id="commit-list" className={classes} ref={this.containerRef}>
-        {this.inKeyboardReorderMode ||
-          (1 == 1 && (
-            <Popover
-              anchor={this.containerRef.current}
-              anchorPosition={PopoverAnchorPosition.Top}
-              decoration={PopoverDecoration.Balloon}
-              trapFocus={false}
-              style={{
-                width: `${containerWidth - 2 * PopoverScreenBorderPadding}px`,
-              }}
-            >
-              <p>
-                <KeyboardShortcut darwinKeys={['↑']} keys={['↑']} />
-                <KeyboardShortcut darwinKeys={['↓']} keys={['↓']} />
-                Use the Up and Down arrow keys to move the commits.
-              </p>
-              <p>
-                <KeyboardShortcut darwinKeys={['⏎']} keys={['⏎']} />
-                Press Enter to confirm.
-              </p>
-            </Popover>
-          ))}
+        {this.inKeyboardReorderMode && (
+          <Popover
+            className="reorder-commits-hint-popover"
+            anchor={this.containerRef.current}
+            anchorOffset={PopoverScreenBorderPadding}
+            anchorPosition={PopoverAnchorPosition.Top}
+            isDialog={false}
+            trapFocus={false}
+            style={{
+              width: `${containerWidth - 2 * PopoverScreenBorderPadding}px`,
+            }}
+          >
+            <h3>{reorderCommitsHintTitle}</h3>
+            <p>
+              <KeyboardShortcut darwinKeys={['↑']} keys={['↑']} />
+              <KeyboardShortcut darwinKeys={['↓']} keys={['↓']} /> Use the Up
+              and Down arrow keys to move the commits.
+            </p>
+            <p>
+              <KeyboardShortcut darwinKeys={['⏎']} keys={['⏎']} /> Press Enter
+              to confirm.
+            </p>
+          </Popover>
+        )}
         <List
           ref={this.listRef}
           rowCount={commitSHAs.length}
