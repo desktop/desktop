@@ -1,5 +1,20 @@
 {
   "releases": {
+    "3.3.6-beta2": [
+      "[Fixed] Empty lines are included when copying text from diffs - #17652"
+    ],
+    "3.3.6-beta1": [
+      "[Fixed] Creating pull requests from a renamed branch uses the branch name in the remote - #17628",
+      "[Fixed] On macOS Sonoma, the VoiceOver regression preventing our dialog headers announcements has been fixed. - #17631",
+      "[Improved] The pull request branch selection popover header is announced by screen readers. - #17631",
+      "[Improved] Improve keyboard and screen reader support for banners - #17542",
+      "[Improved] The commit summary description overflow is limited to two lines when collapsed. - #17618",
+      "[Improved] The commit summary description has a grey background color when expanded. - #17618"
+    ],
+    "3.3.5": [
+      "[Added] Syntax highlighting now supports .cc files - #17503. Thanks @DylanDevelops!",
+      "[Fixed] Long file paths are correctly truncated in the conflicts dialog - #17595"
+    ],
     "3.3.5-beta1": [
       "[Added] Syntax highlighting now supports .cc files - #17503. Thanks @DylanDevelops!",
       "[Fixed] Long file paths are correctly truncated in the conflicts dialog - #17595",

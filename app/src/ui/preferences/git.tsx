@@ -4,6 +4,7 @@ import { SuggestedBranchNames } from '../../lib/helpers/default-branch'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 import { Ref } from '../lib/ref'
 import { RadioButton } from '../lib/radio-button'
+import { LinkButton } from '../lib/link-button'
 import { Account } from '../../models/account'
 import { GitConfigUserForm } from '../lib/git-config-user-form'
 
@@ -12,6 +13,7 @@ interface IGitProps {
   readonly email: string
   readonly defaultBranch: string
   readonly isLoadingGitConfig: boolean
+  readonly globalGitConfigPath: string | null
 
   readonly dotComAccount: Account | null
   readonly enterpriseAccount: Account | null
@@ -19,6 +21,9 @@ interface IGitProps {
   readonly onNameChanged: (name: string) => void
   readonly onEmailChanged: (email: string) => void
   readonly onDefaultBranchChanged: (defaultBranch: string) => void
+
+  readonly selectedExternalEditor: string | null
+  readonly onOpenFileInExternalEditor: (path: string) => void
 }
 
 interface IGitState {
@@ -151,7 +156,16 @@ export class Git extends React.Component<IGitProps, IGitState> {
         )}
 
         <p className="git-settings-description">
-          These preferences will edit your global Git config.
+          These preferences will{' '}
+          {this.props.selectedExternalEditor &&
+          this.props.globalGitConfigPath ? (
+            <LinkButton onClick={this.openGlobalGitConfigInEditor}>
+              edit your global Git config file
+            </LinkButton>
+          ) : (
+            'edit your global Git config file'
+          )}
+          .
         </p>
       </div>
     )
@@ -173,5 +187,13 @@ export class Git extends React.Component<IGitProps, IGitState> {
     })
 
     this.props.onDefaultBranchChanged(defaultBranch)
+  }
+
+  // This function is called to open the global git config file in the
+  // user's default editor.
+  private openGlobalGitConfigInEditor = () => {
+    if (this.props.globalGitConfigPath) {
+      this.props.onOpenFileInExternalEditor(this.props.globalGitConfigPath)
+    }
   }
 }

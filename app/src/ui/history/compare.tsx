@@ -703,6 +703,8 @@ export class CompareSidebar extends React.Component<
       dialogButtonText: `Squash ${allCommitsInSquash.length} Commits`,
       prepopulateCommitSummary: true,
       onSubmitCommitMessage: async (context: ICommitContext) => {
+        this.props.dispatcher.closePopup(PopupType.CommitMessage)
+
         this.props.dispatcher.squash(
           this.props.repository,
           toSquashSansSquashOnto,

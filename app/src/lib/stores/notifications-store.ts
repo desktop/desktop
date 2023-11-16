@@ -114,7 +114,7 @@ export class NotificationsStore {
     async (event, id, userInfo) => this.handleAliveEvent(userInfo, true)
 
   public simulateAliveEvent(event: DesktopAliveEvent) {
-    if (__DEV__) {
+    if (__DEV__ || __RELEASE_CHANNEL__ === 'test') {
       this.handleAliveEvent(event, false)
     }
   }
