@@ -458,6 +458,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --form-error-border-color: #{$red-200};
   --form-error-text-color: #{$red-800};
 
+  --dialog-banner-success-background: #{$green-100};
+  --dialog-banner-success-border-color: #{$green-300};
+  --dialog-banner-success-text-color: #{$green-800};
+
   // Inline form errors, displayed after the input field
   --input-warning-text-color: var(--dialog-warning-color);
   --input-error-text-color: #{$red-800};

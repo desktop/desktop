@@ -357,6 +357,10 @@ body.theme-dark {
   --form-error-border-color: #{$red-900};
   --form-error-text-color: var(--text-color);
 
+  --dialog-banner-success-background: rgba(22, 92, 38, 0.7);
+  --dialog-banner-success-border-color: #{$green-800};
+  --dialog-banner-success-text-color: var(--text-color);
+
   // Inline form errors, displayed after the input field
   --input-warning-text-color: var(--dialog-warning-color);
   --input-error-text-color: #{$red-300};

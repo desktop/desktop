@@ -20,6 +20,7 @@ import {
 } from '../../lib/conflicts'
 import { ManualConflictResolution } from '../../../models/manual-conflict-resolution'
 import { OkCancelButtonGroup } from '../../dialog/ok-cancel-button-group'
+import { DialogSuccess } from '../../dialog/success'
 
 interface IConflictsDialogProps {
   readonly dispatcher: Dispatcher
@@ -46,6 +47,7 @@ interface IConflictsDialogState {
   readonly isCommitting: boolean
   readonly isAborting: boolean
   readonly isFileResolutionOptionsMenuOpen: boolean
+  readonly countResolved: number | null
 }
 
 /**
@@ -63,6 +65,7 @@ export class ConflictsDialog extends React.Component<
       isCommitting: false,
       isAborting: false,
       isFileResolutionOptionsMenuOpen: false,
+      countResolved: null,
     }
   }
 
@@ -93,6 +96,19 @@ export class ConflictsDialog extends React.Component<
 
     if (resolvedConflicts.length > 0) {
       someConflictsHaveBeenResolved()
+    }
+  }
+
+  public componentDidUpdate(): void {
+    const { workingDirectory, manualResolutions } = this.props
+
+    const resolvedConflicts = getResolvedFiles(
+      workingDirectory,
+      manualResolutions
+    )
+
+    if (resolvedConflicts.length !== (this.state.countResolved ?? 0)) {
+      this.setState({ countResolved: resolvedConflicts.length })
     }
   }
 
@@ -172,6 +188,30 @@ export class ConflictsDialog extends React.Component<
     )
   }
 
+  public renderBanner(conflictedFilesCount: number) {
+    const { countResolved } = this.state
+    if (countResolved === null) {
+      return
+    }
+
+    if (countResolved === 0) {
+      return <DialogSuccess>All resolutions have been undone.</DialogSuccess>
+    }
+
+    if (conflictedFilesCount === 0) {
+      return (
+        <DialogSuccess>All conflicted files have been resolved. </DialogSuccess>
+      )
+    }
+
+    const conflictPluralized = countResolved === 1 ? 'file has' : 'files have'
+    return (
+      <DialogSuccess>
+        {countResolved} conflicted {conflictPluralized} been resolved.
+      </DialogSuccess>
+    )
+  }
+
   public render() {
     const {
       workingDirectory,
@@ -202,6 +242,7 @@ export class ConflictsDialog extends React.Component<
         loading={this.state.isCommitting}
         disabled={this.state.isCommitting}
       >
+        {this.renderBanner(conflictedFiles.length)}
         <DialogContent>
           {this.renderContent(unmergedFiles, conflictedFiles.length)}
         </DialogContent>
