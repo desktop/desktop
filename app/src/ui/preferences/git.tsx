@@ -3,10 +3,10 @@ import { DialogContent } from '../dialog'
 import { SuggestedBranchNames } from '../../lib/helpers/default-branch'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 import { Ref } from '../lib/ref'
-import { RadioButton } from '../lib/radio-button'
 import { LinkButton } from '../lib/link-button'
 import { Account } from '../../models/account'
 import { GitConfigUserForm } from '../lib/git-config-user-form'
+import { RadioGroup } from '../lib/radio-group'
 
 interface IGitProps {
   readonly name: string
@@ -123,30 +123,25 @@ export class Git extends React.Component<IGitProps, IGitState> {
 
     return (
       <div className="default-branch-component">
-        <h2>Default branch name for new repositories</h2>
+        <h2 id="default-branch-heading">
+          Default branch name for new repositories
+        </h2>
 
-        {SuggestedBranchNames.map((branchName: string, i: number) => (
-          <RadioButton
-            key={branchName}
-            checked={
-              (!defaultBranchIsOther &&
-                this.props.defaultBranch === branchName) ||
-              (this.props.isLoadingGitConfig && i === 0)
-            }
-            value={branchName}
-            label={branchName}
-            onSelected={this.onDefaultBranchChanged}
-          />
-        ))}
-        <RadioButton
-          key={OtherNameForDefaultBranch}
-          checked={defaultBranchIsOther}
-          value={OtherNameForDefaultBranch}
-          label="Other…"
-          onSelected={this.onDefaultBranchChanged}
+        <RadioGroup<string>
+          ariaLabelledBy="default-branch-heading"
+          selectedKey={
+            defaultBranchIsOther
+              ? OtherNameForDefaultBranch
+              : this.props.defaultBranch
+          }
+          radioButtonKeys={[...SuggestedBranchNames, OtherNameForDefaultBranch]}
+          onSelectionChanged={this.onDefaultBranchChanged}
+          renderRadioButtonLabelContents={
+            this.renderDefaultBranchNameRadioButton
+          }
         />
 
-        {defaultBranchIsOther && (
+        {this.state.defaultBranchIsOther && (
           <RefNameTextBox
             initialValue={this.props.defaultBranch}
             renderWarningMessage={this.renderWarningMessage}
@@ -169,6 +164,14 @@ export class Git extends React.Component<IGitProps, IGitState> {
         </p>
       </div>
     )
+  }
+
+  private renderDefaultBranchNameRadioButton = (key: string) => {
+    if (key === OtherNameForDefaultBranch) {
+      return <>Other… </>
+    }
+
+    return <>{key}</>
   }
 
   /**
