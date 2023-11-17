@@ -259,18 +259,14 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const lineTypes = this.props.showSideBySideDiff
+    const exclude = this.props.showSideBySideDiff
       ? this.state.selectingTextInRow === 'before'
-        ? [DiffLineType.Delete, DiffLineType.Context]
-        : [DiffLineType.Add, DiffLineType.Context]
-      : [DiffLineType.Add, DiffLineType.Delete, DiffLineType.Context]
+        ? DiffLineType.Add
+        : DiffLineType.Delete
+      : false
 
     const contents = this.state.diff.hunks
-      .flatMap(h =>
-        h.lines
-          .filter(line => lineTypes.includes(line.type))
-          .map(line => line.content)
-      )
+      .flatMap(h => h.lines.filter(l => l.type !== exclude).map(l => l.content))
       .join('\n')
 
     ev.preventDefault()
