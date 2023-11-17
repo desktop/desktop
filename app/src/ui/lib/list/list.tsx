@@ -1338,7 +1338,7 @@ export class List extends React.Component<IListProps, IListState> {
     // if we do, send a non fatal exception to tell us about it.
     if (this.props.selectedRows[0] < 0) {
       sendNonFatalException(
-        'The selected rows of the List.tsx contained a negative number.',
+        'invalidListSelection',
         new Error(
           `Invalid selected rows that contained a negative number passed to List component. This will cause keyboard navigation and focus problems.`
         )
