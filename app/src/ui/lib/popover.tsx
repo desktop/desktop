@@ -62,8 +62,12 @@ interface IPopoverProps {
   readonly onMousedownOutside?: (event?: MouseEvent) => void
   /** Element to anchor the popover to */
   readonly anchor: HTMLElement | null
+  /** Offset to apply to the distance from the anchor */
+  readonly anchorOffset?: number
   /** The position of the popover relative to the anchor.  */
   readonly anchorPosition: PopoverAnchorPosition
+  /** Whether or not the popover behaves as a dialog. Optional. Default: true */
+  readonly isDialog?: boolean
   /**
    * The position of the tip or pointer of the popover relative to the side at
    * which the tip is presented. Optional. Default: Center
@@ -126,7 +130,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   }
 
   private updatePosition = async () => {
-    const { anchor, decoration, maxHeight } = this.props
+    const { anchor, anchorOffset, decoration, maxHeight } = this.props
     const containerDiv = this.containerDivRef.current
     const contentDiv = this.contentDivRef.current
 
@@ -140,9 +144,11 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     }
 
     const tipDiv = this.tipDivRef.current
+    const extraOffset = anchorOffset ?? 0
+    const popoverOffset = decoration === PopoverDecoration.Balloon ? TipSize : 0
 
     const middleware = [
-      offset(decoration === PopoverDecoration.Balloon ? TipSize : 0),
+      offset(popoverOffset + extraOffset),
       shift({ padding: PopoverScreenBorderPadding }),
       flip({ padding: PopoverScreenBorderPadding }),
       size({
@@ -228,6 +234,10 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
    * However, macOs VoiceOver is not reliable so we have some workarounds...
    */
   private getAriaAttributes() {
+    if (this.props.isDialog === false) {
+      return {}
+    }
+
     if (isMacOSVentura()) {
       /* macOs Ventura introduced a regression in that the aria-labelledby
        * is not announced and if provided prevents the aria-describedby from being
@@ -263,6 +273,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
       decoration,
       maxHeight,
       minHeight,
+      isDialog,
     } = this.props
     const cn = classNames(
       decoration === PopoverDecoration.Balloon && 'popover-component',
@@ -329,7 +340,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
         style={style}
         ref={this.containerDivRef}
         {...this.getAriaAttributes()}
-        role="dialog"
+        role={isDialog === false ? undefined : 'dialog'}
       >
         <div
           className="popover-content"

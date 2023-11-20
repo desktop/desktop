@@ -23,9 +23,9 @@ import { debounce } from 'lodash'
 import {
   Popover,
   PopoverAnchorPosition,
-  PopoverDecoration,
   PopoverScreenBorderPadding,
 } from '../lib/popover'
+import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 
 const RowHeight = 50
 
@@ -226,7 +226,7 @@ export class CommitList extends React.Component<
       }
 
       this.setState({
-        reorderingMessage: `Use the Up and Down arrow keys to move the selected commit${plural}, then press Enter to confirm or Escape to cancel.`,
+        reorderingMessage: `Use the Up and Down arrow keys to choose a new location for the selected commit${plural}, then press Enter to confirm or Escape to cancel.`,
       })
     },
     500
@@ -489,24 +489,9 @@ export class CommitList extends React.Component<
       .map(sha => this.rowForSHA(sha))
       .filter(r => r !== -1)
 
-    const containerWidth = this.containerRef.current?.clientWidth ?? 0
-
     return (
       <div id="commit-list" className={classes} ref={this.containerRef}>
-        {this.inKeyboardReorderMode && (
-          <Popover
-            anchor={this.containerRef.current}
-            anchorPosition={PopoverAnchorPosition.Top}
-            decoration={PopoverDecoration.Balloon}
-            trapFocus={false}
-            style={{
-              width: `${containerWidth - 2 * PopoverScreenBorderPadding}px`,
-            }}
-          >
-            Use the Up and Down arrow keys to move the commits, then press Enter
-            to confirm.
-          </Popover>
-        )}
+        {this.renderReorderCommitsHint()}
         <List
           ref={this.listRef}
           rowCount={commitSHAs.length}
@@ -544,6 +529,41 @@ export class CommitList extends React.Component<
         />
         <AriaLiveContainer message={this.state.reorderingMessage} />
       </div>
+    )
+  }
+
+  private renderReorderCommitsHint = () => {
+    if (!this.inKeyboardReorderMode) {
+      return null
+    }
+
+    const containerWidth = this.containerRef.current?.clientWidth ?? 0
+    const reorderCommitsHintTitle = __DARWIN__
+      ? 'Reorder Commits'
+      : 'Reorder commits'
+
+    return (
+      <Popover
+        className="reorder-commits-hint-popover"
+        anchor={this.containerRef.current}
+        anchorOffset={PopoverScreenBorderPadding}
+        anchorPosition={PopoverAnchorPosition.Top}
+        isDialog={false}
+        trapFocus={false}
+        style={{
+          width: `${containerWidth - 2 * PopoverScreenBorderPadding}px`,
+        }}
+      >
+        <h4>{reorderCommitsHintTitle}</h4>
+        <p>
+          Use <KeyboardShortcut darwinKeys={['↑']} keys={['↑']} />
+          <KeyboardShortcut darwinKeys={['↓']} keys={['↓']} /> to choose a new
+          location.
+        </p>
+        <p>
+          Press <KeyboardShortcut darwinKeys={['⏎']} keys={['⏎']} /> to confirm.
+        </p>
+      </Popover>
     )
   }
 
