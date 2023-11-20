@@ -591,6 +591,10 @@ export function buildDefaultMenu({
             label: 'Cherry Pick Conflicts',
             click: emit('show-test-cherry-pick-conflicts-banner'),
           },
+          {
+            label: 'Merge Successful',
+            click: emit('show-test-merge-successful-banner'),
+          },
         ],
       },
       {
