@@ -79,6 +79,21 @@
       }
     }
   }
+
+  .reorder-commits-hint-popover {
+    background-color: var(--background-color);
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+    padding: var(--spacing);
+
+    p {
+      margin: var(--spacing-half) 0;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
 }
 
 #commit-drag-element .commit,
