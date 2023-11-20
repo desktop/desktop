@@ -7,7 +7,8 @@
       "[Improved] Added the ability to open your global .gitconfig file in your selected external editor - #17544. Thanks @DylanDevelops!",
       "[Improved] Fixed `Github` -> `GitHub` typo in repository settings - #17697. Thanks @WilliamDavidHarrison!",
       "[Improved] Reordering commits is now keyboard accessible - #17671",
-      "[Improved] Prevent possible duplicate announcement of button labeling to screen reader users - #17706"
+      "[Improved] Prevent possible duplicate announcement of button labeling to screen reader users - #17706",
+      "[Improved] Prevent multiple announcing of success banners with Windows NVDA screen reader  - #17705"
     ],
     "3.3.6-beta2": [
       "[Fixed] Empty lines are included when copying text from diffs - #17652"
