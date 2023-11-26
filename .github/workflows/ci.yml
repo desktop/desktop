@@ -158,6 +158,7 @@ jobs:
           ref: ${{ inputs.ref }}
           submodules: recursive
       - uses: actions/setup-python@v5
+        if: matrix.friendlyName != 'Ubuntu'
         with:
           python-version: '3.11'
       - name: Use Node.js ${{ env.NODE_VERSION }}
