@@ -1,10 +1,6 @@
 name: 🐛 Bug Report
 description: File a bug report
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Thanks for filing a bug report! This issue tracker is for [GitHub Desktop](https://desktop.github.com). Please search the issue tracker to see if there is an existing issue for the problem you are experiencing. If you are experiencing issues with the Linux fork of GitHub Desktop please open an issue [in its repository](https://github.com/shiftkey/desktop). If you are experiencing issues with github.com please [contact GitHub Support](https://support.github.com/).
   - type: textarea
     id: the-problem
     attributes:
