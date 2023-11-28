@@ -10,6 +10,7 @@
     overflow-y: auto;
     padding: var(--spacing);
     padding-top: 0;
+    padding-bottom: var(--spacing-half);
   }
 
   .ecs-title {
@@ -49,7 +50,8 @@
   .ecs-description {
     display: flex;
     position: relative;
-    min-height: 70px;
+    min-height: 10px;
+    padding-bottom: var(--spacing-half);
 
     .ecs-description-scroll-view {
       overflow: hidden;
@@ -68,7 +70,6 @@
 
   .ecs-meta {
     display: flex;
-    margin-top: var(--spacing);
     flex-wrap: wrap;
 
     .ecs-meta-item {
