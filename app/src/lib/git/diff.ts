@@ -8,6 +8,7 @@ import {
   FileChange,
   AppFileStatusKind,
   SubmoduleStatus,
+  CommittedFileChange,
 } from '../../models/status'
 import {
   DiffType,
@@ -443,6 +444,17 @@ async function getImageDiff(
         repository,
         getOldPathOrDefault(file),
         `${oldestCommitish}^`
+      )
+    }
+
+    if (
+      file instanceof CommittedFileChange &&
+      file.status.kind !== AppFileStatusKind.Deleted
+    ) {
+      previous = await getBlobImage(
+        repository,
+        getOldPathOrDefault(file),
+        file.parentCommitish
       )
     }
   }
