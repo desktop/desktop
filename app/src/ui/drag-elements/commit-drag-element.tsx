@@ -14,6 +14,11 @@ interface ICommitDragElementProps {
   readonly commit: Commit
   readonly selectedCommits: ReadonlyArray<Commit>
   readonly gitHubRepository: GitHubRepository | null
+  /**
+   * Whether or not this is shown for a keyboard-based insertion (like reordering
+   * commits). Optional. Default: false
+   */
+  readonly isKeyboardInsertion?: boolean
   readonly emoji: Map<string, string>
 }
 
@@ -168,7 +173,10 @@ export class CommitDragElement extends React.Component<
     const { commit, gitHubRepository, selectedCommits, emoji } = this.props
     const count = selectedCommits.length
 
-    const className = classNames({ 'multiple-selected': count > 1 })
+    const className = classNames({
+      'multiple-selected': count > 1,
+      'in-keyboard-insertion-mode': this.props.isKeyboardInsertion ?? false,
+    })
     return (
       <div id="commit-drag-element" className={className}>
         <div className="commit-box">

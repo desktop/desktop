@@ -14,7 +14,10 @@ import {
   findLastSelectableRow,
 } from './section-list-selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
-import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
+import {
+  InsertionFeedbackType,
+  ListItemInsertionOverlay,
+} from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
 import memoizeOne from 'memoize-one'
 import {
@@ -1175,6 +1178,7 @@ export class SectionList extends React.Component<
             onDropDataInsertion={this.props.onDropDataInsertion}
             itemIndex={indexPath}
             dragType={this.props.insertionDragType}
+            forcedFeedbackType={InsertionFeedbackType.None}
           >
             {row}
           </ListItemInsertionOverlay>
@@ -1199,6 +1203,7 @@ export class SectionList extends React.Component<
           rowCount={this.props.rowCount[indexPath.section]}
           rowIndex={indexPath}
           selected={selected}
+          inKeyboardInsertionMode={false}
           onRowClick={this.onRowClick}
           onRowDoubleClick={this.onRowDoubleClick}
           onRowKeyDown={this.onRowKeyDown}
@@ -1403,7 +1408,7 @@ export class SectionList extends React.Component<
       rowIndexPathEquals(firstSelectedRow, InvalidRowIndexPath)
     ) {
       sendNonFatalException(
-        'The selected rows of the section-list.tsx contained a negative number.',
+        'invalidListSelection',
         new Error(
           `Invalid selected rows that contained a negative number passed to SectionList component. This will cause keyboard navigation and focus problems.`
         )

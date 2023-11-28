@@ -167,6 +167,19 @@ export interface IButtonProps {
 
   /** Whether the button's tooltip opens on click  */
   readonly openTooltipOnClick?: boolean
+
+  /**
+   * Whether or not to apply the aria-desribedby to the target element.
+   *
+   * If the button already has an aria label that is the same as the tooltip
+   * content, this should be false.
+   *
+   * Note: If the tooltip does provide more context than the targets accessible
+   * label (visual or aria), this should be true.
+   *
+   * Default: true
+   * */
+  readonly applyTooltipAriaDescribedBy?: boolean
 }
 
 /**
@@ -237,6 +250,7 @@ export class Button extends React.Component<IButtonProps, {}> {
             delay={disabled ? 0 : undefined}
             onlyWhenOverflowed={this.props.onlyShowTooltipWhenOverflowed}
             openOnTargetClick={this.props.openTooltipOnClick}
+            applyAriaDescribedBy={this.props.applyTooltipAriaDescribedBy}
           >
             {tooltip}
           </Tooltip>

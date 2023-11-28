@@ -83,10 +83,10 @@ export class Advanced extends React.Component<
                 : CheckboxValue.Off
             }
             onChange={this.onRepositoryIndicatorsEnabledChanged}
-            ariaDescribedBy="periodic-fecth-description"
+            ariaDescribedBy="periodic-fetch-description"
           />
-          <p
-            id="periodic-fecth-description"
+          <div
+            id="periodic-fetch-description"
             className="git-settings-description"
           >
             <p>
@@ -99,7 +99,7 @@ export class Advanced extends React.Component<
               currently selected repository, but may improve overall app
               performance for users with many repositories.
             </p>
-          </p>
+          </div>
         </div>
         {this.renderSSHSettings()}
         <div className="advanced-section">

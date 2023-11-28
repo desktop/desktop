@@ -4,20 +4,20 @@
   width: 100%;
   overflow: hidden;
   flex-grow: 1;
-  user-select: contain;
   position: relative;
 
-  &:not(:focus-within) .content {
-    &,
-    * {
-      user-select: none;
-    }
+  &,
+  * {
+    cursor: text;
+    user-select: text;
   }
 
+  // See https://github.com/desktop/desktop/pull/15128#issuecomment-1232689068
+  &:not(:focus-within) .content,
   &.selecting-before .after,
   &.selecting-after .before {
-    span,
-    div {
+    &,
+    * {
       user-select: none;
     }
   }
@@ -169,12 +169,6 @@
     flex-grow: 1;
     word-break: break-all;
 
-    &,
-    * {
-      cursor: text;
-      user-select: text;
-    }
-
     .prefix {
       user-select: none;
     }
@@ -240,12 +234,6 @@
       background: var(--diff-hunk-background-color);
       color: var(--diff-hunk-text-color);
       align-items: center;
-
-      div,
-      span {
-        user-select: none;
-        cursor: default;
-      }
 
       .line-number {
         background: var(--diff-hunk-background-color);
