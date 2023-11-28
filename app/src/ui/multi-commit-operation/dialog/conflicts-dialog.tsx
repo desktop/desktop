@@ -188,6 +188,14 @@ export class ConflictsDialog extends React.Component<
     )
   }
 
+  /**
+   * Renders the banner based on count of resolved files.
+   *
+   * If the count of resolved files is null, then the banner is
+   * not rendered as no conflicts have been resolved, yet. If the count of resolved
+   * files is 0, then there have been conflicts resolved, but they have been
+   * undone, we show an undone banner.
+   */
   public renderBanner(conflictedFilesCount: number) {
     const { countResolved } = this.state
     if (countResolved === null) {
