@@ -434,7 +434,8 @@ async function getImageDiff(
     // File status can't be conflicted for a file in a commit
     if (
       file.status.kind !== AppFileStatusKind.New &&
-      file.status.kind !== AppFileStatusKind.Untracked
+      file.status.kind !== AppFileStatusKind.Untracked &&
+      file.status.kind !== AppFileStatusKind.Deleted
     ) {
       // TODO: commitish^ won't work for the first commit
       //
@@ -449,7 +450,7 @@ async function getImageDiff(
 
     if (
       file instanceof CommittedFileChange &&
-      file.status.kind !== AppFileStatusKind.Deleted
+      file.status.kind === AppFileStatusKind.Deleted
     ) {
       previous = await getBlobImage(
         repository,
