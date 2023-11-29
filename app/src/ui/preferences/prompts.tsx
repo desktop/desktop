@@ -2,7 +2,8 @@ import * as React from 'react'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
 import { DialogContent } from '../dialog'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { RadioButton } from '../lib/radio-button'
+import { RadioGroup } from '../lib/radio-group'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IPromptsPreferencesProps {
   readonly confirmRepositoryRemoval: boolean
@@ -134,6 +135,47 @@ export class Prompts extends React.Component<
     this.props.onShowCommitLengthWarningChanged(event.currentTarget.checked)
   }
 
+  private renderSwitchBranchOptionLabel = (key: UncommittedChangesStrategy) => {
+    switch (key) {
+      case UncommittedChangesStrategy.AskForConfirmation:
+        return 'Ask me where I want the changes to go'
+      case UncommittedChangesStrategy.MoveToNewBranch:
+        return 'Always bring my changes to my new branch'
+      case UncommittedChangesStrategy.StashOnCurrentBranch:
+        return 'Always stash and leave my changes on the current branch'
+      default:
+        return assertNever(key, `Unknown uncommitted changes strategy: ${key}`)
+    }
+  }
+
+  private renderSwitchBranchOptions = () => {
+    const options = [
+      UncommittedChangesStrategy.AskForConfirmation,
+      UncommittedChangesStrategy.MoveToNewBranch,
+      UncommittedChangesStrategy.StashOnCurrentBranch,
+    ]
+
+    const selectedKey =
+      options.find(o => o === this.state.uncommittedChangesStrategy) ??
+      UncommittedChangesStrategy.AskForConfirmation
+
+    return (
+      <div className="advanced-section">
+        <h2 id="switch-branch-heading">
+          If I have changes and I switch branches...
+        </h2>
+
+        <RadioGroup<UncommittedChangesStrategy>
+          ariaLabelledBy="switch-branch-heading"
+          selectedKey={selectedKey}
+          radioButtonKeys={options}
+          onSelectionChanged={this.onUncommittedChangesStrategyChanged}
+          renderRadioButtonLabelContents={this.renderSwitchBranchOptionLabel}
+        />
+      </div>
+    )
+  }
+
   public render() {
     return (
       <DialogContent>
@@ -234,6 +276,7 @@ export class Prompts extends React.Component<
             onSelected={this.onUncommittedChangesStrategyChanged}
           />
         </div>
+        {this.renderSwitchBranchOptions()}
         <div className="advanced-section">
           <h2>Commit Length</h2>
           <Checkbox
