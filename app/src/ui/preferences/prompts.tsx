@@ -180,101 +180,74 @@ export class Prompts extends React.Component<
     return (
       <DialogContent>
         <div className="advanced-section">
-          <h2>Show a confirmation dialog before...</h2>
-          <Checkbox
-            label="Removing repositories"
-            value={
-              this.state.confirmRepositoryRemoval
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onConfirmRepositoryRemovalChanged}
-          />
-          <Checkbox
-            label="Discarding changes"
-            value={
-              this.state.confirmDiscardChanges
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onConfirmDiscardChangesChanged}
-          />
-          <Checkbox
-            label="Discarding changes permanently"
-            value={
-              this.state.confirmDiscardChangesPermanently
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onConfirmDiscardChangesPermanentlyChanged}
-          />
-          <Checkbox
-            label="Discarding stash"
-            value={
-              this.state.confirmDiscardStash
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onConfirmDiscardStashChanged}
-          />
-          <Checkbox
-            label="Checking out a commit"
-            value={
-              this.state.confirmCheckoutCommit
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onConfirmCheckoutCommitChanged}
-          />
-          <Checkbox
-            label="Force pushing"
-            value={
-              this.state.confirmForcePush ? CheckboxValue.On : CheckboxValue.Off
-            }
-            onChange={this.onConfirmForcePushChanged}
-          />
-          <Checkbox
-            label="Undo commit"
-            value={
-              this.state.confirmUndoCommit
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onConfirmUndoCommitChanged}
-          />
-        </div>
-        <div className="advanced-section">
-          <h2>If I have changes and I switch branches...</h2>
-
-          <RadioButton
-            value={UncommittedChangesStrategy.AskForConfirmation}
-            checked={
-              this.state.uncommittedChangesStrategy ===
-              UncommittedChangesStrategy.AskForConfirmation
-            }
-            label="Ask me where I want the changes to go"
-            onSelected={this.onUncommittedChangesStrategyChanged}
-          />
-
-          <RadioButton
-            value={UncommittedChangesStrategy.MoveToNewBranch}
-            checked={
-              this.state.uncommittedChangesStrategy ===
-              UncommittedChangesStrategy.MoveToNewBranch
-            }
-            label="Always bring my changes to my new branch"
-            onSelected={this.onUncommittedChangesStrategyChanged}
-          />
-
-          <RadioButton
-            value={UncommittedChangesStrategy.StashOnCurrentBranch}
-            checked={
-              this.state.uncommittedChangesStrategy ===
-              UncommittedChangesStrategy.StashOnCurrentBranch
-            }
-            label="Always stash and leave my changes on the current branch"
-            onSelected={this.onUncommittedChangesStrategyChanged}
-          />
+          <h2 id="show-confirm-dialog-heading">
+            Show a confirmation dialog before...
+          </h2>
+          <div role="group" aria-labelledby="show-confirm-dialog-heading">
+            <Checkbox
+              label="Removing repositories"
+              value={
+                this.state.confirmRepositoryRemoval
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onConfirmRepositoryRemovalChanged}
+            />
+            <Checkbox
+              label="Discarding changes"
+              value={
+                this.state.confirmDiscardChanges
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onConfirmDiscardChangesChanged}
+            />
+            <Checkbox
+              label="Discarding changes permanently"
+              value={
+                this.state.confirmDiscardChangesPermanently
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onConfirmDiscardChangesPermanentlyChanged}
+            />
+            <Checkbox
+              label="Discarding stash"
+              value={
+                this.state.confirmDiscardStash
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onConfirmDiscardStashChanged}
+            />
+            <Checkbox
+              label="Checking out a commit"
+              value={
+                this.state.confirmCheckoutCommit
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onConfirmCheckoutCommitChanged}
+            />
+            <Checkbox
+              label="Force pushing"
+              value={
+                this.state.confirmForcePush
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onConfirmForcePushChanged}
+            />
+            <Checkbox
+              label="Undo commit"
+              value={
+                this.state.confirmUndoCommit
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onConfirmUndoCommitChanged}
+            />
+          </div>
         </div>
         {this.renderSwitchBranchOptions()}
         <div className="advanced-section">
