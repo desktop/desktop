@@ -121,7 +121,11 @@ export class Git extends React.Component<IGitProps, IGitState> {
   }
 
   private renderBranchNameOption = (branchName: string) => {
-    return branchName
+    return branchName === otherOption ? (
+      <span id="other-branch-name-label">{branchName}</span>
+    ) : (
+      branchName
+    )
   }
 
   private renderDefaultBranchSetting() {
@@ -154,6 +158,7 @@ export class Git extends React.Component<IGitProps, IGitState> {
             renderWarningMessage={this.renderWarningMessage}
             onValueChange={this.props.onDefaultBranchChanged}
             ref={this.defaultBranchInputRef}
+            ariaLabelledBy={'other-branch-name-label'}
           />
         )}
 

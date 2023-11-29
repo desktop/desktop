@@ -93,6 +93,9 @@ export interface ITextBoxProps {
   /** Optional aria-label attribute */
   readonly ariaLabel?: string
 
+  /** Optional aria-labelledby attribute */
+  readonly ariaLabelledBy?: string
+
   /** Optional aria-describedby attribute - usually for associating a descriptive
    * message to the input such as a validation error, warning, or caption */
   readonly ariaDescribedBy?: string
@@ -312,6 +315,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           onContextMenu={this.onContextMenu}
           spellCheck={this.props.spellcheck === true}
           aria-label={this.props.ariaLabel}
+          aria-labelledby={this.props.ariaLabelledBy}
           aria-controls={this.props.ariaControls}
           aria-describedby={this.props.ariaDescribedBy}
           required={this.props.required}
