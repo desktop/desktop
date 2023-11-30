@@ -1469,6 +1469,11 @@
     "@types/express-serve-static-core" "*"
     "@types/mime" "*"
 
+"@types/setimmediate@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@types/setimmediate/-/setimmediate-1.0.4.tgz#c863c763c284ceaf8d31ec1b29362a889864da4f"
+  integrity sha512-rWPw1drMVf5zInxNpgH3nn/h6KkWqwgLT2y/ciAYQ16RAsbXOXe0AmtZ/HyzwPNw+r4GMJuI7IV7YNKO7Fs/xA==
+
 "@types/source-map-support@^0.5.2":
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/@types/source-map-support/-/source-map-support-0.5.2.tgz#35e7446d470e63ec3fff4d7eceee0bc40efad239"
