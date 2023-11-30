@@ -2,7 +2,7 @@ module.exports = {
   roots: ['<rootDir>/src/', '<rootDir>/test/'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
-    '\\.m?jsx?$': 'jest-esm-transformer',
+    '\\.m?jsx?$': '<rootDir>/test/esm-transformer.js',
   },
   resolver: `<rootDir>/test/resolver.js`,
   testMatch: ['**/unit/**/*-test.ts{,x}'],
