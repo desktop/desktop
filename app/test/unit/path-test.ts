@@ -33,7 +33,7 @@ describe('path', () => {
     }
   })
 
-  describe('resolveWithin', async () => {
+  describe('resolveWithin', () => {
     const root = process.cwd()
 
     it('fails for paths outside of the root', async () => {
