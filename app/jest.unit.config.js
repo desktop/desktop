@@ -4,6 +4,7 @@ module.exports = {
     '^.+\\.tsx?$': 'ts-jest',
     '\\.m?jsx?$': 'jest-esm-transformer',
   },
+  resolver: `<rootDir>/test/resolver.js`,
   testMatch: ['**/unit/**/*-test.ts{,x}'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   setupFiles: ['<rootDir>/test/globals.ts', '<rootDir>/test/unit-test-env.ts'],
@@ -11,4 +12,5 @@ module.exports = {
   reporters: ['default', '<rootDir>../script/jest-actions-reporter.js'],
   // For now, @github Node modules required to be transformed by jest-esm-transformer
   transformIgnorePatterns: ['node_modules/(?!(@github))'],
+  testEnvironment: 'jsdom',
 }
