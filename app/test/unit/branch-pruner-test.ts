@@ -16,6 +16,7 @@ import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
 import { offsetFromNow } from '../../src/lib/offset-from'
 import * as FSE from 'fs-extra'
 import * as path from 'path'
+import { fakePost } from '../fake-stats-post'
 
 describe('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
@@ -24,7 +25,6 @@ describe('BranchPruner', () => {
   let gitStoreCache: GitStoreCache
   let repositoriesStore: RepositoriesStore
   let repositoriesStateCache: RepositoryStateCache
-  let onPruneCompleted: jest.Mock<(repository: Repository) => Promise<void>>
 
   beforeEach(async () => {
     const statsStore = new StatsStore(
@@ -43,9 +43,6 @@ describe('BranchPruner', () => {
     await repositoriesDb.reset()
     repositoriesStore = new RepositoriesStore(repositoriesDb)
     repositoriesStateCache = new RepositoryStateCache(statsStore)
-    onPruneCompleted = jest.fn(() => (_: Repository) => {
-      return Promise.resolve()
-    })
   })
 
   it('does nothing on non GitHub repositories', async () => {
@@ -64,7 +61,7 @@ describe('BranchPruner', () => {
       gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      () => Promise.resolve()
     )
 
     const branchesBeforePruning = await getBranchesFromGit(repo)
@@ -91,7 +88,7 @@ describe('BranchPruner', () => {
       gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      () => Promise.resolve()
     )
 
     await branchPruner.start()
@@ -117,7 +114,7 @@ describe('BranchPruner', () => {
       gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      () => Promise.resolve()
     )
 
     const branchesBeforePruning = await getBranchesFromGit(repo)
@@ -145,7 +142,7 @@ describe('BranchPruner', () => {
       gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      () => Promise.resolve()
     )
 
     const branchesBeforePruning = await getBranchesFromGit(repo)
@@ -172,7 +169,7 @@ describe('BranchPruner', () => {
       gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      () => Promise.resolve()
     )
 
     await branchPruner.start()
@@ -213,7 +210,7 @@ describe('BranchPruner', () => {
       gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      () => Promise.resolve()
     )
 
     await branchPruner.start()
