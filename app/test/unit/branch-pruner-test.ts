@@ -29,7 +29,8 @@ describe('BranchPruner', () => {
   beforeEach(async () => {
     const statsStore = new StatsStore(
       new StatsDatabase('test-StatsDatabase'),
-      new UiActivityMonitor()
+      new UiActivityMonitor(),
+      fakePost
     )
     gitStoreCache = new GitStoreCache(
       shell,

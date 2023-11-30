@@ -12,6 +12,7 @@ import { HistoryTabMode, IDisplayHistory } from '../../src/lib/app-state'
 import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 import { StatsDatabase, StatsStore } from '../../src/lib/stats'
 import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
+import { fakePost } from '../fake-stats-post'
 
 function createSamplePullRequest(gitHubRepository: GitHubRepository) {
   return new PullRequest(
@@ -43,7 +44,8 @@ describe('RepositoryStateCache', () => {
 
     statsStore = new StatsStore(
       new StatsDatabase('test-StatsDatabase'),
-      new UiActivityMonitor()
+      new UiActivityMonitor(),
+      fakePost
     )
   })
 

@@ -410,19 +410,25 @@ export interface IStatsStore {
   ) => void
 }
 
+const defaultPostImplementation = (body: Record<string, any>) =>
+  fetch(StatsEndpoint, {
+    method: 'POST',
+    headers: new Headers({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(body),
+  })
+
 /** The store for the app's stats. */
 export class StatsStore implements IStatsStore {
-  private readonly db: StatsDatabase
-  private readonly uiActivityMonitor: IUiActivityMonitor
   private uiActivityMonitorSubscription: Disposable | null = null
 
   /** Has the user opted out of stats reporting? */
   private optOut: boolean
 
-  public constructor(db: StatsDatabase, uiActivityMonitor: IUiActivityMonitor) {
-    this.db = db
-    this.uiActivityMonitor = uiActivityMonitor
-
+  public constructor(
+    private readonly db: StatsDatabase,
+    private readonly uiActivityMonitor: IUiActivityMonitor,
+    private readonly post = defaultPostImplementation
+  ) {
     const storedValue = getHasOptedOutOfStats()
 
     this.optOut = storedValue || false
@@ -1097,14 +1103,6 @@ export class StatsStore implements IStatsStore {
     this.updateDailyMeasures(
       m => ({ [k]: m[k] + n } as Pick<IDailyMeasures, keyof NumericMeasures>)
     )
-
-  /** Post some data to our stats endpoint. */
-  private post = (body: object) =>
-    fetch(StatsEndpoint, {
-      method: 'POST',
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify(body),
-    })
 
   /**
    * Send opt-in ping with details of previous stored value (if known)
