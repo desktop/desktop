@@ -51,3 +51,7 @@ g.ResizeObserver = class ResizeObserver {
 
   public unobserve() {}
 }
+
+// structuredClone doesn't exist in JSDOM, see:
+// https://github.com/jsdom/jsdom/issues/3363
+global.structuredClone ??= (x: any) => JSON.parse(JSON.stringify(x))
