@@ -7,10 +7,10 @@
   border-bottom: var(--base-border);
 
   .beneath-summary {
-    max-height: 50vh;
     overflow-y: auto;
     padding: var(--spacing);
     padding-top: 0;
+    padding-bottom: var(--spacing-half);
   }
 
   .ecs-title {
@@ -50,31 +50,13 @@
   .ecs-description {
     display: flex;
     position: relative;
-    min-height: 0;
-
-    &.overflowed {
-      // When the description area can be, but isn't yet, expanded
-      // we'll add a small shadow towards the bottom to hint that
-      // there's more content available.
-
-      .ecs-description-text:before {
-        content: '';
-        background: var(--box-overflow-shadow-background);
-        position: absolute;
-        height: 30px;
-        bottom: 0px;
-        width: 100%;
-        pointer-events: none;
-      }
-    }
+    min-height: 10px;
+    padding-bottom: var(--spacing-half);
 
     .ecs-description-scroll-view {
       overflow: hidden;
+      overflow-y: auto;
       flex: 1;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      // Maximum amount of commit description lines to show before collapsing
-      -webkit-line-clamp: 2;
     }
 
     .ecs-description-text {
@@ -88,7 +70,6 @@
 
   .ecs-meta {
     display: flex;
-    margin-top: var(--spacing-half);
     flex-wrap: wrap;
 
     .ecs-meta-item {
@@ -162,27 +143,29 @@
     }
   }
 
-  &.expanded {
-    display: block;
+  .beneath-summary {
+    display: flex;
+    flex-direction: column;
+  }
 
+  .ecs-description-text {
+    background: var(--box-alt-background-color);
+    padding: var(--spacing-half);
+  }
+
+  &:not(.expanded) {
+    .ecs-description-scroll-view {
+      max-height: 80px;
+      min-height: 30px;
+    }
+  }
+
+  &.expanded {
     .beneath-summary {
       background: var(--box-overflow-shadow-background-two);
       background-repeat: no-repeat;
-      background-size: 100% 60px, 100% 60px, 100% 30px, 100% 30px;
+      background-size: 100% 20px, 100% 20px, 100% 10px, 100% 10px;
       background-attachment: local, local, scroll, scroll;
-    }
-
-    .ecs-description {
-      .ecs-description-text {
-        background: rgba(#959da5, 0.1);
-        padding: var(--spacing-half);
-      }
-
-      .ecs-description-scroll-view {
-        overflow: hidden;
-        display: block;
-        -webkit-line-clamp: none;
-      }
     }
 
     .ecs-meta {
@@ -255,6 +238,26 @@
       user-select: unset;
       pointer-events: unset;
       cursor: text;
+    }
+  }
+}
+
+// This make it so there is not a double scroll bar when zoomed in on a very
+// small screen.
+@media (max-width: 650px) {
+  #expandable-commit-summary {
+    &.expanded {
+      .beneath-summary {
+        display: block;
+      }
+
+      .ecs-description {
+        height: auto;
+
+        .ecs-description-text {
+          background: rgba(#959da5, 0.1);
+        }
+      }
     }
   }
 }
