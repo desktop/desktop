@@ -54,6 +54,15 @@
         }
       }
     }
+
+    .call-to-action {
+      display: block;
+
+      .button-component {
+        margin-top: var(--spacing);
+        margin-left: 0;
+      }
+    }
   }
 
   .no-options-found {
