@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.3.6-beta4": [
+      "[Fixed] Previewing a pull request with a deleted image file no longer errors with \"The path does not exist on disk\".  - #17659",
+      "[Improved] Commit summary descriptions are scrollable when the content is long - #17708"
+    ],
     "3.3.6-beta3": [
       "[Fixed] A copied full line from a diff now includes a trailing newline  - #17652",
       "[Fixed] Squash dialog is not shown again after finishing another squashing operation where uncommitted changes were present and had to be stashed - #17627",
