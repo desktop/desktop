@@ -420,7 +420,6 @@ export class RepositoryView extends React.Component<
     return (
       <SelectedCommits
         repository={this.props.repository}
-        isLocalRepository={this.props.state.remote === null}
         dispatcher={this.props.dispatcher}
         selectedCommits={selectedCommits}
         shasInDiff={shasInDiff}

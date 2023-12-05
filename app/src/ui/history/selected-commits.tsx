@@ -41,7 +41,6 @@ import { DiffHeader } from '../diff/diff-header'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository
-  readonly isLocalRepository: boolean
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly selectedCommits: ReadonlyArray<Commit>
