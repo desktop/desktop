@@ -3339,7 +3339,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <Welcome
         dispatcher={this.props.dispatcher}
-        optOut={this.state.optOutOfUsageTracking}
         accounts={this.state.accounts}
         signInState={this.state.signInState}
       />
