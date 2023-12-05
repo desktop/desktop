@@ -228,10 +228,7 @@ export class SideBySideDiff extends React.Component<
   private textSelectionStartRow: number | undefined = undefined
   private textSelectionEndRow: number | undefined = undefined
 
-  private readonly hunkExpansionRefs = new Map<
-    { hunkIndex: number; expansionType: DiffHunkExpansionType },
-    HTMLButtonElement
-  >()
+  private readonly hunkExpansionRefs = new Map<string, HTMLButtonElement>()
 
   public constructor(props: ISideBySideDiffProps) {
     super(props)
@@ -454,20 +451,23 @@ export class SideBySideDiff extends React.Component<
 
     const expansionHunkKeys = Array.from(this.hunkExpansionRefs.keys())
     const { hunkIndex, expansionType } = this.state.lastExpandedHunk
+    const lastExpandedKey = `${hunkIndex}-${expansionType}`
 
-    // If there is a new hunk expansion button of same type in same place, focus it
-    const sameTypeKey = expansionHunkKeys.find(
-      k => k.hunkIndex === hunkIndex && k.expansionType === expansionType
-    )
-    if (sameTypeKey) {
-      const lastExpandedHunkButton = this.hunkExpansionRefs.get(sameTypeKey)
-      lastExpandedHunkButton?.focus()
+    // If there is a new hunk expansion button of same type in same place as the
+    // last, focus it
+    const lastExpandedHunkButton = this.hunkExpansionRefs.get(lastExpandedKey)
+    if (lastExpandedHunkButton) {
+      lastExpandedHunkButton.focus()
       return
+    }
+
+    function getHunkKeyIndex(key: string) {
+      return parseInt(key.split('-').at(0) || '', 10)
     }
 
     // No?, Then try to focus the next closest hunk in tab order
     const closestInTabOrder = expansionHunkKeys.find(
-      ({ hunkIndex: search }) => search > hunkIndex
+      key => getHunkKeyIndex(key) >= hunkIndex
     )
 
     if (closestInTabOrder) {
@@ -479,7 +479,7 @@ export class SideBySideDiff extends React.Component<
     // No? Then try to focus the next closest hunk in reverse tab order
     const closestInReverseTabOrder = expansionHunkKeys
       .reverse()
-      .find(({ hunkIndex: search }) => search < hunkIndex)
+      .find(key => getHunkKeyIndex(key) <= hunkIndex)
 
     if (closestInReverseTabOrder) {
       const closetHunkButton = this.hunkExpansionRefs.get(
@@ -678,14 +678,7 @@ export class SideBySideDiff extends React.Component<
     expansionType: DiffHunkExpansionType,
     button: HTMLButtonElement | null
   ) => {
-    const keys = Array.from(this.hunkExpansionRefs.keys())
-    // Using an object as key has the fallacy of memory location comparison, so
-    // need to find the stored key as opposed to just building one.. another
-    // option would be to use a string hunkIndex-expansionType as the key, but it makes
-    // the comparison more complex in the other places.
-    const key = keys.find(
-      k => k.hunkIndex === hunkIndex && k.expansionType === expansionType
-    ) ?? { hunkIndex, expansionType }
+    const key = `${hunkIndex}-${expansionType}`
     if (button === null) {
       this.hunkExpansionRefs.delete(key)
     } else {
