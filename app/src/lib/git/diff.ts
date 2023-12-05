@@ -543,11 +543,9 @@ export async function convertDiff(
     }
   }
 
-  if (diff.contents.includes(LFSVersionString)) {
-    // we must check for image file because someone can hold text files in LFS
-    if (imageFileExtensions.has(extension)) {
+   // we must check for image file because someone can hold text files in LFS
+  if (imageFileExtensions.has(extension) && diff.contents.includes(LFSVersionString)) {
       return getLFSImageDiff(repository, file, diff.hunks[0])
-    }
   }
 
   return {
