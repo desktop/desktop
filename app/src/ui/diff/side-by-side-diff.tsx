@@ -430,10 +430,13 @@ export class SideBySideDiff extends React.Component<
    * it so if a user expands down and can expand down further, they will
    * automatically be focused on the next expand down.
    *
-   * Other context: When a user clicks on a diff expansion button, the
+   * Other context:
+   * - When a user clicks on a diff expansion button, the
    * lastExpandedHunk state is updated. In the componentDidUpdate, we detect
    * that change in order to call this after the new expansion buttons have
    * rendered. The rendered expansion buttons are stored in a map.
+   * - A hunk index may have multiple expansion buttons (up and down) so it does
+   *   not uniquely identify a button.
    */
   private focusAfterLastExpandedHunkChange() {
     if (this.state.lastExpandedHunk === null) {
