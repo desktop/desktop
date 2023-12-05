@@ -103,7 +103,7 @@ const imageFileExtensions = new Set([
 /**
  *  Defining the LFS version string
  */
-const LFSVersionString: string = "version https://git-lfs.github.com/spec/v1"
+const LFSVersionString: string = 'version https://git-lfs.github.com/spec/v1'
 
 /**
  * Render the difference between a file in the given commit and its parent
@@ -549,7 +549,7 @@ export async function convertDiff(
       return getLFSImageDiff(repository, file, diff.hunks[0])
     }
   }
- 
+
   return {
     kind: DiffType.Text,
     text: diff.contents,
