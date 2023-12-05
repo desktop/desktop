@@ -54,6 +54,15 @@ export interface ITooltipProps<T> {
   readonly interactive?: boolean
 
   /**
+   * Whether or not the tooltip should be dismissable via the escape key. This
+   * is generally true, but if the tooltip is communicating something important
+   * to the user, such as an input error, it should not be dismissable.
+   *
+   * Defaults to true
+   */
+  readonly dismissable?: boolean
+
+  /**
    * The amount of time to wait (in milliseconds) while a user hovers over the
    * target before displaying the tooltip. There's typically no reason to
    * increase this but it may be used to show the tooltip without any delay (by
