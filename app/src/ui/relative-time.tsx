@@ -11,14 +11,6 @@ interface IRelativeTimeProps {
   readonly date: Date
 
   /**
-   * For relative durations, use abbreviated units
-   * ('m' instead of 'minutes', 'd' instead of 'days')
-   *
-   * Defaults to `false`
-   */
-  readonly abbreviate?: boolean
-
-  /**
    * By default the RelativeTime component will start displaying a compact
    * absolute date if the date is more than one week ago. Setting `onlyRelative`
    * to true overrides this behavior and forces relative times for all dates.
