@@ -452,7 +452,7 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const expansionHunkKeys = Array.from(this.hunkExpansionRefs.keys())
+    const expansionHunkKeys = Array.from(this.hunkExpansionRefs.keys()).sort()
     const { hunkIndex, expansionType } = this.state.lastExpandedHunk
     const lastExpandedKey = `${hunkIndex}-${expansionType}`
 
