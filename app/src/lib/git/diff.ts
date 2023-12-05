@@ -492,15 +492,13 @@ async function getLFSImageDiff(
 
   for (let i = 0; i < hunk.lines.length; i++) {
     const element = hunk.lines[i]
-    // strip first character for this Add/Delete line type
+    // strip first character ('+' or '-') for this Add/Delete line types
     if (element.type === DiffLineType.Delete) {
-      // delete type line start with '-' and we need to skip this character
-      prev += element.text.substring('-'.length) + '\n'
+      prev += element.text.substring(1) + '\n'
     }
 
     if (element.type === DiffLineType.Add) {
-      // add type line start with '+' and we need to skip this character
-      curr += element.text.substring('+'.length) + '\n'
+      curr += element.text.substring(1) + '\n'
     }
   }
 
