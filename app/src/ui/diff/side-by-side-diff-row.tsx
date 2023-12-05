@@ -456,7 +456,6 @@ export class SideBySideDiffRow extends React.Component<
   private getOnHunkExpansionRef =
     (hunkIndex: number, expansionType: DiffHunkExpansionType) =>
     (button: HTMLButtonElement | null) => {
-      console.log('getOnHunkExpansionRef', hunkIndex, expansionType, button)
       this.props.onHunkExpansionRef(hunkIndex, expansionType, button)
     }
 
