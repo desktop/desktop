@@ -75,10 +75,15 @@ export async function getLFSBlobContents(
   const opts = {
     successExitCodes,
     processCallback: setBinaryEncoding,
-    stdin: Buffer.from(LFSMetadata, "binary")
+    stdin: Buffer.from(LFSMetadata, 'binary'),
   }
 
-  const blobContents = await git(args, repository.path, 'getLFSBlobContents', opts)
+  const blobContents = await git(
+    args,
+    repository.path,
+    'getLFSBlobContents',
+    opts
+  )
 
   return Buffer.from(blobContents.stdout, 'binary')
 }
