@@ -103,6 +103,7 @@ interface IRepositoryViewProps {
 interface IRepositoryViewState {
   readonly changesListScrollTop: number
   readonly compareListScrollTop: number
+  readonly tutorialCompletionAnnounced: boolean
 }
 
 const enum Tab {
@@ -133,6 +134,7 @@ export class RepositoryView extends React.Component<
     this.state = {
       changesListScrollTop: 0,
       compareListScrollTop: 0,
+      tutorialCompletionAnnounced: false,
     }
   }
 
@@ -450,12 +452,18 @@ export class RepositoryView extends React.Component<
     this.props.dispatcher.incrementMetric('diffOptionsViewedCount')
   }
 
+  private onTutorialCompletionAnnounced = () => {
+    this.setState({ tutorialCompletionAnnounced: true })
+  }
+
   private renderTutorialPane(): JSX.Element {
     if (this.props.currentTutorialStep === TutorialStep.AllDone) {
       return (
         <TutorialDone
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
+          tutorialCompletionAnnounced={this.state.tutorialCompletionAnnounced}
+          onTutorialCompletionAnnounced={this.onTutorialCompletionAnnounced}
         />
       )
     } else {

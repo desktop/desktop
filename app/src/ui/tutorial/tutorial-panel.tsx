@@ -64,7 +64,12 @@ export class TutorialPanel extends React.Component<
   }
 
   private openPullRequest = () => {
-    this.props.dispatcher.createPullRequest(this.props.repository)
+    this.props.dispatcher.markPullRequestTutorialStepAsComplete(
+      this.props.repository
+    )
+    setTimeout(() => {
+      this.props.dispatcher.createPullRequest(this.props.repository)
+    }, 500)
   }
 
   private skipEditorInstall = () => {

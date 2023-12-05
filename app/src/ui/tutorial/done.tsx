@@ -25,15 +25,47 @@ interface ITutorialDoneProps {
    * The currently selected repository
    */
   readonly repository: Repository
+
+  /**
+   * If this has not happened, the tuturial completion header will be focused so
+   * that it can be read by screen readers
+   */
+  readonly tutorialCompletionAnnounced: boolean
+
+  /**
+   * Called when the tutorial completion header has been focused and read by
+   * screen readers
+   */
+  readonly onTutorialCompletionAnnounced: () => void
 }
+
 export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
+  private header = React.createRef<HTMLHeadingElement>()
+
+  public componentDidMount() {
+    if (this.header.current && !this.props.tutorialCompletionAnnounced) {
+      // Add the header into the tab order so that it can be focused
+      this.header.current.tabIndex = 0
+      this.header.current?.focus()
+      this.props.onTutorialCompletionAnnounced()
+
+      // Remove the header from the tab order after a short delay so that it
+      // doesn't stay in tab order
+      setTimeout(() => {
+        if (this.header.current) {
+          this.header.current.tabIndex = -1
+        }
+      }, 500)
+    }
+  }
+
   public render() {
     return (
       <div id="tutorial-done">
         <div className="content">
           <div className="header">
             <div className="text">
-              <h1>You're done!</h1>
+              <h1 ref={this.header}>You're done!</h1>
               <p>
                 You’ve learned the basics on how to use GitHub Desktop. Here are
                 some suggestions for what to do next.

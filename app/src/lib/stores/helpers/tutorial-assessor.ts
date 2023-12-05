@@ -22,10 +22,8 @@ export class OnboardingTutorialAssessor {
     false
   )
   /** Has the user opted to skip the create pull request step? */
-  private prStepComplete: boolean = getBoolean(
-    pullRequestStepCompleteKey,
-    false
-  )
+  private prStepComplete: boolean =
+    1 === 1 ? false : getBoolean(pullRequestStepCompleteKey, false)
   /** Is the tutorial currently paused? */
   private tutorialPaused: boolean = getBoolean(tutorialPausedKey, false)
 
