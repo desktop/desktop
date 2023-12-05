@@ -474,61 +474,52 @@ async function getImageDiff(
   }
 }
 
+/**
+ * This function splits diff hunk into this format needed for `git lfs smudge`:
+ * `version https://git-lfs.github.com/spec/v1
+ *  oid sha256:[lfs file sha256]
+ *  size [lfs file size]`
+ * From diff hunk it can be get Added and/or Removed LFS text in format above
+ * and pass it to getLFSBlobImage to get image blob using `git lfs smudge`
+ */
 async function getLFSImageDiff(
   repository: Repository,
   file: FileChange,
   hunk: DiffHunk
 ): Promise<IImageDiff> {
-  let current: Image | undefined = undefined
-  let previous: Image | undefined = undefined
-
-  let previousStr: string = ""
-  let currentStr: string = ""
+  let prev: string = ''
+  let curr: string = ''
 
   for (let i = 0; i < hunk.lines.length; i++) {
-    const element = hunk.lines[i];
-    if (element.type == DiffLineType.Delete) {
-      let delIdx = element.text.indexOf('-');
-      if (delIdx > -1) {
-        delIdx += '-'.length;
-        previousStr += element.text.substring(delIdx) + '\n';
-      }
+    const element = hunk.lines[i]
+    // strip first character for this Add/Delete line type
+    if (element.type === DiffLineType.Delete) {
+      // delete type line start with '-' and we need to skip this character
+      prev += element.text.substring('-'.length) + '\n'
     }
 
-    if (element.type == DiffLineType.Add) {
-      let addIdx = element.text.indexOf('+');
-      if (addIdx > -1) {
-        addIdx += '+'.length;
-        currentStr += element.text.substring(addIdx) + '\n';
-      }
+    if (element.type === DiffLineType.Add) {
+      // add type line start with '+' and we need to skip this character
+      curr += element.text.substring('+'.length) + '\n'
     }
   }
 
-  if (previousStr.length > 0 && currentStr.length > 0) {
-    previousStr = LFSVersionString + '\n' + previousStr;
-    currentStr = LFSVersionString + '\n' + currentStr;
-  }
-
-  if (previousStr.length > 0) {
-    previous = await getLFSBlobImage(
-      repository,
-      getOldPathOrDefault(file),
-      previousStr
-    )
-  }
-
-  if (currentStr.length > 0) {
-    current = await getLFSBlobImage(
-      repository,
-      getOldPathOrDefault(file),
-      currentStr
-    )
+  if (prev.length > 0 && curr.length > 0) {
+    // add LFS version string in front of deleted and added LFS object
+    prev = LFSVersionString + '\n' + prev
+    curr = LFSVersionString + '\n' + curr
   }
 
   return {
     kind: DiffType.Image,
-    previous: previous,
-    current: current,
+    previous:
+      prev.length > 0
+        ? await getLFSBlobImage(repository, getOldPathOrDefault(file), prev)
+        : undefined,
+    current:
+      curr.length > 0
+        ? await getLFSBlobImage(repository, getOldPathOrDefault(file), curr)
+        : undefined,
   }
 }
 
@@ -552,16 +543,10 @@ export async function convertDiff(
     }
   }
 
-  if (diff.hunks.length > 0) {
-    const hunk = diff.hunks[0];
-    if (hunk.lines.length > 1) {
-      const line = hunk.lines[1];
-      // search for LFS string in first second line of diff
-      if (line.text.indexOf(LFSVersionString) > -1) {
-        if (imageFileExtensions.has(extension)) {
-          return getLFSImageDiff(repository, file, hunk);
-        }
-      }
+  if (diff.contents.includes(LFSVersionString)) {
+    // we must check for image file because someone can hold text files in LFS
+    if (imageFileExtensions.has(extension)) {
+      return getLFSImageDiff(repository, file, diff.hunks[0])
     }
   }
  
