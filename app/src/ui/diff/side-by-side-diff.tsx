@@ -417,6 +417,12 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
+  private focusListElement = () => {
+    const diffNode = findDOMNode(this.virtualListRef.current)
+    const diff = diffNode instanceof HTMLElement ? diffNode : null
+    diff?.focus()
+  }
+
   /**
    * This handles app focus after a user has clicked on an diff expansion
    * button. With the exception of the top expand up button, the expansion
@@ -443,12 +449,9 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const diffNode = findDOMNode(this.virtualListRef.current)
-    const diff = diffNode instanceof HTMLElement ? diffNode : null
-
     // No expansion buttons? Focus the diff
     if (this.hunkExpansionRefs.size === 0) {
-      diff?.focus()
+      this.focusListElement()
       return
     }
 
@@ -493,7 +496,7 @@ export class SideBySideDiff extends React.Component<
     }
 
     // We should never get here, but just in case focus something!
-    diff?.focus()
+    this.focusListElement()
   }
 
   private canExpandDiff() {
