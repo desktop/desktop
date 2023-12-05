@@ -21,6 +21,7 @@ import {
 } from '../../../models/multi-commit-operation'
 import { assertNever } from '../../../lib/fatal-error'
 import { getMergeOptions } from '../../lib/update-branch'
+import { getDefaultAriaLabelForBranch } from '../../branches/branch-renderer'
 
 interface IBaseChooseBranchDialogProps {
   readonly dispatcher: Dispatcher
@@ -216,6 +217,10 @@ export abstract class BaseChooseBranchDialog extends React.Component<
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
 
+  private getBranchAriaLabel = (item: IBranchListItem): string => {
+    return getDefaultAriaLabelForBranch(item)
+  }
+
   public render() {
     const { selectedBranch } = this.state
     const { currentBranch, operation } = this.props
@@ -241,6 +246,7 @@ export abstract class BaseChooseBranchDialog extends React.Component<
             onSelectionChanged={this.onSelectionChanged}
             canCreateNewBranch={false}
             renderBranch={this.renderBranch}
+            getBranchAriaLabel={this.getBranchAriaLabel}
             onItemClick={this.onItemClick}
           />
         </DialogContent>

@@ -571,12 +571,29 @@ export function buildDefaultMenu({
             click: emit('show-thank-you-popup'),
           },
           {
-            label: 'Pull Request Check Run Failed',
-            click: emit('pull-request-check-run-failed'),
-          },
-          {
             label: 'Show App Error',
             click: emit('show-app-error'),
+          },
+        ],
+      },
+      {
+        label: 'Show banner',
+        submenu: [
+          {
+            label: 'Reorder Successful',
+            click: emit('show-test-reorder-banner'),
+          },
+          {
+            label: 'Reorder Undone',
+            click: emit('show-test-undone-banner'),
+          },
+          {
+            label: 'Cherry Pick Conflicts',
+            click: emit('show-test-cherry-pick-conflicts-banner'),
+          },
+          {
+            label: 'Merge Successful',
+            click: emit('show-test-merge-successful-banner'),
           },
         ],
       },
@@ -588,10 +605,33 @@ export function buildDefaultMenu({
   }
 
   if (__RELEASE_CHANNEL__ === 'development' || __RELEASE_CHANNEL__ === 'test') {
-    helpItems.push({
-      label: 'Show notification',
-      click: emit('test-show-notification'),
-    })
+    helpItems.push(
+      {
+        label: 'Show notification',
+        click: emit('test-show-notification'),
+      },
+      {
+        label: 'Show banner',
+        submenu: [
+          {
+            label: 'Update banner',
+            click: emit('show-update-banner'),
+          },
+          {
+            label: `Showcase Update banner`,
+            click: emit('show-showcase-update-banner'),
+          },
+          {
+            label: `${__DARWIN__ ? 'Apple silicon' : 'Arm64'} banner`,
+            click: emit('show-arm64-banner'),
+          },
+          {
+            label: 'Thank you',
+            click: emit('show-thank-you-banner'),
+          },
+        ],
+      }
+    )
   }
 
   if (__DARWIN__) {

@@ -94,6 +94,7 @@ export class DiffOptions extends React.Component<
           <Tooltip
             target={this.innerButtonRef}
             direction={TooltipDirection.NORTH}
+            applyAriaDescribedBy={false}
           >
             {buttonLabel}
           </Tooltip>
@@ -108,6 +109,7 @@ export class DiffOptions extends React.Component<
   }
 
   private renderPopover() {
+    const header = `Diff ${__DARWIN__ ? 'Settings' : 'Options'}`
     return (
       <Popover
         ariaLabelledby="diff-options-popover-header"
@@ -116,9 +118,7 @@ export class DiffOptions extends React.Component<
         decoration={PopoverDecoration.Balloon}
         onClickOutside={this.closePopover}
       >
-        <h3 id="diff-options-popover-header">
-          Diff {__DARWIN__ ? 'Settings' : 'Options'}
-        </h3>
+        <h3 id="diff-options-popover-header">{header}</h3>
         {this.renderHideWhitespaceChanges()}
         {this.renderShowSideBySide()}
       </Popover>

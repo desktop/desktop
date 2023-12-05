@@ -307,10 +307,10 @@ export async function mergeConflictHandler(
 
   switch (gitContext.kind) {
     case 'pull':
-      dispatcher.mergeConflictDetectedFromPull()
+      dispatcher.incrementMetric('mergeConflictFromPullCount')
       break
     case 'merge':
-      dispatcher.mergeConflictDetectedFromExplicitMerge()
+      dispatcher.incrementMetric('mergeConflictFromExplicitMergeCount')
       break
   }
 
@@ -605,7 +605,9 @@ export async function localChangesOverwrittenHandler(
   }
 
   if (e.metadata.gitContext?.kind === 'checkout') {
-    dispatcher.recordErrorWhenSwitchingBranchesWithUncommmittedChanges()
+    dispatcher.incrementMetric(
+      'errorWhenSwitchingBranchesWithUncommmittedChanges'
+    )
   }
 
   const files = parseFilesToBeOverwritten(gitError.result.stderr)

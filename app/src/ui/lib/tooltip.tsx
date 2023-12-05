@@ -110,8 +110,19 @@ export interface ITooltipProps<T> {
    */
   readonly tooltipOffset?: DOMRect
 
-  /**Optional parameter for toggle tip behavior */
+  /** Optional parameter for toggle tip behavior.
+   *
+   * This means that on target click
+   * the tooltip will be shown but not on target focus.
+   */
   readonly isToggleTip?: boolean
+
+  /** Optional parameter for to open on target click
+   *
+   * If you are looking for toggle tip behavior (tooltip does not open on
+   * focus), use isToggleTip instead.
+   */
+  readonly openOnTargetClick?: boolean
 
   /** Open on target focus - typically only tooltips that target an element with
    * ":focus-visible open on focus. This means any time the target it focused it
@@ -124,6 +135,19 @@ export interface ITooltipProps<T> {
    * list are focused.
    */
   readonly ancestorFocused?: boolean
+
+  /** Whether or not to apply the aria-desribedby to the target element.
+   *
+   * Sometimes the target element maybe something like a button that already has
+   * an aria label that is the same as the tooltip content, if so this should be
+   * false.
+   *
+   * Note: If the tooltip does provide more context than the targets accessible
+   * label (visual or aria), this should be true.
+   *
+   * Default: true
+   * */
+  readonly applyAriaDescribedBy?: boolean
 }
 
 interface ITooltipState {
@@ -294,7 +318,11 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   }
 
   private addToTargetAriaDescribedBy(target: TooltipTarget | null) {
-    if (!target || !this.state.id) {
+    if (
+      !target ||
+      !this.state.id ||
+      this.props.applyAriaDescribedBy === false
+    ) {
       return
     }
 
@@ -309,7 +337,11 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   }
 
   private removeFromTargetAriaDescribedBy(target: TooltipTarget | null) {
-    if (!target || !this.state.id) {
+    if (
+      !target ||
+      !this.state.id ||
+      this.props.applyAriaDescribedBy === false
+    ) {
       return
     }
 
@@ -414,7 +446,10 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
 
   private onTargetClick = (event: FocusEvent) => {
     // We only want to handle click events for toggle tips
-    if (!this.state.show && this.props.isToggleTip) {
+    if (
+      !this.state.show &&
+      (this.props.isToggleTip || this.props.openOnTargetClick)
+    ) {
       this.beginShowTooltip()
     }
   }

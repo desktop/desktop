@@ -4,7 +4,10 @@ import { Branch } from '../../models/branch'
 import { ClickSource } from '../lib/list'
 import { PopoverDropdown } from '../lib/popover-dropdown'
 import { BranchList } from './branch-list'
-import { renderDefaultBranch } from './branch-renderer'
+import {
+  getDefaultAriaLabelForBranch,
+  renderDefaultBranch,
+} from './branch-renderer'
 import { IBranchListItem } from './group-branches'
 
 interface IBranchSelectProps {
@@ -65,6 +68,10 @@ export class BranchSelect extends React.Component<
     return renderDefaultBranch(item, matches, this.props.currentBranch)
   }
 
+  private getBranchAriaLabel = (item: IBranchListItem): string => {
+    return getDefaultAriaLabelForBranch(item)
+  }
+
   private onItemClick = (branch: Branch, source: ClickSource) => {
     source.event.preventDefault()
     this.popoverRef.current?.closePopover()
@@ -104,6 +111,7 @@ export class BranchSelect extends React.Component<
           selectedBranch={selectedBranch}
           canCreateNewBranch={false}
           renderBranch={this.renderBranch}
+          getBranchAriaLabel={this.getBranchAriaLabel}
           onItemClick={this.onItemClick}
           noBranchesMessage={noBranchesMessage}
         />

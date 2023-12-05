@@ -9,12 +9,7 @@ import { IStatsStore } from '../../../../src/lib/stats'
 describe('updateConflictState', () => {
   let statsStore: IStatsStore
   beforeEach(() => {
-    statsStore = {
-      recordMergeAbortedAfterConflicts: jest.fn(),
-      recordMergeSuccessAfterConflicts: jest.fn(),
-      recordRebaseAbortedAfterConflicts: jest.fn(),
-      recordRebaseSuccessAfterConflicts: jest.fn(),
-    }
+    statsStore = { increment: jest.fn() }
   })
 
   const manualResolutions = new Map<string, ManualConflictResolution>([
@@ -120,7 +115,9 @@ describe('updateConflictState', () => {
 
       updateConflictState(prevState, status, statsStore)
 
-      expect(statsStore.recordMergeAbortedAfterConflicts).toHaveBeenCalled()
+      expect(statsStore.increment).toHaveBeenCalledWith(
+        'mergeAbortedAfterConflictsCount'
+      )
     })
 
     it('increments abort counter when conflict resolved and tip has not changed', () => {
@@ -140,7 +137,9 @@ describe('updateConflictState', () => {
 
       updateConflictState(prevState, status, statsStore)
 
-      expect(statsStore.recordMergeAbortedAfterConflicts).toHaveBeenCalled()
+      expect(statsStore.increment).toHaveBeenCalledWith(
+        'mergeAbortedAfterConflictsCount'
+      )
     })
 
     it('increments success counter when conflict resolved and tip has changed', () => {
@@ -160,7 +159,9 @@ describe('updateConflictState', () => {
 
       updateConflictState(prevState, status, statsStore)
 
-      expect(statsStore.recordMergeSuccessAfterConflicts).toHaveBeenCalled()
+      expect(statsStore.increment).toHaveBeenCalledWith(
+        'mergeSuccessAfterConflictsCount'
+      )
     })
   })
 
@@ -265,7 +266,9 @@ describe('updateConflictState', () => {
 
       updateConflictState(prevState, status, statsStore)
 
-      expect(statsStore.recordRebaseAbortedAfterConflicts).toHaveBeenCalled()
+      expect(statsStore.increment).toHaveBeenCalledWith(
+        'rebaseAbortedAfterConflictsCount'
+      )
     })
 
     it('increments abort counter when conflict resolved but tip has not changed', () => {
@@ -287,7 +290,9 @@ describe('updateConflictState', () => {
 
       updateConflictState(prevState, status, statsStore)
 
-      expect(statsStore.recordRebaseAbortedAfterConflicts).toHaveBeenCalled()
+      expect(statsStore.increment).toHaveBeenCalledWith(
+        'rebaseAbortedAfterConflictsCount'
+      )
     })
 
     it('does not increment aborted counter when conflict resolved and tip has changed', () => {
@@ -309,9 +314,9 @@ describe('updateConflictState', () => {
 
       updateConflictState(prevState, status, statsStore)
 
-      expect(
-        statsStore.recordRebaseAbortedAfterConflicts
-      ).not.toHaveBeenCalled()
+      expect(statsStore.increment).not.toHaveBeenCalledWith(
+        'rebaseAbortedAfterConflictsCount'
+      )
     })
   })
 })

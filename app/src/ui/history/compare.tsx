@@ -30,6 +30,7 @@ import { PopupType } from '../../models/popup'
 import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-authors'
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
+import { KeyboardInsertionData } from '../lib/list'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -65,6 +66,9 @@ interface ICompareSidebarState {
    * For all other cases, use the prop
    */
   readonly focusedBranch: Branch | null
+
+  /** Data to be reordered via keyboard */
+  readonly keyboardReorderData?: KeyboardInsertionData
 }
 
 /** If we're within this many rows from the bottom, load the next history batch. */
@@ -262,6 +266,8 @@ export class CompareSidebar extends React.Component<
         onDeleteTag={this.onDeleteTag}
         onCherryPick={this.onCherryPick}
         onDropCommitInsertion={this.onDropCommitInsertion}
+        onKeyboardReorder={this.onKeyboardReorder}
+        onCancelKeyboardReorder={this.onCancelKeyboardReorder}
         onSquash={this.onSquash}
         emptyListMessage={emptyListMessage}
         onCompareListScrolled={this.props.onCompareListScrolled}
@@ -269,12 +275,18 @@ export class CompareSidebar extends React.Component<
         tagsToPush={this.props.tagsToPush ?? []}
         onRenderCommitDragElement={this.onRenderCommitDragElement}
         onRemoveCommitDragElement={this.onRemoveCommitDragElement}
+        disableReordering={formState.kind === HistoryTabMode.Compare}
         disableSquashing={formState.kind === HistoryTabMode.Compare}
         isMultiCommitOperationInProgress={
           this.props.isMultiCommitOperationInProgress
         }
+        keyboardReorderData={this.state.keyboardReorderData}
       />
     )
+  }
+
+  private onCancelKeyboardReorder = () => {
+    this.setState({ keyboardReorderData: undefined })
   }
 
   private onDropCommitInsertion = async (
@@ -282,6 +294,8 @@ export class CompareSidebar extends React.Component<
     commitsToInsert: ReadonlyArray<Commit>,
     lastRetainedCommitRef: string | null
   ) => {
+    this.setState({ keyboardReorderData: undefined })
+
     if (
       await doMergeCommitsExistAfterCommit(
         this.props.repository,
@@ -351,6 +365,7 @@ export class CompareSidebar extends React.Component<
         onItemClick={this.onBranchItemClicked}
         onFilterTextChanged={this.onBranchFilterTextChanged}
         renderBranch={this.renderCompareBranchListItem}
+        getBranchAriaLabel={this.getBranchAriaLabel}
         onFilterListResultsChanged={this.filterListResultsChanged}
       />
     )
@@ -419,6 +434,10 @@ export class CompareSidebar extends React.Component<
         aheadBehindStore={this.props.aheadBehindStore}
       />
     )
+  }
+
+  private getBranchAriaLabel = (item: IBranchListItem): string => {
+    return item.branch.name
   }
 
   private onBranchFilterKeyDown = (
@@ -624,6 +643,18 @@ export class CompareSidebar extends React.Component<
     this.props.onCherryPick(this.props.repository, commits)
   }
 
+  private onKeyboardReorder = (toReorder: ReadonlyArray<Commit>) => {
+    const { commitSHAs } = this.props.compareState
+
+    this.setState({
+      keyboardReorderData: {
+        type: DragType.Commit,
+        commits: toReorder,
+        itemIndices: toReorder.map(c => commitSHAs.indexOf(c.sha)),
+      },
+    })
+  }
+
   private onSquash = async (
     toSquash: ReadonlyArray<Commit>,
     squashOnto: Commit,
@@ -672,6 +703,8 @@ export class CompareSidebar extends React.Component<
       dialogButtonText: `Squash ${allCommitsInSquash.length} Commits`,
       prepopulateCommitSummary: true,
       onSubmitCommitMessage: async (context: ICommitContext) => {
+        this.props.dispatcher.closePopup(PopupType.CommitMessage)
+
         this.props.dispatcher.squash(
           this.props.repository,
           toSquashSansSquashOnto,

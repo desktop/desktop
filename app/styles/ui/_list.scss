@@ -16,6 +16,18 @@
   .ReactVirtualized__Grid {
     background: var(--background-color);
   }
+
+  .keyboard-insertion-element {
+    display: block;
+    position: fixed;
+    z-index: 1000;
+  }
+
+  .overlay {
+    position: fixed;
+    z-index: var(--drag-overlay-z-index);
+    background: var(--overlay-background-color);
+  }
 }
 
 @include win32-context {
@@ -64,7 +76,7 @@
 
 .list-focus-container {
   // The selected items must act as the focused element when inside
-  &.focus-within .list-item.selected {
+  &.focus-within .list-item.selected:not(.in-keyboard-insertion-mode) {
     --text-color: var(--box-selected-active-text-color);
     --text-secondary-color: var(--box-selected-active-text-color);
 
@@ -74,5 +86,35 @@
 }
 
 .list-item {
-  @include list-item;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  width: 100%;
+  height: 100%;
+
+  &.selected {
+    --text-color: var(--box-selected-text-color);
+    --text-secondary-color: var(--box-selected-text-color);
+
+    color: var(--text-color);
+    background-color: var(--box-selected-background-color);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:not(.not-selectable):hover {
+    background: var(--list-item-hover-background-color);
+  }
+
+  .list-item-content-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    width: 100%;
+    height: 100%;
+  }
 }

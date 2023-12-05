@@ -46,7 +46,7 @@ export function enableWSLDetection(): boolean {
  * Should we use the new diff viewer for unified diffs?
  */
 export function enableExperimentalDiffViewer(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /**
@@ -99,3 +99,5 @@ export function enableSectionList(): boolean {
 }
 
 export const enableRepoRulesBeta = () => true
+
+export const enableCommitDetailsHeaderExpansion = enableBetaFeatures

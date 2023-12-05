@@ -1,5 +1,78 @@
 {
   "releases": {
+    "3.3.6-beta4": [
+      "[Fixed] Previewing a pull request with a deleted image file no longer errors with \"The path does not exist on disk\".  - #17659",
+      "[Improved] Commit summary descriptions are scrollable when the content is long - #17708"
+    ],
+    "3.3.6-beta3": [
+      "[Fixed] A copied full line from a diff now includes a trailing newline  - #17652",
+      "[Fixed] Squash dialog is not shown again after finishing another squashing operation where uncommitted changes were present and had to be stashed - #17627",
+      "[Improved] The conflicts resolution dialog now has a success banner that is screen reader announced that summarize actions taken - #17687",
+      "[Improved] Added the ability to open your global .gitconfig file in your selected external editor - #17544. Thanks @DylanDevelops!",
+      "[Improved] Fixed `Github` -> `GitHub` typo in repository settings - #17697. Thanks @WilliamDavidHarrison!",
+      "[Improved] Reordering commits is now keyboard accessible - #17671",
+      "[Improved] Prevent possible duplicate announcement of button labeling to screen reader users - #17706",
+      "[Improved] Prevent multiple announcing of success banners with Windows NVDA screen reader  - #17705"
+    ],
+    "3.3.6-beta2": [
+      "[Fixed] Empty lines are included when copying text from diffs - #17652"
+    ],
+    "3.3.6-beta1": [
+      "[Fixed] Creating pull requests from a renamed branch uses the branch name in the remote - #17628",
+      "[Fixed] On macOS Sonoma, the VoiceOver regression preventing our dialog headers announcements has been fixed. - #17631",
+      "[Improved] The pull request branch selection popover header is announced by screen readers. - #17631",
+      "[Improved] Improve keyboard and screen reader support for banners - #17542",
+      "[Improved] The commit summary description overflow is limited to two lines when collapsed. - #17618",
+      "[Improved] The commit summary description has a grey background color when expanded. - #17618"
+    ],
+    "3.3.5": [
+      "[Added] Syntax highlighting now supports .cc files - #17503. Thanks @DylanDevelops!",
+      "[Fixed] Long file paths are correctly truncated in the conflicts dialog - #17595"
+    ],
+    "3.3.5-beta1": [
+      "[Added] Syntax highlighting now supports .cc files - #17503. Thanks @DylanDevelops!",
+      "[Fixed] Long file paths are correctly truncated in the conflicts dialog - #17595",
+      "[Fixed] Screen readers announce group name when navigating through grouped lists - #17567",
+      "[Fixed] The history commit summary header is now expandable making the tool-tipped meta data keyboard accessible - #17557."
+    ],
+    "3.3.4": [
+      "[Added] Added Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
+      "[Added] Add support for Pulsar code editor on Linux - #17397. Thanks @Daeraxa!",
+      "[Added] Add Eclipse IDE integrations for macOS - #16991. Thanks @yuzawa-san!",
+      "[Fixed] Fix JetBrains PhpStorm capitalization - #17505. Thanks @imkylecat!",
+      "[Fixed] Screen readers announce contents of error dialog when attempting to perform certain operations while local changes are present - #17519",
+      "[Fixed] Screen readers announce contents of app error dialogs - #17479",
+      "[Fixed] Screen readers announce contents of merge, rebase, interactive rebase abort confirmation dialogs - #17478",
+      "[Fixed] Pasting long texts in the commit summary textbox does not show a scrollbar in the left pane - #17472",
+      "[Fixed] Tab characters in diffs are rendered correctly - #8616",
+      "[Fixed] Close button in release notes dialog can be clicked - #17438",
+      "[Fixed] Scrolling works as expected in the \"Commit Reachability\" dialog - #17421",
+      "[Fixed] Tip of comment bubbles in Pull Request notifications is rendered correctly - #17411",
+      "[Improved] Added a setting to allow toggling the availability of the commit message length warning - #17370. Thanks @rystills!",
+      "[Improved] Added accessibility label to filter textbox in the History tab - #17488",
+      "[Improved] Improved clarity of the structure of dialogs by using `h2` elements for their titles - #17483",
+      "[Improved] Display co-authors button additional information when it's focused via keyboard navigation - #17464",
+      "[Improved] When focusing the rebase/merge/squash button, screen readers announce the outcome of the operation - #17448",
+      "[Improved] Clarified the outcome of toggling the setting under \"Background Updates\" in the \"Advanced\" settings - #17389",
+      "[Improved] Undo link when resolving conflicts is now a button - #17373"
+    ],
+    "3.3.4-beta3": [
+      "[Fixed] Screen readers announce contents of error dialog when attempting to perform certain operations while local changes are present - #17519",
+      "[Fixed] Fix JetBrains PhpStorm capitalization - #17505. Thanks @imkylecat!",
+      "[Improved] Upgrade to Electron v26.2.4 - #17524",
+      "[Improved] Upgrade node to 18.16.1 - #17453"
+    ],
+    "3.3.4-beta2": [
+      "[Added] Added Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
+      "[Fixed] Screen readers announce contents of app error dialogs - #17479",
+      "[Fixed] Screen readers announce contents of merge, rebase, interactive rebase abort confirmation dialogs - #17478",
+      "[Fixed] Pasting long texts in the commit summary textbox does not show a scrollbar in the left pane - #17472",
+      "[Fixed] Tab characters in diffs are rendered correctly - #8616",
+      "[Improved] Added accessibility label to filter textbox in the History tab - #17488",
+      "[Improved] Improved clarity of the structure of dialogs by using `h2` elements for their titles - #17483",
+      "[Improved] Display co-authors button additional information when it's focused via keyboard navigation - #17464",
+      "[Improved] When focusing the rebase/merge/squash button, screen readers announce the outcome of the operation - #17448"
+    ],
     "3.3.4-beta1": [
       "[Fixed] Close button in release notes dialog can be clicked - #17438",
       "[Fixed] Scrolling works as expected in the \"Commit Reachability\" dialog - #17421",

@@ -35,7 +35,7 @@ interface ILocalChangesOverwrittenDialogProps {
   readonly files: ReadonlyArray<string>
 }
 interface ILocalChangesOverwrittenDialogState {
-  readonly stashingAndRetrying: boolean
+  readonly stashing: boolean
 }
 
 export class LocalChangesOverwrittenDialog extends React.Component<
@@ -44,7 +44,7 @@ export class LocalChangesOverwrittenDialog extends React.Component<
 > {
   public constructor(props: ILocalChangesOverwrittenDialogProps) {
     super(props)
-    this.state = { stashingAndRetrying: false }
+    this.state = { stashing: false }
   }
 
   public render() {
@@ -57,19 +57,23 @@ export class LocalChangesOverwrittenDialog extends React.Component<
       <Dialog
         title="Error"
         id="local-changes-overwritten"
-        loading={this.state.stashingAndRetrying}
-        disabled={this.state.stashingAndRetrying}
+        loading={this.state.stashing}
+        disabled={this.state.stashing}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
         type="error"
+        role="alertdialog"
+        ariaDescribedBy="local-changes-error-description"
       >
         <DialogContent>
-          <p>
-            Unable to {this.getRetryActionName()} when changes are present on
-            your branch.{overwrittenText}
-          </p>
-          {this.renderFiles()}
-          {this.renderStashText()}
+          <div id="local-changes-error-description">
+            <p>
+              Unable to {this.getRetryActionName()} when changes are present on
+              your branch.{overwrittenText}
+            </p>
+            {this.renderFiles()}
+            {this.renderStashText()}
+          </div>
         </DialogContent>
         {this.renderFooter()}
       </Dialog>
@@ -96,7 +100,7 @@ export class LocalChangesOverwrittenDialog extends React.Component<
   }
 
   private renderStashText() {
-    if (this.props.hasExistingStash && !this.state.stashingAndRetrying) {
+    if (this.props.hasExistingStash && !this.state.stashing) {
       return null
     }
 
@@ -104,7 +108,7 @@ export class LocalChangesOverwrittenDialog extends React.Component<
   }
 
   private renderFooter() {
-    if (this.props.hasExistingStash && !this.state.stashingAndRetrying) {
+    if (this.props.hasExistingStash && !this.state.stashing) {
       return <DefaultDialogFooter />
     }
 
@@ -134,7 +138,7 @@ export class LocalChangesOverwrittenDialog extends React.Component<
       return
     }
 
-    this.setState({ stashingAndRetrying: true })
+    this.setState({ stashing: true })
 
     // We know that there's no stash for the current branch so we can safely
     // tell createStashForCurrentBranch not to show a confirmation dialog which
@@ -144,11 +148,11 @@ export class LocalChangesOverwrittenDialog extends React.Component<
       false
     )
 
+    this.props.onDismissed()
+
     if (createdStash) {
       await dispatcher.performRetry(retryAction)
     }
-
-    this.props.onDismissed()
   }
 
   /**

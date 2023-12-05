@@ -58,18 +58,16 @@ body {
   background-color: var(--background-color);
 }
 
-:not(input):not(textarea) {
+:not(input, textarea) {
   &,
   &::after,
   &::before {
-    -webkit-user-select: none;
     user-select: none;
     cursor: default;
   }
 }
 
 .selectable-text {
-  -webkit-user-select: text;
   user-select: text;
   cursor: auto;
 }
