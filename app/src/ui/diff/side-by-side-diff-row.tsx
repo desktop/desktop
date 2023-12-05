@@ -424,9 +424,7 @@ export class SideBySideDiffRow extends React.Component<
           className="hunk-expansion-handle"
           style={{ width: this.lineGutterWidth }}
         >
-          <button onContextMenu={this.props.onContextMenuExpandHunk}>
-            <span></span>
-          </button>
+          <div className="hunk-expansion-placeholder" />
         </div>
       )
     }
@@ -458,6 +456,7 @@ export class SideBySideDiffRow extends React.Component<
   private getOnHunkExpansionRef =
     (hunkIndex: number, expansionType: DiffHunkExpansionType) =>
     (button: HTMLButtonElement | null) => {
+      console.log('getOnHunkExpansionRef', hunkIndex, expansionType, button)
       this.props.onHunkExpansionRef(hunkIndex, expansionType, button)
     }
 

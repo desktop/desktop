@@ -205,7 +205,7 @@ interface ISideBySideDiffState {
 
   /** This tracks the last expanded hunk index so that we can refocus the expander after rerender */
   readonly lastExpandedHunk: {
-    index: number
+    hunkIndex: number
     expansionType: DiffHunkExpansionType
   } | null
 }
@@ -229,8 +229,8 @@ export class SideBySideDiff extends React.Component<
   private textSelectionEndRow: number | undefined = undefined
 
   private readonly hunkExpansionRefs = new Map<
-    number,
-    { expansionType: DiffHunkExpansionType; button: HTMLButtonElement }
+    { hunkIndex: number; expansionType: DiffHunkExpansionType },
+    HTMLButtonElement
   >()
 
   public constructor(props: ISideBySideDiffProps) {
@@ -428,15 +428,15 @@ export class SideBySideDiff extends React.Component<
    * all the way back to the diff to continut to interact with it.
    *
    * If an expansion button of the type clicked is available, we focus it.
-   * Otherwise, we focus the diff container. This makes it so if a user expands
-   * down and can expand down further, they will automatically be focused on the
-   * next expand down.
+   * Otherwise, we try to find the next closest expansion button and focus that.
+   * If no expansion buttons available, we focus the diff container. This makes
+   * it so if a user expands down and can expand down further, they will
+   * automatically be focused on the next expand down.
    *
    * Other context: When a user clicks on a diff expansion button, the
    * lastExpandedHunk state is updated. In the componentDidUpdate, we detect
    * that change in order to call this after the new expansion buttons have
    * rendered. The rendered expansion buttons are stored in a map.
-   *
    */
   private focusAfterLastExpandedHunkChange() {
     if (this.state.lastExpandedHunk === null) {
@@ -446,26 +446,50 @@ export class SideBySideDiff extends React.Component<
     const diffNode = findDOMNode(this.virtualListRef.current)
     const diff = diffNode instanceof HTMLElement ? diffNode : null
 
+    // No expansion buttons? Focus the diff
     if (this.hunkExpansionRefs.size === 0) {
       diff?.focus()
       return
     }
 
-    const { expansionType, index } = this.state.lastExpandedHunk
+    const expansionHunkKeys = Array.from(this.hunkExpansionRefs.keys())
+    const { hunkIndex, expansionType } = this.state.lastExpandedHunk
 
-    const hunk = this.hunkExpansionRefs.get(index)
-    const lastHunk = this.hunkExpansionRefs.get(this.hunkExpansionRefs.size - 1)
-
-    if (hunk?.expansionType === expansionType) {
-      hunk?.button.focus()
+    // If there is a new hunk expansion button of same type in same place, focus it
+    const sameTypeKey = expansionHunkKeys.find(
+      k => k.hunkIndex === hunkIndex && k.expansionType === expansionType
+    )
+    if (sameTypeKey) {
+      const lastExpandedHunkButton = this.hunkExpansionRefs.get(sameTypeKey)
+      lastExpandedHunkButton?.focus()
       return
     }
 
-    if (lastHunk?.expansionType === expansionType) {
-      lastHunk?.button.focus()
+    // No?, Then try to focus the next closest hunk in tab order
+    const closestInTabOrder = expansionHunkKeys.find(
+      ({ hunkIndex: search }) => search > hunkIndex
+    )
+
+    if (closestInTabOrder) {
+      const closetHunkButton = this.hunkExpansionRefs.get(closestInTabOrder)
+      closetHunkButton?.focus()
       return
     }
 
+    // No? Then try to focus the next closest hunk in reverse tab order
+    const closestInReverseTabOrder = expansionHunkKeys
+      .reverse()
+      .find(({ hunkIndex: search }) => search < hunkIndex)
+
+    if (closestInReverseTabOrder) {
+      const closetHunkButton = this.hunkExpansionRefs.get(
+        closestInReverseTabOrder
+      )
+      closetHunkButton?.focus()
+      return
+    }
+
+    // We should never get here, but just in case focus something!
     diff?.focus()
   }
 
@@ -654,10 +678,18 @@ export class SideBySideDiff extends React.Component<
     expansionType: DiffHunkExpansionType,
     button: HTMLButtonElement | null
   ) => {
+    const keys = Array.from(this.hunkExpansionRefs.keys())
+    // Using an object as key has the fallacy of memory location comparison, so
+    // need to find the stored key as opposed to just building one.. another
+    // option would be to use a string hunkIndex-expansionType as the key, but it makes
+    // the comparison more complex in the other places.
+    const key = keys.find(
+      k => k.hunkIndex === hunkIndex && k.expansionType === expansionType
+    ) ?? { hunkIndex, expansionType }
     if (button === null) {
-      this.hunkExpansionRefs.delete(hunkIndex)
+      this.hunkExpansionRefs.delete(key)
     } else {
-      this.hunkExpansionRefs.set(hunkIndex, { expansionType, button })
+      this.hunkExpansionRefs.set(key, button)
     }
   }
 
@@ -996,7 +1028,7 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    this.setState({ lastExpandedHunk: { index: hunkIndex, expansionType } })
+    this.setState({ lastExpandedHunk: { hunkIndex, expansionType } })
 
     const kind = expansionType === DiffHunkExpansionType.Down ? 'down' : 'up'
 
