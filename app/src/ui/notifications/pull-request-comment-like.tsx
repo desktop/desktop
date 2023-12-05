@@ -2,7 +2,6 @@ import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PullRequest } from '../../models/pull-request'
 import { Dispatcher } from '../dispatcher'
-import { Account } from '../../models/account'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { OcticonSymbolType } from '../octicons/octicons.generated'
@@ -18,7 +17,6 @@ import { IAPIIdentity } from '../../lib/api'
 interface IPullRequestCommentLikeProps {
   readonly id?: string
   readonly dispatcher: Dispatcher
-  readonly accounts: ReadonlyArray<Account>
   readonly repository: RepositoryWithGitHubRepository
   readonly pullRequest: PullRequest
   readonly eventDate: Date

@@ -2406,7 +2406,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             pullRequest={popup.pullRequest}
             review={popup.review}
             emoji={this.state.emoji}
-            accounts={this.state.accounts}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
           />
@@ -2532,7 +2531,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             pullRequest={popup.pullRequest}
             comment={popup.comment}
             emoji={this.state.emoji}
-            accounts={this.state.accounts}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
           />
