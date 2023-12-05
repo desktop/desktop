@@ -377,6 +377,13 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     }
   }
 
+  private onKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && this.state.show) {
+      event.preventDefault()
+      this.beginHideTooltip()
+    }
+  }
+
   private installTooltip(elem: TooltipTarget) {
     elem.addEventListener('mouseenter', this.onTargetMouseEnter)
     elem.addEventListener('mouseleave', this.onTargetMouseLeave)
@@ -389,6 +396,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     elem.addEventListener('tooltip-shown', this.onTooltipShown)
     elem.addEventListener('tooltip-hidden', this.onTooltipHidden)
     elem.addEventListener('click', this.onTargetClick)
+    elem.addEventListener('keydown', this.onKeyDown)
   }
 
   private removeTooltip(prevTarget: TooltipTarget | null) {
@@ -405,6 +413,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       prevTarget.removeEventListener('focusout', this.onTargetBlur)
       prevTarget.removeEventListener('blur', this.onTargetBlur)
       prevTarget.removeEventListener('click', this.onTargetClick)
+      prevTarget.removeEventListener('keydown', this.onKeyDown)
     }
   }
 
