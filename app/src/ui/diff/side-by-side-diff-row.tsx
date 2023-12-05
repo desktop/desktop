@@ -447,7 +447,7 @@ export class SideBySideDiffRow extends React.Component<
           tooltip={elementInfo.title}
           toolTipDirection={TooltipDirection.SOUTH}
           ariaLabel={elementInfo.title}
-          onButtonRef={this.onHunkExpansionRef(hunkIndex, expansionType)}
+          onButtonRef={this.getOnHunkExpansionRef(hunkIndex, expansionType)}
         >
           <Octicon symbol={elementInfo.icon} />
         </Button>
@@ -455,7 +455,7 @@ export class SideBySideDiffRow extends React.Component<
     )
   }
 
-  private onHunkExpansionRef =
+  private getOnHunkExpansionRef =
     (hunkIndex: number, expansionType: DiffHunkExpansionType) =>
     (button: HTMLButtonElement | null) => {
       this.props.onHunkExpansionRef(hunkIndex, expansionType, button)
