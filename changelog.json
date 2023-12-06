@@ -1,5 +1,12 @@
 {
   "releases": {
+    "3.3.7-beta1": [
+      "[Improved] Tooltips can be dismissed with the escape key - #17823",
+      "[Improved] Semantically grouping our settings radio and checkbox groups so their group headers will be announced to screen reader users. - #17787",
+      "[Improved] The \"Other\" email description is announced on input focus in the git config form - #17785",
+      "[Improved] Move the repository list on the \"Let's get started!\" screen to the left hand side so it can be the first logical tab placement.  - #17821",
+      "[Improved] Increased the specificity of the \"Sign In\" and \"Sign Out\" buttons in the Account settings - #17794"
+    ],
     "3.3.6": [
       "[Fixed] Previewing a pull request with a deleted image file no longer errors with \"The path does not exist on disk\".  - #17659",
       "[Fixed] Empty lines are included when copying text from diffs - #17652",
