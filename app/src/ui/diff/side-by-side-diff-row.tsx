@@ -142,11 +142,11 @@ interface ISideBySideDiffRowProps {
   /** Called when the user changes the hide whitespace in diffs setting. */
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 
-  /* This tracks the last expanded hunk index so that we can refocus the expander after rerender */
-  readonly lastExpandedHunk: {
-    index: number
-    expansionType: DiffHunkExpansionType
-  } | null
+  readonly onHunkExpansionRef: (
+    hunkIndex: number,
+    expansionType: DiffHunkExpansionType,
+    element: HTMLButtonElement | null
+  ) => void
 }
 
 interface ISideBySideDiffRowState {
@@ -424,9 +424,7 @@ export class SideBySideDiffRow extends React.Component<
           className="hunk-expansion-handle"
           style={{ width: this.lineGutterWidth }}
         >
-          <button onContextMenu={this.props.onContextMenuExpandHunk}>
-            <span></span>
-          </button>
+          <div className="hunk-expansion-placeholder" />
         </div>
       )
     }
@@ -435,25 +433,6 @@ export class SideBySideDiffRow extends React.Component<
       hunkIndex,
       expansionType
     )
-
-    /**
-     * For accessibility, when a button is focused, it should maintain focus.
-     * This sets the autofocus of the button if the last expanded button at the
-     * position was the same type. The +1 is to handle the last hunk index which
-     * is one off, and if there are two hunks with the same expansion types on
-     * after each other we just want the first one and autofocus will go to the
-     * first one automatically.
-     *
-     * Other notes: the expand up buttons already worked. This is
-     * for expand all and expand down buttons.
-     */
-    const { lastExpandedHunk } = this.props
-    const focusButton =
-      lastExpandedHunk !== null &&
-      expansionType === lastExpandedHunk.expansionType
-        ? hunkIndex === lastExpandedHunk.index ||
-          hunkIndex === lastExpandedHunk.index + 1
-        : false
 
     return (
       <div
@@ -465,14 +444,20 @@ export class SideBySideDiffRow extends React.Component<
           onContextMenu={this.props.onContextMenuExpandHunk}
           tooltip={elementInfo.title}
           toolTipDirection={TooltipDirection.SOUTH}
-          autoFocus={focusButton}
           ariaLabel={elementInfo.title}
+          onButtonRef={this.getOnHunkExpansionRef(hunkIndex, expansionType)}
         >
           <Octicon symbol={elementInfo.icon} />
         </Button>
       </div>
     )
   }
+
+  private getOnHunkExpansionRef =
+    (hunkIndex: number, expansionType: DiffHunkExpansionType) =>
+    (button: HTMLButtonElement | null) => {
+      this.props.onHunkExpansionRef(hunkIndex, expansionType, button)
+    }
 
   private renderHunkHeaderGutter(
     hunkIndex: number,
