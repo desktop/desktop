@@ -387,7 +387,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   }
 
   private onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape' && this.state.show) {
+    if (event.key === 'Escape' && this.state.show && this.props.dismissable) {
       event.preventDefault()
       this.beginHideTooltip()
     }
