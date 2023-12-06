@@ -50,14 +50,7 @@ export class TutorialDone extends React.Component<ITutorialDoneProps, {}> {
       this.header.current.tabIndex = 0
       this.header.current?.focus()
       this.props.onTutorialCompletionAnnounced()
-
-      // Remove the header from the tab order after a short delay so that it
-      // doesn't stay in tab order
-      setTimeout(() => {
-        if (this.header.current) {
-          this.header.current.tabIndex = -1
-        }
-      }, 500)
+      this.header.current.tabIndex = -1
     }
   }
 
