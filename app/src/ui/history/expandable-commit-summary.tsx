@@ -230,6 +230,7 @@ export class ExpandableCommitSummary extends React.Component<
         onClick={isExpanded ? this.onCollapse : this.onExpand}
         className="expander"
         tooltip={isExpanded ? 'Collapse' : 'Expand'}
+        applyTooltipAriaDescribedBy={false}
         ariaExpanded={isExpanded}
         ariaLabel={
           isExpanded ? 'Collapse commit details' : 'Expand commit details'
@@ -471,6 +472,7 @@ export class ExpandableCommitSummary extends React.Component<
         <RichText
           emoji={this.props.emoji}
           repository={this.props.repository}
+          className="selectable"
           text={summary}
         />
       )
@@ -507,7 +509,7 @@ export class ExpandableCommitSummary extends React.Component<
 
   private renderSummary = () => {
     const { hasEmptySummary } = this.state
-    const summaryClassNames = classNames('ecs-title', 'selectable', {
+    const summaryClassNames = classNames('ecs-title', {
       'empty-summary': hasEmptySummary,
     })
 
@@ -542,8 +544,10 @@ export class ExpandableCommitSummary extends React.Component<
     return (
       <div id="expandable-commit-summary" className={className}>
         {this.renderSummary()}
-        {this.renderDescription()}
-        {this.renderMetaItems()}
+        <div className="beneath-summary">
+          {this.renderDescription()}
+          {this.renderMetaItems()}
+        </div>
         {this.renderCommitsNotReachable()}
       </div>
     )

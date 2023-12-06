@@ -493,6 +493,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showFakeUndoneBanner()
       case 'show-test-cherry-pick-conflicts-banner':
         return this.showFakeCherryPickConflictBanner()
+      case 'show-test-merge-successful-banner':
+        return this.showFakeMergeSuccessfulBanner()
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
@@ -595,8 +597,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (__DEV__) {
       this.props.dispatcher.setBanner({
         type: BannerType.CherryPickConflictsFound,
-        targetBranchName: 'fake-branch-yo',
+        targetBranchName: 'fake-branch',
         onOpenConflictsDialog: () => {},
+      })
+    }
+  }
+
+  private async showFakeMergeSuccessfulBanner() {
+    if (__DEV__) {
+      this.props.dispatcher.setBanner({
+        type: BannerType.SuccessfulMerge,
+        ourBranch: 'fake-branch',
       })
     }
   }
@@ -1650,6 +1661,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
+            onOpenFileInExternalEditor={this.openFileInExternalEditor}
           />
         )
       case PopupType.RepositorySettings: {
@@ -3173,13 +3185,18 @@ export class App extends React.Component<IAppProps, IAppState> {
       banner = this.renderUpdateBanner()
     }
     return (
-      <TransitionGroup>
-        {banner && (
-          <CSSTransition classNames="banner" timeout={bannerTransitionTimeout}>
-            {banner}
-          </CSSTransition>
-        )}
-      </TransitionGroup>
+      <div role="alert" aria-atomic="false">
+        <TransitionGroup>
+          {banner && (
+            <CSSTransition
+              classNames="banner"
+              timeout={bannerTransitionTimeout}
+            >
+              {banner}
+            </CSSTransition>
+          )}
+        </TransitionGroup>
+      </div>
     )
   }
 
