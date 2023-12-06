@@ -1,6 +1,8 @@
 {
   "releases": {
     "3.3.7-beta1": [
+      "[Fixed] Diff no longer jumps when scrolling after pressing expansion buttons - #17776",
+      "[Improved] Focus moves to closes expansion button or diff container after expansion - #17499",
       "[Improved] Tooltips can be dismissed with the escape key - #17823",
       "[Improved] Semantically grouping our settings radio and checkbox groups so their group headers will be announced to screen reader users. - #17787",
       "[Improved] The \"Other\" email description is announced on input focus in the git config form - #17785",
