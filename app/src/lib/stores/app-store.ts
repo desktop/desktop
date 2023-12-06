@@ -752,6 +752,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordTutorialPrCreated()
         this.statsStore.recordTutorialCompleted()
         break
+      case TutorialStep.Announced:
+        // don't need to record anything for announcment
+        break
       default:
         assertNever(step, 'Unaccounted for step type')
     }
@@ -779,6 +782,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public async _markPullRequestTutorialStepAsComplete(repository: Repository) {
     this.tutorialAssessor.markPullRequestTutorialStepAsComplete()
+    await this.updateCurrentTutorialStep(repository)
+  }
+
+  public async _markTutorialCompletionAsAnnounced(repository: Repository) {
+    this.tutorialAssessor.markTutorialCompletionAsAnnounced()
     await this.updateCurrentTutorialStep(repository)
   }
 

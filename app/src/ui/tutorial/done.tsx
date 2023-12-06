@@ -28,7 +28,9 @@ interface ITutorialDoneProps {
 
   /**
    * If this has not happened, the tuturial completion header will be focused so
-   * that it can be read by screen readers
+   * that it can be read by screen readers. The purpose of tracking this is so
+   * the focus does not repeatedly get moved to this header if user is navigating
+   * between repositories or history and changes view after completing the tutorial.
    */
   readonly tutorialCompletionAnnounced: boolean
 
