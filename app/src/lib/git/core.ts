@@ -37,9 +37,6 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
 
   /** Should it track & report LFS progress? */
   readonly trackLFSProgress?: boolean
-
-  /** Pass stdin to executed command */
-  readonly stdin?: string | Buffer
 }
 
 /**
