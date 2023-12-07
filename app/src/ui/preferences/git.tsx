@@ -1,14 +1,10 @@
 import * as React from 'react'
 import { DialogContent } from '../dialog'
-import { SuggestedBranchNames } from '../../lib/helpers/default-branch'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
 import { Account } from '../../models/account'
 import { GitConfigUserForm } from '../lib/git-config-user-form'
-import { RadioGroup } from '../lib/radio-group'
-
-const otherOption = 'Other…'
 
 interface IGitProps {
   readonly name: string
@@ -37,45 +33,9 @@ interface IGitState {
   readonly defaultBranchIsOther: boolean
 }
 
-// This will be the prepopulated branch name on the "other" input
-// field when the user selects it.
-const OtherNameForDefaultBranch = ''
-
 export class Git extends React.Component<IGitProps, IGitState> {
-  private defaultBranchInputRef = React.createRef<RefNameTextBox>()
-
   public constructor(props: IGitProps) {
     super(props)
-
-    this.state = {
-      defaultBranchIsOther: this.isDefaultBranchOther(),
-    }
-  }
-
-  private isDefaultBranchOther = () => {
-    return (
-      !this.props.isLoadingGitConfig &&
-      !SuggestedBranchNames.includes(this.props.defaultBranch)
-    )
-  }
-
-  public componentDidUpdate(prevProps: IGitProps) {
-    if (this.props.defaultBranch === prevProps.defaultBranch) {
-      return
-    }
-
-    this.setState({
-      defaultBranchIsOther: this.isDefaultBranchOther(),
-    })
-
-    // Focus the text input that allows the user to enter a custom
-    // branch name when the user has selected "Other...".
-    if (
-      this.props.defaultBranch === OtherNameForDefaultBranch &&
-      this.defaultBranchInputRef.current !== null
-    ) {
-      this.defaultBranchInputRef.current.focus()
-    }
   }
 
   public render() {
@@ -120,47 +80,26 @@ export class Git extends React.Component<IGitProps, IGitState> {
     )
   }
 
-  private renderBranchNameOption = (branchName: string) => {
-    return branchName === otherOption ? (
-      <span id="other-branch-name-label">{branchName}</span>
-    ) : (
-      branchName
-    )
-  }
-
   private renderDefaultBranchSetting() {
-    const { defaultBranchIsOther } = this.state
-
-    const branchNameOptions = [...SuggestedBranchNames, otherOption]
-    const selectedKey = defaultBranchIsOther
-      ? otherOption
-      : SuggestedBranchNames.find(n => n === this.props.defaultBranch) ??
-        SuggestedBranchNames.at(0) ??
-        otherOption // Should never happen, but TypeScript doesn't know that.
-
     return (
       <div className="default-branch-component">
         <h2 id="default-branch-heading">
           Default branch name for new repositories
         </h2>
 
-        <RadioGroup<string>
-          ariaLabelledBy="default-branch-heading"
-          selectedKey={selectedKey}
-          radioButtonKeys={branchNameOptions}
-          onSelectionChanged={this.onDefaultBranchChanged}
-          renderRadioButtonLabelContents={this.renderBranchNameOption}
+        <RefNameTextBox
+          initialValue={this.props.defaultBranch}
+          renderWarningMessage={this.renderWarningMessage}
+          onValueChange={this.props.onDefaultBranchChanged}
+          ariaLabelledBy={'default-branch-heading'}
+          ariaDescribedBy="default-branch-description"
         />
 
-        {defaultBranchIsOther && (
-          <RefNameTextBox
-            initialValue={this.props.defaultBranch}
-            renderWarningMessage={this.renderWarningMessage}
-            onValueChange={this.props.onDefaultBranchChanged}
-            ref={this.defaultBranchInputRef}
-            ariaLabelledBy={'other-branch-name-label'}
-          />
-        )}
+        <p id="default-branch-description" className="git-settings-description">
+          GitHub's default branch name is <Ref>main</Ref>. You may want to
+          change it due to different workflows, or because your integrations
+          still require the historical default branch name of <Ref>master</Ref>.
+        </p>
 
         <p className="git-settings-description">
           These preferences will{' '}
@@ -175,26 +114,6 @@ export class Git extends React.Component<IGitProps, IGitState> {
           .
         </p>
       </div>
-    )
-  }
-
-  /**
-   * Handler to make sure that we show/hide the text box to enter a custom
-   * branch name when the user clicks on one of the radio buttons.
-   *
-   * We don't want to call this handler on changes to the text box since that
-   * will cause the text box to be hidden if the user types a branch name
-   * that starts with one of the suggested branch names (e.g `mainXYZ`).
-   *
-   * @param defaultBranch string the selected default branch
-   */
-  private onDefaultBranchChanged = (defaultBranch: string) => {
-    this.setState({
-      defaultBranchIsOther: !SuggestedBranchNames.includes(defaultBranch),
-    })
-
-    this.props.onDefaultBranchChanged(
-      defaultBranch === otherOption ? '' : defaultBranch
     )
   }
 
