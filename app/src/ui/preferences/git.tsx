@@ -24,20 +24,7 @@ interface IGitProps {
   readonly onOpenFileInExternalEditor: (path: string) => void
 }
 
-interface IGitState {
-  /**
-   * True if the default branch setting is not one of the suggestions.
-   * It's used to display the "Other" text box that allows the user to
-   * enter a custom branch name.
-   */
-  readonly defaultBranchIsOther: boolean
-}
-
-export class Git extends React.Component<IGitProps, IGitState> {
-  public constructor(props: IGitProps) {
-    super(props)
-  }
-
+export class Git extends React.Component<IGitProps> {
   public render() {
     return (
       <DialogContent>
