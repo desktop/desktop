@@ -48,25 +48,6 @@ export class Git extends React.Component<IGitProps> {
     )
   }
 
-  private renderWarningMessage = (
-    sanitizedBranchName: string,
-    proposedBranchName: string
-  ) => {
-    if (sanitizedBranchName === '') {
-      return (
-        <>
-          <Ref>{proposedBranchName}</Ref> is an invalid branch name.
-        </>
-      )
-    }
-
-    return (
-      <>
-        Will be saved as <Ref>{sanitizedBranchName}</Ref>.
-      </>
-    )
-  }
-
   private renderDefaultBranchSetting() {
     return (
       <div className="default-branch-component">
@@ -76,7 +57,6 @@ export class Git extends React.Component<IGitProps> {
 
         <RefNameTextBox
           initialValue={this.props.defaultBranch}
-          renderWarningMessage={this.renderWarningMessage}
           onValueChange={this.props.onDefaultBranchChanged}
           ariaLabelledBy={'default-branch-heading'}
           ariaDescribedBy="default-branch-description"
