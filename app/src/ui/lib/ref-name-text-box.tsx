@@ -171,7 +171,7 @@ export class RefNameTextBox extends React.Component<
     }
 
     return `Warning: Will be ${
-      this.props.warningMessageVerb ?? 'saved '
+      this.props.warningMessageVerb ?? 'created '
     } as ${sanitizedValue} (in kebab case).`
   }
 
@@ -189,7 +189,7 @@ export class RefNameTextBox extends React.Component<
 
     return (
       <>
-        Will be {this.props.warningMessageVerb ?? 'saved '} as{' '}
+        Will be {this.props.warningMessageVerb ?? 'created'} as{' '}
         <Ref>{sanitizedValue}</Ref>.
       </>
     )
