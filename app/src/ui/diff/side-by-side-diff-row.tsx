@@ -106,12 +106,9 @@ interface ISideBySideDiffRowProps {
   readonly onClickHunk: (hunkStartLine: number, select: boolean) => void
 
   /**
-   * Called when the user clicks on the line selection. Called with the start
-   * line of the hunk and a flag indicating whether to select or unselect
-   * the hunk.
-   * (only relevant when isDiffSelectable is true)
+   * Called when the user invokes on the line selection via the keyboard
    */
-  readonly onClickLineNumber: (
+  readonly onKeyboardClickLineNumber: (
     row: number,
     column: DiffColumn,
     select: boolean
@@ -593,7 +590,7 @@ export class SideBySideDiffRow extends React.Component<
           hover: this.props.isHunkHovered,
         })}
         style={{ width: this.lineGutterWidth }}
-        onClick={this.onClickLineNumber}
+        onClick={this.onKeyboardClickLineNumber}
         onMouseDown={this.onMouseDownLineNumber}
         onContextMenu={this.onContextMenuLineNumber}
       >
@@ -711,7 +708,7 @@ export class SideBySideDiffRow extends React.Component<
     }
   }
 
-  private onClickLineNumber = (evt: React.MouseEvent) => {
+  private onKeyboardClickLineNumber = (evt: React.MouseEvent) => {
     if (evt.screenX > 0 || evt.screenY > 0) {
       // this was a mouse click and handled by onMouseDownLineNumber
       return
@@ -726,7 +723,11 @@ export class SideBySideDiffRow extends React.Component<
         return
       }
 
-      this.props.onClickLineNumber(this.props.numRow, column, !data.isSelected)
+      this.props.onKeyboardClickLineNumber(
+        this.props.numRow,
+        column,
+        !data.isSelected
+      )
     }
   }
 

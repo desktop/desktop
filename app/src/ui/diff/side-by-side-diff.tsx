@@ -664,7 +664,7 @@ export class SideBySideDiff extends React.Component<
             onMouseLeaveHunk={this.onMouseLeaveHunk}
             onExpandHunk={this.onExpandHunk}
             onClickHunk={this.onClickHunk}
-            onClickLineNumber={this.onClickLineNumber}
+            onKeyboardClickLineNumber={this.onKeyboardClickLineNumber}
             onContextMenuLine={this.onContextMenuLine}
             onContextMenuHunk={this.onContextMenuHunk}
             onContextMenuExpandHunk={this.onContextMenuExpandHunk}
@@ -1055,7 +1055,7 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
-  private onClickLineNumber = (
+  private onKeyboardClickLineNumber = (
     row: number,
     column: DiffColumn,
     isSelected: boolean
