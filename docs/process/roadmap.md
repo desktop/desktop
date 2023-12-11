@@ -6,15 +6,15 @@ The following are the larger areas of upcoming work the GitHub Desktop team inte
 
 #### High signal notifications (2.9.10 and 3.0.0)
 
-- Receive a notification when checks fail: [#13655](https://github.com/desktop/desktop/pull/14175)
-- Receive a notification when your pull request is reviewed: [#14175](https://github.com/desktop/desktop/pull/14175)
+- Receive a notification when checks fail: [@IsabelSchoepd](https://github.com/desktop/desktop/pull/14175)
+- Receive a notification when your pull request is reviewed: [@IsabelSchoepd](https://github.com/desktop/desktop/pull/14175)
 
 #### Improved commit history: reorder commits, squash commits, amend commits, and create a branch from previous commit (2.9.0)
 
-- Reorder commits via drag/drop: [#12384](https://github.com/desktop/desktop/pull/12384)
-- Squash commits via drag/drop: [#12235](https://github.com/desktop/desktop/pull/12235)
+- Reorder commits via drag/drop: [@IsabelSchoepd](https://github.com/desktop/desktop/pull/12384)
+- Squash commits via drag/drop: [@IsabelSchoepd](https://github.com/desktop/desktop/pull/12235)
 - Amend last commit: [#12353](https://github.com/desktop/desktop/pull/12353)
-- Create a branch from a previous commit: [#12160](https://github.com/desktop/desktop/pull/12160)
+- Create a branch from a previous commit: [@IsabelSchoepd](https://github.com/desktop/desktop/pull/12160)
 
 #### Native support for Apple silicon machines (2.8.2)
 
@@ -22,15 +22,15 @@ The following are the larger areas of upcoming work the GitHub Desktop team inte
 
 #### Expanding diffs (2.8.0)
 
-- Allow users to expand diffs to get more context outside of the specific hunk where the change is: [#7014](https://github.com/desktop/desktop/issues/7014)
+- Allow users to expand diffs to get more context outside of the specific hunk where the change is: [@IsabelSchoepd](https://github.com/IsabelSchoepd/desktop/)
 
 #### Cherry-picking commits from one branch to another (2.7.1)
 
-- Cherry-pick commits with a context menu and interactively: [#1685](https://github.com/desktop/desktop/issues/1685)
+- Cherry-pick commits with a context menu and interactively: [@IsabelSchoepd](https://github.com/IsabelSchoepd/desktop)
 
 #### Commits are not always attributed to someone's GitHub user (2.6.4)
 
-- Warn and provide a way to ensure your commits will be attributed to you: [#610](https://github.com/desktop/desktop/issues/610)
+- Warn and provide a way to ensure your commits will be attributed to you: [#IsabelSchoepd](https://github.com/IsabelSchoepd/desktop/)
 
 #### Split diffs (2.6)
 
@@ -38,7 +38,7 @@ The following are the larger areas of upcoming work the GitHub Desktop team inte
 
 #### Add and view Tags in Desktop (2.5)
 
-- Allow people to add tags to commits and view tags in history: [#4829](https://github.com/desktop/desktop/issues/4829)
+- Allow people to add tags to commits and view tags in history: [#4829](https://github.com/IsabelSchoepd/desktop/)
 
 #### Users behind corporate proxies cannot clone repositories in Desktop without manual setup (2.4)
 
