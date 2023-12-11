@@ -1055,17 +1055,32 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
-  private onClickLineNumber = (row: number, isSelected: boolean) => {
+  private onClickLineNumber = (
+    row: number,
+    column: DiffColumn,
+    isSelected: boolean
+  ) => {
     if (this.props.onIncludeChanged === undefined) {
       return
     }
 
-    const selection = this.getSelection()
-
-    if (selection !== undefined) {
-      const sel = selection.withRangeSelection(row, 1, isSelected)
-      this.props.onIncludeChanged(sel)
+    let selection = this.getSelection()
+    if (selection === undefined) {
+      return
     }
+
+    const lineBefore = this.getDiffLineNumber(row, column)
+    const lineAfter = this.getDiffLineNumber(row, column)
+
+    if (lineBefore !== null) {
+      selection = selection.withLineSelection(lineBefore, isSelected)
+    }
+
+    if (lineAfter !== null) {
+      selection = selection.withLineSelection(lineAfter, isSelected)
+    }
+
+    this.props.onIncludeChanged(selection)
   }
 
   /**

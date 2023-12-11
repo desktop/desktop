@@ -111,7 +111,11 @@ interface ISideBySideDiffRowProps {
    * the hunk.
    * (only relevant when isDiffSelectable is true)
    */
-  readonly onClickLineNumber: (row: number, select: boolean) => void
+  readonly onClickLineNumber: (
+    row: number,
+    column: DiffColumn,
+    select: boolean
+  ) => void
 
   /**
    * Called when the user right-clicks a line number. Called with the
@@ -713,22 +717,17 @@ export class SideBySideDiffRow extends React.Component<
       return
     }
 
-    console.log('keyboard invoked click')
-
-    if (this.props.hideWhitespaceInDiff) {
-      const column = this.getDiffColumn(evt.currentTarget)
-      if (column !== null) {
-        this.setState({ showWhitespaceHint: column })
-      }
-      return
-    }
-
+    const column = this.getDiffColumn(evt.currentTarget)
     const data = this.getDiffData(evt.currentTarget)
-    if (data === null) {
-      return
-    }
 
-    this.props.onClickLineNumber(this.props.numRow, !data.isSelected)
+    if (data !== null && column !== null) {
+      if (this.props.hideWhitespaceInDiff) {
+        this.setState({ showWhitespaceHint: column })
+        return
+      }
+
+      this.props.onClickLineNumber(this.props.numRow, column, !data.isSelected)
+    }
   }
 
   private onMouseEnterLineNumber = (evt: React.MouseEvent) => {
