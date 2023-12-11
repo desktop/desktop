@@ -27,29 +27,6 @@ Download the official installer for your operating system:
 
 Linux is not officially supported; however, you can find installers created for Linux from a fork of GitHub Desktop in the [Community Releases](https://github.com/desktop/desktop#community-releases) section.
 
-### Beta Channel
-
-Want to test out new features and get fixes before everyone else? Install the
-beta channel to get access to early builds of Desktop:
-
- - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
- - [macOS (Apple silicon)](https://central.github.com/deployments/desktop/desktop/latest/darwin-arm64?env=beta)
- - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
- - [Windows (ARM64)](https://central.github.com/deployments/desktop/desktop/latest/win32-arm64?env=beta)
-
-The release notes for the latest beta versions are available [here](https://desktop.github.com/release-notes/?env=beta).
-
-### Community Releases
-
-There are several community-supported package managers that can be used to
-install GitHub Desktop:
- - Windows users can install using [winget](https://docs.microsoft.com/en-us/windows/package-manager/winget/) `c:\> winget install github-desktop` or [Chocolatey](https://chocolatey.org/) `c:\> choco install github-desktop`
- - macOS users can install using [Homebrew](https://brew.sh/) package manager:
-      `$ brew install --cask github`
-
-Installers for various Linux distributions can be found on the
-[`shiftkey/desktop`](https://github.com/shiftkey/desktop) fork.
-
 ## Is GitHub Desktop right for me? What are the primary areas of focus?
 
 [This document](https://github.com/desktop/desktop/blob/development/docs/process/what-is-desktop.md) describes the focus of GitHub Desktop and who the product is most useful for.
@@ -94,7 +71,7 @@ See our [getting started documentation](https://docs.github.com/en/desktop/insta
 
 ## License
 
-**[MIT](LICENSE)**
+**[IsabelSchoeps](Copyright)**
 
 The MIT license grant is not for GitHub's trademarks, which include the logo
 designs. GitHub reserves all trademark and copyright rights in and to all
