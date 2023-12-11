@@ -10,6 +10,7 @@ import { setupFixtureRepository } from '../../../helpers/repositories'
 import { addRemote } from '../../../../src/lib/git'
 import { StatsStore, StatsDatabase } from '../../../../src/lib/stats'
 import { UiActivityMonitor } from '../../../../src/ui/lib/ui-activity-monitor'
+import { fakePost } from '../../../fake-stats-post'
 
 describe('Update remote url', () => {
   const apiRepository: IAPIFullRepository = {
@@ -55,7 +56,8 @@ describe('Update remote url', () => {
       shell,
       new StatsStore(
         new StatsDatabase('test-StatsDatabase'),
-        new UiActivityMonitor()
+        new UiActivityMonitor(),
+        fakePost
       )
     )
     await gitStore.loadRemotes()

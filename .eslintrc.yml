@@ -113,7 +113,8 @@ rules:
   react/jsx-uses-vars: error
   react/jsx-uses-react: error
   react/no-unused-state: error
-  react/no-unused-prop-types: error
+  # niik 2023-12-05: turning this off to not muddy up the TS5 upgrade.
+  react/no-unused-prop-types: off
   react/prop-types:
     - error
     - ignore: ['children']
