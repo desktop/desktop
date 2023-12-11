@@ -13,12 +13,6 @@ const DefaultBranchInDesktop = 'main'
 const DefaultBranchSettingName = 'init.defaultBranch'
 
 /**
- * The branch names that Desktop shows by default as radio buttons on the
- * form that allows users to change default branch name.
- */
-export const SuggestedBranchNames: ReadonlyArray<string> = ['main', 'master']
-
-/**
  * Returns the configured default branch when creating new repositories
  */
 async function getConfiguredDefaultBranch(): Promise<string | null> {
