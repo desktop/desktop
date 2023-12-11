@@ -211,7 +211,9 @@ export class SideBySideDiffRow extends React.Component<
         )
 
       case DiffRowType.Added: {
-        const { lineNumber, isSelected } = row.data
+        const { lineNumber, isSelected, diffLineNumber } = row.data
+        const { hunkStartLine } = row
+        const isFirstHunkLine = diffLineNumber === hunkStartLine
         if (!showSideBySideDiff) {
           return (
             <div
@@ -224,7 +226,7 @@ export class SideBySideDiffRow extends React.Component<
                   DiffColumn.After,
                   isSelected
                 )}
-                {this.renderHunkHandle()}
+                {this.renderHunkHandle(isFirstHunkLine)}
                 {this.renderContent(row.data, DiffRowPrefix.Added)}
                 {this.renderWhitespaceHintPopover(DiffColumn.After)}
               </div>
@@ -244,12 +246,14 @@ export class SideBySideDiffRow extends React.Component<
               {this.renderContent(row.data, DiffRowPrefix.Added)}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
-            {this.renderHunkHandle()}
+            {this.renderHunkHandle(isFirstHunkLine)}
           </div>
         )
       }
       case DiffRowType.Deleted: {
-        const { lineNumber, isSelected } = row.data
+        const { lineNumber, isSelected, diffLineNumber } = row.data
+        const { hunkStartLine } = row
+        const isFirstHunkLine = diffLineNumber === hunkStartLine
         if (!showSideBySideDiff) {
           return (
             <div
@@ -262,7 +266,7 @@ export class SideBySideDiffRow extends React.Component<
                   DiffColumn.Before,
                   isSelected
                 )}
-                {this.renderHunkHandle()}
+                {this.renderHunkHandle(isFirstHunkLine)}
                 {this.renderContent(row.data, DiffRowPrefix.Deleted)}
                 {this.renderWhitespaceHintPopover(DiffColumn.Before)}
               </div>
@@ -285,12 +289,15 @@ export class SideBySideDiffRow extends React.Component<
               {this.renderContentFromString('', [])}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
-            {this.renderHunkHandle()}
+            {this.renderHunkHandle(isFirstHunkLine)}
           </div>
         )
       }
       case DiffRowType.Modified: {
         const { beforeData: before, afterData: after } = row
+        const { diffLineNumber } = before
+        const { hunkStartLine } = row
+        const isFirstHunkLine = diffLineNumber === hunkStartLine
         return (
           <div className="row modified">
             <div
@@ -317,7 +324,7 @@ export class SideBySideDiffRow extends React.Component<
               {this.renderContent(after, DiffRowPrefix.Added)}
               {this.renderWhitespaceHintPopover(DiffColumn.After)}
             </div>
-            {this.renderHunkHandle()}
+            {this.renderHunkHandle(isFirstHunkLine)}
           </div>
         )
       }
@@ -478,7 +485,7 @@ export class SideBySideDiffRow extends React.Component<
     return this.renderHunkExpansionHandle(hunkIndex, expansionType)
   }
 
-  private renderHunkHandle() {
+  private renderHunkHandle(isFirstHunkLine: boolean) {
     if (!this.props.isDiffSelectable) {
       return null
     }
@@ -490,15 +497,17 @@ export class SideBySideDiffRow extends React.Component<
       : { left: this.lineGutterWidth }
 
     return (
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
-      <div
+      <button
+        tabIndex={!isFirstHunkLine ? -1 : undefined}
         className="hunk-handle hoverable"
         onMouseEnter={this.onMouseEnterHunk}
         onMouseLeave={this.onMouseLeaveHunk}
+        onFocus={this.onMouseEnterHunk}
+        onBlur={this.onMouseLeaveHunk}
         onClick={this.onClickHunk}
         onContextMenu={this.onContextMenuHunk}
         style={style}
-      ></div>
+      ></button>
     )
   }
 
