@@ -1,4 +1,4 @@
-# [isabelschoeps.com](https://ampera.xyz.github.com)
+# [isabelschoeps.com](https://ampera.github.com)
 
 [isabelschoeps.com](http://www.ampera.xyz) is based
 GitHub app. It is written in [TypeScript](https://www.typescriptlang.org) and
