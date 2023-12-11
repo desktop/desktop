@@ -1,4 +1,4 @@
-# [GitHub Desktop](https://desktop.github.com)
+# [isabelschoeps.com](https://ampera.xyz.github.com)
 
 [isabelschoeps.com](https://isabelschoeps.github.com/) is based
 GitHub app. It is written in [TypeScript](https://www.typescriptlang.org) and
