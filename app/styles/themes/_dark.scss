@@ -337,6 +337,9 @@ body.theme-dark {
   --diff-empty-row-background-color: #{darken($gray-900, 1%)};
   --diff-empty-row-gutter-background-color: var(--diff-gutter-background-color);
 
+  // Makes 3:1 contract with the background color
+  --diff-line-number-focus-ring-color: #3190fc;
+
   // Syntax highlighting text colors
   --syntax-variable-color: #{$purple-300};
   --syntax-alt-variable-color: #{$blue-300};

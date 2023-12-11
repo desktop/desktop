@@ -33,11 +33,13 @@
     .before .line-number {
       border-right-width: 2px;
       border-right-style: solid;
+      border-left-width: 0;
     }
 
     .after .line-number {
       border-left-width: 2px;
       border-left-style: solid;
+      border-right-width: 0;
     }
   }
 
@@ -76,6 +78,12 @@
         text-align: inherit;
         padding: 0;
         line-height: 20px;
+
+        &:focus-visible {
+          // so the focus ring isn't clipped
+          z-index: 1;
+          outline-color: var(--diff-line-number-focus-ring-color);
+        }
       }
     }
   }
@@ -170,6 +178,9 @@
     width: 20px;
     left: calc(50% - 10px);
     top: 0;
+    // This z-index is added because for tab order, the hunk handle is rendered
+    // first, but we need it to visuall show above the line number button.
+    z-index: 1;
 
     &.hoverable {
       cursor: pointer;

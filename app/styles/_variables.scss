@@ -434,6 +434,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-empty-row-background-color: #{$gray-000};
   --diff-empty-row-gutter-background-color: var(--diff-empty-row-background-color);
 
+  // Makes 3:1 contract with the background color
+  --diff-line-number-focus-ring-color: #043c7c;
+
   // Syntax highlighting text colors
   --syntax-variable-color: #6f42c1;
   --syntax-alt-variable-color: #24292e;
