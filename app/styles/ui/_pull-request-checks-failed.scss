@@ -97,6 +97,13 @@
 
         .ci-check-run-job-steps-list {
           border: none;
+          margin: 0px;
+          padding: 0px;
+
+          .ci-check-run-job-step {
+            margin: 0px;
+            padding: 0px;
+          }
         }
 
         .no-steps-to-display {
