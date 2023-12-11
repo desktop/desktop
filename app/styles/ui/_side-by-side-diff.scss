@@ -67,6 +67,19 @@
     }
   }
 
+  .row {
+    button {
+      &.line-number {
+        border-top: none;
+        border-bottom: none;
+        font-size: inherit;
+        text-align: inherit;
+        padding: 0;
+        line-height: 20px;
+      }
+    }
+  }
+
   .row .line-number {
     width: var(--width-line-number);
     flex-shrink: 0;
@@ -85,6 +98,7 @@
       // Workaround to show the ellipsis at the beginning of
       // the line number when it's too long.
       direction: rtl;
+      height: 100%;
     }
 
     &.selectable {

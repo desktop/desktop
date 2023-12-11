@@ -663,6 +663,7 @@ export class SideBySideDiff extends React.Component<
             onMouseLeaveHunk={this.onMouseLeaveHunk}
             onExpandHunk={this.onExpandHunk}
             onClickHunk={this.onClickHunk}
+            onClickLineNumber={this.onClickLineNumber}
             onContextMenuLine={this.onContextMenuLine}
             onContextMenuHunk={this.onContextMenuHunk}
             onContextMenuExpandHunk={this.onContextMenuExpandHunk}
@@ -1049,6 +1050,19 @@ export class SideBySideDiff extends React.Component<
         const sel = selection.withRangeSelection(from, to - from + 1, select)
         this.props.onIncludeChanged(sel)
       }
+    }
+  }
+
+  private onClickLineNumber = (row: number, isSelected: boolean) => {
+    if (this.props.onIncludeChanged === undefined) {
+      return
+    }
+
+    const selection = this.getSelection()
+
+    if (selection !== undefined) {
+      const sel = selection.withRangeSelection(row, 1, isSelected)
+      this.props.onIncludeChanged(sel)
     }
   }
 

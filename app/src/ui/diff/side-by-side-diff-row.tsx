@@ -106,6 +106,14 @@ interface ISideBySideDiffRowProps {
   readonly onClickHunk: (hunkStartLine: number, select: boolean) => void
 
   /**
+   * Called when the user clicks on the line selection. Called with the start
+   * line of the hunk and a flag indicating whether to select or unselect
+   * the hunk.
+   * (only relevant when isDiffSelectable is true)
+   */
+  readonly onClickLineNumber: (row: number, select: boolean) => void
+
+  /**
    * Called when the user right-clicks a line number. Called with the
    * clicked diff line number.
    * (only relevant when isDiffSelectable is true)
@@ -546,21 +554,21 @@ export class SideBySideDiffRow extends React.Component<
     }
 
     return (
-      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-      <div
+      <button
         id={wrapperID}
         className={classNames('line-number', 'selectable', 'hoverable', {
           'line-selected': isSelected,
           hover: this.props.isHunkHovered,
         })}
         style={{ width: this.lineGutterWidth }}
+        onClick={this.onClickLineNumber}
         onMouseDown={this.onMouseDownLineNumber}
         onContextMenu={this.onContextMenuLineNumber}
       >
         {lineNumbers.map((lineNumber, index) => (
           <span key={index}>{lineNumber}</span>
         ))}
-      </div>
+      </button>
     )
   }
 
@@ -669,6 +677,30 @@ export class SideBySideDiffRow extends React.Component<
 
       this.props.onStartSelection(this.props.numRow, column, !data.isSelected)
     }
+  }
+
+  private onClickLineNumber = (evt: React.MouseEvent) => {
+    if (evt.screenX > 0 || evt.screenY > 0) {
+      // this was a mouse click and handled by onMouseDownLineNumber
+      return
+    }
+
+    console.log('keyboard invoked click')
+
+    if (this.props.hideWhitespaceInDiff) {
+      const column = this.getDiffColumn(evt.currentTarget)
+      if (column !== null) {
+        this.setState({ showWhitespaceHint: column })
+      }
+      return
+    }
+
+    const data = this.getDiffData(evt.currentTarget)
+    if (data === null) {
+      return
+    }
+
+    this.props.onClickLineNumber(this.props.numRow, !data.isSelected)
   }
 
   private onMouseEnterLineNumber = (evt: React.MouseEvent) => {
