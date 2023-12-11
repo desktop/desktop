@@ -26,7 +26,7 @@ export class CICheckRunActionsJobStepListItem extends React.PureComponent<ICIChe
   }
 
   private onStepHeaderRef = (step: IAPIWorkflowJobStep) => {
-    return (stepHeaderRef: HTMLDivElement | null) => {
+    return (stepHeaderRef: HTMLLIElement | null) => {
       if (
         this.props.firstFailedStep !== undefined &&
         step.number === this.props.firstFailedStep.number &&
@@ -40,7 +40,7 @@ export class CICheckRunActionsJobStepListItem extends React.PureComponent<ICIChe
   public render() {
     const { step } = this.props
     return (
-      <div
+      <li
         className="ci-check-run-job-step list-item"
         ref={this.onStepHeaderRef(step)}
       >
@@ -67,7 +67,7 @@ export class CICheckRunActionsJobStepListItem extends React.PureComponent<ICIChe
         <div className="job-step-duration">
           {getFormattedCheckRunDuration(step)}
         </div>
-      </div>
+      </li>
     )
   }
 }
