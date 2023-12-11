@@ -179,7 +179,7 @@
     left: calc(50% - 10px);
     top: 0;
     // This z-index is added because for tab order, the hunk handle is rendered
-    // first, but we need it to visuall show above the line number button.
+    // first, but we need it to visually it show above the line number button.
     z-index: 1;
 
     &.hoverable {
