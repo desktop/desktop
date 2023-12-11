@@ -35,6 +35,7 @@ import memoize from 'memoize-one'
 import {
   findInteractiveOriginalDiffRange,
   DiffRangeType,
+  diffHunkForIndex,
 } from './diff-explorer'
 import {
   ChangedFile,
@@ -674,6 +675,7 @@ export class SideBySideDiff extends React.Component<
             beforeClassNames={beforeClassNames}
             afterClassNames={afterClassNames}
             onHunkExpansionRef={this.onHunkExpansionRef}
+            getHunkHandleAriaLabel={this.getHunkHandleAriaLabel}
           />
         </div>
       </CellMeasurer>
@@ -1353,6 +1355,58 @@ export class SideBySideDiff extends React.Component<
     }
 
     this.setState({ diff: updatedDiff })
+  }
+
+  /**
+   * Get the aria label for the hunk handles. Describe to a screenreader what
+   * lines will be removed or included from the commit selection via toggling
+   * the hunk handle.
+   *
+   * @param hunkStartLine - is used to find the line numbers to be removed or included.
+   * @param isSelected - is to determine if the hunk handle will remove or include the changes.
+   * @returns
+   */
+  private getHunkHandleAriaLabel = (
+    hunkStartLine: number,
+    isSelected: boolean
+  ) => {
+    const { diff } = this.state
+    const hunk = diffHunkForIndex(diff.hunks, hunkStartLine)
+    const range = findInteractiveOriginalDiffRange(diff.hunks, hunkStartLine)
+
+    if (hunk === null || range === null || range.type === null) {
+      return ''
+    }
+
+    const fromLine = hunk.lines.find(
+      line => line.originalLineNumber === range.from
+    )
+    const toLine = hunk.lines.find(line => line.originalLineNumber === range.to)
+    let from, to
+    switch (range.type) {
+      case DiffRangeType.Additions:
+        from = fromLine?.newLineNumber
+        to = toLine?.newLineNumber
+        break
+      case DiffRangeType.Deletions:
+        from = fromLine?.oldLineNumber
+        to = toLine?.oldLineNumber
+        break
+      case DiffRangeType.Mixed:
+        from = fromLine?.oldLineNumber
+        to = toLine?.newLineNumber
+        break
+      default:
+        return assertNever(range.type, `Invalid range type: ${range.type}`)
+    }
+
+    const action = isSelected ? 'Remove' : 'Include'
+    const preposition = isSelected ? 'from' : 'in'
+    if (from !== to) {
+      return `${action} changes in lines ${from} to ${to} ${preposition} commit selection.`
+    } else {
+      return `${action} changes in line ${from} ${preposition} commit selection.`
+    }
   }
 }
 

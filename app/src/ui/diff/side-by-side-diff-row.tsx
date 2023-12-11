@@ -155,6 +155,15 @@ interface ISideBySideDiffRowProps {
     expansionType: DiffHunkExpansionType,
     element: HTMLButtonElement | null
   ) => void
+
+  /**
+   * Get the aria label for the hunk handle. Uses the hunk start line to include
+   * the line numbers to be removed or included from the commit selection.
+   */
+  readonly getHunkHandleAriaLabel: (
+    hunkStartLine: number,
+    select: boolean
+  ) => string
 }
 
 interface ISideBySideDiffRowState {
@@ -229,7 +238,11 @@ export class SideBySideDiffRow extends React.Component<
               onMouseEnter={this.onMouseEnterLineNumber}
             >
               <div className={afterClasses}>
-                {this.renderHunkHandle(isFirstHunkLine)}
+                {this.renderHunkHandle(
+                  isFirstHunkLine,
+                  hunkStartLine,
+                  isSelected
+                )}
                 {this.renderLineNumbers(
                   [undefined, lineNumber],
                   DiffColumn.After,
@@ -244,7 +257,7 @@ export class SideBySideDiffRow extends React.Component<
 
         return (
           <div className="row added" onMouseEnter={this.onMouseEnterLineNumber}>
-            {this.renderHunkHandle(isFirstHunkLine)}
+            {this.renderHunkHandle(isFirstHunkLine, hunkStartLine, isSelected)}
             <div className={beforeClasses}>
               {this.renderLineNumber(undefined, DiffColumn.Before)}
               {this.renderContentFromString('')}
@@ -269,7 +282,11 @@ export class SideBySideDiffRow extends React.Component<
               onMouseEnter={this.onMouseEnterLineNumber}
             >
               <div className={beforeClasses}>
-                {this.renderHunkHandle(isFirstHunkLine)}
+                {this.renderHunkHandle(
+                  isFirstHunkLine,
+                  hunkStartLine,
+                  isSelected
+                )}
                 {this.renderLineNumbers(
                   [lineNumber, undefined],
                   DiffColumn.Before,
@@ -287,7 +304,7 @@ export class SideBySideDiffRow extends React.Component<
             className="row deleted"
             onMouseEnter={this.onMouseEnterLineNumber}
           >
-            {this.renderHunkHandle(isFirstHunkLine)}
+            {this.renderHunkHandle(isFirstHunkLine, hunkStartLine, isSelected)}
             <div className={beforeClasses}>
               {this.renderLineNumber(lineNumber, DiffColumn.Before, isSelected)}
               {this.renderContent(row.data, DiffRowPrefix.Deleted)}
@@ -303,12 +320,12 @@ export class SideBySideDiffRow extends React.Component<
       }
       case DiffRowType.Modified: {
         const { beforeData: before, afterData: after } = row
-        const { diffLineNumber } = before
+        const { diffLineNumber, isSelected } = before
         const { hunkStartLine } = row
         const isFirstHunkLine = diffLineNumber === hunkStartLine
         return (
           <div className="row modified">
-            {this.renderHunkHandle(isFirstHunkLine)}
+            {this.renderHunkHandle(isFirstHunkLine, hunkStartLine, isSelected)}
             <div
               className={beforeClasses}
               onMouseEnter={this.onMouseEnterLineNumber}
@@ -493,7 +510,11 @@ export class SideBySideDiffRow extends React.Component<
     return this.renderHunkExpansionHandle(hunkIndex, expansionType)
   }
 
-  private renderHunkHandle(isFirstHunkLine: boolean) {
+  private renderHunkHandle(
+    isFirstHunkLine: boolean,
+    hunkStartLine: number,
+    isSelected: boolean
+  ) {
     if (!this.props.isDiffSelectable) {
       return null
     }
@@ -503,6 +524,12 @@ export class SideBySideDiffRow extends React.Component<
     const style: React.CSSProperties = this.props.showSideBySideDiff
       ? {}
       : { left: this.lineGutterWidth }
+
+    // Only the first button is tabbable so don't bother getting this for all
+    // the hunk handles.
+    const ariaLabel = isFirstHunkLine
+      ? this.props.getHunkHandleAriaLabel(hunkStartLine, isSelected)
+      : undefined
 
     return (
       <button
@@ -515,6 +542,7 @@ export class SideBySideDiffRow extends React.Component<
         onClick={this.onClickHunk}
         onContextMenu={this.onContextMenuHunk}
         style={style}
+        aria-label={ariaLabel}
       ></button>
     )
   }
