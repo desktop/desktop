@@ -172,7 +172,7 @@ export class RefNameTextBox extends React.Component<
 
     return `Warning: Will be ${
       this.props.warningMessageVerb ?? 'created '
-    } as ${sanitizedValue} (in kebab case).`
+    } as ${sanitizedValue} (with spaces replaced by hyphens).`
   }
 
   private renderWarningMessage(sanitizedValue: string, proposedValue: string) {
