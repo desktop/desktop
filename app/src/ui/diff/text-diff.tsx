@@ -33,7 +33,6 @@ import {
   IFileContents,
 } from './syntax-highlighting'
 import { relativeChanges } from './changed-range'
-import { Repository } from '../../models/repository'
 import memoizeOne from 'memoize-one'
 import { structuralEquals } from '../../lib/equality'
 import { assertNever } from '../../lib/fatal-error'
@@ -145,7 +144,6 @@ function targetHasClass(target: EventTarget | null, token: string) {
 }
 
 interface ITextDiffProps {
-  readonly repository: Repository
   /** The file whose diff should be displayed. */
   readonly file: ChangedFile
   /** The initial diff that should be rendered */

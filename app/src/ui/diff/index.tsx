@@ -301,7 +301,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
     return (
       <TextDiff
-        repository={this.props.repository}
         file={this.props.file}
         readOnly={this.props.readOnly}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
