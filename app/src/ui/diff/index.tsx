@@ -281,7 +281,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     if (enableExperimentalDiffViewer() || this.props.showSideBySideDiff) {
       return (
         <SideBySideDiff
-          repository={this.props.repository}
           file={this.props.file}
           diff={diff}
           fileContents={this.props.fileContents}
