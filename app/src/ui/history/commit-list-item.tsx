@@ -39,7 +39,6 @@ interface ICommitProps {
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly disableSquashing?: boolean
-  readonly isMultiCommitOperationInProgress?: boolean
 }
 
 interface ICommitListItemState {
