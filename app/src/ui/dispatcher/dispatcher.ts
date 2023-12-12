@@ -2668,6 +2668,10 @@ export class Dispatcher {
     return this.appStore._markPullRequestTutorialStepAsComplete(repository)
   }
 
+  public markTutorialCompletionAsAnnounced(repository: Repository) {
+    return this.appStore._markTutorialCompletionAsAnnounced(repository)
+  }
+
   /**
    * Create a tutorial repository using the given account. The account
    * determines which host (i.e. GitHub.com or a GHES instance) that

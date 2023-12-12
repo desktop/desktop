@@ -8,6 +8,7 @@ export enum TutorialStep {
   OpenPullRequest = 'OpenPullRequest',
   AllDone = 'AllDone',
   Paused = 'Paused',
+  Announced = 'Announced',
 }
 
 export type ValidTutorialStep =
@@ -18,6 +19,7 @@ export type ValidTutorialStep =
   | TutorialStep.PushBranch
   | TutorialStep.OpenPullRequest
   | TutorialStep.AllDone
+  | TutorialStep.Announced
 
 export function isValidTutorialStep(
   step: TutorialStep
@@ -33,4 +35,5 @@ export const orderedTutorialSteps: ReadonlyArray<ValidTutorialStep> = [
   TutorialStep.PushBranch,
   TutorialStep.OpenPullRequest,
   TutorialStep.AllDone,
+  TutorialStep.Announced,
 ]

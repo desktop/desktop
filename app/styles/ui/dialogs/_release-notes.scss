@@ -18,7 +18,7 @@
     background: url('../static/common/release-note-header-left.svg') no-repeat left var(--spacing-double) top var(--spacing-half) / auto 90px,
       url('../static/common/release-note-header-right.svg') no-repeat right var(--spacing-double) top var(--spacing-half) / auto 90px;
 
-    h2 {
+    h1 {
       display: flex;
       flex-direction: column;
       text-align: center;

@@ -449,12 +449,26 @@ export class RepositoryView extends React.Component<
     this.props.dispatcher.incrementMetric('diffOptionsViewedCount')
   }
 
+  private onTutorialCompletionAnnounced = () => {
+    this.props.dispatcher.markTutorialCompletionAsAnnounced(
+      this.props.repository
+    )
+  }
+
   private renderTutorialPane(): JSX.Element {
-    if (this.props.currentTutorialStep === TutorialStep.AllDone) {
+    if (
+      [TutorialStep.AllDone, TutorialStep.Announced].includes(
+        this.props.currentTutorialStep
+      )
+    ) {
       return (
         <TutorialDone
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
+          tutorialCompletionAnnounced={
+            this.props.currentTutorialStep === TutorialStep.Announced
+          }
+          onTutorialCompletionAnnounced={this.onTutorialCompletionAnnounced}
         />
       )
     } else {

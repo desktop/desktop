@@ -180,6 +180,15 @@ export interface IButtonProps {
    * Default: true
    * */
   readonly applyTooltipAriaDescribedBy?: boolean
+
+  /**
+   * Whether or not the tooltip should be dismissable via the escape key. This
+   * is generally true, but if the tooltip is communicating something important
+   * to the user, such as an input error, it should not be dismissable.
+   *
+   * Defaults to true
+   */
+  readonly tooltipDismissable?: boolean
 }
 
 /**
@@ -251,6 +260,7 @@ export class Button extends React.Component<IButtonProps, {}> {
             onlyWhenOverflowed={this.props.onlyShowTooltipWhenOverflowed}
             openOnTargetClick={this.props.openTooltipOnClick}
             applyAriaDescribedBy={this.props.applyTooltipAriaDescribedBy}
+            dismissable={this.props.tooltipDismissable}
           >
             {tooltip}
           </Tooltip>

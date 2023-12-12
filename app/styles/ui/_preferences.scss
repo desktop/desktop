@@ -54,6 +54,15 @@
         }
       }
     }
+
+    .call-to-action {
+      display: block;
+
+      .button-component {
+        margin-top: var(--spacing);
+        margin-left: 0;
+      }
+    }
   }
 
   .no-options-found {
@@ -70,6 +79,10 @@
     margin-top: var(--spacing-double);
 
     .ref-name-text-box {
+      margin-top: var(--spacing);
+    }
+
+    #default-branch-description {
       margin-top: var(--spacing);
     }
   }

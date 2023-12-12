@@ -54,6 +54,15 @@ export interface ITooltipProps<T> {
   readonly interactive?: boolean
 
   /**
+   * Whether or not the tooltip should be dismissable via the escape key. This
+   * is generally true, but if the tooltip is communicating something important
+   * to the user, such as an input error, it should not be dismissable.
+   *
+   * Defaults to true
+   */
+  readonly dismissable?: boolean
+
+  /**
    * The amount of time to wait (in milliseconds) while a user hovers over the
    * target before displaying the tooltip. There's typically no reason to
    * increase this but it may be used to show the tooltip without any delay (by
@@ -377,6 +386,17 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     }
   }
 
+  private onKeyDown = (event: KeyboardEvent) => {
+    if (
+      event.key === 'Escape' &&
+      this.state.show &&
+      this.props.dismissable !== false
+    ) {
+      event.preventDefault()
+      this.beginHideTooltip()
+    }
+  }
+
   private installTooltip(elem: TooltipTarget) {
     elem.addEventListener('mouseenter', this.onTargetMouseEnter)
     elem.addEventListener('mouseleave', this.onTargetMouseLeave)
@@ -389,6 +409,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     elem.addEventListener('tooltip-shown', this.onTooltipShown)
     elem.addEventListener('tooltip-hidden', this.onTooltipHidden)
     elem.addEventListener('click', this.onTargetClick)
+    elem.addEventListener('keydown', this.onKeyDown)
   }
 
   private removeTooltip(prevTarget: TooltipTarget | null) {
@@ -405,6 +426,7 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
       prevTarget.removeEventListener('focusout', this.onTargetBlur)
       prevTarget.removeEventListener('blur', this.onTargetBlur)
       prevTarget.removeEventListener('click', this.onTargetClick)
+      prevTarget.removeEventListener('keydown', this.onKeyDown)
     }
   }
 
