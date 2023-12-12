@@ -48,11 +48,15 @@ interface IChangesSidebarProps {
   readonly branch: string | null
   readonly emoji: Map<string, string>
   readonly mostRecentLocalCommit: Commit | null
+  // Used in receiveProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly issuesStore: IssuesStore
   readonly availableWidth: number
   readonly isCommitting: boolean
   readonly commitToAmend: Commit | null
   readonly isPushPullFetchInProgress: boolean
+  // Used in receiveProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly gitHubUserStore: GitHubUserStore
   readonly focusCommitMessage: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
