@@ -140,8 +140,6 @@ export class CICheckRunRerunDialog extends React.Component<
       <div className="ci-check-run-list check-run-rerun-list">
         <CICheckRunList
           checkRuns={this.state.rerunnable}
-          loadingActionLogs={false}
-          loadingActionWorkflows={false}
           notExpandable={true}
           isCondensedView={true}
         />
