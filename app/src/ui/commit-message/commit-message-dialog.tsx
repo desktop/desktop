@@ -15,7 +15,6 @@ import noop from 'lodash/noop'
 import { Popup } from '../../models/popup'
 import { Foldout } from '../../lib/app-state'
 import { Account } from '../../models/account'
-import { pick } from '../../lib/pick'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
 
@@ -108,7 +107,8 @@ export class CommitMessageDialog extends React.Component<
 > {
   public constructor(props: ICommitMessageDialogProps) {
     super(props)
-    this.state = pick(props, 'showCoAuthoredBy', 'coAuthors')
+    const { showCoAuthoredBy, coAuthors } = props
+    this.state = { showCoAuthoredBy, coAuthors }
   }
 
   public render() {
