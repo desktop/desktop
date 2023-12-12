@@ -24,13 +24,6 @@ interface IChangesProps {
   readonly hideWhitespaceInDiff: boolean
 
   /**
-   * Callback to open a selected file using the configured external editor
-   *
-   * @param fullPath The full path to the file on disk
-   */
-  readonly onOpenInExternalEditor: (fullPath: string) => void
-
-  /**
    * Called when the user requests to open a binary file in an the
    * system-assigned application for said file type.
    */
