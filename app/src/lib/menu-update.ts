@@ -283,7 +283,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       isHostedOnGitHub && hasPublishedBranch
     )
 
-    menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
+    menuStateBuilder.enable('view-repository-on-github')
     menuStateBuilder.setEnabled(
       'create-issue-in-repository-on-github',
       repoIssuesEnabled
