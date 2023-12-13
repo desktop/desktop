@@ -275,10 +275,8 @@ export class AppMenuBarButton extends React.Component<
       <AppMenu
         dispatcher={this.props.dispatcher}
         onClose={this.onMenuClose}
-        openedWithAccessKey={this.props.openedWithAccessKey}
         state={menuState}
         enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
-        autoHeight={true}
         ariaLabelledby={`app-menu-${this.props.menuItem.label}`}
       />
     )
