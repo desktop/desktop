@@ -36,7 +36,7 @@ export const generateRepositoryListContextMenu = (
 
   let viewInBrowserLabel = 'View on GitHub'
 
-  if (!doesGithubRepositoryExist) {
+  if (!doesGithubRepositoryExist && hasOriginUrl) {
     viewInBrowserLabel = 'View in your browser'
   }
 
