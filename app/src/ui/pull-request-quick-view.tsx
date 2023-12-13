@@ -85,7 +85,7 @@ export class PullRequestQuickView extends React.Component<
     this.updateQuickViewPosition()
   }
 
-  private onViewOnGitHub = () => {
+  private onViewInBrowser = () => {
     this.props.dispatcher.showPullRequestByPR(this.props.pullRequest)
   }
 
@@ -160,7 +160,7 @@ export class PullRequestQuickView extends React.Component<
       <header className="header">
         <Octicon symbol={OcticonSymbol.listUnordered} />
         <div className="action-needed">Review requested</div>
-        <Button className="button-with-icon" onClick={this.onViewOnGitHub}>
+        <Button className="button-with-icon" onClick={this.onViewInBrowser}>
           View on GitHub
           <Octicon symbol={OcticonSymbol.linkExternal} />
         </Button>

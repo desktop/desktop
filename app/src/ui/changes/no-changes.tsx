@@ -287,11 +287,11 @@ export class NoChanges extends React.Component<
       'view-repository-on-github',
       `Open the repository page on GitHub in your browser`,
       undefined,
-      this.onViewOnGitHubClicked
+      this.onViewInBrowserClicked
     )
   }
 
-  private onViewOnGitHubClicked = () =>
+  private onViewInBrowserClicked = () =>
     this.props.dispatcher.incrementMetric('suggestedStepViewOnGitHub')
 
   private openIntegrationPreferences = () => {

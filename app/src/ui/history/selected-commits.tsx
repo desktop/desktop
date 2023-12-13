@@ -481,7 +481,7 @@ export class SelectedCommits extends React.Component<
 
     items.push({
       label: viewOnGitHubLabel,
-      action: () => this.onViewOnGitHub(selectedCommits[0].sha, file),
+      action: () => this.onViewInBrowser(selectedCommits[0].sha, file),
       enabled:
         selectedCommits.length === 1 &&
         !localCommitSHAs.includes(selectedCommits[0].sha) &&
@@ -492,7 +492,7 @@ export class SelectedCommits extends React.Component<
     showContextualMenu(items)
   }
 
-  private onViewOnGitHub = (sha: string, file: CommittedFileChange) => {
+  private onViewInBrowser = (sha: string, file: CommittedFileChange) => {
     this.props.onViewCommitOnGitHub(sha, file.path)
   }
 }

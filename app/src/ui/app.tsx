@@ -2789,7 +2789,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           this.state.askForConfirmationOnRepositoryRemoval
         }
         onRemoveRepository={this.removeRepository}
-        onViewOnGitHub={this.viewOnGitHub}
+        onViewInBrowser={this.viewOnGitHub}
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}
         onOpenInExternalEditor={this.openInExternalEditor}
@@ -2966,7 +2966,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       externalEditorLabel: externalEditorLabel,
       onChangeRepositoryAlias: onChangeRepositoryAlias,
       onRemoveRepositoryAlias: onRemoveRepositoryAlias,
-      onViewOnGitHub: this.viewOnGitHub,
+      onViewInBrowser: this.viewOnGitHub,
       repository: repository,
       shellLabel: this.state.selectedShell,
     })

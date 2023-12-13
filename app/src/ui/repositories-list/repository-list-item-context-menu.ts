@@ -12,7 +12,7 @@ interface IRepositoryListItemContextMenuConfig {
   shellLabel: string
   externalEditorLabel: string | undefined
   askForConfirmationOnRemoveRepository: boolean
-  onViewOnGitHub: (repository: Repositoryish) => void
+  onViewInBrowser: (repository: Repositoryish) => void
   onOpenInShell: (repository: Repositoryish) => void
   onShowRepository: (repository: Repositoryish) => void
   onOpenInExternalEditor: (repository: Repositoryish) => void
@@ -45,7 +45,7 @@ export const generateRepositoryListContextMenu = (
     { type: 'separator' },
     {
       label: 'View on GitHub',
-      action: () => config.onViewOnGitHub(repository),
+      action: () => config.onViewInBrowser(repository),
       enabled: github,
     },
     {
