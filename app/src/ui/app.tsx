@@ -1359,7 +1359,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private viewRepositoryOnGitHub() {
     const repository = this.getRepository()
 
-    this.viewOnGitHub(repository)
+    this.viewInBrowser(repository)
   }
 
   /** Returns the URL to the current repository if hosted on GitHub */
@@ -2789,7 +2789,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           this.state.askForConfirmationOnRepositoryRemoval
         }
         onRemoveRepository={this.removeRepository}
-        onViewInBrowser={this.viewOnGitHub}
+        onViewInBrowser={this.viewInBrowser}
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}
         onOpenInExternalEditor={this.openInExternalEditor}
@@ -2800,7 +2800,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private viewOnGitHub = (
+  private viewInBrowser = (
     repository: Repository | CloningRepository | null
   ) => {
     if (!(repository instanceof Repository)) {
@@ -2966,7 +2966,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       externalEditorLabel: externalEditorLabel,
       onChangeRepositoryAlias: onChangeRepositoryAlias,
       onRemoveRepositoryAlias: onRemoveRepositoryAlias,
-      onViewInBrowser: this.viewOnGitHub,
+      onViewInBrowser: this.viewInBrowser,
       repository: repository,
       shellLabel: this.state.selectedShell,
     })

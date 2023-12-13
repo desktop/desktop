@@ -469,18 +469,18 @@ export class SelectedCommits extends React.Component<
       { type: 'separator' },
     ]
 
-    let viewOnGitHubLabel = 'View on GitHub'
+    let viewInBrowserLabel = 'View on GitHub'
     const gitHubRepository = repository.gitHubRepository
 
     if (
       gitHubRepository &&
       gitHubRepository.endpoint !== getDotComAPIEndpoint()
     ) {
-      viewOnGitHubLabel = 'View on GitHub Enterprise'
+      viewInBrowserLabel = 'View on GitHub Enterprise'
     }
 
     items.push({
-      label: viewOnGitHubLabel,
+      label: viewInBrowserLabel,
       action: () => this.onViewInBrowser(selectedCommits[0].sha, file),
       enabled:
         selectedCommits.length === 1 &&

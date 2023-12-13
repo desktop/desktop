@@ -134,7 +134,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   noActionTakenOnStashCount: 0,
   suggestedStepOpenInExternalEditor: 0,
   suggestedStepOpenWorkingDirectory: 0,
-  suggestedStepViewOnGitHub: 0,
+  suggestedStepViewInBrowser: 0,
   suggestedStepPublishRepository: 0,
   suggestedStepPublishBranch: 0,
   suggestedStepCreatePullRequest: 0,

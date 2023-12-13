@@ -276,7 +276,7 @@ export class NoChanges extends React.Component<
   private onShowInFileManagerClicked = () =>
     this.props.dispatcher.incrementMetric('suggestedStepOpenWorkingDirectory')
 
-  private renderViewOnGitHub() {
+  private renderviewInBrowser() {
     const isGitHub = this.props.repository.gitHubRepository !== null
 
     if (!isGitHub) {
@@ -292,7 +292,7 @@ export class NoChanges extends React.Component<
   }
 
   private onViewInBrowserClicked = () =>
-    this.props.dispatcher.incrementMetric('suggestedStepViewOnGitHub')
+    this.props.dispatcher.incrementMetric('suggestedStepViewInBrowser')
 
   private openIntegrationPreferences = () => {
     this.props.dispatcher.showPopup({
@@ -741,7 +741,7 @@ export class NoChanges extends React.Component<
         <SuggestedActionGroup>
           {this.renderOpenInExternalEditor()}
           {this.renderShowInFileManager()}
-          {this.renderViewOnGitHub()}
+          {this.renderviewInBrowser()}
         </SuggestedActionGroup>
       </>
     )
