@@ -1,5 +1,3 @@
-import * as URL from 'url'
-
 import { IAPIEmail, getDotComAPIEndpoint } from './api'
 import { Account } from '../models/account'
 
@@ -54,9 +52,10 @@ function isEmailPublic(email: IAPIEmail): boolean {
  * endpoint host.
  */
 function getStealthEmailHostForEndpoint(endpoint: string) {
-  return getDotComAPIEndpoint() !== endpoint
-    ? `users.noreply.${URL.parse(endpoint).hostname}`
-    : 'users.noreply.github.com'
+  const { hostname } = new URL(endpoint)
+  return endpoint === getDotComAPIEndpoint() || endpoint.endsWith(`.ghe.com`)
+    ? 'users.noreply.github.com'
+    : `users.noreply.${hostname}`
 }
 
 /**
