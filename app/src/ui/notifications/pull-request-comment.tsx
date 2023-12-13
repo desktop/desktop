@@ -3,7 +3,6 @@ import { Row } from '../lib/row'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { PullRequest } from '../../models/pull-request'
 import { Dispatcher } from '../dispatcher'
-import { Account } from '../../models/account'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
 import { IAPIComment } from '../../lib/api'
@@ -12,7 +11,6 @@ import { PullRequestCommentLike } from './pull-request-comment-like'
 
 interface IPullRequestCommentProps {
   readonly dispatcher: Dispatcher
-  readonly accounts: ReadonlyArray<Account>
   readonly repository: RepositoryWithGitHubRepository
   readonly pullRequest: PullRequest
   readonly comment: IAPIComment
@@ -53,7 +51,6 @@ export class PullRequestComment extends React.Component<
   public render() {
     const {
       dispatcher,
-      accounts,
       repository,
       pullRequest,
       emoji,
@@ -68,7 +65,6 @@ export class PullRequestComment extends React.Component<
       <PullRequestCommentLike
         id="pull-request-comment"
         dispatcher={dispatcher}
-        accounts={accounts}
         repository={repository}
         pullRequest={pullRequest}
         emoji={emoji}

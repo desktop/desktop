@@ -353,7 +353,6 @@ export class BranchesContainer extends React.Component<
         isOnDefaultBranch={!!isOnDefaultBranch}
         onSelectionChanged={this.onPullRequestSelectionChanged}
         onCreateBranch={this.onCreateBranch}
-        onDismiss={this.onDismiss}
         dispatcher={this.props.dispatcher}
         repository={repository}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
@@ -385,10 +384,6 @@ export class BranchesContainer extends React.Component<
 
   private onTabClicked = (tab: BranchesTab) => {
     this.props.dispatcher.changeBranchesTab(tab)
-  }
-
-  private onDismiss = () => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
   }
 
   private onMergeClick = () => {

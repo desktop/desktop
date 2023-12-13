@@ -21,7 +21,6 @@ export enum WelcomeStep {
 
 interface IWelcomeProps {
   readonly dispatcher: Dispatcher
-  readonly optOut: boolean
   readonly accounts: ReadonlyArray<Account>
   readonly signInState: SignInState | null
 }

@@ -1,6 +1,5 @@
 import * as React from 'react'
 
-import { Repository } from '../../models/repository'
 import {
   ITextDiff,
   DiffLineType,
@@ -96,8 +95,6 @@ const closestRow = (n: Node, container: Element) => {
 }
 
 interface ISideBySideDiffProps {
-  readonly repository: Repository
-
   /** The file whose diff should be displayed. */
   readonly file: ChangedFile
 

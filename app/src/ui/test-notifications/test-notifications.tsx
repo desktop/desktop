@@ -248,10 +248,6 @@ export class TestNotifications extends React.Component<
     )
   }
 
-  private onDismissed = () => {
-    this.props.dispatcher.closePopup()
-  }
-
   private getTypeFriendlyName(type?: TestNotificationType): string {
     const titleMap = new Map<TestNotificationType, string>([
       [TestNotificationType.PullRequestReview, 'Pull Request Review'],
@@ -739,14 +735,14 @@ export class TestNotifications extends React.Component<
     return (
       <Dialog
         id="test-notifications"
-        onSubmit={this.onDismissed}
+        onSubmit={this.props.onDismissed}
         dismissable={true}
-        onDismissed={this.onDismissed}
+        onDismissed={this.props.onDismissed}
       >
         <DialogHeader
           title="Test Notifications"
           dismissable={true}
-          onDismissed={this.onDismissed}
+          onDismissed={this.props.onDismissed}
         />
 
         <DialogContent>

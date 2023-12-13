@@ -38,24 +38,34 @@ interface ISeamlessDiffSwitcherProps {
    * diff's lines can be selected, e.g., displaying a change in the working
    * directory.
    */
+  // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly readOnly: boolean
 
   /** The file whose diff should be displayed. */
   readonly file: ChangedFile
 
   /** Called when the includedness of lines or a range of lines has changed. */
+  // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
 
   /** The diff that should be rendered */
   readonly diff: IDiff | null
 
   /** The type of image diff to display. */
+  // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly imageDiffType: ImageDiffType
 
   /** Hiding whitespace in diff. */
+  // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly hideWhitespaceInDiff: boolean
 
   /** Whether we should display side by side diffs. */
+  // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly showSideBySideDiff: boolean
 
   /** Whether we should show a confirmation dialog when the user discards changes */
@@ -65,27 +75,37 @@ interface ISeamlessDiffSwitcherProps {
    * Called when the user requests to open a binary file in an the
    * system-assigned application for said file type.
    */
+  // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly onOpenBinaryFile: (fullPath: string) => void
 
   /** Called when the user requests to open a submodule. */
+  // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly onOpenSubmodule?: (fullPath: string) => void
 
   /**
    * Called when the user is viewing an image diff and requests
    * to change the diff presentation mode.
    */
+  // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly onChangeImageDiffType: (type: ImageDiffType) => void
 
   /*
    * Called when the user wants to discard a selection of the diff.
    * Only applicable when readOnly is false.
    */
+  // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly onDiscardChanges?: (
     diff: ITextDiff,
     diffSelection: DiffSelection
   ) => void
 
   /** Called when the user changes the hide whitespace in diffs setting. */
+  // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 

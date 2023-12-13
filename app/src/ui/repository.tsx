@@ -420,7 +420,6 @@ export class RepositoryView extends React.Component<
     return (
       <SelectedCommits
         repository={this.props.repository}
-        isLocalRepository={this.props.state.remote === null}
         dispatcher={this.props.dispatcher}
         selectedCommits={selectedCommits}
         shasInDiff={shasInDiff}
@@ -539,7 +538,6 @@ export class RepositoryView extends React.Component<
             this.props.askForConfirmationOnDiscardChanges
           }
           onDiffOptionsOpened={this.onDiffOptionsOpened}
-          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />
       )
     }

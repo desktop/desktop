@@ -41,8 +41,6 @@ import { NotificationCallback } from 'desktop-notifications/dist/notification-ca
 export type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
   pullRequest: PullRequest,
-  commitMessage: string,
-  commitSha: string,
   checkRuns: ReadonlyArray<IRefCheck>
 ) => void
 
@@ -403,13 +401,7 @@ export class NotificationsStore {
     const onClick = () => {
       this.statsStore.increment('checksFailedNotificationClicked')
 
-      this.onChecksFailedCallback?.(
-        repository,
-        pullRequest,
-        commit.summary,
-        commitSHA,
-        checks
-      )
+      this.onChecksFailedCallback?.(repository, pullRequest, checks)
     }
 
     if (skipNotification) {

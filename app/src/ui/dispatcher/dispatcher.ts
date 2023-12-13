@@ -3927,16 +3927,8 @@ export class Dispatcher {
   public onChecksFailedNotification(
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
-    commitMessage: string,
-    commitSha: string,
     checks: ReadonlyArray<IRefCheck>
   ) {
-    this.appStore.onChecksFailedNotification(
-      repository,
-      pullRequest,
-      commitMessage,
-      commitSha,
-      checks
-    )
+    this.appStore.onChecksFailedNotification(repository, pullRequest, checks)
   }
 }

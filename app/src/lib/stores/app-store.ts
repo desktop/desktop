@@ -7441,8 +7441,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public onChecksFailedNotification = async (
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
-    commitMessage: string,
-    commitSha: string,
     checks: ReadonlyArray<IRefCheck>
   ) => {
     const selectedRepository =
@@ -7453,8 +7451,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       pullRequest,
       repository,
       shouldChangeRepository: true,
-      commitMessage,
-      commitSha,
       checks,
     }
 
