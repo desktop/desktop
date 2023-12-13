@@ -652,10 +652,6 @@ export class CommitList extends React.Component<
       viewInBrowserLabel = 'View on GitHub Enterprise'
     }
 
-    if (!gitHubRepository) {
-      viewInBrowserLabel = 'View in your browser'
-    }
-
     const items: IMenuItem[] = []
 
     if (canBeAmended) {
