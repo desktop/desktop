@@ -8,6 +8,7 @@ import {
 } from './workflow-preferences'
 import { assertNever, fatalError } from '../lib/fatal-error'
 import { createEqualityHash } from './equality-hash'
+import { git } from '../lib/git'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -43,6 +44,11 @@ export class Repository {
   public hash: string
 
   /**
+   * The Git repository's origin url
+   */
+  public url: string | null
+
+  /**
    * @param path The working directory of this repository
    * @param missing Was the repository missing on disk last we checked?
    */
@@ -62,6 +68,15 @@ export class Repository {
   ) {
     this.mainWorkTree = { path }
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
+
+    this.url = null
+    git(
+      ['config', '--get', 'remote.origin.url'],
+      this.path,
+      'getRemoteOriginUrl'
+    ).then(result => {
+      this.url = result.stdout
+    })
 
     this.hash = createEqualityHash(
       path,

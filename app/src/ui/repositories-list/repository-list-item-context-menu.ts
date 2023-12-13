@@ -28,6 +28,8 @@ export const generateRepositoryListContextMenu = (
   const missing = repository instanceof Repository && repository.missing
   const doesGithubRepositoryExist =
     repository instanceof Repository && repository.gitHubRepository != null
+  const hasOriginUrl =
+    repository instanceof Repository && repository.url != null
   const openInExternalEditor = config.externalEditorLabel
     ? `Open in ${config.externalEditorLabel}`
     : DefaultEditorLabel
@@ -52,7 +54,7 @@ export const generateRepositoryListContextMenu = (
     {
       label: viewInBrowserLabel,
       action: () => config.onViewInBrowser(repository),
-      enabled: doesGithubRepositoryExist,
+      enabled: hasOriginUrl,
     },
     {
       label: `Open in ${config.shellLabel}`,
