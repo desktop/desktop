@@ -2385,12 +2385,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     let displayViewInGitHub = true
     if (selectedRepository instanceof Repository) {
-      displayViewInGitHub = selectedRepository.gitHubRepository !== null
-      if (displayViewInGitHub) {
-        // We want to have "View on GitHub" by default even if the origin URL
-        // does not exist.
-        displayViewInGitHub = selectedRepository.url !== null
-      }
+      const hasGitHubRepo = selectedRepository.gitHubRepository !== null
+      const hasRemoteUrl = selectedRepository.url !== null
+      displayViewInGitHub = hasGitHubRepo === hasRemoteUrl
     }
 
     updatePreferredAppMenuItemLabels({
