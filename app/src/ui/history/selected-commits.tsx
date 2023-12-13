@@ -479,6 +479,10 @@ export class SelectedCommits extends React.Component<
       viewInBrowserLabel = 'View on GitHub Enterprise'
     }
 
+    if (!gitHubRepository) {
+      viewInBrowserLabel = 'View in your browser'
+    }
+
     items.push({
       label: viewInBrowserLabel,
       action: () => this.onViewInBrowser(selectedCommits[0].sha, file),

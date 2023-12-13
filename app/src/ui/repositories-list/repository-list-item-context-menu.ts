@@ -26,11 +26,17 @@ export const generateRepositoryListContextMenu = (
 ) => {
   const { repository } = config
   const missing = repository instanceof Repository && repository.missing
-  const github =
+  const doesGithubRepositoryExist =
     repository instanceof Repository && repository.gitHubRepository != null
   const openInExternalEditor = config.externalEditorLabel
     ? `Open in ${config.externalEditorLabel}`
     : DefaultEditorLabel
+
+  let viewInBrowserLabel = 'View on GitHub'
+
+  if (!doesGithubRepositoryExist) {
+    viewInBrowserLabel = 'View in your browser'
+  }
 
   const items: ReadonlyArray<IMenuItem> = [
     ...buildAliasMenuItems(config),
@@ -44,9 +50,9 @@ export const generateRepositoryListContextMenu = (
     },
     { type: 'separator' },
     {
-      label: 'View on GitHub',
+      label: viewInBrowserLabel,
       action: () => config.onViewInBrowser(repository),
-      enabled: github,
+      enabled: doesGithubRepositoryExist,
     },
     {
       label: `Open in ${config.shellLabel}`,
