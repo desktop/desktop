@@ -8,7 +8,7 @@ import {
 } from './workflow-preferences'
 import { assertNever, fatalError } from '../lib/fatal-error'
 import { createEqualityHash } from './equality-hash'
-import { git } from '../lib/git'
+import { getRemotes } from '../lib/git'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -70,12 +70,12 @@ export class Repository {
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
 
     this.url = null
-    git(
-      ['config', '--get', 'remote.origin.url'],
-      this.path,
-      'getRemoteOriginUrl'
-    ).then(result => {
-      this.url = result.stdout
+
+    const remotes = getRemotes(this)
+    remotes.then(result => {
+      if (result.length > 0) {
+        this.url = result[0].url
+      }
     })
 
     this.hash = createEqualityHash(
