@@ -472,7 +472,6 @@ export class AppMenuBar extends React.Component<
         menuState={menuState}
         highlightMenuAccessKey={highlightMenuAccessKey}
         enableAccessKeyNavigation={enableAccessKeyNavigation}
-        openedWithAccessKey={openedWithAccessKey}
         onClose={this.onMenuClose}
         onOpen={this.onMenuOpen}
         onMouseEnter={this.onMenuButtonMouseEnter}
