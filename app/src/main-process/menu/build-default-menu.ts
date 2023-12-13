@@ -317,8 +317,8 @@ export function buildDefaultMenu({
       {
         id: 'view-repository-on-github',
         label: __DARWIN__
-          ? `View ${hasGitHubRepository ? 'on GitHub' : 'in your browser'}`
-          : `&View ${hasGitHubRepository ? 'on GitHub' : 'in your browser'}`,
+          ? `View ${hasGitHubRepository ? 'on GitHub' : 'in Browser'}`
+          : `&View ${hasGitHubRepository ? 'on GitHub' : 'in Browser'}`,
         accelerator: 'CmdOrCtrl+Shift+G',
         click: emit('view-repository-on-github'),
       },
