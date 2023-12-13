@@ -64,5 +64,5 @@ export type MenuLabelsEvent = {
   /**
    * Whether or not the repository is on GitHub or not.
    */
-  readonly hasGitHubRepository?: boolean
+  readonly displayViewInGitHub?: boolean
 }

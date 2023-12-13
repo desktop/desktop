@@ -2383,9 +2383,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const askForConfirmationWhenStashingAllChanges =
       changesState.stashEntry !== null
 
-    let hasGitHubRepository = true
+    let displayViewInGitHub = true
     if (selectedRepository instanceof Repository) {
-      hasGitHubRepository = selectedRepository.gitHubRepository !== null
+      displayViewInGitHub = selectedRepository.gitHubRepository !== null
+      if (displayViewInGitHub) {
+        // We want to have "View on GitHub" by default even if the origin URL
+        // does not exist.
+        displayViewInGitHub = selectedRepository.url !== null
+      }
     }
 
     updatePreferredAppMenuItemLabels({
@@ -2395,7 +2400,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       isStashedChangesVisible,
       hasCurrentPullRequest: currentPullRequest !== null,
       askForConfirmationWhenStashingAllChanges,
-      hasGitHubRepository,
+      displayViewInGitHub,
     })
   }
 
