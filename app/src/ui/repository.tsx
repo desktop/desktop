@@ -306,6 +306,7 @@ export class RepositoryView extends React.Component<
         askForConfirmationOnCheckoutCommit={
           this.props.askForConfirmationOnCheckoutCommit
         }
+        accounts={this.props.accounts}
       />
     )
   }

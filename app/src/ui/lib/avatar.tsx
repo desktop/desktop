@@ -6,6 +6,7 @@ import { getDotComAPIEndpoint } from '../../lib/api'
 import { TooltippedContent } from './tooltipped-content'
 import { TooltipDirection } from './tooltip'
 import { supportsAvatarsAPI } from '../../lib/endpoint-capabilities'
+import { Account } from '../../models/account'
 
 /**
  * This maps contains avatar URLs that have failed to load and
@@ -59,6 +60,8 @@ interface IAvatarProps {
    * attempt to request, defaults to 64px.
    */
   readonly size?: number
+
+  readonly accounts?: ReadonlyArray<Account>
 }
 
 interface IAvatarState {

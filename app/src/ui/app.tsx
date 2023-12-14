@@ -2429,6 +2429,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedTab={popup.selectedTab}
             emoji={emoji}
             onDismissed={onPopupDismissedFn}
+            accounts={this.state.accounts}
           />
         )
       }
@@ -2700,6 +2701,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             commit={commit}
             selectedCommits={selectedCommits}
             emoji={emoji}
+            accounts={this.state.accounts}
           />
         )
       default:
