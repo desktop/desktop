@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { IAvatarUser } from '../../models/avatar'
 import { shallowEquals } from '../../lib/equality'
-import { generateGravatarUrl } from '../../lib/gravatar'
 import { Octicon } from '../octicons'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { TooltippedContent } from './tooltipped-content'
@@ -80,15 +79,6 @@ const DefaultAvatarSymbol = {
 }
 
 /**
- * A regular expression meant to match both the legacy format GitHub.com
- * stealth email address and the modern format (login@ vs id+login@).
- *
- * Yields two capture groups, the first being an optional capture of the
- * user id and the second being the mandatory login.
- */
-const StealthEmailRegexp = /^(?:(\d+)\+)?(.+?)@users\.noreply\.(.*)$/i
-
-/**
  * Produces an ordered iterable of avatar urls to attempt to load for the
  * given user.
  */
@@ -102,14 +92,17 @@ function getAvatarUrlCandidates(
     return candidates
   }
 
-  const { email, endpoint, avatarURL } = user
+  const { email, avatarURL } = user
+  const endpoint = user.endpoint ?? getDotComAPIEndpoint()
   const isDotCom = endpoint === getDotComAPIEndpoint()
+  const isGHE = !!endpoint && new URL(endpoint).origin.endsWith('.ghe.com')
+  const isGHES = !isDotCom && !isGHE
 
   // By leveraging the avatar url from the API (if we've got it) we can
   // load the avatar from one of the load balanced domains (avatars). We can't
   // do the same for GHES/GHAE however since the URLs returned by the API are
   // behind private mode.
-  if (isDotCom && avatarURL !== undefined) {
+  if (!isGHES && avatarURL !== undefined) {
     // The avatar urls returned by the API doesn't come with a size parameter,
     // they default to the biggest size we need on GitHub.com which is usually
     // much bigger than what desktop needs so we'll set a size explicitly.
@@ -123,54 +116,25 @@ function getAvatarUrlCandidates(
       // URLs which we can expect the API to not give us
       candidates.push(avatarURL)
     }
-  } else if (endpoint !== null && !isDotCom && !supportsAvatarsAPI(endpoint)) {
+  }
+
+  if (isGHES && !supportsAvatarsAPI(endpoint)) {
     // We're dealing with an old GitHub Enterprise instance so we're unable to
     // get to the avatar by requesting the avatarURL due to the private mode
-    // (see https://github.com/desktop/desktop/issues/821). So we have no choice
-    // but to fall back to gravatar for now.
-    candidates.push(generateGravatarUrl(email, size))
-    return candidates
+    // (see https://github.com/desktop/desktop/issues/821).
+    return []
   }
 
-  // Are we dealing with a GitHub.com stealth/anonymous email address in
-  // either legacy format:
-  //  niik@users.noreply.github.com
-  //
-  // or the current format
-  //  634063+niik@users.noreply.github.com
-  //
-  // If so we unfortunately can't rely on the GitHub avatar endpoint to
-  // deliver a match based solely on that email address but luckily for us
-  // the avatar service supports looking up a user based either on user id
-  // of login, user id being the better option as it's not affected by
-  // account renames.
-  const stealthEmailMatch = StealthEmailRegexp.exec(email)
+  const avatarEndpoint = isDotCom
+    ? 'https://avatars.githubusercontent.com'
+    : isGHE
+    ? new URL('/avatars', endpoint).toString()
+    : `${endpoint}/enterprise/avatars`
 
-  const avatarEndpoint =
-    endpoint === null || isDotCom
-      ? 'https://avatars.githubusercontent.com'
-      : `${endpoint}/enterprise/avatars`
-
-  if (stealthEmailMatch) {
-    const [, userId, login, hostname] = stealthEmailMatch
-
-    if (
-      hostname === 'github.com' ||
-      (endpoint !== null && hostname === new URL(endpoint).hostname)
-    ) {
-      if (userId !== undefined) {
-        const userIdParam = encodeURIComponent(userId)
-        candidates.push(`${avatarEndpoint}/u/${userIdParam}?s=${size}`)
-      } else {
-        const loginParam = encodeURIComponent(login)
-        candidates.push(`${avatarEndpoint}/${loginParam}?s=${size}`)
-      }
-    }
-  }
-
-  // The /u/e endpoint above falls back to gravatar (proxied)
-  // so we don't have to add gravatar to the fallback.
   const emailParam = encodeURIComponent(email)
+
+  // if ghe and we don't have token, return empty array
+
   candidates.push(`${avatarEndpoint}/u/e?email=${emailParam}&s=${size}`)
 
   return candidates
@@ -182,6 +146,8 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     props: IAvatarProps,
     state: IAvatarState
   ): Partial<IAvatarState> | null {
+    // reset token state if endpoint changes
+
     const { user, size } = props
     if (!shallowEquals(user, state.user)) {
       const candidates = getAvatarUrlCandidates(user, size)
@@ -215,7 +181,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       if (user.name) {
         return (
           <>
-            <Avatar title={null} user={user} />
+            <Avatar title={null} user={user} accounts={this.props.accounts} />
             <div>
               <div>
                 <strong>{user.name}</strong>
@@ -300,6 +266,14 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       FailingAvatars.delete(img.src)
       FailingAvatars.set(img.src, Date.now())
     })
+  }
+
+  public componentDidUpdate() {
+    // fetch the avatar token for the endpoint if we don't have it
+    // when the async fetch completes, check if we're still mounted and if
+    // the endpoint still matches
+    // also need to keep track of whether we have an async fetch in flight or
+    // not so we don't trigger multiple fetches for the same endpoint
   }
 
   public componentDidMount() {
