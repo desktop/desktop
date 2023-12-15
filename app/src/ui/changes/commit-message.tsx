@@ -310,7 +310,8 @@ export class CommitMessage extends React.Component<
       this.isCoAuthorInputVisible &&
       // The co-author input could be also shown when switching between repos,
       // but in that case we don't want to give the focus to the input.
-      prevProps.repository.id === this.props.repository.id
+      prevProps.repository.id === this.props.repository.id &&
+      !!prevProps.commitToAmend === !!this.props.commitToAmend
     ) {
       this.coAuthorInputRef.current?.focus()
     }
