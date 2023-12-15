@@ -267,35 +267,19 @@ export class CommitMessage extends React.Component<
   public componentWillReceiveProps(nextProps: ICommitMessageProps) {
     const { commitMessage } = nextProps
 
-    // If we switch from not amending to amending, we want to populate the
-    // textfields with the commit message from the commit.
-    if (this.props.commitToAmend === null && nextProps.commitToAmend !== null) {
-      this.fillWithCommitMessage({
-        summary: nextProps.commitToAmend.summary,
-        description: nextProps.commitToAmend.body,
-      })
-    } else if (
-      this.props.commitToAmend !== null &&
-      nextProps.commitToAmend === null &&
-      commitMessage !== null
-    ) {
-      this.fillWithCommitMessage(commitMessage)
-    }
-
     if (!commitMessage || commitMessage === this.props.commitMessage) {
       return
     }
 
-    if (this.state.summary === '' && !this.state.description) {
-      this.fillWithCommitMessage(commitMessage)
+    if (
+      (this.state.summary === '' && !this.state.description) ||
+      (this.props.commitToAmend === null && nextProps.commitToAmend)
+    ) {
+      this.setState({
+        summary: commitMessage.summary,
+        description: commitMessage.description,
+      })
     }
-  }
-
-  private fillWithCommitMessage(commitMessage: ICommitMessage) {
-    this.setState({
-      summary: commitMessage.summary,
-      description: commitMessage.description,
-    })
   }
 
   public async componentDidUpdate(
