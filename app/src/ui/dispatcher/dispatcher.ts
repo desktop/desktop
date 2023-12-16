@@ -2468,6 +2468,13 @@ export class Dispatcher {
   }
 
   /**
+   * Set the recent count
+   */
+  public setRecentRepositoriesCount(count: number) {
+    return this.appStore._setRecentRepositoriesCount(count)
+  }
+
+  /**
    * Increments either the `repoWithIndicatorClicked` or
    * the `repoWithoutIndicatorClicked` metric
    */

@@ -157,6 +157,25 @@
       }
     }
   }
+
+  .recent-repository-heading {
+    margin-top: var(--spacing-double);
+  }
+
+  .recent-repository-count {
+    .text-box-component {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      justify-content: space-between;
+      flex: 0;
+    }
+
+    input {
+      width: 50px;
+    }
+  }
 }
 
 #external-editor-error {

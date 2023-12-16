@@ -8,14 +8,19 @@ import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import { RadioGroup } from '../lib/radio-group'
 import { encodePathAsUrl } from '../../lib/path'
+import { TextBox } from '../lib/text-box'
+import { MaxRecentRepositoriesLength } from '../../lib/stores'
 
 interface IAppearanceProps {
   readonly selectedTheme: ApplicationTheme
+  readonly recentRepositoriesCount: number
   readonly onSelectedThemeChanged: (theme: ApplicationTheme) => void
+  readonly setRecentRepositoriesCount: (count: number) => void
 }
 
 interface IAppearanceState {
   readonly selectedTheme: ApplicationTheme | null
+  readonly recentRepositoriesCount: string
 }
 
 export class Appearance extends React.Component<
@@ -29,7 +34,10 @@ export class Appearance extends React.Component<
       props.selectedTheme !== ApplicationTheme.System ||
       supportsSystemThemeChanges()
 
-    this.state = { selectedTheme: usePropTheme ? props.selectedTheme : null }
+    this.state = {
+      selectedTheme: usePropTheme ? props.selectedTheme : null,
+      recentRepositoriesCount: props.recentRepositoriesCount.toString(),
+    }
 
     if (!usePropTheme) {
       this.initializeSelectedTheme()
@@ -37,7 +45,10 @@ export class Appearance extends React.Component<
   }
 
   public async componentDidUpdate(prevProps: IAppearanceProps) {
-    if (prevProps.selectedTheme === this.props.selectedTheme) {
+    if (
+      prevProps.selectedTheme === this.props.selectedTheme &&
+      prevProps.recentRepositoriesCount === this.props.recentRepositoriesCount
+    ) {
       return
     }
 
@@ -49,7 +60,14 @@ export class Appearance extends React.Component<
       ? this.props.selectedTheme
       : await getCurrentlyAppliedTheme()
 
-    this.setState({ selectedTheme })
+    this.setState({
+      selectedTheme,
+      recentRepositoriesCount:
+        this.state.recentRepositoriesCount === '' &&
+        this.props.recentRepositoriesCount === 0
+          ? ''
+          : this.props.recentRepositoriesCount.toString(),
+    })
   }
 
   private initializeSelectedTheme = async () => {
@@ -59,6 +77,14 @@ export class Appearance extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.onSelectedThemeChanged(theme)
+  }
+
+  private onRecentRepositoriesCountChanged = (count: string) => {
+    const countNumber = parseInt(count, 10)
+    if (isNaN(countNumber)) {
+      this.setState({ recentRepositoriesCount: count })
+    }
+    this.props.setRecentRepositoriesCount(countNumber || 0)
   }
 
   public renderThemeSwatch = (theme: ApplicationTheme) => {
@@ -118,7 +144,6 @@ export class Appearance extends React.Component<
     return (
       <DialogContent>
         <h2 id="theme-heading">Theme</h2>
-
         <RadioGroup<ApplicationTheme>
           ariaLabelledBy="theme-heading"
           className="theme-selector"
@@ -127,6 +152,17 @@ export class Appearance extends React.Component<
           onSelectionChanged={this.onSelectedThemeChanged}
           renderRadioButtonLabelContents={this.renderThemeSwatch}
         />
+        <h2 className="recent-repository-heading">Options</h2>
+        <div className="recent-repository-count">
+          <TextBox
+            type="number"
+            label="Recent Repository Count"
+            value={this.state.recentRepositoriesCount}
+            onValueChanged={this.onRecentRepositoriesCountChanged}
+            min={0}
+            max={MaxRecentRepositoriesLength}
+          />
+        </div>
       </DialogContent>
     )
   }

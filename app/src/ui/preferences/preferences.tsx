@@ -65,6 +65,7 @@ interface IPreferencesProps {
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
+  readonly recentRepositoriesCount: number
   readonly repositoryIndicatorsEnabled: boolean
   readonly onOpenFileInExternalEditor: (path: string) => void
 }
@@ -362,6 +363,8 @@ export class Preferences extends React.Component<
           <Appearance
             selectedTheme={this.props.selectedTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
+            recentRepositoriesCount={this.props.recentRepositoriesCount}
+            setRecentRepositoriesCount={this.onRecentRepositoriesCountChanged}
           />
         )
         break
@@ -523,6 +526,12 @@ export class Preferences extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.dispatcher.setSelectedTheme(theme)
+  }
+
+  private onRecentRepositoriesCountChanged = (
+    recentRepositoriesCount: number
+  ) => {
+    this.props.dispatcher.setRecentRepositoriesCount(recentRepositoriesCount)
   }
 
   private renderFooter() {

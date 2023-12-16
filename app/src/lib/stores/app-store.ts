@@ -332,10 +332,10 @@ const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
 const RecentRepositoriesKey = 'recently-selected-repositories'
 /**
- *  maximum number of repositories shown in the "Recent" repositories group
- *  in the repository switcher dropdown
+ *  maximum number of repositories that can be set by the user to be shown
+ *  in the recent repository switcher dropdown
  */
-const RecentRepositoriesLength = 3
+export const MaxRecentRepositoriesLength = 50
 
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
@@ -348,6 +348,9 @@ const stashedFilesWidthConfigKey: string = 'stashed-files-width'
 
 const defaultPullRequestFileListWidth: number = 250
 const pullRequestFileListConfigKey: string = 'pull-request-files-width'
+
+const defaultRecentRepositoriesCount: number = 3
+const recentRepositoriesCountKey: string = 'recent-repositories-count'
 
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
@@ -460,6 +463,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private commitSummaryWidth = constrain(defaultCommitSummaryWidth)
   private stashedFilesWidth = constrain(defaultStashedFilesWidth)
   private pullRequestFileListWidth = constrain(defaultPullRequestFileListWidth)
+  private recentRepositoriesCount: number = defaultRecentRepositoriesCount
 
   private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
@@ -974,6 +978,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSummaryWidth: this.commitSummaryWidth,
       stashedFilesWidth: this.stashedFilesWidth,
       pullRequestFilesListWidth: this.pullRequestFileListWidth,
+      recentRepositoriesCount: this.recentRepositoriesCount,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       highlightAccessKeys: this.highlightAccessKeys,
       isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
@@ -1846,11 +1851,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (previousRepositoryId !== null) {
       recentRepositories.unshift(previousRepositoryId)
     }
+
     const slicedRecentRepositories = recentRepositories.slice(
       0,
-      RecentRepositoriesLength
+      this.recentRepositoriesCount
     )
-    setNumberArray(RecentRepositoriesKey, slicedRecentRepositories)
+    if (slicedRecentRepositories.length > MaxRecentRepositoriesLength) {
+      slicedRecentRepositories.length = MaxRecentRepositoriesLength
+    }
+    setNumberArray(RecentRepositoriesKey, recentRepositories)
     this.recentRepositories = slicedRecentRepositories
     this.notificationsStore.setRecentRepositories(
       this.repositories.filter(r => this.recentRepositories.includes(r.id))
@@ -2067,6 +2076,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.accountsStore.getAll(),
       this.repositoriesStore.getAll(),
     ])
+
+    this.recentRepositoriesCount = getNumber(
+      recentRepositoriesCountKey,
+      defaultRecentRepositoriesCount
+    )
 
     log.info(
       `[AppStore] loading ${repositories.length} repositories from store`
@@ -6501,6 +6515,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setSelectedTheme(theme: ApplicationTheme) {
     setPersistedTheme(theme)
     this.selectedTheme = theme
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the recent repository view count
+   */
+  public _setRecentRepositoriesCount(count: number) {
+    const maxCount = Math.min(count, MaxRecentRepositoriesLength)
+    setNumber(recentRepositoriesCountKey, maxCount)
+    this.recentRepositories = getNumberArray(RecentRepositoriesKey).slice(
+      0,
+      maxCount
+    )
+    this.recentRepositoriesCount = maxCount
     this.emitUpdate()
 
     return Promise.resolve()

@@ -82,6 +82,11 @@ export interface IAppState {
   readonly recentRepositories: ReadonlyArray<number>
 
   /**
+   * The number of recent repositories to show in the repository list
+   */
+  readonly recentRepositoriesCount: number
+
+  /**
    * A cache of the latest repository state values, keyed by the repository id
    */
   readonly localRepositoryStateLookup: Map<number, ILocalRepositoryState>

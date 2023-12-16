@@ -65,7 +65,7 @@ export interface ITextBoxProps {
   readonly onEnterPressed?: (text: string) => void
 
   /** The type of the input. Defaults to `text`. */
-  readonly type?: 'text' | 'search' | 'password' | 'email'
+  readonly type?: 'text' | 'search' | 'password' | 'email' | 'number'
 
   /** The tab index of the input element. */
   readonly tabIndex?: number
@@ -101,6 +101,16 @@ export interface ITextBoxProps {
   readonly ariaDescribedBy?: string
 
   readonly ariaControls?: string
+
+  /**
+   * Optional min value for input[type=number]
+   */
+  readonly min?: number
+
+  /**
+   * Optional max value for input[type=number]
+   */
+  readonly max?: number
 }
 
 interface ITextBoxState {
@@ -319,6 +329,8 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           aria-controls={this.props.ariaControls}
           aria-describedby={this.props.ariaDescribedBy}
           required={this.props.required}
+          min={this.props.min}
+          max={this.props.max}
         />
         {this.props.displayClearButton &&
           this.state.value !== undefined &&
