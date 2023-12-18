@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.3.7-test1": ["[New] Restore co-authors when amending commit"],
     "3.3.7-beta2": [
       "[Fixed] Use list semantics in job step lists for improved accessibility - #17855",
       "[Fixed] Fix heading levels used in dialogs for improved accessibility - #17848",
