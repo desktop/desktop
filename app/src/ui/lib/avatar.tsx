@@ -244,6 +244,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     return null
   }
 
+  /** Set to true when unmounting to avoid unnecessary state updates */
   private cancelAvatarTokenRequest = false
 
   public constructor(props: IAvatarProps) {
