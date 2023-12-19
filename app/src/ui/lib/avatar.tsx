@@ -78,7 +78,7 @@ interface IAvatarProps {
 interface IAvatarState {
   readonly user?: IAvatarUser
   readonly candidates: ReadonlyArray<string>
-  readonly imageLoaded: boolean
+  readonly imageError: boolean
   readonly avatarToken?: AvatarToken | Promise<AvatarToken | undefined>
 }
 
@@ -239,7 +239,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       const avatarToken = tryGetAvatarToken(user?.endpoint)
       const candidates = getAvatarUrlCandidates(user, avatarToken, size)
 
-      return { user, candidates, imageLoaded: false, avatarToken }
+      return { user, candidates, avatarToken }
     }
     return null
   }
@@ -253,7 +253,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     const token = tryGetAvatarToken(user?.endpoint)
     const candidates = getAvatarUrlCandidates(user, token, size)
 
-    this.state = { user, candidates, imageLoaded: false }
+    this.state = { user, candidates, imageError: false }
   }
 
   private getTitle(): string | JSX.Element | undefined {
@@ -288,23 +288,21 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   }
 
   private onImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const { candidates } = this.state
-    if (candidates.length > 0) {
-      this.setState({
-        candidates: candidates.filter(x => x !== e.currentTarget.src),
-        imageLoaded: false,
-      })
-    }
+    const { src } = e.currentTarget
+    const candidates = this.state.candidates.filter(x => x !== src)
+    this.setState({ candidates, imageError: candidates.length === 0 })
   }
 
   private onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    this.setState({ imageLoaded: true })
+    if (this.state.imageError) {
+      this.setState({ imageError: false })
+    }
   }
 
   public render() {
     const title = this.getTitle()
     const { user } = this.props
-    const { imageLoaded } = this.state
+    const { imageError } = this.state
     const alt = user
       ? `Avatar for ${user.name || user.email}`
       : `Avatar for unknown user`
@@ -323,7 +321,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
         direction={TooltipDirection.NORTH}
         tagName="div"
       >
-        {!imageLoaded && (
+        {(!src || imageError) && (
           <Octicon symbol={DefaultAvatarSymbol} className="avatar" />
         )}
         {src && (
@@ -337,7 +335,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
             alt={alt}
             onLoad={this.onImageLoad}
             onError={this.onImageError}
-            style={{ display: imageLoaded ? undefined : 'none' }}
+            style={{ display: imageError ? 'none' : undefined }}
           />
         )}
       </TooltippedContent>
