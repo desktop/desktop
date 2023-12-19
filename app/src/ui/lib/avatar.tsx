@@ -256,35 +256,28 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     this.state = { user, candidates, imageError: false }
   }
 
-  private getTitle(): string | JSX.Element | undefined {
-    if (this.props.title === null) {
-      return undefined
+  private getTitle() {
+    const { title, user, accounts } = this.props
+
+    if (title !== undefined) {
+      return title
     }
 
-    if (this.props.title !== undefined) {
-      return this.props.title
-    }
-
-    const user = this.props.user
-    if (user) {
-      if (user.name) {
-        return (
-          <>
-            <Avatar title={null} user={user} accounts={this.props.accounts} />
+    if (user?.name) {
+      return (
+        <>
+          <Avatar title={null} user={user} accounts={accounts} />
+          <div>
             <div>
-              <div>
-                <strong>{user.name}</strong>
-              </div>
-              <div>{user.email}</div>
+              <strong>{user.name}</strong>
             </div>
-          </>
-        )
-      } else {
-        return user.email
-      }
+            <div>{user.email}</div>
+          </div>
+        </>
+      )
     }
 
-    return 'Unknown user'
+    return user?.email ?? 'Unknown user'
   }
 
   private onImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -317,7 +310,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       <TooltippedContent
         className="avatar-container"
         tooltipClassName={this.props.title ? undefined : 'user-info'}
-        tooltip={title}
+        tooltip={title ?? undefined}
         direction={TooltipDirection.NORTH}
         tagName="div"
       >
