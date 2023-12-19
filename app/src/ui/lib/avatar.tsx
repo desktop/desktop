@@ -61,7 +61,7 @@ interface IAvatarProps {
    */
   readonly size?: number
 
-  readonly accounts?: ReadonlyArray<Account>
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface IAvatarState {
