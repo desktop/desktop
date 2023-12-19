@@ -2405,6 +2405,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             emoji={this.state.emoji}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
+            accounts={this.state.accounts}
           />
         )
       }
@@ -2531,6 +2532,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             emoji={this.state.emoji}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
+            accounts={this.state.accounts}
           />
         )
       }

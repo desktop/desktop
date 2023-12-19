@@ -13,7 +13,7 @@ const MaxDisplayedAvatars = 3
 
 interface IAvatarStackProps {
   readonly users: ReadonlyArray<IAvatarUser>
-  readonly accounts?: ReadonlyArray<Account>
+  readonly accounts: ReadonlyArray<Account>
 }
 
 /**
