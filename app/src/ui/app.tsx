@@ -2224,6 +2224,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             onSubmitCommitMessage={popup.onSubmitCommitMessage}
             repositoryAccount={repositoryAccount}
+            accounts={this.state.accounts}
           />
         )
       case PopupType.MultiCommitOperation: {

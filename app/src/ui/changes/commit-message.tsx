@@ -157,6 +157,8 @@ interface ICommitMessageProps {
   readonly onCommitSpellcheckEnabledChanged: (enabled: boolean) => void
   readonly onStopAmending: () => void
   readonly onShowCreateForkDialog: () => void
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface ICommitMessageState {
@@ -708,6 +710,7 @@ export class CommitMessage extends React.Component<
         onOpenRepositorySettings={this.onOpenRepositorySettings}
         onOpenGitSettings={this.onOpenGitSettings}
         repository={repository}
+        accounts={this.props.accounts}
       />
     )
   }
