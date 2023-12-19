@@ -53,7 +53,7 @@ function isEmailPublic(email: IAPIEmail): boolean {
  */
 function getStealthEmailHostForEndpoint(endpoint: string) {
   const { hostname } = new URL(endpoint)
-  return endpoint === getDotComAPIEndpoint() || endpoint.endsWith(`.ghe.com`)
+  return endpoint === getDotComAPIEndpoint() || hostname.endsWith(`.ghe.com`)
     ? 'users.noreply.github.com'
     : `users.noreply.${hostname}`
 }
