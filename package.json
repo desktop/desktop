@@ -132,7 +132,7 @@
     "@types/legal-eagle": "^0.15.0",
     "@types/memoize-one": "^3.1.1",
     "@types/mri": "^1.1.0",
-    "@types/node": "18.16.1",
+    "@types/node": "18.16.20",
     "@types/prettier": "^2.0.1",
     "@types/react": "^16.8.7",
     "@types/react-css-transition-replace": "^2.1.3",
