@@ -6,8 +6,10 @@ import { TooltippedContent } from './tooltipped-content'
 import { TooltipDirection } from './tooltip'
 import { supportsAvatarsAPI } from '../../lib/endpoint-capabilities'
 import { Account } from '../../models/account'
-import { offsetFromNow } from '../../lib/offset-from'
+import { offsetFrom, offsetFromNow } from '../../lib/offset-from'
 import { parseStealthEmail } from '../../lib/email'
+import { ExpiringOperationCache } from './expiring-operation-cache'
+import { noop } from 'lodash'
 
 type AvatarToken = {
   token: string
@@ -188,99 +190,64 @@ const tryGetAvatarToken = (endpoint: string | undefined | null) => {
   return token
 }
 
-type ResolvedBot = { avatarURL: string; expiresAt: number }
-const resolvedBotsKey = (u: Pick<IAvatarUser, 'email' | 'endpoint'>) =>
-  `${u.endpoint}+${u.email}`
-
-const dotComBot = (email: string, integrationId: number) =>
-  [
-    resolvedBotsKey({ endpoint: getDotComAPIEndpoint(), email }),
-    {
-      avatarURL: `https://avatars.githubusercontent.com/in/${integrationId}?v=4`,
-      expiresAt: Infinity,
-    },
-  ] as [string, ResolvedBot]
-
-const resolvedBots = new Map<string, ResolvedBot | Promise<string>>([
-  dotComBot('49699333+dependabot[bot]@users.noreply.github.com', 29110),
-  dotComBot('dependabot[bot]@users.noreply.github.com', 29110),
-])
-
-const tryResolveBotAvatar = (user: IAvatarUser): IAvatarUser => {
-  if (user.avatarURL !== undefined || user.endpoint === null) {
-    return user
-  }
-
-  const key = resolvedBotsKey(user)
-  const cached = resolvedBots.get(key)
-  if (cached && !('then' in cached)) {
-    if (cached.expiresAt < Date.now()) {
-      resolvedBots.delete(key)
-    } else {
-      return { ...user, avatarURL: cached.avatarURL }
+const botAvatarCache = new ExpiringOperationCache<
+  { user: IAvatarUser; accounts: ReadonlyArray<Account> },
+  IAvatarUser
+>(
+  ({ user }) => `${user.endpoint}:${user.email}`,
+  async ({ user, accounts }) => {
+    const { endpoint } = user
+    if (user.avatarURL !== undefined || endpoint === null) {
+      throw new Error('Avatar URL already resolved or endpoint is null')
     }
-  }
 
-  return user
+    const account = accounts.find(a => a.endpoint === user.endpoint)
+
+    if (!account) {
+      throw new Error('No account found for endpoint')
+    }
+
+    const match = parseStealthEmail(user.email, endpoint)
+
+    if (!match || !match.login.endsWith('[bot]')) {
+      throw new Error('Email does not appear to be a bot email')
+    }
+
+    const api = new API(endpoint, account.token)
+    const apiUser = await api.fetchUser(match.login)
+
+    if (!apiUser?.avatar_url) {
+      throw new Error('No avatar url returned from API')
+    }
+
+    return { ...user, avatarURL: apiUser.avatar_url }
+  },
+  ({ user }) =>
+    user.endpoint && new URL(user.endpoint).hostname.endsWith('ghe.com')
+      ? offsetFrom(0, 50, 'minutes')
+      : Infinity
+)
+
+const dotComBots = (login: string, id: number, integrationId: number) => {
+  const avatarURL = `https://avatars.githubusercontent.com/in/${integrationId}?v=4`
+  const endpoint = getDotComAPIEndpoint()
+  const stealthHost = 'users.noreply.github.com'
+  return [
+    { email: `${id}+${login}@${stealthHost}`, name: '', avatarURL, endpoint },
+    { email: `${login}@${stealthHost}`, name: '', avatarURL, endpoint },
+  ]
 }
 
-const resolveBotAvatar = async (
-  user: IAvatarUser,
-  accounts: ReadonlyArray<Account>
-) => {
-  const { endpoint } = user
-  if (user.avatarURL !== undefined || endpoint === null) {
-    return user
-  }
+const knownAvatars: ReadonlyArray<IAvatarUser> = [
+  ...dotComBots('dependabot[bot]', 49699333, 29110),
+  ...dotComBots('github-actions[bot]', 41898282, 15368),
+  ...dotComBots('github-pages[bot]	', 52472962, 34598),
+]
 
-  const account = accounts.find(a => a.endpoint === user.endpoint)
-  const match = parseStealthEmail(user.email, endpoint)
-
-  if (!account || !match || !match.login.endsWith('[bot]')) {
-    return user
-  }
-
-  const key = resolvedBotsKey(user)
-  const cache = resolvedBots.get(key)
-
-  if (cache) {
-    if ('then' in cache) {
-      return cache.then(avatarURL => ({ ...user, avatarURL })).catch(_ => user)
-    } else {
-      if (cache.expiresAt < Date.now()) {
-        resolvedBots.delete(key)
-        return user
-      }
-
-      return { ...user, avatarURL: cache.avatarURL }
-    }
-  }
-
-  const api = new API(endpoint, account.token)
-  const isGHE = new URL(endpoint).hostname.endsWith('ghe.com')
-  const promise = api
-    .fetchUser(match.login)
-    .then(apiUser => {
-      if (!apiUser?.avatar_url) {
-        throw new Error('No avatar url returned from API')
-      }
-      resolvedBots.set(key, {
-        avatarURL: apiUser.avatar_url,
-        expiresAt: isGHE ? offsetFromNow(50, 'minutes') : Infinity,
-      })
-      return apiUser.avatar_url
-    })
-    .catch(e => {
-      log.error(`Unable to resolve bot avatar for ${user.email}`, e)
-      resolvedBots.delete(key)
-      return Promise.reject(e)
-    })
-  resolvedBots.set(key, promise)
-
-  return promise
-    .then(avatarURL => ({ ...user, avatarURL: avatarURL }))
-    .catch(_ => user)
-}
+// Preload some of the more popular bot avatars so we don't have to hit the API
+knownAvatars.forEach(user =>
+  botAvatarCache.set({ user, accounts: [] }, user, Infinity)
+)
 
 /**
  * Load an avatar token for the given endpoint from cache or, if necessary,
@@ -345,7 +312,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     props: IAvatarProps,
     state: IAvatarState
   ): Partial<IAvatarState> | null {
-    const { size } = props
+    const { size, accounts } = props
     if (
       props.user?.email !== state.user?.email ||
       props.user?.endpoint !== state.user?.endpoint ||
@@ -353,7 +320,9 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     ) {
       // If the endpoint has changed we need to reset the avatar token so that
       // it'll be re-fetched for the new endpoint
-      const user = props.user ? tryResolveBotAvatar(props.user) : undefined
+      const user = props.user
+        ? botAvatarCache.tryGet({ user: props.user, accounts }) ?? props.user
+        : undefined
       const avatarToken = tryGetAvatarToken(user?.endpoint)
       const candidates = getAvatarUrlCandidates(user, avatarToken, size)
 
@@ -368,8 +337,10 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   public constructor(props: IAvatarProps) {
     super(props)
 
-    const { size } = props
-    const user = props.user ? tryResolveBotAvatar(props.user) : undefined
+    const { size, accounts } = props
+    const user = props.user
+      ? botAvatarCache.tryGet({ user: props.user, accounts }) ?? props.user
+      : undefined
     const token = tryGetAvatarToken(user?.endpoint)
     const candidates = getAvatarUrlCandidates(user, token, size)
 
@@ -539,18 +510,25 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   }
 
   private resolveBotAvatar() {
+    const { accounts } = this.props
     const { user } = this.state
+    // todo isbotavatar()
     if (user?.endpoint && !user.avatarURL) {
-      resolveBotAvatar(user, this.props.accounts).then(resolved => {
-        if (
-          user.endpoint === resolved.endpoint &&
-          user.email === resolved.email &&
-          user.name === resolved.name &&
-          user.avatarURL !== resolved.avatarURL
-        ) {
-          this.setState({ user: resolved }, () => this.resetAvatarCandidates())
-        }
-      })
+      botAvatarCache
+        .get({ user, accounts })
+        .then(resolved => {
+          if (
+            user.endpoint === resolved.endpoint &&
+            user.email === resolved.email &&
+            user.name === resolved.name &&
+            user.avatarURL !== resolved.avatarURL
+          ) {
+            this.setState({ user: resolved }, () =>
+              this.resetAvatarCandidates()
+            )
+          }
+        })
+        .catch(noop)
     }
   }
 
