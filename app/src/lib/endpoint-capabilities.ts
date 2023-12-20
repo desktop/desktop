@@ -48,7 +48,7 @@ const endpointVersionKey = (ep: string) => `endpoint-version:${ep}`
 const isDotCom = (ep: string) => ep === getDotComAPIEndpoint()
 
 /** Whether or not the given endpoint URI is under the ghe.com domain */
-const isGHE = (ep: string) => /^https:\/\/[a-z0-9-]+\.ghe\.com$/i.test(ep)
+export const isGHE = (ep: string) => new URL(ep).hostname.endsWith('ghe.com')
 
 /**
  * Whether or not the given endpoint URI appears to point to a GitHub Enterprise
