@@ -4,7 +4,12 @@ import { Octicon } from '../octicons'
 import { API, getDotComAPIEndpoint } from '../../lib/api'
 import { TooltippedContent } from './tooltipped-content'
 import { TooltipDirection } from './tooltip'
-import { isGHE, supportsAvatarsAPI } from '../../lib/endpoint-capabilities'
+import {
+  isDotCom,
+  isGHE,
+  isGHES,
+  supportsAvatarsAPI,
+} from '../../lib/endpoint-capabilities'
 import { Account } from '../../models/account'
 import { parseStealthEmail } from '../../lib/email'
 import { noop } from 'lodash'
@@ -184,15 +189,13 @@ function getAvatarUrlCandidates(
   }
 
   const { email, avatarURL } = user
-  const endpoint = user.endpoint ?? getDotComAPIEndpoint()
-  const isDotCom = endpoint === getDotComAPIEndpoint()
-  const isGHES = !isDotCom && !isGHE(endpoint)
+  const ep = user.endpoint ?? getDotComAPIEndpoint()
 
   // By leveraging the avatar url from the API (if we've got it) we can
   // load the avatar from one of the load balanced domains (avatars). We can't
   // do the same for GHES/GHAE however since the URLs returned by the API are
   // behind private mode.
-  if (!isGHES && avatarURL !== undefined) {
+  if (!isGHES(ep) && avatarURL !== undefined) {
     // The avatar urls returned by the API doesn't come with a size parameter,
     // they default to the biggest size we need on GitHub.com which is usually
     // much bigger than what desktop needs so we'll set a size explicitly.
@@ -208,28 +211,27 @@ function getAvatarUrlCandidates(
     }
   }
 
-  if (isGHES && !supportsAvatarsAPI(endpoint)) {
+  if (isGHES(ep) && !supportsAvatarsAPI(ep)) {
     // We're dealing with an old GitHub Enterprise instance so we're unable to
     // get to the avatar by requesting the avatarURL due to the private mode
     // (see https://github.com/desktop/desktop/issues/821).
     return []
   }
 
-  if (isGHE(endpoint) && !avatarToken) {
+  if (isGHE(ep) && !avatarToken) {
     // ghe.com requires a token, nothing we can do here, we'll be called again
     // once the token has been loaded
     return []
   }
 
-  const emailAvatarUrl = new URL(
-    isDotCom ? '/u/e' : isGHES ? '/enterprise/avatars/u/e' : '/avatars/u/e',
-    isDotCom ? 'https://avatars.githubusercontent.com/' : endpoint
-  )
+  const emailAvatarUrl = isDotCom(ep)
+    ? new URL('/u/e', 'https://avatars.githubusercontent.com')
+    : new URL(isGHES(ep) ? '/enterprise/avatars/u/e' : '/avatars/u/e', ep)
 
   emailAvatarUrl.searchParams.set('email', email)
   emailAvatarUrl.searchParams.set('s', `${size}`)
 
-  if (isGHE(endpoint) && avatarToken) {
+  if (isGHE(ep) && avatarToken) {
     emailAvatarUrl.searchParams.set('token', avatarToken)
   }
 

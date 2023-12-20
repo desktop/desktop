@@ -3,16 +3,20 @@ import { getDotComAPIEndpoint } from './api'
 import { assertNonNullable } from './fatal-error'
 
 export type VersionConstraint = {
-  /** Whether this constrain will be satisfied when using GitHub.com */
+  /**
+   * Whether this constrain will be satisfied when using GitHub.com, defaults
+   * to false
+   **/
   dotcom?: boolean
   /**
-   * Whether this constrain will be satisfied when using ghe.com
+   * Whether this constrain will be satisfied when using ghe.com, defaults to
+   * the value of `dotcom` if not specified
    */
   ghe?: boolean
   /**
    * Whether this constrain will be satisfied when using GitHub Enterprise
    * Server. Supports specifying a version constraint as a SemVer Range (ex: >=
-   * 3.1.0)
+   * 3.1.0), defaults to false
    */
   es?: boolean | string
 }
@@ -45,7 +49,7 @@ const endpointVersionKey = (ep: string) => `endpoint-version:${ep}`
  * Most often used to check if an endpoint _isn't_ GitHub.com meaning it's
  * either GitHub Enterprise Server or GitHub AE
  */
-const isDotCom = (ep: string) => ep === getDotComAPIEndpoint()
+export const isDotCom = (ep: string) => ep === getDotComAPIEndpoint()
 
 /** Whether or not the given endpoint URI is under the ghe.com domain */
 export const isGHE = (ep: string) => new URL(ep).hostname.endsWith('ghe.com')
@@ -54,7 +58,7 @@ export const isGHE = (ep: string) => new URL(ep).hostname.endsWith('ghe.com')
  * Whether or not the given endpoint URI appears to point to a GitHub Enterprise
  * Server instance
  */
-const isGHES = (ep: string) => !isDotCom(ep) && !isGHE(ep)
+export const isGHES = (ep: string) => !isDotCom(ep) && !isGHE(ep)
 
 function getEndpointVersion(endpoint: string) {
   const key = endpointVersionKey(endpoint)

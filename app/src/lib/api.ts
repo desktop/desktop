@@ -1548,8 +1548,8 @@ export class API {
 
   public async getAvatarToken() {
     return this.request('GET', `/desktop/avatar-token`)
-      .then(x => x.json() as unknown)
-      .then(x =>
+      .then(x => x.json())
+      .then((x: unknown) =>
         x &&
         typeof x === 'object' &&
         'avatar_token' in x &&

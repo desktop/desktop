@@ -1,5 +1,6 @@
-import { IAPIEmail, getDotComAPIEndpoint } from './api'
+import { IAPIEmail } from './api'
 import { Account } from '../models/account'
+import { isGHES } from './endpoint-capabilities'
 
 /**
  * Lookup a suitable email address to display in the application, based on the
@@ -51,12 +52,10 @@ function isEmailPublic(email: IAPIEmail): boolean {
  * email host is hardcoded to the subdomain users.noreply under the
  * endpoint host.
  */
-function getStealthEmailHostForEndpoint(endpoint: string) {
-  const { hostname } = new URL(endpoint)
-  return endpoint === getDotComAPIEndpoint() || hostname.endsWith(`.ghe.com`)
-    ? 'users.noreply.github.com'
-    : `users.noreply.${hostname}`
-}
+const getStealthEmailHostForEndpoint = (endpoint: string) =>
+  isGHES(endpoint)
+    ? `users.noreply.${new URL(endpoint).hostname}`
+    : 'users.noreply.github.com'
 
 /**
  * Generate a legacy stealth email address for the user
