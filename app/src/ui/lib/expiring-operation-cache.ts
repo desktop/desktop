@@ -1,7 +1,7 @@
 const isPending = <T>(item: unknown | Promise<T>): item is Promise<T> =>
   typeof item === 'object' && item !== null && 'then' in item
 
-export class ExpiringOperationCache<TKey, T extends object> {
+export class ExpiringOperationCache<TKey, T> {
   private readonly data: Map<
     string,
     { item: T; timeoutId?: number } | Promise<T>

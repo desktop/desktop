@@ -6,20 +6,34 @@ import { TooltippedContent } from './tooltipped-content'
 import { TooltipDirection } from './tooltip'
 import { supportsAvatarsAPI } from '../../lib/endpoint-capabilities'
 import { Account } from '../../models/account'
-import { offsetFrom, offsetFromNow } from '../../lib/offset-from'
 import { parseStealthEmail } from '../../lib/email'
-import { ExpiringOperationCache } from './expiring-operation-cache'
 import { noop } from 'lodash'
+import { offsetFrom } from '../../lib/offset-from'
+import { ExpiringOperationCache } from './expiring-operation-cache'
+import { forceUnwrap } from '../../lib/fatal-error'
 
-type AvatarToken = {
-  token: string
-  expiresAt: number
-}
+const avatarTokenCache = new ExpiringOperationCache<
+  { endpoint: string; accounts: ReadonlyArray<Account> },
+  string
+>(
+  ({ endpoint }) => endpoint,
+  async ({ endpoint, accounts }) => {
+    if (!isGHE(endpoint)) {
+      throw new Error('Avatar tokens are only available for ghe.com')
+    }
 
-const endpointAvatarTokensCache = new Map<
-  string,
-  AvatarToken | Promise<AvatarToken | undefined>
->()
+    const account = accounts.find(a => a.endpoint === endpoint)
+    if (!account) {
+      throw new Error('No account found for endpoint')
+    }
+
+    const api = new API(endpoint, account.token)
+    const token = await api.getAvatarToken()
+
+    return forceUnwrap('Avatar token missing', token)
+  },
+  () => offsetFrom(0, 50, 'minutes')
+)
 
 /**
  * This maps contains avatar URLs that have failed to load and
@@ -81,7 +95,7 @@ interface IAvatarState {
   readonly user?: IAvatarUser
   readonly candidates: ReadonlyArray<string>
   readonly imageError: boolean
-  readonly avatarToken?: AvatarToken | Promise<AvatarToken | undefined>
+  readonly avatarToken?: string | Promise<void>
 }
 
 /**
@@ -101,7 +115,7 @@ const DefaultAvatarSymbol = {
  */
 function getAvatarUrlCandidates(
   user: IAvatarUser | undefined,
-  avatarToken: AvatarToken | undefined,
+  avatarToken: string | undefined,
   size = 64
 ): ReadonlyArray<string> {
   const candidates = new Array<string>()
@@ -113,8 +127,7 @@ function getAvatarUrlCandidates(
   const { email, avatarURL } = user
   const endpoint = user.endpoint ?? getDotComAPIEndpoint()
   const isDotCom = endpoint === getDotComAPIEndpoint()
-  const isGHE = new URL(endpoint).hostname.endsWith('.ghe.com')
-  const isGHES = !isDotCom && !isGHE
+  const isGHES = !isDotCom && !isGHE(endpoint)
 
   // By leveraging the avatar url from the API (if we've got it) we can
   // load the avatar from one of the load balanced domains (avatars). We can't
@@ -143,51 +156,27 @@ function getAvatarUrlCandidates(
     return []
   }
 
-  if (isGHE && !avatarToken) {
+  if (isGHE(endpoint) && !avatarToken) {
     // ghe.com requires a token, nothing we can do here, we'll be called again
     // once the token has been loaded
     return []
   }
 
-  const emailAvatarUrl = isDotCom
-    ? new URL('https://avatars.githubusercontent.com/u/e')
-    : new URL(isGHE ? '/avatars/u/e' : '/enterprise/avatars/u/e', endpoint)
+  const emailAvatarUrl = new URL(
+    isDotCom ? '/u/e' : isGHES ? '/enterprise/avatars/u/e' : '/avatars/u/e',
+    isDotCom ? 'https://avatars.githubusercontent.com/' : endpoint
+  )
 
   emailAvatarUrl.searchParams.set('email', email)
   emailAvatarUrl.searchParams.set('s', `${size}`)
 
-  if (isGHE && avatarToken) {
-    emailAvatarUrl.searchParams.set('token', avatarToken.token)
+  if (isGHE(endpoint) && avatarToken) {
+    emailAvatarUrl.searchParams.set('token', avatarToken)
   }
 
   candidates.push(`${emailAvatarUrl}`)
 
   return candidates
-}
-
-/**
- * Load a token for a given endpoint _synchronously_
- *
- * This method will not initiate a request to the server if the token is not
- * already cached. If the token is cached but expired it will be removed from
- * the cache.
- */
-const tryGetAvatarToken = (endpoint: string | undefined | null) => {
-  if (!endpoint) {
-    return undefined
-  }
-  const token = endpointAvatarTokensCache.get(endpoint)
-
-  if (!token || isPendingAvatarToken(token)) {
-    return undefined
-  }
-
-  if (token.expiresAt < Date.now()) {
-    endpointAvatarTokensCache.delete(endpoint)
-    return undefined
-  }
-
-  return token
 }
 
 const botAvatarCache = new ExpiringOperationCache<
@@ -249,62 +238,8 @@ knownAvatars.forEach(user =>
   botAvatarCache.set({ user, accounts: [] }, user, Infinity)
 )
 
-/**
- * Load an avatar token for the given endpoint from cache or, if necessary,
- * by making an API request.
- */
-const getAvatarToken = async (
-  endpoint: string | undefined | null,
-  accounts: ReadonlyArray<Account>
-) => {
-  // Only ghe.com requires avatar tokens
-  if (!endpoint || !new URL(endpoint).origin.endsWith('.ghe.com')) {
-    return undefined
-  }
-
-  const cache = endpointAvatarTokensCache.get(endpoint)
-
-  if (cache) {
-    if (!isPendingAvatarToken(cache) && cache.expiresAt < Date.now()) {
-      endpointAvatarTokensCache.delete(endpoint)
-      return undefined
-    }
-
-    return cache
-  }
-
-  const account = accounts.find(a => a.endpoint === endpoint)
-  if (!account) {
-    return undefined
-  }
-
-  const api = new API(endpoint, account.token)
-  const promise = api
-    .getAvatarToken()
-    .then(token => {
-      if (!token) {
-        endpointAvatarTokensCache.delete(endpoint)
-        return undefined
-      }
-
-      const avatarToken = { token, expiresAt: offsetFromNow(50, 'minutes') }
-      endpointAvatarTokensCache.set(endpoint, avatarToken)
-      return avatarToken
-    })
-    .catch(e => {
-      log.error(`Unable to fetch avatar token for ${endpoint}`, e)
-      endpointAvatarTokensCache.delete(endpoint)
-      return undefined
-    })
-  endpointAvatarTokensCache.set(endpoint, promise)
-  return promise
-}
-
-/** A type guard checking whether the given avatar token is a promise */
-const isPendingAvatarToken = (
-  token: AvatarToken | Promise<AvatarToken | undefined>
-): token is Promise<AvatarToken | undefined> =>
-  token !== undefined && 'then' in token
+const isGHE = (endpoint: string) =>
+  new URL(endpoint).hostname.endsWith('ghe.com')
 
 /** A component for displaying a user avatar. */
 export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
@@ -323,7 +258,12 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       const user = props.user
         ? botAvatarCache.tryGet({ user: props.user, accounts }) ?? props.user
         : undefined
-      const avatarToken = tryGetAvatarToken(user?.endpoint)
+      const endpoint = user?.endpoint
+      const avatarToken =
+        endpoint && isGHE(endpoint)
+          ? avatarTokenCache.tryGet({ endpoint, accounts })
+          : undefined
+
       const candidates = getAvatarUrlCandidates(user, avatarToken, size)
 
       return { user, candidates, avatarToken }
@@ -341,7 +281,12 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     const user = props.user
       ? botAvatarCache.tryGet({ user: props.user, accounts }) ?? props.user
       : undefined
-    const token = tryGetAvatarToken(user?.endpoint)
+    const endpoint = user?.endpoint
+    const token =
+      endpoint && isGHE(endpoint)
+        ? avatarTokenCache.tryGet({ endpoint, accounts })
+        : undefined
+
     const candidates = getAvatarUrlCandidates(user, token, size)
 
     this.state = { user, candidates, imageError: false }
@@ -454,27 +399,24 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       return
     }
 
-    if (!endpoint || !new URL(endpoint).hostname.endsWith('ghe.com')) {
+    if (!endpoint || !isGHE(endpoint)) {
       return
     }
 
     // Can we get a token synchronously?
-    const token = tryGetAvatarToken(endpoint)
+    const token = avatarTokenCache.tryGet({ endpoint, accounts })
     if (token) {
       this.resetAvatarCandidates(token)
       return
     }
 
     this.setState({
-      avatarToken: getAvatarToken(endpoint, accounts).then(token => {
-        if (this.cancelAvatarTokenRequest) {
-          return
+      avatarToken: avatarTokenCache.get({ endpoint, accounts }).then(token => {
+        if (!this.cancelAvatarTokenRequest) {
+          if (token && this.state.user?.endpoint === endpoint) {
+            this.resetAvatarCandidates(token)
+          }
         }
-
-        if (token && this.state.user?.endpoint === endpoint) {
-          this.resetAvatarCandidates(token)
-        }
-        return token
       }),
     })
   }
@@ -493,10 +435,15 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     }
   }
 
-  private resetAvatarCandidates(avatarToken?: AvatarToken) {
+  private resetAvatarCandidates(avatarToken?: string) {
     const { user } = this.state
-    const { size } = this.props
-    avatarToken = avatarToken ?? tryGetAvatarToken(user?.endpoint)
+    const { size, accounts } = this.props
+    if (!avatarToken && user?.endpoint && isGHE(user.endpoint)) {
+      avatarToken =
+        avatarTokenCache.tryGet({ endpoint: user.endpoint, accounts }) ??
+        avatarToken
+    }
+
     const candidates = getAvatarUrlCandidates(user, avatarToken, size)
 
     this.setState({ candidates, avatarToken })
