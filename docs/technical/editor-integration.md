@@ -353,6 +353,8 @@ These editors are currently supported:
  - [Lite XL](https://lite-xl.com/)
  - [JetBrains PHPStorm](https://www.jetbrains.com/phpstorm/)
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
+ - [JetBrains Idea Ultimate](https://www.jetbrains.com/idea/)
+ - [JetBrains Goland](https://www.jetbrains.com/go/)
  - [Emacs](https://www.gnu.org/software/emacs/)
  - [Pulsar](https://pulsar-edit.dev/)
 
