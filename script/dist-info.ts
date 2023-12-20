@@ -125,7 +125,7 @@ export function getDistArchitecture(): 'arm64' | 'x64' | 'armv7l' {
   if (process.arch === 'arm64') {
     return 'arm64'
   }
-  if (process.arch === 'armv7l') {
+  if (process.arch === 'arm') {
     return 'armv7l'
   }
 
