@@ -87,7 +87,6 @@ jobs:
             friendlyName: Ubuntu
             image: ubuntu:18.04
             arch: arm
-            node: 18.16.1
             environment:
               AS: arm-linux-gnueabihf-as
               STRIP: arm-linux-gnueabihf-strip
@@ -167,16 +166,17 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: yarn
-      - name: Install unofficial-builds Node.js ${{ matrix.node }} on Ubuntu
+      - name:
+          Install unofficial-builds Node.js ${{ env.NODE_VERSION }} on Ubuntu
         if: matrix.friendlyName == 'Ubuntu'
         run: |
           # This version supports older GLIBC (official builds required a minimum of GLIBC 2.28)
-          # this might break if you bump the `matrix.node` version - ensure you are on the latest version
+          # this might break if you bump the `env.NODE_VERSION` version - ensure you are on the latest version
           # of which ever major/minor release which should have this variant available
           #
           # See https://github.com/nodejs/unofficial-builds/ for more information on these versions.
           #
-          curl -sL 'https://unofficial-builds.nodejs.org/download/release/v${{ matrix.node }}/node-v${{ matrix.node }}-linux-x64-glibc-217.tar.xz' | xzcat | sudo tar -vx  --strip-components=1 -C /usr/local/
+          curl -sL 'https://unofficial-builds.nodejs.org/download/release/v${{ env.NODE_VERSION }}/node-v${{ env.NODE_VERSION }}-linux-x64-glibc-217.tar.xz' | xzcat | sudo tar -vx  --strip-components=1 -C /usr/local/
           sudo npm install --global yarn
       # This step can be removed as soon as official Windows arm64 builds are published:
       # https://github.com/nodejs/build/issues/2450#issuecomment-705853342
