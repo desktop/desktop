@@ -1,6 +1,6 @@
-import { IAPIEmail, getDotComAPIEndpoint } from './api'
+import { IAPIEmail } from './api'
 import { Account } from '../models/account'
-import { isGHE, isGHES } from './endpoint-capabilities'
+import { isGHES } from './endpoint-capabilities'
 
 /**
  * Lookup a suitable email address to display in the application, based on the
