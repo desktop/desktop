@@ -567,6 +567,31 @@ export class ChangesList extends React.Component<
         action: () => this.props.onIgnoreFile(path),
         enabled: Path.basename(path) !== GitIgnoreFileName,
       })
+
+      const pathComponents = path.split(Path.sep);
+      const assembledPaths = []
+      for (let i = 0; i < pathComponents.length - 1; i++) {
+        // Add each parent directory to the list of paths to ignore
+        // Also include a / since it's the absolute compared to the git repository
+        // That way, we prevent git from ignoring the wrong directory which has the same name
+        // but is in a different location
+        assembledPaths.push('/' + pathComponents.slice(0, i + 1).join(Path.sep) + '/')
+      }
+
+      if (pathComponents.length > 0) {
+        items.push({
+          label: __DARWIN__
+          ? 'Ignore Folder (Add to .gitignore)'
+          : 'Ignore folder (add to .gitignore)',
+          submenu: assembledPaths.map((assembledPath) => ({
+            label: __DARWIN__
+            ? `Ignore ${assembledPath} (Add to .gitignore)`
+            : `Ignore ${assembledPath} (add to .gitignore)`,
+            action: () => this.props.onIgnoreFile(assembledPath),
+          })),
+          enabled: paths.some(path => Path.basename(path) !== GitIgnoreFileName),
+        })
+      }
     } else if (paths.length > 1) {
       items.push({
         label: __DARWIN__
