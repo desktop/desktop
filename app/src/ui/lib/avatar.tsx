@@ -12,6 +12,9 @@ import { offsetFrom } from '../../lib/offset-from'
 import { ExpiringOperationCache } from './expiring-operation-cache'
 import { forceUnwrap } from '../../lib/fatal-error'
 
+const isGHE = (endpoint: string) =>
+  new URL(endpoint).hostname.endsWith('ghe.com')
+
 const avatarTokenCache = new ExpiringOperationCache<
   { endpoint: string; accounts: ReadonlyArray<Account> },
   string
@@ -33,6 +36,65 @@ const avatarTokenCache = new ExpiringOperationCache<
     return forceUnwrap('Avatar token missing', token)
   },
   () => offsetFrom(0, 50, 'minutes')
+)
+
+const botAvatarCache = new ExpiringOperationCache<
+  { user: IAvatarUser; accounts: ReadonlyArray<Account> },
+  IAvatarUser
+>(
+  ({ user }) => `${user.endpoint}:${user.email}`,
+  async ({ user, accounts }) => {
+    const { endpoint } = user
+    if (user.avatarURL !== undefined || endpoint === null) {
+      throw new Error('Avatar URL already resolved or endpoint is null')
+    }
+
+    const account = accounts.find(a => a.endpoint === user.endpoint)
+
+    if (!account) {
+      throw new Error('No account found for endpoint')
+    }
+
+    const match = parseStealthEmail(user.email, endpoint)
+
+    if (!match || !match.login.endsWith('[bot]')) {
+      throw new Error('Email does not appear to be a bot email')
+    }
+
+    const api = new API(endpoint, account.token)
+    const apiUser = await api.fetchUser(match.login)
+
+    if (!apiUser?.avatar_url) {
+      throw new Error('No avatar url returned from API')
+    }
+
+    return { ...user, avatarURL: apiUser.avatar_url }
+  },
+  ({ user }) =>
+    user.endpoint && new URL(user.endpoint).hostname.endsWith('ghe.com')
+      ? offsetFrom(0, 50, 'minutes')
+      : Infinity
+)
+
+const dotComBots = (login: string, id: number, integrationId: number) => {
+  const avatarURL = `https://avatars.githubusercontent.com/in/${integrationId}?v=4`
+  const endpoint = getDotComAPIEndpoint()
+  const stealthHost = 'users.noreply.github.com'
+  return [
+    { email: `${id}+${login}@${stealthHost}`, name: '', avatarURL, endpoint },
+    { email: `${login}@${stealthHost}`, name: '', avatarURL, endpoint },
+  ]
+}
+
+const knownAvatars: ReadonlyArray<IAvatarUser> = [
+  ...dotComBots('dependabot[bot]', 49699333, 29110),
+  ...dotComBots('github-actions[bot]', 41898282, 15368),
+  ...dotComBots('github-pages[bot]	', 52472962, 34598),
+]
+
+// Preload some of the more popular bot avatars so we don't have to hit the API
+knownAvatars.forEach(user =>
+  botAvatarCache.set({ user, accounts: [] }, user, Infinity)
 )
 
 /**
@@ -178,68 +240,6 @@ function getAvatarUrlCandidates(
 
   return candidates
 }
-
-const botAvatarCache = new ExpiringOperationCache<
-  { user: IAvatarUser; accounts: ReadonlyArray<Account> },
-  IAvatarUser
->(
-  ({ user }) => `${user.endpoint}:${user.email}`,
-  async ({ user, accounts }) => {
-    const { endpoint } = user
-    if (user.avatarURL !== undefined || endpoint === null) {
-      throw new Error('Avatar URL already resolved or endpoint is null')
-    }
-
-    const account = accounts.find(a => a.endpoint === user.endpoint)
-
-    if (!account) {
-      throw new Error('No account found for endpoint')
-    }
-
-    const match = parseStealthEmail(user.email, endpoint)
-
-    if (!match || !match.login.endsWith('[bot]')) {
-      throw new Error('Email does not appear to be a bot email')
-    }
-
-    const api = new API(endpoint, account.token)
-    const apiUser = await api.fetchUser(match.login)
-
-    if (!apiUser?.avatar_url) {
-      throw new Error('No avatar url returned from API')
-    }
-
-    return { ...user, avatarURL: apiUser.avatar_url }
-  },
-  ({ user }) =>
-    user.endpoint && new URL(user.endpoint).hostname.endsWith('ghe.com')
-      ? offsetFrom(0, 50, 'minutes')
-      : Infinity
-)
-
-const dotComBots = (login: string, id: number, integrationId: number) => {
-  const avatarURL = `https://avatars.githubusercontent.com/in/${integrationId}?v=4`
-  const endpoint = getDotComAPIEndpoint()
-  const stealthHost = 'users.noreply.github.com'
-  return [
-    { email: `${id}+${login}@${stealthHost}`, name: '', avatarURL, endpoint },
-    { email: `${login}@${stealthHost}`, name: '', avatarURL, endpoint },
-  ]
-}
-
-const knownAvatars: ReadonlyArray<IAvatarUser> = [
-  ...dotComBots('dependabot[bot]', 49699333, 29110),
-  ...dotComBots('github-actions[bot]', 41898282, 15368),
-  ...dotComBots('github-pages[bot]	', 52472962, 34598),
-]
-
-// Preload some of the more popular bot avatars so we don't have to hit the API
-knownAvatars.forEach(user =>
-  botAvatarCache.set({ user, accounts: [] }, user, Infinity)
-)
-
-const isGHE = (endpoint: string) =>
-  new URL(endpoint).hostname.endsWith('ghe.com')
 
 /** A component for displaying a user avatar. */
 export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
