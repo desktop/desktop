@@ -271,7 +271,9 @@ restrictions" enabled, which blocks the GitHub Desktop development app that is
 used by this fork.
 
 **Workaround:** ask your organization admin to [approve access](https://docs.github.com/en/organizations/restricting-access-to-your-organizations-data/approving-oauth-apps-for-your-organization)
-to the GitHub Desktop development app.
+to the GitHub Desktop development app. 
+
+If you have not requested the GitHub Desktop development app for this organization, [follow these instructions first](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-your-membership-in-organizations/requesting-organization-approval-for-oauth-apps).
 
 ### My shell/terminal is not detected and is stuck on GNOME Terminal
 
