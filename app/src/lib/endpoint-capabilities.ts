@@ -3,7 +3,10 @@ import { getDotComAPIEndpoint } from './api'
 import { assertNonNullable } from './fatal-error'
 
 export type VersionConstraint = {
-  /** Whether this constrain will be satisfied when using GitHub.com */
+  /**
+   * Whether this constrain will be satisfied when using GitHub.com, defaults
+   * to false
+   **/
   dotcom?: boolean
   /**
    * Whether this constrain will be satisfied when using ghe.com, defaults to
@@ -13,7 +16,7 @@ export type VersionConstraint = {
   /**
    * Whether this constrain will be satisfied when using GitHub Enterprise
    * Server. Supports specifying a version constraint as a SemVer Range (ex: >=
-   * 3.1.0)
+   * 3.1.0), defaults to false
    */
   es?: boolean | string
 }
