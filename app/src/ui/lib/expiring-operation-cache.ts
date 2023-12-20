@@ -85,7 +85,8 @@ export class ExpiringOperationCache<TKey, T> {
    * Asynchronously return the cached operation result, or start the operation
    */
   public async get(key: TKey): Promise<T> {
-    const cached = this.data.get(this.keyFunc(key))
+    const cacheKey = this.keyFunc(key)
+    const cached = this.data.get(cacheKey)
 
     if (cached) {
       return isPending(cached) ? cached : cached.item
@@ -93,14 +94,14 @@ export class ExpiringOperationCache<TKey, T> {
 
     const promise = this.valueFunc(key)
       .then(value => {
-        if (this.data.get(this.keyFunc(key)) === promise) {
+        if (this.data.get(cacheKey) === promise) {
           this.set(key, value)
         }
         return value
       })
       .catch(e => {
-        if (this.data.get(this.keyFunc(key)) === promise) {
-          this.data.delete(this.keyFunc(key))
+        if (this.data.get(cacheKey) === promise) {
+          this.data.delete(cacheKey)
         }
         return Promise.reject(e)
       })
