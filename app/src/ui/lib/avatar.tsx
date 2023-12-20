@@ -4,16 +4,13 @@ import { Octicon } from '../octicons'
 import { API, getDotComAPIEndpoint } from '../../lib/api'
 import { TooltippedContent } from './tooltipped-content'
 import { TooltipDirection } from './tooltip'
-import { supportsAvatarsAPI } from '../../lib/endpoint-capabilities'
+import { isGHE, supportsAvatarsAPI } from '../../lib/endpoint-capabilities'
 import { Account } from '../../models/account'
 import { parseStealthEmail } from '../../lib/email'
 import { noop } from 'lodash'
 import { offsetFrom } from '../../lib/offset-from'
 import { ExpiringOperationCache } from './expiring-operation-cache'
 import { forceUnwrap } from '../../lib/fatal-error'
-
-const isGHE = (endpoint: string) =>
-  new URL(endpoint).hostname.endsWith('ghe.com')
 
 const avatarTokenCache = new ExpiringOperationCache<
   { endpoint: string; accounts: ReadonlyArray<Account> },
