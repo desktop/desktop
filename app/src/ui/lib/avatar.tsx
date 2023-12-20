@@ -163,6 +163,13 @@ function getAvatarUrlCandidates(
   return candidates
 }
 
+/**
+ * Load a token for a given endpoint _synchronously_
+ *
+ * This method will not initiate a request to the server if the token is not
+ * already cached. If the token is cached but expired it will be removed from
+ * the cache.
+ */
 const tryGetAvatarToken = (endpoint: string | undefined | null) => {
   if (!endpoint) {
     return undefined
@@ -221,6 +228,7 @@ const getAvatarToken = async (
   return promise
 }
 
+/** A type guard checking whether the given avatar token is a promise */
 const isPendingAvatarToken = (
   token: AvatarToken | Promise<AvatarToken | undefined>
 ): token is Promise<AvatarToken | undefined> =>
