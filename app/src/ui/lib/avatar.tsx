@@ -5,7 +5,7 @@ import { Octicon } from '../octicons'
 import { API, getDotComAPIEndpoint } from '../../lib/api'
 import { TooltippedContent } from './tooltipped-content'
 import { TooltipDirection } from './tooltip'
-import { supportsAvatarsAPI } from '../../lib/endpoint-capabilities'
+import { isGHE, supportsAvatarsAPI } from '../../lib/endpoint-capabilities'
 import { Account } from '../../models/account'
 import { offsetFrom } from '../../lib/offset-from'
 import { ExpiringOperationCache } from './expiring-operation-cache'
@@ -177,9 +177,6 @@ function getAvatarUrlCandidates(
 
   return candidates
 }
-
-const isGHE = (endpoint: string) =>
-  new URL(endpoint).hostname.endsWith('ghe.com')
 
 /** A component for displaying a user avatar. */
 export class Avatar extends React.Component<IAvatarProps, IAvatarState> {

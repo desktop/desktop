@@ -1,5 +1,6 @@
 import { IAPIEmail, getDotComAPIEndpoint } from './api'
 import { Account } from '../models/account'
+import { isGHE } from './endpoint-capabilities'
 
 /**
  * Lookup a suitable email address to display in the application, based on the
@@ -53,7 +54,7 @@ function isEmailPublic(email: IAPIEmail): boolean {
  */
 function getStealthEmailHostForEndpoint(endpoint: string) {
   const { hostname } = new URL(endpoint)
-  return endpoint === getDotComAPIEndpoint() || hostname.endsWith(`.ghe.com`)
+  return endpoint === getDotComAPIEndpoint() || isGHE(endpoint)
     ? 'users.noreply.github.com'
     : `users.noreply.${hostname}`
 }
