@@ -188,6 +188,10 @@ const tryGetAvatarToken = (endpoint: string | undefined | null) => {
   return token
 }
 
+/**
+ * Load an avatar token for the given endpoint from cache or, if necessary,
+ * by making an API request.
+ */
 const getAvatarToken = async (
   endpoint: string | undefined | null,
   accounts: ReadonlyArray<Account>
