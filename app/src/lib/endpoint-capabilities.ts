@@ -149,6 +149,9 @@ export const supportsRetrieveActionWorkflowByCheckSuiteId = endpointSatisfies({
   dotcom: true,
 })
 
-export const supportsAliveSessions = endpointSatisfies({ dotcom: true })
+export const supportsAliveSessions = endpointSatisfies({
+  dotcom: true,
+  ghe: false,
+})
 
 export const supportsRepoRules = endpointSatisfies({ dotcom: true })
