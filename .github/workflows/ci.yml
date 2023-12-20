@@ -5,6 +5,7 @@ on:
     branches:
       - development
       - linux
+      - linux-vnext
       - 'linux-release-*'
     tags:
       - 'release-*.*.*-linux*'
@@ -12,6 +13,7 @@ on:
   pull_request:
     branches:
       - linux
+      - linux-vnext
       - 'linux-release-*'
 
 env:
