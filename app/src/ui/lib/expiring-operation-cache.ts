@@ -38,7 +38,7 @@ export class ExpiringOperationCache<TKey, T> {
     const timeout = expiresIn ?? this.expirationFunc(key, value)
 
     if (timeout <= 0) {
-      return
+      return this.delete(key)
     }
 
     const cacheKey = this.keyFunc(key)
