@@ -214,16 +214,23 @@ const getAvatarToken = async (
   }
 
   const api = new API(endpoint, account.token)
-  const promise = api.getAvatarToken().then(token => {
-    if (!token) {
+  const promise = api
+    .getAvatarToken()
+    .then(token => {
+      if (!token) {
+        endpointAvatarTokensCache.delete(endpoint)
+        return undefined
+      }
+
+      const avatarToken = { token, expiresAt: offsetFromNow(50, 'minutes') }
+      endpointAvatarTokensCache.set(endpoint, avatarToken)
+      return avatarToken
+    })
+    .catch(e => {
+      log.error(`Unable to fetch avatar token for ${endpoint}`, e)
       endpointAvatarTokensCache.delete(endpoint)
       return undefined
-    }
-
-    const avatarToken = { token, expiresAt: offsetFromNow(50, 'minutes') }
-    endpointAvatarTokensCache.set(endpoint, avatarToken)
-    return avatarToken
-  })
+    })
   endpointAvatarTokensCache.set(endpoint, promise)
   return promise
 }
