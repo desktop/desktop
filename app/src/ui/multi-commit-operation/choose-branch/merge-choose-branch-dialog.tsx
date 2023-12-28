@@ -104,6 +104,11 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
         return { kind: ComputedAction.Clean }
       })
 
+      if (this.state.selectedBranch !== branch) {
+        // the user has selected a different branch since we started, so don't
+        // update the preview with stale data
+        return
+      }
       this.updateMergeStatusPreview(branch)
     }
 
