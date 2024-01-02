@@ -104,7 +104,6 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
         return { kind: ComputedAction.Clean }
       })
 
-      this.updateMergeStatusPreview(branch)
     }
 
     const range = revSymmetricDifference('', branch.name)
