@@ -155,7 +155,7 @@ export async function getCommits(
   const parsed = parse(result.stdout)
 
   return parsed.map(commit => {
-    const tags = getCaptures(commit.refs, /tag: ([^\s,]+)/g)
+    const tags = getCaptures(commit.refs, /tag: ([^\s]+)/g)
       .filter(i => i[0] !== undefined)
       .map(i => i[0])
 
