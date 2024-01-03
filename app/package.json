@@ -19,6 +19,7 @@
   "dependencies": {
     "@floating-ui/react-dom": "^2.0.0",
     "@github/alive-client": "^0.0.2",
+    "@imkylecat/codemirror-mode-zig": "https://github.com/imkylecat/codemirror-mode-zig.git",
     "app-path": "^3.3.0",
     "byline": "^5.0.0",
     "chalk": "^2.3.0",
