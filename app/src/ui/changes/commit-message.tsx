@@ -56,6 +56,7 @@ import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-fai
 import { Dispatcher } from '../dispatcher'
 import { formatCommitMessage } from '../../lib/format-commit-message'
 import { useRepoRulesLogic } from '../../lib/helpers/repo-rules'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 const addAuthorIcon = {
   w: 18,
@@ -179,6 +180,8 @@ interface ICommitMessageState {
 
   readonly repoRulesEnabled: boolean
 
+  readonly noVerifyCommit: boolean
+
   readonly isRuleFailurePopoverOpen: boolean
 
   readonly repoRuleCommitMessageFailures: RepoRulesMetadataFailures
@@ -236,6 +239,7 @@ export class CommitMessage extends React.Component<
       descriptionObscured: false,
       isCommittingStatusMessage: '',
       repoRulesEnabled: false,
+      noVerifyCommit: false,
       isRuleFailurePopoverOpen: false,
       repoRuleCommitMessageFailures: new RepoRulesMetadataFailures(),
       repoRuleCommitAuthorFailures: new RepoRulesMetadataFailures(),
@@ -408,6 +412,7 @@ export class CommitMessage extends React.Component<
         description: this.state.description,
         trailers: this.getCoAuthorTrailers(),
         amend: this.props.commitToAmend !== null,
+        noVerify: this.state.noVerifyCommit,
       }
 
       const msg = await formatCommitMessage(this.props.repository, context)
@@ -551,6 +556,7 @@ export class CommitMessage extends React.Component<
       description,
       trailers,
       amend: this.props.commitToAmend !== null,
+      noVerify: this.state.noVerifyCommit,
     }
 
     const timer = startTimer('create commit', this.props.repository)
@@ -658,6 +664,26 @@ export class CommitMessage extends React.Component<
       this.createCommit()
       event.preventDefault()
     }
+  }
+
+  private updateNoverifyState = (
+    _event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.setState({
+      noVerifyCommit: !this.state.noVerifyCommit,
+    })
+  }
+
+  private renderNoVerifyCheckBox() {
+    return (
+      <Checkbox
+        label="--no-verify"
+        value={
+          this.state.noVerifyCommit ? CheckboxValue.On : CheckboxValue.Off
+        }
+        onChange={this.updateNoverifyState}
+      />
+    );
   }
 
   private renderAvatar() {
@@ -1393,6 +1419,8 @@ export class CommitMessage extends React.Component<
             readOnly={isCommitting === true}
             spellcheck={commitSpellcheckEnabled}
           />
+
+          {this.renderNoVerifyCheckBox()}
           {showRepoRuleCommitMessageFailureHint &&
             this.renderRepoRuleCommitMessageFailureHint()}
           {showSummaryLengthHint && this.renderSummaryLengthHint()}

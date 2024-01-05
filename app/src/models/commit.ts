@@ -22,6 +22,10 @@ export interface ICommitContext {
    */
   readonly amend?: boolean
   /**
+   * Whether or not it should add --no-verify to skip hooks (optional, default: false)
+   */
+  readonly noVerify?: boolean
+  /**
    * An optional array of commit trailers (for example Co-Authored-By trailers) which will be appended to the commit message in accordance with the Git trailer configuration.
    */
   readonly trailers?: ReadonlyArray<ITrailer>
