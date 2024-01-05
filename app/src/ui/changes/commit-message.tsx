@@ -666,9 +666,7 @@ export class CommitMessage extends React.Component<
     }
   }
 
-  private updateNoverifyState = (
-    _event: React.FormEvent<HTMLInputElement>
-  ) => {
+  private updateNoverifyState = (_event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       noVerifyCommit: !this.state.noVerifyCommit,
     })
@@ -678,12 +676,10 @@ export class CommitMessage extends React.Component<
     return (
       <Checkbox
         label="--no-verify"
-        value={
-          this.state.noVerifyCommit ? CheckboxValue.On : CheckboxValue.Off
-        }
+        value={this.state.noVerifyCommit ? CheckboxValue.On : CheckboxValue.Off}
         onChange={this.updateNoverifyState}
       />
-    );
+    )
   }
 
   private renderAvatar() {
