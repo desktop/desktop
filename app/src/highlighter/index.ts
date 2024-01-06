@@ -426,7 +426,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
-    install: () => import('@imkylecat/codemirror-mode-zig'),
+    install: () => import('codemirror-mode-zig'),
     mappings: {
       '.zig': 'text/x-zig',
     },

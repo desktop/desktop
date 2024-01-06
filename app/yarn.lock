@@ -67,10 +67,6 @@
   resolved "https://registry.yarnpkg.com/@github/stable-socket/-/stable-socket-1.1.0.tgz#b8598c02df1a935fb0c970252f0b0062f4bdaa29"
   integrity sha512-kzLHnrWGvmXka7AIUnsyF+SO5dP4dxEXX2sMixXW5ngRf3i4RhvXzFNgXVy4qBKsIsg6V3fNb3NOto0z6o4XAw==
 
-"@imkylecat/codemirror-mode-zig@https://github.com/imkylecat/codemirror-mode-zig.git":
-  version "1.0.0"
-  resolved "https://github.com/imkylecat/codemirror-mode-zig.git#2b7e3dd589611b3b9000772a4062a9eceaa857c1"
-
 ansi-html@0.0.7:
   version "0.0.7"
   resolved "https://registry.yarnpkg.com/ansi-html/-/ansi-html-0.0.7.tgz#813584021962a9e9e6fd039f940d12f56ca7859e"
@@ -189,6 +185,11 @@ codemirror-mode-elixir@^1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/codemirror-mode-elixir/-/codemirror-mode-elixir-1.1.2.tgz#61227208d2684d928500af6934e4b9c995fb0960"
   integrity sha512-1oIuRVHyUhLv0Za9sEIsI7urAj06EohwO/yVj10bg7aHnimHQ964Wk3uuoPH0Yn8L38EkOd+SwULYpDiCQtoTA==
+
+codemirror-mode-zig@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/codemirror-mode-zig/-/codemirror-mode-zig-1.0.3.tgz#bbe0ca19d90b740299b0920256836cc5dce82ba6"
+  integrity sha512-XoA5P5PsuxgAgBUYdTo4+NIrgnsWWAx8WbH16aflaUOVvfN3PMWSMGytlrsVSaOqpip2YQG9kedmWs3bGIXp7A==
 
 codemirror@^5.60.0:
   version "5.60.0"
