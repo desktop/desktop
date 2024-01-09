@@ -147,7 +147,7 @@ jobs:
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_SECRET }}
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ inputs.upload-artifacts }}
         with:
           name: ${{matrix.friendlyName}}-${{matrix.arch}}
