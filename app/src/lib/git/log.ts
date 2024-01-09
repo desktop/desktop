@@ -12,7 +12,6 @@ import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
 import { parseRawUnfoldedTrailers } from './interpret-trailers'
-import { getCaptures } from '../helpers/regex'
 import { createLogParser } from './git-delimiter-parser'
 import { revRange } from '.'
 import { forceUnwrap } from '../fatal-error'
@@ -155,9 +154,12 @@ export async function getCommits(
   const parsed = parse(result.stdout)
 
   return parsed.map(commit => {
-    const tags = getCaptures(commit.refs, /tag: ([^\s,]+)/g)
-      .filter(i => i[0] !== undefined)
-      .map(i => i[0])
+    // Ref is of the format: (HEAD -> master, tag: some-tag-name, tag: some-other-tag,with-a-comma, origin/master, origin/HEAD)
+    // Refs are comma separated, but some like tags can also contain commas in the name, so we split on the pattern ", " and then
+    // check each ref for the tag prefix. We used to use the regex /tag: ([^\s,]+)/g)`, but will clip a tag with a comma short.
+    const tags = commit.refs
+      .split(', ')
+      .flatMap(ref => (ref.startsWith('tag: ') ? ref.substring(5) : []))
 
     return new Commit(
       commit.sha,
