@@ -157,18 +157,9 @@ export async function getCommits(
     // Ref is of the format: (HEAD -> master, tag: some-tag-name, tag: some-other-tag,with-a-comma, origin/master, origin/HEAD)
     // Refs are comma separated, but some like tags can also contain commas in the name, so we split on the pattern ", " and then
     // check each ref for the tag prefix. We used to use the regex /tag: ([^\s,]+)/g)`, but will clip a tag with a comma short.
-    const refs = commit.refs.split(', ')
-    const tags = []
-    for (let i = 0; i < refs.length; i++) {
-      const ref = refs[i]
-      if (!ref.startsWith('tag: ')) {
-        // Other commit refs like HEAD -> main, origin/master, etc.
-        continue
-      }
-
-      const tag = ref.substring(5)
-      tags.push(tag)
-    }
+    const tags = commit.refs
+      .split(', ')
+      .flatMap(ref => (ref.startsWith('tag: ') ? ref.substring(5) : []))
 
     return new Commit(
       commit.sha,
