@@ -2224,6 +2224,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             onSubmitCommitMessage={popup.onSubmitCommitMessage}
             repositoryAccount={repositoryAccount}
+            accounts={this.state.accounts}
           />
         )
       case PopupType.MultiCommitOperation: {
@@ -2404,6 +2405,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             emoji={this.state.emoji}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
+            accounts={this.state.accounts}
           />
         )
       }
@@ -2429,6 +2431,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedTab={popup.selectedTab}
             emoji={emoji}
             onDismissed={onPopupDismissedFn}
+            accounts={this.state.accounts}
           />
         )
       }
@@ -2529,6 +2532,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             emoji={this.state.emoji}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
+            accounts={this.state.accounts}
           />
         )
       }
@@ -2700,6 +2704,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             commit={commit}
             selectedCommits={selectedCommits}
             emoji={emoji}
+            accounts={this.state.accounts}
           />
         )
       default:
