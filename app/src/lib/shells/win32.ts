@@ -1,11 +1,12 @@
 import { spawn, ChildProcess } from 'child_process'
 import * as Path from 'path'
 import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
-import { pathExists } from 'fs-extra'
-
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
 import { enableWSLDetection } from '../feature-flag'
+import { findGitOnPath } from '../is-git-on-path'
+import { parseEnumValue } from '../enum'
+import { pathExists } from '../../ui/lib/path-exists'
 
 export enum Shell {
   Cmd = 'Command Prompt',
@@ -16,53 +17,27 @@ export enum Shell {
   Cygwin = 'Cygwin',
   WSL = 'WSL',
   WindowTerminal = 'Windows Terminal',
+  FluentTerminal = 'Fluent Terminal',
+  Alacritty = 'Alacritty',
 }
 
 export const Default = Shell.Cmd
 
 export function parse(label: string): Shell {
-  if (label === Shell.Cmd) {
-    return Shell.Cmd
-  }
-
-  if (label === Shell.PowerShell) {
-    return Shell.PowerShell
-  }
-
-  if (label === Shell.PowerShellCore) {
-    return Shell.PowerShellCore
-  }
-
-  if (label === Shell.Hyper) {
-    return Shell.Hyper
-  }
-
-  if (label === Shell.GitBash) {
-    return Shell.GitBash
-  }
-
-  if (label === Shell.Cygwin) {
-    return Shell.Cygwin
-  }
-
-  if (label === Shell.WSL) {
-    return Shell.WSL
-  }
-
-  if (label === Shell.WindowTerminal) {
-    return Shell.WindowTerminal
-  }
-
-  return Default
+  return parseEnumValue(Shell, label) ?? Default
 }
 
 export async function getAvailableShells(): Promise<
   ReadonlyArray<IFoundShell<Shell>>
 > {
-  const shells = [
+  const gitPath = await findGitOnPath()
+  const rootDir = process.env.WINDIR || 'C:\\Windows'
+  const dosKeyExePath = `"${rootDir}\\system32\\doskey.exe git=^"${gitPath}^" $*"`
+  const shells: IFoundShell<Shell>[] = [
     {
       shell: Shell.Cmd,
       path: process.env.comspec || 'C:\\Windows\\System32\\cmd.exe',
+      extraArgs: gitPath ? ['/K', dosKeyExePath] : [],
     },
   ]
 
@@ -116,11 +91,27 @@ export async function getAvailableShells(): Promise<
     }
   }
 
+  const alacrittyPath = await findAlacritty()
+  if (alacrittyPath != null) {
+    shells.push({
+      shell: Shell.Alacritty,
+      path: alacrittyPath,
+    })
+  }
+
   const windowsTerminal = await findWindowsTerminal()
   if (windowsTerminal != null) {
     shells.push({
       shell: Shell.WindowTerminal,
       path: windowsTerminal,
+    })
+  }
+
+  const fluentTerminal = await findFluentTerminal()
+  if (fluentTerminal != null) {
+    shells.push({
+      shell: Shell.FluentTerminal,
+      path: fluentTerminal,
     })
   }
   return shells
@@ -335,6 +326,31 @@ async function findWSL(): Promise<string | null> {
   return null
 }
 
+async function findAlacritty(): Promise<string | null> {
+  const registryPath = enumerateValues(
+    HKEY.HKEY_CLASSES_ROOT,
+    'Directory\\Background\\shell\\Open Alacritty here'
+  )
+
+  if (registryPath.length === 0) {
+    return null
+  }
+
+  const alacritty = registryPath.find(e => e.name === 'Icon')
+  if (alacritty && alacritty.type === RegistryValueType.REG_SZ) {
+    const path = alacritty.data
+    if (await pathExists(path)) {
+      return path
+    } else {
+      log.debug(
+        `[Alacritty] registry entry found but does not exist at '${path}'`
+      )
+    }
+  }
+
+  return null
+}
+
 async function findWindowsTerminal(): Promise<string | null> {
   // Windows Terminal has a link at
   // C:\Users\<User>\AppData\Local\Microsoft\WindowsApps\wt.exe
@@ -355,6 +371,26 @@ async function findWindowsTerminal(): Promise<string | null> {
   return null
 }
 
+async function findFluentTerminal(): Promise<string | null> {
+  // Fluent Terminal has a link at
+  // C:\Users\<User>\AppData\Local\Microsoft\WindowsApps\flute.exe
+  const localAppData = process.env.LocalAppData
+  if (localAppData != null) {
+    const fluentTerminalpath = Path.join(
+      localAppData,
+      '\\Microsoft\\WindowsApps\\flute.exe'
+    )
+    if (await pathExists(fluentTerminalpath)) {
+      return fluentTerminalpath
+    } else {
+      log.debug(
+        `[Fluent Terminal] flute.exe doest not exist at '${fluentTerminalpath}'`
+      )
+    }
+  }
+  return null
+}
+
 export function launch(
   foundShell: IFoundShell<Shell>,
   path: string
@@ -363,21 +399,35 @@ export function launch(
 
   switch (shell) {
     case Shell.PowerShell:
-      const psCommand = `"Set-Location -LiteralPath '${path}'"`
-      return spawn('START', ['powershell', '-NoExit', '-Command', psCommand], {
+      return spawn('START', ['"PowerShell"', `"${foundShell.path}"`], {
         shell: true,
         cwd: path,
       })
     case Shell.PowerShellCore:
-      const psCoreCommand = `"Set-Location -LiteralPath '${path}'"`
-      return spawn('START', ['pwsh', '-NoExit', '-Command', psCoreCommand], {
-        shell: true,
-        cwd: path,
-      })
+      return spawn(
+        'START',
+        [
+          '"PowerShell Core"',
+          `"${foundShell.path}"`,
+          '-WorkingDirectory',
+          `"${path}"`,
+        ],
+        {
+          shell: true,
+          cwd: path,
+        }
+      )
     case Shell.Hyper:
       const hyperPath = `"${foundShell.path}"`
       log.info(`launching ${shell} at path: ${hyperPath}`)
       return spawn(hyperPath, [`"${path}"`], {
+        shell: true,
+        cwd: path,
+      })
+    case Shell.Alacritty:
+      const alacrittyPath = `"${foundShell.path}"`
+      log.info(`launching ${shell} at path: ${alacrittyPath}`)
+      return spawn(alacrittyPath, [`--working-directory "${path}"`], {
         shell: true,
         cwd: path,
       })
@@ -400,13 +450,27 @@ export function launch(
         }
       )
     case Shell.WSL:
-      return spawn('START', ['wsl'], { shell: true, cwd: path })
+      return spawn('START', ['"WSL"', `"${foundShell.path}"`], {
+        shell: true,
+        cwd: path,
+      })
     case Shell.Cmd:
-      return spawn('START', ['cmd'], { shell: true, cwd: path })
+      return spawn(
+        'START',
+        ['"Command Prompt"', `"${foundShell.path}"`, ...foundShell.extraArgs!],
+        {
+          shell: true,
+          cwd: path,
+        }
+      )
     case Shell.WindowTerminal:
       const windowsTerminalPath = `"${foundShell.path}"`
       log.info(`launching ${shell} at path: ${windowsTerminalPath}`)
       return spawn(windowsTerminalPath, ['-d .'], { shell: true, cwd: path })
+    case Shell.FluentTerminal:
+      const fluentTerminalPath = `"${foundShell.path}"`
+      log.info(`launching ${shell} at path: ${fluentTerminalPath}`)
+      return spawn(fluentTerminalPath, ['new'], { shell: true, cwd: path })
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }

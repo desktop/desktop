@@ -23,8 +23,8 @@ export interface IMatchedGitHubRepository {
    */
   readonly owner: string
 
-  /** The API endpoint. */
-  readonly endpoint: string
+  /** The account matching the repository remote */
+  readonly account: Account
 }
 
 /** Try to use the list of users and a remote URL to guess a GitHub repository. */
@@ -33,38 +33,15 @@ export function matchGitHubRepository(
   remote: string
 ): IMatchedGitHubRepository | null {
   for (const account of accounts) {
-    const match = matchRemoteWithAccount(account, remote)
-    if (match) {
-      return match
+    const htmlURL = getHTMLURL(account.endpoint)
+    const { hostname } = URL.parse(htmlURL)
+    const parsedRemote = parseRemote(remote)
+
+    if (parsedRemote !== null && hostname !== null) {
+      if (parsedRemote.hostname.toLowerCase() === hostname.toLowerCase()) {
+        return { name: parsedRemote.name, owner: parsedRemote.owner, account }
+      }
     }
-  }
-
-  return null
-}
-
-function matchRemoteWithAccount(
-  account: Account,
-  remote: string
-): IMatchedGitHubRepository | null {
-  const htmlURL = getHTMLURL(account.endpoint)
-  const parsed = URL.parse(htmlURL)
-  const host = parsed.hostname
-
-  const parsedRemote = parseRemote(remote)
-  if (!parsedRemote) {
-    return null
-  }
-
-  const owner = parsedRemote.owner
-  const name = parsedRemote.name
-
-  if (
-    host &&
-    parsedRemote.hostname.toLowerCase() === host.toLowerCase() &&
-    owner &&
-    name
-  ) {
-    return { name, owner, endpoint: account.endpoint }
   }
 
   return null
@@ -73,27 +50,19 @@ function matchRemoteWithAccount(
 /**
  * Find an existing repository associated with this path
  *
- * @param repositories The list of repositories tracked in the app
+ * @param repos The list of repositories tracked in the app
  * @param path The path on disk which might be a repository
  */
-export function matchExistingRepository(
-  repositories: ReadonlyArray<Repository | CloningRepository>,
-  path: string
-): Repository | CloningRepository | null {
-  return (
-    repositories.find(r => {
-      if (__WIN32__) {
-        // Windows is guaranteed to be case-insensitive so we can be a
-        // bit more accepting.
-        return (
-          Path.normalize(r.path).toLowerCase() ===
-          Path.normalize(path).toLowerCase()
-        )
-      } else {
-        return Path.normalize(r.path) === Path.normalize(path)
-      }
-    }) || null
-  )
+export function matchExistingRepository<
+  T extends Repository | CloningRepository
+>(repos: ReadonlyArray<T>, path: string): T | undefined {
+  // Windows is guaranteed to be case-insensitive so we can be a bit less strict
+  const normalize = __WIN32__
+    ? (p: string) => Path.normalize(p).toLowerCase()
+    : (p: string) => Path.normalize(p)
+
+  const needle = normalize(path)
+  return repos.find(r => normalize(r.path) === needle)
 }
 
 /**

@@ -84,12 +84,7 @@ export class Tokenizer {
     }
   }
 
-  private getLastProcessedChar(): string | null {
-    if (this._currentString.length) {
-      return this._currentString[this._currentString.length - 1]
-    }
-    return null
-  }
+  private getLastProcessedChar = () => this._currentString?.at(-1)
 
   private scanForEndOfWord(text: string, index: number): number {
     const indexOfNextNewline = text.indexOf('\n', index + 1)
@@ -162,7 +157,7 @@ export class Tokenizer {
     }
 
     this.flush()
-    const id = parseInt(maybeIssue.substr(1), 10)
+    const id = parseInt(maybeIssue.substring(1), 10)
     if (isNaN(id)) {
       return null
     }
@@ -180,7 +175,7 @@ export class Tokenizer {
     // to ensure this isn't part of an email address, peek at the previous
     // character - if something is found and it's not whitespace, bail out
     const lastItem = this.getLastProcessedChar()
-    if (lastItem && lastItem !== ' ') {
+    if (lastItem && !/\s/.test(lastItem)) {
       return null
     }
 
@@ -198,7 +193,7 @@ export class Tokenizer {
     }
 
     this.flush()
-    const name = maybeMention.substr(1)
+    const name = maybeMention.substring(1)
     const url = `${getHTMLURL(repository.endpoint)}/${name}`
     this._results.push({ kind: TokenType.Link, text: maybeMention, url })
     return { nextIndex }
@@ -212,7 +207,7 @@ export class Tokenizer {
     // to ensure this isn't just the part of some word - if something is
     // found and it's not whitespace, bail out
     const lastItem = this.getLastProcessedChar()
-    if (lastItem && lastItem !== ' ') {
+    if (lastItem && !/\s/.test(lastItem)) {
       return null
     }
 

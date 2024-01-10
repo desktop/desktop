@@ -38,6 +38,8 @@
 
     strong {
       color: var(--text-color);
+      overflow-wrap: break-word;
+      overflow-x: hidden;
     }
   }
 

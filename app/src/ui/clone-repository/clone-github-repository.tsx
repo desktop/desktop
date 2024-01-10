@@ -80,9 +80,7 @@ interface ICloneGithubRepositoryProps {
   ) => void
 }
 
-export class CloneGithubRepository extends React.PureComponent<
-  ICloneGithubRepositoryProps
-> {
+export class CloneGithubRepository extends React.PureComponent<ICloneGithubRepositoryProps> {
   public render() {
     return (
       <DialogContent className="clone-github-repository-content">

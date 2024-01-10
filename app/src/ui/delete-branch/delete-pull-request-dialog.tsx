@@ -51,12 +51,11 @@ export class DeletePullRequest extends React.Component<IDeleteBranchProps, {}> {
   }
 
   private deleteBranch = () => {
-    this.props.dispatcher.deleteBranch(
+    this.props.dispatcher.deleteLocalBranch(
       this.props.repository,
-      this.props.branch,
-      false
+      this.props.branch
     )
 
-    return this.props.dispatcher.closePopup()
+    return this.props.onDismissed()
   }
 }

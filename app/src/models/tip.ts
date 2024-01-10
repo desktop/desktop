@@ -18,8 +18,8 @@ export interface IUnbornRepository {
   /**
    * The symbolic reference that the unborn repository points to currently.
    *
-   * Typically this will be "master" but a user can easily create orphaned
-   * branches externally.
+   * Typically this will be whatever `init.defaultBranch` is set to but a user
+   * can create orphaned branches themselves.
    */
   readonly ref: string
 }
@@ -74,7 +74,7 @@ function branchEquals(x: Branch, y: Branch) {
   return (
     x.type === y.type &&
     x.tip.sha === y.tip.sha &&
-    x.remote === y.remote &&
+    x.upstreamRemoteName === y.upstreamRemoteName &&
     x.upstream === y.upstream
   )
 }

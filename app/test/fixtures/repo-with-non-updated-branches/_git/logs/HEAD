@@ -1,0 +1,18 @@
+0000000000000000000000000000000000000000 6f529599e4040865c91394eb42711b70d665cc72 Sergio Padrino <sergio.padrino@gmail.com> 1611312267 +0100	commit (initial): First commit! :tada:
+6f529599e4040865c91394eb42711b70d665cc72 e047c2a5be26a949821ee1f6ee5ab28caaf5edba Sergio Padrino <sergio.padrino@gmail.com> 1611312294 +0100	commit: Create new file
+e047c2a5be26a949821ee1f6ee5ab28caaf5edba 95e534fc901c75ccd803bb45655717bd328a987c Sergio Padrino <sergio.padrino@gmail.com> 1611312310 +0100	commit: Another commit
+95e534fc901c75ccd803bb45655717bd328a987c f0251be86666d56a8de1f3fe1a87df849b148835 Sergio Padrino <sergio.padrino@gmail.com> 1611312328 +0100	commit: MOAR commits
+f0251be86666d56a8de1f3fe1a87df849b148835 f0251be86666d56a8de1f3fe1a87df849b148835 Sergio Padrino <sergio.padrino@gmail.com> 1611312482 +0100	checkout: moving from main to branch-ahead-and-behind
+f0251be86666d56a8de1f3fe1a87df849b148835 95e534fc901c75ccd803bb45655717bd328a987c Sergio Padrino <sergio.padrino@gmail.com> 1611317795 +0100	reset: moving to 95e534fc901c75ccd803bb45655717bd328a987c
+95e534fc901c75ccd803bb45655717bd328a987c 2f86709290a7ad00ef703747e081281a501cddaa Sergio Padrino <sergio.padrino@gmail.com> 1611317811 +0100	commit: Another commit, but we're diverging now...
+2f86709290a7ad00ef703747e081281a501cddaa f0251be86666d56a8de1f3fe1a87df849b148835 Sergio Padrino <sergio.padrino@gmail.com> 1611317899 +0100	checkout: moving from branch-ahead-and-behind to main
+f0251be86666d56a8de1f3fe1a87df849b148835 95e534fc901c75ccd803bb45655717bd328a987c Sergio Padrino <sergio.padrino@gmail.com> 1611317913 +0100	reset: moving to 95e534fc901c75ccd803bb45655717bd328a987c
+95e534fc901c75ccd803bb45655717bd328a987c 95e534fc901c75ccd803bb45655717bd328a987c Sergio Padrino <sergio.padrino@gmail.com> 1611317940 +0100	checkout: moving from main to branch-behind
+95e534fc901c75ccd803bb45655717bd328a987c e047c2a5be26a949821ee1f6ee5ab28caaf5edba Sergio Padrino <sergio.padrino@gmail.com> 1611317947 +0100	reset: moving to e047c2a5be26a949821ee1f6ee5ab28caaf5edba
+e047c2a5be26a949821ee1f6ee5ab28caaf5edba f0251be86666d56a8de1f3fe1a87df849b148835 Sergio Padrino <sergio.padrino@gmail.com> 1611318096 +0100	checkout: moving from branch-behind to origin/main
+f0251be86666d56a8de1f3fe1a87df849b148835 f0251be86666d56a8de1f3fe1a87df849b148835 Sergio Padrino <sergio.padrino@gmail.com> 1611318103 +0100	checkout: moving from f0251be86666d56a8de1f3fe1a87df849b148835 to branch-ahead
+f0251be86666d56a8de1f3fe1a87df849b148835 95e534fc901c75ccd803bb45655717bd328a987c Sergio Padrino <sergio.padrino@gmail.com> 1611318134 +0100	checkout: moving from branch-ahead to main
+95e534fc901c75ccd803bb45655717bd328a987c 2f86709290a7ad00ef703747e081281a501cddaa Sergio Padrino <sergio.padrino@gmail.com> 1611318142 +0100	checkout: moving from main to branch-ahead-and-behind
+2f86709290a7ad00ef703747e081281a501cddaa f0251be86666d56a8de1f3fe1a87df849b148835 Sergio Padrino <sergio.padrino@gmail.com> 1611318162 +0100	checkout: moving from branch-ahead-and-behind to origin/main
+f0251be86666d56a8de1f3fe1a87df849b148835 f0251be86666d56a8de1f3fe1a87df849b148835 Sergio Padrino <sergio.padrino@gmail.com> 1611318169 +0100	checkout: moving from f0251be86666d56a8de1f3fe1a87df849b148835 to branch-up-to-date
+f0251be86666d56a8de1f3fe1a87df849b148835 95e534fc901c75ccd803bb45655717bd328a987c Sergio Padrino <sergio.padrino@gmail.com> 1611318191 +0100	checkout: moving from branch-up-to-date to main

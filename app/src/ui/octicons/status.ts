@@ -3,7 +3,8 @@ import {
   AppFileStatus,
   isConflictWithMarkers,
 } from '../../models/status'
-import { OcticonSymbol } from './octicons.generated'
+import * as OcticonSymbol from './octicons.generated'
+import { OcticonSymbolType } from '../octicons'
 import { assertNever } from '../../lib/fatal-error'
 
 /**
@@ -12,7 +13,7 @@ import { assertNever } from '../../lib/fatal-error'
  *
  * Used in file lists.
  */
-export function iconForStatus(status: AppFileStatus): OcticonSymbol {
+export function iconForStatus(status: AppFileStatus): OcticonSymbolType {
   switch (status.kind) {
     case AppFileStatusKind.New:
     case AppFileStatusKind.Untracked:
@@ -31,7 +32,7 @@ export function iconForStatus(status: AppFileStatus): OcticonSymbol {
       return OcticonSymbol.alert
     case AppFileStatusKind.Copied:
       return OcticonSymbol.diffAdded
+    default:
+      return assertNever(status, `Unknown file status ${status}`)
   }
-
-  return assertNever(status, `Unknown file status ${status}`)
 }

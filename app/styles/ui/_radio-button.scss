@@ -1,0 +1,17 @@
+.radio-button-component {
+  display: flex;
+  align-items: center;
+
+  & + .radio-button-component {
+    margin-top: var(--spacing-half);
+  }
+
+  & > input {
+    margin: 0;
+  }
+
+  & > label {
+    margin: 0;
+    margin-left: var(--spacing-half);
+  }
+}

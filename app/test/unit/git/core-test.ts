@@ -112,6 +112,7 @@ describe('git/core', () => {
           gitErrorDescription: null,
           stderr,
           stdout: '',
+          combinedOutput: stderr,
         }
       }
 

@@ -62,12 +62,21 @@ export interface ISelectAllSource {
   readonly kind: 'select-all'
 }
 
+/**
+ * Interface describing a user initiated selection change event originating
+ * when focusing the list when it has no selection.
+ */
+export interface IFocusSource {
+  readonly kind: 'focus'
+}
+
 /** A type union of possible sources of a selection changed event */
 export type SelectionSource =
   | IMouseClickSource
   | IHoverSource
   | IKeyboardSource
   | ISelectAllSource
+  | IFocusSource
 
 /**
  * Determine the next selectable row, given the direction and a starting
@@ -87,7 +96,7 @@ export function findNextSelectableRow(
   }
 
   const { direction, row } = action
-  const wrap = action.wrap === undefined ? true : action.wrap
+  const wrap = action.wrap ?? true
 
   // Ensure the row value is in the range between 0 and rowCount - 1
   //
@@ -135,6 +144,28 @@ export function findNextSelectableRow(
 
     if (row !== currentRow && canSelectRow(currentRow)) {
       return currentRow
+    }
+  }
+
+  return null
+}
+
+/**
+ * Find the last selectable row in either direction, used
+ * for moving to the first or last selectable row in a list,
+ * i.e. Home/End key navigation.
+ */
+export function findLastSelectableRow(
+  direction: SelectionDirection,
+  rowCount: number,
+  canSelectRow: (row: number) => boolean
+) {
+  let i = direction === 'up' ? 0 : rowCount - 1
+  const delta = direction === 'up' ? 1 : -1
+
+  for (; i >= 0 && i < rowCount; i += delta) {
+    if (canSelectRow(i)) {
+      return i
     }
   }
 

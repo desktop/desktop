@@ -6,27 +6,24 @@ import {
   DialogFooter,
   DefaultDialogFooter,
 } from './dialog'
-import {
-  dialogTransitionEnterTimeout,
-  dialogTransitionLeaveTimeout,
-} from './app'
-import { GitError } from '../lib/git/core'
-import { GitError as GitErrorType } from 'dugite'
+import { dialogTransitionTimeout } from './app'
+import { GitError, isAuthFailureError } from '../lib/git/core'
 import { Popup, PopupType } from '../models/popup'
-import { CSSTransitionGroup } from 'react-transition-group'
 import { OkCancelButtonGroup } from './dialog/ok-cancel-button-group'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
+import { RetryActionType, RetryAction } from '../models/retry-actions'
+import { Ref } from './lib/ref'
+import memoizeOne from 'memoize-one'
+import { parseCarriageReturn } from '../lib/parse-carriage-return'
 
 interface IAppErrorProps {
-  /** The list of queued, app-wide, errors  */
-  readonly errors: ReadonlyArray<Error>
+  /** The error to be displayed  */
+  readonly error: Error
 
-  /**
-   * A callback which is used whenever a particular error
-   * has been shown to, and been dismissed by, the user.
-   */
-  readonly onClearError: (error: Error) => void
+  /** Called to dismiss the dialog */
+  readonly onDismissed: () => void
   readonly onShowPopup: (popupType: Popup) => void | undefined
+  readonly onRetryAction: (retryAction: RetryAction) => void
 }
 
 interface IAppErrorState {
@@ -47,17 +44,18 @@ interface IAppErrorState {
  */
 export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   private dialogContent: HTMLDivElement | null = null
+  private formatGitErrorMessage = memoizeOne(parseCarriageReturn)
 
   public constructor(props: IAppErrorProps) {
     super(props)
     this.state = {
-      error: props.errors[0] || null,
+      error: props.error,
       disabled: false,
     }
   }
 
   public componentWillReceiveProps(nextProps: IAppErrorProps) {
-    const error = nextProps.errors[0] || null
+    const error = nextProps.error
 
     // We keep the currently shown error until it has disappeared
     // from the first spot in the application error queue.
@@ -66,96 +64,67 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
-  private onDismissed = () => {
-    const currentError = this.state.error
-
-    if (currentError) {
-      this.setState({ error: null, disabled: true })
-
-      // Give some time for the dialog to nicely transition
-      // out before we clear the error and, potentially, deal
-      // with the next error in the queue.
-      window.setTimeout(() => {
-        this.props.onClearError(currentError)
-      }, dialogTransitionLeaveTimeout)
-    }
-  }
-
   private showPreferencesDialog = () => {
-    this.onDismissed()
+    this.props.onDismissed()
 
     //This is a hacky solution to resolve multiple dialog windows
     //being open at the same time.
     window.setTimeout(() => {
       this.props.onShowPopup({ type: PopupType.Preferences })
-    }, dialogTransitionLeaveTimeout)
+    }, dialogTransitionTimeout.exit)
   }
 
-  private renderGitErrorFooter(error: GitError) {
-    const gitErrorType = error.result.gitError
+  private onRetryAction = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    this.props.onDismissed()
 
-    switch (gitErrorType) {
-      case GitErrorType.HTTPSAuthenticationFailed: {
-        return (
-          <DialogFooter>
-            <OkCancelButtonGroup
-              okButtonText="Close"
-              onOkButtonClick={this.onCloseButtonClick}
-              cancelButtonText={
-                __DARWIN__ ? 'Open Preferences' : 'Open options'
-              }
-              onCancelButtonClick={this.showPreferencesDialog}
-            />
-          </DialogFooter>
-        )
+    const { error } = this.state
+
+    if (error !== null && isErrorWithMetaData(error)) {
+      const { retryAction } = error.metadata
+      if (retryAction !== undefined) {
+        this.props.onRetryAction(retryAction)
       }
-      default:
-        return <DefaultDialogFooter onButtonClick={this.onCloseButtonClick} />
     }
   }
 
   private renderErrorMessage(error: Error) {
-    let monospace = false
-    const e = error instanceof ErrorWithMetadata ? error.underlyingError : error
+    const e = getUnderlyingError(error)
 
-    if (e instanceof GitError) {
-      // See getResultMessage in core.ts
-      // If the error message is the same as stderr or stdout then we know
-      // it's output from git and we'll display it in fixed-width font
-      if (e.message === e.result.stderr || e.message === e.result.stdout) {
-        monospace = true
-      }
+    // If the error message is just the raw git output, display it in
+    // fixed-width font
+    if (isRawGitError(e)) {
+      const formattedMessage = this.formatGitErrorMessage(e.message)
+      return <p className="monospace">{formattedMessage}</p>
     }
 
-    const className = monospace ? 'monospace' : undefined
-
-    return <p className={className}>{e.message}</p>
+    return <p>{e.message}</p>
   }
 
-  private renderDialog() {
-    const error = this.state.error
-
-    if (!error) {
-      return null
+  private getTitle(error: Error) {
+    if (isCloneError(error)) {
+      return 'Clone failed'
     }
 
-    return (
-      <Dialog
-        id="app-error"
-        type="error"
-        key="error"
-        title="Error"
-        dismissable={false}
-        onSubmit={this.onDismissed}
-        onDismissed={this.onDismissed}
-        disabled={this.state.disabled}
-      >
-        <DialogContent onRef={this.onDialogContentRef}>
-          {this.renderErrorMessage(error)}
-        </DialogContent>
-        {this.renderFooter(error)}
-      </Dialog>
-    )
+    return 'Error'
+  }
+
+  private renderContentAfterErrorMessage(error: Error) {
+    if (!isErrorWithMetaData(error)) {
+      return undefined
+    }
+
+    const { retryAction } = error.metadata
+
+    if (retryAction && retryAction.type === RetryActionType.Clone) {
+      return (
+        <p>
+          Would you like to retry cloning <Ref>{retryAction.name}</Ref>?
+        </p>
+      )
+    }
+
+    return undefined
   }
 
   private onDialogContentRef = (ref: HTMLDivElement | null) => {
@@ -163,19 +132,14 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private scrollToBottomOfGitErrorMessage() {
-    if (!this.dialogContent) {
+    if (this.dialogContent === null || this.state.error === null) {
       return
     }
 
-    const e =
-      this.state.error instanceof ErrorWithMetadata
-        ? this.state.error.underlyingError
-        : this.state.error
+    const e = getUnderlyingError(this.state.error)
 
-    if (e instanceof GitError) {
-      if (e.message === e.result.stderr || e.message === e.result.stdout) {
-        this.dialogContent.scrollTop = this.dialogContent.scrollHeight
-      }
+    if (isRawGitError(e)) {
+      this.dialogContent.scrollTop = this.dialogContent.scrollHeight
     }
   }
 
@@ -194,29 +158,114 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
   private onCloseButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    this.onDismissed()
+    this.props.onDismissed()
   }
 
   private renderFooter(error: Error) {
-    const e = error instanceof ErrorWithMetadata ? error.underlyingError : error
-
-    if (e instanceof GitError) {
-      return this.renderGitErrorFooter(e)
+    if (isCloneError(error)) {
+      return this.renderRetryCloneFooter()
     }
 
+    const underlyingError = getUnderlyingError(error)
+
+    if (isGitError(underlyingError)) {
+      const { gitError } = underlyingError.result
+      if (gitError !== null && isAuthFailureError(gitError)) {
+        return this.renderOpenPreferencesFooter()
+      }
+    }
+
+    return this.renderDefaultFooter()
+  }
+
+  private renderRetryCloneFooter() {
+    return (
+      <DialogFooter>
+        <OkCancelButtonGroup
+          okButtonText={__DARWIN__ ? 'Retry Clone' : 'Retry clone'}
+          onOkButtonClick={this.onRetryAction}
+          onCancelButtonClick={this.onCloseButtonClick}
+        />
+      </DialogFooter>
+    )
+  }
+
+  private renderOpenPreferencesFooter() {
+    return (
+      <DialogFooter>
+        <OkCancelButtonGroup
+          okButtonText="Close"
+          onOkButtonClick={this.onCloseButtonClick}
+          cancelButtonText={__DARWIN__ ? 'Open Preferences' : 'Open options'}
+          onCancelButtonClick={this.showPreferencesDialog}
+        />
+      </DialogFooter>
+    )
+  }
+
+  private renderDefaultFooter() {
     return <DefaultDialogFooter onButtonClick={this.onCloseButtonClick} />
   }
 
   public render() {
+    const error = this.state.error
+
+    if (!error) {
+      return null
+    }
+
     return (
-      <CSSTransitionGroup
-        transitionName="modal"
-        component="div"
-        transitionEnterTimeout={dialogTransitionEnterTimeout}
-        transitionLeaveTimeout={dialogTransitionLeaveTimeout}
+      <Dialog
+        id="app-error"
+        type="error"
+        key="error"
+        title={this.getTitle(error)}
+        dismissable={false}
+        onSubmit={this.props.onDismissed}
+        onDismissed={this.props.onDismissed}
+        disabled={this.state.disabled}
+        className={
+          isRawGitError(this.state.error) ? 'raw-git-error' : undefined
+        }
+        role="alertdialog"
+        ariaDescribedBy="app-error-description"
       >
-        {this.renderDialog()}
-      </CSSTransitionGroup>
+        <DialogContent onRef={this.onDialogContentRef}>
+          <div id="app-error-description">
+            {this.renderErrorMessage(error)}
+            {this.renderContentAfterErrorMessage(error)}
+          </div>
+        </DialogContent>
+        {this.renderFooter(error)}
+      </Dialog>
     )
   }
+}
+
+function getUnderlyingError(error: Error): Error {
+  return isErrorWithMetaData(error) ? error.underlyingError : error
+}
+
+function isErrorWithMetaData(error: Error): error is ErrorWithMetadata {
+  return error instanceof ErrorWithMetadata
+}
+
+function isGitError(error: Error): error is GitError {
+  return error instanceof GitError
+}
+
+function isRawGitError(error: Error | null) {
+  if (!error) {
+    return false
+  }
+  const e = getUnderlyingError(error)
+  return e instanceof GitError && e.isRawMessage
+}
+
+function isCloneError(error: Error) {
+  if (!isErrorWithMetaData(error)) {
+    return false
+  }
+  const { retryAction } = error.metadata
+  return retryAction !== undefined && retryAction.type === RetryActionType.Clone
 }

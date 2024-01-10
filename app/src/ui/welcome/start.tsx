@@ -2,9 +2,12 @@ import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { LinkButton } from '../lib/link-button'
 import { Dispatcher } from '../dispatcher'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
+import { BrowserRedirectMessage } from '../lib/authentication-form'
+import { SamplesURL } from '../../lib/stats'
 
 /**
  * The URL to the sign-up page on GitHub.com. Used in conjunction
@@ -23,20 +26,23 @@ interface IStartProps {
 export class Start extends React.Component<IStartProps, {}> {
   public render() {
     return (
-      <div id="start">
+      <section
+        id="start"
+        aria-label="Welcome to GitHub Desktop"
+        aria-describedby="start-description"
+      >
         <h1 className="welcome-title">Welcome to GitHub&nbsp;Desktop</h1>
-        <p className="welcome-text">
-          GitHub Desktop is a seamless way to contribute to projects on GitHub
-          and GitHub Enterprise Server. Sign in below to get started with your
-          existing projects.
-        </p>
-
-        <p className="welcome-text">
-          New to GitHub?{' '}
-          <LinkButton uri={CreateAccountURL} className="create-account-link">
-            Create your free account.
-          </LinkButton>
-        </p>
+        {!this.props.loadingBrowserAuth ? (
+          <>
+            <p id="start-description" className="welcome-text">
+              GitHub Desktop is a seamless way to contribute to projects on
+              GitHub and GitHub Enterprise. Sign in below to get started with
+              your existing projects.
+            </p>
+          </>
+        ) : (
+          <p>{BrowserRedirectMessage}</p>
+        )}
 
         <div className="welcome-main-buttons">
           <Button
@@ -44,6 +50,7 @@ export class Start extends React.Component<IStartProps, {}> {
             className="button-with-icon"
             disabled={this.props.loadingBrowserAuth}
             onClick={this.signInWithBrowser}
+            autoFocus={true}
           >
             {this.props.loadingBrowserAuth && <Loading />}
             Sign in to GitHub.com
@@ -53,23 +60,39 @@ export class Start extends React.Component<IStartProps, {}> {
             <Button onClick={this.cancelBrowserAuth}>Cancel</Button>
           ) : (
             <Button onClick={this.signInToEnterprise}>
-              Sign in to GitHub Enterprise Server
+              Sign in to GitHub Enterprise
             </Button>
           )}
         </div>
-
-        <div>
-          <LinkButton onClick={this.signInToDotCom} className="basic-auth-link">
-            Sign in to GitHub.com using your username and password
-          </LinkButton>
-        </div>
-
         <div className="skip-action-container">
+          <p className="welcome-text">
+            New to GitHub?{' '}
+            <LinkButton uri={CreateAccountURL} className="create-account-link">
+              Create your free account.
+            </LinkButton>
+          </p>
           <LinkButton className="skip-button" onClick={this.skip}>
             Skip this step
           </LinkButton>
         </div>
-      </div>
+        <div className="welcome-start-disclaimer-container">
+          By creating an account, you agree to the{' '}
+          <LinkButton uri={'https://github.com/site/terms'}>
+            Terms of Service
+          </LinkButton>
+          . For more information about GitHub's privacy practices, see the{' '}
+          <LinkButton uri={'https://github.com/site/privacy'}>
+            GitHub Privacy Statement
+          </LinkButton>
+          .<br />
+          <br />
+          GitHub Desktop sends usage metrics to improve the product and inform
+          feature decisions.{' '}
+          <LinkButton uri={SamplesURL}>
+            Learn more about user metrics.
+          </LinkButton>
+        </div>
+      </section>
     )
   }
 
@@ -84,10 +107,6 @@ export class Start extends React.Component<IStartProps, {}> {
 
   private cancelBrowserAuth = () => {
     this.props.advance(WelcomeStep.Start)
-  }
-
-  private signInToDotCom = () => {
-    this.props.advance(WelcomeStep.SignInToDotCom)
   }
 
   private signInToEnterprise = () => {

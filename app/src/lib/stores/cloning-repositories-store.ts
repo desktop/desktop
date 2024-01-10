@@ -41,6 +41,7 @@ export class CloningRepositoriesStore extends BaseStore {
 
       const retryAction: RetryAction = {
         type: RetryActionType.Clone,
+        name: repository.name,
         url,
         path,
         options,

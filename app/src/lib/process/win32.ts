@@ -1,41 +1,29 @@
 import { spawn as spawnInternal } from 'child_process'
 import * as Path from 'path'
+import {
+  HKEY,
+  RegistryValueType,
+  RegistryValue,
+  RegistryStringEntry,
+  enumerateValues,
+} from 'registry-js'
+
+function isStringRegistryValue(rv: RegistryValue): rv is RegistryStringEntry {
+  return (
+    rv.type === RegistryValueType.REG_SZ ||
+    rv.type === RegistryValueType.REG_EXPAND_SZ
+  )
+}
 
 /** Get the path segments in the user's `Path`. */
-export async function getPathSegments(): Promise<ReadonlyArray<string>> {
-  let powershellPath: string
-  const systemRoot = process.env.SystemRoot
-  if (systemRoot != null) {
-    const system32Path = Path.join(systemRoot, 'System32')
-    powershellPath = Path.join(
-      system32Path,
-      'WindowsPowerShell',
-      'v1.0',
-      'powershell.exe'
-    )
-  } else {
-    powershellPath = 'powershell.exe'
+export function getPathSegments(): ReadonlyArray<string> {
+  for (const value of enumerateValues(HKEY.HKEY_CURRENT_USER, 'Environment')) {
+    if (value.name === 'Path' && isStringRegistryValue(value)) {
+      return value.data.split(';').filter(x => x.length > 0)
+    }
   }
 
-  const args = [
-    '-noprofile',
-    '-ExecutionPolicy',
-    'RemoteSigned',
-    '-command',
-    // Set encoding and execute the command, capture the output, and return it
-    // via .NET's console in order to have consistent UTF-8 encoding.
-    // See http://stackoverflow.com/questions/22349139/utf-8-output-from-powershell
-    // to address https://github.com/atom/atom/issues/5063
-    `
-      [Console]::OutputEncoding=[System.Text.Encoding]::UTF8
-      $output=[environment]::GetEnvironmentVariable('Path', 'User')
-      [Console]::WriteLine($output)
-    `,
-  ]
-
-  const stdout = await spawn(powershellPath, args)
-  const pathOutput = stdout.replace(/^\s+|\s+$/g, '')
-  return pathOutput.split(/;+/).filter(segment => segment.length)
+  throw new Error('Could not find PATH environment variable')
 }
 
 /** Set the user's `Path`. */

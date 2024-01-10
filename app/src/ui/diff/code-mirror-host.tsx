@@ -1,23 +1,19 @@
 import * as React from 'react'
-import * as CodeMirror from 'codemirror'
+import CodeMirror, {
+  Doc,
+  Editor,
+  EditorChange,
+  EditorConfiguration,
+  LineHandle,
+} from 'codemirror'
 
 // Required for us to be able to customize the foreground color of selected text
 import 'codemirror/addon/selection/mark-selection'
 
 // Autocompletion plugin
 import 'codemirror/addon/hint/show-hint'
-import {
-  Doc,
-  EditorChangeLinkedList,
-  Editor,
-  EditorConfiguration,
-  LineHandle,
-} from 'codemirror'
 
-if (__DARWIN__) {
-  // This has to be required to support the `simple` scrollbar style.
-  require('codemirror/addon/scroll/simplescrollbars')
-}
+import 'codemirror/addon/scroll/simplescrollbars'
 
 import 'codemirror/addon/search/search'
 
@@ -45,7 +41,7 @@ interface ICodeMirrorHostProps {
   ) => void
 
   /** Callback for when CodeMirror has completed a batch of changes to the editor */
-  readonly onChanges?: (cm: Editor, change: EditorChangeLinkedList[]) => void
+  readonly onChanges?: (cm: Editor, change: EditorChange[]) => void
 
   /** Callback for when the viewport changes due to scrolling or other updates */
   readonly onViewportChange?: (cm: Editor, from: number, to: number) => void
@@ -76,7 +72,7 @@ interface ICodeMirrorHostProps {
  * given editor by accessing undocumented APIs. This is likely
  * to break in the future.
  */
-function cancelActiveSelection(cm: CodeMirror.Editor) {
+function cancelActiveSelection(cm: Editor) {
   if (cm.state && cm.state.selectingText instanceof Function) {
     try {
       // Simulate a mouseup event which will cause CodeMirror
@@ -97,6 +93,15 @@ function cancelActiveSelection(cm: CodeMirror.Editor) {
  * A component hosting a CodeMirror instance
  */
 export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
+  private static updateDoc(cm: Editor, value: string | Doc) {
+    if (typeof value === 'string') {
+      cm.setValue(value)
+    } else {
+      cancelActiveSelection(cm)
+      cm.swapDoc(value)
+    }
+  }
+
   private wrapper: HTMLDivElement | null = null
   private codeMirror: Editor | null = null
 
@@ -108,15 +113,6 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
   private readonly resizeObserver: ResizeObserver
   private resizeDebounceId: number | null = null
   private lastKnownWidth: number | null = null
-
-  private static updateDoc(cm: Editor, value: string | Doc) {
-    if (typeof value === 'string') {
-      cm.setValue(value)
-    } else {
-      cancelActiveSelection(cm)
-      cm.swapDoc(value)
-    }
-  }
 
   public constructor(props: ICodeMirrorHostProps) {
     super(props)
@@ -168,6 +164,14 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
 
     CodeMirrorHost.updateDoc(this.codeMirror, this.props.value)
     this.resizeObserver.observe(this.codeMirror.getWrapperElement())
+
+    if (this.wrapper !== null && this.wrapper.closest('dialog') !== null) {
+      document.addEventListener('dialog-appeared', this.onDialogAppeared)
+    }
+  }
+
+  private onDialogAppeared = () => {
+    requestAnimationFrame(this.onResized)
   }
 
   private onSwapDoc = (cm: Editor, oldDoc: Doc) => {
@@ -203,6 +207,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     }
 
     this.resizeObserver.disconnect()
+    document.removeEventListener('dialog-show', this.onDialogAppeared)
   }
 
   public componentDidUpdate(prevProps: ICodeMirrorHostProps) {
@@ -232,7 +237,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
     }
   }
 
-  private onChanges = (cm: Editor, changes: EditorChangeLinkedList[]) => {
+  private onChanges = (cm: Editor, changes: EditorChange[]) => {
     if (this.props.onChanges) {
       this.props.onChanges(cm, changes)
     }

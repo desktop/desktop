@@ -63,7 +63,7 @@ interface IMenuBackedSuggestedActionProps {
 
 /**
  * A small container component for rendering an "action" in a
- * suggested actions view. An action is usally contained within an action group
+ * suggested actions view. An action is usually contained within an action group
  * which visually connects one or more actions. An action component
  * has a title, a description, and a button label.
  *

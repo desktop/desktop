@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { Button } from '../lib/button'
 
 interface ISuggestedActionProps {
@@ -55,9 +55,9 @@ interface ISuggestedActionProps {
 }
 
 /**
- * A small container component for rendering a "suggsted action",
+ * A small container component for rendering a "suggested action",
  * which was first used in the "No Changes" view. An action is
- * usally contained within an `SuggestedActionGroup`, which visually
+ * usually contained within an `SuggestedActionGroup`, which visually
  * connects one or more actions. An action component has a title,
  * a description, a button label, and an optional image.
  */
@@ -66,9 +66,7 @@ export class SuggestedAction extends React.Component<ISuggestedActionProps> {
     const primary = this.props.type === 'primary'
     const cn = classNames('suggested-action', { primary })
     const description =
-      this.props.description === undefined ? (
-        undefined
-      ) : (
+      this.props.description === undefined ? undefined : (
         <p className="description">{this.props.description}</p>
       )
     return (

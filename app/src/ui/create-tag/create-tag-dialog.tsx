@@ -2,15 +2,13 @@ import * as React from 'react'
 
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
-import { sanitizedRefName } from '../../lib/sanitize-ref-name'
-import { TextBox } from '../lib/text-box'
-import { Row } from '../lib/row'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { startTimer } from '../lib/timing'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { Ref } from '../lib/ref'
+import { RefNameTextBox } from '../lib/ref-name-text-box'
+import { enablePreviousTagSuggestions } from '../../lib/feature-flag'
 
 interface ICreateTagProps {
   readonly repository: Repository
@@ -22,8 +20,7 @@ interface ICreateTagProps {
 }
 
 interface ICreateTagState {
-  readonly proposedName: string
-  readonly sanitizedName: string
+  readonly tagName: string
 
   /**
    * Note: once tag creation has been initiated this value stays at true
@@ -32,6 +29,7 @@ interface ICreateTagState {
    * shown in its place.
    */
   readonly isCreatingTag: boolean
+  readonly previousTags: Array<string> | null
 }
 
 const MaxTagNameLength = 245
@@ -44,18 +42,16 @@ export class CreateTag extends React.Component<
   public constructor(props: ICreateTagProps) {
     super(props)
 
-    const proposedName = props.initialName || ''
-
     this.state = {
-      proposedName,
-      sanitizedName: sanitizedRefName(proposedName),
+      tagName: props.initialName || '',
       isCreatingTag: false,
+      previousTags: this.getExistingTagsFiltered(),
     }
   }
 
   public render() {
     const error = this.getCurrentError()
-    const disabled = error !== null || this.state.proposedName.length === 0
+    const disabled = error !== null || this.state.tagName.length === 0
 
     return (
       <Dialog
@@ -69,16 +65,13 @@ export class CreateTag extends React.Component<
         {error && <DialogError>{error}</DialogError>}
 
         <DialogContent>
-          <Row>
-            <TextBox
-              label="Name"
-              value={this.state.proposedName}
-              autoFocus={true}
-              onValueChanged={this.updateTagName}
-            />
-          </Row>
+          <RefNameTextBox
+            label="Name"
+            initialValue={this.props.initialName}
+            onValueChange={this.updateTagName}
+          />
 
-          {this.renderTagNameWarning()}
+          {this.renderPreviousTags()}
         </DialogContent>
 
         <DialogFooter>
@@ -91,44 +84,48 @@ export class CreateTag extends React.Component<
     )
   }
 
-  private renderTagNameWarning() {
-    const { proposedName, sanitizedName } = this.state
-
-    if (proposedName !== sanitizedName) {
-      return (
-        <Row className="warning-helper-text">
-          <Octicon symbol={OcticonSymbol.alert} />
-          <p>
-            Will be created as <Ref>{sanitizedName}</Ref>.
-          </p>
-        </Row>
-      )
-    } else {
+  private renderPreviousTags() {
+    if (!enablePreviousTagSuggestions()) {
       return null
     }
+
+    const { localTags } = this.props
+    const { previousTags, tagName } = this.state
+
+    if (previousTags === null || localTags === null || localTags.size === 0) {
+      return null
+    }
+
+    const title = __DARWIN__ ? 'Previous Tags' : 'Previous tags'
+    const lastThreeTags = previousTags.slice(-3)
+
+    return (
+      <>
+        <p>{title}</p>
+        {lastThreeTags.length === 0 ? (
+          <p>{`No matches found for '${tagName}'`}</p>
+        ) : (
+          lastThreeTags.map((item: string, index: number) => (
+            <Ref key={index}>{item}</Ref>
+          ))
+        )}
+      </>
+    )
   }
 
   private getCurrentError(): JSX.Element | null {
-    const { sanitizedName, proposedName } = this.state
-
-    if (sanitizedName.length > MaxTagNameLength) {
+    if (this.state.tagName.length > MaxTagNameLength) {
       return (
         <>The tag name cannot be longer than {MaxTagNameLength} characters</>
       )
     }
 
-    // Show an error if the sanitization logic causes the tag name to be an empty
-    // string (we only want to show this if the user has already typed something).
-    if (proposedName.length > 0 && sanitizedName.length === 0) {
-      return <>Invalid tag name.</>
-    }
-
     const alreadyExists =
-      this.props.localTags && this.props.localTags.has(sanitizedName)
+      this.props.localTags && this.props.localTags.has(this.state.tagName)
     if (alreadyExists) {
       return (
         <>
-          A tag named <Ref>{sanitizedName}</Ref> already exists
+          A tag named <Ref>{this.state.tagName}</Ref> already exists
         </>
       )
     }
@@ -136,15 +133,23 @@ export class CreateTag extends React.Component<
     return null
   }
 
-  private updateTagName = (name: string) => {
+  private getExistingTagsFiltered(filter: string = ''): Array<string> | null {
+    if (this.props.localTags === null) {
+      return null
+    }
+    const previousTags = Array.from(this.props.localTags.keys())
+    return previousTags.filter(item => item.includes(filter))
+  }
+
+  private updateTagName = (tagName: string) => {
     this.setState({
-      proposedName: name,
-      sanitizedName: sanitizedRefName(name),
+      tagName,
+      previousTags: this.getExistingTagsFiltered(tagName),
     })
   }
 
   private createTag = async () => {
-    const name = this.state.sanitizedName
+    const name = this.state.tagName
     const repository = this.props.repository
 
     if (name.length > 0) {
@@ -157,6 +162,8 @@ export class CreateTag extends React.Component<
         this.props.targetCommitSha
       )
       timer.done()
+
+      this.props.onDismissed()
     }
   }
 }

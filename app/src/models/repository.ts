@@ -1,8 +1,13 @@
 import * as Path from 'path'
 
-import { GitHubRepository } from './github-repository'
+import { GitHubRepository, ForkedGitHubRepository } from './github-repository'
 import { IAheadBehind } from './branch'
-import { enableTutorial } from '../lib/feature-flag'
+import {
+  WorkflowPreferences,
+  ForkContributionTarget,
+} from './workflow-preferences'
+import { assertNever, fatalError } from '../lib/fatal-error'
+import { createEqualityHash } from './equality-hash'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -31,6 +36,13 @@ export class Repository {
   private readonly mainWorkTree: WorkingTree
 
   /**
+   * A hash of the properties of the object.
+   *
+   * Objects with the same hash are guaranteed to be structurally equal.
+   */
+  public hash: string
+
+  /**
    * @param path The working directory of this repository
    * @param missing Was the repository missing on disk last we checked?
    */
@@ -39,35 +51,31 @@ export class Repository {
     public readonly id: number,
     public readonly gitHubRepository: GitHubRepository | null,
     public readonly missing: boolean,
-    private readonly _isTutorialRepository?: boolean
+    public readonly alias: string | null = null,
+    public readonly workflowPreferences: WorkflowPreferences = {},
+    /**
+     * True if the repository is a tutorial repository created as part of the
+     * onboarding flow. Tutorial repositories trigger a tutorial user experience
+     * which introduces new users to some core concepts of Git and GitHub.
+     */
+    public readonly isTutorialRepository: boolean = false
   ) {
     this.mainWorkTree = { path }
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
+
+    this.hash = createEqualityHash(
+      path,
+      this.id,
+      gitHubRepository?.hash,
+      this.missing,
+      this.alias,
+      this.workflowPreferences.forkContributionTarget,
+      this.isTutorialRepository
+    )
   }
 
   public get path(): string {
     return this.mainWorkTree.path
-  }
-
-  /**
-   * A hash of the properties of the object.
-   *
-   * Objects with the same hash are guaranteed to be structurally equal.
-   */
-  public get hash(): string {
-    return `${this.id}+${this.gitHubRepository && this.gitHubRepository.hash}+${
-      this.path
-    }+${this.missing}+${this.name}+${this.isTutorialRepository}`
-  }
-
-  /**
-   * True if the repository is a tutorial repository created as part
-   * of the onboarding flow. Tutorial repositories trigger a tutorial
-   * user experience which introduces new users to some core concepts
-   * of Git and GitHub.
-   */
-  public get isTutorialRepository() {
-    return enableTutorial() && this._isTutorialRepository === true
   }
 }
 
@@ -82,10 +90,51 @@ export type RepositoryWithGitHubRepository = Repository & {
   readonly gitHubRepository: GitHubRepository
 }
 
+/**
+ * Identical to `Repository`, except it **must** have a `gitHubRepository`
+ * which in turn must have a parent. In other words this is a GitHub (.com
+ * or Enterprise) fork.
+ */
+export type RepositoryWithForkedGitHubRepository = Repository & {
+  readonly gitHubRepository: ForkedGitHubRepository
+}
+
+/**
+ * Returns whether the passed repository is a GitHub repository.
+ *
+ * This function narrows down the type of the passed repository to
+ * RepositoryWithGitHubRepository if it returns true.
+ */
 export function isRepositoryWithGitHubRepository(
   repository: Repository
 ): repository is RepositoryWithGitHubRepository {
   return repository.gitHubRepository instanceof GitHubRepository
+}
+
+/**
+ * Asserts that the passed repository is a GitHub repository.
+ */
+export function assertIsRepositoryWithGitHubRepository(
+  repository: Repository
+): asserts repository is RepositoryWithGitHubRepository {
+  if (!isRepositoryWithGitHubRepository(repository)) {
+    return fatalError(`Repository must be GitHub repository`)
+  }
+}
+
+/**
+ * Returns whether the passed repository is a GitHub fork.
+ *
+ * This function narrows down the type of the passed repository to
+ * RepositoryWithForkedGitHubRepository if it returns true.
+ */
+export function isRepositoryWithForkedGitHubRepository(
+  repository: Repository
+): repository is RepositoryWithForkedGitHubRepository {
+  return (
+    isRepositoryWithGitHubRepository(repository) &&
+    repository.gitHubRepository.parent !== null
+  )
 }
 
 /**
@@ -127,11 +176,52 @@ export function getGitHubHtmlUrl(repository: Repository): string | null {
 }
 
 /**
- * Returns the GitHubRepository when a non-fork repository is passed. Returns the parent
- * GitHubRepository otherwise.
+ * Attempts to honor the Repository's workflow preference for GitHubRepository contributions.
+ * Falls back to returning the GitHubRepository when a non-fork repository
+ * is passed, returns the parent GitHubRepository otherwise.
  */
 export function getNonForkGitHubRepository(
   repository: RepositoryWithGitHubRepository
 ): GitHubRepository {
-  return repository.gitHubRepository.parent || repository.gitHubRepository
+  if (!isRepositoryWithForkedGitHubRepository(repository)) {
+    // If the repository is not a fork, we don't have to worry about anything.
+    return repository.gitHubRepository
+  }
+
+  const forkContributionTarget = getForkContributionTarget(repository)
+
+  switch (forkContributionTarget) {
+    case ForkContributionTarget.Self:
+      return repository.gitHubRepository
+    case ForkContributionTarget.Parent:
+      return repository.gitHubRepository.parent
+    default:
+      return assertNever(
+        forkContributionTarget,
+        'Invalid fork contribution target'
+      )
+  }
+}
+
+/**
+ * Returns a non-undefined forkContributionTarget for the specified repository.
+ */
+export function getForkContributionTarget(
+  repository: Repository
+): ForkContributionTarget {
+  return repository.workflowPreferences.forkContributionTarget !== undefined
+    ? repository.workflowPreferences.forkContributionTarget
+    : ForkContributionTarget.Parent
+}
+
+/**
+ * Returns whether the fork is contributing to the parent
+ */
+export function isForkedRepositoryContributingToParent(
+  repository: Repository
+): boolean {
+  return (
+    isRepositoryWithForkedGitHubRepository(repository) &&
+    getForkContributionTarget(repository) === ForkContributionTarget.Parent
+  )
 }

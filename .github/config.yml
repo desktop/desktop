@@ -11,10 +11,12 @@ requestInfoReplyComment: >
   allows the maintainers to spend more time fixing bugs, implementing
   enhancements, and reviewing and merging pull requests.
 
-  Thanks for understanding and meeting us halfway 😀
+  Thanks for understanding and meeting us halfway. 😀
 
 requestInfoLabelToAdd: more-info-needed
 
 requestInfoOn:
   pullRequest: false
   issue: true
+
+checkIssueTemplate: true

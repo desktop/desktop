@@ -1,20 +1,8 @@
 import { BaseStore } from './base-store'
 import { AccountsStore } from './accounts-store'
 import { IAPIRepository, API } from '../api'
-import { Account } from '../../models/account'
+import { Account, accountEquals } from '../../models/account'
 import { merge } from '../merge'
-
-/**
- * Returns a value indicating whether two account instances
- * can be considered equal. Equality is determined by comparing
- * the two instances' endpoints and user id. This allows
- * us to keep receiving updated Account details from the API
- * while still maintaining the association between repositories
- * and a particular account.
- */
-function accountEquals(x: Account, y: Account) {
-  return x.endpoint === y.endpoint && x.id === y.id
-}
 
 /**
  * Attempt to look up an existing account in the account state
@@ -69,7 +57,7 @@ function resolveAccount(
  * An interface describing the current state of
  * repositories that a particular account has explicit
  * permissions to access and whether or not the list of
- * repositores is being loaded or refreshed.
+ * repositories is being loaded or refreshed.
  *
  * This main purpose of this interface is to describe
  * the state necessary to render a list of cloneable
@@ -142,7 +130,7 @@ export class ApiRepositoriesStore extends BaseStore {
     this.emitUpdate()
   }
 
-  private updateAccount<T, K extends keyof IAccountRepositories>(
+  private updateAccount<K extends keyof IAccountRepositories>(
     account: Account,
     repositories: Pick<IAccountRepositories, K>
   ) {
@@ -166,28 +154,82 @@ export class ApiRepositoriesStore extends BaseStore {
     this.emitUpdate()
   }
 
+  private getAccountState(account: Account) {
+    return this.accountState.get(resolveAccount(account, this.accountState))
+  }
+
   /**
    * Request that the store loads the list of repositories that
    * the provided account has explicit permissions to access.
    */
   public async loadRepositories(account: Account) {
-    const existingAccount = resolveAccount(account, this.accountState)
-    const existingRepositories = this.accountState.get(existingAccount)
+    const currentState = this.getAccountState(account)
 
-    if (existingRepositories !== undefined && existingRepositories.loading) {
+    if (currentState?.loading) {
       return
     }
 
-    this.updateAccount(existingAccount, { loading: true })
+    this.updateAccount(account, { loading: true })
 
-    const api = API.fromAccount(existingAccount)
-    const repositories = await api.fetchRepositories()
+    // We don't want to throw away the existing list of repositories if we're
+    // refreshing the list of repositories but we'll need to keep track of
+    // whether any repositories got deleted on the host so that we can remove
+    // them from our local state. We start out by adding all the repositories
+    // that we've seen up until this point to a map and then we'll remove them
+    // one by one as we load the fresh list from the API. Any repositories
+    // remaining in the map once we're done loading we can assume have been
+    // deleted on the host.
+    const missing = new Map<string, IAPIRepository>()
+    const repositories = new Map<string, IAPIRepository>()
 
-    if (repositories === null) {
-      this.updateAccount(account, { loading: false })
-    } else {
-      this.updateAccount(account, { loading: false, repositories })
+    currentState?.repositories.forEach(r => {
+      missing.set(r.clone_url, r)
+      repositories.set(r.clone_url, r)
+    })
+
+    const addPage = (page: ReadonlyArray<IAPIRepository>) => {
+      page.forEach(r => {
+        repositories.set(r.clone_url, r)
+        missing.delete(r.clone_url)
+      })
+      this.updateAccount(account, { repositories: [...repositories.values()] })
     }
+
+    const api = API.fromAccount(resolveAccount(account, this.accountState))
+
+    // The vast majority of users have few repositories and no org affiliations.
+    // We'll start by making one request to load all repositories available to
+    // the user regardless of affiliation and only if that request isn't enough
+    // to load all repositories will we divvy up the requests and load
+    // repositories by owner and collaborator+org affiliation separately. This
+    // way we can avoid making unnecessary requests to the API for the majority
+    // of users while still improving the user experience for those users who
+    // have access to a lot of repositories and orgs.
+    await api.streamUserRepositories(addPage, undefined, {
+      async continue() {
+        // If the continue callback is called we know that the first request
+        // wasn't enough to load all repositories.
+        //
+        // For these users (with access to more than 100 repositories) we'll
+        // stream each of the three different affiliation types concurrently to
+        // minimize the time it takes to load all repositories.
+        await Promise.all([
+          api.streamUserRepositories(addPage, 'owner'),
+          api.streamUserRepositories(addPage, 'collaborator'),
+          api.streamUserRepositories(addPage, 'organization_member'),
+        ])
+
+        // Don't load more than one page in the initial stream request.
+        return false
+      },
+    })
+
+    if (missing.size) {
+      missing.forEach((_, clone_url) => repositories.delete(clone_url))
+      this.updateAccount(account, { repositories: [...repositories.values()] })
+    }
+
+    this.updateAccount(account, { loading: false })
   }
 
   public getState(): ReadonlyMap<Account, IAccountRepositories> {

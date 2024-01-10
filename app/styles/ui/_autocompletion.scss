@@ -4,45 +4,19 @@
   position: relative;
   display: flex;
   flex-direction: column;
-}
 
-.CodeMirror-hints {
-  list-style: none;
-  flex-direction: column;
-  padding: 0;
-  max-height: 100px;
-
-  // hack to position the dialog a little better than the
-  // default codemirror position.
-  transform: translate(0, -15px);
-  overflow-y: auto;
-
-  li {
-    flex-shrink: 0;
-    height: 29px;
-    padding: 0 var(--spacing);
-  }
-
-  // We can't replicate the nice scrollbars that we have in
-  // the regular autocomplete popup since that's based on List
-  // and this CodeMirror stuff is just an unordered list.
-  // The autocomplete popup is not intended to be used with
-  // a pointer-device anyway so not being able to mouse-wheel
-  // through it shouldn't be a big deal
-  @include win32 {
-    overflow-y: hidden;
-  }
+  // Overflow must be hidden to prevent the "invisible caret" to generate an
+  // horizontal scrollbar when, due to scrolling, that caret is outside the
+  // visible area.
+  overflow: hidden;
 }
 
 .autocompletion-popup {
   overflow: hidden; // To get those sweet rounded corners
 }
 
-.autocompletion-popup,
-.CodeMirror-hints {
+.autocompletion-popup {
   display: flex;
-  position: absolute;
-  z-index: var(--popup-z-index);
   width: 250px;
 
   border-radius: var(--border-radius);
@@ -69,8 +43,7 @@
       border-top: var(--base-border);
     }
 
-    &.selected,
-    &.CodeMirror-hint-active {
+    &.selected {
       --text-color: var(--box-selected-active-text-color);
       --text-secondary-color: var(--box-selected-active-text-color);
 
@@ -78,8 +51,7 @@
       background-color: var(--box-selected-active-background-color);
       border-top-color: var(--box-selected-active-background-color);
 
-      & + .list-item,
-      & + .CodeMirror-hint-active {
+      & + .list-item {
         border-top-color: var(--box-selected-active-background-color);
       }
     }
@@ -130,7 +102,7 @@
     width: 100%;
 
     .number {
-      margin-right: var(--spacing-half);
+      color: var(--text-secondary-color);
     }
 
     .title {

@@ -3,6 +3,7 @@ import {
   getMergeBase,
   getBranches,
   merge,
+  MergeResult,
 } from '../../../src/lib/git'
 import {
   setupEmptyRepository,
@@ -20,8 +21,8 @@ describe('git/merge', () => {
         const path = await setupFixtureRepository('merge-base-test')
         repository = new Repository(path, -1, null, false)
       })
-      it('returns true', async () => {
-        expect(await merge(repository, 'dev')).toBeTrue()
+      it('returns MergeResult.Success', async () => {
+        expect(await merge(repository, 'dev')).toBe(MergeResult.Success)
       })
     })
     describe('and is a noop', () => {
@@ -31,8 +32,8 @@ describe('git/merge', () => {
         repository = new Repository(path, -1, null, false)
         await merge(repository, 'dev')
       })
-      it('returns false', async () => {
-        expect(await merge(repository, 'dev')).toBeFalse()
+      it('returns MergeResult.AlreadyUpToDate', async () => {
+        expect(await merge(repository, 'dev')).toBe(MergeResult.AlreadyUpToDate)
       })
     })
   })

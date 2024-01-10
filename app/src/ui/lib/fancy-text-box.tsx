@@ -1,11 +1,11 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbolType } from '../octicons'
 import { TextBox, ITextBoxProps } from './text-box'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 interface IFancyTextBoxProps extends ITextBoxProps {
   /** Icon to render */
-  readonly symbol: OcticonSymbol
+  readonly symbol: OcticonSymbolType
 
   /** Callback used to get a reference to internal TextBox */
   readonly onRef: (textbox: TextBox) => void
@@ -38,6 +38,7 @@ export class FancyTextBox extends React.Component<
       <div className={componentCSS}>
         <Octicon className={octiconCSS} symbol={this.props.symbol} />
         <TextBox
+          ariaLabel={this.props.ariaLabel}
           value={this.props.value}
           onFocus={this.onFocus}
           onBlur={this.onBlur}
@@ -45,6 +46,7 @@ export class FancyTextBox extends React.Component<
           disabled={this.props.disabled}
           type={this.props.type}
           placeholder={this.props.placeholder}
+          displayClearButton={this.props.displayClearButton}
           onKeyDown={this.props.onKeyDown}
           onValueChanged={this.props.onValueChanged}
           onSearchCleared={this.props.onSearchCleared}
@@ -63,9 +65,9 @@ export class FancyTextBox extends React.Component<
     this.setState({ isFocused: true })
   }
 
-  private onBlur = () => {
+  private onBlur = (value: string) => {
     if (this.props.onBlur !== undefined) {
-      this.props.onBlur()
+      this.props.onBlur(value)
     }
 
     this.setState({ isFocused: false })

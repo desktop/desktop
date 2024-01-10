@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
 interface IErrorsProps {
   /** The class name for the internal element. */
@@ -14,6 +14,10 @@ interface IErrorsProps {
 export class Errors extends React.Component<IErrorsProps, {}> {
   public render() {
     const className = classNames('errors-component', this.props.className)
-    return <div className={className}>{this.props.children}</div>
+    return (
+      <div className={className} role="alert">
+        {this.props.children}
+      </div>
+    )
   }
 }

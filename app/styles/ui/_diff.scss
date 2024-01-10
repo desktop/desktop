@@ -4,6 +4,7 @@
 .diff-code-mirror {
   flex-grow: 1;
   min-width: 0;
+  overflow-y: auto;
 }
 
 .diff-code-mirror .CodeMirror {
@@ -30,6 +31,16 @@
   pre.CodeMirror-line,
   pre.CodeMirror-line-like {
     padding: 2px 0 2px var(--spacing-half);
+
+    &.diff-hunk-expandable-both {
+      padding-top: 14px;
+      padding-bottom: 14px;
+    }
+
+    &.diff-hunk:not(.diff-hunk-expandable-both) {
+      padding-top: 5px;
+      padding-bottom: 5px;
+    }
 
     svg.no-newline {
       height: 8px;
@@ -72,6 +83,7 @@
     padding: var(--spacing-half) var(--spacing);
     box-shadow: var(--base-box-shadow);
 
+    .CodeMirror-search-label,
     .CodeMirror-search-hint {
       display: none;
     }
@@ -89,6 +101,10 @@
     .buttons {
       display: inline-block;
     }
+  }
+
+  .popover-component.whitespace-hint {
+    width: 225px;
   }
 }
 
@@ -112,9 +128,59 @@
     width: 20px;
     right: -8px;
     top: 0;
+  }
 
-    &.includeable {
-      cursor: pointer;
+  .hunk-expander {
+    overflow: inherit;
+    text-overflow: inherit;
+    white-space: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    padding: inherit;
+    border: none;
+    height: inherit;
+    color: inherit;
+    background-color: inherit;
+
+    position: absolute;
+    right: 0;
+    width: 100%;
+    text-align: center;
+
+    &.hunk-expand-up-handle {
+      height: 50%;
+      bottom: 0;
+    }
+
+    &.hunk-expand-down-handle {
+      height: 50%;
+      top: 0;
+    }
+
+    &.hunk-expand-whole-handle {
+      height: 100%;
+      bottom: 0;
+    }
+  }
+
+  &:not(.includeable) {
+    .hunk-handle {
+      display: none;
+    }
+  }
+
+  &.expandable-both,
+  &:not(.diff-hunk) {
+    .hunk-expand-whole-handle {
+      display: none;
+    }
+  }
+
+  &:not(.expandable-both),
+  &:not(.diff-hunk) {
+    .hunk-expand-up-handle,
+    .hunk-expand-down-handle {
+      display: none;
     }
   }
 
@@ -128,6 +194,56 @@
 
   &.diff-hunk {
     background: var(--diff-hunk-gutter-background-color);
+
+    .hunk-expand-up-handle,
+    .hunk-expand-down-handle,
+    .hunk-expand-whole-handle {
+      background: var(--diff-hunk-gutter-background-color);
+    }
+
+    .hunk-expand-icon {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &:not(.expandable-up) {
+      .hunk-expand-whole-handle #hunk-expand-up-icon {
+        display: none;
+      }
+    }
+
+    &:not(.expandable-down) {
+      .hunk-expand-whole-handle #hunk-expand-down-icon {
+        display: none;
+      }
+    }
+
+    &:not(.expandable-short) {
+      .hunk-expand-whole-handle #hunk-expand-short-icon {
+        display: none;
+      }
+    }
+
+    // Allow hover effect when it's expandable in any way
+    &.expandable-up,
+    &.expandable-down,
+    &.expandable-short,
+    &.expandable-both {
+      :hover {
+        cursor: pointer;
+
+        background: var(--diff-hover-background-color);
+        border-color: var(--diff-hover-border-color);
+        color: var(--diff-hover-text-color);
+
+        &:last-child {
+          border-color: var(--diff-hover-gutter-color);
+        }
+      }
+    }
   }
 
   .before {
@@ -249,6 +365,20 @@
       border-color: var(--diff-hunk-gutter-color);
     }
   }
+
+  &.expandable-up:hover,
+  &.expandable-down:hover,
+  &.expandable-short:hover {
+    cursor: pointer;
+
+    background: var(--diff-hover-background-color);
+    border-color: var(--diff-hover-border-color);
+    color: var(--diff-hover-text-color);
+
+    &:last-child {
+      border-color: var(--diff-hover-gutter-color);
+    }
+  }
 }
 
 .CodeMirror .diff-line-gutter.diff-line-selected {
@@ -325,17 +455,20 @@
 .panel.image {
   display: flex;
   flex: 1;
-  padding-top: 10px;
-  // Workaround so images stay within diff view until
-  // root issue with DPI scaling is addressed, see https://github.com/desktop/desktop/issues/2480
-  overflow: hidden;
+  padding: var(--spacing);
+  min-width: 0;
+  min-height: 0;
 
   .tab-bar {
     width: 350px;
-    margin: 10px auto 0;
-    // Workaround to allow toggling between different modes until
-    // root issue with DPI scaling is addressed, see https://github.com/desktop/desktop/issues/2480
-    z-index: 0;
+    margin: var(--spacing) auto 0;
+  }
+
+  // https://stackoverflow.com/a/30792956/2114
+  .image-wrapper {
+    min-width: 0;
+    min-height: 0;
+    text-align: center;
   }
 
   .image-diff-previous {
@@ -347,7 +480,12 @@
 
   .image-diff-previous,
   .image-diff-current {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    min-width: 0;
 
     img {
       @include checkboard-background;
@@ -375,10 +513,14 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  min-height: 0;
+  min-width: 0;
 
   .image-diff-two-up {
     display: flex;
     max-height: 100%;
+    min-height: 0;
+    min-width: 0;
     padding: 0 var(--spacing-double);
 
     .image-diff-previous {
@@ -407,12 +549,16 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
+  min-width: 0;
 
   .sizing-container {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 0;
+    min-width: 0;
 
     .image-container {
       position: relative;
@@ -420,9 +566,10 @@
       .image-diff-previous,
       .image-diff-current {
         position: absolute;
-        top: 0;
-        left: 0;
-        img : {
+        height: 100%;
+        width: 100%;
+
+        img {
           border: 0;
           background: transparent;
         }
@@ -435,6 +582,8 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
+  min-width: 0;
 
   .slider {
     align-self: center;
@@ -447,24 +596,18 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 0;
+    min-width: 0;
 
     .image-diff-previous,
     .image-diff-current {
       position: absolute;
-      margin: 0;
-      overflow: hidden;
+      width: 100%;
+      height: 100%;
 
       img {
-        border: 0;
         background: transparent;
       }
-    }
-
-    .image-diff-previous {
-      border: 1px solid var(--color-deleted);
-    }
-    .image-diff-current {
-      border: 1px solid var(--color-new);
     }
 
     .image-container {
@@ -478,6 +621,8 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
+  min-width: 0;
 
   .slider {
     align-self: center;
@@ -490,33 +635,23 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 0;
+    min-width: 0;
 
     .image-container {
       position: relative;
+      @include checkboard-background;
 
       .image-diff-previous,
       .image-diff-current {
-        @include checkboard-background;
         position: absolute;
-        margin: 0;
-        overflow: hidden;
 
         img {
-          border: 0;
           background: transparent;
         }
       }
 
-      .image-diff-previous {
-        border: 1px solid var(--color-deleted);
-        right: 0;
-      }
-      .image-diff-current {
-        border: 1px solid var(--color-new);
-      }
-
       .swiper {
-        border-left: 1px solid var(--text-secondary-color);
         margin: 0;
         overflow: hidden;
         position: absolute;
@@ -593,15 +728,6 @@
     color: var(--syntax-header-color);
   }
 
-  // Intra line markings takes precedence over syntax highlighting.
-  .cm-diff-delete-inner {
-    color: var(--diff-delete-text-color);
-  }
-
-  .cm-diff-add-inner {
-    color: var(--diff-add-text-color);
-  }
-
   .cm-m-css {
     &.cm-property {
       color: var(--syntax-atom-color);
@@ -617,6 +743,158 @@
   .cm-m-javascript {
     &.cm-type {
       color: var(--syntax-variable-color);
+    }
+  }
+
+  // Intra line markings takes precedence over syntax highlighting.
+  .cm-diff-delete-inner {
+    color: var(--diff-delete-text-color) !important;
+  }
+
+  .cm-diff-add-inner {
+    color: var(--diff-add-text-color) !important;
+  }
+}
+
+.seamless-diff-switcher {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+
+  .panel {
+    padding-top: var(--spacing);
+
+    display: flex;
+    flex: 1;
+
+    &.empty,
+    &.renamed,
+    &.binary {
+      justify-content: center;
+      align-items: center;
+    }
+    &.large-diff {
+      margin: var(--spacing-double);
+      text-align: center;
+      justify-content: initial;
+
+      .blankslate-image {
+        max-height: 150px;
+      }
+    }
+  }
+
+  .loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .hidden-bidi-chars-warning {
+    background-color: var(--file-warning-background-color);
+    padding: var(--spacing) var(--spacing-double);
+    border-bottom: var(--file-warning-border-color) solid 1px;
+
+    .octicon {
+      margin-right: var(--spacing);
+      color: var(--file-warning-color);
+      vertical-align: text-bottom;
+    }
+
+    a.link-button-component {
+      display: unset;
+    }
+  }
+
+  // When loading a diff
+  &.loading {
+    // Get ready to fade out the diff if it takes too long to load it
+    & > * {
+      transition: opacity 100ms ease-in;
+    }
+
+    .loading-indicator {
+      display: block;
+    }
+
+    // When there's no previous diff (i.e. first time the component mounts)
+    // we'll show the loading indicator immediately
+    &:not(.has-diff) {
+      .loading-indicator {
+        display: block;
+        opacity: 1;
+      }
+    }
+
+    // When there is a previous diff available we'll wait for a little bit
+    // (defined in the component tsx) until we risk the user becoming aware
+    // of our little trick and noticing that the diff hasn't changed. When
+    // we hit that threshold we...
+    &.has-diff.slow {
+      // ...fade in the loading indicator...
+      & > .loading-indicator {
+        display: block;
+        opacity: 1;
+      }
+
+      // ...and fade everything else out
+      & > :not(.loading-indicator) {
+        opacity: 0.2;
+      }
+    }
+  }
+}
+
+.diff-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+  max-height: 100%;
+
+  .header {
+    span {
+      user-select: text;
+    }
+
+    background: var(--box-alt-background-color);
+    border-bottom: 1px solid var(--diff-border-color);
+
+    display: flex;
+    flex-direction: row;
+    flex-shrink: 0;
+    flex-grow: 0;
+    align-items: center;
+
+    padding: var(--spacing-half) var(--spacing);
+
+    @include octicon-status;
+
+    .diff-options-component {
+      margin-right: var(--spacing-half);
+      flex-shrink: 0;
+    }
+
+    .octicon.status {
+      flex-shrink: 0;
+      vertical-align: text-bottom;
+      position: relative;
+      align-self: center;
+      flex-shrink: 0;
+    }
+
+    .line-endings {
+      margin-right: var(--spacing-half);
+    }
+
+    .open-merge-tool {
+      margin-right: var(--spacing-half);
     }
   }
 }

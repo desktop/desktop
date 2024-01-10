@@ -4,6 +4,7 @@
 #commit-summary {
   display: flex;
   flex-direction: column;
+  min-height: 0;
 
   .avatar {
     width: 16px;
@@ -15,6 +16,13 @@
     width: 75px;
     top: var(--spacing);
     right: var(--spacing);
+    background: transparent;
+    padding: 0;
+    border: none;
+    color: var(--text-color);
+    font-size: inherit;
+    font-weight: normal;
+    font-family: inherit;
 
     svg {
       vertical-align: text-top;
@@ -24,8 +32,9 @@
 
   &.expanded {
     .commit-summary-description-scroll-view {
-      max-height: none;
+      max-height: 400px;
       overflow: auto;
+      display: revert;
 
       &:before {
         content: none;
@@ -59,6 +68,21 @@
       }
     }
   }
+
+  .commit-unreachable-info {
+    padding: var(--spacing-half) var(--spacing);
+    border-bottom: var(--base-border);
+    display: flex;
+    align-items: center;
+
+    .octicon {
+      margin-right: var(--spacing-half);
+    }
+
+    .link-button-component {
+      margin-right: var(--spacing-half);
+    }
+  }
 }
 
 // NOTE: This isn't a real class, it's an SCSS hack to allow us to only write
@@ -70,6 +94,14 @@
   &-title,
   &-meta {
     padding: var(--spacing);
+
+    .lines-added {
+      color: var(--color-new);
+    }
+
+    .lines-deleted {
+      color: var(--color-deleted);
+    }
   }
 
   &-title {
@@ -78,6 +110,10 @@
     line-height: 16px;
     padding: var(--spacing);
     word-wrap: break-word;
+
+    &.empty-summary {
+      color: var(--text-secondary-color);
+    }
   }
 
   &-description-container {
@@ -85,25 +121,27 @@
     // So that we have something to position the expander against
     position: relative;
     border-bottom: var(--base-border);
+    min-height: 0;
   }
 
   &-description-scroll-view {
     overflow: hidden;
-    // The extra pixel makes the space align up with the commit list.
-    max-height: 69px;
     flex: 1;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    // Maximum amount of commit description lines to show before collapsing
+    -webkit-line-clamp: 3;
   }
 
   // Enable text selection inside the title and description elements.
   &-title,
   &-description {
-    span,
-    a {
-      -webkit-user-select: text;
-      user-select: text;
-    }
+    user-select: text;
+    cursor: text;
 
-    span {
+    * {
+      user-select: unset;
+      pointer-events: unset;
       cursor: text;
     }
   }
@@ -114,6 +152,7 @@
     word-wrap: break-word;
     white-space: pre-line;
     padding: var(--spacing);
+    min-height: 0;
   }
 
   &-meta {
@@ -143,7 +182,7 @@
       vertical-align: bottom; // For some reason, `bottom` places the text in the middle
     }
 
-    .sha {
+    .selectable {
       user-select: text;
     }
 

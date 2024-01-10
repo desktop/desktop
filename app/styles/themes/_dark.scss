@@ -5,6 +5,14 @@
 // Primer colors, see https://github.com/primer/primer-css/blob/master/modules/primer-support/lib/variables/color-system.scss
 @import '~primer-support/lib/variables/color-system.scss';
 
+// This should be something like
+// @media (prefers-color-scheme: dark)
+// See https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme
+// https://www.electronjs.org/docs/api/native-theme#nativethemethemesource
+
+// This blue passes WCAG 2 guidelines with $gray-100 fg and $gray-900 bg.
+$link-color: #2e8fff;
+
 body.theme-dark {
   --color-new: #{$green};
   --color-deleted: #{$red};
@@ -12,8 +20,9 @@ body.theme-dark {
   --color-renamed: #{$blue};
   --color-conflicted: #{$orange};
 
-  --text-color: #{$gray-300};
+  --text-color: #{$gray-100};
   --text-secondary-color: #{$gray-400};
+  --text-secondary-color-muted: #{darken($gray-500, 10%)};
   --background-color: #{$gray-900};
 
   --button-background: #{$blue};
@@ -21,10 +30,13 @@ body.theme-dark {
   --button-text-color: #{$white};
   --button-focus-border-color: #{$blue-600};
 
-  --link-button-color: #{lighten($blue-400, 3%)};
-  --link-button-hover-color: #{$blue-400};
+  --link-button-color: #{$link-color};
+  --link-button-hover-color: #{lighten($link-color, 3%)};
+  --link-button-selected-hover-color: #{$link-color};
 
   --secondary-button-background: #{$gray-800};
+  --secondary-button-border-color: var(--box-border-contrast-color);
+  --secondary-button-hover-border-color: #{$gray-300};
   --secondary-button-hover-background: var(--secondary-button-background);
   --secondary-button-text-color: var(--text-color);
   --secondary-button-focus-shadow-color: #{rgba($gray-200, 0.75)};
@@ -36,11 +48,20 @@ body.theme-dark {
    */
   --badge-icon-color: #{$gray-300};
 
+  // Colors used for icons that are inside an input box
+  --input-icon-warning-color: #{$yellow-600};
+  --input-icon-error-color: #{$red-400};
+  --input-icon-hover-background-color: #{$gray-800};
+
+  // Colors used for icons in the commit message warning/error area
+  --commit-message-icon-warning-color: var(--input-icon-warning-color);
+  --commit-message-icon-error-color: var(--input-icon-error-color);
+
   /**
    * Background color for custom scroll bars.
    * The color is applied to the thumb part of the scrollbar.
    *
-   * Note: Only applies to win32 platforms
+   * Note: Only applies to win32 and linux platforms
    */
   --scroll-bar-thumb-background-color: rgba(255, 255, 255, 0.2);
 
@@ -48,7 +69,7 @@ body.theme-dark {
    * Background color for custom scroll bars in their active state.
    * The color is applied to the thumb part of the scrollbar.
    *
-   * Note: Only applies to win32 platforms
+   * Note: Only applies to win32 and linux platforms
    */
   --scroll-bar-thumb-background-color-active: rgba(255, 255, 255, 0.5);
 
@@ -60,7 +81,7 @@ body.theme-dark {
   // to decide what states to support (active selection, selection, etc).
 
   --box-background-color: #{darken($gray-900, 3%)};
-  --box-alt-background-color: #{$gray-800};
+  --box-alt-background-color: #{lighten($gray-900, 3%)};
 
   /**
    * Background color for skeleton or "loading" boxes
@@ -72,6 +93,10 @@ body.theme-dark {
    * Border color for boxes.
    */
   --box-border-color: #141414;
+
+  // slightly lighter of gray-500 to get 3:1 contrast ratio against
+  // --box-alt-background-color
+  --box-border-contrast-color: #{lighten($gray-500, 3%)};
   --box-border-accent-color: #{$blue};
 
   /**
@@ -93,6 +118,7 @@ body.theme-dark {
    * implement a hover state since this will conflict with
    * selection and active selection
    */
+  --box-hover-background-color: #{$gray-800};
 
   /**
    * Text color for selected boxes without keyboard focus
@@ -127,6 +153,17 @@ body.theme-dark {
   --box-overflow-shadow-background: #{linear-gradient(180deg, rgba($gray-900, 0) 0%, rgba($gray-900, 1) 90%, rgba($gray-900, 1) 100%)};
 
   /**
+   * Gradient used to indicate that content is overflowing, intended
+   * for use when content can be expanded through other means than
+   * scrolling. Used in conjuction with background-size, background-attachment, background-repeat.
+   */
+  --no-shadow-top: #{linear-gradient($gray-900, rgba(255, 255, 255, 0))};
+  --no-shadow-bottom: #{linear-gradient(rgba(255, 255, 255, 0), $gray-900)};
+  --top-shadow: #{linear-gradient(0deg, rgba($gray-900, 0) 0%, rgba(black, 0.6) 90%, rgba(black, 1) 100%)};
+  --bottom-shadow: #{linear-gradient(180deg, rgba($gray-900, 0) 0%, rgba(black, 0.6) 90%, rgba(black, 1) 100%) 0 100%};
+  --box-overflow-shadow-background-two: #{var(--no-shadow-top), var(--no-shadow-bottom) 0 100%, var(--top-shadow), var(--bottom-shadow)};
+
+  /**
    * Placeholder color for input boxes
    */
   --box-placeholder-color: #{$gray-400};
@@ -137,7 +174,14 @@ body.theme-dark {
   --co-author-tag-background-color: #{$blue-800};
   --co-author-tag-border-color: #{$blue-700};
 
+  /**
+   * Commit warning badge icon
+   */
+  --commit-warning-badge-background-color: #{$gray-900};
+  --commit-warning-badge-border-color: #{$gray-700};
+
   --base-border: 1px solid var(--box-border-color);
+  --contrast-border: 1px solid var(--box-border-contrast-color);
 
   --shadow-color: #{rgba(black, 0.5)};
   --base-box-shadow: 0 2px 7px var(--shadow-color);
@@ -160,12 +204,17 @@ body.theme-dark {
 
   --toolbar-button-active-color: var(--text-color);
   --toolbar-button-active-background-color: var(--background-color);
-  --toolbar-button-active-border-color: var(--box-border-color);
+  --toolbar-button-active-border-color: var(--background-color);
 
   --toolbar-button-progress-color: #{$gray-800};
   --toolbar-button-focus-progress-color: #{$gray-700};
   --toolbar-button-hover-progress-color: #{$gray-700};
   --toolbar-dropdown-open-progress-color: #{$gray-200};
+  --toolbar-dropdown-text-warning-color: #{$yellow-700};
+  --toolbar-dropdown-text-hover-color: #{$white};
+
+  --toolbar-tooltip-background-color: #{$gray-800};
+  --toolbar-tooltip-shadow-color: black;
 
   /**
     * App menu bar colors (Windows/Linux only)
@@ -285,6 +334,9 @@ body.theme-dark {
   --diff-delete-hover-gutter-color: #{$red-700};
   --diff-delete-hover-text-color: var(--text-color);
 
+  --diff-empty-row-background-color: #{darken($gray-900, 1%)};
+  --diff-empty-row-gutter-background-color: var(--diff-gutter-background-color);
+
   // Syntax highlighting text colors
   --syntax-variable-color: #{$purple-300};
   --syntax-alt-variable-color: #{$blue-300};
@@ -305,29 +357,73 @@ body.theme-dark {
   --form-error-border-color: #{$red-900};
   --form-error-text-color: var(--text-color);
 
+  --dialog-banner-success-background: rgba(22, 92, 38, 0.7);
+  --dialog-banner-success-border-color: #{$green-800};
+  --dialog-banner-success-text-color: var(--text-color);
+
+  // Inline form errors, displayed after the input field
+  --input-warning-text-color: var(--dialog-warning-color);
+  --input-error-text-color: #{$red-300};
+
   /** Overlay is used as a background for both modals and foldouts */
   --overlay-background-color: rgba(0, 0, 0, 0.5);
 
   /** Dialog */
   --dialog-warning-color: #{$yellow-600};
+  --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red-600};
+
+  /** File warning */
+  --file-warning-background-color: #{rgba($yellow-900, 0.4)};
+  --file-warning-color: #{$yellow-700};
+  --file-warning-border-color: #{rgba($yellow-800, 0.4)};
+
+  /** Tooltips */
+  --tooltip-background-color: #{$gray-800};
+  --tooltip-color: #{$gray-100};
+  --tooltip-shadow-color: #{$black};
 
   /** Inline paths and code */
   --path-segment-background: #{$gray-700};
+  --path-segment-background-focus: #{lighten($gray-700, 5%)};
 
   .blankslate-image {
     filter: #{'invert()'} grayscale(1) brightness(8) contrast(0.6);
   }
 
-  /** Diverging notification banner colors */
-  --notification-banner-background: #{$gray-800};
-  --notification-banner-border-color: #{$gray-700};
-  --notification-ref-background: #{$gray-700};
-
   /** merge/rebase status indicators */
   --status-pending-color: #{$yellow-700};
   --status-error-color: #{$red-500};
   --status-success-color: #{$green-500};
+
+  // PR status icon colors
+  --pr-open-icon-color: #{$green-500};
+  --pr-draft-icon-color: #{$gray-400};
+
+  // PR review colors
+  --pr-timeline-line-color: #{$gray-500};
+  --pr-changes-requested-icon-background-color: #da3633;
+  --pr-approved-icon-background-color: #2da44e;
+  --pr-commented-icon-color: #8b949e;
+  --pr-commented-icon-background-color: #{$gray-700};
+
+  --call-to-action-bubble-background-color: #{$blue};
+  --call-to-action-bubble-color: #{$white};
+
+  --title-tool-tip-background-color: rgb(56, 58, 62);
+  --title-tool-tip-shadow: none;
+
+  // Markdown colors
+  --md-border-default-color: #30363d;
+  --md-border-muted-color: #21262d;
+  --md-canvas-default-color: #0d1117;
+  --md-canvas-subtle-color: #161b22;
+  --md-fg-default-color: #c9d1d9;
+  --md-fg-muted-color: #8b949e;
+  --md-danger-fg-color: #f85149;
+  --md-neutral-muted-color: rgba(110, 118, 129, 0.4);
+  --md-accent-emphasis-color: #1f6feb;
+  --md-accent-fg-color: #58a6ff;
 }
 
 // this emulates the cursor for the co-author input because it isn't exactly

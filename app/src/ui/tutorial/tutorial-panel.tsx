@@ -2,19 +2,22 @@ import * as React from 'react'
 import { join } from 'path'
 import { LinkButton } from '../lib/link-button'
 import { Button } from '../lib/button'
-import { Monospaced } from '../lib/monospaced'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import {
   ValidTutorialStep,
   TutorialStep,
   orderedTutorialSteps,
 } from '../../models/tutorial-step'
 import { encodePathAsUrl } from '../../lib/path'
-import { ExternalEditor } from '../../lib/editors'
 import { PopupType } from '../../models/popup'
 import { PreferencesTab } from '../../models/preferences'
+import { Ref } from '../lib/ref'
+import { suggestedExternalEditor } from '../../lib/editors/shared'
+import { TutorialStepInstructions } from './tutorial-step-instruction'
+import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 
 const TutorialPanelImage = encodePathAsUrl(
   __dirname,
@@ -28,7 +31,7 @@ interface ITutorialPanelProps {
   /** name of the configured external editor
    * (`undefined` if none is configured.)
    */
-  readonly resolvedExternalEditor: ExternalEditor | null
+  readonly resolvedExternalEditor: string | null
   readonly currentTutorialStep: ValidTutorialStep
   readonly onExitTutorial: () => void
 }
@@ -61,7 +64,16 @@ export class TutorialPanel extends React.Component<
   }
 
   private openPullRequest = () => {
-    this.props.dispatcher.createPullRequest(this.props.repository)
+    // This will cause the tutorial pull request step to close first.
+    this.props.dispatcher.markPullRequestTutorialStepAsComplete(
+      this.props.repository
+    )
+
+    // wait for the tutorial step to close before opening the PR, so that the
+    // focusing of the "You're Done!" header is not interupted.
+    setTimeout(() => {
+      this.props.dispatcher.createPullRequest(this.props.repository)
+    }, 500)
   }
 
   private skipEditorInstall = () => {
@@ -98,7 +110,7 @@ export class TutorialPanel extends React.Component<
       <div className="tutorial-panel-component panel">
         <div className="titleArea">
           <h3>Get started</h3>
-          <img src={TutorialPanelImage} />
+          <img src={TutorialPanelImage} alt="Partially checked check list" />
         </div>
         <ol>
           <TutorialStepInstructions
@@ -116,17 +128,17 @@ export class TutorialPanel extends React.Component<
                   It doesn’t look like you have a text editor installed. We can
                   recommend{' '}
                   <LinkButton
+                    uri={suggestedExternalEditor.url}
+                    title={`Open the ${suggestedExternalEditor.name} website`}
+                  >
+                    {suggestedExternalEditor.name}
+                  </LinkButton>
+                  {` or `}
+                  <LinkButton
                     uri="https://atom.io"
                     title="Open the Atom website"
                   >
                     Atom
-                  </LinkButton>
-                  {` or `}
-                  <LinkButton
-                    uri="https://code.visualstudio.com"
-                    title="Open the VS Code website"
-                  >
-                    Visual Studio Code
                   </LinkButton>
                   , but feel free to use any.
                 </p>
@@ -142,7 +154,7 @@ export class TutorialPanel extends React.Component<
                 <strong>{this.props.resolvedExternalEditor}</strong>. You can
                 change your preferred editor in{' '}
                 <LinkButton onClick={this.onPreferencesClick}>
-                  {__DARWIN__ ? 'Preferences' : 'options'}
+                  {__DARWIN__ ? 'Settings' : 'options'}
                 </LinkButton>
               </p>
             )}
@@ -161,19 +173,10 @@ export class TutorialPanel extends React.Component<
               clicking "${__DARWIN__ ? 'New Branch' : 'New branch'}".`}
             </p>
             <div className="action">
-              {__DARWIN__ ? (
-                <>
-                  <kbd>⌘</kbd>
-                  <kbd>⇧</kbd>
-                  <kbd>N</kbd>
-                </>
-              ) : (
-                <>
-                  <kbd>Ctrl</kbd>
-                  <kbd>Shift</kbd>
-                  <kbd>N</kbd>
-                </>
-              )}
+              <KeyboardShortcut
+                darwinKeys={['⌘', '⇧', 'N']}
+                keys={['Ctrl', 'Shift', 'N']}
+              />
             </div>
           </TutorialStepInstructions>
           <TutorialStepInstructions
@@ -187,7 +190,7 @@ export class TutorialPanel extends React.Component<
             <p className="description">
               Open this repository in your preferred text editor. Edit the
               {` `}
-              <Monospaced>README.md</Monospaced>
+              <Ref>README.md</Ref>
               {` `}
               file, save it, and come back.
             </p>
@@ -196,19 +199,10 @@ export class TutorialPanel extends React.Component<
                 <Button onClick={this.openTutorialFileInEditor}>
                   {__DARWIN__ ? 'Open Editor' : 'Open editor'}
                 </Button>
-                {__DARWIN__ ? (
-                  <>
-                    <kbd>⌘</kbd>
-                    <kbd>⇧</kbd>
-                    <kbd>A</kbd>
-                  </>
-                ) : (
-                  <>
-                    <kbd>Ctrl</kbd>
-                    <kbd>Shift</kbd>
-                    <kbd>A</kbd>
-                  </>
-                )}
+                <KeyboardShortcut
+                  darwinKeys={['⌘', '⇧', 'A']}
+                  keys={['Ctrl', 'Shift', 'A']}
+                />
               </div>
             )}
           </TutorialStepInstructions>
@@ -241,17 +235,7 @@ export class TutorialPanel extends React.Component<
               top bar.
             </p>
             <div className="action">
-              {__DARWIN__ ? (
-                <>
-                  <kbd>⌘</kbd>
-                  <kbd>P</kbd>
-                </>
-              ) : (
-                <>
-                  <kbd>Ctrl</kbd>
-                  <kbd>P</kbd>
-                </>
-              )}
+              <KeyboardShortcut darwinKeys={['⌘', 'P']} keys={['Ctrl', 'P']} />
             </div>
           </TutorialStepInstructions>
           <TutorialStepInstructions
@@ -274,17 +258,7 @@ export class TutorialPanel extends React.Component<
                 {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
                 <Octicon symbol={OcticonSymbol.linkExternal} />
               </Button>
-              {__DARWIN__ ? (
-                <>
-                  <kbd>⌘</kbd>
-                  <kbd>R</kbd>
-                </>
-              ) : (
-                <>
-                  <kbd>Ctrl</kbd>
-                  <kbd>R</kbd>
-                </>
-              )}
+              <KeyboardShortcut darwinKeys={['⌘', 'R']} keys={['Ctrl', 'R']} />
             </div>
           </TutorialStepInstructions>
         </ol>
@@ -304,95 +278,8 @@ export class TutorialPanel extends React.Component<
   private onPreferencesClick = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.Preferences,
-      initialSelectedTab: PreferencesTab.Advanced,
+      initialSelectedTab: PreferencesTab.Integrations,
     })
-  }
-}
-
-interface ITutorialStepInstructionsProps {
-  /** Text displayed to summarize this step */
-  readonly summaryText: string
-  /** Used to find out if this step has been completed */
-  readonly isComplete: (step: ValidTutorialStep) => boolean
-  /** The step for this section */
-  readonly sectionId: ValidTutorialStep
-  /** Used to find out if this is the next step for the user to complete */
-  readonly isNextStepTodo: (step: ValidTutorialStep) => boolean
-
-  /** ID of the currently expanded tutorial step
-   * (used to determine if this step is expanded)
-   */
-  readonly currentlyOpenSectionId: ValidTutorialStep
-
-  /** Skip button (if possible for this step) */
-  readonly skipLinkButton?: JSX.Element
-  /** Handler to open and close section */
-  readonly onSummaryClick: (id: ValidTutorialStep) => void
-}
-
-/** A step (summary and expandable description) in the tutorial side panel */
-class TutorialStepInstructions extends React.Component<
-  ITutorialStepInstructionsProps
-> {
-  public render() {
-    return (
-      <li key={this.props.sectionId} onClick={this.onSummaryClick}>
-        <details
-          open={this.props.sectionId === this.props.currentlyOpenSectionId}
-          onClick={this.onSummaryClick}
-        >
-          {this.renderSummary()}
-          <div className="contents">{this.props.children}</div>
-        </details>
-      </li>
-    )
-  }
-
-  private renderSummary = () => {
-    const shouldShowSkipLink =
-      this.props.skipLinkButton !== undefined &&
-      this.props.currentlyOpenSectionId === this.props.sectionId &&
-      this.props.isNextStepTodo(this.props.sectionId)
-    return (
-      <summary>
-        {this.renderTutorialStepIcon()}
-        <span className="summary-text">{this.props.summaryText}</span>
-        <span className="hang-right">
-          {shouldShowSkipLink ? (
-            this.props.skipLinkButton
-          ) : (
-            <Octicon symbol={OcticonSymbol.chevronDown} />
-          )}
-        </span>
-      </summary>
-    )
-  }
-
-  private renderTutorialStepIcon() {
-    if (this.props.isComplete(this.props.sectionId)) {
-      return (
-        <div className="green-circle">
-          <Octicon symbol={OcticonSymbol.check} />
-        </div>
-      )
-    }
-
-    // ugh zero-indexing
-    const stepNumber = orderedTutorialSteps.indexOf(this.props.sectionId) + 1
-    return this.props.isNextStepTodo(this.props.sectionId) ? (
-      <div className="blue-circle">{stepNumber}</div>
-    ) : (
-      <div className="empty-circle">{stepNumber}</div>
-    )
-  }
-
-  private onSummaryClick = (e: React.MouseEvent<HTMLElement>) => {
-    // prevents the default behavior of toggling on a `details` html element
-    // so we don't have to fight it with our react state
-    // for more info see:
-    // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details#Events
-    e.preventDefault()
-    this.props.onSummaryClick(this.props.sectionId)
   }
 }
 

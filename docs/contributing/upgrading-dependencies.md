@@ -10,7 +10,6 @@ In the interest of stability and caution we tend to stay a version (or more) beh
 | Dependency  | Versions Behind Latest |
 | --- | --- |
 | electron | >= 1 major |
-| electron-builder | >= 1 minor |
 | electron-packager | >= 1 major |
 | electron-winstaller | >= 1 minor |
 | typescript | >= 1 minor |
@@ -76,7 +75,6 @@ These are the most important dependencies to the app, and include:
  - `package.json`
    - `@types/node`
    - `electron`
-   - `electron-builder`
    - `electron-packager`
    - `electron-winstaller`
    - `typescript`
@@ -100,7 +98,7 @@ contribution is opened by the community.
 ### Application dependencies
 
 This group of dependencies represent the rest of the listed dependencies in
-`app/pacakge.json` - there are lots of small dependencies which are approachable
+`app/package.json` - there are lots of small dependencies which are approachable
 for external contributions.
 
 If you are interested in upgrading one of these, take a look at where it is

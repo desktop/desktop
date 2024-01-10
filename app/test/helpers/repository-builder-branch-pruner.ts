@@ -3,11 +3,15 @@ import { makeCommit, switchTo } from './repository-scaffolding'
 import { GitProcess } from 'dugite'
 import { RepositoriesStore, GitStore } from '../../src/lib/stores'
 import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cache'
-import { Repository } from '../../src/models/repository'
-import { IAPIRepository } from '../../src/lib/api'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../src/models/repository'
+import { IAPIFullRepository, getDotComAPIEndpoint } from '../../src/lib/api'
 import { shell } from './test-app-shell'
 import { StatsStore, StatsDatabase } from '../../src/lib/stats'
 import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
+import { fakePost } from '../fake-stats-post'
 
 export async function createRepository() {
   const repo = await setupEmptyRepository()
@@ -67,14 +71,14 @@ export async function setupRepository(
 ) {
   let repository = await repositoriesStore.addRepository(path)
   if (includesGhRepo) {
-    const ghAPIResult: IAPIRepository = {
+    const apiRepo: IAPIFullRepository = {
       clone_url: 'string',
       ssh_url: 'string',
       html_url: 'string',
       name: 'string',
       owner: {
         id: 0,
-        url: '',
+        html_url: '',
         login: '',
         avatar_url: '',
         type: 'User',
@@ -90,17 +94,18 @@ export async function setupRepository(
         push: true,
         admin: false,
       },
+      parent: undefined,
     }
 
-    repository = await repositoriesStore.updateGitHubRepository(
+    const endpoint = getDotComAPIEndpoint()
+    repository = await repositoriesStore.setGitHubRepository(
       repository,
-      '',
-      ghAPIResult
+      await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
     )
   }
   await primeCaches(repository, repositoriesStateCache)
 
-  if (lastPruneDate) {
+  if (lastPruneDate && isRepositoryWithGitHubRepository(repository)) {
     repositoriesStore.updateLastPruneDate(repository, lastPruneDate.getTime())
   }
 
@@ -120,7 +125,8 @@ async function primeCaches(
     shell,
     new StatsStore(
       new StatsDatabase('test-StatsDatabase'),
-      new UiActivityMonitor()
+      new UiActivityMonitor(),
+      fakePost
     )
   )
 
@@ -135,6 +141,7 @@ async function primeCaches(
   repositoriesStateCache.updateBranchesState(repository, () => ({
     tip: gitStore.tip,
     defaultBranch: gitStore.defaultBranch,
+    upstreamDefaultBranch: gitStore.upstreamDefaultBranch,
     allBranches: gitStore.allBranches,
     recentBranches: gitStore.recentBranches,
   }))

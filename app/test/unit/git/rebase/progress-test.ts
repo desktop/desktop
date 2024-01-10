@@ -1,4 +1,8 @@
-import { IStatusResult } from '../../../../src/lib/git'
+import {
+  IStatusResult,
+  continueRebase,
+  getStatus,
+} from '../../../../src/lib/git'
 import {
   rebase,
   RebaseResult,
@@ -10,6 +14,10 @@ import { getStatusOrThrow } from '../../../helpers/status'
 import { GitRebaseSnapshot } from '../../../../src/models/rebase'
 import { setupEmptyDirectory } from '../../../helpers/repositories'
 import { getBranchOrError } from '../../../helpers/git'
+import { IMultiCommitOperationProgress } from '../../../../src/models/progress'
+import { isConflictedFile } from '../../../../src/lib/status'
+import { ManualConflictResolution } from '../../../../src/models/manual-conflict-resolution'
+import { Repository } from '../../../../src/models/repository'
 
 const baseBranchName = 'base-branch'
 const featureBranchName = 'this-is-a-feature'
@@ -17,8 +25,7 @@ const featureBranchName = 'this-is-a-feature'
 describe('git/rebase', () => {
   describe('skips a normal repository', () => {
     it('returns null for rebase progress', async () => {
-      const repository = await setupEmptyDirectory()
-
+      const repository = setupEmptyDirectory()
       const progress = await getRebaseSnapshot(repository)
 
       expect(progress).toEqual(null)
@@ -26,12 +33,14 @@ describe('git/rebase', () => {
   })
 
   describe('can parse progress', () => {
+    let repository: Repository | null
     let result: RebaseResult
     let snapshot: GitRebaseSnapshot | null
     let status: IStatusResult
+    let progress = new Array<IMultiCommitOperationProgress>()
 
     beforeEach(async () => {
-      const repository = await createShortRebaseTest(
+      repository = await createShortRebaseTest(
         baseBranchName,
         featureBranchName
       )
@@ -43,7 +52,10 @@ describe('git/rebase', () => {
 
       const baseBranch = await getBranchOrError(repository, baseBranchName)
 
-      result = await rebase(repository, baseBranch, featureBranch)
+      progress = new Array<IMultiCommitOperationProgress>()
+      result = await rebase(repository, baseBranch, featureBranch, p =>
+        progress.push(p)
+      )
 
       snapshot = await getRebaseSnapshot(repository)
 
@@ -54,13 +66,25 @@ describe('git/rebase', () => {
       expect(result).toBe(RebaseResult.ConflictsEncountered)
     })
 
+    it('reported step-by-step progress before encountering conflicts', () => {
+      expect(progress).toEqual([
+        {
+          currentCommitSummary: 'Feature Branch!',
+          kind: 'multiCommitOperation',
+          position: 1,
+          totalCommitCount: 1,
+          value: 1,
+        },
+      ])
+    })
+
     it('status detects REBASE_HEAD', () => {
       expect(snapshot).not.toEqual(null)
       const s = snapshot!
       expect(s.commits.length).toEqual(1)
       expect(s.commits[0].summary).toEqual('Feature Branch!')
 
-      expect(s.progress.rebasedCommitCount).toEqual(1)
+      expect(s.progress.position).toEqual(1)
       expect(s.progress.totalCommitCount).toEqual(1)
       expect(s.progress.currentCommitSummary).toEqual('Feature Branch!')
       expect(s.progress.value).toEqual(1)
@@ -72,15 +96,14 @@ describe('git/rebase', () => {
   })
 
   describe('can parse progress for long rebase', () => {
+    let repository: Repository | null
     let result: RebaseResult
     let snapshot: GitRebaseSnapshot | null
     let status: IStatusResult
+    let progress = new Array<IMultiCommitOperationProgress>()
 
     beforeEach(async () => {
-      const repository = await createLongRebaseTest(
-        baseBranchName,
-        featureBranchName
-      )
+      repository = await createLongRebaseTest(baseBranchName, featureBranchName)
 
       const featureBranch = await getBranchOrError(
         repository,
@@ -89,7 +112,10 @@ describe('git/rebase', () => {
 
       const baseBranch = await getBranchOrError(repository, baseBranchName)
 
-      result = await rebase(repository, baseBranch, featureBranch)
+      progress = new Array<IMultiCommitOperationProgress>()
+      result = await rebase(repository, baseBranch, featureBranch, p =>
+        progress.push(p)
+      )
 
       snapshot = await getRebaseSnapshot(repository)
 
@@ -100,13 +126,43 @@ describe('git/rebase', () => {
       expect(result).toBe(RebaseResult.ConflictsEncountered)
     })
 
+    it('reported step-by-step progress before encountering conflicts', () => {
+      expect(progress).toEqual([
+        {
+          currentCommitSummary: 'Feature Branch First Commit!',
+          kind: 'multiCommitOperation',
+          position: 1,
+          totalCommitCount: 10,
+          value: 0.1,
+        },
+      ])
+    })
+
+    it('reports progress after resolving conflicts', async () => {
+      const strategy = ManualConflictResolution.theirs
+      const progressCb = (p: IMultiCommitOperationProgress) => progress.push(p)
+
+      while (result === RebaseResult.ConflictsEncountered) {
+        result = await resolveAndContinue(repository!, strategy, progressCb)
+      }
+
+      expect(progress.length).toEqual(10)
+      expect(progress[9]).toEqual({
+        currentCommitSummary: 'Feature Branch Tenth Commit!',
+        kind: 'multiCommitOperation',
+        position: 10,
+        totalCommitCount: 10,
+        value: 1,
+      })
+    })
+
     it('status detects REBASE_HEAD', () => {
       expect(snapshot).not.toEqual(null)
       const s = snapshot!
       expect(s.commits.length).toEqual(10)
       expect(s.commits[0].summary).toEqual('Feature Branch First Commit!')
 
-      expect(s.progress.rebasedCommitCount).toEqual(1)
+      expect(s.progress.position).toEqual(1)
       expect(s.progress.totalCommitCount).toEqual(10)
       expect(s.progress.currentCommitSummary).toEqual(
         'Feature Branch First Commit!'
@@ -119,3 +175,21 @@ describe('git/rebase', () => {
     })
   })
 })
+
+async function resolveAndContinue(
+  repository: Repository,
+  strategy: ManualConflictResolution,
+  progressCb: (progress: IMultiCommitOperationProgress) => void
+) {
+  const status = await getStatus(repository)
+  const files = status?.workingDirectory.files ?? []
+  const resolutions = new Map<string, ManualConflictResolution>()
+
+  for (const file of files) {
+    if (isConflictedFile(file.status)) {
+      resolutions.set(file.path, strategy)
+    }
+  }
+
+  return continueRebase(repository, files, resolutions, progressCb)
+}

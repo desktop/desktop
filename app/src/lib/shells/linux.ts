@@ -1,7 +1,8 @@
 import { spawn, ChildProcess } from 'child_process'
-import { pathExists } from 'fs-extra'
 import { assertNever } from '../fatal-error'
 import { IFoundShell } from './found-shell'
+import { parseEnumValue } from '../enum'
+import { pathExists } from '../../ui/lib/path-exists'
 
 export enum Shell {
   Gnome = 'GNOME Terminal',
@@ -12,44 +13,17 @@ export enum Shell {
   Konsole = 'Konsole',
   Xterm = 'XTerm',
   Terminology = 'Terminology',
+  Deepin = 'Deepin Terminal',
+  Elementary = 'Elementary Terminal',
+  XFCE = 'XFCE Terminal',
+  Alacritty = 'Alacritty',
+  Kitty = 'Kitty',
 }
 
 export const Default = Shell.Gnome
 
 export function parse(label: string): Shell {
-  if (label === Shell.Gnome) {
-    return Shell.Gnome
-  }
-
-  if (label === Shell.Mate) {
-    return Shell.Mate
-  }
-
-  if (label === Shell.Tilix) {
-    return Shell.Tilix
-  }
-
-  if (label === Shell.Terminator) {
-    return Shell.Terminator
-  }
-
-  if (label === Shell.Urxvt) {
-    return Shell.Urxvt
-  }
-
-  if (label === Shell.Konsole) {
-    return Shell.Konsole
-  }
-
-  if (label === Shell.Xterm) {
-    return Shell.Xterm
-  }
-
-  if (label === Shell.Terminology) {
-    return Shell.Terminology
-  }
-
-  return Default
+  return parseEnumValue(Shell, label) ?? Default
 }
 
 async function getPathIfAvailable(path: string): Promise<string | null> {
@@ -74,6 +48,16 @@ function getShellPath(shell: Shell): Promise<string | null> {
       return getPathIfAvailable('/usr/bin/xterm')
     case Shell.Terminology:
       return getPathIfAvailable('/usr/bin/terminology')
+    case Shell.Deepin:
+      return getPathIfAvailable('/usr/bin/deepin-terminal')
+    case Shell.Elementary:
+      return getPathIfAvailable('/usr/bin/io.elementary.terminal')
+    case Shell.XFCE:
+      return getPathIfAvailable('/usr/bin/xfce4-terminal')
+    case Shell.Alacritty:
+      return getPathIfAvailable('/usr/bin/alacritty')
+    case Shell.Kitty:
+      return getPathIfAvailable('/usr/bin/kitty')
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
@@ -91,6 +75,11 @@ export async function getAvailableShells(): Promise<
     konsolePath,
     xtermPath,
     terminologyPath,
+    deepinPath,
+    elementaryPath,
+    xfcePath,
+    alacrittyPath,
+    kittyPath,
   ] = await Promise.all([
     getShellPath(Shell.Gnome),
     getShellPath(Shell.Mate),
@@ -100,6 +89,11 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.Konsole),
     getShellPath(Shell.Xterm),
     getShellPath(Shell.Terminology),
+    getShellPath(Shell.Deepin),
+    getShellPath(Shell.Elementary),
+    getShellPath(Shell.XFCE),
+    getShellPath(Shell.Alacritty),
+    getShellPath(Shell.Kitty),
   ])
 
   const shells: Array<IFoundShell<Shell>> = []
@@ -135,6 +129,26 @@ export async function getAvailableShells(): Promise<
     shells.push({ shell: Shell.Terminology, path: terminologyPath })
   }
 
+  if (deepinPath) {
+    shells.push({ shell: Shell.Deepin, path: deepinPath })
+  }
+
+  if (elementaryPath) {
+    shells.push({ shell: Shell.Elementary, path: elementaryPath })
+  }
+
+  if (xfcePath) {
+    shells.push({ shell: Shell.XFCE, path: xfcePath })
+  }
+
+  if (alacrittyPath) {
+    shells.push({ shell: Shell.Alacritty, path: alacrittyPath })
+  }
+
+  if (kittyPath) {
+    shells.push({ shell: Shell.Kitty, path: kittyPath })
+  }
+
   return shells
 }
 
@@ -148,6 +162,8 @@ export function launch(
     case Shell.Mate:
     case Shell.Tilix:
     case Shell.Terminator:
+    case Shell.XFCE:
+    case Shell.Alacritty:
       return spawn(foundShell.path, ['--working-directory', path])
     case Shell.Urxvt:
       return spawn(foundShell.path, ['-cd', path])
@@ -157,6 +173,12 @@ export function launch(
       return spawn(foundShell.path, ['-e', '/bin/bash'], { cwd: path })
     case Shell.Terminology:
       return spawn(foundShell.path, ['-d', path])
+    case Shell.Deepin:
+      return spawn(foundShell.path, ['-w', path])
+    case Shell.Elementary:
+      return spawn(foundShell.path, ['-w', path])
+    case Shell.Kitty:
+      return spawn(foundShell.path, ['--single-instance', '--directory', path])
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }

@@ -5,6 +5,17 @@ export enum BannerType {
   MergeConflictsFound = 'MergeConflictsFound',
   SuccessfulRebase = 'SuccessfulRebase',
   RebaseConflictsFound = 'RebaseConflictsFound',
+  BranchAlreadyUpToDate = 'BranchAlreadyUpToDate',
+  SuccessfulCherryPick = 'SuccessfulCherryPick',
+  CherryPickConflictsFound = 'CherryPickConflictsFound',
+  CherryPickUndone = 'CherryPickUndone',
+  SquashUndone = 'SquashUndone',
+  ReorderUndone = 'ReorderUndone',
+  OpenThankYouCard = 'OpenThankYouCard',
+  SuccessfulSquash = 'SuccessfulSquash',
+  SuccessfulReorder = 'SuccessfulReorder',
+  ConflictsFound = 'ConflictsFound',
+  WindowsVersionNoLongerSupported = 'WindowsVersionNoLongerSupported',
 }
 
 export type Banner =
@@ -36,3 +47,77 @@ export type Banner =
       /** callback to run when user clicks on link in banner text */
       readonly onOpenDialog: () => void
     }
+  | {
+      readonly type: BannerType.BranchAlreadyUpToDate
+      /** name of the branch that was merged into */
+      readonly ourBranch: string
+      /** name of the branch we merged into `ourBranch` */
+      readonly theirBranch?: string
+    }
+  | {
+      readonly type: BannerType.SuccessfulCherryPick
+      /** name of the branch that was cherry picked to */
+      readonly targetBranchName: string
+      /** number of commits cherry picked */
+      readonly count: number
+      /** callback to run when user clicks undo link in banner */
+      readonly onUndo: () => void
+    }
+  | {
+      readonly type: BannerType.CherryPickConflictsFound
+      /** name of the branch that the commits are being cherry picked onto */
+      readonly targetBranchName: string
+      /** callback to run when user clicks on link in banner text */
+      readonly onOpenConflictsDialog: () => void
+    }
+  | {
+      readonly type: BannerType.CherryPickUndone
+      /** name of the branch that the commits were cherry picked onto */
+      readonly targetBranchName: string
+      /** number of commits cherry picked */
+      readonly countCherryPicked: number
+    }
+  | {
+      readonly type: BannerType.OpenThankYouCard
+      readonly emoji: Map<string, string>
+      readonly onOpenCard: () => void
+      readonly onThrowCardAway: () => void
+    }
+  | {
+      readonly type: BannerType.SuccessfulSquash
+      /** number of commits squashed */
+      readonly count: number
+      /** callback to run when user clicks undo link in banner */
+      readonly onUndo: () => void
+    }
+  | {
+      readonly type: BannerType.SquashUndone
+      /** number of commits squashed */
+      readonly commitsCount: number
+    }
+  | {
+      readonly type: BannerType.SuccessfulReorder
+      /** number of commits reordered */
+      readonly count: number
+      /** callback to run when user clicks undo link in banner */
+      readonly onUndo: () => void
+    }
+  | {
+      readonly type: BannerType.ReorderUndone
+      /** number of commits reordered */
+      readonly commitsCount: number
+    }
+  | {
+      readonly type: BannerType.ConflictsFound
+      /**
+       * Description of the operation to continue
+       * Examples:
+       *  - rebasing <strong>target-branch-name</strong>
+       *  - cherry-picking onto <strong>target-branch-name</strong>
+       *  - squashing commits on <strong>target-branch-name</strong>
+       */
+      readonly operationDescription: string | JSX.Element
+      /** callback to run when user clicks on link in banner text */
+      readonly onOpenConflictsDialog: () => void
+    }
+  | { readonly type: BannerType.WindowsVersionNoLongerSupported }

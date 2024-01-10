@@ -1,7 +1,9 @@
 import * as React from 'react'
-import { OcticonSymbol } from './octicons.generated'
-import * as classNames from 'classnames'
-import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
+import { OcticonSymbolType } from './octicons.generated'
+import classNames from 'classnames'
+import ReactDOM from 'react-dom'
+import { createObservableRef } from '../lib/observable-ref'
+import { Tooltip, TooltipDirection } from '../lib/tooltip'
 
 interface IOcticonProps {
   /**
@@ -9,7 +11,7 @@ interface IOcticonProps {
    * type. Supports custom paths as well as those provided
    * through the static properties of the OcticonSymbol class.
    */
-  readonly symbol: OcticonSymbol
+  readonly symbol: OcticonSymbolType
 
   /**
    * An optional classname that will be appended to the default
@@ -20,7 +22,9 @@ interface IOcticonProps {
   /**
    * An optional string to use as a tooltip for the icon
    */
-  readonly title?: string
+  readonly title?: JSX.Element | string
+
+  readonly tooltipDirection?: TooltipDirection
 }
 
 /**
@@ -33,46 +37,60 @@ interface IOcticonProps {
  * Usage: `<Octicon symbol={OcticonSymbol.mark_github} />`
  */
 export class Octicon extends React.Component<IOcticonProps, {}> {
-  private titleId: string | null = null
-
-  public componentWillUnmount() {
-    if (this.titleId !== null) {
-      releaseUniqueId(this.titleId)
-    }
-  }
+  private svgRef = createObservableRef<SVGSVGElement>()
 
   public render() {
-    const { symbol, title } = this.props
+    const { symbol, title, tooltipDirection } = this.props
     const viewBox = `0 0 ${symbol.w} ${symbol.h}`
     const className = classNames('octicon', this.props.className)
-
-    let labelledBy: string | undefined = undefined
-    let titleElem: JSX.Element | null = null
-
-    if (title && title.length > 0) {
-      if (this.titleId === null) {
-        this.titleId = createUniqueId('Octicon_Title')
-      }
-      labelledBy = this.titleId
-      titleElem = <title id={this.titleId}>{title}</title>
-    }
 
     // Hide the octicon from screen readers when it's only being used
     // as a visual without any attached meaning applicable to users
     // consuming the app through an accessibility interface.
-    const ariaHidden = labelledBy === undefined ? 'true' : undefined
+    const ariaHidden = title === undefined ? 'true' : undefined
+
+    // Octicons are typically very small so having an explicit direction makes
+    // more sense
+    const direction = tooltipDirection ?? TooltipDirection.NORTH
 
     return (
       <svg
-        aria-labelledby={labelledBy}
         aria-hidden={ariaHidden}
         className={className}
         version="1.1"
         viewBox={viewBox}
+        ref={this.svgRef}
+        tabIndex={-1}
       >
-        {titleElem}
-        <path d={symbol.d} />
+        {title !== undefined && (
+          <Tooltip target={this.svgRef} direction={direction}>
+            {title}
+          </Tooltip>
+        )}
+        <path fillRule={symbol.fr} d={symbol.d} />
       </svg>
     )
   }
+}
+
+/**
+ * Create an Octicon element for the DOM, wrapped in a div element.
+ *
+ * @param symbol    OcticonSymbol to render in the element.
+ * @param className Optional class to add to the wrapper element.
+ * @param id        Optional identifier to set to the wrapper element.
+ */
+export function createOcticonElement(
+  symbol: OcticonSymbolType,
+  className?: string,
+  id?: string
+) {
+  const wrapper = document.createElement('div')
+  wrapper.id = id ?? ''
+  if (className !== undefined) {
+    wrapper.classList.add(className)
+  }
+  const octicon = <Octicon symbol={symbol} />
+  ReactDOM.render(octicon, wrapper)
+  return wrapper
 }

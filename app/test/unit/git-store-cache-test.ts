@@ -3,20 +3,21 @@ import { GitStoreCache } from '../../src/lib/stores/git-store-cache'
 import { shell } from '../helpers/test-app-shell'
 import { StatsStore, StatsDatabase } from '../../src/lib/stats'
 import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
+import { fakePost } from '../fake-stats-post'
 
 describe('GitStoreCache', () => {
   let repository: Repository
   let statsStore: StatsStore
 
   const onGitStoreUpdated = () => {}
-  const onDidLoadNewCommits = () => {}
   const onDidError = () => {}
 
   beforeEach(() => {
     repository = new Repository('/something/path', 1, null, false)
     statsStore = new StatsStore(
       new StatsDatabase('test-StatsDatabase'),
-      new UiActivityMonitor()
+      new UiActivityMonitor(),
+      fakePost
     )
   })
 
@@ -25,7 +26,6 @@ describe('GitStoreCache', () => {
       shell,
       statsStore,
       onGitStoreUpdated,
-      onDidLoadNewCommits,
       onDidError
     )
 
@@ -40,7 +40,6 @@ describe('GitStoreCache', () => {
       shell,
       statsStore,
       onGitStoreUpdated,
-      onDidLoadNewCommits,
       onDidError
     )
 

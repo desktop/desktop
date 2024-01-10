@@ -2,14 +2,34 @@ import { IssuesDatabase, IIssue } from '../databases/issues-database'
 import { API, IAPIIssue } from '../api'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
-import { fatalError } from '../fatal-error'
+import { compare, compareDescending } from '../compare'
+import { DefaultMaxHits } from '../../ui/autocompletion/common'
 
-/** The hard limit on the number of issue results we'd ever return. */
-const IssueResultsHardLimit = 100
+/** An autocompletion hit for an issue. */
+export interface IIssueHit {
+  /** The title of the issue. */
+  readonly title: string
+
+  /** The issue's number. */
+  readonly number: number
+}
+
+/**
+ * The max time (in milliseconds) that we'll keep a mentionable query
+ * cache around before pruning it.
+ */
+const QueryCacheTimeout = 60 * 1000
+
+interface IQueryCache {
+  readonly repository: GitHubRepository
+  readonly issues: ReadonlyArray<IIssueHit>
+}
 
 /** The store for GitHub issues. */
 export class IssuesStore {
   private db: IssuesDatabase
+  private queryCache: IQueryCache | null = null
+  private pruneQueryCacheTimeoutId: number | null = null
 
   /** Initialize the store with the given database. */
   public constructor(db: IssuesDatabase) {
@@ -24,18 +44,11 @@ export class IssuesStore {
   private async getLatestUpdatedAt(
     repository: GitHubRepository
   ): Promise<Date | null> {
-    const gitHubRepositoryID = repository.dbID
-    if (!gitHubRepositoryID) {
-      return fatalError(
-        "Cannot get issues for a repository that hasn't been inserted into the database!"
-      )
-    }
-
     const db = this.db
 
     const latestUpdatedIssue = await db.issues
       .where('[gitHubRepositoryID+updated_at]')
-      .between([gitHubRepositoryID], [gitHubRepositoryID + 1], true, false)
+      .between([repository.dbID], [repository.dbID + 1], true, false)
       .last()
 
     if (!latestUpdatedIssue || !latestUpdatedIssue.updated_at) {
@@ -79,20 +92,12 @@ export class IssuesStore {
     issues: ReadonlyArray<IAPIIssue>,
     repository: GitHubRepository
   ): Promise<void> {
-    const gitHubRepositoryID = repository.dbID
-    if (!gitHubRepositoryID) {
-      fatalError(
-        `Cannot store issues for a repository that hasn't been inserted into the database!`
-      )
-      return
-    }
-
     const issuesToDelete = issues.filter(i => i.state === 'closed')
     const issuesToUpsert = issues
       .filter(i => i.state === 'open')
       .map<IIssue>(i => {
         return {
-          gitHubRepositoryID,
+          gitHubRepositoryID: repository.dbID,
           number: i.number,
           title: i.title,
           updated_at: i.updated_at,
@@ -115,7 +120,7 @@ export class IssuesStore {
     await this.db.transaction('rw', this.db.issues, async () => {
       for (const issue of issuesToDelete) {
         const existing = await findIssueInRepositoryByNumber(
-          gitHubRepositoryID,
+          repository.dbID,
           issue.number
         )
         if (existing) {
@@ -125,7 +130,7 @@ export class IssuesStore {
 
       for (const issue of issuesToUpsert) {
         const existing = await findIssueInRepositoryByNumber(
-          gitHubRepositoryID,
+          repository.dbID,
           issue.number
         )
         if (existing) {
@@ -135,51 +140,77 @@ export class IssuesStore {
         }
       }
     })
+
+    if (this.queryCache?.repository.dbID === repository.dbID) {
+      this.queryCache = null
+      this.clearCachePruneTimeout()
+    }
+  }
+
+  private async getAllIssueHitsFor(repository: GitHubRepository) {
+    const hits = await this.db.getIssuesForRepository(repository.dbID)
+    return hits.map(i => ({ number: i.number, title: i.title }))
   }
 
   /** Get issues whose title or number matches the text. */
   public async getIssuesMatching(
     repository: GitHubRepository,
-    text: string
-  ): Promise<ReadonlyArray<IIssue>> {
-    const gitHubRepositoryID = repository.dbID
-    if (!gitHubRepositoryID) {
-      fatalError(
-        "Cannot get issues for a repository that hasn't been inserted into the database!"
-      )
-      return []
-    }
+    text: string,
+    maxHits = DefaultMaxHits
+  ): Promise<ReadonlyArray<IIssueHit>> {
+    const issues =
+      this.queryCache?.repository.dbID === repository.dbID
+        ? // Dexie gets confused if we return without wrapping in promise
+          await Promise.resolve(this.queryCache?.issues)
+        : await this.getAllIssueHitsFor(repository)
+
+    this.setQueryCache(repository, issues)
 
     if (!text.length) {
-      const issues = await this.db.issues
-        .where('gitHubRepositoryID')
-        .equals(gitHubRepositoryID)
-        .limit(IssueResultsHardLimit)
-        .reverse()
-        .sortBy('number')
       return issues
+        .slice()
+        .sort((x, y) => compareDescending(x.number, y.number))
+        .slice(0, maxHits)
     }
 
-    const MaxScore = 1
-    const score = (i: IIssue) => {
-      if (i.number.toString().startsWith(text)) {
-        return MaxScore
-      }
+    const hits = []
+    const needle = text.toLowerCase()
 
-      if (i.title.toLowerCase().includes(text.toLowerCase())) {
-        return MaxScore - 0.1
-      }
+    for (const issue of issues) {
+      const ix = `${issue.number} ${issue.title}`
+        .trim()
+        .toLowerCase()
+        .indexOf(needle)
 
-      return 0
+      if (ix >= 0) {
+        hits.push({ hit: { number: issue.number, title: issue.title }, ix })
+      }
     }
 
-    const issuesCollection = await this.db.issues
-      .where('gitHubRepositoryID')
-      .equals(gitHubRepositoryID)
-      .filter(i => score(i) > 0)
+    // Sort hits primarily based on how early in the text the match
+    // was found and then secondarily using alphabetic order.
+    return hits
+      .sort((x, y) => compare(x.ix, y.ix) || compare(x.hit.title, y.hit.title))
+      .slice(0, maxHits)
+      .map(h => h.hit)
+  }
 
-    const issues = await issuesCollection.limit(IssueResultsHardLimit).toArray()
+  private setQueryCache(
+    repository: GitHubRepository,
+    issues: ReadonlyArray<IIssueHit>
+  ) {
+    this.clearCachePruneTimeout()
+    this.queryCache = { repository, issues }
+    this.pruneQueryCacheTimeoutId = window.setTimeout(() => {
+      this.pruneQueryCacheTimeoutId = null
+      this.queryCache = null
+    }, QueryCacheTimeout)
+  }
 
-    return issues.sort((a, b) => score(b) - score(a))
+  private clearCachePruneTimeout() {
+    if (this.pruneQueryCacheTimeoutId !== null) {
+      clearTimeout(this.pruneQueryCacheTimeoutId)
+      this.pruneQueryCacheTimeoutId = null
+    }
   }
 }

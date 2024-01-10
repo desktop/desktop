@@ -1,24 +1,37 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Loading } from './loading'
 import { Form } from './form'
 import { Button } from './button'
 import { TextBox } from './text-box'
 import { Errors } from './errors'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { HorizontalRule } from './horizontal-rule'
+import { PasswordTextBox } from './password-text-box'
+
+/** Text to let the user know their browser will send them back to GH Desktop */
+export const BrowserRedirectMessage =
+  "Your browser will redirect you back to GitHub Desktop once you've signed in. If your browser asks for your permission to launch GitHub Desktop please allow it to."
 
 interface IAuthenticationFormProps {
   /**
    * The URL to the host which we're currently authenticating
    * against. This will be either https://api.github.com when
    * signing in against GitHub.com or a user-specified
-   * URL when signing in against a GitHub Enterprise Server
+   * URL when signing in against a GitHub Enterprise
    * instance.
    */
   readonly endpoint: string
 
-  /** Does the server support basic auth? */
+  /**
+   * Does the server support basic auth?
+   * If the server responds that it doesn't, the user will be prompted to use
+   * that server's web sign in flow.
+   *
+   * ("Basic auth" is logging in via user + password entered directly in Desktop.)
+   */
   readonly supportsBasicAuth: boolean
 
   /**
@@ -34,7 +47,10 @@ interface IAuthenticationFormProps {
    */
   readonly onBrowserSignInRequested: () => void
 
-  /** An array of additional buttons to render after the "Sign In" button. */
+  /**
+   * An array of additional buttons to render after the "Sign In" button.
+   * (Usually, a 'cancel' button)
+   */
   readonly additionalButtons?: ReadonlyArray<JSX.Element>
 
   /**
@@ -72,33 +88,35 @@ export class AuthenticationForm extends React.Component<
   }
 
   public render() {
+    const content = this.props.supportsBasicAuth
+      ? this.renderSignInForm()
+      : this.renderEndpointRequiresWebFlow()
+
     return (
       <Form className="sign-in-form" onSubmit={this.signIn}>
-        {this.renderSignInWithBrowser()}
-        {this.renderUsernamePassword()}
+        {content}
       </Form>
     )
   }
 
   private renderUsernamePassword() {
-    if (!this.props.supportsBasicAuth) {
-      return null
-    }
-
     const disabled = this.props.loading
     return (
       <>
         <TextBox
           label="Username or email address"
           disabled={disabled}
-          autoFocus={true}
+          required={true}
+          displayInvalidState={false}
+          autoFocus={this.props.endpoint === getDotComAPIEndpoint()}
           onValueChanged={this.onUsernameChange}
         />
 
-        <TextBox
+        <PasswordTextBox
           label="Password"
-          type="password"
           disabled={disabled}
+          required={true}
+          displayInvalidState={false}
           onValueChanged={this.onPasswordChange}
         />
 
@@ -137,55 +155,52 @@ export class AuthenticationForm extends React.Component<
     )
   }
 
-  private renderSignInWithBrowser() {
-    // we don't render this here because the user will have already
-    // had the option to sign in via the browser earlier in the sign-in flow
-    if (this.props.endpoint === getDotComAPIEndpoint()) {
-      return
-    }
-
-    return (
+  /**
+   * Show the sign in locally form
+   *
+   * Also displays an option to sign in with browser for
+   * enterprise users (but not for dot com users since
+   * they will have already been offered this option
+   * earlier in the UI flow).
+   */
+  private renderSignInForm() {
+    return this.props.endpoint === getDotComAPIEndpoint() ? (
+      this.renderUsernamePassword()
+    ) : (
       <>
-        {this.props.supportsBasicAuth && <hr />}
-        {this.props.supportsBasicAuth && this.renderEndpointRequiresWebFlow()}
-
-        <Button
-          type="submit"
-          className="button-with-icon"
-          onClick={this.signInWithBrowser}
-        >
-          Sign in using your browser
-          <Octicon symbol={OcticonSymbol.linkExternal} />
-        </Button>
-
-        {this.props.supportsBasicAuth ? null : this.props.additionalButtons}
+        {this.renderSignInWithBrowserButton()}
+        <HorizontalRule title="or" />
+        {this.renderUsernamePassword()}
       </>
     )
   }
 
+  /**
+   * Show a message informing the user they must sign in via the web flow
+   * and a button to do so
+   */
   private renderEndpointRequiresWebFlow() {
-    if (this.props.endpoint === getDotComAPIEndpoint()) {
-      return (
-        <>
-          <p>
-            To improve the security of your account, GitHub now requires you to
-            sign in through your browser.
-          </p>
-          <p>
-            Your browser will redirect you back to GitHub Desktop once you've
-            signed in. If your browser asks for your permission to launch GitHub
-            Desktop please allow it to.
-          </p>
-        </>
-      )
-    } else {
-      return (
-        <p>
-          Your GitHub Enterprise Server instance requires you to sign in with
-          your browser.
-        </p>
-      )
-    }
+    return (
+      <>
+        {getEndpointRequiresWebFlowMessage(this.props.endpoint)}
+        {this.renderSignInWithBrowserButton()}
+        {this.props.additionalButtons}
+      </>
+    )
+  }
+
+  private renderSignInWithBrowserButton() {
+    return (
+      <Button
+        type="submit"
+        className="button-with-icon"
+        onClick={this.signInWithBrowser}
+        autoFocus={true}
+      >
+        Sign in using your browser
+        <Octicon symbol={OcticonSymbol.linkExternal} />
+      </Button>
+    )
   }
 
   private renderError() {
@@ -214,5 +229,23 @@ export class AuthenticationForm extends React.Component<
 
   private signIn = () => {
     this.props.onSubmit(this.state.username, this.state.password)
+  }
+}
+
+function getEndpointRequiresWebFlowMessage(endpoint: string): JSX.Element {
+  if (endpoint === getDotComAPIEndpoint()) {
+    return (
+      <>
+        <p>GitHub now requires you to sign in with your browser.</p>
+        <p>{BrowserRedirectMessage}</p>
+      </>
+    )
+  } else {
+    return (
+      <p>
+        Your GitHub Enterprise instance requires you to sign in with your
+        browser.
+      </p>
+    )
   }
 }

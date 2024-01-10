@@ -22,6 +22,7 @@ import {
 import { BranchType } from '../../src/models/branch'
 import { StatsStore, StatsDatabase } from '../../src/lib/stats'
 import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
+import { fakePost } from '../fake-stats-post'
 
 describe('GitStore', () => {
   let statsStore: StatsStore
@@ -29,7 +30,8 @@ describe('GitStore', () => {
   beforeEach(() => {
     statsStore = new StatsStore(
       new StatsDatabase('test-StatsDatabase'),
-      new UiActivityMonitor()
+      new UiActivityMonitor(),
+      fakePost
     )
   })
 
@@ -39,7 +41,7 @@ describe('GitStore', () => {
       const repo = new Repository(path, -1, null, false)
       const gitStore = new GitStore(repo, shell, statsStore)
 
-      const commits = await gitStore.loadCommitBatch('HEAD')
+      const commits = await gitStore.loadCommitBatch('HEAD', 0)
 
       expect(commits).not.toBeNull()
       expect(commits).toHaveLength(100)

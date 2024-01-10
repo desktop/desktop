@@ -1,6 +1,8 @@
 import * as React from 'react'
 import * as Path from 'path'
 import { clamp } from '../../lib/clamp'
+import { Tooltip } from './tooltip'
+import { createObservableRef } from './observable-ref'
 
 interface IPathTextProps {
   /**
@@ -84,8 +86,8 @@ export function truncateMid(value: string, length: number) {
   }
 
   const mid = (length - 1) / 2
-  const pre = value.substr(0, Math.floor(mid))
-  const post = value.substr(value.length - Math.ceil(mid))
+  const pre = value.substring(0, Math.floor(mid))
+  const post = value.substring(value.length - Math.ceil(mid))
 
   return `${pre}…${post}`
 }
@@ -125,8 +127,8 @@ export function truncatePath(path: string, length: number) {
     return truncateMid(path, length)
   }
 
-  const pre = path.substr(0, length - filenameLength - 2)
-  const post = path.substr(lastSeparator)
+  const pre = path.substring(0, length - filenameLength - 2)
+  const post = path.substring(lastSeparator)
 
   return `${pre}…${post}`
 }
@@ -136,18 +138,19 @@ export function truncatePath(path: string, length: number) {
  *
  * @param normalizedPath The normalized path (i.e. no '.' or '..' characters in path)
  */
-export function extract(
-  normalizedPath: string
-): { normalizedFileName: string; normalizedDirectory: string } {
-  // for untracked submodules, the status entry is returned as a directory,
-  // with a trailing / which causes the directory to be trimmed in a weird way
-  // below. let's try and resolve this here
-  normalizedPath = normalizedPath.endsWith('/')
-    ? normalizedPath.substr(0, normalizedPath.length - 1)
+export function extract(normalizedPath: string): {
+  normalizedFileName: string
+  normalizedDirectory: string
+} {
+  // for untracked submodules the status entry is returned as a path with a
+  // trailing path separator which causes the directory to be trimmed in a weird
+  // way below. let's try to resolve this here
+  normalizedPath = normalizedPath.endsWith(Path.sep)
+    ? normalizedPath.substring(0, normalizedPath.length - 1)
     : normalizedPath
 
   const normalizedFileName = Path.basename(normalizedPath)
-  const normalizedDirectory = normalizedPath.substr(
+  const normalizedDirectory = normalizedPath.substring(
     0,
     normalizedPath.length - normalizedFileName.length
   )
@@ -213,8 +216,8 @@ function createPathDisplayState(
     }
   }
 
-  const fileText = truncatedPath.substr(directoryLength)
-  const directoryText = truncatedPath.substr(0, directoryLength)
+  const fileText = truncatedPath.substring(directoryLength)
+  const directoryText = truncatedPath.substring(0, directoryLength)
 
   return { normalizedPath, directoryText, fileText, length }
 }
@@ -222,7 +225,6 @@ function createPathDisplayState(
 function createState(path: string, length?: number): IPathTextState {
   const normalizedPath = Path.normalize(path)
   return {
-    normalizedPath,
     longestFit: 0,
     shortestNonFit: undefined,
     availableWidth: undefined,
@@ -242,7 +244,7 @@ export class PathText extends React.PureComponent<
   IPathTextProps,
   IPathTextState
 > {
-  private pathElement: HTMLDivElement | null = null
+  private pathElementRef = createObservableRef<HTMLDivElement>()
   private pathInnerElement: HTMLSpanElement | null = null
 
   public constructor(props: IPathTextProps) {
@@ -276,14 +278,10 @@ export class PathText extends React.PureComponent<
     const dialogElement = event.target
     if (
       dialogElement instanceof Element &&
-      dialogElement.contains(this.pathElement)
+      dialogElement.contains(this.pathElementRef.current)
     ) {
       this.resizeIfNecessary()
     }
-  }
-
-  private onPathElementRef = (element: HTMLDivElement | null) => {
-    this.pathElement = element
   }
 
   private onPathInnerElementRef = (element: HTMLSpanElement | null) => {
@@ -297,31 +295,35 @@ export class PathText extends React.PureComponent<
       ) : null
 
     const truncated = this.state.length < this.state.normalizedPath.length
-    const title = truncated ? this.state.normalizedPath : undefined
 
     return (
-      <div
-        className="path-text-component"
-        ref={this.onPathElementRef}
-        title={title}
-      >
+      <div className="path-text-component" ref={this.pathElementRef}>
         <span ref={this.onPathInnerElementRef}>
           {directoryElement}
           <span className="filename">{this.state.fileText}</span>
         </span>
+        {truncated && (
+          <Tooltip
+            target={this.pathElementRef}
+            interactive={true}
+            className="selectable"
+          >
+            {this.state.normalizedPath}
+          </Tooltip>
+        )}
       </div>
     )
   }
 
   private resizeIfNecessary() {
-    if (!this.pathElement || !this.pathInnerElement) {
+    if (!this.pathElementRef.current || !this.pathInnerElement) {
       return
     }
 
     const computedAvailableWidth =
       this.props.availableWidth !== undefined
         ? this.props.availableWidth
-        : this.pathElement.getBoundingClientRect().width
+        : this.pathElementRef.current.getBoundingClientRect().width
 
     const availableWidth = Math.max(computedAvailableWidth, 0)
 

@@ -9,7 +9,7 @@ import * as Path from 'path'
  * Will throw an error if the entry is not found in the packed-refs file
  *
  * @param gitDir The path to the Git repository's .git directory
- * @param ref    A qualified git ref such as 'refs/heads/master'
+ * @param ref    A qualified git ref such as 'refs/heads/main'
  */
 function readPackedRefsFile(gitDir: string, ref: string) {
   const packedRefsPath = Path.join(gitDir, 'packed-refs')
@@ -43,7 +43,7 @@ function readPackedRefsFile(gitDir: string, ref: string) {
  * Will throw an error for unborn HEAD.
  *
  * @param   gitDir The path to the Git repository's .git directory
- * @param   ref    A qualified git ref such as 'HEAD' or 'refs/heads/master'
+ * @param   ref    A qualified git ref such as 'HEAD' or 'refs/heads/main'
  * @returns        The ref SHA
  */
 function revParse(gitDir: string, ref: string): string {

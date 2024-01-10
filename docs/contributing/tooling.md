@@ -9,8 +9,7 @@ Recommended packages:
 * [build-npm-apm](https://atom.io/packages/build-npm-apm) - invoke
   all npm scripts straight from the editor by pressing F7 (requires
   [build](https://atom.io/packages/build))
-* [linter](https://atom.io/packages/linter) and
-  [linter-tslint](https://atom.io/packages/linter-tslint) - shows linter errors and warning in the editor
+* [linter](https://atom.io/packages/linter) - shows linter errors and warning in the editor
 
 You can install them all at once with:
 
@@ -39,7 +38,6 @@ $ yarn start
 At a basic level, the logs from the running app are displayed in the **Console** tab, but other features include:
 
  - [React Dev Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en) - enables you to inspect components and view rendering activity in real time
- - [Devtron](http://electron.atom.io/devtron/) - not enabled by default, but you can add this from the console: `require('devtron').install()`
 
 If you are looking to diagnose React performance issues in Desktop, [this post by Ben Schwarz](https://building.calibreapp.com/debugging-react-performance-with-react-16-and-chrome-devtools-c90698a522ad)
 is a great introduction to the workflow enabled by React 16 around measuring and investigating using the **Performance** tab.

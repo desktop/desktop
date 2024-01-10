@@ -1,5 +1,9 @@
 import * as React from 'react'
-import { ApplicationTheme, getThemeName } from './lib/application-theme'
+import {
+  ApplicationTheme,
+  getThemeName,
+  getCurrentlyAppliedTheme,
+} from './lib/application-theme'
 
 interface IAppThemeProps {
   readonly theme: ApplicationTheme
@@ -30,23 +34,38 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
     this.clearThemes()
   }
 
-  private ensureTheme() {
-    const newThemeClassName = `theme-${getThemeName(this.props.theme)}`
-    const body = document.body
+  private async ensureTheme() {
+    let themeToDisplay = this.props.theme
 
-    if (body.classList.contains(newThemeClassName)) {
-      return
+    if (this.props.theme === ApplicationTheme.System) {
+      themeToDisplay = await getCurrentlyAppliedTheme()
     }
 
-    this.clearThemes()
+    const newThemeClassName = `theme-${getThemeName(themeToDisplay)}`
 
-    body.classList.add(newThemeClassName)
+    if (!document.body.classList.contains(newThemeClassName)) {
+      this.clearThemes()
+      document.body.classList.add(newThemeClassName)
+      this.updateColorScheme()
+    }
+  }
+
+  private updateColorScheme = () => {
+    const isDarkTheme = document.body.classList.contains('theme-dark')
+    const rootStyle = document.documentElement.style
+
+    rootStyle.colorScheme = isDarkTheme ? 'dark' : 'light'
   }
 
   private clearThemes() {
     const body = document.body
 
-    for (const className of body.classList) {
+    // body.classList is a DOMTokenList and it does not iterate all the way
+    // through with the for loop. (why it doesn't.. ¯\_(ツ)_/¯ - Possibly
+    // because we are modifying it as we loop) Hence the extra step of
+    // converting it to a string array.
+    const classList = [...body.classList]
+    for (const className of classList) {
       if (className.startsWith('theme-')) {
         body.classList.remove(className)
       }

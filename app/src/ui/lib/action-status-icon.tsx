@@ -1,9 +1,10 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 import { ComputedAction } from '../../models/computed-action'
 import { assertNever } from '../../lib/fatal-error'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbolType } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface IActionStatusIconProps {
   /** The status to display to the user */
@@ -51,17 +52,17 @@ export class ActionStatusIcon extends React.Component<IActionStatusIconProps> {
   }
 }
 
-function getSymbolForState(status: ComputedAction): OcticonSymbol {
+function getSymbolForState(status: ComputedAction): OcticonSymbolType {
   switch (status) {
     case ComputedAction.Loading:
-      return OcticonSymbol.primitiveDot
+      return OcticonSymbol.dotFill
     case ComputedAction.Conflicts:
       return OcticonSymbol.alert
     case ComputedAction.Invalid:
       return OcticonSymbol.x
     case ComputedAction.Clean:
       return OcticonSymbol.check
+    default:
+      return assertNever(status, `Unknown state: ${JSON.stringify(status)}`)
   }
-
-  return assertNever(status, `Unknown state: ${JSON.stringify(status)}`)
 }

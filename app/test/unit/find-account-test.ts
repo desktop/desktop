@@ -38,7 +38,8 @@ describe('findAccountForRemoteURL', () => {
       [],
       '',
       1,
-      'GitHub'
+      'GitHub',
+      'free'
     ),
     new Account(
       'joel',
@@ -47,7 +48,8 @@ describe('findAccountForRemoteURL', () => {
       [],
       '',
       2,
-      'My Company'
+      'My Company',
+      'free'
     ),
   ]
 
@@ -109,7 +111,7 @@ describe('findAccountForRemoteURL', () => {
     expect(account!.login).toBe('joan')
   })
 
-  it('finds the account for GitHub Enterprise Server endpoint', async () => {
+  it('finds the account for GitHub Enterprise endpoint', async () => {
     const account = await findAccountForRemoteURL(
       'https://github.mycompany.com/inkscape/inkscape.git',
       accounts,

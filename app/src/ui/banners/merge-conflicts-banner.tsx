@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Banner } from './banner'
 import { Dispatcher } from '../dispatcher'
 import { Popup } from '../../models/popup'
@@ -21,7 +22,7 @@ export class MergeConflictsBanner extends React.Component<
   private openDialog = () => {
     this.props.onDismissed()
     this.props.dispatcher.showPopup(this.props.popup)
-    this.props.dispatcher.recordMergeConflictsDialogReopened()
+    this.props.dispatcher.incrementMetric('mergeConflictsDialogReopenedCount')
   }
   public render() {
     return (

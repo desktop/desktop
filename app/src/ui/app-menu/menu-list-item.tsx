@@ -1,13 +1,20 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
 
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { MenuItem } from '../../models/app-menu'
 import { AccessText } from '../lib/access-text'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
 
 interface IMenuListItemProps {
   readonly item: MenuItem
+
+  /**
+   * A unique identifier for the menu item. On use is  to link it to the menu
+   * for accessibility labelling.
+   */
+  readonly menuItemId?: string
 
   /**
    * Whether or not to highlight the access key of a menu item (if one exists).
@@ -33,6 +40,42 @@ interface IMenuListItemProps {
    * Defaults to true if not specified (i.e. undefined)
    */
   readonly renderSubMenuArrow?: boolean
+
+  /**
+   * Whether or not the menu item represented by this list item is the currently
+   * selected menu item.
+   */
+  readonly selected: boolean
+
+  /**
+   * Whether or not this menu item should have a role applied
+   */
+  readonly hasNoRole?: boolean
+
+  /** Called when the user's pointer device enter the list item */
+  readonly onMouseEnter?: (
+    item: MenuItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
+  /** Called when the user's pointer device leaves the list item */
+  readonly onMouseLeave?: (
+    item: MenuItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
+
+  /** Called when the user's pointer device clicks on the list item */
+  readonly onClick?: (
+    item: MenuItem,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
+
+  /**
+   * Whether the list item should steal focus when selected. Defaults to
+   * false.
+   */
+  readonly focusOnSelection?: boolean
+
+  readonly renderLabel?: (item: MenuItem) => JSX.Element | undefined
 }
 
 /**
@@ -48,14 +91,57 @@ export function friendlyAcceleratorText(accelerator: string): string {
 }
 
 export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
+  private wrapperRef = React.createRef<HTMLDivElement>()
+
   private getIcon(item: MenuItem): JSX.Element | null {
     if (item.type === 'checkbox' && item.checked) {
       return <Octicon className="icon" symbol={OcticonSymbol.check} />
     } else if (item.type === 'radio' && item.checked) {
-      return <Octicon className="icon" symbol={OcticonSymbol.primitiveDot} />
+      return <Octicon className="icon" symbol={OcticonSymbol.dotFill} />
     }
 
     return null
+  }
+
+  private onMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onMouseEnter?.(this.props.item, event)
+  }
+
+  private onMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onMouseLeave?.(this.props.item, event)
+  }
+
+  private onClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onClick?.(this.props.item, event)
+  }
+
+  public componentDidMount() {
+    if (this.props.selected && this.props.focusOnSelection) {
+      this.wrapperRef.current?.focus()
+    }
+  }
+
+  public componentDidUpdate(prevProps: IMenuListItemProps) {
+    const { focusOnSelection, selected } = this.props
+    if (focusOnSelection && selected && !prevProps.selected) {
+      this.wrapperRef.current?.focus()
+    }
+  }
+
+  private renderLabel() {
+    const { item, renderLabel } = this.props
+
+    if (renderLabel !== undefined) {
+      return renderLabel(item)
+    }
+
+    if (item.type === 'separator') {
+      return
+    }
+
+    return (
+      <AccessText text={item.label} highlight={this.props.highlightAccessKey} />
+    )
   }
 
   public render() {
@@ -82,26 +168,38 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
         </div>
       ) : null
 
-    const className = classNames(
-      'menu-item',
-      { disabled: !item.enabled },
-      { checkbox: item.type === 'checkbox' },
-      { radio: item.type === 'radio' },
-      {
-        checked:
-          (item.type === 'checkbox' || item.type === 'radio') && item.checked,
-      }
-    )
+    const { type } = item
+
+    const className = classNames('menu-item', {
+      disabled: !item.enabled,
+      checkbox: type === 'checkbox',
+      radio: type === 'radio',
+      checked: (type === 'checkbox' || type === 'radio') && item.checked,
+      selected: this.props.selected,
+    })
+
+    const role = this.props.hasNoRole
+      ? undefined
+      : type === 'checkbox'
+      ? 'menuitemradio'
+      : 'menuitem'
+    const ariaChecked = type === 'checkbox' ? item.checked : undefined
 
     return (
-      <div className={className}>
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events
+      <div
+        id={this.props.menuItemId}
+        className={className}
+        onMouseEnter={this.onMouseEnter}
+        onMouseLeave={this.onMouseLeave}
+        onClick={this.onClick}
+        ref={this.wrapperRef}
+        role={role}
+        tabIndex={-1}
+        aria-checked={ariaChecked}
+      >
         {this.getIcon(item)}
-        <div className="label">
-          <AccessText
-            text={item.label}
-            highlight={this.props.highlightAccessKey}
-          />
-        </div>
+        <div className="label">{this.renderLabel()}</div>
         {accelerator}
         {arrow}
       </div>

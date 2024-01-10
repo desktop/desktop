@@ -27,7 +27,9 @@ export class BackgroundFetcher {
   private readonly repository: Repository
   private readonly account: Account
   private readonly fetch: (repository: Repository) => Promise<void>
-  private readonly shouldPerformFetch: (repository: Repository) => boolean
+  private readonly shouldPerformFetch: (
+    repository: Repository
+  ) => Promise<boolean>
 
   /** The handle for our setTimeout invocation. */
   private timeoutHandle: number | null = null
@@ -39,7 +41,7 @@ export class BackgroundFetcher {
     repository: Repository,
     account: Account,
     fetch: (repository: Repository) => Promise<void>,
-    shouldPerformFetch: (repository: Repository) => boolean
+    shouldPerformFetch: (repository: Repository) => Promise<boolean>
   ) {
     this.repository = repository
     this.account = account
@@ -51,7 +53,6 @@ export class BackgroundFetcher {
   public start(withInitialSkew: boolean) {
     if (this.stopped) {
       fatalError('Cannot start a background fetcher that has been stopped.')
-      return
     }
 
     const gitHubRepository = this.repository.gitHubRepository
@@ -91,7 +92,12 @@ export class BackgroundFetcher {
       return
     }
 
-    const shouldFetch = this.shouldPerformFetch(this.repository)
+    const shouldFetch = await this.shouldPerformFetch(this.repository)
+
+    if (this.stopped) {
+      return
+    }
+
     if (shouldFetch) {
       try {
         await this.fetch(this.repository)
@@ -152,7 +158,7 @@ let _skewInterval: number | null = null
  */
 function skewInterval(): number {
   if (_skewInterval !== null) {
-    return _skewInterval!
+    return _skewInterval
   }
 
   // We don't need cryptographically secure random numbers for

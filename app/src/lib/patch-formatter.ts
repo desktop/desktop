@@ -1,6 +1,11 @@
 import { assertNever } from '../lib/fatal-error'
 import { WorkingDirectoryFileChange, AppFileStatusKind } from '../models/status'
-import { DiffLineType, ITextDiff } from '../models/diff'
+import {
+  DiffLineType,
+  ITextDiff,
+  DiffSelection,
+  ILargeTextDiff,
+} from '../models/diff'
 
 /**
  * Generates a string matching the format of a GNU unified diff header excluding
@@ -58,9 +63,9 @@ function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
     // that work needs to be done waaaaaaaay before we get to this point.
     case AppFileStatusKind.Conflicted:
       return formatPatchHeader(file.path, file.path)
+    default:
+      return assertNever(file.status, `Unknown file status ${file.status}`)
   }
-
-  return assertNever(file.status, `Unknown file status ${file.status}`)
 }
 
 /**
@@ -123,7 +128,7 @@ function formatHunkHeader(
  */
 export function formatPatch(
   file: WorkingDirectoryFileChange,
-  diff: ITextDiff
+  diff: ITextDiff | ILargeTextDiff
 ): string {
   let patch = ''
 
@@ -186,7 +191,7 @@ export function formatPatch(
         // is concerned which means that we should treat it as if it's still
         // in the old file so we'll convert it to a context line.
         if (line.type === DiffLineType.Delete) {
-          hunkBuf += ` ${line.text.substr(1)}\n`
+          hunkBuf += ` ${line.text.substring(1)}\n`
           oldCount++
           newCount++
         } else {
@@ -224,4 +229,107 @@ export function formatPatch(
   patch = formatPatchHeaderForFile(file) + patch
 
   return patch
+}
+
+/**
+ * Creates a GNU unified diff to discard a set of changes (determined by the selection object)
+ * based on the passed diff and a number of selected or unselected lines.
+ *
+ * The patch is formatted with the intention of being used for applying against an index
+ * with git apply.
+ *
+ * Note that the diff must have at least one selected addition or deletion.
+ *
+ * This method is the opposite of formatPatch(). TODO: share logic between the two methods.
+ *
+ * @param filePath    The path of the file that the resulting patch will be applied to.
+ *                    This is used to determine the from and to paths for the
+ *                    patch header.
+ * @param diff        All the local changes for that file.
+ * @param selection  A selection of lines from the diff object that we want to discard.
+ */
+export function formatPatchToDiscardChanges(
+  filePath: string,
+  diff: ITextDiff,
+  selection: DiffSelection
+): string | null {
+  let patch = ''
+
+  diff.hunks.forEach((hunk, hunkIndex) => {
+    let hunkBuf = ''
+
+    let oldCount = 0
+    let newCount = 0
+
+    let anyAdditionsOrDeletions = false
+
+    hunk.lines.forEach((line, lineIndex) => {
+      const absoluteIndex = hunk.unifiedDiffStart + lineIndex
+
+      // We write our own hunk headers
+      if (line.type === DiffLineType.Hunk) {
+        return
+      }
+
+      // Context lines can always be let through, they will
+      // never appear for new files.
+      if (line.type === DiffLineType.Context) {
+        hunkBuf += `${line.text}\n`
+        oldCount++
+        newCount++
+      } else if (selection.isSelected(absoluteIndex)) {
+        // Reverse the change (if it was an added line, treat it as removed and vice versa).
+        if (line.type === DiffLineType.Add) {
+          hunkBuf += `-${line.text.substring(1)}\n`
+          newCount++
+        } else if (line.type === DiffLineType.Delete) {
+          hunkBuf += `+${line.text.substring(1)}\n`
+          oldCount++
+        } else {
+          assertNever(line.type, `Unsupported line type ${line.type}`)
+        }
+
+        anyAdditionsOrDeletions = true
+      } else {
+        if (line.type === DiffLineType.Add) {
+          // An unselected added line will stay in the file after discarding the changes,
+          // so we just print it untouched on the diff.
+          oldCount++
+          newCount++
+          hunkBuf += ` ${line.text.substring(1)}\n`
+        } else if (line.type === DiffLineType.Delete) {
+          // An unselected removed line has no impact on this patch since it's not
+          // found on the current working copy of the file, so we can ignore it.
+          return
+        } else {
+          // Guarantee that we've covered all the line types.
+          assertNever(line.type, `Unsupported line type ${line.type}`)
+        }
+      }
+
+      if (line.noTrailingNewLine) {
+        hunkBuf += '\\ No newline at end of file\n'
+      }
+    })
+
+    // Skip writing this hunk if all there is is context lines.
+    if (!anyAdditionsOrDeletions) {
+      return
+    }
+
+    patch += formatHunkHeader(
+      hunk.header.newStartLine,
+      newCount,
+      hunk.header.oldStartLine,
+      oldCount
+    )
+    patch += hunkBuf
+  })
+
+  if (patch.length === 0) {
+    // The selection resulted in an empty patch.
+    return null
+  }
+
+  return formatPatchHeader(filePath, filePath) + patch
 }

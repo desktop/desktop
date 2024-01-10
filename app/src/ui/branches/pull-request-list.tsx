@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as moment from 'moment'
 import {
   FilterList,
   IFilterListGroup,
@@ -16,9 +15,13 @@ import {
   getNonForkGitHubRepository,
 } from '../../models/repository'
 import { Button } from '../lib/button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, syncClockwise } from '../octicons'
 import { FoldoutType } from '../../lib/app-state'
 import { startTimer } from '../lib/timing'
+import { DragType } from '../../models/drag-drop'
+import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
+import { formatRelative } from '../../lib/format-relative'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -38,9 +41,6 @@ interface IPullRequestListProps {
   /** Is the default branch currently checked out? */
   readonly isOnDefaultBranch: boolean
 
-  /** Called when the user wants to dismiss the foldout. */
-  readonly onDismiss: () => void
-
   /** Called when the user opts to create a branch */
   readonly onCreateBranch: () => void
 
@@ -50,25 +50,29 @@ interface IPullRequestListProps {
     source: SelectionSource
   ) => void
 
-  /**
-   * Called when a key down happens in the filter field. Users have a chance to
-   * respond or cancel the default behavior by calling `preventDefault`.
-   */
-  readonly onFilterKeyDown?: (
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => void
-
   readonly dispatcher: Dispatcher
   readonly repository: RepositoryWithGitHubRepository
 
   /** Are we currently loading pull requests? */
   readonly isLoadingPullRequests: boolean
+
+  /** When mouse enters a PR */
+  readonly onMouseEnterPullRequest: (
+    prNumber: PullRequest,
+    prListItemTop: number
+  ) => void
+
+  /** When mouse leaves a PR */
+  readonly onMouseLeavePullRequest: (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => void
 }
 
 interface IPullRequestListState {
   readonly filterText: string
   readonly groupedItems: ReadonlyArray<IFilterListGroup<IPullRequestListItem>>
   readonly selectedItem: IPullRequestListItem | null
+  readonly screenReaderStateMessage: string | null
 }
 
 function resolveSelectedItem(
@@ -107,6 +111,7 @@ export class PullRequestList extends React.Component<
       filterText: '',
       groupedItems: [group],
       selectedItem,
+      screenReaderStateMessage: null,
     }
   }
 
@@ -117,27 +122,46 @@ export class PullRequestList extends React.Component<
       nextProps,
       this.state.selectedItem
     )
-    this.setState({ groupedItems: [group], selectedItem })
+
+    const loadingStarted =
+      !this.props.isLoadingPullRequests && nextProps.isLoadingPullRequests
+    const loadingComplete =
+      this.props.isLoadingPullRequests && !nextProps.isLoadingPullRequests
+    const numPullRequests = this.props.pullRequests.length
+    const plural = numPullRequests === 1 ? '' : 's'
+    const screenReaderStateMessage = loadingStarted
+      ? 'Hang Tight. Loading pull requests as fast as I can!'
+      : loadingComplete
+      ? `${numPullRequests} pull request${plural} found`
+      : null
+
+    this.setState({
+      groupedItems: [group],
+      selectedItem,
+      screenReaderStateMessage,
+    })
   }
 
   public render() {
     return (
-      <FilterList<IPullRequestListItem>
-        className="pull-request-list"
-        rowHeight={RowHeight}
-        groups={this.state.groupedItems}
-        selectedItem={this.state.selectedItem}
-        renderItem={this.renderPullRequest}
-        filterText={this.state.filterText}
-        onFilterTextChanged={this.onFilterTextChanged}
-        invalidationProps={this.props.pullRequests}
-        onItemClick={this.onItemClick}
-        onSelectionChanged={this.onSelectionChanged}
-        onFilterKeyDown={this.props.onFilterKeyDown}
-        renderGroupHeader={this.renderListHeader}
-        renderNoItems={this.renderNoItems}
-        renderPostFilter={this.renderPostFilter}
-      />
+      <>
+        <FilterList<IPullRequestListItem>
+          className="pull-request-list"
+          rowHeight={RowHeight}
+          groups={this.state.groupedItems}
+          selectedItem={this.state.selectedItem}
+          renderItem={this.renderPullRequest}
+          filterText={this.state.filterText}
+          onFilterTextChanged={this.onFilterTextChanged}
+          invalidationProps={this.props.pullRequests}
+          onItemClick={this.onItemClick}
+          onSelectionChanged={this.onSelectionChanged}
+          renderGroupHeader={this.renderListHeader}
+          renderNoItems={this.renderNoItems}
+          renderPostFilter={this.renderPostFilter}
+        />
+        <AriaLiveContainer message={this.state.screenReaderStateMessage} />
+      </>
     )
   }
 
@@ -166,11 +190,69 @@ export class PullRequestList extends React.Component<
         number={pr.pullRequestNumber}
         created={pr.created}
         author={pr.author}
+        draft={pr.draft}
         matches={matches}
         dispatcher={this.props.dispatcher}
         repository={pr.base.gitHubRepository}
+        onDropOntoPullRequest={this.onDropOntoPullRequest}
+        onMouseEnter={this.onMouseEnterPullRequest}
+        onMouseLeave={this.onMouseLeavePullRequest}
       />
     )
+  }
+
+  private onMouseEnterPullRequest = (
+    prNumber: number,
+    prListItemTop: number
+  ) => {
+    const { pullRequests } = this.props
+
+    // If not the currently checked out pull request, find the full pull request
+    // object to start the cherry-pick
+    const pr = pullRequests.find(pr => pr.pullRequestNumber === prNumber)
+    if (pr === undefined) {
+      log.error('[onMouseEnterPullReqest] - Could not find pull request.')
+      return
+    }
+
+    this.props.onMouseEnterPullRequest(pr, prListItemTop)
+  }
+
+  private onMouseLeavePullRequest = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    this.props.onMouseLeavePullRequest(event)
+  }
+
+  private onDropOntoPullRequest = (prNumber: number) => {
+    const { repository, selectedPullRequest, dispatcher, pullRequests } =
+      this.props
+
+    if (!dragAndDropManager.isDragOfTypeInProgress(DragType.Commit)) {
+      return
+    }
+
+    // If dropped on currently checked out pull request, it is treated the same
+    // as dropping on non-pull-request.
+    if (
+      selectedPullRequest !== null &&
+      prNumber === selectedPullRequest.pullRequestNumber
+    ) {
+      dispatcher.endMultiCommitOperation(repository)
+      dispatcher.incrementMetric('dragStartedAndCanceledCount')
+      return
+    }
+
+    // If not the currently checked out pull request, find the full pull request
+    // object to start the cherry-pick
+    const pr = pullRequests.find(pr => pr.pullRequestNumber === prNumber)
+    if (pr === undefined) {
+      log.error('[onDropOntoPullRequest] - Could not find pull request.')
+      dispatcher.endMultiCommitOperation(repository)
+      return
+    }
+
+    dispatcher.startCherryPickWithPullRequest(repository, pr)
   }
 
   private onItemClick = (
@@ -218,14 +300,17 @@ export class PullRequestList extends React.Component<
   }
 
   private renderPostFilter = () => {
+    const tooltip = 'Refresh the list of pull requests'
+
     return (
       <Button
         disabled={this.props.isLoadingPullRequests}
         onClick={this.onRefreshPullRequests}
-        tooltip="Refresh the list of pull requests"
+        ariaLabel={tooltip}
+        tooltip={tooltip}
       >
         <Octicon
-          symbol={OcticonSymbol.sync}
+          symbol={syncClockwise}
           className={this.props.isLoadingPullRequests ? 'spin' : undefined}
         />
       </Button>
@@ -243,7 +328,7 @@ export class PullRequestList extends React.Component<
 }
 
 function getSubtitle(pr: PullRequest) {
-  const timeAgo = moment(pr.created).fromNow()
+  const timeAgo = formatRelative(pr.created.getTime() - Date.now())
   return `#${pr.pullRequestNumber} opened ${timeAgo} by ${pr.author}`
 }
 

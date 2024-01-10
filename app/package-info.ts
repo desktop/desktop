@@ -1,20 +1,19 @@
-const appPackage: Record<string, string> = require('./package.json')
+import { bundleID, companyName, productName, version } from './package.json'
 
 export function getProductName() {
-  const productName = appPackage.productName
   return process.env.NODE_ENV === 'development'
     ? `${productName}-dev`
     : productName
 }
 
 export function getCompanyName() {
-  return appPackage.companyName
+  return companyName
 }
 
 export function getVersion() {
-  return appPackage.version
+  return version
 }
 
 export function getBundleID() {
-  return appPackage.bundleID
+  return process.env.NODE_ENV === 'development' ? `${bundleID}Dev` : bundleID
 }

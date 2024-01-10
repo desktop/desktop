@@ -21,7 +21,7 @@ import { assertNever } from '../../fatal-error'
 
 /**
  * Internal shape of the return value from this response because the compiler
- * seems to complain about attempts to create an object which satifies the
+ * seems to complain about attempts to create an object which satisfies the
  * constraints of Pick<T,K>
  */
 type ChangedFilesResult = {
@@ -122,30 +122,14 @@ function getConflictState(
   status: IStatusResult,
   manualResolutions: Map<string, ManualConflictResolution>
 ): ConflictState | null {
-  if (status.mergeHeadFound) {
-    const { currentBranch, currentTip } = status
-    if (currentBranch == null || currentTip == null) {
-      return null
-    }
-    return {
-      kind: 'merge',
-      currentBranch,
-      currentTip,
-      manualResolutions,
-    }
-  }
-
   if (status.rebaseInternalState !== null) {
     const { currentTip } = status
     if (currentTip == null) {
       return null
     }
 
-    const {
-      targetBranch,
-      originalBranchTip,
-      baseBranchTip,
-    } = status.rebaseInternalState
+    const { targetBranch, originalBranchTip, baseBranchTip } =
+      status.rebaseInternalState
 
     return {
       kind: 'rebase',
@@ -157,7 +141,38 @@ function getConflictState(
     }
   }
 
-  return null
+  if (status.isCherryPickingHeadFound) {
+    const { currentBranch: targetBranchName } = status
+    if (targetBranchName == null) {
+      return null
+    }
+    return {
+      kind: 'cherryPick',
+      manualResolutions,
+      targetBranchName,
+    }
+  }
+
+  const { currentBranch, currentTip, mergeHeadFound, squashMsgFound } = status
+  if (
+    currentBranch == null ||
+    currentTip == null ||
+    (!mergeHeadFound && !squashMsgFound) ||
+    // If there are no conflicts, we want to ignore the squash msg found.
+    // However, we do want to prompt the conflicts showing all resolved
+    // if a regular merge conflicts are all resolves so user can
+    // commit the merge commit.
+    (!mergeHeadFound && !status.doConflictedFilesExist)
+  ) {
+    return null
+  }
+
+  return {
+    kind: 'merge',
+    currentBranch,
+    currentTip,
+    manualResolutions,
+  }
 }
 
 function performEffectsForMergeStateChange(
@@ -178,7 +193,7 @@ function performEffectsForMergeStateChange(
 
   // The branch name has changed while remaining conflicted -> the merge must have been aborted
   if (branchNameChanged) {
-    statsStore.recordMergeAbortedAfterConflicts()
+    statsStore.increment('mergeAbortedAfterConflictsCount')
     return
   }
 
@@ -193,9 +208,9 @@ function performEffectsForMergeStateChange(
     const previousTip = prevConflictState.currentTip
 
     if (previousTip !== currentTip) {
-      statsStore.recordMergeSuccessAfterConflicts()
+      statsStore.increment('mergeSuccessAfterConflictsCount')
     } else {
-      statsStore.recordMergeAbortedAfterConflicts()
+      statsStore.increment('mergeAbortedAfterConflictsCount')
     }
   }
 }
@@ -218,7 +233,7 @@ function performEffectsForRebaseStateChange(
 
   // The branch name has changed while remaining conflicted -> the rebase must have been aborted
   if (branchNameChanged) {
-    statsStore.recordRebaseAbortedAfterConflicts()
+    statsStore.increment('rebaseAbortedAfterConflictsCount')
     return
   }
 
@@ -238,7 +253,7 @@ function performEffectsForRebaseStateChange(
       currentBranch === prevConflictState.targetBranch
 
     if (!previousTipChanged) {
-      statsStore.recordRebaseAbortedAfterConflicts()
+      statsStore.increment('rebaseAbortedAfterConflictsCount')
     }
   }
 

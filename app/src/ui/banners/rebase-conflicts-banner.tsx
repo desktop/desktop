@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Banner } from './banner'
 import { Dispatcher } from '../dispatcher'
 import { LinkButton } from '../lib/link-button'
@@ -21,7 +22,7 @@ export class RebaseConflictsBanner extends React.Component<
   private openDialog = async () => {
     this.props.onDismissed()
     this.props.onOpenDialog()
-    this.props.dispatcher.recordRebaseConflictsDialogReopened()
+    this.props.dispatcher.incrementMetric('rebaseConflictsDialogReopenedCount')
   }
 
   private onDismissed = () => {

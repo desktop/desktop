@@ -1,6 +1,6 @@
 import * as URL from 'url'
 
-/** The protocols over which we can connect to Enterprise Server instances. */
+/** The protocols over which we can connect to Enterprise instances. */
 const AllowedProtocols = new Set(['https:', 'http:'])
 
 /** The name for errors thrown because of an invalid URL. */
@@ -10,7 +10,7 @@ export const InvalidURLErrorName = 'invalid-url'
 export const InvalidProtocolErrorName = 'invalid-protocol'
 
 /**
- * Validate the URL for a GitHub Enterprise Server instance.
+ * Validate the URL for a GitHub Enterprise instance.
  *
  * Returns the validated URL, or throws if the URL cannot be validated.
  */

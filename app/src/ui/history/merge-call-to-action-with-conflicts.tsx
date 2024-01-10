@@ -4,93 +4,239 @@ import { HistoryTabMode } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
-import { Button } from '../lib/button'
 import { ActionStatusIcon } from '../lib/action-status-icon'
-import { MergeResult } from '../../models/merge'
+import { MergeTreeResult } from '../../models/merge'
 import { ComputedAction } from '../../models/computed-action'
+import {
+  DropdownSelectButton,
+  IDropdownSelectButtonOption,
+} from '../dropdown-select-button'
+import { getMergeOptions, updateRebasePreview } from '../lib/update-branch'
+import {
+  MultiCommitOperationKind,
+  isIdMultiCommitOperation,
+} from '../../models/multi-commit-operation'
+import { RebasePreview } from '../../models/rebase'
 
 interface IMergeCallToActionWithConflictsProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
-  readonly mergeStatus: MergeResult | null
+  readonly mergeStatus: MergeTreeResult | null
   readonly currentBranch: Branch
   readonly comparisonBranch: Branch
   readonly commitsBehind: number
+}
 
-  /**
-   * Callback to execute after a merge has been performed
-   */
-  readonly onMerged: () => void
+interface IMergeCallToActionWithConflictsState {
+  readonly selectedOperation: MultiCommitOperationKind
+  readonly rebasePreview: RebasePreview | null
 }
 
 export class MergeCallToActionWithConflicts extends React.Component<
   IMergeCallToActionWithConflictsProps,
-  {}
+  IMergeCallToActionWithConflictsState
 > {
-  public render() {
-    const { commitsBehind } = this.props
+  /**
+   * This is obtained by either the merge status or the rebase preview. Depending
+   * on which option is selected in the dropdown.
+   */
+  private get computedAction(): ComputedAction | null {
+    if (this.state.selectedOperation === MultiCommitOperationKind.Rebase) {
+      return this.state.rebasePreview !== null
+        ? this.state.rebasePreview.kind
+        : null
+    }
+    return this.props.mergeStatus !== null ? this.props.mergeStatus.kind : null
+  }
 
-    const cannotMergeBranch =
+  /**
+   * This is obtained by either the merge status or the rebase preview. Depending
+   * on which option is selected in the dropdown.
+   */
+  private get commitCount(): number {
+    const { selectedOperation, rebasePreview } = this.state
+    if (selectedOperation === MultiCommitOperationKind.Rebase) {
+      return rebasePreview !== null &&
+        rebasePreview.kind === ComputedAction.Clean
+        ? rebasePreview.commits.length
+        : 0
+    }
+
+    return this.props.commitsBehind
+  }
+
+  public constructor(props: IMergeCallToActionWithConflictsProps) {
+    super(props)
+
+    this.state = {
+      selectedOperation: MultiCommitOperationKind.Merge,
+      rebasePreview: null,
+    }
+  }
+
+  private isUpdateBranchDisabled(): boolean {
+    if (this.commitCount <= 0) {
+      return true
+    }
+
+    const { selectedOperation, rebasePreview } = this.state
+    if (selectedOperation === MultiCommitOperationKind.Rebase) {
+      return (
+        rebasePreview === null || rebasePreview.kind !== ComputedAction.Clean
+      )
+    }
+
+    return (
       this.props.mergeStatus != null &&
       this.props.mergeStatus.kind === ComputedAction.Invalid
+    )
+  }
 
-    const disabled = commitsBehind <= 0 || cannotMergeBranch
+  private updateRebasePreview = async (baseBranch: Branch) => {
+    const { currentBranch: targetBranch, repository } = this.props
+    updateRebasePreview(baseBranch, targetBranch, repository, rebasePreview => {
+      this.setState({ rebasePreview })
+    })
+  }
 
-    const mergeDetails = commitsBehind > 0 ? this.renderMergeStatus() : null
+  private onOperationChange = (option: IDropdownSelectButtonOption) => {
+    if (!isIdMultiCommitOperation(option.id)) {
+      return
+    }
+
+    this.setState({ selectedOperation: option.id })
+    if (option.id === MultiCommitOperationKind.Rebase) {
+      this.updateRebasePreview(this.props.comparisonBranch)
+    }
+  }
+
+  private onOperationInvoked = async (
+    event: React.MouseEvent<HTMLButtonElement>,
+    selectedOption: IDropdownSelectButtonOption
+  ) => {
+    if (!isIdMultiCommitOperation(selectedOption.id)) {
+      return
+    }
+    event.preventDefault()
+
+    const { dispatcher, repository } = this.props
+
+    await this.dispatchOperation(selectedOption.id)
+
+    dispatcher.executeCompare(repository, {
+      kind: HistoryTabMode.History,
+    })
+
+    dispatcher.updateCompareForm(repository, {
+      showBranchList: false,
+      filterText: '',
+    })
+  }
+
+  private async dispatchOperation(
+    operation: MultiCommitOperationKind
+  ): Promise<void> {
+    const {
+      dispatcher,
+      currentBranch,
+      comparisonBranch,
+      repository,
+      mergeStatus,
+    } = this.props
+
+    if (operation === MultiCommitOperationKind.Rebase) {
+      const commits =
+        this.state.rebasePreview !== null &&
+        this.state.rebasePreview.kind === ComputedAction.Clean
+          ? this.state.rebasePreview.commits
+          : []
+      return dispatcher.startRebase(
+        repository,
+        comparisonBranch,
+        currentBranch,
+        commits
+      )
+    }
+
+    const isSquash = operation === MultiCommitOperationKind.Squash
+    dispatcher.initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.Merge,
+        isSquash,
+        sourceBranch: comparisonBranch,
+      },
+      currentBranch,
+      [],
+      currentBranch.tip.sha
+    )
+    dispatcher.incrementMetric('mergesInitiatedFromComparison')
+
+    return dispatcher.mergeBranch(
+      repository,
+      comparisonBranch,
+      mergeStatus,
+      isSquash
+    )
+  }
+
+  public render() {
+    const disabled = this.isUpdateBranchDisabled()
+    const mergeDetails = this.commitCount > 0 ? this.renderMergeStatus() : null
 
     return (
       <div className="merge-cta">
         {mergeDetails}
 
-        <Button type="submit" disabled={disabled} onClick={this.onMergeClicked}>
-          Merge into <strong>{this.props.currentBranch.name}</strong>
-        </Button>
+        <DropdownSelectButton
+          checkedOption={this.state.selectedOperation}
+          options={getMergeOptions()}
+          dropdownAriaLabel="Merge options"
+          disabled={disabled}
+          onCheckedOptionChange={this.onOperationChange}
+          onSubmit={this.onOperationInvoked}
+        />
       </div>
     )
   }
 
   private renderMergeStatus() {
+    if (this.computedAction === null) {
+      return null
+    }
+
     return (
       <div className="merge-status-component">
         <ActionStatusIcon
-          status={this.props.mergeStatus}
+          status={{ kind: this.computedAction }}
           classNamePrefix="merge-status"
         />
 
-        {this.renderMergeDetails(
-          this.props.currentBranch,
-          this.props.comparisonBranch,
-          this.props.mergeStatus,
-          this.props.commitsBehind
-        )}
+        {this.renderStatusDetails()}
       </div>
     )
   }
 
-  private renderMergeDetails(
-    currentBranch: Branch,
-    comparisonBranch: Branch,
-    mergeStatus: MergeResult | null,
-    behindCount: number
-  ) {
-    if (mergeStatus === null) {
+  private renderStatusDetails() {
+    const { currentBranch, comparisonBranch, mergeStatus } = this.props
+    const { selectedOperation } = this.state
+    if (this.computedAction === null) {
       return null
     }
+    switch (this.computedAction) {
+      case ComputedAction.Loading:
+        return this.renderLoadingMessage()
+      case ComputedAction.Clean:
+        return this.renderCleanMessage(currentBranch, comparisonBranch)
+      case ComputedAction.Invalid:
+        return this.renderInvalidMessage()
+    }
 
-    if (mergeStatus.kind === ComputedAction.Loading) {
-      return this.renderLoadingMergeMessage()
-    }
-    if (mergeStatus.kind === ComputedAction.Clean) {
-      return this.renderCleanMergeMessage(
-        currentBranch,
-        comparisonBranch,
-        behindCount
-      )
-    }
-    if (mergeStatus.kind === ComputedAction.Invalid) {
-      return this.renderInvalidMergeMessage()
-    }
-    if (mergeStatus.kind === ComputedAction.Conflicts) {
+    if (
+      selectedOperation !== MultiCommitOperationKind.Rebase &&
+      mergeStatus !== null &&
+      mergeStatus.kind === ComputedAction.Conflicts
+    ) {
       return this.renderConflictedMergeMessage(
         currentBranch,
         comparisonBranch,
@@ -100,37 +246,55 @@ export class MergeCallToActionWithConflicts extends React.Component<
     return null
   }
 
-  private renderLoadingMergeMessage() {
+  private renderLoadingMessage() {
     return (
       <div className="merge-message merge-message-loading">
-        Checking for ability to merge automatically...
+        Checking for ability to {this.state.selectedOperation.toLowerCase()}{' '}
+        automatically…
       </div>
     )
   }
 
-  private renderCleanMergeMessage(
-    currentBranch: Branch,
-    branch: Branch,
-    count: number
-  ) {
-    if (count > 0) {
-      const pluralized = count === 1 ? 'commit' : 'commits'
-      return (
-        <div className="merge-message">
-          This will merge
-          <strong>{` ${count} ${pluralized}`}</strong>
-          {` from `}
-          <strong>{branch.name}</strong>
-          {` into `}
-          <strong>{currentBranch.name}</strong>
-        </div>
-      )
-    } else {
+  private renderCleanMessage(currentBranch: Branch, branch: Branch) {
+    if (this.commitCount <= 0) {
       return null
     }
+
+    const pluralized = this.commitCount === 1 ? 'commit' : 'commits'
+
+    if (this.state.selectedOperation === MultiCommitOperationKind.Rebase) {
+      return (
+        <div className="merge-message">
+          This will update <strong>{currentBranch.name}</strong>
+          {` by applying its `}
+          <strong>{`${this.commitCount} ${pluralized}`}</strong>
+          {` on top of `}
+          <strong>{branch.name}</strong>
+        </div>
+      )
+    }
+
+    return (
+      <div className="merge-message">
+        This will merge
+        <strong>{` ${this.commitCount} ${pluralized}`}</strong>
+        {` from `}
+        <strong>{branch.name}</strong>
+        {` into `}
+        <strong>{currentBranch.name}</strong>
+      </div>
+    )
   }
 
-  private renderInvalidMergeMessage() {
+  private renderInvalidMessage() {
+    if (this.state.selectedOperation === MultiCommitOperationKind.Rebase) {
+      return (
+        <div className="merge-message">
+          Unable to start rebase. Check you have chosen a valid branch.
+        </div>
+      )
+    }
+
     return (
       <div className="merge-message">
         Unable to merge unrelated histories in this repository
@@ -154,27 +318,5 @@ export class MergeCallToActionWithConflicts extends React.Component<
         <strong>{currentBranch.name}</strong>
       </div>
     )
-  }
-
-  private onMergeClicked = async () => {
-    const { comparisonBranch, repository, mergeStatus } = this.props
-
-    this.props.dispatcher.recordCompareInitiatedMerge()
-
-    await this.props.dispatcher.mergeBranch(
-      repository,
-      comparisonBranch.name,
-      mergeStatus
-    )
-
-    this.props.dispatcher.executeCompare(repository, {
-      kind: HistoryTabMode.History,
-    })
-
-    this.props.dispatcher.updateCompareForm(repository, {
-      showBranchList: false,
-      filterText: '',
-    })
-    this.props.onMerged()
   }
 }

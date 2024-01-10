@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 
 interface IBannerProps {
   readonly id?: string
@@ -9,11 +10,17 @@ interface IBannerProps {
 }
 
 export class Banner extends React.Component<IBannerProps, {}> {
-  private timeoutId: NodeJS.Timer | null = null
+  private banner = React.createRef<HTMLDivElement>()
+
+  // Timeout ID for manual focus placement after mounting
+  private focusTimeoutId: number | null = null
+
+  // Timeout ID for auto-dismissal of the banner after focus is lost
+  private dismissalTimeoutId: number | null = null
 
   public render() {
     return (
-      <div id={this.props.id} className="banner">
+      <div id={this.props.id} className="banner" ref={this.banner}>
         <div className="contents">{this.props.children}</div>
         {this.renderCloseButton()}
       </div>
@@ -21,31 +28,75 @@ export class Banner extends React.Component<IBannerProps, {}> {
   }
 
   private renderCloseButton() {
-    const { dismissable } = this.props
-    if (dismissable === undefined || dismissable === false) {
+    const { dismissable, onDismissed } = this.props
+
+    if (dismissable === false) {
       return null
     }
 
     return (
       <div className="close">
-        <a onClick={this.props.onDismissed}>
+        <button onClick={onDismissed} aria-label="Dismiss this message">
           <Octicon symbol={OcticonSymbol.x} />
-        </a>
+        </button>
       </div>
     )
   }
 
-  public componentDidMount = () => {
-    if (this.props.timeout !== undefined) {
-      this.timeoutId = setTimeout(() => {
-        this.props.onDismissed()
-      }, this.props.timeout)
+  public componentDidMount() {
+    this.focusTimeoutId = window.setTimeout(() => {
+      this.focusOnFirstSuitableElement()
+    }, 200)
+    this.addDismissalFocusListeners()
+  }
+
+  public componentWillUnmount() {
+    if (this.focusTimeoutId !== null) {
+      window.clearTimeout(this.focusTimeoutId)
+      this.focusTimeoutId = null
+    }
+
+    this.removeDismissalFocusListeners()
+  }
+
+  private focusOnFirstSuitableElement = () => {
+    const target =
+      this.banner.current?.querySelector('a') ||
+      this.banner.current?.querySelector('button')
+    target?.focus()
+  }
+
+  private addDismissalFocusListeners() {
+    this.banner.current?.addEventListener('focusin', this.onFocusIn)
+    this.banner.current?.addEventListener('focusout', this.onFocusOut)
+  }
+
+  private removeDismissalFocusListeners() {
+    this.banner.current?.removeEventListener('focusout', this.onFocusOut)
+    this.banner.current?.removeEventListener('focusin', this.onFocusIn)
+  }
+
+  private onFocusIn = () => {
+    if (this.dismissalTimeoutId !== null) {
+      window.clearTimeout(this.dismissalTimeoutId)
+      this.dismissalTimeoutId = null
     }
   }
 
-  public componentWillUnmount = () => {
-    if (this.props.timeout !== undefined && this.timeoutId !== null) {
-      clearTimeout(this.timeoutId)
+  private onFocusOut = async (event: FocusEvent) => {
+    const { dismissable, onDismissed, timeout } = this.props
+
+    if (
+      event.relatedTarget &&
+      this.banner.current?.contains(event.relatedTarget as Node)
+    ) {
+      return
+    }
+
+    if (dismissable !== false) {
+      this.dismissalTimeoutId = window.setTimeout(() => {
+        onDismissed()
+      }, timeout)
     }
   }
 }

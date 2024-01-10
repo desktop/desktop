@@ -24,7 +24,7 @@ a consistent process for contributions from the core team and the community.
     applicable).
 
 Merged contributions are first published to the beta channel (we aim to publish
-new versions weekly if contributions are availlable) before then being
+new versions weekly if contributions are available) before then being
 published to the production channel (we aim to publish new versions on a monthly
 cadence).
 

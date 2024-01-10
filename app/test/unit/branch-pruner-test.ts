@@ -1,4 +1,3 @@
-import * as moment from 'moment'
 import { BranchPruner } from '../../src/lib/stores/helpers/branch-pruner'
 import { Repository } from '../../src/models/repository'
 import { GitStoreCache } from '../../src/lib/stores/git-store-cache'
@@ -8,45 +7,42 @@ import { setupFixtureRepository } from '../helpers/repositories'
 import { shell } from '../helpers/test-app-shell'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { GitProcess } from 'dugite'
-import { IGitHubUser } from '../../src/lib/databases'
 import {
   createRepository as createPrunedRepository,
   setupRepository,
 } from '../helpers/repository-builder-branch-pruner'
 import { StatsStore, StatsDatabase } from '../../src/lib/stats'
 import { UiActivityMonitor } from '../../src/ui/lib/ui-activity-monitor'
+import { offsetFromNow } from '../../src/lib/offset-from'
+import * as FSE from 'fs-extra'
+import * as path from 'path'
+import { fakePost } from '../fake-stats-post'
 
 describe('BranchPruner', () => {
   const onGitStoreUpdated = () => {}
-  const onDidLoadNewCommits = () => {}
   const onDidError = () => {}
 
   let gitStoreCache: GitStoreCache
   let repositoriesStore: RepositoriesStore
   let repositoriesStateCache: RepositoryStateCache
-  let onPruneCompleted: jest.Mock<(repository: Repository) => Promise<void>>
 
   beforeEach(async () => {
+    const statsStore = new StatsStore(
+      new StatsDatabase('test-StatsDatabase'),
+      new UiActivityMonitor(),
+      fakePost
+    )
     gitStoreCache = new GitStoreCache(
       shell,
-      new StatsStore(
-        new StatsDatabase('test-StatsDatabase'),
-        new UiActivityMonitor()
-      ),
+      statsStore,
       onGitStoreUpdated,
-      onDidLoadNewCommits,
       onDidError
     )
 
     const repositoriesDb = new TestRepositoriesDatabase()
     await repositoriesDb.reset()
     repositoriesStore = new RepositoriesStore(repositoriesDb)
-    repositoriesStateCache = new RepositoryStateCache(
-      () => new Map<string, IGitHubUser>()
-    )
-    onPruneCompleted = jest.fn(() => (_: Repository) => {
-      return Promise.resolve()
-    })
+    repositoriesStateCache = new RepositoryStateCache(statsStore)
   })
 
   it('does nothing on non GitHub repositories', async () => {
@@ -65,7 +61,7 @@ describe('BranchPruner', () => {
       gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      () => Promise.resolve()
     )
 
     const branchesBeforePruning = await getBranchesFromGit(repo)
@@ -76,8 +72,7 @@ describe('BranchPruner', () => {
   })
 
   it('prunes for GitHub repository', async () => {
-    const fixedDate = moment()
-    const lastPruneDate = fixedDate.subtract(1, 'day')
+    const lastPruneDate = new Date(offsetFromNow(-1, 'day'))
 
     const path = await setupFixtureRepository('branch-prune-tests')
     const repo = await setupRepository(
@@ -86,14 +81,14 @@ describe('BranchPruner', () => {
       repositoriesStateCache,
       true,
       'master',
-      lastPruneDate.toDate()
+      lastPruneDate
     )
     const branchPruner = new BranchPruner(
       repo,
       gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      () => Promise.resolve()
     )
 
     await branchPruner.start()
@@ -104,8 +99,7 @@ describe('BranchPruner', () => {
   })
 
   it('does not prune if the last prune date is less than 24 hours ago', async () => {
-    const fixedDate = moment()
-    const lastPruneDate = fixedDate.subtract(4, 'hours')
+    const lastPruneDate = new Date(offsetFromNow(-4, 'hours'))
     const path = await setupFixtureRepository('branch-prune-tests')
     const repo = await setupRepository(
       path,
@@ -113,14 +107,14 @@ describe('BranchPruner', () => {
       repositoriesStateCache,
       true,
       'master',
-      lastPruneDate.toDate()
+      lastPruneDate
     )
     const branchPruner = new BranchPruner(
       repo,
       gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      () => Promise.resolve()
     )
 
     const branchesBeforePruning = await getBranchesFromGit(repo)
@@ -131,24 +125,24 @@ describe('BranchPruner', () => {
   })
 
   it('does not prune if there is no default branch', async () => {
-    const fixedDate = moment()
-    const lastPruneDate = fixedDate.subtract(1, 'day')
-    const path = await setupFixtureRepository('branch-prune-tests')
+    const lastPruneDate = new Date(offsetFromNow(-1, 'day'))
+    const repoPath = await setupFixtureRepository('branch-prune-tests')
+    FSE.unlink(path.join(repoPath, '.git', 'refs', 'remotes', 'origin', 'HEAD'))
 
     const repo = await setupRepository(
-      path,
+      repoPath,
       repositoriesStore,
       repositoriesStateCache,
       true,
       '',
-      lastPruneDate.toDate()
+      lastPruneDate
     )
     const branchPruner = new BranchPruner(
       repo,
       gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      () => Promise.resolve()
     )
 
     const branchesBeforePruning = await getBranchesFromGit(repo)
@@ -159,8 +153,7 @@ describe('BranchPruner', () => {
   })
 
   it('does not prune reserved branches', async () => {
-    const fixedDate = moment()
-    const lastPruneDate = fixedDate.subtract(1, 'day')
+    const lastPruneDate = new Date(offsetFromNow(-1, 'day'))
 
     const path = await setupFixtureRepository('branch-prune-tests')
     const repo = await setupRepository(
@@ -169,14 +162,14 @@ describe('BranchPruner', () => {
       repositoriesStateCache,
       true,
       'master',
-      lastPruneDate.toDate()
+      lastPruneDate
     )
     const branchPruner = new BranchPruner(
       repo,
       gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      () => Promise.resolve()
     )
 
     await branchPruner.start()
@@ -201,8 +194,7 @@ describe('BranchPruner', () => {
   it('never prunes a branch that lacks an upstream', async () => {
     const path = await createPrunedRepository()
 
-    const fixedDate = moment()
-    const lastPruneDate = fixedDate.subtract(1, 'day')
+    const lastPruneDate = new Date(offsetFromNow(-1, 'day'))
 
     const repo = await setupRepository(
       path,
@@ -210,7 +202,7 @@ describe('BranchPruner', () => {
       repositoriesStateCache,
       true,
       'master',
-      lastPruneDate.toDate()
+      lastPruneDate
     )
 
     const branchPruner = new BranchPruner(
@@ -218,7 +210,7 @@ describe('BranchPruner', () => {
       gitStoreCache,
       repositoriesStore,
       repositoriesStateCache,
-      onPruneCompleted
+      () => Promise.resolve()
     )
 
     await branchPruner.start()
@@ -234,5 +226,5 @@ async function getBranchesFromGit(repository: Repository) {
   return gitOutput.stdout
     .split('\n')
     .filter(s => s.length > 0)
-    .map(s => s.substr(2))
+    .map(s => s.substring(2))
 }

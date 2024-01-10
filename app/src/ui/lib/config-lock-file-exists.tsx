@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Ref } from './ref'
 import { LinkButton } from './link-button'
-import { unlink } from 'fs-extra'
+import { unlink } from 'fs/promises'
 
 interface IConfigLockFileExistsProps {
   /**
@@ -22,9 +22,7 @@ interface IConfigLockFileExistsProps {
   readonly onError: (e: Error) => void
 }
 
-export class ConfigLockFileExists extends React.Component<
-  IConfigLockFileExistsProps
-> {
+export class ConfigLockFileExists extends React.Component<IConfigLockFileExistsProps> {
   private onDeleteLockFile = async () => {
     try {
       await unlink(this.props.lockFilePath)

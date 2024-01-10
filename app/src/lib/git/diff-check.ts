@@ -2,7 +2,8 @@ import { spawnAndComplete } from './spawn'
 import { getCaptures } from '../helpers/regex'
 
 /**
- * returns a list of files with conflict markers present
+ * Returns a list of files with conflict markers present
+ *
  * @param repositoryPath filepath to repository
  * @returns filepaths with their number of conflicted markers
  */
@@ -26,7 +27,7 @@ export async function getFilesWithConflictMarkers(
   }
   // flatten the list (only does one level deep)
   const flatCaptures = captures.reduce((acc, val) => acc.concat(val))
-  // count number of occurences
+  // count number of occurrences
   const counted = flatCaptures.reduce(
     (acc, val) => acc.set(val, (acc.get(val) || 0) + 1),
     new Map<string, number>()

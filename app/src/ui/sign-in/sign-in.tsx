@@ -9,7 +9,8 @@ import {
 } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
 import { LinkButton } from '../lib/link-button'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
@@ -18,6 +19,8 @@ import { getWelcomeMessage } from '../../lib/2fa'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Button } from '../lib/button'
+import { HorizontalRule } from '../lib/horizontal-rule'
+import { PasswordTextBox } from '../lib/password-text-box'
 
 interface ISignInProps {
   readonly dispatcher: Dispatcher
@@ -39,6 +42,8 @@ const SignInWithBrowserTitle = __DARWIN__
 const DefaultTitle = 'Sign in'
 
 export class SignIn extends React.Component<ISignInProps, ISignInState> {
+  private readonly dialogRef = React.createRef<Dialog>()
+
   public constructor(props: ISignInProps) {
     super(props)
 
@@ -50,13 +55,25 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     }
   }
 
+  public componentDidUpdate(prevProps: ISignInProps) {
+    // Whenever the sign in step changes we replace the dialog contents which
+    // means we need to re-focus the first suitable child element as it's
+    // essentially a "new" dialog we're showing only the dialog component itself
+    // doesn't know that.
+    if (prevProps.signInState !== null && this.props.signInState !== null) {
+      if (prevProps.signInState.kind !== this.props.signInState.kind) {
+        this.dialogRef.current?.focusFirstSuitableChild()
+      }
+    }
+  }
+
   public componentWillReceiveProps(nextProps: ISignInProps) {
     if (nextProps.signInState !== this.props.signInState) {
       if (
         nextProps.signInState &&
         nextProps.signInState.kind === SignInStep.Success
       ) {
-        this.props.onDismissed()
+        this.onDismissed()
       }
     }
   }
@@ -88,7 +105,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         this.props.dispatcher.setSignInOTP(this.state.otpToken)
         break
       case SignInStep.Success:
-        this.props.onDismissed()
+        this.onDismissed()
         break
       default:
         assertNever(state, `Unknown sign in step ${stepKind}`)
@@ -111,11 +128,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     this.setState({ otpToken })
   }
 
-  private onSignInWithBrowser = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    event.preventDefault()
-
+  private onSignInWithBrowser = () => {
     this.props.dispatcher.requestBrowserAuthentication()
   }
 
@@ -163,6 +176,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         <OkCancelButtonGroup
           okButtonText={primaryButtonText}
           okButtonDisabled={disableSubmit}
+          onCancelButtonClick={this.onDismissed}
         />
       </DialogFooter>
     )
@@ -173,7 +187,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       <DialogContent>
         <Row>
           <TextBox
-            label="Enterprise Server address"
+            label="Enterprise address"
             value={this.state.endpoint}
             onValueChanged={this.onEndpointChanged}
             placeholder="https://github.example.com"
@@ -203,8 +217,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         return (
           <DialogContent>
             <p>
-              Your GitHub Enterprise Server instance requires you to sign in
-              with your browser.
+              Your GitHub Enterprise instance requires you to sign in with your
+              browser.
             </p>
           </DialogContent>
         )
@@ -217,8 +231,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       <DialogContent>
         <Row className="sign-in-with-browser">
           <Button
-            className="button-with-icon"
-            type="submit"
+            className="button-with-icon button-component-primary"
             onClick={this.onSignInWithBrowser}
             disabled={disableSubmit}
           >
@@ -227,9 +240,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
           </Button>
         </Row>
 
-        <div className="horizontal-rule">
-          <span className="horizontal-rule-content">or</span>
-        </div>
+        <HorizontalRule title="or" />
 
         <Row>
           <TextBox
@@ -239,10 +250,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
           />
         </Row>
         <Row>
-          <TextBox
+          <PasswordTextBox
             label="Password"
             value={this.state.password}
-            type="password"
             onValueChanged={this.onPasswordChanged}
           />
         </Row>
@@ -269,8 +279,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             label="Authentication code"
             value={this.state.otpToken}
             onValueChanged={this.onOTPTokenChanged}
-            labelLinkText={`What's this?`}
-            labelLinkUri="https://help.github.com/articles/providing-your-2fa-authentication-code/"
             autoFocus={true}
           />
         </Row>
@@ -326,14 +334,20 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         id="sign-in"
         title={title}
         disabled={disabled}
-        onDismissed={this.props.onDismissed}
+        onDismissed={this.onDismissed}
         onSubmit={this.onSubmit}
         loading={state.loading}
+        ref={this.dialogRef}
       >
         {errors}
         {this.renderStep()}
         {this.renderFooter()}
       </Dialog>
     )
+  }
+
+  private onDismissed = () => {
+    this.props.dispatcher.resetSignInState()
+    this.props.onDismissed()
   }
 }

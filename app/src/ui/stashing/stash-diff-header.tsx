@@ -3,18 +3,19 @@ import { IStashEntry } from '../../models/stash-entry'
 import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { PopupType } from '../../models/popup'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 
 interface IStashDiffHeaderProps {
   readonly stashEntry: IStashEntry
   readonly repository: Repository
   readonly dispatcher: Dispatcher
-  readonly isWorkingTreeClean: boolean
+  readonly askForConfirmationOnDiscardStash: boolean
 }
 
 interface IStashDiffHeaderState {
   readonly isRestoring: boolean
+  readonly isDiscarding: boolean
 }
 
 /**
@@ -30,12 +31,12 @@ export class StashDiffHeader extends React.Component<
 
     this.state = {
       isRestoring: false,
+      isDiscarding: false,
     }
   }
 
   public render() {
-    const { isWorkingTreeClean } = this.props
-    const { isRestoring } = this.state
+    const { isRestoring, isDiscarding } = this.state
 
     return (
       <div className="header">
@@ -43,56 +44,66 @@ export class StashDiffHeader extends React.Component<
         <div className="row">
           <OkCancelButtonGroup
             okButtonText="Restore"
-            okButtonDisabled={isRestoring || !isWorkingTreeClean}
+            okButtonDisabled={isRestoring || isDiscarding}
             onOkButtonClick={this.onRestoreClick}
             cancelButtonText="Discard"
-            cancelButtonDisabled={isRestoring}
+            cancelButtonDisabled={isRestoring || isDiscarding}
             onCancelButtonClick={this.onDiscardClick}
+            okButtonAriaDescribedBy="restore-description"
           />
-          {this.renderExplanatoryText()}
+          <div className="explanatory-text" id="restore-description">
+            <span className="text">
+              <strong>Restore</strong> will move your stashed files to the
+              Changes list.
+            </span>
+          </div>
         </div>
       </div>
     )
   }
 
-  private renderExplanatoryText() {
-    const { isWorkingTreeClean } = this.props
-
-    if (isWorkingTreeClean || this.state.isRestoring) {
-      return (
-        <div className="explanatory-text">
-          <span className="text">
-            <strong>Restore</strong> will move your stashed files to the Changes
-            list.
-          </span>
-        </div>
-      )
-    }
-
-    return (
-      <div className="explanatory-text">
-        <Octicon symbol={OcticonSymbol.alert} />
-        <span className="text">
-          Unable to restore stash when changes are present on your branch.
-        </span>
-      </div>
-    )
-  }
-
-  private onDiscardClick = () => {
-    const { dispatcher, repository, stashEntry } = this.props
-    dispatcher.showPopup({
-      type: PopupType.ConfirmDiscardStash,
-      stash: stashEntry,
+  private onDiscardClick = async () => {
+    const {
+      dispatcher,
       repository,
-    })
+      stashEntry,
+      askForConfirmationOnDiscardStash,
+    } = this.props
+
+    if (!askForConfirmationOnDiscardStash) {
+      this.setState({
+        isDiscarding: true,
+      })
+
+      try {
+        await dispatcher.dropStash(repository, stashEntry)
+      } finally {
+        this.setState({
+          isDiscarding: false,
+        })
+      }
+    } else {
+      dispatcher.showPopup({
+        type: PopupType.ConfirmDiscardStash,
+        stash: stashEntry,
+        repository,
+      })
+    }
   }
 
   private onRestoreClick = async () => {
     const { dispatcher, repository, stashEntry } = this.props
 
-    this.setState({ isRestoring: true }, () => {
-      dispatcher.popStash(repository, stashEntry)
-    })
+    try {
+      this.setState({ isRestoring: true })
+      await dispatcher.popStash(repository, stashEntry)
+    } catch (err) {
+      const errorWithMetadata = new ErrorWithMetadata(err, {
+        repository: repository,
+      })
+      dispatcher.postError(errorWithMetadata)
+    } finally {
+      this.setState({ isRestoring: false })
+    }
   }
 }

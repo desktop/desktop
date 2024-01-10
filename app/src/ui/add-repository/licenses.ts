@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import { writeFile, readFile } from 'fs-extra'
+import { readFile, writeFile } from 'fs/promises'
 
 export interface ILicense {
   /** The human-readable name. */
@@ -50,7 +50,7 @@ export async function getLicenses(): Promise<ReadonlyArray<ILicense>> {
 }
 
 function replaceToken(body: string, token: string, value: string): string {
-  // The license templates are inconsitent :( Sometimes they use [token] and
+  // The license templates are inconsistent :( Sometimes they use [token] and
   // sometimes {token}. So we'll standardize first to {token} and then do
   // replacements.
   const oldPattern = new RegExp(`\\[${token}\\]`, 'g')

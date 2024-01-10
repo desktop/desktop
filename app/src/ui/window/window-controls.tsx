@@ -1,11 +1,15 @@
 import * as React from 'react'
-import { ipcRenderer, remote } from 'electron'
+import { WindowState } from '../../lib/window-state'
+import classNames from 'classnames'
 import {
-  WindowState,
-  getWindowState,
-  windowStateChannelName,
-} from '../../lib/window-state'
-import * as classNames from 'classnames'
+  closeWindow,
+  getCurrentWindowState,
+  maximizeWindow,
+  minimizeWindow,
+  restoreWindow,
+} from '../main-process-proxy'
+import * as ipcRenderer from '../../lib/ipc-renderer'
+import { Button } from '../lib/button'
 
 // These paths are all drawn to a 10x10 view box and replicate the symbols
 // seen on Windows 10 window controls.
@@ -17,7 +21,7 @@ const maximizePath = 'M 0,0 0,10 10,10 10,0 Z M 1,1 9,1 9,9 1,9 Z'
 const minimizePath = 'M 0,5 10,5 10,6 0,6 Z'
 
 interface IWindowControlState {
-  readonly windowState: WindowState
+  readonly windowState: WindowState | null
 }
 
 /**
@@ -34,16 +38,43 @@ interface IWindowControlState {
  */
 export class WindowControls extends React.Component<{}, IWindowControlState> {
   public componentWillMount() {
-    this.setState({ windowState: getWindowState(remote.getCurrentWindow()) })
+    this.setState({ windowState: null })
+    this.initializeWindowState()
+    ipcRenderer.on('window-state-changed', this.onWindowStateChanged)
+  }
 
-    ipcRenderer.on(windowStateChannelName, this.onWindowStateChanged)
+  private initializeWindowState = async () => {
+    const windowState = await getCurrentWindowState()
+    if (windowState === undefined) {
+      return
+    }
+
+    this.setState({ windowState })
   }
 
   public componentWillUnmount() {
     ipcRenderer.removeListener(
-      windowStateChannelName,
+      'window-state-changed',
       this.onWindowStateChanged
     )
+  }
+
+  // Note: The following four wrapping methods are necessary on windows.
+  // Otherwise, you get a object cloning error.
+  private onMinimize = () => {
+    minimizeWindow()
+  }
+
+  private onMaximize = () => {
+    maximizeWindow()
+  }
+
+  private onRestore = () => {
+    restoreWindow()
+  }
+
+  private onClose = () => {
+    closeWindow()
   }
 
   public shouldComponentUpdate(nextProps: {}, nextState: IWindowControlState) {
@@ -51,26 +82,10 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
   }
 
   private onWindowStateChanged = (
-    event: Electron.IpcRendererEvent,
+    _: Electron.IpcRendererEvent,
     windowState: WindowState
   ) => {
     this.setState({ windowState })
-  }
-
-  private onMinimize = () => {
-    remote.getCurrentWindow().minimize()
-  }
-
-  private onMaximize = () => {
-    remote.getCurrentWindow().maximize()
-  }
-
-  private onRestore = () => {
-    remote.getCurrentWindow().unmaximize()
-  }
-
-  private onClose = () => {
-    remote.getCurrentWindow().close()
   }
 
   private renderButton(
@@ -82,17 +97,19 @@ export class WindowControls extends React.Component<{}, IWindowControlState> {
     const title = name[0].toUpperCase() + name.substring(1)
 
     return (
-      <button
-        aria-label={name}
-        title={title}
+      <Button
+        ariaLabel={title}
+        ariaHidden={true}
         tabIndex={-1}
         className={className}
         onClick={onClick}
+        tooltip={title}
+        tooltipClassName="window-controls-tooltip"
       >
         <svg aria-hidden="true" version="1.1" width="10" height="10">
           <path d={path} />
         </svg>
-      </button>
+      </Button>
     )
   }
 

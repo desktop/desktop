@@ -42,7 +42,7 @@ underlying Git implementation.
 The rebase flow that Desktop currently uses is the simple
 `git rebase <upstream> <branch>`. In the rest of this document I will refer to
 `<upstream>` as the **base branch** and `<branch>` as the **target branch**, to
-differenitate from the upstream remote.
+differentiate from the upstream remote.
 
 When `git` invokes `git rebase <upstream> <branch>` it performs these steps as
 setup:
@@ -115,15 +115,15 @@ applied cleanly to the working directory
 The information about what changes are being rebased can be identified found
 from a few files:
 
- - `.git/rebase-apply/head-name` - the name of the target branch associated with
+ - `.git/rebase-merge/head-name` - the name of the target branch associated with
     the current rebase - may be prefixed with `refs/heads/`
 
 **TODO**: can we confirm when this happens or doesn't happen?
 
- - `.git/rebase-apply/onto` - the commit ID of the base branch, which is used as
+ - `.git/rebase-merge/onto` - the commit ID of the base branch, which is used as
     a starting point to apply the commits from the target branch
 
- - `.git/rebase-apply/orig-head` - the original commit ID of the target branch
+ - `.git/rebase-merge/orig-head` - the original commit ID of the target branch
 
 This information is especially helpful if Desktop encounters a repository which
 had the rebase started outside Desktop but encountered conflicts - with this
@@ -136,17 +136,17 @@ If a rebase was not started outside Desktop, or the rebase flow is paused, the
 details about the progress state can be built up from these fields.
 
 When a rebase encounters conflicts, the patches themselves are stored in files
-in `.git/rebase-apply/` in numeric order of which they will be applied, e.g.
+in `.git/rebase-merge/` in numeric order of which they will be applied, e.g.
 `0001`, `0002`, `0003` and so on.
 
 **TODO**: can we confirm whether `9999` is the upper limit here for the rebase?
 
- - `.git/rebase-apply/next` - this contains a number representing the current
+ - `.git/rebase-merge/msgnum` - this contains a number representing the current
    patch being applied as part of the rebase.
- - `.git/rebase-apply/last` - this number contains the total number of patches
+ - `.git/rebase-merge/end` - this number contains the total number of patches
    that will be applied as part of this rebase
- - `.git/rebase-apply/orig-head` - the original commit ID of the target branch
- - `.git/rebase-apply/onto` - the commit ID of the base branch, which is used as
+ - `.git/rebase-merge/orig-head` - the original commit ID of the target branch
+ - `.git/rebase-merge/onto` - the commit ID of the base branch, which is used as
     a starting point to apply the commits from the target branch
 
 The last two files, `orig-head` and `onto` can be used to generate a range of

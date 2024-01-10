@@ -18,7 +18,7 @@ export class MultipleSelection extends React.Component<
   public render() {
     return (
       <div className="panel blankslate" id="no-changes">
-        <img src={BlankSlateImage} className="blankslate-image" />
+        <img src={BlankSlateImage} className="blankslate-image" alt="" />
         <div>{this.props.count} files selected</div>
       </div>
     )

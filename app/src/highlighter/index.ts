@@ -45,7 +45,11 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/javascript/javascript'),
     mappings: {
       '.ts': 'text/typescript',
+      '.mts': 'text/typescript',
+      '.cts': 'text/typescript',
       '.js': 'text/javascript',
+      '.mjs': 'text/javascript',
+      '.cjs': 'text/javascript',
       '.json': 'application/json',
     },
   },
@@ -59,7 +63,11 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/jsx/jsx'),
     mappings: {
       '.tsx': 'text/typescript-jsx',
+      '.mtsx': 'text/typescript-jsx',
+      '.ctsx': 'text/typescript-jsx',
       '.jsx': 'text/jsx',
+      '.mjsx': 'text/jsx',
+      '.cjsx': 'text/jsx',
     },
   },
   {
@@ -72,6 +80,8 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
   {
     install: () => import('codemirror/mode/htmlembedded/htmlembedded'),
     mappings: {
+      '.aspx': 'application/x-aspx',
+      '.cshtml': 'application/x-aspx',
       '.jsp': 'application/x-jsp',
     },
   },
@@ -114,6 +124,15 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.vbproj': 'text/xml',
       '.svg': 'text/xml',
       '.resx': 'text/xml',
+      '.props': 'text/xml',
+      '.targets': 'text/xml',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/diff/diff'),
+    mappings: {
+      '.diff': 'text/x-diff',
+      '.patch': 'text/x-diff',
     },
   },
   {
@@ -129,6 +148,8 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.h': 'text/x-c',
       '.cpp': 'text/x-c++src',
       '.hpp': 'text/x-c++src',
+      '.cc': 'text/x-c++src',
+      '.ino': 'text/x-c++src',
       '.kt': 'text/x-kotlin',
     },
   },
@@ -303,6 +324,12 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
+    install: () => import('codemirror/mode/haml/haml'),
+    mappings: {
+      '.haml': 'text/x-haml',
+    },
+  },
+  {
     install: () => import('codemirror/mode/sieve/sieve'),
     mappings: {
       '.sieve': 'application/sieve',
@@ -386,6 +413,18 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.pas': 'text/x-pascal',
     },
   },
+  {
+    install: () => import('codemirror/mode/toml/toml'),
+    mappings: {
+      '.toml': 'text/x-toml',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/dart/dart'),
+    mappings: {
+      '.dart': 'application/dart',
+    },
+  },
 ]
 
 /**
@@ -436,15 +475,15 @@ for (const basenameMode of basenameModes) {
   }
 }
 
-function guessMimeType(contents: string) {
-  if (contents.startsWith('<?xml')) {
+function guessMimeType(contents: ReadonlyArray<string>) {
+  const firstLine = contents[0]
+
+  if (firstLine.startsWith('<?xml')) {
     return 'text/xml'
   }
 
-  if (contents.startsWith('#!')) {
-    const m = /^#!.*?(ts-node|node|bash|sh|python(?:[\d.]+)?)\r?\n/g.exec(
-      contents
-    )
+  if (firstLine.startsWith('#!')) {
+    const m = /^#!.*?(ts-node|node|bash|sh|python(?:[\d.]+)?)/g.exec(firstLine)
 
     if (m) {
       switch (m[1]) {
@@ -474,7 +513,7 @@ async function detectMode(
   const mimeType =
     extensionMIMEMap.get(request.extension.toLowerCase()) ||
     basenameMIMEMap.get(request.basename.toLowerCase()) ||
-    guessMimeType(request.contents)
+    guessMimeType(request.contentLines)
 
   if (!mimeType) {
     return null
@@ -527,7 +566,7 @@ function getInnerModeName(
  * @param stream       The StringStream for the current line
  * @param state        The current mode state (if any)
  * @param addModeClass Whether or not to append the current (inner) mode name
- *                     as an extra CSS clas to the token, indicating the mode
+ *                     as an extra CSS class to the token, indicating the mode
  *                     that produced it, prefixed with "cm-m-". For example,
  *                     tokens from the XML mode will get the cm-m-xml class.
  */
@@ -553,7 +592,6 @@ onmessage = async (ev: MessageEvent) => {
   const request = ev.data as IHighlightRequest
 
   const tabSize = request.tabSize || 4
-  const contents = request.contents
   const addModeClass = request.addModeClass === true
 
   const mode = await detectMode(request)
@@ -572,7 +610,7 @@ onmessage = async (ev: MessageEvent) => {
   // line we need so that we can bail immediately when we've reached it.
   const maxLine = lineFilter ? Math.max(...lineFilter) : null
 
-  const lines = contents.split(/\r?\n/)
+  const lines = request.contentLines.concat()
   const state: any = mode.startState ? mode.startState() : null
 
   const tokens: ITokens = {}
@@ -599,7 +637,11 @@ onmessage = async (ev: MessageEvent) => {
       continue
     }
 
-    const lineCtx = { lines, line: ix }
+    const lineCtx = {
+      lines,
+      line: ix,
+      lookAhead: (n: number) => lines[ix + n],
+    }
     const lineStream = new StringStream(line, tabSize, lineCtx)
 
     while (!lineStream.eol()) {

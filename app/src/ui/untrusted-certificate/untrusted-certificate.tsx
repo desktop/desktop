@@ -25,7 +25,7 @@ interface IUntrustedCertificateProps {
  * certificate.
  *
  * An easy way to test this dialog is to attempt to sign in to GitHub
- * Enterprise Server using  one of the badssl.com domains, such
+ * Enterprise using  one of the badssl.com domains, such
  * as https://self-signed.badssl.com/
  */
 export class UntrustedCertificate extends React.Component<
@@ -52,10 +52,10 @@ export class UntrustedCertificate extends React.Component<
           </p>
           <p>In some cases, this may be expected. For example:</p>
           <ul>
-            <li>If this is a GitHub Enterprise Server trial.</li>
+            <li>If this is a GitHub Enterprise trial.</li>
             <li>
-              If your GitHub Enterprise Server instance is run on an unusual
-              top-level domain.
+              If your GitHub Enterprise instance is run on an unusual top-level
+              domain.
             </li>
           </ul>
           <p>
@@ -74,6 +74,7 @@ export class UntrustedCertificate extends React.Component<
   }
 
   private onContinue = () => {
+    this.props.onDismissed()
     this.props.onContinue(this.props.certificate)
   }
 }

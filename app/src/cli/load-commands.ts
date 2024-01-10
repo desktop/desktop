@@ -33,7 +33,7 @@ export interface ICommandModule {
 }
 
 function loadModule(name: string): ICommandModule {
-  return require(`./commands/${name}.ts`)
+  return require(`./commands/${name}.ts`).command
 }
 
 interface ICommands {

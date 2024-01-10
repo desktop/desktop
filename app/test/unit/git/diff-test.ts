@@ -5,6 +5,7 @@ import { Repository } from '../../../src/models/repository'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
+  FileChange,
 } from '../../../src/models/status'
 import {
   ITextDiff,
@@ -12,6 +13,7 @@ import {
   DiffSelectionType,
   DiffSelection,
   DiffType,
+  ISubmoduleDiff,
 } from '../../../src/models/diff'
 import {
   setupFixtureRepository,
@@ -23,10 +25,13 @@ import {
   getWorkingDirectoryImage,
   getBlobImage,
   getBinaryPaths,
+  getBranchMergeBaseChangedFiles,
+  getBranchMergeBaseDiff,
 } from '../../../src/lib/git'
 import { getStatusOrThrow } from '../../helpers/status'
 
 import { GitProcess } from 'dugite'
+import { makeCommit, switchTo } from '../../helpers/repository-scaffolding'
 
 async function getTextDiff(
   repo: Repository,
@@ -438,6 +443,230 @@ describe('git/diff', () => {
           'my-cool-image.png',
         ])
       })
+    })
+  })
+
+  describe('with submodules', () => {
+    const submoduleRelativePath: string = path.join('foo', 'submodule')
+    let submodulePath: string
+
+    const getSubmoduleDiff = async () => {
+      const status = await getStatusOrThrow(repository)
+      const file = status.workingDirectory.files[0]
+      const diff = await getWorkingDirectoryDiff(repository, file)
+      expect(diff.kind).toBe(DiffType.Submodule)
+
+      return diff as ISubmoduleDiff
+    }
+
+    beforeEach(async () => {
+      const repoPath = await setupFixtureRepository('submodule-basic-setup')
+      repository = new Repository(repoPath, -1, null, false)
+      submodulePath = path.join(repoPath, submoduleRelativePath)
+    })
+
+    it('can get the diff for a submodule with the right paths', async () => {
+      // Just make any change to the submodule to get a diff
+      await FSE.writeFile(path.join(submodulePath, 'README.md'), 'hello\n')
+
+      const diff = await getSubmoduleDiff()
+      expect(diff.fullPath).toBe(submodulePath)
+      // Even on Windows, the path separator is '/' for this specific attribute
+      expect(diff.path).toBe('foo/submodule')
+    })
+
+    it('can get the diff for a submodule with only modified changes', async () => {
+      // Modify README.md file. Now the submodule has modified changes.
+      await FSE.writeFile(path.join(submodulePath, 'README.md'), 'hello\n')
+
+      const diff = await getSubmoduleDiff()
+      expect(diff.oldSHA).toBeNull()
+      expect(diff.newSHA).toBeNull()
+      expect(diff.status).toMatchObject({
+        commitChanged: false,
+        modifiedChanges: true,
+        untrackedChanges: false,
+      })
+    })
+
+    it('can get the diff for a submodule with only untracked changes', async () => {
+      // Create NEW.md file. Now the submodule has untracked changes.
+      await FSE.writeFile(path.join(submodulePath, 'NEW.md'), 'hello\n')
+
+      const diff = await getSubmoduleDiff()
+      expect(diff.oldSHA).toBeNull()
+      expect(diff.newSHA).toBeNull()
+      expect(diff.status).toMatchObject({
+        commitChanged: false,
+        modifiedChanges: false,
+        untrackedChanges: true,
+      })
+    })
+
+    it('can get the diff for a submodule a commit change', async () => {
+      // Make a change and commit it. Now the submodule has a commit change.
+      await FSE.writeFile(path.join(submodulePath, 'README.md'), 'hello\n')
+      await GitProcess.exec(['commit', '-a', '-m', 'test'], submodulePath)
+
+      const diff = await getSubmoduleDiff()
+      expect(diff.oldSHA).not.toBeNull()
+      expect(diff.newSHA).not.toBeNull()
+      expect(diff.status).toMatchObject({
+        commitChanged: true,
+        modifiedChanges: false,
+        untrackedChanges: false,
+      })
+    })
+
+    it('can get the diff for a submodule a all kinds of changes', async () => {
+      await FSE.writeFile(path.join(submodulePath, 'README.md'), 'hello\n')
+      await GitProcess.exec(['commit', '-a', '-m', 'test'], submodulePath)
+      await FSE.writeFile(path.join(submodulePath, 'README.md'), 'bye\n')
+      await FSE.writeFile(path.join(submodulePath, 'NEW.md'), 'new!!\n')
+
+      const diff = await getSubmoduleDiff()
+      expect(diff.oldSHA).not.toBeNull()
+      expect(diff.newSHA).not.toBeNull()
+      expect(diff.status).toMatchObject({
+        commitChanged: true,
+        modifiedChanges: true,
+        untrackedChanges: true,
+      })
+    })
+  })
+
+  describe('getBranchMergeBaseChangedFiles', () => {
+    it('loads the files changed between two branches if merged', async () => {
+      // create feature branch from initial master commit
+      await GitProcess.exec(['branch', 'feature-branch'], repository.path)
+
+      const firstCommit = {
+        entries: [{ path: 'A.md', contents: 'A' }],
+      }
+      await makeCommit(repository, firstCommit)
+
+      // switch to the feature branch and add feature.md and add foo.md
+      await switchTo(repository, 'feature-branch')
+
+      const secondCommit = {
+        entries: [{ path: 'feature.md', contents: 'feature' }],
+      }
+      await makeCommit(repository, secondCommit)
+
+      /*
+        Now, we have:
+
+           B
+        A  |  -- Feature
+        |  /
+        I -- Master
+
+        If we did `git diff master feature`, we would see files changes
+        from just A and B.
+
+        We are testing `git diff --merge-base master feature`, which will
+        display the diff of the resulting merge of `feature` into `master`.
+        Thus, we will see changes from B only.
+      */
+
+      const changesetData = await getBranchMergeBaseChangedFiles(
+        repository,
+        'master',
+        'feature-branch',
+        'irrelevantToTest'
+      )
+
+      expect(changesetData).not.toBeNull()
+      if (changesetData === null) {
+        return
+      }
+
+      expect(changesetData.files).toHaveLength(1)
+      expect(changesetData.files[0].path).toBe('feature.md')
+    })
+
+    it('returns null for unrelated histories', async () => {
+      // create a second branch that's orphaned from our current branch
+      await GitProcess.exec(
+        ['checkout', '--orphan', 'orphaned-branch'],
+        repository.path
+      )
+
+      // add a commit to this new branch
+      await GitProcess.exec(
+        ['commit', '--allow-empty', '-m', `first commit on gh-pages`],
+        repository.path
+      )
+
+      const changesetData = await getBranchMergeBaseChangedFiles(
+        repository,
+        'master',
+        'feature-branch',
+        'irrelevantToTest'
+      )
+
+      expect(changesetData).toBeNull()
+    })
+  })
+
+  describe('getBranchMergeBaseDiff', () => {
+    it('loads the diff of a file between two branches if merged', async () => {
+      // Add foo.md to master
+      const fooPath = path.join(repository.path, 'foo.md')
+      await FSE.writeFile(fooPath, 'foo\n')
+      await GitProcess.exec(['commit', '-a', '-m', 'foo'], repository.path)
+
+      // Create feature branch from commit with foo.md
+      await GitProcess.exec(['branch', 'feature-branch'], repository.path)
+
+      // Commit a line "bar" to foo.md on master branch
+      await FSE.appendFile(fooPath, 'bar\n')
+      await GitProcess.exec(['add', fooPath], repository.path)
+      await GitProcess.exec(['commit', '-m', 'A'], repository.path)
+
+      // switch to the feature branch and add feature to foo.md
+      await switchTo(repository, 'feature-branch')
+
+      // Commit a line of "feature" to foo.md on feature branch
+      await FSE.appendFile(fooPath, 'feature\n')
+      await GitProcess.exec(['add', fooPath], repository.path)
+      await GitProcess.exec(['commit', '-m', 'B'], repository.path)
+
+      /*
+        Now, we have:
+
+           B
+        A  |  -- Feature
+        |  /
+        Foo -- Master
+
+        A adds line of "bar" to foo.md
+        B adds line "feature" to foo.md
+
+        If we did `git diff master feature`, we would see both lines
+        "bar" and "feature" added to foo.md
+
+        We are testing `git diff --merge-base master feature`, which will
+        display the diff of the resulting merge of `feature` into `master`.
+        Thus, we will see changes from B only or the line "feature".
+      */
+
+      const diff = await getBranchMergeBaseDiff(
+        repository,
+        new FileChange('foo.md', { kind: AppFileStatusKind.New }),
+        'master',
+        'feature-branch',
+        false,
+        'irrelevantToTest'
+      )
+      expect(diff.kind).toBe(DiffType.Text)
+
+      if (diff.kind !== DiffType.Text) {
+        return
+      }
+
+      expect(diff.text).not.toContain('bar')
+      expect(diff.text).toContain('feature')
     })
   })
 })

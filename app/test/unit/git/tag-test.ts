@@ -12,6 +12,8 @@ import {
   createBranch,
   createCommit,
   checkoutBranch,
+  deleteTag,
+  getBranches,
 } from '../../../src/lib/git'
 import {
   setupFixtureRepository,
@@ -22,6 +24,7 @@ import { getDotComAPIEndpoint } from '../../../src/lib/api'
 import { IRemote } from '../../../src/models/remote'
 import { findDefaultRemote } from '../../../src/lib/stores/helpers/find-default-remote'
 import { getStatusOrThrow } from '../../helpers/status'
+import { assertNonNullable } from '../../../src/lib/fatal-error'
 
 describe('git/tag', () => {
   let repository: Repository
@@ -38,7 +41,8 @@ describe('git/tag', () => {
       [],
       '',
       -1,
-      'Mona Lisa'
+      'Mona Lisa',
+      'free'
     )
   })
 
@@ -49,6 +53,14 @@ describe('git/tag', () => {
       const commit = await getCommit(repository, 'HEAD')
       expect(commit).not.toBeNull()
       expect(commit!.tags).toEqual(['my-new-tag'])
+    })
+
+    it('creates a tag with the a comma in it', async () => {
+      await createTag(repository, 'my-new-tag,has-a-comma', 'HEAD')
+
+      const commit = await getCommit(repository, 'HEAD')
+      expect(commit).not.toBeNull()
+      expect(commit!.tags).toEqual(['my-new-tag,has-a-comma'])
     })
 
     it('creates multiple tags', async () => {
@@ -81,6 +93,17 @@ describe('git/tag', () => {
     })
   })
 
+  describe('deleteTag', () => {
+    it('deletes a tag with the given name', async () => {
+      await createTag(repository, 'my-new-tag', 'HEAD')
+      await deleteTag(repository, 'my-new-tag')
+
+      const commit = await getCommit(repository, 'HEAD')
+      expect(commit).not.toBeNull()
+      expect(commit!.tags).toEqual([])
+    })
+  })
+
   describe('getAllTags', () => {
     it('returns an empty array when the repository has no tags', async () => {
       expect(await getAllTags(repository)).toEqual(new Map())
@@ -92,7 +115,10 @@ describe('git/tag', () => {
       await createTag(repository, 'another-tag', commit!.sha)
 
       expect(await getAllTags(repository)).toEqual(
-        new Map([['my-new-tag', commit!.sha], ['another-tag', commit!.sha]])
+        new Map([
+          ['my-new-tag', commit!.sha],
+          ['another-tag', commit!.sha],
+        ])
       )
     })
   })
@@ -124,10 +150,12 @@ describe('git/tag', () => {
       ).toEqual(['my-new-tag'])
     })
 
-    it('returns an empty array after pushing', async () => {
+    it('returns an empty array after pushing the tag', async () => {
       await createTag(repository, 'my-new-tag', 'HEAD')
 
-      await push(repository, account, originRemote, 'master', null)
+      await push(repository, account, originRemote, 'master', null, [
+        'my-new-tag',
+      ])
 
       expect(
         await fetchTagsToPush(repository, account, originRemote, 'master')
@@ -136,7 +164,10 @@ describe('git/tag', () => {
 
     it('does not return a tag created on a non-pushed branch', async () => {
       // Create a tag on a local branch that's not pushed to the remote.
-      const branch = await createBranch(repository, 'new-branch', 'master')
+      const branchName = 'new-branch'
+      await createBranch(repository, branchName, 'master')
+      const [branch] = await getBranches(repository, `refs/heads/${branchName}`)
+      assertNonNullable(branch, `Could not create branch ${branchName}`)
 
       await FSE.writeFile(path.join(repository.path, 'README.md'), 'Hi world\n')
       const status = await getStatusOrThrow(repository)
@@ -144,7 +175,7 @@ describe('git/tag', () => {
 
       await checkoutBranch(repository, account, branch!)
       const commitSha = await createCommit(repository, 'a commit', files)
-      await createTag(repository, 'my-new-tag', commitSha!)
+      await createTag(repository, 'my-new-tag', commitSha)
 
       expect(
         await fetchTagsToPush(repository, account, originRemote, 'master')

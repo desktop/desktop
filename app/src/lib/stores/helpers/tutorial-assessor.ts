@@ -1,7 +1,6 @@
 import { IRepositoryState } from '../../app-state'
 import { TutorialStep } from '../../../models/tutorial-step'
 import { TipState } from '../../../models/tip'
-import { ExternalEditor } from '../../editors'
 import { setBoolean, getBoolean } from '../../local-storage'
 
 const skipInstallEditorKey = 'tutorial-install-editor-skipped'
@@ -30,9 +29,11 @@ export class OnboardingTutorialAssessor {
   /** Is the tutorial currently paused? */
   private tutorialPaused: boolean = getBoolean(tutorialPausedKey, false)
 
+  private tutorialAnnounced: boolean = false
+
   public constructor(
     /** Method to call when we need to get the current editor */
-    private getResolvedExternalEditor: () => ExternalEditor | null
+    private getResolvedExternalEditor: () => string | null
   ) {}
 
   /** Determines what step the user needs to complete next in the Onboarding Tutorial */
@@ -62,8 +63,10 @@ export class OnboardingTutorialAssessor {
       return TutorialStep.PushBranch
     } else if (!this.pullRequestCreated(repositoryState)) {
       return TutorialStep.OpenPullRequest
-    } else {
+    } else if (!this.tutorialAnnounced) {
       return TutorialStep.AllDone
+    } else {
+      return TutorialStep.Announced
     }
   }
 
@@ -144,6 +147,10 @@ export class OnboardingTutorialAssessor {
   public markPullRequestTutorialStepAsComplete = () => {
     this.prStepComplete = true
     setBoolean(pullRequestStepCompleteKey, this.prStepComplete)
+  }
+
+  public markTutorialCompletionAsAnnounced = () => {
+    this.tutorialAnnounced = true
   }
 
   /**

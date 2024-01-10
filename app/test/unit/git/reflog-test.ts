@@ -8,15 +8,16 @@ import {
   getBranchCheckouts,
 } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
-import * as moment from 'moment'
 import { GitProcess } from 'dugite'
+import { offsetFromNow } from '../../../src/lib/offset-from'
 
 async function createAndCheckout(
   repository: Repository,
   name: string
 ): Promise<void> {
-  const branch = await createBranch(repository, name, null)
-  if (branch == null) {
+  await createBranch(repository, name, null)
+  const [branch] = await getBranches(repository, `refs/heads/${name}`)
+  if (branch === undefined) {
     throw new Error(`Unable to create branch: ${name}`)
   }
   await checkoutBranch(repository, null, branch)
@@ -52,7 +53,6 @@ describe('git/reflog', () => {
       await renameBranch(repository, currentBranch!, 'branch-2-test')
 
       const branches = await getRecentBranches(repository, 10)
-      expect(branches).not.toContain('master')
       expect(branches).not.toContain('branch-2')
       expect(branches).toContain('branch-1')
       expect(branches).toContain('branch-2-test')
@@ -78,9 +78,7 @@ describe('git/reflog', () => {
 
       const branches = await getBranchCheckouts(
         repository,
-        moment()
-          .add(1, 'day')
-          .toDate()
+        new Date(offsetFromNow(1, 'day'))
       )
       expect(branches.size).toBe(0)
     })
@@ -92,9 +90,7 @@ describe('git/reflog', () => {
 
       const branches = await getBranchCheckouts(
         repository,
-        moment()
-          .subtract(1, 'hour')
-          .toDate()
+        new Date(offsetFromNow(-1, 'hour'))
       )
       expect(branches.size).toBe(2)
     })
@@ -108,9 +104,7 @@ describe('git/reflog', () => {
 
       const branches = await getBranchCheckouts(
         repository,
-        moment()
-          .subtract(1, 'hour')
-          .toDate()
+        new Date(offsetFromNow(-1, 'hour'))
       )
       expect(branches.size).toBe(0)
     })

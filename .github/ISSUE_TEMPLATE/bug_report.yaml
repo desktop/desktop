@@ -1,0 +1,66 @@
+name: 🐛 Bug Report
+description: File a bug report
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug report! This issue tracker is for [GitHub Desktop](https://desktop.github.com). Please search the issue tracker to see if there is an existing issue for the problem you are experiencing. If you are experiencing issues with the Linux fork of GitHub Desktop please open an issue [in its repository](https://github.com/shiftkey/desktop). If you are experiencing issues with github.com please [contact GitHub Support](https://support.github.com/).
+  - type: textarea
+    id: the-problem
+    attributes:
+      label: The problem
+      description:
+        Describe the issue you are experiencing with GitHub Desktop. Provide a
+        clear and concise description of what you were trying to do and what
+        happened, along with any error messages you encountered.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Release version
+      description:
+        Open the 'About GitHub Desktop' menu item to see the GitHub Desktop
+        version.
+    validations:
+      required: true
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating system
+      description:
+        'Enter the specific operating system version you are running (example:
+        Windows 10)'
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce the behavior
+      description: Provide steps to reproduce the problem you are experiencing.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log files
+      description:
+        Please upload a log file from a day you experienced the issue. To access
+        the log files go to the menu and select `Help` > `Show Logs`.
+      placeholder:
+        You can attach log files by clicking this area to highlight it and then
+        dragging the files in.
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Add screenshots to help explain your problem, if applicable.
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description:
+        Add any other context about the problem you are experiencing here.

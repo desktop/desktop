@@ -1,9 +1,9 @@
 import { ChildProcess } from 'child_process'
 
 import { git } from './core'
-import { spawnAndComplete } from './spawn'
 
 import { Repository } from '../../models/repository'
+import { GitError } from 'dugite'
 
 /**
  * Retrieve the binary contents of a blob from the repository at a given
@@ -73,18 +73,36 @@ export async function getPartialBlobContents(
   commitish: string,
   path: string,
   length: number
-): Promise<Buffer> {
-  const successExitCodes = new Set([0, 1])
-
-  const args = ['show', `${commitish}:${path}`]
-
-  const { output } = await spawnAndComplete(
-    args,
-    repository.path,
-    'getPartialBlobContents',
-    successExitCodes,
+): Promise<Buffer | null> {
+  return getPartialBlobContentsCatchPathNotInRef(
+    repository,
+    commitish,
+    path,
     length
   )
+}
 
-  return output
+export async function getPartialBlobContentsCatchPathNotInRef(
+  repository: Repository,
+  commitish: string,
+  path: string,
+  length: number
+): Promise<Buffer | null> {
+  const args = ['show', `${commitish}:${path}`]
+
+  const result = await git(
+    args,
+    repository.path,
+    'getPartialBlobContentsCatchPathNotInRef',
+    {
+      maxBuffer: length,
+      expectedErrors: new Set([GitError.PathExistsButNotInRef]),
+    }
+  )
+
+  if (result.gitError === GitError.PathExistsButNotInRef) {
+    return null
+  }
+
+  return Buffer.from(result.combinedOutput)
 }

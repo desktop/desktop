@@ -1,6 +1,5 @@
 /* eslint-disable no-sync */
 
-import * as fs from 'fs-extra'
 import * as cp from 'child_process'
 import * as path from 'path'
 import * as electronInstaller from 'electron-winstaller'
@@ -14,48 +13,54 @@ import {
   shouldMakeDelta,
   getUpdatesURL,
   getIconFileName,
+  isPublishable,
+  getBundleSizes,
+  getDistRoot,
+  getDistArchitecture,
 } from './dist-info'
-import { isAppveyor } from './build-platforms'
+import { isGitHubActions } from './build-platforms'
+import { existsSync, rmSync, writeFileSync } from 'fs'
+import { getVersion } from '../app/package-info'
+import { rename } from 'fs/promises'
+import { join } from 'path'
+import { assertNonNullable } from '../app/src/lib/fatal-error'
 
 const distPath = getDistPath()
 const productName = getProductName()
-const outputDir = path.join(distPath, '..', 'installer')
+const outputDir = getDistRoot()
+
+const assertExistsSync = (path: string) => {
+  if (!existsSync(path)) {
+    throw new Error(`Expected ${path} to exist`)
+  }
+}
 
 if (process.platform === 'darwin') {
   packageOSX()
 } else if (process.platform === 'win32') {
   packageWindows()
-} else if (process.platform === 'linux') {
-  packageLinux()
 } else {
-  console.error(`I dunno how to package for ${process.platform} :(`)
+  console.error(`I don't know how to package for ${process.platform} :(`)
   process.exit(1)
 }
 
+console.log('Writing bundle size info…')
+writeFileSync(
+  path.join(getDistRoot(), 'bundle-size.json'),
+  JSON.stringify(getBundleSizes())
+)
+
 function packageOSX() {
   const dest = getOSXZipPath()
-  fs.removeSync(dest)
+  rmSync(dest, { recursive: true, force: true })
 
+  console.log('Packaging for macOS…')
   cp.execSync(
     `ditto -ck --keepParent "${distPath}/${productName}.app" "${dest}"`
   )
-  console.log(`Zipped to ${dest}`)
 }
 
 function packageWindows() {
-  const setupCertificatePath = path.join(
-    __dirname,
-    'setup-windows-certificate.ps1'
-  )
-  const cleanupCertificatePath = path.join(
-    __dirname,
-    'cleanup-windows-certificate.ps1'
-  )
-
-  if (isAppveyor()) {
-    cp.execSync(`powershell ${setupCertificatePath}`)
-  }
-
   const iconSource = path.join(
     __dirname,
     '..',
@@ -65,7 +70,7 @@ function packageWindows() {
     `${getIconFileName()}.ico`
   )
 
-  if (!fs.existsSync(iconSource)) {
+  if (!existsSync(iconSource)) {
     console.error(`expected setup icon not found at location: ${iconSource}`)
     process.exit(1)
   }
@@ -75,14 +80,15 @@ function packageWindows() {
     '../app/static/logos/win32-installer-splash.gif'
   )
 
-  if (!fs.existsSync(splashScreenPath)) {
+  if (!existsSync(splashScreenPath)) {
     console.error(
       `expected setup splash screen gif not found at location: ${splashScreenPath}`
     )
     process.exit(1)
   }
 
-  const iconUrl = 'https://desktop.githubusercontent.com/app-icon.ico'
+  const iconUrl =
+    'https://desktop.githubusercontent.com/github-desktop/app-icon.ico'
 
   const nugetPkgName = getWindowsIdentifierName()
   const options: electronInstaller.Options = {
@@ -100,48 +106,55 @@ function packageWindows() {
   }
 
   if (shouldMakeDelta()) {
-    options.remoteReleases = getUpdatesURL()
+    const url = new URL(getUpdatesURL())
+    // Make sure Squirrel.Windows isn't affected by partially or completely
+    // disabled releases.
+    url.searchParams.set('bypassStaggeredRelease', '1')
+    options.remoteReleases = url.toString()
   }
 
-  if (isAppveyor()) {
-    const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
-    options.signWithParams = `/f ${certificatePath} /p ${
-      process.env.WINDOWS_CERT_PASSWORD
-    } /tr http://timestamp.digicert.com /td sha256 /fd sha256`
+  if (isGitHubActions() && isPublishable()) {
+    assertNonNullable(process.env.RUNNER_TEMP, 'Missing RUNNER_TEMP env var')
+
+    const acsPath = join(process.env.RUNNER_TEMP, 'acs')
+    const dlibPath = join(acsPath, 'bin', 'x64', 'Azure.CodeSigning.Dlib.dll')
+
+    assertExistsSync(dlibPath)
+
+    const metadataPath = join(acsPath, 'metadata.json')
+    const acsMetadata = {
+      Endpoint: 'https://eus.codesigning.azure.net/',
+      CodeSigningAccountName: 'github-desktop',
+      CertificateProfileName: 'desktop',
+      CorrelationId: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+    }
+    writeFileSync(metadataPath, JSON.stringify(acsMetadata))
+
+    options.signWithParams = `/v /fd SHA256 /tr "http://timestamp.acs.microsoft.com" /td SHA256 /dlib "${dlibPath}" /dmdf "${metadataPath}"`
   }
 
+  console.log('Packaging for Windows…')
   electronInstaller
     .createWindowsInstaller(options)
-    .then(() => {
-      console.log(`Installers created in ${outputDir}`)
-      cp.execSync(`powershell ${cleanupCertificatePath}`)
+    .then(() => console.log(`Installers created in ${outputDir}`))
+    .then(async () => {
+      // electron-winstaller (more specifically Squirrel.Windows) doesn't let
+      // us control the name of the nuget packages but we want them to include
+      // the architecture similar to how the setup exe and msi do so we'll just
+      // have to rename them here after the fact.
+      const arch = getDistArchitecture()
+      const prefix = `${getWindowsIdentifierName()}-${getVersion()}`
+
+      for (const kind of shouldMakeDelta() ? ['full', 'delta'] : ['full']) {
+        const from = join(outputDir, `${prefix}-${kind}.nupkg`)
+        const to = join(outputDir, `${prefix}-${arch}-${kind}.nupkg`)
+
+        console.log(`Renaming ${from} to ${to}`)
+        await rename(from, to)
+      }
     })
     .catch(e => {
-      cp.execSync(`powershell ${cleanupCertificatePath}`)
       console.error(`Error packaging: ${e}`)
       process.exit(1)
     })
-}
-
-function packageLinux() {
-  const electronBuilder = path.resolve(
-    __dirname,
-    '..',
-    'node_modules',
-    '.bin',
-    'electron-builder'
-  )
-
-  const configPath = path.resolve(__dirname, 'electron-builder-linux.yml')
-
-  const args = [
-    'build',
-    '--prepackaged',
-    distPath,
-    '--x64',
-    '--config',
-    configPath,
-  ]
-
-  cp.spawnSync(electronBuilder, args, { stdio: 'inherit' })
 }

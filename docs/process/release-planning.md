@@ -49,7 +49,7 @@ current milestone.
 
 The reviewer who approves the pull request may assign a milestone at the same
 time to propose when this pull request should be merged, and optionally add a
-comment to provice context around their choice.
+comment to provide context around their choice.
 
 These factors can be used when deciding on the chosen milestone:
 
@@ -60,7 +60,7 @@ These factors can be used when deciding on the chosen milestone:
  - **timing** - Are we close to a release? Maybe it can wait a couple of days...
 
 During the 24-hour approval window for merged pull request other maintainers may
-discuss the proposed milestone (or just :thumbsup: to acknowledege and agree
+discuss the proposed milestone (or just :thumbsup: to acknowledge and agree
 with the proposed milestone).
 
 Once the 24-hour approval window has expired the pull request can be merged by a
@@ -72,6 +72,6 @@ assigned to the same milestone.
 
 ### Community Contributions
 
-Similiar to bugfixes, community PRs and features should not have a milestone
+Similar to bugfixes, community PRs and features should not have a milestone
 assigned until they have been reviewed and approved, and should go through the
 same process.

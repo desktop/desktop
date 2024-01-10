@@ -7,11 +7,24 @@ import { TipState } from '../../models/tip'
 import { FetchType } from '../../models/fetch'
 
 import { Dispatcher } from '../dispatcher'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, syncClockwise } from '../octicons'
+import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RelativeTime } from '../relative-time'
 
 import { ToolbarButton, ToolbarButtonStyle } from './button'
-import * as classNames from 'classnames'
+import classNames from 'classnames'
+import {
+  DropdownState,
+  IToolbarDropdownProps,
+  ToolbarDropdown,
+  ToolbarDropdownStyle,
+} from './dropdown'
+import { FoldoutType } from '../../lib/app-state'
+import { ForcePushBranchState } from '../../lib/rebase'
+import { PushPullButtonDropDown } from './push-pull-button-dropdown'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
+
+export const DropdownItemClassName = 'push-pull-dropdown-item'
 
 interface IPushPullButtonProps {
   /**
@@ -51,8 +64,8 @@ interface IPushPullButtonProps {
   /** Is the detached HEAD state related to a rebase or not? */
   readonly rebaseInProgress: boolean
 
-  /** If the current branch has been rebased, the user is permitted to force-push */
-  readonly isForcePush: boolean
+  /** Force push state of the current branch */
+  readonly forcePushBranchState: ForcePushBranchState
 
   /** Whether this component should show its onboarding tutorial nudge arrow */
   readonly shouldNudge: boolean
@@ -61,6 +74,48 @@ interface IPushPullButtonProps {
    * The number of tags that would get pushed if the user performed a push.
    */
   readonly numTagsToPush: number
+
+  /** Whether or not the push-pull dropdown is currently open */
+  readonly isDropdownOpen: boolean
+
+  /** Will the app prompt the user to confirm a force push? */
+  readonly askForConfirmationOnForcePush: boolean
+
+  /** Whether the dropdown will trap focus or not. Defaults to true.
+   *
+   * Example of usage: If a dropdown is open and then a dialog subsequently, the
+   * focus trap logic will stop propagation of the focus event to the dialog.
+   * Thus, we want to disable this when dialogs are open since they will be
+   * using the dialog focus management.
+   */
+  readonly enableFocusTrap: boolean
+
+  /**
+   * An event handler for when the drop down is opened, or closed, by a pointer
+   * event or by pressing the space or enter key while focused.
+   *
+   * @param state    - The new state of the drop down
+   */
+  readonly onDropdownStateChanged: (state: DropdownState) => void
+}
+
+type ActionInProgress = 'push' | 'pull' | 'fetch' | 'force push'
+
+interface IPushPullButtonState {
+  readonly screenReaderStateMessage: string | null
+  readonly actionInProgress: ActionInProgress | null
+}
+
+export enum DropdownItemType {
+  Fetch = 'fetch',
+  ForcePush = 'force-push',
+}
+
+export type DropdownItem = {
+  readonly title: string
+  readonly description: string | JSX.Element
+  readonly action: () => void
+  readonly icon: OcticonSymbol.OcticonSymbolType
 }
 
 function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
@@ -74,7 +129,7 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
     content.push(
       <span key="ahead">
         {ahead + numTagsToPush}
-        <Octicon symbol={OcticonSymbol.arrowSmallUp} />
+        <Octicon symbol={OcticonSymbol.arrowUp} />
       </span>
     )
   }
@@ -83,7 +138,7 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
     content.push(
       <span key="behind">
         {behind}
-        <Octicon symbol={OcticonSymbol.arrowSmallDown} />
+        <Octicon symbol={OcticonSymbol.arrowDown} />
       </span>
     )
   }
@@ -103,215 +158,232 @@ function renderLastFetched(lastFetched: Date | null): JSX.Element | string {
   }
 }
 
-/** The common props for all button states */
-const defaultProps = {
-  className: 'push-pull-button',
-  style: ToolbarButtonStyle.Subtitle,
-}
-
-function progressButton(progress: Progress, networkActionInProgress: boolean) {
-  return (
-    <ToolbarButton
-      {...defaultProps}
-      title={progress.title}
-      description={progress.description || 'Hang on…'}
-      progressValue={progress.value}
-      icon={OcticonSymbol.sync}
-      iconClassName={networkActionInProgress ? 'spin' : ''}
-      tooltip={progress.description}
-      disabled={true}
-    />
-  )
-}
-
-function publishRepositoryButton(onClick: () => void) {
-  return (
-    <ToolbarButton
-      {...defaultProps}
-      title="Publish repository"
-      description="Publish this repository to GitHub"
-      className="push-pull-button"
-      icon={OcticonSymbol.cloudUpload}
-      style={ToolbarButtonStyle.Subtitle}
-      onClick={onClick}
-    />
-  )
-}
-
-function unbornRepositoryButton() {
-  return (
-    <ToolbarButton
-      {...defaultProps}
-      title="Publish branch"
-      description="Cannot publish unborn HEAD"
-      icon={OcticonSymbol.cloudUpload}
-      disabled={true}
-    />
-  )
-}
-
-function detachedHeadButton(rebaseInProgress: boolean) {
-  const description = rebaseInProgress
-    ? 'Rebase in progress'
-    : 'Cannot publish detached HEAD'
-
-  return (
-    <ToolbarButton
-      {...defaultProps}
-      title="Publish branch"
-      description={description}
-      icon={OcticonSymbol.cloudUpload}
-      disabled={true}
-    />
-  )
-}
-
-function publishBranchButton(
-  isGitHub: boolean,
-  onClick: () => void,
-  shouldNudge: boolean
-) {
-  const description = isGitHub
-    ? 'Publish this branch to GitHub'
-    : 'Publish this branch to the remote'
-
-  const className = classNames(defaultProps.className, 'nudge-arrow', {
-    'nudge-arrow-up': shouldNudge,
-  })
-
-  return (
-    <ToolbarButton
-      {...defaultProps}
-      title="Publish branch"
-      description={description}
-      icon={OcticonSymbol.cloudUpload}
-      onClick={onClick}
-      className={className}
-    />
-  )
-}
-
-function fetchButton(
-  remoteName: string,
-  aheadBehind: IAheadBehind,
-  numTagsToPush: number,
-  lastFetched: Date | null,
-  onClick: () => void
-) {
-  const title = `Fetch ${remoteName}`
-  return (
-    <ToolbarButton
-      {...defaultProps}
-      title={title}
-      description={renderLastFetched(lastFetched)}
-      icon={OcticonSymbol.sync}
-      onClick={onClick}
-    >
-      {renderAheadBehind(aheadBehind, numTagsToPush)}
-    </ToolbarButton>
-  )
-}
-
-function pullButton(
-  remoteName: string,
-  aheadBehind: IAheadBehind,
-  numTagsToPush: number,
-  lastFetched: Date | null,
-  pullWithRebase: boolean,
-  onClick: () => void
-) {
-  const title = pullWithRebase
-    ? `Pull ${remoteName} with rebase`
-    : `Pull ${remoteName}`
-
-  return (
-    <ToolbarButton
-      {...defaultProps}
-      title={title}
-      description={renderLastFetched(lastFetched)}
-      icon={OcticonSymbol.arrowDown}
-      onClick={onClick}
-    >
-      {renderAheadBehind(aheadBehind, numTagsToPush)}
-    </ToolbarButton>
-  )
-}
-
-function pushButton(
-  remoteName: string,
-  aheadBehind: IAheadBehind,
-  numTagsToPush: number,
-  lastFetched: Date | null,
-  onClick: () => void
-) {
-  return (
-    <ToolbarButton
-      {...defaultProps}
-      title={`Push ${remoteName}`}
-      description={renderLastFetched(lastFetched)}
-      icon={OcticonSymbol.arrowUp}
-      onClick={onClick}
-    >
-      {renderAheadBehind(aheadBehind, numTagsToPush)}
-    </ToolbarButton>
-  )
-}
-
 /**
  * This represents the "double arrow" icon used to show a force-push, and is a
  * less complicated icon than the generated Octicon from the `octicons` package.
  */
-const forcePushIcon = new OcticonSymbol(
-  10,
-  16,
-  'M3 11H0l5-6 5 6H7v4H3v-4zM5 1l5 6H8.33L5 3 1.662 7H0l5-6z'
-)
-
-function forcePushButton(
-  remoteName: string,
-  aheadBehind: IAheadBehind,
-  numTagsToPush: number,
-  lastFetched: Date | null,
-  onClick: () => void
-) {
-  return (
-    <ToolbarButton
-      {...defaultProps}
-      title={`Force push ${remoteName}`}
-      description={renderLastFetched(lastFetched)}
-      icon={forcePushIcon}
-      onClick={onClick}
-    >
-      {renderAheadBehind(aheadBehind, numTagsToPush)}
-    </ToolbarButton>
-  )
+export const forcePushIcon: OcticonSymbol.OcticonSymbolType = {
+  w: 10,
+  h: 16,
+  d:
+    'M0 6a.75.75 0 0 0 .974.714L4.469 3.22a.75.75 0 0 1 1.06 0l3.478 3.478a.75.75 ' +
+    '0 0 0 .772-1.228L5.53 1.22a.75.75 0 0 0-1.06 0L.22 5.47A.75.75 0 0 0 0 6zm0 ' +
+    '3a.75.75 0 0 0 1.28.53l2.97-2.97V14a.75.75 0 1 0 1.5 0V6.56l2.97 2.97a.75.75 ' +
+    '0 0 0 1.06-1.06L5.53 4.22a.75.75 0 0 0-1.06 0L.22 8.47A.75.75 0 0 0 0 9z',
+  fr: 'evenodd',
 }
 
 /**
  * A button which pushes, pulls, or updates depending on the state of the
  * repository.
  */
-export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
+export class PushPullButton extends React.Component<
+  IPushPullButtonProps,
+  IPushPullButtonState
+> {
+  public constructor(props: IPushPullButtonProps) {
+    super(props)
+    this.state = {
+      screenReaderStateMessage: null,
+      actionInProgress: null,
+    }
+  }
+
+  public componentDidUpdate(prevProps: IPushPullButtonProps) {
+    const progressChanged =
+      (this.props.progress !== null && prevProps.progress == null) ||
+      this.props.progress?.title !== prevProps.progress?.title
+
+    const progressComplete =
+      this.props.progress === null && prevProps.progress !== null
+
+    if (progressChanged) {
+      this.setScreenReaderLoadingStateMessage()
+    }
+
+    if (progressComplete) {
+      this.setState({
+        screenReaderStateMessage: `${
+          this.state.actionInProgress ?? 'Pull, push, or fetch'
+        } complete`,
+        actionInProgress: null,
+      })
+    }
+  }
+
+  private isPullPushFetchProgress(kind: string): kind is ActionInProgress {
+    return kind === 'push' || kind === 'pull' || kind === 'fetch'
+  }
+
+  private setScreenReaderLoadingStateMessage() {
+    const { progress } = this.props
+
+    if (progress === null) {
+      return
+    }
+
+    const { description, title, kind } = progress
+    const screenReaderStateMessage = `${title} ${description ?? 'Hang on…'}`
+    const actionInProgress: ActionInProgress | null =
+      this.state.actionInProgress === null && this.isPullPushFetchProgress(kind)
+        ? kind
+        : this.state.actionInProgress
+
+    this.setState({ screenReaderStateMessage, actionInProgress })
+  }
+
+  /** The common props for all button states */
+  private defaultButtonProps() {
+    return {
+      className: 'push-pull-button',
+      style: ToolbarButtonStyle.Subtitle,
+    }
+  }
+
+  /** The common props for all dropdown states */
+  private defaultDropdownProps(): Omit<
+    IToolbarDropdownProps,
+    'dropdownContentRenderer'
+  > {
+    return {
+      buttonClassName: 'push-pull-button',
+      style: ToolbarButtonStyle.Subtitle,
+      dropdownStyle: ToolbarDropdownStyle.MultiOption,
+      ariaLabel: 'Push, pull, fetch options',
+      dropdownState: this.props.isDropdownOpen ? 'open' : 'closed',
+      enableFocusTrap: this.props.enableFocusTrap,
+      onDropdownStateChanged: this.props.onDropdownStateChanged,
+    }
+  }
+
+  private closeDropdown() {
+    this.props.dispatcher.closeFoldout(FoldoutType.PushPull)
+  }
+
   private push = () => {
+    this.closeDropdown()
     this.props.dispatcher.push(this.props.repository)
   }
 
+  /**
+   * The dropdown focus trap has logic to set the document.ActiveElement to the
+   * html element (in this case the dropdown button) that was clicked to
+   * activate the focus trap. It also has a returnFocusOnDeactivate prop that is
+   * true by default, but can be set to false to prevent this behavior.
+   *
+   * In the case of force push that opens a confirm dialog, we want to set the
+   * focus to the aria live container and therefore we set
+   * returnFocusOnDeactivate to false. We also provided the onDeactivate
+   * callback of the focus trap to set that focus. See more details in
+   * setScreenReaderStateMessageFocus()
+   *
+   * @returns true - (default behavior) if not force push, or if force and confirmation is off
+   * @returns false -if force push and confirmation is on, so we can manage focus ourselves
+   * */
+  private returnFocusOnDeactivate = () => {
+    const isForcePushOptionAvailable =
+      this.props.forcePushBranchState !== ForcePushBranchState.NotAvailable
+
+    return (
+      !isForcePushOptionAvailable || !this.props.askForConfirmationOnForcePush
+    )
+  }
+
+  /**
+   * In the case of force push that opens a confirm dialog, we want to set the
+   * focus to the aria live container and we do so on the onDeactivate callback
+   * of the focus trap to set that focus. Additionally, we set
+   * returnFocusOnDeactivate to false to prevent the dropdowns focus traps
+   * default focus management.  See more details in
+   * setScreenReaderStateMessageFocus()*/
+  private onDropdownFocusTrapDeactivate = () => {
+    if (this.returnFocusOnDeactivate()) {
+      return
+    }
+
+    this.setScreenReaderStateMessageFocus()
+  }
+
+  /**
+   * This is a hack to get the screen reader to read the message after the force
+   * push confirm dialog closes.
+   *
+   * Problem: The dialog component sets the focus back to what ever was in the
+   * `document.ActiveElement` when the dialog was opened. However the active
+   * element is the force push button that is replaced with the fetch button.
+   * Thus, the force push element is no longer present when the dialog closes
+   * and the focus defaults to the document body. This means the sr message is
+   * not read.
+   *
+   * Solution: Set the `document.ActiveElement` to an element containing the sr
+   * element before opening the dialog so that it returns the focus to an
+   * element containing the sr. You can do this by calling the `focus` element
+   * of a tab focusable element hence adding the tab index.
+   *
+   * Other notes: If I set the focus to the sr element directly, it causes the
+   * message to be read twice.
+   */
+  private setScreenReaderStateMessageFocus() {
+    const srElement = document.getElementById('push-pull-button-state')
+    if (srElement) {
+      srElement.tabIndex = -1
+      srElement.focus()
+    }
+  }
+
   private forcePushWithLease = () => {
+    this.closeDropdown()
+
+    this.setScreenReaderStateMessageFocus()
     this.props.dispatcher.confirmOrForcePush(this.props.repository)
+
+    this.setState({ actionInProgress: 'force push' })
   }
 
   private pull = () => {
+    this.closeDropdown()
     this.props.dispatcher.pull(this.props.repository)
   }
 
   private fetch = () => {
+    this.closeDropdown()
+
     this.props.dispatcher.fetch(
       this.props.repository,
       FetchType.UserInitiatedTask
     )
   }
 
+  private getDropdownContentRenderer(
+    itemTypes: ReadonlyArray<DropdownItemType>
+  ) {
+    return () => {
+      return (
+        <PushPullButtonDropDown
+          itemTypes={itemTypes}
+          remoteName={this.props.remoteName}
+          fetch={this.fetch}
+          forcePushWithLease={this.forcePushWithLease}
+          askForConfirmationOnForcePush={
+            this.props.askForConfirmationOnForcePush
+          }
+        />
+      )
+    }
+  }
+
   public render() {
+    return (
+      <>
+        {this.renderButton()}
+        <span id="push-pull-button-state">
+          <AriaLiveContainer message={this.state.screenReaderStateMessage} />
+        </span>
+      </>
+    )
+  }
+
+  private renderButton() {
     const {
       progress,
       networkActionInProgress,
@@ -323,28 +395,28 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
       rebaseInProgress,
       lastFetched,
       pullWithRebase,
-      isForcePush,
+      forcePushBranchState,
     } = this.props
 
     if (progress !== null) {
-      return progressButton(progress, networkActionInProgress)
+      return this.progressButton(progress, networkActionInProgress)
     }
 
     if (remoteName === null) {
-      return publishRepositoryButton(this.push)
+      return this.publishRepositoryButton(this.push)
     }
 
     if (tipState === TipState.Unborn) {
-      return unbornRepositoryButton()
+      return this.unbornRepositoryButton()
     }
 
     if (tipState === TipState.Detached) {
-      return detachedHeadButton(rebaseInProgress)
+      return this.detachedHeadButton(rebaseInProgress)
     }
 
     if (aheadBehind === null) {
       const isGitHubRepository = repository.gitHubRepository !== null
-      return publishBranchButton(
+      return this.publishBranchButton(
         isGitHubRepository,
         this.push,
         this.props.shouldNudge
@@ -354,17 +426,11 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     const { ahead, behind } = aheadBehind
 
     if (ahead === 0 && behind === 0 && numTagsToPush === 0) {
-      return fetchButton(
-        remoteName,
-        aheadBehind,
-        numTagsToPush,
-        lastFetched,
-        this.fetch
-      )
+      return this.fetchButton(remoteName, lastFetched, this.fetch)
     }
 
-    if (isForcePush) {
-      return forcePushButton(
+    if (forcePushBranchState === ForcePushBranchState.Recommended) {
+      return this.forcePushButton(
         remoteName,
         aheadBehind,
         numTagsToPush,
@@ -374,22 +440,212 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     }
 
     if (behind > 0) {
-      return pullButton(
+      return this.pullButton(
         remoteName,
         aheadBehind,
         numTagsToPush,
         lastFetched,
         pullWithRebase || false,
+        forcePushBranchState,
         this.pull
       )
     }
 
-    return pushButton(
+    return this.pushButton(
       remoteName,
       aheadBehind,
       numTagsToPush,
       lastFetched,
       this.push
+    )
+  }
+
+  private progressButton(progress: Progress, networkActionInProgress: boolean) {
+    return (
+      <ToolbarButton
+        {...this.defaultButtonProps()}
+        title={progress.title}
+        description={progress.description || 'Hang on…'}
+        progressValue={progress.value}
+        icon={syncClockwise}
+        iconClassName={networkActionInProgress ? 'spin' : ''}
+        tooltip={progress.description}
+        disabled={true}
+      />
+    )
+  }
+
+  private publishRepositoryButton(onClick: () => void) {
+    return (
+      <ToolbarButton
+        {...this.defaultButtonProps()}
+        title="Publish repository"
+        description="Publish this repository to GitHub"
+        className="push-pull-button"
+        icon={OcticonSymbol.upload}
+        style={ToolbarButtonStyle.Subtitle}
+        onClick={onClick}
+      />
+    )
+  }
+
+  private unbornRepositoryButton() {
+    return (
+      <ToolbarButton
+        {...this.defaultButtonProps()}
+        title="Publish branch"
+        description="Cannot publish unborn HEAD"
+        icon={OcticonSymbol.upload}
+        disabled={true}
+      />
+    )
+  }
+
+  private detachedHeadButton(rebaseInProgress: boolean) {
+    const description = rebaseInProgress
+      ? 'Rebase in progress'
+      : 'Cannot publish detached HEAD'
+
+    return (
+      <ToolbarButton
+        {...this.defaultButtonProps()}
+        title="Publish branch"
+        description={description}
+        icon={OcticonSymbol.upload}
+        disabled={true}
+      />
+    )
+  }
+
+  private publishBranchButton(
+    isGitHub: boolean,
+    onClick: () => void,
+    shouldNudge: boolean
+  ) {
+    const description = isGitHub
+      ? 'Publish this branch to GitHub'
+      : 'Publish this branch to the remote'
+
+    const className = classNames(
+      this.defaultDropdownProps().className,
+      'nudge-arrow',
+      {
+        'nudge-arrow-up': shouldNudge,
+      }
+    )
+
+    return (
+      <ToolbarDropdown
+        {...this.defaultDropdownProps()}
+        title="Publish branch"
+        description={description}
+        icon={OcticonSymbol.upload}
+        onClick={onClick}
+        className={className}
+        dropdownContentRenderer={this.getDropdownContentRenderer([
+          DropdownItemType.Fetch,
+        ])}
+      />
+    )
+  }
+
+  private fetchButton(
+    remoteName: string,
+    lastFetched: Date | null,
+    onClick: () => void
+  ) {
+    const title = `Fetch ${remoteName}`
+    return (
+      <ToolbarButton
+        {...this.defaultButtonProps()}
+        title={title}
+        description={renderLastFetched(lastFetched)}
+        icon={syncClockwise}
+        onClick={onClick}
+      />
+    )
+  }
+
+  private pullButton(
+    remoteName: string,
+    aheadBehind: IAheadBehind,
+    numTagsToPush: number,
+    lastFetched: Date | null,
+    pullWithRebase: boolean,
+    forcePushBranchState: ForcePushBranchState,
+    onClick: () => void
+  ) {
+    const title = pullWithRebase
+      ? `Pull ${remoteName} with rebase`
+      : `Pull ${remoteName}`
+
+    const dropdownItemTypes = [DropdownItemType.Fetch]
+
+    if (forcePushBranchState !== ForcePushBranchState.NotAvailable) {
+      dropdownItemTypes.push(DropdownItemType.ForcePush)
+    }
+
+    return (
+      <ToolbarDropdown
+        {...this.defaultDropdownProps()}
+        title={title}
+        description={renderLastFetched(lastFetched)}
+        icon={OcticonSymbol.arrowDown}
+        onClick={onClick}
+        dropdownContentRenderer={this.getDropdownContentRenderer(
+          dropdownItemTypes
+        )}
+        returnFocusOnDeactivate={this.returnFocusOnDeactivate()}
+        onDropdownFocusTrapDeactivate={this.onDropdownFocusTrapDeactivate}
+      >
+        {renderAheadBehind(aheadBehind, numTagsToPush)}
+      </ToolbarDropdown>
+    )
+  }
+
+  private pushButton(
+    remoteName: string,
+    aheadBehind: IAheadBehind,
+    numTagsToPush: number,
+    lastFetched: Date | null,
+    onClick: () => void
+  ) {
+    return (
+      <ToolbarDropdown
+        {...this.defaultDropdownProps()}
+        title={`Push ${remoteName}`}
+        description={renderLastFetched(lastFetched)}
+        icon={OcticonSymbol.arrowUp}
+        onClick={onClick}
+        dropdownContentRenderer={this.getDropdownContentRenderer([
+          DropdownItemType.Fetch,
+        ])}
+      >
+        {renderAheadBehind(aheadBehind, numTagsToPush)}
+      </ToolbarDropdown>
+    )
+  }
+
+  private forcePushButton(
+    remoteName: string,
+    aheadBehind: IAheadBehind,
+    numTagsToPush: number,
+    lastFetched: Date | null,
+    onClick: () => void
+  ) {
+    return (
+      <ToolbarDropdown
+        {...this.defaultDropdownProps()}
+        title={`Force push ${remoteName}`}
+        description={renderLastFetched(lastFetched)}
+        icon={forcePushIcon}
+        onClick={onClick}
+        dropdownContentRenderer={this.getDropdownContentRenderer([
+          DropdownItemType.Fetch,
+        ])}
+      >
+        {renderAheadBehind(aheadBehind, numTagsToPush)}
+      </ToolbarDropdown>
     )
   }
 }

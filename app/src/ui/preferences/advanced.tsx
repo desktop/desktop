@@ -3,32 +3,20 @@ import { DialogContent } from '../dialog'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { LinkButton } from '../lib/link-button'
 import { SamplesURL } from '../../lib/stats'
-import { UncommittedChangesStrategyKind } from '../../models/uncommitted-changes-strategy'
-import { enableSchannelCheckRevokeOptOut } from '../../lib/feature-flag'
+import { isWindowsOpenSSHAvailable } from '../../lib/ssh/ssh'
 
 interface IAdvancedPreferencesProps {
+  readonly useWindowsOpenSSH: boolean
   readonly optOutOfUsageTracking: boolean
-  readonly confirmRepositoryRemoval: boolean
-  readonly confirmDiscardChanges: boolean
-  readonly confirmForcePush: boolean
-  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
-  readonly schannelCheckRevoke: boolean | null
-  readonly onOptOutofReportingchanged: (checked: boolean) => void
-  readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
-  readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
-  readonly onConfirmForcePushChanged: (checked: boolean) => void
-  readonly onUncommittedChangesStrategyKindChanged: (
-    value: UncommittedChangesStrategyKind
-  ) => void
-  readonly onSchannelCheckRevokeChanged: (checked: boolean) => void
+  readonly repositoryIndicatorsEnabled: boolean
+  readonly onUseWindowsOpenSSHChanged: (checked: boolean) => void
+  readonly onOptOutofReportingChanged: (checked: boolean) => void
+  readonly onRepositoryIndicatorsEnabledChanged: (enabled: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
   readonly optOutOfUsageTracking: boolean
-  readonly confirmRepositoryRemoval: boolean
-  readonly confirmDiscardChanges: boolean
-  readonly confirmForcePush: boolean
-  readonly uncommittedChangesStrategyKind: UncommittedChangesStrategyKind
+  readonly canUseWindowsSSH: boolean
 }
 
 export class Advanced extends React.Component<
@@ -40,11 +28,16 @@ export class Advanced extends React.Component<
 
     this.state = {
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
-      confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
-      confirmDiscardChanges: this.props.confirmDiscardChanges,
-      confirmForcePush: this.props.confirmForcePush,
-      uncommittedChangesStrategyKind: this.props.uncommittedChangesStrategyKind,
+      canUseWindowsSSH: false,
     }
+  }
+
+  public componentDidMount() {
+    this.checkSSHAvailability()
+  }
+
+  private async checkSSHAvailability() {
+    this.setState({ canUseWindowsSSH: await isWindowsOpenSSHAvailable() })
   }
 
   private onReportingOptOutChanged = (
@@ -53,50 +46,19 @@ export class Advanced extends React.Component<
     const value = !event.currentTarget.checked
 
     this.setState({ optOutOfUsageTracking: value })
-    this.props.onOptOutofReportingchanged(value)
+    this.props.onOptOutofReportingChanged(value)
   }
 
-  private onConfirmDiscardChangesChanged = (
+  private onRepositoryIndicatorsEnabledChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
-    const value = event.currentTarget.checked
-
-    this.setState({ confirmDiscardChanges: value })
-    this.props.onConfirmDiscardChangesChanged(value)
+    this.props.onRepositoryIndicatorsEnabledChanged(event.currentTarget.checked)
   }
 
-  private onConfirmForcePushChanged = (
+  private onUseWindowsOpenSSHChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
-    const value = event.currentTarget.checked
-
-    this.setState({ confirmForcePush: value })
-    this.props.onConfirmForcePushChanged(value)
-  }
-
-  private onConfirmRepositoryRemovalChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-
-    this.setState({ confirmRepositoryRemoval: value })
-    this.props.onConfirmRepositoryRemovalChanged(value)
-  }
-
-  private onUncommittedChangesStrategyKindChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.value as UncommittedChangesStrategyKind
-
-    this.setState({ uncommittedChangesStrategyKind: value })
-    this.props.onUncommittedChangesStrategyKindChanged(value)
-  }
-
-  private onSchannelCheckRevokeChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) => {
-    const value = event.currentTarget.checked
-    this.props.onSchannelCheckRevokeChanged(value === false)
+    this.props.onUseWindowsOpenSSHChanged(event.currentTarget.checked)
   }
 
   private reportDesktopUsageLabel() {
@@ -112,83 +74,34 @@ export class Advanced extends React.Component<
     return (
       <DialogContent>
         <div className="advanced-section">
-          <h2>If I have changes and I switch branches...</h2>
-          <div className="radio-component">
-            <input
-              type="radio"
-              id={UncommittedChangesStrategyKind.AskForConfirmation}
-              value={UncommittedChangesStrategyKind.AskForConfirmation}
-              checked={
-                this.state.uncommittedChangesStrategyKind ===
-                UncommittedChangesStrategyKind.AskForConfirmation
-              }
-              onChange={this.onUncommittedChangesStrategyKindChanged}
-            />
-            <label htmlFor={UncommittedChangesStrategyKind.AskForConfirmation}>
-              Ask me where I want the changes to go
-            </label>
-          </div>
-          <div className="radio-component">
-            <input
-              type="radio"
-              id={UncommittedChangesStrategyKind.MoveToNewBranch}
-              value={UncommittedChangesStrategyKind.MoveToNewBranch}
-              checked={
-                this.state.uncommittedChangesStrategyKind ===
-                UncommittedChangesStrategyKind.MoveToNewBranch
-              }
-              onChange={this.onUncommittedChangesStrategyKindChanged}
-            />
-            <label htmlFor={UncommittedChangesStrategyKind.MoveToNewBranch}>
-              Always bring my changes to my new branch
-            </label>
-          </div>
-          <div className="radio-component">
-            <input
-              type="radio"
-              id={UncommittedChangesStrategyKind.StashOnCurrentBranch}
-              value={UncommittedChangesStrategyKind.StashOnCurrentBranch}
-              checked={
-                this.state.uncommittedChangesStrategyKind ===
-                UncommittedChangesStrategyKind.StashOnCurrentBranch
-              }
-              onChange={this.onUncommittedChangesStrategyKindChanged}
-            />
-            <label
-              htmlFor={UncommittedChangesStrategyKind.StashOnCurrentBranch}
-            >
-              Always stash and leave my changes on the current branch
-            </label>
-          </div>
-        </div>
-        <div className="advanced-section">
-          <h2>Show a confirmation dialog before...</h2>
+          <h2>Background updates</h2>
           <Checkbox
-            label="Removing repositories"
+            label="Show status icons in the repository list"
             value={
-              this.state.confirmRepositoryRemoval
+              this.props.repositoryIndicatorsEnabled
                 ? CheckboxValue.On
                 : CheckboxValue.Off
             }
-            onChange={this.onConfirmRepositoryRemovalChanged}
+            onChange={this.onRepositoryIndicatorsEnabledChanged}
+            ariaDescribedBy="periodic-fetch-description"
           />
-          <Checkbox
-            label="Discarding changes"
-            value={
-              this.state.confirmDiscardChanges
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onConfirmDiscardChangesChanged}
-          />
-          <Checkbox
-            label="Force pushing"
-            value={
-              this.state.confirmForcePush ? CheckboxValue.On : CheckboxValue.Off
-            }
-            onChange={this.onConfirmForcePushChanged}
-          />
+          <div
+            id="periodic-fetch-description"
+            className="git-settings-description"
+          >
+            <p>
+              These icons indicate which repositories have local or remote
+              changes, and require the periodic fetching of repositories that
+              are not currently selected.
+            </p>
+            <p>
+              Turning this off will not stop the periodic fetching of your
+              currently selected repository, but may improve overall app
+              performance for users with many repositories.
+            </p>
+          </div>
         </div>
+        {this.renderSSHSettings()}
         <div className="advanced-section">
           <h2>Usage</h2>
           <Checkbox
@@ -201,37 +114,24 @@ export class Advanced extends React.Component<
             onChange={this.onReportingOptOutChanged}
           />
         </div>
-        {this.renderGitAdvancedSection()}
       </DialogContent>
     )
   }
 
-  private renderGitAdvancedSection() {
-    if (!__WIN32__) {
-      return
-    }
-
-    if (!enableSchannelCheckRevokeOptOut()) {
-      return
-    }
-
-    // If the user hasn't set `http.schannelCheckRevoke` before we don't
-    // have to show them the preference.
-    if (this.props.schannelCheckRevoke === null) {
-      return
+  private renderSSHSettings() {
+    if (!this.state.canUseWindowsSSH) {
+      return null
     }
 
     return (
-      <div className="git-advanced-section">
-        <h2>Git</h2>
+      <div className="advanced-section">
+        <h2>SSH</h2>
         <Checkbox
-          label="Disable certificate revocation checks"
+          label="Use system OpenSSH (recommended)"
           value={
-            this.props.schannelCheckRevoke
-              ? CheckboxValue.Off
-              : CheckboxValue.On
+            this.props.useWindowsOpenSSH ? CheckboxValue.On : CheckboxValue.Off
           }
-          onChange={this.onSchannelCheckRevokeChanged}
+          onChange={this.onUseWindowsOpenSSHChanged}
         />
       </div>
     )

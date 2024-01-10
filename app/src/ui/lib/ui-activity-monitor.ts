@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { ipcRenderer } from 'electron'
+import * as ipcRenderer from '../../lib/ipc-renderer'
 
 /**
  * Describes the interface of a UI activity monitor.
@@ -15,9 +15,9 @@ export interface IUiActivityMonitor {
    * to the event handler will be a value indicating the
    * kind of action detected (mouse/pointer, keyboard etc).
    *
-   * @return A disposable object which, when disposed will
-   *         terminate the subscription and prevent any
-   *         further calls to the handler.
+   * @returns A disposable object which, when disposed will
+   *          terminate the subscription and prevent any
+   *          further calls to the handler.
    */
   onActivity(handler: (kind: UiActivityKind) => void): Disposable
 }
@@ -40,9 +40,9 @@ export class UiActivityMonitor implements IUiActivityMonitor {
    * to the event handler will be a value indicating the
    * kind of action detected (mouse/pointer, keyboard etc).
    *
-   * @return A disposable object which, when disposed will
-   *         terminate the subscription and prevent any
-   *         further calls to the handler.
+   * @returns A disposable object which, when disposed will
+   *          terminate the subscription and prevent any
+   *          further calls to the handler.
    */
   public onActivity(handler: (kind: UiActivityKind) => void): Disposable {
     const emitterDisposable = this.emitter.on('activity', handler)
@@ -98,9 +98,7 @@ export class UiActivityMonitor implements IUiActivityMonitor {
     this.emit('keyboard')
   }
 
-  private onMenuEvent = (event: Electron.IpcRendererEvent) => {
-    this.emit('menu')
-  }
+  private onMenuEvent = () => this.emit('menu')
 }
 
 const interactionTargets = new Set(

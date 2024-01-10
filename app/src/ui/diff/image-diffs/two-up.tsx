@@ -2,8 +2,12 @@ import * as React from 'react'
 import { ImageContainer } from './image-container'
 import { ICommonImageDiffProperties } from './modified-image-diff'
 import { ISize } from './sizing'
-import { formatBytes, Sign } from '../../lib/bytes'
-import * as classNames from 'classnames'
+import { formatBytes } from '../../lib/bytes'
+import classNames from 'classnames'
+
+function percentDiff(previous: number, current: number) {
+  return `${Math.abs(Math.round((current / previous) * 100))}%`
+}
 
 interface ITwoUpProps extends ICommonImageDiffProperties {
   readonly previousImageSize: ISize | null
@@ -12,28 +16,27 @@ interface ITwoUpProps extends ICommonImageDiffProperties {
 
 export class TwoUp extends React.Component<ITwoUpProps, {}> {
   public render() {
-    const percentDiff = (previous: number, current: number) => {
-      const diff = Math.round((100 * (current - previous)) / previous)
-      const sign = diff > 0 ? '+' : ''
-      return sign + diff + '%'
-    }
-
     const zeroSize = { width: 0, height: 0 }
     const previousImageSize = this.props.previousImageSize || zeroSize
     const currentImageSize = this.props.currentImageSize || zeroSize
-    const diffPercent = percentDiff(
-      this.props.previous.bytes,
-      this.props.current.bytes
-    )
-    const diffBytes = this.props.current.bytes - this.props.previous.bytes
+
+    const { current, previous } = this.props
+
+    const diffPercent = percentDiff(previous.bytes, current.bytes)
+    const diffBytes = current.bytes - previous.bytes
+    const diffBytesSign = diffBytes >= 0 ? '+' : ''
+
+    const style: React.CSSProperties = {
+      maxWidth: this.props.maxSize.width,
+    }
 
     return (
       <div className="image-diff-container" ref={this.props.onContainerRef}>
         <div className="image-diff-two-up">
-          <div className="image-diff-previous">
+          <div className="image-diff-previous" style={style}>
             <div className="image-diff-header">Deleted</div>
             <ImageContainer
-              image={this.props.previous}
+              image={previous}
               onElementLoad={this.props.onPreviousImageLoad}
             />
 
@@ -41,14 +44,14 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
               <span className="strong">W:</span> {previousImageSize.width}
               px | <span className="strong">H:</span> {previousImageSize.height}
               px | <span className="strong">Size:</span>{' '}
-              {formatBytes(this.props.previous.bytes)}
+              {formatBytes(previous.bytes, 2, false)}
             </div>
           </div>
 
-          <div className="image-diff-current">
+          <div className="image-diff-current" style={style}>
             <div className="image-diff-header">Added</div>
             <ImageContainer
-              image={this.props.current}
+              image={current}
               onElementLoad={this.props.onCurrentImageLoad}
             />
 
@@ -56,7 +59,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
               <span className="strong">W:</span> {currentImageSize.width}
               px | <span className="strong">H:</span> {currentImageSize.height}
               px | <span className="strong">Size:</span>{' '}
-              {formatBytes(this.props.current.bytes)}
+              {formatBytes(current.bytes, 2, false)}
             </div>
           </div>
         </div>
@@ -69,7 +72,11 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
             })}
           >
             {diffBytes !== 0
-              ? `${formatBytes(diffBytes, Sign.Forced)} (${diffPercent})`
+              ? `${diffBytesSign}${formatBytes(
+                  diffBytes,
+                  2,
+                  false
+                )} (${diffPercent})`
               : 'No size difference'}
           </span>
         </div>

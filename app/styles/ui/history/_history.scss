@@ -68,8 +68,10 @@
     display: flex;
     flex-direction: column;
     font-size: var(--font-size-sm);
-    text-align: center;
     padding: var(--spacing);
+    .merge-status-component {
+      text-align: center;
+    }
   }
 
   .no-branches {

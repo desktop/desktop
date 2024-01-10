@@ -9,6 +9,10 @@ import { AppMenuBarButton } from './app-menu-bar-button'
 import { Dispatcher } from '../dispatcher'
 import { AppMenuFoldout, FoldoutType } from '../../lib/app-state'
 
+/** This is the id used for the windows app menu and used elsewhere
+ * to determine if the app menu is is focus */
+export const appMenuId = 'app-menu-bar'
+
 interface IAppMenuBarProps {
   readonly appMenu: ReadonlyArray<IMenu>
   readonly dispatcher: Dispatcher
@@ -445,10 +449,6 @@ export class AppMenuBar extends React.Component<
       ? this.props.appMenu.slice(1)
       : []
 
-    const openedWithAccessKey = foldoutState
-      ? foldoutState.openedWithAccessKey || false
-      : false
-
     const enableAccessKeyNavigation = foldoutState
       ? foldoutState.enableAccessKeyNavigation
       : false
@@ -468,7 +468,6 @@ export class AppMenuBar extends React.Component<
         menuState={menuState}
         highlightMenuAccessKey={highlightMenuAccessKey}
         enableAccessKeyNavigation={enableAccessKeyNavigation}
-        openedWithAccessKey={openedWithAccessKey}
         onClose={this.onMenuClose}
         onOpen={this.onMenuOpen}
         onMouseEnter={this.onMenuButtonMouseEnter}

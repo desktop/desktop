@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { IAutocompletionProvider } from './index'
-import { IssuesStore } from '../../lib/stores'
+import { IssuesStore, IIssueHit } from '../../lib/stores/issues-store'
 import { Dispatcher } from '../dispatcher'
 import { GitHubRepository } from '../../models/github-repository'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
@@ -8,18 +8,10 @@ import { ThrottledScheduler } from '../lib/throttled-scheduler'
 /** The interval we should use to throttle the issues update. */
 const UpdateIssuesThrottleInterval = 1000 * 60
 
-/** An autocompletion hit for an issue. */
-export interface IIssueHit {
-  /** The title of the issue. */
-  readonly title: string
-
-  /** The issue's number. */
-  readonly number: number
-}
-
 /** The autocompletion provider for issues in a GitHub repository. */
 export class IssuesAutocompletionProvider
-  implements IAutocompletionProvider<IIssueHit> {
+  implements IAutocompletionProvider<IIssueHit>
+{
   public readonly kind = 'issue'
 
   private readonly issuesStore: IssuesStore
@@ -61,7 +53,7 @@ export class IssuesAutocompletionProvider
   public renderItem(item: IIssueHit): JSX.Element {
     return (
       <div className="issue" key={item.number}>
-        <span className="number">#{item.number}</span>
+        <span className="number">#{item.number}</span>&nbsp;
         <span className="title">{item.title}</span>
       </div>
     )

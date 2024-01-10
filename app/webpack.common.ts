@@ -1,30 +1,26 @@
 import * as path from 'path'
-import * as HtmlWebpackPlugin from 'html-webpack-plugin'
-import * as CleanWebpackPlugin from 'clean-webpack-plugin'
-import * as webpack from 'webpack'
-import * as merge from 'webpack-merge'
-import { getChannel } from '../script/dist-info'
+import HtmlWebpackPlugin from 'html-webpack-plugin'
+import webpack from 'webpack'
+import merge from 'webpack-merge'
 import { getReplacements } from './app-info'
 
-const channel = getChannel()
-
 export const externals = ['7zip']
-if (channel === 'development') {
-  externals.push('devtron')
-}
 
 const outputDir = 'out'
 export const replacements = getReplacements()
 
 const commonConfig: webpack.Configuration = {
   optimization: {
-    noEmitOnErrors: true,
+    emitOnErrors: false,
   },
   externals: externals,
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, '..', outputDir),
-    libraryTarget: 'commonjs2',
+    library: {
+      name: '[name]',
+      type: 'commonjs2',
+    },
   },
   module: {
     rules: [
@@ -33,11 +29,7 @@ const commonConfig: webpack.Configuration = {
         include: path.resolve(__dirname, 'src'),
         use: [
           {
-            loader: 'awesome-typescript-loader',
-            options: {
-              useBabel: true,
-              useCache: true,
-            },
+            loader: 'ts-loader',
           },
         ],
         exclude: /node_modules/,
@@ -51,15 +43,8 @@ const commonConfig: webpack.Configuration = {
       },
     ],
   },
-  plugins: [
-    new CleanWebpackPlugin([outputDir], { verbose: false }),
-    // This saves us a bunch of bytes by pruning locales (which we don't use)
-    // from moment.
-    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
-  ],
   resolve: {
     extensions: ['.js', '.ts', '.tsx'],
-    modules: [path.resolve(__dirname, 'node_modules/')],
   },
   node: {
     __dirname: false,
@@ -90,7 +75,7 @@ export const renderer = merge({}, commonConfig, {
       },
       {
         test: /\.cmd$/,
-        loader: 'file-loader',
+        type: 'asset/resource',
       },
     ],
   },
@@ -102,18 +87,6 @@ export const renderer = merge({}, commonConfig, {
     new webpack.DefinePlugin(
       Object.assign({}, replacements, {
         __PROCESS_KIND__: JSON.stringify('ui'),
-      })
-    ),
-  ],
-})
-
-export const askPass = merge({}, commonConfig, {
-  entry: { 'ask-pass': path.resolve(__dirname, 'src/ask-pass/main') },
-  target: 'node',
-  plugins: [
-    new webpack.DefinePlugin(
-      Object.assign({}, replacements, {
-        __PROCESS_KIND__: JSON.stringify('askpass'),
       })
     ),
   ],
@@ -151,25 +124,30 @@ export const cli = merge({}, commonConfig, {
 export const highlighter = merge({}, commonConfig, {
   entry: { highlighter: path.resolve(__dirname, 'src/highlighter/index') },
   output: {
-    libraryTarget: 'var',
+    library: {
+      name: '[name]',
+      type: 'var',
+    },
     chunkFilename: 'highlighter/[name].js',
   },
   optimization: {
-    namedChunks: true,
+    chunkIds: 'named',
     splitChunks: {
       cacheGroups: {
         modes: {
           enforce: true,
-          name: (mod, chunks) => {
-            const builtInMode = /node_modules[\\\/]codemirror[\\\/]mode[\\\/](\w+)[\\\/]/i.exec(
-              mod.resource
-            )
+          name: (mod: any) => {
+            const builtInMode =
+              /node_modules[\\\/]codemirror[\\\/]mode[\\\/](\w+)[\\\/]/i.exec(
+                mod.resource
+              )
             if (builtInMode) {
               return `mode/${builtInMode[1]}`
             }
-            const external = /node_modules[\\\/]codemirror-mode-(\w+)[\\\/]/i.exec(
-              mod.resource
-            )
+            const external =
+              /node_modules[\\\/]codemirror-mode-(\w+)[\\\/]/i.exec(
+                mod.resource
+              )
             if (external) {
               return `ext/${external[1]}`
             }
@@ -209,14 +187,9 @@ highlighter.module!.rules = [
     include: path.resolve(__dirname, 'src/highlighter'),
     use: [
       {
-        loader: 'awesome-typescript-loader',
+        loader: 'ts-loader',
         options: {
-          useBabel: true,
-          useCache: true,
-          configFileName: path.resolve(
-            __dirname,
-            'src/highlighter/tsconfig.json'
-          ),
+          configFile: path.resolve(__dirname, 'src/highlighter/tsconfig.json'),
         },
       },
     ],

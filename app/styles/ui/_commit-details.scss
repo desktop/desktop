@@ -5,6 +5,7 @@
   flex-direction: row;
   flex: 1;
   overflow: hidden;
+  min-height: 150px;
 
   .fill-window {
     // necessary for "no files in commit" view to
@@ -12,24 +13,14 @@
     border-right: var(--base-border);
   }
 
-  .panel {
-    display: flex;
-    flex: 1;
-
-    &.empty,
-    &.renamed,
-    &.binary {
-      justify-content: center;
-      align-items: center;
-    }
-    &.large-diff {
-      margin: var(--spacing-double);
-      text-align: center;
-      justify-content: initial;
-
-      .blankslate-image {
-        max-height: 150px;
-      }
-    }
+  .file-list-header {
+    background: var(--box-alt-background-color);
+    border-bottom: 1px solid var(--box-border-color);
+    border-right: var(--base-border);
+    height: 30px;
+    line-height: 30px;
+    flex: 0 0 auto;
+    padding: 0 var(--spacing);
+    text-align: center;
   }
 }

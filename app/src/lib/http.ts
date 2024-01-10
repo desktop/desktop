@@ -44,9 +44,7 @@ export class APIError extends Error {
         message = `${message} (${additionalMessages})`
       }
     } else {
-      message = `API error ${response.url}: ${response.statusText} (${
-        response.status
-      })`
+      message = `API error ${response.url}: ${response.statusText} (${response.status})`
     }
 
     super(message)
@@ -70,9 +68,7 @@ async function deserialize<T>(response: Response): Promise<T> {
     const contentLength = response.headers.get('Content-Length') || '(missing)'
     const requestId = response.headers.get('X-GitHub-Request-Id') || '(missing)'
     log.warn(
-      `deserialize: invalid JSON found at '${response.url}' - status: ${
-        response.status
-      }, length: '${contentLength}' id: '${requestId}'`,
+      `deserialize: invalid JSON found at '${response.url}' - status: ${response.status}, length: '${contentLength}' id: '${requestId}'`,
       e
     )
     throw e
@@ -88,14 +84,14 @@ async function deserialize<T>(response: Response): Promise<T> {
  * @param path The resource path (should be relative to the root of the server)
  */
 export function getAbsoluteUrl(endpoint: string, path: string): string {
-  let relativePath = path[0] === '/' ? path.substr(1) : path
+  let relativePath = path[0] === '/' ? path.substring(1) : path
   if (relativePath.startsWith('api/v3/')) {
-    relativePath = relativePath.substr(7)
+    relativePath = relativePath.substring(7)
   }
 
   // Our API endpoints are a bit sloppy in that they don't typically
   // include the trailing slash (i.e. we use https://api.github.com for
-  // dotcom and https://ghe.enterprise.local/api/v3 for Enterprise Server when
+  // dotcom and https://ghe.enterprise.local/api/v3 for Enterprise when
   // both of those should really include the trailing slash since that's
   // the qualified base). We'll work around our past since here by ensuring
   // that the endpoint ends with a trailing slash.
@@ -113,6 +109,9 @@ export function getAbsoluteUrl(endpoint: string, path: string): string {
  * @param path          - The path, including any query string parameters.
  * @param jsonBody      - The JSON body to send.
  * @param customHeaders - Any optional additional headers to send.
+ * @param reloadCache   - sets cache option to reload — The browser fetches
+ * the resource from the remote server without first looking in the cache, but
+ * then will update the cache with the downloaded resource.
  */
 export function request(
   endpoint: string,
@@ -120,7 +119,8 @@ export function request(
   method: HTTPMethod,
   path: string,
   jsonBody?: Object,
-  customHeaders?: Object
+  customHeaders?: Object,
+  reloadCache: boolean = false
 ): Promise<Response> {
   const url = getAbsoluteUrl(endpoint, path)
 
@@ -139,10 +139,14 @@ export function request(
     ...customHeaders,
   }
 
-  const options = {
+  const options: RequestInit = {
     headers,
     method,
     body: JSON.stringify(jsonBody),
+  }
+
+  if (reloadCache) {
+    options.cache = 'reload' as RequestCache
   }
 
   return fetch(url, options)

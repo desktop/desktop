@@ -1,31 +1,28 @@
-import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
-import {
-  API,
-  getAccountForEndpoint,
-  getDotComAPIEndpoint,
-  IAPIIdentity,
-} from '../api'
+import { API } from '../api'
 import {
   GitHubUserDatabase,
-  IGitHubUser,
+  IMentionableUser,
 } from '../databases/github-user-database'
-import { getAvatarWithEnterpriseFallback } from '../gravatar'
 
-import { fatalError } from '../fatal-error'
 import { compare } from '../compare'
 import { BaseStore } from './base-store'
+import { getStealthEmailForUser, getLegacyStealthEmailForUser } from '../email'
+import { DefaultMaxHits } from '../../ui/autocompletion/common'
 
-function isValidAuthor(
-  author: IAPIIdentity | {} | null
-): author is IAPIIdentity {
-  return (
-    author !== null &&
-    typeof author === 'object' &&
-    'avatar_url' in author &&
-    'login' in author
-  )
+/** Don't fetch mentionables more often than every 10 minutes */
+const MaxFetchFrequency = 10 * 60 * 1000
+
+/**
+ * The max time (in milliseconds) that we'll keep a mentionable query
+ * cache around before pruning it.
+ */
+const QueryCacheTimeout = 60 * 1000
+
+interface IQueryCache {
+  readonly repository: GitHubRepository
+  readonly users: ReadonlyArray<IMentionableUser>
 }
 
 /**
@@ -33,51 +30,16 @@ function isValidAuthor(
  * users and avatars.
  */
 export class GitHubUserStore extends BaseStore {
-  private readonly requestsInFlight = new Set<string>()
+  private queryCache: IQueryCache | null = null
+  private pruneQueryCacheTimeoutId: number | null = null
 
-  /** The outer map is keyed by the endpoint, the inner map is keyed by email. */
-  private readonly usersByEndpoint = new Map<string, Map<string, IGitHubUser>>()
-
-  private readonly database: GitHubUserDatabase
-
-  /** The requests which have failed. We shouldn't keep trying them. */
-  private readonly failedRequests = new Set<string>()
-
-  /**
-   * The etag for the last mentionables request. Keyed by the GitHub repository
-   * `dbID`.
-   */
-  private readonly mentionablesEtags = new Map<number, string>()
-
-  public constructor(database: GitHubUserDatabase) {
+  public constructor(private readonly database: GitHubUserDatabase) {
     super()
-
-    this.database = database
-  }
-
-  private getUsersForEndpoint(
-    endpoint: string
-  ): Map<string, IGitHubUser> | null {
-    return this.usersByEndpoint.get(endpoint) || null
-  }
-
-  /** Get the map of users for the repository. */
-  public getUsersForRepository(
-    repository: Repository
-  ): Map<string, IGitHubUser> {
-    const endpoint = repository.gitHubRepository
-      ? repository.gitHubRepository.endpoint
-      : getDotComAPIEndpoint()
-    return this.getUsersForEndpoint(endpoint) || new Map<string, IGitHubUser>()
   }
 
   /**
-   * Retrieve a public user profile based on the user login.
-   *
-   * If the user is already cached no additional API requests
-   * will be made. If the user isn't in the cache but found in
-   * the API it will be persisted to the database and the
-   * intermediate cache.
+   * Retrieve a public user profile from the API based on the
+   * user login.
    *
    * @param account The account to use when querying the API
    *                for information about the user
@@ -86,16 +48,7 @@ export class GitHubUserStore extends BaseStore {
   public async getByLogin(
     account: Account,
     login: string
-  ): Promise<IGitHubUser | null> {
-    const existing = await this.database.users
-      .where('[endpoint+login]')
-      .equals([account.endpoint, login])
-      .first()
-
-    if (existing) {
-      return existing
-    }
-
+  ): Promise<IMentionableUser | null> {
     const api = API.fromAccount(account)
     const apiUser = await api.fetchUser(login).catch(e => null)
 
@@ -103,24 +56,17 @@ export class GitHubUserStore extends BaseStore {
       return null
     }
 
-    const avatarURL = getAvatarWithEnterpriseFallback(
-      apiUser.avatar_url,
-      apiUser.email,
-      account.endpoint
-    )
+    const email =
+      apiUser.email !== null && apiUser.email.length > 0
+        ? apiUser.email
+        : getStealthEmailForUser(apiUser.id, login, account.endpoint)
 
-    const user: IGitHubUser = {
-      avatarURL,
-      email: apiUser.email || '',
-      endpoint: account.endpoint,
+    return {
+      avatarURL: apiUser.avatar_url,
+      email,
       name: apiUser.name || apiUser.login,
       login: apiUser.login,
     }
-
-    // We don't overwrite email addresses since we might not get one from this
-    // endpoint, but we could already have one from looking up a commit
-    // specifically.
-    return await this.cacheUser(user, false)
   }
 
   /** Update the mentionable users for the repository. */
@@ -130,350 +76,56 @@ export class GitHubUserStore extends BaseStore {
   ): Promise<void> {
     const api = API.fromAccount(account)
 
-    const repositoryID = repository.dbID
-    if (!repositoryID) {
-      return fatalError(
-        `Cannot update mentionables for a repository that hasn't been cached yet.`
-      )
+    const cacheEntry = await this.database.getMentionableCacheEntry(
+      repository.dbID
+    )
+
+    if (
+      cacheEntry !== undefined &&
+      Date.now() - cacheEntry.lastUpdated < MaxFetchFrequency
+    ) {
+      return
     }
-    const etag = this.mentionablesEtags.get(repositoryID) || null
 
     const response = await api.fetchMentionables(
       repository.owner.login,
       repository.name,
-      etag
+      cacheEntry?.eTag
     )
-    if (!response) {
+
+    if (response === null) {
+      await this.database.touchMentionableCacheEntry(
+        repository.dbID,
+        cacheEntry?.eTag
+      )
       return
     }
-    if (!response.users) {
-      return
-    }
 
-    if (response.etag) {
-      this.mentionablesEtags.set(repositoryID, response.etag)
-    }
+    const { endpoint } = account
 
-    const gitHubUsers: ReadonlyArray<IGitHubUser> = response.users.map(m => {
-      const email = m.email || ''
-
-      return {
-        ...m,
-        email,
-        endpoint: account.endpoint,
-        avatarURL: getAvatarWithEnterpriseFallback(
-          m.avatar_url,
-          email,
-          account.endpoint
-        ),
-      }
+    const mentionables = response.users.map(u => {
+      const { name, login, avatar_url: avatarURL } = u
+      const email = u.email || getLegacyStealthEmailForUser(login, endpoint)
+      return { name, login, email, avatarURL }
     })
 
-    const cachedUsers = new Array<IGitHubUser>()
-    for (const user of gitHubUsers) {
-      // We don't overwrite email addresses since we might not get one from this
-      // endpoint, but we could already have one from looking up a commit
-      // specifically.
-      const cachedUser = await this.cacheUser(user, false)
-      if (cachedUser) {
-        cachedUsers.push(cachedUser)
-      }
-    }
-
-    for (const user of cachedUsers) {
-      await this.storeMentionable(user, repository)
-    }
-
-    await this.pruneRemovedMentionables(cachedUsers, repository)
-
-    this.emitUpdate()
-  }
-
-  /** Not to be called externally. See `Dispatcher`. */
-  public async _loadAndCacheUser(
-    accounts: ReadonlyArray<Account>,
-    repository: Repository,
-    sha: string,
-    email: string
-  ) {
-    const endpoint = repository.gitHubRepository
-      ? repository.gitHubRepository.endpoint
-      : getDotComAPIEndpoint()
-    const key = `${endpoint}+${email.toLowerCase()}`
-    if (this.requestsInFlight.has(key)) {
-      return
-    }
-    if (this.failedRequests.has(key)) {
-      return
-    }
-
-    const gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) {
-      return
-    }
-
-    const account = getAccountForEndpoint(accounts, gitHubRepository.endpoint)
-    if (!account) {
-      return
-    }
-
-    this.requestsInFlight.add(key)
-
-    let gitUser: IGitHubUser | null = null
-    // We don't have email addresses for all the users in our database, e.g., if
-    // the user has no public email. In that case, the email field is an empty
-    // string. So searching with an empty email is gonna give us results, but
-    // not results that are meaningful.
-    if (email.length > 0) {
-      gitUser =
-        (await this.database.users
-          .where('[endpoint+email]')
-          .equals([account.endpoint, email.toLowerCase()])
-          .limit(1)
-          .first()) || null
-    }
-
-    // TODO: Invalidate the stored user in the db after ... some reasonable time
-    // period.
-    if (!gitUser) {
-      gitUser = await this.findUserWithAPI(
-        account,
-        gitHubRepository,
-        sha,
-        email
-      )
-    }
-
-    this.requestsInFlight.delete(key)
-
-    if (gitUser) {
-      await this.cacheUser(gitUser)
-      this.emitUpdate()
-    } else {
-      this.failedRequests.add(key)
-    }
-  }
-
-  private async findUserWithAPI(
-    account: Account,
-    repository: GitHubRepository,
-    sha: string,
-    email: string
-  ): Promise<IGitHubUser | null> {
-    const api = API.fromAccount(account)
-
-    const apiCommit = await api.fetchCommit(
-      repository.owner.login,
-      repository.name,
-      sha
+    await this.database.updateMentionablesForRepository(
+      repository.dbID,
+      mentionables,
+      response.etag
     )
 
-    if (apiCommit) {
-      const { author } = apiCommit
-      if (isValidAuthor(author)) {
-        const avatarURL = getAvatarWithEnterpriseFallback(
-          author.avatar_url,
-          email,
-          account.endpoint
-        )
-
-        return {
-          email,
-          avatarURL,
-          login: author.login,
-          endpoint: account.endpoint,
-          name: author.login,
-        }
-      }
+    if (this.queryCache?.repository.dbID === repository.dbID) {
+      this.queryCache = null
+      this.clearCachePruneTimeout()
     }
-
-    const matchingUser = await api.searchForUserWithEmail(email)
-    if (matchingUser) {
-      const avatarURL = getAvatarWithEnterpriseFallback(
-        matchingUser.avatar_url,
-        email,
-        account.endpoint
-      )
-      return {
-        email,
-        login: matchingUser.login,
-        avatarURL,
-        endpoint: account.endpoint,
-        name: matchingUser.login,
-      }
-    }
-
-    return null
-  }
-
-  /** Store the user in the cache. */
-  public async cacheUser(
-    user: IGitHubUser,
-    overwriteEmail: boolean = true
-  ): Promise<IGitHubUser | null> {
-    user = userWithLowerCase(user)
-
-    let userMap = this.getUsersForEndpoint(user.endpoint)
-    if (!userMap) {
-      userMap = new Map<string, IGitHubUser>()
-      this.usersByEndpoint.set(user.endpoint, userMap)
-    }
-
-    // We still store unknown emails as empty strings,
-    // inserting that into cache would just create a
-    // race condition of whoever gets added last
-    if (user.email.length > 0) {
-      userMap.set(user.email, user)
-    }
-
-    const addedUser = await this.database.transaction(
-      'rw',
-      this.database.users,
-      async () => {
-        const existing = await this.database.users
-          .where('[endpoint+login]')
-          .equals([user.endpoint, user.login])
-          .toArray()
-        const match = existing.find(e => e.email === user.email)
-        if (match) {
-          if (overwriteEmail) {
-            user = { ...user, id: match.id }
-          } else {
-            user = { ...user, id: match.id, email: match.email }
-          }
-        }
-
-        const id = await this.database.users.put(user)
-        return this.database.users.get(id)
-      }
-    )
-
-    return addedUser || null
-  }
-
-  /**
-   * Store a mentionable association between the user and repository.
-   *
-   * Note that both the user and the repository *must* have already been cached
-   * before calling this method. Otherwise it will throw.
-   */
-  private async storeMentionable(
-    user: IGitHubUser,
-    repository: GitHubRepository
-  ) {
-    const userID = user.id
-    if (!userID) {
-      fatalError(
-        `Cannot store a mentionable association for a user that hasn't been cached yet.`
-      )
-      return
-    }
-
-    const repositoryID = repository.dbID
-    if (!repositoryID) {
-      fatalError(
-        `Cannot store a mentionable association for a repository that hasn't been cached yet.`
-      )
-      return
-    }
-
-    await this.database.transaction(
-      'rw',
-      this.database.mentionables,
-      async () => {
-        const existing = await this.database.mentionables
-          .where('[userID+repositoryID]')
-          .equals([userID, repositoryID])
-          .limit(1)
-          .first()
-        if (existing) {
-          return
-        }
-
-        await this.database.mentionables.put({ userID, repositoryID })
-      }
-    )
-  }
-
-  /**
-   * Prune the mentionable associations by removing any association that isn't in
-   * the given array of users.
-   */
-  private async pruneRemovedMentionables(
-    users: ReadonlyArray<IGitHubUser>,
-    repository: GitHubRepository
-  ) {
-    const repositoryID = repository.dbID
-    if (!repositoryID) {
-      fatalError(
-        `Cannot prune removed mentionables for a repository that hasn't been cached yet.`
-      )
-      return
-    }
-
-    const userIDs = new Set<number>()
-    for (const user of users) {
-      const userID = user.id
-      if (!userID) {
-        fatalError(
-          `Cannot prune removed mentionables with a user that hasn't been cached yet: ${user}`
-        )
-        return
-      }
-
-      userIDs.add(userID)
-    }
-
-    await this.database.transaction(
-      'rw',
-      this.database.mentionables,
-      async () => {
-        const associations = await this.database.mentionables
-          .where('repositoryID')
-          .equals(repositoryID)
-          .toArray()
-
-        for (const association of associations) {
-          if (!userIDs.has(association.userID)) {
-            await this.database.mentionables.delete(association.id!)
-          }
-        }
-      }
-    )
   }
 
   /** Get the mentionable users in the repository. */
   public async getMentionableUsers(
     repository: GitHubRepository
-  ): Promise<ReadonlyArray<IGitHubUser>> {
-    const repositoryID = repository.dbID
-    if (!repositoryID) {
-      return fatalError(
-        `Cannot get mentionables for a repository that hasn't been cached yet.`
-      )
-    }
-
-    const users = new Array<IGitHubUser>()
-    await this.database.transaction(
-      'r',
-      this.database.mentionables,
-      this.database.users,
-      async () => {
-        const associations = await this.database.mentionables
-          .where('repositoryID')
-          .equals(repositoryID)
-          .toArray()
-
-        for (const association of associations) {
-          const user = await this.database.users.get(association.userID)
-          if (user) {
-            users.push(user)
-          }
-        }
-      }
-    )
-
-    return users
+  ): Promise<ReadonlyArray<IMentionableUser>> {
+    return this.database.getAllMentionablesForRepository(repository.dbID)
   }
 
   /**
@@ -483,6 +135,9 @@ export class GitHubUserStore extends BaseStore {
    * they matched. Search strings start with username and are followed
    * by real name. Only the first substring hit is considered
    *
+   * @param repository The GitHubRepository for which to look up
+   *                   mentionables.
+   *
    * @param text    A string to use when looking for a matching
    *                user. A user is considered a hit if this text
    *                matches any subtext of the username or real name
@@ -491,17 +146,21 @@ export class GitHubUserStore extends BaseStore {
    */
   public async getMentionableUsersMatching(
     repository: GitHubRepository,
-    text: string,
-    maxHits: number = 100
-  ): Promise<ReadonlyArray<IGitHubUser>> {
-    const users = await this.getMentionableUsers(repository)
+    query: string,
+    maxHits: number = DefaultMaxHits
+  ): Promise<ReadonlyArray<IMentionableUser>> {
+    const users =
+      this.queryCache?.repository.dbID === repository.dbID
+        ? this.queryCache.users
+        : await this.getMentionableUsers(repository)
+
+    this.setQueryCache(repository, users)
 
     const hits = []
-    const needle = text.toLowerCase()
+    const needle = query.toLowerCase()
 
     // Simple substring comparison on login and real name
-    for (let i = 0; i < users.length && hits.length < maxHits; i++) {
-      const user = users[i]
+    for (const user of users) {
       const ix = `${user.login} ${user.name}`
         .trim()
         .toLowerCase()
@@ -521,17 +180,26 @@ export class GitHubUserStore extends BaseStore {
       .sort(
         (x, y) => compare(x.ix, y.ix) || compare(x.user.login, y.user.login)
       )
+      .slice(0, maxHits)
       .map(h => h.user)
   }
-}
 
-/**
- * Returns a copy of the user instance with relevant properties lower cased.
- */
-function userWithLowerCase(user: IGitHubUser): IGitHubUser {
-  return {
-    ...user,
-    email: user.email.toLowerCase(),
-    login: user.login.toLowerCase(),
+  private setQueryCache(
+    repository: GitHubRepository,
+    users: ReadonlyArray<IMentionableUser>
+  ) {
+    this.clearCachePruneTimeout()
+    this.queryCache = { repository, users }
+    this.pruneQueryCacheTimeoutId = window.setTimeout(() => {
+      this.pruneQueryCacheTimeoutId = null
+      this.queryCache = null
+    }, QueryCacheTimeout)
+  }
+
+  private clearCachePruneTimeout() {
+    if (this.pruneQueryCacheTimeoutId !== null) {
+      clearTimeout(this.pruneQueryCacheTimeoutId)
+      this.pruneQueryCacheTimeoutId = null
+    }
   }
 }

@@ -10,16 +10,29 @@ describe('Branches grouping', () => {
     author,
   }
 
-  const currentBranch = new Branch('master', null, branchTip, BranchType.Local)
-  const defaultBranch = new Branch('master', null, branchTip, BranchType.Local)
+  const currentBranch = new Branch(
+    'master',
+    null,
+    branchTip,
+    BranchType.Local,
+    ''
+  )
+  const defaultBranch = new Branch(
+    'master',
+    null,
+    branchTip,
+    BranchType.Local,
+    ''
+  )
   const recentBranches = [
-    new Branch('some-recent-branch', null, branchTip, BranchType.Local),
+    new Branch('some-recent-branch', null, branchTip, BranchType.Local, ''),
   ]
   const otherBranch = new Branch(
     'other-branch',
     null,
     branchTip,
-    BranchType.Local
+    BranchType.Local,
+    ''
   )
 
   const allBranches = [currentBranch, ...recentBranches, otherBranch]

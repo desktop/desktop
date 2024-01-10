@@ -1,0 +1,129 @@
+.dropdown-select-button {
+  position: relative;
+
+  .dropdown-button-wrappers {
+    display: flex;
+  }
+
+  &.open-bottom {
+    .invoke-button {
+      border-bottom-left-radius: 0;
+    }
+
+    .dropdown-button {
+      border-bottom-right-radius: 0;
+    }
+
+    .dropdown-select-button-options {
+      border-top-right-radius: 0;
+      border-top-left-radius: 0;
+    }
+  }
+
+  &.open-top {
+    .invoke-button {
+      border-top-left-radius: 0;
+    }
+
+    .dropdown-button {
+      border-top-right-radius: 0;
+    }
+
+    .dropdown-select-button-options {
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+  }
+
+  .invoke-button {
+    display: inline;
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+    margin-right: 0;
+    height: 30px;
+    flex-grow: 1;
+  }
+
+  .dropdown-button {
+    min-width: 30px;
+    padding: var(--spacing-half);
+    margin: 0;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+    min-width: auto;
+    height: 30px;
+    background-color: var(--button-background);
+    color: var(--button-text-color);
+    border: 1px solid var(--button-background);
+
+    &:focus {
+      border-color: var(--button-background);
+      background-color: var(--button-hover-background);
+    }
+
+    &:not(:disabled):hover {
+      border-color: var(--button-background);
+      background-color: var(--button-hover-background);
+    }
+
+    &.disabled {
+      opacity: 0.6;
+    }
+  }
+
+  .dropdown-select-button-options {
+    position: absolute;
+    overflow: hidden;
+    font-size: var(--font-size);
+    color: var(--text-color);
+    background-color: var(--box-alt-background-color);
+    background-clip: padding-box;
+    border-radius: var(--border-radius);
+    z-index: 100;
+    box-shadow: var(--base-box-shadow);
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    outline: 1px solid var(--box-border-color);
+
+    .menu-pane {
+      padding-bottom: 0;
+    }
+
+    .menu-item {
+      border-bottom: 1px solid var(--box-border-color);
+      height: auto;
+      padding: var(--spacing) var(--spacing-double);
+      padding-left: var(--spacing-triple);
+      align-items: normal;
+      border-radius: 0;
+
+      &:focus-visible {
+        outline: none;
+      }
+
+      .label {
+        margin-left: 0;
+        white-space: inherit;
+      }
+
+      .option-description {
+        color: var(--text-secondary-color);
+        font-size: var(--font-size-sm);
+      }
+
+      .icon {
+        position: absolute;
+        left: var(--spacing);
+      }
+    }
+  }
+}
+
+body.theme-dark {
+  .dropdown-select-button-options {
+    box-shadow: none;
+    margin-top: 1px;
+    width: 100%;
+  }
+}

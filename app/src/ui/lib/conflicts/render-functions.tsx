@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbol } from '../../octicons'
+import { Octicon } from '../../octicons'
+import * as OcticonSymbol from '../../octicons/octicons.generated'
 import { LinkButton } from '../link-button'
 
 export function renderUnmergedFilesSummary(conflictedFilesCount: number) {
@@ -8,7 +9,7 @@ export function renderUnmergedFilesSummary(conflictedFilesCount: number) {
     conflictedFilesCount === 1
       ? `1 conflicted file`
       : `${conflictedFilesCount} conflicted files`
-  return <h3 className="summary">{message}</h3>
+  return <h2 className="summary">{message}</h2>
 }
 
 export function renderAllResolved() {

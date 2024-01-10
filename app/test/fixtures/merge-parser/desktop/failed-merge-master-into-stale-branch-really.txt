@@ -9190,12 +9190,12 @@ merged
  import { IFilterListGroup } from '../lib/filter-list'
 +import { IMatches } from '../../lib/fuzzy-find'
  import {
-   IClonableRepositoryListItem,
+   ICloneableRepositoryListItem,
    groupRepositories,
 @@ -204,13 +205,13 @@
 
    private renderItem = (
-     item: IClonableRepositoryListItem,
+     item: ICloneableRepositoryListItem,
 -    matches: ReadonlyArray<number>
 +    matches: IMatches
    ) => {

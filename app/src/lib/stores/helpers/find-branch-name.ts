@@ -8,7 +8,7 @@ import { urlMatchesCloneURL } from '../../repository-matching'
  * protection information.
  *
  * If the remote branch matches the current `githubRepository` associated with
- * the repostiory, this will be used. Otherwise we will fall back to using the
+ * the repository, this will be used. Otherwise we will fall back to using the
  * branch name as that's a reasonable approximation for what would happen if the
  * user tries to push the new branch.
  */

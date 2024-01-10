@@ -12,28 +12,32 @@
 $overlay-background-color: rgba(0, 0, 0, 0.4);
 
 :root {
-  --color-new: #{$green};
-  --color-deleted: #{$red};
+  --color-new: #{$green-600};
+  --color-deleted: #{$red-600};
   --color-modified: #{$yellow-700};
   --color-renamed: #{$blue};
   --color-conflicted: #{$orange};
 
   --text-color: #{$gray-900};
   --text-secondary-color: #{$gray-500};
+  --text-secondary-color-muted: #{lighten($gray-500, 30%)};
   --background-color: #{$white};
 
   --button-height: 25px;
 
   --button-background: #{$blue};
-  --button-border-radius: 2px;
+  --button-border-radius: 6px;
   --button-hover-background: #{lighten($blue, 5%)};
   --button-text-color: #{$white};
-  --button-focus-border-color: #{$blue-600};
+  --button-focus-border-color: #{$blue-100};
 
-  --link-button-color: #{$blue};
+  --link-button-color: #{lighten($blue, 5%)};
   --link-button-hover-color: #{$blue-600};
+  --link-button-selected-hover-color: #{$blue-200};
 
-  --secondary-button-background: #{$gray-000};
+  --secondary-button-background: #{$gray-100};
+  --secondary-button-border-color: var(--box-border-contrast-color);
+  --secondary-button-hover-border-color: var(--box-border-contrast-color);
   --secondary-button-hover-background: #{$white};
   --secondary-button-text-color: var(--text-color);
   --secondary-button-focus-shadow-color: #{rgba($gray-200, 0.75)};
@@ -44,12 +48,23 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * (like a circle badge icon)
    */
   --badge-icon-color: #{$white};
+  --warning-badge-icon-color: #{$orange};
+
+  // Colors used for icons that are inside an input box
+  --input-icon-warning-color: #{$yellow-800};
+  --input-icon-error-color: #{$red-600};
+  --input-icon-hover-background-color: #{$gray-100};
+
+  // Colors used for icons in the commit message warning/error area
+  --commit-message-icon-warning-color: var(--input-icon-warning-color);
+  --commit-message-icon-error-color: var(--input-icon-error-color);
 
   // Typography
   //
   // Font, line-height, and color for body text, headings, and more.
-  --font-family-sans-serif: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif;
-  --font-family-monospace: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  $emoji_fallback_fonts: 'Apple Color Emoji', 'Segoe UI', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --font-family-sans-serif: system-ui, sans-serif, #{$emoji_fallback_fonts};
+  --font-family-monospace: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace, #{$emoji_fallback_fonts};
 
   /**
    * Font weight to use for semibold text
@@ -62,6 +77,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --font-weight-light: 300;
 
   // Pixel value used to responsively scale all typography. Applied to the `<html>` element.
+  // When adding a new font-size variable, please update the fix-emoji-spacing.ts file.
   --font-size: 12px;
   --font-size-sm: 11px;
   --font-size-md: 14px;
@@ -76,7 +92,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Background color for custom scroll bars.
    * The color is applied to the thumb part of the scrollbar.
    *
-   * Note: Only applies to win32 platforms
+   * Note: Only applies to win32 and linux platforms
    */
   --scroll-bar-thumb-background-color: rgba(0, 0, 0, 0.2);
 
@@ -84,7 +100,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Background color for custom scroll bars in their active state.
    * The color is applied to the thumb part of the scrollbar.
    *
-   * Note: Only applies to win32 platforms
+   * Note: Only applies to win32 and linux platforms
    */
   --scroll-bar-thumb-background-color-active: rgba(0, 0, 0, 0.5);
 
@@ -108,6 +124,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Border color for boxes.
    */
   --box-border-color: #{$gray-200};
+
+  // darkened version of gray-400 to get 3:1 contrast ratio against --box-alt-background-color
+  --box-border-contrast-color: #{darken($gray-400, 5%)};
   --box-border-accent-color: #{$blue};
 
   /**
@@ -129,6 +148,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * implement a hover state since this will conflict with
    * selection and active selection
    */
+  --box-hover-background-color: #{$gray-100};
 
   /**
    * Text color for selected boxes without keyboard focus
@@ -144,6 +164,11 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * Background color for selected boxes with active keyboard focus
    */
   --box-selected-active-background-color: #{$blue};
+
+  /**
+   * Border styles for selected boxes with active keyboard focus
+   */
+  --box-selected-active-border: none;
 
   /**
    * Text color for selected boxes with active keyboard focus
@@ -163,6 +188,21 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --box-overflow-shadow-background: #{linear-gradient(180deg, rgba($white, 0) 0%, rgba($white, 1) 90%, rgba($white, 1) 100%)};
 
   /**
+   * Gradient used to indicate that content is overflowing, intended
+   * for use when content can be expanded through other means than
+   * scrolling. Used in conjuction with background-size, background-attachment, background-repeat.
+   */
+  --no-shadow-top: #{linear-gradient($white, rgba(255, 255, 255, 0))};
+  --no-shadow-bottom: #{linear-gradient(rgba(255, 255, 255, 0), $white)};
+  --top-shadow: #{linear-gradient(0deg, rgba($white, 0) 0%, rgba($gray-200, 0.6) 90%, rgba($gray-200, 1) 100%)};
+  --bottom-shadow: #{linear-gradient(180deg, rgba($white, 0) 0%, rgba($gray-200, 0.6) 90%, rgba($gray-200, 1) 100%) 0 100%};
+  --box-overflow-shadow-background-two: #{var(--no-shadow-top), var(--no-shadow-bottom) 0 100%, var(--top-shadow), var(--bottom-shadow)};
+
+  /**
+   * Text color for selected boxes with active keyboard focus
+   */
+
+  /**
    * Placeholder color for input boxes
    */
   --box-placeholder-color: #{$gray-500};
@@ -172,6 +212,12 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    */
   --co-author-tag-background-color: #{$blue-000};
   --co-author-tag-border-color: #{$blue-200};
+
+  /**
+   * Commit warning badge icon
+   */
+  --commit-warning-badge-background-color: #{$gray-000};
+  --commit-warning-badge-border: #{$gray-300};
 
   /**
    * The height of the title bar area on Win32 platforms
@@ -194,8 +240,13 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --spacing-half: calc(var(--spacing) / 2);
   --spacing-third: calc(var(--spacing) / 3);
 
-  --border-radius: 3px;
+  --border-radius: 6px;
+  // When we use the regular border radius (6px) the outline
+  // leaves a tiny gap in the corners so we drop down to a
+  // similar value than Chrome's default outline border radius.
+  --outlined-border-radius: 3px;
   --base-border: 1px solid var(--box-border-color);
+  --contrast-border: 1px solid var(--box-border-contrast-color);
 
   --shadow-color: rgba(71, 83, 95, 0.19);
   --base-box-shadow: 0 2px 7px var(--shadow-color);
@@ -226,6 +277,11 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --toolbar-button-focus-progress-color: #{$gray-700};
   --toolbar-button-hover-progress-color: #{$gray-700};
   --toolbar-dropdown-open-progress-color: #{$gray-200};
+  --toolbar-dropdown-text-warning-color: #{$yellow-800};
+  --toolbar-dropdown-text-hover-color: var(--box-hover-text-color);
+
+  --toolbar-tooltip-background-color: #{$gray-800};
+  --toolbar-tooltip-shadow-color: black;
 
   /**
    * App menu bar colors (Windows/Linux only)
@@ -271,26 +327,28 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --list-item-selected-active-badge-background-color: #{$white};
   --list-item-hover-background-color: #{$gray-100};
 
-  /** Win32 has custom scrol bars, see _scroll.scss */
+  /** Windows/Linux have custom scrollbars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
+  --linux-scroll-bar-size: 10px;
 
   /**
-   * The z-index for popups. Nothing should be higher, but other z-indexes can
+   * The z-index for tooltips. Nothing should be higher, but other z-indexes can
    * be defined in terms of it.
    *
-   * 10 seems arbitrary (because it is) but we have to go that high because
+   * 20 seems arbitrary (because it is) but we have to go that high because
    * codemirror is all over the place with their z-indexes and uses at least
    * 0-6.
    */
-  --popup-z-index: 20;
-  --popup-overlay-z-index: calc(var(--popup-z-index) - 1);
-  --foldout-z-index: calc(var(--popup-z-index) - 2);
-  --nudge-arrow-z-index: calc(var(--popup-z-index) - 3);
-  /**
-   * This is 7 to make sure it appears on top code mirror
-   * but behind popups, overlays, and foldouts 
-   */
-  --side-panel-z-index: calc(var(--popup-z-index) - 4);
+  --tooltip-z-index: 20;
+  --popup-z-index: 19;
+  --popup-overlay-z-index: 18;
+  --foldout-z-index: 17;
+  --nudge-arrow-z-index: 16;
+  --drag-overlay-z-index: 15;
+  --side-panel-z-index: 14;
+  // We want second level to fall under top level when scrolling
+  --list-sticky-header-top-level-z-index: 11;
+  --list-sticky-header-second-level-z-index: 10;
 
   /**
    * Toast notifications are shown temporarily for things like the zoom
@@ -373,6 +431,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-delete-hover-gutter-color: #{$red-300};
   --diff-delete-hover-text-color: var(--text-color);
 
+  --diff-empty-row-background-color: #{$gray-000};
+  --diff-empty-row-gutter-background-color: var(--diff-empty-row-background-color);
+
   // Syntax highlighting text colors
   --syntax-variable-color: #6f42c1;
   --syntax-alt-variable-color: #24292e;
@@ -397,21 +458,36 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --form-error-border-color: #{$red-200};
   --form-error-text-color: #{$red-800};
 
+  --dialog-banner-success-background: #{$green-100};
+  --dialog-banner-success-border-color: #{$green-300};
+  --dialog-banner-success-text-color: #{$green-800};
+
+  // Inline form errors, displayed after the input field
+  --input-warning-text-color: var(--dialog-warning-color);
+  --input-error-text-color: #{$red-800};
+
   /** Overlay is used as a background for both modals and foldouts */
   --overlay-background-color: #{$overlay-background-color};
 
   /** Dialog */
   --dialog-warning-color: #{$yellow-600};
+  --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red};
+
+  /** File warning */
+  --file-warning-background-color: #{$yellow-200};
+  --file-warning-color: #{$yellow-800};
+  --file-warning-border-color: #{rgba($yellow-700, 0.4)};
+
+  /** Tooltips */
+  --tooltip-background-color: #{$gray-900};
+  --tooltip-color: #{$gray-100};
+  --tooltip-shadow-color: #{rgba($gray-900, 0.65)};
 
   /** Inline paths and code */
   --path-segment-background: #{$blue-000};
+  --path-segment-background-focus: #{darken($blue-000, 5%)};
   --path-segment-padding: var(--spacing-third);
-
-  /** Diverging notification banner colors */
-  --notification-banner-background: #{$blue-000};
-  --notification-banner-border-color: #{$blue-200};
-  --notification-ref-background: rgba(255, 255, 255, 0.75);
 
   // http://easings.net/#easeOutBack
   --easing-ease-out-back: cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -423,12 +499,43 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --easing-ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
 
   /** rebase progress bar */
-  --dialog-rebase-progress-background: #{$green};
+  --dialog-progress-background: #{$green};
 
   /** merge/rebase status indicators */
   --status-pending-color: #{$yellow-700};
   --status-error-color: #{$red-500};
   --status-success-color: #{$green-500};
+
+  // PR status icon colors
+  --pr-open-icon-color: #{$green-500};
+  --pr-draft-icon-color: #{$gray-500};
+
+  // PR review colors
+  --pr-timeline-line-color: var(--box-border-color);
+  --pr-changes-requested-icon-color: #{$white};
+  --pr-changes-requested-icon-background-color: #cf222e;
+  --pr-approved-icon-color: #{$white};
+  --pr-approved-icon-background-color: #2da44e;
+  --pr-commented-icon-color: var(--md-fg-muted-color);
+  --pr-commented-icon-background-color: #eaeef2;
+
+  --call-to-action-bubble-border-color: #{$green};
+  --call-to-action-bubble-color: #{$green};
+
+  --title-tool-tip-background-color: rgb(236, 236, 236);
+  --title-tool-tip-shadow: 1px 2px 5px 0px rgb(125, 125, 125, 0.5);
+
+  // Markdown colors
+  --md-border-default-color: #d0d7de;
+  --md-border-muted-color: hsla(210, 18%, 87%, 1);
+  --md-canvas-default-color: #ffffff;
+  --md-canvas-subtle-color: #f6f8fa;
+  --md-fg-default-color: #24292f;
+  --md-fg-muted-color: #57606a;
+  --md-danger-fg-color: #cf222e;
+  --md-neutral-muted-color: rgba(175, 184, 193, 0.2);
+  --md-accent-emphasis-color: #0969da;
+  --md-accent-fg-color: #0969da;
 }
 
 ::backdrop {

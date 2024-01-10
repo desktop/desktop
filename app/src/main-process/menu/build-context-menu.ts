@@ -1,4 +1,4 @@
-import { IMenuItem } from '../../lib/menu-item'
+import { ISerializableMenuItem } from '../../lib/menu-item'
 import { Menu, MenuItem } from 'electron'
 
 /**
@@ -39,44 +39,60 @@ function getEditMenuItems(): ReadonlyArray<MenuItem> {
  *                 the renderer.
  * @param onClick  A callback function for when one of the menu items
  *                 constructed from the template is clicked. Callback
- *                 is passed the index of the menu item in the template
- *                 as the first argument and the template item itself
- *                 as the second argument. Note that the callback will
- *                 not be called when expanded/automatically created
- *                 edit menu items are clicked.
+ *                 is passed an array of indices corresponding to the
+ *                 positions of each of the parent menus of the clicked
+ *                 item (so when clicking a top-level menu item an array
+ *                 with a single element will be passed). Note that the
+ *                 callback will not be called when expanded/automatically
+ *                 created edit menu items are clicked.
  */
 export function buildContextMenu(
-  template: ReadonlyArray<IMenuItem>,
-  onClick: (ix: number, item: IMenuItem) => void
+  template: ReadonlyArray<ISerializableMenuItem>,
+  onClick: (indices: ReadonlyArray<number>) => void,
+  spellCheckMenuItems?: ReadonlyArray<MenuItem>
 ): Menu {
-  const menuItems = new Array<MenuItem>()
+  const menu = buildRecursiveContextMenu(template, onClick)
 
-  for (const [ix, item] of template.entries()) {
-    // Special case editMenu in context menus. What we
-    // mean by this is that we want to insert all edit
-    // related menu items into the menu at this spot, we
-    // don't want a sub menu
+  if (spellCheckMenuItems === undefined) {
+    return menu
+  }
+
+  for (const spellCheckMenuItem of spellCheckMenuItems) {
+    menu.append(spellCheckMenuItem)
+  }
+
+  return menu
+}
+
+function buildRecursiveContextMenu(
+  menuItems: ReadonlyArray<ISerializableMenuItem>,
+  actionFn: (indices: ReadonlyArray<number>) => void,
+  currentIndices: ReadonlyArray<number> = []
+): Menu {
+  const menu = new Menu()
+
+  for (const [idx, item] of menuItems.entries()) {
     if (roleEquals(item.role, 'editmenu')) {
-      menuItems.push(...getEditMenuItems())
+      for (const editItem of getEditMenuItems()) {
+        menu.append(editItem)
+      }
     } else {
-      // TODO: We're always overriding the click function here.
-      // It's possible that we might want to add a role-based
-      // menu item without a custom click function at some point
-      // in the future.
-      menuItems.push(
+      const indices = [...currentIndices, idx]
+
+      menu.append(
         new MenuItem({
           label: item.label,
           type: item.type,
           enabled: item.enabled,
           role: item.role,
-          click: () => onClick(ix, item),
+          click: () => actionFn(indices),
+          submenu: item.submenu
+            ? buildRecursiveContextMenu(item.submenu, actionFn, indices)
+            : undefined,
         })
       )
     }
   }
-
-  const menu = new Menu()
-  menuItems.forEach(x => menu.append(x))
 
   return menu
 }
