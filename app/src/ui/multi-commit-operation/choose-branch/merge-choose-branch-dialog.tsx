@@ -92,27 +92,31 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
 
   protected updateStatus = async (branch: Branch) => {
     const { currentBranch, repository } = this.props
-    this.mergeStatus = { kind: ComputedAction.Loading }
-    this.updateMergeStatusPreview(branch)
+    this.updateMergeStatusPreview(branch, { kind: ComputedAction.Loading })
 
-    if (currentBranch != null) {
-      this.mergeStatus = await promiseWithMinimumTimeout(
-        () => determineMergeability(repository, currentBranch, branch),
-        500
-      ).catch<MergeTreeResult>(e => {
-        log.error('Failed determining mergeability', e)
-        return { kind: ComputedAction.Clean }
-      })
+    const mergeStatus = await promiseWithMinimumTimeout(
+      () => determineMergeability(repository, currentBranch, branch),
+      500
+    ).catch<MergeTreeResult>(e => {
+      log.error('Failed determining mergeability', e)
+      return { kind: ComputedAction.Clean }
+    })
 
-      if (
-        this.mergeStatus.kind === ComputedAction.Conflicts ||
-        this.mergeStatus.kind === ComputedAction.Invalid
-      ) {
-        this.updateMergeStatusPreview(branch)
-        // Because the clean status is the only one that needs the ahead/Behind count
-        // So if mergeState is conflicts or invalid, update the UI here and end the function
-        return
-      }
+    // The user has selected a different branch since we started, so don't
+    // update the preview with stale data.
+    if (this.state.selectedBranch !== branch) {
+      return
+    }
+
+    // The clean status is the only one that needs the ahead/behind count. If
+    // the status is conflicts or invalid, update the UI here and end the
+    // function.
+    if (
+      mergeStatus.kind === ComputedAction.Conflicts ||
+      mergeStatus.kind === ComputedAction.Invalid
+    ) {
+      this.updateMergeStatusPreview(branch, mergeStatus)
+      return
     }
 
     const range = revSymmetricDifference('', branch.name)
@@ -121,12 +125,17 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
 
     if (this.state.selectedBranch !== branch) {
       this.commitCount = 0
+      return
     }
 
-    this.updateMergeStatusPreview(branch)
+    this.updateMergeStatusPreview(branch, mergeStatus)
   }
 
-  private updateMergeStatusPreview(branch: Branch) {
+  private updateMergeStatusPreview(
+    branch: Branch,
+    mergeStatus: MergeTreeResult
+  ) {
+    this.mergeStatus = mergeStatus
     this.setState({ statusPreview: this.getMergeStatusPreview(branch) })
   }
 
