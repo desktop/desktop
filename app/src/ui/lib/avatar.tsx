@@ -180,26 +180,33 @@ function getAvatarUrlCandidates(
   return candidates
 }
 
+const getInitialStateForUser = (
+  user: IAvatarUser | undefined,
+  accounts: ReadonlyArray<Account>,
+  size: number | undefined
+): Pick<IAvatarState, 'user' | 'candidates' | 'avatarToken'> => {
+  const endpoint = user?.endpoint
+  const avatarToken =
+    endpoint && isGHE(endpoint)
+      ? avatarTokenCache.tryGet({ endpoint, accounts })
+      : undefined
+  const candidates = getAvatarUrlCandidates(user, avatarToken, size)
+
+  return { user, candidates, avatarToken }
+}
+
 /** A component for displaying a user avatar. */
 export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   public static getDerivedStateFromProps(
     props: IAvatarProps,
     state: IAvatarState
-  ): Partial<IAvatarState> | null {
+  ) {
     const { user, size, accounts } = props
-    if (!shallowEquals(user, state.user)) {
-      // If the endpoint has changed we need to reset the avatar token so that
-      // it'll be re-fetched for the new endpoint
-      const endpoint = user?.endpoint
-      const avatarToken =
-        endpoint && isGHE(endpoint)
-          ? avatarTokenCache.tryGet({ endpoint, accounts })
-          : undefined
-      const candidates = getAvatarUrlCandidates(user, avatarToken, size)
-
-      return { user, candidates, avatarToken }
-    }
-    return null
+    // If the endpoint has changed we need to reset the avatar token so that
+    // it'll be re-fetched for the new endpoint
+    return shallowEquals(user, state.user)
+      ? null
+      : getInitialStateForUser(user, accounts, size)
   }
 
   /** Set to true when unmounting to avoid unnecessary state updates */
@@ -209,14 +216,11 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     super(props)
 
     const { user, size, accounts } = props
-    const endpoint = user?.endpoint
-    const token =
-      endpoint && isGHE(endpoint)
-        ? avatarTokenCache.tryGet({ endpoint, accounts })
-        : undefined
-    const candidates = getAvatarUrlCandidates(user, token, size)
 
-    this.state = { user, candidates, imageError: false }
+    this.state = {
+      ...getInitialStateForUser(user, accounts, size),
+      imageError: false,
+    }
   }
 
   private getTitle() {
