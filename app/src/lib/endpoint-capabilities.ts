@@ -42,12 +42,7 @@ const versionCache = new Map<string, semver.SemVer | null>()
 const endpointVersionKey = (ep: string) => `endpoint-version:${ep}`
 
 /**
- * Whether or not the given endpoint URI matches GitHub.com's
- *
- * I.e. https://api.github.com/
- *
- * Most often used to check if an endpoint _isn't_ GitHub.com meaning it's
- * either GitHub Enterprise Server or GitHub AE
+ * Whether or not the given endpoint belong's to GitHub.com
  */
 export const isDotCom = (ep: string) => ep === getDotComAPIEndpoint()
 
