@@ -94,7 +94,7 @@ export interface IChooseBranchDialogState {
   readonly filterText: string
 }
 
-export abstract class ChooseBranchDialog extends React.Component<
+export class ChooseBranchDialog extends React.Component<
   IChooseBranchDialogProps,
   IChooseBranchDialogState
 > {
@@ -123,7 +123,7 @@ export abstract class ChooseBranchDialog extends React.Component<
     }
   }
 
-  protected onSelectionChanged = (selectedBranch: Branch | null) => {
+  private onSelectionChanged = (selectedBranch: Branch | null) => {
     this.props.onSelectionChanged(selectedBranch)
   }
 

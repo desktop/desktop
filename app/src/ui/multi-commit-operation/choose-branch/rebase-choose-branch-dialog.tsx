@@ -50,7 +50,7 @@ export class RebaseChooseBranchDialog extends React.Component<
     }
   }
 
-  protected start = () => {
+  private start = () => {
     const { selectedBranch, rebasePreview } = this.state
     const { repository, currentBranch } = this.props
     if (!selectedBranch) {
@@ -73,7 +73,7 @@ export class RebaseChooseBranchDialog extends React.Component<
     )
   }
 
-  protected canStart = (): boolean => {
+  private canStart = (): boolean => {
     return (
       this.state.selectedBranch !== null &&
       !this.selectedBranchIsCurrentBranch() &&
@@ -98,7 +98,7 @@ export class RebaseChooseBranchDialog extends React.Component<
       : false
   }
 
-  protected getSubmitButtonToolTip = () => {
+  private getSubmitButtonToolTip = () => {
     return this.selectedBranchIsCurrentBranch()
       ? 'You are not able to rebase this branch onto itself'
       : !this.selectedBranchIsAheadOfCurrentBranch()
@@ -106,7 +106,7 @@ export class RebaseChooseBranchDialog extends React.Component<
       : undefined
   }
 
-  protected getDialogTitle = () => {
+  private getDialogTitle = () => {
     const truncatedName = truncateWithEllipsis(
       this.props.currentBranch.name,
       40
@@ -118,14 +118,14 @@ export class RebaseChooseBranchDialog extends React.Component<
     )
   }
 
-  protected renderActionStatusIcon = () => {
+  private renderActionStatusIcon = () => {
     const { rebasePreview } = this.state
     return (
       <ActionStatusIcon status={rebasePreview} classNamePrefix="merge-status" />
     )
   }
 
-  protected updateStatus = async (baseBranch: Branch) => {
+  private updateStatus = async (baseBranch: Branch) => {
     const { currentBranch: targetBranch, repository } = this.props
     updateRebasePreview(baseBranch, targetBranch, repository, rebasePreview => {
       this.setState({ rebasePreview })

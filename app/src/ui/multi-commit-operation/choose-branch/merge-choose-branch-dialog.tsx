@@ -56,7 +56,7 @@ export class MergeChooseBranchDialog extends React.Component<
     }
   }
 
-  protected start = () => {
+  private start = () => {
     if (!this.canStart()) {
       return
     }
@@ -76,7 +76,7 @@ export class MergeChooseBranchDialog extends React.Component<
     this.props.dispatcher.closePopup(PopupType.MultiCommitOperation)
   }
 
-  protected canStart = (): boolean => {
+  private canStart = (): boolean => {
     const currentBranch = this.props.currentBranch
     const { selectedBranch, commitCount, mergeStatus } = this.state
 
