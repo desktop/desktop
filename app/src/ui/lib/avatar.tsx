@@ -165,7 +165,7 @@ function getAvatarUrlCandidates(
   }
 
   const emailAvatarUrl = isDotCom(ep)
-    ? new URL('/u/e', 'https://avatars.githubusercontent.com')
+    ? new URL('https://avatars.githubusercontent.com/u/e')
     : new URL(isGHES(ep) ? '/enterprise/avatars/u/e' : '/avatars/u/e', ep)
 
   emailAvatarUrl.searchParams.set('email', email)
