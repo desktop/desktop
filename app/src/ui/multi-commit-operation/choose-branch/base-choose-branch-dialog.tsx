@@ -2,7 +2,6 @@ import * as React from 'react'
 import { Branch } from '../../../models/branch'
 import { Repository } from '../../../models/repository'
 import { IMatches } from '../../../lib/fuzzy-find'
-import { truncateWithEllipsis } from '../../../lib/truncate-with-ellipsis'
 import { Dialog, DialogContent, DialogFooter } from '../../dialog'
 import {
   BranchList,
@@ -23,7 +22,28 @@ import { assertNever } from '../../../lib/fatal-error'
 import { getMergeOptions } from '../../lib/update-branch'
 import { getDefaultAriaLabelForBranch } from '../../branches/branch-renderer'
 
-interface IBaseChooseBranchDialogProps {
+/**
+ * Returns the branch to use as the selected branch in the dialog.
+ *
+ * The initial branch is used if defined, otherwise the default branch will be
+ * compared to the current branch.
+ *
+ * If the current branch is the default branch, `null` is returned. Otherwise
+ * the default branch is used.
+ */
+export function resolveSelectedBranch(
+  currentBranch: Branch,
+  defaultBranch: Branch | null,
+  initialBranch?: Branch
+): Branch | null {
+  if (initialBranch !== undefined) {
+    return initialBranch
+  }
+
+  return currentBranch === defaultBranch ? null : defaultBranch
+}
+
+export interface IBaseChooseBranchDialogProps {
   readonly dispatcher: Dispatcher
 
   readonly repository: Repository
@@ -49,11 +69,6 @@ interface IBaseChooseBranchDialogProps {
   readonly recentBranches: ReadonlyArray<Branch>
 
   /**
-   * The branch to select when the rebase dialog is opened
-   */
-  readonly initialBranch?: Branch
-
-  /**
    * Type of operation (Merge, Squash, Rebase)
    */
   readonly operation: MultiCommitOperationKind
@@ -65,57 +80,30 @@ interface IBaseChooseBranchDialogProps {
   readonly onDismissed: () => void
 }
 
-export interface IBaseChooseBranchDialogState {
-  /** The currently selected branch. */
+export interface IChooseBranchDialogProps extends IBaseChooseBranchDialogProps {
   readonly selectedBranch: Branch | null
-
-  /** The filter text to use in the branch selector */
-  readonly filterText: string
-
-  /**
-   * A preview of the operation using the selected base branch to test whether the
-   * current branch will be cleanly applied.
-   */
-  readonly statusPreview: JSX.Element | null
+  readonly dialogTitle: string | JSX.Element | undefined
+  readonly submitButtonTooltip?: string
+  readonly canStartOperation: boolean
+  readonly start: () => void
+  readonly onSelectionChanged: (selectedBranch: Branch | null) => void
 }
 
-export abstract class BaseChooseBranchDialog extends React.Component<
-  IBaseChooseBranchDialogProps,
-  IBaseChooseBranchDialogState
+export interface IChooseBranchDialogState {
+  /** The filter text to use in the branch selector */
+  readonly filterText: string
+}
+
+export abstract class ChooseBranchDialog extends React.Component<
+  IChooseBranchDialogProps,
+  IChooseBranchDialogState
 > {
-  protected abstract start: () => void
-
-  protected abstract canStart: () => boolean
-
-  protected abstract updateStatus: (branch: Branch) => Promise<void>
-
-  protected abstract getDialogTitle: (
-    branchName: string
-  ) => string | JSX.Element | undefined
-
-  protected abstract renderActionStatusIcon: () => JSX.Element | null
-
-  public constructor(props: IBaseChooseBranchDialogProps) {
+  public constructor(props: IChooseBranchDialogProps) {
     super(props)
 
-    const selectedBranch = this.resolveSelectedBranch()
-
     this.state = {
-      selectedBranch,
       filterText: '',
-      statusPreview: null,
     }
-  }
-
-  public componentDidMount() {
-    const { selectedBranch } = this.state
-    if (selectedBranch !== null) {
-      this.updateStatus(selectedBranch)
-    }
-  }
-
-  protected getSubmitButtonToolTip = (): string | undefined => {
-    return undefined
   }
 
   private onFilterTextChanged = (filterText: string) => {
@@ -129,40 +117,14 @@ export abstract class BaseChooseBranchDialog extends React.Component<
 
     source.event.preventDefault()
 
-    const { selectedBranch } = this.state
-
+    const { selectedBranch } = this.props
     if (selectedBranch !== null && selectedBranch.name === branch.name) {
-      this.start()
+      this.props.start()
     }
   }
 
-  protected onSelectionChanged = async (selectedBranch: Branch | null) => {
-    if (selectedBranch != null) {
-      this.setState({ selectedBranch })
-      return this.updateStatus(selectedBranch)
-    }
-
-    // return to empty state
-    this.setState({ selectedBranch })
-  }
-
-  /**
-   * Returns the branch to use as the selected branch in the dialog.
-   *
-   * The initial branch is used if defined, otherwise the default branch will be
-   * compared to the current branch.
-   *
-   * If the current branch is the default branch, `null` is returned. Otherwise
-   * the default branch is used.
-   */
-  protected resolveSelectedBranch(): Branch | null {
-    const { currentBranch, defaultBranch, initialBranch } = this.props
-
-    if (initialBranch !== undefined) {
-      return initialBranch
-    }
-
-    return currentBranch === defaultBranch ? null : defaultBranch
+  protected onSelectionChanged = (selectedBranch: Branch | null) => {
+    this.props.onSelectionChanged(selectedBranch)
   }
 
   private onOperationChange = (option: IDropdownSelectButtonOption) => {
@@ -171,7 +133,7 @@ export abstract class BaseChooseBranchDialog extends React.Component<
     }
 
     const { dispatcher, repository } = this.props
-    const { selectedBranch } = this.state
+    const { selectedBranch } = this.props
     switch (option.id) {
       case MultiCommitOperationKind.Merge:
         dispatcher.startMergeBranchOperation(repository, false, selectedBranch)
@@ -191,26 +153,13 @@ export abstract class BaseChooseBranchDialog extends React.Component<
   }
 
   private renderStatusPreview() {
-    const { currentBranch } = this.props
-    const { selectedBranch, statusPreview: preview } = this.state
+    const { currentBranch, selectedBranch, children } = this.props
 
-    if (
-      preview == null ||
-      currentBranch == null ||
-      selectedBranch == null ||
-      currentBranch.name === selectedBranch.name
-    ) {
+    if (selectedBranch == null || currentBranch.name === selectedBranch.name) {
       return null
     }
 
-    return (
-      <div className="merge-status-component">
-        {this.renderActionStatusIcon()}
-        <p className="merge-info" id="merge-status-preview">
-          {preview}
-        </p>
-      </div>
-    )
+    return <div className="merge-status-component">{children}</div>
   }
 
   private renderBranch = (item: IBranchListItem, matches: IMatches) => {
@@ -222,17 +171,23 @@ export abstract class BaseChooseBranchDialog extends React.Component<
   }
 
   public render() {
-    const { selectedBranch } = this.state
-    const { currentBranch, operation } = this.props
-    const truncatedName = truncateWithEllipsis(currentBranch.name, 40)
+    const {
+      selectedBranch,
+      currentBranch,
+      operation,
+      dialogTitle,
+      canStartOperation,
+      submitButtonTooltip,
+      start,
+    } = this.props
 
     return (
       <Dialog
         id="choose-branch"
         onDismissed={this.props.onDismissed}
-        onSubmit={this.start}
+        onSubmit={start}
         dismissable={true}
-        title={this.getDialogTitle(truncatedName)}
+        title={dialogTitle}
       >
         <DialogContent>
           <BranchList
@@ -255,10 +210,10 @@ export abstract class BaseChooseBranchDialog extends React.Component<
           <DropdownSelectButton
             checkedOption={operation}
             options={getMergeOptions()}
-            disabled={!this.canStart()}
+            disabled={!canStartOperation}
             ariaDescribedBy="merge-status-preview"
             dropdownAriaLabel="Merge options"
-            tooltip={this.getSubmitButtonToolTip()}
+            tooltip={submitButtonTooltip}
             onCheckedOptionChange={this.onOperationChange}
           />
         </DialogFooter>

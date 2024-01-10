@@ -4,22 +4,60 @@ import { ComputedAction } from '../../../models/computed-action'
 import { RebasePreview } from '../../../models/rebase'
 import { ActionStatusIcon } from '../../lib/action-status-icon'
 import { updateRebasePreview } from '../../lib/update-branch'
-import { BaseChooseBranchDialog } from './base-choose-branch-dialog'
+import {
+  ChooseBranchDialog,
+  IBaseChooseBranchDialogProps,
+  resolveSelectedBranch,
+} from './base-choose-branch-dialog'
+import { truncateWithEllipsis } from '../../../lib/truncate-with-ellipsis'
 
-export abstract class RebaseChooseBranchDialog extends BaseChooseBranchDialog {
-  private rebasePreview: RebasePreview | null = null
+interface IRebaseChooseBranchDialogProp extends IBaseChooseBranchDialogProps {
+  /**
+   * The branch to select when the rebase dialog is opened
+   */
+  readonly initialBranch?: Branch
+}
+
+interface IRebaseChooseBranchDialogState {
+  readonly rebasePreview: RebasePreview | null
+  readonly selectedBranch: Branch | null
+}
+
+export class RebaseChooseBranchDialog extends React.Component<
+  IRebaseChooseBranchDialogProp,
+  IRebaseChooseBranchDialogState
+> {
+  public constructor(props: IRebaseChooseBranchDialogProp) {
+    super(props)
+
+    const { currentBranch, defaultBranch, initialBranch } = props
+    const selectedBranch = resolveSelectedBranch(
+      currentBranch,
+      defaultBranch,
+      initialBranch
+    )
+
+    this.state = {
+      selectedBranch,
+      rebasePreview: null,
+    }
+  }
+
+  public componentDidMount() {
+    const { selectedBranch } = this.state
+    if (selectedBranch !== null) {
+      this.updateStatus(selectedBranch)
+    }
+  }
 
   protected start = () => {
-    const { selectedBranch } = this.state
+    const { selectedBranch, rebasePreview } = this.state
     const { repository, currentBranch } = this.props
     if (!selectedBranch) {
       return
     }
 
-    if (
-      this.rebasePreview === null ||
-      this.rebasePreview.kind !== ComputedAction.Clean
-    ) {
+    if (rebasePreview === null || rebasePreview.kind !== ComputedAction.Clean) {
       return
     }
 
@@ -31,7 +69,7 @@ export abstract class RebaseChooseBranchDialog extends BaseChooseBranchDialog {
       repository,
       selectedBranch,
       currentBranch,
-      this.rebasePreview.commits
+      rebasePreview.commits
     )
   }
 
@@ -54,9 +92,9 @@ export abstract class RebaseChooseBranchDialog extends BaseChooseBranchDialog {
   }
 
   private selectedBranchIsAheadOfCurrentBranch() {
-    return this.rebasePreview !== null &&
-      this.rebasePreview.kind === ComputedAction.Clean
-      ? this.rebasePreview.commits.length > 0
+    const { rebasePreview } = this.state
+    return rebasePreview !== null && rebasePreview.kind === ComputedAction.Clean
+      ? rebasePreview.commits.length > 0
       : false
   }
 
@@ -68,54 +106,52 @@ export abstract class RebaseChooseBranchDialog extends BaseChooseBranchDialog {
       : undefined
   }
 
-  protected getDialogTitle = (branchName: string) => {
+  protected getDialogTitle = () => {
+    const truncatedName = truncateWithEllipsis(
+      this.props.currentBranch.name,
+      40
+    )
     return (
       <>
-        Rebase <strong>{branchName}</strong>
+        Rebase <strong>{truncatedName}</strong>
       </>
     )
   }
 
   protected renderActionStatusIcon = () => {
+    const { rebasePreview } = this.state
     return (
-      <ActionStatusIcon
-        status={this.rebasePreview}
-        classNamePrefix="merge-status"
-      />
+      <ActionStatusIcon status={rebasePreview} classNamePrefix="merge-status" />
     )
   }
 
   protected updateStatus = async (baseBranch: Branch) => {
     const { currentBranch: targetBranch, repository } = this.props
     updateRebasePreview(baseBranch, targetBranch, repository, rebasePreview => {
-      this.rebasePreview = rebasePreview
-      this.updateRebaseStatusPreview(baseBranch)
+      this.setState({ rebasePreview })
     })
   }
 
-  private updateRebaseStatusPreview(baseBranch: Branch) {
-    this.setState({ statusPreview: this.getRebaseStatusPreview(baseBranch) })
-  }
-
-  private getRebaseStatusPreview(baseBranch: Branch): JSX.Element | null {
-    if (this.rebasePreview == null) {
+  private getRebaseStatusPreview(): JSX.Element | null {
+    const { rebasePreview, selectedBranch: baseBranch } = this.state
+    if (rebasePreview == null || baseBranch == null) {
       return null
     }
 
     const { currentBranch } = this.props
 
-    if (this.rebasePreview.kind === ComputedAction.Loading) {
+    if (rebasePreview.kind === ComputedAction.Loading) {
       return this.renderLoadingRebaseMessage()
     }
-    if (this.rebasePreview.kind === ComputedAction.Clean) {
+    if (rebasePreview.kind === ComputedAction.Clean) {
       return this.renderCleanRebaseMessage(
         currentBranch,
         baseBranch,
-        this.rebasePreview.commits.length
+        rebasePreview.commits.length
       )
     }
 
-    if (this.rebasePreview.kind === ComputedAction.Invalid) {
+    if (rebasePreview.kind === ComputedAction.Invalid) {
       return this.renderInvalidRebaseMessage()
     }
 
@@ -153,6 +189,44 @@ export abstract class RebaseChooseBranchDialog extends BaseChooseBranchDialog {
         {` on top of `}
         <strong>{baseBranch.name}</strong>
       </>
+    )
+  }
+
+  private renderStatusPreview() {
+    return (
+      <>
+        {this.renderActionStatusIcon()}
+        <p className="merge-info" id="merge-status-preview">
+          {this.getRebaseStatusPreview()}
+        </p>
+      </>
+    )
+  }
+
+  private onSelectionChanged = (selectedBranch: Branch | null) => {
+    this.setState({ selectedBranch })
+
+    if (selectedBranch === null) {
+      this.setState({ rebasePreview: null })
+      return
+    }
+
+    this.updateStatus(selectedBranch)
+  }
+
+  public render() {
+    return (
+      <ChooseBranchDialog
+        {...this.props}
+        start={this.start}
+        selectedBranch={this.state.selectedBranch}
+        canStartOperation={this.canStart()}
+        dialogTitle={this.getDialogTitle()}
+        submitButtonTooltip={this.getSubmitButtonToolTip()}
+        onSelectionChanged={this.onSelectionChanged}
+      >
+        {this.renderStatusPreview()}
+      </ChooseBranchDialog>
     )
   }
 }
