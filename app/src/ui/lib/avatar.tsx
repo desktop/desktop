@@ -48,7 +48,7 @@ const botAvatarCache = new ExpiringOperationCache<
   async ({ user, accounts }) => {
     const { endpoint } = user
     if (user.avatarURL !== undefined || endpoint === null) {
-      throw new Error('Avatar URL already resolved or endpoint is null')
+      throw new Error('Avatar URL already resolved or endpoint is missing')
     }
 
     const account = accounts.find(a => a.endpoint === user.endpoint)
