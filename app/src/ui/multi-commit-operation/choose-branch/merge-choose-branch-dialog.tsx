@@ -160,7 +160,7 @@ export class MergeChooseBranchDialog extends React.Component<
     this.setState({ commitCount, mergeStatus })
   }
 
-  private getMergeStatusPreview(): JSX.Element | null {
+  private renderStatusPreviewMessage(): JSX.Element | null {
     const { mergeStatus, selectedBranch: branch } = this.state
     const { currentBranch } = this.props
 
@@ -192,11 +192,7 @@ export class MergeChooseBranchDialog extends React.Component<
   }
 
   private renderLoadingMergeMessage() {
-    return (
-      <React.Fragment>
-        Checking for ability to merge automatically...
-      </React.Fragment>
-    )
+    return <>Checking for ability to merge automatically...</>
   }
 
   private renderCleanMergeMessage(
@@ -260,7 +256,7 @@ export class MergeChooseBranchDialog extends React.Component<
           classNamePrefix="merge-status"
         />
         <p className="merge-info" id="merge-status-preview">
-          {this.getMergeStatusPreview()}
+          {this.renderStatusPreviewMessage()}
         </p>
       </>
     )

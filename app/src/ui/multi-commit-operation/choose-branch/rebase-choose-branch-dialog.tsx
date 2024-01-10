@@ -91,6 +91,17 @@ export class RebaseChooseBranchDialog extends React.Component<
     )
   }
 
+  private onSelectionChanged = (selectedBranch: Branch | null) => {
+    this.setState({ selectedBranch })
+
+    if (selectedBranch === null) {
+      this.setState({ rebasePreview: null })
+      return
+    }
+
+    this.updateStatus(selectedBranch)
+  }
+
   private getSubmitButtonToolTip = () => {
     const { currentBranch } = this.props
     const { selectedBranch, rebasePreview } = this.state
@@ -131,7 +142,7 @@ export class RebaseChooseBranchDialog extends React.Component<
     })
   }
 
-  private getRebaseStatusPreview(): JSX.Element | null {
+  private renderStatusPreviewMessage(): JSX.Element | null {
     const { rebasePreview, selectedBranch: baseBranch } = this.state
     if (rebasePreview == null || baseBranch == null) {
       return null
@@ -199,21 +210,10 @@ export class RebaseChooseBranchDialog extends React.Component<
           classNamePrefix="merge-status"
         />
         <p className="merge-info" id="merge-status-preview">
-          {this.getRebaseStatusPreview()}
+          {this.renderStatusPreviewMessage()}
         </p>
       </>
     )
-  }
-
-  private onSelectionChanged = (selectedBranch: Branch | null) => {
-    this.setState({ selectedBranch })
-
-    if (selectedBranch === null) {
-      this.setState({ rebasePreview: null })
-      return
-    }
-
-    this.updateStatus(selectedBranch)
   }
 
   public render() {
