@@ -17,7 +17,7 @@ import { truncateWithEllipsis } from '../../../lib/truncate-with-ellipsis'
 
 interface IMergeChooseBranchDialogProp extends IBaseChooseBranchDialogProps {
   /**
-   * The branch to select when the rebase dialog is opened
+   * The branch to select when dialog it is opened
    */
   readonly initialBranch?: Branch
 }
@@ -61,7 +61,7 @@ export class MergeChooseBranchDialog extends React.Component<
       return
     }
 
-    const { selectedBranch } = this.state
+    const { selectedBranch, mergeStatus } = this.state
     const { operation, dispatcher, repository } = this.props
     if (!selectedBranch) {
       return
@@ -70,7 +70,7 @@ export class MergeChooseBranchDialog extends React.Component<
     dispatcher.mergeBranch(
       repository,
       selectedBranch,
-      this.state.mergeStatus,
+      mergeStatus,
       operation === MultiCommitOperationKind.Squash
     )
     this.props.dispatcher.closePopup(PopupType.MultiCommitOperation)
