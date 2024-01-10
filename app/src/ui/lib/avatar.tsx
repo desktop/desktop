@@ -73,7 +73,7 @@ const botAvatarCache = new ExpiringOperationCache<
     return { ...user, avatarURL: apiUser.avatar_url }
   },
   ({ user }) =>
-    user.endpoint && new URL(user.endpoint).hostname.endsWith('ghe.com')
+    user.endpoint && isGHE(user.endpoint)
       ? offsetFrom(0, 50, 'minutes')
       : Infinity
 )
@@ -243,11 +243,14 @@ function getAvatarUrlCandidates(
 const getInitialStateForUser = (
   user: IAvatarUser | undefined,
   accounts: ReadonlyArray<Account>,
-  size: number | undefined
+  size: number | undefined,
+  avatarToken?: string
 ): Pick<IAvatarState, 'user' | 'candidates' | 'avatarToken'> => {
-  user &&= botAvatarCache.tryGet({ user, accounts }) ?? user
+  if (user && !user.avatarURL) {
+    user = botAvatarCache.tryGet({ user, accounts }) ?? user
+  }
   const endpoint = user?.endpoint
-  const avatarToken =
+  avatarToken ??=
     endpoint && isGHE(endpoint)
       ? avatarTokenCache.tryGet({ endpoint, accounts })
       : undefined
@@ -439,15 +442,8 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   private resetAvatarCandidates(avatarToken?: string) {
     const { user } = this.state
     const { size, accounts } = this.props
-    if (!avatarToken && user?.endpoint && isGHE(user.endpoint)) {
-      avatarToken =
-        avatarTokenCache.tryGet({ endpoint: user.endpoint, accounts }) ??
-        avatarToken
-    }
 
-    const candidates = getAvatarUrlCandidates(user, avatarToken, size)
-
-    this.setState({ candidates, avatarToken })
+    this.setState(getInitialStateForUser(user, accounts, size, avatarToken))
   }
 
   public componentDidMount() {
