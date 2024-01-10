@@ -560,36 +560,35 @@ export class ChangesList extends React.Component<
       { type: 'separator' },
     ]
     if (paths.length === 1) {
+      const shouldEnableContextMenu = Path.basename(path) !== GitIgnoreFileName
       items.push({
         label: __DARWIN__
           ? 'Ignore File (Add to .gitignore)'
           : 'Ignore file (add to .gitignore)',
         action: () => this.props.onIgnoreFile(path),
-        enabled: Path.basename(path) !== GitIgnoreFileName,
+        enabled: shouldEnableContextMenu,
       })
 
-      const pathComponents = path.split(Path.sep);
-      const assembledPaths = []
-      for (let i = 0; i < pathComponents.length - 1; i++) {
-        // Add each parent directory to the list of paths to ignore
-        // Also include a / since it's the absolute compared to the git repository
-        // That way, we prevent git from ignoring the wrong directory which has the same name
-        // but is in a different location
-        assembledPaths.push('/' + pathComponents.slice(0, i + 1).join(Path.sep) + '/')
-      }
-
+      const pathComponents = path.split(Path.sep)
       if (pathComponents.length > 0) {
+        const submenu = []
+        let assembledPath = '/'
+        for (let i = 0; i < pathComponents.length - 1; i++) {
+          assembledPath += pathComponents[i] + '/'
+          submenu.push({
+            label: __DARWIN__
+              ? `Ignore ${assembledPath} (Add to .gitignore)`
+              : `Ignore ${assembledPath} (add to .gitignore)`,
+            action: () => this.props.onIgnoreFile(assembledPath),
+          })
+        }
+
         items.push({
           label: __DARWIN__
-          ? 'Ignore Folder (Add to .gitignore)'
-          : 'Ignore folder (add to .gitignore)',
-          submenu: assembledPaths.map((assembledPath) => ({
-            label: __DARWIN__
-            ? `Ignore ${assembledPath} (Add to .gitignore)`
-            : `Ignore ${assembledPath} (add to .gitignore)`,
-            action: () => this.props.onIgnoreFile(assembledPath),
-          })),
-          enabled: paths.some(path => Path.basename(path) !== GitIgnoreFileName),
+            ? 'Ignore Folder (Add to .gitignore)'
+            : 'Ignore folder (add to .gitignore)',
+          submenu,
+          enabled: shouldEnableContextMenu,
         })
       }
     } else if (paths.length > 1) {
