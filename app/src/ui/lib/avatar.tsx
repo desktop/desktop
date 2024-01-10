@@ -227,7 +227,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     const { title, user, accounts } = this.props
 
     if (title === null) {
-      return null
+      return undefined
     }
 
     if (title !== undefined) {
@@ -281,7 +281,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       <TooltippedContent
         className="avatar-container"
         tooltipClassName={this.props.title ? undefined : 'user-info'}
-        tooltip={title ?? undefined}
+        tooltip={title}
         direction={TooltipDirection.NORTH}
         tagName="div"
       >
