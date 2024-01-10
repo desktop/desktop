@@ -78,7 +78,7 @@ const botAvatarCache = new ExpiringOperationCache<
       : Infinity
 )
 
-const dotComBots = (login: string, id: number, integrationId: number) => {
+const dotComBot = (login: string, id: number, integrationId: number) => {
   const avatarURL = `https://avatars.githubusercontent.com/in/${integrationId}?v=4`
   const endpoint = getDotComAPIEndpoint()
   const stealthHost = 'users.noreply.github.com'
@@ -89,9 +89,9 @@ const dotComBots = (login: string, id: number, integrationId: number) => {
 }
 
 const knownAvatars: ReadonlyArray<IAvatarUser> = [
-  ...dotComBots('dependabot[bot]', 49699333, 29110),
-  ...dotComBots('github-actions[bot]', 41898282, 15368),
-  ...dotComBots('github-pages[bot]	', 52472962, 34598),
+  ...dotComBot('dependabot[bot]', 49699333, 29110),
+  ...dotComBot('github-actions[bot]', 41898282, 15368),
+  ...dotComBot('github-pages[bot]	', 52472962, 34598),
 ]
 
 // Preload some of the more popular bot avatars so we don't have to hit the API
