@@ -575,7 +575,7 @@ export class ChangesList extends React.Component<
         let assembledPath = '/'
         for (let i = 0; i < pathComponents.length - 1; i++) {
           assembledPath += pathComponents[i] + '/'
-          const currentPath = assembledPath;
+          const currentPath = assembledPath
           submenu.push({
             label: __DARWIN__
               ? `Ignore ${assembledPath} (Add to .gitignore)`
