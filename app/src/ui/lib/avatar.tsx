@@ -226,6 +226,10 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   private getTitle() {
     const { title, user, accounts } = this.props
 
+    if (title === null) {
+      return null
+    }
+
     if (title !== undefined) {
       return title
     }
