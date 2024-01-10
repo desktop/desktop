@@ -74,7 +74,8 @@ export class MergeChooseBranchDialog extends React.Component<
       mergeStatus,
       operation === MultiCommitOperationKind.Squash
     )
-    this.props.dispatcher.closePopup(PopupType.MultiCommitOperation)
+
+    dispatcher.closePopup(PopupType.MultiCommitOperation)
   }
 
   private canStart = (): boolean => {
@@ -98,15 +99,6 @@ export class MergeChooseBranchDialog extends React.Component<
     }
 
     this.updateStatus(selectedBranch)
-  }
-
-  private renderActionStatusIcon = () => {
-    return (
-      <ActionStatusIcon
-        status={this.state.mergeStatus}
-        classNamePrefix="merge-status"
-      />
-    )
   }
 
   private getDialogTitle = () => {
@@ -263,7 +255,10 @@ export class MergeChooseBranchDialog extends React.Component<
   private renderStatusPreview() {
     return (
       <>
-        {this.renderActionStatusIcon()}
+        <ActionStatusIcon
+          status={this.state.mergeStatus}
+          classNamePrefix="merge-status"
+        />
         <p className="merge-info" id="merge-status-preview">
           {this.getMergeStatusPreview()}
         </p>

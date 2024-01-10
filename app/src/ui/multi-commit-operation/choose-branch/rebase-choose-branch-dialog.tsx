@@ -52,21 +52,23 @@ export class RebaseChooseBranchDialog extends React.Component<
   }
 
   private start = () => {
-    const { selectedBranch, rebasePreview } = this.state
-    const { repository, currentBranch } = this.props
-    if (!selectedBranch) {
-      return
-    }
-
-    if (rebasePreview === null || rebasePreview.kind !== ComputedAction.Clean) {
-      return
-    }
-
     if (!this.canStart()) {
       return
     }
 
-    this.props.dispatcher.startRebase(
+    const { selectedBranch, rebasePreview } = this.state
+    const { repository, currentBranch, dispatcher } = this.props
+
+    // Just type checking here, this shouldn't be possible
+    if (
+      selectedBranch === null ||
+      rebasePreview === null ||
+      rebasePreview.kind !== ComputedAction.Clean
+    ) {
+      return
+    }
+
+    dispatcher.startRebase(
       repository,
       selectedBranch,
       currentBranch,
@@ -119,13 +121,6 @@ export class RebaseChooseBranchDialog extends React.Component<
       <>
         Rebase <strong>{truncatedName}</strong>
       </>
-    )
-  }
-
-  private renderActionStatusIcon = () => {
-    const { rebasePreview } = this.state
-    return (
-      <ActionStatusIcon status={rebasePreview} classNamePrefix="merge-status" />
     )
   }
 
@@ -199,7 +194,10 @@ export class RebaseChooseBranchDialog extends React.Component<
   private renderStatusPreview() {
     return (
       <>
-        {this.renderActionStatusIcon()}
+        <ActionStatusIcon
+          status={this.state.rebasePreview}
+          classNamePrefix="merge-status"
+        />
         <p className="merge-info" id="merge-status-preview">
           {this.getRebaseStatusPreview()}
         </p>
