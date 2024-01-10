@@ -104,7 +104,15 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
         return { kind: ComputedAction.Clean }
       })
 
-      this.updateMergeStatusPreview(branch)
+      if (
+        this.mergeStatus.kind === ComputedAction.Conflicts ||
+        this.mergeStatus.kind === ComputedAction.Invalid
+      ) {
+        this.updateMergeStatusPreview(branch)
+        // Because the clean status is the only one that needs the ahead/Behind count
+        // So if mergeState is conflicts or invalid, update the UI here and end the function
+        return
+      }
     }
 
     const range = revSymmetricDifference('', branch.name)

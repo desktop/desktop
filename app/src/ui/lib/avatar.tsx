@@ -225,7 +225,7 @@ function getAvatarUrlCandidates(
   }
 
   const emailAvatarUrl = isDotCom(ep)
-    ? new URL('/u/e', 'https://avatars.githubusercontent.com')
+    ? new URL('https://avatars.githubusercontent.com/u/e')
     : new URL(isGHES(ep) ? '/enterprise/avatars/u/e' : '/avatars/u/e', ep)
 
   emailAvatarUrl.searchParams.set('email', email)
@@ -240,33 +240,38 @@ function getAvatarUrlCandidates(
   return candidates
 }
 
+const getInitialStateForUser = (
+  user: IAvatarUser | undefined,
+  accounts: ReadonlyArray<Account>,
+  size: number | undefined
+): Pick<IAvatarState, 'user' | 'candidates' | 'avatarToken'> => {
+  user &&= botAvatarCache.tryGet({ user, accounts }) ?? user
+  const endpoint = user?.endpoint
+  const avatarToken =
+    endpoint && isGHE(endpoint)
+      ? avatarTokenCache.tryGet({ endpoint, accounts })
+      : undefined
+  const candidates = getAvatarUrlCandidates(user, avatarToken, size)
+
+  return { user, candidates, avatarToken }
+}
+
 /** A component for displaying a user avatar. */
 export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   public static getDerivedStateFromProps(
     props: IAvatarProps,
     state: IAvatarState
-  ): Partial<IAvatarState> | null {
-    const { size, accounts } = props
+  ) {
+    // Explicitly exclude equality checks on avatarURL or else we'll end up
+    // infinitely looping when the user gets resolved into a bot account
     if (
       props.user?.email !== state.user?.email ||
       props.user?.endpoint !== state.user?.endpoint ||
       props.user?.name !== state.user?.name
     ) {
-      // If the endpoint has changed we need to reset the avatar token so that
-      // it'll be re-fetched for the new endpoint
-      const user = props.user
-        ? botAvatarCache.tryGet({ user: props.user, accounts }) ?? props.user
-        : undefined
-      const endpoint = user?.endpoint
-      const avatarToken =
-        endpoint && isGHE(endpoint)
-          ? avatarTokenCache.tryGet({ endpoint, accounts })
-          : undefined
-
-      const candidates = getAvatarUrlCandidates(user, avatarToken, size)
-
-      return { user, candidates, avatarToken }
+      return getInitialStateForUser(props.user, props.accounts, props.size)
     }
+
     return null
   }
 
@@ -276,24 +281,21 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   public constructor(props: IAvatarProps) {
     super(props)
 
-    const { size, accounts } = props
-    const user = props.user
-      ? botAvatarCache.tryGet({ user: props.user, accounts }) ?? props.user
-      : undefined
-    const endpoint = user?.endpoint
-    const token =
-      endpoint && isGHE(endpoint)
-        ? avatarTokenCache.tryGet({ endpoint, accounts })
-        : undefined
+    const { user, size, accounts } = props
 
-    const candidates = getAvatarUrlCandidates(user, token, size)
-
-    this.state = { user, candidates, imageError: false }
+    this.state = {
+      ...getInitialStateForUser(user, accounts, size),
+      imageError: false,
+    }
   }
 
   private getTitle() {
     const { title, accounts } = this.props
     const { user } = this.state
+
+    if (title === null) {
+      return undefined
+    }
 
     if (title !== undefined) {
       return title
@@ -345,7 +347,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
       <TooltippedContent
         className="avatar-container"
         tooltipClassName={this.props.title ? undefined : 'user-info'}
-        tooltip={title ?? undefined}
+        tooltip={title}
         direction={TooltipDirection.NORTH}
         tagName="div"
       >

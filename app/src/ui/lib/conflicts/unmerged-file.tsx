@@ -20,7 +20,6 @@ import {
   RevealInFileManagerLabel,
 } from '../context-menu'
 import { openFile } from '../open-file'
-import { shell } from 'electron'
 import { Button } from '../button'
 import { IMenuItem } from '../../../lib/menu-item'
 import {
@@ -28,6 +27,7 @@ import {
   getUnmergedStatusEntryDescription,
   getLabelForManualResolutionOption,
 } from '../../../lib/status'
+import { revealInFileManager } from '../../../lib/app-shell'
 
 const defaultConflictsResolvedMessage = 'No conflicts remaining'
 
@@ -355,7 +355,7 @@ const makeMarkerConflictDropdownClickHandler = (
       },
       {
         label: RevealInFileManagerLabel,
-        action: () => shell.showItemInFolder(absoluteFilePath),
+        action: () => revealInFileManager(repository, relativeFilePath),
       },
       {
         type: 'separator',
