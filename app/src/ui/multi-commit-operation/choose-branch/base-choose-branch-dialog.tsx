@@ -123,10 +123,6 @@ export class ChooseBranchDialog extends React.Component<
     }
   }
 
-  private onSelectionChanged = (selectedBranch: Branch | null) => {
-    this.props.onSelectionChanged(selectedBranch)
-  }
-
   private onOperationChange = (option: IDropdownSelectButtonOption) => {
     if (!isIdMultiCommitOperation(option.id)) {
       return
@@ -179,6 +175,7 @@ export class ChooseBranchDialog extends React.Component<
       canStartOperation,
       submitButtonTooltip,
       start,
+      onSelectionChanged,
     } = this.props
 
     return (
@@ -198,7 +195,7 @@ export class ChooseBranchDialog extends React.Component<
             filterText={this.state.filterText}
             onFilterTextChanged={this.onFilterTextChanged}
             selectedBranch={selectedBranch}
-            onSelectionChanged={this.onSelectionChanged}
+            onSelectionChanged={onSelectionChanged}
             canCreateNewBranch={false}
             renderBranch={this.renderBranch}
             getBranchAriaLabel={this.getBranchAriaLabel}
