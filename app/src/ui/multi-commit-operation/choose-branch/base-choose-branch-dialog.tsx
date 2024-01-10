@@ -21,6 +21,7 @@ import {
 import { assertNever } from '../../../lib/fatal-error'
 import { getMergeOptions } from '../../lib/update-branch'
 import { getDefaultAriaLabelForBranch } from '../../branches/branch-renderer'
+import { ComputedAction } from '../../../models/computed-action'
 
 /**
  * Returns the branch to use as the selected branch in the dialog.
@@ -41,6 +42,30 @@ export function resolveSelectedBranch(
   }
 
   return currentBranch === defaultBranch ? null : defaultBranch
+}
+
+export function canStartOperation(
+  selectedBranch: Branch | null,
+  currentBranch: Branch,
+  commitCount: number | undefined,
+  statusKind: ComputedAction | undefined
+): boolean {
+  // Is there even a branch selected?
+  if (selectedBranch === null) {
+    return false
+  }
+
+  // Is the selected branch the current branch?
+  if (selectedBranch.name === currentBranch?.name) {
+    return false
+  }
+
+  // Are there even commits to operate on?
+  if (commitCount && commitCount === 0) {
+    return false
+  }
+
+  return statusKind === ComputedAction.Clean
 }
 
 export interface IBaseChooseBranchDialogProps {

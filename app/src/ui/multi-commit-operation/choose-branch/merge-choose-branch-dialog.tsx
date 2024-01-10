@@ -11,6 +11,7 @@ import { ActionStatusIcon } from '../../lib/action-status-icon'
 import {
   ChooseBranchDialog,
   IBaseChooseBranchDialogProps,
+  canStartOperation,
   resolveSelectedBranch,
 } from './base-choose-branch-dialog'
 import { truncateWithEllipsis } from '../../../lib/truncate-with-ellipsis'
@@ -77,24 +78,14 @@ export class MergeChooseBranchDialog extends React.Component<
   }
 
   private canStart = (): boolean => {
-    const currentBranch = this.props.currentBranch
+    const { currentBranch } = this.props
     const { selectedBranch, commitCount, mergeStatus } = this.state
 
-    const selectedBranchIsCurrentBranch =
-      selectedBranch !== null &&
-      currentBranch !== null &&
-      selectedBranch.name === currentBranch.name
-
-    const isBehind = commitCount !== undefined && commitCount > 0
-
-    const canMergeBranch =
-      mergeStatus === null || mergeStatus.kind !== ComputedAction.Invalid
-
-    return (
-      selectedBranch !== null &&
-      !selectedBranchIsCurrentBranch &&
-      isBehind &&
-      canMergeBranch
+    return canStartOperation(
+      selectedBranch,
+      currentBranch,
+      commitCount,
+      mergeStatus?.kind
     )
   }
 

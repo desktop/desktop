@@ -7,6 +7,7 @@ import { updateRebasePreview } from '../../lib/update-branch'
 import {
   ChooseBranchDialog,
   IBaseChooseBranchDialogProps,
+  canStartOperation,
   resolveSelectedBranch,
 } from './base-choose-branch-dialog'
 import { truncateWithEllipsis } from '../../../lib/truncate-with-ellipsis'
@@ -74,35 +75,38 @@ export class RebaseChooseBranchDialog extends React.Component<
   }
 
   private canStart = (): boolean => {
-    return (
-      this.state.selectedBranch !== null &&
-      !this.selectedBranchIsCurrentBranch() &&
-      this.selectedBranchIsAheadOfCurrentBranch()
+    const { currentBranch } = this.props
+    const { selectedBranch, rebasePreview } = this.state
+    const commitCount =
+      rebasePreview?.kind === ComputedAction.Clean
+        ? rebasePreview.commits.length
+        : undefined
+    return canStartOperation(
+      selectedBranch,
+      currentBranch,
+      commitCount,
+      rebasePreview?.kind
     )
-  }
-
-  private selectedBranchIsCurrentBranch() {
-    const currentBranch = this.props.currentBranch
-    const { selectedBranch } = this.state
-    return (
-      selectedBranch !== null &&
-      currentBranch !== null &&
-      selectedBranch.name === currentBranch.name
-    )
-  }
-
-  private selectedBranchIsAheadOfCurrentBranch() {
-    const { rebasePreview } = this.state
-    return rebasePreview !== null && rebasePreview.kind === ComputedAction.Clean
-      ? rebasePreview.commits.length > 0
-      : false
   }
 
   private getSubmitButtonToolTip = () => {
-    return this.selectedBranchIsCurrentBranch()
-      ? 'You are not able to rebase this branch onto itself'
-      : !this.selectedBranchIsAheadOfCurrentBranch()
-      ? 'There are no commits on the current branch to rebase'
+    const { currentBranch } = this.props
+    const { selectedBranch, rebasePreview } = this.state
+
+    const selectedBranchIsCurrentBranch =
+      selectedBranch !== null &&
+      currentBranch !== null &&
+      selectedBranch.name === currentBranch.name
+
+    const areCommitsToRebase =
+      rebasePreview?.kind === ComputedAction.Clean
+        ? rebasePreview.commits.length > 0
+        : false
+
+    return selectedBranchIsCurrentBranch
+      ? 'You are not able to rebase this branch onto itself.'
+      : !areCommitsToRebase
+      ? 'There are no commits on the current branch to rebase.'
       : undefined
   }
 
