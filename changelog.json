@@ -1,5 +1,15 @@
 {
   "releases": {
+    "3.3.7-beta3": [
+      "[Fixed] Merge branch dialog's merge preview no longer shows stale merge check data - #17929",
+      "[Fixed] Co-authors are restored as such when a commit is amended - #17879",
+      "[Fixed] Tags with commas are no longer truncated to the first comma - #17952",
+      "[Fixed] The \"Reveal in Finder\" context menu option in the conflict resolution dialog no longer causers Finder to be unresponsive - #17933",
+      "[Fixed] Clicking on the commit message length warning does not close the squash commit dialog - #17966",
+      "[Fixed] Fix Alacritty bundle ID on macOS - #17940. Thanks @JannesMeyer!",
+      "[Fixed] Merge branch dialog no longer shows flickering merge preview when switching branches - #17948. Thanks @GengShengJia!",
+      "[Improved] Improve inclusivity and clarification of branch name change warning.  - #17866"
+    ],
     "3.3.7-beta2": [
       "[Fixed] Use list semantics in job step lists for improved accessibility - #17855",
       "[Fixed] Fix heading levels used in dialogs for improved accessibility - #17848",
