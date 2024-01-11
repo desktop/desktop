@@ -290,7 +290,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   }
 
   /** Set to true when unmounting to avoid unnecessary state updates */
-  private cancelAvatarTokenRequest = false
+  private cancelAvatarRequests = false
 
   public constructor(props: IAvatarProps) {
     super(props)
@@ -427,7 +427,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
 
     this.setState({
       avatarToken: avatarTokenCache.get({ endpoint, accounts }).then(token => {
-        if (!this.cancelAvatarTokenRequest) {
+        if (!this.cancelAvatarRequests) {
           if (token && this.state.user?.endpoint === endpoint) {
             this.resetAvatarCandidates(token)
           }
@@ -473,6 +473,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
         .get({ user, accounts })
         .then(resolved => {
           if (
+            !this.cancelAvatarRequests &&
             user.endpoint === resolved.endpoint &&
             user.email === resolved.email &&
             user.name === resolved.name &&
@@ -489,7 +490,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
 
   public componentWillUnmount() {
     window.removeEventListener('online', this.onInternetConnected)
-    this.cancelAvatarTokenRequest = true
+    this.cancelAvatarRequests = true
   }
 
   private onInternetConnected = () => {
