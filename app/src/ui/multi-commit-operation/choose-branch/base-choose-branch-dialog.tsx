@@ -61,7 +61,7 @@ export function canStartOperation(
   }
 
   // Are there even commits to operate on?
-  if (commitCount && commitCount === 0) {
+  if (commitCount === undefined || commitCount === 0) {
     return false
   }
 
