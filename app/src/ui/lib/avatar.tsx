@@ -40,6 +40,17 @@ const avatarTokenCache = new ExpiringOperationCache<
   () => offsetFrom(0, 50, 'minutes')
 )
 
+const getBotLogin = (user: IAvatarUser) => {
+  const { endpoint } = user
+  if (user.avatarURL !== undefined || endpoint === null) {
+    return undefined
+  }
+
+  const match = parseStealthEmail(user.email, endpoint)
+
+  return match?.login?.endsWith('[bot]') ? match.login : undefined
+}
+
 const botAvatarCache = new ExpiringOperationCache<
   { user: IAvatarUser; accounts: ReadonlyArray<Account> },
   IAvatarUser
@@ -57,14 +68,14 @@ const botAvatarCache = new ExpiringOperationCache<
       throw new Error('No account found for endpoint')
     }
 
-    const match = parseStealthEmail(user.email, endpoint)
+    const login = getBotLogin(user)
 
-    if (!match || !match.login.endsWith('[bot]')) {
+    if (!login) {
       throw new Error('Email does not appear to be a bot email')
     }
 
     const api = new API(endpoint, account.token)
-    const apiUser = await api.fetchUser(match.login)
+    const apiUser = await api.fetchUser(login)
 
     if (!apiUser?.avatar_url) {
       throw new Error('No avatar url returned from API')
@@ -456,8 +467,8 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   private resolveBotAvatar() {
     const { accounts } = this.props
     const { user } = this.state
-    // todo isbotavatar()
-    if (user?.endpoint && !user.avatarURL) {
+
+    if (user?.endpoint && !user.avatarURL && getBotLogin(user)) {
       botAvatarCache
         .get({ user, accounts })
         .then(resolved => {
