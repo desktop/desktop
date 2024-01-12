@@ -23,27 +23,6 @@ import { getMergeOptions } from '../../lib/update-branch'
 import { getDefaultAriaLabelForBranch } from '../../branches/branch-renderer'
 import { ComputedAction } from '../../../models/computed-action'
 
-/**
- * Returns the branch to use as the selected branch in the dialog.
- *
- * The initial branch is used if defined, otherwise the default branch will be
- * compared to the current branch.
- *
- * If the current branch is the default branch, `null` is returned. Otherwise
- * the default branch is used.
- */
-export function resolveSelectedBranch(
-  currentBranch: Branch,
-  defaultBranch: Branch | null,
-  initialBranch?: Branch
-): Branch | null {
-  if (initialBranch !== undefined) {
-    return initialBranch
-  }
-
-  return currentBranch === defaultBranch ? null : defaultBranch
-}
-
 export function canStartOperation(
   selectedBranch: Branch | null,
   currentBranch: Branch,
@@ -82,6 +61,11 @@ export interface IBaseChooseBranchDialogProps {
    * The currently checked out branch
    */
   readonly currentBranch: Branch
+
+  /**
+   * The branch to select when dialog it is opened
+   */
+  readonly initialBranch?: Branch
 
   /**
    * See IBranchesState.allBranches
@@ -129,6 +113,27 @@ export class ChooseBranchDialog extends React.Component<
     this.state = {
       filterText: '',
     }
+
+    this.props.onSelectionChanged(this.resolveSelectedBranch())
+  }
+
+  /**
+   * Returns the branch to use as the selected branch in the dialog.
+   *
+   * The initial branch is used if defined, otherwise the default branch will be
+   * compared to the current branch.
+   *
+   * If the current branch is the default branch, `null` is returned. Otherwise
+   * the default branch is used.
+   */
+  private resolveSelectedBranch(): Branch | null {
+    const { currentBranch, defaultBranch, initialBranch } = this.props
+
+    if (initialBranch !== undefined) {
+      return initialBranch
+    }
+
+    return currentBranch === defaultBranch ? null : defaultBranch
   }
 
   private onFilterTextChanged = (filterText: string) => {

@@ -12,16 +12,8 @@ import {
   ChooseBranchDialog,
   IBaseChooseBranchDialogProps,
   canStartOperation,
-  resolveSelectedBranch,
 } from './base-choose-branch-dialog'
 import { truncateWithEllipsis } from '../../../lib/truncate-with-ellipsis'
-
-interface IMergeChooseBranchDialogProp extends IBaseChooseBranchDialogProps {
-  /**
-   * The branch to select when dialog it is opened
-   */
-  readonly initialBranch?: Branch
-}
 
 interface IMergeChooseBranchDialogState {
   readonly commitCount: number
@@ -30,30 +22,16 @@ interface IMergeChooseBranchDialogState {
 }
 
 export class MergeChooseBranchDialog extends React.Component<
-  IMergeChooseBranchDialogProp,
+  IBaseChooseBranchDialogProps,
   IMergeChooseBranchDialogState
 > {
-  public constructor(props: IMergeChooseBranchDialogProp) {
+  public constructor(props: IBaseChooseBranchDialogProps) {
     super(props)
 
-    const { currentBranch, defaultBranch, initialBranch } = props
-    const selectedBranch = resolveSelectedBranch(
-      currentBranch,
-      defaultBranch,
-      initialBranch
-    )
-
     this.state = {
-      selectedBranch,
+      selectedBranch: null,
       commitCount: 0,
       mergeStatus: null,
-    }
-  }
-
-  public componentDidMount() {
-    const { selectedBranch } = this.state
-    if (selectedBranch !== null) {
-      this.updateStatus(selectedBranch)
     }
   }
 

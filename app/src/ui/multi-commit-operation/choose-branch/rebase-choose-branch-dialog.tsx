@@ -8,16 +8,8 @@ import {
   ChooseBranchDialog,
   IBaseChooseBranchDialogProps,
   canStartOperation,
-  resolveSelectedBranch,
 } from './base-choose-branch-dialog'
 import { truncateWithEllipsis } from '../../../lib/truncate-with-ellipsis'
-
-interface IRebaseChooseBranchDialogProp extends IBaseChooseBranchDialogProps {
-  /**
-   * The branch to select when the rebase dialog is opened
-   */
-  readonly initialBranch?: Branch
-}
 
 interface IRebaseChooseBranchDialogState {
   readonly rebasePreview: RebasePreview | null
@@ -25,29 +17,15 @@ interface IRebaseChooseBranchDialogState {
 }
 
 export class RebaseChooseBranchDialog extends React.Component<
-  IRebaseChooseBranchDialogProp,
+  IBaseChooseBranchDialogProps,
   IRebaseChooseBranchDialogState
 > {
-  public constructor(props: IRebaseChooseBranchDialogProp) {
+  public constructor(props: IBaseChooseBranchDialogProps) {
     super(props)
 
-    const { currentBranch, defaultBranch, initialBranch } = props
-    const selectedBranch = resolveSelectedBranch(
-      currentBranch,
-      defaultBranch,
-      initialBranch
-    )
-
     this.state = {
-      selectedBranch,
+      selectedBranch: null,
       rebasePreview: null,
-    }
-  }
-
-  public componentDidMount() {
-    const { selectedBranch } = this.state
-    if (selectedBranch !== null) {
-      this.updateStatus(selectedBranch)
     }
   }
 
