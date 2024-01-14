@@ -560,13 +560,13 @@ export class ChangesList extends React.Component<
       { type: 'separator' },
     ]
     if (paths.length === 1) {
-      const shouldEnableContextMenu = Path.basename(path) !== GitIgnoreFileName
+      const enabled = Path.basename(path) !== GitIgnoreFileName
       items.push({
         label: __DARWIN__
           ? 'Ignore File (Add to .gitignore)'
           : 'Ignore file (add to .gitignore)',
         action: () => this.props.onIgnoreFile(path),
-        enabled: shouldEnableContextMenu,
+        enabled,
       })
 
       const pathComponents = path.split(Path.sep)
@@ -584,7 +584,7 @@ export class ChangesList extends React.Component<
             ? 'Ignore Folder (Add to .gitignore)'
             : 'Ignore folder (add to .gitignore)',
           submenu,
-          enabled: shouldEnableContextMenu,
+          enabled,
         })
       }
     } else if (paths.length > 1) {
