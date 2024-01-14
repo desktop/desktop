@@ -571,18 +571,13 @@ export class ChangesList extends React.Component<
 
       const pathComponents = path.split(Path.sep)
       if (pathComponents.length > 1) {
-        const submenu = []
-        let assembledPath = '/'
-        for (let i = 0; i < pathComponents.length - 1; i++) {
-          assembledPath += pathComponents[i] + '/'
-          const currentPath = assembledPath
-          submenu.push({
-            label: __DARWIN__
-              ? `Ignore ${assembledPath} (Add to .gitignore)`
-              : `Ignore ${assembledPath} (add to .gitignore)`,
-            action: () => this.props.onIgnoreFile(currentPath),
-          })
-        }
+        const submenu = pathComponents.slice(0, -1).map((_, index) => {
+          const label = '/' + pathComponents.slice(0, index + 1).join('/')
+          return {
+            label,
+            action: () => this.props.onIgnoreFile(label),
+          }
+        })
 
         items.push({
           label: __DARWIN__
