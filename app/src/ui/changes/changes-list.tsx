@@ -570,7 +570,7 @@ export class ChangesList extends React.Component<
       })
 
       const pathComponents = path.split(Path.sep)
-      if (pathComponents.length > 0) {
+      if (pathComponents.length > 1) {
         const submenu = []
         let assembledPath = '/'
         for (let i = 0; i < pathComponents.length - 1; i++) {
