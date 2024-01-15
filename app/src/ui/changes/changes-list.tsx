@@ -221,6 +221,8 @@ interface IChangesListProps {
   readonly commitSpellcheckEnabled: boolean
 
   readonly showCommitLengthWarning: boolean
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface IChangesState {
@@ -834,6 +836,7 @@ export class ChangesList extends React.Component<
         onCommitSpellcheckEnabledChanged={this.onCommitSpellcheckEnabledChanged}
         onStopAmending={this.onStopAmending}
         onShowCreateForkDialog={this.onShowCreateForkDialog}
+        accounts={this.props.accounts}
       />
     )
   }

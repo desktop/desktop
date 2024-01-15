@@ -8,6 +8,7 @@ import { LinkButton } from '../lib/link-button'
 import { IAPIComment } from '../../lib/api'
 import { getPullRequestReviewStateIcon } from './pull-request-review-helpers'
 import { PullRequestCommentLike } from './pull-request-comment-like'
+import { Account } from '../../models/account'
 
 interface IPullRequestCommentProps {
   readonly dispatcher: Dispatcher
@@ -27,6 +28,8 @@ interface IPullRequestCommentProps {
 
   readonly onSubmit: () => void
   readonly onDismissed: () => void
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface IPullRequestCommentState {
@@ -57,6 +60,7 @@ export class PullRequestComment extends React.Component<
       comment,
       onSubmit,
       onDismissed,
+      accounts,
     } = this.props
 
     const icon = getPullRequestReviewStateIcon('COMMENTED')
@@ -79,6 +83,7 @@ export class PullRequestComment extends React.Component<
         renderFooterContent={this.renderFooterContent}
         onSubmit={onSubmit}
         onDismissed={onDismissed}
+        accounts={accounts}
       />
     )
   }
