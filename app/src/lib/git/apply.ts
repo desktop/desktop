@@ -66,6 +66,7 @@ export async function applyPatchToIndex(
       case DiffType.Binary:
       case DiffType.Submodule:
       case DiffType.Image:
+      case DiffType.LFSImage:
         throw new Error(
           `Can't create partial commit in binary file: ${file.path}`
         )
