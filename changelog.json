@@ -15,7 +15,7 @@
       "[Improved] The \"You're Done\" header is focused after tutorial completion so it is announced and screen reader users are made aware of the completion screen - #17835",
       "[Improved] Checkboxes always have unique id's for label association - #17839",
       "[Improved] Better visibility of checkbox focus indicator - #17842",
-      "[Improved] By default, tooltips can be dismissed with the escape key - #17836",
+      "[Improved] Improve inclusivity and clarification of branch name change warning.  - #17866",
       "[Improved] Focus moves to closest expansion button or diff container after expansion - #17499",
       "[Improved] Tooltips can be dismissed with the escape key - #17823, #17836",
       "[Improved] Semantically grouping our settings radio and checkbox groups so their group headers will be announced to screen reader users. - #17787",
