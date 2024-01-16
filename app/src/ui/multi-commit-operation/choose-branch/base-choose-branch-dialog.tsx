@@ -117,7 +117,10 @@ export class ChooseBranchDialog extends React.Component<
 
   public componentDidMount(): void {
     const initialSelectedBranch = this.resolveSelectedBranch()
-    if (initialSelectedBranch !== null) {
+    if (
+      initialSelectedBranch !== null &&
+      initialSelectedBranch !== this.props.selectedBranch
+    ) {
       this.props.onSelectionChanged(initialSelectedBranch)
     }
   }
