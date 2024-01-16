@@ -569,10 +569,12 @@ export class ChangesList extends React.Component<
         enabled,
       })
 
-      const pathComponents = path.split(Path.sep)
-      if (pathComponents.length > 1) {
-        const submenu = pathComponents.slice(0, -1).map((_, index) => {
-          const label = '/' + pathComponents.slice(0, index + 1).join('/')
+      const pathComponents = path.split(Path.sep).slice(0, -1)
+      if (pathComponents.length > 0) {
+        const submenu = pathComponents.map((_, index) => {
+          const label = `/${pathComponents
+            .slice(0, pathComponents.length - index)
+            .join('/')}`
           return {
             label,
             action: () => this.props.onIgnoreFile(label),
