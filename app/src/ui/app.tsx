@@ -1868,7 +1868,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="editor-error"
             message={popup.message}
             onDismissed={onPopupDismissedFn}
-            showPreferencesDialog={this.onShowAdvancedPreferences}
+            showPreferencesDialog={this.onShowIntegrationsPreferences}
             viewPreferences={openPreferences}
             suggestDefaultEditor={suggestDefaultEditor}
           />
@@ -1879,7 +1879,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="shell-error"
             message={popup.message}
             onDismissed={onPopupDismissedFn}
-            showPreferencesDialog={this.onShowAdvancedPreferences}
+            showPreferencesDialog={this.onShowIntegrationsPreferences}
           />
         )
       case PopupType.InitializeLFS:
@@ -2622,10 +2622,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.refreshApiRepositories(account)
   }
 
-  private onShowAdvancedPreferences = () => {
+  private onShowIntegrationsPreferences = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.Preferences,
-      initialSelectedTab: PreferencesTab.Advanced,
+      initialSelectedTab: PreferencesTab.Integrations,
     })
   }
 
