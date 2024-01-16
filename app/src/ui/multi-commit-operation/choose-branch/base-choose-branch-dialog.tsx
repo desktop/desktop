@@ -113,8 +113,13 @@ export class ChooseBranchDialog extends React.Component<
     this.state = {
       filterText: '',
     }
+  }
 
-    this.props.onSelectionChanged(this.resolveSelectedBranch())
+  public componentDidMount(): void {
+    const initialSelectedBranch = this.resolveSelectedBranch()
+    if (initialSelectedBranch !== null) {
+      this.props.onSelectionChanged(initialSelectedBranch)
+    }
   }
 
   /**
