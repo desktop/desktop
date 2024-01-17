@@ -94,6 +94,7 @@ interface ICommitMessageDialogProps {
   readonly onSubmitCommitMessage: (context: ICommitContext) => Promise<boolean>
 
   readonly repositoryAccount: Account | null
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface ICommitMessageDialogState {
@@ -161,6 +162,7 @@ export class CommitMessageDialog extends React.Component<
             repositoryAccount={this.props.repositoryAccount}
             onStopAmending={this.onStopAmending}
             onShowCreateForkDialog={this.onShowCreateForkDialog}
+            accounts={this.props.accounts}
           />
         </DialogContent>
       </Dialog>

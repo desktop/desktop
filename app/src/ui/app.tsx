@@ -1869,7 +1869,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="editor-error"
             message={popup.message}
             onDismissed={onPopupDismissedFn}
-            showPreferencesDialog={this.onShowAdvancedPreferences}
+            showPreferencesDialog={this.onShowIntegrationsPreferences}
             viewPreferences={openPreferences}
             suggestDefaultEditor={suggestDefaultEditor}
           />
@@ -1880,7 +1880,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="shell-error"
             message={popup.message}
             onDismissed={onPopupDismissedFn}
-            showPreferencesDialog={this.onShowAdvancedPreferences}
+            showPreferencesDialog={this.onShowIntegrationsPreferences}
           />
         )
       case PopupType.InitializeLFS:
@@ -2226,6 +2226,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             onSubmitCommitMessage={popup.onSubmitCommitMessage}
             repositoryAccount={repositoryAccount}
+            accounts={this.state.accounts}
           />
         )
       case PopupType.MultiCommitOperation: {
@@ -2407,6 +2408,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
             underlineLinks={this.state.underlineLinks}
+            accounts={this.state.accounts}
           />
         )
       }
@@ -2432,6 +2434,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedTab={popup.selectedTab}
             emoji={emoji}
             onDismissed={onPopupDismissedFn}
+            accounts={this.state.accounts}
           />
         )
       }
@@ -2533,6 +2536,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
             underlineLinks={this.state.underlineLinks}
+            accounts={this.state.accounts}
           />
         )
       }
@@ -2622,10 +2626,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.refreshApiRepositories(account)
   }
 
-  private onShowAdvancedPreferences = () => {
+  private onShowIntegrationsPreferences = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.Preferences,
-      initialSelectedTab: PreferencesTab.Advanced,
+      initialSelectedTab: PreferencesTab.Integrations,
     })
   }
 
@@ -2704,6 +2708,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             commit={commit}
             selectedCommits={selectedCommits}
             emoji={emoji}
+            accounts={this.state.accounts}
           />
         )
       default:

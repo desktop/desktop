@@ -443,6 +443,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           showCommitLengthWarning={this.props.showCommitLengthWarning}
           currentRepoRulesInfo={currentRepoRulesInfo}
           aheadBehind={this.props.aheadBehind}
+          accounts={this.props.accounts}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

@@ -11,6 +11,7 @@ import {
 import { LinkButton } from '../lib/link-button'
 import { ValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
 import { PullRequestCommentLike } from './pull-request-comment-like'
+import { Account } from '../../models/account'
 
 interface IPullRequestReviewProps {
   readonly dispatcher: Dispatcher
@@ -32,6 +33,8 @@ interface IPullRequestReviewProps {
 
   readonly onSubmit: () => void
   readonly onDismissed: () => void
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface IPullRequestReviewState {
@@ -85,6 +88,7 @@ export class PullRequestReview extends React.Component<
         onSubmit={onSubmit}
         onDismissed={onDismissed}
         underlineLinks={this.props.underlineLinks}
+        accounts={this.props.accounts}
       />
     )
   }

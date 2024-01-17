@@ -1,12 +1,43 @@
 import * as React from 'react'
 import { IAvatarUser } from '../../models/avatar'
 import { shallowEquals } from '../../lib/equality'
-import { generateGravatarUrl } from '../../lib/gravatar'
 import { Octicon } from '../octicons'
-import { getDotComAPIEndpoint } from '../../lib/api'
+import { API, getDotComAPIEndpoint } from '../../lib/api'
 import { TooltippedContent } from './tooltipped-content'
 import { TooltipDirection } from './tooltip'
-import { supportsAvatarsAPI } from '../../lib/endpoint-capabilities'
+import {
+  isDotCom,
+  isGHE,
+  isGHES,
+  supportsAvatarsAPI,
+} from '../../lib/endpoint-capabilities'
+import { Account } from '../../models/account'
+import { offsetFrom } from '../../lib/offset-from'
+import { ExpiringOperationCache } from './expiring-operation-cache'
+import { forceUnwrap } from '../../lib/fatal-error'
+
+const avatarTokenCache = new ExpiringOperationCache<
+  { endpoint: string; accounts: ReadonlyArray<Account> },
+  string
+>(
+  ({ endpoint }) => endpoint,
+  async ({ endpoint, accounts }) => {
+    if (!isGHE(endpoint)) {
+      throw new Error('Avatar tokens are only available for ghe.com')
+    }
+
+    const account = accounts.find(a => a.endpoint === endpoint)
+    if (!account) {
+      throw new Error('No account found for endpoint')
+    }
+
+    const api = new API(endpoint, account.token)
+    const token = await api.getAvatarToken()
+
+    return forceUnwrap('Avatar token missing', token)
+  },
+  () => offsetFrom(0, 50, 'minutes')
+)
 
 /**
  * This maps contains avatar URLs that have failed to load and
@@ -60,12 +91,15 @@ interface IAvatarProps {
    * attempt to request, defaults to 64px.
    */
   readonly size?: number
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface IAvatarState {
   readonly user?: IAvatarUser
   readonly candidates: ReadonlyArray<string>
-  readonly imageLoaded: boolean
+  readonly imageError: boolean
+  readonly avatarToken?: string | Promise<void>
 }
 
 /**
@@ -80,20 +114,12 @@ const DefaultAvatarSymbol = {
 }
 
 /**
- * A regular expression meant to match both the legacy format GitHub.com
- * stealth email address and the modern format (login@ vs id+login@).
- *
- * Yields two capture groups, the first being an optional capture of the
- * user id and the second being the mandatory login.
- */
-const StealthEmailRegexp = /^(?:(\d+)\+)?(.+?)@users\.noreply\.(.*)$/i
-
-/**
  * Produces an ordered iterable of avatar urls to attempt to load for the
  * given user.
  */
 function getAvatarUrlCandidates(
   user: IAvatarUser | undefined,
+  avatarToken: string | undefined,
   size = 64
 ): ReadonlyArray<string> {
   const candidates = new Array<string>()
@@ -102,14 +128,14 @@ function getAvatarUrlCandidates(
     return candidates
   }
 
-  const { email, endpoint, avatarURL } = user
-  const isDotCom = endpoint === getDotComAPIEndpoint()
+  const { email, avatarURL } = user
+  const ep = user.endpoint ?? getDotComAPIEndpoint()
 
   // By leveraging the avatar url from the API (if we've got it) we can
   // load the avatar from one of the load balanced domains (avatars). We can't
   // do the same for GHES/GHAE however since the URLs returned by the API are
   // behind private mode.
-  if (isDotCom && avatarURL !== undefined) {
+  if (!isGHES(ep) && avatarURL !== undefined) {
     // The avatar urls returned by the API doesn't come with a size parameter,
     // they default to the biggest size we need on GitHub.com which is usually
     // much bigger than what desktop needs so we'll set a size explicitly.
@@ -123,57 +149,50 @@ function getAvatarUrlCandidates(
       // URLs which we can expect the API to not give us
       candidates.push(avatarURL)
     }
-  } else if (endpoint !== null && !isDotCom && !supportsAvatarsAPI(endpoint)) {
+  }
+
+  if (isGHES(ep) && !supportsAvatarsAPI(ep)) {
     // We're dealing with an old GitHub Enterprise instance so we're unable to
     // get to the avatar by requesting the avatarURL due to the private mode
-    // (see https://github.com/desktop/desktop/issues/821). So we have no choice
-    // but to fall back to gravatar for now.
-    candidates.push(generateGravatarUrl(email, size))
-    return candidates
+    // (see https://github.com/desktop/desktop/issues/821).
+    return []
   }
 
-  // Are we dealing with a GitHub.com stealth/anonymous email address in
-  // either legacy format:
-  //  niik@users.noreply.github.com
-  //
-  // or the current format
-  //  634063+niik@users.noreply.github.com
-  //
-  // If so we unfortunately can't rely on the GitHub avatar endpoint to
-  // deliver a match based solely on that email address but luckily for us
-  // the avatar service supports looking up a user based either on user id
-  // of login, user id being the better option as it's not affected by
-  // account renames.
-  const stealthEmailMatch = StealthEmailRegexp.exec(email)
-
-  const avatarEndpoint =
-    endpoint === null || isDotCom
-      ? 'https://avatars.githubusercontent.com'
-      : `${endpoint}/enterprise/avatars`
-
-  if (stealthEmailMatch) {
-    const [, userId, login, hostname] = stealthEmailMatch
-
-    if (
-      hostname === 'github.com' ||
-      (endpoint !== null && hostname === new URL(endpoint).hostname)
-    ) {
-      if (userId !== undefined) {
-        const userIdParam = encodeURIComponent(userId)
-        candidates.push(`${avatarEndpoint}/u/${userIdParam}?s=${size}`)
-      } else {
-        const loginParam = encodeURIComponent(login)
-        candidates.push(`${avatarEndpoint}/${loginParam}?s=${size}`)
-      }
-    }
+  if (isGHE(ep) && !avatarToken) {
+    // ghe.com requires a token, nothing we can do here, we'll be called again
+    // once the token has been loaded
+    return []
   }
 
-  // The /u/e endpoint above falls back to gravatar (proxied)
-  // so we don't have to add gravatar to the fallback.
-  const emailParam = encodeURIComponent(email)
-  candidates.push(`${avatarEndpoint}/u/e?email=${emailParam}&s=${size}`)
+  const emailAvatarUrl = isDotCom(ep)
+    ? new URL('https://avatars.githubusercontent.com/u/e')
+    : new URL(isGHES(ep) ? '/enterprise/avatars/u/e' : '/avatars/u/e', ep)
+
+  emailAvatarUrl.searchParams.set('email', email)
+  emailAvatarUrl.searchParams.set('s', `${size}`)
+
+  if (isGHE(ep) && avatarToken) {
+    emailAvatarUrl.searchParams.set('token', avatarToken)
+  }
+
+  candidates.push(`${emailAvatarUrl}`)
 
   return candidates
+}
+
+const getInitialStateForUser = (
+  user: IAvatarUser | undefined,
+  accounts: ReadonlyArray<Account>,
+  size: number | undefined
+): Pick<IAvatarState, 'user' | 'candidates' | 'avatarToken'> => {
+  const endpoint = user?.endpoint
+  const avatarToken =
+    endpoint && isGHE(endpoint)
+      ? avatarTokenCache.tryGet({ endpoint, accounts })
+      : undefined
+  const candidates = getAvatarUrlCandidates(user, avatarToken, size)
+
+  return { user, candidates, avatarToken }
 }
 
 /** A component for displaying a user avatar. */
@@ -181,75 +200,73 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   public static getDerivedStateFromProps(
     props: IAvatarProps,
     state: IAvatarState
-  ): Partial<IAvatarState> | null {
-    const { user, size } = props
-    if (!shallowEquals(user, state.user)) {
-      const candidates = getAvatarUrlCandidates(user, size)
-      return { user, candidates, imageLoaded: false }
-    }
-    return null
+  ) {
+    const { user, size, accounts } = props
+    // If the endpoint has changed we need to reset the avatar token so that
+    // it'll be re-fetched for the new endpoint
+    return shallowEquals(user, state.user)
+      ? null
+      : getInitialStateForUser(user, accounts, size)
   }
+
+  /** Set to true when unmounting to avoid unnecessary state updates */
+  private cancelAvatarTokenRequest = false
 
   public constructor(props: IAvatarProps) {
     super(props)
 
-    const { user, size } = props
+    const { user, size, accounts } = props
+
     this.state = {
-      user,
-      candidates: getAvatarUrlCandidates(user, size),
-      imageLoaded: false,
+      ...getInitialStateForUser(user, accounts, size),
+      imageError: false,
     }
   }
 
-  private getTitle(): string | JSX.Element | undefined {
-    if (this.props.title === null) {
+  private getTitle() {
+    const { title, user, accounts } = this.props
+
+    if (title === null) {
       return undefined
     }
 
-    if (this.props.title !== undefined) {
-      return this.props.title
+    if (title !== undefined) {
+      return title
     }
 
-    const user = this.props.user
-    if (user) {
-      if (user.name) {
-        return (
-          <>
-            <Avatar title={null} user={user} />
+    if (user?.name) {
+      return (
+        <>
+          <Avatar title={null} user={user} accounts={accounts} />
+          <div>
             <div>
-              <div>
-                <strong>{user.name}</strong>
-              </div>
-              <div>{user.email}</div>
+              <strong>{user.name}</strong>
             </div>
-          </>
-        )
-      } else {
-        return user.email
-      }
+            <div>{user.email}</div>
+          </div>
+        </>
+      )
     }
 
-    return 'Unknown user'
+    return user?.email ?? 'Unknown user'
   }
 
   private onImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const { candidates } = this.state
-    if (candidates.length > 0) {
-      this.setState({
-        candidates: candidates.filter(x => x !== e.currentTarget.src),
-        imageLoaded: false,
-      })
-    }
+    const { src } = e.currentTarget
+    const candidates = this.state.candidates.filter(x => x !== src)
+    this.setState({ candidates, imageError: candidates.length === 0 })
   }
 
   private onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    this.setState({ imageLoaded: true })
+    if (this.state.imageError) {
+      this.setState({ imageError: false })
+    }
   }
 
   public render() {
     const title = this.getTitle()
     const { user } = this.props
-    const { imageLoaded } = this.state
+    const { imageError } = this.state
     const alt = user
       ? `Avatar for ${user.name || user.email}`
       : `Avatar for unknown user`
@@ -268,7 +285,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
         direction={TooltipDirection.NORTH}
         tagName="div"
       >
-        {!imageLoaded && (
+        {(!src || imageError) && (
           <Octicon symbol={DefaultAvatarSymbol} className="avatar" />
         )}
         {src && (
@@ -282,7 +299,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
             alt={alt}
             onLoad={this.onImageLoad}
             onError={this.onImageError}
-            style={{ display: imageLoaded ? undefined : 'none' }}
+            style={{ display: imageError ? 'none' : undefined }}
           />
         )}
       </TooltippedContent>
@@ -302,13 +319,68 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     })
   }
 
+  private ensureAvatarToken() {
+    // fetch the avatar token for the endpoint if we don't have it
+    // when the async fetch completes, check if we're still mounted and if
+    // the endpoint still matches
+    // also need to keep track of whether we have an async fetch in flight or
+    // not so we don't trigger multiple fetches for the same endpoint
+    const { user, accounts } = this.props
+    const endpoint = user?.endpoint
+
+    // We've already got a token or we don't have a user, nothing to do here
+    if (this.state.avatarToken || !user || !accounts) {
+      return
+    }
+
+    if (!endpoint || !isGHE(endpoint)) {
+      return
+    }
+
+    // Can we get a token synchronously?
+    const token = avatarTokenCache.tryGet({ endpoint, accounts })
+    if (token) {
+      this.resetAvatarCandidates(token)
+      return
+    }
+
+    this.setState({
+      avatarToken: avatarTokenCache.get({ endpoint, accounts }).then(token => {
+        if (!this.cancelAvatarTokenRequest) {
+          if (token && this.props.user?.endpoint === endpoint) {
+            this.resetAvatarCandidates(token)
+          }
+        }
+      }),
+    })
+  }
+
+  public componentDidUpdate(prevProps: IAvatarProps, prevState: IAvatarState) {
+    this.ensureAvatarToken()
+  }
+
+  private resetAvatarCandidates(avatarToken?: string) {
+    const { user, size, accounts } = this.props
+    if (!avatarToken && user?.endpoint && isGHE(user.endpoint)) {
+      avatarToken =
+        avatarTokenCache.tryGet({ endpoint: user.endpoint, accounts }) ??
+        avatarToken
+    }
+
+    const candidates = getAvatarUrlCandidates(user, avatarToken, size)
+
+    this.setState({ candidates, avatarToken })
+  }
+
   public componentDidMount() {
     window.addEventListener('online', this.onInternetConnected)
     pruneExpiredFailingAvatars()
+    this.ensureAvatarToken()
   }
 
   public componentWillUnmount() {
     window.removeEventListener('online', this.onInternetConnected)
+    this.cancelAvatarTokenRequest = true
   }
 
   private onInternetConnected = () => {
@@ -319,12 +391,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     // If we've been offline and therefore failed to load an avatar
     // we'll automatically retry when the user becomes connected again.
     if (this.state.candidates.length === 0) {
-      const { user, size } = this.props
-      const candidates = getAvatarUrlCandidates(user, size)
-
-      if (candidates.length > 0) {
-        this.setState({ candidates })
-      }
+      this.resetAvatarCandidates()
     }
   }
 }
