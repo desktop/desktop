@@ -32,6 +32,8 @@ interface IPullRequestCommentLikeProps {
 
   readonly switchingToPullRequest: boolean
 
+  readonly underlineLinks: boolean
+
   readonly renderFooterContent: () => JSX.Element
 
   readonly onSubmit: () => void
@@ -165,6 +167,7 @@ export abstract class PullRequestCommentLike extends React.Component<IPullReques
         repository={base.gitHubRepository}
         onMarkdownLinkClicked={this.onMarkdownLinkClicked}
         markdownContext={'PullRequestComment'}
+        underlineLinks={this.props.underlineLinks}
       />
     )
   }

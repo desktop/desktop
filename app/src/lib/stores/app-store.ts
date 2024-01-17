@@ -407,6 +407,9 @@ const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
+const underlineLinksKey = 'underline-links'
+const underlineLinksDefault = false
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -538,6 +541,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     | undefined = undefined
 
   private cachedRepoRulesets = new Map<number, IAPIRepoRuleset>()
+
+  private underlineLinks: boolean = underlineLinksDefault
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -1018,6 +1023,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
       resizablePaneActive: this.resizablePaneActive,
       cachedRepoRulesets: this.cachedRepoRulesets,
+      underlineLinks: this.underlineLinks,
     }
   }
 
@@ -2205,6 +2211,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         pullRequestSuggestedNextActionKey,
         PullRequestSuggestedNextAction
       ) ?? defaultPullRequestSuggestedNextAction
+
+    this.underlineLinks = getBoolean(underlineLinksKey, underlineLinksDefault)
 
     this.emitUpdateNow()
 
@@ -7873,6 +7881,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (resizablePaneActive !== this.resizablePaneActive) {
       this.resizablePaneActive = resizablePaneActive
+      this.emitUpdate()
+    }
+  }
+
+  public _updateUnderlineLinks(underlineLinks: boolean) {
+    if (underlineLinks !== this.underlineLinks) {
+      this.underlineLinks = underlineLinks
+      setBoolean(underlineLinksKey, underlineLinks)
       this.emitUpdate()
     }
   }

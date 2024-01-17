@@ -337,6 +337,8 @@ export interface IAppState {
    * rulesets to check their bypass status.
    */
   readonly cachedRepoRulesets: ReadonlyMap<number, IAPIRepoRuleset>
+
+  readonly underlineLinks: boolean
 }
 
 export enum FoldoutType {

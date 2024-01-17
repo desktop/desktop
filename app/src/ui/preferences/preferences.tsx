@@ -42,6 +42,7 @@ import {
 import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
 import { Notifications } from './notifications'
+import { Accessibility } from './accessibility'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -67,6 +68,7 @@ interface IPreferencesProps {
   readonly selectedTheme: ApplicationTheme
   readonly repositoryIndicatorsEnabled: boolean
   readonly onOpenFileInExternalEditor: (path: string) => void
+  readonly underlineLinks: boolean
 }
 
 interface IPreferencesState {
@@ -94,6 +96,7 @@ interface IPreferencesState {
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
+
   /**
    * If unable to save Git configuration values (name, email)
    * due to an existing configuration lock file this property
@@ -108,6 +111,8 @@ interface IPreferencesState {
 
   readonly isLoadingGitConfig: boolean
   readonly globalGitConfigPath: string | null
+
+  readonly underlineLinks: boolean
 }
 
 /** The app-level preferences component. */
@@ -147,6 +152,7 @@ export class Preferences extends React.Component<
       initiallySelectedTheme: this.props.selectedTheme,
       isLoadingGitConfig: true,
       globalGitConfigPath: null,
+      underlineLinks: this.props.underlineLinks,
     }
   }
 
@@ -252,6 +258,10 @@ export class Preferences extends React.Component<
               Appearance
             </span>
             <span>
+              <Octicon className="icon" symbol={OcticonSymbol.accessibility} />
+              Accessibility
+            </span>
+            <span>
               <Octicon className="icon" symbol={OcticonSymbol.bell} />
               Notifications
             </span>
@@ -260,7 +270,7 @@ export class Preferences extends React.Component<
               Prompts
             </span>
             <span>
-              <Octicon className="icon" symbol={OcticonSymbol.settings} />
+              <Octicon className="icon" symbol={OcticonSymbol.gear} />
               Advanced
             </span>
           </TabBar>
@@ -362,6 +372,14 @@ export class Preferences extends React.Component<
           <Appearance
             selectedTheme={this.props.selectedTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
+          />
+        )
+        break
+      case PreferencesTab.Accessibility:
+        View = (
+          <Accessibility
+            underlineLinks={this.state.underlineLinks}
+            onUnderlineLinksChanged={this.onUnderlineLinksChanged}
           />
         )
         break
@@ -525,6 +543,10 @@ export class Preferences extends React.Component<
     this.props.dispatcher.setSelectedTheme(theme)
   }
 
+  private onUnderlineLinksChanged = (underlineLinks: boolean) => {
+    this.setState({ underlineLinks })
+  }
+
   private renderFooter() {
     const hasDisabledError = this.state.disallowedCharactersMessage != null
 
@@ -644,6 +666,8 @@ export class Preferences extends React.Component<
     await this.props.dispatcher.setUncommittedChangesStrategySetting(
       this.state.uncommittedChangesStrategy
     )
+
+    this.props.dispatcher.setUnderlineLinksSetting(this.state.underlineLinks)
 
     this.props.onDismissed()
   }

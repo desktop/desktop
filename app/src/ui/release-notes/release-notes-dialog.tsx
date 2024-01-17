@@ -15,6 +15,7 @@ interface IReleaseNotesProps {
   readonly onDismissed: () => void
   readonly emoji: Map<string, string>
   readonly newReleases: ReadonlyArray<ReleaseSummary>
+  readonly underlineLinks: boolean
 }
 
 /**
@@ -118,6 +119,7 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
         markdown={pretext[0].message}
         emoji={this.props.emoji}
         onMarkdownLinkClicked={this.onMarkdownLinkClicked}
+        underlineLinks={this.props.underlineLinks}
       />
     )
   }

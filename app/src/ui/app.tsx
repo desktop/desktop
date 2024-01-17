@@ -1660,6 +1660,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedTheme={this.state.selectedTheme}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             onOpenFileInExternalEditor={this.openFileInExternalEditor}
+            underlineLinks={this.state.underlineLinks}
           />
         )
       case PopupType.RepositorySettings: {
@@ -1917,6 +1918,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             emoji={this.state.emoji}
             newReleases={popup.newReleases}
             onDismissed={onPopupDismissedFn}
+            underlineLinks={this.state.underlineLinks}
           />
         )
       case PopupType.DeletePullRequest:
@@ -2404,6 +2406,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             emoji={this.state.emoji}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
+            underlineLinks={this.state.underlineLinks}
           />
         )
       }
@@ -2529,6 +2532,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             emoji={this.state.emoji}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
+            underlineLinks={this.state.underlineLinks}
           />
         )
       }
@@ -3151,6 +3155,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         showCIStatusPopover={this.state.showCIStatusPopover}
         emoji={this.state.emoji}
         enableFocusTrap={enableFocusTrap}
+        underlineLinks={this.state.underlineLinks}
       />
     )
   }
@@ -3344,7 +3349,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const className = this.state.appIsFocused ? 'focused' : 'blurred'
+    const className = classNames(
+      this.state.appIsFocused ? 'focused' : 'blurred',
+      {
+        'underline-links': this.state.underlineLinks,
+      }
+    )
 
     const currentTheme = this.state.showWelcomeFlow
       ? ApplicationTheme.Light
