@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.3.8": [
+      "[Fixed] The merge dialog submit button is available when conflicts are detected. - #18037",
+      "[Fixed] Avatars are once again loading for GitHub Enterprise Server users. - #18036"
+    ],
     "3.3.7": [
       "[Fixed] Merge branch dialog's merge preview no longer shows stale merge check data - #17929",
       "[Fixed] Co-authors are restored as such when a commit is amended - #17879",
