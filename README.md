@@ -1,6 +1,6 @@
 # [GitHub Desktop](https://desktop.github.com)
 
-[GitHub Desktop](https://desktop.github.com/) is an open source [Electron](https://www.electronjs.org/)-based
+[GitHub Desktop](https://desktop.github.com/) is an open-source [Electron](https://www.electronjs.org/)-based
 GitHub app. It is written in [TypeScript](https://www.typescriptlang.org) and
 uses [React](https://reactjs.org/).
 
@@ -90,7 +90,7 @@ To setup your development environment for building Desktop, check out: [`setup.m
 See [desktop.github.com](https://desktop.github.com) for more product-oriented
 information about GitHub Desktop.
 
-See our [getting started documentation](https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/overview/getting-started-with-github-desktop) for more information on how to set up, authenticate, and configure GitHub Desktop.
+See our [getting started documentation](https://docs.github.com/en/desktop/overview/getting-started-with-github-desktop) for more information on how to set up, authenticate, and configure GitHub Desktop.
 
 ## License
 
