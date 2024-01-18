@@ -2,11 +2,10 @@ import * as React from 'react'
 import { IAvatarUser } from '../../models/avatar'
 import { shallowEquals } from '../../lib/equality'
 import { Octicon } from '../octicons'
-import { API, getDotComAPIEndpoint } from '../../lib/api'
+import { API, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 import { TooltippedContent } from './tooltipped-content'
 import { TooltipDirection } from './tooltip'
 import {
-  isDotCom,
   isGHE,
   isGHES,
   supportsAvatarsAPI,
@@ -113,6 +112,27 @@ const DefaultAvatarSymbol = {
   d: 'M13 13.145a.844.844 0 0 1-.832.855H3.834A.846.846 0 0 1 3 13.142v-.856c0-2.257 3.333-3.429 3.333-3.429s.191-.35 0-.857c-.7-.531-.786-1.363-.833-3.429C5.644 2.503 7.056 2 8 2s2.356.502 2.5 2.571C10.453 6.637 10.367 7.47 9.667 8c-.191.506 0 .857 0 .857S13 10.03 13 12.286v.859z',
 }
 
+function getEmailAvatarUrl(ep: string) {
+  if (isGHES(ep)) {
+    // GHES Endpoint urls look something like https://github.example.com/api/v3
+    // (note the lack of a trailing slash). We really should change our endpoint
+    // URLs to always have a trailing slash but that's one heck of an
+    // undertaking since we'd have to migrate all the existing endpoints in
+    // our IndexedDB databases so for now we'll just assume we'll add a trailing
+    // slash in the future and be future proof.
+    return new URL(`enterprise/avatars/u/e`, ep.endsWith('/') ? ep : `${ep}/`)
+  } else if (isGHE(ep)) {
+    // getHTMLURL(ep) is a noop here since it currently only deals with
+    // github.com and assumes all others confrom to the GHES url structure but
+    // we're likely going to need to update that in the future to support
+    // ghe.com specifically so we're calling it here for future proofing.
+    return new URL('/avatars/u/e', getHTMLURL(ep))
+  } else {
+    // It's safe to fall back to GitHub.com, at worst we'll get identicons
+    return new URL('https://avatars.githubusercontent.com/u/e')
+  }
+}
+
 /**
  * Produces an ordered iterable of avatar urls to attempt to load for the
  * given user.
@@ -164,9 +184,7 @@ function getAvatarUrlCandidates(
     return []
   }
 
-  const emailAvatarUrl = isDotCom(ep)
-    ? new URL('https://avatars.githubusercontent.com/u/e')
-    : new URL(isGHES(ep) ? '/enterprise/avatars/u/e' : '/avatars/u/e', ep)
+  const emailAvatarUrl = getEmailAvatarUrl(ep)
 
   emailAvatarUrl.searchParams.set('email', email)
   emailAvatarUrl.searchParams.set('s', `${size}`)
