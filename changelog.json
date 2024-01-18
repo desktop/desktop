@@ -1,5 +1,12 @@
 {
   "releases": {
+    "3.3.9-beta1": [
+      "[Fixed] The merge dialog submit button is available when conflicts are detected - #18037",
+      "[Fixed] Avatars are once again loading for GitHub Enterprise Server users - #18034",
+      "[Fixed] Lists scroll and render as expected when scrolling by dragging the scrollbar on Windows - #18012",
+      "[Fixed] External editor or shell failure error will open to integration settings - #18021. Thanks @yasuking0304!",
+      "[Improved] Implemented folder ignore with all parent directories - #1203. Thanks @masecla22!"
+    ],
     "3.3.8": [
       "[Fixed] The merge dialog submit button is available when conflicts are detected. - #18037",
       "[Fixed] Avatars are once again loading for GitHub Enterprise Server users. - #18036"
