@@ -116,17 +116,14 @@ export class MergeChooseBranchDialog extends React.Component<
       return
     }
 
-    // The clean status is the only one that needs the ahead/behind count. If
-    // the status is conflicts or invalid, update the UI here and end the
-    // function.
-    if (
-      mergeStatus.kind === ComputedAction.Conflicts ||
-      mergeStatus.kind === ComputedAction.Invalid
-    ) {
+    // Can't go forward if the merge status is invalid, no need to check commit count
+    if (mergeStatus.kind === ComputedAction.Invalid) {
       this.setState({ mergeStatus })
       return
     }
 
+    // Commit count is used in the UI output as well as determining whether the
+    // submit button is enabled
     const range = revSymmetricDifference('', branch.name)
     const aheadBehind = await getAheadBehind(this.props.repository, range)
     const commitCount = aheadBehind ? aheadBehind.behind : 0

@@ -44,7 +44,7 @@ export function canStartOperation(
     return false
   }
 
-  return statusKind === ComputedAction.Clean
+  return statusKind !== ComputedAction.Invalid
 }
 
 export interface IBaseChooseBranchDialogProps {
