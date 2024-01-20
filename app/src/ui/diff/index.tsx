@@ -18,10 +18,10 @@ import {
   IImageDiff,
   ITextDiff,
   ILargeTextDiff,
-  Image,
   ImageDiffType,
   ISubmoduleDiff,
   ILFSImageDiff,
+  LFSImageState,
 } from '../../models/diff'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
@@ -110,17 +110,9 @@ interface IDiffProps {
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
 
-enum LFSImageState {
-  AskForDownload,
-  DownloadInProgress,
-  Done,
-}
-
 interface IDiffState {
   readonly forceShowLargeDiff: boolean
-  readonly LFSImageState: LFSImageState
-  readonly previousImage?: Image
-  readonly currentImage?: Image
+  readonly forceShowLFSDiff: boolean
 }
 
 /** A component which renders a diff for a file. */
@@ -130,9 +122,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
     this.state = {
       forceShowLargeDiff: false,
-      LFSImageState: LFSImageState.AskForDownload,
-      previousImage: undefined,
-      currentImage: undefined,
+      forceShowLFSDiff: false,
     }
   }
 
@@ -153,16 +143,8 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           ? this.renderLargeText(diff)
           : this.renderLargeTextDiff()
       }
-      case DiffType.LFSImage: {
-        switch (this.state.LFSImageState) {
-          case LFSImageState.AskForDownload:
-            return this.renderLFSAskForDownload()
-          case LFSImageState.DownloadInProgress:
-            return this.renderLoading()
-          case LFSImageState.Done:
-            return this.renderLFSImage()
-        }
-      }
+      case DiffType.LFSImage:
+        return this.renderLFSImage(diff)
       case DiffType.Unrenderable:
         return this.renderUnrenderableDiff()
       default:
@@ -219,20 +201,35 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private renderLoading() {
     return (
-      <div className="panel empty large-diff">
+      <div className="panel loading-indicator">
         <Loading />
       </div>
     )
   }
 
-  private renderLFSImage() {
-    const imageDiff: IImageDiff = {
-      previous: this.state.previousImage,
-      current: this.state.currentImage,
-      kind: DiffType.Image,
-    }
+  private renderLFSImage(LFSImageDiff: ILFSImageDiff) {
+    switch (LFSImageDiff.currentState) {
+      case LFSImageState.AskForDownload: {
+        // if diff is forced to show don't shot it again
+        if (this.state.forceShowLFSDiff) {
+          this.showLFSImageDiff()
+          return this.renderLoading()
+        }
 
-    return this.renderImage(imageDiff)
+        return this.renderLFSAskForDownload()
+      }
+      case LFSImageState.DownloadInProgress:
+        return this.renderLoading()
+      case LFSImageState.Done: {
+        const imageDiff: IImageDiff = {
+          previous: LFSImageDiff.previousImage,
+          current: LFSImageDiff.currentImage,
+          kind: DiffType.Image,
+        }
+
+        return this.renderImage(imageDiff)
+      }
+    }
   }
 
   private renderLargeTextDiff() {
@@ -378,8 +375,9 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private showLFSImageDiff = () => {
-    this.setState({ LFSImageState: LFSImageState.DownloadInProgress })
     const LFSImageDiff = this.props.diff as ILFSImageDiff
+    LFSImageDiff.currentState = LFSImageState.DownloadInProgress
+    this.setState({ forceShowLFSDiff: true })
     const prevPromise = LFSImageDiff.previous
       ? LFSImageDiff.previous()
       : new Promise<undefined>((resolve, reject) => {
@@ -393,11 +391,10 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         })
 
     Promise.all([prevPromise, currPromise]).then(values => {
-      this.setState({
-        previousImage: values[0],
-        currentImage: values[1],
-        LFSImageState: LFSImageState.Done,
-      })
+      LFSImageDiff.previousImage = values[0]
+      LFSImageDiff.currentImage = values[1]
+      LFSImageDiff.currentState = LFSImageState.Done
+      this.forceUpdate()
     })
   }
 }

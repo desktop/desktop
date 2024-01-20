@@ -1024,6 +1024,27 @@
   resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.27.8.tgz#6667fac16c436b5434a387a34dedb013198f6e6e"
   integrity sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==
 
+"@rgba-image/common@^0.1.13":
+  version "0.1.13"
+  resolved "https://registry.yarnpkg.com/@rgba-image/common/-/common-0.1.13.tgz#f775a1db042dd0dd23749207daa041a9d37f2e61"
+  integrity sha512-AnOBmBpjSgcymTuVhTGy+RB4FfmEQqR2GeJY3d3xfvR9fl3HfhzwgVqopuh3bKSAT6KRpJr7wNmug0qr3oI7bA==
+
+"@rgba-image/create-image@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@rgba-image/create-image/-/create-image-0.2.0.tgz#a7c7e735d68488de9ce161f19c6e580512a8064e"
+  integrity sha512-NX7ZGFxvRIEqmTBiwoHQxRHv/Evq2RUjbI+4kuEnFhIsFmr7v7QDzt2n1qulcTAkBudx6m6H5OycRKFsEx+s4g==
+  dependencies:
+    "@rgba-image/common" "^0.1.13"
+
+"@rgba-image/png@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@rgba-image/png/-/png-0.1.1.tgz#6daa482a1a58ddfc8e767e5586816be818ef2dfb"
+  integrity sha512-U3Tu/r6mfh2hLCzhxJ0SJKiE1FhiToVugQXPzi2niN8Nc4mnlFa68YybxD9Lqxkf7Krw7Vz9Yb0Tb5YYeLb8Ow==
+  dependencies:
+    "@rgba-image/common" "^0.1.13"
+    "@rgba-image/create-image" "^0.2.0"
+    pngjs "^6.0.0"
+
 "@sindresorhus/is@^4.0.0":
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-4.6.0.tgz#3c7c9c46e678feefe7a2e5bb609d3dbd665ffb3f"
@@ -2039,6 +2060,11 @@
   dependencies:
     "@webassemblyjs/ast" "1.11.1"
     "@xtuc/long" "4.2.2"
+
+"@webtoon/psd@0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@webtoon/psd/-/psd-0.4.0.tgz#855cb6541a67ce8add4be5d0c5b8e9eb0193cc8f"
+  integrity sha512-ztriE8oFOamRrV9opBURDy+JMiyhur2//vOXsC5CgdnYCB0L1Lnaag4NzP8N+NFCj7uNz9JRYtPmAbQMSDLIsQ==
 
 "@xtuc/ieee754@^1.2.0":
   version "1.2.0"
@@ -7564,6 +7590,11 @@ pluralize@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/pluralize/-/pluralize-1.2.1.tgz#d1a21483fd22bb41e58a12fa3421823140897c45"
   integrity sha1-0aIUg/0iu0HlihL6NCGCMUCJfEU=
+
+pngjs@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/pngjs/-/pngjs-6.0.0.tgz#ca9e5d2aa48db0228a52c419c3308e87720da821"
+  integrity sha512-TRzzuFRRmEoSW/p1KVAmiOgPco2Irlah+bGFCeNfJXxxYGwSw7YwAOAcd7X28K/m5bjBWKsC29KyoMfHbypayg==
 
 posix-character-classes@^0.1.0:
   version "0.1.1"

@@ -800,6 +800,16 @@
         }
       }
     }
+
+    &.loading-indicator {
+      padding-top: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: block;
+      opacity: 1;
+      pointer-events: none;
+    }
   }
 
   .loading-indicator {

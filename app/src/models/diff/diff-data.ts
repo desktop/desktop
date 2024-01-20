@@ -115,6 +115,15 @@ export interface ILargeTextDiff extends ITextDiffData {
   readonly kind: DiffType.LargeText
 }
 
+/**
+ * Enum showing state of loading
+ */
+export enum LFSImageState {
+  AskForDownload,
+  DownloadInProgress,
+  Done,
+}
+
 export interface ILFSImageDiff {
   readonly kind: DiffType.LFSImage
   /**
@@ -129,6 +138,22 @@ export interface ILFSImageDiff {
    * Will be undefined for a deleted image
    */
   readonly current?: () => Promise<Image>
+  /**
+   * The previous image, if the file was modified or deleted
+   *
+   * Will be undefined for an added image
+   */
+  previousImage?: Image
+  /**
+   * The current image, if the file was added or modified
+   *
+   * Will be undefined for a deleted image
+   */
+  currentImage?: Image
+  /**
+   * show current state of this diff when loading
+   */
+  currentState: LFSImageState
 }
 
 export interface IUnrenderableDiff {
