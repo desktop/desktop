@@ -377,7 +377,9 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   private showLFSImageDiff = () => {
     const LFSImageDiff = this.props.diff as ILFSImageDiff
     LFSImageDiff.currentState = LFSImageState.DownloadInProgress
-    this.setState({ forceShowLFSDiff: true })
+    if (!this.state.forceShowLFSDiff) {
+      this.setState({ forceShowLFSDiff: true })
+    }
     const prevPromise = LFSImageDiff.previous
       ? LFSImageDiff.previous()
       : new Promise<undefined>((resolve, reject) => {
