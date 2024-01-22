@@ -426,6 +426,12 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.dart': 'application/dart',
     },
   },
+  {
+    install: () => import('codemirror-mode-zig'),
+    mappings: {
+      '.zig': 'text/x-zig',
+    },
+  },
 ]
 
 /**
