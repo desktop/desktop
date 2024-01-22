@@ -697,6 +697,11 @@ export class SideBySideDiffRow extends React.Component<
       return
     }
 
+    if (this.props.hideWhitespaceInDiff) {
+      this.setState({ showWhitespaceHint: column })
+      return
+    }
+
     this.props.onLineNumberCheckedChanged(
       this.props.numRow,
       column,
@@ -712,14 +717,20 @@ export class SideBySideDiffRow extends React.Component<
     const column = this.getDiffColumn(this.lineNumberRef.current)
     const data = this.getDiffData(this.lineNumberRef.current)
 
-    if (data !== null && column !== null) {
-      if (this.props.hideWhitespaceInDiff) {
-        this.setState({ showWhitespaceHint: column })
-        return
-      }
-
-      this.props.onStartSelection(this.props.numRow, column, !data.isSelected)
+    if (column === null) {
+      return
     }
+
+    if (this.props.hideWhitespaceInDiff) {
+      this.setState({ showWhitespaceHint: column })
+      return
+    }
+
+    if (data === null) {
+      return
+    }
+
+    this.props.onStartSelection(this.props.numRow, column, !data.isSelected)
   }
 
   private onMouseEnterLineNumber = (evt: React.MouseEvent) => {
