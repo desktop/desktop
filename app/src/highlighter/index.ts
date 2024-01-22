@@ -104,6 +104,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     mappings: {
       '.markdown': 'text/x-markdown',
       '.md': 'text/x-markdown',
+      '.mdx': 'text/x-markdown',
     },
   },
   {
