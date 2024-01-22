@@ -682,7 +682,6 @@ export class SideBySideDiff extends React.Component<
     column: DiffColumn,
     isSelected: boolean
   ) => {
-    debugger
     if (this.props.onIncludeChanged === undefined) {
       return
     }
