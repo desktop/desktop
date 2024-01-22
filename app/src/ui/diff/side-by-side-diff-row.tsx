@@ -113,7 +113,7 @@ interface ISideBySideDiffRowProps {
   readonly onContextMenuLine: (diffLineNumber: number) => void
 
   /**
-   * Called when the user
+   * Called when the user toggles the inclusion of line
    */
   readonly onLineNumberCheckedChanged: (
     row: number,
