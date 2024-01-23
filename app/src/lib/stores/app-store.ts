@@ -408,7 +408,7 @@ const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
 const underlineLinksKey = 'underline-links'
-const underlineLinksDefault = false
+const underlineLinksDefault = true
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
@@ -2215,7 +2215,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // Current users will have underlines disabled by default. In the future
     // this will change to be true by default.
     if (getBoolean(underlineLinksKey) === undefined) {
-      setBoolean(underlineLinksKey, underlineLinksDefault)
+      setBoolean(underlineLinksKey, false)
     }
 
     this.underlineLinks = getBoolean(underlineLinksKey, underlineLinksDefault)
