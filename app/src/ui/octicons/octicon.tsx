@@ -24,6 +24,8 @@ interface IOcticonProps {
    */
   readonly title?: JSX.Element | string
 
+  readonly ariaLabel?: string
+
   readonly tooltipDirection?: TooltipDirection
 }
 
@@ -40,14 +42,15 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
   private svgRef = createObservableRef<SVGSVGElement>()
 
   public render() {
-    const { symbol, title, tooltipDirection } = this.props
+    const { symbol, title, tooltipDirection, ariaLabel } = this.props
     const viewBox = `0 0 ${symbol.w} ${symbol.h}`
     const className = classNames('octicon', this.props.className)
 
     // Hide the octicon from screen readers when it's only being used
     // as a visual without any attached meaning applicable to users
     // consuming the app through an accessibility interface.
-    const ariaHidden = title === undefined ? 'true' : undefined
+    const ariaHidden =
+      title === undefined && ariaLabel === undefined ? 'true' : undefined
 
     // Octicons are typically very small so having an explicit direction makes
     // more sense
@@ -56,6 +59,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
     return (
       <svg
         aria-hidden={ariaHidden}
+        aria-label={ariaLabel}
         className={className}
         version="1.1"
         viewBox={viewBox}
