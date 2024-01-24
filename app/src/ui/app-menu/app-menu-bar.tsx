@@ -449,10 +449,6 @@ export class AppMenuBar extends React.Component<
       ? this.props.appMenu.slice(1)
       : []
 
-    const openedWithAccessKey = foldoutState
-      ? foldoutState.openedWithAccessKey || false
-      : false
-
     const enableAccessKeyNavigation = foldoutState
       ? foldoutState.enableAccessKeyNavigation
       : false
@@ -472,7 +468,6 @@ export class AppMenuBar extends React.Component<
         menuState={menuState}
         highlightMenuAccessKey={highlightMenuAccessKey}
         enableAccessKeyNavigation={enableAccessKeyNavigation}
-        openedWithAccessKey={openedWithAccessKey}
         onClose={this.onMenuClose}
         onOpen={this.onMenuOpen}
         onMouseEnter={this.onMenuButtonMouseEnter}

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { createUniqueId, releaseUniqueId } from './id-pool'
+import uuid from 'uuid'
 
 /** The possible values for a Checkbox component. */
 export enum CheckboxValue {
@@ -53,7 +54,10 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
   }
 
   public componentWillMount() {
-    const friendlyName = this.props.label || 'unknown'
+    const friendlyName =
+      this.props.label && typeof this.props.label === 'string'
+        ? this.props.label
+        : uuid()
     const inputId = createUniqueId(`Checkbox_${friendlyName}`)
 
     this.setState({ inputId })

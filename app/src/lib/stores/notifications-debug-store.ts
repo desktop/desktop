@@ -4,7 +4,6 @@ import { PullRequest, getPullRequestCommitRef } from '../../models/pull-request'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { Dispatcher, defaultErrorHandler } from '../../ui/dispatcher'
 import { API, APICheckConclusion, IAPIComment } from '../api'
-import { getCommit } from '../git'
 import { showNotification } from '../notifications/show-notification'
 import {
   isValidNotificationPullRequestReview,
@@ -226,8 +225,6 @@ export class NotificationsDebugStore {
       commit_sha: commitSha,
     }
 
-    const commit = await getCommit(repository, commitSha)
-
     const numberOfFailedChecks = checks.filter(
       check => check.conclusion === APICheckConclusion.Failure
     ).length
@@ -239,13 +236,7 @@ export class NotificationsDebugStore {
     const title = 'Pull Request checks failed'
     const body = `${pullRequest.title} #${pullRequest.pullRequestNumber} (${shortSHA})\n${numberOfFailedChecks} ${pluralChecks} not successful.`
     const onClick = () => {
-      dispatcher.onChecksFailedNotification(
-        repository,
-        pullRequest,
-        commit?.summary ?? 'Could not load commit summary',
-        commitSha,
-        checks
-      )
+      dispatcher.onChecksFailedNotification(repository, pullRequest, checks)
     }
 
     showNotification({

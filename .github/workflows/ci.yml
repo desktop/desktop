@@ -37,6 +37,9 @@ on:
       APPLE_APPLICATION_CERT:
       APPLE_APPLICATION_CERT_PASSWORD:
 
+env:
+  NODE_VERSION: 18.16.1
+
 jobs:
   lint:
     name: Lint
@@ -51,7 +54,7 @@ jobs:
           submodules: recursive
       - uses: actions/setup-node@v4
         with:
-          node-version: 16.17.1
+          node-version: ${{ env.NODE_VERSION }}
           cache: yarn
       - run: yarn
       - run: yarn validate-electron-version
@@ -67,7 +70,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18.16.1]
         os: [macos-13-xl-arm64, windows-2019]
         arch: [x64, arm64]
         include:
@@ -84,20 +86,20 @@ jobs:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref }}
           submodules: recursive
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Use Node.js ${{ matrix.node }}
+      - name: Use Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
+          node-version: ${{ env.NODE_VERSION }}
           cache: yarn
 
       # This step can be removed as soon as official Windows arm64 builds are published:
       # https://github.com/nodejs/build/issues/2450#issuecomment-705853342
       - name: Get NodeJS node-gyp lib for Windows arm64
         if: ${{ matrix.os == 'windows-2019' && matrix.arch == 'arm64' }}
-        run: .\script\download-nodejs-win-arm64.ps1 ${{ matrix.node }}
+        run: .\script\download-nodejs-win-arm64.ps1 ${{ env.NODE_VERSION }}
 
       - name: Install and build dependencies
         run: yarn
@@ -145,7 +147,7 @@ jobs:
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_SECRET }}
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ inputs.upload-artifacts }}
         with:
           name: ${{matrix.friendlyName}}-${{matrix.arch}}

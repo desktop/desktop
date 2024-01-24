@@ -1,6 +1,5 @@
 import * as React from 'react'
 
-import { Repository } from '../../models/repository'
 import {
   ITextDiff,
   DiffLineType,
@@ -62,6 +61,7 @@ import {
 } from './text-diff-expansion'
 import { IMenuItem } from '../../lib/menu-item'
 import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
+import { findDOMNode } from 'react-dom'
 import escapeRegExp from 'lodash/escapeRegExp'
 import ReactDOM from 'react-dom'
 
@@ -95,8 +95,6 @@ const closestRow = (n: Node, container: Element) => {
 }
 
 interface ISideBySideDiffProps {
-  readonly repository: Repository
-
   /** The file whose diff should be displayed. */
   readonly file: ChangedFile
 
@@ -204,7 +202,7 @@ interface ISideBySideDiffState {
 
   /** This tracks the last expanded hunk index so that we can refocus the expander after rerender */
   readonly lastExpandedHunk: {
-    index: number
+    hunkIndex: number
     expansionType: DiffHunkExpansionType
   } | null
 }
@@ -226,6 +224,8 @@ export class SideBySideDiff extends React.Component<
 
   private textSelectionStartRow: number | undefined = undefined
   private textSelectionEndRow: number | undefined = undefined
+
+  private readonly hunkExpansionRefs = new Map<string, HTMLButtonElement>()
 
   public constructor(props: ISideBySideDiffProps) {
     super(props)
@@ -259,18 +259,14 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    const lineTypes = this.props.showSideBySideDiff
+    const exclude = this.props.showSideBySideDiff
       ? this.state.selectingTextInRow === 'before'
-        ? [DiffLineType.Delete, DiffLineType.Context]
-        : [DiffLineType.Add, DiffLineType.Context]
-      : [DiffLineType.Add, DiffLineType.Delete, DiffLineType.Context]
+        ? DiffLineType.Add
+        : DiffLineType.Delete
+      : false
 
     const contents = this.state.diff.hunks
-      .flatMap(h =>
-        h.lines
-          .filter(line => lineTypes.includes(line.type))
-          .map(line => line.content)
-      )
+      .flatMap(h => h.lines.filter(l => l.type !== exclude).map(l => l.content))
       .join('\n')
 
     ev.preventDefault()
@@ -413,6 +409,92 @@ export class SideBySideDiff extends React.Component<
         }
       }
     }
+
+    if (this.state.lastExpandedHunk !== prevState.lastExpandedHunk) {
+      this.focusAfterLastExpandedHunkChange()
+    }
+  }
+
+  private focusListElement = () => {
+    const diffNode = findDOMNode(this.virtualListRef.current)
+    const diff = diffNode instanceof HTMLElement ? diffNode : null
+    diff?.focus()
+  }
+
+  /**
+   * This handles app focus after a user has clicked on an diff expansion
+   * button. With the exception of the top expand up button, the expansion
+   * buttons disappear after clicking and by default the focus moves to the app
+   * body. This is not ideal for accessibilty as a keyboard user must then tab
+   * all the way back to the diff to continut to interact with it.
+   *
+   * If an expansion button of the type clicked is available, we focus it.
+   * Otherwise, we try to find the next closest expansion button and focus that.
+   * If no expansion buttons available, we focus the diff container. This makes
+   * it so if a user expands down and can expand down further, they will
+   * automatically be focused on the next expand down.
+   *
+   * Other context:
+   * - When a user clicks on a diff expansion button, the
+   * lastExpandedHunk state is updated. In the componentDidUpdate, we detect
+   * that change in order to call this after the new expansion buttons have
+   * rendered. The rendered expansion buttons are stored in a map.
+   * - A hunk index may have multiple expansion buttons (up and down) so it does
+   *   not uniquely identify a button.
+   */
+  private focusAfterLastExpandedHunkChange() {
+    if (this.state.lastExpandedHunk === null) {
+      return
+    }
+
+    // No expansion buttons? Focus the diff
+    if (this.hunkExpansionRefs.size === 0) {
+      this.focusListElement()
+      return
+    }
+
+    const expansionHunkKeys = Array.from(this.hunkExpansionRefs.keys()).sort()
+    const { hunkIndex, expansionType } = this.state.lastExpandedHunk
+    const lastExpandedKey = `${hunkIndex}-${expansionType}`
+
+    // If there is a new hunk expansion button of same type in same place as the
+    // last, focus it
+    const lastExpandedHunkButton = this.hunkExpansionRefs.get(lastExpandedKey)
+    if (lastExpandedHunkButton) {
+      lastExpandedHunkButton.focus()
+      return
+    }
+
+    function getHunkKeyIndex(key: string) {
+      return parseInt(key.split('-').at(0) || '', 10)
+    }
+
+    // No?, Then try to focus the next closest hunk in tab order
+    const closestInTabOrder = expansionHunkKeys.find(
+      key => getHunkKeyIndex(key) >= hunkIndex
+    )
+
+    if (closestInTabOrder) {
+      const closetHunkButton = this.hunkExpansionRefs.get(closestInTabOrder)
+      closetHunkButton?.focus()
+      return
+    }
+
+    // No? Then try to focus the next closest hunk in reverse tab order
+    const closestInReverseTabOrder = expansionHunkKeys
+      .reverse()
+      .find(key => getHunkKeyIndex(key) <= hunkIndex)
+
+    if (closestInReverseTabOrder) {
+      const closetHunkButton = this.hunkExpansionRefs.get(
+        closestInReverseTabOrder
+      )
+      closetHunkButton?.focus()
+      return
+    }
+
+    // We should never get here, but just in case focus something!
+    this.focusListElement()
   }
 
   private canExpandDiff() {
@@ -593,11 +675,24 @@ export class SideBySideDiff extends React.Component<
             }
             beforeClassNames={beforeClassNames}
             afterClassNames={afterClassNames}
-            lastExpandedHunk={this.state.lastExpandedHunk}
+            onHunkExpansionRef={this.onHunkExpansionRef}
           />
         </div>
       </CellMeasurer>
     )
+  }
+
+  private onHunkExpansionRef = (
+    hunkIndex: number,
+    expansionType: DiffHunkExpansionType,
+    button: HTMLButtonElement | null
+  ) => {
+    const key = `${hunkIndex}-${expansionType}`
+    if (button === null) {
+      this.hunkExpansionRefs.delete(key)
+    } else {
+      this.hunkExpansionRefs.set(key, button)
+    }
   }
 
   private getRowHeight = (row: { index: number }) => {
@@ -992,7 +1087,7 @@ export class SideBySideDiff extends React.Component<
       return
     }
 
-    this.setState({ lastExpandedHunk: { index: hunkIndex, expansionType } })
+    this.setState({ lastExpandedHunk: { hunkIndex, expansionType } })
 
     const kind = expansionType === DiffHunkExpansionType.Down ? 'down' : 'up'
 

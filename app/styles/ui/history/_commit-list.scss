@@ -12,7 +12,7 @@
     height: 100%;
   }
 
-  .list-item.selected {
+  .list-item.selected:not(.in-keyboard-insertion-mode) {
     .commit {
       .unpushed-indicator {
         background: var(--list-item-selected-badge-background-color);
@@ -47,7 +47,7 @@
     }
   }
 
-  .focus-within {
+  .focus-within:not(.in-keyboard-insertion-mode) {
     .list-item.selected {
       .commit {
         .unpushed-indicator {
@@ -65,6 +65,32 @@
         }
 
         background-color: var(--box-selected-active-background-color);
+      }
+    }
+  }
+
+  .list-item.selected-for-keyboard-insertion {
+    .commit {
+      color: var(--box-selected-text-color);
+      background-color: var(--box-selected-background-color);
+
+      .byline {
+        color: var(--box-selected-text-color);
+      }
+    }
+  }
+
+  .reorder-commits-hint-popover {
+    background-color: var(--background-color);
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+    padding: var(--spacing);
+
+    p {
+      margin: var(--spacing-half) 0;
+
+      &:last-child {
+        margin-bottom: 0;
       }
     }
   }

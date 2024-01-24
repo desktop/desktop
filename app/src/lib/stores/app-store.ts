@@ -752,6 +752,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordTutorialPrCreated()
         this.statsStore.recordTutorialCompleted()
         break
+      case TutorialStep.Announced:
+        // don't need to record anything for announcment
+        break
       default:
         assertNever(step, 'Unaccounted for step type')
     }
@@ -779,6 +782,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public async _markPullRequestTutorialStepAsComplete(repository: Repository) {
     this.tutorialAssessor.markPullRequestTutorialStepAsComplete()
+    await this.updateCurrentTutorialStep(repository)
+  }
+
+  public async _markTutorialCompletionAsAnnounced(repository: Repository) {
+    this.tutorialAssessor.markTutorialCompletionAsAnnounced()
     await this.updateCurrentTutorialStep(repository)
   }
 
@@ -4821,7 +4829,49 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
-  public _setRepositoryCommitToAmend(
+  public async _startAmendingRepository(
+    repository: Repository,
+    commit: Commit,
+    isLocalCommit: boolean,
+    continueWithForcePush: boolean = false
+  ) {
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { tip } = repositoryState.branchesState
+    const { askForConfirmationOnForcePush } = this.getState()
+
+    if (
+      askForConfirmationOnForcePush &&
+      !continueWithForcePush &&
+      !isLocalCommit &&
+      tip.kind === TipState.Valid
+    ) {
+      return this._showPopup({
+        type: PopupType.WarnForcePush,
+        operation: 'Amend',
+        onBegin: () => {
+          this._startAmendingRepository(repository, commit, isLocalCommit, true)
+        },
+      })
+    }
+
+    await this._changeRepositorySection(
+      repository,
+      RepositorySectionTab.Changes
+    )
+
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.restoreCoAuthorsFromCommit(commit)
+
+    this.setRepositoryCommitToAmend(repository, commit)
+
+    this.statsStore.increment('amendCommitStartedCount')
+  }
+
+  public async _stopAmendingRepository(repository: Repository) {
+    this.setRepositoryCommitToAmend(repository, null)
+  }
+
+  private setRepositoryCommitToAmend(
     repository: Repository,
     commit: Commit | null
   ) {
@@ -6312,10 +6362,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const baseURL = `${htmlURL}/pull/new/${compareString}`
 
     await this._openInBrowser(baseURL)
-
-    if (this.currentOnboardingTutorialStep === TutorialStep.OpenPullRequest) {
-      this._markPullRequestTutorialStepAsComplete(repository)
-    }
   }
 
   public async _updateExistingUpstreamRemote(
@@ -7437,8 +7483,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public onChecksFailedNotification = async (
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
-    commitMessage: string,
-    commitSha: string,
     checks: ReadonlyArray<IRefCheck>
   ) => {
     const selectedRepository =
@@ -7449,8 +7493,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       pullRequest,
       repository,
       shouldChangeRepository: true,
-      commitMessage,
-      commitSha,
       checks,
     }
 

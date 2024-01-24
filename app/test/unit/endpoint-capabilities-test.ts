@@ -19,17 +19,8 @@ describe('endpoint-capabilities', () => {
     })
 
     it('recognizes GHAE', () => {
-      expect(testGHAE(false)).toBeFalse()
-      expect(testGHAE(true)).toBeTrue()
-    })
-
-    // GHAE doesn't advertise the installed version so we'll assume its
-    // capabilities match that of a recent supported version of GHES. This is
-    // defined in the `assumedGHAEVersion` constant in endpoint-capabilities.ts
-    // and needs to be updated periodically.
-    it('assumes GHAE versions', () => {
-      expect(testGHAE('>= 3.2.1')).toBeFalse()
-      expect(testGHAE('>= 3.2.0')).toBeTrue()
+      expect(testGHEDotCom(false)).toBeFalse()
+      expect(testGHEDotCom(true)).toBeTrue()
     })
 
     // If we can't determine the actual version of a GitHub Enterprise Server
@@ -51,7 +42,7 @@ describe('endpoint-capabilities', () => {
       expect(
         testEndpoint('https://api.github.com', {
           dotcom: true,
-          ae: '>= 3.0.0',
+          ghe: false,
           es: '>= 3.0.0',
         })
       ).toBeTrue()
@@ -61,7 +52,7 @@ describe('endpoint-capabilities', () => {
           'https://ghe.io',
           {
             dotcom: false,
-            ae: '>= 4.0.0',
+            ghe: false,
             es: '>= 3.1.0',
           },
           '3.1.0'
@@ -77,7 +68,7 @@ function testDotCom(
 ) {
   return testEndpoint(
     getDotComAPIEndpoint(),
-    { dotcom: constraint, ae: false, es: false },
+    { dotcom: constraint, ghe: false, es: false },
     endpointVersion
   )
 }
@@ -88,20 +79,17 @@ function testGHES(
 ) {
   return testEndpoint(
     'https://ghe.io',
-    { dotcom: false, ae: false, es: constraint },
+    { dotcom: false, ghe: false, es: constraint },
     endpointVersion
   )
 }
 
-function testGHAE(
-  constraint: boolean | string,
-  endpointVersion: string | SemVer | null = null
-) {
-  return testEndpoint(
-    'https://corp.ghe.com',
-    { dotcom: false, ae: constraint, es: false },
-    endpointVersion
-  )
+function testGHEDotCom(constraint: boolean) {
+  return testEndpoint('https://corp.ghe.com', {
+    dotcom: false,
+    ghe: constraint,
+    es: false,
+  })
 }
 
 function testEndpoint(

@@ -82,13 +82,6 @@ interface IDiffProps {
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
 
-  /**
-   * Callback to open a selected file using the configured external editor
-   *
-   * @param fullPath The full path to the file on disk
-   */
-  readonly onOpenInExternalEditor?: (fullPath: string) => void
-
   /** Called when the user requests to open a submodule. */
   readonly onOpenSubmodule?: (fullPath: string) => void
 
@@ -281,7 +274,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     if (enableExperimentalDiffViewer() || this.props.showSideBySideDiff) {
       return (
         <SideBySideDiff
-          repository={this.props.repository}
           file={this.props.file}
           diff={diff}
           fileContents={this.props.fileContents}
@@ -301,7 +293,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
     return (
       <TextDiff
-        repository={this.props.repository}
         file={this.props.file}
         readOnly={this.props.readOnly}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}

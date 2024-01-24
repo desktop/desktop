@@ -35,7 +35,7 @@ function getBundleID(shell: Shell): string {
     case Shell.Kitty:
       return 'net.kovidgoyal.kitty'
     case Shell.Alacritty:
-      return 'io.alacritty'
+      return 'org.alacritty'
     case Shell.Tabby:
       return 'org.tabby'
     case Shell.WezTerm:

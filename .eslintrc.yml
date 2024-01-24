@@ -113,6 +113,7 @@ rules:
   react/jsx-uses-vars: error
   react/jsx-uses-react: error
   react/no-unused-state: error
+  # niik 2023-12-05: turning this off to not muddy up the TS5 upgrade.
   react/no-unused-prop-types: error
   react/prop-types:
     - error

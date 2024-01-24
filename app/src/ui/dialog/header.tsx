@@ -79,7 +79,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
 
     return (
       <div className="dialog-header">
-        <h2 id={this.props.titleId}>{this.props.title}</h2>
+        <h1 id={this.props.titleId}>{this.props.title}</h1>
         {spinner}
         {this.renderCloseButton()}
         {this.props.children}

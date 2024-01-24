@@ -1,6 +1,8 @@
 .ci-check-run-job-steps-list {
   overflow-y: auto;
   border-bottom: var(--base-border);
+  margin: 0px;
+  padding: 0px;
 
   .ci-check-run-job-step {
     background-color: var(--box-alt-background-color);

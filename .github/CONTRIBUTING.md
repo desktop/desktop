@@ -66,7 +66,7 @@ comment to the existing issue if there is extra information you can contribute.
 
 Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 
-Simply create an issue on the [GitHub Desktop issue tracker](https://github.com/desktop/desktop/issues/new?template=bug_report.md)
+Simply create an issue on the [GitHub Desktop issue tracker](https://github.com/desktop/desktop/issues/new?template=bug_report.yaml)
 and fill out the provided issue template.
 
 The information we are interested in includes:
@@ -87,7 +87,7 @@ community understand your suggestion :pencil: and find related suggestions
 Before creating enhancement suggestions, please check [this list](#before-submitting-an-enhancement-suggestion)
 as you might find out that you don't need to create one. When you are creating
 an enhancement suggestion, please [include as many details as possible](#how-do-i-submit-a-good-enhancement-suggestion).
-Fill in [the template](ISSUE_TEMPLATE/problem-to-raise.md), including the steps
+Fill in [the template](ISSUE_TEMPLATE/feature_request.yaml), including the steps
 that you imagine you would take if the feature you're requesting existed.
 
 #### Before Submitting An Enhancement Suggestion
@@ -101,7 +101,7 @@ information you would like to add.
 
 Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 
-Simply create an issue on the [GitHub Desktop issue tracker](https://github.com/desktop/desktop/issues/new?template=feature_request.md)
+Simply create an issue on the [GitHub Desktop issue tracker](https://github.com/desktop/desktop/issues/new?template=feature_request.yaml)
 and fill out the provided issue template.
 
 Some additional advice:

@@ -64,7 +64,16 @@ export class TutorialPanel extends React.Component<
   }
 
   private openPullRequest = () => {
-    this.props.dispatcher.createPullRequest(this.props.repository)
+    // This will cause the tutorial pull request step to close first.
+    this.props.dispatcher.markPullRequestTutorialStepAsComplete(
+      this.props.repository
+    )
+
+    // wait for the tutorial step to close before opening the PR, so that the
+    // focusing of the "You're Done!" header is not interupted.
+    setTimeout(() => {
+      this.props.dispatcher.createPullRequest(this.props.repository)
+    }, 500)
   }
 
   private skipEditorInstall = () => {

@@ -173,7 +173,7 @@ dialog {
       margin-left: var(--spacing);
     }
 
-    h2 {
+    h1 {
       font-weight: var(--font-weight-semibold);
       font-size: var(--font-size-md);
       margin: 0;
@@ -344,9 +344,9 @@ dialog {
     }
   }
 
-  // Inline error component rendered at the top of the dialog just below
+  // Dialog banner components rendered at the top of the dialog just below
   // the header (if the dialog has one).
-  .dialog-error {
+  .dialog-banner {
     display: flex;
     padding: var(--spacing);
     align-items: center;
@@ -355,10 +355,6 @@ dialog {
     // of the error of indicate nested errors. We want to preserve these
     // while still forcing line breaks if necessary.
     white-space: pre-wrap;
-
-    background: var(--form-error-background);
-    border-bottom: 1px solid var(--form-error-border-color);
-    color: var(--form-error-text-color);
 
     > .octicon {
       flex-grow: 0;
@@ -369,6 +365,20 @@ dialog {
     div {
       overflow-wrap: break-word;
       overflow-x: hidden;
+    }
+
+    &.dialog-error {
+      color: var(--form-error-text-color);
+      background: var(--form-error-background);
+      border-bottom: 1px solid var(--form-error-border-color);
+      border-top: 1px solid var(--form-error-border-color);
+    }
+
+    &.dialog-success {
+      color: var(--dialog-banner-success-text-color);
+      background: var(--dialog-banner-success-background);
+      border-top: 1px solid var(--dialog-banner-success-border-color);
+      border-bottom: 1px solid var(--dialog-banner-success-border-color);
     }
   }
 
@@ -405,7 +415,7 @@ dialog {
     width: 600px;
 
     .dialog-content {
-      min-height: 375px;
+      min-height: 410px;
     }
 
     // This is to ensure that the dialog content is accessible when zoomed in

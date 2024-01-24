@@ -25,7 +25,7 @@ export function ForkSettingsDescription(props: IForkSettingsDescription) {
         Issues will be created in <strong>{targetRepository.fullName}</strong>.
       </li>
       <li>
-        "View on Github" will open <strong>{targetRepository.fullName}</strong>{' '}
+        "View on GitHub" will open <strong>{targetRepository.fullName}</strong>{' '}
         in the browser.
       </li>
       <li>

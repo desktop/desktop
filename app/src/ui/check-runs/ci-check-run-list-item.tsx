@@ -15,12 +15,6 @@ interface ICICheckRunListItemProps {
   /** The check run to display **/
   readonly checkRun: IRefCheck
 
-  /** Whether call for actions logs is pending */
-  readonly loadingActionLogs: boolean
-
-  /** Whether tcall for actions workflows is pending */
-  readonly loadingActionWorkflows: boolean
-
   /** Whether to show the logs for this check run */
   readonly isCheckRunExpanded: boolean
 

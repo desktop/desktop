@@ -901,35 +901,17 @@ export class Dispatcher {
     isLocalCommit: boolean,
     continueWithForcePush: boolean = false
   ) {
-    const repositoryState = this.repositoryStateManager.get(repository)
-    const { tip } = repositoryState.branchesState
-    const { askForConfirmationOnForcePush } = this.appStore.getState()
-
-    if (
-      askForConfirmationOnForcePush &&
-      !continueWithForcePush &&
-      !isLocalCommit &&
-      tip.kind === TipState.Valid
-    ) {
-      return this.showPopup({
-        type: PopupType.WarnForcePush,
-        operation: 'Amend',
-        onBegin: () => {
-          this.startAmendingRepository(repository, commit, isLocalCommit, true)
-        },
-      })
-    }
-
-    await this.changeRepositorySection(repository, RepositorySectionTab.Changes)
-
-    this.appStore._setRepositoryCommitToAmend(repository, commit)
-
-    this.statsStore.increment('amendCommitStartedCount')
+    this.appStore._startAmendingRepository(
+      repository,
+      commit,
+      isLocalCommit,
+      continueWithForcePush
+    )
   }
 
   /** Stop amending the most recent commit. */
   public async stopAmendingRepository(repository: Repository) {
-    this.appStore._setRepositoryCommitToAmend(repository, null)
+    this.appStore._stopAmendingRepository(repository)
   }
 
   /** Undo the given commit. */
@@ -2668,6 +2650,10 @@ export class Dispatcher {
     return this.appStore._markPullRequestTutorialStepAsComplete(repository)
   }
 
+  public markTutorialCompletionAsAnnounced(repository: Repository) {
+    return this.appStore._markTutorialCompletionAsAnnounced(repository)
+  }
+
   /**
    * Create a tutorial repository using the given account. The account
    * determines which host (i.e. GitHub.com or a GHES instance) that
@@ -3923,16 +3909,8 @@ export class Dispatcher {
   public onChecksFailedNotification(
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
-    commitMessage: string,
-    commitSha: string,
     checks: ReadonlyArray<IRefCheck>
   ) {
-    this.appStore.onChecksFailedNotification(
-      repository,
-      pullRequest,
-      commitMessage,
-      commitSha,
-      checks
-    )
+    this.appStore.onChecksFailedNotification(repository, pullRequest, checks)
   }
 }

@@ -3,7 +3,6 @@ import { Row } from '../lib/row'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { PullRequest } from '../../models/pull-request'
 import { Dispatcher } from '../dispatcher'
-import { Account } from '../../models/account'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import {
   getPullRequestReviewStateIcon,
@@ -12,10 +11,10 @@ import {
 import { LinkButton } from '../lib/link-button'
 import { ValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
 import { PullRequestCommentLike } from './pull-request-comment-like'
+import { Account } from '../../models/account'
 
 interface IPullRequestReviewProps {
   readonly dispatcher: Dispatcher
-  readonly accounts: ReadonlyArray<Account>
   readonly repository: RepositoryWithGitHubRepository
   readonly pullRequest: PullRequest
   readonly review: ValidNotificationPullRequestReview
@@ -32,6 +31,8 @@ interface IPullRequestReviewProps {
 
   readonly onSubmit: () => void
   readonly onDismissed: () => void
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface IPullRequestReviewState {
@@ -56,7 +57,6 @@ export class PullRequestReview extends React.Component<
   public render() {
     const {
       dispatcher,
-      accounts,
       repository,
       pullRequest,
       emoji,
@@ -71,7 +71,6 @@ export class PullRequestReview extends React.Component<
       <PullRequestCommentLike
         id="pull-request-review"
         dispatcher={dispatcher}
-        accounts={accounts}
         repository={repository}
         pullRequest={pullRequest}
         emoji={emoji}
@@ -86,6 +85,7 @@ export class PullRequestReview extends React.Component<
         renderFooterContent={this.renderFooterContent}
         onSubmit={onSubmit}
         onDismissed={onDismissed}
+        accounts={this.props.accounts}
       />
     )
   }
