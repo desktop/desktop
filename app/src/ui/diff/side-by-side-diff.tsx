@@ -1029,8 +1029,11 @@ export class SideBySideDiff extends React.Component<
         }
         const diffLineNumber = this.getDiffRowLineNumber(row, column)
 
+        // Always scroll to the row that contains the mouse, to ease range-based
+        // selection with it
+        list.scrollToRow(index)
+
         if (diffLineNumber !== null) {
-          list.scrollToRow(index)
           this.setState({
             temporarySelection: {
               ...temporarySelection,
