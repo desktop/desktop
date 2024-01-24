@@ -553,10 +553,19 @@ export class SideBySideDiffRow extends React.Component<
         {isSelectable &&
           this.renderLineNumberCheckbox(checkboxId, isSelected === true)}
         <label htmlFor={checkboxId}>
+          {this.renderLineNumberCheck(isSelected)}
           {lineNumbers.map((lineNumber, index) => (
             <span key={index}>{lineNumber}</span>
           ))}
         </label>
+      </div>
+    )
+  }
+
+  private renderLineNumberCheck(isSelected?: boolean) {
+    return (
+      <div className="line-number-check">
+        {isSelected ? <Octicon symbol={OcticonSymbol.check} /> : null}
       </div>
     )
   }
