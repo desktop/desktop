@@ -565,6 +565,10 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private renderLineNumberCheck(isSelected?: boolean) {
+    if (!this.props.isDiffSelectable) {
+      return null
+    }
+
     return (
       <div className="line-number-check">
         {isSelected ? <Octicon symbol={OcticonSymbol.check} /> : null}
