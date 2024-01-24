@@ -60,7 +60,10 @@ import {
   expandWholeTextDiff,
 } from './text-diff-expansion'
 import { IMenuItem } from '../../lib/menu-item'
-import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
+import {
+  DiffContentsWarning,
+  DiffContentsWarningType,
+} from './diff-contents-warning'
 import { findDOMNode } from 'react-dom'
 import escapeRegExp from 'lodash/escapeRegExp'
 
@@ -537,7 +540,17 @@ export class SideBySideDiff extends React.Component<
         onMouseDown={this.onMouseDown}
         onKeyDown={this.onKeyDown}
       >
-        {diff.hasHiddenBidiChars && <HiddenBidiCharsWarning />}
+        {diff.hasHiddenBidiChars && (
+          <DiffContentsWarning
+            type={DiffContentsWarningType.UnicodeBidiCharacters}
+          />
+        )}
+        {diff.lineEndingsChange && (
+          <DiffContentsWarning
+            type={DiffContentsWarningType.LineEndingsChange}
+            lineEndingsChange={diff.lineEndingsChange}
+          />
+        )}
         {this.state.isSearching && (
           <DiffSearchInput
             onSearch={this.onSearch}
