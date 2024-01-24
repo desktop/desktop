@@ -420,8 +420,10 @@ export class SideBySideDiffRow extends React.Component<
    * for side-by-side diffs the gutter contains the line number of only one side.
    */
   private get lineGutterWidth() {
-    const { showSideBySideDiff, lineNumberWidth } = this.props
-    return showSideBySideDiff ? lineNumberWidth : lineNumberWidth * 2
+    const { showSideBySideDiff, lineNumberWidth, isDiffSelectable } = this.props
+    return showSideBySideDiff
+      ? lineNumberWidth + (isDiffSelectable ? 10 : 0)
+      : lineNumberWidth * 2
   }
 
   private renderHunkExpansionHandle(
