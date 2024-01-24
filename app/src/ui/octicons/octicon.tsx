@@ -20,9 +20,9 @@ interface IOcticonProps {
   readonly className?: string
 
   /**
-   * An optional string to use as a tooltip for the icon
+   * An optional string to use as a tooltip and aria-label for the icon
    */
-  readonly title?: JSX.Element | string
+  readonly title?: string
 
   readonly tooltipDirection?: TooltipDirection
 }
@@ -56,6 +56,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
     return (
       <svg
         aria-hidden={ariaHidden}
+        aria-label={title}
         className={className}
         version="1.1"
         viewBox={viewBox}
