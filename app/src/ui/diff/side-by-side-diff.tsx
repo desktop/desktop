@@ -993,7 +993,7 @@ export class SideBySideDiff extends React.Component<
     const offsetInListScroll = offsetInList + listNode.scrollTop
 
     const rows = this.getCurrentDiffRows()
-    const totalRows = rows.length - 1
+    const totalRows = rows.length
 
     let rowOffset = 0
 
