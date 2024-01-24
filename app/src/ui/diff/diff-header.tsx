@@ -83,7 +83,6 @@ export class DiffHeader extends React.Component<IDiffHeaderProps, {}> {
           symbol={OcticonSymbol.alert}
           className={'line-endings'}
           title={message}
-          ariaLabel={message}
         />
       )
     } else {
