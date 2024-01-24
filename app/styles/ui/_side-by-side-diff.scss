@@ -80,6 +80,7 @@
       width: 100%;
       display: flex;
       border-color: inherit;
+      border-radius: var(--border-radius);
 
       span {
         flex: 1;
@@ -105,6 +106,7 @@
 
       &.line-selected {
         border-color: var(--diff-selected-border-color);
+        background: var(--diff-selected-background-color);
 
         label {
           background: var(--diff-selected-background-color);
@@ -116,7 +118,9 @@
           border-color: var(--diff-hover-border-color);
         }
 
+        &.hoverable:hover,
         &.hoverable:hover label,
+        &.hover,
         &.hover label,
         input:focus-visible + label {
           background: var(--diff-hover-background-color);
@@ -224,7 +228,9 @@
         border-color: var(--diff-delete-hover-border-color);
       }
 
+      &.hoverable:hover,
       &.hoverable:hover label,
+      &.hover,
       &.hover label,
       input:focus-visible + label {
         background: var(--diff-delete-hover-background-color);
@@ -248,7 +254,9 @@
         border-color: var(--diff-add-hover-border-color);
       }
 
+      &.hoverable:hover,
       &.hoverable:hover label,
+      &.hover,
       &.hover label,
       input:focus-visible + label {
         background: var(--diff-add-hover-background-color);
