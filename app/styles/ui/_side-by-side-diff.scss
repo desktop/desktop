@@ -82,6 +82,18 @@
       border-color: inherit;
       border-radius: var(--border-radius);
 
+      .line-number-check {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        flex-shrink: 0;
+
+        .octicon {
+          height: 12px;
+        }
+      }
+
       span {
         flex: 1;
         user-select: none;
