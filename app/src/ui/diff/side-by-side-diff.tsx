@@ -62,7 +62,7 @@ import {
 import { IMenuItem } from '../../lib/menu-item'
 import {
   DiffContentsWarning,
-  DiffContentsWarningType,
+  getTextDiffWarningItems,
 } from './diff-contents-warning'
 import { findDOMNode } from 'react-dom'
 import escapeRegExp from 'lodash/escapeRegExp'
@@ -533,6 +533,8 @@ export class SideBySideDiff extends React.Component<
       editable: canSelect(this.props.file),
     })
 
+    const warningItems = getTextDiffWarningItems(diff)
+
     return (
       // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
@@ -540,16 +542,8 @@ export class SideBySideDiff extends React.Component<
         onMouseDown={this.onMouseDown}
         onKeyDown={this.onKeyDown}
       >
-        {diff.hasHiddenBidiChars && (
-          <DiffContentsWarning
-            type={DiffContentsWarningType.UnicodeBidiCharacters}
-          />
-        )}
-        {diff.lineEndingsChange && (
-          <DiffContentsWarning
-            type={DiffContentsWarningType.LineEndingsChange}
-            lineEndingsChange={diff.lineEndingsChange}
-          />
+        {warningItems.length !== 0 && (
+          <DiffContentsWarning items={warningItems} />
         )}
         {this.state.isSearching && (
           <DiffSearchInput

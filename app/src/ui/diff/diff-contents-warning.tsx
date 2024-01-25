@@ -2,14 +2,14 @@ import React from 'react'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
-import { LineEndingsChange } from '../../models/diff'
+import { ITextDiff, LineEndingsChange } from '../../models/diff'
 
 export enum DiffContentsWarningType {
   UnicodeBidiCharacters,
   LineEndingsChange,
 }
 
-type DiffContentsWarningProps =
+type DiffContentsWarningItem =
   | {
       readonly type: DiffContentsWarningType.UnicodeBidiCharacters
     }
@@ -18,18 +18,47 @@ type DiffContentsWarningProps =
       readonly lineEndingsChange: LineEndingsChange
     }
 
-export class DiffContentsWarning extends React.Component<DiffContentsWarningProps> {
+export function getTextDiffWarningItems(
+  diff: ITextDiff
+): ReadonlyArray<DiffContentsWarningItem> {
+  const items = new Array<DiffContentsWarningItem>()
+
+  if (diff.hasHiddenBidiChars) {
+    items.push({
+      type: DiffContentsWarningType.UnicodeBidiCharacters,
+    })
+  }
+
+  if (diff.lineEndingsChange) {
+    items.push({
+      type: DiffContentsWarningType.LineEndingsChange,
+      lineEndingsChange: diff.lineEndingsChange,
+    })
+  }
+
+  return items
+}
+
+interface IDiffContentsWarningProps {
+  readonly items: ReadonlyArray<DiffContentsWarningItem>
+}
+
+export class DiffContentsWarning extends React.Component<IDiffContentsWarningProps> {
   public render() {
     return (
-      <div className="diff-contents-warning">
-        <Octicon symbol={OcticonSymbol.alert} />
-        {this.getWarningMessage()}
+      <div className="diff-contents-warning-container">
+        {this.props.items.map((item, i) => (
+          <div className="diff-contents-warning" key={i}>
+            <Octicon symbol={OcticonSymbol.alert} />
+            {this.getWarningMessageForItem(item)}
+          </div>
+        ))}
       </div>
     )
   }
 
-  private getWarningMessage() {
-    switch (this.props.type) {
+  private getWarningMessageForItem(item: DiffContentsWarningItem) {
+    switch (item.type) {
       case DiffContentsWarningType.UnicodeBidiCharacters:
         return (
           <>
@@ -44,7 +73,7 @@ export class DiffContentsWarning extends React.Component<DiffContentsWarningProp
         )
 
       case DiffContentsWarningType.LineEndingsChange:
-        const { lineEndingsChange } = this.props
+        const { lineEndingsChange } = item
         return (
           <>
             This diff contains a change in line endings from '

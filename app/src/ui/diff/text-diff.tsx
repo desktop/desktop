@@ -58,7 +58,7 @@ import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { PopoverAnchorPosition } from '../lib/popover'
 import {
   DiffContentsWarning,
-  DiffContentsWarningType,
+  getTextDiffWarningItems,
 } from './diff-contents-warning'
 
 // This is a custom version of the no-newline octicon that's exactly as
@@ -1557,18 +1557,12 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       this.getNoNewlineIndicatorLines(this.state.diff.hunks)
     )
 
+    const warningItems = getTextDiffWarningItems(diff)
+
     return (
       <>
-        {diff.hasHiddenBidiChars && (
-          <DiffContentsWarning
-            type={DiffContentsWarningType.UnicodeBidiCharacters}
-          />
-        )}
-        {diff.lineEndingsChange && (
-          <DiffContentsWarning
-            type={DiffContentsWarningType.LineEndingsChange}
-            lineEndingsChange={diff.lineEndingsChange}
-          />
+        {warningItems.length !== 0 && (
+          <DiffContentsWarning items={warningItems} />
         )}
         <CodeMirrorHost
           className="diff-code-mirror"
