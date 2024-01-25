@@ -716,7 +716,20 @@ export class GitStore extends BaseStore {
     this.emitUpdate()
   }
 
-  public async restoreCoAuthorsFromCommit(commit: Commit) {
+  public async prepareToAmendCommit(commit: Commit) {
+    const coAuthorsRestored = await this.restoreCoAuthorsFromCommit(commit)
+    if (coAuthorsRestored) {
+      return
+    }
+
+    this._commitMessage = {
+      summary: commit.summary,
+      description: commit.body,
+    }
+    this.emitUpdate()
+  }
+
+  private async restoreCoAuthorsFromCommit(commit: Commit) {
     // Let's be safe about this since it's untried waters.
     // If we can restore co-authors then that's fantastic
     // but if we can't we shouldn't be throwing an error,
