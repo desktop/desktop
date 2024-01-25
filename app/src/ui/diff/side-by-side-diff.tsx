@@ -60,10 +60,7 @@ import {
   expandWholeTextDiff,
 } from './text-diff-expansion'
 import { IMenuItem } from '../../lib/menu-item'
-import {
-  DiffContentsWarning,
-  getTextDiffWarningItems,
-} from './diff-contents-warning'
+import { DiffContentsWarning } from './diff-contents-warning'
 import { findDOMNode } from 'react-dom'
 import escapeRegExp from 'lodash/escapeRegExp'
 
@@ -533,8 +530,6 @@ export class SideBySideDiff extends React.Component<
       editable: canSelect(this.props.file),
     })
 
-    const warningItems = getTextDiffWarningItems(diff)
-
     return (
       // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
@@ -542,9 +537,7 @@ export class SideBySideDiff extends React.Component<
         onMouseDown={this.onMouseDown}
         onKeyDown={this.onKeyDown}
       >
-        {warningItems.length !== 0 && (
-          <DiffContentsWarning items={warningItems} />
-        )}
+        <DiffContentsWarning diff={diff} />
         {this.state.isSearching && (
           <DiffSearchInput
             onSearch={this.onSearch}

@@ -4,7 +4,7 @@ import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
 import { ITextDiff, LineEndingsChange } from '../../models/diff'
 
-export enum DiffContentsWarningType {
+enum DiffContentsWarningType {
   UnicodeBidiCharacters,
   LineEndingsChange,
 }
@@ -18,36 +18,21 @@ type DiffContentsWarningItem =
       readonly lineEndingsChange: LineEndingsChange
     }
 
-export function getTextDiffWarningItems(
-  diff: ITextDiff
-): ReadonlyArray<DiffContentsWarningItem> {
-  const items = new Array<DiffContentsWarningItem>()
-
-  if (diff.hasHiddenBidiChars) {
-    items.push({
-      type: DiffContentsWarningType.UnicodeBidiCharacters,
-    })
-  }
-
-  if (diff.lineEndingsChange) {
-    items.push({
-      type: DiffContentsWarningType.LineEndingsChange,
-      lineEndingsChange: diff.lineEndingsChange,
-    })
-  }
-
-  return items
-}
-
 interface IDiffContentsWarningProps {
-  readonly items: ReadonlyArray<DiffContentsWarningItem>
+  readonly diff: ITextDiff
 }
 
 export class DiffContentsWarning extends React.Component<IDiffContentsWarningProps> {
   public render() {
+    const items = this.getTextDiffWarningItems()
+
+    if (items.length === 0) {
+      return null
+    }
+
     return (
       <div className="diff-contents-warning-container">
-        {this.props.items.map((item, i) => (
+        {items.map((item, i) => (
           <div className="diff-contents-warning" key={i}>
             <Octicon symbol={OcticonSymbol.alert} />
             {this.getWarningMessageForItem(item)}
@@ -55,6 +40,26 @@ export class DiffContentsWarning extends React.Component<IDiffContentsWarningPro
         ))}
       </div>
     )
+  }
+
+  private getTextDiffWarningItems(): ReadonlyArray<DiffContentsWarningItem> {
+    const items = new Array<DiffContentsWarningItem>()
+    const { diff } = this.props
+
+    if (diff.hasHiddenBidiChars) {
+      items.push({
+        type: DiffContentsWarningType.UnicodeBidiCharacters,
+      })
+    }
+
+    if (diff.lineEndingsChange) {
+      items.push({
+        type: DiffContentsWarningType.LineEndingsChange,
+        lineEndingsChange: diff.lineEndingsChange,
+      })
+    }
+
+    return items
   }
 
   private getWarningMessageForItem(item: DiffContentsWarningItem) {
