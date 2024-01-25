@@ -67,6 +67,15 @@ export class RepositoryStateCache {
     this.repositoryState.set(repository.hash, {
       ...newState,
       commitToAmend: isAmending ? newState.commitToAmend : null,
+      changesState: isAmending
+        ? {
+            ...newState.changesState,
+            commitMessage: {
+              summary: newState.commitToAmend.summary,
+              description: newState.commitToAmend.body,
+            },
+          }
+        : newState.changesState,
     })
   }
 
