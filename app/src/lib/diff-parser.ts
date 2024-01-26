@@ -340,8 +340,7 @@ export class DiffParser {
       // We must increase `diffLineNumber` only when we're certain that the line
       // is not a "no newline" marker. Otherwise, we'll end up with a wrong
       // `diffLineNumber` for the next line. This could happen if the last line
-      // in the file doesn't have a newline before the change nor after the
-      // change.
+      // in the file doesn't have a newline before the change.
       diffLineNumber++
 
       let diffLine: DiffLine
