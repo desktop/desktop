@@ -18,6 +18,7 @@ import { PopoverAnchorPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { TooltipDirection } from '../lib/tooltip'
 import { Button } from '../lib/button'
+import { diffCheck } from '../octicons/diff-check'
 
 enum DiffRowPrefix {
   Added = '+',
@@ -571,7 +572,7 @@ export class SideBySideDiffRow extends React.Component<
 
     return (
       <div className="line-number-check">
-        {isSelected ? <Octicon symbol={OcticonSymbol.diffCheck} /> : null}
+        {isSelected ? <Octicon symbol={diffCheck} /> : null}
       </div>
     )
   }
