@@ -199,7 +199,7 @@
 
 .no-pull-requests {
   width: 365px;
-  margin: 0 auto;
+  margin: var(--spacing) auto;
   display: flex;
   flex-direction: column;
 
