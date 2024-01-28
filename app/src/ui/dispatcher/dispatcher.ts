@@ -953,10 +953,19 @@ export class Dispatcher {
     return this.appStore._setSidebarWidth(width)
   }
 
+  /**
+   * Set the width of the Branch toolbar button to the given value.
+   * This affects the toolbar button and its dropdown element.
+   *
+   * @param width The value for the width of Branch button
+   */
   public setBranchDropdownWidth(width: number): Promise<void> {
     return this.appStore._setBranchDropdownWidth(width)
   }
 
+  /**
+   * Reset the width of the Branch toolbar button to its default value.
+   */
   public resetBranchDropdownWidth(): Promise<void> {
     return this.appStore._resetBranchDropdownWidth()
   }
