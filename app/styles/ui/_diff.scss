@@ -857,7 +857,7 @@
   }
 
   // When focus moves to the virtualized grid, we want to show a focus ring.
-  &:has(.ReactVirtualized__Grid:focus) {
+  &:has(.ReactVirtualized__Grid:focus-visible) {
     outline: 2px solid var(--focus-color);
     border-radius: var(--border-radius);
 
