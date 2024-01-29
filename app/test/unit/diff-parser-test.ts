@@ -256,6 +256,7 @@ index 1910281..257cc56 100644
     expect(lines[i].type).toBe(DiffLineType.Delete)
     expect(lines[i].oldLineNumber).toBe(1)
     expect(lines[i].newLineNumber).toBeNull()
+    expect(lines[i].originalLineNumber).toBe(1)
     expect(lines[i].noTrailingNewLine).toBe(true)
     i++
 
@@ -263,6 +264,7 @@ index 1910281..257cc56 100644
     expect(lines[i].type).toBe(DiffLineType.Add)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBe(1)
+    expect(lines[i].originalLineNumber).toBe(2)
     expect(lines[i].noTrailingNewLine).toBe(false)
     i++
   })
@@ -305,6 +307,7 @@ index 1910281..ba0e162 100644
     expect(lines[i].type).toBe(DiffLineType.Delete)
     expect(lines[i].oldLineNumber).toBe(1)
     expect(lines[i].newLineNumber).toBeNull()
+    expect(lines[i].originalLineNumber).toBe(1)
     expect(lines[i].noTrailingNewLine).toBe(true)
     i++
 
@@ -312,6 +315,7 @@ index 1910281..ba0e162 100644
     expect(lines[i].type).toBe(DiffLineType.Add)
     expect(lines[i].oldLineNumber).toBeNull()
     expect(lines[i].newLineNumber).toBe(1)
+    expect(lines[i].originalLineNumber).toBe(2)
     expect(lines[i].noTrailingNewLine).toBe(true)
     i++
   })
