@@ -3,7 +3,7 @@ import { ChildProcess } from 'child_process'
 import * as Darwin from './darwin'
 import * as Win32 from './win32'
 import * as Linux from './linux'
-import { IFoundShell } from './found-shell'
+import { IFoundDarwinShell, IFoundShell } from './found-shell'
 import { ShellError } from './error'
 import { pathExists } from '../../ui/lib/path-exists'
 
@@ -92,7 +92,7 @@ export async function launchShell(
   let cp: ChildProcess | null = null
 
   if (__DARWIN__) {
-    cp = Darwin.launch(shell as IFoundShell<Darwin.Shell>, path)
+    cp = Darwin.launch(shell as IFoundDarwinShell<Darwin.Shell>, path)
   } else if (__WIN32__) {
     cp = Win32.launch(shell as IFoundShell<Win32.Shell>, path)
   } else if (__LINUX__) {

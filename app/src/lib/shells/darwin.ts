@@ -1,6 +1,6 @@
 import { spawn, ChildProcess } from 'child_process'
 import { assertNever } from '../fatal-error'
-import { IFoundShell } from './found-shell'
+import { IFoundDarwinShell } from './found-shell'
 import appPath from 'app-path'
 import { parseEnumValue } from '../enum'
 
@@ -22,43 +22,52 @@ export function parse(label: string): Shell {
   return parseEnumValue(Shell, label) ?? Default
 }
 
-function getBundleID(shell: Shell): string {
+function getBundleIDs(shell: Shell): string[] {
   switch (shell) {
     case Shell.Terminal:
-      return 'com.apple.Terminal'
+      return ['com.apple.Terminal']
     case Shell.iTerm2:
-      return 'com.googlecode.iterm2'
+      return ['com.googlecode.iterm2']
     case Shell.Hyper:
-      return 'co.zeit.hyper'
+      return ['co.zeit.hyper']
     case Shell.PowerShellCore:
-      return 'com.microsoft.powershell'
+      return ['com.microsoft.powershell']
     case Shell.Kitty:
-      return 'net.kovidgoyal.kitty'
+      return ['net.kovidgoyal.kitty']
     case Shell.Alacritty:
-      return 'org.alacritty'
+      return ['org.alacritty', 'io.alacritty']
     case Shell.Tabby:
-      return 'org.tabby'
+      return ['org.tabby']
     case Shell.WezTerm:
-      return 'com.github.wez.wezterm'
+      return ['com.github.wez.wezterm']
     case Shell.Warp:
-      return 'dev.warp.Warp-Stable'
+      return ['dev.warp.Warp-Stable']
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
 }
 
-async function getShellPath(shell: Shell): Promise<string | null> {
-  const bundleId = getBundleID(shell)
-  try {
-    return await appPath(bundleId)
-  } catch (e) {
-    // `appPath` will raise an error if it cannot find the program.
-    return null
+async function getShellPath(
+  shell: Shell
+): Promise<{ path: string; bundleID: string } | null> {
+  const bundleIds = getBundleIDs(shell)
+  for (const id of bundleIds) {
+    try {
+      const path = await appPath(id)
+      return { path, bundleID: id }
+    } catch (error) {
+      log.debug(
+        `Unable to locate ${shell} installation with bundle id ${id}`,
+        error
+      )
+    }
   }
+
+  return null
 }
 
 export async function getAvailableShells(): Promise<
-  ReadonlyArray<IFoundShell<Shell>>
+  ReadonlyArray<IFoundDarwinShell<Shell>>
 > {
   const [
     terminalPath,
@@ -82,53 +91,73 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.Warp),
   ])
 
-  const shells: Array<IFoundShell<Shell>> = []
+  const shells: Array<IFoundDarwinShell<Shell>> = []
   if (terminalPath) {
-    shells.push({ shell: Shell.Terminal, path: terminalPath })
+    shells.push({ shell: Shell.Terminal, ...terminalPath })
   }
 
   if (hyperPath) {
-    shells.push({ shell: Shell.Hyper, path: hyperPath })
+    shells.push({ shell: Shell.Hyper, ...hyperPath })
   }
 
   if (iTermPath) {
-    shells.push({ shell: Shell.iTerm2, path: iTermPath })
+    shells.push({ shell: Shell.iTerm2, ...iTermPath })
   }
 
   if (powerShellCorePath) {
-    shells.push({ shell: Shell.PowerShellCore, path: powerShellCorePath })
+    shells.push({ shell: Shell.PowerShellCore, ...powerShellCorePath })
   }
 
   if (kittyPath) {
     const kittyExecutable = `${kittyPath}/Contents/MacOS/kitty`
-    shells.push({ shell: Shell.Kitty, path: kittyExecutable })
+    shells.push({
+      shell: Shell.Kitty,
+      path: kittyExecutable,
+      bundleID: kittyPath.bundleID,
+    })
   }
 
   if (alacrittyPath) {
     const alacrittyExecutable = `${alacrittyPath}/Contents/MacOS/alacritty`
-    shells.push({ shell: Shell.Alacritty, path: alacrittyExecutable })
+    shells.push({
+      shell: Shell.Alacritty,
+      path: alacrittyExecutable,
+      bundleID: alacrittyPath.bundleID,
+    })
   }
 
   if (tabbyPath) {
     const tabbyExecutable = `${tabbyPath}/Contents/MacOS/Tabby`
-    shells.push({ shell: Shell.Tabby, path: tabbyExecutable })
+    shells.push({
+      shell: Shell.Tabby,
+      path: tabbyExecutable,
+      bundleID: tabbyPath.bundleID,
+    })
   }
 
   if (wezTermPath) {
     const wezTermExecutable = `${wezTermPath}/Contents/MacOS/wezterm`
-    shells.push({ shell: Shell.WezTerm, path: wezTermExecutable })
+    shells.push({
+      shell: Shell.WezTerm,
+      path: wezTermExecutable,
+      bundleID: wezTermPath.bundleID,
+    })
   }
 
   if (warpPath) {
     const warpExecutable = `${warpPath}/Contents/MacOS/stable`
-    shells.push({ shell: Shell.Warp, path: warpExecutable })
+    shells.push({
+      shell: Shell.Warp,
+      path: warpExecutable,
+      bundleID: warpPath.bundleID,
+    })
   }
 
   return shells
 }
 
 export function launch(
-  foundShell: IFoundShell<Shell>,
+  foundShell: IFoundDarwinShell<Shell>,
   path: string
 ): ChildProcess {
   if (foundShell.shell === Shell.Kitty) {
@@ -158,7 +187,6 @@ export function launch(
     // the working directory, followed by the path.
     return spawn(foundShell.path, ['start', '--cwd', path])
   } else {
-    const bundleID = getBundleID(foundShell.shell)
-    return spawn('open', ['-b', bundleID, path])
+    return spawn('open', ['-b', foundShell.bundleID, path])
   }
 }

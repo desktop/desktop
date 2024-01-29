@@ -3,3 +3,7 @@ export interface IFoundShell<T> {
   readonly path: string
   readonly extraArgs?: string[]
 }
+
+export interface IFoundDarwinShell<T> extends IFoundShell<T> {
+  readonly bundleID: string
+}
