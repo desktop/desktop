@@ -56,7 +56,7 @@ import { createOcticonElement } from '../octicons/octicon'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { PopoverAnchorPosition } from '../lib/popover'
-import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
+import { DiffContentsWarning } from './diff-contents-warning'
 
 // This is a custom version of the no-newline octicon that's exactly as
 // tall as it needs to be (8px) which helps with aligning it on the line.
@@ -1556,7 +1556,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     return (
       <>
-        {diff.hasHiddenBidiChars && <HiddenBidiCharsWarning />}
+        <DiffContentsWarning diff={diff} />
         <CodeMirrorHost
           className="diff-code-mirror"
           value={doc}

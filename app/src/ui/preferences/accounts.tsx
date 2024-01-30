@@ -54,9 +54,14 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
     const accountTypeLabel =
       type === SignInType.DotCom ? 'GitHub.com' : 'GitHub Enterprise'
 
+    const accounts = [
+      ...(this.props.dotComAccount ? [this.props.dotComAccount] : []),
+      ...(this.props.enterpriseAccount ? [this.props.enterpriseAccount] : []),
+    ]
+
     return (
       <Row className="account-info">
-        <Avatar user={avatarUser} />
+        <Avatar accounts={accounts} user={avatarUser} />
         <div className="user-info">
           <div className="name">{account.name}</div>
           <div className="login">@{account.login}</div>

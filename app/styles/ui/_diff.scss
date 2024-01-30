@@ -728,6 +728,12 @@
     color: var(--syntax-header-color);
   }
 
+  .cm-m-cmake {
+    &.cm-def {
+      color: var(--syntax-atom-color);
+    }
+  }
+
   .cm-m-css {
     &.cm-property {
       color: var(--syntax-atom-color);
@@ -796,7 +802,7 @@
     pointer-events: none;
   }
 
-  .hidden-bidi-chars-warning {
+  .diff-contents-warning-container {
     background-color: var(--file-warning-background-color);
     padding: var(--spacing) var(--spacing-double);
     border-bottom: var(--file-warning-border-color) solid 1px;
@@ -809,6 +815,13 @@
 
     a.link-button-component {
       display: unset;
+    }
+
+    // Separate warning items
+    .diff-contents-warning:not(:last-child) {
+      margin-bottom: var(--spacing);
+      border-bottom: var(--file-warning-border-color) solid 1px;
+      padding-bottom: var(--spacing);
     }
   }
 

@@ -3,19 +3,22 @@ import { getDotComAPIEndpoint } from './api'
 import { assertNonNullable } from './fatal-error'
 
 export type VersionConstraint = {
-  /** Whether this constrain will be satisfied when using GitHub.com */
-  dotcom: boolean
   /**
-   * Whether this constrain will be satisfied when using GitHub AE
-   * Supports specifying a version constraint as a SemVer Range (ex: >= 3.1.0)
+   * Whether this constrain will be satisfied when using GitHub.com, defaults
+   * to false
+   **/
+  dotcom?: boolean
+  /**
+   * Whether this constrain will be satisfied when using ghe.com, defaults to
+   * the value of `dotcom` if not specified
    */
-  ae: boolean | string
+  ghe?: boolean
   /**
    * Whether this constrain will be satisfied when using GitHub Enterprise
    * Server. Supports specifying a version constraint as a SemVer Range (ex: >=
-   * 3.1.0)
+   * 3.1.0), defaults to false
    */
-  es: boolean | string
+  es?: boolean | string
 }
 
 /**
@@ -28,16 +31,6 @@ export type VersionConstraint = {
  * needs to be updated manually.
  */
 const assumedGHESVersion = new semver.SemVer('3.1.0')
-
-/**
- * If we're connected to a GHAE instance we won't know its version number
- * since it doesn't report that so we'll use this substitute GHES equivalent
- * version number.
- *
- * This should correspond loosely with the most recent GHES series and
- * needs to be updated manually.
- */
-const assumedGHAEVersion = new semver.SemVer('3.2.0')
 
 /** Stores raw x-github-enterprise-version headers keyed on endpoint */
 const rawVersionCache = new Map<string, string>()
@@ -58,18 +51,14 @@ const endpointVersionKey = (ep: string) => `endpoint-version:${ep}`
  */
 export const isDotCom = (ep: string) => ep === getDotComAPIEndpoint()
 
-/**
- * Whether or not the given endpoint URI appears to point to a GitHub AE
- * instance
- */
-export const isGHAE = (ep: string) =>
-  /^https:\/\/[a-z0-9-]+\.ghe\.com$/i.test(ep)
+/** Whether or not the given endpoint URI is under the ghe.com domain */
+export const isGHE = (ep: string) => new URL(ep).hostname.endsWith('.ghe.com')
 
 /**
  * Whether or not the given endpoint URI appears to point to a GitHub Enterprise
  * Server instance
  */
-export const isGHES = (ep: string) => !isDotCom(ep) && !isGHAE(ep)
+export const isGHES = (ep: string) => !isDotCom(ep) && !isGHE(ep)
 
 function getEndpointVersion(endpoint: string) {
   const key = endpointVersionKey(endpoint)
@@ -104,12 +93,12 @@ export function updateEndpointVersion(endpoint: string, version: string) {
 }
 
 function checkConstraint(
-  epConstraint: string | boolean,
+  epConstraint: string | boolean | undefined,
   epMatchesType: boolean,
   epVersion?: semver.SemVer
 ) {
   // Denial of endpoint type regardless of version
-  if (epConstraint === false) {
+  if (epConstraint === undefined || epConstraint === false) {
     return false
   }
 
@@ -131,32 +120,25 @@ function checkConstraint(
  *       Consumers should use the various `supports*` methods instead.
  */
 export const endpointSatisfies =
-  ({ dotcom, ae, es }: VersionConstraint, getVersion = getEndpointVersion) =>
+  ({ dotcom, ghe, es }: VersionConstraint, getVersion = getEndpointVersion) =>
   (ep: string) =>
     checkConstraint(dotcom, isDotCom(ep)) ||
-    checkConstraint(ae, isGHAE(ep), assumedGHAEVersion) ||
+    checkConstraint(ghe ?? dotcom, isGHE(ep)) ||
     checkConstraint(es, isGHES(ep), getVersion(ep) ?? assumedGHESVersion)
 
 /**
  * Whether or not the endpoint supports the internal GitHub Enterprise Server
  * avatars API
  */
-export const supportsAvatarsAPI = endpointSatisfies({
-  dotcom: false,
-  ae: '>= 3.0.0',
-  es: '>= 3.0.0',
-})
+export const supportsAvatarsAPI = endpointSatisfies({ es: '>= 3.0.0' })
 
 export const supportsRerunningChecks = endpointSatisfies({
   dotcom: true,
-  ae: '>= 3.4.0',
   es: '>= 3.4.0',
 })
 
 export const supportsRerunningIndividualOrFailedChecks = endpointSatisfies({
   dotcom: true,
-  ae: false,
-  es: false,
 })
 
 /**
@@ -165,18 +147,8 @@ export const supportsRerunningIndividualOrFailedChecks = endpointSatisfies({
  */
 export const supportsRetrieveActionWorkflowByCheckSuiteId = endpointSatisfies({
   dotcom: true,
-  ae: false,
-  es: false,
 })
 
-export const supportsAliveSessions = endpointSatisfies({
-  dotcom: true,
-  ae: false,
-  es: false,
-})
+export const supportsAliveSessions = endpointSatisfies({ dotcom: true })
 
-export const supportsRepoRules = endpointSatisfies({
-  dotcom: true,
-  ae: false,
-  es: false,
-})
+export const supportsRepoRules = endpointSatisfies({ dotcom: true })
