@@ -72,13 +72,6 @@ interface ISideBySideDiffRowProps {
   ) => void
 
   /**
-   * Called when a line selection is updated. Called with the
-   * row and column of the hovered line.
-   * (only relevant when isDiffSelectable is true)
-   */
-  readonly onUpdateSelection: (row: number, column: DiffColumn) => void
-
-  /**
    * Called when the user hovers the hunk handle. Called with the start
    * line of the hunk.
    * (only relevant when isDiffSelectable is true)
@@ -214,10 +207,7 @@ export class SideBySideDiffRow extends React.Component<
         const { lineNumber, isSelected } = row.data
         if (!showSideBySideDiff) {
           return (
-            <div
-              className="row added"
-              onMouseEnter={this.onMouseEnterLineNumber}
-            >
+            <div className="row added">
               <div className={afterClasses}>
                 {this.renderLineNumbers(
                   [undefined, lineNumber],
@@ -233,7 +223,7 @@ export class SideBySideDiffRow extends React.Component<
         }
 
         return (
-          <div className="row added" onMouseEnter={this.onMouseEnterLineNumber}>
+          <div className="row added">
             <div className={beforeClasses}>
               {this.renderLineNumber(undefined, DiffColumn.Before)}
               {this.renderContentFromString('')}
@@ -252,10 +242,7 @@ export class SideBySideDiffRow extends React.Component<
         const { lineNumber, isSelected } = row.data
         if (!showSideBySideDiff) {
           return (
-            <div
-              className="row deleted"
-              onMouseEnter={this.onMouseEnterLineNumber}
-            >
+            <div className="row deleted">
               <div className={beforeClasses}>
                 {this.renderLineNumbers(
                   [lineNumber, undefined],
@@ -271,10 +258,7 @@ export class SideBySideDiffRow extends React.Component<
         }
 
         return (
-          <div
-            className="row deleted"
-            onMouseEnter={this.onMouseEnterLineNumber}
-          >
+          <div className="row deleted">
             <div className={beforeClasses}>
               {this.renderLineNumber(lineNumber, DiffColumn.Before, isSelected)}
               {this.renderContent(row.data, DiffRowPrefix.Deleted)}
@@ -293,10 +277,7 @@ export class SideBySideDiffRow extends React.Component<
         const { beforeData: before, afterData: after } = row
         return (
           <div className="row modified">
-            <div
-              className={beforeClasses}
-              onMouseEnter={this.onMouseEnterLineNumber}
-            >
+            <div className={beforeClasses}>
               {this.renderLineNumber(
                 before.lineNumber,
                 DiffColumn.Before,
@@ -305,10 +286,7 @@ export class SideBySideDiffRow extends React.Component<
               {this.renderContent(before, DiffRowPrefix.Deleted)}
               {this.renderWhitespaceHintPopover(DiffColumn.Before)}
             </div>
-            <div
-              className={afterClasses}
-              onMouseEnter={this.onMouseEnterLineNumber}
-            >
+            <div className={afterClasses}>
               {this.renderLineNumber(
                 after.lineNumber,
                 DiffColumn.After,
@@ -659,19 +637,6 @@ export class SideBySideDiffRow extends React.Component<
       }
 
       this.props.onStartSelection(this.props.numRow, column, !data.isSelected)
-    }
-  }
-
-  private onMouseEnterLineNumber = (evt: React.MouseEvent) => {
-    if (this.props.hideWhitespaceInDiff) {
-      return
-    }
-
-    const data = this.getDiffData(evt.currentTarget)
-    const column = this.getDiffColumn(evt.currentTarget)
-
-    if (data !== null && column !== null) {
-      this.props.onUpdateSelection(this.props.numRow, column)
     }
   }
 

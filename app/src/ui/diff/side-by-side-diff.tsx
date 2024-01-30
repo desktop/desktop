@@ -63,17 +63,17 @@ import { IMenuItem } from '../../lib/menu-item'
 import { DiffContentsWarning } from './diff-contents-warning'
 import { findDOMNode } from 'react-dom'
 import escapeRegExp from 'lodash/escapeRegExp'
+import ReactDOM from 'react-dom'
 
 const DefaultRowHeight = 20
 
-export interface ISelectionPoint {
-  readonly column: DiffColumn
-  readonly row: number
-}
-
 export interface ISelection {
-  readonly from: ISelectionPoint
-  readonly to: ISelectionPoint
+  /// Initial diff line number in the selection
+  readonly from: number
+
+  /// Last diff line number in the selection
+  readonly to: number
+
   readonly isSelected: boolean
 }
 
@@ -372,6 +372,7 @@ export class SideBySideDiff extends React.Component<
       'selectionchange',
       this.onDocumentSelectionChange
     )
+    document.removeEventListener('mousemove', this.onUpdateSelection)
   }
 
   public componentDidUpdate(
@@ -514,14 +515,20 @@ export class SideBySideDiff extends React.Component<
     this.diffContainer = ref
   }
 
-  public render() {
+  private getCurrentDiffRows() {
     const { diff } = this.state
 
-    const rows = getDiffRows(
+    return getDiffRows(
       diff,
       this.props.showSideBySideDiff,
       this.canExpandDiff()
     )
+  }
+
+  public render() {
+    const { diff } = this.state
+
+    const rows = this.getCurrentDiffRows()
     const containerClassName = classNames('side-by-side-diff-container', {
       'unified-diff': !this.props.showSideBySideDiff,
       [`selecting-${this.state.selectingTextInRow}`]:
@@ -655,7 +662,6 @@ export class SideBySideDiff extends React.Component<
             showSideBySideDiff={this.props.showSideBySideDiff}
             hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
             onStartSelection={this.onStartSelection}
-            onUpdateSelection={this.onUpdateSelection}
             onMouseEnterHunk={this.onMouseEnterHunk}
             onMouseLeaveHunk={this.onMouseLeaveHunk}
             onExpandHunk={this.onExpandHunk}
@@ -745,7 +751,7 @@ export class SideBySideDiff extends React.Component<
         data: this.getRowDataPopulated(
           row.data,
           numRow,
-          this.props.showSideBySideDiff ? DiffColumn.After : DiffColumn.Before,
+          DiffColumn.After,
           this.state.afterTokens
         ),
       }
@@ -834,8 +840,6 @@ export class SideBySideDiff extends React.Component<
         data.diffLineNumber !== null &&
         isInSelection(
           data.diffLineNumber,
-          row,
-          column,
           this.getSelection(),
           this.state.temporarySelection
         ),
@@ -888,6 +892,10 @@ export class SideBySideDiff extends React.Component<
       return null
     }
 
+    return this.getDiffRowLineNumber(row, column)
+  }
+
+  private getDiffRowLineNumber(row: SimplifiedDiffRow, column: DiffColumn) {
     if (row.type === DiffRowType.Added || row.type === DiffRowType.Deleted) {
       return row.data.diffLineNumber
     }
@@ -957,21 +965,88 @@ export class SideBySideDiff extends React.Component<
     column: DiffColumn,
     isSelected: boolean
   ) => {
-    const point: ISelectionPoint = { row, column }
-    const temporarySelection = { from: point, to: point, isSelected }
+    const line = this.getDiffLineNumber(row, column)
+    if (line === null) {
+      return
+    }
+    const temporarySelection = { from: line, to: line, isSelected }
     this.setState({ temporarySelection })
 
     document.addEventListener('mouseup', this.onEndSelection, { once: true })
+    document.addEventListener('mousemove', this.onUpdateSelection)
   }
 
-  private onUpdateSelection = (row: number, column: DiffColumn) => {
+  private onUpdateSelection = (ev: MouseEvent) => {
     const { temporarySelection } = this.state
-    if (temporarySelection === undefined) {
+    const list = this.virtualListRef.current
+    if (!temporarySelection || !list) {
       return
     }
 
-    const to = { row, column }
-    this.setState({ temporarySelection: { ...temporarySelection, to } })
+    const listNode = ReactDOM.findDOMNode(list)
+    if (!(listNode instanceof Element)) {
+      return
+    }
+
+    const rect = listNode.getBoundingClientRect()
+    const offsetInList = ev.clientY - rect.top
+    const offsetInListScroll = offsetInList + listNode.scrollTop
+
+    const rows = this.getCurrentDiffRows()
+    const totalRows = rows.length
+
+    let rowOffset = 0
+
+    // I haven't found an easy way to calculate which row the mouse is over,
+    // especially since react-virtualized's `getOffsetForRow` is buggy (see
+    // https://github.com/bvaughn/react-virtualized/issues/1422).
+    // Instead, the approach here is to iterate over all rows and sum their
+    // heights to calculate the offset of each row. Once we find the row that
+    // contains the mouse, we scroll to it and update the temporary selection.
+    for (let index = 0; index < totalRows; index++) {
+      // Use row height cache in order to do the math faster
+      let height = listRowsHeightCache.getHeight(index, 0)
+      if (height === undefined) {
+        list.recomputeRowHeights(index)
+        height = listRowsHeightCache.getHeight(index, 0) ?? DefaultRowHeight
+      }
+
+      if (
+        offsetInListScroll >= rowOffset &&
+        offsetInListScroll < rowOffset + height
+      ) {
+        const row = rows[index]
+        let column = DiffColumn.Before
+
+        if (this.props.showSideBySideDiff) {
+          column =
+            ev.clientX <= rect.left + rect.width / 2
+              ? DiffColumn.Before
+              : DiffColumn.After
+        } else {
+          // `column` is irrelevant in unified diff because there aren't rows of
+          // type Modified (see `getModifiedRows`)
+        }
+        const diffLineNumber = this.getDiffRowLineNumber(row, column)
+
+        // Always scroll to the row that contains the mouse, to ease range-based
+        // selection with it
+        list.scrollToRow(index)
+
+        if (diffLineNumber !== null) {
+          this.setState({
+            temporarySelection: {
+              ...temporarySelection,
+              to: diffLineNumber,
+            },
+          })
+        }
+
+        return
+      }
+
+      rowOffset += height
+    }
   }
 
   private onEndSelection = () => {
@@ -984,20 +1059,11 @@ export class SideBySideDiff extends React.Component<
 
     const { from: tmpFrom, to: tmpTo, isSelected } = temporarySelection
 
-    const fromRow = Math.min(tmpFrom.row, tmpTo.row)
-    const toRow = Math.max(tmpFrom.row, tmpTo.row)
+    const fromLine = Math.min(tmpFrom, tmpTo)
+    const toLine = Math.max(tmpFrom, tmpTo)
 
-    for (let row = fromRow; row <= toRow; row++) {
-      const lineBefore = this.getDiffLineNumber(row, tmpFrom.column)
-      const lineAfter = this.getDiffLineNumber(row, tmpTo.column)
-
-      if (lineBefore !== null) {
-        selection = selection.withLineSelection(lineBefore, isSelected)
-      }
-
-      if (lineAfter !== null) {
-        selection = selection.withLineSelection(lineAfter, isSelected)
-      }
+    for (let line = fromLine; line <= toLine; line++) {
+      selection = selection.withLineSelection(line, isSelected)
     }
 
     this.props.onIncludeChanged?.(selection)
@@ -1708,8 +1774,6 @@ function* enumerateColumnContents(
 
 function isInSelection(
   diffLineNumber: number,
-  row: number,
-  column: DiffColumn,
   selection: DiffSelection | undefined,
   temporarySelection: ISelection | undefined
 ) {
@@ -1719,7 +1783,10 @@ function isInSelection(
     return isInStoredSelection
   }
 
-  const isInTemporary = isInTemporarySelection(row, column, temporarySelection)
+  const isInTemporary = isInTemporarySelection(
+    diffLineNumber,
+    temporarySelection
+  )
 
   if (temporarySelection.isSelected) {
     return isInStoredSelection || isInTemporary
@@ -1728,9 +1795,8 @@ function isInSelection(
   }
 }
 
-export function isInTemporarySelection(
-  row: number,
-  column: DiffColumn,
+function isInTemporarySelection(
+  diffLineNumber: number,
   selection: ISelection | undefined
 ): selection is ISelection {
   if (selection === undefined) {
@@ -1738,9 +1804,8 @@ export function isInTemporarySelection(
   }
 
   if (
-    row >= Math.min(selection.from.row, selection.to.row) &&
-    row <= Math.max(selection.to.row, selection.from.row) &&
-    (column === selection.from.column || column === selection.to.column)
+    diffLineNumber >= Math.min(selection.from, selection.to) &&
+    diffLineNumber <= Math.max(selection.to, selection.from)
   ) {
     return true
   }
