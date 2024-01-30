@@ -93,8 +93,13 @@ const dotComBot = (login: string, id: number, integrationId: number) => {
   const endpoint = getDotComAPIEndpoint()
   const stealthHost = 'users.noreply.github.com'
   return [
-    { email: `${id}+${login}@${stealthHost}`, name: '', avatarURL, endpoint },
-    { email: `${login}@${stealthHost}`, name: '', avatarURL, endpoint },
+    {
+      email: `${id}+${login}@${stealthHost}`,
+      name: login,
+      avatarURL,
+      endpoint,
+    },
+    { email: `${login}@${stealthHost}`, name: login, avatarURL, endpoint },
   ]
 }
 
