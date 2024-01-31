@@ -106,7 +106,7 @@ const dotComBot = (login: string, id: number, integrationId: number) => {
 const knownAvatars: ReadonlyArray<IAvatarUser> = [
   ...dotComBot('dependabot[bot]', 49699333, 29110),
   ...dotComBot('github-actions[bot]', 41898282, 15368),
-  ...dotComBot('github-pages[bot]	', 52472962, 34598),
+  ...dotComBot('github-pages[bot]', 52472962, 34598),
 ]
 
 // Preload some of the more popular bot avatars so we don't have to hit the API
