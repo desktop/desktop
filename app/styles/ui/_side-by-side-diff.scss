@@ -112,6 +112,9 @@
         outline-offset: -3px;
       }
 
+      .line-number-check,
+      .line-number-check .octicon,
+      .line-number-check .octicon path,
       &.hoverable span {
         cursor: pointer;
       }
