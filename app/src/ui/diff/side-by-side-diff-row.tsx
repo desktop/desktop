@@ -422,9 +422,10 @@ export class SideBySideDiffRow extends React.Component<
    */
   private get lineGutterWidth() {
     const { showSideBySideDiff, lineNumberWidth, isDiffSelectable } = this.props
-    return showSideBySideDiff
-      ? lineNumberWidth + (isDiffSelectable ? 10 : 0)
-      : lineNumberWidth * 2
+    return (
+      (showSideBySideDiff ? lineNumberWidth : lineNumberWidth * 2) +
+      (isDiffSelectable ? 14 : 0)
+    )
   }
 
   private renderHunkExpansionHandle(
