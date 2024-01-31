@@ -84,11 +84,10 @@
 
       .line-number-check {
         display: flex;
-        align-items: center;
         justify-content: center;
         width: 20px;
         flex-shrink: 0;
-        padding-bottom: 1px;
+        padding-top: 3.5px;
 
         .octicon {
           height: 12px;
@@ -104,7 +103,6 @@
         // Workaround to show the ellipsis at the beginning of
         // the line number when it's too long.
         direction: rtl;
-        padding-top: 1px;
       }
     }
 
