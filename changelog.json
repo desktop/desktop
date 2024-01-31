@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.3.9-test1": ["[New] Accessibility verification of diff focus outline"],
     "3.3.9-beta1": [
       "[Fixed] The merge dialog submit button is available when conflicts are detected - #18037",
       "[Fixed] Avatars are once again loading for GitHub Enterprise Server users - #18034",
