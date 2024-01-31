@@ -76,29 +76,49 @@
     box-sizing: content-box;
     position: relative;
 
-    span {
-      flex: 1;
-      user-select: none;
-      padding: 0 var(--spacing-half);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      // Workaround to show the ellipsis at the beginning of
-      // the line number when it's too long.
-      direction: rtl;
+    label {
+      width: 100%;
+      display: flex;
+      border-color: inherit;
+
+      span {
+        flex: 1;
+        user-select: none;
+        padding: 0 var(--spacing-half);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        // Workaround to show the ellipsis at the beginning of
+        // the line number when it's too long.
+        direction: rtl;
+      }
     }
 
     &.selectable {
+      input:focus-visible + label {
+        outline: 2px solid #0659d6;
+        outline-offset: -3px;
+      }
+
       &.hoverable span {
         cursor: pointer;
       }
 
       &.line-selected {
-        background: var(--diff-selected-background-color);
-        color: var(--diff-selected-text-color);
         border-color: var(--diff-selected-border-color);
 
-        &.hoverable:hover,
-        &.hover {
+        label {
+          background: var(--diff-selected-background-color);
+          color: var(--diff-selected-text-color);
+          border-color: var(--diff-selected-border-color);
+        }
+
+        &.hoverable:hover {
+          border-color: var(--diff-hover-border-color);
+        }
+
+        &.hoverable:hover label,
+        &.hover label,
+        input:focus-visible + label {
           background: var(--diff-hover-background-color);
           color: var(--diff-hover-text-color);
           border-color: var(--diff-hover-border-color);
@@ -199,11 +219,18 @@
       border-color: var(--diff-delete-border-color);
     }
 
-    .selectable.hoverable:hover,
-    .selectable.hover {
-      background: var(--diff-delete-hover-background-color);
-      color: var(--diff-delete-hover-text-color);
-      border-color: var(--diff-delete-hover-border-color);
+    .selectable {
+      &.hoverable:hover {
+        border-color: var(--diff-delete-hover-border-color);
+      }
+
+      &.hoverable:hover label,
+      &.hover label,
+      input:focus-visible + label {
+        background: var(--diff-delete-hover-background-color);
+        color: var(--diff-delete-hover-text-color);
+        border-color: var(--diff-delete-hover-border-color);
+      }
     }
   }
 
@@ -216,11 +243,18 @@
       border-color: var(--diff-add-border-color);
     }
 
-    .selectable.hoverable:hover,
-    .selectable.hover {
-      background: var(--diff-add-hover-background-color);
-      color: var(--diff-add-hover-text-color);
-      border-color: var(--diff-add-hover-border-color);
+    .selectable {
+      &.hoverable:hover {
+        border-color: var(--diff-add-hover-border-color);
+      }
+
+      &.hoverable:hover label,
+      &.hover label,
+      input:focus-visible + label {
+        background: var(--diff-add-hover-background-color);
+        color: var(--diff-add-hover-text-color);
+        border-color: var(--diff-add-hover-border-color);
+      }
     }
   }
 

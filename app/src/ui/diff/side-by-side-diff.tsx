@@ -676,10 +676,39 @@ export class SideBySideDiff extends React.Component<
             beforeClassNames={beforeClassNames}
             afterClassNames={afterClassNames}
             onHunkExpansionRef={this.onHunkExpansionRef}
+            onLineNumberCheckedChanged={this.onLineNumberCheckedChanged}
           />
         </div>
       </CellMeasurer>
     )
+  }
+
+  private onLineNumberCheckedChanged = (
+    row: number,
+    column: DiffColumn,
+    isSelected: boolean
+  ) => {
+    if (this.props.onIncludeChanged === undefined) {
+      return
+    }
+
+    let selection = this.getSelection()
+    if (selection === undefined) {
+      return
+    }
+
+    const lineBefore = this.getDiffLineNumber(row, column)
+    const lineAfter = this.getDiffLineNumber(row, column)
+
+    if (lineBefore !== null) {
+      selection = selection.withLineSelection(lineBefore, isSelected)
+    }
+
+    if (lineAfter !== null) {
+      selection = selection.withLineSelection(lineAfter, isSelected)
+    }
+
+    this.props.onIncludeChanged(selection)
   }
 
   private onHunkExpansionRef = (
