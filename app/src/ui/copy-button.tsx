@@ -62,8 +62,9 @@ export class CopyButton extends React.Component<
         applyTooltipAriaDescribedBy={false}
       >
         {this.renderSymbol()}
+        {ariaMessage}
         <AriaLiveContainer
-          message={copiedMessage}
+          message={ariaMessage}
           trackedUserInput={ariaMessage}
         />
       </Button>
