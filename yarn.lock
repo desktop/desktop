@@ -1019,11 +1019,6 @@
   dependencies:
     object-assign "^4.1.1"
 
-"@sinclair/typebox@^0.27.8":
-  version "0.27.8"
-  resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.27.8.tgz#6667fac16c436b5434a387a34dedb013198f6e6e"
-  integrity sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==
-
 "@rgba-image/common@^0.1.13":
   version "0.1.13"
   resolved "https://registry.yarnpkg.com/@rgba-image/common/-/common-0.1.13.tgz#f775a1db042dd0dd23749207daa041a9d37f2e61"
@@ -1044,6 +1039,11 @@
     "@rgba-image/common" "^0.1.13"
     "@rgba-image/create-image" "^0.2.0"
     pngjs "^6.0.0"
+
+"@sinclair/typebox@^0.27.8":
+  version "0.27.8"
+  resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.27.8.tgz#6667fac16c436b5434a387a34dedb013198f6e6e"
+  integrity sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==
 
 "@sindresorhus/is@^4.0.0":
   version "4.6.0"
@@ -3280,6 +3280,11 @@ data-urls@^3.0.2:
     abab "^2.0.6"
     whatwg-mimetype "^3.0.0"
     whatwg-url "^11.0.0"
+
+dds-ktx-parser@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/dds-ktx-parser/-/dds-ktx-parser-1.0.1.tgz#824f40fda6df577a380e41c132bfe381625b567b"
+  integrity sha512-LAw7m22ajVMS71PrT0UQYipz90C1FzpuMEKUV6dl+trhaq96yX/TBJo4gUeeCVbveykfM2GfbU3o4j1MarnYSw==
 
 debug@2.6.9, debug@^2.2.0, debug@^2.3.3, debug@^2.6.9:
   version "2.6.9"
