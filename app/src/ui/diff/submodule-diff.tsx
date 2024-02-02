@@ -2,10 +2,12 @@ import React from 'react'
 import { parseRepositoryIdentifier } from '../../lib/remote-parsing'
 import { ISubmoduleDiff } from '../../models/diff'
 import { LinkButton } from '../lib/link-button'
-import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { SuggestedAction } from '../suggested-actions'
+import { Ref } from '../lib/ref'
+import { CopyButton } from '../copy-button'
+import { shortenSHA } from '../../models/commit'
 
 type SubmoduleItemIcon =
   | {
@@ -108,8 +110,8 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
         { octicon: OcticonSymbol.diffModified, className: 'modified-icon' },
         <>
           This submodule changed its commit from{' '}
-          {this.renderTooltippedCommitSHA(oldSHA)} to{' '}
-          {this.renderTooltippedCommitSHA(newSHA)}.{suffix}
+          {this.renderCommitSHA(oldSHA, 'previous')} to{' '}
+          {this.renderCommitSHA(newSHA, 'new')}.{suffix}
         </>
       )
     } else if (oldSHA === null && newSHA !== null) {
@@ -117,7 +119,7 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
         { octicon: OcticonSymbol.diffAdded, className: 'added-icon' },
         <>
           This submodule {verb} added pointing at commit{' '}
-          {this.renderTooltippedCommitSHA(newSHA)}.{suffix}
+          {this.renderCommitSHA(newSHA)}.{suffix}
         </>
       )
     } else if (oldSHA !== null && newSHA === null) {
@@ -125,7 +127,7 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
         { octicon: OcticonSymbol.diffRemoved, className: 'removed-icon' },
         <>
           This submodule {verb} removed while it was pointing at commit{' '}
-          {this.renderTooltippedCommitSHA(oldSHA)}.{suffix}
+          {this.renderCommitSHA(oldSHA)}.{suffix}
         </>
       )
     }
@@ -133,8 +135,18 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps> {
     return null
   }
 
-  private renderTooltippedCommitSHA(sha: string) {
-    return <TooltippedCommitSHA commit={sha} asRef={true} />
+  private renderCommitSHA(sha: string, which?: 'previous' | 'new') {
+    const whichInfix = which === undefined ? '' : ` ${which}`
+
+    return (
+      <>
+        <Ref>{shortenSHA(sha)}</Ref>
+        <CopyButton
+          ariaLabel={`Copy the full${whichInfix} SHA`}
+          copyContent={sha}
+        />
+      </>
+    )
   }
 
   private renderSubmodulesChangesInfo() {
