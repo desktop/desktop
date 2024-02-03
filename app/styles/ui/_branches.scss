@@ -174,7 +174,6 @@
     .name {
       flex-grow: 2;
       @include ellipsis;
-      max-width: 65%;
       margin-right: var(--spacing-half);
 
       /* Used to highlight substring matches in filtered lists */
