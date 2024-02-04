@@ -357,6 +357,7 @@ These editors are currently supported:
  - [JetBrains Goland](https://www.jetbrains.com/go/)
  - [Emacs](https://www.gnu.org/software/emacs/)
  - [Pulsar](https://pulsar-edit.dev/)
+ - [Pluma](https://github.com/mate-desktop/pluma)
 
 These are defined in a list at the top of the file:
 

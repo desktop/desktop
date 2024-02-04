@@ -174,6 +174,10 @@ const editors: ILinuxExternalEditor[] = [
     name: 'Pulsar',
     paths: ['/usr/bin/pulsar'],
   },
+  {
+    name: 'Pluma',
+    paths: ['/usr/bin/pluma'],
+  },
 ]
 
 async function getAvailablePath(paths: string[]): Promise<string | null> {
