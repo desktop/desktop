@@ -135,7 +135,7 @@ export function buildDefaultMenu({
       {
         role: 'quit',
         label: 'E&xit',
-        accelerator: 'Alt+F4',
+        accelerator: 'CmdOrCtrl+Q',
       }
     )
   }
