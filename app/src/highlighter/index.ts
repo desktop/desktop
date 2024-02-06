@@ -213,6 +213,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/python/python'),
     mappings: {
       '.py': 'text/x-python',
+      '.pyi': 'text/x-python',
     },
   },
   {
