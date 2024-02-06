@@ -2194,6 +2194,13 @@ export class Dispatcher {
     return this.appStore._setShowSideBySideDiff(showSideBySideDiff)
   }
 
+  /**
+   * Set the application-wide tab size
+   */
+  public setTabSize(tabSize: number) {
+    return this.appStore._setTabSize(tabSize)
+  }
+
   /** Install the global Git LFS filters. */
   public installGlobalLFSFilters(force: boolean): Promise<void> {
     return this.appStore._installGlobalLFSFilters(force)

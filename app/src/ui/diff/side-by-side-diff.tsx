@@ -124,6 +124,8 @@ interface ISideBySideDiffProps {
   /** Whether or not whitespace changes are hidden. */
   readonly hideWhitespaceInDiff: boolean
 
+  readonly tabSize: number
+
   /**
    * Whether we'll show a confirmation dialog when the user
    * discards changes.
@@ -554,6 +556,7 @@ export class SideBySideDiff extends React.Component<
         <div
           className="side-by-side-diff cm-s-default"
           ref={this.onDiffContainerRef}
+          style={{ tabSize: this.props.tabSize }}
         >
           <AutoSizer onResize={this.clearListRowsHeightCache}>
             {({ height, width }) => (

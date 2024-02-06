@@ -53,6 +53,9 @@ interface ICommitSummaryProps {
   /** Called when the user changes the side by side diffs setting. */
   readonly onShowSideBySideDiffChanged: (checked: boolean) => void
 
+  readonly tabSize: number
+  readonly onTabSizeChanged: (tabSize: number) => void
+
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
 
@@ -516,6 +519,8 @@ export class CommitSummary extends React.Component<
                   this.props.onShowSideBySideDiffChanged
                 }
                 onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+                tabSize={this.props.tabSize}
+                onTabSizeChanged={this.props.onTabSizeChanged}
               />
             </li>
           </ul>

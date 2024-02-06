@@ -10,6 +10,8 @@ import {
 } from '../lib/popover'
 import { Tooltip, TooltipDirection } from '../lib/tooltip'
 import { createObservableRef } from '../lib/observable-ref'
+import { Select } from '../lib/select'
+import { tabSizeDefault } from '../../lib/stores/app-store'
 
 interface IDiffOptionsProps {
   readonly isInteractiveDiff: boolean
@@ -21,12 +23,16 @@ interface IDiffOptionsProps {
   readonly showSideBySideDiff: boolean
   readonly onShowSideBySideDiffChanged: (showSideBySideDiff: boolean) => void
 
+  readonly tabSize: number
+  readonly onTabSizeChanged: (tabSize: number) => void
+
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
 }
 
 interface IDiffOptionsState {
   readonly isPopoverOpen: boolean
+  readonly tabSize: number
 }
 
 export class DiffOptions extends React.Component<
@@ -41,7 +47,18 @@ export class DiffOptions extends React.Component<
     super(props)
     this.state = {
       isPopoverOpen: false,
+      tabSize: this.props.tabSize,
     }
+  }
+
+  public async componentDidUpdate(prevProps: IDiffOptionsProps) {
+    if (prevProps.tabSize === this.props.tabSize) {
+      return
+    }
+
+    const tabSize = this.props.tabSize
+
+    this.setState({ tabSize })
   }
 
   private onButtonClick = (event: React.FormEvent<HTMLButtonElement>) => {
@@ -79,6 +96,10 @@ export class DiffOptions extends React.Component<
     return this.props.onHideWhitespaceChangesChanged(
       event.currentTarget.checked
     )
+  }
+
+  private onTabSizeChanged = (event: React.FormEvent<HTMLSelectElement>) => {
+    this.props.onTabSizeChanged(parseInt(event.currentTarget.value))
   }
 
   public render() {
@@ -121,6 +142,7 @@ export class DiffOptions extends React.Component<
         <h3 id="diff-options-popover-header">{header}</h3>
         {this.renderHideWhitespaceChanges()}
         {this.renderShowSideBySide()}
+        {this.renderTabSize()}
       </Popover>
     )
   }
@@ -177,6 +199,26 @@ export class DiffOptions extends React.Component<
             hiding whitespace.
           </p>
         )}
+      </fieldset>
+    )
+  }
+
+  private renderTabSize() {
+    const availableTabSizes: number[] = [1, 2, 3, 4, 5, 6, 8, 10, 12]
+
+    return (
+      <fieldset>
+        <legend>Tab size</legend>
+        <Select
+          value={this.state.tabSize.toString()}
+          onChange={this.onTabSizeChanged}
+        >
+          {availableTabSizes.map(n => (
+            <option key={n} value={n}>
+              {n === tabSizeDefault ? n + ' (default)' : n}
+            </option>
+          ))}
+        </Select>
       </fieldset>
     )
   }

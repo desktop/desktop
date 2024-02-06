@@ -68,6 +68,8 @@ interface ISeamlessDiffSwitcherProps {
   // eslint-disable-next-line react/no-unused-prop-types
   readonly showSideBySideDiff: boolean
 
+  readonly tabSize: number
+
   /** Whether we should show a confirmation dialog when the user discards changes */
   readonly askForConfirmationOnDiscardChanges?: boolean
 
@@ -360,6 +362,7 @@ export class SeamlessDiffSwitcher extends React.Component<
             readOnly={readOnly}
             hideWhitespaceInDiff={hideWhitespaceInDiff}
             showSideBySideDiff={showSideBySideDiff}
+            tabSize={this.props.tabSize}
             askForConfirmationOnDiscardChanges={
               this.props.askForConfirmationOnDiscardChanges
             }

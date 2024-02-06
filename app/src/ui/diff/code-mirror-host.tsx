@@ -33,6 +33,8 @@ interface ICodeMirrorHostProps {
   /** Callback for diff to control whether selection is enabled */
   readonly isSelectionEnabled?: () => boolean
 
+  readonly tabSize: number
+
   /** Callback for when CodeMirror renders (or re-renders) a line */
   readonly onRenderLine?: (
     cm: Editor,
@@ -267,6 +269,12 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, {}> {
   }
 
   public render() {
-    return <div className={this.props.className} ref={this.onRef} />
+    return (
+      <div
+        className={this.props.className}
+        ref={this.onRef}
+        style={{ tabSize: this.props.tabSize }}
+      />
+    )
   }
 }

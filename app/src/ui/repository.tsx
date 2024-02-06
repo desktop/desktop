@@ -75,6 +75,9 @@ interface IRepositoryViewProps {
   /** A cached entry representing an external editor found on the user's machine */
   readonly resolvedExternalEditor: string | null
 
+  readonly tabSize: number
+  readonly onTabSizeChanged: (tabSize: number) => void
+
   /**
    * Callback to open a selected file using the configured external editor
    *
@@ -382,6 +385,7 @@ export class RepositoryView extends React.Component<
             this.props.askForConfirmationOnDiscardStash
           }
           showSideBySideDiff={this.props.showSideBySideDiff}
+          tabSize={this.props.tabSize}
           onOpenBinaryFile={this.onOpenBinaryFile}
           onOpenSubmodule={this.onOpenSubmodule}
           onChangeImageDiffType={this.onChangeImageDiffType}
@@ -443,6 +447,8 @@ export class RepositoryView extends React.Component<
         onDiffOptionsOpened={this.onDiffOptionsOpened}
         showDragOverlay={showDragOverlay}
         accounts={this.props.accounts}
+        tabSize={this.props.tabSize}
+        onTabSizeChanged={this.props.onTabSizeChanged}
       />
     )
   }
@@ -540,6 +546,8 @@ export class RepositoryView extends React.Component<
             this.props.askForConfirmationOnDiscardChanges
           }
           onDiffOptionsOpened={this.onDiffOptionsOpened}
+          tabSize={this.props.tabSize}
+          onTabSizeChanged={this.props.onTabSizeChanged}
         />
       )
     }

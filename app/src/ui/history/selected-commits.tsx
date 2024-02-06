@@ -67,6 +67,9 @@ interface ISelectedCommitsProps {
   /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
 
+  readonly tabSize: number
+  readonly onTabSizeChanged: (tabSize: number) => void
+
   /**
    * Called when the user requests to open a binary file in an the
    * system-assigned application for said file type.
@@ -174,6 +177,7 @@ export class SelectedCommits extends React.Component<
           readOnly={true}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
+          tabSize={this.props.tabSize}
           onOpenBinaryFile={this.props.onOpenBinaryFile}
           onChangeImageDiffType={this.props.onChangeImageDiffType}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
@@ -201,6 +205,8 @@ export class SelectedCommits extends React.Component<
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
         onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+        tabSize={this.props.tabSize}
+        onTabSizeChanged={this.props.onTabSizeChanged}
       />
     )
   }
@@ -242,6 +248,8 @@ export class SelectedCommits extends React.Component<
         onHighlightShas={this.onHighlightShas}
         showUnreachableCommits={this.showUnreachableCommits}
         accounts={this.props.accounts}
+        tabSize={this.props.tabSize}
+        onTabSizeChanged={this.props.onTabSizeChanged}
       />
     )
   }

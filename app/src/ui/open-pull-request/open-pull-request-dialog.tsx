@@ -55,6 +55,9 @@ interface IOpenPullRequestDialogProps {
   /** Whether we should hide whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
 
+  readonly tabSize: number
+  readonly onTabSizeChanged: (tabSize: number) => void
+
   /** The type of image diff to display. */
   readonly imageDiffType: ImageDiffType
 
@@ -176,6 +179,8 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         showSideBySideDiff={this.props.showSideBySideDiff}
         repository={repository}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        tabSize={this.props.tabSize}
+        onTabSizeChanged={this.props.onTabSizeChanged}
       />
     )
   }

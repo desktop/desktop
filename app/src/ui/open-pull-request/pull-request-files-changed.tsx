@@ -48,6 +48,9 @@ interface IPullRequestFilesChangedProps {
   /** Whether we should hide whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
 
+  readonly tabSize: number
+  readonly onTabSizeChanged: (tabSize: number) => void
+
   /** Label for selected external editor */
   readonly externalEditorLabel?: string
 
@@ -253,6 +256,8 @@ export class PullRequestFilesChanged extends React.Component<
           showSideBySideDiff={showSideBySideDiff}
           onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
           onDiffOptionsOpened={this.onDiffOptionsOpened}
+          tabSize={this.props.tabSize}
+          onTabSizeChanged={this.props.onTabSizeChanged}
         />
       </div>
     )
@@ -301,6 +306,7 @@ export class PullRequestFilesChanged extends React.Component<
         readOnly={true}
         hideWhitespaceInDiff={hideWhitespaceInDiff}
         showSideBySideDiff={showSideBySideDiff}
+        tabSize={this.props.tabSize}
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}

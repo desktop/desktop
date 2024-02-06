@@ -162,6 +162,8 @@ interface ITextDiffProps {
 
   readonly hideWhitespaceInDiff: boolean
 
+  readonly tabSize: number
+
   /**
    * Called when the user wants to discard a selection of the diff.
    * Only applicable when readOnly is false.
@@ -1562,6 +1564,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
           value={doc}
           options={defaultEditorOptions}
           isSelectionEnabled={this.isSelectionEnabled}
+          tabSize={this.props.tabSize}
           onSwapDoc={this.onSwapDoc}
           onAfterSwapDoc={this.onAfterSwapDoc}
           onViewportChange={this.onViewportChange}

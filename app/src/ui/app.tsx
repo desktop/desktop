@@ -2486,6 +2486,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             currentBranchHasPullRequest={currentBranchHasPullRequest}
             onDismissed={onPopupDismissedFn}
             onOpenInExternalEditor={this.onOpenInExternalEditor}
+            tabSize={this.state.tabSize}
+            onTabSizeChanged={this.onTabSizeChanged}
           />
         )
       }
@@ -2721,6 +2723,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderFullScreenInfo() {
     return <FullScreenInfo windowState={this.state.windowState} />
+  }
+
+  private onTabSizeChanged = (tabSize: number) => {
+    this.props.dispatcher.setTabSize(tabSize)
   }
 
   private onConfirmDiscardChangesChanged = (value: boolean) => {
@@ -3313,6 +3319,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           showCommitLengthWarning={this.state.showCommitLengthWarning}
           onCherryPick={this.startCherryPickWithoutBranch}
           pullRequestSuggestedNextAction={state.pullRequestSuggestedNextAction}
+          tabSize={this.state.tabSize}
+          onTabSizeChanged={this.onTabSizeChanged}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

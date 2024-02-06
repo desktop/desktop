@@ -387,6 +387,9 @@ const hideWhitespaceInPullRequestDiffKey =
 const commitSpellcheckEnabledDefault = true
 const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
 
+export const tabSizeDefault: number = 8
+const tabSizeKey: string = 'tab-size'
+
 const shellKey = 'shell'
 
 const repositoryIndicatorsEnabledKey = 'enable-repository-indicators'
@@ -513,6 +516,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.System
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
+  private tabSize = tabSizeDefault
 
   private useWindowsOpenSSH: boolean = false
 
@@ -1004,6 +1008,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
       currentTheme: this.currentTheme,
+      tabSize: this.tabSize,
       apiRepositories: this.apiRepositoriesStore.getState(),
       useWindowsOpenSSH: this.useWindowsOpenSSH,
       showCommitLengthWarning: this.showCommitLengthWarning,
@@ -2192,6 +2197,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     setPersistedTheme(this.selectedTheme)
 
     this.currentTheme = await getCurrentlyAppliedTheme()
+
+    this.tabSize = getNumber(tabSizeKey, tabSizeDefault)
 
     themeChangeMonitor.onThemeChanged(theme => {
       this.currentTheme = theme
@@ -6544,6 +6551,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     setPersistedTheme(theme)
     this.selectedTheme = theme
     this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the application-wide tab indentation
+   */
+  public _setTabSize(tabSize: number) {
+    if (!isNaN(tabSize)) {
+      this.tabSize = tabSize
+      setNumber(tabSizeKey, tabSize)
+      this.emitUpdate()
+    }
 
     return Promise.resolve()
   }

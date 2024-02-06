@@ -23,6 +23,9 @@ interface IDiffHeaderProps {
   /** Called when the user changes the hide whitespace in diffs setting. */
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => Promise<void>
 
+  readonly tabSize: number
+  readonly onTabSizeChanged: (tabSize: number) => void
+
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
 }
@@ -63,6 +66,8 @@ export class DiffHeader extends React.Component<IDiffHeaderProps, {}> {
         onShowSideBySideDiffChanged={this.props.onShowSideBySideDiffChanged}
         showSideBySideDiff={this.props.showSideBySideDiff}
         onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+        tabSize={this.props.tabSize}
+        onTabSizeChanged={this.props.onTabSizeChanged}
       />
     )
   }

@@ -23,6 +23,9 @@ interface IChangesProps {
   readonly isCommitting: boolean
   readonly hideWhitespaceInDiff: boolean
 
+  readonly tabSize: number
+  readonly onTabSizeChanged: (tabSize: number) => void
+
   /**
    * Called when the user requests to open a binary file in an the
    * system-assigned application for said file type.
@@ -108,6 +111,8 @@ export class Changes extends React.Component<IChangesProps, {}> {
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
           onDiffOptionsOpened={this.props.onDiffOptionsOpened}
+          tabSize={this.props.tabSize}
+          onTabSizeChanged={this.props.onTabSizeChanged}
         />
 
         <SeamlessDiffSwitcher
@@ -120,6 +125,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
           diff={this.props.diff}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
+          tabSize={this.props.tabSize}
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
           }

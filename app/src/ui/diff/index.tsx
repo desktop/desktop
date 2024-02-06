@@ -73,6 +73,8 @@ interface IDiffProps {
   /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
 
+  readonly tabSize: number
+
   /** Whether we should show a confirmation dialog when the user discards changes */
   readonly askForConfirmationOnDiscardChanges?: boolean
 
@@ -279,6 +281,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           fileContents={this.props.fileContents}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
+          tabSize={this.props.tabSize}
           onIncludeChanged={this.props.onIncludeChanged}
           onDiscardChanges={this.props.onDiscardChanges}
           askForConfirmationOnDiscardChanges={
@@ -296,6 +299,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         file={this.props.file}
         readOnly={this.props.readOnly}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        tabSize={this.props.tabSize}
         onIncludeChanged={this.props.onIncludeChanged}
         onDiscardChanges={this.props.onDiscardChanges}
         diff={diff}
