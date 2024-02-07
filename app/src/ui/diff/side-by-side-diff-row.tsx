@@ -19,6 +19,7 @@ import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { TooltipDirection } from '../lib/tooltip'
 import { Button } from '../lib/button'
 import { diffCheck } from '../octicons/diff-check'
+import { enableDiffCheckMarks } from '../../lib/feature-flag'
 
 enum DiffRowPrefix {
   Added = '+',
@@ -402,7 +403,7 @@ export class SideBySideDiffRow extends React.Component<
     const { showSideBySideDiff, lineNumberWidth, isDiffSelectable } = this.props
     return (
       (showSideBySideDiff ? lineNumberWidth : lineNumberWidth * 2) +
-      (isDiffSelectable ? 14 : 0)
+      (isDiffSelectable && enableDiffCheckMarks() ? 14 : 0)
     )
   }
 
@@ -545,7 +546,7 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private renderLineNumberCheck(isSelected?: boolean) {
-    if (!this.props.isDiffSelectable) {
+    if (!this.props.isDiffSelectable || !enableDiffCheckMarks()) {
       return null
     }
 
