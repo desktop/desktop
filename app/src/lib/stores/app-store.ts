@@ -407,6 +407,9 @@ const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
+const showDiffCheckMarksDefault = true
+const showDiffCheckMarksKey = 'diff-check-marks-visible'
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -536,6 +539,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private pullRequestSuggestedNextAction:
     | PullRequestSuggestedNextAction
     | undefined = undefined
+
+  private showDiffCheckMarks: boolean = showDiffCheckMarksDefault
 
   private cachedRepoRulesets = new Map<number, IAPIRepoRuleset>()
 
@@ -1018,6 +1023,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
       resizablePaneActive: this.resizablePaneActive,
       cachedRepoRulesets: this.cachedRepoRulesets,
+      showDiffCheckMarks: this.showDiffCheckMarks,
     }
   }
 
@@ -2205,6 +2211,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
         pullRequestSuggestedNextActionKey,
         PullRequestSuggestedNextAction
       ) ?? defaultPullRequestSuggestedNextAction
+
+    this.showDiffCheckMarks = getBoolean(
+      showDiffCheckMarksKey,
+      showDiffCheckMarksDefault
+    )
 
     this.emitUpdateNow()
 

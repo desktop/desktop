@@ -173,6 +173,7 @@ export class SelectedCommits extends React.Component<
           diff={diff}
           readOnly={true}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          showDiffCheckMarks={false}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onOpenBinaryFile={this.props.onOpenBinaryFile}
           onChangeImageDiffType={this.props.onChangeImageDiffType}

@@ -101,3 +101,7 @@ export function enableSectionList(): boolean {
 export const enableRepoRulesBeta = () => true
 
 export const enableCommitDetailsHeaderExpansion = () => true
+
+export const enableDiffCheckMarksAndLinkUnderlines = enableBetaFeatures
+
+export const enableDiffCheckMarks = enableDiffCheckMarksAndLinkUnderlines
