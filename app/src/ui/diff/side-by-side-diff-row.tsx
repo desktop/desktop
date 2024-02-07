@@ -151,6 +151,9 @@ interface ISideBySideDiffRowProps {
     expansionType: DiffHunkExpansionType,
     element: HTMLButtonElement | null
   ) => void
+
+  /** Whether or not to show the diff check marks indicating inclusion in a commit */
+  readonly showDiffCheckMarks: boolean
 }
 
 interface ISideBySideDiffRowState {
@@ -400,10 +403,17 @@ export class SideBySideDiffRow extends React.Component<
    * for side-by-side diffs the gutter contains the line number of only one side.
    */
   private get lineGutterWidth() {
-    const { showSideBySideDiff, lineNumberWidth, isDiffSelectable } = this.props
+    const {
+      showSideBySideDiff,
+      lineNumberWidth,
+      isDiffSelectable,
+      showDiffCheckMarks,
+    } = this.props
     return (
       (showSideBySideDiff ? lineNumberWidth : lineNumberWidth * 2) +
-      (isDiffSelectable && enableDiffCheckMarks() ? 14 : 0)
+      (isDiffSelectable && showDiffCheckMarks && enableDiffCheckMarks()
+        ? 14
+        : 0)
     )
   }
 
@@ -546,7 +556,11 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private renderLineNumberCheck(isSelected?: boolean) {
-    if (!this.props.isDiffSelectable || !enableDiffCheckMarks()) {
+    if (
+      !this.props.isDiffSelectable ||
+      !enableDiffCheckMarks() ||
+      !this.props.showDiffCheckMarks
+    ) {
       return null
     }
 

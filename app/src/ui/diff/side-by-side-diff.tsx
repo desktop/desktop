@@ -135,6 +135,9 @@ interface ISideBySideDiffProps {
    */
   readonly showSideBySideDiff: boolean
 
+  /** Whether or not to show the diff check marks indicating inclusion in a commit */
+  readonly showDiffCheckMarks: boolean
+
   /** Called when the user changes the hide whitespace in diffs setting. */
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
 }
@@ -661,6 +664,7 @@ export class SideBySideDiff extends React.Component<
             isHunkHovered={isHunkHovered}
             showSideBySideDiff={this.props.showSideBySideDiff}
             hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+            showDiffCheckMarks={this.props.showDiffCheckMarks}
             onStartSelection={this.onStartSelection}
             onMouseEnterHunk={this.onMouseEnterHunk}
             onMouseLeaveHunk={this.onMouseLeaveHunk}
