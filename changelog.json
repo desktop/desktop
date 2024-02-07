@@ -1,5 +1,19 @@
 {
   "releases": {
+    "3.3.9-beta2": [
+      "[Fixed] The line number inclusion controls are semantic checkboxes and are keyboard accessible - #18064",
+      "[Fixed] Copying commit SHAs from submodule diffs is keyboard accessible - #18124",
+      "[Fixed] Show avatars of bot accounts such as dependabot - #12766",
+      "[Fixed] Focus outline is visible on the diff - #18086",
+      "[Fixed] Selecting or deselecting lines in a diff by dragging the mouse now scrolls the contents as needed - #17673",
+      "[Fixed] Last line of diffs can be selected when the file didn't have a new line at the end - #18081",
+      "[Fixed] Promote line endings change warning from icon to a banner, improving its accessibility - #18084",
+      "[Fixed] Amending a commit in non-GitHub repositories restores the commit message - #18061",
+      "[Improved] Add `pyi` to syntax highlighting - #18141. Thanks @pLeBlanc93!",
+      "[Improved] Syntax highlighting now supports .cmake, .cxx, .hh, .hxx, and .xsd files - #17503. Thanks @DylanDevelops!",
+      "[Improved] Apply Markdown highlighting to .mdx files - #18040. Thanks @bentookey-yotta!",
+      "[Improved] The diff line numbers show check marks so color is not the sole medium to determine inclusion into a commit - #18077"
+    ],
     "3.3.9-beta1": [
       "[Fixed] The merge dialog submit button is available when conflicts are detected - #18037",
       "[Fixed] Avatars are once again loading for GitHub Enterprise Server users - #18034",
