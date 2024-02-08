@@ -1012,10 +1012,10 @@
   resolved "https://registry.yarnpkg.com/@polka/url/-/url-1.0.0-next.21.tgz#5de5a2385a35309427f6011992b544514d559aa1"
   integrity sha512-a5Sab1C4/icpTZVzZc5Ghpz88yQtGOyNqYXcZgOssB2uuAr+wF/MvN6bgtW32q7HHrvBki+BsZ0OuNv6EV3K9g==
 
-"@primer/octicons@^10.0.0":
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/@primer/octicons/-/octicons-10.0.0.tgz#81e94ed32545dfd3472c8625a5b345f3ea4c153d"
-  integrity sha512-iuQubq62zXZjPmaqrsfsCZUqIJgZhmA6W0tKzIKGRbkoLnff4TFFCL87hfIRATZ5qZPM4m8ioT8/bXI7WVa9WQ==
+"@primer/octicons@^19.0.0":
+  version "19.8.0"
+  resolved "https://registry.yarnpkg.com/@primer/octicons/-/octicons-19.8.0.tgz#67cad2f55cd1c6e5ccae2670b9c1f595321995d1"
+  integrity sha512-Imze/fyW41Io5fN+27T5EAeXJrgBjMbz6nzU+wYbRylXvIAjLPUvaJPVoStiFlgSU+TjTUJqg5A9rgMDzTyMCg==
   dependencies:
     object-assign "^4.1.1"
 
@@ -7121,7 +7121,7 @@ nwsapi@^2.2.2:
 object-assign@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/object-assign/-/object-assign-4.1.1.tgz#2109adc7965887cfc05cbbd442cac8bfbb360863"
-  integrity sha1-IQmtx5ZYh8/AXLvUQsrIv7s2CGM=
+  integrity sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==
 
 object-copy@^0.1.0:
   version "0.1.0"
