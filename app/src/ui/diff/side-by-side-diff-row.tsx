@@ -13,7 +13,7 @@ import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
-import { DiffHunkExpansionType } from '../../models/diff'
+import { DiffHunkExpansionType, DiffSelectionType } from '../../models/diff'
 import { PopoverAnchorPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { TooltipDirection } from '../lib/tooltip'
@@ -25,6 +25,37 @@ enum DiffRowPrefix {
   Added = '+',
   Deleted = '-',
   Nothing = '\u{A0}',
+}
+
+/**
+ * This interface is used to pass information about a continuous group of
+ * selectable rows to the row component as it pertains to a given row.
+ *
+ * Primarily used for the styling of the row and it's check all control.
+ */
+export interface IRowSelectableGroup {
+  /**
+   * Whether or not the row is the first in the selectable group
+   */
+  isFirst: boolean
+  /**
+   * Whether or not the row is the last in the selectable group
+   */
+  isLast: boolean
+  /**
+   * Whether or not the group is hovered by the mouse
+   */
+  isGroupHovered: boolean
+
+  /**
+   * Whether or not the group is focused by the keyboard
+   */
+  isGroupFocused: boolean
+
+  /**
+   * The selection state of the group - 'All', 'Partial', or 'None'
+   */
+  groupSelectionState: DiffSelectionType | null
 }
 
 interface ISideBySideDiffRowProps {
