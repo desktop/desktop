@@ -63,7 +63,9 @@ import { DiffContentsWarning } from './diff-contents-warning'
 export const narrowNoNewlineSymbol = {
   w: 16,
   h: 8,
-  d: 'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z',
+  p: [
+    'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z',
+  ],
 }
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
@@ -101,7 +103,7 @@ function createNoNewlineIndicatorWidget() {
   const widget = document.createElement('span')
   const titleId = uuid()
 
-  const { w, h, d } = narrowNoNewlineSymbol
+  const { w, h, p } = narrowNoNewlineSymbol
 
   const xmlns = 'http://www.w3.org/2000/svg'
   const svgElem = document.createElementNS(xmlns, 'svg')
@@ -119,7 +121,7 @@ function createNoNewlineIndicatorWidget() {
 
   const pathElem = document.createElementNS(xmlns, 'path')
   pathElem.setAttribute('role', 'presentation')
-  pathElem.setAttribute('d', d)
+  pathElem.setAttribute('d', p[0])
   pathElem.textContent = 'No newline at end of file'
   svgElem.appendChild(pathElem)
 
