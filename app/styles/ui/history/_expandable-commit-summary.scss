@@ -108,6 +108,10 @@
           height: auto;
           min-width: 16px;
 
+          .octicon {
+            scale: 75%;
+          }
+
           :hover {
             color: var(--text-secondary-color);
           }

@@ -23,6 +23,10 @@
     margin-right: var(--spacing);
     flex-shrink: 0;
     flex-grow: 0;
+
+    .octicon {
+      scale: 75%;
+    }
   }
 
   .success-contents {
