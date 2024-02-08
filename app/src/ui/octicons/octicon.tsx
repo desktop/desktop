@@ -68,7 +68,9 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
             {title}
           </Tooltip>
         )}
-        <path fillRule={symbol.fr} d={symbol.d} />
+        {symbol.p.map((d, i) => (
+          <path key={i} d={d} />
+        ))}
       </svg>
     )
   }
