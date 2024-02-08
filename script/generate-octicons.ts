@@ -9,40 +9,16 @@ import * as fs from 'fs'
 import * as Path from 'path'
 import * as cp from 'child_process'
 import { check } from 'reserved-words'
-
-import xml2js from 'xml2js'
 import toCamelCase from 'to-camel-case'
-
-interface IXML2JSNode {
-  path: {
-    $: {
-      d: string
-      'fill-rule'?: string
-    }
-  }
-}
 
 interface IOcticonData {
   readonly jsFriendlyName: string
-  readonly pathData: string
+  readonly paths: string[]
   readonly width: string
   readonly height: string
-  readonly fillRule?: string
 }
 
 const viewBoxRe = /0 0 (\d+) (\d+)/
-
-function readXml(xml: string): Promise<IXML2JSNode> {
-  return new Promise((resolve, reject) => {
-    xml2js.parseString(xml, function (err, result: IXML2JSNode) {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(result)
-      }
-    })
-  })
-}
 
 function getJsFriendlyName(name: string) {
   const sanitizedName = toCamelCase(name)
@@ -78,17 +54,16 @@ async function generateIconData(): Promise<ReadonlyArray<IOcticonData>> {
 
     const [, width, height] = viewBoxMatch
 
-    const result = await readXml(octiconData.path)
-    const pathData = result.path.$.d
+    const paths = octiconData.ast.children.map(
+      (child: { attributes: { d: string } }) => child.attributes.d
+    )
     const jsFriendlyName = getJsFriendlyName(octicon.symbol)
-    const fillRule = result.path.$['fill-rule']
 
     results.push({
       jsFriendlyName,
       width,
       height,
-      pathData,
-      fillRule,
+      paths,
     })
   }
 
@@ -113,15 +88,18 @@ generateIconData().then(result => {
   out.write(' */\n\n')
 
   out.write(
-    "export type OcticonSymbolType = {readonly w: number, readonly h: number, readonly d: string, readonly fr?: React.SVGAttributes<SVGElement>['fillRule']}\n\n"
+    'export type OcticonSymbolType = {readonly w: number, readonly h: number, readonly p: string[]}\n\n'
   )
 
   result.forEach(function (symbol) {
-    const { jsFriendlyName, pathData, width, height, fillRule } = symbol
+    const { jsFriendlyName, paths, width, height } = symbol
+
     out.write(
-      `export const ${jsFriendlyName}: OcticonSymbolType = {w: ${width}, h: ${height}, d: '${pathData}', fr: ${
-        fillRule ? `'${fillRule}'` : 'undefined'
-      }}\n\n`
+      `export const ${jsFriendlyName}: OcticonSymbolType = ${JSON.stringify({
+        w: parseInt(width, 10),
+        h: parseInt(height, 10),
+        p: paths,
+      })}\n\n`
     )
   })
 
