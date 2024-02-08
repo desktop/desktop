@@ -260,7 +260,7 @@ export class Preferences extends React.Component<
               Prompts
             </span>
             <span>
-              <Octicon className="icon" symbol={OcticonSymbol.settings} />
+              <Octicon className="icon" symbol={OcticonSymbol.gear} />
               Advanced
             </span>
           </TabBar>
