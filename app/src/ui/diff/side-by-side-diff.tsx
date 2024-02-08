@@ -29,7 +29,7 @@ import {
   OverscanIndicesGetterParams,
   defaultOverscanIndicesGetter,
 } from 'react-virtualized'
-import { SideBySideDiffRow } from './side-by-side-diff-row'
+import { IRowSelectableGroup, SideBySideDiffRow } from './side-by-side-diff-row'
 import memoize from 'memoize-one'
 import {
   findInteractiveOriginalDiffRange,
@@ -609,6 +609,63 @@ export class SideBySideDiff extends React.Component<
     return defaultOverscanIndicesGetter({ ...params, startIndex, stopIndex })
   }
 
+  /**
+   * Gathers information about if the row is in a selectable group. This
+   * information is used to facilitate the use of check all feature for the
+   * selectable group.
+   *
+   * This will return null if the row is not in a selectable group. A group is
+   * more than one row.
+   */
+  private getRowSelectableGroupDetails(
+    row: SimplifiedDiffRow,
+    prev: SimplifiedDiffRow,
+    next: SimplifiedDiffRow
+  ): IRowSelectableGroup | null {
+    if (!('hunkStartLine' in row)) {
+      // can't be a selection hunk without a hunkStartLine
+      return null
+    }
+
+    const { diff, hoveredHunk } = this.state
+
+    const selectableType = [
+      DiffRowType.Added,
+      DiffRowType.Deleted,
+      DiffRowType.Modified,
+    ]
+
+    if (!selectableType.includes(row.type)) {
+      // We only care about selectable rows
+      return null
+    }
+
+    const range = findInteractiveOriginalDiffRange(
+      diff.hunks,
+      row.hunkStartLine
+    )
+    if (range === null || range.to - range.from === 0) {
+      // We only care about ranges with more than one line
+      return null
+    }
+
+    const selection = this.getSelection()
+    if (selection === undefined) {
+      // We only care about selectable rows.. so if no selection, no selectable rows
+      return null
+    }
+
+    const { from, to } = range
+
+    return {
+      isFirst: prev === undefined || !selectableType.includes(prev.type),
+      isLast: next === undefined || !selectableType.includes(next.type),
+      isGroupHovered: hoveredHunk === row.hunkStartLine,
+      isGroupFocused: true, // focusedHunk === row.hunkStartLine, - To be added in later PR
+      groupSelectionState: selection.isRangeSelected(from, to - from + 1),
+    }
+  }
+
   private renderRow = ({ index, parent, style, key }: ListRowProps) => {
     const { diff } = this.state
     const rows = getDiffRows(
@@ -644,8 +701,14 @@ export class SideBySideDiff extends React.Component<
 
     const rowWithTokens = this.createFullRow(row, index)
 
-    const isHunkHovered =
-      'hunkStartLine' in row && this.state.hoveredHunk === row.hunkStartLine
+    const getRowSelectableGroupDetails = this.getRowSelectableGroupDetails(
+      row,
+      prev,
+      next
+    )
+
+    // Just temporary until pass the whole row group data down.
+    const isHunkHovered = !!getRowSelectableGroupDetails?.isGroupHovered
 
     return (
       <CellMeasurer
