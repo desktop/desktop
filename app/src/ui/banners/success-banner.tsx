@@ -36,7 +36,10 @@ export class SuccessBanner extends React.Component<ISuccessBannerProps, {}> {
         onDismissed={this.props.onDismissed}
       >
         <div className="green-circle">
-          <Octicon className="check-icon" symbol={OcticonSymbol.check} />
+          <Octicon
+            className="check-icon"
+            symbol={OcticonSymbol.checkCircleFill}
+          />
         </div>
         <div className="banner-message">
           <span className="success-contents">{this.props.children}</span>

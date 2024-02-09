@@ -12,21 +12,13 @@
   }
 
   .green-circle {
-    background-color: var(--color-new);
-    color: var(--background-color);
-    border-radius: 50%;
-    height: 16px;
-    width: 16px;
+    color: var(--color-new);
     display: flex;
     justify-content: center;
     align-items: center;
     margin-right: var(--spacing);
     flex-shrink: 0;
     flex-grow: 0;
-
-    .octicon {
-      scale: 75%;
-    }
   }
 
   .success-contents {
