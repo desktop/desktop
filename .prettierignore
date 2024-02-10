@@ -13,3 +13,4 @@ app/static/common
 app/test/fixtures
 gemoji
 *.md
+app/src/ui/octicons/octicons.generated.ts
