@@ -1,7 +1,11 @@
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
 import * as OcticonSymbol from '../octicons/octicons.generated'
-import { syncClockwise } from '../octicons'
+import {
+  CustomOcticonSymbolType,
+  OcticonSymbolType,
+  syncClockwise,
+} from '../octicons'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
@@ -122,7 +126,8 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
 
     const tipKind = tip.kind
 
-    let icon: OcticonSymbol.OcticonSymbolType = OcticonSymbol.gitBranch
+    let icon: OcticonSymbolType | CustomOcticonSymbolType =
+      OcticonSymbol.gitBranch
     let iconClassName: string | undefined = undefined
     let title: string
     let description = __DARWIN__ ? 'Current Branch' : 'Current branch'

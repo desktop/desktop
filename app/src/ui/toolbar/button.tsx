@@ -1,6 +1,10 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react'
-import { Octicon, OcticonSymbolType } from '../octicons'
+import {
+  CustomOcticonSymbolType,
+  Octicon,
+  OcticonSymbolType,
+} from '../octicons'
 import classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
@@ -29,7 +33,7 @@ export interface IToolbarButtonProps {
   readonly tooltip?: string
 
   /** An optional symbol to be displayed next to the button text */
-  readonly icon?: OcticonSymbolType
+  readonly icon?: OcticonSymbolType | CustomOcticonSymbolType
 
   /** The class name for the icon element. */
   readonly iconClassName?: string

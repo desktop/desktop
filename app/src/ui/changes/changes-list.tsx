@@ -59,7 +59,8 @@ import { RepoRulesInfo } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
 
 const RowHeight = 29
-const StashIcon: OcticonSymbol.OcticonSymbolType = {
+const StashIcon: OcticonSymbol.CustomOcticonSymbolType = {
+  s: 'stash',
   w: 16,
   h: 16,
   p: [

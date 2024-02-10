@@ -1,10 +1,11 @@
-import { OcticonSymbolType } from './octicons.generated'
+import { CustomOcticonSymbolType } from './octicons.generated'
 
 /**
  * An horizontally flipped (i.e `scaleX(-1)`) but otherwise unmodified version of
  * the `sync` octicon.
  */
-export const syncClockwise: OcticonSymbolType = {
+export const syncClockwise: CustomOcticonSymbolType = {
+  s: 'sync-clockwise',
   w: 16,
   h: 16,
   p: [

@@ -1,10 +1,11 @@
-import { OcticonSymbolType } from './octicons.generated'
+import { CustomOcticonSymbolType } from './octicons.generated'
 
 /**
  * An check mark produced by Gavin that is scaled for 12x12 as opposed to the
  * regular 16x16 and is thicker for better visibility.
  */
-export const diffCheck: OcticonSymbolType = {
+export const diffCheck: CustomOcticonSymbolType = {
+  s: 'diff-check',
   w: 12,
   h: 12,
   p: [

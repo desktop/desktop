@@ -43,7 +43,7 @@ export class CopyButton extends React.Component<
 
     const symbol = showCopied ? OcticonSymbol.check : OcticonSymbol.copy
 
-    return <Octicon symbol={symbol} />
+    return <Octicon symbol={symbol} height={24} />
   }
 
   public render() {

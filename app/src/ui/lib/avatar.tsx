@@ -183,6 +183,7 @@ interface IAvatarState {
  * a square aspect ratio.
  */
 const DefaultAvatarSymbol = {
+  s: 'default-avatar',
   w: 16,
   h: 16,
   p: [

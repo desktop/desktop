@@ -61,6 +61,7 @@ import { DiffContentsWarning } from './diff-contents-warning'
 // This is a custom version of the no-newline octicon that's exactly as
 // tall as it needs to be (8px) which helps with aligning it on the line.
 export const narrowNoNewlineSymbol = {
+  s: 'narrow-no-newline',
   w: 16,
   h: 8,
   p: [

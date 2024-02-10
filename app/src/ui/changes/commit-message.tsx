@@ -13,7 +13,7 @@ import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { AuthorInput } from '../lib/author-input/author-input'
 import { FocusContainer } from '../lib/focus-container'
-import { Octicon } from '../octicons'
+import { CustomOcticonSymbolType, Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { Author, UnknownAuthor, isKnownAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
@@ -57,7 +57,8 @@ import { Dispatcher } from '../dispatcher'
 import { formatCommitMessage } from '../../lib/format-commit-message'
 import { useRepoRulesLogic } from '../../lib/helpers/repo-rules'
 
-const addAuthorIcon = {
+const addAuthorIcon: CustomOcticonSymbolType = {
+  s: 'add-author',
   w: 18,
   h: 13,
   p: [

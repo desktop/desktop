@@ -1,7 +1,11 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import * as React from 'react'
-import { Octicon, OcticonSymbolType } from '../octicons'
+import {
+  CustomOcticonSymbolType,
+  Octicon,
+  OcticonSymbolType,
+} from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { assertNever } from '../../lib/fatal-error'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
@@ -44,7 +48,7 @@ export interface IToolbarDropdownProps {
   readonly tooltip?: string
 
   /** An optional symbol to be displayed next to the button text */
-  readonly icon?: OcticonSymbolType
+  readonly icon?: OcticonSymbolType | CustomOcticonSymbolType
 
   /**
    * The state for of the drop down button.

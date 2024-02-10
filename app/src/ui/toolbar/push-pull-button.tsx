@@ -7,7 +7,12 @@ import { TipState } from '../../models/tip'
 import { FetchType } from '../../models/fetch'
 
 import { Dispatcher } from '../dispatcher'
-import { Octicon, syncClockwise } from '../octicons'
+import {
+  CustomOcticonSymbolType,
+  Octicon,
+  OcticonSymbolType,
+  syncClockwise,
+} from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { RelativeTime } from '../relative-time'
 
@@ -115,7 +120,7 @@ export type DropdownItem = {
   readonly title: string
   readonly description: string | JSX.Element
   readonly action: () => void
-  readonly icon: OcticonSymbol.OcticonSymbolType
+  readonly icon: OcticonSymbolType | CustomOcticonSymbolType
 }
 
 function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
@@ -162,7 +167,8 @@ function renderLastFetched(lastFetched: Date | null): JSX.Element | string {
  * This represents the "double arrow" icon used to show a force-push, and is a
  * less complicated icon than the generated Octicon from the `octicons` package.
  */
-export const forcePushIcon: OcticonSymbol.OcticonSymbolType = {
+export const forcePushIcon: OcticonSymbol.CustomOcticonSymbolType = {
+  s: 'force-push-icon',
   w: 10,
   h: 16,
   p: [
