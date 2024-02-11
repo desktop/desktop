@@ -3,7 +3,7 @@ name: Close Single-Word Issues
 on:
   issues:
     types:
-      - opened
+      - opened 12
 
 permissions:
   issues: write
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Close Single-Word Issue
+      - name: Close Single-Word Tony
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
