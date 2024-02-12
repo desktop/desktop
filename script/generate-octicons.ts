@@ -130,22 +130,7 @@ export type OcticonSymbolType = {
 
   /** The symbol heights, keyed by height */
   readonly h: OcticonSymbolHeights
-}
-
-export type CustomOcticonSymbolType = {
-  /** The symbol name */
-  readonly s: string,
-
-  /** The symbol width */
-  readonly w: number,
-
-  /** The symbol height */
-  readonly h: number,
-
-  /** The symbol SVG paths */
-  readonly p: string[]
-}
-\n\n`)
+}\n\n`)
 
   results.forEach(({ s, h }) => {
     const name = getJsFriendlyName(s)

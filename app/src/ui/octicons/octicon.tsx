@@ -2,9 +2,9 @@ import * as React from 'react'
 import {
   OcticonSymbolType,
   OcticonSymbolSize,
-  CustomOcticonSymbolType,
   OcticonSymbolName,
 } from './octicons.generated'
+import { CustomOcticonSymbolType } from '.'
 import classNames from 'classnames'
 import ReactDOM from 'react-dom'
 import { createObservableRef } from '../lib/observable-ref'
@@ -47,7 +47,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
   private svgRef = createObservableRef<SVGSVGElement>()
 
   public render() {
-    if ((this.props.symbol as CustomOcticonSymbolType).p !== undefined) {
+    if ((this.props.symbol as CustomOcticonSymbolType).d !== undefined) {
       return this.renderCustomIcon()
     } else {
       return this.renderOcticon()
@@ -66,9 +66,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
     )
 
     const scaledSymbol = symbol.h[naturalHeight]!
-
     const naturalWidth = scaledSymbol.w
-
     const width = height * (naturalWidth / naturalHeight)
 
     return this.renderIcon(symbol.s, height, width, scaledSymbol.p)
@@ -76,7 +74,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
 
   private renderCustomIcon() {
     const symbol = this.props.symbol as CustomOcticonSymbolType
-    return this.renderIcon(symbol.s, symbol.h, symbol.w, symbol.p)
+    return this.renderIcon(symbol.s, symbol.h, symbol.w, symbol.d)
   }
 
   private renderIcon(

@@ -44,7 +44,7 @@ import {
   Foldout,
 } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
-import { Octicon } from '../octicons'
+import { Octicon, CustomOcticonSymbolType } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { IStashEntry } from '../../models/stash-entry'
 import classNames from 'classnames'
@@ -59,11 +59,11 @@ import { RepoRulesInfo } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
 
 const RowHeight = 29
-const StashIcon: OcticonSymbol.CustomOcticonSymbolType = {
+const StashIcon: CustomOcticonSymbolType = {
   s: 'stash',
   w: 16,
   h: 16,
-  p: [
+  d: [
     'M10.5 1.286h-9a.214.214 0 0 0-.214.214v9a.214.214 0 0 0 .214.214h9a.214.214 0 0 0 ' +
       '.214-.214v-9a.214.214 0 0 0-.214-.214zM1.5 0h9A1.5 1.5 0 0 1 12 1.5v9a1.5 1.5 0 0 1-1.5 ' +
       '1.5h-9A1.5 1.5 0 0 1 0 10.5v-9A1.5 1.5 0 0 1 1.5 0zm5.712 7.212a1.714 1.714 0 1 ' +

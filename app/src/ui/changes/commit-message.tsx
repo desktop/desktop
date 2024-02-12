@@ -13,8 +13,8 @@ import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { AuthorInput } from '../lib/author-input/author-input'
 import { FocusContainer } from '../lib/focus-container'
-import { CustomOcticonSymbolType, Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
+import { CustomOcticonSymbolType, Octicon } from '../octicons'
 import { Author, UnknownAuthor, isKnownAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { Commit, ICommitContext } from '../../models/commit'
@@ -61,7 +61,7 @@ const addAuthorIcon: CustomOcticonSymbolType = {
   s: 'add-author',
   w: 18,
   h: 13,
-  p: [
+  d: [
     'M14 6V4.25a.75.75 0 0 1 1.5 0V6h1.75a.75.75 0 1 1 0 1.5H15.5v1.75a.75.75 0 0 ' +
       '1-1.5 0V7.5h-1.75a.75.75 0 1 1 0-1.5H14zM8.5 4a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 ' +
       '0zm.063 3.064a3.995 3.995 0 0 0 1.2-4.429A3.996 3.996 0 0 0 8.298.725a4.01 4.01 0 0 ' +

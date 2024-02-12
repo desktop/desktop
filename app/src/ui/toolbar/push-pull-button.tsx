@@ -167,11 +167,11 @@ function renderLastFetched(lastFetched: Date | null): JSX.Element | string {
  * This represents the "double arrow" icon used to show a force-push, and is a
  * less complicated icon than the generated Octicon from the `octicons` package.
  */
-export const forcePushIcon: OcticonSymbol.CustomOcticonSymbolType = {
+export const forcePushIcon: CustomOcticonSymbolType = {
   s: 'force-push-icon',
   w: 10,
   h: 16,
-  p: [
+  d: [
     'M0 6a.75.75 0 0 0 .974.714L4.469 3.22a.75.75 0 0 1 1.06 0l3.478 3.478a.75.75 ' +
       '0 0 0 .772-1.228L5.53 1.22a.75.75 0 0 0-1.06 0L.22 5.47A.75.75 0 0 0 0 6zm0 ' +
       '3a.75.75 0 0 0 1.28.53l2.97-2.97V14a.75.75 0 1 0 1.5 0V6.56l2.97 2.97a.75.75 ' +
