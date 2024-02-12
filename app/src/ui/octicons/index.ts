@@ -8,7 +8,7 @@ export {
 
 export type CustomOcticonSymbolType = {
   /** The symbol name */
-  readonly s: string
+  readonly s?: string
 
   /** The symbol width */
   readonly w: number
@@ -17,7 +17,7 @@ export type CustomOcticonSymbolType = {
   readonly h: number
 
   /** The symbol SVG paths */
-  readonly d: string[]
+  readonly d: string | string[]
 }
 
 export { Octicon } from './octicon'

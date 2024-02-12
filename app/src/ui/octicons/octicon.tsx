@@ -1,9 +1,5 @@
 import * as React from 'react'
-import {
-  OcticonSymbolType,
-  OcticonSymbolSize,
-  OcticonSymbolName,
-} from './octicons.generated'
+import { OcticonSymbolType, OcticonSymbolSize } from './octicons.generated'
 import { CustomOcticonSymbolType } from '.'
 import classNames from 'classnames'
 import ReactDOM from 'react-dom'
@@ -47,39 +43,35 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
   private svgRef = createObservableRef<SVGSVGElement>()
 
   public render() {
-    if ((this.props.symbol as CustomOcticonSymbolType).d !== undefined) {
-      return this.renderCustomIcon()
+    const { symbol } = this.props
+
+    if (this.isCustomSymbol(symbol)) {
+      return this.renderIcon(
+        symbol.s ?? 'custom',
+        symbol.h,
+        symbol.w,
+        Array.from(symbol.d)
+      )
     } else {
-      return this.renderOcticon()
+      const height = this.props.height ?? 16
+      const naturalHeight = this.closestNaturalHeight(
+        Object.keys(symbol.v).map(h =>
+          parseInt(h, 10)
+        ) as Array<OcticonSymbolSize>,
+        height
+      )
+
+      const scaledSymbol = symbol.v[naturalHeight]!
+      const naturalWidth = scaledSymbol.w
+      const width = height * (naturalWidth / naturalHeight)
+
+      return this.renderIcon(symbol.s, height, width, scaledSymbol.p)
     }
   }
 
-  private renderOcticon() {
-    const height = this.props.height ?? 16
-    const symbol = this.props.symbol as OcticonSymbolType
-
-    const naturalHeight = this.closestNaturalHeight(
-      Object.keys(symbol.h).map(h =>
-        parseInt(h, 10)
-      ) as Array<OcticonSymbolSize>,
-      height
-    )
-
-    const scaledSymbol = symbol.h[naturalHeight]!
-    const naturalWidth = scaledSymbol.w
-    const width = height * (naturalWidth / naturalHeight)
-
-    return this.renderIcon(symbol.s, height, width, scaledSymbol.p)
-  }
-
-  private renderCustomIcon() {
-    const symbol = this.props.symbol as CustomOcticonSymbolType
-    return this.renderIcon(symbol.s, symbol.h, symbol.w, symbol.d)
-  }
-
   private renderIcon(
-    name: OcticonSymbolName | string,
-    height: OcticonSymbolSize | number,
+    name: string,
+    height: number,
     width: number,
     paths: string[]
   ) {
@@ -127,16 +119,18 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
 
   private closestNaturalHeight(
     naturalHeights: Array<OcticonSymbolSize>,
-    height?: OcticonSymbolSize
+    height: OcticonSymbolSize
   ) {
-    if (height === undefined) {
-      return naturalHeights[0]
-    }
-
     return naturalHeights.reduce(
       (acc, naturalHeight) => (naturalHeight <= height ? naturalHeight : acc),
       naturalHeights[0]
     )
+  }
+
+  private isCustomSymbol(
+    symbol: OcticonSymbolType | CustomOcticonSymbolType
+  ): symbol is CustomOcticonSymbolType {
+    return (symbol as CustomOcticonSymbolType).d !== undefined
   }
 }
 
