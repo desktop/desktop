@@ -1,26 +1,20 @@
-export {
-  OcticonSymbolHeight,
-  OcticonSymbolHeights,
-  OcticonSymbolName,
-  OcticonSymbolSize,
-  OcticonSymbolType,
-} from './octicons.generated'
+export type OcticonSymbolVariant = {
+  /** SVG path element data */
+  readonly p: string[]
 
-export type CustomOcticonSymbolType = {
-  /** The symbol name */
-  readonly s?: string
-
-  /** The symbol width */
+  /** The width of the symbol */
   readonly w: number
 
-  /** The symbol height */
+  /** The height of the symbol */
   readonly h: number
-
-  /** The symbol SVG paths */
-  readonly d: string | string[]
 }
 
+export type OcticonSymbolVariants = Record<PropertyKey, OcticonSymbolVariant>
+
+export type OcticonSymbol = OcticonSymbolVariant | OcticonSymbolVariants
+
 export { Octicon } from './octicon'
+
 export { iconForRepository } from './repository'
 export { iconForStatus } from './status'
 export { syncClockwise } from './sync-clockwise'
