@@ -1,6 +1,5 @@
 import * as React from 'react'
-import { OcticonSymbolType, OcticonSymbolSize } from './octicons.generated'
-import { CustomOcticonSymbolType } from '.'
+import { OcticonSymbol, OcticonSymbolVariant } from '.'
 import classNames from 'classnames'
 import ReactDOM from 'react-dom'
 import { createObservableRef } from '../lib/observable-ref'
@@ -12,7 +11,7 @@ interface IOcticonProps {
    * or CustomOcticonSymbolType type. Supports custom paths as well as
    * those provided through the static properties of the OcticonSymbol class.
    */
-  readonly symbol: OcticonSymbolType | CustomOcticonSymbolType
+  readonly symbol: OcticonSymbol
 
   /**
    * An optional classname that will be appended to the default
@@ -27,7 +26,7 @@ interface IOcticonProps {
 
   readonly tooltipDirection?: TooltipDirection
 
-  readonly height?: OcticonSymbolSize
+  readonly height?: number
 }
 
 /**
@@ -37,7 +36,7 @@ interface IOcticonProps {
  * which is why the width and height properties specify the maximum and
  * not the minimum size.
  *
- * Usage: `<Octicon symbol={OcticonSymbol.markGithub} />`
+ * Usage: `<Octicon symbol={octicons.markGithub} />`
  */
 export class Octicon extends React.Component<IOcticonProps, {}> {
   private svgRef = createObservableRef<SVGSVGElement>()
@@ -45,43 +44,27 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
   public render() {
     const { symbol } = this.props
 
-    if (this.isCustomSymbol(symbol)) {
-      return this.renderIcon(
-        symbol.s ?? 'custom',
-        symbol.h,
-        symbol.w,
-        Array.from(symbol.d)
-      )
+    if (this.isSingleVariant(symbol)) {
+      return this.renderIcon(symbol.p, symbol.h, symbol.w)
     } else {
       const height = this.props.height ?? 16
       const naturalHeight = this.closestNaturalHeight(
-        Object.keys(symbol.v).map(h =>
-          parseInt(h, 10)
-        ) as Array<OcticonSymbolSize>,
+        Object.keys(symbol).map(h => parseInt(h, 10)) as Array<number>,
         height
       )
 
-      const scaledSymbol = symbol.v[naturalHeight]!
+      const scaledSymbol = symbol[naturalHeight]!
       const naturalWidth = scaledSymbol.w
       const width = height * (naturalWidth / naturalHeight)
 
-      return this.renderIcon(symbol.s, height, width, scaledSymbol.p)
+      return this.renderIcon(scaledSymbol.p, height, width)
     }
   }
 
-  private renderIcon(
-    name: string,
-    height: number,
-    width: number,
-    paths: string[]
-  ) {
+  private renderIcon(paths: string[], height: number, width: number) {
     const { title, tooltipDirection } = this.props
     const viewBox = `0 0 ${width} ${height}`
-    const className = classNames(
-      'octicon',
-      `octicon-${name}`,
-      this.props.className
-    )
+    const className = classNames('octicon', this.props.className)
 
     // Hide the octicon from screen readers when it's only being used
     // as a visual without any attached meaning applicable to users
@@ -117,20 +100,22 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
     )
   }
 
-  private closestNaturalHeight(
-    naturalHeights: Array<OcticonSymbolSize>,
-    height: OcticonSymbolSize
-  ) {
+  private isSingleVariant(
+    symbol: OcticonSymbol
+  ): symbol is OcticonSymbolVariant {
+    return (
+      symbol instanceof Object &&
+      symbol.hasOwnProperty('p') &&
+      symbol.hasOwnProperty('h') &&
+      symbol.hasOwnProperty('w')
+    )
+  }
+
+  private closestNaturalHeight(naturalHeights: Array<number>, height: number) {
     return naturalHeights.reduce(
       (acc, naturalHeight) => (naturalHeight <= height ? naturalHeight : acc),
       naturalHeights[0]
     )
-  }
-
-  private isCustomSymbol(
-    symbol: OcticonSymbolType | CustomOcticonSymbolType
-  ): symbol is CustomOcticonSymbolType {
-    return (symbol as CustomOcticonSymbolType).d !== undefined
   }
 }
 
@@ -142,7 +127,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
  * @param id        Optional identifier to set to the wrapper element.
  */
 export function createOcticonElement(
-  symbol: OcticonSymbolType,
+  symbol: OcticonSymbol,
   className?: string,
   id?: string
 ) {
