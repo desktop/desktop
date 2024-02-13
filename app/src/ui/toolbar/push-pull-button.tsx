@@ -8,12 +8,12 @@ import { FetchType } from '../../models/fetch'
 
 import { Dispatcher } from '../dispatcher'
 import {
-  CustomOcticonSymbolType,
   Octicon,
-  OcticonSymbolType,
+  OcticonSymbol,
+  OcticonSymbolVariant,
   syncClockwise,
 } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { RelativeTime } from '../relative-time'
 
 import { ToolbarButton, ToolbarButtonStyle } from './button'
@@ -120,7 +120,7 @@ export type DropdownItem = {
   readonly title: string
   readonly description: string | JSX.Element
   readonly action: () => void
-  readonly icon: OcticonSymbolType | CustomOcticonSymbolType
+  readonly icon: OcticonSymbol
 }
 
 function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
@@ -134,7 +134,7 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
     content.push(
       <span key="ahead">
         {ahead + numTagsToPush}
-        <Octicon symbol={OcticonSymbol.arrowUp} />
+        <Octicon symbol={octicons.arrowUp} />
       </span>
     )
   }
@@ -143,7 +143,7 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
     content.push(
       <span key="behind">
         {behind}
-        <Octicon symbol={OcticonSymbol.arrowDown} />
+        <Octicon symbol={octicons.arrowDown} />
       </span>
     )
   }
@@ -167,14 +167,15 @@ function renderLastFetched(lastFetched: Date | null): JSX.Element | string {
  * This represents the "double arrow" icon used to show a force-push, and is a
  * less complicated icon than the generated Octicon from the `octicons` package.
  */
-export const forcePushIcon: CustomOcticonSymbolType = {
+export const forcePushIcon: OcticonSymbolVariant = {
   w: 10,
   h: 16,
-  d:
+  p: [
     'M0 6a.75.75 0 0 0 .974.714L4.469 3.22a.75.75 0 0 1 1.06 0l3.478 3.478a.75.75 ' +
-    '0 0 0 .772-1.228L5.53 1.22a.75.75 0 0 0-1.06 0L.22 5.47A.75.75 0 0 0 0 6zm0 ' +
-    '3a.75.75 0 0 0 1.28.53l2.97-2.97V14a.75.75 0 1 0 1.5 0V6.56l2.97 2.97a.75.75 ' +
-    '0 0 0 1.06-1.06L5.53 4.22a.75.75 0 0 0-1.06 0L.22 8.47A.75.75 0 0 0 0 9z',
+      '0 0 0 .772-1.228L5.53 1.22a.75.75 0 0 0-1.06 0L.22 5.47A.75.75 0 0 0 0 6zm0 ' +
+      '3a.75.75 0 0 0 1.28.53l2.97-2.97V14a.75.75 0 1 0 1.5 0V6.56l2.97 2.97a.75.75 ' +
+      '0 0 0 1.06-1.06L5.53 4.22a.75.75 0 0 0-1.06 0L.22 8.47A.75.75 0 0 0 0 9z',
+  ],
 }
 
 /**
@@ -486,7 +487,7 @@ export class PushPullButton extends React.Component<
         title="Publish repository"
         description="Publish this repository to GitHub"
         className="push-pull-button"
-        icon={OcticonSymbol.upload}
+        icon={octicons.upload}
         style={ToolbarButtonStyle.Subtitle}
         onClick={onClick}
       />
@@ -499,7 +500,7 @@ export class PushPullButton extends React.Component<
         {...this.defaultButtonProps()}
         title="Publish branch"
         description="Cannot publish unborn HEAD"
-        icon={OcticonSymbol.upload}
+        icon={octicons.upload}
         disabled={true}
       />
     )
@@ -515,7 +516,7 @@ export class PushPullButton extends React.Component<
         {...this.defaultButtonProps()}
         title="Publish branch"
         description={description}
-        icon={OcticonSymbol.upload}
+        icon={octicons.upload}
         disabled={true}
       />
     )
@@ -543,7 +544,7 @@ export class PushPullButton extends React.Component<
         {...this.defaultDropdownProps()}
         title="Publish branch"
         description={description}
-        icon={OcticonSymbol.upload}
+        icon={octicons.upload}
         onClick={onClick}
         className={className}
         dropdownContentRenderer={this.getDropdownContentRenderer([
@@ -594,7 +595,7 @@ export class PushPullButton extends React.Component<
         {...this.defaultDropdownProps()}
         title={title}
         description={renderLastFetched(lastFetched)}
-        icon={OcticonSymbol.arrowDown}
+        icon={octicons.arrowDown}
         onClick={onClick}
         dropdownContentRenderer={this.getDropdownContentRenderer(
           dropdownItemTypes
@@ -619,7 +620,7 @@ export class PushPullButton extends React.Component<
         {...this.defaultDropdownProps()}
         title={`Push ${remoteName}`}
         description={renderLastFetched(lastFetched)}
-        icon={OcticonSymbol.arrowUp}
+        icon={octicons.arrowUp}
         onClick={onClick}
         dropdownContentRenderer={this.getDropdownContentRenderer([
           DropdownItemType.Fetch,

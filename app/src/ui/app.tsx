@@ -51,8 +51,8 @@ import {
   BranchDropdown,
   RevertProgress,
 } from './toolbar'
-import { iconForRepository, OcticonSymbolType } from './octicons'
-import * as OcticonSymbol from './octicons/octicons.generated'
+import { iconForRepository, OcticonSymbol } from './octicons'
+import * as octicons from './octicons/octicons.generated'
 import {
   showCertificateTrustDialog,
   sendReady,
@@ -2882,17 +2882,17 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const repository = selection ? selection.repository : null
 
-    let icon: OcticonSymbolType
+    let icon: OcticonSymbol
     let title: string
     if (repository) {
       const alias = repository instanceof Repository ? repository.alias : null
       icon = iconForRepository(repository)
       title = alias ?? repository.name
     } else if (this.state.repositories.length > 0) {
-      icon = OcticonSymbol.repo
+      icon = octicons.repo
       title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
     } else {
-      icon = OcticonSymbol.repo
+      icon = octicons.repo
       title = __DARWIN__ ? 'No Repositories' : 'No repositories'
     }
 

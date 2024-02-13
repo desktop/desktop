@@ -10,7 +10,7 @@ import {
 import { ILineTokens } from '../../lib/highlighter/types'
 import classNames from 'classnames'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType } from '../../models/diff'
@@ -374,7 +374,7 @@ export class SideBySideDiffRow extends React.Component<
       // This can only be the first hunk
       case DiffHunkExpansionType.Up:
         return {
-          icon: OcticonSymbol.foldUp,
+          icon: octicons.foldUp,
           title: 'Expand Up',
           handler: this.onExpandHunk(hunkIndex, expansionType),
         }
@@ -382,13 +382,13 @@ export class SideBySideDiffRow extends React.Component<
       // second to last hunk down.
       case DiffHunkExpansionType.Down:
         return {
-          icon: OcticonSymbol.foldDown,
+          icon: octicons.foldDown,
           title: 'Expand Down',
           handler: this.onExpandHunk(hunkIndex - 1, expansionType),
         }
       case DiffHunkExpansionType.Short:
         return {
-          icon: OcticonSymbol.fold,
+          icon: octicons.fold,
           title: 'Expand All',
           handler: this.onExpandHunk(hunkIndex, expansionType),
         }
