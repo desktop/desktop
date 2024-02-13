@@ -2,7 +2,6 @@ import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PullRequest } from '../../models/pull-request'
 import { Dispatcher } from '../dispatcher'
-import { Account } from '../../models/account'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { OcticonSymbolType } from '../octicons/octicons.generated'
@@ -14,11 +13,11 @@ import { Avatar } from '../lib/avatar'
 import { formatRelative } from '../../lib/format-relative'
 import { getStealthEmailForUser } from '../../lib/email'
 import { IAPIIdentity } from '../../lib/api'
+import { Account } from '../../models/account'
 
 interface IPullRequestCommentLikeProps {
   readonly id?: string
   readonly dispatcher: Dispatcher
-  readonly accounts: ReadonlyArray<Account>
   readonly repository: RepositoryWithGitHubRepository
   readonly pullRequest: PullRequest
   readonly eventDate: Date
@@ -38,6 +37,8 @@ interface IPullRequestCommentLikeProps {
 
   readonly onSubmit: () => void
   readonly onDismissed: () => void
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 /**
@@ -79,7 +80,8 @@ export abstract class PullRequestCommentLike extends React.Component<IPullReques
   }
 
   private renderTimelineItem() {
-    const { user, repository, eventDate, eventVerb, externalURL } = this.props
+    const { user, repository, eventDate, eventVerb, externalURL, accounts } =
+      this.props
     const { endpoint } = repository.gitHubRepository
     const userAvatar = {
       name: user.login,
@@ -103,7 +105,12 @@ export abstract class PullRequestCommentLike extends React.Component<IPullReques
       <div className="timeline-item-container">
         {this.renderDashedTimelineLine('top')}
         <div className={timelineItemClass}>
-          <Avatar user={userAvatar} title={null} size={40} />
+          <Avatar
+            accounts={accounts}
+            user={userAvatar}
+            title={null}
+            size={40}
+          />
           {this.renderReviewIcon()}
           <div className="summary">
             <LinkButton uri={user.html_url} className="author">

@@ -36,4 +36,22 @@
       }
     }
   }
+
+  .copy-button {
+    // Removing default button styles
+    background: transparent;
+    border: none;
+    padding: 0;
+    height: auto;
+    min-width: 16px;
+
+    .octicon {
+      // Reverting margin-top change from .item .octicon
+      margin-top: revert;
+    }
+
+    :hover {
+      color: var(--text-secondary-color);
+    }
+  }
 }

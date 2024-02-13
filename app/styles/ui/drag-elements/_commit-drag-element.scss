@@ -32,13 +32,16 @@
       font-size: 11px;
       position: absolute;
       top: -22px;
-      left: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
       border-radius: 100%;
     }
+  }
+
+  &:not(.in-keyboard-insertion-mode) .commit-box .count {
+    left: 20px;
   }
 
   .tool-tip-contents {
@@ -89,4 +92,8 @@
     top: 5px;
     box-shadow: 1px 1px 1px 1px var(--box-border-color);
   }
+}
+
+.keyboard-insertion-element #commit-drag-element {
+  position: relative;
 }

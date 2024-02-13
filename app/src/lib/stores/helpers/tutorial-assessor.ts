@@ -29,6 +29,8 @@ export class OnboardingTutorialAssessor {
   /** Is the tutorial currently paused? */
   private tutorialPaused: boolean = getBoolean(tutorialPausedKey, false)
 
+  private tutorialAnnounced: boolean = false
+
   public constructor(
     /** Method to call when we need to get the current editor */
     private getResolvedExternalEditor: () => string | null
@@ -61,8 +63,10 @@ export class OnboardingTutorialAssessor {
       return TutorialStep.PushBranch
     } else if (!this.pullRequestCreated(repositoryState)) {
       return TutorialStep.OpenPullRequest
-    } else {
+    } else if (!this.tutorialAnnounced) {
       return TutorialStep.AllDone
+    } else {
+      return TutorialStep.Announced
     }
   }
 
@@ -143,6 +147,10 @@ export class OnboardingTutorialAssessor {
   public markPullRequestTutorialStepAsComplete = () => {
     this.prStepComplete = true
     setBoolean(pullRequestStepCompleteKey, this.prStepComplete)
+  }
+
+  public markTutorialCompletionAsAnnounced = () => {
+    this.tutorialAnnounced = true
   }
 
   /**

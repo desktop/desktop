@@ -94,6 +94,7 @@ export class DiffOptions extends React.Component<
           <Tooltip
             target={this.innerButtonRef}
             direction={TooltipDirection.NORTH}
+            applyAriaDescribedBy={false}
           >
             {buttonLabel}
           </Tooltip>

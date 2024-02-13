@@ -30,6 +30,8 @@ export interface IBaseInputDescriptionProps {
   readonly trackedUserInput?: string | boolean
 
   readonly ariaLiveMessage?: string
+
+  readonly className?: string
 }
 
 export interface IInputDescriptionProps extends IBaseInputDescriptionProps {
@@ -54,11 +56,23 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
 
     switch (type) {
       case InputDescriptionType.Caption:
-        return classNames('input-description', 'input-description-caption')
+        return classNames(
+          'input-description',
+          this.props.className,
+          'input-description-caption'
+        )
       case InputDescriptionType.Warning:
-        return classNames('input-description', 'input-description-warning')
+        return classNames(
+          'input-description',
+          this.props.className,
+          'input-description-warning'
+        )
       case InputDescriptionType.Error:
-        return classNames('input-description', 'input-description-error')
+        return classNames(
+          'input-description',
+          this.props.className,
+          'input-description-error'
+        )
       default:
         return assertNever(type, `Unknown input type  ${type}`)
     }

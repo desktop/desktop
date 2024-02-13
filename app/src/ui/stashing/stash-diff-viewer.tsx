@@ -109,6 +109,7 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
           diff={stashedFileDiff}
           imageDiffType={imageDiffType}
           hideWhitespaceInDiff={false}
+          showDiffCheckMarks={false}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onOpenBinaryFile={onOpenBinaryFile}
           onChangeImageDiffType={onChangeImageDiffType}

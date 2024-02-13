@@ -19,6 +19,7 @@ import memoizeOne from 'memoize-one'
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
 import { CopyButton } from '../copy-button'
+import { Account } from '../../models/account'
 
 interface IExpandableCommitSummaryProps {
   readonly repository: Repository
@@ -45,6 +46,8 @@ interface IExpandableCommitSummaryProps {
 
   /** Called to show unreachable commits dialog */
   readonly showUnreachableCommits: (tab: UnreachableCommitsTab) => void
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface IExpandableCommitSummaryState {
@@ -230,6 +233,7 @@ export class ExpandableCommitSummary extends React.Component<
         onClick={isExpanded ? this.onCollapse : this.onExpand}
         className="expander"
         tooltip={isExpanded ? 'Collapse' : 'Expand'}
+        applyTooltipAriaDescribedBy={false}
         ariaExpanded={isExpanded}
         ariaLabel={
           isExpanded ? 'Collapse commit details' : 'Expand commit details'
@@ -410,7 +414,7 @@ export class ExpandableCommitSummary extends React.Component<
     return this.state.avatarUsers.map((user, i) => {
       return (
         <div className="author selectable" key={i}>
-          <Avatar user={user} title={null} />
+          <Avatar accounts={this.props.accounts} user={user} title={null} />
           <div>{this.renderExpandedAuthor(user)}</div>
         </div>
       )
@@ -418,12 +422,12 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderAuthorStack = () => {
-    const { selectedCommits, repository } = this.props
+    const { selectedCommits, repository, accounts } = this.props
     const { avatarUsers } = this.state
 
     return (
       <>
-        <AvatarStack users={avatarUsers} />
+        <AvatarStack users={avatarUsers} accounts={accounts} />
         <CommitAttribution
           gitHubRepository={repository.gitHubRepository}
           commits={selectedCommits}
@@ -471,6 +475,7 @@ export class ExpandableCommitSummary extends React.Component<
         <RichText
           emoji={this.props.emoji}
           repository={this.props.repository}
+          className="selectable"
           text={summary}
         />
       )
@@ -507,7 +512,7 @@ export class ExpandableCommitSummary extends React.Component<
 
   private renderSummary = () => {
     const { hasEmptySummary } = this.state
-    const summaryClassNames = classNames('ecs-title', 'selectable', {
+    const summaryClassNames = classNames('ecs-title', {
       'empty-summary': hasEmptySummary,
     })
 
@@ -542,8 +547,10 @@ export class ExpandableCommitSummary extends React.Component<
     return (
       <div id="expandable-commit-summary" className={className}>
         {this.renderSummary()}
-        {this.renderDescription()}
-        {this.renderMetaItems()}
+        <div className="beneath-summary">
+          {this.renderDescription()}
+          {this.renderMetaItems()}
+        </div>
         {this.renderCommitsNotReachable()}
       </div>
     )

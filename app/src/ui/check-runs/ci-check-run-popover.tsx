@@ -59,7 +59,6 @@ interface ICICheckRunPopoverProps {
 interface ICICheckRunPopoverState {
   readonly checkRuns: ReadonlyArray<IRefCheck>
   readonly checkRunSummary: string
-  readonly loadingActionLogs: boolean
   readonly loadingActionWorkflows: boolean
 }
 
@@ -81,7 +80,6 @@ export class CICheckRunPopover extends React.PureComponent<
     this.state = {
       checkRuns: cachedStatus?.checks ?? [],
       checkRunSummary: this.getCombinedCheckSummary(cachedStatus),
-      loadingActionLogs: true,
       loadingActionWorkflows: true,
     }
   }
@@ -131,7 +129,6 @@ export class CICheckRunPopover extends React.PureComponent<
       checkRuns: [...check.checks],
       checkRunSummary: this.getCombinedCheckSummary(check),
       loadingActionWorkflows: false,
-      loadingActionLogs: false,
     })
   }
 
@@ -374,7 +371,7 @@ export class CICheckRunPopover extends React.PureComponent<
   }
 
   public renderList = (): JSX.Element => {
-    const { checkRuns, loadingActionLogs, loadingActionWorkflows } = this.state
+    const { checkRuns, loadingActionWorkflows } = this.state
     if (loadingActionWorkflows) {
       return this.renderCheckRunLoadings()
     }
@@ -383,8 +380,6 @@ export class CICheckRunPopover extends React.PureComponent<
       <div className="ci-check-run-list-container">
         <CICheckRunList
           checkRuns={checkRuns}
-          loadingActionLogs={loadingActionLogs}
-          loadingActionWorkflows={loadingActionWorkflows}
           onViewCheckDetails={this.onViewCheckDetails}
           onViewJobStep={this.onViewJobStep}
           onRerunJob={

@@ -48,6 +48,6 @@ export class CICheckRunActionsJobStepList extends React.PureComponent<
       )
     })
 
-    return <div className="ci-check-run-job-steps-list">{jobSteps}</div>
+    return <ul className="ci-check-run-job-steps-list">{jobSteps}</ul>
   }
 }

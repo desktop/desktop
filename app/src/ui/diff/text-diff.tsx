@@ -33,7 +33,6 @@ import {
   IFileContents,
 } from './syntax-highlighting'
 import { relativeChanges } from './changed-range'
-import { Repository } from '../../models/repository'
 import memoizeOne from 'memoize-one'
 import { structuralEquals } from '../../lib/equality'
 import { assertNever } from '../../lib/fatal-error'
@@ -57,7 +56,7 @@ import { createOcticonElement } from '../octicons/octicon'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { PopoverAnchorPosition } from '../lib/popover'
-import { HiddenBidiCharsWarning } from './hidden-bidi-chars-warning'
+import { DiffContentsWarning } from './diff-contents-warning'
 
 // This is a custom version of the no-newline octicon that's exactly as
 // tall as it needs to be (8px) which helps with aligning it on the line.
@@ -145,7 +144,6 @@ function targetHasClass(target: EventTarget | null, token: string) {
 }
 
 interface ITextDiffProps {
-  readonly repository: Repository
   /** The file whose diff should be displayed. */
   readonly file: ChangedFile
   /** The initial diff that should be rendered */
@@ -1558,7 +1556,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
     return (
       <>
-        {diff.hasHiddenBidiChars && <HiddenBidiCharsWarning />}
+        <DiffContentsWarning diff={diff} />
         <CodeMirrorHost
           className="diff-code-mirror"
           value={doc}

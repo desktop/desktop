@@ -157,6 +157,8 @@ interface ICommitMessageProps {
   readonly onCommitSpellcheckEnabledChanged: (enabled: boolean) => void
   readonly onStopAmending: () => void
   readonly onShowCreateForkDialog: () => void
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface ICommitMessageState {
@@ -267,35 +269,19 @@ export class CommitMessage extends React.Component<
   public componentWillReceiveProps(nextProps: ICommitMessageProps) {
     const { commitMessage } = nextProps
 
-    // If we switch from not amending to amending, we want to populate the
-    // textfields with the commit message from the commit.
-    if (this.props.commitToAmend === null && nextProps.commitToAmend !== null) {
-      this.fillWithCommitMessage({
-        summary: nextProps.commitToAmend.summary,
-        description: nextProps.commitToAmend.body,
-      })
-    } else if (
-      this.props.commitToAmend !== null &&
-      nextProps.commitToAmend === null &&
-      commitMessage !== null
-    ) {
-      this.fillWithCommitMessage(commitMessage)
-    }
-
     if (!commitMessage || commitMessage === this.props.commitMessage) {
       return
     }
 
-    if (this.state.summary === '' && !this.state.description) {
-      this.fillWithCommitMessage(commitMessage)
+    if (
+      (this.state.summary === '' && !this.state.description) ||
+      (this.props.commitToAmend === null && nextProps.commitToAmend)
+    ) {
+      this.setState({
+        summary: commitMessage.summary,
+        description: commitMessage.description,
+      })
     }
-  }
-
-  private fillWithCommitMessage(commitMessage: ICommitMessage) {
-    this.setState({
-      summary: commitMessage.summary,
-      description: commitMessage.description,
-    })
   }
 
   public async componentDidUpdate(
@@ -326,7 +312,8 @@ export class CommitMessage extends React.Component<
       this.isCoAuthorInputVisible &&
       // The co-author input could be also shown when switching between repos,
       // but in that case we don't want to give the focus to the input.
-      prevProps.repository.id === this.props.repository.id
+      prevProps.repository.id === this.props.repository.id &&
+      !!prevProps.commitToAmend === !!this.props.commitToAmend
     ) {
       this.coAuthorInputRef.current?.focus()
     }
@@ -708,6 +695,7 @@ export class CommitMessage extends React.Component<
         onOpenRepositorySettings={this.onOpenRepositorySettings}
         onOpenGitSettings={this.onOpenGitSettings}
         repository={repository}
+        accounts={this.props.accounts}
       />
     )
   }
@@ -1258,6 +1246,7 @@ export class CommitMessage extends React.Component<
         onClick={this.onSubmit}
         disabled={!buttonEnabled}
         tooltip={tooltip}
+        tooltipDismissable={false}
         onlyShowTooltipWhenOverflowed={buttonEnabled}
       >
         <>

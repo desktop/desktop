@@ -8,19 +8,26 @@ export function installAliveOriginFilter(orderedWebRequest: OrderedWebRequest) {
   orderedWebRequest.onBeforeSendHeaders.addEventListener(async details => {
     const { protocol, host } = new URL(details.url)
 
-    // If it's a WebSocket Secure request directed to a github.com subdomain,
-    // probably related to the Alive server, we need to override the `Origin`
-    // header with a valid value.
-    if (protocol === 'wss:' && /(^|\.)github\.com$/.test(host)) {
-      return {
-        requestHeaders: {
-          ...details.requestHeaders,
-          // TODO: discuss with Alive team a good Origin value to use here
-          Origin: 'https://desktop.github.com',
-        },
-      }
+    // Here we're only interested in WebSockets
+    if (protocol !== 'wss:') {
+      return {}
     }
 
-    return {}
+    // Alive URLs are supposed to be prefixed by "alive" and then the hostname
+    if (
+      !/^alive\.github\.com$/.test(host) &&
+      !/^alive\.(.*)\.ghe\.com$/.test(host)
+    ) {
+      return {}
+    }
+
+    // We will just replace the `alive` prefix (which indicates the service)
+    // with `desktop`.
+    return {
+      requestHeaders: {
+        ...details.requestHeaders,
+        Origin: `https://${host.replace('alive.', 'desktop.')}`,
+      },
+    }
   })
 }

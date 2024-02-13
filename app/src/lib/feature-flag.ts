@@ -99,9 +99,13 @@ export function enableMoveStash(): boolean {
 export const enableCustomGitUserAgent = enableBetaFeatures
 
 export function enableSectionList(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 export const enableRepoRulesBeta = () => true
 
-export const enableCommitDetailsHeaderExpansion = enableBetaFeatures
+export const enableCommitDetailsHeaderExpansion = () => true
+
+export const enableDiffCheckMarksAndLinkUnderlines = enableBetaFeatures
+
+export const enableDiffCheckMarks = enableDiffCheckMarksAndLinkUnderlines

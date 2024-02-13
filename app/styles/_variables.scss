@@ -188,6 +188,21 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --box-overflow-shadow-background: #{linear-gradient(180deg, rgba($white, 0) 0%, rgba($white, 1) 90%, rgba($white, 1) 100%)};
 
   /**
+   * Gradient used to indicate that content is overflowing, intended
+   * for use when content can be expanded through other means than
+   * scrolling. Used in conjuction with background-size, background-attachment, background-repeat.
+   */
+  --no-shadow-top: #{linear-gradient($white, rgba(255, 255, 255, 0))};
+  --no-shadow-bottom: #{linear-gradient(rgba(255, 255, 255, 0), $white)};
+  --top-shadow: #{linear-gradient(0deg, rgba($white, 0) 0%, rgba($gray-200, 0.6) 90%, rgba($gray-200, 1) 100%)};
+  --bottom-shadow: #{linear-gradient(180deg, rgba($white, 0) 0%, rgba($gray-200, 0.6) 90%, rgba($gray-200, 1) 100%) 0 100%};
+  --box-overflow-shadow-background-two: #{var(--no-shadow-top), var(--no-shadow-bottom) 0 100%, var(--top-shadow), var(--bottom-shadow)};
+
+  /**
+   * Text color for selected boxes with active keyboard focus
+   */
+
+  /**
    * Placeholder color for input boxes
    */
   --box-placeholder-color: #{$gray-500};
@@ -442,6 +457,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --form-error-background: #{$red-100};
   --form-error-border-color: #{$red-200};
   --form-error-text-color: #{$red-800};
+
+  --dialog-banner-success-background: #{$green-100};
+  --dialog-banner-success-border-color: #{$green-300};
+  --dialog-banner-success-text-color: #{$green-800};
 
   // Inline form errors, displayed after the input field
   --input-warning-text-color: var(--dialog-warning-color);

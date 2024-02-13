@@ -15,7 +15,6 @@ import noop from 'lodash/noop'
 import { Popup } from '../../models/popup'
 import { Foldout } from '../../lib/app-state'
 import { Account } from '../../models/account'
-import { pick } from '../../lib/pick'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
 
@@ -95,6 +94,7 @@ interface ICommitMessageDialogProps {
   readonly onSubmitCommitMessage: (context: ICommitContext) => Promise<boolean>
 
   readonly repositoryAccount: Account | null
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface ICommitMessageDialogState {
@@ -108,7 +108,8 @@ export class CommitMessageDialog extends React.Component<
 > {
   public constructor(props: ICommitMessageDialogProps) {
     super(props)
-    this.state = pick(props, 'showCoAuthoredBy', 'coAuthors')
+    const { showCoAuthoredBy, coAuthors } = props
+    this.state = { showCoAuthoredBy, coAuthors }
   }
 
   public render() {
@@ -161,6 +162,7 @@ export class CommitMessageDialog extends React.Component<
             repositoryAccount={this.props.repositoryAccount}
             onStopAmending={this.onStopAmending}
             onShowCreateForkDialog={this.onShowCreateForkDialog}
+            accounts={this.props.accounts}
           />
         </DialogContent>
       </Dialog>

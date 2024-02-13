@@ -2,6 +2,7 @@ import { TestStatsDatabase } from '../helpers/databases'
 
 import { StatsStore } from '../../src/lib/stats'
 import { TestActivityMonitor } from '../helpers/test-activity-monitor'
+import { fakePost } from '../fake-stats-post'
 
 describe('StatsStore', () => {
   async function createStatsDb() {
@@ -14,7 +15,7 @@ describe('StatsStore', () => {
     const statsDb = await createStatsDb()
     const activityMonitor = new TestActivityMonitor()
 
-    new StatsStore(statsDb, activityMonitor)
+    new StatsStore(statsDb, activityMonitor, fakePost)
 
     expect(activityMonitor.subscriptionCount).toBe(1)
 
@@ -36,7 +37,7 @@ describe('StatsStore', () => {
     const statsDb = await createStatsDb()
     const activityMonitor = new TestActivityMonitor()
 
-    const store = new StatsStore(statsDb, activityMonitor)
+    const store = new StatsStore(statsDb, activityMonitor, fakePost)
 
     expect(activityMonitor.subscriptionCount).toBe(1)
 
