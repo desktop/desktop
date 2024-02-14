@@ -7,9 +7,9 @@ import { Tooltip, TooltipDirection } from '../lib/tooltip'
 
 interface IOcticonProps {
   /**
-   * An instance of an object conforming to the OcticonSymbolType
-   * or CustomOcticonSymbolType type. Supports custom paths as well as
-   * those provided through the static properties of the OcticonSymbol class.
+   * An instance of an object conforming to the OcticonSymbol type. Supports
+   * custom paths as well as those provided through the static properties of
+   * the OcticonSymbol class.
    */
   readonly symbol: OcticonSymbol
 
