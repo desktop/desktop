@@ -62,226 +62,6 @@
   }
 
   .row {
-    .popover-component.whitespace-hint {
-      width: 275px;
-    }
-  }
-
-  .row .line-number {
-    width: var(--width-line-number);
-    flex-shrink: 0;
-    background: var(--diff-gutter-background-color);
-    color: var(--diff-line-number-color);
-    display: flex;
-    box-sizing: content-box;
-    position: relative;
-
-    label {
-      width: 100%;
-      display: flex;
-      border-color: inherit;
-      border-radius: var(--border-radius);
-
-      .line-number-check {
-        display: flex;
-        justify-content: center;
-        width: 20px;
-        flex-shrink: 0;
-        padding-top: 3.5px;
-
-        .octicon {
-          height: 12px;
-        }
-      }
-
-      span {
-        flex: 1;
-        user-select: none;
-        padding: 0 var(--spacing-half);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        // Workaround to show the ellipsis at the beginning of
-        // the line number when it's too long.
-        direction: rtl;
-      }
-    }
-
-    &.selectable {
-      input:focus-visible + label {
-        outline: 2px solid #0659d6;
-        outline-offset: -3px;
-      }
-
-      .line-number-check,
-      .line-number-check .octicon,
-      .line-number-check .octicon path,
-      &.hoverable span {
-        cursor: pointer;
-      }
-
-      &.line-selected {
-        border-color: var(--diff-selected-border-color);
-        background: var(--diff-selected-background-color);
-
-        label {
-          background: var(--diff-selected-background-color);
-          color: var(--diff-selected-text-color);
-          border-color: var(--diff-selected-border-color);
-        }
-
-        &.hoverable:hover {
-          border-color: var(--diff-hover-border-color);
-        }
-
-        &.hoverable:hover,
-        &.hoverable:hover label,
-        &.hover,
-        &.hover label,
-        input:focus-visible + label {
-          background: var(--diff-hover-background-color);
-          color: var(--diff-hover-text-color);
-          border-color: var(--diff-hover-border-color);
-        }
-      }
-    }
-  }
-
-  .row .hunk-expansion-handle {
-    button {
-      overflow: inherit;
-      text-overflow: inherit;
-      white-space: inherit;
-      font-family: inherit;
-      font-size: inherit;
-      border: none;
-      height: inherit;
-      color: inherit;
-      background-color: inherit;
-      width: calc(100% - 2px);
-      height: calc(100% - var(--spacing));
-      padding: 0px;
-      padding-top: 4px;
-      padding-bottom: 1px;
-      margin: 1px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      outline-offset: 0;
-    }
-
-    width: var(--width-line-number);
-    flex-shrink: 0;
-    background: var(--diff-hunk-background-color);
-    color: var(--diff-hunk-text-color);
-    display: flex;
-    box-sizing: content-box;
-
-    &.selectable.hoverable {
-      * {
-        cursor: pointer;
-      }
-
-      &:hover {
-        background: var(--diff-hover-background-color);
-        border-color: var(--diff-hover-border-color);
-        color: var(--diff-hover-text-color);
-      }
-    }
-  }
-
-  .hunk-handle {
-    position: absolute;
-    height: 100%;
-    width: 20px;
-    left: calc(50% - 10px);
-    top: 0;
-
-    &.hoverable {
-      cursor: pointer;
-    }
-  }
-
-  .content {
-    display: flex;
-    white-space: pre-wrap;
-    overflow-y: auto;
-    flex-grow: 1;
-    word-break: break-all;
-
-    .prefix {
-      user-select: none;
-    }
-
-    .octicon {
-      height: 8px;
-      fill: var(--error-color);
-      display: inline-block;
-      margin-left: 3px;
-      margin-bottom: -1px;
-    }
-  }
-
-  .before,
-  .after {
-    width: 50%;
-    display: flex;
-    flex-direction: row;
-    position: relative;
-  }
-
-  .before {
-    color: var(--diff-delete-text-color);
-    background: var(--diff-delete-background-color);
-
-    .line-number {
-      background: var(--diff-delete-gutter-background-color);
-      border-color: var(--diff-delete-border-color);
-    }
-
-    .selectable {
-      &.hoverable:hover {
-        border-color: var(--diff-delete-hover-border-color);
-      }
-
-      &.hoverable:hover,
-      &.hoverable:hover label,
-      &.hover,
-      &.hover label,
-      input:focus-visible + label {
-        background: var(--diff-delete-hover-background-color);
-        color: var(--diff-delete-hover-text-color);
-        border-color: var(--diff-delete-hover-border-color);
-      }
-    }
-  }
-
-  .after {
-    color: var(--diff-add-text-color);
-    background: var(--diff-add-background-color);
-
-    .line-number {
-      background: var(--diff-add-gutter-background-color);
-      border-color: var(--diff-add-border-color);
-    }
-
-    .selectable {
-      &.hoverable:hover {
-        border-color: var(--diff-add-hover-border-color);
-      }
-
-      &.hoverable:hover,
-      &.hoverable:hover label,
-      &.hover,
-      &.hover label,
-      input:focus-visible + label {
-        background: var(--diff-add-hover-background-color);
-        color: var(--diff-add-hover-text-color);
-        border-color: var(--diff-add-hover-border-color);
-      }
-    }
-  }
-
-  .row {
     display: flex;
     flex-direction: row;
     line-height: 20px;
@@ -317,6 +97,224 @@
         background: var(--diff-gutter-background-color);
         border-color: var(--diff-border-color);
       }
+    }
+
+    .before,
+    .after {
+      width: 50%;
+      display: flex;
+      flex-direction: row;
+      position: relative;
+    }
+
+    .before {
+      color: var(--diff-delete-text-color);
+      background: var(--diff-delete-background-color);
+
+      .line-number {
+        background: var(--diff-delete-gutter-background-color);
+        border-color: var(--diff-delete-border-color);
+      }
+
+      .selectable {
+        &.hoverable:hover {
+          border-color: var(--diff-delete-hover-border-color);
+        }
+
+        &.hoverable:hover,
+        &.hoverable:hover label,
+        &.hover,
+        &.hover label,
+        input:focus-visible + label {
+          background: var(--diff-delete-hover-background-color);
+          color: var(--diff-delete-hover-text-color);
+          border-color: var(--diff-delete-hover-border-color);
+        }
+      }
+    }
+
+    .after {
+      color: var(--diff-add-text-color);
+      background: var(--diff-add-background-color);
+
+      .line-number {
+        background: var(--diff-add-gutter-background-color);
+        border-color: var(--diff-add-border-color);
+      }
+
+      .selectable {
+        &.hoverable:hover {
+          border-color: var(--diff-add-hover-border-color);
+        }
+
+        &.hoverable:hover,
+        &.hoverable:hover label,
+        &.hover,
+        &.hover label,
+        input:focus-visible + label {
+          background: var(--diff-add-hover-background-color);
+          color: var(--diff-add-hover-text-color);
+          border-color: var(--diff-add-hover-border-color);
+        }
+      }
+    }
+
+    .hunk-handle {
+      position: absolute;
+      height: 100%;
+      width: 20px;
+      left: calc(50% - 10px);
+      top: 0;
+
+      &.hoverable {
+        cursor: pointer;
+      }
+    }
+
+    .hunk-expansion-handle {
+      button {
+        overflow: inherit;
+        text-overflow: inherit;
+        white-space: inherit;
+        font-family: inherit;
+        font-size: inherit;
+        border: none;
+        height: inherit;
+        color: inherit;
+        background-color: inherit;
+        width: calc(100% - 2px);
+        height: calc(100% - var(--spacing));
+        padding: 0px;
+        padding-top: 4px;
+        padding-bottom: 1px;
+        margin: 1px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        outline-offset: 0;
+      }
+
+      width: var(--width-line-number);
+      flex-shrink: 0;
+      background: var(--diff-hunk-background-color);
+      color: var(--diff-hunk-text-color);
+      display: flex;
+      box-sizing: content-box;
+
+      &.selectable.hoverable {
+        * {
+          cursor: pointer;
+        }
+
+        &:hover {
+          background: var(--diff-hover-background-color);
+          border-color: var(--diff-hover-border-color);
+          color: var(--diff-hover-text-color);
+        }
+      }
+    }
+
+    .line-number {
+      width: var(--width-line-number);
+      flex-shrink: 0;
+      background: var(--diff-gutter-background-color);
+      color: var(--diff-line-number-color);
+      display: flex;
+      box-sizing: content-box;
+      position: relative;
+
+      label {
+        width: 100%;
+        display: flex;
+        border-color: inherit;
+        border-radius: var(--border-radius);
+
+        .line-number-check {
+          display: flex;
+          justify-content: center;
+          width: 20px;
+          flex-shrink: 0;
+          padding-top: 3.5px;
+
+          .octicon {
+            height: 12px;
+          }
+        }
+
+        span {
+          flex: 1;
+          user-select: none;
+          padding: 0 var(--spacing-half);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          // Workaround to show the ellipsis at the beginning of
+          // the line number when it's too long.
+          direction: rtl;
+        }
+      }
+
+      &.selectable {
+        input:focus-visible + label {
+          outline: 2px solid #0659d6;
+          outline-offset: -3px;
+        }
+
+        .line-number-check,
+        .line-number-check .octicon,
+        .line-number-check .octicon path,
+        &.hoverable span {
+          cursor: pointer;
+        }
+
+        &.line-selected {
+          border-color: var(--diff-selected-border-color);
+          background: var(--diff-selected-background-color);
+
+          label {
+            background: var(--diff-selected-background-color);
+            color: var(--diff-selected-text-color);
+            border-color: var(--diff-selected-border-color);
+          }
+
+          &.hoverable:hover {
+            border-color: var(--diff-hover-border-color);
+          }
+
+          &.hoverable:hover,
+          &.hoverable:hover label,
+          &.hover,
+          &.hover label,
+          input:focus-visible + label {
+            background: var(--diff-hover-background-color);
+            color: var(--diff-hover-text-color);
+            border-color: var(--diff-hover-border-color);
+          }
+        }
+      }
+    }
+
+    .content {
+      display: flex;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      flex-grow: 1;
+      word-break: break-all;
+
+      .prefix {
+        user-select: none;
+      }
+
+      .octicon {
+        height: 8px;
+        fill: var(--error-color);
+        display: inline-block;
+        margin-left: 3px;
+        margin-bottom: -1px;
+      }
+    }
+
+    .popover-component.whitespace-hint {
+      width: 275px;
     }
   }
 
