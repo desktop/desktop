@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaderboard</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+    }
+    #container {
+        width: 300px;
+        margin: 0 auto;
+        text-align: center;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    input[type="button"] {
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 18px;
+        margin: 5px;
+    }
+    #score {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        font-size: 20px;
+    }
+    #minmax {
+        display: flex;
+        justify-content: space-between;
+        font-size: 16px;
+    }
+</style>
+</head>
+<body>
+<div id="container">
+    <h2>Leaderboard</h2>
+    <input type="text" id="score" readonly><br>
+    <div>
+        <input type="button" value="1" onclick="addToScore(1)">
+        <input type="button" value="2" onclick="addToScore(2)">
+        <input type="button" value="3" onclick="addToScore(3)">
+    </div>
+    <div>
+        <input type="button" value="4" onclick="addToScore(4)">
+        <input type="button" value="5" onclick="addToScore(5)">
+        <input type="button" value="6" onclick="addToScore(6)">
+    </div>
+    <div>
+        <input type="button" value="7" onclick="addToScore(7)">
+        <input type="button" value="8" onclick="addToScore(8)">
+        <input type="button" value="9" onclick="addToScore(9)">
+    </div>
+    <div>
+        <input type="button" value="ENTER" onclick="updateScores()">
+    </div>
+    <div id="minmax">
+        <div>MIN: <span id="min">-</span></div>
+        <div>MAX: <span id="max">-</span></div>
+    </div>
+</div>
+
+<script>
+    var currentScore = '';
+
+    function addToScore(number) {
+        currentScore += number;
+        document.getElementById('score').value = currentScore;
+    }
+
+    function updateScores() {
+        var score = parseInt(currentScore);
+
+        var min = parseInt(document.getElementById('min').innerText);
+        var max = parseInt(document.getElementById('max').innerText);
+
+        if (isNaN(min) || score < min) {
+            document.getElementById('min').innerText = score;
+        }
+
+        if (isNaN(max) || score > max) {
+            document.getElementById('max').innerText = score;
+        }
+
+        currentScore = '';
+        document.getElementById('score').value = '';
+    }
+</script>
+</body>
+</html>
