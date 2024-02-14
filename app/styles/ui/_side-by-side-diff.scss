@@ -29,16 +29,6 @@
         border-right: none;
       }
     }
-
-    .before .line-number {
-      border-right-width: 2px;
-      border-right-style: solid;
-    }
-
-    .after .line-number {
-      border-left-width: 2px;
-      border-left-style: solid;
-    }
   }
 
   .side-by-side-diff {
@@ -319,8 +309,6 @@
   }
 
   &.unified-diff {
-    --line-gutter-right-border-width: 4px;
-
     .row {
       .before,
       .after {
@@ -368,15 +356,6 @@
         span:last-child {
           border: none;
         }
-      }
-    }
-
-    &.editable .row {
-      .line-number {
-        border-right-width: var(--line-gutter-right-border-width);
-      }
-      .hunk-expansion-handle {
-        border-right-width: var(--line-gutter-right-border-width);
       }
     }
   }
