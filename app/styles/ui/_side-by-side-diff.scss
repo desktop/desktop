@@ -150,11 +150,8 @@
     }
 
     .hunk-handle {
-      position: absolute;
       height: 100%;
       width: 20px;
-      left: calc(50% - 10px);
-      top: 0;
 
       &.hoverable {
         cursor: pointer;
@@ -315,11 +312,6 @@
         width: 100% !important;
         border: none;
         flex-direction: row;
-      }
-
-      .hunk-handle {
-        // `left` depends on the line number length at runtime
-        transform: translateX(calc(-50% + var(--line-gutter-right-border-width) / 2));
       }
 
       &.hunk-info {
