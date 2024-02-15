@@ -38,24 +38,31 @@ export interface IRowSelectableGroup {
    * Whether or not the row is the first in the selectable group
    */
   isFirst: boolean
+
   /**
    * Whether or not the row is the last in the selectable group
    */
   isLast: boolean
+
   /**
    * Whether or not the group is hovered by the mouse
    */
-  isGroupHovered: boolean
+  isHovered: boolean
 
   /**
    * Whether or not the group is focused by the keyboard
    */
-  isGroupFocused: boolean
+  isFocused: boolean
 
   /**
    * The selection state of the group - 'All', 'Partial', or 'None'
    */
-  groupSelectionState: DiffSelectionType | null
+  selectionState: DiffSelectionType | null
+
+  /**
+   * The height of the rows in the group
+   */
+  height: number
 }
 
 interface ISideBySideDiffRowProps {
@@ -185,6 +192,9 @@ interface ISideBySideDiffRowProps {
 
   /** Whether or not to show the diff check marks indicating inclusion in a commit */
   readonly showDiffCheckMarks: boolean
+
+  /** The selectable group details */
+  readonly rowSelectableGroup: IRowSelectableGroup | null
 }
 
 interface ISideBySideDiffRowState {
