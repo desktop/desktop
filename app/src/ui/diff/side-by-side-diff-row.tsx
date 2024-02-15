@@ -19,7 +19,10 @@ import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { TooltipDirection } from '../lib/tooltip'
 import { Button } from '../lib/button'
 import { diffCheck } from '../octicons/diff-check'
-import { enableDiffCheckMarks } from '../../lib/feature-flag'
+import {
+  enableDiffCheckMarks,
+  enableGroupDiffCheckmarks,
+} from '../../lib/feature-flag'
 
 enum DiffRowPrefix {
   Added = '+',
@@ -213,31 +216,29 @@ export class SideBySideDiffRow extends React.Component<
   public render() {
     const { row, showSideBySideDiff, beforeClassNames, afterClassNames } =
       this.props
-
+    const baseRowClasses = classNames('row', {
+      'has-check-all-control': enableGroupDiffCheckmarks(),
+    })
     const beforeClasses = classNames('before', ...beforeClassNames)
     const afterClasses = classNames('after', ...afterClassNames)
     switch (row.type) {
       case DiffRowType.Hunk: {
-        const className = ['row', 'hunk-info']
-        if (row.expansionType === DiffHunkExpansionType.Both) {
-          className.push('expandable-both')
-        }
-
+        const rowClasses = classNames('hunk-info', baseRowClasses, {
+          'expandable-both': row.expansionType === DiffHunkExpansionType.Both,
+        })
         return (
-          <div className={classNames(className)}>
+          <div className={rowClasses}>
             {this.renderHunkHeaderGutter(row.hunkIndex, row.expansionType)}
             {this.renderContentFromString(row.content)}
           </div>
         )
       }
       case DiffRowType.Context:
+        const rowClasses = classNames('context', baseRowClasses)
         const { beforeLineNumber, afterLineNumber } = row
         if (!showSideBySideDiff) {
           return (
-            <div
-              className="row context"
-              style={{ paddingLeft: this.hunkHandleWidth }}
-            >
+            <div className={rowClasses}>
               <div className="before">
                 {this.renderLineNumbers(
                   [beforeLineNumber, afterLineNumber],
@@ -250,12 +251,12 @@ export class SideBySideDiffRow extends React.Component<
         }
 
         return (
-          <div className="row context">
+          <div className={rowClasses}>
             <div className="before">
               {this.renderLineNumber(beforeLineNumber, DiffColumn.Before)}
               {this.renderContentFromString(row.content, row.beforeTokens)}
             </div>
-            <div className="after" style={{ marginLeft: this.hunkHandleWidth }}>
+            <div className="after">
               {this.renderLineNumber(afterLineNumber, DiffColumn.After)}
               {this.renderContentFromString(row.content, row.afterTokens)}
             </div>
@@ -264,9 +265,10 @@ export class SideBySideDiffRow extends React.Component<
 
       case DiffRowType.Added: {
         const { lineNumber, isSelected } = row.data
+        const rowClasses = classNames('added', baseRowClasses)
         if (!showSideBySideDiff) {
           return (
-            <div className="row added">
+            <div className={rowClasses}>
               {this.renderHunkHandle()}
               <div className={afterClasses}>
                 {this.renderLineNumbers(
@@ -282,7 +284,7 @@ export class SideBySideDiffRow extends React.Component<
         }
 
         return (
-          <div className="row added">
+          <div className={rowClasses}>
             <div className={beforeClasses}>
               {this.renderLineNumber(undefined, DiffColumn.Before)}
               {this.renderContentFromString('')}
@@ -299,9 +301,10 @@ export class SideBySideDiffRow extends React.Component<
       }
       case DiffRowType.Deleted: {
         const { lineNumber, isSelected } = row.data
+        const rowClasses = classNames('deleted', baseRowClasses)
         if (!showSideBySideDiff) {
           return (
-            <div className="row deleted">
+            <div className={rowClasses}>
               {this.renderHunkHandle()}
               <div className={beforeClasses}>
                 {this.renderLineNumbers(
@@ -317,7 +320,7 @@ export class SideBySideDiffRow extends React.Component<
         }
 
         return (
-          <div className="row deleted">
+          <div className={rowClasses}>
             <div className={beforeClasses}>
               {this.renderLineNumber(lineNumber, DiffColumn.Before, isSelected)}
               {this.renderContent(row.data, DiffRowPrefix.Deleted)}
@@ -334,8 +337,9 @@ export class SideBySideDiffRow extends React.Component<
       }
       case DiffRowType.Modified: {
         const { beforeData: before, afterData: after } = row
+        const rowClasses = classNames('modified', baseRowClasses)
         return (
-          <div className="row modified">
+          <div className={rowClasses}>
             <div className={beforeClasses}>
               {this.renderLineNumber(
                 before.lineNumber,
@@ -461,17 +465,11 @@ export class SideBySideDiffRow extends React.Component<
     )
   }
 
-  private get hunkHandleWidth() {
-    return enableDiffCheckMarks() ? 20 : 4
-  }
-
   private renderHunkExpansionHandle(
     hunkIndex: number,
     expansionType: DiffHunkExpansionType
   ) {
-    const { showSideBySideDiff } = this.props
-    const width =
-      this.lineGutterWidth + (showSideBySideDiff ? 0 : this.hunkHandleWidth)
+    const width = this.lineGutterWidth
     if (expansionType === DiffHunkExpansionType.None) {
       return (
         <div className="hunk-expansion-handle" style={{ width }}>
@@ -530,9 +528,17 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private renderHunkHandle() {
-    if (!this.props.isDiffSelectable) {
-      return null
+    const { isDiffSelectable, rowSelectableGroup } = this.props
+    if (
+      !isDiffSelectable ||
+      rowSelectableGroup === null ||
+      !rowSelectableGroup.isFirst
+    ) {
+      return <div className="hunk-handle-place-holder"></div>
     }
+
+    const { height } = rowSelectableGroup
+    const style = { height }
 
     return (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
@@ -542,8 +548,12 @@ export class SideBySideDiffRow extends React.Component<
         onMouseLeave={this.onMouseLeaveHunk}
         onClick={this.onClickHunk}
         onContextMenu={this.onContextMenuHunk}
-        style={{ width: this.hunkHandleWidth }}
-      ></div>
+        style={style}
+      >
+        {!enableGroupDiffCheckmarks() && (
+          <div className="increased-hover-surface" style={{ height }} />
+        )}
+      </div>
     )
   }
 
