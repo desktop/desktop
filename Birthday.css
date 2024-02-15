@@ -1,0 +1,62 @@
+body{
+	color : #ffffff;
+	text-align : center;
+	font-family: 'Happy Monkey', cursive;
+	 background: linear-gradient(#a2d2ff, #EFB0C9);
+}
+#me-img {
+	width : 150px;
+  border-radius: 50%;
+  border: 6px solid #EFB0C9;
+}
+h1, age, date {
+    text-shadow: 0px 0px 1px black; 
+}
+
+age{
+	margin: 5px 0 10px 0;
+	background : #EFB0C9;
+}
+date{
+	margin: 5px 0 10px 0;
+	background : #EFB0C9;
+}
+#header{
+	
+	display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.gift-img {
+    margin: 5px 70px;
+    width: 390px;
+    height: 400px;
+    border: 6px solid white;
+    border-radius: 10px;
+    background-image : url("C:/Users/marve/OneDrive/Desktop/Khaisar/Web/gift_box.jpg");
+	background-size: cover;
+}
+#gift-img-happy:hover {
+    background-image: url("C:/Users/marve/OneDrive/Desktop/Khaisar/Web/gift_1.jpg");
+	background-size: cover;
+}
+#gift-img-room:hover {
+    background-image: url("C:/Users/marve/OneDrive/Desktop/Khaisar/Web/gift_2.jpg");
+	background-size: cover;
+}
+#gift-img-one:hover {
+    background-image: url("C:/Users/marve/OneDrive/Desktop/Khaisar/Web/gift_3.jpg");
+	background-size: cover;
+}
+#gift-img-badass:hover {
+    background-image: url("C:/Users/marve/OneDrive/Desktop/Khaisar/Web/gift_4.jpg");
+	background-size: cover;
+}
+#footer {
+    font-style: italic;
+    width: 400px;
+    margin: 40px auto 20px;
+}
+a {
+    color: white;
+}
