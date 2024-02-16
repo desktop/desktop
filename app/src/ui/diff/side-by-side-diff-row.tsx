@@ -529,11 +529,11 @@ export class SideBySideDiffRow extends React.Component<
 
   private renderHunkHandle() {
     const { isDiffSelectable, rowSelectableGroup } = this.props
-    if (
-      !isDiffSelectable ||
-      rowSelectableGroup === null ||
-      !rowSelectableGroup.isFirst
-    ) {
+    if (!isDiffSelectable || rowSelectableGroup === null) {
+      return null
+    }
+
+    if (!rowSelectableGroup.isFirst) {
       return <div className="hunk-handle-place-holder"></div>
     }
 
