@@ -644,7 +644,7 @@ export class SideBySideDiff extends React.Component<
       diff.hunks,
       row.hunkStartLine
     )
-    if (range === null || range.to - range.from === 0) {
+    if (range === null) {
       // We only care about ranges with more than one line
       return null
     }
