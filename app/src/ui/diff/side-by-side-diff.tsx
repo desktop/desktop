@@ -644,7 +644,7 @@ export class SideBySideDiff extends React.Component<
       diff.hunks,
       row.hunkStartLine
     )
-    if (range === null || range.to - range.from === 0) {
+    if (range === null) {
       // We only care about ranges with more than one line
       return null
     }
@@ -660,10 +660,26 @@ export class SideBySideDiff extends React.Component<
     return {
       isFirst: prev === undefined || !selectableType.includes(prev.type),
       isLast: next === undefined || !selectableType.includes(next.type),
-      isGroupHovered: hoveredHunk === row.hunkStartLine,
-      isGroupFocused: true, // focusedHunk === row.hunkStartLine, - To be added in later PR
-      groupSelectionState: selection.isRangeSelected(from, to - from + 1),
+      isHovered: hoveredHunk === row.hunkStartLine,
+      isFocused: true, // focusedHunk === row.hunkStartLine, - To be added in later PR
+      selectionState: selection.isRangeSelected(from, to - from + 1),
+      height: this.getRowSelectableGroupHeight(row.hunkStartLine),
     }
+  }
+
+  private getRowSelectableGroupHeight = (hunkStartLine: number) => {
+    const rows = getDiffRows(
+      this.state.diff,
+      this.props.showSideBySideDiff,
+      this.canExpandDiff()
+    )
+
+    return rows.reduce((acc, r, index) => {
+      if (!('hunkStartLine' in r) || r.hunkStartLine !== hunkStartLine) {
+        return acc
+      }
+      return acc + this.getRowHeight({ index })
+    }, 0)
   }
 
   private renderRow = ({ index, parent, style, key }: ListRowProps) => {
@@ -701,14 +717,14 @@ export class SideBySideDiff extends React.Component<
 
     const rowWithTokens = this.createFullRow(row, index)
 
-    const getRowSelectableGroupDetails = this.getRowSelectableGroupDetails(
+    const rowSelectableGroupDetails = this.getRowSelectableGroupDetails(
       row,
       prev,
       next
     )
 
     // Just temporary until pass the whole row group data down.
-    const isHunkHovered = !!getRowSelectableGroupDetails?.isGroupHovered
+    const isHunkHovered = !!rowSelectableGroupDetails?.isHovered
 
     return (
       <CellMeasurer
@@ -725,6 +741,7 @@ export class SideBySideDiff extends React.Component<
             numRow={index}
             isDiffSelectable={canSelect(this.props.file)}
             isHunkHovered={isHunkHovered}
+            rowSelectableGroup={rowSelectableGroupDetails}
             showSideBySideDiff={this.props.showSideBySideDiff}
             hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
             showDiffCheckMarks={this.props.showDiffCheckMarks}
