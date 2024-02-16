@@ -533,14 +533,34 @@ export class SideBySideDiffRow extends React.Component<
       return null
     }
 
+    const placeHolder = <div className="hunk-handle-place-holder"></div>
+
     if (!rowSelectableGroup.isFirst) {
-      return <div className="hunk-handle-place-holder"></div>
+      return placeHolder
     }
 
     const { height } = rowSelectableGroup
     const style = { height }
 
-    return (
+    /* The hunk-handle is a a single element with a calculated height of all the
+     rows in the selectable group (See `getRowSelectableGroupHeight` in
+     `side-by-side-diff.txs`). This gives us a single element to be our control
+     of the check all functionality. It is positioned absolutely over the
+     hunk-handle-place-holders in each row in order to provide one element that
+     is interactive. 
+
+     Other notes: I originally attempted to just use the a single hunk-handle
+     for the first row in a group as the heights of the rows are calculated and
+     the rows do not clip overflow. However, that messes with the initial
+     measurement for cache of the first row's height as the cell measurur will
+     include the hunk handles initially calcualted height (num rows times
+     default row height) in it's measurement. (Resulting in the first row in a
+     group heights = to however many lines in the group x 20) Thus, I decided to
+     use the place holder element in each row to define the width of the hunk
+     handle in the row and just position the hunk handle over them. A bit on the
+     hacky side.
+    */
+    const hunkHandle = (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
       <div
         className="hunk-handle hoverable"
@@ -554,6 +574,12 @@ export class SideBySideDiffRow extends React.Component<
           <div className="increased-hover-surface" style={{ height }} />
         )}
       </div>
+    )
+    return (
+      <>
+        {placeHolder}
+        {hunkHandle}
+      </>
     )
   }
 

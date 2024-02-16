@@ -175,10 +175,19 @@
       background-color: var(--diff-empty-hunk-handle);
     }
 
+    .hunk-handle {
+      position: absolute;
+      left: calc(50% - var(--hunk-handle-width) / 2);
+    }
+
     &.has-check-all-control {
       .hunk-handle-place-holder,
       .hunk-handle {
         width: var(--hunk-handle-width-with-check-all);
+      }
+
+      .hunk-handle {
+        left: calc(50% - var(--hunk-handle-width-with-check-all) / 2);
       }
     }
 
@@ -389,6 +398,10 @@
             border-color: var(--diff-hover-background-color);
           }
         }
+      }
+
+      .hunk-handle {
+        left: 0;
       }
 
       &.has-check-all-control {
