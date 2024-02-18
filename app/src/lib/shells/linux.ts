@@ -18,6 +18,7 @@ export enum Shell {
   XFCE = 'XFCE Terminal',
   Alacritty = 'Alacritty',
   Kitty = 'Kitty',
+  zsh = 'zsh',
 }
 
 export const Default = Shell.Gnome
@@ -58,6 +59,8 @@ function getShellPath(shell: Shell): Promise<string | null> {
       return getPathIfAvailable('/usr/bin/alacritty')
     case Shell.Kitty:
       return getPathIfAvailable('/usr/bin/kitty')
+    case Shell.zsh:
+      return getPathIfAvailable('/usr/bin/zsh')
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
@@ -80,6 +83,7 @@ export async function getAvailableShells(): Promise<
     xfcePath,
     alacrittyPath,
     kittyPath,
+    zshPath
   ] = await Promise.all([
     getShellPath(Shell.Gnome),
     getShellPath(Shell.Mate),
@@ -94,6 +98,7 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.XFCE),
     getShellPath(Shell.Alacritty),
     getShellPath(Shell.Kitty),
+    getShellPath(Shell.zsh),
   ])
 
   const shells: Array<IFoundShell<Shell>> = []
@@ -149,6 +154,10 @@ export async function getAvailableShells(): Promise<
     shells.push({ shell: Shell.Kitty, path: kittyPath })
   }
 
+  if (zshPath) {
+    shells.push({ shell: Shell.zsh, path: zshPath })
+  }
+
   return shells
 }
 
@@ -164,6 +173,7 @@ export function launch(
     case Shell.Terminator:
     case Shell.XFCE:
     case Shell.Alacritty:
+    case Shell.zsh:
       return spawn(foundShell.path, ['--working-directory', path])
     case Shell.Urxvt:
       return spawn(foundShell.path, ['-cd', path])
