@@ -54,6 +54,12 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
       )
 
       const scaledSymbol = symbol[naturalHeight]
+
+      if (scaledSymbol === undefined) {
+        // Should never happen, but if it does the app should still be usable
+        return null
+      }
+
       const naturalWidth = scaledSymbol.w
       const width = height * (naturalWidth / naturalHeight)
 
