@@ -53,7 +53,7 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
         height
       )
 
-      const scaledSymbol = symbol[naturalHeight]!
+      const scaledSymbol = symbol[naturalHeight]
       const naturalWidth = scaledSymbol.w
       const width = height * (naturalWidth / naturalHeight)
 
@@ -100,6 +100,12 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
     )
   }
 
+  /**
+   * Determine if the given symbol is a single variant or a set of variants.
+   *
+   * @param symbol The symbol to check.
+   * @returns      True if the symbol is a single variant, false if it's a set.
+   */
   private isSingleVariant(
     symbol: OcticonSymbol
   ): symbol is OcticonSymbolVariant {
@@ -111,6 +117,14 @@ export class Octicon extends React.Component<IOcticonProps, {}> {
     )
   }
 
+  /**
+   * Find the closest natural height to the given height. Falls back to the
+   * first height in the list if none are larger or equal than the given height.
+   *
+   * @param naturalHeights The list of natural heights to choose from.
+   * @param height         The height to find the closest natural height to.
+   * @returns              The closest natural height to the given height.
+   */
   private closestNaturalHeight(naturalHeights: Array<number>, height: number) {
     return naturalHeights.reduce(
       (acc, naturalHeight) => (naturalHeight <= height ? naturalHeight : acc),
