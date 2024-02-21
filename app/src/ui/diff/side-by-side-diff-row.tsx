@@ -18,7 +18,7 @@ import { PopoverAnchorPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { TooltipDirection } from '../lib/tooltip'
 import { Button } from '../lib/button'
-import { diffCheck } from '../octicons/diff-check'
+import { diffCheck, diffDash } from '../octicons/diff'
 import {
   enableDiffCheckMarks,
   enableGroupDiffCheckmarks,
@@ -658,7 +658,7 @@ export class SideBySideDiffRow extends React.Component<
       return <Octicon symbol={diffCheck} />
     }
     if (selectionState === DiffSelectionType.Partial) {
-      return <Octicon symbol={OcticonSymbol.dash} />
+      return <Octicon symbol={diffDash} />
     }
 
     return null
