@@ -53,11 +53,6 @@ export interface IRowSelectableGroup {
   isHovered: boolean
 
   /**
-   * Whether or not the group is focused by the keyboard
-   */
-  isFocused: boolean
-
-  /**
    * The selection state of the group - 'All', 'Partial', or 'None'
    */
   selectionState: DiffSelectionType
@@ -637,6 +632,8 @@ export class SideBySideDiffRow extends React.Component<
             : false
         }
         onChange={this.onClickHunk}
+        onFocus={this.onHunkFocus}
+        onBlur={this.onHunkBlur}
       />
     )
 
@@ -901,6 +898,18 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseLeaveHunk = () => {
+    if ('hunkStartLine' in this.props.row) {
+      this.props.onMouseLeaveHunk(this.props.row.hunkStartLine)
+    }
+  }
+
+  private onHunkFocus = () => {
+    if ('hunkStartLine' in this.props.row) {
+      this.props.onMouseEnterHunk(this.props.row.hunkStartLine)
+    }
+  }
+
+  private onHunkBlur = () => {
     if ('hunkStartLine' in this.props.row) {
       this.props.onMouseLeaveHunk(this.props.row.hunkStartLine)
     }
