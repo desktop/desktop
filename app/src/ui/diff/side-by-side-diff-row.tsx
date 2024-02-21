@@ -60,12 +60,29 @@ export interface IRowSelectableGroup {
   /**
    * The selection state of the group - 'All', 'Partial', or 'None'
    */
-  selectionState: DiffSelectionType | null
+  selectionState: DiffSelectionType
+
+  /** The group's diff type, all 'added',  all 'deleted', or a mix = 'modified */
+  diffType: DiffRowType
 
   /**
    * The height of the rows in the group
    */
   height: number
+
+  /**
+   * The line numbers associated with the group
+   */
+  lineNumbers: ReadonlyArray<number>
+
+  /**
+   * The line numbers identifiers associated with the group.
+   *
+   * If the line numbers are [4, 5, 6] then the lineNumbersIdentifiers could be
+   * something like [`4-before`, `4-after`, `5-after`, `6-after`] as the line
+   * number is not unique without the "before" or "after" suffix
+   */
+  lineNumbersIdentifiers: ReadonlyArray<string>
 }
 
 interface ISideBySideDiffRowProps {

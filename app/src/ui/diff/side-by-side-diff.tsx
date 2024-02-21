@@ -657,6 +657,8 @@ export class SideBySideDiff extends React.Component<
 
     const { from, to } = range
 
+    const { lineNumbers, lineNumbersIdentifiers, diffType } =
+      this.getRowGroupLineNumberData(row.hunkStartLine)
     return {
       isFirst: prev === undefined || !selectableType.includes(prev.type),
       isLast: next === undefined || !selectableType.includes(next.type),
@@ -664,7 +666,61 @@ export class SideBySideDiff extends React.Component<
       isFocused: true, // focusedHunk === row.hunkStartLine, - To be added in later PR
       selectionState: selection.isRangeSelected(from, to - from + 1),
       height: this.getRowSelectableGroupHeight(row.hunkStartLine),
+      lineNumbers: Array.from(lineNumbers),
+      lineNumbersIdentifiers,
+      diffType,
     }
+  }
+
+  private getRowGroupLineNumberData = (hunkStartLine: number) => {
+    const rows = getDiffRows(
+      this.state.diff,
+      this.props.showSideBySideDiff,
+      this.canExpandDiff()
+    )
+
+    const lineNumbers = new Set<number>()
+    let hasAfter = false
+    let hasBefore = false
+
+    const lineNumbersIdentifiers = rows.flatMap(r => {
+      if (!('hunkStartLine' in r) || r.hunkStartLine !== hunkStartLine) {
+        return []
+      }
+
+      if (r.type === DiffRowType.Added) {
+        lineNumbers.add(r.data.lineNumber)
+        hasAfter = true
+        return `${r.data.lineNumber}-after`
+      }
+
+      if (r.type === DiffRowType.Deleted) {
+        lineNumbers.add(r.data.lineNumber)
+        hasBefore = true
+        return `${r.data.lineNumber}-before`
+      }
+
+      if (r.type === DiffRowType.Modified) {
+        hasAfter = true
+        hasBefore = true
+        lineNumbers.add(r.beforeData.lineNumber)
+        lineNumbers.add(r.afterData.lineNumber)
+        return [
+          `${r.beforeData.lineNumber}-before`,
+          `${r.afterData.lineNumber}-after`,
+        ]
+      }
+
+      return []
+    })
+
+    const diffType =
+      hasAfter && hasBefore
+        ? DiffRowType.Modified
+        : hasAfter
+        ? DiffRowType.Added
+        : DiffRowType.Deleted
+    return { lineNumbersIdentifiers, lineNumbers, diffType }
   }
 
   private getRowSelectableGroupHeight = (hunkStartLine: number) => {
