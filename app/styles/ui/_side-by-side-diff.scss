@@ -168,6 +168,13 @@
       }
     }
 
+    input:focus-visible + label.hunk-handle {
+      .focus-handle {
+        outline: 2px solid #0659d6;
+        outline-offset: 3px;
+      }
+    }
+
     .hunk-handle-place-holder,
     .hunk-handle {
       width: var(--hunk-handle-width);
@@ -177,7 +184,27 @@
 
     .hunk-handle {
       position: absolute;
+      display: flex;
       left: calc(50% - var(--hunk-handle-width) / 2);
+      color: white;
+      padding-top: 3px;
+      text-align: center;
+
+      .focus-handle {
+        border-radius: var(--border-radius);
+        height: calc(100% + 4px);
+        width: 100%;
+        margin-top: -4px;
+        padding-top: 3px;
+      }
+
+      .octicon {
+        height: 12px;
+      }
+
+      &.selected {
+        background-color: var(--diff-selected-border-color);
+      }
     }
 
     &.has-check-all-control {
@@ -188,6 +215,13 @@
 
       .hunk-handle {
         left: calc(50% - var(--hunk-handle-width-with-check-all) / 2);
+      }
+
+      input:focus-visible + label.hunk-handle {
+        .focus-handle {
+          outline: 2px solid white;
+          outline-offset: -3px;
+        }
       }
     }
 
@@ -211,18 +245,6 @@
       .increased-hover-surface {
         width: 20px;
         margin-left: -8px;
-      }
-    }
-
-    &:has(.line-number.selectable.line-selected) {
-      .hunk-handle {
-        background-color: var(--diff-selected-border-color);
-      }
-    }
-
-    &:has(.line-number.selectable) {
-      .hunk-handle {
-        background-color: var(--diff-empty-hunk-handle);
       }
     }
 

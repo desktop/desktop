@@ -556,8 +556,20 @@ export class SideBySideDiffRow extends React.Component<
       return placeHolder
     }
 
-    const { height } = rowSelectableGroup
+    const {
+      height,
+      selectionState,
+      lineNumbers,
+      lineNumbersIdentifiers,
+      diffType,
+    } = rowSelectableGroup
     const style = { height }
+    const onlyOneLine = lineNumbers.length === 1
+    const hunkHandleClassName = classNames('hunk-handle', 'hoverable', {
+      // selected is a class if any line in the group is selected
+      selected: selectionState !== DiffSelectionType.None,
+    })
+    const checkAllId = lineNumbersIdentifiers.join('-')
 
     /* The hunk-handle is a a single element with a calculated height of all the
      rows in the selectable group (See `getRowSelectableGroupHeight` in
@@ -578,26 +590,73 @@ export class SideBySideDiffRow extends React.Component<
      hacky side.
     */
     const hunkHandle = (
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
-      <div
-        className="hunk-handle hoverable"
+      <label
+        htmlFor={checkAllId}
         onMouseEnter={this.onMouseEnterHunk}
         onMouseLeave={this.onMouseLeaveHunk}
-        onClick={this.onClickHunk}
         onContextMenu={this.onContextMenuHunk}
+        className={hunkHandleClassName}
         style={style}
       >
-        {!enableGroupDiffCheckmarks() && (
-          <div className="increased-hover-surface" style={{ height }} />
-        )}
-      </div>
+        <span className="focus-handle">
+          {!enableGroupDiffCheckmarks() && (
+            <div className="increased-hover-surface" style={{ height }} />
+          )}
+          {!onlyOneLine && this.getCheckAllOcticon(selectionState)}
+          {!onlyOneLine && (
+            <span className="sr-only">
+              {' '}
+              Lines {lineNumbers.at(0)} to {lineNumbers.at(-1)}{' '}
+              {diffType === DiffRowType.Added
+                ? 'added'
+                : diffType === DiffRowType.Deleted
+                ? 'deleted'
+                : 'modified'}
+            </span>
+          )}
+        </span>
+      </label>
     )
+
+    const checkAllControl = (
+      <input
+        className="sr-only"
+        id={checkAllId}
+        type="checkbox"
+        aria-controls={lineNumbersIdentifiers.join(' ')}
+        aria-checked={
+          selectionState === DiffSelectionType.All
+            ? true
+            : selectionState === DiffSelectionType.Partial
+            ? 'mixed'
+            : false
+        }
+        onChange={this.onClickHunk}
+      />
+    )
+
     return (
       <>
-        {placeHolder}
+        {!onlyOneLine && checkAllControl}
         {hunkHandle}
+        {placeHolder}
       </>
     )
+  }
+
+  private getCheckAllOcticon = (selectionState: DiffSelectionType) => {
+    if (!enableGroupDiffCheckmarks()) {
+      return null
+    }
+
+    if (selectionState === DiffSelectionType.All) {
+      return <Octicon symbol={diffCheck} />
+    }
+    if (selectionState === DiffSelectionType.Partial) {
+      return <Octicon symbol={OcticonSymbol.dash} />
+    }
+
+    return null
   }
 
   private getLineNumbersContainerID(column: DiffColumn) {
@@ -627,7 +686,12 @@ export class SideBySideDiffRow extends React.Component<
       'line-selected': isSelected,
       hover: this.props.isHunkHovered,
     })
-    const checkboxId = wrapperID ? wrapperID + '-checkbox' : undefined
+
+    // Note: This id is used by the check all aria-controls attribute,
+    // modification of this should be reflected there.
+    const checkboxId = `${lineNumbers.filter(ln => ln !== undefined).at(0)}-${
+      column === DiffColumn.After ? 'after' : 'before'
+    }`
 
     return (
       // eslint-disable-next-line jsx-a11y/no-static-element-interactions
@@ -643,7 +707,15 @@ export class SideBySideDiffRow extends React.Component<
         <label htmlFor={checkboxId}>
           {this.renderLineNumberCheck(isSelected)}
           {lineNumbers.map((lineNumber, index) => (
-            <span key={index}>{lineNumber}</span>
+            <span key={index}>
+              {lineNumber && <span className="sr-only">Line </span>}
+              {lineNumber}
+              {lineNumber && (
+                <span className="sr-only">
+                  {column === DiffColumn.After ? ' added' : ' deleted'}
+                </span>
+              )}
+            </span>
           ))}
         </label>
       </div>
