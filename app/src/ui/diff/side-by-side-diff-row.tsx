@@ -231,10 +231,15 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   public render() {
-    const { row, showSideBySideDiff, beforeClassNames, afterClassNames } =
-      this.props
+    const {
+      row,
+      showSideBySideDiff,
+      beforeClassNames,
+      afterClassNames,
+      isDiffSelectable,
+    } = this.props
     const baseRowClasses = classNames('row', {
-      'has-check-all-control': enableGroupDiffCheckmarks(),
+      'has-check-all-control': enableGroupDiffCheckmarks() && isDiffSelectable,
     })
     const beforeClasses = classNames('before', ...beforeClassNames)
     const afterClasses = classNames('after', ...afterClassNames)
