@@ -1,0 +1,28 @@
+@import '../../../styles/variables';
+
+#octicons-preview-dialog {
+  height: auto;
+
+  .dialog-content {
+    overflow-y: auto;
+  }
+
+  .octicons-preview-list {
+    list-style-type: none;
+  }
+
+  .octicons-preview-item {
+    margin: 0 0 var(--spacing-double);
+    padding: 0;
+
+    h3 {
+      margin: 0 0 var(--spacing-half);
+      padding: 0;
+    }
+
+    .octicon {
+      vertical-align: text-bottom;
+      margin-right: var(--spacing-half);
+    }
+  }
+}

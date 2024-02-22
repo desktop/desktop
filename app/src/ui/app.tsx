@@ -172,6 +172,7 @@ import { UnsupportedOSBannerDismissedAtKey } from './banners/windows-version-no-
 import { offsetFromNow } from '../lib/offset-from'
 import { getNumber } from '../lib/local-storage'
 import { RepoRulesBypassConfirmation } from './repository-rules/repo-rules-bypass-confirmation'
+import { IconPreviewDialog } from './octicons/icon-preview-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -495,6 +496,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showFakeCherryPickConflictBanner()
       case 'show-test-merge-successful-banner':
         return this.showFakeMergeSuccessfulBanner()
+      case 'show-icon-test-dialog':
+        return this.showIconTestDialog()
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
@@ -608,6 +611,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.setBanner({
         type: BannerType.SuccessfulMerge,
         ourBranch: 'fake-branch',
+      })
+    }
+  }
+
+  private async showIconTestDialog() {
+    if (__DEV__) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.TestIcons,
       })
     }
   }
@@ -2553,6 +2564,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             onConfirm={popup.onConfirm}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.TestIcons: {
+        return (
+          <IconPreviewDialog
+            key="octicons-preview"
             onDismissed={onPopupDismissedFn}
           />
         )
