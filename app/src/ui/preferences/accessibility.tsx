@@ -44,10 +44,9 @@ export class Accessibility extends React.Component<
     }
 
     return (
-      // eslint-disable-next-line jsx-a11y/anchor-is-valid
-      <a className="link-button-component" style={style}>
-        Example Link
-      </a>
+      <span className="link-button-component" style={style}>
+        This is an example link
+      </span>
     )
   }
 
