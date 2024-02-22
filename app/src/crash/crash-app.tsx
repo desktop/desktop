@@ -4,7 +4,7 @@ import { TitleBar } from '../ui/window/title-bar'
 import { encodePathAsUrl } from '../lib/path'
 import { WindowState } from '../lib/window-state'
 import { Octicon } from '../ui/octicons'
-import * as OcticonSymbol from '../ui/octicons/octicons.generated'
+import * as octicons from '../ui/octicons/octicons.generated'
 import { Button } from '../ui/lib/button'
 import { LinkButton } from '../ui/lib/link-button'
 import { getVersion } from '../ui/lib/app-proxy'
@@ -141,7 +141,7 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
 
     return (
       <header>
-        <Octicon symbol={OcticonSymbol.stop} className="error-icon" />
+        <Octicon symbol={octicons.stop} className="error-icon" />
         <h1>{message}</h1>
       </header>
     )

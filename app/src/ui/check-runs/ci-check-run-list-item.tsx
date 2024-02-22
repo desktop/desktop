@@ -5,7 +5,7 @@ import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
 import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
 import classNames from 'classnames'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { CICheckRunActionsJobStepList } from './ci-check-run-actions-job-step-list'
 import { IAPIWorkflowJobStep } from '../../lib/api'
@@ -123,9 +123,7 @@ export class CICheckRunListItem extends React.PureComponent<
       <div className="job-step-toggled-indicator">
         <Octicon
           symbol={
-            isCheckRunExpanded
-              ? OcticonSymbol.chevronUp
-              : OcticonSymbol.chevronDown
+            isCheckRunExpanded ? octicons.chevronUp : octicons.chevronDown
           }
         />
       </div>
@@ -181,7 +179,7 @@ export class CICheckRunListItem extends React.PureComponent<
     return (
       <div className={classes} onClick={this.rerunJob}>
         <TooltippedContent tooltip={tooltip}>
-          <Octicon symbol={OcticonSymbol.sync} />
+          <Octicon symbol={octicons.sync} />
         </TooltippedContent>
       </div>
     )

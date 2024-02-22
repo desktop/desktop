@@ -3,7 +3,7 @@ import { WelcomeStep } from './welcome'
 import { LinkButton } from '../lib/link-button'
 import { Dispatcher } from '../dispatcher'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { BrowserRedirectMessage } from '../lib/authentication-form'
@@ -54,7 +54,7 @@ export class Start extends React.Component<IStartProps, {}> {
           >
             {this.props.loadingBrowserAuth && <Loading />}
             Sign in to GitHub.com
-            <Octicon symbol={OcticonSymbol.linkExternal} />
+            <Octicon symbol={octicons.linkExternal} />
           </Button>
           {this.props.loadingBrowserAuth ? (
             <Button onClick={this.cancelBrowserAuth}>Cancel</Button>
