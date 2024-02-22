@@ -336,6 +336,7 @@ body.theme-dark {
 
   --diff-empty-row-background-color: #{darken($gray-900, 1%)};
   --diff-empty-row-gutter-background-color: var(--diff-gutter-background-color);
+  --diff-empty-hunk-handle: #{$gray-700};
 
   // Syntax highlighting text colors
   --syntax-variable-color: #{$purple-300};

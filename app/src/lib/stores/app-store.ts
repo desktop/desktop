@@ -410,6 +410,9 @@ const pullRequestSuggestedNextActionKey =
 const underlineLinksKey = 'underline-links'
 const underlineLinksDefault = true
 
+const showDiffCheckMarksDefault = true
+const showDiffCheckMarksKey = 'diff-check-marks-visible'
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -539,6 +542,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private pullRequestSuggestedNextAction:
     | PullRequestSuggestedNextAction
     | undefined = undefined
+
+  private showDiffCheckMarks: boolean = showDiffCheckMarksDefault
 
   private cachedRepoRulesets = new Map<number, IAPIRepoRuleset>()
 
@@ -1024,6 +1029,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       resizablePaneActive: this.resizablePaneActive,
       cachedRepoRulesets: this.cachedRepoRulesets,
       underlineLinks: this.underlineLinks,
+      showDiffCheckMarks: this.showDiffCheckMarks,
     }
   }
 
@@ -2219,6 +2225,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.underlineLinks = getBoolean(underlineLinksKey, underlineLinksDefault)
+
+    this.showDiffCheckMarks = getBoolean(
+      showDiffCheckMarksKey,
+      showDiffCheckMarksDefault
+    )
 
     this.emitUpdateNow()
 
@@ -4874,7 +4885,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     const gitStore = this.gitStoreCache.get(repository)
-    await gitStore.restoreCoAuthorsFromCommit(commit)
+    await gitStore.prepareToAmendCommit(commit)
 
     this.setRepositoryCommitToAmend(repository, commit)
 
