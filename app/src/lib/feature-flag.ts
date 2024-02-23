@@ -39,6 +39,10 @@ export function enableReadmeOverwriteWarning(): boolean {
 
 /** Should the app detect Windows Subsystem for Linux as a valid shell? */
 export function enableWSLDetection(): boolean {
+  if (__WIN32__) {
+    return true
+  }
+
   return enableBetaFeatures()
 }
 

@@ -8,6 +8,7 @@ import {
 } from './workflow-preferences'
 import { assertNever, fatalError } from '../lib/fatal-error'
 import { createEqualityHash } from './equality-hash'
+import { isWSLPath } from '../lib/path'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -76,6 +77,10 @@ export class Repository {
 
   public get path(): string {
     return this.mainWorkTree.path
+  }
+
+  public get isWsl(): boolean {
+    return isWSLPath(this.path)
   }
 }
 

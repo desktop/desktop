@@ -205,6 +205,7 @@ import {
   launchShell,
   parse as parseShell,
   Shell,
+  WslShell,
 } from '../shells'
 import { ILaunchStats, StatsStore } from '../stats'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
@@ -323,6 +324,7 @@ import { findContributionTargetDefaultBranch } from '../branch'
 import { ValidNotificationPullRequestReview } from '../valid-notification-pull-request-review'
 import { determineMergeability } from '../git/merge-tree'
 import { PopupManager } from '../popup-manager'
+import { isWSLPath } from '../path'
 import { resizableComponentClass } from '../../ui/resizable'
 import { compare } from '../compare'
 import { parseRepoRules, useRepoRulesLogic } from '../helpers/repo-rules'
@@ -372,6 +374,7 @@ const confirmUndoCommitKey: string = 'confirmUndoCommit'
 const uncommittedChangesStrategyKey = 'uncommittedChangesStrategyKind'
 
 const externalEditorKey: string = 'externalEditor'
+const wslExternalEditorRemoteKey = 'wslExternalEditorRemote'
 
 const imageDiffTypeDefault = ImageDiffType.TwoUp
 const imageDiffTypeKey = 'image-diff-type'
@@ -388,6 +391,7 @@ const commitSpellcheckEnabledDefault = true
 const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
 
 const shellKey = 'shell'
+const wslOwnShellKey = 'wslOwnShell'
 
 const repositoryIndicatorsEnabledKey = 'enable-repository-indicators'
 
@@ -498,8 +502,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private resolvedExternalEditor: string | null = null
 
+  private wslExternalEditorRemote = true
+
   /** The user's preferred shell. */
   private selectedShell = DefaultShell
+
+  private wslOwnShell = true
 
   /** The current repository filter text */
   private repositoryFilterText: string = ''
@@ -997,12 +1005,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnUndoCommit: this.confirmUndoCommit,
       uncommittedChangesStrategy: this.uncommittedChangesStrategy,
       selectedExternalEditor: this.selectedExternalEditor,
+      wslExternalEditorRemote: this.wslExternalEditorRemote,
       imageDiffType: this.imageDiffType,
       hideWhitespaceInChangesDiff: this.hideWhitespaceInChangesDiff,
       hideWhitespaceInHistoryDiff: this.hideWhitespaceInHistoryDiff,
       hideWhitespaceInPullRequestDiff: this.hideWhitespaceInPullRequestDiff,
       showSideBySideDiff: this.showSideBySideDiff,
       selectedShell: this.selectedShell,
+      wslOwnShell: this.wslOwnShell,
       repositoryFilterText: this.repositoryFilterText,
       resolvedExternalEditor: this.resolvedExternalEditor,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
@@ -2164,8 +2174,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this.lookupSelectedExternalEditor()
     ).catch(e => log.error('Failed resolving current editor at startup', e))
 
+    this.wslExternalEditorRemote = getBoolean(wslExternalEditorRemoteKey, true)
+
     const shellValue = localStorage.getItem(shellKey)
     this.selectedShell = shellValue ? parseShell(shellValue) : DefaultShell
+
+    this.wslOwnShell = getBoolean(wslOwnShellKey, true)
 
     this.updateMenuLabelsForSelectedRepository()
 
@@ -2353,6 +2367,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private updateMenuItemLabels(state: IRepositoryState | null) {
     const {
       selectedShell,
+      wslOwnShell,
       selectedRepository,
       selectedExternalEditor,
       askForConfirmationOnRepositoryRemoval,
@@ -2360,7 +2375,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } = this
 
     const labels: MenuLabelsEvent = {
-      selectedShell,
+      selectedShell:
+        selectedRepository?.isWsl && wslOwnShell ? WslShell : selectedShell,
       selectedExternalEditor,
       askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush,
@@ -5444,7 +5460,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.statsStore.increment('openShellCount')
 
     try {
-      const match = await findShellOrDefault(this.selectedShell)
+      const selectedShell =
+        isWSLPath(path) && this.wslOwnShell ? WslShell : this.selectedShell
+      const match = await findShellOrDefault(selectedShell)
       await launchShell(match, path, error => this._pushError(error))
     } catch (error) {
       this.emitError(error)
@@ -5472,7 +5490,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return
       }
 
-      await launchExternalEditor(fullPath, match)
+      await launchExternalEditor(fullPath, match, this.wslExternalEditorRemote)
     } catch (error) {
       this.emitError(error)
     }
@@ -5599,6 +5617,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return promise
   }
 
+  public _setWslExternalEditorRemote(wslExternalEditorRemote: boolean) {
+    this.wslExternalEditorRemote = wslExternalEditorRemote
+    localStorage.setItem(
+      wslExternalEditorRemoteKey,
+      JSON.stringify(wslExternalEditorRemote)
+    )
+    this.emitUpdate()
+
+    this.updateMenuLabelsForSelectedRepository()
+    return Promise.resolve()
+  }
+
   public _setShell(shell: Shell): Promise<void> {
     this.selectedShell = shell
     localStorage.setItem(shellKey, shell)
@@ -5606,6 +5636,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.updateMenuLabelsForSelectedRepository()
 
+    return Promise.resolve()
+  }
+
+  public _setWslOwnShell(wslOwnShell: boolean) {
+    this.wslOwnShell = wslOwnShell
+    localStorage.setItem(wslOwnShellKey, JSON.stringify(wslOwnShell))
+    this.emitUpdate()
+
+    this.updateMenuLabelsForSelectedRepository()
     return Promise.resolve()
   }
 

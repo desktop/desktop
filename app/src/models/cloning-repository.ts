@@ -1,4 +1,5 @@
 import * as Path from 'path'
+import { isWSLPath } from '../lib/path'
 
 let CloningRepositoryID = 1
 
@@ -22,5 +23,9 @@ export class CloningRepository {
    */
   public get hash(): string {
     return `${this.id}+${this.path}+${this.url}`
+  }
+
+  public get isWsl(): boolean {
+    return isWSLPath(this.path)
   }
 }

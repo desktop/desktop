@@ -1956,10 +1956,26 @@ export class Dispatcher {
   }
 
   /**
+   * Sets whether to open WSL repositories in external editor as remote.
+   */
+  public setWslExternalEditorRemote(
+    wslExternalEditorRemote: boolean
+  ): Promise<void> {
+    return this.appStore._setWslExternalEditorRemote(wslExternalEditorRemote)
+  }
+
+  /**
    * Sets the user's preferred shell.
    */
   public setShell(shell: Shell): Promise<void> {
     return this.appStore._setShell(shell)
+  }
+
+  /**
+   * Sets whether to open WSL repositories in WSL shell instead of selectedShell.
+   */
+  public setWslOwnShell(wslOwnShell: boolean): Promise<void> {
+    return this.appStore._setWslOwnShell(wslOwnShell)
   }
 
   private async checkoutLocalBranch(repository: Repository, branch: string) {

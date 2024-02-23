@@ -8,4 +8,7 @@ export interface IFoundEditor<T> {
    * editors as their launch programs end in `.cmd`
    */
   readonly usesShell?: boolean
+  readonly executableArgs?:
+    | readonly string[]
+    | ((path: string, remote: boolean) => readonly string[] | undefined)
 }

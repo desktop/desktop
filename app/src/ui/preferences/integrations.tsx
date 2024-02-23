@@ -5,19 +5,27 @@ import { Row } from '../../ui/lib/row'
 import { Select } from '../lib/select'
 import { Shell, parse as parseShell } from '../../lib/shells'
 import { suggestedExternalEditor } from '../../lib/editors/shared'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface IIntegrationsPreferencesProps {
+  readonly isWslAvailable: boolean
   readonly availableEditors: ReadonlyArray<string>
   readonly selectedExternalEditor: string | null
+  readonly wslExternalEditorRemote: boolean
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
+  readonly wslOwnShell: boolean
   readonly onSelectedEditorChanged: (editor: string) => void
+  readonly onWslExternalEditorRemoteChanged: (remote: boolean) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
+  readonly onWslOwnShellChanged: (own: boolean) => void
 }
 
 interface IIntegrationsPreferencesState {
   readonly selectedExternalEditor: string | null
+  readonly wslExternalEditorRemote: boolean
   readonly selectedShell: Shell
+  readonly wslOwnShell: boolean
 }
 
 export class Integrations extends React.Component<
@@ -29,7 +37,9 @@ export class Integrations extends React.Component<
 
     this.state = {
       selectedExternalEditor: this.props.selectedExternalEditor,
+      wslExternalEditorRemote: this.props.wslExternalEditorRemote,
       selectedShell: this.props.selectedShell,
+      wslOwnShell: this.props.wslOwnShell,
     }
   }
 
@@ -74,12 +84,26 @@ export class Integrations extends React.Component<
     }
   }
 
+  private onWslExternalEditorRemoteChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+    this.setState({ wslExternalEditorRemote: value })
+    this.props.onWslExternalEditorRemoteChanged(value)
+  }
+
   private onSelectedShellChanged = (
     event: React.FormEvent<HTMLSelectElement>
   ) => {
     const value = parseShell(event.currentTarget.value)
     this.setState({ selectedShell: value })
     this.props.onSelectedShellChanged(value)
+  }
+
+  private onWslOwnShellChanged = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.checked
+    this.setState({ wslOwnShell: value })
+    this.props.onWslOwnShellChanged(value)
   }
 
   private renderExternalEditor() {
@@ -120,6 +144,21 @@ export class Integrations extends React.Component<
       </Select>
     )
   }
+
+  private renderWslExternalEditorRemote() {
+    return (
+      <Checkbox
+        label="WSL: Open in remote, if editor supports it"
+        value={
+          this.state.wslExternalEditorRemote
+            ? CheckboxValue.On
+            : CheckboxValue.Off
+        }
+        onChange={this.onWslExternalEditorRemoteChanged}
+      />
+    )
+  }
+
   private renderSelectedShell() {
     const options = this.props.availableShells
 
@@ -138,12 +177,30 @@ export class Integrations extends React.Component<
     )
   }
 
+  private renderWslOwnShell() {
+    return (
+      <Checkbox
+        label="WSL: Use own shell"
+        value={this.state.wslOwnShell ? CheckboxValue.On : CheckboxValue.Off}
+        onChange={this.onWslOwnShellChanged}
+      />
+    )
+  }
+
   public render() {
     return (
       <DialogContent>
         <h2>Applications</h2>
+
         <Row>{this.renderExternalEditor()}</Row>
+
+        {this.props.isWslAvailable && (
+          <Row>{this.renderWslExternalEditorRemote()}</Row>
+        )}
+
         <Row>{this.renderSelectedShell()}</Row>
+
+        {this.props.isWslAvailable && <Row>{this.renderWslOwnShell()}</Row>}
       </DialogContent>
     )
   }

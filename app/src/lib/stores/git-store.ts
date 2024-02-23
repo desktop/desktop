@@ -31,6 +31,7 @@ import {
   IErrorMetadata,
 } from '../error-with-metadata'
 import { queueWorkHigh } from '../../lib/queue-work'
+import { unlink } from 'fs/promises'
 
 import {
   reset,
@@ -1495,6 +1496,7 @@ export class GitStore extends BaseStore {
 
     await queueWorkHigh(files, async file => {
       const foundSubmodule = submodules.some(s => s.path === file.path)
+      let wasDeleted = false
 
       if (
         file.status.kind !== AppFileStatusKind.Deleted &&
@@ -1508,11 +1510,16 @@ export class GitStore extends BaseStore {
           await this.shell.moveItemToTrash(
             Path.resolve(this.repository.path, file.path)
           )
+          wasDeleted = true
         } catch (e) {
           if (askForConfirmationOnDiscardChangesPermanently) {
             throw new DiscardChangesError(e, this.repository, files)
           }
         }
+      }
+
+      if (file.status.kind === AppFileStatusKind.Untracked && !wasDeleted) {
+        await unlink(Path.resolve(this.repository.path, file.path))
       }
 
       if (

@@ -10,7 +10,8 @@ import { ExternalEditorError, FoundEditor } from './shared'
  */
 export async function launchExternalEditor(
   fullPath: string,
-  editor: FoundEditor
+  editor: FoundEditor,
+  remote: boolean
 ): Promise<void> {
   const editorPath = editor.path
   const exists = await pathExists(editorPath)
@@ -29,13 +30,20 @@ export async function launchExternalEditor(
     detached: true,
   }
 
+  const args = (editor.executableArgs instanceof Function
+    ? editor.executableArgs(fullPath, remote)
+    : editor.executableArgs) ?? [editor.usesShell ? `"${fullPath}"` : fullPath]
+
   if (editor.usesShell) {
-    spawn(`"${editorPath}"`, [`"${fullPath}"`], { ...opts, shell: true })
+    spawn(`"${editorPath}"`, args, {
+      ...opts,
+      shell: true,
+    })
   } else if (__DARWIN__) {
     // In macOS we can use `open`, which will open the right executable file
     // for us, we only need the path to the editor .app folder.
-    spawn('open', ['-a', editorPath, fullPath], opts)
+    spawn('open', ['-a', editorPath, ...args], opts)
   } else {
-    spawn(editorPath, [fullPath], opts)
+    spawn(editorPath, args, opts)
   }
 }

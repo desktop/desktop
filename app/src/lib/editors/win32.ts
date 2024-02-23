@@ -7,6 +7,7 @@ import {
   RegistryValueType,
 } from 'registry-js'
 import { pathExists } from '../../ui/lib/path-exists'
+import { parseWSLPath } from '../path'
 
 import { IFoundEditor } from './found-editor'
 
@@ -70,6 +71,10 @@ type WindowsExternalEditor = {
    * how to use this field.
    */
   readonly jetBrainsToolboxScriptName?: string
+
+  readonly executableArgs?:
+    | readonly string[]
+    | ((path: string, remote: boolean) => readonly string[] | undefined)
 } & WindowsExternalEditorPathInfo
 
 const registryKey = (key: HKEY, ...subKeys: string[]): RegistryKey => ({
@@ -196,6 +201,12 @@ const editors: WindowsExternalEditor[] = [
     executableShimPaths: [['bin', 'code.cmd']],
     displayNamePrefixes: ['Microsoft Visual Studio Code'],
     publishers: ['Microsoft Corporation'],
+    executableArgs: (path, remote) => {
+      const { distro, wslPath = '' } = parseWSLPath(path)
+      return distro && remote
+        ? ['--remote', `wsl+${distro}`, `"${wslPath}"`]
+        : undefined
+    },
   },
   {
     name: 'Visual Studio Code (Insiders)',
@@ -606,6 +617,7 @@ export async function getAvailableEditors(): Promise<
         editor: editor.name,
         path,
         usesShell: path.endsWith('.cmd'),
+        executableArgs: editor.executableArgs,
       })
     }
   }

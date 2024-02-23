@@ -5,7 +5,10 @@ import { isMacOSCatalinaOrEarlier } from './get-os'
 /**
  * The names of any env vars that we shouldn't copy from the shell environment.
  */
-const ExcludedEnvironmentVars = new Set(['LOCAL_GIT_DIRECTORY'])
+const ExcludedEnvironmentVars = new Set([
+  'LOCAL_GIT_DIRECTORY',
+  'LOCAL_GIT_DIRECTORY_WSL',
+])
 
 /**
  * Inspect whether the current process needs to be patched to get important
