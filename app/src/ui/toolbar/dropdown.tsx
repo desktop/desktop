@@ -1,8 +1,8 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import * as React from 'react'
-import { Octicon, OcticonSymbolType } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import { Octicon, OcticonSymbol } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 import { assertNever } from '../../lib/fatal-error'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { rectEquals } from '../lib/rect'
@@ -44,7 +44,7 @@ export interface IToolbarDropdownProps {
   readonly tooltip?: string
 
   /** An optional symbol to be displayed next to the button text */
-  readonly icon?: OcticonSymbolType
+  readonly icon?: OcticonSymbol
 
   /**
    * The state for of the drop down button.
@@ -251,13 +251,13 @@ export class ToolbarDropdown extends React.Component<
     return this.props.dropdownState === 'open'
   }
 
-  private dropdownIcon(state: DropdownState): OcticonSymbolType {
+  private dropdownIcon(state: DropdownState): OcticonSymbol {
     // @TODO: Remake triangle octicon in a 12px version,
     // right now it's scaled badly on normal dpi monitors.
     if (state === 'open') {
-      return OcticonSymbol.triangleUp
+      return octicons.triangleUp
     } else if (state === 'closed') {
-      return OcticonSymbol.triangleDown
+      return octicons.triangleDown
     } else {
       return assertNever(state, `Unknown dropdown state ${state}`)
     }

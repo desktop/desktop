@@ -24,7 +24,7 @@ import { writeGitAttributes } from './git-attributes'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
 import { Ref } from '../lib/ref'
@@ -443,7 +443,7 @@ export class CreateRepository extends React.Component<
 
     return (
       <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
+        <Octicon symbol={octicons.alert} />
         Will be created as {sanitizedName}
       </Row>
     )

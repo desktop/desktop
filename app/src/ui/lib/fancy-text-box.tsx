@@ -1,11 +1,11 @@
 import * as React from 'react'
-import { Octicon, OcticonSymbolType } from '../octicons'
+import { Octicon, OcticonSymbol } from '../octicons'
 import { TextBox, ITextBoxProps } from './text-box'
 import classNames from 'classnames'
 
 interface IFancyTextBoxProps extends ITextBoxProps {
   /** Icon to render */
-  readonly symbol: OcticonSymbolType
+  readonly symbol: OcticonSymbol
 
   /** Callback used to get a reference to internal TextBox */
   readonly onRef: (textbox: TextBox) => void

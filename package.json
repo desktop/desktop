@@ -54,7 +54,7 @@
     "@azure/storage-blob": "^12.13.0",
     "@babel/core": "^7.23.5",
     "@babel/plugin-transform-modules-commonjs": "^7.23.3",
-    "@primer/octicons": "^10.0.0",
+    "@primer/octicons": "^19.0.0",
     "@types/lodash": "^4.14.178",
     "@types/marked": "^4.0.1",
     "@types/plist": "^3.0.2",

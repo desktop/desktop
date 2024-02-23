@@ -24,7 +24,7 @@ import {
 import { CICheckRunList } from './ci-check-run-list'
 import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Donut } from '../donut'
 import {
   supportsRerunningChecks,
@@ -253,14 +253,14 @@ export class CICheckRunPopover extends React.PureComponent<
         return (
           <Octicon
             className={'completeness-indicator-success'}
-            symbol={OcticonSymbol.checkCircleFill}
+            symbol={octicons.checkCircleFill}
           />
         )
       case allFailure: {
         return (
           <Octicon
             className={'completeness-indicator-error'}
-            symbol={OcticonSymbol.xCircleFill}
+            symbol={octicons.xCircleFill}
           />
         )
       }

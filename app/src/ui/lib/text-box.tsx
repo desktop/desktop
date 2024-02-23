@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import { showContextualMenu } from '../../lib/menu-item'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 export interface ITextBoxProps {
@@ -328,7 +328,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
               aria-label="Clear"
               onClick={this.clearSearchText}
             >
-              <Octicon symbol={OcticonSymbol.x} />
+              <Octicon symbol={octicons.x} />
             </button>
           )}
         {this.state.valueCleared && (

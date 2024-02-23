@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { Repository } from '../../models/repository'
 import { Octicon, iconForRepository } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Repositoryish } from './group-repositories'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
@@ -141,8 +141,8 @@ const renderAheadBehindIndicator = (aheadBehind: IAheadBehind) => {
       tagName="div"
       tooltip={aheadBehindTooltip}
     >
-      {ahead > 0 && <Octicon symbol={OcticonSymbol.arrowUp} />}
-      {behind > 0 && <Octicon symbol={OcticonSymbol.arrowDown} />}
+      {ahead > 0 && <Octicon symbol={octicons.arrowUp} />}
+      {behind > 0 && <Octicon symbol={octicons.arrowDown} />}
     </TooltippedContent>
   )
 }
@@ -153,7 +153,7 @@ const renderChangesIndicator = () => {
       className="change-indicator-wrapper"
       tooltip="There are uncommitted changes in this repository"
     >
-      <Octicon symbol={OcticonSymbol.dotFill} />
+      <Octicon symbol={octicons.dotFill} />
     </TooltippedContent>
   )
 }

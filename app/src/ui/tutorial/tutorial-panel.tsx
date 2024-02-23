@@ -5,7 +5,7 @@ import { Button } from '../lib/button'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import {
   ValidTutorialStep,
   TutorialStep,
@@ -256,7 +256,7 @@ export class TutorialPanel extends React.Component<
             <div className="action">
               <Button onClick={this.openPullRequest}>
                 {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
-                <Octicon symbol={OcticonSymbol.linkExternal} />
+                <Octicon symbol={octicons.linkExternal} />
               </Button>
               <KeyboardShortcut darwinKeys={['⌘', 'R']} keys={['Ctrl', 'R']} />
             </div>

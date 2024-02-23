@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
-import * as OcticonSymbol from '../octicons/octicons.generated'
-import { syncClockwise } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
+import { OcticonSymbol, syncClockwise } from '../octicons'
 import { Repository } from '../../models/repository'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
@@ -122,7 +122,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
 
     const tipKind = tip.kind
 
-    let icon: OcticonSymbol.OcticonSymbolType = OcticonSymbol.gitBranch
+    let icon: OcticonSymbol = octicons.gitBranch
     let iconClassName: string | undefined = undefined
     let title: string
     let description = __DARWIN__ ? 'Current Branch' : 'Current branch'
@@ -131,7 +131,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     let tooltip: string
 
     if (this.props.currentPullRequest) {
-      icon = OcticonSymbol.gitPullRequest
+      icon = octicons.gitPullRequest
     }
 
     if (tip.kind === TipState.Unknown) {
@@ -146,7 +146,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     } else if (tip.kind === TipState.Detached) {
       title = `On ${tip.currentSha.substring(0, 7)}`
       tooltip = 'Currently on a detached HEAD'
-      icon = OcticonSymbol.gitCommit
+      icon = octicons.gitCommit
       description = 'Detached HEAD'
     } else if (tip.kind === TipState.Valid) {
       title = tooltip = tip.branch.name
@@ -173,7 +173,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
     } else if (conflictState !== null && isRebaseConflictState(conflictState)) {
       title = conflictState.targetBranch
       description = 'Rebasing branch'
-      icon = OcticonSymbol.gitBranch
+      icon = octicons.gitBranch
       canOpen = false
       disabled = true
       tooltip = `Rebasing ${conflictState.targetBranch}`
