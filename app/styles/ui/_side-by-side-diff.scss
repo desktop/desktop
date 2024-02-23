@@ -181,6 +181,10 @@
       }
     }
 
+    input:focus-visible + label.hunk-handle.selected {
+      background: var(--diff-hover-background-color);
+    }
+
     input:focus-visible + label.hunk-handle {
       .focus-handle {
         outline: 2px solid #0659d6;
@@ -233,7 +237,6 @@
 
       input:focus-visible + label.hunk-handle {
         .focus-handle {
-          outline: 2px solid white;
           outline-offset: -3px;
         }
       }
