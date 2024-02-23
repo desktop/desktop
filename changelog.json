@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.3.10-test1": [
+      "[Improved] For accessibilty testing of interactive diff controls - #18064"
+    ],
     "3.3.9-beta2": [
       "[Fixed] The line number inclusion controls are semantic checkboxes and are keyboard accessible - #18064",
       "[Fixed] Copying commit SHAs from submodule diffs is keyboard accessible - #18124",
