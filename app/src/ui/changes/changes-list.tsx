@@ -571,7 +571,9 @@ export class ChangesList extends React.Component<
         enabled,
       })
 
-      const pathComponents = path.split(Path.sep).slice(0, -1)
+      // Even on Windows, the path separator is '/' for git operations so cannot
+      // use Path.sep
+      const pathComponents = path.split('/').slice(0, -1)
       if (pathComponents.length > 0) {
         const submenu = pathComponents.map((_, index) => {
           const label = `/${pathComponents
