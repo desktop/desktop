@@ -15,7 +15,7 @@ import {
 import { Account } from '../../models/account'
 import { API, IAPIWorkflowJobStep } from '../../lib/api'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { CICheckRunActionsJobStepList } from '../check-runs/ci-check-run-actions-job-step-list'
 import { LinkButton } from '../lib/link-button'
@@ -101,7 +101,7 @@ export class PullRequestChecksFailed extends React.Component<
 
     const header = (
       <div className="ci-check-run-dialog-header">
-        <Octicon symbol={OcticonSymbol.xCircleFill} />
+        <Octicon symbol={octicons.xCircleFill} />
         <div className="title-container">
           <div className="summary">
             {failedChecks.length} {pluralChecks} failed in your pull request

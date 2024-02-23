@@ -11,7 +11,7 @@ import {
   IAPICheckSuite,
 } from '../../lib/api'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from './../octicons/octicons.generated'
+import * as octicons from './../octicons/octicons.generated'
 import { encodePathAsUrl } from '../../lib/path'
 import { offsetFromNow } from '../../lib/offset-from'
 
@@ -188,7 +188,7 @@ export class CICheckRunRerunDialog extends React.Component<
           }${pluralize} that cannot be re-run`
     return (
       <div className="non-re-run-info warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
+        <Octicon symbol={octicons.alert} />
 
         {`${warningPrefix}. A check run cannot be re-run if the check is more than one month old,
           the check or its dependent has not completed, or the check is not configured to be

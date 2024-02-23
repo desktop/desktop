@@ -1,7 +1,7 @@
 import * as React from 'react'
 import classNames from 'classnames'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { CIStatus } from './ci-status'
 import { HighlightText } from '../lib/highlight-text'
 import { IMatches } from '../../lib/fuzzy-find'
@@ -139,8 +139,8 @@ export class PullRequestListItem extends React.Component<
             className="icon"
             symbol={
               this.props.draft
-                ? OcticonSymbol.gitPullRequestDraft
-                : OcticonSymbol.gitPullRequest
+                ? octicons.gitPullRequestDraft
+                : octicons.gitPullRequest
             }
           />
         </div>

@@ -52,18 +52,21 @@ import {
   DiffExpansionKind,
   expandWholeTextDiff,
 } from './text-diff-expansion'
+import { OcticonSymbolVariant } from '../octicons'
 import { createOcticonElement } from '../octicons/octicon'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { PopoverAnchorPosition } from '../lib/popover'
 import { DiffContentsWarning } from './diff-contents-warning'
 
 // This is a custom version of the no-newline octicon that's exactly as
 // tall as it needs to be (8px) which helps with aligning it on the line.
-export const narrowNoNewlineSymbol = {
+export const narrowNoNewlineSymbol: OcticonSymbolVariant = {
   w: 16,
   h: 8,
-  d: 'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z',
+  p: [
+    'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z',
+  ],
 }
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
@@ -101,7 +104,7 @@ function createNoNewlineIndicatorWidget() {
   const widget = document.createElement('span')
   const titleId = uuid()
 
-  const { w, h, d } = narrowNoNewlineSymbol
+  const { w, h, p } = narrowNoNewlineSymbol
 
   const xmlns = 'http://www.w3.org/2000/svg'
   const svgElem = document.createElementNS(xmlns, 'svg')
@@ -119,7 +122,7 @@ function createNoNewlineIndicatorWidget() {
 
   const pathElem = document.createElementNS(xmlns, 'path')
   pathElem.setAttribute('role', 'presentation')
-  pathElem.setAttribute('d', d)
+  pathElem.setAttribute('d', p[0])
   pathElem.textContent = 'No newline at end of file'
   svgElem.appendChild(pathElem)
 
@@ -1127,7 +1130,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       marker.appendChild(hunkExpandUpHandle)
 
       hunkExpandUpHandle.appendChild(
-        createOcticonElement(OcticonSymbol.foldUp, 'hunk-expand-icon')
+        createOcticonElement(octicons.foldUp, 'hunk-expand-icon')
       )
 
       const hunkExpandDownHandle = document.createElement('button')
@@ -1143,7 +1146,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
       marker.appendChild(hunkExpandDownHandle)
 
       hunkExpandDownHandle.appendChild(
-        createOcticonElement(OcticonSymbol.foldDown, 'hunk-expand-icon')
+        createOcticonElement(octicons.foldDown, 'hunk-expand-icon')
       )
 
       const hunkExpandWholeHandle = document.createElement('button')
@@ -1160,7 +1163,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
       hunkExpandWholeHandle.appendChild(
         createOcticonElement(
-          OcticonSymbol.foldDown,
+          octicons.foldDown,
           'hunk-expand-icon',
           'hunk-expand-down-icon'
         )
@@ -1168,7 +1171,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
       hunkExpandWholeHandle.appendChild(
         createOcticonElement(
-          OcticonSymbol.foldUp,
+          octicons.foldUp,
           'hunk-expand-icon',
           'hunk-expand-up-icon'
         )
@@ -1176,7 +1179,7 @@ export class TextDiff extends React.Component<ITextDiffProps, ITextDiffState> {
 
       hunkExpandWholeHandle.appendChild(
         createOcticonElement(
-          OcticonSymbol.unfold,
+          octicons.unfold,
           'hunk-expand-icon',
           'hunk-expand-short-icon'
         )

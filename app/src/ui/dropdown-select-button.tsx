@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import React from 'react'
 import { Button } from './lib/button'
 import { Octicon } from './octicons'
-import * as OcticonSymbol from './octicons/octicons.generated'
+import * as octicons from './octicons/octicons.generated'
 import { MenuPane } from './app-menu'
 import { ICheckboxMenuItem, MenuItem } from '../models/app-menu'
 import { ClickSource, SelectionSource } from './lib/list'
@@ -383,7 +383,7 @@ export class DropdownSelectButton extends React.Component<
             ariaHaspopup={true}
             ariaLabel={dropdownAriaLabel}
           >
-            <Octicon symbol={OcticonSymbol.triangleDown} />
+            <Octicon symbol={octicons.triangleDown} />
           </Button>
         </div>
         {this.renderSplitButtonOptions()}

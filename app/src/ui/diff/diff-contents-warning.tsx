@@ -1,6 +1,6 @@
 import React from 'react'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
 import { ITextDiff, LineEndingsChange } from '../../models/diff'
 
@@ -34,7 +34,7 @@ export class DiffContentsWarning extends React.Component<IDiffContentsWarningPro
       <div className="diff-contents-warning-container">
         {items.map((item, i) => (
           <div className="diff-contents-warning" key={i}>
-            <Octicon symbol={OcticonSymbol.alert} />
+            <Octicon symbol={octicons.alert} />
             {this.getWarningMessageForItem(item)}
           </div>
         ))}

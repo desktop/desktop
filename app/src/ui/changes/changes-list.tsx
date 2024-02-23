@@ -44,8 +44,8 @@ import {
   Foldout,
 } from '../../lib/app-state'
 import { ContinueRebase } from './continue-rebase'
-import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import { Octicon, OcticonSymbolVariant } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 import { IStashEntry } from '../../models/stash-entry'
 import classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
@@ -59,19 +59,19 @@ import { RepoRulesInfo } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
 
 const RowHeight = 29
-const StashIcon: OcticonSymbol.OcticonSymbolType = {
+const StashIcon: OcticonSymbolVariant = {
   w: 16,
   h: 16,
-  d:
+  p: [
     'M10.5 1.286h-9a.214.214 0 0 0-.214.214v9a.214.214 0 0 0 .214.214h9a.214.214 0 0 0 ' +
-    '.214-.214v-9a.214.214 0 0 0-.214-.214zM1.5 0h9A1.5 1.5 0 0 1 12 1.5v9a1.5 1.5 0 0 1-1.5 ' +
-    '1.5h-9A1.5 1.5 0 0 1 0 10.5v-9A1.5 1.5 0 0 1 1.5 0zm5.712 7.212a1.714 1.714 0 1 ' +
-    '1-2.424-2.424 1.714 1.714 0 0 1 2.424 2.424zM2.015 12.71c.102.729.728 1.29 1.485 ' +
-    '1.29h9a1.5 1.5 0 0 0 1.5-1.5v-9a1.5 1.5 0 0 0-1.29-1.485v1.442a.216.216 0 0 1 ' +
-    '.004.043v9a.214.214 0 0 1-.214.214h-9a.216.216 0 0 1-.043-.004H2.015zm2 2c.102.729.728 ' +
-    '1.29 1.485 1.29h9a1.5 1.5 0 0 0 1.5-1.5v-9a1.5 1.5 0 0 0-1.29-1.485v1.442a.216.216 0 0 1 ' +
-    '.004.043v9a.214.214 0 0 1-.214.214h-9a.216.216 0 0 1-.043-.004H4.015z',
-  fr: 'evenodd',
+      '.214-.214v-9a.214.214 0 0 0-.214-.214zM1.5 0h9A1.5 1.5 0 0 1 12 1.5v9a1.5 1.5 0 0 1-1.5 ' +
+      '1.5h-9A1.5 1.5 0 0 1 0 10.5v-9A1.5 1.5 0 0 1 1.5 0zm5.712 7.212a1.714 1.714 0 1 ' +
+      '1-2.424-2.424 1.714 1.714 0 0 1 2.424 2.424zM2.015 12.71c.102.729.728 1.29 1.485 ' +
+      '1.29h9a1.5 1.5 0 0 0 1.5-1.5v-9a1.5 1.5 0 0 0-1.29-1.485v1.442a.216.216 0 0 1 ' +
+      '.004.043v9a.214.214 0 0 1-.214.214h-9a.216.216 0 0 1-.043-.004H2.015zm2 2c.102.729.728 ' +
+      '1.29 1.485 1.29h9a1.5 1.5 0 0 0 1.5-1.5v-9a1.5 1.5 0 0 0-1.29-1.485v1.442a.216.216 0 0 1 ' +
+      '.004.043v9a.214.214 0 0 1-.214.214h-9a.216.216 0 0 1-.043-.004H4.015z',
+  ],
 }
 
 const GitIgnoreFileName = '.gitignore'
@@ -571,7 +571,9 @@ export class ChangesList extends React.Component<
         enabled,
       })
 
-      const pathComponents = path.split(Path.sep).slice(0, -1)
+      // Even on Windows, the path separator is '/' for git operations so cannot
+      // use Path.sep
+      const pathComponents = path.split('/').slice(0, -1)
       if (pathComponents.length > 0) {
         const submenu = pathComponents.map((_, index) => {
           const label = `/${pathComponents
@@ -935,7 +937,7 @@ export class ChangesList extends React.Component<
       >
         <Octicon className="stack-icon" symbol={StashIcon} />
         <div className="text">Stashed Changes</div>
-        <Octicon symbol={OcticonSymbol.chevronRight} />
+        <Octicon symbol={octicons.chevronRight} />
       </button>
     )
   }
