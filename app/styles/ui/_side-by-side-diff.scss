@@ -33,18 +33,19 @@
       }
 
       &.context .before {
-        margin-right: calc(var(--hunk-handle-width) / 2);
+        border-right: calc(var(--hunk-handle-width) / 2) solid var(--diff-border-color);
       }
+
       &.context .after {
-        margin-right: calc(var(--hunk-handle-width) / 2);
+        border-right: calc(var(--hunk-handle-width) / 2) solid var(--diff-border-color);
       }
 
       &.has-check-all-control.context .before {
-        margin-right: calc(var(--hunk-handle-width-with-check-all) / 2);
+        border-right: calc(var(--hunk-handle-width-with-check-all) / 2) solid var(--diff-border-color);
       }
 
       &.has-check-all-control.context .after {
-        margin-left: calc(var(--hunk-handle-width-with-check-all) / 2);
+        border-left: calc(var(--hunk-handle-width-with-check-all) / 2) solid var(--diff-border-color);
       }
 
       &.has-check-all-control {
@@ -57,14 +58,6 @@
       .hunk-expansion-handle {
         padding-left: calc(var(--hunk-handle-width) / 2);
         padding-right: calc(var(--hunk-handle-width) / 2);
-      }
-
-      &.context {
-        margin-left: var(--hunk-handle-width);
-      }
-
-      &.has-check-all-control.context {
-        margin-left: var(--hunk-handle-width-with-check-all);
       }
     }
   }
@@ -216,6 +209,7 @@
         width: 100%;
         margin-top: -4px;
         padding-top: 3px;
+        cursor: pointer;
       }
 
       .octicon {
@@ -467,6 +461,23 @@
 
         span:last-child {
           border: none;
+        }
+      }
+    }
+
+    &.editable {
+      .row {
+        &.context .before,
+        &.context .after {
+          border-right: none;
+        }
+
+        &.context {
+          border-left: var(--hunk-handle-width) solid var(--diff-border-color);
+        }
+
+        &.has-check-all-control.context {
+          border-left: var(--hunk-handle-width-with-check-all) solid var(--diff-border-color);
         }
       }
     }
