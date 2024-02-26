@@ -238,7 +238,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableMoveStash } from '../feature-flag'
+import { enableLinkUnderlines, enableMoveStash } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -2223,7 +2223,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       setBoolean(underlineLinksKey, true)
     }
 
-    this.underlineLinks = getBoolean(underlineLinksKey, underlineLinksDefault)
+    // Always false if the feature flag is disabled.
+    this.underlineLinks = enableLinkUnderlines()
+      ? getBoolean(underlineLinksKey, underlineLinksDefault)
+      : false
 
     this.showDiffCheckMarks = getBoolean(
       showDiffCheckMarksKey,

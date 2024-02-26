@@ -43,6 +43,7 @@ import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
 import { Notifications } from './notifications'
 import { Accessibility } from './accessibility'
+import { enableLinkUnderlines } from '../../lib/feature-flag'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -258,10 +259,6 @@ export class Preferences extends React.Component<
               Appearance
             </span>
             <span>
-              <Octicon className="icon" symbol={octicons.accessibility} />
-              Accessibility
-            </span>
-            <span>
               <Octicon className="icon" symbol={octicons.bell} />
               Notifications
             </span>
@@ -273,6 +270,12 @@ export class Preferences extends React.Component<
               <Octicon className="icon" symbol={octicons.gear} />
               Advanced
             </span>
+            {enableLinkUnderlines() && (
+              <span>
+                <Octicon className="icon" symbol={octicons.accessibility} />
+                Accessibility
+              </span>
+            )}
           </TabBar>
 
           {this.renderActiveTab()}
@@ -375,14 +378,6 @@ export class Preferences extends React.Component<
           />
         )
         break
-      case PreferencesTab.Accessibility:
-        View = (
-          <Accessibility
-            underlineLinks={this.state.underlineLinks}
-            onUnderlineLinksChanged={this.onUnderlineLinksChanged}
-          />
-        )
-        break
       case PreferencesTab.Notifications:
         View = (
           <Notifications
@@ -441,6 +436,14 @@ export class Preferences extends React.Component<
         )
         break
       }
+      case PreferencesTab.Accessibility:
+        View = (
+          <Accessibility
+            underlineLinks={this.state.underlineLinks}
+            onUnderlineLinksChanged={this.onUnderlineLinksChanged}
+          />
+        )
+        break
       default:
         return assertNever(index, `Unknown tab index: ${index}`)
     }

@@ -3,8 +3,8 @@ export enum PreferencesTab {
   Integrations,
   Git,
   Appearance,
-  Accessibility,
   Notifications,
   Prompts,
   Advanced,
+  Accessibility,
 }
