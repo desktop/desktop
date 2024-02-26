@@ -2218,10 +2218,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         PullRequestSuggestedNextAction
       ) ?? defaultPullRequestSuggestedNextAction
 
-    // Current users will have underlines disabled by default. In the future
-    // this will change to be true by default.
+    // Users who have never saved this preference should get the default of true
     if (getBoolean(underlineLinksKey) === undefined) {
-      setBoolean(underlineLinksKey, false)
+      setBoolean(underlineLinksKey, true)
     }
 
     this.underlineLinks = getBoolean(underlineLinksKey, underlineLinksDefault)
