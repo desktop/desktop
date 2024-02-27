@@ -602,7 +602,7 @@ export class SideBySideDiffRow extends React.Component<
         style={style}
       >
         <span className="focus-handle">
-          {!enableGroupDiffCheckmarks() && !this.props.showDiffCheckMarks && (
+          {(!enableGroupDiffCheckmarks() || !this.props.showDiffCheckMarks) && (
             <div className="increased-hover-surface" style={{ height }} />
           )}
           {!onlyOneLine && this.getCheckAllOcticon(selectionState)}
