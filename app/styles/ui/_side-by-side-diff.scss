@@ -31,6 +31,41 @@
         flex-direction: row-reverse;
         border-right: none;
       }
+
+      &.context .before {
+        margin-right: calc(var(--hunk-handle-width) / 2);
+      }
+      &.context .after {
+        margin-right: calc(var(--hunk-handle-width) / 2);
+      }
+
+      &.has-check-all-control.context .before {
+        margin-right: calc(var(--hunk-handle-width-with-check-all) / 2);
+      }
+
+      &.has-check-all-control.context .after {
+        margin-left: calc(var(--hunk-handle-width-with-check-all) / 2);
+      }
+
+      &.has-check-all-control {
+        .hunk-expansion-handle {
+          padding-left: calc(var(--hunk-handle-width-with-check-all) / 2);
+          padding-right: calc(var(--hunk-handle-width-with-check-all) / 2);
+        }
+      }
+
+      .hunk-expansion-handle {
+        padding-left: calc(var(--hunk-handle-width) / 2);
+        padding-right: calc(var(--hunk-handle-width) / 2);
+      }
+
+      &.context {
+        margin-left: var(--hunk-handle-width);
+      }
+
+      &.has-check-all-control.context {
+        margin-left: var(--hunk-handle-width-with-check-all);
+      }
     }
   }
 
@@ -93,21 +128,6 @@
       }
     }
 
-    &.context .before {
-      margin-right: calc(var(--hunk-handle-width) / 2);
-    }
-    &.context .after {
-      margin-right: calc(var(--hunk-handle-width) / 2);
-    }
-
-    &.has-check-all-control.context .before {
-      margin-right: calc(var(--hunk-handle-width-with-check-all) / 2);
-    }
-
-    &.has-check-all-control.context .after {
-      margin-left: calc(var(--hunk-handle-width-with-check-all) / 2);
-    }
-
     .before,
     .after {
       width: 50%;
@@ -168,6 +188,13 @@
       }
     }
 
+    input:focus-visible + label.hunk-handle {
+      .focus-handle {
+        outline: 2px solid #0659d6;
+        outline-offset: 3px;
+      }
+    }
+
     .hunk-handle-place-holder,
     .hunk-handle {
       width: var(--hunk-handle-width);
@@ -177,7 +204,27 @@
 
     .hunk-handle {
       position: absolute;
+      display: flex;
       left: calc(50% - var(--hunk-handle-width) / 2);
+      color: white;
+      padding-top: 3px;
+      text-align: center;
+
+      .focus-handle {
+        border-radius: var(--border-radius);
+        height: calc(100% + 4px);
+        width: 100%;
+        margin-top: -4px;
+        padding-top: 3px;
+      }
+
+      .octicon {
+        height: 12px;
+      }
+
+      &.selected {
+        background-color: var(--diff-selected-border-color);
+      }
     }
 
     &.has-check-all-control {
@@ -188,6 +235,13 @@
 
       .hunk-handle {
         left: calc(50% - var(--hunk-handle-width-with-check-all) / 2);
+      }
+
+      input:focus-visible + label.hunk-handle {
+        .focus-handle {
+          outline: 2px solid white;
+          outline-offset: -3px;
+        }
       }
     }
 
@@ -211,18 +265,6 @@
       .increased-hover-surface {
         width: 20px;
         margin-left: -8px;
-      }
-    }
-
-    &:has(.line-number.selectable.line-selected) {
-      .hunk-handle {
-        background-color: var(--diff-selected-border-color);
-      }
-    }
-
-    &:has(.line-number.selectable) {
-      .hunk-handle {
-        background-color: var(--diff-empty-hunk-handle);
       }
     }
 
@@ -404,31 +446,11 @@
         left: 0;
       }
 
-      &.has-check-all-control {
-        .hunk-expansion-handle {
-          padding-left: calc(var(--hunk-handle-width-with-check-all) / 2);
-          padding-right: calc(var(--hunk-handle-width-with-check-all) / 2);
-        }
-      }
-
-      .hunk-expansion-handle {
-        padding-left: calc(var(--hunk-handle-width) / 2);
-        padding-right: calc(var(--hunk-handle-width) / 2);
-      }
-
       &.context .before {
         margin-right: 0;
       }
       &.context .after {
         margin-left: 0;
-      }
-
-      &.context {
-        margin-left: var(--hunk-handle-width);
-      }
-
-      &.has-check-all-control.context {
-        margin-left: var(--hunk-handle-width-with-check-all);
       }
 
       .line-number {
