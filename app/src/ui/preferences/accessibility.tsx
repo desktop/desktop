@@ -26,8 +26,9 @@ export class Accessibility extends React.Component<
               this.props.underlineLinks ? CheckboxValue.On : CheckboxValue.Off
             }
             onChange={this.onUnderlineLinksChanged}
+            ariaDescribedBy="underline-setting-description"
           />
-          <p className="git-settings-description">
+          <p id="underline-setting-description" className="git-settings-description">
             When enabled, GitHub Desktop will underline links in commit
             messages, comments, and other text fields. This can help make links
             easier to distinguish. {this.renderExampleLink()}
