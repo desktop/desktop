@@ -106,3 +106,5 @@ export const enableDiffCheckMarksAndLinkUnderlines = enableBetaFeatures
 
 export const enableDiffCheckMarks = enableDiffCheckMarksAndLinkUnderlines
 export const enableGroupDiffCheckmarks = enableDevelopmentFeatures
+
+export const enableLinkUnderlines = enableDiffCheckMarksAndLinkUnderlines

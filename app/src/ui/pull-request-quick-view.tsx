@@ -34,6 +34,8 @@ interface IPullRequestQuickViewProps {
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
+
+  readonly underlineLinks: boolean
 }
 
 interface IPullRequestQuickViewState {
@@ -209,6 +211,7 @@ export class PullRequestQuickView extends React.Component<
           markdownContext={'PullRequest'}
           onMarkdownLinkClicked={this.onMarkdownLinkClicked}
           onMarkdownParsed={this.onMarkdownParsed}
+          underlineLinks={this.props.underlineLinks}
         />
       </div>
     )
