@@ -187,7 +187,7 @@
 
     input:focus-visible + label.hunk-handle {
       .focus-handle {
-        outline: 2px solid #0659d6;
+        outline: 2px solid var(--diff-linenumber-focus-color);
         outline-offset: 3px;
       }
     }
@@ -348,7 +348,7 @@
 
       &.selectable {
         input:focus-visible + label {
-          outline: 2px solid #0659d6;
+          outline: 2px solid var(--diff-linenumber-focus-color);
           outline-offset: -3px;
         }
 

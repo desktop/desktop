@@ -269,6 +269,7 @@ body.theme-dark {
 
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: #{$blue};
+  --diff-linenumber-focus-color: #{$blue-200};
 
   /**
    * Variables for form elements
