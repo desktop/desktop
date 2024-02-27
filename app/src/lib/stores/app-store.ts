@@ -7951,6 +7951,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     }
   }
+
+  public _updateShowDiffCheckMarks(showDiffCheckMarks: boolean) {
+    if (showDiffCheckMarks !== this.showDiffCheckMarks) {
+      this.showDiffCheckMarks = showDiffCheckMarks
+      setBoolean(showDiffCheckMarksKey, showDiffCheckMarks)
+      this.emitUpdate()
+    }
+  }
 }
 
 /**

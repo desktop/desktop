@@ -682,6 +682,10 @@ export class Preferences extends React.Component<
 
     this.props.dispatcher.setUnderlineLinksSetting(this.state.underlineLinks)
 
+    this.props.dispatcher.setDiffCheckMarksSetting(
+      this.state.showDiffCheckMarks
+    )
+
     this.props.onDismissed()
   }
 
