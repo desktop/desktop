@@ -44,19 +44,9 @@ export interface IRowSelectableGroup {
   isFirst: boolean
 
   /**
-   * Whether or not the row is the last in the selectable group
-   */
-  isLast: boolean
-
-  /**
    * Whether or not the group is hovered by the mouse
    */
   isHovered: boolean
-
-  /**
-   * Whether or not the group is focused by the keyboard
-   */
-  isFocused: boolean
 
   /**
    * The selection state of the group - 'All', 'Partial', or 'None'
