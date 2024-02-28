@@ -18,7 +18,7 @@ import { PopoverAnchorPosition } from '../lib/popover'
 import { WhitespaceHintPopover } from './whitespace-hint-popover'
 import { TooltipDirection } from '../lib/tooltip'
 import { Button } from '../lib/button'
-import { diffCheck } from '../octicons/diff-check'
+import { diffCheck, diffDash } from '../octicons/diff'
 import {
   enableDiffCheckMarks,
   enableGroupDiffCheckmarks,
@@ -51,11 +51,6 @@ export interface IRowSelectableGroup {
    * Whether or not the group is hovered by the mouse
    */
   isHovered: boolean
-
-  /**
-   * Whether or not the group is focused by the keyboard
-   */
-  isFocused: boolean
 
   /**
    * The selection state of the group - 'All', 'Partial', or 'None'
@@ -637,6 +632,8 @@ export class SideBySideDiffRow extends React.Component<
             : false
         }
         onChange={this.onClickHunk}
+        onFocus={this.onHunkFocus}
+        onBlur={this.onHunkBlur}
       />
     )
 
@@ -658,7 +655,7 @@ export class SideBySideDiffRow extends React.Component<
       return <Octicon symbol={diffCheck} />
     }
     if (selectionState === DiffSelectionType.Partial) {
-      return <Octicon symbol={octicons.dash} />
+      return <Octicon symbol={diffDash} />
     }
 
     return null
@@ -901,6 +898,18 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseLeaveHunk = () => {
+    if ('hunkStartLine' in this.props.row) {
+      this.props.onMouseLeaveHunk(this.props.row.hunkStartLine)
+    }
+  }
+
+  private onHunkFocus = () => {
+    if ('hunkStartLine' in this.props.row) {
+      this.props.onMouseEnterHunk(this.props.row.hunkStartLine)
+    }
+  }
+
+  private onHunkBlur = () => {
     if ('hunkStartLine' in this.props.row) {
       this.props.onMouseLeaveHunk(this.props.row.hunkStartLine)
     }
