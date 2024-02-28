@@ -6,6 +6,7 @@ import {
   DiffRowType,
   IDiffRowData,
   DiffColumn,
+  isRowChanged,
 } from './diff-helpers'
 import { ILineTokens } from '../../lib/highlighter/types'
 import classNames from 'classnames'
@@ -547,15 +548,17 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private renderHunkHandle() {
-    const { isDiffSelectable, rowSelectableGroup } = this.props
+    const { isDiffSelectable, rowSelectableGroup, row } = this.props
     if (!isDiffSelectable || rowSelectableGroup === null) {
       return null
     }
 
-    const placeHolder = <div className="hunk-handle-place-holder"></div>
+    if (!isRowChanged(row)) {
+      return null
+    }
 
-    if (!rowSelectableGroup.isFirst) {
-      return placeHolder
+    if (rowSelectableGroup === null) {
+      return this.renderHunkHandlePlaceHolder()
     }
 
     const {
@@ -641,8 +644,25 @@ export class SideBySideDiffRow extends React.Component<
       <>
         {!onlyOneLine && checkAllControl}
         {hunkHandle}
-        {placeHolder}
+        {this.renderHunkHandlePlaceHolder(selectionState)}
       </>
+    )
+  }
+
+  /**
+   * On scroll of the diff, the rendering of the hunk handle can be delayed so
+   * we make the placeholder mimic the selected state so visually it looks like
+   * the hunk handle is there and there isn't a flickter of grey background.
+   */
+  private renderHunkHandlePlaceHolder = (
+    selectionState?: DiffSelectionType
+  ) => {
+    return (
+      <div
+        className={classNames('hunk-handle-place-holder', {
+          selected: selectionState !== DiffSelectionType.None,
+        })}
+      ></div>
     )
   }
 
