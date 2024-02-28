@@ -783,9 +783,6 @@ export class SideBySideDiff extends React.Component<
       next
     )
 
-    // Just temporary until pass the whole row group data down.
-    const isHunkHovered = !!rowSelectableGroupDetails?.isHovered
-
     return (
       <CellMeasurer
         cache={listRowsHeightCache}
@@ -800,7 +797,6 @@ export class SideBySideDiff extends React.Component<
             lineNumberWidth={lineNumberWidth}
             numRow={index}
             isDiffSelectable={canSelect(this.props.file)}
-            isHunkHovered={isHunkHovered}
             rowSelectableGroup={rowSelectableGroupDetails}
             showSideBySideDiff={this.props.showSideBySideDiff}
             hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}

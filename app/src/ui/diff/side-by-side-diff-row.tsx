@@ -99,11 +99,6 @@ interface ISideBySideDiffRowProps {
   readonly isDiffSelectable: boolean
 
   /**
-   * Whether the row belongs to a hunk that is hovered.
-   */
-  readonly isHunkHovered: boolean
-
-  /**
    * Whether to display the rows side by side.
    */
   readonly showSideBySideDiff: boolean
@@ -691,7 +686,7 @@ export class SideBySideDiffRow extends React.Component<
       selectable: isSelectable,
       hoverable: isSelectable,
       'line-selected': isSelected,
-      hover: this.props.isHunkHovered,
+      hover: this.props.rowSelectableGroup?.isHovered,
     })
 
     const firstDefinedLineNumber = lineNumbers
