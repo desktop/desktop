@@ -41,7 +41,7 @@ export class Accessibility extends React.Component<
           </p>
 
           <Checkbox
-            label="Show Check marks In Diff"
+            label="Show check marks in the diff"
             value={
               this.props.showDiffCheckMarks
                 ? CheckboxValue.On
