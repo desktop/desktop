@@ -82,8 +82,10 @@ export interface IRowSelectableGroup {
    * something like [`4-before`, `4-after`, `5-after`, `6-after`] as the line
    * number is not unique without the "before" or "after" suffix
    */
-  lineNumbersIdentifiers: ReadonlyArray<string>
+  lineNumbersIdentifiers: ReadonlyArray<CheckBoxIdentifier>
 }
+
+export type CheckBoxIdentifier = `${number}-${'after' | 'before'}`
 
 interface ISideBySideDiffRowProps {
   /**
@@ -692,9 +694,18 @@ export class SideBySideDiffRow extends React.Component<
       hover: this.props.isHunkHovered,
     })
 
+    const firstDefinedLineNumber = lineNumbers
+      .filter(ln => ln !== undefined)
+      .at(0)
+    if (firstDefinedLineNumber === undefined) {
+      // This shouldn't be possible. If there are no line numbers, we shouldn't
+      // be rendering this component.
+      return null
+    }
+
     // Note: This id is used by the check all aria-controls attribute,
     // modification of this should be reflected there.
-    const checkboxId = `${lineNumbers.filter(ln => ln !== undefined).at(0)}-${
+    const checkboxId: CheckBoxIdentifier = `${firstDefinedLineNumber}-${
       column === DiffColumn.After ? 'after' : 'before'
     }`
 

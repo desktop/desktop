@@ -29,7 +29,11 @@ import {
   OverscanIndicesGetterParams,
   defaultOverscanIndicesGetter,
 } from 'react-virtualized'
-import { IRowSelectableGroup, SideBySideDiffRow } from './side-by-side-diff-row'
+import {
+  CheckBoxIdentifier,
+  IRowSelectableGroup,
+  SideBySideDiffRow,
+} from './side-by-side-diff-row'
 import memoize from 'memoize-one'
 import {
   findInteractiveOriginalDiffRange,
@@ -50,6 +54,7 @@ import {
   MaxIntraLineDiffStringLength,
   getFirstAndLastClassesSideBySide,
   textDiffEquals,
+  isRowChanged,
 } from './diff-helpers'
 import { showContextualMenu } from '../../lib/menu-item'
 import { getTokens } from './diff-syntax-mode'
@@ -683,21 +688,22 @@ export class SideBySideDiff extends React.Component<
     let hasAfter = false
     let hasBefore = false
 
-    const lineNumbersIdentifiers = rows.flatMap(r => {
-      if (!('hunkStartLine' in r) || r.hunkStartLine !== hunkStartLine) {
-        return []
-      }
+    const groupRows = rows.filter(
+      r => isRowChanged(r) && r.hunkStartLine === hunkStartLine
+    )
+    const lineNumbersIdentifiers: Array<CheckBoxIdentifier> = []
 
+    for (const r of groupRows) {
       if (r.type === DiffRowType.Added) {
         lineNumbers.add(r.data.lineNumber)
         hasAfter = true
-        return `${r.data.lineNumber}-after`
+        lineNumbersIdentifiers.push(`${r.data.lineNumber}-after`)
       }
 
       if (r.type === DiffRowType.Deleted) {
         lineNumbers.add(r.data.lineNumber)
         hasBefore = true
-        return `${r.data.lineNumber}-before`
+        lineNumbersIdentifiers.push(`${r.data.lineNumber}-before`)
       }
 
       if (r.type === DiffRowType.Modified) {
@@ -705,14 +711,12 @@ export class SideBySideDiff extends React.Component<
         hasBefore = true
         lineNumbers.add(r.beforeData.lineNumber)
         lineNumbers.add(r.afterData.lineNumber)
-        return [
+        lineNumbersIdentifiers.push(
           `${r.beforeData.lineNumber}-before`,
-          `${r.afterData.lineNumber}-after`,
-        ]
+          `${r.afterData.lineNumber}-after`
+        )
       }
-
-      return []
-    })
+    }
 
     const diffType =
       hasAfter && hasBefore
