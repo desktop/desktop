@@ -233,6 +233,9 @@ export class SideBySideDiff extends React.Component<
   private textSelectionStartRow: number | undefined = undefined
   private textSelectionEndRow: number | undefined = undefined
 
+  private renderedStartIndex: number = 0
+  private renderedStopIndex: number | undefined = undefined
+
   private readonly hunkExpansionRefs = new Map<string, HTMLButtonElement>()
 
   public constructor(props: ISideBySideDiffProps) {
@@ -533,6 +536,14 @@ export class SideBySideDiff extends React.Component<
     )
   }
 
+  private onRowsRendered = (info: {
+    startIndex: number
+    stopIndex: number
+  }) => {
+    this.renderedStartIndex = info.startIndex
+    this.renderedStopIndex = info.stopIndex
+  }
+
   public render() {
     const { diff } = this.state
 
@@ -572,6 +583,7 @@ export class SideBySideDiff extends React.Component<
                 rowCount={rows.length}
                 rowHeight={this.getRowHeight}
                 rowRenderer={this.renderRow}
+                onRowsRendered={this.onRowsRendered}
                 ref={this.virtualListRef}
                 overscanIndicesGetter={this.overscanIndicesGetter}
                 // The following properties are passed to the list
@@ -644,6 +656,9 @@ export class SideBySideDiff extends React.Component<
       // We only care about selectable rows
       return null
     }
+
+    // TODO: use the diff to find the range of the hunk
+    console.log(this.renderedStartIndex, this.renderedStopIndex)
 
     const range = findInteractiveOriginalDiffRange(
       diff.hunks,
