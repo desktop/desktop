@@ -49,17 +49,55 @@ export interface IRowSelectableGroup {
   isHovered: boolean
 
   /**
+   * Whether or not the check all handle is rendered in this row
+   */
+  isCheckAllRenderedInRow: boolean
+
+  /**
    * The selection state of the group - 'All', 'Partial', or 'None'
    */
   selectionState: DiffSelectionType
 
-  /** The group's diff type, all 'added',  all 'deleted', or a mix = 'modified */
-  diffType: DiffRowType
-
   /**
-   * The height of the rows in the group
+   * The height of the number of rendered rows in the group
+   *
+   * Usually, this is the height of all the rows in the group, but if the group
+   * is partially scrolled out of view, it will be the height of the rendered
+   * row. The diff is a virtualized list, so a row may be rendered but out of
+   * view.
    */
   height: number
+
+  /**
+   * The data that does not change on render
+   */
+  staticData: IRowSelectableGroupStaticData
+}
+
+/**
+ * This is to house the data that could be cached as it should not change with
+ * each row render. It is info such as whether or not the row is the first or
+ * last in the group, the line numbers, and the diff type of the group.
+ */
+export interface IRowSelectableGroupStaticData {
+  /**
+   * The group's rows starting index.
+   *
+   * Note: Since the array of diff rows includes hunk
+   * headeres, this does not equate to the line numbers.
+   */
+  diffRowStartIndex: number
+
+  /**
+   * The group's rows ending index.
+   *
+   * Note: Since the array of diff rows includes hunk
+   * headers, this does not equate to the line numbers.
+   */
+  diffRowStopIndex: number
+
+  /** The group's diff type, all 'added',  all 'deleted', or a mix = 'modified */
+  diffType: DiffRowType
 
   /**
    * The line numbers associated with the group
@@ -539,7 +577,7 @@ export class SideBySideDiffRow extends React.Component<
 
   private renderHunkHandle() {
     const { isDiffSelectable, rowSelectableGroup, row } = this.props
-    if (!isDiffSelectable || rowSelectableGroup === null) {
+    if (!isDiffSelectable) {
       return null
     }
 
@@ -554,12 +592,18 @@ export class SideBySideDiffRow extends React.Component<
     const {
       height,
       selectionState,
-      lineNumbers,
-      lineNumbersIdentifiers,
-      diffType,
+      staticData,
+      isCheckAllRenderedInRow,
+      isFirst,
     } = rowSelectableGroup
+
+    if (!isCheckAllRenderedInRow) {
+      return this.renderHunkHandlePlaceHolder(selectionState)
+    }
+
+    const { lineNumbers, lineNumbersIdentifiers, diffType } = staticData
+    const isOnlyOneCheckInRow = lineNumbersIdentifiers.length === 1
     const style = { height }
-    const onlyOneLine = lineNumbers.length === 1
     const hunkHandleClassName = classNames('hunk-handle', 'hoverable', {
       // selected is a class if any line in the group is selected
       selected: selectionState !== DiffSelectionType.None,
@@ -597,8 +641,9 @@ export class SideBySideDiffRow extends React.Component<
           {!enableGroupDiffCheckmarks() && (
             <div className="increased-hover-surface" style={{ height }} />
           )}
-          {!onlyOneLine && this.getCheckAllOcticon(selectionState)}
-          {!onlyOneLine && (
+          {!isOnlyOneCheckInRow &&
+            this.getCheckAllOcticon(selectionState, isFirst)}
+          {!isOnlyOneCheckInRow && (
             <span className="sr-only">
               {' '}
               Lines {lineNumbers.at(0)} to {lineNumbers.at(-1)}{' '}
@@ -632,7 +677,7 @@ export class SideBySideDiffRow extends React.Component<
 
     return (
       <>
-        {!onlyOneLine && checkAllControl}
+        {!isOnlyOneCheckInRow && checkAllControl}
         {hunkHandle}
         {this.renderHunkHandlePlaceHolder(selectionState)}
       </>
@@ -656,8 +701,11 @@ export class SideBySideDiffRow extends React.Component<
     )
   }
 
-  private getCheckAllOcticon = (selectionState: DiffSelectionType) => {
-    if (!enableGroupDiffCheckmarks()) {
+  private getCheckAllOcticon = (
+    selectionState: DiffSelectionType,
+    isFirst: boolean
+  ) => {
+    if (!enableGroupDiffCheckmarks() || !isFirst) {
       return null
     }
 
