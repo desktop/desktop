@@ -29,25 +29,26 @@ export class IconPreviewDialog extends React.Component<IIconPreviewDialogProps> 
 
   private renderIconVariants(name: string, icons: OcticonSymbolVariants) {
     return (
-      <li key={name} className="octicons-preview-item">
-        <h3>{name}</h3>
-        {Object.entries(icons).map(([size, icon]) =>
-          this.renderIcon(name, size, icon)
-        )}
+      <li key={name}>
+        <h2>{name}</h2>
+        <ul>
+          {Object.entries(icons).map(([size, icon]) =>
+            this.renderIcon(name, size, icon)
+          )}
+        </ul>
       </li>
     )
   }
 
-  private renderIcon(name: string, size: string, icon: OcticonSymbolVariant) {
-    const title = `${name} - ${icon.h}x${icon.w}`
+  private renderIcon(name: string, height: string, icon: OcticonSymbolVariant) {
+    const sizeText = `${icon.h}x${icon.w}`
+    const title = `${name} - ${sizeText}`
 
     return (
-      <Octicon
-        key={`name-${size}`}
-        height={parseInt(size)}
-        symbol={icon}
-        title={title}
-      />
+      <li key={`name-${sizeText}`}>
+        <Octicon height={parseInt(height)} symbol={icon} title={title} />
+        <small>{sizeText}</small>
+      </li>
     )
   }
 }
