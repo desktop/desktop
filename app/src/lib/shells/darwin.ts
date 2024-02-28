@@ -109,7 +109,7 @@ export async function getAvailableShells(): Promise<
   }
 
   if (kittyPath) {
-    const kittyExecutable = `${kittyPath}/Contents/MacOS/kitty`
+    const kittyExecutable = `${kittyPath.path}/Contents/MacOS/kitty`
     shells.push({
       shell: Shell.Kitty,
       path: kittyExecutable,
@@ -118,7 +118,7 @@ export async function getAvailableShells(): Promise<
   }
 
   if (alacrittyPath) {
-    const alacrittyExecutable = `${alacrittyPath}/Contents/MacOS/alacritty`
+    const alacrittyExecutable = `${alacrittyPath.path}/Contents/MacOS/alacritty`
     shells.push({
       shell: Shell.Alacritty,
       path: alacrittyExecutable,
@@ -127,7 +127,7 @@ export async function getAvailableShells(): Promise<
   }
 
   if (tabbyPath) {
-    const tabbyExecutable = `${tabbyPath}/Contents/MacOS/Tabby`
+    const tabbyExecutable = `${tabbyPath.path}/Contents/MacOS/Tabby`
     shells.push({
       shell: Shell.Tabby,
       path: tabbyExecutable,
@@ -136,7 +136,7 @@ export async function getAvailableShells(): Promise<
   }
 
   if (wezTermPath) {
-    const wezTermExecutable = `${wezTermPath}/Contents/MacOS/wezterm`
+    const wezTermExecutable = `${wezTermPath.path}/Contents/MacOS/wezterm`
     shells.push({
       shell: Shell.WezTerm,
       path: wezTermExecutable,
@@ -145,7 +145,7 @@ export async function getAvailableShells(): Promise<
   }
 
   if (warpPath) {
-    const warpExecutable = `${warpPath}/Contents/MacOS/stable`
+    const warpExecutable = `${warpPath.path}/Contents/MacOS/stable`
     shells.push({
       shell: Shell.Warp,
       path: warpExecutable,
