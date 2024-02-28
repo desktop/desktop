@@ -7,10 +7,7 @@ interface IIconPreviewDialogProps {
   readonly onDismissed: () => void
 }
 
-export class IconPreviewDialog extends React.Component<
-  IIconPreviewDialogProps,
-  {}
-> {
+export class IconPreviewDialog extends React.Component<IIconPreviewDialogProps> {
   public render() {
     return (
       <Dialog
