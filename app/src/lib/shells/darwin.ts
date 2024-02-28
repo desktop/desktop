@@ -1,8 +1,8 @@
 import { spawn, ChildProcess } from 'child_process'
 import { assertNever } from '../fatal-error'
-import { IFoundDarwinShell } from './found-shell'
 import appPath from 'app-path'
 import { parseEnumValue } from '../enum'
+import { FoundShell } from './shared'
 
 export enum Shell {
   Terminal = 'Terminal',
@@ -67,7 +67,7 @@ async function getShellPath(
 }
 
 export async function getAvailableShells(): Promise<
-  ReadonlyArray<IFoundDarwinShell<Shell>>
+  ReadonlyArray<FoundShell<Shell>>
 > {
   const [
     terminalPath,
@@ -91,7 +91,7 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.Warp),
   ])
 
-  const shells: Array<IFoundDarwinShell<Shell>> = []
+  const shells: Array<FoundShell<Shell>> = []
   if (terminalPath) {
     shells.push({ shell: Shell.Terminal, ...terminalPath })
   }
@@ -157,7 +157,7 @@ export async function getAvailableShells(): Promise<
 }
 
 export function launch(
-  foundShell: IFoundDarwinShell<Shell>,
+  foundShell: FoundShell<Shell>,
   path: string
 ): ChildProcess {
   if (foundShell.shell === Shell.Kitty) {

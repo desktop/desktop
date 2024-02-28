@@ -172,13 +172,13 @@ use Hyper as a reference to explain the rest of the process.
 
 ### Step 1: Find the shell application
 
-The `getBundleID()` function is used to map a shell enum to it's bundle ID
+The `getBundleID()s` function is used to map a shell enum to it's bundle ID
 that is defined in it's manifest. You should add a new entry here for your
-shell.
+shell. An array is returned to handle the case where a shell updates its bundle ID.
 
 ```ts
 case Shell.Hyper:
-  return 'co.zeit.hyper'
+  return ['co.zeit.hyper']
 ```
 
 After that, follow the existing patterns in `getAvailableShells()` and add a
@@ -186,7 +186,7 @@ new entry to lookup the install path for your shell.
 
 ```ts
 export async function getAvailableShells(): Promise<
-  ReadonlyArray<IFoundShell<Shell>>
+  ReadonlyArray<FoundShell<Shell>>
 > {
   const [
     terminalPath,
@@ -205,25 +205,14 @@ export async function getAvailableShells(): Promise<
   // other code
 
   if (hyperPath) {
-    shells.push({ shell: Shell.Hyper, path: hyperPath })
+    shells.push({ shell: Shell.Hyper, ...hyperPath })
   }
 
   // other code
 }
 ```
 
-### Step 2: Parse the shell
-
-The `parse()` function is used to parse shell names. You should add a new entry here for your
-shell.
-
-```ts
-if (label === Shell.Hyper) {
-  return Shell.Hyper
-}
-```
-
-### Step 3: Launch the shell
+### Step 2: Launch the shell
 
 The launch step will use the `open` command in macOS to launch a given bundle
 at the path requested by the user. You may not need to make changes here,
@@ -231,12 +220,10 @@ unless your shell behaviour differs significantly from this.
 
 ```ts
 export function launch(
-  foundShell: IFoundShell<Shell>,
+  foundShell: FoundShell<Shell>,
   path: string
 ): ChildProcess {
-  const bundleID = getBundleID(foundShell.shell)
-  const commandArgs = ['-b', bundleID, path]
-  return spawn('open', commandArgs)
+  return spawn('open', ['-b', foundShell.bundleID, path])
 }
 ```
 
@@ -290,7 +277,7 @@ new entry to lookup the install path for your shell.
 
 ```ts
 export async function getAvailableShells(): Promise<
-  ReadonlyArray<IFoundShell<Shell>>
+  ReadonlyArray<FoundShell<Shell>>
 > {
   const [
     gnomeTerminalPath,
@@ -328,7 +315,7 @@ the correct arguments are passed to the command line interface:
 
 ```ts
 export function launch(
-  foundShell: IFoundShell<Shell>,
+  foundShell: FoundShell<Shell>,
   path: string
 ): ChildProcess {
   const shell = foundShell.shell

@@ -1,8 +1,8 @@
 import { spawn, ChildProcess } from 'child_process'
 import { assertNever } from '../fatal-error'
-import { IFoundShell } from './found-shell'
 import { parseEnumValue } from '../enum'
 import { pathExists } from '../../ui/lib/path-exists'
+import { FoundShell } from './shared'
 
 export enum Shell {
   Gnome = 'GNOME Terminal',
@@ -64,7 +64,7 @@ function getShellPath(shell: Shell): Promise<string | null> {
 }
 
 export async function getAvailableShells(): Promise<
-  ReadonlyArray<IFoundShell<Shell>>
+  ReadonlyArray<FoundShell<Shell>>
 > {
   const [
     gnomeTerminalPath,
@@ -96,7 +96,7 @@ export async function getAvailableShells(): Promise<
     getShellPath(Shell.Kitty),
   ])
 
-  const shells: Array<IFoundShell<Shell>> = []
+  const shells: Array<FoundShell<Shell>> = []
   if (gnomeTerminalPath) {
     shells.push({ shell: Shell.Gnome, path: gnomeTerminalPath })
   }
@@ -153,7 +153,7 @@ export async function getAvailableShells(): Promise<
 }
 
 export function launch(
-  foundShell: IFoundShell<Shell>,
+  foundShell: FoundShell<Shell>,
   path: string
 ): ChildProcess {
   const shell = foundShell.shell
