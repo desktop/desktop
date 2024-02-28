@@ -234,7 +234,10 @@ export class SideBySideDiffRow extends React.Component<
       isDiffSelectable,
     } = this.props
     const baseRowClasses = classNames('row', {
-      'has-check-all-control': enableGroupDiffCheckmarks() && isDiffSelectable,
+      'has-check-all-control':
+        enableGroupDiffCheckmarks() &&
+        this.props.showDiffCheckMarks &&
+        isDiffSelectable,
     })
     const beforeClasses = classNames('before', ...beforeClassNames)
     const afterClasses = classNames('after', ...afterClassNames)
@@ -599,7 +602,7 @@ export class SideBySideDiffRow extends React.Component<
         style={style}
       >
         <span className="focus-handle">
-          {!enableGroupDiffCheckmarks() && (
+          {(!enableGroupDiffCheckmarks() || !this.props.showDiffCheckMarks) && (
             <div className="increased-hover-surface" style={{ height }} />
           )}
           {!onlyOneLine && this.getCheckAllOcticon(selectionState)}
@@ -647,7 +650,7 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private getCheckAllOcticon = (selectionState: DiffSelectionType) => {
-    if (!enableGroupDiffCheckmarks()) {
+    if (!enableGroupDiffCheckmarks() || !this.props.showDiffCheckMarks) {
       return null
     }
 

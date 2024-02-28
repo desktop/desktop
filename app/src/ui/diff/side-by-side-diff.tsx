@@ -580,6 +580,7 @@ export class SideBySideDiff extends React.Component<
                 afterTokens={this.state.afterTokens}
                 temporarySelection={this.state.temporarySelection}
                 hoveredHunk={this.state.hoveredHunk}
+                showDiffCheckMarks={this.props.showDiffCheckMarks}
                 isSelectable={canSelect(this.props.file)}
                 fileSelection={this.getSelection()}
                 // rows are memoized and include things like the

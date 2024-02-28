@@ -70,6 +70,7 @@ interface IPreferencesProps {
   readonly repositoryIndicatorsEnabled: boolean
   readonly onOpenFileInExternalEditor: (path: string) => void
   readonly underlineLinks: boolean
+  readonly showDiffCheckMarks: boolean
 }
 
 interface IPreferencesState {
@@ -114,6 +115,8 @@ interface IPreferencesState {
   readonly globalGitConfigPath: string | null
 
   readonly underlineLinks: boolean
+
+  readonly showDiffCheckMarks: boolean
 }
 
 /** The app-level preferences component. */
@@ -154,6 +157,7 @@ export class Preferences extends React.Component<
       isLoadingGitConfig: true,
       globalGitConfigPath: null,
       underlineLinks: this.props.underlineLinks,
+      showDiffCheckMarks: this.props.showDiffCheckMarks,
     }
   }
 
@@ -440,6 +444,8 @@ export class Preferences extends React.Component<
         View = (
           <Accessibility
             underlineLinks={this.state.underlineLinks}
+            showDiffCheckMarks={this.state.showDiffCheckMarks}
+            onShowDiffCheckMarksChanged={this.onShowDiffCheckMarksChanged}
             onUnderlineLinksChanged={this.onUnderlineLinksChanged}
           />
         )
@@ -548,6 +554,10 @@ export class Preferences extends React.Component<
 
   private onUnderlineLinksChanged = (underlineLinks: boolean) => {
     this.setState({ underlineLinks })
+  }
+
+  private onShowDiffCheckMarksChanged = (showDiffCheckMarks: boolean) => {
+    this.setState({ showDiffCheckMarks })
   }
 
   private renderFooter() {
@@ -671,6 +681,10 @@ export class Preferences extends React.Component<
     )
 
     this.props.dispatcher.setUnderlineLinksSetting(this.state.underlineLinks)
+
+    this.props.dispatcher.setDiffCheckMarksSetting(
+      this.state.showDiffCheckMarks
+    )
 
     this.props.onDismissed()
   }

@@ -238,7 +238,11 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableLinkUnderlines, enableMoveStash } from '../feature-flag'
+import {
+  enableDiffCheckMarks,
+  enableLinkUnderlines,
+  enableMoveStash,
+} from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -2223,10 +2227,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ? getBoolean(underlineLinksKey, underlineLinksDefault)
       : false
 
-    this.showDiffCheckMarks = getBoolean(
-      showDiffCheckMarksKey,
-      showDiffCheckMarksDefault
-    )
+    this.showDiffCheckMarks = enableDiffCheckMarks()
+      ? getBoolean(showDiffCheckMarksKey, showDiffCheckMarksDefault)
+      : false
 
     this.emitUpdateNow()
 
@@ -7945,6 +7948,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (underlineLinks !== this.underlineLinks) {
       this.underlineLinks = underlineLinks
       setBoolean(underlineLinksKey, underlineLinks)
+      this.emitUpdate()
+    }
+  }
+
+  public _updateShowDiffCheckMarks(showDiffCheckMarks: boolean) {
+    if (showDiffCheckMarks !== this.showDiffCheckMarks) {
+      this.showDiffCheckMarks = showDiffCheckMarks
+      setBoolean(showDiffCheckMarksKey, showDiffCheckMarks)
       this.emitUpdate()
     }
   }

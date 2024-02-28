@@ -5,6 +5,9 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 interface IAccessibilityPreferencesProps {
   readonly underlineLinks: boolean
   readonly onUnderlineLinksChanged: (value: boolean) => void
+
+  readonly showDiffCheckMarks: boolean
+  readonly onShowDiffCheckMarksChanged: (value: boolean) => void
 }
 
 export class Accessibility extends React.Component<
@@ -36,6 +39,25 @@ export class Accessibility extends React.Component<
             messages, comments, and other text fields. This can help make links
             easier to distinguish. {this.renderExampleLink()}
           </p>
+
+          <Checkbox
+            label="Show check marks in the diff"
+            value={
+              this.props.showDiffCheckMarks
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onShowDiffCheckMarksChanged}
+            ariaDescribedBy="diff-checkmarks-setting-description"
+          />
+          <p
+            id="diff-checkmarks-setting-description"
+            className="git-settings-description"
+          >
+            When enabled, check marks will be displayed along side the line
+            numbers and groups of line numbers in the diff when committing. When
+            disabled, the line number controls will be less prominent.
+          </p>
         </div>
       </DialogContent>
     )
@@ -58,5 +80,11 @@ export class Accessibility extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     this.props.onUnderlineLinksChanged(event.currentTarget.checked)
+  }
+
+  private onShowDiffCheckMarksChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onShowDiffCheckMarksChanged(event.currentTarget.checked)
   }
 }

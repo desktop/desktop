@@ -3917,4 +3917,8 @@ export class Dispatcher {
   public setUnderlineLinksSetting(underlineLinks: boolean) {
     return this.appStore._updateUnderlineLinks(underlineLinks)
   }
+
+  public setDiffCheckMarksSetting(diffCheckMarks: boolean) {
+    return this.appStore._updateShowDiffCheckMarks(diffCheckMarks)
+  }
 }
