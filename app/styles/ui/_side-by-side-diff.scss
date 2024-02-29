@@ -4,6 +4,8 @@
   --hunk-handle-width-with-check-all: 16px;
   --hunk-handle-width: 4px;
 
+  display: flex;
+  flex-direction: column;
   width: 100%;
   overflow: hidden;
   flex-grow: 1;
@@ -66,7 +68,6 @@
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    height: 100%;
     width: 100%;
     font-family: var(--font-family-monospace);
     font-size: var(--font-size-sm);
