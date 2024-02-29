@@ -1,5 +1,11 @@
 {
   "releases": {
+    "3.3.10-beta1": [
+      "[Added] Added visible and semantic check all button for a group of consecutive selectable rows in the diff - #18201",
+      "[Fixed] Ignore a file's parent directories on Windows - #18206",
+      "[Improved] Add a setting for visibility of diff check marks when committing - #18227",
+      "[Improved] Add support for toggling link underlines globally - #18035"
+    ],
     "3.3.9": [
       "[Fixed] The line number inclusion controls are semantic checkboxes and are keyboard accessible - #18064",
       "[Fixed] Copying commit SHAs from submodule diffs is keyboard accessible - #18124",

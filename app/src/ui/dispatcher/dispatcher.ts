@@ -3913,4 +3913,12 @@ export class Dispatcher {
   ) {
     this.appStore.onChecksFailedNotification(repository, pullRequest, checks)
   }
+
+  public setUnderlineLinksSetting(underlineLinks: boolean) {
+    return this.appStore._updateUnderlineLinks(underlineLinks)
+  }
+
+  public setDiffCheckMarksSetting(diffCheckMarks: boolean) {
+    return this.appStore._updateShowDiffCheckMarks(diffCheckMarks)
+  }
 }
