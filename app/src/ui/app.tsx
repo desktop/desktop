@@ -58,6 +58,8 @@ import {
   sendReady,
   isInApplicationFolder,
   selectAllWindowContents,
+  installWindowsCLI,
+  uninstallWindowsCLI,
 } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
@@ -451,8 +453,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.openPullRequest()
       case 'preview-pull-request':
         return this.startPullRequest()
-      case 'install-cli':
-        return this.props.dispatcher.installCLI()
+      case 'install-darwin-cli':
+        return this.props.dispatcher.installDarwinCLI()
+      case 'install-windows-cli':
+        return installWindowsCLI()
+      case 'uninstall-windows-cli':
+        return uninstallWindowsCLI()
       case 'open-external-editor':
         return this.openCurrentRepositoryInExternalEditor()
       case 'select-all':
