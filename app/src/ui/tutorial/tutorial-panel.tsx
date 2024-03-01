@@ -254,7 +254,7 @@ export class TutorialPanel extends React.Component<
               private.
             </p>
             <div className="action">
-              <Button onClick={this.openPullRequest}>
+              <Button onClick={this.openPullRequest} role="link">
                 {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
                 <Octicon symbol={octicons.linkExternal} />
               </Button>
