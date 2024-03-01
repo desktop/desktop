@@ -6,6 +6,7 @@ import {
   RegistryValue,
   RegistryStringEntry,
   enumerateValues,
+  setValue,
 } from 'registry-js'
 
 function isStringRegistryValue(rv: RegistryValue): rv is RegistryStringEntry {
@@ -15,21 +16,56 @@ function isStringRegistryValue(rv: RegistryValue): rv is RegistryStringEntry {
   )
 }
 
-/** Get the path segments in the user's `Path`. */
-export function getPathSegments(): ReadonlyArray<string> {
+export function getPathRegistryValue(): RegistryStringEntry | null {
   for (const value of enumerateValues(HKEY.HKEY_CURRENT_USER, 'Environment')) {
     if (value.name === 'Path' && isStringRegistryValue(value)) {
-      return value.data.split(';').filter(x => x.length > 0)
+      return value
     }
   }
 
-  throw new Error('Could not find PATH environment variable')
+  return null
+}
+
+/** Get the path segments in the user's `Path`. */
+export function getPathSegments(): ReadonlyArray<string> {
+  const value = getPathRegistryValue()
+
+  if (value === null) {
+    throw new Error('Could not find PATH environment variable')
+  }
+
+  return value.data.split(';').filter(x => x.length > 0)
 }
 
 /** Set the user's `Path`. */
 export async function setPathSegments(
   paths: ReadonlyArray<string>
 ): Promise<void> {
+  const value = getPathRegistryValue()
+  if (value === null) {
+    throw new Error('Could not find PATH environment variable')
+  }
+
+  try {
+    setValue(
+      HKEY.HKEY_CURRENT_USER,
+      'Environment',
+      'Path',
+      value.type,
+      paths.join(';')
+    )
+
+    // HACK: We need to notify Windows that the environment has changed. We will
+    // leverage setx to do this using a dummy environment variable.
+    await spawnSetX('GITHUB_DESKTOP_ENV_VAR_CHANGE', '1')
+  } catch (e) {
+    log.error('Failed setting PATH environment variable', e)
+
+    throw new Error('Could not set the PATH environment variable')
+  }
+}
+
+async function spawnSetX(variable: string, value: string) {
   let setxPath: string
   const systemRoot = process.env['SystemRoot']
   if (systemRoot) {
@@ -39,7 +75,7 @@ export async function setPathSegments(
     setxPath = 'setx.exe'
   }
 
-  await spawn(setxPath, ['Path', paths.join(';')])
+  await spawn(setxPath, [variable, value])
 }
 
 /** Spawn a command with arguments and capture its output. */
