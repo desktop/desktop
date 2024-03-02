@@ -1,6 +1,6 @@
 import { ChildProcess } from 'child_process'
 
-import { git } from './core'
+import { git, gitRaw } from './core'
 
 import { Repository } from '../../models/repository'
 import { GitError } from 'dugite'
@@ -78,14 +78,14 @@ export async function getLFSBlobContents(
     stdin: Buffer.from(LFSMetadata, 'binary'),
   }
 
-  const blobContents = await git(
+  const blobContents = await gitRaw(
     args,
     repository.path,
     'getLFSBlobContents',
     opts
   )
 
-  return Buffer.from(blobContents.stdout, 'binary')
+  return blobContents.stdout
 }
 
 /**

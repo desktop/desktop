@@ -48,6 +48,15 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
   readonly stdin?: string | Buffer
 }
 
+export interface IRawGitResult {
+  /** The standard output from git. */
+  readonly stdout: Buffer
+  /** The standard error output from git. */
+  readonly stderr: Buffer
+  /** The exit code of the git process. */
+  readonly exitCode: number
+}
+
 /**
  * The result of using `git`. This wraps dugite's results to provide
  * the parsed error if one occurs.
@@ -110,6 +119,77 @@ export class GitError extends Error {
     this.args = args
     this.isRawMessage = rawMessage
   }
+}
+
+export async function gitRaw(
+  args: string[],
+  path: string,
+  name: string,
+  options?: IGitExecutionOptions
+): Promise<IRawGitResult> {
+  //const result = GitPerf.measure( )
+
+  const opts = {
+    env: options?.env,
+  }
+
+  const commandName = `${name}: git ${args.join(' ')}`
+
+  return new Promise<IRawGitResult>((reslove, reject) => {
+    const spawnedProcess = GitProcess.spawn(args, path, opts)
+    if (options && options.stdin !== undefined && spawnedProcess.stdin) {
+      // See https://github.com/nodejs/node/blob/7b5ffa46fe4d2868c1662694da06eb55ec744bde/test/parallel/test-stdin-pipe-large.js
+      if (options.stdinEncoding) {
+        if (
+          options.stdinEncoding === 'ascii' ||
+          options.stdinEncoding === 'utf8' ||
+          options.stdinEncoding === 'utf-8' ||
+          options.stdinEncoding === 'utf16le' ||
+          options.stdinEncoding === 'ucs2' ||
+          options.stdinEncoding === 'ucs-2' ||
+          options.stdinEncoding === 'base64' ||
+          options.stdinEncoding === 'base64url' ||
+          options.stdinEncoding === 'latin1' ||
+          options.stdinEncoding === 'binary' ||
+          options.stdinEncoding === 'hex'
+        ) {
+          spawnedProcess.stdin.end(options.stdin, options.stdinEncoding)
+        }
+      } else {
+        spawnedProcess.stdin.end(options.stdin)
+      }
+    }
+
+    // this will hold chunks
+    const stdout = new Array<Buffer>()
+    const stderr = new Array<Buffer>()
+
+    spawnedProcess.stdout?.on('data', chunk => {
+      if (chunk instanceof Buffer) {
+        stdout.push(chunk)
+      } else {
+        stdout.push(Buffer.from(chunk))
+      }
+    })
+
+    spawnedProcess.stderr?.on('data', chunk => {
+      if (chunk instanceof Buffer) {
+        stderr.push(chunk)
+      } else {
+        stderr.push(Buffer.from(chunk))
+      }
+    })
+
+    spawnedProcess.on('exit', (code: number) => {
+      try {
+        const bufferStdout = Buffer.concat(stdout)
+        const bufferStderr = Buffer.concat(stderr)
+        reslove({ stdout: bufferStdout, stderr: bufferStderr, exitCode: code })
+      } catch (e) {
+        reject(commandName + ' return too large result.')
+      }
+    })
+  })
 }
 
 /**

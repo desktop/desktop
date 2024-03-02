@@ -816,26 +816,28 @@ async function buildDiff(
 
 async function getImageFromPSBuffer(contents: Buffer): Promise<Image> {
   const array = new Uint8Array(contents).buffer
-  const psdFile = Psd.parse(array)
-  if (psdFile) {
-    const compositeBuffer = await psdFile.composite()
+  try {
+    const psdFile = Psd.parse(array)
+    if (psdFile) {
+      const compositeBuffer = await psdFile.composite()
 
-    const imageData = new ImageData(
-      compositeBuffer,
-      psdFile.width,
-      psdFile.height
-    )
+      const imageData = new ImageData(
+        compositeBuffer,
+        psdFile.width,
+        psdFile.height
+      )
 
-    const options = { colorType: 6 }
+      const options = { colorType: 6 }
 
-    const buffer = toPng(imageData, options)
+      const buffer = toPng(imageData, options)
 
-    return new Image(
-      Buffer.from(buffer).toString('base64'),
-      'image/png',
-      buffer.length
-    )
-  }
+      return new Image(
+        Buffer.from(buffer).toString('base64'),
+        'image/png',
+        buffer.length
+      )
+    }
+  } catch (e) {}
 
   return new Image('', 'image/png', 0)
 }
