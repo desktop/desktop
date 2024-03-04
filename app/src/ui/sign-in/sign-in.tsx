@@ -234,6 +234,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             className="button-with-icon button-component-primary"
             onClick={this.onSignInWithBrowser}
             disabled={disableSubmit}
+            role="link"
           >
             Sign in using your browser
             <Octicon symbol={octicons.linkExternal} />

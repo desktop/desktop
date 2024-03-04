@@ -162,7 +162,11 @@ export class PullRequestQuickView extends React.Component<
       <header className="header">
         <Octicon symbol={octicons.listUnordered} />
         <div className="action-needed">Review requested</div>
-        <Button className="button-with-icon" onClick={this.onViewOnGitHub}>
+        <Button
+          className="button-with-icon"
+          onClick={this.onViewOnGitHub}
+          role="link"
+        >
           View on GitHub
           <Octicon symbol={octicons.linkExternal} />
         </Button>
