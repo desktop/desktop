@@ -78,7 +78,7 @@ export function buildDefaultMenu({
         {
           label: 'Install Command Line Tool…',
           id: 'install-cli',
-          click: emit('install-cli'),
+          click: emit('install-darwin-cli'),
         },
         separator,
         {
@@ -605,6 +605,22 @@ export function buildDefaultMenu({
   }
 
   if (__RELEASE_CHANNEL__ === 'development' || __RELEASE_CHANNEL__ === 'test') {
+    if (__WIN32__) {
+      helpItems.push(separator, {
+        label: 'Command Line Tool',
+        submenu: [
+          {
+            label: 'Install',
+            click: emit('install-windows-cli'),
+          },
+          {
+            label: 'Uninstall',
+            click: emit('uninstall-windows-cli'),
+          },
+        ],
+      })
+    }
+
     helpItems.push(
       {
         label: 'Show notification',

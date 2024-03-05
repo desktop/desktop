@@ -2031,7 +2031,7 @@ export class Dispatcher {
    *
    * This is used only on macOS.
    */
-  public async installCLI() {
+  public async installDarwinCLI() {
     try {
       await installCLI()
 
