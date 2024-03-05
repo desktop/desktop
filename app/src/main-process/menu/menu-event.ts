@@ -57,3 +57,4 @@ export type MenuEvent =
   | 'show-test-undone-banner'
   | 'show-test-cherry-pick-conflicts-banner'
   | 'show-test-merge-successful-banner'
+  | 'show-icon-test-dialog'

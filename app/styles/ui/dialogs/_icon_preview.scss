@@ -1,0 +1,58 @@
+@import '../../../styles/variables';
+
+#octicons-preview-dialog {
+  height: auto;
+
+  .dialog-content {
+    overflow-y: auto;
+  }
+
+  .octicons-preview-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+
+    & > li {
+      margin: 0 0 var(--spacing-double);
+      padding: 0;
+
+      h2 {
+        margin: 0 0 var(--spacing-third);
+        padding: 0;
+      }
+
+      & > ul {
+        align-items: flex-end;
+        display: flex;
+        flex-direction: row;
+        gap: var(--spacing);
+        justify-content: flex-start;
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+
+        & > li {
+          align-items: center;
+          background-color: var(--box-alt-background-color);
+          border-radius: var(--border-radius);
+          display: flex;
+          flex-direction: column;
+          gap: var(--spacing-half);
+          margin: 0;
+          padding-bottom: var(--spacing-half);
+          padding-left: var(--spacing);
+          padding-right: var(--spacing);
+          padding-top: var(--spacing);
+
+          .octicon {
+            vertical-align: text-bottom;
+          }
+
+          .small {
+            display: block;
+          }
+        }
+      }
+    }
+  }
+}
