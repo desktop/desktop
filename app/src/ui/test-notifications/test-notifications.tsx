@@ -132,7 +132,7 @@ class TestNotificationItemRowContent extends React.Component<{
         <div className="main-content">{children}</div>
         {html_url && (
           <div className="right-accessory">
-            <Button onClick={this.onExternalLinkClick}>
+            <Button onClick={this.onExternalLinkClick} role="link">
               <Octicon symbol={octicons.linkExternal} />
             </Button>
           </div>
