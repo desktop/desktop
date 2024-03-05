@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.3.10-test2": ["[New] Test release for accessibility verification"],
     "3.3.10-beta1": [
       "[Added] Added visible and semantic check all button for a group of consecutive selectable rows in the diff - #18201",
       "[Fixed] Ignore a file's parent directories on Windows - #18206",
