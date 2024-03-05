@@ -1,5 +1,4 @@
 import { spawn as spawnInternal } from 'child_process'
-import * as Path from 'path'
 import {
   HKEY,
   RegistryValueType,
@@ -54,28 +53,11 @@ export async function setPathSegments(
       value.type,
       paths.join(';')
     )
-
-    // HACK: We need to notify Windows that the environment has changed. We will
-    // leverage setx to do this using a dummy environment variable.
-    await spawnSetX('GITHUB_DESKTOP_ENV_VAR_CHANGE', '1')
   } catch (e) {
     log.error('Failed setting PATH environment variable', e)
 
     throw new Error('Could not set the PATH environment variable')
   }
-}
-
-async function spawnSetX(variable: string, value: string) {
-  let setxPath: string
-  const systemRoot = process.env['SystemRoot']
-  if (systemRoot) {
-    const system32Path = Path.join(systemRoot, 'System32')
-    setxPath = Path.join(system32Path, 'setx.exe')
-  } else {
-    setxPath = 'setx.exe'
-  }
-
-  await spawn(setxPath, [variable, value])
 }
 
 /** Spawn a command with arguments and capture its output. */
