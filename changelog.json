@@ -2,7 +2,7 @@
   "releases": {
     "3.3.10": [
       "[Fixed] The last lines in diffs are visible when warning banners are displayed - #18237",
-      "[Fixed] Ignore a files parent directories on Windows. - #1203"
+      "[Fixed] Ignore a file's parent directories on Windows. - #1203"
     ],
     "3.3.9": [
       "[Fixed] The line number inclusion controls are semantic checkboxes and are keyboard accessible - #18064",
