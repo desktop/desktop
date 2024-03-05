@@ -14,7 +14,10 @@ import {
   findLastSelectableRow,
 } from './section-list-selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
-import { ListItemInsertionOverlay } from './list-item-insertion-overlay'
+import {
+  InsertionFeedbackType,
+  ListItemInsertionOverlay,
+} from './list-item-insertion-overlay'
 import { DragData, DragType } from '../../../models/drag-drop'
 import memoizeOne from 'memoize-one'
 import {
@@ -68,9 +71,6 @@ interface ISectionListProps {
    * ommitted, it's assumed the section does NOT have a header row.
    */
   readonly sectionHasHeader?: (section: number) => boolean
-
-  /** Aria label for a section in the list. */
-  readonly getSectionAriaLabel?: (section: number) => string | undefined
 
   /**
    * The total number of rows in the list. This is used for
@@ -306,6 +306,15 @@ interface ISectionListProps {
 
   /** The aria-label attribute for the list component. */
   readonly ariaLabel?: string
+
+  /**
+   * Optional callback for providing an aria label for screen readers for each
+   * row.
+   *
+   * Note: you may need to apply an aria-hidden attribute to any child text
+   * elements for this to take precedence.
+   */
+  readonly getRowAriaLabel?: (indexPath: RowIndexPath) => string | undefined
 }
 
 interface ISectionListState {
@@ -1169,6 +1178,7 @@ export class SectionList extends React.Component<
             onDropDataInsertion={this.props.onDropDataInsertion}
             itemIndex={indexPath}
             dragType={this.props.insertionDragType}
+            forcedFeedbackType={InsertionFeedbackType.None}
           >
             {row}
           </ListItemInsertionOverlay>
@@ -1178,15 +1188,22 @@ export class SectionList extends React.Component<
 
       const id = this.getRowId(indexPath)
 
+      const ariaLabel =
+        this.props.getRowAriaLabel !== undefined
+          ? this.props.getRowAriaLabel(indexPath)
+          : undefined
+
       return (
         <ListRow
           key={params.key}
           id={id}
+          ariaLabel={ariaLabel}
           sectionHasHeader={sectionHasHeader}
           onRowRef={this.onRowRef}
           rowCount={this.props.rowCount[indexPath.section]}
           rowIndex={indexPath}
           selected={selected}
+          inKeyboardInsertionMode={false}
           onRowClick={this.onRowClick}
           onRowDoubleClick={this.onRowDoubleClick}
           onRowKeyDown={this.onRowKeyDown}
@@ -1319,7 +1336,6 @@ export class SectionList extends React.Component<
           ref={this.getOnGridRef(section)}
           autoContainerWidth={true}
           containerRole="presentation"
-          aria-label={this.props.getSectionAriaLabel?.(section)}
           aria-multiselectable={
             this.props.selectionMode !== 'single' ? true : undefined
           }
@@ -1392,7 +1408,7 @@ export class SectionList extends React.Component<
       rowIndexPathEquals(firstSelectedRow, InvalidRowIndexPath)
     ) {
       sendNonFatalException(
-        'The selected rows of the section-list.tsx contained a negative number.',
+        'invalidListSelection',
         new Error(
           `Invalid selected rows that contained a negative number passed to SectionList component. This will cause keyboard navigation and focus problems.`
         )
@@ -1417,7 +1433,7 @@ export class SectionList extends React.Component<
       >
         <Grid
           id={this.props.accessibleListId}
-          role="listbox"
+          role="presentation"
           ref={this.onRootGridRef}
           autoContainerWidth={true}
           containerRole="presentation"
@@ -1480,14 +1496,17 @@ export class SectionList extends React.Component<
 
     this.lastScroll = 'fake'
 
-    // TODO: calculate scrollTop of the right grid(s)?
-
     if (this.rootGrid) {
       const element = ReactDOM.findDOMNode(this.rootGrid)
       if (element instanceof Element) {
         element.scrollTop = e.currentTarget.scrollTop
       }
     }
+
+    this.setState({ scrollTop: e.currentTarget.scrollTop })
+
+    // Make sure the root grid re-renders its children
+    this.rootGrid?.recomputeGridSize()
   }
 
   private onRowMouseDown = (

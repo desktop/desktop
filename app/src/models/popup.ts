@@ -95,6 +95,7 @@ export enum PopupType {
   PullRequestComment = 'PullRequestComment',
   UnknownAuthors = 'UnknownAuthors',
   ConfirmRepoRulesBypass = 'ConfirmRepoRulesBypass',
+  TestIcons = 'TestIcons',
 }
 
 interface IBasePopup {
@@ -351,8 +352,6 @@ export type PopupDetail =
       repository: RepositoryWithGitHubRepository
       pullRequest: PullRequest
       shouldChangeRepository: boolean
-      commitMessage: string
-      commitSha: string
       checks: ReadonlyArray<IRefCheck>
     }
   | {
@@ -421,6 +420,9 @@ export type PopupDetail =
       repository: GitHubRepository
       branch: string
       onConfirm: () => void
+    }
+  | {
+      type: PopupType.TestIcons
     }
 
 export type Popup = IBasePopup & PopupDetail

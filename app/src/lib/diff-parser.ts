@@ -311,7 +311,6 @@ export class DiffParser {
     let diffLineNumber = linesConsumed
     while ((c = this.parseLinePrefix(this.peek()))) {
       const line = this.readLine()
-      diffLineNumber++
 
       if (!line) {
         throw new Error('Expected unified diff line but reached end of diff')
@@ -337,6 +336,12 @@ export class DiffParser {
 
         continue
       }
+
+      // We must increase `diffLineNumber` only when we're certain that the line
+      // is not a "no newline" marker. Otherwise, we'll end up with a wrong
+      // `diffLineNumber` for the next line. This could happen if the last line
+      // in the file doesn't have a newline before the change.
+      diffLineNumber++
 
       let diffLine: DiffLine
 

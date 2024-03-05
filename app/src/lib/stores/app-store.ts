@@ -238,7 +238,11 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import { enableMoveStash } from '../feature-flag'
+import {
+  enableDiffCheckMarks,
+  enableLinkUnderlines,
+  enableMoveStash,
+} from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -407,6 +411,12 @@ const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
+const underlineLinksKey = 'underline-links'
+const underlineLinksDefault = true
+
+const showDiffCheckMarksDefault = true
+const showDiffCheckMarksKey = 'diff-check-marks-visible'
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -537,7 +547,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     | PullRequestSuggestedNextAction
     | undefined = undefined
 
+  private showDiffCheckMarks: boolean = showDiffCheckMarksDefault
+
   private cachedRepoRulesets = new Map<number, IAPIRepoRuleset>()
+
+  private underlineLinks: boolean = underlineLinksDefault
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -752,6 +766,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.statsStore.recordTutorialPrCreated()
         this.statsStore.recordTutorialCompleted()
         break
+      case TutorialStep.Announced:
+        // don't need to record anything for announcment
+        break
       default:
         assertNever(step, 'Unaccounted for step type')
     }
@@ -779,6 +796,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public async _markPullRequestTutorialStepAsComplete(repository: Repository) {
     this.tutorialAssessor.markPullRequestTutorialStepAsComplete()
+    await this.updateCurrentTutorialStep(repository)
+  }
+
+  public async _markTutorialCompletionAsAnnounced(repository: Repository) {
+    this.tutorialAssessor.markTutorialCompletionAsAnnounced()
     await this.updateCurrentTutorialStep(repository)
   }
 
@@ -1010,6 +1032,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
       resizablePaneActive: this.resizablePaneActive,
       cachedRepoRulesets: this.cachedRepoRulesets,
+      underlineLinks: this.underlineLinks,
+      showDiffCheckMarks: this.showDiffCheckMarks,
     }
   }
 
@@ -1282,15 +1306,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const isHistoryTab = compareState.formState.kind === HistoryTabMode.History
 
     if (isHistoryTab) {
-      this.statsStore.recordMultiCommitDiffFromHistoryCount()
+      this.statsStore.increment('multiCommitDiffFromHistoryCount')
     } else {
-      this.statsStore.recordMultiCommitDiffFromCompareCount()
+      this.statsStore.increment('multiCommitDiffFromCompareCount')
     }
 
     const hasUnreachableCommitWarning = !shas.every(s => shasInDiff.includes(s))
 
     if (hasUnreachableCommitWarning) {
-      this.statsStore.recordMultiCommitDiffWithUnreachableCommitWarningCount()
+      this.statsStore.increment(
+        'multiCommitDiffWithUnreachableCommitWarningCount'
+      )
     }
   }
 
@@ -1496,14 +1522,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       action.comparisonMode
     )
 
-    this.statsStore.recordBranchComparison()
+    this.statsStore.increment('branchComparisons')
     const { branchesState } = this.repositoryStateCache.get(repository)
 
     if (
       branchesState.defaultBranch !== null &&
       comparisonBranch.name === branchesState.defaultBranch.name
     ) {
-      this.statsStore.recordDefaultBranchComparison()
+      this.statsStore.increment('defaultBranchComparisons')
     }
 
     if (compare == null) {
@@ -2196,6 +2222,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
         PullRequestSuggestedNextAction
       ) ?? defaultPullRequestSuggestedNextAction
 
+    // Always false if the feature flag is disabled.
+    this.underlineLinks = enableLinkUnderlines()
+      ? getBoolean(underlineLinksKey, underlineLinksDefault)
+      : false
+
+    this.showDiffCheckMarks = enableDiffCheckMarks()
+      ? getBoolean(showDiffCheckMarksKey, showDiffCheckMarksDefault)
+      : false
+
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
@@ -2675,7 +2710,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       assertNever(conflictState, `Unsupported conflict kind`)
     }
 
-    this.statsStore.recordMergeConflictFromExplicitMerge()
+    this.statsStore.increment('mergeConflictFromExplicitMergeCount')
 
     this._setMultiCommitOperationStep(repository, {
       kind: MultiCommitOperationStepKind.ShowConflicts,
@@ -2754,7 +2789,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     this.repositoryStateCache.update(repository, state => {
       if (state.selectedSection !== selectedSection) {
-        this.statsStore.recordRepositoryViewChanged()
+        this.statsStore.increment('repositoryViewChangeCount')
       }
       return { selectedSection }
     })
@@ -3016,7 +3051,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // `hasUserViewedStash` is reset to false on every branch checkout
       // so we increment the metric before setting `hasUserViewedStash` to true
       // to make sure we only increment on the first view after checkout
-      this.statsStore.recordStashViewedAfterCheckout()
+      this.statsStore.increment('stashViewedAfterCheckoutCount')
       this.hasUserViewedStash = true
     }
   }
@@ -3167,7 +3202,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       file => file.selection.getSelectionType() === DiffSelectionType.Partial
     )
     if (includedPartialSelections) {
-      this.statsStore.recordPartialCommit()
+      this.statsStore.increment('partialCommits')
     }
 
     if (isAmend) {
@@ -3176,22 +3211,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const { trailers } = context
     if (trailers !== undefined && trailers.some(isCoAuthoredByTrailer)) {
-      this.statsStore.recordCoAuthoredCommit()
+      this.statsStore.increment('coAuthoredCommits')
     }
 
     const account = getAccountForRepository(this.accounts, repository)
     if (repository.gitHubRepository !== null) {
       if (account !== null) {
         if (account.endpoint === getDotComAPIEndpoint()) {
-          this.statsStore.recordCommitToDotcom()
+          this.statsStore.increment('dotcomCommits')
         } else {
-          this.statsStore.recordCommitToEnterprise()
+          this.statsStore.increment('enterpriseCommits')
         }
 
         const { commitAuthor } = repositoryState
         if (commitAuthor !== null) {
           if (!isAttributableEmailFor(account, commitAuthor.email)) {
-            this.statsStore.recordUnattributedCommit()
+            this.statsStore.increment('unattributedCommits')
           }
         }
       }
@@ -3202,7 +3237,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
 
       if (branchProtectionsFound) {
-        this.statsStore.recordCommitToRepositoryWithBranchProtections()
+        this.statsStore.increment('commitsToRepositoryWithBranchProtections')
       }
 
       const branchName = findRemoteBranchName(
@@ -3214,7 +3249,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (branchName !== null) {
         const { changesState } = this.repositoryStateCache.get(repository)
         if (changesState.currentBranchProtected) {
-          this.statsStore.recordCommitToProtectedBranch()
+          this.statsStore.increment('commitsToProtectedBranch')
         }
       }
 
@@ -3222,7 +3257,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         repository.gitHubRepository !== null &&
         !hasWritePermission(repository.gitHubRepository)
       ) {
-        this.statsStore.recordCommitToRepositoryWithoutWriteAccess()
+        this.statsStore.increment('commitsToRepositoryWithoutWriteAccess')
         this.statsStore.recordRepositoryCommitedInWithoutWriteAccess(
           repository.gitHubRepository.dbID
         )
@@ -3878,7 +3913,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (tip.kind === TipState.Valid && workingDirectory.files.length > 0) {
       await this.createStashAndDropPreviousEntry(repository, tip.branch)
-      this.statsStore.recordStashCreatedOnCurrentBranch()
+      this.statsStore.increment('stashCreatedOnCurrentBranchCount')
     }
 
     return this.checkoutIgnoringChanges(repository, branch, account)
@@ -3921,7 +3956,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this.checkoutIgnoringChanges(repository, branch, account)
       await popStashEntry(repository, stash.stashSha)
 
-      this.statsStore.recordChangesTakenToNewBranch()
+      this.statsStore.increment('changesTakenToNewBranchCount')
     }
   }
 
@@ -3942,7 +3977,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (stashEntry !== null && !this.hasUserViewedStash) {
-      this.statsStore.recordStashNotViewedAfterCheckout()
+      this.statsStore.increment('stashNotViewedAfterCheckoutCount')
     }
 
     this.hasUserViewedStash = false
@@ -4041,7 +4076,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (await this.createStashAndDropPreviousEntry(repository, currentBranch)) {
-      this.statsStore.recordStashCreatedOnCurrentBranch()
+      this.statsStore.increment('stashCreatedOnCurrentBranchCount')
       await this._refreshRepository(repository)
       return true
     }
@@ -4619,9 +4654,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
 
           if (gitStore.pullWithRebase) {
-            this.statsStore.recordPullWithRebaseEnabled()
+            this.statsStore.increment('pullWithRebaseCount')
           } else {
-            this.statsStore.recordPullWithDefaultSetting()
+            this.statsStore.increment('pullWithDefaultSettingCount')
           }
 
           await gitStore.performFailableOperation(
@@ -4819,7 +4854,49 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
-  public _setRepositoryCommitToAmend(
+  public async _startAmendingRepository(
+    repository: Repository,
+    commit: Commit,
+    isLocalCommit: boolean,
+    continueWithForcePush: boolean = false
+  ) {
+    const repositoryState = this.repositoryStateCache.get(repository)
+    const { tip } = repositoryState.branchesState
+    const { askForConfirmationOnForcePush } = this.getState()
+
+    if (
+      askForConfirmationOnForcePush &&
+      !continueWithForcePush &&
+      !isLocalCommit &&
+      tip.kind === TipState.Valid
+    ) {
+      return this._showPopup({
+        type: PopupType.WarnForcePush,
+        operation: 'Amend',
+        onBegin: () => {
+          this._startAmendingRepository(repository, commit, isLocalCommit, true)
+        },
+      })
+    }
+
+    await this._changeRepositorySection(
+      repository,
+      RepositorySectionTab.Changes
+    )
+
+    const gitStore = this.gitStoreCache.get(repository)
+    await gitStore.prepareToAmendCommit(commit)
+
+    this.setRepositoryCommitToAmend(repository, commit)
+
+    this.statsStore.increment('amendCommitStartedCount')
+  }
+
+  public async _stopAmendingRepository(repository: Repository) {
+    this.setRepositoryCommitToAmend(repository, null)
+  }
+
+  private setRepositoryCommitToAmend(
     repository: Repository,
     commit: Commit | null
   ) {
@@ -5170,16 +5247,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
 
     if (isSquash) {
-      this.statsStore.recordSquashMergeInvokedCount()
+      this.statsStore.increment('squashMergeInvokedCount')
     }
 
     if (mergeStatus !== null) {
       if (mergeStatus.kind === ComputedAction.Clean) {
-        this.statsStore.recordMergeHintSuccessAndUserProceeded()
+        this.statsStore.increment('mergedWithCleanMergeHintCount')
       } else if (mergeStatus.kind === ComputedAction.Conflicts) {
-        this.statsStore.recordUserProceededAfterConflictWarning()
+        this.statsStore.increment('mergedWithConflictWarningHintCount')
       } else if (mergeStatus.kind === ComputedAction.Loading) {
-        this.statsStore.recordUserProceededWhileLoading()
+        this.statsStore.increment('mergedWithLoadingHintCount')
       }
     }
 
@@ -5196,7 +5273,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // This code will only run when there are no conflicts.
         // Thus recordSquashMergeSuccessful is done here and when merge finishes
         // successfully after conflicts in `dispatcher.finishConflictedMerge`.
-        this.statsStore.recordSquashMergeSuccessful()
+        this.statsStore.increment('squashMergeSuccessfulCount')
       }
       this._endMultiCommitOperation(repository)
     } else if (
@@ -5378,7 +5455,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _openShell(path: string) {
-    this.statsStore.recordOpenShell()
+    this.statsStore.increment('openShellCount')
 
     try {
       const match = await findShellOrDefault(this.selectedShell)
@@ -5599,7 +5676,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (showSideBySideDiff !== this.showSideBySideDiff) {
       setShowSideBySideDiff(showSideBySideDiff)
       this.showSideBySideDiff = showSideBySideDiff
-      this.statsStore.recordDiffModeChanged()
+      this.statsStore.increment('diffModeChangeCount')
       this.emitUpdate()
     }
   }
@@ -6301,16 +6378,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       : ''
 
     const encodedCompareBranch =
-      compareForkPreface + encodeURIComponent(compareBranch.nameWithoutRemote)
+      compareForkPreface +
+      encodeURIComponent(
+        compareBranch.upstreamWithoutRemote ?? compareBranch.nameWithoutRemote
+      )
 
     const compareString = `${encodedBaseBranch}${encodedCompareBranch}`
     const baseURL = `${htmlURL}/pull/new/${compareString}`
 
     await this._openInBrowser(baseURL)
-
-    if (this.currentOnboardingTutorialStep === TutorialStep.OpenPullRequest) {
-      this._markPullRequestTutorialStepAsComplete(repository)
-    }
   }
 
   public async _updateExistingUpstreamRemote(
@@ -6366,7 +6442,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     if (prBranch !== undefined) {
       await this._checkoutBranch(repository, prBranch)
-      this.statsStore.recordPRBranchCheckout()
+      this.statsStore.increment('prBranchCheckouts')
     }
   }
 
@@ -6622,7 +6698,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       `[AppStore. _popStashEntry] popped stash with commit id ${stashEntry.stashSha}`
     )
 
-    this.statsStore.recordStashRestore()
+    this.statsStore.increment('stashRestoreCount')
     await this._refreshRepository(repository)
   }
 
@@ -6639,7 +6715,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       `[AppStore. _dropStashEntry] dropped stash with commit id ${stashEntry.stashSha}`
     )
 
-    this.statsStore.recordStashDiscard()
+    this.statsStore.increment('stashDiscardCount')
     await gitStore.loadStashEntries()
   }
 
@@ -7429,11 +7505,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private onChecksFailedNotification = async (
+  public onChecksFailedNotification = async (
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
-    commitMessage: string,
-    commitSha: string,
     checks: ReadonlyArray<IRefCheck>
   ) => {
     const selectedRepository =
@@ -7444,8 +7518,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       pullRequest,
       repository,
       shouldChangeRepository: true,
-      commitMessage,
-      commitSha,
       checks,
     }
 
@@ -7455,7 +7527,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedRepository === null ||
       selectedRepository.hash !== repository.hash
     ) {
-      this.statsStore.recordChecksFailedDialogOpen()
+      this.statsStore.increment('checksFailedDialogOpenCount')
       return this._showPopup(popup)
     }
 
@@ -7469,7 +7541,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // If it's the same branch, just show the existing CI check run popover
       this._setShowCIStatusPopover(true)
     } else {
-      this.statsStore.recordChecksFailedDialogOpen()
+      this.statsStore.increment('checksFailedDialogOpenCount')
 
       // If there is no current branch or it's different than the PR branch,
       // show the checks failed dialog, but it won't offer to switch to the
@@ -7652,7 +7724,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    this.statsStore.recordPreviewedPullRequest()
+    this.statsStore.increment('previewedPullRequestCount')
 
     const { branchesState, localCommitSHAs } =
       this.repositoryStateCache.get(repository)
@@ -7868,6 +7940,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (resizablePaneActive !== this.resizablePaneActive) {
       this.resizablePaneActive = resizablePaneActive
+      this.emitUpdate()
+    }
+  }
+
+  public _updateUnderlineLinks(underlineLinks: boolean) {
+    if (underlineLinks !== this.underlineLinks) {
+      this.underlineLinks = underlineLinks
+      setBoolean(underlineLinksKey, underlineLinks)
+      this.emitUpdate()
+    }
+  }
+
+  public _updateShowDiffCheckMarks(showDiffCheckMarks: boolean) {
+    if (showDiffCheckMarks !== this.showDiffCheckMarks) {
+      this.showDiffCheckMarks = showDiffCheckMarks
+      setBoolean(showDiffCheckMarksKey, showDiffCheckMarks)
       this.emitUpdate()
     }
   }

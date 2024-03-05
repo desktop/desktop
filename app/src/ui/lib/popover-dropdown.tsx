@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Button } from './button'
 import { Popover, PopoverAnchorPosition, PopoverDecoration } from './popover'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import classNames from 'classnames'
 
 const maxPopoverContentHeight = 500
@@ -63,18 +63,18 @@ export class PopoverDropdown extends React.Component<
         maxHeight={maxPopoverContentHeight}
         decoration={PopoverDecoration.Balloon}
         onClickOutside={this.closePopover}
-        aria-labelledby="popover-dropdown-header"
+        ariaLabelledby="popover-dropdown-header"
       >
         <div className="popover-dropdown-wrapper">
           <div className="popover-dropdown-header">
-            <span id="popover-dropdown-header">{contentTitle}</span>
+            <h3 id="popover-dropdown-header">{contentTitle}</h3>
 
             <button
               className="close"
               onClick={this.closePopover}
               aria-label="Close"
             >
-              <Octicon symbol={OcticonSymbol.x} />
+              <Octicon symbol={octicons.x} />
             </button>
           </div>
           <div className="popover-dropdown-content">{this.props.children}</div>
@@ -95,7 +95,7 @@ export class PopoverDropdown extends React.Component<
         >
           <span className="popover-dropdown-button-label">{label}</span>
           <span className="button-content">{buttonContent}</span>
-          <Octicon symbol={OcticonSymbol.triangleDown} />
+          <Octicon symbol={octicons.triangleDown} />
         </Button>
         {this.renderPopover()}
       </div>

@@ -17,13 +17,16 @@ import { TabBar } from '../tab-bar'
 
 import { Row } from '../lib/row'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 
 import { BranchList } from './branch-list'
 import { PullRequestList } from './pull-request-list'
 import { IBranchListItem } from './group-branches'
-import { renderDefaultBranch } from './branch-renderer'
+import {
+  getDefaultAriaLabelForBranch,
+  renderDefaultBranch,
+} from './branch-renderer'
 import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
@@ -51,6 +54,8 @@ interface IBranchesContainerProps {
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
+
+  readonly underlineLinks: boolean
 }
 
 interface IBranchesContainerState {
@@ -135,6 +140,7 @@ export class BranchesContainer extends React.Component<
         pullRequestItemTop={prListItemTop}
         onMouseEnter={this.onMouseEnterPullRequestQuickView}
         onMouseLeave={this.onMouseLeavePullRequestQuickView}
+        underlineLinks={this.props.underlineLinks}
       />
     )
   }
@@ -166,7 +172,7 @@ export class BranchesContainer extends React.Component<
           onClick={this.onMergeClick}
           tooltip={`Choose a branch to merge into ${currentBranch.name}`}
         >
-          <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
+          <Octicon className="icon" symbol={octicons.gitMerge} />
           Choose a branch to merge into <strong>{currentBranch.name}</strong>
         </Button>
       </Row>
@@ -213,6 +219,10 @@ export class BranchesContainer extends React.Component<
     )
   }
 
+  private getBranchAriaLabel = (item: IBranchListItem): string => {
+    return getDefaultAriaLabelForBranch(item)
+  }
+
   private renderSelectedTab() {
     const { selectedTab, repository } = this.props
 
@@ -255,6 +265,7 @@ export class BranchesContainer extends React.Component<
             canCreateNewBranch={true}
             onCreateNewBranch={this.onCreateBranchWithName}
             renderBranch={this.renderBranch}
+            getBranchAriaLabel={this.getBranchAriaLabel}
             hideFilterRow={dragAndDropManager.isDragOfTypeInProgress(
               DragType.Commit
             )}
@@ -286,7 +297,7 @@ export class BranchesContainer extends React.Component<
         onMouseLeave={this.onMouseLeaveNewBranchDrop}
         onMouseUp={this.onMouseUpNewBranchDrop}
       >
-        <Octicon className="icon" symbol={OcticonSymbol.plus} />
+        <Octicon className="icon" symbol={octicons.plus} />
         <div className="name">{label}</div>
       </div>
     )
@@ -345,7 +356,6 @@ export class BranchesContainer extends React.Component<
         isOnDefaultBranch={!!isOnDefaultBranch}
         onSelectionChanged={this.onPullRequestSelectionChanged}
         onCreateBranch={this.onCreateBranch}
-        onDismiss={this.onDismiss}
         dispatcher={this.props.dispatcher}
         repository={repository}
         isLoadingPullRequests={this.props.isLoadingPullRequests}
@@ -377,10 +387,6 @@ export class BranchesContainer extends React.Component<
 
   private onTabClicked = (tab: BranchesTab) => {
     this.props.dispatcher.changeBranchesTab(tab)
-  }
-
-  private onDismiss = () => {
-    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
   }
 
   private onMergeClick = () => {
@@ -455,7 +461,7 @@ export class BranchesContainer extends React.Component<
 
   private onDropOntoCurrentBranch = () => {
     if (dragAndDropManager.isDragOfType(DragType.Commit)) {
-      this.props.dispatcher.recordDragStartedAndCanceled()
+      this.props.dispatcher.incrementMetric('dragStartedAndCanceledCount')
     }
   }
 

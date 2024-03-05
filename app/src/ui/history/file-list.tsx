@@ -48,8 +48,10 @@ export class FileList extends React.Component<IFileListProps, IFileListState> {
     )
   }
 
-  private rowForFile(file: CommittedFileChange | null): number {
-    return file ? this.props.files.findIndex(f => f.path === file.path) : -1
+  private selectedRowsForFile(): ReadonlyArray<number> {
+    const { selectedFile: file, files } = this.props
+    const fileIndex = file ? files.findIndex(f => f.path === file.path) : -1
+    return fileIndex >= 0 ? [fileIndex] : []
   }
 
   private onRowContextMenu = (
@@ -73,7 +75,7 @@ export class FileList extends React.Component<IFileListProps, IFileListState> {
           rowRenderer={this.renderFile}
           rowCount={this.props.files.length}
           rowHeight={29}
-          selectedRows={[this.rowForFile(this.props.selectedFile)]}
+          selectedRows={this.selectedRowsForFile()}
           onSelectedRowChanged={this.onSelectedRowChanged}
           onRowDoubleClick={this.props.onRowDoubleClick}
           onRowContextMenu={this.onRowContextMenu}

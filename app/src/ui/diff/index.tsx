@@ -76,18 +76,14 @@ interface IDiffProps {
   /** Whether we should show a confirmation dialog when the user discards changes */
   readonly askForConfirmationOnDiscardChanges?: boolean
 
+  /** Whether or not to show the diff check marks indicating inclusion in a commit */
+  readonly showDiffCheckMarks: boolean
+
   /**
    * Called when the user requests to open a binary file in an the
    * system-assigned application for said file type.
    */
   readonly onOpenBinaryFile: (fullPath: string) => void
-
-  /**
-   * Callback to open a selected file using the configured external editor
-   *
-   * @param fullPath The full path to the file on disk
-   */
-  readonly onOpenInExternalEditor?: (fullPath: string) => void
 
   /** Called when the user requests to open a submodule. */
   readonly onOpenSubmodule?: (fullPath: string) => void
@@ -281,7 +277,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     if (enableExperimentalDiffViewer() || this.props.showSideBySideDiff) {
       return (
         <SideBySideDiff
-          repository={this.props.repository}
           file={this.props.file}
           diff={diff}
           fileContents={this.props.fileContents}
@@ -295,13 +290,13 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           onHideWhitespaceInDiffChanged={
             this.props.onHideWhitespaceInDiffChanged
           }
+          showDiffCheckMarks={this.props.showDiffCheckMarks}
         />
       )
     }
 
     return (
       <TextDiff
-        repository={this.props.repository}
         file={this.props.file}
         readOnly={this.props.readOnly}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}

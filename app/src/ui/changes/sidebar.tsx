@@ -48,11 +48,15 @@ interface IChangesSidebarProps {
   readonly branch: string | null
   readonly emoji: Map<string, string>
   readonly mostRecentLocalCommit: Commit | null
+  // Used in receiveProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly issuesStore: IssuesStore
   readonly availableWidth: number
   readonly isCommitting: boolean
   readonly commitToAmend: Commit | null
   readonly isPushPullFetchInProgress: boolean
+  // Used in receiveProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly gitHubUserStore: GitHubUserStore
   readonly focusCommitMessage: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
@@ -151,7 +155,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
 
     if (conflictedFilesLeft.length === 0) {
       this.props.dispatcher.clearBanner()
-      this.props.dispatcher.recordUnguidedConflictedMergeCompletion()
+      this.props.dispatcher.incrementMetric(
+        'unguidedConflictedMergeCompletionCount'
+      )
     }
 
     // which of the files selected for committing are conflicted (with markers)?
@@ -437,6 +443,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           showCommitLengthWarning={this.props.showCommitLengthWarning}
           currentRepoRulesInfo={currentRepoRulesInfo}
           aheadBehind={this.props.aheadBehind}
+          accounts={this.props.accounts}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

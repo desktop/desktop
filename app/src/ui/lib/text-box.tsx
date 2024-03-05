@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import { showContextualMenu } from '../../lib/menu-item'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 export interface ITextBoxProps {
@@ -92,6 +92,9 @@ export interface ITextBoxProps {
 
   /** Optional aria-label attribute */
   readonly ariaLabel?: string
+
+  /** Optional aria-labelledby attribute */
+  readonly ariaLabelledBy?: string
 
   /** Optional aria-describedby attribute - usually for associating a descriptive
    * message to the input such as a validation error, warning, or caption */
@@ -312,6 +315,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           onContextMenu={this.onContextMenu}
           spellCheck={this.props.spellcheck === true}
           aria-label={this.props.ariaLabel}
+          aria-labelledby={this.props.ariaLabelledBy}
           aria-controls={this.props.ariaControls}
           aria-describedby={this.props.ariaDescribedBy}
           required={this.props.required}
@@ -324,7 +328,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
               aria-label="Clear"
               onClick={this.clearSearchText}
             >
-              <Octicon symbol={OcticonSymbol.x} />
+              <Octicon symbol={octicons.x} />
             </button>
           )}
         {this.state.valueCleared && (

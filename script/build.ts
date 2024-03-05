@@ -146,14 +146,13 @@ function packageApp() {
   }
 
   // get notarization deets, unless we're not going to publish this
-  const notarizationCredentials = isPublishableBuild
-    ? getNotarizationCredentials()
-    : undefined
+  const osxNotarize = isPublishableBuild ? getNotarizationOptions() : undefined
+
   if (
     isPublishableBuild &&
     isGitHubActions() &&
     process.platform === 'darwin' &&
-    notarizationCredentials === undefined
+    osxNotarize === undefined
   ) {
     // we can't publish a mac build without these
     throw new Error(
@@ -179,7 +178,7 @@ function packageApp() {
       new RegExp('/\\.git($|/)'),
       new RegExp('/node_modules/\\.bin($|/)'),
     ],
-    appCopyright: 'Copyright © 2023 GitHub, Inc.',
+    appCopyright: `Copyright © ${new Date().getFullYear()} GitHub, Inc.`,
 
     // macOS
     appBundleId: getBundleID(),
@@ -198,7 +197,7 @@ function packageApp() {
       identity: isDevelopmentBuild ? '-' : undefined,
       identityValidation: !isDevelopmentBuild,
     },
-    osxNotarize: notarizationCredentials,
+    osxNotarize,
     protocols: [
       {
         name: getBundleID(),
@@ -426,14 +425,14 @@ ${licenseText}`
   rmSync(chooseALicense, { recursive: true, force: true })
 }
 
-function getNotarizationCredentials(): OsxNotarizeOptions | undefined {
-  const appleId = process.env.APPLE_ID
-  const appleIdPassword = process.env.APPLE_ID_PASSWORD
-  if (appleId === undefined || appleIdPassword === undefined) {
-    return undefined
-  }
-  return {
-    appleId,
-    appleIdPassword,
-  }
+function getNotarizationOptions(): OsxNotarizeOptions | undefined {
+  const {
+    APPLE_ID: appleId,
+    APPLE_ID_PASSWORD: appleIdPassword,
+    APPLE_TEAM_ID: teamId,
+  } = process.env
+
+  return appleId && appleIdPassword && teamId
+    ? { tool: 'notarytool', appleId, appleIdPassword, teamId }
+    : undefined
 }

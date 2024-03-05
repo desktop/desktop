@@ -96,6 +96,9 @@ interface IBranchListProps {
 
   readonly textbox?: TextBox
 
+  /** Aria label for a specific row */
+  readonly getBranchAriaLabel: (item: IBranchListItem) => string | undefined
+
   /**
    * Render function to apply to each branch in the list
    */
@@ -138,16 +141,21 @@ interface IBranchListState {
   readonly selectedItem: IBranchListItem | null
 }
 
-function createState(props: IBranchListProps): IBranchListState {
+function createState(
+  defaultBranch: Branch | null,
+  currentBranch: Branch | null,
+  allBranches: ReadonlyArray<Branch>,
+  recentBranches: ReadonlyArray<Branch>,
+  selectedBranch: Branch | null
+): IBranchListState {
   const groups = groupBranches(
-    props.defaultBranch,
-    props.currentBranch,
-    props.allBranches,
-    props.recentBranches
+    defaultBranch,
+    currentBranch,
+    allBranches,
+    recentBranches
   )
 
   let selectedItem: IBranchListItem | null = null
-  const selectedBranch = props.selectedBranch
   if (selectedBranch) {
     for (const group of groups) {
       selectedItem =
@@ -177,11 +185,25 @@ export class BranchList extends React.Component<
 
   public constructor(props: IBranchListProps) {
     super(props)
-    this.state = createState(props)
+    this.state = createState(
+      props.defaultBranch,
+      props.currentBranch,
+      props.allBranches,
+      props.recentBranches,
+      props.selectedBranch
+    )
   }
 
   public componentWillReceiveProps(nextProps: IBranchListProps) {
-    this.setState(createState(nextProps))
+    this.setState(
+      createState(
+        nextProps.defaultBranch,
+        nextProps.currentBranch,
+        nextProps.allBranches,
+        nextProps.recentBranches,
+        nextProps.selectedBranch
+      )
+    )
   }
 
   public selectNextItem(focus: boolean = false, direction: SelectionDirection) {
@@ -214,6 +236,7 @@ export class BranchList extends React.Component<
         onFilterListResultsChanged={this.props.onFilterListResultsChanged}
         renderPreList={this.props.renderPreList}
         onItemContextMenu={this.onBranchContextMenu}
+        getItemAriaLabel={this.getItemAriaLabel}
         getGroupAriaLabel={this.getGroupAriaLabel}
       />
     ) : (
@@ -288,6 +311,10 @@ export class BranchList extends React.Component<
       default:
         return null
     }
+  }
+
+  private getItemAriaLabel = (item: IBranchListItem) => {
+    return this.props.getBranchAriaLabel?.(item)
   }
 
   private getGroupAriaLabel = (group: number) => {

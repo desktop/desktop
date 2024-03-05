@@ -2,7 +2,7 @@ import * as React from 'react'
 import classNames from 'classnames'
 
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { RichText } from '../lib/rich-text'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
@@ -12,12 +12,14 @@ import { CommitAttribution } from '../lib/commit-attribution'
 import { Tokenizer, TokenResult } from '../../lib/text-token-parser'
 import { wrapRichTextCommitMessage } from '../../lib/wrap-rich-text-commit-message'
 import { IChangesetData } from '../../lib/git'
-import { TooltippedContent } from '../lib/tooltipped-content'
 import uniqWith from 'lodash/uniqWith'
 import { LinkButton } from '../lib/link-button'
 import { UnreachableCommitsTab } from './unreachable-commits-dialog'
-import { TooltippedCommitSHA } from '../lib/tooltipped-commit-sha'
 import memoizeOne from 'memoize-one'
+import { Button } from '../lib/button'
+import { Avatar } from '../lib/avatar'
+import { CopyButton } from '../copy-button'
+import { Account } from '../../models/account'
 
 interface IExpandableCommitSummaryProps {
   readonly repository: Repository
@@ -39,13 +41,13 @@ interface IExpandableCommitSummaryProps {
 
   readonly onDescriptionBottomChanged: (descriptionBottom: number) => void
 
-  readonly hideDescriptionBorder: boolean
-
   /** Called to highlight certain shas in the history */
   readonly onHighlightShas: (shasToHighlight: ReadonlyArray<string>) => void
 
   /** Called to show unreachable commits dialog */
   readonly showUnreachableCommits: (tab: UnreachableCommitsTab) => void
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface IExpandableCommitSummaryState {
@@ -221,22 +223,25 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderExpander() {
-    if (
-      !this.state.body.length ||
-      (!this.props.isExpanded && !this.state.isOverflowed)
-    ) {
+    const { selectedCommits, isExpanded } = this.props
+    if (selectedCommits.length > 1) {
       return null
     }
 
-    const expanded = this.props.isExpanded
-    const onClick = expanded ? this.onCollapse : this.onExpand
-    const icon = expanded ? OcticonSymbol.fold : OcticonSymbol.unfold
-
     return (
-      <button onClick={onClick} className="expander">
-        <Octicon symbol={icon} />
-        {expanded ? 'Collapse' : 'Expand'}
-      </button>
+      <Button
+        onClick={isExpanded ? this.onCollapse : this.onExpand}
+        className="expander"
+        tooltip={isExpanded ? 'Collapse' : 'Expand'}
+        applyTooltipAriaDescribedBy={false}
+        ariaExpanded={isExpanded}
+        ariaLabel={
+          isExpanded ? 'Collapse commit details' : 'Expand commit details'
+        }
+        ariaControls="expandable-commit-summary"
+      >
+        <Octicon symbol={isExpanded ? octicons.fold : octicons.unfold} />
+      </Button>
     )
   }
 
@@ -303,28 +308,27 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderDescription() {
-    if (this.state.body.length === 0) {
+    if (this.state.body.length === 0 || this.props.selectedCommits.length > 1) {
       return null
     }
 
+    const className = classNames('ecs-description', {
+      overflowed: this.state.isOverflowed,
+    })
+
     return (
-      <div
-        className="commit-summary-description-container"
-        ref={this.onDescriptionRef}
-      >
+      <div className={className} ref={this.onDescriptionRef}>
         <div
-          className="commit-summary-description-scroll-view"
+          className="ecs-description-scroll-view"
           ref={this.onDescriptionScrollViewRef}
         >
           <RichText
-            className="commit-summary-description"
+            className="ecs-description-text selectable"
             emoji={this.props.emoji}
             repository={this.props.repository}
             text={this.state.body}
           />
         </div>
-
-        {this.renderExpander()}
       </div>
     )
   }
@@ -376,7 +380,7 @@ export class ExpandableCommitSummary extends React.Component<
         onMouseOver={this.onHighlightShasNotInDiff}
         onMouseOut={this.onRemoveHighlightOfShas}
       >
-        <Octicon symbol={OcticonSymbol.info} />
+        <Octicon symbol={octicons.info} />
         <LinkButton onClick={this.showUnreachableCommits}>
           {excludedCommitsCount} unreachable {commitsPluralized}
         </LinkButton>{' '}
@@ -385,57 +389,91 @@ export class ExpandableCommitSummary extends React.Component<
     )
   }
 
-  private renderAuthors = () => {
-    const { selectedCommits, repository } = this.props
-    const { avatarUsers } = this.state
-    if (selectedCommits.length > 1) {
-      return
+  private renderExpandedAuthor(user: IAvatarUser): string | JSX.Element {
+    if (!user) {
+      return 'Unknown user'
     }
 
+    if (user.name) {
+      return (
+        <>
+          {user.name}
+          {' <'}
+          {user.email}
+          {'>'}
+        </>
+      )
+    }
+
+    return user.email
+  }
+
+  private renderAuthorList = () => {
+    return this.state.avatarUsers.map((user, i) => {
+      return (
+        <div className="author selectable" key={i}>
+          <Avatar accounts={this.props.accounts} user={user} title={null} />
+          <div>{this.renderExpandedAuthor(user)}</div>
+        </div>
+      )
+    })
+  }
+
+  private renderAuthorStack = () => {
+    const { selectedCommits, repository, accounts } = this.props
+    const { avatarUsers } = this.state
+
     return (
-      <li className="commit-summary-meta-item without-truncation">
-        <AvatarStack users={avatarUsers} />
+      <>
+        <AvatarStack users={avatarUsers} accounts={accounts} />
         <CommitAttribution
           gitHubRepository={repository.gitHubRepository}
           commits={selectedCommits}
         />
-      </li>
+      </>
     )
   }
 
-  private renderCommitRef = () => {
-    const { selectedCommits } = this.props
+  private renderAuthors = () => {
+    const { selectedCommits, isExpanded } = this.props
     if (selectedCommits.length > 1) {
       return
     }
 
     return (
-      <li
-        className="commit-summary-meta-item without-truncation"
-        aria-label="SHA"
-      >
-        <Octicon symbol={OcticonSymbol.gitCommit} />
-        <TooltippedCommitSHA
-          className="selectable"
-          commit={selectedCommits[0]}
-        />
-      </li>
+      <div className="ecs-meta-item authors">
+        {isExpanded ? this.renderAuthorList() : this.renderAuthorStack()}
+      </div>
     )
   }
 
-  private renderSummary = () => {
+  private renderCommitRef = () => {
+    const { selectedCommits, isExpanded } = this.props
+    if (selectedCommits.length > 1) {
+      return
+    }
+
+    const { shortSha, sha } = selectedCommits[0]
+
+    return (
+      <div className="ecs-meta-item commit-ref">
+        <Octicon symbol={octicons.gitCommit} />
+        <div className="ref selectable">{isExpanded ? sha : shortSha}</div>
+        <CopyButton ariaLabel="Copy the full SHA" copyContent={sha} />
+      </div>
+    )
+  }
+
+  private renderSummaryText = () => {
     const { selectedCommits, shasInDiff } = this.props
-    const { summary, hasEmptySummary } = this.state
-    const summaryClassNames = classNames('commit-summary-title', {
-      'empty-summary': hasEmptySummary,
-    })
+    const { summary } = this.state
 
     if (selectedCommits.length === 1) {
       return (
         <RichText
-          className={summaryClassNames}
           emoji={this.props.emoji}
           repository={this.props.repository}
+          className="selectable"
           text={summary}
         />
       )
@@ -447,11 +485,13 @@ export class ExpandableCommitSummary extends React.Component<
     )
     const numInDiff = selectedCommits.length - commitsNotInDiff
     const commitsPluralized = numInDiff > 1 ? 'commits' : 'commit'
+
     return (
-      <div className={summaryClassNames}>
+      <>
         Showing changes from{' '}
         {commitsNotInDiff > 0 ? (
           <LinkButton
+            className="commits-in-diff"
             onMouseOver={this.onHighlightShasInDiff}
             onMouseOut={this.onRemoveHighlightOfShas}
             onClick={this.showReachableCommits}
@@ -464,6 +504,35 @@ export class ExpandableCommitSummary extends React.Component<
             {numInDiff} {commitsPluralized}
           </>
         )}
+      </>
+    )
+  }
+
+  private renderSummary = () => {
+    const { hasEmptySummary } = this.state
+    const summaryClassNames = classNames('ecs-title', {
+      'empty-summary': hasEmptySummary,
+    })
+
+    return (
+      <div className={summaryClassNames}>
+        {this.renderSummaryText()}
+        {this.renderExpander()}
+      </div>
+    )
+  }
+
+  private renderMetaItems = () => {
+    if (this.props.selectedCommits.length > 1) {
+      return null
+    }
+
+    return (
+      <div className="ecs-meta">
+        {this.renderAuthors()}
+        {this.renderCommitRef()}
+        {this.renderLinesChanged()}
+        {this.renderTags()}
       </div>
     )
   }
@@ -471,58 +540,45 @@ export class ExpandableCommitSummary extends React.Component<
   public render() {
     const className = classNames({
       expanded: this.props.isExpanded,
-      collapsed: !this.props.isExpanded,
-      'has-expander': this.props.isExpanded || this.state.isOverflowed,
-      'hide-description-border': this.props.hideDescriptionBorder,
     })
 
     return (
-      <div id="commit-summary" className={className}>
-        <div className="commit-summary-header">
-          {this.renderSummary()}
-          <ul className="commit-summary-meta">
-            {this.renderAuthors()}
-            {this.renderCommitRef()}
-            {this.renderLinesChanged()}
-            {this.renderTags()}
-          </ul>
+      <div id="expandable-commit-summary" className={className}>
+        {this.renderSummary()}
+        <div className="beneath-summary">
+          {this.renderDescription()}
+          {this.renderMetaItems()}
         </div>
-
-        {this.renderDescription()}
         {this.renderCommitsNotReachable()}
       </div>
     )
   }
 
   private renderLinesChanged() {
-    const linesAdded = this.props.changesetData.linesAdded
-    const linesDeleted = this.props.changesetData.linesDeleted
-    if (linesAdded + linesDeleted === 0) {
+    const { changesetData, selectedCommits, isExpanded } = this.props
+    const { linesAdded, linesDeleted } = changesetData
+
+    if (
+      (linesAdded === 0 && linesDeleted === 0) ||
+      selectedCommits.length > 1
+    ) {
       return null
     }
 
-    const linesAddedPlural = linesAdded === 1 ? 'line' : 'lines'
-    const linesDeletedPlural = linesDeleted === 1 ? 'line' : 'lines'
-    const linesAddedTitle = `${linesAdded} ${linesAddedPlural} added`
-    const linesDeletedTitle = `${linesDeleted} ${linesDeletedPlural} deleted`
-
     return (
-      <>
-        <TooltippedContent
-          tagName="li"
-          className="commit-summary-meta-item without-truncation lines-added"
-          tooltip={linesAddedTitle}
-        >
-          +{linesAdded}
-        </TooltippedContent>
-        <TooltippedContent
-          tagName="li"
-          className="commit-summary-meta-item without-truncation lines-deleted"
-          tooltip={linesDeletedTitle}
-        >
-          -{linesDeleted}
-        </TooltippedContent>
-      </>
+      <div className="ecs-meta-item lines-added-deleted">
+        {isExpanded ? <Octicon symbol={octicons.diff} /> : null}
+        <div className="lines-added">
+          {!isExpanded ? <>+{linesAdded}</> : <>{linesAdded} added lines</>}
+        </div>
+        <div className="lines-deleted">
+          {!isExpanded ? (
+            <>-{linesDeleted}</>
+          ) : (
+            <>{linesDeleted} removed lines</>
+          )}
+        </div>
+      </div>
     )
   }
 
@@ -539,13 +595,10 @@ export class ExpandableCommitSummary extends React.Component<
     }
 
     return (
-      <li className="commit-summary-meta-item" title={tags.join('\n')}>
-        <span>
-          <Octicon symbol={OcticonSymbol.tag} />
-        </span>
-
-        <span className="tags selectable">{tags.join(', ')}</span>
-      </li>
+      <div className="ecs-meta-item tags selectable">
+        <Octicon symbol={octicons.tag} />
+        <span>{tags.join(', ')}</span>
+      </div>
     )
   }
 }

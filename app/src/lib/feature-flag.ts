@@ -46,7 +46,7 @@ export function enableWSLDetection(): boolean {
  * Should we use the new diff viewer for unified diffs?
  */
 export function enableExperimentalDiffViewer(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /**
@@ -95,9 +95,16 @@ export function enableMoveStash(): boolean {
 export const enableCustomGitUserAgent = enableBetaFeatures
 
 export function enableSectionList(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 export const enableRepoRulesBeta = () => true
 
-export const enableCommitDetailsHeaderExpansion = enableDevelopmentFeatures
+export const enableCommitDetailsHeaderExpansion = () => true
+
+export const enableDiffCheckMarksAndLinkUnderlines = enableBetaFeatures
+
+export const enableDiffCheckMarks = enableDiffCheckMarksAndLinkUnderlines
+export const enableGroupDiffCheckmarks = enableDiffCheckMarksAndLinkUnderlines
+
+export const enableLinkUnderlines = enableDiffCheckMarksAndLinkUnderlines

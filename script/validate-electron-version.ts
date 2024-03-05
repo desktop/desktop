@@ -15,16 +15,15 @@ type ChannelToValidate = 'production' | 'beta'
  * to a previous version of GitHub Desktop without losing all settings.
  */
 const ValidElectronVersions: Record<ChannelToValidate, string> = {
-  production: '24.8.3',
+  production: '26.2.4',
   beta: '26.2.4',
 }
 
-const channel = getChannelToValidate()
+const channel =
+  process.env.RELEASE_CHANNEL || distInfo.getChannelFromReleaseBranch()
 
-if (channel === null) {
-  console.log(
-    `No need to validate the Electron version of a ${distInfo.getChannel()} build.`
-  )
+if (!isChannelToValidate(channel)) {
+  console.log(`No need to validate the Electron version of a ${channel} build.`)
   process.exit(0)
 }
 
@@ -42,11 +41,6 @@ if (actualVersion !== expectedVersion) {
 console.log(
   `The Electron version for the ${channel} channel is correct: ${actualVersion}.`
 )
-
-function getChannelToValidate(): ChannelToValidate | null {
-  const channel = distInfo.getChannel()
-  return isChannelToValidate(channel) ? channel : null
-}
 
 function isChannelToValidate(channel: string): channel is ChannelToValidate {
   return Object.keys(ValidElectronVersions).includes(channel)

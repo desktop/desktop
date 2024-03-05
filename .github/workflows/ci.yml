@@ -21,29 +21,40 @@ on:
       environment:
         type: string
         required: true
+      sign:
+        type: boolean
+        default: true
+        required: false
     secrets:
+      AZURE_CODE_SIGNING_TENANT_ID:
+      AZURE_CODE_SIGNING_CLIENT_ID:
+      AZURE_CODE_SIGNING_CLIENT_SECRET:
       DESKTOP_OAUTH_CLIENT_ID:
       DESKTOP_OAUTH_CLIENT_SECRET:
       APPLE_ID:
       APPLE_ID_PASSWORD:
+      APPLE_TEAM_ID:
       APPLE_APPLICATION_CERT:
       APPLE_APPLICATION_CERT_PASSWORD:
-      WINDOWS_CERT_PFX:
-      WINDOWS_CERT_PASSWORD:
+
+env:
+  NODE_VERSION: 18.16.1
 
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    env:
+      RELEASE_CHANNEL: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref }}
           submodules: recursive
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16.17.1
+          node-version: ${{ env.NODE_VERSION }}
           cache: yarn
       - run: yarn
       - run: yarn validate-electron-version
@@ -59,7 +70,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18.16.1]
         os: [macos-13-xl-arm64, windows-2019]
         arch: [x64, arm64]
         include:
@@ -76,17 +86,20 @@ jobs:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref }}
           submodules: recursive
-      - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v3
+      - uses: actions/setup-python@v5
         with:
-          node-version: ${{ matrix.node }}
+          python-version: '3.11'
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
           cache: yarn
 
       # This step can be removed as soon as official Windows arm64 builds are published:
       # https://github.com/nodejs/build/issues/2450#issuecomment-705853342
       - name: Get NodeJS node-gyp lib for Windows arm64
         if: ${{ matrix.os == 'windows-2019' && matrix.arch == 'arm64' }}
-        run: .\script\download-nodejs-win-arm64.ps1 ${{ matrix.node }}
+        run: .\script\download-nodejs-win-arm64.ps1 ${{ env.NODE_VERSION }}
 
       - name: Install and build dependencies
         run: yarn
@@ -101,6 +114,7 @@ jobs:
             ${{ secrets.DESKTOP_OAUTH_CLIENT_SECRET }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_APPLICATION_CERT: ${{ secrets.APPLE_APPLICATION_CERT }}
           KEY_PASSWORD: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
           npm_config_arch: ${{ matrix.arch }}
@@ -116,19 +130,24 @@ jobs:
       - name: Run script tests
         if: matrix.arch == 'x64'
         run: yarn test:script
-      - name: Install Windows code signing certificate
-        if: ${{ runner.os == 'Windows' }}
-        shell: bash
-        env:
-          CERT_CONTENTS: ${{ secrets.WINDOWS_CERT_PFX }}
-        run: base64 -d <<<"$CERT_CONTENTS" > ./script/windows-certificate.pfx
+      - name: Install Azure Code Signing Client
+        if: ${{ runner.os == 'Windows' && inputs.sign }}
+        run: |
+          $acsZip = Join-Path $env:RUNNER_TEMP "acs.zip"
+          $acsDir = Join-Path $env:RUNNER_TEMP "acs"
+          Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Azure.CodeSigning.Client/1.0.38 -OutFile $acsZip -Verbose
+          Expand-Archive $acsZip -Destination $acsDir -Force -Verbose
+          # Replace ancient signtool in electron-winstall with one that supports ACS
+          Copy-Item -Path "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\*" -Include signtool.exe,signtool.exe.manifest,Microsoft.Windows.Build.Signing.mssign32.dll.manifest,mssign32.dll,Microsoft.Windows.Build.Signing.wintrust.dll.manifest,wintrust.dll,Microsoft.Windows.Build.Appx.AppxSip.dll.manifest,AppxSip.dll,Microsoft.Windows.Build.Appx.AppxPackaging.dll.manifest,AppxPackaging.dll,Microsoft.Windows.Build.Appx.OpcServices.dll.manifest,OpcServices.dll -Destination "node_modules\electron-winstaller\vendor" -Verbose
       - name: Package production app
         run: yarn package
         env:
           npm_config_arch: ${{ matrix.arch }}
-          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_SECRET }}
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ inputs.upload-artifacts }}
         with:
           name: ${{matrix.friendlyName}}-${{matrix.arch}}

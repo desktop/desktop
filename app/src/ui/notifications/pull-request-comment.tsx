@@ -3,22 +3,23 @@ import { Row } from '../lib/row'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { PullRequest } from '../../models/pull-request'
 import { Dispatcher } from '../dispatcher'
-import { Account } from '../../models/account'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
 import { IAPIComment } from '../../lib/api'
 import { getPullRequestReviewStateIcon } from './pull-request-review-helpers'
 import { PullRequestCommentLike } from './pull-request-comment-like'
+import { Account } from '../../models/account'
 
 interface IPullRequestCommentProps {
   readonly dispatcher: Dispatcher
-  readonly accounts: ReadonlyArray<Account>
   readonly repository: RepositoryWithGitHubRepository
   readonly pullRequest: PullRequest
   readonly comment: IAPIComment
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
+
+  readonly underlineLinks: boolean
 
   /**
    * Whether or not the dialog should offer to switch to the PR's repository or
@@ -29,6 +30,8 @@ interface IPullRequestCommentProps {
 
   readonly onSubmit: () => void
   readonly onDismissed: () => void
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface IPullRequestCommentState {
@@ -53,13 +56,13 @@ export class PullRequestComment extends React.Component<
   public render() {
     const {
       dispatcher,
-      accounts,
       repository,
       pullRequest,
       emoji,
       comment,
       onSubmit,
       onDismissed,
+      accounts,
     } = this.props
 
     const icon = getPullRequestReviewStateIcon('COMMENTED')
@@ -68,7 +71,6 @@ export class PullRequestComment extends React.Component<
       <PullRequestCommentLike
         id="pull-request-comment"
         dispatcher={dispatcher}
-        accounts={accounts}
         repository={repository}
         pullRequest={pullRequest}
         emoji={emoji}
@@ -83,6 +85,8 @@ export class PullRequestComment extends React.Component<
         renderFooterContent={this.renderFooterContent}
         onSubmit={onSubmit}
         onDismissed={onDismissed}
+        underlineLinks={this.props.underlineLinks}
+        accounts={accounts}
       />
     )
   }
@@ -144,7 +148,9 @@ export class PullRequestComment extends React.Component<
       await dispatcher.checkoutPullRequest(repository, pullRequest)
       this.setState({ switchingToPullRequest: false })
 
-      dispatcher.recordPullRequestCommentDialogSwitchToPullRequest()
+      dispatcher.incrementMetric(
+        'pullRequestCommentDialogSwitchToPullRequestCount'
+      )
     }
 
     this.props.onDismissed()

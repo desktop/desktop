@@ -146,7 +146,7 @@ interface IAutocompletingTextInputState<T> {
 /** A text area which provides autocompletions as the user types. */
 export abstract class AutocompletingTextInput<
   ElementType extends HTMLInputElement | HTMLTextAreaElement,
-  AutocompleteItemType extends Object
+  AutocompleteItemType extends object
 > extends React.Component<
   IAutocompletingTextInputProps<ElementType, AutocompleteItemType>,
   IAutocompletingTextInputState<AutocompleteItemType>
@@ -235,9 +235,9 @@ export abstract class AutocompletingTextInput<
       return null
     }
 
-    const selectedRow = state.selectedItem
-      ? items.indexOf(state.selectedItem)
-      : -1
+    const selectedRows = state.selectedItem
+      ? [items.indexOf(state.selectedItem)]
+      : []
 
     // The height needed to accommodate all the matched items without overflowing
     //
@@ -273,9 +273,9 @@ export abstract class AutocompletingTextInput<
           rowCount={items.length}
           rowHeight={RowHeight}
           rowId={this.getRowId}
-          selectedRows={[selectedRow]}
+          selectedRows={selectedRows}
           rowRenderer={this.renderItem}
-          scrollToRow={selectedRow}
+          scrollToRow={selectedRows.at(0)}
           onRowMouseDown={this.onRowMouseDown}
           onRowClick={this.insertCompletionOnClick}
           onSelectedRowChanged={this.onSelectedRowChanged}

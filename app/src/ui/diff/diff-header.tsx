@@ -3,7 +3,6 @@ import { PathLabel } from '../lib/path-label'
 import { AppFileStatus } from '../../models/status'
 import { IDiff, DiffType } from '../../models/diff'
 import { Octicon, iconForStatus } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
 import { mapStatus } from '../../lib/status'
 import { DiffOptions } from './diff-options'
 
@@ -37,7 +36,6 @@ export class DiffHeader extends React.Component<IDiffHeaderProps, {}> {
     return (
       <div className="header">
         <PathLabel path={this.props.path} status={this.props.status} />
-        {this.renderDecorator()}
 
         {this.renderDiffOptions()}
 
@@ -67,26 +65,5 @@ export class DiffHeader extends React.Component<IDiffHeaderProps, {}> {
         onDiffOptionsOpened={this.props.onDiffOptionsOpened}
       />
     )
-  }
-
-  private renderDecorator() {
-    const diff = this.props.diff
-
-    if (diff === null) {
-      return null
-    }
-
-    if (diff.kind === DiffType.Text && diff.lineEndingsChange) {
-      const message = `Warning: line endings will be changed from '${diff.lineEndingsChange.from}' to '${diff.lineEndingsChange.to}'.`
-      return (
-        <Octicon
-          symbol={OcticonSymbol.alert}
-          className={'line-endings'}
-          title={message}
-        />
-      )
-    } else {
-      return null
-    }
   }
 }

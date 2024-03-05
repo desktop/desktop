@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Banner } from './banner'
 import { Dispatcher } from '../dispatcher'
 import { LinkButton } from '../lib/link-button'
@@ -22,7 +22,7 @@ export class RebaseConflictsBanner extends React.Component<
   private openDialog = async () => {
     this.props.onDismissed()
     this.props.onOpenDialog()
-    this.props.dispatcher.recordRebaseConflictsDialogReopened()
+    this.props.dispatcher.incrementMetric('rebaseConflictsDialogReopenedCount')
   }
 
   private onDismissed = () => {
@@ -38,7 +38,7 @@ export class RebaseConflictsBanner extends React.Component<
         dismissable={false}
         onDismissed={this.onDismissed}
       >
-        <Octicon className="alert-icon" symbol={OcticonSymbol.alert} />
+        <Octicon className="alert-icon" symbol={octicons.alert} />
         <div className="banner-message">
           <span>
             Resolve conflicts to continue rebasing{' '}

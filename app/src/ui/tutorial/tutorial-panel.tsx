@@ -5,7 +5,7 @@ import { Button } from '../lib/button'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import {
   ValidTutorialStep,
   TutorialStep,
@@ -64,7 +64,16 @@ export class TutorialPanel extends React.Component<
   }
 
   private openPullRequest = () => {
-    this.props.dispatcher.createPullRequest(this.props.repository)
+    // This will cause the tutorial pull request step to close first.
+    this.props.dispatcher.markPullRequestTutorialStepAsComplete(
+      this.props.repository
+    )
+
+    // wait for the tutorial step to close before opening the PR, so that the
+    // focusing of the "You're Done!" header is not interupted.
+    setTimeout(() => {
+      this.props.dispatcher.createPullRequest(this.props.repository)
+    }, 500)
   }
 
   private skipEditorInstall = () => {
@@ -245,9 +254,9 @@ export class TutorialPanel extends React.Component<
               private.
             </p>
             <div className="action">
-              <Button onClick={this.openPullRequest}>
+              <Button onClick={this.openPullRequest} role="link">
                 {__DARWIN__ ? 'Open Pull Request' : 'Open pull request'}
-                <Octicon symbol={OcticonSymbol.linkExternal} />
+                <Octicon symbol={octicons.linkExternal} />
               </Button>
               <KeyboardShortcut darwinKeys={['⌘', 'R']} keys={['Ctrl', 'R']} />
             </div>

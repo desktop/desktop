@@ -127,7 +127,7 @@ export class RepositoryStateCache {
       return
     }
 
-    this.statsStore.recordSubmoduleDiffViewedFromChangesList()
+    this.statsStore.increment('submoduleDiffViewedFromChangesListCount')
   }
 
   public updateCommitSelection<K extends keyof ICommitSelection>(
@@ -155,7 +155,7 @@ export class RepositoryStateCache {
       oldState.file?.id !== newState.file?.id &&
       newState.file?.status.submoduleStatus !== undefined
     ) {
-      this.statsStore.recordSubmoduleDiffViewedFromHistory()
+      this.statsStore.increment('submoduleDiffViewedFromHistoryCount')
     }
   }
 

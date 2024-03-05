@@ -229,105 +229,93 @@ const DefaultDailyMeasures: IDailyMeasures = {
   previewedPullRequestCount: 0,
 }
 
+// A subtype of IDailyMeasures filtered to contain only its numeric properties
+type NumericMeasures = {
+  [P in keyof IDailyMeasures as IDailyMeasures[P] extends number
+    ? P
+    : never]: IDailyMeasures[P]
+}
+
 interface IOnboardingStats {
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user added their first existing repository.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user added their first existing
+   * repository.
    *
-   * A negative value means that this action hasn't yet
-   * taken place while undefined means that the current
-   * user installed desktop prior to this metric being
-   * added and we will thus never be able to provide a
-   * value.
+   * A negative value means that this action hasn't yet taken place while
+   * undefined means that the current user installed desktop prior to this
+   * metric being added and we will thus never be able to provide a value.
    */
   readonly timeToFirstAddedRepository?: number
 
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user cloned their first repository.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user cloned their first repository.
    *
-   * A negative value means that this action hasn't yet
-   * taken place while undefined means that the current
-   * user installed desktop prior to this metric being
-   * added and we will thus never be able to provide a
-   * value.
+   * A negative value means that this action hasn't yet taken place while
+   * undefined means that the current user installed desktop prior to this
+   * metric being added and we will thus never be able to provide a value.
    */
   readonly timeToFirstClonedRepository?: number
 
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user created their first new repository.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user created their first new
+   * repository.
    *
-   * A negative value means that this action hasn't yet
-   * taken place while undefined means that the current
-   * user installed desktop prior to this metric being
-   * added and we will thus never be able to provide a
-   * value.
+   * A negative value means that this action hasn't yet taken place while
+   * undefined means that the current user installed desktop prior to this
+   * metric being added and we will thus never be able to provide a value.
    */
   readonly timeToFirstCreatedRepository?: number
 
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user crafted their first commit.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user crafted their first commit.
    *
-   * A negative value means that this action hasn't yet
-   * taken place while undefined means that the current
-   * user installed desktop prior to this metric being
-   * added and we will thus never be able to provide a
-   * value.
+   * A negative value means that this action hasn't yet taken place while
+   * undefined means that the current user installed desktop prior to this
+   * metric being added and we will thus never be able to provide a value.
    */
   readonly timeToFirstCommit?: number
 
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user performed their first push of a repository
-   * to GitHub.com or GitHub Enterprise. This metric
-   * does not track pushes to non-GitHub remotes.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user performed their first push of a
+   * repository to GitHub.com or GitHub Enterprise. This metric does not track
+   * pushes to non-GitHub remotes.
    */
   readonly timeToFirstGitHubPush?: number
 
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user first checked out a branch in any repository
-   * which is not the default branch of that repository.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user first checked out a branch in any
+   * repository which is not the default branch of that repository.
    *
-   * Note that this metric will be set regardless of whether
-   * that repository was a GitHub.com/GHE repository, local
-   * repository or has a non-GitHub remote.
+   * Note that this metric will be set regardless of whether that repository was
+   * a GitHub.com/GHE repository, local repository or has a non-GitHub remote.
    *
-   * A negative value means that this action hasn't yet
-   * taken place while undefined means that the current
-   * user installed desktop prior to this metric being
-   * added and we will thus never be able to provide a
-   * value.
+   * A negative value means that this action hasn't yet taken place while
+   * undefined means that the current user installed desktop prior to this
+   * metric being added and we will thus never be able to provide a value.
    */
   readonly timeToFirstNonDefaultBranchCheckout?: number
 
   /**
-   * Time (in seconds) from when the user first launched
-   * the application and entered the welcome wizard until
-   * the user completed the wizard.
+   * Time (in seconds) from when the user first launched the application and
+   * entered the welcome wizard until the user completed the wizard.
    *
-   * A negative value means that this action hasn't yet
-   * taken place while undefined means that the current
-   * user installed desktop prior to this metric being
-   * added and we will thus never be able to provide a
-   * value.
+   * A negative value means that this action hasn't yet taken place while
+   * undefined means that the current user installed desktop prior to this
+   * metric being added and we will thus never be able to provide a value.
    */
   readonly timeToWelcomeWizardTerminated?: number
 
   /**
-   * The method that was used when authenticating a
-   * user in the welcome flow. If multiple successful
-   * authentications happened during the welcome flow
-   * due to the user stepping back and signing in to
-   * another account this will reflect the last one.
+   * The method that was used when authenticating a user in the welcome flow. If
+   * multiple successful authentications happened during the welcome flow due to
+   * the user stepping back and signing in to another account this will reflect
+   * the last one.
    */
   readonly welcomeWizardSignInMethod?: 'basic' | 'web'
 }
@@ -361,8 +349,8 @@ interface ICalculatedStats {
   readonly enterpriseAccount: boolean
 
   /**
-   * The name of the currently selected theme/application
-   * appearance as set at time of stats submission.
+   * The name of the currently selected theme/application appearance as set at
+   * time of stats submission.
    */
   readonly theme: string
 
@@ -375,12 +363,12 @@ interface ICalculatedStats {
   readonly eventType: 'usage'
 
   /**
-   * _[Forks]_
-   * How many repos did the user commit in without having `write` access?
+   * _[Forks]_ How many repos did the user commit in without having `write`
+   * access?
    *
-   * This is a hack in that its really a "computed daily measure" and the
-   * moment we have another one of those we should consider refactoring
-   * them into their own interface
+   * This is a hack in that its really a "computed daily measure" and the moment
+   * we have another one of those we should consider refactoring them into their
+   * own interface
    */
   readonly repositoriesCommittedInWithoutWriteAccess: number
 
@@ -413,25 +401,34 @@ type DailyStats = ICalculatedStats &
  *
  */
 export interface IStatsStore {
-  recordMergeAbortedAfterConflicts: () => void
-  recordMergeSuccessAfterConflicts: () => void
-  recordRebaseAbortedAfterConflicts: () => void
-  recordRebaseSuccessAfterConflicts: () => void
+  increment: (
+    metric:
+      | 'mergeAbortedAfterConflictsCount'
+      | 'rebaseAbortedAfterConflictsCount'
+      | 'mergeSuccessAfterConflictsCount'
+      | 'rebaseSuccessAfterConflictsCount'
+  ) => void
 }
+
+const defaultPostImplementation = (body: Record<string, any>) =>
+  fetch(StatsEndpoint, {
+    method: 'POST',
+    headers: new Headers({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(body),
+  })
 
 /** The store for the app's stats. */
 export class StatsStore implements IStatsStore {
-  private readonly db: StatsDatabase
-  private readonly uiActivityMonitor: IUiActivityMonitor
   private uiActivityMonitorSubscription: Disposable | null = null
 
   /** Has the user opted out of stats reporting? */
   private optOut: boolean
 
-  public constructor(db: StatsDatabase, uiActivityMonitor: IUiActivityMonitor) {
-    this.db = db
-    this.uiActivityMonitor = uiActivityMonitor
-
+  public constructor(
+    private readonly db: StatsDatabase,
+    private readonly uiActivityMonitor: IUiActivityMonitor,
+    private readonly post = defaultPostImplementation
+  ) {
     const storedValue = getHasOptedOutOfStats()
 
     this.optOut = storedValue || false
@@ -446,7 +443,7 @@ export class StatsStore implements IStatsStore {
 
     window.addEventListener('unhandledrejection', async () => {
       try {
-        this.recordUnhandledRejection()
+        this.increment('unhandledRejectionCount')
       } catch (err) {
         log.error(`Failed recording unhandled rejection`, err)
       }
@@ -510,18 +507,16 @@ export class StatsStore implements IStatsStore {
   }
 
   /**
-   * Clear the stored daily stats. Not meant to be called
-   * directly. Marked as public in order to enable testing
-   * of a specific scenario, see stats-store-tests for more
-   * detail.
+   * Clear the stored daily stats. Not meant to be called directly. Marked as
+   * public in order to enable testing of a specific scenario, see
+   * stats-store-tests for more detail.
    */
   public async clearDailyStats() {
     await this.db.launches.clear()
     await this.db.dailyMeasures.clear()
 
-    // This is a one-off, and the moment we have another
-    // computed daily measure we should consider refactoring
-    // them into their own interface
+    // This is a one-off, and the moment we have another computed daily measure
+    // we should consider refactoring them into their own interface
     localStorage.removeItem(RepositoriesCommittedInWithoutWriteAccessKey)
 
     this.enableUiActivityMonitoring()
@@ -597,8 +592,8 @@ export class StatsStore implements IStatsStore {
     )
 
     // If we don't have a start time for the wizard none of our other metrics
-    // makes sense. This will happen for users who installed the app before
-    // we started tracking onboarding stats.
+    // makes sense. This will happen for users who installed the app before we
+    // started tracking onboarding stats.
     if (wizardInitiatedAt === null) {
       return {}
     }
@@ -715,25 +710,8 @@ export class StatsStore implements IStatsStore {
 
   /** Record that a commit was accomplished. */
   public async recordCommit(): Promise<void> {
-    await this.updateDailyMeasures(m => ({
-      commits: m.commits + 1,
-    }))
-
+    await this.increment('commits')
     createLocalStorageTimestamp(FirstCommitCreatedAtKey)
-  }
-
-  /** Record that a partial commit was accomplished. */
-  public recordPartialCommit(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      partialCommits: m.partialCommits + 1,
-    }))
-  }
-
-  /** Record that a commit was created with one or more co-authors. */
-  public recordCoAuthoredCommit(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      coAuthoredCommits: m.coAuthoredCommits + 1,
-    }))
   }
 
   /**
@@ -741,181 +719,40 @@ export class StatsStore implements IStatsStore {
    *
    * @param cleanWorkingDirectory Whether the working directory is clean.
    */
-  public recordCommitUndone(cleanWorkingDirectory: boolean): Promise<void> {
-    if (cleanWorkingDirectory) {
-      return this.updateDailyMeasures(m => ({
-        commitsUndoneWithoutChanges: m.commitsUndoneWithoutChanges + 1,
-      }))
-    }
-    return this.updateDailyMeasures(m => ({
-      commitsUndoneWithChanges: m.commitsUndoneWithChanges + 1,
-    }))
-  }
-
-  /** Record that the user started amending a commit */
-  public recordAmendCommitStarted(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      amendCommitStartedCount: m.amendCommitStartedCount + 1,
-    }))
-  }
+  public recordCommitUndone = (cleanWorkingDirectory: boolean) =>
+    this.increment(
+      cleanWorkingDirectory
+        ? 'commitsUndoneWithoutChanges'
+        : 'commitsUndoneWithChanges'
+    )
 
   /**
    * Record that the user amended a commit.
    *
    * @param withFileChanges Whether the amendment included file changes or not.
    */
-  public recordAmendCommitSuccessful(withFileChanges: boolean): Promise<void> {
-    if (withFileChanges) {
-      return this.updateDailyMeasures(m => ({
-        amendCommitSuccessfulWithFileChangesCount:
-          m.amendCommitSuccessfulWithFileChangesCount + 1,
-      }))
-    }
+  public recordAmendCommitSuccessful = (withFileChanges: boolean) =>
+    this.increment(
+      withFileChanges
+        ? 'amendCommitSuccessfulWithFileChangesCount'
+        : 'amendCommitSuccessfulWithoutFileChangesCount'
+    )
 
-    return this.updateDailyMeasures(m => ({
-      amendCommitSuccessfulWithoutFileChangesCount:
-        m.amendCommitSuccessfulWithoutFileChangesCount + 1,
-    }))
-  }
+  /** Record that a merge has been initiated from the `Branch -> Merge Into
+   * Current Branch` menu item */
+  public recordMenuInitiatedMerge = (isSquash: boolean = false) =>
+    this.increment(
+      isSquash
+        ? 'squashMergeIntoCurrentBranchMenuCount'
+        : 'mergeIntoCurrentBranchMenuCount'
+    )
 
-  /** Record that the user reset to a previous commit */
-  public recordResetToCommitCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      resetToCommitCount: m.resetToCommitCount + 1,
-    }))
-  }
-
-  /** Record that the user opened a shell. */
-  public recordOpenShell(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      openShellCount: m.openShellCount + 1,
-    }))
-  }
-
-  /** Record that a branch comparison has been made */
-  public recordBranchComparison(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      branchComparisons: m.branchComparisons + 1,
-    }))
-  }
-
-  /** Record that a branch comparison has been made to the default branch */
-  public recordDefaultBranchComparison(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      defaultBranchComparisons: m.defaultBranchComparisons + 1,
-    }))
-  }
-
-  /** Record that a merge has been initiated from the `compare` sidebar */
-  public recordCompareInitiatedMerge(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergesInitiatedFromComparison: m.mergesInitiatedFromComparison + 1,
-    }))
-  }
-
-  /** Record that a merge has been initiated from the `Branch -> Update From Default Branch` menu item */
-  public recordMenuInitiatedUpdate(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      updateFromDefaultBranchMenuCount: m.updateFromDefaultBranchMenuCount + 1,
-    }))
-  }
-
-  /** Record that conflicts were detected by a merge initiated by Desktop */
-  public recordMergeConflictFromPull(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeConflictFromPullCount: m.mergeConflictFromPullCount + 1,
-    }))
-  }
-
-  /** Record that conflicts were detected by a merge initiated by Desktop */
-  public recordMergeConflictFromExplicitMerge(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeConflictFromExplicitMergeCount:
-        m.mergeConflictFromExplicitMergeCount + 1,
-    }))
-  }
-
-  /** Record that a merge has been initiated from the `Branch -> Merge Into Current Branch` menu item */
-  public recordMenuInitiatedMerge(isSquash: boolean = false): Promise<void> {
-    if (isSquash) {
-      return this.updateDailyMeasures(m => ({
-        squashMergeIntoCurrentBranchMenuCount:
-          m.squashMergeIntoCurrentBranchMenuCount + 1,
-      }))
-    }
-
-    return this.updateDailyMeasures(m => ({
-      mergeIntoCurrentBranchMenuCount: m.mergeIntoCurrentBranchMenuCount + 1,
-    }))
-  }
-
-  public recordMenuInitiatedRebase(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rebaseCurrentBranchMenuCount: m.rebaseCurrentBranchMenuCount + 1,
-    }))
-  }
-
-  /** Record that the user checked out a PR branch */
-  public recordPRBranchCheckout(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      prBranchCheckouts: m.prBranchCheckouts + 1,
-    }))
-  }
-
-  public recordRepoClicked(repoHasIndicator: boolean): Promise<void> {
-    if (repoHasIndicator) {
-      return this.updateDailyMeasures(m => ({
-        repoWithIndicatorClicked: m.repoWithIndicatorClicked + 1,
-      }))
-    }
-    return this.updateDailyMeasures(m => ({
-      repoWithoutIndicatorClicked: m.repoWithoutIndicatorClicked + 1,
-    }))
-  }
-
-  /**
-   * Records that the user made a commit using an email address that
-   * was not associated with the user's account on GitHub.com or GitHub
-   * Enterprise, meaning that the commit will not be attributed to the
-   * user's account.
-   */
-  public recordUnattributedCommit(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      unattributedCommits: m.unattributedCommits + 1,
-    }))
-  }
-
-  /**
-   * Records that the user made a commit to a repository hosted on
-   * a GitHub Enterprise instance
-   */
-  public recordCommitToEnterprise(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      enterpriseCommits: m.enterpriseCommits + 1,
-    }))
-  }
-
-  /** Records that the user made a commit to a repository hosted on GitHub.com */
-  public recordCommitToDotcom(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      dotcomCommits: m.dotcomCommits + 1,
-    }))
-  }
-
-  /** Record the user made a commit to a protected GitHub or GitHub Enterprise repository */
-  public recordCommitToProtectedBranch(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      commitsToProtectedBranch: m.commitsToProtectedBranch + 1,
-    }))
-  }
-
-  /** Record the user made a commit to repository which has branch protections enabled */
-  public recordCommitToRepositoryWithBranchProtections(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      commitsToRepositoryWithBranchProtections:
-        m.commitsToRepositoryWithBranchProtections + 1,
-    }))
-  }
+  public recordRepoClicked = (repoHasIndicator: boolean) =>
+    this.increment(
+      repoHasIndicator
+        ? 'repoWithIndicatorClicked'
+        : 'repoWithoutIndicatorClicked'
+    )
 
   /** Set whether the user has opted out of stats reporting. */
   public async setOptOut(
@@ -955,16 +792,11 @@ export class StatsStore implements IStatsStore {
 
   /** Record that the user pushed to GitHub.com */
   private async recordPushToGitHub(options?: PushOptions): Promise<void> {
-    if (options && options.forceWithLease) {
-      await this.updateDailyMeasures(m => ({
-        dotcomForcePushCount: m.dotcomForcePushCount + 1,
-      }))
-    }
-
-    await this.updateDailyMeasures(m => ({
-      dotcomPushCount: m.dotcomPushCount + 1,
-    }))
-
+    await this.increment(
+      options && options.forceWithLease
+        ? 'dotcomForcePushCount'
+        : 'dotcomPushCount'
+    )
     createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 
@@ -972,201 +804,24 @@ export class StatsStore implements IStatsStore {
   private async recordPushToGitHubEnterprise(
     options?: PushOptions
   ): Promise<void> {
-    if (options && options.forceWithLease) {
-      await this.updateDailyMeasures(m => ({
-        enterpriseForcePushCount: m.enterpriseForcePushCount + 1,
-      }))
-    }
+    await this.increment(
+      options && options.forceWithLease
+        ? 'enterpriseForcePushCount'
+        : 'enterprisePushCount'
+    )
 
-    await this.updateDailyMeasures(m => ({
-      enterprisePushCount: m.enterprisePushCount + 1,
-    }))
-
-    // Note, this is not a typo. We track both GitHub.com and
-    // GitHub Enterprise under the same key
+    // Note, this is not a typo. We track both GitHub.com and GitHub Enterprise
+    // under the same key
     createLocalStorageTimestamp(FirstPushToGitHubAtKey)
   }
 
   /** Record that the user pushed to a generic remote */
-  private async recordPushToGenericRemote(
-    options?: PushOptions
-  ): Promise<void> {
-    if (options && options.forceWithLease) {
-      await this.updateDailyMeasures(m => ({
-        externalForcePushCount: m.externalForcePushCount + 1,
-      }))
-    }
-
-    await this.updateDailyMeasures(m => ({
-      externalPushCount: m.externalPushCount + 1,
-    }))
-  }
-
-  /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public recordUserProceededWhileLoading(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergedWithLoadingHintCount: m.mergedWithLoadingHintCount + 1,
-    }))
-  }
-
-  /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public recordMergeHintSuccessAndUserProceeded(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergedWithCleanMergeHintCount: m.mergedWithCleanMergeHintCount + 1,
-    }))
-  }
-
-  /** Record that the user saw a 'merge conflicts' warning but continued with the merge */
-  public recordUserProceededAfterConflictWarning(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergedWithConflictWarningHintCount:
-        m.mergedWithConflictWarningHintCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `mergeConflictsDialogDismissalCount` metric
-   */
-  public recordMergeConflictsDialogDismissal(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeConflictsDialogDismissalCount:
-        m.mergeConflictsDialogDismissalCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `anyConflictsLeftOnMergeConflictsDialogDismissalCount` metric
-   */
-  public recordAnyConflictsLeftOnMergeConflictsDialogDismissal(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      anyConflictsLeftOnMergeConflictsDialogDismissalCount:
-        m.anyConflictsLeftOnMergeConflictsDialogDismissalCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `mergeConflictsDialogReopenedCount` metric
-   */
-  public recordMergeConflictsDialogReopened(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeConflictsDialogReopenedCount:
-        m.mergeConflictsDialogReopenedCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `guidedConflictedMergeCompletionCount` metric
-   */
-  public recordGuidedConflictedMergeCompletion(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      guidedConflictedMergeCompletionCount:
-        m.guidedConflictedMergeCompletionCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `unguidedConflictedMergeCompletionCount` metric
-   */
-  public recordUnguidedConflictedMergeCompletion(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      unguidedConflictedMergeCompletionCount:
-        m.unguidedConflictedMergeCompletionCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `createPullRequestCount` metric
-   */
-  public recordCreatePullRequest(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      createPullRequestCount: m.createPullRequestCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `createPullRequestFromPreviewCount` metric
-   */
-  public recordCreatePullRequestFromPreview(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      createPullRequestFromPreviewCount:
-        m.createPullRequestFromPreviewCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `rebaseConflictsDialogDismissalCount` metric
-   */
-  public recordRebaseConflictsDialogDismissal(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rebaseConflictsDialogDismissalCount:
-        m.rebaseConflictsDialogDismissalCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `rebaseConflictsDialogReopenedCount` metric
-   */
-  public recordRebaseConflictsDialogReopened(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rebaseConflictsDialogReopenedCount:
-        m.rebaseConflictsDialogReopenedCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `rebaseAbortedAfterConflictsCount` metric
-   */
-  public recordRebaseAbortedAfterConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rebaseAbortedAfterConflictsCount: m.rebaseAbortedAfterConflictsCount + 1,
-    }))
-  }
-  /**
-   * Increments the `pullWithRebaseCount` metric
-   */
-  public recordPullWithRebaseEnabled() {
-    return this.updateDailyMeasures(m => ({
-      pullWithRebaseCount: m.pullWithRebaseCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `rebaseWithBranchAlreadyUpToDateCount` metric
-   */
-  public recordRebaseWithBranchAlreadyUpToDate(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rebaseWithBranchAlreadyUpToDateCount:
-        m.rebaseWithBranchAlreadyUpToDateCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `rebaseSuccessWithoutConflictsCount` metric
-   */
-  public recordRebaseSuccessWithoutConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rebaseSuccessWithoutConflictsCount:
-        m.rebaseSuccessWithoutConflictsCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `rebaseSuccessAfterConflictsCount` metric
-   */
-  public recordRebaseSuccessAfterConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rebaseSuccessAfterConflictsCount: m.rebaseSuccessAfterConflictsCount + 1,
-    }))
-  }
-
-  /**
-   * Increments the `pullWithDefaultSettingCount` metric
-   */
-  public recordPullWithDefaultSetting() {
-    return this.updateDailyMeasures(m => ({
-      pullWithDefaultSettingCount: m.pullWithDefaultSettingCount + 1,
-    }))
-  }
+  private recordPushToGenericRemote = (options?: PushOptions) =>
+    this.increment(
+      options && options.forceWithLease
+        ? 'externalForcePushCount'
+        : 'externalPushCount'
+    )
 
   public recordWelcomeWizardInitiated() {
     setNumber(WelcomeWizardInitiatedAtKey, Date.now())
@@ -1197,175 +852,15 @@ export class StatsStore implements IStatsStore {
     localStorage.setItem(WelcomeWizardSignInMethodKey, method)
   }
 
-  /** Record when a conflicted merge was successfully completed by the user */
-  public recordMergeSuccessAfterConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeSuccessAfterConflictsCount: m.mergeSuccessAfterConflictsCount + 1,
-    }))
-  }
-
-  /** Record when a conflicted merge was aborted by the user */
-  public recordMergeAbortedAfterConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      mergeAbortedAfterConflictsCount: m.mergeAbortedAfterConflictsCount + 1,
-    }))
-  }
-
-  /** Record when the user views a stash entry after checking out a branch */
-  public recordStashViewedAfterCheckout(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashViewedAfterCheckoutCount: m.stashViewedAfterCheckoutCount + 1,
-    }))
-  }
-
-  /** Record when the user **doesn't** view a stash entry after checking out a branch */
-  public recordStashNotViewedAfterCheckout(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashNotViewedAfterCheckoutCount: m.stashNotViewedAfterCheckoutCount + 1,
-    }))
-  }
-
-  /** Record when the user elects to take changes to new branch over stashing */
-  public recordChangesTakenToNewBranch(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      changesTakenToNewBranchCount: m.changesTakenToNewBranchCount + 1,
-    }))
-  }
-
-  /** Record when the user elects to stash changes on the current branch */
-  public recordStashCreatedOnCurrentBranch(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashCreatedOnCurrentBranchCount: m.stashCreatedOnCurrentBranchCount + 1,
-    }))
-  }
-
-  /** Record when the user discards a stash entry */
-  public recordStashDiscard(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashDiscardCount: m.stashDiscardCount + 1,
-    }))
-  }
-
-  /** Record when the user views a stash entry */
-  public recordStashView(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashViewCount: m.stashViewCount + 1,
-    }))
-  }
-
-  /** Record when the user restores a stash entry */
-  public recordStashRestore(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashRestoreCount: m.stashRestoreCount + 1,
-    }))
-  }
-
-  /** Record when the user takes no action on the stash entry */
-  public recordNoActionTakenOnStash(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      noActionTakenOnStashCount: m.noActionTakenOnStashCount + 1,
-    }))
-  }
-
-  /** Record the number of stash entries created outside of Desktop for the day */
-  public addStashEntriesCreatedOutsideDesktop(
-    stashCount: number
-  ): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      stashEntriesCreatedOutsideDesktop:
-        m.stashEntriesCreatedOutsideDesktop + stashCount,
-    }))
-  }
-
-  /**
-   * Record the number of times the user experiences the error
-   * "Some of your changes would be overwritten" when switching branches
-   */
-  public recordErrorWhenSwitchingBranchesWithUncommmittedChanges(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      errorWhenSwitchingBranchesWithUncommmittedChanges:
-        m.errorWhenSwitchingBranchesWithUncommmittedChanges + 1,
-    }))
-  }
-
-  /**
-   * Increment the number of times the user has opened their external editor
-   * from the suggested next steps view
-   */
-  public recordSuggestedStepOpenInExternalEditor(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepOpenInExternalEditor:
-        m.suggestedStepOpenInExternalEditor + 1,
-    }))
-  }
-
-  /**
-   * Increment the number of times the user has opened their repository in
-   * Finder/Explorer from the suggested next steps view
-   */
-  public recordSuggestedStepOpenWorkingDirectory(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepOpenWorkingDirectory:
-        m.suggestedStepOpenWorkingDirectory + 1,
-    }))
-  }
-
-  /**
-   * Increment the number of times the user has opened their repository on
-   * GitHub from the suggested next steps view
-   */
-  public recordSuggestedStepViewOnGitHub(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepViewOnGitHub: m.suggestedStepViewOnGitHub + 1,
-    }))
-  }
-
-  /**
-   * Increment the number of times the user has used the publish repository
-   * action from the suggested next steps view
-   */
-  public recordSuggestedStepPublishRepository(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepPublishRepository: m.suggestedStepPublishRepository + 1,
-    }))
-  }
-
-  /**
-   * Increment the number of times the user has used the publish branch
-   * action branch from the suggested next steps view
-   */
-  public recordSuggestedStepPublishBranch(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepPublishBranch: m.suggestedStepPublishBranch + 1,
-    }))
-  }
-
-  /**
-   * Increment the number of times the user has used the Create PR suggestion
-   * in the suggested next steps view.
-   */
-  public recordSuggestedStepCreatePullRequest(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepCreatePullRequest: m.suggestedStepCreatePullRequest + 1,
-    }))
-  }
-
-  /**
-   * Increment the number of times the user has used the View Stash suggestion
-   * in the suggested next steps view.
-   */
-  public recordSuggestedStepViewStash(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      suggestedStepViewStash: m.suggestedStepViewStash + 1,
-    }))
-  }
+  /** Record the number of stash entries created outside of Desktop for the day
+   * */
+  public addStashEntriesCreatedOutsideDesktop = (stashCount: number) =>
+    this.increment('stashEntriesCreatedOutsideDesktop', stashCount)
 
   private onUiActivity = async () => {
     this.disableUiActivityMonitoring()
 
-    return this.updateDailyMeasures(m => ({
-      active: true,
-    }))
+    return this.updateDailyMeasures(m => ({ active: true }))
   }
 
   /*
@@ -1373,28 +868,20 @@ export class StatsStore implements IStatsStore {
    */
 
   /**
-   * Onboarding tutorial has been started, the user has
-   * clicked the button to start the onboarding tutorial.
+   * Onboarding tutorial has been started, the user has clicked the button to
+   * start the onboarding tutorial.
    */
   public recordTutorialStarted() {
-    return this.updateDailyMeasures(() => ({
-      tutorialStarted: true,
-    }))
+    return this.updateDailyMeasures(() => ({ tutorialStarted: true }))
   }
 
-  /**
-   * Onboarding tutorial has been successfully created
-   */
+  /** Onboarding tutorial has been successfully created */
   public recordTutorialRepoCreated() {
-    return this.updateDailyMeasures(() => ({
-      tutorialRepoCreated: true,
-    }))
+    return this.updateDailyMeasures(() => ({ tutorialRepoCreated: true }))
   }
 
   public recordTutorialEditorInstalled() {
-    return this.updateDailyMeasures(() => ({
-      tutorialEditorInstalled: true,
-    }))
+    return this.updateDailyMeasures(() => ({ tutorialEditorInstalled: true }))
   }
 
   public recordTutorialBranchCreated() {
@@ -1443,9 +930,7 @@ export class StatsStore implements IStatsStore {
   }
 
   public recordTutorialCompleted() {
-    return this.updateDailyMeasures(() => ({
-      tutorialCompleted: true,
-    }))
+    return this.updateDailyMeasures(() => ({ tutorialCompleted: true }))
   }
 
   public recordHighestTutorialStepCompleted(step: number) {
@@ -1457,19 +942,12 @@ export class StatsStore implements IStatsStore {
     }))
   }
 
-  public recordCommitToRepositoryWithoutWriteAccess() {
-    return this.updateDailyMeasures(m => ({
-      commitsToRepositoryWithoutWriteAccess:
-        m.commitsToRepositoryWithoutWriteAccess + 1,
-    }))
-  }
-
   /**
-   * Record that the user made a commit in a repository they don't
-   * have `write` access to. Dedupes based on the database ID provided
+   * Record that the user made a commit in a repository they don't have `write`
+   * access to. Dedupes based on the database ID provided
    *
-   * @param gitHubRepositoryDbId database ID for the GitHubRepository of
-   *                             the local repo this commit was made in
+   * @param gitHubRepositoryDbId database ID for the GitHubRepository of the
+   *                             local repo this commit was made in
    */
   public recordRepositoryCommitedInWithoutWriteAccess(
     gitHubRepositoryDbId: number
@@ -1483,205 +961,19 @@ export class StatsStore implements IStatsStore {
     }
   }
 
-  public recordForkCreated() {
-    return this.updateDailyMeasures(m => ({
-      forksCreated: m.forksCreated + 1,
-    }))
-  }
+  public recordTagCreated = (numCreatedTags: number) =>
+    this.increment('tagsCreated', numCreatedTags)
 
-  public recordIssueCreationWebpageOpened() {
-    return this.updateDailyMeasures(m => ({
-      issueCreationWebpageOpenedCount: m.issueCreationWebpageOpenedCount + 1,
-    }))
-  }
-
-  public recordTagCreatedInDesktop() {
-    return this.updateDailyMeasures(m => ({
-      tagsCreatedInDesktop: m.tagsCreatedInDesktop + 1,
-    }))
-  }
-
-  public recordTagCreated(numCreatedTags: number) {
-    return this.updateDailyMeasures(m => ({
-      tagsCreated: m.tagsCreated + numCreatedTags,
-    }))
-  }
-
-  public recordTagDeleted() {
-    return this.updateDailyMeasures(m => ({
-      tagsDeleted: m.tagsDeleted + 1,
-    }))
-  }
-
-  public recordDiffOptionsViewed() {
-    return this.updateDailyMeasures(m => ({
-      diffOptionsViewedCount: m.diffOptionsViewedCount + 1,
-    }))
-  }
-
-  public recordRepositoryViewChanged() {
-    return this.updateDailyMeasures(m => ({
-      repositoryViewChangeCount: m.repositoryViewChangeCount + 1,
-    }))
-  }
-
-  public recordDiffModeChanged() {
-    return this.updateDailyMeasures(m => ({
-      diffModeChangeCount: m.diffModeChangeCount + 1,
-    }))
-  }
-
-  public recordUnhandledRejection() {
-    return this.updateDailyMeasures(m => ({
-      unhandledRejectionCount: m.unhandledRejectionCount + 1,
-    }))
-  }
-
-  private recordCherryPickSuccessful(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickSuccessfulCount: m.cherryPickSuccessfulCount + 1,
-    }))
-  }
-
-  public recordCherryPickViaDragAndDrop(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickViaDragAndDropCount: m.cherryPickViaDragAndDropCount + 1,
-    }))
-  }
-
-  public recordCherryPickViaContextMenu(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickViaContextMenuCount: m.cherryPickViaContextMenuCount + 1,
-    }))
-  }
-
-  public recordDragStartedAndCanceled(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      dragStartedAndCanceledCount: m.dragStartedAndCanceledCount + 1,
-    }))
-  }
-
-  public recordCherryPickConflictsEncountered(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickConflictsEncounteredCount:
-        m.cherryPickConflictsEncounteredCount + 1,
-    }))
-  }
-
-  public recordCherryPickSuccessfulWithConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickSuccessfulWithConflictsCount:
-        m.cherryPickSuccessfulWithConflictsCount + 1,
-    }))
-  }
-
-  public recordCherryPickMultipleCommits(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickMultipleCommitsCount: m.cherryPickMultipleCommitsCount + 1,
-    }))
-  }
-
-  private recordCherryPickUndone(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickUndoneCount: m.cherryPickUndoneCount + 1,
-    }))
-  }
-
-  public recordCherryPickBranchCreatedCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      cherryPickBranchCreatedCount: m.cherryPickBranchCreatedCount + 1,
-    }))
-  }
-
-  private recordReorderSuccessful(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      reorderSuccessfulCount: m.reorderSuccessfulCount + 1,
-    }))
-  }
-
-  public recordReorderStarted(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      reorderStartedCount: m.reorderStartedCount + 1,
-    }))
-  }
-
-  private recordReorderConflictsEncountered(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      reorderConflictsEncounteredCount: m.reorderConflictsEncounteredCount + 1,
-    }))
-  }
-
-  private recordReorderSuccessfulWithConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      reorderSuccessfulWithConflictsCount:
-        m.reorderSuccessfulWithConflictsCount + 1,
-    }))
-  }
-
-  public recordReorderMultipleCommits(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      reorderMultipleCommitsCount: m.reorderMultipleCommitsCount + 1,
-    }))
-  }
-
-  private recordReorderUndone(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      reorderUndoneCount: m.reorderUndoneCount + 1,
-    }))
-  }
-
-  private recordSquashConflictsEncountered(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashConflictsEncounteredCount: m.squashConflictsEncounteredCount + 1,
-    }))
-  }
-
-  public recordSquashMultipleCommitsInvoked(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashMultipleCommitsInvokedCount:
-        m.squashMultipleCommitsInvokedCount + 1,
-    }))
-  }
-
-  private recordSquashSuccessful(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashSuccessfulCount: m.squashSuccessfulCount + 1,
-    }))
-  }
-
-  private recordSquashSuccessfulWithConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashSuccessfulWithConflictsCount:
-        m.squashSuccessfulWithConflictsCount + 1,
-    }))
-  }
-
-  public recordSquashViaContextMenuInvoked(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashViaContextMenuInvokedCount: m.squashViaContextMenuInvokedCount + 1,
-    }))
-  }
-
-  public recordSquashViaDragAndDropInvokedCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashViaDragAndDropInvokedCount: m.squashViaDragAndDropInvokedCount + 1,
-    }))
-  }
-
-  private recordSquashUndone(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashUndoneCount: m.squashUndoneCount + 1,
-    }))
-  }
+  private recordSquashUndone = () => this.increment('squashUndoneCount')
 
   public async recordOperationConflictsEncounteredCount(
     kind: MultiCommitOperationKind
   ): Promise<void> {
     switch (kind) {
       case MultiCommitOperationKind.Squash:
-        return this.recordSquashConflictsEncountered()
+        return this.increment('squashConflictsEncounteredCount')
       case MultiCommitOperationKind.Reorder:
-        return this.recordReorderConflictsEncountered()
+        return this.increment('reorderConflictsEncounteredCount')
       case MultiCommitOperationKind.Rebase:
         // ignored because rebase records different stats
         return
@@ -1701,11 +993,11 @@ export class StatsStore implements IStatsStore {
   ): Promise<void> {
     switch (kind) {
       case MultiCommitOperationKind.Squash:
-        return this.recordSquashSuccessful()
+        return this.increment('squashSuccessfulCount')
       case MultiCommitOperationKind.Reorder:
-        return this.recordReorderSuccessful()
+        return this.increment('reorderSuccessfulCount')
       case MultiCommitOperationKind.CherryPick:
-        return this.recordCherryPickSuccessful()
+        return this.increment('cherryPickSuccessfulCount')
       case MultiCommitOperationKind.Rebase:
         // ignored because rebase records different stats
         return
@@ -1724,11 +1016,11 @@ export class StatsStore implements IStatsStore {
   ): Promise<void> {
     switch (kind) {
       case MultiCommitOperationKind.Squash:
-        return this.recordSquashSuccessfulWithConflicts()
+        return this.increment('squashSuccessfulWithConflictsCount')
       case MultiCommitOperationKind.Reorder:
-        return this.recordReorderSuccessfulWithConflicts()
+        return this.increment('reorderSuccessfulWithConflictsCount')
       case MultiCommitOperationKind.Rebase:
-        return this.recordRebaseSuccessAfterConflicts()
+        return this.increment('rebaseSuccessAfterConflictsCount')
       case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Merge:
         log.error(
@@ -1747,9 +1039,9 @@ export class StatsStore implements IStatsStore {
       case MultiCommitOperationKind.Squash:
         return this.recordSquashUndone()
       case MultiCommitOperationKind.Reorder:
-        return this.recordReorderUndone()
+        return this.increment('reorderUndoneCount')
       case MultiCommitOperationKind.CherryPick:
-        return this.recordCherryPickUndone()
+        return this.increment('cherryPickUndoneCount')
       case MultiCommitOperationKind.Rebase:
       case MultiCommitOperationKind.Merge:
         log.error(`[recordOperationUndone] - Operation not supported: ${kind}`)
@@ -1757,121 +1049,6 @@ export class StatsStore implements IStatsStore {
       default:
         return assertNever(kind, `Unknown operation kind of ${kind}.`)
     }
-  }
-
-  public recordSquashMergeSuccessfulWithConflicts(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashMergeSuccessfulWithConflictsCount:
-        m.squashMergeSuccessfulWithConflictsCount + 1,
-    }))
-  }
-
-  public recordSquashMergeSuccessful(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashMergeSuccessfulCount: m.squashMergeSuccessfulCount + 1,
-    }))
-  }
-
-  public recordSquashMergeInvokedCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      squashMergeInvokedCount: m.squashMergeInvokedCount + 1,
-    }))
-  }
-
-  public recordCheckRunsPopoverOpened(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      opensCheckRunsPopover: m.opensCheckRunsPopover + 1,
-    }))
-  }
-
-  public recordCheckViewedOnline(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      viewsCheckOnline: m.viewsCheckOnline + 1,
-    }))
-  }
-
-  public recordCheckJobStepViewedOnline(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      viewsCheckJobStepOnline: m.viewsCheckJobStepOnline + 1,
-    }))
-  }
-
-  public recordRerunChecks(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      rerunsChecks: m.rerunsChecks + 1,
-    }))
-  }
-
-  public recordChecksFailedNotificationShown(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedNotificationCount: m.checksFailedNotificationCount + 1,
-    }))
-  }
-
-  public recordChecksFailedNotificationFromRecentRepo(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedNotificationFromRecentRepoCount:
-        m.checksFailedNotificationFromRecentRepoCount + 1,
-    }))
-  }
-
-  public recordChecksFailedNotificationFromNonRecentRepo(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedNotificationFromNonRecentRepoCount:
-        m.checksFailedNotificationFromNonRecentRepoCount + 1,
-    }))
-  }
-
-  public recordChecksFailedNotificationClicked(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedNotificationClicked: m.checksFailedNotificationClicked + 1,
-    }))
-  }
-
-  public recordChecksFailedDialogOpen(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedDialogOpenCount: m.checksFailedDialogOpenCount + 1,
-    }))
-  }
-
-  public recordChecksFailedDialogSwitchToPullRequest(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedDialogSwitchToPullRequestCount:
-        m.checksFailedDialogSwitchToPullRequestCount + 1,
-    }))
-  }
-
-  public recordChecksFailedDialogRerunChecks(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      checksFailedDialogRerunChecksCount:
-        m.checksFailedDialogRerunChecksCount + 1,
-    }))
-  }
-
-  public recordMultiCommitDiffFromHistoryCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      multiCommitDiffFromHistoryCount: m.multiCommitDiffFromHistoryCount + 1,
-    }))
-  }
-
-  public recordMultiCommitDiffFromCompareCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      multiCommitDiffFromCompareCount: m.multiCommitDiffFromCompareCount + 1,
-    }))
-  }
-
-  public recordMultiCommitDiffWithUnreachableCommitWarningCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      multiCommitDiffWithUnreachableCommitWarningCount:
-        m.multiCommitDiffWithUnreachableCommitWarningCount + 1,
-    }))
-  }
-
-  public recordMultiCommitDiffUnreachableCommitsDialogOpenedCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      multiCommitDiffUnreachableCommitsDialogOpenedCount:
-        m.multiCommitDiffUnreachableCommitsDialogOpenedCount + 1,
-    }))
   }
 
   // Generates the stat field name for the given PR review type and suffix.
@@ -1891,29 +1068,14 @@ export class StatsStore implements IStatsStore {
     return `pullRequestReview${infixMap[reviewType]}${suffix}`
   }
 
-  public recordPullRequestReviewNotificationFromRecentRepo(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      pullRequestReviewNotificationFromRecentRepoCount:
-        m.pullRequestReviewNotificationFromRecentRepoCount + 1,
-    }))
-  }
-
-  public recordPullRequestReviewNotificationFromNonRecentRepo(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      pullRequestReviewNotificationFromNonRecentRepoCount:
-        m.pullRequestReviewNotificationFromNonRecentRepoCount + 1,
-    }))
-  }
-
-  // Generic method to record stats related to Pull Request review notifications.
+  // Generic method to record stats related to Pull Request review
+  // notifications.
   private recordPullRequestReviewStat(
     reviewType: ValidNotificationPullRequestReviewState,
     suffix: PullRequestReviewStatFieldSuffix
   ) {
     const statField = this.getStatFieldForRequestReviewState(reviewType, suffix)
-    return this.updateDailyMeasures(
-      m => ({ [statField]: m[statField] + 1 } as any)
-    )
+    return this.increment(statField)
   }
 
   public recordPullRequestReviewNotificationShown(
@@ -1937,86 +1099,26 @@ export class StatsStore implements IStatsStore {
     )
   }
 
-  public recordPullRequestCommentNotificationShown() {
-    return this.updateDailyMeasures(m => ({
-      pullRequestCommentNotificationCount:
-        m.pullRequestCommentNotificationCount + 1,
-    }))
-  }
-  public recordPullRequestCommentNotificationClicked() {
-    return this.updateDailyMeasures(m => ({
-      pullRequestCommentNotificationClicked:
-        m.pullRequestCommentNotificationClicked + 1,
-    }))
-  }
-  public recordPullRequestCommentNotificationFromNonRecentRepo() {
-    return this.updateDailyMeasures(m => ({
-      pullRequestCommentNotificationFromNonRecentRepoCount:
-        m.pullRequestCommentNotificationFromNonRecentRepoCount + 1,
-    }))
-  }
-  public recordPullRequestCommentNotificationFromRecentRepo() {
-    return this.updateDailyMeasures(m => ({
-      pullRequestCommentNotificationFromRecentRepoCount:
-        m.pullRequestCommentNotificationFromRecentRepoCount + 1,
-    }))
-  }
-
-  public recordPullRequestCommentDialogSwitchToPullRequest() {
-    return this.updateDailyMeasures(m => ({
-      pullRequestCommentDialogSwitchToPullRequestCount:
-        m.pullRequestCommentDialogSwitchToPullRequestCount + 1,
-    }))
-  }
-
-  public recordSubmoduleDiffViewedFromChangesList(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      submoduleDiffViewedFromChangesListCount:
-        m.submoduleDiffViewedFromChangesListCount + 1,
-    }))
-  }
-
-  public recordSubmoduleDiffViewedFromHistory(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      submoduleDiffViewedFromHistoryCount:
-        m.submoduleDiffViewedFromHistoryCount + 1,
-    }))
-  }
-
-  public recordOpenSubmoduleFromDiffCount(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      openSubmoduleFromDiffCount: m.openSubmoduleFromDiffCount + 1,
-    }))
-  }
-
-  /** Post some data to our stats endpoint. */
-  private post(body: object): Promise<Response> {
-    const options: RequestInit = {
-      method: 'POST',
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify(body),
-    }
-
-    return fetch(StatsEndpoint, options)
-  }
+  public increment = (k: keyof NumericMeasures, n = 1) =>
+    this.updateDailyMeasures(
+      m => ({ [k]: m[k] + n } as Pick<IDailyMeasures, keyof NumericMeasures>)
+    )
 
   /**
    * Send opt-in ping with details of previous stored value (if known)
    *
-   * @param optOut        Whether or not the user has opted
-   *                      out of usage reporting.
-   * @param previousValue The raw, current value stored for the
-   *                      "stats-opt-out" localStorage key, or
-   *                      undefined if no previously stored value
-   *                      exists.
+   * @param optOut        Whether or not the user has opted out of usage
+   *                      reporting.
+   * @param previousValue The raw, current value stored for the "stats-opt-out"
+   *                      localStorage key, or undefined if no previously stored
+   *                      value exists.
    */
   private async sendOptInStatusPing(
     optOut: boolean,
     previousValue: boolean | undefined
   ): Promise<void> {
-    // The analytics pipeline expects us to submit `optIn` but we
-    // track `optOut` so we need to invert the value before we send
-    // it.
+    // The analytics pipeline expects us to submit `optIn` but we track `optOut`
+    // so we need to invert the value before we send it.
     const optIn = !optOut
     const previousOptInValue =
       previousValue === undefined ? null : !previousValue
@@ -2041,22 +1143,12 @@ export class StatsStore implements IStatsStore {
       log.error(`Error reporting opt ${direction}:`, e)
     }
   }
-
-  /**
-   * Increments the `previewedPullRequestCount` metric
-   */
-  public recordPreviewedPullRequest(): Promise<void> {
-    return this.updateDailyMeasures(m => ({
-      previewedPullRequestCount: m.previewedPullRequestCount + 1,
-    }))
-  }
 }
 
 /**
  * Store the current date (in unix time) in localStorage.
  *
- * If the provided key already exists it will not be
- * overwritten.
+ * If the provided key already exists it will not be overwritten.
  */
 function createLocalStorageTimestamp(key: string) {
   if (localStorage.getItem(key) === null) {
@@ -2067,25 +1159,22 @@ function createLocalStorageTimestamp(key: string) {
 /**
  * Get a time stamp (in unix time) from localStorage.
  *
- * If the key doesn't exist or if the stored value can't
- * be converted into a number this method will return null.
+ * If the key doesn't exist or if the stored value can't be converted into a
+ * number this method will return null.
  */
 function getLocalStorageTimestamp(key: string): number | null {
-  const timestamp = getNumber(key)
-  return timestamp === undefined ? null : timestamp
+  return getNumber(key) ?? null
 }
 
 /**
- * Calculate the duration (in seconds) between the time the
- * welcome wizard was initiated to the time for the given
- * action.
+ * Calculate the duration (in seconds) between the time the welcome wizard was
+ * initiated to the time for the given action.
  *
- * If no time stamp exists for when the welcome wizard was
- * initiated, which would be the case if the user completed
- * the wizard before we introduced onboarding metrics, or if
- * the delta between the two values are negative (which could
- * happen if a user manually manipulated localStorage in order
- * to run the wizard again) this method will return undefined.
+ * If no time stamp exists for when the welcome wizard was initiated, which
+ * would be the case if the user completed the wizard before we introduced
+ * onboarding metrics, or if the delta between the two values are negative
+ * (which could happen if a user manually manipulated localStorage in order to
+ * run the wizard again) this method will return undefined.
  */
 function timeTo(key: string): number | undefined {
   const startTime = getLocalStorageTimestamp(WelcomeWizardInitiatedAtKey)
@@ -2101,31 +1190,20 @@ function timeTo(key: string): number | undefined {
 }
 
 /**
- * Get a string representing the sign in method that was used
- * when authenticating a user in the welcome flow. This method
- * ensures that the reported value is known to the analytics
- * system regardless of whether the enum value of the SignInMethod
- * type changes.
+ * Get a string representing the sign in method that was used when
+ * authenticating a user in the welcome flow. This method ensures that the
+ * reported value is known to the analytics system regardless of whether the
+ * enum value of the SignInMethod type changes.
  */
 function getWelcomeWizardSignInMethod(): 'basic' | 'web' | undefined {
-  const method = localStorage.getItem(
-    WelcomeWizardSignInMethodKey
-  ) as SignInMethod | null
+  const method = localStorage.getItem(WelcomeWizardSignInMethodKey) ?? undefined
 
-  try {
-    switch (method) {
-      case SignInMethod.Basic:
-      case SignInMethod.Web:
-        return method
-      case null:
-        return undefined
-      default:
-        return assertNever(method, `Unknown sign in method: ${method}`)
-    }
-  } catch (ex) {
-    log.error(`Could not parse welcome wizard sign in method`, ex)
-    return undefined
+  if (method === 'basic' || method === 'web' || method === undefined) {
+    return method
   }
+
+  log.error(`Could not parse welcome wizard sign in method: ${method}`)
+  return undefined
 }
 
 /**

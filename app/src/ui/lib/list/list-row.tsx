@@ -24,6 +24,12 @@ interface IListRowProps {
   /** whether the row should be rendered as selected */
   readonly selected?: boolean
 
+  /** whether the row should be rendered as selected for keyboard insertion*/
+  readonly selectedForKeyboardInsertion?: boolean
+
+  /** whether the list to which this row belongs is in keyboard insertion mode */
+  readonly inKeyboardInsertionMode: boolean
+
   /** callback to fire when the DOM element is created */
   readonly onRowRef?: (
     index: RowIndexPath,
@@ -160,7 +166,9 @@ export class ListRow extends React.Component<IListRowProps, {}> {
   public render() {
     const {
       selected,
+      selectedForKeyboardInsertion,
       selectable,
+      inKeyboardInsertionMode,
       className,
       style,
       rowCount,
@@ -172,8 +180,12 @@ export class ListRow extends React.Component<IListRowProps, {}> {
     } = this.props
     const rowClassName = classNames(
       'list-item',
-      { selected },
-      { 'not-selectable': selectable === false },
+      {
+        selected,
+        'in-keyboard-insertion-mode': inKeyboardInsertionMode,
+        'selected-for-keyboard-insertion': selectedForKeyboardInsertion,
+        'not-selectable': selectable === false,
+      },
       className
     )
     // react-virtualized gives us an explicit pixel width for rows, but that
@@ -221,7 +233,18 @@ export class ListRow extends React.Component<IListRowProps, {}> {
         onBlur={this.onBlur}
         onContextMenu={this.onContextMenu}
       >
-        {children}
+        {
+          // HACK: When we have an ariaLabel we need to make sure that the
+          // child elements are not exposed to the screen reader, otherwise
+          // VoiceOver will decide to read the children elements instead of the
+          // ariaLabel.
+          <div
+            className="list-item-content-wrapper"
+            aria-hidden={this.props.ariaLabel !== undefined}
+          >
+            {children}
+          </div>
+        }
       </div>
     )
   }

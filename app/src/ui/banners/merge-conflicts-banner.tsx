@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Banner } from './banner'
 import { Dispatcher } from '../dispatcher'
 import { Popup } from '../../models/popup'
@@ -22,7 +22,7 @@ export class MergeConflictsBanner extends React.Component<
   private openDialog = () => {
     this.props.onDismissed()
     this.props.dispatcher.showPopup(this.props.popup)
-    this.props.dispatcher.recordMergeConflictsDialogReopened()
+    this.props.dispatcher.incrementMetric('mergeConflictsDialogReopenedCount')
   }
   public render() {
     return (
@@ -31,7 +31,7 @@ export class MergeConflictsBanner extends React.Component<
         dismissable={false}
         onDismissed={this.props.onDismissed}
       >
-        <Octicon className="alert-icon" symbol={OcticonSymbol.alert} />
+        <Octicon className="alert-icon" symbol={octicons.alert} />
         <div className="banner-message">
           <span>
             Resolve conflicts and commit to merge into{' '}

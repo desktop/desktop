@@ -49,6 +49,7 @@ interface IRepositoryViewProps {
   readonly hideWhitespaceInChangesDiff: boolean
   readonly hideWhitespaceInHistoryDiff: boolean
   readonly showSideBySideDiff: boolean
+  readonly showDiffCheckMarks: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly askForConfirmationOnDiscardStash: boolean
   readonly askForConfirmationOnCheckoutCommit: boolean
@@ -306,6 +307,7 @@ export class RepositoryView extends React.Component<
         askForConfirmationOnCheckoutCommit={
           this.props.askForConfirmationOnCheckoutCommit
         }
+        accounts={this.props.accounts}
       />
     )
   }
@@ -420,7 +422,6 @@ export class RepositoryView extends React.Component<
     return (
       <SelectedCommits
         repository={this.props.repository}
-        isLocalRepository={this.props.state.remote === null}
         dispatcher={this.props.dispatcher}
         selectedCommits={selectedCommits}
         shasInDiff={shasInDiff}
@@ -442,20 +443,35 @@ export class RepositoryView extends React.Component<
         onChangeImageDiffType={this.onChangeImageDiffType}
         onDiffOptionsOpened={this.onDiffOptionsOpened}
         showDragOverlay={showDragOverlay}
+        accounts={this.props.accounts}
       />
     )
   }
 
   private onDiffOptionsOpened = () => {
-    this.props.dispatcher.recordDiffOptionsViewed()
+    this.props.dispatcher.incrementMetric('diffOptionsViewedCount')
+  }
+
+  private onTutorialCompletionAnnounced = () => {
+    this.props.dispatcher.markTutorialCompletionAsAnnounced(
+      this.props.repository
+    )
   }
 
   private renderTutorialPane(): JSX.Element {
-    if (this.props.currentTutorialStep === TutorialStep.AllDone) {
+    if (
+      [TutorialStep.AllDone, TutorialStep.Announced].includes(
+        this.props.currentTutorialStep
+      )
+    ) {
       return (
         <TutorialDone
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
+          tutorialCompletionAnnounced={
+            this.props.currentTutorialStep === TutorialStep.Announced
+          }
+          onTutorialCompletionAnnounced={this.onTutorialCompletionAnnounced}
         />
       )
     } else {
@@ -518,6 +534,7 @@ export class RepositoryView extends React.Component<
           imageDiffType={this.props.imageDiffType}
           hideWhitespaceInDiff={this.props.hideWhitespaceInChangesDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
+          showDiffCheckMarks={this.props.showDiffCheckMarks}
           onOpenBinaryFile={this.onOpenBinaryFile}
           onOpenSubmodule={this.onOpenSubmodule}
           onChangeImageDiffType={this.onChangeImageDiffType}
@@ -525,7 +542,6 @@ export class RepositoryView extends React.Component<
             this.props.askForConfirmationOnDiscardChanges
           }
           onDiffOptionsOpened={this.onDiffOptionsOpened}
-          onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         />
       )
     }
@@ -536,7 +552,7 @@ export class RepositoryView extends React.Component<
   }
 
   private onOpenSubmodule = (fullPath: string) => {
-    this.props.dispatcher.recordOpenSubmoduleFromDiffCount()
+    this.props.dispatcher.incrementMetric('openSubmoduleFromDiffCount')
     this.props.dispatcher.openOrAddRepository(fullPath)
   }
 

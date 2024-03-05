@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Octicon } from '../../octicons'
-import * as OcticonSymbol from '../../octicons/octicons.generated'
+import * as octicons from '../../octicons/octicons.generated'
 import classNames from 'classnames'
 import { AriaLiveContainer } from '../../accessibility/aria-live-container'
 import { assertNever } from '../../../lib/fatal-error'
@@ -30,6 +30,8 @@ export interface IBaseInputDescriptionProps {
   readonly trackedUserInput?: string | boolean
 
   readonly ariaLiveMessage?: string
+
+  readonly className?: string
 }
 
 export interface IInputDescriptionProps extends IBaseInputDescriptionProps {
@@ -54,11 +56,23 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
 
     switch (type) {
       case InputDescriptionType.Caption:
-        return classNames('input-description', 'input-description-caption')
+        return classNames(
+          'input-description',
+          this.props.className,
+          'input-description-caption'
+        )
       case InputDescriptionType.Warning:
-        return classNames('input-description', 'input-description-warning')
+        return classNames(
+          'input-description',
+          this.props.className,
+          'input-description-warning'
+        )
       case InputDescriptionType.Error:
-        return classNames('input-description', 'input-description-error')
+        return classNames(
+          'input-description',
+          this.props.className,
+          'input-description-error'
+        )
       default:
         return assertNever(type, `Unknown input type  ${type}`)
     }
@@ -71,9 +85,9 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
       case InputDescriptionType.Caption:
         return null
       case InputDescriptionType.Warning:
-        return <Octicon symbol={OcticonSymbol.alert} />
+        return <Octicon symbol={octicons.alert} />
       case InputDescriptionType.Error:
-        return <Octicon symbol={OcticonSymbol.stop} />
+        return <Octicon symbol={octicons.stop} />
       default:
         return assertNever(type, `Unknown input type  ${type}`)
     }

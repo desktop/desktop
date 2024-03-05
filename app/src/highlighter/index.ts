@@ -104,6 +104,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     mappings: {
       '.markdown': 'text/x-markdown',
       '.md': 'text/x-markdown',
+      '.mdx': 'text/x-markdown',
     },
   },
   {
@@ -118,6 +119,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     mappings: {
       '.xml': 'text/xml',
       '.xaml': 'text/xml',
+      '.xsd': 'text/xml',
       '.csproj': 'text/xml',
       '.fsproj': 'text/xml',
       '.vcxproj': 'text/xml',
@@ -148,6 +150,10 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.h': 'text/x-c',
       '.cpp': 'text/x-c++src',
       '.hpp': 'text/x-c++src',
+      '.cc': 'text/x-c++src',
+      '.hh': 'text/x-c++src',
+      '.hxx': 'text/x-c++src',
+      '.cxx': 'text/x-c++src',
       '.ino': 'text/x-c++src',
       '.kt': 'text/x-kotlin',
     },
@@ -207,6 +213,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/python/python'),
     mappings: {
       '.py': 'text/x-python',
+      '.pyi': 'text/x-python',
     },
   },
   {
@@ -422,6 +429,12 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/dart/dart'),
     mappings: {
       '.dart': 'application/dart',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/cmake/cmake'),
+    mappings: {
+      '.cmake': 'text/x-cmake',
     },
   },
 ]

@@ -50,6 +50,7 @@ interface ISectionFilterListProps<T extends IFilterListItem> {
   readonly rowHeight: number
 
   /** The ordered groups to display in the list. */
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly groups: ReadonlyArray<IFilterListGroup<T>>
 
   /** The selected item. */
@@ -105,6 +106,9 @@ interface ISectionFilterListProps<T extends IFilterListItem> {
 
   /** Called when the Enter key is pressed in field of type search */
   readonly onEnterPressedWithoutFilteredItems?: (text: string) => void
+
+  /** Aria label for a specific item */
+  readonly getItemAriaLabel?: (item: T) => string | undefined
 
   /** Aria label for a specific group */
   readonly getGroupAriaLabel?: (group: number) => string | undefined
@@ -352,7 +356,7 @@ export class SectionFilterList<
           rowCount={this.state.rows.map(r => r.length)}
           rowRenderer={this.renderRow}
           sectionHasHeader={this.sectionHasHeader}
-          getSectionAriaLabel={this.getGroupAriaLabel}
+          getRowAriaLabel={this.getRowAriaLabel}
           rowHeight={this.props.rowHeight}
           selectedRows={
             rowIndexPathEquals(this.state.selectedRow, InvalidRowIndexPath)
@@ -378,8 +382,25 @@ export class SectionFilterList<
     return rows.length > 0 && rows[0].kind === 'group'
   }
 
-  private getGroupAriaLabel = (group: number) => {
-    return this.props.getGroupAriaLabel?.(this.state.groups[group])
+  private getRowAriaLabel = (index: RowIndexPath) => {
+    const row = this.state.rows[index.section][index.row]
+    if (row.kind !== 'item') {
+      return undefined
+    }
+
+    const itemAriaLabel = this.props.getItemAriaLabel?.(row.item)
+
+    if (itemAriaLabel === undefined) {
+      return undefined
+    }
+
+    const groupAriaLabel = this.props.getGroupAriaLabel?.(
+      this.state.groups[index.section]
+    )
+
+    return groupAriaLabel !== undefined
+      ? `${itemAriaLabel}, ${groupAriaLabel}`
+      : itemAriaLabel
   }
 
   private renderRow = (index: RowIndexPath) => {

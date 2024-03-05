@@ -7,7 +7,7 @@ dialog#conflicts-dialog {
     margin-bottom: 20px;
   }
 
-  .dialog-header h2 {
+  .dialog-header h1 {
     font-weight: var(--font-weight-light);
   }
 
@@ -55,6 +55,7 @@ dialog#conflicts-dialog {
         display: flex;
         flex-flow: column nowrap;
         flex-grow: 1;
+        min-width: 0;
         align-items: start;
         padding-right: var(--spacing);
 
@@ -67,7 +68,7 @@ dialog#conflicts-dialog {
       .action-buttons {
         margin-left: auto;
         flex-shrink: 0;
-        flex: 0 1 auto;
+        flex: 0 0 auto;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -80,12 +81,13 @@ dialog#conflicts-dialog {
       .undo-button {
         align-self: center;
         margin-right: var(--spacing-half);
+        flex: 0 0 auto;
       }
 
       .green-circle:last-child {
         margin-left: auto;
         flex-shrink: 0;
-        flex: 0 1 auto;
+        flex: 0 0 auto;
         align-self: center;
       }
     }

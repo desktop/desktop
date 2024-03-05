@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { RadioButton } from '../lib/radio-button'
 import {
   Popover,
@@ -94,13 +94,14 @@ export class DiffOptions extends React.Component<
           <Tooltip
             target={this.innerButtonRef}
             direction={TooltipDirection.NORTH}
+            applyAriaDescribedBy={false}
           >
             {buttonLabel}
           </Tooltip>
           <span ref={this.gearIconRef}>
-            <Octicon symbol={OcticonSymbol.gear} />
+            <Octicon symbol={octicons.gear} />
           </span>
-          <Octicon symbol={OcticonSymbol.triangleDown} />
+          <Octicon symbol={octicons.triangleDown} />
         </button>
         {this.state.isPopoverOpen && this.renderPopover()}
       </div>
@@ -108,6 +109,7 @@ export class DiffOptions extends React.Component<
   }
 
   private renderPopover() {
+    const header = `Diff ${__DARWIN__ ? 'Settings' : 'Options'}`
     return (
       <Popover
         ariaLabelledby="diff-options-popover-header"
@@ -116,9 +118,7 @@ export class DiffOptions extends React.Component<
         decoration={PopoverDecoration.Balloon}
         onClickOutside={this.closePopover}
       >
-        <h3 id="diff-options-popover-header">
-          Diff {__DARWIN__ ? 'Settings' : 'Options'}
-        </h3>
+        <h3 id="diff-options-popover-header">{header}</h3>
         {this.renderHideWhitespaceChanges()}
         {this.renderShowSideBySide()}
       </Popover>

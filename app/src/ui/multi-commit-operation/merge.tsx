@@ -50,7 +50,7 @@ export abstract class Merge extends BaseMultiCommitOperation {
       RepositorySectionTab.Changes
     )
     this.onFlowEnded()
-    dispatcher.recordGuidedConflictedMergeCompletion()
+    dispatcher.incrementMetric('guidedConflictedMergeCompletionCount')
   }
 
   protected onAbort = async (): Promise<void> => {
@@ -75,12 +75,14 @@ export abstract class Merge extends BaseMultiCommitOperation {
       this.endFlowInvalidState(true)
       return
     }
-    dispatcher.recordMergeConflictsDialogDismissal()
+    dispatcher.incrementMetric('mergeConflictsDialogDismissalCount')
     const anyConflictedFiles =
       getConflictedFiles(workingDirectory, conflictState.manualResolutions)
         .length > 0
     if (anyConflictedFiles) {
-      dispatcher.recordAnyConflictsLeftOnMergeConflictsDialogDismissal()
+      dispatcher.incrementMetric(
+        'anyConflictsLeftOnMergeConflictsDialogDismissalCount'
+      )
     }
     this.onInvokeConflictsDialogDismissed('merge into')
   }

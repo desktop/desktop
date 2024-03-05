@@ -24,7 +24,7 @@ import {
 import { CICheckRunList } from './ci-check-run-list'
 import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Donut } from '../donut'
 import {
   supportsRerunningChecks,
@@ -59,7 +59,6 @@ interface ICICheckRunPopoverProps {
 interface ICICheckRunPopoverState {
   readonly checkRuns: ReadonlyArray<IRefCheck>
   readonly checkRunSummary: string
-  readonly loadingActionLogs: boolean
   readonly loadingActionWorkflows: boolean
 }
 
@@ -81,7 +80,6 @@ export class CICheckRunPopover extends React.PureComponent<
     this.state = {
       checkRuns: cachedStatus?.checks ?? [],
       checkRunSummary: this.getCombinedCheckSummary(cachedStatus),
-      loadingActionLogs: true,
       loadingActionWorkflows: true,
     }
   }
@@ -131,7 +129,6 @@ export class CICheckRunPopover extends React.PureComponent<
       checkRuns: [...check.checks],
       checkRunSummary: this.getCombinedCheckSummary(check),
       loadingActionWorkflows: false,
-      loadingActionLogs: false,
     })
   }
 
@@ -151,7 +148,7 @@ export class CICheckRunPopover extends React.PureComponent<
       `${this.props.repository.htmlURL}/pull/${this.props.prNumber}`
 
     this.props.dispatcher.openInBrowser(url)
-    this.props.dispatcher.recordCheckViewedOnline()
+    this.props.dispatcher.incrementMetric('viewsCheckOnline')
   }
 
   private onViewJobStep = (
@@ -164,7 +161,7 @@ export class CICheckRunPopover extends React.PureComponent<
 
     if (url !== null) {
       dispatcher.openInBrowser(url)
-      this.props.dispatcher.recordCheckJobStepViewedOnline()
+      this.props.dispatcher.incrementMetric('viewsCheckJobStepOnline')
     }
   }
 
@@ -256,14 +253,14 @@ export class CICheckRunPopover extends React.PureComponent<
         return (
           <Octicon
             className={'completeness-indicator-success'}
-            symbol={OcticonSymbol.checkCircleFill}
+            symbol={octicons.checkCircleFill}
           />
         )
       case allFailure: {
         return (
           <Octicon
             className={'completeness-indicator-error'}
-            symbol={OcticonSymbol.xCircleFill}
+            symbol={octicons.xCircleFill}
           />
         )
       }
@@ -374,7 +371,7 @@ export class CICheckRunPopover extends React.PureComponent<
   }
 
   public renderList = (): JSX.Element => {
-    const { checkRuns, loadingActionLogs, loadingActionWorkflows } = this.state
+    const { checkRuns, loadingActionWorkflows } = this.state
     if (loadingActionWorkflows) {
       return this.renderCheckRunLoadings()
     }
@@ -383,8 +380,6 @@ export class CICheckRunPopover extends React.PureComponent<
       <div className="ci-check-run-list-container">
         <CICheckRunList
           checkRuns={checkRuns}
-          loadingActionLogs={loadingActionLogs}
-          loadingActionWorkflows={loadingActionWorkflows}
           onViewCheckDetails={this.onViewCheckDetails}
           onViewJobStep={this.onViewJobStep}
           onRerunJob={

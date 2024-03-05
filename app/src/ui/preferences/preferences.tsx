@@ -12,6 +12,7 @@ import {
   getGlobalConfigValue,
   setGlobalConfigValue,
 } from '../../lib/git/config'
+import { getGlobalConfigPath } from '../../lib/git'
 import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
 import { getAvailableEditors } from '../../lib/editors/lookup'
@@ -28,7 +29,7 @@ import {
   defaultUncommittedChangesStrategy,
 } from '../../models/uncommitted-changes-strategy'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import {
   isConfigFileLockError,
   parseConfigLockFilePathFromError,
@@ -41,6 +42,8 @@ import {
 import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
 import { Notifications } from './notifications'
+import { Accessibility } from './accessibility'
+import { enableLinkUnderlines } from '../../lib/feature-flag'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -65,6 +68,9 @@ interface IPreferencesProps {
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
   readonly repositoryIndicatorsEnabled: boolean
+  readonly onOpenFileInExternalEditor: (path: string) => void
+  readonly underlineLinks: boolean
+  readonly showDiffCheckMarks: boolean
 }
 
 interface IPreferencesState {
@@ -92,6 +98,7 @@ interface IPreferencesState {
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
+
   /**
    * If unable to save Git configuration values (name, email)
    * due to an existing configuration lock file this property
@@ -105,6 +112,11 @@ interface IPreferencesState {
   readonly initiallySelectedTheme: ApplicationTheme
 
   readonly isLoadingGitConfig: boolean
+  readonly globalGitConfigPath: string | null
+
+  readonly underlineLinks: boolean
+
+  readonly showDiffCheckMarks: boolean
 }
 
 /** The app-level preferences component. */
@@ -143,6 +155,9 @@ export class Preferences extends React.Component<
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
       initiallySelectedTheme: this.props.selectedTheme,
       isLoadingGitConfig: true,
+      globalGitConfigPath: null,
+      underlineLinks: this.props.underlineLinks,
+      showDiffCheckMarks: this.props.showDiffCheckMarks,
     }
   }
 
@@ -179,6 +194,8 @@ export class Preferences extends React.Component<
     const availableEditors = editors.map(e => e.editor)
     const availableShells = shells.map(e => e.shell)
 
+    const globalGitConfigPath = await getGlobalConfigPath()
+
     this.setState({
       committerName,
       committerEmail,
@@ -202,6 +219,7 @@ export class Preferences extends React.Component<
       availableShells,
       availableEditors,
       isLoadingGitConfig: false,
+      globalGitConfigPath,
     })
   }
 
@@ -229,33 +247,39 @@ export class Preferences extends React.Component<
             type={TabBarType.Vertical}
           >
             <span>
-              <Octicon className="icon" symbol={OcticonSymbol.home} />
+              <Octicon className="icon" symbol={octicons.home} />
               Accounts
             </span>
             <span>
-              <Octicon className="icon" symbol={OcticonSymbol.person} />
+              <Octicon className="icon" symbol={octicons.person} />
               Integrations
             </span>
             <span>
-              <Octicon className="icon" symbol={OcticonSymbol.gitCommit} />
+              <Octicon className="icon" symbol={octicons.gitCommit} />
               Git
             </span>
             <span>
-              <Octicon className="icon" symbol={OcticonSymbol.paintbrush} />
+              <Octicon className="icon" symbol={octicons.paintbrush} />
               Appearance
             </span>
             <span>
-              <Octicon className="icon" symbol={OcticonSymbol.bell} />
+              <Octicon className="icon" symbol={octicons.bell} />
               Notifications
             </span>
             <span>
-              <Octicon className="icon" symbol={OcticonSymbol.question} />
+              <Octicon className="icon" symbol={octicons.question} />
               Prompts
             </span>
             <span>
-              <Octicon className="icon" symbol={OcticonSymbol.settings} />
+              <Octicon className="icon" symbol={octicons.gear} />
               Advanced
             </span>
+            {enableLinkUnderlines() && (
+              <span>
+                <Octicon className="icon" symbol={octicons.accessibility} />
+                Accessibility
+              </span>
+            )}
           </TabBar>
 
           {this.renderActiveTab()}
@@ -342,6 +366,9 @@ export class Preferences extends React.Component<
               onEmailChanged={this.onCommitterEmailChanged}
               onDefaultBranchChanged={this.onDefaultBranchChanged}
               isLoadingGitConfig={this.state.isLoadingGitConfig}
+              selectedExternalEditor={this.props.selectedExternalEditor}
+              onOpenFileInExternalEditor={this.props.onOpenFileInExternalEditor}
+              globalGitConfigPath={this.state.globalGitConfigPath}
             />
           </>
         )
@@ -413,6 +440,16 @@ export class Preferences extends React.Component<
         )
         break
       }
+      case PreferencesTab.Accessibility:
+        View = (
+          <Accessibility
+            underlineLinks={this.state.underlineLinks}
+            showDiffCheckMarks={this.state.showDiffCheckMarks}
+            onShowDiffCheckMarksChanged={this.onShowDiffCheckMarksChanged}
+            onUnderlineLinksChanged={this.onUnderlineLinksChanged}
+          />
+        )
+        break
       default:
         return assertNever(index, `Unknown tab index: ${index}`)
     }
@@ -513,6 +550,14 @@ export class Preferences extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.dispatcher.setSelectedTheme(theme)
+  }
+
+  private onUnderlineLinksChanged = (underlineLinks: boolean) => {
+    this.setState({ underlineLinks })
+  }
+
+  private onShowDiffCheckMarksChanged = (showDiffCheckMarks: boolean) => {
+    this.setState({ showDiffCheckMarks })
   }
 
   private renderFooter() {
@@ -633,6 +678,12 @@ export class Preferences extends React.Component<
 
     await this.props.dispatcher.setUncommittedChangesStrategySetting(
       this.state.uncommittedChangesStrategy
+    )
+
+    this.props.dispatcher.setUnderlineLinksSetting(this.state.underlineLinks)
+
+    this.props.dispatcher.setDiffCheckMarksSetting(
+      this.state.showDiffCheckMarks
     )
 
     this.props.onDismissed()

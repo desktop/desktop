@@ -15,7 +15,7 @@ import {
 import { Account } from '../../models/account'
 import { API, IAPIWorkflowJobStep } from '../../lib/api'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { CICheckRunActionsJobStepList } from '../check-runs/ci-check-run-actions-job-step-list'
 import { LinkButton } from '../lib/link-button'
@@ -36,8 +36,6 @@ interface IPullRequestChecksFailedProps {
   readonly accounts: ReadonlyArray<Account>
   readonly repository: RepositoryWithGitHubRepository
   readonly pullRequest: PullRequest
-  readonly commitMessage: string
-  readonly commitSha: string
   readonly checks: ReadonlyArray<IRefCheck>
   readonly onSubmit: () => void
   readonly onDismissed: () => void
@@ -48,7 +46,6 @@ interface IPullRequestChecksFailedState {
   readonly selectedCheckID: number
   readonly checks: ReadonlyArray<IRefCheck>
   readonly loadingActionWorkflows: boolean
-  readonly loadingActionLogs: boolean
 }
 
 /**
@@ -71,7 +68,6 @@ export class PullRequestChecksFailed extends React.Component<
       selectedCheckID: selectedCheck.id,
       checks,
       loadingActionWorkflows: true,
-      loadingActionLogs: true,
     }
   }
 
@@ -82,7 +78,7 @@ export class PullRequestChecksFailed extends React.Component<
   }
 
   private get loadingChecksInfo(): boolean {
-    return this.state.loadingActionWorkflows || this.state.loadingActionLogs
+    return this.state.loadingActionWorkflows
   }
 
   public render() {
@@ -105,7 +101,7 @@ export class PullRequestChecksFailed extends React.Component<
 
     const header = (
       <div className="ci-check-run-dialog-header">
-        <Octicon symbol={OcticonSymbol.xCircleFill} />
+        <Octicon symbol={octicons.xCircleFill} />
         <div className="title-container">
           <div className="summary">
             {failedChecks.length} {pluralChecks} failed in your pull request
@@ -176,8 +172,6 @@ export class PullRequestChecksFailed extends React.Component<
     return (
       <CICheckRunList
         checkRuns={this.state.checks}
-        loadingActionLogs={this.state.loadingActionLogs}
-        loadingActionWorkflows={this.state.loadingActionWorkflows}
         selectable={true}
         onViewCheckDetails={this.onViewOnGitHub}
         onCheckRunClick={this.onCheckRunClick}
@@ -291,7 +285,7 @@ export class PullRequestChecksFailed extends React.Component<
     failedOnly: boolean,
     checks?: ReadonlyArray<IRefCheck>
   ) => {
-    this.props.dispatcher.recordChecksFailedDialogRerunChecks()
+    this.props.dispatcher.incrementMetric('checksFailedDialogRerunChecksCount')
 
     const prRef = getPullRequestCommitRef(
       this.props.pullRequest.pullRequestNumber
@@ -315,10 +309,7 @@ export class PullRequestChecksFailed extends React.Component<
     )
 
     if (account === undefined) {
-      this.setState({
-        loadingActionWorkflows: false,
-        loadingActionLogs: false,
-      })
+      this.setState({ loadingActionWorkflows: false })
       return
     }
 
@@ -344,10 +335,7 @@ export class PullRequestChecksFailed extends React.Component<
       return
     }
 
-    this.setState({
-      checks: checkRunsWithActionsUrls,
-      loadingActionWorkflows: false,
-    })
+    this.setState({ checks: checkRunsWithActionsUrls })
 
     const checks = await getLatestPRWorkflowRunsLogsForCheckRun(
       api,
@@ -360,7 +348,7 @@ export class PullRequestChecksFailed extends React.Component<
       return
     }
 
-    this.setState({ checks, loadingActionLogs: false })
+    this.setState({ checks, loadingActionWorkflows: false })
   }
 
   private onCheckRunClick = (checkRun: IRefCheck): void => {
@@ -395,7 +383,9 @@ export class PullRequestChecksFailed extends React.Component<
     event.preventDefault()
     const { dispatcher, repository, pullRequest } = this.props
 
-    this.props.dispatcher.recordChecksFailedDialogSwitchToPullRequest()
+    this.props.dispatcher.incrementMetric(
+      'checksFailedDialogSwitchToPullRequestCount'
+    )
 
     this.setState({ switchingToPullRequest: true })
     await dispatcher.selectRepository(repository)
