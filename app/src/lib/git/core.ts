@@ -164,21 +164,25 @@ export async function gitRaw(
     const stdout = new Array<Buffer>()
     const stderr = new Array<Buffer>()
 
-    spawnedProcess.stdout?.on('data', chunk => {
-      if (chunk instanceof Buffer) {
-        stdout.push(chunk)
-      } else {
-        stdout.push(Buffer.from(chunk))
-      }
-    })
+    if (spawnedProcess.stdout) {
+      spawnedProcess.stdout.on('data', chunk => {
+        if (chunk instanceof Buffer) {
+          stdout.push(chunk)
+        } else {
+          stdout.push(Buffer.from(chunk))
+        }
+      })
+    }
 
-    spawnedProcess.stderr?.on('data', chunk => {
-      if (chunk instanceof Buffer) {
-        stderr.push(chunk)
-      } else {
-        stderr.push(Buffer.from(chunk))
-      }
-    })
+    if (spawnedProcess.stderr) {
+      spawnedProcess.stderr.on('data', chunk => {
+        if (chunk instanceof Buffer) {
+          stderr.push(chunk)
+        } else {
+          stderr.push(Buffer.from(chunk))
+        }
+      })
+    }
 
     spawnedProcess.on('exit', (code: number) => {
       try {
