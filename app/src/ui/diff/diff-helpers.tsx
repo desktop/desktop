@@ -210,7 +210,7 @@ export type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 /**
  * Whether the row is a type that represent a change (added, deleted, modified)
  * in the diff. This is useful for checking to see if a row type would have
- * something line 'hunkStartLine` on it.
+ * something like 'hunkStartLine` on it.
  */
 export function isRowChanged(
   row: DiffRow | SimplifiedDiffRow
