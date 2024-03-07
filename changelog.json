@@ -1,5 +1,13 @@
 {
   "releases": {
+    "3.3.12-beta1": [
+      "[Fixed] In the changes diff, groups of two rows that represent one line number change have a check all control - #18232",
+      "[Fixed] Copying lines in side by side diffs does not add new lines between each line when pasted - #18249",
+      "[Fixed] On Windows, PATH environment variable with values longer than 1024 are not truncated - #18244",
+      "[Fixed] The last lines in diffs are visible when warning banners are displayed - #18237",
+      "[Improved] Add the \"link\" role to the \"Open pull request\" button in tutorial sidebar - #18245",
+      "[Improved] Upgrade to Electron v28.2.3 - #18185"
+    ],
     "3.3.11": [
       "[Fixed] Copying lines in the side by side diff does not add new lines between each line when pasted. - #18249"
     ],
