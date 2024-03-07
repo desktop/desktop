@@ -17,6 +17,10 @@
     user-select: text;
   }
 
+  .sr-only {
+    user-select: none;
+  }
+
   // See https://github.com/desktop/desktop/pull/15128#issuecomment-1232689068
   &:not(:focus-within) .content,
   &.selecting-before .after,
