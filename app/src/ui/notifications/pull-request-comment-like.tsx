@@ -2,9 +2,8 @@ import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { PullRequest } from '../../models/pull-request'
 import { Dispatcher } from '../dispatcher'
-import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
-import { OcticonSymbolType } from '../octicons/octicons.generated'
+import { Octicon, OcticonSymbol } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 import { LinkButton } from '../lib/link-button'
@@ -22,7 +21,7 @@ interface IPullRequestCommentLikeProps {
   readonly pullRequest: PullRequest
   readonly eventDate: Date
   readonly eventVerb: string
-  readonly eventIconSymbol: OcticonSymbolType
+  readonly eventIconSymbol: OcticonSymbol
   readonly eventIconClass: string
   readonly externalURL: string
   readonly user: IAPIIdentity
@@ -32,6 +31,8 @@ interface IPullRequestCommentLikeProps {
   readonly emoji: Map<string, string>
 
   readonly switchingToPullRequest: boolean
+
+  readonly underlineLinks: boolean
 
   readonly renderFooterContent: () => JSX.Element
 
@@ -174,6 +175,7 @@ export abstract class PullRequestCommentLike extends React.Component<IPullReques
         repository={base.gitHubRepository}
         onMarkdownLinkClicked={this.onMarkdownLinkClicked}
         markdownContext={'PullRequestComment'}
+        underlineLinks={this.props.underlineLinks}
       />
     )
   }
@@ -190,8 +192,8 @@ export abstract class PullRequestCommentLike extends React.Component<IPullReques
         className={cls}
         symbol={
           pullRequest.draft
-            ? OcticonSymbol.gitPullRequestDraft
-            : OcticonSymbol.gitPullRequest
+            ? octicons.gitPullRequestDraft
+            : octicons.gitPullRequest
         }
       />
     )

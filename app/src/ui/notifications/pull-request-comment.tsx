@@ -19,6 +19,8 @@ interface IPullRequestCommentProps {
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
 
+  readonly underlineLinks: boolean
+
   /**
    * Whether or not the dialog should offer to switch to the PR's repository or
    * to checkout the PR branch when applicable (e.g. non-approved reviews).
@@ -83,6 +85,7 @@ export class PullRequestComment extends React.Component<
         renderFooterContent={this.renderFooterContent}
         onSubmit={onSubmit}
         onDismissed={onDismissed}
+        underlineLinks={this.props.underlineLinks}
         accounts={accounts}
       />
     )

@@ -105,3 +105,6 @@ export const enableCommitDetailsHeaderExpansion = () => true
 export const enableDiffCheckMarksAndLinkUnderlines = enableBetaFeatures
 
 export const enableDiffCheckMarks = enableDiffCheckMarksAndLinkUnderlines
+export const enableGroupDiffCheckmarks = enableDiffCheckMarksAndLinkUnderlines
+
+export const enableLinkUnderlines = enableDiffCheckMarksAndLinkUnderlines
