@@ -317,6 +317,10 @@
       box-sizing: content-box;
       position: relative;
 
+      input {
+        user-select: none;
+      }
+
       label {
         width: 100%;
         display: flex;
