@@ -1150,10 +1150,10 @@ regenerator-runtime@^0.13.4:
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.7.tgz#cac2dacc8a1ea675feaabaeb8ae833898ae46f55"
   integrity sha512-a54FxoJDIr27pgf7IgeQGxmqUNYrcV338lf/6gH456HZ/PhX+5BcwHXG9ajESmwe6WRO0tAzRUrRmNONWgkrew==
 
-registry-js@^1.15.0:
-  version "1.15.0"
-  resolved "https://registry.yarnpkg.com/registry-js/-/registry-js-1.15.0.tgz#eb028503df2358291e2d107fb6dc316f688e47b1"
-  integrity sha512-gNLm7hV3g2M5iKAdcQwoa2Zj8fhkArbzbXyQMVrK/6OfXOCaKnRNqgBnOGOJoJw4uwW9XImJuXijLf1ZKtSR3Q==
+registry-js@^1.16.0:
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/registry-js/-/registry-js-1.16.0.tgz#951444f10c0e39c7669e4bde166f9237472a7c7e"
+  integrity sha512-hcMnfKhmCPTA++70qEGwRqctLBdBg+xvG3ZfAPt0ymjdTUFKtVTolelpIDK2qs8DVIurylnfM6BM9uWpVbJr+g==
   dependencies:
     node-addon-api "^3.1.0"
     prebuild-install "^5.3.5"

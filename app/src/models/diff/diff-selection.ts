@@ -136,6 +136,54 @@ export class DiffSelection {
   }
 
   /**
+   * Returns a value indicating whether the range is all selected, partially
+   * selected, or not selected.
+   *
+   * @param from     The line index (inclusive) from where to checking the range.
+   *
+   * @param length   The number of lines to check from the start point of
+   *                  'from', Assumes positive number, returns None if length is <= 0.
+   */
+  public isRangeSelected(from: number, length: number): DiffSelectionType {
+    if (length <= 0) {
+      // This shouldn't happen? But if it does we'll log it and return None.
+      return DiffSelectionType.None
+    }
+
+    const computedSelectionType = this.getSelectionType()
+    if (computedSelectionType !== DiffSelectionType.Partial) {
+      // Nothing for us to do here. If all lines are selected or none, then any
+      // range of lines will be the same.
+      return computedSelectionType
+    }
+
+    if (length === 1) {
+      return this.isSelected(from)
+        ? DiffSelectionType.All
+        : DiffSelectionType.None
+    }
+
+    const to = from + length
+    let foundSelected = false
+    let foundDeselected = false
+    for (let i = from; i < to; i++) {
+      if (this.isSelected(i)) {
+        foundSelected = true
+      }
+
+      if (!this.isSelected(i)) {
+        foundDeselected = true
+      }
+
+      if (foundSelected && foundDeselected) {
+        return DiffSelectionType.Partial
+      }
+    }
+
+    return foundSelected ? DiffSelectionType.All : DiffSelectionType.None
+  }
+
+  /**
    * Returns a value indicating wether the given line number is selectable.
    * A line not being selectable usually means it's a hunk header or a context
    * line.

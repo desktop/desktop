@@ -12,7 +12,7 @@ import { Repository } from '../../../models/repository'
 import { Dispatcher } from '../../dispatcher'
 import { showContextualMenu } from '../../../lib/menu-item'
 import { Octicon } from '../../octicons'
-import * as OcticonSymbol from '../../octicons/octicons.generated'
+import * as octicons from '../../octicons/octicons.generated'
 import { PathText } from '../path-text'
 import { ManualConflictResolution } from '../../../models/manual-conflict-resolution'
 import {
@@ -141,7 +141,7 @@ const renderResolvedFile: React.FunctionComponent<{
   )
   return (
     <li key={props.path} className="unmerged-file-status-resolved">
-      <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
+      <Octicon symbol={octicons.fileCode} className="file-octicon" />
       <div className="column-left" id={props.path}>
         <PathText path={props.path} />
         <div className="file-conflicts-status">{fileStatusSummary}</div>
@@ -160,7 +160,7 @@ const renderResolvedFile: React.FunctionComponent<{
         </Button>
       )}
       <div className="green-circle">
-        <Octicon symbol={OcticonSymbol.check} />
+        <Octicon symbol={octicons.check} />
       </div>
     </li>
   )
@@ -212,7 +212,7 @@ const renderManualConflictedFile: React.FunctionComponent<{
           onClick={onDropdownClick}
         >
           Resolve
-          <Octicon symbol={OcticonSymbol.triangleDown} />
+          <Octicon symbol={octicons.triangleDown} />
         </Button>
       </div>
     </>
@@ -227,7 +227,7 @@ function renderConflictedFileWrapper(
 ): JSX.Element {
   return (
     <li key={path} className="unmerged-file-status-conflicts">
-      <Octicon symbol={OcticonSymbol.fileCode} className="file-octicon" />
+      <Octicon symbol={octicons.fileCode} className="file-octicon" />
       {content}
     </li>
   )
@@ -289,7 +289,7 @@ const renderConflictedFileWithConflictMarkers: React.FunctionComponent<{
           ariaHaspopup="menu"
           ariaExpanded={props.isFileResolutionOptionsMenuOpen}
         >
-          <Octicon symbol={OcticonSymbol.triangleDown} />
+          <Octicon symbol={octicons.triangleDown} />
         </Button>
       </div>
     </>

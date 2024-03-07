@@ -1,4 +1,4 @@
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Repository } from '../../models/repository'
 import { CloningRepository } from '../../models/cloning-repository'
 
@@ -7,24 +7,24 @@ import { CloningRepository } from '../../models/cloning-repository'
  */
 export function iconForRepository(repository: Repository | CloningRepository) {
   if (repository instanceof CloningRepository) {
-    return OcticonSymbol.desktopDownload
+    return octicons.desktopDownload
   }
 
   if (repository.missing) {
-    return OcticonSymbol.alert
+    return octicons.alert
   }
 
   const gitHubRepo = repository.gitHubRepository
   if (!gitHubRepo) {
-    return OcticonSymbol.deviceDesktop
+    return octicons.deviceDesktop
   }
 
   if (gitHubRepo.isPrivate) {
-    return OcticonSymbol.lock
+    return octicons.lock
   }
   if (gitHubRepo.fork) {
-    return OcticonSymbol.repoForked
+    return octicons.repoForked
   }
 
-  return OcticonSymbol.repo
+  return octicons.repo
 }

@@ -29,7 +29,7 @@ import {
   OverscanIndicesGetterParams,
   defaultOverscanIndicesGetter,
 } from 'react-virtualized'
-import { SideBySideDiffRow } from './side-by-side-diff-row'
+import { IRowSelectableGroup, SideBySideDiffRow } from './side-by-side-diff-row'
 import memoize from 'memoize-one'
 import {
   findInteractiveOriginalDiffRange,
@@ -580,6 +580,7 @@ export class SideBySideDiff extends React.Component<
                 afterTokens={this.state.afterTokens}
                 temporarySelection={this.state.temporarySelection}
                 hoveredHunk={this.state.hoveredHunk}
+                showDiffCheckMarks={this.props.showDiffCheckMarks}
                 isSelectable={canSelect(this.props.file)}
                 fileSelection={this.getSelection()}
                 // rows are memoized and include things like the
@@ -607,6 +608,134 @@ export class SideBySideDiff extends React.Component<
     )
 
     return defaultOverscanIndicesGetter({ ...params, startIndex, stopIndex })
+  }
+
+  /**
+   * Gathers information about if the row is in a selectable group. This
+   * information is used to facilitate the use of check all feature for the
+   * selectable group.
+   *
+   * This will return null if the row is not in a selectable group. A group is
+   * more than one row.
+   */
+  private getRowSelectableGroupDetails(
+    row: SimplifiedDiffRow,
+    prev: SimplifiedDiffRow,
+    next: SimplifiedDiffRow
+  ): IRowSelectableGroup | null {
+    if (!('hunkStartLine' in row)) {
+      // can't be a selection hunk without a hunkStartLine
+      return null
+    }
+
+    const { diff, hoveredHunk } = this.state
+
+    const selectableType = [
+      DiffRowType.Added,
+      DiffRowType.Deleted,
+      DiffRowType.Modified,
+    ]
+
+    if (!selectableType.includes(row.type)) {
+      // We only care about selectable rows
+      return null
+    }
+
+    const range = findInteractiveOriginalDiffRange(
+      diff.hunks,
+      row.hunkStartLine
+    )
+    if (range === null) {
+      // We only care about ranges with more than one line
+      return null
+    }
+
+    const selection = this.getSelection()
+    if (selection === undefined) {
+      // We only care about selectable rows.. so if no selection, no selectable rows
+      return null
+    }
+
+    const { from, to } = range
+
+    const { lineNumbers, lineNumbersIdentifiers, diffType } =
+      this.getRowGroupLineNumberData(row.hunkStartLine)
+    return {
+      isFirst: prev === undefined || !selectableType.includes(prev.type),
+      isLast: next === undefined || !selectableType.includes(next.type),
+      isHovered: hoveredHunk === row.hunkStartLine,
+      selectionState: selection.isRangeSelected(from, to - from + 1),
+      height: this.getRowSelectableGroupHeight(row.hunkStartLine),
+      lineNumbers: Array.from(lineNumbers),
+      lineNumbersIdentifiers,
+      diffType,
+    }
+  }
+
+  private getRowGroupLineNumberData = (hunkStartLine: number) => {
+    const rows = getDiffRows(
+      this.state.diff,
+      this.props.showSideBySideDiff,
+      this.canExpandDiff()
+    )
+
+    const lineNumbers = new Set<number>()
+    let hasAfter = false
+    let hasBefore = false
+
+    const lineNumbersIdentifiers = rows.flatMap(r => {
+      if (!('hunkStartLine' in r) || r.hunkStartLine !== hunkStartLine) {
+        return []
+      }
+
+      if (r.type === DiffRowType.Added) {
+        lineNumbers.add(r.data.lineNumber)
+        hasAfter = true
+        return `${r.data.lineNumber}-after`
+      }
+
+      if (r.type === DiffRowType.Deleted) {
+        lineNumbers.add(r.data.lineNumber)
+        hasBefore = true
+        return `${r.data.lineNumber}-before`
+      }
+
+      if (r.type === DiffRowType.Modified) {
+        hasAfter = true
+        hasBefore = true
+        lineNumbers.add(r.beforeData.lineNumber)
+        lineNumbers.add(r.afterData.lineNumber)
+        return [
+          `${r.beforeData.lineNumber}-before`,
+          `${r.afterData.lineNumber}-after`,
+        ]
+      }
+
+      return []
+    })
+
+    const diffType =
+      hasAfter && hasBefore
+        ? DiffRowType.Modified
+        : hasAfter
+        ? DiffRowType.Added
+        : DiffRowType.Deleted
+    return { lineNumbersIdentifiers, lineNumbers, diffType }
+  }
+
+  private getRowSelectableGroupHeight = (hunkStartLine: number) => {
+    const rows = getDiffRows(
+      this.state.diff,
+      this.props.showSideBySideDiff,
+      this.canExpandDiff()
+    )
+
+    return rows.reduce((acc, r, index) => {
+      if (!('hunkStartLine' in r) || r.hunkStartLine !== hunkStartLine) {
+        return acc
+      }
+      return acc + this.getRowHeight({ index })
+    }, 0)
   }
 
   private renderRow = ({ index, parent, style, key }: ListRowProps) => {
@@ -644,8 +773,14 @@ export class SideBySideDiff extends React.Component<
 
     const rowWithTokens = this.createFullRow(row, index)
 
-    const isHunkHovered =
-      'hunkStartLine' in row && this.state.hoveredHunk === row.hunkStartLine
+    const rowSelectableGroupDetails = this.getRowSelectableGroupDetails(
+      row,
+      prev,
+      next
+    )
+
+    // Just temporary until pass the whole row group data down.
+    const isHunkHovered = !!rowSelectableGroupDetails?.isHovered
 
     return (
       <CellMeasurer
@@ -662,6 +797,7 @@ export class SideBySideDiff extends React.Component<
             numRow={index}
             isDiffSelectable={canSelect(this.props.file)}
             isHunkHovered={isHunkHovered}
+            rowSelectableGroup={rowSelectableGroupDetails}
             showSideBySideDiff={this.props.showSideBySideDiff}
             hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
             showDiffCheckMarks={this.props.showDiffCheckMarks}

@@ -51,13 +51,15 @@ import {
   BranchDropdown,
   RevertProgress,
 } from './toolbar'
-import { iconForRepository, OcticonSymbolType } from './octicons'
-import * as OcticonSymbol from './octicons/octicons.generated'
+import { iconForRepository, OcticonSymbol } from './octicons'
+import * as octicons from './octicons/octicons.generated'
 import {
   showCertificateTrustDialog,
   sendReady,
   isInApplicationFolder,
   selectAllWindowContents,
+  installWindowsCLI,
+  uninstallWindowsCLI,
 } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
@@ -172,6 +174,7 @@ import { UnsupportedOSBannerDismissedAtKey } from './banners/windows-version-no-
 import { offsetFromNow } from '../lib/offset-from'
 import { getNumber } from '../lib/local-storage'
 import { RepoRulesBypassConfirmation } from './repository-rules/repo-rules-bypass-confirmation'
+import { IconPreviewDialog } from './octicons/icon-preview-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -451,8 +454,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.openPullRequest()
       case 'preview-pull-request':
         return this.startPullRequest()
-      case 'install-cli':
-        return this.props.dispatcher.installCLI()
+      case 'install-darwin-cli':
+        return this.props.dispatcher.installDarwinCLI()
+      case 'install-windows-cli':
+        return installWindowsCLI()
+      case 'uninstall-windows-cli':
+        return uninstallWindowsCLI()
       case 'open-external-editor':
         return this.openCurrentRepositoryInExternalEditor()
       case 'select-all':
@@ -495,6 +502,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showFakeCherryPickConflictBanner()
       case 'show-test-merge-successful-banner':
         return this.showFakeMergeSuccessfulBanner()
+      case 'show-icon-test-dialog':
+        return this.showIconTestDialog()
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
@@ -608,6 +617,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.setBanner({
         type: BannerType.SuccessfulMerge,
         ourBranch: 'fake-branch',
+      })
+    }
+  }
+
+  private async showIconTestDialog() {
+    if (__DEV__) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.TestIcons,
       })
     }
   }
@@ -1660,6 +1677,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedTheme={this.state.selectedTheme}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             onOpenFileInExternalEditor={this.openFileInExternalEditor}
+            underlineLinks={this.state.underlineLinks}
+            showDiffCheckMarks={this.state.showDiffCheckMarks}
           />
         )
       case PopupType.RepositorySettings: {
@@ -1917,6 +1936,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             emoji={this.state.emoji}
             newReleases={popup.newReleases}
             onDismissed={onPopupDismissedFn}
+            underlineLinks={this.state.underlineLinks}
           />
         )
       case PopupType.DeletePullRequest:
@@ -2405,6 +2425,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             emoji={this.state.emoji}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
+            underlineLinks={this.state.underlineLinks}
             accounts={this.state.accounts}
           />
         )
@@ -2532,6 +2553,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             emoji={this.state.emoji}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
+            underlineLinks={this.state.underlineLinks}
             accounts={this.state.accounts}
           />
         )
@@ -2553,6 +2575,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             onConfirm={popup.onConfirm}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.TestIcons: {
+        return (
+          <IconPreviewDialog
+            key="octicons-preview"
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -2882,17 +2912,17 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const repository = selection ? selection.repository : null
 
-    let icon: OcticonSymbolType
+    let icon: OcticonSymbol
     let title: string
     if (repository) {
       const alias = repository instanceof Repository ? repository.alias : null
       icon = iconForRepository(repository)
       title = alias ?? repository.name
     } else if (this.state.repositories.length > 0) {
-      icon = OcticonSymbol.repo
+      icon = octicons.repo
       title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
     } else {
-      icon = OcticonSymbol.repo
+      icon = octicons.repo
       title = __DARWIN__ ? 'No Repositories' : 'No repositories'
     }
 
@@ -3156,6 +3186,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         showCIStatusPopover={this.state.showCIStatusPopover}
         emoji={this.state.emoji}
         enableFocusTrap={enableFocusTrap}
+        underlineLinks={this.state.underlineLinks}
       />
     )
   }
@@ -3350,7 +3381,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const className = this.state.appIsFocused ? 'focused' : 'blurred'
+    const className = classNames(
+      this.state.appIsFocused ? 'focused' : 'blurred',
+      {
+        'underline-links': this.state.underlineLinks,
+      }
+    )
 
     const currentTheme = this.state.showWelcomeFlow
       ? ApplicationTheme.Light

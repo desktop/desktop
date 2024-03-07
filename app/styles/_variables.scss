@@ -363,6 +363,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: #{$blue};
+  --diff-linenumber-focus-color: #{$blue-600};
 
   /**
    * Variables for form elements
@@ -433,6 +434,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   --diff-empty-row-background-color: #{$gray-000};
   --diff-empty-row-gutter-background-color: var(--diff-empty-row-background-color);
+  --diff-empty-hunk-handle: #{$gray-300};
 
   // Syntax highlighting text colors
   --syntax-variable-color: #6f42c1;
