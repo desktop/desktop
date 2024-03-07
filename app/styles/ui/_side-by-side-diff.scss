@@ -207,6 +207,11 @@
       color: white;
       padding-top: 3px;
       text-align: center;
+      user-select: none;
+
+      * {
+        user-select: none;
+      }
 
       .focus-handle {
         border-radius: var(--border-radius);
