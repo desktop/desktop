@@ -202,6 +202,10 @@
       width: var(--hunk-handle-width);
       height: 100%;
       background-color: var(--diff-empty-hunk-handle);
+
+      &.selected {
+        background-color: var(--diff-selected-border-color);
+      }
     }
 
     .hunk-handle {
@@ -223,15 +227,14 @@
         width: 100%;
         margin-top: -4px;
         padding-top: 3px;
-        cursor: pointer;
       }
 
       .octicon {
         height: 12px;
       }
 
-      &.selected {
-        background-color: var(--diff-selected-border-color);
+      * {
+        cursor: pointer;
       }
     }
 
