@@ -207,10 +207,7 @@ export class CICheckRunListItem extends React.PureComponent<
 
   private renderCheckRunButton = (): JSX.Element | null => {
     const { checkRun, selectable, notExpandable } = this.props
-    const disabled =
-      checkRun.actionJobSteps === undefined ||
-      selectable ||
-      notExpandable === true
+    const disabled = checkRun.actionJobSteps === undefined || selectable
 
     return (
       <Button

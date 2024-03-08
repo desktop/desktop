@@ -21,13 +21,6 @@
       filter: brightness(95%);
     }
 
-    .job-step-name span {
-      &:hover {
-        color: var(--link-button-color);
-        cursor: pointer !important;
-      }
-    }
-
     .job-step-status-symbol,
     .job-step-duration {
       padding: var(--spacing-half) var(--spacing);
@@ -39,6 +32,10 @@
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
+
+      span {
+        cursor: pointer !important;
+      }
     }
   }
 }

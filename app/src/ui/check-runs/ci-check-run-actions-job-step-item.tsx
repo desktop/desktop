@@ -14,6 +14,7 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
+import { LinkButton } from '../lib/link-button'
 
 interface ICICheckRunActionsJobStepListItemProps {
   readonly step: IAPIWorkflowJobStep
@@ -60,15 +61,19 @@ export class CICheckRunActionsJobStepListItem extends React.PureComponent<ICIChe
           />
         </div>
 
-        <TooltippedContent
+        <LinkButton
           className="job-step-name"
-          tooltip={step.name}
-          onlyWhenOverflowed={true}
-          tagName="div"
-          direction={TooltipDirection.NORTH}
+          onClick={this.onViewJobStepExternally}
         >
-          <span onClick={this.onViewJobStepExternally}>{step.name}</span>
-        </TooltippedContent>
+          <TooltippedContent
+            tooltip={step.name}
+            onlyWhenOverflowed={true}
+            tagName="span"
+            direction={TooltipDirection.NORTH}
+          >
+            {step.name}
+          </TooltippedContent>
+        </LinkButton>
 
         <div className="job-step-duration">
           {getFormattedCheckRunDuration(step)}
