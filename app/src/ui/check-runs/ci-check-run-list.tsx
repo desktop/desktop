@@ -192,7 +192,7 @@ export class CICheckRunList extends React.PureComponent<
     const groups = checkRunGroupNames.map((groupName, i) => {
       return (
         <div className="ci-check-run-list-group" key={i}>
-          <div className={groupHeaderClasses}>{groupName}</div>
+          <h2 className={groupHeaderClasses}>{groupName}</h2>
           {this.renderListItems(checkRunGroups.get(groupName))}
         </div>
       )
