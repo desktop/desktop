@@ -1,5 +1,3 @@
-/* eslint-disable jsx-a11y/click-events-have-key-events */
-/* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react'
 import { IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
@@ -10,6 +8,7 @@ import { TooltippedContent } from '../lib/tooltipped-content'
 import { CICheckRunActionsJobStepList } from './ci-check-run-actions-job-step-list'
 import { IAPIWorkflowJobStep } from '../../lib/api'
 import { TooltipDirection } from '../lib/tooltip'
+import { Button } from '../lib/button'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -47,7 +46,7 @@ interface ICICheckRunListItemProps {
 }
 
 interface ICICheckRunListItemState {
-  readonly isMouseOver: boolean
+  readonly hasFocus: boolean
 }
 
 /** The CI check list item. */
@@ -57,7 +56,7 @@ export class CICheckRunListItem extends React.PureComponent<
 > {
   public constructor(props: ICICheckRunListItemProps) {
     super(props)
-    this.state = { isMouseOver: false }
+    this.state = { hasFocus: false }
   }
 
   private toggleCheckRunExpansion = () => {
@@ -81,14 +80,14 @@ export class CICheckRunListItem extends React.PureComponent<
     this.props.onRerunJob?.(this.props.checkRun)
   }
 
-  private onMouseEnter = () => {
-    if (!this.state.isMouseOver) {
-      this.setState({ isMouseOver: true })
+  private onFocus = () => {
+    if (!this.state.hasFocus) {
+      this.setState({ hasFocus: true })
     }
   }
 
-  private onMouseLeave = (e: React.MouseEvent) => {
-    this.setState({ isMouseOver: false })
+  private onLooseFocus = () => {
+    this.setState({ hasFocus: false })
   }
 
   private renderCheckStatusSymbol = (): JSX.Element => {
@@ -116,7 +115,7 @@ export class CICheckRunListItem extends React.PureComponent<
       selectable ||
       notExpandable === true
     ) {
-      return null
+      return <div className="job-step-toggled-indicator-placeholder"></div>
     }
 
     return (
@@ -131,7 +130,7 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderCheckRunName = (): JSX.Element => {
-    const { checkRun, isCondensedView, onViewCheckExternally } = this.props
+    const { checkRun, isCondensedView } = this.props
     const { name, description } = checkRun
     return (
       <div className="ci-check-list-item-detail">
@@ -142,14 +141,7 @@ export class CICheckRunListItem extends React.PureComponent<
           tagName="div"
           direction={TooltipDirection.NORTH}
         >
-          <span
-            className={classNames({
-              isLink: onViewCheckExternally !== undefined,
-            })}
-            onClick={this.onViewCheckExternally}
-          >
-            {name}
-          </span>
+          {name}
         </TooltippedContent>
 
         {isCondensedView ? null : (
@@ -160,12 +152,14 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderJobRerun = (): JSX.Element | null => {
-    const { checkRun, onRerunJob } = this.props
-    const { isMouseOver } = this.state
+    const { checkRun, isCheckRunExpanded, onRerunJob } = this.props
+    const { hasFocus } = this.state
 
-    if (!isMouseOver || onRerunJob === undefined) {
+    if (onRerunJob === undefined) {
       return null
     }
+
+    const viewOcticon = hasFocus || isCheckRunExpanded
 
     const classes = classNames('job-rerun', {
       'not-action-job': checkRun.actionJobSteps === undefined,
@@ -177,11 +171,60 @@ export class CICheckRunListItem extends React.PureComponent<
         : 'This check cannot be re-run individually.'
 
     return (
-      <div className={classes} onClick={this.rerunJob}>
-        <TooltippedContent tooltip={tooltip}>
-          <Octicon symbol={octicons.sync} />
-        </TooltippedContent>
-      </div>
+      <Button
+        className={classes}
+        tooltip={tooltip}
+        onClick={this.rerunJob}
+        ariaLabel={tooltip}
+      >
+        {viewOcticon && <Octicon symbol={octicons.sync} />}
+      </Button>
+    )
+  }
+
+  private renderLinkExternal = (): JSX.Element | null => {
+    const { onViewCheckExternally, isCheckRunExpanded } = this.props
+    const { hasFocus } = this.state
+
+    if (onViewCheckExternally === undefined) {
+      return null
+    }
+
+    const viewOcticon = hasFocus || isCheckRunExpanded
+
+    return (
+      <Button
+        role="link"
+        className="view-check-externally"
+        onClick={this.onViewCheckExternally}
+        tooltip="View on GitHub"
+        ariaLabel="View on GitHub"
+      >
+        {viewOcticon && <Octicon symbol={octicons.linkExternal} />}
+      </Button>
+    )
+  }
+
+  private renderCheckRunButton = (): JSX.Element | null => {
+    const { checkRun, selectable, notExpandable } = this.props
+    const disabled =
+      checkRun.actionJobSteps === undefined ||
+      selectable ||
+      notExpandable === true
+
+    return (
+      <Button
+        className="ci-check-status-button"
+        onClick={this.toggleCheckRunExpansion}
+        ariaExpanded={
+          notExpandable === true ? undefined : this.props.isCheckRunExpanded
+        }
+        disabled={disabled}
+      >
+        {this.renderCheckStatusSymbol()}
+        {this.renderCheckRunName()}
+        {this.renderCheckJobStepToggle()}
+      </Button>
     )
   }
 
@@ -197,19 +240,18 @@ export class CICheckRunListItem extends React.PureComponent<
     return (
       <div
         className="ci-check-list-item-group"
-        onMouseEnter={this.onMouseEnter}
-        onMouseLeave={this.onMouseLeave}
+        onMouseEnter={this.onFocus}
+        onMouseLeave={this.onLooseFocus}
+        onFocus={this.onFocus}
+        onBlur={this.onLooseFocus}
       >
-        <div
-          className={classes}
-          onClick={this.toggleCheckRunExpansion}
-          // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-          tabIndex={0}
-        >
-          {this.renderCheckStatusSymbol()}
-          {this.renderCheckRunName()}
-          {this.renderJobRerun()}
-          {this.renderCheckJobStepToggle()}
+        <div className={classes}>
+          {this.renderCheckRunButton()}
+
+          <span className="check-run-header-buttons">
+            {this.renderJobRerun()}
+            {this.renderLinkExternal()}
+          </span>
         </div>
         {isCheckRunExpanded && checkRun.actionJobSteps !== undefined ? (
           <CICheckRunActionsJobStepList

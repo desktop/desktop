@@ -37,24 +37,39 @@
     }
   }
 
-  .ci-check-status-symbol {
-    margin: 0 var(--spacing-half);
-  }
-
   .ci-check-status-symbol,
   .job-step-toggled-indicator,
-  .job-rerun {
-    padding: var(--spacing);
+  .job-step-toggled-indicator-placeholder {
+    padding: var(--spacing) var(--spacing-half);
     padding-top: calc(var(--spacing-half) * 3);
   }
 
-  .job-step-toggled-indicator {
+  .ci-check-status-symbol {
+    margin: 0 var(--spacing-half);
+    padding-left: var(--spacing-half);
+    padding-bottom: var(--spacing-double);
+  }
+
+  .job-step-toggled-indicator,
+  .job-step-toggled-indicator-placeholder {
     padding-left: 0px;
     color: var(--text-secondary-color);
   }
 
-  .job-rerun {
+  .job-step-toggled-indicator-placeholder {
+    width: 20px;
+  }
+
+  .check-run-header-buttons {
+    position: relative;
+    height: 25px;
+    right: 25px;
+  }
+
+  .job-rerun,
+  .view-check-externally {
     color: var(--text-secondary-color);
+    padding: 0px var(--spacing-half);
 
     &.not-action-job {
       color: var(--text-secondary-color-muted);
@@ -85,5 +100,46 @@
 
     width: 250px;
     height: 12px;
+  }
+
+  .ci-check-status-button {
+    display: flex;
+    flex: 1;
+    margin-left: 1px;
+    padding-left: 0px;
+    padding-right: 0px;
+    margin-right: -50px;
+
+    &:focus {
+      background: var(--list-item-hover-background-color);
+    }
+
+    &:focus + span {
+      .button-component {
+        background: var(--list-item-hover-background-color);
+      }
+    }
+  }
+
+  .button-component {
+    // Remove button styles
+    overflow: inherit;
+    text-overflow: inherit;
+    white-space: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    border: none;
+    height: 100%;
+    border-radius: unset;
+    text-align: unset;
+    background: inherit;
+
+    &:focus {
+      outline-offset: 0px;
+    }
+
+    &:hover {
+      background: var(--list-item-hover-background-color);
+    }
   }
 }
