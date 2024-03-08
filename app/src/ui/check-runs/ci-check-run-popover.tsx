@@ -337,8 +337,7 @@ export class CICheckRunPopover extends React.PureComponent<
       )
 
     return (
-      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-      <div className="ci-check-run-list-header" tabIndex={0}>
+      <div className="ci-check-run-list-header">
         <div className="completeness-indicator">
           {this.renderCompletenessIndicator(
             allSuccessIsh,
@@ -347,18 +346,15 @@ export class CICheckRunPopover extends React.PureComponent<
             checkRuns
           )}
         </div>
-        <div
-          id="ci-check-run-header"
-          className="ci-check-run-list-title-container"
-        >
-          <div className="title">
+        <div className="ci-check-run-list-title-container">
+          <h1 id="ci-check-run-header" className="title">
             {this.getTitle(
               allSuccessIsh,
               allFailure,
               somePendingNoFailures,
               loading
             )}
-          </div>
+          </h1>
           <div className="check-run-list-summary">{checkRunSummary}</div>
         </div>
         {this.renderRerunButton()}
