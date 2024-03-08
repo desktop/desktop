@@ -64,6 +64,7 @@
     position: relative;
     height: 25px;
     right: 25px;
+    min-width: 52px;
   }
 
   .job-rerun,
@@ -87,6 +88,8 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    font-size: inherit;
+    margin: 0;
   }
 
   .ci-check-description {

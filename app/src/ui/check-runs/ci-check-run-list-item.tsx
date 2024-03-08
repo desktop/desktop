@@ -138,7 +138,7 @@ export class CICheckRunListItem extends React.PureComponent<
           className="ci-check-name"
           tooltip={name}
           onlyWhenOverflowed={true}
-          tagName="div"
+          tagName="h3"
           direction={TooltipDirection.NORTH}
         >
           {name}
