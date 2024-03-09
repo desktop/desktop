@@ -75,7 +75,7 @@ export class PullRequestComment extends React.Component<
         pullRequest={pullRequest}
         emoji={emoji}
         eventDate={new Date(comment.created_at)}
-        eventVerb="commented"
+        eventVerb="commented on"
         eventIconSymbol={icon.symbol}
         eventIconClass={icon.className}
         externalURL={comment.html_url}
