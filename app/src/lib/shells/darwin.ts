@@ -22,7 +22,7 @@ export function parse(label: string): Shell {
   return parseEnumValue(Shell, label) ?? Default
 }
 
-function getBundleIDs(shell: Shell): string[] {
+function getBundleIDs(shell: Shell): ReadonlyArray<string> {
   switch (shell) {
     case Shell.Terminal:
       return ['com.apple.Terminal']
@@ -47,7 +47,7 @@ function getBundleIDs(shell: Shell): string[] {
   }
 }
 
-async function getShellPath(
+async function getShellInfo(
   shell: Shell
 ): Promise<{ path: string; bundleID: string } | null> {
   const bundleIds = getBundleIDs(shell)
@@ -70,86 +70,86 @@ export async function getAvailableShells(): Promise<
   ReadonlyArray<FoundShell<Shell>>
 > {
   const [
-    terminalPath,
-    hyperPath,
-    iTermPath,
-    powerShellCorePath,
-    kittyPath,
-    alacrittyPath,
-    tabbyPath,
-    wezTermPath,
-    warpPath,
+    terminalInfo,
+    hyperInfo,
+    iTermInfo,
+    powerShellCoreInfo,
+    kittyInfo,
+    alacrittyInfo,
+    tabbyInfo,
+    wezTermInfo,
+    warpInfo,
   ] = await Promise.all([
-    getShellPath(Shell.Terminal),
-    getShellPath(Shell.Hyper),
-    getShellPath(Shell.iTerm2),
-    getShellPath(Shell.PowerShellCore),
-    getShellPath(Shell.Kitty),
-    getShellPath(Shell.Alacritty),
-    getShellPath(Shell.Tabby),
-    getShellPath(Shell.WezTerm),
-    getShellPath(Shell.Warp),
+    getShellInfo(Shell.Terminal),
+    getShellInfo(Shell.Hyper),
+    getShellInfo(Shell.iTerm2),
+    getShellInfo(Shell.PowerShellCore),
+    getShellInfo(Shell.Kitty),
+    getShellInfo(Shell.Alacritty),
+    getShellInfo(Shell.Tabby),
+    getShellInfo(Shell.WezTerm),
+    getShellInfo(Shell.Warp),
   ])
 
   const shells: Array<FoundShell<Shell>> = []
-  if (terminalPath) {
-    shells.push({ shell: Shell.Terminal, ...terminalPath })
+  if (terminalInfo) {
+    shells.push({ shell: Shell.Terminal, ...terminalInfo })
   }
 
-  if (hyperPath) {
-    shells.push({ shell: Shell.Hyper, ...hyperPath })
+  if (hyperInfo) {
+    shells.push({ shell: Shell.Hyper, ...hyperInfo })
   }
 
-  if (iTermPath) {
-    shells.push({ shell: Shell.iTerm2, ...iTermPath })
+  if (iTermInfo) {
+    shells.push({ shell: Shell.iTerm2, ...iTermInfo })
   }
 
-  if (powerShellCorePath) {
-    shells.push({ shell: Shell.PowerShellCore, ...powerShellCorePath })
+  if (powerShellCoreInfo) {
+    shells.push({ shell: Shell.PowerShellCore, ...powerShellCoreInfo })
   }
 
-  if (kittyPath) {
-    const kittyExecutable = `${kittyPath.path}/Contents/MacOS/kitty`
+  if (kittyInfo) {
+    const kittyExecutable = `${kittyInfo.path}/Contents/MacOS/kitty`
     shells.push({
       shell: Shell.Kitty,
       path: kittyExecutable,
-      bundleID: kittyPath.bundleID,
+      bundleID: kittyInfo.bundleID,
     })
   }
 
-  if (alacrittyPath) {
-    const alacrittyExecutable = `${alacrittyPath.path}/Contents/MacOS/alacritty`
+  if (alacrittyInfo) {
+    const alacrittyExecutable = `${alacrittyInfo.path}/Contents/MacOS/alacritty`
     shells.push({
       shell: Shell.Alacritty,
       path: alacrittyExecutable,
-      bundleID: alacrittyPath.bundleID,
+      bundleID: alacrittyInfo.bundleID,
     })
   }
 
-  if (tabbyPath) {
-    const tabbyExecutable = `${tabbyPath.path}/Contents/MacOS/Tabby`
+  if (tabbyInfo) {
+    const tabbyExecutable = `${tabbyInfo.path}/Contents/MacOS/Tabby`
     shells.push({
       shell: Shell.Tabby,
       path: tabbyExecutable,
-      bundleID: tabbyPath.bundleID,
+      bundleID: tabbyInfo.bundleID,
     })
   }
 
-  if (wezTermPath) {
-    const wezTermExecutable = `${wezTermPath.path}/Contents/MacOS/wezterm`
+  if (wezTermInfo) {
+    const wezTermExecutable = `${wezTermInfo.path}/Contents/MacOS/wezterm`
     shells.push({
       shell: Shell.WezTerm,
       path: wezTermExecutable,
-      bundleID: wezTermPath.bundleID,
+      bundleID: wezTermInfo.bundleID,
     })
   }
 
-  if (warpPath) {
-    const warpExecutable = `${warpPath.path}/Contents/MacOS/stable`
+  if (warpInfo) {
+    const warpExecutable = `${warpInfo.path}/Contents/MacOS/stable`
     shells.push({
       shell: Shell.Warp,
       path: warpExecutable,
-      bundleID: warpPath.bundleID,
+      bundleID: warpInfo.bundleID,
     })
   }
 

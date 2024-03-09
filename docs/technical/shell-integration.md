@@ -172,8 +172,8 @@ use Hyper as a reference to explain the rest of the process.
 
 ### Step 1: Find the shell application
 
-The `getBundleID()s` function is used to map a shell enum to it's bundle ID
-that is defined in it's manifest. You should add a new entry here for your
+The `getBundleIDs()` function is used to map a shell enum to the possible bundle IDs
+that are defined in its manifest. You should add a new entry here for your
 shell. An array is returned to handle the case where a shell updates its bundle ID.
 
 ```ts
@@ -189,23 +189,23 @@ export async function getAvailableShells(): Promise<
   ReadonlyArray<FoundShell<Shell>>
 > {
   const [
-    terminalPath,
-    hyperPath,
-    iTermPath,
-    powerShellCorePath,
-    kittyPath,
+    terminalInfo,
+    hyperInfo,
+    iTermInfo,
+    powerShellCoreInfo,
+    kittyInfo,
   ] = await Promise.all([
-    getShellPath(Shell.Terminal),
-    getShellPath(Shell.Hyper),
-    getShellPath(Shell.iTerm2),
-    getShellPath(Shell.PowerShellCore),
-    getShellPath(Shell.Kitty),
+    getShellInfo(Shell.Terminal),
+    getShellInfo(Shell.Hyper),
+    getShellInfo(Shell.iTerm2),
+    getShellInfo(Shell.PowerShellCore),
+    getShellInfo(Shell.Kitty),
   ])
 
   // other code
 
-  if (hyperPath) {
-    shells.push({ shell: Shell.Hyper, ...hyperPath })
+  if (hyperInfo) {
+    shells.push({ shell: Shell.Hyper, ...hyperInfo })
   }
 
   // other code
