@@ -185,7 +185,7 @@ export class NotificationsStore {
       return
     }
 
-    const title = `@${comment.user.login} commented your pull request`
+    const title = `@${comment.user.login} commented on your pull request`
     const body = `${pullRequest.title} #${
       pullRequest.pullRequestNumber
     }\n${truncateWithEllipsis(comment.body, 50)}`
