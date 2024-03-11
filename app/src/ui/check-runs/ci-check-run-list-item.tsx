@@ -29,6 +29,14 @@ interface ICICheckRunListItemProps {
   /** Showing a condensed view */
   readonly isCondensedView?: boolean
 
+  /**
+   * When the list item is displayed in the rerun dialog, there are no sub
+   * elements or view so they are not headers.
+   *
+   * Default: true
+   **/
+  readonly isHeader?: false
+
   /** Callback for when a check run is clicked */
   readonly onCheckRunExpansionToggleClick: (checkRun: IRefCheck) => void
 
@@ -130,7 +138,7 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderCheckRunName = (): JSX.Element => {
-    const { checkRun, isCondensedView } = this.props
+    const { checkRun, isCondensedView, isHeader } = this.props
     const { name, description } = checkRun
     return (
       <div className="ci-check-list-item-detail">
@@ -138,7 +146,7 @@ export class CICheckRunListItem extends React.PureComponent<
           className="ci-check-name"
           tooltip={name}
           onlyWhenOverflowed={true}
-          tagName="h3"
+          tagName={isHeader === false ? 'span' : 'h3'}
           direction={TooltipDirection.NORTH}
         >
           {name}

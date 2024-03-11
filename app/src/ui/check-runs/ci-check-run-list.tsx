@@ -166,6 +166,7 @@ export class CICheckRunList extends React.PureComponent<
           onViewJobStep={this.props.onViewJobStep}
           onRerunJob={this.props.onRerunJob}
           isCondensedView={this.props.isCondensedView}
+          isHeader={false}
         />
       )
     })
