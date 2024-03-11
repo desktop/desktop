@@ -167,8 +167,8 @@ export class CICheckRunListItem extends React.PureComponent<
 
     const tooltip =
       checkRun.actionJobSteps !== undefined
-        ? 'Re-run this check'
-        : 'This check cannot be re-run individually.'
+        ? `Re-run ${checkRun.name}`
+        : `${checkRun.name} check cannot be re-run individually.`
 
     return (
       <Button
@@ -183,7 +183,7 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderLinkExternal = (): JSX.Element | null => {
-    const { onViewCheckExternally, isCheckRunExpanded } = this.props
+    const { onViewCheckExternally, isCheckRunExpanded, checkRun } = this.props
     const { hasFocus } = this.state
 
     if (onViewCheckExternally === undefined) {
@@ -191,14 +191,15 @@ export class CICheckRunListItem extends React.PureComponent<
     }
 
     const viewOcticon = hasFocus || isCheckRunExpanded
+    const label = `View ${checkRun.name} on GitHub`
 
     return (
       <Button
         role="link"
         className="view-check-externally"
         onClick={this.onViewCheckExternally}
-        tooltip="View on GitHub"
-        ariaLabel="View on GitHub"
+        tooltip={label}
+        ariaLabel={label}
       >
         {viewOcticon && <Octicon symbol={octicons.linkExternal} />}
       </Button>
