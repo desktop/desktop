@@ -13,6 +13,7 @@
     scroll-margin-top: 72px;
 
     .job-step-duration {
+      text-align: right;
       color: var(--text-secondary-color);
     }
 
@@ -36,6 +37,24 @@
       span {
         cursor: pointer !important;
       }
+    }
+
+    .button-component {
+      // Remove button styles
+      overflow: inherit;
+      text-overflow: inherit;
+      white-space: inherit;
+      font-family: inherit;
+      font-size: inherit;
+      border: none;
+      height: 100%;
+      border-radius: unset;
+      text-align: unset;
+      background: inherit;
+    }
+
+    .view-check-externally {
+      color: var(--text-secondary-color);
     }
   }
 }
