@@ -88,6 +88,10 @@
 
         .ci-check-list-item {
           padding-left: var(--spacing);
+
+          .check-run-header-buttons {
+            right: var(--spacing-half);
+          }
         }
       }
 
