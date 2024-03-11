@@ -209,6 +209,16 @@ export class CICheckRunListItem extends React.PureComponent<
     const { checkRun, selectable, notExpandable } = this.props
     const disabled = checkRun.actionJobSteps === undefined || selectable
 
+    if (disabled) {
+      return (
+        <div className="ci-check-status-button">
+          {this.renderCheckStatusSymbol()}
+          {this.renderCheckRunName()}
+          {this.renderCheckJobStepToggle()}
+        </div>
+      )
+    }
+
     return (
       <Button
         className="ci-check-status-button"
@@ -226,10 +236,18 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   public render() {
-    const { checkRun, isCheckRunExpanded, selected, isCondensedView } =
-      this.props
+    const {
+      checkRun,
+      isCheckRunExpanded,
+      selected,
+      isCondensedView,
+      selectable,
+    } = this.props
 
-    const classes = classNames('ci-check-list-item', 'list-item', {
+    const disabled = checkRun.actionJobSteps === undefined || selectable
+
+    const classes = classNames('ci-check-list-item', {
+      'list-item': !disabled,
       sticky: isCheckRunExpanded,
       selected,
       condensed: isCondensedView,

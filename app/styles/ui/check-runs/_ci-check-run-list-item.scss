@@ -3,6 +3,8 @@
   width: 100%;
   border-bottom: var(--base-border);
   height: auto;
+  flex-direction: row;
+  align-items: center;
 
   &.condensed {
     border-bottom: none;
