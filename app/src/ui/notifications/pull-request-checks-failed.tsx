@@ -208,7 +208,14 @@ export class PullRequestChecksFailed extends React.Component<
     }
 
     return (
-      <div className="ci-check-run-job-steps-container">{stepsContent}</div>
+      <div
+        className="ci-check-run-job-steps-container"
+        role="region"
+        id={`checkrun-${selectedCheck.id}`}
+        aria-labelledby={`check-run-header-${selectedCheck.id}`}
+      >
+        {stepsContent}
+      </div>
     )
   }
 

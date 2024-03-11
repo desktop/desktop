@@ -143,6 +143,7 @@ export class CICheckRunListItem extends React.PureComponent<
     return (
       <div className="ci-check-list-item-detail">
         <TooltippedContent
+          id={`check-run-header-${checkRun.id}`}
           className="ci-check-name"
           tooltip={name}
           onlyWhenOverflowed={true}
@@ -233,7 +234,8 @@ export class CICheckRunListItem extends React.PureComponent<
       <Button
         className="ci-check-status-button"
         onClick={this.toggleCheckRunExpansion}
-        ariaExpanded={this.props.isCheckRunExpanded}
+        ariaExpanded={!selectable ? this.props.isCheckRunExpanded : undefined}
+        ariaControls={`checkRun-${checkRun.id}`}
         disabled={disabled}
       >
         {this.renderCheckStatusSymbol()}
@@ -277,10 +279,16 @@ export class CICheckRunListItem extends React.PureComponent<
           </span>
         </div>
         {isCheckRunExpanded && checkRun.actionJobSteps !== undefined ? (
-          <CICheckRunActionsJobStepList
-            steps={checkRun.actionJobSteps}
-            onViewJobStep={this.onViewJobStep}
-          />
+          <div
+            role="region"
+            id={`checkrun-${checkRun.id}`}
+            aria-labelledby={`check-run-header-${checkRun.id}`}
+          >
+            <CICheckRunActionsJobStepList
+              steps={checkRun.actionJobSteps}
+              onViewJobStep={this.onViewJobStep}
+            />
+          </div>
         ) : null}
       </div>
     )
