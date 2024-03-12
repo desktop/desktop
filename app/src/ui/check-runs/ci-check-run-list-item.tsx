@@ -276,9 +276,42 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
     )
   }
 
+  public renderStepsRegion() {
+    const { isCheckRunExpanded, checkRun } = this.props
+
+    if (!isCheckRunExpanded) {
+      return null
+    }
+
+    return (
+      <div
+        role="region"
+        className="ci-steps-container"
+        id={`checkrun-${checkRun.id}`}
+        aria-labelledby={`check-run-header-${checkRun.id}`}
+      >
+        {this.renderStepsHeader()}
+
+        {checkRun.actionJobSteps === undefined ? (
+          <div className="no-steps">
+            This is not a GitHub Action's check and therefore does not have
+            steps. It cannot be rerun in GitHub Desktop,{' '}
+            <LinkButton onClick={this.onViewCheckExternally}>
+              view the check's details on GitHub.
+            </LinkButton>{' '}
+          </div>
+        ) : (
+          <CICheckRunActionsJobStepList
+            steps={checkRun.actionJobSteps}
+            onViewJobStep={this.onViewJobStep}
+          />
+        )}
+      </div>
+    )
+  }
+
   public render() {
-    const { checkRun, isCheckRunExpanded, selected, isCondensedView } =
-      this.props
+    const { isCheckRunExpanded, selected, isCondensedView } = this.props
 
     const classes = classNames('ci-check-list-item', {
       sticky: isCheckRunExpanded,
@@ -288,32 +321,7 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
     return (
       <div className="ci-check-list-item-group">
         <div className={classes}>{this.renderCheckRunButton()}</div>
-        {isCheckRunExpanded ? (
-          <div
-            role="region"
-            className="ci-steps-container"
-            id={`checkrun-${checkRun.id}`}
-            aria-labelledby={`check-run-header-${checkRun.id}`}
-          >
-            {this.renderStepsHeader()}
-
-            {checkRun.actionJobSteps === undefined ? (
-              <div className="no-steps">
-                {' '}
-                This is not a GitHub Action's check and therefore does not have
-                steps. It cannot be rerun in GitHub Desktop,{' '}
-                <LinkButton onClick={this.onViewCheckExternally}>
-                  view the check's details on GitHub.
-                </LinkButton>{' '}
-              </div>
-            ) : (
-              <CICheckRunActionsJobStepList
-                steps={checkRun.actionJobSteps}
-                onViewJobStep={this.onViewJobStep}
-              />
-            )}
-          </div>
-        ) : null}
+        {this.renderStepsRegion()}
       </div>
     )
   }
