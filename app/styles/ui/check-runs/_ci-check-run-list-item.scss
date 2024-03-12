@@ -58,6 +58,7 @@
 
   .job-step-toggled-indicator {
     padding-left: 0px;
+    padding-right: var(--spacing-half);
     color: var(--text-secondary-color);
   }
 
@@ -66,16 +67,6 @@
     height: 25px;
     right: 25px;
     min-width: 52px;
-  }
-
-  .job-rerun,
-  .view-check-externally {
-    color: var(--text-secondary-color);
-    padding: 0px var(--spacing-half);
-
-    &.not-action-job {
-      color: var(--text-secondary-color-muted);
-    }
   }
 
   .ci-check-list-item-detail {
@@ -155,10 +146,6 @@
       padding: 0;
       margin-left: var(--spacing);
       color: var(--text-secondary-color);
-
-      &.not-action-job {
-        color: var(--text-secondary-color-muted);
-      }
     }
   }
 }

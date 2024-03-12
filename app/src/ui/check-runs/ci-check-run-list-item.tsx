@@ -54,20 +54,8 @@ interface ICICheckRunListItemProps {
   readonly onRerunJob?: (checkRun: IRefCheck) => void
 }
 
-interface ICICheckRunListItemState {
-  readonly hasFocus: boolean
-}
-
 /** The CI check list item. */
-export class CICheckRunListItem extends React.PureComponent<
-  ICICheckRunListItemProps,
-  ICICheckRunListItemState
-> {
-  public constructor(props: ICICheckRunListItemProps) {
-    super(props)
-    this.state = { hasFocus: false }
-  }
-
+export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemProps> {
   private toggleCheckRunExpansion = () => {
     this.props.onCheckRunExpansionToggleClick(this.props.checkRun)
   }
@@ -87,16 +75,6 @@ export class CICheckRunListItem extends React.PureComponent<
     }
 
     this.props.onRerunJob?.(this.props.checkRun)
-  }
-
-  private onFocus = () => {
-    if (!this.state.hasFocus) {
-      this.setState({ hasFocus: true })
-    }
-  }
-
-  private onLooseFocus = () => {
-    this.setState({ hasFocus: false })
   }
 
   private renderCheckStatusSymbol = (): JSX.Element => {
@@ -157,47 +135,33 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderJobRerun = (): JSX.Element | null => {
-    const { checkRun, isCheckRunExpanded, onRerunJob } = this.props
-    const { hasFocus } = this.state
+    const { checkRun, onRerunJob } = this.props
 
     if (onRerunJob === undefined) {
       return null
     }
 
-    const viewOcticon = hasFocus || isCheckRunExpanded
-
-    const classes = classNames('job-rerun', {
-      'not-action-job': checkRun.actionJobSteps === undefined,
-    })
-
-    const tooltip =
-      checkRun.actionJobSteps !== undefined
-        ? `Re-run ${checkRun.name}`
-        : `${checkRun.name} check cannot be re-run individually.`
-
+    const tooltip = `Re-run ${checkRun.name}`
     return (
       <Button
-        className={classes}
+        className="job-rerun"
         tooltip={tooltip}
         onClick={this.rerunJob}
         ariaLabel={tooltip}
       >
-        {viewOcticon && <Octicon symbol={octicons.sync} />}
+        <Octicon symbol={octicons.sync} />
       </Button>
     )
   }
 
   private renderLinkExternal = (): JSX.Element | null => {
-    const { onViewCheckExternally, isCheckRunExpanded, checkRun } = this.props
-    const { hasFocus } = this.state
+    const { onViewCheckExternally, checkRun } = this.props
 
     if (onViewCheckExternally === undefined) {
       return null
     }
 
-    const viewOcticon = hasFocus || isCheckRunExpanded
     const label = `View ${checkRun.name} on GitHub`
-
     return (
       <Button
         role="link"
@@ -206,7 +170,7 @@ export class CICheckRunListItem extends React.PureComponent<
         tooltip={label}
         ariaLabel={label}
       >
-        {viewOcticon && <Octicon symbol={octicons.linkExternal} />}
+        <Octicon symbol={octicons.linkExternal} />
       </Button>
     )
   }
@@ -322,13 +286,7 @@ export class CICheckRunListItem extends React.PureComponent<
       condensed: isCondensedView,
     })
     return (
-      <div
-        className="ci-check-list-item-group"
-        onMouseEnter={this.onFocus}
-        onMouseLeave={this.onLooseFocus}
-        onFocus={this.onFocus}
-        onBlur={this.onLooseFocus}
-      >
+      <div className="ci-check-list-item-group">
         <div className={classes}>{this.renderCheckRunButton()}</div>
         {isCheckRunExpanded ? (
           <div
