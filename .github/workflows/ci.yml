@@ -262,7 +262,7 @@ jobs:
           echo "---"
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: GitHub Desktop for Linux ${{ env.RELEASE_TAG_WITHOUT_PREFIX }}
           body_path: script/release_notes.txt
