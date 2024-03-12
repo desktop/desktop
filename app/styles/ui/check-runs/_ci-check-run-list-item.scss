@@ -40,8 +40,7 @@
   }
 
   .ci-check-status-symbol,
-  .job-step-toggled-indicator,
-  .job-step-toggled-indicator-placeholder {
+  .job-step-toggled-indicator {
     padding: var(--spacing) var(--spacing-half);
     padding-top: calc(var(--spacing-half) * 3);
   }
@@ -52,14 +51,9 @@
     padding-bottom: var(--spacing-double);
   }
 
-  .job-step-toggled-indicator,
-  .job-step-toggled-indicator-placeholder {
+  .job-step-toggled-indicator {
     padding-left: 0px;
     color: var(--text-secondary-color);
-  }
-
-  .job-step-toggled-indicator-placeholder {
-    width: 20px;
   }
 
   .check-run-header-buttons {
