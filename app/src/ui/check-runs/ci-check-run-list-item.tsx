@@ -9,6 +9,7 @@ import { CICheckRunActionsJobStepList } from './ci-check-run-actions-job-step-li
 import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
 import { TooltipDirection } from '../lib/tooltip'
 import { Button } from '../lib/button'
+import { LinkButton } from '../lib/link-button'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -296,6 +297,12 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   public renderStepsHeader = (): JSX.Element | null => {
+    const { actionJobSteps } = this.props.checkRun
+
+    if (actionJobSteps === undefined) {
+      return null
+    }
+
     return (
       <div className="ci-steps-header">
         <h4>{this.getStepConclusionText()}</h4>
@@ -333,7 +340,14 @@ export class CICheckRunListItem extends React.PureComponent<
             {this.renderStepsHeader()}
 
             {checkRun.actionJobSteps === undefined ? (
-              <div className="no-steps"> Nothing to see here message </div>
+              <div className="no-steps">
+                {' '}
+                This is not a GitHub Action's check and therefore does not have
+                steps. It cannot be rerun in GitHub Desktop,{' '}
+                <LinkButton onClick={this.onViewCheckExternally}>
+                  view the check's details on GitHub.
+                </LinkButton>{' '}
+              </div>
             ) : (
               <CICheckRunActionsJobStepList
                 steps={checkRun.actionJobSteps}
