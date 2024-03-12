@@ -211,18 +211,7 @@ export class CICheckRunListItem extends React.PureComponent<
   }
 
   private renderCheckRunButton = (): JSX.Element | null => {
-    const { checkRun, selectable, notExpandable } = this.props
-    const disabled = !selectable && notExpandable
-
-    if (disabled) {
-      return (
-        <div className="ci-check-status-button">
-          {this.renderCheckStatusSymbol()}
-          {this.renderCheckRunName()}
-          {this.renderCheckJobStepToggle()}
-        </div>
-      )
-    }
+    const { checkRun, selectable } = this.props
 
     return (
       <Button
@@ -230,7 +219,6 @@ export class CICheckRunListItem extends React.PureComponent<
         onClick={this.toggleCheckRunExpansion}
         ariaExpanded={!selectable ? this.props.isCheckRunExpanded : undefined}
         ariaControls={`checkRun-${checkRun.id}`}
-        disabled={disabled}
       >
         {this.renderCheckJobStepToggle()}
         {this.renderCheckStatusSymbol()}
