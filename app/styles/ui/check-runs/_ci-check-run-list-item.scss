@@ -23,6 +23,11 @@
     background-color: var(--background-color);
     top: 29px;
     z-index: var(--list-sticky-header-second-level-z-index);
+
+    .ci-check-status-button:focus,
+    .ci-check-status-button:hover {
+      background-color: var(--background-color);
+    }
   }
 
   &.selected .ci-check-name span.isLink {
@@ -107,7 +112,6 @@
     margin-left: 1px;
     padding-left: 0px;
     padding-right: 0px;
-    margin-right: -50px;
 
     &:focus {
       background: var(--list-item-hover-background-color);
@@ -119,7 +123,47 @@
       }
     }
   }
+}
 
+.ci-steps-container {
+  background-color: var(--box-alt-background-color);
+
+  .no-steps {
+    padding: var(--spacing);
+    text-align: center;
+  }
+
+  .ci-steps-header {
+    display: flex;
+    justify-content: end;
+    padding: var(--spacing-half);
+    padding-top: var(--spacing);
+    padding-bottom: 0;
+    border-bottom: 1px solid var(--box-skeleton-background-color);
+    margin-bottom: var(--spacing-half);
+    margin-left: var(--spacing-half);
+    margin-right: var(--spacing-half);
+
+    h4 {
+      flex-grow: 1;
+      font-weight: var(--font-weight-semibold);
+      margin-bottom: var(--spacing-half);
+    }
+
+    .job-rerun,
+    .view-check-externally {
+      padding: 0;
+      margin-left: var(--spacing);
+      color: var(--text-secondary-color);
+
+      &.not-action-job {
+        color: var(--text-secondary-color-muted);
+      }
+    }
+  }
+}
+.ci-steps-container,
+.ci-check-list-item {
   .button-component {
     // Remove button styles
     overflow: inherit;
@@ -139,42 +183,6 @@
 
     &:hover {
       background: var(--list-item-hover-background-color);
-    }
-  }
-}
-.ci-steps-container {
-  background-color: var(--box-alt-background-color);
-
-  .no-steps {
-    padding: var(--spacing);
-    text-align: center;
-  }
-}
-
-.ci-steps-header {
-  display: flex;
-  justify-content: end;
-  padding: var(--spacing-half);
-  padding-top: var(--spacing);
-  padding-bottom: 0;
-  border-bottom: 1px solid var(--box-skeleton-background-color);
-  margin-bottom: var(--spacing-half);
-  margin-left: var(--spacing-half);
-  margin-right: var(--spacing-half);
-
-  h4 {
-    flex-grow: 1;
-    font-weight: unset;
-  }
-
-  .job-rerun,
-  .view-check-externally {
-    padding: 0;
-    margin-left: var(--spacing);
-    color: var(--text-secondary-color);
-
-    &.not-action-job {
-      color: var(--text-secondary-color-muted);
     }
   }
 }

@@ -220,7 +220,6 @@ export class CICheckRunListItem extends React.PureComponent<
         ariaExpanded={!selectable ? this.props.isCheckRunExpanded : undefined}
         ariaControls={`checkRun-${checkRun.id}`}
       >
-        {this.renderCheckJobStepToggle()}
         {this.renderCheckStatusSymbol()}
         {this.renderCheckRunName()}
         {this.renderCheckJobStepToggle()}
