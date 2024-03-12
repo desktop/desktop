@@ -4,6 +4,7 @@ import {
   GitError as DugiteError,
   IGitExecutionOptions as DugiteExecutionOptions,
 } from 'dugite'
+import { GitErrorRegexes as DugiteErrorRegexes } from 'dugite/build/lib/errors'
 
 import { assertNever } from '../fatal-error'
 import * as GitPerf from '../../ui/lib/git-perf'
@@ -191,9 +192,8 @@ export async function git(
       }
     }
 
-    const gitErrorDescription = gitError
-      ? getDescriptionForError(gitError)
-      : null
+    const gitErrorDescription =
+      gitError !== null ? getDescriptionForError(gitError, result.stderr) : null
     const gitResult = {
       ...result,
       gitError,
@@ -306,7 +306,10 @@ export function parseConfigLockFilePathFromError(result: IGitResult) {
   return Path.resolve(result.path, `${normalized}.lock`)
 }
 
-function getDescriptionForError(error: DugiteError): string | null {
+function getDescriptionForError(
+  error: DugiteError,
+  stderr: string
+): string | null {
   if (isAuthFailureError(error)) {
     const menuHint = __DARWIN__
       ? 'GitHub Desktop > Settings.'
@@ -323,6 +326,15 @@ function getDescriptionForError(error: DugiteError): string | null {
   }
 
   switch (error) {
+    case DugiteError.BadConfigValue:
+      const errorEntry = Object.entries(DugiteErrorRegexes).find(
+        ([_, v]) => v === DugiteError.BadConfigValue
+      )
+      const m = stderr.match(errorEntry![0])
+      const value = m![1]
+      const key = m![2]
+
+      return `Unsupported value '${value}' for git config key '${key}'`
     case DugiteError.SSHKeyAuditUnverified:
       return 'The SSH key is unverified.'
     case DugiteError.RemoteDisconnection:
