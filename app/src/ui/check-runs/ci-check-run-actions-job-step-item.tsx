@@ -44,7 +44,7 @@ export class CICheckRunActionsJobStepListItem extends React.PureComponent<ICIChe
     const { step } = this.props
     return (
       <li
-        className="ci-check-run-job-step list-item"
+        className="ci-check-run-job-step"
         ref={this.onStepHeaderRef(step)}
         aria-label={`${step.name}, ${getFormattedCheckRunLongDuration(
           step

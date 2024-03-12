@@ -7,6 +7,12 @@
   .ci-check-run-job-step {
     background-color: var(--box-alt-background-color);
 
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+
     // This is the height of a check run step and check run group header so that
     // when a first failed step is scroll into view it doesn't end up under the
     // sticky headers (which are like fixed headers)
@@ -15,11 +21,6 @@
     .job-step-duration {
       text-align: right;
       color: var(--text-secondary-color);
-    }
-
-    &:hover {
-      /* 100% is baseline so 95% is 5% darker */
-      filter: brightness(95%);
     }
 
     .job-step-status-symbol,
