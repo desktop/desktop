@@ -232,6 +232,7 @@ export class CICheckRunListItem extends React.PureComponent<
         ariaControls={`checkRun-${checkRun.id}`}
         disabled={disabled}
       >
+        {this.renderCheckJobStepToggle()}
         {this.renderCheckStatusSymbol()}
         {this.renderCheckRunName()}
         {this.renderCheckJobStepToggle()}
@@ -239,19 +240,23 @@ export class CICheckRunListItem extends React.PureComponent<
     )
   }
 
-  public render() {
-    const {
-      checkRun,
-      isCheckRunExpanded,
-      selected,
-      isCondensedView,
-      selectable,
-    } = this.props
+  public renderStepsHeader = (): JSX.Element | null => {
+    const { actionJobSteps } = this.props.checkRun
 
-    const disabled = checkRun.actionJobSteps === undefined || selectable
+    return (
+      <div className="ci-steps-header">
+        <h4>{actionJobSteps?.length} steps</h4>
+        {this.renderJobRerun()}
+        {this.renderLinkExternal()}
+      </div>
+    )
+  }
+
+  public render() {
+    const { checkRun, isCheckRunExpanded, selected, isCondensedView } =
+      this.props
 
     const classes = classNames('ci-check-list-item', {
-      'list-item': !disabled,
       sticky: isCheckRunExpanded,
       selected,
       condensed: isCondensedView,
@@ -264,24 +269,24 @@ export class CICheckRunListItem extends React.PureComponent<
         onFocus={this.onFocus}
         onBlur={this.onLooseFocus}
       >
-        <div className={classes}>
-          {this.renderCheckRunButton()}
-
-          <span className="check-run-header-buttons">
-            {this.renderJobRerun()}
-            {this.renderLinkExternal()}
-          </span>
-        </div>
-        {isCheckRunExpanded && checkRun.actionJobSteps !== undefined ? (
+        <div className={classes}>{this.renderCheckRunButton()}</div>
+        {isCheckRunExpanded ? (
           <div
             role="region"
+            className="ci-steps-container"
             id={`checkrun-${checkRun.id}`}
             aria-labelledby={`check-run-header-${checkRun.id}`}
           >
-            <CICheckRunActionsJobStepList
-              steps={checkRun.actionJobSteps}
-              onViewJobStep={this.onViewJobStep}
-            />
+            {this.renderStepsHeader()}
+
+            {checkRun.actionJobSteps === undefined ? (
+              <div className="no-steps"> Nothing to see here message </div>
+            ) : (
+              <CICheckRunActionsJobStepList
+                steps={checkRun.actionJobSteps}
+                onViewJobStep={this.onViewJobStep}
+              />
+            )}
           </div>
         ) : null}
       </div>
