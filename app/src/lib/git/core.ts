@@ -187,7 +187,7 @@ export async function git(
       : false
     if (!acceptableExitCode) {
       gitError = GitProcess.parseError(result.stderr)
-      if (!gitError) {
+      if (gitError === null) {
         gitError = GitProcess.parseError(result.stdout)
       }
     }
@@ -203,11 +203,11 @@ export async function git(
     }
 
     let acceptableError = true
-    if (gitError && opts.expectedErrors) {
+    if (gitError !== null && opts.expectedErrors) {
       acceptableError = opts.expectedErrors.has(gitError)
     }
 
-    if ((gitError && acceptableError) || acceptableExitCode) {
+    if ((gitError !== null && acceptableError) || acceptableExitCode) {
       return gitResult
     }
 
@@ -227,7 +227,7 @@ export async function git(
       errorMessage.push(result.stderr)
     }
 
-    if (gitError) {
+    if (gitError !== null) {
       errorMessage.push(
         `(The error was parsed as ${gitError}: ${gitErrorDescription})`
       )
