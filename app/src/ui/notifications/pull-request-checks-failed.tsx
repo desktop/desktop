@@ -228,6 +228,7 @@ export class PullRequestChecksFailed extends React.Component<
       </div>
     )
   }
+
   private renderEmptyLogOutput() {
     return (
       <div className="no-steps-to-display">

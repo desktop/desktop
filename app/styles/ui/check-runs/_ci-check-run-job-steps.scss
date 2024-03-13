@@ -1,6 +1,5 @@
 .ci-check-run-job-steps-list {
   overflow-y: auto;
-  border-bottom: var(--base-border);
   margin: 0px;
   padding: 0px;
 
@@ -27,6 +26,10 @@
     .job-step-duration {
       padding: var(--spacing-half) var(--spacing);
       margin-top: 2px;
+    }
+
+    .job-step-status-symbol {
+      padding-left: 0px;
     }
 
     .job-step-name {
@@ -56,6 +59,7 @@
 
     .view-check-externally {
       color: var(--text-secondary-color);
+      padding: var(--spacing-half);
     }
   }
 }

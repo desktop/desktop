@@ -9,8 +9,10 @@ import { CICheckRunActionsJobStepList } from './ci-check-run-actions-job-step-li
 import { IAPIWorkflowJobStep } from '../../lib/api'
 import { TooltipDirection } from '../lib/tooltip'
 import { Button } from '../lib/button'
-import { LinkButton } from '../lib/link-button'
 import { getCombinedStatusSummary } from './ci-check-run-popover'
+import { encodePathAsUrl } from '../../lib/path'
+
+const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -176,31 +178,44 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
     )
   }
 
-  private renderCheckRunButton = (): JSX.Element | null => {
-    const { checkRun, selectable } = this.props
+  private renderCheckRunListItem = (): JSX.Element | null => {
+    const {
+      checkRun,
+      selectable,
+      notExpandable,
+      isCheckRunExpanded,
+      selected,
+      isCondensedView,
+    } = this.props
+
+    const classes = classNames('ci-check-list-item', {
+      sticky: isCheckRunExpanded,
+      selected,
+      condensed: isCondensedView,
+    })
+
+    const content = (
+      <>
+        {this.renderCheckStatusSymbol()}
+        {this.renderCheckRunName()}
+        {this.renderCheckJobStepToggle()}
+      </>
+    )
+
+    if (!selectable && notExpandable) {
+      return <div className={classes}>{content}</div>
+    }
 
     return (
       <Button
-        className="ci-check-status-button"
+        className={classes}
         onClick={this.toggleCheckRunExpansion}
         ariaExpanded={!selectable ? this.props.isCheckRunExpanded : undefined}
         ariaControls={`checkRun-${checkRun.id}`}
       >
-        {this.renderCheckStatusSymbol()}
-        {this.renderCheckRunName()}
-        {this.renderCheckJobStepToggle()}
+        {content}
       </Button>
     )
-  }
-
-  public getStepConclusionText = () => {
-    const { actionJobSteps } = this.props.checkRun
-
-    if (actionJobSteps === undefined) {
-      return ''
-    }
-
-    return getCombinedStatusSummary(actionJobSteps, 'step')
   }
 
   public renderStepsHeader = (): JSX.Element | null => {
@@ -212,7 +227,7 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
 
     return (
       <div className="ci-steps-header">
-        <h4>{this.getStepConclusionText()}</h4>
+        <h4>{getCombinedStatusSummary(actionJobSteps, 'step')}</h4>
         {this.renderJobRerun()}
         {this.renderLinkExternal()}
       </div>
@@ -236,13 +251,7 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
         {this.renderStepsHeader()}
 
         {checkRun.actionJobSteps === undefined ? (
-          <div className="no-steps">
-            This is not a GitHub Action's check and therefore does not have
-            steps. It cannot be rerun in GitHub Desktop,{' '}
-            <LinkButton onClick={this.onViewCheckExternally}>
-              view the check's details on GitHub.
-            </LinkButton>{' '}
-          </div>
+          this.renderNoSteps()
         ) : (
           <CICheckRunActionsJobStepList
             steps={checkRun.actionJobSteps}
@@ -253,19 +262,32 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
     )
   }
 
-  public render() {
-    const { isCheckRunExpanded, selected, isCondensedView } = this.props
-
-    const classes = classNames('ci-check-list-item', {
-      sticky: isCheckRunExpanded,
-      selected,
-      condensed: isCondensedView,
-    })
+  private renderNoSteps() {
     return (
-      <div className="ci-check-list-item-group">
-        <div className={classes}>{this.renderCheckRunButton()}</div>
-        {this.renderStepsRegion()}
+      <div className="no-steps">
+        <p>
+          There are no steps to display for this check.
+          <Button
+            className="button-with-icon"
+            onClick={this.onViewCheckExternally}
+            role="link"
+          >
+            View check details
+            <Octicon symbol={octicons.linkExternal} />
+          </Button>
+        </p>
+
+        <img src={PaperStackImage} className="blankslate-image" alt="" />
       </div>
+    )
+  }
+
+  public render() {
+    return (
+      <>
+        {this.renderCheckRunListItem()}
+        {this.renderStepsRegion()}
+      </>
     )
   }
 }

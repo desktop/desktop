@@ -98,6 +98,8 @@
       .ci-check-run-job-steps-container {
         width: 60%;
         overflow-y: auto;
+        padding: var(--spacing);
+        background-color: var(--box-alt-background-color);
 
         .ci-check-run-job-steps-list {
           border: none;

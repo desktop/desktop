@@ -1,10 +1,11 @@
 .ci-check-list-item {
   display: flex;
   width: 100%;
+  border: none;
   border-bottom: var(--base-border);
-  height: auto;
   flex-direction: row;
   align-items: center;
+  background-color: var(--background-color);
 
   &.condensed {
     border-bottom: none;
@@ -24,54 +25,24 @@
     top: 29px;
     z-index: var(--list-sticky-header-second-level-z-index);
 
-    .ci-check-status-button:focus,
-    .ci-check-status-button:hover {
+    &:focus-visible,
+    &:hover {
       background-color: var(--background-color);
     }
   }
 
-  &.selected .ci-check-name span.isLink {
-    &:hover {
-      color: var(--link-button-selected-hover-color);
-      cursor: pointer !important;
-    }
-  }
-
-  &:not(.selected) .ci-check-name span.isLink {
-    &:hover {
-      color: var(--link-button-color);
-      cursor: pointer !important;
-    }
-  }
-
-  .ci-check-status-symbol,
   .job-step-toggled-indicator {
-    padding: var(--spacing) var(--spacing-half);
-    padding-top: calc(var(--spacing-half) * 3);
+    color: var(--text-secondary-color);
+    margin-right: var(--spacing-half);
   }
 
   .ci-check-status-symbol {
-    margin: 0 var(--spacing-half);
-    padding-left: var(--spacing-half);
-    padding-bottom: var(--spacing-double);
-  }
-
-  .job-step-toggled-indicator {
-    padding-left: 0px;
-    padding-right: var(--spacing-half);
-    color: var(--text-secondary-color);
-  }
-
-  .check-run-header-buttons {
-    position: relative;
-    height: 25px;
-    right: 25px;
-    min-width: 52px;
+    margin: calc(var(--spacing) * 1.5) 0;
   }
 
   .ci-check-list-item-detail {
     flex: 1;
-    margin: auto;
+    margin: auto var(--spacing);
     overflow-x: hidden;
   }
 
@@ -96,44 +67,33 @@
     width: 250px;
     height: 12px;
   }
-
-  .ci-check-status-button {
-    display: flex;
-    flex: 1;
-    margin-left: 1px;
-    padding-left: 0px;
-    padding-right: 0px;
-
-    &:focus {
-      background: var(--list-item-hover-background-color);
-    }
-
-    &:focus + span {
-      .button-component {
-        background: var(--list-item-hover-background-color);
-      }
-    }
-  }
 }
 
 .ci-steps-container {
   background-color: var(--box-alt-background-color);
+  padding: var(--spacing);
+  border-bottom: var(--base-border);
 
   .no-steps {
-    padding: var(--spacing);
-    text-align: center;
+    display: flex;
+    padding: var(--spacing-double);
+    align-items: center;
+    height: 100%;
+
+    .blankslate-image {
+      min-width: 100px;
+      min-height: unset;
+    }
+
+    .button-component {
+      margin-top: var(--spacing);
+    }
   }
 
   .ci-steps-header {
     display: flex;
     justify-content: end;
-    padding: var(--spacing-half);
-    padding-top: var(--spacing);
-    padding-bottom: 0;
     border-bottom: 1px solid var(--box-skeleton-background-color);
-    margin-bottom: var(--spacing-half);
-    margin-left: var(--spacing-half);
-    margin-right: var(--spacing-half);
 
     h4 {
       flex-grow: 1;
@@ -142,35 +102,36 @@
       color: var(--text-secondary-color);
     }
 
-    .job-rerun,
-    .view-check-externally {
-      padding: 0;
-      margin-left: var(--spacing);
+    .button-component {
+      padding: var(--spacing-half);
       color: var(--text-secondary-color);
     }
   }
 }
-.ci-steps-container,
+
+.ci-steps-container .ci-steps-header,
 .ci-check-list-item {
-  .button-component {
+  &.button-component,
+  > .button-component {
     // Remove button styles
-    overflow: inherit;
-    text-overflow: inherit;
-    white-space: inherit;
-    font-family: inherit;
-    font-size: inherit;
-    border: none;
     height: 100%;
     border-radius: unset;
     text-align: unset;
-    background: inherit;
 
     &:focus {
       outline-offset: 0px;
     }
 
-    &:hover {
-      background: var(--list-item-hover-background-color);
+    &:hover,
+    &:focus-visible,
+    &:not([aria-disabled='true']):hover {
+      border-color: var(--box-border-color);
+      background: var(--box-selected-background-color);
     }
+  }
+
+  > .button-component {
+    border: none;
+    background: inherit;
   }
 }
