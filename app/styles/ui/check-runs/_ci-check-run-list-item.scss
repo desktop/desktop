@@ -67,41 +67,9 @@
     width: 250px;
     height: 12px;
   }
-}
 
-.ci-steps-container {
-  background-color: var(--box-alt-background-color);
-  padding: var(--spacing);
-  border-bottom: var(--base-border);
-
-  &.no-steps {
-    height: 150px;
-  }
-
-  .ci-steps-header {
-    display: flex;
-    justify-content: end;
-    border-bottom: 1px solid var(--box-skeleton-background-color);
-
-    h4 {
-      flex-grow: 1;
-      font-weight: var(--font-weight-semibold);
-      margin-bottom: var(--spacing-half);
-      color: var(--text-secondary-color);
-    }
-
-    .button-component {
-      padding: var(--spacing-half);
-      color: var(--text-secondary-color);
-    }
-  }
-}
-
-.ci-steps-container .ci-steps-header,
-.ci-check-list-item {
-  &.button-component,
-  > .button-component {
-    // Remove button styles
+  &.button-component {
+    // Remove default button styles
     height: 100%;
     border-radius: unset;
     text-align: unset;
@@ -117,9 +85,14 @@
       background: var(--box-selected-background-color);
     }
   }
+}
 
-  > .button-component {
-    border: none;
-    background: inherit;
+.ci-steps-container {
+  background-color: var(--box-alt-background-color);
+  padding: var(--spacing);
+  border-bottom: var(--base-border);
+
+  &.no-steps {
+    height: 150px;
   }
 }

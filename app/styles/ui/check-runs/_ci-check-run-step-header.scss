@@ -1,0 +1,35 @@
+.ci-check-run-steps-header {
+  display: flex;
+  justify-content: end;
+  border-bottom: 1px solid var(--box-skeleton-background-color);
+
+  h4 {
+    flex-grow: 1;
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-half);
+    color: var(--text-secondary-color);
+  }
+
+  .button-component {
+    // Remove default button styles
+    border: none;
+    background: inherit;
+    height: 100%;
+    border-radius: unset;
+    text-align: unset;
+
+    padding: var(--spacing-half);
+    color: var(--text-secondary-color);
+
+    &:focus {
+      outline-offset: 0px;
+    }
+
+    &:hover,
+    &:focus-visible,
+    &:not([aria-disabled='true']):hover {
+      border: var(--box-border-color);
+      background: var(--box-selected-background-color);
+    }
+  }
+}

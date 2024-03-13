@@ -9,8 +9,8 @@ import { CICheckRunActionsJobStepList } from './ci-check-run-actions-job-step-li
 import { IAPIWorkflowJobStep } from '../../lib/api'
 import { TooltipDirection } from '../lib/tooltip'
 import { Button } from '../lib/button'
-import { getCombinedStatusSummary } from './ci-check-run-popover'
 import { CICheckRunNoStepItem } from './ci-check-run-no-steps'
+import { CICheckRunStepListHeader } from './ci-check-run-step-list-header'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -69,8 +69,7 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
     this.props.onViewJobStep?.(this.props.checkRun, step)
   }
 
-  private rerunJob = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  private rerunJob = () => {
     if (this.props.checkRun.actionJobSteps === undefined) {
       return
     }
@@ -135,47 +134,6 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
     )
   }
 
-  private renderJobRerun = (): JSX.Element | null => {
-    const { checkRun, onRerunJob } = this.props
-
-    if (onRerunJob === undefined) {
-      return null
-    }
-
-    const tooltip = `Re-run ${checkRun.name}`
-    return (
-      <Button
-        className="job-rerun"
-        tooltip={tooltip}
-        onClick={this.rerunJob}
-        ariaLabel={tooltip}
-      >
-        <Octicon symbol={octicons.sync} />
-      </Button>
-    )
-  }
-
-  private renderLinkExternal = (): JSX.Element | null => {
-    const { onViewCheckExternally, checkRun } = this.props
-
-    if (onViewCheckExternally === undefined) {
-      return null
-    }
-
-    const label = `View ${checkRun.name} on GitHub`
-    return (
-      <Button
-        role="link"
-        className="view-check-externally"
-        onClick={this.onViewCheckExternally}
-        tooltip={label}
-        ariaLabel={label}
-      >
-        <Octicon symbol={octicons.linkExternal} />
-      </Button>
-    )
-  }
-
   private renderCheckRunListItem = (): JSX.Element | null => {
     const {
       checkRun,
@@ -216,22 +174,6 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
     )
   }
 
-  public renderStepsHeader = (): JSX.Element | null => {
-    const { actionJobSteps } = this.props.checkRun
-
-    if (actionJobSteps === undefined) {
-      return null
-    }
-
-    return (
-      <div className="ci-steps-header">
-        <h4>{getCombinedStatusSummary(actionJobSteps, 'step')}</h4>
-        {this.renderJobRerun()}
-        {this.renderLinkExternal()}
-      </div>
-    )
-  }
-
   public renderStepsRegion() {
     const { isCheckRunExpanded, checkRun } = this.props
 
@@ -252,7 +194,11 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
         id={`checkrun-${checkRun.id}`}
         aria-labelledby={`check-run-header-${checkRun.id}`}
       >
-        {this.renderStepsHeader()}
+        <CICheckRunStepListHeader
+          checkRun={checkRun}
+          onRerunJob={this.rerunJob}
+          onViewCheckExternally={this.onViewCheckExternally}
+        />
 
         {areNoSteps ? (
           <CICheckRunNoStepItem

@@ -23,6 +23,7 @@ import { PopupType } from '../../models/popup'
 import { CICheckReRunButton } from '../check-runs/ci-check-re-run-button'
 import { supportsRerunningIndividualOrFailedChecks } from '../../lib/endpoint-capabilities'
 import { CICheckRunNoStepItem } from '../check-runs/ci-check-run-no-steps'
+import { CICheckRunStepListHeader } from '../check-runs/ci-check-run-step-list-header'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
@@ -199,10 +200,23 @@ export class PullRequestChecksFailed extends React.Component<
     }
 
     return (
-      <CICheckRunActionsJobStepList
-        steps={this.selectedCheck.actionJobSteps}
-        onViewJobStep={this.onViewJobStep}
-      />
+      <>
+        <CICheckRunStepListHeader
+          checkRun={this.selectedCheck}
+          onRerunJob={
+            supportsRerunningIndividualOrFailedChecks(
+              this.props.repository.gitHubRepository.endpoint
+            )
+              ? this.onRerunJob
+              : undefined
+          }
+          onViewCheckExternally={this.onViewSelectedCheckRunOnGitHub}
+        />
+        <CICheckRunActionsJobStepList
+          steps={this.selectedCheck.actionJobSteps}
+          onViewJobStep={this.onViewJobStep}
+        />
+      </>
     )
   }
 
