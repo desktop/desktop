@@ -32,11 +32,28 @@ import {
 } from '../../lib/endpoint-capabilities'
 import { getPullRequestCommitRef } from '../../models/pull-request'
 import { CICheckReRunButton } from './ci-check-re-run-button'
+import groupBy from 'lodash/groupBy'
+import { toSentence } from '../../lib/to_sentence'
 
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
   'static/empty-no-pull-requests.svg'
 )
+
+export function getCombinedStatusSummary(
+  statusHolders: ReadonlyArray<{ conclusion: APICheckConclusion | null }>,
+  description?: 'check' | 'step'
+): string {
+  const conclusions = Object.values(groupBy(statusHolders, 'conclusion')).map(
+    g =>
+      `${g.length} ${getCheckRunConclusionAdjective(
+        g[0].conclusion
+      ).toLocaleLowerCase()}`
+  )
+
+  const pluralize = statusHolders.length > 1 ? `${description}s` : description
+  return `${toSentence(conclusions)} ${pluralize}`
+}
 
 interface ICICheckRunPopoverProps {
   readonly dispatcher: Dispatcher
@@ -171,30 +188,7 @@ export class CICheckRunPopover extends React.PureComponent<
     if (combinedCheck === null || combinedCheck.checks.length === 0) {
       return ''
     }
-
-    const { checks } = combinedCheck
-    const conclusionMap = new Map<string, number>()
-    for (const check of checks) {
-      const adj = getCheckRunConclusionAdjective(
-        check.conclusion
-      ).toLocaleLowerCase()
-      conclusionMap.set(adj, (conclusionMap.get(adj) ?? 0) + 1)
-    }
-
-    const summaryArray = []
-    for (const [conclusion, count] of conclusionMap.entries()) {
-      summaryArray.push({ count, conclusion })
-    }
-
-    if (summaryArray.length > 1) {
-      const output = summaryArray.map(
-        ({ count, conclusion }) => `${count} ${conclusion}`
-      )
-      return `${output.slice(0, -1).join(', ')}, and ${output.slice(-1)} checks`
-    }
-
-    const pluralize = summaryArray[0].count > 1 ? 'checks' : 'check'
-    return `${summaryArray[0].count} ${summaryArray[0].conclusion} ${pluralize}`
+    return getCombinedStatusSummary(combinedCheck.checks, 'check')
   }
 
   private rerunChecks = (

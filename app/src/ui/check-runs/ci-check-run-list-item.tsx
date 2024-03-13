@@ -6,10 +6,11 @@ import classNames from 'classnames'
 import * as octicons from '../octicons/octicons.generated'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { CICheckRunActionsJobStepList } from './ci-check-run-actions-job-step-list'
-import { APICheckConclusion, IAPIWorkflowJobStep } from '../../lib/api'
+import { IAPIWorkflowJobStep } from '../../lib/api'
 import { TooltipDirection } from '../lib/tooltip'
 import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
+import { getCombinedStatusSummary } from './ci-check-run-popover'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -199,65 +200,7 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
       return ''
     }
 
-    const conclusions = new Map<APICheckConclusion | 'in_progress', number>()
-    for (const step of actionJobSteps) {
-      const conclusion = step.conclusion ?? 'in_progress'
-      if (!conclusions.has(conclusion)) {
-        conclusions.set(conclusion, 1)
-      } else {
-        const count = conclusions.get(conclusion) ?? 0
-        conclusions.set(conclusion, count + 1)
-      }
-    }
-
-    let conclusionText = ''
-    // The order below was pulled from https://github.com/github/github/blob/5bb7c283fb19aee35f1f3c5eb929a3b031da3512/packages/checks/app/models/status_check_config.rb#L22
-    const orderedConclussions: ReadonlyArray<{
-      key: APICheckConclusion | 'in_progress'
-      adjective: string
-    }> = [
-      { key: APICheckConclusion.ActionRequired, adjective: 'require action' },
-      { key: APICheckConclusion.TimedOut, adjective: 'timed out' },
-      { key: APICheckConclusion.Failure, adjective: 'failed' },
-      { key: APICheckConclusion.Canceled, adjective: 'canceled' },
-      { key: APICheckConclusion.Stale, adjective: 'stale' },
-      { key: 'in_progress', adjective: 'in progress' },
-      { key: APICheckConclusion.Neutral, adjective: 'neutral' },
-      { key: APICheckConclusion.Skipped, adjective: 'skipped' },
-      { key: APICheckConclusion.Success, adjective: 'successful' },
-    ]
-
-    const appended: Array<APICheckConclusion | 'in_progress'> = []
-    for (const conclusion of orderedConclussions) {
-      if (conclusions.has(conclusion.key)) {
-        if (conclusionText !== '') {
-          conclusionText +=
-            appended.length < conclusions.size - 1 ? ', ' : ', and '
-        }
-        conclusionText += `${conclusions.get(conclusion.key)} ${
-          conclusion.adjective
-        }`
-        appended.push(conclusion.key)
-      }
-      if (appended.length === 3) {
-        break
-      }
-    }
-
-    if (conclusions.size > 3) {
-      const remaining = Array.from(conclusions.keys()).filter(
-        c => !appended.includes(c)
-      )
-
-      const remainingCount = remaining.reduce(
-        (count, key) => count + (conclusions.get(key) ?? 0),
-        0
-      )
-
-      return `${conclusionText}, and ${remainingCount} steps`
-    }
-
-    return `${conclusionText} steps`
+    return getCombinedStatusSummary(actionJobSteps, 'step')
   }
 
   public renderStepsHeader = (): JSX.Element | null => {
