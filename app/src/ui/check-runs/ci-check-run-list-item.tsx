@@ -10,9 +10,7 @@ import { IAPIWorkflowJobStep } from '../../lib/api'
 import { TooltipDirection } from '../lib/tooltip'
 import { Button } from '../lib/button'
 import { getCombinedStatusSummary } from './ci-check-run-popover'
-import { encodePathAsUrl } from '../../lib/path'
-
-const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
+import { CICheckRunNoStepItem } from './ci-check-run-no-steps'
 
 interface ICICheckRunListItemProps {
   /** The check run to display **/
@@ -241,43 +239,31 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
       return null
     }
 
+    const areNoSteps = checkRun.actionJobSteps === undefined
+
+    const classes = classNames('ci-steps-container', {
+      'no-steps': areNoSteps,
+    })
+
     return (
       <div
         role="region"
-        className="ci-steps-container"
+        className={classes}
         id={`checkrun-${checkRun.id}`}
         aria-labelledby={`check-run-header-${checkRun.id}`}
       >
         {this.renderStepsHeader()}
 
-        {checkRun.actionJobSteps === undefined ? (
-          this.renderNoSteps()
+        {areNoSteps ? (
+          <CICheckRunNoStepItem
+            onViewCheckExternally={this.onViewCheckExternally}
+          />
         ) : (
           <CICheckRunActionsJobStepList
             steps={checkRun.actionJobSteps}
             onViewJobStep={this.onViewJobStep}
           />
         )}
-      </div>
-    )
-  }
-
-  private renderNoSteps() {
-    return (
-      <div className="no-steps">
-        <p>
-          There are no steps to display for this check.
-          <Button
-            className="button-with-icon"
-            onClick={this.onViewCheckExternally}
-            role="link"
-          >
-            View check details
-            <Octicon symbol={octicons.linkExternal} />
-          </Button>
-        </p>
-
-        <img src={PaperStackImage} className="blankslate-image" alt="" />
       </div>
     )
   }

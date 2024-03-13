@@ -74,20 +74,8 @@
   padding: var(--spacing);
   border-bottom: var(--base-border);
 
-  .no-steps {
-    display: flex;
-    padding: var(--spacing-double);
-    align-items: center;
-    height: 100%;
-
-    .blankslate-image {
-      min-width: 100px;
-      min-height: unset;
-    }
-
-    .button-component {
-      margin-top: var(--spacing);
-    }
+  &.no-steps {
+    height: 150px;
   }
 
   .ci-steps-header {
