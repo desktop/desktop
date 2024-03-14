@@ -4,7 +4,6 @@ import {
   GitError as DugiteError,
   IGitExecutionOptions as DugiteExecutionOptions,
 } from 'dugite'
-import { GitErrorRegexes as DugiteErrorRegexes } from 'dugite/build/lib/errors'
 
 import { assertNever } from '../fatal-error'
 import * as GitPerf from '../../ui/lib/git-perf'
@@ -327,14 +326,12 @@ function getDescriptionForError(
 
   switch (error) {
     case DugiteError.BadConfigValue:
-      const errorEntry = Object.entries(DugiteErrorRegexes).find(
-        ([_, v]) => v === DugiteError.BadConfigValue
-      )
-      const m = stderr.match(errorEntry![0])
-      const value = m![1]
-      const key = m![2]
+      const errorInfo = GitProcess.parseBadConfigValueErrorInfo(stderr)
+      if (errorInfo === null) {
+        return 'Unsupported git configuration value.'
+      }
 
-      return `Unsupported value '${value}' for git config key '${key}'`
+      return `Unsupported value '${errorInfo.value}' for git config key '${errorInfo.key}'`
     case DugiteError.SSHKeyAuditUnverified:
       return 'The SSH key is unverified.'
     case DugiteError.RemoteDisconnection:
