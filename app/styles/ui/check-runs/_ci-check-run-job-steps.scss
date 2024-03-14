@@ -1,11 +1,16 @@
 .ci-check-run-job-steps-list {
   overflow-y: auto;
-  border-bottom: var(--base-border);
   margin: 0px;
   padding: 0px;
 
   .ci-check-run-job-step {
     background-color: var(--box-alt-background-color);
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    height: 100%;
 
     // This is the height of a check run step and check run group header so that
     // when a first failed step is scroll into view it doesn't end up under the
@@ -13,19 +18,8 @@
     scroll-margin-top: 72px;
 
     .job-step-duration {
+      text-align: right;
       color: var(--text-secondary-color);
-    }
-
-    &:hover {
-      /* 100% is baseline so 95% is 5% darker */
-      filter: brightness(95%);
-    }
-
-    .job-step-name span {
-      &:hover {
-        color: var(--link-button-color);
-        cursor: pointer !important;
-      }
     }
 
     .job-step-status-symbol,
@@ -34,11 +28,44 @@
       margin-top: 2px;
     }
 
+    .job-step-status-symbol {
+      padding-left: 0px;
+    }
+
     .job-step-name {
       flex-grow: 1;
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
+
+      span {
+        cursor: pointer !important;
+      }
+    }
+
+    .button-component {
+      // Remove button styles
+      border: 1px solid var(--box-alt-background-color);
+      height: 100%;
+      text-align: unset;
+      background: inherit;
+
+      &:focus {
+        outline-offset: 0px;
+        border: 1px solid var(--secondary-button-hover-border-color);
+      }
+
+      &:hover,
+      &:focus-visible,
+      &:not([aria-disabled='true']):hover {
+        border: 1px solid var(--secondary-button-hover-border-color);
+        background: var(--box-selected-background-color);
+      }
+    }
+
+    .view-check-externally {
+      color: var(--text-secondary-color);
+      padding: var(--spacing-half);
     }
   }
 }
