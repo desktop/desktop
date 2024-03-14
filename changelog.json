@@ -5,7 +5,7 @@
       "[Improved] The pull request check run popover button is now keyboard accessible - #18268",
       "[Improved] Add the aria-label attribute to our markdown iframes to clarify their purpose to users of screen readers in browse mode.  - #18277",
       "[Improved] Add support for newer versions of Alacritty shell - #16614. Thanks @lhvy!",
-      "[Improved] Upgrade embedded Git to v2.32.0 on macOS, and to v2.32.0.windows.2 on Windows, and Git LFS to v3.5.1 - #18292",
+      "[Improved] Upgrade embedded Git to v2.43.3 on macOS, and to v2.43.0.windows.1 on Windows, and Git LFS to v3.5.1 - #18292",
       "[Improved] Upgrade to Electron v13.1.7 - #18291",
       "[Improved] Git errors due to bad config values are surfaced in the UI - #18230"
     ],
