@@ -1580,13 +1580,9 @@ export class SideBySideDiff extends React.Component<
   private onSearch = (searchQuery: string, direction: SearchDirection) => {
     const { searchResults } = this.state
 
-    // If the query is unchanged and we've got tokens we'll continue, else we'll restart
     if (searchQuery?.trim() === '') {
       this.resetSearch(true, 'No results')
-    } else if (
-      searchQuery === this.state.searchQuery &&
-      searchResults !== undefined
-    ) {
+    } else if (searchQuery === this.state.searchQuery && searchResults) {
       this.continueSearch(searchResults, direction)
     } else {
       this.startSearch(searchQuery, direction)
