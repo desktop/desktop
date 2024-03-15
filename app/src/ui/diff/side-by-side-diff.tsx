@@ -1602,7 +1602,7 @@ export class SideBySideDiff extends React.Component<
     } else {
       const searchLiveMessage = `Result 1 of ${searchResults.length} for "${searchQuery}"`
 
-      this.scrollToRow(0)
+      this.scrollToSearchResult(0)
 
       this.setState({
         searchQuery,
@@ -1631,7 +1631,7 @@ export class SideBySideDiff extends React.Component<
       searchResults.length
     } for "${searchQuery}"`
 
-    this.scrollToRow(selectedSearchResult)
+    this.scrollToSearchResult(selectedSearchResult)
 
     this.setState({
       searchResults,
@@ -1644,10 +1644,10 @@ export class SideBySideDiff extends React.Component<
     this.resetSearch(false)
   }
 
-  private scrollToRow = (rowIndex: number) => {
+  private scrollToSearchResult = (index: number) => {
     const { searchResults } = this.state
 
-    const scrollToRow = searchResults?.get(rowIndex)?.row
+    const scrollToRow = searchResults?.get(index)?.row
 
     if (scrollToRow !== undefined) {
       this.virtualListRef.current?.scrollToRow(scrollToRow)
