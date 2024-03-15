@@ -3603,10 +3603,10 @@ electron-winstaller@*, electron-winstaller@^5.0.0:
     lodash.template "^4.2.2"
     temp "^0.9.0"
 
-electron@27.3.5:
-  version "27.3.5"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-27.3.5.tgz#dc9e96ed206eb8b929a9dd8e1a42a4feebeea3b7"
-  integrity sha512-w4HsKR85UboP7Pu4QnFyuEokQI/H2bYCC/ZZzLJxHq3tqX93O2GUgwu6jAk8YpxmW8Nl7FiHlwoquDXB3Wtoxw==
+electron@27.3.6:
+  version "27.3.6"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-27.3.6.tgz#1f13d1ef96434e721438a39d5d10cbcb7057dddb"
+  integrity sha512-oLk99Euqa9EQKWJsPxi4rYV32OYmlbasHUZdvLGNzTn5S3U+jLlfhvca/9Tg1xUyIv2U/gyRnwjR37Ne9n4orA==
   dependencies:
     "@electron/get" "^2.0.0"
     "@types/node" "^18.11.18"
