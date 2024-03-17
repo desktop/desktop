@@ -1546,6 +1546,23 @@ export class API {
       })
   }
 
+  public async getAvatarToken() {
+    return this.request('GET', `/desktop/avatar-token`)
+      .then(x => x.json())
+      .then((x: unknown) =>
+        x &&
+        typeof x === 'object' &&
+        'avatar_token' in x &&
+        typeof x.avatar_token === 'string'
+          ? x.avatar_token
+          : null
+      )
+      .catch(err => {
+        log.debug(`Failed to load avatar token`, err)
+        return null
+      })
+  }
+
   /**
    * Gets a single check suite using its id
    */

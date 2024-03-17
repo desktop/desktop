@@ -23,7 +23,7 @@ import { SectionList } from '../lib/list/section-list'
 import { Loading } from '../lib/loading'
 import { getPullRequestReviewStateIcon } from '../notifications/pull-request-review-helpers'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import {
   getNotificationSettingsUrl,
   getNotificationsPermission,
@@ -132,8 +132,8 @@ class TestNotificationItemRowContent extends React.Component<{
         <div className="main-content">{children}</div>
         {html_url && (
           <div className="right-accessory">
-            <Button onClick={this.onExternalLinkClick}>
-              <Octicon symbol={OcticonSymbol.linkExternal} />
+            <Button onClick={this.onExternalLinkClick} role="link">
+              <Octicon symbol={octicons.linkExternal} />
             </Button>
           </div>
         )}
@@ -724,8 +724,8 @@ export class TestNotifications extends React.Component<
         className={pullRequest.draft ? 'pr-draft-icon' : 'pr-icon'}
         symbol={
           pullRequest.draft
-            ? OcticonSymbol.gitPullRequestDraft
-            : OcticonSymbol.gitPullRequest
+            ? octicons.gitPullRequestDraft
+            : octicons.gitPullRequest
         }
       />
     )

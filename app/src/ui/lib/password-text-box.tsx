@@ -2,7 +2,7 @@ import * as React from 'react'
 import { ITextBoxProps, TextBox } from './text-box'
 import { Button } from './button'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 
 interface IPasswordTextBoxState {
   /**
@@ -32,8 +32,8 @@ export class PasswordTextBox extends React.Component<
 
   public render() {
     const buttonIcon = this.state.showPassword
-      ? OcticonSymbol.eye
-      : OcticonSymbol.eyeClosed
+      ? octicons.eye
+      : octicons.eyeClosed
     const type = this.state.showPassword ? 'text' : 'password'
     const props: ITextBoxProps = { ...this.props, ...{ type } }
     return (

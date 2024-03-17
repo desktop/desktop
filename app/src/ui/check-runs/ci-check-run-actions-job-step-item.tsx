@@ -1,7 +1,6 @@
-/* eslint-disable jsx-a11y/no-static-element-interactions */
-/* eslint-disable jsx-a11y/click-events-have-key-events */
 import * as React from 'react'
 import { Octicon } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 import classNames from 'classnames'
 import {
   getClassNameForCheck,
@@ -14,6 +13,7 @@ import {
 } from '../../lib/ci-checks/ci-checks'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { TooltipDirection } from '../lib/tooltip'
+import { Button } from '../lib/button'
 
 interface ICICheckRunActionsJobStepListItemProps {
   readonly step: IAPIWorkflowJobStep
@@ -44,7 +44,7 @@ export class CICheckRunActionsJobStepListItem extends React.PureComponent<ICIChe
     const { step } = this.props
     return (
       <li
-        className="ci-check-run-job-step list-item"
+        className="ci-check-run-job-step"
         ref={this.onStepHeaderRef(step)}
         aria-label={`${step.name}, ${getFormattedCheckRunLongDuration(
           step
@@ -64,15 +64,24 @@ export class CICheckRunActionsJobStepListItem extends React.PureComponent<ICIChe
           className="job-step-name"
           tooltip={step.name}
           onlyWhenOverflowed={true}
-          tagName="div"
+          tagName="span"
           direction={TooltipDirection.NORTH}
         >
-          <span onClick={this.onViewJobStepExternally}>{step.name}</span>
+          {step.name}
         </TooltippedContent>
 
         <div className="job-step-duration">
           {getFormattedCheckRunDuration(step)}
         </div>
+        <Button
+          role="link"
+          className="view-check-externally"
+          onClick={this.onViewJobStepExternally}
+          tooltip={`View ${step.name} on GitHub`}
+          ariaLabel={`View ${step.name} on GitHub`}
+        >
+          <Octicon symbol={octicons.linkExternal} />
+        </Button>
       </li>
     )
   }

@@ -8,7 +8,8 @@ import { DragType, DropTarget, DropTargetType } from '../../models/drag-drop'
 import { GitHubRepository } from '../../models/github-repository'
 import { CommitListItem } from '../history/commit-list-item'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
+import { Account } from '../../models/account'
 
 interface ICommitDragElementProps {
   readonly commit: Commit
@@ -20,6 +21,7 @@ interface ICommitDragElementProps {
    */
   readonly isKeyboardInsertion?: boolean
   readonly emoji: Map<string, string>
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface ICommitDragElementState {
@@ -77,7 +79,7 @@ export class CommitDragElement extends React.Component<
     switch (currentDropTarget.type) {
       case DropTargetType.Branch:
         const copyToPlus = __DARWIN__ ? null : (
-          <Octicon className="copy-to-icon" symbol={OcticonSymbol.plus} />
+          <Octicon className="copy-to-icon" symbol={octicons.plus} />
         )
         toolTipContents = (
           <>
@@ -187,6 +189,7 @@ export class CommitDragElement extends React.Component<
             selectedCommits={selectedCommits}
             emoji={emoji}
             showUnpushedIndicator={false}
+            accounts={this.props.accounts}
           />
         </div>
         {this.renderDragToolTip()}

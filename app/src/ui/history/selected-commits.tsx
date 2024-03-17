@@ -38,6 +38,7 @@ import { UnreachableCommitsTab } from './unreachable-commits-dialog'
 import { enableCommitDetailsHeaderExpansion } from '../../lib/feature-flag'
 import { ExpandableCommitSummary } from './expandable-commit-summary'
 import { DiffHeader } from '../diff/diff-header'
+import { Account } from '../../models/account'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository
@@ -89,6 +90,8 @@ interface ISelectedCommitsProps {
 
   /** Whether or not the selection of commits is contiguous */
   readonly isContiguous: boolean
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface ISelectedCommitsState {
@@ -170,6 +173,7 @@ export class SelectedCommits extends React.Component<
           diff={diff}
           readOnly={true}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          showDiffCheckMarks={false}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onOpenBinaryFile={this.props.onOpenBinaryFile}
           onChangeImageDiffType={this.props.onChangeImageDiffType}
@@ -216,6 +220,7 @@ export class SelectedCommits extends React.Component<
           onDescriptionBottomChanged={this.onDescriptionBottomChanged}
           onHighlightShas={this.onHighlightShas}
           showUnreachableCommits={this.showUnreachableCommits}
+          accounts={this.props.accounts}
         />
       )
     }
@@ -237,6 +242,7 @@ export class SelectedCommits extends React.Component<
         onDiffOptionsOpened={this.props.onDiffOptionsOpened}
         onHighlightShas={this.onHighlightShas}
         showUnreachableCommits={this.showUnreachableCommits}
+        accounts={this.props.accounts}
       />
     )
   }

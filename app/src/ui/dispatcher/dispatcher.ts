@@ -901,35 +901,17 @@ export class Dispatcher {
     isLocalCommit: boolean,
     continueWithForcePush: boolean = false
   ) {
-    const repositoryState = this.repositoryStateManager.get(repository)
-    const { tip } = repositoryState.branchesState
-    const { askForConfirmationOnForcePush } = this.appStore.getState()
-
-    if (
-      askForConfirmationOnForcePush &&
-      !continueWithForcePush &&
-      !isLocalCommit &&
-      tip.kind === TipState.Valid
-    ) {
-      return this.showPopup({
-        type: PopupType.WarnForcePush,
-        operation: 'Amend',
-        onBegin: () => {
-          this.startAmendingRepository(repository, commit, isLocalCommit, true)
-        },
-      })
-    }
-
-    await this.changeRepositorySection(repository, RepositorySectionTab.Changes)
-
-    this.appStore._setRepositoryCommitToAmend(repository, commit)
-
-    this.statsStore.increment('amendCommitStartedCount')
+    this.appStore._startAmendingRepository(
+      repository,
+      commit,
+      isLocalCommit,
+      continueWithForcePush
+    )
   }
 
   /** Stop amending the most recent commit. */
   public async stopAmendingRepository(repository: Repository) {
-    this.appStore._setRepositoryCommitToAmend(repository, null)
+    this.appStore._stopAmendingRepository(repository)
   }
 
   /** Undo the given commit. */
@@ -2049,7 +2031,7 @@ export class Dispatcher {
    *
    * This is used only on macOS.
    */
-  public async installCLI() {
+  public async installDarwinCLI() {
     try {
       await installCLI()
 
@@ -3930,5 +3912,13 @@ export class Dispatcher {
     checks: ReadonlyArray<IRefCheck>
   ) {
     this.appStore.onChecksFailedNotification(repository, pullRequest, checks)
+  }
+
+  public setUnderlineLinksSetting(underlineLinks: boolean) {
+    return this.appStore._updateUnderlineLinks(underlineLinks)
+  }
+
+  public setDiffCheckMarksSetting(diffCheckMarks: boolean) {
+    return this.appStore._updateShowDiffCheckMarks(diffCheckMarks)
   }
 }

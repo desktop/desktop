@@ -3,7 +3,7 @@ import * as React from 'react'
 import { IMatches } from '../../lib/fuzzy-find'
 
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { HighlightText } from '../lib/highlight-text'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
@@ -92,7 +92,7 @@ export class BranchListItem extends React.Component<
 
   public render() {
     const { lastCommitDate, isCurrentBranch, name } = this.props
-    const icon = isCurrentBranch ? OcticonSymbol.check : OcticonSymbol.gitBranch
+    const icon = isCurrentBranch ? octicons.check : octicons.gitBranch
     const className = classNames('branches-list-item', {
       'drop-target': this.state.isDragInProgress,
     })

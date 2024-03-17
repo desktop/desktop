@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Loading } from './loading'
 import { Form } from './form'
 import { Button } from './button'
@@ -196,9 +196,10 @@ export class AuthenticationForm extends React.Component<
         className="button-with-icon"
         onClick={this.signInWithBrowser}
         autoFocus={true}
+        role="link"
       >
         Sign in using your browser
-        <Octicon symbol={OcticonSymbol.linkExternal} />
+        <Octicon symbol={octicons.linkExternal} />
       </Button>
     )
   }

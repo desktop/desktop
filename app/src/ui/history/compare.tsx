@@ -19,7 +19,7 @@ import { IBranchListItem } from '../branches/group-branches'
 import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
@@ -31,6 +31,7 @@ import { getUniqueCoauthorsAsAuthors } from '../../lib/unique-coauthors-as-autho
 import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-description'
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
 import { KeyboardInsertionData } from '../lib/list'
+import { Account } from '../../models/account'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -57,6 +58,7 @@ interface ICompareSidebarProps {
   readonly aheadBehindStore: AheadBehindStore
   readonly isMultiCommitOperationInProgress?: boolean
   readonly shasToHighlight: ReadonlyArray<string>
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface ICompareSidebarState {
@@ -164,7 +166,7 @@ export class CompareSidebar extends React.Component<
         <div className="compare-form">
           <FancyTextBox
             ariaLabel="Branch filter"
-            symbol={OcticonSymbol.gitBranch}
+            symbol={octicons.gitBranch}
             displayClearButton={true}
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
@@ -281,6 +283,7 @@ export class CompareSidebar extends React.Component<
           this.props.isMultiCommitOperationInProgress
         }
         keyboardReorderData={this.state.keyboardReorderData}
+        accounts={this.props.accounts}
       />
     )
   }

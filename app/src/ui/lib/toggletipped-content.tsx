@@ -103,6 +103,7 @@ export class ToggledtippedContent extends React.Component<
         className={classes}
         aria-label={ariaLabel}
         aria-haspopup="dialog"
+        type="button"
         onClick={this.onToggle}
       >
         <>
