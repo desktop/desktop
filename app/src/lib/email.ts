@@ -120,3 +120,24 @@ export const isAttributableEmailFor = (account: Account, email: string) => {
     getLegacyStealthEmailForUser(login, endpoint).toLowerCase() === needle
   )
 }
+
+/**
+ * A regular expression meant to match both the legacy format GitHub.com
+ * stealth email address and the modern format (login@ vs id+login@).
+ *
+ * Yields two capture groups, the first being an optional capture of the
+ * user id and the second being the mandatory login.
+ */
+const StealthEmailRegexp = /^(?:(\d+)\+)?(.+?)@(users\.noreply\..+)$/i
+
+export const parseStealthEmail = (email: string, endpoint: string) => {
+  const stealthEmailHost = getStealthEmailHostForEndpoint(endpoint)
+  const match = StealthEmailRegexp.exec(email)
+
+  if (!match || stealthEmailHost !== match[3]) {
+    return null
+  }
+
+  const [, id, login] = match
+  return { id: id ? parseInt(id, 10) : undefined, login }
+}

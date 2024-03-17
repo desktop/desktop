@@ -360,10 +360,10 @@ dompurify@^2.3.3:
   resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.3.3.tgz#c1af3eb88be47324432964d8abc75cf4b98d634c"
   integrity sha512-dqnqRkPMAjOZE0FogZ+ceJNM2dZ3V/yNOuFB7+39qpO93hHhfRpHw3heYQC7DPK9FqbQTfBKUJhiSfz4MvXYwg==
 
-dugite@^2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-2.5.0.tgz#8b235564fdf8692688283c714149a59d9da79865"
-  integrity sha512-sYsSOqV7NidthDtMUPgKCvqMGqswKkcyAxOMhwEswlcGZ+kHadT2SEDFUJOy0AVR/yTJL6wBF7q1OiySfU0gGA==
+dugite@^2.6.1:
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-2.6.1.tgz#f903d850e76a8bbc98f3012eceb5c0fa22e8d287"
+  integrity sha512-cN4e3H30qzvp132f+O3dRiIMj7E/SD+jYPQN75/vdwC51tiXfWfCXoXdwQaEJNLkR1zTuljVdRaIo1Qw3lGzXw==
   dependencies:
     progress "^2.0.3"
     tar "^6.1.11"
@@ -1150,10 +1150,10 @@ regenerator-runtime@^0.13.4:
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.7.tgz#cac2dacc8a1ea675feaabaeb8ae833898ae46f55"
   integrity sha512-a54FxoJDIr27pgf7IgeQGxmqUNYrcV338lf/6gH456HZ/PhX+5BcwHXG9ajESmwe6WRO0tAzRUrRmNONWgkrew==
 
-registry-js@^1.15.0:
-  version "1.15.0"
-  resolved "https://registry.yarnpkg.com/registry-js/-/registry-js-1.15.0.tgz#eb028503df2358291e2d107fb6dc316f688e47b1"
-  integrity sha512-gNLm7hV3g2M5iKAdcQwoa2Zj8fhkArbzbXyQMVrK/6OfXOCaKnRNqgBnOGOJoJw4uwW9XImJuXijLf1ZKtSR3Q==
+registry-js@^1.16.0:
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/registry-js/-/registry-js-1.16.0.tgz#951444f10c0e39c7669e4bde166f9237472a7c7e"
+  integrity sha512-hcMnfKhmCPTA++70qEGwRqctLBdBg+xvG3ZfAPt0ymjdTUFKtVTolelpIDK2qs8DVIurylnfM6BM9uWpVbJr+g==
   dependencies:
     node-addon-api "^3.1.0"
     prebuild-install "^5.3.5"

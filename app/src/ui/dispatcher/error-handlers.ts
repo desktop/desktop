@@ -155,7 +155,7 @@ export async function gitAuthenticationErrorHandler(
   }
 
   const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
+  if (dugiteError === null) {
     return error
   }
 
@@ -239,7 +239,7 @@ export async function pushNeedsPullHandler(
   }
 
   const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
+  if (dugiteError === null) {
     return error
   }
 
@@ -280,7 +280,7 @@ export async function mergeConflictHandler(
   }
 
   const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
+  if (dugiteError === null) {
     return error
   }
 
@@ -339,7 +339,7 @@ export async function lfsAttributeMismatchHandler(
   }
 
   const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
+  if (dugiteError === null) {
     return error
   }
 
@@ -392,7 +392,7 @@ export async function rebaseConflictsHandler(
   }
 
   const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
+  if (dugiteError === null) {
     return error
   }
 

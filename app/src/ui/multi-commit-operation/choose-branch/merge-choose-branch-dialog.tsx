@@ -8,18 +8,39 @@ import { MergeTreeResult } from '../../../models/merge'
 import { MultiCommitOperationKind } from '../../../models/multi-commit-operation'
 import { PopupType } from '../../../models/popup'
 import { ActionStatusIcon } from '../../lib/action-status-icon'
-import { BaseChooseBranchDialog } from './base-choose-branch-dialog'
+import {
+  ChooseBranchDialog,
+  IBaseChooseBranchDialogProps,
+  canStartOperation,
+} from './base-choose-branch-dialog'
+import { truncateWithEllipsis } from '../../../lib/truncate-with-ellipsis'
 
-export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
-  private commitCount: number = 0
-  private mergeStatus: MergeTreeResult | null = null
+interface IMergeChooseBranchDialogState {
+  readonly commitCount: number
+  readonly mergeStatus: MergeTreeResult | null
+  readonly selectedBranch: Branch | null
+}
 
-  protected start = () => {
+export class MergeChooseBranchDialog extends React.Component<
+  IBaseChooseBranchDialogProps,
+  IMergeChooseBranchDialogState
+> {
+  public constructor(props: IBaseChooseBranchDialogProps) {
+    super(props)
+
+    this.state = {
+      selectedBranch: null,
+      commitCount: 0,
+      mergeStatus: null,
+    }
+  }
+
+  private start = () => {
     if (!this.canStart()) {
       return
     }
 
-    const { selectedBranch } = this.state
+    const { selectedBranch, mergeStatus } = this.state
     const { operation, dispatcher, repository } = this.props
     if (!selectedBranch) {
       return
@@ -28,71 +49,58 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
     dispatcher.mergeBranch(
       repository,
       selectedBranch,
-      this.mergeStatus,
+      mergeStatus,
       operation === MultiCommitOperationKind.Squash
     )
-    this.props.dispatcher.closePopup(PopupType.MultiCommitOperation)
+
+    dispatcher.closePopup(PopupType.MultiCommitOperation)
   }
 
-  protected canStart = (): boolean => {
-    const selectedBranch = this.state.selectedBranch
-    const currentBranch = this.props.currentBranch
+  private canStart = (): boolean => {
+    const { currentBranch } = this.props
+    const { selectedBranch, commitCount, mergeStatus } = this.state
 
-    const selectedBranchIsCurrentBranch =
-      selectedBranch !== null &&
-      currentBranch !== null &&
-      selectedBranch.name === currentBranch.name
-
-    const isBehind = this.commitCount !== undefined && this.commitCount > 0
-
-    const canMergeBranch =
-      this.mergeStatus === null ||
-      this.mergeStatus.kind !== ComputedAction.Invalid
-
-    return (
-      selectedBranch !== null &&
-      !selectedBranchIsCurrentBranch &&
-      isBehind &&
-      canMergeBranch
+    return canStartOperation(
+      selectedBranch,
+      currentBranch,
+      commitCount,
+      mergeStatus?.kind
     )
   }
 
-  protected onSelectionChanged = async (selectedBranch: Branch | null) => {
-    if (selectedBranch != null) {
-      this.setState({ selectedBranch })
-      return this.updateStatus(selectedBranch)
+  private onSelectionChanged = (selectedBranch: Branch | null) => {
+    this.setState({ selectedBranch })
+
+    if (selectedBranch === null) {
+      this.setState({ commitCount: 0, mergeStatus: null })
+      return
     }
 
-    // return to empty state
-    this.setState({ selectedBranch })
-    this.commitCount = 0
-    this.mergeStatus = null
+    this.updateStatus(selectedBranch)
   }
 
-  protected renderActionStatusIcon = () => {
-    return (
-      <ActionStatusIcon
-        status={this.mergeStatus}
-        classNamePrefix="merge-status"
-      />
+  private getDialogTitle = () => {
+    const truncatedName = truncateWithEllipsis(
+      this.props.currentBranch.name,
+      40
     )
-  }
-
-  protected getDialogTitle = (branchName: string) => {
     const squashPrefix =
       this.props.operation === MultiCommitOperationKind.Squash
         ? 'Squash and '
         : null
     return (
       <>
-        {squashPrefix}Merge into <strong>{branchName}</strong>
+        {squashPrefix}Merge into <strong>{truncatedName}</strong>
       </>
     )
   }
 
-  protected updateStatus = async (branch: Branch) => {
+  private updateStatus = async (branch: Branch) => {
     const { currentBranch, repository } = this.props
-    this.updateMergeStatusPreview(branch, { kind: ComputedAction.Loading })
+    this.setState({
+      commitCount: 0,
+      mergeStatus: { kind: ComputedAction.Loading },
+    })
 
     const mergeStatus = await promiseWithMinimumTimeout(
       () => determineMergeability(repository, currentBranch, branch),
@@ -108,73 +116,58 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
       return
     }
 
-    // The clean status is the only one that needs the ahead/behind count. If
-    // the status is conflicts or invalid, update the UI here and end the
-    // function.
-    if (
-      mergeStatus.kind === ComputedAction.Conflicts ||
-      mergeStatus.kind === ComputedAction.Invalid
-    ) {
-      this.updateMergeStatusPreview(branch, mergeStatus)
+    // Can't go forward if the merge status is invalid, no need to check commit count
+    if (mergeStatus.kind === ComputedAction.Invalid) {
+      this.setState({ mergeStatus })
       return
     }
 
+    // Commit count is used in the UI output as well as determining whether the
+    // submit button is enabled
     const range = revSymmetricDifference('', branch.name)
     const aheadBehind = await getAheadBehind(this.props.repository, range)
-    this.commitCount = aheadBehind ? aheadBehind.behind : 0
+    const commitCount = aheadBehind ? aheadBehind.behind : 0
 
     if (this.state.selectedBranch !== branch) {
-      this.commitCount = 0
       return
     }
 
-    this.updateMergeStatusPreview(branch, mergeStatus)
+    this.setState({ commitCount, mergeStatus })
   }
 
-  private updateMergeStatusPreview(
-    branch: Branch,
-    mergeStatus: MergeTreeResult
-  ) {
-    this.mergeStatus = mergeStatus
-    this.setState({ statusPreview: this.getMergeStatusPreview(branch) })
-  }
-
-  private getMergeStatusPreview(branch: Branch): JSX.Element | null {
+  private renderStatusPreviewMessage(): JSX.Element | null {
+    const { mergeStatus, selectedBranch: branch } = this.state
     const { currentBranch } = this.props
 
-    if (this.mergeStatus === null) {
+    if (mergeStatus === null || branch === null) {
       return null
     }
 
-    if (this.mergeStatus.kind === ComputedAction.Loading) {
+    if (mergeStatus.kind === ComputedAction.Loading) {
       return this.renderLoadingMergeMessage()
     }
 
-    if (this.mergeStatus.kind === ComputedAction.Clean) {
+    if (mergeStatus.kind === ComputedAction.Clean) {
       return this.renderCleanMergeMessage(
         branch,
         currentBranch,
-        this.commitCount
+        this.state.commitCount
       )
     }
 
-    if (this.mergeStatus.kind === ComputedAction.Invalid) {
+    if (mergeStatus.kind === ComputedAction.Invalid) {
       return this.renderInvalidMergeMessage()
     }
 
     return this.renderConflictedMergeMessage(
       branch,
       currentBranch,
-      this.mergeStatus.conflictedFiles
+      mergeStatus.conflictedFiles
     )
   }
 
   private renderLoadingMergeMessage() {
-    return (
-      <React.Fragment>
-        Checking for ability to merge automatically...
-      </React.Fragment>
-    )
+    return <>Checking for ability to merge automatically...</>
   }
 
   private renderCleanMergeMessage(
@@ -227,6 +220,35 @@ export class MergeChooseBranchDialog extends BaseChooseBranchDialog {
         {` into `}
         <strong>{currentBranch.name}</strong>
       </React.Fragment>
+    )
+  }
+
+  private renderStatusPreview() {
+    return (
+      <>
+        <ActionStatusIcon
+          status={this.state.mergeStatus}
+          classNamePrefix="merge-status"
+        />
+        <p className="merge-info" id="merge-status-preview">
+          {this.renderStatusPreviewMessage()}
+        </p>
+      </>
+    )
+  }
+
+  public render() {
+    return (
+      <ChooseBranchDialog
+        {...this.props}
+        start={this.start}
+        selectedBranch={this.state.selectedBranch}
+        canStartOperation={this.canStart()}
+        dialogTitle={this.getDialogTitle()}
+        onSelectionChanged={this.onSelectionChanged}
+      >
+        {this.renderStatusPreview()}
+      </ChooseBranchDialog>
     )
   }
 }

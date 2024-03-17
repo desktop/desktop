@@ -1,5 +1,101 @@
 {
   "releases": {
+    "3.3.12-beta2": [
+      "[Improved] The pull request check run popover is now keyboard accessible - #18276",
+      "[Improved] The pull request check run popover button is now keyboard accessible - #18268",
+      "[Improved] Add the aria-label attribute to our markdown iframes to clarify their purpose to users of screen readers in browse mode.  - #18277",
+      "[Improved] Add support for newer versions of Alacritty shell - #16614. Thanks @lhvy!",
+      "[Improved] Upgrade embedded Git to v2.43.3 on macOS, and to v2.43.0.windows.1 on Windows, and Git LFS to v3.5.1 - #18292",
+      "[Improved] Upgrade to Electron v28.2.3 - #18291",
+      "[Improved] Git errors due to bad config values are surfaced in the UI - #18230"
+    ],
+    "3.3.12-beta1": [
+      "[Fixed] In the changes diff, groups of two rows that represent one line number change have a check all control - #18232",
+      "[Fixed] Copying lines in side by side diffs does not add new lines between each line when pasted - #18249",
+      "[Fixed] On Windows, PATH environment variable with values longer than 1024 are not truncated - #18244",
+      "[Fixed] The last lines in diffs are visible when warning banners are displayed - #18237",
+      "[Improved] Add the \"link\" role to the \"Open pull request\" button in tutorial sidebar - #18245",
+      "[Improved] Upgrade to Electron v28.2.3 - #18185"
+    ],
+    "3.3.11": [
+      "[Fixed] Copying lines in the side by side diff does not add new lines between each line when pasted. - #18249"
+    ],
+    "3.3.10": [
+      "[Fixed] The last lines in diffs are visible when warning banners are displayed - #18237",
+      "[Fixed] Ignore a file's parent directories on Windows. - #1203"
+    ],
+    "3.3.10-beta1": [
+      "[Added] Added visible and semantic check all button for a group of consecutive selectable rows in the diff - #18201",
+      "[Fixed] Ignore a file's parent directories on Windows - #18206",
+      "[Improved] Add a setting for visibility of diff check marks when committing - #18227",
+      "[Improved] Add support for toggling link underlines globally - #18035"
+    ],
+    "3.3.9": [
+      "[Fixed] The line number inclusion controls are semantic checkboxes and are keyboard accessible - #18064",
+      "[Fixed] Copying commit SHAs from submodule diffs is keyboard accessible - #18124",
+      "[Fixed] Show avatars of bot accounts such as dependabot - #12766",
+      "[Fixed] Focus outline is visible on the diff - #18086",
+      "[Fixed] Selecting or deselecting lines in a diff by dragging the mouse now scrolls the contents as needed - #17673",
+      "[Fixed] Last line of diffs can be selected when the file didn't have a new line at the end - #18081",
+      "[Fixed] Promote line endings change warning from icon to a banner, improving its accessibility - #18084",
+      "[Fixed] Amending a commit in non-GitHub repositories restores the commit message - #18061",
+      "[Fixed] The merge dialog submit button is available when conflicts are detected - #18037",
+      "[Fixed] Avatars are once again loading for GitHub Enterprise Server users - #18034",
+      "[Fixed] Lists scroll and render as expected when scrolling by dragging the scrollbar on Windows - #18012",
+      "[Fixed] External editor or shell failure error will open to integration settings - #18021. Thanks @yasuking0304!",
+      "[Improved] Add `pyi` to syntax highlighting - #18141. Thanks @pLeBlanc93!",
+      "[Improved] Syntax highlighting now supports .cmake, .cxx, .hh, .hxx, and .xsd files - #17503. Thanks @DylanDevelops!",
+      "[Improved] Apply Markdown highlighting to .mdx files - #18040. Thanks @bentookey-yotta!",
+      "[Improved] Implemented folder ignore with all parent directories - #1203. Thanks @masecla22!"
+    ],
+    "3.3.9-beta2": [
+      "[Fixed] The line number inclusion controls are semantic checkboxes and are keyboard accessible - #18064",
+      "[Fixed] Copying commit SHAs from submodule diffs is keyboard accessible - #18124",
+      "[Fixed] Show avatars of bot accounts such as dependabot - #12766",
+      "[Fixed] Focus outline is visible on the diff - #18086",
+      "[Fixed] Selecting or deselecting lines in a diff by dragging the mouse now scrolls the contents as needed - #17673",
+      "[Fixed] Last line of diffs can be selected when the file didn't have a new line at the end - #18081",
+      "[Fixed] Promote line endings change warning from icon to a banner, improving its accessibility - #18084",
+      "[Fixed] Amending a commit in non-GitHub repositories restores the commit message - #18061",
+      "[Improved] Add `pyi` to syntax highlighting - #18141. Thanks @pLeBlanc93!",
+      "[Improved] Syntax highlighting now supports .cmake, .cxx, .hh, .hxx, and .xsd files - #17503. Thanks @DylanDevelops!",
+      "[Improved] Apply Markdown highlighting to .mdx files - #18040. Thanks @bentookey-yotta!",
+      "[Improved] The diff line numbers show check marks so color is not the sole medium to determine inclusion into a commit - #18077"
+    ],
+    "3.3.9-beta1": [
+      "[Fixed] The merge dialog submit button is available when conflicts are detected - #18037",
+      "[Fixed] Avatars are once again loading for GitHub Enterprise Server users - #18034",
+      "[Fixed] Lists scroll and render as expected when scrolling by dragging the scrollbar on Windows - #18012",
+      "[Fixed] External editor or shell failure error will open to integration settings - #18021. Thanks @yasuking0304!",
+      "[Improved] Implemented folder ignore with all parent directories - #1203. Thanks @masecla22!"
+    ],
+    "3.3.8": [
+      "[Fixed] The merge dialog submit button is available when conflicts are detected. - #18037",
+      "[Fixed] Avatars are once again loading for GitHub Enterprise Server users. - #18036"
+    ],
+    "3.3.7": [
+      "[Fixed] Merge branch dialog's merge preview no longer shows stale merge check data - #17929",
+      "[Fixed] Co-authors are restored as such when a commit is amended - #17879",
+      "[Fixed] Tags with commas are no longer truncated to the first comma - #17952",
+      "[Fixed] The \"Reveal in Finder\" context menu option in the conflict resolution dialog no longer causes Finder to be unresponsive - #17933",
+      "[Fixed] Clicking on the commit message length warning does not close the squash commit dialog - #17966",
+      "[Fixed] Fix Alacritty bundle ID on macOS - #17940. Thanks @JannesMeyer!",
+      "[Fixed] Merge branch dialog no longer shows flickering merge preview when switching branches - #17948. Thanks @GengShengJia!",
+      "[Fixed] Diff no longer jumps when scrolling after pressing expansion buttons - #17776",
+      "[Fixed] Use list semantics in job step lists for improved accessibility - #17855",
+      "[Fixed] Fix heading levels used in dialogs for improved accessibility - #17848",
+      "[Improved] Replace the \"Default branch name for new repositories\" radio button setting with a more accessible and inclusive textbox input and description - #17844",
+      "[Improved] The \"You're Done\" header is focused after tutorial completion so it is announced and screen reader users are made aware of the completion screen - #17835",
+      "[Improved] Checkboxes always have unique id's for label association - #17839",
+      "[Improved] Better visibility of checkbox focus indicator - #17842",
+      "[Improved] Improve inclusivity and clarification of branch name change warning.  - #17866",
+      "[Improved] Focus moves to closest expansion button or diff container after expansion - #17499",
+      "[Improved] Tooltips can be dismissed with the escape key - #17823, #17836",
+      "[Improved] Semantically grouping our settings radio and checkbox groups so their group headers will be announced to screen reader users. - #17787",
+      "[Improved] The \"Other\" email description is announced on input focus in the git config form - #17785",
+      "[Improved] Move the repository list on the \"Let's get started!\" screen to the left hand side so it can be the first logical tab placement.  - #17821",
+      "[Improved] Increased the specificity of the \"Sign In\" and \"Sign Out\" buttons in the Account settings - #17794"
+    ],
     "3.3.7-beta3": [
       "[Fixed] Merge branch dialog's merge preview no longer shows stale merge check data - #17929",
       "[Fixed] Co-authors are restored as such when a commit is amended - #17879",

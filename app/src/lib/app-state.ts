@@ -332,11 +332,16 @@ export interface IAppState {
     | PullRequestSuggestedNextAction
     | undefined
 
+  /** Whether or not the user will see check marks indicating a line is included in the check in the diff */
+  readonly showDiffCheckMarks: boolean
+
   /**
    * Cached repo rulesets. Used to prevent repeatedly querying the same
    * rulesets to check their bypass status.
    */
   readonly cachedRepoRulesets: ReadonlyMap<number, IAPIRepoRuleset>
+
+  readonly underlineLinks: boolean
 }
 
 export enum FoldoutType {

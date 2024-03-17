@@ -216,6 +216,9 @@ overrides:
   - files: 'script/**/*'
     rules:
       '@typescript-eslint/no-non-null-assertion': off
+  - files: 'app/src/ui/octicons/octicons.generated.ts'
+    rules:
+      '@typescript-eslint/naming-convention': off
 
 parserOptions:
   sourceType: module

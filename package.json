@@ -54,7 +54,7 @@
     "@azure/storage-blob": "^12.13.0",
     "@babel/core": "^7.23.5",
     "@babel/plugin-transform-modules-commonjs": "^7.23.3",
-    "@primer/octicons": "^10.0.0",
+    "@primer/octicons": "^19.0.0",
     "@types/lodash": "^4.14.178",
     "@types/marked": "^4.0.1",
     "@types/plist": "^3.0.2",
@@ -157,8 +157,12 @@
     "@types/webpack-hot-middleware": "^2.25.6",
     "@types/webpack-merge": "^5.0.0",
     "@types/xml2js": "^0.4.11",
+    "development":
     "electron": "27.3.6",
     "electron-packager": "^17.1.2",
+    "electron": "28.2.3",
+    "electron-packager": "^17.1.1",
+     "development":
     "electron-winstaller": "^5.0.0",
     "eslint-plugin-github": "^4.10.1",
     "markdownlint-cli": "^0.32.2",

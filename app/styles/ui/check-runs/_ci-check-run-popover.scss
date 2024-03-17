@@ -29,8 +29,11 @@
     .ci-check-run-list-title-container {
       flex: 1;
       align-items: center;
+
       .title {
         font-weight: var(--font-weight-semibold);
+        font-size: var(--font-size-md);
+        margin: 0;
 
         .failure {
           color: $red-500;

@@ -68,6 +68,11 @@ interface ISeamlessDiffSwitcherProps {
   // eslint-disable-next-line react/no-unused-prop-types
   readonly showSideBySideDiff: boolean
 
+  /** Whether or not to show the diff check marks indicating inclusion in a commit */
+  // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
+  readonly showDiffCheckMarks: boolean
+
   /** Whether we should show a confirmation dialog when the user discards changes */
   readonly askForConfirmationOnDiscardChanges?: boolean
 
@@ -327,6 +332,7 @@ export class SeamlessDiffSwitcher extends React.Component<
       readOnly,
       hideWhitespaceInDiff,
       showSideBySideDiff,
+      showDiffCheckMarks,
       onIncludeChanged,
       onDiscardChanges,
       file,
@@ -363,6 +369,7 @@ export class SeamlessDiffSwitcher extends React.Component<
             askForConfirmationOnDiscardChanges={
               this.props.askForConfirmationOnDiscardChanges
             }
+            showDiffCheckMarks={showDiffCheckMarks}
             onIncludeChanged={isLoadingDiff ? noop : onIncludeChanged}
             onDiscardChanges={isLoadingDiff ? noop : onDiscardChanges}
             onOpenBinaryFile={isLoadingDiff ? noop : onOpenBinaryFile}

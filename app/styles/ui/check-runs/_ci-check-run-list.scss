@@ -11,6 +11,14 @@
     }
   }
 
+  .ci-check-run-list-group {
+    h2 {
+      margin: 0;
+      font-size: inherit;
+      font-weight: inherit;
+    }
+  }
+
   .ci-check-run-list-group-header {
     position: sticky;
     top: 0;
