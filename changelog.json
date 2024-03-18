@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.3.12-test1": [
+      "[New] Accessibility verification for diff search voiceover support"
+    ],
     "3.3.12-beta2": [
       "[Improved] The pull request check run popover is now keyboard accessible - #18276",
       "[Improved] The pull request check run popover button is now keyboard accessible - #18268",
