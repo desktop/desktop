@@ -27,7 +27,7 @@ export class TwoUp extends React.Component<ITwoUpProps, {}> {
     const diffBytesSign = diffBytes >= 0 ? '+' : ''
 
     const style: React.CSSProperties = {
-      maxWidth: this.props.maxSize.width,
+      maxWidth: this.props.maxSize.width || undefined,
     }
 
     return (
