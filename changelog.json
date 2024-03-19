@@ -2,7 +2,7 @@
   "releases": {
     "3.3.12-beta3": [
       "[Fixed] Bring back support for macOS 10.13 and 10.14 and prevent upgrading from them - #18316",
-      "[Fixed] Diff search screen reader support - #18306",
+      "[Fixed] Added announcing the number of results to the diff search via screen readers - #18306",
       "[Improved] Update banners will only dismiss when closing with the dismiss button - #18319"
     ],
     "3.3.12-beta2": [
