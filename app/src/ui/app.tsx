@@ -170,7 +170,7 @@ import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 import { PullRequestComment } from './notifications/pull-request-comment'
 import { UnknownAuthors } from './unknown-authors/unknown-authors-dialog'
-import { UnsupportedOSBannerDismissedAtKey } from './banners/windows-version-no-longer-supported-banner'
+import { UnsupportedOSBannerDismissedAtKey } from './banners/os-version-no-longer-supported-banner'
 import { offsetFromNow } from '../lib/offset-from'
 import { getNumber } from '../lib/local-storage'
 import { RepoRulesBypassConfirmation } from './repository-rules/repo-rules-bypass-confirmation'
@@ -366,7 +366,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       // Remind the user that they're running an unsupported OS every 90 days
       if (dismissedAt < offsetFromNow(-90, 'days')) {
-        this.setBanner({ type: BannerType.WindowsVersionNoLongerSupported })
+        this.setBanner({ type: BannerType.OSVersionNoLongerSupported })
       }
     }
   }
