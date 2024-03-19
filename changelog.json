@@ -1,5 +1,12 @@
 {
   "releases": {
+    "3.3.12": [
+      "[Fixed] On Windows, PATH environment variable with values longer than 1024 are not truncated - #18244",
+      "[Improved] Added semantic and keyboard accessible check all button for a groups of consecutive selectable rows in the diff - #18201",
+      "[Improved] Prevent upgrading from macOS 10.13 and 10.14 as soon to be unsupported - #18316",
+      "[Improved] Update banners will only dismiss when closing with the dismiss button - #18319",
+      "[Improved] Add the \"link\" role to the \"Open pull request\" button in tutorial sidebar - #18245"
+    ],
     "3.3.12-beta1": [
       "[Fixed] In the changes diff, groups of two rows that represent one line number change have a check all control - #18232",
       "[Fixed] Copying lines in side by side diffs does not add new lines between each line when pasted - #18249",
