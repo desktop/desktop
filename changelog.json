@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.3.12-beta3": [
+      "[Fixed] Bring back support for macOS 10.13 and 10.14 and prevent upgrading from them - #18316",
+      "[Improved] Update banners will only dismiss when closing with the dismiss button - #18319",
+      "[Fixed] Diff search screen reader support - #18306"
+    ],
     "3.3.12-beta2": [
       "[Improved] The pull request check run popover is now keyboard accessible - #18276",
       "[Improved] The pull request check run popover button is now keyboard accessible - #18268",
