@@ -8,7 +8,7 @@ import { setNumber } from '../../lib/local-storage'
 export const UnsupportedOSBannerDismissedAtKey =
   'unsupported-os-banner-dismissed-at'
 
-export class WindowsVersionNoLongerSupportedBanner extends React.Component<{
+export class OSVersionNoLongerSupportedBanner extends React.Component<{
   onDismissed: () => void
 }> {
   private onDismissed = () => {
