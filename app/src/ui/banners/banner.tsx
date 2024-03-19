@@ -93,7 +93,7 @@ export class Banner extends React.Component<IBannerProps, {}> {
       return
     }
 
-    if (dismissable !== false) {
+    if (dismissable !== false && timeout !== undefined) {
       this.dismissalTimeoutId = window.setTimeout(() => {
         onDismissed()
       }, timeout)
