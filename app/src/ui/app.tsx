@@ -20,7 +20,11 @@ import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { getVersion, getName } from './lib/app-proxy'
-import { getOS, isWindowsAndNoLongerSupportedByElectron } from '../lib/get-os'
+import {
+  getOS,
+  isMacOSAndNoLongerSupportedByElectron,
+  isWindowsAndNoLongerSupportedByElectron,
+} from '../lib/get-os'
 import { MenuEvent } from '../main-process/menu'
 import {
   Repository,
@@ -361,7 +365,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.checkIfThankYouIsInOrder()
 
-    if (isWindowsAndNoLongerSupportedByElectron()) {
+    if (
+      isWindowsAndNoLongerSupportedByElectron() ||
+      isMacOSAndNoLongerSupportedByElectron()
+    ) {
       const dismissedAt = getNumber(UnsupportedOSBannerDismissedAtKey, 0)
 
       // Remind the user that they're running an unsupported OS every 90 days
@@ -745,6 +752,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (isWindowsAndNoLongerSupportedByElectron()) {
       log.error(
         `Can't check for updates on Windows 8.1 or older. Next available update only supports Windows 10 and later`
+      )
+      return
+    }
+
+    if (isMacOSAndNoLongerSupportedByElectron()) {
+      log.error(
+        `Can't check for updates on macOS 10.14 or older. Next available update only supports macOS 10.15 and later`
       )
       return
     }
