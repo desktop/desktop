@@ -741,8 +741,8 @@ export class TestNotifications extends React.Component<
       >
         <DialogHeader
           title="Test Notifications"
-          dismissable={true}
-          onDismissed={this.props.onDismissed}
+          showCloseButton={true}
+          onCloseButtonClick={this.props.onDismissed}
         />
 
         <DialogContent>

@@ -77,6 +77,12 @@ interface IDialogProps {
   readonly dismissable?: boolean
 
   /**
+   * Whether or not to show a close button in the header if the dialog is dismissable.
+   * Defaults to true if omitted.
+   */
+  readonly showCloseButton?: boolean
+
+  /**
    * Event triggered when the dialog is dismissed by the user in the
    * ways described in the dismissable prop.
    */
@@ -719,8 +725,10 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       <DialogHeader
         title={this.props.title}
         titleId={this.state.titleId}
-        dismissable={this.isDismissable()}
-        onDismissed={this.onDismiss}
+        showCloseButton={
+          this.isDismissable() && this.props.showCloseButton !== false
+        }
+        onCloseButtonClick={this.onDismiss}
         loading={this.props.loading}
       />
     )

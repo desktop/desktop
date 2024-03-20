@@ -73,8 +73,8 @@ export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
         <DialogHeader
           title={__DARWIN__ ? 'Installing Update…' : 'Installing update…'}
           loading={true}
-          dismissable={true}
-          onDismissed={this.props.onDismissed}
+          showCloseButton={true}
+          onCloseButtonClick={this.props.onDismissed}
         />
         <DialogContent>
           <Row className="updating-message">
