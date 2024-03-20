@@ -27,9 +27,17 @@
 
   border-radius: var(--border-radius);
   border-width: 0;
+  border: none;
 
   margin-right: var(--spacing);
   padding: var(--spacing-half);
+
+  // remove regular button styles
+  font-size: inherit;
+  overflow: visible;
+  text-overflow: inherit;
+  font-family: inherit;
+  color: inherit;
 
   .number {
     font-size: var(--font-size-sm);

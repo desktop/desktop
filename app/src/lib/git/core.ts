@@ -186,14 +186,13 @@ export async function git(
       : false
     if (!acceptableExitCode) {
       gitError = GitProcess.parseError(result.stderr)
-      if (!gitError) {
+      if (gitError === null) {
         gitError = GitProcess.parseError(result.stdout)
       }
     }
 
-    const gitErrorDescription = gitError
-      ? getDescriptionForError(gitError)
-      : null
+    const gitErrorDescription =
+      gitError !== null ? getDescriptionForError(gitError, result.stderr) : null
     const gitResult = {
       ...result,
       gitError,
@@ -203,11 +202,11 @@ export async function git(
     }
 
     let acceptableError = true
-    if (gitError && opts.expectedErrors) {
+    if (gitError !== null && opts.expectedErrors) {
       acceptableError = opts.expectedErrors.has(gitError)
     }
 
-    if ((gitError && acceptableError) || acceptableExitCode) {
+    if ((gitError !== null && acceptableError) || acceptableExitCode) {
       return gitResult
     }
 
@@ -227,7 +226,7 @@ export async function git(
       errorMessage.push(result.stderr)
     }
 
-    if (gitError) {
+    if (gitError !== null) {
       errorMessage.push(
         `(The error was parsed as ${gitError}: ${gitErrorDescription})`
       )
@@ -306,7 +305,10 @@ export function parseConfigLockFilePathFromError(result: IGitResult) {
   return Path.resolve(result.path, `${normalized}.lock`)
 }
 
-function getDescriptionForError(error: DugiteError): string | null {
+function getDescriptionForError(
+  error: DugiteError,
+  stderr: string
+): string | null {
   if (isAuthFailureError(error)) {
     const menuHint = __DARWIN__
       ? 'GitHub Desktop > Settings.'
@@ -323,6 +325,13 @@ function getDescriptionForError(error: DugiteError): string | null {
   }
 
   switch (error) {
+    case DugiteError.BadConfigValue:
+      const errorInfo = GitProcess.parseBadConfigValueErrorInfo(stderr)
+      if (errorInfo === null) {
+        return 'Unsupported git configuration value.'
+      }
+
+      return `Unsupported value '${errorInfo.value}' for git config key '${errorInfo.key}'`
     case DugiteError.SSHKeyAuditUnverified:
       return 'The SSH key is unverified.'
     case DugiteError.RemoteDisconnection:

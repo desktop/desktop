@@ -71,6 +71,7 @@ import { DiffContentsWarning } from './diff-contents-warning'
 import { findDOMNode } from 'react-dom'
 import escapeRegExp from 'lodash/escapeRegExp'
 import ReactDOM from 'react-dom'
+import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 const DefaultRowHeight = 20
 
@@ -83,6 +84,8 @@ export interface ISelection {
 
   readonly isSelected: boolean
 }
+
+type SearchDirection = 'next' | 'previous'
 
 type ModifiedLine = { line: DiffLine; diffLineNumber: number }
 
@@ -209,6 +212,8 @@ interface ISideBySideDiffState {
   readonly searchResults?: SearchResults
 
   readonly selectedSearchResult: number | undefined
+
+  readonly searchLiveMessage?: string
 
   /** This tracks the last expanded hunk index so that we can refocus the expander after rerender */
   readonly lastExpandedHunk: {
@@ -562,7 +567,7 @@ export class SideBySideDiff extends React.Component<
   }
 
   public render() {
-    const { diff } = this.state
+    const { diff, searchLiveMessage, isSearching } = this.state
 
     const rows = this.getCurrentDiffRows()
     const containerClassName = classNames('side-by-side-diff-container', {
@@ -581,7 +586,7 @@ export class SideBySideDiff extends React.Component<
         onKeyDown={this.onKeyDown}
       >
         <DiffContentsWarning diff={diff} />
-        {this.state.isSearching && (
+        {isSearching && (
           <DiffSearchInput
             onSearch={this.onSearch}
             onClose={this.onSearchCancel}
@@ -591,6 +596,9 @@ export class SideBySideDiff extends React.Component<
           className="side-by-side-diff cm-s-default"
           ref={this.onDiffContainerRef}
         >
+          {isSearching && (
+            <AriaLiveContainer message={searchLiveMessage || ''} />
+          )}
           <AutoSizer onResize={this.clearListRowsHeightCache}>
             {({ height, width }) => (
               <List
@@ -606,7 +614,7 @@ export class SideBySideDiff extends React.Component<
                 // The following properties are passed to the list
                 // to make sure that it gets re-rendered when any of
                 // them change.
-                isSearching={this.state.isSearching}
+                isSearching={isSearching}
                 selectedSearchResult={this.state.selectedSearchResult}
                 searchQuery={this.state.searchQuery}
                 showSideBySideDiff={this.props.showSideBySideDiff}
@@ -1569,56 +1577,89 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
-  private onSearch = (searchQuery: string, direction: 'next' | 'previous') => {
-    let { selectedSearchResult, searchResults: searchResults } = this.state
-    const { showSideBySideDiff } = this.props
-    const { diff } = this.state
+  private onSearch = (searchQuery: string, direction: SearchDirection) => {
+    const { searchResults } = this.state
 
-    // If the query is unchanged and we've got tokens we'll continue, else we'll restart
-    if (searchQuery === this.state.searchQuery && searchResults !== undefined) {
-      if (selectedSearchResult === undefined) {
-        selectedSearchResult = 0
-      } else {
-        const delta = direction === 'next' ? 1 : -1
-
-        // http://javascript.about.com/od/problemsolving/a/modulobug.htm
-        selectedSearchResult =
-          (selectedSearchResult + delta + searchResults.length) %
-          searchResults.length
-      }
+    if (searchQuery?.trim() === '') {
+      this.resetSearch(true, 'No results')
+    } else if (searchQuery === this.state.searchQuery && searchResults) {
+      this.continueSearch(searchResults, direction)
     } else {
-      searchResults = calcSearchTokens(
-        diff,
-        showSideBySideDiff,
+      this.startSearch(searchQuery, direction)
+    }
+  }
+
+  private startSearch = (searchQuery: string, direction: SearchDirection) => {
+    const searchResults = calcSearchTokens(
+      this.state.diff,
+      this.props.showSideBySideDiff,
+      searchQuery,
+      this.canExpandDiff()
+    )
+
+    if (searchResults === undefined || searchResults.length === 0) {
+      this.resetSearch(true, `No results for "${searchQuery}"`)
+    } else {
+      const searchLiveMessage = `Result 1 of ${searchResults.length} for "${searchQuery}"`
+
+      this.scrollToSearchResult(0)
+
+      this.setState({
         searchQuery,
-        this.canExpandDiff()
-      )
-      selectedSearchResult = 0
-
-      if (searchResults === undefined || searchResults.length === 0) {
-        this.resetSearch(true)
-        return
-      }
+        searchResults,
+        selectedSearchResult: 0,
+        searchLiveMessage,
+      })
     }
+  }
 
-    const scrollToRow = searchResults.get(selectedSearchResult)?.row
+  private continueSearch = (
+    searchResults: SearchResults,
+    direction: SearchDirection
+  ) => {
+    const { searchQuery } = this.state
+    let { selectedSearchResult = 0 } = this.state
 
-    if (scrollToRow !== undefined) {
-      this.virtualListRef.current?.scrollToRow(scrollToRow)
-    }
+    const delta = direction === 'next' ? 1 : -1
 
-    this.setState({ searchQuery, searchResults, selectedSearchResult })
+    // https://web.archive.org/web/20090717035140if_/javascript.about.com/od/problemsolving/a/modulobug.htm
+    selectedSearchResult =
+      (selectedSearchResult + delta + searchResults.length) %
+      searchResults.length
+
+    const searchLiveMessage = `Result ${selectedSearchResult + 1} of ${
+      searchResults.length
+    } for "${searchQuery}"`
+
+    this.scrollToSearchResult(selectedSearchResult)
+
+    this.setState({
+      searchResults,
+      selectedSearchResult,
+      searchLiveMessage,
+    })
   }
 
   private onSearchCancel = () => {
     this.resetSearch(false)
   }
 
-  private resetSearch(isSearching: boolean) {
+  private scrollToSearchResult = (index: number) => {
+    const { searchResults } = this.state
+
+    const scrollToRow = searchResults?.get(index)?.row
+
+    if (scrollToRow !== undefined) {
+      this.virtualListRef.current?.scrollToRow(scrollToRow)
+    }
+  }
+
+  private resetSearch(isSearching: boolean, searchLiveMessage?: string) {
     this.setState({
       selectedSearchResult: undefined,
       searchQuery: undefined,
       searchResults: undefined,
+      searchLiveMessage,
       isSearching,
     })
   }
