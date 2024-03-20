@@ -49,6 +49,8 @@ const DisableClickDismissalDelay = 500
  */
 const titleBarHeight = getTitleBarHeight()
 
+type DialogDismissOptions = 'backdrop-click' | 'close-button' | 'escape-key'
+
 interface IDialogProps {
   /**
    * An optional dialog title. Most, if not all dialogs should have
@@ -74,13 +76,7 @@ interface IDialogProps {
    *
    * Defaults to true if omitted.
    */
-  readonly dismissable?: boolean
-
-  /**
-   * Whether or not to show a close button in the header if the dialog is dismissable.
-   * Defaults to true if omitted.
-   */
-  readonly showCloseButton?: boolean
+  readonly dismissOptions?: ReadonlyArray<DialogDismissOptions>
 
   /**
    * Event triggered when the dialog is dismissed by the user in the
@@ -326,8 +322,18 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     )
   }
 
+  private get dismissOptions(): ReadonlyArray<DialogDismissOptions> {
+    return (
+      this.props.dismissOptions ?? [
+        'backdrop-click',
+        'escape-key',
+        'close-button',
+      ]
+    )
+  }
+
   private isDismissable() {
-    return this.props.dismissable === undefined || this.props.dismissable
+    return this.dismissOptions.length > 0
   }
 
   private updateTitleId() {
@@ -599,7 +605,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       return
     }
 
-    if (this.isDismissable() === false) {
+    if (!this.dismissOptions.includes('backdrop-click')) {
       return
     }
 
@@ -725,9 +731,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       <DialogHeader
         title={this.props.title}
         titleId={this.state.titleId}
-        showCloseButton={
-          this.isDismissable() && this.props.showCloseButton !== false
-        }
+        showCloseButton={this.dismissOptions.includes('close-button')}
         onCloseButtonClick={this.onDismiss}
         loading={this.props.loading}
       />

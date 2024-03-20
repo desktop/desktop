@@ -67,7 +67,7 @@ export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
       <Dialog
         id="installing-update"
         onSubmit={this.props.onDismissed}
-        dismissable={false}
+        dismissOptions={[]}
         type="warning"
       >
         <DialogHeader
