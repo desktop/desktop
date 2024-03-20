@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.3.13-beta1": [
+      "[Fixed] Fix layout issues in 2-up image diffing when images are too small - #18313",
+      "[Fixed] The \"Show whitespace changes?\" popover can be closed by pressing Escape - #18314",
+      "[Removed] Remove support for macOS 10.13 and 10.14 - #18316"
+    ],
     "3.3.12": [
       "[Fixed] On Windows, PATH environment variable with values longer than 1024 are not truncated - #18244",
       "[Improved] Added semantic and keyboard accessible check all button for a groups of consecutive selectable rows in the diff - #18201",
