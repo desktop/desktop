@@ -156,8 +156,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           ![
             UpdateStatus.UpdateNotChecked,
             UpdateStatus.UpdateNotAvailable,
-          ].includes(updateStatus) ||
-          isOSNoLongerSupportedByElectron()
+          ].includes(updateStatus) || isOSNoLongerSupportedByElectron()
 
         const onClick = this.state.altKeyPressed
           ? this.props.onCheckForNonStaggeredUpdates

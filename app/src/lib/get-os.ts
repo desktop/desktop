@@ -86,10 +86,10 @@ export const isMacOSAndNoLongerSupportedByElectron = memoizeOne(
 
 export function isOSNoLongerSupportedByElectron(): boolean {
   if (__DARWIN__) {
-    return isMacOSAndNoLongerSupportedByElectron;
+    return isMacOSAndNoLongerSupportedByElectron
   } else if (__WIN32__) {
-    return isWindowsAndNoLongerSupportedByElectron;
+    return isWindowsAndNoLongerSupportedByElectron
   } else {
-    return false;
+    return false
   }
 }
