@@ -27,7 +27,7 @@ function systemVersionLessThan(version: string) {
 }
 
 /** Get the OS we're currently running on. */
-export function getOS() {
+export function getOS(): string {
   const version = getSystemVersionSafe()
   if (__DARWIN__) {
     return `Mac OS ${version}`
@@ -83,3 +83,13 @@ export const isWindowsAndNoLongerSupportedByElectron = memoizeOne(
 export const isMacOSAndNoLongerSupportedByElectron = memoizeOne(
   () => __DARWIN__ && systemVersionLessThan('10.15')
 )
+
+export function isOSNoLongerSupportedByElectron(): boolean {
+  if (__DARWIN__) {
+    return isMacOSAndNoLongerSupportedByElectron;
+  } else if (__WIN32__) {
+    return isWindowsAndNoLongerSupportedByElectron;
+  } else {
+    return false;
+  }
+}
