@@ -64,7 +64,7 @@ export abstract class PullRequestCommentLike extends React.Component<IPullReques
         id={this.props.id}
         type="normal"
         title={header}
-        dismissable={false}
+        backdropDismissable={false}
         onSubmit={this.props.onSubmit}
         onDismissed={this.props.onDismissed}
         loading={this.props.switchingToPullRequest}
