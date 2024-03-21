@@ -8,6 +8,10 @@
     flex-direction: row;
     align-items: center;
 
+    .ci-check-rerun {
+      margin-right: var(--spacing);
+    }
+
     > .octicon {
       width: 20px;
       height: 20px;
