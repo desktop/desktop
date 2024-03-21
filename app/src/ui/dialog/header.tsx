@@ -16,6 +16,7 @@ interface IDialogHeaderProps {
    */
   readonly titleId?: string
 
+  /** Whether or not the header should show a close button */
   readonly showCloseButton?: boolean
 
   /**
