@@ -62,19 +62,22 @@ interface IDialogProps {
   readonly title?: string | JSX.Element
 
   /**
-   * Whether or not the dialog should be dismissable. A dismissable dialog
-   * can be dismissed either by clicking on the backdrop or by clicking
-   * the close button in the header (if a header was specified). Dismissal
-   * will trigger the onDismissed event which callers must handle and pass
-   * on to the dispatcher in order to close the dialog.
-   *
-   * A non-dismissable dialog can only be closed by means of the component
-   * implementing a dialog. An example would be a critical error or warning
-   * that requires explicit user action by for example clicking on a button.
+   * Whether or not the dialog should be dismissable by clicking on the
+   * backdrop. Dismissal will trigger the onDismissed event which callers
+   * must handle and pass on to the dispatcher in order to close the dialog.
    *
    * Defaults to true if omitted.
    */
-  readonly dismissable?: boolean
+  readonly backdropDismissable?: boolean
+
+  /**
+   * Whether or not the dialog should be dismissable by any built-in means
+   * (like pressing Escape, clicking on the close button, or clicking on the
+   * backdrop -if enabled-).
+   *
+   * Defaults to false if omitted.
+   */
+  readonly dismissDisabled?: boolean
 
   /**
    * Event triggered when the dialog is dismissed by the user in the
@@ -320,8 +323,12 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     )
   }
 
+  private isBackdropDismissable() {
+    return this.props.backdropDismissable !== false
+  }
+
   private isDismissable() {
-    return this.props.dismissable === undefined || this.props.dismissable
+    return this.props.dismissDisabled !== true
   }
 
   private updateTitleId() {
@@ -593,7 +600,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       return
     }
 
-    if (this.isDismissable() === false) {
+    if (!this.isDismissable() || !this.isBackdropDismissable()) {
       return
     }
 
@@ -686,6 +693,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     if (event.defaultPrevented) {
       return
     }
+
     const shortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
     if ((shortcutKey && event.key === 'w') || event.key === 'Escape') {
       this.onDialogCancel(event)
@@ -719,8 +727,8 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       <DialogHeader
         title={this.props.title}
         titleId={this.state.titleId}
-        dismissable={this.isDismissable()}
-        onDismissed={this.onDismiss}
+        showCloseButton={this.isDismissable()}
+        onCloseButtonClick={this.onDismiss}
         loading={this.props.loading}
       />
     )
