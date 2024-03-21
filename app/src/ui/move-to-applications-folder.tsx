@@ -37,7 +37,7 @@ export class MoveToApplicationsFolder extends React.Component<
       <Dialog
         title="Move GitHub Desktop to the Applications folder?"
         id="move-to-applications-folder"
-        dismissable={false}
+        backdropDismissable={false}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
         type="warning"
