@@ -221,7 +221,6 @@ export class ChooseBranchDialog extends React.Component<
         id="choose-branch"
         onDismissed={this.props.onDismissed}
         onSubmit={start}
-        dismissable={true}
         title={dialogTitle}
       >
         <DialogContent>

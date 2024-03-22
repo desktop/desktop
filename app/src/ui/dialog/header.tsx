@@ -16,17 +16,13 @@ interface IDialogHeaderProps {
    */
   readonly titleId?: string
 
-  /**
-   * Whether or not the implementing dialog is dismissable. This controls
-   * whether or not the dialog header renders a close button or not.
-   */
-  readonly dismissable: boolean
+  /** Whether or not the header should show a close button */
+  readonly showCloseButton?: boolean
 
   /**
-   * Event triggered when the dialog is dismissed by the user in the
-   * ways described in the dismissable prop.
+   * Event triggered when the dialog is dismissed by the user.
    */
-  readonly onDismissed?: () => void
+  readonly onCloseButtonClick?: () => void
 
   /**
    * Whether or not the dialog contents are currently involved in processing
@@ -51,13 +47,13 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
     /** This prevent default is a preventative measure since the dialog is akin
      * to a big Form element. We wouldn't any surprise form handling. */
     e.preventDefault()
-    if (this.props.onDismissed) {
-      this.props.onDismissed()
+    if (this.props.onCloseButtonClick) {
+      this.props.onCloseButtonClick()
     }
   }
 
   private renderCloseButton() {
-    if (!this.props.dismissable) {
+    if (this.props.showCloseButton === false) {
       return null
     }
 

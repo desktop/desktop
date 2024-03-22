@@ -37,9 +37,9 @@ export class SSHUserPassword extends React.Component<
         id="ssh-user-password"
         type="normal"
         title="SSH User Password"
-        dismissable={false}
+        backdropDismissable={false}
         onSubmit={this.onSubmit}
-        onDismissed={this.props.onDismissed}
+        onDismissed={this.onCancel}
       >
         <DialogContent>
           <Row>

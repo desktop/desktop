@@ -37,9 +37,9 @@ export class SSHKeyPassphrase extends React.Component<
         id="ssh-key-passphrase"
         type="normal"
         title="SSH Key Passphrase"
-        dismissable={false}
+        backdropDismissable={false}
         onSubmit={this.onSubmit}
-        onDismissed={this.props.onDismissed}
+        onDismissed={this.onCancel}
       >
         <DialogContent>
           <Row>

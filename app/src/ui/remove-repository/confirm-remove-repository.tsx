@@ -58,7 +58,7 @@ export class ConfirmRemoveRepository extends React.Component<
         key="remove-repository-confirmation"
         type="warning"
         title={__DARWIN__ ? 'Remove Repository' : 'Remove repository'}
-        dismissable={isRemovingRepository ? false : true}
+        dismissDisabled={isRemovingRepository}
         loading={isRemovingRepository}
         disabled={isRemovingRepository}
         onDismissed={this.props.onDismissed}

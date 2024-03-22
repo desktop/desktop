@@ -91,8 +91,7 @@ export class OpenPullRequestDialogHeader extends React.Component<
       <DialogHeader
         title={title}
         titleId={this.state.titleId}
-        dismissable={true}
-        onDismissed={onDismissed}
+        onCloseButtonClick={onDismissed}
       >
         <div className="break"></div>
         <div className="base-branch-details">

@@ -33,7 +33,7 @@ export class PushNeedsPullWarning extends React.Component<
         title={
           __DARWIN__ ? 'Newer Commits on Remote' : 'Newer commits on remote'
         }
-        dismissable={!this.state.isLoading}
+        dismissDisabled={this.state.isLoading}
         disabled={this.state.isLoading}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onFetch}
