@@ -27,6 +27,9 @@ export interface IStatusEntry {
 
   /** The original path in the case of a renamed file */
   readonly oldPath?: string
+
+  /** The rename or copy score in the case of a renamed file */
+  readonly renameOrCopyScore?: number
 }
 
 export function isStatusHeader(
@@ -140,6 +143,7 @@ function parsedRenamedOrCopiedEntry(
     statusCode: match[1],
     submoduleStatusCode: match[2],
     oldPath,
+    renameOrCopyScore: parseInt(match[8].substring(1), 10),
     path: match[9],
   }
 }
@@ -195,7 +199,8 @@ function mapSubmoduleStatus(
  */
 export function mapStatus(
   statusCode: string,
-  submoduleStatusCode: string
+  submoduleStatusCode: string,
+  renameOrCopyScore: number | undefined
 ): FileEntry {
   const submoduleStatus = mapSubmoduleStatus(submoduleStatusCode)
 
@@ -268,6 +273,7 @@ export function mapStatus(
       kind: 'renamed',
       index: GitStatusEntry.Renamed,
       workingTree: GitStatusEntry.Unchanged,
+      renameOrCopyScore,
       submoduleStatus,
     }
   }
@@ -277,6 +283,7 @@ export function mapStatus(
       kind: 'renamed',
       index: GitStatusEntry.Unchanged,
       workingTree: GitStatusEntry.Renamed,
+      renameOrCopyScore,
       submoduleStatus,
     }
   }
@@ -324,6 +331,7 @@ export function mapStatus(
       kind: 'renamed',
       index: GitStatusEntry.Renamed,
       workingTree: GitStatusEntry.Modified,
+      renameOrCopyScore,
       submoduleStatus,
     }
   }
@@ -333,6 +341,7 @@ export function mapStatus(
       kind: 'renamed',
       index: GitStatusEntry.Renamed,
       workingTree: GitStatusEntry.Deleted,
+      renameOrCopyScore,
       submoduleStatus,
     }
   }
