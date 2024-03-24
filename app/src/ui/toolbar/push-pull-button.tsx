@@ -5,6 +5,7 @@ import { Repository } from '../../models/repository'
 import { IAheadBehind } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { FetchType } from '../../models/fetch'
+import { Resizable } from '../resizable'
 
 import { Dispatcher } from '../dispatcher'
 import {
@@ -24,7 +25,7 @@ import {
   ToolbarDropdown,
   ToolbarDropdownStyle,
 } from './dropdown'
-import { FoldoutType } from '../../lib/app-state'
+import { FoldoutType, IConstrainedValue } from '../../lib/app-state'
 import { ForcePushBranchState } from '../../lib/rebase'
 import { PushPullButtonDropDown } from './push-pull-button-dropdown'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
@@ -94,6 +95,9 @@ interface IPushPullButtonProps {
    * using the dialog focus management.
    */
   readonly enableFocusTrap: boolean
+
+  /** The width of the resizable push/pull button, as derived from AppState. */
+  readonly pushPullButtonWidth: IConstrainedValue
 
   /**
    * An event handler for when the drop down is opened, or closed, by a pointer
@@ -359,6 +363,24 @@ export class PushPullButton extends React.Component<
     )
   }
 
+  /**
+   * Handler called when the width of the push/pull button has changed
+   * through an explicit resize event to the given width.
+   *
+   * @param width The new width of resizable button.
+   */
+  private onResize = (width: number) => {
+    this.props.dispatcher.setPushPullButtonWidth(width)
+  }
+
+  /**
+   * Handler called when the resizable push/pull button has been
+   * asked to restore its original width.
+   */
+  private onReset = () => {
+    this.props.dispatcher.resetPushPullButtonWidth()
+  }
+
   private getDropdownContentRenderer(
     itemTypes: ReadonlyArray<DropdownItemType>
   ) {
@@ -380,10 +402,18 @@ export class PushPullButton extends React.Component<
   public render() {
     return (
       <>
-        {this.renderButton()}
-        <span id="push-pull-button-state">
-          <AriaLiveContainer message={this.state.screenReaderStateMessage} />
-        </span>
+        <Resizable
+          width={this.props.pushPullButtonWidth.value}
+          onReset={this.onReset}
+          onResize={this.onResize}
+          maximumWidth={this.props.pushPullButtonWidth.max}
+          minimumWidth={this.props.pushPullButtonWidth.min}
+        >
+          {this.renderButton()}
+          <span id="push-pull-button-state">
+            <AriaLiveContainer message={this.state.screenReaderStateMessage} />
+          </span>
+        </Resizable>
       </>
     )
   }

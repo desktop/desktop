@@ -954,6 +954,41 @@ export class Dispatcher {
   }
 
   /**
+   * Set the width of the Branch toolbar button to the given value.
+   * This affects the toolbar button and its dropdown element.
+   *
+   * @param width The value for the width of Branch button
+   */
+  public setBranchDropdownWidth(width: number): Promise<void> {
+    return this.appStore._setBranchDropdownWidth(width)
+  }
+
+  /**
+   * Reset the width of the Branch toolbar button to its default value.
+   */
+  public resetBranchDropdownWidth(): Promise<void> {
+    return this.appStore._resetBranchDropdownWidth()
+  }
+
+  /**
+   * Set the width of the Push/Push toolbar button to the given value.
+   * This affects the toolbar button and its dropdown element.
+   *
+   * @param width The value for the width of Push/Pull button
+   */
+  public setPushPullButtonWidth(width: number): Promise<void> {
+    return this.appStore._setPushPullButtonWidth(width)
+  }
+
+  /**
+   * Reset the width of the Push/Pull toolbar button to its default
+   * value.
+   */
+  public resetPushPullButtonWidth(): Promise<void> {
+    return this.appStore._resetPushPullButtonWidth()
+  }
+
+  /**
    * Set the update banner's visibility
    */
   public setUpdateBannerVisibility(isVisible: boolean) {
