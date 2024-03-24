@@ -33,7 +33,7 @@ export async function getGitIgnoreNames(): Promise<ReadonlyArray<string>> {
 }
 
 /** Get the gitignore based on a name from `getGitIgnoreNames()`. */
-async function getGitIgnoreText(name: string): Promise<string> {
+export async function getGitIgnoreText(name: string): Promise<string> {
   const gitIgnores = await getCachedGitIgnores()
 
   const path = gitIgnores.get(name)
