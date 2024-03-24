@@ -18,6 +18,8 @@ export enum DiffType {
   Submodule,
   /** Diff is large enough to degrade ux if rendered */
   LargeText,
+  /** Changes to a LFS file with a known extension, witch can be viewed in the app */
+  LFSImage,
   /** Diff that will not be rendered */
   Unrenderable,
 }
@@ -69,7 +71,6 @@ export interface ITextDiff extends ITextDiffData {
  */
 export interface IImageDiff {
   readonly kind: DiffType.Image
-
   /**
    * The previous image, if the file was modified or deleted
    *
@@ -114,6 +115,47 @@ export interface ILargeTextDiff extends ITextDiffData {
   readonly kind: DiffType.LargeText
 }
 
+/**
+ * Enum showing state of loading
+ */
+export enum LFSImageState {
+  AskForDownload,
+  DownloadInProgress,
+  Done,
+}
+
+export interface ILFSImageDiff {
+  readonly kind: DiffType.LFSImage
+  /**
+   * The previous image promise, if the file was modified or deleted
+   *
+   * Will be undefined for an added image
+   */
+  readonly previous?: () => Promise<Image>
+  /**
+   * The current image promise, if the file was added or modified
+   *
+   * Will be undefined for a deleted image
+   */
+  readonly current?: () => Promise<Image>
+  /**
+   * The previous image, if the file was modified or deleted
+   *
+   * Will be undefined for an added image
+   */
+  previousImage?: Image
+  /**
+   * The current image, if the file was added or modified
+   *
+   * Will be undefined for a deleted image
+   */
+  currentImage?: Image
+  /**
+   * show current state of this diff when loading
+   */
+  currentState: LFSImageState
+}
+
 export interface IUnrenderableDiff {
   readonly kind: DiffType.Unrenderable
 }
@@ -125,4 +167,5 @@ export type IDiff =
   | IBinaryDiff
   | ISubmoduleDiff
   | ILargeTextDiff
+  | ILFSImageDiff
   | IUnrenderableDiff

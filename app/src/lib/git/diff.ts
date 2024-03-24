@@ -1,7 +1,8 @@
 import * as Path from 'path'
-
-import { getBlobContents } from './show'
-
+import Psd from '@webtoon/psd'
+import { toPng } from '@rgba-image/png'
+import { parseDDSHeader, parseKTXHeader, decodeImage } from 'dds-ktx-parser'
+import { getBlobContents, getLFSBlobContents } from './show'
 import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
@@ -12,6 +13,8 @@ import {
 } from '../../models/status'
 import {
   DiffType,
+  DiffHunk,
+  DiffLineType,
   IRawDiff,
   IDiff,
   IImageDiff,
@@ -19,6 +22,8 @@ import {
   LineEndingsChange,
   parseLineEndingText,
   ILargeTextDiff,
+  ILFSImageDiff,
+  LFSImageState,
 } from '../../models/diff'
 
 import { spawnAndComplete } from './spawn'
@@ -97,6 +102,35 @@ const imageFileExtensions = new Set([
   '.bmp',
   '.avif',
 ])
+
+const compressedImageFileExtensions = new Set(['.dds', '.ktx'])
+
+const PSFileExtensions = new Set(['.psd'])
+
+/**
+ *  Defining the LFS version string
+ */
+const LFSVersionString: string = 'version https://git-lfs.github.com/spec/v1'
+
+/**
+ *  Callback that will be called when extract specific type for LFS Objects
+ */
+type CallbackGetLFSBlobImage = (
+  repository: Repository,
+  path: string,
+  LFSMetadata: string
+) => Promise<Image>
+
+type CallbackGetBlobImage = (
+  repository: Repository,
+  path: string,
+  commitish: string
+) => Promise<Image>
+
+type CallbackGetWorkingDirImage = (
+  repository: Repository,
+  file: FileChange
+) => Promise<Image>
 
 /**
  * Render the difference between a file in the given commit and its parent
@@ -394,7 +428,9 @@ export async function getWorkingDirectoryDiff(
 async function getImageDiff(
   repository: Repository,
   file: FileChange,
-  oldestCommitish: string
+  oldestCommitish: string,
+  callbackGetBlobImage: CallbackGetBlobImage,
+  callbackGetWorkingDirImage: CallbackGetWorkingDirImage
 ): Promise<IImageDiff> {
   let current: Image | undefined = undefined
   let previous: Image | undefined = undefined
@@ -410,7 +446,7 @@ async function getImageDiff(
 
     // Does it even exist in the working directory?
     if (file.status.kind !== AppFileStatusKind.Deleted) {
-      current = await getWorkingDirectoryImage(repository, file)
+      current = await callbackGetWorkingDirImage(repository, file)
     }
 
     if (
@@ -419,7 +455,7 @@ async function getImageDiff(
     ) {
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
-      previous = await getBlobImage(
+      previous = await callbackGetBlobImage(
         repository,
         getOldPathOrDefault(file),
         'HEAD'
@@ -428,7 +464,11 @@ async function getImageDiff(
   } else {
     // File status can't be conflicted for a file in a commit
     if (file.status.kind !== AppFileStatusKind.Deleted) {
-      current = await getBlobImage(repository, file.path, oldestCommitish)
+      current = await callbackGetBlobImage(
+        repository,
+        file.path,
+        oldestCommitish
+      )
     }
 
     // File status can't be conflicted for a file in a commit
@@ -441,7 +481,7 @@ async function getImageDiff(
       //
       // If we have file.oldPath that means it's a rename so we'll
       // look for that file.
-      previous = await getBlobImage(
+      previous = await callbackGetBlobImage(
         repository,
         getOldPathOrDefault(file),
         `${oldestCommitish}^`
@@ -452,7 +492,7 @@ async function getImageDiff(
       file instanceof CommittedFileChange &&
       file.status.kind === AppFileStatusKind.Deleted
     ) {
-      previous = await getBlobImage(
+      previous = await callbackGetBlobImage(
         repository,
         getOldPathOrDefault(file),
         file.parentCommitish
@@ -467,6 +507,72 @@ async function getImageDiff(
   }
 }
 
+/**
+ * This function splits diff hunk into this format needed for `git lfs smudge`:
+ * `version https://git-lfs.github.com/spec/v1
+ *  oid sha256:[lfs file sha256]
+ *  size [lfs file size]`
+ * From diff hunk it can be get Added and/or Removed LFS text in format above
+ * and pass it to getLFSBlobImage to get image blob using `git lfs smudge`
+ * call callback to extract buffer data
+ */
+async function getLFSImageDiff(
+  repository: Repository,
+  file: FileChange,
+  hunk: DiffHunk,
+  callbackGetLFSBlobImage: CallbackGetLFSBlobImage
+): Promise<ILFSImageDiff> {
+  let prev: string = ''
+  let curr: string = ''
+
+  for (let i = 0; i < hunk.lines.length; i++) {
+    const element = hunk.lines[i]
+    // strip first character ('+' or '-') for this Add/Delete line types
+    if (element.type === DiffLineType.Delete) {
+      prev += element.text.substring(1) + '\n'
+    } else if (element.type === DiffLineType.Add) {
+      curr += element.text.substring(1) + '\n'
+    } else if (
+      element.type === DiffLineType.Context &&
+      element.text.search('size') !== -1
+    ) {
+      prev += element.text.substring(1) + '\n'
+      curr += element.text.substring(1) + '\n'
+    }
+  }
+
+  if (prev.length > 0 && curr.length > 0) {
+    // add LFS version string in front of deleted and added LFS object
+    prev = LFSVersionString + '\n' + prev
+    curr = LFSVersionString + '\n' + curr
+  }
+
+  return {
+    kind: DiffType.LFSImage,
+    previous:
+      prev.length > 0
+        ? () => {
+            return callbackGetLFSBlobImage(
+              repository,
+              getOldPathOrDefault(file),
+              prev
+            )
+          }
+        : undefined,
+    current:
+      curr.length > 0
+        ? () => {
+            return callbackGetLFSBlobImage(
+              repository,
+              getOldPathOrDefault(file),
+              curr
+            )
+          }
+        : undefined,
+    currentState: LFSImageState.AskForDownload,
+  }
+}
+
 export async function convertDiff(
   repository: Repository,
   file: FileChange,
@@ -478,12 +584,58 @@ export async function convertDiff(
 
   if (diff.isBinary) {
     // some extension we don't know how to parse, never mind
-    if (!imageFileExtensions.has(extension)) {
-      return {
-        kind: DiffType.Binary,
-      }
-    } else {
-      return getImageDiff(repository, file, oldestCommitish)
+    if (imageFileExtensions.has(extension)) {
+      return getImageDiff(
+        repository,
+        file,
+        oldestCommitish,
+        getBlobImage,
+        getWorkingDirectoryImage
+      )
+    }
+
+    if (compressedImageFileExtensions.has(extension)) {
+      return getImageDiff(
+        repository,
+        file,
+        oldestCommitish,
+        getBlobCompressedImage,
+        getWorkingDirectoryCompressedImage
+      )
+    }
+
+    if (PSFileExtensions.has(extension)) {
+      return getImageDiff(
+        repository,
+        file,
+        oldestCommitish,
+        getBlobPSImage,
+        getWorkingDirectoryPSAsImage
+      )
+    }
+
+    return {
+      kind: DiffType.Binary,
+    }
+  }
+
+  // we must check for image file because someone can hold text files in LFS
+  if (diff.contents.includes(LFSVersionString)) {
+    if (imageFileExtensions.has(extension)) {
+      return getLFSImageDiff(repository, file, diff.hunks[0], getLFSBlobImage)
+    }
+
+    if (compressedImageFileExtensions.has(extension)) {
+      return getLFSImageDiff(
+        repository,
+        file,
+        diff.hunks[0],
+        getLFSBlobCompressedImage
+      )
+    }
+
+    if (PSFileExtensions.has(extension)) {
+      return getLFSImageDiff(repository, file, diff.hunks[0], getLFSPSBlobImage)
     }
   }
 
@@ -662,6 +814,67 @@ async function buildDiff(
   return convertDiff(repository, file, diff, oldestCommitish, lineEndingsChange)
 }
 
+async function getImageFromPSBuffer(contents: Buffer): Promise<Image> {
+  const array = new Uint8Array(contents).buffer
+  try {
+    const psdFile = Psd.parse(array)
+    if (psdFile) {
+      const compositeBuffer = await psdFile.composite()
+
+      const imageData = new ImageData(
+        compositeBuffer,
+        psdFile.width,
+        psdFile.height
+      )
+
+      const options = { colorType: 6 }
+
+      const buffer = toPng(imageData, options)
+
+      return new Image(
+        Buffer.from(buffer).toString('base64'),
+        'image/png',
+        buffer.length
+      )
+    }
+  } catch (e) {}
+
+  return new Image('', 'image/png', 0)
+}
+
+async function getImageFromCompressedImageBuffer(
+  contents: Buffer
+): Promise<Image> {
+  let imageFormat = parseDDSHeader(contents)
+  if (!imageFormat) {
+    imageFormat = parseKTXHeader(contents)
+  }
+
+  if (imageFormat) {
+    const compositeBuffer = decodeImage(
+      contents,
+      imageFormat.format,
+      imageFormat.layers[0]
+    )
+    const imageData = new ImageData(
+      new Uint8ClampedArray(compositeBuffer.buffer, compositeBuffer.byteOffset),
+      imageFormat.shape.width,
+      imageFormat.shape.height
+    )
+
+    const options = { colorType: 6 }
+    const buffer = toPng(imageData, options)
+
+    return new Image(
+      Buffer.from(buffer).toString('base64'),
+      'image/png',
+      buffer.length
+    )
+  }
+
+  return new Image('', 'image/png', 0)
+}
+
 /**
  * Retrieve the binary contents of a blob from the object database
  *
@@ -684,6 +897,106 @@ export async function getBlobImage(
     contents.length
   )
 }
+
+/**
+ * Retrieve the binary contents of a blob from the object database
+ * and converted it to png image
+ *
+ * Returns an image object containing the base64 encoded string,
+ * as <img> tags support the data URI scheme instead of
+ * needing to reference a file:// URI
+ *
+ * https://en.wikipedia.org/wiki/Data_URI_scheme
+ */
+export async function getBlobCompressedImage(
+  repository: Repository,
+  path: string,
+  commitish: string
+): Promise<Image> {
+  const contents = await getBlobContents(repository, commitish, path)
+  return getImageFromCompressedImageBuffer(contents)
+}
+
+/**
+ * Retrieve the binary contents of a blob from the object database
+ * and converted it to png image
+ *
+ * Returns an image object containing the base64 encoded string,
+ * as <img> tags support the data URI scheme instead of
+ * needing to reference a file:// URI
+ *
+ * https://en.wikipedia.org/wiki/Data_URI_scheme
+ */
+export async function getBlobPSImage(
+  repository: Repository,
+  path: string,
+  commitish: string
+): Promise<Image> {
+  const contents = await getBlobContents(repository, commitish, path)
+  return getImageFromPSBuffer(contents)
+}
+
+/**
+ * Retrieve the binary contents of a blob from the LFS object database
+ *
+ * Returns an image object containing the base64 encoded string,
+ * as <img> tags support the data URI scheme instead of
+ * needing to reference a file:// URI
+ *
+ * https://en.wikipedia.org/wiki/Data_URI_scheme
+ */
+export async function getLFSBlobImage(
+  repository: Repository,
+  path: string,
+  LFSMetadata: string
+): Promise<Image> {
+  const extension = Path.extname(path)
+  const contents = await getLFSBlobContents(repository, LFSMetadata)
+  return new Image(
+    contents.toString('base64'),
+    getMediaType(extension),
+    contents.length
+  )
+}
+
+/**
+ * Retrieve the binary contents of a blob from the LFS object database
+ * and conveted it to png image
+ *
+ * Returns an image object containing the base64 encoded string,
+ * as <img> tags support the data URI scheme instead of
+ * needing to reference a file:// URI
+ *
+ * https://en.wikipedia.org/wiki/Data_URI_scheme
+ */
+export async function getLFSBlobCompressedImage(
+  repository: Repository,
+  path: string,
+  LFSMetadata: string
+): Promise<Image> {
+  const contents = await getLFSBlobContents(repository, LFSMetadata)
+  return getImageFromCompressedImageBuffer(contents)
+}
+
+/**
+ * Retrieve the binary contents of a blob from the LFS object database
+ * and conveted it to png image
+ *
+ * Returns an image object containing the base64 encoded string,
+ * as <img> tags support the data URI scheme instead of
+ * needing to reference a file:// URI
+ *
+ * https://en.wikipedia.org/wiki/Data_URI_scheme
+ */
+export async function getLFSPSBlobImage(
+  repository: Repository,
+  path: string,
+  LFSMetadata: string
+): Promise<Image> {
+  const contents = await getLFSBlobContents(repository, LFSMetadata)
+  return getImageFromPSBuffer(contents)
+}
+
 /**
  * Retrieve the binary contents of a blob from the working directory
  *
@@ -703,6 +1016,40 @@ export async function getWorkingDirectoryImage(
     getMediaType(Path.extname(file.path)),
     contents.length
   )
+}
+
+/**
+ * Retrieve the binary contents of a blob from the working directory
+ *
+ * Returns an image object containing the base64 encoded string,
+ * as <img> tags support the data URI scheme instead of
+ * needing to reference a file:// URI
+ *
+ * https://en.wikipedia.org/wiki/Data_URI_scheme
+ */
+export async function getWorkingDirectoryCompressedImage(
+  repository: Repository,
+  file: FileChange
+): Promise<Image> {
+  const contents = await readFile(Path.join(repository.path, file.path))
+  return getImageFromCompressedImageBuffer(contents)
+}
+
+/**
+ * Retrieve the binary contents of a blob from the working directory
+ *
+ * Returns an image object containing the base64 encoded string,
+ * as <img> tags support the data URI scheme instead of
+ * needing to reference a file:// URI
+ *
+ * https://en.wikipedia.org/wiki/Data_URI_scheme
+ */
+export async function getWorkingDirectoryPSAsImage(
+  repository: Repository,
+  file: FileChange
+): Promise<Image> {
+  const contents = await readFile(Path.join(repository.path, file.path))
+  return getImageFromPSBuffer(contents)
 }
 
 /**

@@ -20,8 +20,11 @@ import {
   ILargeTextDiff,
   ImageDiffType,
   ISubmoduleDiff,
+  ILFSImageDiff,
+  LFSImageState,
 } from '../../models/diff'
 import { Button } from '../lib/button'
+import { Loading } from '../lib/loading'
 import {
   NewImageDiff,
   ModifiedImageDiff,
@@ -109,6 +112,7 @@ interface IDiffProps {
 
 interface IDiffState {
   readonly forceShowLargeDiff: boolean
+  readonly forceShowLFSDiff: boolean
 }
 
 /** A component which renders a diff for a file. */
@@ -118,6 +122,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
     this.state = {
       forceShowLargeDiff: false,
+      forceShowLFSDiff: false,
     }
   }
 
@@ -138,6 +143,8 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           ? this.renderLargeText(diff)
           : this.renderLargeTextDiff()
       }
+      case DiffType.LFSImage:
+        return this.renderLFSImage(diff)
       case DiffType.Unrenderable:
         return this.renderUnrenderableDiff()
       default:
@@ -173,6 +180,56 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     }
 
     return null
+  }
+
+  private renderLFSAskForDownload() {
+    return (
+      <div className="panel empty large-diff">
+        <img src={NoDiffImage} className="blankslate-image" alt="" />
+        <p>
+          LFS object(s) may not be stored locally.
+          <br />
+          You can show it/them anyway, but this may end up pulling from remote
+          repository large amount of data.
+        </p>
+        <Button onClick={this.showLFSImageDiff}>
+          {__DARWIN__ ? 'Show Diff' : 'Show diff'}
+        </Button>
+      </div>
+    )
+  }
+
+  private renderLoading() {
+    return (
+      <div className="panel loading-indicator">
+        <Loading />
+      </div>
+    )
+  }
+
+  private renderLFSImage(LFSImageDiff: ILFSImageDiff) {
+    switch (LFSImageDiff.currentState) {
+      case LFSImageState.AskForDownload: {
+        // if diff is forced to show don't shot it again
+        if (this.state.forceShowLFSDiff) {
+          this.showLFSImageDiff()
+          return this.renderLoading()
+        }
+
+        return this.renderLFSAskForDownload()
+      }
+      case LFSImageState.DownloadInProgress:
+        return this.renderLoading()
+      case LFSImageState.Done: {
+        const imageDiff: IImageDiff = {
+          previous: LFSImageDiff.previousImage,
+          current: LFSImageDiff.currentImage,
+          kind: DiffType.Image,
+        }
+
+        return this.renderImage(imageDiff)
+      }
+    }
   }
 
   private renderLargeTextDiff() {
@@ -314,5 +371,31 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private showLargeDiff = () => {
     this.setState({ forceShowLargeDiff: true })
+  }
+
+  private showLFSImageDiff = () => {
+    const LFSImageDiff = this.props.diff as ILFSImageDiff
+    LFSImageDiff.currentState = LFSImageState.DownloadInProgress
+    if (!this.state.forceShowLFSDiff) {
+      this.setState({ forceShowLFSDiff: true })
+    }
+    const prevPromise = LFSImageDiff.previous
+      ? LFSImageDiff.previous()
+      : new Promise<undefined>((resolve, reject) => {
+          resolve(undefined)
+        })
+
+    const currPromise = LFSImageDiff.current
+      ? LFSImageDiff.current()
+      : new Promise<undefined>((resolve, reject) => {
+          resolve(undefined)
+        })
+
+    Promise.all([prevPromise, currPromise]).then(values => {
+      LFSImageDiff.previousImage = values[0]
+      LFSImageDiff.currentImage = values[1]
+      LFSImageDiff.currentState = LFSImageState.Done
+      this.forceUpdate()
+    })
   }
 }

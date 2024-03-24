@@ -1,6 +1,6 @@
 import { ChildProcess } from 'child_process'
 
-import { git } from './core'
+import { git, gitRaw } from './core'
 
 import { Repository } from '../../models/repository'
 import { GitError } from 'dugite'
@@ -44,6 +44,48 @@ export async function getBlobContents(
   const blobContents = await git(args, repository.path, 'getBlobContents', opts)
 
   return Buffer.from(blobContents.stdout, 'binary')
+}
+
+/**
+ * Retrieve the binary contents of a blob from the repository at a given
+ * reference, commit, or tree.
+ *
+ * Returns a promise that will produce a Buffer instance containing
+ * the binary contents of the blob or an error if the file doesn't
+ * exists in the given revision.
+ *
+ * @param repository - The repository from where to read the blob
+ *
+ * @param LFSMetadata  - LFS Object metadata containing lfs version, noid sha256 and size.
+ */
+export async function getLFSBlobContents(
+  repository: Repository,
+  LFSMetadata: string
+): Promise<Buffer> {
+  const successExitCodes = new Set([0, 1])
+  const setBinaryEncoding: (process: ChildProcess) => void = cb => {
+    // If Node.js encounters a synchronous runtime error while spawning
+    // `stdout` will be undefined and the error will be emitted asynchronously
+    if (cb.stdout) {
+      cb.stdout.setEncoding('binary')
+    }
+  }
+
+  const args = ['lfs', 'smudge']
+  const opts = {
+    successExitCodes,
+    processCallback: setBinaryEncoding,
+    stdin: Buffer.from(LFSMetadata, 'binary'),
+  }
+
+  const blobContents = await gitRaw(
+    args,
+    repository.path,
+    'getLFSBlobContents',
+    opts
+  )
+
+  return blobContents.stdout
 }
 
 /**
