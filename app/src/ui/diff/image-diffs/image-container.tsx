@@ -1,6 +1,7 @@
 import * as React from 'react'
 
 import { Image } from '../../../models/diff'
+import { convertDDSImage } from './dds-converter'
 
 interface IImageProps {
   /** The image contents to render */
@@ -13,10 +14,55 @@ interface IImageProps {
   readonly onElementLoad?: (img: HTMLImageElement) => void
 }
 
-export class ImageContainer extends React.Component<IImageProps, {}> {
+interface IImageState {
+  readonly imageSource: string | null
+}
+
+export class ImageContainer extends React.Component<IImageProps, IImageState> {
+  public constructor(props: IImageProps) {
+    super(props)
+    this.state = {
+      imageSource: null,
+    }
+  }
+
+  public loadImage(image: Image) {
+    if (image.mediaType === 'image/vnd-ms.dds') {
+      try {
+        const dataURL = convertDDSImage(image.rawContents)
+        this.setState({
+          imageSource: dataURL,
+        })
+      } catch (error) {
+        console.error('Error loading DDS image:', error)
+        this.setState({ imageSource: null })
+      }
+    } else {
+      this.setState({
+        imageSource: `data:${image.mediaType};base64,${image.contents}`,
+      })
+    }
+  }
+
+  public componentDidMount() {
+    const { image } = this.props
+    this.loadImage(image)
+  }
+
+  public componentDidUpdate(prevProps: IImageProps) {
+    const { image } = this.props
+    if (image === prevProps.image) {
+      return
+    }
+
+    this.loadImage(image)
+  }
+
   public render() {
-    const image = this.props.image
-    const imageSource = `data:${image.mediaType};base64,${image.contents}`
+    const { imageSource } = this.state
+    if (!imageSource) {
+      return null
+    }
 
     return (
       <div className="image-wrapper">
