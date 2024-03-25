@@ -111,7 +111,7 @@ export type PopupDetail =
       type: PopupType.DeleteBranch
       repository: Repository
       branch: Branch
-      existsOnRemote: boolean
+      defaultBranch: Branch | null
     }
   | {
       type: PopupType.DeleteRemoteBranch
