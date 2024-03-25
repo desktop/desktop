@@ -5,6 +5,7 @@ import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
 import { isTopMostDialog } from './is-top-most'
 import { isMacOSSonoma, isMacOSVentura } from '../../lib/get-os'
+import { sendDialogDidOpen } from '../main-process-proxy'
 
 export interface IDialogStackContext {
   /** Whether or not this dialog is the top most one in the stack to be
@@ -353,6 +354,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
   }
 
   public componentDidMount() {
+    sendDialogDidOpen()
     this.checkIsTopMostDialog(this.context.isTopMost)
   }
 

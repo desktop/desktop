@@ -155,6 +155,9 @@ export const getCurrentWindowZoomFactor = invokeProxy(
   0
 )
 
+/** Tell the main process that a modal dialog has opened */
+export const sendDialogDidOpen = sendProxy('dialog-did-open', 0)
+
 /** Tell the main process to set the current window's zoom factor */
 export const setWindowZoomFactor = sendProxy('set-window-zoom-factor', 1)
 

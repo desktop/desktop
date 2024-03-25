@@ -25,6 +25,7 @@ import { DesktopAliveEvent } from './stores/alive-store'
  */
 export type RequestChannels = {
   'select-all-window-contents': () => void
+  'dialog-did-open': () => void
   'update-menu-state': (
     state: Array<{ id: MenuIDs; state: IMenuItemState }>
   ) => void
