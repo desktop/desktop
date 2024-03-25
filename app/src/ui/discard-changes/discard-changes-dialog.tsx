@@ -21,6 +21,7 @@ interface IDiscardChangesProps {
    */
   readonly discardingAllChanges: boolean
   readonly showDiscardChangesSetting: boolean
+  readonly discardToTrash: boolean
   readonly onDismissed: () => void
   readonly onConfirmDiscardChangesChanged: (optOut: boolean) => void
 }
@@ -33,6 +34,11 @@ interface IDiscardChangesState {
   readonly isDiscardingChanges: boolean
 
   readonly confirmDiscardChanges: boolean
+
+  /**
+   * Whether to move the discarded changes to the trash
+   */
+  readonly moveToTrash: boolean
 }
 
 /**
@@ -52,6 +58,7 @@ export class DiscardChanges extends React.Component<
     this.state = {
       isDiscardingChanges: false,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
+      moveToTrash: this.props.discardToTrash,
     }
   }
 
@@ -87,10 +94,13 @@ export class DiscardChanges extends React.Component<
       >
         <DialogContent>
           {this.renderFileList()}
-          <p>
-            Changes can be restored by retrieving them from the {TrashNameLabel}
-            .
-          </p>
+          <Checkbox
+            label={'Also move the discarded changes to ' + TrashNameLabel}
+            value={
+              this.state.moveToTrash ? CheckboxValue.On : CheckboxValue.Off
+            }
+            onChange={this.onConfirmMoveToTrashChanged}
+          />
           {this.renderConfirmDiscardChanges()}
         </DialogContent>
 
@@ -158,7 +168,8 @@ export class DiscardChanges extends React.Component<
 
     await this.props.dispatcher.discardChanges(
       this.props.repository,
-      this.props.files
+      this.props.files,
+      this.state.moveToTrash
     )
 
     this.props.onConfirmDiscardChangesChanged(this.state.confirmDiscardChanges)
@@ -171,5 +182,13 @@ export class DiscardChanges extends React.Component<
     const value = !event.currentTarget.checked
 
     this.setState({ confirmDiscardChanges: value })
+  }
+
+  private onConfirmMoveToTrashChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ moveToTrash: value })
   }
 }
