@@ -214,6 +214,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     mappings: {
       '.py': 'text/x-python',
       '.pyi': 'text/x-python',
+      '.vpy': 'text/x-python',
     },
   },
   {
