@@ -51,10 +51,14 @@ export class WarnForcePushDialog extends React.Component<
         onSubmit={this.onBegin}
         backdropDismissable={false}
         type="warning"
+        role="alertdialog"
+        ariaDescribedBy="warn-force-push-confirmation-title warn-force-push-confirmation-message"
       >
         <DialogContent>
-          <p>Are you sure you want to {operation.toLowerCase()}?</p>
-          <p>
+          <p id="warn-force-push-confirmation-title">
+            Are you sure you want to {operation.toLowerCase()}?
+          </p>
+          <p id="warn-force-push-confirmation-message">
             At the end of the {operation.toLowerCase()} flow, GitHub Desktop
             will enable you to force push the branch to update the upstream
             branch. Force pushing will alter the history on the remote and
