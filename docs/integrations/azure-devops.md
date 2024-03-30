@@ -1,6 +1,5 @@
 ?# Authenticating to Azure DevOps with GitHub Desktop
-
-## Creating a Personal Access Token in Azure DevOps
+b## Creating a Personal Access Token in Azure DevOps
 
 To authenticate against Azure DevOps repositories you will need to create a personal access token.
 

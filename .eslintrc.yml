@@ -199,7 +199,7 @@ rules:
   # focusing the text input wouldn't disadvantage a user because they're not
   # missing anything of importance before it.  The problem is when it is used on
   # larger web pages, e.g. to focus a form field in the main content, entirely
-  # skipping the header and often much else besides.
+gs
   jsx-a11y/no-autofocus:
     - off
 
