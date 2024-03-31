@@ -110,7 +110,7 @@
     "webpack-merge": "^5.8.0",
     "xml2js": "^0.5.0",
     "xvfb-maybe": "^0.2.1",
-    "yaml": "^1.4.0"
+    "yaml": "^2.4.1"
   },
   "devDependencies": {
     "@github/markdownlint-github": "^0.1.0",
