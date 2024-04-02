@@ -208,6 +208,21 @@ export type SimplifiedDiffRow =
 export type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 
 /**
+ * Whether the row is a type that represent a change (added, deleted, modified)
+ * in the diff. This is useful for checking to see if a row type would have
+ * something like 'hunkStartLine` on it.
+ */
+export function isRowChanged(
+  row: DiffRow | SimplifiedDiffRow
+): row is IDiffRowAdded | IDiffRowDeleted | IDiffRowModified {
+  return (
+    row.type === DiffRowType.Added ||
+    row.type === DiffRowType.Deleted ||
+    row.type === DiffRowType.Modified
+  )
+}
+
+/**
  * Returns an object with two ILineTokens objects that can be used to highlight
  * the added and removed characters between two lines.
  *

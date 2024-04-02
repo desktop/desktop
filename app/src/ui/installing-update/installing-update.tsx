@@ -9,7 +9,6 @@ import {
 } from '../dialog'
 import { updateStore, IUpdateState, UpdateStatus } from '../lib/update-store'
 import { Disposable } from 'event-kit'
-import { DialogHeader } from '../dialog/header'
 import { Dispatcher } from '../dispatcher'
 
 interface IInstallingUpdateProps {
@@ -66,16 +65,13 @@ export class InstallingUpdate extends React.Component<IInstallingUpdateProps> {
     return (
       <Dialog
         id="installing-update"
+        title={__DARWIN__ ? 'Installing Update…' : 'Installing update…'}
+        loading={true}
         onSubmit={this.props.onDismissed}
-        dismissable={false}
+        backdropDismissable={false}
         type="warning"
+        onDismissed={this.props.onDismissed}
       >
-        <DialogHeader
-          title={__DARWIN__ ? 'Installing Update…' : 'Installing update…'}
-          loading={true}
-          dismissable={true}
-          onDismissed={this.props.onDismissed}
-        />
         <DialogContent>
           <Row className="updating-message">
             Do not close GitHub Desktop while the update is in progress. Closing

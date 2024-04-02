@@ -1,8 +1,11 @@
 .ci-check-list-item {
   display: flex;
   width: 100%;
+  border: none;
   border-bottom: var(--base-border);
-  height: auto;
+  flex-direction: row;
+  align-items: center;
+  background-color: var(--background-color);
 
   &.condensed {
     border-bottom: none;
@@ -21,49 +24,25 @@
     background-color: var(--background-color);
     top: 29px;
     z-index: var(--list-sticky-header-second-level-z-index);
-  }
 
-  &.selected .ci-check-name span.isLink {
+    &:focus-visible,
     &:hover {
-      color: var(--link-button-selected-hover-color);
-      cursor: pointer !important;
+      background-color: var(--background-color);
     }
-  }
-
-  &:not(.selected) .ci-check-name span.isLink {
-    &:hover {
-      color: var(--link-button-color);
-      cursor: pointer !important;
-    }
-  }
-
-  .ci-check-status-symbol {
-    margin: 0 var(--spacing-half);
-  }
-
-  .ci-check-status-symbol,
-  .job-step-toggled-indicator,
-  .job-rerun {
-    padding: var(--spacing);
-    padding-top: calc(var(--spacing-half) * 3);
   }
 
   .job-step-toggled-indicator {
-    padding-left: 0px;
     color: var(--text-secondary-color);
+    margin-right: var(--spacing-half);
   }
 
-  .job-rerun {
-    color: var(--text-secondary-color);
-
-    &.not-action-job {
-      color: var(--text-secondary-color-muted);
-    }
+  .ci-check-status-symbol {
+    margin: calc(var(--spacing) * 1.5) 0;
   }
 
   .ci-check-list-item-detail {
     flex: 1;
-    margin: auto;
+    margin: auto var(--spacing);
     overflow-x: hidden;
   }
 
@@ -72,6 +51,8 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    font-size: inherit;
+    margin: 0;
   }
 
   .ci-check-description {
@@ -85,5 +66,46 @@
 
     width: 250px;
     height: 12px;
+  }
+
+  &.button-component {
+    // Remove default button styles
+    height: 100%;
+    border-radius: unset;
+    text-align: unset;
+
+    &:focus {
+      outline-offset: 0px;
+    }
+
+    &:hover,
+    &:focus-visible,
+    &:not([aria-disabled='true']):hover {
+      border-color: var(--box-border-color);
+      background: var(--box-selected-background-color);
+    }
+
+    &.selected {
+      background: var(--box-selected-background-color);
+
+      &:focus {
+        color: var(--box-selected-active-text-color);
+        background: var(--box-selected-active-background-color);
+
+        .ci-check-description {
+          color: var(--box-selected-active-text-color);
+        }
+      }
+    }
+  }
+}
+
+.ci-steps-container {
+  background-color: var(--box-alt-background-color);
+  padding: var(--spacing);
+  border-bottom: var(--base-border);
+
+  &.no-steps {
+    height: 150px;
   }
 }

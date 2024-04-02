@@ -17,7 +17,7 @@ import { TabBar } from '../tab-bar'
 
 import { Row } from '../lib/row'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 
 import { BranchList } from './branch-list'
@@ -54,6 +54,8 @@ interface IBranchesContainerProps {
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
+
+  readonly underlineLinks: boolean
 }
 
 interface IBranchesContainerState {
@@ -138,6 +140,7 @@ export class BranchesContainer extends React.Component<
         pullRequestItemTop={prListItemTop}
         onMouseEnter={this.onMouseEnterPullRequestQuickView}
         onMouseLeave={this.onMouseLeavePullRequestQuickView}
+        underlineLinks={this.props.underlineLinks}
       />
     )
   }
@@ -169,7 +172,7 @@ export class BranchesContainer extends React.Component<
           onClick={this.onMergeClick}
           tooltip={`Choose a branch to merge into ${currentBranch.name}`}
         >
-          <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
+          <Octicon className="icon" symbol={octicons.gitMerge} />
           Choose a branch to merge into <strong>{currentBranch.name}</strong>
         </Button>
       </Row>
@@ -294,7 +297,7 @@ export class BranchesContainer extends React.Component<
         onMouseLeave={this.onMouseLeaveNewBranchDrop}
         onMouseUp={this.onMouseUpNewBranchDrop}
       >
-        <Octicon className="icon" symbol={OcticonSymbol.plus} />
+        <Octicon className="icon" symbol={octicons.plus} />
         <div className="name">{label}</div>
       </div>
     )

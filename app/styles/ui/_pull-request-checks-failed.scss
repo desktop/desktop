@@ -8,6 +8,10 @@
     flex-direction: row;
     align-items: center;
 
+    .ci-check-rerun {
+      margin-right: var(--spacing);
+    }
+
     > .octicon {
       width: 20px;
       height: 20px;
@@ -88,12 +92,18 @@
 
         .ci-check-list-item {
           padding-left: var(--spacing);
+
+          .check-run-header-buttons {
+            right: var(--spacing-half);
+          }
         }
       }
 
       .ci-check-run-job-steps-container {
         width: 60%;
         overflow-y: auto;
+        padding: var(--spacing);
+        background-color: var(--box-alt-background-color);
 
         .ci-check-run-job-steps-list {
           border: none;
@@ -106,28 +116,9 @@
           }
         }
 
-        .no-steps-to-display {
-          display: flex;
-          padding: var(--spacing-double);
-          align-items: center;
-          height: 100%;
-
-          .text {
-            flex: 1;
-            margin-right: var(--spacing);
-
-            div {
-              margin-top: var(--spacing);
-            }
-          }
-
-          .blankslate-image {
-            flex: 0;
-            height: 140px;
-            width: 146px;
-            min-width: 140px;
-            min-height: 146px;
-            align-self: flex-end;
+        .ci-check-run-no-steps {
+          img {
+            height: 80%;
           }
         }
 

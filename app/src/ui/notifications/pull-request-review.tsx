@@ -11,6 +11,7 @@ import {
 import { LinkButton } from '../lib/link-button'
 import { ValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
 import { PullRequestCommentLike } from './pull-request-comment-like'
+import { Account } from '../../models/account'
 
 interface IPullRequestReviewProps {
   readonly dispatcher: Dispatcher
@@ -21,6 +22,8 @@ interface IPullRequestReviewProps {
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
 
+  readonly underlineLinks: boolean
+
   /**
    * Whether or not the dialog should offer to switch to the PR's repository or
    * to checkout the PR branch when applicable (e.g. non-approved reviews).
@@ -30,6 +33,8 @@ interface IPullRequestReviewProps {
 
   readonly onSubmit: () => void
   readonly onDismissed: () => void
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface IPullRequestReviewState {
@@ -82,6 +87,8 @@ export class PullRequestReview extends React.Component<
         renderFooterContent={this.renderFooterContent}
         onSubmit={onSubmit}
         onDismissed={onDismissed}
+        underlineLinks={this.props.underlineLinks}
+        accounts={this.props.accounts}
       />
     )
   }

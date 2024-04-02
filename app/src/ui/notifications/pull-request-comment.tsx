@@ -8,6 +8,7 @@ import { LinkButton } from '../lib/link-button'
 import { IAPIComment } from '../../lib/api'
 import { getPullRequestReviewStateIcon } from './pull-request-review-helpers'
 import { PullRequestCommentLike } from './pull-request-comment-like'
+import { Account } from '../../models/account'
 
 interface IPullRequestCommentProps {
   readonly dispatcher: Dispatcher
@@ -18,6 +19,8 @@ interface IPullRequestCommentProps {
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
 
+  readonly underlineLinks: boolean
+
   /**
    * Whether or not the dialog should offer to switch to the PR's repository or
    * to checkout the PR branch when applicable (e.g. non-approved reviews).
@@ -27,6 +30,8 @@ interface IPullRequestCommentProps {
 
   readonly onSubmit: () => void
   readonly onDismissed: () => void
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface IPullRequestCommentState {
@@ -57,6 +62,7 @@ export class PullRequestComment extends React.Component<
       comment,
       onSubmit,
       onDismissed,
+      accounts,
     } = this.props
 
     const icon = getPullRequestReviewStateIcon('COMMENTED')
@@ -69,7 +75,7 @@ export class PullRequestComment extends React.Component<
         pullRequest={pullRequest}
         emoji={emoji}
         eventDate={new Date(comment.created_at)}
-        eventVerb="commented"
+        eventVerb="commented on"
         eventIconSymbol={icon.symbol}
         eventIconClass={icon.className}
         externalURL={comment.html_url}
@@ -79,6 +85,8 @@ export class PullRequestComment extends React.Component<
         renderFooterContent={this.renderFooterContent}
         onSubmit={onSubmit}
         onDismissed={onDismissed}
+        underlineLinks={this.props.underlineLinks}
+        accounts={accounts}
       />
     )
   }

@@ -57,7 +57,7 @@
     font-weight: var(--font-weight-semibold);
 
     .summary-text {
-      opacity: 0.5;
+      color: var(--text-secondary-color);
     }
     .hang-right {
       margin-left: auto;
@@ -116,7 +116,7 @@
   details[open] summary {
     margin-bottom: var(--spacing);
     .summary-text {
-      opacity: 1;
+      color: var(--text-color);
     }
     // we only want to do this if its an (chevron) octicon
     .hang-right .octicon {

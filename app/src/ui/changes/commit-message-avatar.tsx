@@ -10,7 +10,7 @@ import {
 import { IAvatarUser } from '../../models/avatar'
 import { Avatar } from '../lib/avatar'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
 import { OkCancelButtonGroup } from '../dialog'
 import { getConfigValue } from '../../lib/git/config'
@@ -18,6 +18,7 @@ import { Repository } from '../../models/repository'
 import classNames from 'classnames'
 import { RepoRulesMetadataFailures } from '../../models/repo-rules'
 import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-failure-list'
+import { Account } from '../../models/account'
 
 export type CommitMessageAvatarWarningType =
   | 'none'
@@ -89,6 +90,8 @@ interface ICommitMessageAvatarProps {
    * dialog
    */
   readonly onOpenGitSettings: () => void
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 /**
@@ -169,7 +172,7 @@ export class CommitMessageAvatar extends React.Component<
           onClick={this.onAvatarClick}
         >
           {warningType !== 'none' && this.renderWarningBadge()}
-          <Avatar user={user} title={null} />
+          <Avatar accounts={this.props.accounts} user={user} title={null} />
         </Button>
         {this.state.isPopoverOpen && this.renderPopover()}
       </div>
@@ -187,7 +190,7 @@ export class CommitMessageAvatar extends React.Component<
       error: isError,
       warning: !isError,
     })
-    const symbol = isError ? OcticonSymbol.stop : OcticonSymbol.alert
+    const symbol = isError ? octicons.stop : octicons.alert
 
     return (
       <div className={classes} ref={this.warningBadgeRef}>

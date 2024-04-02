@@ -132,6 +132,11 @@ export class ModifiedImageDiff extends React.Component<
       containerSize
     )
 
+    // If both images are too small, don't set any max size
+    if (maxFitSize.width < 200) {
+      return zeroSize
+    }
+
     return maxFitSize
   }
 

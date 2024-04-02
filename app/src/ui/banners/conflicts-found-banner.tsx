@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Banner } from './banner'
 import { LinkButton } from '../lib/link-button'
 
@@ -41,7 +41,7 @@ export class ConflictsFoundBanner extends React.Component<
         dismissable={false}
         onDismissed={this.onDismissed}
       >
-        <Octicon className="alert-icon" symbol={OcticonSymbol.alert} />
+        <Octicon className="alert-icon" symbol={octicons.alert} />
         <div className="banner-message">
           <span>
             Resolve conflicts to continue {this.props.operationDescription}.

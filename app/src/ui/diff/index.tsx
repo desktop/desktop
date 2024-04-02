@@ -76,6 +76,9 @@ interface IDiffProps {
   /** Whether we should show a confirmation dialog when the user discards changes */
   readonly askForConfirmationOnDiscardChanges?: boolean
 
+  /** Whether or not to show the diff check marks indicating inclusion in a commit */
+  readonly showDiffCheckMarks: boolean
+
   /**
    * Called when the user requests to open a binary file in an the
    * system-assigned application for said file type.
@@ -287,6 +290,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           onHideWhitespaceInDiffChanged={
             this.props.onHideWhitespaceInDiffChanged
           }
+          showDiffCheckMarks={this.props.showDiffCheckMarks}
         />
       )
     }
