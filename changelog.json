@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.3.13-test1": ["[New] Testing new ACS client"],
     "3.3.13-beta1": [
       "[Fixed] Fix layout issues in 2-up image diffing when images are too small - #18313",
       "[Fixed] The \"Show whitespace changes?\" popover can be closed by pressing Escape - #18314",
