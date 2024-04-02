@@ -22,6 +22,7 @@ import { getDotComAPIEndpoint } from '../lib/api'
 import { getVersion, getName } from './lib/app-proxy'
 import {
   getOS,
+  isOSNoLongerSupportedByElectron,
   isMacOSAndNoLongerSupportedByElectron,
   isWindowsAndNoLongerSupportedByElectron,
 } from '../lib/get-os'
@@ -365,10 +366,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.checkIfThankYouIsInOrder()
 
-    if (
-      isWindowsAndNoLongerSupportedByElectron() ||
-      isMacOSAndNoLongerSupportedByElectron()
-    ) {
+    if (isOSNoLongerSupportedByElectron()) {
       const dismissedAt = getNumber(UnsupportedOSBannerDismissedAtKey, 0)
 
       // Remind the user that they're running an unsupported OS every 90 days
