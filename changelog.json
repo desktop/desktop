@@ -1,5 +1,16 @@
 {
   "releases": {
+    "3.3.13": [
+      "[Fixed] Fix layout issues in 2-up image diffing when images are too small - #18313",
+      "[Fixed] The \"Show whitespace changes?\" popover can be closed by pressing Escape - #18314",
+      "[Fixed] Added announcing the number of results to the diff search via screen readers - #18306",
+      "[Improved] Git errors due to bad config values are surfaced in the UI - #18230",
+      "[Improved] The pull request check run popover is now keyboard accessible - #18276",
+      "[Improved] The pull request check run popover button is now keyboard accessible - #18268",
+      "[Improved] Add the aria-label attribute to our markdown iframes to clarify their purpose to users of screen readers in browse mode.  - #18277",
+      "[Improved] Add support for newer versions of Alacritty shell - #16614. Thanks @lhvy!",
+      "[Improved] Upgrade embedded Git to v2.43.3 on macOS, and to v2.43.0.windows.1 on Windows, and Git LFS to v3.5.1 - #18292"
+    ],
     "3.3.13-beta1": [
       "[Fixed] Fix layout issues in 2-up image diffing when images are too small - #18313",
       "[Fixed] The \"Show whitespace changes?\" popover can be closed by pressing Escape - #18314",
