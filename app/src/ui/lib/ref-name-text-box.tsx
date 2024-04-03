@@ -153,7 +153,6 @@ export class RefNameTextBox extends React.Component<
     // an empty string we show a message saying that the
     // proposed value is invalid.
     if (sanitizedValue.length === 0) {
-      console.log(proposedValue)
       return (
         <InputError
           id="branch-name-error"
