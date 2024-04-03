@@ -139,16 +139,23 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
           onTabClicked={this.onTabClicked}
           selectedIndex={this.state.currentTab}
         >
-          <span>GitHub.com</span>
-          <span>GitHub Enterprise</span>
+          <span id="dotcom-tab">GitHub.com</span>
+          <span id="enterprise-tab">GitHub Enterprise</span>
         </TabBar>
 
         {currentTabState.error ? (
           <DialogError>{currentTabState.error.message}</DialogError>
         ) : null}
 
-        {this.renderContent()}
-        {this.renderFooter()}
+        <div
+          role="tabpanel"
+          aria-labelledby={
+            currentTabState.kind === 'dotcom' ? 'dotcom-tab' : 'enterprise-tab'
+          }
+        >
+          {this.renderContent()}
+          {this.renderFooter()}
+        </div>
       </Dialog>
     )
   }
