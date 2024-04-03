@@ -446,6 +446,9 @@ export class CreateRepository extends React.Component<
         ariaLiveMessage={`Will be created as ${sanitizedName}. Spaces and invalid characters have been replaced by hyphens.`}
       >
         <p>Will be created as {sanitizedName}</p>
+        <span className="sr-only">
+          Spaces and invalid characters have been replaced by hyphens.
+        </span>
       </InputWarning>
     )
   }

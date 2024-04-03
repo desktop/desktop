@@ -187,7 +187,10 @@ export class RefNameTextBox extends React.Component<
     return (
       <>
         Will be {this.props.warningMessageVerb ?? 'created'} as{' '}
-        <Ref>{sanitizedValue}</Ref>.
+        <Ref>{sanitizedValue}</Ref>.{' '}
+        <span className="sr-only">
+          Spaces and invalid characters have been replaced by hyphens.
+        </span>
       </>
     )
   }
