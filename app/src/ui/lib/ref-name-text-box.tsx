@@ -181,7 +181,7 @@ export class RefNameTextBox extends React.Component<
   private getWarningMessageAsString(sanitizedValue: string): string {
     return `Warning: Will be ${
       this.props.warningMessageVerb ?? 'created '
-    } as ${sanitizedValue} (with spaces replaced by hyphens).`
+    } as ${sanitizedValue}. Spaces and invalid characters have been replaced by hyphens.`
   }
 
   private renderWarningMessage(sanitizedValue: string) {
