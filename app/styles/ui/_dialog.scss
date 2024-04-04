@@ -412,34 +412,33 @@ dialog {
     }
   }
 
+  // The following media queries ensure that the dialog content is accessible
+  // when zoomed in
+  @media (max-height: 600px) {
+    overflow-y: auto;
+  }
+
+  @media (max-width: 600px) {
+    width: 100%;
+    max-width: calc(100% - var(--spacing-double));
+  }
+
   &#preferences {
     width: 600px;
 
     .dialog-content {
       min-height: 410px;
     }
-
-    // This is to ensure that the dialog content is accessible when zoomed in
-    @media (max-width: 600px) {
-      overflow-y: auto;
-      width: 100%;
-      max-width: calc(100% - var(--spacing-double));
-    }
   }
 
   &#about {
     width: 450px;
   }
+
   &#create-repository {
     width: 400px;
-
-    // This is to ensure that the dialog content is accessible when zoomed in
-    @media (max-width: 600px) {
-      overflow-y: auto;
-      width: 100%;
-      max-width: calc(100% - var(--spacing-double));
-    }
   }
+
   &#create-branch {
     width: 400px;
     .link-button-component {
