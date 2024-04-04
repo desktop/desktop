@@ -4,6 +4,7 @@ import { sanitizedRefName } from '../../lib/sanitize-ref-name'
 import { TextBox } from './text-box'
 import { Ref } from './ref'
 import { InputWarning } from './input-description/input-warning'
+import { InputError } from './input-description/input-error'
 
 interface IRefNameProps {
   /**
@@ -90,12 +91,16 @@ export class RefNameTextBox extends React.Component<
           value={this.state.proposedValue}
           ref={this.textBoxRef}
           ariaLabelledBy={this.props.ariaLabelledBy}
-          ariaDescribedBy={this.props.ariaDescribedBy}
+          ariaDescribedBy={
+            this.props.ariaDescribedBy +
+            ` branch-name-warning` +
+            ` branch-name-error`
+          }
           onValueChanged={this.onValueChange}
           onBlur={this.onBlur}
         />
 
-        {this.renderRefValueWarning()}
+        {this.renderRefValueWarningError()}
       </div>
     )
   }
@@ -137,11 +142,27 @@ export class RefNameTextBox extends React.Component<
     }
   }
 
-  private renderRefValueWarning() {
+  private renderRefValueWarningError() {
     const { proposedValue, sanitizedValue } = this.state
 
     if (proposedValue === sanitizedValue) {
       return null
+    }
+
+    // If the proposed value ends up being sanitized as
+    // an empty string we show a message saying that the
+    // proposed value is invalid.
+    if (sanitizedValue.length === 0) {
+      return (
+        <InputError
+          id="branch-name-error"
+          className="warning-helper-text"
+          trackedUserInput={proposedValue}
+          ariaLiveMessage={`Error: ${proposedValue} is not a valid name.`}
+        >
+          <Ref>{proposedValue}</Ref> is not a valid name.
+        </InputError>
+      )
     }
 
     return (
@@ -149,48 +170,27 @@ export class RefNameTextBox extends React.Component<
         id="branch-name-warning"
         className="warning-helper-text"
         trackedUserInput={proposedValue}
-        ariaLiveMessage={this.getWarningMessageAsString(
-          sanitizedValue,
-          proposedValue
-        )}
+        ariaLiveMessage={this.getWarningMessageAsString(sanitizedValue)}
       >
-        <p>{this.renderWarningMessage(sanitizedValue, proposedValue)}</p>
+        <p>{this.renderWarningMessage(sanitizedValue)}</p>
       </InputWarning>
     )
   }
 
-  private getWarningMessageAsString(
-    sanitizedValue: string,
-    proposedValue: string
-  ): string {
-    // If the proposed value ends up being sanitized as
-    // an empty string we show a message saying that the
-    // proposed value is invalid.
-    if (sanitizedValue.length === 0) {
-      return `Warning: ${proposedValue} is not a valid name.`
-    }
-
+  private getWarningMessageAsString(sanitizedValue: string): string {
     return `Warning: Will be ${
       this.props.warningMessageVerb ?? 'created '
-    } as ${sanitizedValue} (with spaces replaced by hyphens).`
+    } as ${sanitizedValue}. Spaces and invalid characters have been replaced by hyphens.`
   }
 
-  private renderWarningMessage(sanitizedValue: string, proposedValue: string) {
-    // If the proposed value ends up being sanitized as
-    // an empty string we show a message saying that the
-    // proposed value is invalid.
-    if (sanitizedValue.length === 0) {
-      return (
-        <>
-          <Ref>{proposedValue}</Ref> is not a valid name.
-        </>
-      )
-    }
-
+  private renderWarningMessage(sanitizedValue: string) {
     return (
       <>
         Will be {this.props.warningMessageVerb ?? 'created'} as{' '}
-        <Ref>{sanitizedValue}</Ref>.
+        <Ref>{sanitizedValue}</Ref>.{' '}
+        <span className="sr-only">
+          Spaces and invalid characters have been replaced by hyphens.
+        </span>
       </>
     )
   }
