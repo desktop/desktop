@@ -419,8 +419,8 @@ dialog {
   }
 
   @media (max-width: 600px) {
-    width: 100%;
-    max-width: calc(100% - var(--spacing-double));
+    min-width: calc(100% - var(--spacing-double)) !important;
+    max-width: calc(100% - var(--spacing-double)) !important;
   }
 
   &#preferences {
