@@ -173,10 +173,7 @@ export class BranchList extends React.Component<
   IBranchListProps,
   IBranchListState
 > {
-  private branchFilterList:
-    | FilterList<IBranchListItem>
-    | SectionFilterList<IBranchListItem>
-    | null = null
+  private branchFilterList: SectionFilterList<IBranchListItem> | null = null
 
   public constructor(props: IBranchListProps) {
     super(props)
@@ -261,10 +258,7 @@ export class BranchList extends React.Component<
   }
 
   private onBranchesFilterListRef = (
-    filterList:
-      | FilterList<IBranchListItem>
-      | SectionFilterList<IBranchListItem>
-      | null
+    filterList: SectionFilterList<IBranchListItem> | null
   ) => {
     this.branchFilterList = filterList
   }
