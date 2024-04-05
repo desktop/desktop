@@ -103,10 +103,9 @@ designs that include "logo" in the file title in the following folder:
 [logos](app/static/logos). GitHub® and its stylized versions and the Invertocat
 mark are GitHub's Trademarks or registered Trademarks. When using GitHub's
 logos, be sure to follow the GitHub [logo guidelines](https://github.com/logos).
-The MIT license grant is not for GitHub's trademarks, which include the logo
-designs. GitHub reserves all trademark and copyright rights in and to all GitHub
-trademarks. GitHub's logos include, for instance, the stylized Invertocat
-designs that include "logo" in the file title in the following folder:
-[logos](app/static/logos). GitHub® and its stylized versions and the Invertocat
-mark are GitHub's Trademarks or registered Trademarks. When using GitHub's
-logos, be sure to follow the GitHub [logo guidelines](https://github.com/logos).
+See [desktop.github.com](https://desktop.github.com) for more product-oriented
+information about GitHub Desktop.
+To setup your development environment for building Desktop, check out: [`setup.md`](./docs/contributing/setup.md).
+If you can't find an issue that matches what you're seeing, open a [new issue](https://github.com/desktop/desktop/issues/new/choose),
+choose the right template and provide us with enough information to investigate
+further.
