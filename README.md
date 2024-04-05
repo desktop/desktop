@@ -109,3 +109,14 @@ To setup your development environment for building Desktop, check out: [`setup.m
 If you can't find an issue that matches what you're seeing, open a [new issue](https://github.com/desktop/desktop/issues/new/choose),
 choose the right template and provide us with enough information to investigate
 further.
+First, please search the [open issues](https://github.com/desktop/desktop/issues?q=is%3Aopen)
+and [closed issues](https://github.com/desktop/desktop/issues?q=is%3Aclosed)
+to see if your issue hasn't already been reported (it may also be fixed).
+[GitHub Desktop](https://desktop.github.com/) is an open-source [Electron](https://www.electronjs.org/)-based
+GitHub app. It is written in [TypeScript](https://www.typescriptlang.org) and
+uses [React](https://reactjs.org/).
+There are several community-supported package managers that can be used to
+install GitHub Desktop:
+ - Windows users can install using [winget](https://docs.microsoft.com/en-us/windows/package-manager/winget/) `c:\> winget install github-desktop` or [Chocolatey](https://chocolatey.org/) `c:\> choco install github-desktop`
+ - macOS users can install using [Homebrew](https://brew.sh/) package manager:
+      `$ brew install --cask github`
