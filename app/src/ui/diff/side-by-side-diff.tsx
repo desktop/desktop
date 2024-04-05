@@ -416,6 +416,7 @@ export class SideBySideDiff extends React.Component<
     if (!textDiffEquals(this.props.diff, prevProps.diff)) {
       this.diffToRestore = null
       this.setState({ diff: this.props.diff, lastExpandedHunk: null })
+      this.rowSelectableGroupStaticDataCache.clear()
     }
 
     // Scroll to top if we switched to a new file
