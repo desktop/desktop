@@ -9,7 +9,8 @@
 }
 
 .clone-github-repo {
-  height: 250px;
+  height: calc(100vh - 400px);
+  max-height: 250px;
 
   &.filter-list {
     max-width: 100%;
@@ -67,5 +68,11 @@
   .local-path-field {
     border-top: var(--base-border);
     padding: var(--spacing-double);
+  }
+
+  .dialog-content {
+    > .row-component:not(:last-child) {
+      margin-bottom: 0;
+    }
   }
 }
