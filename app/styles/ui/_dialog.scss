@@ -523,11 +523,23 @@ dialog {
         padding-bottom: var(--spacing);
       }
     }
+
+    &#release-notes {
+      .dialog-content {
+        max-height: calc(100vh - 200px) !important;
+      }
+    }
   }
 
   @media (max-width: 600px) {
     min-width: calc(100% - var(--spacing-double)) !important;
     max-width: calc(100% - var(--spacing-double)) !important;
+
+    &#release-notes {
+      .container {
+        flex-direction: column;
+      }
+    }
   }
 
   &#preferences {
