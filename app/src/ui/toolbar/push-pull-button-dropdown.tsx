@@ -79,16 +79,12 @@ export class PushPullButtonDropDown extends React.Component<IPushPullButtonDropD
       case DropdownItemType.ForcePush: {
         const forcePushWarning = this.props
           .askForConfirmationOnForcePush ? null : (
-          <>
-            <br />
-            <br />
-            <div className="warning">
-              <span className="warning-title">Warning:</span> A force push will
-              rewrite history on the remote. Any collaborators working on this
-              branch will need to reset their own local branch to match the
-              history of the remote.
-            </div>
-          </>
+          <div className="warning">
+            <span className="warning-title">Warning:</span> A force push will
+            rewrite history on the remote. Any collaborators working on this
+            branch will need to reset their own local branch to match the
+            history of the remote.
+          </div>
         )
         return {
           title: `Force push ${remoteName}`,
