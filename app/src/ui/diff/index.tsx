@@ -179,9 +179,8 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     return (
       <div className="panel empty large-diff">
         <img src={NoDiffImage} className="blankslate-image" alt="" />
+        <p>The diff is too large to be displayed by default.</p>
         <p>
-          The diff is too large to be displayed by default.
-          <br />
           You can try to show it anyway, but performance may be negatively
           impacted.
         </p>
