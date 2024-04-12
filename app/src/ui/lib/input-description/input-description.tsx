@@ -136,7 +136,7 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
           role={this.getRole()}
         >
           {this.renderIcon()}
-          <div>{this.props.children}</div>
+          <div className="input-description-content">{this.props.children}</div>
         </div>
         {this.renderAriaLiveContainer()}
       </>
