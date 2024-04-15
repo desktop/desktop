@@ -433,6 +433,12 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
+    install: () => import('codemirror-mode-zig'),
+    mappings: {
+      '.zig': 'text/x-zig',
+    },
+  },
+  {
     install: () => import('codemirror/mode/cmake/cmake'),
     mappings: {
       '.cmake': 'text/x-cmake',
