@@ -11,7 +11,8 @@
       "[Improved] The force push warning in the push dropdown now has a contrast of 4.5:1 - #18415",
       "[Improved] Hyphen replacement and invalid sanitized name warnings and errors in the create branch and create repository dialogs are associated to the input by the aria-describedby attribute - #18404",
       "[Improved] Add VapourSynth script files (.vpy) to test/x-python - #18364. Thanks @couleurm!",
-      "[Improved] The text contrast of tutorial steps when closed is 4.5:1 - #18342"
+      "[Improved] The text contrast of tutorial steps when closed is 4.5:1 - #18342",
+      "[Improved] Upgrade to Electron v28.2.3 - #18185"
     ],
     "3.3.14-beta2": [
       "[Fixed] The tab panel semantics in the \"Publish Repository\" and \"Clone a Repository\" are announced by screen readers - #18408",
