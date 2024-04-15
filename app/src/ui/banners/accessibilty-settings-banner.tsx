@@ -34,7 +34,6 @@ export class AccessibilitySettingsBanner extends React.Component<IAccessibilityS
         <div className="banner-message">
           Check out the new{' '}
           <LinkButton onClick={this.onOpenAccessibilitySettings}>
-            {' '}
             accessibility settings
           </LinkButton>{' '}
           to control the visibility of the link underlines and diff check marks.
