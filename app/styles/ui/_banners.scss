@@ -75,4 +75,11 @@
       transition: height 225ms ease-in-out 175ms, opacity 175ms ease-in;
     }
   }
+
+  // When zooming, give the banner more space to display.
+  @media (max-width: 960px) {
+    height: auto;
+    padding-top: var(--spacing-half);
+    padding-bottom: var(--spacing-half);
+  }
 }
