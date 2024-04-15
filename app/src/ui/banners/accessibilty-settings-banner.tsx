@@ -37,7 +37,7 @@ export class AccessibilitySettingsBanner extends React.Component<IAccessibilityS
             {' '}
             accessibility settings
           </LinkButton>{' '}
-          that increase the visibility of links and diff controls.
+          to control the visibility of the link underlines and diff check marks.
         </div>
       </Banner>
     )
