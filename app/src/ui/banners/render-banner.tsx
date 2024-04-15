@@ -19,6 +19,7 @@ import { SuccessfulSquash } from './successful-squash'
 import { SuccessBanner } from './success-banner'
 import { ConflictsFoundBanner } from './conflicts-found-banner'
 import { OSVersionNoLongerSupportedBanner } from './os-version-no-longer-supported-banner'
+import { AccessibilitySettingsBanner } from './accessibilty-settings-banner'
 
 export function renderBanner(
   banner: Banner,
@@ -171,6 +172,13 @@ export function renderBanner(
       )
     case BannerType.OSVersionNoLongerSupported:
       return <OSVersionNoLongerSupportedBanner onDismissed={onDismissed} />
+    case BannerType.AccessibilitySettingsBanner:
+      return (
+        <AccessibilitySettingsBanner
+          onOpenAccessibilitySettings={banner.onOpenAccessibilitySettings}
+          onDismissed={onDismissed}
+        />
+      )
     default:
       return assertNever(banner, `Unknown popup type: ${banner}`)
   }
