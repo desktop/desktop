@@ -7948,6 +7948,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (underlineLinks !== this.underlineLinks) {
       this.underlineLinks = underlineLinks
       setBoolean(underlineLinksKey, underlineLinks)
+      this.statsStore.recordLinkUnderlineVisibilityChange(underlineLinks)
       this.emitUpdate()
     }
   }
@@ -7956,6 +7957,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (showDiffCheckMarks !== this.showDiffCheckMarks) {
       this.showDiffCheckMarks = showDiffCheckMarks
       setBoolean(showDiffCheckMarksKey, showDiffCheckMarks)
+      this.statsStore.recordDiffCheckMarkVisibilityChange(showDiffCheckMarks)
       this.emitUpdate()
     }
   }

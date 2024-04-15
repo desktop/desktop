@@ -227,6 +227,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   submoduleDiffViewedFromHistoryCount: 0,
   openSubmoduleFromDiffCount: 0,
   previewedPullRequestCount: 0,
+  linkUnderlinesVisible: true,
+  diffCheckMarksVisible: true,
 }
 
 // A subtype of IDailyMeasures filtered to contain only its numeric properties
@@ -1142,6 +1144,20 @@ export class StatsStore implements IStatsStore {
     } catch (e) {
       log.error(`Error reporting opt ${direction}:`, e)
     }
+  }
+
+  /**
+   * The user has changed their link underline settings.
+   */
+  public recordLinkUnderlineVisibilityChange(linkUnderlinesVisible: boolean) {
+    return this.updateDailyMeasures(() => ({ linkUnderlinesVisible }))
+  }
+
+  /**
+   * The user has changed their diff check mark settings
+   */
+  public recordDiffCheckMarkVisibilityChange(diffCheckMarksVisible: boolean) {
+    return this.updateDailyMeasures(() => ({ diffCheckMarksVisible }))
   }
 }
 
