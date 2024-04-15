@@ -9,7 +9,11 @@ import { merge } from '../../lib/merge'
 import { getPersistedThemeName } from '../../ui/lib/application-theme'
 import { IUiActivityMonitor } from '../../ui/lib/ui-activity-monitor'
 import { Disposable } from 'event-kit'
-import { SignInMethod } from '../stores'
+import {
+  SignInMethod,
+  showDiffCheckMarksDefault,
+  underlineLinksDefault,
+} from '../stores'
 import { assertNever } from '../fatal-error'
 import {
   getNumber,
@@ -227,8 +231,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   submoduleDiffViewedFromHistoryCount: 0,
   openSubmoduleFromDiffCount: 0,
   previewedPullRequestCount: 0,
-  linkUnderlinesVisible: true,
-  diffCheckMarksVisible: true,
+  linkUnderlinesVisible: underlineLinksDefault,
+  diffCheckMarksVisible: showDiffCheckMarksDefault,
 }
 
 // A subtype of IDailyMeasures filtered to contain only its numeric properties

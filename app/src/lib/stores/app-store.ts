@@ -412,9 +412,9 @@ const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
 const underlineLinksKey = 'underline-links'
-const underlineLinksDefault = true
+export const underlineLinksDefault = true
 
-const showDiffCheckMarksDefault = true
+export const showDiffCheckMarksDefault = true
 const showDiffCheckMarksKey = 'diff-check-marks-visible'
 
 export class AppStore extends TypedBaseStore<IAppState> {
