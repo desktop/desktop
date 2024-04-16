@@ -602,10 +602,10 @@ export interface IDailyMeasures {
   /** The number of times a user has opened the preview pull request dialog */
   readonly previewedPullRequestCount: number
 
-  /** Whether or not the user has changed the accessibility setting for viewing link underlines */
+  /** Whether or not the user has their accessibility setting set for viewing link underlines */
   readonly linkUnderlinesVisible: boolean
 
-  /** Whether or not the user has changed the accessibility setting for viewing diff check marks */
+  /** Whether or not the user has their accessibility setting set for viewing diff check marks */
   readonly diffCheckMarksVisible: boolean
 }
 
