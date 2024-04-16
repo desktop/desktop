@@ -388,7 +388,15 @@ export class App extends React.Component<IAppProps, IAppState> {
    * 3. Thank you banner
    */
   private setOnOpenBanner() {
-    this.checkIfThankYouIsInOrder()
+    if (isOSNoLongerSupportedByElectron()) {
+      const dismissedAt = getNumber(UnsupportedOSBannerDismissedAtKey, 0)
+
+      // Remind the user that they're running an unsupported OS every 90 days
+      if (dismissedAt < offsetFromNow(-90, 'days')) {
+        this.setBanner({ type: BannerType.OSVersionNoLongerSupported })
+        return
+      }
+    }
 
     if (
       enableDiffCheckMarksAndLinkUnderlines() &&
@@ -398,16 +406,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         type: BannerType.AccessibilitySettingsBanner,
         onOpenAccessibilitySettings: this.onOpenAccessibilitySettings,
       })
+      return
     }
 
-    if (isOSNoLongerSupportedByElectron()) {
-      const dismissedAt = getNumber(UnsupportedOSBannerDismissedAtKey, 0)
-
-      // Remind the user that they're running an unsupported OS every 90 days
-      if (dismissedAt < offsetFromNow(-90, 'days')) {
-        this.setBanner({ type: BannerType.OSVersionNoLongerSupported })
-      }
-    }
+    this.checkIfThankYouIsInOrder()
   }
 
   private onMenuEvent(name: MenuEvent): any {
