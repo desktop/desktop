@@ -601,12 +601,6 @@ export interface IDailyMeasures {
 
   /** The number of times a user has opened the preview pull request dialog */
   readonly previewedPullRequestCount: number
-
-  /** Whether or not the user has their accessibility setting set for viewing link underlines */
-  readonly linkUnderlinesVisible: boolean
-
-  /** Whether or not the user has their accessibility setting set for viewing diff check marks */
-  readonly diffCheckMarksVisible: boolean
 }
 
 export class StatsDatabase extends Dexie {

@@ -12,7 +12,9 @@ import { Disposable } from 'event-kit'
 import {
   SignInMethod,
   showDiffCheckMarksDefault,
+  showDiffCheckMarksKey,
   underlineLinksDefault,
+  underlineLinksKey,
 } from '../stores'
 import { assertNever } from '../fatal-error'
 import {
@@ -231,8 +233,6 @@ const DefaultDailyMeasures: IDailyMeasures = {
   submoduleDiffViewedFromHistoryCount: 0,
   openSubmoduleFromDiffCount: 0,
   previewedPullRequestCount: 0,
-  linkUnderlinesVisible: underlineLinksDefault,
-  diffCheckMarksVisible: showDiffCheckMarksDefault,
 }
 
 // A subtype of IDailyMeasures filtered to contain only its numeric properties
@@ -392,6 +392,12 @@ interface ICalculatedStats {
 
   /** Whether or not the user has enabled high-signal notifications */
   readonly notificationsEnabled: boolean
+
+  /** Whether or not the user has their accessibility setting set for viewing link underlines */
+  readonly linkUnderlinesVisible: boolean
+
+  /** Whether or not the user has their accessibility setting set for viewing diff check marks */
+  readonly diffCheckMarksVisible: boolean
 }
 
 type DailyStats = ICalculatedStats &
@@ -564,6 +570,14 @@ export class StatsStore implements IStatsStore {
       RepositoriesCommittedInWithoutWriteAccessKey
     ).length
     const diffMode = getShowSideBySideDiff() ? 'split' : 'unified'
+    const linkUnderlinesVisible = getBoolean(
+      underlineLinksKey,
+      underlineLinksDefault
+    )
+    const diffCheckMarksVisible = getBoolean(
+      showDiffCheckMarksKey,
+      showDiffCheckMarksDefault
+    )
 
     // isInApplicationsFolder is undefined when not running on Darwin
     const launchedFromApplicationsFolder = __DARWIN__
@@ -589,6 +603,8 @@ export class StatsStore implements IStatsStore {
       repositoriesCommittedInWithoutWriteAccess,
       diffMode,
       launchedFromApplicationsFolder,
+      linkUnderlinesVisible,
+      diffCheckMarksVisible,
     }
   }
 
@@ -1148,20 +1164,6 @@ export class StatsStore implements IStatsStore {
     } catch (e) {
       log.error(`Error reporting opt ${direction}:`, e)
     }
-  }
-
-  /**
-   * The user has changed their link underline settings.
-   */
-  public recordLinkUnderlineVisibilityChange(linkUnderlinesVisible: boolean) {
-    return this.updateDailyMeasures(() => ({ linkUnderlinesVisible }))
-  }
-
-  /**
-   * The user has changed their diff check mark settings
-   */
-  public recordDiffCheckMarkVisibilityChange(diffCheckMarksVisible: boolean) {
-    return this.updateDailyMeasures(() => ({ diffCheckMarksVisible }))
   }
 }
 

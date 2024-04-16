@@ -411,11 +411,11 @@ const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
-const underlineLinksKey = 'underline-links'
+export const underlineLinksKey = 'underline-links'
 export const underlineLinksDefault = true
 
 export const showDiffCheckMarksDefault = true
-const showDiffCheckMarksKey = 'diff-check-marks-visible'
+export const showDiffCheckMarksKey = 'diff-check-marks-visible'
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
@@ -7948,7 +7948,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (underlineLinks !== this.underlineLinks) {
       this.underlineLinks = underlineLinks
       setBoolean(underlineLinksKey, underlineLinks)
-      this.statsStore.recordLinkUnderlineVisibilityChange(underlineLinks)
       this.emitUpdate()
     }
   }
@@ -7957,7 +7956,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (showDiffCheckMarks !== this.showDiffCheckMarks) {
       this.showDiffCheckMarks = showDiffCheckMarks
       setBoolean(showDiffCheckMarksKey, showDiffCheckMarks)
-      this.statsStore.recordDiffCheckMarkVisibilityChange(showDiffCheckMarks)
       this.emitUpdate()
     }
   }
