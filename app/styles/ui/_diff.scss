@@ -790,6 +790,15 @@
       .blankslate-image {
         max-height: 150px;
       }
+
+      .description {
+        margin-top: var(--spacing);
+        margin-bottom: var(--spacing);
+
+        p {
+          margin: 0;
+        }
+      }
     }
   }
 

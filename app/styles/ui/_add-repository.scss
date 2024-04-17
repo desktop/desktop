@@ -59,6 +59,10 @@
 
   &.clone-generic-repository-content {
     padding: var(--spacing-double);
+
+    .clone-url-textbox-label p {
+      margin: 0;
+    }
   }
 }
 

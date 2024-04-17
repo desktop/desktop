@@ -120,16 +120,14 @@ export class Notifications extends React.Component<
 
     if (warnNotificationsDenied) {
       return (
-        <>
-          <br />
-          <br />
+        <div className="setting-hint-warning">
           <span className="warning-icon">⚠️</span> GitHub Desktop has no
           permission to display notifications. Please, enable them in the{' '}
           <LinkButton uri={notificationSettingsURL}>
             Notifications Settings
           </LinkButton>
           .
-        </>
+        </div>
       )
     }
 

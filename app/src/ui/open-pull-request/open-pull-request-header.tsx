@@ -105,8 +105,8 @@ export class OpenPullRequestDialogHeader extends React.Component<
             onChange={onBranchChange}
             noBranchesMessage={
               <>
-                Sorry, I can't find that remote branch. <br />
-                You can only open pull requests against remote branches.
+                <p>Sorry, I can't find that remote branch.</p>
+                <p>You can only open pull requests against remote branches.</p>
               </>
             }
           />{' '}

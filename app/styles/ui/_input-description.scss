@@ -3,6 +3,10 @@
   display: flex;
   flex-direction: row;
 
+  .input-description-content p {
+    margin: 0;
+  }
+
   .octicon {
     margin-right: var(--spacing-half);
   }

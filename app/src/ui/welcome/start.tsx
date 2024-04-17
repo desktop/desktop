@@ -77,21 +77,24 @@ export class Start extends React.Component<IStartProps, {}> {
           </LinkButton>
         </div>
         <div className="welcome-start-disclaimer-container">
-          By creating an account, you agree to the{' '}
-          <LinkButton uri={'https://github.com/site/terms'}>
-            Terms of Service
-          </LinkButton>
-          . For more information about GitHub's privacy practices, see the{' '}
-          <LinkButton uri={'https://github.com/site/privacy'}>
-            GitHub Privacy Statement
-          </LinkButton>
-          .<br />
-          <br />
-          GitHub Desktop sends usage metrics to improve the product and inform
-          feature decisions.{' '}
-          <LinkButton uri={SamplesURL}>
-            Learn more about user metrics.
-          </LinkButton>
+          <p>
+            By creating an account, you agree to the{' '}
+            <LinkButton uri={'https://github.com/site/terms'}>
+              Terms of Service
+            </LinkButton>
+            . For more information about GitHub's privacy practices, see the{' '}
+            <LinkButton uri={'https://github.com/site/privacy'}>
+              GitHub Privacy Statement
+            </LinkButton>
+            .
+          </p>
+          <p>
+            GitHub Desktop sends usage metrics to improve the product and inform
+            feature decisions.{' '}
+            <LinkButton uri={SamplesURL}>
+              Learn more about user metrics.
+            </LinkButton>
+          </p>
         </div>
       </section>
     )

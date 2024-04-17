@@ -589,6 +589,11 @@ dialog {
     .description {
       color: var(--text-secondary-color);
       font-size: var(--font-size-sm);
+      margin-bottom: var(--spacing);
+
+      p {
+        margin: 0;
+      }
     }
   }
 
