@@ -411,11 +411,11 @@ const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
-const underlineLinksKey = 'underline-links'
-const underlineLinksDefault = true
+export const underlineLinksKey = 'underline-links'
+export const underlineLinksDefault = true
 
-const showDiffCheckMarksDefault = true
-const showDiffCheckMarksKey = 'diff-check-marks-visible'
+export const showDiffCheckMarksDefault = true
+export const showDiffCheckMarksKey = 'diff-check-marks-visible'
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
