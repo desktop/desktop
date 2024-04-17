@@ -42,9 +42,11 @@ export class WarningBeforeReset extends React.Component<
         disabled={this.state.isLoading}
         onSubmit={this.onSubmit}
         onDismissed={this.props.onDismissed}
+        role="alertdialog"
+        ariaDescribedBy="reset-warning-message"
       >
         <DialogContent>
-          <Row>
+          <Row id="reset-warning-message">
             You have changes in progress. Resetting to a previous commit might
             result in some of these changes being lost. Do you want to continue
             anyway?
