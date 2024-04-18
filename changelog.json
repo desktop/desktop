@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.3.15-test1": [
+      "[New] for closing notifications dialog accessibility audit ticket"
+    ],
     "3.3.15-beta1": [
       "[New] Reset to a previous commit - #12393",
       "[Added] The diff view now highlights Zig syntax - #17957. Thanks @imkylecat!",
