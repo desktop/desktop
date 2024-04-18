@@ -1,5 +1,11 @@
 {
   "releases": {
+    "3.3.15-beta1": [
+      "[New] Reset to a previous commit - #12393",
+      "[Added] The diff view now highlights Zig syntax - #17957. Thanks @imkylecat!",
+      "[Fixed] Remove unnecessary br elements to make the app easier to navigate with screen readers - #18444, #18436",
+      "[Fixed] Prevent clipping of dialog controls and content when app is zoomed - #18412"
+    ],
     "3.3.14": [
       "[Fixed] The tab panel semantics in the \"Publish Repository\" and \"Clone a Repository\" are announced by screen readers - #18408",
       "[Fixed] The check all button in the diff always only represents one selectable group - #18422",
