@@ -1,9 +1,9 @@
-import { getKeyForEndpoint } from '../auth'
+import { getKeyForAccount } from '../auth'
 import {
   getSSHKeyPassphrase,
   keepSSHKeyPassphraseToStore,
 } from '../ssh/ssh-key-passphrase'
-import { TokenStore } from '../stores'
+import { AccountsStore, TokenStore } from '../stores'
 import { TrampolineCommandHandler } from './trampoline-command'
 import { trampolineUIHelper } from './trampoline-ui-helper'
 import { parseAddSSHHostPrompt } from '../ssh/ssh'
@@ -12,6 +12,7 @@ import {
   keepSSHUserPasswordToStore,
 } from '../ssh/ssh-user-password'
 import { removePendingSSHSecretToStore } from '../ssh/ssh-secret-storage'
+import { getHTMLURL } from '../api'
 
 async function handleSSHHostAuthenticity(
   prompt: string
@@ -115,11 +116,15 @@ async function handleSSHUserPassword(operationGUID: string, prompt: string) {
   return password ?? ''
 }
 
-export const askpassTrampolineHandler: TrampolineCommandHandler =
-  async command => {
+export const createAskpassTrampolineHandler: (
+  accountsStore: AccountsStore
+) => TrampolineCommandHandler =
+  (accountsStore: AccountsStore) => async command => {
     if (command.parameters.length !== 1) {
       return undefined
     }
+
+    log.info('askpassTrampolineHandler: ' + JSON.stringify(command.parameters))
 
     const firstParameter = command.parameters[0]
 
@@ -135,22 +140,22 @@ export const askpassTrampolineHandler: TrampolineCommandHandler =
       return handleSSHUserPassword(command.trampolineToken, firstParameter)
     }
 
-    const username = command.environmentVariables.get('DESKTOP_USERNAME')
-    if (username === undefined || username.length === 0) {
-      return undefined
-    }
+    const credsMatch = /^(Username|Password) for '(.+)': $/.exec(firstParameter)
 
-    if (firstParameter.startsWith('Username')) {
-      return username
-    } else if (firstParameter.startsWith('Password')) {
-      const endpoint = command.environmentVariables.get('DESKTOP_ENDPOINT')
-      if (endpoint === undefined || endpoint.length === 0) {
+    if (credsMatch?.length === 3) {
+      const url = new URL(credsMatch[2])
+      const accounts = await accountsStore.getAll()
+      const account = accounts.find(a => getHTMLURL(a.endpoint) === url.origin)
+
+      if (!account) {
         return undefined
+      } else if (credsMatch[1] === 'Username') {
+        return account.login
+      } else if (credsMatch[1] === 'Password') {
+        const key = getKeyForAccount(account)
+        const token = await TokenStore.getItem(key, account.login)
+        return token ?? undefined
       }
-
-      const key = getKeyForEndpoint(endpoint)
-      const token = await TokenStore.getItem(key, username)
-      return token ?? undefined
     }
 
     return undefined

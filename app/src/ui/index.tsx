@@ -71,6 +71,9 @@ import { migrateRendererGUID } from '../lib/get-renderer-guid'
 import { initializeRendererNotificationHandler } from '../lib/notifications/notification-handler'
 import { Grid } from 'react-virtualized'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
+import { trampolineServer } from '../lib/trampoline/trampoline-server'
+import { TrampolineCommandIdentifier } from '../lib/trampoline/trampoline-command'
+import { createAskpassTrampolineHandler } from '../lib/trampoline/trampoline-askpass-handler'
 
 if (__DEV__) {
   installDevGlobals()
@@ -224,6 +227,12 @@ const statsStore = new StatsStore(
 const signInStore = new SignInStore()
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)
+
+trampolineServer.registerCommandHandler(
+  TrampolineCommandIdentifier.AskPass,
+  createAskpassTrampolineHandler(accountsStore)
+)
+
 const repositoriesStore = new RepositoriesStore(
   new RepositoriesDatabase('Database')
 )
