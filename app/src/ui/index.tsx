@@ -6,7 +6,6 @@ import * as Path from 'path'
 import { App } from './app'
 import {
   Dispatcher,
-  gitAuthenticationErrorHandler,
   externalEditorErrorHandler,
   openShellErrorHandler,
   mergeConflictHandler,
@@ -301,7 +300,6 @@ dispatcher.registerErrorHandler(openShellErrorHandler)
 dispatcher.registerErrorHandler(mergeConflictHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
 dispatcher.registerErrorHandler(insufficientGitHubRepoPermissions)
-dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(samlReauthRequired)
 dispatcher.registerErrorHandler(backgroundTaskHandler)
