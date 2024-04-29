@@ -43,3 +43,8 @@ export function setGenericPassword(
   const key = getKeyForEndpoint(hostname)
   return TokenStore.setItem(key, username, password)
 }
+
+export function deleteGenericCredential(hostname: string, username: string) {
+  localStorage.removeItem(getKeyForUsername(hostname))
+  return TokenStore.deleteItem(getKeyForEndpoint(hostname), username)
+}

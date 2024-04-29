@@ -4,7 +4,10 @@ import {
   keepSSHKeyPassphraseToStore,
 } from '../ssh/ssh-key-passphrase'
 import { AccountsStore, TokenStore } from '../stores'
-import { TrampolineCommandHandler } from './trampoline-command'
+import {
+  ITrampolineCommand,
+  TrampolineCommandHandler,
+} from './trampoline-command'
 import { trampolineUIHelper } from './trampoline-ui-helper'
 import { parseAddSSHHostPrompt } from '../ssh/ssh'
 import {
@@ -13,9 +16,20 @@ import {
 } from '../ssh/ssh-user-password'
 import { removePendingSSHSecretToStore } from '../ssh/ssh-secret-storage'
 import { getHTMLURL } from '../api'
-import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
+import {
+  getGenericHostname,
+  getGenericUsername,
+  setGenericPassword,
+  setGenericUsername,
+} from '../generic-git-auth'
 import { Account } from '../../models/account'
 import { IGitAccount } from '../../models/git-account'
+import {
+  getHasRejectedCredentialsForEndpoint,
+  getIsBackgroundTaskEnvironment,
+  setHasRejectedCredentialsForEndpoint,
+  setMostRecentGenericGitCredential,
+} from './trampoline-environment'
 
 async function handleSSHHostAuthenticity(
   prompt: string
@@ -123,6 +137,8 @@ export const createAskpassTrampolineHandler: (
   accountsStore: AccountsStore
 ) => TrampolineCommandHandler =
   (accountsStore: AccountsStore) => async command => {
+    log.info(`Handling askpass command: ${command.parameters.join(' ')}`)
+
     if (command.parameters.length !== 1) {
       return undefined
     }
@@ -143,29 +159,56 @@ export const createAskpassTrampolineHandler: (
 
     const credsMatch = /^(Username|Password) for '(.+)': $/.exec(firstParameter)
 
-    if (credsMatch?.length === 3) {
+    if (credsMatch?.[1] === 'Username' || credsMatch?.[1] === 'Password') {
       const [, kind, remoteUrl] = credsMatch
-      if (kind === 'Username' || kind === 'Password') {
-        return handleAskPassUserPassword(kind, remoteUrl, accountsStore)
-      }
+      return handleAskPassUserPassword(command, kind, remoteUrl, accountsStore)
     }
 
     return undefined
   }
 
 const handleAskPassUserPassword = async (
+  command: ITrampolineCommand,
   kind: 'Username' | 'Password',
   remoteUrl: string,
   accountsStore: AccountsStore
 ) => {
+  log.info(
+    `askPassHandler: ${kind} requested for ${remoteUrl} (${command.trampolineToken})`
+  )
+
+  const { trampolineToken } = command
   const url = new URL(remoteUrl)
-  const accounts = await accountsStore.getAll()
-  const account =
-    accounts.find(a => getHTMLURL(a.endpoint) === url.origin) ??
-    getGenericAccount(remoteUrl)
+  const account = await findAccount(trampolineToken, accountsStore, url)
 
   if (!account) {
+    if (getHasRejectedCredentialsForEndpoint(trampolineToken, url.origin)) {
+      log.info(`askPassHandler: not requesting credentials for ${url.origin}`)
+      return undefined
+    }
+
     log.info(`askPassHandler: found no account for ${url.origin}`)
+
+    if (getIsBackgroundTaskEnvironment(trampolineToken)) {
+      log.info('askPassHandler: background task environment, skipping prompt')
+      return undefined
+    }
+
+    const { username, password } =
+      await trampolineUIHelper.promptForGenericGitAuthentication(url.origin)
+
+    if (username.length > 0 && password.length > 0) {
+      setGenericUsername(url.hostname, username)
+      setGenericPassword(url.hostname, username, password)
+
+      log.info(`askPassHandler: acquired generic credentials for ${url.origin}`)
+
+      return kind === 'Username' ? username : password
+    } else {
+      log.info('askPassHandler: user cancelled generic git authentication')
+      setHasRejectedCredentialsForEndpoint(trampolineToken, url.origin)
+    }
+
     return undefined
   } else if (kind === 'Username') {
     log.info(
@@ -173,6 +216,7 @@ const handleAskPassUserPassword = async (
         account instanceof Account ? 'account' : 'generic account'
       } for ${url.origin}`
     )
+
     return account.login
   } else if (kind === 'Password') {
     log.info(
@@ -196,4 +240,30 @@ function getGenericAccount(remoteUrl: string): IGitAccount | undefined {
   const hostname = getGenericHostname(remoteUrl)
   const username = getGenericUsername(hostname)
   return username ? { login: username, endpoint: hostname } : undefined
+}
+async function findAccount(
+  trampolineToken: string,
+  accountsStore: AccountsStore,
+  remoteUrl: URL
+) {
+  const { origin } = remoteUrl
+  const accounts = await accountsStore.getAll()
+  const account = accounts.find(a => getHTMLURL(a.endpoint) === origin)
+
+  if (account) {
+    return account
+  }
+
+  const generic = getGenericAccount(origin)
+
+  if (generic) {
+    setMostRecentGenericGitCredential(
+      trampolineToken,
+      generic.endpoint,
+      generic.login
+    )
+    return generic
+  }
+
+  return undefined
 }

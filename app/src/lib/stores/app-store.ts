@@ -6116,31 +6116,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
-  public async promptForGenericGitAuthentication(
-    repository: Repository | CloningRepository,
-    retryAction: RetryAction
-  ): Promise<void> {
-    let url
-    if (repository instanceof Repository) {
-      const gitStore = this.gitStoreCache.get(repository)
-      const remote = gitStore.currentRemote
-      if (!remote) {
-        return
-      }
-
-      url = remote.url
-    } else {
-      url = repository.url
-    }
-
-    const hostname = getGenericHostname(url)
-    return this._showPopup({
-      type: PopupType.GenericGitAuthentication,
-      hostname,
-      retryAction,
-    })
-  }
-
   public async _installGlobalLFSFilters(force: boolean): Promise<void> {
     try {
       await installGlobalLFSFilters(force)

@@ -8,9 +8,44 @@ import {
   removePendingSSHSecretToStore,
   storePendingSSHSecret,
 } from '../ssh/ssh-secret-storage'
-import { GitProcess } from 'dugite'
+import { GitError as DugiteError, GitProcess } from 'dugite'
 import memoizeOne from 'memoize-one'
 import { enableCustomGitUserAgent } from '../feature-flag'
+import { IGitAccount } from '../../models/git-account'
+import { GitError } from '../git/core'
+import { deleteGenericCredential } from '../generic-git-auth'
+
+const mostRecentGenericGitCredential = new Map<string, IGitAccount>()
+
+export const setMostRecentGenericGitCredential = (
+  trampolineToken: string,
+  endpoint: string,
+  login: string
+) => mostRecentGenericGitCredential.set(trampolineToken, { endpoint, login })
+
+const hasRejectedCredentialsForEndpoint = new Map<string, Set<string>>()
+
+export const setHasRejectedCredentialsForEndpoint = (
+  trampolineToken: string,
+  endpoint: string
+) => {
+  const set = hasRejectedCredentialsForEndpoint.get(trampolineToken)
+  if (set) {
+    set.add(endpoint)
+  } else {
+    hasRejectedCredentialsForEndpoint.set(trampolineToken, new Set([endpoint]))
+  }
+}
+
+export const getHasRejectedCredentialsForEndpoint = (
+  trampolineToken: string,
+  endpoint: string
+) => {
+  return (
+    hasRejectedCredentialsForEndpoint.get(trampolineToken)?.has(endpoint) ??
+    false
+  )
+}
 const isBackgroundTaskEnvironment = new Map<string, boolean>()
 
 export const getIsBackgroundTaskEnvironment = (trampolineToken: string) =>
@@ -46,7 +81,6 @@ export const GitUserAgent = memoizeOne(() =>
  *                  variables.
  */
 export async function withTrampolineEnv<T>(
-  fn: (env: object) => Promise<T>
   fn: (env: object) => Promise<T>,
   isBackgroundTask = false
 ): Promise<T> {
@@ -81,6 +115,20 @@ export async function withTrampolineEnv<T>(
       await storePendingSSHSecret(token)
 
       return result
+    } catch (e) {
+      if (
+        e instanceof GitError &&
+        e.result.gitError === DugiteError.HTTPSAuthenticationFailed
+      ) {
+        const credential = mostRecentGenericGitCredential.get(token)
+        if (credential) {
+          log.info(
+            `trampolineEnvironment: Got HTTPSAuthenticationFailed error, deleting credential for ${credential.endpoint}`
+          )
+          deleteGenericCredential(credential.endpoint, credential.login)
+        }
+      }
+      throw e
     } finally {
       removePendingSSHSecretToStore(token)
       isBackgroundTaskEnvironment.delete(token)
