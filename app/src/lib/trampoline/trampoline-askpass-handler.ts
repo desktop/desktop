@@ -127,8 +127,6 @@ export const createAskpassTrampolineHandler: (
       return undefined
     }
 
-    log.info('askpassTrampolineHandler: ' + JSON.stringify(command.parameters))
-
     const firstParameter = command.parameters[0]
 
     if (firstParameter.startsWith('The authenticity of host ')) {
@@ -167,10 +165,21 @@ const handleAskPassUserPassword = async (
     getGenericAccount(remoteUrl)
 
   if (!account) {
+    log.info(`askPassHandler: found no account for ${url.origin}`)
     return undefined
   } else if (kind === 'Username') {
+    log.info(
+      `askPassHandler: found ${
+        account instanceof Account ? 'account' : 'generic account'
+      } for ${url.origin}`
+    )
     return account.login
   } else if (kind === 'Password') {
+    log.info(
+      `askPassHandler: found ${
+        account instanceof Account ? 'account token' : 'generic token'
+      } for ${url.origin}`
+    )
     const login = url.username.length > 0 ? url.username : account.login
     const token =
       account instanceof Account && account.token.length > 0
