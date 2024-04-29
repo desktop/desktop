@@ -99,11 +99,13 @@ export async function getRemoteURL(
 export async function updateRemoteHEAD(
   repository: Repository,
   account: IGitAccount | null,
-  remote: IRemote
+  remote: IRemote,
+  isBackgroundTask = false
 ): Promise<void> {
   const options = {
     successExitCodes: new Set([0, 1, 128]),
     env: await envForRemoteOperation(account, remote.url),
+    isBackgroundTask,
   }
 
   await git(

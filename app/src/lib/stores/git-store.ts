@@ -1055,14 +1055,15 @@ export class GitStore extends BaseStore {
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
   ): Promise<void> {
+    const repo = this.repository
     const retryAction: RetryAction = {
       type: RetryActionType.Fetch,
-      repository: this.repository,
+      repository: repo,
     }
     await this.performFailableOperation(
       async () => {
-        await fetchRepo(this.repository, account, remote, progressCallback)
-        await updateRemoteHEAD(this.repository, account, remote)
+        await fetchRepo(repo, account, remote, progressCallback, backgroundTask)
+        await updateRemoteHEAD(repo, account, remote, backgroundTask)
       },
       { backgroundTask, retryAction }
     )

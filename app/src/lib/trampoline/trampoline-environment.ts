@@ -11,6 +11,10 @@ import {
 import { GitProcess } from 'dugite'
 import memoizeOne from 'memoize-one'
 import { enableCustomGitUserAgent } from '../feature-flag'
+const isBackgroundTaskEnvironment = new Map<string, boolean>()
+
+export const getIsBackgroundTaskEnvironment = (trampolineToken: string) =>
+  isBackgroundTaskEnvironment.get(trampolineToken) ?? false
 
 export const GitUserAgent = memoizeOne(() =>
   // Can't use git() as that will call withTrampolineEnv which calls this method
@@ -43,10 +47,14 @@ export const GitUserAgent = memoizeOne(() =>
  */
 export async function withTrampolineEnv<T>(
   fn: (env: object) => Promise<T>
+  fn: (env: object) => Promise<T>,
+  isBackgroundTask = false
 ): Promise<T> {
   const sshEnv = await getSSHEnvironment()
 
   return withTrampolineToken(async token => {
+    isBackgroundTaskEnvironment.set(token, isBackgroundTask)
+
     // The code below assumes a few things in order to manage SSH key passphrases
     // correctly:
     // 1. `withTrampolineEnv` is only used in the functions `git` (core.ts) and
@@ -75,6 +83,7 @@ export async function withTrampolineEnv<T>(
       return result
     } finally {
       removePendingSSHSecretToStore(token)
+      isBackgroundTaskEnvironment.delete(token)
     }
   })
 }

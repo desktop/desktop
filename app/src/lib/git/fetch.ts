@@ -57,7 +57,8 @@ export async function fetch(
   repository: Repository,
   account: IGitAccount | null,
   remote: IRemote,
-  progressCallback?: (progress: IFetchProgress) => void
+  progressCallback?: (progress: IFetchProgress) => void,
+  isBackgroundTask = false
 ): Promise<void> {
   let opts: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
@@ -69,7 +70,7 @@ export async function fetch(
     const kind = 'fetch'
 
     opts = await executionOptionsWithProgress(
-      { ...opts, trackLFSProgress: true },
+      { ...opts, trackLFSProgress: true, isBackgroundTask },
       new FetchProgressParser(),
       progress => {
         // In addition to progress output from the remote end and from

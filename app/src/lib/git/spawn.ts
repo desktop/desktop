@@ -29,15 +29,17 @@ export const spawnGit = (
   args: string[],
   path: string,
   name: string,
-  options?: IGitSpawnExecutionOptions
+  options?: IGitSpawnExecutionOptions & { isBackgroundTask?: boolean }
 ) =>
-  withTrampolineEnv(trampolineEnv =>
-    GitPerf.measure(`${name}: git ${args.join(' ')}`, async () =>
-      GitProcess.spawn(args, path, {
-        ...options,
-        env: { ...options?.env, ...trampolineEnv },
-      })
-    )
+  withTrampolineEnv(
+    trampolineEnv =>
+      GitPerf.measure(`${name}: git ${args.join(' ')}`, async () =>
+        GitProcess.spawn(args, path, {
+          ...options,
+          env: { ...options?.env, ...trampolineEnv },
+        })
+      ),
+    options?.isBackgroundTask ?? false
   )
 
 /**
