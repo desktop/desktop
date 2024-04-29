@@ -173,10 +173,6 @@ const handleAskPassUserPassword = async (
   remoteUrl: string,
   accountsStore: AccountsStore
 ) => {
-  log.info(
-    `askPassHandler: ${kind} requested for ${remoteUrl} (${command.trampolineToken})`
-  )
-
   const { trampolineToken } = command
   const url = new URL(remoteUrl)
   const account = await findAccount(trampolineToken, accountsStore, url)
