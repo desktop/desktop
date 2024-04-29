@@ -4653,20 +4653,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
           }
 
           await gitStore.performFailableOperation(
-            () =>
-              pullRepo(repository, account, remote, progress => {
+            async () => {
+              await pullRepo(repository, account, remote, progress => {
                 this.updatePushPullFetchProgress(repository, {
                   ...progress,
                   value: progress.value * pullWeight,
                 })
-              }),
-            {
-              gitContext,
-              retryAction,
-            }
+              })
+              await updateRemoteHEAD(repository, account, remote)
+            },
+            { gitContext, retryAction }
           )
-
-          await updateRemoteHEAD(repository, account, remote)
 
           const refreshStartProgress = pullWeight + fetchWeight
           const refreshTitle = __DARWIN__
