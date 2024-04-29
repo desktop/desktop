@@ -179,14 +179,14 @@ const handleAskPassUserPassword = async (
 
   if (!account) {
     if (getHasRejectedCredentialsForEndpoint(trampolineToken, url.origin)) {
-      log.info(`askPassHandler: not requesting credentials for ${url.origin}`)
+      log.debug(`askPassHandler: not requesting credentials for ${url.origin}`)
       return undefined
     }
 
-    log.info(`askPassHandler: found no account for ${url.origin}`)
+    log.info(`askPassHandler: no account found for ${url.origin}`)
 
     if (getIsBackgroundTaskEnvironment(trampolineToken)) {
-      log.info('askPassHandler: background task environment, skipping prompt')
+      log.debug('askPassHandler: background task environment, skipping prompt')
       return undefined
     }
 
@@ -219,21 +219,22 @@ const handleAskPassUserPassword = async (
     log.info(
       `askPassHandler: found ${
         account instanceof Account ? 'account' : 'generic account'
-      } for ${url.origin}`
+      } username for ${url.origin}`
     )
 
     return account.login
   } else if (kind === 'Password') {
-    log.info(
-      `askPassHandler: found ${
-        account instanceof Account ? 'account token' : 'generic token'
-      } for ${url.origin}`
-    )
     const login = url.username.length > 0 ? url.username : account.login
     const token =
       account instanceof Account && account.token.length > 0
         ? account.token
         : await TokenStore.getItem(getKeyForEndpoint(account.endpoint), login)
+
+    log.info(
+      `askPassHandler: ${token ? 'found' : 'failed retrieving'} ${
+        account instanceof Account ? 'account token' : 'generic token'
+      } for ${url.origin}`
+    )
 
     return token ?? undefined
   }
