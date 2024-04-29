@@ -1,4 +1,4 @@
-import { getKeyForAccount } from '../auth'
+import { getKeyForEndpoint } from '../auth'
 import {
   getSSHKeyPassphrase,
   keepSSHKeyPassphraseToStore,
@@ -13,6 +13,9 @@ import {
 } from '../ssh/ssh-user-password'
 import { removePendingSSHSecretToStore } from '../ssh/ssh-secret-storage'
 import { getHTMLURL } from '../api'
+import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
+import { Account } from '../../models/account'
+import { IGitAccount } from '../../models/git-account'
 
 async function handleSSHHostAuthenticity(
   prompt: string
@@ -143,20 +146,45 @@ export const createAskpassTrampolineHandler: (
     const credsMatch = /^(Username|Password) for '(.+)': $/.exec(firstParameter)
 
     if (credsMatch?.length === 3) {
-      const url = new URL(credsMatch[2])
-      const accounts = await accountsStore.getAll()
-      const account = accounts.find(a => getHTMLURL(a.endpoint) === url.origin)
-
-      if (!account) {
-        return undefined
-      } else if (credsMatch[1] === 'Username') {
-        return account.login
-      } else if (credsMatch[1] === 'Password') {
-        const key = getKeyForAccount(account)
-        const token = await TokenStore.getItem(key, account.login)
-        return token ?? undefined
+      const [, kind, remoteUrl] = credsMatch
+      if (kind === 'Username' || kind === 'Password') {
+        return handleAskPassUserPassword(kind, remoteUrl, accountsStore)
       }
     }
 
     return undefined
   }
+
+const handleAskPassUserPassword = async (
+  kind: 'Username' | 'Password',
+  remoteUrl: string,
+  accountsStore: AccountsStore
+) => {
+  const url = new URL(remoteUrl)
+  const accounts = await accountsStore.getAll()
+  const account =
+    accounts.find(a => getHTMLURL(a.endpoint) === url.origin) ??
+    getGenericAccount(remoteUrl)
+
+  if (!account) {
+    return undefined
+  } else if (kind === 'Username') {
+    return account.login
+  } else if (kind === 'Password') {
+    const login = url.username.length > 0 ? url.username : account.login
+    const token =
+      account instanceof Account && account.token.length > 0
+        ? account.token
+        : await TokenStore.getItem(getKeyForEndpoint(account.endpoint), login)
+
+    return token ?? undefined
+  }
+
+  return undefined
+}
+
+function getGenericAccount(remoteUrl: string): IGitAccount | undefined {
+  const hostname = getGenericHostname(remoteUrl)
+  const username = getGenericUsername(hostname)
+  return username ? { login: username, endpoint: hostname } : undefined
+}
