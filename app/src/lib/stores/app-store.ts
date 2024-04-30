@@ -134,7 +134,11 @@ import {
 import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
 
 import { formatCommitMessage } from '../format-commit-message'
-import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
+import {
+  getGenericHostname,
+  getGenericUsername,
+  removePathFromGenericGitAuthCreds,
+} from '../generic-git-auth'
 import { getAccountForRepository } from '../get-account-for-repository'
 import {
   abortMerge,
@@ -602,6 +606,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.tutorialAssessor = new OnboardingTutorialAssessor(
       this.getResolvedExternalEditor
     )
+
+    removePathFromGenericGitAuthCreds()
 
     // We're considering flipping the default value and have new users
     // start off with repository indicators disabled. As such we'll start
