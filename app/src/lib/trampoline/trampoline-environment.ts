@@ -116,17 +116,13 @@ export async function withTrampolineEnv<T>(
 
       return result
     } catch (e) {
-      if (
-        e instanceof GitError &&
-        e.result.gitError === DugiteError.HTTPSAuthenticationFailed
-      ) {
-        const credential = mostRecentGenericGitCredential.get(token)
-        if (credential) {
-          log.info(
-            `trampolineEnvironment: Got HTTPSAuthenticationFailed error, deleting credential for ${credential.endpoint}`
-          )
-          deleteGenericCredential(credential.endpoint, credential.login)
-        }
+      // If the operation fails with an HTTPSAuthenticationFailed error, we
+      // assume that it's because the last credential we provided via the
+      // askpass handler was rejected. That's not necessarily the case but for
+      // practical purposes, it's as good as we can get with the information we
+      // have. We're limited by the ASKPASS flow here.
+      if (isAuthFailure(e)) {
+        deleteMostRecentGenericCredential(token)
       }
       throw e
     } finally {
@@ -134,6 +130,19 @@ export async function withTrampolineEnv<T>(
       isBackgroundTaskEnvironment.delete(token)
     }
   })
+}
+
+const isAuthFailure = (e: unknown): e is GitError =>
+  e instanceof GitError &&
+  e.result.gitError === DugiteError.HTTPSAuthenticationFailed
+
+function deleteMostRecentGenericCredential(token: string) {
+  const cred = mostRecentGenericGitCredential.get(token)
+  if (cred) {
+    const { endpoint, login } = cred
+    log.info(`askPassHandler: auth failed, deleting ${endpoint} credential`)
+    deleteGenericCredential(endpoint, login)
+  }
 }
 
 /** Returns the path of the desktop-trampoline binary. */
