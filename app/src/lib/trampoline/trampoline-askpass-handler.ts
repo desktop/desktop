@@ -172,10 +172,11 @@ const handleAskPassUserPassword = async (
 ) => {
   const info = (msg: string) => log.info(`askPassHandler: ${msg}`)
   const debug = (msg: string) => log.debug(`askPassHandler: ${msg}`)
+  const warn = (msg: string) => log.warn(`askPassHandler: ${msg}`)
+
   const { trampolineToken } = command
-  const url = new URL(remoteUrl)
-  const { origin } = url
-  const account = await findAccount(trampolineToken, accountsStore, url)
+  const { origin, hostname, username: urlUsername } = new URL(remoteUrl)
+  const account = await findAccount(trampolineToken, accountsStore, origin)
 
   if (!account) {
     if (getHasRejectedCredentialsForEndpoint(trampolineToken, origin)) {
@@ -190,7 +191,7 @@ const handleAskPassUserPassword = async (
 
     info(`no account found for ${origin}`)
 
-    if (url.hostname === 'github.com') {
+    if (hostname === 'github.com') {
       // We don't want to show a generic auth prompt for GitHub.com and we
       // don't have a good way to turn the sign in flow into a promise. More
       // specifically we can create a promise that resolves when the GH sign in
@@ -203,8 +204,8 @@ const handleAskPassUserPassword = async (
       await trampolineUIHelper.promptForGenericGitAuthentication(origin)
 
     if (username.length > 0 && password.length > 0) {
-      setGenericUsername(url.hostname, username)
-      setGenericPassword(url.hostname, username, password)
+      setGenericUsername(hostname, username)
+      setGenericPassword(hostname, username, password)
 
       info(`acquired generic credentials for ${origin}`)
 
@@ -218,16 +219,21 @@ const handleAskPassUserPassword = async (
   } else {
     const accountKind = account instanceof Account ? 'account' : 'generic'
     if (kind === 'Username') {
-      info(`found ${accountKind} username for ${origin}`)
+      debug(`${accountKind} username for ${origin} found`)
       return account.login
     } else if (kind === 'Password') {
-      const login = url.username.length > 0 ? url.username : account.login
+      const login = urlUsername ? urlUsername : account.login
       const token =
         account instanceof Account && account.token.length > 0
           ? account.token
           : await TokenStore.getItem(getKeyForEndpoint(account.endpoint), login)
 
-      info(`${accountKind} password for ${origin} ${token ? '' : 'not '} found`)
+      if (token) {
+        debug(`${accountKind} password for ${origin} found`)
+      } else {
+        // We have a username but no password, that warrants a warning
+        warn(`${accountKind} password for ${origin} missing`)
+      }
 
       return token ?? undefined
     }
@@ -239,9 +245,8 @@ const handleAskPassUserPassword = async (
 async function findAccount(
   trampolineToken: string,
   accountsStore: AccountsStore,
-  remoteUrl: URL
+  origin: string
 ) {
-  const { origin } = remoteUrl
   const accounts = await accountsStore.getAll()
   const account = accounts.find(a => getHTMLURL(a.endpoint) === origin)
 
