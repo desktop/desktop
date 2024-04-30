@@ -4660,7 +4660,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
                   value: progress.value * pullWeight,
                 })
               })
-              await updateRemoteHEAD(repository, account, remote)
+              await updateRemoteHEAD(repository, account, remote, false)
             },
             { gitContext, retryAction }
           )
