@@ -171,22 +171,25 @@ const handleAskPassUserPassword = async (
   remoteUrl: string,
   accountsStore: AccountsStore
 ) => {
+  const info = (msg: string) => log.info(`askPassHandler: ${msg}`)
+  const debug = (msg: string) => log.debug(`askPassHandler: ${msg}`)
   const { trampolineToken } = command
   const url = new URL(remoteUrl)
+  const { origin } = url
   const account = await findAccount(trampolineToken, accountsStore, url)
 
   if (!account) {
-    if (getHasRejectedCredentialsForEndpoint(trampolineToken, url.origin)) {
-      log.debug(`askPassHandler: not requesting credentials for ${url.origin}`)
+    if (getHasRejectedCredentialsForEndpoint(trampolineToken, origin)) {
+      debug(`not requesting credentials for ${origin}`)
       return undefined
     }
-
-    log.info(`askPassHandler: no account found for ${url.origin}`)
 
     if (getIsBackgroundTaskEnvironment(trampolineToken)) {
-      log.debug('askPassHandler: background task environment, skipping prompt')
+      debug('background task environment, skipping prompt')
       return undefined
     }
+
+    info(`no account found for ${origin}`)
 
     if (url.hostname === 'github.com') {
       // We don't want to show a generic auth prompt for GitHub.com/GHE and we
@@ -198,53 +201,40 @@ const handleAskPassUserPassword = async (
     }
 
     const { username, password } =
-      await trampolineUIHelper.promptForGenericGitAuthentication(url.origin)
+      await trampolineUIHelper.promptForGenericGitAuthentication(origin)
 
     if (username.length > 0 && password.length > 0) {
       setGenericUsername(url.hostname, username)
       setGenericPassword(url.hostname, username, password)
 
-      log.info(`askPassHandler: acquired generic credentials for ${url.origin}`)
+      info(`acquired generic credentials for ${origin}`)
 
       return kind === 'Username' ? username : password
     } else {
-      log.info('askPassHandler: user cancelled generic git authentication')
-      setHasRejectedCredentialsForEndpoint(trampolineToken, url.origin)
+      info('user cancelled generic git authentication')
+      setHasRejectedCredentialsForEndpoint(trampolineToken, origin)
     }
 
     return undefined
-  } else if (kind === 'Username') {
-    log.info(
-      `askPassHandler: found ${
-        account instanceof Account ? 'account' : 'generic account'
-      } username for ${url.origin}`
-    )
+  } else {
+    const accountKind = account instanceof Account ? 'account' : 'generic'
+    if (kind === 'Username') {
+      info(`found ${accountKind} username for ${origin}`)
+      return account.login
+    } else if (kind === 'Password') {
+      const login = url.username.length > 0 ? url.username : account.login
+      const token =
+        account instanceof Account && account.token.length > 0
+          ? account.token
+          : await TokenStore.getItem(getKeyForEndpoint(account.endpoint), login)
 
-    return account.login
-  } else if (kind === 'Password') {
-    const login = url.username.length > 0 ? url.username : account.login
-    const token =
-      account instanceof Account && account.token.length > 0
-        ? account.token
-        : await TokenStore.getItem(getKeyForEndpoint(account.endpoint), login)
+      info(`${accountKind} password for ${origin} ${token ? '' : 'not '} found`)
 
-    log.info(
-      `askPassHandler: ${token ? 'found' : 'failed retrieving'} ${
-        account instanceof Account ? 'account token' : 'generic token'
-      } for ${url.origin}`
-    )
-
-    return token ?? undefined
+      return token ?? undefined
+    }
   }
-
-  return undefined
 }
 
-function getGenericAccount(remoteUrl: string): IGitAccount | undefined {
-  const hostname = getGenericHostname(remoteUrl)
-  const username = getGenericUsername(hostname)
-  return username ? { login: username, endpoint: hostname } : undefined
-}
 async function findAccount(
   trampolineToken: string,
   accountsStore: AccountsStore,
@@ -258,15 +248,12 @@ async function findAccount(
     return account
   }
 
-  const generic = getGenericAccount(origin)
+  const endpoint = getGenericHostname(origin)
+  const login = getGenericUsername(endpoint)
 
-  if (generic) {
-    setMostRecentGenericGitCredential(
-      trampolineToken,
-      generic.endpoint,
-      generic.login
-    )
-    return generic
+  if (endpoint && login) {
+    setMostRecentGenericGitCredential(trampolineToken, endpoint, login)
+    return { login, endpoint }
   }
 
   return undefined
