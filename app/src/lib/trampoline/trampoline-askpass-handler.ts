@@ -137,8 +137,6 @@ export const createAskpassTrampolineHandler: (
   accountsStore: AccountsStore
 ) => TrampolineCommandHandler =
   (accountsStore: AccountsStore) => async command => {
-    log.info(`Handling askpass command: ${command.parameters.join(' ')}`)
-
     if (command.parameters.length !== 1) {
       return undefined
     }
