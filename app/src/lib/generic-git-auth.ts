@@ -44,6 +44,7 @@ export function setGenericPassword(
   return TokenStore.setItem(key, username, password)
 }
 
+/** Delete a generic credential */
 export function deleteGenericCredential(hostname: string, username: string) {
   localStorage.removeItem(getKeyForUsername(hostname))
   return TokenStore.deleteItem(getKeyForEndpoint(hostname), username)

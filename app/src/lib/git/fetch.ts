@@ -52,6 +52,8 @@ async function getFetchArgs(
  *                           of the fetch operation. When provided this enables
  *                           the '--progress' command line flag for
  *                           'git fetch'.
+ * @param isBackgroundTask  - Whether the fetch is being performed as a
+ *                            background task as opposed to being user initiated
  */
 export async function fetch(
   repository: Repository,

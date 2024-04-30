@@ -38,6 +38,10 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
   /** Should it track & report LFS progress? */
   readonly trackLFSProgress?: boolean
 
+  /**
+   * Is the command about to run part of a background task?
+   * This affects error handling and UI such as credential prompts.
+   */
   readonly isBackgroundTask?: boolean
 }
 
