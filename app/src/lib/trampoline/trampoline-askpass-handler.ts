@@ -23,7 +23,6 @@ import {
   setGenericUsername,
 } from '../generic-git-auth'
 import { Account } from '../../models/account'
-import { IGitAccount } from '../../models/git-account'
 import {
   getHasRejectedCredentialsForEndpoint,
   getIsBackgroundTaskEnvironment,
