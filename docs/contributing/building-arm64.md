@@ -26,8 +26,9 @@ variables to rebuild native modules against `arm64`.
 Ensure you set the `TARGET_ARCH` environment variable in your shell:
 
 ```shellsession
-$ export TARGET_ARCH=arm64
+$ script/install-arm64-deps.sh
 ```
+
 
 ## Building
 
