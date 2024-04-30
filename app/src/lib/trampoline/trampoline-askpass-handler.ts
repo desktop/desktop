@@ -192,7 +192,7 @@ const handleAskPassUserPassword = async (
     info(`no account found for ${origin}`)
 
     if (url.hostname === 'github.com') {
-      // We don't want to show a generic auth prompt for GitHub.com/GHE and we
+      // We don't want to show a generic auth prompt for GitHub.com and we
       // don't have a good way to turn the sign in flow into a promise. More
       // specifically we can create a promise that resolves when the GH sign in
       // flow completes but we don't have a way to have the promise reject if
@@ -233,6 +233,8 @@ const handleAskPassUserPassword = async (
       return token ?? undefined
     }
   }
+
+  return undefined
 }
 
 async function findAccount(
