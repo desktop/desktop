@@ -688,10 +688,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return zoomFactor
   }
 
-  private onTokenInvalidated = (endpoint: string) => {
+  private onTokenInvalidated = (endpoint: string, token: string) => {
     const account = getAccountForEndpoint(this.accounts, endpoint)
 
     if (account === null) {
+      return
+    }
+
+    // If we have a token for the account but it doesn't match the token that
+    // was invalidated that likely means that someone held onto an account for
+    // longer than they should have which is bad but what's even worse is if we
+    // invalidate an active account.
+    if (account.token && account.token !== token) {
+      log.error(`Token for ${endpoint} invalidated but token mismatch`)
       return
     }
 
