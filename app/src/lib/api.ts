@@ -2003,6 +2003,25 @@ export async function createAuthorization(
   return { kind: AuthorizationResponseKind.Error, response }
 }
 
+export async function deleteToken(account: Account) {
+  try {
+    const creds = Buffer.from(`${ClientID}:${ClientSecret}`).toString('base64')
+    const response = await request(
+      account.endpoint,
+      null,
+      'DELETE',
+      `applications/${ClientID}/token`,
+      { access_token: account.token },
+      { Authorization: `Basic ${creds}` }
+    )
+
+    return response.status === 204
+  } catch (e) {
+    log.error(`deleteToken: failed with endpoint ${account.endpoint}`, e)
+    return false
+  }
+}
+
 /** Fetch the user authenticated by the token. */
 export async function fetchUser(
   endpoint: string,

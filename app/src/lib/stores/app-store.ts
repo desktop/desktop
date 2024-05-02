@@ -101,6 +101,7 @@ import {
   IAPIFullRepository,
   IAPIComment,
   IAPIRepoRuleset,
+  deleteToken,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -5829,11 +5830,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.repositoriesStore.updateRepositoryPath(repository, path)
   }
 
-  public _removeAccount(account: Account): Promise<void> {
+  public async _removeAccount(account: Account) {
     log.info(
       `[AppStore] removing account ${account.login} (${account.name}) from store`
     )
-    return this.accountsStore.removeAccount(account)
+    await this.accountsStore.removeAccount(account)
+    await deleteToken(account)
   }
 
   private async _addAccount(account: Account): Promise<void> {
