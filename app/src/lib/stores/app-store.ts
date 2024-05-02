@@ -2074,13 +2074,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const fetcher = new BackgroundFetcher(
       repository,
       this.accountsStore,
-      async r => {
-        const account = getAccountForRepository(this.accounts, repository)
-        if (!account) {
-          return
-        }
-        await this.performFetch(r, account, FetchType.BackgroundTask)
-      },
+      r => this._fetch(r, FetchType.BackgroundTask),
       r => this.shouldBackgroundFetch(r, null)
     )
     fetcher.start(withInitialSkew)
