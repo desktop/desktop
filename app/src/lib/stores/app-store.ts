@@ -2056,11 +2056,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    const account = getAccountForRepository(this.accounts, repository)
-    if (!account) {
-      return
-    }
-
     if (!repository.gitHubRepository) {
       return
     }
@@ -2069,8 +2064,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // similar to what's being done in `refreshAllIndicators`
     const fetcher = new BackgroundFetcher(
       repository,
-      account,
-      r => this.performFetch(r, account, FetchType.BackgroundTask),
+      this.accountsStore,
+      async r => {
+        const account = getAccountForRepository(this.accounts, repository)
+        if (!account) {
+          return
+        }
+        await this.performFetch(r, account, FetchType.BackgroundTask)
+      },
       r => this.shouldBackgroundFetch(r, null)
     )
     fetcher.start(withInitialSkew)

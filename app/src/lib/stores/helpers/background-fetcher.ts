@@ -1,8 +1,8 @@
 import { Repository } from '../../../models/repository'
-import { Account } from '../../../models/account'
 import { GitHubRepository } from '../../../models/github-repository'
-import { API } from '../../api'
+import { API, getAccountForEndpoint } from '../../api'
 import { fatalError } from '../../fatal-error'
+import { AccountsStore } from '../accounts-store'
 
 /**
  * A default interval at which to automatically fetch repositories, if the
@@ -24,13 +24,6 @@ const SkewUpperBound = 30 * 1000
 
 /** The class which handles doing background fetches of the repository. */
 export class BackgroundFetcher {
-  private readonly repository: Repository
-  private readonly account: Account
-  private readonly fetch: (repository: Repository) => Promise<void>
-  private readonly shouldPerformFetch: (
-    repository: Repository
-  ) => Promise<boolean>
-
   /** The handle for our setTimeout invocation. */
   private timeoutHandle: number | null = null
 
@@ -38,16 +31,13 @@ export class BackgroundFetcher {
   private stopped = false
 
   public constructor(
-    repository: Repository,
-    account: Account,
-    fetch: (repository: Repository) => Promise<void>,
-    shouldPerformFetch: (repository: Repository) => Promise<boolean>
-  ) {
-    this.repository = repository
-    this.account = account
-    this.fetch = fetch
-    this.shouldPerformFetch = shouldPerformFetch
-  }
+    private readonly repository: Repository,
+    private readonly accountsStore: AccountsStore,
+    private readonly fetch: (repository: Repository) => Promise<void>,
+    private readonly shouldPerformFetch: (
+      repository: Repository
+    ) => Promise<boolean>
+  ) {}
 
   /** Start background fetching. */
   public start(withInitialSkew: boolean) {
@@ -129,21 +119,29 @@ export class BackgroundFetcher {
   private async getFetchInterval(
     repository: GitHubRepository
   ): Promise<number> {
-    const api = API.fromAccount(this.account)
+    const account = getAccountForEndpoint(
+      await this.accountsStore.getAll(),
+      repository.endpoint
+    )
 
     let interval = DefaultFetchInterval
-    try {
-      const pollInterval = await api.getFetchPollInterval(
-        repository.owner.login,
-        repository.name
-      )
-      if (pollInterval) {
-        interval = Math.max(pollInterval, MinimumInterval)
-      } else {
-        interval = DefaultFetchInterval
+
+    if (account) {
+      const api = API.fromAccount(account)
+
+      try {
+        const pollInterval = await api.getFetchPollInterval(
+          repository.owner.login,
+          repository.name
+        )
+        if (pollInterval) {
+          interval = Math.max(pollInterval, MinimumInterval)
+        } else {
+          interval = DefaultFetchInterval
+        }
+      } catch (e) {
+        log.error('Error fetching poll interval', e)
       }
-    } catch (e) {
-      log.error('Error fetching poll interval', e)
     }
 
     return interval + skewInterval()
