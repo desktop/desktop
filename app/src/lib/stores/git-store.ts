@@ -1060,7 +1060,7 @@ export class GitStore extends BaseStore {
       type: RetryActionType.Fetch,
       repository: repo,
     }
-    const pullSucceeded = await this.performFailableOperation(
+    const fetchSucceeded = await this.performFailableOperation(
       async () => {
         await fetchRepo(repo, account, remote, progressCallback, backgroundTask)
         return true
@@ -1073,7 +1073,7 @@ export class GitStore extends BaseStore {
     // didn't have the correct credentials (which we won't this time
     // either) or because there's a network error which likely will
     // persist for the next operation as well.
-    if (pullSucceeded) {
+    if (fetchSucceeded) {
       // Updating the local HEAD symref isn't critical so we don't want
       // to show an error message to the user and have them retry the
       // entire pull operation if it fails.
