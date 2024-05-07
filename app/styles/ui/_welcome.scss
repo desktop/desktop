@@ -146,6 +146,10 @@
   font-weight: var(--font-weight-light);
   line-height: 1.25;
   margin-bottom: var(--spacing);
+
+  span {
+    display: inline-block;
+  }
 }
 
 .welcome-text {
