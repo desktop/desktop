@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
-import { FilterList, IFilterListGroup } from '../lib/filter-list'
+import { IFilterListGroup } from '../lib/filter-list'
 import { IAPIRepository, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 import {
   ICloneableRepositoryListItem,
@@ -15,7 +15,6 @@ import { HighlightText } from '../lib/highlight-text'
 import { ClickSource } from '../lib/list'
 import { LinkButton } from '../lib/link-button'
 import { Ref } from '../lib/ref'
-import { enableSectionList } from '../../lib/feature-flag'
 import { SectionFilterList } from '../lib/section-filter-list'
 import { TooltippedContent } from '../lib/tooltipped-content'
 
@@ -156,38 +155,40 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
     this.props.onRefreshRepositories(this.props.account)
   }
 
-  public render() {
-    const { repositories, account, selectedItem } = this.props
-
-    const groups = this.getRepositoryGroups(repositories, account.login)
-    const getGroupAriaLabel = (group: number) => {
+  private getGroupAriaLabelGetter =
+    (groups: ReadonlyArray<IFilterListGroup<ICloneableRepositoryListItem>>) =>
+    (group: number) => {
       const groupIdentifier = groups[group].identifier
       return groupIdentifier === YourRepositoriesIdentifier
         ? this.getYourRepositoriesLabel()
         : groupIdentifier
     }
 
-    const selectedListItem = this.getSelectedListItem(groups, selectedItem)
-    const ListComponent = enableSectionList() ? SectionFilterList : FilterList
-    const filterListProps: typeof ListComponent['prototype']['props'] = {
-      className: 'clone-github-repo',
-      rowHeight: RowHeight,
-      selectedItem: selectedListItem,
-      renderItem: this.renderItem,
-      renderGroupHeader: this.renderGroupHeader,
-      onSelectionChanged: this.onSelectionChanged,
-      invalidationProps: groups,
-      groups: groups,
-      filterText: this.props.filterText,
-      onFilterTextChanged: this.props.onFilterTextChanged,
-      renderNoItems: this.renderNoItems,
-      renderPostFilter: this.renderPostFilter,
-      onItemClick: this.props.onItemClicked ? this.onItemClick : undefined,
-      placeholderText: 'Filter your repositories',
-      getGroupAriaLabel,
-    }
+  public render() {
+    const { repositories, account, selectedItem } = this.props
 
-    return <ListComponent {...filterListProps} />
+    const groups = this.getRepositoryGroups(repositories, account.login)
+    const selectedListItem = this.getSelectedListItem(groups, selectedItem)
+
+    return (
+      <SectionFilterList<ICloneableRepositoryListItem>
+        className={'clone-github-repo'}
+        rowHeight={RowHeight}
+        selectedItem={selectedListItem}
+        renderItem={this.renderItem}
+        renderGroupHeader={this.renderGroupHeader}
+        onSelectionChanged={this.onSelectionChanged}
+        invalidationProps={groups}
+        groups={groups}
+        filterText={this.props.filterText}
+        onFilterTextChanged={this.props.onFilterTextChanged}
+        renderNoItems={this.renderNoItems}
+        renderPostFilter={this.renderPostFilter}
+        onItemClick={this.props.onItemClicked ? this.onItemClick : undefined}
+        placeholderText={'Filter your repositories'}
+        getGroupAriaLabel={this.getGroupAriaLabelGetter(groups)}
+      />
+    )
   }
 
   private onItemClick = (

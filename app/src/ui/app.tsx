@@ -177,9 +177,11 @@ import { PullRequestComment } from './notifications/pull-request-comment'
 import { UnknownAuthors } from './unknown-authors/unknown-authors-dialog'
 import { UnsupportedOSBannerDismissedAtKey } from './banners/os-version-no-longer-supported-banner'
 import { offsetFromNow } from '../lib/offset-from'
-import { getNumber } from '../lib/local-storage'
+import { getBoolean, getNumber } from '../lib/local-storage'
 import { RepoRulesBypassConfirmation } from './repository-rules/repo-rules-bypass-confirmation'
 import { IconPreviewDialog } from './octicons/icon-preview-dialog'
+import { accessibilityBannerDismissed } from './banners/accessibilty-settings-banner'
+import { enableDiffCheckMarksAndLinkUnderlines } from '../lib/feature-flag'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -364,16 +366,50 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.showPopup({ type: PopupType.MoveToApplicationsFolder })
     }
 
-    this.checkIfThankYouIsInOrder()
+    this.setOnOpenBanner()
+  }
 
+  private onOpenAccessibilitySettings = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.Preferences,
+      initialSelectedTab: PreferencesTab.Accessibility,
+    })
+  }
+
+  /**
+   * This method sets the app banner on opening the app. The last banner set in
+   * this method will be the one shown as only one banner is shown at a time.
+   * The only exception is the update available banner is always
+   * prioritized over other banners.
+   *
+   * Priority:
+   * 1. OS Not Supported by Electron
+   * 2. Accessibility Settings Banner
+   * 3. Thank you banner
+   */
+  private setOnOpenBanner() {
     if (isOSNoLongerSupportedByElectron()) {
       const dismissedAt = getNumber(UnsupportedOSBannerDismissedAtKey, 0)
 
       // Remind the user that they're running an unsupported OS every 90 days
       if (dismissedAt < offsetFromNow(-90, 'days')) {
         this.setBanner({ type: BannerType.OSVersionNoLongerSupported })
+        return
       }
     }
+
+    if (
+      enableDiffCheckMarksAndLinkUnderlines() &&
+      getBoolean(accessibilityBannerDismissed) !== true
+    ) {
+      this.setBanner({
+        type: BannerType.AccessibilitySettingsBanner,
+        onOpenAccessibilitySettings: this.onOpenAccessibilitySettings,
+      })
+      return
+    }
+
+    this.checkIfThankYouIsInOrder()
   }
 
   private onMenuEvent(name: MenuEvent): any {

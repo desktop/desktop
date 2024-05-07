@@ -94,10 +94,6 @@ export function enableMoveStash(): boolean {
 
 export const enableCustomGitUserAgent = enableBetaFeatures
 
-export function enableSectionList(): boolean {
-  return true
-}
-
 export const enableRepoRulesBeta = () => true
 
 export const enableCommitDetailsHeaderExpansion = () => true

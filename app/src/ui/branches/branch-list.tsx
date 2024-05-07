@@ -4,11 +4,7 @@ import { Branch, BranchType } from '../../models/branch'
 
 import { assertNever } from '../../lib/fatal-error'
 
-import {
-  FilterList,
-  IFilterListGroup,
-  SelectionSource,
-} from '../lib/filter-list'
+import { IFilterListGroup, SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
@@ -22,7 +18,6 @@ import { NoBranches } from './no-branches'
 import { SelectionDirection, ClickSource } from '../lib/list'
 import { generateBranchContextMenuItems } from './branch-list-item-context-menu'
 import { showContextualMenu } from '../../lib/menu-item'
-import { enableSectionList } from '../../lib/feature-flag'
 import { SectionFilterList } from '../lib/section-filter-list'
 
 const RowHeight = 30
@@ -178,10 +173,7 @@ export class BranchList extends React.Component<
   IBranchListProps,
   IBranchListState
 > {
-  private branchFilterList:
-    | FilterList<IBranchListItem>
-    | SectionFilterList<IBranchListItem>
-    | null = null
+  private branchFilterList: SectionFilterList<IBranchListItem> | null = null
 
   public constructor(props: IBranchListProps) {
     super(props)
@@ -213,7 +205,7 @@ export class BranchList extends React.Component<
   }
 
   public render() {
-    return enableSectionList() ? (
+    return (
       <SectionFilterList<IBranchListItem>
         ref={this.onBranchesFilterListRef}
         className="branches-list"
@@ -238,30 +230,6 @@ export class BranchList extends React.Component<
         onItemContextMenu={this.onBranchContextMenu}
         getItemAriaLabel={this.getItemAriaLabel}
         getGroupAriaLabel={this.getGroupAriaLabel}
-      />
-    ) : (
-      <FilterList<IBranchListItem>
-        ref={this.onBranchesFilterListRef}
-        className="branches-list"
-        rowHeight={RowHeight}
-        filterText={this.props.filterText}
-        onFilterTextChanged={this.props.onFilterTextChanged}
-        onFilterKeyDown={this.props.onFilterKeyDown}
-        selectedItem={this.state.selectedItem}
-        renderItem={this.renderItem}
-        renderGroupHeader={this.renderGroupHeader}
-        onItemClick={this.onItemClick}
-        onSelectionChanged={this.onSelectionChanged}
-        onEnterPressedWithoutFilteredItems={this.onCreateNewBranch}
-        groups={this.state.groups}
-        invalidationProps={this.props.allBranches}
-        renderPostFilter={this.onRenderNewButton}
-        renderNoItems={this.onRenderNoItems}
-        filterTextBox={this.props.textbox}
-        hideFilterRow={this.props.hideFilterRow}
-        onFilterListResultsChanged={this.props.onFilterListResultsChanged}
-        renderPreList={this.props.renderPreList}
-        onItemContextMenu={this.onBranchContextMenu}
       />
     )
   }
@@ -290,10 +258,7 @@ export class BranchList extends React.Component<
   }
 
   private onBranchesFilterListRef = (
-    filterList:
-      | FilterList<IBranchListItem>
-      | SectionFilterList<IBranchListItem>
-      | null
+    filterList: SectionFilterList<IBranchListItem> | null
   ) => {
     this.branchFilterList = filterList
   }

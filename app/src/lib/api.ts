@@ -13,7 +13,6 @@ import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 import username from 'username'
 import { GitProtocol } from './remote-parsing'
-import { Emitter } from 'event-kit'
 import { updateEndpointVersion } from './endpoint-capabilities'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
@@ -787,20 +786,23 @@ interface IAPIAliveWebSocket {
   readonly url: string
 }
 
+type TokenInvalidatedCallback = (endpoint: string, token: string) => void
+
 /**
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
-  private static readonly TOKEN_INVALIDATED_EVENT = 'token-invalidated'
+  private static readonly tokenInvalidatedListeners =
+    new Set<TokenInvalidatedCallback>()
 
-  private static readonly emitter = new Emitter()
-
-  public static onTokenInvalidated(callback: (endpoint: string) => void) {
-    API.emitter.on(API.TOKEN_INVALIDATED_EVENT, callback)
+  public static onTokenInvalidated(callback: TokenInvalidatedCallback) {
+    this.tokenInvalidatedListeners.add(callback)
   }
 
-  private static emitTokenInvalidated(endpoint: string) {
-    API.emitter.emit(API.TOKEN_INVALIDATED_EVENT, endpoint)
+  private static emitTokenInvalidated(endpoint: string, token: string) {
+    this.tokenInvalidatedListeners.forEach(callback =>
+      callback(endpoint, token)
+    )
   }
 
   /** Create a new API client from the given account. */
@@ -1774,7 +1776,7 @@ export class API {
       response.headers.has('X-GitHub-Request-Id') &&
       !response.headers.has('X-GitHub-OTP')
     ) {
-      API.emitTokenInvalidated(this.endpoint)
+      API.emitTokenInvalidated(this.endpoint, this.token)
     }
 
     tryUpdateEndpointVersionFromResponse(this.endpoint, response)
@@ -2003,6 +2005,25 @@ export async function createAuthorization(
   return { kind: AuthorizationResponseKind.Error, response }
 }
 
+export async function deleteToken(account: Account) {
+  try {
+    const creds = Buffer.from(`${ClientID}:${ClientSecret}`).toString('base64')
+    const response = await request(
+      account.endpoint,
+      null,
+      'DELETE',
+      `applications/${ClientID}/token`,
+      { access_token: account.token },
+      { Authorization: `Basic ${creds}` }
+    )
+
+    return response.status === 204
+  } catch (e) {
+    log.error(`deleteToken: failed with endpoint ${account.endpoint}`, e)
+    return false
+  }
+}
+
 /** Fetch the user authenticated by the token. */
 export async function fetchUser(
   endpoint: string,
@@ -2151,8 +2172,7 @@ export function getOAuthAuthorizationURL(
   state: string
 ): string {
   const urlBase = getHTMLURL(endpoint)
-  const scopes = oauthScopes
-  const scope = encodeURIComponent(scopes.join(' '))
+  const scope = encodeURIComponent(oauthScopes.join(' '))
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
 }
 
