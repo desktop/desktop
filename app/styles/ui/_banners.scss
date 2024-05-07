@@ -2,6 +2,7 @@
 @import 'banners/conflicts';
 @import 'banners/update-available';
 @import 'banners/open_thank_you_card';
+@import 'banners/accessibility-settings';
 
 .banner {
   $banner-height: 30px;
@@ -73,5 +74,12 @@
       opacity: 0;
       transition: height 225ms ease-in-out 175ms, opacity 175ms ease-in;
     }
+  }
+
+  // When zooming, give the banner more space to display.
+  @media (max-width: 960px) {
+    height: auto;
+    padding-top: var(--spacing-half);
+    padding-bottom: var(--spacing-half);
   }
 }
