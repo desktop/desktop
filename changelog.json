@@ -1,5 +1,13 @@
 {
   "releases": {
+    "3.3.15": [
+      "[Added] The diff view now highlights Zig syntax - #17957. Thanks @imkylecat!",
+      "[Fixed] Bring back color to links in PR timeline - #18561",
+      "[Fixed] Remove unnecessary br elements to make the app easier to navigate with screen readers - #18444, #18436",
+      "[Fixed] Prevent clipping of dialog controls and content when app is zoomed - #18412",
+      "[Improved] Make sure the arrow path in a dropdown button can't receive focus - #18562",
+      "[Improved] Increase contrast on modified and conflicted octicons - #18560"
+    ],
     "3.3.15-beta2": [
       "[Fixed] Bring back color to links in PR timeline - #18561",
       "[Improved] Make sure the arrow path in a dropdown button can't receive focus - #18562",
