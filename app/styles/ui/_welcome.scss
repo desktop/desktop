@@ -1,21 +1,49 @@
 #welcome {
+  --welcome-scale: 1;
+
+  @media screen and (min-width: 1366px) {
+    --welcome-scale: 1.2;
+  }
+
+  @media screen and (min-width: 1400px) {
+    --welcome-scale: 1.3;
+  }
+
+  @media screen and (min-width: 1600px) {
+    --welcome-scale: 1.4;
+  }
+
+  @media screen and (min-width: 1800px) {
+    --welcome-scale: 1.5;
+  }
+
   // Override the height of some components to make them bigger. The new height
   // is platform specific and defined as --welcome-item-height
-  --text-field-height: var(--welcome-item-height);
-  --button-height: var(--welcome-item-height);
+  --text-field-height: calc(var(--welcome-item-height) * var(--welcome-scale));
+  --button-height: calc(var(--welcome-item-height) * var(--welcome-scale));
+  --radio-control-radius: calc(13px * var(--welcome-scale));
 
   align-items: stretch;
   justify-content: center;
   flex-direction: row;
-  font-size: var(--font-size-md);
+  font-size: calc(var(--font-size-md) * var(--welcome-scale));
+
+  input[type='radio'] {
+    width: var(--radio-control-radius);
+    height: var(--radio-control-radius);
+  }
+
+  #start,
+  #configure-git {
+    // makes up for the padding on the welcome-left that is applied to all welcome screens
+    min-height: calc(100vh - 2 * var(--spacing-quad));
+    // Don't know why this is needed, but it is so that the scrollbar works correctly (flex css magic).
+    max-height: 100vh;
+  }
 
   #start {
     display: flex;
     flex-direction: column;
-    // makes up for the padding on the welcome-left that is applied to all welcome screens
-    min-height: calc(100vh - 2 * var(--spacing-quad));
-    // Don't know why this is needed, but it is so that the scrollbar works correctly (flex css magic).
-    max-height: calc(100vh);
   }
 
   .actions {
@@ -77,7 +105,7 @@
   input,
   button,
   select {
-    font-size: var(--font-size-md);
+    font-size: calc(var(--font-size-md) * var(--welcome-scale));
   }
 
   input {
@@ -120,10 +148,6 @@
     font-weight: var(--font-weight-semibold);
   }
 
-  .basic-auth-link {
-    font-size: var(--font-size);
-  }
-
   .welcome-main-buttons {
     margin-top: var(--spacing-quad);
 
@@ -151,7 +175,7 @@
 }
 
 .welcome-title {
-  font-size: var(--font-size-xxl);
+  font-size: calc(var(--font-size-xxl) * var(--welcome-scale));
   font-weight: var(--font-weight-light);
   line-height: 1.25;
   margin-bottom: var(--spacing);
@@ -210,22 +234,6 @@
     // I hate this but we'll have to live with it for beta.
     z-index: -1;
   }
-
-  @media screen and (min-width: 1366px) {
-    zoom: 1.2;
-  }
-
-  @media screen and (min-width: 1400px) {
-    zoom: 1.3;
-  }
-
-  @media screen and (min-width: 1600px) {
-    zoom: 1.4;
-  }
-
-  @media screen and (min-width: 1800px) {
-    zoom: 1.5;
-  }
 }
 
 .welcome-right {
@@ -266,13 +274,13 @@
 }
 
 .start-footer {
-  font-size: var(--font-size-sm);
+  font-size: calc(var(--font-size-sm) var(--welcome-scale));
   color: var(--text-secondary-color);
 }
 
 .welcome-content {
   justify-content: center;
-  max-width: 500px;
+  max-width: calc(500px * var(--welcome-scale));
   width: 100%;
 }
 
