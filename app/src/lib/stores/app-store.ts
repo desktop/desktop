@@ -4658,7 +4658,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
             this.statsStore.increment('pullWithDefaultSettingCount')
           }
 
-          await gitStore.performFailableOperation(
+          const pullSucceeded = await gitStore.performFailableOperation(
             async () => {
               await pullRepo(repository, account, remote, progress => {
                 this.updatePushPullFetchProgress(repository, {
@@ -4666,10 +4666,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
                   value: progress.value * pullWeight,
                 })
               })
-              await updateRemoteHEAD(repository, account, remote, false)
+              return true
             },
             { gitContext, retryAction }
           )
+
+          // If the pull failed we shouldn't try to update the remote HEAD
+          // because there's a decent chance that it failed either because we
+          // didn't have the correct credentials (which we won't this time
+          // either) or because there's a network error which likely will
+          // persist for the next operation as well.
+          if (pullSucceeded) {
+            // Updating the local HEAD symref isn't critical so we don't want
+            // to show an error message to the user and have them retry the
+            // entire pull operation if it fails.
+            await updateRemoteHEAD(repository, account, remote, false).catch(
+              e => log.error('Failed updating remote HEAD', e)
+            )
+          }
 
           const refreshStartProgress = pullWeight + fetchWeight
           const refreshTitle = __DARWIN__
