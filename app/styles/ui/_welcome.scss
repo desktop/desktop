@@ -12,6 +12,10 @@
   #start {
     display: flex;
     flex-direction: column;
+    // makes up for the padding on the welcome-left that is applied to all welcome screens
+    min-height: calc(100vh - 2 * var(--spacing-quad));
+    // Don't know why this is needed, but it is so that the scrollbar works correctly (flex css magic).
+    max-height: calc(100vh);
   }
 
   .actions {
@@ -127,6 +131,11 @@
       padding-left: var(--spacing-double);
       padding-right: var(--spacing-double);
       margin: 0 var(--spacing-double) var(--spacing) 0;
+
+      // Allows the button to take of full-width of the container when wrapped.
+      @media screen and (max-width: 600px) {
+        margin-right: 0;
+      }
     }
 
     .octicon.spin {
@@ -156,18 +165,8 @@
   margin: var(--spacing) 0;
 }
 
-.welcome-button {
-  font-weight: var(--font-weight-semibold);
-  margin: var(--spacing) 0;
-}
-
 .sign-in-field {
   width: 100%;
-}
-
-.welcome-left {
-  flex-grow: 1;
-  width: 60%;
 }
 
 .welcome-right {
@@ -176,10 +175,17 @@
 }
 
 .welcome-left {
+  flex-grow: 1;
+  width: 60%;
+
   display: flex;
   align-items: center;
   padding: var(--spacing-quad);
   position: relative;
+  min-height: 100vh;
+  // Don't know why this is needed, but it is so that the scrollbar works correctly (flex css magic).
+  max-height: 100vh;
+  overflow-y: auto;
 
   .welcome-graphic-bottom {
     position: absolute;
@@ -246,12 +252,20 @@
   }
 }
 
-.welcome-start-disclaimer-container {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 0 var(--spacing-quad) var(--spacing-quad) var(--spacing-quad);
+.start-content {
+  // Make content take of remaining height of container besides the footer.
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  // The footer is ~100px tall in 100% zoom, this makes it so that the
+  // start-content is centered vertically on the screen for default zoom levels.
+  // Other levels, we are more concerned about not clipping then visual
+  // centering.
+  margin-top: 100px;
+}
+
+.start-footer {
   font-size: var(--font-size-sm);
   color: var(--text-secondary-color);
 }
