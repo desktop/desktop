@@ -6,6 +6,8 @@ import { getTitleBarHeight } from '../window/title-bar'
 import { isTopMostDialog } from './is-top-most'
 import { isMacOSSonoma, isMacOSVentura } from '../../lib/get-os'
 
+export const DialogPreferredFirstFocusClassName = 'dialog-preferred-first-focus'
+
 export interface IDialogStackContext {
   /** Whether or not this dialog is the top most one in the stack to be
    * interacted with by the user. This will also determine if event listeners
@@ -466,6 +468,9 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     ].join(', ')
 
     // The element which has the lowest explicit tab index (i.e. greater than 0)
+    let preferredFirst: HTMLElement | null = null
+
+    // The element which has the lowest explicit tab index (i.e. greater than 0)
     let firstExplicit: { 0: number; 1: HTMLElement | null } = [Infinity, null]
 
     // First submit button
@@ -499,6 +504,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       ':not([type=radio])',
     ]
 
+    const preferredFirstSelector = `.${DialogPreferredFirstFocusClassName}`
     const inputSelector = `input${excludedInputTypes.join('')}, textarea`
     const buttonSelector =
       'input[type=button], input[type=submit] input[type=reset], button'
@@ -512,7 +518,12 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
 
       const tabIndex = parseInt(candidate.getAttribute('tabindex') || '', 10)
 
-      if (tabIndex > 0 && tabIndex < firstExplicit[0]) {
+      if (
+        preferredFirst === null &&
+        candidate.matches(preferredFirstSelector)
+      ) {
+        preferredFirst = candidate
+      } else if (tabIndex > 0 && tabIndex < firstExplicit[0]) {
         firstExplicit = [tabIndex, candidate]
       } else if (
         firstTabbable === null &&
@@ -534,6 +545,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     }
 
     const focusCandidates = [
+      preferredFirst,
       firstExplicit[1],
       firstTabbable,
       firstSubmitButton,

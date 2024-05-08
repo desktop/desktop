@@ -5,7 +5,7 @@ import { lookupPreferredEmail } from '../../lib/email'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
-import { DialogContent } from '../dialog'
+import { DialogContent, DialogPreferredFirstFocusClassName } from '../dialog'
 import { Avatar } from '../lib/avatar'
 import { CallToAction } from '../lib/call-to-action'
 
@@ -59,6 +59,11 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
       ...(this.props.enterpriseAccount ? [this.props.enterpriseAccount] : []),
     ]
 
+    const className =
+      type === SignInType.DotCom
+        ? DialogPreferredFirstFocusClassName
+        : undefined
+
     return (
       <Row className="account-info">
         <div className="user-info-container">
@@ -68,7 +73,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
             <div className="login">@{account.login}</div>
           </div>
         </div>
-        <Button onClick={this.logout(account)}>
+        <Button onClick={this.logout(account)} className={className}>
           {__DARWIN__ ? 'Sign Out of' : 'Sign out of'} {accountTypeLabel}
         </Button>
       </Row>
@@ -91,6 +96,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
           <CallToAction
             actionTitle={signInTitle + ' GitHub.com'}
             onAction={this.onDotComSignIn}
+            buttonClassName={DialogPreferredFirstFocusClassName}
           >
             <div>
               Sign in to your GitHub.com account to access your repositories.
