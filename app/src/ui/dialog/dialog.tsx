@@ -6,7 +6,11 @@ import { getTitleBarHeight } from '../window/title-bar'
 import { isTopMostDialog } from './is-top-most'
 import { isMacOSSonoma, isMacOSVentura } from '../../lib/get-os'
 
-export const DialogPreferredFirstFocusClassName = 'dialog-preferred-first-focus'
+/**
+ * Class name used for elements that should be focused initially when a dialog
+ * is shown.
+ */
+export const DialogPreferredFocusClassName = 'dialog-preferred-focus'
 
 export interface IDialogStackContext {
   /** Whether or not this dialog is the top most one in the stack to be
@@ -428,7 +432,11 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
    * In attempting to follow the guidelines outlined above we follow a priority
    * order in determining the first suitable child.
    *
-   *  1. The element with the lowest positive tabIndex
+   *  1. An element marked with the `DialogPreferredFocusClassName` class.
+   *     Sometimes we just need a specific element to get focus first, and it's
+   *     hard to fit it into the rest of these generic focus rules.
+   *
+   *  2. The element with the lowest positive tabIndex
    *     This might sound counterintuitive but imagine the following pseudo
    *     dialog this would be button D as button D would be the first button
    *     to get focused when hitting Tab.
@@ -440,17 +448,17 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
    *      <button tabIndex=1>D</button>
    *     </dialog>
    *
-   *  2. The first element which is either implicitly keyboard focusable (like a
+   *  3. The first element which is either implicitly keyboard focusable (like a
    *     text input field) or explicitly focusable through tabIndex=0 (like a TabBar
    *     tab)
    *
-   *  3. The first submit button. We use this as a proxy for what macOS HIG calls
+   *  4. The first submit button. We use this as a proxy for what macOS HIG calls
    *     "default button". It's not the same thing but for our purposes it's close
    *     enough.
    *
-   *  4. Any remaining button
+   *  5. Any remaining button
    *
-   *  5. The dialog close button
+   *  6. The dialog close button
    *
    */
   public focusFirstSuitableChild() {
@@ -467,8 +475,8 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       '[tabindex]:not(:disabled):not([tabindex="-1"])',
     ].join(', ')
 
-    // The element which has the lowest explicit tab index (i.e. greater than 0)
-    let preferredFirst: HTMLElement | null = null
+    // Element marked as "preferred" to have the focus when dialog is shown
+    let firstPreferred: HTMLElement | null = null
 
     // The element which has the lowest explicit tab index (i.e. greater than 0)
     let firstExplicit: { 0: number; 1: HTMLElement | null } = [Infinity, null]
@@ -504,7 +512,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       ':not([type=radio])',
     ]
 
-    const preferredFirstSelector = `.${DialogPreferredFirstFocusClassName}`
+    const preferredFirstSelector = `.${DialogPreferredFocusClassName}`
     const inputSelector = `input${excludedInputTypes.join('')}, textarea`
     const buttonSelector =
       'input[type=button], input[type=submit] input[type=reset], button'
@@ -519,10 +527,10 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       const tabIndex = parseInt(candidate.getAttribute('tabindex') || '', 10)
 
       if (
-        preferredFirst === null &&
+        firstPreferred === null &&
         candidate.matches(preferredFirstSelector)
       ) {
-        preferredFirst = candidate
+        firstPreferred = candidate
       } else if (tabIndex > 0 && tabIndex < firstExplicit[0]) {
         firstExplicit = [tabIndex, candidate]
       } else if (
@@ -545,7 +553,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     }
 
     const focusCandidates = [
-      preferredFirst,
+      firstPreferred,
       firstExplicit[1],
       firstTabbable,
       firstSubmitButton,

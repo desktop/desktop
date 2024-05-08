@@ -5,7 +5,7 @@ import { lookupPreferredEmail } from '../../lib/email'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
-import { DialogContent, DialogPreferredFirstFocusClassName } from '../dialog'
+import { DialogContent, DialogPreferredFocusClassName } from '../dialog'
 import { Avatar } from '../lib/avatar'
 import { CallToAction } from '../lib/call-to-action'
 
@@ -59,10 +59,10 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
       ...(this.props.enterpriseAccount ? [this.props.enterpriseAccount] : []),
     ]
 
+    // The DotCom account is shown first, so its sign in/out button should be
+    // focused initially when the dialog is opened.
     const className =
-      type === SignInType.DotCom
-        ? DialogPreferredFirstFocusClassName
-        : undefined
+      type === SignInType.DotCom ? DialogPreferredFocusClassName : undefined
 
     return (
       <Row className="account-info">
@@ -96,7 +96,9 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
           <CallToAction
             actionTitle={signInTitle + ' GitHub.com'}
             onAction={this.onDotComSignIn}
-            buttonClassName={DialogPreferredFirstFocusClassName}
+            // The DotCom account is shown first, so its sign in/out button should be
+            // focused initially when the dialog is opened.
+            buttonClassName={DialogPreferredFocusClassName}
           >
             <div>
               Sign in to your GitHub.com account to access your repositories.
