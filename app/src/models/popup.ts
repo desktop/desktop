@@ -172,7 +172,8 @@ export type PopupDetail =
   | {
       type: PopupType.GenericGitAuthentication
       hostname: string
-      retryAction: RetryAction
+      onSubmit: (username: string, password: string) => void
+      onDismiss: () => void
     }
   | {
       type: PopupType.ExternalEditorFailed
