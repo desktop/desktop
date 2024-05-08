@@ -95,15 +95,20 @@ export async function getRemoteURL(
 
 /**
  * Update the HEAD ref of the remote, which is the default branch.
+ *
+ * @param isBackgroundTask Whether the fetch is being performed as a
+ *                         background task as opposed to being user initiated
  */
 export async function updateRemoteHEAD(
   repository: Repository,
   account: IGitAccount | null,
-  remote: IRemote
+  remote: IRemote,
+  isBackgroundTask: boolean
 ): Promise<void> {
   const options = {
     successExitCodes: new Set([0, 1, 128]),
     env: await envForRemoteOperation(account, remote.url),
+    isBackgroundTask,
   }
 
   await git(

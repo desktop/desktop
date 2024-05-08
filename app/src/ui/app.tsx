@@ -1917,13 +1917,18 @@ export class App extends React.Component<IAppProps, IAppState> {
           <CLIInstalled key="cli-installed" onDismissed={onPopupDismissedFn} />
         )
       case PopupType.GenericGitAuthentication:
+        const onDismiss = () => {
+          popup.onDismiss?.()
+          onPopupDismissedFn()
+        }
+
         return (
           <GenericGitAuthentication
             key="generic-git-authentication"
             hostname={popup.hostname}
-            onDismiss={onPopupDismissedFn}
-            onSave={this.onSaveCredentials}
-            retryAction={popup.retryAction}
+            // eslint-disable-next-line react/jsx-no-bind
+            onDismiss={onDismiss}
+            onSave={popup.onSubmit}
           />
         )
       case PopupType.ExternalEditorFailed:
@@ -2716,21 +2721,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onOpenShellIgnoreWarning = (path: string) => {
     this.props.dispatcher.openShell(path, true)
-  }
-
-  private onSaveCredentials = async (
-    hostname: string,
-    username: string,
-    password: string,
-    retryAction: RetryAction
-  ) => {
-    await this.props.dispatcher.saveGenericGitCredentials(
-      hostname,
-      username,
-      password
-    )
-
-    this.props.dispatcher.performRetry(retryAction)
   }
 
   private onCheckForUpdates = () => this.checkForUpdates(false)
