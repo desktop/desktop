@@ -29,6 +29,7 @@ import {
   setHasRejectedCredentialsForEndpoint,
   setMostRecentGenericGitCredential,
 } from './trampoline-environment'
+import { IGitAccount } from '../../models/git-account'
 
 async function handleSSHHostAuthenticity(
   prompt: string
@@ -175,12 +176,12 @@ const handleAskPassUserPassword = async (
   const warn = (msg: string) => log.warn(`askPassHandler: ${msg}`)
 
   const { trampolineToken } = command
-  const { origin, hostname } = new URL(remoteUrl)
-  const account = await findAccount(trampolineToken, accountsStore, origin)
+  const hostname = getGenericHostname(remoteUrl)
+  const account = await findAccount(trampolineToken, accountsStore, hostname)
 
   if (!account) {
-    if (getHasRejectedCredentialsForEndpoint(trampolineToken, origin)) {
-      debug(`not requesting credentials for ${origin}`)
+    if (getHasRejectedCredentialsForEndpoint(trampolineToken, hostname)) {
+      debug(`not requesting credentials for ${hostname}`)
       return undefined
     }
 
@@ -189,7 +190,7 @@ const handleAskPassUserPassword = async (
       return undefined
     }
 
-    info(`no account found for ${origin}`)
+    info(`no account found for ${hostname}`)
 
     if (hostname === 'github.com') {
       // We don't want to show a generic auth prompt for GitHub.com and we
@@ -201,25 +202,25 @@ const handleAskPassUserPassword = async (
     }
 
     const { username, password } =
-      await trampolineUIHelper.promptForGenericGitAuthentication(origin)
+      await trampolineUIHelper.promptForGenericGitAuthentication(hostname)
 
     if (username.length > 0 && password.length > 0) {
       setGenericUsername(hostname, username)
       setGenericPassword(hostname, username, password)
 
-      info(`acquired generic credentials for ${origin}`)
+      info(`acquired generic credentials for ${hostname}`)
 
       return kind === 'Username' ? username : password
     } else {
       info('user cancelled generic git authentication')
-      setHasRejectedCredentialsForEndpoint(trampolineToken, origin)
+      setHasRejectedCredentialsForEndpoint(trampolineToken, hostname)
     }
 
     return undefined
   } else {
     const accountKind = account instanceof Account ? 'account' : 'generic'
     if (kind === 'Username') {
-      debug(`${accountKind} username for ${origin} found`)
+      debug(`${accountKind} username for ${hostname} found`)
       return account.login
     } else if (kind === 'Password') {
       const token =
@@ -231,10 +232,10 @@ const handleAskPassUserPassword = async (
             )
 
       if (token) {
-        debug(`${accountKind} password for ${origin} found`)
+        debug(`${accountKind} password for ${hostname} found`)
       } else {
         // We have a username but no password, that warrants a warning
-        warn(`${accountKind} password for ${origin} missing`)
+        warn(`${accountKind} password for ${hostname} missing`)
       }
 
       return token ?? undefined
@@ -247,21 +248,22 @@ const handleAskPassUserPassword = async (
 async function findAccount(
   trampolineToken: string,
   accountsStore: AccountsStore,
-  origin: string
-) {
+  hostname: string
+): Promise<IGitAccount | undefined> {
   const accounts = await accountsStore.getAll()
-  const account = accounts.find(a => getHTMLURL(a.endpoint) === origin)
+  const account = accounts.find(
+    a => new URL(getHTMLURL(a.endpoint)).hostname === hostname
+  )
 
   if (account) {
     return account
   }
 
-  const endpoint = getGenericHostname(origin)
-  const login = getGenericUsername(endpoint)
+  const login = getGenericUsername(hostname)
 
-  if (endpoint && login) {
-    setMostRecentGenericGitCredential(trampolineToken, endpoint, login)
-    return { login, endpoint }
+  if (hostname && login) {
+    setMostRecentGenericGitCredential(trampolineToken, hostname, login)
+    return { login, endpoint: hostname }
   }
 
   return undefined
