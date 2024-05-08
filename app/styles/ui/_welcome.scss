@@ -1,4 +1,7 @@
 #welcome {
+  // This is used to scale the font and inputs so that they are bigger on large
+  // screens. Before, we used the `zoom` property, but that was causing issues
+  // with the layout when zooming in/out.
   --welcome-scale: 1;
 
   @media screen and (min-width: 1366px) {
@@ -17,16 +20,23 @@
     --welcome-scale: 1.5;
   }
 
+  --welcome-font-size: calc(var(--font-size) * var(--welcome-scale));
+  --welcome-font-size-sm: calc(var(--font-size-md) * var(--welcome-scale));
+  --welcome-font-size-md: calc(var(--font-size-md) * var(--welcome-scale));
+  --welcome-font-size-xxl: calc(var(--font-size-xxl) * var(--welcome-scale));
+
   // Override the height of some components to make them bigger. The new height
   // is platform specific and defined as --welcome-item-height
   --text-field-height: calc(var(--welcome-item-height) * var(--welcome-scale));
   --button-height: calc(var(--welcome-item-height) * var(--welcome-scale));
   --radio-control-radius: calc(13px * var(--welcome-scale));
 
+  --welcome-content-width: calc(500px * var(--welcome-scale));
+
   align-items: stretch;
   justify-content: center;
   flex-direction: row;
-  font-size: calc(var(--font-size-md) * var(--welcome-scale));
+  font-size: var(--welcome-font-size-md);
 
   input[type='radio'] {
     width: var(--radio-control-radius);
@@ -39,11 +49,24 @@
     min-height: calc(100vh - 2 * var(--spacing-quad));
     // Don't know why this is needed, but it is so that the scrollbar works correctly (flex css magic).
     max-height: 100vh;
-  }
-
-  #start {
     display: flex;
     flex-direction: column;
+  }
+
+  #configure-git {
+    justify-content: center;
+
+    #configure-git-user {
+      #commit-list.commit-list-example {
+        .commit {
+          font-size: var(--welcome-font-size);
+        }
+        .header,
+        .byline {
+          font-size: var(--welcome-font-size-sm);
+        }
+      }
+    }
   }
 
   .actions {
@@ -105,7 +128,7 @@
   input,
   button,
   select {
-    font-size: calc(var(--font-size-md) * var(--welcome-scale));
+    font-size: var(--welcome-font-size-md);
   }
 
   input {
@@ -175,7 +198,7 @@
 }
 
 .welcome-title {
-  font-size: calc(var(--font-size-xxl) * var(--welcome-scale));
+  font-size: var(--welcome-font-size-xxl);
   font-weight: var(--font-weight-light);
   line-height: 1.25;
   margin-bottom: var(--spacing);
@@ -274,13 +297,13 @@
 }
 
 .start-footer {
-  font-size: calc(var(--font-size-sm) var(--welcome-scale));
+  font-size: var(--welcome-font-size-sm);
   color: var(--text-secondary-color);
 }
 
 .welcome-content {
   justify-content: center;
-  max-width: calc(500px * var(--welcome-scale));
+  max-width: var(--welcome-content-width);
   width: 100%;
 }
 
