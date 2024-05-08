@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.3.16-test1": [
+      "[Fixed] Fix authentication issue with ADO repositories - #18568"
+    ],
     "3.3.15": [
       "[Added] The diff view now highlights Zig syntax - #17957. Thanks @imkylecat!",
       "[Fixed] Bring back color to links in PR timeline - #18561",
