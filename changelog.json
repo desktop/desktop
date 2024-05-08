@@ -1,5 +1,11 @@
 {
   "releases": {
+    "3.3.15-beta2": [
+      "[Fixed] Bring back color to links in PR timeline - #18561",
+      "[Improved] Make sure the arrow path in a dropdown button can't receive focus - #18562",
+      "[Improved] Increase contrast on modified and conflicted octicons - #18560",
+      "[Improved] Add banner to announce the accessibility settings - #18460"
+    ],
     "3.3.15-beta1": [
       "[New] Reset to a previous commit - #12393",
       "[Added] The diff view now highlights Zig syntax - #17957. Thanks @imkylecat!",
