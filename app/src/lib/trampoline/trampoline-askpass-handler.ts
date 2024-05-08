@@ -175,7 +175,7 @@ const handleAskPassUserPassword = async (
   const warn = (msg: string) => log.warn(`askPassHandler: ${msg}`)
 
   const { trampolineToken } = command
-  const { origin, hostname, username: urlUsername } = new URL(remoteUrl)
+  const { origin, hostname } = new URL(remoteUrl)
   const account = await findAccount(trampolineToken, accountsStore, origin)
 
   if (!account) {
@@ -222,11 +222,13 @@ const handleAskPassUserPassword = async (
       debug(`${accountKind} username for ${origin} found`)
       return account.login
     } else if (kind === 'Password') {
-      const login = urlUsername ? urlUsername : account.login
       const token =
         account instanceof Account && account.token.length > 0
           ? account.token
-          : await TokenStore.getItem(getKeyForEndpoint(account.endpoint), login)
+          : await TokenStore.getItem(
+              getKeyForEndpoint(account.endpoint),
+              account.login
+            )
 
       if (token) {
         debug(`${accountKind} password for ${origin} found`)
