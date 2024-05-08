@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.3.16": [
+      "[Fixed] Resolved auth failures when interacting with repositories hosted on non-GitHub hosts - #18568 #18570 #18569"
+    ],
     "3.3.16-beta1": [
       "[Fixed] Resolved auth failures when interacting with repositories hosted on non-GitHub hosts - #18568 #18570 #18569"
     ],
