@@ -206,7 +206,7 @@ const handleAskPassUserPassword = async (
 
     if (username.length > 0 && password.length > 0) {
       setGenericUsername(hostname, username)
-      setGenericPassword(hostname, username, password)
+      await setGenericPassword(hostname, username, password)
 
       info(`acquired generic credentials for ${hostname}`)
 
