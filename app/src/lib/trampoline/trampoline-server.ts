@@ -171,7 +171,9 @@ export class TrampolineServer {
       return
     }
 
-    const result = await handler(command)
+    const result = await handler(command).catch(e =>
+      log.error('Error processing trampoline command', e)
+    )
 
     if (result !== undefined) {
       socket.end(result)
