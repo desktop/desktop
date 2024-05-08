@@ -135,7 +135,11 @@ import {
 import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
 
 import { formatCommitMessage } from '../format-commit-message'
-import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
+import {
+  getGenericHostname,
+  getGenericUsername,
+  removePathFromGenericGitAuthCreds,
+} from '../generic-git-auth'
 import { getAccountForRepository } from '../get-account-for-repository'
 import {
   abortMerge,
@@ -603,6 +607,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.tutorialAssessor = new OnboardingTutorialAssessor(
       this.getResolvedExternalEditor
     )
+
+    removePathFromGenericGitAuthCreds()
 
     // We're considering flipping the default value and have new users
     // start off with repository indicators disabled. As such we'll start
@@ -4657,21 +4663,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
             this.statsStore.increment('pullWithDefaultSettingCount')
           }
 
-          await gitStore.performFailableOperation(
-            () =>
-              pullRepo(repository, account, remote, progress => {
+          const pullSucceeded = await gitStore.performFailableOperation(
+            async () => {
+              await pullRepo(repository, account, remote, progress => {
                 this.updatePushPullFetchProgress(repository, {
                   ...progress,
                   value: progress.value * pullWeight,
                 })
-              }),
-            {
-              gitContext,
-              retryAction,
-            }
+              })
+              return true
+            },
+            { gitContext, retryAction }
           )
 
-          await updateRemoteHEAD(repository, account, remote)
+          // If the pull failed we shouldn't try to update the remote HEAD
+          // because there's a decent chance that it failed either because we
+          // didn't have the correct credentials (which we won't this time
+          // either) or because there's a network error which likely will
+          // persist for the next operation as well.
+          if (pullSucceeded) {
+            // Updating the local HEAD symref isn't critical so we don't want
+            // to show an error message to the user and have them retry the
+            // entire pull operation if it fails.
+            await updateRemoteHEAD(repository, account, remote, false).catch(
+              e => log.error('Failed updating remote HEAD', e)
+            )
+          }
 
           const refreshStartProgress = pullWeight + fetchWeight
           const refreshTitle = __DARWIN__
@@ -6122,31 +6139,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.updateRevertProgress(repo, null)
       await this._refreshRepository(repository)
-    })
-  }
-
-  public async promptForGenericGitAuthentication(
-    repository: Repository | CloningRepository,
-    retryAction: RetryAction
-  ): Promise<void> {
-    let url
-    if (repository instanceof Repository) {
-      const gitStore = this.gitStoreCache.get(repository)
-      const remote = gitStore.currentRemote
-      if (!remote) {
-        return
-      }
-
-      url = remote.url
-    } else {
-      url = repository.url
-    }
-
-    const hostname = getGenericHostname(url)
-    return this._showPopup({
-      type: PopupType.GenericGitAuthentication,
-      hostname,
-      retryAction,
     })
   }
 

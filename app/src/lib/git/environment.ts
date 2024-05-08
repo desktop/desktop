@@ -66,7 +66,7 @@ export async function envForRemoteOperation(
   remoteUrl: string
 ) {
   return {
-    ...envForAuthentication(account),
+    ...envForAuthentication(),
     ...(await envForProxy(remoteUrl)),
   }
 }

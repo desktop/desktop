@@ -2043,14 +2043,6 @@ export class Dispatcher {
     }
   }
 
-  /** Prompt the user to authenticate for a generic git server. */
-  public promptForGenericGitAuthentication(
-    repository: Repository | CloningRepository,
-    retry: RetryAction
-  ): Promise<void> {
-    return this.appStore.promptForGenericGitAuthentication(repository, retry)
-  }
-
   /** Save the generic git credentials. */
   public async saveGenericGitCredentials(
     hostname: string,
