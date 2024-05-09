@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.3.17": [
+      "[Fixed] Pushing and pulling repositories using Git LFS no longer causes an indefinite loop - #18582",
+      "[Improved] Improve the accessibility of the tabs in the preferences dialog for users of screen readers - #18567",
+      "[Improved] Always focus the first focusable element in the preferences dialog on open - #18567"
+    ],
     "3.3.17-beta1": [
       "[Fixed] Pushing and pulling repositories using Git LFS no longer causes an indefinite loop - #18582",
       "[Improved] Improve the accessibility of the tabs in the preferences dialog for users of screen readers - #18567",
