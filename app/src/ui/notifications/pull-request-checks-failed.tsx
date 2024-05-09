@@ -107,7 +107,7 @@ export class PullRequestChecksFailed extends React.Component<
             {failedChecks.length} {pluralChecks} failed in your pull request
           </div>
           <span className="pr-title">
-            <span className="pr-title">{pullRequest.title}</span>{' '}
+            {pullRequest.title}{' '}
             <span className="pr-number">#{pullRequest.pullRequestNumber}</span>{' '}
           </span>
         </div>
