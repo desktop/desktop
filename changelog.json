@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.3.18-beta1": [
+      "[Fixed] Clear stored credentials when authentication fails on insecure http hosts - #18588"
+    ],
     "3.3.17": [
       "[Fixed] Pushing and pulling repositories using Git LFS no longer causes an indefinite loop - #18582",
       "[Improved] Improve the accessibility of the tabs in the preferences dialog for users of screen readers - #18567",
