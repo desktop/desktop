@@ -67,6 +67,8 @@ interface IDialogProps {
    */
   readonly title?: string | JSX.Element
 
+  readonly renderHeaderAccessory?: () => JSX.Element
+
   /**
    * Whether or not the dialog should be dismissable by clicking on the
    * backdrop. Dismissal will trigger the onDismissed event which callers
@@ -749,6 +751,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
         titleId={this.state.titleId}
         showCloseButton={this.isDismissable()}
         onCloseButtonClick={this.onDismiss}
+        renderAccessory={this.props.renderHeaderAccessory}
         loading={this.props.loading}
       />
     )

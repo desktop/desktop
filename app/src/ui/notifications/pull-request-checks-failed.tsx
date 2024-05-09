@@ -111,7 +111,6 @@ export class PullRequestChecksFailed extends React.Component<
             <span className="pr-number">#{pullRequest.pullRequestNumber}</span>{' '}
           </span>
         </div>
-        {this.renderRerunButton()}
       </div>
     )
 
@@ -120,6 +119,7 @@ export class PullRequestChecksFailed extends React.Component<
         id="pull-request-checks-failed"
         type="normal"
         title={header}
+        renderHeaderAccessory={this.renderRerunButton}
         backdropDismissable={false}
         onSubmit={this.props.onSubmit}
         onDismissed={this.props.onDismissed}

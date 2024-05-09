@@ -19,6 +19,8 @@ interface IDialogHeaderProps {
   /** Whether or not the header should show a close button */
   readonly showCloseButton?: boolean
 
+  readonly renderAccessory?: () => JSX.Element
+
   /**
    * Event triggered when the dialog is dismissed by the user.
    */
@@ -76,6 +78,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
     return (
       <div className="dialog-header">
         <h1 id={this.props.titleId}>{this.props.title}</h1>
+        {this.props.renderAccessory?.()}
         {spinner}
         {this.renderCloseButton()}
         {this.props.children}
