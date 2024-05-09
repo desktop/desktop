@@ -155,7 +155,11 @@ export const createAskpassTrampolineHandler: (
       return handleSSHUserPassword(command.trampolineToken, firstParameter)
     }
 
-    const credsMatch = /^(Username|Password) for '(.+)': $/.exec(firstParameter)
+    // Git prompt: Username for 'https://github.com':
+    // Git LFS prompt: Username for "https://github.com"
+    const credsMatch = /^(Username|Password) for ['"](.+)['"](: )?$/.exec(
+      firstParameter
+    )
 
     if (credsMatch?.[1] === 'Username' || credsMatch?.[1] === 'Password') {
       const [, kind, remoteUrl] = credsMatch
