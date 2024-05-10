@@ -221,6 +221,8 @@
 }
 
 .welcome-left {
+  display: flex;
+  align-items: center;
   width: 60%;
   padding: var(--spacing-quad);
   position: relative;
@@ -295,8 +297,6 @@
 }
 
 .welcome-content {
-  display: flex;
-  justify-content: center;
   max-width: var(--welcome-content-width);
   width: 100%;
 }
