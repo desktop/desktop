@@ -52,7 +52,7 @@ describe('git/tag', () => {
 
       const commit = await getCommit(repository, 'HEAD')
       expect(commit).not.toBeNull()
-      expect(commit!.tags).toEqual(['my-new-tag'])
+      expect(commit!.tags).toEqual(['my-nw-tag'])
     })
 
     it('creates a tag with the a comma in it', async () => {
