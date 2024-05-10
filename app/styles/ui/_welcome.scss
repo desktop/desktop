@@ -43,12 +43,10 @@
     height: var(--radio-control-radius);
   }
 
-  #start,
-  #configure-git {
+  #start {
     // makes up for the padding on the welcome-left that is applied to all welcome screens
+    // Having a min-height makes the start-footer be able to flex to take up the remaining vertical space
     min-height: calc(100vh - 2 * var(--spacing-quad));
-    // Don't know why this is needed, but it is so that the scrollbar works correctly (flex css magic).
-    max-height: 100vh;
     display: flex;
     flex-direction: column;
   }
@@ -223,16 +221,10 @@
 }
 
 .welcome-left {
-  flex-grow: 1;
   width: 60%;
-
-  display: flex;
-  align-items: center;
   padding: var(--spacing-quad);
   position: relative;
-  min-height: 100vh;
-  // Don't know why this is needed, but it is so that the scrollbar works correctly (flex css magic).
-  max-height: 100vh;
+  height: 100vh;
   overflow-y: auto;
 
   .welcome-graphic-bottom {
