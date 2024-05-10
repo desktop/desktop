@@ -32,6 +32,7 @@
   --radio-control-radius: calc(13px * var(--welcome-scale));
 
   --welcome-content-width: calc(500px * var(--welcome-scale));
+  --avatar-size: calc(16px * var(--welcome-scale));
 
   align-items: stretch;
   justify-content: center;
@@ -56,6 +57,16 @@
         .header,
         .byline {
           font-size: var(--welcome-font-size-sm);
+        }
+
+        .avatar {
+          width: var(--avatar-size);
+          height: var(--avatar-size);
+        }
+
+        .AvatarStack.AvatarStack--small {
+          width: calc(var(--avatar-size) + 5px);
+          height: var(--avatar-size);
         }
       }
     }
