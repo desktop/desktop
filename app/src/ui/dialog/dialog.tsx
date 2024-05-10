@@ -68,6 +68,13 @@ interface IDialogProps {
   readonly title?: string | JSX.Element
 
   /**
+   * An optional element to render to the right of the dialog title.
+   * This can be used to render additional controls that don't belong to the
+   * heading element itself, but are still part of the header (visually).
+   */
+  readonly renderHeaderAccessory?: () => JSX.Element
+
+  /**
    * Whether or not the dialog should be dismissable by clicking on the
    * backdrop. Dismissal will trigger the onDismissed event which callers
    * must handle and pass on to the dispatcher in order to close the dialog.
@@ -749,6 +756,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
         titleId={this.state.titleId}
         showCloseButton={this.isDismissable()}
         onCloseButtonClick={this.onDismiss}
+        renderAccessory={this.props.renderHeaderAccessory}
         loading={this.props.loading}
       />
     )

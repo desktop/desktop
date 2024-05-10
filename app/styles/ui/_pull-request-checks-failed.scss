@@ -3,14 +3,15 @@
     height: unset;
   }
 
+  .ci-check-rerun {
+    margin-left: var(--spacing);
+    margin-right: var(--spacing);
+  }
+
   .ci-check-run-dialog-header {
     display: flex;
     flex-direction: row;
     align-items: center;
-
-    .ci-check-rerun {
-      margin-right: var(--spacing);
-    }
 
     > .octicon {
       width: 20px;
@@ -20,12 +21,12 @@
     }
 
     .title-container {
+      min-width: 0;
       flex-grow: 1;
 
       .pr-title {
-        display: flex;
-        column-gap: 4px;
-        align-items: center;
+        display: inline-block;
+        white-space: normal;
         font-weight: normal;
         font-size: var(--font-size);
 

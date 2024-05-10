@@ -53,8 +53,7 @@ export abstract class PullRequestCommentLike extends React.Component<IPullReques
       <div className="pull-request-comment-like-dialog-header">
         {this.renderPullRequestIcon()}
         <span className="pr-title">
-          <span className="pr-title">{title}</span>{' '}
-          <span className="pr-number">#{pullRequestNumber}</span>{' '}
+          {title} <span className="pr-number">#{pullRequestNumber}</span>{' '}
         </span>
       </div>
     )
