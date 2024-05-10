@@ -193,6 +193,18 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       'nudge-arrow-up': this.props.shouldNudge,
     })
 
+    // Properties to override the default foldout style for the branch dropdown.
+    // The min width of the foldout is different from `branchDropdownWidth.min`
+    // because the branches list foldout min width we want set to 365px instead.
+    const foldoutStyle: React.CSSProperties = {
+      position: 'absolute',
+      height: '100%',
+      top: 0,
+      width: this.props.branchDropdownWidth.value,
+      maxWidth: this.props.branchDropdownWidth.max,
+      minWidth: 365,
+    }
+
     return (
       <>
         <Resizable
@@ -208,6 +220,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
             iconClassName={iconClassName}
             title={title}
             description={description}
+            foldoutStyle={foldoutStyle}
             onContextMenu={this.onBranchToolbarButtonContextMenu}
             tooltip={isOpen ? undefined : tooltip}
             onDropdownStateChanged={this.onDropDownStateChanged}

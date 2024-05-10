@@ -361,13 +361,16 @@ export class ToolbarDropdown extends React.Component<
   }
 
   private getFoldoutStyle(): React.CSSProperties | undefined {
-    if (this.props.foldoutStyle) {
-      return this.props.foldoutStyle
-    }
-
     const rect = this.state.clientRect
     if (!rect) {
       return undefined
+    }
+
+    if (this.props.foldoutStyle) {
+      return {
+        marginLeft: rect.left,
+        ...this.props.foldoutStyle,
+      }
     }
 
     const heightStyle: React.CSSProperties =
