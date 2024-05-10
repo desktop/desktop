@@ -291,7 +291,7 @@ export class SandboxedMarkdown extends React.PureComponent<
     // Not sure why the content height != body height exactly. But we need to
     // set the height explicitly to prevent scrollbar/content cut off.
     const divHeight = this.contentDivRef.clientHeight
-    this.frameContainingDivRef.style.height = `${divHeight}px`
+    this.frameContainingDivRef.style.height = `${divHeight + 1}px`
     this.props.onMarkdownParsed?.()
   }
 
