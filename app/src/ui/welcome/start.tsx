@@ -92,9 +92,8 @@ export class Start extends React.Component<IStartProps, {}> {
             </LinkButton>
             . For more information about GitHub's privacy practices, see the{' '}
             <LinkButton uri={'https://github.com/site/privacy'}>
-              GitHub Privacy Statement
+              GitHub Privacy Statement.
             </LinkButton>
-            .
           </p>
           <p>
             GitHub Desktop sends usage metrics to improve the product and inform

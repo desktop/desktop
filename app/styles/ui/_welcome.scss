@@ -4,19 +4,19 @@
   // with the layout when zooming in/out.
   --welcome-scale: 1;
 
-  @media screen and (min-width: 1366px) {
+  @media screen and (min-width: 1366px) and (min-height: 700px) {
     --welcome-scale: 1.2;
   }
 
-  @media screen and (min-width: 1400px) {
+  @media screen and (min-width: 1400px) and (min-height: 725px) {
     --welcome-scale: 1.3;
   }
 
-  @media screen and (min-width: 1600px) {
+  @media screen and (min-width: 1600px) and (min-height: 750px) {
     --welcome-scale: 1.4;
   }
 
-  @media screen and (min-width: 1800px) {
+  @media screen and (min-width: 1800px) and (min-height: 775px) {
     --welcome-scale: 1.5;
   }
 
@@ -54,6 +54,7 @@
   }
 
   #configure-git {
+    flex-grow: 1;
     justify-content: center;
 
     #configure-git-user {
@@ -302,6 +303,7 @@
 }
 
 .welcome-content {
+  display: flex;
   justify-content: center;
   max-width: var(--welcome-content-width);
   width: 100%;
