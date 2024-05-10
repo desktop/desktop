@@ -43,19 +43,12 @@
     height: var(--radio-control-radius);
   }
 
-  #start {
-    // makes up for the padding on the welcome-left that is applied to all welcome screens
-    // Having a min-height makes the start-footer be able to flex to take up the remaining vertical space
-    min-height: calc(100vh - 2 * var(--spacing-quad));
-    display: flex;
-    flex-direction: column;
-  }
-
   #configure-git {
     flex-grow: 1;
     justify-content: center;
 
     #configure-git-user {
+      padding-bottom: var(--spacing);
       #commit-list.commit-list-example {
         .commit {
           font-size: var(--welcome-font-size);
@@ -229,6 +222,16 @@
   height: 100vh;
   overflow-y: auto;
 
+  .welcome-content {
+    max-width: var(--welcome-content-width);
+    width: 100%;
+
+    section {
+      // allows scrolling of flex containers
+      max-height: 100vh;
+    }
+  }
+
   .welcome-graphic-bottom {
     position: absolute;
     right: var(--spacing);
@@ -254,6 +257,32 @@
   }
 }
 
+#start {
+  // makes up for the padding on the welcome-left that is applied to all welcome screens
+  // Having a min-height makes the start-footer be able to flex to take up the remaining vertical space
+  min-height: calc(100vh - 2 * var(--spacing-quad));
+  display: flex;
+  flex-direction: column;
+
+  .start-content {
+    // Make content take of remaining height of container besides the footer.
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    // The footer is ~100px tall in 100% zoom, this makes it so that the
+    // start-content is centered vertically on the screen for default zoom levels.
+    // Other levels, we are more concerned about not clipping then visual
+    // centering.
+    margin-top: 100px;
+  }
+
+  .start-footer {
+    font-size: var(--welcome-font-size-sm);
+    color: var(--text-secondary-color);
+  }
+}
+
 .welcome-right {
   background-color: #28373b;
   justify-content: center;
@@ -276,29 +305,6 @@
   .skip-button {
     color: var(--text-secondary-color);
   }
-}
-
-.start-content {
-  // Make content take of remaining height of container besides the footer.
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  // The footer is ~100px tall in 100% zoom, this makes it so that the
-  // start-content is centered vertically on the screen for default zoom levels.
-  // Other levels, we are more concerned about not clipping then visual
-  // centering.
-  margin-top: 100px;
-}
-
-.start-footer {
-  font-size: var(--welcome-font-size-sm);
-  color: var(--text-secondary-color);
-}
-
-.welcome-content {
-  max-width: var(--welcome-content-width);
-  width: 100%;
 }
 
 .forgot-password-link {
