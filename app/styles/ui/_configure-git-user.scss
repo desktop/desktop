@@ -39,7 +39,8 @@
     .commit {
       font-size: var(--font-size);
       padding: var(--spacing-half) var(--spacing);
-      width: 280px;
+      width: 100%;
+      max-width: 280px;
       border-bottom: none;
     }
   }

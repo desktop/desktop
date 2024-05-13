@@ -101,6 +101,7 @@ import {
   IAPIFullRepository,
   IAPIComment,
   IAPIRepoRuleset,
+  deleteToken,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -134,7 +135,11 @@ import {
 import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
 
 import { formatCommitMessage } from '../format-commit-message'
-import { getGenericHostname, getGenericUsername } from '../generic-git-auth'
+import {
+  getGenericHostname,
+  getGenericUsername,
+  removePathFromGenericGitAuthCreds,
+} from '../generic-git-auth'
 import { getAccountForRepository } from '../get-account-for-repository'
 import {
   abortMerge,
@@ -603,6 +608,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.getResolvedExternalEditor
     )
 
+    removePathFromGenericGitAuthCreds()
+
     // We're considering flipping the default value and have new users
     // start off with repository indicators disabled. As such we'll start
     // persisting the current default to localstorage right away so we
@@ -688,17 +695,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return zoomFactor
   }
 
-  private onTokenInvalidated = (endpoint: string) => {
+  private onTokenInvalidated = (endpoint: string, token: string) => {
     const account = getAccountForEndpoint(this.accounts, endpoint)
 
     if (account === null) {
       return
     }
 
-    // If there is a currently open popup, don't do anything here. Since the
-    // app can only show one popup at a time, we don't want to close the current
-    // one in favor of the error we're about to show.
-    if (this.popupManager.isAPopupOpen) {
+    // If we have a token for the account but it doesn't match the token that
+    // was invalidated that likely means that someone held onto an account for
+    // longer than they should have which is bad but what's even worse is if we
+    // invalidate an active account.
+    if (account.token && account.token !== token) {
+      log.error(`Token for ${endpoint} invalidated but token mismatch`)
       return
     }
 
@@ -2056,11 +2065,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       )
     }
 
-    const account = getAccountForRepository(this.accounts, repository)
-    if (!account) {
-      return
-    }
-
     if (!repository.gitHubRepository) {
       return
     }
@@ -2069,8 +2073,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // similar to what's being done in `refreshAllIndicators`
     const fetcher = new BackgroundFetcher(
       repository,
-      account,
-      r => this.performFetch(r, account, FetchType.BackgroundTask),
+      this.accountsStore,
+      r => this._fetch(r, FetchType.BackgroundTask),
       r => this.shouldBackgroundFetch(r, null)
     )
     fetcher.start(withInitialSkew)
@@ -4659,21 +4663,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
             this.statsStore.increment('pullWithDefaultSettingCount')
           }
 
-          await gitStore.performFailableOperation(
-            () =>
-              pullRepo(repository, account, remote, progress => {
+          const pullSucceeded = await gitStore.performFailableOperation(
+            async () => {
+              await pullRepo(repository, account, remote, progress => {
                 this.updatePushPullFetchProgress(repository, {
                   ...progress,
                   value: progress.value * pullWeight,
                 })
-              }),
-            {
-              gitContext,
-              retryAction,
-            }
+              })
+              return true
+            },
+            { gitContext, retryAction }
           )
 
-          await updateRemoteHEAD(repository, account, remote)
+          // If the pull failed we shouldn't try to update the remote HEAD
+          // because there's a decent chance that it failed either because we
+          // didn't have the correct credentials (which we won't this time
+          // either) or because there's a network error which likely will
+          // persist for the next operation as well.
+          if (pullSucceeded) {
+            // Updating the local HEAD symref isn't critical so we don't want
+            // to show an error message to the user and have them retry the
+            // entire pull operation if it fails.
+            await updateRemoteHEAD(repository, account, remote, false).catch(
+              e => log.error('Failed updating remote HEAD', e)
+            )
+          }
 
           const refreshStartProgress = pullWeight + fetchWeight
           const refreshTitle = __DARWIN__
@@ -5829,11 +5844,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.repositoriesStore.updateRepositoryPath(repository, path)
   }
 
-  public _removeAccount(account: Account): Promise<void> {
+  public async _removeAccount(account: Account) {
     log.info(
       `[AppStore] removing account ${account.login} (${account.name}) from store`
     )
-    return this.accountsStore.removeAccount(account)
+    await this.accountsStore.removeAccount(account)
+    await deleteToken(account)
   }
 
   private async _addAccount(account: Account): Promise<void> {
@@ -6123,31 +6139,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.updateRevertProgress(repo, null)
       await this._refreshRepository(repository)
-    })
-  }
-
-  public async promptForGenericGitAuthentication(
-    repository: Repository | CloningRepository,
-    retryAction: RetryAction
-  ): Promise<void> {
-    let url
-    if (repository instanceof Repository) {
-      const gitStore = this.gitStoreCache.get(repository)
-      const remote = gitStore.currentRemote
-      if (!remote) {
-        return
-      }
-
-      url = remote.url
-    } else {
-      url = repository.url
-    }
-
-    const hostname = getGenericHostname(url)
-    return this._showPopup({
-      type: PopupType.GenericGitAuthentication,
-      hostname,
-      retryAction,
     })
   }
 

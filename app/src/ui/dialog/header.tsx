@@ -20,6 +20,13 @@ interface IDialogHeaderProps {
   readonly showCloseButton?: boolean
 
   /**
+   * An optional element to render to the right of the dialog title.
+   * This can be used to render additional controls that don't belong to the
+   * heading element itself, but are still part of the header (visually).
+   */
+  readonly renderAccessory?: () => JSX.Element
+
+  /**
    * Event triggered when the dialog is dismissed by the user.
    */
   readonly onCloseButtonClick?: () => void
@@ -76,6 +83,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
     return (
       <div className="dialog-header">
         <h1 id={this.props.titleId}>{this.props.title}</h1>
+        {this.props.renderAccessory?.()}
         {spinner}
         {this.renderCloseButton()}
         {this.props.children}

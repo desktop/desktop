@@ -246,36 +246,36 @@ export class Preferences extends React.Component<
             selectedIndex={this.state.selectedIndex}
             type={TabBarType.Vertical}
           >
-            <span>
+            <span id={this.getTabId(PreferencesTab.Accounts)}>
               <Octicon className="icon" symbol={octicons.home} />
               Accounts
             </span>
-            <span>
+            <span id={this.getTabId(PreferencesTab.Integrations)}>
               <Octicon className="icon" symbol={octicons.person} />
               Integrations
             </span>
-            <span>
+            <span id={this.getTabId(PreferencesTab.Git)}>
               <Octicon className="icon" symbol={octicons.gitCommit} />
               Git
             </span>
-            <span>
+            <span id={this.getTabId(PreferencesTab.Appearance)}>
               <Octicon className="icon" symbol={octicons.paintbrush} />
               Appearance
             </span>
-            <span>
+            <span id={this.getTabId(PreferencesTab.Notifications)}>
               <Octicon className="icon" symbol={octicons.bell} />
               Notifications
             </span>
-            <span>
+            <span id={this.getTabId(PreferencesTab.Prompts)}>
               <Octicon className="icon" symbol={octicons.question} />
               Prompts
             </span>
-            <span>
+            <span id={this.getTabId(PreferencesTab.Advanced)}>
               <Octicon className="icon" symbol={octicons.gear} />
               Advanced
             </span>
             {enableLinkUnderlines() && (
-              <span>
+              <span id={this.getTabId(PreferencesTab.Accessibility)}>
                 <Octicon className="icon" symbol={octicons.accessibility} />
                 Accessibility
               </span>
@@ -287,6 +287,40 @@ export class Preferences extends React.Component<
         {this.renderFooter()}
       </Dialog>
     )
+  }
+
+  private getTabId = (tab: PreferencesTab) => {
+    let suffix
+    switch (tab) {
+      case PreferencesTab.Accounts:
+        suffix = 'accounts'
+        break
+      case PreferencesTab.Integrations:
+        suffix = 'integrations'
+        break
+      case PreferencesTab.Git:
+        suffix = 'git'
+        break
+      case PreferencesTab.Appearance:
+        suffix = 'appearance'
+        break
+      case PreferencesTab.Notifications:
+        suffix = 'notifications'
+        break
+      case PreferencesTab.Prompts:
+        suffix = 'prompts'
+        break
+      case PreferencesTab.Advanced:
+        suffix = 'advanced'
+        break
+      case PreferencesTab.Accessibility:
+        suffix = 'accessibility'
+        break
+      default:
+        return assertNever(tab, `Unknown tab type: ${tab}`)
+    }
+
+    return `preferences-tab-${suffix}`
   }
 
   private onDotComSignIn = () => {
@@ -454,7 +488,15 @@ export class Preferences extends React.Component<
         return assertNever(index, `Unknown tab index: ${index}`)
     }
 
-    return <div className="tab-container">{View}</div>
+    return (
+      <div
+        className="tab-container"
+        role="tabpanel"
+        aria-labelledby={this.getTabId(index)}
+      >
+        {View}
+      </div>
+    )
   }
 
   private onRepositoryIndicatorsEnabledChanged = (

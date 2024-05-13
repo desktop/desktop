@@ -8,9 +8,48 @@ import {
   removePendingSSHSecretToStore,
   storePendingSSHSecret,
 } from '../ssh/ssh-secret-storage'
-import { GitProcess } from 'dugite'
+import { GitError as DugiteError, GitProcess } from 'dugite'
 import memoizeOne from 'memoize-one'
 import { enableCustomGitUserAgent } from '../feature-flag'
+import { IGitAccount } from '../../models/git-account'
+import { GitError } from '../git/core'
+import { deleteGenericCredential } from '../generic-git-auth'
+
+const mostRecentGenericGitCredential = new Map<string, IGitAccount>()
+
+export const setMostRecentGenericGitCredential = (
+  trampolineToken: string,
+  endpoint: string,
+  login: string
+) => mostRecentGenericGitCredential.set(trampolineToken, { endpoint, login })
+
+const hasRejectedCredentialsForEndpoint = new Map<string, Set<string>>()
+
+export const setHasRejectedCredentialsForEndpoint = (
+  trampolineToken: string,
+  endpoint: string
+) => {
+  const set = hasRejectedCredentialsForEndpoint.get(trampolineToken)
+  if (set) {
+    set.add(endpoint)
+  } else {
+    hasRejectedCredentialsForEndpoint.set(trampolineToken, new Set([endpoint]))
+  }
+}
+
+export const getHasRejectedCredentialsForEndpoint = (
+  trampolineToken: string,
+  endpoint: string
+) => {
+  return (
+    hasRejectedCredentialsForEndpoint.get(trampolineToken)?.has(endpoint) ??
+    false
+  )
+}
+const isBackgroundTaskEnvironment = new Map<string, boolean>()
+
+export const getIsBackgroundTaskEnvironment = (trampolineToken: string) =>
+  isBackgroundTaskEnvironment.get(trampolineToken) ?? false
 
 export const GitUserAgent = memoizeOne(() =>
   // Can't use git() as that will call withTrampolineEnv which calls this method
@@ -42,11 +81,14 @@ export const GitUserAgent = memoizeOne(() =>
  *                  variables.
  */
 export async function withTrampolineEnv<T>(
-  fn: (env: object) => Promise<T>
+  fn: (env: object) => Promise<T>,
+  isBackgroundTask = false
 ): Promise<T> {
   const sshEnv = await getSSHEnvironment()
 
   return withTrampolineToken(async token => {
+    isBackgroundTaskEnvironment.set(token, isBackgroundTask)
+
     // The code below assumes a few things in order to manage SSH key passphrases
     // correctly:
     // 1. `withTrampolineEnv` is only used in the functions `git` (core.ts) and
@@ -73,10 +115,36 @@ export async function withTrampolineEnv<T>(
       await storePendingSSHSecret(token)
 
       return result
+    } catch (e) {
+      // If the operation fails with an HTTPSAuthenticationFailed error, we
+      // assume that it's because the last credential we provided via the
+      // askpass handler was rejected. That's not necessarily the case but for
+      // practical purposes, it's as good as we can get with the information we
+      // have. We're limited by the ASKPASS flow here.
+      if (isAuthFailure(e)) {
+        deleteMostRecentGenericCredential(token)
+      }
+      throw e
     } finally {
       removePendingSSHSecretToStore(token)
+      isBackgroundTaskEnvironment.delete(token)
     }
   })
+}
+
+const isAuthFailure = (e: unknown): e is GitError =>
+  e instanceof GitError &&
+  (e.result.gitError === DugiteError.HTTPSAuthenticationFailed ||
+    // TODO: This should be in dugite instead of desktop!
+    /fatal: Authentication failed for 'http:/.test(e.result.stderr))
+
+function deleteMostRecentGenericCredential(token: string) {
+  const cred = mostRecentGenericGitCredential.get(token)
+  if (cred) {
+    const { endpoint, login } = cred
+    log.info(`askPassHandler: auth failed, deleting ${endpoint} credential`)
+    deleteGenericCredential(endpoint, login)
+  }
 }
 
 /** Returns the path of the desktop-trampoline binary. */
