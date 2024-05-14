@@ -134,7 +134,9 @@ export async function withTrampolineEnv<T>(
 
 const isAuthFailure = (e: unknown): e is GitError =>
   e instanceof GitError &&
-  e.result.gitError === DugiteError.HTTPSAuthenticationFailed
+  (e.result.gitError === DugiteError.HTTPSAuthenticationFailed ||
+    // TODO: This should be in dugite instead of desktop!
+    /fatal: Authentication failed for 'http:/.test(e.result.stderr))
 
 function deleteMostRecentGenericCredential(token: string) {
   const cred = mostRecentGenericGitCredential.get(token)
