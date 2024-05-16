@@ -121,7 +121,7 @@ export async function withTrampolineEnv<T>(
       // askpass handler was rejected. That's not necessarily the case but for
       // practical purposes, it's as good as we can get with the information we
       // have. We're limited by the ASKPASS flow here.
-      if (isAuthFailure(e)) {
+      if (isAuthFailure(e) && !getIsBackgroundTaskEnvironment(token)) {
         deleteMostRecentGenericCredential(token)
       }
       throw e
