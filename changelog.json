@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.3.19-beta1": [
+      "[Fixed] Clear stored credentials when authentication fails on insecure http hosts - #18588"
+    ],
     "3.3.18": [
       "[Fixed] Prevent Pull Request comment or review dialog from moving constantly under some circumstances - #18596",
       "[Fixed] Prevent Pull Request notification dialogs from truncating long Pull Request titles - #18596",
@@ -9,7 +12,8 @@
       "[Improved] Upgrade embedded Git to v2.43.4 on macOS, and to v2.43.4.windows.1 on Windows"
     ],
     "3.3.18-beta3": [
-      "[Improved] Upgrade embedded Git to v2.43.4 on macOS, and to v2.43.4.windows.1 on Windows"
+      "[Improved] Upgrade embedded Git to v2.43.4 on macOS, and to v2.43.4.windows.1 on Windows",
+      "[Removed] Clear stored credentials when authentication fails on insecure http hosts - #18588"
     ],
     "3.3.18-beta2": [
       "[Fixed] Prevent Pull Request comment or review dialog from moving constantly under some circumstances - #18596",
