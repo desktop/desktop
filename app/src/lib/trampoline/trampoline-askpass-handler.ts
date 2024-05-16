@@ -17,7 +17,6 @@ import {
 import { removePendingSSHSecretToStore } from '../ssh/ssh-secret-storage'
 import { getHTMLURL } from '../api'
 import {
-  getGenericHostname,
   getGenericUsername,
   setGenericPassword,
   setGenericUsername,
@@ -180,12 +179,11 @@ const handleAskPassUserPassword = async (
   const warn = (msg: string) => log.warn(`askPassHandler: ${msg}`)
 
   const { trampolineToken } = command
-  const hostname = getGenericHostname(remoteUrl)
-  const account = await findAccount(trampolineToken, accountsStore, hostname)
+  const account = await findAccount(trampolineToken, accountsStore, remoteUrl)
 
   if (!account) {
-    if (getHasRejectedCredentialsForEndpoint(trampolineToken, hostname)) {
-      debug(`not requesting credentials for ${hostname}`)
+    if (getHasRejectedCredentialsForEndpoint(trampolineToken, remoteUrl)) {
+      debug(`not requesting credentials for ${remoteUrl}`)
       return undefined
     }
 
@@ -194,9 +192,9 @@ const handleAskPassUserPassword = async (
       return undefined
     }
 
-    info(`no account found for ${hostname}`)
+    info(`no account found for ${remoteUrl}`)
 
-    if (hostname === 'github.com') {
+    if (new URL(remoteUrl).hostname === 'github.com') {
       // We don't want to show a generic auth prompt for GitHub.com and we
       // don't have a good way to turn the sign in flow into a promise. More
       // specifically we can create a promise that resolves when the GH sign in
@@ -206,25 +204,25 @@ const handleAskPassUserPassword = async (
     }
 
     const { username, password } =
-      await trampolineUIHelper.promptForGenericGitAuthentication(hostname)
+      await trampolineUIHelper.promptForGenericGitAuthentication(remoteUrl)
 
     if (username.length > 0 && password.length > 0) {
-      setGenericUsername(hostname, username)
-      await setGenericPassword(hostname, username, password)
+      setGenericUsername(remoteUrl, username)
+      await setGenericPassword(remoteUrl, username, password)
 
-      info(`acquired generic credentials for ${hostname}`)
+      info(`acquired generic credentials for ${remoteUrl}`)
 
       return kind === 'Username' ? username : password
     } else {
       info('user cancelled generic git authentication')
-      setHasRejectedCredentialsForEndpoint(trampolineToken, hostname)
+      setHasRejectedCredentialsForEndpoint(trampolineToken, remoteUrl)
     }
 
     return undefined
   } else {
     const accountKind = account instanceof Account ? 'account' : 'generic'
     if (kind === 'Username') {
-      debug(`${accountKind} username for ${hostname} found`)
+      debug(`${accountKind} username for ${remoteUrl} found`)
       return account.login
     } else if (kind === 'Password') {
       const token =
@@ -236,10 +234,10 @@ const handleAskPassUserPassword = async (
             )
 
       if (token) {
-        debug(`${accountKind} password for ${hostname} found`)
+        debug(`${accountKind} password for ${remoteUrl} found`)
       } else {
         // We have a username but no password, that warrants a warning
-        warn(`${accountKind} password for ${hostname} missing`)
+        warn(`${accountKind} password for ${remoteUrl} missing`)
       }
 
       return token ?? undefined
@@ -252,22 +250,23 @@ const handleAskPassUserPassword = async (
 async function findAccount(
   trampolineToken: string,
   accountsStore: AccountsStore,
-  hostname: string
+  remoteUrl: string
 ): Promise<IGitAccount | undefined> {
   const accounts = await accountsStore.getAll()
+  const { origin } = new URL(remoteUrl)
   const account = accounts.find(
-    a => new URL(getHTMLURL(a.endpoint)).hostname === hostname
+    a => new URL(getHTMLURL(a.endpoint)).origin === origin
   )
 
   if (account) {
     return account
   }
 
-  const login = getGenericUsername(hostname)
+  const login = getGenericUsername(remoteUrl)
 
-  if (hostname && login) {
-    setMostRecentGenericGitCredential(trampolineToken, hostname, login)
-    return { login, endpoint: hostname }
+  if (remoteUrl && login) {
+    setMostRecentGenericGitCredential(trampolineToken, remoteUrl, login)
+    return { login, endpoint: remoteUrl }
   }
 
   return undefined
