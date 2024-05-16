@@ -55,7 +55,7 @@ async function getCheckoutOpts(
   const opts: IGitExecutionOptions = {
     env: await envForRemoteOperation(
       account,
-      getFallbackUrlForProxyResolve(account, repository)
+      await getFallbackUrlForProxyResolve(repository, target)
     ),
     expectedErrors: AuthenticationErrors,
   }

@@ -83,7 +83,7 @@ export async function deleteRemoteBranch(
       // proxy though so it's not critical.
       log.error(`Could not resolve remote url for remote ${remoteName}`, err)
       return null
-    })) || getFallbackUrlForProxyResolve(account, repository)
+    })) || getFallbackUrlForProxyResolve(repository)
 
   const args = [
     ...gitNetworkArguments(),

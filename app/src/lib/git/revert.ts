@@ -36,7 +36,7 @@ export async function revertCommit(
   if (progressCallback) {
     const env = await envForRemoteOperation(
       account,
-      getFallbackUrlForProxyResolve(account, repository)
+      await getFallbackUrlForProxyResolve(repository)
     )
     opts = await executionOptionsWithProgress(
       { env, trackLFSProgress: true },

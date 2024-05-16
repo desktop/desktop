@@ -6,8 +6,7 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
-import { IRemote } from '../../models/remote'
-import { getCurrentUpstreamRemoteName } from './rev-parse'
+import { getUpstreamRemoteNameForRef } from './rev-parse'
 import { getRemoteURL } from './remote'
 
 /**
@@ -23,8 +22,16 @@ import { getRemoteURL } from './remote'
  * be on a different server as well. That's too advanced for our usage
  * at the moment though so we'll just need to figure out some reasonable
  * url to fall back on.
+ *
+ * @param branchName If the operation we're about to undertake is related to a
+ *                   local ref (i.e branch) then we can use that to resolve its
+ *                   upstream tracking branch (and thereby its remote) and use
+ *                   that as the probable url to resolve a proxy for.
  */
-export async function getFallbackUrlForProxyResolve(repository: Repository) {
+export async function getFallbackUrlForProxyResolve(
+  repository: Repository,
+  branchName?: string
+) {
   // We used to use account.endpoint here but we look up account by the
   // repository endpoint (see getAccountForRepository) so we can skip the use
   // of the account here and just use the repository endpoint directly.
@@ -32,12 +39,13 @@ export async function getFallbackUrlForProxyResolve(repository: Repository) {
     return getHTMLURL(repository.gitHubRepository.endpoint)
   }
 
-  const upstreamRemoteUrl = await getCurrentUpstreamRemoteName(repository.path)
+  const { path } = repository
+  const remoteUrl = await getUpstreamRemoteNameForRef(path, branchName)
     .then(remote => (remote ? getRemoteURL(repository, remote) : null))
     .catch(e => log.debug('Failed resolving upstream remote', e))
 
-  if (upstreamRemoteUrl) {
-    return upstreamRemoteUrl
+  if (remoteUrl) {
+    return remoteUrl
   }
 
   // If all else fails let's assume that whatever network resource
