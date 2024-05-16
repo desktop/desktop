@@ -6,8 +6,7 @@ import {
   Repository,
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
-import { getUpstreamRemoteNameForRef } from './rev-parse'
-import { getRemoteURL } from './remote'
+import { IRemote } from '../../models/remote'
 
 /**
  * For many remote operations it's well known what the primary remote
@@ -28,9 +27,9 @@ import { getRemoteURL } from './remote'
  *                   upstream tracking branch (and thereby its remote) and use
  *                   that as the probable url to resolve a proxy for.
  */
-export async function getFallbackUrlForProxyResolve(
+export function getFallbackUrlForProxyResolve(
   repository: Repository,
-  branchName?: string
+  currentRemote: IRemote | null
 ) {
   // We used to use account.endpoint here but we look up account by the
   // repository endpoint (see getAccountForRepository) so we can skip the use
@@ -39,13 +38,17 @@ export async function getFallbackUrlForProxyResolve(
     return getHTMLURL(repository.gitHubRepository.endpoint)
   }
 
-  const { path } = repository
-  const remoteUrl = await getUpstreamRemoteNameForRef(path, branchName)
-    .then(remote => (remote ? getRemoteURL(repository, remote) : null))
-    .catch(e => log.debug('Failed resolving upstream remote', e))
-
-  if (remoteUrl) {
-    return remoteUrl
+  // This is a carry-over from the old code where we would use the current
+  // remote to resolve an account and then use that account's endpoint here.
+  // We've since removed the need to pass an account down here but unfortunately
+  // that means we need to pass the current remote instead. Note that ideally
+  // this should be looking up the remote url either based on the currently
+  // checked out branch, the upstream tracking branch of the branch being
+  // checked out, or the default remote if neither of those are available.
+  // Doing so by shelling out to Git here was deemed to costly and in order to
+  // finish this refactor we've opted to replicate the previous behavior here.
+  if (currentRemote) {
+    return currentRemote.url
   }
 
   // If all else fails let's assume that whatever network resource
