@@ -7,6 +7,8 @@ import {
   isRepositoryWithGitHubRepository,
 } from '../../models/repository'
 import { IRemote } from '../../models/remote'
+import { getCurrentUpstreamRemoteName } from './rev-parse'
+import { getRemoteURL } from './remote'
 
 /**
  * For many remote operations it's well known what the primary remote
@@ -22,16 +24,20 @@ import { IRemote } from '../../models/remote'
  * at the moment though so we'll just need to figure out some reasonable
  * url to fall back on.
  */
-export function getFallbackUrlForProxyResolve(
-  account: IGitAccount | null,
-  repository: Repository,
-  currentRemote: IRemote | null
-) {
+export async function getFallbackUrlForProxyResolve(repository: Repository) {
   // We used to use account.endpoint here but we look up account by the
   // repository endpoint (see getAccountForRepository) so we can skip the use
   // of the account here and just use the repository endpoint directly.
   if (isRepositoryWithGitHubRepository(repository)) {
     return getHTMLURL(repository.gitHubRepository.endpoint)
+  }
+
+  const upstreamRemoteUrl = await getCurrentUpstreamRemoteName(repository.path)
+    .then(remote => (remote ? getRemoteURL(repository, remote) : null))
+    .catch(e => log.debug('Failed resolving upstream remote', e))
+
+  if (upstreamRemoteUrl) {
+    return upstreamRemoteUrl
   }
 
   // If all else fails let's assume that whatever network resource
