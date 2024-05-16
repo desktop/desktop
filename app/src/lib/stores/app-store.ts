@@ -4239,8 +4239,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
           )
         }
 
+        const remote =
+          gitStore.remotes.find(r => r.name === remoteName) ??
+          (await getRemoteURL(repository, remoteName)
+            .then(url => (url ? { name: remoteName, url } : undefined))
+            .catch(e => log.debug(`Could not get remote URL`, e)))
+
+        if (remote === undefined) {
+          throw new Error(`Could not determine remote url from: ${branch.ref}.`)
+        }
+
         await gitStore.performFailableOperation(() =>
-          deleteRemoteBranch(r, account, remoteName, nameWithoutRemote)
+          deleteRemoteBranch(r, account, remote, nameWithoutRemote)
         )
 
         // We log the remote branch's sha so that the user can recover it.
