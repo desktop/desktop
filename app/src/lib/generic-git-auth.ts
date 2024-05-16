@@ -26,34 +26,34 @@ export function getGenericHostname(remoteURL: string): string {
 
 export const genericGitAuthUsernameKeyPrefix = 'genericGitAuth/username/'
 
-function getKeyForUsername(hostname: string): string {
-  return `${genericGitAuthUsernameKeyPrefix}${hostname}`
+function getKeyForUsername(endpoint: string): string {
+  return `${genericGitAuthUsernameKeyPrefix}${endpoint}`
 }
 
 /** Get the username for the host. */
-export function getGenericUsername(hostname: string): string | null {
-  const key = getKeyForUsername(hostname)
+export function getGenericUsername(endpoint: string): string | null {
+  const key = getKeyForUsername(endpoint)
   return localStorage.getItem(key)
 }
 
 /** Set the username for the host. */
-export function setGenericUsername(hostname: string, username: string) {
-  const key = getKeyForUsername(hostname)
+export function setGenericUsername(endpoint: string, username: string) {
+  const key = getKeyForUsername(endpoint)
   return localStorage.setItem(key, username)
 }
 
 /** Set the password for the username and host. */
 export function setGenericPassword(
-  hostname: string,
+  endpoint: string,
   username: string,
   password: string
 ): Promise<void> {
-  const key = getKeyForEndpoint(hostname)
+  const key = getKeyForEndpoint(endpoint)
   return TokenStore.setItem(key, username, password)
 }
 
 /** Delete a generic credential */
-export function deleteGenericCredential(hostname: string, username: string) {
-  localStorage.removeItem(getKeyForUsername(hostname))
-  return TokenStore.deleteItem(getKeyForEndpoint(hostname), username)
+export function deleteGenericCredential(endpoint: string, username: string) {
+  localStorage.removeItem(getKeyForUsername(endpoint))
+  return TokenStore.deleteItem(getKeyForEndpoint(endpoint), username)
 }
