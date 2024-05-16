@@ -4228,8 +4228,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     includeUpstream?: boolean,
     toCheckout?: Branch | null
   ): Promise<void> {
-    return this.withAuthenticatingUser(repository, async r => {
-      const gitStore = this.gitStoreCache.get(r)
+    return this.withAuthenticatingUser(repository, async repository => {
+      const gitStore = this.gitStoreCache.get(repository)
 
       // If solely a remote branch, there is no need to checkout a branch.
       if (branch.type === BranchType.Remote) {
@@ -4253,7 +4253,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
 
         await gitStore.performFailableOperation(() =>
-          deleteRemoteBranch(r, remote, nameWithoutRemote)
+          deleteRemoteBranch(repository, remote, nameWithoutRemote)
         )
 
         // We log the remote branch's sha so that the user can recover it.
@@ -4261,17 +4261,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
           `Deleted branch ${branch.upstreamWithoutRemote} (was ${tip.sha})`
         )
 
-        return this._refreshRepository(r)
+        return this._refreshRepository(repository)
       }
 
       // If a local branch, user may have the branch to delete checked out and
       // we need to switch to a different branch (default or recent).
       const branchToCheckout =
-        toCheckout ?? this.getBranchToCheckoutAfterDelete(branch, r)
+        toCheckout ?? this.getBranchToCheckoutAfterDelete(branch, repository)
 
       if (branchToCheckout !== null) {
         await gitStore.performFailableOperation(() =>
-          checkoutBranch(r, branchToCheckout, gitStore.currentRemote)
+          checkoutBranch(repository, branchToCheckout, gitStore.currentRemote)
         )
       }
 
@@ -4283,7 +4283,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
       })
 
-      return this._refreshRepository(r)
+      return this._refreshRepository(repository)
     })
   }
 
@@ -6082,14 +6082,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     commit: Commit
   ): Promise<void> {
-    return this.withAuthenticatingUser(repository, async repo => {
-      const gitStore = this.gitStoreCache.get(repo)
+    return this.withAuthenticatingUser(repository, async repository => {
+      const gitStore = this.gitStoreCache.get(repository)
 
-      await gitStore.revertCommit(repo, commit, progress => {
-        this.updateRevertProgress(repo, progress)
+      await gitStore.revertCommit(repository, commit, progress => {
+        this.updateRevertProgress(repository, progress)
       })
 
-      this.updateRevertProgress(repo, null)
+      this.updateRevertProgress(repository, null)
       await this._refreshRepository(repository)
     })
   }
@@ -6936,7 +6936,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const checkoutSuccessful = await this.withAuthenticatingUser(
       repository,
-      r => {
+      repository => {
         return gitStore.performFailableOperation(() =>
           checkoutBranch(repository, targetBranch, gitStore.currentRemote)
         )
@@ -7049,7 +7049,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const gitStore = this.gitStoreCache.get(repository)
-    await this.withAuthenticatingUser(repository, async r => {
+    await this.withAuthenticatingUser(repository, async repository => {
       await gitStore.performFailableOperation(() =>
         checkoutBranch(repository, sourceBranch, gitStore.currentRemote)
       )
