@@ -20,7 +20,7 @@ async function createAndCheckout(
   if (branch === undefined) {
     throw new Error(`Unable to create branch: ${name}`)
   }
-  await checkoutBranch(repository, null, branch)
+  await checkoutBranch(repository, null, branch, null)
 }
 
 describe('git/reflog', () => {
