@@ -66,6 +66,7 @@ class TrampolineUIHelper {
       this.dispatcher.showPopup({
         type: PopupType.GenericGitAuthentication,
         remoteUrl,
+        username,
         onSubmit: (username: string, password: string) =>
           resolve({ username, password }),
         onDismiss: () => resolve({ username: '', password: '' }),

@@ -54,9 +54,13 @@ export class GenericGitAuthentication extends React.Component<
           <p>
             We were unable to authenticate with{' '}
             <Ref>{this.props.remoteUrl}</Ref>. Please enter{' '}
-            {this.props.username
-              ? `the password for the user ${this.props.username}`
-              : 'your username and password'}{' '}
+            {this.props.username ? (
+              <>
+                the password for the user <Ref>{this.props.username}</Ref>
+              </>
+            ) : (
+              'your username and password'
+            )}{' '}
             to try again.
           </p>
 
