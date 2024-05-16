@@ -1,8 +1,12 @@
 import { envForAuthentication } from './authentication'
 import { IGitAccount } from '../../models/git-account'
 import { resolveGitProxy } from '../resolve-git-proxy'
-import { getDotComAPIEndpoint } from '../api'
-import { Repository } from '../../models/repository'
+import { getHTMLURL } from '../api'
+import {
+  Repository,
+  isRepositoryWithGitHubRepository,
+} from '../../models/repository'
+import { IRemote } from '../../models/remote'
 
 /**
  * For many remote operations it's well known what the primary remote
@@ -20,22 +24,14 @@ import { Repository } from '../../models/repository'
  */
 export function getFallbackUrlForProxyResolve(
   account: IGitAccount | null,
-  repository: Repository
+  repository: Repository,
+  currentRemote: IRemote | null
 ) {
-  // If we've got an account with an endpoint that means we've already done the
-  // heavy lifting to figure out what the most likely endpoint is gonna be
-  // so we'll try to leverage that.
-  if (account !== null) {
-    // A GitHub.com Account will have api.github.com as its endpoint
-    return account.endpoint === getDotComAPIEndpoint()
-      ? 'https://github.com'
-      : account.endpoint
-  }
-
-  if (repository.gitHubRepository !== null) {
-    if (repository.gitHubRepository.cloneURL !== null) {
-      return repository.gitHubRepository.cloneURL
-    }
+  // We used to use account.endpoint here but we look up account by the
+  // repository endpoint (see getAccountForRepository) so we can skip the use
+  // of the account here and just use the repository endpoint directly.
+  if (isRepositoryWithGitHubRepository(repository)) {
+    return getHTMLURL(repository.gitHubRepository.endpoint)
   }
 
   // If all else fails let's assume that whatever network resource
