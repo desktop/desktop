@@ -4,7 +4,6 @@ import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
-import { IGitAccount } from '../../models/git-account'
 import { getSymbolicRef } from './refs'
 import { gitNetworkArguments } from '.'
 
@@ -101,13 +100,12 @@ export async function getRemoteURL(
  */
 export async function updateRemoteHEAD(
   repository: Repository,
-  account: IGitAccount | null,
   remote: IRemote,
   isBackgroundTask: boolean
 ): Promise<void> {
   const options = {
     successExitCodes: new Set([0, 1, 128]),
-    env: await envForRemoteOperation(account, remote.url),
+    env: await envForRemoteOperation(remote.url),
     isBackgroundTask,
   }
 

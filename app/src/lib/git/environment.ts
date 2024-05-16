@@ -1,5 +1,4 @@
 import { envForAuthentication } from './authentication'
-import { IGitAccount } from '../../models/git-account'
 import { resolveGitProxy } from '../resolve-git-proxy'
 import { getHTMLURL } from '../api'
 import {
@@ -74,10 +73,7 @@ export function getFallbackUrlForProxyResolve(
  *                  pointing to another host entirely. Used to resolve which
  *                  proxy (if any) should be used for the operation.
  */
-export async function envForRemoteOperation(
-  account: IGitAccount | null,
-  remoteUrl: string
-) {
+export async function envForRemoteOperation(remoteUrl: string) {
   return {
     ...envForAuthentication(),
     ...(await envForProxy(remoteUrl)),

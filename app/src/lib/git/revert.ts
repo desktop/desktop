@@ -3,7 +3,6 @@ import { git, gitNetworkArguments, IGitExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { IRevertProgress } from '../../models/progress'
-import { IGitAccount } from '../../models/git-account'
 
 import { executionOptionsWithProgress } from '../progress/from-process'
 import { RevertProgressParser } from '../progress/revert'
@@ -23,7 +22,6 @@ import { IRemote } from '../../models/remote'
 export async function revertCommit(
   repository: Repository,
   commit: Commit,
-  account: IGitAccount | null,
   currentRemote: IRemote | null,
   progressCallback?: (progress: IRevertProgress) => void
 ) {
@@ -37,7 +35,6 @@ export async function revertCommit(
   let opts: IGitExecutionOptions = {}
   if (progressCallback) {
     const env = await envForRemoteOperation(
-      account,
       getFallbackUrlForProxyResolve(repository, currentRemote)
     )
     opts = await executionOptionsWithProgress(

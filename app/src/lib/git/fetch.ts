@@ -1,6 +1,5 @@
 import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
-import { IGitAccount } from '../../models/git-account'
 import { IFetchProgress } from '../../models/progress'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
 import { enableRecurseSubmodulesFlag } from '../feature-flag'
@@ -9,9 +8,7 @@ import { ITrackingBranch } from '../../models/branch'
 import { envForRemoteOperation } from './environment'
 
 async function getFetchArgs(
-  repository: Repository,
   remote: string,
-  account: IGitAccount | null,
   progressCallback?: (progress: IFetchProgress) => void
 ) {
   if (enableRecurseSubmodulesFlag()) {
@@ -57,14 +54,13 @@ async function getFetchArgs(
  */
 export async function fetch(
   repository: Repository,
-  account: IGitAccount | null,
   remote: IRemote,
   progressCallback?: (progress: IFetchProgress) => void,
   isBackgroundTask = false
 ): Promise<void> {
   let opts: IGitExecutionOptions = {
     successExitCodes: new Set([0]),
-    env: await envForRemoteOperation(account, remote.url),
+    env: await envForRemoteOperation(remote.url),
   }
 
   if (progressCallback) {
@@ -103,12 +99,7 @@ export async function fetch(
     progressCallback({ kind, title, value: 0, remote: remote.name })
   }
 
-  const args = await getFetchArgs(
-    repository,
-    remote.name,
-    account,
-    progressCallback
-  )
+  const args = await getFetchArgs(remote.name, progressCallback)
 
   await git(args, repository.path, 'fetch', opts)
 }
@@ -116,7 +107,6 @@ export async function fetch(
 /** Fetch a given refspec from the given remote. */
 export async function fetchRefspec(
   repository: Repository,
-  account: IGitAccount | null,
   remote: IRemote,
   refspec: string
 ): Promise<void> {
@@ -126,7 +116,7 @@ export async function fetchRefspec(
     'fetchRefspec',
     {
       successExitCodes: new Set([0, 128]),
-      env: await envForRemoteOperation(account, remote.url),
+      env: await envForRemoteOperation(remote.url),
     }
   )
 }
