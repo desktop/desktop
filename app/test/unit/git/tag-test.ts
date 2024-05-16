@@ -173,7 +173,7 @@ describe('git/tag', () => {
       const status = await getStatusOrThrow(repository)
       const files = status.workingDirectory.files
 
-      await checkoutBranch(repository, account, branch!)
+      await checkoutBranch(repository, account, branch!, null)
       const commitSha = await createCommit(repository, 'a commit', files)
       await createTag(repository, 'my-new-tag', commitSha)
 
