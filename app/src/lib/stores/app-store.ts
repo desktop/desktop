@@ -3546,7 +3546,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * of the current branch to its upstream tracking branch.
    */
   private fetchForRepositoryIndicator(repo: Repository) {
-    return this.withAuthenticatingUser(repo, async repo => {
+    return this.withRefreshedGitHubRepository(repo, async repo => {
       const isBackgroundTask = true
       const gitStore = this.gitStoreCache.get(repo)
 
@@ -3859,7 +3859,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     }
 
-    return this.withAuthenticatingUser(repository, repository => {
+    return this.withRefreshedGitHubRepository(repository, repository => {
       // We always want to end with refreshing the repository regardless of
       // whether the checkout succeeded or not in order to present the most
       // up-to-date information to the user.
@@ -4026,7 +4026,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    return this.withAuthenticatingUser(repository, repository => {
+    return this.withRefreshedGitHubRepository(repository, repository => {
       // We always want to end with refreshing the repository regardless of
       // whether the checkout succeeded or not in order to present the most
       // up-to-date information to the user.
@@ -4228,7 +4228,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     includeUpstream?: boolean,
     toCheckout?: Branch | null
   ): Promise<void> {
-    return this.withAuthenticatingUser(repository, async repository => {
+    return this.withRefreshedGitHubRepository(repository, async repository => {
       const gitStore = this.gitStoreCache.get(repository)
 
       // If solely a remote branch, there is no need to checkout a branch.
@@ -4365,7 +4365,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     options?: PushOptions
   ): Promise<void> {
-    return this.withAuthenticatingUser(repository, repository => {
+    return this.withRefreshedGitHubRepository(repository, repository => {
       return this.performPush(repository, options)
     })
   }
@@ -4593,7 +4593,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _pull(repository: Repository): Promise<void> {
-    return this.withAuthenticatingUser(repository, repository => {
+    return this.withRefreshedGitHubRepository(repository, repository => {
       return this.performPull(repository)
     })
   }
@@ -4991,7 +4991,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     refspec: string
   ): Promise<void> {
-    return this.withAuthenticatingUser(repository, async repository => {
+    return this.withRefreshedGitHubRepository(repository, async repository => {
       const gitStore = this.gitStoreCache.get(repository)
       await gitStore.fetchRefspec(refspec)
 
@@ -5008,7 +5008,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * if _any_ fetches or pulls are currently in-progress.
    */
   public _fetch(repository: Repository, fetchType: FetchType): Promise<void> {
-    return this.withAuthenticatingUser(repository, repository => {
+    return this.withRefreshedGitHubRepository(repository, repository => {
       return this.performFetch(repository, fetchType)
     })
   }
@@ -5024,7 +5024,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     remote: IRemote,
     fetchType: FetchType
   ): Promise<void> {
-    return this.withAuthenticatingUser(repository, repository => {
+    return this.withRefreshedGitHubRepository(repository, repository => {
       return this.performFetch(repository, fetchType, [remote])
     })
   }
@@ -6041,7 +6041,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }`
   }
 
-  private async withAuthenticatingUser<T>(
+  private async withRefreshedGitHubRepository<T>(
     repository: Repository,
     fn: (repository: Repository) => Promise<T>
   ): Promise<T> {
@@ -6082,7 +6082,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     commit: Commit
   ): Promise<void> {
-    return this.withAuthenticatingUser(repository, async repository => {
+    return this.withRefreshedGitHubRepository(repository, async repository => {
       const gitStore = this.gitStoreCache.get(repository)
 
       await gitStore.revertCommit(repository, commit, progress => {
@@ -6934,7 +6934,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<string | undefined> {
     const gitStore = this.gitStoreCache.get(repository)
 
-    const checkoutSuccessful = await this.withAuthenticatingUser(
+    const checkoutSuccessful = await this.withRefreshedGitHubRepository(
       repository,
       repository => {
         return gitStore.performFailableOperation(() =>
@@ -7049,7 +7049,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const gitStore = this.gitStoreCache.get(repository)
-    await this.withAuthenticatingUser(repository, async repository => {
+    await this.withRefreshedGitHubRepository(repository, async repository => {
       await gitStore.performFailableOperation(() =>
         checkoutBranch(repository, sourceBranch, gitStore.currentRemote)
       )
