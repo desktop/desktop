@@ -11,11 +11,13 @@ import {
 import { GitError as DugiteError, GitProcess } from 'dugite'
 import memoizeOne from 'memoize-one'
 import { enableCustomGitUserAgent } from '../feature-flag'
-import { IGitAccount } from '../../models/git-account'
 import { GitError } from '../git/core'
 import { deleteGenericCredential } from '../generic-git-auth'
 
-const mostRecentGenericGitCredential = new Map<string, IGitAccount>()
+const mostRecentGenericGitCredential = new Map<
+  string,
+  { endpoint: string; login: string }
+>()
 
 export const setMostRecentGenericGitCredential = (
   trampolineToken: string,

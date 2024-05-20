@@ -70,7 +70,6 @@ import {
   IMultiCommitOperationProgress,
 } from '../../models/progress'
 import { Popup, PopupType } from '../../models/popup'
-import { IGitAccount } from '../../models/git-account'
 import { themeChangeMonitor } from '../../ui/lib/theme-change-monitor'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import {
@@ -6043,7 +6042,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     fn: (repository: Repository) => Promise<T>
   ): Promise<T> {
     let updatedRepository = repository
-    const account: IGitAccount | null = getAccountForRepository(
+    const account: Account | null = getAccountForRepository(
       this.accounts,
       updatedRepository
     )
