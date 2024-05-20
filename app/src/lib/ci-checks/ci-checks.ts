@@ -301,7 +301,7 @@ export function getLatestCheckRunsByName(
     // feels hacky... but we don't have any other meta data on a check run that
     // differieates these.
     const nameAndHasPRs =
-      checkRun.name +
+      checkRun.id +
       (checkRun.pull_requests.length > 0
         ? 'isPullRequestCheckRun'
         : 'isPushCheckRun')
