@@ -1,9 +1,8 @@
-import { getKeyForEndpoint } from '../auth'
 import {
   getSSHKeyPassphrase,
   keepSSHKeyPassphraseToStore,
 } from '../ssh/ssh-key-passphrase'
-import { AccountsStore, TokenStore } from '../stores'
+import { AccountsStore } from '../stores'
 import {
   ITrampolineCommand,
   TrampolineCommandHandler,
@@ -17,6 +16,7 @@ import {
 import { removePendingSSHSecretToStore } from '../ssh/ssh-secret-storage'
 import { getHTMLURL } from '../api'
 import {
+  getGenericPassword,
   getGenericUsername,
   setGenericPassword,
   setGenericUsername,
@@ -176,79 +176,76 @@ const handleAskPassUserPassword = async (
 ) => {
   const info = (msg: string) => log.info(`askPassHandler: ${msg}`)
   const debug = (msg: string) => log.debug(`askPassHandler: ${msg}`)
-  const warn = (msg: string) => log.warn(`askPassHandler: ${msg}`)
 
   const { trampolineToken } = command
   const parsedUrl = new URL(remoteUrl)
+  const endpoint = urlWithoutCredentials(remoteUrl)
   const account = await findAccount(trampolineToken, accountsStore, remoteUrl)
 
-  if (!account) {
-    if (getHasRejectedCredentialsForEndpoint(trampolineToken, remoteUrl)) {
-      debug(`not requesting credentials for ${remoteUrl}`)
-      return undefined
-    }
-
-    if (getIsBackgroundTaskEnvironment(trampolineToken)) {
-      debug('background task environment, skipping prompt')
-      return undefined
-    }
-
-    info(`no account found for ${remoteUrl}`)
-
-    if (parsedUrl.hostname === 'github.com') {
-      // We don't want to show a generic auth prompt for GitHub.com and we
-      // don't have a good way to turn the sign in flow into a promise. More
-      // specifically we can create a promise that resolves when the GH sign in
-      // flow completes but we don't have a way to have the promise reject if
-      // the user cancels.
-      return undefined
-    }
-
-    const { username, password } =
-      await trampolineUIHelper.promptForGenericGitAuthentication(
-        remoteUrl,
-        parsedUrl.username === '' ? undefined : parsedUrl.username
-      )
-
-    if (username.length > 0 && password.length > 0) {
-      setGenericUsername(remoteUrl, username)
-      await setGenericPassword(remoteUrl, username, password)
-
-      info(`acquired generic credentials for ${remoteUrl}`)
-
-      return kind === 'Username' ? username : password
-    } else {
-      info('user cancelled generic git authentication')
-      setHasRejectedCredentialsForEndpoint(trampolineToken, remoteUrl)
-    }
-
-    return undefined
-  } else {
+  if (account) {
     const accountKind = account instanceof Account ? 'account' : 'generic'
-    if (kind === 'Username') {
-      debug(`${accountKind} username for ${remoteUrl} found`)
-      return account.login
-    } else if (kind === 'Password') {
-      const token =
-        account instanceof Account && account.token.length > 0
-          ? account.token
-          : await TokenStore.getItem(
-              getKeyForEndpoint(account.endpoint),
-              account.login
-            )
-
-      if (token) {
-        debug(`${accountKind} password for ${remoteUrl} found`)
-      } else {
-        // We have a username but no password, that warrants a warning
-        warn(`${accountKind} password for ${remoteUrl} missing`)
-      }
-
-      return token ?? undefined
-    }
+    debug(`${accountKind} ${kind.toLowerCase()} for ${remoteUrl} found`)
+    return kind === 'Username' ? account.login : account.token
   }
 
-  return undefined
+  if (getHasRejectedCredentialsForEndpoint(trampolineToken, endpoint)) {
+    debug(`not requesting credentials for ${remoteUrl}`)
+    return undefined
+  }
+
+  if (getIsBackgroundTaskEnvironment(trampolineToken)) {
+    debug('background task environment, skipping prompt')
+    return undefined
+  }
+
+  info(`no account found for ${remoteUrl}`)
+
+  if (parsedUrl.hostname === 'github.com') {
+    // We don't want to show a generic auth prompt for GitHub.com and we
+    // don't have a good way to turn the sign in flow into a promise. More
+    // specifically we can create a promise that resolves when the GH sign in
+    // flow completes but we don't have a way to have the promise reject if
+    // the user cancels.
+    return undefined
+  }
+
+  const { username, password } =
+    await trampolineUIHelper.promptForGenericGitAuthentication(
+      remoteUrl,
+      parsedUrl.username === '' ? undefined : parsedUrl.username
+    )
+
+  if (!username || !password) {
+    info('user cancelled generic git authentication')
+    setHasRejectedCredentialsForEndpoint(trampolineToken, endpoint)
+
+    return undefined
+  }
+
+  // Git will ordinarily prompt us twice, first for the username and then
+  // for the password. For the second prompt the url will contain the
+  // username. For example:
+  // Prompt 1: Username for 'https://example.com':
+  // < user enters username >
+  // Prompt 2: Password for 'https://username@example.com':
+  //
+  // So when we get a prompt that doesn't include the username we know that
+  // it's the first prompt. This matters because users can include the
+  // username in the remote url in which case Git won't even prompt us for
+  // the username. For example:
+  // https://username@dev.azure.com/org/repo/_git/repo
+  //
+  // If we're getting prompted for password directly with the username we
+  // don't want to store the username association, only the password.
+  if (parsedUrl.username === '') {
+    setGenericUsername(endpoint, username)
+  }
+
+  await setGenericPassword(endpoint, username, password)
+
+  info(`acquired generic credentials for ${remoteUrl}`)
+
+  return kind === 'Username' ? username : password
 }
 
 async function findAccount(
@@ -257,21 +254,41 @@ async function findAccount(
   remoteUrl: string
 ): Promise<IGitAccount | undefined> {
   const accounts = await accountsStore.getAll()
-  const { origin } = new URL(remoteUrl)
+  const parsedUrl = new URL(remoteUrl)
   const account = accounts.find(
-    a => new URL(getHTMLURL(a.endpoint)).origin === origin
+    a => new URL(getHTMLURL(a.endpoint)).origin === parsedUrl.origin
   )
 
   if (account) {
     return account
   }
 
-  const login = getGenericUsername(remoteUrl)
+  const login =
+    parsedUrl.username === ''
+      ? getGenericUsername(urlWithoutCredentials(remoteUrl))
+      : parsedUrl.username
 
-  if (remoteUrl && login) {
-    setMostRecentGenericGitCredential(trampolineToken, remoteUrl, login)
-    return { login, endpoint: remoteUrl }
+  if (!login) {
+    return undefined
   }
 
-  return undefined
+  const endpoint = urlWithoutCredentials(remoteUrl)
+  const token = await getGenericPassword(endpoint, login)
+
+  if (!token) {
+    // We have a username but no password, that warrants a warning
+    log.warn(`askPassHandler: generic password for ${remoteUrl} missing`)
+    return undefined
+  }
+
+  setMostRecentGenericGitCredential(trampolineToken, endpoint, login)
+
+  return { login, endpoint, token }
+}
+
+function urlWithoutCredentials(remoteUrl: string): string {
+  const url = new URL(remoteUrl)
+  url.username = ''
+  url.password = ''
+  return url.toString()
 }
