@@ -82,12 +82,12 @@ export class GenericGitAuthentication extends React.Component<
               label="Password"
               value={this.state.password}
               onValueChanged={this.onPasswordChange}
-              ariaDescribedBy="password-description"
+              ariaDescribedBy="generic-git-auth-password-description"
             />
           </Row>
 
           <Row>
-            <div id="password-description">
+            <div id="generic-git-auth-password-description">
               Depending on your repository's hosting service, you might need to
               use a Personal Access Token (PAT) as your password. Learn more
               about creating a PAT in our{' '}
