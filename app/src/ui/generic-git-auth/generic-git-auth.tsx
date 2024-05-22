@@ -49,9 +49,11 @@ export class GenericGitAuthentication extends React.Component<
         title={__DARWIN__ ? `Authentication Failed` : `Authentication failed`}
         onDismissed={this.props.onDismiss}
         onSubmit={this.save}
+        role="alertdialog"
+        ariaDescribedBy="generic-git-auth-error"
       >
         <DialogContent>
-          <p>
+          <p id="generic-git-auth-error">
             We were unable to authenticate with{' '}
             <Ref>{this.props.remoteUrl}</Ref>. Please enter{' '}
             {this.props.username ? (
@@ -80,11 +82,12 @@ export class GenericGitAuthentication extends React.Component<
               label="Password"
               value={this.state.password}
               onValueChanged={this.onPasswordChange}
+              ariaDescribedBy="generic-git-auth-password-description"
             />
           </Row>
 
           <Row>
-            <div>
+            <div id="generic-git-auth-password-description">
               Depending on your repository's hosting service, you might need to
               use a Personal Access Token (PAT) as your password. Learn more
               about creating a PAT in our{' '}
