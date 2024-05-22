@@ -145,6 +145,8 @@ export class GitStore extends BaseStore {
 
   private _tagsToPush: ReadonlyArray<string> = []
 
+  private _remotes: ReadonlyArray<IRemote> = []
+
   private _defaultRemote: IRemote | null = null
 
   private _currentRemote: IRemote | null = null
@@ -1267,6 +1269,7 @@ export class GitStore extends BaseStore {
 
   public async loadRemotes(): Promise<void> {
     const remotes = await getRemotes(this.repository)
+    this._remotes = remotes
     this._defaultRemote = findDefaultRemote(remotes)
 
     const currentRemoteName =
@@ -1366,6 +1369,11 @@ export class GitStore extends BaseStore {
    */
   public get aheadBehind(): IAheadBehind | null {
     return this._aheadBehind
+  }
+
+  /** The list of configured remotes for the repository */
+  public get remotes() {
+    return this._remotes
   }
 
   /**
@@ -1614,7 +1622,13 @@ export class GitStore extends BaseStore {
     progressCallback?: (fetchProgress: IRevertProgress) => void
   ): Promise<void> {
     await this.performFailableOperation(() =>
-      revertCommit(repository, commit, account, progressCallback)
+      revertCommit(
+        repository,
+        commit,
+        account,
+        this.currentRemote,
+        progressCallback
+      )
     )
 
     this.emitUpdate()

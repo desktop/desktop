@@ -11,6 +11,7 @@ import {
   envForRemoteOperation,
   getFallbackUrlForProxyResolve,
 } from './environment'
+import { IRemote } from '../../models/remote'
 
 /**
  * Creates a new commit that reverts the changes of a previous commit
@@ -23,6 +24,7 @@ export async function revertCommit(
   repository: Repository,
   commit: Commit,
   account: IGitAccount | null,
+  currentRemote: IRemote | null,
   progressCallback?: (progress: IRevertProgress) => void
 ) {
   const args = [...gitNetworkArguments(), 'revert']
@@ -36,7 +38,7 @@ export async function revertCommit(
   if (progressCallback) {
     const env = await envForRemoteOperation(
       account,
-      getFallbackUrlForProxyResolve(account, repository)
+      getFallbackUrlForProxyResolve(repository, currentRemote)
     )
     opts = await executionOptionsWithProgress(
       { env, trackLFSProgress: true },

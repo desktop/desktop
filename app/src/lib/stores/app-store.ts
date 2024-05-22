@@ -187,6 +187,7 @@ import {
   getBranchMergeBaseChangedFiles,
   getBranchMergeBaseDiff,
   checkoutCommit,
+  getRemoteURL,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -3881,12 +3882,29 @@ export class AppStore extends TypedBaseStore<IAppState> {
     account: IGitAccount | null,
     strategy: UncommittedChangesStrategy
   ) {
+    const { currentRemote } = this.gitStoreCache.get(repository)
+
     if (strategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
-      return this.checkoutAndLeaveChanges(repository, branch, account)
+      return this.checkoutAndLeaveChanges(
+        repository,
+        branch,
+        account,
+        currentRemote
+      )
     } else if (strategy === UncommittedChangesStrategy.MoveToNewBranch) {
-      return this.checkoutAndBringChanges(repository, branch, account)
+      return this.checkoutAndBringChanges(
+        repository,
+        branch,
+        account,
+        currentRemote
+      )
     } else {
-      return this.checkoutIgnoringChanges(repository, branch, account)
+      return this.checkoutIgnoringChanges(
+        repository,
+        branch,
+        account,
+        currentRemote
+      )
     }
   }
 
@@ -3894,11 +3912,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async checkoutIgnoringChanges(
     repository: Repository,
     branch: Branch,
-    account: IGitAccount | null
+    account: IGitAccount | null,
+    currentRemote: IRemote | null
   ) {
-    await checkoutBranch(repository, account, branch, progress => {
-      this.updateCheckoutProgress(repository, progress)
-    })
+    await checkoutBranch(
+      repository,
+      account,
+      branch,
+      currentRemote,
+      progress => {
+        this.updateCheckoutProgress(repository, progress)
+      }
+    )
   }
 
   /**
@@ -3909,7 +3934,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async checkoutAndLeaveChanges(
     repository: Repository,
     branch: Branch,
-    account: IGitAccount | null
+    account: IGitAccount | null,
+    currentRemote: IRemote | null
   ) {
     const repositoryState = this.repositoryStateCache.get(repository)
     const { workingDirectory } = repositoryState.changesState
@@ -3920,7 +3946,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.statsStore.increment('stashCreatedOnCurrentBranchCount')
     }
 
-    return this.checkoutIgnoringChanges(repository, branch, account)
+    return this.checkoutIgnoringChanges(
+      repository,
+      branch,
+      account,
+      currentRemote
+    )
   }
 
   /**
@@ -3936,10 +3967,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async checkoutAndBringChanges(
     repository: Repository,
     branch: Branch,
-    account: IGitAccount | null
+    account: IGitAccount | null,
+    currentRemote: IRemote | null
   ) {
     try {
-      await this.checkoutIgnoringChanges(repository, branch, account)
+      await this.checkoutIgnoringChanges(
+        repository,
+        branch,
+        account,
+        currentRemote
+      )
     } catch (checkoutError) {
       if (!isLocalChangesOverwrittenError(checkoutError)) {
         throw checkoutError
@@ -3957,7 +3994,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
         throw checkoutError
       }
 
-      await this.checkoutIgnoringChanges(repository, branch, account)
+      await this.checkoutIgnoringChanges(
+        repository,
+        branch,
+        account,
+        currentRemote
+      )
       await popStashEntry(repository, stash.stashSha)
 
       this.statsStore.increment('changesTakenToNewBranchCount')
@@ -4018,6 +4060,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const repositoryState = this.repositoryStateCache.get(repository)
     const { branchesState } = repositoryState
     const { tip } = branchesState
+    const { currentRemote } = this.gitStoreCache.get(repository)
 
     // No point in checking out the currently checked out commit.
     if (
@@ -4031,7 +4074,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // We always want to end with refreshing the repository regardless of
       // whether the checkout succeeded or not in order to present the most
       // up-to-date information to the user.
-      return this.checkoutCommitDefaultBehaviour(repository, commit, account)
+      return this.checkoutCommitDefaultBehaviour(
+        repository,
+        commit,
+        account,
+        currentRemote
+      )
         .catch(e => this.emitError(new Error(e)))
         .then(() =>
           this.refreshAfterCheckout(repository, shortenSHA(commit.sha))
@@ -4043,11 +4091,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private async checkoutCommitDefaultBehaviour(
     repository: Repository,
     commit: CommitOneLine,
-    account: IGitAccount | null
+    account: IGitAccount | null,
+    currentRemote: IRemote | null
   ) {
-    await checkoutCommit(repository, account, commit, progress => {
-      this.updateCheckoutProgress(repository, progress)
-    })
+    await checkoutCommit(
+      repository,
+      account,
+      commit,
+      currentRemote,
+      progress => {
+        this.updateCheckoutProgress(repository, progress)
+      }
+    )
   }
 
   /**
@@ -4239,8 +4294,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
           )
         }
 
+        const remote =
+          gitStore.remotes.find(r => r.name === remoteName) ??
+          (await getRemoteURL(repository, remoteName)
+            .then(url => (url ? { name: remoteName, url } : undefined))
+            .catch(e => log.debug(`Could not get remote URL`, e)))
+
+        if (remote === undefined) {
+          throw new Error(`Could not determine remote url from: ${branch.ref}.`)
+        }
+
         await gitStore.performFailableOperation(() =>
-          deleteRemoteBranch(r, account, remoteName, nameWithoutRemote)
+          deleteRemoteBranch(r, account, remote, nameWithoutRemote)
         )
 
         // We log the remote branch's sha so that the user can recover it.
@@ -4258,7 +4323,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       if (branchToCheckout !== null) {
         await gitStore.performFailableOperation(() =>
-          checkoutBranch(r, account, branchToCheckout)
+          checkoutBranch(r, account, branchToCheckout, gitStore.currentRemote)
         )
       }
 
@@ -4292,10 +4357,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
       branch.upstreamRemoteName !== null &&
       branch.upstreamWithoutRemote !== null
     ) {
+      const gitStore = this.gitStoreCache.get(repository)
+      const remoteName = branch.upstreamRemoteName
+
+      const remote =
+        gitStore.remotes.find(r => r.name === remoteName) ??
+        (await getRemoteURL(repository, remoteName)
+          .then(url => (url ? { name: remoteName, url } : undefined))
+          .catch(e => log.debug(`Could not get remote URL`, e)))
+
+      if (!remote) {
+        throw new Error(`Could not determine remote url from: ${branch.ref}.`)
+      }
+
       await deleteRemoteBranch(
         repository,
         account,
-        branch.upstreamRemoteName,
+        remote,
         branch.upstreamWithoutRemote
       )
     }
@@ -6986,7 +7064,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       (r, account) => {
         return gitStore.performFailableOperation(() =>
-          checkoutBranch(repository, account, targetBranch)
+          checkoutBranch(
+            repository,
+            account,
+            targetBranch,
+            gitStore.currentRemote
+          )
         )
       }
     )
@@ -7099,7 +7182,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
     await this.withAuthenticatingUser(repository, async (r, account) => {
       await gitStore.performFailableOperation(() =>
-        checkoutBranch(repository, account, sourceBranch)
+        checkoutBranch(
+          repository,
+          account,
+          sourceBranch,
+          gitStore.currentRemote
+        )
       )
     })
   }
