@@ -1,7 +1,6 @@
 import { git, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { IGitAccount } from '../../models/git-account'
 import { formatAsLocalRef } from './refs'
 import { deleteRef } from './update-ref'
 import { GitError as DugiteError } from 'dugite'
@@ -69,7 +68,6 @@ export async function deleteLocalBranch(
  */
 export async function deleteRemoteBranch(
   repository: Repository,
-  account: IGitAccount | null,
   remote: IRemote,
   remoteBranchName: string
 ): Promise<true> {
@@ -83,7 +81,7 @@ export async function deleteRemoteBranch(
   // If the user is not authenticated, the push is going to fail
   // Let this propagate and leave it to the caller to handle
   const result = await git(args, repository.path, 'deleteRemoteBranch', {
-    env: await envForRemoteOperation(account, remote.url),
+    env: await envForRemoteOperation(remote.url),
     expectedErrors: new Set<DugiteError>([DugiteError.BranchDeletionFailed]),
   })
 

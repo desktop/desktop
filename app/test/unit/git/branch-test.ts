@@ -216,7 +216,7 @@ describe('git/branch', () => {
       const [remoteBranch] = await getBranches(mockLocal, remoteRef)
       expect(remoteBranch).not.toBeUndefined()
 
-      await checkoutBranch(mockLocal, null, remoteBranch, null)
+      await checkoutBranch(mockLocal, remoteBranch, null)
       await git(['checkout', '-'], mockLocal.path, 'checkoutPrevious')
 
       expect(await getBranches(mockLocal, localRef)).toBeArrayOfSize(1)
@@ -229,7 +229,6 @@ describe('git/branch', () => {
 
       await deleteRemoteBranch(
         mockLocal,
-        null,
         { name: localBranch.upstreamRemoteName!, url: '' },
         localBranch.upstreamWithoutRemote!
       )
@@ -253,7 +252,7 @@ describe('git/branch', () => {
       const [remoteBranch] = await getBranches(mockLocal, remoteRef)
       expect(remoteBranch).not.toBeUndefined()
 
-      await checkoutBranch(mockLocal, null, remoteBranch, null)
+      await checkoutBranch(mockLocal, remoteBranch, null)
       await git(['checkout', '-'], mockLocal.path, 'checkoutPrevious')
 
       expect(await getBranches(mockLocal, localRef)).toBeArrayOfSize(1)
@@ -271,7 +270,6 @@ describe('git/branch', () => {
 
       await deleteRemoteBranch(
         mockLocal,
-        null,
         { name: localBranch.upstreamRemoteName!, url: '' },
         localBranch.upstreamWithoutRemote!
       )

@@ -52,7 +52,7 @@ describe('git/pull', () => {
       }
 
       await makeCommit(repository, changesForLocalRepository)
-      await fetch(repository, null, remote)
+      await fetch(repository, remote)
     })
 
     describe('with pull.rebase=false and pull.ff=false set in config', () => {
@@ -67,7 +67,7 @@ describe('git/pull', () => {
 
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, remote)
+        await pull(repository, remote)
 
         newTip = await getTipOrError(repository)
       })
@@ -102,7 +102,7 @@ describe('git/pull', () => {
 
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, remote)
+        await pull(repository, remote)
 
         newTip = await getTipOrError(repository)
       })
@@ -132,7 +132,7 @@ describe('git/pull', () => {
 
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, remote)
+        await pull(repository, remote)
 
         newTip = await getTipOrError(repository)
       })
@@ -162,7 +162,7 @@ describe('git/pull', () => {
       })
 
       it(`throws an error as the user blocks merge commits on pull`, () => {
-        expect(pull(repository, null, remote)).rejects.toThrow()
+        expect(pull(repository, remote)).rejects.toThrow()
       })
     })
   })
