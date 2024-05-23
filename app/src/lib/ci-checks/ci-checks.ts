@@ -1,15 +1,15 @@
+import { Account } from '../../models/account'
+import { GitHubRepository } from '../../models/github-repository'
 import {
-  APICheckStatus,
+  API,
   APICheckConclusion,
-  IAPIWorkflowJobStep,
+  APICheckStatus,
   IAPIRefCheckRun,
   IAPIRefStatusItem,
-  API,
+  IAPIWorkflowJobStep,
   IAPIWorkflowJobs,
   IAPIWorkflowRun,
 } from '../api'
-import { GitHubRepository } from '../../models/github-repository'
-import { Account } from '../../models/account'
 import { supportsRetrieveActionWorkflowByCheckSuiteId } from '../endpoint-capabilities'
 import {
   formatLongPreciseDuration,
@@ -286,7 +286,7 @@ export function isSuccess(check: IRefCheck) {
  * We use the check suite id as a proxy for determining what's
  * the "latest" of two check runs with the same name.
  */
-export function getLatestCheckRunsByName(
+export function getLatestCheckRunsById(
   checkRuns: ReadonlyArray<IAPIRefCheckRun>
 ): ReadonlyArray<IAPIRefCheckRun> {
   const latestCheckRunsByName = new Map<string, IAPIRefCheckRun>()
@@ -301,7 +301,7 @@ export function getLatestCheckRunsByName(
     // feels hacky... but we don't have any other meta data on a check run that
     // differieates these.
     const nameAndHasPRs =
-      checkRun.name +
+      checkRun.id +
       (checkRun.pull_requests.length > 0
         ? 'isPullRequestCheckRun'
         : 'isPushCheckRun')
