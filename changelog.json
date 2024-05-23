@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.3.19-beta2": [
+      "[Fixed] Support multiple accounts for remote urls that differ in path - #18676, #18651",
+      "[Fixed] Refreshing repository indicators will not invalidate credentials - #18622",
+      "[Improved] The generic git auth dialog contents are announced to users of screen readers - #18670"
+    ],
     "3.3.19-beta1": [
       "[Fixed] Clear stored credentials when authentication fails on insecure http hosts - #18588"
     ],
