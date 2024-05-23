@@ -94,7 +94,7 @@ export async function envForProxy(
   remoteUrl: string,
   env: NodeJS.ProcessEnv = process.env,
   resolve: (url: string) => Promise<string | undefined> = resolveGitProxy
-): Promise<NodeJS.ProcessEnv | undefined> {
+): Promise<Record<string, string | undefined> | undefined> {
   const protocolMatch = /^(https?):\/\//i.exec(remoteUrl)
 
   // We can only resolve and use a proxy for the protocols where cURL
