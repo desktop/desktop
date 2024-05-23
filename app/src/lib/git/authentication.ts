@@ -1,7 +1,7 @@
 import { GitError as DugiteError } from 'dugite'
 
 /** Get the environment for authenticating remote operations. */
-export function envForAuthentication(): Object {
+export function envForAuthentication(): Record<string, string | undefined> {
   return {
     // supported since Git 2.3, this is used to ensure we never interactively prompt
     // for credentials - even as a fallback
