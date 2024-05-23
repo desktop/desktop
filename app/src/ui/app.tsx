@@ -1925,7 +1925,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <GenericGitAuthentication
             key="generic-git-authentication"
-            hostname={popup.hostname}
+            remoteUrl={popup.remoteUrl}
+            username={popup.username}
             // eslint-disable-next-line react/jsx-no-bind
             onDismiss={onDismiss}
             onSave={popup.onSubmit}

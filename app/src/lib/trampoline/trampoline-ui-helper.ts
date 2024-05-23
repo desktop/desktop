@@ -59,12 +59,14 @@ class TrampolineUIHelper {
   }
 
   public promptForGenericGitAuthentication(
-    hostname: string
+    remoteUrl: string,
+    username?: string
   ): Promise<{ username: string; password: string }> {
     return new Promise(resolve => {
       this.dispatcher.showPopup({
         type: PopupType.GenericGitAuthentication,
-        hostname,
+        remoteUrl,
+        username,
         onSubmit: (username: string, password: string) =>
           resolve({ username, password }),
         onDismiss: () => resolve({ username: '', password: '' }),

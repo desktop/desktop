@@ -7,4 +7,7 @@ export interface IGitAccount {
 
   /** The endpoint with which the user is authenticating. */
   readonly endpoint: string
+
+  /** The token/password to authenticate with */
+  readonly token: string
 }

@@ -70,7 +70,6 @@ import {
   IMultiCommitOperationProgress,
 } from '../../models/progress'
 import { Popup, PopupType } from '../../models/popup'
-import { IGitAccount } from '../../models/git-account'
 import { themeChangeMonitor } from '../../ui/lib/theme-change-monitor'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import {
@@ -135,7 +134,6 @@ import {
 import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
 
 import { formatCommitMessage } from '../format-commit-message'
-import { removePathFromGenericGitAuthCreds } from '../generic-git-auth'
 import { getAccountForRepository } from '../get-account-for-repository'
 import {
   abortMerge,
@@ -604,8 +602,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.tutorialAssessor = new OnboardingTutorialAssessor(
       this.getResolvedExternalEditor
     )
-
-    removePathFromGenericGitAuthCreds()
 
     // We're considering flipping the default value and have new users
     // start off with repository indicators disabled. As such we'll start
@@ -6046,7 +6042,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     fn: (repository: Repository) => Promise<T>
   ): Promise<T> {
     let updatedRepository = repository
-    const account: IGitAccount | null = getAccountForRepository(
+    const account: Account | null = getAccountForRepository(
       this.accounts,
       updatedRepository
     )
