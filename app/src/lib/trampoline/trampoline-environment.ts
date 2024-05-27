@@ -10,9 +10,13 @@ import {
 } from '../ssh/ssh-secret-storage'
 import { GitError as DugiteError, GitProcess } from 'dugite'
 import memoizeOne from 'memoize-one'
-import { enableCustomGitUserAgent } from '../feature-flag'
+import {
+  enableCustomGitUserAgent,
+  enableExternalCredentialHelper,
+} from '../feature-flag'
 import { GitError } from '../git/core'
 import { deleteGenericCredential } from '../generic-git-auth'
+import { approveCredential, rejectCredential } from '../git/credential'
 
 const mostRecentGenericGitCredential = new Map<
   string,
@@ -24,6 +28,16 @@ export const setMostRecentGenericGitCredential = (
   endpoint: string,
   login: string
 ) => mostRecentGenericGitCredential.set(trampolineToken, { endpoint, login })
+
+const mostRecentCredentialHelperCredential = new Map<
+  string,
+  Map<string, string>
+>()
+
+export const setMostRecentCredentialHelperCredential = (
+  trampolineToken: string,
+  credential: Map<string, string>
+) => mostRecentCredentialHelperCredential.set(trampolineToken, credential)
 
 const hasRejectedCredentialsForEndpoint = new Map<string, Set<string>>()
 
@@ -53,11 +67,34 @@ const isBackgroundTaskEnvironment = new Map<string, boolean>()
 export const getIsBackgroundTaskEnvironment = (trampolineToken: string) =>
   isBackgroundTaskEnvironment.get(trampolineToken) ?? false
 
+const credentialHelperCredentials = new Map<
+  string,
+  Map<string, Map<string, string>>
+>()
+
+const getCredentialUrl = (credential: Map<string, string>) =>
+  credential.get('url') ??
+  `${credential.get('protocol')}://${credential.get('host')}${credential.get(
+    'path'
+  )}`
+
+export const addCredentialHelperCredential = (
+  trampolineToken: string,
+  credential: Map<string, string>
+) => {
+  let map = credentialHelperCredentials.get(trampolineToken)
+  if (!map) {
+    map = new Map<string, Map<string, string>>()
+    credentialHelperCredentials.set(trampolineToken, map)
+  }
+  map.set(getCredentialUrl(credential), credential)
+}
+
 export const GitUserAgent = memoizeOne(() =>
   // Can't use git() as that will call withTrampolineEnv which calls this method
   GitProcess.exec(['--version'], process.cwd())
     // https://github.com/git/git/blob/a9e066fa63149291a55f383cfa113d8bdbdaa6b3/help.c#L733-L739
-    .then(r => /git version (.*)/.exec(r.stdout)?.at(1))
+    .then(r => /git version (.*)/.exec(r.stdout)?.at(1) ?? 'unknown')
     .catch(e => {
       log.warn(`Could not get git version information`, e)
       return 'unknown'
@@ -116,6 +153,15 @@ export async function withTrampolineEnv<T>(
 
       await storePendingSSHSecret(token)
 
+      if (enableExternalCredentialHelper()) {
+        const creds = credentialHelperCredentials.get(token)?.values() ?? []
+        for (const c of creds) {
+          const endpoint = getCredentialUrl(c)
+          log.debug(`askPassHandler: approving ${endpoint} credential`)
+          await approveCredential(c, 'manager')
+        }
+      }
+
       return result
     } catch (e) {
       // If the operation fails with an HTTPSAuthenticationFailed error, we
@@ -124,12 +170,27 @@ export async function withTrampolineEnv<T>(
       // practical purposes, it's as good as we can get with the information we
       // have. We're limited by the ASKPASS flow here.
       if (isAuthFailure(e) && !getIsBackgroundTaskEnvironment(token)) {
-        deleteMostRecentGenericCredential(token)
+        if (enableExternalCredentialHelper()) {
+          const c = mostRecentCredentialHelperCredential.get(token)
+          if (c) {
+            const endpoint = getCredentialUrl(c)
+            log.info(
+              `askPassHandler: auth failed, rejecting ${endpoint} credential`
+            )
+            await rejectCredential(c, 'manager')
+          }
+        } else {
+          deleteMostRecentGenericCredential(token)
+        }
       }
       throw e
     } finally {
       removePendingSSHSecretToStore(token)
+      mostRecentGenericGitCredential.delete(token)
+      mostRecentCredentialHelperCredential.delete(token)
       isBackgroundTaskEnvironment.delete(token)
+      hasRejectedCredentialsForEndpoint.delete(token)
+      credentialHelperCredentials.delete(token)
     }
   })
 }

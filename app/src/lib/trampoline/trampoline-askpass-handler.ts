@@ -23,13 +23,18 @@ import {
 } from '../generic-git-auth'
 import { Account } from '../../models/account'
 import {
+  addCredentialHelperCredential,
   getHasRejectedCredentialsForEndpoint,
   getIsBackgroundTaskEnvironment,
   setHasRejectedCredentialsForEndpoint,
+  setMostRecentCredentialHelperCredential,
   setMostRecentGenericGitCredential,
 } from './trampoline-environment'
 import { IGitAccount } from '../../models/git-account'
 import memoizeOne from 'memoize-one'
+import { enableExternalCredentialHelper } from '../feature-flag'
+import { forceUnwrap } from '../fatal-error'
+import { fillCredential } from '../git/credential'
 
 async function handleSSHHostAuthenticity(
   prompt: string
@@ -209,6 +214,19 @@ const handleAskPassUserPassword = async (
     // the user cancels.
     return undefined
   }
+  if (enableExternalCredentialHelper()) {
+    const credHelperCreds = await memoizedGetCredentialsFromHelper(
+      trampolineToken,
+      remoteUrl
+    )
+
+    if (credHelperCreds) {
+      info(`acquired credentials for ${remoteUrl} using credential helper`)
+      return kind === 'Username' ? credHelperCreds.login : credHelperCreds.token
+    }
+
+    return undefined
+  }
 
   const { username, password } =
     await trampolineUIHelper.promptForGenericGitAuthentication(
@@ -261,6 +279,24 @@ const memoizedGetGenericPassword = memoizeOne(
     getGenericPassword(endpoint, login)
 )
 
+const getCredentialsFromHelper = (trampolineToken: string, endpoint: string) =>
+  fillCredential(endpoint, 'manager')
+    .then(kv => {
+      setMostRecentCredentialHelperCredential(trampolineToken, kv)
+      addCredentialHelperCredential(trampolineToken, kv)
+      return {
+        login: forceUnwrap('missing username', kv.get('username')),
+        token: forceUnwrap('missing password', kv.get('password')),
+        endpoint,
+      }
+    })
+    .catch(e => {
+      log.error(`getCredentialsFromHelper failed`, e)
+      return undefined
+    })
+
+const memoizedGetCredentialsFromHelper = memoizeOne(getCredentialsFromHelper)
+
 async function findAccount(
   trampolineToken: string,
   accountsStore: AccountsStore,
@@ -275,6 +311,10 @@ async function findAccount(
 
   if (account) {
     return account
+  }
+
+  if (enableExternalCredentialHelper()) {
+    return undefined
   }
 
   const login =
