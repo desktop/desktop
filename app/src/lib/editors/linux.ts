@@ -62,6 +62,7 @@ const editors: ILinuxExternalEditor[] = [
       '/var/lib/flatpak/app/com.vscodium.codium/current/active/export/bin/com.vscodium.codium',
       '/usr/share/vscodium-bin/bin/codium',
       '.local/share/flatpak/app/com.vscodium.codium/current/active/export/bin/com.vscodium.codium',
+      '/snap/bin/codium',
     ],
   },
   {
