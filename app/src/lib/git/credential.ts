@@ -49,4 +49,4 @@ export const approveCredential = (
 export const rejectCredential = (
   credential: Map<string, string>,
   helper: string
-) => execCredential(['approve'], helper, formatCredential(credential))
+) => execCredential(['reject'], helper, formatCredential(credential))
