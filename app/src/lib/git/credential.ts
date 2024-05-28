@@ -12,12 +12,12 @@ function formatCredential(credential: Map<string, string>) {
   return [...credential].map(([k, v]) => `${k}=${v}\n`).join('')
 }
 
-const execCredential = (args: string[], helper: string, stdin?: string) =>
+const execCredential = (args: string[], stdin?: string) =>
   // Can't use git() as that will call withTrampolineEnv which calls this method
   GitProcess.exec(
     [
       ...['-c', 'credential.helper='],
-      ...['-c', `credential.helper=${helper}`],
+      ...['-c', `credential.helper=manager`],
       'credential',
       ...args,
     ],
@@ -38,15 +38,11 @@ const execCredential = (args: string[], helper: string, stdin?: string) =>
     return parseCredential(r.stdout)
   })
 
-export const fillCredential = (endpoint: string, helper: string) =>
-  execCredential(['fill'], helper, `url=${endpoint}\n`)
+export const fillCredential = (endpoint: string) =>
+  execCredential(['fill'], `url=${endpoint}\n`)
 
-export const approveCredential = (
-  credential: Map<string, string>,
-  helper: string
-) => execCredential(['approve'], helper, formatCredential(credential))
+export const approveCredential = (credential: Map<string, string>) =>
+  execCredential(['approve'], formatCredential(credential))
 
-export const rejectCredential = (
-  credential: Map<string, string>,
-  helper: string
-) => execCredential(['reject'], helper, formatCredential(credential))
+export const rejectCredential = (credential: Map<string, string>) =>
+  execCredential(['reject'], formatCredential(credential))

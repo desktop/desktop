@@ -280,7 +280,7 @@ const memoizedGetGenericPassword = memoizeOne(
 )
 
 const getCredentialsFromHelper = (trampolineToken: string, endpoint: string) =>
-  fillCredential(endpoint, 'manager')
+  fillCredential(endpoint)
     .then(kv => {
       setMostRecentCredentialHelperCredential(trampolineToken, kv)
       addCredentialHelperCredential(trampolineToken, kv)

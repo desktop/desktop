@@ -156,7 +156,7 @@ export async function withTrampolineEnv<T>(
         for (const c of creds) {
           const endpoint = getCredentialUrl(c)
           log.debug(`askPassHandler: approving ${endpoint} credential`)
-          await approveCredential(c, 'manager')
+          await approveCredential(c)
         }
       }
 
@@ -175,7 +175,7 @@ export async function withTrampolineEnv<T>(
             log.info(
               `askPassHandler: auth failed, rejecting ${endpoint} credential`
             )
-            await rejectCredential(c, 'manager')
+            await rejectCredential(c)
           }
         } else {
           deleteMostRecentGenericCredential(token)
