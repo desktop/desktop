@@ -1,6 +1,6 @@
 {
   "releases": {
-    "3.3.19": [
+    "3.4.0": [
       "[New] Reset to a previous commit - #12393",
       "[Added] Add accessibility settings to toggle link underlines and diff check marks - #18227, 18035",
       "[Fixed] Support multiple accounts for remote urls that differ in path - #18676, #18651",
