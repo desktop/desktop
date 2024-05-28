@@ -94,7 +94,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: yarn
-
       - name: Install and build dependencies
         run: yarn
         env:
