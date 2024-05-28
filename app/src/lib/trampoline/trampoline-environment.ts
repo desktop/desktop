@@ -74,7 +74,7 @@ const credentialHelperCredentials = new Map<
 
 const getCredentialUrl = (cred: Map<string, string>) =>
   cred.get('url') ??
-  `${cred.get('protocol')}://${cred.get('host')}${cred.get('path')}`
+  `${cred.get('protocol')}://${cred.get('host')}/${cred.get('path')}`
 
 export const addCredentialHelperCredential = (
   trampolineToken: string,
