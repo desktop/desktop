@@ -160,97 +160,103 @@ export async function git(
     combineOutput(process.stdout)
   }
 
-  return withTrampolineEnv(async env => {
-    const combinedEnv = merge(opts.env, env)
+  return withTrampolineEnv(
+    async env => {
+      const combinedEnv = merge(opts.env, env)
 
-    // Explicitly set TERM to 'dumb' so that if Desktop was launched
-    // from a terminal or if the system environment variables
-    // have TERM set Git won't consider us as a smart terminal.
-    // See https://github.com/git/git/blob/a7312d1a2/editor.c#L11-L15
-    opts.env = { TERM: 'dumb', ...combinedEnv }
+      // Explicitly set TERM to 'dumb' so that if Desktop was launched
+      // from a terminal or if the system environment variables
+      // have TERM set Git won't consider us as a smart terminal.
+      // See https://github.com/git/git/blob/a7312d1a2/editor.c#L11-L15
+      opts.env = { TERM: 'dumb', ...combinedEnv }
 
-    const commandName = `${name}: git ${args.join(' ')}`
+      const commandName = `${name}: git ${args.join(' ')}`
 
-    const result = await GitPerf.measure(commandName, () =>
-      GitProcess.exec(args, path, opts)
-    ).catch(err => {
-      // If this is an exception thrown by Node.js (as opposed to
-      // dugite) let's keep the salient details but include the name of
-      // the operation.
-      if (isErrnoException(err)) {
-        throw new Error(`Failed to execute ${name}: ${err.code}`)
+      const result = await GitPerf.measure(commandName, () =>
+        GitProcess.exec(args, path, opts)
+      ).catch(err => {
+        // If this is an exception thrown by Node.js (as opposed to
+        // dugite) let's keep the salient details but include the name of
+        // the operation.
+        if (isErrnoException(err)) {
+          throw new Error(`Failed to execute ${name}: ${err.code}`)
+        }
+
+        throw err
+      })
+
+      const exitCode = result.exitCode
+
+      let gitError: DugiteError | null = null
+      const acceptableExitCode = opts.successExitCodes
+        ? opts.successExitCodes.has(exitCode)
+        : false
+      if (!acceptableExitCode) {
+        gitError = GitProcess.parseError(result.stderr)
+        if (gitError === null) {
+          gitError = GitProcess.parseError(result.stdout)
+        }
       }
 
-      throw err
-    })
-
-    const exitCode = result.exitCode
-
-    let gitError: DugiteError | null = null
-    const acceptableExitCode = opts.successExitCodes
-      ? opts.successExitCodes.has(exitCode)
-      : false
-    if (!acceptableExitCode) {
-      gitError = GitProcess.parseError(result.stderr)
-      if (gitError === null) {
-        gitError = GitProcess.parseError(result.stdout)
+      const gitErrorDescription =
+        gitError !== null
+          ? getDescriptionForError(gitError, result.stderr)
+          : null
+      const gitResult = {
+        ...result,
+        gitError,
+        gitErrorDescription,
+        combinedOutput,
+        path,
       }
-    }
 
-    const gitErrorDescription =
-      gitError !== null ? getDescriptionForError(gitError, result.stderr) : null
-    const gitResult = {
-      ...result,
-      gitError,
-      gitErrorDescription,
-      combinedOutput,
-      path,
-    }
+      let acceptableError = true
+      if (gitError !== null && opts.expectedErrors) {
+        acceptableError = opts.expectedErrors.has(gitError)
+      }
 
-    let acceptableError = true
-    if (gitError !== null && opts.expectedErrors) {
-      acceptableError = opts.expectedErrors.has(gitError)
-    }
+      if ((gitError !== null && acceptableError) || acceptableExitCode) {
+        return gitResult
+      }
 
-    if ((gitError !== null && acceptableError) || acceptableExitCode) {
-      return gitResult
-    }
-
-    // The caller should either handle this error, or expect that exit code.
-    const errorMessage = new Array<string>()
-    errorMessage.push(
-      `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
-    )
-
-    if (result.stdout) {
-      errorMessage.push('stdout:')
-      errorMessage.push(result.stdout)
-    }
-
-    if (result.stderr) {
-      errorMessage.push('stderr:')
-      errorMessage.push(result.stderr)
-    }
-
-    if (gitError !== null) {
+      // The caller should either handle this error, or expect that exit code.
+      const errorMessage = new Array<string>()
       errorMessage.push(
-        `(The error was parsed as ${gitError}: ${gitErrorDescription})`
+        `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
       )
-    }
 
-    log.error(errorMessage.join('\n'))
-
-    if (gitError === DugiteError.PushWithFileSizeExceedingLimit) {
-      const result = getFileFromExceedsError(errorMessage.join())
-      const files = result.join('\n')
-
-      if (files !== '') {
-        gitResult.gitErrorDescription += '\n\nFile causing error:\n\n' + files
+      if (result.stdout) {
+        errorMessage.push('stdout:')
+        errorMessage.push(result.stdout)
       }
-    }
 
-    throw new GitError(gitResult, args)
-  }, options?.isBackgroundTask ?? false)
+      if (result.stderr) {
+        errorMessage.push('stderr:')
+        errorMessage.push(result.stderr)
+      }
+
+      if (gitError !== null) {
+        errorMessage.push(
+          `(The error was parsed as ${gitError}: ${gitErrorDescription})`
+        )
+      }
+
+      log.error(errorMessage.join('\n'))
+
+      if (gitError === DugiteError.PushWithFileSizeExceedingLimit) {
+        const result = getFileFromExceedsError(errorMessage.join())
+        const files = result.join('\n')
+
+        if (files !== '') {
+          gitResult.gitErrorDescription += '\n\nFile causing error:\n\n' + files
+        }
+      }
+
+      throw new GitError(gitResult, args)
+    },
+    path,
+    options?.isBackgroundTask ?? false
+  )
 }
 
 /**

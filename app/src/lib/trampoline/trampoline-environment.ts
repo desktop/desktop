@@ -63,6 +63,10 @@ export const getHasRejectedCredentialsForEndpoint = (
   )
 }
 const isBackgroundTaskEnvironment = new Map<string, boolean>()
+const trampolineEnvironmentPath = new Map<string, string>()
+
+export const getTrampolineEnvironmentPath = (trampolineToken: string) =>
+  trampolineEnvironmentPath.get(trampolineToken) ?? process.cwd()
 
 export const getIsBackgroundTaskEnvironment = (trampolineToken: string) =>
   isBackgroundTaskEnvironment.get(trampolineToken) ?? false
@@ -119,13 +123,14 @@ export const GitUserAgent = memoizeOne(() =>
  */
 export async function withTrampolineEnv<T>(
   fn: (env: object) => Promise<T>,
+  path: string,
   isBackgroundTask = false
 ): Promise<T> {
   const sshEnv = await getSSHEnvironment()
 
   return withTrampolineToken(async token => {
     isBackgroundTaskEnvironment.set(token, isBackgroundTask)
-
+    trampolineEnvironmentPath.set(token, path)
     // The code below assumes a few things in order to manage SSH key passphrases
     // correctly:
     // 1. `withTrampolineEnv` is only used in the functions `git` (core.ts) and
@@ -156,7 +161,7 @@ export async function withTrampolineEnv<T>(
         for (const c of creds) {
           const endpoint = getCredentialUrl(c)
           log.debug(`askPassHandler: approving ${endpoint} credential`)
-          await approveCredential(c)
+          await approveCredential(c, path)
         }
       }
 
@@ -175,7 +180,7 @@ export async function withTrampolineEnv<T>(
             log.info(
               `askPassHandler: auth failed, rejecting ${endpoint} credential`
             )
-            await rejectCredential(c)
+            await rejectCredential(c, path)
           }
         } else {
           deleteMostRecentGenericCredential(token)
@@ -189,6 +194,7 @@ export async function withTrampolineEnv<T>(
       isBackgroundTaskEnvironment.delete(token)
       hasRejectedCredentialsForEndpoint.delete(token)
       credentialHelperCredentials.delete(token)
+      trampolineEnvironmentPath.delete(token)
     }
   })
 }

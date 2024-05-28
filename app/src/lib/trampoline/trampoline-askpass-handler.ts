@@ -26,6 +26,7 @@ import {
   addCredentialHelperCredential,
   getHasRejectedCredentialsForEndpoint,
   getIsBackgroundTaskEnvironment,
+  getTrampolineEnvironmentPath,
   setHasRejectedCredentialsForEndpoint,
   setMostRecentCredentialHelperCredential,
   setMostRecentGenericGitCredential,
@@ -217,7 +218,8 @@ const handleAskPassUserPassword = async (
   if (enableExternalCredentialHelper()) {
     const credHelperCreds = await memoizedGetCredentialsFromHelper(
       trampolineToken,
-      remoteUrl
+      remoteUrl,
+      getTrampolineEnvironmentPath(trampolineToken)
     )
 
     if (credHelperCreds) {
@@ -279,8 +281,12 @@ const memoizedGetGenericPassword = memoizeOne(
     getGenericPassword(endpoint, login)
 )
 
-const getCredentialsFromHelper = (trampolineToken: string, endpoint: string) =>
-  fillCredential(endpoint)
+const getCredentialsFromHelper = (
+  trampolineToken: string,
+  endpoint: string,
+  path: string
+) =>
+  fillCredential(endpoint, path)
     .then(kv => {
       setMostRecentCredentialHelperCredential(trampolineToken, kv)
       addCredentialHelperCredential(trampolineToken, kv)
