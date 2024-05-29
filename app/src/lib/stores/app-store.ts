@@ -331,6 +331,11 @@ import { resizableComponentClass } from '../../ui/resizable'
 import { compare } from '../compare'
 import { parseRepoRules, useRepoRulesLogic } from '../helpers/repo-rules'
 import { RepoRulesInfo } from '../../models/repo-rules'
+import {
+  setUseExternalCredentialHelper,
+  useExternalCredentialHelper,
+  useExternalCredentialHelperDefault,
+} from '../trampoline/use-external-credential-helper'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -354,7 +359,6 @@ const defaultPullRequestFileListWidth: number = 250
 const pullRequestFileListConfigKey: string = 'pull-request-files-width'
 
 const askToMoveToApplicationsFolderDefault: boolean = true
-export const useExternalCredentialHelperDefault = false
 const confirmRepoRemovalDefault: boolean = true
 const showCommitLengthWarningDefault: boolean = false
 const confirmDiscardChangesDefault: boolean = true
@@ -364,8 +368,6 @@ const confirmCheckoutCommitDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
 const confirmUndoCommitDefault: boolean = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
-export const useExternalCredentialHelperKey: string =
-  'useExternalCredentialHelper'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const showCommitLengthWarningKey: string = 'showCommitLengthWarning'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
@@ -2120,6 +2122,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askToMoveToApplicationsFolderKey,
       askToMoveToApplicationsFolderDefault
     )
+
+    this.useExternalCredentialHelper = useExternalCredentialHelper()
 
     this.askForConfirmationOnRepositoryRemoval = getBoolean(
       confirmRepoRemovalKey,
@@ -5502,7 +5506,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public _setUseExternalCredentialHelper(value: boolean) {
-    setBoolean(useExternalCredentialHelperKey, value)
+    setUseExternalCredentialHelper(value)
     this.useExternalCredentialHelper = value
     this.emitUpdate()
   }

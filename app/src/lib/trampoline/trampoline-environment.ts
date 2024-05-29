@@ -10,22 +10,11 @@ import {
 } from '../ssh/ssh-secret-storage'
 import { GitError as DugiteError, GitProcess } from 'dugite'
 import memoizeOne from 'memoize-one'
-import {
-  enableCustomGitUserAgent,
-  enableExternalCredentialHelper,
-} from '../feature-flag'
+import { enableCustomGitUserAgent } from '../feature-flag'
 import { GitError } from '../git/core'
 import { deleteGenericCredential } from '../generic-git-auth'
 import { approveCredential, rejectCredential } from '../git/credential'
-import {
-  useExternalCredentialHelperDefault,
-  useExternalCredentialHelperKey,
-} from '../stores/app-store'
-import { getBoolean } from '../local-storage'
-
-const useExternalCredentialHelper = () =>
-  enableExternalCredentialHelper() &&
-  getBoolean(useExternalCredentialHelperKey, useExternalCredentialHelperDefault)
+import { useExternalCredentialHelper } from './use-external-credential-helper'
 
 const mostRecentGenericGitCredential = new Map<
   string,
