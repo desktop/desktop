@@ -200,6 +200,9 @@ export interface IAppState {
   /** Whether we should ask the user to move the app to /Applications */
   readonly askToMoveToApplicationsFolderSetting: boolean
 
+  /** Whether we should use an external credential helper for third-party private repositories */
+  readonly useExternalCredentialHelper: boolean
+
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
 

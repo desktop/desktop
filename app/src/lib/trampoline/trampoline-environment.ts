@@ -17,6 +17,15 @@ import {
 import { GitError } from '../git/core'
 import { deleteGenericCredential } from '../generic-git-auth'
 import { approveCredential, rejectCredential } from '../git/credential'
+import {
+  useExternalCredentialHelperDefault,
+  useExternalCredentialHelperKey,
+} from '../stores/app-store'
+import { getBoolean } from '../local-storage'
+
+const useExternalCredentialHelper = () =>
+  enableExternalCredentialHelper() &&
+  getBoolean(useExternalCredentialHelperKey, useExternalCredentialHelperDefault)
 
 const mostRecentGenericGitCredential = new Map<
   string,
@@ -156,7 +165,7 @@ export async function withTrampolineEnv<T>(
 
       await storePendingSSHSecret(token)
 
-      if (enableExternalCredentialHelper()) {
+      if (useExternalCredentialHelper()) {
         const creds = credentialHelperCredentials.get(token)?.values() ?? []
         for (const c of creds) {
           const endpoint = getCredentialUrl(c)
@@ -173,7 +182,7 @@ export async function withTrampolineEnv<T>(
       // practical purposes, it's as good as we can get with the information we
       // have. We're limited by the ASKPASS flow here.
       if (isAuthFailure(e) && !getIsBackgroundTaskEnvironment(token)) {
-        if (enableExternalCredentialHelper()) {
+        if (useExternalCredentialHelper()) {
           const c = mostRecentCredentialHelperCredential.get(token)
           if (c) {
             const endpoint = getCredentialUrl(c)

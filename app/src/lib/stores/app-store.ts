@@ -354,6 +354,7 @@ const defaultPullRequestFileListWidth: number = 250
 const pullRequestFileListConfigKey: string = 'pull-request-files-width'
 
 const askToMoveToApplicationsFolderDefault: boolean = true
+export const useExternalCredentialHelperDefault = false
 const confirmRepoRemovalDefault: boolean = true
 const showCommitLengthWarningDefault: boolean = false
 const confirmDiscardChangesDefault: boolean = true
@@ -363,6 +364,8 @@ const confirmCheckoutCommitDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
 const confirmUndoCommitDefault: boolean = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
+export const useExternalCredentialHelperKey: string =
+  'useExternalCredentialHelper'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const showCommitLengthWarningKey: string = 'showCommitLengthWarning'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
@@ -479,6 +482,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private askToMoveToApplicationsFolderSetting: boolean =
     askToMoveToApplicationsFolderDefault
+  private useExternalCredentialHelper: boolean =
+    useExternalCredentialHelperDefault
   private askForConfirmationOnRepositoryRemoval: boolean =
     confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
@@ -997,6 +1002,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentBanner: this.currentBanner,
       askToMoveToApplicationsFolderSetting:
         this.askToMoveToApplicationsFolderSetting,
+      useExternalCredentialHelper: this.useExternalCredentialHelper,
       askForConfirmationOnRepositoryRemoval:
         this.askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
@@ -5492,6 +5498,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     await this.statsStore.setOptOut(optOut, userViewedPrompt)
 
+    this.emitUpdate()
+  }
+
+  public _setUseExternalCredentialHelper(value: boolean) {
+    setBoolean(useExternalCredentialHelperKey, value)
+    this.useExternalCredentialHelper = value
     this.emitUpdate()
   }
 

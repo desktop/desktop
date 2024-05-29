@@ -2,7 +2,7 @@ import {
   getSSHKeyPassphrase,
   keepSSHKeyPassphraseToStore,
 } from '../ssh/ssh-key-passphrase'
-import { AccountsStore } from '../stores'
+import { AccountsStore } from '../stores/accounts-store'
 import {
   ITrampolineCommand,
   TrampolineCommandHandler,
@@ -36,6 +36,15 @@ import memoizeOne from 'memoize-one'
 import { enableExternalCredentialHelper } from '../feature-flag'
 import { forceUnwrap } from '../fatal-error'
 import { fillCredential } from '../git/credential'
+import { getBoolean } from '../local-storage'
+import {
+  useExternalCredentialHelperDefault,
+  useExternalCredentialHelperKey,
+} from '../stores/app-store'
+
+const useExternalCredentialHelper = () =>
+  enableExternalCredentialHelper() &&
+  getBoolean(useExternalCredentialHelperKey, useExternalCredentialHelperDefault)
 
 async function handleSSHHostAuthenticity(
   prompt: string
@@ -215,7 +224,7 @@ const handleAskPassUserPassword = async (
     // the user cancels.
     return undefined
   }
-  if (enableExternalCredentialHelper()) {
+  if (useExternalCredentialHelper()) {
     const credHelperCreds = await memoizedGetCredentialsFromHelper(
       trampolineToken,
       remoteUrl,
@@ -319,7 +328,7 @@ async function findAccount(
     return account
   }
 
-  if (enableExternalCredentialHelper()) {
+  if (useExternalCredentialHelper()) {
     return undefined
   }
 
