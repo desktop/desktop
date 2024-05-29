@@ -460,12 +460,8 @@ export async function continueCherryPick(
     return parseCherryPickResult(result)
   }
 
-  // --keep-redundant-commits follows pattern of making sure someone cherry
-  //  picked commit summaries appear in target branch history even tho they may
-  //  be empty. This flag also results in the ability to cherry pick empty
-  //  commits (thus, --allow-empty is not required.)
   const result = await git(
-    ['cherry-pick', '--continue', '--keep-redundant-commits'],
+    ['cherry-pick', '--continue'],
     repository.path,
     'continueCherryPick',
     options
