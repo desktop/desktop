@@ -70,7 +70,7 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
 
 /** Should we allow resetting to a previous commit? */
 export function enableResetToCommit(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we allow checking out a single commit? */
@@ -98,7 +98,7 @@ export const enableRepoRulesBeta = () => true
 
 export const enableCommitDetailsHeaderExpansion = () => true
 
-export const enableDiffCheckMarksAndLinkUnderlines = enableBetaFeatures
+export const enableDiffCheckMarksAndLinkUnderlines = () => true
 
 export const enableDiffCheckMarks = enableDiffCheckMarksAndLinkUnderlines
 export const enableGroupDiffCheckmarks = enableDiffCheckMarksAndLinkUnderlines
