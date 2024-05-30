@@ -51,7 +51,7 @@ export class DeleteBranch extends React.Component<
         <DialogContent>
           <div id="delete-branch-confirmation-message">
             <p>
-              Delete remote branch <Ref>{this.props.branch.name}</Ref>?
+              Delete branch <Ref>{this.props.branch.name}</Ref>?
             </p>
             <p>This action cannot be undone.</p>
 
