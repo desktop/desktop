@@ -5,6 +5,7 @@ import { Row } from '../../ui/lib/row'
 import { Select } from '../lib/select'
 import { Shell, parse as parseShell } from '../../lib/shells'
 import { suggestedExternalEditor } from '../../lib/editors/shared'
+import { CustomIntegrationForm } from './custom-integration-form'
 
 interface IIntegrationsPreferencesProps {
   readonly availableEditors: ReadonlyArray<string>
@@ -120,6 +121,28 @@ export class Integrations extends React.Component<
       </Select>
     )
   }
+
+  private renderCustomExternalEditor() {
+    return (
+      <Row>
+        <CustomIntegrationForm
+          path=""
+          params=""
+          onPathChanged={this.onCustomEditorPathChanged}
+          onParamsChanged={this.onCustomEditorParamsChanged}
+        />
+      </Row>
+    )
+  }
+
+  private onCustomEditorPathChanged = (path: string) => {
+    //this.setState({ customEditorPath: path })
+  }
+
+  private onCustomEditorParamsChanged = (params: string) => {
+    //this.setState({ customEditorParams: params })
+  }
+
   private renderSelectedShell() {
     const options = this.props.availableShells
 
@@ -138,12 +161,27 @@ export class Integrations extends React.Component<
     )
   }
 
+  private renderCustomShell() {
+    return (
+      <Row>
+        <CustomIntegrationForm
+          path=""
+          params=""
+          onPathChanged={this.onCustomEditorPathChanged}
+          onParamsChanged={this.onCustomEditorParamsChanged}
+        />
+      </Row>
+    )
+  }
+
   public render() {
     return (
       <DialogContent>
         <h2>Applications</h2>
         <Row>{this.renderExternalEditor()}</Row>
+        {this.renderCustomExternalEditor()}
         <Row>{this.renderSelectedShell()}</Row>
+        {this.renderCustomShell()}
       </DialogContent>
     )
   }
