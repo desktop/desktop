@@ -1,0 +1,43 @@
+name: 'Sync main branch with upstream'
+
+on: workflow_dispatch
+
+jobs:
+  sync-with-upstream:
+    runs-on: ubuntu-latest
+    name: Sync main branch with upstream
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.CREATE_RELEASE_AUTOMATION_TOKEN }}
+      - name: Configure git
+        run: |
+          git config --global user.name "shiftbot"
+          git config --global user.email "github@brendanforster.com"
+          git remote add upstream https://github.com/desktop/desktop.git
+        shell: bash
+      - name: Push development changes from upstream to fork
+        id: sync-development-branch
+        run: |
+          git fetch upstream development
+          git fetch origin --unshallow
+          git fetch origin development
+          git checkout -b development upstream/development
+          git push origin development
+        shell: bash
+      - name: Rebase Linux customizations on top of development branch
+        id: rebase-linux-branch
+        run: |
+          git fetch origin linux
+          git checkout linux
+          git log linux...development --oneline
+          git rebase --verbose development linux
+        shell: bash
+        continue-on-error: true
+      - name: Review current status
+        id: status
+        run: |
+          git status
+        shell: bash
+        # TODO: force push this when we're confident that the rebase has succeeded?
