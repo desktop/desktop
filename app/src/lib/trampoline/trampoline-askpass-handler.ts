@@ -23,21 +23,19 @@ import {
 } from '../generic-git-auth'
 import { Account } from '../../models/account'
 import {
-  addCredentialHelperCredential,
   getHasRejectedCredentialsForEndpoint,
   getIsBackgroundTaskEnvironment,
-  getTrampolineEnvironmentPath,
   setHasRejectedCredentialsForEndpoint,
-  setMostRecentCredentialHelperCredential,
   setMostRecentGenericGitCredential,
 } from './trampoline-environment'
 import { IGitAccount } from '../../models/git-account'
 import memoizeOne from 'memoize-one'
-import { forceUnwrap } from '../fatal-error'
-import { fillCredential } from '../git/credential'
-import { useExternalCredentialHelper } from './use-external-credential-helper'
 import { urlWithoutCredentials } from './url-without-credentials'
-import { findAccount } from './find-account'
+import {
+  findGenericTrampolineAccount,
+  findGitHubTrampolineAccount,
+  findTrampolineGitHubAccount,
+} from './find-account'
 
 async function handleSSHHostAuthenticity(
   prompt: string
@@ -189,7 +187,9 @@ const handleAskPassUserPassword = async (
   const { trampolineToken } = command
   const parsedUrl = new URL(remoteUrl)
   const endpoint = urlWithoutCredentials(remoteUrl)
-  const account = await findAccount(trampolineToken, accountsStore, remoteUrl)
+  const account =
+    (await findGitHubTrampolineAccount(accountsStore, remoteUrl)) ??
+    (await findGenericTrampolineAccount(trampolineToken, remoteUrl))
 
   if (account) {
     const accountKind = account instanceof Account ? 'account' : 'generic'
@@ -215,20 +215,6 @@ const handleAskPassUserPassword = async (
     // specifically we can create a promise that resolves when the GH sign in
     // flow completes but we don't have a way to have the promise reject if
     // the user cancels.
-    return undefined
-  }
-  if (useExternalCredentialHelper()) {
-    const credHelperCreds = await memoizedGetCredentialsFromHelper(
-      trampolineToken,
-      remoteUrl,
-      getTrampolineEnvironmentPath(trampolineToken)
-    )
-
-    if (credHelperCreds) {
-      info(`acquired credentials for ${remoteUrl} using credential helper`)
-      return kind === 'Username' ? credHelperCreds.login : credHelperCreds.token
-    }
-
     return undefined
   }
 
@@ -270,26 +256,3 @@ const handleAskPassUserPassword = async (
 
   return kind === 'Username' ? username : password
 }
-
-const getCredentialsFromHelper = (
-  trampolineToken: string,
-  endpoint: string,
-  path: string
-) =>
-  fillCredential(endpoint, path)
-    .then(kv => {
-      setMostRecentCredentialHelperCredential(trampolineToken, kv)
-      addCredentialHelperCredential(trampolineToken, kv)
-      return {
-        login: forceUnwrap('missing username', kv.get('username')),
-        token: forceUnwrap('missing password', kv.get('password')),
-        endpoint,
-      }
-    })
-    .catch(e => {
-      log.error(`getCredentialsFromHelper failed`, e)
-      return undefined
-    })
-
-const memoizedGetCredentialsFromHelper = memoizeOne(getCredentialsFromHelper)
-
