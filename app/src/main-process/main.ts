@@ -617,6 +617,9 @@ app.on('ready', () => {
     mainWindow?.selectAllWindowContents()
   )
 
+  /** An event sent by the renderer indicating a modal dialog is opened */
+  ipcMain.on('dialog-did-open', () => mainWindow?.dialogDidOpen())
+
   /**
    * An event sent by the renderer asking whether the Desktop is in the
    * applications folder
