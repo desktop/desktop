@@ -5,6 +5,7 @@ import { AccountsStore } from '../stores'
 import { setMostRecentGenericGitCredential } from './trampoline-environment'
 import { IGitAccount } from '../../models/git-account'
 import { urlWithoutCredentials } from './url-without-credentials'
+import { Account } from '../../models/account'
 
 /**
  * When we're asked for credentials we're typically first asked for the username
@@ -18,21 +19,23 @@ const memoizedGetGenericPassword = memoizeOne(
     getGenericPassword(endpoint, login)
 )
 
-export async function findAccount(
-  trampolineToken: string,
+export async function findGitHubTrampolineAccount(
   accountsStore: AccountsStore,
   remoteUrl: string
-): Promise<IGitAccount | undefined> {
+): Promise<Account | undefined> {
   const accounts = await accountsStore.getAll()
   const parsedUrl = new URL(remoteUrl)
-  const endpoint = urlWithoutCredentials(remoteUrl)
-  const account = accounts.find(
+  return accounts.find(
     a => new URL(getHTMLURL(a.endpoint)).origin === parsedUrl.origin
   )
+}
 
-  if (account) {
-    return account
-  }
+export async function findGenericTrampolineAccount(
+  trampolineToken: string,
+  remoteUrl: string
+) {
+  const parsedUrl = new URL(remoteUrl)
+  const endpoint = urlWithoutCredentials(remoteUrl)
 
   const login =
     parsedUrl.username === ''
