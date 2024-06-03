@@ -352,9 +352,13 @@ These editors are currently supported:
  - [Code](https://github.com/elementary/code)
  - [Lite XL](https://lite-xl.com/)
  - [JetBrains PHPStorm](https://www.jetbrains.com/phpstorm/)
+ - [JetBrains PyCharm](https://www.jetbrains.com/pycharm/)
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
+ - [JetBrains Idea Ultimate](https://www.jetbrains.com/idea/)
+ - [JetBrains Goland](https://www.jetbrains.com/go/)
  - [Emacs](https://www.gnu.org/software/emacs/)
  - [Pulsar](https://pulsar-edit.dev/)
+ - [Pluma](https://github.com/mate-desktop/pluma)
 
 These are defined in a list at the top of the file:
 
