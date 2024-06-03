@@ -36,6 +36,8 @@ import memoizeOne from 'memoize-one'
 import { forceUnwrap } from '../fatal-error'
 import { fillCredential } from '../git/credential'
 import { useExternalCredentialHelper } from './use-external-credential-helper'
+import { urlWithoutCredentials } from './url-without-credentials'
+import { findAccount } from './find-account'
 
 async function handleSSHHostAuthenticity(
   prompt: string
@@ -269,18 +271,6 @@ const handleAskPassUserPassword = async (
   return kind === 'Username' ? username : password
 }
 
-/**
- * When we're asked for credentials we're typically first asked for the username
- * immediately followed by the password. We memoize the getGenericPassword call
- * such that we only call it once per endpoint/login pair. Since we include the
- * trampoline token in the invalidation key we'll only call it once per
- * trampoline session.
- */
-const memoizedGetGenericPassword = memoizeOne(
-  (_trampolineToken: string, endpoint: string, login: string) =>
-    getGenericPassword(endpoint, login)
-)
-
 const getCredentialsFromHelper = (
   trampolineToken: string,
   endpoint: string,
@@ -303,55 +293,3 @@ const getCredentialsFromHelper = (
 
 const memoizedGetCredentialsFromHelper = memoizeOne(getCredentialsFromHelper)
 
-async function findAccount(
-  trampolineToken: string,
-  accountsStore: AccountsStore,
-  remoteUrl: string
-): Promise<IGitAccount | undefined> {
-  const accounts = await accountsStore.getAll()
-  const parsedUrl = new URL(remoteUrl)
-  const endpoint = urlWithoutCredentials(remoteUrl)
-  const account = accounts.find(
-    a => new URL(getHTMLURL(a.endpoint)).origin === parsedUrl.origin
-  )
-
-  if (account) {
-    return account
-  }
-
-  if (useExternalCredentialHelper()) {
-    return undefined
-  }
-
-  const login =
-    parsedUrl.username === ''
-      ? getGenericUsername(endpoint)
-      : parsedUrl.username
-
-  if (!login) {
-    return undefined
-  }
-
-  const token = await memoizedGetGenericPassword(
-    trampolineToken,
-    endpoint,
-    login
-  )
-
-  if (!token) {
-    // We have a username but no password, that warrants a warning
-    log.warn(`askPassHandler: generic password for ${remoteUrl} missing`)
-    return undefined
-  }
-
-  setMostRecentGenericGitCredential(trampolineToken, endpoint, login)
-
-  return { login, endpoint, token }
-}
-
-function urlWithoutCredentials(remoteUrl: string): string {
-  const url = new URL(remoteUrl)
-  url.username = ''
-  url.password = ''
-  return url.toString()
-}
