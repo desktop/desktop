@@ -28,6 +28,12 @@ export interface ITrampolineCommand {
 
   /** Environment variables that were set when the command was invoked. */
   readonly environmentVariables: ReadonlyMap<string, string>
+
+  /**
+   * The standard input received by the trampoline (note that when running as
+   * an askpass handler the trampoline won't read from stdin)
+   **/
+  readonly stdin: string
 }
 
 /**
