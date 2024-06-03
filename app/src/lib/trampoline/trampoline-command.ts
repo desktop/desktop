@@ -1,5 +1,6 @@
 export enum TrampolineCommandIdentifier {
   AskPass = 'ASKPASS',
+  CredentialHelper = 'CREDENTIALHELPER',
 }
 
 /** Represents a command in our trampoline mechanism. */
