@@ -293,20 +293,28 @@ function copyDependencies() {
   cp.execSync('yarn install', { cwd: outRoot, env: process.env })
 
   console.log('  Copying desktop-trampoline…')
+  const trampolineSource = path.resolve(
+    projectRoot,
+    'app/node_modules/desktop-trampoline/build/Release'
+  )
   const desktopTrampolineDir = path.resolve(outRoot, 'desktop-trampoline')
-  const desktopTrampolineFile =
+  const desktopAskpassTrampolineFile =
     process.platform === 'win32'
-      ? 'desktop-trampoline.exe'
-      : 'desktop-trampoline'
+      ? 'desktop-askpass-trampoline.exe'
+      : 'desktop-askpass-trampoline'
+  const desktopCredentialHelperTrampolineFile =
+    process.platform === 'win32'
+      ? 'desktop-credential-helper-trampoline.exe'
+      : 'desktop-credential-helper-trampoline'
   rmSync(desktopTrampolineDir, { recursive: true, force: true })
   mkdirSync(desktopTrampolineDir, { recursive: true })
   copySync(
-    path.resolve(
-      projectRoot,
-      'app/node_modules/desktop-trampoline/build/Release',
-      desktopTrampolineFile
-    ),
-    path.resolve(desktopTrampolineDir, desktopTrampolineFile)
+    path.resolve(trampolineSource, desktopAskpassTrampolineFile),
+    path.resolve(desktopTrampolineDir, desktopAskpassTrampolineFile)
+  )
+  copySync(
+    path.resolve(trampolineSource, desktopCredentialHelperTrampolineFile),
+    path.resolve(desktopTrampolineDir, desktopCredentialHelperTrampolineFile)
   )
 
   // Dev builds for macOS require a SSH wrapper to use SSH_ASKPASS
