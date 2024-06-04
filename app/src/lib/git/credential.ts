@@ -1,6 +1,6 @@
 import { GitProcess } from 'dugite'
 
-function parseCredential(output: string) {
+export function parseCredential(output: string) {
   const kv = new Map<string, string>()
   for (const [, k, v] of output.matchAll(/^(.*?)=(.*)$/gm)) {
     kv.set(k, v)
@@ -8,7 +8,7 @@ function parseCredential(output: string) {
   return kv
 }
 
-function formatCredential(credential: Map<string, string>) {
+export function formatCredential(credential: Map<string, string>) {
   return [...credential].map(([k, v]) => `${k}=${v}\n`).join('')
 }
 
@@ -38,8 +38,8 @@ const execCredential = (args: string[], path: string, stdin?: string) =>
     return parseCredential(r.stdout)
   })
 
-export const fillCredential = (endpoint: string, path: string) =>
-  execCredential(['fill'], path, `url=${endpoint}\n`)
+export const fillCredential = (credential: Map<string, string>, path: string) =>
+  execCredential(['fill'], path, formatCredential(credential))
 
 export const approveCredential = (
   credential: Map<string, string>,

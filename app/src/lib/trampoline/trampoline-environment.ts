@@ -1,8 +1,6 @@
 import { trampolineServer } from './trampoline-server'
 import { withTrampolineToken } from './trampoline-tokens'
 import * as Path from 'path'
-import { getDesktopTrampolineFilename } from 'desktop-trampoline'
-import { TrampolineCommandIdentifier } from '../trampoline/trampoline-command'
 import { getSSHEnvironment } from '../ssh/ssh'
 import {
   removePendingSSHSecretToStore,
@@ -10,11 +8,16 @@ import {
 } from '../ssh/ssh-secret-storage'
 import { GitError as DugiteError, GitProcess } from 'dugite'
 import memoizeOne from 'memoize-one'
-import { enableCustomGitUserAgent } from '../feature-flag'
+import {
+  enableCredentialHelperTrampoline,
+  enableCustomGitUserAgent,
+} from '../feature-flag'
 import { GitError } from '../git/core'
 import { deleteGenericCredential } from '../generic-git-auth'
-import { approveCredential, rejectCredential } from '../git/credential'
-import { useExternalCredentialHelper } from './use-external-credential-helper'
+import {
+  getDesktopAskpassTrampolineFilename,
+  getDesktopCredentialHelperTrampolineFilename,
+} from 'desktop-trampoline'
 
 const mostRecentGenericGitCredential = new Map<
   string,
@@ -69,36 +72,19 @@ export const getTrampolineEnvironmentPath = (trampolineToken: string) =>
 export const getIsBackgroundTaskEnvironment = (trampolineToken: string) =>
   isBackgroundTaskEnvironment.get(trampolineToken) ?? false
 
-const credentialHelperCredentials = new Map<
-  string,
-  Map<string, Map<string, string>>
->()
-
-const getCredentialUrl = (cred: Map<string, string>) => {
+export const getCredentialUrl = (cred: Map<string, string>) => {
   const u = cred.get('url')
   if (u) {
-    return u
+    return new URL(u)
   }
 
-  const protocol = cred.get('protocol')
+  const protocol = cred.get('protocol') ?? ''
   const username = cred.get('username')
   const user = username ? `${encodeURIComponent(username)}@` : ''
-  const host = cred.get('host')
-  const path = cred.get('path')
+  const host = cred.get('host') ?? ''
+  const path = cred.get('path') ?? ''
 
-  return `${protocol}://${user}${host}/${path}`
-}
-
-export const addCredentialHelperCredential = (
-  trampolineToken: string,
-  credential: Map<string, string>
-) => {
-  let map = credentialHelperCredentials.get(trampolineToken)
-  if (!map) {
-    map = new Map<string, Map<string, string>>()
-    credentialHelperCredentials.set(trampolineToken, map)
-  }
-  map.set(getCredentialUrl(credential), credential)
+  return new URL(`${protocol}://${user}${host}/${path}`)
 }
 
 export const GitUserAgent = memoizeOne(() =>
@@ -154,8 +140,18 @@ export async function withTrampolineEnv<T>(
       const result = await fn({
         DESKTOP_PORT: await trampolineServer.getPort(),
         DESKTOP_TRAMPOLINE_TOKEN: token,
-        GIT_ASKPASS: getDesktopTrampolinePath(),
-        DESKTOP_TRAMPOLINE_IDENTIFIER: TrampolineCommandIdentifier.AskPass,
+        ...(enableCredentialHelperTrampoline()
+          ? {
+              GIT_ASKPASS: '',
+              GIT_CONFIG_COUNT: '2',
+              GIT_CONFIG_KEY_0: 'credential.helper',
+              GIT_CONFIG_VALUE_0: '',
+              GIT_CONFIG_KEY_1: 'credential.helper',
+              GIT_CONFIG_VALUE_1: escapedCredentialHelperPath(),
+            }
+          : {
+              GIT_ASKPASS: getDesktopAskpassTrampolinePath(),
+            }),
         ...(enableCustomGitUserAgent()
           ? { GIT_USER_AGENT: await GitUserAgent() }
           : {}),
@@ -164,16 +160,6 @@ export async function withTrampolineEnv<T>(
       })
 
       await storePendingSSHSecret(token)
-
-      if (useExternalCredentialHelper()) {
-        const creds = credentialHelperCredentials.get(token)?.values() ?? []
-        for (const c of creds) {
-          const endpoint = getCredentialUrl(c)
-          log.debug(`askPassHandler: approving ${endpoint} credential`)
-          await approveCredential(c, path)
-        }
-      }
-
       return result
     } catch (e) {
       // If the operation fails with an HTTPSAuthenticationFailed error, we
@@ -182,18 +168,7 @@ export async function withTrampolineEnv<T>(
       // practical purposes, it's as good as we can get with the information we
       // have. We're limited by the ASKPASS flow here.
       if (isAuthFailure(e) && !getIsBackgroundTaskEnvironment(token)) {
-        if (useExternalCredentialHelper()) {
-          const c = mostRecentCredentialHelperCredential.get(token)
-          if (c) {
-            const endpoint = getCredentialUrl(c)
-            log.info(
-              `askPassHandler: auth failed, rejecting ${endpoint} credential`
-            )
-            await rejectCredential(c, path)
-          }
-        } else {
-          deleteMostRecentGenericCredential(token)
-        }
+        deleteMostRecentGenericCredential(token)
       }
       throw e
     } finally {
@@ -202,7 +177,6 @@ export async function withTrampolineEnv<T>(
       mostRecentCredentialHelperCredential.delete(token)
       isBackgroundTaskEnvironment.delete(token)
       hasRejectedCredentialsForEndpoint.delete(token)
-      credentialHelperCredentials.delete(token)
       trampolineEnvironmentPath.delete(token)
     }
   })
@@ -221,12 +195,21 @@ function deleteMostRecentGenericCredential(token: string) {
   }
 }
 
-/** Returns the path of the desktop-trampoline binary. */
-export function getDesktopTrampolinePath(): string {
+/** Returns the path of the desktop-askpass-trampoline binary. */
+export function getDesktopAskpassTrampolinePath(): string {
   return Path.resolve(
     __dirname,
     'desktop-trampoline',
-    getDesktopTrampolineFilename()
+    getDesktopAskpassTrampolineFilename()
+  )
+}
+
+/** Returns the path of the desktop-askpass-trampoline binary. */
+export function getDesktopCredentialHelperTrampolinePath(): string {
+  return Path.resolve(
+    __dirname,
+    'desktop-trampoline',
+    getDesktopCredentialHelperTrampolineFilename()
   )
 }
 
@@ -234,3 +217,5 @@ export function getDesktopTrampolinePath(): string {
 export function getSSHWrapperPath(): string {
   return Path.resolve(__dirname, 'desktop-trampoline', 'ssh-wrapper')
 }
+const escapedCredentialHelperPath = () =>
+  getDesktopCredentialHelperTrampolinePath().replaceAll(' ', '\\ ')

@@ -15,6 +15,7 @@ import split2 from 'split2'
 import { getFileFromExceedsError } from '../helpers/regex'
 import { merge } from '../merge'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
+import { enableCredentialHelperTrampoline } from '../feature-flag'
 
 /**
  * An extension of the execution options in dugite that
@@ -466,10 +467,11 @@ function getDescriptionForError(
  * `git pull` these arguments needs to go before the `pull` argument.
  */
 export const gitNetworkArguments = () => [
-  // Explicitly unset any defined credential helper, we rely on our
-  // own askpass for authentication.
-  '-c',
-  'credential.helper=',
+  // Explicitly unset any defined credential helper, we rely on our own askpass
+  // for authentication except when our credential helper trampoline is enabled.
+  // When it is enabled we set the credential helper via environment variables
+  // in withTrampolineEnv instead.
+  ...(enableCredentialHelperTrampoline() ? [] : ['-c', 'credential.helper=']),
 ]
 
 /**
