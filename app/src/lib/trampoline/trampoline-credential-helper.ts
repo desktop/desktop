@@ -23,6 +23,7 @@ import {
   setGenericCredential,
 } from '../generic-git-auth'
 import { urlWithoutCredentials } from './url-without-credentials'
+import { trampolineUIHelper } from './trampoline-ui-helper'
 
 type Cred = Map<string, string>
 
@@ -56,14 +57,29 @@ const getGitHubCredential = (c: Cred, store: AccountsStore, endpoint: string) =>
       return c
     })
 
-const getGenericCredential = (c: Cred, token: string, endpoint: string) =>
+const getGenericCredential = (cred: Cred, token: string, endpoint: string) =>
   findGenericTrampolineAccount(token, endpoint)
-    .then(a => credWithAccount(c, a))
-    .then(c => {
+    .then(a => credWithAccount(cred, a))
+    .then(async c => {
       if (c) {
         info(`found generic credential for ${endpoint}`)
+        return c
       }
-      return c
+
+      const parsedUrl = new URL(endpoint)
+      const { username, password } =
+        await trampolineUIHelper.promptForGenericGitAuthentication(
+          endpoint,
+          parsedUrl.username === '' ? undefined : parsedUrl.username
+        )
+
+      if (!username || !password) {
+        info('user cancelled generic git authentication')
+        return undefined
+      }
+
+      info(`acquired generic credentials for ${endpoint}`)
+      return new Map(cred).set('username', username).set('password', password)
     })
 
 const getExternalCredentialHelperCredential = (c: Cred, token: string) =>
