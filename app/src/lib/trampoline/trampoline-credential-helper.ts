@@ -88,11 +88,17 @@ async function getExternalCredential(input: Credential, token: string) {
 }
 
 /** Implementation of the 'get' git credential helper command */
-const getCredential = async (cred: Credential, store: Store, token: string) =>
-  (await getGitHubCredential(cred, store)) ??
-  (useExternalCredentialHelper()
+async function getCredential(cred: Credential, store: Store, token: string) {
+  const ghCred = await getGitHubCredential(cred, store)
+
+  if (ghCred || (await isCredentialStoredInternally(cred, store))) {
+    return ghCred
+  }
+
+  return useExternalCredentialHelper()
     ? getExternalCredential(cred, token)
-    : getGenericCredential(cred, token))
+    : getGenericCredential(cred, token)
+}
 
 /**
  * Determines whether the credential provided should be managed within GitHub
