@@ -106,3 +106,4 @@ export const enableGroupDiffCheckmarks = enableDiffCheckMarksAndLinkUnderlines
 export const enableLinkUnderlines = enableDiffCheckMarksAndLinkUnderlines
 
 export const enableExternalCredentialHelper = enableBetaFeatures
+export const enableCredentialHelperTrampoline = enableBetaFeatures
