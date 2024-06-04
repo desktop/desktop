@@ -336,6 +336,7 @@ import {
   useExternalCredentialHelper,
   useExternalCredentialHelperDefault,
 } from '../trampoline/use-external-credential-helper'
+import { IOAuthAction } from '../parse-app-url'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5735,6 +5736,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     await appendIgnoreFile(repository, filePath)
     return this._refreshRepository(repository)
+  }
+
+  public _resolveOAuthRequest(action: IOAuthAction) {
+    return this.signInStore.resolveOAuthRequest(action)
   }
 
   public _resetSignInState(): Promise<void> {

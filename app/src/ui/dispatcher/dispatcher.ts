@@ -36,11 +36,6 @@ import {
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
-  rejectOAuthRequest,
-  requestAuthenticatedUser,
-  resolveOAuthRequest,
-} from '../../lib/oauth'
-import {
   IOpenRepositoryFromURLAction,
   IUnknownAction,
   URLActionType,
@@ -1849,17 +1844,7 @@ export class Dispatcher {
   public async dispatchURLAction(action: URLActionType): Promise<void> {
     switch (action.name) {
       case 'oauth':
-        try {
-          log.info(`[Dispatcher] requesting authenticated user`)
-          const user = await requestAuthenticatedUser(action.code, action.state)
-          if (user) {
-            resolveOAuthRequest(user)
-          } else if (user === null) {
-            rejectOAuthRequest(new Error('Unable to fetch authenticated user.'))
-          }
-        } catch (e) {
-          rejectOAuthRequest(e)
-        }
+        await this.appStore._resolveOAuthRequest(action)
 
         if (__DARWIN__) {
           // workaround for user reports that the application doesn't receive focus
