@@ -10,6 +10,7 @@ import {
 } from '../git/credential'
 import {
   getCredentialUrl,
+  getIsBackgroundTaskEnvironment,
   getTrampolineEnvironmentPath,
 } from './trampoline-environment'
 import { useExternalCredentialHelper } from './use-external-credential-helper'
@@ -70,7 +71,12 @@ async function getGenericCredential(cred: Credential, token: string) {
     return credWithAccount(cred, account)
   }
 
-  return promptForCredential(cred, endpoint)
+  if (getIsBackgroundTaskEnvironment(token)) {
+    debug('background task environment, skipping prompt')
+    return undefined
+  } else {
+    return promptForCredential(cred, endpoint)
+  }
 }
 
 async function getExternalCredential(input: Credential, token: string) {
