@@ -1,52 +1,36 @@
 import { GitProcess } from 'dugite'
 
-export function parseCredential(output: string) {
-  const kv = new Map<string, string>()
-  for (const [, k, v] of output.matchAll(/^(.*?)=(.*)$/gm)) {
-    kv.set(k, v)
-  }
-  return kv
-}
+export const parseCredential = (value: string) =>
+  new Map([...value.matchAll(/^(.*?)=(.*)$/gm)].map(([, k, v]) => [k, v]))
 
-export function formatCredential(credential: Map<string, string>) {
-  return [...credential].map(([k, v]) => `${k}=${v}\n`).join('')
-}
+export const formatCredential = (credential: Map<string, string>) =>
+  [...credential].map(([k, v]) => `${k}=${v}\n`).join('')
 
-const execCredential = (args: string[], path: string, stdin?: string) =>
-  // Can't use git() as that will call withTrampolineEnv which calls this method
+// Can't use git() as that will call withTrampolineEnv which calls this method
+const exec = (cmd: string, cred: Map<string, string>, path: string) =>
   GitProcess.exec(
     [
       ...['-c', 'credential.helper='],
       ...['-c', `credential.helper=manager`],
       'credential',
-      ...args,
+      cmd,
     ],
     path,
     {
-      stdin,
+      stdin: formatCredential(cred),
       env: {
         GIT_TERMINAL_PROMPT: '0',
         GIT_ASKPASS: '',
         TERM: 'dumb',
       },
     }
-  ).then(r => {
-    if (r.exitCode !== 0) {
-      // TODO: can we handle this error like we handle other errors in git()?
-      throw new Error(r.stderr)
+  ).then(({ exitCode, stderr, stdout }) => {
+    if (exitCode !== 0) {
+      throw new Error(stderr)
     }
-    return parseCredential(r.stdout)
+    return parseCredential(stdout)
   })
 
-export const fillCredential = (credential: Map<string, string>, path: string) =>
-  execCredential(['fill'], path, formatCredential(credential))
-
-export const approveCredential = (
-  credential: Map<string, string>,
-  path: string
-) => execCredential(['approve'], path, formatCredential(credential))
-
-export const rejectCredential = (
-  credential: Map<string, string>,
-  path: string
-) => execCredential(['reject'], path, formatCredential(credential))
+export const fillCredential = exec.bind(null, 'fill')
+export const approveCredential = exec.bind(null, 'approve')
+export const rejectCredential = exec.bind(null, 'reject')
