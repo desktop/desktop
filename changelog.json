@@ -1,7 +1,6 @@
 {
   "releases": {
     "3.4.1-beta1": [
-      "[Added] Additional Linux editors - #18745. Thanks @shiftkey!",
       "[Fixed] Prevent crashes when external editors fail to launch - #17717. Thanks @tsvetilian-ty!",
       "[Fixed] Fix 'delete branch' message - #18706. Thanks @zetaloop!",
       "[Improved] Use system feedback to draw user attention when a dialog is shown in background - #17220. Thanks @yuzawa-san!",
