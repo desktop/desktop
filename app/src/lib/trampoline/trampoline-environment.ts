@@ -143,6 +143,21 @@ export async function withTrampolineEnv<T>(
         ...(enableCredentialHelperTrampoline()
           ? {
               GIT_ASKPASS: '',
+              // This warrants some explanation. We're configuring the
+              // credential helper using environment variables rather than
+              // arguments (i.e. -c credential.helper=) because we want commands
+              // invoked by filters (i.e. Git LFS) to be able to pick up our
+              // configuration. Arguments passed to git commands are not passed
+              // down to filters.
+              //
+              // By setting GIT_CONFIG_* here we're preventing anyone else
+              // passing Git configs through environment variables and if anyone
+              // downstream of sets GIT_CONFIG_* they'll override us so if we
+              // end up using this more we'll have to come up with a more robust
+              // solution where perhaps dugite takes care of coalescing all of
+              // these.
+              //
+              // See https://git-scm.com/docs/git-config#ENVIRONMENT
               GIT_CONFIG_COUNT: '2',
               GIT_CONFIG_KEY_0: 'credential.helper',
               GIT_CONFIG_VALUE_0: '',
