@@ -29,6 +29,15 @@ export function setGenericPassword(
   return TokenStore.setItem(key, username, password)
 }
 
+export function setGenericCredential(
+  endpoint: string,
+  username: string,
+  password: string
+) {
+  setGenericUsername(endpoint, username)
+  return setGenericPassword(endpoint, username, password)
+}
+
 /** Get the password for the given username and host. */
 export const getGenericPassword = (endpoint: string, username: string) =>
   TokenStore.getItem(getKeyForEndpoint(endpoint), username)
