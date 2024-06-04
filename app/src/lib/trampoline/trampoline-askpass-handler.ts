@@ -14,13 +14,7 @@ import {
   keepSSHUserPasswordToStore,
 } from '../ssh/ssh-user-password'
 import { removePendingSSHSecretToStore } from '../ssh/ssh-secret-storage'
-import { getHTMLURL } from '../api'
-import {
-  getGenericPassword,
-  getGenericUsername,
-  setGenericPassword,
-  setGenericUsername,
-} from '../generic-git-auth'
+import { setGenericPassword, setGenericUsername } from '../generic-git-auth'
 import { Account } from '../../models/account'
 import {
   getHasRejectedCredentialsForEndpoint,
@@ -28,13 +22,10 @@ import {
   setHasRejectedCredentialsForEndpoint,
   setMostRecentGenericGitCredential,
 } from './trampoline-environment'
-import { IGitAccount } from '../../models/git-account'
-import memoizeOne from 'memoize-one'
 import { urlWithoutCredentials } from './url-without-credentials'
 import {
   findGenericTrampolineAccount,
   findGitHubTrampolineAccount,
-  findTrampolineGitHubAccount,
 } from './find-account'
 
 async function handleSSHHostAuthenticity(
@@ -189,7 +180,12 @@ const handleAskPassUserPassword = async (
   const endpoint = urlWithoutCredentials(remoteUrl)
   const account =
     (await findGitHubTrampolineAccount(accountsStore, remoteUrl)) ??
-    (await findGenericTrampolineAccount(trampolineToken, remoteUrl))
+    (await findGenericTrampolineAccount(trampolineToken, remoteUrl).then(c => {
+      if (c) {
+        setMostRecentGenericGitCredential(trampolineToken, endpoint, c.login)
+      }
+      return c
+    }))
 
   if (account) {
     const accountKind = account instanceof Account ? 'account' : 'generic'

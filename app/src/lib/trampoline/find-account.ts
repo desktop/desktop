@@ -2,8 +2,6 @@ import memoizeOne from 'memoize-one'
 import { getHTMLURL } from '../api'
 import { getGenericPassword, getGenericUsername } from '../generic-git-auth'
 import { AccountsStore } from '../stores'
-import { setMostRecentGenericGitCredential } from './trampoline-environment'
-import { IGitAccount } from '../../models/git-account'
 import { urlWithoutCredentials } from './url-without-credentials'
 import { Account } from '../../models/account'
 
@@ -57,8 +55,6 @@ export async function findGenericTrampolineAccount(
     log.warn(`askPassHandler: generic password for ${remoteUrl} missing`)
     return undefined
   }
-
-  setMostRecentGenericGitCredential(trampolineToken, endpoint, login)
 
   return { login, endpoint, token }
 }
