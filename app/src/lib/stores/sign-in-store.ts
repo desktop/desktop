@@ -28,6 +28,7 @@ import { timeout } from '../promise'
 import uuid from 'uuid'
 import { IOAuthAction } from '../parse-app-url'
 import { shell } from '../app-shell'
+import { noop } from 'lodash'
 
 function getUnverifiedUserErrorMessage(login: string): string {
   return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
@@ -205,7 +206,7 @@ interface IAuthenticationEvent {
   readonly method: SignInMethod
 }
 
-type SignInResult =
+export type SignInResult =
   | { kind: 'success'; account: Account; method: SignInMethod }
   | { kind: 'cancelled' }
 
@@ -315,39 +316,41 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
    * Initiate a sign in flow for github.com. This will put the store
    * in the Authentication step ready to receive user credentials.
    */
-  public beginDotComSignIn() {
+  public beginDotComSignIn(resultCallback?: (result: SignInResult) => void) {
     const endpoint = getDotComAPIEndpoint()
 
-    return new Promise<SignInResult>(resolve => {
-      this.setState({
-        kind: SignInStep.Authentication,
-        endpoint,
-        supportsBasicAuth: false,
-        error: null,
-        loading: false,
-        forgotPasswordUrl: this.getForgotPasswordURL(endpoint),
-        resultCallback: resolve,
-      })
+    if (this.state !== null) {
+      this.reset()
+    }
 
-      // Asynchronously refresh our knowledge about whether GitHub.com
-      // support username and password authentication or not.
-      this.endpointSupportsBasicAuth(endpoint)
-        .then(supportsBasicAuth => {
-          if (
-            this.state !== null &&
-            this.state.kind === SignInStep.Authentication &&
-            this.state.endpoint === endpoint
-          ) {
-            this.setState({ ...this.state, supportsBasicAuth })
-          }
-        })
-        .catch(err =>
-          log.error(
-            'Failed resolving whether GitHub.com supports password authentication',
-            err
-          )
-        )
+    this.setState({
+      kind: SignInStep.Authentication,
+      endpoint,
+      supportsBasicAuth: false,
+      error: null,
+      loading: false,
+      forgotPasswordUrl: this.getForgotPasswordURL(endpoint),
+      resultCallback: resultCallback ?? noop,
     })
+
+    // Asynchronously refresh our knowledge about whether GitHub.com
+    // support username and password authentication or not.
+    this.endpointSupportsBasicAuth(endpoint)
+      .then(supportsBasicAuth => {
+        if (
+          this.state !== null &&
+          this.state.kind === SignInStep.Authentication &&
+          this.state.endpoint === endpoint
+        ) {
+          this.setState({ ...this.state, supportsBasicAuth })
+        }
+      })
+      .catch(err =>
+        log.error(
+          'Failed resolving whether GitHub.com supports password authentication',
+          err
+        )
+      )
   }
 
   /**
@@ -483,14 +486,8 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
    * Initiate an OAuth sign in using the system configured browser.
    * This method must only be called when the store is in the authentication
    * step or an error will be thrown.
-   *
-   * The promise returned will only resolve once the user has successfully
-   * authenticated. If the user terminates the sign-in process by closing
-   * their browser before the protocol handler is invoked, by denying the
-   * protocol handler to execute or by providing the wrong credentials
-   * this promise will never complete.
    */
-  public async authenticateWithBrowser(): Promise<void> {
+  public authenticateWithBrowser() {
     const currentState = this.state
 
     if (!currentState || currentState.kind !== SignInStep.Authentication) {
@@ -502,49 +499,47 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
     this.setState({ ...currentState, loading: true })
 
-    let account: Account
     const csrfToken = uuid()
-    try {
+
+    new Promise<Account>((resolve, reject) => {
       const { endpoint } = currentState
       log.info('[SignInStore] initializing OAuth flow')
-      const accountPromise = new Promise<Account>((resolve, reject) => {
-        this.setState({
-          ...currentState,
-          oauthState: {
-            state: csrfToken,
-            endpoint,
-            onAuthCompleted: resolve,
-            onAuthError: reject,
-          },
-        })
+      this.setState({
+        ...currentState,
+        oauthState: {
+          state: csrfToken,
+          endpoint,
+          onAuthCompleted: resolve,
+          onAuthError: reject,
+        },
       })
       shell.openExternal(getOAuthAuthorizationURL(endpoint, csrfToken))
-      account = await accountPromise
       log.info('[SignInStore] account resolved')
-    } catch (e) {
-      // Make sure we're still in the same sign in session
-      if (
-        this.state?.kind === SignInStep.Authentication &&
-        this.state.oauthState?.state === csrfToken
-      ) {
-        log.info('[SignInStore] error with OAuth flow', e)
-        this.setState({ ...this.state, error: e, loading: false })
-      } else {
-        log.info(`[SignInStore] OAuth error but session has changed: ${e}`)
-      }
-      return
-    }
-
-    if (!this.state || this.state.kind !== SignInStep.Authentication) {
-      // Looks like the sign in flow has been aborted
-      return
-    }
-
-    this.emitAuthenticate(account, SignInMethod.Web)
-    this.setState({
-      kind: SignInStep.Success,
-      resultCallback: this.state.resultCallback,
     })
+      .then(account => {
+        if (!this.state || this.state.kind !== SignInStep.Authentication) {
+          // Looks like the sign in flow has been aborted
+          return
+        }
+
+        this.emitAuthenticate(account, SignInMethod.Web)
+        this.setState({
+          kind: SignInStep.Success,
+          resultCallback: this.state.resultCallback,
+        })
+      })
+      .catch(e => {
+        // Make sure we're still in the same sign in session
+        if (
+          this.state?.kind === SignInStep.Authentication &&
+          this.state.oauthState?.state === csrfToken
+        ) {
+          log.info('[SignInStore] error with OAuth flow', e)
+          this.setState({ ...this.state, error: e, loading: false })
+        } else {
+          log.info(`[SignInStore] OAuth error but session has changed: ${e}`)
+        }
+      })
   }
 
   public async resolveOAuthRequest(action: IOAuthAction) {
@@ -581,14 +576,18 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
    * This will put the store in the EndpointEntry step ready to
    * receive the url to the enterprise instance.
    */
-  public beginEnterpriseSignIn() {
-    new Promise<SignInResult>(resolve => {
-      this.setState({
-        kind: SignInStep.EndpointEntry,
-        error: null,
-        loading: false,
-        resultCallback: resolve,
-      })
+  public beginEnterpriseSignIn(
+    resultCallback?: (result: SignInResult) => void
+  ) {
+    if (this.state !== null) {
+      this.reset()
+    }
+
+    this.setState({
+      kind: SignInStep.EndpointEntry,
+      error: null,
+      loading: false,
+      resultCallback: resultCallback ?? noop,
     })
   }
 
