@@ -1,3 +1,4 @@
+import { IGitAccount } from '../../models/git-account'
 import { PopupType } from '../../models/popup'
 import { Dispatcher } from '../../ui/dispatcher'
 
@@ -59,17 +60,17 @@ class TrampolineUIHelper {
   }
 
   public promptForGenericGitAuthentication(
-    remoteUrl: string,
+    endpoint: string,
     username?: string
-  ): Promise<{ username: string; password: string }> {
+  ): Promise<IGitAccount | undefined> {
     return new Promise(resolve => {
       this.dispatcher.showPopup({
         type: PopupType.GenericGitAuthentication,
-        remoteUrl,
+        remoteUrl: endpoint,
         username,
-        onSubmit: (username: string, password: string) =>
-          resolve({ username, password }),
-        onDismiss: () => resolve({ username: '', password: '' }),
+        onSubmit: (login: string, token: string) =>
+          resolve({ login, token, endpoint }),
+        onDismiss: () => resolve(undefined),
       })
     })
   }

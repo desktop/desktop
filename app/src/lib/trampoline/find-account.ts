@@ -52,7 +52,7 @@ export async function findGenericTrampolineAccount(
 
   if (!token) {
     // We have a username but no password, that warrants a warning
-    log.warn(`askPassHandler: generic password for ${remoteUrl} missing`)
+    log.warn(`credential: generic password for ${remoteUrl} missing`)
     return undefined
   }
 

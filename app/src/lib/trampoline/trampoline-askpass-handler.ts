@@ -214,11 +214,11 @@ const handleAskPassUserPassword = async (
     return undefined
   }
 
-  const { username, password } =
-    await trampolineUIHelper.promptForGenericGitAuthentication(
+  const { login: username, token: password } =
+    (await trampolineUIHelper.promptForGenericGitAuthentication(
       remoteUrl,
       parsedUrl.username === '' ? undefined : parsedUrl.username
-    )
+    )) ?? { login: '', token: '' }
 
   if (!username || !password) {
     info('user cancelled generic git authentication')

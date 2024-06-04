@@ -23,9 +23,10 @@ import {
   setGenericCredential,
 } from '../generic-git-auth'
 import { urlWithoutCredentials } from './url-without-credentials'
-import { trampolineUIHelper } from './trampoline-ui-helper'
+import { trampolineUIHelper as ui } from './trampoline-ui-helper'
 
-type Cred = Map<string, string>
+type Credential = Map<string, string>
+type Store = AccountsStore
 
 const info = (msg: string) => log.info(`credential-helper: ${msg}`)
 const debug = (msg: string) => log.debug(`credential-helper: ${msg}`)
@@ -40,69 +41,59 @@ const error = (msg: string, e: any) => log.error(`credential-helper: ${msg}`, e)
  * we take all the fields from the credential and set the username and password
  * from the Account on top of those.
  */
-const credWithAccount = (c: Cred, a: IGitAccount | undefined) =>
+const credWithAccount = (c: Credential, a: IGitAccount | undefined) =>
   a && new Map(c).set('username', a.login).set('password', a.token)
 
-/** Get the value of a credential field (ex 'host') or throw if missing */
-const getRequiredCredField = (cred: Cred, field: string) =>
-  forceUnwrap(`credential missing ${field}`, cred.get(field))
+async function getGitHubCredential(cred: Credential, store: AccountsStore) {
+  const endpoint = `${getCredentialUrl(cred)}`
+  const account = await findGitHubTrampolineAccount(store, endpoint)
+  if (account) {
+    info(`found GitHub credential for ${endpoint} in store`)
+  }
+  return credWithAccount(cred, account)
+}
 
-const getGitHubCredential = (c: Cred, store: AccountsStore, endpoint: string) =>
-  findGitHubTrampolineAccount(store, endpoint)
-    .then(a => credWithAccount(c, a))
-    .then(c => {
-      if (c) {
-        info(`found GitHub credential for ${endpoint} in store`)
-      }
-      return c
-    })
+async function promptForCredential(cred: Credential, endpoint: string) {
+  const parsedUrl = new URL(endpoint)
+  const username = parsedUrl.username === '' ? undefined : parsedUrl.username
+  const account = await ui.promptForGenericGitAuthentication(endpoint, username)
+  info(`prompt for ${endpoint}: ${account ? 'completed' : 'cancelled'}`)
+  return credWithAccount(cred, account)
+}
 
-const getGenericCredential = (cred: Cred, token: string, endpoint: string) =>
-  findGenericTrampolineAccount(token, endpoint)
-    .then(a => credWithAccount(cred, a))
-    .then(async c => {
-      if (c) {
-        info(`found generic credential for ${endpoint}`)
-        return c
-      }
+async function getGenericCredential(cred: Credential, token: string) {
+  const endpoint = `${getCredentialUrl(cred)}`
+  const account = await findGenericTrampolineAccount(token, endpoint)
 
-      const parsedUrl = new URL(endpoint)
-      const { username, password } =
-        await trampolineUIHelper.promptForGenericGitAuthentication(
-          endpoint,
-          parsedUrl.username === '' ? undefined : parsedUrl.username
-        )
+  if (account) {
+    info(`found generic credential for ${endpoint}`)
+    return credWithAccount(cred, account)
+  }
 
-      if (!username || !password) {
-        info('user cancelled generic git authentication')
-        return undefined
-      }
+  return promptForCredential(cred, endpoint)
+}
 
-      info(`acquired generic credentials for ${endpoint}`)
-      return new Map(cred).set('username', username).set('password', password)
-    })
-
-const getExternalCredentialHelperCredential = (c: Cred, token: string) =>
-  fillCredential(c, getTrampolineEnvironmentPath(token)).then(c => {
-    if (c) {
-      info(`found credential for ${getCredentialUrl(c)} in external helper`)
-    }
-    return c
-  })
+async function getExternalCredential(input: Credential, token: string) {
+  const cred = await fillCredential(input, getTrampolineEnvironmentPath(token))
+  if (cred) {
+    info(`found credential for ${getCredentialUrl(cred)} in external helper`)
+  }
+  return cred
+}
 
 /** Implementation of the 'get' git credential helper command */
-const getCredential = async (cred: Cred, store: AccountsStore, token: string) =>
-  (await getGitHubCredential(cred, store, `${getCredentialUrl(cred)}`)) ??
+const getCredential = async (cred: Credential, store: Store, token: string) =>
+  (await getGitHubCredential(cred, store)) ??
   (useExternalCredentialHelper()
-    ? getExternalCredentialHelperCredential(cred, token)
-    : getGenericCredential(cred, token, `${getCredentialUrl(cred)}`))
+    ? getExternalCredential(cred, token)
+    : getGenericCredential(cred, token))
 
 /**
  * Determines whether the credential provided should be managed within GitHub
  * or not. This includes all GitHub.com accounts and any other accounts that
  * Desktop is currently signed in as (i.e. available in the accounts store).
  */
-const credentialStoredInternally = async (cred: Cred, store: AccountsStore) => {
+async function isCredentialStoredInternally(cred: Credential, store: Store) {
   const credentialUrl = getCredentialUrl(cred)
   const endpoint = `${credentialUrl}`
 
@@ -120,12 +111,8 @@ const credentialStoredInternally = async (cred: Cred, store: AccountsStore) => {
 }
 
 /** Implementation of the 'store' git credential helper command */
-const storeCredential = async (
-  cred: Cred,
-  store: AccountsStore,
-  token: string
-) => {
-  if (await credentialStoredInternally(cred, store)) {
+async function storeCredential(cred: Credential, store: Store, token: string) {
+  if (await isCredentialStoredInternally(cred, store)) {
     return
   }
 
@@ -133,18 +120,14 @@ const storeCredential = async (
     ? approveCredential(cred, getTrampolineEnvironmentPath(token))
     : setGenericCredential(
         urlWithoutCredentials(getCredentialUrl(cred)),
-        getRequiredCredField(cred, 'username'),
-        getRequiredCredField(cred, 'password')
+        forceUnwrap(`credential missing username`, cred.get('username')),
+        forceUnwrap(`credential missing password`, cred.get('password'))
       )
 }
 
 /** Implementation of the 'erase' git credential helper command */
-const eraseCredential = async (
-  cred: Cred,
-  store: AccountsStore,
-  token: string
-) => {
-  if (await credentialStoredInternally(cred, store)) {
+async function eraseCredential(cred: Credential, store: Store, token: string) {
+  if (await isCredentialStoredInternally(cred, store)) {
     return
   }
 
@@ -152,13 +135,13 @@ const eraseCredential = async (
     ? rejectCredential(cred, getTrampolineEnvironmentPath(token))
     : deleteGenericCredential(
         urlWithoutCredentials(getCredentialUrl(cred)),
-        getRequiredCredField(cred, 'username')
+        forceUnwrap(`credential missing username`, cred.get('username'))
       )
 }
 
 export const createCredentialHelperTrampolineHandler: (
-  accountsStore: AccountsStore
-) => TrampolineCommandHandler = (store: AccountsStore) => async command => {
+  store: AccountsStore
+) => TrampolineCommandHandler = (store: Store) => async command => {
   const firstParameter = command.parameters.at(0)
   if (!firstParameter) {
     return undefined
