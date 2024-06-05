@@ -30,16 +30,6 @@ export const setMostRecentGenericGitCredential = (
   login: string
 ) => mostRecentGenericGitCredential.set(trampolineToken, { endpoint, login })
 
-const mostRecentCredentialHelperCredential = new Map<
-  string,
-  Map<string, string>
->()
-
-export const setMostRecentCredentialHelperCredential = (
-  trampolineToken: string,
-  credential: Map<string, string>
-) => mostRecentCredentialHelperCredential.set(trampolineToken, credential)
-
 const hasRejectedCredentialsForEndpoint = new Map<string, Set<string>>()
 
 export const setHasRejectedCredentialsForEndpoint = (
@@ -189,7 +179,6 @@ export async function withTrampolineEnv<T>(
     } finally {
       removePendingSSHSecretToStore(token)
       mostRecentGenericGitCredential.delete(token)
-      mostRecentCredentialHelperCredential.delete(token)
       isBackgroundTaskEnvironment.delete(token)
       hasRejectedCredentialsForEndpoint.delete(token)
       trampolineEnvironmentPath.delete(token)
