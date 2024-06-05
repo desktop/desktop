@@ -81,7 +81,11 @@ async function getGenericCredential(cred: Credential, token: string) {
 }
 
 async function getExternalCredential(input: Credential, token: string) {
-  const cred = await fillCredential(input, getTrampolineEnvironmentPath(token))
+  const path = getTrampolineEnvironmentPath(token)
+  const isBackgroundTask = getIsBackgroundTaskEnvironment(token)
+  const cred = await fillCredential(input, path, {
+    GCM_INTERACTIVE: isBackgroundTask ? '0' : '1',
+  })
   if (cred) {
     info(`found credential for ${getCredentialUrl(cred)} in external helper`)
   }

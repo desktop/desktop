@@ -7,7 +7,12 @@ export const formatCredential = (credential: Map<string, string>) =>
   [...credential].map(([k, v]) => `${k}=${v}\n`).join('')
 
 // Can't use git() as that will call withTrampolineEnv which calls this method
-const exec = (cmd: string, cred: Map<string, string>, path: string) =>
+const exec = (
+  cmd: string,
+  cred: Map<string, string>,
+  path: string,
+  env: Record<string, string | undefined> = {}
+) =>
   GitProcess.exec(
     [
       ...['-c', 'credential.helper='],
@@ -22,6 +27,7 @@ const exec = (cmd: string, cred: Map<string, string>, path: string) =>
         GIT_TERMINAL_PROMPT: '0',
         GIT_ASKPASS: '',
         TERM: 'dumb',
+        ...env,
       },
     }
   ).then(({ exitCode, stderr, stdout }) => {
