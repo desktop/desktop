@@ -278,6 +278,9 @@ export interface IAppState {
   /** The currently applied appearance (aka theme) */
   readonly currentTheme: ApplicableTheme
 
+  /** The selected tab size preference */
+  readonly selectedTabSize: number
+
   /**
    * A map keyed on a user account (GitHub.com or GitHub Enterprise)
    * containing an object with repositories that the authenticated
