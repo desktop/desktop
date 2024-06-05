@@ -1452,13 +1452,9 @@ export class Dispatcher {
    * to the enterprise instance.
    */
   public beginEnterpriseSignIn(
-    endpoint?: string,
     resultCallback?: (result: SignInResult) => void
   ) {
     this.appStore._beginEnterpriseSignIn(resultCallback)
-    if (endpoint) {
-      this.appStore._setSignInEndpoint(endpoint)
-    }
   }
 
   /**
@@ -1497,17 +1493,27 @@ export class Dispatcher {
     return this.appStore._setSignInCredentials(username, password)
   }
 
+  public beginDotComSignIn(resultCallback: (result: SignInResult) => void) {
+    this.appStore._beginDotComSignIn(resultCallback)
+  }
+
   public beginBrowserBasedSignIn(
     endpoint: string,
     resultCallback?: (result: SignInResult) => void
   ) {
-    if (endpoint === getDotComAPIEndpoint()) {
+    if (
+      endpoint === getDotComAPIEndpoint() ||
+      new URL(endpoint).hostname === 'github.com'
+    ) {
       this.appStore._beginDotComSignIn(resultCallback)
+      this.requestBrowserAuthentication()
     } else {
       this.appStore._beginEnterpriseSignIn(resultCallback)
-      this.appStore._setSignInEndpoint(endpoint)
+      this.appStore
+        ._setSignInEndpoint(endpoint)
+        .then(() => this.requestBrowserAuthentication())
+        .catch(e => log.error(`Error setting sign in endpoint`, e))
     }
-    this.requestBrowserAuthentication()
   }
 
   /**

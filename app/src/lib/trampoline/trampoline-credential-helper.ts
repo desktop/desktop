@@ -26,6 +26,12 @@ import {
 } from '../generic-git-auth'
 import { urlWithoutCredentials } from './url-without-credentials'
 import { trampolineUIHelper as ui } from './trampoline-ui-helper'
+import {
+  fetchMetadata,
+  getDotComAPIEndpoint,
+  getEnterpriseAPIURL,
+} from '../api'
+import { timeout } from '../promise'
 
 type Credential = Map<string, string>
 type Store = AccountsStore
@@ -95,14 +101,77 @@ async function getExternalCredential(input: Credential, token: string) {
 /** Implementation of the 'get' git credential helper command */
 async function getCredential(cred: Credential, store: Store, token: string) {
   const ghCred = await getGitHubCredential(cred, store)
+  const accounts = await store.getAll()
 
-  if (ghCred || (await isCredentialStoredInternally(cred, store))) {
+  if (ghCred) {
     return ghCred
+  }
+
+  const endpointKind = await getEndpointKind(cred, store)
+  const hasDotComAccount = accounts.some(
+    a => a.endpoint === getDotComAPIEndpoint()
+  )
+  const hasEnterpriseAccount = accounts.some(
+    a => a.endpoint !== getDotComAPIEndpoint()
+  )
+
+  // If it appears as if the endpoint is a GitHub host and we don't have an
+  // account for it (since we currently only allow one GitHub.com account and
+  // one Enterprise account) we prompt the user to sign in.
+  if (
+    (endpointKind === 'github.com' && !hasDotComAccount) ||
+    (endpointKind === 'enterprise' && !hasEnterpriseAccount)
+  ) {
+    if (getIsBackgroundTaskEnvironment(token)) {
+      debug('background task environment, skipping prompt')
+      return undefined
+    }
+
+    return ui
+      .promptForGitHubSignIn(`${getCredentialUrl(cred)}`)
+      .then(a => (a ? credWithAccount(cred, a) : undefined))
+  }
+
+  // GitHub.com/GHE creds are only stored internally
+  if (endpointKind !== 'generic') {
+    return undefined
   }
 
   return useExternalCredentialHelper()
     ? getExternalCredential(cred, token)
     : getGenericCredential(cred, token)
+}
+
+const getEndpointKind = async (cred: Credential, store: Store) => {
+  const credentialUrl = getCredentialUrl(cred)
+  const endpoint = `${credentialUrl}`
+
+  if (credentialUrl.hostname === 'github.com') {
+    return 'github.com'
+  }
+
+  if (credentialUrl.hostname.endsWith('.ghe.com')) {
+    return 'enterprise'
+  }
+
+  const existingAccount = await findGitHubTrampolineAccount(store, endpoint)
+  if (existingAccount) {
+    return existingAccount.endpoint === getDotComAPIEndpoint()
+      ? 'github.com'
+      : 'enterprise'
+  }
+
+  const response = await timeout(
+    fetchMetadata(getEnterpriseAPIURL(endpoint)),
+    2000,
+    null
+  ).catch(() => null)
+
+  if (response) {
+    return 'enterprise'
+  }
+
+  return 'generic'
 }
 
 /**
