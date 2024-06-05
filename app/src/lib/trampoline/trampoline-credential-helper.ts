@@ -33,7 +33,6 @@ type Store = AccountsStore
 
 const info = (msg: string) => log.info(`credential-helper: ${msg}`)
 const debug = (msg: string) => log.debug(`credential-helper: ${msg}`)
-const warn = (msg: string) => log.warn(`credential-helper: ${msg}`)
 const error = (msg: string, e: any) => log.error(`credential-helper: ${msg}`, e)
 
 /**
