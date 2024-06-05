@@ -12,6 +12,7 @@ import {
   getCredentialUrl,
   getIsBackgroundTaskEnvironment,
   getTrampolineEnvironmentPath,
+  setHasRejectedCredentialsForEndpoint,
 } from './trampoline-environment'
 import { useExternalCredentialHelper } from './use-external-credential-helper'
 import {
@@ -175,7 +176,9 @@ export const createCredentialHelperTrampolineHandler: (
     if (firstParameter === 'get') {
       const cred = await getCredential(input, store, token)
       if (!cred) {
-        info(`could not find credential for ${getCredentialUrl(input)}`)
+        const endpoint = `${getCredentialUrl(input)}`
+        info(`could not find credential for ${endpoint}`)
+        setHasRejectedCredentialsForEndpoint(token, endpoint)
       }
       return cred ? formatCredential(cred) : undefined
     } else if (firstParameter === 'store') {

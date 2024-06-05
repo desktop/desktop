@@ -12,12 +12,13 @@ import {
   enableCredentialHelperTrampoline,
   enableCustomGitUserAgent,
 } from '../feature-flag'
-import { GitError } from '../git/core'
+import { GitError, getDescriptionForError } from '../git/core'
 import { deleteGenericCredential } from '../generic-git-auth'
 import {
   getDesktopAskpassTrampolineFilename,
   getDesktopCredentialHelperTrampolineFilename,
 } from 'desktop-trampoline'
+import { useExternalCredentialHelper } from './use-external-credential-helper'
 
 const mostRecentGenericGitCredential = new Map<
   string,
@@ -94,6 +95,9 @@ export const GitUserAgent = memoizeOne(() =>
       return `git/${v} (${ghdVersion}; ${platform} ${arch})`
     })
 )
+
+const fatalPromptsDisabledRe =
+  /^fatal: could not read .*?: terminal prompts disabled\n$/
 
 /**
  * Allows invoking a function with a set of environment variables to use when
@@ -175,6 +179,40 @@ export async function withTrampolineEnv<T>(
       if (isAuthFailure(e) && !getIsBackgroundTaskEnvironment(token)) {
         deleteMostRecentGenericCredential(token)
       }
+
+      // Prior to us introducing the credential helper trampoline, our askpass
+      // trampoline would return an empty string as the username and password if
+      // we were unable to find an account or acquire credentials from the user.
+      // Git would take that to mean that the literal username and password were
+      // an empty string and would attempt to authenticate with those. This
+      // would fail and Git would then exit with an authentication error which
+      // would bubble up to the user. Now that we're using the credential helper
+      // Git knows that we failed to provide credentials and instead of trying
+      // to authenticate with an empty string it will exit with an error saying
+      // that it couldn't read the username since terminal prompts were
+      // disabled.
+      //
+      // We catch that specific error here and throw the user-friendly
+      // authentication failed error that we've always done in the past.
+      if (
+        useExternalCredentialHelper() &&
+        hasRejectedCredentialsForEndpoint.has(token) &&
+        e instanceof GitError &&
+        fatalPromptsDisabledRe.test(e.message)
+      ) {
+        const gitErrorDescription =
+          getDescriptionForError(DugiteError.HTTPSAuthenticationFailed, '') ??
+          'Authentication failed: user cancelled authentication'
+
+        const fakeAuthError = new GitError(
+          { ...e.result, gitErrorDescription },
+          e.args
+        )
+
+        fakeAuthError.cause = e
+        throw fakeAuthError
+      }
+
       throw e
     } finally {
       removePendingSSHSecretToStore(token)
