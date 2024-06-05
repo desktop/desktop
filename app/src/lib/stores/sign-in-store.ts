@@ -29,6 +29,7 @@ import uuid from 'uuid'
 import { IOAuthAction } from '../parse-app-url'
 import { shell } from '../app-shell'
 import { noop } from 'lodash'
+import { isGHE } from '../endpoint-capabilities'
 
 function getUnverifiedUserErrorMessage(login: string): string {
   return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
@@ -266,6 +267,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
   private async endpointSupportsBasicAuth(endpoint: string): Promise<boolean> {
     if (endpoint === getDotComAPIEndpoint()) {
+      return false
+    }
+
+    if (isGHE(endpoint)) {
       return false
     }
 
