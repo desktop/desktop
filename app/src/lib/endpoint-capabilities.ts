@@ -55,7 +55,7 @@ export const isGHE = (ep: string) => new URL(ep).hostname.endsWith('.ghe.com')
  */
 export const isGHES = (ep: string) => !isDotCom(ep) && !isGHE(ep)
 
-function getEndpointVersion(endpoint: string) {
+export function getEndpointVersion(endpoint: string) {
   const key = endpointVersionKey(endpoint)
   const cached = versionCache.get(key)
 

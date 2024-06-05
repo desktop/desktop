@@ -26,12 +26,7 @@ import {
 } from '../generic-git-auth'
 import { urlWithoutCredentials } from './url-without-credentials'
 import { trampolineUIHelper as ui } from './trampoline-ui-helper'
-import {
-  fetchMetadata,
-  getDotComAPIEndpoint,
-  getEnterpriseAPIURL,
-} from '../api'
-import { timeout } from '../promise'
+import { getDotComAPIEndpoint, isGitHubHost } from '../api'
 
 type Credential = Map<string, string>
 type Store = AccountsStore
@@ -154,6 +149,14 @@ const getEndpointKind = async (cred: Credential, store: Store) => {
     return 'enterprise'
   }
 
+  const wwwAuthHeaders = Array.from(cred.entries())
+    .filter(([k]) => k.startsWith('wwwauth['))
+    .map(([, v]) => v)
+
+  if (wwwAuthHeaders.some(v => v === 'Basic realm="GitHub"')) {
+    return 'enterprise'
+  }
+
   const existingAccount = await findGitHubTrampolineAccount(store, endpoint)
   if (existingAccount) {
     return existingAccount.endpoint === getDotComAPIEndpoint()
@@ -161,13 +164,7 @@ const getEndpointKind = async (cred: Credential, store: Store) => {
       : 'enterprise'
   }
 
-  const response = await timeout(
-    fetchMetadata(getEnterpriseAPIURL(endpoint)),
-    2000,
-    null
-  ).catch(() => null)
-
-  if (response) {
+  if (await isGitHubHost(endpoint)) {
     return 'enterprise'
   }
 
