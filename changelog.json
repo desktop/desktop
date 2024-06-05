@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.4.1-test1": ["[New] testing hooks"],
     "3.4.1": [
       "[Fixed] Using hooks on Windows no longer results in an \"command not found\" error - #18739"
     ],
