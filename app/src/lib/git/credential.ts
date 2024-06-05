@@ -45,6 +45,9 @@ const exec = (
         GIT_TERMINAL_PROMPT: '0',
         GIT_ASKPASS: '',
         TERM: 'dumb',
+        ...(process.env.GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION
+          ? { GCM_GUI_SOFTWARE_RENDERING: '1' }
+          : {}),
         ...env,
       },
     }
