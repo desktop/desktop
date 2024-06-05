@@ -1,10 +1,28 @@
 import { GitProcess } from 'dugite'
 
-export const parseCredential = (value: string) =>
-  new Map([...value.matchAll(/^(.*?)=(.*)$/gm)].map(([, k, v]) => [k, v]))
+export const parseCredential = (value: string) => {
+  const cred = new Map<string, string>()
+
+  for (const [, k, v] of value.matchAll(/^(.*?)=(.*)$/gm)) {
+    if (k.endsWith('[]')) {
+      let i = 0
+      const base = k.slice(0, -2)
+      while (cred.has(`${base}[${i}]`)) {
+        i++
+      }
+      cred.set(`${base}[${i}]`, v)
+    } else {
+      cred.set(k, v)
+    }
+  }
+
+  return cred
+}
 
 export const formatCredential = (credential: Map<string, string>) =>
-  [...credential].map(([k, v]) => `${k}=${v}\n`).join('')
+  [...credential]
+    .map(([k, v]) => `${k.replace(/\[\d+\]$/, '[]')}=${v}\n`)
+    .join('')
 
 // Can't use git() as that will call withTrampolineEnv which calls this method
 const exec = (
