@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.4.1": [
+      "[Fixed] Using hooks on Windows no longer results in an \"command not found\" error - #18739"
+    ],
     "3.4.0": [
       "[New] Reset to a previous commit - #12393",
       "[Added] Add accessibility settings to toggle link underlines and diff check marks - #18227, 18035",
