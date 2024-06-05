@@ -219,7 +219,7 @@ export function getDesktopAskpassTrampolinePath(): string {
   )
 }
 
-/** Returns the path of the desktop-askpass-trampoline binary. */
+/** Returns the path of the desktop-credential-helper-trampoline binary. */
 export function getDesktopCredentialHelperTrampolinePath(): string {
   return Path.resolve(
     __dirname,
