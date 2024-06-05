@@ -171,36 +171,18 @@ const getEndpointKind = async (cred: Credential, store: Store) => {
   return 'generic'
 }
 
-/**
- * Determines whether the credential provided should be managed within GitHub
- * or not. This includes all GitHub.com accounts and any other accounts that
- * Desktop is currently signed in as (i.e. available in the accounts store).
- */
-async function isCredentialStoredInternally(cred: Credential, store: Store) {
-  const credentialUrl = getCredentialUrl(cred)
-  const endpoint = `${credentialUrl}`
-
-  if (await findGitHubTrampolineAccount(store, endpoint)) {
-    debug(`credential for ${endpoint} stored internally`)
-    return true
-  }
-
-  if (credentialUrl.hostname === 'github.com') {
-    warn(`credential for ${endpoint} not found in store`)
-    return true
-  }
-
-  return false
-}
-
 /** Implementation of the 'store' git credential helper command */
 async function storeCredential(cred: Credential, store: Store, token: string) {
-  if (await isCredentialStoredInternally(cred, store)) {
+  if ((await getEndpointKind(cred, store)) !== 'generic') {
     return
   }
 
+  const isBackgroundTask = getIsBackgroundTaskEnvironment(token)
+
   return useExternalCredentialHelper()
-    ? approveCredential(cred, getTrampolineEnvironmentPath(token))
+    ? approveCredential(cred, getTrampolineEnvironmentPath(token), {
+        GCM_INTERACTIVE: isBackgroundTask ? '0' : '1',
+      })
     : setGenericCredential(
         urlWithoutCredentials(getCredentialUrl(cred)),
         forceUnwrap(`credential missing username`, cred.get('username')),
@@ -210,12 +192,16 @@ async function storeCredential(cred: Credential, store: Store, token: string) {
 
 /** Implementation of the 'erase' git credential helper command */
 async function eraseCredential(cred: Credential, store: Store, token: string) {
-  if (await isCredentialStoredInternally(cred, store)) {
+  if ((await getEndpointKind(cred, store)) !== 'generic') {
     return
   }
 
+  const isBackgroundTask = getIsBackgroundTaskEnvironment(token)
+
   return useExternalCredentialHelper()
-    ? rejectCredential(cred, getTrampolineEnvironmentPath(token))
+    ? rejectCredential(cred, getTrampolineEnvironmentPath(token), {
+        GCM_INTERACTIVE: isBackgroundTask ? '0' : '1',
+      })
     : deleteGenericCredential(
         urlWithoutCredentials(getCredentialUrl(cred)),
         forceUnwrap(`credential missing username`, cred.get('username'))
