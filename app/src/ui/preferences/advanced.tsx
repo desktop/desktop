@@ -153,7 +153,7 @@ export class Advanced extends React.Component<
                   Git Credential Manager{' '}
                 </LinkButton>{' '}
                 for private repositories outside of GitHub.com. This feature is
-                experimental and subject to change{' '}
+                experimental and subject to change.
               </p>
             </div>
           </div>
