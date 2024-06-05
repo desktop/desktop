@@ -83,10 +83,7 @@ async function getGenericCredential(cred: Credential, token: string) {
 
 async function getExternalCredential(input: Credential, token: string) {
   const path = getTrampolineEnvironmentPath(token)
-  const isBackgroundTask = getIsBackgroundTaskEnvironment(token)
-  const cred = await fillCredential(input, path, {
-    GCM_INTERACTIVE: isBackgroundTask ? '0' : '1',
-  })
+  const cred = await fillCredential(input, path, getGcmEnv(token))
   if (cred) {
     info(`found credential for ${getCredentialUrl(cred)} in external helper`)
   }
@@ -177,17 +174,18 @@ async function storeCredential(cred: Credential, store: Store, token: string) {
     return
   }
 
-  const isBackgroundTask = getIsBackgroundTaskEnvironment(token)
-
   return useExternalCredentialHelper()
-    ? approveCredential(cred, getTrampolineEnvironmentPath(token), {
-        GCM_INTERACTIVE: isBackgroundTask ? '0' : '1',
-      })
+    ? storeExternalCredential(cred, token)
     : setGenericCredential(
         urlWithoutCredentials(getCredentialUrl(cred)),
         forceUnwrap(`credential missing username`, cred.get('username')),
         forceUnwrap(`credential missing password`, cred.get('password'))
       )
+}
+
+const storeExternalCredential = (cred: Credential, token: string) => {
+  const path = getTrampolineEnvironmentPath(token)
+  return approveCredential(cred, path, getGcmEnv(token))
 }
 
 /** Implementation of the 'erase' git credential helper command */
@@ -196,16 +194,17 @@ async function eraseCredential(cred: Credential, store: Store, token: string) {
     return
   }
 
-  const isBackgroundTask = getIsBackgroundTaskEnvironment(token)
-
   return useExternalCredentialHelper()
-    ? rejectCredential(cred, getTrampolineEnvironmentPath(token), {
-        GCM_INTERACTIVE: isBackgroundTask ? '0' : '1',
-      })
+    ? eraseExternalCredential(cred, token)
     : deleteGenericCredential(
         urlWithoutCredentials(getCredentialUrl(cred)),
         forceUnwrap(`credential missing username`, cred.get('username'))
       )
+}
+
+const eraseExternalCredential = (cred: Credential, token: string) => {
+  const path = getTrampolineEnvironmentPath(token)
+  return rejectCredential(cred, path, getGcmEnv(token))
 }
 
 export const createCredentialHelperTrampolineHandler: (
@@ -246,5 +245,12 @@ export const createCredentialHelperTrampolineHandler: (
   } catch (e) {
     error(`${firstParameter} failed`, e)
     return undefined
+  }
+}
+
+function getGcmEnv(token: string): Record<string, string | undefined> {
+  const isBackgroundTask = getIsBackgroundTaskEnvironment(token)
+  return {
+    GCM_INTERACTIVE: isBackgroundTask ? '0' : '1',
   }
 }
