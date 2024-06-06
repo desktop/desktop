@@ -157,7 +157,7 @@ export class RelativeTime extends React.Component<
     }
   }
 
-  public componentWillMount() {
+  public componentDidMount() {
     this.updateWithDate(this.props.date)
   }
 
