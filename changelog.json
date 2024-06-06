@@ -4,6 +4,9 @@
       "[New] Allow customizing tab character width in spaces - #15561",
       "[Fixed] Using hooks on Windows no longer results in a \"command not found\" error - #18739"
     ],
+    "3.4.1": [
+      "[Fixed] Using hooks on Windows no longer results in an \"command not found\" error - #18739"
+    ],
     "3.4.1-beta1": [
       "[Fixed] Prevent crashes when external editors fail to launch - #17717. Thanks @tsvetilian-ty!",
       "[Fixed] Fix 'delete branch' message - #18706. Thanks @zetaloop!",
