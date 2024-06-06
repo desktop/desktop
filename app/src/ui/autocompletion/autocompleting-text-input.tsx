@@ -168,20 +168,15 @@ export abstract class AutocompletingTextInput<
   ) {
     super(props)
 
-    this.state = {
-      autocompletionState: null,
-      caretCoordinates: null,
-    }
-  }
-
-  public componentWillMount() {
     const elementId = createUniqueId('autocompleting-text-input')
     const autocompleteContainerId = createUniqueId('autocomplete-container')
 
-    this.setState({
+    this.state = {
+      autocompletionState: null,
+      caretCoordinates: null,
       uniqueInternalElementId: elementId,
       autocompleteContainerId,
-    })
+    }
   }
 
   public componentWillUnmount() {
