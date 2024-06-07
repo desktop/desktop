@@ -145,11 +145,11 @@ const getEndpointKind = async (cred: Credential, store: Store) => {
     return 'ghe.com'
   }
 
-  const wwwAuthHeaders = Array.from(cred.entries())
-    .filter(([k]) => k.startsWith('wwwauth['))
-    .map(([, v]) => v)
-
-  if (wwwAuthHeaders.some(v => v === 'Basic realm="GitHub"')) {
+  if (
+    [...cred.entries()]
+      .filter(([k]) => k.startsWith('wwwauth['))
+      .some(([, v]) => v.includes('realm="GitHub"'))
+  ) {
     return 'enterprise'
   }
 
