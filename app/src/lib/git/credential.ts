@@ -3,14 +3,19 @@ import { GitProcess } from 'dugite'
 export const parseCredential = (value: string) => {
   const cred = new Map<string, string>()
 
+  // The credential helper protocol is a simple key=value format but some of its
+  // keys are actually arrays which are represented as multiple key[] entries.
+  // Since we're currently storing credentials as a Map we need to handle this
+  // and expand multiple key[] entries into a key[0], key[1]... key[n] sequence.
+  // We then remove the number from the key when we're formatting the credential
   for (const [, k, v] of value.matchAll(/^(.*?)=(.*)$/gm)) {
     if (k.endsWith('[]')) {
       let i = 0
-      const base = k.slice(0, -2)
-      while (cred.has(`${base}[${i}]`)) {
+      const newKey = `${k.slice(0, -2)}[${i}]`
+      while (cred.has(newKey)) {
         i++
       }
-      cred.set(`${base}[${i}]`, v)
+      cred.set(newKey, v)
     } else {
       cred.set(k, v)
     }
