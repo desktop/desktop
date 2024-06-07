@@ -142,7 +142,7 @@ const getEndpointKind = async (cred: Credential, store: Store) => {
   }
 
   if (credentialUrl.hostname.endsWith('.ghe.com')) {
-    return 'enterprise'
+    return 'ghe.com'
   }
 
   const wwwAuthHeaders = Array.from(cred.entries())
