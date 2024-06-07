@@ -26,7 +26,8 @@ import {
 } from '../generic-git-auth'
 import { urlWithoutCredentials } from './url-without-credentials'
 import { trampolineUIHelper as ui } from './trampoline-ui-helper'
-import { getDotComAPIEndpoint, isGitHubHost } from '../api'
+import { isGitHubHost } from '../api'
+import { isDotCom, isGHE } from '../endpoint-capabilities'
 
 type Credential = Map<string, string>
 type Store = AccountsStore
@@ -99,12 +100,8 @@ async function getCredential(cred: Credential, store: Store, token: string) {
   }
 
   const endpointKind = await getEndpointKind(cred, store)
-  const hasDotComAccount = accounts.some(
-    a => a.endpoint === getDotComAPIEndpoint()
-  )
-  const hasEnterpriseAccount = accounts.some(
-    a => a.endpoint !== getDotComAPIEndpoint()
-  )
+  const hasDotComAccount = accounts.some(a => isDotCom(a.endpoint))
+  const hasEnterpriseAccount = accounts.some(a => !isDotCom(a.endpoint))
 
   // If it appears as if the endpoint is a GitHub host and we don't have an
   // account for it (since we currently only allow one GitHub.com account and
@@ -137,11 +134,11 @@ const getEndpointKind = async (cred: Credential, store: Store) => {
   const credentialUrl = getCredentialUrl(cred)
   const endpoint = `${credentialUrl}`
 
-  if (credentialUrl.hostname === 'github.com') {
+  if (isDotCom(endpoint)) {
     return 'github.com'
   }
 
-  if (credentialUrl.hostname.endsWith('.ghe.com')) {
+  if (isGHE(endpoint)) {
     return 'ghe.com'
   }
 
@@ -159,16 +156,10 @@ const getEndpointKind = async (cred: Credential, store: Store) => {
 
   const existingAccount = await findGitHubTrampolineAccount(store, endpoint)
   if (existingAccount) {
-    return existingAccount.endpoint === getDotComAPIEndpoint()
-      ? 'github.com'
-      : 'enterprise'
+    return isDotCom(existingAccount.endpoint) ? 'github.com' : 'enterprise'
   }
 
-  if (await isGitHubHost(endpoint)) {
-    return 'enterprise'
-  }
-
-  return 'generic'
+  return (await isGitHubHost(endpoint)) ? 'enterprise' : 'generic'
 }
 
 /** Implementation of the 'store' git credential helper command */
