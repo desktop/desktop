@@ -2265,7 +2265,7 @@ export async function isGitHubHost(url: string) {
 
   // bitbucket.example.com, etc
   if (/(^|\.)(bitbucket|gitlab)\./.test(hostname)) {
-    return true
+    return false
   }
 
   if (getEndpointVersion(endpoint) !== null) {
