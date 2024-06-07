@@ -250,6 +250,9 @@ export const createCredentialHelperTrampolineHandler: (
 function getGcmEnv(token: string): Record<string, string | undefined> {
   const isBackgroundTask = getIsBackgroundTaskEnvironment(token)
   return {
+    ...(process.env.GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION
+      ? { GCM_GUI_SOFTWARE_RENDERING: '1' }
+      : {}),
     GCM_INTERACTIVE: isBackgroundTask ? '0' : '1',
   }
 }
