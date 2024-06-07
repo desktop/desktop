@@ -2241,14 +2241,20 @@ const isKnownThirdPartyHost = (hostname: string) => {
 }
 
 /**
- * Attempts to determine whether or not an endpoint is a GitHub host.
+ * Attempts to determine whether or not the url belongs to a GitHub host.
  *
  * This is a best-effort attempt and may return `undefined` if encountering
  * an error making the discovery request
  */
-export async function isGitHubHost(endpoint: string) {
-  const { hostname } = new window.URL(endpoint)
-  if (isDotCom(endpoint) || hostname === 'github.com' || isGHE(endpoint)) {
+export async function isGitHubHost(url: string) {
+  const { hostname } = new window.URL(url)
+
+  const endpoint =
+    hostname === 'github.com' || hostname === 'api.github.com'
+      ? getDotComAPIEndpoint()
+      : getEnterpriseAPIURL(url)
+
+  if (isDotCom(endpoint) || isGHE(endpoint)) {
     return true
   }
 
@@ -2263,10 +2269,11 @@ export async function isGitHubHost(endpoint: string) {
   const ac = new AbortController()
   const timeoutId = setTimeout(() => ac.abort(), 2000)
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetch(`${endpoint}/meta`, {
       headers: { 'user-agent': getUserAgent() },
       signal: ac.signal,
       credentials: 'omit',
+      method: 'HEAD',
     }).finally(() => clearTimeout(timeoutId))
 
     tryUpdateEndpointVersionFromResponse(endpoint, response)
