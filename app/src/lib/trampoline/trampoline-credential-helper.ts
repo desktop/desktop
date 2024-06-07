@@ -145,6 +145,10 @@ const getEndpointKind = async (cred: Credential, store: Store) => {
     return 'ghe.com'
   }
 
+  // When Git attempts to authenticate with a host it captures any
+  // WWW-Authenticate headers and forwards them to the credential helper. We
+  // use them as a happy-path to determine if the host is a GitHub host without
+  // having to resort to making a request ourselves.
   if (
     [...cred.entries()]
       .filter(([k]) => k.startsWith('wwwauth['))
