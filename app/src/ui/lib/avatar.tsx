@@ -451,13 +451,16 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     }
 
     this.setState({
-      avatarToken: avatarTokenCache.get({ endpoint, accounts }).then(token => {
-        if (!this.cancelAvatarRequests) {
-          if (token && this.state.user?.endpoint === endpoint) {
-            this.resetAvatarCandidates(token)
+      avatarToken: avatarTokenCache
+        .get({ endpoint, accounts })
+        .then(token => {
+          if (!this.cancelAvatarRequests) {
+            if (token && this.state.user?.endpoint === endpoint) {
+              this.resetAvatarCandidates(token)
+            }
           }
-        }
-      }),
+        })
+        .catch(e => log.debug(`Failed to fetch avatar token: ${e}`)),
     })
   }
 
