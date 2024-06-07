@@ -93,13 +93,14 @@ async function getExternalCredential(input: Credential, token: string) {
 /** Implementation of the 'get' git credential helper command */
 async function getCredential(cred: Credential, store: Store, token: string) {
   const ghCred = await getGitHubCredential(cred, store)
-  const accounts = await store.getAll()
 
   if (ghCred) {
     return ghCred
   }
 
   const endpointKind = await getEndpointKind(cred, store)
+  const accounts = await store.getAll()
+
   const hasDotComAccount = accounts.some(a => isDotCom(a.endpoint))
   const hasEnterpriseAccount = accounts.some(a => !isDotCom(a.endpoint))
 
