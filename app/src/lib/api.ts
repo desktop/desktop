@@ -2224,6 +2224,7 @@ const knownThirdPartyHosts = new Set([
   'gitlab.com',
   'bitbucket.org',
   'amazonaws.com',
+  'visualstudio.com',
 ])
 
 const isKnownThirdPartyHost = (hostname: string) => {
@@ -2260,6 +2261,11 @@ export async function isGitHubHost(url: string) {
 
   if (isKnownThirdPartyHost(hostname)) {
     return false
+  }
+
+  // bitbucket.example.com, etc
+  if (/(^|\.)(bitbucket|gitlab)\./.test(hostname)) {
+    return true
   }
 
   if (getEndpointVersion(endpoint) !== null) {
