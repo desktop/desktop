@@ -11,10 +11,13 @@ export const parseCredential = (value: string) => {
   for (const [, k, v] of value.matchAll(/^(.*?)=(.*)$/gm)) {
     if (k.endsWith('[]')) {
       let i = 0
-      const newKey = `${k.slice(0, -2)}[${i}]`
-      while (cred.has(newKey)) {
+      let newKey
+
+      do {
+        newKey = `${k.slice(0, -2)}[${i}]`
         i++
-      }
+      } while (cred.has(newKey))
+
       cred.set(newKey, v)
     } else {
       cred.set(k, v)
