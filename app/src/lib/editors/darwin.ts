@@ -104,6 +104,10 @@ const editors: IDarwinExternalEditor[] = [
     ],
   },
   {
+    name: 'NetBeans',
+    bundleIdentifiers: ['org.apache.netbeans'],
+  },
+  {
     name: 'BBEdit',
     bundleIdentifiers: ['com.barebones.bbedit'],
   },
@@ -126,6 +130,10 @@ const editors: IDarwinExternalEditor[] = [
   {
     name: 'RubyMine',
     bundleIdentifiers: ['com.jetbrains.RubyMine'],
+  },
+  {
+    name: 'RustRover',
+    bundleIdentifiers: ['com.jetbrains.RustRover'],
   },
   {
     name: 'RStudio',

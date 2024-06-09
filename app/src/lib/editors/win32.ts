@@ -297,6 +297,19 @@ const editors: WindowsExternalEditor[] = [
     publishers: ['brackets.io'],
   },
   {
+    name: 'Apache NetBeans',
+    registryKeys: [
+      // Netbeans-22/21/20 Main-releases
+      LocalMachineUninstallKey('nbi-nb-all-22.0.0.240522.0'),
+      LocalMachineUninstallKey('nbi-nb-all-21.0.0.240215.0'),
+      LocalMachineUninstallKey('nbi-nb-all-20.0.0.231123.0'),
+    ],
+    installLocationRegistryKey: 'InstallLocation',
+    executableShimPaths: [['netbeans', 'bin', 'netbeans.exe']],
+    displayNamePrefixes: ['Apache NetBeans IDE 22', 'Apache NetBeans IDE 21', 'Apache NetBeans IDE 20'],
+    publishers: ['Apache NetBeans'],
+  },
+  {
     name: 'ColdFusion Builder',
     registryKeys: [
       // 64-bit version of ColdFusionBuilder3
@@ -486,6 +499,14 @@ const editors: WindowsExternalEditor[] = [
     executableShimPaths: executableShimPathsForJetBrainsIDE('dataspell'),
     jetBrainsToolboxScriptName: 'dataspell',
     displayNamePrefixes: ['DataSpell '],
+    publishers: ['JetBrains s.r.o.'],
+  },
+  {
+    name: 'JetBrains RustRover',
+    registryKeys: registryKeysForJetBrainsIDE('RustRover'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('rustrover'),
+    jetBrainsToolboxScriptName: 'rustrover',
+    displayNamePrefixes: ['RustRover '],
     publishers: ['JetBrains s.r.o.'],
   },
   {
