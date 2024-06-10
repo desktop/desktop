@@ -7,6 +7,7 @@ import {
   IssuesStore,
   PullRequestCoordinator,
   RepositoriesStore,
+  SignInResult,
   SignInStore,
   UpstreamRemoteName,
 } from '.'
@@ -331,6 +332,12 @@ import { resizableComponentClass } from '../../ui/resizable'
 import { compare } from '../compare'
 import { parseRepoRules, useRepoRulesLogic } from '../helpers/repo-rules'
 import { RepoRulesInfo } from '../../models/repo-rules'
+import {
+  setUseExternalCredentialHelper,
+  useExternalCredentialHelper,
+  useExternalCredentialHelperDefault,
+} from '../trampoline/use-external-credential-helper'
+import { IOAuthAction } from '../parse-app-url'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -482,6 +489,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private askToMoveToApplicationsFolderSetting: boolean =
     askToMoveToApplicationsFolderDefault
+  private useExternalCredentialHelper: boolean =
+    useExternalCredentialHelperDefault
   private askForConfirmationOnRepositoryRemoval: boolean =
     confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
@@ -1001,6 +1010,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentBanner: this.currentBanner,
       askToMoveToApplicationsFolderSetting:
         this.askToMoveToApplicationsFolderSetting,
+      useExternalCredentialHelper: this.useExternalCredentialHelper,
       askForConfirmationOnRepositoryRemoval:
         this.askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
@@ -2119,6 +2129,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askToMoveToApplicationsFolderKey,
       askToMoveToApplicationsFolderDefault
     )
+
+    this.useExternalCredentialHelper = useExternalCredentialHelper()
 
     this.askForConfirmationOnRepositoryRemoval = getBoolean(
       confirmRepoRemovalKey,
@@ -5502,6 +5514,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public _setUseExternalCredentialHelper(value: boolean) {
+    setUseExternalCredentialHelper(value)
+    this.useExternalCredentialHelper = value
+    this.emitUpdate()
+  }
+
   public _setAskToMoveToApplicationsFolderSetting(
     value: boolean
   ): Promise<void> {
@@ -5728,19 +5746,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
+  public _resolveOAuthRequest(action: IOAuthAction) {
+    return this.signInStore.resolveOAuthRequest(action)
+  }
+
   public _resetSignInState(): Promise<void> {
     this.signInStore.reset()
     return Promise.resolve()
   }
 
-  public _beginDotComSignIn(): Promise<void> {
-    this.signInStore.beginDotComSignIn()
-    return Promise.resolve()
+  public _beginDotComSignIn(resultCallback?: (result: SignInResult) => void) {
+    return this.signInStore.beginDotComSignIn(resultCallback)
   }
 
-  public _beginEnterpriseSignIn(): Promise<void> {
-    this.signInStore.beginEnterpriseSignIn()
-    return Promise.resolve()
+  public _beginEnterpriseSignIn(
+    resultCallback?: (result: SignInResult) => void
+  ) {
+    return this.signInStore.beginEnterpriseSignIn(resultCallback)
   }
 
   public _setSignInEndpoint(url: string): Promise<void> {
@@ -5754,8 +5776,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.signInStore.authenticateWithBasicAuth(username, password)
   }
 
-  public _requestBrowserAuthentication(): Promise<void> {
-    return this.signInStore.authenticateWithBrowser()
+  public _requestBrowserAuthentication() {
+    this.signInStore.authenticateWithBrowser()
   }
 
   public _setSignInOTP(otp: string): Promise<void> {

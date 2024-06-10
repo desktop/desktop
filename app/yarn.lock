@@ -323,12 +323,12 @@ desktop-notifications@^0.2.4:
     prebuild-install "^7.0.1"
     uuid "^8.3.2"
 
-desktop-trampoline@desktop/desktop-trampoline#v0.9.8:
-  version "0.9.8"
-  resolved "https://codeload.github.com/desktop/desktop-trampoline/tar.gz/cbd3dbb31d0d3ea9f325067f48bfbf60b6663a57"
+desktop-trampoline@desktop/desktop-trampoline#v0.9.10:
+  version "0.9.10"
+  resolved "https://codeload.github.com/desktop/desktop-trampoline/tar.gz/8f6ceec51d9434d4ada9022bb7d62f01f1d8f51b"
   dependencies:
-    node-addon-api "^3.1.0"
-    prebuild-install "^6.0.0"
+    node-addon-api "^4.3.0"
+    prebuild-install "^7.1.2"
 
 detect-libc@^1.0.3:
   version "1.0.3"
@@ -986,6 +986,24 @@ prebuild-install@^7.0.1:
     napi-build-utils "^1.0.1"
     node-abi "^3.3.0"
     npmlog "^4.0.1"
+    pump "^3.0.0"
+    rc "^1.2.7"
+    simple-get "^4.0.0"
+    tar-fs "^2.0.0"
+    tunnel-agent "^0.6.0"
+
+prebuild-install@^7.1.2:
+  version "7.1.2"
+  resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-7.1.2.tgz#a5fd9986f5a6251fbc47e1e5c65de71e68c0a056"
+  integrity sha512-UnNke3IQb6sgarcZIDU3gbMeTp/9SSU1DAIkil7PrqG1vZlBtY5msYccSKSHDqa3hNg436IXK+SNImReuA1wEQ==
+  dependencies:
+    detect-libc "^2.0.0"
+    expand-template "^2.0.3"
+    github-from-package "0.0.0"
+    minimist "^1.2.3"
+    mkdirp-classic "^0.5.3"
+    napi-build-utils "^1.0.1"
+    node-abi "^3.3.0"
     pump "^3.0.0"
     rc "^1.2.7"
     simple-get "^4.0.0"

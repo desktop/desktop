@@ -29,7 +29,7 @@
     "compare-versions": "^3.6.0",
     "deep-equal": "^1.0.1",
     "desktop-notifications": "^0.2.4",
-    "desktop-trampoline": "desktop/desktop-trampoline#v0.9.8",
+    "desktop-trampoline": "desktop/desktop-trampoline#v0.9.10",
     "dexie": "^3.2.2",
     "dompurify": "^2.3.3",
     "dugite": "3.0.0-rc3",

@@ -2,7 +2,7 @@ import memoizeOne from 'memoize-one'
 import { pathExists } from '../../ui/lib/path-exists'
 import { getBoolean } from '../local-storage'
 import {
-  getDesktopTrampolinePath,
+  getDesktopAskpassTrampolinePath,
   getSSHWrapperPath,
 } from '../trampoline/trampoline-environment'
 
@@ -43,7 +43,7 @@ function isWindowsOpenSSHUseEnabled() {
  */
 export async function getSSHEnvironment() {
   const baseEnv = {
-    SSH_ASKPASS: getDesktopTrampolinePath(),
+    SSH_ASKPASS: getDesktopAskpassTrampolinePath(),
     // DISPLAY needs to be set to _something_ so ssh actually uses SSH_ASKPASS
     DISPLAY: '.',
   }
