@@ -12,6 +12,7 @@ import {
   getCredentialUrl,
   getIsBackgroundTaskEnvironment,
   getTrampolineEnvironmentPath,
+  setHasRejectedCredentialsForEndpoint,
 } from './trampoline-environment'
 import { useExternalCredentialHelper } from './use-external-credential-helper'
 import {
@@ -25,13 +26,14 @@ import {
 } from '../generic-git-auth'
 import { urlWithoutCredentials } from './url-without-credentials'
 import { trampolineUIHelper as ui } from './trampoline-ui-helper'
+import { isGitHubHost } from '../api'
+import { isDotCom, isGHE } from '../endpoint-capabilities'
 
 type Credential = Map<string, string>
 type Store = AccountsStore
 
 const info = (msg: string) => log.info(`credential-helper: ${msg}`)
 const debug = (msg: string) => log.debug(`credential-helper: ${msg}`)
-const warn = (msg: string) => log.warn(`credential-helper: ${msg}`)
 const error = (msg: string, e: any) => log.error(`credential-helper: ${msg}`, e)
 
 /**
@@ -80,7 +82,8 @@ async function getGenericCredential(cred: Credential, token: string) {
 }
 
 async function getExternalCredential(input: Credential, token: string) {
-  const cred = await fillCredential(input, getTrampolineEnvironmentPath(token))
+  const path = getTrampolineEnvironmentPath(token)
+  const cred = await fillCredential(input, path, getGcmEnv(token))
   if (cred) {
     info(`found credential for ${getCredentialUrl(cred)} in external helper`)
   }
@@ -91,8 +94,36 @@ async function getExternalCredential(input: Credential, token: string) {
 async function getCredential(cred: Credential, store: Store, token: string) {
   const ghCred = await getGitHubCredential(cred, store)
 
-  if (ghCred || (await isCredentialStoredInternally(cred, store))) {
+  if (ghCred) {
     return ghCred
+  }
+
+  const endpointKind = await getEndpointKind(cred, store)
+  const accounts = await store.getAll()
+
+  const hasDotComAccount = accounts.some(a => isDotCom(a.endpoint))
+  const hasEnterpriseAccount = accounts.some(a => !isDotCom(a.endpoint))
+
+  // If it appears as if the endpoint is a GitHub host and we don't have an
+  // account for it (since we currently only allow one GitHub.com account and
+  // one Enterprise account) we prompt the user to sign in.
+  if (
+    (endpointKind === 'github.com' && !hasDotComAccount) ||
+    (endpointKind === 'enterprise' && !hasEnterpriseAccount)
+  ) {
+    if (getIsBackgroundTaskEnvironment(token)) {
+      debug('background task environment, skipping prompt')
+      return undefined
+    }
+
+    return ui
+      .promptForGitHubSignIn(`${getCredentialUrl(cred)}`)
+      .then(a => (a ? credWithAccount(cred, a) : undefined))
+  }
+
+  // GitHub.com/GHE creds are only stored internally
+  if (endpointKind !== 'generic') {
+    return undefined
   }
 
   return useExternalCredentialHelper()
@@ -100,36 +131,46 @@ async function getCredential(cred: Credential, store: Store, token: string) {
     : getGenericCredential(cred, token)
 }
 
-/**
- * Determines whether the credential provided should be managed within GitHub
- * or not. This includes all GitHub.com accounts and any other accounts that
- * Desktop is currently signed in as (i.e. available in the accounts store).
- */
-async function isCredentialStoredInternally(cred: Credential, store: Store) {
+const getEndpointKind = async (cred: Credential, store: Store) => {
   const credentialUrl = getCredentialUrl(cred)
   const endpoint = `${credentialUrl}`
 
-  if (await findGitHubTrampolineAccount(store, endpoint)) {
-    debug(`credential for ${endpoint} stored internally`)
-    return true
+  if (isDotCom(endpoint)) {
+    return 'github.com'
   }
 
-  if (credentialUrl.hostname === 'github.com') {
-    warn(`credential for ${endpoint} not found in store`)
-    return true
+  if (isGHE(endpoint)) {
+    return 'ghe.com'
   }
 
-  return false
+  // When Git attempts to authenticate with a host it captures any
+  // WWW-Authenticate headers and forwards them to the credential helper. We
+  // use them as a happy-path to determine if the host is a GitHub host without
+  // having to resort to making a request ourselves.
+  if (
+    [...cred.entries()]
+      .filter(([k]) => k.startsWith('wwwauth['))
+      .some(([, v]) => v.includes('realm="GitHub"'))
+  ) {
+    return 'enterprise'
+  }
+
+  const existingAccount = await findGitHubTrampolineAccount(store, endpoint)
+  if (existingAccount) {
+    return isDotCom(existingAccount.endpoint) ? 'github.com' : 'enterprise'
+  }
+
+  return (await isGitHubHost(endpoint)) ? 'enterprise' : 'generic'
 }
 
 /** Implementation of the 'store' git credential helper command */
 async function storeCredential(cred: Credential, store: Store, token: string) {
-  if (await isCredentialStoredInternally(cred, store)) {
+  if ((await getEndpointKind(cred, store)) !== 'generic') {
     return
   }
 
   return useExternalCredentialHelper()
-    ? approveCredential(cred, getTrampolineEnvironmentPath(token))
+    ? storeExternalCredential(cred, token)
     : setGenericCredential(
         urlWithoutCredentials(getCredentialUrl(cred)),
         forceUnwrap(`credential missing username`, cred.get('username')),
@@ -137,18 +178,28 @@ async function storeCredential(cred: Credential, store: Store, token: string) {
       )
 }
 
+const storeExternalCredential = (cred: Credential, token: string) => {
+  const path = getTrampolineEnvironmentPath(token)
+  return approveCredential(cred, path, getGcmEnv(token))
+}
+
 /** Implementation of the 'erase' git credential helper command */
 async function eraseCredential(cred: Credential, store: Store, token: string) {
-  if (await isCredentialStoredInternally(cred, store)) {
+  if ((await getEndpointKind(cred, store)) !== 'generic') {
     return
   }
 
   return useExternalCredentialHelper()
-    ? rejectCredential(cred, getTrampolineEnvironmentPath(token))
+    ? eraseExternalCredential(cred, token)
     : deleteGenericCredential(
         urlWithoutCredentials(getCredentialUrl(cred)),
         forceUnwrap(`credential missing username`, cred.get('username'))
       )
+}
+
+const eraseExternalCredential = (cred: Credential, token: string) => {
+  const path = getTrampolineEnvironmentPath(token)
+  return rejectCredential(cred, path, getGcmEnv(token))
 }
 
 export const createCredentialHelperTrampolineHandler: (
@@ -175,7 +226,9 @@ export const createCredentialHelperTrampolineHandler: (
     if (firstParameter === 'get') {
       const cred = await getCredential(input, store, token)
       if (!cred) {
-        info(`could not find credential for ${getCredentialUrl(input)}`)
+        const endpoint = `${getCredentialUrl(input)}`
+        info(`could not find credential for ${endpoint}`)
+        setHasRejectedCredentialsForEndpoint(token, endpoint)
       }
       return cred ? formatCredential(cred) : undefined
     } else if (firstParameter === 'store') {
@@ -187,5 +240,15 @@ export const createCredentialHelperTrampolineHandler: (
   } catch (e) {
     error(`${firstParameter} failed`, e)
     return undefined
+  }
+}
+
+function getGcmEnv(token: string): Record<string, string | undefined> {
+  const isBackgroundTask = getIsBackgroundTaskEnvironment(token)
+  return {
+    ...(process.env.GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION
+      ? { GCM_GUI_SOFTWARE_RENDERING: '1' }
+      : {}),
+    GCM_INTERACTIVE: isBackgroundTask ? '0' : '1',
   }
 }

@@ -318,7 +318,7 @@ export function parseConfigLockFilePathFromError(result: IGitResult) {
   return Path.resolve(result.path, `${normalized}.lock`)
 }
 
-function getDescriptionForError(
+export function getDescriptionForError(
   error: DugiteError,
   stderr: string
 ): string | null {

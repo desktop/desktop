@@ -7,6 +7,7 @@ import {
   IssuesStore,
   PullRequestCoordinator,
   RepositoriesStore,
+  SignInResult,
   SignInStore,
   UpstreamRemoteName,
 } from '.'
@@ -336,6 +337,7 @@ import {
   useExternalCredentialHelper,
   useExternalCredentialHelperDefault,
 } from '../trampoline/use-external-credential-helper'
+import { IOAuthAction } from '../parse-app-url'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5737,19 +5739,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._refreshRepository(repository)
   }
 
+  public _resolveOAuthRequest(action: IOAuthAction) {
+    return this.signInStore.resolveOAuthRequest(action)
+  }
+
   public _resetSignInState(): Promise<void> {
     this.signInStore.reset()
     return Promise.resolve()
   }
 
-  public _beginDotComSignIn(): Promise<void> {
-    this.signInStore.beginDotComSignIn()
-    return Promise.resolve()
+  public _beginDotComSignIn(resultCallback?: (result: SignInResult) => void) {
+    return this.signInStore.beginDotComSignIn(resultCallback)
   }
 
-  public _beginEnterpriseSignIn(): Promise<void> {
-    this.signInStore.beginEnterpriseSignIn()
-    return Promise.resolve()
+  public _beginEnterpriseSignIn(
+    resultCallback?: (result: SignInResult) => void
+  ) {
+    return this.signInStore.beginEnterpriseSignIn(resultCallback)
   }
 
   public _setSignInEndpoint(url: string): Promise<void> {
@@ -5763,8 +5769,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.signInStore.authenticateWithBasicAuth(username, password)
   }
 
-  public _requestBrowserAuthentication(): Promise<void> {
-    return this.signInStore.authenticateWithBrowser()
+  public _requestBrowserAuthentication() {
+    this.signInStore.authenticateWithBrowser()
   }
 
   public _setSignInOTP(otp: string): Promise<void> {
