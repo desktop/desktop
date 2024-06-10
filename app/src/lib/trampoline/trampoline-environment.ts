@@ -254,4 +254,6 @@ export function getSSHWrapperPath(): string {
   return Path.resolve(__dirname, 'desktop-trampoline', 'ssh-wrapper')
 }
 const escapedCredentialHelperPath = () =>
-  getDesktopCredentialHelperTrampolinePath().replaceAll(' ', '\\ ')
+  getDesktopCredentialHelperTrampolinePath()
+    .replaceAll('\\', '\\\\')
+    .replaceAll(' ', '\\ ')
