@@ -1,4 +1,4 @@
-import { app } from 'electron/main'
+import { app } from 'electron'
 import { readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { uuid } from './uuid'
