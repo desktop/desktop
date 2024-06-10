@@ -27,6 +27,7 @@ import {
   terminateDesktopNotifications,
 } from './notifications'
 import { addTrustedIPCSender } from './trusted-ipc-sender'
+import { getUpdaterGUID } from '../lib/get-updater-guid'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -442,9 +443,9 @@ export class AppWindow {
     })
   }
 
-  public checkForUpdates(url: string) {
+  public async checkForUpdates(url: string) {
     try {
-      autoUpdater.setFeedURL({ url })
+      autoUpdater.setFeedURL({ url: await trySetUpdaterGuid(url) })
       autoUpdater.checkForUpdates()
     } catch (e) {
       return e
@@ -505,5 +506,20 @@ export class AppWindow {
   public async showOpenDialog(options: Electron.OpenDialogOptions) {
     const { filePaths } = await dialog.showOpenDialog(this.window, options)
     return filePaths.length > 0 ? filePaths[0] : null
+  }
+}
+
+const trySetUpdaterGuid = async (url: string) => {
+  try {
+    const id = await getUpdaterGUID()
+    if (!id) {
+      return url
+    }
+
+    const parsed = new URL(url)
+    parsed.searchParams.set('guid', id)
+    return parsed.toString()
+  } catch (e) {
+    return url
   }
 }
