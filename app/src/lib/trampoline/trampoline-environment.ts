@@ -161,10 +161,7 @@ export async function withTrampolineEnv<T>(
           : {
               GIT_ASKPASS: getDesktopAskpassTrampolinePath(),
             }),
-        ...(enableCustomGitUserAgent()
-          ? { GIT_USER_AGENT: await GitUserAgent() }
-          : {}),
-
+        GIT_USER_AGENT: await GitUserAgent(),
         ...sshEnv,
       })
 
