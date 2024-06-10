@@ -92,8 +92,6 @@ export function enableMoveStash(): boolean {
   return true
 }
 
-export const enableCustomGitUserAgent = enableBetaFeatures
-
 export const enableRepoRulesBeta = () => true
 
 export const enableCommitDetailsHeaderExpansion = () => true

@@ -8,10 +8,7 @@ import {
 } from '../ssh/ssh-secret-storage'
 import { GitError as DugiteError, GitProcess } from 'dugite'
 import memoizeOne from 'memoize-one'
-import {
-  enableCredentialHelperTrampoline,
-  enableCustomGitUserAgent,
-} from '../feature-flag'
+import { enableCredentialHelperTrampoline } from '../feature-flag'
 import { GitError, getDescriptionForError } from '../git/core'
 import { deleteGenericCredential } from '../generic-git-auth'
 import {
@@ -161,10 +158,7 @@ export async function withTrampolineEnv<T>(
           : {
               GIT_ASKPASS: getDesktopAskpassTrampolinePath(),
             }),
-        ...(enableCustomGitUserAgent()
-          ? { GIT_USER_AGENT: await GitUserAgent() }
-          : {}),
-
+        GIT_USER_AGENT: await GitUserAgent(),
         ...sshEnv,
       })
 
