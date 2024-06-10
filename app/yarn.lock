@@ -365,10 +365,10 @@ dompurify@^2.3.3:
   resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.3.3.tgz#c1af3eb88be47324432964d8abc75cf4b98d634c"
   integrity sha512-dqnqRkPMAjOZE0FogZ+ceJNM2dZ3V/yNOuFB7+39qpO93hHhfRpHw3heYQC7DPK9FqbQTfBKUJhiSfz4MvXYwg==
 
-dugite@3.0.0-rc1:
-  version "3.0.0-rc1"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-3.0.0-rc1.tgz#5b3aa1776b7d4eb54cabc5ab173ecef68207b594"
-  integrity sha512-91GOxO7rookT7QKzhbxVAkH/zkExxL8CnxHc6Gnq8O/EW1310j4D1GQhQDEqSPYgj/akhN2sPoGptEuBxSosvA==
+dugite@3.0.0-rc3:
+  version "3.0.0-rc3"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-3.0.0-rc3.tgz#1f8b3a8223d30b8efbd463561e71e1752701c150"
+  integrity sha512-QT8kFu/Zg9a8hsYkm8aBAeZNpg6EJnCCfJaOb2ycNkct+YcO/QKZouhU2V9O/6e4FkKGrecYCNsC5oV3HG6zPQ==
   dependencies:
     progress "^2.0.3"
     tar "^6.1.11"

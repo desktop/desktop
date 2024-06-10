@@ -5,6 +5,7 @@ import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
 import { isTopMostDialog } from './is-top-most'
 import { isMacOSSonoma, isMacOSVentura } from '../../lib/get-os'
+import { sendDialogDidOpen } from '../main-process-proxy'
 
 /**
  * Class name used for elements that should be focused initially when a dialog
@@ -366,6 +367,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
   }
 
   public componentDidMount() {
+    sendDialogDidOpen()
     this.checkIsTopMostDialog(this.context.isTopMost)
   }
 
