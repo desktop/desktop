@@ -330,7 +330,11 @@ function copyDependencies() {
   copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 
   console.log('  Copying desktop credential helper…')
-  const gitBinDir = path.resolve(outRoot, 'git', 'bin')
+  const gitCoreDir =
+    process.platform === 'win32'
+      ? path.resolve(outRoot, 'git', 'mingw64', 'libexec', 'git-core')
+      : path.resolve(outRoot, 'git', 'libexec', 'git-core')
+
   const desktopCredentialHelperTrampolineFile =
     process.platform === 'win32'
       ? 'desktop-credential-helper-trampoline.exe'
@@ -342,7 +346,7 @@ function copyDependencies() {
 
   copySync(
     path.resolve(trampolineSource, desktopCredentialHelperTrampolineFile),
-    path.resolve(gitBinDir, desktopCredentialHelperFile)
+    path.resolve(gitCoreDir, desktopCredentialHelperFile)
   )
 
   if (process.platform === 'darwin') {
