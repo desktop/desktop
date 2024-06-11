@@ -116,9 +116,14 @@ async function getCredential(cred: Credential, store: Store, token: string) {
       return undefined
     }
 
-    return ui
-      .promptForGitHubSignIn(`${getCredentialUrl(cred)}`)
-      .then(a => (a ? credWithAccount(cred, a) : undefined))
+    const endpoint = `${getCredentialUrl(cred)}`
+    const account = await ui.promptForGitHubSignIn(endpoint)
+
+    if (!account) {
+      setHasRejectedCredentialsForEndpoint(token, endpoint)
+    }
+
+    return credWithAccount(cred, account)
   }
 
   // GitHub.com/GHE creds are only stored internally
