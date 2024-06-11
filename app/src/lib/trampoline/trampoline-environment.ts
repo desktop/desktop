@@ -11,10 +11,7 @@ import memoizeOne from 'memoize-one'
 import { enableCredentialHelperTrampoline } from '../feature-flag'
 import { GitError, getDescriptionForError } from '../git/core'
 import { deleteGenericCredential } from '../generic-git-auth'
-import {
-  getDesktopAskpassTrampolineFilename,
-  getDesktopCredentialHelperTrampolineFilename,
-} from 'desktop-trampoline'
+import { getDesktopAskpassTrampolineFilename } from 'desktop-trampoline'
 import { useExternalCredentialHelper } from './use-external-credential-helper'
 
 const mostRecentGenericGitCredential = new Map<
@@ -153,7 +150,7 @@ export async function withTrampolineEnv<T>(
               GIT_CONFIG_KEY_0: 'credential.helper',
               GIT_CONFIG_VALUE_0: '',
               GIT_CONFIG_KEY_1: 'credential.helper',
-              GIT_CONFIG_VALUE_1: escapedCredentialHelperPath(),
+              GIT_CONFIG_VALUE_1: 'desktop',
             }
           : {
               GIT_ASKPASS: getDesktopAskpassTrampolinePath(),
@@ -240,18 +237,7 @@ export function getDesktopAskpassTrampolinePath(): string {
   )
 }
 
-/** Returns the path of the desktop-credential-helper-trampoline binary. */
-export function getDesktopCredentialHelperTrampolinePath(): string {
-  return Path.resolve(
-    __dirname,
-    'desktop-trampoline',
-    getDesktopCredentialHelperTrampolineFilename()
-  )
-}
-
 /** Returns the path of the ssh-wrapper binary. */
 export function getSSHWrapperPath(): string {
   return Path.resolve(__dirname, 'desktop-trampoline', 'ssh-wrapper')
 }
-const escapedCredentialHelperPath = () =>
-  getDesktopCredentialHelperTrampolinePath().replaceAll(' ', '\\ ')
