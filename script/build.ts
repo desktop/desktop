@@ -291,7 +291,7 @@ function copyDependencies() {
   console.log('  Installing dependencies via yarn…')
   cp.execSync('yarn install', { cwd: outRoot, env: process.env })
 
-  console.log('  Copying desktop-trampoline…')
+  console.log('  Copying desktop-askpass-trampoline…')
   const trampolineSource = path.resolve(
     projectRoot,
     'app/node_modules/desktop-trampoline/build/Release'
@@ -301,19 +301,12 @@ function copyDependencies() {
     process.platform === 'win32'
       ? 'desktop-askpass-trampoline.exe'
       : 'desktop-askpass-trampoline'
-  const desktopCredentialHelperTrampolineFile =
-    process.platform === 'win32'
-      ? 'desktop-credential-helper-trampoline.exe'
-      : 'desktop-credential-helper-trampoline'
+
   rmSync(desktopTrampolineDir, { recursive: true, force: true })
   mkdirSync(desktopTrampolineDir, { recursive: true })
   copySync(
     path.resolve(trampolineSource, desktopAskpassTrampolineFile),
     path.resolve(desktopTrampolineDir, desktopAskpassTrampolineFile)
-  )
-  copySync(
-    path.resolve(trampolineSource, desktopCredentialHelperTrampolineFile),
-    path.resolve(desktopTrampolineDir, desktopCredentialHelperTrampolineFile)
   )
 
   // Dev builds for macOS require a SSH wrapper to use SSH_ASKPASS
@@ -336,6 +329,21 @@ function copyDependencies() {
   mkdirSync(gitDir, { recursive: true })
   copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 
+  console.log('  Copying desktop credential helper…')
+  const gitBinDir = path.resolve(outRoot, 'git', 'bin')
+  const desktopCredentialHelperTrampolineFile =
+    process.platform === 'win32'
+      ? 'desktop-credential-helper-trampoline.exe'
+      : 'desktop-credential-helper-trampoline'
+
+  const desktopCredentialHelperFile = `git-credential-desktop${
+    process.platform === 'win32' ? '.exe' : ''
+  }`
+
+  copySync(
+    path.resolve(trampolineSource, desktopCredentialHelperTrampolineFile),
+    path.resolve(gitBinDir, desktopCredentialHelperFile)
+  )
 
   if (process.platform === 'darwin') {
     console.log('  Copying app-path binary…')
