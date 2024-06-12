@@ -34,6 +34,7 @@ import {
   getExecutableName,
   isPublishable,
   getIconFileName,
+  getDistArchitecture,
 } from './dist-info'
 import { isGitHubActions } from './build-platforms'
 
@@ -330,9 +331,10 @@ function copyDependencies() {
   copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
 
   console.log('  Copying desktop credential helper…')
+  const mingw = getDistArchitecture() === 'x64' ? 'mingw64' : 'mingw32'
   const gitCoreDir =
     process.platform === 'win32'
-      ? path.resolve(outRoot, 'git', 'mingw64', 'libexec', 'git-core')
+      ? path.resolve(outRoot, 'git', mingw, 'libexec', 'git-core')
       : path.resolve(outRoot, 'git', 'libexec', 'git-core')
 
   const desktopCredentialHelperTrampolineFile =
