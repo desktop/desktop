@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.4.2-beta2": [
+      "[New] Option to use Git Credential Manager for repositories hosted outside of GitHub.com - #18700"
+    ],
     "3.4.2-beta1": [
       "[New] Allow customizing tab character width in spaces - #15561",
       "[Fixed] Using hooks on Windows no longer results in a \"command not found\" error - #18739"
