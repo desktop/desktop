@@ -20,7 +20,7 @@ char **split_commandline(const char *cmdline, int *argc)
     wchar_t *cmdlinew = NULL;
     size_t len = strlen(cmdline) + 1;
 
-    if (!(cmdlinew = calloc(len, sizeof(wchar_t))))
+    if (!(cmdlinew = (wchar_t *)calloc(len, sizeof(wchar_t))))
         goto fail;
 
     if (!MultiByteToWideChar(CP_ACP, 0, cmdline, -1, cmdlinew, len))
@@ -29,7 +29,7 @@ char **split_commandline(const char *cmdline, int *argc)
     if (!(wargs = CommandLineToArgvW(cmdlinew, argc)))
         goto fail;
 
-    if (!(argv = calloc(*argc, sizeof(char *))))
+    if (!(argv = (char **)calloc(*argc, sizeof(char *))))
         goto fail;
 
     // Convert from wchar_t * to ANSI char *
@@ -40,7 +40,7 @@ char **split_commandline(const char *cmdline, int *argc)
         needed = WideCharToMultiByte(CP_ACP, 0, wargs[i], -1,
                                     NULL, 0, NULL, NULL);
 
-        if (!(argv[i] = malloc(needed)))
+        if (!(argv[i] = (char *)malloc(needed)))
             goto fail;
 
         // Do the conversion.
@@ -73,18 +73,14 @@ fail:
 }
 
 napi_value ParseCommandLineArgv(napi_env env, napi_callback_info info) {
-  // Implementation of your function that interacts with Node.js
-  // This is where you'll convert Node.js arguments to C types and vice versa
-  // using split_commandline
-  // Get string from first parameter
-  node_api::napi_string commandLine;
-  node_api::napi_get_value_string_utf8(env, info[0], &commandLine);
+  napi_value params[1];
+  napi_get_cb_info(env, info, NULL, params, NULL, NULL);
 
   // Convert napi_string to char *
   size_t length;
-  node_api::napi_get_value_string_utf8(env, commandLine, nullptr, 0, &length);
+  napi_get_value_string_utf8(env, params[0], nullptr, 0, &length);
   char *commandLineStr = new char[length + 1];
-  node_api::napi_get_value_string_utf8(env, commandLine, commandLineStr, length + 1, &length);
+  napi_get_value_string_utf8(env, params[0], commandLineStr, length + 1, &length);
 
   // Call split_commandline
   int argc;

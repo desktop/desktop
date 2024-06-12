@@ -1,6 +1,6 @@
 const nativeModule =
   process.platform === 'win32'
-    ? require('../../build/Release/windows-argv-parser.node')
+    ? require('./build/Release/windows-argv-parser.node')
     : null
 
 export function parseCommandLineArgv(commandLine: string): string[] {
