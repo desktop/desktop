@@ -12,7 +12,6 @@ import { enableCredentialHelperTrampoline } from '../feature-flag'
 import { GitError, getDescriptionForError } from '../git/core'
 import { deleteGenericCredential } from '../generic-git-auth'
 import { getDesktopAskpassTrampolineFilename } from 'desktop-trampoline'
-import { useExternalCredentialHelper } from './use-external-credential-helper'
 
 const mostRecentGenericGitCredential = new Map<
   string,
@@ -186,7 +185,7 @@ export async function withTrampolineEnv<T>(
       // We catch that specific error here and throw the user-friendly
       // authentication failed error that we've always done in the past.
       if (
-        useExternalCredentialHelper() &&
+        enableCredentialHelperTrampoline() &&
         hasRejectedCredentialsForEndpoint.has(token) &&
         e instanceof GitError &&
         fatalPromptsDisabledRe.test(e.message)
