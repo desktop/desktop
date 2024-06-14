@@ -1,5 +1,6 @@
 #include <node.h>
 #include <node_api.h>
+#include <nan.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -72,27 +73,18 @@ fail:
     return NULL;
 }
 
-napi_value ParseCommandLineArgv(napi_env env, napi_callback_info info) {
-  napi_value params[1];
-  napi_get_cb_info(env, info, NULL, params, NULL, NULL);
-
-  // Convert napi_string to char *
-  size_t length;
-  napi_get_value_string_utf8(env, params[0], nullptr, 0, &length);
-  char *commandLineStr = new char[length + 1];
-  napi_get_value_string_utf8(env, params[0], commandLineStr, length + 1, &length);
+NAN_METHOD(ParseCommandLineArgv) {
+  Nan::Utf8String commandLineNan(info[0]);
+  std::string commandLine(*commandLineNan, commandLineNan.length());
 
   // Call split_commandline
   int argc;
-  char **argv = split_commandline(commandLineStr, &argc);
+  char **argv = split_commandline(commandLine.c_str(), &argc);
 
-  // Create an array of strings
-  napi_value argvArray;
-  napi_create_array(env, &argvArray);
+  // Create an array of strings from argv
+  auto argvArray = Nan::New<v8::Array>(argc);
   for (int i = 0; i < argc; i++) {
-    napi_value arg;
-    napi_create_string_utf8(env, argv[i], NAPI_AUTO_LENGTH, &arg);
-    napi_set_element(env, argvArray, i, arg);
+    Nan::Set(argvArray, i, Nan::New(argv[i]).ToLocalChecked());
   }
 
   // Free memory
@@ -100,14 +92,13 @@ napi_value ParseCommandLineArgv(napi_env env, napi_callback_info info) {
     free(argv[i]);
   }
   free(argv);
-  delete[] commandLineStr;
 
-  return argvArray;
+  info.GetReturnValue().Set(argvArray);
 }
 
 #else
 
-napi_value ParseCommandLineArgv(napi_env env, napi_callback_info info) {
+NAN_METHOD(ParseCommandLineArgv) {
   napi_value result;
   napi_get_undefined(env, &result);
   napi_throw_error(env, "ENOTSUP", "Not supported on this platform");
@@ -116,18 +107,8 @@ napi_value ParseCommandLineArgv(napi_env env, napi_callback_info info) {
 
 #endif
 
-napi_value Init(napi_env env, napi_value exports) {
-  napi_status status;
-  napi_value fn;
-
-  status = napi_create_function(env, nullptr, 0, ParseCommandLineArgv, nullptr, &fn);
-  if (status != napi_ok) return nullptr;
-
-  status = napi_set_named_property(env, exports, "parseCommandLineArgv", fn);
-  if (status != napi_ok) return nullptr;
-
-  return exports;
+NAN_MODULE_INIT(Init) {
+  Nan::SetMethod(target, "parseCommandLineArgv", ParseCommandLineArgv);
 }
 
-NODE_MODULE(windowsArgvParserNativeModule, Init);
-
+NAN_MODULE_WORKER_ENABLED("windows-argv-parser", Init)
