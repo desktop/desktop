@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.4.2-beta3": [
+      "[Fixed] Users running Windows on arm64 processors are able to authenticate - #18825"
+    ],
     "3.4.2-beta2": [
       "[New] Option to use Git Credential Manager for repositories hosted outside of GitHub.com - #18700"
     ],
