@@ -714,9 +714,14 @@ export class Preferences extends React.Component<
     )
 
     if (enableExternalCredentialHelper()) {
-      this.props.dispatcher.setUseExternalCredentialHelper(
+      if (
+        this.props.useExternalCredentialHelper !==
         this.state.useExternalCredentialHelper
-      )
+      ) {
+        this.props.dispatcher.setUseExternalCredentialHelper(
+          this.state.useExternalCredentialHelper
+        )
+      }
     }
 
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
