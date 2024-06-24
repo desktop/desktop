@@ -485,8 +485,7 @@ export function gitRebaseArguments() {
     // uses the merge backend even if the user has the apply backend
     // configured, since this is the only one supported.
     // This can go away once git deprecates the apply backend.
-    '-c',
-    'rebase.backend=merge',
+    ...['-c', 'rebase.backend=merge'],
   ]
 }
 
