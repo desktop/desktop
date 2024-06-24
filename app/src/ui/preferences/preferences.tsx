@@ -43,7 +43,10 @@ import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
 import { Notifications } from './notifications'
 import { Accessibility } from './accessibility'
-import { enableLinkUnderlines } from '../../lib/feature-flag'
+import {
+  enableExternalCredentialHelper,
+  enableLinkUnderlines,
+} from '../../lib/feature-flag'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -710,9 +713,16 @@ export class Preferences extends React.Component<
       false
     )
 
-    await this.props.dispatcher.setUseExternalCredentialHelper(
-      this.state.useExternalCredentialHelper
-    )
+    if (enableExternalCredentialHelper()) {
+      if (
+        this.props.useExternalCredentialHelper !==
+        this.state.useExternalCredentialHelper
+      ) {
+        this.props.dispatcher.setUseExternalCredentialHelper(
+          this.state.useExternalCredentialHelper
+        )
+      }
+    }
 
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepositoryRemoval
