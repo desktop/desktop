@@ -20,9 +20,11 @@ import { IRemote } from '../../models/remote'
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
 function getCheckoutArgs(progressCallback?: ProgressCallback) {
-  return progressCallback != null
-    ? [...gitNetworkArguments(), 'checkout', '--progress']
-    : [...gitNetworkArguments(), 'checkout']
+  return [
+    ...gitNetworkArguments(),
+    'checkout',
+    ...(progressCallback ? ['--progress'] : []),
+  ]
 }
 
 async function getBranchCheckoutArgs(branch: Branch) {
