@@ -21,14 +21,9 @@ export async function getRemotes(
     return []
   }
 
-  const output = result.stdout
-  const lines = output.split('\n')
-  const remotes = lines
-    .filter(x => /\(fetch\)( \[.+\])?$/.test(x))
-    .map(x => x.split(/\s+/))
-    .map(x => ({ name: x[0], url: x[1] }))
-
-  return remotes
+  return [...result.stdout.matchAll(/^(.+)\t(.+)\s\(fetch\)/gm)].map(
+    ([, name, url]) => ({ name, url })
+  )
 }
 
 /** Add a new remote with the given URL. */
