@@ -6,6 +6,10 @@
       "[Fixed] Remote urls containing spaces are now displayed in their entirety in the remote settings screen - #18876",
       "[Fixed] Newly uploaded images are rendered in Pull Request comments and reviews - #18830"
     ],
+    "3.4.2-beta4": [
+      "[Fixed] Remote urls containing spaces are now displayed in their entirety in the remote settings screen - #18876",
+      "[Fixed] Newly uploaded images are rendered in Pull Request comments and reviews - #18830"
+    ],
     "3.4.2-beta3": [
       "[Fixed] Users running Windows on arm64 processors are able to authenticate - #18825"
     ],
