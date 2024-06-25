@@ -64,6 +64,7 @@
     "untildify": "^3.0.2",
     "username": "^5.1.0",
     "uuid": "^3.0.1",
+    "windows-argv-parser": "file:../vendor/windows-argv-parser",
     "winston": "^3.6.0"
   },
   "devDependencies": {
