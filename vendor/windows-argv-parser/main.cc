@@ -4,12 +4,6 @@
 #include <stdlib.h>
 #include "napi.h"
 
-using node::AddEnvironmentCleanupHook;
-using v8::HandleScope;
-using v8::Isolate;
-using v8::Local;
-using v8::Object;
-
 #ifdef _WIN32
 #include <windows.h>
 
