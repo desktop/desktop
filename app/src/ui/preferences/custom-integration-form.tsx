@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
-import { parseCommandLineArgv } from '../../windows-argv-parser'
+import { parseCommandLineArgv } from 'windows-argv-parser'
 
 // Shells
 // - macOS: path/bundleId + params
