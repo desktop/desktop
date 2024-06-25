@@ -1,5 +1,9 @@
 # Authenticating to Azure DevOps with GitHub Desktop
 
+GitHub Desktop now provides support for [Git Credential Manager (GCM)](https://gh.io/gcm), which makes the task of authenticating to Azure DevOps repositories easy and secure. This feature can be enabled by going to **File** > **Options** > **Advanced** on Windows, or **GitHub Desktop** > **Preferences** > **Advanced** on macOS, and then selecting the **Use Git Credential Manager** checkbox.
+
+When Git Credential Manager is enabled all credentials for Azure DevOps will be handled, and stored, outside of GitHub Desktop. Git Credential Manager supports browser authentication and will avoid the need to create personal access tokens (PATs). If you would prefer not to use GCM and need to create a personal access token in Azure DevOps you can follow the steps below.
+
 ## Creating a Personal Access Token in Azure DevOps
 
 To authenticate against Azure DevOps repositories you will need to create a personal access token.

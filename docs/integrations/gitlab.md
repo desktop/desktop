@@ -1,5 +1,9 @@
 # Authenticating to GitLab with GitHub Desktop
 
+GitHub Desktop now provides support for [Git Credential Manager (GCM)](https://gh.io/gcm), which makes the task of authenticating to GitLab repositories easy and secure. This feature can be enabled by going to **File** > **Options** > **Advanced** on Windows, or **GitHub Desktop** > **Preferences** > **Advanced** on macOS, and then selecting the **Use Git Credential Manager** checkbox.
+
+When Git Credential Manager is enabled all credentials for GitLab will be handled, and stored, outside of GitHub Desktop. Git Credential Manager supports browser authentication and will avoid the need to create personal access tokens (PATs). If you would prefer not to use GCM and need to create a personal access token in GitLab you can follow the steps below.
+
 ## Creating a Personal Access Token in GitLab
 
 To authenticate against GitLab repositories you will need to create a personal access token.
