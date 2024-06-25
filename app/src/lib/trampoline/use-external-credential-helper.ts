@@ -2,7 +2,8 @@ import { enableExternalCredentialHelper } from '../feature-flag'
 import { getBoolean, setBoolean } from '../local-storage'
 
 export const useExternalCredentialHelperDefault = false
-const useExternalCredentialHelperKey: string = 'useExternalCredentialHelper'
+export const useExternalCredentialHelperKey: string =
+  'useExternalCredentialHelper'
 
 export const useExternalCredentialHelper = () =>
   enableExternalCredentialHelper() &&
