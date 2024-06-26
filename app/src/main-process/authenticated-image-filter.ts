@@ -8,7 +8,11 @@ function isEnterpriseAvatarPath(pathname: string) {
 
 function isGitHubRepoAssetPath(pathname: string) {
   // Matches paths like: /repo/owner/assets/userID/guid
-  return /^\/[^/]+\/[^/]+\/assets\/[^/]+\/[^/]+\/?$/.test(pathname)
+  return (
+    /^\/[^/]+\/[^/]+\/assets\/[^/]+\/[^/]+\/?$/.test(pathname) ||
+    // or: /user-attachments/assets/guid
+    /^\/user-attachments\/assets\/[^/]+\/?$/.test(pathname)
+  )
 }
 
 /**

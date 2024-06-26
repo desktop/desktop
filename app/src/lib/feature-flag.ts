@@ -92,8 +92,6 @@ export function enableMoveStash(): boolean {
   return true
 }
 
-export const enableCustomGitUserAgent = enableBetaFeatures
-
 export const enableRepoRulesBeta = () => true
 
 export const enableCommitDetailsHeaderExpansion = () => true
@@ -104,3 +102,6 @@ export const enableDiffCheckMarks = enableDiffCheckMarksAndLinkUnderlines
 export const enableGroupDiffCheckmarks = enableDiffCheckMarksAndLinkUnderlines
 
 export const enableLinkUnderlines = enableDiffCheckMarksAndLinkUnderlines
+
+export const enableExternalCredentialHelper = () => true
+export const enableCredentialHelperTrampoline = () => true

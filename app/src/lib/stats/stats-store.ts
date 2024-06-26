@@ -34,6 +34,8 @@ import { getNotificationsEnabled } from '../stores/notifications-store'
 import { isInApplicationFolder } from '../../ui/main-process-proxy'
 import { getRendererGUID } from '../get-renderer-guid'
 import { ValidNotificationPullRequestReviewState } from '../valid-notification-pull-request-review'
+import { useExternalCredentialHelperKey } from '../trampoline/use-external-credential-helper'
+import { enableExternalCredentialHelper } from '../feature-flag'
 
 type PullRequestReviewStatFieldInfix =
   | 'Approved'
@@ -398,6 +400,12 @@ interface ICalculatedStats {
 
   /** Whether or not the user has their accessibility setting set for viewing diff check marks */
   readonly diffCheckMarksVisible: boolean
+
+  /**
+   * Whether or not the user has enabled the external credential helper or null
+   * if the user has not yet made an active decision
+   **/
+  readonly useExternalCredentialHelper?: boolean | null
 }
 
 type DailyStats = ICalculatedStats &
@@ -605,6 +613,12 @@ export class StatsStore implements IStatsStore {
       launchedFromApplicationsFolder,
       linkUnderlinesVisible,
       diffCheckMarksVisible,
+      ...(enableExternalCredentialHelper()
+        ? {
+            useExternalCredentialHelper:
+              getBoolean(useExternalCredentialHelperKey) ?? null,
+          }
+        : {}),
     }
   }
 

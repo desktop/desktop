@@ -1718,6 +1718,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             showCommitLengthWarning={this.state.showCommitLengthWarning}
             notificationsEnabled={this.state.notificationsEnabled}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
+            useExternalCredentialHelper={this.state.useExternalCredentialHelper}
             enterpriseAccount={this.getEnterpriseAccount()}
             repository={repository}
             onDismissed={onPopupDismissedFn}
@@ -1757,6 +1758,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             signInState={this.state.signInState}
             dispatcher={this.props.dispatcher}
             onDismissed={onPopupDismissedFn}
+            isCredentialHelperSignIn={popup.isCredentialHelperSignIn}
+            credentialHelperUrl={popup.credentialHelperUrl}
           />
         )
       case PopupType.AddRepository:

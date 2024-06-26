@@ -2,7 +2,7 @@ import {
   getSSHKeyPassphrase,
   keepSSHKeyPassphraseToStore,
 } from '../ssh/ssh-key-passphrase'
-import { AccountsStore } from '../stores'
+import { AccountsStore } from '../stores/accounts-store'
 import {
   ITrampolineCommand,
   TrampolineCommandHandler,
@@ -14,13 +14,7 @@ import {
   keepSSHUserPasswordToStore,
 } from '../ssh/ssh-user-password'
 import { removePendingSSHSecretToStore } from '../ssh/ssh-secret-storage'
-import { getHTMLURL } from '../api'
-import {
-  getGenericPassword,
-  getGenericUsername,
-  setGenericPassword,
-  setGenericUsername,
-} from '../generic-git-auth'
+import { setGenericPassword, setGenericUsername } from '../generic-git-auth'
 import { Account } from '../../models/account'
 import {
   getHasRejectedCredentialsForEndpoint,
@@ -28,8 +22,11 @@ import {
   setHasRejectedCredentialsForEndpoint,
   setMostRecentGenericGitCredential,
 } from './trampoline-environment'
-import { IGitAccount } from '../../models/git-account'
-import memoizeOne from 'memoize-one'
+import { urlWithoutCredentials } from './url-without-credentials'
+import {
+  findGenericTrampolineAccount,
+  findGitHubTrampolineAccount,
+} from './find-account'
 
 async function handleSSHHostAuthenticity(
   prompt: string
@@ -181,7 +178,14 @@ const handleAskPassUserPassword = async (
   const { trampolineToken } = command
   const parsedUrl = new URL(remoteUrl)
   const endpoint = urlWithoutCredentials(remoteUrl)
-  const account = await findAccount(trampolineToken, accountsStore, remoteUrl)
+  const account =
+    (await findGitHubTrampolineAccount(accountsStore, remoteUrl)) ??
+    (await findGenericTrampolineAccount(trampolineToken, remoteUrl).then(c => {
+      if (c) {
+        setMostRecentGenericGitCredential(trampolineToken, endpoint, c.login)
+      }
+      return c
+    }))
 
   if (account) {
     const accountKind = account instanceof Account ? 'account' : 'generic'
@@ -210,11 +214,11 @@ const handleAskPassUserPassword = async (
     return undefined
   }
 
-  const { username, password } =
-    await trampolineUIHelper.promptForGenericGitAuthentication(
+  const { login: username, token: password } =
+    (await trampolineUIHelper.promptForGenericGitAuthentication(
       remoteUrl,
       parsedUrl.username === '' ? undefined : parsedUrl.username
-    )
+    )) ?? { login: '', token: '' }
 
   if (!username || !password) {
     info('user cancelled generic git authentication')
@@ -247,65 +251,4 @@ const handleAskPassUserPassword = async (
   info(`acquired generic credentials for ${remoteUrl}`)
 
   return kind === 'Username' ? username : password
-}
-
-/**
- * When we're asked for credentials we're typically first asked for the username
- * immediately followed by the password. We memoize the getGenericPassword call
- * such that we only call it once per endpoint/login pair. Since we include the
- * trampoline token in the invalidation key we'll only call it once per
- * trampoline session.
- */
-const memoizedGetGenericPassword = memoizeOne(
-  (_trampolineToken: string, endpoint: string, login: string) =>
-    getGenericPassword(endpoint, login)
-)
-
-async function findAccount(
-  trampolineToken: string,
-  accountsStore: AccountsStore,
-  remoteUrl: string
-): Promise<IGitAccount | undefined> {
-  const accounts = await accountsStore.getAll()
-  const parsedUrl = new URL(remoteUrl)
-  const endpoint = urlWithoutCredentials(remoteUrl)
-  const account = accounts.find(
-    a => new URL(getHTMLURL(a.endpoint)).origin === parsedUrl.origin
-  )
-
-  if (account) {
-    return account
-  }
-
-  const login =
-    parsedUrl.username === ''
-      ? getGenericUsername(endpoint)
-      : parsedUrl.username
-
-  if (!login) {
-    return undefined
-  }
-
-  const token = await memoizedGetGenericPassword(
-    trampolineToken,
-    endpoint,
-    login
-  )
-
-  if (!token) {
-    // We have a username but no password, that warrants a warning
-    log.warn(`askPassHandler: generic password for ${remoteUrl} missing`)
-    return undefined
-  }
-
-  setMostRecentGenericGitCredential(trampolineToken, endpoint, login)
-
-  return { login, endpoint, token }
-}
-
-function urlWithoutCredentials(remoteUrl: string): string {
-  const url = new URL(remoteUrl)
-  url.username = ''
-  url.password = ''
-  return url.toString()
 }

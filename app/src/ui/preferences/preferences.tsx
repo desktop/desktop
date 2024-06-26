@@ -43,7 +43,10 @@ import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
 import { Notifications } from './notifications'
 import { Accessibility } from './accessibility'
-import { enableLinkUnderlines } from '../../lib/feature-flag'
+import {
+  enableExternalCredentialHelper,
+  enableLinkUnderlines,
+} from '../../lib/feature-flag'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -55,6 +58,7 @@ interface IPreferencesProps {
   readonly showCommitLengthWarning: boolean
   readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
+  readonly useExternalCredentialHelper: boolean
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
@@ -87,6 +91,7 @@ interface IPreferencesState {
   readonly showCommitLengthWarning: boolean
   readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
+  readonly useExternalCredentialHelper: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
@@ -143,6 +148,7 @@ export class Preferences extends React.Component<
       showCommitLengthWarning: false,
       notificationsEnabled: true,
       optOutOfUsageTracking: false,
+      useExternalCredentialHelper: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
       confirmDiscardChangesPermanently: false,
@@ -210,6 +216,7 @@ export class Preferences extends React.Component<
       showCommitLengthWarning: this.props.showCommitLengthWarning,
       notificationsEnabled: this.props.notificationsEnabled,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
+      useExternalCredentialHelper: this.props.useExternalCredentialHelper,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmDiscardChangesPermanently:
@@ -472,9 +479,13 @@ export class Preferences extends React.Component<
           <Advanced
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
+            useExternalCredentialHelper={this.state.useExternalCredentialHelper}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
             onOptOutofReportingChanged={this.onOptOutofReportingChanged}
+            onUseExternalCredentialHelperChanged={
+              this.onUseExternalCredentialHelperChanged
+            }
             onRepositoryIndicatorsEnabledChanged={
               this.onRepositoryIndicatorsEnabledChanged
             }
@@ -537,6 +548,10 @@ export class Preferences extends React.Component<
 
   private onOptOutofReportingChanged = (value: boolean) => {
     this.setState({ optOutOfUsageTracking: value })
+  }
+
+  private onUseExternalCredentialHelperChanged = (value: boolean) => {
+    this.setState({ useExternalCredentialHelper: value })
   }
 
   private onConfirmRepositoryRemovalChanged = (value: boolean) => {
@@ -697,6 +712,18 @@ export class Preferences extends React.Component<
       this.state.optOutOfUsageTracking,
       false
     )
+
+    if (enableExternalCredentialHelper()) {
+      if (
+        this.props.useExternalCredentialHelper !==
+        this.state.useExternalCredentialHelper
+      ) {
+        this.props.dispatcher.setUseExternalCredentialHelper(
+          this.state.useExternalCredentialHelper
+        )
+      }
+    }
+
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepositoryRemoval
     )

@@ -1,8 +1,27 @@
 {
   "releases": {
+    "3.4.2": [
+      "[New] Option to use Git Credential Manager for repositories hosted outside of GitHub.com - #18700",
+      "[New] Allow customizing tab character width in spaces - #15561",
+      "[Fixed] Remote urls containing spaces are now displayed in their entirety in the remote settings screen - #18876",
+      "[Fixed] Newly uploaded images are rendered in Pull Request comments and reviews - #18830"
+    ],
+    "3.4.2-beta4": [
+      "[Fixed] Remote urls containing spaces are now displayed in their entirety in the remote settings screen - #18876",
+      "[Fixed] Newly uploaded images are rendered in Pull Request comments and reviews - #18830"
+    ],
+    "3.4.2-beta3": [
+      "[Fixed] Users running Windows on arm64 processors are able to authenticate - #18825"
+    ],
+    "3.4.2-beta2": [
+      "[New] Option to use Git Credential Manager for repositories hosted outside of GitHub.com - #18700"
+    ],
     "3.4.2-beta1": [
       "[New] Allow customizing tab character width in spaces - #15561",
       "[Fixed] Using hooks on Windows no longer results in a \"command not found\" error - #18739"
+    ],
+    "3.4.1": [
+      "[Fixed] Using hooks on Windows no longer results in an \"command not found\" error - #18739"
     ],
     "3.4.1-beta1": [
       "[Fixed] Prevent crashes when external editors fail to launch - #17717. Thanks @tsvetilian-ty!",
@@ -13,7 +32,7 @@
     ],
     "3.4.0": [
       "[New] Reset to a previous commit - #12393",
-      "[Added] Add accessibility settings to toggle link underlines and diff check marks - #18227, 18035",
+      "[Added] Add accessibility settings to toggle link underlines and diff check marks - #18227, #18035",
       "[Fixed] Support multiple accounts for remote urls that differ in path - #18676, #18651",
       "[Fixed] Refreshing repository indicators will not invalidate credentials - #18622",
       "[Fixed] Clear stored credentials when authentication fails on insecure http hosts - #18588",

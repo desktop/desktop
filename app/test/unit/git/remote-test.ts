@@ -12,6 +12,7 @@ import {
 } from '../../helpers/repositories'
 import { findDefaultRemote } from '../../../src/lib/stores/helpers/find-default-remote'
 import { GitProcess } from 'dugite'
+import { setConfigValue } from '../../../src/lib/git'
 
 describe('git/remote', () => {
   describe('getRemotes', () => {
@@ -20,6 +21,7 @@ describe('git/remote', () => {
         'repo-with-multiple-remotes'
       )
       const repository = new Repository(testRepoPath, -1, null, false)
+      await addRemote(repository, 'spaces-in-path', '/path/with spaces/foo')
 
       // NB: We don't check for exact URL equality because CircleCI's git config
       // rewrites HTTPS URLs to SSH.
@@ -27,11 +29,18 @@ describe('git/remote', () => {
 
       const result = await getRemotes(repository)
 
+      // Changes the output of git remote -v, see
+      // https://github.com/git/git/blob/9005149a4a77e2d3409c6127bf4fd1a0893c3495/builtin/remote.c#L1223-L1226
+      setConfigValue(repository, 'remote.bassoon.partialclonefilter', 'foo')
+
       expect(result[0].name).toEqual('bassoon')
       expect(result[0].url.endsWith(nwo)).toEqual(true)
 
       expect(result[1].name).toEqual('origin')
       expect(result[1].url.endsWith(nwo)).toEqual(true)
+
+      expect(result[2].name).toEqual('spaces-in-path')
+      expect(result[2].url).toEqual('/path/with spaces/foo')
     })
 
     it('returns remotes sorted alphabetically', async () => {
