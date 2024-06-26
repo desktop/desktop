@@ -1,5 +1,11 @@
 {
   "releases": {
+    "3.4.2": [
+      "[New] Option to use Git Credential Manager for repositories hosted outside of GitHub.com - #18700",
+      "[New] Allow customizing tab character width in spaces - #15561",
+      "[Fixed] Remote urls containing spaces are now displayed in their entirety in the remote settings screen - #18876",
+      "[Fixed] Newly uploaded images are rendered in Pull Request comments and reviews - #18830"
+    ],
     "3.4.2-beta4": [
       "[Fixed] Remote urls containing spaces are now displayed in their entirety in the remote settings screen - #18876",
       "[Fixed] Newly uploaded images are rendered in Pull Request comments and reviews - #18830"
