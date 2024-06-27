@@ -6,27 +6,21 @@ import { access, stat } from 'fs/promises'
 import * as fs from 'fs'
 import { InputError } from '../lib/input-description/input-error'
 import { IAccessibleMessage } from '../../models/accessible-message'
+import { promisify } from 'util'
+import { exec } from 'child_process'
 
-// Shells
-// - macOS: path/bundleId + params
-// - Windows: path + params
-// - Linux: path + params
-
-// Editors
-// - macOS: path/bundleId + params
-// - Windows: path + params + usesShell (if path ends with .cmd)
-// - Linux: path + params
+const execAsync = promisify(exec)
 
 interface ICustomIntegrationFormProps {
   readonly path: string
-  readonly params: string
+  readonly arguments: string
   readonly onPathChanged: (path: string) => void
   readonly onParamsChanged: (params: string) => void
 }
 
 interface ICustomIntegrationFormState {
   readonly path: string
-  readonly params: string
+  readonly arguments: string
   readonly isValidPath: boolean
   readonly showNonValidPathWarning: boolean
 }
@@ -40,7 +34,7 @@ export class CustomIntegrationForm extends React.Component<
 
     this.state = {
       path: props.path,
-      params: props.params,
+      arguments: props.arguments,
       isValidPath: false,
       showNonValidPathWarning: false,
     }
@@ -59,7 +53,7 @@ export class CustomIntegrationForm extends React.Component<
         </div>
         {this.renderErrors()}
         <TextBox
-          value={this.state.params}
+          value={this.state.arguments}
           onValueChanged={this.onParamsChanged}
           placeholder="Command line arguments"
         />
@@ -118,6 +112,7 @@ export class CustomIntegrationForm extends React.Component<
     if (path.length === 0) {
       this.setState({
         isValidPath: false,
+        showNonValidPathWarning: true,
       })
       return
     }
@@ -127,12 +122,27 @@ export class CustomIntegrationForm extends React.Component<
       const canBeExecuted = await access(path, fs.constants.X_OK)
         .then(() => true)
         .catch(() => false)
+
+      const isExecutableFile = pathStat.isFile() && canBeExecuted
+
+      // On macOS, not only executable files are valid, but also apps (which are
+      // directories with a `.app` extension and from which we can retrieve
+      // the app bundle ID)
+      let bundleId = null
+      if (__DARWIN__ && !isExecutableFile && pathStat.isDirectory()) {
+        bundleId = await this.getBundleId(path)
+      }
+
+      const isValidPath = isExecutableFile || !!bundleId
+
       this.setState({
-        isValidPath: pathStat.isFile() && canBeExecuted,
+        isValidPath,
+        showNonValidPathWarning: true,
       })
     } catch (e) {
       this.setState({
         isValidPath: false,
+        showNonValidPathWarning: true,
       })
     }
 
@@ -143,8 +153,36 @@ export class CustomIntegrationForm extends React.Component<
     this.updatePath(path)
   }
 
+  // Function to retrieve, on macOS, the bundleId of an app given its path
+  private getBundleId = async (path: string) => {
+    try {
+      // Ensure the path ends with `.app` for applications
+      if (!path.endsWith('.app')) {
+        throw new Error(
+          'The provided path does not point to a macOS application.'
+        )
+      }
+
+      // Use mdls to query the kMDItemCFBundleIdentifier attribute
+      const { stdout } = await execAsync(
+        `mdls -name kMDItemCFBundleIdentifier -raw "${path}"`
+      )
+      const bundleId = stdout.trim()
+
+      // Check for valid output
+      if (!bundleId || bundleId === '(null)') {
+        return null
+      }
+
+      return bundleId
+    } catch (error) {
+      console.error('Failed to retrieve bundle ID:', error)
+      return null
+    }
+  }
+
   private onParamsChanged = (params: string) => {
-    this.setState({ params })
+    this.setState({ arguments: params })
     this.props.onParamsChanged(params)
   }
 }

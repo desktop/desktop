@@ -127,7 +127,7 @@ export class Integrations extends React.Component<
       <Row>
         <CustomIntegrationForm
           path=""
-          params=""
+          arguments=""
           onPathChanged={this.onCustomEditorPathChanged}
           onParamsChanged={this.onCustomEditorParamsChanged}
         />
@@ -166,7 +166,7 @@ export class Integrations extends React.Component<
       <Row>
         <CustomIntegrationForm
           path=""
-          params=""
+          arguments=""
           onPathChanged={this.onCustomEditorPathChanged}
           onParamsChanged={this.onCustomEditorParamsChanged}
         />
