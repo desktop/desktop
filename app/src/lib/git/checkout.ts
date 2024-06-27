@@ -20,28 +20,22 @@ import { IRemote } from '../../models/remote'
 export type ProgressCallback = (progress: ICheckoutProgress) => void
 
 function getCheckoutArgs(progressCallback?: ProgressCallback) {
-  return progressCallback != null
-    ? [...gitNetworkArguments(), 'checkout', '--progress']
-    : [...gitNetworkArguments(), 'checkout']
+  return [
+    ...gitNetworkArguments(),
+    'checkout',
+    ...(progressCallback ? ['--progress'] : []),
+  ]
 }
 
 async function getBranchCheckoutArgs(branch: Branch) {
-  const baseArgs: ReadonlyArray<string> = []
-  if (enableRecurseSubmodulesFlag()) {
-    return branch.type === BranchType.Remote
-      ? baseArgs.concat(
-          branch.name,
-          '-b',
-          branch.nameWithoutRemote,
-          '--recurse-submodules',
-          '--'
-        )
-      : baseArgs.concat(branch.name, '--recurse-submodules', '--')
-  }
-
-  return branch.type === BranchType.Remote
-    ? baseArgs.concat(branch.name, '-b', branch.nameWithoutRemote, '--')
-    : baseArgs.concat(branch.name, '--')
+  return [
+    branch.name,
+    ...(branch.type === BranchType.Remote
+      ? ['-b', branch.nameWithoutRemote]
+      : []),
+    ...(enableRecurseSubmodulesFlag() ? ['--recurse-submodules'] : []),
+    '--',
+  ]
 }
 
 async function getCheckoutOpts(

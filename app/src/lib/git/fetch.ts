@@ -11,28 +11,16 @@ async function getFetchArgs(
   remote: string,
   progressCallback?: (progress: IFetchProgress) => void
 ) {
-  if (enableRecurseSubmodulesFlag()) {
-    return progressCallback != null
-      ? [
-          ...gitNetworkArguments(),
-          'fetch',
-          '--progress',
-          '--prune',
-          '--recurse-submodules=on-demand',
-          remote,
-        ]
-      : [
-          ...gitNetworkArguments(),
-          'fetch',
-          '--prune',
-          '--recurse-submodules=on-demand',
-          remote,
-        ]
-  } else {
-    return progressCallback != null
-      ? [...gitNetworkArguments(), 'fetch', '--progress', '--prune', remote]
-      : [...gitNetworkArguments(), 'fetch', '--prune', remote]
-  }
+  return [
+    ...gitNetworkArguments(),
+    'fetch',
+    ...(progressCallback ? ['--progress'] : []),
+    '--prune',
+    ...(enableRecurseSubmodulesFlag()
+      ? ['--recurse-submodules=on-demand']
+      : []),
+    remote,
+  ]
 }
 
 /**
