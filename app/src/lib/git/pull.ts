@@ -13,21 +13,22 @@ import { enableRecurseSubmodulesFlag } from '../feature-flag'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
 import { getConfigValue } from './config'
+import { args } from '../args'
 
 async function getPullArgs(
   repository: Repository,
   remote: string,
   progressCallback?: (progress: IPullProgress) => void
 ) {
-  return [
-    ...gitNetworkArguments(),
-    ...gitRebaseArguments(),
+  args(
+    gitNetworkArguments(),
+    gitRebaseArguments(),
     'pull',
-    ...(await getDefaultPullDivergentBranchArguments(repository)),
-    ...(enableRecurseSubmodulesFlag() ? ['--recurse-submodules'] : []),
-    ...(progressCallback ? ['--progress'] : []),
-    remote,
-  ]
+    await getDefaultPullDivergentBranchArguments(repository),
+    { '--recurse-submodules': enableRecurseSubmodulesFlag() },
+    { '--progress': progressCallback !== undefined },
+    remote
+  )
 }
 
 /**
