@@ -1,7 +1,11 @@
 import * as React from 'react'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
-import { parseCommandLineArgv } from 'windows-argv-parser'
+import { showOpenDialog } from '../main-process-proxy'
+import { access, stat } from 'fs/promises'
+import * as fs from 'fs'
+import { InputError } from '../lib/input-description/input-error'
+import { IAccessibleMessage } from '../../models/accessible-message'
 
 // Shells
 // - macOS: path/bundleId + params
@@ -23,6 +27,8 @@ interface ICustomIntegrationFormProps {
 interface ICustomIntegrationFormState {
   readonly path: string
   readonly params: string
+  readonly isValidPath: boolean
+  readonly showNonValidPathWarning: boolean
 }
 
 export class CustomIntegrationForm extends React.Component<
@@ -35,6 +41,8 @@ export class CustomIntegrationForm extends React.Component<
     this.state = {
       path: props.path,
       params: props.params,
+      isValidPath: false,
+      showNonValidPathWarning: false,
     }
   }
 
@@ -49,6 +57,7 @@ export class CustomIntegrationForm extends React.Component<
           />
           <Button onClick={this.onChoosePath}>Choose…</Button>
         </div>
+        {this.renderErrors()}
         <TextBox
           value={this.state.params}
           onValueChanged={this.onParamsChanged}
@@ -58,18 +67,80 @@ export class CustomIntegrationForm extends React.Component<
     )
   }
 
-  private onChoosePath = () => {
-    // do nothing
-    try {
-      parseCommandLineArgv('asdfasdf')
-    } catch (e) {
-      console.error(e)
+  private renderErrors() {
+    if (
+      !this.state.path.length ||
+      this.state.isValidPath ||
+      !this.state.showNonValidPathWarning
+    ) {
+      return null
     }
+
+    const errorDescription =
+      'This directory does not appear to be a valid executable.'
+
+    const msg: IAccessibleMessage = {
+      screenReaderMessage: errorDescription,
+      displayedMessage: errorDescription,
+    }
+
+    return (
+      <div className="custom-integration-form-error">
+        <InputError
+          id="add-existing-repository-path-error"
+          trackedUserInput={this.state.path}
+          ariaLiveMessage={msg.screenReaderMessage}
+        >
+          {msg.displayedMessage}
+        </InputError>
+      </div>
+    )
+  }
+
+  private onChoosePath = async () => {
+    const path = await showOpenDialog({
+      properties: __DARWIN__ ? ['openFile', 'openDirectory'] : ['openFile'],
+    })
+
+    if (path === null) {
+      return
+    }
+
+    this.updatePath(path)
+  }
+
+  private async updatePath(path: string) {
+    this.setState({ path, isValidPath: false })
+    await this.validatePath(path)
+  }
+
+  private async validatePath(path: string) {
+    if (path.length === 0) {
+      this.setState({
+        isValidPath: false,
+      })
+      return
+    }
+
+    try {
+      const pathStat = await stat(path)
+      const canBeExecuted = await access(path, fs.constants.X_OK)
+        .then(() => true)
+        .catch(() => false)
+      this.setState({
+        isValidPath: pathStat.isFile() && canBeExecuted,
+      })
+    } catch (e) {
+      this.setState({
+        isValidPath: false,
+      })
+    }
+
+    this.props.onPathChanged(path)
   }
 
   private onPathChanged = (path: string) => {
-    this.setState({ path })
-    this.props.onPathChanged(path)
+    this.updatePath(path)
   }
 
   private onParamsChanged = (params: string) => {
