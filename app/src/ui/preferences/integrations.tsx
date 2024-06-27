@@ -126,6 +126,7 @@ export class Integrations extends React.Component<
     return (
       <Row>
         <CustomIntegrationForm
+          id="custom-editor"
           path=""
           arguments=""
           onPathChanged={this.onCustomEditorPathChanged}
@@ -165,6 +166,7 @@ export class Integrations extends React.Component<
     return (
       <Row>
         <CustomIntegrationForm
+          id="custom-shell"
           path=""
           arguments=""
           onPathChanged={this.onCustomEditorPathChanged}

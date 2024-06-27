@@ -12,6 +12,7 @@ import { exec } from 'child_process'
 const execAsync = promisify(exec)
 
 interface ICustomIntegrationFormProps {
+  readonly id: string
   readonly path: string
   readonly arguments: string
   readonly onPathChanged: (path: string) => void
@@ -48,6 +49,7 @@ export class CustomIntegrationForm extends React.Component<
             value={this.state.path}
             onValueChanged={this.onPathChanged}
             placeholder="Path to executable"
+            ariaDescribedBy={`${this.props.id}-custom-integration-path-error`}
           />
           <Button onClick={this.onChoosePath}>Choose…</Button>
         </div>
@@ -81,7 +83,7 @@ export class CustomIntegrationForm extends React.Component<
     return (
       <div className="custom-integration-form-error">
         <InputError
-          id="add-existing-repository-path-error"
+          id={`${this.props.id}-custom-integration-path-error`}
           trackedUserInput={this.state.path}
           ariaLiveMessage={msg.screenReaderMessage}
         >
