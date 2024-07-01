@@ -6,6 +6,7 @@ import { Select } from '../lib/select'
 import { Shell, parse as parseShell } from '../../lib/shells'
 import { suggestedExternalEditor } from '../../lib/editors/shared'
 import { CustomIntegrationForm } from './custom-integration-form'
+import { ICustomIntegration } from '../../lib/custom-integration'
 
 interface IIntegrationsPreferencesProps {
   readonly availableEditors: ReadonlyArray<string>
@@ -129,19 +130,14 @@ export class Integrations extends React.Component<
           id="custom-editor"
           path=""
           arguments=""
-          onPathChanged={this.onCustomEditorPathChanged}
-          onParamsChanged={this.onCustomEditorParamsChanged}
+          onChange={this.onCustomEditorChanged}
         />
       </Row>
     )
   }
 
-  private onCustomEditorPathChanged = (path: string) => {
+  private onCustomEditorChanged = (customEditor: ICustomIntegration) => {
     //this.setState({ customEditorPath: path })
-  }
-
-  private onCustomEditorParamsChanged = (params: string) => {
-    //this.setState({ customEditorParams: params })
   }
 
   private renderSelectedShell() {
@@ -169,11 +165,14 @@ export class Integrations extends React.Component<
           id="custom-shell"
           path=""
           arguments=""
-          onPathChanged={this.onCustomEditorPathChanged}
-          onParamsChanged={this.onCustomEditorParamsChanged}
+          onChange={this.onCustomShellChanged}
         />
       </Row>
     )
+  }
+
+  private onCustomShellChanged = (customShell: ICustomIntegration) => {
+    //this.setState({ customEditorPath: path })
   }
 
   public render() {

@@ -8,6 +8,7 @@ import { InputError } from '../lib/input-description/input-error'
 import { IAccessibleMessage } from '../../models/accessible-message'
 import { promisify } from 'util'
 import { exec } from 'child_process'
+import { ICustomIntegration } from '../../lib/custom-integration'
 
 const execAsync = promisify(exec)
 
@@ -15,8 +16,7 @@ interface ICustomIntegrationFormProps {
   readonly id: string
   readonly path: string
   readonly arguments: string
-  readonly onPathChanged: (path: string) => void
-  readonly onParamsChanged: (params: string) => void
+  readonly onChange: (customIntegration: ICustomIntegration) => void
 }
 
 interface ICustomIntegrationFormState {
@@ -148,7 +148,10 @@ export class CustomIntegrationForm extends React.Component<
       })
     }
 
-    this.props.onPathChanged(path)
+    this.props.onChange({
+      path,
+      args: this.state.arguments.split(' '), // TODO: use proper parser
+    })
   }
 
   private onPathChanged = (path: string) => {
@@ -185,6 +188,9 @@ export class CustomIntegrationForm extends React.Component<
 
   private onParamsChanged = (params: string) => {
     this.setState({ arguments: params })
-    this.props.onParamsChanged(params)
+    this.props.onChange({
+      path: this.state.path,
+      args: params.split(' '), // TODO: use proper parser
+    })
   }
 }
