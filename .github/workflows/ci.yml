@@ -5,16 +5,40 @@ on:
     branches:
       - development
       - linux
-      - linux-vnext
-      - 'linux-release-*'
-    tags:
-      - 'release-*.*.*-linux*'
-      - 'release-*.*.*-test*'
   pull_request:
     branches:
       - linux
-      - linux-vnext
-      - 'linux-release-*'
+  workflow_call:
+    inputs:
+      repository:
+        default: desktop/desktop
+        required: false
+        type: string
+      ref:
+        required: true
+        type: string
+      upload-artifacts:
+        default: false
+        required: false
+        type: boolean
+      environment:
+        type: string
+        required: true
+      sign:
+        type: boolean
+        default: true
+        required: false
+    secrets:
+      AZURE_CODE_SIGNING_TENANT_ID:
+      AZURE_CODE_SIGNING_CLIENT_ID:
+      AZURE_CODE_SIGNING_CLIENT_SECRET:
+      DESKTOP_OAUTH_CLIENT_ID:
+      DESKTOP_OAUTH_CLIENT_SECRET:
+      APPLE_ID:
+      APPLE_ID_PASSWORD:
+      APPLE_TEAM_ID:
+      APPLE_APPLICATION_CERT:
+      APPLE_APPLICATION_CERT_PASSWORD:
 
 env:
   NODE_VERSION: 20.11.1
@@ -44,146 +68,53 @@ jobs:
   build:
     name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
-    container: ${{ matrix.image }}
     permissions:
-      contents: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, windows-2019, ubuntu-20.04]
+        os: [macos-13, windows-2019]
         arch: [x64, arm64]
         include:
           - os: macos-13
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows
-          - os: ubuntu-20.04
-            friendlyName: Ubuntu
-            image: ubuntu:18.04
-            arch: x64
-            environment:
-              AS: as
-              STRIP: strip
-              AR: ar
-              CC: gcc
-              CPP: cpp
-              CXX: g++
-              LD: ld
-              FC: gfortran
-              PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu/pkgconfig
-          - os: ubuntu-20.04
-            friendlyName: Ubuntu
-            image: ubuntu:18.04
-            arch: arm64
-            environment:
-              AS: aarch64-linux-gnu-as
-              STRIP: aarch64-linux-gnu-strip
-              AR: aarch64-linux-gnu-ar
-              CC: aarch64-linux-gnu-gcc
-              CPP: aarch64-linux-gnu-cpp
-              CXX: aarch64-linux-gnu-g++
-              LD: aarch64-linux-gnu-ld
-              FC: aarch64-linux-gnu-gfortran
-              PKG_CONFIG_PATH: /usr/lib/aarch64-linux-gnu/pkgconfig
-          - os: ubuntu-20.04
-            friendlyName: Ubuntu
-            image: ubuntu:18.04
-            arch: arm
-            environment:
-              AS: arm-linux-gnueabihf-as
-              STRIP: arm-linux-gnueabihf-strip
-              AR: arm-linux-gnueabihf-ar
-              CC: arm-linux-gnueabihf-gcc
-              CPP: arm-linux-gnueabihf-cpp
-              CXX: arm-linux-gnueabihf-g++
-              LD: arm-linux-gnueabihf-ld
-              FC: arm-linux-gnueabihf-gfortran
-              PKG_CONFIG_PATH: /usr/lib/arm-linux-gnueabihf/pkgconfig
-
     timeout-minutes: 60
     env:
       RELEASE_CHANNEL: ${{ inputs.environment }}
-      AS: ${{ matrix.environment.AS }}
-      STRIP: ${{ matrix.environment.STRIP }}
-      AR: ${{ matrix.environment.AR }}
-      CC: ${{ matrix.environment.CC }}
-      CPP: ${{ matrix.environment.CPP }}
-      CXX: ${{ matrix.environment.CXX }}
-      LD: ${{ matrix.environment.LD }}
-      FC: ${{ matrix.environment.FC }}
-      PKG_CONFIG_PATH: ${{ matrix.environment.PKG_CONFIG_PATH }}
-      npm_config_arch: ${{ matrix.arch }}
     steps:
-      - name: Install dependencies into dockerfile on Ubuntu
-        if: matrix.friendlyName == 'Ubuntu'
-        run: |
-          # ubuntu dockerfile is very minimal (only 122 packages are installed)
-          # add dependencies expected by scripts
-          apt update
-          apt install -y software-properties-common lsb-release \
-          sudo wget curl build-essential jq autoconf automake \
-          pkg-config ca-certificates rpm
-          # install new enough git to run actions/checkout
-          sudo add-apt-repository ppa:git-core/ppa -y
-          sudo apt update
-          sudo apt install -y git
-          # avoid "fatal: detected dubious ownership in repository at '/__w/shiftkey/desktop'" error
-          git config --global --add safe.directory '*'
-      - name: Add additional dependencies for Ubuntu x64
-        if: ${{ matrix.friendlyName == 'Ubuntu' && matrix.arch == 'x64' }}
-        run: |
-          # add electron unit test dependencies
-          sudo apt install -y libasound2 libatk-bridge2.0-0 libatk1.0-0 \
-          libatspi2.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libdrm2 \
-          libexpat1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 \
-          libnss3 libpango-1.0-0 libx11-6 libxcb1 libxcomposite1 \
-          libxdamage1 libxext6 libxfixes3 libxkbcommon0 libxrandr2 \
-          libsecret-1-0
-      - name: Add additional dependencies for Ubuntu arm64
-        if: ${{ matrix.friendlyName == 'Ubuntu' && matrix.arch == 'arm64' }}
-        run: |
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu
-      - name: Add additional dependencies for Ubuntu arm
-        if: ${{ matrix.friendlyName == 'Ubuntu' && matrix.arch == 'arm' }}
-        run: |
-          sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf pkg-config-arm-linux-gnueabihf
-          sudo sed -i "s/^deb/deb [arch=amd64,i386]/g" /etc/apt/sources.list
-          echo "deb [arch=arm64,armhf] http://ports.ubuntu.com/ $(lsb_release -s -c) main universe multiverse restricted" | sudo tee -a /etc/apt/sources.list
-          echo "deb [arch=arm64,armhf] http://ports.ubuntu.com/ $(lsb_release -s -c)-updates main universe multiverse restricted" | sudo tee -a /etc/apt/sources.list
-          sudo dpkg --add-architecture armhf
-          sudo apt-get update
-          sudo apt-get install -y libx11-dev:armhf libx11-xcb-dev:armhf libxkbfile-dev:armhf libsecret-1-dev:armhf
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref }}
           submodules: recursive
       - uses: actions/setup-python@v5
-        if: matrix.friendlyName != 'Ubuntu'
         with:
           python-version: '3.11'
       - name: Use Node.js ${{ env.NODE_VERSION }}
-        if: matrix.friendlyName != 'Ubuntu'
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: yarn
-      - name:
-          Install unofficial-builds Node.js ${{ env.NODE_VERSION }} on Ubuntu
-        if: matrix.friendlyName == 'Ubuntu'
-        run: |
-          # This version supports older GLIBC (official builds required a minimum of GLIBC 2.28)
-          # this might break if you bump the `env.NODE_VERSION` version - ensure you are on the latest version
-          # of which ever major/minor release which should have this variant available
-          #
-          # See https://github.com/nodejs/unofficial-builds/ for more information on these versions.
-          #
-          curl -sL 'https://unofficial-builds.nodejs.org/download/release/v${{ env.NODE_VERSION }}/node-v${{ env.NODE_VERSION }}-linux-x64-glibc-217.tar.xz' | xzcat | sudo tar -vx  --strip-components=1 -C /usr/local/
-          sudo npm install --global yarn
       - name: Install and build dependencies
         run: yarn
+        env:
+          npm_config_arch: ${{ matrix.arch }}
+          TARGET_ARCH: ${{ matrix.arch }}
       - name: Build production app
         run: yarn build:prod
+        env:
+          DESKTOP_OAUTH_CLIENT_ID: ${{ secrets.DESKTOP_OAUTH_CLIENT_ID }}
+          DESKTOP_OAUTH_CLIENT_SECRET:
+            ${{ secrets.DESKTOP_OAUTH_CLIENT_SECRET }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APPLICATION_CERT: ${{ secrets.APPLE_APPLICATION_CERT }}
+          KEY_PASSWORD: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
+          npm_config_arch: ${{ matrix.arch }}
+          TARGET_ARCH: ${{ matrix.arch }}
       - name: Prepare testing environment
         if: matrix.arch == 'x64'
         run: yarn test:setup
@@ -195,83 +126,31 @@ jobs:
       - name: Run script tests
         if: matrix.arch == 'x64'
         run: yarn test:script
-      - name: Package application
-        run: yarn run package
-        if: ${{ matrix.friendlyName == 'Ubuntu' }}
-      - name: Upload output artifacts
-        uses: actions/upload-artifact@v3
-        if: matrix.friendlyName == 'Ubuntu'
-        with:
-          name: ${{ matrix.friendlyName }}-${{ matrix.arch }}-artifacts
-          path: |
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.rpm
-            dist/*.sha256
-          retention-days: 5
-
-  publish:
-    name: Create GitHub release
-    needs: [build, lint]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js 18.14.0
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18.14.0
-          cache: yarn
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v3
-        with:
-          path: './artifacts'
-
-      - name: Display structure of downloaded files
-        run: ls -R
-        working-directory: './artifacts'
-
-      - name: Get tag name without prefix
+      - name: Install Azure Code Signing Client
+        if: ${{ runner.os == 'Windows' && inputs.sign }}
         run: |
-          RELEASE_TAG=${GITHUB_REF/refs\/tags\//}
-          echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
-          tagNameWithoutPrefix="${RELEASE_TAG:8}"
-          echo "RELEASE_TAG_WITHOUT_PREFIX=${tagNameWithoutPrefix}" >> $GITHUB_ENV
-
-      # TODO: generate release notes
-      #    - pull in default if version matches X.Y.Z-linux1
-      #    - otherwise stub template
-
-      - name: Generate release notes
-        run: |
-          node -v
-          yarn
-          node -r ts-node/register script/generate-release-notes.ts "${{ github.workspace }}/artifacts" "${{ env.RELEASE_TAG_WITHOUT_PREFIX }}"
-          RELEASE_NOTES_FILE=script/release_notes.txt
-          if [[ ! -f "$RELEASE_NOTES_FILE" ]]; then
-              echo "$RELEASE_NOTES_FILE does not exist. Something might have gone wrong while generating the release notes."
-              exit 1
-          fi
-          echo "Release notes:"
-          echo "---"
-          cat ${RELEASE_NOTES_FILE}
-          echo "---"
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: GitHub Desktop for Linux ${{ env.RELEASE_TAG_WITHOUT_PREFIX }}
-          body_path: script/release_notes.txt
-          files: |
-            artifacts/**/*.AppImage
-            artifacts/**/*.deb
-            artifacts/**/*.rpm
-            artifacts/**/*.sha256
-          draft: true
-          fail_on_unmatched_files: true
+          $acsZip = Join-Path $env:RUNNER_TEMP "acs.zip"
+          $acsDir = Join-Path $env:RUNNER_TEMP "acs"
+          Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Microsoft.Trusted.Signing.Client/1.0.52 -OutFile $acsZip -Verbose
+          Expand-Archive $acsZip -Destination $acsDir -Force -Verbose
+          # Replace ancient signtool in electron-winstall with one that supports ACS
+          Copy-Item -Path "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\*" -Include signtool.exe,signtool.exe.manifest,Microsoft.Windows.Build.Signing.mssign32.dll.manifest,mssign32.dll,Microsoft.Windows.Build.Signing.wintrust.dll.manifest,wintrust.dll,Microsoft.Windows.Build.Appx.AppxSip.dll.manifest,AppxSip.dll,Microsoft.Windows.Build.Appx.AppxPackaging.dll.manifest,AppxPackaging.dll,Microsoft.Windows.Build.Appx.OpcServices.dll.manifest,OpcServices.dll -Destination "node_modules\electron-winstaller\vendor" -Verbose
+      - name: Package production app
+        run: yarn package
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          npm_config_arch: ${{ matrix.arch }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_SECRET }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ inputs.upload-artifacts }}
+        with:
+          name: ${{matrix.friendlyName}}-${{matrix.arch}}
+          path: |
+            dist/GitHub Desktop-${{matrix.arch}}.zip
+            dist/GitHubDesktop-*.nupkg
+            dist/GitHubDesktopSetup-${{matrix.arch}}.exe
+            dist/GitHubDesktopSetup-${{matrix.arch}}.msi
+            dist/bundle-size.json
+          if-no-files-found: error
