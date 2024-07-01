@@ -48,6 +48,7 @@ import { IChangesetData } from './git'
 import { Popup } from '../models/popup'
 import { RepoRulesInfo } from '../models/repo-rules'
 import { IAPIRepoRuleset } from './api'
+import { ICustomIntegration } from './custom-integration'
 
 export enum SelectionType {
   Repository,
@@ -322,6 +323,10 @@ export interface IAppState {
    * order for external contributions in latest release.
    */
   readonly lastThankYou: ILastThankYou | undefined
+
+  readonly customEditor: ICustomIntegration | undefined
+
+  readonly customShell: ICustomIntegration | undefined
 
   /**
    * Whether or not the CI status popover is visible.

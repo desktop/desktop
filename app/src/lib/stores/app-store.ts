@@ -338,6 +338,7 @@ import {
   useExternalCredentialHelperDefault,
 } from '../trampoline/use-external-credential-helper'
 import { IOAuthAction } from '../parse-app-url'
+import { ICustomIntegration } from '../custom-integration'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -420,6 +421,9 @@ const MaxInvalidFoldersToDisplay = 3
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
+
+const customEditorKey = 'custom-editor'
+const customShellKey = 'custom-shell'
 
 export const underlineLinksKey = 'underline-links'
 export const underlineLinksDefault = true
@@ -551,6 +555,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private currentDragElement: DragElement | null = null
   private lastThankYou: ILastThankYou | undefined
+
+  private customShell: ICustomIntegration | undefined
+  private customEditor: ICustomIntegration | undefined
+
   private showCIStatusPopover: boolean = false
 
   /** A service for managing the stack of open popups */
@@ -1044,6 +1052,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
+      customEditor: this.customEditor,
+      customShell: this.customShell,
       showCIStatusPopover: this.showCIStatusPopover,
       notificationsEnabled: getNotificationsEnabled(),
       pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
@@ -2231,6 +2241,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
+
+    this.customEditor = getObject<ICustomIntegration>(customEditorKey)
+    this.customShell = getObject<ICustomIntegration>(customShellKey)
 
     this.pullRequestSuggestedNextAction =
       getEnum(
@@ -7126,6 +7139,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     setObject(lastThankYouKey, lastThankYou)
     this.lastThankYou = lastThankYou
 
+    this.emitUpdate()
+  }
+
+  public _setCustomEditor(customEditor: ICustomIntegration) {
+    setObject(customEditorKey, customEditor)
+    this.customEditor = customEditor
+    this.emitUpdate()
+  }
+
+  public _setCustomShell(customShell: ICustomIntegration) {
+    setObject(customShellKey, customShell)
+    this.customShell = customShell
     this.emitUpdate()
   }
 
