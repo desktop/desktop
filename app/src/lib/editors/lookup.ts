@@ -1,8 +1,11 @@
-import { ExternalEditorError } from './shared'
+import { CustomEditor, ExternalEditorError } from './shared'
 import { IFoundEditor } from './found-editor'
 import { getAvailableEditors as getAvailableEditorsDarwin } from './darwin'
 import { getAvailableEditors as getAvailableEditorsWindows } from './win32'
 import { getAvailableEditors as getAvailableEditorsLinux } from './linux'
+import { getObject } from '../local-storage'
+import { ICustomIntegration } from '../custom-integration'
+import { customEditorKey } from '../stores/app-store'
 
 let editorCache: ReadonlyArray<IFoundEditor<string>> | null = null
 
@@ -19,24 +22,29 @@ export async function getAvailableEditors(): Promise<
 
   if (__DARWIN__) {
     editorCache = await getAvailableEditorsDarwin()
-    return editorCache
-  }
-
-  if (__WIN32__) {
+  } else if (__WIN32__) {
     editorCache = await getAvailableEditorsWindows()
-    return editorCache
-  }
-
-  if (__LINUX__) {
+  } else if (__LINUX__) {
     editorCache = await getAvailableEditorsLinux()
-    return editorCache
+  } else {
+    log.warn(
+      `Platform not currently supported for resolving editors: ${process.platform}`
+    )
+
+    return []
   }
 
-  log.warn(
-    `Platform not currently supported for resolving editors: ${process.platform}`
-  )
+  // Add 'Other…' option to the list of available editors
+  const customEditor = getObject<ICustomIntegration>(customEditorKey)
+  const customEditorPath = customEditor?.path || ''
+  editorCache = editorCache.concat({
+    editor: CustomEditor,
+    path: customEditorPath,
+    extraArgs: customEditor?.arguments || [],
+    usesShell: __WIN32__ && customEditorPath.endsWith('.cmd'),
+  })
 
-  return []
+  return editorCache
 }
 
 /**

@@ -422,8 +422,8 @@ const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
-const customEditorKey = 'custom-editor'
-const customShellKey = 'custom-shell'
+export const customEditorKey = 'custom-editor'
+export const customShellKey = 'custom-shell'
 
 export const underlineLinksKey = 'underline-links'
 export const underlineLinksDefault = true
@@ -522,7 +522,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private resolvedExternalEditor: string | null = null
 
   /** The user's preferred shell. */
-  private selectedShell = DefaultShell
+  private selectedShell: Shell = DefaultShell
 
   /** The current repository filter text */
   private repositoryFilterText: string = ''

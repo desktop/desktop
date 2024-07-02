@@ -1,6 +1,7 @@
 export interface IFoundEditor<T> {
   readonly editor: T
   readonly path: string
+  readonly extraArgs?: ReadonlyArray<string>
   /**
    * Indicate to Desktop to launch the editor with the `shell: true` option included.
    *

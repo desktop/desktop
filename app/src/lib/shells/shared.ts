@@ -5,13 +5,22 @@ import * as Win32 from './win32'
 import * as Linux from './linux'
 import { ShellError } from './error'
 import { pathExists } from '../../ui/lib/path-exists'
+import { getObject } from '../local-storage'
+import { ICustomIntegration } from '../custom-integration'
+import { customShellKey } from '../stores'
 
-export type Shell = Darwin.Shell | Win32.Shell | Linux.Shell
+export const CustomShell = 'Other…'
+
+export type Shell =
+  | Darwin.Shell
+  | Win32.Shell
+  | Linux.Shell
+  | typeof CustomShell
 
 export type FoundShell<T extends Shell> = {
   readonly shell: T
   readonly path: string
-  readonly extraArgs?: string[]
+  readonly extraArgs?: ReadonlyArray<string>
 } & (T extends Darwin.Shell
   ? {
       readonly bundleID: string
@@ -58,18 +67,26 @@ export async function getAvailableShells(): Promise<
 
   if (__DARWIN__) {
     shellCache = await Darwin.getAvailableShells()
-    return shellCache
   } else if (__WIN32__) {
     shellCache = await Win32.getAvailableShells()
-    return shellCache
   } else if (__LINUX__) {
     shellCache = await Linux.getAvailableShells()
-    return shellCache
+  } else {
+    return Promise.reject(
+      `Platform not currently supported for resolving shells: ${process.platform}`
+    )
   }
 
-  return Promise.reject(
-    `Platform not currently supported for resolving shells: ${process.platform}`
-  )
+  // Add 'Other…' option to the list of available shells
+  const customShell = getObject<ICustomIntegration>(customShellKey)
+
+  shellCache = shellCache.concat({
+    shell: CustomShell,
+    path: customShell?.path ?? '',
+    extraArgs: customShell?.arguments ?? [],
+  })
+
+  return shellCache
 }
 
 /** Find the given shell or the default if the given shell can't be found. */
