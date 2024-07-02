@@ -150,7 +150,7 @@ export class CustomIntegrationForm extends React.Component<
 
     this.props.onChange({
       path,
-      args: this.state.arguments.split(' '), // TODO: use proper parser
+      arguments: this.state.arguments.split(' '), // TODO: use proper parser
     })
   }
 
@@ -190,7 +190,7 @@ export class CustomIntegrationForm extends React.Component<
     this.setState({ arguments: params })
     this.props.onChange({
       path: this.state.path,
-      args: params.split(' '), // TODO: use proper parser
+      arguments: params.split(' '), // TODO: use proper parser
     })
   }
 }

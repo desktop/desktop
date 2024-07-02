@@ -47,6 +47,7 @@ import {
   enableExternalCredentialHelper,
   enableLinkUnderlines,
 } from '../../lib/feature-flag'
+import { ICustomIntegration } from '../../lib/custom-integration'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -70,6 +71,8 @@ interface IPreferencesProps {
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
+  readonly customEditor: ICustomIntegration | null
+  readonly customShell: ICustomIntegration | null
   readonly selectedTheme: ApplicationTheme
   readonly selectedTabSize: number
   readonly repositoryIndicatorsEnabled: boolean
@@ -104,6 +107,8 @@ interface IPreferencesState {
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
+  readonly customEditor: ICustomIntegration | null
+  readonly customShell: ICustomIntegration | null
 
   /**
    * If unable to save Git configuration values (name, email)
@@ -160,6 +165,8 @@ export class Preferences extends React.Component<
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
+      customEditor: this.props.customEditor,
+      customShell: this.props.customShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
       initiallySelectedTheme: this.props.selectedTheme,
       initiallySelectedTabSize: this.props.selectedTabSize,
@@ -382,7 +389,11 @@ export class Preferences extends React.Component<
             onSelectedEditorChanged={this.onSelectedEditorChanged}
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
+            customEditor={this.state.customEditor}
+            customShell={this.state.customShell}
             onSelectedShellChanged={this.onSelectedShellChanged}
+            onCustomEditorChanged={this.onCustomEditorChanged}
+            onCustomShellChanged={this.onCustomShellChanged}
           />
         )
         break
@@ -611,6 +622,14 @@ export class Preferences extends React.Component<
 
   private onSelectedShellChanged = (shell: Shell) => {
     this.setState({ selectedShell: shell })
+  }
+
+  private onCustomEditorChanged = (customEditor: ICustomIntegration) => {
+    this.setState({ customEditor })
+  }
+
+  private onCustomShellChanged = (customShell: ICustomIntegration) => {
+    this.setState({ customShell })
   }
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {

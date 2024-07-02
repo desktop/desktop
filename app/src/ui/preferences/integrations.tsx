@@ -13,13 +13,19 @@ interface IIntegrationsPreferencesProps {
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
+  readonly customEditor: ICustomIntegration | null
+  readonly customShell: ICustomIntegration | null
   readonly onSelectedEditorChanged: (editor: string) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
+  readonly onCustomEditorChanged: (customEditor: ICustomIntegration) => void
+  readonly onCustomShellChanged: (customShell: ICustomIntegration) => void
 }
 
 interface IIntegrationsPreferencesState {
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
+  readonly customEditor: ICustomIntegration | null
+  readonly customShell: ICustomIntegration | null
 }
 
 export class Integrations extends React.Component<
@@ -32,6 +38,8 @@ export class Integrations extends React.Component<
     this.state = {
       selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
+      customEditor: this.props.customEditor,
+      customShell: this.props.customShell,
     }
   }
 
@@ -128,8 +136,8 @@ export class Integrations extends React.Component<
       <Row>
         <CustomIntegrationForm
           id="custom-editor"
-          path=""
-          arguments=""
+          path={this.state.customEditor?.path ?? ''}
+          arguments={this.state.customEditor?.arguments.join(' ') ?? ''}
           onChange={this.onCustomEditorChanged}
         />
       </Row>
@@ -137,7 +145,8 @@ export class Integrations extends React.Component<
   }
 
   private onCustomEditorChanged = (customEditor: ICustomIntegration) => {
-    //this.setState({ customEditorPath: path })
+    this.setState({ customEditor })
+    this.props.onCustomEditorChanged(customEditor)
   }
 
   private renderSelectedShell() {
@@ -163,8 +172,8 @@ export class Integrations extends React.Component<
       <Row>
         <CustomIntegrationForm
           id="custom-shell"
-          path=""
-          arguments=""
+          path={this.state.customShell?.path ?? ''}
+          arguments={this.state.customShell?.arguments.join(' ') ?? ''}
           onChange={this.onCustomShellChanged}
         />
       </Row>
@@ -172,7 +181,8 @@ export class Integrations extends React.Component<
   }
 
   private onCustomShellChanged = (customShell: ICustomIntegration) => {
-    //this.setState({ customEditorPath: path })
+    this.setState({ customShell })
+    this.props.onCustomShellChanged(customShell)
   }
 
   public render() {

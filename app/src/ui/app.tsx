@@ -1723,6 +1723,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
+            customEditor={this.state.customEditor}
+            customShell={this.state.customShell}
             selectedTheme={this.state.selectedTheme}
             selectedTabSize={this.state.selectedTabSize}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}

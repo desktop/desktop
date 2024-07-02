@@ -556,8 +556,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private currentDragElement: DragElement | null = null
   private lastThankYou: ILastThankYou | undefined
 
-  private customShell: ICustomIntegration | undefined
-  private customEditor: ICustomIntegration | undefined
+  private customShell: ICustomIntegration | null = null
+  private customEditor: ICustomIntegration | null = null
 
   private showCIStatusPopover: boolean = false
 
@@ -2242,8 +2242,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
 
-    this.customEditor = getObject<ICustomIntegration>(customEditorKey)
-    this.customShell = getObject<ICustomIntegration>(customShellKey)
+    this.customEditor = getObject<ICustomIntegration>(customEditorKey) ?? null
+    this.customShell = getObject<ICustomIntegration>(customShellKey) ?? null
 
     this.pullRequestSuggestedNextAction =
       getEnum(

@@ -324,9 +324,9 @@ export interface IAppState {
    */
   readonly lastThankYou: ILastThankYou | undefined
 
-  readonly customEditor: ICustomIntegration | undefined
+  readonly customEditor: ICustomIntegration | null
 
-  readonly customShell: ICustomIntegration | undefined
+  readonly customShell: ICustomIntegration | null
 
   /**
    * Whether or not the CI status popover is visible.
