@@ -44,6 +44,10 @@ let shellCache: ReadonlyArray<AnyFoundShell> | null = null
 
 /** Parse the label into the specified shell type. */
 export function parse(label: string): Shell {
+  if (label === CustomShell) {
+    return CustomShell
+  }
+
   if (__DARWIN__) {
     return Darwin.parse(label)
   } else if (__WIN32__) {

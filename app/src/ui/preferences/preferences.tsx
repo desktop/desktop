@@ -48,6 +48,8 @@ import {
   enableLinkUnderlines,
 } from '../../lib/feature-flag'
 import { ICustomIntegration } from '../../lib/custom-integration'
+import { getObject } from '../../lib/local-storage'
+import { customEditorKey, customShellKey } from '../../lib/stores'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -71,8 +73,6 @@ interface IPreferencesProps {
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
-  readonly customEditor: ICustomIntegration | null
-  readonly customShell: ICustomIntegration | null
   readonly selectedTheme: ApplicationTheme
   readonly selectedTabSize: number
   readonly repositoryIndicatorsEnabled: boolean
@@ -104,11 +104,11 @@ interface IPreferencesState {
   readonly confirmUndoCommit: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly availableEditors: ReadonlyArray<string>
+  readonly customEditor: ICustomIntegration | null
+  readonly customShell: ICustomIntegration | null
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
-  readonly customEditor: ICustomIntegration | null
-  readonly customShell: ICustomIntegration | null
 
   /**
    * If unable to save Git configuration values (name, email)
@@ -149,6 +149,8 @@ export class Preferences extends React.Component<
       initialDefaultBranch: null,
       disallowedCharactersMessage: null,
       availableEditors: [],
+      customEditor: null,
+      customShell: null,
       useWindowsOpenSSH: false,
       showCommitLengthWarning: false,
       notificationsEnabled: true,
@@ -165,8 +167,6 @@ export class Preferences extends React.Component<
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
-      customEditor: this.props.customEditor,
-      customShell: this.props.customShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
       initiallySelectedTheme: this.props.selectedTheme,
       initiallySelectedTabSize: this.props.selectedTabSize,
@@ -207,8 +207,11 @@ export class Preferences extends React.Component<
       getAvailableShells(),
     ])
 
-    const availableEditors = editors.map(e => e.editor)
-    const availableShells = shells.map(e => e.shell)
+    const customEditor = getObject<ICustomIntegration>(customEditorKey) ?? null
+    const customShell = getObject<ICustomIntegration>(customShellKey) ?? null
+
+    const availableEditors = editors.map(e => e.editor) ?? null
+    const availableShells = shells.map(e => e.shell) ?? null
 
     const globalGitConfigPath = await getGlobalConfigPath()
 
@@ -235,6 +238,8 @@ export class Preferences extends React.Component<
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
       availableEditors,
+      customEditor,
+      customShell,
       isLoadingGitConfig: false,
       globalGitConfigPath,
     })
@@ -731,6 +736,15 @@ export class Preferences extends React.Component<
       this.state.optOutOfUsageTracking,
       false
     )
+
+    const { customEditor, customShell } = this.state
+    if (customEditor) {
+      this.props.dispatcher.setCustomEditor(customEditor)
+    }
+
+    if (customShell) {
+      this.props.dispatcher.setCustomShell(customShell)
+    }
 
     if (enableExternalCredentialHelper()) {
       if (

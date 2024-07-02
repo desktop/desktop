@@ -556,9 +556,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private currentDragElement: DragElement | null = null
   private lastThankYou: ILastThankYou | undefined
 
-  private customShell: ICustomIntegration | null = null
-  private customEditor: ICustomIntegration | null = null
-
   private showCIStatusPopover: boolean = false
 
   /** A service for managing the stack of open popups */
@@ -1052,8 +1049,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
-      customEditor: this.customEditor,
-      customShell: this.customShell,
       showCIStatusPopover: this.showCIStatusPopover,
       notificationsEnabled: getNotificationsEnabled(),
       pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
@@ -2241,9 +2236,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
-
-    this.customEditor = getObject<ICustomIntegration>(customEditorKey) ?? null
-    this.customShell = getObject<ICustomIntegration>(customShellKey) ?? null
 
     this.pullRequestSuggestedNextAction =
       getEnum(
@@ -7144,14 +7136,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _setCustomEditor(customEditor: ICustomIntegration) {
     setObject(customEditorKey, customEditor)
-    this.customEditor = customEditor
-    this.emitUpdate()
   }
 
   public _setCustomShell(customShell: ICustomIntegration) {
     setObject(customShellKey, customShell)
-    this.customShell = customShell
-    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
