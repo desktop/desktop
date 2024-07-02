@@ -415,7 +415,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-hunk-border-color: #{$blue-200};
   --diff-hunk-gutter-color: #{darken($blue-200, 5%)};
   --diff-hunk-gutter-background-color: #{$blue-100};
-  --diff-hunk-text-color: #{$gray};
+  --diff-hunk-text-color: #{$gray-600};
 
   --diff-hover-background-color: #{$blue-300};
   --diff-hover-border-color: #{$blue-400};
