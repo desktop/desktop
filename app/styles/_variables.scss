@@ -449,6 +449,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --syntax-attribute-color: #6f42c1;
   --syntax-link-color: #032f62;
   --syntax-header-color: #0000ff;
+  --syntax-quote-color: #1a7e31;
 
   // Note that this duration *must* match the `UndoCommitAnimationTimeout`
   // specified in `changes/index.tsx`.
@@ -472,7 +473,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --overlay-background-color: #{$overlay-background-color};
 
   /** Dialog */
-  --dialog-warning-color: #{$yellow-600};
+  --dialog-warning-color: #{$yellow-800};
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red};
 
@@ -506,7 +507,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   /** merge/rebase status indicators */
   --status-pending-color: #{$yellow-700};
   --status-error-color: #{$red-500};
-  --status-success-color: #{$green-500};
+  --status-success-color: #1a7f37;
 
   // PR status icon colors
   --pr-open-icon-color: #{$green-500};

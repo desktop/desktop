@@ -683,6 +683,10 @@
     color: inherit;
   }
 
+  .cm-quote {
+    color: var(--syntax-quote-color);
+  }
+
   .cm-variable-2,
   .cm-variable-3 {
     color: var(--syntax-alt-variable-color);
