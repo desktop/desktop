@@ -59,7 +59,7 @@ import {
   isRowChanged,
 } from './diff-helpers'
 import { showContextualMenu } from '../../lib/menu-item'
-import { getTokens } from './diff-syntax-mode'
+import { getTokens } from './get-tokens'
 import { DiffSearchInput } from './diff-search-input'
 import {
   expandTextDiffHunk,
