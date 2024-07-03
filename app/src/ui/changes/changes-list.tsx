@@ -934,6 +934,8 @@ export class ChangesList extends React.Component<
         className={className}
         onClick={this.onStashEntryClicked}
         tabIndex={0}
+        aria-expanded={this.props.isShowingStashEntry}
+        aria-controls="stash-diff-viewer"
       >
         <Octicon className="stack-icon" symbol={StashIcon} />
         <div className="text">Stashed Changes</div>
