@@ -10,9 +10,8 @@ import {
 } from './diff-helpers'
 import { ILineTokens } from '../../lib/highlighter/types'
 import classNames from 'classnames'
-import { Octicon } from '../octicons'
+import { Octicon, OcticonSymbolVariant } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
-import { narrowNoNewlineSymbol } from './text-diff'
 import { shallowEquals, structuralEquals } from '../../lib/equality'
 import { DiffHunkExpansionType, DiffSelectionType } from '../../models/diff'
 import { PopoverAnchorPosition } from '../lib/popover'
@@ -24,6 +23,16 @@ import {
   enableDiffCheckMarks,
   enableGroupDiffCheckmarks,
 } from '../../lib/feature-flag'
+
+// This is a custom version of the no-newline octicon that's exactly as
+// tall as it needs to be (8px) which helps with aligning it on the line.
+const narrowNoNewlineSymbol: OcticonSymbolVariant = {
+  w: 16,
+  h: 8,
+  p: [
+    'm 16,1 0,3 c 0,0.55 -0.45,1 -1,1 l -3,0 0,2 -3,-3 3,-3 0,2 2,0 0,-2 2,0 z M 8,4 C 8,6.2 6.2,8 4,8 1.8,8 0,6.2 0,4 0,1.8 1.8,0 4,0 6.2,0 8,1.8 8,4 Z M 1.5,5.66 5.66,1.5 C 5.18,1.19 4.61,1 4,1 2.34,1 1,2.34 1,4 1,4.61 1.19,5.17 1.5,5.66 Z M 7,4 C 7,3.39 6.81,2.83 6.5,2.34 L 2.34,6.5 C 2.82,6.81 3.39,7 4,7 5.66,7 7,5.66 7,4 Z',
+  ],
+}
 
 enum DiffRowPrefix {
   Added = '+',
@@ -618,7 +627,7 @@ export class SideBySideDiffRow extends React.Component<
      `side-by-side-diff.tsx`). This gives us a single element to be our control
      of the check all functionality. It is positioned absolutely over the
      hunk-handle-place-holders in each row in order to provide one element that
-     is interactive. 
+     is interactive.
 
      Other notes: I originally attempted to just use a single hunk-handle
      for the first row in a group as the heights of the rows are calculated and
