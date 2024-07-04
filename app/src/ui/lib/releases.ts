@@ -3,4 +3,4 @@ export const ReleaseNotesUri =
     ? 'https://desktop.github.com/release-notes/?env=beta'
     : 'https://desktop.github.com/release-notes/'
 
-export const LinuxReleasesUri = 'https://github.com/shiftkey/desktop/releases/'
+export const LinuxReleasesUri = 'https://github.com/desktop/desktop/releases/'

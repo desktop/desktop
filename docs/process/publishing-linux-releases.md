@@ -3,35 +3,6 @@
 This document outlines the steps I take once a release has been published from
 the main GitHub Desktop project.
 
-This document assumes you have these remotes configured:
-
-```
-$ git remote -v
-origin	https://github.com/shiftkey/desktop (fetch)
-origin	https://github.com/shiftkey/desktop (push)
-upstream	https://github.com/desktop/desktop (fetch)
-upstream	https://github.com/desktop/desktop (push)
-```
-
-Ensure that `development` and `linux` are up-to-date:
-
-```
-$ git fetch --all
-$ git checkout development
-$ git reset upstream/development --hard
-$ git push origin development
-$ git checkout linux
-$ git reset origin/linux --hard
-$ git rebase development linux
-```
-
-We want to ensure our changes work against the current branch, so take some time
-to rebase the changes and force push `linux` once you're done.
-
-```
-$ git push origin linux --force-with-lease
-```
-
 Wait for the continuous integration tests to pass. If `linux` is not passing the
 continuous integration tests we need to investigate and identify why things are
 no longer working.
@@ -121,7 +92,7 @@ Commit and push this change to ensure we still pass the CI suite:
 
 ```
 $ git commit -am "bump version for release"
-$ git push 
+$ git push
 ```
 
 With this passing CI, we can tag this version to indicate this is what we are
@@ -143,7 +114,7 @@ $ git push --follow-tags
 After the tagged build completes, it will have the installers available as
 artifacts. Over on Azure Pipelines - switch to the Releases tab and run "Publish
 to Beta Channel" with the Snap release disabled
-([**#204**](https://github.com/shiftkey/desktop/issues/202) is the tracking
+([**#204**](https://github.com/desktop/desktop/issues/202) is the tracking
 issue for re-enabling that).
 
 When that is done, there should be a draft release available assigned to the tag

@@ -4,10 +4,7 @@ on:
   push:
     branches:
       - development
-      - linux
   pull_request:
-    branches:
-      - linux
   workflow_call:
     inputs:
       repository:
@@ -73,10 +70,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, windows-2019]
+        os: [macos-13-xl-arm64, windows-2019]
         arch: [x64, arm64]
         include:
-          - os: macos-13
+          - os: macos-13-xl-arm64
             friendlyName: macOS
           - os: windows-2019
             friendlyName: Windows

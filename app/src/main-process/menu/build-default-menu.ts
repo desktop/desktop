@@ -1,4 +1,4 @@
-import { Menu, shell, BrowserWindow } from 'electron'
+import { Menu, shell, app, BrowserWindow } from 'electron'
 import { ensureItemIds } from './ensure-item-ids'
 import { MenuEvent } from './menu-event'
 import { truncateWithEllipsis } from '../../lib/truncate-with-ellipsis'
@@ -135,7 +135,7 @@ export function buildDefaultMenu({
       {
         role: 'quit',
         label: 'E&xit',
-        accelerator: 'CmdOrCtrl+Q',
+        accelerator: __LINUX__ ? 'CmdOrCtrl+Q' : 'Alt+F4',
       }
     )
   }
@@ -486,8 +486,19 @@ export function buildDefaultMenu({
     label: __DARWIN__ ? 'Report Issue…' : 'Report issue…',
     click() {
       shell
-        .openExternal('https://github.com/shiftkey/desktop/issues/new/choose')
+        .openExternal('https://github.com/desktop/desktop/issues/new/choose')
         .catch(err => log.error('Failed opening issue creation page', err))
+    },
+  }
+
+  const contactSupportItem: Electron.MenuItemConstructorOptions = {
+    label: __DARWIN__ ? 'Contact GitHub Support…' : '&Contact GitHub support…',
+    click() {
+      shell
+        .openExternal(
+          `https://github.com/contact?from_desktop_app=1&app_version=${app.getVersion()}`
+        )
+        .catch(err => log.error('Failed opening contact support page', err))
     },
   }
 
@@ -529,6 +540,7 @@ export function buildDefaultMenu({
 
   const helpItems = [
     submitIssueItem,
+    contactSupportItem,
     showUserGuides,
     showKeyboardShortcuts,
     showLogsItem,

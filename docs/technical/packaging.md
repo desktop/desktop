@@ -105,11 +105,6 @@ Other things to note about the Windows packaging process:
    that haven't changed. This has been enabled for Desktop, and requires
    downloading the previous version from Central to generate the delta package.
 
-### Linux
-
-Refer to the [`shiftkey/desktop`](https://github.com/shiftkey/desktop) fork
-for packaging details about Linux.
-
 ## `script/publish.ts`
 
 This script uploads the packaging artifacts to our S3 bucket, which is then

@@ -4,16 +4,5 @@ updates:
     directory: /
     schedule:
       interval: weekly
-  - package-ecosystem: 'npm'
-    directory: '/'
-    open-pull-requests-limit: 5
-    schedule:
-      interval: 'weekly'
-    allow:
-      - dependency-name: 'electron-builder'
-      - dependency-name: 'electron-packager'
-      - dependency-name: 'electron-installer-*'
-      - dependency-name: 'xvfb-maybe'
-      - dependency-name: 'yaml'
-      - dependency-name: 'patch-package'
-      - dependency-name: 'postinstall-postinstall'
+    # Disable version updates and keep only security updates
+    open-pull-requests-limit: 0
