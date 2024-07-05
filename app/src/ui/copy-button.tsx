@@ -51,7 +51,6 @@ export class CopyButton extends React.Component<
     const { showCopied } = this.state
 
     const copiedMessage = 'Copied!'
-    const ariaMessage = showCopied ? copiedMessage : ''
     return (
       <Button
         className="copy-button"
@@ -62,10 +61,7 @@ export class CopyButton extends React.Component<
         applyTooltipAriaDescribedBy={false}
       >
         {this.renderSymbol()}
-        <AriaLiveContainer
-          message={copiedMessage}
-          trackedUserInput={ariaMessage}
-        />
+        {showCopied && <AriaLiveContainer message={copiedMessage} />}
       </Button>
     )
   }
