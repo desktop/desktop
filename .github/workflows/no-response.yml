@@ -30,3 +30,4 @@ jobs:
             reopen.
           daysUntilClose: 7
           responseRequiredLabel: more-info-needed
+[![No Response](https://github.com/desktop/desktop/actions/workflows/no-response.yml/badge.svg?branch=development)](https://github.com/desktop/desktop/actions/workflows/no-response.yml)
