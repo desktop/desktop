@@ -3,29 +3,26 @@ import * as React from 'react'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { RetryAction } from '../../models/retry-actions'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Ref } from '../lib/ref'
 import { LinkButton } from '../lib/link-button'
 import { PasswordTextBox } from '../lib/password-text-box'
 
 interface IGenericGitAuthenticationProps {
-  /** The hostname with which the user tried to authenticate. */
-  readonly hostname: string
+  /** The remote url with which the user tried to authenticate. */
+  readonly remoteUrl: string
 
   /** The function to call when the user saves their credentials. */
-  readonly onSave: (
-    hostname: string,
-    username: string,
-    password: string,
-    retryAction: RetryAction
-  ) => void
+  readonly onSave: (username: string, password: string) => void
 
   /** The function to call when the user dismisses the dialog. */
   readonly onDismiss: () => void
 
-  /** The action to retry after getting credentials. */
-  readonly retryAction: RetryAction
+  /**
+   * In case the username is predetermined. Setting this will prevent
+   * the popup from allowing the user to change the username.
+   */
+  readonly username?: string
 }
 
 interface IGenericGitAuthenticationState {
@@ -41,7 +38,7 @@ export class GenericGitAuthentication extends React.Component<
   public constructor(props: IGenericGitAuthenticationProps) {
     super(props)
 
-    this.state = { username: '', password: '' }
+    this.state = { username: this.props.username ?? '', password: '' }
   }
 
   public render() {
@@ -52,32 +49,45 @@ export class GenericGitAuthentication extends React.Component<
         title={__DARWIN__ ? `Authentication Failed` : `Authentication failed`}
         onDismissed={this.props.onDismiss}
         onSubmit={this.save}
+        role="alertdialog"
+        ariaDescribedBy="generic-git-auth-error"
       >
         <DialogContent>
-          <p>
-            We were unable to authenticate with <Ref>{this.props.hostname}</Ref>
-            . Please enter your username and password to try again.
+          <p id="generic-git-auth-error">
+            We were unable to authenticate with{' '}
+            <Ref>{this.props.remoteUrl}</Ref>. Please enter{' '}
+            {this.props.username ? (
+              <>
+                the password for the user <Ref>{this.props.username}</Ref>
+              </>
+            ) : (
+              'your username and password'
+            )}{' '}
+            to try again.
           </p>
 
-          <Row>
-            <TextBox
-              label="Username"
-              autoFocus={true}
-              value={this.state.username}
-              onValueChanged={this.onUsernameChange}
-            />
-          </Row>
+          {this.props.username === undefined && (
+            <Row>
+              <TextBox
+                label="Username"
+                autoFocus={true}
+                value={this.state.username}
+                onValueChanged={this.onUsernameChange}
+              />
+            </Row>
+          )}
 
           <Row>
             <PasswordTextBox
               label="Password"
               value={this.state.password}
               onValueChanged={this.onPasswordChange}
+              ariaDescribedBy="generic-git-auth-password-description"
             />
           </Row>
 
           <Row>
-            <div>
+            <div id="generic-git-auth-password-description">
               Depending on your repository's hosting service, you might need to
               use a Personal Access Token (PAT) as your password. Learn more
               about creating a PAT in our{' '}
@@ -90,10 +100,7 @@ export class GenericGitAuthentication extends React.Component<
         </DialogContent>
 
         <DialogFooter>
-          <OkCancelButtonGroup
-            okButtonText={__DARWIN__ ? 'Save and Retry' : 'Save and retry'}
-            okButtonDisabled={disabled}
-          />
+          <OkCancelButtonGroup okButtonDisabled={disabled} />
         </DialogFooter>
       </Dialog>
     )
@@ -108,13 +115,10 @@ export class GenericGitAuthentication extends React.Component<
   }
 
   private save = () => {
-    this.props.onDismiss()
-
     this.props.onSave(
-      this.props.hostname,
-      this.state.username,
-      this.state.password,
-      this.props.retryAction
+      this.props.username ?? this.state.username,
+      this.state.password
     )
+    this.props.onDismiss()
   }
 }

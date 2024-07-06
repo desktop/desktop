@@ -25,6 +25,7 @@ import { DesktopAliveEvent } from './stores/alive-store'
  */
 export type RequestChannels = {
   'select-all-window-contents': () => void
+  'dialog-did-open': () => void
   'update-menu-state': (
     state: Array<{ id: MenuIDs; state: IMenuItemState }>
   ) => void
@@ -81,6 +82,8 @@ export type RequestChannels = {
   'notification-event': NotificationCallback<DesktopAliveEvent>
   'set-window-zoom-factor': (zoomFactor: number) => void
   'show-installing-update': () => void
+  'install-windows-cli': () => void
+  'uninstall-windows-cli': () => void
 }
 
 /**

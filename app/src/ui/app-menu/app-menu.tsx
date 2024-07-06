@@ -31,25 +31,6 @@ interface IAppMenuProps {
    */
   readonly enableAccessKeyNavigation: boolean
 
-  /**
-   * Whether the menu was opened by pressing Alt (or Alt+X where X is an
-   * access key for one of the top level menu items). This is used as a
-   * one-time signal to the AppMenu to use some special semantics for
-   * selection and focus. Specifically it will ensure that the last opened
-   * menu will receive focus.
-   */
-  readonly openedWithAccessKey: boolean
-
-  /**
-   * If true the MenuPane only takes up as much vertical space needed to
-   * show all menu items. This does not affect maximum height, i.e. if the
-   * visible menu items takes up more space than what is available the menu
-   * will still overflow and be scrollable.
-   *
-   * @default false
-   */
-  readonly autoHeight?: boolean
-
   /** The id of the element that serves as the menu's accessibility label */
   readonly ariaLabelledby: string
 }

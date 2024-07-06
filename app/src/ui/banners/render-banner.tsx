@@ -18,7 +18,8 @@ import { OpenThankYouCard } from './open-thank-you-card'
 import { SuccessfulSquash } from './successful-squash'
 import { SuccessBanner } from './success-banner'
 import { ConflictsFoundBanner } from './conflicts-found-banner'
-import { WindowsVersionNoLongerSupportedBanner } from './windows-version-no-longer-supported-banner'
+import { OSVersionNoLongerSupportedBanner } from './os-version-no-longer-supported-banner'
+import { AccessibilitySettingsBanner } from './accessibilty-settings-banner'
 
 export function renderBanner(
   banner: Banner,
@@ -169,8 +170,15 @@ export function renderBanner(
           key={'conflicts-found'}
         ></ConflictsFoundBanner>
       )
-    case BannerType.WindowsVersionNoLongerSupported:
-      return <WindowsVersionNoLongerSupportedBanner onDismissed={onDismissed} />
+    case BannerType.OSVersionNoLongerSupported:
+      return <OSVersionNoLongerSupportedBanner onDismissed={onDismissed} />
+    case BannerType.AccessibilitySettingsBanner:
+      return (
+        <AccessibilitySettingsBanner
+          onOpenAccessibilitySettings={banner.onOpenAccessibilitySettings}
+          onDismissed={onDismissed}
+        />
+      )
     default:
       return assertNever(banner, `Unknown popup type: ${banner}`)
   }

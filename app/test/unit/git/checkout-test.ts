@@ -52,7 +52,7 @@ describe('git/checkout', () => {
 
     let errorRaised = false
     try {
-      await checkoutBranch(repository, null, branch)
+      await checkoutBranch(repository, branch, null)
     } catch (error) {
       errorRaised = true
       expect(error.message).toBe('fatal: invalid reference: ..\n')
@@ -74,7 +74,7 @@ describe('git/checkout', () => {
       throw new Error(`Could not find branch: commit-with-long-description`)
     }
 
-    await checkoutBranch(repository, null, branches[0])
+    await checkoutBranch(repository, branches[0], null)
 
     const store = new GitStore(repository, shell, statsStore)
     await store.loadStatus()
@@ -109,7 +109,7 @@ describe('git/checkout', () => {
       throw new Error(`Could not find branch: '${secondBranch}'`)
     }
 
-    await checkoutBranch(repository, null, firstRemoteBranch)
+    await checkoutBranch(repository, firstRemoteBranch, null)
 
     const store = new GitStore(repository, shell, statsStore)
     await store.loadStatus()
@@ -143,7 +143,7 @@ describe('git/checkout', () => {
     let errorRaised = false
 
     try {
-      await checkoutBranch(repository, null, remoteBranch)
+      await checkoutBranch(repository, remoteBranch, null)
     } catch (error) {
       errorRaised = true
       expect(error.message).toBe('A branch with that name already exists.')
@@ -170,7 +170,7 @@ describe('git/checkout', () => {
         throw new Error(`Could not find branch: 'master'`)
       }
 
-      await checkoutBranch(repository, null, masterBranch)
+      await checkoutBranch(repository, masterBranch, null)
 
       const status = await getStatusOrThrow(repository)
 
@@ -194,7 +194,7 @@ describe('git/checkout', () => {
         throw new Error(`Could not find branch: 'dev'`)
       }
 
-      await checkoutBranch(repository, null, devBranch)
+      await checkoutBranch(repository, devBranch, null)
 
       const status = await getStatusOrThrow(repository)
       expect(status.workingDirectory.files).toHaveLength(0)

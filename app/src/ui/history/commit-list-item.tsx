@@ -8,7 +8,7 @@ import { RelativeTime } from '../relative-time'
 import { CommitAttribution } from '../lib/commit-attribution'
 import { AvatarStack } from '../lib/avatar-stack'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Draggable } from '../lib/draggable'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import {
@@ -18,6 +18,7 @@ import {
 } from '../../models/drag-drop'
 import classNames from 'classnames'
 import { TooltippedContent } from '../lib/tooltipped-content'
+import { Account } from '../../models/account'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
@@ -39,7 +40,7 @@ interface ICommitProps {
   readonly showUnpushedIndicator: boolean
   readonly unpushedIndicatorTitle?: string
   readonly disableSquashing?: boolean
-  readonly isMultiCommitOperationInProgress?: boolean
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface ICommitListItemState {
@@ -150,7 +151,10 @@ export class CommitListItem extends React.PureComponent<
               renderUrlsAsLinks={false}
             />
             <div className="description">
-              <AvatarStack users={this.state.avatarUsers} />
+              <AvatarStack
+                users={this.state.avatarUsers}
+                accounts={this.props.accounts}
+              />
               <div className="byline">
                 <CommitAttribution
                   gitHubRepository={this.props.gitHubRepository}
@@ -193,7 +197,7 @@ export class CommitListItem extends React.PureComponent<
         className="unpushed-indicator"
         tooltip={this.props.unpushedIndicatorTitle}
       >
-        <Octicon symbol={OcticonSymbol.arrowUp} />
+        <Octicon symbol={octicons.arrowUp} />
       </TooltippedContent>
     )
   }
@@ -227,7 +231,7 @@ function renderRelativeTime(date: Date) {
   return (
     <>
       {` • `}
-      <RelativeTime date={date} abbreviate={true} />
+      <RelativeTime date={date} />
     </>
   )
 }

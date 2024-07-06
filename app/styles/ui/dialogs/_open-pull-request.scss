@@ -25,7 +25,7 @@
     padding: var(--spacing);
     display: flex;
     flex-direction: column;
-    min-height: 0;
+    min-height: 200px;
     flex-grow: 1;
   }
 
@@ -50,5 +50,15 @@
 
   .pull-request-merge-status {
     flex-grow: 1;
+  }
+
+  @media (max-width: 600px) {
+    .dialog-footer {
+      flex-direction: column;
+    }
+
+    .pull-request-merge-status {
+      margin-bottom: var(--spacing);
+    }
   }
 }

@@ -6,6 +6,7 @@ import {
   autoUpdater,
   nativeTheme,
 } from 'electron'
+import { shell } from '../lib/app-shell'
 import { Emitter, Disposable } from 'event-kit'
 import { encodePathAsUrl } from '../lib/path'
 import {
@@ -26,6 +27,7 @@ import {
   terminateDesktopNotifications,
 } from './notifications'
 import { addTrustedIPCSender } from './trusted-ipc-sender'
+import { getUpdaterGUID } from '../lib/get-updater-guid'
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -324,6 +326,32 @@ export class AppWindow {
     }
   }
 
+  /** Handle when a modal dialog is opened. */
+  public dialogDidOpen() {
+    if (this.window.isFocused()) {
+      // No additional notifications are needed.
+      return
+    }
+    // Care is taken to mimic OS dialog behaviors.
+    if (__DARWIN__) {
+      // macOS beeps when a modal dialog is opened.
+      shell.beep()
+      // See https://developer.apple.com/documentation/appkit/nsapplication/1428358-requestuserattention
+      // "If the inactive app presents a modal panel, this method will be invoked with NSCriticalRequest
+      // automatically. The modal panel is not brought to the front for an inactive app."
+      // NOTE: flashFrame() uses the 'informational' level, so we need to explicitly bounce the dock
+      // with the 'critical' level in order to that described behavior.
+      app.dock.bounce('critical')
+    } else {
+      // See https://learn.microsoft.com/en-us/windows/win32/uxguide/winenv-taskbar#taskbar-button-flashing
+      // "If an inactive program requires immediate attention,
+      // flash its taskbar button to draw attention and leave it highlighted."
+      // It advises not to beep.
+      this.window.once('focus', () => this.window.flashFrame(false))
+      this.window.flashFrame(true)
+    }
+  }
+
   /** Send a certificate error to the renderer. */
   public sendCertificateError(
     certificate: Electron.Certificate,
@@ -415,9 +443,9 @@ export class AppWindow {
     })
   }
 
-  public checkForUpdates(url: string) {
+  public async checkForUpdates(url: string) {
     try {
-      autoUpdater.setFeedURL({ url })
+      autoUpdater.setFeedURL({ url: await trySetUpdaterGuid(url) })
       autoUpdater.checkForUpdates()
     } catch (e) {
       return e
@@ -478,5 +506,20 @@ export class AppWindow {
   public async showOpenDialog(options: Electron.OpenDialogOptions) {
     const { filePaths } = await dialog.showOpenDialog(this.window, options)
     return filePaths.length > 0 ? filePaths[0] : null
+  }
+}
+
+const trySetUpdaterGuid = async (url: string) => {
+  try {
+    const id = await getUpdaterGUID()
+    if (!id) {
+      return url
+    }
+
+    const parsed = new URL(url)
+    parsed.searchParams.set('guid', id)
+    return parsed.toString()
+  } catch (e) {
+    return url
   }
 }

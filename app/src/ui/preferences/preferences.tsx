@@ -29,7 +29,7 @@ import {
   defaultUncommittedChangesStrategy,
 } from '../../models/uncommitted-changes-strategy'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import {
   isConfigFileLockError,
   parseConfigLockFilePathFromError,
@@ -42,6 +42,11 @@ import {
 import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
 import { Notifications } from './notifications'
+import { Accessibility } from './accessibility'
+import {
+  enableExternalCredentialHelper,
+  enableLinkUnderlines,
+} from '../../lib/feature-flag'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -53,6 +58,7 @@ interface IPreferencesProps {
   readonly showCommitLengthWarning: boolean
   readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
+  readonly useExternalCredentialHelper: boolean
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
@@ -65,8 +71,11 @@ interface IPreferencesProps {
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
+  readonly selectedTabSize: number
   readonly repositoryIndicatorsEnabled: boolean
   readonly onOpenFileInExternalEditor: (path: string) => void
+  readonly underlineLinks: boolean
+  readonly showDiffCheckMarks: boolean
 }
 
 interface IPreferencesState {
@@ -82,6 +91,7 @@ interface IPreferencesState {
   readonly showCommitLengthWarning: boolean
   readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
+  readonly useExternalCredentialHelper: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
@@ -94,6 +104,7 @@ interface IPreferencesState {
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
+
   /**
    * If unable to save Git configuration values (name, email)
    * due to an existing configuration lock file this property
@@ -105,9 +116,14 @@ interface IPreferencesState {
   readonly repositoryIndicatorsEnabled: boolean
 
   readonly initiallySelectedTheme: ApplicationTheme
+  readonly initiallySelectedTabSize: number
 
   readonly isLoadingGitConfig: boolean
   readonly globalGitConfigPath: string | null
+
+  readonly underlineLinks: boolean
+
+  readonly showDiffCheckMarks: boolean
 }
 
 /** The app-level preferences component. */
@@ -132,6 +148,7 @@ export class Preferences extends React.Component<
       showCommitLengthWarning: false,
       notificationsEnabled: true,
       optOutOfUsageTracking: false,
+      useExternalCredentialHelper: false,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
       confirmDiscardChangesPermanently: false,
@@ -145,8 +162,11 @@ export class Preferences extends React.Component<
       selectedShell: this.props.selectedShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
       initiallySelectedTheme: this.props.selectedTheme,
+      initiallySelectedTabSize: this.props.selectedTabSize,
       isLoadingGitConfig: true,
       globalGitConfigPath: null,
+      underlineLinks: this.props.underlineLinks,
+      showDiffCheckMarks: this.props.showDiffCheckMarks,
     }
   }
 
@@ -196,6 +216,7 @@ export class Preferences extends React.Component<
       showCommitLengthWarning: this.props.showCommitLengthWarning,
       notificationsEnabled: this.props.notificationsEnabled,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
+      useExternalCredentialHelper: this.props.useExternalCredentialHelper,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmDiscardChangesPermanently:
@@ -216,6 +237,9 @@ export class Preferences extends React.Component<
     if (this.state.initiallySelectedTheme !== this.props.selectedTheme) {
       this.onSelectedThemeChanged(this.state.initiallySelectedTheme)
     }
+    if (this.state.initiallySelectedTabSize !== this.props.selectedTabSize) {
+      this.onSelectedTabSizeChanged(this.state.initiallySelectedTabSize)
+    }
 
     this.props.onDismissed()
   }
@@ -235,34 +259,40 @@ export class Preferences extends React.Component<
             selectedIndex={this.state.selectedIndex}
             type={TabBarType.Vertical}
           >
-            <span>
-              <Octicon className="icon" symbol={OcticonSymbol.home} />
+            <span id={this.getTabId(PreferencesTab.Accounts)}>
+              <Octicon className="icon" symbol={octicons.home} />
               Accounts
             </span>
-            <span>
-              <Octicon className="icon" symbol={OcticonSymbol.person} />
+            <span id={this.getTabId(PreferencesTab.Integrations)}>
+              <Octicon className="icon" symbol={octicons.person} />
               Integrations
             </span>
-            <span>
-              <Octicon className="icon" symbol={OcticonSymbol.gitCommit} />
+            <span id={this.getTabId(PreferencesTab.Git)}>
+              <Octicon className="icon" symbol={octicons.gitCommit} />
               Git
             </span>
-            <span>
-              <Octicon className="icon" symbol={OcticonSymbol.paintbrush} />
+            <span id={this.getTabId(PreferencesTab.Appearance)}>
+              <Octicon className="icon" symbol={octicons.paintbrush} />
               Appearance
             </span>
-            <span>
-              <Octicon className="icon" symbol={OcticonSymbol.bell} />
+            <span id={this.getTabId(PreferencesTab.Notifications)}>
+              <Octicon className="icon" symbol={octicons.bell} />
               Notifications
             </span>
-            <span>
-              <Octicon className="icon" symbol={OcticonSymbol.question} />
+            <span id={this.getTabId(PreferencesTab.Prompts)}>
+              <Octicon className="icon" symbol={octicons.question} />
               Prompts
             </span>
-            <span>
-              <Octicon className="icon" symbol={OcticonSymbol.settings} />
+            <span id={this.getTabId(PreferencesTab.Advanced)}>
+              <Octicon className="icon" symbol={octicons.gear} />
               Advanced
             </span>
+            {enableLinkUnderlines() && (
+              <span id={this.getTabId(PreferencesTab.Accessibility)}>
+                <Octicon className="icon" symbol={octicons.accessibility} />
+                Accessibility
+              </span>
+            )}
           </TabBar>
 
           {this.renderActiveTab()}
@@ -270,6 +300,40 @@ export class Preferences extends React.Component<
         {this.renderFooter()}
       </Dialog>
     )
+  }
+
+  private getTabId = (tab: PreferencesTab) => {
+    let suffix
+    switch (tab) {
+      case PreferencesTab.Accounts:
+        suffix = 'accounts'
+        break
+      case PreferencesTab.Integrations:
+        suffix = 'integrations'
+        break
+      case PreferencesTab.Git:
+        suffix = 'git'
+        break
+      case PreferencesTab.Appearance:
+        suffix = 'appearance'
+        break
+      case PreferencesTab.Notifications:
+        suffix = 'notifications'
+        break
+      case PreferencesTab.Prompts:
+        suffix = 'prompts'
+        break
+      case PreferencesTab.Advanced:
+        suffix = 'advanced'
+        break
+      case PreferencesTab.Accessibility:
+        suffix = 'accessibility'
+        break
+      default:
+        return assertNever(tab, `Unknown tab type: ${tab}`)
+    }
+
+    return `preferences-tab-${suffix}`
   }
 
   private onDotComSignIn = () => {
@@ -362,6 +426,8 @@ export class Preferences extends React.Component<
           <Appearance
             selectedTheme={this.props.selectedTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
+            selectedTabSize={this.props.selectedTabSize}
+            onSelectedTabSizeChanged={this.onSelectedTabSizeChanged}
           />
         )
         break
@@ -413,9 +479,13 @@ export class Preferences extends React.Component<
           <Advanced
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
+            useExternalCredentialHelper={this.state.useExternalCredentialHelper}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
             onOptOutofReportingChanged={this.onOptOutofReportingChanged}
+            onUseExternalCredentialHelperChanged={
+              this.onUseExternalCredentialHelperChanged
+            }
             onRepositoryIndicatorsEnabledChanged={
               this.onRepositoryIndicatorsEnabledChanged
             }
@@ -423,11 +493,29 @@ export class Preferences extends React.Component<
         )
         break
       }
+      case PreferencesTab.Accessibility:
+        View = (
+          <Accessibility
+            underlineLinks={this.state.underlineLinks}
+            showDiffCheckMarks={this.state.showDiffCheckMarks}
+            onShowDiffCheckMarksChanged={this.onShowDiffCheckMarksChanged}
+            onUnderlineLinksChanged={this.onUnderlineLinksChanged}
+          />
+        )
+        break
       default:
         return assertNever(index, `Unknown tab index: ${index}`)
     }
 
-    return <div className="tab-container">{View}</div>
+    return (
+      <div
+        className="tab-container"
+        role="tabpanel"
+        aria-labelledby={this.getTabId(index)}
+      >
+        {View}
+      </div>
+    )
   }
 
   private onRepositoryIndicatorsEnabledChanged = (
@@ -460,6 +548,10 @@ export class Preferences extends React.Component<
 
   private onOptOutofReportingChanged = (value: boolean) => {
     this.setState({ optOutOfUsageTracking: value })
+  }
+
+  private onUseExternalCredentialHelperChanged = (value: boolean) => {
+    this.setState({ useExternalCredentialHelper: value })
   }
 
   private onConfirmRepositoryRemovalChanged = (value: boolean) => {
@@ -523,6 +615,18 @@ export class Preferences extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.dispatcher.setSelectedTheme(theme)
+  }
+
+  private onUnderlineLinksChanged = (underlineLinks: boolean) => {
+    this.setState({ underlineLinks })
+  }
+
+  private onShowDiffCheckMarksChanged = (showDiffCheckMarks: boolean) => {
+    this.setState({ showDiffCheckMarks })
+  }
+
+  private onSelectedTabSizeChanged = (tabSize: number) => {
+    this.props.dispatcher.setSelectedTabSize(tabSize)
   }
 
   private renderFooter() {
@@ -608,6 +712,18 @@ export class Preferences extends React.Component<
       this.state.optOutOfUsageTracking,
       false
     )
+
+    if (enableExternalCredentialHelper()) {
+      if (
+        this.props.useExternalCredentialHelper !==
+        this.state.useExternalCredentialHelper
+      ) {
+        this.props.dispatcher.setUseExternalCredentialHelper(
+          this.state.useExternalCredentialHelper
+        )
+      }
+    }
+
     await this.props.dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepositoryRemoval
     )
@@ -643,6 +759,12 @@ export class Preferences extends React.Component<
 
     await this.props.dispatcher.setUncommittedChangesStrategySetting(
       this.state.uncommittedChangesStrategy
+    )
+
+    this.props.dispatcher.setUnderlineLinksSetting(this.state.underlineLinks)
+
+    this.props.dispatcher.setDiffCheckMarksSetting(
+      this.state.showDiffCheckMarks
     )
 
     this.props.onDismissed()

@@ -1,7 +1,6 @@
 import { Disposable } from 'event-kit'
 import { Account } from '../../models/account'
 import { assertNever, fatalError } from '../fatal-error'
-import { askUserToOAuth } from '../../lib/oauth'
 import {
   validateURL,
   InvalidURLErrorName,
@@ -17,6 +16,8 @@ import {
   getDotComAPIEndpoint,
   getEnterpriseAPIURL,
   fetchMetadata,
+  requestOAuthToken,
+  getOAuthAuthorizationURL,
 } from '../../lib/api'
 
 import { AuthenticationMode } from '../../lib/2fa'
@@ -24,6 +25,11 @@ import { AuthenticationMode } from '../../lib/2fa'
 import { minimumSupportedEnterpriseVersion } from '../../lib/enterprise'
 import { TypedBaseStore } from './base-store'
 import { timeout } from '../promise'
+import uuid from 'uuid'
+import { IOAuthAction } from '../parse-app-url'
+import { shell } from '../app-shell'
+import { noop } from 'lodash'
+import { isDotCom, isGHE } from '../endpoint-capabilities'
 
 function getUnverifiedUserErrorMessage(login: string): string {
   return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
@@ -76,6 +82,8 @@ export interface ISignInState {
    * sign in process is ongoing.
    */
   readonly loading: boolean
+
+  readonly resultCallback: (result: SignInResult) => void
 }
 
 /**
@@ -85,6 +93,7 @@ export interface ISignInState {
  */
 export interface IEndpointEntryState extends ISignInState {
   readonly kind: SignInStep.EndpointEntry
+  readonly resultCallback: (result: SignInResult) => void
 }
 
 /**
@@ -118,6 +127,14 @@ export interface IAuthenticationState extends ISignInState {
    * The endpoint-specific URL for resetting credentials.
    */
   readonly forgotPasswordUrl: string
+  readonly resultCallback: (result: SignInResult) => void
+
+  readonly oauthState?: {
+    state: string
+    endpoint: string
+    onAuthCompleted: (account: Account) => void
+    onAuthError: (error: Error) => void
+  }
 }
 
 /**
@@ -155,6 +172,7 @@ export interface ITwoFactorAuthenticationState extends ISignInState {
    * The 2FA type expected by the GitHub endpoint.
    */
   readonly type: AuthenticationMode
+  readonly resultCallback: (result: SignInResult) => void
 }
 
 /**
@@ -165,6 +183,7 @@ export interface ITwoFactorAuthenticationState extends ISignInState {
  */
 export interface ISuccessState {
   readonly kind: SignInStep.Success
+  readonly resultCallback: (result: SignInResult) => void
 }
 
 /**
@@ -188,6 +207,10 @@ interface IAuthenticationEvent {
   readonly method: SignInMethod
 }
 
+export type SignInResult =
+  | { kind: 'success'; account: Account; method: SignInMethod }
+  | { kind: 'cancelled' }
+
 /** The maximum time to wait for a `/meta` API call in milliseconds */
 const ServerMetaDataTimeout = 2000
 
@@ -207,6 +230,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   private emitAuthenticate(account: Account, method: SignInMethod) {
     const event: IAuthenticationEvent = { account, method }
     this.emitter.emit('did-authenticate', event)
+    this.state?.resultCallback({ kind: 'success', account, method })
   }
 
   /**
@@ -242,7 +266,11 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   }
 
   private async endpointSupportsBasicAuth(endpoint: string): Promise<boolean> {
-    if (endpoint === getDotComAPIEndpoint()) {
+    if (isDotCom(endpoint) || isGHE(endpoint)) {
+      return false
+    }
+
+    if (isGHE(endpoint)) {
       return false
     }
 
@@ -280,15 +308,25 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
    * initial (no sign-in) state.
    */
   public reset() {
+    const currentState = this.state
+    this.state?.resultCallback({ kind: 'cancelled' })
     this.setState(null)
+
+    if (currentState?.kind === SignInStep.Authentication) {
+      currentState.oauthState?.onAuthError(new Error('cancelled'))
+    }
   }
 
   /**
    * Initiate a sign in flow for github.com. This will put the store
    * in the Authentication step ready to receive user credentials.
    */
-  public beginDotComSignIn() {
+  public beginDotComSignIn(resultCallback?: (result: SignInResult) => void) {
     const endpoint = getDotComAPIEndpoint()
+
+    if (this.state !== null) {
+      this.reset()
+    }
 
     this.setState({
       kind: SignInStep.Authentication,
@@ -297,6 +335,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       error: null,
       loading: false,
       forgotPasswordUrl: this.getForgotPasswordURL(endpoint),
+      resultCallback: resultCallback ?? noop,
     })
 
     // Asynchronously refresh our knowledge about whether GitHub.com
@@ -371,7 +410,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       }
 
       this.emitAuthenticate(user, SignInMethod.Basic)
-      this.setState({ kind: SignInStep.Success })
+      this.setState({
+        kind: SignInStep.Success,
+        resultCallback: this.state.resultCallback,
+      })
     } else if (
       response.kind ===
       AuthorizationResponseKind.TwoFactorAuthenticationRequired
@@ -384,6 +426,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         type: response.type,
         error: null,
         loading: false,
+        resultCallback: this.state.resultCallback,
       })
     } else {
       if (response.kind === AuthorizationResponseKind.Error) {
@@ -448,14 +491,8 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
    * Initiate an OAuth sign in using the system configured browser.
    * This method must only be called when the store is in the authentication
    * step or an error will be thrown.
-   *
-   * The promise returned will only resolve once the user has successfully
-   * authenticated. If the user terminates the sign-in process by closing
-   * their browser before the protocol handler is invoked, by denying the
-   * protocol handler to execute or by providing the wrong credentials
-   * this promise will never complete.
    */
-  public async authenticateWithBrowser(): Promise<void> {
+  public authenticateWithBrowser() {
     const currentState = this.state
 
     if (!currentState || currentState.kind !== SignInStep.Authentication) {
@@ -467,24 +504,76 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
     this.setState({ ...currentState, loading: true })
 
-    let account: Account
-    try {
+    const csrfToken = uuid()
+
+    new Promise<Account>((resolve, reject) => {
+      const { endpoint } = currentState
       log.info('[SignInStore] initializing OAuth flow')
-      account = await askUserToOAuth(currentState.endpoint)
+      this.setState({
+        ...currentState,
+        oauthState: {
+          state: csrfToken,
+          endpoint,
+          onAuthCompleted: resolve,
+          onAuthError: reject,
+        },
+      })
+      shell.openExternal(getOAuthAuthorizationURL(endpoint, csrfToken))
       log.info('[SignInStore] account resolved')
-    } catch (e) {
-      log.info('[SignInStore] error with OAuth flow', e)
-      this.setState({ ...currentState, error: e, loading: false })
-      return
-    }
+    })
+      .then(account => {
+        if (!this.state || this.state.kind !== SignInStep.Authentication) {
+          // Looks like the sign in flow has been aborted
+          return
+        }
 
+        this.emitAuthenticate(account, SignInMethod.Web)
+        this.setState({
+          kind: SignInStep.Success,
+          resultCallback: this.state.resultCallback,
+        })
+      })
+      .catch(e => {
+        // Make sure we're still in the same sign in session
+        if (
+          this.state?.kind === SignInStep.Authentication &&
+          this.state.oauthState?.state === csrfToken
+        ) {
+          log.info('[SignInStore] error with OAuth flow', e)
+          this.setState({ ...this.state, error: e, loading: false })
+        } else {
+          log.info(`[SignInStore] OAuth error but session has changed: ${e}`)
+        }
+      })
+  }
+
+  public async resolveOAuthRequest(action: IOAuthAction) {
     if (!this.state || this.state.kind !== SignInStep.Authentication) {
-      // Looks like the sign in flow has been aborted
       return
     }
 
-    this.emitAuthenticate(account, SignInMethod.Web)
-    this.setState({ kind: SignInStep.Success })
+    if (!this.state.oauthState) {
+      return
+    }
+
+    if (this.state.oauthState.state !== action.state) {
+      log.warn(
+        'requestAuthenticatedUser was not called with valid OAuth state. This is likely due to a browser reloading the callback URL. Contact GitHub Support if you believe this is an error'
+      )
+      return
+    }
+
+    const { endpoint } = this.state
+    const token = await requestOAuthToken(endpoint, action.code)
+
+    if (token) {
+      const account = await fetchUser(endpoint, token)
+      this.state.oauthState.onAuthCompleted(account)
+    } else {
+      this.state.oauthState.onAuthError(
+        new Error('Failed retrieving authenticated user')
+      )
+    }
   }
 
   /**
@@ -492,11 +581,18 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
    * This will put the store in the EndpointEntry step ready to
    * receive the url to the enterprise instance.
    */
-  public beginEnterpriseSignIn() {
+  public beginEnterpriseSignIn(
+    resultCallback?: (result: SignInResult) => void
+  ) {
+    if (this.state !== null) {
+      this.reset()
+    }
+
     this.setState({
       kind: SignInStep.EndpointEntry,
       error: null,
       loading: false,
+      resultCallback: resultCallback ?? noop,
     })
   }
 
@@ -560,6 +656,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         error: null,
         loading: false,
         forgotPasswordUrl: this.getForgotPasswordURL(endpoint),
+        resultCallback: this.state.resultCallback,
       })
     } catch (e) {
       let error = e
@@ -633,7 +730,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       }
 
       this.emitAuthenticate(user, SignInMethod.Basic)
-      this.setState({ kind: SignInStep.Success })
+      this.setState({
+        kind: SignInStep.Success,
+        resultCallback: this.state.resultCallback,
+      })
     } else {
       switch (response.kind) {
         case AuthorizationResponseKind.Failed:

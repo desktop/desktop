@@ -3,7 +3,7 @@ import { WelcomeStep } from './welcome'
 import { LinkButton } from '../lib/link-button'
 import { Dispatcher } from '../dispatcher'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { BrowserRedirectMessage } from '../lib/authentication-form'
@@ -31,66 +31,77 @@ export class Start extends React.Component<IStartProps, {}> {
         aria-label="Welcome to GitHub Desktop"
         aria-describedby="start-description"
       >
-        <h1 className="welcome-title">Welcome to GitHub&nbsp;Desktop</h1>
-        {!this.props.loadingBrowserAuth ? (
-          <>
-            <p id="start-description" className="welcome-text">
-              GitHub Desktop is a seamless way to contribute to projects on
-              GitHub and GitHub Enterprise. Sign in below to get started with
-              your existing projects.
-            </p>
-          </>
-        ) : (
-          <p>{BrowserRedirectMessage}</p>
-        )}
-
-        <div className="welcome-main-buttons">
-          <Button
-            type="submit"
-            className="button-with-icon"
-            disabled={this.props.loadingBrowserAuth}
-            onClick={this.signInWithBrowser}
-            autoFocus={true}
-          >
-            {this.props.loadingBrowserAuth && <Loading />}
-            Sign in to GitHub.com
-            <Octicon symbol={OcticonSymbol.linkExternal} />
-          </Button>
-          {this.props.loadingBrowserAuth ? (
-            <Button onClick={this.cancelBrowserAuth}>Cancel</Button>
+        <div className="start-content">
+          <h1 className="welcome-title">
+            Welcome to <span>GitHub Desktop</span>
+          </h1>
+          {!this.props.loadingBrowserAuth ? (
+            <>
+              <p id="start-description" className="welcome-text">
+                GitHub Desktop is a seamless way to contribute to projects on
+                GitHub and GitHub Enterprise. Sign in below to get started with
+                your existing projects.
+              </p>
+            </>
           ) : (
-            <Button onClick={this.signInToEnterprise}>
-              Sign in to GitHub Enterprise
-            </Button>
+            <p>{BrowserRedirectMessage}</p>
           )}
+
+          <div className="welcome-main-buttons">
+            <Button
+              type="submit"
+              className="button-with-icon"
+              disabled={this.props.loadingBrowserAuth}
+              onClick={this.signInWithBrowser}
+              autoFocus={true}
+              role="link"
+            >
+              {this.props.loadingBrowserAuth && <Loading />}
+              Sign in to GitHub.com
+              <Octicon symbol={octicons.linkExternal} />
+            </Button>
+            {this.props.loadingBrowserAuth ? (
+              <Button onClick={this.cancelBrowserAuth}>Cancel</Button>
+            ) : (
+              <Button onClick={this.signInToEnterprise}>
+                Sign in to GitHub Enterprise
+              </Button>
+            )}
+          </div>
+          <div className="skip-action-container">
+            <p className="welcome-text">
+              New to GitHub?{' '}
+              <LinkButton
+                uri={CreateAccountURL}
+                className="create-account-link"
+              >
+                Create your free account.
+              </LinkButton>
+            </p>
+            <LinkButton className="skip-button" onClick={this.skip}>
+              Skip this step
+            </LinkButton>
+          </div>
         </div>
-        <div className="skip-action-container">
-          <p className="welcome-text">
-            New to GitHub?{' '}
-            <LinkButton uri={CreateAccountURL} className="create-account-link">
-              Create your free account.
+
+        <div className="start-footer">
+          <p>
+            By creating an account, you agree to the{' '}
+            <LinkButton uri={'https://github.com/site/terms'}>
+              Terms of Service
+            </LinkButton>
+            . For more information about GitHub's privacy practices, see the{' '}
+            <LinkButton uri={'https://github.com/site/privacy'}>
+              GitHub Privacy Statement.
             </LinkButton>
           </p>
-          <LinkButton className="skip-button" onClick={this.skip}>
-            Skip this step
-          </LinkButton>
-        </div>
-        <div className="welcome-start-disclaimer-container">
-          By creating an account, you agree to the{' '}
-          <LinkButton uri={'https://github.com/site/terms'}>
-            Terms of Service
-          </LinkButton>
-          . For more information about GitHub's privacy practices, see the{' '}
-          <LinkButton uri={'https://github.com/site/privacy'}>
-            GitHub Privacy Statement
-          </LinkButton>
-          .<br />
-          <br />
-          GitHub Desktop sends usage metrics to improve the product and inform
-          feature decisions.{' '}
-          <LinkButton uri={SamplesURL}>
-            Learn more about user metrics.
-          </LinkButton>
+          <p>
+            GitHub Desktop sends usage metrics to improve the product and inform
+            feature decisions.{' '}
+            <LinkButton uri={SamplesURL}>
+              Learn more about user metrics.
+            </LinkButton>
+          </p>
         </div>
       </section>
     )

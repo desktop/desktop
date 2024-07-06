@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {
-  FilterList,
   IFilterListGroup,
   IFilterListItem,
   SelectionSource,
@@ -22,6 +21,7 @@ import { DragType } from '../../models/drag-drop'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { formatRelative } from '../../lib/format-relative'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
+import { SectionFilterList } from '../lib/section-filter-list'
 
 interface IPullRequestListItem extends IFilterListItem {
   readonly id: string
@@ -41,9 +41,6 @@ interface IPullRequestListProps {
   /** Is the default branch currently checked out? */
   readonly isOnDefaultBranch: boolean
 
-  /** Called when the user wants to dismiss the foldout. */
-  readonly onDismiss: () => void
-
   /** Called when the user opts to create a branch */
   readonly onCreateBranch: () => void
 
@@ -51,14 +48,6 @@ interface IPullRequestListProps {
   readonly onSelectionChanged: (
     pullRequest: PullRequest | null,
     source: SelectionSource
-  ) => void
-
-  /**
-   * Called when a key down happens in the filter field. Users have a chance to
-   * respond or cancel the default behavior by calling `preventDefault`.
-   */
-  readonly onFilterKeyDown?: (
-    event: React.KeyboardEvent<HTMLInputElement>
   ) => void
 
   readonly dispatcher: Dispatcher
@@ -156,7 +145,7 @@ export class PullRequestList extends React.Component<
   public render() {
     return (
       <>
-        <FilterList<IPullRequestListItem>
+        <SectionFilterList<IPullRequestListItem>
           className="pull-request-list"
           rowHeight={RowHeight}
           groups={this.state.groupedItems}
@@ -167,7 +156,6 @@ export class PullRequestList extends React.Component<
           invalidationProps={this.props.pullRequests}
           onItemClick={this.onItemClick}
           onSelectionChanged={this.onSelectionChanged}
-          onFilterKeyDown={this.props.onFilterKeyDown}
           renderGroupHeader={this.renderListHeader}
           renderNoItems={this.renderNoItems}
           renderPostFilter={this.renderPostFilter}

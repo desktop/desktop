@@ -6,6 +6,7 @@ import {
   IAPIFullRepository,
   IAPICheckSuite,
   IAPIRepoRuleset,
+  getDotComAPIEndpoint,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
@@ -35,11 +36,6 @@ import {
   getRepositoryType,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
-import {
-  rejectOAuthRequest,
-  requestAuthenticatedUser,
-  resolveOAuthRequest,
-} from '../../lib/oauth'
 import {
   IOpenRepositoryFromURLAction,
   IUnknownAction,
@@ -124,6 +120,7 @@ import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
 import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notification-pull-request-review'
 import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
 import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
+import { SignInResult } from '../../lib/stores/sign-in-store'
 
 /**
  * An error handler function.
@@ -901,35 +898,17 @@ export class Dispatcher {
     isLocalCommit: boolean,
     continueWithForcePush: boolean = false
   ) {
-    const repositoryState = this.repositoryStateManager.get(repository)
-    const { tip } = repositoryState.branchesState
-    const { askForConfirmationOnForcePush } = this.appStore.getState()
-
-    if (
-      askForConfirmationOnForcePush &&
-      !continueWithForcePush &&
-      !isLocalCommit &&
-      tip.kind === TipState.Valid
-    ) {
-      return this.showPopup({
-        type: PopupType.WarnForcePush,
-        operation: 'Amend',
-        onBegin: () => {
-          this.startAmendingRepository(repository, commit, isLocalCommit, true)
-        },
-      })
-    }
-
-    await this.changeRepositorySection(repository, RepositorySectionTab.Changes)
-
-    this.appStore._setRepositoryCommitToAmend(repository, commit)
-
-    this.statsStore.increment('amendCommitStartedCount')
+    this.appStore._startAmendingRepository(
+      repository,
+      commit,
+      isLocalCommit,
+      continueWithForcePush
+    )
   }
 
   /** Stop amending the most recent commit. */
   public async stopAmendingRepository(repository: Repository) {
-    this.appStore._setRepositoryCommitToAmend(repository, null)
+    this.appStore._stopAmendingRepository(repository)
   }
 
   /** Undo the given commit. */
@@ -1448,6 +1427,12 @@ export class Dispatcher {
     return this.appStore.setStatsOptOut(optOut, userViewedPrompt)
   }
 
+  public setUseExternalCredentialHelper(useExternalCredentialHelper: boolean) {
+    return this.appStore._setUseExternalCredentialHelper(
+      useExternalCredentialHelper
+    )
+  }
+
   /** Moves the app to the /Applications folder on macOS. */
   public moveToApplicationsFolder() {
     return moveToApplicationsFolder()
@@ -1457,16 +1442,8 @@ export class Dispatcher {
    * Clear any in-flight sign in state and return to the
    * initial (no sign-in) state.
    */
-  public resetSignInState(): Promise<void> {
+  public resetSignInState() {
     return this.appStore._resetSignInState()
-  }
-
-  /**
-   * Initiate a sign in flow for github.com. This will put the store
-   * in the Authentication step ready to receive user credentials.
-   */
-  public beginDotComSignIn(): Promise<void> {
-    return this.appStore._beginDotComSignIn()
   }
 
   /**
@@ -1474,8 +1451,10 @@ export class Dispatcher {
    * put the store in the EndpointEntry step ready to receive the url
    * to the enterprise instance.
    */
-  public beginEnterpriseSignIn(): Promise<void> {
-    return this.appStore._beginEnterpriseSignIn()
+  public beginEnterpriseSignIn(
+    resultCallback?: (result: SignInResult) => void
+  ) {
+    this.appStore._beginEnterpriseSignIn(resultCallback)
   }
 
   /**
@@ -1514,6 +1493,29 @@ export class Dispatcher {
     return this.appStore._setSignInCredentials(username, password)
   }
 
+  public beginDotComSignIn(resultCallback: (result: SignInResult) => void) {
+    this.appStore._beginDotComSignIn(resultCallback)
+  }
+
+  public beginBrowserBasedSignIn(
+    endpoint: string,
+    resultCallback?: (result: SignInResult) => void
+  ) {
+    if (
+      endpoint === getDotComAPIEndpoint() ||
+      new URL(endpoint).hostname === 'github.com'
+    ) {
+      this.appStore._beginDotComSignIn(resultCallback)
+      this.requestBrowserAuthentication()
+    } else {
+      this.appStore._beginEnterpriseSignIn(resultCallback)
+      this.appStore
+        ._setSignInEndpoint(endpoint)
+        .then(() => this.requestBrowserAuthentication())
+        .catch(e => log.error(`Error setting sign in endpoint`, e))
+    }
+  }
+
   /**
    * Initiate an OAuth sign in using the system configured browser.
    * This method must only be called when the store is in the authentication
@@ -1525,8 +1527,8 @@ export class Dispatcher {
    * protocol handler to execute or by providing the wrong credentials
    * this promise will never complete.
    */
-  public requestBrowserAuthentication(): Promise<void> {
-    return this.appStore._requestBrowserAuthentication()
+  public requestBrowserAuthentication() {
+    this.appStore._requestBrowserAuthentication()
   }
 
   /**
@@ -1538,9 +1540,11 @@ export class Dispatcher {
    * protocol handler to execute or by providing the wrong credentials
    * this promise will never complete.
    */
-  public async requestBrowserAuthenticationToDotcom(): Promise<void> {
-    await this.beginDotComSignIn()
-    return this.requestBrowserAuthentication()
+  public requestBrowserAuthenticationToDotcom(
+    resultCallback?: (result: SignInResult) => void
+  ) {
+    this.appStore._beginDotComSignIn(resultCallback)
+    this.requestBrowserAuthentication()
   }
 
   /**
@@ -1563,9 +1567,11 @@ export class Dispatcher {
    * Launch a sign in dialog for authenticating a user with
    * GitHub.com.
    */
-  public async showDotComSignInDialog(): Promise<void> {
-    await this.appStore._beginDotComSignIn()
-    await this.appStore._showPopup({ type: PopupType.SignIn })
+  public async showDotComSignInDialog(
+    resultCallback?: (result: SignInResult) => void
+  ): Promise<void> {
+    this.appStore._beginDotComSignIn(resultCallback)
+    this.appStore._showPopup({ type: PopupType.SignIn })
   }
 
   /**
@@ -1573,14 +1579,17 @@ export class Dispatcher {
    * a GitHub Enterprise instance.
    * Optionally, you can provide an endpoint URL.
    */
-  public async showEnterpriseSignInDialog(endpoint?: string): Promise<void> {
-    await this.appStore._beginEnterpriseSignIn()
+  public async showEnterpriseSignInDialog(
+    endpoint?: string,
+    resultCallback?: (result: SignInResult) => void
+  ): Promise<void> {
+    this.appStore._beginEnterpriseSignIn(resultCallback)
 
     if (endpoint !== undefined) {
-      await this.appStore._setSignInEndpoint(endpoint)
+      this.appStore._setSignInEndpoint(endpoint)
     }
 
-    await this.appStore._showPopup({ type: PopupType.SignIn })
+    this.appStore._showPopup({ type: PopupType.SignIn })
   }
 
   /**
@@ -1861,17 +1870,7 @@ export class Dispatcher {
   public async dispatchURLAction(action: URLActionType): Promise<void> {
     switch (action.name) {
       case 'oauth':
-        try {
-          log.info(`[Dispatcher] requesting authenticated user`)
-          const user = await requestAuthenticatedUser(action.code, action.state)
-          if (user) {
-            resolveOAuthRequest(user)
-          } else if (user === null) {
-            rejectOAuthRequest(new Error('Unable to fetch authenticated user.'))
-          }
-        } catch (e) {
-          rejectOAuthRequest(e)
-        }
+        await this.appStore._resolveOAuthRequest(action)
 
         if (__DARWIN__) {
           // workaround for user reports that the application doesn't receive focus
@@ -2049,7 +2048,7 @@ export class Dispatcher {
    *
    * This is used only on macOS.
    */
-  public async installCLI() {
+  public async installDarwinCLI() {
     try {
       await installCLI()
 
@@ -2059,14 +2058,6 @@ export class Dispatcher {
 
       this.postError(e)
     }
-  }
-
-  /** Prompt the user to authenticate for a generic git server. */
-  public promptForGenericGitAuthentication(
-    repository: Repository | CloningRepository,
-    retry: RetryAction
-  ): Promise<void> {
-    return this.appStore.promptForGenericGitAuthentication(repository, retry)
   }
 
   /** Save the generic git credentials. */
@@ -2465,6 +2456,13 @@ export class Dispatcher {
    */
   public setSelectedTheme(theme: ApplicationTheme) {
     return this.appStore._setSelectedTheme(theme)
+  }
+
+  /**
+   * Set the application-wide tab size
+   */
+  public setSelectedTabSize(tabSize: number) {
+    return this.appStore._setSelectedTabSize(tabSize)
   }
 
   /**
@@ -3927,16 +3925,16 @@ export class Dispatcher {
   public onChecksFailedNotification(
     repository: RepositoryWithGitHubRepository,
     pullRequest: PullRequest,
-    commitMessage: string,
-    commitSha: string,
     checks: ReadonlyArray<IRefCheck>
   ) {
-    this.appStore.onChecksFailedNotification(
-      repository,
-      pullRequest,
-      commitMessage,
-      commitSha,
-      checks
-    )
+    this.appStore.onChecksFailedNotification(repository, pullRequest, checks)
+  }
+
+  public setUnderlineLinksSetting(underlineLinks: boolean) {
+    return this.appStore._updateUnderlineLinks(underlineLinks)
+  }
+
+  public setDiffCheckMarksSetting(diffCheckMarks: boolean) {
+    return this.appStore._updateShowDiffCheckMarks(diffCheckMarks)
   }
 }

@@ -210,7 +210,7 @@ body.theme-dark {
   --toolbar-button-focus-progress-color: #{$gray-700};
   --toolbar-button-hover-progress-color: #{$gray-700};
   --toolbar-dropdown-open-progress-color: #{$gray-200};
-  --toolbar-dropdown-text-warning-color: #{$yellow-700};
+  --toolbar-dropdown-text-warning-color: #{$orange-600};
   --toolbar-dropdown-text-hover-color: #{$white};
 
   --toolbar-tooltip-background-color: #{$gray-800};
@@ -269,6 +269,7 @@ body.theme-dark {
 
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: #{$blue};
+  --diff-linenumber-focus-color: #{$blue-200};
 
   /**
    * Variables for form elements
@@ -336,6 +337,7 @@ body.theme-dark {
 
   --diff-empty-row-background-color: #{darken($gray-900, 1%)};
   --diff-empty-row-gutter-background-color: var(--diff-gutter-background-color);
+  --diff-empty-hunk-handle: #{$gray-700};
 
   // Syntax highlighting text colors
   --syntax-variable-color: #{$purple-300};
@@ -350,6 +352,7 @@ body.theme-dark {
   --syntax-attribute-color: #{$purple-300};
   --syntax-link-color: #{$blue-300};
   --syntax-header-color: #{$red-300};
+  --syntax-quote-color: #{$green-400};
 
   // Colors for form errors
   --error-color: #{$red};

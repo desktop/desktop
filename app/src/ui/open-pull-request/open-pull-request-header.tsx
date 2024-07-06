@@ -91,8 +91,7 @@ export class OpenPullRequestDialogHeader extends React.Component<
       <DialogHeader
         title={title}
         titleId={this.state.titleId}
-        dismissable={true}
-        onDismissed={onDismissed}
+        onCloseButtonClick={onDismissed}
       >
         <div className="break"></div>
         <div className="base-branch-details">
@@ -106,8 +105,8 @@ export class OpenPullRequestDialogHeader extends React.Component<
             onChange={onBranchChange}
             noBranchesMessage={
               <>
-                Sorry, I can't find that remote branch. <br />
-                You can only open pull requests against remote branches.
+                <p>Sorry, I can't find that remote branch.</p>
+                <p>You can only open pull requests against remote branches.</p>
               </>
             }
           />{' '}

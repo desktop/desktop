@@ -10,7 +10,6 @@ import {
 } from '../../models/status'
 import { DiffHunk, DiffHunkExpansionType } from '../../models/diff/raw-diff'
 import { DiffLineType, ILargeTextDiff, ITextDiff } from '../../models/diff'
-import { DiffSyntaxToken } from './diff-syntax-mode'
 
 /**
  * DiffRowType defines the different types of
@@ -206,6 +205,21 @@ export type SimplifiedDiffRow =
   | IDiffRowHunk
 
 export type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
+
+/**
+ * Whether the row is a type that represent a change (added, deleted, modified)
+ * in the diff. This is useful for checking to see if a row type would have
+ * something like 'hunkStartLine` on it.
+ */
+export function isRowChanged(
+  row: DiffRow | SimplifiedDiffRow
+): row is IDiffRowAdded | IDiffRowDeleted | IDiffRowModified {
+  return (
+    row.type === DiffRowType.Added ||
+    row.type === DiffRowType.Deleted ||
+    row.type === DiffRowType.Modified
+  )
+}
 
 /**
  * Returns an object with two ILineTokens objects that can be used to highlight
@@ -426,33 +440,6 @@ export function getFirstAndLastClassesSideBySide(
   }
 
   return classes
-}
-
-/**
- * Used to obtain classes applied to style the row if it is the first or last of
- * a group of added, deleted, or modified rows in the unified diff.
- **/
-export function getFirstAndLastClassesUnified(
-  token: DiffSyntaxToken,
-  prevToken: DiffSyntaxToken | undefined,
-  nextToken: DiffSyntaxToken | undefined
-): string[] {
-  const addedOrDeletedTokens = [DiffSyntaxToken.Add, DiffSyntaxToken.Delete]
-  if (!addedOrDeletedTokens.includes(token)) {
-    return []
-  }
-
-  const classNames = []
-
-  if (prevToken !== token) {
-    classNames.push('is-first')
-  }
-
-  if (nextToken !== token) {
-    classNames.push('is-last')
-  }
-
-  return classNames
 }
 
 /**

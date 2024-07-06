@@ -8,13 +8,18 @@ import {
   HTTPMethod,
   APIError,
   urlWithQueryString,
+  getUserAgent,
 } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 import username from 'username'
 import { GitProtocol } from './remote-parsing'
-import { Emitter } from 'event-kit'
-import { updateEndpointVersion } from './endpoint-capabilities'
+import {
+  getEndpointVersion,
+  isDotCom,
+  isGHE,
+  updateEndpointVersion,
+} from './endpoint-capabilities'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -787,20 +792,23 @@ interface IAPIAliveWebSocket {
   readonly url: string
 }
 
+type TokenInvalidatedCallback = (endpoint: string, token: string) => void
+
 /**
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
-  private static readonly TOKEN_INVALIDATED_EVENT = 'token-invalidated'
+  private static readonly tokenInvalidatedListeners =
+    new Set<TokenInvalidatedCallback>()
 
-  private static readonly emitter = new Emitter()
-
-  public static onTokenInvalidated(callback: (endpoint: string) => void) {
-    API.emitter.on(API.TOKEN_INVALIDATED_EVENT, callback)
+  public static onTokenInvalidated(callback: TokenInvalidatedCallback) {
+    this.tokenInvalidatedListeners.add(callback)
   }
 
-  private static emitTokenInvalidated(endpoint: string) {
-    API.emitter.emit(API.TOKEN_INVALIDATED_EVENT, endpoint)
+  private static emitTokenInvalidated(endpoint: string, token: string) {
+    this.tokenInvalidatedListeners.forEach(callback =>
+      callback(endpoint, token)
+    )
   }
 
   /** Create a new API client from the given account. */
@@ -1546,6 +1554,23 @@ export class API {
       })
   }
 
+  public async getAvatarToken() {
+    return this.request('GET', `/desktop/avatar-token`)
+      .then(x => x.json())
+      .then((x: unknown) =>
+        x &&
+        typeof x === 'object' &&
+        'avatar_token' in x &&
+        typeof x.avatar_token === 'string'
+          ? x.avatar_token
+          : null
+      )
+      .catch(err => {
+        log.debug(`Failed to load avatar token`, err)
+        return null
+      })
+  }
+
   /**
    * Gets a single check suite using its id
    */
@@ -1757,7 +1782,7 @@ export class API {
       response.headers.has('X-GitHub-Request-Id') &&
       !response.headers.has('X-GitHub-OTP')
     ) {
-      API.emitTokenInvalidated(this.endpoint)
+      API.emitTokenInvalidated(this.endpoint, this.token)
     }
 
     tryUpdateEndpointVersionFromResponse(this.endpoint, response)
@@ -1986,6 +2011,25 @@ export async function createAuthorization(
   return { kind: AuthorizationResponseKind.Error, response }
 }
 
+export async function deleteToken(account: Account) {
+  try {
+    const creds = Buffer.from(`${ClientID}:${ClientSecret}`).toString('base64')
+    const response = await request(
+      account.endpoint,
+      null,
+      'DELETE',
+      `applications/${ClientID}/token`,
+      { access_token: account.token },
+      { Authorization: `Basic ${creds}` }
+    )
+
+    return response.status === 204
+  } catch (e) {
+    log.error(`deleteToken: failed with endpoint ${account.endpoint}`, e)
+    return false
+  }
+}
+
 /** Fetch the user authenticated by the token. */
 export async function fetchUser(
   endpoint: string,
@@ -2134,8 +2178,7 @@ export function getOAuthAuthorizationURL(
   state: string
 ): string {
   const urlBase = getHTMLURL(endpoint)
-  const scopes = oauthScopes
-  const scope = encodeURIComponent(scopes.join(' '))
+  const scope = encodeURIComponent(oauthScopes.join(' '))
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
 }
 
@@ -2173,5 +2216,77 @@ function tryUpdateEndpointVersionFromResponse(
   const gheVersion = response.headers.get('x-github-enterprise-version')
   if (gheVersion !== null) {
     updateEndpointVersion(endpoint, gheVersion)
+  }
+}
+
+const knownThirdPartyHosts = new Set([
+  'dev.azure.com',
+  'gitlab.com',
+  'bitbucket.org',
+  'amazonaws.com',
+  'visualstudio.com',
+])
+
+const isKnownThirdPartyHost = (hostname: string) => {
+  if (knownThirdPartyHosts.has(hostname)) {
+    return true
+  }
+
+  for (const knownHost of knownThirdPartyHosts) {
+    if (hostname.endsWith(`.${knownHost}`)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+/**
+ * Attempts to determine whether or not the url belongs to a GitHub host.
+ *
+ * This is a best-effort attempt and may return `undefined` if encountering
+ * an error making the discovery request
+ */
+export async function isGitHubHost(url: string) {
+  const { hostname } = new window.URL(url)
+
+  const endpoint =
+    hostname === 'github.com' || hostname === 'api.github.com'
+      ? getDotComAPIEndpoint()
+      : getEnterpriseAPIURL(url)
+
+  if (isDotCom(endpoint) || isGHE(endpoint)) {
+    return true
+  }
+
+  if (isKnownThirdPartyHost(hostname)) {
+    return false
+  }
+
+  // bitbucket.example.com, etc
+  if (/(^|\.)(bitbucket|gitlab)\./.test(hostname)) {
+    return false
+  }
+
+  if (getEndpointVersion(endpoint) !== null) {
+    return true
+  }
+
+  const ac = new AbortController()
+  const timeoutId = setTimeout(() => ac.abort(), 2000)
+  try {
+    const response = await fetch(`${endpoint}/meta`, {
+      headers: { 'user-agent': getUserAgent() },
+      signal: ac.signal,
+      credentials: 'omit',
+      method: 'HEAD',
+    }).finally(() => clearTimeout(timeoutId))
+
+    tryUpdateEndpointVersionFromResponse(endpoint, response)
+
+    return response.headers.has('x-github-request-id')
+  } catch (e) {
+    log.debug(`isGitHubHost: failed with endpoint ${endpoint}`, e)
+    return undefined
   }
 }

@@ -4,7 +4,7 @@ import { Dispatcher } from '../dispatcher'
 import { Ref } from '../lib/ref'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
-import { getDotComAPIEndpoint } from '../../lib/api'
+import { SignInResult } from '../../lib/stores'
 
 const okButtonText = __DARWIN__ ? 'Continue in Browser' : 'Continue in browser'
 
@@ -65,16 +65,14 @@ export class WorkflowPushRejectedDialog extends React.Component<
     const { repository, dispatcher } = this.props
     const { endpoint } = repository.gitHubRepository
 
-    if (endpoint === getDotComAPIEndpoint()) {
-      await dispatcher.beginDotComSignIn()
-    } else {
-      await dispatcher.beginEnterpriseSignIn()
-      await dispatcher.setSignInEndpoint(endpoint)
+    const result = await new Promise<SignInResult>(async resolve => {
+      dispatcher.beginBrowserBasedSignIn(endpoint, resolve)
+    })
+
+    if (result.kind === 'success') {
+      dispatcher.push(repository)
     }
 
-    await dispatcher.requestBrowserAuthentication()
-
-    dispatcher.push(repository)
     this.props.onDismissed()
   }
 }

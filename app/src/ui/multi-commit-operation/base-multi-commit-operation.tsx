@@ -34,7 +34,12 @@ export interface IMultiCommitOperationProps {
   /** Whether user should be warned about force pushing */
   readonly askForConfirmationOnForcePush: boolean
 
+  // react/no-unused-prop-types doesn't understand abstract classes and
+  // thinks these are unused but they are used in the subclasses.
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly accounts: ReadonlyArray<Account>
+
+  // eslint-disable-next-line react/no-unused-prop-types
   readonly cachedRepoRulesets: ReadonlyMap<number, IAPIRepoRuleset>
 
   /**

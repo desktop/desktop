@@ -20,7 +20,12 @@ import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { getVersion, getName } from './lib/app-proxy'
-import { getOS, isWindowsAndNoLongerSupportedByElectron } from '../lib/get-os'
+import {
+  getOS,
+  isOSNoLongerSupportedByElectron,
+  isMacOSAndNoLongerSupportedByElectron,
+  isWindowsAndNoLongerSupportedByElectron,
+} from '../lib/get-os'
 import { MenuEvent } from '../main-process/menu'
 import {
   Repository,
@@ -51,13 +56,15 @@ import {
   BranchDropdown,
   RevertProgress,
 } from './toolbar'
-import { iconForRepository, OcticonSymbolType } from './octicons'
-import * as OcticonSymbol from './octicons/octicons.generated'
+import { iconForRepository, OcticonSymbol } from './octicons'
+import * as octicons from './octicons/octicons.generated'
 import {
   showCertificateTrustDialog,
   sendReady,
   isInApplicationFolder,
   selectAllWindowContents,
+  installWindowsCLI,
+  uninstallWindowsCLI,
 } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
@@ -168,10 +175,13 @@ import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 import { PullRequestComment } from './notifications/pull-request-comment'
 import { UnknownAuthors } from './unknown-authors/unknown-authors-dialog'
-import { UnsupportedOSBannerDismissedAtKey } from './banners/windows-version-no-longer-supported-banner'
+import { UnsupportedOSBannerDismissedAtKey } from './banners/os-version-no-longer-supported-banner'
 import { offsetFromNow } from '../lib/offset-from'
-import { getNumber } from '../lib/local-storage'
+import { getBoolean, getNumber } from '../lib/local-storage'
 import { RepoRulesBypassConfirmation } from './repository-rules/repo-rules-bypass-confirmation'
+import { IconPreviewDialog } from './octicons/icon-preview-dialog'
+import { accessibilityBannerDismissed } from './banners/accessibilty-settings-banner'
+import { enableDiffCheckMarksAndLinkUnderlines } from '../lib/feature-flag'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -356,16 +366,50 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.showPopup({ type: PopupType.MoveToApplicationsFolder })
     }
 
-    this.checkIfThankYouIsInOrder()
+    this.setOnOpenBanner()
+  }
 
-    if (isWindowsAndNoLongerSupportedByElectron()) {
+  private onOpenAccessibilitySettings = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.Preferences,
+      initialSelectedTab: PreferencesTab.Accessibility,
+    })
+  }
+
+  /**
+   * This method sets the app banner on opening the app. The last banner set in
+   * this method will be the one shown as only one banner is shown at a time.
+   * The only exception is the update available banner is always
+   * prioritized over other banners.
+   *
+   * Priority:
+   * 1. OS Not Supported by Electron
+   * 2. Accessibility Settings Banner
+   * 3. Thank you banner
+   */
+  private setOnOpenBanner() {
+    if (isOSNoLongerSupportedByElectron()) {
       const dismissedAt = getNumber(UnsupportedOSBannerDismissedAtKey, 0)
 
       // Remind the user that they're running an unsupported OS every 90 days
       if (dismissedAt < offsetFromNow(-90, 'days')) {
-        this.setBanner({ type: BannerType.WindowsVersionNoLongerSupported })
+        this.setBanner({ type: BannerType.OSVersionNoLongerSupported })
+        return
       }
     }
+
+    if (
+      enableDiffCheckMarksAndLinkUnderlines() &&
+      getBoolean(accessibilityBannerDismissed) !== true
+    ) {
+      this.setBanner({
+        type: BannerType.AccessibilitySettingsBanner,
+        onOpenAccessibilitySettings: this.onOpenAccessibilitySettings,
+      })
+      return
+    }
+
+    this.checkIfThankYouIsInOrder()
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -451,8 +495,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.openPullRequest()
       case 'preview-pull-request':
         return this.startPullRequest()
-      case 'install-cli':
-        return this.props.dispatcher.installCLI()
+      case 'install-darwin-cli':
+        return this.props.dispatcher.installDarwinCLI()
+      case 'install-windows-cli':
+        return installWindowsCLI()
+      case 'uninstall-windows-cli':
+        return uninstallWindowsCLI()
       case 'open-external-editor':
         return this.openCurrentRepositoryInExternalEditor()
       case 'select-all':
@@ -495,6 +543,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showFakeCherryPickConflictBanner()
       case 'show-test-merge-successful-banner':
         return this.showFakeMergeSuccessfulBanner()
+      case 'show-icon-test-dialog':
+        return this.showIconTestDialog()
       default:
         return assertNever(name, `Unknown menu event name: ${name}`)
     }
@@ -608,6 +658,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.setBanner({
         type: BannerType.SuccessfulMerge,
         ourBranch: 'fake-branch',
+      })
+    }
+  }
+
+  private async showIconTestDialog() {
+    if (__DEV__) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.TestIcons,
       })
     }
   }
@@ -728,6 +786,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (isWindowsAndNoLongerSupportedByElectron()) {
       log.error(
         `Can't check for updates on Windows 8.1 or older. Next available update only supports Windows 10 and later`
+      )
+      return
+    }
+
+    if (isMacOSAndNoLongerSupportedByElectron()) {
+      log.error(
+        `Can't check for updates on macOS 10.14 or older. Next available update only supports macOS 10.15 and later`
       )
       return
     }
@@ -1195,7 +1260,6 @@ export class App extends React.Component<IAppProps, IAppState> {
               this.props.dispatcher.showFoldout({
                 type: FoldoutType.AppMenu,
                 enableAccessKeyNavigation: true,
-                openedWithAccessKey: true,
               })
             } else {
               this.props.dispatcher.executeMenuItem(menuItemForAccessKey)
@@ -1237,7 +1301,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             this.props.dispatcher.showFoldout({
               type: FoldoutType.AppMenu,
               enableAccessKeyNavigation: true,
-              openedWithAccessKey: false,
             })
           }
         }
@@ -1655,13 +1718,17 @@ export class App extends React.Component<IAppProps, IAppState> {
             showCommitLengthWarning={this.state.showCommitLengthWarning}
             notificationsEnabled={this.state.notificationsEnabled}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
+            useExternalCredentialHelper={this.state.useExternalCredentialHelper}
             enterpriseAccount={this.getEnterpriseAccount()}
             repository={repository}
             onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
+            selectedTabSize={this.state.selectedTabSize}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             onOpenFileInExternalEditor={this.openFileInExternalEditor}
+            underlineLinks={this.state.underlineLinks}
+            showDiffCheckMarks={this.state.showDiffCheckMarks}
           />
         )
       case PopupType.RepositorySettings: {
@@ -1691,6 +1758,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             signInState={this.state.signInState}
             dispatcher={this.props.dispatcher}
             onDismissed={onPopupDismissedFn}
+            isCredentialHelperSignIn={popup.isCredentialHelperSignIn}
+            credentialHelperUrl={popup.credentialHelperUrl}
           />
         )
       case PopupType.AddRepository:
@@ -1852,13 +1921,19 @@ export class App extends React.Component<IAppProps, IAppState> {
           <CLIInstalled key="cli-installed" onDismissed={onPopupDismissedFn} />
         )
       case PopupType.GenericGitAuthentication:
+        const onDismiss = () => {
+          popup.onDismiss?.()
+          onPopupDismissedFn()
+        }
+
         return (
           <GenericGitAuthentication
             key="generic-git-authentication"
-            hostname={popup.hostname}
-            onDismiss={onPopupDismissedFn}
-            onSave={this.onSaveCredentials}
-            retryAction={popup.retryAction}
+            remoteUrl={popup.remoteUrl}
+            username={popup.username}
+            // eslint-disable-next-line react/jsx-no-bind
+            onDismiss={onDismiss}
+            onSave={popup.onSubmit}
           />
         )
       case PopupType.ExternalEditorFailed:
@@ -1870,7 +1945,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="editor-error"
             message={popup.message}
             onDismissed={onPopupDismissedFn}
-            showPreferencesDialog={this.onShowAdvancedPreferences}
+            showPreferencesDialog={this.onShowIntegrationsPreferences}
             viewPreferences={openPreferences}
             suggestDefaultEditor={suggestDefaultEditor}
           />
@@ -1881,7 +1956,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="shell-error"
             message={popup.message}
             onDismissed={onPopupDismissedFn}
-            showPreferencesDialog={this.onShowAdvancedPreferences}
+            showPreferencesDialog={this.onShowIntegrationsPreferences}
           />
         )
       case PopupType.InitializeLFS:
@@ -1919,6 +1994,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             emoji={this.state.emoji}
             newReleases={popup.newReleases}
             onDismissed={onPopupDismissedFn}
+            underlineLinks={this.state.underlineLinks}
           />
         )
       case PopupType.DeletePullRequest:
@@ -2226,6 +2302,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             onSubmitCommitMessage={popup.onSubmitCommitMessage}
             repositoryAccount={repositoryAccount}
+            accounts={this.state.accounts}
           />
         )
       case PopupType.MultiCommitOperation: {
@@ -2344,8 +2421,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             shouldChangeRepository={popup.shouldChangeRepository}
             repository={popup.repository}
             pullRequest={popup.pullRequest}
-            commitMessage={popup.commitMessage}
-            commitSha={popup.commitSha}
             checks={popup.checks}
             accounts={this.state.accounts}
             onSubmit={onPopupDismissedFn}
@@ -2406,9 +2481,10 @@ export class App extends React.Component<IAppProps, IAppState> {
             pullRequest={popup.pullRequest}
             review={popup.review}
             emoji={this.state.emoji}
-            accounts={this.state.accounts}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
+            underlineLinks={this.state.underlineLinks}
+            accounts={this.state.accounts}
           />
         )
       }
@@ -2434,6 +2510,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedTab={popup.selectedTab}
             emoji={emoji}
             onDismissed={onPopupDismissedFn}
+            accounts={this.state.accounts}
           />
         )
       }
@@ -2532,9 +2609,10 @@ export class App extends React.Component<IAppProps, IAppState> {
             pullRequest={popup.pullRequest}
             comment={popup.comment}
             emoji={this.state.emoji}
-            accounts={this.state.accounts}
             onSubmit={onPopupDismissedFn}
             onDismissed={onPopupDismissedFn}
+            underlineLinks={this.state.underlineLinks}
+            accounts={this.state.accounts}
           />
         )
       }
@@ -2555,6 +2633,14 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             branch={popup.branch}
             onConfirm={popup.onConfirm}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.TestIcons: {
+        return (
+          <IconPreviewDialog
+            key="octicons-preview"
             onDismissed={onPopupDismissedFn}
           />
         )
@@ -2624,10 +2710,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.refreshApiRepositories(account)
   }
 
-  private onShowAdvancedPreferences = () => {
+  private onShowIntegrationsPreferences = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.Preferences,
-      initialSelectedTab: PreferencesTab.Advanced,
+      initialSelectedTab: PreferencesTab.Integrations,
     })
   }
 
@@ -2640,21 +2726,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onOpenShellIgnoreWarning = (path: string) => {
     this.props.dispatcher.openShell(path, true)
-  }
-
-  private onSaveCredentials = async (
-    hostname: string,
-    username: string,
-    password: string,
-    retryAction: RetryAction
-  ) => {
-    await this.props.dispatcher.saveGenericGitCredentials(
-      hostname,
-      username,
-      password
-    )
-
-    this.props.dispatcher.performRetry(retryAction)
   }
 
   private onCheckForUpdates = () => this.checkForUpdates(false)
@@ -2706,6 +2777,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             commit={commit}
             selectedCommits={selectedCommits}
             emoji={emoji}
+            accounts={this.state.accounts}
           />
         )
       default:
@@ -2883,17 +2955,17 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const repository = selection ? selection.repository : null
 
-    let icon: OcticonSymbolType
+    let icon: OcticonSymbol
     let title: string
     if (repository) {
       const alias = repository instanceof Repository ? repository.alias : null
       icon = iconForRepository(repository)
       title = alias ?? repository.name
     } else if (this.state.repositories.length > 0) {
-      icon = OcticonSymbol.repo
+      icon = octicons.repo
       title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
     } else {
-      icon = OcticonSymbol.repo
+      icon = octicons.repo
       title = __DARWIN__ ? 'No Repositories' : 'No repositories'
     }
 
@@ -3157,6 +3229,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         showCIStatusPopover={this.state.showCIStatusPopover}
         emoji={this.state.emoji}
         enableFocusTrap={enableFocusTrap}
+        underlineLinks={this.state.underlineLinks}
       />
     )
   }
@@ -3289,6 +3362,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           imageDiffType={state.imageDiffType}
           hideWhitespaceInChangesDiff={state.hideWhitespaceInChangesDiff}
           hideWhitespaceInHistoryDiff={state.hideWhitespaceInHistoryDiff}
+          showDiffCheckMarks={state.showDiffCheckMarks}
           showSideBySideDiff={state.showSideBySideDiff}
           focusCommitMessage={state.focusCommitMessage}
           askForConfirmationOnDiscardChanges={
@@ -3339,7 +3413,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <Welcome
         dispatcher={this.props.dispatcher}
-        optOut={this.state.optOutOfUsageTracking}
         accounts={this.state.accounts}
         signInState={this.state.signInState}
       />
@@ -3351,14 +3424,25 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const className = this.state.appIsFocused ? 'focused' : 'blurred'
+    const className = classNames(
+      this.state.appIsFocused ? 'focused' : 'blurred',
+      {
+        'underline-links': this.state.underlineLinks,
+      }
+    )
 
     const currentTheme = this.state.showWelcomeFlow
       ? ApplicationTheme.Light
       : this.state.currentTheme
 
+    const currentTabSize = this.state.selectedTabSize
+
     return (
-      <div id="desktop-app-chrome" className={className}>
+      <div
+        id="desktop-app-chrome"
+        className={className}
+        style={{ tabSize: currentTabSize }}
+      >
         <AppTheme theme={currentTheme} />
         {this.renderTitlebar()}
         {this.state.showWelcomeFlow

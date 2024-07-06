@@ -175,7 +175,6 @@ export class ChooseTargetBranchDialog extends React.Component<
         id="cherry-pick"
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
-        dismissable={true}
         title={
           <strong>
             Cherry-pick {this.props.commitCount} {pluralize} to a branch

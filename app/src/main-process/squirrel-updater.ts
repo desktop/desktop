@@ -38,15 +38,15 @@ export function handleSquirrelEvent(eventName: string): Promise<void> | null {
 
 async function handleInstalled(): Promise<void> {
   await createShortcut(['StartMenu', 'Desktop'])
-  await installCLI()
+  await installWindowsCLI()
 }
 
 async function handleUpdated(): Promise<void> {
   await updateShortcut()
-  await installCLI()
+  await installWindowsCLI()
 }
 
-async function installCLI(): Promise<void> {
+export async function installWindowsCLI(): Promise<void> {
   const binPath = getBinPath()
   await mkdir(binPath, { recursive: true })
   await writeBatchScriptCLITrampoline(binPath)
@@ -58,6 +58,17 @@ async function installCLI(): Promise<void> {
     }
   } catch (e) {
     log.error('Failed inserting bin path into PATH environment variable', e)
+  }
+}
+
+export async function uninstallWindowsCLI() {
+  try {
+    const paths = getPathSegments()
+    const binPath = getBinPath()
+    const pathsWithoutBinPath = paths.filter(p => p !== binPath)
+    return setPathSegments(pathsWithoutBinPath)
+  } catch (e) {
+    log.error('Failed removing bin path from PATH environment variable', e)
   }
 }
 
@@ -135,15 +146,7 @@ function createShortcut(locations: ShortcutLocations): Promise<void> {
 
 async function handleUninstall(): Promise<void> {
   await removeShortcut()
-
-  try {
-    const paths = getPathSegments()
-    const binPath = getBinPath()
-    const pathsWithoutBinPath = paths.filter(p => p !== binPath)
-    return setPathSegments(pathsWithoutBinPath)
-  } catch (e) {
-    log.error('Failed removing bin path from PATH environment variable', e)
-  }
+  return uninstallWindowsCLI()
 }
 
 function removeShortcut(): Promise<void> {

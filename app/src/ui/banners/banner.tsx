@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 
 interface IBannerProps {
   readonly id?: string
@@ -37,7 +37,7 @@ export class Banner extends React.Component<IBannerProps, {}> {
     return (
       <div className="close">
         <button onClick={onDismissed} aria-label="Dismiss this message">
-          <Octicon symbol={OcticonSymbol.x} />
+          <Octicon symbol={octicons.x} />
         </button>
       </div>
     )
@@ -93,7 +93,7 @@ export class Banner extends React.Component<IBannerProps, {}> {
       return
     }
 
-    if (dismissable !== false) {
+    if (dismissable !== false && timeout !== undefined) {
       this.dismissalTimeoutId = window.setTimeout(() => {
         onDismissed()
       }, timeout)

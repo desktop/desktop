@@ -1,7 +1,6 @@
 import { createServer, AddressInfo, Server, Socket } from 'net'
 import split2 from 'split2'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
-import { askpassTrampolineHandler } from './trampoline-askpass-handler'
 import {
   ITrampolineCommand,
   TrampolineCommandHandler,
@@ -42,11 +41,6 @@ export class TrampolineServer {
     // suite runner would never finish, hitting a 45min timeout for the whole
     // GitHub Action.
     this.server.unref()
-
-    this.registerCommandHandler(
-      TrampolineCommandIdentifier.AskPass,
-      askpassTrampolineHandler
-    )
   }
 
   private async listen(): Promise<void> {
@@ -158,7 +152,7 @@ export class TrampolineServer {
    * @param identifier Identifier of the command.
    * @param handler Handler to register.
    */
-  private registerCommandHandler(
+  public registerCommandHandler(
     identifier: TrampolineCommandIdentifier,
     handler: TrampolineCommandHandler
   ) {
@@ -177,7 +171,9 @@ export class TrampolineServer {
       return
     }
 
-    const result = await handler(command)
+    const result = await handler(command).catch(e =>
+      log.error('Error processing trampoline command', e)
+    )
 
     if (result !== undefined) {
       socket.end(result)

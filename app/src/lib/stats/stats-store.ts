@@ -9,7 +9,13 @@ import { merge } from '../../lib/merge'
 import { getPersistedThemeName } from '../../ui/lib/application-theme'
 import { IUiActivityMonitor } from '../../ui/lib/ui-activity-monitor'
 import { Disposable } from 'event-kit'
-import { SignInMethod } from '../stores'
+import {
+  SignInMethod,
+  showDiffCheckMarksDefault,
+  showDiffCheckMarksKey,
+  underlineLinksDefault,
+  underlineLinksKey,
+} from '../stores'
 import { assertNever } from '../fatal-error'
 import {
   getNumber,
@@ -28,6 +34,8 @@ import { getNotificationsEnabled } from '../stores/notifications-store'
 import { isInApplicationFolder } from '../../ui/main-process-proxy'
 import { getRendererGUID } from '../get-renderer-guid'
 import { ValidNotificationPullRequestReviewState } from '../valid-notification-pull-request-review'
+import { useExternalCredentialHelperKey } from '../trampoline/use-external-credential-helper'
+import { enableExternalCredentialHelper } from '../feature-flag'
 
 type PullRequestReviewStatFieldInfix =
   | 'Approved'
@@ -386,6 +394,18 @@ interface ICalculatedStats {
 
   /** Whether or not the user has enabled high-signal notifications */
   readonly notificationsEnabled: boolean
+
+  /** Whether or not the user has their accessibility setting set for viewing link underlines */
+  readonly linkUnderlinesVisible: boolean
+
+  /** Whether or not the user has their accessibility setting set for viewing diff check marks */
+  readonly diffCheckMarksVisible: boolean
+
+  /**
+   * Whether or not the user has enabled the external credential helper or null
+   * if the user has not yet made an active decision
+   **/
+  readonly useExternalCredentialHelper?: boolean | null
 }
 
 type DailyStats = ICalculatedStats &
@@ -558,6 +578,14 @@ export class StatsStore implements IStatsStore {
       RepositoriesCommittedInWithoutWriteAccessKey
     ).length
     const diffMode = getShowSideBySideDiff() ? 'split' : 'unified'
+    const linkUnderlinesVisible = getBoolean(
+      underlineLinksKey,
+      underlineLinksDefault
+    )
+    const diffCheckMarksVisible = getBoolean(
+      showDiffCheckMarksKey,
+      showDiffCheckMarksDefault
+    )
 
     // isInApplicationsFolder is undefined when not running on Darwin
     const launchedFromApplicationsFolder = __DARWIN__
@@ -583,6 +611,14 @@ export class StatsStore implements IStatsStore {
       repositoriesCommittedInWithoutWriteAccess,
       diffMode,
       launchedFromApplicationsFolder,
+      linkUnderlinesVisible,
+      diffCheckMarksVisible,
+      ...(enableExternalCredentialHelper()
+        ? {
+            useExternalCredentialHelper:
+              getBoolean(useExternalCredentialHelperKey) ?? null,
+          }
+        : {}),
     }
   }
 

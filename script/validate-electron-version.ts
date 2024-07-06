@@ -1,6 +1,9 @@
 /* eslint-disable no-sync */
 /// <reference path="./globals.d.ts" />
 
+import { readFileSync } from 'fs-extra'
+import { dirname, join } from 'path'
+
 import * as distInfo from './dist-info'
 
 type ChannelToValidate = 'production' | 'beta'
@@ -15,8 +18,8 @@ type ChannelToValidate = 'production' | 'beta'
  * to a previous version of GitHub Desktop without losing all settings.
  */
 const ValidElectronVersions: Record<ChannelToValidate, string> = {
-  production: '26.2.4',
-  beta: '26.2.4',
+  production: '30.0.8',
+  beta: '30.0.8',
 }
 
 const channel =
@@ -30,10 +33,18 @@ if (!isChannelToValidate(channel)) {
 const expectedVersion = ValidElectronVersions[channel]
 const pkg: Package = require('../package.json')
 const actualVersion = pkg.devDependencies?.electron
+const npmrcVersion = resolveVersionInNpmRcFile()
 
 if (actualVersion !== expectedVersion) {
   console.error(
     `The Electron version for the ${channel} channel is incorrect. Expected ${expectedVersion} but found ${actualVersion}.`
+  )
+  process.exit(1)
+}
+
+if (npmrcVersion !== expectedVersion) {
+  console.error(
+    `The Electron version for the ${channel} channel is not correct in the app/.npmrc file. Expected ${expectedVersion} but found ${npmrcVersion}.`
   )
   process.exit(1)
 }
@@ -44,4 +55,19 @@ console.log(
 
 function isChannelToValidate(channel: string): channel is ChannelToValidate {
   return Object.keys(ValidElectronVersions).includes(channel)
+}
+
+function resolveVersionInNpmRcFile() {
+  const root = dirname(__dirname)
+  const path = join(root, 'app', '.npmrc')
+  const text = readFileSync(path, 'utf-8')
+  const version = text.match(/\d+.\d+.\d+/)
+  if (!version) {
+    console.error(
+      `No target version found in the app/.npmrc file. Is this still needed?`
+    )
+    process.exit(1)
+  }
+
+  return version[0]
 }

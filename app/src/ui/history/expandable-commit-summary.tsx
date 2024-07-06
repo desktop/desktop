@@ -2,7 +2,7 @@ import * as React from 'react'
 import classNames from 'classnames'
 
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { RichText } from '../lib/rich-text'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
@@ -19,6 +19,7 @@ import memoizeOne from 'memoize-one'
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
 import { CopyButton } from '../copy-button'
+import { Account } from '../../models/account'
 
 interface IExpandableCommitSummaryProps {
   readonly repository: Repository
@@ -45,6 +46,8 @@ interface IExpandableCommitSummaryProps {
 
   /** Called to show unreachable commits dialog */
   readonly showUnreachableCommits: (tab: UnreachableCommitsTab) => void
+
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface IExpandableCommitSummaryState {
@@ -237,9 +240,7 @@ export class ExpandableCommitSummary extends React.Component<
         }
         ariaControls="expandable-commit-summary"
       >
-        <Octicon
-          symbol={isExpanded ? OcticonSymbol.fold : OcticonSymbol.unfold}
-        />
+        <Octicon symbol={isExpanded ? octicons.fold : octicons.unfold} />
       </Button>
     )
   }
@@ -379,7 +380,7 @@ export class ExpandableCommitSummary extends React.Component<
         onMouseOver={this.onHighlightShasNotInDiff}
         onMouseOut={this.onRemoveHighlightOfShas}
       >
-        <Octicon symbol={OcticonSymbol.info} />
+        <Octicon symbol={octicons.info} />
         <LinkButton onClick={this.showUnreachableCommits}>
           {excludedCommitsCount} unreachable {commitsPluralized}
         </LinkButton>{' '}
@@ -411,7 +412,7 @@ export class ExpandableCommitSummary extends React.Component<
     return this.state.avatarUsers.map((user, i) => {
       return (
         <div className="author selectable" key={i}>
-          <Avatar user={user} title={null} />
+          <Avatar accounts={this.props.accounts} user={user} title={null} />
           <div>{this.renderExpandedAuthor(user)}</div>
         </div>
       )
@@ -419,12 +420,12 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderAuthorStack = () => {
-    const { selectedCommits, repository } = this.props
+    const { selectedCommits, repository, accounts } = this.props
     const { avatarUsers } = this.state
 
     return (
       <>
-        <AvatarStack users={avatarUsers} />
+        <AvatarStack users={avatarUsers} accounts={accounts} />
         <CommitAttribution
           gitHubRepository={repository.gitHubRepository}
           commits={selectedCommits}
@@ -456,7 +457,7 @@ export class ExpandableCommitSummary extends React.Component<
 
     return (
       <div className="ecs-meta-item commit-ref">
-        <Octicon symbol={OcticonSymbol.gitCommit} />
+        <Octicon symbol={octicons.gitCommit} />
         <div className="ref selectable">{isExpanded ? sha : shortSha}</div>
         <CopyButton ariaLabel="Copy the full SHA" copyContent={sha} />
       </div>
@@ -566,7 +567,7 @@ export class ExpandableCommitSummary extends React.Component<
 
     return (
       <div className="ecs-meta-item lines-added-deleted">
-        {isExpanded ? <Octicon symbol={OcticonSymbol.diff} /> : null}
+        {isExpanded ? <Octicon symbol={octicons.diff} /> : null}
         <div className="lines-added">
           {!isExpanded ? <>+{linesAdded}</> : <>{linesAdded} added lines</>}
         </div>
@@ -595,7 +596,7 @@ export class ExpandableCommitSummary extends React.Component<
 
     return (
       <div className="ecs-meta-item tags selectable">
-        <Octicon symbol={OcticonSymbol.tag} />
+        <Octicon symbol={octicons.tag} />
         <span>{tags.join(', ')}</span>
       </div>
     )

@@ -40,7 +40,7 @@ describe('git/pull', () => {
       }
 
       await makeCommit(repository, changesForLocalRepository)
-      await fetch(repository, null, remote)
+      await fetch(repository, remote)
     })
 
     describe('by default', () => {
@@ -50,7 +50,7 @@ describe('git/pull', () => {
       beforeEach(async () => {
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, remote)
+        await pull(repository, remote)
 
         newTip = await getTipOrError(repository)
       })
@@ -85,7 +85,7 @@ describe('git/pull', () => {
 
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, remote)
+        await pull(repository, remote)
 
         newTip = await getTipOrError(repository)
       })
@@ -119,7 +119,7 @@ describe('git/pull', () => {
 
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, remote)
+        await pull(repository, remote)
 
         newTip = await getTipOrError(repository)
       })

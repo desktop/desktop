@@ -9,7 +9,8 @@
 }
 
 .clone-github-repo {
-  height: 250px;
+  height: calc(100vh - 400px);
+  max-height: 250px;
 
   &.filter-list {
     max-width: 100%;
@@ -58,6 +59,10 @@
 
   &.clone-generic-repository-content {
     padding: var(--spacing-double);
+
+    .clone-url-textbox-label p {
+      margin: 0;
+    }
   }
 }
 
@@ -69,10 +74,9 @@
     padding: var(--spacing-double);
   }
 
-  // This is to ensure that the dialog content is accessible when zoomed in
-  @media (max-width: 600px) {
-    overflow-y: auto;
-    width: 100%;
-    max-width: calc(100% - var(--spacing-double));
+  .dialog-content {
+    > .row-component:not(:last-child) {
+      margin-bottom: 0;
+    }
   }
 }

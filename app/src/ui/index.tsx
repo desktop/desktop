@@ -6,7 +6,6 @@ import * as Path from 'path'
 import { App } from './app'
 import {
   Dispatcher,
-  gitAuthenticationErrorHandler,
   externalEditorErrorHandler,
   openShellErrorHandler,
   mergeConflictHandler,
@@ -71,6 +70,10 @@ import { migrateRendererGUID } from '../lib/get-renderer-guid'
 import { initializeRendererNotificationHandler } from '../lib/notifications/notification-handler'
 import { Grid } from 'react-virtualized'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
+import { trampolineServer } from '../lib/trampoline/trampoline-server'
+import { TrampolineCommandIdentifier } from '../lib/trampoline/trampoline-command'
+import { createAskpassTrampolineHandler } from '../lib/trampoline/trampoline-askpass-handler'
+import { createCredentialHelperTrampolineHandler } from '../lib/trampoline/trampoline-credential-helper'
 
 if (__DEV__) {
   installDevGlobals()
@@ -224,6 +227,17 @@ const statsStore = new StatsStore(
 const signInStore = new SignInStore()
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)
+
+trampolineServer.registerCommandHandler(
+  TrampolineCommandIdentifier.AskPass,
+  createAskpassTrampolineHandler(accountsStore)
+)
+
+trampolineServer.registerCommandHandler(
+  TrampolineCommandIdentifier.CredentialHelper,
+  createCredentialHelperTrampolineHandler(accountsStore)
+)
+
 const repositoriesStore = new RepositoriesStore(
   new RepositoriesDatabase('Database')
 )
@@ -292,7 +306,6 @@ dispatcher.registerErrorHandler(openShellErrorHandler)
 dispatcher.registerErrorHandler(mergeConflictHandler)
 dispatcher.registerErrorHandler(lfsAttributeMismatchHandler)
 dispatcher.registerErrorHandler(insufficientGitHubRepoPermissions)
-dispatcher.registerErrorHandler(gitAuthenticationErrorHandler)
 dispatcher.registerErrorHandler(pushNeedsPullHandler)
 dispatcher.registerErrorHandler(samlReauthRequired)
 dispatcher.registerErrorHandler(backgroundTaskHandler)

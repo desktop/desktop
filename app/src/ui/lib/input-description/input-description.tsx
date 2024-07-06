@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Octicon } from '../../octicons'
-import * as OcticonSymbol from '../../octicons/octicons.generated'
+import * as octicons from '../../octicons/octicons.generated'
 import classNames from 'classnames'
 import { AriaLiveContainer } from '../../accessibility/aria-live-container'
 import { assertNever } from '../../../lib/fatal-error'
@@ -85,9 +85,9 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
       case InputDescriptionType.Caption:
         return null
       case InputDescriptionType.Warning:
-        return <Octicon symbol={OcticonSymbol.alert} />
+        return <Octicon symbol={octicons.alert} />
       case InputDescriptionType.Error:
-        return <Octicon symbol={OcticonSymbol.stop} />
+        return <Octicon symbol={octicons.stop} />
       default:
         return assertNever(type, `Unknown input type  ${type}`)
     }
@@ -136,7 +136,7 @@ export class InputDescription extends React.Component<IInputDescriptionProps> {
           role={this.getRole()}
         >
           {this.renderIcon()}
-          <div>{this.props.children}</div>
+          <div className="input-description-content">{this.props.children}</div>
         </div>
         {this.renderAriaLiveContainer()}
       </>

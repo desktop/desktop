@@ -40,6 +40,12 @@ interface ISandboxedMarkdownProps {
 
   /** The context of which markdown resides - such as PullRequest, PullRequestComment, Commit */
   readonly markdownContext?: MarkdownContext
+
+  readonly underlineLinks: boolean
+
+  /** An area label to explain to screen reader users what the contents of the
+   * iframe are before they navigate into them. */
+  readonly ariaLabel: string
 }
 
 interface ISandboxedMarkdownState {
@@ -202,7 +208,12 @@ export class SandboxedMarkdown extends React.PureComponent<
         ${scrapeVariable('--text-color')}
         ${scrapeVariable('--background-color')}
       }
+
       ${css}
+
+      .markdown-body a {
+        text-decoration: ${this.props.underlineLinks ? 'underline' : 'inherit'};
+      }
     </style>`
   }
 
@@ -279,8 +290,10 @@ export class SandboxedMarkdown extends React.PureComponent<
 
     // Not sure why the content height != body height exactly. But we need to
     // set the height explicitly to prevent scrollbar/content cut off.
+    // HACK: Add 1 to the new height to avoid UI glitches like the one shown
+    // in https://github.com/desktop/desktop/pull/18596
     const divHeight = this.contentDivRef.clientHeight
-    this.frameContainingDivRef.style.height = `${divHeight}px`
+    this.frameContainingDivRef.style.height = `${divHeight + 1}px`
     this.props.onMarkdownParsed?.()
   }
 
@@ -371,6 +384,7 @@ export class SandboxedMarkdown extends React.PureComponent<
           className="sandboxed-markdown-component"
           sandbox=""
           ref={this.onFrameRef}
+          aria-label={this.props.ariaLabel}
         />
         {tooltipElements.map(e => (
           <Tooltip

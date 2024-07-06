@@ -2,7 +2,7 @@ import * as appProxy from '../ui/lib/app-proxy'
 import { URL } from 'url'
 
 /** The HTTP methods available. */
-export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
+export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD' | 'DELETE'
 
 /**
  * The structure of error messages returned from the GitHub API.
@@ -153,7 +153,7 @@ export function request(
 }
 
 /** Get the user agent to use for all requests. */
-function getUserAgent() {
+export function getUserAgent() {
   const platform = __DARWIN__ ? 'Macintosh' : 'Windows'
   return `GitHubDesktop/${appProxy.getVersion()} (${platform})`
 }

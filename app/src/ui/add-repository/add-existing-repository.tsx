@@ -199,13 +199,14 @@ export class AddExistingRepository extends React.Component<
 
     const displayedMessage = (
       <>
-        This directory does not appear to be a Git repository.
-        <br />
-        Would you like to{' '}
-        <LinkButton onClick={this.onCreateRepositoryClicked}>
-          create a repository
-        </LinkButton>{' '}
-        here instead?
+        <p>This directory does not appear to be a Git repository.</p>
+        <p>
+          Would you like to{' '}
+          <LinkButton onClick={this.onCreateRepositoryClicked}>
+            create a repository
+          </LinkButton>{' '}
+          here instead?
+        </p>
       </>
     )
 

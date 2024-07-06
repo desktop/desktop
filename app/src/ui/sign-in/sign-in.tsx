@@ -10,22 +10,24 @@ import {
 import { assertNever } from '../../lib/fatal-error'
 import { LinkButton } from '../lib/link-button'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
 import { getWelcomeMessage } from '../../lib/2fa'
-import { getDotComAPIEndpoint } from '../../lib/api'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Button } from '../lib/button'
 import { HorizontalRule } from '../lib/horizontal-rule'
 import { PasswordTextBox } from '../lib/password-text-box'
+import { Ref } from '../lib/ref'
 
 interface ISignInProps {
   readonly dispatcher: Dispatcher
   readonly signInState: SignInState | null
   readonly onDismissed: () => void
+  readonly isCredentialHelperSignIn?: boolean
+  readonly credentialHelperUrl?: string
 }
 
 interface ISignInState {
@@ -198,45 +200,42 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   }
 
   private renderAuthenticationStep(state: IAuthenticationState) {
+    const credentialHelperInfo =
+      this.props.isCredentialHelperSignIn && this.props.credentialHelperUrl ? (
+        <p>
+          Git requesting credentials to access{' '}
+          <Ref>{this.props.credentialHelperUrl}</Ref>.
+        </p>
+      ) : undefined
+
     if (!state.supportsBasicAuth) {
-      if (state.endpoint === getDotComAPIEndpoint()) {
-        return (
-          <DialogContent>
-            <p>
-              To improve the security of your account, GitHub now requires you
-              to sign in through your browser.
-            </p>
-            <p>
-              Your browser will redirect you back to GitHub Desktop once you've
-              signed in. If your browser asks for your permission to launch
-              GitHub Desktop please allow it to.
-            </p>
-          </DialogContent>
-        )
-      } else {
-        return (
-          <DialogContent>
-            <p>
-              Your GitHub Enterprise instance requires you to sign in with your
-              browser.
-            </p>
-          </DialogContent>
-        )
-      }
+      return (
+        <DialogContent>
+          {credentialHelperInfo}
+          <p>
+            Your browser will redirect you back to GitHub Desktop once you've
+            signed in. If your browser asks for your permission to launch GitHub
+            Desktop please allow it to.
+          </p>
+        </DialogContent>
+      )
     }
 
     const disableSubmit = state.loading
 
     return (
       <DialogContent>
+        {credentialHelperInfo}
+
         <Row className="sign-in-with-browser">
           <Button
             className="button-with-icon button-component-primary"
             onClick={this.onSignInWithBrowser}
             disabled={disableSubmit}
+            role="link"
           >
             Sign in using your browser
-            <Octicon symbol={OcticonSymbol.linkExternal} />
+            <Octicon symbol={octicons.linkExternal} />
           </Button>
         </Row>
 

@@ -59,6 +59,9 @@ interface IStashDiffViewerProps {
   readonly onOpenInExternalEditor: (path: string) => void
 }
 
+/// Id of the stash diff viewer
+export const StashDiffViewerId = 'stash-diff-viewer'
+
 /**
  * Component to display a selected stash's file list and diffs
  *
@@ -109,6 +112,7 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
           diff={stashedFileDiff}
           imageDiffType={imageDiffType}
           hideWhitespaceInDiff={false}
+          showDiffCheckMarks={false}
           showSideBySideDiff={this.props.showSideBySideDiff}
           onOpenBinaryFile={onOpenBinaryFile}
           onChangeImageDiffType={onChangeImageDiffType}
@@ -122,7 +126,7 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
     const availableWidth = clamp(fileListWidth)
 
     return (
-      <section id="stash-diff-viewer">
+      <section id={StashDiffViewerId}>
         <StashDiffHeader
           stashEntry={stashEntry}
           repository={repository}

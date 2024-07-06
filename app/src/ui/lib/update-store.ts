@@ -22,7 +22,6 @@ import { setNumber, getNumber } from '../../lib/local-storage'
 import { enableUpdateFromEmulatedX64ToARM64 } from '../../lib/feature-flag'
 import { offsetFromNow } from '../../lib/offset-from'
 import { gte, SemVer } from 'semver'
-import { getRendererGUID } from '../../lib/get-renderer-guid'
 import { getVersion } from './app-proxy'
 
 /** The last version a showcase was seen. */
@@ -215,9 +214,6 @@ class UpdateStore {
       log.error('Error parsing updates url', e)
       return __UPDATES_URL__
     }
-
-    // Send the GUID to the update server for staggered release support
-    url.searchParams.set('guid', await getRendererGUID())
 
     if (skipGuidCheck) {
       // This will effectively disable the staggered releases system and attempt

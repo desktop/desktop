@@ -49,12 +49,14 @@ export class DeleteBranch extends React.Component<
         ariaDescribedBy="delete-branch-confirmation-message delete-branch-confirmation-message-remote"
       >
         <DialogContent>
-          <p id="delete-branch-confirmation-message">
-            Delete branch <Ref>{this.props.branch.name}</Ref>?<br />
-            This action cannot be undone.
-          </p>
+          <div id="delete-branch-confirmation-message">
+            <p>
+              Delete branch <Ref>{this.props.branch.name}</Ref>?
+            </p>
+            <p>This action cannot be undone.</p>
 
-          {this.renderDeleteOnRemote()}
+            {this.renderDeleteOnRemote()}
+          </div>
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup destructive={true} okButtonText="Delete" />

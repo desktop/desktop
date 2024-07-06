@@ -24,13 +24,6 @@ interface IChangesProps {
   readonly hideWhitespaceInDiff: boolean
 
   /**
-   * Callback to open a selected file using the configured external editor
-   *
-   * @param fullPath The full path to the file on disk
-   */
-  readonly onOpenInExternalEditor: (fullPath: string) => void
-
-  /**
    * Called when the user requests to open a binary file in an the
    * system-assigned application for said file type.
    */
@@ -55,6 +48,9 @@ interface IChangesProps {
    * Whether we should display side by side diffs.
    */
   readonly showSideBySideDiff: boolean
+
+  /** Whether or not to show the diff check marks indicating inclusion in a commit */
+  readonly showDiffCheckMarks: boolean
 
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
@@ -127,6 +123,7 @@ export class Changes extends React.Component<IChangesProps, {}> {
           diff={this.props.diff}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
+          showDiffCheckMarks={this.props.showDiffCheckMarks}
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
           }

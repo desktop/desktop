@@ -23,8 +23,6 @@ import { ILicense, getLicenses, writeLicense } from './licenses'
 import { writeGitAttributes } from './git-attributes'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
-import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
 import { Ref } from '../lib/ref'
@@ -442,10 +440,16 @@ export class CreateRepository extends React.Component<
     }
 
     return (
-      <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
-        Will be created as {sanitizedName}
-      </Row>
+      <InputWarning
+        id="repo-sanitized-name-warning"
+        trackedUserInput={this.state.name}
+        ariaLiveMessage={`Will be created as ${sanitizedName}. Spaces and invalid characters have been replaced by hyphens.`}
+      >
+        <p>Will be created as {sanitizedName}</p>
+        <span className="sr-only">
+          Spaces and invalid characters have been replaced by hyphens.
+        </span>
+      </InputWarning>
     )
   }
 
@@ -624,7 +628,7 @@ export class CreateRepository extends React.Component<
               label="Name"
               placeholder="repository name"
               onValueChanged={this.onNameChanged}
-              ariaDescribedBy="existing-repository-path-error"
+              ariaDescribedBy="existing-repository-path-error repo-sanitized-name-warning"
             />
           </Row>
 
