@@ -278,14 +278,13 @@ export class NoChanges extends React.Component<
 
   private renderviewInBrowser() {
     const isGitHub = this.props.repository.gitHubRepository !== null
-
-    if (!isGitHub) {
-      return null
-    }
+    const description = isGitHub
+      ? 'Open the repository page on GitHub in Browser'
+      : 'Open the repository page in your browser.'
 
     return this.renderMenuBackedAction(
       'view-repository-on-github',
-      `Open the repository page on GitHub in Browser`,
+      description,
       undefined,
       this.onViewInBrowserClicked
     )
