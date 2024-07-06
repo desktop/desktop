@@ -9,6 +9,7 @@ import {
 import { assertNever, fatalError } from '../lib/fatal-error'
 import { createEqualityHash } from './equality-hash'
 import { getRemotes } from '../lib/git'
+import { findDefaultRemote } from '../lib/stores/helpers/find-default-remote'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -43,10 +44,7 @@ export class Repository {
    */
   public hash: string
 
-  /**
-   * The Git repository's origin url
-   */
-  public url: string | null
+  private _url: string | null = null
 
   /**
    * @param path The working directory of this repository
@@ -69,15 +67,6 @@ export class Repository {
     this.mainWorkTree = { path }
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
 
-    this.url = null
-
-    const remotes = getRemotes(this)
-    remotes.then(result => {
-      if (result.length > 0) {
-        this.url = result[0].url
-      }
-    })
-
     this.hash = createEqualityHash(
       path,
       this.id,
@@ -87,10 +76,26 @@ export class Repository {
       this.workflowPreferences.forkContributionTarget,
       this.isTutorialRepository
     )
+    this.fetchUrl()
   }
 
   public get path(): string {
     return this.mainWorkTree.path
+  }
+
+  public get url(): string | null {
+    return this._url
+  }
+
+  private fetchUrl(): void {
+    getRemotes(this).then(remotes => {
+      const defaultRemote = findDefaultRemote(remotes)
+      if (defaultRemote) {
+        this._url = defaultRemote.url
+      } else {
+        this._url = null
+      }
+    })
   }
 }
 
