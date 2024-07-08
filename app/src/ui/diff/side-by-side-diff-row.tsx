@@ -287,7 +287,7 @@ export class SideBySideDiffRow extends React.Component<
           'expandable-both': row.expansionType === DiffHunkExpansionType.Both,
         })
         return (
-          <div className={rowClasses}>
+          <div className={rowClasses} role="cell">
             {this.renderHunkHeaderGutter(row.hunkIndex, row.expansionType)}
             {this.renderContentFromString(row.content)}
           </div>
@@ -298,7 +298,7 @@ export class SideBySideDiffRow extends React.Component<
         const { beforeLineNumber, afterLineNumber } = row
         if (!showSideBySideDiff) {
           return (
-            <div className={rowClasses}>
+            <div className={rowClasses} role="cell">
               <div className="before">
                 {this.renderLineNumbers(
                   [beforeLineNumber, afterLineNumber],
@@ -311,7 +311,7 @@ export class SideBySideDiffRow extends React.Component<
         }
 
         return (
-          <div className={rowClasses}>
+          <div className={rowClasses} role="cell">
             <div className="before">
               {this.renderLineNumber(beforeLineNumber, DiffColumn.Before)}
               {this.renderContentFromString(row.content, row.beforeTokens)}
@@ -328,7 +328,7 @@ export class SideBySideDiffRow extends React.Component<
         const rowClasses = classNames('added', baseRowClasses)
         if (!showSideBySideDiff) {
           return (
-            <div className={rowClasses}>
+            <div className={rowClasses} role="cell">
               {this.renderHunkHandle()}
               <div className={afterClasses}>
                 {this.renderLineNumbers(
@@ -344,7 +344,7 @@ export class SideBySideDiffRow extends React.Component<
         }
 
         return (
-          <div className={rowClasses}>
+          <div className={rowClasses} role="cell">
             <div className={beforeClasses}>
               {this.renderLineNumber(undefined, DiffColumn.Before)}
               {this.renderContentFromString('')}
@@ -364,7 +364,7 @@ export class SideBySideDiffRow extends React.Component<
         const rowClasses = classNames('deleted', baseRowClasses)
         if (!showSideBySideDiff) {
           return (
-            <div className={rowClasses}>
+            <div className={rowClasses} role="cell">
               {this.renderHunkHandle()}
               <div className={beforeClasses}>
                 {this.renderLineNumbers(
@@ -380,7 +380,7 @@ export class SideBySideDiffRow extends React.Component<
         }
 
         return (
-          <div className={rowClasses}>
+          <div className={rowClasses} role="cell">
             <div className={beforeClasses}>
               {this.renderLineNumber(lineNumber, DiffColumn.Before, isSelected)}
               {this.renderContent(row.data, DiffRowPrefix.Deleted)}
@@ -399,7 +399,7 @@ export class SideBySideDiffRow extends React.Component<
         const { beforeData: before, afterData: after } = row
         const rowClasses = classNames('modified', baseRowClasses)
         return (
-          <div className={rowClasses}>
+          <div className={rowClasses} role="cell">
             <div className={beforeClasses}>
               {this.renderLineNumber(
                 before.lineNumber,
@@ -797,7 +797,7 @@ export class SideBySideDiffRow extends React.Component<
             <span key={index}>
               {lineNumber && <span className="sr-only">Line </span>}
               {lineNumber}
-              {lineNumber && (
+              {lineNumber && isSelected !== undefined && (
                 <span className="sr-only">
                   {column === DiffColumn.After ? ' added' : ' deleted'}
                 </span>
