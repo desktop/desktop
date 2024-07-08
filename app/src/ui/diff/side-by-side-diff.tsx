@@ -899,7 +899,6 @@ export class SideBySideDiff extends React.Component<
             onContextMenuLine={this.onContextMenuLine}
             onContextMenuHunk={this.onContextMenuHunk}
             onContextMenuExpandHunk={this.onContextMenuExpandHunk}
-            onContextMenuText={this.onContextMenuText}
             onHideWhitespaceInDiffChanged={
               this.props.onHideWhitespaceInDiffChanged
             }
@@ -1377,8 +1376,17 @@ export class SideBySideDiff extends React.Component<
   /**
    * Handler to show a context menu when the user right-clicks on the diff text.
    */
-  private onContextMenuText = () => {
+  private onContextMenuText = (evt: React.MouseEvent | MouseEvent) => {
     const selectionLength = window.getSelection()?.toString().length ?? 0
+
+    if (
+      evt.target instanceof HTMLElement &&
+      (evt.target.closest('.line-number') !== null ||
+        evt.target.closest('.hunk-handle') !== null ||
+        evt.target.closest('hunk-expansion-handle') !== null)
+    ) {
+      return
+    }
 
     const items: IMenuItem[] = [
       {

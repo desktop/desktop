@@ -222,11 +222,6 @@ interface ISideBySideDiffRowProps {
   readonly onContextMenuExpandHunk: () => void
 
   /**
-   * Called when the user right-clicks text on the diff.
-   */
-  readonly onContextMenuText: () => void
-
-  /**
    * Array of classes applied to the after section of a row
    */
   readonly afterClassNames: ReadonlyArray<string>
@@ -287,11 +282,7 @@ export class SideBySideDiffRow extends React.Component<
           'expandable-both': row.expansionType === DiffHunkExpansionType.Both,
         })
         return (
-          <div
-            className={rowClasses}
-            role="cell"
-            onContextMenu={this.props.onContextMenuText}
-          >
+          <div className={rowClasses} role="cell">
             {this.renderHunkHeaderGutter(row.hunkIndex, row.expansionType)}
             {this.renderContentFromString(row.content)}
           </div>
@@ -302,11 +293,7 @@ export class SideBySideDiffRow extends React.Component<
         const { beforeLineNumber, afterLineNumber } = row
         if (!showSideBySideDiff) {
           return (
-            <div
-              className={rowClasses}
-              role="cell"
-              onContextMenu={this.props.onContextMenuText}
-            >
+            <div className={rowClasses} role="cell">
               <div className="before">
                 {this.renderLineNumbers(
                   [beforeLineNumber, afterLineNumber],
@@ -319,11 +306,7 @@ export class SideBySideDiffRow extends React.Component<
         }
 
         return (
-          <div
-            className={rowClasses}
-            role="cell"
-            onContextMenu={this.props.onContextMenuText}
-          >
+          <div className={rowClasses} role="cell">
             <div className="before">
               {this.renderLineNumber(beforeLineNumber, DiffColumn.Before)}
               {this.renderContentFromString(row.content, row.beforeTokens)}
@@ -340,11 +323,7 @@ export class SideBySideDiffRow extends React.Component<
         const rowClasses = classNames('added', baseRowClasses)
         if (!showSideBySideDiff) {
           return (
-            <div
-              className={rowClasses}
-              role="cell"
-              onContextMenu={this.props.onContextMenuText}
-            >
+            <div className={rowClasses} role="cell">
               {this.renderHunkHandle()}
               <div className={afterClasses}>
                 {this.renderLineNumbers(
@@ -360,11 +339,7 @@ export class SideBySideDiffRow extends React.Component<
         }
 
         return (
-          <div
-            className={rowClasses}
-            role="cell"
-            onContextMenu={this.props.onContextMenuText}
-          >
+          <div className={rowClasses} role="cell">
             <div className={beforeClasses}>
               {this.renderLineNumber(undefined, DiffColumn.Before)}
               {this.renderContentFromString('')}
@@ -384,11 +359,7 @@ export class SideBySideDiffRow extends React.Component<
         const rowClasses = classNames('deleted', baseRowClasses)
         if (!showSideBySideDiff) {
           return (
-            <div
-              className={rowClasses}
-              role="cell"
-              onContextMenu={this.props.onContextMenuText}
-            >
+            <div className={rowClasses} role="cell">
               {this.renderHunkHandle()}
               <div className={beforeClasses}>
                 {this.renderLineNumbers(
@@ -404,11 +375,7 @@ export class SideBySideDiffRow extends React.Component<
         }
 
         return (
-          <div
-            className={rowClasses}
-            role="cell"
-            onContextMenu={this.props.onContextMenuText}
-          >
+          <div className={rowClasses} role="cell">
             <div className={beforeClasses}>
               {this.renderLineNumber(lineNumber, DiffColumn.Before, isSelected)}
               {this.renderContent(row.data, DiffRowPrefix.Deleted)}
@@ -427,11 +394,7 @@ export class SideBySideDiffRow extends React.Component<
         const { beforeData: before, afterData: after } = row
         const rowClasses = classNames('modified', baseRowClasses)
         return (
-          <div
-            className={rowClasses}
-            role="cell"
-            onContextMenu={this.props.onContextMenuText}
-          >
+          <div className={rowClasses} role="cell">
             <div className={beforeClasses}>
               {this.renderLineNumber(
                 before.lineNumber,
