@@ -8,9 +8,7 @@
     "build": "tsc",
     "install": "node-gyp rebuild && tsc"
   },
-  "dependencies": {
-    "nan": "^2.20.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "node-gyp": "^10.1.0",
     "typescript": "^5.4.5"
