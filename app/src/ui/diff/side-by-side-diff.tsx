@@ -1382,8 +1382,9 @@ export class SideBySideDiff extends React.Component<
     if (
       evt.target instanceof HTMLElement &&
       (evt.target.closest('.line-number') !== null ||
-        evt.target.closest('.hunk-handle') !== null ||
-        evt.target.closest('hunk-expansion-handle') !== null)
+        evt.target.closest('.hunk-handle') !== null || // Windows uses the label element
+        evt.target.closest('.hunk-expansion-handle') !== null ||
+        evt.target instanceof HTMLInputElement) // macOS users the input element which is adjacent to the .hunk-handle
     ) {
       return
     }
