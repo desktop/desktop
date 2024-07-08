@@ -797,7 +797,7 @@ export class SideBySideDiffRow extends React.Component<
             <span key={index}>
               {lineNumber && <span className="sr-only">Line </span>}
               {lineNumber}
-              {lineNumber && (
+              {lineNumber && isSelected !== undefined && (
                 <span className="sr-only">
                   {column === DiffColumn.After ? ' added' : ' deleted'}
                 </span>
