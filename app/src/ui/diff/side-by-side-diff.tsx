@@ -280,13 +280,19 @@ export class SideBySideDiff extends React.Component<
 
     document.addEventListener('selectionchange', this.onDocumentSelectionChange)
 
-    this.addContextMenuToDiff()
+    this.addContextMenuListenerToDiff()
   }
 
-  private addContextMenuToDiff = () => {
+  private addContextMenuListenerToDiff = () => {
     const diffNode = findDOMNode(this.virtualListRef.current)
     const diff = diffNode instanceof HTMLElement ? diffNode : null
     diff?.addEventListener('contextmenu', this.onContextMenuText)
+  }
+
+  private removeContextMenuListenerFromDiff = () => {
+    const diffNode = findDOMNode(this.virtualListRef.current)
+    const diff = diffNode instanceof HTMLElement ? diffNode : null
+    diff?.removeEventListener('contextmenu', this.onContextMenuText)
   }
 
   private onCutOrCopy = (ev: ClipboardEvent) => {
@@ -408,6 +414,7 @@ export class SideBySideDiff extends React.Component<
       this.onDocumentSelectionChange
     )
     document.removeEventListener('mousemove', this.onUpdateSelection)
+    this.removeContextMenuListenerFromDiff()
   }
 
   public componentDidUpdate(
@@ -1382,8 +1389,9 @@ export class SideBySideDiff extends React.Component<
     if (
       evt.target instanceof HTMLElement &&
       (evt.target.closest('.line-number') !== null ||
-        evt.target.closest('.hunk-handle') !== null ||
-        evt.target.closest('hunk-expansion-handle') !== null)
+        evt.target.closest('.hunk-handle') !== null || // Windows uses the label element
+        evt.target.closest('.hunk-expansion-handle') !== null ||
+        evt.target instanceof HTMLInputElement) // macOS users the input element which is adjacent to the .hunk-handle
     ) {
       return
     }
