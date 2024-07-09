@@ -783,11 +783,13 @@ export class SideBySideDiffRow extends React.Component<
         className={classes}
         style={{ width: this.lineGutterWidth }}
         onMouseDown={this.onMouseDownLineNumber}
-        onContextMenu={this.onContextMenuLineNumber}
       >
         {isSelectable &&
           this.renderLineNumberCheckbox(checkboxId, isSelected === true)}
-        <label htmlFor={checkboxId}>
+        <label
+          htmlFor={checkboxId}
+          onContextMenu={this.onContextMenuLineNumber}
+        >
           {this.renderLineNumberCheck(isSelected)}
           {lineNumbers.map((lineNumber, index) => (
             <span key={index}>
