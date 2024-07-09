@@ -545,7 +545,7 @@ export class SideBySideDiffRow extends React.Component<
       >
         <Button
           onClick={elementInfo.handler}
-          onContextMenu={this.onContextMenuExpandHunk}
+          onContextMenu={this.props.onContextMenuExpandHunk}
           tooltip={elementInfo.title}
           toolTipDirection={TooltipDirection.SOUTH}
           ariaLabel={elementInfo.title}
