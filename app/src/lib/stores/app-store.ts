@@ -422,8 +422,11 @@ const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
-export const customEditorKey = 'custom-editor'
-export const customShellKey = 'custom-shell'
+const useCustomEditorKey = 'use-custom-editor'
+const customEditorKey = 'custom-editor'
+
+const useCustomShellKey = 'use-custom-shell'
+const customShellKey = 'custom-shell'
 
 export const underlineLinksKey = 'underline-links'
 export const underlineLinksDefault = true
@@ -555,6 +558,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private currentDragElement: DragElement | null = null
   private lastThankYou: ILastThankYou | undefined
+
+  private useCustomEditor: boolean = false
+  private customEditor: ICustomIntegration | null = null
+
+  private useCustomShell: boolean = false
+  private customShell: ICustomIntegration | null = null
 
   private showCIStatusPopover: boolean = false
 
@@ -1049,6 +1058,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
+      useCustomEditor: this.useCustomEditor,
+      customEditor: this.customEditor,
+      useCustomShell: this.useCustomShell,
+      customShell: this.customShell,
       showCIStatusPopover: this.showCIStatusPopover,
       notificationsEnabled: getNotificationsEnabled(),
       pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
@@ -2236,6 +2249,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
+
+    this.useCustomEditor = getBoolean(useCustomEditorKey, false)
+    this.customEditor = getObject<ICustomIntegration>(customEditorKey) ?? null
+
+    this.useCustomShell = getBoolean(useCustomShellKey, false)
+    this.customShell = getObject<ICustomIntegration>(customShellKey) ?? null
 
     this.pullRequestSuggestedNextAction =
       getEnum(
@@ -7134,12 +7153,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public _setUseCustomEditor(useCustomEditor: boolean) {
+    setBoolean(useCustomEditorKey, useCustomEditor)
+    this.useCustomEditor = useCustomEditor
+    this.emitUpdate()
+  }
+
   public _setCustomEditor(customEditor: ICustomIntegration) {
     setObject(customEditorKey, customEditor)
+    this.customEditor = customEditor
+    this.emitUpdate()
+  }
+
+  public _setUseCustomShell(useCustomShell: boolean) {
+    setBoolean(useCustomShellKey, useCustomShell)
+    this.useCustomShell = useCustomShell
+    this.emitUpdate()
   }
 
   public _setCustomShell(customShell: ICustomIntegration) {
     setObject(customShellKey, customShell)
+    this.customShell = customShell
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

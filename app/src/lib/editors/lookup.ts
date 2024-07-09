@@ -1,11 +1,8 @@
-import { CustomEditor, ExternalEditorError } from './shared'
+import { ExternalEditorError } from './shared'
 import { IFoundEditor } from './found-editor'
 import { getAvailableEditors as getAvailableEditorsDarwin } from './darwin'
 import { getAvailableEditors as getAvailableEditorsWindows } from './win32'
 import { getAvailableEditors as getAvailableEditorsLinux } from './linux'
-import { getObject } from '../local-storage'
-import { ICustomIntegration } from '../custom-integration'
-import { customEditorKey } from '../stores/app-store'
 
 let editorCache: ReadonlyArray<IFoundEditor<string>> | null = null
 
@@ -33,16 +30,6 @@ export async function getAvailableEditors(): Promise<
 
     return []
   }
-
-  // Add 'Other…' option to the list of available editors
-  const customEditor = getObject<ICustomIntegration>(customEditorKey)
-  const customEditorPath = customEditor?.path || ''
-  editorCache = editorCache.concat({
-    editor: CustomEditor,
-    path: customEditorPath,
-    extraArgs: customEditor?.arguments || [],
-    usesShell: __WIN32__ && customEditorPath.endsWith('.cmd'),
-  })
 
   return editorCache
 }

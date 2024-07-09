@@ -5,9 +5,6 @@ import * as Win32 from './win32'
 import * as Linux from './linux'
 import { ShellError } from './error'
 import { pathExists } from '../../ui/lib/path-exists'
-import { getObject } from '../local-storage'
-import { ICustomIntegration } from '../custom-integration'
-import { customShellKey } from '../stores'
 
 export const CustomShell = 'Other…'
 
@@ -80,15 +77,6 @@ export async function getAvailableShells(): Promise<
       `Platform not currently supported for resolving shells: ${process.platform}`
     )
   }
-
-  // Add 'Other…' option to the list of available shells
-  const customShell = getObject<ICustomIntegration>(customShellKey)
-
-  shellCache = shellCache.concat({
-    shell: CustomShell,
-    path: customShell?.path ?? '',
-    extraArgs: customShell?.arguments ?? [],
-  })
 
   return shellCache
 }
