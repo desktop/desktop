@@ -203,6 +203,7 @@ import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   Default as DefaultShell,
   findShellOrDefault,
+  launchCustomShell,
   launchShell,
   parse as parseShell,
   Shell,
@@ -5483,10 +5484,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _openShell(path: string) {
     this.statsStore.increment('openShellCount')
+    const { useCustomShell, customShell } = this.getState()
 
     try {
-      const match = await findShellOrDefault(this.selectedShell)
-      await launchShell(match, path, error => this._pushError(error))
+      if (useCustomShell && customShell) {
+        await launchCustomShell(customShell, path, error =>
+          this._pushError(error)
+        )
+      } else {
+        const match = await findShellOrDefault(this.selectedShell)
+        await launchShell(match, path, error => this._pushError(error))
+      }
     } catch (error) {
       this.emitError(error)
     }

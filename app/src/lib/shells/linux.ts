@@ -3,6 +3,7 @@ import { assertNever } from '../fatal-error'
 import { parseEnumValue } from '../enum'
 import { pathExists } from '../../ui/lib/path-exists'
 import { FoundShell } from './shared'
+import { ICustomIntegration } from '../custom-integration'
 
 export enum Shell {
   Gnome = 'GNOME Terminal',
@@ -182,4 +183,11 @@ export function launch(
     default:
       return assertNever(shell, `Unknown shell: ${shell}`)
   }
+}
+
+export function launchCustomShell(
+  customShell: ICustomIntegration,
+  path: string
+): ChildProcess {
+  return spawn(customShell.path, [...customShell.arguments, path])
 }
