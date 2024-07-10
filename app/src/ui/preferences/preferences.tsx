@@ -750,7 +750,7 @@ export class Preferences extends React.Component<
     await dispatcher.setStatsOptOut(this.state.optOutOfUsageTracking, false)
 
     const { useCustomEditor, customEditor, useCustomShell, customShell } =
-      this.props
+      this.state
 
     dispatcher.setUseCustomEditor(useCustomEditor)
     if (customEditor) {
