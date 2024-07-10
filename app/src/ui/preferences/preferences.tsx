@@ -48,7 +48,6 @@ import {
   enableLinkUnderlines,
 } from '../../lib/feature-flag'
 import { ICustomIntegration } from '../../lib/custom-integration'
-import { getObject } from '../../lib/local-storage'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -400,10 +399,14 @@ export class Preferences extends React.Component<
             onSelectedEditorChanged={this.onSelectedEditorChanged}
             availableShells={this.state.availableShells}
             selectedShell={this.state.selectedShell}
+            useCustomEditor={this.state.useCustomEditor}
             customEditor={this.state.customEditor}
+            useCustomShell={this.state.useCustomShell}
             customShell={this.state.customShell}
             onSelectedShellChanged={this.onSelectedShellChanged}
+            onUseCustomEditorChanged={this.onUseCustomEditorChanged}
             onCustomEditorChanged={this.onCustomEditorChanged}
+            onUseCustomShellChanged={this.onUseCustomShellChanged}
             onCustomShellChanged={this.onCustomShellChanged}
           />
         )
@@ -635,8 +638,16 @@ export class Preferences extends React.Component<
     this.setState({ selectedShell: shell })
   }
 
+  private onUseCustomEditorChanged = (useCustomEditor: boolean) => {
+    this.setState({ useCustomEditor })
+  }
+
   private onCustomEditorChanged = (customEditor: ICustomIntegration) => {
     this.setState({ customEditor })
+  }
+
+  private onUseCustomShellChanged = (useCustomShell: boolean) => {
+    this.setState({ useCustomShell })
   }
 
   private onCustomShellChanged = (customShell: ICustomIntegration) => {

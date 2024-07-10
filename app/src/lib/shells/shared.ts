@@ -6,13 +6,7 @@ import * as Linux from './linux'
 import { ShellError } from './error'
 import { pathExists } from '../../ui/lib/path-exists'
 
-export const CustomShell = 'Other…'
-
-export type Shell =
-  | Darwin.Shell
-  | Win32.Shell
-  | Linux.Shell
-  | typeof CustomShell
+export type Shell = Darwin.Shell | Win32.Shell | Linux.Shell
 
 export type FoundShell<T extends Shell> = {
   readonly shell: T
@@ -41,10 +35,6 @@ let shellCache: ReadonlyArray<AnyFoundShell> | null = null
 
 /** Parse the label into the specified shell type. */
 export function parse(label: string): Shell {
-  if (label === CustomShell) {
-    return CustomShell
-  }
-
   if (__DARWIN__) {
     return Darwin.parse(label)
   } else if (__WIN32__) {

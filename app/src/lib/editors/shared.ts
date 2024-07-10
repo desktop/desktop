@@ -1,5 +1,3 @@
-export const CustomEditor = 'Other…'
-
 /**
  * A found external editor on the user's machine
  */

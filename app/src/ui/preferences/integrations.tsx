@@ -8,23 +8,31 @@ import { suggestedExternalEditor } from '../../lib/editors/shared'
 import { CustomIntegrationForm } from './custom-integration-form'
 import { ICustomIntegration } from '../../lib/custom-integration'
 
+export const CustomIntegrationLabel = 'Other…'
+
 interface IIntegrationsPreferencesProps {
   readonly availableEditors: ReadonlyArray<string>
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
+  readonly useCustomEditor: boolean
   readonly customEditor: ICustomIntegration | null
+  readonly useCustomShell: boolean
   readonly customShell: ICustomIntegration | null
   readonly onSelectedEditorChanged: (editor: string) => void
   readonly onSelectedShellChanged: (shell: Shell) => void
+  readonly onUseCustomEditorChanged: (useCustomEditor: boolean) => void
   readonly onCustomEditorChanged: (customEditor: ICustomIntegration) => void
+  readonly onUseCustomShellChanged: (useCustomShell: boolean) => void
   readonly onCustomShellChanged: (customShell: ICustomIntegration) => void
 }
 
 interface IIntegrationsPreferencesState {
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
+  readonly useCustomEditor: boolean
   readonly customEditor: ICustomIntegration | null
+  readonly useCustomShell: boolean
   readonly customShell: ICustomIntegration | null
 }
 
@@ -38,7 +46,9 @@ export class Integrations extends React.Component<
     this.state = {
       selectedExternalEditor: this.props.selectedExternalEditor,
       selectedShell: this.props.selectedShell,
+      useCustomEditor: this.props.useCustomEditor,
       customEditor: this.props.customEditor,
+      useCustomShell: this.props.useCustomShell,
       customShell: this.props.customShell,
     }
   }
@@ -78,8 +88,19 @@ export class Integrations extends React.Component<
     event: React.FormEvent<HTMLSelectElement>
   ) => {
     const value = event.currentTarget.value
-    if (value) {
-      this.setState({ selectedExternalEditor: value })
+    if (!value) {
+      return
+    }
+
+    if (value === CustomIntegrationLabel) {
+      this.setState({ useCustomEditor: true })
+      this.props.onUseCustomEditorChanged(true)
+    } else {
+      this.setState({
+        useCustomEditor: false,
+        selectedExternalEditor: value,
+      })
+      this.props.onUseCustomEditorChanged(false)
       this.props.onSelectedEditorChanged(value)
     }
   }
@@ -87,34 +108,29 @@ export class Integrations extends React.Component<
   private onSelectedShellChanged = (
     event: React.FormEvent<HTMLSelectElement>
   ) => {
-    const value = parseShell(event.currentTarget.value)
-    this.setState({ selectedShell: value })
-    this.props.onSelectedShellChanged(value)
+    const value = event.currentTarget.value
+    if (!value) {
+      return
+    }
+
+    if (value === CustomIntegrationLabel) {
+      this.setState({ useCustomShell: true })
+      this.props.onUseCustomShellChanged(true)
+    } else {
+      const parsedValue = parseShell(value)
+      this.setState({
+        useCustomShell: false,
+        selectedShell: parsedValue,
+      })
+      this.props.onSelectedShellChanged(parsedValue)
+      this.props.onUseCustomShellChanged(false)
+    }
   }
 
   private renderExternalEditor() {
     const options = this.props.availableEditors
     const selectedEditor = this.state.selectedExternalEditor
     const label = __DARWIN__ ? 'External Editor' : 'External editor'
-
-    if (options.length === 0) {
-      // this is emulating the <Select/> component's UI so the styles are
-      // consistent for either case.
-      //
-      // TODO: see whether it makes sense to have a fallback UI
-      // which we display when the select list is empty
-      return (
-        <div className="select-component no-options-found">
-          <label>{label}</label>
-          <span>
-            No editors found.{' '}
-            <LinkButton uri={suggestedExternalEditor.url}>
-              Install {suggestedExternalEditor.name}?
-            </LinkButton>
-          </span>
-        </div>
-      )
-    }
 
     return (
       <Select
@@ -127,7 +143,28 @@ export class Integrations extends React.Component<
             {n}
           </option>
         ))}
+        <option key="custom" value={CustomIntegrationLabel}>
+          {CustomIntegrationLabel}
+        </option>
       </Select>
+    )
+  }
+
+  private renderNoExternalEditorHint() {
+    // const options = this.props.availableEditors
+    // if (options.length > 0) {
+    //   return null
+    // }
+
+    return (
+      <div className="no-options-found">
+        <span>
+          No editors found.{' '}
+          <LinkButton uri={suggestedExternalEditor.url}>
+            Install {suggestedExternalEditor.name}?
+          </LinkButton>
+        </span>
+      </div>
     )
   }
 
@@ -163,6 +200,9 @@ export class Integrations extends React.Component<
             {n}
           </option>
         ))}
+        <option key="custom" value={CustomIntegrationLabel}>
+          {CustomIntegrationLabel}
+        </option>
       </Select>
     )
   }
@@ -190,9 +230,10 @@ export class Integrations extends React.Component<
       <DialogContent>
         <h2>Applications</h2>
         <Row>{this.renderExternalEditor()}</Row>
-        {this.renderCustomExternalEditor()}
+        <Row>{this.renderNoExternalEditorHint()}</Row>
+        {this.state.useCustomEditor && this.renderCustomExternalEditor()}
         <Row>{this.renderSelectedShell()}</Row>
-        {this.renderCustomShell()}
+        {this.state.useCustomShell && this.renderCustomShell()}
       </DialogContent>
     )
   }
