@@ -129,13 +129,17 @@ export class Integrations extends React.Component<
 
   private renderExternalEditor() {
     const options = this.props.availableEditors
-    const selectedEditor = this.state.selectedExternalEditor
+    const { selectedExternalEditor, useCustomEditor } = this.state
     const label = __DARWIN__ ? 'External Editor' : 'External editor'
 
     return (
       <Select
         label={label}
-        value={selectedEditor ? selectedEditor : undefined}
+        value={
+          useCustomEditor
+            ? CustomIntegrationLabel
+            : selectedExternalEditor ?? undefined
+        }
         onChange={this.onSelectedEditorChanged}
       >
         {options.map(n => (
@@ -151,10 +155,10 @@ export class Integrations extends React.Component<
   }
 
   private renderNoExternalEditorHint() {
-    // const options = this.props.availableEditors
-    // if (options.length > 0) {
-    //   return null
-    // }
+    const options = this.props.availableEditors
+    if (options.length > 0) {
+      return null
+    }
 
     return (
       <div className="no-options-found">
@@ -188,11 +192,12 @@ export class Integrations extends React.Component<
 
   private renderSelectedShell() {
     const options = this.props.availableShells
+    const { selectedShell, useCustomShell } = this.state
 
     return (
       <Select
         label="Shell"
-        value={this.state.selectedShell}
+        value={useCustomShell ? CustomIntegrationLabel : selectedShell}
         onChange={this.onSelectedShellChanged}
       >
         {options.map(n => (
