@@ -179,6 +179,7 @@ export class Integrations extends React.Component<
           id="custom-editor"
           path={this.state.customEditor?.path ?? ''}
           arguments={this.state.customEditor?.arguments.join(' ') ?? ''}
+          bundleID={this.state.customEditor?.bundleID}
           onChange={this.onCustomEditorChanged}
         />
       </Row>
@@ -219,6 +220,7 @@ export class Integrations extends React.Component<
           id="custom-shell"
           path={this.state.customShell?.path ?? ''}
           arguments={this.state.customShell?.arguments.join(' ') ?? ''}
+          bundleID={this.state.customEditor?.bundleID}
           onChange={this.onCustomShellChanged}
         />
       </Row>

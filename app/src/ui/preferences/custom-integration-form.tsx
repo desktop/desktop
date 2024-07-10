@@ -16,12 +16,14 @@ interface ICustomIntegrationFormProps {
   readonly id: string
   readonly path: string
   readonly arguments: string
+  readonly bundleID?: string
   readonly onChange: (customIntegration: ICustomIntegration) => void
 }
 
 interface ICustomIntegrationFormState {
   readonly path: string
   readonly arguments: string
+  readonly bundleID?: string
   readonly isValidPath: boolean
   readonly showNonValidPathWarning: boolean
 }
@@ -36,6 +38,7 @@ export class CustomIntegrationForm extends React.Component<
     this.state = {
       path: props.path,
       arguments: props.arguments,
+      bundleID: props.bundleID,
       isValidPath: false,
       showNonValidPathWarning: false,
     }
@@ -130,19 +133,21 @@ export class CustomIntegrationForm extends React.Component<
       // On macOS, not only executable files are valid, but also apps (which are
       // directories with a `.app` extension and from which we can retrieve
       // the app bundle ID)
-      let bundleId = null
+      let bundleID = undefined
       if (__DARWIN__ && !isExecutableFile && pathStat.isDirectory()) {
-        bundleId = await this.getBundleId(path)
+        bundleID = await this.getBundleID(path)
       }
 
-      const isValidPath = isExecutableFile || !!bundleId
+      const isValidPath = isExecutableFile || !!bundleID
 
       this.setState({
+        bundleID,
         isValidPath,
         showNonValidPathWarning: true,
       })
     } catch (e) {
       this.setState({
+        bundleID: undefined,
         isValidPath: false,
         showNonValidPathWarning: true,
       })
@@ -151,6 +156,7 @@ export class CustomIntegrationForm extends React.Component<
     this.props.onChange({
       path,
       arguments: this.state.arguments.split(' '), // TODO: use proper parser
+      bundleID: this.state.bundleID,
     })
   }
 
@@ -159,7 +165,7 @@ export class CustomIntegrationForm extends React.Component<
   }
 
   // Function to retrieve, on macOS, the bundleId of an app given its path
-  private getBundleId = async (path: string) => {
+  private getBundleID = async (path: string) => {
     try {
       // Ensure the path ends with `.app` for applications
       if (!path.endsWith('.app')) {
@@ -176,13 +182,13 @@ export class CustomIntegrationForm extends React.Component<
 
       // Check for valid output
       if (!bundleId || bundleId === '(null)') {
-        return null
+        return undefined
       }
 
       return bundleId
     } catch (error) {
       console.error('Failed to retrieve bundle ID:', error)
-      return null
+      return undefined
     }
   }
 
