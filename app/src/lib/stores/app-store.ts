@@ -130,6 +130,7 @@ import {
 import {
   findEditorOrDefault,
   getAvailableEditors,
+  launchCustomExternalEditor,
   launchExternalEditor,
 } from '../editors'
 import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
@@ -5507,21 +5508,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Open a path to a repository or file using the user's configured editor */
   public async _openInExternalEditor(fullPath: string): Promise<void> {
-    const { selectedExternalEditor } = this.getState()
+    const { selectedExternalEditor, useCustomEditor, customEditor } =
+      this.getState()
 
     try {
-      const match = await findEditorOrDefault(selectedExternalEditor)
-      if (match === null) {
-        this.emitError(
-          new ExternalEditorError(
-            `No suitable editors installed for GitHub Desktop to launch. Install ${suggestedExternalEditor.name} for your platform and restart GitHub Desktop to try again.`,
-            { suggestDefaultEditor: true }
+      if (useCustomEditor && customEditor) {
+        await launchCustomExternalEditor(fullPath, customEditor)
+      } else {
+        const match = await findEditorOrDefault(selectedExternalEditor)
+        if (match === null) {
+          this.emitError(
+            new ExternalEditorError(
+              `No suitable editors installed for GitHub Desktop to launch. Install ${suggestedExternalEditor.name} for your platform and restart GitHub Desktop to try again.`,
+              { suggestDefaultEditor: true }
+            )
           )
-        )
-        return
-      }
+          return
+        }
 
-      await launchExternalEditor(fullPath, match)
+        await launchExternalEditor(fullPath, match)
+      }
     } catch (error) {
       this.emitError(error)
     }
