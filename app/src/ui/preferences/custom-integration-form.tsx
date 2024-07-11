@@ -26,7 +26,8 @@ interface ICustomIntegrationFormState {
   readonly isValidPath: boolean
   readonly showNonValidPathWarning: boolean
   readonly isValidArgs: boolean
-  readonly showNonValidArgsWarning: boolean
+  readonly showNonValidArgsError: boolean
+  readonly showNoRepoPathArgError: boolean
 }
 
 export class CustomIntegrationForm extends React.Component<
@@ -42,7 +43,8 @@ export class CustomIntegrationForm extends React.Component<
       isValidPath: false,
       showNonValidPathWarning: false,
       isValidArgs: false,
-      showNonValidArgsWarning: false,
+      showNonValidArgsError: false,
+      showNoRepoPathArgError: false,
     }
   }
 
@@ -106,12 +108,14 @@ export class CustomIntegrationForm extends React.Component<
     if (
       !this.state.arguments.length ||
       this.state.isValidArgs ||
-      !this.state.showNonValidArgsWarning
+      (!this.state.showNoRepoPathArgError && !this.state.showNonValidArgsError)
     ) {
       return null
     }
 
-    const errorDescription = 'These arguments are not valid.'
+    const errorDescription = this.state.showNonValidArgsError
+      ? 'These arguments are not valid.'
+      : 'Arguments must include the repository path placeholder (%REPO_PATH%).'
 
     const msg: IAccessibleMessage = {
       screenReaderMessage: errorDescription,
@@ -195,14 +199,24 @@ export class CustomIntegrationForm extends React.Component<
   }
 
   private updateArguments(args: string) {
-    this.setState({ arguments: args })
     try {
-      const argv = parseCustomIntegrationArguments(this.state.arguments)
+      const argv = parseCustomIntegrationArguments(args)
+
+      if (!argv.includes(RepoPathArgument)) {
+        this.setState({
+          arguments: args,
+          isValidArgs: false,
+          showNonValidArgsError: false,
+          showNoRepoPathArgError: true,
+        })
+        return
+      }
 
       this.setState({
         arguments: args,
         isValidArgs: true,
-        showNonValidArgsWarning: true,
+        showNonValidArgsError: false,
+        showNoRepoPathArgError: false,
       })
 
       this.props.onArgumentsChanged(argv)
@@ -212,7 +226,8 @@ export class CustomIntegrationForm extends React.Component<
       this.setState({
         arguments: args,
         isValidArgs: false,
-        showNonValidArgsWarning: true,
+        showNonValidArgsError: true,
+        showNoRepoPathArgError: false,
       })
     }
   }
