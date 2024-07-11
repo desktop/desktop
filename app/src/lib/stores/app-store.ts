@@ -2276,6 +2276,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
+
+    this.updateMenuLabelsForSelectedRepository()
   }
 
   /**
@@ -2408,16 +2410,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   private updateMenuItemLabels(state: IRepositoryState | null) {
     const {
+      useCustomShell,
       selectedShell,
       selectedRepository,
+      useCustomEditor,
       selectedExternalEditor,
       askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush,
     } = this
 
     const labels: MenuLabelsEvent = {
-      selectedShell,
-      selectedExternalEditor,
+      selectedShell: useCustomShell ? null : selectedShell,
+      selectedExternalEditor: useCustomEditor ? null : selectedExternalEditor,
       askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush,
     }
