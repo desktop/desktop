@@ -161,14 +161,16 @@ export class Integrations extends React.Component<
     }
 
     return (
-      <div className="no-options-found">
-        <span>
-          No editors found.{' '}
-          <LinkButton uri={suggestedExternalEditor.url}>
-            Install {suggestedExternalEditor.name}?
-          </LinkButton>
-        </span>
-      </div>
+      <Row>
+        <div className="no-options-found">
+          <span>
+            No editors found.{' '}
+            <LinkButton uri={suggestedExternalEditor.url}>
+              Install {suggestedExternalEditor.name}?
+            </LinkButton>
+          </span>
+        </div>
+      </Row>
     )
   }
 
@@ -271,7 +273,7 @@ export class Integrations extends React.Component<
       <DialogContent>
         <h2>Applications</h2>
         <Row>{this.renderExternalEditor()}</Row>
-        <Row>{this.renderNoExternalEditorHint()}</Row>
+        {this.renderNoExternalEditorHint()}
         {this.state.useCustomEditor && this.renderCustomExternalEditor()}
         <Row>{this.renderSelectedShell()}</Row>
         {this.state.useCustomShell && this.renderCustomShell()}
