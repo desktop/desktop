@@ -51,6 +51,7 @@ export class CustomIntegrationForm extends React.Component<
       <div className="custom-integration-form-container">
         <div className="custom-integration-form-path-container">
           <TextBox
+            label="Path"
             value={this.state.path}
             onValueChanged={this.onPathChanged}
             placeholder="Path to executable"
@@ -60,6 +61,7 @@ export class CustomIntegrationForm extends React.Component<
         </div>
         {this.renderPathErrors()}
         <TextBox
+          label="Arguments"
           value={this.state.arguments}
           onValueChanged={this.onParamsChanged}
           placeholder="Command line arguments"
