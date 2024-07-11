@@ -3,7 +3,10 @@ import { assertNever } from '../fatal-error'
 import { parseEnumValue } from '../enum'
 import { pathExists } from '../../ui/lib/path-exists'
 import { FoundShell } from './shared'
-import { ICustomIntegration } from '../custom-integration'
+import {
+  expandRepoPathArgument,
+  ICustomIntegration,
+} from '../custom-integration'
 
 export enum Shell {
   Gnome = 'GNOME Terminal',
@@ -189,5 +192,6 @@ export function launchCustomShell(
   customShell: ICustomIntegration,
   path: string
 ): ChildProcess {
-  return spawn(customShell.path, [...customShell.arguments, path])
+  const args = expandRepoPathArgument(customShell.arguments, path)
+  return spawn(customShell.path, args)
 }

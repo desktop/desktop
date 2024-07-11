@@ -46,3 +46,10 @@ export async function getBundleID(path: string) {
     return undefined
   }
 }
+
+export function expandRepoPathArgument(
+  args: ReadonlyArray<string>,
+  repoPath: string
+): ReadonlyArray<string> {
+  return args.map(arg => (arg === RepoPathArgument ? repoPath : arg))
+}

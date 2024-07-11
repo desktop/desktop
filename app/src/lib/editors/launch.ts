@@ -1,7 +1,10 @@
 import { spawn, SpawnOptions } from 'child_process'
 import { pathExists } from '../../ui/lib/path-exists'
 import { ExternalEditorError, FoundEditor } from './shared'
-import { ICustomIntegration } from '../custom-integration'
+import {
+  expandRepoPathArgument,
+  ICustomIntegration,
+} from '../custom-integration'
 
 /**
  * Open a given file or folder in the desired external editor.
@@ -83,27 +86,26 @@ export async function launchCustomExternalEditor(
     detached: true,
   }
 
+  // Replace instances of RepoPathArgument with fullPath in customEditor.arguments
+  const args = expandRepoPathArgument(customEditor.arguments, fullPath)
+
   try {
     const usesShell = editorPath.endsWith('.cmd')
     if (usesShell) {
-      spawn(`"${editorPath}"`, [...customEditor.arguments, `"${fullPath}"`], {
+      spawn(`"${editorPath}"`, args, {
         ...opts,
         shell: true,
       })
     } else if (__DARWIN__) {
       // In macOS we can use `open`, which will open the right executable file
       // for us, we only need the path to the editor .app folder.
-      spawn(
-        'open',
-        ['-a', editorPath, ...customEditor.arguments, fullPath],
-        opts
-      )
+      spawn('open', ['-a', editorPath, ...args], opts)
     } else {
-      spawn(editorPath, [fullPath], opts)
+      spawn(editorPath, args, opts)
     }
   } catch (error) {
     log.error(
-      `Error while launching custom editor at path ${customEditor.path} with arguments ${customEditor.arguments}`,
+      `Error while launching custom editor at path ${customEditor.path} with arguments ${args}`,
       error
     )
     if (error?.code === 'EACCES') {

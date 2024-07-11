@@ -7,7 +7,10 @@ import { findGitOnPath } from '../is-git-on-path'
 import { parseEnumValue } from '../enum'
 import { pathExists } from '../../ui/lib/path-exists'
 import { FoundShell } from './shared'
-import { ICustomIntegration } from '../custom-integration'
+import {
+  expandRepoPathArgument,
+  ICustomIntegration,
+} from '../custom-integration'
 
 export enum Shell {
   Cmd = 'Command Prompt',
@@ -482,7 +485,8 @@ export function launchCustomShell(
   path: string
 ): ChildProcess {
   log.info(`launching custom shell at path: ${customShell.path}`)
-  return spawn(customShell.path, customShell.arguments, {
+  const args = expandRepoPathArgument(customShell.arguments, path)
+  return spawn(customShell.path, args, {
     shell: true,
     cwd: path,
   })
