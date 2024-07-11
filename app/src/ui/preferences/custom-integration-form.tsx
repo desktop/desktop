@@ -6,11 +6,11 @@ import { access, stat } from 'fs/promises'
 import * as fs from 'fs'
 import { InputError } from '../lib/input-description/input-error'
 import { IAccessibleMessage } from '../../models/accessible-message'
-import { promisify } from 'util'
-import { exec } from 'child_process'
-import { ICustomIntegration } from '../../lib/custom-integration'
-
-const execAsync = promisify(exec)
+import {
+  getBundleID as getAppBundleID,
+  ICustomIntegration,
+  parseCustomIntegrationArguments,
+} from '../../lib/custom-integration'
 
 interface ICustomIntegrationFormProps {
   readonly id: string
@@ -26,6 +26,8 @@ interface ICustomIntegrationFormState {
   readonly bundleID?: string
   readonly isValidPath: boolean
   readonly showNonValidPathWarning: boolean
+  readonly isValidArgs: boolean
+  readonly showNonValidArgsWarning: boolean
 }
 
 export class CustomIntegrationForm extends React.Component<
@@ -41,6 +43,8 @@ export class CustomIntegrationForm extends React.Component<
       bundleID: props.bundleID,
       isValidPath: false,
       showNonValidPathWarning: false,
+      isValidArgs: false,
+      showNonValidArgsWarning: false,
     }
   }
 
@@ -56,17 +60,19 @@ export class CustomIntegrationForm extends React.Component<
           />
           <Button onClick={this.onChoosePath}>Choose…</Button>
         </div>
-        {this.renderErrors()}
+        {this.renderPathErrors()}
         <TextBox
           value={this.state.arguments}
           onValueChanged={this.onParamsChanged}
           placeholder="Command line arguments"
+          ariaDescribedBy={`${this.props.id}-custom-integration-args-error`}
         />
+        {this.renderArgsErrors()}
       </div>
     )
   }
 
-  private renderErrors() {
+  private renderPathErrors() {
     if (
       !this.state.path.length ||
       this.state.isValidPath ||
@@ -87,6 +93,35 @@ export class CustomIntegrationForm extends React.Component<
       <div className="custom-integration-form-error">
         <InputError
           id={`${this.props.id}-custom-integration-path-error`}
+          trackedUserInput={this.state.path}
+          ariaLiveMessage={msg.screenReaderMessage}
+        >
+          {msg.displayedMessage}
+        </InputError>
+      </div>
+    )
+  }
+
+  private renderArgsErrors() {
+    if (
+      !this.state.arguments.length ||
+      this.state.isValidArgs ||
+      !this.state.showNonValidArgsWarning
+    ) {
+      return null
+    }
+
+    const errorDescription = 'These arguments are not valid.'
+
+    const msg: IAccessibleMessage = {
+      screenReaderMessage: errorDescription,
+      displayedMessage: errorDescription,
+    }
+
+    return (
+      <div className="custom-integration-form-error">
+        <InputError
+          id={`${this.props.id}-custom-integration-args-error`}
           trackedUserInput={this.state.path}
           ariaLiveMessage={msg.screenReaderMessage}
         >
@@ -135,7 +170,7 @@ export class CustomIntegrationForm extends React.Component<
       // the app bundle ID)
       let bundleID = undefined
       if (__DARWIN__ && !isExecutableFile && pathStat.isDirectory()) {
-        bundleID = await this.getBundleID(path)
+        bundleID = await getAppBundleID(path)
       }
 
       const isValidPath = isExecutableFile || !!bundleID
@@ -153,43 +188,26 @@ export class CustomIntegrationForm extends React.Component<
       })
     }
 
-    this.props.onChange({
-      path,
-      arguments: this.state.arguments.split(' '), // TODO: use proper parser
-      bundleID: this.state.bundleID,
-    })
+    try {
+      const args = parseCustomIntegrationArguments(this.state.arguments)
+
+      this.props.onChange({
+        path,
+        arguments: args,
+        bundleID: this.state.bundleID,
+      })
+    } catch (e) {
+      log.error('Failed to parse custom integration arguments:', e)
+
+      this.setState({
+        isValidArgs: false,
+        showNonValidArgsWarning: true,
+      })
+    }
   }
 
   private onPathChanged = (path: string) => {
     this.updatePath(path)
-  }
-
-  // Function to retrieve, on macOS, the bundleId of an app given its path
-  private getBundleID = async (path: string) => {
-    try {
-      // Ensure the path ends with `.app` for applications
-      if (!path.endsWith('.app')) {
-        throw new Error(
-          'The provided path does not point to a macOS application.'
-        )
-      }
-
-      // Use mdls to query the kMDItemCFBundleIdentifier attribute
-      const { stdout } = await execAsync(
-        `mdls -name kMDItemCFBundleIdentifier -raw "${path}"`
-      )
-      const bundleId = stdout.trim()
-
-      // Check for valid output
-      if (!bundleId || bundleId === '(null)') {
-        return undefined
-      }
-
-      return bundleId
-    } catch (error) {
-      console.error('Failed to retrieve bundle ID:', error)
-      return undefined
-    }
   }
 
   private onParamsChanged = (params: string) => {
