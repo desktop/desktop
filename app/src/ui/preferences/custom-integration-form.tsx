@@ -8,22 +8,21 @@ import { InputError } from '../lib/input-description/input-error'
 import { IAccessibleMessage } from '../../models/accessible-message'
 import {
   getBundleID as getAppBundleID,
-  ICustomIntegration,
   parseCustomIntegrationArguments,
+  RepoPathArgument,
 } from '../../lib/custom-integration'
 
 interface ICustomIntegrationFormProps {
   readonly id: string
   readonly path: string
   readonly arguments: string
-  readonly bundleID?: string
-  readonly onChange: (customIntegration: ICustomIntegration) => void
+  readonly onPathChanged: (path: string, bundleID?: string) => void
+  readonly onArgumentsChanged: (args: ReadonlyArray<string>) => void
 }
 
 interface ICustomIntegrationFormState {
   readonly path: string
   readonly arguments: string
-  readonly bundleID?: string
   readonly isValidPath: boolean
   readonly showNonValidPathWarning: boolean
   readonly isValidArgs: boolean
@@ -39,8 +38,7 @@ export class CustomIntegrationForm extends React.Component<
 
     this.state = {
       path: props.path,
-      arguments: props.arguments,
-      bundleID: props.bundleID,
+      arguments: props.arguments || RepoPathArgument,
       isValidPath: false,
       showNonValidPathWarning: false,
       isValidArgs: false,
@@ -157,6 +155,8 @@ export class CustomIntegrationForm extends React.Component<
       return
     }
 
+    let bundleID = undefined
+
     try {
       const pathStat = await stat(path)
       const canBeExecuted = await access(path, fs.constants.X_OK)
@@ -168,7 +168,6 @@ export class CustomIntegrationForm extends React.Component<
       // On macOS, not only executable files are valid, but also apps (which are
       // directories with a `.app` extension and from which we can retrieve
       // the app bundle ID)
-      let bundleID = undefined
       if (__DARWIN__ && !isExecutableFile && pathStat.isDirectory()) {
         bundleID = await getAppBundleID(path)
       }
@@ -176,45 +175,47 @@ export class CustomIntegrationForm extends React.Component<
       const isValidPath = isExecutableFile || !!bundleID
 
       this.setState({
-        bundleID,
         isValidPath,
         showNonValidPathWarning: true,
       })
     } catch (e) {
       this.setState({
-        bundleID: undefined,
         isValidPath: false,
         showNonValidPathWarning: true,
       })
     }
 
-    try {
-      const args = parseCustomIntegrationArguments(this.state.arguments)
-
-      this.props.onChange({
-        path,
-        arguments: args,
-        bundleID: this.state.bundleID,
-      })
-    } catch (e) {
-      log.error('Failed to parse custom integration arguments:', e)
-
-      this.setState({
-        isValidArgs: false,
-        showNonValidArgsWarning: true,
-      })
-    }
+    this.props.onPathChanged(path, bundleID)
   }
 
   private onPathChanged = (path: string) => {
     this.updatePath(path)
   }
 
+  private updateArguments(args: string) {
+    this.setState({ arguments: args })
+    try {
+      const argv = parseCustomIntegrationArguments(this.state.arguments)
+
+      this.setState({
+        arguments: args,
+        isValidArgs: true,
+        showNonValidArgsWarning: true,
+      })
+
+      this.props.onArgumentsChanged(argv)
+    } catch (e) {
+      log.error('Failed to parse custom integration arguments:', e)
+
+      this.setState({
+        arguments: args,
+        isValidArgs: false,
+        showNonValidArgsWarning: true,
+      })
+    }
+  }
+
   private onParamsChanged = (params: string) => {
-    this.setState({ arguments: params })
-    this.props.onChange({
-      path: this.state.path,
-      arguments: params.split(' '), // TODO: use proper parser
-    })
+    this.updateArguments(params)
   }
 }

@@ -5,6 +5,8 @@ import { exec } from 'child_process'
 
 const execAsync = promisify(exec)
 
+export const RepoPathArgument = '%REPO_PATH%'
+
 export interface ICustomIntegration {
   readonly path: string
   readonly arguments: ReadonlyArray<string>

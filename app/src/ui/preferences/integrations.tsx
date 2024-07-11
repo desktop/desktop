@@ -179,14 +179,31 @@ export class Integrations extends React.Component<
           id="custom-editor"
           path={this.state.customEditor?.path ?? ''}
           arguments={this.state.customEditor?.arguments.join(' ') ?? ''}
-          bundleID={this.state.customEditor?.bundleID}
-          onChange={this.onCustomEditorChanged}
+          onPathChanged={this.onCustomEditorPathChanged}
+          onArgumentsChanged={this.onCustomEditorArgumentsChanged}
         />
       </Row>
     )
   }
 
-  private onCustomEditorChanged = (customEditor: ICustomIntegration) => {
+  private onCustomEditorPathChanged = (path: string, bundleID?: string) => {
+    const customEditor: ICustomIntegration = {
+      path,
+      bundleID,
+      arguments: this.state.customEditor?.arguments ?? [],
+    }
+
+    this.setState({ customEditor })
+    this.props.onCustomEditorChanged(customEditor)
+  }
+
+  private onCustomEditorArgumentsChanged = (args: ReadonlyArray<string>) => {
+    const customEditor: ICustomIntegration = {
+      path: this.state.customEditor?.path ?? '',
+      bundleID: this.state.customEditor?.bundleID,
+      arguments: args,
+    }
+
     this.setState({ customEditor })
     this.props.onCustomEditorChanged(customEditor)
   }
@@ -220,14 +237,31 @@ export class Integrations extends React.Component<
           id="custom-shell"
           path={this.state.customShell?.path ?? ''}
           arguments={this.state.customShell?.arguments.join(' ') ?? ''}
-          bundleID={this.state.customEditor?.bundleID}
-          onChange={this.onCustomShellChanged}
+          onPathChanged={this.onCustomShellPathChanged}
+          onArgumentsChanged={this.onCustomShellArgumentsChanged}
         />
       </Row>
     )
   }
 
-  private onCustomShellChanged = (customShell: ICustomIntegration) => {
+  private onCustomShellPathChanged = (path: string, bundleID?: string) => {
+    const customShell: ICustomIntegration = {
+      path,
+      bundleID,
+      arguments: this.state.customShell?.arguments ?? [],
+    }
+
+    this.setState({ customShell })
+    this.props.onCustomShellChanged(customShell)
+  }
+
+  private onCustomShellArgumentsChanged = (args: ReadonlyArray<string>) => {
+    const customShell: ICustomIntegration = {
+      path: this.state.customShell?.path ?? '',
+      bundleID: this.state.customShell?.bundleID,
+      arguments: args,
+    }
+
     this.setState({ customShell })
     this.props.onCustomShellChanged(customShell)
   }
