@@ -130,11 +130,10 @@ export class Integrations extends React.Component<
   private renderExternalEditor() {
     const options = this.props.availableEditors
     const { selectedExternalEditor, useCustomEditor } = this.state
-    const label = __DARWIN__ ? 'External Editor' : 'External editor'
 
     return (
       <Select
-        label={label}
+        aria-label="External editor"
         value={
           useCustomEditor
             ? CustomIntegrationLabel
@@ -216,7 +215,7 @@ export class Integrations extends React.Component<
 
     return (
       <Select
-        label="Shell"
+        aria-label="Shell"
         value={useCustomShell ? CustomIntegrationLabel : selectedShell}
         onChange={this.onSelectedShellChanged}
       >
@@ -272,9 +271,11 @@ export class Integrations extends React.Component<
     return (
       <DialogContent>
         <h2>Applications</h2>
+        <h3>{__DARWIN__ ? 'External Editor' : 'External editor'}</h3>
         <Row>{this.renderExternalEditor()}</Row>
         {this.renderNoExternalEditorHint()}
         {this.state.useCustomEditor && this.renderCustomExternalEditor()}
+        <h3>Shell</h3>
         <Row>{this.renderSelectedShell()}</Row>
         {this.state.useCustomShell && this.renderCustomShell()}
       </DialogContent>
