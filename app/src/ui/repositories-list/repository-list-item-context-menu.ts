@@ -9,7 +9,7 @@ import {
 
 interface IRepositoryListItemContextMenuConfig {
   repository: Repositoryish
-  shellLabel: string
+  shellLabel: string | undefined
   externalEditorLabel: string | undefined
   askForConfirmationOnRemoveRepository: boolean
   onViewOnGitHub: (repository: Repositoryish) => void
@@ -31,6 +31,9 @@ export const generateRepositoryListContextMenu = (
   const openInExternalEditor = config.externalEditorLabel
     ? `Open in ${config.externalEditorLabel}`
     : DefaultEditorLabel
+  const openInShell = config.shellLabel
+    ? `Open in ${config.shellLabel}`
+    : 'Open in shell'
 
   const items: ReadonlyArray<IMenuItem> = [
     ...buildAliasMenuItems(config),
@@ -49,7 +52,7 @@ export const generateRepositoryListContextMenu = (
       enabled: github,
     },
     {
-      label: `Open in ${config.shellLabel}`,
+      label: openInShell,
       action: () => config.onOpenInShell(repository),
       enabled: !missing,
     },
