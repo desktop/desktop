@@ -4,7 +4,7 @@ import appPath from 'app-path'
 import { parseEnumValue } from '../enum'
 import { FoundShell } from './shared'
 import {
-  expandRepoPathArgument,
+  expandTargetPathArgument,
   ICustomIntegration,
 } from '../custom-integration'
 
@@ -199,7 +199,7 @@ export function launchCustomShell(
   customShell: ICustomIntegration,
   path: string
 ): ChildProcess {
-  const args = expandRepoPathArgument(customShell.arguments, path)
+  const args = expandTargetPathArgument(customShell.arguments, path)
 
   return customShell.bundleID
     ? spawn('open', ['-b', customShell.bundleID, ...args])

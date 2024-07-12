@@ -8,7 +8,7 @@ import { parseEnumValue } from '../enum'
 import { pathExists } from '../../ui/lib/path-exists'
 import { FoundShell } from './shared'
 import {
-  expandRepoPathArgument,
+  expandTargetPathArgument,
   ICustomIntegration,
 } from '../custom-integration'
 
@@ -485,7 +485,7 @@ export function launchCustomShell(
   path: string
 ): ChildProcess {
   log.info(`launching custom shell at path: ${customShell.path}`)
-  const args = expandRepoPathArgument(customShell.arguments, path)
+  const args = expandTargetPathArgument(customShell.arguments, path)
   return spawn(`"${customShell.path}"`, args, {
     shell: true,
     cwd: path,

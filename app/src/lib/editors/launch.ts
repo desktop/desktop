@@ -2,7 +2,7 @@ import { spawn, SpawnOptions } from 'child_process'
 import { pathExists } from '../../ui/lib/path-exists'
 import { ExternalEditorError, FoundEditor } from './shared'
 import {
-  expandRepoPathArgument,
+  expandTargetPathArgument,
   ICustomIntegration,
 } from '../custom-integration'
 
@@ -87,7 +87,7 @@ export async function launchCustomExternalEditor(
   }
 
   // Replace instances of RepoPathArgument with fullPath in customEditor.arguments
-  const args = expandRepoPathArgument(customEditor.arguments, fullPath)
+  const args = expandTargetPathArgument(customEditor.arguments, fullPath)
 
   try {
     const usesShell = editorPath.endsWith('.cmd')

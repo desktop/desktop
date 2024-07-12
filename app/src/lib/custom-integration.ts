@@ -47,7 +47,7 @@ export async function getBundleID(path: string) {
   }
 }
 
-export function expandRepoPathArgument(
+export function expandTargetPathArgument(
   args: ReadonlyArray<string>,
   repoPath: string
 ): ReadonlyArray<string> {
