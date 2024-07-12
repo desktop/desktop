@@ -5,7 +5,7 @@ import { exec } from 'child_process'
 
 const execAsync = promisify(exec)
 
-export const RepoPathArgument = '%REPO_PATH%'
+export const TargetPathArgument = '%TARGET_PATH%'
 
 export interface ICustomIntegration {
   readonly path: string
@@ -51,5 +51,5 @@ export function expandRepoPathArgument(
   args: ReadonlyArray<string>,
   repoPath: string
 ): ReadonlyArray<string> {
-  return args.map(arg => (arg === RepoPathArgument ? repoPath : arg))
+  return args.map(arg => (arg === TargetPathArgument ? repoPath : arg))
 }

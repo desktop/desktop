@@ -9,7 +9,7 @@ import { IAccessibleMessage } from '../../models/accessible-message'
 import {
   getBundleID as getAppBundleID,
   parseCustomIntegrationArguments,
-  RepoPathArgument,
+  TargetPathArgument,
 } from '../../lib/custom-integration'
 
 interface ICustomIntegrationFormProps {
@@ -39,7 +39,7 @@ export class CustomIntegrationForm extends React.Component<
 
     this.state = {
       path: props.path,
-      arguments: props.arguments || RepoPathArgument,
+      arguments: props.arguments || TargetPathArgument,
       isValidPath: false,
       showNonValidPathWarning: false,
       isValidArgs: false,
@@ -115,7 +115,7 @@ export class CustomIntegrationForm extends React.Component<
 
     const errorDescription = this.state.showNonValidArgsError
       ? 'These arguments are not valid.'
-      : 'Arguments must include the repository path placeholder (%REPO_PATH%).'
+      : `Arguments must include the target path placeholder (${TargetPathArgument}).`
 
     const msg: IAccessibleMessage = {
       screenReaderMessage: errorDescription,
@@ -202,7 +202,7 @@ export class CustomIntegrationForm extends React.Component<
     try {
       const argv = parseCustomIntegrationArguments(args)
 
-      if (!argv.includes(RepoPathArgument)) {
+      if (!argv.includes(TargetPathArgument)) {
         this.setState({
           arguments: args,
           isValidArgs: false,
