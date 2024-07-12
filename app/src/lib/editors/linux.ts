@@ -182,11 +182,11 @@ const editors: ILinuxExternalEditor[] = [
   {
     name: 'Zed',
     paths: [
-      '~/.local/bin/zed',
-      '/usr/bin/zed',
       '/usr/bin/zedit',
       '/usr/bin/zeditor',
       '/usr/bin/zed-editor',
+      '~/.local/bin/zed',
+      '/usr/bin/zed',
     ],
   },
 ]
