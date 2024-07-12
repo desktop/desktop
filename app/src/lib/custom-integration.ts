@@ -51,5 +51,9 @@ export function expandRepoPathArgument(
   args: ReadonlyArray<string>,
   repoPath: string
 ): ReadonlyArray<string> {
-  return args.map(arg => (arg === TargetPathArgument ? repoPath : arg))
+  return args.map(arg => arg.replaceAll(TargetPathArgument, repoPath))
+}
+
+export function checkTargetPathArgument(args: ReadonlyArray<string>): boolean {
+  return args.some(arg => arg.includes(TargetPathArgument))
 }

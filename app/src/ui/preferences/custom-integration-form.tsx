@@ -7,6 +7,7 @@ import * as fs from 'fs'
 import { InputError } from '../lib/input-description/input-error'
 import { IAccessibleMessage } from '../../models/accessible-message'
 import {
+  checkTargetPathArgument,
   getBundleID as getAppBundleID,
   parseCustomIntegrationArguments,
   TargetPathArgument,
@@ -202,7 +203,7 @@ export class CustomIntegrationForm extends React.Component<
     try {
       const argv = parseCustomIntegrationArguments(args)
 
-      if (!argv.includes(TargetPathArgument)) {
+      if (!checkTargetPathArgument(argv)) {
         this.setState({
           arguments: args,
           isValidArgs: false,

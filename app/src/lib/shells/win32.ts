@@ -486,7 +486,7 @@ export function launchCustomShell(
 ): ChildProcess {
   log.info(`launching custom shell at path: ${customShell.path}`)
   const args = expandRepoPathArgument(customShell.arguments, path)
-  return spawn(customShell.path, args, {
+  return spawn(`"${customShell.path}"`, args, {
     shell: true,
     cwd: path,
   })
