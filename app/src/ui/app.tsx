@@ -3345,9 +3345,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (selectedState.type === SelectionType.Repository) {
-      const externalEditorLabel = state.selectedExternalEditor
-        ? state.selectedExternalEditor
-        : undefined
+      const externalEditorLabel = state.useCustomEditor
+        ? undefined
+        : state.selectedExternalEditor ?? undefined
 
       return (
         <RepositoryView
