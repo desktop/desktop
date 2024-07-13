@@ -359,6 +359,7 @@ These editors are currently supported:
  - [Emacs](https://www.gnu.org/software/emacs/)
  - [Pulsar](https://pulsar-edit.dev/)
  - [Pluma](https://github.com/mate-desktop/pluma)
+ - [Zed](https://zed.dev/)
 
 These are defined in a list at the top of the file:
 
