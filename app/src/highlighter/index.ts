@@ -607,8 +607,8 @@ function readToken(
   throw new Error(`Mode ${getModeName(mode)} failed to advance stream.`)
 }
 
-onmessage = async (ev: MessageEvent) => {
-  const request = ev.data as IHighlightRequest
+onmessage = async (ev: MessageEvent<IHighlightRequest>) => {
+  const request = ev.data
 
   const tabSize = request.tabSize || 4
   const addModeClass = request.addModeClass === true
