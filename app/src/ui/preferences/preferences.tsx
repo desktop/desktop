@@ -50,6 +50,7 @@ import {
 import {
   ICustomIntegration,
   TargetPathArgument,
+  isValidCustomIntegration,
 } from '../../lib/custom-integration'
 
 interface IPreferencesProps {
@@ -761,13 +762,17 @@ export class Preferences extends React.Component<
     const { useCustomEditor, customEditor, useCustomShell, customShell } =
       this.state
 
-    dispatcher.setUseCustomEditor(useCustomEditor)
-    if (customEditor) {
+    const isValidCustomEditor =
+      customEditor && (await isValidCustomIntegration(customEditor))
+    dispatcher.setUseCustomEditor(useCustomEditor && isValidCustomEditor)
+    if (isValidCustomEditor) {
       dispatcher.setCustomEditor(customEditor)
     }
 
-    dispatcher.setUseCustomShell(useCustomShell)
-    if (customShell) {
+    const isValidCustomShell =
+      customShell && (await isValidCustomIntegration(customShell))
+    dispatcher.setUseCustomShell(useCustomShell && isValidCustomShell)
+    if (isValidCustomShell) {
       dispatcher.setCustomShell(customShell)
     }
 
