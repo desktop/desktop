@@ -327,6 +327,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   public componentWillUnmount() {
     window.clearInterval(this.updateIntervalHandle)
+
+    if (__DARWIN__) {
+      window.removeEventListener('keydown', this.onMacOSWindowKeyDown)
+    }
   }
 
   private async performDeferredLaunchActions() {
@@ -1191,6 +1195,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       window.addEventListener('keyup', this.onWindowKeyUp)
     }
 
+    if (__DARWIN__) {
+      window.addEventListener('keydown', this.onMacOSWindowKeyDown)
+    }
+
     document.addEventListener('focus', this.onDocumentFocus, {
       capture: true,
     })
@@ -1198,6 +1206,31 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onDocumentFocus = (event: FocusEvent) => {
     this.props.dispatcher.appFocusedElementChanged()
+  }
+
+  /**
+   * Manages keyboard shortcuts specific to macOS.
+   * - adds Shift+F10 to open the context menus (like on Windows so macOS
+   *   keyboard users are not required to use VoiceOver to trigger context
+   *   menus)
+   */
+  private onMacOSWindowKeyDown = (event: KeyboardEvent) => {
+    // We do not want to override Shift+F10 behavior for the context menu on Windows.
+    if (!__DARWIN__) {
+      return
+    }
+
+    if (event.defaultPrevented) {
+      return
+    }
+
+    if (event.shiftKey && event.key === 'F10') {
+      document.activeElement?.dispatchEvent(
+        new Event('contextmenu', {
+          bubbles: true, // Required for React's event system
+        })
+      )
+    }
   }
 
   /**
