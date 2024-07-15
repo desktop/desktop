@@ -164,7 +164,9 @@ export class CustomIntegrationForm extends React.Component<
       showNonValidPathWarning: !result.isValid,
     })
 
-    this.props.onPathChanged(path, result.bundleID)
+    if (result.isValid) {
+      this.props.onPathChanged(path, result.bundleID)
+    }
   }
 
   private onPathChanged = (path: string) => {
