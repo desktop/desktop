@@ -35,6 +35,8 @@ export class CustomIntegrationForm extends React.Component<
   ICustomIntegrationFormProps,
   ICustomIntegrationFormState
 > {
+  private pathInputRef = React.createRef<TextBox>()
+
   public constructor(props: ICustomIntegrationFormProps) {
     super(props)
 
@@ -51,6 +53,10 @@ export class CustomIntegrationForm extends React.Component<
     }
   }
 
+  public focus() {
+    this.pathInputRef.current?.focus()
+  }
+
   public render() {
     return (
       <div className="custom-integration-form-container">
@@ -58,6 +64,7 @@ export class CustomIntegrationForm extends React.Component<
           <TextBox
             label="Path"
             value={this.state.path}
+            ref={this.pathInputRef}
             onValueChanged={this.onPathChanged}
             placeholder="Path to executable"
             ariaDescribedBy={`${this.props.id}-custom-integration-path-error`}

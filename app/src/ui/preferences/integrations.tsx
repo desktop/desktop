@@ -40,6 +40,9 @@ export class Integrations extends React.Component<
   IIntegrationsPreferencesProps,
   IIntegrationsPreferencesState
 > {
+  private customEditorFormRef = React.createRef<CustomIntegrationForm>()
+  private customShellFormRef = React.createRef<CustomIntegrationForm>()
+
   public constructor(props: IIntegrationsPreferencesProps) {
     super(props)
 
@@ -82,6 +85,19 @@ export class Integrations extends React.Component<
       selectedExternalEditor,
       selectedShell,
     })
+  }
+
+  public componentDidUpdate(
+    prevProps: IIntegrationsPreferencesProps,
+    prevState: IIntegrationsPreferencesState
+  ): void {
+    if (!prevState.useCustomEditor && this.state.useCustomEditor) {
+      this.customEditorFormRef.current?.focus()
+    }
+
+    if (!prevState.useCustomShell && this.state.useCustomShell) {
+      this.customShellFormRef.current?.focus()
+    }
   }
 
   private onSelectedEditorChanged = (
@@ -178,6 +194,7 @@ export class Integrations extends React.Component<
       <Row>
         <CustomIntegrationForm
           id="custom-editor"
+          ref={this.customEditorFormRef}
           path={this.state.customEditor.path ?? ''}
           arguments={this.state.customEditor.arguments.join(' ') ?? ''}
           onPathChanged={this.onCustomEditorPathChanged}
@@ -236,6 +253,7 @@ export class Integrations extends React.Component<
       <Row>
         <CustomIntegrationForm
           id="custom-shell"
+          ref={this.customShellFormRef}
           path={this.state.customShell.path ?? ''}
           arguments={this.state.customShell.arguments.join(' ') ?? ''}
           onPathChanged={this.onCustomShellPathChanged}
