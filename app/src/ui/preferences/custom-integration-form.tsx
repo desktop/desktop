@@ -181,7 +181,7 @@ export class CustomIntegrationForm extends React.Component<
 
       this.setState({
         isValidPath,
-        showNonValidPathWarning: true,
+        showNonValidPathWarning: !isValidPath,
       })
     } catch (e) {
       this.setState({
