@@ -40,7 +40,7 @@ export class CustomIntegrationForm extends React.Component<
 
     this.state = {
       path: props.path,
-      arguments: props.arguments || TargetPathArgument,
+      arguments: props.arguments,
       isValidPath: false,
       showNonValidPathWarning: false,
       isValidArgs: false,

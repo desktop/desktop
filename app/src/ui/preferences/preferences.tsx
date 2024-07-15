@@ -47,7 +47,10 @@ import {
   enableExternalCredentialHelper,
   enableLinkUnderlines,
 } from '../../lib/feature-flag'
-import { ICustomIntegration } from '../../lib/custom-integration'
+import {
+  ICustomIntegration,
+  TargetPathArgument,
+} from '../../lib/custom-integration'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -107,9 +110,9 @@ interface IPreferencesState {
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly availableEditors: ReadonlyArray<string>
   readonly useCustomEditor: boolean
-  readonly customEditor: ICustomIntegration | null
+  readonly customEditor: ICustomIntegration
   readonly useCustomShell: boolean
-  readonly customShell: ICustomIntegration | null
+  readonly customShell: ICustomIntegration
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
@@ -135,6 +138,12 @@ interface IPreferencesState {
   readonly showDiffCheckMarks: boolean
 }
 
+const DefaultCustomIntegration: ICustomIntegration = {
+  path: '',
+  bundleID: undefined,
+  arguments: [TargetPathArgument],
+}
+
 /** The app-level preferences component. */
 export class Preferences extends React.Component<
   IPreferencesProps,
@@ -154,9 +163,9 @@ export class Preferences extends React.Component<
       disallowedCharactersMessage: null,
       availableEditors: [],
       useCustomEditor: this.props.useCustomEditor,
-      customEditor: this.props.customEditor,
+      customEditor: this.props.customEditor ?? DefaultCustomIntegration,
       useCustomShell: this.props.useCustomShell,
-      customShell: this.props.customShell,
+      customShell: this.props.customShell ?? DefaultCustomIntegration,
       useWindowsOpenSSH: false,
       showCommitLengthWarning: false,
       notificationsEnabled: true,
@@ -242,9 +251,9 @@ export class Preferences extends React.Component<
       availableShells,
       availableEditors,
       useCustomEditor: this.props.useCustomEditor,
-      customEditor: this.props.customEditor,
+      customEditor: this.props.customEditor ?? DefaultCustomIntegration,
       useCustomShell: this.props.useCustomShell,
-      customShell: this.props.customShell,
+      customShell: this.props.customShell ?? DefaultCustomIntegration,
       isLoadingGitConfig: false,
       globalGitConfigPath,
     })
