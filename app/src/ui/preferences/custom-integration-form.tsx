@@ -2,13 +2,11 @@ import * as React from 'react'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { showOpenDialog } from '../main-process-proxy'
-import { access, stat } from 'fs/promises'
-import * as fs from 'fs'
 import { InputError } from '../lib/input-description/input-error'
 import { IAccessibleMessage } from '../../models/accessible-message'
 import {
   checkTargetPathArgument,
-  getBundleID as getAppBundleID,
+  isValidPath,
   parseCustomIntegrationArguments,
   TargetPathArgument,
 } from '../../lib/custom-integration'
@@ -159,45 +157,14 @@ export class CustomIntegrationForm extends React.Component<
   }
 
   private async validatePath(path: string) {
-    if (path.length === 0) {
-      this.setState({
-        isValidPath: false,
-        showNonValidPathWarning: true,
-      })
-      return
-    }
+    const result = await isValidPath(path)
 
-    let bundleID = undefined
+    this.setState({
+      isValidPath: result.isValid,
+      showNonValidPathWarning: !result.isValid,
+    })
 
-    try {
-      const pathStat = await stat(path)
-      const canBeExecuted = await access(path, fs.constants.X_OK)
-        .then(() => true)
-        .catch(() => false)
-
-      const isExecutableFile = pathStat.isFile() && canBeExecuted
-
-      // On macOS, not only executable files are valid, but also apps (which are
-      // directories with a `.app` extension and from which we can retrieve
-      // the app bundle ID)
-      if (__DARWIN__ && !isExecutableFile && pathStat.isDirectory()) {
-        bundleID = await getAppBundleID(path)
-      }
-
-      const isValidPath = isExecutableFile || !!bundleID
-
-      this.setState({
-        isValidPath,
-        showNonValidPathWarning: !isValidPath,
-      })
-    } catch (e) {
-      this.setState({
-        isValidPath: false,
-        showNonValidPathWarning: true,
-      })
-    }
-
-    this.props.onPathChanged(path, bundleID)
+    this.props.onPathChanged(path, result.bundleID)
   }
 
   private onPathChanged = (path: string) => {
