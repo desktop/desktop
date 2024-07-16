@@ -63,7 +63,7 @@ export class CopyButton extends React.Component<
       >
         {this.renderSymbol()}
         <AriaLiveContainer
-          message={copiedMessage}
+          message={ariaMessage}
           trackedUserInput={ariaMessage}
         />
       </Button>
