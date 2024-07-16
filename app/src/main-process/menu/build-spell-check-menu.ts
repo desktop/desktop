@@ -13,9 +13,21 @@ export async function buildSpellCheckMenu(
     dom.
   */
   return new Promise(resolve => {
-    window.webContents.once('context-menu', (event, params) =>
+    /** This is to make sure the context menu invocation doesn't just hang
+     * waiting to find out if it needs spell checker menu items if electron
+     * never emits it's context menu event. This is known to happen with the
+     * Shift + F10 key on macOS */
+    const timer = setTimeout(() => {
+      resolve(undefined)
+      log.error(
+        `Unable to get spell check menu items  - no electron context-menu event`
+      )
+    }, 100)
+
+    window.webContents.once('context-menu', (event, params) => {
+      clearTimeout(timer)
       resolve(getSpellCheckMenuItems(event, params, window.webContents))
-    )
+    })
   })
 }
 
