@@ -19,28 +19,15 @@ async function getPullArgs(
   remote: string,
   progressCallback?: (progress: IPullProgress) => void
 ) {
-  const divergentPathArgs = await getDefaultPullDivergentBranchArguments(
-    repository
-  )
-
-  const args = [
+  return [
     ...gitNetworkArguments(),
     ...gitRebaseArguments(),
     'pull',
-    ...divergentPathArgs,
+    ...(await getDefaultPullDivergentBranchArguments(repository)),
+    ...(enableRecurseSubmodulesFlag() ? ['--recurse-submodules'] : []),
+    ...(progressCallback ? ['--progress'] : []),
+    remote,
   ]
-
-  if (enableRecurseSubmodulesFlag()) {
-    args.push('--recurse-submodules')
-  }
-
-  if (progressCallback != null) {
-    args.push('--progress')
-  }
-
-  args.push(remote)
-
-  return args
 }
 
 /**

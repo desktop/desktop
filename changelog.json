@@ -1,5 +1,13 @@
 {
   "releases": {
+    "3.4.3-beta1": [
+      "[Fixed] Context menu actions in the diff are accessible via keyboard - #18946",
+      "[Fixed] Add/Remove Co-authors hint text is positioned correctly when scrolling through the changes list - #18929",
+      "[Fixed] VoiceOver can now use browser mode on the diff. - #18935",
+      "[Fixed] Increased contrast of several texts and icons in the app - #18922",
+      "[Fixed] Add aria-expanded and aria-controls attributes to Stashed Changes button - #18924",
+      "[Fixed] Hunk header text color contrast ratio is greater than 4.5:1 - #18916"
+    ],
     "3.4.2": [
       "[New] Option to use Git Credential Manager for repositories hosted outside of GitHub.com - #18700",
       "[New] Allow customizing tab character width in spaces - #15561",

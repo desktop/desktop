@@ -1,5 +1,17 @@
 # Authenticating to Bitbucket with GitHub Desktop
 
+GitHub Desktop now provides support for [Git Credential Manager (GCM)](https://gh.io/gcm), which makes the task of authenticating to Bitbucket repositories easy and secure. This feature can be enabled by going to **File** > **Options** > **Advanced** on Windows, or **GitHub Desktop** > **Preferences** > **Advanced** on macOS, and then selecting the **Use Git Credential Manager** checkbox.
+
+![screenshot of the GitHub Desktop settings menu with the "Use Git Credential Manager" checkbox outlined](/docs/assets/git-credential-manager.png)
+
+When Git Credential Manager is enabled all credentials for Bitbucket will be handled, and stored, outside of GitHub Desktop. Git Credential Manager supports browser authentication and will avoid the need to create personal access tokens (PATs). 
+
+The prompt to authenticate to your Bitbucket account using GCM will be shown when you go to **File** > **Clone Repository** > **URL** and enter the HTTPS clone URL of the repository.
+
+![screenshot of a prompt showing the option to sign in with your browser to an Atlassian account](/docs/assets/bitbucket-prompt.png)
+
+If you would prefer not to use GCM and need to create a personal access token in Bitbucket you can follow the steps below.
+
 ## Creating a Personal Access Token in Bitbucket
 
 To authenticate against Bitbucket repositories you will need to create a personal access token.

@@ -82,12 +82,7 @@ export class AriaLiveContainer extends Component<
     // because VoiceOver does not detect the empty string as a change.
     this.suffix = this.suffix === '\u00A0\u00A0' ? '\u00A0' : '\u00A0\u00A0'
 
-    return (
-      <>
-        {this.props.message}
-        {this.suffix}
-      </>
-    )
+    return <>{this.props.message + this.suffix}</>
   }
 
   private renderMessage() {
