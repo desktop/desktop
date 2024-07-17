@@ -9,7 +9,7 @@ import { CustomIntegrationForm } from './custom-integration-form'
 import { ICustomIntegration } from '../../lib/custom-integration'
 import { enableCustomIntegration } from '../../lib/feature-flag'
 
-export const CustomIntegrationLabel = 'Other…'
+export const CustomIntegrationValue = 'other'
 
 interface IIntegrationsPreferencesProps {
   readonly availableEditors: ReadonlyArray<string>
@@ -119,7 +119,7 @@ export class Integrations extends React.Component<
       return
     }
 
-    if (value === CustomIntegrationLabel) {
+    if (value === CustomIntegrationValue) {
       this.setState({ useCustomEditor: true })
       this.props.onUseCustomEditorChanged(true)
     } else {
@@ -140,7 +140,7 @@ export class Integrations extends React.Component<
       return
     }
 
-    if (value === CustomIntegrationLabel) {
+    if (value === CustomIntegrationValue) {
       this.setState({ useCustomShell: true })
       this.props.onUseCustomShellChanged(true)
     } else {
@@ -184,7 +184,7 @@ export class Integrations extends React.Component<
         aria-label="External editor"
         value={
           useCustomEditor
-            ? CustomIntegrationLabel
+            ? CustomIntegrationValue
             : selectedExternalEditor ?? undefined
         }
         onChange={this.onSelectedEditorChanged}
@@ -195,8 +195,10 @@ export class Integrations extends React.Component<
           </option>
         ))}
         {enableCustomIntegration() && (
-          <option key="custom" value={CustomIntegrationLabel}>
-            {CustomIntegrationLabel}
+          <option key={CustomIntegrationValue} value={CustomIntegrationValue}>
+            {__DARWIN__
+              ? 'Configure Custom Editor…'
+              : 'Configure custom editor…'}
           </option>
         )}
       </Select>
@@ -268,7 +270,7 @@ export class Integrations extends React.Component<
       <Select
         label={enableCustomIntegration() ? undefined : 'Shell'}
         aria-label="Shell"
-        value={useCustomShell ? CustomIntegrationLabel : selectedShell}
+        value={useCustomShell ? CustomIntegrationValue : selectedShell}
         onChange={this.onSelectedShellChanged}
       >
         {options.map(n => (
@@ -277,8 +279,8 @@ export class Integrations extends React.Component<
           </option>
         ))}
         {enableCustomIntegration() && (
-          <option key="custom" value={CustomIntegrationLabel}>
-            {CustomIntegrationLabel}
+          <option key={CustomIntegrationValue} value={CustomIntegrationValue}>
+            {__DARWIN__ ? 'Configure Custom Shell…' : 'Configure custom shell…'}
           </option>
         )}
       </Select>
