@@ -7,6 +7,7 @@ import { Shell, parse as parseShell } from '../../lib/shells'
 import { suggestedExternalEditor } from '../../lib/editors/shared'
 import { CustomIntegrationForm } from './custom-integration-form'
 import { ICustomIntegration } from '../../lib/custom-integration'
+import { enableCustomIntegration } from '../../lib/feature-flag'
 
 export const CustomIntegrationLabel = 'Other…'
 
@@ -156,9 +157,30 @@ export class Integrations extends React.Component<
   private renderExternalEditor() {
     const options = this.props.availableEditors
     const { selectedExternalEditor, useCustomEditor } = this.state
+    const label = __DARWIN__ ? 'External Editor' : 'External editor'
+
+    if (!enableCustomIntegration() && options.length === 0) {
+      // this is emulating the <Select/> component's UI so the styles are
+      // consistent for either case.
+      //
+      // TODO: see whether it makes sense to have a fallback UI
+      // which we display when the select list is empty
+      return (
+        <div className="select-component no-options-found">
+          <label>{label}</label>
+          <span>
+            No editors found.{' '}
+            <LinkButton uri={suggestedExternalEditor.url}>
+              Install {suggestedExternalEditor.name}?
+            </LinkButton>
+          </span>
+        </div>
+      )
+    }
 
     return (
       <Select
+        label={enableCustomIntegration() ? undefined : label}
         aria-label="External editor"
         value={
           useCustomEditor
@@ -172,9 +194,11 @@ export class Integrations extends React.Component<
             {n}
           </option>
         ))}
-        <option key="custom" value={CustomIntegrationLabel}>
-          {CustomIntegrationLabel}
-        </option>
+        {enableCustomIntegration() && (
+          <option key="custom" value={CustomIntegrationLabel}>
+            {CustomIntegrationLabel}
+          </option>
+        )}
       </Select>
     )
   }
@@ -242,6 +266,7 @@ export class Integrations extends React.Component<
 
     return (
       <Select
+        label={enableCustomIntegration() ? undefined : 'Shell'}
         aria-label="Shell"
         value={useCustomShell ? CustomIntegrationLabel : selectedShell}
         onChange={this.onSelectedShellChanged}
@@ -251,9 +276,11 @@ export class Integrations extends React.Component<
             {n}
           </option>
         ))}
-        <option key="custom" value={CustomIntegrationLabel}>
-          {CustomIntegrationLabel}
-        </option>
+        {enableCustomIntegration() && (
+          <option key="custom" value={CustomIntegrationLabel}>
+            {CustomIntegrationLabel}
+          </option>
+        )}
       </Select>
     )
   }
@@ -296,6 +323,16 @@ export class Integrations extends React.Component<
   }
 
   public render() {
+    if (!enableCustomIntegration()) {
+      return (
+        <DialogContent>
+          <h2>Applications</h2>
+          <Row>{this.renderExternalEditor()}</Row>
+          <Row>{this.renderSelectedShell()}</Row>
+        </DialogContent>
+      )
+    }
+
     return (
       <DialogContent>
         <fieldset>

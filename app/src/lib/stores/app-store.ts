@@ -242,6 +242,7 @@ import {
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
 import {
+  enableCustomIntegration,
   enableDiffCheckMarks,
   enableLinkUnderlines,
   enableMoveStash,
@@ -2252,10 +2253,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
 
-    this.useCustomEditor = getBoolean(useCustomEditorKey, false)
+    this.useCustomEditor =
+      enableCustomIntegration() && getBoolean(useCustomEditorKey, false)
     this.customEditor = getObject<ICustomIntegration>(customEditorKey) ?? null
 
-    this.useCustomShell = getBoolean(useCustomShellKey, false)
+    this.useCustomShell =
+      enableCustomIntegration() && getBoolean(useCustomShellKey, false)
     this.customShell = getObject<ICustomIntegration>(customShellKey) ?? null
 
     this.pullRequestSuggestedNextAction =
