@@ -60,7 +60,7 @@ export function checkTargetPathArgument(args: ReadonlyArray<string>): boolean {
   return args.some(arg => arg.includes(TargetPathArgument))
 }
 
-export async function isValidPath(
+export async function validateCustomIntegrationPath(
   path: string
 ): Promise<{ isValid: boolean; bundleID?: string }> {
   if (path.length === 0) {
@@ -93,7 +93,7 @@ export async function isValidPath(
 export async function isValidCustomIntegration(
   customIntegration: ICustomIntegration
 ): Promise<boolean> {
-  const pathResult = await isValidPath(customIntegration.path)
+  const pathResult = await validateCustomIntegrationPath(customIntegration.path)
   const targetPathPresent = checkTargetPathArgument(customIntegration.arguments)
   return pathResult.isValid && targetPathPresent
 }

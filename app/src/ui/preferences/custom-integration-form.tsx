@@ -6,7 +6,7 @@ import { InputError } from '../lib/input-description/input-error'
 import { IAccessibleMessage } from '../../models/accessible-message'
 import {
   checkTargetPathArgument,
-  isValidPath,
+  validateCustomIntegrationPath,
   parseCustomIntegrationArguments,
   TargetPathArgument,
 } from '../../lib/custom-integration'
@@ -157,7 +157,7 @@ export class CustomIntegrationForm extends React.Component<
   }
 
   private async validatePath(path: string) {
-    const result = await isValidPath(path)
+    const result = await validateCustomIntegrationPath(path)
 
     this.setState({
       isValidPath: result.isValid,
