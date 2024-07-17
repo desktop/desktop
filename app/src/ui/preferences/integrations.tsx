@@ -288,12 +288,11 @@ export class Integrations extends React.Component<
   public render() {
     return (
       <DialogContent>
-        <h2>Applications</h2>
-        <h3>{__DARWIN__ ? 'External Editor' : 'External editor'}</h3>
+        <h2>{__DARWIN__ ? 'External Editor' : 'External editor'}</h2>
         <Row>{this.renderExternalEditor()}</Row>
         {this.renderNoExternalEditorHint()}
         {this.state.useCustomEditor && this.renderCustomExternalEditor()}
-        <h3>Shell</h3>
+        <h2>Shell</h2>
         <Row>{this.renderSelectedShell()}</Row>
         {this.state.useCustomShell && this.renderCustomShell()}
       </DialogContent>
