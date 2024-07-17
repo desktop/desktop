@@ -6,6 +6,12 @@
       flex: 1;
     }
 
+    fieldset {
+      border: none;
+      margin: 0;
+      padding: 0;
+    }
+
     .advanced-section {
       &:not(:last-child) {
         margin-bottom: var(--spacing);
