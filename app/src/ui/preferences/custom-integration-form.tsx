@@ -38,13 +38,11 @@ export class CustomIntegrationForm extends React.Component<
   public constructor(props: ICustomIntegrationFormProps) {
     super(props)
 
-    const isValidPath = props.path.length > 0
-
     this.state = {
       path: props.path,
       arguments: props.arguments,
-      isValidPath,
-      showNonValidPathWarning: !isValidPath,
+      isValidPath: false,
+      showNonValidPathWarning: false,
       isValidArgs: false,
       showNonValidArgsError: false,
       showNoRepoPathArgError: false,
