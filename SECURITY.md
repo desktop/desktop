@@ -9,3 +9,4 @@ If the vulnerability you have found is [in scope for the GitHub Bug Bounty Progr
 **Please do not report security vulnerabilities through public GitHub issues, discussions, or pull requests.**
 
 Thanks for helping make GitHub safe for everyone.
+https://github.com/desktop/desktop/blob/0eae22548bae112a63ed9e65d658509193c40a56/SECURITY.md
