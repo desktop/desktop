@@ -59,17 +59,18 @@ export async function getAvailableShells(): Promise<
 
   if (__DARWIN__) {
     shellCache = await Darwin.getAvailableShells()
+    return shellCache
   } else if (__WIN32__) {
     shellCache = await Win32.getAvailableShells()
+    return shellCache
   } else if (__LINUX__) {
     shellCache = await Linux.getAvailableShells()
-  } else {
-    return Promise.reject(
-      `Platform not currently supported for resolving shells: ${process.platform}`
-    )
+    return shellCache
   }
 
-  return shellCache
+  return Promise.reject(
+    `Platform not currently supported for resolving shells: ${process.platform}`
+  )
 }
 
 /** Find the given shell or the default if the given shell can't be found. */
