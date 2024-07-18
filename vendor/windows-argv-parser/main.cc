@@ -7,6 +7,7 @@
 #ifdef _WIN32
 #include <windows.h>
 
+// Based on https://stackoverflow.com/a/28789839
 char **split_commandline(const char *cmdline, int *argc)
 {
     int i;
