@@ -3212,15 +3212,17 @@ export class Dispatcher {
     this.appStore._setLastThankYou(lastThankYou)
   }
 
+  /** Set whether or not the user wants to use a custom external editor */
   public setUseCustomEditor(useCustomEditor: boolean) {
     this.appStore._setUseCustomEditor(useCustomEditor)
   }
 
-  /** Set the custom editor info */
+  /** Set the custom external editor info */
   public setCustomEditor(customEditor: ICustomIntegration) {
     this.appStore._setCustomEditor(customEditor)
   }
 
+  /** Set whether or not the user wants to use a custom shell */
   public setUseCustomShell(useCustomShell: boolean) {
     this.appStore._setUseCustomShell(useCustomShell)
   }
