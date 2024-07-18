@@ -36,8 +36,5 @@
     "typescript",
     "typescriptreact"
   ],
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "files.associations": {
-    "ios": "cpp"
-  }
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
