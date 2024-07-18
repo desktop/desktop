@@ -86,6 +86,9 @@ export function checkTargetPathArgument(args: ReadonlyArray<string>): boolean {
  * Validate the path of a custom integration.
  *
  * @param path The path to the custom integration
+ *
+ * @returns An object with a boolean indicating if the path is valid and, if
+ *          the path is a macOS app, the bundle ID of the app.
  */
 export async function validateCustomIntegrationPath(
   path: string
