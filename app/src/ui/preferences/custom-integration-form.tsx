@@ -113,7 +113,6 @@ export class CustomIntegrationForm extends React.Component<
 
   private renderArgsErrors() {
     if (
-      !this.state.arguments.length ||
       this.state.isValidArgs ||
       (!this.state.showNoRepoPathArgError && !this.state.showNonValidArgsError)
     ) {
@@ -138,6 +137,8 @@ export class CustomIntegrationForm extends React.Component<
   }
 
   private onChoosePath = async () => {
+    // On macOS we also want to allow selecting directories, since apps on macOS
+    // are usually directories (e.g. apps on /Applications).
     const path = await showOpenDialog({
       properties: __DARWIN__ ? ['openFile', 'openDirectory'] : ['openFile'],
     })
@@ -151,10 +152,7 @@ export class CustomIntegrationForm extends React.Component<
 
   private async updatePath(path: string) {
     this.setState({ path, isValidPath: false })
-    await this.validatePath(path)
-  }
 
-  private async validatePath(path: string) {
     const result = await validateCustomIntegrationPath(path)
 
     this.setState({
