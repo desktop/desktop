@@ -60,7 +60,7 @@ export async function launchExternalEditor(
 }
 
 /**
- * Open a given file or folder in the desired external editor.
+ * Open a given file or folder in the desired custom external editor.
  *
  * @param fullPath A folder or file path to pass as an argument when launching the editor.
  * @param customEditor The external editor to launch.
@@ -90,6 +90,7 @@ export async function launchCustomExternalEditor(
   const args = expandTargetPathArgument(customEditor.arguments, fullPath)
 
   try {
+    // This logic around `usesShell` is also used in Windows `getAvailableEditors` implementation
     const usesShell = editorPath.endsWith('.cmd')
     if (usesShell) {
       spawn(`"${editorPath}"`, args, {
