@@ -139,6 +139,10 @@ interface IPreferencesState {
   readonly showDiffCheckMarks: boolean
 }
 
+/**
+ * Default custom integration values to coalesce with. We can't make up a path
+ * nor a bundle ID, but we can at least provide a default argument.
+ */
 const DefaultCustomIntegration: ICustomIntegration = {
   path: '',
   bundleID: undefined,
