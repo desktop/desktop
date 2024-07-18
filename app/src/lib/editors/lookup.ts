@@ -19,19 +19,24 @@ export async function getAvailableEditors(): Promise<
 
   if (__DARWIN__) {
     editorCache = await getAvailableEditorsDarwin()
-  } else if (__WIN32__) {
-    editorCache = await getAvailableEditorsWindows()
-  } else if (__LINUX__) {
-    editorCache = await getAvailableEditorsLinux()
-  } else {
-    log.warn(
-      `Platform not currently supported for resolving editors: ${process.platform}`
-    )
-
-    return []
+    return editorCache
   }
 
-  return editorCache
+  if (__WIN32__) {
+    editorCache = await getAvailableEditorsWindows()
+    return editorCache
+  }
+
+  if (__LINUX__) {
+    editorCache = await getAvailableEditorsLinux()
+    return editorCache
+  }
+
+  log.warn(
+    `Platform not currently supported for resolving editors: ${process.platform}`
+  )
+
+  return []
 }
 
 /**
