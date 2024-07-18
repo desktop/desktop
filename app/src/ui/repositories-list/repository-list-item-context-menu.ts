@@ -5,6 +5,7 @@ import { clipboard } from 'electron'
 import {
   RevealInFileManagerLabel,
   DefaultEditorLabel,
+  DefaultShellLabel,
 } from '../lib/context-menu'
 
 interface IRepositoryListItemContextMenuConfig {
@@ -33,7 +34,7 @@ export const generateRepositoryListContextMenu = (
     : DefaultEditorLabel
   const openInShell = config.shellLabel
     ? `Open in ${config.shellLabel}`
-    : 'Open in shell'
+    : DefaultShellLabel
 
   const items: ReadonlyArray<IMenuItem> = [
     ...buildAliasMenuItems(config),
