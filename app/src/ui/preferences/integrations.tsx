@@ -9,7 +9,7 @@ import { CustomIntegrationForm } from './custom-integration-form'
 import { ICustomIntegration } from '../../lib/custom-integration'
 import { enableCustomIntegration } from '../../lib/feature-flag'
 
-export const CustomIntegrationValue = 'other'
+const CustomIntegrationValue = 'other'
 
 interface IIntegrationsPreferencesProps {
   readonly availableEditors: ReadonlyArray<string>
@@ -92,6 +92,8 @@ export class Integrations extends React.Component<
     prevProps: IIntegrationsPreferencesProps,
     prevState: IIntegrationsPreferencesState
   ): void {
+    // When the user switches to the custom editor or shell, we want to focus the
+    // path input field.
     if (!prevState.useCustomEditor && this.state.useCustomEditor) {
       this.customEditorFormRef.current?.focus()
     }
