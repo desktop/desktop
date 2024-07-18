@@ -49,18 +49,6 @@ export class CustomIntegrationForm extends React.Component<
     }
   }
 
-  public async choosePath() {
-    const path = await showOpenDialog({
-      properties: __DARWIN__ ? ['openFile', 'openDirectory'] : ['openFile'],
-    })
-
-    if (path === null) {
-      return
-    }
-
-    this.updatePath(path)
-  }
-
   public focus() {
     this.pathInputRef.current?.focus()
   }
@@ -149,8 +137,16 @@ export class CustomIntegrationForm extends React.Component<
     )
   }
 
-  private onChoosePath = () => {
-    this.choosePath()
+  private onChoosePath = async () => {
+    const path = await showOpenDialog({
+      properties: __DARWIN__ ? ['openFile', 'openDirectory'] : ['openFile'],
+    })
+
+    if (path === null) {
+      return
+    }
+
+    this.updatePath(path)
   }
 
   private async updatePath(path: string) {

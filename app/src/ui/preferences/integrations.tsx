@@ -93,21 +93,11 @@ export class Integrations extends React.Component<
     prevState: IIntegrationsPreferencesState
   ): void {
     if (!prevState.useCustomEditor && this.state.useCustomEditor) {
-      const customEditorForm = this.customEditorFormRef.current
-      if (this.state.customEditor.path.length === 0) {
-        customEditorForm?.choosePath()
-      }
-
-      customEditorForm?.focus()
+      this.customEditorFormRef.current?.focus()
     }
 
     if (!prevState.useCustomShell && this.state.useCustomShell) {
-      const customShellForm = this.customShellFormRef.current
-      if (this.state.customShell.path.length === 0) {
-        customShellForm?.choosePath()
-      }
-
-      customShellForm?.focus()
+      this.customShellFormRef.current?.focus()
     }
   }
 
