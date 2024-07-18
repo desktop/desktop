@@ -324,10 +324,16 @@ export interface IAppState {
    */
   readonly lastThankYou: ILastThankYou | undefined
 
+  /** Whether or not the user wants to use a custom editor. */
   readonly useCustomEditor: boolean
+
+  /** Info needed to launch a custom editor chosen by the user. */
   readonly customEditor: ICustomIntegration | null
 
+  /** Whether or not the user wants to use a custom shell. */
   readonly useCustomShell: boolean
+
+  /** Info needed to launch a custom shell chosen by the user. */
   readonly customShell: ICustomIntegration | null
 
   /**
