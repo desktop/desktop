@@ -3,7 +3,6 @@ import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { showOpenDialog } from '../main-process-proxy'
 import { InputError } from '../lib/input-description/input-error'
-import { IAccessibleMessage } from '../../models/accessible-message'
 import {
   checkTargetPathArgument,
   validateCustomIntegrationPath,
@@ -99,19 +98,14 @@ export class CustomIntegrationForm extends React.Component<
     const errorDescription =
       'This directory does not appear to be a valid executable.'
 
-    const msg: IAccessibleMessage = {
-      screenReaderMessage: errorDescription,
-      displayedMessage: errorDescription,
-    }
-
     return (
       <div className="custom-integration-form-error">
         <InputError
           id={`${this.props.id}-custom-integration-path-error`}
           trackedUserInput={this.state.path}
-          ariaLiveMessage={msg.screenReaderMessage}
+          ariaLiveMessage={errorDescription}
         >
-          {msg.displayedMessage}
+          {errorDescription}
         </InputError>
       </div>
     )
@@ -130,19 +124,14 @@ export class CustomIntegrationForm extends React.Component<
       ? 'These arguments are not valid.'
       : `Arguments must include the target path placeholder (${TargetPathArgument}).`
 
-    const msg: IAccessibleMessage = {
-      screenReaderMessage: errorDescription,
-      displayedMessage: errorDescription,
-    }
-
     return (
       <div className="custom-integration-form-error">
         <InputError
           id={`${this.props.id}-custom-integration-args-error`}
           trackedUserInput={this.state.path}
-          ariaLiveMessage={msg.screenReaderMessage}
+          ariaLiveMessage={errorDescription}
         >
-          {msg.displayedMessage}
+          {errorDescription}
         </InputError>
       </div>
     )
