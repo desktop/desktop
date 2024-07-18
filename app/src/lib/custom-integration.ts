@@ -7,14 +7,24 @@ import * as fs from 'fs'
 
 const execAsync = promisify(exec)
 
+/** The string that will be replaced by the target path in the custom integration arguments */
 export const TargetPathArgument = '%TARGET_PATH%'
 
+/** The interface representing a custom integration (external editor or shell) */
 export interface ICustomIntegration {
+  /** The path to the custom integration */
   readonly path: string
+  /** The arguments to pass to the custom integration */
   readonly arguments: ReadonlyArray<string>
+  /** The bundle ID of the custom integration (macOS only) */
   readonly bundleID?: string
 }
 
+/**
+ * Parse the arguments string of a custom integration into an array of strings.
+ *
+ * @param args The arguments string to parse
+ */
 export function parseCustomIntegrationArguments(
   args: string
 ): ReadonlyArray<string> {
@@ -49,6 +59,13 @@ async function getAppBundleID(path: string) {
   }
 }
 
+/**
+ * Replace the target path placeholder in the custom integration arguments with
+ * the actual target path.
+ *
+ * @param args The custom integration arguments
+ * @param repoPath The target path to replace the placeholder with
+ */
 export function expandTargetPathArgument(
   args: ReadonlyArray<string>,
   repoPath: string
@@ -56,10 +73,20 @@ export function expandTargetPathArgument(
   return args.map(arg => arg.replaceAll(TargetPathArgument, repoPath))
 }
 
+/**
+ * Check if the custom integration arguments contain the target path placeholder.
+ *
+ * @param args The custom integration arguments
+ */
 export function checkTargetPathArgument(args: ReadonlyArray<string>): boolean {
   return args.some(arg => arg.includes(TargetPathArgument))
 }
 
+/**
+ * Validate the path of a custom integration.
+ *
+ * @param path The path to the custom integration
+ */
 export async function validateCustomIntegrationPath(
   path: string
 ): Promise<{ isValid: boolean; bundleID?: string }> {
@@ -90,6 +117,12 @@ export async function validateCustomIntegrationPath(
   }
 }
 
+/**
+ * Check if a custom integration is valid (meaning both the path and the
+ * arguments are valid).
+ *
+ * @param customIntegration The custom integration to validate
+ */
 export async function isValidCustomIntegration(
   customIntegration: ICustomIntegration
 ): Promise<boolean> {
