@@ -12,6 +12,7 @@ import {
 } from '../../lib/custom-integration'
 
 interface ICustomIntegrationFormProps {
+  /** ID used to prefix the IDs of some child elements */
   readonly id: string
   readonly path: string
   readonly arguments: string
@@ -22,13 +23,22 @@ interface ICustomIntegrationFormProps {
 interface ICustomIntegrationFormState {
   readonly path: string
   readonly arguments: string
+  /** Whether or not the current path is valid */
   readonly isValidPath: boolean
+  /** Whether or not to show a warning for an invalid path */
   readonly showNonValidPathWarning: boolean
+  /** Whether or not the current arguments are valid */
   readonly isValidArgs: boolean
+  /** Whether or not to show an error for invalid arguments */
   readonly showNonValidArgsError: boolean
+  /**
+   * Whether or not to show an error for missing target path placeholder among
+   * the arguments.
+   */
   readonly showNoRepoPathArgError: boolean
 }
 
+/** A form for configuring a custom integration, with a path and arguments. */
 export class CustomIntegrationForm extends React.Component<
   ICustomIntegrationFormProps,
   ICustomIntegrationFormState
@@ -49,6 +59,7 @@ export class CustomIntegrationForm extends React.Component<
     }
   }
 
+  /** Focuses the path text box. */
   public focus() {
     this.pathInputRef.current?.focus()
   }
