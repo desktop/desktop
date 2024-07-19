@@ -145,11 +145,9 @@ export async function withTrampolineEnv<T>(
               // these.
               //
               // See https://git-scm.com/docs/git-config#ENVIRONMENT
-              GIT_CONFIG_COUNT: '2',
+              GIT_CONFIG_COUNT: '1',
               GIT_CONFIG_KEY_0: 'credential.helper',
-              GIT_CONFIG_VALUE_0: '',
-              GIT_CONFIG_KEY_1: 'credential.helper',
-              GIT_CONFIG_VALUE_1: 'desktop',
+              GIT_CONFIG_VALUE_0: 'desktop',
             }
           : {
               GIT_ASKPASS: getDesktopAskpassTrampolinePath(),
