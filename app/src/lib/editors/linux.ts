@@ -179,6 +179,16 @@ const editors: ILinuxExternalEditor[] = [
     name: 'Pluma',
     paths: ['/usr/bin/pluma'],
   },
+  {
+    name: 'Zed',
+    paths: [
+      '/usr/bin/zedit',
+      '/usr/bin/zeditor',
+      '/usr/bin/zed-editor',
+      '~/.local/bin/zed',
+      '/usr/bin/zed',
+    ],
+  },
 ]
 
 async function getAvailablePath(paths: string[]): Promise<string | null> {
