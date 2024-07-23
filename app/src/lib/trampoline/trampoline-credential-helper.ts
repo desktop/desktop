@@ -27,7 +27,7 @@ import {
 import { urlWithoutCredentials } from './url-without-credentials'
 import { trampolineUIHelper as ui } from './trampoline-ui-helper'
 import { isGitHubHost } from '../api'
-import { isDotCom, isGHE } from '../endpoint-capabilities'
+import { isDotCom, isGHE, isGist } from '../endpoint-capabilities'
 
 type Credential = Map<string, string>
 type Store = AccountsStore
@@ -139,6 +139,10 @@ async function getCredential(cred: Credential, store: Store, token: string) {
 const getEndpointKind = async (cred: Credential, store: Store) => {
   const credentialUrl = getCredentialUrl(cred)
   const endpoint = `${credentialUrl}`
+
+  if (isGist(endpoint)) {
+    return 'generic'
+  }
 
   if (isDotCom(endpoint)) {
     return 'github.com'
