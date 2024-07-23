@@ -55,7 +55,7 @@ export const isDotCom = (ep: string) => {
 
 export const isGist = (ep: string) => {
   const { hostname } = new URL(ep)
-  return hostname === 'gist.github.com'
+  return hostname === 'gist.github.com' || hostname === 'gist.ghe.io'
 }
 
 /** Whether or not the given endpoint URI is under the ghe.com domain */
