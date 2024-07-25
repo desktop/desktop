@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.4.3-test1": ["[New] Automated test release"],
     "3.4.3-beta2": [
       "[Added] Shift + F10 opens context menu's on macOS",
       "[Fixed] The copy button announces when clicked in VoiceOver."
