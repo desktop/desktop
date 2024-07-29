@@ -70,6 +70,14 @@ interface IRepositoryViewProps {
    */
   readonly isShowingFoldout: boolean
 
+  /**
+   * Whether or not the user has a configured (explicitly,
+   * or automatically) external editor. Used to
+   * determine whether or not to render the action for
+   * opening the repository in an external editor.
+   */
+  readonly isExternalEditorAvailable: boolean
+
   /** The name of the currently selected external editor */
   readonly externalEditorLabel?: string
 
@@ -503,9 +511,7 @@ export class RepositoryView extends React.Component<
             appMenu={this.props.appMenu}
             repository={this.props.repository}
             repositoryState={this.props.state}
-            isExternalEditorAvailable={
-              this.props.externalEditorLabel !== undefined
-            }
+            isExternalEditorAvailable={this.props.isExternalEditorAvailable}
             dispatcher={this.props.dispatcher}
             pullRequestSuggestedNextAction={
               this.props.pullRequestSuggestedNextAction
