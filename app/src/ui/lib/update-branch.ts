@@ -42,6 +42,16 @@ export async function updateRebasePreview(
     kind: ComputedAction.Loading,
   })
 
+  const commitsFromOtherBranch = await promiseWithMinimumTimeout(
+    () =>
+      getCommitsBetweenCommits(
+        repository,
+        targetBranch.tip.sha,
+        baseBranch.tip.sha
+      ),
+    500
+  )
+
   const commits = await promiseWithMinimumTimeout(
     () =>
       getCommitsBetweenCommits(
@@ -62,7 +72,7 @@ export async function updateRebasePreview(
 
   // if we are unable to find any commits to rebase, indicate that we're
   // unable to proceed with the rebase
-  if (commits === null) {
+  if (commitsFromOtherBranch === null) {
     onUpdate({
       kind: ComputedAction.Invalid,
     })
@@ -71,6 +81,7 @@ export async function updateRebasePreview(
 
   onUpdate({
     kind: ComputedAction.Clean,
-    commits,
+    commits: commits ?? [],
+    commitsFromOtherBranch,
   })
 }
