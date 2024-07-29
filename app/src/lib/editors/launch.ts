@@ -97,9 +97,10 @@ export async function launchCustomExternalEditor(
         ...opts,
         shell: true,
       })
-    } else if (__DARWIN__) {
-      // In macOS we can use `open`, which will open the right executable file
-      // for us, we only need the path to the editor .app folder.
+    } else if (__DARWIN__ && customEditor.bundleID) {
+      // In macOS we can use `open` if it's an app (i.e. if we have a bundleID),
+      // which will open the right executable file for us, we only need the path
+      // to the editor .app folder.
       spawn('open', ['-a', editorPath, ...args], opts)
     } else {
       spawn(editorPath, args, opts)
