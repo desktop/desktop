@@ -57,7 +57,7 @@
     "react-virtualized": "^9.20.0",
     "registry-js": "^1.16.0",
     "source-map-support": "^0.4.15",
-    "string-to-argv": "^1.0.0",
+    "string-argv": "^0.3.2",
     "strip-ansi": "^4.0.0",
     "textarea-caret": "^3.0.2",
     "triple-beam": "^1.3.0",

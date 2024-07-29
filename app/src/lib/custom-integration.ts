@@ -1,5 +1,5 @@
 import { parseCommandLineArgv } from 'windows-argv-parser'
-import parseArgvString from 'string-to-argv'
+import stringArgv from 'string-argv'
 import { promisify } from 'util'
 import { exec } from 'child_process'
 import { access, stat } from 'fs/promises'
@@ -28,7 +28,7 @@ export interface ICustomIntegration {
 export function parseCustomIntegrationArguments(
   args: string
 ): ReadonlyArray<string> {
-  return __WIN32__ ? parseCommandLineArgv(args) : parseArgvString(args)
+  return __WIN32__ ? parseCommandLineArgv(args) : stringArgv(args)
 }
 
 // Function to retrieve, on macOS, the bundleId of an app given its path
