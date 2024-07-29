@@ -186,15 +186,20 @@ codemirror-mode-elixir@^1.1.2:
   resolved "https://registry.yarnpkg.com/codemirror-mode-elixir/-/codemirror-mode-elixir-1.1.2.tgz#61227208d2684d928500af6934e4b9c995fb0960"
   integrity sha512-1oIuRVHyUhLv0Za9sEIsI7urAj06EohwO/yVj10bg7aHnimHQ964Wk3uuoPH0Yn8L38EkOd+SwULYpDiCQtoTA==
 
-codemirror-mode-zig@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/codemirror-mode-zig/-/codemirror-mode-zig-1.0.3.tgz#bbe0ca19d90b740299b0920256836cc5dce82ba6"
-  integrity sha512-XoA5P5PsuxgAgBUYdTo4+NIrgnsWWAx8WbH16aflaUOVvfN3PMWSMGytlrsVSaOqpip2YQG9kedmWs3bGIXp7A==
+codemirror-mode-luau@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/codemirror-mode-luau/-/codemirror-mode-luau-1.0.0.tgz#8d9ef8e73c08aaca463ac793dd35d28c81642c72"
+  integrity sha512-0f1Wc90Gl5REPLJxkgYLQ71KFWXDPE+saq4HOX8k/q0H7otrZMS6Gu1WmyTqGviITW/zLnWEk0ymn7sAbr8czw==
 
-codemirror@^5.60.0:
-  version "5.60.0"
-  resolved "https://registry.yarnpkg.com/codemirror/-/codemirror-5.60.0.tgz#00a8cfd287d5d8737ceb73987f04aee2fe5860da"
-  integrity sha512-AEL7LhFOlxPlCL8IdTcJDblJm8yrAGib7I+DErJPdZd4l6imx8IMgKK3RblVgBQqz3TZJR4oknQ03bz+uNjBYA==
+codemirror-mode-zig@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/codemirror-mode-zig/-/codemirror-mode-zig-1.0.7.tgz#589416e4de4bd28636a34cbeed276e6fb2d4b380"
+  integrity sha512-4kvvZ0T7z2zobBoQq/vfcn6TZZFdZr5OhPDHDUqfkT3iK6tW18SkfM7MYbWts7XmAvXPl6wC81i0ppDOCoOXyw==
+
+codemirror@^5.65.17:
+  version "5.65.17"
+  resolved "https://registry.yarnpkg.com/codemirror/-/codemirror-5.65.17.tgz#00d71f34c3518471ae4c0de23a2f8bb39a6df6ca"
+  integrity sha512-1zOsUx3lzAOu/gnMAZkQ9kpIHcPYOc9y1Fbm2UVk5UBPkdq380nhkelG0qUwm1f7wPvTbndu9ZYlug35EwAZRQ==
 
 color-convert@^1.9.0:
   version "1.9.0"
