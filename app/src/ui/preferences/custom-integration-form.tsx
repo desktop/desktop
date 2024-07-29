@@ -96,7 +96,7 @@ export class CustomIntegrationForm extends React.Component<
     }
 
     const errorDescription =
-      'This directory does not appear to be a valid executable.'
+      'This path does not appear to be a valid executable.'
 
     return (
       <div className="custom-integration-form-error">
