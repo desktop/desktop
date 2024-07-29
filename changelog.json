@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.4.3-beta3": [
+      "[Added] Add Zed as an external editor option for Linux - #18962. Thanks @adil192!",
+      "[Fixed] Allow pushing to gists - #19009"
+    ],
     "3.4.3-beta2": [
       "[Added] Shift + F10 opens context menu's on macOS",
       "[Fixed] The copy button announces when clicked in VoiceOver."
