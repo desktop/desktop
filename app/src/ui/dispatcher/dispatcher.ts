@@ -121,6 +121,7 @@ import { ValidNotificationPullRequestReviewState } from '../../lib/valid-notific
 import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
 import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 import { SignInResult } from '../../lib/stores/sign-in-store'
+import { ICustomIntegration } from '../../lib/custom-integration'
 
 /**
  * An error handler function.
@@ -3209,6 +3210,26 @@ export class Dispatcher {
   /** Set whether thank you is in order for external contributions */
   public setLastThankYou(lastThankYou: ILastThankYou) {
     this.appStore._setLastThankYou(lastThankYou)
+  }
+
+  /** Set whether or not the user wants to use a custom external editor */
+  public setUseCustomEditor(useCustomEditor: boolean) {
+    this.appStore._setUseCustomEditor(useCustomEditor)
+  }
+
+  /** Set the custom external editor info */
+  public setCustomEditor(customEditor: ICustomIntegration) {
+    this.appStore._setCustomEditor(customEditor)
+  }
+
+  /** Set whether or not the user wants to use a custom shell */
+  public setUseCustomShell(useCustomShell: boolean) {
+    this.appStore._setUseCustomShell(useCustomShell)
+  }
+
+  /** Set the custom shell info */
+  public setCustomShell(customShell: ICustomIntegration) {
+    this.appStore._setCustomShell(customShell)
   }
 
   public async reorderCommits(

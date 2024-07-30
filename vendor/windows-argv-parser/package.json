@@ -1,0 +1,16 @@
+{
+  "name": "windows-argv-parser",
+  "version": "0.0.1",
+  "description": "Parse a command line string into an array of arguments, using Windows rules.",
+  "license": "MIT",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "tsc",
+    "install": "node-gyp rebuild && tsc"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "node-gyp": "^10.1.0",
+    "typescript": "^5.4.5"
+  }
+}

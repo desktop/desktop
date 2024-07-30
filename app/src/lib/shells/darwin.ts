@@ -3,6 +3,10 @@ import { assertNever } from '../fatal-error'
 import appPath from 'app-path'
 import { parseEnumValue } from '../enum'
 import { FoundShell } from './shared'
+import {
+  expandTargetPathArgument,
+  ICustomIntegration,
+} from '../custom-integration'
 
 export enum Shell {
   Terminal = 'Terminal',
@@ -189,4 +193,15 @@ export function launch(
   } else {
     return spawn('open', ['-b', foundShell.bundleID, path])
   }
+}
+
+export function launchCustomShell(
+  customShell: ICustomIntegration,
+  path: string
+): ChildProcess {
+  const args = expandTargetPathArgument(customShell.arguments, path)
+
+  return customShell.bundleID
+    ? spawn('open', ['-b', customShell.bundleID, ...args])
+    : spawn(customShell.path, args)
 }

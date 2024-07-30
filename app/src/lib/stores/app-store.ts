@@ -130,6 +130,7 @@ import {
 import {
   findEditorOrDefault,
   getAvailableEditors,
+  launchCustomExternalEditor,
   launchExternalEditor,
 } from '../editors'
 import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
@@ -203,6 +204,7 @@ import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
   Default as DefaultShell,
   findShellOrDefault,
+  launchCustomShell,
   launchShell,
   parse as parseShell,
   Shell,
@@ -240,6 +242,7 @@ import {
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
 import {
+  enableCustomIntegration,
   enableDiffCheckMarks,
   enableLinkUnderlines,
   enableMoveStash,
@@ -338,6 +341,7 @@ import {
   useExternalCredentialHelperDefault,
 } from '../trampoline/use-external-credential-helper'
 import { IOAuthAction } from '../parse-app-url'
+import { ICustomIntegration } from '../custom-integration'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -420,6 +424,12 @@ const MaxInvalidFoldersToDisplay = 3
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
+
+const useCustomEditorKey = 'use-custom-editor'
+const customEditorKey = 'custom-editor'
+
+const useCustomShellKey = 'use-custom-shell'
+const customShellKey = 'custom-shell'
 
 export const underlineLinksKey = 'underline-links'
 export const underlineLinksDefault = true
@@ -518,7 +528,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private resolvedExternalEditor: string | null = null
 
   /** The user's preferred shell. */
-  private selectedShell = DefaultShell
+  private selectedShell: Shell = DefaultShell
 
   /** The current repository filter text */
   private repositoryFilterText: string = ''
@@ -551,6 +561,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private currentDragElement: DragElement | null = null
   private lastThankYou: ILastThankYou | undefined
+
+  private useCustomEditor: boolean = false
+  private customEditor: ICustomIntegration | null = null
+
+  private useCustomShell: boolean = false
+  private customShell: ICustomIntegration | null = null
+
   private showCIStatusPopover: boolean = false
 
   /** A service for managing the stack of open popups */
@@ -1044,6 +1061,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
+      useCustomEditor: this.useCustomEditor,
+      customEditor: this.customEditor,
+      useCustomShell: this.useCustomShell,
+      customShell: this.customShell,
       showCIStatusPopover: this.showCIStatusPopover,
       notificationsEnabled: getNotificationsEnabled(),
       pullRequestSuggestedNextAction: this.pullRequestSuggestedNextAction,
@@ -2232,6 +2253,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.lastThankYou = getObject<ILastThankYou>(lastThankYouKey)
 
+    this.useCustomEditor =
+      enableCustomIntegration() && getBoolean(useCustomEditorKey, false)
+    this.customEditor = getObject<ICustomIntegration>(customEditorKey) ?? null
+
+    this.useCustomShell =
+      enableCustomIntegration() && getBoolean(useCustomShellKey, false)
+    this.customShell = getObject<ICustomIntegration>(customShellKey) ?? null
+
     this.pullRequestSuggestedNextAction =
       getEnum(
         pullRequestSuggestedNextActionKey,
@@ -2250,6 +2279,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
+
+    this.updateMenuLabelsForSelectedRepository()
   }
 
   /**
@@ -2382,16 +2413,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   private updateMenuItemLabels(state: IRepositoryState | null) {
     const {
+      useCustomShell,
       selectedShell,
       selectedRepository,
+      useCustomEditor,
       selectedExternalEditor,
       askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush,
     } = this
 
     const labels: MenuLabelsEvent = {
-      selectedShell,
-      selectedExternalEditor,
+      selectedShell: useCustomShell ? null : selectedShell,
+      selectedExternalEditor: useCustomEditor ? null : selectedExternalEditor,
       askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush,
     }
@@ -5459,10 +5492,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _openShell(path: string) {
     this.statsStore.increment('openShellCount')
+    const { useCustomShell, customShell } = this.getState()
 
     try {
-      const match = await findShellOrDefault(this.selectedShell)
-      await launchShell(match, path, error => this._pushError(error))
+      if (useCustomShell && customShell) {
+        await launchCustomShell(customShell, path, error =>
+          this._pushError(error)
+        )
+      } else {
+        const match = await findShellOrDefault(this.selectedShell)
+        await launchShell(match, path, error => this._pushError(error))
+      }
     } catch (error) {
       this.emitError(error)
     }
@@ -5475,21 +5515,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Open a path to a repository or file using the user's configured editor */
   public async _openInExternalEditor(fullPath: string): Promise<void> {
-    const { selectedExternalEditor } = this.getState()
+    const { selectedExternalEditor, useCustomEditor, customEditor } =
+      this.getState()
 
     try {
-      const match = await findEditorOrDefault(selectedExternalEditor)
-      if (match === null) {
-        this.emitError(
-          new ExternalEditorError(
-            `No suitable editors installed for GitHub Desktop to launch. Install ${suggestedExternalEditor.name} for your platform and restart GitHub Desktop to try again.`,
-            { suggestDefaultEditor: true }
+      if (useCustomEditor && customEditor) {
+        await launchCustomExternalEditor(fullPath, customEditor)
+      } else {
+        const match = await findEditorOrDefault(selectedExternalEditor)
+        if (match === null) {
+          this.emitError(
+            new ExternalEditorError(
+              `No suitable editors installed for GitHub Desktop to launch. Install ${suggestedExternalEditor.name} for your platform and restart GitHub Desktop to try again.`,
+              { suggestDefaultEditor: true }
+            )
           )
-        )
-        return
-      }
+          return
+        }
 
-      await launchExternalEditor(fullPath, match)
+        await launchExternalEditor(fullPath, match)
+      }
     } catch (error) {
       this.emitError(error)
     }
@@ -7126,6 +7171,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     setObject(lastThankYouKey, lastThankYou)
     this.lastThankYou = lastThankYou
 
+    this.emitUpdate()
+  }
+
+  public _setUseCustomEditor(useCustomEditor: boolean) {
+    setBoolean(useCustomEditorKey, useCustomEditor)
+    this.useCustomEditor = useCustomEditor
+    this.emitUpdate()
+  }
+
+  public _setCustomEditor(customEditor: ICustomIntegration) {
+    setObject(customEditorKey, customEditor)
+    this.customEditor = customEditor
+    this.emitUpdate()
+  }
+
+  public _setUseCustomShell(useCustomShell: boolean) {
+    setBoolean(useCustomShellKey, useCustomShell)
+    this.useCustomShell = useCustomShell
+    this.emitUpdate()
+  }
+
+  public _setCustomShell(customShell: ICustomIntegration) {
+    setObject(customShellKey, customShell)
+    this.customShell = customShell
     this.emitUpdate()
   }
 

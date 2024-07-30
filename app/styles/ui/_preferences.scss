@@ -6,6 +6,14 @@
       flex: 1;
     }
 
+    fieldset {
+      border: none;
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
     .advanced-section {
       &:not(:last-child) {
         margin-bottom: var(--spacing);
@@ -188,6 +196,19 @@
 
   p {
     word-wrap: break-word;
+  }
+}
+
+.custom-integration-form-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  gap: var(--spacing-half);
+
+  .custom-integration-form-path-container {
+    display: flex;
+    gap: var(--spacing);
   }
 }
 
