@@ -55,7 +55,7 @@ export async function setSSHCredential(
  * @param key           Key that identifies the SSH secret (e.g. username or key
  *                      hash).
  */
-export async function setMostRecentSSHCredential(
+export function setMostRecentSSHCredential(
   operationGUID: string,
   store: string,
   key: string

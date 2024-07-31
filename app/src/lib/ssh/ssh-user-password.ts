@@ -2,6 +2,7 @@ import { TokenStore } from '../stores'
 import {
   getSSHSecretStoreKey,
   setMostRecentSSHCredential,
+  setSSHCredential,
 } from './ssh-credential-storage'
 
 const SSHUserPasswordTokenStoreKey = getSSHSecretStoreKey('SSH user password')
@@ -30,11 +31,25 @@ export async function setSSHUserPassword(
   username: string,
   password: string
 ) {
+  await setSSHCredential(operationGUID, SSHUserPasswordTokenStoreKey, username, password)
+}
+
+/**
+ * Keeps the SSH credential details in memory to be deleted later if the ongoing
+ * git operation fails to authenticate.
+ *
+ * @param operationGUID A unique identifier for the ongoing git operation. In
+ *                      practice, it will always be the trampoline secret for the
+ *                      ongoing git operation.
+ * @param username      SSH user name.
+ */
+export function setMostRecentSSHUserPassword(
+  operationGUID: string,
+  username: string
+) {
   setMostRecentSSHCredential(
     operationGUID,
     SSHUserPasswordTokenStoreKey,
     username
   )
-
-  await TokenStore.setItem(SSHUserPasswordTokenStoreKey, username, password)
 }

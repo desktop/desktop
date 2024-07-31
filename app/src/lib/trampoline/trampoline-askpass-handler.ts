@@ -1,5 +1,6 @@
 import {
   getSSHKeyPassphrase,
+  setMostRecentSSHKeyPassphrase,
   setSSHKeyPassphrase,
 } from '../ssh/ssh-key-passphrase'
 import { AccountsStore } from '../stores/accounts-store'
@@ -11,6 +12,7 @@ import { trampolineUIHelper } from './trampoline-ui-helper'
 import { parseAddSSHHostPrompt } from '../ssh/ssh'
 import {
   getSSHUserPassword,
+  setMostRecentSSHUserPassword,
   setSSHUserPassword,
 } from '../ssh/ssh-user-password'
 import { removeMostRecentSSHCredential } from '../ssh/ssh-credential-storage'
@@ -81,7 +83,7 @@ async function handleSSHKeyPassphrase(
 
   const storedPassphrase = await getSSHKeyPassphrase(keyPath)
   if (storedPassphrase !== null) {
-    setSSHKeyPassphrase(operationGUID, keyPath, storedPassphrase)
+    await setMostRecentSSHKeyPassphrase(operationGUID, keyPath)
     return storedPassphrase
   }
 
@@ -116,6 +118,7 @@ async function handleSSHUserPassword(operationGUID: string, prompt: string) {
 
   const storedPassword = await getSSHUserPassword(username)
   if (storedPassword !== null) {
+    setMostRecentSSHUserPassword(operationGUID, username)
     return storedPassword
   }
 
