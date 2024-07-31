@@ -2,7 +2,7 @@ import { TokenStore } from '../stores'
 import {
   getSSHSecretStoreKey,
   setMostRecentSSHCredential,
-} from './ssh-secret-storage'
+} from './ssh-credential-storage'
 
 const SSHUserPasswordTokenStoreKey = getSSHSecretStoreKey('SSH user password')
 

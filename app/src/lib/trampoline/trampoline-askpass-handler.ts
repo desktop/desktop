@@ -13,7 +13,7 @@ import {
   getSSHUserPassword,
   setSSHUserPassword,
 } from '../ssh/ssh-user-password'
-import { removeMostRecentSSHCredential } from '../ssh/ssh-secret-storage'
+import { removeMostRecentSSHCredential } from '../ssh/ssh-credential-storage'
 import { setGenericPassword, setGenericUsername } from '../generic-git-auth'
 import { Account } from '../../models/account'
 import {

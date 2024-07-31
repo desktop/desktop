@@ -5,7 +5,7 @@ import { getSSHEnvironment } from '../ssh/ssh'
 import {
   deleteMostRecentSSHCredential,
   removeMostRecentSSHCredential,
-} from '../ssh/ssh-secret-storage'
+} from '../ssh/ssh-credential-storage'
 import { GitError as DugiteError, GitProcess } from 'dugite'
 import memoizeOne from 'memoize-one'
 import { enableCredentialHelperTrampoline } from '../feature-flag'
