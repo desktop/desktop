@@ -1,12 +1,12 @@
 import { getFileHash } from '../get-file-hash'
 import { TokenStore } from '../stores'
 import {
-  getSSHSecretStoreKey,
+  getSSHCredentialStoreKey,
   setMostRecentSSHCredential,
   setSSHCredential,
 } from './ssh-credential-storage'
 
-const SSHKeyPassphraseTokenStoreKey = getSSHSecretStoreKey(
+const SSHKeyPassphraseTokenStoreKey = getSSHCredentialStoreKey(
   'SSH key passphrases'
 )
 

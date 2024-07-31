@@ -2,7 +2,7 @@ import { TokenStore } from '../stores'
 
 const appName = __DEV__ ? 'GitHub Desktop Dev' : 'GitHub Desktop'
 
-export function getSSHSecretStoreKey(name: string) {
+export function getSSHCredentialStoreKey(name: string) {
   return `${appName} - ${name}`
 }
 

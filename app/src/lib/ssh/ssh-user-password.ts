@@ -1,11 +1,11 @@
 import { TokenStore } from '../stores'
 import {
-  getSSHSecretStoreKey,
+  getSSHCredentialStoreKey,
   setMostRecentSSHCredential,
   setSSHCredential,
 } from './ssh-credential-storage'
 
-const SSHUserPasswordTokenStoreKey = getSSHSecretStoreKey('SSH user password')
+const SSHUserPasswordTokenStoreKey = getSSHCredentialStoreKey('SSH user password')
 
 /** Retrieves the password for the given SSH username. */
 export async function getSSHUserPassword(username: string) {
