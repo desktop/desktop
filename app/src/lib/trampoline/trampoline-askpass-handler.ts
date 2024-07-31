@@ -89,6 +89,8 @@ async function handleSSHKeyPassphrase(
 
   const storedPassphrase = await getSSHKeyPassphrase(keyPath)
   if (storedPassphrase !== null) {
+    // Keep this stored passphrase around in case it's not valid and we need to
+    // delete it if the git operation fails to authenticate.
     await setMostRecentSSHKeyPassphrase(operationGUID, keyPath)
     return storedPassphrase
   }
@@ -129,6 +131,8 @@ async function handleSSHUserPassword(operationGUID: string, prompt: string) {
 
   const storedPassword = await getSSHUserPassword(username)
   if (storedPassword !== null) {
+    // Keep this stored password around in case it's not valid and we need to
+    // delete it if the git operation fails to authenticate.
     setMostRecentSSHUserPassword(operationGUID, username)
     return storedPassword
   }
