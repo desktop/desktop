@@ -10,6 +10,7 @@ import { getVersion } from '../ui/lib/app-proxy'
 import { formatDate } from './format-date'
 import { offsetFromNow } from './offset-from'
 import { encodePathAsUrl } from './path'
+import { centralStagingHost } from '../../../script/dist-info'
 
 // expects a release note entry to contain a header and then some text
 // example:
@@ -91,7 +92,7 @@ export async function getChangeLog(
   limit?: number
 ): Promise<ReadonlyArray<ReleaseMetadata>> {
   const changelogURL = new URL(
-    'https://central-staging.github.com/deployments/desktop/desktop/changelog.json'
+    `${centralStagingHost}/deployments/desktop/desktop/changelog.json`
   )
 
   if (__RELEASE_CHANNEL__ === 'beta' || __RELEASE_CHANNEL__ === 'test') {

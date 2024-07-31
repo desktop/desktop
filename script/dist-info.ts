@@ -3,6 +3,13 @@ import * as Fs from 'fs'
 
 import { getProductName, getVersion } from '../app/package-info'
 
+export const centralHost =
+  'https://central.github.com/api/deployments/desktop/desktop'
+
+/** N.b: When hitting staging, it is `githubapp` not just `github` */
+export const centralStagingHost =
+  'https://central-staging.githubapp.com/api/deployments/desktop/desktop'
+
 const productName = getProductName()
 const version = getVersion()
 
@@ -140,7 +147,7 @@ export function getUpdatesURL() {
   // compatibility reasons) in case anything goes wrong until we have everything
   // sorted out.
   const architecturePath = getDistArchitecture() === 'arm64' ? 'arm64/' : ''
-  return `https://central-staging.github.com/api/deployments/desktop/desktop/${architecturePath}latest?version=${version}&env=${getChannel()}`
+  return `${centralStagingHost}/api/deployments/desktop/desktop/${architecturePath}latest?version=${version}&env=${getChannel()}`
 }
 
 export function shouldMakeDelta() {
