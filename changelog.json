@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.4.3-test2": [
+      "[Fixed] Only ask for SSH credentials for the selected repository and only delete them after an authentication error"
+    ],
     "3.4.3-beta3": [
       "[Added] Add Zed as an external editor option for Linux - #18962. Thanks @adil192!",
       "[Fixed] Allow pushing to gists - #19009"
