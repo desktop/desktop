@@ -140,7 +140,7 @@ export function getUpdatesURL() {
   // compatibility reasons) in case anything goes wrong until we have everything
   // sorted out.
   const architecturePath = getDistArchitecture() === 'arm64' ? 'arm64/' : ''
-  return `https://central.github.com/api/deployments/desktop/desktop/${architecturePath}latest?version=${version}&env=${getChannel()}`
+  return `https://central-staging.github.com/api/deployments/desktop/desktop/${architecturePath}latest?version=${version}&env=${getChannel()}`
 }
 
 export function shouldMakeDelta() {
