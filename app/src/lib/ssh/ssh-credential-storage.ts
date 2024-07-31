@@ -38,7 +38,8 @@ export async function setSSHCredential(
   operationGUID: string,
   store: string,
   key: string,
-  password: string) {
+  password: string
+) {
   setMostRecentSSHCredential(operationGUID, store, key)
   await TokenStore.setItem(store, key, password)
 }
@@ -77,7 +78,9 @@ export function removeMostRecentSSHCredential(operationGUID: string) {
 export async function deleteMostRecentSSHCredential(operationGUID: string) {
   const entry = mostRecentSSHCredentials.get(operationGUID)
   if (entry) {
-    log.info(`SSH auth failed, deleting credential for ${entry.store}:${entry.key}`)
+    log.info(
+      `SSH auth failed, deleting credential for ${entry.store}:${entry.key}`
+    )
 
     await TokenStore.deleteItem(entry.store, entry.key)
   }

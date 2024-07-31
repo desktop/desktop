@@ -5,7 +5,8 @@ import {
   setSSHCredential,
 } from './ssh-credential-storage'
 
-const SSHUserPasswordTokenStoreKey = getSSHCredentialStoreKey('SSH user password')
+const SSHUserPasswordTokenStoreKey =
+  getSSHCredentialStoreKey('SSH user password')
 
 /** Retrieves the password for the given SSH username. */
 export async function getSSHUserPassword(username: string) {
@@ -31,7 +32,12 @@ export async function setSSHUserPassword(
   username: string,
   password: string
 ) {
-  await setSSHCredential(operationGUID, SSHUserPasswordTokenStoreKey, username, password)
+  await setSSHCredential(
+    operationGUID,
+    SSHUserPasswordTokenStoreKey,
+    username,
+    password
+  )
 }
 
 /**

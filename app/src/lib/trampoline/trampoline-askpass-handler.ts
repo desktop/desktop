@@ -52,7 +52,9 @@ async function handleSSHHostAuthenticity(
   }
 
   if (getIsBackgroundTaskEnvironment(operationGUID)) {
-    log.debug('handleSSHHostAuthenticity: background task environment, skipping prompt')
+    log.debug(
+      'handleSSHHostAuthenticity: background task environment, skipping prompt'
+    )
     return undefined
   }
 
@@ -96,7 +98,9 @@ async function handleSSHKeyPassphrase(
   }
 
   if (getIsBackgroundTaskEnvironment(operationGUID)) {
-    log.debug('handleSSHKeyPassphrase: background task environment, skipping prompt')
+    log.debug(
+      'handleSSHKeyPassphrase: background task environment, skipping prompt'
+    )
     return undefined
   }
 
@@ -138,7 +142,9 @@ async function handleSSHUserPassword(operationGUID: string, prompt: string) {
   }
 
   if (getIsBackgroundTaskEnvironment(operationGUID)) {
-    log.debug('handleSSHUserPassword: background task environment, skipping prompt')
+    log.debug(
+      'handleSSHUserPassword: background task environment, skipping prompt'
+    )
     return undefined
   }
 

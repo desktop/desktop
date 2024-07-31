@@ -42,7 +42,12 @@ export async function setSSHKeyPassphrase(
   try {
     const keyHash = await getHashForSSHKey(keyPath)
 
-    await setSSHCredential(operationGUID, SSHKeyPassphraseTokenStoreKey, keyHash, passphrase)
+    await setSSHCredential(
+      operationGUID,
+      SSHKeyPassphraseTokenStoreKey,
+      keyHash,
+      passphrase
+    )
   } catch (e) {
     log.error('Could not store passphrase for SSH key:', e)
   }

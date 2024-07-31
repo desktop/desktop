@@ -129,31 +129,31 @@ export async function withTrampolineEnv<T>(
         DESKTOP_TRAMPOLINE_TOKEN: token,
         ...(enableCredentialHelperTrampoline()
           ? {
-            GIT_ASKPASS: '',
-            // This warrants some explanation. We're configuring the
-            // credential helper using environment variables rather than
-            // arguments (i.e. -c credential.helper=) because we want commands
-            // invoked by filters (i.e. Git LFS) to be able to pick up our
-            // configuration. Arguments passed to git commands are not passed
-            // down to filters.
-            //
-            // By setting GIT_CONFIG_* here we're preventing anyone else
-            // passing Git configs through environment variables and if anyone
-            // downstream of sets GIT_CONFIG_* they'll override us so if we
-            // end up using this more we'll have to come up with a more robust
-            // solution where perhaps dugite takes care of coalescing all of
-            // these.
-            //
-            // See https://git-scm.com/docs/git-config#ENVIRONMENT
-            GIT_CONFIG_COUNT: '2',
-            GIT_CONFIG_KEY_0: 'credential.helper',
-            GIT_CONFIG_VALUE_0: '',
-            GIT_CONFIG_KEY_1: 'credential.helper',
-            GIT_CONFIG_VALUE_1: 'desktop',
-          }
+              GIT_ASKPASS: '',
+              // This warrants some explanation. We're configuring the
+              // credential helper using environment variables rather than
+              // arguments (i.e. -c credential.helper=) because we want commands
+              // invoked by filters (i.e. Git LFS) to be able to pick up our
+              // configuration. Arguments passed to git commands are not passed
+              // down to filters.
+              //
+              // By setting GIT_CONFIG_* here we're preventing anyone else
+              // passing Git configs through environment variables and if anyone
+              // downstream of sets GIT_CONFIG_* they'll override us so if we
+              // end up using this more we'll have to come up with a more robust
+              // solution where perhaps dugite takes care of coalescing all of
+              // these.
+              //
+              // See https://git-scm.com/docs/git-config#ENVIRONMENT
+              GIT_CONFIG_COUNT: '2',
+              GIT_CONFIG_KEY_0: 'credential.helper',
+              GIT_CONFIG_VALUE_0: '',
+              GIT_CONFIG_KEY_1: 'credential.helper',
+              GIT_CONFIG_VALUE_1: 'desktop',
+            }
           : {
-            GIT_ASKPASS: getDesktopAskpassTrampolinePath(),
-          }),
+              GIT_ASKPASS: getDesktopAskpassTrampolinePath(),
+            }),
         GIT_USER_AGENT: await GitUserAgent(),
         ...sshEnv,
       })
@@ -222,7 +222,8 @@ const isHTTPSAuthFailure = (e: unknown): e is GitError =>
 
 const isSSHAuthFailure = (e: unknown): e is GitError =>
   e instanceof GitError &&
-  (e.result.gitError === DugiteError.SSHAuthenticationFailed || e.result.gitError === DugiteError.SSHPermissionDenied)
+  (e.result.gitError === DugiteError.SSHAuthenticationFailed ||
+    e.result.gitError === DugiteError.SSHPermissionDenied)
 
 function deleteMostRecentGenericCredential(token: string) {
   const cred = mostRecentGenericGitCredential.get(token)
