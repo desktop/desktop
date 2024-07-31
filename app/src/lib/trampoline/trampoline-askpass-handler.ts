@@ -31,6 +31,7 @@ import {
 } from './find-account'
 
 async function handleSSHHostAuthenticity(
+  operationGUID: string,
   prompt: string
 ): Promise<'yes' | 'no' | undefined> {
   const info = parseAddSSHHostPrompt(prompt)
@@ -48,6 +49,11 @@ async function handleSSHHostAuthenticity(
     info.fingerprint === 'SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8'
   ) {
     return 'yes'
+  }
+
+  if (getIsBackgroundTaskEnvironment(operationGUID)) {
+    log.debug('handleSSHHostAuthenticity: background task environment, skipping prompt')
+    return undefined
   }
 
   const addHost = await trampolineUIHelper.promptAddingSSHHost(
@@ -87,6 +93,11 @@ async function handleSSHKeyPassphrase(
     return storedPassphrase
   }
 
+  if (getIsBackgroundTaskEnvironment(operationGUID)) {
+    log.debug('handleSSHKeyPassphrase: background task environment, skipping prompt')
+    return undefined
+  }
+
   const { secret: passphrase, storeSecret: storePassphrase } =
     await trampolineUIHelper.promptSSHKeyPassphrase(keyPath)
 
@@ -122,6 +133,11 @@ async function handleSSHUserPassword(operationGUID: string, prompt: string) {
     return storedPassword
   }
 
+  if (getIsBackgroundTaskEnvironment(operationGUID)) {
+    log.debug('handleSSHUserPassword: background task environment, skipping prompt')
+    return undefined
+  }
+
   const { secret: password, storeSecret: storePassword } =
     await trampolineUIHelper.promptSSHUserPassword(username)
 
@@ -145,7 +161,7 @@ export const createAskpassTrampolineHandler: (
     const firstParameter = command.parameters[0]
 
     if (firstParameter.startsWith('The authenticity of host ')) {
-      return handleSSHHostAuthenticity(firstParameter)
+      return handleSSHHostAuthenticity(command.trampolineToken, firstParameter)
     }
 
     if (firstParameter.startsWith('Enter passphrase for key ')) {
