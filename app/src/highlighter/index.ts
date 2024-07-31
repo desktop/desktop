@@ -277,9 +277,10 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
     },
   },
   {
-    install: () => import('codemirror/mode/lua/lua'),
+    install: () => import('codemirror-mode-luau'),
     mappings: {
       '.lua': 'text/x-lua',
+      '.luau': 'text/x-luau',
     },
   },
   {
@@ -462,6 +463,12 @@ const basenameModes: ReadonlyArray<IModeDefinition> = [
     install: () => import('codemirror/mode/dockerfile/dockerfile'),
     mappings: {
       dockerfile: 'text/x-dockerfile',
+    },
+  },
+  {
+    install: () => import('codemirror/mode/toml/toml'),
+    mappings: {
+      'cargo.lock': 'text/x-toml',
     },
   },
 ]
