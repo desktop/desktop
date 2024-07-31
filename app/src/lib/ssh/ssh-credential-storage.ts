@@ -39,7 +39,6 @@ export async function setSSHCredential(
   store: string,
   key: string,
   password: string) {
-
   setMostRecentSSHCredential(operationGUID, store, key)
   await TokenStore.setItem(store, key, password)
 }
