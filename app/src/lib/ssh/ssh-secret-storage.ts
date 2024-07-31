@@ -6,15 +6,12 @@ export function getSSHSecretStoreKey(name: string) {
   return `${appName} - ${name}`
 }
 
-type SSHSecretEntry = {
-  /** Store where this entry will be stored. */
+type SSHCredentialEntry = {
+  /** Store where this entry is stored. */
   store: string
 
   /** Key used to identify the secret in the store (e.g. username or hash). */
   key: string
-
-  /** Actual secret to be stored (password). */
-  secret: string
 }
 
 /**
@@ -23,39 +20,36 @@ type SSHSecretEntry = {
  * to store the passphrase for the SSH key, however we don't want to store it
  * until we know the git operation finished successfully.
  */
-const SSHSecretsToStore = new Map<string, SSHSecretEntry>()
+const mostRecentSSHCredentials = new Map<string, SSHCredentialEntry>()
 
 /**
- * Keeps the SSH secret in memory to be stored later if the ongoing git operation
- * succeeds.
+ * Keeps the SSH secret in memory to be deleted later if the ongoing git operation
+ * fails to authenticate.
  *
  * @param operationGUID A unique identifier for the ongoing git operation. In
  *                      practice, it will always be the trampoline secret for the
  *                      ongoing git operation.
  * @param key           Key that identifies the SSH secret (e.g. username or key
  *                      hash).
- * @param secret        Actual SSH secret to store.
  */
-export async function keepSSHSecretToStore(
+export async function setMostRecentSSHCredential(
   operationGUID: string,
   store: string,
-  key: string,
-  secret: string
+  key: string
 ) {
-  SSHSecretsToStore.set(operationGUID, { store, key, secret })
+  mostRecentSSHCredentials.set(operationGUID, { store, key })
 }
 
 /** Removes the SSH key passphrase from memory. */
-export function removePendingSSHSecretToStore(operationGUID: string) {
-  SSHSecretsToStore.delete(operationGUID)
+export function removeMostRecentSSHCredential(operationGUID: string) {
+  mostRecentSSHCredentials.delete(operationGUID)
 }
 
-/** Stores a pending SSH key passphrase if the operation succeeded. */
-export async function storePendingSSHSecret(operationGUID: string) {
-  const entry = SSHSecretsToStore.get(operationGUID)
-  if (entry === undefined) {
-    return
-  }
+export async function deleteMostRecentSSHCredential(operationGUID: string) {
+  const entry = mostRecentSSHCredentials.get(operationGUID)
+  if (entry) {
+    log.info(`SSH auth failed, deleting credential for ${entry.store}:${entry.key}`)
 
-  await TokenStore.setItem(entry.store, entry.key, entry.secret)
+    await TokenStore.deleteItem(entry.store, entry.key)
+  }
 }

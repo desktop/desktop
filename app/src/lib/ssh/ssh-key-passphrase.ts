@@ -2,7 +2,7 @@ import { getFileHash } from '../get-file-hash'
 import { TokenStore } from '../stores'
 import {
   getSSHSecretStoreKey,
-  keepSSHSecretToStore,
+  setMostRecentSSHCredential,
 } from './ssh-secret-storage'
 
 const SSHKeyPassphraseTokenStoreKey = getSSHSecretStoreKey(
@@ -25,8 +25,7 @@ export async function getSSHKeyPassphrase(keyPath: string) {
 }
 
 /**
- * Keeps the SSH key passphrase in memory to be stored later if the ongoing git
- * operation succeeds.
+ * Stores the SSH key passphrase.
  *
  * @param operationGUID A unique identifier for the ongoing git operation. In
  *                      practice, it will always be the trampoline token for the
@@ -34,19 +33,20 @@ export async function getSSHKeyPassphrase(keyPath: string) {
  * @param keyPath       Path to the SSH key.
  * @param passphrase    Passphrase for the SSH key.
  */
-export async function keepSSHKeyPassphraseToStore(
+export async function setSSHKeyPassphrase(
   operationGUID: string,
   keyPath: string,
   passphrase: string
 ) {
   try {
     const keyHash = await getHashForSSHKey(keyPath)
-    keepSSHSecretToStore(
+    setMostRecentSSHCredential(
       operationGUID,
       SSHKeyPassphraseTokenStoreKey,
-      keyHash,
-      passphrase
+      keyHash
     )
+
+    await TokenStore.setItem(SSHKeyPassphraseTokenStoreKey, keyHash, passphrase)
   } catch (e) {
     log.error('Could not store passphrase for SSH key:', e)
   }

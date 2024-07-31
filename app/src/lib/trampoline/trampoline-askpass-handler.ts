@@ -1,6 +1,6 @@
 import {
   getSSHKeyPassphrase,
-  keepSSHKeyPassphraseToStore,
+  setSSHKeyPassphrase,
 } from '../ssh/ssh-key-passphrase'
 import { AccountsStore } from '../stores/accounts-store'
 import {
@@ -11,9 +11,9 @@ import { trampolineUIHelper } from './trampoline-ui-helper'
 import { parseAddSSHHostPrompt } from '../ssh/ssh'
 import {
   getSSHUserPassword,
-  keepSSHUserPasswordToStore,
+  setSSHUserPassword,
 } from '../ssh/ssh-user-password'
-import { removePendingSSHSecretToStore } from '../ssh/ssh-secret-storage'
+import { removeMostRecentSSHCredential } from '../ssh/ssh-secret-storage'
 import { setGenericPassword, setGenericUsername } from '../generic-git-auth'
 import { Account } from '../../models/account'
 import {
@@ -81,6 +81,7 @@ async function handleSSHKeyPassphrase(
 
   const storedPassphrase = await getSSHKeyPassphrase(keyPath)
   if (storedPassphrase !== null) {
+    setSSHKeyPassphrase(operationGUID, keyPath, storedPassphrase)
     return storedPassphrase
   }
 
@@ -95,9 +96,9 @@ async function handleSSHKeyPassphrase(
   // when, in one of those multiple attempts, the user chooses NOT to remember
   // the passphrase.
   if (passphrase !== undefined && storePassphrase) {
-    keepSSHKeyPassphraseToStore(operationGUID, keyPath, passphrase)
+    setSSHKeyPassphrase(operationGUID, keyPath, passphrase)
   } else {
-    removePendingSSHSecretToStore(operationGUID)
+    removeMostRecentSSHCredential(operationGUID)
   }
 
   return passphrase ?? ''
@@ -122,9 +123,9 @@ async function handleSSHUserPassword(operationGUID: string, prompt: string) {
     await trampolineUIHelper.promptSSHUserPassword(username)
 
   if (password !== undefined && storePassword) {
-    keepSSHUserPasswordToStore(operationGUID, username, password)
+    setSSHUserPassword(operationGUID, username, password)
   } else {
-    removePendingSSHSecretToStore(operationGUID)
+    removeMostRecentSSHCredential(operationGUID)
   }
 
   return password ?? ''
