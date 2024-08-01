@@ -78,15 +78,6 @@ const editors: ILinuxExternalEditor[] = [
     paths: ['/usr/bin/typora'],
   },
   {
-    name: 'Netbeans',
-    paths: [
-      '/opt/netbeans-22/bin/netbeans',
-      '/opt/netbeans-21/bin/netbeans',
-      '/opt/netbeans-20/bin/netbeans',
-      '/snap/bin/netbeans',
-    ],
-  },
-  {
     name: 'SlickEdit',
     paths: [
       '/opt/slickedit-pro2018/bin/vs',

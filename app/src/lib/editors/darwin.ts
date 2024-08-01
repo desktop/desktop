@@ -104,10 +104,6 @@ const editors: IDarwinExternalEditor[] = [
     ],
   },
   {
-    name: 'NetBeans',
-    bundleIdentifiers: ['org.apache.netbeans'],
-  },
-  {
     name: 'BBEdit',
     bundleIdentifiers: ['com.barebones.bbedit'],
   },
