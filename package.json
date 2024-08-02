@@ -93,7 +93,7 @@
     "prettier": "^2.6.0",
     "rimraf": "^2.5.2",
     "sass": "^1.27.0",
-    "sass-loader": "^11.1.1",
+    "sass-loader": "^16.0.0",
     "semver": "^5.7.2",
     "split2": "^3.2.2",
     "style-loader": "^3.3.1",
