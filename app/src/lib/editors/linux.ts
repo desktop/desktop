@@ -100,7 +100,7 @@ const editors: ILinuxExternalEditor[] = [
     name: 'JetBrains PhpStorm',
     paths: [
       '/snap/bin/phpstorm',
-      '.local/share/JetBrains/Toolbox/scripts/phpstorm',
+      '.local/share/JetBrains/Toolbox/scripts/PhpStorm',
     ],
   },
   {
@@ -129,11 +129,33 @@ const editors: ILinuxExternalEditor[] = [
     ],
   },
   {
+    name: 'JetBrains CLion',
+    paths: ['/snap/bin/clion', '.local/share/JetBrains/Toolbox/scripts/clion1'],
+  },
+  {
+    name: 'JetBrains Rider',
+    paths: ['/snap/bin/rider', '.local/share/JetBrains/Toolbox/scripts/rider'],
+  },
+  {
+    name: 'JetBrains RubyMine',
+    paths: [
+      '/snap/bin/rubymine',
+      '.local/share/JetBrains/Toolbox/scripts/rubymine',
+    ],
+  },
+  {
     name: 'JetBrains PyCharm',
     paths: [
       '/snap/bin/pycharm',
       '/snap/bin/pycharm-professional',
       '.local/share/JetBrains/Toolbox/scripts/pycharm',
+    ],
+  },
+  {
+    name: 'JetBrains JetBrains RustRover',
+    paths: [
+      '/snap/bin/rustrover',
+      '.local/share/JetBrains/Toolbox/scripts/rustrover',
     ],
   },
   {

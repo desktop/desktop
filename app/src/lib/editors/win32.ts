@@ -489,6 +489,14 @@ const editors: WindowsExternalEditor[] = [
     publishers: ['JetBrains s.r.o.'],
   },
   {
+    name: 'JetBrains RustRover',
+    registryKeys: registryKeysForJetBrainsIDE('RustRover'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('rustrover'),
+    jetBrainsToolboxScriptName: 'rustrover',
+    displayNamePrefixes: ['RustRover '],
+    publishers: ['JetBrains s.r.o.'],
+  },
+  {
     name: 'Pulsar',
     registryKeys: [
       CurrentUserUninstallKey('0949b555-c22c-56b7-873a-a960bdefa81f'),
