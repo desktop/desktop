@@ -22,6 +22,9 @@ interface IGitProps {
 
   readonly selectedExternalEditor: string | null
   readonly onOpenFileInExternalEditor: (path: string) => void
+
+  readonly automaticSignOff: boolean
+  readonly onAutomaticSignOffChanged: (enabled: boolean) => void
 }
 
 export class Git extends React.Component<IGitProps> {
@@ -30,6 +33,7 @@ export class Git extends React.Component<IGitProps> {
       <DialogContent>
         {this.renderGitConfigAuthorInfo()}
         {this.renderDefaultBranchSetting()}
+        {this.renderAutomaticSignOffSetting()}
       </DialogContent>
     )
   }
@@ -83,6 +87,30 @@ export class Git extends React.Component<IGitProps> {
         </p>
       </div>
     )
+  }
+
+  private renderAutomaticSignOffSetting() {
+    return (
+      <div className="automatic-signoff-component">
+        <h2 id="automatic-signoff-heading">Automatic Sign-Off</h2>
+        <input
+          type="checkbox"
+          checked={this.props.automaticSignOff}
+          onChange={this.onAutomaticSignOffChanged}
+          aria-labelledby="automatic-signoff-heading"
+        />
+        <p className="git-settings-description">
+          Enable automatic sign-off for all commits. This will add a
+          "Signed-off-by" line to the commit message.
+        </p>
+      </div>
+    )
+  }
+
+  private onAutomaticSignOffChanged = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    this.props.onAutomaticSignOffChanged(event.target.checked)
   }
 
   // This function is called to open the global git config file in the

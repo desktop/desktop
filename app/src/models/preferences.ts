@@ -8,3 +8,7 @@ export enum PreferencesTab {
   Advanced,
   Accessibility,
 }
+
+export interface IPreferences {
+  readonly automaticSignOff: boolean
+}

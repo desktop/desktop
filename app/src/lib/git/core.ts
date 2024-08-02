@@ -16,6 +16,7 @@ import { getFileFromExceedsError } from '../helpers/regex'
 import { merge } from '../merge'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
 import { enableCredentialHelperTrampoline } from '../feature-flag'
+import { getAutomaticSignOffSetting } from './config' // P6ed9
 
 /**
  * An extension of the execution options in dugite that
@@ -159,6 +160,13 @@ export async function git(
 
     combineOutput(process.stderr)
     combineOutput(process.stdout)
+  }
+
+  // Check for automatic sign-off setting
+  const signOffEnabled = await getAutomaticSignOffSetting({ path }) // P6ed9
+
+  if (signOffEnabled) {
+    args.push('--signoff') // Pbe06
   }
 
   return withTrampolineEnv(

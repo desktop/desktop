@@ -5,6 +5,7 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { unstageAll } from './reset'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { stageManualConflictResolution } from './stage'
+import { getConfigValue } from './config' // Pff25
 
 /**
  * @param repository repository to execute merge in
@@ -29,6 +30,17 @@ export async function createCommit(
 
   if (amend) {
     args.push('--amend')
+  }
+
+  // Check for automatic sign-off setting
+  const signOffEnabled = await getConfigValue(repository, 'commit.signoff', true) // Pff25
+
+  if (signOffEnabled === 'true') {
+    const userName = await getConfigValue(repository, 'user.name', true)
+    const userEmail = await getConfigValue(repository, 'user.email', true)
+    if (userName && userEmail) {
+      message += `\n\nSigned-off-by: ${userName} <${userEmail}>` // P7b70
+    }
   }
 
   const result = await git(

@@ -295,3 +295,16 @@ async function removeConfigValueInPath(
 
   await git(flags, path || __dirname, 'removeConfigValueInPath', options)
 }
+
+/**
+ * Get the automatic sign-off setting from the config.
+ *
+ * @param repository The repository to get the setting for.
+ * @returns The value of the automatic sign-off setting.
+ */
+export async function getAutomaticSignOffSetting(
+  repository: Repository
+): Promise<boolean> {
+  const value = await getConfigValue(repository, 'commit.signoff', true)
+  return value === 'true'
+}
