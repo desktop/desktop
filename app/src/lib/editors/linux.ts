@@ -130,17 +130,11 @@ const editors: ILinuxExternalEditor[] = [
   },
   {
     name: 'JetBrains CLion',
-    paths: [
-      '/snap/bin/clion',
-      '.local/share/JetBrains/Toolbox/scripts/clion1',
-    ],
+    paths: ['/snap/bin/clion', '.local/share/JetBrains/Toolbox/scripts/clion1'],
   },
   {
     name: 'JetBrains Rider',
-    paths: [
-      '/snap/bin/rider',
-      '.local/share/JetBrains/Toolbox/scripts/rider',
-    ],
+    paths: ['/snap/bin/rider', '.local/share/JetBrains/Toolbox/scripts/rider'],
   },
   {
     name: 'JetBrains RubyMine',
