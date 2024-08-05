@@ -2148,7 +2148,12 @@ export function getHTMLURL(endpoint: string): string {
  */
 export function getEnterpriseAPIURL(endpoint: string): string {
   const parsed = URL.parse(endpoint)
-  return `${parsed.protocol}//${parsed.hostname}/api/v3`
+  const protocol = parsed.protocol ?? ''
+  const auth = parsed.auth ? `${parsed.auth}@` : ''
+  const host = parsed.hostname ?? ''
+  const port = parsed.port
+
+  return `${protocol}//${auth}${host}${port ? `:${port}` : ''}/api/v3`
 }
 
 /** Get github.com's API endpoint. */
@@ -2275,8 +2280,26 @@ export async function isGitHubHost(url: string) {
   const ac = new AbortController()
   const timeoutId = setTimeout(() => ac.abort(), 2000)
   try {
-    const response = await fetch(`${endpoint}/meta`, {
-      headers: { 'user-agent': getUserAgent() },
+    let authHeader: Record<string, string> = {}
+    let fetchEndpoint = endpoint
+
+    const parsedEndpoint = URL.parse(endpoint)
+    if (parsedEndpoint.auth) {
+      const [username, password] = parsedEndpoint.auth.split(':')
+      const basicAuth = Buffer.from(`${username}:${password}`).toString(
+        'base64'
+      )
+      authHeader = { Authorization: `Basic ${basicAuth}` }
+
+      // We need to fetch the meta endpoint without authentication
+      parsedEndpoint.auth = ''
+      fetchEndpoint = URL.format(parsedEndpoint)
+    }
+    const response = await fetch(`${fetchEndpoint}/meta`, {
+      headers: {
+        'user-agent': getUserAgent(),
+        ...authHeader,
+      },
       signal: ac.signal,
       credentials: 'omit',
       method: 'HEAD',
