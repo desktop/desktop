@@ -1,10 +1,12 @@
 import { TokenStore } from '../stores'
 import {
-  getSSHSecretStoreKey,
-  keepSSHSecretToStore,
-} from './ssh-secret-storage'
+  getSSHCredentialStoreKey,
+  setMostRecentSSHCredential,
+  setSSHCredential,
+} from './ssh-credential-storage'
 
-const SSHUserPasswordTokenStoreKey = getSSHSecretStoreKey('SSH user password')
+const SSHUserPasswordTokenStoreKey =
+  getSSHCredentialStoreKey('SSH user password')
 
 /** Retrieves the password for the given SSH username. */
 export async function getSSHUserPassword(username: string) {
@@ -17,8 +19,7 @@ export async function getSSHUserPassword(username: string) {
 }
 
 /**
- * Keeps the SSH user password in memory to be stored later if the ongoing git
- * operation succeeds.
+ * Stores the SSH user password.
  *
  * @param operationGUID A unique identifier for the ongoing git operation. In
  *                      practice, it will always be the trampoline token for the
@@ -26,15 +27,35 @@ export async function getSSHUserPassword(username: string) {
  * @param username      SSH user name. Usually in the form of `user@hostname`.
  * @param password      Password for the given user.
  */
-export async function keepSSHUserPasswordToStore(
+export async function setSSHUserPassword(
   operationGUID: string,
   username: string,
   password: string
 ) {
-  keepSSHSecretToStore(
+  await setSSHCredential(
     operationGUID,
     SSHUserPasswordTokenStoreKey,
     username,
     password
+  )
+}
+
+/**
+ * Keeps the SSH credential details in memory to be deleted later if the ongoing
+ * git operation fails to authenticate.
+ *
+ * @param operationGUID A unique identifier for the ongoing git operation. In
+ *                      practice, it will always be the trampoline secret for the
+ *                      ongoing git operation.
+ * @param username      SSH user name.
+ */
+export function setMostRecentSSHUserPassword(
+  operationGUID: string,
+  username: string
+) {
+  setMostRecentSSHCredential(
+    operationGUID,
+    SSHUserPasswordTokenStoreKey,
+    username
   )
 }

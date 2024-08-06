@@ -3,9 +3,9 @@ import { withTrampolineToken } from './trampoline-tokens'
 import * as Path from 'path'
 import { getSSHEnvironment } from '../ssh/ssh'
 import {
-  removePendingSSHSecretToStore,
-  storePendingSSHSecret,
-} from '../ssh/ssh-secret-storage'
+  deleteMostRecentSSHCredential,
+  removeMostRecentSSHCredential,
+} from '../ssh/ssh-credential-storage'
 import { GitError as DugiteError, GitProcess } from 'dugite'
 import memoizeOne from 'memoize-one'
 import { enableCredentialHelperTrampoline } from '../feature-flag'
@@ -124,7 +124,7 @@ export async function withTrampolineEnv<T>(
     // `fn` has been invoked, we can store the SSH key passphrase for this git
     // operation if there was one pending to be stored.
     try {
-      const result = await fn({
+      return await fn({
         DESKTOP_PORT: await trampolineServer.getPort(),
         DESKTOP_TRAMPOLINE_TOKEN: token,
         ...(enableCredentialHelperTrampoline()
@@ -157,17 +157,19 @@ export async function withTrampolineEnv<T>(
         GIT_USER_AGENT: await GitUserAgent(),
         ...sshEnv,
       })
-
-      await storePendingSSHSecret(token)
-      return result
     } catch (e) {
-      // If the operation fails with an HTTPSAuthenticationFailed error, we
-      // assume that it's because the last credential we provided via the
-      // askpass handler was rejected. That's not necessarily the case but for
-      // practical purposes, it's as good as we can get with the information we
-      // have. We're limited by the ASKPASS flow here.
-      if (isAuthFailure(e) && !getIsBackgroundTaskEnvironment(token)) {
-        deleteMostRecentGenericCredential(token)
+      if (!getIsBackgroundTaskEnvironment(token)) {
+        // If the operation fails with an HTTPSAuthenticationFailed error, we
+        // assume that it's because the last credential we provided via the
+        // askpass handler was rejected. That's not necessarily the case but for
+        // practical purposes, it's as good as we can get with the information we
+        // have. We're limited by the ASKPASS flow here.
+        // Same with SSHAuthenticationFailed error.
+        if (isHTTPSAuthFailure(e)) {
+          deleteMostRecentGenericCredential(token)
+        } else if (isSSHAuthFailure(e)) {
+          deleteMostRecentSSHCredential(token)
+        }
       }
 
       // Prior to us introducing the credential helper trampoline, our askpass
@@ -205,7 +207,7 @@ export async function withTrampolineEnv<T>(
 
       throw e
     } finally {
-      removePendingSSHSecretToStore(token)
+      removeMostRecentSSHCredential(token)
       mostRecentGenericGitCredential.delete(token)
       isBackgroundTaskEnvironment.delete(token)
       hasRejectedCredentialsForEndpoint.delete(token)
@@ -214,9 +216,14 @@ export async function withTrampolineEnv<T>(
   })
 }
 
-const isAuthFailure = (e: unknown): e is GitError =>
+const isHTTPSAuthFailure = (e: unknown): e is GitError =>
   e instanceof GitError &&
   e.result.gitError === DugiteError.HTTPSAuthenticationFailed
+
+const isSSHAuthFailure = (e: unknown): e is GitError =>
+  e instanceof GitError &&
+  (e.result.gitError === DugiteError.SSHAuthenticationFailed ||
+    e.result.gitError === DugiteError.SSHPermissionDenied)
 
 function deleteMostRecentGenericCredential(token: string) {
   const cred = mostRecentGenericGitCredential.get(token)
