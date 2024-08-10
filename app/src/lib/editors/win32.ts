@@ -254,6 +254,17 @@ const editors: WindowsExternalEditor[] = [
     publishers: ['VSCodium', 'Microsoft Corporation'],
   },
   {
+    name: 'Positron',
+    registryKeys: [
+      // 64-bit version of Positron (system) - new key
+      LocalMachineUninstallKey('{08FC0438-DEF4-4349-85AE-FA80317766E9}_is1'),
+    ],
+    executableShimPaths: [['bin', 'positron.cmd']],
+    displayNamePrefixes: ['Positron'],
+    installLocationRegistryKey: 'DisplayIcon',
+    publishers: ['Positron', 'Posit Software, PBC'],
+  },
+  {
     name: 'VSCodium (Insiders)',
     registryKeys: [
       // 64-bit version of VSCodium - Insiders (user)
