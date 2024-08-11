@@ -1,0 +1,150 @@
+name: 'CI / Linux'
+
+on:
+  push:
+    branches:
+      - development
+      - linux
+      - 'linux-release-*'
+    tags:
+      - 'release-*.*.*-linux*'
+      - 'release-*.*.*-test*'
+  pull_request:
+    branches:
+      - linux
+      - linux-vnext
+      - 'linux-release-*'
+
+jobs:
+  arm64:
+    name: Ubuntu arm64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.ref }}
+          submodules: recursive
+      - name: Package and test application in container
+        uses: shiftkey/desktop-ubuntu-arm64-packaging@d5a0346959c7d553eb8dbe2828e7fe2e10147160
+      - name: Upload output artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-arm64-artifacts
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+            dist/*.sha256
+          retention-days: 5
+          if-no-files-found: error
+  arm:
+    name: Ubuntu arm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.ref }}
+          submodules: recursive
+      - name: Package and test application in container
+        uses: shiftkey/desktop-ubuntu-arm-packaging@48215eee48762e1c919309b2915b8ceb478e5642
+      - name: Upload output artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-arm-artifacts
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+            dist/*.sha256
+          retention-days: 5
+          if-no-files-found: error
+  amd64:
+    name: Ubuntu x64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.ref }}
+          submodules: recursive
+      - name: Package and test application in container
+        uses: shiftkey/desktop-ubuntu-amd64-packaging@33a71a92b43e54694726382d1e4029a91fe894cc
+      - name: Upload output artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-amd64-artifacts
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+            dist/*.sha256
+          retention-days: 5
+          if-no-files-found: error
+
+  publish:
+    name: Create GitHub release
+    needs: [arm64, arm, amd64]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 18.14.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.14.0
+          cache: yarn
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: './artifacts'
+
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: './artifacts'
+
+      - name: Get tag name without prefix
+        run: |
+          RELEASE_TAG=${GITHUB_REF/refs\/tags\//}
+          echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
+          tagNameWithoutPrefix="${RELEASE_TAG:8}"
+          echo "RELEASE_TAG_WITHOUT_PREFIX=${tagNameWithoutPrefix}" >> $GITHUB_ENV
+
+      # TODO: generate release notes
+      #    - pull in default if version matches X.Y.Z-linux1
+      #    - otherwise stub template
+
+      - name: Generate release notes
+        run: |
+          node -v
+          yarn
+          node -r ts-node/register script/generate-release-notes.ts "${{ github.workspace }}/artifacts" "${{ env.RELEASE_TAG_WITHOUT_PREFIX }}"
+          RELEASE_NOTES_FILE=script/release_notes.txt
+          if [[ ! -f "$RELEASE_NOTES_FILE" ]]; then
+              echo "$RELEASE_NOTES_FILE does not exist. Something might have gone wrong while generating the release notes."
+              exit 1
+          fi
+          echo "Release notes:"
+          echo "---"
+          cat ${RELEASE_NOTES_FILE}
+          echo "---"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: GitHub Desktop for Linux ${{ env.RELEASE_TAG_WITHOUT_PREFIX }}
+          body_path: script/release_notes.txt
+          files: |
+            artifacts/**/*.AppImage
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
+            artifacts/**/*.sha256
+          draft: true
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
