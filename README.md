@@ -39,6 +39,9 @@ beta channel to get access to early builds of Desktop:
 
 The release notes for the latest beta versions are available [here](https://desktop.github.com/release-notes/?env=beta).
 
+### Past Releases
+You can find past releases at https://desktop.githubusercontent.com. After installation of a past version, the auto update functionality will attempt to download the latest version. 
+
 ### Community Releases
 
 There are several community-supported package managers that can be used to
