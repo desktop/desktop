@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.4.4-beta1": [
+      "[Fixed] Only ask for SSH credentials for the selected repository and only delete them after an authentication error - #19019",
+      "[Added] Add Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
+      "[Added] Add JetBrains RustRover support - #18802. Thanks @Radd-Sma!"
+    ],
     "3.4.3": [
       "[Added] Add Zed as an external editor option for Linux - #18962. Thanks @adil192!",
       "[Fixed] Allow pushing to gists - #19009",
