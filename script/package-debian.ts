@@ -9,6 +9,17 @@ import { rename } from 'fs-extra'
 import { getVersion } from '../app/package-info'
 import { getDistPath, getDistRoot } from './dist-info'
 
+function getArchitecture() {
+  switch (process.arch) {
+    case 'arm64':
+      return 'arm64'
+    case 'arm':
+      return 'armhf'
+    default:
+      return 'amd64'
+  }
+}
+
 const distRoot = getDistRoot()
 
 // best guess based on documentation
@@ -39,7 +50,7 @@ type DebianOptions = {
 const options: DebianOptions = {
   src: getDistPath(),
   dest: distRoot,
-  arch: 'amd64',
+  arch: getArchitecture(),
   description: 'Simple collaboration from your desktop',
   productDescription:
     'This is the unofficial port of GitHub Desktop for Linux distributions',
