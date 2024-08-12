@@ -1,9 +1,15 @@
 {
   "releases": {
+    "3.4.4-beta1": [
+      "[New] Add support for custom editors and shells - #18954",
+      "[Added] Add Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
+      "[Added] Add JetBrains RustRover support - #18802. Thanks @Radd-Sma!",
+      "[Fixed] Only ask for SSH credentials for the selected repository and only delete them after an authentication error - #19019"
+    ],
     "3.4.3": [
       "[Added] Add Zed as an external editor option for Linux - #18962. Thanks @adil192!",
-      "[Fixed] Allow pushing to gists - #19009",
       "[Added] Shift + F10 opens context menu's on macOS",
+      "[Fixed] Allow pushing to gists - #19009",
       "[Fixed] The copy button announces when clicked in VoiceOver.",
       "[Fixed] Context menu actions in the diff are accessible via keyboard - #18946",
       "[Fixed] Add/Remove Co-authors hint text is positioned correctly when scrolling through the changes list - #18929",
