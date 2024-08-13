@@ -15,7 +15,7 @@ uses [React](https://reactjs.org/).
     alt="A screenshot of the GitHub Desktop application showing changes being viewed and committed with two attributed co-authors"
   />
 </picture>
-
+Commit 2
 ## Where can I get it?
 
 Download the official installer for your operating system:
