@@ -21,6 +21,7 @@ import {
   IFilterListItem,
   SelectionSource,
 } from './filter-list'
+import * as octicons from '../octicons/octicons.generated'
 
 interface IFlattenedGroup {
   readonly kind: 'group'
@@ -248,6 +249,7 @@ export class SectionFilterList<
       <TextBox
         ref={this.onTextBoxRef}
         displayClearButton={true}
+        prefixedIcon={octicons.search}
         autoFocus={true}
         placeholder={this.props.placeholderText || 'Filter'}
         className="filter-list-filter-field"
