@@ -88,9 +88,7 @@ export class EmojiAutocompletionProvider
 
   public getItemAriaLabel(hit: IEmojiHit): string {
     const emoji = this.allEmoji.get(hit.emoji)
-    const emojiDescription = emoji?.emoji
-      ? emoji.emoji
-      : emoji?.description ?? hit.emoji
+    const emojiDescription = emoji?.description ?? hit.emoji
     return `${emojiDescription} ${hit.emoji}`
   }
 
@@ -99,15 +97,11 @@ export class EmojiAutocompletionProvider
 
     return (
       <div className="emoji" key={hit.emoji}>
-        {emoji?.emoji ? (
-          <div className="icon">{emoji?.emoji}</div>
-        ) : (
-          <img
-            className="icon"
-            src={emoji?.url}
-            alt={emoji?.description ?? hit.emoji}
-          />
-        )}
+        <img
+          className="icon"
+          src={emoji?.url}
+          alt={emoji?.description ?? hit.emoji}
+        />
         {this.renderHighlightedTitle(hit)}
       </div>
     )
