@@ -1405,7 +1405,11 @@ export class CommitMessage extends React.Component<
           <AutocompletingTextArea
             inputId="commit-message-description"
             className={descriptionClassName}
-            screenReaderLabel="Commit description"
+            screenReaderLabel={
+              this.props.showInputLabels !== true
+                ? 'Commit description'
+                : undefined
+            }
             placeholder="Description"
             value={this.state.description || ''}
             onValueChanged={this.onDescriptionChanged}
