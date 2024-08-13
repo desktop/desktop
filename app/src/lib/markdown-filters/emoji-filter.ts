@@ -111,7 +111,7 @@ export class EmojiFilter implements INodeFilter {
       emojiImg.src = dataURI
       emojiImg.alt = emoji.description ?? ''
       return emojiImg
-    } catch (e) { }
+    } catch (e) {}
     return null
   }
 
