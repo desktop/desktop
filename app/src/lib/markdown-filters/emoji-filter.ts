@@ -105,6 +105,13 @@ export class EmojiFilter implements INodeFilter {
     emoji: Emoji
   ): Promise<HTMLImageElement | null> {
     try {
+      if (emoji.emoji) {
+        const emojiSpan = document.createElement('span')
+        emojiSpan.classList.add('emoji')
+        emojiSpan.textContent = emoji.emoji
+        return emojiSpan
+      }
+
       const dataURI = await this.getBase64FromImageUrl(emoji.url)
       const emojiImg = new Image()
       emojiImg.classList.add('emoji')
