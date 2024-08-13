@@ -24,9 +24,9 @@ dialog#choose-branch {
     .filter-field-row {
       margin: 0;
       border-bottom: var(--base-border);
+      padding: 0 var(--spacing-double);
 
       .filter-list-filter-field {
-        padding: 0 var(--spacing-double);
         padding-bottom: var(--spacing);
       }
     }
