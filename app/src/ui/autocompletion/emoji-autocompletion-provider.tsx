@@ -2,6 +2,7 @@ import * as React from 'react'
 import { IAutocompletionProvider } from './index'
 import { compare } from '../../lib/compare'
 import { DefaultMaxHits } from './common'
+import { Emoji } from '../../lib/read-emoji'
 
 /**
  * Interface describing a autocomplete match for the given search
@@ -31,10 +32,10 @@ export class EmojiAutocompletionProvider
 {
   public readonly kind = 'emoji'
 
-  private readonly emoji: Map<string, string>
+  private readonly allEmoji: Map<string, Emoji>
 
-  public constructor(emoji: Map<string, string>) {
-    this.emoji = emoji
+  public constructor(emoji: Map<string, Emoji>) {
+    this.allEmoji = emoji
   }
 
   public getRegExp(): RegExp {
@@ -49,7 +50,7 @@ export class EmojiAutocompletionProvider
     // when the user types a ':'. We want to open the popup
     // with suggestions as fast as possible.
     if (text.length === 0) {
-      return [...this.emoji.keys()]
+      return [...this.allEmoji.keys()]
         .map(emoji => ({ emoji, matchStart: 0, matchLength: 0 }))
         .slice(0, maxHits)
     }
@@ -57,7 +58,7 @@ export class EmojiAutocompletionProvider
     const results = new Array<IEmojiHit>()
     const needle = text.toLowerCase()
 
-    for (const emoji of this.emoji.keys()) {
+    for (const emoji of this.allEmoji.keys()) {
       const index = emoji.indexOf(needle)
       if (index !== -1) {
         results.push({ emoji, matchStart: index, matchLength: needle.length })
@@ -85,12 +86,28 @@ export class EmojiAutocompletionProvider
       .slice(0, maxHits)
   }
 
+  public getItemAriaLabel(hit: IEmojiHit): string {
+    const emoji = this.allEmoji.get(hit.emoji)
+    const emojiDescription = emoji?.emoji
+      ? emoji.emoji
+      : emoji?.description ?? hit.emoji
+    return `${emojiDescription} ${hit.emoji}`
+  }
+
   public renderItem(hit: IEmojiHit) {
-    const emoji = hit.emoji
+    const emoji = this.allEmoji.get(hit.emoji)
 
     return (
-      <div className="emoji" key={emoji}>
-        <img className="icon" src={this.emoji.get(emoji)} alt={emoji} />
+      <div className="emoji" key={hit.emoji}>
+        {emoji?.emoji ? (
+          <div className="icon">{emoji?.emoji}</div>
+        ) : (
+          <img
+            className="icon"
+            src={emoji?.url}
+            alt={emoji?.description ?? hit.emoji}
+          />
+        )}
         {this.renderHighlightedTitle(hit)}
       </div>
     )

@@ -28,6 +28,24 @@ interface IGemojiDefinition {
   readonly description?: string
 }
 
+export type Emoji = {
+  /**
+   * The unicode string of the emoji if emoji is part of
+   * the unicode specification. If missing this emoji is
+   * a GitHub custom emoji such as :shipit:
+   */
+  readonly emoji?: string
+
+  /** URL of the image of the emoji (alternative to the unicode character) */
+  readonly url: string
+
+  /** One or more human readable aliases for the emoji character */
+  readonly aliases: ReadonlyArray<string>
+
+  /** An optional, human readable, description of the emoji  */
+  readonly description?: string
+}
+
 function getEmojiImageUrlFromRelativePath(relativePath: string): string {
   return encodePathAsUrl(__dirname, 'emoji', relativePath)
 }
@@ -81,8 +99,8 @@ function getUrlFromUnicodeEmoji(emoji: string): string | null {
  *
  * @param rootDir - The folder containing the entry point (index.html or main.js) of the application.
  */
-export function readEmoji(rootDir: string): Promise<Map<string, string>> {
-  return new Promise<Map<string, string>>((resolve, reject) => {
+export function readEmoji(rootDir: string): Promise<Map<string, Emoji>> {
+  return new Promise<Map<string, Emoji>>((resolve, reject) => {
     const path = Path.join(rootDir, 'emoji.json')
     Fs.readFile(path, 'utf8', (err, data) => {
       if (err) {
@@ -90,7 +108,7 @@ export function readEmoji(rootDir: string): Promise<Map<string, string>> {
         return
       }
 
-      const tmp = new Map<string, string>()
+      const tmp = new Map<string, Emoji>()
 
       try {
         const db: IGemojiDb = JSON.parse(data)
@@ -107,14 +125,17 @@ export function readEmoji(rootDir: string): Promise<Map<string, string>> {
           }
 
           emoji.aliases.forEach(alias => {
-            tmp.set(`:${alias}:`, url)
+            tmp.set(`:${alias}:`, {
+              ...emoji,
+              url,
+            })
           })
         })
       } catch (e) {
         reject(e)
       }
 
-      const emoji = new Map<string, string>()
+      const emoji = new Map<string, Emoji>()
 
       // Sort and insert into actual map
       const keys = Array.from(tmp.keys()).sort()
