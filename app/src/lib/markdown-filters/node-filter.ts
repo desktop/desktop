@@ -14,7 +14,7 @@ import {
 import { CommitMentionLinkFilter } from './commit-mention-link-filter'
 import { MarkdownEmitter } from './markdown-filter'
 import { GitHubRepository } from '../../models/github-repository'
-import { Emoji } from '../read-emoji'
+import { Emoji } from '../emoji'
 
 export interface INodeFilter {
   /**

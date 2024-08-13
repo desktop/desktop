@@ -12,7 +12,7 @@ import { LinkButton } from '../lib/link-button'
 import { ValidNotificationPullRequestReview } from '../../lib/valid-notification-pull-request-review'
 import { PullRequestCommentLike } from './pull-request-comment-like'
 import { Account } from '../../models/account'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface IPullRequestReviewProps {
   readonly dispatcher: Dispatcher

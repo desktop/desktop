@@ -30,7 +30,7 @@ import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { getAccountForRepository } from '../../lib/get-account-for-repository'
 import { IAheadBehind } from '../../models/branch'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.

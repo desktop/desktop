@@ -23,7 +23,7 @@ import { BranchType, Branch } from '../../models/branch'
 import { PopupType } from '../../models/popup'
 import { generateBranchContextMenuItems } from '../branches/branch-list-item-context-menu'
 import { showContextualMenu } from '../../lib/menu-item'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher

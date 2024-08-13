@@ -1,4 +1,4 @@
-import { Emoji } from '../../src/lib/read-emoji'
+import { Emoji } from '../../src/lib/emoji'
 import {
   Tokenizer,
   TokenType,

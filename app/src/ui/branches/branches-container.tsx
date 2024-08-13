@@ -33,7 +33,7 @@ import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
 import { enablePullRequestQuickView } from '../../lib/feature-flag'
 import { PullRequestQuickView } from '../pull-request-quick-view'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher

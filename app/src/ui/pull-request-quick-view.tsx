@@ -8,7 +8,7 @@ import { SandboxedMarkdown } from './lib/sandboxed-markdown'
 import { Octicon } from './octicons'
 import * as octicons from './octicons/octicons.generated'
 import classNames from 'classnames'
-import { Emoji } from '../lib/read-emoji'
+import { Emoji } from '../lib/emoji'
 
 /**
  * The max height of the visible quick view card is 556 (500 for scrollable

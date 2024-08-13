@@ -10,7 +10,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { DesktopFakeRepository } from '../../lib/desktop-fake-repository'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 import { Button } from '../lib/button'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void

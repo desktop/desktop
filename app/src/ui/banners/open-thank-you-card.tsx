@@ -2,7 +2,7 @@ import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { RichText } from '../lib/rich-text'
 import { Banner } from './banner'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface IOpenThankYouCardProps {
   readonly emoji: Map<string, Emoji>

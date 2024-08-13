@@ -13,7 +13,7 @@ import { formatRelative } from '../../lib/format-relative'
 import { getStealthEmailForUser } from '../../lib/email'
 import { IAPIIdentity } from '../../lib/api'
 import { Account } from '../../models/account'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface IPullRequestCommentLikeProps {
   readonly id?: string

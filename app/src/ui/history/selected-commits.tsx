@@ -39,7 +39,7 @@ import { enableCommitDetailsHeaderExpansion } from '../../lib/feature-flag'
 import { ExpandableCommitSummary } from './expandable-commit-summary'
 import { DiffHeader } from '../diff/diff-header'
 import { Account } from '../../models/account'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository

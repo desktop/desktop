@@ -13,7 +13,7 @@ import {
 import { Dispatcher } from '../dispatcher'
 import { GitHubUserStore, IssuesStore } from '../../lib/stores'
 import { Account } from '../../models/account'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 export function buildAutocompletionProviders(
   repository: Repository,

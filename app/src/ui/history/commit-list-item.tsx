@@ -19,7 +19,7 @@ import {
 import classNames from 'classnames'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { Account } from '../../models/account'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null

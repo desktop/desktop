@@ -20,7 +20,7 @@ import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
 import { CopyButton } from '../copy-button'
 import { Account } from '../../models/account'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface IExpandableCommitSummaryProps {
   readonly repository: Repository

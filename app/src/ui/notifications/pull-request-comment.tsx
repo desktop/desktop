@@ -9,7 +9,7 @@ import { IAPIComment } from '../../lib/api'
 import { getPullRequestReviewStateIcon } from './pull-request-review-helpers'
 import { PullRequestCommentLike } from './pull-request-comment-like'
 import { Account } from '../../models/account'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface IPullRequestCommentProps {
   readonly dispatcher: Dispatcher

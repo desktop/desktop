@@ -7,7 +7,7 @@ import { assertNever } from '../../lib/fatal-error'
 import memoizeOne from 'memoize-one'
 import { createObservableRef } from './observable-ref'
 import { Tooltip } from './tooltip'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface IRichTextProps {
   readonly className?: string

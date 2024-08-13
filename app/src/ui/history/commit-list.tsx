@@ -27,7 +27,7 @@ import {
 } from '../lib/popover'
 import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 import { Account } from '../../models/account'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 const RowHeight = 50
 

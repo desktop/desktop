@@ -2,7 +2,7 @@ import * as React from 'react'
 import { IAutocompletionProvider } from './index'
 import { compare } from '../../lib/compare'
 import { DefaultMaxHits } from './common'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 /**
  * Interface describing a autocomplete match for the given search

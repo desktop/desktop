@@ -32,7 +32,7 @@ import { getSquashedCommitDescription } from '../../lib/squash/squashed-commit-d
 import { doMergeCommitsExistAfterCommit } from '../../lib/git'
 import { KeyboardInsertionData } from '../lib/list'
 import { Account } from '../../models/account'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface ICompareSidebarProps {
   readonly repository: Repository

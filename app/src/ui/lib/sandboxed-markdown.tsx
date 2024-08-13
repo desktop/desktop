@@ -11,7 +11,7 @@ import {
   MarkdownEmitter,
   parseMarkdown,
 } from '../../lib/markdown-filters/markdown-filter'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */

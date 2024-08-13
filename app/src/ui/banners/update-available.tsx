@@ -15,7 +15,7 @@ import { ReleaseSummary } from '../../models/release-notes'
 import { Banner } from './banner'
 import { ReleaseNotesUri } from '../lib/releases'
 import { RichText } from '../lib/rich-text'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface IUpdateAvailableProps {
   readonly dispatcher: Dispatcher

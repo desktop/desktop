@@ -49,7 +49,7 @@ import { Popup } from '../models/popup'
 import { RepoRulesInfo } from '../models/repo-rules'
 import { IAPIRepoRuleset } from './api'
 import { ICustomIntegration } from './custom-integration'
-import { Emoji } from './read-emoji'
+import { Emoji } from './emoji'
 
 export enum SelectionType {
   Repository,
@@ -59,15 +59,15 @@ export enum SelectionType {
 
 export type PossibleSelections =
   | {
-      type: SelectionType.Repository
-      repository: Repository
-      state: IRepositoryState
-    }
+    type: SelectionType.Repository
+    repository: Repository
+    state: IRepositoryState
+  }
   | {
-      type: SelectionType.CloningRepository
-      repository: CloningRepository
-      progress: ICloneProgress
-    }
+    type: SelectionType.CloningRepository
+    repository: CloningRepository
+    progress: ICloneProgress
+  }
   | { type: SelectionType.MissingRepository; repository: Repository }
 
 /** All of the shared app state. */
@@ -349,8 +349,8 @@ export interface IAppState {
 
   /** The users last chosen pull request suggested next action. */
   readonly pullRequestSuggestedNextAction:
-    | PullRequestSuggestedNextAction
-    | undefined
+  | PullRequestSuggestedNextAction
+  | undefined
 
   /** Whether or not the user will see check marks indicating a line is included in the check in the diff */
   readonly showDiffCheckMarks: boolean

@@ -33,7 +33,7 @@ import { dragAndDropManager } from '../lib/drag-and-drop-manager'
 import { DragType } from '../models/drag-drop'
 import { PullRequestSuggestedNextAction } from '../models/pull-request'
 import { clamp } from '../lib/clamp'
-import { Emoji } from '../lib/read-emoji'
+import { Emoji } from '../lib/emoji'
 
 interface IRepositoryViewProps {
   readonly repository: Repository

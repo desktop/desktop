@@ -4,7 +4,7 @@ import { ReleaseNote } from '../../models/release-notes'
 import { Dialog, DialogContent } from '../dialog'
 import { RichText } from '../lib/rich-text'
 import Confetti from 'react-confetti'
-import { Emoji } from '../../lib/read-emoji'
+import { Emoji } from '../../lib/emoji'
 
 interface IThankYouProps {
   readonly onDismissed: () => void
