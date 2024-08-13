@@ -4,6 +4,8 @@ import { compare } from '../../lib/compare'
 import { DefaultMaxHits } from './common'
 import { Emoji } from '../../lib/emoji'
 
+const sanitizeEmoji = (emoji: string) => emoji.replaceAll(':', '')
+
 /**
  * Interface describing a autocomplete match for the given search
  * input passed to EmojiAutocompletionProvider#getAutocompletionItems.
@@ -88,8 +90,11 @@ export class EmojiAutocompletionProvider
 
   public getItemAriaLabel(hit: IEmojiHit): string {
     const emoji = this.allEmoji.get(hit.emoji)
-    const emojiDescription = emoji?.description ?? hit.emoji
-    return `${emojiDescription} ${hit.emoji}`
+    const sanitizedEmoji = sanitizeEmoji(hit.emoji)
+    const emojiDescription = emoji?.description ?? sanitizedEmoji
+    return emojiDescription === sanitizedEmoji
+      ? emojiDescription
+      : `${emojiDescription}, ${sanitizedEmoji}`
   }
 
   public renderItem(hit: IEmojiHit) {
@@ -108,7 +113,7 @@ export class EmojiAutocompletionProvider
   }
 
   private renderHighlightedTitle(hit: IEmojiHit) {
-    const emoji = hit.emoji.replaceAll(':', '')
+    const emoji = sanitizeEmoji(hit.emoji)
 
     if (!hit.matchLength) {
       return <div className="title">{emoji}</div>
