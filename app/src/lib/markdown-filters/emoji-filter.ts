@@ -67,7 +67,7 @@ export class EmojiFilter implements INodeFilter {
       return null
     }
 
-    const nodes = new Array<Text | HTMLImageElement>()
+    const nodes = new Array<Text | HTMLImageElement | HTMLSpanElement>()
     for (let i = 0; i < emojiMatches.length; i++) {
       const emojiKey = emojiMatches[i]
       const emoji = this.allEmoji.get(emojiKey)
@@ -103,7 +103,7 @@ export class EmojiFilter implements INodeFilter {
    */
   private async createEmojiNode(
     emoji: Emoji
-  ): Promise<HTMLImageElement | null> {
+  ): Promise<HTMLImageElement | HTMLSpanElement | null> {
     try {
       if (emoji.emoji) {
         const emojiSpan = document.createElement('span')
