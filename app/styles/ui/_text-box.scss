@@ -42,6 +42,17 @@
     padding-inline-end: var(--text-field-height);
   }
 
+  &.display-prefixed-icon input {
+    padding-left: var(--text-field-height);
+  }
+
+  .prefixed-icon {
+    position: absolute;
+    top: var(--spacing-half);
+    left: var(--spacing-half);
+    color: var(--text-secondary-color);
+  }
+
   button.clear-button {
     position: absolute;
     right: 1px;
