@@ -21,4 +21,8 @@ dialog#commit-message-dialog {
     height: 50px;
     width: 50px;
   }
+
+  label {
+    margin-bottom: var(--spacing-third);
+  }
 }
