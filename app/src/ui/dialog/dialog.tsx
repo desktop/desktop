@@ -69,6 +69,16 @@ interface IDialogProps {
   readonly title?: string | JSX.Element
 
   /**
+   * Typically, a titleId is automatically generated based on the title
+   * attribute if it is a string. If it is not provided, we must assume the
+   * responsibility of providing a titleID that is used as the id of the h1 in
+   * the custom header and used in the aria attributes in this dialog component.
+   * By providing this titleID, the state.titleID will be set to this value and
+   * used in the aria attributes.
+   * */
+  readonly titleId?: string
+
+  /**
    * An optional element to render to the right of the dialog title.
    * This can be used to render additional controls that don't belong to the
    * heading element itself, but are still part of the header (visually).
@@ -268,7 +278,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
 
   public constructor(props: DialogProps) {
     super(props)
-    this.state = { isAppearing: true }
+    this.state = { isAppearing: true, titleId: this.props.titleId }
 
     // Observe size changes and let codemirror know
     // when it needs to refresh.
@@ -346,6 +356,11 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
   }
 
   private updateTitleId() {
+    if (this.props.titleId) {
+      // Using the one provided that is used in a custom header
+      return
+    }
+
     if (this.state.titleId) {
       releaseUniqueId(this.state.titleId)
       this.setState({ titleId: undefined })

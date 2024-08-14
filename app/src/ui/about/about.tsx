@@ -322,10 +322,12 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     )
 
     const versionText = __DEV__ ? `Build ${version}` : `Version ${version}`
+    const titleId = 'Dialog_about'
 
     return (
       <Dialog
         id="about"
+        titleId={titleId}
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}
       >
@@ -339,7 +341,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
               height="64"
             />
           </Row>
-          <h2>{name}</h2>
+          <h1 id={titleId}>About {name}</h1>
           <p className="no-padding">
             <span className="selectable-text">
               {versionText} ({this.props.applicationArchitecture})

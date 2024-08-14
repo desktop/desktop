@@ -9,7 +9,10 @@ import { Dispatcher } from '../dispatcher'
 import { Ref } from '../lib/ref'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
-import { OpenPullRequestDialogHeader } from './open-pull-request-header'
+import {
+  OpenPullRequestDialogHeader,
+  OpenPullRequestDialogId,
+} from './open-pull-request-header'
 import { PullRequestFilesChanged } from './pull-request-files-changed'
 import { PullRequestMergeStatus } from './pull-request-merge-status'
 import { ComputedAction } from '../../models/computed-action'
@@ -274,6 +277,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
   public render() {
     return (
       <Dialog
+        titleId={OpenPullRequestDialogId}
         className="open-pull-request"
         onSubmit={this.onCreatePullRequest}
         onDismissed={this.props.onDismissed}
