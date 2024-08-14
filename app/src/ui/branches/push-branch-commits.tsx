@@ -86,6 +86,8 @@ export class PushBranchCommits extends React.Component<
         onSubmit={this.onSubmit}
         loading={this.state.isPushingOrPublishing}
         disabled={this.state.isPushingOrPublishing}
+        role="alertdialog"
+        ariaDescribedBy="push-branch-commits-title push-branch-commits-message"
       >
         {this.renderDialogContent()}
 
@@ -98,8 +100,10 @@ export class PushBranchCommits extends React.Component<
     if (renderPublishView(this.props.unPushedCommits)) {
       return (
         <DialogContent>
-          <p>Your branch must be published before opening a pull request.</p>
-          <p>
+          <p id="push-branch-commits-title">
+            Your branch must be published before opening a pull request.
+          </p>
+          <p id="push-branch-commits-message">
             Would you like to publish <Ref>{this.props.branch.name}</Ref> now
             and open a pull request?
           </p>
@@ -111,10 +115,10 @@ export class PushBranchCommits extends React.Component<
 
     return (
       <DialogContent>
-        <p>
+        <p id="push-branch-commits-title">
           You have {localCommits} that haven't been pushed to the remote yet.
         </p>
-        <p>
+        <p id="push-branch-commits-message">
           Would you like to push your changes to{' '}
           <Ref>{this.props.branch.name}</Ref> before creating your pull request?
         </p>
