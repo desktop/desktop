@@ -17,7 +17,7 @@ uses [React](https://reactjs.org/).
 </picture>
 Commit 2
 ## Where can I get it?
-
+Here are some hidden ⁧ bidirection (bidi) characters.
 Download the official installer for your operating system:
 
  - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
