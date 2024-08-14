@@ -478,8 +478,8 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --dialog-error-color: #{$red};
 
   /** File warning */
-  --file-warning-background-color: #{$yellow-200};
-  --file-warning-color: #{$yellow-800};
+  --file-warning-background-color: #{$yellow-100};
+  --file-warning-color: #{darken($yellow-700, 10%)};
   --file-warning-border-color: #{rgba($yellow-700, 0.4)};
 
   /** Tooltips */
