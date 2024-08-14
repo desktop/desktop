@@ -8,7 +8,7 @@ import { InputError } from './input-description/input-error'
 
 interface IRefNameProps {
   /**
-   * The initial value for the ref name.
+   * The initial value for the ref name. test
    *
    * Note that updates to this prop will be ignored.
    */
