@@ -218,6 +218,7 @@ import { promiseWithMinimumTimeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
+import { Emoji } from '../emoji'
 import { GitStoreCache } from './git-store-cache'
 import { GitErrorContext } from '../git-error-context'
 import {
@@ -465,7 +466,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   >()
 
   /** Map from shortcut (e.g., :+1:) to on disk URL. */
-  private emoji = new Map<string, string>()
+  private emoji = new Map<string, Emoji>()
 
   /**
    * The Application menu as an AppMenu instance or null if

@@ -2,6 +2,7 @@ import { INodeFilter } from './node-filter'
 import { fileURLToPath } from 'url'
 import { readFile } from 'fs/promises'
 import escapeRegExp from 'lodash/escapeRegExp'
+import { Emoji } from '../emoji'
 
 /**
  * The Emoji Markdown filter will take a text node and create multiple text and
@@ -17,15 +18,15 @@ import escapeRegExp from 'lodash/escapeRegExp'
  */
 export class EmojiFilter implements INodeFilter {
   private readonly emojiRegex: RegExp
-  private readonly emojiFilePath: Map<string, string>
+  private readonly allEmoji: Map<string, Emoji>
   private readonly emojiBase64URICache: Map<string, string> = new Map()
 
   /**
    * @param emoji Map from the emoji ref (e.g., :+1:) to the image's local path.
    */
-  public constructor(emojiFilePath: Map<string, string>) {
-    this.emojiFilePath = emojiFilePath
-    this.emojiRegex = this.buildEmojiRegExp(emojiFilePath)
+  public constructor(emoji: Map<string, Emoji>) {
+    this.allEmoji = emoji
+    this.emojiRegex = this.buildEmojiRegExp(emoji)
   }
 
   /**
@@ -69,13 +70,13 @@ export class EmojiFilter implements INodeFilter {
     const nodes = new Array<Text | HTMLImageElement>()
     for (let i = 0; i < emojiMatches.length; i++) {
       const emojiKey = emojiMatches[i]
-      const emojiPath = this.emojiFilePath.get(emojiKey)
-      if (emojiPath === undefined) {
+      const emoji = this.allEmoji.get(emojiKey)
+      if (emoji === undefined) {
         continue
       }
 
-      const emojiImg = await this.createEmojiNode(emojiPath)
-      if (emojiImg === null) {
+      const emojiNode = await this.createEmojiNode(emoji)
+      if (emojiNode === null) {
         continue
       }
 
@@ -83,7 +84,7 @@ export class EmojiFilter implements INodeFilter {
       const textBeforeEmoji = text.slice(0, emojiPosition)
       const textNodeBeforeEmoji = document.createTextNode(textBeforeEmoji)
       nodes.push(textNodeBeforeEmoji)
-      nodes.push(emojiImg)
+      nodes.push(emojiNode)
 
       text = text.slice(emojiPosition + emojiKey.length)
     }
@@ -97,17 +98,18 @@ export class EmojiFilter implements INodeFilter {
   }
 
   /**
-   * Method to build an emoji image node to insert in place of the emoji ref.
-   * If we fail to create the image element, returns null.
+   * Method to build an emoji node to insert in place of the emoji ref.
+   * If we fail to create the emoji element, returns null.
    */
   private async createEmojiNode(
-    emojiPath: string
+    emoji: Emoji
   ): Promise<HTMLImageElement | null> {
     try {
-      const dataURI = await this.getBase64FromImageUrl(emojiPath)
+      const dataURI = await this.getBase64FromImageUrl(emoji.url)
       const emojiImg = new Image()
       emojiImg.classList.add('emoji')
       emojiImg.src = dataURI
+      emojiImg.alt = emoji.description ?? ''
       return emojiImg
     } catch (e) {}
     return null
@@ -136,7 +138,7 @@ export class EmojiFilter implements INodeFilter {
    *
    * @param emoji Map from the emoji ref (e.g., :+1:) to the image's local path.
    */
-  private buildEmojiRegExp(emoji: Map<string, string>): RegExp {
+  private buildEmojiRegExp(emoji: Map<string, Emoji>): RegExp {
     const emojiGroups = [...emoji.keys()]
       .map(emoji => escapeRegExp(emoji))
       .join('|')

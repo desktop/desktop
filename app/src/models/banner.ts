@@ -1,3 +1,4 @@
+import { Emoji } from '../lib/emoji'
 import { Popup } from './popup'
 
 export enum BannerType {
@@ -80,7 +81,7 @@ export type Banner =
     }
   | {
       readonly type: BannerType.OpenThankYouCard
-      readonly emoji: Map<string, string>
+      readonly emoji: Map<string, Emoji>
       readonly onOpenCard: () => void
       readonly onThrowCardAway: () => void
     }

@@ -39,11 +39,12 @@ import { enableCommitDetailsHeaderExpansion } from '../../lib/feature-flag'
 import { ExpandableCommitSummary } from './expandable-commit-summary'
 import { DiffHeader } from '../diff/diff-header'
 import { Account } from '../../models/account'
+import { Emoji } from '../../lib/emoji'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
-  readonly emoji: Map<string, string>
+  readonly emoji: Map<string, Emoji>
   readonly selectedCommits: ReadonlyArray<Commit>
   readonly shasInDiff: ReadonlyArray<string>
   readonly localCommitSHAs: ReadonlyArray<string>

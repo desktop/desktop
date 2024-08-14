@@ -14,6 +14,7 @@ import {
 import { CommitMentionLinkFilter } from './commit-mention-link-filter'
 import { MarkdownEmitter } from './markdown-filter'
 import { GitHubRepository } from '../../models/github-repository'
+import { Emoji } from '../emoji'
 
 export interface INodeFilter {
   /**
@@ -39,7 +40,7 @@ export interface INodeFilter {
 }
 
 export interface ICustomMarkdownFilterOptions {
-  emoji: Map<string, string>
+  emoji: Map<string, Emoji>
   repository?: GitHubRepository
   markdownContext?: MarkdownContext
 }

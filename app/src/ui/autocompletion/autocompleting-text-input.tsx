@@ -209,6 +209,16 @@ export abstract class AutocompletingTextInput<
     return this.props.elementId ?? this.state.uniqueInternalElementId
   }
 
+  private getItemAriaLabel = (row: number): string | undefined => {
+    const state = this.state.autocompletionState
+    if (!state) {
+      return undefined
+    }
+
+    const item = state.items[row]
+    return state.provider.getItemAriaLabel?.(item)
+  }
+
   private renderItem = (row: number): JSX.Element | null => {
     const state = this.state.autocompletionState
     if (!state) {
@@ -275,6 +285,7 @@ export abstract class AutocompletingTextInput<
           rowId={this.getRowId}
           selectedRows={selectedRows}
           rowRenderer={this.renderItem}
+          getRowAriaLabel={this.getItemAriaLabel}
           scrollToRow={selectedRows.at(0)}
           onRowMouseDown={this.onRowMouseDown}
           onRowClick={this.insertCompletionOnClick}

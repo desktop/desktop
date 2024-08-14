@@ -13,11 +13,12 @@ import {
 import { Dispatcher } from '../dispatcher'
 import { GitHubUserStore, IssuesStore } from '../../lib/stores'
 import { Account } from '../../models/account'
+import { Emoji } from '../../lib/emoji'
 
 export function buildAutocompletionProviders(
   repository: Repository,
   dispatcher: Dispatcher,
-  emoji: Map<string, string>,
+  emoji: Map<string, Emoji>,
   issuesStore: IssuesStore,
   gitHubUserStore: GitHubUserStore,
   accounts: ReadonlyArray<Account>

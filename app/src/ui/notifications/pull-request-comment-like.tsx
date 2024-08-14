@@ -13,6 +13,7 @@ import { formatRelative } from '../../lib/format-relative'
 import { getStealthEmailForUser } from '../../lib/email'
 import { IAPIIdentity } from '../../lib/api'
 import { Account } from '../../models/account'
+import { Emoji } from '../../lib/emoji'
 
 interface IPullRequestCommentLikeProps {
   readonly id?: string
@@ -28,7 +29,7 @@ interface IPullRequestCommentLikeProps {
   readonly body: string
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
-  readonly emoji: Map<string, string>
+  readonly emoji: Map<string, Emoji>
 
   readonly switchingToPullRequest: boolean
 

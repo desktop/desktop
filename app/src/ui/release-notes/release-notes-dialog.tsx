@@ -10,10 +10,11 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { DesktopFakeRepository } from '../../lib/desktop-fake-repository'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 import { Button } from '../lib/button'
+import { Emoji } from '../../lib/emoji'
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
-  readonly emoji: Map<string, string>
+  readonly emoji: Map<string, Emoji>
   readonly newReleases: ReadonlyArray<ReleaseSummary>
   readonly underlineLinks: boolean
 }

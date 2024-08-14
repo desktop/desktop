@@ -11,6 +11,7 @@ import {
   MarkdownEmitter,
   parseMarkdown,
 } from '../../lib/markdown-filters/markdown-filter'
+import { Emoji } from '../../lib/emoji'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
@@ -33,7 +34,7 @@ interface ISandboxedMarkdownProps {
   readonly onMarkdownParsed?: () => void
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
-  readonly emoji: Map<string, string>
+  readonly emoji: Map<string, Emoji>
 
   /** The GitHub repository for some markdown filters such as issue and commits. */
   readonly repository?: GitHubRepository

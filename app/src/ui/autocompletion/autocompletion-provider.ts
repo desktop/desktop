@@ -44,6 +44,9 @@ export interface IAutocompletionProvider<T> {
    */
   renderItem(item: T): JSX.Element
 
+  /** Returns the aria-label attribute for the rendered item. Optional. */
+  getItemAriaLabel?(item: T): string
+
   /**
    * Returns a text representation of a given autocompletion results.
    * This is the text that will end up going into the textbox if the
