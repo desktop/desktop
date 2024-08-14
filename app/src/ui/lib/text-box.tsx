@@ -206,7 +206,9 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     this.props.onSearchCleared?.()
   }
 
-  private clearSearchText = () => {
+  private clearSearchText = (e: React.MouseEvent) => {
+    e.preventDefault()
+
     if (this.inputElement === null) {
       return
     }
