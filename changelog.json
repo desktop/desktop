@@ -1,5 +1,16 @@
 {
   "releases": {
+    "3.4.4-beta2": [
+      "[Fixed] The \"Open a Pull Request\" and \"About\" dialog's headings are announced via NVDA - #19107",
+      "[Fixed] The branch selection popover in the \"Open a Pull Request\" dialog does not close on filter clearing - #19106",
+      "[Fixed] Increased contrast ratio of icon in the diff file warnings - #19097",
+      "[Fixed] Use \"alertdialog\" role for \"Push Local Changes\" dialog - #19098",
+      "[Fixed] Add emoji descriptions for screen readers - #19101",
+      "[Improved] The squash dialog provides input labels - #19100",
+      "[Improved] Added search input visual labeling in the form of a search icon - #19103",
+      "[Improved] Use CmdOrCtrl+Q for Exit shortcut on Linux - #19093. Thanks @shiftkey!",
+      "[Improved] Add support for Gnome Console, LXTerminal and Warp shells on Linux - #19092. Thanks @shiftkey!"
+    ],
     "3.4.4-beta1": [
       "[New] Add support for custom editors and shells - #18954",
       "[Added] Add Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
