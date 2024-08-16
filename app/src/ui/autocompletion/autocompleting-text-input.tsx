@@ -285,6 +285,7 @@ export abstract class AutocompletingTextInput<
         minHeight={minHeight}
         trapFocus={false}
         className={className}
+        isDialog={false}
       >
         <List
           accessibleListId={this.state.autocompleteContainerId}
