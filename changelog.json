@@ -47,7 +47,7 @@
     ],
     "3.4.2": [
       "[New] Option to use Git Credential Manager for repositories hosted outside of GitHub.com - #18700",
-      "[New] Allow customizing tab character width in spaces - #15561",
+      "[New] Allow customizing tab character width in spaces - #15561. Thanks @Repiteo",
       "[Fixed] Remote urls containing spaces are now displayed in their entirety in the remote settings screen - #18876",
       "[Fixed] Newly uploaded images are rendered in Pull Request comments and reviews - #18830"
     ],
@@ -62,7 +62,7 @@
       "[New] Option to use Git Credential Manager for repositories hosted outside of GitHub.com - #18700"
     ],
     "3.4.2-beta1": [
-      "[New] Allow customizing tab character width in spaces - #15561",
+      "[New] Allow customizing tab character width in spaces - #15561. Thanks @Repiteo",
       "[Fixed] Using hooks on Windows no longer results in a \"command not found\" error - #18739"
     ],
     "3.4.1": [
