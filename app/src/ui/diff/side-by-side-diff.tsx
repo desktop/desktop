@@ -1636,7 +1636,7 @@ export class SideBySideDiff extends React.Component<
     if (searchResults === undefined || searchResults.length === 0) {
       this.resetSearch(true, `No results for "${searchQuery}"`)
     } else {
-      const searchLiveMessage = `Result 1 of ${searchResults.length} for "${searchQuery}"`
+      const ariaLiveMessage = `Result 1 of ${searchResults.length} for "${searchQuery}"`
 
       this.scrollToSearchResult(0)
 
@@ -1646,7 +1646,7 @@ export class SideBySideDiff extends React.Component<
         searchQuery,
         searchResults,
         selectedSearchResult: 0,
-        ariaLiveMessage: searchLiveMessage,
+        ariaLiveMessage,
       })
     }
   }
@@ -1665,7 +1665,7 @@ export class SideBySideDiff extends React.Component<
       (selectedSearchResult + delta + searchResults.length) %
       searchResults.length
 
-    const searchLiveMessage = `Result ${selectedSearchResult + 1} of ${
+    const ariaLiveMessage = `Result ${selectedSearchResult + 1} of ${
       searchResults.length
     } for "${searchQuery}"`
 
@@ -1675,7 +1675,7 @@ export class SideBySideDiff extends React.Component<
     this.setState({
       searchResults,
       selectedSearchResult,
-      ariaLiveMessage: searchLiveMessage,
+      ariaLiveMessage,
     })
   }
 
