@@ -1501,7 +1501,11 @@ export class SideBySideDiff extends React.Component<
 
     this.diffToRestore = diff
 
-    this.setState({ diff: updatedDiff })
+    this.ariaLiveChangeSignal = !this.ariaLiveChangeSignal
+    this.setState({
+      diff: updatedDiff,
+      ariaLiveMessage: 'Expanded',
+    })
   }
 
   private onCollapseExpandedLines = () => {
