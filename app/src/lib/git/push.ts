@@ -12,6 +12,7 @@ import { PushProgressParser, executionOptionsWithProgress } from '../progress'
 import { AuthenticationErrors } from './authentication'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
+import { Branch } from '../../models/branch'
 
 export type PushOptions = {
   /**
@@ -21,6 +22,9 @@ export type PushOptions = {
    * See https://git-scm.com/docs/git-push#Documentation/git-push.txt---no-force-with-lease
    */
   readonly forceWithLease: boolean
+
+  /** A branch to push instead of the current branch */
+  readonly branch?: Branch
 }
 
 /**

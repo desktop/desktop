@@ -4419,6 +4419,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  private getBranchToPush(
+    repository: Repository,
+    options?: PushOptions
+  ): Branch | undefined {
+    if (options?.branch !== undefined) {
+      return options?.branch
+    }
+
+    const state = this.repositoryStateCache.get(repository)
+
+    const { tip } = state.branchesState
+
+    if (tip.kind === TipState.Unborn) {
+      throw new Error('The current branch is unborn.')
+    }
+
+    if (tip.kind === TipState.Detached) {
+      throw new Error('The current repository is in a detached HEAD state.')
+    }
+
+    if (tip.kind === TipState.Valid) {
+      return tip.branch
+    }
+
+    return
+  }
+
   private async performPush(
     repository: Repository,
     options?: PushOptions
@@ -4435,159 +4462,151 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return this.withPushPullFetch(repository, async () => {
-      const { tip } = state.branchesState
+      const branch = this.getBranchToPush(repository, options)
 
-      if (tip.kind === TipState.Unborn) {
-        throw new Error('The current branch is unborn.')
+      if (branch === undefined) {
+        return
       }
 
-      if (tip.kind === TipState.Detached) {
-        throw new Error('The current repository is in a detached HEAD state.')
+      const remoteName = branch.upstreamRemoteName || remote.name
+
+      const pushTitle = `Pushing to ${remoteName}`
+
+      // Emit an initial progress even before our push begins
+      // since we're doing some work to get remotes up front.
+      this.updatePushPullFetchProgress(repository, {
+        kind: 'push',
+        title: pushTitle,
+        value: 0,
+        remote: remoteName,
+        branch: branch.name,
+      })
+
+      // Let's say that a push takes roughly twice as long as a fetch,
+      // this is of course highly inaccurate.
+      let pushWeight = 2.5
+      let fetchWeight = 1
+
+      // Let's leave 10% at the end for refreshing
+      const refreshWeight = 0.1
+
+      // Scale pull and fetch weights to be between 0 and 0.9.
+      const scale = (1 / (pushWeight + fetchWeight)) * (1 - refreshWeight)
+
+      pushWeight *= scale
+      fetchWeight *= scale
+
+      const retryAction: RetryAction = {
+        type: RetryActionType.Push,
+        repository,
       }
 
-      if (tip.kind === TipState.Valid) {
-        const { branch } = tip
+      // This is most likely not necessary and is only here out of
+      // an abundance of caution. We're introducing support for
+      // automatically configuring Git proxies based on system
+      // proxy settings and therefore need to pass along the remote
+      // url to functions such as push, pull, fetch etc.
+      //
+      // Prior to this we relied primarily on the `branch.remote`
+      // property and used the `remote.name` as a fallback in case the
+      // branch object didn't have a remote name (i.e. if it's not
+      // published yet).
+      //
+      // The remote.name is derived from the current tip first and falls
+      // back to using the defaultRemote if the current tip isn't valid
+      // or if the current branch isn't published. There's however no
+      // guarantee that they'll be refreshed at the exact same time so
+      // there's a theoretical possibility that `branch.remote` and
+      // `remote.name` could be out of sync. I have no reason to suspect
+      // that's the case and if it is then we already have problems as
+      // the `fetchRemotes` call after the push already relies on the
+      // `remote` and not the `branch.remote`. All that said this is
+      // a critical path in the app and somehow breaking pushing would
+      // be near unforgivable so I'm introducing this `safeRemote`
+      // temporarily to ensure that there's no risk of us using an
+      // out of sync remote name while still providing envForRemoteOperation
+      // with an url to use when resolving proxies.
+      //
+      // I'm also adding a non fatal exception if this ever happens
+      // so that we can confidently remove this safeguard in a future
+      // release.
+      const safeRemote: IRemote = { name: remoteName, url: remote.url }
 
-        const remoteName = branch.upstreamRemoteName || remote.name
+      if (safeRemote.name !== remote.name) {
+        sendNonFatalException(
+          'remoteNameMismatch',
+          new Error('The current remote name differs from the branch remote')
+        )
+      }
 
-        const pushTitle = `Pushing to ${remoteName}`
-
-        // Emit an initial progress even before our push begins
-        // since we're doing some work to get remotes up front.
-        this.updatePushPullFetchProgress(repository, {
-          kind: 'push',
-          title: pushTitle,
-          value: 0,
-          remote: remoteName,
-          branch: branch.name,
-        })
-
-        // Let's say that a push takes roughly twice as long as a fetch,
-        // this is of course highly inaccurate.
-        let pushWeight = 2.5
-        let fetchWeight = 1
-
-        // Let's leave 10% at the end for refreshing
-        const refreshWeight = 0.1
-
-        // Scale pull and fetch weights to be between 0 and 0.9.
-        const scale = (1 / (pushWeight + fetchWeight)) * (1 - refreshWeight)
-
-        pushWeight *= scale
-        fetchWeight *= scale
-
-        const retryAction: RetryAction = {
-          type: RetryActionType.Push,
-          repository,
-        }
-
-        // This is most likely not necessary and is only here out of
-        // an abundance of caution. We're introducing support for
-        // automatically configuring Git proxies based on system
-        // proxy settings and therefore need to pass along the remote
-        // url to functions such as push, pull, fetch etc.
-        //
-        // Prior to this we relied primarily on the `branch.remote`
-        // property and used the `remote.name` as a fallback in case the
-        // branch object didn't have a remote name (i.e. if it's not
-        // published yet).
-        //
-        // The remote.name is derived from the current tip first and falls
-        // back to using the defaultRemote if the current tip isn't valid
-        // or if the current branch isn't published. There's however no
-        // guarantee that they'll be refreshed at the exact same time so
-        // there's a theoretical possibility that `branch.remote` and
-        // `remote.name` could be out of sync. I have no reason to suspect
-        // that's the case and if it is then we already have problems as
-        // the `fetchRemotes` call after the push already relies on the
-        // `remote` and not the `branch.remote`. All that said this is
-        // a critical path in the app and somehow breaking pushing would
-        // be near unforgivable so I'm introducing this `safeRemote`
-        // temporarily to ensure that there's no risk of us using an
-        // out of sync remote name while still providing envForRemoteOperation
-        // with an url to use when resolving proxies.
-        //
-        // I'm also adding a non fatal exception if this ever happens
-        // so that we can confidently remove this safeguard in a future
-        // release.
-        const safeRemote: IRemote = { name: remoteName, url: remote.url }
-
-        if (safeRemote.name !== remote.name) {
-          sendNonFatalException(
-            'remoteNameMismatch',
-            new Error('The current remote name differs from the branch remote')
-          )
-        }
-
-        const gitStore = this.gitStoreCache.get(repository)
-        await gitStore.performFailableOperation(
-          async () => {
-            await pushRepo(
-              repository,
-              safeRemote,
-              branch.name,
-              branch.upstreamWithoutRemote,
-              gitStore.tagsToPush,
-              options,
-              progress => {
-                this.updatePushPullFetchProgress(repository, {
-                  ...progress,
-                  title: pushTitle,
-                  value: pushWeight * progress.value,
-                })
-              }
-            )
-            gitStore.clearTagsToPush()
-
-            await gitStore.fetchRemotes([safeRemote], false, fetchProgress => {
+      const gitStore = this.gitStoreCache.get(repository)
+      await gitStore.performFailableOperation(
+        async () => {
+          await pushRepo(
+            repository,
+            safeRemote,
+            branch.name,
+            branch.upstreamWithoutRemote,
+            gitStore.tagsToPush,
+            options,
+            progress => {
               this.updatePushPullFetchProgress(repository, {
-                ...fetchProgress,
-                value: pushWeight + fetchProgress.value * fetchWeight,
+                ...progress,
+                title: pushTitle,
+                value: pushWeight * progress.value,
               })
-            })
+            }
+          )
+          gitStore.clearTagsToPush()
 
-            const refreshTitle = __DARWIN__
-              ? 'Refreshing Repository'
-              : 'Refreshing repository'
-            const refreshStartProgress = pushWeight + fetchWeight
-
+          await gitStore.fetchRemotes([safeRemote], false, fetchProgress => {
             this.updatePushPullFetchProgress(repository, {
-              kind: 'generic',
-              title: refreshTitle,
-              description: 'Fast-forwarding branches',
-              value: refreshStartProgress,
+              ...fetchProgress,
+              value: pushWeight + fetchProgress.value * fetchWeight,
             })
+          })
 
-            await this.fastForwardBranches(repository)
+          const refreshTitle = __DARWIN__
+            ? 'Refreshing Repository'
+            : 'Refreshing repository'
+          const refreshStartProgress = pushWeight + fetchWeight
 
-            this.updatePushPullFetchProgress(repository, {
-              kind: 'generic',
-              title: refreshTitle,
-              value: refreshStartProgress + refreshWeight * 0.5,
-            })
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: refreshTitle,
+            description: 'Fast-forwarding branches',
+            value: refreshStartProgress,
+          })
 
-            // manually refresh branch protections after the push, to ensure
-            // any new branch will immediately report as protected
-            await this.refreshBranchProtectionState(repository)
+          await this.fastForwardBranches(repository)
 
-            await this._refreshRepository(repository)
-          },
-          { retryAction }
-        )
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: refreshTitle,
+            value: refreshStartProgress + refreshWeight * 0.5,
+          })
 
-        this.updatePushPullFetchProgress(repository, null)
+          // manually refresh branch protections after the push, to ensure
+          // any new branch will immediately report as protected
+          await this.refreshBranchProtectionState(repository)
 
-        this.updateMenuLabelsForSelectedRepository()
+          await this._refreshRepository(repository)
+        },
+        { retryAction }
+      )
 
-        // Note that we're using `getAccountForRepository` here instead
-        // of the `account` instance we've got and that's because recordPush
-        // needs to be able to differentiate between a GHES account and a
-        // generic account and it can't do that only based on the endpoint.
-        this.statsStore.recordPush(
-          getAccountForRepository(this.accounts, repository),
-          options
-        )
-      }
+      this.updatePushPullFetchProgress(repository, null)
+
+      this.updateMenuLabelsForSelectedRepository()
+
+      // Note that we're using `getAccountForRepository` here instead
+      // of the `account` instance we've got and that's because recordPush
+      // needs to be able to differentiate between a GHES account and a
+      // generic account and it can't do that only based on the endpoint.
+      this.statsStore.recordPush(
+        getAccountForRepository(this.accounts, repository),
+        options
+      )
     })
   }
 
@@ -4821,7 +4840,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // skip pushing if the current branch is a detached HEAD or the repository
     // is unborn
-    if (gitStore.tip.kind === TipState.Valid) {
+    if (
+      gitStore.tip.kind === TipState.Valid &&
+      gitStore.defaultBranch !== null &&
+      gitStore.tip.branch.name !== gitStore.defaultBranch.name
+    ) {
+      if (
+        gitStore.defaultBranch !== null &&
+        gitStore.tip.branch.name !== gitStore.defaultBranch.name
+      ) {
+        await this.performPush(repository, {
+          branch: gitStore.defaultBranch,
+          forceWithLease: false,
+        })
+      }
       await this.performPush(repository)
     }
 
