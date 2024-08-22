@@ -1,6 +1,7 @@
 import * as OS from 'os'
 import * as URL from 'url'
 import { Account } from '../models/account'
+import * as https from 'https'
 
 import {
   request,
@@ -2290,8 +2291,8 @@ export async function isGitHubHost(url: string) {
     return true
   }
 
-  const ac = new AbortController()
-  const timeoutId = setTimeout(() => ac.abort(), 2000)
+  log.debug(`isGitHubHost: sending request to ${endpoint}/meta`)
+
   try {
     let authHeader: Record<string, string> = {}
     let fetchEndpoint = endpoint
@@ -2308,19 +2309,52 @@ export async function isGitHubHost(url: string) {
       parsedEndpoint.auth = ''
       fetchEndpoint = URL.format(parsedEndpoint)
     }
-    const response = await fetch(`${fetchEndpoint}/meta`, {
-      headers: {
-        'user-agent': getUserAgent(),
-        ...authHeader,
-      },
-      signal: ac.signal,
-      credentials: 'omit',
-      method: 'HEAD',
-    }).finally(() => clearTimeout(timeoutId))
+    const requestPromise = new Promise((resolve, reject) => {
+      const req = https.request(
+        `${fetchEndpoint}/meta`,
+        {
+          method: 'HEAD',
+          headers: {
+            'user-agent': getUserAgent(),
+            ...authHeader,
+          },
+        },
+        res => {
+          console.debug(
+            `isGitHubHost: received response from ${endpoint}/meta`,
+            res
+          )
+          if (res.statusCode === 200) {
+            tryUpdateEndpointVersionFromIncomingMessage(endpoint, res)
+            const hasGitHubRequestId =
+              res.headers['x-github-request-id'] !== undefined
+            console.debug(
+              `isGitHubHost: ${endpoint}/meta has x-github-request-id? ${hasGitHubRequestId}`
+            )
+            resolve(hasGitHubRequestId)
+          } else {
+            log.debug(
+              `isGitHubHost: ${endpoint}/meta is not a GitHub host (status code: ${res.statusCode})`
+            )
+            resolve(false)
+          }
+        }
+      )
+      req.on('error', e => {
+        log.debug(`isGitHubHost: failed with endpoint ${endpoint}`, e)
+        resolve(undefined)
+      })
 
-    tryUpdateEndpointVersionFromResponse(endpoint, response)
+      req.on('timeout', () => {
+        req.destroy()
 
-    return response.headers.has('x-github-request-id')
+        reject(new Error('Request timed out'))
+      })
+
+      req.end()
+    })
+
+    return await requestPromise
   } catch (e) {
     log.debug(`isGitHubHost: failed with endpoint ${endpoint}`, e)
     return undefined
