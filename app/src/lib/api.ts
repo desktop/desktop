@@ -20,6 +20,7 @@ import {
   isGHE,
   updateEndpointVersion,
 } from './endpoint-capabilities'
+import { IncomingMessage } from 'http'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -2214,12 +2215,24 @@ export async function requestOAuthToken(
   }
 }
 
+const gheVersionHeader = 'x-github-enterprise-version'
+
 function tryUpdateEndpointVersionFromResponse(
   endpoint: string,
   response: Response
 ) {
-  const gheVersion = response.headers.get('x-github-enterprise-version')
+  const gheVersion = response.headers.get(gheVersionHeader)
   if (gheVersion !== null) {
+    updateEndpointVersion(endpoint, gheVersion)
+  }
+}
+
+function tryUpdateEndpointVersionFromIncomingMessage(
+  endpoint: string,
+  message: IncomingMessage
+) {
+  const gheVersion = message.headers[gheVersionHeader]
+  if (gheVersion !== undefined && typeof gheVersion === 'string') {
     updateEndpointVersion(endpoint, gheVersion)
   }
 }
