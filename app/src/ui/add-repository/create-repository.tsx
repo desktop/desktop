@@ -63,6 +63,14 @@ export const isGitRepository = async (path: string) => {
     return directoryExists(join(path, '.git'))
   }
 
+  if (type.kind === 'regular') {
+    // If the path is a regular repository, we'll check if the top level. If it
+    // isn't than, the path is a subfolder of the repository and a user may want
+    // to make it into a repository.
+    // TODO: Opportunity to provide information about submodules?
+    return type.topLevelWorkingDirectory === path
+  }
+
   return type.kind !== 'missing'
 }
 
