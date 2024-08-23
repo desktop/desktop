@@ -22,6 +22,7 @@ import {
   updateEndpointVersion,
 } from './endpoint-capabilities'
 import { IncomingMessage } from 'http'
+import memoizeOne from 'memoize-one'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -2261,41 +2262,22 @@ const isKnownThirdPartyHost = (hostname: string) => {
 }
 
 /**
- * Attempts to determine whether or not the url belongs to a GitHub host.
+ * This function is used to determine if a given endpoint is a GitHub Enterprise
+ * instance. It does so by sending a request to the `/meta` endpoint of the
+ * given endpoint and checking if the response has an `x-github-request-id`
+ * header. If it does, we assume this is a GitHub Enterprise instance.
+ * This function is memoized to avoid sending multiple requests to the same
+ * endpoint.
  *
- * This is a best-effort attempt and may return `undefined` if encountering
- * an error making the discovery request
+ * @param endpoint The endpoint to check
+ * @returns `true` if the endpoint is a GitHub Enterprise instance, `false` if
+ *          it is not, and `undefined` if we couldn't determine it.
  */
-export async function isGitHubHost(url: string) {
-  const { hostname } = new window.URL(url)
-
-  const endpoint =
-    hostname === 'github.com' || hostname === 'api.github.com'
-      ? getDotComAPIEndpoint()
-      : getEnterpriseAPIURL(url)
-
-  if (isDotCom(endpoint) || isGHE(endpoint)) {
-    return true
-  }
-
-  if (isKnownThirdPartyHost(hostname)) {
-    return false
-  }
-
-  // bitbucket.example.com, etc
-  if (/(^|\.)(bitbucket|gitlab)\./.test(hostname)) {
-    return false
-  }
-
-  if (getEndpointVersion(endpoint) !== null) {
-    return true
-  }
-
-  log.debug(`isGitHubHost: sending request to ${endpoint}/meta`)
+const isNonCloudGitHubHost = memoizeOne(async (endpoint: string) => {
+  let fetchEndpoint = endpoint
 
   try {
     let authHeader: Record<string, string> = {}
-    let fetchEndpoint = endpoint
 
     const parsedEndpoint = URL.parse(endpoint)
     if (parsedEndpoint.auth) {
@@ -2309,6 +2291,8 @@ export async function isGitHubHost(url: string) {
       parsedEndpoint.auth = ''
       fetchEndpoint = URL.format(parsedEndpoint)
     }
+
+    log.debug(`isNonCloudGitHubHost: sending request to ${fetchEndpoint}/meta`)
 
     const requestPromise = new Promise((resolve, reject) => {
       // Some self-hosted repositories may not have a valid SSL certificate
@@ -2342,26 +2326,29 @@ export async function isGitHubHost(url: string) {
         },
         res => {
           log.debug(
-            `isGitHubHost: received response ${res.statusCode} from ${endpoint}/meta`
+            `isNonCloudGitHubHost: received response ${res.statusCode} from ${fetchEndpoint}/meta`
           )
           if (res.statusCode === 200) {
-            tryUpdateEndpointVersionFromIncomingMessage(endpoint, res)
+            tryUpdateEndpointVersionFromIncomingMessage(fetchEndpoint, res)
             const hasGitHubRequestId =
               res.headers['x-github-request-id'] !== undefined
             log.debug(
-              `isGitHubHost: ${endpoint}/meta has x-github-request-id? ${hasGitHubRequestId}`
+              `isNonCloudGitHubHost: ${fetchEndpoint}/meta has x-github-request-id? ${hasGitHubRequestId}`
             )
             resolve(hasGitHubRequestId)
           } else {
             log.debug(
-              `isGitHubHost: ${endpoint}/meta is not a GitHub host (status code: ${res.statusCode})`
+              `isNonCloudGitHubHost: ${fetchEndpoint}/meta is not a GitHub host (status code: ${res.statusCode})`
             )
             resolve(false)
           }
         }
       )
       req.on('error', e => {
-        log.debug(`isGitHubHost: failed with endpoint ${endpoint}`, e)
+        log.debug(
+          `isNonCloudGitHubHost: failed with endpoint ${fetchEndpoint}`,
+          e
+        )
         resolve(undefined)
       })
 
@@ -2376,7 +2363,41 @@ export async function isGitHubHost(url: string) {
 
     return await requestPromise
   } catch (e) {
-    log.debug(`isGitHubHost: failed with endpoint ${endpoint}`, e)
+    log.debug(`isNonCloudGitHubHost: failed with endpoint ${fetchEndpoint}`, e)
     return undefined
   }
+})
+
+/**
+ * Attempts to determine whether or not the url belongs to a GitHub host.
+ *
+ * This is a best-effort attempt and may return `undefined` if encountering
+ * an error making the discovery request
+ */
+export async function isGitHubHost(url: string) {
+  const { hostname } = new window.URL(url)
+
+  const endpoint =
+    hostname === 'github.com' || hostname === 'api.github.com'
+      ? getDotComAPIEndpoint()
+      : getEnterpriseAPIURL(url)
+
+  if (isDotCom(endpoint) || isGHE(endpoint)) {
+    return true
+  }
+
+  if (isKnownThirdPartyHost(hostname)) {
+    return false
+  }
+
+  // bitbucket.example.com, etc
+  if (/(^|\.)(bitbucket|gitlab)\./.test(hostname)) {
+    return false
+  }
+
+  if (getEndpointVersion(endpoint) !== null) {
+    return true
+  }
+
+  return await isNonCloudGitHubHost(endpoint)
 }
