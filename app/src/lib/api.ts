@@ -2320,15 +2320,14 @@ export async function isGitHubHost(url: string) {
           },
         },
         res => {
-          console.debug(
-            `isGitHubHost: received response from ${endpoint}/meta`,
-            res
+          log.debug(
+            `isGitHubHost: received response ${res.statusCode} from ${endpoint}/meta`
           )
           if (res.statusCode === 200) {
             tryUpdateEndpointVersionFromIncomingMessage(endpoint, res)
             const hasGitHubRequestId =
               res.headers['x-github-request-id'] !== undefined
-            console.debug(
+            log.debug(
               `isGitHubHost: ${endpoint}/meta has x-github-request-id? ${hasGitHubRequestId}`
             )
             resolve(hasGitHubRequestId)
