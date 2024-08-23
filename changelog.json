@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.4.4-test6": [
+      "[Fixed] Don't show certificate error when pushing to self-hosted repositories"
+    ],
     "3.4.3": [
       "[Added] Add Zed as an external editor option for Linux - #18962. Thanks @adil192!",
       "[Fixed] Allow pushing to gists - #19009",
