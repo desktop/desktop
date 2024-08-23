@@ -2309,7 +2309,28 @@ export async function isGitHubHost(url: string) {
       parsedEndpoint.auth = ''
       fetchEndpoint = URL.format(parsedEndpoint)
     }
+
     const requestPromise = new Promise((resolve, reject) => {
+      // Some self-hosted repositories may not have a valid SSL certificate
+      // and that could be ok. Git offers the http.sslverify option to disable
+      // SSL verification for all git operations, or only for git operations
+      // on certain hosts. We could use that here, but we don't want to duplicate
+      // that logic to match domains, order of preference of different options...
+      // Instead, we'll just reject all requests to /meta that fail SSL
+      // verification. The reasoning for that is:
+      // 1. This request is only used to find out if the host is a GitHub
+      //    Enterprise instance. It's ok if this fails for whatever reason for
+      //    self-hosted repositories, since returning `undefined` in this
+      //    function means "we don't know if this is a GitHub host or not".
+      // 2. We're want to assume (for now, at least) that GitHub Enterprise
+      //    instances are always running with a valid SSL certificate.
+      //
+      // If we used `fetch` for this, in the case of an invalid SSL certificate
+      // Electron would dispatch a 'certificate-error' event on the main process
+      // that we must handle to allow the request to finish (in this case, by
+      // rejecting it). However, we're using `https.request` here, so we don't
+      // need to handle that and can get rid of the complexity of dealing with
+      // stuff happening on the main process.
       const req = https.request(
         `${fetchEndpoint}/meta`,
         {
