@@ -2220,7 +2220,7 @@ export async function requestOAuthToken(
   }
 }
 
-const gheVersionHeader = 'x-github-enterprise-version'
+const gheVersionHeader = 'X-GitHub-Enterprise-Version'
 
 function tryUpdateEndpointVersionFromResponse(
   endpoint: string,
