@@ -2276,22 +2276,41 @@ const isKnownThirdPartyHost = (hostname: string) => {
  *          it is not, and `undefined` if we couldn't determine it.
  */
 const isNonCloudGitHubHost = memoizeOne(async (endpoint: string) => {
+  const requestTimeout = 2000
   let fetchEndpoint = endpoint
 
   try {
     let authHeader: Record<string, string> = {}
 
-    const parsedEndpoint = URL.parse(endpoint)
-    if (parsedEndpoint.auth) {
-      const [username, password] = parsedEndpoint.auth.split(':')
-      const basicAuth = Buffer.from(`${username}:${password}`).toString(
-        'base64'
-      )
-      authHeader = { Authorization: `Basic ${basicAuth}` }
+    const parsedEndpoint = URL.parse(fetchEndpoint)
 
-      // We need to fetch the meta endpoint without authentication
-      parsedEndpoint.auth = ''
-      fetchEndpoint = URL.format(parsedEndpoint)
+    // If the endpoint is an HTTP endpoint, we need to use `fetch`
+    if (parsedEndpoint.protocol === 'http:') {
+      if (parsedEndpoint.auth) {
+        const [username, password] = parsedEndpoint.auth.split(':')
+        const basicAuth = Buffer.from(`${username}:${password}`).toString(
+          'base64'
+        )
+        authHeader = { Authorization: `Basic ${basicAuth}` }
+
+        // `fetch` cannot build requests if the URL has auth info
+        parsedEndpoint.auth = ''
+        fetchEndpoint = URL.format(parsedEndpoint)
+      }
+
+      const ac = new AbortController()
+      const timeoutId = setTimeout(() => ac.abort(), requestTimeout)
+
+      const response = await fetch(`${endpoint}/meta`, {
+        headers: { 'user-agent': getUserAgent() },
+        signal: ac.signal,
+        credentials: 'omit',
+        method: 'HEAD',
+      }).finally(() => clearTimeout(timeoutId))
+
+      tryUpdateEndpointVersionFromResponse(endpoint, response)
+
+      return response.headers.has(GitHubRequestIdHeader)
     }
 
     log.debug(`isNonCloudGitHubHost: sending request to ${fetchEndpoint}/meta`)
@@ -2325,6 +2344,7 @@ const isNonCloudGitHubHost = memoizeOne(async (endpoint: string) => {
             'user-agent': getUserAgent(),
             ...authHeader,
           },
+          timeout: requestTimeout,
         },
         res => {
           log.debug(
