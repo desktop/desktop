@@ -207,7 +207,7 @@ export class Integrations extends React.Component<
       <Row>
         <div className="no-options-found">
           <span>
-            No editors found.{' '}
+            No other editors found.{' '}
             <LinkButton uri={suggestedExternalEditor.url}>
               Install {suggestedExternalEditor.name}?
             </LinkButton>
@@ -334,8 +334,8 @@ export class Integrations extends React.Component<
             <h2>{__DARWIN__ ? 'External Editor' : 'External editor'}</h2>
           </legend>
           <Row>{this.renderExternalEditor()}</Row>
-          {this.renderNoExternalEditorHint()}
           {this.state.useCustomEditor && this.renderCustomExternalEditor()}
+          {this.renderNoExternalEditorHint()}
         </fieldset>
         <fieldset>
           <legend>
