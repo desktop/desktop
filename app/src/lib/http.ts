@@ -1,5 +1,6 @@
 import * as appProxy from '../ui/lib/app-proxy'
 import { URL } from 'url'
+import { GitHubRequestIdHeader } from './api'
 
 /** The HTTP methods available. */
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD' | 'DELETE'
@@ -66,7 +67,7 @@ async function deserialize<T>(response: Response): Promise<T> {
     return json as T
   } catch (e) {
     const contentLength = response.headers.get('Content-Length') || '(missing)'
-    const requestId = response.headers.get('X-GitHub-Request-Id') || '(missing)'
+    const requestId = response.headers.get(GitHubRequestIdHeader) || '(missing)'
     log.warn(
       `deserialize: invalid JSON found at '${response.url}' - status: ${response.status}, length: '${contentLength}' id: '${requestId}'`,
       e

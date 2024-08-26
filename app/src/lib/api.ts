@@ -33,6 +33,8 @@ if (envAdditionalCookies !== undefined) {
   document.cookie += '; ' + envAdditionalCookies
 }
 
+export const GitHubRequestIdHeader = 'X-GitHub-Request-Id'
+
 type AffiliationFilter =
   | 'owner'
   | 'collaborator'
@@ -1782,7 +1784,7 @@ export class API {
     // behind a 401 is the fact that any kind of 2 factor auth is required.
     if (
       response.status === 401 &&
-      response.headers.has('X-GitHub-Request-Id') &&
+      response.headers.has(GitHubRequestIdHeader) &&
       !response.headers.has('X-GitHub-OTP')
     ) {
       API.emitTokenInvalidated(this.endpoint, this.token)
@@ -2264,7 +2266,7 @@ const isKnownThirdPartyHost = (hostname: string) => {
 /**
  * This function is used to determine if a given endpoint is a GitHub Enterprise
  * instance. It does so by sending a request to the `/meta` endpoint of the
- * given endpoint and checking if the response has an `x-github-request-id`
+ * given endpoint and checking if the response has an `X-GitHub-Request-Id`
  * header. If it does, we assume this is a GitHub Enterprise instance.
  * This function is memoized to avoid sending multiple requests to the same
  * endpoint.
@@ -2331,9 +2333,9 @@ const isNonCloudGitHubHost = memoizeOne(async (endpoint: string) => {
           if (res.statusCode === 200) {
             tryUpdateEndpointVersionFromIncomingMessage(fetchEndpoint, res)
             const hasGitHubRequestId =
-              res.headers['x-github-request-id'] !== undefined
+              res.headers[GitHubRequestIdHeader] !== undefined
             log.debug(
-              `isNonCloudGitHubHost: ${fetchEndpoint}/meta has x-github-request-id? ${hasGitHubRequestId}`
+              `isNonCloudGitHubHost: ${fetchEndpoint}/meta has X-GitHub-Request-Id? ${hasGitHubRequestId}`
             )
             resolve(hasGitHubRequestId)
           } else {
