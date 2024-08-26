@@ -2,6 +2,7 @@ import * as OS from 'os'
 import * as URL from 'url'
 import { Account } from '../models/account'
 import * as https from 'https'
+import * as http from 'http'
 
 import {
   request,
@@ -2276,44 +2277,12 @@ const isKnownThirdPartyHost = (hostname: string) => {
  *          it is not, and `undefined` if we couldn't determine it.
  */
 const isNonCloudGitHubHost = memoizeOne(async (endpoint: string) => {
-  const requestTimeout = 2000
-  let fetchEndpoint = endpoint
-
   try {
-    let authHeader: Record<string, string> = {}
+    const parsedEndpoint = URL.parse(endpoint)
+    const request =
+      parsedEndpoint.protocol === 'https:' ? https.request : http.request
 
-    const parsedEndpoint = URL.parse(fetchEndpoint)
-
-    // If the endpoint is an HTTP endpoint, we need to use `fetch`
-    if (parsedEndpoint.protocol === 'http:') {
-      if (parsedEndpoint.auth) {
-        const [username, password] = parsedEndpoint.auth.split(':')
-        const basicAuth = Buffer.from(`${username}:${password}`).toString(
-          'base64'
-        )
-        authHeader = { Authorization: `Basic ${basicAuth}` }
-
-        // `fetch` cannot build requests if the URL has auth info
-        parsedEndpoint.auth = ''
-        fetchEndpoint = URL.format(parsedEndpoint)
-      }
-
-      const ac = new AbortController()
-      const timeoutId = setTimeout(() => ac.abort(), requestTimeout)
-
-      const response = await fetch(`${endpoint}/meta`, {
-        headers: { 'user-agent': getUserAgent() },
-        signal: ac.signal,
-        credentials: 'omit',
-        method: 'HEAD',
-      }).finally(() => clearTimeout(timeoutId))
-
-      tryUpdateEndpointVersionFromResponse(endpoint, response)
-
-      return response.headers.has(GitHubRequestIdHeader)
-    }
-
-    log.debug(`isNonCloudGitHubHost: sending request to ${fetchEndpoint}/meta`)
+    log.debug(`isNonCloudGitHubHost: sending request to ${endpoint}/meta`)
 
     const requestPromise = new Promise((resolve, reject) => {
       // Some self-hosted repositories may not have a valid SSL certificate
@@ -2336,41 +2305,37 @@ const isNonCloudGitHubHost = memoizeOne(async (endpoint: string) => {
       // rejecting it). However, we're using `https.request` here, so we don't
       // need to handle that and can get rid of the complexity of dealing with
       // stuff happening on the main process.
-      const req = https.request(
-        `${fetchEndpoint}/meta`,
+      const req = request(
+        `${endpoint}/meta`,
         {
           method: 'HEAD',
           headers: {
             'user-agent': getUserAgent(),
-            ...authHeader,
           },
-          timeout: requestTimeout,
+          timeout: 2000,
         },
         res => {
           log.debug(
-            `isNonCloudGitHubHost: received response ${res.statusCode} from ${fetchEndpoint}/meta`
+            `isNonCloudGitHubHost: received response ${res.statusCode} from ${endpoint}/meta`
           )
           if (res.statusCode === 200) {
-            tryUpdateEndpointVersionFromIncomingMessage(fetchEndpoint, res)
+            tryUpdateEndpointVersionFromIncomingMessage(endpoint, res)
             const hasGitHubRequestId =
               res.headers[GitHubRequestIdHeader] !== undefined
             log.debug(
-              `isNonCloudGitHubHost: ${fetchEndpoint}/meta has X-GitHub-Request-Id? ${hasGitHubRequestId}`
+              `isNonCloudGitHubHost: ${endpoint}/meta has X-GitHub-Request-Id? ${hasGitHubRequestId}`
             )
             resolve(hasGitHubRequestId)
           } else {
             log.debug(
-              `isNonCloudGitHubHost: ${fetchEndpoint}/meta is not a GitHub host (status code: ${res.statusCode})`
+              `isNonCloudGitHubHost: ${endpoint}/meta is not a GitHub host (status code: ${res.statusCode})`
             )
             resolve(false)
           }
         }
       )
       req.on('error', e => {
-        log.debug(
-          `isNonCloudGitHubHost: failed with endpoint ${fetchEndpoint}`,
-          e
-        )
+        log.debug(`isNonCloudGitHubHost: failed with endpoint ${endpoint}`, e)
         resolve(undefined)
       })
 
@@ -2385,7 +2350,7 @@ const isNonCloudGitHubHost = memoizeOne(async (endpoint: string) => {
 
     return await requestPromise
   } catch (e) {
-    log.debug(`isNonCloudGitHubHost: failed with endpoint ${fetchEndpoint}`, e)
+    log.debug(`isNonCloudGitHubHost: failed with endpoint ${endpoint}`, e)
     return undefined
   }
 })
