@@ -202,7 +202,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
       // this might throw
       writeFileSync(
         changelogPath,
-        await format(JSON.stringify(changelog), {
+        format(JSON.stringify(changelog), {
           parser: 'json',
         })
       )
