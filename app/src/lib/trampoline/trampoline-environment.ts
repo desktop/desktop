@@ -11,6 +11,7 @@ import memoizeOne from 'memoize-one'
 import { enableCredentialHelperTrampoline } from '../feature-flag'
 import { GitError, getDescriptionForError } from '../git/core'
 import { deleteGenericCredential } from '../generic-git-auth'
+import { useExternalCredentialHelper } from './use-external-credential-helper'
 import { getDesktopAskpassTrampolineFilename } from 'desktop-trampoline'
 
 const mostRecentGenericGitCredential = new Map<
@@ -127,7 +128,7 @@ export async function withTrampolineEnv<T>(
       return await fn({
         DESKTOP_PORT: await trampolineServer.getPort(),
         DESKTOP_TRAMPOLINE_TOKEN: token,
-        ...(enableCredentialHelperTrampoline()
+        ...(enableCredentialHelperTrampoline() && useExternalCredentialHelper()
           ? {
               GIT_ASKPASS: '',
               // This warrants some explanation. We're configuring the
