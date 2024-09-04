@@ -38,6 +38,9 @@ import { isTopMostDialog } from '../dialog/is-top-most'
 import { InputError } from '../lib/input-description/input-error'
 import { InputWarning } from '../lib/input-description/input-warning'
 
+/** URL used to provide information about submodules to the user. */
+const submoduleDocsUrl = 'https://git-scm.com/book/en/v2/Git-Tools-Submodules'
+
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
 
@@ -586,7 +589,7 @@ export class CreateRepository extends React.Component<
         >
           The directory <Ref>{fullPath}</Ref>appears to be a subfolder of Git
           repository.
-          <LinkButton uri="https://git-scm.com/book/en/v2/Git-Tools-Submodules">
+          <LinkButton uri={submoduleDocsUrl}>
             Learn about submodules.
           </LinkButton>
         </InputWarning>
