@@ -31,17 +31,6 @@ interface IAddExistingRepositoryState {
   readonly path: string
 
   /**
-   * Indicates whether or not the path provided in the path state field exists and
-   * is a valid Git repository. This value is immediately switched
-   * to false when the path changes and updated (if necessary) by the
-   * function, checkIfPathIsRepository.
-   *
-   * If set to false the user will be prevented from submitting this dialog
-   * and given the option to create a new repository instead.
-   */
-  readonly isRepository: boolean
-
-  /**
    * Indicates whether or not to render a warning message about the entered path
    * not containing a valid Git repository. This value differs from `isGitRepository` in that it holds
    * its value when the path changes until we've gotten a definitive answer from the asynchronous
@@ -68,7 +57,6 @@ export class AddExistingRepository extends React.Component<
 
     this.state = {
       path,
-      isRepository: false,
       showNonGitRepositoryWarning: false,
       isRepositoryBare: false,
       isRepositoryUnsafe: false,
@@ -95,18 +83,16 @@ export class AddExistingRepository extends React.Component<
   }
 
   private async updatePath(path: string) {
-    this.setState({ path, isRepository: false })
-    await this.validatePath(path)
+    this.setState({ path })
   }
 
-  private async validatePath(path: string) {
+  private async validatePath(path: string): Promise<boolean> {
     if (path.length === 0) {
       this.setState({
-        isRepository: false,
         isRepositoryBare: false,
         showNonGitRepositoryWarning: false,
       })
-      return
+      return false
     }
 
     const type = await getRepositoryType(path)
@@ -120,7 +106,6 @@ export class AddExistingRepository extends React.Component<
     this.setState(state =>
       path === state.path
         ? {
-            isRepository,
             isRepositoryBare,
             isRepositoryUnsafe,
             showNonGitRepositoryWarning,
@@ -128,6 +113,8 @@ export class AddExistingRepository extends React.Component<
           }
         : null
     )
+
+    return path.length > 0 && isRepository && !isRepositoryBare
   }
 
   private buildBareRepositoryError() {
@@ -240,11 +227,6 @@ export class AddExistingRepository extends React.Component<
   }
 
   public render() {
-    const disabled =
-      this.state.path.length === 0 ||
-      !this.state.isRepository ||
-      this.state.isRepositoryBare
-
     return (
       <Dialog
         id="add-existing-repository"
@@ -270,7 +252,6 @@ export class AddExistingRepository extends React.Component<
         <DialogFooter>
           <OkCancelButtonGroup
             okButtonText={__DARWIN__ ? 'Add Repository' : 'Add repository'}
-            okButtonDisabled={disabled}
           />
         </DialogFooter>
       </Dialog>
@@ -300,10 +281,16 @@ export class AddExistingRepository extends React.Component<
   }
 
   private addRepository = async () => {
+    const { path } = this.state
+    const isValidPath = await this.validatePath(path)
+    if (!isValidPath) {
+      return
+    }
+
     this.props.onDismissed()
     const { dispatcher } = this.props
 
-    const resolvedPath = this.resolvedPath(this.state.path)
+    const resolvedPath = this.resolvedPath(path)
     const repositories = await dispatcher.addRepositories([resolvedPath])
 
     if (repositories.length > 0) {
