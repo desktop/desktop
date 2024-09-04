@@ -1,5 +1,11 @@
 {
   "releases": {
+    "3.4.4-beta3": [
+      "[Fixed] The custom editor and shell integrations handles when there are no predefined editors or shells - #19160",
+      "[Fixed] The \"Create a New Repository\" dialog allows creation of repositories in repository subfolders - #19137",
+      "[Fixed] Stop improper announcement of \"dialog\" role on the autocompletion suggestions popover - #19114",
+      "[Improved] Screen readers will announce when users expand context in a diff - #19128"
+    ],
     "3.4.4-beta2": [
       "[Fixed] The \"Open a Pull Request\" and \"About\" dialog's headings are announced via NVDA - #19107",
       "[Fixed] The branch selection popover in the \"Open a Pull Request\" dialog does not close on filter clearing - #19106",
