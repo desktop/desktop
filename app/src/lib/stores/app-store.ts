@@ -4840,11 +4840,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     // skip pushing if the current branch is a detached HEAD or the repository
     // is unborn
-    if (
-      gitStore.tip.kind === TipState.Valid &&
-      gitStore.defaultBranch !== null &&
-      gitStore.tip.branch.name !== gitStore.defaultBranch.name
-    ) {
+    if (gitStore.tip.kind === TipState.Valid) {
       if (
         gitStore.defaultBranch !== null &&
         gitStore.tip.branch.name !== gitStore.defaultBranch.name
