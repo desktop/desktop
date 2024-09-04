@@ -64,14 +64,6 @@ export class AddExistingRepository extends React.Component<
     }
   }
 
-  public async componentDidMount() {
-    const { path } = this.state
-
-    if (path.length !== 0) {
-      await this.validatePath(path)
-    }
-  }
-
   private onTrustDirectory = async () => {
     this.setState({ isTrustingRepository: true })
     const { repositoryUnsafePath, path } = this.state
