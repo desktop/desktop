@@ -214,7 +214,6 @@ export class CreateRepository extends React.Component<
       // isn't than, the path is a subfolder of the repository and a user may want
       // to make it into a repository.
       isRepository = type.topLevelWorkingDirectory === fullPath
-      console.log(isRepository)
       isSubFolderOfRepository = !isRepository
     }
 
