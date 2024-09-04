@@ -50,6 +50,8 @@ export class AddExistingRepository extends React.Component<
   IAddExistingRepositoryProps,
   IAddExistingRepositoryState
 > {
+  private pathTextBoxRef = React.createRef<TextBox>()
+
   public constructor(props: IAddExistingRepositoryProps) {
     super(props)
 
@@ -230,6 +232,7 @@ export class AddExistingRepository extends React.Component<
         <DialogContent>
           <Row>
             <TextBox
+              ref={this.pathTextBoxRef}
               value={this.state.path}
               label={__DARWIN__ ? 'Local Path' : 'Local path'}
               placeholder="repository path"
@@ -275,7 +278,9 @@ export class AddExistingRepository extends React.Component<
   private addRepository = async () => {
     const { path } = this.state
     const isValidPath = await this.validatePath(path)
+
     if (!isValidPath) {
+      this.pathTextBoxRef.current?.focus()
       return
     }
 
