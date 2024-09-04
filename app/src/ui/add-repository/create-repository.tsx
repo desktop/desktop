@@ -540,22 +540,23 @@ export class CreateRepository extends React.Component<
   }
 
   private renderGitRepositoryError() {
-    const isRepo = this.state.isRepository
+    const { isRepository, path, name } = this.state
 
-    if (!this.state.path || this.state.path.length === 0 || !isRepo) {
+    if (!path || path.length === 0 || !isRepository) {
       return null
     }
+
+    const fullPath = Path.join(path, sanitizedRepositoryName(name))
 
     return (
       <Row>
         <InputError
           id="existing-repository-path-error"
           trackedUserInput={this.state.path + this.state.name}
-          ariaLiveMessage={
-            'This directory appears to be a Git repository. Would you like to add this repository instead?'
-          }
+          ariaLiveMessage={`The directory ${fullPath} appears to be a Git repository. Would you like to add this repository instead?`}
         >
-          This directory appears to be a Git repository. Would you like to{' '}
+          The directory <Ref>{fullPath}</Ref>appears to be a Git repository.
+          Would you like to{' '}
           <LinkButton onClick={this.onAddRepositoryClicked}>
             add this repository
           </LinkButton>{' '}
@@ -589,6 +590,22 @@ export class CreateRepository extends React.Component<
           this box will result in the existing file being overwritten.
         </InputWarning>
       </Row>
+    )
+  }
+
+  private renderPathMessage = () => {
+    const { path, name, isRepository } = this.state
+
+    if (path === null || path === '' || name === '' || isRepository) {
+      return null
+    }
+
+    const fullPath = Path.join(path, sanitizedRepositoryName(name))
+
+    return (
+      <div id="create-repo-path-msg">
+        The repository will be created at <Ref>{fullPath}</Ref>.
+      </div>
     )
   }
 
@@ -688,11 +705,13 @@ export class CreateRepository extends React.Component<
         </DialogContent>
 
         <DialogFooter>
+          {this.renderPathMessage()}
           <OkCancelButtonGroup
             okButtonText={
               __DARWIN__ ? 'Create Repository' : 'Create repository'
             }
             okButtonDisabled={disabled || loadingDefaultDir}
+            okButtonAriaDescribedBy="create-repo-path-msg"
           />
         </DialogFooter>
       </Dialog>
