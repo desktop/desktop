@@ -99,4 +99,4 @@ export const enableLinkUnderlines = enableDiffCheckMarksAndLinkUnderlines
 export const enableExternalCredentialHelper = () => true
 export const enableCredentialHelperTrampoline = () => true
 
-export const enableCustomIntegration = enableBetaFeatures
+export const enableCustomIntegration = () => true
