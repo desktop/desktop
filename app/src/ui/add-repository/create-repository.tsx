@@ -39,7 +39,7 @@ import { InputError } from '../lib/input-description/input-error'
 import { InputWarning } from '../lib/input-description/input-warning'
 
 /** URL used to provide information about submodules to the user. */
-const submoduleDocsUrl = 'https://git-scm.com/book/en/v2/Git-Tools-Submodules'
+const submoduleDocsUrl = 'https://gh.io/git-submodules'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
