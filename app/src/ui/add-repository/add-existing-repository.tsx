@@ -43,12 +43,6 @@ interface IAddExistingRepositoryState {
   readonly isRepositoryUnsafe: boolean
   readonly repositoryUnsafePath?: string
   readonly isTrustingRepository: boolean
-
-  /**
-   * Signal that needs to be toggled to indicate that the aria-live message in
-   * the InputError component must be read.
-   */
-  readonly readInputErrorSignal: boolean
 }
 
 /** The component for adding an existing local repository. */
@@ -69,7 +63,6 @@ export class AddExistingRepository extends React.Component<
       isRepositoryBare: false,
       isRepositoryUnsafe: false,
       isTrustingRepository: false,
-      readInputErrorSignal: false,
     }
   }
 
@@ -92,7 +85,6 @@ export class AddExistingRepository extends React.Component<
       this.setState({
         isRepositoryBare: false,
         showNonGitRepositoryWarning: false,
-        readInputErrorSignal: !this.state.readInputErrorSignal,
       })
       return false
     }
@@ -112,7 +104,6 @@ export class AddExistingRepository extends React.Component<
             isRepositoryUnsafe,
             showNonGitRepositoryWarning,
             repositoryUnsafePath,
-            readInputErrorSignal: !this.state.readInputErrorSignal,
           }
         : null
     )
@@ -220,7 +211,6 @@ export class AddExistingRepository extends React.Component<
       <Row>
         <InputError
           id="add-existing-repository-path-error"
-          trackedUserInput={this.state.readInputErrorSignal}
           ariaLiveMessage={msg.screenReaderMessage}
         >
           {msg.displayedMessage}
