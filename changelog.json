@@ -1,7 +1,7 @@
 {
   "releases": {
     "3.4.5-beta1": [
-      "[Added] Add cursor integration for windows - #19158. Thanks @colinabear!",
+      "[Added] Add Cursor integration for windows - #19158. Thanks @colinabear!",
       "[Fixed] Users can clone wiki's - #19152",
       "[Improved] Inform users when attempting to create a repository out of an existing subdirectory of another repository - #19148",
       "[Improved] When publishing a new repository, publish the default branch first as opposed to the currently checked out branch - #19151",
