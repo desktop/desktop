@@ -15,7 +15,7 @@ export interface ICustomIntegration {
   /** The path to the custom integration */
   readonly path: string
   /** The arguments to pass to the custom integration */
-  readonly arguments: ReadonlyArray<string>
+  readonly arguments: string
   /** The bundle ID of the custom integration (macOS only) */
   readonly bundleID?: string
 }
@@ -131,7 +131,15 @@ export async function validateCustomIntegrationPath(
 export async function isValidCustomIntegration(
   customIntegration: ICustomIntegration
 ): Promise<boolean> {
-  const pathResult = await validateCustomIntegrationPath(customIntegration.path)
-  const targetPathPresent = checkTargetPathArgument(customIntegration.arguments)
-  return pathResult.isValid && targetPathPresent
+  try {
+    const pathResult = await validateCustomIntegrationPath(
+      customIntegration.path
+    )
+    const argv = parseCustomIntegrationArguments(customIntegration.arguments)
+    const targetPathPresent = checkTargetPathArgument(argv)
+    return pathResult.isValid && targetPathPresent
+  } catch (e) {
+    log.error('Failed to validate custom integration:', e)
+    return false
+  }
 }

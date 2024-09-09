@@ -256,7 +256,7 @@ export class Integrations extends React.Component<
           id="custom-editor"
           ref={this.customEditorFormRef}
           path={this.state.customEditor.path ?? ''}
-          arguments={this.state.customEditor.arguments.join(' ') ?? ''}
+          arguments={this.state.customEditor.arguments}
           onPathChanged={this.onCustomEditorPathChanged}
           onArgumentsChanged={this.onCustomEditorArgumentsChanged}
         />
@@ -275,9 +275,9 @@ export class Integrations extends React.Component<
     this.props.onCustomEditorChanged(customEditor)
   }
 
-  private onCustomEditorArgumentsChanged = (args: ReadonlyArray<string>) => {
+  private onCustomEditorArgumentsChanged = (args: string) => {
     const customEditor: ICustomIntegration = {
-      path: this.state.customEditor.path ?? '',
+      path: this.state.customEditor.path,
       bundleID: this.state.customEditor.bundleID,
       arguments: args,
     }
@@ -317,8 +317,8 @@ export class Integrations extends React.Component<
         <CustomIntegrationForm
           id="custom-shell"
           ref={this.customShellFormRef}
-          path={this.state.customShell.path ?? ''}
-          arguments={this.state.customShell.arguments.join(' ') ?? ''}
+          path={this.state.customShell.path}
+          arguments={this.state.customShell.arguments}
           onPathChanged={this.onCustomShellPathChanged}
           onArgumentsChanged={this.onCustomShellArgumentsChanged}
         />
@@ -337,7 +337,7 @@ export class Integrations extends React.Component<
     this.props.onCustomShellChanged(customShell)
   }
 
-  private onCustomShellArgumentsChanged = (args: ReadonlyArray<string>) => {
+  private onCustomShellArgumentsChanged = (args: string) => {
     const customShell: ICustomIntegration = {
       path: this.state.customShell.path ?? '',
       bundleID: this.state.customShell.bundleID,
