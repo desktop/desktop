@@ -342,7 +342,10 @@ import {
   useExternalCredentialHelperDefault,
 } from '../trampoline/use-external-credential-helper'
 import { IOAuthAction } from '../parse-app-url'
-import { ICustomIntegration } from '../custom-integration'
+import {
+  ICustomIntegration,
+  migratedCustomIntegration,
+} from '../custom-integration'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -2261,6 +2264,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.useCustomShell =
       enableCustomIntegration() && getBoolean(useCustomShellKey, false)
     this.customShell = getObject<ICustomIntegration>(customShellKey) ?? null
+
+    // Migrate custom editor and shell to the new format if needed. This
+    // will persist the new format to local storage.
+    // Hopefully we can remove this migration in the future.
+    const migratedCustomEditor = migratedCustomIntegration(this.customEditor)
+    if (migratedCustomEditor !== null) {
+      this._setCustomEditor(migratedCustomEditor)
+    }
+    const migratedCustomShell = migratedCustomIntegration(this.customShell)
+    if (migratedCustomShell !== null) {
+      this._setCustomShell(migratedCustomShell)
+    }
 
     this.pullRequestSuggestedNextAction =
       getEnum(

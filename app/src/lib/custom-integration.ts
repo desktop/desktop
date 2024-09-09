@@ -143,3 +143,35 @@ export async function isValidCustomIntegration(
     return false
   }
 }
+
+/**
+ * Migrates custom integrations stored with the old format (with the arguments
+ * stored as an array of strings) to the new format (with the arguments stored
+ * as a single string).
+ *
+ * @param customIntegration The custom integration to migrate
+ *
+ * @returns The migrated custom integration, or `null` if the custom integration
+ *         is already in the new format.
+ */
+export function migratedCustomIntegration(
+  customIntegration: ICustomIntegration | null
+): ICustomIntegration | null {
+  if (customIntegration === null) {
+    return null
+  }
+
+  // The first public release of the custom integrations feature stored the
+  // arguments as an array of strings. This caused some issues because the
+  // APIs used to parse them and split them into an array would remove any
+  // quotes. Storing exactly the same string as the user entered and then parse
+  // it right before invoking the custom integration is a better approach.
+  if (!Array.isArray(customIntegration.arguments)) {
+    return null
+  }
+
+  return {
+    ...customIntegration,
+    arguments: customIntegration.arguments.join(' '),
+  }
+}
