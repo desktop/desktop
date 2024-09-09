@@ -16,7 +16,7 @@ interface ICustomIntegrationFormProps {
   readonly path: string
   readonly arguments: string
   readonly onPathChanged: (path: string, bundleID?: string) => void
-  readonly onArgumentsChanged: (args: ReadonlyArray<string>) => void
+  readonly onArgumentsChanged: (args: string) => void
 }
 
 interface ICustomIntegrationFormState {
@@ -190,7 +190,7 @@ export class CustomIntegrationForm extends React.Component<
         showNoRepoPathArgError: false,
       })
 
-      this.props.onArgumentsChanged(argv)
+      this.props.onArgumentsChanged(args)
     } catch (e) {
       log.error('Failed to parse custom integration arguments:', e)
 
