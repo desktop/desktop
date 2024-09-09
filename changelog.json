@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.4.5-test1": ["[Fixed] Custom integration fixes"],
     "3.4.4": [
       "[New] Add support for custom editors and shells - #18954",
       "[Added] Add Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
