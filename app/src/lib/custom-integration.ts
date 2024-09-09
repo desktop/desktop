@@ -2,7 +2,7 @@ import { parseCommandLineArgv } from 'windows-argv-parser'
 import stringArgv from 'string-argv'
 import { promisify } from 'util'
 import { exec } from 'child_process'
-import { access, stat } from 'fs/promises'
+import { access, lstat } from 'fs/promises'
 import * as fs from 'fs'
 
 const execAsync = promisify(exec)
@@ -100,22 +100,22 @@ export async function validateCustomIntegrationPath(
   let bundleID = undefined
 
   try {
+    const pathStat = await lstat(path)
     const canBeExecuted = await access(path, fs.constants.X_OK)
       .then(() => true)
       .catch(() => false)
 
+    const isExecutableFile =
+      (pathStat.isFile() || pathStat.isSymbolicLink()) && canBeExecuted
+
     // On macOS, not only executable files are valid, but also apps (which are
     // directories with a `.app` extension and from which we can retrieve
     // the app bundle ID)
-    if (__DARWIN__ && !canBeExecuted) {
-      const pathStat = await stat(path)
-
-      if (pathStat.isDirectory()) {
-        bundleID = await getAppBundleID(path)
-      }
+    if (__DARWIN__ && !isExecutableFile && pathStat.isDirectory()) {
+      bundleID = await getAppBundleID(path)
     }
 
-    return { isValid: canBeExecuted || !!bundleID, bundleID }
+    return { isValid: isExecutableFile || !!bundleID, bundleID }
   } catch (e) {
     log.error(`Failed to validate path: ${path}`, e)
     return { isValid: false }
