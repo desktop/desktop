@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.4.5": [
+      "[Fixed] Quotes are preserved in custom integration arguments - #19218",
+      "[Fixed] Symbolic links on Windows can be used as custom editor and shell - #19217"
+    ],
     "3.4.4": [
       "[New] Add support for custom editors and shells - #18954",
       "[Added] Add Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
