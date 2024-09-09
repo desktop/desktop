@@ -4,6 +4,7 @@ import { ExternalEditorError, FoundEditor } from './shared'
 import {
   expandTargetPathArgument,
   ICustomIntegration,
+  parseCustomIntegrationArguments,
 } from '../custom-integration'
 
 /**
@@ -86,8 +87,10 @@ export async function launchCustomExternalEditor(
     detached: true,
   }
 
+  const argv = parseCustomIntegrationArguments(customEditor.arguments)
+
   // Replace instances of RepoPathArgument with fullPath in customEditor.arguments
-  const args = expandTargetPathArgument(customEditor.arguments, fullPath)
+  const args = expandTargetPathArgument(argv, fullPath)
 
   try {
     // This logic around `usesShell` is also used in Windows `getAvailableEditors` implementation
