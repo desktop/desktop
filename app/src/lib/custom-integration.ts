@@ -98,13 +98,8 @@ export async function validateCustomIntegrationPath(
   }
 
   let bundleID = undefined
-  let pathStat = undefined
 
   try {
-    pathStat = await stat(path).catch(e => {
-      log.error(`Failed to stat path: ${path}`, e)
-      return undefined
-    })
     const canBeExecuted = await access(path, fs.constants.X_OK)
       .then(() => true)
       .catch(() => false)
@@ -112,12 +107,17 @@ export async function validateCustomIntegrationPath(
     // On macOS, not only executable files are valid, but also apps (which are
     // directories with a `.app` extension and from which we can retrieve
     // the app bundle ID)
-    if (__DARWIN__ && !canBeExecuted && pathStat?.isDirectory()) {
-      bundleID = await getAppBundleID(path)
+    if (__DARWIN__ && !canBeExecuted) {
+      const pathStat = await stat(path)
+
+      if (pathStat.isDirectory()) {
+        bundleID = await getAppBundleID(path)
+      }
     }
 
     return { isValid: canBeExecuted || !!bundleID, bundleID }
   } catch (e) {
+    log.error(`Failed to validate path: ${path}`, e)
     return { isValid: false }
   }
 }
