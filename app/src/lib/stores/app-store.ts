@@ -2354,19 +2354,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.stashedFilesWidth = constrain(this.stashedFilesWidth, 100, filesMax)
 
     // Update the maximum width available for the branch dropdown resizable.
-    // The branch dropdown can only be as wide as the available space
-    // after taking the sidebar and pull/push/fetch button widths.
+    // The branch dropdown can only be as wide as the available space after
+    // taking the sidebar and pull/push/fetch button widths. If the room
+    // available is less than the default width, we will split the difference
+    // between the branch dropdown and the push/pull/fetch button so they stay
+    // visible on the most zoomed view.
     const branchDropdownMax = available - defaultPushPullButtonWidth
+    const minimumBranchDropdownWidth =
+      defaultBranchDropdownWidth > available / 2
+        ? available / 2 - 10 // 10 is to give a little bit of space to see the fetch dropdown button
+        : defaultBranchDropdownWidth
     this.branchDropdownWidth = constrain(
       this.branchDropdownWidth,
-      defaultBranchDropdownWidth,
+      minimumBranchDropdownWidth,
       branchDropdownMax
     )
 
     const pushPullButtonMaxWidth = available - this.branchDropdownWidth.value
+    const minimumPushPullToolBarWidth =
+      defaultPushPullButtonWidth > available / 2
+        ? available / 2 + 30 // 30 to clip the fetch dropdown button in favor of seeing more of the words on the toolbar buttons
+        : defaultPushPullButtonWidth
     this.pushPullButtonWidth = constrain(
       this.pushPullButtonWidth,
-      defaultPushPullButtonWidth,
+      minimumPushPullToolBarWidth,
       pushPullButtonMaxWidth
     )
   }
