@@ -48,6 +48,7 @@ These editors are currently supported:
  - [JetBrains DataSpell](https://www.jetbrains.com/dataspell/)
  - [Zed](https://zed.dev/) - both Stable and Preview channel
  - [Pulsar](https://pulsar-edit.dev/)
+ - [Cursor](https://www.cursor.com/)
 
 
 These are defined in a list at the top of the file:
@@ -281,7 +282,7 @@ These editors are currently supported:
  - [JetBrains Fleet](https://www.jetbrains.com/fleet/)
  - [JetBrains DataSpell](https://www.jetbrains.com/dataspell/)
  - [Pulsar](https://pulsar-edit.dev/)
- - [Cursor](https://www.cursor.so/)
+ - [Cursor](https://www.cursor.com/)
 
 These are defined in a list at the top of the file:
 
