@@ -5,6 +5,7 @@ import {
 } from '../models/repository'
 import { GitHubRepository } from '../models/github-repository'
 import { getHTMLURL } from './api'
+import { Emoji } from './emoji'
 
 export enum TokenType {
   /*
@@ -28,6 +29,10 @@ export type EmojiMatch = {
   readonly text: string
   // The path on disk to the image.
   readonly path: string
+  // The unicode character of the emoji, if available
+  readonly emoji?: string
+  // The human description of the emoji, if available
+  readonly description?: string
 }
 
 export type HyperlinkMatch = {
@@ -54,14 +59,14 @@ type LookupResult = {
  * A look-ahead tokenizer designed for scanning commit messages for emoji, issues, mentions and links.
  */
 export class Tokenizer {
-  private readonly emoji: Map<string, string>
+  private readonly allEmoji: Map<string, Emoji>
   private readonly repository: GitHubRepository | null = null
 
   private _results = new Array<TokenResult>()
   private _currentString = ''
 
-  public constructor(emoji: Map<string, string>, repository?: Repository) {
-    this.emoji = emoji
+  public constructor(emoji: Map<string, Emoji>, repository?: Repository) {
+    this.allEmoji = emoji
 
     if (repository && isRepositoryWithGitHubRepository(repository)) {
       this.repository = getNonForkGitHubRepository(repository)
@@ -115,13 +120,19 @@ export class Tokenizer {
       return null
     }
 
-    const path = this.emoji.get(maybeEmoji)
-    if (!path) {
+    const emoji = this.allEmoji.get(maybeEmoji)
+    if (!emoji) {
       return null
     }
 
     this.flush()
-    this._results.push({ kind: TokenType.Emoji, text: maybeEmoji, path })
+    this._results.push({
+      kind: TokenType.Emoji,
+      text: maybeEmoji,
+      path: emoji.url,
+      emoji: emoji.emoji,
+      description: emoji.description,
+    })
     return { nextIndex }
   }
 

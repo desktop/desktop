@@ -8,7 +8,6 @@ import { MenuLabelsEvent } from '../../models/menu-labels'
 import * as ipcWebContents from '../ipc-webcontents'
 import { mkdir } from 'fs/promises'
 
-const platformDefaultShell = __WIN32__ ? 'Command Prompt' : 'Terminal'
 const createPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
@@ -122,6 +121,7 @@ export function buildDefaultMenu({
 
   if (!__DARWIN__) {
     const fileItems = fileMenu.submenu as Electron.MenuItemConstructorOptions[]
+    const exitAccelerator = __WIN32__ ? 'Alt+F4' : 'CmdOrCtrl+Q'
 
     fileItems.push(
       separator,
@@ -135,7 +135,7 @@ export function buildDefaultMenu({
       {
         role: 'quit',
         label: 'E&xit',
-        accelerator: 'Alt+F4',
+        accelerator: exitAccelerator,
       }
     )
   }
@@ -321,8 +321,8 @@ export function buildDefaultMenu({
       },
       {
         label: __DARWIN__
-          ? `Open in ${selectedShell ?? platformDefaultShell}`
-          : `O&pen in ${selectedShell ?? platformDefaultShell}`,
+          ? `Open in ${selectedShell ?? 'Shell'}`
+          : `O&pen in ${selectedShell ?? 'shell'}`,
         id: 'open-in-shell',
         accelerator: 'Ctrl+`',
         click: emit('open-in-shell'),

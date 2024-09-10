@@ -59,7 +59,7 @@ import {
   isRowChanged,
 } from './diff-helpers'
 import { showContextualMenu } from '../../lib/menu-item'
-import { getTokens } from './diff-syntax-mode'
+import { getTokens } from './get-tokens'
 import { DiffSearchInput } from './diff-search-input'
 import {
   expandTextDiffHunk,
@@ -213,7 +213,7 @@ interface ISideBySideDiffState {
 
   readonly selectedSearchResult: number | undefined
 
-  readonly searchLiveMessage?: string
+  readonly ariaLiveMessage: string
 
   /** This tracks the last expanded hunk index so that we can refocus the expander after rerender */
   readonly lastExpandedHunk: {
@@ -246,6 +246,12 @@ export class SideBySideDiff extends React.Component<
   private readonly hunkExpansionRefs = new Map<string, HTMLButtonElement>()
 
   /**
+   * This is just a signal that will toggle whenever the aria live message
+   * changes, indicating it should be reannounced by screen readers.
+   */
+  private ariaLiveChangeSignal: boolean = false
+
+  /**
    * Caches a group of selectable row's information that does not change on row
    * rerender like line numbers using the row's hunkStartLline as the key.
    */
@@ -263,6 +269,7 @@ export class SideBySideDiff extends React.Component<
       selectedSearchResult: undefined,
       selectingTextInRow: 'before',
       lastExpandedHunk: null,
+      ariaLiveMessage: '',
     }
   }
 
@@ -279,6 +286,20 @@ export class SideBySideDiff extends React.Component<
     document.addEventListener('copy', this.onCutOrCopy)
 
     document.addEventListener('selectionchange', this.onDocumentSelectionChange)
+
+    this.addContextMenuListenerToDiff()
+  }
+
+  private addContextMenuListenerToDiff = () => {
+    const diffNode = findDOMNode(this.virtualListRef.current)
+    const diff = diffNode instanceof HTMLElement ? diffNode : null
+    diff?.addEventListener('contextmenu', this.onContextMenuText)
+  }
+
+  private removeContextMenuListenerFromDiff = () => {
+    const diffNode = findDOMNode(this.virtualListRef.current)
+    const diff = diffNode instanceof HTMLElement ? diffNode : null
+    diff?.removeEventListener('contextmenu', this.onContextMenuText)
   }
 
   private onCutOrCopy = (ev: ClipboardEvent) => {
@@ -400,6 +421,7 @@ export class SideBySideDiff extends React.Component<
       this.onDocumentSelectionChange
     )
     document.removeEventListener('mousemove', this.onUpdateSelection)
+    this.removeContextMenuListenerFromDiff()
   }
 
   public componentDidUpdate(
@@ -568,7 +590,7 @@ export class SideBySideDiff extends React.Component<
   }
 
   public render() {
-    const { diff, searchLiveMessage, isSearching } = this.state
+    const { diff, ariaLiveMessage, isSearching } = this.state
 
     const rows = this.getCurrentDiffRows()
     const containerClassName = classNames('side-by-side-diff-container', {
@@ -597,9 +619,10 @@ export class SideBySideDiff extends React.Component<
           className="side-by-side-diff cm-s-default"
           ref={this.onDiffContainerRef}
         >
-          {isSearching && (
-            <AriaLiveContainer message={searchLiveMessage || ''} />
-          )}
+          <AriaLiveContainer
+            message={ariaLiveMessage}
+            trackedUserInput={this.ariaLiveChangeSignal}
+          />
           <AutoSizer onResize={this.clearListRowsHeightCache}>
             {({ height, width }) => (
               <List
@@ -891,7 +914,6 @@ export class SideBySideDiff extends React.Component<
             onContextMenuLine={this.onContextMenuLine}
             onContextMenuHunk={this.onContextMenuHunk}
             onContextMenuExpandHunk={this.onContextMenuExpandHunk}
-            onContextMenuText={this.onContextMenuText}
             onHideWhitespaceInDiffChanged={
               this.props.onHideWhitespaceInDiffChanged
             }
@@ -1346,6 +1368,9 @@ export class SideBySideDiff extends React.Component<
     const kind = expansionType === DiffHunkExpansionType.Down ? 'down' : 'up'
 
     this.expandHunk(diff.hunks[hunkIndex], kind)
+
+    this.ariaLiveChangeSignal = !this.ariaLiveChangeSignal
+    this.setState({ ariaLiveMessage: 'Expanded' })
   }
 
   private onClickHunk = (hunkStartLine: number, select: boolean) => {
@@ -1369,8 +1394,18 @@ export class SideBySideDiff extends React.Component<
   /**
    * Handler to show a context menu when the user right-clicks on the diff text.
    */
-  private onContextMenuText = () => {
+  private onContextMenuText = (evt: React.MouseEvent | MouseEvent) => {
     const selectionLength = window.getSelection()?.toString().length ?? 0
+
+    if (
+      evt.target instanceof HTMLElement &&
+      (evt.target.closest('.line-number') !== null ||
+        evt.target.closest('.hunk-handle') !== null || // Windows uses the label element
+        evt.target.closest('.hunk-expansion-handle') !== null ||
+        evt.target instanceof HTMLInputElement) // macOS users the input element which is adjacent to the .hunk-handle
+    ) {
+      return
+    }
 
     const items: IMenuItem[] = [
       {
@@ -1466,7 +1501,11 @@ export class SideBySideDiff extends React.Component<
 
     this.diffToRestore = diff
 
-    this.setState({ diff: updatedDiff })
+    this.ariaLiveChangeSignal = !this.ariaLiveChangeSignal
+    this.setState({
+      diff: updatedDiff,
+      ariaLiveMessage: 'Expanded',
+    })
   }
 
   private onCollapseExpandedLines = () => {
@@ -1601,15 +1640,17 @@ export class SideBySideDiff extends React.Component<
     if (searchResults === undefined || searchResults.length === 0) {
       this.resetSearch(true, `No results for "${searchQuery}"`)
     } else {
-      const searchLiveMessage = `Result 1 of ${searchResults.length} for "${searchQuery}"`
+      const ariaLiveMessage = `Result 1 of ${searchResults.length} for "${searchQuery}"`
 
       this.scrollToSearchResult(0)
+
+      this.ariaLiveChangeSignal = !this.ariaLiveChangeSignal
 
       this.setState({
         searchQuery,
         searchResults,
         selectedSearchResult: 0,
-        searchLiveMessage,
+        ariaLiveMessage,
       })
     }
   }
@@ -1628,16 +1669,17 @@ export class SideBySideDiff extends React.Component<
       (selectedSearchResult + delta + searchResults.length) %
       searchResults.length
 
-    const searchLiveMessage = `Result ${selectedSearchResult + 1} of ${
+    const ariaLiveMessage = `Result ${selectedSearchResult + 1} of ${
       searchResults.length
     } for "${searchQuery}"`
 
     this.scrollToSearchResult(selectedSearchResult)
 
+    this.ariaLiveChangeSignal = !this.ariaLiveChangeSignal
     this.setState({
       searchResults,
       selectedSearchResult,
-      searchLiveMessage,
+      ariaLiveMessage,
     })
   }
 
@@ -1655,12 +1697,13 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
-  private resetSearch(isSearching: boolean, searchLiveMessage?: string) {
+  private resetSearch(isSearching: boolean, searchLiveMessage: string = '') {
+    this.ariaLiveChangeSignal = !this.ariaLiveChangeSignal
     this.setState({
       selectedSearchResult: undefined,
       searchQuery: undefined,
       searchResults: undefined,
-      searchLiveMessage,
+      ariaLiveMessage: searchLiveMessage,
       isSearching,
     })
   }

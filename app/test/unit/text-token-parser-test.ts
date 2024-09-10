@@ -1,3 +1,4 @@
+import { Emoji } from '../../src/lib/emoji'
 import {
   Tokenizer,
   TokenType,
@@ -7,7 +8,15 @@ import {
 import { Repository } from '../../src/models/repository'
 import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 
-const emoji = new Map<string, string>([[':shipit:', '/some/path.png']])
+const emoji = new Map<string, Emoji>([
+  [
+    ':shipit:',
+    {
+      url: '/some/path.png',
+      aliases: [':shipit:'],
+    },
+  ],
+])
 
 describe('Tokenizer', () => {
   describe('basic tests', () => {

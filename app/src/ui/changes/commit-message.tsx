@@ -105,6 +105,11 @@ interface ICommitMessageProps {
   readonly showCoAuthoredBy: boolean
 
   /**
+   * Whether or not to show a input labels (Default: false)
+   */
+  readonly showInputLabels?: boolean
+
+  /**
    * A list of authors (name, email pairs) which have been
    * entered into the co-authors input box in the commit form
    * and which _may_ be used in the subsequent commit to add
@@ -1368,6 +1373,7 @@ export class CommitMessage extends React.Component<
 
           <AutocompletingInput
             required={true}
+            label={this.props.showInputLabels === true ? 'Summary' : undefined}
             screenReaderLabel="Commit summary"
             className={summaryInputClassName}
             placeholder={placeholder}
@@ -1389,13 +1395,21 @@ export class CommitMessage extends React.Component<
 
         {this.state.isRuleFailurePopoverOpen && this.renderRuleFailurePopover()}
 
+        {this.props.showInputLabels === true && (
+          <label htmlFor="commit-message-description">Description</label>
+        )}
         <FocusContainer
           className="description-focus-container"
           onClick={this.onFocusContainerClick}
         >
           <AutocompletingTextArea
+            inputId="commit-message-description"
             className={descriptionClassName}
-            screenReaderLabel="Commit description"
+            screenReaderLabel={
+              this.props.showInputLabels !== true
+                ? 'Commit description'
+                : undefined
+            }
             placeholder="Description"
             value={this.state.description || ''}
             onValueChanged={this.onDescriptionChanged}

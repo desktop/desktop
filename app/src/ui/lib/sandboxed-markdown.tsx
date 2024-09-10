@@ -11,6 +11,7 @@ import {
   MarkdownEmitter,
   parseMarkdown,
 } from '../../lib/markdown-filters/markdown-filter'
+import { Emoji } from '../../lib/emoji'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
@@ -33,7 +34,7 @@ interface ISandboxedMarkdownProps {
   readonly onMarkdownParsed?: () => void
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
-  readonly emoji: Map<string, string>
+  readonly emoji: Map<string, Emoji>
 
   /** The GitHub repository for some markdown filters such as issue and commits. */
   readonly repository?: GitHubRepository
@@ -290,8 +291,10 @@ export class SandboxedMarkdown extends React.PureComponent<
 
     // Not sure why the content height != body height exactly. But we need to
     // set the height explicitly to prevent scrollbar/content cut off.
+    // HACK: Add 1 to the new height to avoid UI glitches like the one shown
+    // in https://github.com/desktop/desktop/pull/18596
     const divHeight = this.contentDivRef.clientHeight
-    this.frameContainingDivRef.style.height = `${divHeight}px`
+    this.frameContainingDivRef.style.height = `${divHeight + 1}px`
     this.props.onMarkdownParsed?.()
   }
 

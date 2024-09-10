@@ -6,9 +6,10 @@ import {
 } from '../../src/lib/text-token-parser'
 import { gitHubRepoFixture } from '../helpers/github-repo-builder'
 import { Repository } from '../../src/models/repository'
+import { Emoji } from '../../src/lib/emoji'
 
 describe('wrapRichTextCommitMessage', () => {
-  const emojis = new Map<string, string>()
+  const emojis = new Map<string, Emoji>()
   const repo = new Repository(
     '.',
     -1,

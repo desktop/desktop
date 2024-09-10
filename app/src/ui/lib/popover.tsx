@@ -200,6 +200,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     const { target } = event
 
     if (
+      !event.defaultPrevented &&
       ref !== null &&
       ref.parentElement !== null &&
       target instanceof Node &&
@@ -215,6 +216,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     const { target } = event
 
     if (
+      !event.defaultPrevented &&
       ref !== null &&
       ref.parentElement !== null &&
       target instanceof Node &&

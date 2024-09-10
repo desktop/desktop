@@ -37,7 +37,7 @@ describe('git/submodule', () => {
         throw new Error(`Could not find branch: feature-branch`)
       }
 
-      await checkoutBranch(submoduleRepository, null, branches[0])
+      await checkoutBranch(submoduleRepository, branches[0], null)
 
       const result = await listSubmodules(repository)
       expect(result).toHaveLength(1)
@@ -64,7 +64,7 @@ describe('git/submodule', () => {
         throw new Error(`Could not find branch: feature-branch`)
       }
 
-      await checkoutBranch(submoduleRepository, null, branches[0])
+      await checkoutBranch(submoduleRepository, branches[0], null)
 
       let result = await listSubmodules(repository)
       expect(result[0].describe).toBe('heads/feature-branch')

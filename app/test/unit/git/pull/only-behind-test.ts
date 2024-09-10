@@ -52,7 +52,7 @@ describe('git/pull', () => {
       await makeCommit(remoteRepository, firstCommit)
       await makeCommit(remoteRepository, secondCommit)
 
-      await fetch(repository, null, remote)
+      await fetch(repository, remote)
     })
 
     describe('with pull.rebase=false and pull.ff=false set in config', () => {
@@ -67,7 +67,7 @@ describe('git/pull', () => {
 
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, remote)
+        await pull(repository, remote)
 
         newTip = await getTipOrError(repository)
       })
@@ -102,7 +102,7 @@ describe('git/pull', () => {
 
         previousTip = await getTipOrError(repository)
 
-        await pull(repository, null, remote)
+        await pull(repository, remote)
 
         newTip = await getTipOrError(repository)
       })

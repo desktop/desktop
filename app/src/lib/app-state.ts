@@ -48,6 +48,8 @@ import { IChangesetData } from './git'
 import { Popup } from '../models/popup'
 import { RepoRulesInfo } from '../models/repo-rules'
 import { IAPIRepoRuleset } from './api'
+import { ICustomIntegration } from './custom-integration'
+import { Emoji } from './emoji'
 
 export enum SelectionType {
   Repository,
@@ -160,7 +162,7 @@ export interface IAppState {
   readonly errorCount: number
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
-  readonly emoji: Map<string, string>
+  readonly emoji: Map<string, Emoji>
 
   /**
    * The width of the repository sidebar.
@@ -205,6 +207,9 @@ export interface IAppState {
 
   /** Whether we should ask the user to move the app to /Applications */
   readonly askToMoveToApplicationsFolderSetting: boolean
+
+  /** Whether we should use an external credential helper for third-party private repositories */
+  readonly useExternalCredentialHelper: boolean
 
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
@@ -284,6 +289,9 @@ export interface IAppState {
   /** The currently applied appearance (aka theme) */
   readonly currentTheme: ApplicableTheme
 
+  /** The selected tab size preference */
+  readonly selectedTabSize: number
+
   /**
    * A map keyed on a user account (GitHub.com or GitHub Enterprise)
    * containing an object with repositories that the authenticated
@@ -322,6 +330,18 @@ export interface IAppState {
    * order for external contributions in latest release.
    */
   readonly lastThankYou: ILastThankYou | undefined
+
+  /** Whether or not the user wants to use a custom editor. */
+  readonly useCustomEditor: boolean
+
+  /** Info needed to launch a custom editor chosen by the user. */
+  readonly customEditor: ICustomIntegration | null
+
+  /** Whether or not the user wants to use a custom shell. */
+  readonly useCustomShell: boolean
+
+  /** Info needed to launch a custom shell chosen by the user. */
+  readonly customShell: ICustomIntegration | null
 
   /**
    * Whether or not the CI status popover is visible.

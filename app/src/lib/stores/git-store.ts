@@ -89,7 +89,6 @@ import { findDefaultRemote } from './helpers/find-default-remote'
 import { Author, isKnownAuthor } from '../../models/author'
 import { formatCommitMessage } from '../format-commit-message'
 import { GitAuthor } from '../../models/git-author'
-import { IGitAccount } from '../../models/git-account'
 import { BaseStore } from './base-store'
 import { getStashes, getStashedFiles } from '../git/stash'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
@@ -144,6 +143,8 @@ export class GitStore extends BaseStore {
   private _aheadBehind: IAheadBehind | null = null
 
   private _tagsToPush: ReadonlyArray<string> = []
+
+  private _remotes: ReadonlyArray<IRemote> = []
 
   private _defaultRemote: IRemote | null = null
 
@@ -948,7 +949,6 @@ export class GitStore extends BaseStore {
    *                           the overall fetch progress.
    */
   public async fetch(
-    account: IGitAccount | null,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
   ): Promise<void> {
@@ -974,7 +974,6 @@ export class GitStore extends BaseStore {
 
     if (remotes.size > 0) {
       await this.fetchRemotes(
-        account,
         [...remotes.values()],
         backgroundTask,
         progressCallback
@@ -1014,7 +1013,6 @@ export class GitStore extends BaseStore {
    *                           the overall fetch progress.
    */
   public async fetchRemotes(
-    account: IGitAccount | null,
     remotes: ReadonlyArray<IRemote>,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
@@ -1029,7 +1027,7 @@ export class GitStore extends BaseStore {
       const remote = remotes[i]
       const startProgressValue = i * weight
 
-      await this.fetchRemote(account, remote, backgroundTask, progress => {
+      await this.fetchRemote(remote, backgroundTask, progress => {
         if (progress && progressCallback) {
           progressCallback({
             ...progress,
@@ -1050,7 +1048,6 @@ export class GitStore extends BaseStore {
    *                           the overall fetch progress.
    */
   public async fetchRemote(
-    account: IGitAccount | null,
     remote: IRemote,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
@@ -1062,7 +1059,7 @@ export class GitStore extends BaseStore {
     }
     const fetchSucceeded = await this.performFailableOperation(
       async () => {
-        await fetchRepo(repo, account, remote, progressCallback, backgroundTask)
+        await fetchRepo(repo, remote, progressCallback, backgroundTask)
         return true
       },
       { backgroundTask, retryAction }
@@ -1077,7 +1074,7 @@ export class GitStore extends BaseStore {
       // Updating the local HEAD symref isn't critical so we don't want
       // to show an error message to the user and have them retry the
       // entire pull operation if it fails.
-      await updateRemoteHEAD(repo, account, remote, backgroundTask).catch(e =>
+      await updateRemoteHEAD(repo, remote, backgroundTask).catch(e =>
         log.error('Failed updating remote HEAD', e)
       )
     }
@@ -1091,16 +1088,13 @@ export class GitStore extends BaseStore {
    *                  part of this action. Refer to git-scm for more
    *                  information on refspecs: https://www.git-scm.com/book/tr/v2/Git-Internals-The-Refspec
    */
-  public async fetchRefspec(
-    account: IGitAccount | null,
-    refspec: string
-  ): Promise<void> {
+  public async fetchRefspec(refspec: string): Promise<void> {
     // TODO: we should favour origin here
     const remotes = await getRemotes(this.repository)
 
     for (const remote of remotes) {
       await this.performFailableOperation(() =>
-        fetchRefspec(this.repository, account, remote, refspec)
+        fetchRefspec(this.repository, remote, refspec)
       )
     }
   }
@@ -1267,6 +1261,7 @@ export class GitStore extends BaseStore {
 
   public async loadRemotes(): Promise<void> {
     const remotes = await getRemotes(this.repository)
+    this._remotes = remotes
     this._defaultRemote = findDefaultRemote(remotes)
 
     const currentRemoteName =
@@ -1366,6 +1361,11 @@ export class GitStore extends BaseStore {
    */
   public get aheadBehind(): IAheadBehind | null {
     return this._aheadBehind
+  }
+
+  /** The list of configured remotes for the repository */
+  public get remotes() {
+    return this._remotes
   }
 
   /**
@@ -1610,11 +1610,10 @@ export class GitStore extends BaseStore {
   public async revertCommit(
     repository: Repository,
     commit: Commit,
-    account: IGitAccount | null,
     progressCallback?: (fetchProgress: IRevertProgress) => void
   ): Promise<void> {
     await this.performFailableOperation(() =>
-      revertCommit(repository, commit, account, progressCallback)
+      revertCommit(repository, commit, this.currentRemote, progressCallback)
     )
 
     this.emitUpdate()

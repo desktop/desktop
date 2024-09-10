@@ -8,12 +8,18 @@ import {
   HTTPMethod,
   APIError,
   urlWithQueryString,
+  getUserAgent,
 } from './http'
 import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
 import username from 'username'
 import { GitProtocol } from './remote-parsing'
-import { updateEndpointVersion } from './endpoint-capabilities'
+import {
+  getEndpointVersion,
+  isDotCom,
+  isGHE,
+  updateEndpointVersion,
+} from './endpoint-capabilities'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -2210,5 +2216,77 @@ function tryUpdateEndpointVersionFromResponse(
   const gheVersion = response.headers.get('x-github-enterprise-version')
   if (gheVersion !== null) {
     updateEndpointVersion(endpoint, gheVersion)
+  }
+}
+
+const knownThirdPartyHosts = new Set([
+  'dev.azure.com',
+  'gitlab.com',
+  'bitbucket.org',
+  'amazonaws.com',
+  'visualstudio.com',
+])
+
+const isKnownThirdPartyHost = (hostname: string) => {
+  if (knownThirdPartyHosts.has(hostname)) {
+    return true
+  }
+
+  for (const knownHost of knownThirdPartyHosts) {
+    if (hostname.endsWith(`.${knownHost}`)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+/**
+ * Attempts to determine whether or not the url belongs to a GitHub host.
+ *
+ * This is a best-effort attempt and may return `undefined` if encountering
+ * an error making the discovery request
+ */
+export async function isGitHubHost(url: string) {
+  const { hostname } = new window.URL(url)
+
+  const endpoint =
+    hostname === 'github.com' || hostname === 'api.github.com'
+      ? getDotComAPIEndpoint()
+      : getEnterpriseAPIURL(url)
+
+  if (isDotCom(endpoint) || isGHE(endpoint)) {
+    return true
+  }
+
+  if (isKnownThirdPartyHost(hostname)) {
+    return false
+  }
+
+  // bitbucket.example.com, etc
+  if (/(^|\.)(bitbucket|gitlab)\./.test(hostname)) {
+    return false
+  }
+
+  if (getEndpointVersion(endpoint) !== null) {
+    return true
+  }
+
+  const ac = new AbortController()
+  const timeoutId = setTimeout(() => ac.abort(), 2000)
+  try {
+    const response = await fetch(`${endpoint}/meta`, {
+      headers: { 'user-agent': getUserAgent() },
+      signal: ac.signal,
+      credentials: 'omit',
+      method: 'HEAD',
+    }).finally(() => clearTimeout(timeoutId))
+
+    tryUpdateEndpointVersionFromResponse(endpoint, response)
+
+    return response.headers.has('x-github-request-id')
+  } catch (e) {
+    log.debug(`isGitHubHost: failed with endpoint ${endpoint}`, e)
+    return undefined
   }
 }

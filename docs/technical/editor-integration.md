@@ -48,6 +48,7 @@ These editors are currently supported:
  - [JetBrains DataSpell](https://www.jetbrains.com/dataspell/)
  - [Zed](https://zed.dev/) - both Stable and Preview channel
  - [Pulsar](https://pulsar-edit.dev/)
+ - [Cursor](https://www.cursor.com/)
 
 
 These are defined in a list at the top of the file:
@@ -281,7 +282,7 @@ These editors are currently supported:
  - [JetBrains Fleet](https://www.jetbrains.com/fleet/)
  - [JetBrains DataSpell](https://www.jetbrains.com/dataspell/)
  - [Pulsar](https://pulsar-edit.dev/)
- - [Cursor](https://www.cursor.so/)
+ - [Cursor](https://www.cursor.com/)
 
 These are defined in a list at the top of the file:
 
@@ -352,9 +353,14 @@ These editors are currently supported:
  - [Code](https://github.com/elementary/code)
  - [Lite XL](https://lite-xl.com/)
  - [JetBrains PHPStorm](https://www.jetbrains.com/phpstorm/)
+ - [JetBrains PyCharm](https://www.jetbrains.com/pycharm/)
  - [JetBrains WebStorm](https://www.jetbrains.com/webstorm/)
+ - [JetBrains Idea Ultimate](https://www.jetbrains.com/idea/)
+ - [JetBrains Goland](https://www.jetbrains.com/go/)
  - [Emacs](https://www.gnu.org/software/emacs/)
  - [Pulsar](https://pulsar-edit.dev/)
+ - [Pluma](https://github.com/mate-desktop/pluma)
+ - [Zed](https://zed.dev/)
 
 These are defined in a list at the top of the file:
 

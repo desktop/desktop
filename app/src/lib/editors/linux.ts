@@ -42,19 +42,32 @@ const editors: ILinuxExternalEditor[] = [
       '/snap/bin/code',
       '/usr/bin/code',
       '/mnt/c/Program Files/Microsoft VS Code/bin/code',
+      '/var/lib/flatpak/app/com.visualstudio.code/current/active/export/bin/com.visualstudio.code',
+      '.local/share/flatpak/app/com.visualstudio.code/current/active/export/bin/com.visualstudio.code',
     ],
   },
   {
     name: 'Visual Studio Code (Insiders)',
-    paths: ['/snap/bin/code-insiders', '/usr/bin/code-insiders'],
+    paths: [
+      '/snap/bin/code-insiders',
+      '/usr/bin/code-insiders',
+      '/var/lib/flatpak/app/com.visualstudio.code.insiders/current/active/export/bin/com.visualstudio.code.insiders',
+      '.local/share/flatpak/app/com.visualstudio.code.insiders/current/active/export/bin/com.visualstudio.code.insiders',
+    ],
   },
   {
     name: 'VSCodium',
     paths: [
       '/usr/bin/codium',
-      '/var/lib/flatpak/app/com.vscodium.codium',
+      '/var/lib/flatpak/app/com.vscodium.codium/current/active/export/bin/com.vscodium.codium',
       '/usr/share/vscodium-bin/bin/codium',
+      '.local/share/flatpak/app/com.vscodium.codium/current/active/export/bin/com.vscodium.codium',
+      '/snap/bin/codium',
     ],
+  },
+  {
+    name: 'VSCodium (Insiders)',
+    paths: ['/usr/bin/codium-insiders'],
   },
   {
     name: 'Sublime Text',
@@ -87,7 +100,7 @@ const editors: ILinuxExternalEditor[] = [
     name: 'JetBrains PhpStorm',
     paths: [
       '/snap/bin/phpstorm',
-      '.local/share/JetBrains/Toolbox/scripts/phpstorm',
+      '.local/share/JetBrains/Toolbox/scripts/PhpStorm',
     ],
   },
   {
@@ -102,10 +115,47 @@ const editors: ILinuxExternalEditor[] = [
     paths: ['/snap/bin/idea', '.local/share/JetBrains/Toolbox/scripts/idea'],
   },
   {
+    name: 'IntelliJ IDEA Ultimate Edition',
+    paths: [
+      '/snap/bin/intellij-idea-ultimate',
+      '.local/share/JetBrains/Toolbox/scripts/intellij-idea-ultimate',
+    ],
+  },
+  {
+    name: 'IntelliJ Goland',
+    paths: [
+      '/snap/bin/goland',
+      '.local/share/JetBrains/Toolbox/scripts/goland',
+    ],
+  },
+  {
+    name: 'JetBrains CLion',
+    paths: ['/snap/bin/clion', '.local/share/JetBrains/Toolbox/scripts/clion1'],
+  },
+  {
+    name: 'JetBrains Rider',
+    paths: ['/snap/bin/rider', '.local/share/JetBrains/Toolbox/scripts/rider'],
+  },
+  {
+    name: 'JetBrains RubyMine',
+    paths: [
+      '/snap/bin/rubymine',
+      '.local/share/JetBrains/Toolbox/scripts/rubymine',
+    ],
+  },
+  {
     name: 'JetBrains PyCharm',
     paths: [
       '/snap/bin/pycharm',
+      '/snap/bin/pycharm-professional',
       '.local/share/JetBrains/Toolbox/scripts/pycharm',
+    ],
+  },
+  {
+    name: 'JetBrains JetBrains RustRover',
+    paths: [
+      '/snap/bin/rustrover',
+      '.local/share/JetBrains/Toolbox/scripts/rustrover',
     ],
   },
   {
@@ -140,16 +190,26 @@ const editors: ILinuxExternalEditor[] = [
     paths: ['/usr/bin/notepadqq'],
   },
   {
-    name: 'Geany',
-    paths: ['/usr/bin/geany'],
-  },
-  {
     name: 'Mousepad',
     paths: ['/usr/bin/mousepad'],
   },
   {
     name: 'Pulsar',
     paths: ['/usr/bin/pulsar'],
+  },
+  {
+    name: 'Pluma',
+    paths: ['/usr/bin/pluma'],
+  },
+  {
+    name: 'Zed',
+    paths: [
+      '/usr/bin/zedit',
+      '/usr/bin/zeditor',
+      '/usr/bin/zed-editor',
+      '~/.local/bin/zed',
+      '/usr/bin/zed',
+    ],
   },
 ]
 

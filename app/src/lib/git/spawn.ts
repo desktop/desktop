@@ -47,6 +47,7 @@ export const spawnGit = (
           env: { ...options?.env, ...trampolineEnv },
         })
       ),
+    path,
     options?.isBackgroundTask ?? false
   )
 

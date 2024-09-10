@@ -4,3 +4,5 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Disable version updates and keep only security updates
+    open-pull-requests-limit: 0

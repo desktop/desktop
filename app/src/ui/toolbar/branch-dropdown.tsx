@@ -25,6 +25,7 @@ import { BranchType, Branch } from '../../models/branch'
 import { PopupType } from '../../models/popup'
 import { generateBranchContextMenuItems } from '../branches/branch-list-item-context-menu'
 import { showContextualMenu } from '../../lib/menu-item'
+import { Emoji } from '../../lib/emoji'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -67,7 +68,7 @@ interface IBranchDropdownProps {
   readonly showCIStatusPopover: boolean
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
-  readonly emoji: Map<string, string>
+  readonly emoji: Map<string, Emoji>
 
   /** Whether the dropdown will trap focus or not. Defaults to true.
    *

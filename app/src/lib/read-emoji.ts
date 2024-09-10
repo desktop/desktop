@@ -1,6 +1,7 @@
 import * as Fs from 'fs'
 import * as Path from 'path'
 import { encodePathAsUrl } from './path'
+import { Emoji } from './emoji'
 
 /**
  * Type representing the contents of the gemoji json database
@@ -81,8 +82,8 @@ function getUrlFromUnicodeEmoji(emoji: string): string | null {
  *
  * @param rootDir - The folder containing the entry point (index.html or main.js) of the application.
  */
-export function readEmoji(rootDir: string): Promise<Map<string, string>> {
-  return new Promise<Map<string, string>>((resolve, reject) => {
+export function readEmoji(rootDir: string): Promise<Map<string, Emoji>> {
+  return new Promise<Map<string, Emoji>>((resolve, reject) => {
     const path = Path.join(rootDir, 'emoji.json')
     Fs.readFile(path, 'utf8', (err, data) => {
       if (err) {
@@ -90,7 +91,7 @@ export function readEmoji(rootDir: string): Promise<Map<string, string>> {
         return
       }
 
-      const tmp = new Map<string, string>()
+      const tmp = new Map<string, Emoji>()
 
       try {
         const db: IGemojiDb = JSON.parse(data)
@@ -107,14 +108,17 @@ export function readEmoji(rootDir: string): Promise<Map<string, string>> {
           }
 
           emoji.aliases.forEach(alias => {
-            tmp.set(`:${alias}:`, url)
+            tmp.set(`:${alias}:`, {
+              ...emoji,
+              url,
+            })
           })
         })
       } catch (e) {
         reject(e)
       }
 
-      const emoji = new Map<string, string>()
+      const emoji = new Map<string, Emoji>()
 
       // Sort and insert into actual map
       const keys = Array.from(tmp.keys()).sort()

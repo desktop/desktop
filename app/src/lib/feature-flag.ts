@@ -43,13 +43,6 @@ export function enableWSLDetection(): boolean {
 }
 
 /**
- * Should we use the new diff viewer for unified diffs?
- */
-export function enableExperimentalDiffViewer(): boolean {
-  return true
-}
-
-/**
  * Should we allow reporting unhandled rejections as if they were crashes?
  */
 export function enableUnhandledRejectionReporting(): boolean {
@@ -70,7 +63,7 @@ export function enableUpdateFromEmulatedX64ToARM64(): boolean {
 
 /** Should we allow resetting to a previous commit? */
 export function enableResetToCommit(): boolean {
-  return enableBetaFeatures()
+  return true
 }
 
 /** Should we allow checking out a single commit? */
@@ -92,15 +85,18 @@ export function enableMoveStash(): boolean {
   return true
 }
 
-export const enableCustomGitUserAgent = enableBetaFeatures
-
 export const enableRepoRulesBeta = () => true
 
 export const enableCommitDetailsHeaderExpansion = () => true
 
-export const enableDiffCheckMarksAndLinkUnderlines = enableBetaFeatures
+export const enableDiffCheckMarksAndLinkUnderlines = () => true
 
 export const enableDiffCheckMarks = enableDiffCheckMarksAndLinkUnderlines
 export const enableGroupDiffCheckmarks = enableDiffCheckMarksAndLinkUnderlines
 
 export const enableLinkUnderlines = enableDiffCheckMarksAndLinkUnderlines
+
+export const enableExternalCredentialHelper = () => true
+export const enableCredentialHelperTrampoline = () => true
+
+export const enableCustomIntegration = () => true

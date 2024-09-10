@@ -73,7 +73,7 @@ async function pushRepo(
 
   const pushOpts = await executionOptionsWithProgress(
     {
-      env: await envForRemoteOperation(account, remote.url),
+      env: await envForRemoteOperation(remote.url),
     },
     new PushProgressParser(),
     progress => {

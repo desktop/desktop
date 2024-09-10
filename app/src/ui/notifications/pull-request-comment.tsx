@@ -9,6 +9,7 @@ import { IAPIComment } from '../../lib/api'
 import { getPullRequestReviewStateIcon } from './pull-request-review-helpers'
 import { PullRequestCommentLike } from './pull-request-comment-like'
 import { Account } from '../../models/account'
+import { Emoji } from '../../lib/emoji'
 
 interface IPullRequestCommentProps {
   readonly dispatcher: Dispatcher
@@ -17,7 +18,7 @@ interface IPullRequestCommentProps {
   readonly comment: IAPIComment
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
-  readonly emoji: Map<string, string>
+  readonly emoji: Map<string, Emoji>
 
   readonly underlineLinks: boolean
 

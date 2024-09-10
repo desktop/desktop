@@ -199,7 +199,12 @@
 
       &:after {
         content: attr(aria-label);
-        position: absolute;
+        position: relative;
+        top: -100%;
+        left: 100%;
+        display: block;
+        width: max-content;
+        outline: none;
         margin-left: 3px;
         margin-top: 1px;
         font-size: var(--font-size-sm);

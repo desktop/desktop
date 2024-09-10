@@ -1,4 +1,5 @@
 import { parseEnumValue } from '../enum'
+import { assertNever } from '../fatal-error'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import {
   ITrampolineCommand,
@@ -10,6 +11,7 @@ enum TrampolineCommandParserState {
   Parameters,
   EnvironmentVariablesCount,
   EnvironmentVariables,
+  Stdin,
   Finished,
 }
 
@@ -22,6 +24,7 @@ export class TrampolineCommandParser {
   private readonly parameters: string[] = []
   private environmentVariablesCount: number = 0
   private readonly environmentVariables = new Map<string, string>()
+  private stdin = ''
 
   private state: TrampolineCommandParserState =
     TrampolineCommandParserState.ParameterCount
@@ -63,7 +66,7 @@ export class TrampolineCommandParser {
         if (this.environmentVariablesCount > 0) {
           this.state = TrampolineCommandParserState.EnvironmentVariables
         } else {
-          this.state = TrampolineCommandParserState.Finished
+          this.state = TrampolineCommandParserState.Stdin
         }
 
         break
@@ -86,12 +89,17 @@ export class TrampolineCommandParser {
         this.environmentVariables.set(variableKey, variableValue)
 
         if (this.environmentVariables.size === this.environmentVariablesCount) {
-          this.state = TrampolineCommandParserState.Finished
+          this.state = TrampolineCommandParserState.Stdin
         }
         break
-
+      case TrampolineCommandParserState.Stdin:
+        this.stdin = value
+        this.state = TrampolineCommandParserState.Finished
+        break
+      case TrampolineCommandParserState.Finished:
+        throw new Error(`Received value when in Finished`)
       default:
-        throw new Error(`Received value during invalid state: ${this.state}`)
+        assertNever(this.state, `Invalid state: ${this.state}`)
     }
   }
 
@@ -152,6 +160,7 @@ export class TrampolineCommandParser {
       trampolineToken,
       parameters: this.parameters,
       environmentVariables: this.environmentVariables,
+      stdin: this.stdin,
     }
   }
 

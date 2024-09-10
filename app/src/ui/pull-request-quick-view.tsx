@@ -8,6 +8,7 @@ import { SandboxedMarkdown } from './lib/sandboxed-markdown'
 import { Octicon } from './octicons'
 import * as octicons from './octicons/octicons.generated'
 import classNames from 'classnames'
+import { Emoji } from '../lib/emoji'
 
 /**
  * The max height of the visible quick view card is 556 (500 for scrollable
@@ -33,7 +34,7 @@ interface IPullRequestQuickViewProps {
   readonly onMouseLeave: () => void
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
-  readonly emoji: Map<string, string>
+  readonly emoji: Map<string, Emoji>
 
   readonly underlineLinks: boolean
 }

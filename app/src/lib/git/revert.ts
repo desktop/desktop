@@ -3,7 +3,6 @@ import { git, gitNetworkArguments, IGitExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { IRevertProgress } from '../../models/progress'
-import { IGitAccount } from '../../models/git-account'
 
 import { executionOptionsWithProgress } from '../progress/from-process'
 import { RevertProgressParser } from '../progress/revert'
@@ -11,6 +10,7 @@ import {
   envForRemoteOperation,
   getFallbackUrlForProxyResolve,
 } from './environment'
+import { IRemote } from '../../models/remote'
 
 /**
  * Creates a new commit that reverts the changes of a previous commit
@@ -22,7 +22,7 @@ import {
 export async function revertCommit(
   repository: Repository,
   commit: Commit,
-  account: IGitAccount | null,
+  currentRemote: IRemote | null,
   progressCallback?: (progress: IRevertProgress) => void
 ) {
   const args = [...gitNetworkArguments(), 'revert']
@@ -35,8 +35,7 @@ export async function revertCommit(
   let opts: IGitExecutionOptions = {}
   if (progressCallback) {
     const env = await envForRemoteOperation(
-      account,
-      getFallbackUrlForProxyResolve(account, repository)
+      getFallbackUrlForProxyResolve(repository, currentRemote)
     )
     opts = await executionOptionsWithProgress(
       { env, trackLFSProgress: true },

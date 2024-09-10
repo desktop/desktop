@@ -13,6 +13,7 @@ import { formatRelative } from '../../lib/format-relative'
 import { getStealthEmailForUser } from '../../lib/email'
 import { IAPIIdentity } from '../../lib/api'
 import { Account } from '../../models/account'
+import { Emoji } from '../../lib/emoji'
 
 interface IPullRequestCommentLikeProps {
   readonly id?: string
@@ -28,7 +29,7 @@ interface IPullRequestCommentLikeProps {
   readonly body: string
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
-  readonly emoji: Map<string, string>
+  readonly emoji: Map<string, Emoji>
 
   readonly switchingToPullRequest: boolean
 
@@ -53,8 +54,7 @@ export abstract class PullRequestCommentLike extends React.Component<IPullReques
       <div className="pull-request-comment-like-dialog-header">
         {this.renderPullRequestIcon()}
         <span className="pr-title">
-          <span className="pr-title">{title}</span>{' '}
-          <span className="pr-number">#{pullRequestNumber}</span>{' '}
+          {title} <span className="pr-number">#{pullRequestNumber}</span>{' '}
         </span>
       </div>
     )

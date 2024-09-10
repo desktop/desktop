@@ -24,9 +24,8 @@
     }
 
     .pr-title {
-      display: flex;
-      column-gap: var(--spacing-half);
-      align-items: center;
+      display: inline-block;
+      white-space: normal;
 
       .pr-number {
         font-weight: normal;
