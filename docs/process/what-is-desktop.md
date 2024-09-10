@@ -1,12 +1,10 @@
 # What is GitHub Desktop and who is it for?
 
 ### Purpose
-As we triage issues, evaluate pull requests, and discuss new features, the GitHub Desktop team is 
-making decisions based on our vision for the GitHub Desktop product. The purpose of this document 
-is to transparently share our collective view of what GitHub Desktop is and who we’re optimizing 
-for when making decisions. Our goal is to be able to point back to this document to ensure there are 
-fewer surprises and that we’re consistent in our product decisions. This will likely evolve 
-over time as we continue to learn more about our users and the problem space.
+The purpose of this document  is to transparently share our collective view of what GitHub Desktop is
+and who we’re optimizing for when making decisions. Our goal is to be able to point back to this document
+to ensure there are fewer surprises and that we’re consistent in our product decisions. This will likely
+evolve over time as we continue to learn more about our users and the problem space.
 
 ## 1. GitHub Desktop reduces frustration and makes Git and GitHub workflows* more approachable.
 
