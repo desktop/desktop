@@ -4,6 +4,10 @@
       "[Fixed] Quotes are preserved in custom integration arguments - #19218",
       "[Fixed] Symbolic links on Windows can be used as custom editor and shell - #19217"
     ],
+    "3.4.5": [
+      "[Fixed] Quotes are preserved in custom integration arguments - #19218",
+      "[Fixed] Symbolic links on Windows can be used as custom editor and shell - #19217"
+    ],
     "3.4.5-beta1": [
       "[Added] Add Cursor integration for Windows - #19158. Thanks @colinabear!",
       "[Fixed] Users can clone wiki's - #19152",
