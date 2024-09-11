@@ -3094,7 +3094,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     const state = selection.state
     const revertProgress = state.revertProgress
     if (revertProgress) {
-      return <RevertProgress progress={revertProgress} />
+      return (
+        <RevertProgress
+          progress={revertProgress}
+          width={this.state.pushPullButtonWidth}
+          dispatcher={this.props.dispatcher}
+        />
+      )
     }
 
     let remoteName = state.remote ? state.remote.name : null

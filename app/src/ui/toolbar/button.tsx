@@ -8,6 +8,7 @@ import { clamp } from '../../lib/clamp'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip, TooltipDirection, TooltipTarget } from '../lib/tooltip'
 import { AriaHasPopupType } from '../lib/aria-types'
+import { enableResizingToolbarButtons } from '../../lib/feature-flag'
 
 /** The button style. */
 export enum ToolbarButtonStyle {
@@ -189,6 +190,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
     const className = classNames(
       'toolbar-button',
       { 'has-progress': this.props.progressValue !== undefined },
+      { resizable: enableResizingToolbarButtons() },
       this.props.className
     )
 

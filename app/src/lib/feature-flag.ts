@@ -100,3 +100,5 @@ export const enableExternalCredentialHelper = () => true
 export const enableCredentialHelperTrampoline = () => true
 
 export const enableCustomIntegration = () => true
+
+export const enableResizingToolbarButtons = enableBetaFeatures

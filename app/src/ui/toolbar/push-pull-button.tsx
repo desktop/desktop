@@ -29,6 +29,7 @@ import { FoldoutType, IConstrainedValue } from '../../lib/app-state'
 import { ForcePushBranchState } from '../../lib/rebase'
 import { PushPullButtonDropDown } from './push-pull-button-dropdown'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
+import { enableResizingToolbarButtons } from '../../lib/feature-flag'
 
 export const DropdownItemClassName = 'push-pull-dropdown-item'
 
@@ -400,6 +401,17 @@ export class PushPullButton extends React.Component<
   }
 
   public render() {
+    if (!enableResizingToolbarButtons()) {
+      return (
+        <>
+          {this.renderButton()}
+          <span id="push-pull-button-state">
+            <AriaLiveContainer message={this.state.screenReaderStateMessage} />
+          </span>
+        </>
+      )
+    }
+
     return (
       <>
         <Resizable
