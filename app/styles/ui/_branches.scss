@@ -4,14 +4,14 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  width: 365px;
+  width: 100%;
 
   & > .tab-bar {
     border-top: var(--base-border);
   }
 
   .branches-list {
-    width: 365px;
+    width: 100%;
     min-height: 0;
   }
 
@@ -173,7 +173,6 @@
     .name {
       flex-grow: 2;
       @include ellipsis;
-      max-width: 65%;
       margin-right: var(--spacing-half);
 
       /* Used to highlight substring matches in filtered lists */
@@ -198,6 +197,7 @@
 
 .no-pull-requests {
   width: 365px;
+  margin: var(--spacing) auto;
   display: flex;
   flex-direction: column;
 

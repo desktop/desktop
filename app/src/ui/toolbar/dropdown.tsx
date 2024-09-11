@@ -124,10 +124,23 @@ export interface IToolbarDropdownProps {
   readonly enableFocusTrap?: boolean
 
   /**
-   * Sets the styles for the dropdown's foldout. Useful for custom positioning
-   * and sizes.
+   * Sets the styles for the dropdown's foldout, replacing the defaults.
+   * Useful for custom positioning and sizes.
+   *
+   * Note: If this property is set, the default positioning, size, and
+   * `foldoutStyleOverrides` property are all ignored.
    */
   readonly foldoutStyle?: React.CSSProperties
+
+  /**
+   * Sets additional styles that add to or override the default foldout style.
+   *
+   * Use as an alternative to `foldoutStyle`, when only certain properties need
+   * to be customized and the default style and placement should still apply.
+   *
+   * Note: If `foldoutStyle` is set, this property is ignored.
+   */
+  readonly foldoutStyleOverrides?: React.CSSProperties
 
   /**
    * Whether the button should displays its disclosure arrow. Defaults to true.
@@ -352,7 +365,7 @@ export class ToolbarDropdown extends React.Component<
     }
 
     return {
-      position: 'absolute',
+      position: 'fixed',
       top: rect.bottom,
       left: 0,
       width: '100%',
@@ -361,6 +374,7 @@ export class ToolbarDropdown extends React.Component<
   }
 
   private getFoldoutStyle(): React.CSSProperties | undefined {
+    // if `foldoutStyle` is set, ignore default style and `foldoutStyleOverrides`
     if (this.props.foldoutStyle) {
       return this.props.foldoutStyle
     }
@@ -375,11 +389,15 @@ export class ToolbarDropdown extends React.Component<
         ? { maxHeight: '100%', width: rect.width }
         : { height: '100%', minWidth: rect.width }
 
+    const overrides: React.CSSProperties =
+      this.props.foldoutStyleOverrides ?? {}
+
     return {
       position: 'absolute',
       marginLeft: rect.left,
       top: 0,
       ...heightStyle,
+      ...overrides,
     }
   }
 
