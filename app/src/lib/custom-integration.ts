@@ -1,3 +1,4 @@
+import { ChildProcess, SpawnOptions, spawn } from 'child_process'
 import { parseCommandLineArgv } from 'windows-argv-parser'
 import stringArgv from 'string-argv'
 import { promisify } from 'util'
@@ -174,4 +175,30 @@ export function migratedCustomIntegration(
     ...customIntegration,
     arguments: customIntegration.arguments.join(' '),
   }
+}
+
+/**
+ * This helper function will use spawn to launch an integration (editor or shell).
+ * Its main purpose is to do some platform-specific argument handling, for example
+ * on Windows, where we need to wrap the command and arguments in quotes when
+ * the shell option is enabled.
+ *
+ * @param command Command to spawn
+ * @param args Arguments to pass to the command
+ * @param options Options to pass to spawn (optional)
+ * @returns The ChildProcess object returned by spawn
+ */
+export function spawnCustomIntegration(
+  command: string,
+  args: readonly string[],
+  options?: SpawnOptions
+): ChildProcess {
+  // On Windows, we need to wrap the arguments and the command in quotes,
+  // otherwise the shell will split them by spaces again after invoking spawn.
+  if (__WIN32__ && options?.shell) {
+    command = `"${command}"`
+    args = args.map(a => `"${a}"`)
+  }
+
+  return options ? spawn(command, args, options) : spawn(command, args)
 }
