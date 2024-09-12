@@ -11,6 +11,7 @@ import FocusTrap from 'focus-trap-react'
 import { Options as FocusTrapOptions } from 'focus-trap'
 import { TooltipTarget } from '../lib/tooltip'
 import { AriaHasPopupType } from '../lib/aria-types'
+import { enableResizingToolbarButtons } from '../../lib/feature-flag'
 
 export type DropdownState = 'open' | 'closed'
 
@@ -365,7 +366,7 @@ export class ToolbarDropdown extends React.Component<
     }
 
     return {
-      position: 'fixed',
+      position: enableResizingToolbarButtons() ? 'fixed' : 'absolute',
       top: rect.bottom,
       left: 0,
       width: '100%',

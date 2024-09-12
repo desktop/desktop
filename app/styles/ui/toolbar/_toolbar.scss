@@ -33,20 +33,31 @@
 
   .toolbar-button {
     &.push-pull-button {
-      width: 100%;
-    }
-  }
+      width: 230px;
 
-  .toolbar-button {
+      &.resizable {
+        width: 100%;
+      }
+    }
     &.branch-toolbar-button {
-      width: 100%;
+      width: 230px;
+
+      &.resizable {
+        width: 100%;
+      }
     }
     &.revert-progress {
       width: 230px;
+
+      &.resizable {
+        width: 100%;
+      }
     }
     &.toolbar-dropdown-arrow-button {
       width: 39px;
-      flex-shrink: 0;
+      &.resizable {
+        flex-shrink: 0;
+      }
     }
   }
 }

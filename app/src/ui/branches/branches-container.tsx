@@ -31,9 +31,13 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
-import { enablePullRequestQuickView } from '../../lib/feature-flag'
+import {
+  enablePullRequestQuickView,
+  enableResizingToolbarButtons,
+} from '../../lib/feature-flag'
 import { PullRequestQuickView } from '../pull-request-quick-view'
 import { Emoji } from '../../lib/emoji'
+import classNames from 'classnames'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -113,8 +117,11 @@ export class BranchesContainer extends React.Component<
   }
 
   public render() {
+    const classes = classNames('branches-container', {
+      resizable: enableResizingToolbarButtons(),
+    })
     return (
-      <div className="branches-container">
+      <div className={classes}>
         {this.renderTabBar()}
         {this.renderSelectedTab()}
         {this.renderMergeButtonRow()}
