@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.4.6-beta1": [
+      "[Fixed] Arguments with spaces are passed correctly to custom editors or shells on Windows - #19218",
+      "[Improved] Allow resizing Branch and Push/Pull toolbar buttons - #4569 #17388. Thanks @jpedroso!"
+    ],
     "3.4.5-beta2": [
       "[Fixed] Quotes are preserved in custom integration arguments - #19218",
       "[Fixed] Symbolic links on Windows can be used as custom editor and shell - #19217"
