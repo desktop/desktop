@@ -11,6 +11,7 @@ import {
   expandTargetPathArgument,
   ICustomIntegration,
   parseCustomIntegrationArguments,
+  spawnCustomIntegration,
 } from '../custom-integration'
 
 export enum Shell {
@@ -488,7 +489,7 @@ export function launchCustomShell(
   log.info(`launching custom shell at path: ${customShell.path}`)
   const argv = parseCustomIntegrationArguments(customShell.arguments)
   const args = expandTargetPathArgument(argv, path)
-  return spawn(`"${customShell.path}"`, args, {
+  return spawnCustomIntegration(`"${customShell.path}"`, args, {
     shell: true,
     cwd: path,
   })

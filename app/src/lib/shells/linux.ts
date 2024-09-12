@@ -7,6 +7,7 @@ import {
   expandTargetPathArgument,
   ICustomIntegration,
   parseCustomIntegrationArguments,
+  spawnCustomIntegration,
 } from '../custom-integration'
 
 export enum Shell {
@@ -227,5 +228,5 @@ export function launchCustomShell(
 ): ChildProcess {
   const argv = parseCustomIntegrationArguments(customShell.arguments)
   const args = expandTargetPathArgument(argv, path)
-  return spawn(customShell.path, args)
+  return spawnCustomIntegration(customShell.path, args)
 }
