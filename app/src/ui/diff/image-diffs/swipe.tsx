@@ -21,16 +21,31 @@ export class Swipe extends React.Component<
 
   public render() {
     const style: React.CSSProperties = {
+      display: "relative",
       height: this.props.maxSize.height,
       width: this.props.maxSize.width,
     }
 
     const swiperWidth = this.props.maxSize.width * (1 - this.state.percentage)
 
-    const currentStyle: React.CSSProperties = {
+    const previousStyle: React.CSSProperties = {
+      position: "absolute",
+      top: 0,
+      left: 0,
       height: this.props.maxSize.height,
-      width: this.props.maxSize.width,
-      left: -(this.props.maxSize.width - swiperWidth),
+      width: this.props.maxSize.width - swiperWidth,
+      overflow: "hidden",
+      alignItems: "start",
+    }
+
+    const currentStyle: React.CSSProperties = {
+      position: "absolute",
+      top: 0,
+      left: this.props.maxSize.width - swiperWidth,
+      height: this.props.maxSize.height,
+      width: swiperWidth,
+      overflow: "hidden",
+      alignItems: "end",
     }
 
     const maxSize: React.CSSProperties = {
@@ -42,27 +57,19 @@ export class Swipe extends React.Component<
       <div className="image-diff-swipe">
         <div className="sizing-container" ref={this.props.onContainerRef}>
           <div className="image-container" style={style}>
-            <div className="image-diff-previous" style={style}>
+            <div className="image-diff-previous" style={previousStyle}>
               <ImageContainer
                 image={this.props.previous}
                 onElementLoad={this.props.onPreviousImageLoad}
                 style={maxSize}
               />
             </div>
-            <div
-              className="swiper"
-              style={{
-                width: swiperWidth,
-                height: this.props.maxSize.height,
-              }}
-            >
-              <div className="image-diff-current" style={currentStyle}>
-                <ImageContainer
-                  image={this.props.current}
-                  onElementLoad={this.props.onCurrentImageLoad}
-                  style={maxSize}
-                />
-              </div>
+            <div className="image-diff-current" style={currentStyle}>
+              <ImageContainer
+                image={this.props.current}
+                onElementLoad={this.props.onCurrentImageLoad}
+                style={maxSize}
+              />
             </div>
           </div>
         </div>
