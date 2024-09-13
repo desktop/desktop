@@ -21,7 +21,6 @@ export class Swipe extends React.Component<
 
   public render() {
     const style: React.CSSProperties = {
-      display: "relative",
       height: this.props.maxSize.height,
       width: this.props.maxSize.width,
     }
@@ -33,19 +32,17 @@ export class Swipe extends React.Component<
       top: 0,
       left: 0,
       height: this.props.maxSize.height,
-      width: this.props.maxSize.width - swiperWidth,
-      overflow: "hidden",
-      alignItems: "start",
+      width: this.props.maxSize.width,
+      clipPath: `inset(0 ${Math.floor(swiperWidth)}px 0 0)`,
     }
 
     const currentStyle: React.CSSProperties = {
       position: "absolute",
       top: 0,
-      left: this.props.maxSize.width - swiperWidth,
+      left: 0,
       height: this.props.maxSize.height,
-      width: swiperWidth,
-      overflow: "hidden",
-      alignItems: "end",
+      width: this.props.maxSize.width,
+      clipPath: `inset(0 0 0 ${Math.floor(this.props.maxSize.width - swiperWidth)}px)`,
     }
 
     const maxSize: React.CSSProperties = {
