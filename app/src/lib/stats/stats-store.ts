@@ -15,6 +15,8 @@ import {
   showDiffCheckMarksKey,
   underlineLinksDefault,
   underlineLinksKey,
+  useCustomEditorKey,
+  useCustomShellKey,
 } from '../stores'
 import { assertNever } from '../fatal-error'
 import {
@@ -571,9 +573,14 @@ export class StatsStore implements IStatsStore {
     const userType = this.determineUserType(accounts)
     const repositoryCounts = this.categorizedRepositoryCounts(repositories)
     const onboardingStats = this.getOnboardingStats()
-    const selectedTerminalEmulator =
-      localStorage.getItem(terminalEmulatorKey) || 'none'
-    const selectedTextEditor = localStorage.getItem(textEditorKey) || 'none'
+    const useCustomShell = getBoolean(useCustomShellKey, false)
+    const selectedTerminalEmulator = useCustomShell
+      ? 'custom'
+      : localStorage.getItem(terminalEmulatorKey) || 'none'
+    const useCustomEditor = getBoolean(useCustomEditorKey, false)
+    const selectedTextEditor = useCustomEditor
+      ? 'custom'
+      : localStorage.getItem(textEditorKey) || 'none'
     const repositoriesCommittedInWithoutWriteAccess = getNumberArray(
       RepositoriesCommittedInWithoutWriteAccessKey
     ).length
