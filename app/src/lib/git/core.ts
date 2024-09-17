@@ -97,7 +97,7 @@ export class GitError extends Error {
     } else if (result.stdout.length) {
       message = result.stdout
     } else {
-      message = 'Unknown error'
+      message = `Unknown error (exit code ${result.exitCode})`
       rawMessage = false
     }
 
