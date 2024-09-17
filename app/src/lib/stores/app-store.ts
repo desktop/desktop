@@ -435,10 +435,10 @@ const lastThankYouKey = 'version-and-users-of-last-thank-you'
 const pullRequestSuggestedNextActionKey =
   'pull-request-suggested-next-action-key'
 
-const useCustomEditorKey = 'use-custom-editor'
+export const useCustomEditorKey = 'use-custom-editor'
 const customEditorKey = 'custom-editor'
 
-const useCustomShellKey = 'use-custom-shell'
+export const useCustomShellKey = 'use-custom-shell'
 const customShellKey = 'custom-shell'
 
 export const underlineLinksKey = 'underline-links'
