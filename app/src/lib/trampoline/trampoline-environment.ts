@@ -106,7 +106,8 @@ const fatalPromptsDisabledRe =
 export async function withTrampolineEnv<T>(
   fn: (env: object) => Promise<T>,
   path: string,
-  isBackgroundTask = false
+  isBackgroundTask = false,
+  customEnv?: Record<string, string | undefined>
 ): Promise<T> {
   const sshEnv = await getSSHEnvironment()
 
@@ -114,7 +115,10 @@ export async function withTrampolineEnv<T>(
     isBackgroundTaskEnvironment.set(token, isBackgroundTask)
     trampolineEnvironmentPath.set(token, path)
 
-    const existingGitEnvConfig = process.env['GIT_CONFIG_PARAMETERS'] ?? ''
+    const existingGitEnvConfig =
+      customEnv?.['GIT_CONFIG_PARAMETERS'] ??
+      process.env['GIT_CONFIG_PARAMETERS'] ??
+      ''
     const gitEnvConfigPrefix = existingGitEnvConfig?.startsWith("'")
       ? `${existingGitEnvConfig} `
       : ''

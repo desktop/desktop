@@ -256,7 +256,8 @@ export async function git(
       throw new GitError(gitResult, args)
     },
     path,
-    options?.isBackgroundTask ?? false
+    options?.isBackgroundTask ?? false,
+    options?.env
   )
 }
 
