@@ -280,7 +280,6 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         }
       }
     } else if (
-      this.props.type === 'search' &&
       event.key === 'Enter' &&
       value !== undefined &&
       value !== '' &&
