@@ -399,7 +399,7 @@ describe('git/diff', () => {
         repo = await setupEmptyRepository()
       })
       it('throws since HEAD doesnt exist', () => {
-        expect(getBinaryPaths(repo, 'HEAD')).rejects.toThrow()
+        expect(getBinaryPaths(repo, 'HEAD', [])).rejects.toThrow()
       })
     })
     describe('in repo with text only files', () => {
@@ -409,7 +409,7 @@ describe('git/diff', () => {
         repo = new Repository(testRepoPath, -1, null, false)
       })
       it('returns an empty array', async () => {
-        expect(await getBinaryPaths(repo, 'HEAD')).toHaveLength(0)
+        expect(await getBinaryPaths(repo, 'HEAD', [])).toHaveLength(0)
       })
     })
     describe('in repo with image changes', () => {
@@ -421,7 +421,7 @@ describe('git/diff', () => {
         repo = new Repository(testRepoPath, -1, null, false)
       })
       it('returns all changed image files', async () => {
-        expect(await getBinaryPaths(repo, 'HEAD')).toEqual([
+        expect(await getBinaryPaths(repo, 'HEAD', [])).toEqual([
           'modified-image.jpg',
           'new-animated-image.gif',
           'new-image.png',
@@ -439,7 +439,7 @@ describe('git/diff', () => {
         await GitProcess.exec(['merge', 'master'], repo.path)
       })
       it('returns all conflicted image files', async () => {
-        expect(await getBinaryPaths(repo, 'MERGE_HEAD')).toEqual([
+        expect(await getBinaryPaths(repo, 'MERGE_HEAD', [])).toEqual([
           'my-cool-image.png',
         ])
       })
