@@ -119,9 +119,9 @@ export async function withTrampolineEnv<T>(
       customEnv?.['GIT_CONFIG_PARAMETERS'] ??
       process.env['GIT_CONFIG_PARAMETERS'] ??
       ''
-    const gitEnvConfigPrefix = existingGitEnvConfig?.startsWith("'")
-      ? `${existingGitEnvConfig} `
-      : ''
+
+    const gitEnvConfigPrefix =
+      existingGitEnvConfig.length > 0 ? `${existingGitEnvConfig} ` : ''
 
     // The code below assumes a few things in order to manage SSH key passphrases
     // correctly:
