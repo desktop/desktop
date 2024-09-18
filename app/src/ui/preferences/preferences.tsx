@@ -72,6 +72,7 @@ interface IPreferencesProps {
   readonly confirmCheckoutCommit: boolean
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
+  readonly confirmBypassRules: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
@@ -108,6 +109,7 @@ interface IPreferencesState {
   readonly confirmCheckoutCommit: boolean
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
+  readonly confirmBypassRules: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly availableEditors: ReadonlyArray<string>
   readonly useCustomEditor: boolean
@@ -183,6 +185,7 @@ export class Preferences extends React.Component<
       confirmCheckoutCommit: false,
       confirmForcePush: false,
       confirmUndoCommit: false,
+      confirmBypassRules: true,
       uncommittedChangesStrategy: defaultUncommittedChangesStrategy,
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
@@ -252,6 +255,7 @@ export class Preferences extends React.Component<
       confirmCheckoutCommit: this.props.confirmCheckoutCommit,
       confirmForcePush: this.props.confirmForcePush,
       confirmUndoCommit: this.props.confirmUndoCommit,
+      confirmBypassRules: this.props.confirmBypassRules,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       availableShells,
       availableEditors,
@@ -490,6 +494,7 @@ export class Preferences extends React.Component<
             confirmCheckoutCommit={this.state.confirmCheckoutCommit}
             confirmForcePush={this.state.confirmForcePush}
             confirmUndoCommit={this.state.confirmUndoCommit}
+            confirmBypassRules={this.state.confirmBypassRules}
             onConfirmRepositoryRemovalChanged={
               this.onConfirmRepositoryRemovalChanged
             }
@@ -501,6 +506,7 @@ export class Preferences extends React.Component<
               this.onConfirmDiscardChangesPermanentlyChanged
             }
             onConfirmUndoCommitChanged={this.onConfirmUndoCommitChanged}
+            onConfirmBypassRulesChanged={this.onConfirmBypassRules}
             uncommittedChangesStrategy={this.state.uncommittedChangesStrategy}
             onUncommittedChangesStrategyChanged={
               this.onUncommittedChangesStrategyChanged
@@ -619,6 +625,10 @@ export class Preferences extends React.Component<
 
   private onConfirmUndoCommitChanged = (value: boolean) => {
     this.setState({ confirmUndoCommit: value })
+  }
+
+  private onConfirmBypassRules = (value: boolean) => {
+    this.setState({ confirmBypassRules: value })
   }
 
   private onUncommittedChangesStrategyChanged = (
@@ -806,6 +816,7 @@ export class Preferences extends React.Component<
     )
 
     await dispatcher.setConfirmUndoCommitSetting(this.state.confirmUndoCommit)
+    await dispatcher.setConfirmBypassRulesSetting(this.state.confirmBypassRules)
 
     if (this.state.selectedExternalEditor) {
       await dispatcher.setExternalEditor(this.state.selectedExternalEditor)

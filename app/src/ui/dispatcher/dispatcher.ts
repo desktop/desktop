@@ -2469,6 +2469,14 @@ export class Dispatcher {
     return this.appStore._setConfirmUndoCommitSetting(value)
   }
 
+  public setConfirmBypassRulesSetting(value: boolean) {
+    return this.appStore._setConfirmBypassRulesSetting(value)
+  }
+
+  public getConfirmBypassRulesSetting(): boolean {
+    return this.appStore._getConfirmBypassRulesSetting()
+  }
+
   /**
    * Converts a local repository to use the given fork
    * as its default remote and associated `GitHubRepository`.

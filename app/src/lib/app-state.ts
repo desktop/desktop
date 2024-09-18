@@ -232,6 +232,9 @@ export interface IAppState {
   /** Should the app prompt the user to confirm an undo commit? */
   readonly askForConfirmationOnUndoCommit: boolean
 
+  /** Should the app prompt the user to confirm bypassing branch protection rules on commiting? */
+  readonly askForConfirmationOnBypassRules: boolean
+
   /** How the app should handle uncommitted changes when switching branches */
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
 

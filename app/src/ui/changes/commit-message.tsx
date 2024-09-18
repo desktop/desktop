@@ -484,7 +484,8 @@ export class CommitMessage extends React.Component<
     if (
       this.shouldWarnForRepoRuleBypass() &&
       this.props.repository.gitHubRepository &&
-      this.props.branch
+      this.props.branch &&
+      this.props.dispatcher.getConfirmBypassRulesSetting()
     ) {
       this.props.dispatcher.showRepoRulesCommitBypassWarning(
         this.props.repository.gitHubRepository,

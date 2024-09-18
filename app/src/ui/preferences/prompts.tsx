@@ -13,6 +13,7 @@ interface IPromptsPreferencesProps {
   readonly confirmCheckoutCommit: boolean
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
+  readonly confirmBypassRules: boolean
   readonly showCommitLengthWarning: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
@@ -22,6 +23,7 @@ interface IPromptsPreferencesProps {
   readonly onConfirmRepositoryRemovalChanged: (checked: boolean) => void
   readonly onConfirmForcePushChanged: (checked: boolean) => void
   readonly onConfirmUndoCommitChanged: (checked: boolean) => void
+  readonly onConfirmBypassRulesChanged: (checked: boolean) => void
   readonly onShowCommitLengthWarningChanged: (checked: boolean) => void
   readonly onUncommittedChangesStrategyChanged: (
     value: UncommittedChangesStrategy
@@ -36,6 +38,7 @@ interface IPromptsPreferencesState {
   readonly confirmCheckoutCommit: boolean
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
+  readonly confirmBypassRules: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
 }
 
@@ -55,6 +58,7 @@ export class Prompts extends React.Component<
       confirmCheckoutCommit: this.props.confirmCheckoutCommit,
       confirmForcePush: this.props.confirmForcePush,
       confirmUndoCommit: this.props.confirmUndoCommit,
+      confirmBypassRules: this.props.confirmBypassRules,
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
     }
   }
@@ -111,6 +115,15 @@ export class Prompts extends React.Component<
 
     this.setState({ confirmUndoCommit: value })
     this.props.onConfirmUndoCommitChanged(value)
+  }
+
+  private onConfirmBypassRulesChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ confirmBypassRules: value })
+    this.props.onConfirmBypassRulesChanged(value)
   }
 
   private onConfirmRepositoryRemovalChanged = (
@@ -246,6 +259,15 @@ export class Prompts extends React.Component<
                   : CheckboxValue.Off
               }
               onChange={this.onConfirmUndoCommitChanged}
+            />
+             <Checkbox
+              label="Bypassing protection rules"
+              value={
+                this.state.confirmBypassRules
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onConfirmBypassRulesChanged}
             />
           </div>
         </div>

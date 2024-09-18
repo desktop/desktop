@@ -383,6 +383,7 @@ const confirmDiscardStashDefault: boolean = true
 const confirmCheckoutCommitDefault: boolean = true
 const askForConfirmationOnForcePushDefault = true
 const confirmUndoCommitDefault: boolean = true
+const confirmBypassRulesDefault: boolean = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
 const showCommitLengthWarningKey: string = 'showCommitLengthWarning'
@@ -393,6 +394,7 @@ const confirmDiscardChangesPermanentlyKey: string =
   'confirmDiscardChangesPermanentlyKey'
 const confirmForcePushKey: string = 'confirmForcePush'
 const confirmUndoCommitKey: string = 'confirmUndoCommit'
+const confirmBypassRulesKey: string = 'confirmBypassRules'
 
 const uncommittedChangesStrategyKey = 'uncommittedChangesStrategyKind'
 
@@ -522,6 +524,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private confirmCheckoutCommit: boolean = confirmCheckoutCommitDefault
   private askForConfirmationOnForcePush = askForConfirmationOnForcePushDefault
   private confirmUndoCommit: boolean = confirmUndoCommitDefault
+  private confirmBypassRules: boolean = confirmBypassRulesDefault
   private imageDiffType: ImageDiffType = imageDiffTypeDefault
   private hideWhitespaceInChangesDiff: boolean =
     hideWhitespaceInChangesDiffDefault
@@ -1051,6 +1054,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnCheckoutCommit: this.confirmCheckoutCommit,
       askForConfirmationOnForcePush: this.askForConfirmationOnForcePush,
       askForConfirmationOnUndoCommit: this.confirmUndoCommit,
+      askForConfirmationOnBypassRules: this.confirmBypassRules,
       uncommittedChangesStrategy: this.uncommittedChangesStrategy,
       selectedExternalEditor: this.selectedExternalEditor,
       imageDiffType: this.imageDiffType,
@@ -2219,6 +2223,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.confirmUndoCommit = getBoolean(
       confirmUndoCommitKey,
       confirmUndoCommitDefault
+    )
+
+    this.confirmBypassRules = getBoolean(
+      confirmBypassRulesKey,
+      confirmBypassRulesDefault
     )
 
     this.uncommittedChangesStrategy =
@@ -5776,6 +5785,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     return Promise.resolve()
+  }
+
+  public _setConfirmBypassRulesSetting(value: boolean): Promise<void> {
+    this.confirmBypassRules = value
+    setBoolean(confirmBypassRulesKey, value)
+
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _getConfirmBypassRulesSetting(): boolean {
+    return this.confirmBypassRules;
   }
 
   public _setUncommittedChangesStrategySetting(
