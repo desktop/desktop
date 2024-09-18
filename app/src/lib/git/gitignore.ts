@@ -137,7 +137,7 @@ async function formatGitIgnoreContents(
       return
     }
 
-    if (text.endsWith('\n')) {
+    if (text === '' || text.endsWith('\n')) {
       resolve(text)
       return
     }
