@@ -698,6 +698,10 @@
   .cm-string,
   .cm-string-2 {
     color: var(--syntax-string-color);
+
+    &.cm-property {
+      color: inherit;
+    }
   }
   .cm-qualifier {
     color: var(--syntax-qualifier-color);
@@ -749,6 +753,12 @@
   .cm-m-javascript {
     &.cm-type {
       color: var(--syntax-variable-color);
+    }
+  }
+
+  .cm-m-toml {
+    &.cm-string.cm-property {
+      color: var(--syntax-string-color);
     }
   }
 
