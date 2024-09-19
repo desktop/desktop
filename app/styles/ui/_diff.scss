@@ -698,10 +698,6 @@
   .cm-string,
   .cm-string-2 {
     color: var(--syntax-string-color);
-
-    &.cm-property {
-      color: inherit;
-    }
   }
   .cm-qualifier {
     color: var(--syntax-qualifier-color);
