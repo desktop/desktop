@@ -8,7 +8,7 @@ try {
 } catch (e) {
   console.error('You need to authenticate with GitHub CLI')
   console.error(
-    'Make sure you have GitHub CLI installed and run `gh auth login`'
+    'Make sure you have GitHub CLI installed (https://github.com/cli/cli?tab=readme-ov-file#installation) and run `gh auth login`'
   )
   console.error('Check https://cli.github.com/ for more info')
 
