@@ -2277,15 +2277,20 @@ export async function isGitHubHost(url: string) {
     return true
   }
 
+  // Add a unique identifier to the URL to make sure our certificate error
+  // supression only catches this request
+  const metaUrl = `${endpoint}/meta?ghd=${uuid()}`
+
   const ac = new AbortController()
   const timeoutId = setTimeout(() => ac.abort(), 2000)
+  suppressCertificateErrorFor(metaUrl)
   try {
-    const response = await fetch(`${endpoint}/meta`, {
+    const response = await fetch(metaUrl, {
       headers: { 'user-agent': getUserAgent() },
       signal: ac.signal,
       credentials: 'omit',
       method: 'HEAD',
-    }).finally(() => clearTimeout(timeoutId))
+    })
 
     tryUpdateEndpointVersionFromResponse(endpoint, response)
 
@@ -2293,5 +2298,8 @@ export async function isGitHubHost(url: string) {
   } catch (e) {
     log.debug(`isGitHubHost: failed with endpoint ${endpoint}`, e)
     return undefined
+  } finally {
+    clearTimeout(timeoutId)
+    clearCertificateErrorSuppressionFor(metaUrl)
   }
 }
