@@ -20,6 +20,10 @@ import {
   isGHE,
   updateEndpointVersion,
 } from './endpoint-capabilities'
+import {
+  clearCertificateErrorSuppressionFor,
+  suppressCertificateErrorFor,
+} from './suppress-certificate-error'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
