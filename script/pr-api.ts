@@ -42,7 +42,7 @@ export function createPR(
       title,
       body,
       headRefName: branch,
-      url: url,
+      url,
     }
   } catch (e) {
     return null
