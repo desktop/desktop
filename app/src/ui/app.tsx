@@ -1893,7 +1893,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             onCheckForNonStaggeredUpdates={this.onCheckForNonStaggeredUpdates}
             onShowAcknowledgements={this.showAcknowledgements}
             onShowTermsAndConditions={this.showTermsAndConditions}
-            isTopMost={isTopMost}
           />
         )
       case PopupType.PublishRepository:

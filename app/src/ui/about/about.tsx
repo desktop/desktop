@@ -52,9 +52,6 @@ interface IAboutProps {
 
   /** A function to call when the user wants to see Terms and Conditions. */
   readonly onShowTermsAndConditions: () => void
-
-  /** Whether the dialog is the top most in the dialog stack */
-  readonly isTopMost: boolean
 }
 
 interface IAboutState {
