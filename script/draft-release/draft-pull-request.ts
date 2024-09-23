@@ -35,12 +35,12 @@ async function run() {
   console.log(`Creating release Pull Request for ${version}...`)
   const title = await getPullRequestTitle(version)
   const body = await getPullRequestBody(version)
-  const response = await createPR(title, body, `releases/${version}`)
+  const response = createPR(title, body, `releases/${version}`)
   if (response === null) {
     console.error('Failed to create release Pull Request')
     process.exit(1)
   }
-  console.log(`Done: ${response.permalink}`)
+  console.log(`Done: ${response.url}`)
 }
 
 run()
