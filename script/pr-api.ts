@@ -35,7 +35,7 @@ export function createPR(
       }
     )
 
-    // the repo url is the last line of the output
+    // The PR url is the last line of the output
     const url = response.split('\n').pop() ?? ''
 
     return {
