@@ -94,6 +94,12 @@
     position: relative;
     height: 100%;
 
+    // Allow right-clicks to go through the octicons to their parent
+    .line-number .octicon,
+    .hunk-handle .octicon {
+      pointer-events: none;
+    }
+
     &.hunk-info {
       background: var(--diff-hunk-background-color);
       color: var(--diff-hunk-text-color);
