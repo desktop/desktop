@@ -365,10 +365,10 @@ dom-helpers@^5.0.1:
     "@babel/runtime" "^7.8.7"
     csstype "^3.0.2"
 
-dompurify@^2.3.3:
-  version "2.3.3"
-  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.3.3.tgz#c1af3eb88be47324432964d8abc75cf4b98d634c"
-  integrity sha512-dqnqRkPMAjOZE0FogZ+ceJNM2dZ3V/yNOuFB7+39qpO93hHhfRpHw3heYQC7DPK9FqbQTfBKUJhiSfz4MvXYwg==
+dompurify@^2.5.4:
+  version "2.5.4"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.5.4.tgz#347e91070963b22db31c7c8d0ce9a0a2c3c08746"
+  integrity sha512-l5NNozANzaLPPe0XaAwvg3uZcHtDBnziX/HjsY1UcDj1MxTK8Dd0Kv096jyPK5HRzs/XM5IMj20dW8Fk+HnbUA==
 
 dugite@3.0.0-rc3:
   version "3.0.0-rc3"
