@@ -1891,11 +1891,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             applicationName={getName()}
             applicationVersion={version}
             applicationArchitecture={process.arch}
-            onCheckForUpdates={this.onCheckForUpdates}
             onCheckForNonStaggeredUpdates={this.onCheckForNonStaggeredUpdates}
             onShowAcknowledgements={this.showAcknowledgements}
             onShowTermsAndConditions={this.showTermsAndConditions}
-            isTopMost={isTopMost}
           />
         )
       case PopupType.PublishRepository:
@@ -2766,7 +2764,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.openShell(path, true)
   }
 
-  private onCheckForUpdates = () => this.checkForUpdates(false)
   private onCheckForNonStaggeredUpdates = () =>
     this.checkForUpdates(false, true)
 
