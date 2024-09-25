@@ -17,7 +17,9 @@ permissions:
 
 jobs:
   close-on-adding-invalid-label:
-    if: github.repository == 'desktop/desktop' && github.event.label.name == 'invalid'
+    if:
+      github.repository == 'desktop/desktop' && github.event.label.name ==
+      'invalid'
     runs-on: ubuntu-latest
 
     steps:
@@ -32,4 +34,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr close ${{ github.event.pull_request.html_url }}
-
