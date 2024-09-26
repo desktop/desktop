@@ -2147,6 +2147,15 @@ export function getHTMLURL(endpoint: string): string {
  * http://github.mycompany.com -> http://github.mycompany.com/api/v3
  */
 export function getEnterpriseAPIURL(endpoint: string): string {
+  if (isGHE(endpoint)) {
+    const url = new window.URL(endpoint)
+
+    url.pathname = '/'
+    url.hostname = `api.${url.hostname}`
+
+    return url.toString()
+  }
+
   const parsed = URL.parse(endpoint)
   return `${parsed.protocol}//${parsed.hostname}/api/v3`
 }
