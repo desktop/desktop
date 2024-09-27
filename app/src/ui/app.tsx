@@ -181,7 +181,6 @@ import { getBoolean, getNumber } from '../lib/local-storage'
 import { RepoRulesBypassConfirmation } from './repository-rules/repo-rules-bypass-confirmation'
 import { IconPreviewDialog } from './octicons/icon-preview-dialog'
 import { accessibilityBannerDismissed } from './banners/accessibilty-settings-banner'
-import { enableDiffCheckMarksAndLinkUnderlines } from '../lib/feature-flag'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -402,10 +401,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
     }
 
-    if (
-      enableDiffCheckMarksAndLinkUnderlines() &&
-      getBoolean(accessibilityBannerDismissed) !== true
-    ) {
+    if (getBoolean(accessibilityBannerDismissed) !== true) {
       this.setBanner({
         type: BannerType.AccessibilitySettingsBanner,
         onOpenAccessibilitySettings: this.onOpenAccessibilitySettings,
