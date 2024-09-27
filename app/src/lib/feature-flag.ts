@@ -83,8 +83,6 @@ export function enablePullRequestQuickView(): boolean {
 
 export const enableDiffCheckMarksAndLinkUnderlines = () => true
 
-export const enableDiffCheckMarks = enableDiffCheckMarksAndLinkUnderlines
-
 export const enableExternalCredentialHelper = () => true
 export const enableCredentialHelperTrampoline = () => true
 
