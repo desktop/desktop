@@ -81,8 +81,6 @@ export function enablePullRequestQuickView(): boolean {
   return enableDevelopmentFeatures()
 }
 
-export const enableRepoRulesBeta = () => true
-
 export const enableCommitDetailsHeaderExpansion = () => true
 
 export const enableDiffCheckMarksAndLinkUnderlines = () => true
