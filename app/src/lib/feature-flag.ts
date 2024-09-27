@@ -81,10 +81,6 @@ export function enablePullRequestQuickView(): boolean {
   return enableDevelopmentFeatures()
 }
 
-export function enableMoveStash(): boolean {
-  return true
-}
-
 export const enableRepoRulesBeta = () => true
 
 export const enableCommitDetailsHeaderExpansion = () => true

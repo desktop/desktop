@@ -4,11 +4,7 @@ import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import {
-  renderBranchHasRemoteWarning,
-  renderStashWillBeLostWarning,
-} from '../lib/branch-name-warnings'
-import { IStashEntry } from '../../models/stash-entry'
+import { renderBranchHasRemoteWarning } from '../lib/branch-name-warnings'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { RefNameTextBox } from '../lib/ref-name-text-box'
 
@@ -17,7 +13,6 @@ interface IRenameBranchProps {
   readonly onDismissed: () => void
   readonly repository: Repository
   readonly branch: Branch
-  readonly stash: IStashEntry | null
 }
 
 interface IRenameBranchState {
@@ -45,7 +40,6 @@ export class RenameBranch extends React.Component<
       >
         <DialogContent>
           {renderBranchHasRemoteWarning(this.props.branch)}
-          {renderStashWillBeLostWarning(this.props.stash)}
           <RefNameTextBox
             label="Name"
             initialValue={this.props.branch.name}

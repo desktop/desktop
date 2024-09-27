@@ -246,7 +246,6 @@ import {
   enableCustomIntegration,
   enableDiffCheckMarks,
   enableLinkUnderlines,
-  enableMoveStash,
 } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
@@ -4318,12 +4317,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.performFailableOperation(async () => {
       await renameBranch(repository, branch, newName)
 
-      if (enableMoveStash()) {
-        const stashEntry = gitStore.desktopStashEntries.get(branch.name)
+      const stashEntry = gitStore.desktopStashEntries.get(branch.name)
 
-        if (stashEntry) {
-          await moveStashEntry(repository, stashEntry, newName)
-        }
+      if (stashEntry) {
+        await moveStashEntry(repository, stashEntry, newName)
       }
     })
 
