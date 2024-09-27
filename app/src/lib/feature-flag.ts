@@ -81,8 +81,6 @@ export function enablePullRequestQuickView(): boolean {
   return enableDevelopmentFeatures()
 }
 
-export const enableCommitDetailsHeaderExpansion = () => true
-
 export const enableDiffCheckMarksAndLinkUnderlines = () => true
 
 export const enableDiffCheckMarks = enableDiffCheckMarksAndLinkUnderlines
