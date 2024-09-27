@@ -557,6 +557,7 @@ export async function rebaseInteractive(
   const baseOptions: IGitExecutionOptions = {
     expectedErrors: new Set([GitError.RebaseConflicts]),
     env: {
+      GIT_SEQUENCE_EDITOR: undefined,
       GIT_EDITOR: gitEditor,
     },
   }
