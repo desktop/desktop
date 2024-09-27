@@ -86,8 +86,6 @@ export const enableDiffCheckMarksAndLinkUnderlines = () => true
 export const enableDiffCheckMarks = enableDiffCheckMarksAndLinkUnderlines
 export const enableGroupDiffCheckmarks = enableDiffCheckMarksAndLinkUnderlines
 
-export const enableLinkUnderlines = enableDiffCheckMarksAndLinkUnderlines
-
 export const enableExternalCredentialHelper = () => true
 export const enableCredentialHelperTrampoline = () => true
 

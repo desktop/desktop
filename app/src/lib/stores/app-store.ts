@@ -242,11 +242,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import {
-  enableCustomIntegration,
-  enableDiffCheckMarks,
-  enableLinkUnderlines,
-} from '../feature-flag'
+import { enableCustomIntegration, enableDiffCheckMarks } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -2299,9 +2295,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ) ?? defaultPullRequestSuggestedNextAction
 
     // Always false if the feature flag is disabled.
-    this.underlineLinks = enableLinkUnderlines()
-      ? getBoolean(underlineLinksKey, underlineLinksDefault)
-      : false
+    this.underlineLinks = getBoolean(underlineLinksKey, underlineLinksDefault)
 
     this.showDiffCheckMarks = enableDiffCheckMarks()
       ? getBoolean(showDiffCheckMarksKey, showDiffCheckMarksDefault)
