@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Octicon, syncClockwise } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 
 interface IDialogHeaderProps {
   /**
@@ -16,17 +16,20 @@ interface IDialogHeaderProps {
    */
   readonly titleId?: string
 
-  /**
-   * Whether or not the implementing dialog is dismissable. This controls
-   * whether or not the dialog header renders a close button or not.
-   */
-  readonly dismissable: boolean
+  /** Whether or not the header should show a close button */
+  readonly showCloseButton?: boolean
 
   /**
-   * Event triggered when the dialog is dismissed by the user in the
-   * ways described in the dismissable prop.
+   * An optional element to render to the right of the dialog title.
+   * This can be used to render additional controls that don't belong to the
+   * heading element itself, but are still part of the header (visually).
    */
-  readonly onDismissed?: () => void
+  readonly renderAccessory?: () => JSX.Element
+
+  /**
+   * Event triggered when the dialog is dismissed by the user.
+   */
+  readonly onCloseButtonClick?: () => void
 
   /**
    * Whether or not the dialog contents are currently involved in processing
@@ -51,13 +54,13 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
     /** This prevent default is a preventative measure since the dialog is akin
      * to a big Form element. We wouldn't any surprise form handling. */
     e.preventDefault()
-    if (this.props.onDismissed) {
-      this.props.onDismissed()
+    if (this.props.onCloseButtonClick) {
+      this.props.onCloseButtonClick()
     }
   }
 
   private renderCloseButton() {
-    if (!this.props.dismissable) {
+    if (this.props.showCloseButton === false) {
       return null
     }
 
@@ -67,7 +70,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
         onClick={this.onCloseButtonClick}
         aria-label="Close"
       >
-        <Octicon symbol={OcticonSymbol.x} />
+        <Octicon symbol={octicons.x} />
       </button>
     )
   }
@@ -80,6 +83,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, {}> {
     return (
       <div className="dialog-header">
         <h1 id={this.props.titleId}>{this.props.title}</h1>
+        {this.props.renderAccessory?.()}
         {spinner}
         {this.renderCloseButton()}
         {this.props.children}

@@ -1,115 +1,48 @@
-import * as HTTPS from 'https'
+import { execSync } from 'child_process'
 
 export interface IAPIPR {
   readonly title: string
   readonly body: string
   readonly headRefName: string
-  readonly permalink: string
+  readonly url: string
 }
 
-type GraphQLResponse = {
-  readonly data: {
-    readonly repository: {
-      readonly pullRequest: IAPIPR
-    }
-  }
-}
-
-function gitHubRequest(
-  options: HTTPS.RequestOptions,
-  body: Record<string, any>
-): Promise<Record<string, any> | null> {
-  const opts: HTTPS.RequestOptions = {
-    host: 'api.github.com',
-    protocol: 'https:',
-    method: 'POST',
-    headers: {
-      Authorization: `bearer ${process.env.GITHUB_ACCESS_TOKEN}`,
-      'User-Agent': 'what-the-changelog',
-    },
-    ...options,
-  }
-
-  return new Promise((resolve, reject) => {
-    const request = HTTPS.request(opts, response => {
-      let received = ''
-      response.on('data', chunk => {
-        received += chunk
-      })
-
-      response.on('end', () => {
-        try {
-          resolve(JSON.parse(received))
-        } catch (e) {
-          resolve(null)
-        }
-      })
-    })
-
-    request.write(JSON.stringify(body))
-
-    request.end()
-  })
-}
-
-export async function fetchPR(id: number): Promise<IAPIPR | null> {
-  const options: HTTPS.RequestOptions = {
-    path: '/graphql',
-  }
-
-  const graphql = `
-    {
-      repository(owner: "desktop", name: "desktop") {
-        pullRequest(number: ${id}) {
-          title
-          body
-          headRefName
-          permalink
-        }
-      }
-    }
-    `
-  const body = { query: graphql }
-
-  const response = await gitHubRequest(options, body)
-  if (response === null) {
-    return null
-  }
-
+export function fetchPR(id: number): IAPIPR | null {
   try {
-    const json: GraphQLResponse = response as GraphQLResponse
-    return json.data.repository.pullRequest
+    const response = execSync(
+      `gh pr view ${id} --json title,body,headRefName,url`,
+      {
+        encoding: 'utf8',
+      }
+    )
+
+    return JSON.parse(response)
   } catch (e) {
     return null
   }
 }
 
-export async function createPR(
+export function createPR(
   title: string,
   body: string,
   branch: string
-): Promise<IAPIPR | null> {
-  const options: HTTPS.RequestOptions = {
-    path: '/repos/desktop/desktop/pulls',
-  }
-
-  const response = await gitHubRequest(options, {
-    title,
-    body,
-    base: 'development',
-    head: branch,
-  })
-
-  if (response === null) {
-    return null
-  }
-
+): IAPIPR | null {
   try {
+    const response = execSync(
+      `gh pr new --repo desktop/desktop --title "${title}" --body "${body}" --head ${branch}`,
+      {
+        encoding: 'utf8',
+      }
+    )
+
+    // The PR url is the last line of the output
+    const url = response.split('\n').pop() ?? ''
+
     return {
-      title: response.title,
-      body: response.body,
-      headRefName: response.head.ref,
-      permalink: response.html_url,
+      title,
+      body,
+      headRefName: branch,
+      url,
     }
   } catch (e) {
     return null

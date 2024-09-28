@@ -13,8 +13,8 @@ import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { AuthorInput } from '../lib/author-input/author-input'
 import { FocusContainer } from '../lib/focus-container'
-import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import { Octicon, OcticonSymbolVariant } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 import { Author, UnknownAuthor, isKnownAuthor } from '../../models/author'
 import { IMenuItem } from '../../lib/menu-item'
 import { Commit, ICommitContext } from '../../models/commit'
@@ -57,16 +57,17 @@ import { Dispatcher } from '../dispatcher'
 import { formatCommitMessage } from '../../lib/format-commit-message'
 import { useRepoRulesLogic } from '../../lib/helpers/repo-rules'
 
-const addAuthorIcon = {
+const addAuthorIcon: OcticonSymbolVariant = {
   w: 18,
   h: 13,
-  d:
+  p: [
     'M14 6V4.25a.75.75 0 0 1 1.5 0V6h1.75a.75.75 0 1 1 0 1.5H15.5v1.75a.75.75 0 0 ' +
-    '1-1.5 0V7.5h-1.75a.75.75 0 1 1 0-1.5H14zM8.5 4a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 ' +
-    '0zm.063 3.064a3.995 3.995 0 0 0 1.2-4.429A3.996 3.996 0 0 0 8.298.725a4.01 4.01 0 0 ' +
-    '0-6.064 1.91 3.987 3.987 0 0 0 1.2 4.43A5.988 5.988 0 0 0 0 12.2a.748.748 0 0 0 ' +
-    '.716.766.751.751 0 0 0 .784-.697 4.49 4.49 0 0 1 1.39-3.04 4.51 4.51 0 0 1 6.218 ' +
-    '0 4.49 4.49 0 0 1 1.39 3.04.748.748 0 0 0 .786.73.75.75 0 0 0 .714-.8 5.989 5.989 0 0 0-3.435-5.136z',
+      '1-1.5 0V7.5h-1.75a.75.75 0 1 1 0-1.5H14zM8.5 4a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 ' +
+      '0zm.063 3.064a3.995 3.995 0 0 0 1.2-4.429A3.996 3.996 0 0 0 8.298.725a4.01 4.01 0 0 ' +
+      '0-6.064 1.91 3.987 3.987 0 0 0 1.2 4.43A5.988 5.988 0 0 0 0 12.2a.748.748 0 0 0 ' +
+      '.716.766.751.751 0 0 0 .784-.697 4.49 4.49 0 0 1 1.39-3.04 4.51 4.51 0 0 1 6.218 ' +
+      '0 4.49 4.49 0 0 1 1.39 3.04.748.748 0 0 0 .786.73.75.75 0 0 0 .714-.8 5.989 5.989 0 0 0-3.435-5.136z',
+  ],
 }
 
 interface ICommitMessageProps {
@@ -102,6 +103,11 @@ interface ICommitMessageProps {
    * a commit (currently only supported for GH/GHE repositories)
    */
   readonly showCoAuthoredBy: boolean
+
+  /**
+   * Whether or not to show a input labels (Default: false)
+   */
+  readonly showInputLabels?: boolean
 
   /**
    * A list of authors (name, email pairs) which have been
@@ -1279,7 +1285,7 @@ export class CommitMessage extends React.Component<
         tooltipClassName="length-hint-tooltip"
         ariaLabel="Open Summary Length Info"
       >
-        <Octicon symbol={OcticonSymbol.lightBulb} />
+        <Octicon symbol={octicons.lightBulb} />
       </ToggledtippedContent>
     )
   }
@@ -1313,7 +1319,7 @@ export class CommitMessage extends React.Component<
         onClick={this.toggleRuleFailurePopover}
       >
         <Octicon
-          symbol={canBypass ? OcticonSymbol.alert : OcticonSymbol.stop}
+          symbol={canBypass ? octicons.alert : octicons.stop}
           className={canBypass ? 'warning-icon' : 'error-icon'}
         />
       </button>
@@ -1367,6 +1373,7 @@ export class CommitMessage extends React.Component<
 
           <AutocompletingInput
             required={true}
+            label={this.props.showInputLabels === true ? 'Summary' : undefined}
             screenReaderLabel="Commit summary"
             className={summaryInputClassName}
             placeholder={placeholder}
@@ -1388,13 +1395,21 @@ export class CommitMessage extends React.Component<
 
         {this.state.isRuleFailurePopoverOpen && this.renderRuleFailurePopover()}
 
+        {this.props.showInputLabels === true && (
+          <label htmlFor="commit-message-description">Description</label>
+        )}
         <FocusContainer
           className="description-focus-container"
           onClick={this.onFocusContainerClick}
         >
           <AutocompletingTextArea
+            inputId="commit-message-description"
             className={descriptionClassName}
-            screenReaderLabel="Commit description"
+            screenReaderLabel={
+              this.props.showInputLabels !== true
+                ? 'Commit description'
+                : undefined
+            }
             placeholder="Description"
             value={this.state.description || ''}
             onValueChanged={this.onDescriptionChanged}

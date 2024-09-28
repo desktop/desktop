@@ -9,7 +9,6 @@ import {
   DiscardChangesError,
   ErrorWithMetadata,
 } from '../../lib/error-with-metadata'
-import { AuthenticationErrors } from '../../lib/git/authentication'
 import { GitError, isAuthFailureError } from '../../lib/git/core'
 import { ShellError } from '../../lib/shells'
 import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-exists-error'
@@ -139,53 +138,6 @@ export async function backgroundTaskHandler(
   }
 }
 
-/** Handle git authentication errors in a manner that seems Right And Good. */
-export async function gitAuthenticationErrorHandler(
-  error: Error,
-  dispatcher: Dispatcher
-): Promise<Error | null> {
-  const e = asErrorWithMetadata(error)
-  if (!e) {
-    return error
-  }
-
-  const gitError = asGitError(e.underlyingError)
-  if (!gitError) {
-    return error
-  }
-
-  const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
-    return error
-  }
-
-  if (!AuthenticationErrors.has(dugiteError)) {
-    return error
-  }
-
-  const repository = e.metadata.repository
-  if (!repository) {
-    return error
-  }
-
-  // If it's a GitHub repository then it's not some generic git server
-  // authentication problem, but more likely a legit permission problem. So let
-  // the error continue to bubble up.
-  if (repository instanceof Repository && repository.gitHubRepository) {
-    return error
-  }
-
-  const retry = e.metadata.retryAction
-  if (!retry) {
-    log.error(`No retry action provided for a git authentication error.`, e)
-    return error
-  }
-
-  await dispatcher.promptForGenericGitAuthentication(repository, retry)
-
-  return null
-}
-
 export async function externalEditorErrorHandler(
   error: Error,
   dispatcher: Dispatcher
@@ -239,7 +191,7 @@ export async function pushNeedsPullHandler(
   }
 
   const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
+  if (dugiteError === null) {
     return error
   }
 
@@ -280,7 +232,7 @@ export async function mergeConflictHandler(
   }
 
   const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
+  if (dugiteError === null) {
     return error
   }
 
@@ -339,7 +291,7 @@ export async function lfsAttributeMismatchHandler(
   }
 
   const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
+  if (dugiteError === null) {
     return error
   }
 
@@ -392,7 +344,7 @@ export async function rebaseConflictsHandler(
   }
 
   const dugiteError = gitError.result.gitError
-  if (!dugiteError) {
+  if (dugiteError === null) {
     return error
   }
 

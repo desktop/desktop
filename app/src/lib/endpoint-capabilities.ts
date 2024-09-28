@@ -42,14 +42,21 @@ const versionCache = new Map<string, semver.SemVer | null>()
 const endpointVersionKey = (ep: string) => `endpoint-version:${ep}`
 
 /**
- * Whether or not the given endpoint URI matches GitHub.com's
- *
- * I.e. https://api.github.com/
- *
- * Most often used to check if an endpoint _isn't_ GitHub.com meaning it's
- * either GitHub Enterprise Server or GitHub AE
+ * Whether or not the given endpoint belong's to GitHub.com
  */
-export const isDotCom = (ep: string) => ep === getDotComAPIEndpoint()
+export const isDotCom = (ep: string) => {
+  if (ep === getDotComAPIEndpoint()) {
+    return true
+  }
+
+  const { hostname } = new URL(ep)
+  return hostname === 'api.github.com' || hostname === 'github.com'
+}
+
+export const isGist = (ep: string) => {
+  const { hostname } = new URL(ep)
+  return hostname === 'gist.github.com' || hostname === 'gist.ghe.io'
+}
 
 /** Whether or not the given endpoint URI is under the ghe.com domain */
 export const isGHE = (ep: string) => new URL(ep).hostname.endsWith('.ghe.com')
@@ -60,7 +67,7 @@ export const isGHE = (ep: string) => new URL(ep).hostname.endsWith('.ghe.com')
  */
 export const isGHES = (ep: string) => !isDotCom(ep) && !isGHE(ep)
 
-function getEndpointVersion(endpoint: string) {
+export function getEndpointVersion(endpoint: string) {
   const key = endpointVersionKey(endpoint)
   const cached = versionCache.get(key)
 
@@ -149,9 +156,6 @@ export const supportsRetrieveActionWorkflowByCheckSuiteId = endpointSatisfies({
   dotcom: true,
 })
 
-export const supportsAliveSessions = endpointSatisfies({
-  dotcom: true,
-  ghe: false,
-})
+export const supportsAliveSessions = endpointSatisfies({ dotcom: true })
 
 export const supportsRepoRules = endpointSatisfies({ dotcom: true })

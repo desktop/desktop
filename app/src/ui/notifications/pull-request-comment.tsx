@@ -9,6 +9,7 @@ import { IAPIComment } from '../../lib/api'
 import { getPullRequestReviewStateIcon } from './pull-request-review-helpers'
 import { PullRequestCommentLike } from './pull-request-comment-like'
 import { Account } from '../../models/account'
+import { Emoji } from '../../lib/emoji'
 
 interface IPullRequestCommentProps {
   readonly dispatcher: Dispatcher
@@ -17,7 +18,9 @@ interface IPullRequestCommentProps {
   readonly comment: IAPIComment
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
-  readonly emoji: Map<string, string>
+  readonly emoji: Map<string, Emoji>
+
+  readonly underlineLinks: boolean
 
   /**
    * Whether or not the dialog should offer to switch to the PR's repository or
@@ -73,7 +76,7 @@ export class PullRequestComment extends React.Component<
         pullRequest={pullRequest}
         emoji={emoji}
         eventDate={new Date(comment.created_at)}
-        eventVerb="commented"
+        eventVerb="commented on"
         eventIconSymbol={icon.symbol}
         eventIconClass={icon.className}
         externalURL={comment.html_url}
@@ -83,6 +86,7 @@ export class PullRequestComment extends React.Component<
         renderFooterContent={this.renderFooterContent}
         onSubmit={onSubmit}
         onDismissed={onDismissed}
+        underlineLinks={this.props.underlineLinks}
         accounts={accounts}
       />
     )

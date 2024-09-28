@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 import { showContextualMenu } from '../../lib/menu-item'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
 export interface ITextBoxProps {
@@ -45,6 +45,12 @@ export interface ITextBoxProps {
    * Default: false
    */
   readonly displayClearButton?: boolean
+
+  /**
+   * Whether or not the control displays a clear button when it has text.
+   * Default: false
+   */
+  readonly prefixedIcon?: octicons.OcticonSymbol
 
   /**
    * Called when the user changes the value in the input field.
@@ -200,7 +206,9 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     this.props.onSearchCleared?.()
   }
 
-  private clearSearchText = () => {
+  private clearSearchText = (e: React.MouseEvent) => {
+    e.preventDefault()
+
     if (this.inputElement === null) {
       return
     }
@@ -287,7 +295,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
   }
 
   public render() {
-    const { label, className } = this.props
+    const { label, className, prefixedIcon } = this.props
     const inputId = label ? this.state.inputId : undefined
 
     return (
@@ -295,9 +303,13 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
         className={classNames('text-box-component', className, {
           'no-invalid-state': this.props.displayInvalidState === false,
           'display-clear-button': this.props.displayClearButton === true,
+          'display-prefixed-icon': prefixedIcon !== undefined,
         })}
       >
         {label && <label htmlFor={inputId}>{label}</label>}
+        {prefixedIcon && (
+          <Octicon className="prefixed-icon" symbol={prefixedIcon} />
+        )}
         <input
           id={inputId}
           ref={this.onInputRef}
@@ -328,7 +340,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
               aria-label="Clear"
               onClick={this.clearSearchText}
             >
-              <Octicon symbol={OcticonSymbol.x} />
+              <Octicon symbol={octicons.x} />
             </button>
           )}
         {this.state.valueCleared && (

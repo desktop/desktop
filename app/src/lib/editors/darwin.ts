@@ -128,6 +128,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['com.jetbrains.RubyMine'],
   },
   {
+    name: 'RustRover',
+    bundleIdentifiers: ['com.jetbrains.RustRover'],
+  },
+  {
     name: 'RStudio',
     bundleIdentifiers: ['org.rstudio.RStudio', 'com.rstudio.desktop'],
   },

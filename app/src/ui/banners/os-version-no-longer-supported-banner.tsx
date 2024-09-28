@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Banner } from './banner'
 import { LinkButton } from '../lib/link-button'
 import { setNumber } from '../../lib/local-storage'
@@ -8,7 +8,7 @@ import { setNumber } from '../../lib/local-storage'
 export const UnsupportedOSBannerDismissedAtKey =
   'unsupported-os-banner-dismissed-at'
 
-export class WindowsVersionNoLongerSupportedBanner extends React.Component<{
+export class OSVersionNoLongerSupportedBanner extends React.Component<{
   onDismissed: () => void
 }> {
   private onDismissed = () => {
@@ -23,7 +23,7 @@ export class WindowsVersionNoLongerSupportedBanner extends React.Component<{
         dismissable={true}
         onDismissed={this.onDismissed}
       >
-        <Octicon className="alert-icon" symbol={OcticonSymbol.alert} />
+        <Octicon className="alert-icon" symbol={octicons.alert} />
         <div className="banner-message">
           <span>
             This operating system is no longer supported. Software updates have

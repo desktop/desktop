@@ -155,6 +155,9 @@ export const getCurrentWindowZoomFactor = invokeProxy(
   0
 )
 
+/** Tell the main process that a modal dialog has opened */
+export const sendDialogDidOpen = sendProxy('dialog-did-open', 0)
+
 /** Tell the main process to set the current window's zoom factor */
 export const setWindowZoomFactor = sendProxy('set-window-zoom-factor', 1)
 
@@ -393,3 +396,7 @@ export const requestNotificationsPermission = invokeProxy(
   'request-notifications-permission',
   0
 )
+
+/** Tell the main process to (un)install the CLI on Windows */
+export const installWindowsCLI = sendProxy('install-windows-cli', 0)
+export const uninstallWindowsCLI = sendProxy('uninstall-windows-cli', 0)

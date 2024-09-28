@@ -241,7 +241,9 @@ export class BranchPruner {
         log.info(`[BranchPruner] Branch '${branchName}' marked for deletion`)
       }
     }
-    this.onPruneCompleted(this.repository)
+    this.onPruneCompleted(this.repository).catch(e => {
+      log.error(`[BranchPruner] Error calling onPruneCompleted`, e)
+    })
   }
 }
 

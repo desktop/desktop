@@ -58,7 +58,7 @@ export class ConfirmRemoveRepository extends React.Component<
         key="remove-repository-confirmation"
         type="warning"
         title={__DARWIN__ ? 'Remove Repository' : 'Remove repository'}
-        dismissable={isRemovingRepository ? false : true}
+        dismissDisabled={isRemovingRepository}
         loading={isRemovingRepository}
         disabled={isRemovingRepository}
         onDismissed={this.props.onDismissed}
@@ -69,11 +69,12 @@ export class ConfirmRemoveRepository extends React.Component<
             Are you sure you want to remove the repository "
             {this.props.repository.name}" from GitHub Desktop?
           </p>
-          <p className="description">
-            The repository will be removed from GitHub Desktop:
-            <br />
-            <Ref>{this.props.repository.path}</Ref>
-          </p>
+          <div className="description">
+            <p>The repository will be removed from GitHub Desktop:</p>
+            <p>
+              <Ref>{this.props.repository.path}</Ref>
+            </p>
+          </div>
 
           <div>
             <Checkbox

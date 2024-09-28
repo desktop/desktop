@@ -15,6 +15,7 @@ import split2 from 'split2'
 import { getFileFromExceedsError } from '../helpers/regex'
 import { merge } from '../merge'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
+import { enableCredentialHelperTrampoline } from '../feature-flag'
 
 /**
  * An extension of the execution options in dugite that
@@ -37,6 +38,12 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
 
   /** Should it track & report LFS progress? */
   readonly trackLFSProgress?: boolean
+
+  /**
+   * Whether the command about to run is part of a background task or not.
+   * This affects error handling and UI such as credential prompts.
+   */
+  readonly isBackgroundTask?: boolean
 }
 
 /**
@@ -90,7 +97,7 @@ export class GitError extends Error {
     } else if (result.stdout.length) {
       message = result.stdout
     } else {
-      message = 'Unknown error'
+      message = `Unknown error (exit code ${result.exitCode})`
       rawMessage = false
     }
 
@@ -154,98 +161,104 @@ export async function git(
     combineOutput(process.stdout)
   }
 
-  return withTrampolineEnv(async env => {
-    const combinedEnv = merge(opts.env, env)
+  return withTrampolineEnv(
+    async env => {
+      const combinedEnv = merge(opts.env, env)
 
-    // Explicitly set TERM to 'dumb' so that if Desktop was launched
-    // from a terminal or if the system environment variables
-    // have TERM set Git won't consider us as a smart terminal.
-    // See https://github.com/git/git/blob/a7312d1a2/editor.c#L11-L15
-    opts.env = { TERM: 'dumb', ...combinedEnv } as object
+      // Explicitly set TERM to 'dumb' so that if Desktop was launched
+      // from a terminal or if the system environment variables
+      // have TERM set Git won't consider us as a smart terminal.
+      // See https://github.com/git/git/blob/a7312d1a2/editor.c#L11-L15
+      opts.env = { TERM: 'dumb', ...combinedEnv }
 
-    const commandName = `${name}: git ${args.join(' ')}`
+      const commandName = `${name}: git ${args.join(' ')}`
 
-    const result = await GitPerf.measure(commandName, () =>
-      GitProcess.exec(args, path, opts)
-    ).catch(err => {
-      // If this is an exception thrown by Node.js (as opposed to
-      // dugite) let's keep the salient details but include the name of
-      // the operation.
-      if (isErrnoException(err)) {
-        throw new Error(`Failed to execute ${name}: ${err.code}`)
+      const result = await GitPerf.measure(commandName, () =>
+        GitProcess.exec(args, path, opts)
+      ).catch(err => {
+        // If this is an exception thrown by Node.js (as opposed to
+        // dugite) let's keep the salient details but include the name of
+        // the operation.
+        if (isErrnoException(err)) {
+          throw new Error(`Failed to execute ${name}: ${err.code}`)
+        }
+
+        throw err
+      })
+
+      const exitCode = result.exitCode
+
+      let gitError: DugiteError | null = null
+      const acceptableExitCode = opts.successExitCodes
+        ? opts.successExitCodes.has(exitCode)
+        : false
+      if (!acceptableExitCode) {
+        gitError = GitProcess.parseError(result.stderr)
+        if (gitError === null) {
+          gitError = GitProcess.parseError(result.stdout)
+        }
       }
 
-      throw err
-    })
-
-    const exitCode = result.exitCode
-
-    let gitError: DugiteError | null = null
-    const acceptableExitCode = opts.successExitCodes
-      ? opts.successExitCodes.has(exitCode)
-      : false
-    if (!acceptableExitCode) {
-      gitError = GitProcess.parseError(result.stderr)
-      if (!gitError) {
-        gitError = GitProcess.parseError(result.stdout)
+      const gitErrorDescription =
+        gitError !== null
+          ? getDescriptionForError(gitError, result.stderr)
+          : null
+      const gitResult = {
+        ...result,
+        gitError,
+        gitErrorDescription,
+        combinedOutput,
+        path,
       }
-    }
 
-    const gitErrorDescription = gitError
-      ? getDescriptionForError(gitError)
-      : null
-    const gitResult = {
-      ...result,
-      gitError,
-      gitErrorDescription,
-      combinedOutput,
-      path,
-    }
+      let acceptableError = true
+      if (gitError !== null && opts.expectedErrors) {
+        acceptableError = opts.expectedErrors.has(gitError)
+      }
 
-    let acceptableError = true
-    if (gitError && opts.expectedErrors) {
-      acceptableError = opts.expectedErrors.has(gitError)
-    }
+      if ((gitError !== null && acceptableError) || acceptableExitCode) {
+        return gitResult
+      }
 
-    if ((gitError && acceptableError) || acceptableExitCode) {
-      return gitResult
-    }
-
-    // The caller should either handle this error, or expect that exit code.
-    const errorMessage = new Array<string>()
-    errorMessage.push(
-      `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
-    )
-
-    if (result.stdout) {
-      errorMessage.push('stdout:')
-      errorMessage.push(result.stdout)
-    }
-
-    if (result.stderr) {
-      errorMessage.push('stderr:')
-      errorMessage.push(result.stderr)
-    }
-
-    if (gitError) {
+      // The caller should either handle this error, or expect that exit code.
+      const errorMessage = new Array<string>()
       errorMessage.push(
-        `(The error was parsed as ${gitError}: ${gitErrorDescription})`
+        `\`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
       )
-    }
 
-    log.error(errorMessage.join('\n'))
-
-    if (gitError === DugiteError.PushWithFileSizeExceedingLimit) {
-      const result = getFileFromExceedsError(errorMessage.join())
-      const files = result.join('\n')
-
-      if (files !== '') {
-        gitResult.gitErrorDescription += '\n\nFile causing error:\n\n' + files
+      if (result.stdout) {
+        errorMessage.push('stdout:')
+        errorMessage.push(result.stdout)
       }
-    }
 
-    throw new GitError(gitResult, args)
-  })
+      if (result.stderr) {
+        errorMessage.push('stderr:')
+        errorMessage.push(result.stderr)
+      }
+
+      if (gitError !== null) {
+        errorMessage.push(
+          `(The error was parsed as ${gitError}: ${gitErrorDescription})`
+        )
+      }
+
+      log.error(errorMessage.join('\n'))
+
+      if (gitError === DugiteError.PushWithFileSizeExceedingLimit) {
+        const result = getFileFromExceedsError(errorMessage.join())
+        const files = result.join('\n')
+
+        if (files !== '') {
+          gitResult.gitErrorDescription += '\n\nFile causing error:\n\n' + files
+        }
+      }
+
+      throw new GitError(gitResult, args)
+    },
+    path,
+    options?.isBackgroundTask ?? false,
+    options?.env
+  )
 }
 
 /**
@@ -306,7 +319,10 @@ export function parseConfigLockFilePathFromError(result: IGitResult) {
   return Path.resolve(result.path, `${normalized}.lock`)
 }
 
-function getDescriptionForError(error: DugiteError): string | null {
+export function getDescriptionForError(
+  error: DugiteError,
+  stderr: string
+): string | null {
   if (isAuthFailureError(error)) {
     const menuHint = __DARWIN__
       ? 'GitHub Desktop > Settings.'
@@ -323,6 +339,13 @@ function getDescriptionForError(error: DugiteError): string | null {
   }
 
   switch (error) {
+    case DugiteError.BadConfigValue:
+      const errorInfo = GitProcess.parseBadConfigValueErrorInfo(stderr)
+      if (errorInfo === null) {
+        return 'Unsupported git configuration value.'
+      }
+
+      return `Unsupported value '${errorInfo.value}' for git config key '${errorInfo.key}'`
     case DugiteError.SSHKeyAuditUnverified:
       return 'The SSH key is unverified.'
     case DugiteError.RemoteDisconnection:
@@ -445,10 +468,11 @@ function getDescriptionForError(error: DugiteError): string | null {
  * `git pull` these arguments needs to go before the `pull` argument.
  */
 export const gitNetworkArguments = () => [
-  // Explicitly unset any defined credential helper, we rely on our
-  // own askpass for authentication.
-  '-c',
-  'credential.helper=',
+  // Explicitly unset any defined credential helper, we rely on our own askpass
+  // for authentication except when our credential helper trampoline is enabled.
+  // When it is enabled we set the credential helper via environment variables
+  // in withTrampolineEnv instead.
+  ...(enableCredentialHelperTrampoline() ? [] : ['-c', 'credential.helper=']),
 ]
 
 /**
@@ -462,8 +486,7 @@ export function gitRebaseArguments() {
     // uses the merge backend even if the user has the apply backend
     // configured, since this is the only one supported.
     // This can go away once git deprecates the apply backend.
-    '-c',
-    'rebase.backend=merge',
+    ...['-c', 'rebase.backend=merge'],
   ]
 }
 

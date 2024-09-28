@@ -28,9 +28,7 @@ import {
   DeletedImageDiff,
 } from './image-diffs'
 import { BinaryFile } from './binary-file'
-import { TextDiff } from './text-diff'
 import { SideBySideDiff } from './side-by-side-diff'
-import { enableExperimentalDiffViewer } from '../../lib/feature-flag'
 import { IFileContents } from './syntax-highlighting'
 import { SubmoduleDiff } from './submodule-diff'
 
@@ -75,6 +73,9 @@ interface IDiffProps {
 
   /** Whether we should show a confirmation dialog when the user discards changes */
   readonly askForConfirmationOnDiscardChanges?: boolean
+
+  /** Whether or not to show the diff check marks indicating inclusion in a commit */
+  readonly showDiffCheckMarks: boolean
 
   /**
    * Called when the user requests to open a binary file in an the
@@ -176,12 +177,13 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     return (
       <div className="panel empty large-diff">
         <img src={NoDiffImage} className="blankslate-image" alt="" />
-        <p>
-          The diff is too large to be displayed by default.
-          <br />
-          You can try to show it anyway, but performance may be negatively
-          impacted.
-        </p>
+        <div className="description">
+          <p>The diff is too large to be displayed by default.</p>
+          <p>
+            You can try to show it anyway, but performance may be negatively
+            impacted.
+          </p>
+        </div>
         <Button onClick={this.showLargeDiff}>
           {__DARWIN__ ? 'Show Diff' : 'Show diff'}
         </Button>
@@ -271,39 +273,20 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private renderTextDiff(diff: ITextDiff) {
-    if (enableExperimentalDiffViewer() || this.props.showSideBySideDiff) {
-      return (
-        <SideBySideDiff
-          file={this.props.file}
-          diff={diff}
-          fileContents={this.props.fileContents}
-          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-          showSideBySideDiff={this.props.showSideBySideDiff}
-          onIncludeChanged={this.props.onIncludeChanged}
-          onDiscardChanges={this.props.onDiscardChanges}
-          askForConfirmationOnDiscardChanges={
-            this.props.askForConfirmationOnDiscardChanges
-          }
-          onHideWhitespaceInDiffChanged={
-            this.props.onHideWhitespaceInDiffChanged
-          }
-        />
-      )
-    }
-
     return (
-      <TextDiff
+      <SideBySideDiff
         file={this.props.file}
-        readOnly={this.props.readOnly}
-        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-        onIncludeChanged={this.props.onIncludeChanged}
-        onDiscardChanges={this.props.onDiscardChanges}
         diff={diff}
         fileContents={this.props.fileContents}
+        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+        showSideBySideDiff={this.props.showSideBySideDiff}
+        onIncludeChanged={this.props.onIncludeChanged}
+        onDiscardChanges={this.props.onDiscardChanges}
         askForConfirmationOnDiscardChanges={
           this.props.askForConfirmationOnDiscardChanges
         }
         onHideWhitespaceInDiffChanged={this.props.onHideWhitespaceInDiffChanged}
+        showDiffCheckMarks={this.props.showDiffCheckMarks}
       />
     )
   }

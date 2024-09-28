@@ -13,7 +13,7 @@ function handleError(error: string) {
 function formatErrors(errors: ErrorObject[]): string {
   return errors
     .map(error => {
-      const { dataPath, message } = error
+      const { instancePath, message } = error
       const additionalProperties = error.params as any
       const additionalProperty =
         additionalProperties.additionalProperty as string
@@ -24,8 +24,8 @@ function formatErrors(errors: ErrorObject[]): string {
         additionalPropertyText = `, found: '${additionalProperties.additionalProperty}'`
       }
 
-      // dataPath starts with a leading "."," which is a bit confusing
-      const element = dataPath.substring(1)
+      // instancePath starts with a leading "."," which is a bit confusing
+      const element = instancePath.substring(1)
 
       return ` - ${element} - ${message}${additionalPropertyText}`
     })
@@ -60,7 +60,6 @@ const schema = {
           items: {
             type: 'string',
           },
-          uniqueItems: true,
         },
       },
       additionalProperties: false,
@@ -68,7 +67,7 @@ const schema = {
   },
 }
 
-const ajv = new Ajv({ allErrors: true, uniqueItems: true })
+const ajv = new Ajv({ allErrors: true })
 const validate = ajv.compile(schema)
 
 const valid = validate(changelogObj)

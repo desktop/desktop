@@ -39,10 +39,12 @@ export class CloneGenericRepository extends React.Component<
             onValueChanged={this.onUrlChanged}
             autoFocus={true}
             label={
-              <span>
-                Repository URL or GitHub username and repository
-                <br />(<Ref>hubot/cool-repo</Ref>)
-              </span>
+              <div className="clone-url-textbox-label">
+                <p>Repository URL or GitHub username and repository</p>
+                <p>
+                  (<Ref>hubot/cool-repo</Ref>)
+                </p>
+              </div>
             }
           />
         </Row>

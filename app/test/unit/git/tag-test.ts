@@ -19,8 +19,6 @@ import {
   setupFixtureRepository,
   setupLocalForkOfRepository,
 } from '../../helpers/repositories'
-import { Account } from '../../../src/models/account'
-import { getDotComAPIEndpoint } from '../../../src/lib/api'
 import { IRemote } from '../../../src/models/remote'
 import { findDefaultRemote } from '../../../src/lib/stores/helpers/find-default-remote'
 import { getStatusOrThrow } from '../../helpers/status'
@@ -28,22 +26,10 @@ import { assertNonNullable } from '../../../src/lib/fatal-error'
 
 describe('git/tag', () => {
   let repository: Repository
-  let account: Account
 
   beforeEach(async () => {
     const testRepoPath = await setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null, false)
-
-    account = new Account(
-      'monalisa',
-      getDotComAPIEndpoint(),
-      '',
-      [],
-      '',
-      -1,
-      'Mona Lisa',
-      'free'
-    )
   })
 
   describe('createTag', () => {
@@ -138,28 +124,26 @@ describe('git/tag', () => {
 
     it('returns an empty array when there are no tags to get pushed', async () => {
       expect(
-        await fetchTagsToPush(repository, account, originRemote, 'master')
+        await fetchTagsToPush(repository, originRemote, 'master')
       ).toIncludeAllMembers([])
     })
 
     it("returns local tags that haven't been pushed", async () => {
       await createTag(repository, 'my-new-tag', 'HEAD')
 
-      expect(
-        await fetchTagsToPush(repository, account, originRemote, 'master')
-      ).toEqual(['my-new-tag'])
+      expect(await fetchTagsToPush(repository, originRemote, 'master')).toEqual(
+        ['my-new-tag']
+      )
     })
 
     it('returns an empty array after pushing the tag', async () => {
       await createTag(repository, 'my-new-tag', 'HEAD')
 
-      await push(repository, account, originRemote, 'master', null, [
-        'my-new-tag',
-      ])
+      await push(repository, originRemote, 'master', null, ['my-new-tag'])
 
-      expect(
-        await fetchTagsToPush(repository, account, originRemote, 'master')
-      ).toEqual([])
+      expect(await fetchTagsToPush(repository, originRemote, 'master')).toEqual(
+        []
+      )
     })
 
     it('does not return a tag created on a non-pushed branch', async () => {
@@ -173,13 +157,13 @@ describe('git/tag', () => {
       const status = await getStatusOrThrow(repository)
       const files = status.workingDirectory.files
 
-      await checkoutBranch(repository, account, branch!)
+      await checkoutBranch(repository, branch!, null)
       const commitSha = await createCommit(repository, 'a commit', files)
       await createTag(repository, 'my-new-tag', commitSha)
 
-      expect(
-        await fetchTagsToPush(repository, account, originRemote, 'master')
-      ).toEqual([])
+      expect(await fetchTagsToPush(repository, originRemote, 'master')).toEqual(
+        []
+      )
     })
 
     it('returns unpushed tags even if it fails to push the branch', async () => {
@@ -195,9 +179,9 @@ describe('git/tag', () => {
 
       await createTag(repository, 'my-new-tag', 'HEAD')
 
-      expect(
-        await fetchTagsToPush(repository, account, originRemote, 'master')
-      ).toEqual(['my-new-tag'])
+      expect(await fetchTagsToPush(repository, originRemote, 'master')).toEqual(
+        ['my-new-tag']
+      )
     })
   })
 })

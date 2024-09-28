@@ -1,4 +1,6 @@
 .no-branches {
+  width: 365px;
+  margin: var(--spacing) auto;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -31,5 +33,19 @@
 
     text-align: center;
     font-size: var(--font-size-sm);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.branches-container {
+  &.resizable {
+    .no-branches {
+      width: 365px;
+      margin: var(--spacing) auto;
+      flex: none;
+    }
   }
 }

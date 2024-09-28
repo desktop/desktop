@@ -5,6 +5,7 @@ coverage/
 npm-debug.log
 yarn-error.log
 app/node_modules/
+vendor/windows-argv-parser/build/
 .DS_Store
 .awcache
 .idea/

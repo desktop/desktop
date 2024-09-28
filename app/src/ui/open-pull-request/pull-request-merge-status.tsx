@@ -3,7 +3,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { ComputedAction } from '../../models/computed-action'
 import { MergeTreeResult } from '../../models/merge'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 
 interface IPullRequestMergeStatusProps {
   /** The result of merging the pull request branch into the base branch */
@@ -39,7 +39,7 @@ export class PullRequestMergeStatus extends React.Component<IPullRequestMergeSta
         return (
           <span className="pr-merge-status-clean">
             <strong>
-              <Octicon symbol={OcticonSymbol.check} /> Able to merge.
+              <Octicon symbol={octicons.check} /> Able to merge.
             </strong>{' '}
             These branches can be automatically merged.
           </span>
@@ -48,7 +48,7 @@ export class PullRequestMergeStatus extends React.Component<IPullRequestMergeSta
         return (
           <span className="pr-merge-status-conflicts">
             <strong>
-              <Octicon symbol={OcticonSymbol.x} /> Can't automatically merge.
+              <Octicon symbol={octicons.x} /> Can't automatically merge.
             </strong>{' '}
             Don’t worry, you can still create the pull request.
           </span>

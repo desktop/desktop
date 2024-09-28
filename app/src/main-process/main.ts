@@ -16,7 +16,11 @@ import { AppWindow } from './app-window'
 import { buildDefaultMenu, getAllMenuItems } from './menu'
 import { shellNeedsPatching, updateEnvironmentForProcess } from '../lib/shell'
 import { parseAppURL } from '../lib/parse-app-url'
-import { handleSquirrelEvent } from './squirrel-updater'
+import {
+  handleSquirrelEvent,
+  installWindowsCLI,
+  uninstallWindowsCLI,
+} from './squirrel-updater'
 import { fatalError } from '../lib/fatal-error'
 
 import { log as writeLog } from './log'
@@ -522,6 +526,11 @@ app.on('ready', () => {
     mainWindow?.setWindowZoomFactor(zoomFactor)
   )
 
+  if (__WIN32__) {
+    ipcMain.on('install-windows-cli', installWindowsCLI)
+    ipcMain.on('uninstall-windows-cli', uninstallWindowsCLI)
+  }
+
   /**
    * An event sent by the renderer asking for a copy of the current
    * application menu.
@@ -607,6 +616,9 @@ app.on('ready', () => {
   ipcMain.on('select-all-window-contents', () =>
     mainWindow?.selectAllWindowContents()
   )
+
+  /** An event sent by the renderer indicating a modal dialog is opened */
+  ipcMain.on('dialog-did-open', () => mainWindow?.dialogDidOpen())
 
   /**
    * An event sent by the renderer asking whether the Desktop is in the

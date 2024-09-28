@@ -23,8 +23,6 @@ import { ILicense, getLicenses, writeLicense } from './licenses'
 import { writeGitAttributes } from './git-attributes'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Dialog, DialogContent, DialogFooter, DialogError } from '../dialog'
-import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
 import { LinkButton } from '../lib/link-button'
 import { PopupType } from '../../models/popup'
 import { Ref } from '../lib/ref'
@@ -40,6 +38,9 @@ import { isTopMostDialog } from '../dialog/is-top-most'
 import { InputError } from '../lib/input-description/input-error'
 import { InputWarning } from '../lib/input-description/input-warning'
 
+/** URL used to provide information about submodules to the user. */
+const submoduleDocsUrl = 'https://gh.io/git-submodules'
+
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
 
@@ -49,23 +50,6 @@ const NoLicenseValue: ILicense = {
   featured: false,
   body: '',
   hidden: false,
-}
-
-/** Is the path a git repository? */
-export const isGitRepository = async (path: string) => {
-  const type = await getRepositoryType(path).catch(e => {
-    log.error(`Unable to determine repository type`, e)
-    return { kind: 'missing' } as RepositoryType
-  })
-
-  if (type.kind === 'unsafe') {
-    // If the path is considered unsafe by Git we won't be able to
-    // verify that it's a repository (or worktree). So we'll fall back to this
-    // naive approximation.
-    return directoryExists(join(path, '.git'))
-  }
-
-  return type.kind !== 'missing'
 }
 
 interface ICreateRepositoryProps {
@@ -89,6 +73,9 @@ interface ICreateRepositoryState {
 
   /** Is the given path already a repository? */
   readonly isRepository: boolean
+
+  /** Is the given path already a subfolder of a repository? */
+  readonly isSubFolderOfRepository: boolean
 
   /** Should the repository be created with a default README? */
   readonly createWithReadme: boolean
@@ -153,6 +140,7 @@ export class CreateRepository extends React.Component<
       isValidPath: null,
       isRepository: false,
       readMeExists: false,
+      isSubFolderOfRepository: false,
     }
 
     if (path === null) {
@@ -209,12 +197,35 @@ export class CreateRepository extends React.Component<
 
   private async updateIsRepository(path: string, name: string) {
     const fullPath = Path.join(path, sanitizedRepositoryName(name))
-    const isRepository = await isGitRepository(fullPath)
+
+    const type = await getRepositoryType(fullPath).catch(e => {
+      log.error(`Unable to determine repository type`, e)
+      return { kind: 'missing' } as RepositoryType
+    })
+
+    let isRepository: boolean = type.kind !== 'missing'
+    let isSubFolderOfRepository = false
+    if (type.kind === 'unsafe') {
+      // If the path is considered unsafe by Git we won't be able to
+      // verify that it's a repository (or worktree). So we'll fall back to this
+      // naive approximation.
+      isRepository = await directoryExists(join(path, '.git'))
+    }
+
+    if (type.kind === 'regular') {
+      // If the path is a regular repository, we'll check if the top level. If it
+      // isn't than, the path is a subfolder of the repository and a user may want
+      // to make it into a repository.
+      isRepository = type.topLevelWorkingDirectory === fullPath
+      isSubFolderOfRepository = !isRepository
+    }
 
     // Only update isRepository if the path is still the same one we were using
     // to check whether it looked like a repository.
     this.setState(state =>
-      state.path === path && state.name === name ? { isRepository } : null
+      state.path === path && state.name === name
+        ? { isRepository, isSubFolderOfRepository }
+        : null
     )
   }
 
@@ -442,10 +453,16 @@ export class CreateRepository extends React.Component<
     }
 
     return (
-      <Row className="warning-helper-text">
-        <Octicon symbol={OcticonSymbol.alert} />
-        Will be created as {sanitizedName}
-      </Row>
+      <InputWarning
+        id="repo-sanitized-name-warning"
+        trackedUserInput={this.state.name}
+        ariaLiveMessage={`Will be created as ${sanitizedName}. Spaces and invalid characters have been replaced by hyphens.`}
+      >
+        <p>Will be created as {sanitizedName}</p>
+        <span className="sr-only">
+          Spaces and invalid characters have been replaced by hyphens.
+        </span>
+      </InputWarning>
     )
   }
 
@@ -528,27 +545,54 @@ export class CreateRepository extends React.Component<
   }
 
   private renderGitRepositoryError() {
-    const isRepo = this.state.isRepository
+    const { isRepository, path, name } = this.state
 
-    if (!this.state.path || this.state.path.length === 0 || !isRepo) {
+    if (!path || path.length === 0 || !isRepository) {
       return null
     }
+
+    const fullPath = Path.join(path, sanitizedRepositoryName(name))
 
     return (
       <Row>
         <InputError
           id="existing-repository-path-error"
           trackedUserInput={this.state.path + this.state.name}
-          ariaLiveMessage={
-            'This directory appears to be a Git repository. Would you like to add this repository instead?'
-          }
+          ariaLiveMessage={`The directory ${fullPath} appears to be a Git repository. Would you like to add this repository instead?`}
         >
-          This directory appears to be a Git repository. Would you like to{' '}
+          The directory <Ref>{fullPath}</Ref>appears to be a Git repository.
+          Would you like to{' '}
           <LinkButton onClick={this.onAddRepositoryClicked}>
             add this repository
           </LinkButton>{' '}
           instead?
         </InputError>
+      </Row>
+    )
+  }
+
+  private renderGitRepositorySubFolderMessage() {
+    const { isSubFolderOfRepository, path, name } = this.state
+
+    if (!path || path.length === 0 || !isSubFolderOfRepository) {
+      return null
+    }
+
+    const fullPath = Path.join(path, sanitizedRepositoryName(name))
+
+    return (
+      <Row>
+        <InputWarning
+          id="path-is-subfolder-of-repository"
+          trackedUserInput={this.state.path + this.state.name}
+          ariaLiveMessage={`The directory ${fullPath} appears to be a subfolder Git repository. Did you know about submodules?`}
+        >
+          The directory <Ref>{fullPath}</Ref>appears to be a subfolder of Git
+          repository.
+          <LinkButton uri={submoduleDocsUrl}>
+            Learn about submodules.
+          </LinkButton>
+        </InputWarning>
       </Row>
     )
   }
@@ -577,6 +621,22 @@ export class CreateRepository extends React.Component<
           this box will result in the existing file being overwritten.
         </InputWarning>
       </Row>
+    )
+  }
+
+  private renderPathMessage = () => {
+    const { path, name, isRepository } = this.state
+
+    if (path === null || path === '' || name === '' || isRepository) {
+      return null
+    }
+
+    const fullPath = Path.join(path, sanitizedRepositoryName(name))
+
+    return (
+      <div id="create-repo-path-msg">
+        The repository will be created at <Ref>{fullPath}</Ref>.
+      </div>
     )
   }
 
@@ -624,7 +684,7 @@ export class CreateRepository extends React.Component<
               label="Name"
               placeholder="repository name"
               onValueChanged={this.onNameChanged}
-              ariaDescribedBy="existing-repository-path-error"
+              ariaDescribedBy="existing-repository-path-error repo-sanitized-name-warning"
             />
           </Row>
 
@@ -645,7 +705,7 @@ export class CreateRepository extends React.Component<
               placeholder="repository path"
               onValueChanged={this.onPathChanged}
               disabled={readOnlyPath || loadingDefaultDir}
-              ariaDescribedBy="existing-repository-path-error"
+              ariaDescribedBy="existing-repository-path-error path-is-subfolder-of-repository"
             />
             <Button
               onClick={this.showFilePicker}
@@ -656,6 +716,7 @@ export class CreateRepository extends React.Component<
           </Row>
 
           {this.renderGitRepositoryError()}
+          {this.renderGitRepositorySubFolderMessage()}
 
           <Row>
             <Checkbox
@@ -676,11 +737,13 @@ export class CreateRepository extends React.Component<
         </DialogContent>
 
         <DialogFooter>
+          {this.renderPathMessage()}
           <OkCancelButtonGroup
             okButtonText={
               __DARWIN__ ? 'Create Repository' : 'Create repository'
             }
             okButtonDisabled={disabled || loadingDefaultDir}
+            okButtonAriaDescribedBy="create-repo-path-msg"
           />
         </DialogFooter>
       </Dialog>

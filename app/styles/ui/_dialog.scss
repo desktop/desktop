@@ -23,6 +23,7 @@
 @import 'dialogs/test-notifications';
 @import 'dialogs/pull-request-comment-like';
 @import 'dialogs/unknown-authors';
+@import 'dialogs/icon_preview';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -411,34 +412,157 @@ dialog {
     }
   }
 
+  // The following media queries ensure that the dialog content is accessible
+  // when zoomed in
+  @media (max-height: 550px) {
+    .dialog-content,
+    .tab-bar,
+    .tab-container {
+      overflow-y: auto;
+      max-height: calc(100vh - 150px) !important;
+    }
+
+    &#publish-repository {
+      .dialog-content {
+        max-height: calc(100vh - 175px);
+      }
+    }
+
+    &#repository-settings,
+    &#preferences {
+      .dialog-content {
+        min-height: calc(100vh - 150px) !important;
+      }
+    }
+
+    &#choose-branch {
+      .dialog-content {
+        overflow-y: unset;
+        max-height: calc(100vh - 194px);
+      }
+      .filter-list-container {
+        overflow-y: auto;
+        max-height: calc(100vh - 230px);
+      }
+      .branches-list {
+        height: calc(100vh - 194px);
+      }
+    }
+
+    &.clone-repository {
+      .dialog-header,
+      .dialog-footer {
+        padding-top: var(--spacing);
+        padding-bottom: var(--spacing);
+      }
+
+      .dialog-content {
+        overflow-y: unset;
+        min-height: calc(100vh - 158px);
+
+        .row-component {
+          margin-bottom: 0px;
+        }
+
+        .local-path-field {
+          padding-top: var(--spacing);
+          padding-bottom: var(--spacing);
+        }
+
+        .clone-github-repo {
+          height: calc(100vh - 225px);
+          max-height: unset;
+        }
+      }
+    }
+
+    &#pull-request-checks-failed {
+      .dialog-content {
+        overflow-y: unset;
+        min-height: unset;
+
+        .ci-check-run-dialog-container {
+          height: calc(100vh - 225px);
+          max-height: unset;
+        }
+      }
+
+      .dialog-header,
+      .dialog-footer {
+        padding-top: var(--spacing);
+        padding-bottom: var(--spacing);
+      }
+
+      .dialog-footer {
+        > .row-component {
+          display: block;
+          .footer-question {
+            margin-bottom: var(--spacing);
+          }
+        }
+      }
+    }
+
+    &.open-pull-request {
+      max-height: calc(100vh - var(--spacing-double));
+
+      .open-pull-request-content {
+        overflow-y: auto;
+        min-height: calc(100vh - 250px);
+        padding: 0;
+
+        .pull-request-files-changed {
+          border: none;
+          border-radius: unset;
+        }
+      }
+
+      .dialog-header,
+      .dialog-footer {
+        padding-top: var(--spacing);
+        padding-bottom: var(--spacing);
+      }
+    }
+
+    &#release-notes {
+      .dialog-content {
+        max-height: calc(100vh - 200px) !important;
+      }
+    }
+  }
+
+  @media (max-width: 600px) {
+    min-width: calc(100% - var(--spacing-double)) !important;
+    max-width: calc(100% - var(--spacing-double)) !important;
+
+    &#release-notes {
+      .container {
+        flex-direction: column;
+      }
+    }
+  }
+
   &#preferences {
     width: 600px;
 
     .dialog-content {
       min-height: 410px;
     }
-
-    // This is to ensure that the dialog content is accessible when zoomed in
-    @media (max-width: 600px) {
-      overflow-y: auto;
-      width: 100%;
-      max-width: calc(100% - var(--spacing-double));
-    }
   }
 
   &#about {
     width: 450px;
   }
+
   &#create-repository {
     width: 400px;
 
-    // This is to ensure that the dialog content is accessible when zoomed in
-    @media (max-width: 600px) {
-      overflow-y: auto;
-      width: 100%;
-      max-width: calc(100% - var(--spacing-double));
+    #create-repo-path-msg {
+      margin-bottom: var(--spacing);
+      margin-top: calc(-1 * var(--spacing));
     }
   }
+
   &#create-branch {
     width: 400px;
     .link-button-component {
@@ -470,6 +594,11 @@ dialog {
     .description {
       color: var(--text-secondary-color);
       font-size: var(--font-size-sm);
+      margin-bottom: var(--spacing);
+
+      p {
+        margin: 0;
+      }
     }
   }
 
@@ -509,7 +638,7 @@ dialog {
   }
 
   &#pull-request-checks-failed {
-    max-width: none;
+    max-width: calc(100% - var(--spacing-double));
     width: 910px;
   }
 

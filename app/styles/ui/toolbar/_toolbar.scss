@@ -34,18 +34,30 @@
   .toolbar-button {
     &.push-pull-button {
       width: 230px;
-    }
-  }
 
-  .toolbar-button {
+      &.resizable {
+        width: 100%;
+      }
+    }
     &.branch-toolbar-button {
       width: 230px;
+
+      &.resizable {
+        width: 100%;
+      }
     }
     &.revert-progress {
       width: 230px;
+
+      &.resizable {
+        width: 100%;
+      }
     }
     &.toolbar-dropdown-arrow-button {
       width: 39px;
+      &.resizable {
+        flex-shrink: 0;
+      }
     }
   }
 }

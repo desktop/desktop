@@ -2,7 +2,7 @@ import * as React from 'react'
 import classNames from 'classnames'
 
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { MenuItem } from '../../models/app-menu'
 import { AccessText } from '../lib/access-text'
 import { getPlatformSpecificNameOrSymbolForModifier } from '../../lib/menu-item'
@@ -95,9 +95,9 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
 
   private getIcon(item: MenuItem): JSX.Element | null {
     if (item.type === 'checkbox' && item.checked) {
-      return <Octicon className="icon" symbol={OcticonSymbol.check} />
+      return <Octicon className="icon" symbol={octicons.check} />
     } else if (item.type === 'radio' && item.checked) {
-      return <Octicon className="icon" symbol={OcticonSymbol.dotFill} />
+      return <Octicon className="icon" symbol={octicons.dotFill} />
     }
 
     return null
@@ -153,10 +153,7 @@ export class MenuListItem extends React.Component<IMenuListItemProps, {}> {
 
     const arrow =
       item.type === 'submenuItem' && this.props.renderSubMenuArrow !== false ? (
-        <Octicon
-          className="submenu-arrow"
-          symbol={OcticonSymbol.triangleRight}
-        />
+        <Octicon className="submenu-arrow" symbol={octicons.triangleRight} />
       ) : null
 
     const accelerator =

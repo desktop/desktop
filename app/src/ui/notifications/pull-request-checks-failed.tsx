@@ -15,16 +15,16 @@ import {
 import { Account } from '../../models/account'
 import { API, IAPIWorkflowJobStep } from '../../lib/api'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { RepositoryWithGitHubRepository } from '../../models/repository'
 import { CICheckRunActionsJobStepList } from '../check-runs/ci-check-run-actions-job-step-list'
-import { LinkButton } from '../lib/link-button'
 import { encodePathAsUrl } from '../../lib/path'
 import { PopupType } from '../../models/popup'
 import { CICheckReRunButton } from '../check-runs/ci-check-re-run-button'
 import { supportsRerunningIndividualOrFailedChecks } from '../../lib/endpoint-capabilities'
+import { CICheckRunNoStepItem } from '../check-runs/ci-check-run-no-steps'
+import { CICheckRunStepListHeader } from '../check-runs/ci-check-run-step-list-header'
 
-const PaperStackImage = encodePathAsUrl(__dirname, 'static/paper-stack.svg')
 const BlankSlateImage = encodePathAsUrl(
   __dirname,
   'static/empty-no-pull-requests.svg'
@@ -101,17 +101,16 @@ export class PullRequestChecksFailed extends React.Component<
 
     const header = (
       <div className="ci-check-run-dialog-header">
-        <Octicon symbol={OcticonSymbol.xCircleFill} />
+        <Octicon symbol={octicons.xCircleFill} />
         <div className="title-container">
           <div className="summary">
             {failedChecks.length} {pluralChecks} failed in your pull request
           </div>
           <span className="pr-title">
-            <span className="pr-title">{pullRequest.title}</span>{' '}
+            {pullRequest.title}{' '}
             <span className="pr-number">#{pullRequest.pullRequestNumber}</span>{' '}
           </span>
         </div>
-        {this.renderRerunButton()}
       </div>
     )
 
@@ -120,7 +119,8 @@ export class PullRequestChecksFailed extends React.Component<
         id="pull-request-checks-failed"
         type="normal"
         title={header}
-        dismissable={false}
+        renderHeaderAccessory={this.renderRerunButton}
+        backdropDismissable={false}
         onSubmit={this.props.onSubmit}
         onDismissed={this.props.onDismissed}
         loading={loadingChecksInfo || this.state.switchingToPullRequest}
@@ -186,29 +186,54 @@ export class PullRequestChecksFailed extends React.Component<
     )
   }
 
-  private renderCheckRunSteps() {
-    const selectedCheck = this.selectedCheck
-    if (selectedCheck === undefined) {
-      return null
+  private checkRunStepContent() {
+    if (this.loadingChecksInfo) {
+      return this.renderCheckRunStepsLoading()
     }
 
-    let stepsContent = null
-
-    if (this.loadingChecksInfo) {
-      stepsContent = this.renderCheckRunStepsLoading()
-    } else if (selectedCheck.actionJobSteps === undefined) {
-      stepsContent = this.renderEmptyLogOutput()
-    } else {
-      stepsContent = (
-        <CICheckRunActionsJobStepList
-          steps={selectedCheck.actionJobSteps}
-          onViewJobStep={this.onViewJobStep}
+    if (this.selectedCheck?.actionJobSteps === undefined) {
+      return (
+        <CICheckRunNoStepItem
+          onViewCheckExternally={this.onViewSelectedCheckRunOnGitHub}
         />
       )
     }
 
     return (
-      <div className="ci-check-run-job-steps-container">{stepsContent}</div>
+      <>
+        <CICheckRunStepListHeader
+          checkRun={this.selectedCheck}
+          onRerunJob={
+            supportsRerunningIndividualOrFailedChecks(
+              this.props.repository.gitHubRepository.endpoint
+            )
+              ? this.onRerunJob
+              : undefined
+          }
+          onViewCheckExternally={this.onViewSelectedCheckRunOnGitHub}
+        />
+        <CICheckRunActionsJobStepList
+          steps={this.selectedCheck.actionJobSteps}
+          onViewJobStep={this.onViewJobStep}
+        />
+      </>
+    )
+  }
+
+  private renderCheckRunSteps() {
+    if (this.selectedCheck === undefined) {
+      return null
+    }
+
+    return (
+      <div
+        className="ci-check-run-job-steps-container"
+        role="region"
+        id={`checkrun-${this.selectedCheck.id}`}
+        aria-labelledby={`check-run-header-${this.selectedCheck.id}`}
+      >
+        {this.checkRunStepContent()}
+      </div>
     )
   }
 
@@ -218,21 +243,6 @@ export class PullRequestChecksFailed extends React.Component<
         <img src={BlankSlateImage} className="blankslate-image" alt="" />
         <div className="title">Stand By</div>
         <div className="call-to-action">Check run steps incoming!</div>
-      </div>
-    )
-  }
-  private renderEmptyLogOutput() {
-    return (
-      <div className="no-steps-to-display">
-        <div className="text">
-          There are no steps to display for this check.
-          <div>
-            <LinkButton onClick={this.onViewSelectedCheckRunOnGitHub}>
-              View check details
-            </LinkButton>
-          </div>
-        </div>
-        <img src={PaperStackImage} className="blankslate-image" alt="" />
       </div>
     )
   }

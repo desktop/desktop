@@ -57,7 +57,7 @@ const rendererConfig = merge({}, common.renderer, config, {
         use: [
           'style-loader',
           { loader: 'css-loader', options: { sourceMap: true } },
-          'sass-loader?sourceMap',
+          { loader: 'sass-loader', options: { sourceMap: true } },
         ],
       },
     ],
@@ -79,7 +79,7 @@ const crashConfig = merge({}, common.crash, config, {
         use: [
           'style-loader',
           { loader: 'css-loader', options: { sourceMap: true } },
-          'sass-loader?sourceMap',
+          { loader: 'sass-loader', options: { sourceMap: true } },
         ],
       },
     ],

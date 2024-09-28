@@ -56,3 +56,23 @@ export async function getRepositoryType(path: string): Promise<RepositoryType> {
     throw err
   }
 }
+
+export async function getUpstreamRefForRef(path: string, ref?: string) {
+  const rev = (ref ?? '') + '@{upstream}'
+  const args = ['rev-parse', '--symbolic-full-name', rev]
+  const opts = { successExitCodes: new Set([0, 128]) }
+  const result = await git(args, path, 'getUpstreamRefForRef', opts)
+
+  return result.exitCode === 0 ? result.stdout.trim() : null
+}
+
+export async function getUpstreamRemoteNameForRef(path: string, ref?: string) {
+  const remoteRef = await getUpstreamRefForRef(path, ref)
+  return remoteRef?.match(/^refs\/remotes\/([^/]+)\//)?.[1] ?? null
+}
+
+export const getCurrentUpstreamRef = (path: string) =>
+  getUpstreamRefForRef(path)
+
+export const getCurrentUpstreamRemoteName = (path: string) =>
+  getUpstreamRemoteNameForRef(path)

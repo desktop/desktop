@@ -1,0 +1,36 @@
+name: Close issue/PR on adding invalid label
+
+# **What it does**: This action closes issues and PRs that are labeled as invalid in the Desktop repo.
+
+on:
+  issues:
+    types: [labeled]
+  # Needed in lieu of `pull_request` so that PRs from a fork can be
+  # closed when marked as invalid.
+  pull_request_target:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  close-on-adding-invalid-label:
+    if:
+      github.repository == 'desktop/desktop' && github.event.label.name ==
+      'invalid'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Close issue
+        if: ${{ github.event_name == 'issues' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue close ${{ github.event.issue.html_url }}
+
+      - name: Close PR
+        if: ${{ github.event_name == 'pull_request_target' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr close ${{ github.event.pull_request.html_url }}

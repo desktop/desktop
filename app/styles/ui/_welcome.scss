@@ -1,17 +1,75 @@
 #welcome {
+  // This is used to scale the font and inputs so that they are bigger on large
+  // screens. Before, we used the `zoom` property, but that was causing issues
+  // with the layout when zooming in/out.
+  --welcome-scale: 1;
+
+  @media screen and (min-width: 1366px) and (min-height: 700px) {
+    --welcome-scale: 1.2;
+  }
+
+  @media screen and (min-width: 1400px) and (min-height: 725px) {
+    --welcome-scale: 1.3;
+  }
+
+  @media screen and (min-width: 1600px) and (min-height: 750px) {
+    --welcome-scale: 1.4;
+  }
+
+  @media screen and (min-width: 1800px) and (min-height: 775px) {
+    --welcome-scale: 1.5;
+  }
+
+  --welcome-font-size: calc(var(--font-size) * var(--welcome-scale));
+  --welcome-font-size-sm: calc(var(--font-size-sm) * var(--welcome-scale));
+  --welcome-font-size-md: calc(var(--font-size-md) * var(--welcome-scale));
+  --welcome-font-size-xxl: calc(var(--font-size-xxl) * var(--welcome-scale));
+
   // Override the height of some components to make them bigger. The new height
   // is platform specific and defined as --welcome-item-height
-  --text-field-height: var(--welcome-item-height);
-  --button-height: var(--welcome-item-height);
+  --text-field-height: calc(var(--welcome-item-height) * var(--welcome-scale));
+  --button-height: calc(var(--welcome-item-height) * var(--welcome-scale));
+  --radio-control-radius: calc(13px * var(--welcome-scale));
+
+  --welcome-content-width: calc(500px * var(--welcome-scale));
+  --avatar-size: calc(16px * var(--welcome-scale));
 
   align-items: stretch;
   justify-content: center;
   flex-direction: row;
-  font-size: var(--font-size-md);
+  font-size: var(--welcome-font-size-md);
 
-  #start {
-    display: flex;
-    flex-direction: column;
+  input[type='radio'] {
+    width: var(--radio-control-radius);
+    height: var(--radio-control-radius);
+  }
+
+  #configure-git {
+    flex-grow: 1;
+    justify-content: center;
+
+    #configure-git-user {
+      padding-bottom: var(--spacing);
+      #commit-list.commit-list-example {
+        .commit {
+          font-size: var(--welcome-font-size);
+        }
+        .header,
+        .byline {
+          font-size: var(--welcome-font-size-sm);
+        }
+
+        .avatar {
+          width: var(--avatar-size);
+          height: var(--avatar-size);
+        }
+
+        .AvatarStack.AvatarStack--small {
+          width: calc(var(--avatar-size) + 5px);
+          height: var(--avatar-size);
+        }
+      }
+    }
   }
 
   .actions {
@@ -73,7 +131,7 @@
   input,
   button,
   select {
-    font-size: var(--font-size-md);
+    font-size: var(--welcome-font-size-md);
   }
 
   input {
@@ -116,10 +174,6 @@
     font-weight: var(--font-weight-semibold);
   }
 
-  .basic-auth-link {
-    font-size: var(--font-size);
-  }
-
   .welcome-main-buttons {
     margin-top: var(--spacing-quad);
 
@@ -127,6 +181,11 @@
       padding-left: var(--spacing-double);
       padding-right: var(--spacing-double);
       margin: 0 var(--spacing-double) var(--spacing) 0;
+
+      // Allows the button to take of full-width of the container when wrapped.
+      @media screen and (max-width: 600px) {
+        margin-right: 0;
+      }
     }
 
     .octicon.spin {
@@ -142,28 +201,22 @@
 }
 
 .welcome-title {
-  font-size: var(--font-size-xxl);
+  font-size: var(--welcome-font-size-xxl);
   font-weight: var(--font-weight-light);
   line-height: 1.25;
   margin-bottom: var(--spacing);
+
+  span {
+    display: inline-block;
+  }
 }
 
 .welcome-text {
   margin: var(--spacing) 0;
 }
 
-.welcome-button {
-  font-weight: var(--font-weight-semibold);
-  margin: var(--spacing) 0;
-}
-
 .sign-in-field {
   width: 100%;
-}
-
-.welcome-left {
-  flex-grow: 1;
-  width: 60%;
 }
 
 .welcome-right {
@@ -174,8 +227,21 @@
 .welcome-left {
   display: flex;
   align-items: center;
+  width: 60%;
   padding: var(--spacing-quad);
   position: relative;
+  height: 100vh;
+  overflow-y: auto;
+
+  .welcome-content {
+    max-width: var(--welcome-content-width);
+    width: 100%;
+
+    section {
+      // allows scrolling of flex containers
+      max-height: 100vh;
+    }
+  }
 
   .welcome-graphic-bottom {
     position: absolute;
@@ -200,21 +266,31 @@
     // I hate this but we'll have to live with it for beta.
     z-index: -1;
   }
+}
 
-  @media screen and (min-width: 1366px) {
-    zoom: 1.2;
+#start {
+  // makes up for the padding on the welcome-left that is applied to all welcome screens
+  // Having a min-height makes the start-footer be able to flex to take up the remaining vertical space
+  min-height: calc(100vh - 2 * var(--spacing-quad));
+  display: flex;
+  flex-direction: column;
+
+  .start-content {
+    // Make content take of remaining height of container besides the footer.
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    // The footer is ~100px tall in 100% zoom, this makes it so that the
+    // start-content is centered vertically on the screen for default zoom levels.
+    // Other levels, we are more concerned about not clipping then visual
+    // centering.
+    margin-top: 100px;
   }
 
-  @media screen and (min-width: 1400px) {
-    zoom: 1.3;
-  }
-
-  @media screen and (min-width: 1600px) {
-    zoom: 1.4;
-  }
-
-  @media screen and (min-width: 1800px) {
-    zoom: 1.5;
+  .start-footer {
+    font-size: var(--welcome-font-size-sm);
+    color: var(--text-secondary-color);
   }
 }
 
@@ -240,22 +316,6 @@
   .skip-button {
     color: var(--text-secondary-color);
   }
-}
-
-.welcome-start-disclaimer-container {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 0 var(--spacing-quad) var(--spacing-quad) var(--spacing-quad);
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary-color);
-}
-
-.welcome-content {
-  justify-content: center;
-  max-width: 500px;
-  width: 100%;
 }
 
 .forgot-password-link {

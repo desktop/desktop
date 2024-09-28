@@ -1496,14 +1496,17 @@ export class SectionList extends React.Component<
 
     this.lastScroll = 'fake'
 
-    // TODO: calculate scrollTop of the right grid(s)?
-
     if (this.rootGrid) {
       const element = ReactDOM.findDOMNode(this.rootGrid)
       if (element instanceof Element) {
         element.scrollTop = e.currentTarget.scrollTop
       }
     }
+
+    this.setState({ scrollTop: e.currentTarget.scrollTop })
+
+    // Make sure the root grid re-renders its children
+    this.rootGrid?.recomputeGridSize()
   }
 
   private onRowMouseDown = (

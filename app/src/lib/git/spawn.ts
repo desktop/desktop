@@ -13,6 +13,14 @@ type ProcessOutput = {
   exitCode: number | null
 }
 
+type SpawnOptions = IGitSpawnExecutionOptions & {
+  /**
+   * Whether the command about to run is part of a background task or not.
+   * This affects error handling and UI such as credential prompts.
+   */
+  readonly isBackgroundTask?: boolean
+}
+
 /**
  * Spawn a Git process, deferring all processing work to the caller.
  *
@@ -29,15 +37,19 @@ export const spawnGit = (
   args: string[],
   path: string,
   name: string,
-  options?: IGitSpawnExecutionOptions
+  options?: SpawnOptions
 ) =>
-  withTrampolineEnv(trampolineEnv =>
-    GitPerf.measure(`${name}: git ${args.join(' ')}`, async () =>
-      GitProcess.spawn(args, path, {
-        ...options,
-        env: { ...options?.env, ...trampolineEnv },
-      })
-    )
+  withTrampolineEnv(
+    trampolineEnv =>
+      GitPerf.measure(`${name}: git ${args.join(' ')}`, async () =>
+        GitProcess.spawn(args, path, {
+          ...options,
+          env: { ...options?.env, ...trampolineEnv },
+        })
+      ),
+    path,
+    options?.isBackgroundTask ?? false,
+    options?.env
   )
 
 /**

@@ -258,18 +258,28 @@ export class CloneRepository extends React.Component<
           onTabClicked={this.onTabClicked}
           selectedIndex={this.props.selectedTab}
         >
-          <span>GitHub.com</span>
-          <span>GitHub Enterprise</span>
-          <span>URL</span>
+          <span id="dotcom-tab">GitHub.com</span>
+          <span id="enterprise-tab">GitHub Enterprise</span>
+          <span id="url-tab">URL</span>
         </TabBar>
 
         {error ? <DialogError>{error.message}</DialogError> : null}
 
-        {this.renderActiveTab()}
+        <div role="tabpanel" aria-labelledby={this.getSelectedTabId()}>
+          {this.renderActiveTab()}
+        </div>
 
         {this.renderFooter()}
       </Dialog>
     )
+  }
+
+  private getSelectedTabId = () => {
+    return this.props.selectedTab === CloneRepositoryTab.DotCom
+      ? 'dotcom-tab'
+      : this.props.selectedTab === CloneRepositoryTab.Enterprise
+      ? 'enterprise-tab'
+      : 'url-tab'
   }
 
   private checkIfCloningDisabled = () => {
@@ -695,6 +705,10 @@ export class CloneRepository extends React.Component<
 
     if (this.props.enterpriseAccount) {
       accounts.push(this.props.enterpriseAccount)
+    }
+
+    if (url.endsWith('.wiki.git')) {
+      return { url }
     }
 
     const account = await findAccountForRemoteURL(url, accounts)

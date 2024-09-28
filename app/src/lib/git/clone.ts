@@ -30,7 +30,10 @@ export async function clone(
   options: CloneOptions,
   progressCallback?: (progress: ICloneProgress) => void
 ): Promise<void> {
-  const env = await envForRemoteOperation(options.account, url)
+  const env = {
+    ...(await envForRemoteOperation(url)),
+    GIT_CLONE_PROTECTION_ACTIVE: 'false',
+  }
 
   const defaultBranch = options.defaultBranch ?? (await getDefaultBranch())
 

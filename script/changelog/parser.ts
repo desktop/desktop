@@ -119,7 +119,7 @@ export async function convertToChangelogFormat(
   for (const line of lines) {
     try {
       const commit = parseCommitTitle(line)
-      const pr = await fetchPR(commit.prID)
+      const pr = fetchPR(commit.prID)
       if (!pr) {
         throw new Error(`Unable to get PR from API: ${commit.prID}`)
       }

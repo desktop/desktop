@@ -1,24 +1,24 @@
 import pLimit from 'p-limit'
 import QuickLRU from 'quick-lru'
 
+import { Disposable, DisposableLike } from 'event-kit'
+import xor from 'lodash/xor'
 import { Account } from '../../models/account'
-import { AccountsStore } from './accounts-store'
 import { GitHubRepository } from '../../models/github-repository'
 import { API, getAccountForEndpoint, IAPICheckSuite } from '../api'
-import { DisposableLike, Disposable } from 'event-kit'
 import {
+  apiCheckRunToRefCheck,
+  apiStatusToRefCheck,
+  createCombinedCheckFromChecks,
+  getCheckRunActionsWorkflowRuns,
+  getLatestCheckRunsById,
+  getLatestPRWorkflowRunsLogsForCheckRun,
   ICombinedRefCheck,
   IRefCheck,
-  createCombinedCheckFromChecks,
-  apiCheckRunToRefCheck,
-  getLatestCheckRunsByName,
-  apiStatusToRefCheck,
-  getLatestPRWorkflowRunsLogsForCheckRun,
-  getCheckRunActionsWorkflowRuns,
   manuallySetChecksToPending,
 } from '../ci-checks/ci-checks'
-import xor from 'lodash/xor'
 import { offsetFromNow } from '../offset-from'
+import { AccountsStore } from './accounts-store'
 
 interface ICommitStatusCacheEntry {
   /**
@@ -310,9 +310,7 @@ export class CommitStatusStore {
     }
 
     if (checkRuns !== null) {
-      const latestCheckRunsByName = getLatestCheckRunsByName(
-        checkRuns.check_runs
-      )
+      const latestCheckRunsByName = getLatestCheckRunsById(checkRuns.check_runs)
       checks.push(...latestCheckRunsByName.map(apiCheckRunToRefCheck))
     }
 

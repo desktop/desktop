@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react'
-import { Octicon, OcticonSymbolType } from '../octicons'
+import { Octicon, OcticonSymbol } from '../octicons'
 import classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
@@ -8,6 +8,7 @@ import { clamp } from '../../lib/clamp'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip, TooltipDirection, TooltipTarget } from '../lib/tooltip'
 import { AriaHasPopupType } from '../lib/aria-types'
+import { enableResizingToolbarButtons } from '../../lib/feature-flag'
 
 /** The button style. */
 export enum ToolbarButtonStyle {
@@ -29,7 +30,7 @@ export interface IToolbarButtonProps {
   readonly tooltip?: string
 
   /** An optional symbol to be displayed next to the button text */
-  readonly icon?: OcticonSymbolType
+  readonly icon?: OcticonSymbol
 
   /** The class name for the icon element. */
   readonly iconClassName?: string
@@ -189,6 +190,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, {}> {
     const className = classNames(
       'toolbar-button',
       { 'has-progress': this.props.progressValue !== undefined },
+      { resizable: enableResizingToolbarButtons() },
       this.props.className
     )
 

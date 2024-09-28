@@ -5,6 +5,13 @@ import { createUniqueId, releaseUniqueId } from '../lib/id-pool'
 import { getTitleBarHeight } from '../window/title-bar'
 import { isTopMostDialog } from './is-top-most'
 import { isMacOSSonoma, isMacOSVentura } from '../../lib/get-os'
+import { sendDialogDidOpen } from '../main-process-proxy'
+
+/**
+ * Class name used for elements that should be focused initially when a dialog
+ * is shown.
+ */
+export const DialogPreferredFocusClassName = 'dialog-preferred-focus'
 
 export interface IDialogStackContext {
   /** Whether or not this dialog is the top most one in the stack to be
@@ -62,19 +69,39 @@ interface IDialogProps {
   readonly title?: string | JSX.Element
 
   /**
-   * Whether or not the dialog should be dismissable. A dismissable dialog
-   * can be dismissed either by clicking on the backdrop or by clicking
-   * the close button in the header (if a header was specified). Dismissal
-   * will trigger the onDismissed event which callers must handle and pass
-   * on to the dispatcher in order to close the dialog.
-   *
-   * A non-dismissable dialog can only be closed by means of the component
-   * implementing a dialog. An example would be a critical error or warning
-   * that requires explicit user action by for example clicking on a button.
+   * Typically, a titleId is automatically generated based on the title
+   * attribute if it is a string. If it is not provided, we must assume the
+   * responsibility of providing a titleID that is used as the id of the h1 in
+   * the custom header and used in the aria attributes in this dialog component.
+   * By providing this titleID, the state.titleID will be set to this value and
+   * used in the aria attributes.
+   * */
+  readonly titleId?: string
+
+  /**
+   * An optional element to render to the right of the dialog title.
+   * This can be used to render additional controls that don't belong to the
+   * heading element itself, but are still part of the header (visually).
+   */
+  readonly renderHeaderAccessory?: () => JSX.Element
+
+  /**
+   * Whether or not the dialog should be dismissable by clicking on the
+   * backdrop. Dismissal will trigger the onDismissed event which callers
+   * must handle and pass on to the dispatcher in order to close the dialog.
    *
    * Defaults to true if omitted.
    */
-  readonly dismissable?: boolean
+  readonly backdropDismissable?: boolean
+
+  /**
+   * Whether or not the dialog should be dismissable by any built-in means
+   * (like pressing Escape, clicking on the close button, or clicking on the
+   * backdrop -if enabled-).
+   *
+   * Defaults to false if omitted.
+   */
+  readonly dismissDisabled?: boolean
 
   /**
    * Event triggered when the dialog is dismissed by the user in the
@@ -251,7 +278,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
 
   public constructor(props: DialogProps) {
     super(props)
-    this.state = { isAppearing: true }
+    this.state = { isAppearing: true, titleId: this.props.titleId }
 
     // Observe size changes and let codemirror know
     // when it needs to refresh.
@@ -320,11 +347,20 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     )
   }
 
+  private isBackdropDismissable() {
+    return this.props.backdropDismissable !== false
+  }
+
   private isDismissable() {
-    return this.props.dismissable === undefined || this.props.dismissable
+    return this.props.dismissDisabled !== true
   }
 
   private updateTitleId() {
+    if (this.props.titleId) {
+      // Using the one provided that is used in a custom header
+      return
+    }
+
     if (this.state.titleId) {
       releaseUniqueId(this.state.titleId)
       this.setState({ titleId: undefined })
@@ -346,6 +382,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
   }
 
   public componentDidMount() {
+    sendDialogDidOpen()
     this.checkIsTopMostDialog(this.context.isTopMost)
   }
 
@@ -419,7 +456,11 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
    * In attempting to follow the guidelines outlined above we follow a priority
    * order in determining the first suitable child.
    *
-   *  1. The element with the lowest positive tabIndex
+   *  1. An element marked with the `DialogPreferredFocusClassName` class.
+   *     Sometimes we just need a specific element to get focus first, and it's
+   *     hard to fit it into the rest of these generic focus rules.
+   *
+   *  2. The element with the lowest positive tabIndex
    *     This might sound counterintuitive but imagine the following pseudo
    *     dialog this would be button D as button D would be the first button
    *     to get focused when hitting Tab.
@@ -431,17 +472,17 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
    *      <button tabIndex=1>D</button>
    *     </dialog>
    *
-   *  2. The first element which is either implicitly keyboard focusable (like a
+   *  3. The first element which is either implicitly keyboard focusable (like a
    *     text input field) or explicitly focusable through tabIndex=0 (like a TabBar
    *     tab)
    *
-   *  3. The first submit button. We use this as a proxy for what macOS HIG calls
+   *  4. The first submit button. We use this as a proxy for what macOS HIG calls
    *     "default button". It's not the same thing but for our purposes it's close
    *     enough.
    *
-   *  4. Any remaining button
+   *  5. Any remaining button
    *
-   *  5. The dialog close button
+   *  6. The dialog close button
    *
    */
   public focusFirstSuitableChild() {
@@ -457,6 +498,9 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       'button:not(:disabled):not([tabindex="-1"])',
       '[tabindex]:not(:disabled):not([tabindex="-1"])',
     ].join(', ')
+
+    // Element marked as "preferred" to have the focus when dialog is shown
+    let firstPreferred: HTMLElement | null = null
 
     // The element which has the lowest explicit tab index (i.e. greater than 0)
     let firstExplicit: { 0: number; 1: HTMLElement | null } = [Infinity, null]
@@ -492,6 +536,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       ':not([type=radio])',
     ]
 
+    const preferredFirstSelector = `.${DialogPreferredFocusClassName}`
     const inputSelector = `input${excludedInputTypes.join('')}, textarea`
     const buttonSelector =
       'input[type=button], input[type=submit] input[type=reset], button'
@@ -505,7 +550,12 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
 
       const tabIndex = parseInt(candidate.getAttribute('tabindex') || '', 10)
 
-      if (tabIndex > 0 && tabIndex < firstExplicit[0]) {
+      if (
+        firstPreferred === null &&
+        candidate.matches(preferredFirstSelector)
+      ) {
+        firstPreferred = candidate
+      } else if (tabIndex > 0 && tabIndex < firstExplicit[0]) {
         firstExplicit = [tabIndex, candidate]
       } else if (
         firstTabbable === null &&
@@ -527,6 +577,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     }
 
     const focusCandidates = [
+      firstPreferred,
       firstExplicit[1],
       firstTabbable,
       firstSubmitButton,
@@ -593,7 +644,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       return
     }
 
-    if (this.isDismissable() === false) {
+    if (!this.isDismissable() || !this.isBackdropDismissable()) {
       return
     }
 
@@ -686,6 +737,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     if (event.defaultPrevented) {
       return
     }
+
     const shortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
     if ((shortcutKey && event.key === 'w') || event.key === 'Escape') {
       this.onDialogCancel(event)
@@ -719,8 +771,9 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       <DialogHeader
         title={this.props.title}
         titleId={this.state.titleId}
-        dismissable={this.isDismissable()}
-        onDismissed={this.onDismiss}
+        showCloseButton={this.isDismissable()}
+        onCloseButtonClick={this.onDismiss}
+        renderAccessory={this.props.renderHeaderAccessory}
         loading={this.props.loading}
       />
     )

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Row } from '../lib/row'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
 interface IAddSSHHostProps {
@@ -22,18 +21,17 @@ export class AddSSHHost extends React.Component<IAddSSHHostProps> {
         id="add-ssh-host"
         type="normal"
         title="SSH Host"
-        dismissable={false}
+        backdropDismissable={false}
         onSubmit={this.onSubmit}
-        onDismissed={this.props.onDismissed}
+        onDismissed={this.onCancel}
       >
         <DialogContent>
-          <Row>
+          <p>
             The authenticity of host '{this.props.host} ({this.props.ip})' can't
             be established. {this.props.keyType} key fingerprint is{' '}
             {this.props.fingerprint}.
-            <br />
-            Are you sure you want to continue connecting?
-          </Row>
+          </p>
+          <p>Are you sure you want to continue connecting?</p>
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup

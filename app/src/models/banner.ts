@@ -1,3 +1,4 @@
+import { Emoji } from '../lib/emoji'
 import { Popup } from './popup'
 
 export enum BannerType {
@@ -15,7 +16,8 @@ export enum BannerType {
   SuccessfulSquash = 'SuccessfulSquash',
   SuccessfulReorder = 'SuccessfulReorder',
   ConflictsFound = 'ConflictsFound',
-  WindowsVersionNoLongerSupported = 'WindowsVersionNoLongerSupported',
+  OSVersionNoLongerSupported = 'OSVersionNoLongerSupported',
+  AccessibilitySettingsBanner = 'AccessibilitySettingsBanner',
 }
 
 export type Banner =
@@ -79,7 +81,7 @@ export type Banner =
     }
   | {
       readonly type: BannerType.OpenThankYouCard
-      readonly emoji: Map<string, string>
+      readonly emoji: Map<string, Emoji>
       readonly onOpenCard: () => void
       readonly onThrowCardAway: () => void
     }
@@ -120,4 +122,8 @@ export type Banner =
       /** callback to run when user clicks on link in banner text */
       readonly onOpenConflictsDialog: () => void
     }
-  | { readonly type: BannerType.WindowsVersionNoLongerSupported }
+  | { readonly type: BannerType.OSVersionNoLongerSupported }
+  | {
+      readonly type: BannerType.AccessibilitySettingsBanner
+      readonly onOpenAccessibilitySettings: () => void
+    }

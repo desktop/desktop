@@ -10,11 +10,13 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { DesktopFakeRepository } from '../../lib/desktop-fake-repository'
 import { SandboxedMarkdown } from '../lib/sandboxed-markdown'
 import { Button } from '../lib/button'
+import { Emoji } from '../../lib/emoji'
 
 interface IReleaseNotesProps {
   readonly onDismissed: () => void
-  readonly emoji: Map<string, string>
+  readonly emoji: Map<string, Emoji>
   readonly newReleases: ReadonlyArray<ReleaseSummary>
+  readonly underlineLinks: boolean
 }
 
 /**
@@ -118,6 +120,8 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
         markdown={pretext[0].message}
         emoji={this.props.emoji}
         onMarkdownLinkClicked={this.onMarkdownLinkClicked}
+        underlineLinks={this.props.underlineLinks}
+        ariaLabel="Release notes generated from markdown"
       />
     )
   }

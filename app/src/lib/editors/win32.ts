@@ -150,6 +150,18 @@ const validateStartsWith = (
 }
 
 /**
+ * Handles cases where the value includes:
+ * - An icon index after a comma (e.g., "C:\Path\app.exe,0")
+ * - Surrounding quotes (e.g., ""C:\Path\app.exe",0")
+ * and returns only the path to the executable.
+ */
+const getCleanInstallLocationFromDisplayIcon = (
+  displayIconValue: string
+): string => {
+  return displayIconValue.split(',')[0].replace(/"/g, '')
+}
+
+/**
  * This list contains all the external editors supported on Windows. Add a new
  * entry here to add support for your favorite editor.
  **/
@@ -489,6 +501,14 @@ const editors: WindowsExternalEditor[] = [
     publishers: ['JetBrains s.r.o.'],
   },
   {
+    name: 'JetBrains RustRover',
+    registryKeys: registryKeysForJetBrainsIDE('RustRover'),
+    executableShimPaths: executableShimPathsForJetBrainsIDE('rustrover'),
+    jetBrainsToolboxScriptName: 'rustrover',
+    displayNamePrefixes: ['RustRover '],
+    publishers: ['JetBrains s.r.o.'],
+  },
+  {
     name: 'Pulsar',
     registryKeys: [
       CurrentUserUninstallKey('0949b555-c22c-56b7-873a-a960bdefa81f'),
@@ -497,6 +517,15 @@ const editors: WindowsExternalEditor[] = [
     executableShimPaths: [['..', 'pulsar', 'Pulsar.exe']],
     displayNamePrefixes: ['Pulsar'],
     publishers: ['Pulsar-Edit'],
+  },
+  {
+    name: 'Cursor',
+    registryKeys: [
+      CurrentUserUninstallKey('62625861-8486-5be9-9e46-1da50df5f8ff'),
+    ],
+    installLocationRegistryKey: 'DisplayIcon',
+    displayNamePrefixes: ['Cursor'],
+    publishers: ['Cursor AI, Inc.'],
   },
 ]
 
@@ -540,7 +569,7 @@ async function findApplication(editor: WindowsExternalEditor) {
 
     const executableShimPaths =
       editor.installLocationRegistryKey === 'DisplayIcon'
-        ? [installLocation]
+        ? [getCleanInstallLocationFromDisplayIcon(installLocation)]
         : editor.executableShimPaths.map(p => Path.join(installLocation, ...p))
 
     for (const path of executableShimPaths) {

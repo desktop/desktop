@@ -1,8 +1,8 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import * as React from 'react'
-import { Octicon, OcticonSymbolType } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import { Octicon, OcticonSymbol } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 import { assertNever } from '../../lib/fatal-error'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { rectEquals } from '../lib/rect'
@@ -11,6 +11,7 @@ import FocusTrap from 'focus-trap-react'
 import { Options as FocusTrapOptions } from 'focus-trap'
 import { TooltipTarget } from '../lib/tooltip'
 import { AriaHasPopupType } from '../lib/aria-types'
+import { enableResizingToolbarButtons } from '../../lib/feature-flag'
 
 export type DropdownState = 'open' | 'closed'
 
@@ -44,7 +45,7 @@ export interface IToolbarDropdownProps {
   readonly tooltip?: string
 
   /** An optional symbol to be displayed next to the button text */
-  readonly icon?: OcticonSymbolType
+  readonly icon?: OcticonSymbol
 
   /**
    * The state for of the drop down button.
@@ -124,10 +125,23 @@ export interface IToolbarDropdownProps {
   readonly enableFocusTrap?: boolean
 
   /**
-   * Sets the styles for the dropdown's foldout. Useful for custom positioning
-   * and sizes.
+   * Sets the styles for the dropdown's foldout, replacing the defaults.
+   * Useful for custom positioning and sizes.
+   *
+   * Note: If this property is set, the default positioning, size, and
+   * `foldoutStyleOverrides` property are all ignored.
    */
   readonly foldoutStyle?: React.CSSProperties
+
+  /**
+   * Sets additional styles that add to or override the default foldout style.
+   *
+   * Use as an alternative to `foldoutStyle`, when only certain properties need
+   * to be customized and the default style and placement should still apply.
+   *
+   * Note: If `foldoutStyle` is set, this property is ignored.
+   */
+  readonly foldoutStyleOverrides?: React.CSSProperties
 
   /**
    * Whether the button should displays its disclosure arrow. Defaults to true.
@@ -251,13 +265,13 @@ export class ToolbarDropdown extends React.Component<
     return this.props.dropdownState === 'open'
   }
 
-  private dropdownIcon(state: DropdownState): OcticonSymbolType {
+  private dropdownIcon(state: DropdownState): OcticonSymbol {
     // @TODO: Remake triangle octicon in a 12px version,
     // right now it's scaled badly on normal dpi monitors.
     if (state === 'open') {
-      return OcticonSymbol.triangleUp
+      return octicons.triangleUp
     } else if (state === 'closed') {
-      return OcticonSymbol.triangleDown
+      return octicons.triangleDown
     } else {
       return assertNever(state, `Unknown dropdown state ${state}`)
     }
@@ -352,7 +366,7 @@ export class ToolbarDropdown extends React.Component<
     }
 
     return {
-      position: 'absolute',
+      position: enableResizingToolbarButtons() ? 'fixed' : 'absolute',
       top: rect.bottom,
       left: 0,
       width: '100%',
@@ -361,6 +375,7 @@ export class ToolbarDropdown extends React.Component<
   }
 
   private getFoldoutStyle(): React.CSSProperties | undefined {
+    // if `foldoutStyle` is set, ignore default style and `foldoutStyleOverrides`
     if (this.props.foldoutStyle) {
       return this.props.foldoutStyle
     }
@@ -375,11 +390,15 @@ export class ToolbarDropdown extends React.Component<
         ? { maxHeight: '100%', width: rect.width }
         : { height: '100%', minWidth: rect.width }
 
+    const overrides: React.CSSProperties =
+      this.props.foldoutStyleOverrides ?? {}
+
     return {
       position: 'absolute',
       marginLeft: rect.left,
       top: 0,
       ...heightStyle,
+      ...overrides,
     }
   }
 

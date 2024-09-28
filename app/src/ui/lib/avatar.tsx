@@ -1,17 +1,17 @@
 import * as React from 'react'
 import { IAvatarUser } from '../../models/avatar'
-import { shallowEquals } from '../../lib/equality'
-import { Octicon } from '../octicons'
-import { API, getDotComAPIEndpoint } from '../../lib/api'
+import { Octicon, OcticonSymbolVariant } from '../octicons'
+import { API, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 import { TooltippedContent } from './tooltipped-content'
 import { TooltipDirection } from './tooltip'
 import {
-  isDotCom,
   isGHE,
   isGHES,
   supportsAvatarsAPI,
 } from '../../lib/endpoint-capabilities'
 import { Account } from '../../models/account'
+import { parseStealthEmail } from '../../lib/email'
+import { noop } from 'lodash'
 import { offsetFrom } from '../../lib/offset-from'
 import { ExpiringOperationCache } from './expiring-operation-cache'
 import { forceUnwrap } from '../../lib/fatal-error'
@@ -37,6 +37,81 @@ const avatarTokenCache = new ExpiringOperationCache<
     return forceUnwrap('Avatar token missing', token)
   },
   () => offsetFrom(0, 50, 'minutes')
+)
+
+const getBotLogin = (user: IAvatarUser) => {
+  const { endpoint } = user
+  if (user.avatarURL !== undefined || endpoint === null) {
+    return undefined
+  }
+
+  const match = parseStealthEmail(user.email, endpoint)
+
+  return match?.login?.endsWith('[bot]') ? match.login : undefined
+}
+
+const botAvatarCache = new ExpiringOperationCache<
+  { user: IAvatarUser; accounts: ReadonlyArray<Account> },
+  IAvatarUser
+>(
+  ({ user }) => `${user.endpoint}:${user.email}`,
+  async ({ user, accounts }) => {
+    const { endpoint } = user
+    if (user.avatarURL !== undefined || endpoint === null) {
+      throw new Error('Avatar URL already resolved or endpoint is missing')
+    }
+
+    const account = accounts.find(a => a.endpoint === user.endpoint)
+
+    if (!account) {
+      throw new Error('No account found for endpoint')
+    }
+
+    const login = getBotLogin(user)
+
+    if (!login) {
+      throw new Error('Email does not appear to be a bot email')
+    }
+
+    const api = new API(endpoint, account.token)
+    const apiUser = await api.fetchUser(login)
+
+    if (!apiUser?.avatar_url) {
+      throw new Error('No avatar url returned from API')
+    }
+
+    return { ...user, avatarURL: apiUser.avatar_url }
+  },
+  ({ user }) =>
+    user.endpoint && isGHE(user.endpoint)
+      ? offsetFrom(0, 50, 'minutes')
+      : Infinity
+)
+
+const dotComBot = (login: string, id: number, integrationId: number) => {
+  const avatarURL = `https://avatars.githubusercontent.com/in/${integrationId}?v=4`
+  const endpoint = getDotComAPIEndpoint()
+  const stealthHost = 'users.noreply.github.com'
+  return [
+    {
+      email: `${id}+${login}@${stealthHost}`,
+      name: login,
+      avatarURL,
+      endpoint,
+    },
+    { email: `${login}@${stealthHost}`, name: login, avatarURL, endpoint },
+  ]
+}
+
+const knownAvatars: ReadonlyArray<IAvatarUser> = [
+  ...dotComBot('dependabot[bot]', 49699333, 29110),
+  ...dotComBot('github-actions[bot]', 41898282, 15368),
+  ...dotComBot('github-pages[bot]', 52472962, 34598),
+]
+
+// Preload some of the more popular bot avatars so we don't have to hit the API
+knownAvatars.forEach(user =>
+  botAvatarCache.set({ user, accounts: [] }, user, Infinity)
 )
 
 /**
@@ -107,10 +182,33 @@ interface IAvatarState {
  * The octicon has been tweaked to add some padding and so that it scales nicely in
  * a square aspect ratio.
  */
-const DefaultAvatarSymbol = {
+const DefaultAvatarSymbol: OcticonSymbolVariant = {
   w: 16,
   h: 16,
-  d: 'M13 13.145a.844.844 0 0 1-.832.855H3.834A.846.846 0 0 1 3 13.142v-.856c0-2.257 3.333-3.429 3.333-3.429s.191-.35 0-.857c-.7-.531-.786-1.363-.833-3.429C5.644 2.503 7.056 2 8 2s2.356.502 2.5 2.571C10.453 6.637 10.367 7.47 9.667 8c-.191.506 0 .857 0 .857S13 10.03 13 12.286v.859z',
+  p: [
+    'M13 13.145a.844.844 0 0 1-.832.855H3.834A.846.846 0 0 1 3 13.142v-.856c0-2.257 3.333-3.429 3.333-3.429s.191-.35 0-.857c-.7-.531-.786-1.363-.833-3.429C5.644 2.503 7.056 2 8 2s2.356.502 2.5 2.571C10.453 6.637 10.367 7.47 9.667 8c-.191.506 0 .857 0 .857S13 10.03 13 12.286v.859z',
+  ],
+}
+
+function getEmailAvatarUrl(ep: string) {
+  if (isGHES(ep)) {
+    // GHES Endpoint urls look something like https://github.example.com/api/v3
+    // (note the lack of a trailing slash). We really should change our endpoint
+    // URLs to always have a trailing slash but that's one heck of an
+    // undertaking since we'd have to migrate all the existing endpoints in
+    // our IndexedDB databases so for now we'll just assume we'll add a trailing
+    // slash in the future and be future proof.
+    return new URL(`enterprise/avatars/u/e`, ep.endsWith('/') ? ep : `${ep}/`)
+  } else if (isGHE(ep)) {
+    // getHTMLURL(ep) is a noop here since it currently only deals with
+    // github.com and assumes all others confrom to the GHES url structure but
+    // we're likely going to need to update that in the future to support
+    // ghe.com specifically so we're calling it here for future proofing.
+    return new URL('/avatars/u/e', getHTMLURL(ep))
+  } else {
+    // It's safe to fall back to GitHub.com, at worst we'll get identicons
+    return new URL('https://avatars.githubusercontent.com/u/e')
+  }
 }
 
 /**
@@ -164,9 +262,7 @@ function getAvatarUrlCandidates(
     return []
   }
 
-  const emailAvatarUrl = isDotCom(ep)
-    ? new URL('https://avatars.githubusercontent.com/u/e')
-    : new URL(isGHES(ep) ? '/enterprise/avatars/u/e' : '/avatars/u/e', ep)
+  const emailAvatarUrl = getEmailAvatarUrl(ep)
 
   emailAvatarUrl.searchParams.set('email', email)
   emailAvatarUrl.searchParams.set('s', `${size}`)
@@ -183,10 +279,14 @@ function getAvatarUrlCandidates(
 const getInitialStateForUser = (
   user: IAvatarUser | undefined,
   accounts: ReadonlyArray<Account>,
-  size: number | undefined
+  size: number | undefined,
+  avatarToken?: string
 ): Pick<IAvatarState, 'user' | 'candidates' | 'avatarToken'> => {
+  if (user && !user.avatarURL) {
+    user = botAvatarCache.tryGet({ user, accounts }) ?? user
+  }
   const endpoint = user?.endpoint
-  const avatarToken =
+  avatarToken ??=
     endpoint && isGHE(endpoint)
       ? avatarTokenCache.tryGet({ endpoint, accounts })
       : undefined
@@ -201,16 +301,21 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     props: IAvatarProps,
     state: IAvatarState
   ) {
-    const { user, size, accounts } = props
-    // If the endpoint has changed we need to reset the avatar token so that
-    // it'll be re-fetched for the new endpoint
-    return shallowEquals(user, state.user)
-      ? null
-      : getInitialStateForUser(user, accounts, size)
+    // Explicitly exclude equality checks on avatarURL or else we'll end up
+    // infinitely looping when the user gets resolved into a bot account
+    if (
+      props.user?.email !== state.user?.email ||
+      props.user?.endpoint !== state.user?.endpoint ||
+      props.user?.name !== state.user?.name
+    ) {
+      return getInitialStateForUser(props.user, props.accounts, props.size)
+    }
+
+    return null
   }
 
   /** Set to true when unmounting to avoid unnecessary state updates */
-  private cancelAvatarTokenRequest = false
+  private cancelAvatarRequests = false
 
   public constructor(props: IAvatarProps) {
     super(props)
@@ -224,7 +329,8 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
   }
 
   private getTitle() {
-    const { title, user, accounts } = this.props
+    const { title, accounts } = this.props
+    const { user } = this.state
 
     if (title === null) {
       return undefined
@@ -265,8 +371,7 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
 
   public render() {
     const title = this.getTitle()
-    const { user } = this.props
-    const { imageError } = this.state
+    const { imageError, user } = this.state
     const alt = user
       ? `Avatar for ${user.name || user.email}`
       : `Avatar for unknown user`
@@ -325,7 +430,8 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     // the endpoint still matches
     // also need to keep track of whether we have an async fetch in flight or
     // not so we don't trigger multiple fetches for the same endpoint
-    const { user, accounts } = this.props
+    const { accounts } = this.props
+    const { user } = this.state
     const endpoint = user?.endpoint
 
     // We've already got a token or we don't have a user, nothing to do here
@@ -345,42 +451,74 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
     }
 
     this.setState({
-      avatarToken: avatarTokenCache.get({ endpoint, accounts }).then(token => {
-        if (!this.cancelAvatarTokenRequest) {
-          if (token && this.props.user?.endpoint === endpoint) {
-            this.resetAvatarCandidates(token)
+      avatarToken: avatarTokenCache
+        .get({ endpoint, accounts })
+        .then(token => {
+          if (!this.cancelAvatarRequests) {
+            if (token && this.state.user?.endpoint === endpoint) {
+              this.resetAvatarCandidates(token)
+            }
           }
-        }
-      }),
+        })
+        .catch(e => log.debug(`Failed to fetch avatar token: ${e}`)),
     })
   }
 
   public componentDidUpdate(prevProps: IAvatarProps, prevState: IAvatarState) {
     this.ensureAvatarToken()
+
+    const oldUser = prevState.user
+    const newUser = this.state.user
+
+    if (
+      oldUser?.endpoint !== newUser?.endpoint ||
+      oldUser?.email !== newUser?.email
+    ) {
+      this.resolveBotAvatar()
+    }
   }
 
   private resetAvatarCandidates(avatarToken?: string) {
-    const { user, size, accounts } = this.props
-    if (!avatarToken && user?.endpoint && isGHE(user.endpoint)) {
-      avatarToken =
-        avatarTokenCache.tryGet({ endpoint: user.endpoint, accounts }) ??
-        avatarToken
-    }
+    const { user } = this.state
+    const { size, accounts } = this.props
 
-    const candidates = getAvatarUrlCandidates(user, avatarToken, size)
-
-    this.setState({ candidates, avatarToken })
+    this.setState(getInitialStateForUser(user, accounts, size, avatarToken))
   }
 
   public componentDidMount() {
     window.addEventListener('online', this.onInternetConnected)
     pruneExpiredFailingAvatars()
     this.ensureAvatarToken()
+    this.resolveBotAvatar()
+  }
+
+  private resolveBotAvatar() {
+    const { accounts } = this.props
+    const { user } = this.state
+
+    if (user?.endpoint && !user.avatarURL && getBotLogin(user)) {
+      botAvatarCache
+        .get({ user, accounts })
+        .then(resolved => {
+          if (
+            !this.cancelAvatarRequests &&
+            user.endpoint === resolved.endpoint &&
+            user.email === resolved.email &&
+            user.name === resolved.name &&
+            user.avatarURL !== resolved.avatarURL
+          ) {
+            this.setState({ user: resolved }, () =>
+              this.resetAvatarCandidates()
+            )
+          }
+        })
+        .catch(noop)
+    }
   }
 
   public componentWillUnmount() {
     window.removeEventListener('online', this.onInternetConnected)
-    this.cancelAvatarTokenRequest = true
+    this.cancelAvatarRequests = true
   }
 
   private onInternetConnected = () => {

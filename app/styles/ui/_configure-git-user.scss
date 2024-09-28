@@ -1,6 +1,15 @@
 #configure-git-user {
   .form-component {
     margin: var(--spacing-double) 0;
+
+    // prevents jumpiness when switching between manual and github account options
+    .sign-in-form-inputs {
+      min-height: 150px;
+    }
+
+    .text-box-component {
+      flex: unset;
+    }
   }
 
   .config-lock-file-exists-component {
@@ -30,13 +39,13 @@
     .commit {
       font-size: var(--font-size);
       padding: var(--spacing-half) var(--spacing);
-      width: 280px;
+      width: 100%;
+      max-width: 280px;
       border-bottom: none;
     }
   }
 
   .git-config-loading {
     color: var(--text-secondary-color);
-    height: 107px; // Height of name/email input to prevent jumping
   }
 }

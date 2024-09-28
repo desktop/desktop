@@ -6,6 +6,14 @@
       flex: 1;
     }
 
+    fieldset {
+      border: none;
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
     .advanced-section {
       &:not(:last-child) {
         margin-bottom: var(--spacing);
@@ -16,6 +24,10 @@
       }
 
       .git-settings-description {
+        margin-top: var(--spacing);
+      }
+
+      .setting-hint-warning {
         margin-top: var(--spacing);
       }
 
@@ -33,6 +45,12 @@
 
   .accounts-tab {
     .account-info {
+      .user-info-container {
+        display: flex;
+        flex-grow: 1;
+        gap: var(--spacing);
+      }
+
       .avatar {
         // 32px for the image + 2 on each side for the base border.
         width: 34px;
@@ -51,6 +69,20 @@
           // username lines up with the avatar.
           margin-top: -2px;
           margin-bottom: -2px;
+        }
+      }
+    }
+
+    @media (max-width: 600px) {
+      .account-info {
+        flex-direction: column;
+
+        .user-info-container {
+          margin-bottom: var(--spacing);
+        }
+
+        .button-component {
+          align-self: normal;
         }
       }
     }
@@ -164,6 +196,19 @@
 
   p {
     word-wrap: break-word;
+  }
+}
+
+.custom-integration-form-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  gap: var(--spacing-half);
+
+  .custom-integration-form-path-container {
+    display: flex;
+    gap: var(--spacing);
   }
 }
 

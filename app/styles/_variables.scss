@@ -14,9 +14,9 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 :root {
   --color-new: #{$green-600};
   --color-deleted: #{$red-600};
-  --color-modified: #{$yellow-700};
+  --color-modified: #{darken($yellow-700, 10%)};
   --color-renamed: #{$blue};
-  --color-conflicted: #{$orange};
+  --color-conflicted: #{$orange-600};
 
   --text-color: #{$gray-900};
   --text-secondary-color: #{$gray-500};
@@ -277,7 +277,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --toolbar-button-focus-progress-color: #{$gray-700};
   --toolbar-button-hover-progress-color: #{$gray-700};
   --toolbar-dropdown-open-progress-color: #{$gray-200};
-  --toolbar-dropdown-text-warning-color: #{$yellow-800};
+  --toolbar-dropdown-text-warning-color: #{$orange-800};
   --toolbar-dropdown-text-hover-color: var(--box-hover-text-color);
 
   --toolbar-tooltip-background-color: #{$gray-800};
@@ -363,6 +363,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: #{$blue};
+  --diff-linenumber-focus-color: #{$blue-600};
 
   /**
    * Variables for form elements
@@ -414,7 +415,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-hunk-border-color: #{$blue-200};
   --diff-hunk-gutter-color: #{darken($blue-200, 5%)};
   --diff-hunk-gutter-background-color: #{$blue-100};
-  --diff-hunk-text-color: #{$gray};
+  --diff-hunk-text-color: #{$gray-600};
 
   --diff-hover-background-color: #{$blue-300};
   --diff-hover-border-color: #{$blue-400};
@@ -433,6 +434,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   --diff-empty-row-background-color: #{$gray-000};
   --diff-empty-row-gutter-background-color: var(--diff-empty-row-background-color);
+  --diff-empty-hunk-handle: #{$gray-300};
 
   // Syntax highlighting text colors
   --syntax-variable-color: #6f42c1;
@@ -447,6 +449,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --syntax-attribute-color: #6f42c1;
   --syntax-link-color: #032f62;
   --syntax-header-color: #0000ff;
+  --syntax-quote-color: #1a7e31;
 
   // Note that this duration *must* match the `UndoCommitAnimationTimeout`
   // specified in `changes/index.tsx`.
@@ -470,13 +473,13 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --overlay-background-color: #{$overlay-background-color};
 
   /** Dialog */
-  --dialog-warning-color: #{$yellow-600};
+  --dialog-warning-color: #{$yellow-800};
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red};
 
   /** File warning */
-  --file-warning-background-color: #{$yellow-200};
-  --file-warning-color: #{$yellow-800};
+  --file-warning-background-color: #{$yellow-100};
+  --file-warning-color: #{darken($yellow-700, 10%)};
   --file-warning-border-color: #{rgba($yellow-700, 0.4)};
 
   /** Tooltips */
@@ -504,7 +507,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   /** merge/rebase status indicators */
   --status-pending-color: #{$yellow-700};
   --status-error-color: #{$red-500};
-  --status-success-color: #{$green-500};
+  --status-success-color: #1a7f37;
 
   // PR status icon colors
   --pr-open-icon-color: #{$green-500};

@@ -1,25 +1,34 @@
+import { NotificationCallback } from 'desktop-notifications/dist/notification-callback'
+import { Commit, shortenSHA } from '../../models/commit'
+import { GitHubRepository } from '../../models/github-repository'
+import { PullRequest, getPullRequestCommitRef } from '../../models/pull-request'
 import {
   Repository,
-  isRepositoryWithGitHubRepository,
   RepositoryWithGitHubRepository,
-  isRepositoryWithForkedGitHubRepository,
   getForkContributionTarget,
+  isRepositoryWithForkedGitHubRepository,
+  isRepositoryWithGitHubRepository,
 } from '../../models/repository'
 import { ForkContributionTarget } from '../../models/workflow-preferences'
-import { getPullRequestCommitRef, PullRequest } from '../../models/pull-request'
+import { getVerbForPullRequestReview } from '../../ui/notifications/pull-request-review-helpers'
 import { API, APICheckConclusion, IAPIComment } from '../api'
 import {
-  createCombinedCheckFromChecks,
-  getLatestCheckRunsByName,
-  apiStatusToRefCheck,
-  apiCheckRunToRefCheck,
   IRefCheck,
+  apiCheckRunToRefCheck,
+  apiStatusToRefCheck,
+  createCombinedCheckFromChecks,
+  getLatestCheckRunsById,
 } from '../ci-checks/ci-checks'
-import { AccountsStore } from './accounts-store'
 import { getCommit } from '../git'
-import { GitHubRepository } from '../../models/github-repository'
-import { PullRequestCoordinator } from './pull-request-coordinator'
-import { Commit, shortenSHA } from '../../models/commit'
+import { getBoolean, setBoolean } from '../local-storage'
+import { showNotification } from '../notifications/show-notification'
+import { StatsStore } from '../stats'
+import { truncateWithEllipsis } from '../truncate-with-ellipsis'
+import {
+  ValidNotificationPullRequestReview,
+  isValidNotificationPullRequestReview,
+} from '../valid-notification-pull-request-review'
+import { AccountsStore } from './accounts-store'
 import {
   AliveStore,
   DesktopAliveEvent,
@@ -27,16 +36,7 @@ import {
   IDesktopPullRequestCommentAliveEvent,
   IDesktopPullRequestReviewSubmitAliveEvent,
 } from './alive-store'
-import { setBoolean, getBoolean } from '../local-storage'
-import { showNotification } from '../notifications/show-notification'
-import { StatsStore } from '../stats'
-import { truncateWithEllipsis } from '../truncate-with-ellipsis'
-import { getVerbForPullRequestReview } from '../../ui/notifications/pull-request-review-helpers'
-import {
-  isValidNotificationPullRequestReview,
-  ValidNotificationPullRequestReview,
-} from '../valid-notification-pull-request-review'
-import { NotificationCallback } from 'desktop-notifications/dist/notification-callback'
+import { PullRequestCoordinator } from './pull-request-coordinator'
 
 export type OnChecksFailedCallback = (
   repository: RepositoryWithGitHubRepository,
@@ -185,7 +185,7 @@ export class NotificationsStore {
       return
     }
 
-    const title = `@${comment.user.login} commented your pull request`
+    const title = `@${comment.user.login} commented on your pull request`
     const body = `${pullRequest.title} #${
       pullRequest.pullRequestNumber
     }\n${truncateWithEllipsis(comment.body, 50)}`
@@ -537,9 +537,7 @@ export class NotificationsStore {
     }
 
     if (checkRuns !== null) {
-      const latestCheckRunsByName = getLatestCheckRunsByName(
-        checkRuns.check_runs
-      )
+      const latestCheckRunsByName = getLatestCheckRunsById(checkRuns.check_runs)
       checks.push(...latestCheckRunsByName.map(apiCheckRunToRefCheck))
     }
 

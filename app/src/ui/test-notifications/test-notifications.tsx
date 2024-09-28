@@ -15,7 +15,6 @@ import {
   DialogFooter,
   OkCancelButtonGroup,
 } from '../dialog'
-import { DialogHeader } from '../dialog/header'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { RowIndexPath } from '../lib/list/list-row-index-path'
@@ -23,7 +22,7 @@ import { SectionList } from '../lib/list/section-list'
 import { Loading } from '../lib/loading'
 import { getPullRequestReviewStateIcon } from '../notifications/pull-request-review-helpers'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import {
   getNotificationSettingsUrl,
   getNotificationsPermission,
@@ -132,8 +131,8 @@ class TestNotificationItemRowContent extends React.Component<{
         <div className="main-content">{children}</div>
         {html_url && (
           <div className="right-accessory">
-            <Button onClick={this.onExternalLinkClick}>
-              <Octicon symbol={OcticonSymbol.linkExternal} />
+            <Button onClick={this.onExternalLinkClick} role="link">
+              <Octicon symbol={octicons.linkExternal} />
             </Button>
           </div>
         )}
@@ -724,8 +723,8 @@ export class TestNotifications extends React.Component<
         className={pullRequest.draft ? 'pr-draft-icon' : 'pr-icon'}
         symbol={
           pullRequest.draft
-            ? OcticonSymbol.gitPullRequestDraft
-            : OcticonSymbol.gitPullRequest
+            ? octicons.gitPullRequestDraft
+            : octicons.gitPullRequest
         }
       />
     )
@@ -735,16 +734,10 @@ export class TestNotifications extends React.Component<
     return (
       <Dialog
         id="test-notifications"
+        title="Test Notifications"
         onSubmit={this.props.onDismissed}
-        dismissable={true}
         onDismissed={this.props.onDismissed}
       >
-        <DialogHeader
-          title="Test Notifications"
-          dismissable={true}
-          onDismissed={this.props.onDismissed}
-        />
-
         <DialogContent>
           <p>{this.renderNotificationHint()}</p>
           {this.renderCurrentStep()}

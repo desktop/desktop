@@ -102,7 +102,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     this.focusTrapOptions = {
       allowOutsideClick: true,
       escapeDeactivates: true,
-      onDeactivate: this.props.onClickOutside,
+      onDeactivate: this.props.onMousedownOutside ?? this.props.onClickOutside,
     }
 
     this.state = { position: null }
@@ -200,6 +200,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     const { target } = event
 
     if (
+      !event.defaultPrevented &&
       ref !== null &&
       ref.parentElement !== null &&
       target instanceof Node &&
@@ -215,6 +216,7 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
     const { target } = event
 
     if (
+      !event.defaultPrevented &&
       ref !== null &&
       ref.parentElement !== null &&
       target instanceof Node &&

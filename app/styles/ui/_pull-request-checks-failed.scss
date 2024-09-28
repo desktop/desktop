@@ -3,6 +3,11 @@
     height: unset;
   }
 
+  .ci-check-rerun {
+    margin-left: var(--spacing);
+    margin-right: var(--spacing);
+  }
+
   .ci-check-run-dialog-header {
     display: flex;
     flex-direction: row;
@@ -16,12 +21,12 @@
     }
 
     .title-container {
+      min-width: 0;
       flex-grow: 1;
 
       .pr-title {
-        display: flex;
-        column-gap: 4px;
-        align-items: center;
+        display: inline-block;
+        white-space: normal;
         font-weight: normal;
         font-size: var(--font-size);
 
@@ -88,12 +93,18 @@
 
         .ci-check-list-item {
           padding-left: var(--spacing);
+
+          .check-run-header-buttons {
+            right: var(--spacing-half);
+          }
         }
       }
 
       .ci-check-run-job-steps-container {
         width: 60%;
         overflow-y: auto;
+        padding: var(--spacing);
+        background-color: var(--box-alt-background-color);
 
         .ci-check-run-job-steps-list {
           border: none;
@@ -106,28 +117,9 @@
           }
         }
 
-        .no-steps-to-display {
-          display: flex;
-          padding: var(--spacing-double);
-          align-items: center;
-          height: 100%;
-
-          .text {
-            flex: 1;
-            margin-right: var(--spacing);
-
-            div {
-              margin-top: var(--spacing);
-            }
-          }
-
-          .blankslate-image {
-            flex: 0;
-            height: 140px;
-            width: 146px;
-            min-width: 140px;
-            min-height: 146px;
-            align-self: flex-end;
+        .ci-check-run-no-steps {
+          img {
+            height: 80%;
           }
         }
 

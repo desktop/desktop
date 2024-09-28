@@ -157,7 +157,7 @@ export async function cherryPick(
     )
   }
 
-  // --keep-redundant-commits follows pattern of making sure someone cherry
+  // --empty=keep follows pattern of making sure someone cherry
   //  picked commit summaries appear in target branch history even tho they may
   //  be empty. This flag also results in the ability to cherry pick empty
   //  commits (thus, --allow-empty is not required.)
@@ -167,12 +167,7 @@ export async function cherryPick(
   //  there could be multiple empty commits. I.E. If user does a range that
   //  includes commits from that merge.
   const result = await git(
-    [
-      'cherry-pick',
-      ...commits.map(c => c.sha),
-      '--keep-redundant-commits',
-      '-m 1',
-    ],
+    ['cherry-pick', ...commits.map(c => c.sha), '--empty=keep', '-m 1'],
     repository.path,
     'cherry-pick',
     baseOptions
@@ -465,12 +460,8 @@ export async function continueCherryPick(
     return parseCherryPickResult(result)
   }
 
-  // --keep-redundant-commits follows pattern of making sure someone cherry
-  //  picked commit summaries appear in target branch history even tho they may
-  //  be empty. This flag also results in the ability to cherry pick empty
-  //  commits (thus, --allow-empty is not required.)
   const result = await git(
-    ['cherry-pick', '--continue', '--keep-redundant-commits'],
+    ['cherry-pick', '--continue'],
     repository.path,
     'continueCherryPick',
     options

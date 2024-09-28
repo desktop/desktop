@@ -1,6 +1,11 @@
 .side-by-side-diff-container {
   --width-line-number: 55px;
 
+  --hunk-handle-width-with-check-all: 16px;
+  --hunk-handle-width: 4px;
+
+  display: flex;
+  flex-direction: column;
   width: 100%;
   overflow: hidden;
   flex-grow: 1;
@@ -10,6 +15,10 @@
   * {
     cursor: text;
     user-select: text;
+  }
+
+  .sr-only {
+    user-select: none;
   }
 
   // See https://github.com/desktop/desktop/pull/15128#issuecomment-1232689068
@@ -28,16 +37,34 @@
         flex-direction: row-reverse;
         border-right: none;
       }
-    }
 
-    .before .line-number {
-      border-right-width: 2px;
-      border-right-style: solid;
-    }
+      &.context .before {
+        border-right: calc(var(--hunk-handle-width) / 2) solid var(--diff-border-color);
+      }
 
-    .after .line-number {
-      border-left-width: 2px;
-      border-left-style: solid;
+      &.context .after {
+        border-right: calc(var(--hunk-handle-width) / 2) solid var(--diff-border-color);
+      }
+
+      &.has-check-all-control.context .before {
+        border-right: calc(var(--hunk-handle-width-with-check-all) / 2) solid var(--diff-border-color);
+      }
+
+      &.has-check-all-control.context .after {
+        border-left: calc(var(--hunk-handle-width-with-check-all) / 2) solid var(--diff-border-color);
+      }
+
+      &.has-check-all-control {
+        .hunk-expansion-handle {
+          padding-left: calc(var(--hunk-handle-width-with-check-all) / 2);
+          padding-right: calc(var(--hunk-handle-width-with-check-all) / 2);
+        }
+      }
+
+      .hunk-expansion-handle {
+        padding-left: calc(var(--hunk-handle-width) / 2);
+        padding-right: calc(var(--hunk-handle-width) / 2);
+      }
     }
   }
 
@@ -45,7 +72,6 @@
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    height: 100%;
     width: 100%;
     font-family: var(--font-family-monospace);
     font-size: var(--font-size-sm);
@@ -62,173 +88,17 @@
   }
 
   .row {
-    .popover-component.whitespace-hint {
-      width: 275px;
-    }
-  }
-
-  .row .line-number {
-    width: var(--width-line-number);
-    flex-shrink: 0;
-    background: var(--diff-gutter-background-color);
-    color: var(--diff-line-number-color);
-    display: flex;
-    box-sizing: content-box;
-    position: relative;
-
-    span {
-      flex: 1;
-      user-select: none;
-      padding: 0 var(--spacing-half);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      // Workaround to show the ellipsis at the beginning of
-      // the line number when it's too long.
-      direction: rtl;
-    }
-
-    &.selectable {
-      &.hoverable span {
-        cursor: pointer;
-      }
-
-      &.line-selected {
-        background: var(--diff-selected-background-color);
-        color: var(--diff-selected-text-color);
-        border-color: var(--diff-selected-border-color);
-
-        &.hoverable:hover,
-        &.hover {
-          background: var(--diff-hover-background-color);
-          color: var(--diff-hover-text-color);
-          border-color: var(--diff-hover-border-color);
-        }
-      }
-    }
-  }
-
-  .row .hunk-expansion-handle {
-    button {
-      overflow: inherit;
-      text-overflow: inherit;
-      white-space: inherit;
-      font-family: inherit;
-      font-size: inherit;
-      border: none;
-      height: inherit;
-      color: inherit;
-      background-color: inherit;
-      width: calc(100% - 2px);
-      height: calc(100% - var(--spacing));
-      padding: 0px;
-      padding-top: 4px;
-      padding-bottom: 1px;
-      margin: 1px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      outline-offset: 0;
-    }
-
-    width: var(--width-line-number);
-    flex-shrink: 0;
-    background: var(--diff-hunk-background-color);
-    color: var(--diff-hunk-text-color);
-    display: flex;
-    box-sizing: content-box;
-
-    &.selectable.hoverable {
-      * {
-        cursor: pointer;
-      }
-
-      &:hover {
-        background: var(--diff-hover-background-color);
-        border-color: var(--diff-hover-border-color);
-        color: var(--diff-hover-text-color);
-      }
-    }
-  }
-
-  .hunk-handle {
-    position: absolute;
-    height: 100%;
-    width: 20px;
-    left: calc(50% - 10px);
-    top: 0;
-
-    &.hoverable {
-      cursor: pointer;
-    }
-  }
-
-  .content {
-    display: flex;
-    white-space: pre-wrap;
-    overflow-y: auto;
-    flex-grow: 1;
-    word-break: break-all;
-
-    .prefix {
-      user-select: none;
-    }
-
-    .octicon {
-      height: 8px;
-      fill: var(--error-color);
-      display: inline-block;
-      margin-left: 3px;
-      margin-bottom: -1px;
-    }
-  }
-
-  .before,
-  .after {
-    width: 50%;
-    display: flex;
-    flex-direction: row;
-    position: relative;
-  }
-
-  .before {
-    color: var(--diff-delete-text-color);
-    background: var(--diff-delete-background-color);
-
-    .line-number {
-      background: var(--diff-delete-gutter-background-color);
-      border-color: var(--diff-delete-border-color);
-    }
-
-    .selectable.hoverable:hover,
-    .selectable.hover {
-      background: var(--diff-delete-hover-background-color);
-      color: var(--diff-delete-hover-text-color);
-      border-color: var(--diff-delete-hover-border-color);
-    }
-  }
-
-  .after {
-    color: var(--diff-add-text-color);
-    background: var(--diff-add-background-color);
-
-    .line-number {
-      background: var(--diff-add-gutter-background-color);
-      border-color: var(--diff-add-border-color);
-    }
-
-    .selectable.hoverable:hover,
-    .selectable.hover {
-      background: var(--diff-add-hover-background-color);
-      color: var(--diff-add-hover-text-color);
-      border-color: var(--diff-add-hover-border-color);
-    }
-  }
-
-  .row {
     display: flex;
     flex-direction: row;
     line-height: 20px;
     position: relative;
+    height: 100%;
+
+    // Allow right-clicks to go through the octicons to their parent
+    .line-number .octicon,
+    .hunk-handle .octicon {
+      pointer-events: none;
+    }
 
     &.hunk-info {
       background: var(--diff-hunk-background-color);
@@ -261,22 +131,316 @@
         border-color: var(--diff-border-color);
       }
     }
+
+    .before,
+    .after {
+      width: 50%;
+      display: flex;
+      flex-direction: row;
+      position: relative;
+    }
+
+    .before {
+      color: var(--diff-delete-text-color);
+      background: var(--diff-delete-background-color);
+
+      .line-number {
+        background: var(--diff-delete-gutter-background-color);
+        border-color: var(--diff-delete-border-color);
+      }
+
+      .selectable {
+        &.hoverable:hover {
+          border-color: var(--diff-delete-hover-border-color);
+        }
+
+        &.hoverable:hover,
+        &.hoverable:hover label,
+        &.hover,
+        &.hover label,
+        input:focus-visible + label {
+          background: var(--diff-delete-hover-background-color);
+          color: var(--diff-delete-hover-text-color);
+          border-color: var(--diff-delete-hover-border-color);
+        }
+      }
+    }
+
+    .after {
+      color: var(--diff-add-text-color);
+      background: var(--diff-add-background-color);
+
+      .line-number {
+        background: var(--diff-add-gutter-background-color);
+        border-color: var(--diff-add-border-color);
+      }
+
+      .selectable {
+        &.hoverable:hover {
+          border-color: var(--diff-add-hover-border-color);
+        }
+
+        &.hoverable:hover,
+        &.hoverable:hover label,
+        &.hover,
+        &.hover label,
+        input:focus-visible + label {
+          background: var(--diff-add-hover-background-color);
+          color: var(--diff-add-hover-text-color);
+          border-color: var(--diff-add-hover-border-color);
+        }
+      }
+    }
+
+    input:focus-visible + label.hunk-handle.selected {
+      background: var(--diff-hover-background-color);
+    }
+
+    input:focus-visible + label.hunk-handle {
+      .focus-handle {
+        outline: 2px solid var(--diff-linenumber-focus-color);
+        outline-offset: 3px;
+      }
+    }
+
+    .hunk-handle-place-holder,
+    .hunk-handle {
+      width: var(--hunk-handle-width);
+      height: 100%;
+      background-color: var(--diff-empty-hunk-handle);
+
+      &.selected {
+        background-color: var(--diff-selected-border-color);
+      }
+    }
+
+    .hunk-handle {
+      position: absolute;
+      display: flex;
+      left: calc(50% - var(--hunk-handle-width) / 2);
+      color: white;
+      padding-top: 3px;
+      text-align: center;
+      user-select: none;
+
+      * {
+        user-select: none;
+      }
+
+      .focus-handle {
+        border-radius: var(--border-radius);
+        height: calc(100% + 4px);
+        width: 100%;
+        margin-top: -4px;
+        padding-top: 3px;
+      }
+
+      .octicon {
+        height: 12px;
+      }
+
+      * {
+        cursor: pointer;
+      }
+    }
+
+    &.has-check-all-control {
+      .hunk-handle-place-holder,
+      .hunk-handle {
+        width: var(--hunk-handle-width-with-check-all);
+      }
+
+      .hunk-handle {
+        left: calc(50% - var(--hunk-handle-width-with-check-all) / 2);
+      }
+
+      input:focus-visible + label.hunk-handle {
+        .focus-handle {
+          outline-offset: -3px;
+        }
+      }
+    }
+
+    .hunk-handle {
+      z-index: 1;
+
+      &.hoverable {
+        cursor: pointer;
+      }
+
+      .increased-hover-surface {
+        position: absolute;
+        margin-left: -5px;
+        width: 15px;
+        z-index: 1;
+        cursor: pointer;
+      }
+    }
+
+    &.modified {
+      .increased-hover-surface {
+        width: 20px;
+        margin-left: -8px;
+      }
+    }
+
+    .hunk-expansion-handle {
+      button {
+        overflow: inherit;
+        text-overflow: inherit;
+        white-space: inherit;
+        font-family: inherit;
+        font-size: inherit;
+        border: none;
+        height: inherit;
+        color: inherit;
+        background-color: inherit;
+        width: calc(100% - 2px);
+        height: calc(100% - var(--spacing));
+        padding: 0px;
+        padding-top: 4px;
+        padding-bottom: 1px;
+        margin: 1px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        outline-offset: 0;
+      }
+      width: var(--width-line-number);
+      flex-shrink: 0;
+      background: var(--diff-hunk-background-color);
+      color: var(--diff-hunk-text-color);
+      display: flex;
+      box-sizing: content-box;
+
+      &.selectable.hoverable {
+        * {
+          cursor: pointer;
+        }
+
+        &:hover {
+          background: var(--diff-hover-background-color);
+          border-color: var(--diff-hover-border-color);
+          color: var(--diff-hover-text-color);
+        }
+      }
+    }
+
+    .line-number {
+      width: var(--width-line-number);
+      flex-shrink: 0;
+      background: var(--diff-gutter-background-color);
+      color: var(--diff-line-number-color);
+      display: flex;
+      box-sizing: content-box;
+      position: relative;
+
+      input {
+        user-select: none;
+      }
+
+      label {
+        width: 100%;
+        display: flex;
+        border-color: inherit;
+        border-radius: var(--border-radius);
+
+        .line-number-check {
+          display: flex;
+          justify-content: center;
+          width: 20px;
+          flex-shrink: 0;
+          padding-top: 3.5px;
+
+          .octicon {
+            height: 12px;
+          }
+        }
+
+        span {
+          flex: 1;
+          user-select: none;
+          padding: 0 var(--spacing-half);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          // Workaround to show the ellipsis at the beginning of
+          // the line number when it's too long.
+          direction: rtl;
+        }
+      }
+
+      &.selectable {
+        input:focus-visible + label {
+          outline: 2px solid var(--diff-linenumber-focus-color);
+          outline-offset: -3px;
+        }
+
+        .line-number-check,
+        .line-number-check .octicon,
+        .line-number-check .octicon path,
+        &.hoverable span {
+          cursor: pointer;
+        }
+
+        &.line-selected {
+          border-color: var(--diff-selected-border-color);
+          background: var(--diff-selected-background-color);
+
+          label {
+            background: var(--diff-selected-background-color);
+            color: var(--diff-selected-text-color);
+            border-color: var(--diff-selected-border-color);
+          }
+
+          &.hoverable:hover {
+            border-color: var(--diff-hover-border-color);
+          }
+
+          &.hoverable:hover,
+          &.hoverable:hover label,
+          &.hover,
+          &.hover label,
+          input:focus-visible + label {
+            background: var(--diff-hover-background-color);
+            color: var(--diff-hover-text-color);
+            border-color: var(--diff-hover-border-color);
+          }
+        }
+      }
+    }
+
+    .content {
+      display: flex;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      flex-grow: 1;
+      word-break: break-all;
+
+      .prefix {
+        user-select: none;
+      }
+
+      .octicon {
+        height: 8px;
+        fill: var(--error-color);
+        display: inline-block;
+        margin-left: 3px;
+        margin-bottom: -1px;
+      }
+    }
+
+    .popover-component.whitespace-hint {
+      width: 275px;
+    }
   }
 
   &.unified-diff {
-    --line-gutter-right-border-width: 4px;
-
     .row {
       .before,
       .after {
         width: 100% !important;
         border: none;
         flex-direction: row;
-      }
-
-      .hunk-handle {
-        // `left` depends on the line number length at runtime
-        transform: translateX(calc(-50% + var(--line-gutter-right-border-width) / 2));
       }
 
       &.hunk-info {
@@ -298,13 +462,24 @@
         }
       }
 
+      .hunk-handle {
+        left: 0;
+      }
+
+      &.context .before {
+        margin-right: 0;
+      }
+      &.context .after {
+        margin-left: 0;
+      }
+
       .line-number {
         width: calc(var(--width-line-number) * 2);
         border-left: none;
         border-right-width: 1px;
         border-right-style: solid;
 
-        span:first-child {
+        span:first-of-type {
           border-right-width: 1px;
           border-right-style: solid;
           border-color: inherit;
@@ -316,12 +491,20 @@
       }
     }
 
-    &.editable .row {
-      .line-number {
-        border-right-width: var(--line-gutter-right-border-width);
-      }
-      .hunk-expansion-handle {
-        border-right-width: var(--line-gutter-right-border-width);
+    &.editable {
+      .row {
+        &.context .before,
+        &.context .after {
+          border-right: none;
+        }
+
+        &.context {
+          border-left: var(--hunk-handle-width) solid var(--diff-border-color);
+        }
+
+        &.has-check-all-control.context {
+          border-left: var(--hunk-handle-width-with-check-all) solid var(--diff-border-color);
+        }
       }
     }
   }

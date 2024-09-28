@@ -17,7 +17,7 @@ import { TabBar } from '../tab-bar'
 
 import { Row } from '../lib/row'
 import { Octicon } from '../octicons'
-import * as OcticonSymbol from '../octicons/octicons.generated'
+import * as octicons from '../octicons/octicons.generated'
 import { Button } from '../lib/button'
 
 import { BranchList } from './branch-list'
@@ -31,8 +31,13 @@ import { IMatches } from '../../lib/fuzzy-find'
 import { startTimer } from '../lib/timing'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import { DragType, DropTargetType } from '../../models/drag-drop'
-import { enablePullRequestQuickView } from '../../lib/feature-flag'
+import {
+  enablePullRequestQuickView,
+  enableResizingToolbarButtons,
+} from '../../lib/feature-flag'
 import { PullRequestQuickView } from '../pull-request-quick-view'
+import { Emoji } from '../../lib/emoji'
+import classNames from 'classnames'
 
 interface IBranchesContainerProps {
   readonly dispatcher: Dispatcher
@@ -53,7 +58,9 @@ interface IBranchesContainerProps {
   readonly isLoadingPullRequests: boolean
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
-  readonly emoji: Map<string, string>
+  readonly emoji: Map<string, Emoji>
+
+  readonly underlineLinks: boolean
 }
 
 interface IBranchesContainerState {
@@ -110,8 +117,11 @@ export class BranchesContainer extends React.Component<
   }
 
   public render() {
+    const classes = classNames('branches-container', {
+      resizable: enableResizingToolbarButtons(),
+    })
     return (
-      <div className="branches-container">
+      <div className={classes}>
         {this.renderTabBar()}
         {this.renderSelectedTab()}
         {this.renderMergeButtonRow()}
@@ -138,6 +148,7 @@ export class BranchesContainer extends React.Component<
         pullRequestItemTop={prListItemTop}
         onMouseEnter={this.onMouseEnterPullRequestQuickView}
         onMouseLeave={this.onMouseLeavePullRequestQuickView}
+        underlineLinks={this.props.underlineLinks}
       />
     )
   }
@@ -169,7 +180,7 @@ export class BranchesContainer extends React.Component<
           onClick={this.onMergeClick}
           tooltip={`Choose a branch to merge into ${currentBranch.name}`}
         >
-          <Octicon className="icon" symbol={OcticonSymbol.gitMerge} />
+          <Octicon className="icon" symbol={octicons.gitMerge} />
           Choose a branch to merge into <strong>{currentBranch.name}</strong>
         </Button>
       </Row>
@@ -294,7 +305,7 @@ export class BranchesContainer extends React.Component<
         onMouseLeave={this.onMouseLeaveNewBranchDrop}
         onMouseUp={this.onMouseUpNewBranchDrop}
       >
-        <Octicon className="icon" symbol={OcticonSymbol.plus} />
+        <Octicon className="icon" symbol={octicons.plus} />
         <div className="name">{label}</div>
       </div>
     )

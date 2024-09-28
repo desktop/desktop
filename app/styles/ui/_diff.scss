@@ -683,6 +683,10 @@
     color: inherit;
   }
 
+  .cm-quote {
+    color: var(--syntax-quote-color);
+  }
+
   .cm-variable-2,
   .cm-variable-3 {
     color: var(--syntax-alt-variable-color);
@@ -728,6 +732,12 @@
     color: var(--syntax-header-color);
   }
 
+  .cm-m-cmake {
+    &.cm-def {
+      color: var(--syntax-atom-color);
+    }
+  }
+
   .cm-m-css {
     &.cm-property {
       color: var(--syntax-atom-color);
@@ -743,6 +753,12 @@
   .cm-m-javascript {
     &.cm-type {
       color: var(--syntax-variable-color);
+    }
+  }
+
+  .cm-m-toml {
+    &.cm-string.cm-property {
+      color: var(--syntax-string-color);
     }
   }
 
@@ -784,6 +800,15 @@
       .blankslate-image {
         max-height: 150px;
       }
+
+      .description {
+        margin-top: var(--spacing);
+        margin-bottom: var(--spacing);
+
+        p {
+          margin: 0;
+        }
+      }
     }
   }
 
@@ -796,7 +821,7 @@
     pointer-events: none;
   }
 
-  .hidden-bidi-chars-warning {
+  .diff-contents-warning-container {
     background-color: var(--file-warning-background-color);
     padding: var(--spacing) var(--spacing-double);
     border-bottom: var(--file-warning-border-color) solid 1px;
@@ -809,6 +834,13 @@
 
     a.link-button-component {
       display: unset;
+    }
+
+    // Separate warning items
+    .diff-contents-warning:not(:last-child) {
+      margin-bottom: var(--spacing);
+      border-bottom: var(--file-warning-border-color) solid 1px;
+      padding-bottom: var(--spacing);
     }
   }
 
@@ -848,6 +880,16 @@
         opacity: 0.2;
       }
     }
+  }
+
+  // When focus moves to the virtualized grid, we want to show a focus ring.
+  &:has(.ReactVirtualized__Grid:focus-visible) {
+    outline: 2px solid var(--focus-color);
+    border-radius: var(--border-radius);
+
+    // Move the content over to make room for the focus ring
+    margin-right: 2px;
+    margin-bottom: 2px;
   }
 }
 

@@ -80,14 +80,16 @@ export class DiscardChanges extends React.Component<
         title={this.getDialogTitle()}
         onDismissed={this.props.onDismissed}
         onSubmit={this.discard}
-        dismissable={isDiscardingChanges ? false : true}
+        dismissDisabled={isDiscardingChanges}
         loading={isDiscardingChanges}
         disabled={isDiscardingChanges}
         type="warning"
+        role="alertdialog"
+        ariaDescribedBy="discard-changes-confirmation-file-list discard-changes-confirmation-message"
       >
         <DialogContent>
           {this.renderFileList()}
-          <p>
+          <p id="discard-changes-confirmation-message">
             Changes can be restored by retrieving them from the {TrashNameLabel}
             .
           </p>
@@ -98,6 +100,8 @@ export class DiscardChanges extends React.Component<
           <OkCancelButtonGroup
             destructive={true}
             okButtonText={this.getOkButtonLabel()}
+            okButtonDisabled={isDiscardingChanges}
+            cancelButtonDisabled={isDiscardingChanges}
           />
         </DialogFooter>
       </Dialog>
@@ -128,14 +132,14 @@ export class DiscardChanges extends React.Component<
   private renderFileList() {
     if (this.props.files.length > MaxFilesToList) {
       return (
-        <p>
+        <p id="discard-changes-confirmation-file-list">
           Are you sure you want to discard all {this.props.files.length} changed
           files?
         </p>
       )
     } else {
       return (
-        <div>
+        <div id="discard-changes-confirmation-file-list">
           <p>Are you sure you want to discard all changes to:</p>
           <div className="file-list">
             <ul>

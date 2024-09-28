@@ -16,8 +16,7 @@ import { RelativeTime } from '../relative-time'
 import { assertNever } from '../../lib/fatal-error'
 import { ReleaseNotesUri } from '../lib/releases'
 import { encodePathAsUrl } from '../../lib/path'
-import { isTopMostDialog } from '../dialog/is-top-most'
-import { isWindowsAndNoLongerSupportedByElectron } from '../../lib/get-os'
+import { isOSNoLongerSupportedByElectron } from '../../lib/get-os'
 
 const logoPath = __DARWIN__
   ? 'static/logo-64x64@2x.png'
@@ -27,7 +26,7 @@ const DesktopLogo = encodePathAsUrl(__dirname, logoPath)
 interface IAboutProps {
   /**
    * Event triggered when the dialog is dismissed by the user in the
-   * ways described in the Dialog component's dismissable prop.
+   * ways described in the Dialog component's dismissible prop.
    */
   readonly onDismissed: () => void
 
@@ -46,9 +45,6 @@ interface IAboutProps {
    */
   readonly applicationArchitecture: string
 
-  /** A function to call to kick off an update check. */
-  readonly onCheckForUpdates: () => void
-
   /** A function to call to kick off a non-staggered update check. */
   readonly onCheckForNonStaggeredUpdates: () => void
 
@@ -56,14 +52,10 @@ interface IAboutProps {
 
   /** A function to call when the user wants to see Terms and Conditions. */
   readonly onShowTermsAndConditions: () => void
-
-  /** Whether the dialog is the top most in the dialog stack */
-  readonly isTopMost: boolean
 }
 
 interface IAboutState {
   readonly updateState: IUpdateState
-  readonly altKeyPressed: boolean
 }
 
 /**
@@ -72,23 +64,12 @@ interface IAboutState {
  */
 export class About extends React.Component<IAboutProps, IAboutState> {
   private updateStoreEventHandle: Disposable | null = null
-  private checkIsTopMostDialog = isTopMostDialog(
-    () => {
-      window.addEventListener('keydown', this.onKeyDown)
-      window.addEventListener('keyup', this.onKeyUp)
-    },
-    () => {
-      window.removeEventListener('keydown', this.onKeyDown)
-      window.removeEventListener('keyup', this.onKeyUp)
-    }
-  )
 
   public constructor(props: IAboutProps) {
     super(props)
 
     this.state = {
       updateState: updateStore.state,
-      altKeyPressed: false,
     }
   }
 
@@ -101,30 +82,12 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       this.onUpdateStateChanged
     )
     this.setState({ updateState: updateStore.state })
-    this.checkIsTopMostDialog(this.props.isTopMost)
-  }
-
-  public componentDidUpdate(): void {
-    this.checkIsTopMostDialog(this.props.isTopMost)
   }
 
   public componentWillUnmount() {
     if (this.updateStoreEventHandle) {
       this.updateStoreEventHandle.dispose()
       this.updateStoreEventHandle = null
-    }
-    this.checkIsTopMostDialog(false)
-  }
-
-  private onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Alt') {
-      this.setState({ altKeyPressed: true })
-    }
-  }
-
-  private onKeyUp = (event: KeyboardEvent) => {
-    if (event.key === 'Alt') {
-      this.setState({ altKeyPressed: false })
     }
   }
 
@@ -156,23 +119,16 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           ![
             UpdateStatus.UpdateNotChecked,
             UpdateStatus.UpdateNotAvailable,
-          ].includes(updateStatus) || isWindowsAndNoLongerSupportedByElectron()
+          ].includes(updateStatus) || isOSNoLongerSupportedByElectron()
 
-        const onClick = this.state.altKeyPressed
-          ? this.props.onCheckForNonStaggeredUpdates
-          : this.props.onCheckForUpdates
-
-        const buttonTitle = this.state.altKeyPressed
-          ? 'Ensure Latest Version'
-          : 'Check for Updates'
-
-        const tooltip = this.state.altKeyPressed
-          ? "GitHub Desktop may release updates to our user base gradually to ensure we catch any problems early. This lets you bypass the gradual rollout and jump straight to the latest version if there's one available."
-          : ''
+        const buttonTitle = 'Check for Updates'
 
         return (
           <Row>
-            <Button disabled={disabled} onClick={onClick} tooltip={tooltip}>
+            <Button
+              disabled={disabled}
+              onClick={this.props.onCheckForNonStaggeredUpdates}
+            >
               {buttonTitle}
             </Button>
           </Row>
@@ -271,7 +227,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
       return null
     }
 
-    if (isWindowsAndNoLongerSupportedByElectron()) {
+    if (isOSNoLongerSupportedByElectron()) {
       return (
         <DialogError>
           This operating system is no longer supported. Software updates have
@@ -322,10 +278,12 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     )
 
     const versionText = __DEV__ ? `Build ${version}` : `Version ${version}`
+    const titleId = 'Dialog_about'
 
     return (
       <Dialog
         id="about"
+        titleId={titleId}
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}
       >
@@ -339,7 +297,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
               height="64"
             />
           </Row>
-          <h2>{name}</h2>
+          <h1 id={titleId}>About {name}</h1>
           <p className="no-padding">
             <span className="selectable-text">
               {versionText} ({this.props.applicationArchitecture})

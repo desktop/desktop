@@ -8,7 +8,6 @@ import { MenuLabelsEvent } from '../../models/menu-labels'
 import * as ipcWebContents from '../ipc-webcontents'
 import { mkdir } from 'fs/promises'
 
-const platformDefaultShell = __WIN32__ ? 'Command Prompt' : 'Terminal'
 const createPullRequestLabel = __DARWIN__
   ? 'Create Pull Request'
   : 'Create &pull request'
@@ -78,7 +77,7 @@ export function buildDefaultMenu({
         {
           label: 'Install Command Line Tool…',
           id: 'install-cli',
-          click: emit('install-cli'),
+          click: emit('install-darwin-cli'),
         },
         separator,
         {
@@ -122,6 +121,7 @@ export function buildDefaultMenu({
 
   if (!__DARWIN__) {
     const fileItems = fileMenu.submenu as Electron.MenuItemConstructorOptions[]
+    const exitAccelerator = __WIN32__ ? 'Alt+F4' : 'CmdOrCtrl+Q'
 
     fileItems.push(
       separator,
@@ -135,7 +135,7 @@ export function buildDefaultMenu({
       {
         role: 'quit',
         label: 'E&xit',
-        accelerator: 'Alt+F4',
+        accelerator: exitAccelerator,
       }
     )
   }
@@ -321,8 +321,8 @@ export function buildDefaultMenu({
       },
       {
         label: __DARWIN__
-          ? `Open in ${selectedShell ?? platformDefaultShell}`
-          : `O&pen in ${selectedShell ?? platformDefaultShell}`,
+          ? `Open in ${selectedShell ?? 'Shell'}`
+          : `O&pen in ${selectedShell ?? 'shell'}`,
         id: 'open-in-shell',
         accelerator: 'Ctrl+`',
         click: emit('open-in-shell'),
@@ -574,26 +574,9 @@ export function buildDefaultMenu({
             label: 'Show App Error',
             click: emit('show-app-error'),
           },
-        ],
-      },
-      {
-        label: 'Show banner',
-        submenu: [
           {
-            label: 'Reorder Successful',
-            click: emit('show-test-reorder-banner'),
-          },
-          {
-            label: 'Reorder Undone',
-            click: emit('show-test-undone-banner'),
-          },
-          {
-            label: 'Cherry Pick Conflicts',
-            click: emit('show-test-cherry-pick-conflicts-banner'),
-          },
-          {
-            label: 'Merge Successful',
-            click: emit('show-test-merge-successful-banner'),
+            label: 'Octicons',
+            click: emit('show-icon-test-dialog'),
           },
         ],
       },
@@ -605,6 +588,22 @@ export function buildDefaultMenu({
   }
 
   if (__RELEASE_CHANNEL__ === 'development' || __RELEASE_CHANNEL__ === 'test') {
+    if (__WIN32__) {
+      helpItems.push(separator, {
+        label: 'Command Line Tool',
+        submenu: [
+          {
+            label: 'Install',
+            click: emit('install-windows-cli'),
+          },
+          {
+            label: 'Uninstall',
+            click: emit('uninstall-windows-cli'),
+          },
+        ],
+      })
+    }
+
     helpItems.push(
       {
         label: 'Show notification',
@@ -628,6 +627,22 @@ export function buildDefaultMenu({
           {
             label: 'Thank you',
             click: emit('show-thank-you-banner'),
+          },
+          {
+            label: 'Reorder Successful',
+            click: emit('show-test-reorder-banner'),
+          },
+          {
+            label: 'Reorder Undone',
+            click: emit('show-test-undone-banner'),
+          },
+          {
+            label: 'Cherry Pick Conflicts',
+            click: emit('show-test-cherry-pick-conflicts-banner'),
+          },
+          {
+            label: 'Merge Successful',
+            click: emit('show-test-merge-successful-banner'),
           },
         ],
       }

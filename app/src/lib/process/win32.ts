@@ -1,11 +1,11 @@
 import { spawn as spawnInternal } from 'child_process'
-import * as Path from 'path'
 import {
   HKEY,
   RegistryValueType,
   RegistryValue,
   RegistryStringEntry,
   enumerateValues,
+  setValue,
 } from 'registry-js'
 
 function isStringRegistryValue(rv: RegistryValue): rv is RegistryStringEntry {
@@ -15,31 +15,49 @@ function isStringRegistryValue(rv: RegistryValue): rv is RegistryStringEntry {
   )
 }
 
-/** Get the path segments in the user's `Path`. */
-export function getPathSegments(): ReadonlyArray<string> {
+export function getPathRegistryValue(): RegistryStringEntry | null {
   for (const value of enumerateValues(HKEY.HKEY_CURRENT_USER, 'Environment')) {
     if (value.name === 'Path' && isStringRegistryValue(value)) {
-      return value.data.split(';').filter(x => x.length > 0)
+      return value
     }
   }
 
-  throw new Error('Could not find PATH environment variable')
+  return null
+}
+
+/** Get the path segments in the user's `Path`. */
+export function getPathSegments(): ReadonlyArray<string> {
+  const value = getPathRegistryValue()
+
+  if (value === null) {
+    throw new Error('Could not find PATH environment variable')
+  }
+
+  return value.data.split(';').filter(x => x.length > 0)
 }
 
 /** Set the user's `Path`. */
 export async function setPathSegments(
   paths: ReadonlyArray<string>
 ): Promise<void> {
-  let setxPath: string
-  const systemRoot = process.env['SystemRoot']
-  if (systemRoot) {
-    const system32Path = Path.join(systemRoot, 'System32')
-    setxPath = Path.join(system32Path, 'setx.exe')
-  } else {
-    setxPath = 'setx.exe'
+  const value = getPathRegistryValue()
+  if (value === null) {
+    throw new Error('Could not find PATH environment variable')
   }
 
-  await spawn(setxPath, ['Path', paths.join(';')])
+  try {
+    setValue(
+      HKEY.HKEY_CURRENT_USER,
+      'Environment',
+      'Path',
+      value.type,
+      paths.join(';')
+    )
+  } catch (e) {
+    log.error('Failed setting PATH environment variable', e)
+
+    throw new Error('Could not set the PATH environment variable')
+  }
 }
 
 /** Spawn a command with arguments and capture its output. */

@@ -1,11 +1,12 @@
 import { getFileHash } from '../get-file-hash'
 import { TokenStore } from '../stores'
 import {
-  getSSHSecretStoreKey,
-  keepSSHSecretToStore,
-} from './ssh-secret-storage'
+  getSSHCredentialStoreKey,
+  setMostRecentSSHCredential,
+  setSSHCredential,
+} from './ssh-credential-storage'
 
-const SSHKeyPassphraseTokenStoreKey = getSSHSecretStoreKey(
+const SSHKeyPassphraseTokenStoreKey = getSSHCredentialStoreKey(
   'SSH key passphrases'
 )
 
@@ -25,8 +26,7 @@ export async function getSSHKeyPassphrase(keyPath: string) {
 }
 
 /**
- * Keeps the SSH key passphrase in memory to be stored later if the ongoing git
- * operation succeeds.
+ * Stores the SSH key passphrase.
  *
  * @param operationGUID A unique identifier for the ongoing git operation. In
  *                      practice, it will always be the trampoline token for the
@@ -34,18 +34,45 @@ export async function getSSHKeyPassphrase(keyPath: string) {
  * @param keyPath       Path to the SSH key.
  * @param passphrase    Passphrase for the SSH key.
  */
-export async function keepSSHKeyPassphraseToStore(
+export async function setSSHKeyPassphrase(
   operationGUID: string,
   keyPath: string,
   passphrase: string
 ) {
   try {
     const keyHash = await getHashForSSHKey(keyPath)
-    keepSSHSecretToStore(
+
+    await setSSHCredential(
       operationGUID,
       SSHKeyPassphraseTokenStoreKey,
       keyHash,
       passphrase
+    )
+  } catch (e) {
+    log.error('Could not store passphrase for SSH key:', e)
+  }
+}
+
+/**
+ * Keeps the SSH credential details in memory to be deleted later if the ongoing
+ * git operation fails to authenticate.
+ *
+ * @param operationGUID A unique identifier for the ongoing git operation. In
+ *                      practice, it will always be the trampoline secret for the
+ *                      ongoing git operation.
+ * @param keyPath       Path of the SSH key.
+ */
+export async function setMostRecentSSHKeyPassphrase(
+  operationGUID: string,
+  keyPath: string
+) {
+  try {
+    const keyHash = await getHashForSSHKey(keyPath)
+
+    setMostRecentSSHCredential(
+      operationGUID,
+      SSHKeyPassphraseTokenStoreKey,
+      keyHash
     )
   } catch (e) {
     log.error('Could not store passphrase for SSH key:', e)

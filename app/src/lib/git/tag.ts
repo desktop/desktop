@@ -1,6 +1,5 @@
 import { git, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
-import { IGitAccount } from '../../models/git-account'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
 
@@ -86,7 +85,6 @@ export async function getAllTags(
  */
 export async function fetchTagsToPush(
   repository: Repository,
-  account: IGitAccount | null,
   remote: IRemote,
   branchName: string
 ): Promise<ReadonlyArray<string>> {
@@ -102,7 +100,7 @@ export async function fetchTagsToPush(
   ]
 
   const result = await git(args, repository.path, 'fetchTagsToPush', {
-    env: await envForRemoteOperation(account, remote.url),
+    env: await envForRemoteOperation(remote.url),
     successExitCodes: new Set([0, 1, 128]),
   })
 
