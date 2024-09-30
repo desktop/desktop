@@ -8,6 +8,7 @@ import {
   getGlobalConfigValue,
   setGlobalConfigValue,
   getGlobalBooleanConfigValue,
+  git,
 } from '../../../src/lib/git'
 
 import { mkdirSync } from '../../helpers/temp'
@@ -30,6 +31,36 @@ describe('git/config', () => {
     it('returns null for undefined values', async () => {
       const value = await getConfigValue(repository, 'core.the-meaning-of-life')
       expect(value).toBeNull()
+    })
+  })
+
+  describe('GIT_CONFIG_PARAMETERS', () => {
+    it('picks them up', async () => {
+      expect(
+        await git(['config', 'desktop.test'], repository.path, '', {
+          successExitCodes: new Set([1]),
+        }).then(x => x.stdout)
+      ).toBeEmpty()
+      expect(
+        await git(['config', 'desktop.test'], repository.path, '', {
+          env: {
+            GIT_CONFIG_PARAMETERS: "'desktop.test=1'",
+          },
+        }).then(x => x.stdout)
+      ).toEqual('1\n')
+    })
+
+    it('takes precedence over GIT_CONFIG_*', async () => {
+      expect(
+        await git(['config', 'user.name'], repository.path, '', {
+          env: {
+            GIT_CONFIG_PARAMETERS: "'user.name=foobar'",
+            GIT_CONFIG_COUNT: '1',
+            GIT_CONFIG_KEY_0: 'user.name',
+            GIT_CONFIG_VALUE_0: 'baz',
+          },
+        }).then(x => x.stdout)
+      ).toEqual('foobar\n')
     })
   })
 

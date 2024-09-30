@@ -48,7 +48,8 @@ export const spawnGit = (
         })
       ),
     path,
-    options?.isBackgroundTask ?? false
+    options?.isBackgroundTask ?? false,
+    options?.env
   )
 
 /**

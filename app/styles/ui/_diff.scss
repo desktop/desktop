@@ -756,6 +756,12 @@
     }
   }
 
+  .cm-m-toml {
+    &.cm-string.cm-property {
+      color: var(--syntax-string-color);
+    }
+  }
+
   // Intra line markings takes precedence over syntax highlighting.
   .cm-diff-delete-inner {
     color: var(--diff-delete-text-color) !important;
