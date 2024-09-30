@@ -156,12 +156,14 @@ const getEndpointKind = async (cred: Credential, store: Store) => {
   // WWW-Authenticate headers and forwards them to the credential helper. We
   // use them as a happy-path to determine if the host is a GitHub host without
   // having to resort to making a request ourselves.
-  if (
-    [...cred.entries()]
-      .filter(([k]) => k.startsWith('wwwauth['))
-      .some(([, v]) => v.includes('realm="GitHub"'))
-  ) {
-    return 'enterprise'
+  for (const [k, v] of cred.entries()) {
+    if (k.startsWith('wwwauth[')) {
+      if (v.includes('realm="GitHub"')) {
+        return 'enterprise'
+      } else if (/realm="(GitLab|Gitea|Atlassian Bitbucket)"/.test(v)) {
+        return 'generic'
+      }
+    }
   }
 
   const existingAccount = await findGitHubTrampolineAccount(store, endpoint)

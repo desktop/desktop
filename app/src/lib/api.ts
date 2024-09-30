@@ -20,6 +20,10 @@ import {
   isGHE,
   updateEndpointVersion,
 } from './endpoint-capabilities'
+import {
+  clearCertificateErrorSuppressionFor,
+  suppressCertificateErrorFor,
+} from './suppress-certificate-error'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -2284,6 +2288,11 @@ export async function isGitHubHost(url: string) {
     return false
   }
 
+  // github.example.com,
+  if (/(^|\.)(github)\./.test(hostname)) {
+    return true
+  }
+
   // bitbucket.example.com, etc
   if (/(^|\.)(bitbucket|gitlab)\./.test(hostname)) {
     return false
@@ -2293,15 +2302,20 @@ export async function isGitHubHost(url: string) {
     return true
   }
 
+  // Add a unique identifier to the URL to make sure our certificate error
+  // supression only catches this request
+  const metaUrl = `${endpoint}/meta?ghd=${uuid()}`
+
   const ac = new AbortController()
   const timeoutId = setTimeout(() => ac.abort(), 2000)
+  suppressCertificateErrorFor(metaUrl)
   try {
-    const response = await fetch(`${endpoint}/meta`, {
+    const response = await fetch(metaUrl, {
       headers: { 'user-agent': getUserAgent() },
       signal: ac.signal,
       credentials: 'omit',
       method: 'HEAD',
-    }).finally(() => clearTimeout(timeoutId))
+    })
 
     tryUpdateEndpointVersionFromResponse(endpoint, response)
 
@@ -2309,5 +2323,8 @@ export async function isGitHubHost(url: string) {
   } catch (e) {
     log.debug(`isGitHubHost: failed with endpoint ${endpoint}`, e)
     return undefined
+  } finally {
+    clearTimeout(timeoutId)
+    clearCertificateErrorSuppressionFor(metaUrl)
   }
 }
