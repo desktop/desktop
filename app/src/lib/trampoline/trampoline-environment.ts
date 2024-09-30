@@ -64,11 +64,19 @@ export const getCredentialUrl = (cred: Map<string, string>) => {
 
   const protocol = cred.get('protocol') ?? ''
   const username = cred.get('username')
-  const user = username ? `${encodeURIComponent(username)}@` : ''
+  const password = cred.get('password')
+  const user = username
+    ? `${encodeURIComponent(username)}${
+        password ? `:${encodeURIComponent(password)}` : ''
+      }@`
+    : ''
   const host = cred.get('host') ?? ''
+  const port = cred.get('port')
   const path = cred.get('path') ?? ''
 
-  return new URL(`${protocol}://${user}${host}/${path}`)
+  return new URL(
+    `${protocol}://${user}${host}${port ? `:${port}` : ''}/${path}`
+  )
 }
 
 export const GitUserAgent = memoizeOne(() =>
