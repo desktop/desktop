@@ -2269,7 +2269,7 @@ export async function isGitHubHost(url: string) {
 
   // github.example.com,
   if (/(^|\.)(github)\./.test(hostname)) {
-    return false
+    return true
   }
 
   // bitbucket.example.com, etc
