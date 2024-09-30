@@ -12,7 +12,6 @@ import {
   IAPIRepoRuleMetadataParameters,
   IAPIRepoRuleset,
 } from '../api'
-import { enableRepoRulesBeta } from '../feature-flag'
 import { supportsRepoRules } from '../endpoint-capabilities'
 import { Account } from '../../models/account'
 import {
@@ -33,7 +32,6 @@ export function useRepoRulesLogic(
   if (
     !account ||
     !repository ||
-    !enableRepoRulesBeta() ||
     !isRepositoryWithGitHubRepository(repository)
   ) {
     return false

@@ -242,12 +242,7 @@ import {
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
-import {
-  enableCustomIntegration,
-  enableDiffCheckMarks,
-  enableLinkUnderlines,
-  enableMoveStash,
-} from '../feature-flag'
+import { enableCustomIntegration } from '../feature-flag'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
@@ -2300,13 +2295,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ) ?? defaultPullRequestSuggestedNextAction
 
     // Always false if the feature flag is disabled.
-    this.underlineLinks = enableLinkUnderlines()
-      ? getBoolean(underlineLinksKey, underlineLinksDefault)
-      : false
+    this.underlineLinks = getBoolean(underlineLinksKey, underlineLinksDefault)
 
-    this.showDiffCheckMarks = enableDiffCheckMarks()
-      ? getBoolean(showDiffCheckMarksKey, showDiffCheckMarksDefault)
-      : false
+    this.showDiffCheckMarks = getBoolean(
+      showDiffCheckMarksKey,
+      showDiffCheckMarksDefault
+    )
 
     this.emitUpdateNow()
 
@@ -4318,12 +4312,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await gitStore.performFailableOperation(async () => {
       await renameBranch(repository, branch, newName)
 
-      if (enableMoveStash()) {
-        const stashEntry = gitStore.desktopStashEntries.get(branch.name)
+      const stashEntry = gitStore.desktopStashEntries.get(branch.name)
 
-        if (stashEntry) {
-          await moveStashEntry(repository, stashEntry, newName)
-        }
+      if (stashEntry) {
+        await moveStashEntry(repository, stashEntry, newName)
       }
     })
 

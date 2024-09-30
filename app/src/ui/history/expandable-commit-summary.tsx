@@ -40,8 +40,6 @@ interface IExpandableCommitSummaryProps {
 
   readonly onExpandChanged: (isExpanded: boolean) => void
 
-  readonly onDescriptionBottomChanged: (descriptionBottom: number) => void
-
   /** Called to highlight certain shas in the history */
   readonly onHighlightShas: (shasToHighlight: ReadonlyArray<string>) => void
 
@@ -146,7 +144,6 @@ export class ExpandableCommitSummary extends React.Component<
   private descriptionScrollViewRef: HTMLDivElement | null = null
   private readonly resizeObserver: ResizeObserver | null = null
   private updateOverflowTimeoutId: NodeJS.Immediate | null = null
-  private descriptionRef: HTMLDivElement | null = null
 
   private getCountCommitsNotInDiff = memoizeOne(
     (
@@ -192,12 +189,6 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private onResized = () => {
-    if (this.descriptionRef) {
-      const descriptionBottom =
-        this.descriptionRef.getBoundingClientRect().bottom
-      this.props.onDescriptionBottomChanged(descriptionBottom)
-    }
-
     if (this.props.isExpanded) {
       return
     }
@@ -217,10 +208,6 @@ export class ExpandableCommitSummary extends React.Component<
         this.setState({ isOverflowed: false })
       }
     }
-  }
-
-  private onDescriptionRef = (ref: HTMLDivElement | null) => {
-    this.descriptionRef = ref
   }
 
   private renderExpander() {
@@ -318,7 +305,7 @@ export class ExpandableCommitSummary extends React.Component<
     })
 
     return (
-      <div className={className} ref={this.onDescriptionRef}>
+      <div className={className}>
         <div
           className="ecs-description-scroll-view"
           ref={this.onDescriptionScrollViewRef}
