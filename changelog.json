@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.4.6-beta3": [
+      "[Fixed] Don't show certificate error dialog when probing for endpoint kind - #18991"
+    ],
     "3.4.6-beta2": [
       "[Fixed] Colorize multi-line strings in toml - #14333",
       "[Fixed] Workaround for issues with empty environment variable in third-party tools - #19273",
