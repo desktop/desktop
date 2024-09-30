@@ -181,6 +181,7 @@ import { getBoolean, getNumber } from '../lib/local-storage'
 import { RepoRulesBypassConfirmation } from './repository-rules/repo-rules-bypass-confirmation'
 import { IconPreviewDialog } from './octicons/icon-preview-dialog'
 import { accessibilityBannerDismissed } from './banners/accessibilty-settings-banner'
+import { isCertificateErrorSuppressedFor } from '../lib/suppress-certificate-error'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -314,6 +315,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     ipcRenderer.on('certificate-error', (_, certificate, error, url) => {
+      if (isCertificateErrorSuppressedFor(url)) {
+        return
+      }
+
       this.props.dispatcher.showPopup({
         type: PopupType.UntrustedCertificate,
         certificate,

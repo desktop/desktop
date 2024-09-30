@@ -1,5 +1,14 @@
 {
   "releases": {
+    "3.4.6-beta2": [
+      "[Fixed] Colorize multi-line strings in toml - #14333",
+      "[Fixed] Workaround for issues with empty environment variable in third-party tools - #19273",
+      "[Fixed] Unset GIT_SEQUENCE_EDITOR when rebasing - #15413",
+      "[Fixed] Use `api.` subdomain for requests to GHE.com hosts - #19312",
+      "[Fixed] Migrate existing GHE account endpoints to the new `api.` subdomain - #19319",
+      "[Fixed] Right-clicking on diff checkmarks displays the context menu - #19302",
+      "[Removed] Remove staggered updates block in about dialog - #19274"
+    ],
     "3.4.6-beta1": [
       "[Fixed] Arguments with spaces are passed correctly to custom editors or shells on Windows - #19218",
       "[Improved] Allow resizing Branch and Push/Pull toolbar buttons - #4569 #17388. Thanks @jpedroso!"
