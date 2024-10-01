@@ -1232,14 +1232,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
 
     return (
-      // eslint-disable-next-line github/a11y-role-supports-aria-props
-      <div
-        ref={this.onRef}
-        id={this.props.id}
-        className="list"
-        aria-labelledby={this.props.ariaLabelledBy}
-        aria-label={this.props.ariaLabel}
-      >
+      <div ref={this.onRef} id={this.props.id} className="list">
         {content}
         {this.renderKeyboardInsertionElement()}
       </div>
@@ -1383,6 +1376,8 @@ export class List extends React.Component<IListProps, IListState> {
       >
         <Grid
           id={this.props.accessibleListId}
+          aria-labelledby={this.props.ariaLabelledBy}
+          aria-label={this.props.ariaLabel}
           role={this.props.role ?? 'list-box'}
           ref={this.onGridRef}
           autoContainerWidth={true}
