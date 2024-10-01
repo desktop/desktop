@@ -219,7 +219,8 @@
   .commit-unreachable-info {
     display: flex;
     align-items: center;
-    margin-top: var(--spacing);
+    padding: var(--spacing);
+    padding-top: 0;
 
     .octicon {
       margin-right: var(--spacing-half);
