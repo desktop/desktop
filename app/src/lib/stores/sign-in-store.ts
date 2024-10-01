@@ -619,6 +619,15 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       )
     }
 
+    /**
+     * If the user enters a github.com url in the GitHub Enterprise sign-in
+     * flow we'll redirect them to the GitHub.com sign-in flow.
+     */
+    if (/^(?:https:\/\/)?github\.com($|\/)/.test(url)) {
+      this.beginDotComSignIn(currentState.resultCallback)
+      return
+    }
+
     this.setState({ ...currentState, loading: true })
 
     let validUrl: string
