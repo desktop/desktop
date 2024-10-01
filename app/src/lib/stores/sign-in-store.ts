@@ -641,7 +641,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         )
       } else if (e.name === InvalidProtocolErrorName) {
         error = new Error(
-          'Unsupported protocol. Only http or https is supported when authenticating with GitHub Enterprise instances.'
+          'Unsupported protocol. Only https is supported when authenticating with GitHub Enterprise instances.'
         )
       }
 
