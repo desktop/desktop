@@ -32,6 +32,8 @@
   }
 
   .toolbar-button {
+    flex-grow: 1;
+
     &.push-pull-button {
       width: 230px;
 
