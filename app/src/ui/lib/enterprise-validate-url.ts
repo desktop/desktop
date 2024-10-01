@@ -1,8 +1,5 @@
 import * as URL from 'url'
 
-/** The protocols over which we can connect to Enterprise instances. */
-const AllowedProtocols = new Set(['https:', 'http:'])
-
 /** The name for errors thrown because of an invalid URL. */
 export const InvalidURLErrorName = 'invalid-url'
 
@@ -38,7 +35,7 @@ export function validateURL(address: string): string {
     throw error
   }
 
-  if (!AllowedProtocols.has(url.protocol)) {
+  if (url.protocol !== 'https:') {
     const error = new Error('Invalid protocol')
     error.name = InvalidProtocolErrorName
     throw error
