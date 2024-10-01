@@ -87,3 +87,4 @@ export const enableCredentialHelperTrampoline = () => true
 export const enableCustomIntegration = () => true
 
 export const enableResizingToolbarButtons = enableBetaFeatures
+export const enableGitConfigParameters = enableBetaFeatures
