@@ -32,11 +32,13 @@ export interface IRepositoryListItem extends IFilterListItem {
   readonly needsDisambiguation: boolean
   readonly aheadBehind: IAheadBehind | null
   readonly changedFilesCount: number
+  readonly currentBranch: string | null
 }
 
 const fallbackValue = {
   changedFilesCount: 0,
   aheadBehind: null,
+  currentBranch: null,
 }
 
 export function groupRepositories(
@@ -88,7 +90,7 @@ export function groupRepositories(
     )
     const items: ReadonlyArray<IRepositoryListItem> = repositories.map(r => {
       const nameCount = names.get(r.name) || 0
-      const { aheadBehind, changedFilesCount } =
+      const { aheadBehind, changedFilesCount, currentBranch } =
         localRepositoryStateLookup.get(r.id) || fallbackValue
       const repositoryText =
         r instanceof Repository ? [r.alias ?? r.name, nameOf(r)] : [r.name]
@@ -101,6 +103,7 @@ export function groupRepositories(
           nameCount > 1 && identifier === KnownRepositoryGroup.Enterprise,
         aheadBehind,
         changedFilesCount,
+        currentBranch
       }
     })
 
@@ -149,7 +152,7 @@ export function makeRecentRepositoriesGroup(
       continue
     }
 
-    const { aheadBehind, changedFilesCount } =
+    const { aheadBehind, changedFilesCount, currentBranch } =
       localRepositoryStateLookup.get(id) || fallbackValue
     const repositoryAlias =
       repository instanceof Repository ? repository.alias : null
@@ -165,6 +168,7 @@ export function makeRecentRepositoriesGroup(
       needsDisambiguation: nameCount > 1,
       aheadBehind,
       changedFilesCount,
+      currentBranch,
     })
   }
 

@@ -45,6 +45,10 @@
       width: 16px;
     }
 
+    .branch-name {
+      font-weight: bold;
+    }
+
     .name {
       // Long repository names truncate and ellipse
       @include ellipsis;

@@ -2956,8 +2956,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
+    console.log('🟡onRepositoryDropdownStateChanged', newState)
     if (newState === 'open') {
       this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+      // this.props.appStore.repositoryIndicator
     } else {
       this.props.dispatcher.closeFoldout(FoldoutType.Repository)
     }

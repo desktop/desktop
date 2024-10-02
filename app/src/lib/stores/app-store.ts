@@ -890,6 +890,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore.onDidError(error => this.emitError(error))
 
     this.repositoriesStore.onDidUpdate(updateRepositories => {
+      console.log("🟡onDidUpdate2", updateRepositories)
       this.repositories = updateRepositories
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
@@ -2135,6 +2136,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accounts = accounts
     this.repositories = repositories
+    console.log("🟡onDidUpdate1", repositories)
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
 
@@ -3574,9 +3576,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    console.log('🟡updateSidebarIndicator', status)
+
     lookup.set(repository.id, {
       aheadBehind: status.branchAheadBehind || null,
       changedFilesCount: status.workingDirectory.files.length,
+      currentBranch: status.currentBranch || null,
     })
   }
   /**
@@ -3603,6 +3608,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    console.log('🟡refreshIndicatorForRepository', status)
+
     this.updateSidebarIndicator(repository, status)
     this.emitUpdate()
 
@@ -3621,6 +3628,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         // We don't need to update changedFilesCount here since it was already
         // set when calling `updateSidebarIndicator()` with the status object.
         changedFilesCount: existing?.changedFilesCount ?? 0,
+        currentBranch: existing?.currentBranch || null,
       })
       this.emitUpdate()
     }
@@ -3827,6 +3835,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // N.B: RepositoryIndicatorUpdater.prototype.start is
       // idempotent.
       this.repositoryIndicatorUpdater.start()
+      console.log('🟡_showFoldout')
     }
   }
 

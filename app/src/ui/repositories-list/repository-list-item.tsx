@@ -26,6 +26,8 @@ interface IRepositoryListItemProps {
 
   /** Number of uncommitted changes */
   readonly changedFilesCount: number
+
+  readonly currentBranch: string | null
 }
 
 /** A repository item. */
@@ -70,11 +72,16 @@ export class RepositoryListItem extends React.Component<
           />
         </div>
 
+
         {repository instanceof Repository &&
           renderRepoIndicators({
             aheadBehind: this.props.aheadBehind,
             hasChanges: hasChanges,
           })}
+
+        <div className='branch-name'>
+          {" " + this.props.currentBranch + " "}
+        </div>
       </div>
     )
   }

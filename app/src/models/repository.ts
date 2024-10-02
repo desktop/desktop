@@ -150,6 +150,10 @@ export interface ILocalRepositoryState {
    * The number of uncommitted changes currently in the repository.
    */
   readonly changedFilesCount: number
+  /**
+   * The branch name.
+   */
+  readonly currentBranch: string | null
 }
 
 /**
