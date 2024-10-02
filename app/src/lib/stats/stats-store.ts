@@ -10,7 +10,6 @@ import { getPersistedThemeName } from '../../ui/lib/application-theme'
 import { IUiActivityMonitor } from '../../ui/lib/ui-activity-monitor'
 import { Disposable } from 'event-kit'
 import {
-  SignInMethod,
   showDiffCheckMarksDefault,
   showDiffCheckMarksKey,
   underlineLinksDefault,
@@ -74,7 +73,6 @@ const FirstCommitCreatedAtKey = 'first-commit-created-at'
 const FirstPushToGitHubAtKey = 'first-push-to-github-at'
 const FirstNonDefaultBranchCheckoutAtKey =
   'first-non-default-branch-checkout-at'
-const WelcomeWizardSignInMethodKey = 'welcome-wizard-sign-in-method'
 const terminalEmulatorKey = 'shell'
 const textEditorKey: string = 'externalEditor'
 
@@ -320,14 +318,6 @@ interface IOnboardingStats {
    * metric being added and we will thus never be able to provide a value.
    */
   readonly timeToWelcomeWizardTerminated?: number
-
-  /**
-   * The method that was used when authenticating a user in the welcome flow. If
-   * multiple successful authentications happened during the welcome flow due to
-   * the user stepping back and signing in to another account this will reflect
-   * the last one.
-   */
-  readonly welcomeWizardSignInMethod?: 'basic' | 'web'
 }
 
 interface ICalculatedStats {
@@ -651,8 +641,6 @@ export class StatsStore implements IStatsStore {
       FirstNonDefaultBranchCheckoutAtKey
     )
 
-    const welcomeWizardSignInMethod = getWelcomeWizardSignInMethod()
-
     return {
       timeToWelcomeWizardTerminated,
       timeToFirstAddedRepository,
@@ -661,7 +649,6 @@ export class StatsStore implements IStatsStore {
       timeToFirstCommit,
       timeToFirstGitHubPush,
       timeToFirstNonDefaultBranchCheckout,
-      welcomeWizardSignInMethod,
     }
   }
 
@@ -889,10 +876,6 @@ export class StatsStore implements IStatsStore {
 
   public recordNonDefaultBranchCheckout() {
     createLocalStorageTimestamp(FirstNonDefaultBranchCheckoutAtKey)
-  }
-
-  public recordWelcomeWizardSignInMethod(method: SignInMethod) {
-    localStorage.setItem(WelcomeWizardSignInMethodKey, method)
   }
 
   /** Record the number of stash entries created outside of Desktop for the day
@@ -1230,23 +1213,6 @@ function timeTo(key: string): number | undefined {
   return endTime === null || endTime <= startTime
     ? -1
     : Math.round((endTime - startTime) / 1000)
-}
-
-/**
- * Get a string representing the sign in method that was used when
- * authenticating a user in the welcome flow. This method ensures that the
- * reported value is known to the analytics system regardless of whether the
- * enum value of the SignInMethod type changes.
- */
-function getWelcomeWizardSignInMethod(): 'basic' | 'web' | undefined {
-  const method = localStorage.getItem(WelcomeWizardSignInMethodKey) ?? undefined
-
-  if (method === 'basic' || method === 'web' || method === undefined) {
-    return method
-  }
-
-  log.error(`Could not parse welcome wizard sign in method: ${method}`)
-  return undefined
 }
 
 /**
