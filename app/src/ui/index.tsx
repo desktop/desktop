@@ -224,9 +224,10 @@ const statsStore = new StatsStore(
   new StatsDatabase('StatsDatabase'),
   new UiActivityMonitor()
 )
-const signInStore = new SignInStore()
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)
+
+const signInStore = new SignInStore(accountsStore)
 
 trampolineServer.registerCommandHandler(
   TrampolineCommandIdentifier.AskPass,

@@ -6,6 +6,7 @@ import {
   IEndpointEntryState,
   IAuthenticationState,
   ITwoFactorAuthenticationState,
+  IExistingAccountWarning,
 } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
 import { LinkButton } from '../lib/link-button'
@@ -21,6 +22,7 @@ import { Button } from '../lib/button'
 import { HorizontalRule } from '../lib/horizontal-rule'
 import { PasswordTextBox } from '../lib/password-text-box'
 import { Ref } from '../lib/ref'
+import { getHTMLURL } from '../../lib/api'
 
 interface ISignInProps {
   readonly dispatcher: Dispatcher
@@ -42,6 +44,14 @@ const SignInWithBrowserTitle = __DARWIN__
   : 'Sign in using your browser'
 
 const DefaultTitle = 'Sign in'
+
+const browserSignInInfoContent = (
+  <p>
+    Your browser will redirect you back to GitHub Desktop once you've signed in.
+    If your browser asks for your permission to launch GitHub Desktop please
+    allow it to.
+  </p>
+)
 
 export class SignIn extends React.Component<ISignInProps, ISignInState> {
   private readonly dialogRef = React.createRef<Dialog>()
@@ -92,6 +102,11 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     switch (state.kind) {
       case SignInStep.EndpointEntry:
         this.props.dispatcher.setSignInEndpoint(this.state.endpoint)
+        break
+      case SignInStep.ExistingAccountWarning:
+        this.props.dispatcher
+          .removeAccount(state.existingAccount)
+          .then(() => this.props.dispatcher.setSignInEndpoint(state.endpoint))
         break
       case SignInStep.Authentication:
         if (!state.supportsBasicAuth) {
@@ -145,11 +160,19 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
     let primaryButtonText: string
     const stepKind = state.kind
+    const continueWithBrowserLabel = __DARWIN__
+      ? 'Continue With Browser'
+      : 'Continue with browser'
 
     switch (state.kind) {
       case SignInStep.EndpointEntry:
         disableSubmit = this.state.endpoint.length === 0
         primaryButtonText = 'Continue'
+        break
+      case SignInStep.ExistingAccountWarning:
+        primaryButtonText = state.supportsBasicAuth
+          ? 'Continue'
+          : continueWithBrowserLabel
         break
       case SignInStep.TwoFactorAuthentication:
         // ensure user has entered non-whitespace characters
@@ -159,9 +182,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         break
       case SignInStep.Authentication:
         if (!state.supportsBasicAuth) {
-          primaryButtonText = __DARWIN__
-            ? 'Continue With Browser'
-            : 'Continue with browser'
+          primaryButtonText = continueWithBrowserLabel
         } else {
           const validUserName = this.state.username.length > 0
           const validPassword = this.state.password.length > 0
@@ -181,6 +202,20 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
           onCancelButtonClick={this.onDismissed}
         />
       </DialogFooter>
+    )
+  }
+
+  private renderExistingAccountWarningStep(state: IExistingAccountWarning) {
+    return (
+      <DialogContent>
+        <p className="existing-account-warning">
+          You're already signed in to{' '}
+          <Ref>{new URL(getHTMLURL(state.endpoint)).host}</Ref> with the account{' '}
+          <Ref>{state.existingAccount.login}</Ref>. If you continue you will
+          first be signed out.
+        </p>
+        {!state.supportsBasicAuth && browserSignInInfoContent}
+      </DialogContent>
     )
   }
 
@@ -212,11 +247,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       return (
         <DialogContent>
           {credentialHelperInfo}
-          <p>
-            Your browser will redirect you back to GitHub Desktop once you've
-            signed in. If your browser asks for your permission to launch GitHub
-            Desktop please allow it to.
-          </p>
+          {browserSignInInfoContent}
         </DialogContent>
       )
     }
@@ -297,6 +328,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     switch (state.kind) {
       case SignInStep.EndpointEntry:
         return this.renderEndpointEntryStep(state)
+      case SignInStep.ExistingAccountWarning:
+        return this.renderExistingAccountWarningStep(state)
       case SignInStep.Authentication:
         return this.renderAuthenticationStep(state)
       case SignInStep.TwoFactorAuthentication:
