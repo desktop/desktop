@@ -1,5 +1,6 @@
 <!--
-What GitHub Desktop issue does this PR address? (for example, #1234)
+What GitHub Desktop issue does this PR address (for example, #1234)?
+If you have not created an issue for your PR, please search the issue tracker to see if there is an existing issue that aligns with your PR, or open a new issue for discussion.
 -->
 
 Closes #[issue number]
