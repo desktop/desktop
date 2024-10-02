@@ -30,6 +30,7 @@
   .toolbar-button {
     // Fill the available height of the parent
     flex-grow: 1;
+    max-height: var(--toolbar-height);
 
     &.push-pull-button {
       width: 230px;
