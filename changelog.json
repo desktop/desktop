@@ -8,7 +8,6 @@
       "[Fixed] Migrate existing GHE account endpoints to the new `api.` subdomain - #19319",
       "[Fixed] Right-clicking on diff checkmarks displays the context menu - #19302",
       "[Fixed] Arguments with spaces are passed correctly to custom editors or shells on Windows - #19218",
-      "[Improved] Allow resizing Branch and Push/Pull toolbar buttons - #4569 #17388. Thanks @jpedroso!",
       "[Removed] Remove staggered updates block in about dialog - #19274"
     ],
     "3.4.6-beta3": [
