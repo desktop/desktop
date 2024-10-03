@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.4.7-test3": ["[New] New test release, now with MOAR assets!"],
     "3.4.6": [
       "[Fixed] Don't show certificate error dialog when probing for endpoint kind - #18991",
       "[Fixed] Colorize multi-line strings in toml - #14333",
