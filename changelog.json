@@ -1,5 +1,15 @@
 {
   "releases": {
+    "3.4.6": [
+      "[Fixed] Don't show certificate error dialog when probing for endpoint kind - #18991",
+      "[Fixed] Colorize multi-line strings in toml - #14333",
+      "[Fixed] Unset GIT_SEQUENCE_EDITOR when rebasing - #15413",
+      "[Fixed] Use `api.` subdomain for requests to GHE.com hosts - #19312",
+      "[Fixed] Migrate existing GHE account endpoints to the new `api.` subdomain - #19319",
+      "[Fixed] Right-clicking on diff checkmarks displays the context menu - #19302",
+      "[Fixed] Arguments with spaces are passed correctly to custom editors or shells on Windows - #19218",
+      "[Removed] Remove staggered updates block in about dialog - #19274"
+    ],
     "3.4.6-beta3": [
       "[Fixed] Don't show certificate error dialog when probing for endpoint kind - #18991"
     ],
