@@ -178,7 +178,6 @@ import { UnknownAuthors } from './unknown-authors/unknown-authors-dialog'
 import { UnsupportedOSBannerDismissedAtKey } from './banners/os-version-no-longer-supported-banner'
 import { offsetFromNow } from '../lib/offset-from'
 import { getBoolean, getNumber } from '../lib/local-storage'
-import { RepoRulesBypassConfirmation } from './repository-rules/repo-rules-bypass-confirmation'
 import { IconPreviewDialog } from './octicons/icon-preview-dialog'
 import { accessibilityBannerDismissed } from './banners/accessibilty-settings-banner'
 import { isCertificateErrorSuppressedFor } from '../lib/suppress-certificate-error'
@@ -2652,17 +2651,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="unknown-authors"
             authors={popup.authors}
             onCommit={popup.onCommit}
-            onDismissed={onPopupDismissedFn}
-          />
-        )
-      }
-      case PopupType.ConfirmRepoRulesBypass: {
-        return (
-          <RepoRulesBypassConfirmation
-            key="repo-rules-bypass-confirmation"
-            repository={popup.repository}
-            branch={popup.branch}
-            onConfirm={popup.onConfirm}
             onDismissed={onPopupDismissedFn}
           />
         )

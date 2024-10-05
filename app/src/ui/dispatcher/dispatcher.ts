@@ -1649,19 +1649,6 @@ export class Dispatcher {
     })
   }
 
-  public async showRepoRulesCommitBypassWarning(
-    repository: GitHubRepository,
-    branch: string,
-    onConfirm: () => void
-  ) {
-    return this.appStore._showPopup({
-      type: PopupType.ConfirmRepoRulesBypass,
-      repository,
-      branch,
-      onConfirm,
-    })
-  }
-
   /**
    * Register a new error handler.
    *
