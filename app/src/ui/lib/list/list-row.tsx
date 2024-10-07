@@ -104,6 +104,16 @@ interface IListRowProps {
    * elements for this to take precedence.
    */
   readonly ariaLabel?: string
+
+  /** Optional role setting.
+   *
+   * By default our lists use the `list-box` role paired with list items of role
+   * 'option' because that have selection capability. In that case, a
+   * screenreader will only browse to the selected list option. If the list is
+   * meant to be informational as opposed for selection, we should use `list`
+   * with `listitem` as the role for the items so browse mode can navigate them.
+   */
+  readonly role?: `option` | `listitem` | 'presentation'
 }
 
 export class ListRow extends React.Component<IListRowProps, {}> {
@@ -177,6 +187,7 @@ export class ListRow extends React.Component<IListRowProps, {}> {
       rowIndex,
       children,
       sectionHasHeader,
+      role,
     } = this.props
     const rowClassName = classNames(
       'list-item',
@@ -213,7 +224,9 @@ export class ListRow extends React.Component<IListRowProps, {}> {
       <div
         id={id}
         role={
-          sectionHasHeader && rowIndex.row === 0 ? 'presentation' : 'option'
+          sectionHasHeader && rowIndex.row === 0
+            ? 'presentation'
+            : role ?? 'option'
         }
         aria-setsize={ariaSetSize}
         aria-posinset={ariaPosInSet}

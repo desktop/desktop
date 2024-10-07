@@ -178,6 +178,9 @@ interface ICommitListProps {
   readonly shasToHighlight?: ReadonlyArray<string>
 
   readonly accounts: ReadonlyArray<Account>
+
+  /** This will make the list semantics friendly to screen reader users in browse mode. */
+  readonly isInformationalView?: boolean
 }
 
 interface ICommitListState {
@@ -495,6 +498,8 @@ export class CommitList extends React.Component<
       <div id="commit-list" className={classes} ref={this.containerRef}>
         {this.renderReorderCommitsHint()}
         <List
+          ariaLabel="Commits"
+          role={this.props.isInformationalView === true ? 'list' : 'list-box'}
           ref={this.listRef}
           rowCount={commitSHAs.length}
           rowHeight={RowHeight}
