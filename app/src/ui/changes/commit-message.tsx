@@ -53,7 +53,6 @@ import {
 } from '../lib/popover'
 import { RepoRulesetsForBranchLink } from '../repository-rules/repo-rulesets-for-branch-link'
 import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-failure-list'
-import { Dispatcher } from '../dispatcher'
 import { formatCommitMessage } from '../../lib/format-commit-message'
 import { useRepoRulesLogic } from '../../lib/helpers/repo-rules'
 
@@ -74,7 +73,6 @@ interface ICommitMessageProps {
   readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
-  readonly dispatcher: Dispatcher
   readonly anyFilesSelected: boolean
   readonly isShowingModal: boolean
   readonly isShowingFoldout: boolean
