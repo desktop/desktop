@@ -46,6 +46,11 @@ html {
   // for the absolutely positioned foldout to fill the window
   // when it's being resized.
   position: relative;
+
+  :has(> body.platform-win32) {
+    border: 1px solid var(--box-border-contrast-color);
+    border-top: 1px solid var(--toolbar-border-color);
+  }
 }
 
 body {
@@ -56,10 +61,6 @@ body {
 
   color: var(--text-color);
   background-color: var(--background-color);
-
-  &.platform-win32 {
-    border: 1px solid var(--box-border-accent-color);
-  }
 }
 
 :not(input, textarea) {
