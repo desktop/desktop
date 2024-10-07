@@ -56,6 +56,10 @@ body {
 
   color: var(--text-color);
   background-color: var(--background-color);
+
+  &.platform-win32 {
+    border: 1px solid var(--box-border-accent-color);
+  }
 }
 
 :not(input, textarea) {
