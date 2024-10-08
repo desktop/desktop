@@ -35,7 +35,7 @@ export class EmojiFilter implements INodeFilter {
   public createFilterTreeWalker(doc: Document): TreeWalker {
     return doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT, {
       acceptNode: function (node) {
-        return node.parentNode !== null &&
+        return node.parentNode !== null     &&
           ['CODE', 'PRE'].includes(node.parentNode.nodeName)
           ? NodeFilter.FILTER_SKIP
           : NodeFilter.FILTER_ACCEPT
