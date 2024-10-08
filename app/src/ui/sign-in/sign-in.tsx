@@ -48,8 +48,8 @@ const DefaultTitle = 'Sign in'
 const browserSignInInfoContent = (
   <p>
     Your browser will redirect you back to GitHub Desktop once you've signed in.
-    If your browser asks for your permission to launch GitHub Desktop please
-    allow it to.
+    If your browser asks for your permission to launch GitHub Desktop, please
+    allow it.
   </p>
 )
 
@@ -211,7 +211,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         <p className="existing-account-warning">
           You're already signed in to{' '}
           <Ref>{new URL(getHTMLURL(state.endpoint)).host}</Ref> with the account{' '}
-          <Ref>{state.existingAccount.login}</Ref>. If you continue you will
+          <Ref>{state.existingAccount.login}</Ref>. If you continue, you will
           first be signed out.
         </p>
         {!state.supportsBasicAuth && browserSignInInfoContent}

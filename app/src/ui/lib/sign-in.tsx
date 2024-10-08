@@ -48,7 +48,7 @@ export class SignIn extends React.Component<ISignInProps, {}> {
         <p className="existing-account-warning">
           You're already signed in to{' '}
           <Ref>{new URL(getHTMLURL(state.endpoint)).host}</Ref> with the account{' '}
-          <Ref>{state.existingAccount.login}</Ref>. If you continue you will
+          <Ref>{state.existingAccount.login}</Ref>. If you continue, you will
           first be signed out.
         </p>
         {this.renderAuthenticationStep(state)}
