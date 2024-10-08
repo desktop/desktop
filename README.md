@@ -94,6 +94,21 @@ See [desktop.github.com](https://desktop.github.com) for more product-oriented
 information about GitHub Desktop.
 
 See our [getting started documentation](https://docs.github.com/en/desktop/overview/getting-started-with-github-desktop) for more information on how to set up, authenticate, and configure GitHub Desktop.
+## Known Security Issues
+
+### npm Audit Report
+
+#### High Severity Vulnerabilities
+
+- **git**: Code injection in npm git - [GHSA-9gqr-xp86-f87h](https://github.com/advisories)
+  - Depends on vulnerable versions of `mime`
+  - No fix available
+
+- **mime**: Regular Expression Denial of Service - [GHSA-wrvr-8mpx-r7pp](https://github.com/advisories)
+  - Affects versions <1.4.1
+  - No fix available
+
+Some issues need review and may require choosing a different dependency.
 
 ## License
 
