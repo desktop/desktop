@@ -9,3 +9,19 @@ If the vulnerability you have found is [in scope for the GitHub Bug Bounty Progr
 **Please do not report security vulnerabilities through public GitHub issues, discussions, or pull requests.**
 
 Thanks for helping make GitHub safe for everyone.
+## Known Security Issues
+
+### npm Audit Report
+
+#### High Severity Vulnerabilities
+
+- **git**: Code injection in npm git - GHSA-9gqr-xp86-f87h
+  - Depends on vulnerable versions of `mime`
+  - No fix available
+
+- **mime**: Regular Expression Denial of Service - GHSA-wrvr-8mpx-r7pp
+  - Affects versions <1.4.1
+  - No fix available
+
+Some issues need review and may require choosing a different dependency.
+
