@@ -614,6 +614,12 @@ dialog {
       }
     }
 
+    .existing-account-warning {
+      .ref-component {
+        word-break: break-word;
+      }
+    }
+
     .forgot-password-row,
     .what-is-this-row {
       font-size: var(--font-size-sm);

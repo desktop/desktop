@@ -30,6 +30,7 @@ import { IOAuthAction } from '../parse-app-url'
 import { shell } from '../app-shell'
 import { noop } from 'lodash'
 import { isDotCom, isGHE } from '../endpoint-capabilities'
+import { AccountsStore } from './accounts-store'
 
 function getUnverifiedUserErrorMessage(login: string): string {
   return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
@@ -43,6 +44,7 @@ const EnterpriseTooOldMessage = `The GitHub Enterprise version does not support 
  */
 export enum SignInStep {
   EndpointEntry = 'EndpointEntry',
+  ExistingAccountWarning = 'ExistingAccountWarning',
   Authentication = 'Authentication',
   TwoFactorAuthentication = 'TwoFactorAuthentication',
   Success = 'Success',
@@ -54,6 +56,7 @@ export enum SignInStep {
  */
 export type SignInState =
   | IEndpointEntryState
+  | IExistingAccountWarning
   | IAuthenticationState
   | ITwoFactorAuthenticationState
   | ISuccessState
@@ -82,6 +85,28 @@ export interface ISignInState {
    * sign in process is ongoing.
    */
   readonly loading: boolean
+
+  readonly resultCallback: (result: SignInResult) => void
+}
+
+/**
+ * State interface representing the endpoint entry step.
+ * This is the initial step in the Enterprise sign in
+ * flow and is not present when signing in to GitHub.com
+ */
+export interface IExistingAccountWarning extends ISignInState {
+  readonly kind: SignInStep.ExistingAccountWarning
+  /**
+   * The URL to the host which we're currently authenticating
+   * against. This will be either https://api.github.com when
+   * signing in against GitHub.com or a user-specified
+   * URL when signing in against a GitHub Enterprise
+   * instance.
+   */
+  readonly supportsBasicAuth: boolean
+  readonly existingAccount: Account
+  readonly endpoint: string
+  readonly forgotPasswordUrl: string
 
   readonly resultCallback: (result: SignInResult) => void
 }
@@ -227,6 +252,19 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
    */
   private endpointSupportBasicAuth = new Map<string, boolean>()
 
+  private accounts: ReadonlyArray<Account> = []
+
+  public constructor(private readonly accountStore: AccountsStore) {
+    super()
+
+    this.accountStore.getAll().then(accounts => {
+      this.accounts = accounts
+    })
+    this.accountStore.onDidUpdate(accounts => {
+      this.accounts = accounts
+    })
+  }
+
   private emitAuthenticate(account: Account, method: SignInMethod) {
     const event: IAuthenticationEvent = { account, method }
     this.emitter.emit('did-authenticate', event)
@@ -326,6 +364,24 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
     if (this.state !== null) {
       this.reset()
+    }
+
+    const existingAccount = this.accounts.find(
+      x => x.endpoint === getDotComAPIEndpoint()
+    )
+
+    if (existingAccount) {
+      this.setState({
+        kind: SignInStep.ExistingAccountWarning,
+        endpoint,
+        supportsBasicAuth: false,
+        existingAccount,
+        error: null,
+        loading: false,
+        forgotPasswordUrl: this.getForgotPasswordURL(endpoint),
+        resultCallback: resultCallback ?? noop,
+      })
+      return
     }
 
     this.setState({
@@ -612,11 +668,23 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   public async setEndpoint(url: string): Promise<void> {
     const currentState = this.state
 
-    if (!currentState || currentState.kind !== SignInStep.EndpointEntry) {
+    if (
+      currentState?.kind !== SignInStep.EndpointEntry &&
+      currentState?.kind !== SignInStep.ExistingAccountWarning
+    ) {
       const stepText = currentState ? currentState.kind : 'null'
       return fatalError(
         `Sign in step '${stepText}' not compatible with endpoint entry`
       )
+    }
+
+    /**
+     * If the user enters a github.com url in the GitHub Enterprise sign-in
+     * flow we'll redirect them to the GitHub.com sign-in flow.
+     */
+    if (/^(?:https:\/\/)?(?:api\.)?github\.com($|\/)/.test(url)) {
+      this.beginDotComSignIn(currentState.resultCallback)
+      return
     }
 
     this.setState({ ...currentState, loading: true })
@@ -632,7 +700,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
         )
       } else if (e.name === InvalidProtocolErrorName) {
         error = new Error(
-          'Unsupported protocol. Only http or https is supported when authenticating with GitHub Enterprise instances.'
+          'Unsupported protocol. Only https is supported when authenticating with GitHub Enterprise instances.'
         )
       }
 
@@ -641,11 +709,28 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
     }
 
     const endpoint = getEnterpriseAPIURL(validUrl)
+
     try {
       const supportsBasicAuth = await this.endpointSupportsBasicAuth(endpoint)
 
       if (!this.state || this.state.kind !== SignInStep.EndpointEntry) {
         // Looks like the sign in flow has been aborted
+        return
+      }
+
+      const existingAccount = this.accounts.find(x => x.endpoint === endpoint)
+
+      if (existingAccount) {
+        this.setState({
+          kind: SignInStep.ExistingAccountWarning,
+          endpoint,
+          existingAccount,
+          supportsBasicAuth,
+          error: null,
+          loading: false,
+          forgotPasswordUrl: this.getForgotPasswordURL(endpoint),
+          resultCallback: currentState.resultCallback,
+        })
         return
       }
 

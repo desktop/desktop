@@ -10,7 +10,10 @@ import {
   IEndpointEntryState,
   IAuthenticationState,
   ITwoFactorAuthenticationState,
+  IExistingAccountWarning,
 } from '../../lib/stores'
+import { Ref } from './ref'
+import { getHTMLURL } from '../../lib/api'
 
 interface ISignInProps {
   readonly signInState: SignInState
@@ -39,7 +42,23 @@ export class SignIn extends React.Component<ISignInProps, {}> {
     this.props.dispatcher.setSignInOTP(otp)
   }
 
-  private renderEndpointEntryStep(state: IEndpointEntryState) {
+  private renderExistingAccountWarningStep(state: IExistingAccountWarning) {
+    return (
+      <>
+        <p className="existing-account-warning">
+          You're already signed in to{' '}
+          <Ref>{new URL(getHTMLURL(state.endpoint)).host}</Ref> with the account{' '}
+          <Ref>{state.existingAccount.login}</Ref>. If you continue you will
+          first be signed out.
+        </p>
+        {this.renderAuthenticationStep(state)}
+      </>
+    )
+  }
+
+  private renderEndpointEntryStep(
+    state: IEndpointEntryState | IExistingAccountWarning
+  ) {
     const children = this.props.children as ReadonlyArray<JSX.Element>
     return (
       <EnterpriseServerEntry
@@ -51,7 +70,9 @@ export class SignIn extends React.Component<ISignInProps, {}> {
     )
   }
 
-  private renderAuthenticationStep(state: IAuthenticationState) {
+  private renderAuthenticationStep(
+    state: IAuthenticationState | IExistingAccountWarning
+  ) {
     const children = this.props.children as ReadonlyArray<JSX.Element>
 
     return (
@@ -89,6 +110,8 @@ export class SignIn extends React.Component<ISignInProps, {}> {
     switch (state.kind) {
       case SignInStep.EndpointEntry:
         return this.renderEndpointEntryStep(state)
+      case SignInStep.ExistingAccountWarning:
+        return this.renderExistingAccountWarningStep(state)
       case SignInStep.Authentication:
         return this.renderAuthenticationStep(state)
       case SignInStep.TwoFactorAuthentication:
