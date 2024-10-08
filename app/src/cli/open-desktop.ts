@@ -13,7 +13,7 @@ export function openDesktop(url: string = '') {
   } else if (__WIN32__) {
     // https://github.com/nodejs/node/blob/b39dabefe6d/lib/child_process.js#L565-L577
     const shell = process.env.comspec || 'cmd.exe'
-    return ChildProcess.spawn(shell, ['/d', '/c', 'start', url], { env })
+    return ChildProcess.execFile(shell, ['/d', '/c', 'start', url], { env })
   } else if (__LINUX__) {
     return ChildProcess.spawn('xdg-open', [url], { env })
   } else {
