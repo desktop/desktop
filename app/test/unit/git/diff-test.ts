@@ -27,11 +27,13 @@ import {
   getBinaryPaths,
   getBranchMergeBaseChangedFiles,
   getBranchMergeBaseDiff,
+  git,
 } from '../../../src/lib/git'
 import { getStatusOrThrow } from '../../helpers/status'
 
-import { GitProcess } from 'dugite'
+import { GitError as DugiteError, GitProcess } from 'dugite'
 import { makeCommit, switchTo } from '../../helpers/repository-scaffolding'
+import { writeFile } from 'fs/promises'
 
 async function getTextDiff(
   repo: Repository,
@@ -399,9 +401,45 @@ describe('git/diff', () => {
         repo = await setupEmptyRepository()
       })
       it('throws since HEAD doesnt exist', () => {
-        expect(getBinaryPaths(repo, 'HEAD')).rejects.toThrow()
+        expect(getBinaryPaths(repo, 'HEAD', [])).rejects.toThrow()
       })
     })
+
+    describe('with files using binary merge driver', () => {
+      let repo: Repository
+      beforeEach(async () => {
+        repo = await setupEmptyRepository()
+        writeFile(path.join(repo.path, 'foo.bin'), 'foo\n')
+        writeFile(
+          path.join(repo.path, '.gitattributes'),
+          '*.bin merge=binary\n'
+        )
+        await git(['add', '.'], repo.path, '')
+        await git(['commit', '-m', 'initial'], repo.path, '')
+        await git(['checkout', '-b', 'branch-a'], repo.path, '')
+        await writeFile(path.join(repo.path, 'foo.bin'), 'bar\n')
+        await git(['commit', '-a', '-m', 'second'], repo.path, '')
+        await git(['checkout', '-'], repo.path, '')
+        await writeFile(path.join(repo.path, 'foo.bin'), 'foozball\n')
+        await git(['commit', '-a', '-m', 'third'], repo.path, '')
+        await git(['merge', 'branch-a'], repo.path, '', {
+          expectedErrors: new Set([DugiteError.MergeConflicts]),
+        })
+      })
+      it('includes plain text files using binary driver', async () => {
+        expect(
+          await getBinaryPaths(repo, 'MERGE_HEAD', [
+            {
+              kind: 'entry',
+              path: 'foo.bin',
+              statusCode: 'UU',
+              submoduleStatusCode: '????',
+            },
+          ])
+        ).toEqual(['foo.bin'])
+      })
+    })
+
     describe('in repo with text only files', () => {
       let repo: Repository
       beforeEach(async () => {
@@ -409,7 +447,7 @@ describe('git/diff', () => {
         repo = new Repository(testRepoPath, -1, null, false)
       })
       it('returns an empty array', async () => {
-        expect(await getBinaryPaths(repo, 'HEAD')).toHaveLength(0)
+        expect(await getBinaryPaths(repo, 'HEAD', [])).toHaveLength(0)
       })
     })
     describe('in repo with image changes', () => {
@@ -421,7 +459,7 @@ describe('git/diff', () => {
         repo = new Repository(testRepoPath, -1, null, false)
       })
       it('returns all changed image files', async () => {
-        expect(await getBinaryPaths(repo, 'HEAD')).toEqual([
+        expect(await getBinaryPaths(repo, 'HEAD', [])).toEqual([
           'modified-image.jpg',
           'new-animated-image.gif',
           'new-image.png',
@@ -439,7 +477,7 @@ describe('git/diff', () => {
         await GitProcess.exec(['merge', 'master'], repo.path)
       })
       it('returns all conflicted image files', async () => {
-        expect(await getBinaryPaths(repo, 'MERGE_HEAD')).toEqual([
+        expect(await getBinaryPaths(repo, 'MERGE_HEAD', [])).toEqual([
           'my-cool-image.png',
         ])
       })
