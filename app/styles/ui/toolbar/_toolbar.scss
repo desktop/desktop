@@ -27,11 +27,19 @@
     flex-shrink: 0;
 
     & > :last-child {
+      // Redundant when `.resizable` is used, remove when
+      // enableResizingToolbarButtons() is removed.
       flex-grow: 1;
     }
   }
 
   .toolbar-button {
+    &.resizable {
+      // Fill the available height of the parent
+      flex-grow: 1;
+      max-height: var(--toolbar-height);
+    }
+
     &.push-pull-button {
       width: 230px;
 
