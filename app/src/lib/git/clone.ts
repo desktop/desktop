@@ -1,4 +1,4 @@
-import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
+import { git, IGitExecutionOptions } from './core'
 import { ICloneProgress } from '../../models/progress'
 import { CloneOptions } from '../../models/clone-options'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
@@ -38,7 +38,6 @@ export async function clone(
   const defaultBranch = options.defaultBranch ?? (await getDefaultBranch())
 
   const args = [
-    ...gitNetworkArguments(),
     '-c',
     `init.defaultBranch=${defaultBranch}`,
     'clone',

@@ -459,16 +459,6 @@ export function getDescriptionForError(
 }
 
 /**
- * Return an array of command line arguments for network operation that override
- * the default git configuration values provided by local, global, or system
- * level git configs.
- *
- * These arguments should be inserted before the subcommand, i.e in the case of
- * `git pull` these arguments needs to go before the `pull` argument.
- */
-export const gitNetworkArguments = () => []
-
-/**
  * Returns the arguments to use on any git operation that can end up
  * triggering a rebase.
  */
