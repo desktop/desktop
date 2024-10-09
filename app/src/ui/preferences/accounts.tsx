@@ -113,8 +113,8 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
             onAction={this.onEnterpriseSignIn}
           >
             <div>
-              If you have a GitHub Enterprise or AE account at work, sign in to
-              it to get access to your repositories.
+              If you are using GitHub Enterprise at work, sign in to it to get
+              access to your repositories.
             </div>
           </CallToAction>
         )
