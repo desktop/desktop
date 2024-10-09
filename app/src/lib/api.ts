@@ -633,15 +633,6 @@ export interface IAPIComment {
   readonly created_at: string
 }
 
-/** The metadata about a GitHub server. */
-export interface IServerMetadata {
-  /**
-   * Does the server support password-based authentication? If not, the user
-   * must go through the OAuth flow to authenticate.
-   */
-  readonly verifiable_password_authentication: boolean
-}
-
 /** The server response when handling the OAuth callback (with code) to obtain an access token */
 interface IAPIAccessToken {
   readonly access_token: string
