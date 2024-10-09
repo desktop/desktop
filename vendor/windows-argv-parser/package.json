@@ -8,7 +8,9 @@
     "build": "tsc",
     "install": "node-gyp rebuild && tsc"
   },
-  "dependencies": {},
+  "dependencies": {
+    "node-addon-api": "^7.0.0"
+  },
   "devDependencies": {
     "node-gyp": "^10.1.0",
     "typescript": "^5.4.5"
