@@ -10,19 +10,7 @@ import { GitError as DugiteError, GitProcess } from 'dugite'
 import memoizeOne from 'memoize-one'
 import { enableGitConfigParameters } from '../feature-flag'
 import { GitError, getDescriptionForError } from '../git/core'
-import { deleteGenericCredential } from '../generic-git-auth'
 import { getDesktopAskpassTrampolineFilename } from 'desktop-trampoline'
-
-const mostRecentGenericGitCredential = new Map<
-  string,
-  { endpoint: string; login: string }
->()
-
-export const setMostRecentGenericGitCredential = (
-  trampolineToken: string,
-  endpoint: string,
-  login: string
-) => mostRecentGenericGitCredential.set(trampolineToken, { endpoint, login })
 
 const hasRejectedCredentialsForEndpoint = new Map<string, Set<string>>()
 
@@ -170,15 +158,12 @@ export async function withTrampolineEnv<T>(
       })
     } catch (e) {
       if (!getIsBackgroundTaskEnvironment(token)) {
-        // If the operation fails with an HTTPSAuthenticationFailed error, we
+        // If the operation fails with an SSHAuthenticationFailed error, we
         // assume that it's because the last credential we provided via the
         // askpass handler was rejected. That's not necessarily the case but for
         // practical purposes, it's as good as we can get with the information we
         // have. We're limited by the ASKPASS flow here.
-        // Same with SSHAuthenticationFailed error.
-        if (isHTTPSAuthFailure(e)) {
-          deleteMostRecentGenericCredential(token)
-        } else if (isSSHAuthFailure(e)) {
+        if (isSSHAuthFailure(e)) {
           deleteMostRecentSSHCredential(token)
         }
       }
@@ -218,7 +203,6 @@ export async function withTrampolineEnv<T>(
       throw e
     } finally {
       removeMostRecentSSHCredential(token)
-      mostRecentGenericGitCredential.delete(token)
       isBackgroundTaskEnvironment.delete(token)
       hasRejectedCredentialsForEndpoint.delete(token)
       trampolineEnvironmentPath.delete(token)
@@ -226,23 +210,10 @@ export async function withTrampolineEnv<T>(
   })
 }
 
-const isHTTPSAuthFailure = (e: unknown): e is GitError =>
-  e instanceof GitError &&
-  e.result.gitError === DugiteError.HTTPSAuthenticationFailed
-
 const isSSHAuthFailure = (e: unknown): e is GitError =>
   e instanceof GitError &&
   (e.result.gitError === DugiteError.SSHAuthenticationFailed ||
     e.result.gitError === DugiteError.SSHPermissionDenied)
-
-function deleteMostRecentGenericCredential(token: string) {
-  const cred = mostRecentGenericGitCredential.get(token)
-  if (cred) {
-    const { endpoint, login } = cred
-    log.info(`askPassHandler: auth failed, deleting ${endpoint} credential`)
-    deleteGenericCredential(endpoint, login)
-  }
-}
 
 /** Returns the path of the desktop-askpass-trampoline binary. */
 export function getDesktopAskpassTrampolinePath(): string {
