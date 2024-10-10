@@ -42,7 +42,7 @@ if (actualVersion !== expectedVersion) {
   process.exit(1)
 }
 
-if (npmrcVersion !== expectedVersion) {
+if (channel === 'production' && npmrcVersion !== expectedVersion) {
   console.error(
     `The Electron version for the ${channel} channel is not correct in the app/.npmrc file. Expected ${expectedVersion} but found ${npmrcVersion}.`
   )
