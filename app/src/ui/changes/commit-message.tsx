@@ -53,7 +53,6 @@ import {
 } from '../lib/popover'
 import { RepoRulesetsForBranchLink } from '../repository-rules/repo-rulesets-for-branch-link'
 import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-failure-list'
-import { Dispatcher } from '../dispatcher'
 import { formatCommitMessage } from '../../lib/format-commit-message'
 import { useRepoRulesLogic } from '../../lib/helpers/repo-rules'
 
@@ -74,7 +73,6 @@ interface ICommitMessageProps {
   readonly onCreateCommit: (context: ICommitContext) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
-  readonly dispatcher: Dispatcher
   readonly anyFilesSelected: boolean
   readonly isShowingModal: boolean
   readonly isShowingFoldout: boolean
@@ -103,6 +101,11 @@ interface ICommitMessageProps {
    * a commit (currently only supported for GH/GHE repositories)
    */
   readonly showCoAuthoredBy: boolean
+
+  /**
+   * Whether or not to show a input labels (Default: false)
+   */
+  readonly showInputLabels?: boolean
 
   /**
    * A list of authors (name, email pairs) which have been
@@ -476,19 +479,7 @@ export class CommitMessage extends React.Component<
   }
 
   private onSubmit = () => {
-    if (
-      this.shouldWarnForRepoRuleBypass() &&
-      this.props.repository.gitHubRepository &&
-      this.props.branch
-    ) {
-      this.props.dispatcher.showRepoRulesCommitBypassWarning(
-        this.props.repository.gitHubRepository,
-        this.props.branch,
-        () => this.createCommit()
-      )
-    } else {
-      this.createCommit()
-    }
+    this.createCommit()
   }
 
   private getCoAuthorTrailers() {
@@ -586,44 +577,6 @@ export class CommitMessage extends React.Component<
       (aheadBehind === null &&
         (repoRulesInfo.creationRestricted === true ||
           this.state.repoRuleBranchNameFailures.status === 'fail'))
-    )
-  }
-
-  /**
-   * If true, then rules exist for the branch but the user is bypassing all of them.
-   * Used to display a confirmation prompt.
-   */
-  private shouldWarnForRepoRuleBypass(): boolean {
-    const { aheadBehind, branch, repoRulesInfo } = this.props
-
-    if (!this.state.repoRulesEnabled) {
-      return false
-    }
-
-    // if all rules pass, then nothing to warn about. if at least one rule fails, then the user won't hit this
-    // in the first place because the button will be disabled. therefore, only need to check if any single
-    // value is 'bypass'.
-
-    if (
-      repoRulesInfo.basicCommitWarning === 'bypass' ||
-      repoRulesInfo.signedCommitsRequired === 'bypass' ||
-      repoRulesInfo.pullRequestRequired === 'bypass'
-    ) {
-      return true
-    }
-
-    if (
-      this.state.repoRuleCommitMessageFailures.status === 'bypass' ||
-      this.state.repoRuleCommitAuthorFailures.status === 'bypass'
-    ) {
-      return true
-    }
-
-    return (
-      aheadBehind === null &&
-      branch !== null &&
-      (repoRulesInfo.creationRestricted === 'bypass' ||
-        this.state.repoRuleBranchNameFailures.status === 'bypass')
     )
   }
 
@@ -1368,6 +1321,7 @@ export class CommitMessage extends React.Component<
 
           <AutocompletingInput
             required={true}
+            label={this.props.showInputLabels === true ? 'Summary' : undefined}
             screenReaderLabel="Commit summary"
             className={summaryInputClassName}
             placeholder={placeholder}
@@ -1389,13 +1343,21 @@ export class CommitMessage extends React.Component<
 
         {this.state.isRuleFailurePopoverOpen && this.renderRuleFailurePopover()}
 
+        {this.props.showInputLabels === true && (
+          <label htmlFor="commit-message-description">Description</label>
+        )}
         <FocusContainer
           className="description-focus-container"
           onClick={this.onFocusContainerClick}
         >
           <AutocompletingTextArea
+            inputId="commit-message-description"
             className={descriptionClassName}
-            screenReaderLabel="Commit description"
+            screenReaderLabel={
+              this.props.showInputLabels !== true
+                ? 'Commit description'
+                : undefined
+            }
             placeholder="Description"
             value={this.state.description || ''}
             onValueChanged={this.onDescriptionChanged}

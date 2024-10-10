@@ -5,8 +5,12 @@ dialog#about {
     }
 
     p,
-    h2 {
+    h1 {
       text-align: center;
+    }
+
+    h1 {
+      font-size: var(--font-size-md);
     }
 
     // The version, EULA link, and acknowledgements are conceptually two lines

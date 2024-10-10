@@ -38,7 +38,7 @@ on:
       APPLE_APPLICATION_CERT_PASSWORD:
 
 env:
-  NODE_VERSION: 20.11.1
+  NODE_VERSION: 20.17.0
 
 jobs:
   lint:

@@ -16,4 +16,13 @@ dialog#commit-message-dialog {
       }
     }
   }
+
+  .commit-message-avatar-component {
+    height: 50px;
+    width: 50px;
+  }
+
+  label {
+    margin-bottom: var(--spacing-third);
+  }
 }

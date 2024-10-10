@@ -3,10 +3,12 @@ import { Dispatcher } from '../dispatcher'
 import * as octicons from '../octicons/octicons.generated'
 import { OcticonSymbol, syncClockwise } from '../octicons'
 import { Repository } from '../../models/repository'
+import { Resizable } from '../resizable'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
 import {
   FoldoutType,
+  IConstrainedValue,
   IRepositoryState,
   isRebaseConflictState,
 } from '../../lib/app-state'
@@ -24,6 +26,7 @@ import { PopupType } from '../../models/popup'
 import { generateBranchContextMenuItems } from '../branches/branch-list-item-context-menu'
 import { showContextualMenu } from '../../lib/menu-item'
 import { Emoji } from '../../lib/emoji'
+import { enableResizingToolbarButtons } from '../../lib/feature-flag'
 
 interface IBranchDropdownProps {
   readonly dispatcher: Dispatcher
@@ -33,6 +36,9 @@ interface IBranchDropdownProps {
 
   /** The current repository state as derived from AppState */
   readonly repositoryState: IRepositoryState
+
+  /** The width of the resizable branch dropdown button, as derived from AppState. */
+  readonly branchDropdownWidth: IConstrainedValue
 
   /** Whether or not the branch dropdown is currently open */
   readonly isOpen: boolean
@@ -189,33 +195,89 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       'nudge-arrow-up': this.props.shouldNudge,
     })
 
+    if (!enableResizingToolbarButtons()) {
+      return (
+        <>
+          <ToolbarDropdown
+            className="branch-button"
+            icon={icon}
+            iconClassName={iconClassName}
+            title={title}
+            description={description}
+            onContextMenu={this.onBranchToolbarButtonContextMenu}
+            tooltip={isOpen ? undefined : tooltip}
+            onDropdownStateChanged={this.onDropDownStateChanged}
+            dropdownContentRenderer={this.renderBranchFoldout}
+            dropdownState={currentState}
+            disabled={disabled}
+            showDisclosureArrow={canOpen}
+            progressValue={progressValue}
+            buttonClassName={buttonClassName}
+            onMouseEnter={this.onMouseEnter}
+            onlyShowTooltipWhenOverflowed={true}
+            isOverflowed={isDescriptionOverflowed}
+            enableFocusTrap={enableFocusTrap}
+          >
+            {this.renderPullRequestInfo()}
+          </ToolbarDropdown>
+          {this.props.showCIStatusPopover && this.renderPopover()}
+        </>
+      )
+    }
+
+    // Properties to override the default foldout style for the branch dropdown.
+    // The min width of the foldout is different from `branchDropdownWidth.min`
+    // because the branches list foldout min width we want set to 365px instead.
+    const foldoutStyleOverrides: React.CSSProperties = {
+      width: this.props.branchDropdownWidth.value,
+      maxWidth: this.props.branchDropdownWidth.max,
+      minWidth: 365,
+    }
+
     return (
       <>
-        <ToolbarDropdown
-          className="branch-button"
-          icon={icon}
-          iconClassName={iconClassName}
-          title={title}
-          description={description}
-          onContextMenu={this.onBranchToolbarButtonContextMenu}
-          tooltip={isOpen ? undefined : tooltip}
-          onDropdownStateChanged={this.onDropDownStateChanged}
-          dropdownContentRenderer={this.renderBranchFoldout}
-          dropdownState={currentState}
-          disabled={disabled}
-          showDisclosureArrow={canOpen}
-          progressValue={progressValue}
-          buttonClassName={buttonClassName}
-          onMouseEnter={this.onMouseEnter}
-          onlyShowTooltipWhenOverflowed={true}
-          isOverflowed={isDescriptionOverflowed}
-          enableFocusTrap={enableFocusTrap}
+        <Resizable
+          width={this.props.branchDropdownWidth.value}
+          onReset={this.onReset}
+          onResize={this.onResize}
+          maximumWidth={this.props.branchDropdownWidth.max}
+          minimumWidth={this.props.branchDropdownWidth.min}
         >
-          {this.renderPullRequestInfo()}
-        </ToolbarDropdown>
-        {this.props.showCIStatusPopover && this.renderPopover()}
+          <ToolbarDropdown
+            className="branch-button"
+            icon={icon}
+            iconClassName={iconClassName}
+            title={title}
+            description={description}
+            foldoutStyleOverrides={foldoutStyleOverrides}
+            onContextMenu={this.onBranchToolbarButtonContextMenu}
+            tooltip={isOpen ? undefined : tooltip}
+            onDropdownStateChanged={this.onDropDownStateChanged}
+            dropdownContentRenderer={this.renderBranchFoldout}
+            dropdownState={currentState}
+            disabled={disabled}
+            showDisclosureArrow={canOpen}
+            progressValue={progressValue}
+            buttonClassName={buttonClassName}
+            onMouseEnter={this.onMouseEnter}
+            onlyShowTooltipWhenOverflowed={true}
+            isOverflowed={isDescriptionOverflowed}
+            enableFocusTrap={enableFocusTrap}
+          >
+            {this.renderPullRequestInfo()}
+          </ToolbarDropdown>
+          {this.props.showCIStatusPopover && this.renderPopover()}
+        </Resizable>
       </>
     )
+  }
+
+  private onResize = (width: number) => {
+    this.props.dispatcher.setBranchDropdownWidth(width)
+  }
+
+  private onReset = () => {
+    this.props.dispatcher.resetBranchDropdownWidth()
   }
 
   /**

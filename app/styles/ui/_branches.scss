@@ -15,6 +15,24 @@
     min-height: 0;
   }
 
+  &.resizable {
+    width: 100%;
+
+    .branches-list {
+      width: 100%;
+
+      &-item {
+        .name {
+          max-width: unset;
+        }
+      }
+    }
+
+    .no-pull-requests {
+      margin: var(--spacing) auto;
+    }
+  }
+
   .branches-list-item {
     height: 100%;
 

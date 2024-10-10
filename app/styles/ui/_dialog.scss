@@ -556,6 +556,11 @@ dialog {
 
   &#create-repository {
     width: 400px;
+
+    #create-repo-path-msg {
+      margin-bottom: var(--spacing);
+      margin-top: calc(-1 * var(--spacing));
+    }
   }
 
   &#create-branch {
@@ -606,6 +611,12 @@ dialog {
 
       .button-component {
         width: 100%;
+      }
+    }
+
+    .existing-account-warning {
+      .ref-component {
+        word-break: break-word;
       }
     }
 

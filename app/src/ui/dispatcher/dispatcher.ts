@@ -952,6 +952,41 @@ export class Dispatcher {
   }
 
   /**
+   * Set the width of the Branch toolbar button to the given value.
+   * This affects the toolbar button and its dropdown element.
+   *
+   * @param width The value for the width of Branch button
+   */
+  public setBranchDropdownWidth(width: number): Promise<void> {
+    return this.appStore._setBranchDropdownWidth(width)
+  }
+
+  /**
+   * Reset the width of the Branch toolbar button to its default value.
+   */
+  public resetBranchDropdownWidth(): Promise<void> {
+    return this.appStore._resetBranchDropdownWidth()
+  }
+
+  /**
+   * Set the width of the Push/Push toolbar button to the given value.
+   * This affects the toolbar button and its dropdown element.
+   *
+   * @param width The value for the width of Push/Pull button
+   */
+  public setPushPullButtonWidth(width: number): Promise<void> {
+    return this.appStore._setPushPullButtonWidth(width)
+  }
+
+  /**
+   * Reset the width of the Push/Pull toolbar button to its default
+   * value.
+   */
+  public resetPushPullButtonWidth(): Promise<void> {
+    return this.appStore._resetPushPullButtonWidth()
+  }
+
+  /**
    * Set the update banner's visibility
    */
   public setUpdateBannerVisibility(isVisible: boolean) {
@@ -1475,25 +1510,6 @@ export class Dispatcher {
     return this.appStore._setSignInEndpoint(url)
   }
 
-  /**
-   * Attempt to advance from the authentication step using a username
-   * and password. This method must only be called when the store is
-   * in the authentication step or an error will be thrown. If the
-   * provided credentials are valid the store will either advance to
-   * the Success step or to the TwoFactorAuthentication step if the
-   * user has enabled two factor authentication.
-   *
-   * If an error occurs during sign in (such as invalid credentials)
-   * the authentication state will be updated with that error so that
-   * the responsible component can present it to the user.
-   */
-  public setSignInCredentials(
-    username: string,
-    password: string
-  ): Promise<void> {
-    return this.appStore._setSignInCredentials(username, password)
-  }
-
   public beginDotComSignIn(resultCallback: (result: SignInResult) => void) {
     this.appStore._beginDotComSignIn(resultCallback)
   }
@@ -1549,22 +1565,6 @@ export class Dispatcher {
   }
 
   /**
-   * Attempt to complete the sign in flow with the given OTP token.\
-   * This method must only be called when the store is in the
-   * TwoFactorAuthentication step or an error will be thrown.
-   *
-   * If the provided token is valid the store will advance to
-   * the Success step.
-   *
-   * If an error occurs during sign in (such as invalid credentials)
-   * the authentication state will be updated with that error so that
-   * the responsible component can present it to the user.
-   */
-  public setSignInOTP(otp: string): Promise<void> {
-    return this.appStore._setSignInOTP(otp)
-  }
-
-  /**
    * Launch a sign in dialog for authenticating a user with
    * GitHub.com.
    */
@@ -1611,19 +1611,6 @@ export class Dispatcher {
       type: PopupType.UnknownAuthors,
       authors,
       onCommit: onCommitAnyway,
-    })
-  }
-
-  public async showRepoRulesCommitBypassWarning(
-    repository: GitHubRepository,
-    branch: string,
-    onConfirm: () => void
-  ) {
-    return this.appStore._showPopup({
-      type: PopupType.ConfirmRepoRulesBypass,
-      repository,
-      branch,
-      onConfirm,
     })
   }
 

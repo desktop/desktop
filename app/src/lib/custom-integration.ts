@@ -1,8 +1,9 @@
+import { ChildProcess, SpawnOptions, spawn } from 'child_process'
 import { parseCommandLineArgv } from 'windows-argv-parser'
 import stringArgv from 'string-argv'
 import { promisify } from 'util'
 import { exec } from 'child_process'
-import { access, stat } from 'fs/promises'
+import { access, lstat } from 'fs/promises'
 import * as fs from 'fs'
 
 const execAsync = promisify(exec)
@@ -15,7 +16,7 @@ export interface ICustomIntegration {
   /** The path to the custom integration */
   readonly path: string
   /** The arguments to pass to the custom integration */
-  readonly arguments: ReadonlyArray<string>
+  readonly arguments: string
   /** The bundle ID of the custom integration (macOS only) */
   readonly bundleID?: string
 }
@@ -100,12 +101,13 @@ export async function validateCustomIntegrationPath(
   let bundleID = undefined
 
   try {
-    const pathStat = await stat(path)
+    const pathStat = await lstat(path)
     const canBeExecuted = await access(path, fs.constants.X_OK)
       .then(() => true)
       .catch(() => false)
 
-    const isExecutableFile = pathStat.isFile() && canBeExecuted
+    const isExecutableFile =
+      (pathStat.isFile() || pathStat.isSymbolicLink()) && canBeExecuted
 
     // On macOS, not only executable files are valid, but also apps (which are
     // directories with a `.app` extension and from which we can retrieve
@@ -116,6 +118,7 @@ export async function validateCustomIntegrationPath(
 
     return { isValid: isExecutableFile || !!bundleID, bundleID }
   } catch (e) {
+    log.error(`Failed to validate path: ${path}`, e)
     return { isValid: false }
   }
 }
@@ -129,7 +132,73 @@ export async function validateCustomIntegrationPath(
 export async function isValidCustomIntegration(
   customIntegration: ICustomIntegration
 ): Promise<boolean> {
-  const pathResult = await validateCustomIntegrationPath(customIntegration.path)
-  const targetPathPresent = checkTargetPathArgument(customIntegration.arguments)
-  return pathResult.isValid && targetPathPresent
+  try {
+    const pathResult = await validateCustomIntegrationPath(
+      customIntegration.path
+    )
+    const argv = parseCustomIntegrationArguments(customIntegration.arguments)
+    const targetPathPresent = checkTargetPathArgument(argv)
+    return pathResult.isValid && targetPathPresent
+  } catch (e) {
+    log.error('Failed to validate custom integration:', e)
+    return false
+  }
+}
+
+/**
+ * Migrates custom integrations stored with the old format (with the arguments
+ * stored as an array of strings) to the new format (with the arguments stored
+ * as a single string).
+ *
+ * @param customIntegration The custom integration to migrate
+ *
+ * @returns The migrated custom integration, or `null` if the custom integration
+ *         is already in the new format.
+ */
+export function migratedCustomIntegration(
+  customIntegration: ICustomIntegration | null
+): ICustomIntegration | null {
+  if (customIntegration === null) {
+    return null
+  }
+
+  // The first public release of the custom integrations feature stored the
+  // arguments as an array of strings. This caused some issues because the
+  // APIs used to parse them and split them into an array would remove any
+  // quotes. Storing exactly the same string as the user entered and then parse
+  // it right before invoking the custom integration is a better approach.
+  if (!Array.isArray(customIntegration.arguments)) {
+    return null
+  }
+
+  return {
+    ...customIntegration,
+    arguments: customIntegration.arguments.join(' '),
+  }
+}
+
+/**
+ * This helper function will use spawn to launch an integration (editor or shell).
+ * Its main purpose is to do some platform-specific argument handling, for example
+ * on Windows, where we need to wrap the command and arguments in quotes when
+ * the shell option is enabled.
+ *
+ * @param command Command to spawn
+ * @param args Arguments to pass to the command
+ * @param options Options to pass to spawn (optional)
+ * @returns The ChildProcess object returned by spawn
+ */
+export function spawnCustomIntegration(
+  command: string,
+  args: readonly string[],
+  options?: SpawnOptions
+): ChildProcess {
+  // On Windows, we need to wrap the arguments and the command in quotes,
+  // otherwise the shell will split them by spaces again after invoking spawn.
+  if (__WIN32__ && options?.shell) {
+    command = `"${command}"`
+    args = args.map(a => `"${a}"`)
+  }
+
+  return options ? spawn(command, args, options) : spawn(command, args)
 }

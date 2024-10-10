@@ -5,8 +5,6 @@ import { Row } from './row'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import { Ref } from './ref'
-import { IStashEntry } from '../../models/stash-entry'
-import { enableMoveStash } from '../../lib/feature-flag'
 
 export function renderBranchHasRemoteWarning(branch: Branch) {
   if (branch.upstream != null) {
@@ -42,21 +40,6 @@ export function renderBranchNameExistsOnRemoteWarning(
       <Octicon symbol={octicons.alert} />
       <p>
         A branch named <Ref>{sanitizedName}</Ref> already exists on the remote.
-      </p>
-    </Row>
-  )
-}
-
-export function renderStashWillBeLostWarning(stash: IStashEntry | null) {
-  if (stash === null || enableMoveStash()) {
-    return null
-  }
-  return (
-    <Row className="warning-helper-text">
-      <Octicon symbol={octicons.alert} />
-      <p>
-        Your current stashed changes on this branch will no longer be visible in
-        GitHub Desktop if the branch is renamed.
       </p>
     </Row>
   )

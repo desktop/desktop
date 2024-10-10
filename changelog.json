@@ -1,5 +1,81 @@
 {
   "releases": {
+    "3.4.6": [
+      "[Fixed] Don't show certificate error dialog when probing for endpoint kind - #18991",
+      "[Fixed] Colorize multi-line strings in toml - #14333",
+      "[Fixed] Unset GIT_SEQUENCE_EDITOR when rebasing - #15413",
+      "[Fixed] Use `api.` subdomain for requests to GHE.com hosts - #19312",
+      "[Fixed] Migrate existing GHE account endpoints to the new `api.` subdomain - #19319",
+      "[Fixed] Right-clicking on diff checkmarks displays the context menu - #19302",
+      "[Fixed] Arguments with spaces are passed correctly to custom editors or shells on Windows - #19218",
+      "[Removed] Remove staggered updates block in about dialog - #19274"
+    ],
+    "3.4.6-beta3": [
+      "[Fixed] Don't show certificate error dialog when probing for endpoint kind - #18991"
+    ],
+    "3.4.6-beta2": [
+      "[Fixed] Colorize multi-line strings in toml - #14333",
+      "[Fixed] Workaround for issues with empty environment variable in third-party tools - #19273",
+      "[Fixed] Unset GIT_SEQUENCE_EDITOR when rebasing - #15413",
+      "[Fixed] Use `api.` subdomain for requests to GHE.com hosts - #19312",
+      "[Fixed] Migrate existing GHE account endpoints to the new `api.` subdomain - #19319",
+      "[Fixed] Right-clicking on diff checkmarks displays the context menu - #19302",
+      "[Removed] Remove staggered updates block in about dialog - #19274"
+    ],
+    "3.4.6-beta1": [
+      "[Fixed] Arguments with spaces are passed correctly to custom editors or shells on Windows - #19218",
+      "[Improved] Allow resizing Branch and Push/Pull toolbar buttons - #4569 #17388. Thanks @jpedroso!"
+    ],
+    "3.4.5-beta2": [
+      "[Fixed] Quotes are preserved in custom integration arguments - #19218",
+      "[Fixed] Symbolic links on Windows can be used as custom editor and shell - #19217"
+    ],
+    "3.4.5": [
+      "[Fixed] Quotes are preserved in custom integration arguments - #19218",
+      "[Fixed] Symbolic links on Windows can be used as custom editor and shell - #19217"
+    ],
+    "3.4.5-beta1": [
+      "[Added] Add Cursor integration for Windows - #19158. Thanks @colinabear!",
+      "[Fixed] Users can clone wiki's - #19152",
+      "[Improved] Inform users when attempting to create a repository out of an existing subdirectory of another repository - #19148",
+      "[Improved] When publishing a new repository, publish the default branch first as opposed to the currently checked out branch - #19151",
+      "[Improved] The \"Create a New Repository\" dialog informs the user of the path to be created - #19147"
+    ],
+    "3.4.4": [
+      "[New] Add support for custom editors and shells - #18954",
+      "[Added] Add Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
+      "[Added] Add JetBrains RustRover support - #18802. Thanks @Radd-Sma!",
+      "[Fixed] The \"Create a New Repository\" dialog allows creation of repositories in repository subfolders - #19137",
+      "[Fixed] Stop improper announcement of \"dialog\" role on the autocompletion suggestions popover - #19114",
+      "[Fixed] The \"Open a Pull Request\" and \"About\" dialog's headings are announced via NVDA - #19107",
+      "[Fixed] The branch selection popover in the \"Open a Pull Request\" dialog does not close on filter clearing - #19106",
+      "[Fixed] The contrast ratio of icon in the diff file warnings is at least 3:1 - #19097",
+      "[Fixed] The \"Push Local Changes\" confirmation dialog users \"alertdialog\" role such that screen readers announce entire dialog contents - #19098",
+      "[Fixed] Emoji's provide descriptions for screen readers - #19101",
+      "[Fixed] Only ask for SSH credentials for the selected repository and only delete them after an authentication error - #19019",
+      "[Improved] Screen readers will announce when users expand context in a diff - #19128",
+      "[Improved] The squash dialog provides visual input labels - #19100",
+      "[Improved] The search inputs across the app provide visual labeling in the form of a search icon - #19103",
+      "[Improved] Use CmdOrCtrl+Q for Exit shortcut on Linux - #19093. Thanks @shiftkey!",
+      "[Improved] Add support for Gnome Console, LXTerminal and Warp shells on Linux - #19092. Thanks @shiftkey!"
+    ],
+    "3.4.4-beta3": [
+      "[Fixed] The custom editor and shell integrations handles when there are no predefined editors or shells - #19160",
+      "[Fixed] The \"Create a New Repository\" dialog allows creation of repositories in repository subfolders - #19137",
+      "[Fixed] Stop improper announcement of \"dialog\" role on the autocompletion suggestions popover - #19114",
+      "[Improved] Screen readers will announce when users expand context in a diff - #19128"
+    ],
+    "3.4.4-beta2": [
+      "[Fixed] The \"Open a Pull Request\" and \"About\" dialog's headings are announced via NVDA - #19107",
+      "[Fixed] The branch selection popover in the \"Open a Pull Request\" dialog does not close on filter clearing - #19106",
+      "[Fixed] Increased contrast ratio of icon in the diff file warnings - #19097",
+      "[Fixed] Use \"alertdialog\" role for \"Push Local Changes\" dialog - #19098",
+      "[Fixed] Add emoji descriptions for screen readers - #19101",
+      "[Improved] The squash dialog provides input labels - #19100",
+      "[Improved] Added search input visual labeling in the form of a search icon - #19103",
+      "[Improved] Use CmdOrCtrl+Q for Exit shortcut on Linux - #19093. Thanks @shiftkey!",
+      "[Improved] Add support for Gnome Console, LXTerminal and Warp shells on Linux - #19092. Thanks @shiftkey!"
+    ],
     "3.4.4-beta1": [
       "[New] Add support for custom editors and shells - #18954",
       "[Added] Add Cursor support on macOS - #17462. Thanks @bjorntechCarl!",
@@ -36,7 +112,7 @@
     ],
     "3.4.2": [
       "[New] Option to use Git Credential Manager for repositories hosted outside of GitHub.com - #18700",
-      "[New] Allow customizing tab character width in spaces - #15561",
+      "[New] Allow customizing tab character width in spaces - #15561. Thanks @Repiteo",
       "[Fixed] Remote urls containing spaces are now displayed in their entirety in the remote settings screen - #18876",
       "[Fixed] Newly uploaded images are rendered in Pull Request comments and reviews - #18830"
     ],
@@ -51,7 +127,7 @@
       "[New] Option to use Git Credential Manager for repositories hosted outside of GitHub.com - #18700"
     ],
     "3.4.2-beta1": [
-      "[New] Allow customizing tab character width in spaces - #15561",
+      "[New] Allow customizing tab character width in spaces - #15561. Thanks @Repiteo",
       "[Fixed] Using hooks on Windows no longer results in a \"command not found\" error - #18739"
     ],
     "3.4.1": [

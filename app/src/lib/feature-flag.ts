@@ -81,22 +81,10 @@ export function enablePullRequestQuickView(): boolean {
   return enableDevelopmentFeatures()
 }
 
-export function enableMoveStash(): boolean {
-  return true
-}
-
-export const enableRepoRulesBeta = () => true
-
-export const enableCommitDetailsHeaderExpansion = () => true
-
-export const enableDiffCheckMarksAndLinkUnderlines = () => true
-
-export const enableDiffCheckMarks = enableDiffCheckMarksAndLinkUnderlines
-export const enableGroupDiffCheckmarks = enableDiffCheckMarksAndLinkUnderlines
-
-export const enableLinkUnderlines = enableDiffCheckMarksAndLinkUnderlines
-
 export const enableExternalCredentialHelper = () => true
 export const enableCredentialHelperTrampoline = () => true
 
-export const enableCustomIntegration = enableBetaFeatures
+export const enableCustomIntegration = () => true
+
+export const enableResizingToolbarButtons = enableBetaFeatures
+export const enableGitConfigParameters = enableBetaFeatures

@@ -8,7 +8,10 @@ import {
 } from '../ssh/ssh-credential-storage'
 import { GitError as DugiteError, GitProcess } from 'dugite'
 import memoizeOne from 'memoize-one'
-import { enableCredentialHelperTrampoline } from '../feature-flag'
+import {
+  enableCredentialHelperTrampoline,
+  enableGitConfigParameters,
+} from '../feature-flag'
 import { GitError, getDescriptionForError } from '../git/core'
 import { deleteGenericCredential } from '../generic-git-auth'
 import { getDesktopAskpassTrampolineFilename } from 'desktop-trampoline'
@@ -106,13 +109,23 @@ const fatalPromptsDisabledRe =
 export async function withTrampolineEnv<T>(
   fn: (env: object) => Promise<T>,
   path: string,
-  isBackgroundTask = false
+  isBackgroundTask = false,
+  customEnv?: Record<string, string | undefined>
 ): Promise<T> {
   const sshEnv = await getSSHEnvironment()
 
   return withTrampolineToken(async token => {
     isBackgroundTaskEnvironment.set(token, isBackgroundTask)
     trampolineEnvironmentPath.set(token, path)
+
+    const existingGitEnvConfig =
+      customEnv?.['GIT_CONFIG_PARAMETERS'] ??
+      process.env['GIT_CONFIG_PARAMETERS'] ??
+      ''
+
+    const gitEnvConfigPrefix =
+      existingGitEnvConfig.length > 0 ? `${existingGitEnvConfig} ` : ''
+
     // The code below assumes a few things in order to manage SSH key passphrases
     // correctly:
     // 1. `withTrampolineEnv` is only used in the functions `git` (core.ts) and
@@ -137,19 +150,26 @@ export async function withTrampolineEnv<T>(
               // configuration. Arguments passed to git commands are not passed
               // down to filters.
               //
-              // By setting GIT_CONFIG_* here we're preventing anyone else
-              // passing Git configs through environment variables and if anyone
-              // downstream of sets GIT_CONFIG_* they'll override us so if we
-              // end up using this more we'll have to come up with a more robust
-              // solution where perhaps dugite takes care of coalescing all of
-              // these.
+              // We're using the undocumented GIT_CONFIG_PARAMETERS environment
+              // variable over the documented GIT_CONFIG_{COUNT,KEY,VALUE} due
+              // to an apparent bug either in a Windows Python runtime
+              // dependency or in a Python project commonly used to manage hooks
+              // which isn't able to handle the blank environment variables we
+              // need when using GIT_CONFIG_*.
               //
-              // See https://git-scm.com/docs/git-config#ENVIRONMENT
-              GIT_CONFIG_COUNT: '2',
-              GIT_CONFIG_KEY_0: 'credential.helper',
-              GIT_CONFIG_VALUE_0: '',
-              GIT_CONFIG_KEY_1: 'credential.helper',
-              GIT_CONFIG_VALUE_1: 'desktop',
+              // See https://github.com/desktop/desktop/issues/18945
+              // See https://github.com/git/git/blob/ed155187b429a/config.c#L664
+              ...(enableGitConfigParameters()
+                ? {
+                    GIT_CONFIG_PARAMETERS: `${gitEnvConfigPrefix}'credential.helper=' 'credential.helper=desktop'`,
+                  }
+                : {
+                    GIT_CONFIG_COUNT: '2',
+                    GIT_CONFIG_KEY_0: 'credential.helper',
+                    GIT_CONFIG_VALUE_0: '',
+                    GIT_CONFIG_KEY_1: 'credential.helper',
+                    GIT_CONFIG_VALUE_1: 'desktop',
+                  }),
             }
           : {
               GIT_ASKPASS: getDesktopAskpassTrampolinePath(),

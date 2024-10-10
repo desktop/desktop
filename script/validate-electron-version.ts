@@ -19,7 +19,7 @@ type ChannelToValidate = 'production' | 'beta'
  */
 const ValidElectronVersions: Record<ChannelToValidate, string> = {
   production: '30.0.8',
-  beta: '30.0.8',
+  beta: '32.1.2',
 }
 
 const channel =

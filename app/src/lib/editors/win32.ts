@@ -150,6 +150,18 @@ const validateStartsWith = (
 }
 
 /**
+ * Handles cases where the value includes:
+ * - An icon index after a comma (e.g., "C:\Path\app.exe,0")
+ * - Surrounding quotes (e.g., ""C:\Path\app.exe",0")
+ * and returns only the path to the executable.
+ */
+const getCleanInstallLocationFromDisplayIcon = (
+  displayIconValue: string
+): string => {
+  return displayIconValue.split(',')[0].replace(/"/g, '')
+}
+
+/**
  * This list contains all the external editors supported on Windows. Add a new
  * entry here to add support for your favorite editor.
  **/
@@ -506,6 +518,15 @@ const editors: WindowsExternalEditor[] = [
     displayNamePrefixes: ['Pulsar'],
     publishers: ['Pulsar-Edit'],
   },
+  {
+    name: 'Cursor',
+    registryKeys: [
+      CurrentUserUninstallKey('62625861-8486-5be9-9e46-1da50df5f8ff'),
+    ],
+    installLocationRegistryKey: 'DisplayIcon',
+    displayNamePrefixes: ['Cursor'],
+    publishers: ['Cursor AI, Inc.'],
+  },
 ]
 
 function getKeyOrEmpty(
@@ -548,7 +569,7 @@ async function findApplication(editor: WindowsExternalEditor) {
 
     const executableShimPaths =
       editor.installLocationRegistryKey === 'DisplayIcon'
-        ? [installLocation]
+        ? [getCleanInstallLocationFromDisplayIcon(installLocation)]
         : editor.executableShimPaths.map(p => Path.join(installLocation, ...p))
 
     for (const path of executableShimPaths) {

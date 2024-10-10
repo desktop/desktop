@@ -94,7 +94,6 @@ export enum PopupType {
   TestNotifications = 'TestNotifications',
   PullRequestComment = 'PullRequestComment',
   UnknownAuthors = 'UnknownAuthors',
-  ConfirmRepoRulesBypass = 'ConfirmRepoRulesBypass',
   TestIcons = 'TestIcons',
 }
 
@@ -420,12 +419,6 @@ export type PopupDetail =
       type: PopupType.UnknownAuthors
       authors: ReadonlyArray<UnknownAuthor>
       onCommit: () => void
-    }
-  | {
-      type: PopupType.ConfirmRepoRulesBypass
-      repository: GitHubRepository
-      branch: string
-      onConfirm: () => void
     }
   | {
       type: PopupType.TestIcons

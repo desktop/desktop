@@ -6,6 +6,8 @@ import { FoundShell } from './shared'
 import {
   expandTargetPathArgument,
   ICustomIntegration,
+  parseCustomIntegrationArguments,
+  spawnCustomIntegration,
 } from '../custom-integration'
 
 export enum Shell {
@@ -224,6 +226,7 @@ export function launchCustomShell(
   customShell: ICustomIntegration,
   path: string
 ): ChildProcess {
-  const args = expandTargetPathArgument(customShell.arguments, path)
-  return spawn(customShell.path, args)
+  const argv = parseCustomIntegrationArguments(customShell.arguments)
+  const args = expandTargetPathArgument(argv, path)
+  return spawnCustomIntegration(customShell.path, args)
 }

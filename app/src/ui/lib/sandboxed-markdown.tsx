@@ -383,7 +383,7 @@ export class SandboxedMarkdown extends React.PureComponent<
         <iframe
           title="sandboxed-markdown-component"
           className="sandboxed-markdown-component"
-          sandbox=""
+          sandbox="allow-same-origin"
           ref={this.onFrameRef}
           aria-label={this.props.ariaLabel}
         />
