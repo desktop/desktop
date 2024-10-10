@@ -36,7 +36,6 @@ import { isInApplicationFolder } from '../../ui/main-process-proxy'
 import { getRendererGUID } from '../get-renderer-guid'
 import { ValidNotificationPullRequestReviewState } from '../valid-notification-pull-request-review'
 import { useExternalCredentialHelperKey } from '../trampoline/use-external-credential-helper'
-import { enableExternalCredentialHelper } from '../feature-flag'
 
 type PullRequestReviewStatFieldInfix =
   | 'Approved'
@@ -584,6 +583,9 @@ export class StatsStore implements IStatsStore {
       showDiffCheckMarksDefault
     )
 
+    const useExternalCredentialHelper =
+      getBoolean(useExternalCredentialHelperKey) ?? null
+
     // isInApplicationsFolder is undefined when not running on Darwin
     const launchedFromApplicationsFolder = __DARWIN__
       ? await isInApplicationFolder()
@@ -610,12 +612,7 @@ export class StatsStore implements IStatsStore {
       launchedFromApplicationsFolder,
       linkUnderlinesVisible,
       diffCheckMarksVisible,
-      ...(enableExternalCredentialHelper()
-        ? {
-            useExternalCredentialHelper:
-              getBoolean(useExternalCredentialHelperKey) ?? null,
-          }
-        : {}),
+      useExternalCredentialHelper,
     }
   }
 

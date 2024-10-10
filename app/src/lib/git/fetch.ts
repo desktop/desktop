@@ -1,4 +1,4 @@
-import { git, IGitExecutionOptions, gitNetworkArguments } from './core'
+import { git, IGitExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
 import { IFetchProgress } from '../../models/progress'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
@@ -12,7 +12,6 @@ async function getFetchArgs(
   progressCallback?: (progress: IFetchProgress) => void
 ) {
   return [
-    ...gitNetworkArguments(),
     'fetch',
     ...(progressCallback ? ['--progress'] : []),
     '--prune',
@@ -98,15 +97,10 @@ export async function fetchRefspec(
   remote: IRemote,
   refspec: string
 ): Promise<void> {
-  await git(
-    [...gitNetworkArguments(), 'fetch', remote.name, refspec],
-    repository.path,
-    'fetchRefspec',
-    {
-      successExitCodes: new Set([0, 128]),
-      env: await envForRemoteOperation(remote.url),
-    }
-  )
+  await git(['fetch', remote.name, refspec], repository.path, 'fetchRefspec', {
+    successExitCodes: new Set([0, 128]),
+    env: await envForRemoteOperation(remote.url),
+  })
 }
 
 export async function fastForwardBranches(

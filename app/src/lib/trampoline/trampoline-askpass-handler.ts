@@ -4,10 +4,7 @@ import {
   setSSHKeyPassphrase,
 } from '../ssh/ssh-key-passphrase'
 import { AccountsStore } from '../stores/accounts-store'
-import {
-  ITrampolineCommand,
-  TrampolineCommandHandler,
-} from './trampoline-command'
+import { TrampolineCommandHandler } from './trampoline-command'
 import { trampolineUIHelper } from './trampoline-ui-helper'
 import { parseAddSSHHostPrompt } from '../ssh/ssh'
 import {
@@ -16,19 +13,7 @@ import {
   setSSHUserPassword,
 } from '../ssh/ssh-user-password'
 import { removeMostRecentSSHCredential } from '../ssh/ssh-credential-storage'
-import { setGenericPassword, setGenericUsername } from '../generic-git-auth'
-import { Account } from '../../models/account'
-import {
-  getHasRejectedCredentialsForEndpoint,
-  getIsBackgroundTaskEnvironment,
-  setHasRejectedCredentialsForEndpoint,
-  setMostRecentGenericGitCredential,
-} from './trampoline-environment'
-import { urlWithoutCredentials } from './url-without-credentials'
-import {
-  findGenericTrampolineAccount,
-  findGitHubTrampolineAccount,
-} from './find-account'
+import { getIsBackgroundTaskEnvironment } from './trampoline-environment'
 
 async function handleSSHHostAuthenticity(
   operationGUID: string,
@@ -182,103 +167,5 @@ export const createAskpassTrampolineHandler: (
       return handleSSHUserPassword(command.trampolineToken, firstParameter)
     }
 
-    // Git prompt: Username for 'https://github.com':
-    // Git LFS prompt: Username for "https://github.com"
-    const credsMatch = /^(Username|Password) for ['"](.+)['"](: )?$/.exec(
-      firstParameter
-    )
-
-    if (credsMatch?.[1] === 'Username' || credsMatch?.[1] === 'Password') {
-      const [, kind, remoteUrl] = credsMatch
-      return handleAskPassUserPassword(command, kind, remoteUrl, accountsStore)
-    }
-
     return undefined
   }
-
-const handleAskPassUserPassword = async (
-  command: ITrampolineCommand,
-  kind: 'Username' | 'Password',
-  remoteUrl: string,
-  accountsStore: AccountsStore
-) => {
-  const info = (msg: string) => log.info(`askPassHandler: ${msg}`)
-  const debug = (msg: string) => log.debug(`askPassHandler: ${msg}`)
-
-  const { trampolineToken } = command
-  const parsedUrl = new URL(remoteUrl)
-  const endpoint = urlWithoutCredentials(remoteUrl)
-  const account =
-    (await findGitHubTrampolineAccount(accountsStore, remoteUrl)) ??
-    (await findGenericTrampolineAccount(trampolineToken, remoteUrl).then(c => {
-      if (c) {
-        setMostRecentGenericGitCredential(trampolineToken, endpoint, c.login)
-      }
-      return c
-    }))
-
-  if (account) {
-    const accountKind = account instanceof Account ? 'account' : 'generic'
-    debug(`${accountKind} ${kind.toLowerCase()} for ${remoteUrl} found`)
-    return kind === 'Username' ? account.login : account.token
-  }
-
-  if (getHasRejectedCredentialsForEndpoint(trampolineToken, endpoint)) {
-    debug(`not requesting credentials for ${remoteUrl}`)
-    return undefined
-  }
-
-  if (getIsBackgroundTaskEnvironment(trampolineToken)) {
-    debug('background task environment, skipping prompt')
-    return undefined
-  }
-
-  info(`no account found for ${remoteUrl}`)
-
-  if (parsedUrl.hostname === 'github.com') {
-    // We don't want to show a generic auth prompt for GitHub.com and we
-    // don't have a good way to turn the sign in flow into a promise. More
-    // specifically we can create a promise that resolves when the GH sign in
-    // flow completes but we don't have a way to have the promise reject if
-    // the user cancels.
-    return undefined
-  }
-
-  const { login: username, token: password } =
-    (await trampolineUIHelper.promptForGenericGitAuthentication(
-      remoteUrl,
-      parsedUrl.username === '' ? undefined : parsedUrl.username
-    )) ?? { login: '', token: '' }
-
-  if (!username || !password) {
-    info('user cancelled generic git authentication')
-    setHasRejectedCredentialsForEndpoint(trampolineToken, endpoint)
-
-    return undefined
-  }
-
-  // Git will ordinarily prompt us twice, first for the username and then
-  // for the password. For the second prompt the url will contain the
-  // username. For example:
-  // Prompt 1: Username for 'https://example.com':
-  // < user enters username >
-  // Prompt 2: Password for 'https://username@example.com':
-  //
-  // So when we get a prompt that doesn't include the username we know that
-  // it's the first prompt. This matters because users can include the
-  // username in the remote url in which case Git won't even prompt us for
-  // the username. For example:
-  // https://username@dev.azure.com/org/repo/_git/repo
-  //
-  // If we're getting prompted for password directly with the username we
-  // don't want to store the username association, only the password.
-  if (parsedUrl.username === '') {
-    setGenericUsername(endpoint, username)
-  }
-
-  await setGenericPassword(endpoint, username, password)
-
-  info(`acquired generic credentials for ${remoteUrl}`)
-
-  return kind === 'Username' ? username : password
-}

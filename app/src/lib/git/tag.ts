@@ -1,4 +1,4 @@
-import { git, gitNetworkArguments } from './core'
+import { git } from './core'
 import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
@@ -89,7 +89,6 @@ export async function fetchTagsToPush(
   branchName: string
 ): Promise<ReadonlyArray<string>> {
   const args = [
-    ...gitNetworkArguments(),
     'push',
     remote.name,
     branchName,

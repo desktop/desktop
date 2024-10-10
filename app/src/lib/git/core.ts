@@ -15,7 +15,6 @@ import split2 from 'split2'
 import { getFileFromExceedsError } from '../helpers/regex'
 import { merge } from '../merge'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
-import { enableCredentialHelperTrampoline } from '../feature-flag'
 
 /**
  * An extension of the execution options in dugite that
@@ -458,22 +457,6 @@ export function getDescriptionForError(
       return assertNever(error, `Unknown error: ${error}`)
   }
 }
-
-/**
- * Return an array of command line arguments for network operation that override
- * the default git configuration values provided by local, global, or system
- * level git configs.
- *
- * These arguments should be inserted before the subcommand, i.e in the case of
- * `git pull` these arguments needs to go before the `pull` argument.
- */
-export const gitNetworkArguments = () => [
-  // Explicitly unset any defined credential helper, we rely on our own askpass
-  // for authentication except when our credential helper trampoline is enabled.
-  // When it is enabled we set the credential helper via environment variables
-  // in withTrampolineEnv instead.
-  ...(enableCredentialHelperTrampoline() ? [] : ['-c', 'credential.helper=']),
-]
 
 /**
  * Returns the arguments to use on any git operation that can end up
