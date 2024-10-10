@@ -1,5 +1,3 @@
-#include <node.h>
-#include <node_api.h>
 #include <assert.h>
 #include <stdlib.h>
 #include "napi.h"
