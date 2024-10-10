@@ -7029,7 +7029,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { commitSHAs } = compareState
     const commitIndexBySha = new Map(commitSHAs.map((sha, i) => [sha, i]))
 
-    return [...commits].sort((a, b) =>
+    return commits.toSorted((a, b) =>
       compare(commitIndexBySha.get(b.sha), commitIndexBySha.get(a.sha))
     )
   }
@@ -7049,7 +7049,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { commitSHAs } = compareState
     const commitIndexBySha = new Map(commitSHAs.map((sha, i) => [sha, i]))
 
-    return [...commits].sort((a, b) =>
+    return commits.toSorted((a, b) =>
       compare(commitIndexBySha.get(b), commitIndexBySha.get(a))
     )
   }

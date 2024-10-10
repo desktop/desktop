@@ -80,7 +80,7 @@ export async function findAccountForRemoteURL(
     // As this needs to be done efficiently, we consider endpoints not matching
     // `getDotComAPIEndpoint()` to be GitHub Enterprise accounts, and accounts
     // without a token to be unauthenticated.
-    const sortedAccounts = Array.from(allAccounts).sort((a1, a2) => {
+    const sortedAccounts = allAccounts.toSorted((a1, a2) => {
       if (a1.endpoint === getDotComAPIEndpoint()) {
         return a1.token.length ? -1 : 1
       } else if (a2.endpoint === getDotComAPIEndpoint()) {
