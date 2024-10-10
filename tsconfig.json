@@ -15,7 +15,8 @@
     "jsx": "react",
     "strict": true,
     "outDir": "./out",
-    "useUnknownInCatchVariables": false
+    "useUnknownInCatchVariables": false,
+    "lib": ["ES2023"]
   },
   "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],
   "exclude": [
