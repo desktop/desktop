@@ -388,7 +388,7 @@ export class CommitList extends React.Component<
       return true
     }
 
-    const sorted = [...indexes].sort((a, b) => b - a)
+    const sorted = indexes.toSorted((a, b) => b - a)
 
     for (let i = 0; i < sorted.length; i++) {
       const current = sorted[i]
