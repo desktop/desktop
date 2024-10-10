@@ -47,14 +47,18 @@ function getElements(
   return tokens.map((token, index) => {
     switch (token.kind) {
       case TokenType.Emoji:
-        return (
-          <img
-            key={index}
-            alt={token.description ?? token.text}
-            className="emoji"
-            src={token.path}
-          />
-        )
+        if (token.emoji) {
+          return <span key={index}>{token.emoji}</span>
+        } else {
+          return (
+            <img
+              key={index}
+              alt={token.description ?? token.text}
+              className="emoji"
+              src={token.path}
+            />
+          )
+        }
       case TokenType.Link:
         if (renderUrlsAsLinks !== false) {
           const title = token.text !== token.url ? token.url : undefined
