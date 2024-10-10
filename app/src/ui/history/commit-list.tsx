@@ -19,7 +19,7 @@ import { RowIndexPath } from '../lib/list/list-row-index-path'
 import { assertNever } from '../../lib/fatal-error'
 import { CommitDragElement } from '../drag-elements/commit-drag-element'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
-import { debounce } from 'lodash'
+import debounce from 'lodash/debounce'
 import {
   Popover,
   PopoverAnchorPosition,
