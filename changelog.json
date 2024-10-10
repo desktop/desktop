@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.4.7-beta1": [
+      "[Improved] The commit lists in the \"Commit Reachability\" dialogs are traversable in browse mode of screen readers - #19341",
+      "[Removed] Remove ruleset bypass confirmation modal - #19281. Thanks @lofcz!"
+    ],
     "3.4.6": [
       "[Fixed] Don't show certificate error dialog when probing for endpoint kind - #18991",
       "[Fixed] Colorize multi-line strings in toml - #14333",
