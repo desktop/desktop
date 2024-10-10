@@ -1,13 +1,13 @@
-import express from 'express'
 import webpack from 'webpack'
-import devMiddleware from 'webpack-dev-middleware'
-import hotMiddleware from 'webpack-hot-middleware'
+import DevMiddleware from 'webpack-dev-middleware'
+import HotMiddleware from 'webpack-hot-middleware'
 
 import { forceUnwrap as u } from '../app/src/lib/fatal-error'
 
 import configs from '../app/webpack.development'
 
 import { run } from './run'
+import { createServer } from 'http'
 
 function getPortOrDefault() {
   const port = process.env.PORT
@@ -40,30 +40,35 @@ if (process.env.NODE_ENV === 'production') {
   startApp()
 } else {
   const rendererConfig = configs[1]
-
-  const server = express()
   const compiler = webpack(rendererConfig)
   const port = getPortOrDefault()
-
   const message = 'Could not find public path from configuration'
-  server.use(
-    devMiddleware(compiler, {
-      publicPath: u(
-        message,
-        u(message, u(message, rendererConfig).output).publicPath
-      ),
+
+  const devMiddleware = DevMiddleware(compiler, {
+    publicPath: u(
+      message,
+      u(message, u(message, rendererConfig).output).publicPath
+    ),
+  })
+
+  const hotMiddleware = HotMiddleware(compiler)
+
+  const server = createServer((req, res) => {
+    devMiddleware(req, res, () => {
+      hotMiddleware(req, res, () => {
+        res.writeHead(404, { 'Content-Type': 'text/plain' })
+        res.end('Not found')
+      })
     })
-  )
+  })
 
-  server.use(hotMiddleware(compiler))
-
-  server.listen(port, 'localhost', (err: Error | null) => {
-    if (err) {
-      console.log(err)
-      process.exit(1)
-    }
-
+  server.listen(port, 'localhost')
+  server.on('listening', () => {
     console.log(`Server running at http://localhost:${port}`)
     startApp()
+  })
+  server.on('error', (err: Error) => {
+    console.error(err)
+    process.exit(1)
   })
 }
