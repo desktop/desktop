@@ -233,6 +233,10 @@ function copyEmoji() {
   const emojiImagesDestination = path.join(outRoot, 'emoji')
   removeAndCopy(emojiImages, emojiImagesDestination)
 
+  // Remove unicode-based emoji images (use the unicode emojis instead)
+  const emojiImagesUnicode = path.join(emojiImagesDestination, 'unicode')
+  rmSync(emojiImagesUnicode, { recursive: true, force: true })
+
   const emojiJSON = path.join(projectRoot, 'gemoji', 'db', 'emoji.json')
   const emojiJSONDestination = path.join(outRoot, 'emoji.json')
   removeAndCopy(emojiJSON, emojiJSONDestination)
