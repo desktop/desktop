@@ -785,14 +785,15 @@ export class CommitMessage extends React.Component<
     }
 
     return (
-      <button
+      <Button
         className="co-authors-toggle"
         onClick={this.onCoAuthorToggleButtonClick}
-        aria-label={this.toggleCoAuthorsText}
+        ariaLabel={this.toggleCoAuthorsText}
+        tooltip={this.toggleCoAuthorsText}
         disabled={this.props.isCommitting === true}
       >
         <Octicon symbol={addAuthorIcon} />
-      </button>
+      </Button>
     )
   }
 
