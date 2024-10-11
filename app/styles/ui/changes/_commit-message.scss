@@ -185,6 +185,7 @@
     .co-authors-toggle {
       // button reset styles
       border: none;
+      border-radius: 0px;
       -webkit-appearance: none;
       background: transparent;
       padding: 0;
@@ -196,23 +197,6 @@
       height: 16px;
       width: 18px;
       cursor: pointer;
-
-      &:after {
-        content: attr(aria-label);
-        position: relative;
-        top: -100%;
-        left: 100%;
-        display: block;
-        width: max-content;
-        outline: none;
-        margin-left: 3px;
-        margin-top: 1px;
-        font-size: var(--font-size-sm);
-        color: var(--text-secondary-color);
-        opacity: 0;
-        transition: 150ms all ease-in-out;
-        pointer-events: none;
-      }
 
       &:disabled {
         pointer-events: none;
