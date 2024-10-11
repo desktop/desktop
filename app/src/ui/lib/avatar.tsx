@@ -11,7 +11,7 @@ import {
 } from '../../lib/endpoint-capabilities'
 import { Account } from '../../models/account'
 import { parseStealthEmail } from '../../lib/email'
-import { noop } from 'lodash'
+import noop from 'lodash/noop'
 import { offsetFrom } from '../../lib/offset-from'
 import { ExpiringOperationCache } from './expiring-operation-cache'
 import { forceUnwrap } from '../../lib/fatal-error'
