@@ -1,5 +1,14 @@
 {
   "releases": {
+    "3.4.7-beta2": [
+      "[Fixed] Fix misaligned resizable toolbar buttons - #19330. Thanks @jpedroso!",
+      "[Fixed] Files configured to use the binary merge driver are now treated as binary files when resolving conflicts - #9846",
+      "[Fixed] Fix UI glitch rendering tooltips - #19342",
+      "[Improved] Support entering GitHub.com as a GitHub Enterprise endpoint - #19342",
+      "[Improved] Replace hint text of toggle Co-Authors button with a regular tooltip - #19383",
+      "[Improved] Use OS emojis - #19102",
+      "[Improved] Upgrade Electron to v32.1.2 - #19334"
+    ],
     "3.4.7-beta1": [
       "[Improved] The commit lists in the \"Commit Reachability\" dialogs are traversable in browse mode of screen readers - #19341",
       "[Removed] Remove ruleset bypass confirmation modal - #19281. Thanks @lofcz!"
