@@ -72,11 +72,12 @@ export class EmojiAutocompletionProvider
     const results = new Array<IEmojiHit>()
     const needle = text.toLowerCase()
 
-    for (const emoji of this.allEmoji.keys()) {
-      const index = emoji.indexOf(needle)
+    for (const [key, emoji] of this.allEmoji.entries()) {
+      const index = key.indexOf(needle)
       if (index !== -1) {
         results.push({
-          title: emoji,
+          title: key,
+          emoji: emoji.emoji,
           matchStart: index,
           matchLength: needle.length,
         })
