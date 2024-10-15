@@ -12,7 +12,14 @@ const sanitizeEmoji = (emoji: string) => emoji.replaceAll(':', '')
  */
 export interface IEmojiHit {
   /** A human-readable markdown representation of the emoji, ex :heart: */
-  readonly emoji: string
+  readonly title: string
+
+  /**
+   * The unicode string of the emoji if emoji is part of
+   * the unicode specification. If missing this emoji is
+   * a GitHub custom emoji such as :shipit:
+   */
+  readonly emoji?: string
 
   /**
    * The offset into the emoji string where the
@@ -52,18 +59,28 @@ export class EmojiAutocompletionProvider
     // when the user types a ':'. We want to open the popup
     // with suggestions as fast as possible.
     if (text.length === 0) {
-      return [...this.allEmoji.keys()]
-        .map(emoji => ({ emoji, matchStart: 0, matchLength: 0 }))
+      return [...this.allEmoji.entries()]
+        .map(([title, { emoji }]) => ({
+          title,
+          emoji,
+          matchStart: 0,
+          matchLength: 0,
+        }))
         .slice(0, maxHits)
     }
 
     const results = new Array<IEmojiHit>()
     const needle = text.toLowerCase()
 
-    for (const emoji of this.allEmoji.keys()) {
-      const index = emoji.indexOf(needle)
+    for (const [key, emoji] of this.allEmoji.entries()) {
+      const index = key.indexOf(needle)
       if (index !== -1) {
-        results.push({ emoji, matchStart: index, matchLength: needle.length })
+        results.push({
+          title: key,
+          emoji: emoji.emoji,
+          matchStart: index,
+          matchLength: needle.length,
+        })
       }
     }
 
@@ -82,15 +99,15 @@ export class EmojiAutocompletionProvider
       .sort(
         (x, y) =>
           compare(x.matchStart, y.matchStart) ||
-          compare(x.emoji.length, y.emoji.length) ||
-          compare(x.emoji, y.emoji)
+          compare(x.title.length, y.title.length) ||
+          compare(x.title, y.title)
       )
       .slice(0, maxHits)
   }
 
   public getItemAriaLabel(hit: IEmojiHit): string {
-    const emoji = this.allEmoji.get(hit.emoji)
-    const sanitizedEmoji = sanitizeEmoji(hit.emoji)
+    const emoji = this.allEmoji.get(hit.title)
+    const sanitizedEmoji = sanitizeEmoji(hit.title)
     const emojiDescription = emoji?.emoji
       ? emoji.emoji
       : emoji?.description ?? sanitizedEmoji
@@ -100,17 +117,17 @@ export class EmojiAutocompletionProvider
   }
 
   public renderItem(hit: IEmojiHit) {
-    const emoji = this.allEmoji.get(hit.emoji)
+    const emoji = this.allEmoji.get(hit.title)
 
     return (
-      <div className="emoji" key={hit.emoji}>
+      <div className="emoji" key={hit.title}>
         {emoji?.emoji ? (
           <div className="icon">{emoji?.emoji}</div>
         ) : (
           <img
             className="icon"
             src={emoji?.url}
-            alt={emoji?.description ?? hit.emoji}
+            alt={emoji?.description ?? hit.title}
           />
         )}
         {this.renderHighlightedTitle(hit)}
@@ -119,7 +136,7 @@ export class EmojiAutocompletionProvider
   }
 
   private renderHighlightedTitle(hit: IEmojiHit) {
-    const emoji = sanitizeEmoji(hit.emoji)
+    const emoji = sanitizeEmoji(hit.title)
 
     if (!hit.matchLength) {
       return <div className="title">{emoji}</div>
@@ -139,6 +156,6 @@ export class EmojiAutocompletionProvider
   }
 
   public getCompletionText(item: IEmojiHit) {
-    return item.emoji
+    return item.emoji ?? item.title
   }
 }
