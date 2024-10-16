@@ -130,7 +130,7 @@ export class PullRequestFilesChanged extends React.Component<
     this.props.dispatcher.resetPullRequestFileListWidth()
   }
 
-  private onViewOnGitHub = (file: CommittedFileChange) => {
+  private onViewInBrowser = (file: CommittedFileChange) => {
     const { nonLocalCommitSHA, repository, dispatcher } = this.props
     const { gitHubRepository } = repository
 
@@ -217,7 +217,7 @@ export class PullRequestFilesChanged extends React.Component<
 
     items.push({
       label: `View on GitHub${isEnterprise ? ' Enterprise' : ''}`,
-      action: () => this.onViewOnGitHub(file),
+      action: () => this.onViewInBrowser(file),
       enabled: nonLocalCommitSHA !== null && gitHubRepository !== null,
     })
 

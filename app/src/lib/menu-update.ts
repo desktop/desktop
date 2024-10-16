@@ -154,6 +154,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
   const isHostedOnGitHub = selectedState
     ? isRepositoryHostedOnGitHub(selectedState.repository)
     : false
+  const hasOriginUrl = selectedState?.repository.url !== null
 
   let repositorySelected = false
   let onNonDefaultBranch = false
@@ -283,7 +284,10 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       isHostedOnGitHub && hasPublishedBranch
     )
 
-    menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
+    menuStateBuilder.setEnabled(
+      'view-repository-on-github',
+      isHostedOnGitHub || hasOriginUrl
+    )
     menuStateBuilder.setEnabled(
       'create-issue-in-repository-on-github',
       repoIssuesEnabled

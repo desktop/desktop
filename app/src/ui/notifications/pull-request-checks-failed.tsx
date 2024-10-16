@@ -173,7 +173,7 @@ export class PullRequestChecksFailed extends React.Component<
       <CICheckRunList
         checkRuns={this.state.checks}
         selectable={true}
-        onViewCheckDetails={this.onViewOnGitHub}
+        onViewCheckDetails={this.onViewInBrowser}
         onCheckRunClick={this.onCheckRunClick}
         onRerunJob={
           supportsRerunningIndividualOrFailedChecks(
@@ -368,11 +368,11 @@ export class PullRequestChecksFailed extends React.Component<
   private onViewSelectedCheckRunOnGitHub = () => {
     const selectedCheck = this.selectedCheck
     if (selectedCheck !== undefined) {
-      this.onViewOnGitHub(selectedCheck)
+      this.onViewInBrowser(selectedCheck)
     }
   }
 
-  private onViewOnGitHub = (checkRun: IRefCheck) => {
+  private onViewInBrowser = (checkRun: IRefCheck) => {
     const { repository, pullRequest, dispatcher } = this.props
 
     // Some checks do not provide htmlURLS like ones for the legacy status
