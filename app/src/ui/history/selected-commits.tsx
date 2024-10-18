@@ -429,19 +429,19 @@ export class SelectedCommits extends React.Component<
       { type: 'separator' },
     ]
 
-    let viewOnGitHubLabel = 'View on GitHub'
+    let viewInBrowserLabel = 'View on GitHub'
     const gitHubRepository = repository.gitHubRepository
 
     if (
       gitHubRepository &&
       gitHubRepository.endpoint !== getDotComAPIEndpoint()
     ) {
-      viewOnGitHubLabel = 'View on GitHub Enterprise'
+      viewInBrowserLabel = 'View on GitHub Enterprise'
     }
 
     items.push({
-      label: viewOnGitHubLabel,
-      action: () => this.onViewOnGitHub(selectedCommits[0].sha, file),
+      label: viewInBrowserLabel,
+      action: () => this.onViewInBrowser(selectedCommits[0].sha, file),
       enabled:
         selectedCommits.length === 1 &&
         !localCommitSHAs.includes(selectedCommits[0].sha) &&
@@ -452,7 +452,7 @@ export class SelectedCommits extends React.Component<
     showContextualMenu(items)
   }
 
-  private onViewOnGitHub = (sha: string, file: CommittedFileChange) => {
+  private onViewInBrowser = (sha: string, file: CommittedFileChange) => {
     this.props.onViewCommitOnGitHub(sha, file.path)
   }
 }
