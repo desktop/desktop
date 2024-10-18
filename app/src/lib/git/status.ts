@@ -163,12 +163,23 @@ function convertToAppStatus(
       kind: AppFileStatusKind.Copied,
       oldPath,
       submoduleStatus: entry.submoduleStatus,
+      renameIncludesModifications: false,
     }
   } else if (entry.kind === 'renamed' && oldPath != null) {
+    // The renamed files includes modifications if the working tree has
+    // modifications of the rename score is not 100%.
+    let renameIncludesModifications = false;
+    if (
+      entry.workingTree === GitStatusEntry.Modified ||
+      (entry.renameOrCopyScore !== undefined && entry.renameOrCopyScore < 100)
+    ) {
+      renameIncludesModifications = true;
+    }
     return {
       kind: AppFileStatusKind.Renamed,
       oldPath,
       submoduleStatus: entry.submoduleStatus,
+      renameIncludesModifications,
     }
   } else if (entry.kind === 'untracked') {
     return {
@@ -293,7 +304,7 @@ function buildStatusMap(
   entry: IStatusEntry,
   conflictDetails: ConflictFilesDetails
 ): Map<string, WorkingDirectoryFileChange> {
-  const status = mapStatus(entry.statusCode, entry.submoduleStatusCode)
+  const status = mapStatus(entry.statusCode, entry.submoduleStatusCode, entry.renameOrCopyScore)
 
   if (status.kind === 'ordinary') {
     // when a file is added in the index but then removed in the working
