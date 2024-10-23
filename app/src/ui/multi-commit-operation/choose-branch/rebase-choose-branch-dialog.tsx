@@ -59,7 +59,7 @@ export class RebaseChooseBranchDialog extends React.Component<
     const { selectedBranch, rebasePreview } = this.state
     const commitCount =
       rebasePreview?.kind === ComputedAction.Clean
-        ? rebasePreview.commits.length
+        ? rebasePreview.commitsFromOtherBranch.length
         : undefined
     return canStartOperation(
       selectedBranch,
@@ -89,15 +89,15 @@ export class RebaseChooseBranchDialog extends React.Component<
       currentBranch !== null &&
       selectedBranch.name === currentBranch.name
 
-    const areCommitsToRebase =
+    const areCommitsToBringFromOtherBranch =
       rebasePreview?.kind === ComputedAction.Clean
-        ? rebasePreview.commits.length > 0
+        ? rebasePreview.commitsFromOtherBranch.length > 0
         : false
 
     return selectedBranchIsCurrentBranch
       ? 'You are not able to rebase this branch onto itself.'
-      : !areCommitsToRebase
-      ? 'There are no commits on the current branch to rebase.'
+      : !areCommitsToBringFromOtherBranch
+      ? 'There are no new commits on the other branch.'
       : undefined
   }
 
@@ -135,7 +135,8 @@ export class RebaseChooseBranchDialog extends React.Component<
       return this.renderCleanRebaseMessage(
         currentBranch,
         baseBranch,
-        rebasePreview.commits.length
+        rebasePreview.commits.length,
+        rebasePreview.commitsFromOtherBranch.length
       )
     }
 
@@ -157,9 +158,10 @@ export class RebaseChooseBranchDialog extends React.Component<
   private renderCleanRebaseMessage(
     currentBranch: Branch,
     baseBranch: Branch,
-    commitsToRebase: number
+    commitsToRebase: number,
+    commitsFromOtherBranch: number
   ) {
-    if (commitsToRebase <= 0) {
+    if (commitsFromOtherBranch <= 0) {
       return (
         <>
           This branch is up to date with{` `}

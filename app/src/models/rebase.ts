@@ -33,6 +33,7 @@ export type RebaseProgressOptions = {
 export type CleanRebase = {
   readonly kind: ComputedAction.Clean
   readonly commits: ReadonlyArray<CommitOneLine>
+  readonly commitsFromOtherBranch: ReadonlyArray<CommitOneLine>
 }
 
 export type RebaseWithConflicts = {
