@@ -6,7 +6,7 @@ import { RepositoryStateCache } from '../../src/lib/stores/repository-state-cach
 import { setupFixtureRepository } from '../helpers/repositories'
 import { shell } from '../helpers/test-app-shell'
 import { TestRepositoriesDatabase } from '../helpers/databases'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import {
   createRepository as createPrunedRepository,
   setupRepository,
@@ -222,7 +222,7 @@ describe('BranchPruner', () => {
 })
 
 async function getBranchesFromGit(repository: Repository) {
-  const gitOutput = await GitProcess.exec(['branch'], repository.path)
+  const gitOutput = await exec(['branch'], repository.path)
   return gitOutput.stdout
     .split('\n')
     .filter(s => s.length > 0)

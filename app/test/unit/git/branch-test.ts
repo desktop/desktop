@@ -13,7 +13,7 @@ import {
   IUnbornRepository,
 } from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/stores'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import {
   getBranchesPointedAt,
   createBranch,
@@ -55,7 +55,7 @@ describe('git/branch', () => {
     it('returns correct ref if checkout occurs', async () => {
       const repository = await setupEmptyRepository()
 
-      await GitProcess.exec(['checkout', '-b', 'not-master'], repository.path)
+      await exec(['checkout', '-b', 'not-master'], repository.path)
 
       const store = new GitStore(repository, shell, statsStore)
       await store.loadStatus()

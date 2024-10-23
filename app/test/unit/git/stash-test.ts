@@ -2,7 +2,7 @@ import * as FSE from 'fs-extra'
 import * as path from 'path'
 import { Repository } from '../../../src/models/repository'
 import { setupEmptyRepository } from '../../helpers/repositories'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import {
   createDesktopStashMessage,
   createDesktopStashEntry,
@@ -28,8 +28,8 @@ describe('git/stash', () => {
       repository = await setupEmptyRepository()
       readme = path.join(repository.path, 'README.md')
       await FSE.writeFile(readme, '')
-      await GitProcess.exec(['add', 'README.md'], repository.path)
-      await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+      await exec(['add', 'README.md'], repository.path)
+      await exec(['commit', '-m', 'initial commit'], repository.path)
     })
 
     it('handles unborn repo by returning empty list', async () => {
@@ -67,8 +67,8 @@ describe('git/stash', () => {
       repository = await setupEmptyRepository()
       readme = path.join(repository.path, 'README.md')
       await FSE.writeFile(readme, '')
-      await GitProcess.exec(['add', 'README.md'], repository.path)
-      await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+      await exec(['add', 'README.md'], repository.path)
+      await exec(['commit', '-m', 'initial commit'], repository.path)
     })
 
     it('creates a stash entry when repo is not unborn or in any kind of conflict or rebase state', async () => {
@@ -114,8 +114,8 @@ describe('git/stash', () => {
       repository = await setupEmptyRepository()
       readme = path.join(repository.path, 'README.md')
       await FSE.writeFile(readme, '')
-      await GitProcess.exec(['add', 'README.md'], repository.path)
-      await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+      await exec(['add', 'README.md'], repository.path)
+      await exec(['commit', '-m', 'initial commit'], repository.path)
     })
 
     it('returns null when no stash entries exist for branch', async () => {
@@ -166,8 +166,8 @@ describe('git/stash', () => {
       repository = await setupEmptyRepository()
       readme = path.join(repository.path, 'README.md')
       await FSE.writeFile(readme, '')
-      await GitProcess.exec(['add', 'README.md'], repository.path)
-      await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+      await exec(['add', 'README.md'], repository.path)
+      await exec(['commit', '-m', 'initial commit'], repository.path)
     })
 
     it('removes the entry identified by `stashSha`', async () => {
@@ -241,8 +241,8 @@ describe('git/stash', () => {
       repository = await setupEmptyRepository()
       readme = path.join(repository.path, 'README.md')
       await FSE.writeFile(readme, '')
-      await GitProcess.exec(['add', 'README.md'], repository.path)
-      await GitProcess.exec(['commit', '-m', 'initial commit'], repository.path)
+      await exec(['add', 'README.md'], repository.path)
+      await exec(['commit', '-m', 'initial commit'], repository.path)
     })
     describe('without any conflicts', () => {
       it('restores changes back to the working directory', async () => {
@@ -273,10 +273,7 @@ describe('git/stash', () => {
 
         const readme = path.join(repository.path, 'README.md')
         await FSE.appendFile(readme, generateString())
-        await GitProcess.exec(
-          ['commit', '-am', 'later commit'],
-          repository.path
-        )
+        await exec(['commit', '-am', 'later commit'], repository.path)
 
         let status = await getStatusOrThrow(repository)
         let files = status.workingDirectory.files
@@ -325,7 +322,7 @@ async function stash(
   branchName: string,
   message: string | null
 ): Promise<void> {
-  const result = await GitProcess.exec(
+  const result = await exec(
     ['stash', 'push', '-m', message || createDesktopStashMessage(branchName)],
     repository.path
   )

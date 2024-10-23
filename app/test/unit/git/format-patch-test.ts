@@ -8,7 +8,7 @@ import {
   cloneLocalRepository,
   makeCommit,
 } from '../../helpers/repository-scaffolding'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 
 describe('formatPatch', () => {
   describe('in a repo with commits', () => {
@@ -44,7 +44,7 @@ describe('formatPatch', () => {
       })
       it('will be applied cleanly', async () => {
         const patch = await formatPatch(repository, 'HEAD~', 'HEAD')
-        const result = await GitProcess.exec(['apply'], clonedRepository.path, {
+        const result = await exec(['apply'], clonedRepository.path, {
           stdin: patch,
         })
         expect(result).toBeTruthy()
@@ -57,7 +57,7 @@ describe('formatPatch', () => {
     beforeEach(async () => {
       const path = await setupFixtureRepository('repository-with-105-commits')
       repository = new Repository(path, -1, null, false)
-      const { stdout } = await GitProcess.exec(
+      const { stdout } = await exec(
         ['rev-list', '--max-parents=0', 'HEAD'],
         path
       )

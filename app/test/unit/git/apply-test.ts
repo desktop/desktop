@@ -1,4 +1,4 @@
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import {
   setupTwoCommitRepo,
   setupFixtureRepository,
@@ -38,7 +38,7 @@ describe('git/apply', () => {
         await makeCommit(originalRepo, {
           entries: [{ path: 'just-okay-file', contents: 'okay' }],
         })
-        const result = await GitProcess.exec(
+        const result = await exec(
           ['format-patch', '--stdout', 'HEAD~'],
           originalRepo.path
         )
@@ -53,7 +53,7 @@ describe('git/apply', () => {
       let patch: string
       beforeEach(async () => {
         const originalRepo = await setupTwoCommitRepo()
-        const result = await GitProcess.exec(
+        const result = await exec(
           ['format-patch', '--stdout', 'HEAD~'],
           originalRepo.path
         )

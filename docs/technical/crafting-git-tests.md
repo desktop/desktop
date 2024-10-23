@@ -162,11 +162,11 @@ it('returns remotes sorted alphabetically', async () => {
   // adding these remotes out-of-order to test how they are then retrieved
   const url = 'https://github.com/desktop/not-found.git'
 
-  await GitProcess.exec(['remote', 'add', 'X', url], repository.path)
-  await GitProcess.exec(['remote', 'add', 'A', url], repository.path)
-  await GitProcess.exec(['remote', 'add', 'L', url], repository.path)
-  await GitProcess.exec(['remote', 'add', 'T', url], repository.path)
-  await GitProcess.exec(['remote', 'add', 'D', url], repository.path)
+  await exec(['remote', 'add', 'X', url], repository.path)
+  await exec(['remote', 'add', 'A', url], repository.path)
+  await exec(['remote', 'add', 'L', url], repository.path)
+  await exec(['remote', 'add', 'T', url], repository.path)
+  await exec(['remote', 'add', 'D', url], repository.path)
 
   const result = await getRemotes(repository)
   expect(result).toHaveLength(5)

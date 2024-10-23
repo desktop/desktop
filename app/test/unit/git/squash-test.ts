@@ -13,7 +13,7 @@ import { Repository } from '../../../src/models/repository'
 import { setupEmptyRepositoryDefaultMain } from '../../helpers/repositories'
 import { makeCommit } from '../../helpers/repository-scaffolding'
 import { squash } from '../../../src/lib/git/squash'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import { getStatusOrThrow } from '../../helpers/status'
 import { getTempFilePath } from '../../../src/lib/file-system'
 
@@ -224,7 +224,7 @@ describe('git/cherry-pick', () => {
     let { files } = status.workingDirectory
 
     // resolve conflicts by adding the conflicting file
-    await GitProcess.exec(
+    await exec(
       ['add', Path.join(repository.path, 'second.md')],
       repository.path
     )

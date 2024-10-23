@@ -4,7 +4,7 @@ import { Repository } from '../../../src/models/repository'
 import { reset, resetPaths, GitResetMode } from '../../../src/lib/git/reset'
 import { getStatusOrThrow } from '../../helpers/status'
 import { setupFixtureRepository } from '../../helpers/repositories'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 
 import * as FSE from 'fs-extra'
 
@@ -41,16 +41,13 @@ describe('git/reset', () => {
       await FSE.writeFile(filePath, 'Hi world\n')
 
       // stage the file, then delete it to mimic discarding
-      GitProcess.exec(['add', fileName], repoPath)
+      exec(['add', fileName], repoPath)
       await FSE.unlink(filePath)
 
       await resetPaths(repository, GitResetMode.Mixed, 'HEAD', [filePath])
 
       // then checkout the version from the index to restore it
-      await GitProcess.exec(
-        ['checkout-index', '-f', '-u', '-q', '--', fileName],
-        repoPath
-      )
+      await exec(['checkout-index', '-f', '-u', '-q', '--', fileName], repoPath)
 
       const status = await getStatusOrThrow(repository)
       expect(status.workingDirectory.files).toHaveLength(0)

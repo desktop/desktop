@@ -1,4 +1,4 @@
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import * as Path from 'path'
 
 import { Repository } from '../../../src/models/repository'
@@ -74,7 +74,7 @@ describe('git/config', () => {
       beforeEach(async () => {
         // getGlobalConfigPath requires at least one entry, so the
         // test needs to setup an existing config value
-        await GitProcess.exec([...baseArgs, 'user.name', 'bar'], __dirname)
+        await exec([...baseArgs, 'user.name', 'bar'], __dirname)
       })
 
       it('gets the config path', async () => {
@@ -87,8 +87,8 @@ describe('git/config', () => {
       const key = 'foo.bar'
 
       beforeEach(async () => {
-        await GitProcess.exec([...baseArgs, '--add', key, 'first'], __dirname)
-        await GitProcess.exec([...baseArgs, '--add', key, 'second'], __dirname)
+        await exec([...baseArgs, '--add', key, 'first'], __dirname)
+        await exec([...baseArgs, '--add', key, 'second'], __dirname)
       })
 
       it('will replace all entries for a global value', async () => {

@@ -9,7 +9,7 @@ import {
   setupFixtureRepository,
   setupEmptyRepository,
 } from '../../helpers/repositories'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import { mkdirSync } from '../../helpers/temp'
 import { writeFile } from 'fs-extra'
 
@@ -90,7 +90,7 @@ describe('git/rev-parse', () => {
 
     it('returns bare for initialized bare repository', async () => {
       const path = mkdirSync('no-repository-here')
-      await GitProcess.exec(['init', '--bare'], path)
+      await exec(['init', '--bare'], path)
       expect(await getRepositoryType(path)).toMatchObject({
         kind: 'bare',
       })
