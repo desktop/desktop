@@ -936,10 +936,6 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   private onMouseDownLineNumber = (evt: React.MouseEvent) => {
-    if (evt.buttons === 2) {
-      return
-    }
-
     const column = this.getDiffColumn(evt.currentTarget)
     const data = this.getDiffData(evt.currentTarget)
 
