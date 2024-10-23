@@ -1,8 +1,10 @@
 import {
-  GitProcess,
-  IGitResult as DugiteResult,
+  exec,
   GitError as DugiteError,
-  IGitExecutionOptions as DugiteExecutionOptions,
+  parseError,
+  IGitStringResult,
+  IGitStringExecutionOptions,
+  parseBadConfigValueErrorInfo,
 } from 'dugite'
 
 import { assertNever } from '../fatal-error'
@@ -16,12 +18,15 @@ import { getFileFromExceedsError } from '../helpers/regex'
 import { merge } from '../merge'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
 
+const coerceToString = (value: string | Buffer) =>
+  Buffer.isBuffer(value) ? value.toString('utf8') : value
+
 /**
  * An extension of the execution options in dugite that
  * allows us to piggy-back our own configuration options in the
  * same object.
  */
-export interface IGitExecutionOptions extends DugiteExecutionOptions {
+export interface IGitExecutionOptions extends IGitStringExecutionOptions {
   /**
    * The exit codes which indicate success to the
    * caller. Unexpected exit codes will be logged and an
@@ -49,7 +54,7 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
  * The result of using `git`. This wraps dugite's results to provide
  * the parsed error if one occurs.
  */
-export interface IGitResult extends DugiteResult {
+export interface IGitResult extends IGitStringResult {
   /**
    * The parsed git error. This will be null when the exit code is included in
    * the `successExitCodes`, or when dugite was unable to parse the
@@ -92,9 +97,9 @@ export class GitError extends Error {
     } else if (result.combinedOutput.length > 0) {
       message = result.combinedOutput
     } else if (result.stderr.length) {
-      message = result.stderr
+      message = coerceToString(result.stderr)
     } else if (result.stdout.length) {
-      message = result.stdout
+      message = coerceToString(result.stdout)
     } else {
       message = `Unknown error (exit code ${result.exitCode})`
       rawMessage = false
@@ -173,7 +178,7 @@ export async function git(
       const commandName = `${name}: git ${args.join(' ')}`
 
       const result = await GitPerf.measure(commandName, () =>
-        GitProcess.exec(args, path, opts)
+        exec(args, path, opts)
       ).catch(err => {
         // If this is an exception thrown by Node.js (as opposed to
         // dugite) let's keep the salient details but include the name of
@@ -192,15 +197,15 @@ export async function git(
         ? opts.successExitCodes.has(exitCode)
         : false
       if (!acceptableExitCode) {
-        gitError = GitProcess.parseError(result.stderr)
+        gitError = parseError(coerceToString(result.stderr))
         if (gitError === null) {
-          gitError = GitProcess.parseError(result.stdout)
+          gitError = parseError(coerceToString(result.stdout))
         }
       }
 
       const gitErrorDescription =
         gitError !== null
-          ? getDescriptionForError(gitError, result.stderr)
+          ? getDescriptionForError(gitError, coerceToString(result.stderr))
           : null
       const gitResult = {
         ...result,
@@ -227,12 +232,12 @@ export async function git(
 
       if (result.stdout) {
         errorMessage.push('stdout:')
-        errorMessage.push(result.stdout)
+        errorMessage.push(coerceToString(result.stdout))
       }
 
       if (result.stderr) {
         errorMessage.push('stderr:')
-        errorMessage.push(result.stderr)
+        errorMessage.push(coerceToString(result.stderr))
       }
 
       if (gitError !== null) {
@@ -339,7 +344,7 @@ export function getDescriptionForError(
 
   switch (error) {
     case DugiteError.BadConfigValue:
-      const errorInfo = GitProcess.parseBadConfigValueErrorInfo(stderr)
+      const errorInfo = parseBadConfigValueErrorInfo(stderr)
       if (errorInfo === null) {
         return 'Unsupported git configuration value.'
       }
