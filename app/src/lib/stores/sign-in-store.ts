@@ -575,12 +575,15 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
     const csrfToken = uuid()
 
     new Promise<Account>((resolve, reject) => {
-      const { endpoint, resultCallback } = currentState
+      const { endpoint, resultCallback, supportsBasicAuth, forgotPasswordUrl } =
+        currentState
       log.info('[SignInStore] initializing OAuth flow')
       this.setState({
         kind: SignInStep.Authentication,
         endpoint,
         resultCallback,
+        supportsBasicAuth,
+        forgotPasswordUrl,
         error: null,
         loading: true,
         oauthState: {
