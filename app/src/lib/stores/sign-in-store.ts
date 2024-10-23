@@ -260,10 +260,13 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
    * This method must only be called when the store is in the authentication
    * step or an error will be thrown.
    */
-  public authenticateWithBrowser() {
+  public async authenticateWithBrowser() {
     const currentState = this.state
 
-    if (!currentState || currentState.kind !== SignInStep.Authentication) {
+    if (
+      currentState?.kind !== SignInStep.Authentication &&
+      currentState?.kind !== SignInStep.ExistingAccountWarning
+    ) {
       const stepText = currentState ? currentState.kind : 'null'
       return fatalError(
         `Sign in step '${stepText}' not compatible with browser authentication`
@@ -272,13 +275,26 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
     this.setState({ ...currentState, loading: true })
 
+    if (currentState.kind === SignInStep.ExistingAccountWarning) {
+      const { existingAccount } = currentState
+      // Try to avoid emitting an error out of AccountsStore if the account
+      // is already gone.
+      if (this.accounts.find(x => x.endpoint === existingAccount.endpoint)) {
+        await this.accountStore.removeAccount(existingAccount)
+      }
+    }
+
     const csrfToken = uuid()
 
     new Promise<Account>((resolve, reject) => {
-      const { endpoint } = currentState
+      const { endpoint, resultCallback } = currentState
       log.info('[SignInStore] initializing OAuth flow')
       this.setState({
-        ...currentState,
+        kind: SignInStep.Authentication,
+        endpoint,
+        resultCallback,
+        error: null,
+        loading: true,
         oauthState: {
           state: csrfToken,
           endpoint,
