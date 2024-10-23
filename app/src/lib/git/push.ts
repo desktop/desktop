@@ -1,11 +1,6 @@
 import { GitError as DugiteError } from 'dugite'
 
-import {
-  git,
-  IGitExecutionOptions,
-  gitNetworkArguments,
-  GitError,
-} from './core'
+import { git, IGitExecutionOptions, GitError } from './core'
 import { Repository } from '../../models/repository'
 import { IPushProgress } from '../../models/progress'
 import { PushProgressParser, executionOptionsWithProgress } from '../progress'
@@ -63,7 +58,6 @@ export async function push(
   progressCallback?: (progress: IPushProgress) => void
 ): Promise<void> {
   const args = [
-    ...gitNetworkArguments(),
     'push',
     remote.name,
     remoteBranch ? `${localBranch}:${remoteBranch}` : localBranch,

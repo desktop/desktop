@@ -454,6 +454,7 @@ export class ToolbarDropdown extends React.Component<
   public render() {
     const className = classNames(
       'toolbar-dropdown',
+      { resizable: enableResizingToolbarButtons() },
       this.props.dropdownStyle === ToolbarDropdownStyle.MultiOption
         ? 'multi-option-style'
         : 'foldout-style',

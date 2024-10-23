@@ -1,4 +1,3 @@
-import * as OS from 'os'
 import * as URL from 'url'
 import { Account } from '../models/account'
 
@@ -10,9 +9,7 @@ import {
   urlWithQueryString,
   getUserAgent,
 } from './http'
-import { AuthenticationMode } from './2fa'
 import { uuid } from './uuid'
-import username from 'username'
 import { GitProtocol } from './remote-parsing'
 import {
   getEndpointVersion,
@@ -113,9 +110,6 @@ enum HttpStatusCode {
   NotModified = 304,
   NotFound = 404,
 }
-
-/** The note URL used for authorizations the app creates. */
-const NoteURL = 'https://desktop.github.com/'
 
 /**
  * Information about a repository as returned by the GitHub API.
@@ -639,25 +633,11 @@ export interface IAPIComment {
   readonly created_at: string
 }
 
-/** The metadata about a GitHub server. */
-export interface IServerMetadata {
-  /**
-   * Does the server support password-based authentication? If not, the user
-   * must go through the OAuth flow to authenticate.
-   */
-  readonly verifiable_password_authentication: boolean
-}
-
 /** The server response when handling the OAuth callback (with code) to obtain an access token */
 interface IAPIAccessToken {
   readonly access_token: string
   readonly scope: string
   readonly token_type: string
-}
-
-/** The partial server response when creating a new authorization on behalf of a user */
-interface IAPIAuthorization {
-  readonly token: string
 }
 
 /** The response we receive from fetching mentionables. */
@@ -1880,141 +1860,6 @@ export class API {
   }
 }
 
-export enum AuthorizationResponseKind {
-  Authorized,
-  Failed,
-  TwoFactorAuthenticationRequired,
-  UserRequiresVerification,
-  PersonalAccessTokenBlocked,
-  Error,
-  EnterpriseTooOld,
-  /**
-   * The API has indicated that the user is required to go through
-   * the web authentication flow.
-   */
-  WebFlowRequired,
-}
-
-export type AuthorizationResponse =
-  | { kind: AuthorizationResponseKind.Authorized; token: string }
-  | { kind: AuthorizationResponseKind.Failed; response: Response }
-  | {
-      kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired
-      type: AuthenticationMode
-    }
-  | { kind: AuthorizationResponseKind.Error; response: Response }
-  | { kind: AuthorizationResponseKind.UserRequiresVerification }
-  | { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
-  | { kind: AuthorizationResponseKind.EnterpriseTooOld }
-  | { kind: AuthorizationResponseKind.WebFlowRequired }
-
-/**
- * Create an authorization with the given login, password, and one-time
- * password.
- */
-export async function createAuthorization(
-  endpoint: string,
-  login: string,
-  password: string,
-  oneTimePassword: string | null
-): Promise<AuthorizationResponse> {
-  const creds = Buffer.from(`${login}:${password}`, 'utf8').toString('base64')
-  const authorization = `Basic ${creds}`
-  const optHeader = oneTimePassword ? { 'X-GitHub-OTP': oneTimePassword } : {}
-
-  const note = await getNote()
-
-  const response = await request(
-    endpoint,
-    null,
-    'POST',
-    'authorizations',
-    {
-      scopes: oauthScopes,
-      client_id: ClientID,
-      client_secret: ClientSecret,
-      note: note,
-      note_url: NoteURL,
-      fingerprint: uuid(),
-    },
-    {
-      Authorization: authorization,
-      ...optHeader,
-    }
-  )
-
-  tryUpdateEndpointVersionFromResponse(endpoint, response)
-
-  try {
-    const result = await parsedResponse<IAPIAuthorization>(response)
-    if (result) {
-      const token = result.token
-      if (token && typeof token === 'string' && token.length) {
-        return { kind: AuthorizationResponseKind.Authorized, token }
-      }
-    }
-  } catch (e) {
-    if (response.status === 401) {
-      const otpResponse = response.headers.get('x-github-otp')
-      if (otpResponse) {
-        const pieces = otpResponse.split(';')
-        if (pieces.length === 2) {
-          const type = pieces[1].trim()
-          switch (type) {
-            case 'app':
-              return {
-                kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired,
-                type: AuthenticationMode.App,
-              }
-            case 'sms':
-              return {
-                kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired,
-                type: AuthenticationMode.Sms,
-              }
-            default:
-              return { kind: AuthorizationResponseKind.Failed, response }
-          }
-        }
-      }
-
-      return { kind: AuthorizationResponseKind.Failed, response }
-    }
-
-    const apiError = e instanceof APIError && e.apiError
-    if (apiError) {
-      if (
-        response.status === 403 &&
-        apiError.message ===
-          'This API can only be accessed with username and password Basic Auth'
-      ) {
-        // Authorization API does not support providing personal access tokens
-        return { kind: AuthorizationResponseKind.PersonalAccessTokenBlocked }
-      } else if (response.status === 410) {
-        return { kind: AuthorizationResponseKind.WebFlowRequired }
-      } else if (response.status === 422) {
-        if (apiError.errors) {
-          for (const error of apiError.errors) {
-            const isExpectedResource =
-              error.resource.toLowerCase() === 'oauthaccess'
-            const isExpectedField = error.field.toLowerCase() === 'user'
-            if (isExpectedField && isExpectedResource) {
-              return {
-                kind: AuthorizationResponseKind.UserRequiresVerification,
-              }
-            }
-          }
-        } else if (
-          apiError.message === 'Invalid OAuth application client_id or secret.'
-        ) {
-          return { kind: AuthorizationResponseKind.EnterpriseTooOld }
-        }
-      }
-    }
-  }
-
-  return { kind: AuthorizationResponseKind.Error, response }
-}
-
 export async function deleteToken(account: Account) {
   try {
     const creds = Buffer.from(`${ClientID}:${ClientSecret}`).toString('base64')
@@ -2058,49 +1903,6 @@ export async function fetchUser(
     log.warn(`fetchUser: failed with endpoint ${endpoint}`, e)
     throw e
   }
-}
-
-/** Get metadata from the server. */
-export async function fetchMetadata(
-  endpoint: string
-): Promise<IServerMetadata | null> {
-  const url = `${endpoint}/meta`
-
-  try {
-    const response = await request(endpoint, null, 'GET', 'meta', undefined, {
-      'Content-Type': 'application/json',
-    })
-
-    tryUpdateEndpointVersionFromResponse(endpoint, response)
-
-    const result = await parsedResponse<IServerMetadata>(response)
-    if (!result || result.verifiable_password_authentication === undefined) {
-      return null
-    }
-
-    return result
-  } catch (e) {
-    log.error(
-      `fetchMetadata: unable to load metadata from '${url}' as a fallback`,
-      e
-    )
-    return null
-  }
-}
-
-/** The note used for created authorizations. */
-async function getNote(): Promise<string> {
-  let localUsername = await username()
-
-  if (localUsername === undefined) {
-    localUsername = 'unknown'
-
-    log.error(
-      `getNote: unable to resolve machine username, using '${localUsername}' as a fallback`
-    )
-  }
-
-  return `GitHub Desktop on ${localUsername}@${OS.hostname()}`
 }
 
 /**

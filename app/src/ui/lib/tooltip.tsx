@@ -782,7 +782,9 @@ function getTooltipPositionStyle(
   r.x -= host.x
   r.y -= host.y
 
-  return { transform: `translate(${r.left}px, ${r.top}px)` }
+  return {
+    transform: `translate(${Math.round(r.left)}px, ${Math.round(r.top)}px)`,
+  }
 }
 
 function getTooltipRectRelativeTo(

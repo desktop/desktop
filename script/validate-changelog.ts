@@ -3,34 +3,7 @@
 import * as Path from 'path'
 import * as Fs from 'fs'
 
-import Ajv, { ErrorObject } from 'ajv'
-
-function handleError(error: string) {
-  console.error(error)
-  process.exit(-1)
-}
-
-function formatErrors(errors: ErrorObject[]): string {
-  return errors
-    .map(error => {
-      const { instancePath, message } = error
-      const additionalProperties = error.params as any
-      const additionalProperty =
-        additionalProperties.additionalProperty as string
-
-      let additionalPropertyText = ''
-
-      if (additionalProperty != null) {
-        additionalPropertyText = `, found: '${additionalProperties.additionalProperty}'`
-      }
-
-      // instancePath starts with a leading "."," which is a bit confusing
-      const element = instancePath.substring(1)
-
-      return ` - ${element} - ${message}${additionalPropertyText}`
-    })
-    .join('\n')
-}
+import assert from 'assert'
 
 const repositoryRoot = Path.dirname(__dirname)
 const changelogPath = Path.join(repositoryRoot, 'changelog.json')
@@ -43,37 +16,41 @@ let changelogObj = null
 try {
   changelogObj = JSON.parse(changelog)
 } catch {
-  handleError(
+  console.error(
     'Unable to parse the contents of changelog.json into a JSON object. Please review the file contents.'
   )
+  process.exit(-1)
 }
 
-const schema = {
-  $schema: 'http://json-schema.org/draft-07/schema#',
-  type: 'object',
-  properties: {
-    releases: {
-      type: 'object',
-      patternProperties: {
-        '^([0-9]+.[0-9]+.[0-9]+)(-beta[0-9]+|-test[0-9]+)?$': {
-          type: 'array',
-          items: {
-            type: 'string',
-          },
-        },
-      },
-      additionalProperties: false,
-    },
-  },
-}
+assert(typeof changelogObj === 'object', 'Expected changelog to be an object')
+assert(
+  Object.keys(changelogObj).length === 1,
+  'Expected changelog to have exactly one key'
+)
+assert(
+  typeof changelogObj['releases'] === 'object',
+  'Expected releases property to be an object'
+)
+const releases = Object.keys(changelogObj['releases'])
+assert(releases.length > 0, 'Expected at least one release')
 
-const ajv = new Ajv({ allErrors: true })
-const validate = ajv.compile(schema)
+for (const release of releases) {
+  assert(
+    /^([0-9]+.[0-9]+.[0-9]+)(-beta[0-9]+|-test[0-9]+)?$/.test(release),
+    `Release ${release} does not match the expected format`
+  )
+  const changes = changelogObj['releases'][release]
+  assert(
+    Array.isArray(changes),
+    `Expected changes for ${release} to be an array`
+  )
 
-const valid = validate(changelogObj)
-
-if (!valid && validate.errors != null) {
-  handleError(`Errors: \n${formatErrors(validate.errors)}`)
+  for (const change of changes) {
+    assert(
+      typeof change === 'string',
+      `Expected all changes in ${release} to be strings`
+    )
+  }
 }
 
 console.log('The changelog is totally fine')

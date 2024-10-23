@@ -6,6 +6,11 @@
   display: flex;
   flex-direction: row;
 
+  &.resizable {
+    // Fill the available height of the parent
+    flex-grow: 1;
+  }
+
   & > .toolbar-button {
     width: 100%;
     height: 100%;

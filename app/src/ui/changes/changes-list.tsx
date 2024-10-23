@@ -821,7 +821,6 @@ export class ChangesList extends React.Component<
         branch={this.props.branch}
         mostRecentLocalCommit={this.props.mostRecentLocalCommit}
         commitAuthor={this.props.commitAuthor}
-        dispatcher={this.props.dispatcher}
         isShowingModal={this.props.isShowingModal}
         isShowingFoldout={this.props.isShowingFoldout}
         anyFilesSelected={anyFilesSelected}

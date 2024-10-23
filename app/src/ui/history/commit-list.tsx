@@ -19,7 +19,7 @@ import { RowIndexPath } from '../lib/list/list-row-index-path'
 import { assertNever } from '../../lib/fatal-error'
 import { CommitDragElement } from '../drag-elements/commit-drag-element'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
-import { debounce } from 'lodash'
+import debounce from 'lodash/debounce'
 import {
   Popover,
   PopoverAnchorPosition,
@@ -178,6 +178,9 @@ interface ICommitListProps {
   readonly shasToHighlight?: ReadonlyArray<string>
 
   readonly accounts: ReadonlyArray<Account>
+
+  /** This will make the list semantics friendly to screen reader users in browse mode. */
+  readonly isInformationalView?: boolean
 }
 
 interface ICommitListState {
@@ -385,7 +388,7 @@ export class CommitList extends React.Component<
       return true
     }
 
-    const sorted = [...indexes].sort((a, b) => b - a)
+    const sorted = indexes.toSorted((a, b) => b - a)
 
     for (let i = 0; i < sorted.length; i++) {
       const current = sorted[i]
@@ -495,6 +498,8 @@ export class CommitList extends React.Component<
       <div id="commit-list" className={classes} ref={this.containerRef}>
         {this.renderReorderCommitsHint()}
         <List
+          ariaLabel="Commits"
+          role={this.props.isInformationalView === true ? 'list' : 'list-box'}
           ref={this.listRef}
           rowCount={commitSHAs.length}
           rowHeight={RowHeight}

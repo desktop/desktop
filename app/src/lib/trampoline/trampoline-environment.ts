@@ -8,24 +8,9 @@ import {
 } from '../ssh/ssh-credential-storage'
 import { GitError as DugiteError, GitProcess } from 'dugite'
 import memoizeOne from 'memoize-one'
-import {
-  enableCredentialHelperTrampoline,
-  enableGitConfigParameters,
-} from '../feature-flag'
+import { enableGitConfigParameters } from '../feature-flag'
 import { GitError, getDescriptionForError } from '../git/core'
-import { deleteGenericCredential } from '../generic-git-auth'
 import { getDesktopAskpassTrampolineFilename } from 'desktop-trampoline'
-
-const mostRecentGenericGitCredential = new Map<
-  string,
-  { endpoint: string; login: string }
->()
-
-export const setMostRecentGenericGitCredential = (
-  trampolineToken: string,
-  endpoint: string,
-  login: string
-) => mostRecentGenericGitCredential.set(trampolineToken, { endpoint, login })
 
 const hasRejectedCredentialsForEndpoint = new Map<string, Set<string>>()
 
@@ -140,54 +125,45 @@ export async function withTrampolineEnv<T>(
       return await fn({
         DESKTOP_PORT: await trampolineServer.getPort(),
         DESKTOP_TRAMPOLINE_TOKEN: token,
-        ...(enableCredentialHelperTrampoline()
+        GIT_ASKPASS: '',
+        // This warrants some explanation. We're configuring the
+        // credential helper using environment variables rather than
+        // arguments (i.e. -c credential.helper=) because we want commands
+        // invoked by filters (i.e. Git LFS) to be able to pick up our
+        // configuration. Arguments passed to git commands are not passed
+        // down to filters.
+        //
+        // We're using the undocumented GIT_CONFIG_PARAMETERS environment
+        // variable over the documented GIT_CONFIG_{COUNT,KEY,VALUE} due
+        // to an apparent bug either in a Windows Python runtime
+        // dependency or in a Python project commonly used to manage hooks
+        // which isn't able to handle the blank environment variables we
+        // need when using GIT_CONFIG_*.
+        //
+        // See https://github.com/desktop/desktop/issues/18945
+        // See https://github.com/git/git/blob/ed155187b429a/config.c#L664
+        ...(enableGitConfigParameters()
           ? {
-              GIT_ASKPASS: '',
-              // This warrants some explanation. We're configuring the
-              // credential helper using environment variables rather than
-              // arguments (i.e. -c credential.helper=) because we want commands
-              // invoked by filters (i.e. Git LFS) to be able to pick up our
-              // configuration. Arguments passed to git commands are not passed
-              // down to filters.
-              //
-              // We're using the undocumented GIT_CONFIG_PARAMETERS environment
-              // variable over the documented GIT_CONFIG_{COUNT,KEY,VALUE} due
-              // to an apparent bug either in a Windows Python runtime
-              // dependency or in a Python project commonly used to manage hooks
-              // which isn't able to handle the blank environment variables we
-              // need when using GIT_CONFIG_*.
-              //
-              // See https://github.com/desktop/desktop/issues/18945
-              // See https://github.com/git/git/blob/ed155187b429a/config.c#L664
-              ...(enableGitConfigParameters()
-                ? {
-                    GIT_CONFIG_PARAMETERS: `${gitEnvConfigPrefix}'credential.helper=' 'credential.helper=desktop'`,
-                  }
-                : {
-                    GIT_CONFIG_COUNT: '2',
-                    GIT_CONFIG_KEY_0: 'credential.helper',
-                    GIT_CONFIG_VALUE_0: '',
-                    GIT_CONFIG_KEY_1: 'credential.helper',
-                    GIT_CONFIG_VALUE_1: 'desktop',
-                  }),
+              GIT_CONFIG_PARAMETERS: `${gitEnvConfigPrefix}'credential.helper=' 'credential.helper=desktop'`,
             }
           : {
-              GIT_ASKPASS: getDesktopAskpassTrampolinePath(),
+              GIT_CONFIG_COUNT: '2',
+              GIT_CONFIG_KEY_0: 'credential.helper',
+              GIT_CONFIG_VALUE_0: '',
+              GIT_CONFIG_KEY_1: 'credential.helper',
+              GIT_CONFIG_VALUE_1: 'desktop',
             }),
         GIT_USER_AGENT: await GitUserAgent(),
         ...sshEnv,
       })
     } catch (e) {
       if (!getIsBackgroundTaskEnvironment(token)) {
-        // If the operation fails with an HTTPSAuthenticationFailed error, we
+        // If the operation fails with an SSHAuthenticationFailed error, we
         // assume that it's because the last credential we provided via the
         // askpass handler was rejected. That's not necessarily the case but for
         // practical purposes, it's as good as we can get with the information we
         // have. We're limited by the ASKPASS flow here.
-        // Same with SSHAuthenticationFailed error.
-        if (isHTTPSAuthFailure(e)) {
-          deleteMostRecentGenericCredential(token)
-        } else if (isSSHAuthFailure(e)) {
+        if (isSSHAuthFailure(e)) {
           deleteMostRecentSSHCredential(token)
         }
       }
@@ -207,7 +183,6 @@ export async function withTrampolineEnv<T>(
       // We catch that specific error here and throw the user-friendly
       // authentication failed error that we've always done in the past.
       if (
-        enableCredentialHelperTrampoline() &&
         hasRejectedCredentialsForEndpoint.has(token) &&
         e instanceof GitError &&
         fatalPromptsDisabledRe.test(e.message)
@@ -228,7 +203,6 @@ export async function withTrampolineEnv<T>(
       throw e
     } finally {
       removeMostRecentSSHCredential(token)
-      mostRecentGenericGitCredential.delete(token)
       isBackgroundTaskEnvironment.delete(token)
       hasRejectedCredentialsForEndpoint.delete(token)
       trampolineEnvironmentPath.delete(token)
@@ -236,23 +210,10 @@ export async function withTrampolineEnv<T>(
   })
 }
 
-const isHTTPSAuthFailure = (e: unknown): e is GitError =>
-  e instanceof GitError &&
-  e.result.gitError === DugiteError.HTTPSAuthenticationFailed
-
 const isSSHAuthFailure = (e: unknown): e is GitError =>
   e instanceof GitError &&
   (e.result.gitError === DugiteError.SSHAuthenticationFailed ||
     e.result.gitError === DugiteError.SSHPermissionDenied)
-
-function deleteMostRecentGenericCredential(token: string) {
-  const cred = mostRecentGenericGitCredential.get(token)
-  if (cred) {
-    const { endpoint, login } = cred
-    log.info(`askPassHandler: auth failed, deleting ${endpoint} credential`)
-    deleteGenericCredential(endpoint, login)
-  }
-}
 
 /** Returns the path of the desktop-askpass-trampoline binary. */
 export function getDesktopAskpassTrampolinePath(): string {

@@ -1,5 +1,4 @@
-import { spawnAndComplete } from './spawn'
-import { getCaptures } from '../helpers/regex'
+import { git } from './core'
 
 /**
  * Returns a list of files with conflict markers present
@@ -10,33 +9,19 @@ import { getCaptures } from '../helpers/regex'
 export async function getFilesWithConflictMarkers(
   repositoryPath: string
 ): Promise<Map<string, number>> {
-  // git operation
-  const args = ['diff', '--check']
-  const { output } = await spawnAndComplete(
-    args,
+  const { stdout } = await git(
+    ['diff', '--check'],
     repositoryPath,
     'getFilesWithConflictMarkers',
-    new Set([0, 2])
+    { successExitCodes: new Set([0, 2]) }
   )
 
-  // result parsing
-  const outputStr = output.toString('utf8')
-  const captures = getCaptures(outputStr, fileNameCaptureRe)
-  if (captures.length === 0) {
-    return new Map<string, number>()
+  const files = new Map<string, number>()
+  const matches = stdout.matchAll(/^(.+):\d+: leftover conflict marker/gm)
+
+  for (const [, path] of matches) {
+    files.set(path, (files.get(path) ?? 0) + 1)
   }
-  // flatten the list (only does one level deep)
-  const flatCaptures = captures.reduce((acc, val) => acc.concat(val))
-  // count number of occurrences
-  const counted = flatCaptures.reduce(
-    (acc, val) => acc.set(val, (acc.get(val) || 0) + 1),
-    new Map<string, number>()
-  )
-  return counted
-}
 
-/**
- * matches a line reporting a leftover conflict marker
- * and captures the name of the file
- */
-const fileNameCaptureRe = /(.+):\d+: leftover conflict marker/gi
+  return files
+}
