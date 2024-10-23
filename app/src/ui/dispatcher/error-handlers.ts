@@ -1,7 +1,4 @@
-import {
-  GitError as DugiteError,
-  RepositoryDoesNotExistErrorCode,
-} from 'dugite'
+import { GitError as DugiteError } from 'dugite'
 
 import { Dispatcher } from '.'
 import { ExternalEditorError } from '../../lib/editors/shared'
@@ -21,6 +18,7 @@ import {
 import { hasWritePermission } from '../../models/github-repository'
 import { RetryActionType } from '../../models/retry-actions'
 import { parseFilesToBeOverwritten } from '../lib/parse-files-to-be-overwritten'
+import { pathExists } from '../lib/path-exists'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -108,7 +106,7 @@ export async function missingRepositoryHandler(
   const gitError = asGitError(e.underlyingError)
   const missing =
     (gitError && gitError.result.gitError === DugiteError.NotAGitRepository) ||
-    (errorWithCode && errorWithCode.code === RepositoryDoesNotExistErrorCode)
+    (errorWithCode && !(await pathExists(repository.path)))
 
   if (missing) {
     await dispatcher.updateRepositoryMissing(repository, true)
