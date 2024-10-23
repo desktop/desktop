@@ -276,7 +276,12 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
     this.setState({ ...currentState, loading: true })
 
     if (currentState.kind === SignInStep.ExistingAccountWarning) {
-      await this.accountStore.removeAccount(currentState.existingAccount)
+      const { existingAccount } = currentState
+      // Try to avoid emitting an error out of AccountsStore if the account
+      // is already gone.
+      if (this.accounts.find(x => x.endpoint === existingAccount.endpoint)) {
+        await this.accountStore.removeAccount(existingAccount)
+      }
     }
 
     const csrfToken = uuid()
