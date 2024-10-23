@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.4.8": [
+      "[Fixed] App no longer crash for first time users going through the welcome flow and attempting to sign in more than once"
+    ],
     "3.4.7": [
       "[Improved] Support entering GitHub.com as a GitHub Enterprise endpoint - #19342"
     ],
