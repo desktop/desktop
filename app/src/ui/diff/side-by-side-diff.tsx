@@ -72,6 +72,8 @@ import { findDOMNode } from 'react-dom'
 import escapeRegExp from 'lodash/escapeRegExp'
 import ReactDOM from 'react-dom'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
+import { PopoverAnchorPosition } from '../lib/popover'
+import { WhitespaceHintPopover } from './whitespace-hint-popover'
 
 const DefaultRowHeight = 20
 
@@ -220,6 +222,11 @@ interface ISideBySideDiffState {
     hunkIndex: number
     expansionType: DiffHunkExpansionType
   } | null
+
+  readonly showWhitespaceHint?: {
+    anchor: HTMLElement
+    anchorPosition: PopoverAnchorPosition
+  }
 }
 
 const listRowsHeightCache = new CellMeasurerCache({
@@ -590,7 +597,8 @@ export class SideBySideDiff extends React.Component<
   }
 
   public render() {
-    const { diff, ariaLiveMessage, isSearching } = this.state
+    const { diff, ariaLiveMessage, isSearching, showWhitespaceHint } =
+      this.state
 
     const rows = this.getCurrentDiffRows()
     const containerClassName = classNames('side-by-side-diff-container', {
@@ -655,6 +663,16 @@ export class SideBySideDiff extends React.Component<
               />
             )}
           </AutoSizer>
+          {showWhitespaceHint && (
+            <WhitespaceHintPopover
+              anchor={showWhitespaceHint.anchor}
+              anchorPosition={showWhitespaceHint.anchorPosition}
+              onHideWhitespaceInDiffChanged={
+                this.props.onHideWhitespaceInDiffChanged
+              }
+              onDismissed={this.onWhitespaceHintClose}
+            />
+          )}
         </div>
       </div>
     )
@@ -921,6 +939,7 @@ export class SideBySideDiff extends React.Component<
             afterClassNames={afterClassNames}
             onHunkExpansionRef={this.onHunkExpansionRef}
             onLineNumberCheckedChanged={this.onLineNumberCheckedChanged}
+            renderWhitespaceHintPopover={this.renderWhitespaceHintPopover}
           />
         </div>
       </CellMeasurer>
@@ -1460,6 +1479,30 @@ export class SideBySideDiff extends React.Component<
         action: () => this.onDiscardChanges(diffLineNumber),
       },
     ])
+  }
+
+  private renderWhitespaceHintPopover = (column: DiffColumn, row: number) => {
+    const elementID = `line-numbers-${row}-${column}`
+    const anchor = document.getElementById(elementID)
+    if (anchor === null) {
+      return
+    }
+
+    const anchorPosition =
+      column === DiffColumn.Before
+        ? PopoverAnchorPosition.LeftTop
+        : PopoverAnchorPosition.RightTop
+
+    this.setState({
+      showWhitespaceHint: {
+        anchor,
+        anchorPosition,
+      },
+    })
+  }
+
+  private onWhitespaceHintClose = () => {
+    this.setState({ showWhitespaceHint: undefined })
   }
 
   private buildExpandMenuItem(): IMenuItem | null {
