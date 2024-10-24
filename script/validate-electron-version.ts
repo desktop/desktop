@@ -24,7 +24,7 @@ const ValidElectronVersions: Record<ChannelToValidate, string> = {
 
 // Only when we get a RELEASE_CHANNEL we know we're in the middle of a deployment.
 // In that case, we want to error out if the Electron version is not what we expect.
-const errorOnMismatch = !!process.env.RELEASE_CHANNEL
+const errorOnMismatch = (process.env.RELEASE_CHANNEL ?? '').length > 0
 
 function handleError(message: string): never {
   if (errorOnMismatch) {
