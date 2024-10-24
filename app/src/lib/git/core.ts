@@ -2,8 +2,8 @@ import {
   exec,
   GitError as DugiteError,
   parseError,
-  IGitStringResult,
-  IGitStringExecutionOptions,
+  IGitResult as DugiteResult,
+  IGitExecutionOptions as DugiteExecutionOptions,
   parseBadConfigValueErrorInfo,
 } from 'dugite'
 
@@ -18,15 +18,17 @@ import { getFileFromExceedsError } from '../helpers/regex'
 import { merge } from '../merge'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
 
-const coerceToString = (value: string | Buffer) =>
-  Buffer.isBuffer(value) ? value.toString('utf8') : value
+export const coerceToString = (
+  value: string | Buffer,
+  encoding: BufferEncoding = 'utf8'
+) => (Buffer.isBuffer(value) ? value.toString(encoding) : value)
 
 /**
  * An extension of the execution options in dugite that
  * allows us to piggy-back our own configuration options in the
  * same object.
  */
-export interface IGitExecutionOptions extends IGitStringExecutionOptions {
+export interface IGitExecutionOptions extends DugiteExecutionOptions {
   /**
    * The exit codes which indicate success to the
    * caller. Unexpected exit codes will be logged and an
@@ -54,7 +56,7 @@ export interface IGitExecutionOptions extends IGitStringExecutionOptions {
  * The result of using `git`. This wraps dugite's results to provide
  * the parsed error if one occurs.
  */
-export interface IGitResult extends IGitStringResult {
+export interface IGitResult extends DugiteResult {
   /**
    * The parsed git error. This will be null when the exit code is included in
    * the `successExitCodes`, or when dugite was unable to parse the
@@ -75,6 +77,33 @@ export interface IGitResult extends IGitStringResult {
    */
   readonly path: string
 }
+
+/** The result of shelling out to git using a string encoding (default) */
+export interface IGitStringResult extends IGitResult {
+  /** The standard output from git. */
+  readonly stdout: string
+
+  /** The standard error output from git. */
+  readonly stderr: string
+}
+
+export interface IGitStringExecutionOptions extends IGitExecutionOptions {
+  readonly encoding?: BufferEncoding
+}
+
+export interface IGitBufferExecutionOptions extends IGitExecutionOptions {
+  readonly encoding: 'buffer'
+}
+
+/** The result of shelling out to git using a buffer encoding */
+export interface IGitBufferResult extends IGitResult {
+  /** The standard output from git. */
+  readonly stdout: Buffer
+
+  /** The standard error output from git. */
+  readonly stderr: Buffer
+}
+
 export class GitError extends Error {
   /** The result from the failed command. */
   public readonly result: IGitResult
@@ -133,6 +162,18 @@ export class GitError extends Error {
  * `successExitCodes` or an error not in `expectedErrors`, a `GitError` will be
  * thrown.
  */
+export async function git(
+  args: string[],
+  path: string,
+  name: string,
+  options?: IGitStringExecutionOptions
+): Promise<IGitStringResult>
+export async function git(
+  args: string[],
+  path: string,
+  name: string,
+  options?: IGitBufferExecutionOptions
+): Promise<IGitBufferResult>
 export async function git(
   args: string[],
   path: string,
@@ -307,7 +348,7 @@ const lockFilePathRe = /^error: could not lock config file (.+?): File exists$/m
  * output.
  */
 export function parseConfigLockFilePathFromError(result: IGitResult) {
-  const match = lockFilePathRe.exec(result.stderr)
+  const match = lockFilePathRe.exec(coerceToString(result.stderr))
 
   if (match === null) {
     return null
@@ -481,6 +522,6 @@ export function gitRebaseArguments() {
 /**
  * Returns the SHA of the passed in IGitResult
  */
-export function parseCommitSHA(result: IGitResult): string {
+export function parseCommitSHA(result: IGitStringResult): string {
   return result.stdout.split(']')[0].split(' ')[1]
 }

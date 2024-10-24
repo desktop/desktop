@@ -5,7 +5,12 @@ import {
   AppFileStatusKind,
   WorkingDirectoryFileChange,
 } from '../../models/status'
-import { git, IGitExecutionOptions, IGitResult } from './core'
+import {
+  git,
+  IGitExecutionOptions,
+  IGitResult,
+  IGitStringExecutionOptions,
+} from './core'
 import { getStatus } from './status'
 import { stageFiles } from './update-index'
 import { getCommitsInRange, revRange } from './rev-list'
@@ -101,8 +106,8 @@ class GitCherryPickParser {
  * @param progressCallback - the callback method that accepts an
  * `ICherryPickProgress` instance created by the parser
  */
-function configureOptionsWithCallBack(
-  baseOptions: IGitExecutionOptions,
+function configureOptionsWithCallBack<T extends IGitExecutionOptions>(
+  baseOptions: T,
   commits: readonly CommitOneLine[],
   progressCallback: (progress: IMultiCommitOperationProgress) => void,
   cherryPickedCount: number = 0
@@ -142,7 +147,7 @@ export async function cherryPick(
     return CherryPickResult.UnableToStart
   }
 
-  let baseOptions: IGitExecutionOptions = {
+  let baseOptions: IGitStringExecutionOptions = {
     expectedErrors: new Set([
       GitError.MergeConflicts,
       GitError.ConflictModifyDeletedInBranch,
@@ -410,7 +415,7 @@ export async function continueCherryPick(
     return CherryPickResult.UnableToStart
   }
 
-  let options: IGitExecutionOptions = {
+  let options: IGitStringExecutionOptions = {
     expectedErrors: new Set([
       GitError.MergeConflicts,
       GitError.ConflictModifyDeletedInBranch,

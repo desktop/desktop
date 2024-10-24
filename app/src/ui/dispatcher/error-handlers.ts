@@ -6,7 +6,11 @@ import {
   DiscardChangesError,
   ErrorWithMetadata,
 } from '../../lib/error-with-metadata'
-import { GitError, isAuthFailureError } from '../../lib/git/core'
+import {
+  coerceToString,
+  GitError,
+  isAuthFailureError,
+} from '../../lib/git/core'
 import { ShellError } from '../../lib/shells'
 import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-exists-error'
 
@@ -452,7 +456,7 @@ export async function samlReauthRequired(error: Error, dispatcher: Dispatcher) {
     return error
   }
 
-  const remoteMessage = getRemoteMessage(gitError.result.stderr)
+  const remoteMessage = getRemoteMessage(coerceToString(gitError.result.stderr))
   const match = samlReauthErrorMessageRe.exec(remoteMessage)
 
   if (!match) {
@@ -560,7 +564,9 @@ export async function localChangesOverwrittenHandler(
     )
   }
 
-  const files = parseFilesToBeOverwritten(gitError.result.stderr)
+  const files = parseFilesToBeOverwritten(
+    coerceToString(gitError.result.stderr)
+  )
 
   dispatcher.showPopup({
     type: PopupType.LocalChangesOverwritten,

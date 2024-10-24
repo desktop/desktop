@@ -1,4 +1,4 @@
-import { git, IGitExecutionOptions } from './core'
+import { git, IGitStringExecutionOptions } from './core'
 
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
@@ -32,7 +32,7 @@ export async function revertCommit(
 
   args.push(commit.sha)
 
-  let opts: IGitExecutionOptions = {}
+  let opts: IGitStringExecutionOptions = {}
   if (progressCallback) {
     const env = await envForRemoteOperation(
       getFallbackUrlForProxyResolve(repository, currentRemote)

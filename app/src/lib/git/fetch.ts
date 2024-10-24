@@ -1,4 +1,4 @@
-import { git, IGitExecutionOptions } from './core'
+import { git, IGitStringExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
 import { IFetchProgress } from '../../models/progress'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
@@ -45,7 +45,7 @@ export async function fetch(
   progressCallback?: (progress: IFetchProgress) => void,
   isBackgroundTask = false
 ): Promise<void> {
-  let opts: IGitExecutionOptions = {
+  let opts: IGitStringExecutionOptions = {
     successExitCodes: new Set([0]),
     env: await envForRemoteOperation(remote.url),
   }
@@ -113,18 +113,6 @@ export async function fastForwardBranches(
 
   const refPairs = branches.map(branch => `${branch.upstreamRef}:${branch.ref}`)
 
-  const opts: IGitExecutionOptions = {
-    // Fetch exits with an exit code of 1 if one or more refs failed to update
-    // which is what we expect will happen
-    successExitCodes: new Set([0, 1]),
-    env: {
-      // This will make sure the reflog entries are correct after
-      // fast-forwarding the branches.
-      GIT_REFLOG_ACTION: 'pull',
-    },
-    stdin: refPairs.join('\n'),
-  }
-
   await git(
     [
       'fetch',
@@ -141,6 +129,16 @@ export async function fastForwardBranches(
     ],
     repository.path,
     'fastForwardBranches',
-    opts
+    {
+      // Fetch exits with an exit code of 1 if one or more refs failed to update
+      // which is what we expect will happen
+      successExitCodes: new Set([0, 1]),
+      env: {
+        // This will make sure the reflog entries are correct after
+        // fast-forwarding the branches.
+        GIT_REFLOG_ACTION: 'pull',
+      },
+      stdin: refPairs.join('\n'),
+    }
   )
 }
