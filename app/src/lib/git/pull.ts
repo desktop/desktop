@@ -1,4 +1,9 @@
-import { git, GitError, IGitExecutionOptions, gitRebaseArguments } from './core'
+import {
+  git,
+  GitError,
+  gitRebaseArguments,
+  IGitStringExecutionOptions,
+} from './core'
 import { Repository } from '../../models/repository'
 import { IPullProgress } from '../../models/progress'
 import { PullProgressParser, executionOptionsWithProgress } from '../progress'
@@ -41,7 +46,7 @@ export async function pull(
   remote: IRemote,
   progressCallback?: (progress: IPullProgress) => void
 ): Promise<void> {
-  let opts: IGitExecutionOptions = {
+  let opts: IGitStringExecutionOptions = {
     env: await envForRemoteOperation(remote.url),
     expectedErrors: AuthenticationErrors,
   }

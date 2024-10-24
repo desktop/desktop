@@ -1,6 +1,6 @@
 import { GitError as DugiteError } from 'dugite'
 
-import { git, IGitExecutionOptions, GitError } from './core'
+import { git, GitError, IGitStringExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
 import { IPushProgress } from '../../models/progress'
 import { PushProgressParser, executionOptionsWithProgress } from '../progress'
@@ -75,7 +75,7 @@ export async function push(
   const expectedErrors = new Set<DugiteError>(AuthenticationErrors)
   expectedErrors.add(DugiteError.ProtectedBranchForcePush)
 
-  let opts: IGitExecutionOptions = {
+  let opts: IGitStringExecutionOptions = {
     env: await envForRemoteOperation(remote.url),
     expectedErrors,
   }

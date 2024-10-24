@@ -1,4 +1,4 @@
-import { git, IGitExecutionOptions } from './core'
+import { git, IGitStringExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 import { ICheckoutProgress } from '../../models/progress'
@@ -41,8 +41,8 @@ async function getCheckoutOpts(
   currentRemote: IRemote | null,
   progressCallback?: ProgressCallback,
   initialDescription?: string
-): Promise<IGitExecutionOptions> {
-  const opts: IGitExecutionOptions = {
+): Promise<IGitStringExecutionOptions> {
+  const opts: IGitStringExecutionOptions = {
     env: await envForRemoteOperation(
       getFallbackUrlForProxyResolve(repository, currentRemote)
     ),

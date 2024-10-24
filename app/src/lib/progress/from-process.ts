@@ -16,11 +16,13 @@ import { tailByLine } from '../file-system'
  * If the given options object already has a processCallback specified it will
  * be overwritten.
  */
-export async function executionOptionsWithProgress(
-  options: IGitExecutionOptions,
+export async function executionOptionsWithProgress<
+  T extends IGitExecutionOptions
+>(
+  options: T,
   parser: GitProgressParser,
   progressCallback: (progress: IGitProgress | IGitOutput) => void
-): Promise<IGitExecutionOptions> {
+): Promise<T> {
   let lfsProgressPath = null
   let env = {}
   if (options.trackLFSProgress) {
