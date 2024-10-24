@@ -1,6 +1,6 @@
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 
 import { setupEmptyRepository } from '../../helpers/repositories'
 import { getStatusOrThrow } from '../../helpers/status'
@@ -48,9 +48,9 @@ describe('gitignore', () => {
       const { path } = repo
 
       await saveGitIgnore(repo, 'node_modules')
-      await GitProcess.exec(['add', '.gitignore'], path)
+      await exec(['add', '.gitignore'], path)
 
-      const commit = await GitProcess.exec(
+      const commit = await exec(
         ['commit', '-m', 'create the ignore file'],
         path
       )
@@ -73,9 +73,9 @@ describe('gitignore', () => {
       const { path } = repo
 
       await saveGitIgnore(repo, 'node_modules')
-      await GitProcess.exec(['add', '.gitignore'], path)
+      await exec(['add', '.gitignore'], path)
 
-      const commit = await GitProcess.exec(
+      const commit = await exec(
         ['commit', '-m', 'create the ignore file'],
         path
       )
@@ -117,8 +117,8 @@ describe('gitignore', () => {
       const path = repo.path
 
       await saveGitIgnore(repo, '*.txt\n')
-      await GitProcess.exec(['add', '.gitignore'], path)
-      await GitProcess.exec(['commit', '-m', 'create the ignore file'], path)
+      await exec(['add', '.gitignore'], path)
+      await exec(['commit', '-m', 'create the ignore file'], path)
 
       // Create a txt file
       const file = Path.join(repo.path, 'a.txt')

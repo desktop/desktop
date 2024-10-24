@@ -10,7 +10,7 @@ import { TipState, IValidBranch } from '../../../src/models/tip'
 import { GitStore } from '../../../src/lib/stores'
 import { Branch, BranchType } from '../../../src/models/branch'
 import { getStatusOrThrow } from '../../helpers/status'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import { StatsStore, StatsDatabase } from '../../../src/lib/stats'
 import { UiActivityMonitor } from '../../../src/ui/lib/ui-activity-monitor'
 import { fakePost } from '../../fake-stats-post'
@@ -158,7 +158,7 @@ describe('git/checkout', () => {
       const repository = new Repository(path, -1, null, false)
 
       // put the repository into a known good state
-      await GitProcess.exec(
+      await exec(
         ['checkout', 'add-private-repo', '-f', '--recurse-submodules'],
         path
       )
@@ -182,10 +182,7 @@ describe('git/checkout', () => {
       const repository = new Repository(path, -1, null, false)
 
       // put the repository into a known good state
-      await GitProcess.exec(
-        ['checkout', 'master', '-f', '--recurse-submodules'],
-        path
-      )
+      await exec(['checkout', 'master', '-f', '--recurse-submodules'], path)
 
       const branches = await getBranches(repository)
       const devBranch = branches.find(b => b.name === 'dev')

@@ -1,5 +1,4 @@
-import { GitProcess } from 'dugite'
-import { IGitSpawnExecutionOptions } from 'dugite/build/lib/git-process'
+import { spawn, IGitSpawnOptions } from 'dugite'
 import * as GitPerf from '../../ui/lib/git-perf'
 import { isErrnoException } from '../errno-exception'
 import { withTrampolineEnv } from '../trampoline/trampoline-environment'
@@ -13,7 +12,7 @@ type ProcessOutput = {
   exitCode: number | null
 }
 
-type SpawnOptions = IGitSpawnExecutionOptions & {
+type SpawnOptions = IGitSpawnOptions & {
   /**
    * Whether the command about to run is part of a background task or not.
    * This affects error handling and UI such as credential prompts.
@@ -42,7 +41,7 @@ export const spawnGit = (
   withTrampolineEnv(
     trampolineEnv =>
       GitPerf.measure(`${name}: git ${args.join(' ')}`, async () =>
-        GitProcess.spawn(args, path, {
+        spawn(args, path, {
           ...options,
           env: { ...options?.env, ...trampolineEnv },
         })

@@ -1,4 +1,4 @@
-import { GitProcess } from 'dugite'
+import { exec as git } from 'dugite'
 
 export const parseCredential = (value: string) => {
   const cred = new Map<string, string>()
@@ -39,7 +39,7 @@ const exec = (
   path: string,
   env: Record<string, string | undefined> = {}
 ) =>
-  GitProcess.exec(
+  git(
     [
       ...['-c', 'credential.helper='],
       ...['-c', `credential.helper=manager`],

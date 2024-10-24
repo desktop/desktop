@@ -6,7 +6,7 @@ import {
   setupEmptyRepository,
 } from '../../helpers/repositories'
 import { Repository } from '../../../src/models/repository'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import {
   isUsingLFS,
   isTrackedByLFS,
@@ -27,7 +27,7 @@ describe('git-lfs', () => {
       const path = await setupFixtureRepository('test-repo')
       const repository = new Repository(path, -1, null, false)
 
-      await GitProcess.exec(['lfs', 'track', '*.psd'], repository.path)
+      await exec(['lfs', 'track', '*.psd'], repository.path)
 
       const usingLFS = await isUsingLFS(repository)
       expect(usingLFS).toBe(true)
@@ -53,7 +53,7 @@ describe('git-lfs', () => {
       const readme = Path.join(repository.path, file)
       await writeFile(readme, 'Hello world!')
 
-      await GitProcess.exec(['lfs', 'track', '*.md'], repository.path)
+      await exec(['lfs', 'track', '*.md'], repository.path)
 
       const found = await isTrackedByLFS(repository, file)
       expect(found).toBe(true)
@@ -67,7 +67,7 @@ describe('git-lfs', () => {
       const readme = Path.join(repository.path, file)
       await writeFile(readme, 'Hello world!')
 
-      await GitProcess.exec(['lfs', 'track', '*.md'], repository.path)
+      await exec(['lfs', 'track', '*.md'], repository.path)
 
       const found = await isTrackedByLFS(repository, file)
       expect(found).toBe(true)
@@ -77,7 +77,7 @@ describe('git-lfs', () => {
   describe('filesNotTrackedByLFS', () => {
     it('returns files not listed in Git LFS', async () => {
       const repository = await setupEmptyRepository()
-      await GitProcess.exec(['lfs', 'track', '*.md'], repository.path)
+      await exec(['lfs', 'track', '*.md'], repository.path)
 
       const videoFile = 'some-video-file.mp4'
 
@@ -89,7 +89,7 @@ describe('git-lfs', () => {
 
     it('skips files that are tracked by Git LFS', async () => {
       const repository = await setupEmptyRepository()
-      await GitProcess.exec(['lfs', 'track', '*.png'], repository.path)
+      await exec(['lfs', 'track', '*.png'], repository.path)
 
       const photoFile = 'some-cool-photo.png'
 
@@ -100,7 +100,7 @@ describe('git-lfs', () => {
 
     it('skips files in a subfolder that are tracked', async () => {
       const repository = await setupEmptyRepository()
-      await GitProcess.exec(['lfs', 'track', '*.png'], repository.path)
+      await exec(['lfs', 'track', '*.png'], repository.path)
 
       const photoFileInDirectory = 'app/src/some-cool-photo.png'
       const notFound = await filesNotTrackedByLFS(repository, [
@@ -112,7 +112,7 @@ describe('git-lfs', () => {
 
     it('skips files in a subfolder where the rule only covers the subdirectory', async () => {
       const repository = await setupEmptyRepository()
-      await GitProcess.exec(['lfs', 'track', 'app/src/*.png'], repository.path)
+      await exec(['lfs', 'track', 'app/src/*.png'], repository.path)
 
       const photoFileInDirectory = 'app/src/some-cool-photo.png'
       const notFound = await filesNotTrackedByLFS(repository, [

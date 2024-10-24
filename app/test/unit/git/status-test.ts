@@ -1,6 +1,6 @@
 import * as path from 'path'
 import * as FSE from 'fs-extra'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 
 import { Repository } from '../../../src/models/repository'
 
@@ -108,25 +108,19 @@ describe('git/status', () => {
         const repository = await setupEmptyRepository()
         const readme = path.join(repository.path, 'README.md')
         await FSE.writeFile(readme, '')
-        await GitProcess.exec(['add', 'README.md'], repository.path)
-        await GitProcess.exec(
-          ['commit', '-m', 'initial commit'],
-          repository.path
-        )
+        await exec(['add', 'README.md'], repository.path)
+        await exec(['commit', '-m', 'initial commit'], repository.path)
 
         // write a change to the readme into the stash
         await FSE.appendFile(readme, generateString())
-        await GitProcess.exec(['stash'], repository.path)
+        await exec(['stash'], repository.path)
 
         // write a different change to the README and commit it
         await FSE.appendFile(readme, generateString())
-        await GitProcess.exec(
-          ['commit', '-am', 'later commit'],
-          repository.path
-        )
+        await exec(['commit', '-am', 'later commit'], repository.path)
 
         // pop the stash to introduce a conflict into the index
-        await GitProcess.exec(['stash', 'pop'], repository.path)
+        await exec(['stash', 'pop'], repository.path)
 
         const status = await getStatusOrThrow(repository)
         const files = status.workingDirectory.files
@@ -170,13 +164,13 @@ describe('git/status', () => {
           'detect-conflict-in-binary-file'
         )
         repository = new Repository(path, -1, null, false)
-        await GitProcess.exec(['checkout', 'make-a-change'], repository.path)
+        await exec(['checkout', 'make-a-change'], repository.path)
       })
 
       it('parses conflicted image file on merge', async () => {
         const repo = repository
 
-        await GitProcess.exec(['merge', 'master'], repo.path)
+        await exec(['merge', 'master'], repo.path)
 
         const status = await getStatusOrThrow(repo)
         const files = status.workingDirectory.files
@@ -192,10 +186,10 @@ describe('git/status', () => {
       it('parses conflicted image file on merge after removing', async () => {
         const repo = repository
 
-        await GitProcess.exec(['rm', 'my-cool-image.png'], repo.path)
-        await GitProcess.exec(['commit', '-am', 'removed the image'], repo.path)
+        await exec(['rm', 'my-cool-image.png'], repo.path)
+        await exec(['commit', '-am', 'removed the image'], repo.path)
 
-        await GitProcess.exec(['merge', 'master'], repo.path)
+        await exec(['merge', 'master'], repo.path)
 
         const status = await getStatusOrThrow(repo)
         const files = status.workingDirectory.files
@@ -241,9 +235,9 @@ describe('git/status', () => {
 
         await FSE.writeFile(path.join(repo.path, 'foo'), 'foo\n')
 
-        await GitProcess.exec(['add', 'foo'], repo.path)
-        await GitProcess.exec(['commit', '-m', 'Initial commit'], repo.path)
-        await GitProcess.exec(['mv', 'foo', 'bar'], repo.path)
+        await exec(['add', 'foo'], repo.path)
+        await exec(['commit', '-m', 'Initial commit'], repo.path)
+        await exec(['mv', 'foo', 'bar'], repo.path)
 
         const status = await getStatusOrThrow(repo)
         const files = status.workingDirectory.files
@@ -267,7 +261,7 @@ describe('git/status', () => {
         // not enable this by default.
         await setupLocalConfig(repository, [['status.renames', 'copies']])
 
-        await GitProcess.exec(['add', '.'], repository.path)
+        await exec(['add', '.'], repository.path)
 
         const status = await getStatusOrThrow(repository)
         const files = status.workingDirectory.files
@@ -361,8 +355,8 @@ describe('git/status', () => {
 
         // Commit the changes within the submodule. Now the submodule has commit
         // changes.
-        await GitProcess.exec(['add', '.'], submodulePath)
-        await GitProcess.exec(['commit', '-m', 'changes'], submodulePath)
+        await exec(['add', '.'], submodulePath)
+        await exec(['commit', '-m', 'changes'], submodulePath)
         await checkSubmoduleChanges({
           modifiedChanges: false,
           untrackedChanges: false,

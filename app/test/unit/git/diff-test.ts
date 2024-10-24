@@ -31,7 +31,7 @@ import {
 } from '../../../src/lib/git'
 import { getStatusOrThrow } from '../../helpers/status'
 
-import { GitError as DugiteError, GitProcess } from 'dugite'
+import { GitError as DugiteError, exec } from 'dugite'
 import { makeCommit, switchTo } from '../../helpers/repository-scaffolding'
 import { writeFile } from 'fs/promises'
 
@@ -266,9 +266,9 @@ describe('git/diff', () => {
 
       await FSE.writeFile(path.join(repo.path, 'foo'), 'foo\n')
 
-      await GitProcess.exec(['add', 'foo'], repo.path)
-      await GitProcess.exec(['commit', '-m', 'Initial commit'], repo.path)
-      await GitProcess.exec(['mv', 'foo', 'bar'], repo.path)
+      await exec(['add', 'foo'], repo.path)
+      await exec(['commit', '-m', 'Initial commit'], repo.path)
+      await exec(['mv', 'foo', 'bar'], repo.path)
 
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
@@ -289,9 +289,9 @@ describe('git/diff', () => {
 
       await FSE.writeFile(path.join(repo.path, 'foo'), 'foo\n')
 
-      await GitProcess.exec(['add', 'foo'], repo.path)
-      await GitProcess.exec(['commit', '-m', 'Initial commit'], repo.path)
-      await GitProcess.exec(['mv', 'foo', 'bar'], repo.path)
+      await exec(['add', 'foo'], repo.path)
+      await exec(['commit', '-m', 'Initial commit'], repo.path)
+      await exec(['mv', 'foo', 'bar'], repo.path)
 
       await FSE.writeFile(path.join(repo.path, 'bar'), 'bar\n')
 
@@ -318,7 +318,7 @@ describe('git/diff', () => {
         'WRITING THE FIRST LINE\n'
       )
 
-      await GitProcess.exec(['add', 'foo'], repo.path)
+      await exec(['add', 'foo'], repo.path)
 
       await FSE.writeFile(path.join(repo.path, 'foo'), 'WRITING OVER THE TOP\n')
 
@@ -349,14 +349,11 @@ describe('git/diff', () => {
         `WRITING MANY LINES ${lineEnding} USING THIS LINE ENDING ${lineEnding} TO SHOW THAT GIT${lineEnding} WILL INSERT IT WITHOUT CHANGING THING ${lineEnding} HA HA BUSINESS`
       )
 
-      await GitProcess.exec(['add', 'foo'], repo.path)
-      await GitProcess.exec(
-        ['commit', '-m', 'commit first file with LF'],
-        repo.path
-      )
+      await exec(['add', 'foo'], repo.path)
+      await exec(['commit', '-m', 'commit first file with LF'], repo.path)
 
       // change config on-the-fly to trigger the line endings change warning
-      await GitProcess.exec(['config', 'core.autocrlf', 'true'], repo.path)
+      await exec(['config', 'core.autocrlf', 'true'], repo.path)
       lineEnding = '\n\n'
 
       await FSE.writeFile(
@@ -473,8 +470,8 @@ describe('git/diff', () => {
           'detect-conflict-in-binary-file'
         )
         repo = new Repository(testRepoPath, -1, null, false)
-        await GitProcess.exec(['checkout', 'make-a-change'], repo.path)
-        await GitProcess.exec(['merge', 'master'], repo.path)
+        await exec(['checkout', 'make-a-change'], repo.path)
+        await exec(['merge', 'master'], repo.path)
       })
       it('returns all conflicted image files', async () => {
         expect(await getBinaryPaths(repo, 'MERGE_HEAD', [])).toEqual([
@@ -544,7 +541,7 @@ describe('git/diff', () => {
     it('can get the diff for a submodule a commit change', async () => {
       // Make a change and commit it. Now the submodule has a commit change.
       await FSE.writeFile(path.join(submodulePath, 'README.md'), 'hello\n')
-      await GitProcess.exec(['commit', '-a', '-m', 'test'], submodulePath)
+      await exec(['commit', '-a', '-m', 'test'], submodulePath)
 
       const diff = await getSubmoduleDiff()
       expect(diff.oldSHA).not.toBeNull()
@@ -558,7 +555,7 @@ describe('git/diff', () => {
 
     it('can get the diff for a submodule a all kinds of changes', async () => {
       await FSE.writeFile(path.join(submodulePath, 'README.md'), 'hello\n')
-      await GitProcess.exec(['commit', '-a', '-m', 'test'], submodulePath)
+      await exec(['commit', '-a', '-m', 'test'], submodulePath)
       await FSE.writeFile(path.join(submodulePath, 'README.md'), 'bye\n')
       await FSE.writeFile(path.join(submodulePath, 'NEW.md'), 'new!!\n')
 
@@ -576,7 +573,7 @@ describe('git/diff', () => {
   describe('getBranchMergeBaseChangedFiles', () => {
     it('loads the files changed between two branches if merged', async () => {
       // create feature branch from initial master commit
-      await GitProcess.exec(['branch', 'feature-branch'], repository.path)
+      await exec(['branch', 'feature-branch'], repository.path)
 
       const firstCommit = {
         entries: [{ path: 'A.md', contents: 'A' }],
@@ -625,13 +622,10 @@ describe('git/diff', () => {
 
     it('returns null for unrelated histories', async () => {
       // create a second branch that's orphaned from our current branch
-      await GitProcess.exec(
-        ['checkout', '--orphan', 'orphaned-branch'],
-        repository.path
-      )
+      await exec(['checkout', '--orphan', 'orphaned-branch'], repository.path)
 
       // add a commit to this new branch
-      await GitProcess.exec(
+      await exec(
         ['commit', '--allow-empty', '-m', `first commit on gh-pages`],
         repository.path
       )
@@ -652,23 +646,23 @@ describe('git/diff', () => {
       // Add foo.md to master
       const fooPath = path.join(repository.path, 'foo.md')
       await FSE.writeFile(fooPath, 'foo\n')
-      await GitProcess.exec(['commit', '-a', '-m', 'foo'], repository.path)
+      await exec(['commit', '-a', '-m', 'foo'], repository.path)
 
       // Create feature branch from commit with foo.md
-      await GitProcess.exec(['branch', 'feature-branch'], repository.path)
+      await exec(['branch', 'feature-branch'], repository.path)
 
       // Commit a line "bar" to foo.md on master branch
       await FSE.appendFile(fooPath, 'bar\n')
-      await GitProcess.exec(['add', fooPath], repository.path)
-      await GitProcess.exec(['commit', '-m', 'A'], repository.path)
+      await exec(['add', fooPath], repository.path)
+      await exec(['commit', '-m', 'A'], repository.path)
 
       // switch to the feature branch and add feature to foo.md
       await switchTo(repository, 'feature-branch')
 
       // Commit a line of "feature" to foo.md on feature branch
       await FSE.appendFile(fooPath, 'feature\n')
-      await GitProcess.exec(['add', fooPath], repository.path)
-      await GitProcess.exec(['commit', '-m', 'B'], repository.path)
+      await exec(['add', fooPath], repository.path)
+      await exec(['commit', '-m', 'B'], repository.path)
 
       /*
         Now, we have:

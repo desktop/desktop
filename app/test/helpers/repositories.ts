@@ -3,7 +3,7 @@ import * as FSE from 'fs-extra'
 import { mkdirSync } from './temp'
 import klawSync, { Item } from 'klaw-sync'
 import { Repository } from '../../src/models/repository'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import { makeCommit, switchTo } from './repository-scaffolding'
 import { writeFile } from 'fs-extra'
 import { git } from '../../src/lib/git'
@@ -57,7 +57,7 @@ export async function setupFixtureRepository(
  */
 export async function setupEmptyRepository(): Promise<Repository> {
   const repoPath = mkdirSync('desktop-empty-repo-')
-  await GitProcess.exec(['init'], repoPath)
+  await exec(['init'], repoPath)
 
   return new Repository(repoPath, -1, null, false)
 }
@@ -70,7 +70,7 @@ export async function setupEmptyRepository(): Promise<Repository> {
  */
 export async function setupEmptyRepositoryDefaultMain(): Promise<Repository> {
   const repoPath = mkdirSync('desktop-empty-repo-')
-  await GitProcess.exec(['init', '-b', 'main'], repoPath)
+  await exec(['init', '-b', 'main'], repoPath)
 
   return new Repository(repoPath, -1, null, false)
 }
@@ -106,7 +106,7 @@ export async function setupConflictedRepo(): Promise<Repository> {
 
   // create this branch starting from the first commit, but don't checkout it
   // because we want to create a divergent history
-  await GitProcess.exec(['branch', 'other-branch'], repo.path)
+  await exec(['branch', 'other-branch'], repo.path)
 
   const secondCommit = {
     entries: [{ path: 'foo', contents: 'b1' }],
@@ -121,7 +121,7 @@ export async function setupConflictedRepo(): Promise<Repository> {
   }
   await makeCommit(repo, thirdCommit)
 
-  await GitProcess.exec(['merge', 'master'], repo.path)
+  await exec(['merge', 'master'], repo.path)
 
   return repo
 }
@@ -150,7 +150,7 @@ export async function setupConflictedRepoWithUnrelatedCommittedChange(): Promise
 
   // create this branch starting from the first commit, but don't checkout it
   // because we want to create a divergent history
-  await GitProcess.exec(['branch', 'other-branch'], repo.path)
+  await exec(['branch', 'other-branch'], repo.path)
 
   const secondCommit = {
     entries: [{ path: 'foo', contents: 'b1' }],
@@ -167,7 +167,7 @@ export async function setupConflictedRepoWithUnrelatedCommittedChange(): Promise
 
   await writeFile(Path.join(repo.path, 'perlin'), 'noise')
 
-  await GitProcess.exec(['merge', 'master'], repo.path)
+  await exec(['merge', 'master'], repo.path)
 
   return repo
 }
@@ -196,7 +196,7 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<Repository
 
   // create this branch starting from the first commit, but don't checkout it
   // because we want to create a divergent history
-  await GitProcess.exec(['branch', 'other-branch'], repo.path)
+  await exec(['branch', 'other-branch'], repo.path)
 
   const secondCommit = {
     entries: [
@@ -224,7 +224,7 @@ export async function setupConflictedRepoWithMultipleFiles(): Promise<Repository
 
   await FSE.writeFile(Path.join(repo.path, 'dog'), 'touch')
 
-  await GitProcess.exec(['merge', 'master'], repo.path)
+  await exec(['merge', 'master'], repo.path)
 
   return repo
 }

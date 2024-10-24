@@ -1,4 +1,4 @@
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
 import {
@@ -74,11 +74,8 @@ describe('git/cherry-pick', () => {
     await switchTo(repository, featureBranchName)
     const filePath = Path.join(repository.path, 'EMPTY_MESSAGE.md')
     await FSE.writeFile(filePath, '# HELLO WORLD! \nTHINGS GO HERE\n')
-    await GitProcess.exec(['add', filePath], repository.path)
-    await GitProcess.exec(
-      ['commit', '--allow-empty-message', '-m', ''],
-      repository.path
-    )
+    await exec(['add', filePath], repository.path)
+    await exec(['commit', '--allow-empty-message', '-m', ''], repository.path)
 
     featureBranch = await getBranchOrError(repository, featureBranchName)
     await switchTo(repository, targetBranchName)
@@ -122,7 +119,7 @@ describe('git/cherry-pick', () => {
   it('successfully cherry-picks an empty commit', async () => {
     // add empty commit to feature branch
     await switchTo(repository, featureBranchName)
-    await GitProcess.exec(
+    await exec(
       ['commit', '--allow-empty', '-m', 'Empty Commit'],
       repository.path
     )
@@ -143,7 +140,7 @@ describe('git/cherry-pick', () => {
 
     // add empty commit to feature branch
     await switchTo(repository, featureBranchName)
-    await GitProcess.exec(
+    await exec(
       ['commit', '--allow-empty', '-m', 'Empty Commit'],
       repository.path
     )
@@ -363,10 +360,7 @@ describe('git/cherry-pick', () => {
 
       // git diff --check warns if conflict markers exist and will exit with
       // non-zero status if conflicts found
-      const diffCheckBefore = await GitProcess.exec(
-        ['diff', '--check'],
-        repository.path
-      )
+      const diffCheckBefore = await exec(['diff', '--check'], repository.path)
       expect(diffCheckBefore.exitCode).toBeGreaterThan(0)
 
       // resolve conflicts by writing files to disk
@@ -376,10 +370,7 @@ describe('git/cherry-pick', () => {
       )
 
       // diff --check to verify no conflicts exist (exitCode should be 0)
-      const diffCheckAfter = await GitProcess.exec(
-        ['diff', '--check'],
-        repository.path
-      )
+      const diffCheckAfter = await exec(['diff', '--check'], repository.path)
       expect(diffCheckAfter.exitCode).toEqual(0)
 
       result = await continueCherryPick(repository, files)
@@ -400,10 +391,7 @@ describe('git/cherry-pick', () => {
 
       // git diff --check warns if conflict markers exist and will exit with
       // non-zero status if conflicts found
-      const diffCheckBefore = await GitProcess.exec(
-        ['diff', '--check'],
-        repository.path
-      )
+      const diffCheckBefore = await exec(['diff', '--check'], repository.path)
       expect(diffCheckBefore.exitCode).toBeGreaterThan(0)
 
       const manualResolutions = new Map<string, ManualConflictResolution>()
@@ -432,10 +420,7 @@ describe('git/cherry-pick', () => {
 
       // git diff --check warns if conflict markers exist and will exit with
       // non-zero status if conflicts found
-      const diffCheckBefore = await GitProcess.exec(
-        ['diff', '--check'],
-        repository.path
-      )
+      const diffCheckBefore = await exec(['diff', '--check'], repository.path)
       expect(diffCheckBefore.exitCode).toBeGreaterThan(0)
 
       const manualResolutions = new Map<string, ManualConflictResolution>()

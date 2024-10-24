@@ -1,4 +1,4 @@
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
 
@@ -186,10 +186,7 @@ describe('git/rebase', () => {
 
       const { files } = afterRebase.workingDirectory
 
-      const diffCheckBefore = await GitProcess.exec(
-        ['diff', '--check'],
-        repository.path
-      )
+      const diffCheckBefore = await exec(['diff', '--check'], repository.path)
 
       expect(diffCheckBefore.exitCode).toBeGreaterThan(0)
 
@@ -204,10 +201,7 @@ describe('git/rebase', () => {
         '# HELLO WORLD! \nTHINGS GO HERE\nALSO FEATURE BRANCH UNDERWAY\n'
       )
 
-      const diffCheckAfter = await GitProcess.exec(
-        ['diff', '--check'],
-        repository.path
-      )
+      const diffCheckAfter = await exec(['diff', '--check'], repository.path)
 
       expect(diffCheckAfter.exitCode).toEqual(0)
 

@@ -1,7 +1,7 @@
 import * as path from 'path'
 import * as os from 'os'
 import * as FSE from 'fs-extra'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import { DiffParser } from '../../src/lib/diff-parser'
 import {
   expandTextDiffHunk,
@@ -42,7 +42,7 @@ async function prepareDiff(
   await FSE.writeFile(path.join(contentFolderPath, 'changed'), modifiedContents)
 
   // Generate diff with 3 lines of context
-  const result = await GitProcess.exec(
+  const result = await exec(
     [
       'diff',
       '-U3',

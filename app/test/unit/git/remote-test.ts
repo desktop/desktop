@@ -11,7 +11,7 @@ import {
   setupEmptyDirectory,
 } from '../../helpers/repositories'
 import { findDefaultRemote } from '../../../src/lib/stores/helpers/find-default-remote'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import { setConfigValue } from '../../../src/lib/git'
 
 describe('git/remote', () => {
@@ -49,11 +49,11 @@ describe('git/remote', () => {
       // adding these remotes out-of-order to test how they are then retrieved
       const url = 'https://github.com/desktop/not-found.git'
 
-      await GitProcess.exec(['remote', 'add', 'X', url], repository.path)
-      await GitProcess.exec(['remote', 'add', 'A', url], repository.path)
-      await GitProcess.exec(['remote', 'add', 'L', url], repository.path)
-      await GitProcess.exec(['remote', 'add', 'T', url], repository.path)
-      await GitProcess.exec(['remote', 'add', 'D', url], repository.path)
+      await exec(['remote', 'add', 'X', url], repository.path)
+      await exec(['remote', 'add', 'A', url], repository.path)
+      await exec(['remote', 'add', 'L', url], repository.path)
+      await exec(['remote', 'add', 'T', url], repository.path)
+      await exec(['remote', 'add', 'D', url], repository.path)
 
       const result = await getRemotes(repository)
       expect(result).toHaveLength(5)
@@ -76,19 +76,13 @@ describe('git/remote', () => {
 
       // Add a remote
       const url = 'https://github.com/desktop/not-found.git'
-      await GitProcess.exec(
-        ['remote', 'add', 'hasBlobFilter', url],
-        repository.path
-      )
+      await exec(['remote', 'add', 'hasBlobFilter', url], repository.path)
 
       // Fetch a remote and add a filter
-      await GitProcess.exec(['fetch', '--filter=blob:none'], repository.path)
+      await exec(['fetch', '--filter=blob:none'], repository.path)
 
       // Shows that the new remote does have a filter
-      const rawGetRemote = await GitProcess.exec(
-        ['remote', '-v'],
-        repository.path
-      )
+      const rawGetRemote = await exec(['remote', '-v'], repository.path)
       expect(rawGetRemote.stdout).toContain(url + ' (fetch) [blob:none]')
 
       // Shows that the `getRemote` returns that remote

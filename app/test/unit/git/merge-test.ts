@@ -10,7 +10,7 @@ import {
   setupFixtureRepository,
   setupConflictedRepo,
 } from '../../helpers/repositories'
-import { GitProcess } from 'dugite'
+import { exec } from 'dugite'
 import { Repository } from '../../../src/models/repository'
 
 describe('git/merge', () => {
@@ -65,19 +65,16 @@ describe('git/merge', () => {
       const secondBranch = 'gh-pages'
 
       // create the first commit
-      await GitProcess.exec(
+      await exec(
         ['commit', '--allow-empty', '-m', `first commit on master`],
         repository.path
       )
 
       // create a second branch that's orphaned from our current branch
-      await GitProcess.exec(
-        ['checkout', '--orphan', secondBranch],
-        repository.path
-      )
+      await exec(['checkout', '--orphan', secondBranch], repository.path)
 
       // add a commit to this new branch
-      await GitProcess.exec(
+      await exec(
         ['commit', '--allow-empty', '-m', `first commit on gh-pages`],
         repository.path
       )
@@ -101,7 +98,7 @@ describe('git/merge', () => {
       const repository = await setupEmptyRepository()
 
       // create the first commit
-      await GitProcess.exec(
+      await exec(
         ['commit', '--allow-empty', '-m', `first commit on master`],
         repository.path
       )
