@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.4.7": [
+      "[Improved] Support entering GitHub.com as a GitHub Enterprise endpoint - #19342"
+    ],
     "3.4.7-beta2": [
       "[Fixed] Fix misaligned resizable toolbar buttons - #19330. Thanks @jpedroso!",
       "[Fixed] Files configured to use the binary merge driver are now treated as binary files when resolving conflicts - #9846",

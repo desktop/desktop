@@ -22,6 +22,20 @@ const ValidElectronVersions: Record<ChannelToValidate, string> = {
   beta: '32.1.2',
 }
 
+// Only when we get a RELEASE_CHANNEL we know we're in the middle of a deployment.
+// In that case, we want to error out if the Electron version is not what we expect.
+const errorOnMismatch = (process.env.RELEASE_CHANNEL ?? '').length > 0
+
+function handleError(message: string): never {
+  if (errorOnMismatch) {
+    console.error(message)
+    process.exit(1)
+  } else {
+    console.warn(message)
+    process.exit(0)
+  }
+}
+
 const channel =
   process.env.RELEASE_CHANNEL || distInfo.getChannelFromReleaseBranch()
 
@@ -36,17 +50,15 @@ const actualVersion = pkg.devDependencies?.electron
 const npmrcVersion = resolveVersionInNpmRcFile()
 
 if (actualVersion !== expectedVersion) {
-  console.error(
+  handleError(
     `The Electron version for the ${channel} channel is incorrect. Expected ${expectedVersion} but found ${actualVersion}.`
   )
-  process.exit(1)
 }
 
 if (channel === 'production' && npmrcVersion !== expectedVersion) {
-  console.error(
+  handleError(
     `The Electron version for the ${channel} channel is not correct in the app/.npmrc file. Expected ${expectedVersion} but found ${npmrcVersion}.`
   )
-  process.exit(1)
 }
 
 console.log(
@@ -63,10 +75,9 @@ function resolveVersionInNpmRcFile() {
   const text = readFileSync(path, 'utf-8')
   const version = text.match(/\d+.\d+.\d+/)
   if (!version) {
-    console.error(
+    handleError(
       `No target version found in the app/.npmrc file. Is this still needed?`
     )
-    process.exit(1)
   }
 
   return version[0]
