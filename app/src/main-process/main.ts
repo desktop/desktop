@@ -331,6 +331,7 @@ app.on('ready', () => {
       selectedExternalEditor: null,
       askForConfirmationOnRepositoryRemoval: false,
       askForConfirmationOnForcePush: false,
+      displayViewInGitHub: true,
     })
   )
 

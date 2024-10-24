@@ -650,14 +650,14 @@ export class CommitList extends React.Component<
       this.props.canResetToCommits === true && isResettableCommit
     const canBeCheckedOut = row > 0 //Cannot checkout the current commit
 
-    let viewOnGitHubLabel = 'View on GitHub'
+    let viewInBrowserLabel = 'View on GitHub'
     const gitHubRepository = this.props.gitHubRepository
 
     if (
       gitHubRepository &&
       gitHubRepository.endpoint !== getDotComAPIEndpoint()
     ) {
-      viewOnGitHubLabel = 'View on GitHub Enterprise'
+      viewInBrowserLabel = 'View on GitHub Enterprise'
     }
 
     const items: IMenuItem[] = []
@@ -770,7 +770,7 @@ export class CommitList extends React.Component<
         enabled: commit.tags.length > 0,
       },
       {
-        label: viewOnGitHubLabel,
+        label: viewInBrowserLabel,
         action: () => this.props.onViewCommitOnGitHub?.(commit.sha),
         enabled: !isLocal && !!gitHubRepository,
       }

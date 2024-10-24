@@ -88,7 +88,7 @@ export class PullRequestQuickView extends React.Component<
     this.updateQuickViewPosition()
   }
 
-  private onViewOnGitHub = () => {
+  private onViewInBrowser = () => {
     this.props.dispatcher.showPullRequestByPR(this.props.pullRequest)
   }
 
@@ -165,7 +165,7 @@ export class PullRequestQuickView extends React.Component<
         <div className="action-needed">Review requested</div>
         <Button
           className="button-with-icon"
-          onClick={this.onViewOnGitHub}
+          onClick={this.onViewInBrowser}
           role="link"
         >
           View on GitHub
