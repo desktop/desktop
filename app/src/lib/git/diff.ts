@@ -173,9 +173,7 @@ export async function getBranchMergeBaseDiff(
     args.push(file.status.oldPath)
   }
 
-  const result = await git(args, repository.path, 'getBranchMergeBaseDiff', {
-    maxBuffer: Infinity,
-  })
+  const result = await git(args, repository.path, 'getBranchMergeBaseDiff')
 
   return buildDiff(Buffer.from(result.stdout), repository, file, latestCommit)
 }
@@ -217,7 +215,6 @@ export async function getCommitRangeDiff(
   }
 
   const result = await git(args, repository.path, 'getCommitsDiff', {
-    maxBuffer: Infinity,
     expectedErrors: new Set([GitError.BadRevision]),
   })
 
