@@ -141,38 +141,22 @@ export class Tokenizer {
     index: number,
     repository: GitHubRepository
   ): LookupResult | null {
-    let nextIndex = this.scanForEndOfWord(text, index)
-    let maybeIssue = text.slice(index, nextIndex)
-
-    // handle situation where issue reference is wrapped in parentheses
-    // like the generated "squash and merge" commits on GitHub
-    if (maybeIssue.endsWith(')')) {
-      nextIndex -= 1
-      maybeIssue = text.slice(index, nextIndex)
+    let nextIndex = index + 1
+    while (nextIndex < text.length && /\d/.test(text[nextIndex])) {
+      nextIndex += 1
     }
-
-    // release notes may add a full stop as part of formatting the entry
-    if (maybeIssue.endsWith('.')) {
-      nextIndex -= 1
-      maybeIssue = text.slice(index, nextIndex)
-    }
-
-    // handle list of issues
-    if (maybeIssue.endsWith(',')) {
-      nextIndex -= 1
-      maybeIssue = text.slice(index, nextIndex)
-    }
-
-    if (!/^#\d+$/.test(maybeIssue)) {
+    if (nextIndex === index + 1) {
       return null
     }
 
-    this.flush()
+    const maybeIssue = text.slice(index, nextIndex)
+
     const id = parseInt(maybeIssue.substring(1), 10)
     if (isNaN(id)) {
       return null
     }
 
+    this.flush()
     const url = `${repository.htmlURL}/issues/${id}`
     this._results.push({ kind: TokenType.Link, text: maybeIssue, url })
     return { nextIndex }
