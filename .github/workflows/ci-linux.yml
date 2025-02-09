@@ -93,10 +93,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js 18.14.0
+      - name: Use Node.js 20.17.0
         uses: actions/setup-node@v4
         with:
-          node-version: 18.14.0
+          node-version: 20.17.0
           cache: yarn
 
       - name: Download all artifacts
