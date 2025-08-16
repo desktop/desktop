@@ -33,6 +33,7 @@ import { doMergeCommitsExistAfterCommit } from '../../lib/git'
 import { KeyboardInsertionData } from '../lib/list'
 import { Account } from '../../models/account'
 import { Emoji } from '../../lib/emoji'
+import { CommitUserFilter } from './commit-user-filter'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -69,6 +70,7 @@ interface ICompareSidebarState {
    * For all other cases, use the prop
    */
   readonly focusedBranch: Branch | null
+  readonly selectedUser: string | null
 
   /** Data to be reordered via keyboard */
   readonly keyboardReorderData?: KeyboardInsertionData
@@ -91,7 +93,7 @@ export class CompareSidebar extends React.Component<
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
-    this.state = { focusedBranch: null }
+    this.state = { focusedBranch: null, selectedUser: null }
   }
 
   public componentWillReceiveProps(nextProps: ICompareSidebarProps) {
@@ -158,9 +160,28 @@ export class CompareSidebar extends React.Component<
     })
   }
 
+  private onUserChanged = (user: string | null) => {
+    this.setState({ selectedUser: user })
+  }
+
+  /** Extract unique commit authors safely */
+  private getUniqueAuthors(): string[] {
+    const { commitLookup, compareState } = this.props
+    const commits = compareState.commitSHAs
+      .map(sha => commitLookup.get(sha))
+      .filter((c): c is Commit => !!c)
+    const authors = commits
+      .map(c => c.author?.name || 'Unknown') // handle missing author
+      .filter((name): name is string => !!name) // remove falsy values
+    return Array.from(new Set(authors)).sort((a, b) =>
+      a.toLowerCase().localeCompare(b.toLowerCase())
+    )
+  }
+
   public render() {
     const { branches, filterText, showBranchList } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
+    const authors = this.getUniqueAuthors()
 
     return (
       <div id="compare-view" role="tabpanel" aria-labelledby="history-tab">
@@ -177,6 +198,11 @@ export class CompareSidebar extends React.Component<
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
             onSearchCleared={this.handleEscape}
+          />
+          <CommitUserFilter
+            authors={authors}
+            selectedUser={this.state.selectedUser}
+            onUserChanged={this.onUserChanged}
           />
         </div>
 
@@ -216,7 +242,15 @@ export class CompareSidebar extends React.Component<
 
   private renderCommitList() {
     const { formState, commitSHAs } = this.props.compareState
-
+    const { selectedUser } = this.state
+    const { commitLookup } = this.props
+    // Filter commit SHAs by selected user if one is selected
+    const filteredCommitSHAs = selectedUser
+      ? commitSHAs.filter(sha => {
+          const commit = commitLookup.get(sha)
+          return commit && commit.author && commit.author.name === selectedUser
+        })
+      : commitSHAs
     let emptyListMessage: string | JSX.Element
     if (formState.kind === HistoryTabMode.History) {
       emptyListMessage = 'No history'
@@ -243,7 +277,7 @@ export class CompareSidebar extends React.Component<
         gitHubRepository={this.props.repository.gitHubRepository}
         isLocalRepository={this.props.isLocalRepository}
         commitLookup={this.props.commitLookup}
-        commitSHAs={commitSHAs}
+        commitSHAs={filteredCommitSHAs}
         selectedSHAs={this.props.selectedCommitShas}
         shasToHighlight={this.props.shasToHighlight}
         localCommitSHAs={this.props.localCommitSHAs}

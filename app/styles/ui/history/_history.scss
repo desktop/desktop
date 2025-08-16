@@ -146,3 +146,47 @@
     }
   }
 }
+
+.commit-user-filter-container {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* small spacing */
+  margin: 6px 0;
+  font-size: 12px; /* smaller look */
+}
+
+/* Label */
+.filter-label {
+  font-weight: 500;
+  color: #c9d1d9; /* adjust for dark mode */
+  white-space: nowrap; /* prevent wrapping */
+}
+
+/* Dropdown */
+.commit-user-filter {
+  appearance: none;
+  background-color: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  color: #c9d1d9;
+  padding: 4px 24px 4px 8px; /* smaller padding */
+  font-size: 12px; /* compact font */
+  cursor: pointer;
+  min-width: 120px;
+  height: 26px; /* force smaller height */
+  line-height: 1.2;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='12' viewBox='0 0 24 24' width='12' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 12px;
+}
+
+/* Hover + focus */
+.commit-user-filter:hover {
+  border-color: #58a6ff;
+}
+.commit-user-filter:focus {
+  outline: none;
+  border-color: #58a6ff;
+  background-color: #0d1117;
+}
