@@ -1,0 +1,41 @@
+#pre-commit-hook-failure {
+  .hook-output {
+    background-color: var(--color-background-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    margin: var(--spacing) 0;
+    padding: var(--spacing);
+    max-height: 200px;
+    overflow-y: auto;
+
+    pre {
+      margin: 0;
+      font-family: var(--font-family-monospace);
+      font-size: var(--font-size);
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  }
+
+  p {
+    margin: var(--spacing) 0;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    code {
+      font-family: var(--font-family-monospace);
+      background-color: var(--color-background-secondary);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: var(--font-size-sm);
+      white-space: nowrap;
+    }
+  }
+}

@@ -3296,42 +3296,61 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
 
     return this.withIsCommitting(repository, async () => {
-      const result = await gitStore.performFailableOperation(async () => {
+      try {
         const message = await formatCommitMessage(repository, context)
-        return createCommit(repository, message, selectedFiles, context.amend)
-      })
+        const result = await createCommit(repository, message, selectedFiles, context.amend, context.noVerify)
 
-      if (result !== undefined) {
-        await this._recordCommitStats(
-          gitStore,
+        if (result !== undefined) {
+          await this._recordCommitStats(
+            gitStore,
+            repository,
+            state,
+            context,
+            selectedFiles,
+            context.amend === true
+          )
+
+          this.repositoryStateCache.update(repository, () => {
+            return {
+              commitToAmend: null,
+            }
+          })
+
+          await this.refreshChangesSection(repository, {
+            includingStatus: true,
+            clearPartialState: true,
+          })
+
+          // Do not await for refreshing the repository, otherwise this will block
+          // the commit button unnecessarily for a long time in big repos.
+          this._refreshRepositoryAfterCommit(
+            repository,
+            result,
+            state.commitToAmend
+          )
+        }
+
+        return result !== undefined
+      } catch (error) {
+        // Check if this is a pre-commit hook failure
+        if (isPreCommitHookFailure(error) && !context.noVerify) {
+          const hookOutput = extractHookOutput(error)
+          this._showPopup({
+            type: PopupType.PreCommitHookFailure,
+            repository,
+            commitContext: context,
+            hookOutput,
+          })
+          return false
+        }
+
+        // For other errors, use the default error handling
+        const wrappedError = new ErrorWithMetadata(error, {
           repository,
-          state,
-          context,
-          selectedFiles,
-          context.amend === true
-        )
-
-        this.repositoryStateCache.update(repository, () => {
-          return {
-            commitToAmend: null,
-          }
         })
-
-        await this.refreshChangesSection(repository, {
-          includingStatus: true,
-          clearPartialState: true,
-        })
-
-        // Do not await for refreshing the repository, otherwise this will block
-        // the commit button unnecessarily for a long time in big repos.
-        this._refreshRepositoryAfterCommit(
-          repository,
-          result,
-          state.commitToAmend
-        )
+        this.emitError(wrappedError)
+        return false
       }
-
-      return result !== undefined
     })
   }
 
@@ -8481,6 +8500,32 @@ function isLocalChangesOverwrittenError(error: Error): boolean {
     error instanceof GitError &&
     error.result.gitError === DugiteError.LocalChangesOverwritten
   )
+}
+
+function isPreCommitHookFailure(error: Error): boolean {
+  if (error instanceof GitError && error.result.exitCode !== 0) {
+    const output = extractHookOutput(error).toLowerCase()
+
+    // Check for pre-commit hook failure indicators (case insensitive)
+    return output.includes('husky') ||
+           output.includes('pre-commit') ||
+           output.includes('lint-staged')
+  }
+
+  return false
+}
+
+function extractHookOutput(error: Error): string {
+  if (error instanceof ErrorWithMetadata) {
+    return extractHookOutput(error.underlyingError)
+  }
+
+  if (error instanceof GitError) {
+    const stderr = error.result.stderr
+    return typeof stderr === 'string' ? stderr : stderr.toString()
+  }
+
+  return error.message || 'Pre-commit hook failed with no additional output.'
 }
 
 function constrain(

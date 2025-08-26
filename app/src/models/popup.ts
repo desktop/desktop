@@ -103,6 +103,7 @@ export enum PopupType {
   BypassPushProtection = 'BypassPushProtection',
   GenerateCommitMessageOverrideWarning = 'GenerateCommitMessageOverrideWarning',
   GenerateCommitMessageDisclaimer = 'GenerateCommitMessageDisclaimer',
+  PreCommitHookFailure = 'PreCommitHookFailure',
 }
 
 interface IBasePopup {
@@ -463,6 +464,12 @@ export type PopupDetail =
       // from this popup we will trigger the commit message generation too.
       repository: Repository
       filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
+    }
+  | {
+      type: PopupType.PreCommitHookFailure
+      repository: Repository
+      commitContext: ICommitContext
+      hookOutput: string
     }
 
 export type Popup = IBasePopup & PopupDetail

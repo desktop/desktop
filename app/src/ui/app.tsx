@@ -130,7 +130,7 @@ import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local
 import memoizeOne from 'memoize-one'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import { getAccountForRepository } from '../lib/get-account-for-repository'
-import { CommitOneLine } from '../models/commit'
+import { CommitOneLine, ICommitContext } from '../models/commit'
 import { CommitDragElement } from './drag-elements/commit-drag-element'
 import classNames from 'classnames'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
@@ -192,6 +192,7 @@ import {
 } from './secret-scanning/push-protection-error-dialog'
 import { GenerateCommitMessageOverrideWarning } from './generate-commit-message/generate-commit-message-override-warning'
 import { GenerateCommitMessageDisclaimer } from './generate-commit-message/generate-commit-message-disclaimer'
+import { PreCommitHookFailure } from './pre-commit-hook-failure'
 import { IAPICreatePushProtectionBypassResponse } from '../lib/api'
 import {
   BypassPushProtectionDialog,
@@ -2572,6 +2573,24 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.PreCommitHookFailure: {
+        return (
+          <PreCommitHookFailure
+            key="pre-commit-hook-failure"
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            commitContext={popup.commitContext}
+            hookOutput={popup.hookOutput}
+            onDismissed={onPopupDismissedFn}
+            onCommitAnyway={() =>
+              this.onPreCommitHookFailureCommitAnyway(
+                popup.repository,
+                popup.commitContext
+              )
+            }
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2601,6 +2620,22 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private setConfirmCommitFilteredChanges = (value: boolean) => {
     this.props.dispatcher.setConfirmCommitFilteredChanges(value)
+  }
+
+  private onPreCommitHookFailureCommitAnyway = async (
+    repository: Repository,
+    commitContext: ICommitContext
+  ) => {
+    // Set noVerify to true to bypass pre-commit hooks
+    const contextWithNoVerify: ICommitContext = {
+      ...commitContext,
+      noVerify: true,
+    }
+
+    await this.props.dispatcher.commitIncludedChanges(
+      repository,
+      contextWithNoVerify
+    )
   }
 
   private getPullRequestState() {
