@@ -33,7 +33,7 @@
       font-family: var(--font-family-monospace);
       background-color: var(--color-background-secondary);
       padding: 2px 4px;
-      border-radius: 3px;
+      border-radius: calc(var(--border-radius) / 2);
       font-size: var(--font-size-sm);
       white-space: nowrap;
     }
