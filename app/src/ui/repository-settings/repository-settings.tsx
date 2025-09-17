@@ -31,6 +31,8 @@ import {
 import { Account } from '../../models/account'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
+import { readCopilotInstructions } from '../../lib/git/copilot-instructions'
+import { CopilotInstructions } from './copilot-instructions'
 
 interface IRepositorySettingsProps {
   readonly initialSelectedTab?: RepositorySettingsTab
@@ -44,6 +46,7 @@ interface IRepositorySettingsProps {
 export enum RepositorySettingsTab {
   Remote = 0,
   IgnoredFiles,
+  CopilotInstructions,
   GitConfig,
   ForkSettings,
 }
@@ -53,6 +56,8 @@ interface IRepositorySettingsState {
   readonly remote: IRemote | null
   readonly ignoreText: string | null
   readonly ignoreTextHasChanged: boolean
+  readonly copilotInstructionsText: string | null
+  readonly copilotInstructionsHasChanged: boolean
   readonly disabled: boolean
   readonly saveDisabled: boolean
   readonly gitConfigLocation: GitConfigLocation
@@ -81,6 +86,8 @@ export class RepositorySettings extends React.Component<
       remote: props.remote,
       ignoreText: null,
       ignoreTextHasChanged: false,
+      copilotInstructionsText: null,
+      copilotInstructionsHasChanged: false,
       disabled: false,
       forkContributionTarget: getForkContributionTarget(props.repository),
       saveDisabled: false,
@@ -106,6 +113,19 @@ export class RepositorySettings extends React.Component<
         e
       )
       this.setState({ errors: [`Could not read root .gitignore: ${e}`] })
+    }
+
+    try {
+      const copilotInstructionsText = await readCopilotInstructions(
+        this.props.repository
+      )
+      this.setState({ copilotInstructionsText })
+    } catch (e) {
+      log.error(
+        `RepositorySettings: unable to read copilot instructions file for ${this.props.repository.path}`,
+        e
+      )
+      this.setState({ errors: [`Could not read copilot instructions: ${e}`] })
     }
 
     const localCommitterName = await getConfigValue(
@@ -192,6 +212,10 @@ export class RepositorySettings extends React.Component<
               {__DARWIN__ ? 'Ignored Files' : 'Ignored files'}
             </span>
             <span>
+              <Octicon className="icon" symbol={octicons.copilot} />
+              {__DARWIN__ ? 'Copilot Instructions' : 'Copilot instructions'}
+            </span>
+            <span>
               <Octicon className="icon" symbol={octicons.gitCommit} />
               {__DARWIN__ ? 'Git Config' : 'Git config'}
             </span>
@@ -237,6 +261,15 @@ export class RepositorySettings extends React.Component<
             text={this.state.ignoreText}
             onIgnoreTextChanged={this.onIgnoreTextChanged}
             onShowExamples={this.onShowGitIgnoreExamples}
+          />
+        )
+      }
+      case RepositorySettingsTab.CopilotInstructions: {
+        return (
+          <CopilotInstructions
+            text={this.state.copilotInstructionsText}
+            onInstructionsTextChanged={this.onCopilotInstructionsTextChanged}
+            onShowExamples={this.onShowCopilotExamples}
           />
         )
       }
@@ -328,6 +361,24 @@ export class RepositorySettings extends React.Component<
       }
     }
 
+    if (
+      this.state.copilotInstructionsHasChanged &&
+      this.state.copilotInstructionsText !== null
+    ) {
+      try {
+        await this.props.dispatcher.saveCopilotInstructions(
+          this.props.repository,
+          this.state.copilotInstructionsText
+        )
+      } catch (e) {
+        log.error(
+          `RepositorySettings: unable to save copilot instructions at ${this.props.repository.path}`,
+          e
+        )
+        errors.push(`Failed saving the copilot instructions file: ${e}`)
+      }
+    }
+
     // only update this if it will be different from what we have stored
     if (
       this.state.forkContributionTarget !==
@@ -401,6 +452,17 @@ export class RepositorySettings extends React.Component<
 
   private onIgnoreTextChanged = (text: string) => {
     this.setState({ ignoreText: text, ignoreTextHasChanged: true })
+  }
+
+  private onCopilotInstructionsTextChanged = (text: string) => {
+    this.setState({
+      copilotInstructionsText: text,
+      copilotInstructionsHasChanged: true,
+    })
+  }
+
+  private onShowCopilotExamples = () => {
+    this.props.dispatcher.openInBrowser('https://docs.github.com/en/copilot/responsible-use/copilot-in-github-desktop')
   }
 
   private onTabClicked = (index: number) => {

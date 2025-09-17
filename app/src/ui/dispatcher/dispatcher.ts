@@ -1482,6 +1482,18 @@ export class Dispatcher {
     return this.appStore._saveGitIgnore(repository, text)
   }
 
+  /**
+   * Persist the given content to the repository's .github/COPILOT.md.
+   *
+   * If the repository doesn't contain the file or directory, they will be created.
+   */
+  public saveCopilotInstructions(
+    repository: Repository,
+    text: string
+  ): Promise<void> {
+    return this.appStore._saveCopilotInstructions(repository, text)
+  }
+
   /** Set whether the user has opted out of stats reporting. */
   public setStatsOptOut(
     optOut: boolean,

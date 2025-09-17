@@ -349,6 +349,7 @@ import {
 } from '../custom-integration'
 import { updateStore } from '../../ui/lib/update-store'
 import { BypassReasonType } from '../../ui/secret-scanning/bypass-push-protection-dialog'
+import { saveCopilotInstructions, readCopilotInstructions } from '../git/copilot-instructions'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5508,9 +5509,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return false
       }
 
+      // Read custom copilot instructions if available
+      let messageContent = diff
+      try {
+        const copilotInstructions = await readCopilotInstructions(repository)
+        if (copilotInstructions && copilotInstructions.trim()) {
+          messageContent = `Custom instructions for commit message generation:
+${copilotInstructions.trim()}
+
+---
+
+Here is the diff:
+${diff}`
+        }
+      } catch (e) {
+        // Continue without custom instructions if reading fails
+        log.warn(
+          'Failed to read copilot instructions, continuing without them',
+          e
+        )
+      }
+
       const api = API.fromAccount(account)
       try {
-        const response = await api.getDiffChangesCommitMessage(diff)
+        const response = await api.getDiffChangesCommitMessage(messageContent)
 
         this._setCommitMessage(repository, {
           summary: response.title,
@@ -5871,6 +5893,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<void> {
     await saveGitIgnore(repository, text)
     return this._refreshRepository(repository)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+    public async _saveCopilotInstructions(
+      repository: Repository,
+      text: string
+  ): Promise<void> {
+      await saveCopilotInstructions(repository, text)
+      return this._refreshRepository(repository)
   }
 
   /** Set whether the user has opted out of stats reporting. */
