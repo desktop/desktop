@@ -19,8 +19,9 @@ export class CopilotInstructions extends React.Component<
     return (
       <DialogContent>
         <p id="copilot-instructions-description">
-          Editing <Ref>.github/COPILOT.md</Ref>. This file contains custom
-          instructions for Copilot when generating commit messages.{' '}
+          Editing <Ref>.github/copilot-commit-instructions.md</Ref>. This file
+          contains custom instructions for Copilot when generating commit
+          messages.{' '}
           <LinkButton onClick={this.props.onShowExamples}>
             Learn more about Copilot commit message generation
           </LinkButton>

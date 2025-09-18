@@ -4,7 +4,7 @@ import * as Path from 'path'
 import { Repository } from '../../models/repository'
 
 /**
- * Read the contents of the repository .github/COPILOT.md file.
+ * Read the contents of the repository .github/copilot-commit-instructions.md file.
  *
  * Returns a promise which will either be rejected or resolved
  * with the contents of the file. If there's no copilot instructions file
@@ -13,7 +13,11 @@ import { Repository } from '../../models/repository'
 export async function readCopilotInstructions(
   repository: Repository
 ): Promise<string | null> {
-  const instructionsPath = Path.join(repository.path, '.github', 'COPILOT.md')
+  const instructionsPath = Path.join(
+    repository.path,
+    '.github',
+    'copilot-commit-instructions.md'
+  )
 
   return new Promise<string | null>((resolve, reject) => {
     FS.readFile(instructionsPath, 'utf8', (err, data) => {
@@ -31,7 +35,7 @@ export async function readCopilotInstructions(
 }
 
 /**
- * Persist the given content to the repository .github/COPILOT.md file.
+ * Persist the given content to the repository .github/copilot-commit-instructions.md file.
  *
  * If the repository doesn't contain a .github directory, one will be created.
  * If there's no copilot instructions file, one will be created, otherwise
@@ -42,7 +46,10 @@ export async function saveCopilotInstructions(
   text: string
 ): Promise<void> {
   const githubDir = Path.join(repository.path, '.github')
-  const instructionsPath = Path.join(githubDir, 'COPILOT.md')
+  const instructionsPath = Path.join(
+    githubDir,
+    'copilot-commit-instructions.md'
+  )
 
   if (text === '') {
     return new Promise<void>((resolve, reject) => {

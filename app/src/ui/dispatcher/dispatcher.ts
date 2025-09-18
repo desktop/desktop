@@ -1483,7 +1483,7 @@ export class Dispatcher {
   }
 
   /**
-   * Persist the given content to the repository's .github/COPILOT.md.
+   * Persist the given content to the repository's .github/copilot-commit-instructions.md.
    *
    * If the repository doesn't contain the file or directory, they will be created.
    */
