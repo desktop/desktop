@@ -462,7 +462,9 @@ export class RepositorySettings extends React.Component<
   }
 
   private onShowCopilotExamples = () => {
-    this.props.dispatcher.openInBrowser('https://docs.github.com/en/copilot/responsible-use/copilot-in-github-desktop')
+    this.props.dispatcher.openInBrowser(
+      'https://docs.github.com/en/copilot/responsible-use/copilot-in-github-desktop'
+    )
   }
 
   private onTabClicked = (index: number) => {

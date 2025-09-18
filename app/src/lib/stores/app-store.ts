@@ -349,7 +349,10 @@ import {
 } from '../custom-integration'
 import { updateStore } from '../../ui/lib/update-store'
 import { BypassReasonType } from '../../ui/secret-scanning/bypass-push-protection-dialog'
-import { saveCopilotInstructions, readCopilotInstructions } from '../git/copilot-instructions'
+import {
+  saveCopilotInstructions,
+  readCopilotInstructions,
+} from '../git/copilot-instructions'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -5896,12 +5899,12 @@ ${diff}`
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-    public async _saveCopilotInstructions(
-      repository: Repository,
-      text: string
+  public async _saveCopilotInstructions(
+    repository: Repository,
+    text: string
   ): Promise<void> {
-      await saveCopilotInstructions(repository, text)
-      return this._refreshRepository(repository)
+    await saveCopilotInstructions(repository, text)
+    return this._refreshRepository(repository)
   }
 
   /** Set whether the user has opted out of stats reporting. */
