@@ -130,7 +130,7 @@ import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local
 import memoizeOne from 'memoize-one'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import { getAccountForRepository } from '../lib/get-account-for-repository'
-import { CommitOneLine, ICommitContext } from '../models/commit'
+import { CommitOneLine } from '../models/commit'
 import { CommitDragElement } from './drag-elements/commit-drag-element'
 import classNames from 'classnames'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
@@ -2079,7 +2079,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const existingStash =
           selectedState !== null &&
-          selectedState.type === SelectionType.Repository
+            selectedState.type === SelectionType.Repository
             ? selectedState.state.changesState.stashEntry
             : null
 
@@ -2582,12 +2582,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             commitContext={popup.commitContext}
             hookOutput={popup.hookOutput}
             onDismissed={onPopupDismissedFn}
-            onCommitAnyway={() =>
-              this.onPreCommitHookFailureCommitAnyway(
-                popup.repository,
-                popup.commitContext
-              )
-            }
           />
         )
       }
@@ -2622,21 +2616,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.setConfirmCommitFilteredChanges(value)
   }
 
-  private onPreCommitHookFailureCommitAnyway = async (
-    repository: Repository,
-    commitContext: ICommitContext
-  ) => {
-    // Set noVerify to true to bypass pre-commit hooks
-    const contextWithNoVerify: ICommitContext = {
-      ...commitContext,
-      noVerify: true,
-    }
 
-    await this.props.dispatcher.commitIncludedChanges(
-      repository,
-      contextWithNoVerify
-    )
-  }
 
   private getPullRequestState() {
     const { selectedState } = this.state

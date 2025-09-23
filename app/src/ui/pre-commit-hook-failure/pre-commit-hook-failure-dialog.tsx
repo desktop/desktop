@@ -12,15 +12,14 @@ interface IPreCommitHookFailureProps {
   readonly commitContext: ICommitContext
   readonly hookOutput: string
   readonly onDismissed: () => void
-  readonly onCommitAnyway: () => void
 }
 
 interface IPreCommitHookFailureState {
   /**
-   * Whether or not we're currently in the process of 
+   * Whether or not we're currently in the process of
    * committing with --no-verify. This is used to display a loading state
    */
-  readonly isCommittingWithNoVerify: boolean
+  readonly isCommitting: boolean
 }
 
 /** A component to handle pre-commit hook failures with bypass option. */
@@ -32,7 +31,7 @@ export class PreCommitHookFailure extends React.Component<
     super(props)
 
     this.state = {
-      isCommittingWithNoVerify: false,
+      isCommitting: false,
     }
   }
 
@@ -46,8 +45,8 @@ export class PreCommitHookFailure extends React.Component<
         title={title}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onCommitAnyway}
-        loading={this.state.isCommittingWithNoVerify}
-        disabled={this.state.isCommittingWithNoVerify}
+        loading={this.state.isCommitting}
+        disabled={this.state.isCommitting}
         role="alertdialog"
         ariaDescribedBy="pre-commit-hook-failure-description"
       >
@@ -60,8 +59,7 @@ export class PreCommitHookFailure extends React.Component<
               <pre className="selectable-text">{this.props.hookOutput}</pre>
             </div>
             <p>
-              You can bypass the pre-commit hook by committing anyway, which will use the{' '}
-              <code>--no-verify</code> option. This is not recommended unless you are sure your changes are correct.
+              You can bypass the pre-commit hook by committing anyway. This is not recommended unless you are sure your changes are correct.
             </p>
           </div>
         </DialogContent>
@@ -69,18 +67,14 @@ export class PreCommitHookFailure extends React.Component<
           <OkCancelButtonGroup
             destructive={true}
             okButtonText={
-              this.state.isCommittingWithNoVerify
-                ? __DARWIN__
-                  ? 'Committing…'
-                  : 'Committing…'
-                : __DARWIN__
-                ? 'Commit Anyway'
-                : 'Commit anyway'
+              this.state.isCommitting
+                ? 'Committing…'
+                : 'Commit Anyway'
             }
-            cancelButtonText={__DARWIN__ ? 'Cancel' : 'Cancel'}
+            cancelButtonText="Cancel"
             onOkButtonClick={this.onCommitAnyway}
             onCancelButtonClick={this.props.onDismissed}
-            okButtonDisabled={this.state.isCommittingWithNoVerify}
+            okButtonDisabled={this.state.isCommitting}
           />
         </DialogFooter>
       </Dialog>
@@ -88,14 +82,22 @@ export class PreCommitHookFailure extends React.Component<
   }
 
   private onCommitAnyway = async () => {
-    this.setState({ isCommittingWithNoVerify: true })
+    this.setState({ isCommitting: true })
 
     try {
-      await this.props.onCommitAnyway()
+      const contextWithNoVerify: ICommitContext = {
+        ...this.props.commitContext,
+        noVerify: true,
+      }
+
+      await this.props.dispatcher.commitIncludedChanges(
+        this.props.repository,
+        contextWithNoVerify
+      )
       // Close the dialog after successful commit
       this.props.onDismissed()
     } finally {
-      this.setState({ isCommittingWithNoVerify: false })
+      this.setState({ isCommitting: false })
     }
   }
 }
