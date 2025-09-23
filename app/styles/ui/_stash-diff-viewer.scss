@@ -25,6 +25,20 @@
       margin-top: var(--spacing);
     }
 
+    .stashes-picker {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing);
+
+      .text {
+        margin-right: var(--spacing);
+      }
+
+      .button-component {
+        margin-right: var(--spacing-half);
+      }
+    }
+
     .button-group {
       display: flex;
       button {

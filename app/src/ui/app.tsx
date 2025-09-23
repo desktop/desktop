@@ -1925,7 +1925,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
       case PopupType.StashAndSwitchBranch: {
         const { repository, branchToCheckout } = popup
-        const { branchesState, changesState } =
+        const { branchesState } =
           this.props.repositoryStateManager.get(repository)
         const { tip } = branchesState
 
@@ -1934,8 +1934,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
 
         const currentBranch = tip.branch
-        const hasAssociatedStash = changesState.stashEntry !== null
-
         return (
           <StashAndSwitchBranch
             key="stash-and-switch-branch"
@@ -1943,7 +1941,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             currentBranch={currentBranch}
             branchToCheckout={branchToCheckout}
-            hasAssociatedStash={hasAssociatedStash}
             onDismissed={onPopupDismissedFn}
           />
         )

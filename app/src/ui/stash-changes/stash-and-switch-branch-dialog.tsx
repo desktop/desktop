@@ -6,9 +6,6 @@ import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
 import { Row } from '../lib/row'
 import { Branch } from '../../models/branch'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
-import { Octicon } from '../octicons'
-import * as octicons from '../octicons/octicons.generated'
-import { PopupType } from '../../models/popup'
 import { startTimer } from '../lib/timing'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 
@@ -25,8 +22,6 @@ interface ISwitchBranchProps {
   /** The branch to checkout after the user selects a stash action */
   readonly branchToCheckout: Branch
 
-  /** Whether `currentBranch` has an existing stash association */
-  readonly hasAssociatedStash: boolean
   readonly onDismissed: () => void
 }
 
@@ -67,7 +62,6 @@ export class StashAndSwitchBranch extends React.Component<
       >
         <DialogContent>
           {this.renderStashActions()}
-          {this.renderStashOverwriteWarning()}
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
@@ -78,21 +72,7 @@ export class StashAndSwitchBranch extends React.Component<
     )
   }
 
-  private renderStashOverwriteWarning() {
-    if (
-      !this.props.hasAssociatedStash ||
-      this.state.selectedStashAction !== StashAction.StashOnCurrentBranch
-    ) {
-      return null
-    }
-
-    return (
-      <Row>
-        <Octicon symbol={octicons.alert} /> Your current stash will be
-        overwritten by creating a new stash
-      </Row>
-    )
-  }
+  // No overwrite warning needed now that multiple stashes are supported
 
   private renderStashActions() {
     const { branchToCheckout } = this.props
@@ -127,21 +107,12 @@ export class StashAndSwitchBranch extends React.Component<
   }
 
   private onSubmit = async () => {
-    const { repository, branchToCheckout, dispatcher, hasAssociatedStash } =
+    const { repository, branchToCheckout, dispatcher } =
       this.props
     const { selectedStashAction } = this.state
 
-    if (
-      selectedStashAction === StashAction.StashOnCurrentBranch &&
-      hasAssociatedStash
-    ) {
-      dispatcher.showPopup({
-        type: PopupType.ConfirmOverwriteStash,
-        repository,
-        branchToCheckout,
-      })
-      return
-    }
+    // Previously we prompted for overwrite confirmation if a stash existed.
+    // We now keep multiple stashes per branch, so proceed without confirmation.
 
     this.setState({ isStashingChanges: true })
 

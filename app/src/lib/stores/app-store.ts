@@ -257,6 +257,7 @@ import {
   popStashEntry,
   dropDesktopStashEntry,
   moveStashEntry,
+  getStashedFiles,
 } from '../git/stash'
 import {
   UncommittedChangesStrategy,
@@ -3282,6 +3283,66 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** Returns all Desktop-created stash entries for the current branch */
+  public getCurrentBranchDesktopStashEntries(
+    repository: Repository
+  ): ReadonlyArray<IStashEntry> {
+    const gitStore = this.gitStoreCache.get(repository)
+    return gitStore.currentBranchDesktopStashEntries
+  }
+
+  /**
+   * Select a specific Desktop-created stash entry (by SHA) for the current branch
+   * and update the Changes view to show its files and diffs.
+   * Note: This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _selectDesktopStashEntry(
+    repository: Repository,
+    stashSha: string
+  ) {
+    const gitStore = this.gitStoreCache.get(repository)
+    const entries = gitStore.currentBranchDesktopStashEntries
+    const target = entries.find(e => e.stashSha === stashSha)
+    if (!target) {
+      return
+    }
+
+    // Update changes state with the selected stash entry and mark files as NotLoaded
+    this.repositoryStateCache.updateChangesState(repository, () => ({
+      stashEntry: { ...target, files: { kind: StashedChangesLoadStates.NotLoaded } },
+      selection: {
+        kind: ChangesSelectionKind.Stash,
+        selectedStashedFile: null,
+        selectedStashedFileDiff: null,
+      },
+    }))
+
+    this.emitUpdate()
+
+    // Load files for the selected stash entry
+    const files = await getStashedFiles(repository, target.stashSha)
+
+    // Ensure the user hasn't navigated away or selection changed
+    const stateAfterLoad = this.repositoryStateCache.get(repository)
+    if (
+      stateAfterLoad.changesState.stashEntry === null ||
+      stateAfterLoad.changesState.stashEntry.stashSha !== target.stashSha
+    ) {
+      return
+    }
+
+    this.repositoryStateCache.updateChangesState(repository, state => ({
+      stashEntry: {
+        ...state.stashEntry!,
+        files: { kind: StashedChangesLoadStates.Loaded, files },
+      },
+    }))
+
+    this.emitUpdate()
+    // Update diff for first file (if any)
+    await this._selectStashedFile(repository)
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _commitIncludedChanges(
     repository: Repository,
@@ -4001,7 +4062,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<Repository> {
     const repositoryState = this.repositoryStateCache.get(repository)
     const { changesState, branchesState } = repositoryState
-    const { currentBranchProtected, stashEntry } = changesState
+  const { currentBranchProtected } = changesState
     const { tip } = branchesState
     const hasChanges = changesState.workingDirectory.files.length > 0
 
@@ -4010,19 +4071,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    let strategy = explicitStrategy ?? this.uncommittedChangesStrategy
+  let strategy = explicitStrategy ?? this.uncommittedChangesStrategy
 
     // The user hasn't been presented with an explicit choice
     if (explicitStrategy === undefined) {
-      // Even if the user has chosen to "always stash on current branch" in
-      // preferences we still want to let them know changes might be lost
-      if (strategy === UncommittedChangesStrategy.StashOnCurrentBranch) {
-        if (hasChanges && stashEntry !== null) {
-          const type = PopupType.ConfirmOverwriteStash
-          this._showPopup({ type, repository, branchToCheckout: branch })
-          return repository
-        }
-      }
+      // Previously we prompted when a stash already existed on the branch to
+      // confirm overwriting. We now keep multiple stashes per branch, so no
+      // confirmation is necessary and we allow accumulating stashes.
     }
 
     // Always move changes to new branch if we're on a detached head, unborn
@@ -4094,6 +4149,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { tip } = repositoryState.branchesState
 
     if (tip.kind === TipState.Valid && workingDirectory.files.length > 0) {
+      // Accumulate stashes instead of overwriting previous ones.
       await this.createStashAndDropPreviousEntry(repository, tip.branch)
       this.statsStore.increment('stashCreatedOnCurrentBranchCount')
     }
@@ -4247,20 +4303,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const repositoryState = this.repositoryStateCache.get(repository)
     const tip = repositoryState.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-    const hasExistingStash = repositoryState.changesState.stashEntry !== null
+  // multiple stashes are supported; no need to check for existing stash
 
     if (currentBranch === null) {
       return false
     }
 
-    if (showConfirmationDialog && hasExistingStash) {
-      this._showPopup({
-        type: PopupType.ConfirmOverwriteStash,
-        branchToCheckout: null,
-        repository,
-      })
-      return false
-    }
+    // Previously we asked for confirmation to overwrite an existing stash.
+    // We now keep multiple stashes per branch, so proceed without confirmation.
 
     if (await this.createStashAndDropPreviousEntry(repository, currentBranch)) {
       this.statsStore.increment('stashCreatedOnCurrentBranchCount')
@@ -7013,20 +7063,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     branch: Branch
   ) {
-    const entry = await getLastDesktopStashEntryForBranch(repository, branch)
     const gitStore = this.gitStoreCache.get(repository)
 
     const createdStash = await gitStore.performFailableOperation(() =>
       this.createStashEntry(repository, branch)
     )
-
-    if (createdStash === true && entry !== null) {
-      const { stashSha, branchName } = entry
-      await gitStore.performFailableOperation(async () => {
-        await dropDesktopStashEntry(repository, stashSha)
-        log.info(`Dropped stash '${stashSha}' associated with ${branchName}`)
-      })
-    }
 
     return createdStash === true
   }

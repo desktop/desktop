@@ -2665,6 +2665,18 @@ export class Dispatcher {
     return this.appStore._popStashEntry(repository, stashEntry)
   }
 
+  /** Get all Desktop-created stash entries for the current branch */
+  public getCurrentBranchDesktopStashEntries(
+    repository: Repository
+  ): ReadonlyArray<IStashEntry> {
+    return this.appStore.getCurrentBranchDesktopStashEntries(repository)
+  }
+
+  /** Select a specific Desktop-created stash entry (by SHA) to view */
+  public selectDesktopStashEntry(repository: Repository, stashSha: string) {
+    return this.appStore._selectDesktopStashEntry(repository, stashSha)
+  }
+
   /**
    * Set the width of the commit summary column in the
    * history view to the given value.

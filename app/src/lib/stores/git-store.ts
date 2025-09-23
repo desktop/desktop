@@ -155,6 +155,8 @@ export class GitStore extends BaseStore {
   private _lastFetched: Date | null = null
 
   private _desktopStashEntries = new Map<string, IStashEntry>()
+  // All Desktop-created stash entries per branch (LIFO order as returned by getStashes)
+  private _desktopStashEntriesMulti = new Map<string, ReadonlyArray<IStashEntry>>()
 
   private _stashEntryCount = 0
 
@@ -1171,17 +1173,17 @@ export class GitStore extends BaseStore {
    */
   public async loadStashEntries(): Promise<void> {
     const map = new Map<string, IStashEntry>()
+    const multi = new Map<string, ReadonlyArray<IStashEntry>>()
     const stash = await getStashes(this.repository)
 
     for (const entry of stash.desktopEntries) {
-      // we only want the first entry we find for each branch,
-      // so we skip all subsequent ones
+      // Build full list per branch
+      const list = multi.get(entry.branchName) || []
+      multi.set(entry.branchName, [...list, entry])
+
+      // Keep the latest entry per branch for existing consumers
       if (!map.has(entry.branchName)) {
         const existing = this._desktopStashEntries.get(entry.branchName)
-
-        // If we've already loaded the files for this stash there's
-        // no point in us doing it again. We know the contents haven't
-        // changed since the SHA is the same.
         if (existing !== undefined && existing.stashSha === entry.stashSha) {
           map.set(entry.branchName, { ...entry, files: existing.files })
         } else {
@@ -1191,6 +1193,7 @@ export class GitStore extends BaseStore {
     }
 
     this._desktopStashEntries = map
+    this._desktopStashEntriesMulti = multi
     this._stashEntryCount = stash.stashEntryCount
     this.emitUpdate()
 
@@ -1209,6 +1212,14 @@ export class GitStore extends BaseStore {
 
   public get desktopStashEntries(): ReadonlyMap<string, IStashEntry> {
     return this._desktopStashEntries
+  }
+
+  /** All Desktop-created stash entries for the current branch (may be empty) */
+  public get currentBranchDesktopStashEntries(): ReadonlyArray<IStashEntry> {
+    if (this._tip && this._tip.kind === TipState.Valid) {
+      return this._desktopStashEntriesMulti.get(this._tip.branch.name) || []
+    }
+    return []
   }
 
   /** The total number of stash entries */
