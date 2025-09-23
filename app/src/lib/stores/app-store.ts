@@ -3298,7 +3298,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.withIsCommitting(repository, async () => {
       try {
         const message = await formatCommitMessage(repository, context)
-        const result = await createCommit(repository, message, selectedFiles, context.amend, context.noVerify)
+        const result = await createCommit(
+          repository,
+          message,
+          selectedFiles,
+          context.amend,
+          context.noVerify
+        )
 
         if (result !== undefined) {
           await this._recordCommitStats(
@@ -8507,25 +8513,23 @@ function isPreCommitHookFailure(error: Error): boolean {
     const output = extractHookOutput(error).toLowerCase()
 
     // Check for pre-commit hook failure indicators (case insensitive)
-    return output.includes('husky') ||
-           output.includes('pre-commit') ||
-           output.includes('lint-staged')
+    // A default set up of pre-commit hooks using husky will end failures
+    // with `husky - pre-commit script failed (code 1)`. This handles the first
+    // two cases. For users of lint-staged, the output may also include the
+    // `lint-staged` term.
+    return (
+      output.includes('husky') ||
+      output.includes('pre-commit') ||
+      output.includes('lint-staged')
+    )
   }
 
   return false
 }
 
-function extractHookOutput(error: Error): string {
-  if (error instanceof ErrorWithMetadata) {
-    return extractHookOutput(error.underlyingError)
-  }
-
-  if (error instanceof GitError) {
-    const stderr = error.result.stderr
-    return typeof stderr === 'string' ? stderr : stderr.toString()
-  }
-
-  return error.message || 'Pre-commit hook failed with no additional output.'
+function extractHookOutput(error: GitError): string {
+  const stderr = error.result.stderr
+  return typeof stderr === 'string' ? stderr : stderr.toString()
 }
 
 function constrain(
