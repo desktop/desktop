@@ -253,7 +253,15 @@ export function buildDefaultMenu({
         label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
         accelerator: 'CmdOrCtrl+=',
         click: zoom(ZoomDirection.In),
+        label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
+        accelerator: 'CmdOrCtrl+Plus',
+        click: zoom(ZoomDirection.In),
         visible: false,
+      },
+{
+label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
+accelerator: 'CmdOrCtrl+=',
+click: zoom(ZoomDirection.In),
       },
       {
         label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
