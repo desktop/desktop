@@ -113,6 +113,7 @@ interface IPreferencesState {
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
+  readonly parentDirectories?: string | null
 
   /**
    * If unable to save Git configuration values (name, email)

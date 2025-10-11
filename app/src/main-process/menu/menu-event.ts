@@ -45,6 +45,8 @@ export type MenuEvent =
   | 'decrease-active-resizable-width'
   | 'increase-active-resizable-width'
   | 'toggle-changes-filter'
+  | 'attach-github-desktop-id'
+  | 'add-parent-directories'
   | TestMenuEvent
 
 /**

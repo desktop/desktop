@@ -367,6 +367,17 @@ export function buildDefaultMenu({
       },
       separator,
       {
+        label: 'Attach GitHub Desktop ID',
+        id: 'attach-github-desktop-id',
+        click: emit('attach-github-desktop-id'),
+      },
+      {
+        label: __DARWIN__ ? 'Add Parent Directories' : 'Add parent directories',
+        id: 'add-parent-directories',
+        click: emit('add-parent-directories'),
+      },
+      separator,
+      {
         id: 'create-issue-in-repository-on-github',
         label: __DARWIN__
           ? 'Create Issue on GitHub'

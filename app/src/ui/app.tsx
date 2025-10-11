@@ -198,6 +198,8 @@ import {
   BypassReason,
   BypassReasonType,
 } from './secret-scanning/bypass-push-protection-dialog'
+import { existsSync, mkdirSync, openSync, writeSync } from 'fs'
+import { AddParentDirectoriesPopup } from './add-parent-directories/add-parent-directories-popup'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -532,6 +534,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.resizeActiveResizable('decrease-active-resizable-width')
       case 'toggle-changes-filter':
         return this.toggleChangesFilterVisibility()
+      case 'attach-github-desktop-id':
+        return this.attachGitHubIdToRepository()
+      case 'add-parent-directories':
+        return this.addParentDirectories()
       default:
         if (isTestMenuEvent(name)) {
           return showTestUI(
@@ -1252,6 +1258,47 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.showRebaseDialog(repository)
+  }
+
+  /**
+   * Adds two new files within .github-desktop folder in the root of the repository:
+   * - .gitignore: has * inside to ignore all files within the directory
+   * - id: the same id as the one the repository has in the IndexedDB
+   */
+  private attachGitHubIdToRepository() {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository) {
+      return
+    }
+
+    const repositoryId = repository.id
+    const repositoryPath = repository.path
+
+    // First create the .github-desktop directory
+    const githubDesktopDir = Path.join(repositoryPath, '.github-desktop')
+    if (!existsSync(githubDesktopDir)) {
+      mkdirSync(githubDesktopDir)
+    }
+
+    // Then create the two files inside it)
+    writeSync(
+      openSync(Path.join(repositoryPath, '.github-desktop', '.gitignore'), 'w'),
+      '*\n'
+    )
+    writeSync(
+      openSync(Path.join(repositoryPath, '.github-desktop', 'id'), 'w'),
+      repositoryId.toString()
+    )
+  }
+
+  /**
+   * When searching for a repository via its GitHub ID, the application will look through all directories within each parent directory. If no parent directory is added, then the application cannot search for the repository.
+   */
+  private addParentDirectories() {
+    this.props.dispatcher.showPopup({
+      type: PopupType.AddParentDirectories,
+    })
   }
 
   private showRepositorySettings() {
@@ -2078,7 +2125,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         const existingStash =
           selectedState !== null &&
-          selectedState.type === SelectionType.Repository
+            selectedState.type === SelectionType.Repository
             ? selectedState.state.changesState.stashEntry
             : null
 
@@ -2572,9 +2619,24 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.AddParentDirectories: {
+        return (
+          <AddParentDirectoriesPopup
+            key="add-parent-directories-popup"
+            onDismissed={onPopupDismissedFn}
+            onValueChanged={this.onParentDirectoriesChanged}
+            text={this.state.parentDirectories}
+            dispatcher={this.props.dispatcher}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private onParentDirectoriesChanged = (text: string) => {
+    this.setState({ parentDirectories: text })
   }
 
   private onSecretDelegatedBypassLinkClick = () => {

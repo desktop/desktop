@@ -74,6 +74,12 @@ export class MissingRepository extends React.Component<
     const buttons = new Array<JSX.Element>()
     const { isPathUnsafe, unsafePath } = this.state
 
+    buttons.push(
+      <Button key="find-by-id" onClick={this.findById} type="submit">
+        Find By Id
+      </Button>
+    )
+
     if (!isPathUnsafe) {
       buttons.push(
         <Button key="locate" onClick={this.locate} type="submit">
@@ -160,6 +166,14 @@ export class MissingRepository extends React.Component<
 
   private remove = () => {
     this.props.dispatcher.removeRepository(this.props.repository, false)
+  }
+
+  private findById = () => {
+    try {
+      this.props.dispatcher.findRepositoryById(this.props.repository)
+    } catch (error) {
+
+    }
   }
 
   private locate = () => {

@@ -235,6 +235,8 @@ import {
   getObject,
   setObject,
   getFloatNumber,
+  setStringArray,
+  getStringArray,
 } from '../local-storage'
 import { ExternalEditorError, suggestedExternalEditor } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
@@ -462,6 +464,8 @@ const commitMessageGenerationButtonClickedKey =
 export const showChangesFilterKey = 'show-changes-filter'
 export const showChangesFilterDefault = true
 
+const parentDirectoriesKey = 'parent-directories'
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -616,6 +620,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private commitMessageGenerationButtonClicked: boolean = false
 
   private showChangesFilter: boolean = false
+
+  private parentDirectories: string | null = null
 
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
@@ -1114,6 +1120,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitMessageGenerationButtonClicked:
         this.commitMessageGenerationButtonClicked,
       showChangesFilter: this.showChangesFilter,
+      parentDirectories: this.parentDirectories,
     }
   }
 
@@ -2358,6 +2365,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore.refresh()
 
     this.updateMenuLabelsForSelectedRepository()
+
+    this.parentDirectories = getStringArray(parentDirectoriesKey)
+      .filter(p => p && p.length > 0)
+      .join('\n')
   }
 
   /**
@@ -3783,6 +3794,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   public _setNotificationsEnabled(notificationsEnabled: boolean) {
     this.notificationsStore.setNotificationsEnabled(notificationsEnabled)
+    this.emitUpdate()
+  }
+
+  public _setParentDirectories(text: string) {
+    // Separate the paths by newline and trim whitespace
+    const parentDirectories = text
+      .split('\n')
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+
+    setStringArray(parentDirectoriesKey, parentDirectories)
+
+    this.parentDirectories = text
+
     this.emitUpdate()
   }
 

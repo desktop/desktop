@@ -381,6 +381,8 @@ export interface IAppState {
 
   /** Whether the changes filter is shown */
   readonly showChangesFilter: boolean
+
+  readonly parentDirectories: string | null
 }
 
 export enum FoldoutType {

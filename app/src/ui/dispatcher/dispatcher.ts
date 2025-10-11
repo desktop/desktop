@@ -123,9 +123,10 @@ import { UnreachableCommitsTab } from '../history/unreachable-commits-dialog'
 import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 import { SignInResult } from '../../lib/stores/sign-in-store'
 import { ICustomIntegration } from '../../lib/custom-integration'
-import { isAbsolute } from 'path'
+import { isAbsolute, join } from 'path'
 import { CLIAction } from '../../lib/cli-action'
 import { BypassReasonType } from '../secret-scanning/bypass-push-protection-dialog'
+import { existsSync, readdirSync, readFileSync } from 'fs'
 
 /**
  * An error handler function.
@@ -1660,6 +1661,72 @@ export class Dispatcher {
     })
   }
 
+  private getAllNestedDirectories(
+    dirPath: string,
+    arrayOfDirectories: string[] = []
+  ) {
+    const files = readdirSync(dirPath, { withFileTypes: true })
+
+    files.forEach(dirent => {
+      const fullPath = join(dirPath, dirent.name)
+      if (dirent.isDirectory()) {
+        arrayOfDirectories.push(fullPath)
+        this.getAllNestedDirectories(fullPath, arrayOfDirectories) // Recursive call
+      }
+    })
+
+    return arrayOfDirectories
+  }
+
+  /**
+   * Recursively search through each directory within each parent directory until we find the repository where the content of `.github-desktop/id` matches the given id.
+   */
+  public async findRepositoryById(repository: Repository): Promise<void> {
+    const state = this.appStore.getState()
+    const parentDirectories = state.parentDirectories
+
+    if (!parentDirectories) {
+      this.showPopup({
+        type: PopupType.AddParentDirectories,
+      })
+
+      return
+    }
+
+    const parentDirectoriesAsArray = state.parentDirectories?.split('\n')
+
+    let foundDirectory: string | null = null
+
+    for (const parentDirectory of parentDirectoriesAsArray) {
+      const allDirectoriesWithinParentDirectory =
+        this.getAllNestedDirectories(parentDirectory)
+
+      for (const directory of allDirectoriesWithinParentDirectory) {
+        const repositoryIdPath = join(directory, '.github-desktop', 'id')
+
+        if (existsSync(repositoryIdPath)) {
+          const repositoryId = parseInt(
+            readFileSync(repositoryIdPath, 'utf8').trim(),
+            10
+          )
+
+          if (repositoryId === repository.id) {
+            foundDirectory = directory
+            break
+          }
+        }
+
+        if (foundDirectory !== null) {
+          break
+        }
+      }
+    }
+
+    if (foundDirectory !== null) {
+      await this.updateRepositoryPath(repository, foundDirectory)
+    }
+  }
+
   /**
    * Update the location of an existing repository and clear the missing flag.
    */
@@ -2746,6 +2813,10 @@ export class Dispatcher {
 
   public setNotificationsEnabled(notificationsEnabled: boolean) {
     this.appStore._setNotificationsEnabled(notificationsEnabled)
+  }
+
+  public setParentDirectories(text: string) {
+    this.appStore._setParentDirectories(text)
   }
 
   private logHowToRevertCherryPick(

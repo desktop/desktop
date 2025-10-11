@@ -103,6 +103,7 @@ export enum PopupType {
   BypassPushProtection = 'BypassPushProtection',
   GenerateCommitMessageOverrideWarning = 'GenerateCommitMessageOverrideWarning',
   GenerateCommitMessageDisclaimer = 'GenerateCommitMessageDisclaimer',
+  AddParentDirectories = 'AddParentDirectories',
 }
 
 interface IBasePopup {
@@ -463,6 +464,9 @@ export type PopupDetail =
       // from this popup we will trigger the commit message generation too.
       repository: Repository
       filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
+    }
+  | {
+      type: PopupType.AddParentDirectories
     }
 
 export type Popup = IBasePopup & PopupDetail
