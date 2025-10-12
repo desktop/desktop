@@ -1,6 +1,7 @@
 import * as Path from 'path'
 
 import { getBlobContents } from './show'
+import { isTrackedByLFS } from './lfs'
 
 import { Repository } from '../../models/repository'
 import {
@@ -392,7 +393,10 @@ export async function getWorkingDirectoryDiff(
     args,
     repository.path,
     'getWorkingDirectoryDiff',
-    { successExitCodes, encoding: 'buffer' }
+    {
+      successExitCodes,
+      encoding: 'buffer',
+    }
   )
   const lineEndingsChange = parseLineEndingsWarning(stderr)
 
@@ -621,7 +625,10 @@ function parseLineEndingsWarning(error: Buffer): LineEndingsChange | undefined {
     const from = parseLineEndingText(match[1])
     const to = parseLineEndingText(match[2])
     if (from && to) {
-      return { from, to }
+      return {
+        from,
+        to,
+      }
     }
   }
 
@@ -762,6 +769,7 @@ export async function getBlobImage(
     contents.length
   )
 }
+
 /**
  * Retrieve the binary contents of a blob from the working directory
  *
@@ -798,14 +806,22 @@ export async function getBinaryPaths(
   ref: string,
   conflictedFilesInIndex: ReadonlyArray<IStatusEntry>
 ): Promise<ReadonlyArray<string>> {
-  const [detectedBinaryFiles, conflictedFilesUsingBinaryMergeDriver] =
-    await Promise.all([
-      getDetectedBinaryFiles(repository, ref),
-      getFilesUsingBinaryMergeDriver(repository, conflictedFilesInIndex),
-    ])
+  const [
+    detectedBinaryFiles,
+    conflictedFilesUsingBinaryMergeDriver,
+    conflictedLFSFiles,
+  ] = await Promise.all([
+    getDetectedBinaryFiles(repository, ref),
+    getFilesUsingBinaryMergeDriver(repository, conflictedFilesInIndex),
+    getConflictedLFSFiles(repository, conflictedFilesInIndex),
+  ])
 
   return Array.from(
-    new Set([...detectedBinaryFiles, ...conflictedFilesUsingBinaryMergeDriver])
+    new Set([
+      ...detectedBinaryFiles,
+      ...conflictedFilesUsingBinaryMergeDriver,
+      ...conflictedLFSFiles,
+    ])
   )
 }
 
@@ -838,10 +854,32 @@ async function getFilesUsingBinaryMergeDriver(
     }
   )
 
-  return createLogParser({ path: '', attr: '', value: '' })
+  return createLogParser({
+    path: '',
+    attr: '',
+    value: '',
+  })
     .parse(stdout)
     .filter(x => x.attr === 'merge' && x.value === 'binary')
     .map(x => x.path)
+}
+
+/**
+ * Gets the list of conflicted files that are LFS pointer files
+ * These should be treated as binary files to prevent pointer corruption
+ */
+async function getConflictedLFSFiles(
+  repository: Repository,
+  conflictedFiles: ReadonlyArray<IStatusEntry>
+): Promise<ReadonlyArray<string>> {
+  // Check all conflicted files in parallel to see if they're tracked by LFS
+  const results = await Promise.all(
+    conflictedFiles.map(async file => {
+      const isLFS = await isTrackedByLFS(repository, file.path)
+      return isLFS ? file.path : null
+    })
+  )
+  return results.filter((path): path is string => path !== null)
 }
 
 // Prefix absolute path with `:(top,literal)` to ensure that git treats it as a
