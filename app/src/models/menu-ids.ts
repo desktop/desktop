@@ -2,6 +2,7 @@
 export type MenuIDs =
   | 'rename-branch'
   | 'delete-branch'
+  | 'discard-selected-changes'
   | 'discard-all-changes'
   | 'stash-all-changes'
   | 'preferences'

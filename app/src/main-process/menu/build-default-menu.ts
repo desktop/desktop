@@ -410,6 +410,14 @@ export function buildDefaultMenu({
       click: emit('discard-all-changes'),
     },
     {
+      label: __DARWIN__
+        ? 'Discard Selected Changes…'
+        : 'Discard selected changes…',
+      id: 'discard-selected-changes',
+      accelerator: 'CmdOrCtrl+D',
+      click: emit('discard-selected-changes'),
+    },
+    {
       label: askForConfirmationWhenStashingAllChanges
         ? confirmStashAllChangesLabel
         : stashAllChangesLabel,
