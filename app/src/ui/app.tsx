@@ -830,6 +830,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       files: selectedFiles,
       showDiscardChangesSetting: false,
       discardingAllChanges,
+      confirmOnEnter: true,
     })
   }
 
@@ -1566,6 +1567,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmDiscardChanges={
               this.state.askForConfirmationOnDiscardChanges
             }
+            confirmOnEnter={popup.confirmOnEnter}
             showDiscardChangesSetting={showSetting}
             discardingAllChanges={discardingAllChanges}
             onDismissed={onPopupDismissedFn}

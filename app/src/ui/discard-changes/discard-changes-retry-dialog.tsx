@@ -88,7 +88,7 @@ export class DiscardChangesRetryDialog extends React.Component<
           }
           okButtonTitle={`This will discard changes and they will be unrecoverable.`}
           cancelButtonText="Cancel"
-          destructive={false}
+          destructive={true}
         />
       </DialogFooter>
     )

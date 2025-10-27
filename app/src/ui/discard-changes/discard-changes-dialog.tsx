@@ -14,6 +14,8 @@ interface IDiscardChangesProps {
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
   readonly confirmDiscardChanges: boolean
+  /** If true, Enter confirms (OK is default) */
+  readonly confirmOnEnter?: boolean
   /**
    * Determines whether to show the option
    * to ask for confirmation when discarding
@@ -98,7 +100,7 @@ export class DiscardChanges extends React.Component<
 
         <DialogFooter>
           <OkCancelButtonGroup
-            destructive={false}
+            destructive={this.props.confirmOnEnter !== true}
             okButtonText={this.getOkButtonLabel()}
             okButtonDisabled={isDiscardingChanges}
             cancelButtonDisabled={isDiscardingChanges}

@@ -131,6 +131,8 @@ export type PopupDetail =
       files: ReadonlyArray<WorkingDirectoryFileChange>
       showDiscardChangesSetting?: boolean
       discardingAllChanges?: boolean
+      /** If true, make Enter confirm (default OK button). Defaults to false */
+      confirmOnEnter?: boolean
     }
   | {
       type: PopupType.ConfirmDiscardSelection
