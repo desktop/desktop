@@ -156,10 +156,29 @@ export class RefNameTextBox extends React.Component<
   private renderRefValueWarningError() {
     const { proposedValue, sanitizedValue } = this.state
 
-    if (proposedValue === sanitizedValue) {
-      return null
-    }
+    // Always render a container with fixed height to prevent layout shifts
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {this.shouldShowWarning() &&
+          this.renderWarningContent(proposedValue, sanitizedValue)}
+      </div>
+    )
+  }
 
+  private shouldShowWarning(): boolean {
+    const { proposedValue, sanitizedValue } = this.state
+
+    // Show warning if:
+    // 1. Input contains periods, spaces, or other characters that need sanitization
+    // 2. OR if the sanitized result is different from input
+    // This creates more stable warning behavior
+    return (
+      proposedValue.length > 0 &&
+      (/[.\s]/.test(proposedValue) || proposedValue !== sanitizedValue)
+    )
+  }
+
+  private renderWarningContent(proposedValue: string, sanitizedValue: string) {
     // If the proposed value ends up being sanitized as
     // an empty string we show a message saying that the
     // proposed value is invalid.
