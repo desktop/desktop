@@ -14,7 +14,6 @@ interface IDiscardChangesProps {
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
   readonly confirmDiscardChanges: boolean
-  /** If true, Enter confirms (OK is default) */
   readonly confirmOnEnter?: boolean
   /**
    * Determines whether to show the option

@@ -317,8 +317,6 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
       repositoryActive && hasChangedFiles && !rebaseInProgress
     )
 
-    // Enable discarding selected changes only when there are selected
-    // working directory files in the Changes list and we're not in a rebase.
     let hasSelectedWorkingDirectoryFiles = false
     if (selectedState && selectedState.type === SelectionType.Repository) {
       const sel = selectedState.state.changesState.selection
