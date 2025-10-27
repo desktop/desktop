@@ -1,6 +1,10 @@
 import { MenuIDs } from '../models/menu-ids'
 import { merge } from './merge'
-import { IAppState, SelectionType, ChangesSelectionKind } from '../lib/app-state'
+import {
+  IAppState,
+  SelectionType,
+  ChangesSelectionKind,
+} from '../lib/app-state'
 import {
   Repository,
   isRepositoryWithGitHubRepository,
