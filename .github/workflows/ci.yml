@@ -58,6 +58,7 @@ jobs:
           cache: yarn
       - run: yarn
       - run: yarn validate-electron-version
+      - run: yarn validate-macos-version
       - run: yarn lint
       - run: yarn validate-changelog
       - name: Ensure a clean working directory

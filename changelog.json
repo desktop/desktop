@@ -1,5 +1,15 @@
 {
   "releases": {
+    "3.5.4-beta1": [
+      "[Added] Display line change count in PR Preview Dialog - #21126. Thanks @iammola!",
+      "[Added] Allow users to skip commit message override confirmation - #21025. Thanks @ilyassesalama!",
+      "[Added] Allow generating commits with Copilot in non-GitHub repositories - #20698. Thanks @schroedermarius!",
+      "[Fixed] Improve host discovery when using authenticating proxies - #19039 #19120",
+      "[Fixed] Fix diff search results highlights not visible on addition hunks - #21134",
+      "[Fixed] Add Copilot commit message generation to context menu - #21000. Thanks @zekariasasaminew!",
+      "[Fixed] Override system accent color for checkboxes and radio buttons - #21088",
+      "[Improved] Increased title bar height on macOS Tahoe - #21135. Thanks @berkcebi!"
+    ],
     "3.5.3": [
       "[Added] Add Ptyxis shell integration - #20963. Thanks @logonoff!",
       "[Fixed] Copilot message generation in progress message is announced to screen readers - #21008",

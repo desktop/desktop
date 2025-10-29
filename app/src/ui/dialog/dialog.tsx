@@ -657,16 +657,17 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       return
     }
 
-    // Ignore the first click right after the window's been focused. It could
-    // be the click that focused the window, in which case we don't wanna
-    // dismiss the dialog.
-    if (this.disableClickDismissal) {
-      this.disableClickDismissal = false
-      this.clearClickDismissalTimer()
-      return
-    }
-
     if (!this.mouseEventIsInsideDialog(e)) {
+      // Ignore the first backdrop click right after the window's been focused.
+      // It could be the click that focused the window, in which case we don't
+      // want to dismiss the dialog. Only ignore backdrop clicks, not clicks on
+      // interactive elements like buttons.
+      if (this.disableClickDismissal) {
+        this.disableClickDismissal = false
+        this.clearClickDismissalTimer()
+        return
+      }
+
       // The user has pressed down on their pointer device outside of the
       // dialog (i.e. on the backdrop). Now we subscribe to the global
       // mouse up event where we can make sure that they release the pointer

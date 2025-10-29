@@ -123,6 +123,13 @@ export class CommitMessageAvatar extends React.Component<
     ) {
       this.determineGitConfigLocation()
     }
+
+    if (
+      this.props.preferredAccountEmail !== prevProps.preferredAccountEmail &&
+      this.state.accountEmail === prevProps.preferredAccountEmail
+    ) {
+      this.setState({ accountEmail: this.props.preferredAccountEmail })
+    }
   }
 
   private async determineGitConfigLocation() {
