@@ -5,6 +5,8 @@ import { TextBox } from './text-box'
 import { Ref } from './ref'
 import { InputWarning } from './input-description/input-warning'
 import { InputError } from './input-description/input-error'
+import { Octicon } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 
 interface IRefNameProps {
   /**
@@ -166,18 +168,11 @@ export class RefNameTextBox extends React.Component<
   }
 
   private shouldShowWarning(): boolean {
-    const { proposedValue, sanitizedValue } = this.state
+    const { proposedValue } = this.state
 
-    // Show warning if:
-    // 1. Input contains periods, spaces, or other characters that need sanitization
-    // 2. OR if the sanitized result is different from input
-    // This creates more stable warning behavior
-    return (
-      proposedValue.length > 0 &&
-      (/[.\s]/.test(proposedValue) || proposedValue !== sanitizedValue)
-    )
+    // Always show the message when there's input to provide consistent layout
+    return proposedValue.length > 0
   }
-
   private renderWarningContent(proposedValue: string, sanitizedValue: string) {
     // If the proposed value ends up being sanitized as
     // an empty string we show a message saying that the
@@ -195,15 +190,56 @@ export class RefNameTextBox extends React.Component<
       )
     }
 
+    // Check if the name needs sanitization
+    const needsSanitization = proposedValue !== sanitizedValue
+
+    return this.renderMessage(proposedValue, sanitizedValue, needsSanitization)
+  }
+
+  private renderMessage(
+    proposedValue: string,
+    sanitizedValue: string,
+    isWarning: boolean
+  ) {
+    const messageContent = this.renderMessageContent(sanitizedValue, isWarning)
+
+    if (isWarning) {
+      return (
+        <InputWarning
+          id="branch-name-warning"
+          className="warning-helper-text"
+          trackedUserInput={proposedValue}
+          ariaLiveMessage={this.getWarningMessageAsString(sanitizedValue)}
+        >
+          <p>{messageContent}</p>
+        </InputWarning>
+      )
+    } else {
+      return (
+        <div
+          id="branch-name-info"
+          className="input-description warning-helper-text input-description-warning"
+        >
+          <Octicon symbol={octicons.info} className="info-icon" />
+          <div className="input-description-content">
+            <p>{messageContent}</p>
+          </div>
+        </div>
+      )
+    }
+  }
+
+  private renderMessageContent(sanitizedValue: string, isWarning: boolean) {
     return (
-      <InputWarning
-        id="branch-name-warning"
-        className="warning-helper-text"
-        trackedUserInput={proposedValue}
-        ariaLiveMessage={this.getWarningMessageAsString(sanitizedValue)}
-      >
-        <p>{this.renderWarningMessage(sanitizedValue)}</p>
-      </InputWarning>
+      <>
+        Will be {this.props.warningMessageVerb ?? 'created'} as{' '}
+        <Ref>{sanitizedValue}</Ref>.{' '}
+        {isWarning && (
+          <span className="sr-only">
+            Spaces and invalid characters have been replaced by hyphens.
+          </span>
+        )}
+      </>
     )
   }
 
@@ -211,17 +247,5 @@ export class RefNameTextBox extends React.Component<
     return `Warning: Will be ${
       this.props.warningMessageVerb ?? 'created '
     } as ${sanitizedValue}. Spaces and invalid characters have been replaced by hyphens.`
-  }
-
-  private renderWarningMessage(sanitizedValue: string) {
-    return (
-      <>
-        Will be {this.props.warningMessageVerb ?? 'created'} as{' '}
-        <Ref>{sanitizedValue}</Ref>.{' '}
-        <span className="sr-only">
-          Spaces and invalid characters have been replaced by hyphens.
-        </span>
-      </>
-    )
   }
 }
