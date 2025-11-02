@@ -1004,6 +1004,12 @@ export interface IMultiCommitOperationState {
    * - Squash = the current branch the user is on.
    */
   readonly targetBranch: Branch | null
+
+  /**
+   * Whether to automatically unstash changes after a rebase completes successfully.
+   * Only applicable for rebase operations.
+   */
+  readonly shouldAutoUnstashAfterRebase?: boolean
 }
 
 export type MultiCommitOperationConflictState = {
