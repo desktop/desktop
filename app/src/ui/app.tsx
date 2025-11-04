@@ -2946,7 +2946,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    shell.showFolderContents(repository.path)
+    shell.openFolder(repository.path)
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
