@@ -89,6 +89,9 @@ export const isWindowFocused = invokeProxy('is-window-focused', 0)
 export const focusWindow = sendProxy('focus-window', 0)
 
 const _showItemInFolder = invokeProxy('show-item-in-folder', 1)
+const _openFile = invokeProxy('open-file', 1)
+const _openFolder = invokeProxy('open-folder', 1)
+const _openUrl = invokeProxy('open-url', 1)
 
 export const showItemInFolder = (path: string) =>
   pathExists(path)
