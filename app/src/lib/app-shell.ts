@@ -4,40 +4,51 @@ import * as Path from 'path'
 import { Repository } from '../models/repository'
 import {
   showItemInFolder,
-  showFolderContents,
-  openExternal,
+  openFolder,
+  openFile,
+  openUrl,
   moveItemToTrash,
 } from '../ui/main-process-proxy'
 
 export interface IAppShell {
   readonly moveItemToTrash: (path: string) => Promise<void>
   readonly beep: () => void
-  readonly openExternal: (path: string) => Promise<boolean>
+
   /**
-   * Reveals the specified file using the operating
-   * system default application.
-   * Do not use this method with non-validated paths.
+   * Opens a URL in the default browser.
+   *
+   * @param url - The URL to open (http:// or https://)
+   */
+  readonly openUrl: (url: string) => Promise<boolean>
+
+  /**
+   * Opens a file with its default application.
    *
    * @param path - The path of the file to open
    */
+  readonly openFile: (path: string) => Promise<boolean>
 
-  readonly openPath: (path: string) => Promise<string>
   /**
-   * Reveals the specified file on the operating system
-   * default file explorer. If a folder is passed, it will
-   * open its parent folder and preselect the passed folder.
-   *
-   * @param path - The path of the file to show
-   */
-  readonly showItemInFolder: (path: string) => void
-  /**
-   * Reveals the specified folder on the operating
-   * system default file explorer.
+   * Opens a folder in the system file explorer.
    * Do not use this method with non-validated paths.
    *
    * @param path - The path of the folder to open
    */
-  readonly showFolderContents: (path: string) => void
+  readonly openFolder: (path: string) => Promise<void>
+
+  /**
+   * Reveals the specified file or folder in the system file explorer.
+   * This shows the item's parent folder with the item selected.
+   *
+   * @param path - The path of the file or folder to show
+   */
+  readonly showItemInFolder: (path: string) => void
+
+  /**
+   * Legacy Electron API - opens a path (file or folder).
+   * Prefer using openFile or openFolder for clarity.
+   */
+  readonly openPath: (path: string) => Promise<string>
 }
 
 export const shell: IAppShell = {
@@ -46,9 +57,10 @@ export const shell: IAppShell = {
   // https://github.com/electron/electron/issues/29598
   moveItemToTrash,
   beep: electronShell.beep,
-  openExternal,
+  openUrl,
+  openFile,
+  openFolder,
   showItemInFolder,
-  showFolderContents,
   openPath: electronShell.openPath,
 }
 
