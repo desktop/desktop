@@ -609,6 +609,19 @@ app.on('ready', () => {
   })
 
   /**
+   * An event sent by the renderer asking to open a folder in the file explorer
+   */
+  ipcMain.handle('open-folder', async (_, path: string) => {
+    log.info(`Opening folder: ${path}`)
+
+    try {
+      await shell.openPath(path)
+    } catch (e) {
+      log.error(`Failed to open folder '${path}': ${e}`)
+    }
+  })
+
+  /**
    * An event sent by the renderer asking for the app's architecture
    */
   ipcMain.handle('get-path', async (_, path) => app.getPath(path))
