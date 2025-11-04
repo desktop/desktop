@@ -93,10 +93,27 @@ const _openFile = invokeProxy('open-file', 1)
 const _openFolder = invokeProxy('open-folder', 1)
 const _openUrl = invokeProxy('open-url', 1)
 
+/**
+ * Reveal a file or folder in the system file explorer.
+ * This shows the item's parent folder with the item selected.
+ */
 export const showItemInFolder = (path: string) =>
   pathExists(path)
     .then(() => _showItemInFolder(path))
-    .catch(err => log.error(`Unable show item in folder '${path}'`, err))
+    .catch(err => log.error(`Unable to show item in folder '${path}'`, err))
+
+/**
+ * Open a URL in the default browser.
+ */
+export async function openUrl(url: string): Promise<boolean> {
+  try {
+    return await _openUrl(url)
+  } catch (err) {
+    log.error(`Unable to open URL '${url}'`, err)
+    return false
+  }
+}
+
 
 const UNSAFE_openDirectory = sendProxy('unsafe-open-directory', 1)
 
