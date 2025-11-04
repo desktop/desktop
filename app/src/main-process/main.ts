@@ -593,12 +593,17 @@ app.on('ready', () => {
     }
   })
 
+  /**
+   * An event sent by the renderer asking to open a file with its default application
+   */
+  ipcMain.handle('open-file', async (_, path: string) => {
+    log.info(`Opening file with default application: ${path}`)
 
     try {
-      await shell.openExternal(path)
+      await shell.openExternal(`file://${path}`)
       return true
     } catch (e) {
-      log.error(`Call to openExternal failed: '${e}'`)
+      log.error(`Failed to open file '${path}': ${e}`)
       return false
     }
   })
