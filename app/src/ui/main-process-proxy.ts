@@ -114,10 +114,28 @@ export async function openUrl(url: string): Promise<boolean> {
   }
 }
 
+/**
+ * Open a file with its default application.
+ */
+export async function openFile(path: string): Promise<boolean> {
+  const exists = await pathExists(path).catch(err => {
+    log.error(`Unable to check if file exists '${path}'`, err)
+    return false
+  })
 
-const UNSAFE_openDirectory = sendProxy('unsafe-open-directory', 1)
+  if (!exists) {
+    log.error(`File does not exist: '${path}'`)
+    return false
+  }
 
-export async function showFolderContents(path: string) {
+  try {
+    return await _openFile(path)
+  } catch (err) {
+    log.error(`Unable to open file '${path}'`, err)
+    return false
+  }
+}
+
   const stats = await stat(path).catch(err => {
     log.error(`Unable to retrieve file information for ${path}`, err)
     return null
