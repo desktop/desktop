@@ -200,10 +200,10 @@ export class ReleaseNotes extends React.Component<IReleaseNotesProps, {}> {
   }
 
   private showAllReleaseNotes = () => {
-    shell.openExternal(ReleaseNotesUri)
+    shell.openUrl(ReleaseNotesUri)
   }
 
   private onMarkdownLinkClicked = (url: string) => {
-    shell.openExternal(url)
+    shell.openUrl(url)
   }
 }
