@@ -5,7 +5,7 @@ export async function openFile(
   fullPath: string,
   dispatcher: Dispatcher
 ): Promise<void> {
-  const result = await shell.openExternal(`file://${fullPath}`)
+  const result = await shell.openFile(fullPath)
 
   if (!result) {
     const error = {
