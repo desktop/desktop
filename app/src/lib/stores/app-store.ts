@@ -5845,7 +5845,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Takes a URL and opens it using the system default application */
   public _openInBrowser(url: string): Promise<boolean> {
-    return shell.openExternal(url)
+    return shell.openUrl(url)
   }
 
   public async _editGlobalGitConfig() {
