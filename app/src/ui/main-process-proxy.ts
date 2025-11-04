@@ -136,6 +136,11 @@ export async function openFile(path: string): Promise<boolean> {
   }
 }
 
+/**
+ * Open a folder in the system file explorer.
+ * Handles the complexity of app bundles on macOS.
+ */
+export async function openFolder(path: string): Promise<void> {
   const stats = await stat(path).catch(err => {
     log.error(`Unable to retrieve file information for ${path}`, err)
     return null
@@ -146,7 +151,8 @@ export async function openFile(path: string): Promise<boolean> {
   }
 
   if (!stats.isDirectory()) {
-    log.error(`Trying to get the folder contents of a non-folder at '${path}'`)
+    log.error(`Cannot open non-folder as folder: '${path}'`)
+    // Fall back to showing the item in its parent folder
     await _showItemInFolder(path)
     return
   }
