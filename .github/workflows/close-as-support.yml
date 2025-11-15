@@ -1,0 +1,50 @@
+name: Close as support issue
+permissions:
+  issues: write
+
+on:
+  workflow_call:
+    inputs:
+      number:
+        type: number
+        required: true
+      reason:
+        type: string
+        required: true
+
+jobs:
+  close-as-support:
+    runs-on: ubuntu-latest
+    env:
+      BODY: >
+        ${{ inputs.reason }}
+
+        We'd love to help but sadly the GitHub Desktop team is unable provide
+        individual support for issues that aren't the result of a problem with
+        the application itself. Please see [GitHub's community
+        discussions](https://github.com/orgs/community/discussions) where you
+        can engage with other Desktop users and ask for help with your issue.
+
+        If you believe this is actually a problem with the application and that
+        we have mistakenly treated this as a support issue please open a new
+        issue, link to this issue and try to provide as clear reproduction steps
+        as possible.
+
+        Here are some tips for writing reproduction steps:
+
+          * Step by step instructions accompanied by screenshots or screencasts
+        are the best.
+          * Be as specific as possible; include as much detail as you can.
+          * If not already provided, include:
+              * the version of GitHub Desktop you are using.
+              * the operating system you are using
+              * any environment factors you can think of.
+              * any custom configuration you are using.
+              * a log file from the day you experienced the issue (access
+        logfiles via the file menu and select Help > Show Logs in
+        Finder/Explorer.
+          * If relevant and can be shared, provide the repository or code you
+        are using.
+    steps:
+      - run: gh issue comment "${{ github.event.issue.number }}" --body "$BODY"
+      - run: gh issue close "${{ github.event.issue.number }}"

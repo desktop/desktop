@@ -1,0 +1,47 @@
+name: Support issues
+on:
+  issues:
+    types:
+      - labeled
+
+permissions:
+  issues: write
+
+jobs:
+  support-enviroment:
+    if: github.event.label.name == 'support:environment'
+    uses: ./.github/workflows/close-as-support.yml
+    secrets: inherit
+    with:
+      number: ${{ github.event.issue.number }}
+      reason: >
+        A GitHub Desktop team member has looked at this issue and believes it is
+        not the result of a bug in the application itself but rather an issue
+        with your local environment that would need troubleshooting to be
+        resolved.
+  support-windows-gpu:
+    if: github.event.label.name == 'support:windows-gpu'
+    uses: ./.github/workflows/close-as-support.yml
+    secrets: inherit
+    with:
+      number: ${{ github.event.issue.number }}
+      reason: >
+        A GitHub Desktop team member has looked at this issue and believes it is
+        not the result of a bug in the application itself but rather an issue
+        with your local environment. More specifically it appears this is likely
+        the result of your graphics card or graphics driver and GitHub Desktop
+        not playing nice with each other.
+
+        You can try launching GitHub Desktop with GPU accelerated rendering
+        turned off to verify that it is indeed related to the GPU  by setting
+        the `GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION` environment variable
+        to 1 by running `set GITHUB_DESKTOP_DISABLE_HARDWARE_ACCELERATION=1` in
+        cmd.exe and restarting your machine or by setting it through the UI
+        following a guide like this:
+        https://docs.oracle.com/en/database/oracle/machine-learning/oml4r/1.5.1/oread/creating-and-modifying-environment-variables-on-windows.html#GUID-DD6F9982-60D5-48F6-8270-A27EC53807D0
+
+        Note that you may have to restart your machine for the changes to take
+        effect.
+
+        Please also make sure that you're using the latest version of your
+        graphics driver.
