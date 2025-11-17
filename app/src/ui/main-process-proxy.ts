@@ -4,6 +4,7 @@ import * as ipcRenderer from '../lib/ipc-renderer'
 import { stat } from 'fs/promises'
 import { isApplicationBundle } from '../lib/is-application-bundle'
 import { pathExists } from './lib/path-exists'
+import { UNSAFE_openDirectory } from '../main-process/shell'
 
 /**
  * Creates a strongly typed proxy method for sending a duplex IPC message to the
@@ -90,7 +91,6 @@ export const focusWindow = sendProxy('focus-window', 0)
 
 const _showItemInFolder = invokeProxy('show-item-in-folder', 1)
 const _openFile = invokeProxy('open-file', 1)
-const _openFolder = invokeProxy('open-folder', 1)
 const _openUrl = invokeProxy('open-url', 1)
 
 /**
@@ -177,11 +177,9 @@ export async function openFolder(path: string): Promise<void> {
   }
 
   // Safe to open the folder directly
-  try {
-    await _openFolder(path)
-  } catch (err) {
-    log.error(`Unable to open folder '${path}'`, err)
-  }
+  // Use UNSAFE_openDirectory which includes Windows protection against
+  // accidentally opening executables with the same name as a folder
+  UNSAFE_openDirectory(path)
 }
 
 export const moveItemToTrash = invokeProxy('move-to-trash', 1)
