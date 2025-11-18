@@ -297,7 +297,7 @@ export class ActionsLogParser {
         considerDefaultLogic = false
         // we reached the end and found the command
         resetPlain()
-        // command is for the whole line, so we are not pushing the node here but defering this to when we find the new line
+        // command is for the whole line, so we are not pushing the node here but deferring this to when we find the new line
         pendingLastNode = commandToType[currentCommand]
 
         if (
@@ -316,7 +316,7 @@ export class ActionsLogParser {
               lineStartIndex + TimestampLength
             ) || ''
           if (!possibleTimestamp.match(TimestampRegex)) {
-            // ## is optional, so pick the right offfset
+            // ## is optional, so pick the right offset
             const offset =
               content.substring(lineStartIndex, lineStartIndex + 2) === '##'
                 ? 4
@@ -461,7 +461,7 @@ export class ActionsLogParser {
         }
 
         if (currentCommand.length > maxCommandLength) {
-          // to avoid accumulating command unncessarily, let's check max length, if it exceeds, it's not a command
+          // to avoid accumulating command unnecessarily, let's check max length, if it exceeds, it's not a command
           resetCommandVar()
         }
 
@@ -646,7 +646,7 @@ export class ActionsLogParser {
           if (currentText) {
             state.output = currentText
             result.push(state)
-            // deep copy exisiting style for the line to preserve different styles between commands
+            // deep copy existing style for the line to preserve different styles between commands
             let previousStyle
             if (state.style) {
               previousStyle = Object.assign({}, state.style)
