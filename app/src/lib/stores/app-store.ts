@@ -283,7 +283,10 @@ import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
-import { WorkflowPreferences } from '../../models/workflow-preferences'
+import {
+  getRepositoryExternalEditor,
+  WorkflowPreferences,
+} from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { isAttributableEmailFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
@@ -2511,6 +2514,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return null
   }
 
+  private getRepositoryExternalEditor(repo: Repository | null): string | null {
+    if (repo === null) {
+      return this.selectedExternalEditor
+    }
+
+    return getRepositoryExternalEditor(
+      repo.workflowPreferences,
+      this.selectedExternalEditor
+    )
+  }
+
   /**
    * Update menu labels for the selected repository.
    *
@@ -2543,14 +2557,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedShell,
       selectedRepository,
       useCustomEditor,
-      selectedExternalEditor,
       askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush,
     } = this
 
+    const currentRepo =
+      selectedRepository instanceof Repository ? selectedRepository : null
+
     const labels: MenuLabelsEvent = {
       selectedShell: useCustomShell ? null : selectedShell,
-      selectedExternalEditor: useCustomEditor ? null : selectedExternalEditor,
+      selectedExternalEditor: useCustomEditor
+        ? null
+        : this.getRepositoryExternalEditor(currentRepo),
       askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush,
     }
@@ -5855,15 +5873,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** Open a path to a repository or file using the user's configured editor */
-  public async _openInExternalEditor(fullPath: string): Promise<void> {
-    const { selectedExternalEditor, useCustomEditor, customEditor } =
-      this.getState()
+  public async _openInExternalEditor(
+    fullPath: string,
+    repo?: Repository | null
+  ): Promise<void> {
+    const { useCustomEditor, customEditor } = this.getState()
+    const selectedState = this.getSelectedState()
+    const currentRepo =
+      repo ??
+      (selectedState?.type === SelectionType.Repository
+        ? selectedState.repository
+        : null)
 
     try {
       if (useCustomEditor && customEditor) {
         await launchCustomExternalEditor(fullPath, customEditor)
       } else {
-        const match = await findEditorOrDefault(selectedExternalEditor)
+        const repositoryExternalEditor =
+          this.getRepositoryExternalEditor(currentRepo)
+        const match = await findEditorOrDefault(repositoryExternalEditor)
         if (match === null) {
           this.emitError(
             new ExternalEditorError(
