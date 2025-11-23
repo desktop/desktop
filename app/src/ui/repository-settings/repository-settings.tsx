@@ -16,7 +16,10 @@ import { NoRemote } from './no-remote'
 import { readGitIgnoreAtRoot } from '../../lib/git'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { ForkSettings } from './fork-settings'
-import { ForkContributionTarget } from '../../models/workflow-preferences'
+import {
+  ExternalEditorPreference,
+  ForkContributionTarget,
+} from '../../models/workflow-preferences'
 import { GitConfigLocation, GitConfig } from './git-config'
 import {
   getConfigValue,
@@ -31,6 +34,8 @@ import {
 import { Account } from '../../models/account'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
+import { getAvailableEditors } from '../../lib/editors'
+import { ExternalEditor } from './external-editor'
 
 interface IRepositorySettingsProps {
   readonly initialSelectedTab?: RepositorySettingsTab
@@ -39,12 +44,14 @@ interface IRepositorySettingsProps {
   readonly repository: Repository
   readonly repositoryAccount: Account | null
   readonly onDismissed: () => void
+  readonly globalExternalEditor: string | null
 }
 
 export enum RepositorySettingsTab {
   Remote = 0,
   IgnoredFiles,
   GitConfig,
+  ExternalEditor,
   ForkSettings,
 }
 
@@ -66,6 +73,9 @@ interface IRepositorySettingsState {
   readonly errors?: ReadonlyArray<JSX.Element | string>
   readonly forkContributionTarget: ForkContributionTarget
   readonly isLoadingGitConfig: boolean
+  readonly availableEditors: ReadonlyArray<string>
+  readonly editorChoice: 'inherit' | 'specific'
+  readonly editorSelection: string | null
 }
 
 export class RepositorySettings extends React.Component<
@@ -93,6 +103,9 @@ export class RepositorySettings extends React.Component<
       initialCommitterName: null,
       initialCommitterEmail: null,
       isLoadingGitConfig: true,
+      availableEditors: [],
+      editorChoice: 'inherit',
+      editorSelection: null,
     }
   }
 
@@ -136,6 +149,19 @@ export class RepositorySettings extends React.Component<
       committerEmail = localCommitterEmail ?? ''
     }
 
+    const availableEditors = (await getAvailableEditors()).map(e => e.editor)
+
+    const currentEditor =
+      this.props.repository.workflowPreferences.externalEditor
+    const editorChoice =
+      currentEditor?.kind === 'editor' ? 'specific' : 'inherit'
+    const editorSelection =
+      currentEditor?.kind === 'editor'
+        ? currentEditor.editor
+        : availableEditors.length > 0
+        ? availableEditors[0]
+        : null
+
     this.setState({
       gitConfigLocation,
       committerName,
@@ -146,6 +172,9 @@ export class RepositorySettings extends React.Component<
       initialCommitterName: localCommitterName,
       initialCommitterEmail: localCommitterEmail,
       isLoadingGitConfig: false,
+      availableEditors: availableEditors,
+      editorChoice,
+      editorSelection,
     })
   }
 
@@ -194,6 +223,10 @@ export class RepositorySettings extends React.Component<
             <span>
               <Octicon className="icon" symbol={octicons.gitCommit} />
               {__DARWIN__ ? 'Git Config' : 'Git config'}
+            </span>
+            <span>
+              <Octicon className="icon" symbol={octicons.pencil} />
+              {__DARWIN__ ? 'External editor' : 'External editor'}
             </span>
             {showForkSettings && (
               <span>
@@ -273,6 +306,19 @@ export class RepositorySettings extends React.Component<
         )
       }
 
+      case RepositorySettingsTab.ExternalEditor: {
+        return (
+          <ExternalEditor
+            availableEditors={this.state.availableEditors}
+            choice={this.state.editorChoice}
+            selection={this.state.editorSelection}
+            globalLabel={this.props.globalExternalEditor}
+            onChoiceChanged={this.onEditorChoiceChanged}
+            onSelectionChanged={this.onEditorSelectionChanged}
+          />
+        )
+      }
+
       default:
         return assertNever(tab, `Unknown tab type: ${tab}`)
     }
@@ -328,6 +374,11 @@ export class RepositorySettings extends React.Component<
       }
     }
 
+    const externalEditorPreference: ExternalEditorPreference | undefined =
+      this.state.editorChoice === 'specific' && this.state.editorSelection
+        ? { kind: 'editor', editor: this.state.editorSelection }
+        : undefined
+
     // only update this if it will be different from what we have stored
     if (
       this.state.forkContributionTarget !==
@@ -338,6 +389,7 @@ export class RepositorySettings extends React.Component<
         {
           ...this.props.repository.workflowPreferences,
           forkContributionTarget: this.state.forkContributionTarget,
+          externalEditor: externalEditorPreference,
         }
       )
     }
@@ -434,5 +486,13 @@ export class RepositorySettings extends React.Component<
 
   private onCommitterEmailChanged = (committerEmail: string) => {
     this.setState({ committerEmail })
+  }
+
+  private onEditorChoiceChanged = (choice: 'inherit' | 'specific') => {
+    this.setState({ editorChoice: choice })
+  }
+
+  private onEditorSelectionChanged = (editor: string) => {
+    this.setState({ editorSelection: editor })
   }
 }

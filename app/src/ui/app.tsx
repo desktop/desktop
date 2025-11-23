@@ -1621,6 +1621,11 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={repository}
             repositoryAccount={repositoryAccount}
             onDismissed={onPopupDismissedFn}
+            globalExternalEditor={
+              this.state.useCustomEditor
+                ? null
+                : this.state.selectedExternalEditor
+            }
           />
         )
       }
