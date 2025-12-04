@@ -33,6 +33,8 @@ import { doMergeCommitsExistAfterCommit } from '../../lib/git'
 import { KeyboardInsertionData } from '../lib/list'
 import { Account } from '../../models/account'
 import { Emoji } from '../../lib/emoji'
+import { Button } from '../lib/button'
+import { Octicon } from '../octicons'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -159,26 +161,60 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const { branches, filterText, showBranchList } = this.props.compareState
+    const { branches, filterText, commitFilterText, showBranchList, formState } =
+      this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
+    const showFilterMessage =
+      !showBranchList &&
+      commitFilterText.length > 0 &&
+      formState.kind === HistoryTabMode.History
 
     return (
       <div id="compare-view" role="tabpanel" aria-labelledby="history-tab">
         <div className="compare-form">
-          <FancyTextBox
-            ariaLabel="Branch filter"
-            symbol={octicons.gitBranch}
-            displayClearButton={true}
-            placeholder={placeholderText}
-            onFocus={this.onTextBoxFocused}
-            value={filterText}
-            disabled={!branches.some(b => !b.isDesktopForkRemoteBranch)}
-            onRef={this.onTextBoxRef}
-            onValueChanged={this.onBranchFilterTextChanged}
-            onKeyDown={this.onBranchFilterKeyDown}
-            onSearchCleared={this.handleEscape}
-          />
+          {!showBranchList ? (
+            <div className="commit-search-container">
+              <FancyTextBox
+                ariaLabel="Commit filter"
+                symbol={octicons.gitCommit}
+                displayClearButton={true}
+                placeholder="Search commits by message, author, or SHA…"
+                value={commitFilterText}
+                onRef={this.onTextBoxRef}
+                onValueChanged={this.onCommitFilterTextChanged}
+                onSearchCleared={this.onCommitFilterCleared}
+              />
+              <Button
+                className="search-mode-toggle"
+                onClick={this.onTextBoxFocused}
+                aria-label="Search branches"
+              >
+                <Octicon symbol={octicons.gitBranch} />
+              </Button>
+            </div>
+          ) : (
+            <FancyTextBox
+              ariaLabel="Branch filter"
+              symbol={octicons.gitBranch}
+              displayClearButton={true}
+              placeholder={placeholderText}
+              onFocus={this.onTextBoxFocused}
+              value={filterText}
+              disabled={!branches.some(b => !b.isDesktopForkRemoteBranch)}
+              onRef={this.onTextBoxRef}
+              onValueChanged={this.onBranchFilterTextChanged}
+              onKeyDown={this.onBranchFilterKeyDown}
+              onSearchCleared={this.handleEscape}
+            />
+          )}
         </div>
+
+        {showFilterMessage && (
+          <div className="commit-filter-message">
+            Search results are limited to commits that have been loaded. Scroll
+            down to load more commits.
+          </div>
+        )}
 
         {showBranchList ? this.renderFilterList() : this.renderCommits()}
       </div>
@@ -215,7 +251,13 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderCommitList() {
-    const { formState, commitSHAs } = this.props.compareState
+    const { formState, commitSHAs, commitFilterText } = this.props.compareState
+
+    const filteredCommitSHAs = this.filterCommits(
+      commitSHAs,
+      commitFilterText,
+      this.props.commitLookup
+    )
 
     let emptyListMessage: string | JSX.Element
     if (formState.kind === HistoryTabMode.History) {
@@ -243,7 +285,7 @@ export class CompareSidebar extends React.Component<
         gitHubRepository={this.props.repository.gitHubRepository}
         isLocalRepository={this.props.isLocalRepository}
         commitLookup={this.props.commitLookup}
-        commitSHAs={commitSHAs}
+        commitSHAs={filteredCommitSHAs}
         selectedSHAs={this.props.selectedCommitShas}
         shasToHighlight={this.props.shasToHighlight}
         localCommitSHAs={this.props.localCommitSHAs}
@@ -549,6 +591,63 @@ export class CompareSidebar extends React.Component<
 
     this.props.dispatcher.updateCompareForm(this.props.repository, {
       filterText,
+    })
+  }
+
+  private onCommitFilterTextChanged = (commitFilterText: string) => {
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      commitFilterText,
+    })
+  }
+
+  private onCommitFilterCleared = () => {
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      commitFilterText: '',
+    })
+  }
+
+  private filterCommits = (
+    commitSHAs: ReadonlyArray<string>,
+    filterText: string,
+    commitLookup: Map<string, Commit>
+  ): ReadonlyArray<string> => {
+    if (!filterText || filterText.trim().length === 0) {
+      return commitSHAs
+    }
+
+    const filter = filterText.toLowerCase().trim()
+
+    return commitSHAs.filter(sha => {
+      const commit = commitLookup.get(sha)
+      if (!commit) {
+        return false
+      }
+
+      // Check SHA (full and short)
+      if (commit.sha.toLowerCase().includes(filter)) {
+        return true
+      }
+      if (commit.shortSha.toLowerCase().includes(filter)) {
+        return true
+      }
+
+      // Check commit message (summary and body)
+      if (commit.summary.toLowerCase().includes(filter)) {
+        return true
+      }
+      if (commit.body.toLowerCase().includes(filter)) {
+        return true
+      }
+
+      // Check author name and email
+      if (commit.author.name.toLowerCase().includes(filter)) {
+        return true
+      }
+      if (commit.author.email.toLowerCase().includes(filter)) {
+        return true
+      }
+
+      return false
     })
   }
 

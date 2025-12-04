@@ -1582,6 +1582,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         formState: newState,
         commitSHAs: commits,
         filterText: '',
+        commitFilterText: '',
         showBranchList: false,
       }))
       this.updateOrSelectFirstCommit(repository, commits)
@@ -1708,7 +1709,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
     newState: Pick<ICompareFormUpdate, K>
   ) {
     this.repositoryStateCache.updateCompareState(repository, state => {
-      return merge(state, newState)
+      // Build update object with only defined properties
+      const updates: {
+        filterText?: string
+        commitFilterText?: string
+        showBranchList?: boolean
+      } = {}
+      if ('filterText' in newState && newState.filterText !== undefined) {
+        updates.filterText = newState.filterText as string
+      }
+      if (
+        'commitFilterText' in newState &&
+        newState.commitFilterText !== undefined
+      ) {
+        updates.commitFilterText = newState.commitFilterText as string
+      }
+      if (
+        'showBranchList' in newState &&
+        newState.showBranchList !== undefined
+      ) {
+        updates.showBranchList = newState.showBranchList as boolean
+      }
+      return merge(state, updates as Pick<ICompareState, keyof typeof updates>)
     })
 
     this.emitUpdate()

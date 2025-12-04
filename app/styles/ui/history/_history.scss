@@ -33,6 +33,29 @@
     border-bottom: var(--base-border);
   }
 
+  .commit-filter-message {
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-half) var(--spacing);
+    background: var(--box-alt-background-color);
+    border-bottom: var(--base-border);
+  }
+
+  .commit-search-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-half);
+    flex: 1;
+
+    .fancy-text-box-component {
+      flex: 1;
+
+      input {
+        width: 100%;
+      }
+    }
+  }
+
   .compare-commit-list {
     flex: 1;
     display: flex;
