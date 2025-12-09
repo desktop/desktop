@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+  <license licenseId="TU-Berlin-2.0" name="Technische Universitaet Berlin License 2.0" isOsiApproved="false" listVersionAdded="3.2">
+    <crossRefs>
+      <crossRef>https://github.com/CorsixTH/deps/blob/fd339a9f526d1d9c9f01ccf39e438a015da50035/licences/libgsm.txt</crossRef>
+    </crossRefs>
+    <text>
+      <copyrightText>
+        <p>Copyright 1992, 1993, 1994 by Jutta Degener and Carsten Bormann,
+	      </p>
+        <p>Technische Universitaet Berlin</p>
+      </copyrightText>
+
+      <p>
+        Any use of this software is permitted provided that this notice is not
+        removed and that neither the authors nor the Technische Universitaet Berlin
+        are deemed to have made any representations as to the suitability of this
+        software for any purpose nor are held responsible for any defects of
+        this software.  THERE IS ABSOLUTELY NO WARRANTY FOR THIS SOFTWARE.
+      </p>
+      <p>
+        As a matter of courtesy, the authors request to be informed about uses
+        this software has found, about bugs in this software, and about any
+        improvements that may be of general interest.
+      </p>
+
+      <optional>
+        <p>Berlin, <alt match=".+" name="footerDate">28.11.1994</alt></p>
+        <p>Jutta Degener</p>
+        <p>Carsten Bormann</p>
+      </optional>
+
+      <optional><p>oOo</p></optional>
+
+      <p>
+        Since the original terms of 15 years ago maybe do not make our
+        intentions completely clear given today's refined usage of the legal
+        terms, we append this additional permission:
+      </p>
+
+      <p>
+        Permission to use, copy, modify, and distribute this software
+        for any purpose with or without fee is hereby granted,
+        provided that this notice is not removed and that neither
+        the authors nor the Technische Universitaet Berlin are
+        deemed to have made any representations as to the suitability
+        of this software for any purpose nor are held responsible
+        for any defects of this software.  THERE IS ABSOLUTELY NO
+        WARRANTY FOR THIS SOFTWARE.
+      </p>
+
+      <optional>
+        <p>Berkeley/Bremen, <alt match=".+" name="footerDate2">05.04.2009</alt></p>
+        <p>Jutta Degener</p>
+        <p>Carsten Bormann</p>
+      </optional>
+    </text>
+  </license>
+</SPDXLicenseCollection>

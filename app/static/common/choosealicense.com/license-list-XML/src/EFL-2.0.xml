@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="true" licenseId="EFL-2.0" name="Eiffel Forum License v2.0">
+      <crossRefs>
+         <crossRef>http://www.eiffel-nice.org/license/eiffel-forum-license-2.html</crossRef>
+         <crossRef>https://opensource.org/licenses/EFL-2.0</crossRef>
+      </crossRefs>
+    <text>
+      <titleText>
+         <p>Eiffel Forum License, version 2</p>
+      </titleText>
+
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          Permission is hereby granted to use, copy, modify and/or distribute this package, provided that:
+          <list>
+               <item>
+                  <bullet>-</bullet>
+              copyright notices are retained unchanged,
+            </item>
+               <item>
+                  <bullet>-</bullet>
+              any distribution of this package, whether modified or not, includes this license text.
+            </item>
+            </list>
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          Permission is hereby also granted to distribute binary programs which depend on this package. If
+             the binary program depends on a modified version of this package, you are encouraged to
+             publicly release the modified version of this package.
+        </item>
+      </list>
+      <p>THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT WARRANTY. ANY EXPRESS OR IMPLIED WARRANTIES,
+         INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+         PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS BE LIABLE TO ANY PARTY FOR ANY DIRECT, INDIRECT,
+         INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THIS
+         PACKAGE.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

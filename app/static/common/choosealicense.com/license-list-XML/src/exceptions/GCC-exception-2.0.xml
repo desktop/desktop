@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <exception licenseId="GCC-exception-2.0" name="GCC Runtime Library exception 2.0">
+      <crossRefs>
+         <crossRef>https://gcc.gnu.org/git/?p=gcc.git;a=blob;f=gcc/libgcc1.c;h=762f5143fc6eed57b6797c82710f3538aa52b40b;hb=cb143a3ce4fb417c68f5fa2691a1b1b1053dfba9#l10</crossRef>
+      </crossRefs>
+      <notes>Typically used with GPL-2.0+.  Sometimes also referred to a
+         "linking exception."
+  </notes>
+    <text>
+      <p>In addition to the permissions in the GNU
+        <optional>Library</optional> General Public License, the Free
+        Software Foundation gives you unlimited permission to link the
+        compiled version of this file<optional> into
+        combinations</optional> with other programs, and to distribute
+        those
+        <alt name="programs" match="combinations|programs">programs</alt>
+        without any restriction coming from the use of this file.  (The
+        <alt name="general" match="General|Library">General</alt>
+        Public License restrictions do apply in other respects; for
+        example, they cover modification of the file, and distribution
+        when not linked into
+        <alt name="anotherProgram" match="a combined? executable|another program">another program</alt>.)</p>
+    </text>
+  </exception>
+</SPDXLicenseCollection>

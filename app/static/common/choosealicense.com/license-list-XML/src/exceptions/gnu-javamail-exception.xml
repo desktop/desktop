@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <exception licenseId="gnu-javamail-exception" name="GNU JavaMail exception">
+      <crossRefs>
+         <crossRef>http://www.gnu.org/software/classpathx/javamail/javamail.html</crossRef>
+      </crossRefs>
+      <notes>Typically used with GPL (any version)</notes>
+    <text>
+      <p>As a special exception, if you link this library with other files
+         to produce an executable, this library does not by itself
+         cause the resulting executable to be covered by the GNU
+         General Public License. This exception does not however
+         invalidate any other reasons why the executable file might be
+         covered by the GNU General Public License.</p>
+    </text>
+  </exception>
+</SPDXLicenseCollection>

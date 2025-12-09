@@ -1,4 +1,16 @@
 .filter-list.clone-github-repo {
+  // Ensure the filter list fills the foldout container height
+  // Required for virtualized list rendering in toolbar dropdowns
+  height: 400px;
+
+  .filter-list-container {
+    height: 350px;
+
+    .list {
+      height: 100% !important;
+    }
+  }
+
   .no-items {
     display: flex;
     align-items: center;
@@ -30,6 +42,71 @@
       padding: 1px 3px;
       border-radius: var(--border-radius);
       text-transform: uppercase;
+    }
+
+    .repo-status-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-half);
+      margin-left: var(--spacing-half);
+      flex-shrink: 0;
+
+      .cloned-badge,
+      .not-cloned-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .octicon {
+          width: 14px;
+          height: 14px;
+        }
+      }
+
+      .cloned-badge {
+        color: var(--color-success);
+      }
+
+      .not-cloned-badge {
+        color: var(--text-secondary-color);
+      }
+
+      .clone-button,
+      .locate-button,
+      .add-existing-button {
+        background: none;
+        border: none;
+        padding: 2px 4px;
+        cursor: pointer;
+        border-radius: var(--border-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary-color);
+
+        &:hover {
+          background-color: var(--box-selected-background-color);
+          color: var(--text-color);
+        }
+
+        &:focus {
+          outline: none;
+          background-color: var(--box-selected-background-color);
+        }
+
+        .octicon {
+          width: 14px;
+          height: 14px;
+        }
+      }
+
+      .clone-button {
+        color: var(--color-btn-primary-bg);
+
+        &:hover {
+          color: var(--color-btn-primary-hover-bg);
+        }
+      }
     }
   }
 }

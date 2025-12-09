@@ -1,0 +1,109 @@
+<!--this is the HTML for the webpage at https://spdx.org/spdx-license-list/matching-guidelines - this is here to enable tracking of changes on that page -->
+
+<div id="content-area">
+	<p><strong>SPDX License List Matching Guidelines, v2.1</strong></p>
+
+	<p>This document provides guidelines to be used for the purposes of matching licenses and license exceptions against those included on the SPDX License List. There is no intent here to make a judgment or interpretation, but merely to ensure that when one SPDX user identifies a license as &quot;BSD 3-clause,&quot; for example, it is indeed the same license as what someone else identifies as &quot;BSD 3-clause&quot; and the same license as what is listed on the SPDX License List. Examples of how to apply some of the matching guidelines to a license or exception are provided via templates. &nbsp;Templates are comprised of technical markup within the master license text file to provide further or specific guidance to SPDX document creators or tool makers. &nbsp;Not all licenses or exceptions will have templates.</p>
+
+	<p><strong>1. How These Guidelines Are Applied</strong></p>
+
+	<p style="padding-left: 30px;"><span style="text-decoration: underline;">1.1 Purpose:</span>&nbsp; To ensure consistent results by different SPDX document creators when matching license information that will be included in the License Information in File field. SPDX document creators or tools may match on the license or exception text itself, the official license header, or the SPDX License List short identifier.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">1.1.1 Guideline: Official License Headers</span>&nbsp; The same matching guidelines used for license and exception text apply to the official license headers. Where applicable, an official license header template file with markup is included with the SPDX License List. Official license headers are defined by the SPDX License List as specific text specified within the license itself to be put in the header of files. (see <a href="/spdx-license-list/license-list-overview">http://spdx.org/spdx-license-list/license-list-overview</a>&nbsp;for more info).</p>
+
+	<p><strong>2. Substantive Text</strong></p>
+
+	<p style="padding-left: 30px;"><span style="text-decoration: underline;">2.1 Purpose:</span>&nbsp; To ensure that when matching licenses and exceptions to the SPDX License List, there is an appropriate balance between matching against the substantive text and disregarding parts of the text that do not alter the substantive text. Further guidelines of what can be disregarded or considered replaceable for purposes of matching are listed below here and in the subsequent specific guidelines. A conservative approach is taken in regards to rules about disregarded or replaceable text.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">2.1.1 Guideline: &nbsp;Verbatim Text</span>&nbsp; License and exception text should be the same verbatim text (except for the guidelines stated here). The text should be in the same order, e.g., differently ordered paragraphs would not be considered a match.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">2.1.2 Guideline: &nbsp; No Additional Text&nbsp;</span>Matched text should only include that found in the vetted license or exception text. Where a license or exception found includes additional text or clauses, this should not be considered a match.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">2.1.3 Guideline:&nbsp; Replaceable Text</span>&nbsp; Some licenses include text that refers to the specific copyright holder or author, yet the rest of the license is exactly the same as a generic version. The intent here is to avoid the inclusion of a specific name in one part of the license resulting in a non-match where the license is otherwise an exact match (e.g., the third clause and disclaimer in the BSD licenses, or the third, fourth, and fifth clauses of Apache 1.1). In these cases, there should be a positive license match.</p>
+
+	<p style="padding-left: 60px;">Text that can be considered replaceable for matching purposes is indicated in the SPDX License List template with mark-up and in the corresponding HTML pages with colored text. The text indicated as such can be replaced with similar values (e.g., a different name or generic term; different date) and still be considered a positive match. This rule also applies to text-matching in official license headers (see Guideline #1).</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">2.1.4 Guideline:&nbsp; Omitable Text</span>&nbsp; Some licenses have text that can simply be ignored. The intent here is to avoid the inclusion of certain text that is superfluous or irrelevant in regards to the substantive license text resulting in a non-match where the license is otherwise an exact match (e.g., directions on how to apply the license or other similar non-substantive exhibits). In these cases, there should be a positive license match.</p>
+
+	<p style="padding-left: 60px;">Text that can be considered omitable for matching purposes is indicated in the SPDX License List template with mark-up and in the corresponding HTML pages with colored text. The license should be considered a match if the text indicated is present and matches OR the text indicated is missing altogether.</p>
+
+	<p><strong>3. Whitespace</strong></p>
+
+	<p style="padding-left: 30px;"><span style="text-decoration: underline;">3.1 Purpose:</span>&nbsp;&nbsp; To avoid the possibility of a non-match due to different spacing of words, line breaks, or paragraphs.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">3.1.1 Guideline:</span>&nbsp; All whitespace should be treated as a single blank space. Templates do not include markup for this guideline.</p>
+
+	<p><strong>4. Capitalization</strong></p>
+
+	<p style="padding-left: 30px;"><span style="text-decoration: underline;">4.1 Purpose:</span>&nbsp; To avoid the possibility of a non-match due to lower case or upper case letters in otherwise the same words.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">4.1.1 Guideline:</span>&nbsp; All upper case and lower case letters should be treated as lower case letters<em>.&nbsp;</em>Templates do not include markup for this guideline.</p>
+
+	<p><strong>5. Punctuation</strong></p>
+
+	<p style="padding-left: 30px;"><span style="text-decoration: underline;">5.1 Purpose:</span>&nbsp; Because punctuation can change the meaning of a sentence, punctuation needs to be included in the matching process. License template files do not include markup for this guideline.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">5.1.1 Guideline:&nbsp; Punctuation</span>&nbsp; Punctuation should be matched, unless otherwise stated in these guidelines.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">5.1.2 Guideline: &nbsp;Hyphens, Dashes</span>&nbsp; Any hyphen, dash, en dash, em dash, or other variation should be considered equivalent.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">5.1.3 Guideline:&nbsp; Quotes</span>&nbsp; Any variation of quotations (single, double, curly, etc.) should be considered equivalent.</p>
+
+	<p><strong>6. Code Comment Indicators</strong></p>
+
+	<p style="padding-left: 30px;"><span style="text-decoration: underline;">6.1 Purpose:</span>&nbsp; To avoid the possibility of a non-match due to the existence or absence of code comment indicators placed within the license text, e.g. at the start of each line of text.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">6.1.1 Guideline:</span>&nbsp; Any kind of code comment indicator or prefix which occurs at the beginning of each line in a matchable section should be ignored for matching purposes. Templates do not include markup for this guideline.</p>
+
+	<p><strong>7. Bullets and Numbering</strong></p>
+
+	<p style="padding-left: 30px;"><span style="text-decoration: underline;">7.1 Purpose:</span>&nbsp; To avoid the possibility of a non-match due to the otherwise same license using bullets instead of numbers, number instead of letter, or no bullets instead of bullet, etc., for a list of clauses.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">7.1.1 Guideline:</span>&nbsp; Where a line starts with a bullet, number, letter, or some form of a list item (determined where list item is followed by a space, then the text of the sentence), ignore the list item for matching purposes. Templates do not include markup for this guideline.</p>
+
+	<p><strong>8. Varietal Word Spelling</strong></p>
+
+	<p style="padding-left: 30px;"><span style="text-decoration: underline;">8.1 Purpose:</span>&nbsp; English uses different spelling for some words. By identifying the spelling variations for words found or likely to be found in licenses, we avoid the possibility of a non-match due to the same word being spelled differently. This list is not meant to be an exhaustive list of all spelling variations, but meant to capture the words most likely to be found in open source software licenses.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">8.1.1 Guideline:</span>&nbsp; The words in each line of the text file available at&nbsp;<a href="https://github.com/spdx/license-list-XML/blob/master/equivalentwords.txt">https://github.com/spdx/license-list-XML/blob/master/equivalentwords.txt</a> are considered equivalent and interchangeable. Templates do not include markup for this guideline.</p>
+
+	<p><strong>9. Copyright Symbol</strong></p>
+
+	<p style="padding-left: 30px;"><span style="text-decoration: underline;">9.1 Purpose:</span>&nbsp; By having a rule regarding the use of &quot;&copy;&quot;, &quot;(c)&quot;, or &quot;copyright&quot;, we avoid the possibility of a mismatch based on these variations.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">9.1.1 Guideline:</span>&nbsp; &quot;&copy;&quot;, &quot;(c)&quot;, or &quot;Copyright&quot; should be considered equivalent and interchangeable. Templates do not include markup for this guideline.</p>
+
+	<p><strong>10. Copyright Notice</strong></p>
+
+	<p style="padding-left: 30px;">10.1&nbsp;<span style="text-decoration: underline;">Purpose:</span>&nbsp; To avoid a license mismatch merely because the copyright notice (usually found above the actual license or exception text) is different. The copyright notice is important information to be recorded elsewhere in the SPDX file, but for the purposes of matching a license to the SPDX License List, it should be ignored because it is not part of the substantive license text.</p>
+
+	<p style="padding-left: 60px;">10.1.1&nbsp;<span style="text-decoration: underline;">Guideline:</span>&nbsp; Ignore copyright notices. A copyright notice consists of the following elements, for example: &quot;2012 Copyright, John Doe. All rights reserved.&quot; or &quot;(c) 2012 John Doe.&quot; Templates may or may not include markup for this guideline.</p>
+
+	<p><strong>11. License Name or Title</strong></p>
+
+	<p style="padding-left: 30px;">11.1&nbsp;<span style="text-decoration: underline;">Purpose:</span>&nbsp; To avoid a license mismatch merely because the name or title of the license is different than how the license is usually referred to or different than the SPDX full name. This also avoids a mismatch if the title or name of the license is simply not included.</p>
+
+	<p style="padding-left: 60px;">11.1.1&nbsp;<span style="text-decoration: underline;">Guideline:</span>&nbsp; Ignore the license name or title for matching purposes, so long as what ignored is the title only and there is no additional substantive text added here. Templates do not include markup for this guideline.</p>
+
+	<p><strong>12. Extraneous Text At the End of a License</strong></p>
+
+	<p style="padding-left: 30px;"><span style="text-decoration: underline;">12.1 Purpose:</span>&nbsp; To avoid a license mismatch merely because extraneous text that&nbsp;appears at the end of the terms of a license is different or missing. This also&nbsp;avoids a mismatch if the extraneous text merely serves as a license notice example and includes a specific copyright holder&#39;s name.</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">12.1.1 Guideline:</span>&nbsp; Ignore any text that occurs after the obvious end of the&nbsp;license and does not include substantive text of the license, for example: text that occurs after a statement such as, &quot;END OF TERMS&nbsp;AND CONDITIONS,&quot; or an exhibit or appendix that includes an example or instructions on to how to&nbsp;apply the license to your code. Do not apply this guideline or ignore text that is comprised of additional&nbsp;license terms (e.g., permitted additional terms under GPL-3.0, section 7). Templates do not include markup for this guideline.</p>
+
+	<p><strong>13. HTTP Protocol</strong></p>
+
+	<p style="padding-left: 30px;"><span style="text-decoration: underline;">13.1 Purpose:</span>&nbsp; To avoid a license mismatch due to a difference in a hyperlink protocol (e.g. http vs. https).</p>
+
+	<p style="padding-left: 60px;"><span style="text-decoration: underline;">13.1.1 Guideline:</span>&nbsp; HTTP:// and HTTPS:// should be considered equivalent. Templates may or may not include markup for this guideline.</p>
+</div>
+
+<hr />
+<p><strong>Revision history</strong></p>
+
+<p>2020-02-11, v2.1:</p>
+
+<ul>
+	<li>Moved equivalent words table from section 8 into license-list-XML repo.</li>
+	<li>Added section 13 with HTTP Protocol guideline.</li>
+</ul>

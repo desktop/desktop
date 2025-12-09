@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Account, isDotComAccount } from '../../models/account'
-import { PreferencesTab } from '../../models/preferences'
+import { PreferencesTab, IEditorSettings } from '../../models/preferences'
 import { Dispatcher } from '../dispatcher'
 import { TabBar, TabBarType } from '../tab-bar'
 import { Accounts } from './accounts'
@@ -20,6 +20,7 @@ import {
   InvalidGitAuthorNameMessage,
 } from '../lib/identifier-rules'
 import { Appearance } from './appearance'
+import { Editor } from './editor'
 import { ApplicationTheme } from '../lib/application-theme'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Integrations } from './integrations'
@@ -73,6 +74,7 @@ interface IPreferencesProps {
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
   readonly selectedTabSize: number
+  readonly editorSettings: IEditorSettings
   readonly useCustomEditor: boolean
   readonly customEditor: ICustomIntegration | null
   readonly useCustomShell: boolean
@@ -305,6 +307,10 @@ export class Preferences extends React.Component<
               <Octicon className="icon" symbol={octicons.paintbrush} />
               Appearance
             </span>
+            <span id={this.getTabId(PreferencesTab.Editor)}>
+              <Octicon className="icon" symbol={octicons.code} />
+              Editor
+            </span>
             <span id={this.getTabId(PreferencesTab.Notifications)}>
               <Octicon className="icon" symbol={octicons.bell} />
               Notifications
@@ -344,6 +350,9 @@ export class Preferences extends React.Component<
         break
       case PreferencesTab.Appearance:
         suffix = 'appearance'
+        break
+      case PreferencesTab.Editor:
+        suffix = 'editor'
         break
       case PreferencesTab.Notifications:
         suffix = 'notifications'
@@ -460,6 +469,14 @@ export class Preferences extends React.Component<
             onSelectedThemeChanged={this.onSelectedThemeChanged}
             selectedTabSize={this.props.selectedTabSize}
             onSelectedTabSizeChanged={this.onSelectedTabSizeChanged}
+          />
+        )
+        break
+      case PreferencesTab.Editor:
+        View = (
+          <Editor
+            editorSettings={this.props.editorSettings}
+            onEditorSettingsChanged={this.onEditorSettingsChanged}
           />
         )
         break
@@ -695,6 +712,10 @@ export class Preferences extends React.Component<
 
   private onSelectedTabSizeChanged = (tabSize: number) => {
     this.props.dispatcher.setSelectedTabSize(tabSize)
+  }
+
+  private onEditorSettingsChanged = (settings: IEditorSettings) => {
+    this.props.dispatcher.setEditorSettings(settings)
   }
 
   private renderFooter() {

@@ -68,10 +68,22 @@
   }
 
   .filter-list-group-header {
-    padding-top: var(--spacing);
+    padding: var(--spacing-half) var(--spacing);
     text-overflow: ellipsis;
     overflow-x: hidden;
     white-space: nowrap;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-secondary-color);
+    background-color: var(--box-alt-background-color);
+    border-top: 1px solid var(--box-border-color);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+
+    &:first-child {
+      border-top: none;
+    }
   }
 
   .new-repository-button {

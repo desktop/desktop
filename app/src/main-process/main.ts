@@ -51,6 +51,13 @@ import {
 import { initializeDesktopNotifications } from './notifications'
 import parseCommandLineArgs from 'minimist'
 import { CLIAction } from '../lib/cli-action'
+import {
+  createTerminal,
+  writeToTerminal,
+  resizeTerminal,
+  killTerminal,
+  killAllTerminalsForWindow,
+} from './terminal-manager'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -135,6 +142,13 @@ process.on('uncaughtException', (error: Error) => {
   error = withSourceMappedStack(error)
   reportError(error, getExtraErrorContext())
   handleUncaughtException(error)
+})
+
+process.on('unhandledRejection', (reason: unknown) => {
+  // Convert the reason to an Error object for consistent handling
+  const error = withSourceMappedStack(reason)
+  log.error('[main] Unhandled promise rejection:', error)
+  reportError(error, { ...getExtraErrorContext(), source: 'unhandledRejection' }, true)
 })
 
 let handlingSquirrelEvent = false
@@ -717,6 +731,27 @@ app.on('ready', () => {
   ipcMain.handle('request-notifications-permission', async () =>
     requestNotificationsPermission()
   )
+
+  // Terminal IPC handlers
+  ipcMain.handle('terminal-create', async (event, cwd: string) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    if (!window) {
+      throw new Error('No window found for terminal creation')
+    }
+    return createTerminal(window, cwd)
+  })
+
+  ipcMain.handle('terminal-write', async (_, id: string, data: string) => {
+    writeToTerminal(id, data)
+  })
+
+  ipcMain.handle('terminal-resize', async (_, id: string, cols: number, rows: number) => {
+    resizeTerminal(id, cols, rows)
+  })
+
+  ipcMain.handle('terminal-kill', async (_, id: string) => {
+    killTerminal(id)
+  })
 })
 
 app.on('activate', () => {
@@ -753,29 +788,32 @@ app.on(
 function createWindow() {
   const window = new AppWindow()
 
-  if (__DEV__) {
-    const {
-      default: installExtension,
-      REACT_DEVELOPER_TOOLS,
-    } = require('electron-devtools-installer')
+  // Disabled: Dev extensions cause "Unable to initialize web-extension bridge" errors
+  // if (__DEV__) {
+  //   const {
+  //     default: installExtension,
+  //     REACT_DEVELOPER_TOOLS,
+  //   } = require('electron-devtools-installer')
 
-    const axeDevTools = {
-      id: 'lhdoppojpmngadmnindnejefpokejbdd',
-    }
+  //   const axeDevTools = {
+  //     id: 'lhdoppojpmngadmnindnejefpokejbdd',
+  //   }
 
-    const extensions = [REACT_DEVELOPER_TOOLS, axeDevTools]
+  //   const extensions = [REACT_DEVELOPER_TOOLS, axeDevTools]
 
-    try {
-      installExtension(extensions, {
-        loadExtensionOptions: { allowFileAccess: true },
-      })
-      console.log('Added Extensions: "React Developer Tools", "axe DevTools"')
-    } catch (e) {
-      console.log('An error occurred while loading extensions: ', e)
-    }
-  }
+  //   try {
+  //     installExtension(extensions, {
+  //       loadExtensionOptions: { allowFileAccess: true },
+  //     })
+  //     console.log('Added Extensions: "React Developer Tools", "axe DevTools"')
+  //   } catch (e) {
+  //     console.log('An error occurred while loading extensions: ', e)
+  //   }
+  // }
 
   window.onClosed(() => {
+    // Kill all terminals associated with this window
+    killAllTerminalsForWindow(window.browserWindow)
     mainWindow = null
     if (!__DARWIN__ && !preventQuit) {
       app.quit()

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <exception licenseId="Libtool-exception" name="Libtool Exception">
+      <crossRefs>
+         <crossRef>http://git.savannah.gnu.org/cgit/libtool.git/tree/m4/libtool.m4</crossRef>
+      </crossRefs>
+    <text>
+      <p>As a special exception to the GNU General Public License, if you
+         distribute this file as part of a program or library that is
+         built using GNU Libtool, you may include this file under the
+         same distribution terms that you use for the rest of that
+         program.</p>
+    </text>
+  </exception>
+</SPDXLicenseCollection>

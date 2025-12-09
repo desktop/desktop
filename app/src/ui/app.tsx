@@ -45,6 +45,7 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { CloningRepository } from '../models/cloning-repository'
 
 import { TitleBar, ZoomInfo, FullScreenInfo } from './window'
+import { Button } from './lib/button'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
@@ -55,11 +56,12 @@ import {
   Toolbar,
   ToolbarDropdown,
   DropdownState,
+  ToolbarDropdownStyle,
   PushPullButton,
   BranchDropdown,
   RevertProgress,
 } from './toolbar'
-import { iconForRepository, OcticonSymbol } from './octicons'
+import { iconForRepository, OcticonSymbol, Octicon } from './octicons'
 import * as octicons from './octicons/octicons.generated'
 import {
   showCertificateTrustDialog,
@@ -68,6 +70,7 @@ import {
   selectAllWindowContents,
   installWindowsCLI,
   uninstallWindowsCLI,
+  showOpenDialog,
 } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
@@ -77,8 +80,10 @@ import { Preferences } from './preferences'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
 import { MissingRepository } from './missing-repository'
-import { AddExistingRepository, CreateRepository } from './add-repository'
+import { AddExistingRepository, CreateRepository, AddRepositoryDialog } from './add-repository'
 import { CloneRepository } from './clone-repository'
+import { CloneableRepositoryFilterList } from './clone-repository/cloneable-repository-filter-list'
+import { ILocalRepoInfo, ILocalOnlyRepoInfo } from './clone-repository/group-repositories'
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 import { InstallGit } from './install-git'
@@ -88,6 +93,7 @@ import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { NoRepositoriesView } from './no-repositories'
+import { ProjectView } from './project-view/project-view'
 import { ConfirmRemoveRepository } from './remove-repository'
 import { TermsAndConditions } from './terms-and-conditions'
 import { PushBranchCommits } from './branches'
@@ -157,8 +163,8 @@ import { getMultiCommitOperationChooseBranchStep } from '../lib/multi-commit-ope
 import { ConfirmForcePush } from './rebase/confirm-force-push'
 import { PullRequestChecksFailed } from './notifications/pull-request-checks-failed'
 import { CICheckRunRerunDialog } from './check-runs/ci-check-run-rerun-dialog'
+import { CreateTaskDialog } from './tasks'
 import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-push-dialog'
-import { clamp } from '../lib/clamp'
 import { generateRepositoryListContextMenu } from './repositories-list/repository-list-item-context-menu'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
@@ -192,7 +198,7 @@ import {
 } from './secret-scanning/push-protection-error-dialog'
 import { GenerateCommitMessageOverrideWarning } from './generate-commit-message/generate-commit-message-override-warning'
 import { GenerateCommitMessageDisclaimer } from './generate-commit-message/generate-commit-message-disclaimer'
-import { IAPICreatePushProtectionBypassResponse } from '../lib/api'
+import { IAPICreatePushProtectionBypassResponse, getDotComAPIEndpoint, IAPIRepository, IAPIProjectV2 } from '../lib/api'
 import {
   BypassPushProtectionDialog,
   BypassReason,
@@ -1594,6 +1600,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
             selectedTabSize={this.state.selectedTabSize}
+            editorSettings={this.state.editorSettings}
             useCustomEditor={this.state.useCustomEditor}
             customEditor={this.state.customEditor}
             useCustomShell={this.state.useCustomShell}
@@ -2575,6 +2582,60 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.CreateTask: {
+        const tasksState = this.state.tasksState
+        return (
+          <CreateTaskDialog
+            key="create-task"
+            owner={popup.repository.gitHubRepository.owner.login}
+            repoName={popup.repository.gitHubRepository.name}
+            collaborators={tasksState.collaborators}
+            labels={tasksState.labels}
+            milestones={tasksState.milestones}
+            projects={tasksState.projects}
+            onDismissed={onPopupDismissedFn}
+            onLoad={() => {
+              // Fetch collaborators, labels, milestones, and projects for the repository
+              this.props.dispatcher.fetchCollaborators(popup.repository)
+              this.props.dispatcher.fetchLabels(popup.repository)
+              this.props.dispatcher.fetchMilestones(popup.repository)
+              this.props.dispatcher.fetchProjects(popup.repository)
+            }}
+            onCreateTask={async (
+              title,
+              body,
+              assignees,
+              labels,
+              milestone,
+              projectId,
+              statusOptionId
+            ) => {
+              await this.props.dispatcher.createTask(
+                popup.repository,
+                title,
+                body,
+                assignees,
+                labels,
+                milestone,
+                projectId,
+                statusOptionId
+              )
+            }}
+          />
+        )
+      }
+      case PopupType.AddRepositoryDialog: {
+        return (
+          <AddRepositoryDialog
+            key="add-repository-dialog"
+            dispatcher={this.props.dispatcher}
+            onDismissed={onPopupDismissedFn}
+            initialTab={popup.initialTab}
+            accounts={this.state.accounts}
+            isTopMost={isTopMost}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2857,11 +2918,181 @@ export class App extends React.Component<IAppProps, IAppState> {
       >
         {this.renderToolbar()}
         {this.renderBanner()}
-        {this.renderRepository()}
+        {this.state.projectViewOpen && this.state.selectedProject
+          ? this.renderProjectView()
+          : this.renderRepository()}
         {this.renderPopups()}
         {this.renderDragElement()}
       </div>
     )
+  }
+
+  private renderProjectView() {
+    const { selectedProject, selectedState } = this.state
+    if (!selectedProject) {
+      return null
+    }
+
+    // Get the first available GitHub.com account (the user who can access the organization)
+    const account = this.state.accounts[0]
+    if (!account) {
+      return null
+    }
+
+    // Get the currently selected repository, if any
+    const repository = selectedState?.type === SelectionType.Repository
+      ? selectedState.repository
+      : null
+
+    return (
+      <ProjectView
+        dispatcher={this.props.dispatcher}
+        project={selectedProject}
+        account={account}
+        repository={repository}
+        onClose={this.onCloseProjectView}
+      />
+    )
+  }
+
+  private onCloseProjectView = () => {
+    this.props.dispatcher.setProjectViewOpen(false)
+  }
+
+  private getLocalRepositoryInfos = (): ReadonlyArray<ILocalRepoInfo> => {
+    const localRepos: ILocalRepoInfo[] = []
+    for (const repo of this.state.repositories) {
+      if (repo instanceof Repository && repo.gitHubRepository) {
+        localRepos.push({
+          fullName: repo.gitHubRepository.fullName,
+          path: repo.path,
+        })
+      }
+    }
+    return localRepos
+  }
+
+  private getLocalOnlyRepositories = (): ReadonlyArray<ILocalOnlyRepoInfo> => {
+    const localOnlyRepos: ILocalOnlyRepoInfo[] = []
+    for (const repo of this.state.repositories) {
+      // Local-only repos are Repository instances without a gitHubRepository
+      if (repo instanceof Repository && !repo.gitHubRepository) {
+        localOnlyRepos.push({
+          id: repo.id,
+          name: repo.alias || repo.name,
+          path: repo.path,
+        })
+      }
+    }
+    return localOnlyRepos
+  }
+
+  private getRecentAPIRepositories = (selectedOwner: string | null): ReadonlyArray<IAPIRepository> => {
+    const { ownerRepositories, recentRepositories, repositories } = this.state
+    const MAX_RECENT = 5
+
+    // Build a map of ownerRepositories by fullName for quick lookup
+    const apiRepoMap = new Map<string, IAPIRepository>()
+    for (const apiRepo of ownerRepositories) {
+      const fullName = `${apiRepo.owner.login}/${apiRepo.name}`.toLowerCase()
+      apiRepoMap.set(fullName, apiRepo)
+    }
+
+    // Iterate through recent repos in order (maintains recency order)
+    const result: IAPIRepository[] = []
+    for (const repoId of recentRepositories) {
+      if (result.length >= MAX_RECENT) break
+
+      const repo = repositories.find(r => r.id === repoId)
+      if (!(repo instanceof Repository) || !repo.gitHubRepository) {
+        continue // Skip non-GitHub repos (handled separately)
+      }
+
+      const fullName = repo.gitHubRepository.fullName.toLowerCase()
+      const apiRepo = apiRepoMap.get(fullName)
+
+      if (!apiRepo) continue // Not in ownerRepositories (not loaded yet)
+
+      // Filter by owner if one is selected
+      if (selectedOwner && apiRepo.owner.login.toLowerCase() !== selectedOwner.toLowerCase()) {
+        continue
+      }
+
+      result.push(apiRepo)
+    }
+
+    return result
+  }
+
+  private getRecentLocalOnlyRepositories = (): ReadonlyArray<ILocalOnlyRepoInfo> => {
+    const { recentRepositories, repositories } = this.state
+    const MAX_RECENT = 5
+
+    const result: ILocalOnlyRepoInfo[] = []
+    for (const repoId of recentRepositories) {
+      if (result.length >= MAX_RECENT) break
+
+      const repo = repositories.find(r => r.id === repoId)
+      // Only include local-only repos (no gitHubRepository)
+      if (repo instanceof Repository && !repo.gitHubRepository) {
+        result.push({
+          id: repo.id,
+          name: repo.alias || repo.name,
+          path: repo.path,
+        })
+      }
+    }
+
+    return result
+  }
+
+  private onLocalOnlyRepositoryClicked = (repoId: number) => {
+    // Find the local-only repository by ID
+    const localRepo = this.state.repositories.find(
+      r => r instanceof Repository && r.id === repoId
+    )
+
+    if (localRepo) {
+      this.onSelectionChanged(localRepo)
+      this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+    }
+  }
+
+  private onCloneAPIRepository = (repo: IAPIRepository) => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+    this.showCloneRepo(repo.clone_url)
+  }
+
+  private onLocateRepository = (path: string) => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+    shell.showItemInFolder(path)
+  }
+
+  private onAddExistingRepository = async (repo: IAPIRepository) => {
+    const path = await showOpenDialog({
+      properties: ['openDirectory'],
+    })
+
+    if (path === null) {
+      return
+    }
+
+    const repoType = await getRepositoryType(path)
+    if (repoType.kind !== 'regular' && repoType.kind !== 'bare') {
+      this.props.dispatcher.postError(
+        new Error(
+          `The selected folder is not a Git repository. Please choose a folder that contains a .git directory.`
+        )
+      )
+      return
+    }
+
+    const addedRepos = await this.props.dispatcher.addRepositories([path])
+    if (addedRepos.length > 0) {
+      const addedRepo = addedRepos[0]
+      await this.props.dispatcher.selectRepository(addedRepo)
+      this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+    }
   }
 
   private renderRepositoryList = (): JSX.Element => {
@@ -2869,8 +3100,44 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? this.state.selectedState.repository
       : null
 
-    const { useCustomShell, selectedShell } = this.state
+    const { useCustomShell, selectedShell, selectedOwner, ownerRepositories, loadingOwnerRepos } = this.state
     const filterText = this.state.repositoryFilterText
+
+    // Show GitHub repos when an owner is selected OR when "All Owners" with repos loaded
+    const account = this.state.accounts.find(a => a.endpoint === getDotComAPIEndpoint())
+    if (account && (selectedOwner || ownerRepositories.length > 0 || loadingOwnerRepos)) {
+      const localRepos = this.getLocalRepositoryInfos()
+      // Only show local-only repos in "All Owners" mode (when no specific owner selected)
+      const localOnlyRepos = selectedOwner ? undefined : this.getLocalOnlyRepositories()
+      // Get recent repos filtered by the selected owner
+      const recentRepos = this.getRecentAPIRepositories(selectedOwner)
+      // Only show recent local-only repos in "All Owners" mode
+      const recentLocalOnlyRepos = selectedOwner ? undefined : this.getRecentLocalOnlyRepositories()
+      return (
+        <CloneableRepositoryFilterList
+          account={account}
+          selectedItem={this.state.selectedAPIRepository}
+          onSelectionChanged={this.onAPIRepositorySelectionChanged}
+          repositories={ownerRepositories.length > 0 ? ownerRepositories : null}
+          recentRepositories={recentRepos}
+          recentLocalOnlyRepositories={recentLocalOnlyRepos}
+          loading={loadingOwnerRepos}
+          filterText={filterText}
+          onFilterTextChanged={this.onRepositoryFilterTextChanged}
+          onRefreshRepositories={this.onRefreshOwnerRepositories}
+          onItemClicked={this.onAPIRepositoryClicked}
+          localRepositories={localRepos}
+          localOnlyRepositories={localOnlyRepos}
+          onLocalOnlyRepositoryClicked={this.onLocalOnlyRepositoryClicked}
+          onCloneRepository={this.onCloneAPIRepository}
+          onLocateRepository={this.onLocateRepository}
+          onAddExistingRepository={this.onAddExistingRepository}
+          renderPreFilter={this.renderNewRepositoryButton}
+        />
+      )
+    }
+
+    // Default: show local repositories
     return (
       <RepositoriesList
         filterText={filterText}
@@ -2893,6 +3160,56 @@ export class App extends React.Component<IAppProps, IAppState> {
         dispatcher={this.props.dispatcher}
       />
     )
+  }
+
+  private renderNewRepositoryButton = (): JSX.Element => {
+    return (
+      <Button
+        className="new-repository-button"
+        onClick={this.showAddRepositoryDialog}
+        tooltip="Add repository"
+      >
+        <Octicon symbol={octicons.plus} />
+      </Button>
+    )
+  }
+
+  private showAddRepositoryDialog = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.AddRepositoryDialog,
+    })
+  }
+
+  private onAPIRepositorySelectionChanged = (repo: IAPIRepository | null) => {
+    this.props.dispatcher.setSelectedAPIRepository(repo)
+  }
+
+  private onRefreshOwnerRepositories = () => {
+    // Refresh by re-selecting the owner
+    if (this.state.selectedOwner) {
+      this.props.dispatcher.setSelectedOwner(this.state.selectedOwner)
+    }
+  }
+
+  private onAPIRepositoryClicked = (repo: IAPIRepository) => {
+    // Check if this repo is already cloned locally
+    const repoFullName = `${repo.owner.login}/${repo.name}`
+    const localRepo = this.state.repositories.find(r => {
+      if (r instanceof Repository && r.gitHubRepository) {
+        return r.gitHubRepository.fullName === repoFullName
+      }
+      return false
+    })
+
+    if (localRepo) {
+      // If already cloned, select it
+      this.onSelectionChanged(localRepo)
+      this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+    } else {
+      // If not cloned, open the clone dialog with this repo's URL
+      this.props.dispatcher.closeFoldout(FoldoutType.Repository)
+      this.showCloneRepo(repo.clone_url)
+    }
   }
 
   private viewOnGitHub = (
@@ -2983,7 +3300,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (repository) {
       const alias = repository instanceof Repository ? repository.alias : null
       icon = iconForRepository(repository)
-      title = alias ?? repository.name
+      const repoName = alias ?? repository.name
+      // Show owner/repo format when "All Owners" is selected
+      if (!this.state.selectedOwner && repository instanceof Repository && repository.gitHubRepository) {
+        title = `${repository.gitHubRepository.owner.login}/${repoName}`
+      } else {
+        title = repoName
+      }
     } else if (this.state.repositories.length > 0) {
       icon = octicons.repo
       title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
@@ -3000,17 +3323,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const tooltip = repository && !isOpen ? repository.path : undefined
 
-    const foldoutWidth = clamp(this.state.sidebarWidth)
-
-    const foldoutStyle: React.CSSProperties = {
-      position: 'absolute',
-      marginLeft: 0,
-      width: foldoutWidth,
-      minWidth: foldoutWidth,
-      height: '100%',
-      top: 0,
-    }
-
     /** The dropdown focus trap will stop focus event propagation we made need
      * in some of our dialogs (noticed with Lists). Disabled this when dialogs
      * are open */
@@ -3022,12 +3334,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         title={title}
         description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
         tooltip={tooltip}
-        foldoutStyle={foldoutStyle}
+        dropdownStyle={ToolbarDropdownStyle.MultiOption}
         onContextMenu={this.onRepositoryToolbarButtonContextMenu}
         onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
         dropdownContentRenderer={this.renderRepositoryList}
         dropdownState={currentState}
         enableFocusTrap={enableFocusTrap}
+        showDisclosureArrow={true}
       />
     )
   }
@@ -3334,17 +3647,270 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const width = clamp(this.state.sidebarWidth)
-
     return (
       <Toolbar id="desktop-app-toolbar">
-        <div className="sidebar-section" style={{ width }}>
-          {this.renderRepositoryToolbarButton()}
-        </div>
+        {this.renderOwnerToolbarButton()}
+        {this.renderProjectToolbarButton()}
+        {this.renderRepositoryToolbarButton()}
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
       </Toolbar>
     )
+  }
+
+  private organizationsLoadRequested = false
+
+  private renderOwnerToolbarButton() {
+    // Get the current account (prefer dotcom)
+    const account = this.state.accounts.find(a => a.endpoint === getDotComAPIEndpoint())
+    if (!account) {
+      return null
+    }
+
+    // Load organizations if we haven't yet
+    if (!this.organizationsLoadRequested) {
+      this.organizationsLoadRequested = true
+      this.props.dispatcher.loadOrganizations()
+    }
+
+    const { selectedOwner, currentFoldout } = this.state
+    const isOpen = currentFoldout?.type === FoldoutType.Owner
+    const currentState: DropdownState = isOpen ? 'open' : 'closed'
+
+    const title = selectedOwner || 'All Owners'
+    const icon = octicons.person
+
+    return (
+      <ToolbarDropdown
+        className="owner-dropdown"
+        icon={icon}
+        title={title}
+        description="Owner"
+        onDropdownStateChanged={this.onOwnerDropdownStateChanged}
+        dropdownContentRenderer={this.renderOwnerList}
+        dropdownState={currentState}
+        dropdownStyle={ToolbarDropdownStyle.MultiOption}
+        showDisclosureArrow={true}
+      />
+    )
+  }
+
+  private renderOwnerList = (): JSX.Element => {
+    const { selectedOwner, organizations, ownerFilterText } = this.state
+    const account = this.state.accounts.find(a => a.endpoint === getDotComAPIEndpoint())
+
+    const items: Array<{ id: string; login: string; isOrg: boolean }> = [
+      { id: '', login: 'All Owners', isOrg: false },
+    ]
+
+    if (account) {
+      items.push({ id: account.login, login: account.login, isOrg: false })
+    }
+
+    for (const org of organizations) {
+      items.push({ id: org.login, login: org.login, isOrg: true })
+    }
+
+    // Filter items based on filter text
+    const filterText = ownerFilterText?.toLowerCase() || ''
+    const filteredItems = filterText
+      ? items.filter(item => item.login.toLowerCase().includes(filterText))
+      : items
+
+    return (
+      <div className="owner-dropdown-list">
+        <input
+          type="text"
+          className="filter-input"
+          placeholder="Filter owners..."
+          value={ownerFilterText || ''}
+          onChange={e => this.setState({ ownerFilterText: e.target.value })}
+          autoFocus
+        />
+        <div className="owner-dropdown-items">
+          {filteredItems.map(item => {
+            const isSelected =
+              (item.id === '' && selectedOwner === null) ||
+              item.login === selectedOwner
+            return (
+              <button
+                key={item.id}
+                className={`owner-dropdown-item ${isSelected ? 'selected' : ''}`}
+                onClick={() => this.onOwnerSelected(item.id === '' ? null : item.login)}
+                type="button"
+              >
+                <span className="owner-name">{item.login}</span>
+                {isSelected && <Octicon symbol={octicons.check} />}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  private onOwnerSelected = (owner: string | null) => {
+    this.props.dispatcher.setSelectedOwner(owner)
+    this.props.dispatcher.closeFoldout(FoldoutType.Owner)
+  }
+
+  private onOwnerDropdownStateChanged = (
+    state: DropdownState,
+    source: 'keyboard' | 'pointer'
+  ) => {
+    if (state === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Owner })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.Owner)
+    }
+  }
+
+  private renderProjectToolbarButton() {
+    const { selectedProject, currentFoldout } = this.state
+
+    const isOpen = currentFoldout?.type === FoldoutType.Project
+    const currentState: DropdownState = isOpen ? 'open' : 'closed'
+
+    // Show owner in title when a project is selected
+    let title = 'All Projects'
+    if (selectedProject) {
+      title = selectedProject.owner
+        ? `${selectedProject.owner}/${selectedProject.title}`
+        : selectedProject.title
+    }
+    const icon = octicons.project
+
+    return (
+      <ToolbarDropdown
+        className="project-dropdown"
+        icon={icon}
+        title={title}
+        description="Project"
+        onClick={this.onProjectButtonClick}
+        onDropdownStateChanged={this.onProjectDropdownStateChanged}
+        dropdownContentRenderer={this.renderProjectList}
+        dropdownState={currentState}
+        dropdownStyle={ToolbarDropdownStyle.MultiOption}
+        showDisclosureArrow={true}
+      />
+    )
+  }
+
+  private onProjectButtonClick = () => {
+    // Navigate to project view (toggles it open/closed)
+    const { selectedProject, projectViewOpen } = this.state
+    if (selectedProject) {
+      this.props.dispatcher.setProjectViewOpen(!projectViewOpen)
+    }
+  }
+
+  private renderProjectList = (): JSX.Element => {
+    const { selectedProject, ownerProjects, projectFilterText, selectedOwner } = this.state
+
+    // Filter items based on filter text
+    const filterText = projectFilterText?.toLowerCase() || ''
+    const filteredProjects = filterText
+      ? ownerProjects.filter(p =>
+          p.title.toLowerCase().includes(filterText) ||
+          (p.owner?.toLowerCase() || '').includes(filterText)
+        )
+      : ownerProjects
+
+    // Group projects by owner when showing all owners
+    const groupedProjects = new Map<string, IAPIProjectV2[]>()
+    for (const project of filteredProjects) {
+      const owner = project.owner || 'Unknown'
+      if (!groupedProjects.has(owner)) {
+        groupedProjects.set(owner, [])
+      }
+      groupedProjects.get(owner)!.push(project)
+    }
+
+    // Sort owners alphabetically
+    const sortedOwners = Array.from(groupedProjects.keys()).sort()
+
+    return (
+      <div className="project-dropdown-list">
+        <input
+          type="text"
+          className="filter-input"
+          placeholder="Filter projects..."
+          value={projectFilterText || ''}
+          onChange={e => this.setState({ projectFilterText: e.target.value })}
+          autoFocus
+        />
+        <div className="project-dropdown-items">
+          {/* All Projects option */}
+          <button
+            key="all-projects"
+            className={`project-dropdown-item ${selectedProject === null ? 'selected' : ''}`}
+            onClick={() => this.onProjectSelected(null)}
+            type="button"
+          >
+            <span className="project-name">All Projects</span>
+            {selectedProject === null && <Octicon symbol={octicons.check} />}
+          </button>
+
+          {/* Show projects grouped by owner when "All Owners" is selected, otherwise flat list */}
+          {!selectedOwner ? (
+            // Grouped by owner
+            sortedOwners.map(owner => (
+              <div key={owner} className="project-owner-group">
+                <div className="project-owner-header">{owner}</div>
+                {groupedProjects.get(owner)!.map(project => {
+                  const isSelected = selectedProject?.id === project.id
+                  return (
+                    <button
+                      key={project.id}
+                      className={`project-dropdown-item ${isSelected ? 'selected' : ''}`}
+                      onClick={() => this.onProjectSelected(project)}
+                      type="button"
+                    >
+                      <span className="project-name">{project.title}</span>
+                      {isSelected && <Octicon symbol={octicons.check} />}
+                    </button>
+                  )
+                })}
+              </div>
+            ))
+          ) : (
+            // Flat list when specific owner is selected
+            filteredProjects.map(project => {
+              const isSelected = selectedProject?.id === project.id
+              return (
+                <button
+                  key={project.id}
+                  className={`project-dropdown-item ${isSelected ? 'selected' : ''}`}
+                  onClick={() => this.onProjectSelected(project)}
+                  type="button"
+                >
+                  <span className="project-name">{project.title}</span>
+                  {isSelected && <Octicon symbol={octicons.check} />}
+                </button>
+              )
+            })
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  private onProjectSelected = (project: IAPIProjectV2 | null) => {
+    this.props.dispatcher.setSelectedProject(project)
+    this.props.dispatcher.closeFoldout(FoldoutType.Project)
+    // Open project view when a project is selected, close when "All Projects" is selected
+    this.props.dispatcher.setProjectViewOpen(project !== null)
+  }
+
+  private onProjectDropdownStateChanged = (
+    state: DropdownState,
+    source: 'keyboard' | 'pointer'
+  ) => {
+    if (state === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Project })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.Project)
+    }
   }
 
   private renderRepository() {
@@ -3383,6 +3949,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           // component to reset the scroll positions.
           key={selectedState.repository.hash}
           repository={selectedState.repository}
+          repositories={this.state.repositories.filter((r): r is Repository => r instanceof Repository)}
           state={selectedState.state}
           dispatcher={this.props.dispatcher}
           emoji={state.emoji}
@@ -3431,6 +3998,9 @@ export class App extends React.Component<IAppProps, IAppState> {
           shouldShowGenerateCommitMessageCallOut={
             !this.state.commitMessageGenerationButtonClicked
           }
+          tasksState={state.tasksState}
+          selectedProject={state.selectedProject}
+          editorSettings={state.editorSettings}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

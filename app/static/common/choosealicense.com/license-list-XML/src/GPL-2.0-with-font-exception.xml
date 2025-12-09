@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isDeprecated="true" deprecatedVersion="2.0rc2" licenseId="GPL-2.0-with-font-exception"
+            name="GNU General Public License v2.0 w/Font exception">
+      <obsoletedBys>
+         <obsoletedBy>GPL-2.0 WITH Font-exception-2.0</obsoletedBy>
+         <obsoletedBy expression="GPL-2.0-with-font-exception+">GPL-2.0-or-later+ WITH Font-exception-2.0</obsoletedBy>
+      </obsoletedBys>
+      <crossRefs>
+         <crossRef>https://www.gnu.org/licenses/gpl-faq.html#FontException</crossRef>
+      </crossRefs>
+      <notes>DEPRECATED: Use license expression including main license, "WITH" operator, and identifier: Font-exception-2.0</notes>
+    <text>
+	     <p>insert GPL v2 license text here</p>
+	     <p>Font Exception</p>
+	     <p>As a special exception, if you create a document which uses this font, and embed this font or unaltered portions of this font into the document, this font does not by itself cause the resulting document to be covered by the GNU General Public License. This exception does not however invalidate any other reasons why the document might be covered by the GNU General Public License. If you modify this font, you may extend this exception to your version of the font, but you are not obligated to do so. If you do not wish to do so, delete this exception statement from your version.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

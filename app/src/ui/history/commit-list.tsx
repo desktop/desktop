@@ -16,7 +16,6 @@ import {
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { clipboard } from 'electron'
 import { RowIndexPath } from '../lib/list/list-row-index-path'
-import { assertNever } from '../../lib/fatal-error'
 import { CommitDragElement } from '../drag-elements/commit-drag-element'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 import debounce from 'lodash/debounce'
@@ -216,7 +215,10 @@ export class CommitList extends React.Component<
     (insertionIndexPath: RowIndexPath | null) => {
       const { keyboardReorderData } = this.props
 
-      if (keyboardReorderData === undefined) {
+      if (
+        keyboardReorderData === undefined ||
+        keyboardReorderData.type !== DragType.Commit
+      ) {
         this.setState({ reorderingMessage: '' })
         return
       }
@@ -667,27 +669,28 @@ export class CommitList extends React.Component<
     data: KeyboardInsertionData
   ): JSX.Element | null => {
     const { emoji, gitHubRepository } = this.props
+
+    // Only handle commit drag data in the commit list
+    if (data.type !== DragType.Commit) {
+      return null
+    }
+
     const { commits } = data
 
     if (commits.length === 0) {
       return null
     }
 
-    switch (data.type) {
-      case DragType.Commit:
-        return (
-          <CommitDragElement
-            gitHubRepository={gitHubRepository}
-            commit={commits[0]}
-            selectedCommits={commits}
-            isKeyboardInsertion={true}
-            emoji={emoji}
-            accounts={this.props.accounts}
-          />
-        )
-      default:
-        return assertNever(data.type, `Unknown drag element type: ${data}`)
-    }
+    return (
+      <CommitDragElement
+        gitHubRepository={gitHubRepository}
+        commit={commits[0]}
+        selectedCommits={commits}
+        isKeyboardInsertion={true}
+        emoji={emoji}
+        accounts={this.props.accounts}
+      />
+    )
   }
 
   private onRowContextMenu = (

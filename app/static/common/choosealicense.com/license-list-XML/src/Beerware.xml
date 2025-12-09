@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="Beerware" name="Beerware License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/Beerware</crossRef>
+         <crossRef>https://people.freebsd.org/~phk/</crossRef>
+      </crossRefs>
+
+    <text>
+      <p>"THE BEER-WARE LICENSE" (Revision 42):
+      <br></br>&lt;phk@FreeBSD.ORG&gt; wrote this file. As long as you retain
+         this notice you can do whatever you want with this stuff. If we meet some day, and you think this
+         stuff is worth it, you can buy me a beer in return Poul-Henning Kamp</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

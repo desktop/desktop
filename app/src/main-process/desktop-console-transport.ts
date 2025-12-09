@@ -22,7 +22,13 @@ const logFunctions: Record<string, Console['log']> = {
  */
 export class DesktopConsoleTransport extends TransportStream {
   public log(info: any, callback: () => void) {
-    setImmediate(() => this.emit('logged', info))
+    setImmediate(() => {
+      try {
+        this.emit('logged', info)
+      } catch (e) {
+        // Ignore emit errors when stream is closed
+      }
+    })
 
     // Winston users can use custom levels but Desktop only uses the levels
     // defined in the LogLevel type.
@@ -39,8 +45,14 @@ export class DesktopConsoleTransport extends TransportStream {
     // that's not what we're seeing so we'll safeguard here.
     try {
       logFn(info[MESSAGE])
-    } catch {}
+    } catch (e) {
+      // Ignore EPIPE and other write errors when the stream is closed
+    }
 
-    callback?.()
+    try {
+      callback?.()
+    } catch (e) {
+      // Ignore callback errors
+    }
   }
 }

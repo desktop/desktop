@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="true" licenseId="SimPL-2.0" name="Simple Public License 2.0">
+      <crossRefs>
+         <crossRef>https://opensource.org/licenses/SimPL-2.0</crossRef>
+      </crossRefs>
+    <text>
+      <titleText>
+         <p>Simple Public License (SimPL)</p>
+      </titleText>
+      <optional>
+         <p>Preamble</p>
+         <p>This Simple Public License 2.0 (SimPL 2.0 for short) is a plain language implementation of GPL 2.0. The
+         words are different, but the goal is the same - to guarantee for all users the freedom to share and
+         change software. If anyone wonders about the meaning of the SimPL, they should interpret it as
+         consistent with GPL 2.0.</p>
+      </optional>
+      <titleText>
+         <p>Simple Public License (SimPL) 2.0</p>
+      </titleText>
+
+      <p>The SimPL applies to the software's source and object code and comes with any rights that I have in it
+         (other than trademarks). You agree to the SimPL by copying, distributing, or making a derivative work
+         of the software.</p>
+      <p>You get the royalty free right to:</p>
+      <list>
+        <item>
+            <bullet>-</bullet>
+          Use the software for any purpose;
+        </item>
+        <item>
+            <bullet>-</bullet>
+          Make derivative works of it (this is called a "Derived Work");
+        </item>
+        <item>
+            <bullet>-</bullet>
+          Copy and distribute it and any Derived Work.
+        </item>
+      </list>
+      <p>If you distribute the software or a Derived Work, you must give back to the community by:</p>
+      <list>
+        <item>
+            <bullet>-</bullet>
+          Prominently noting the date of any changes you make;
+        </item>
+        <item>
+            <bullet>-</bullet>
+          Leaving other people's copyright notices, warranty disclaimers, and license terms in place;
+        </item>
+        <item>
+            <bullet>-</bullet>
+          Providing the source code, build scripts, installation scripts, and interface definitions in a
+             form that is easy to get and best to modify;
+        </item>
+        <item>
+            <bullet>-</bullet>
+          Licensing it to everyone under SimPL, or substantially similar terms (such as GPL 2.0), without
+             adding further restrictions to the rights provided;
+        </item>
+        <item>
+            <bullet>-</bullet>
+          Conspicuously announcing that it is available under that license.
+        </item>
+      </list>
+      <p>There are some things that you must shoulder:</p>
+      <list>
+        <item>
+            <bullet>-</bullet>
+          You get NO WARRANTIES. None of any kind;
+        </item>
+        <item>
+            <bullet>-</bullet>
+          If the software damages you in any way, you may only recover direct damages up to the amount you
+             paid for it (that is zero if you did not pay anything). You may not recover any other damages,
+             including those called "consequential damages." (The state or country where you live may not
+             allow you to limit your liability in this way, so this may not apply to you);
+        </item>
+      </list>
+      <p>The SimPL continues perpetually, except that your license rights end automatically if:</p>
+      <list>
+        <item>
+            <bullet>-</bullet>
+          You do not abide by the "give back to the community" terms (your licensees get to keep their
+             rights if they abide);
+        </item>
+        <item>
+            <bullet>-</bullet>
+          Anyone prevents you from distributing the software under the terms of the SimPL.
+        </item>
+      </list>
+      <p>License for the License</p>
+      <p>You may do anything that you want with the SimPL text; it's a license form to use in any way that you
+         find helpful. To avoid confusion, however, if you change the terms in any way then you may not call
+         your license the Simple Public License or the SimPL (but feel free to acknowledge that your license is
+         "based on the Simple Public License").</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

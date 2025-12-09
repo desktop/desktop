@@ -1,0 +1,180 @@
+/* iPads (landscape) ----------- */
+@media only screen and (max-width : 1050px) {
+  .container {
+    width: 100%;
+    padding: 0 20px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  .triptych {
+    width: 100%;
+  }
+  .triptych li {
+    width: 33%;
+    margin-left: 0;
+    padding: 0 20px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  .triptych h3 {
+    width: auto;
+    padding: 0 30px;
+  }
+  .home h2 {
+    line-height: 30px;
+    padding: 20px 100px;
+    position: relative;
+  }
+  .home h2 span {
+    position: absolute;
+    display: block;
+    float: left;
+    top: 50%;
+    margin-top: -22px;
+  }
+  .home h2 span:first-child {
+    left: 65px;
+  }
+  .home h2 span:last-child {
+    right: 65px;
+  }
+  .sidebar a.button {
+    margin: 14px 0 20px;
+  }
+  .license-body {
+    width: calc(100% - 250px);
+  }
+
+  .hint--large::after{
+    width: 150px;
+  }
+}
+
+/* iPads (portrait) ----------- */
+@media only screen and (max-width : 800px), (max-device-width : 1050px) and (orientation : portrait) {
+  .triptych h3 {
+    width: auto;
+    padding: 0 10px;
+    margin-bottom: 10px;
+  }
+  .sidebar {
+    float: left;
+    width: 50%;
+  }
+  .license-body {
+    width: 100%;
+  }
+  .license-rules {
+    border-bottom: none;
+  }
+  .license-details {
+    width: 65%;
+  }
+}
+
+/* Smartphones  ----------- */
+@media only screen and (max-width : 680px) {
+  .triptych li {
+    float: none;
+    width: 100%;
+    margin-bottom: 50px;
+  }
+  .home h2 {
+    padding: 20px 70px;
+  }
+  .home h2 span:first-child {
+    left: 35px;
+  }
+  .home h2 span:last-child {
+    right: 35px;
+  }
+  .license-overview {
+    margin-bottom: 20px;
+  }
+  .license-overview-heading {
+    float: none;
+    width: 100%;
+  }
+  .license-details {
+    float: none;
+    width: 100%;
+    padding-left: 0;
+  }
+  .site-footer {
+    text-align: center;
+  }
+  .site-footer nav, .site-footer p, .with-love {
+    float: none;
+  }
+  .site-footer nav {
+    margin: 0 auto 10px;
+  }
+}
+
+/* Smartphones (landscape) ----------- */
+@media only screen and (max-width : 481px) {
+  h1 {
+    font-size: 30px;
+    margin-bottom: 15px;
+  }
+  .home h1 {
+    font-size: 33px;
+  }
+  .home h2 {
+    font-size: 17px;
+    line-height: 20px;
+    padding: 20px 45px;
+  }
+  .home h2 span:first-child {
+    left: 0;
+  }
+  .home h2 span:last-child {
+    right: 0;
+  }
+  .home h2 span {
+    margin-top: -16px;
+  }
+  .sidebar {
+    width: 100%;
+  }
+  .license-body {
+    word-wrap: break-word;
+  }
+  .license-body pre {
+    font-size: 10px;
+  }
+  .license-rules:not(.license-rules-sidebar) li {
+    margin-right: 5px;
+    font-size: 10px;
+    -webkit-text-size-adjust: none;
+  }
+  .license-rules:not(.license-rules-sidebar) li span {
+    background-size: 44px;
+    width: 10px;
+    height: 10px;
+    top: 1px;
+    position: relative;
+  }
+  .license-rules:not(.license-rules-sidebar) .license-conditions span {
+    background-position: -34px 0;
+  }
+  .license-rules:not(.license-rules-sidebar) .license-permissions span {
+    background-position: -24px 0px;
+  }
+  .license-rules:not(.license-rules-sidebar) .license-limitations span {
+    background-position: -14px 0;
+  }
+
+  .hint--large::after{
+    width: 80px;
+  }
+}
+
+/* Smartphones (portrait) ----------- */
+@media only screen and (max-width : 321px) {
+  .container {
+    padding: 0 10px;
+  }
+}

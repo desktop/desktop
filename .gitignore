@@ -19,3 +19,5 @@ vendor/desktop-trampoline/build/
 junit*.xml
 *.swp
 tslint-rules/
+buildplan.md
+CLAUDE.md

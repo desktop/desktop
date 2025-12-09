@@ -1,0 +1,33 @@
+#!/bin/bash
+# Usage: script/regenerate
+#
+# Note: only usable on OS X
+#
+# Combines `rake db:dump` and `db/aliases.html` filter to regenerate the
+# `db/emoji.json` file using only emoji that are guaranteed to not render as
+# ordinary characters on OS X.
+
+set -e
+
+case "$1" in
+-h | --help )
+  sed -ne '/^#/!q;s/.\{1,2\}//;1d;p' < "$0"
+  exit 0
+  ;;
+esac
+
+if [ "$(uname -s)" != "Darwin" ]; then
+  echo "Error: this script must be run under Mac OS X." >&2
+  exit 1
+fi
+
+bundle exec rake db:dump > db/emoji2.json
+mv db/emoji2.json db/emoji.json
+
+open -g -a Safari db/aliases.html
+osascript db/aliases.applescript | sed '/^$/d' > db/emoji2.json
+mv db/emoji2.json db/emoji.json
+
+if git diff --exit-code --stat -- db/emoji.json; then
+  echo "Done. The file \`db/emoji.json\` remains unchanged."
+fi

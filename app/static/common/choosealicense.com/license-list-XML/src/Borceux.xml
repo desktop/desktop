@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="Borceux" name="Borceux license">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/Borceux</crossRef>
+      </crossRefs>
+    <text>
+      <copyrightText>
+         <p>Copyright 1993 Francis Borceux</p>
+      </copyrightText>
+
+      <p>You may freely use, modify, and/or distribute each of the files in this package without limitation. The
+         package consists of the following files:
+        <br/>README
+        <br/>compatibility/OldDiagram
+        <br/>compatibility/OldMaxiDiagram
+        <br/>compatibility/OldMicroDiagram
+        <br/>compatibility/OldMiniDiagram
+        <br/>compatibility/OldMultipleArrows
+        <br/>diagram/Diagram
+        <br/>diagram/MaxiDiagram
+        <br/>diagram/MicroDiagram
+        <br/>diagram/MiniDiagram
+        <br/>diagram/MultipleArrows
+        <br/>user-guides/Diagram_Mode_d_Emploi
+        <br/>user-guides/Diagram_Read_Me
+      </p>
+      <p>Of course no support is guaranteed, but the author will attempt to assist with problems. Current email address:
+        <br/>francis dot borceux at uclouvain dot be.
+      </p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

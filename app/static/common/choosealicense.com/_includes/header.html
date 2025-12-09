@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head itemscope itemtype="http://schema.org/WebSite">
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Chivo:900">
+    <link rel="stylesheet" href="{{ 'assets/css/application.css' | relative_url }}?v={{ site.github.build_revision }}">
+    <link rel="shortcut icon" href="{{ 'favicon.ico' | relative_url }}" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    {% seo %}
+  </head>
+  <body class="{{ page.layout }}{% if page.class %} {{ page.class }}{% endif %}">
+    <div class="container">
+
+      {% include breadcrumbs.html %}
+
+      {% if page.title %}
+        <h1>{{ page.title | markdownify | strip_html | strip_newlines }}</h1>
+      {% endif %}

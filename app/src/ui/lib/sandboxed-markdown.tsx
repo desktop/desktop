@@ -33,6 +33,13 @@ interface ISandboxedMarkdownProps {
    * been mounted to the iframe */
   readonly onMarkdownParsed?: () => void
 
+  /**
+   * A callback when a task list checkbox is toggled.
+   * @param index The index of the checkbox (0-based)
+   * @param checked The new checked state
+   */
+  readonly onCheckboxToggle?: (index: number, checked: boolean) => void
+
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, Emoji>
 
@@ -66,6 +73,7 @@ export class SandboxedMarkdown extends React.PureComponent<
   private frameContainingDivRef: HTMLDivElement | null = null
   private contentDivRef: HTMLDivElement | null = null
   private markdownEmitter?: MarkdownEmitter
+  private _isMounted = false
 
   /**
    * Resize observer used for tracking height changes in the markdown
@@ -75,6 +83,9 @@ export class SandboxedMarkdown extends React.PureComponent<
   private resizeDebounceId: number | null = null
 
   private onDocumentScroll = debounce(() => {
+    if (!this._isMounted) {
+      return
+    }
     this.setState({
       tooltipOffset: this.frameRef?.getBoundingClientRect() ?? new DOMRect(),
     })
@@ -145,6 +156,7 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   public async componentDidMount() {
+    this._isMounted = true
     this.initializeMarkdownEmitter()
 
     if (this.frameRef !== null) {
@@ -164,9 +176,13 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   public componentWillUnmount() {
+    this._isMounted = false
     this.markdownEmitter?.dispose()
     this.resizeObserver.disconnect()
     document.removeEventListener('scroll', this.onDocumentScroll)
+    // Cancel any pending debounced calls
+    this.onDocumentScroll.cancel()
+    this.onMarkdownUpdated.cancel()
   }
 
   /**
@@ -226,13 +242,14 @@ export class SandboxedMarkdown extends React.PureComponent<
     frameRef.addEventListener('load', () => {
       this.setupContentDivRef(frameRef)
       this.setupLinkInterceptor(frameRef)
+      this.setupCheckboxInterceptor(frameRef)
       this.setupTooltips(frameRef)
       this.setFrameContainerHeight(frameRef)
     })
   }
 
   private setupTooltips(frameRef: HTMLIFrameElement) {
-    if (frameRef.contentDocument === null) {
+    if (!this._isMounted || frameRef.contentDocument === null) {
       return
     }
 
@@ -311,10 +328,50 @@ export class SandboxedMarkdown extends React.PureComponent<
         if (a !== null) {
           ev.preventDefault()
 
-          if (/^https?:/.test(a.protocol)) {
+          // Handle wiki links (wikilink:// protocol)
+          if (a.protocol === 'wikilink:') {
+            this.props.onMarkdownLinkClicked?.(a.href)
+          } else if (/^https?:/.test(a.protocol)) {
             this.props.onMarkdownLinkClicked?.(a.href)
           }
         }
+      }
+    })
+  }
+
+  /**
+   * Sets up click interceptor for task list checkboxes to make them interactive
+   */
+  private setupCheckboxInterceptor(frameRef: HTMLIFrameElement): void {
+    if (!this.props.onCheckboxToggle || frameRef.contentDocument === null) {
+      return
+    }
+
+    const { contentWindow } = frameRef
+    if (!contentWindow) {
+      return
+    }
+
+    // Find all task list checkboxes and make them interactive
+    const checkboxes = frameRef.contentDocument.querySelectorAll(
+      'input[type="checkbox"]'
+    )
+
+    checkboxes.forEach((checkbox, index) => {
+      if (checkbox instanceof contentWindow.HTMLElement) {
+        const input = checkbox as HTMLInputElement
+        // Remove the disabled attribute to make it clickable
+        input.removeAttribute('disabled')
+        input.style.cursor = 'pointer'
+
+        input.addEventListener('click', (ev) => {
+          ev.stopPropagation()
+          const target = ev.target as HTMLInputElement
+          // Toggle the visual state immediately
+          const newChecked = target.checked
+          // Notify parent component
+          this.props.onCheckboxToggle?.(index, newChecked)
+        })
       }
     })
   }
@@ -333,6 +390,33 @@ export class SandboxedMarkdown extends React.PureComponent<
   }
 
   /**
+   * Process wiki-style links [[link]] in HTML content
+   * Converts them to clickable links with wikilink:// protocol
+   */
+  private processWikiLinks(html: string): string {
+    // Match [[...]] patterns that weren't already converted
+    // This handles wiki links in the rendered HTML
+    const wikiLinkPattern = /\[\[([^\]]+)\]\]/g
+
+    return html.replace(wikiLinkPattern, (match, linkContent) => {
+      const encodedPath = encodeURIComponent(linkContent)
+
+      // Extract display name (last part of path, without extension)
+      let displayName = linkContent
+      if (linkContent.includes(':')) {
+        displayName = linkContent.split(':')[1]
+      }
+      if (displayName.includes('/')) {
+        displayName = displayName.split('/').pop() || displayName
+      }
+      // Remove .md extension for display
+      displayName = displayName.replace(/\.md$/i, '')
+
+      return `<a href="wikilink://${encodedPath}" class="wiki-link">${displayName}</a>`
+    })
+  }
+
+  /**
    * Populates the mounted iframe with HTML generated from the provided markdown
    */
   private async mountIframeContents(markdown: string) {
@@ -342,6 +426,9 @@ export class SandboxedMarkdown extends React.PureComponent<
 
     const styleSheet = await this.getInlineStyleSheet()
 
+    // Process wiki links after markdown has been parsed to HTML
+    const processedMarkdown = this.processWikiLinks(markdown)
+
     const src = `
       <html>
         <head>
@@ -350,7 +437,7 @@ export class SandboxedMarkdown extends React.PureComponent<
         </head>
         <body class="markdown-body">
           <div id="content">
-          ${markdown}
+          ${processedMarkdown}
           </div>
         </body>
       </html>

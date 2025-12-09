@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="Sendmail-8.23" name="Sendmail License 8.23">
+      <crossRefs>
+         <crossRef>https://www.proofpoint.com/sites/default/files/sendmail-license.pdf</crossRef>
+         <crossRef>https://web.archive.org/web/20181003101040/https://www.proofpoint.com/sites/default/files/sendmail-license.pdf</crossRef>
+      </crossRefs>
+    <text>
+      <titleText>
+         <p>SENDMAIL LICENSE</p>
+      </titleText>
+      <optional>
+         <p>The following license terms and conditions apply, unless a redistribution agreement or other license is
+         obtained from Proofpoint, Inc., 892 Ross Street, Sunnyvale, CA, 94089, USA, or by
+         electronic mail at sendmail-license@proofpoint.com.</p>
+         <p>License Terms:</p>
+      </optional>
+
+      <p>Use, Modification and Redistribution (including distribution of any modified or derived work) in source
+         and binary forms is permitted only if each of the following conditions is met:</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          Redistributions qualify as "freeware" or "Open Source Software" under one of the following terms:
+        </item>
+      </list>
+      <list>
+        <item>
+            <bullet>(a)</bullet>
+          Redistributions are made at no charge beyond the reasonable cost of materials and delivery.
+        </item>
+        <item>
+            <bullet>(b)</bullet>
+          Redistributions are accompanied by a copy of the Source Code or by an irrevocable offer to
+             provide a copy of the Source Code for up to three years at the cost of materials and delivery.
+             Such redistributions must allow further use, modification, and redistribution of the Source
+             Code under substantially the same terms as this license. For the purposes of redistribution
+             "Source Code" means the complete compilable and linkable source code of sendmail and associated
+             libraries and utilities in the sendmail distribution including all modifications.
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          Redistributions of Source Code must retain the copyright notices as they appear in each Source
+             Code file, these license terms, and the disclaimer/limitation of liability set forth as
+             paragraph 6 below.
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          Redistributions in binary form must reproduce the Copyright Notice, these license terms, and the
+             disclaimer/limitation of liability set forth as paragraph 6 below, in the documentation and/or
+             other materials provided with the distribution. For the purposes of binary distribution the
+             "Copyright Notice" refers to the following language:
+            <br/>"Copyright (c) 1998-2014 Proofpoint, Inc. All rights reserved."
+
+        </item>
+        <item>
+            <bullet>4.</bullet>
+          Neither the name of Proofpoint, Inc. nor the University of California nor names of their
+             contributors may be used to endorse or promote products derived from this software without
+             specific prior written permission. The name "sendmail" is a trademark of Proofpoint, Inc.
+        </item>
+        <item>
+            <bullet>5.</bullet>
+          All redistributions must comply with the conditions imposed by the University of California on
+             certain embedded code, which copyright Notice and conditions for redistribution are as
+             follows:
+        </item>
+      </list>
+      <list>
+        <item>
+            <bullet>(a)</bullet>
+          Copyright (c) 1988, 1993 The Regents of the University of California. All rights reserved.
+        </item>
+        <item>
+            <bullet>(b)</bullet>
+          Redistribution and use in source and binary forms, with or without modification, are permitted
+             provided that the following conditions are met:
+        </item>
+      </list>
+      <list>
+        <item>
+            <bullet>(i)</bullet>
+          Redistributions of source code must retain the above copyright notice, this list of conditions
+             and the following disclaimer.
+        </item>
+        <item>
+            <bullet>(ii)</bullet>
+          Redistributions in binary form must reproduce the above copyright notice, this list of conditions
+             and the following disclaimer in the documentation and/or other materials provided with the
+             distribution.
+        </item>
+        <item>
+            <bullet>(iii)</bullet>
+          Neither the name of the University nor the names of its contributors may be used to endorse or
+             promote products derived from this software without specific prior written permission.
+        </item>
+        <item>
+            <bullet>6.</bullet>
+          Disclaimer/Limitation of Liability: THIS SOFTWARE IS PROVIDED BY SENDMAIL, INC. AND CONTRIBUTORS
+             "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+             WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+             SHALL SENDMAIL, INC., THE REGENTS OF THE UNIVERSITY OF CALIFORNIA OR CONTRIBUTORS BE LIABLE
+             FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+             BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+             PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+             CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+             OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+        </item>
+      </list>
+
+      <optional>
+         <p>$Revision: 8.23 $, Last updated $Date: 2014-01-26 20:10:01 $, Document 139848.1</p>
+      </optional>
+    </text>
+  </license>
+</SPDXLicenseCollection>

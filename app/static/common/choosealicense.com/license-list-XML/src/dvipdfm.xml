@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="dvipdfm" name="dvipdfm License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/dvipdfm</crossRef>
+      </crossRefs>
+    <text>
+      <p>A modified version of this file may be distributed, but it should be distributed with a *different* name.
+         Changed files must be distributed *together with a complete and unchanged* distribution of these
+         files.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

@@ -27,6 +27,7 @@ import {
 } from '../models/progress'
 
 import { SignInState } from './stores/sign-in-store'
+import { ITasksState } from './stores/tasks-store'
 
 import { WindowState } from './window-state'
 import { Shell } from './shells'
@@ -47,7 +48,8 @@ import {
 import { IChangesetData } from './git'
 import { Popup } from '../models/popup'
 import { RepoRulesInfo } from '../models/repo-rules'
-import { IAPIRepoRuleset } from './api'
+import { IEditorSettings } from '../models/preferences'
+import { IAPIRepoRuleset, IAPIOrganization, IAPIProjectV2, IAPIRepository } from './api'
 import { ICustomIntegration } from './custom-integration'
 import { Emoji } from './emoji'
 import { IUpdateState } from '../ui/lib/update-store'
@@ -299,6 +301,9 @@ export interface IAppState {
   /** The selected tab size preference */
   readonly selectedTabSize: number
 
+  /** Code editor settings */
+  readonly editorSettings: IEditorSettings
+
   /**
    * A map keyed on a user account (GitHub.com or GitHub Enterprise)
    * containing an object with repositories that the authenticated
@@ -384,6 +389,73 @@ export interface IAppState {
 
   /** Whether the changes filter is shown */
   readonly showChangesFilter: boolean
+
+  /** The current state of the tasks feature */
+  readonly tasksState: ITasksState
+
+  /**
+   * The currently selected owner/organization for repository filtering.
+   * Can be the user's login or an organization login.
+   * null means no filter is applied (show all).
+   */
+  readonly selectedOwner: string | null
+
+  /**
+   * Filter text for the owner dropdown.
+   */
+  readonly ownerFilterText: string
+
+  /**
+   * The organizations available to the user.
+   * Cached from the API for use in the owner selector dropdown.
+   */
+  readonly organizations: ReadonlyArray<IAPIOrganization>
+
+  /**
+   * The currently selected project for task filtering and repo highlighting.
+   * null means no project is selected.
+   */
+  readonly selectedProject: IAPIProjectV2 | null
+
+  /**
+   * Whether the project view is open. When true, the main app shows the
+   * project view instead of the repository view.
+   */
+  readonly projectViewOpen: boolean
+
+  /**
+   * Filter text for the project dropdown.
+   */
+  readonly projectFilterText: string
+
+  /**
+   * The projects available for the selected owner.
+   * Cached from the API for use in the project selector dropdown.
+   */
+  readonly ownerProjects: ReadonlyArray<IAPIProjectV2>
+
+  /**
+   * All remote repositories available to the selected owner (from GitHub API).
+   * Used to show both local and remote repos in the repository list.
+   */
+  readonly ownerRepositories: ReadonlyArray<IAPIRepository>
+
+  /**
+   * Whether owner repositories are currently being loaded from the API.
+   */
+  readonly loadingOwnerRepos: boolean
+
+  /**
+   * Repository names that have items in the selected project.
+   * Used to show green highlighting in the repository list.
+   */
+  readonly projectRepoNames: ReadonlySet<string>
+
+  /**
+   * The currently selected API repository from the GitHub repos list.
+   * This is used when browsing remote repos before cloning.
+   */
+  readonly selectedAPIRepository: IAPIRepository | null
 }
 
 export enum FoldoutType {
@@ -392,6 +464,8 @@ export enum FoldoutType {
   AppMenu,
   AddMenu,
   PushPull,
+  Owner,
+  Project,
 }
 
 export type AppMenuFoldout = {
@@ -415,10 +489,15 @@ export type Foldout =
   | BranchFoldout
   | AppMenuFoldout
   | { type: FoldoutType.PushPull }
+  | { type: FoldoutType.Owner }
+  | { type: FoldoutType.Project }
 
 export enum RepositorySectionTab {
+  Code,
   Changes,
   History,
+  Tasks,
+  Issues,
 }
 
 /**

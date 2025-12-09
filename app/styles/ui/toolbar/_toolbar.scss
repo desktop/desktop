@@ -25,11 +25,108 @@
     display: flex;
     flex-direction: row;
     flex-shrink: 0;
+    height: 100%;
 
     & > :last-child {
       // Redundant when `.resizable` is used, remove when
       // enableResizingToolbarButtons() is removed.
       flex-grow: 1;
+    }
+  }
+
+  .owner-dropdown-list,
+  .project-dropdown-list {
+    min-width: 200px;
+    max-height: 300px;
+    display: flex;
+    flex-direction: column;
+
+    .filter-input {
+      padding: var(--spacing-half) var(--spacing);
+      margin: var(--spacing-half);
+      border: 1px solid var(--box-border-color);
+      border-radius: var(--border-radius);
+      background-color: var(--box-background-color);
+      color: var(--text-color);
+      font-size: var(--font-size);
+      outline: none;
+
+      &:focus {
+        border-color: var(--focus-color);
+      }
+    }
+
+    .owner-dropdown-items,
+    .project-dropdown-items {
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .owner-dropdown-item,
+    .project-dropdown-item {
+      // Reset button styles
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-half) var(--spacing);
+      cursor: pointer;
+
+      &:hover {
+        background-color: var(--box-selected-background-color);
+      }
+
+      &.selected {
+        background-color: var(--box-selected-active-background-color);
+      }
+
+      &:focus {
+        outline: none;
+        background-color: var(--box-selected-background-color);
+      }
+
+      .owner-name,
+      .project-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .octicon {
+        margin-left: var(--spacing-half);
+        color: var(--text-color);
+      }
+    }
+
+    // Owner group headers for "All Owners" view
+    .project-owner-group,
+    .repo-owner-group {
+      .project-owner-header,
+      .repo-owner-header {
+        padding: var(--spacing-half) var(--spacing);
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        color: var(--text-secondary-color);
+        background-color: var(--box-alt-background-color);
+        border-top: 1px solid var(--box-border-color);
+        border-bottom: 1px solid var(--box-border-color);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+
+      .project-dropdown-item,
+      .repo-dropdown-item {
+        padding-left: var(--spacing-double);
+      }
     }
   }
 

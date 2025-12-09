@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <exception licenseId="PS-or-PDF-font-exception-20170817" name="PS/PDF font exception (2017-08-17)" listVersionAdded="3.2">
+      <crossRefs>
+        <crossRef>https://github.com/ArtifexSoftware/urw-base35-fonts/blob/65962e27febc3883a17e651cdb23e783668c996f/LICENSE</crossRef>
+      </crossRefs>
+      <notes>Author-suggested standard header language recommends use with APGL-3.0</notes>
+    <text>
+      <optional>
+        <p>The font and related files in this directory are distributed under the
+        GNU AFFERO GENERAL PUBLIC LICENSE Version 3 (see the file COPYING), with
+        the following exemption:</p>
+      </optional>
+      <p>As a special exception, permission is granted to include these font
+        programs in a Postscript or PDF file that consists of a document that
+        contains text to be displayed or printed using this font, regardless
+        of the conditions or license applying to the document itself.</p>
+    </text>
+  </exception>
+</SPDXLicenseCollection>

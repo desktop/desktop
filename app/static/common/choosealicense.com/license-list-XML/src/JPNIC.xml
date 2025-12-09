@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+  <license isOsiApproved="false" licenseId="JPNIC" name="Japan Network Information Center License" listVersionAdded="3.5">
+    <crossRefs>
+      <crossRef>https://gitlab.isc.org/isc-projects/bind9/blob/master/COPYRIGHT#L366</crossRef>
+    </crossRefs>
+    <text>
+      <titleText>
+        <p>Japan Network Information Center License</p>
+      </titleText>
+      <copyrightText>
+        <p>Copyright (c) 2000-2002 Japan Network Information Center. All rights reserved.</p>
+      </copyrightText>
+      <p>By using this file, you agree to the terms and conditions set forth <alt match="bellow|below" name="bellow">bellow</alt>.</p>
+      <p>LICENSE TERMS AND CONDITIONS</p>
+      <p>The following License Terms and Conditions apply, unless a different license is obtained from <alt match=".+" name="organizationClause1">Japan Network Information Center</alt> ("<alt match=".+" name="organizationClause2">JPNIC</alt>"), <alt match=".+" name="organizationClause3">a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda, Chiyoda-ku, Tokyo 101-0047, Japan</alt>.</p>
+      <list>
+        <item><bullet>1.</bullet>
+          Use, Modification and Redistribution (including distribution of any modified or derived work) in source and/or binary forms is permitted under this License Terms and Conditions.
+        </item>
+        <item><bullet>2.</bullet>
+          Redistribution of source code must retain the copyright notices as they appear in each source code file, this License Terms and Conditions.
+        </item>
+        <item><bullet>3.</bullet>
+          Redistribution in binary form must reproduce the Copyright Notice, this License Terms and Conditions, in the documentation and/or other materials provided with the distribution. For the purposes of binary distribution the "Copyright Notice" refers to the following language: "Copyright (c) <alt name="copyright" match=".+">2000-2002 Japan Network Information Center</alt>. All rights reserved."
+        </item>
+        <item><bullet>4.</bullet>
+          The name of <alt match=".+" name="organizationClause2">JPNIC</alt> may not be used to endorse or promote products derived from this Software without specific prior written approval of <alt match=".+" name="organizationClause2">JPNIC</alt>.
+        </item>
+        <item><bullet>5.</bullet>
+          Disclaimer/Limitation of Liability: THIS SOFTWARE IS PROVIDED BY <alt match=".+" name="organizationClause2">JPNIC</alt> "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL <alt match=".+" name="organizationClause2">JPNIC</alt> BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+        </item>
+      </list>
+    </text>
+  </license>
+</SPDXLicenseCollection>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="Zed" name="Zed License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/Zed</crossRef>
+      </crossRefs>
+    <text>
+      <copyrightText>
+         <p>(c) Jim Davies, January 1995</p>
+      </copyrightText>
+
+      <p>You may copy and distribute this file freely. Any queries and complaints should be forwarded to
+         Jim.Davies@comlab.ox.ac.uk.</p>
+      <p>If you make any changes to this file, please do not distribute the results under the name `zed-csp.sty'.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

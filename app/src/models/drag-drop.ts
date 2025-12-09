@@ -1,6 +1,7 @@
 import { RowIndexPath } from '../ui/lib/list/list-row-index-path'
 import { Commit } from './commit'
 import { GitHubRepository } from './github-repository'
+import { ITask } from '../lib/databases/tasks-database'
 
 /**
  * This is a type is used in conjunction with the drag and drop manager to
@@ -9,15 +10,21 @@ import { GitHubRepository } from './github-repository'
  * Thus, using a `|` here would allow us to specify multiple types of data that
  * can be dragged.
  */
-export type DragData = CommitDragData
+export type DragData = CommitDragData | TaskDragData
 
 export type CommitDragData = {
   type: DragType.Commit
   commits: ReadonlyArray<Commit>
 }
 
+export type TaskDragData = {
+  type: DragType.Task
+  task: ITask
+}
+
 export enum DragType {
   Commit,
+  Task,
 }
 
 export type DragElement = {
@@ -38,6 +45,7 @@ export enum DropTargetSelector {
   PullRequest = '.pull-request-item',
   Commit = '.commit',
   ListInsertionPoint = '.list-insertion-point',
+  TaskItem = '.task-item',
 }
 
 export type BranchTarget = {

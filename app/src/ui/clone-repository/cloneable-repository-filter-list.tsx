@@ -6,11 +6,15 @@ import {
   ICloneableRepositoryListItem,
   groupRepositories,
   YourRepositoriesIdentifier,
+  LocalRepositoriesIdentifier,
+  RecentRepositoriesIdentifier,
 } from './group-repositories'
+import type { ILocalRepoInfo, ILocalOnlyRepoInfo } from './group-repositories'
 import memoizeOne from 'memoize-one'
 import { Button } from '../lib/button'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Octicon, syncClockwise } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 import { HighlightText } from '../lib/highlight-text'
 import { ClickSource } from '../lib/list'
 import { LinkButton } from '../lib/link-button'
@@ -36,6 +40,11 @@ interface ICloneableRepositoryFilterListProps {
    * to access, or null if no repositories has been loaded yet.
    */
   readonly repositories: ReadonlyArray<IAPIRepository> | null
+
+  /**
+   * Recently accessed repositories to show at the top.
+   */
+  readonly recentRepositories?: ReadonlyArray<IAPIRepository>
 
   /**
    * Whether or not the list of repositories is currently being loaded
@@ -78,6 +87,42 @@ interface ICloneableRepositoryFilterListProps {
   ) => void
 
   readonly renderPreFilter?: () => JSX.Element | null
+
+  /**
+   * Local repositories for determining clone status.
+   */
+  readonly localRepositories?: ReadonlyArray<ILocalRepoInfo>
+
+  /**
+   * Local-only repositories (not associated with GitHub).
+   */
+  readonly localOnlyRepositories?: ReadonlyArray<ILocalOnlyRepoInfo>
+
+  /**
+   * Recent local-only repositories to show in the Recent section.
+   */
+  readonly recentLocalOnlyRepositories?: ReadonlyArray<ILocalOnlyRepoInfo>
+
+  /**
+   * Called when a local-only repository is clicked.
+   */
+  readonly onLocalOnlyRepositoryClicked?: (repoId: number) => void
+
+  /**
+   * Called when the user wants to clone a repository.
+   */
+  readonly onCloneRepository?: (repository: IAPIRepository) => void
+
+  /**
+   * Called when the user wants to locate/show a repository in the file system.
+   */
+  readonly onLocateRepository?: (path: string) => void
+
+  /**
+   * Called when the user wants to add an existing local repository
+   * (browse for folder where repo already exists).
+   */
+  readonly onAddExistingRepository?: (repository: IAPIRepository) => void
 }
 
 const RowHeight = 31
@@ -123,8 +168,17 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
    * time the method was called (reference equality).
    */
   private getRepositoryGroups = memoizeOne(
-    (repositories: ReadonlyArray<IAPIRepository> | null, login: string) =>
-      repositories === null ? [] : groupRepositories(repositories, login)
+    (
+      repositories: ReadonlyArray<IAPIRepository> | null,
+      login: string,
+      localRepos?: ReadonlyArray<ILocalRepoInfo>,
+      localOnlyRepos?: ReadonlyArray<ILocalOnlyRepoInfo>,
+      recentRepos?: ReadonlyArray<IAPIRepository>,
+      recentLocalOnlyRepos?: ReadonlyArray<ILocalOnlyRepoInfo>
+    ) =>
+      repositories === null
+        ? groupRepositories([], login, localRepos, localOnlyRepos, recentRepos, recentLocalOnlyRepos)
+        : groupRepositories(repositories, login, localRepos, localOnlyRepos, recentRepos, recentLocalOnlyRepos)
   )
 
   /**
@@ -161,15 +215,27 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
     (groups: ReadonlyArray<IFilterListGroup<ICloneableRepositoryListItem>>) =>
     (group: number) => {
       const groupIdentifier = groups[group].identifier
-      return groupIdentifier === YourRepositoriesIdentifier
-        ? this.getYourRepositoriesLabel()
-        : groupIdentifier
+      if (groupIdentifier === YourRepositoriesIdentifier) {
+        return this.getYourRepositoriesLabel()
+      } else if (groupIdentifier === LocalRepositoriesIdentifier) {
+        return this.getLocalRepositoriesLabel()
+      } else if (groupIdentifier === RecentRepositoriesIdentifier) {
+        return this.getRecentRepositoriesLabel()
+      }
+      return groupIdentifier
     }
 
   public render() {
-    const { repositories, account, selectedItem } = this.props
+    const { repositories, account, selectedItem, localRepositories, localOnlyRepositories, recentRepositories, recentLocalOnlyRepositories } = this.props
 
-    const groups = this.getRepositoryGroups(repositories, account.login)
+    const groups = this.getRepositoryGroups(
+      repositories,
+      account.login,
+      localRepositories,
+      localOnlyRepositories,
+      recentRepositories,
+      recentLocalOnlyRepositories
+    )
     const selectedListItem = this.getSelectedListItem(groups, selectedItem)
 
     return (
@@ -187,7 +253,7 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
         renderNoItems={this.renderNoItems}
         renderPostFilter={this.renderPostFilter}
         renderPreFilter={this.props.renderPreFilter}
-        onItemClick={this.props.onItemClicked ? this.onItemClick : undefined}
+        onItemClick={this.props.onItemClicked || this.props.onLocalOnlyRepositoryClicked ? this.onItemClick : undefined}
         placeholderText={'Filter your repositories'}
         getGroupAriaLabel={this.getGroupAriaLabelGetter(groups)}
       />
@@ -198,6 +264,15 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
     item: ICloneableRepositoryListItem,
     source: ClickSource
   ) => {
+    // Handle local-only repository clicks
+    if (item.isLocalOnly && item.localRepoId !== undefined) {
+      const { onLocalOnlyRepositoryClicked } = this.props
+      if (onLocalOnlyRepositoryClicked) {
+        onLocalOnlyRepositoryClicked(item.localRepoId)
+      }
+      return
+    }
+
     const { onItemClicked, repositories } = this.props
 
     if (onItemClicked === undefined || repositories === null) {
@@ -225,10 +300,22 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
     return __DARWIN__ ? 'Your Repositories' : 'Your repositories'
   }
 
+  private getLocalRepositoriesLabel = () => {
+    return __DARWIN__ ? 'Local Repositories' : 'Local repositories'
+  }
+
+  private getRecentRepositoriesLabel = () => {
+    return 'Recent'
+  }
+
   private renderGroupHeader = (identifier: string) => {
     let header = identifier
     if (identifier === YourRepositoriesIdentifier) {
       header = this.getYourRepositoriesLabel()
+    } else if (identifier === LocalRepositoriesIdentifier) {
+      header = this.getLocalRepositoriesLabel()
+    } else if (identifier === RecentRepositoriesIdentifier) {
+      header = this.getRecentRepositoriesLabel()
     }
     return (
       <div className="clone-repository-list-content clone-repository-list-group-header">
@@ -237,10 +324,85 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
     )
   }
 
+  private onCloneClick = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    item: ICloneableRepositoryListItem
+  ) => {
+    e.stopPropagation()
+    e.preventDefault()
+
+    const { onCloneRepository, repositories } = this.props
+    if (!onCloneRepository || !repositories) {
+      return
+    }
+
+    const repo = findRepositoryForListItem(repositories, item)
+    if (repo) {
+      onCloneRepository(repo)
+    }
+  }
+
+  private onLocateClick = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    item: ICloneableRepositoryListItem
+  ) => {
+    e.stopPropagation()
+    e.preventDefault()
+
+    const { onLocateRepository } = this.props
+    if (onLocateRepository && item.localPath) {
+      onLocateRepository(item.localPath)
+    }
+  }
+
+  private onAddExistingClick = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    item: ICloneableRepositoryListItem
+  ) => {
+    e.stopPropagation()
+    e.preventDefault()
+
+    const { onAddExistingRepository, repositories } = this.props
+    if (!onAddExistingRepository || !repositories) {
+      return
+    }
+
+    const repo = findRepositoryForListItem(repositories, item)
+    if (repo) {
+      onAddExistingRepository(repo)
+    }
+  }
+
   private renderItem = (
     item: ICloneableRepositoryListItem,
     matches: IMatches
   ) => {
+    const { onCloneRepository, onLocateRepository, onAddExistingRepository } = this.props
+
+    // Local-only repos have a simpler display
+    if (item.isLocalOnly) {
+      return (
+        <div className="clone-repository-list-item local-only-repo">
+          <Octicon className="icon" symbol={item.icon} />
+          <TooltippedContent
+            className="name"
+            tooltip={item.localPath || item.text[0]}
+            onlyWhenOverflowed={true}
+            tagName="div"
+          >
+            <HighlightText text={item.text[0]} highlight={matches.title} />
+          </TooltippedContent>
+          <div className="repo-status-actions">
+            <span className="local-badge" title="Local repository">
+              <Octicon symbol={octicons.deviceDesktop} />
+            </span>
+          </div>
+        </div>
+      )
+    }
+
+    const showActions = onCloneRepository || onLocateRepository || onAddExistingRepository
+
     return (
       <div className="clone-repository-list-item">
         <Octicon className="icon" symbol={item.icon} />
@@ -253,6 +415,50 @@ export class CloneableRepositoryFilterList extends React.PureComponent<ICloneabl
           <HighlightText text={item.text[0]} highlight={matches.title} />
         </TooltippedContent>
         {item.archived && <div className="archived">Archived</div>}
+        {showActions && (
+          <div className="repo-status-actions">
+            {item.isCloned ? (
+              <>
+                <span className="cloned-badge" title="Downloaded">
+                  <Octicon symbol={octicons.check} />
+                </span>
+                {onLocateRepository && item.localPath && (
+                  <button
+                    className="locate-button"
+                    onClick={e => this.onLocateClick(e, item)}
+                    title={`Show in Finder: ${item.localPath}`}
+                  >
+                    <Octicon symbol={octicons.fileDirectory} />
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <span className="not-cloned-badge" title="Not downloaded">
+                  <Octicon symbol={octicons.cloud} />
+                </span>
+                {onAddExistingRepository && (
+                  <button
+                    className="add-existing-button"
+                    onClick={e => this.onAddExistingClick(e, item)}
+                    title="Add existing local repository"
+                  >
+                    <Octicon symbol={octicons.fileDirectory} />
+                  </button>
+                )}
+                {onCloneRepository && (
+                  <button
+                    className="clone-button"
+                    onClick={e => this.onCloneClick(e, item)}
+                    title="Clone this repository"
+                  >
+                    <Octicon symbol={octicons.download} />
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
     )
   }

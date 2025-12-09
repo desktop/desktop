@@ -17,7 +17,7 @@ import {
   IConstrainedValue,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
-import { IssuesStore, GitHubUserStore } from '../lib/stores'
+import { IssuesStore, GitHubUserStore, ITasksState } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Account } from '../models/account'
 import { FocusContainer } from './lib/focus-container'
@@ -34,9 +34,22 @@ import { DragType } from '../models/drag-drop'
 import { PullRequestSuggestedNextAction } from '../models/pull-request'
 import { clamp } from '../lib/clamp'
 import { Emoji } from '../lib/emoji'
+import { TaskListPanel } from './tasks'
+import { IssueDetailView, IIssueInfo } from './tasks/issue-detail-view'
+import { IssueListPanel } from './issues'
+import { CodeViewSidebar, CodeViewContent, IOpenTab } from './code-view'
+import { IAPIIssueWithMetadata } from '../lib/api'
+import { shell } from 'electron'
+import { isRepositoryWithGitHubRepository } from '../models/repository'
+import { ITask } from '../lib/databases/tasks-database'
+import { TaskViewMode, TaskSource } from '../lib/stores/tasks-store'
+import { IAPIProjectV2 } from '../lib/api'
+import { PopupType } from '../models/popup'
+import { IEditorSettings } from '../models/preferences'
 
 interface IRepositoryViewProps {
   readonly repository: Repository
+  readonly repositories: ReadonlyArray<Repository>
   readonly state: IRepositoryState
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, Emoji>
@@ -45,6 +58,9 @@ interface IRepositoryViewProps {
   readonly stashedFilesWidth: IConstrainedValue
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
+  readonly tasksState: ITasksState
+  /** The currently selected project (for task source filtering) */
+  readonly selectedProject: IAPIProjectV2 | null
   readonly onViewCommitOnGitHub: (SHA: string, filePath?: string) => void
   readonly imageDiffType: ImageDiffType
   readonly hideWhitespaceInChangesDiff: boolean
@@ -113,16 +129,32 @@ interface IRepositoryViewProps {
 
   /** Whether or not to show the changes filter */
   readonly showChangesFilter: boolean
+
+  /** Editor settings for code editor appearance and behavior */
+  readonly editorSettings: IEditorSettings
 }
 
 interface IRepositoryViewState {
   readonly changesListScrollTop: number
   readonly compareListScrollTop: number
+  /** The currently selected task (for task-specific features like pin/active) */
+  readonly selectedTask: ITask | null
+  /** The issue info to display in the detail view */
+  readonly selectedIssueInfo: IIssueInfo | null
+  /** The open tabs in the code view */
+  readonly openCodeTabs: ReadonlyArray<IOpenTab>
+  /** The currently active tab in the code view */
+  readonly activeCodeTab: string | null
+  /** Counter for generating unique terminal IDs */
+  readonly terminalCounter: number
 }
 
 const enum Tab {
-  Changes = 0,
-  History = 1,
+  Code = 0,
+  Changes = 1,
+  History = 2,
+  Issues = 3,
+  Tasks = 4,
 }
 
 export class RepositoryView extends React.Component<
@@ -138,6 +170,7 @@ export class RepositoryView extends React.Component<
 
   private readonly changesSidebarRef = React.createRef<ChangesSidebar>()
   private readonly compareSidebarRef = React.createRef<CompareSidebar>()
+  private readonly codeViewSidebarRef = React.createRef<CodeViewSidebar>()
 
   private focusHistoryNeeded: boolean = false
   private focusChangesNeeded: boolean = false
@@ -145,9 +178,50 @@ export class RepositoryView extends React.Component<
   public constructor(props: IRepositoryViewProps) {
     super(props)
 
+    // Restore code view tabs from localStorage for this repository
+    const { openCodeTabs, activeCodeTab } = this.loadTabsForRepository(props.repository.id)
+
     this.state = {
       changesListScrollTop: 0,
       compareListScrollTop: 0,
+      selectedTask: null,
+      selectedIssueInfo: null,
+      openCodeTabs,
+      activeCodeTab,
+      terminalCounter: 1,
+    }
+  }
+
+  private getTabStorageKey(repoId: number): string {
+    return `code-view-tabs-${repoId}`
+  }
+
+  private loadTabsForRepository(repoId: number): { openCodeTabs: ReadonlyArray<IOpenTab>, activeCodeTab: string | null } {
+    let openCodeTabs: ReadonlyArray<IOpenTab> = []
+    let activeCodeTab: string | null = null
+
+    try {
+      const storageKey = this.getTabStorageKey(repoId)
+      const savedData = localStorage.getItem(storageKey)
+
+      if (savedData) {
+        const parsed = JSON.parse(savedData)
+        openCodeTabs = parsed.tabs || []
+        activeCodeTab = parsed.activeTab || null
+      }
+    } catch (e) {
+      log.warn('Failed to restore code view tabs from localStorage', e)
+    }
+
+    return { openCodeTabs, activeCodeTab }
+  }
+
+  private saveTabsForRepository(repoId: number, tabs: ReadonlyArray<IOpenTab>, activeTab: string | null): void {
+    try {
+      const storageKey = this.getTabStorageKey(repoId)
+      localStorage.setItem(storageKey, JSON.stringify({ tabs, activeTab }))
+    } catch (e) {
+      log.warn('Failed to persist code view tabs to localStorage', e)
     }
   }
 
@@ -187,13 +261,24 @@ export class RepositoryView extends React.Component<
   }
 
   private renderTabs(): JSX.Element {
-    const selectedTab =
-      this.props.state.selectedSection === RepositorySectionTab.Changes
-        ? Tab.Changes
-        : Tab.History
+    const section = this.props.state.selectedSection
+    let selectedTab = Tab.Changes
+    if (section === RepositorySectionTab.Code) {
+      selectedTab = Tab.Code
+    } else if (section === RepositorySectionTab.History) {
+      selectedTab = Tab.History
+    } else if (section === RepositorySectionTab.Tasks) {
+      selectedTab = Tab.Tasks
+    } else if (section === RepositorySectionTab.Issues) {
+      selectedTab = Tab.Issues
+    }
 
     return (
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
+        <div className="with-indicator" id="code-tab">
+          <span>Code</span>
+        </div>
+
         <span className="with-indicator" id="changes-tab">
           <span>Changes</span>
           {this.renderChangesBadge()}
@@ -201,6 +286,14 @@ export class RepositoryView extends React.Component<
 
         <div className="with-indicator" id="history-tab">
           <span>History</span>
+        </div>
+
+        <div className="with-indicator" id="issues-tab">
+          <span>Issues</span>
+        </div>
+
+        <div className="with-indicator" id="tasks-tab">
+          <span>Tasks</span>
         </div>
       </TabBar>
     )
@@ -267,6 +360,7 @@ export class RepositoryView extends React.Component<
         isShowingFoldout={this.props.isShowingFoldout}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        onOpenInCodeTab={this.onOpenFileInCodeTab}
         onChangesListScrolled={this.onChangesListScrolled}
         changesListScrollTop={scrollTop}
         shouldNudgeToCommit={
@@ -334,13 +428,392 @@ export class RepositoryView extends React.Component<
     )
   }
 
+  private renderTasksSidebar(): JSX.Element {
+    const { tasksState, repository } = this.props
+    const canCreateTasks = isRepositoryWithGitHubRepository(repository)
+
+    return (
+      <TaskListPanel
+        tasks={tasksState.tasks}
+        activeTask={tasksState.activeTask}
+        viewMode={tasksState.viewMode}
+        isLoading={tasksState.isLoading}
+        canCreateTasks={canCreateTasks}
+        projectFilter={tasksState.projectFilter}
+        statusFilter={tasksState.statusFilter}
+        iterationFilter={tasksState.iterationFilter}
+        availableProjects={tasksState.availableProjects}
+        availableStatuses={tasksState.availableStatuses}
+        availableIterations={tasksState.availableIterations}
+        onTaskClick={this.onTaskClick}
+        onTaskPin={this.onTaskPin}
+        onTaskActivate={this.onTaskActivate}
+        onViewModeChange={this.onTaskViewModeChange}
+        onRefresh={this.onTasksRefresh}
+        onOpenInBrowser={this.onTaskOpenInBrowser}
+        onAddTask={this.onAddTask}
+        onTaskReorder={this.onTaskReorder}
+        onProjectFilterChange={this.onProjectFilterChange}
+        onStatusFilterChange={this.onStatusFilterChange}
+        onIterationFilterChange={this.onIterationFilterChange}
+        taskSource={tasksState.taskSource}
+        onTaskSourceChange={this.onTaskSourceChange}
+        hasSelectedProject={this.props.selectedProject !== null}
+        selectedProjectName={this.props.selectedProject?.title ?? null}
+      />
+    )
+  }
+
+  private renderIssuesSidebar(): JSX.Element {
+    const { tasksState, repository } = this.props
+    const canCreateIssues = isRepositoryWithGitHubRepository(repository)
+
+    return (
+      <IssueListPanel
+        issues={tasksState.issues}
+        isLoading={tasksState.isLoadingIssues}
+        stateFilter={tasksState.issueStateFilter}
+        canCreateIssues={canCreateIssues}
+        onRefresh={this.onIssuesRefresh}
+        onIssueClick={this.onIssueClick}
+        onOpenInBrowser={this.onIssueOpenInBrowser}
+        onStateFilterChange={this.onIssueStateFilterChange}
+        onAddIssue={this.onAddTask}
+      />
+    )
+  }
+
+  private renderCodeSidebar(): JSX.Element {
+    return (
+      <CodeViewSidebar
+        ref={this.codeViewSidebarRef}
+        repositoryPath={this.props.repository.path}
+        selectedFile={this.state.activeCodeTab}
+        onFileSelected={this.onCodeFileSelected}
+        onFileCreated={this.onCodeFileSelected}
+        onOpenTerminal={this.onOpenTerminal}
+        onOpenClaude={this.onOpenClaude}
+      />
+    )
+  }
+
+  private onCodeFileSelected = (filePath: string) => {
+    const { openCodeTabs } = this.state
+
+    // Check if file is already open
+    const existingTab = openCodeTabs.find(t => t.filePath === filePath)
+    if (existingTab) {
+      // Just switch to the existing tab
+      this.setState({ activeCodeTab: filePath })
+    } else {
+      // Add new tab and make it active
+      const newTab: IOpenTab = { filePath, hasUnsavedChanges: false }
+      this.setState({
+        openCodeTabs: [...openCodeTabs, newTab],
+        activeCodeTab: filePath,
+      })
+    }
+  }
+
+  /**
+   * Opens a file in the Code tab from a relative path (e.g., from the Changes tab)
+   */
+  private onOpenFileInCodeTab = (relativePath: string) => {
+    const Path = require('path')
+    const fullPath = Path.join(this.props.repository.path, relativePath)
+
+    // Switch to Code tab
+    this.props.dispatcher.changeRepositorySection(
+      this.props.repository,
+      RepositorySectionTab.Code
+    )
+
+    // Open the file
+    this.onCodeFileSelected(fullPath)
+  }
+
+  private onCodeTabSelect = (filePath: string) => {
+    this.setState({ activeCodeTab: filePath })
+  }
+
+  private onCodeTabClose = (filePath: string) => {
+    const { openCodeTabs, activeCodeTab } = this.state
+    const newTabs = openCodeTabs.filter(t => t.filePath !== filePath)
+
+    let newActiveTab = activeCodeTab
+    if (activeCodeTab === filePath) {
+      // If closing the active tab, switch to the last tab or null
+      newActiveTab = newTabs.length > 0 ? newTabs[newTabs.length - 1].filePath : null
+    }
+
+    this.setState({
+      openCodeTabs: newTabs,
+      activeCodeTab: newActiveTab,
+    })
+  }
+
+  private onCodeTabUnsavedChange = (filePath: string, hasUnsavedChanges: boolean) => {
+    const { openCodeTabs } = this.state
+    const newTabs = openCodeTabs.map(t =>
+      t.filePath === filePath ? { ...t, hasUnsavedChanges } : t
+    )
+    this.setState({ openCodeTabs: newTabs })
+  }
+
+  private onOpenTerminal = async () => {
+    const repositoryPath = this.props.repository.path
+    const { spawn } = require('child_process')
+    const platform = process.platform
+
+    if (platform === 'darwin') {
+      // macOS: Use AppleScript to open Terminal.app
+      const script = `
+        tell application "Terminal"
+          activate
+          do script "cd '${repositoryPath.replace(/'/g, "'\\''")}'"
+        end tell
+      `
+      spawn('osascript', ['-e', script])
+    } else if (platform === 'linux') {
+      // Linux: Try common terminal emulators in order of preference
+      const terminals = [
+        { cmd: 'gnome-terminal', args: ['--working-directory', repositoryPath] },
+        { cmd: 'konsole', args: ['--workdir', repositoryPath] },
+        { cmd: 'xfce4-terminal', args: ['--working-directory', repositoryPath] },
+        { cmd: 'xterm', args: ['-e', `cd "${repositoryPath}" && $SHELL`] },
+        { cmd: 'x-terminal-emulator', args: ['-e', `cd "${repositoryPath}" && $SHELL`] },
+      ]
+
+      // Try each terminal until one works
+      const tryTerminal = (index: number) => {
+        if (index >= terminals.length) {
+          log.error('No terminal emulator found')
+          return
+        }
+        const { cmd, args } = terminals[index]
+        const child = spawn(cmd, args, { detached: true, stdio: 'ignore' })
+        child.on('error', () => tryTerminal(index + 1))
+        child.unref()
+      }
+      tryTerminal(0)
+    } else if (platform === 'win32') {
+      // Windows: Use cmd.exe or PowerShell
+      spawn('cmd.exe', ['/c', 'start', 'cmd.exe', '/k', `cd /d "${repositoryPath}"`], {
+        detached: true,
+        stdio: 'ignore',
+      })
+    }
+  }
+
+  private onTerminalExit = (terminalTabPath: string) => {
+    // Don't auto-close - let user see the terminal exited
+    console.log('Terminal exited:', terminalTabPath)
+    // Optionally close after a delay or leave it for user to close manually
+    // this.onCodeTabClose(terminalTabPath)
+  }
+
+  private onOpenClaude = async () => {
+    const repositoryPath = this.props.repository.path
+    const { spawn } = require('child_process')
+    const platform = process.platform
+
+    // Command with fallback: try 'claude' first, then 'npx @anthropic-ai/claude-code'
+    const claudeCommand = `claude || npx @anthropic-ai/claude-code`
+
+    if (platform === 'darwin') {
+      // macOS: Use AppleScript to open Terminal.app in the repository directory
+      // First cd to the repo, then run claude in the same window
+      // This ensures the terminal's cwd is set before claude starts
+      const escapedPath = repositoryPath.replace(/'/g, "'\\''")
+      const script = `
+        tell application "Terminal"
+          activate
+          set newWindow to do script "cd '${escapedPath}'"
+          delay 0.3
+          do script "claude || npx @anthropic-ai/claude-code" in newWindow
+        end tell
+      `
+      spawn('osascript', ['-e', script])
+    } else if (platform === 'linux') {
+      // Linux: Try common terminal emulators with claude command
+      const terminals = [
+        { cmd: 'gnome-terminal', args: ['--working-directory', repositoryPath, '--', 'bash', '-c', `${claudeCommand}; exec bash`] },
+        { cmd: 'konsole', args: ['--workdir', repositoryPath, '-e', 'bash', '-c', `${claudeCommand}; exec bash`] },
+        { cmd: 'xfce4-terminal', args: ['--working-directory', repositoryPath, '-e', `bash -c "${claudeCommand}; exec bash"`] },
+        { cmd: 'xterm', args: ['-e', `cd "${repositoryPath}" && ${claudeCommand}; exec bash`] },
+      ]
+
+      const tryTerminal = (index: number) => {
+        if (index >= terminals.length) {
+          log.error('No terminal emulator found for Claude')
+          return
+        }
+        const { cmd, args } = terminals[index]
+        const child = spawn(cmd, args, { detached: true, stdio: 'ignore' })
+        child.on('error', () => tryTerminal(index + 1))
+        child.unref()
+      }
+      tryTerminal(0)
+    } else if (platform === 'win32') {
+      // Windows: Use cmd.exe to run claude with fallback
+      spawn('cmd.exe', ['/c', 'start', 'cmd.exe', '/k', `cd /d "${repositoryPath}" && (${claudeCommand})`], {
+        detached: true,
+        stdio: 'ignore',
+      })
+    }
+  }
+
+  private onIssuesRefresh = () => {
+    const { repository } = this.props
+    if (isRepositoryWithGitHubRepository(repository)) {
+      this.props.dispatcher.refreshRepositoryIssues(repository)
+    }
+  }
+
+  private onIssueClick = (issue: IAPIIssueWithMetadata) => {
+    const { repository } = this.props
+
+    // Convert API issue to IIssueInfo for the detail view
+    const issueInfo: IIssueInfo = {
+      issueId: issue.node_id,
+      issueNumber: issue.number,
+      title: issue.title,
+      body: issue.body,
+      authorLogin: issue.user?.login || null,
+      authorAvatarUrl: issue.user?.avatar_url || null,
+      createdAt: issue.created_at || null,
+      repositoryName: isRepositoryWithGitHubRepository(repository)
+        ? `${repository.gitHubRepository.owner.login}/${repository.gitHubRepository.name}`
+        : repository.name,
+      url: issue.html_url,
+      state: issue.state === 'open' ? 'OPEN' : 'CLOSED',
+      labels: issue.labels?.map(l => ({
+        name: typeof l === 'string' ? l : l.name || '',
+        color: typeof l === 'string' ? '000000' : l.color || '000000',
+      })) || [],
+      projectStatus: null,
+      projectTitle: null,
+    }
+
+    // Show the issue detail view (no selectedTask since not from Tasks tab)
+    this.setState({ selectedTask: null, selectedIssueInfo: issueInfo })
+  }
+
+  private onIssueOpenInBrowser = (issue: IAPIIssueWithMetadata) => {
+    shell.openExternal(issue.html_url)
+  }
+
+  private onIssueStateFilterChange = (state: 'open' | 'closed' | 'all') => {
+    this.props.dispatcher.setIssueStateFilter(state)
+    // Re-fetch with new filter
+    const { repository } = this.props
+    if (isRepositoryWithGitHubRepository(repository)) {
+      this.props.dispatcher.refreshRepositoryIssues(repository)
+    }
+  }
+
+  private onTaskDetailBack = () => {
+    this.setState({ selectedTask: null, selectedIssueInfo: null })
+  }
+
+  private onAddTask = () => {
+    const { repository } = this.props
+    if (isRepositoryWithGitHubRepository(repository)) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.CreateTask,
+        repository,
+      })
+    }
+  }
+
+  private onTaskClick = (task: ITask) => {
+    // Convert ITask to IIssueInfo for the detail view
+    const issueInfo: IIssueInfo = {
+      issueId: task.issueId,
+      issueNumber: task.issueNumber,
+      title: task.title,
+      body: task.body,
+      authorLogin: task.authorLogin,
+      authorAvatarUrl: task.authorAvatarUrl,
+      createdAt: task.createdAt,
+      repositoryName: task.repositoryName,
+      url: task.url,
+      state: task.state,
+      labels: [...task.labels],
+      projectStatus: task.projectStatus,
+      projectTitle: task.projectTitle,
+    }
+    // Show the task detail view
+    this.setState({ selectedTask: task, selectedIssueInfo: issueInfo })
+  }
+
+  private onTaskPin = (task: ITask) => {
+    if (task.id) {
+      this.props.dispatcher.pinTask(task.id, !task.isPinned)
+    }
+  }
+
+  private onTaskActivate = (task: ITask) => {
+    if (task.id) {
+      const newActiveId = task.isActive ? null : task.id
+      this.props.dispatcher.setActiveTask(newActiveId)
+    }
+  }
+
+  private onTaskViewModeChange = (mode: TaskViewMode) => {
+    this.props.dispatcher.setTaskViewMode(mode)
+  }
+
+  private onTasksRefresh = () => {
+    const { repository } = this.props
+    if (isRepositoryWithGitHubRepository(repository)) {
+      this.props.dispatcher.refreshTasks(repository)
+      // Also fetch projects for the project status dropdown
+      this.props.dispatcher.fetchProjects(repository)
+    }
+  }
+
+  private onTaskOpenInBrowser = (task: ITask) => {
+    this.props.dispatcher.openTaskInBrowser(task)
+  }
+
+  private onTaskReorder = (sourceTask: ITask, targetIndex: number) => {
+    if (sourceTask.id) {
+      this.props.dispatcher.reorderTask(sourceTask.id, targetIndex)
+    }
+  }
+
+  private onProjectFilterChange = (project: string | null) => {
+    this.props.dispatcher.setTaskProjectFilter(project)
+  }
+
+  private onStatusFilterChange = (status: string | null) => {
+    this.props.dispatcher.setTaskStatusFilter(status)
+  }
+
+  private onIterationFilterChange = (iteration: string | null) => {
+    this.props.dispatcher.setTaskIterationFilter(iteration)
+  }
+
+  private onTaskSourceChange = (source: TaskSource) => {
+    if (isRepositoryWithGitHubRepository(this.props.repository)) {
+      this.props.dispatcher.setTaskSource(source, this.props.repository)
+    }
+  }
+
   private renderSidebarContents(): JSX.Element {
     const selectedSection = this.props.state.selectedSection
 
-    if (selectedSection === RepositorySectionTab.Changes) {
+    if (selectedSection === RepositorySectionTab.Code) {
+      return this.renderCodeSidebar()
+    } else if (selectedSection === RepositorySectionTab.Changes) {
       return this.renderChangesSidebar()
     } else if (selectedSection === RepositorySectionTab.History) {
       return this.renderCompareSidebar()
+    } else if (selectedSection === RepositorySectionTab.Tasks) {
+      return this.renderTasksSidebar()
+    } else if (selectedSection === RepositorySectionTab.Issues) {
+      return this.renderIssuesSidebar()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
@@ -423,6 +896,162 @@ export class RepositoryView extends React.Component<
       hideWhitespaceInDiff,
       this.props.repository
     )
+  }
+
+  private renderContentForCode(): JSX.Element {
+    return (
+      <CodeViewContent
+        openTabs={this.state.openCodeTabs}
+        activeTab={this.state.activeCodeTab}
+        repositoryPath={this.props.repository.path}
+        repositoryName={this.props.repository.name}
+        emoji={this.props.emoji}
+        onTabSelect={this.onCodeTabSelect}
+        onTabClose={this.onCodeTabClose}
+        onTabUnsavedChange={this.onCodeTabUnsavedChange}
+        onTerminalExit={this.onTerminalExit}
+        onWikiLinkClick={this.onWikiLinkClick}
+        editorSettings={this.props.editorSettings}
+      />
+    )
+  }
+
+  private onWikiLinkClick = async (repoName: string | null, filePath: string) => {
+    if (!repoName) {
+      // Same repo, just open the file
+      const fullPath = require('path').join(this.props.repository.path, filePath)
+      this.onCodeTabSelect(fullPath)
+      return
+    }
+
+    // Cross-repo link - find the repository and switch to it
+    const { repositories, dispatcher } = this.props
+
+    // Find the repository by name (case-insensitive)
+    const targetRepo = repositories.find(
+      r => r.name.toLowerCase() === repoName.toLowerCase()
+    )
+
+    if (!targetRepo) {
+      // Repository not found
+      dispatcher.showPopup({
+        type: PopupType.Error,
+        error: new Error(`Repository "${repoName}" not found.\n\nMake sure the repository is added to GitHub Desktop.`),
+      })
+      return
+    }
+
+    // Store the file to open BEFORE switching repos
+    // so componentDidUpdate can pick it up after the switch
+    const fullPath = require('path').join(targetRepo.path, filePath)
+    localStorage.setItem('pending-wiki-link-file', fullPath)
+
+    // Switch to the target repository
+    await dispatcher.selectRepository(targetRepo)
+  }
+
+  private renderContentForTasks(): JSX.Element | null {
+    const { selectedTask, selectedIssueInfo } = this.state
+    const { repository, accounts, tasksState } = this.props
+
+    if (!selectedIssueInfo) {
+      // Show empty state when no task is selected
+      return (
+        <div className="task-content-empty">
+          <div className="empty-state">
+            <p>Select a task from the list to view details</p>
+          </div>
+        </div>
+      )
+    }
+
+    // Get account and repo info for the API
+    if (!isRepositoryWithGitHubRepository(repository)) {
+      return null
+    }
+
+    const account = accounts.find(
+      a => a.endpoint === repository.gitHubRepository.endpoint
+    )
+    if (!account) {
+      return null
+    }
+
+    const owner = repository.gitHubRepository.owner.login
+    const repo = repository.gitHubRepository.name
+    const isActive = selectedTask ? tasksState.activeTask?.id === selectedTask.id : false
+
+    return (
+      <IssueDetailView
+        owner={owner}
+        repo={repo}
+        issue={selectedIssueInfo}
+        account={account}
+        projects={tasksState.projects}
+        onBack={this.onTaskDetailBack}
+        onOpenInBrowser={() => shell.openExternal(selectedIssueInfo.url)}
+        taskFeatures={selectedTask ? {
+          task: selectedTask,
+          isActive,
+          onPin: () => this.onTaskPin(selectedTask),
+          onActivate: () => this.onTaskActivate(selectedTask),
+        } : undefined}
+        onIssueUpdated={this.onIssueUpdated}
+      />
+    )
+  }
+
+  private renderContentForIssues(): JSX.Element | null {
+    const { selectedIssueInfo } = this.state
+    const { repository, accounts, tasksState } = this.props
+
+    if (!selectedIssueInfo) {
+      // Show empty state when no issue is selected
+      return (
+        <div className="task-content-empty">
+          <div className="empty-state">
+            <p>Select an issue from the list to view details</p>
+          </div>
+        </div>
+      )
+    }
+
+    // Get account and repo info for the API
+    if (!isRepositoryWithGitHubRepository(repository)) {
+      return null
+    }
+
+    const account = accounts.find(
+      a => a.endpoint === repository.gitHubRepository.endpoint
+    )
+    if (!account) {
+      return null
+    }
+
+    const owner = repository.gitHubRepository.owner.login
+    const repo = repository.gitHubRepository.name
+
+    return (
+      <IssueDetailView
+        owner={owner}
+        repo={repo}
+        issue={selectedIssueInfo}
+        account={account}
+        projects={tasksState.projects}
+        onBack={this.onTaskDetailBack}
+        onOpenInBrowser={() => shell.openExternal(selectedIssueInfo.url)}
+        onIssueUpdated={this.onIssueUpdated}
+      />
+    )
+  }
+
+  private onIssueUpdated = () => {
+    // Refresh tasks and issues when an issue is updated
+    const { repository } = this.props
+    if (isRepositoryWithGitHubRepository(repository)) {
+      this.props.dispatcher.refreshTasks(repository)
+      this.props.dispatcher.refreshRepositoryIssues(repository)
+    }
   }
 
   private renderContentForHistory(): JSX.Element {
@@ -583,10 +1212,16 @@ export class RepositoryView extends React.Component<
 
   private renderContent(): JSX.Element | null {
     const selectedSection = this.props.state.selectedSection
-    if (selectedSection === RepositorySectionTab.Changes) {
+    if (selectedSection === RepositorySectionTab.Code) {
+      return this.renderContentForCode()
+    } else if (selectedSection === RepositorySectionTab.Changes) {
       return this.renderContentForChanges()
     } else if (selectedSection === RepositorySectionTab.History) {
       return this.renderContentForHistory()
+    } else if (selectedSection === RepositorySectionTab.Tasks) {
+      return this.renderContentForTasks()
+    } else if (selectedSection === RepositorySectionTab.Issues) {
+      return this.renderContentForIssues()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
@@ -616,13 +1251,39 @@ export class RepositoryView extends React.Component<
 
   public componentDidMount() {
     window.addEventListener('keydown', this.onGlobalKeyDown)
+
+    // Check for pending wiki link navigation (from cross-repo link)
+    this.checkPendingWikiLink()
+  }
+
+  private checkPendingWikiLink() {
+    const pendingFile = localStorage.getItem('pending-wiki-link-file')
+    if (pendingFile) {
+      localStorage.removeItem('pending-wiki-link-file')
+      // Verify the file is in the current repository
+      if (pendingFile.startsWith(this.props.repository.path)) {
+        // Small delay to ensure the component is fully mounted
+        setTimeout(() => {
+          // Switch to Code section
+          this.props.dispatcher.changeRepositorySection(
+            this.props.repository,
+            RepositorySectionTab.Code
+          )
+          // Open the file (adds tab if needed, switches if exists)
+          this.onCodeFileSelected(pendingFile)
+        }, 100)
+      }
+    }
   }
 
   public componentWillUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeyDown)
   }
 
-  public componentDidUpdate(): void {
+  public componentDidUpdate(
+    prevProps: IRepositoryViewProps,
+    prevState: IRepositoryViewState
+  ): void {
     if (this.focusChangesNeeded) {
       this.focusChangesNeeded = false
       this.changesSidebarRef.current?.focus()
@@ -631,6 +1292,36 @@ export class RepositoryView extends React.Component<
     if (this.focusHistoryNeeded) {
       this.focusHistoryNeeded = false
       this.compareSidebarRef.current?.focusHistory()
+    }
+
+    // Handle repository change - save current tabs and load new repo's tabs
+    if (prevProps.repository.id !== this.props.repository.id) {
+      // Save tabs for the previous repository
+      this.saveTabsForRepository(
+        prevProps.repository.id,
+        prevState.openCodeTabs,
+        prevState.activeCodeTab
+      )
+
+      // Load tabs for the new repository
+      const { openCodeTabs, activeCodeTab } = this.loadTabsForRepository(this.props.repository.id)
+      this.setState({ openCodeTabs, activeCodeTab }, () => {
+        // Check for pending wiki link after tabs are loaded
+        this.checkPendingWikiLink()
+      })
+      return
+    }
+
+    // Persist code view tabs to localStorage when they change
+    if (
+      prevState.openCodeTabs !== this.state.openCodeTabs ||
+      prevState.activeCodeTab !== this.state.activeCodeTab
+    ) {
+      this.saveTabsForRepository(
+        this.props.repository.id,
+        this.state.openCodeTabs,
+        this.state.activeCodeTab
+      )
     }
   }
 
@@ -665,19 +1356,47 @@ export class RepositoryView extends React.Component<
   }
 
   private onTabClicked = (tab: Tab) => {
-    const section =
-      tab === Tab.History
-        ? RepositorySectionTab.History
-        : RepositorySectionTab.Changes
+    let section: RepositorySectionTab
+    if (tab === Tab.Code) {
+      section = RepositorySectionTab.Code
+    } else if (tab === Tab.History) {
+      section = RepositorySectionTab.History
+    } else if (tab === Tab.Tasks) {
+      section = RepositorySectionTab.Tasks
+    } else if (tab === Tab.Issues) {
+      section = RepositorySectionTab.Issues
+    } else {
+      section = RepositorySectionTab.Changes
+    }
 
     this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       section
     )
-    if (!!section) {
+    if (
+      section !== RepositorySectionTab.Tasks &&
+      section !== RepositorySectionTab.Issues &&
+      section !== RepositorySectionTab.Code
+    ) {
       this.props.dispatcher.updateCompareForm(this.props.repository, {
         showBranchList: false,
       })
+    }
+
+    // Fetch projects when switching to Tasks tab
+    if (
+      section === RepositorySectionTab.Tasks &&
+      isRepositoryWithGitHubRepository(this.props.repository)
+    ) {
+      this.props.dispatcher.fetchProjects(this.props.repository)
+    }
+
+    // Fetch issues when switching to Issues tab
+    if (
+      section === RepositorySectionTab.Issues &&
+      isRepositoryWithGitHubRepository(this.props.repository)
+    ) {
+      this.props.dispatcher.refreshRepositoryIssues(this.props.repository)
     }
   }
 

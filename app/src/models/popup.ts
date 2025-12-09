@@ -22,6 +22,7 @@ import { IRefCheck } from '../lib/ci-checks/ci-checks'
 import { GitHubRepository } from './github-repository'
 import { ValidNotificationPullRequestReview } from '../lib/valid-notification-pull-request-review'
 import { UnreachableCommitsTab } from '../ui/history/unreachable-commits-dialog'
+import { AddRepositoryTab } from '../ui/add-repository/add-repository-dialog'
 import { IAPIComment } from '../lib/api'
 import { ISecretScanResult } from '../ui/secret-scanning/push-protection-error-dialog'
 import { BypassReasonType } from '../ui/secret-scanning/bypass-push-protection-dialog'
@@ -103,6 +104,8 @@ export enum PopupType {
   BypassPushProtection = 'BypassPushProtection',
   GenerateCommitMessageOverrideWarning = 'GenerateCommitMessageOverrideWarning',
   GenerateCommitMessageDisclaimer = 'GenerateCommitMessageDisclaimer',
+  CreateTask = 'CreateTask',
+  AddRepositoryDialog = 'AddRepositoryDialog',
 }
 
 interface IBasePopup {
@@ -463,6 +466,14 @@ export type PopupDetail =
       // from this popup we will trigger the commit message generation too.
       repository: Repository
       filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
+    }
+  | {
+      type: PopupType.CreateTask
+      repository: RepositoryWithGitHubRepository
+    }
+  | {
+      type: PopupType.AddRepositoryDialog
+      initialTab?: AddRepositoryTab
     }
 
 export type Popup = IBasePopup & PopupDetail

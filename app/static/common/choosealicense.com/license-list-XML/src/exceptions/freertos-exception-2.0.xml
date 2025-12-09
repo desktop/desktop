@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <exception licenseId="freertos-exception-2.0" name="FreeRTOS Exception 2.0">
+      <crossRefs>
+         <crossRef>https://web.archive.org/web/20060809182744/http://www.freertos.org/a00114.html</crossRef>
+      </crossRefs>
+      <notes>This exception was used by the FreeRTOS project with GPL-2.0 until Amazon acquired the project and changed the license to MIT. Note, the exact text of the exception varied over the years and on different pages.</notes>
+    <text>
+      <p>Any FreeRTOS source code, whether modified or in its original
+       release form, or whether in whole or in part, can only be
+       distributed by you under the terms of the GNU General Public
+       License plus this exception. An independent module is a module
+       which is not derived from or based on FreeRTOS.</p>
+      <p>EXCEPTION TEXT:</p>
+      <list>
+         <item>
+            <p>Clause 1</p>
+            <p>Linking FreeRTOS statically or dynamically with other modules is
+           making a combined work based on FreeRTOS. Thus, the terms and
+           conditions of the GNU General Public License cover the whole
+           combination.</p>
+            <p>As a special exception, the copyright holder of FreeRTOS gives
+           you permission to link FreeRTOS with independent modules that
+           communicate with FreeRTOS solely through the FreeRTOS API
+           interface, regardless of the license terms of these
+           independent modules, and to copy and distribute the resulting
+           combined work under terms of your choice, provided that</p>
+            <list>
+               <item>
+               <bullet>+</bullet>
+            Every copy of the combined work is accompanied by a written
+           statement that details to the recipient the version of
+           FreeRTOS used and an offer by yourself to provide the FreeRTOS
+           source code (including any modifications you may have made)
+           should the recipient request it.
+               </item>
+               <item>
+                   <bullet>+</bullet>
+                  The combined work is not itself an RTOS, scheduler, kernel or
+           related product.
+               </item>
+               <item>
+                   <bullet>+</bullet>
+                  The independent modules add significant and primary functionality
+           to FreeRTOS and do not merely extend the existing
+           functionality already present in FreeRTOS.
+               </item>
+            </list>
+         </item>
+         <item>
+            <p>Clause 2</p>
+            <p>FreeRTOS may not be used for any competitive or comparative
+           purpose, including the publication of any form of run time or
+           compile time metric, without the express permission of Real
+           Time Engineers Ltd. (this is the norm within the industry and
+           is intended to ensure information accuracy).</p>
+         </item>
+      </list>
+    </text>
+  </exception>
+</SPDXLicenseCollection>

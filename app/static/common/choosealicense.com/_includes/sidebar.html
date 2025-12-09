@@ -1,0 +1,57 @@
+<div class="sidebar">
+
+  <a href="#" data-clipboard-target="#license-text" data-proofer-ignore="true" class="js-clipboard-button button">Copy license text to clipboard</a>
+  {% unless page.spdx-id == 'LGPL-3.0' %}
+  <h3 id="suggest-this-license">Suggest this license</h3>
+  <div class="repository-suggestion">
+    <p>Make a pull request to suggest this license for a project that is <a href="/no-permission/">not licensed</a>. Please be polite: see if a license has already been suggested, try to suggest a license fitting for the project’s <a href="/community/">community</a>, and keep your communication with project maintainers friendly.</p>
+    <div class="input-wrapper">
+      <input type="text" data-license-id="{{ page.spdx-id }}" placeholder="Enter GitHub repository URL" id="repository-url" title="status" />
+      <div class="status-indicator"></div>
+    </div>
+  </div>
+  {% endunless %}
+
+  <div class="how-to-apply">
+    <h3 id="how-to-apply">How to apply this license</h3>
+    <p>
+      {{ page.how }}
+    </p>
+    <div class="note">
+    <h4 id="optional-steps">Optional steps</h4>
+    {% if page.note %}
+    <p>
+      {{ page.note }}
+    </p>
+    {% endif %}
+    {% assign lateronly = false %}
+    {% if page.spdx-id contains 'GPL' %}{% assign lateronly = true %}
+    {% elsif page.spdx-id contains 'GFDL' %}{% assign lateronly = true %}{% endif %}
+    {% assign ofl = false %}
+    {% if page.spdx-id contains 'OFL-1' %}{% assign ofl = true %}{% endif %}
+    <p id="package-metadata">Add <strong><code>{{ page.spdx-id }}{% if lateronly %}-or-later{% endif %}{% if ofl %}-no-RFN{% endif %}</code></strong>{% if lateronly %} (or <strong><code>{{ page.spdx-id }}-only</code></strong> to disallow future versions){% endif %}{% if ofl %} (or <strong><code>{{ page.spdx-id }}-RFN</code></strong> if a Reserved Font Name is specified after the copyright statement){% endif %} to your project’s package description, if applicable (e.g., <a href="https://docs.npmjs.com/cli/v7/configuring-npm/package-json#license">Node.js</a>, <a href="https://guides.rubygems.org/specification-reference/#license=">Ruby</a>, and <a href="https://doc.rust-lang.org/cargo/reference/manifest.html#the-license-and-license-file-fields">Rust</a>). This will ensure the license is displayed in package directories.</p>
+    {% if page.spdx-id contains 'GPL-2' %}
+    <p id="gplcc">If you would like your project to adopt the GPL-3.0’s cure provision, add the <a href="https://github.com/gplcc/gplcc/blob/master/Project/COMMITMENT">text</a> of the <a href="https://gplcc.github.io/gplcc/">GPL Cooperation Commitment</a> to a file named <code>COMMITMENT</code> in the same directory as your {{ page.spdx-id }} license file.</p>
+    {% endif %}
+    </div>
+  </div>
+
+  <div class="source">
+    <a href="https://spdx.org/licenses/{{ page.spdx-id }}{% if lateronly %}-or-later{% endif %}.html">
+      <span class="license-sprite"></span>
+      Source
+    </a>
+  </div>
+
+  {% if page.using %}
+  <div class="projects-with-license">
+    <h3>Who’s using this license?</h3>
+    <ul>
+      {% for using in page.using %}
+        <li><a href="{{ using[1] }}" target="_blank">{{ using[0] }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+</div> <!-- /sidebar -->

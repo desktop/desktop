@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="Abstyles" name="Abstyles License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/Abstyles</crossRef>
+      </crossRefs>
+    <text>
+      <titleText>
+         <p>This is APREAMBL.TEX, version 1.10e, written by Hans-Hermann Bode
+        <br/>(HHBODE@DOSUNI1.BITNET), for the BibTeX `adaptable' family, version 1.10.
+        <br/>See the file APREAMBL.DOC for a detailed documentation.
+      </p>
+      </titleText>
+
+      <p>This program is distributed WITHOUT ANY WARRANTY, express or implied.</p>
+      <p>Copyright (C) 1991, 1992 Hans-Hermann Bode</p>
+      <p>Permission is granted to make and distribute verbatim copies of this document provided that the copyright
+         notice and this permission notice are preserved on all copies.</p>
+      <p>Permission is granted to copy and distribute modified versions of this document under the conditions for
+         verbatim copying, provided that the entire resulting derived work is distributed under the terms of a
+         permission notice identical to this one.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

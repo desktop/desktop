@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+  <license isOsiApproved="false" licenseId="Parity-7.0.0" name="The Parity Public License 7.0.0" listVersionAdded="3.9">
+    <crossRefs>
+      <crossRef>https://paritylicense.com/versions/7.0.0.html</crossRef>
+    </crossRefs>
+    <notes>This license was released on November 3, 2019.</notes>
+    <text>
+      <titleText>
+        <p><optional># </optional>The Parity Public License 7.0.0</p>
+      </titleText>
+      <p>Contributor: <alt match=".+" name="copyright">name</alt></p>
+      <p>Source Code: <alt match=".+" name="address">address</alt></p>
+      <p><optional>## </optional>Purpose</p>
+      <p>This license allows you to use and share this software for free, but you have to share software that builds on it alike.</p>
+      <p><optional>## </optional>Agreement</p>
+      <p>In order to receive this license, you have to agree to its rules.  Those rules are both obligations under that agreement and conditions to your license.  Don't do anything with this software that triggers a rule you can't or won't follow.</p>
+      <p><optional>## </optional>Notices</p>
+      <p>Make sure everyone who gets a copy of any part of this software from you, with or without changes, also gets the text of this license and the contributor and source code lines above.</p>
+      <p><optional>## </optional>Copyleft</p>
+      <p><alt name="contributeRef" match="\[Contribute\]\(\#contribute\)|Contribute">[Contribute](#contribute)</alt> software you develop, operate, or analyze with this software, including changes or additions to this software.  When in doubt, <alt name="contributeRef" match="\[contribute\]\(#contribute\)|contribute">[contribute](#contribute)</alt>.</p>
+      <p><optional>## </optional>Prototypes</p>
+      <p>You don't have to <alt name="contributeRef" match="\[contribute\]\(#contribute\)|contribute">[contribute](#contribute)</alt> any change, addition, or other software that meets all these criteria:</p>
+      <list>
+        <item><bullet>1.  </bullet>You don't use it for more than thirty days.</item>
+        <item><bullet>2.  </bullet>You don't share it outside the team developing it, other than for non-production user testing.</item>
+        <item><bullet>3.  </bullet>You don't develop, operate, or analyze other software with it for anyone outside the team developing it.</item>
+      </list>
+      <p><optional>## </optional>Reverse Engineering</p>
+      <p>You may use this software to operate and analyze software you can't <alt name="contributeRef" match="\[contribute\]\(#contribute\)|contribute">[contribute](#contribute)</alt> in order to develop alternatives you can and do <alt name="contributeRef" match="\[contribute\]\(#contribute\)|contribute">[contribute](#contribute)</alt>.</p>
+      <p><optional>## </optional>Contribute</p>
+      <p>To <alt name="contributeRef" match="\[contribute\]\(#contribute\)|contribute">[contribute](#contribute)</alt> software:</p>
+      <list>
+        <item><bullet>1.  </bullet>Publish all source code for the software in the preferred form for making changes through a freely accessible distribution system widely used for similar source code so the contributor and others can find and copy it.</item>
+        <item><bullet>2.  </bullet>Make sure every part of the source code is available under this license or another license that allows everything this license does, such as <alt name="licenseList" match="\[the Blue Oak Model License 1\.0\.0\]\(https://blueoakcouncil\.org/license/1\.0\.0\), \[the Apache License 2\.0\]\(https://www\.apache\.org/licenses/LICENSE-2\.0\.html\), \[the MIT license\]\(https://spdx\.org/licenses/MIT\.html\), or \[the two-clause BSD license\]\(https://spdx\.org/licenses/BSD-2-Clause\.html\)\.|the Blue Oak Model License 1\.0\.0, the Apache License 2\.0, the MIT License, or the two-clause BSD License\.">[the Blue Oak Model License 1.0.0](https://blueoakcouncil.org/license/1.0.0), [the Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0.html), [the MIT license](https://spdx.org/licenses/MIT.html), or [the two-clause BSD license](https://spdx.org/licenses/BSD-2-Clause.html).</alt></item>
+        <item><bullet>3.  </bullet>Take these steps within thirty days.</item>
+        <item><bullet>4.  </bullet>Note that this license does <alt name="emphasizedNot" match="_not_|not">_not_</alt> allow you to change the license terms for this software.  You must follow <alt name="noticesRef" match="\[Notices\]\(#notices\)|Notices">[Notices](#notices)</alt>.</item>
+      </list>
+      <p><optional>## </optional>Excuse</p>
+      <p>You're excused for unknowingly breaking <alt name="copyleftRef" match="\[Copyleft\]\(#copyleft\)|Copyleft">[Copyleft](#copyleft)</alt> if you <alt name="contributeRef" match="\[contribute\]\(#contribute\)|contribute">[contribute](#contribute)</alt> as required, or stop doing anything requiring this license, within thirty days of learning you broke the rule.  You're excused for unknowingly breaking <alt name="noticesRef" match="\[Notices\]\(#notices\)|Notices">[Notices](#notices)</alt> if you take all practical steps to comply within thirty days of learning you broke the rule.</p>
+      <p><optional>## </optional>Defense</p>
+      <p>Don't make any legal claim against anyone accusing this software, with or without changes, alone or with other technology, of infringing any patent.</p>
+      <p><optional>## </optional>Copyright</p>
+      <p>The contributor licenses you to do everything with this software that would otherwise infringe their copyright in it.</p>
+      <p><optional>## </optional>Patent</p>
+      <p>The contributor licenses you to do everything with this software that would otherwise infringe any patents they can license or become able to license.</p>
+      <p><optional>## </optional>Reliability</p>
+      <p>The contributor can't revoke this license.</p>
+      <p><optional>## </optional>No Liability</p>
+      <p>***As far as the law allows, this software comes as is, without any warranty or condition, and the contributor won't be liable to anyone for any damages related to this software or this license, under any kind of legal claim.***</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

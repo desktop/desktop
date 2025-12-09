@@ -6,6 +6,8 @@ import {
   IAPIFullRepository,
   IAPICheckSuite,
   IAPIRepoRuleset,
+  IAPIProjectV2,
+  IAPIRepository,
   getDotComAPIEndpoint,
   IAPICreatePushProtectionBypassResponse,
 } from '../../lib/api'
@@ -50,6 +52,8 @@ import { Shell } from '../../lib/shells'
 import { ILaunchStats, StatsStore } from '../../lib/stats'
 import { AppStore } from '../../lib/stores/app-store'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
+import { TaskSortOrder, TaskViewMode } from '../../lib/stores/tasks-store'
+import { ITask } from '../../lib/databases/tasks-database'
 import { getTipSha } from '../../lib/tip'
 
 import { Account } from '../../models/account'
@@ -86,6 +90,7 @@ import {
 } from '../../models/status'
 import { TipState, IValidBranch } from '../../models/tip'
 import { Banner, BannerType } from '../../models/banner'
+import { IEditorSettings } from '../../models/preferences'
 
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
@@ -2503,6 +2508,13 @@ export class Dispatcher {
   }
 
   /**
+   * Set the code editor settings
+   */
+  public setEditorSettings(settings: IEditorSettings) {
+    return this.appStore._setEditorSettings(settings)
+  }
+
+  /**
    * Increments either the `repoWithIndicatorClicked` or
    * the `repoWithoutIndicatorClicked` metric
    */
@@ -4055,5 +4067,156 @@ export class Dispatcher {
 
   public toggleChangesFilterVisibility() {
     this.appStore._toggleChangesFilterVisibility()
+  }
+
+  // === Tasks ===
+
+  /** Refresh tasks from the GitHub API for the given repository */
+  public refreshTasks(repository: RepositoryWithGitHubRepository): Promise<void> {
+    return this.appStore._refreshTasks(repository)
+  }
+
+  /** Pin or unpin a task */
+  public pinTask(taskId: number, pinned: boolean): Promise<void> {
+    return this.appStore._pinTask(taskId, pinned)
+  }
+
+  /** Set a task as the currently active task */
+  public setActiveTask(taskId: number | null): Promise<void> {
+    return this.appStore._setActiveTask(taskId)
+  }
+
+  /** Update notes for a task */
+  public updateTaskNotes(taskId: number, notes: string): Promise<void> {
+    return this.appStore._updateTaskNotes(taskId, notes)
+  }
+
+  /** Set the task view mode */
+  public setTaskViewMode(mode: TaskViewMode): void {
+    this.appStore._setTaskViewMode(mode)
+  }
+
+  /** Set the task sort order */
+  public setTaskSortOrder(order: TaskSortOrder): void {
+    this.appStore._setTaskSortOrder(order)
+  }
+
+  /** Set the task project filter */
+  public setTaskProjectFilter(project: string | null): void {
+    this.appStore._setTaskProjectFilter(project)
+  }
+
+  /** Set the task status filter */
+  public setTaskStatusFilter(status: string | null): void {
+    this.appStore._setTaskStatusFilter(status)
+  }
+
+  /** Set the task iteration filter */
+  public setTaskIterationFilter(iteration: string | null): void {
+    this.appStore._setTaskIterationFilter(iteration)
+  }
+
+  /** Set the task source (repo or project) */
+  public setTaskSource(
+    source: 'repo' | 'project',
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    return this.appStore._setTaskSource(source, repository)
+  }
+
+  /** Set the selected owner (user or org) for filtering */
+  public setSelectedOwner(owner: string | null): Promise<void> {
+    return this.appStore._setSelectedOwner(owner)
+  }
+
+  /** Set the selected project for filtering */
+  public setSelectedProject(project: IAPIProjectV2 | null): Promise<void> {
+    return this.appStore._setSelectedProject(project)
+  }
+
+  /** Set whether the project view is open */
+  public setProjectViewOpen(open: boolean): void {
+    this.appStore._setProjectViewOpen(open)
+  }
+
+  /** Load organizations for the current account */
+  public loadOrganizations(): Promise<void> {
+    return this.appStore._loadOrganizations()
+  }
+
+  /** Set the selected API repository (for browsing remote repos) */
+  public setSelectedAPIRepository(repo: IAPIRepository | null): void {
+    this.appStore._setSelectedAPIRepository(repo)
+  }
+
+  /** Refresh repository issues for the Issues tab */
+  public refreshRepositoryIssues(repository: RepositoryWithGitHubRepository): Promise<void> {
+    return this.appStore._refreshRepositoryIssues(repository)
+  }
+
+  /** Set the issue state filter */
+  public setIssueStateFilter(state: 'open' | 'closed' | 'all'): void {
+    this.appStore._setIssueStateFilter(state)
+  }
+
+  /** Reorder a task (for custom sort order) */
+  public reorderTask(taskId: number, newOrder: number): Promise<void> {
+    return this.appStore._reorderTask(taskId, newOrder)
+  }
+
+  /** Open a task's GitHub issue in the browser */
+  public openTaskInBrowser(task: ITask): void {
+    shell.openExternal(task.url)
+  }
+
+  /** Create a new task (GitHub issue) in the repository */
+  public async createTask(
+    repository: RepositoryWithGitHubRepository,
+    title: string,
+    body: string,
+    assignees: ReadonlyArray<string>,
+    labels: ReadonlyArray<string>,
+    milestone: number | undefined,
+    projectId: string | undefined,
+    statusOptionId: string | undefined
+  ): Promise<void> {
+    return this.appStore._createTask(
+      repository,
+      title,
+      body,
+      assignees,
+      labels,
+      milestone,
+      projectId,
+      statusOptionId
+    )
+  }
+
+  /** Fetch collaborators for a repository */
+  public async fetchCollaborators(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    return this.appStore._fetchCollaborators(repository)
+  }
+
+  /** Fetch labels for a repository */
+  public async fetchLabels(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    return this.appStore._fetchLabels(repository)
+  }
+
+  /** Fetch milestones for a repository */
+  public async fetchMilestones(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    return this.appStore._fetchMilestones(repository)
+  }
+
+  /** Fetch GitHub Projects V2 for a repository */
+  public async fetchProjects(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    return this.appStore._fetchProjects(repository)
   }
 }

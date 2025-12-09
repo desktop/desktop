@@ -106,43 +106,75 @@ export function enableSourceMaps() {
  * perform the source mapping, it'll use the original error stack.
  */
 export function withSourceMappedStack(error: unknown): Error {
-  // Guard against `throw "Foo"` which is totally a thing that can happen
-  if (typeof error === 'string') {
-    return {
-      name: 'StringError',
-      message: error,
-    }
+  // Handle null/undefined
+  if (error === null) {
+    return { name: 'NullError', message: 'null was thrown' }
+  }
+  if (error === undefined) {
+    return { name: 'UndefinedError', message: 'undefined was thrown' }
   }
 
-  let message
+  // Guard against `throw "Foo"` which is totally a thing that can happen
+  if (typeof error === 'string') {
+    return { name: 'StringError', message: error }
+  }
 
-  if (error && typeof error === 'object' && 'message' in error) {
-    if (error.message === null) {
-      message = 'null'
-    } else if (error.message === undefined) {
-      message = 'undefined'
-    } else if (typeof error.message === 'string') {
-      message = error.message
-    } else if (typeof error.message === 'object') {
-      message = JSON.stringify(
-        error.message,
-        Object.getOwnPropertyNames(error.message)
-      )
+  // Handle numbers (e.g., `throw 42`)
+  if (typeof error === 'number') {
+    return { name: 'NumberError', message: `${error}` }
+  }
+
+  // Handle booleans
+  if (typeof error === 'boolean') {
+    return { name: 'BooleanError', message: `${error}` }
+  }
+
+  let message: string
+  let name: string
+
+  if (error && typeof error === 'object') {
+    // Try to extract message
+    if ('message' in error) {
+      if (error.message === null) {
+        message = 'null'
+      } else if (error.message === undefined) {
+        message = 'undefined'
+      } else if (typeof error.message === 'string') {
+        message = error.message
+      } else if (typeof error.message === 'object') {
+        message = JSON.stringify(
+          error.message,
+          Object.getOwnPropertyNames(error.message)
+        )
+      } else {
+        message = `${error.message}`
+      }
     } else {
-      message = `${error.message}`
+      // Object without message property - try to stringify it
+      try {
+        const stringified = JSON.stringify(error, Object.getOwnPropertyNames(error))
+        message = `Non-Error object thrown: ${stringified.substring(0, 500)}`
+      } catch {
+        message = `Non-Error object thrown: ${Object.prototype.toString.call(error)}`
+      }
+    }
+
+    // Try to extract name
+    if ('name' in error && typeof error.name === 'string') {
+      name = error.name
+    } else if ('constructor' in error && typeof error.constructor === 'function') {
+      name = error.constructor.name || 'UnknownObject'
+    } else {
+      name = 'UnknownObject'
     }
   } else {
-    message = '[Unknown]'
+    // Fallback for any other type
+    name = 'UnknownError'
+    message = `Unknown value thrown: ${typeof error}`
   }
 
   return {
-    name:
-      error &&
-      typeof error === 'object' &&
-      'name' in error &&
-      typeof error.name === 'string'
-        ? error.name
-        : '[Unknown]',
+    name,
     message,
     stack: error instanceof Error ? sourceMappedStackTrace(error) : undefined,
   }

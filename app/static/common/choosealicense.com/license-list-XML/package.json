@@ -1,0 +1,34 @@
+{
+    "name": "license-list-xml",
+    "version": "2.6.0",
+    "description": "The SPDX License List is a list of commonly found licenses and exceptions used for open source and other collaborative software.  The XML format is an internal representation of the licenses.  See the license-list-data for supported formats for the license list.",
+    "author": "Linux Foundation and its Contributors",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/spdx/license-list-XML"
+    },
+    "bugs": {
+        "url": "https://github.com/spdx/license-list-XML/issues"
+    },
+    "keywords": [
+        "SPDX",
+        "Software Package Data Exchange",
+        "SPDX-License-Identifier",
+        "licenses",
+        "license",
+        "linux foundation",
+        "identifiers",
+        "oss",
+        "open source",
+        "software"
+    ],
+    "scripts": {
+        "test": "node validate-schema.js"
+    },
+    "dependencies": {
+        "libxml-xsd": "0.5.2",
+        "glob": "7.1.2",
+        "fs": ""
+    },
+    "license": "CC0-1.0"
+}

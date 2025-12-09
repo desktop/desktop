@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="true" licenseId="MS-PL" name="Microsoft Public License">
+      <crossRefs>
+         <crossRef>http://www.microsoft.com/opensource/licenses.mspx</crossRef>
+         <crossRef>https://opensource.org/licenses/MS-PL</crossRef>
+      </crossRefs>
+    <text>
+      <titleText>
+         <p>Microsoft Public License (Ms-PL)</p>
+      </titleText>
+
+      <p>This license governs use of the accompanying software. If you use the software, you accept this license.
+         If you do not accept the license, do not use the software.</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          Definitions
+            <br/>The terms "reproduce," "reproduction," "derivative works,"
+                 and "distribution" have the same meaning here as under U.S. copyright law. A
+                 "contribution" is the original software, or any additions or changes to the
+                 software. A "contributor" is any person that distributes its contribution
+                 under this license. "Licensed patents" are a contributor's patent
+                 claims that read directly on its contribution.
+
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          Grant of Rights
+          <list>
+               <item>
+                  <bullet>(A)</bullet>
+              Copyright Grant- Subject to the terms of this license, including the license conditions and
+                 limitations in section 3, each contributor grants you a non-exclusive, worldwide,
+                 royalty-free copyright license to reproduce its contribution, prepare derivative works of
+                 its contribution, and distribute its contribution or any derivative works that you
+                 create.
+            </item>
+               <item>
+                  <bullet>(B)</bullet>
+              Patent Grant- Subject to the terms of this license, including the license conditions and
+                 limitations in section 3, each contributor grants you a non-exclusive, worldwide,
+                 royalty-free license under its licensed patents to make, have made, use, sell, offer for
+                 sale, import, and/or otherwise dispose of its contribution in the software or derivative
+                 works of the contribution in the software.
+            </item>
+            </list>
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          Conditions and Limitations
+          <list>
+               <item>
+                  <bullet>(A)</bullet>
+              No Trademark License- This license does not grant you rights to use any contributors'
+                 name, logo, or trademarks.
+            </item>
+               <item>
+                  <bullet>(B)</bullet>
+              If you bring a patent claim against any contributor over patents that you claim are infringed
+                 by the software, your patent license from such contributor to the software ends
+                 automatically.
+            </item>
+               <item>
+                  <bullet>(C)</bullet>
+              If you distribute any portion of the software, you must retain all copyright, patent,
+                 trademark, and attribution notices that are present in the software.
+            </item>
+               <item>
+                  <bullet>(D)</bullet>
+              If you distribute any portion of the software in source code form, you may do so only under
+                 this license by including a complete copy of this license with your distribution. If you
+                 distribute any portion of the software in compiled or object code form, you may only do so
+                 under a license that complies with this license.
+            </item>
+               <item>
+                  <bullet>(E)</bullet>
+              The software is licensed "as-is." You bear the risk of using it. The contributors
+                 give no express warranties, guarantees, or conditions. You may have additional consumer
+                 rights under your local laws which this license cannot change. To the extent permitted
+                 under your local laws, the contributors exclude the implied warranties of merchantability,
+                 fitness for a particular purpose and non-infringement.
+            </item>
+            </list>
+        </item>
+      </list>
+    </text>
+  </license>
+</SPDXLicenseCollection>

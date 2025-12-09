@@ -66,6 +66,8 @@ export type RequestChannels = {
   ) => void
   focus: () => void
   blur: () => void
+  'power-monitor-suspend': () => void
+  'power-monitor-resume': () => void
   'update-accounts': (accounts: ReadonlyArray<EndpointToken>) => void
   'quit-and-install-updates': () => void
   'quit-app': () => void
@@ -86,6 +88,9 @@ export type RequestChannels = {
   'show-installing-update': () => void
   'install-windows-cli': () => void
   'uninstall-windows-cli': () => void
+  // Terminal IPC (main -> renderer)
+  'terminal-data': (id: string, data: string) => void
+  'terminal-exit': (id: string, exitCode: number) => void
 }
 
 /**
@@ -133,4 +138,9 @@ export type RequestResponseChannels = {
   ) => Promise<string | null>
   'get-notifications-permission': () => Promise<DesktopNotificationPermission>
   'request-notifications-permission': () => Promise<boolean>
+  // Terminal IPC
+  'terminal-create': (cwd: string) => Promise<string>
+  'terminal-write': (id: string, data: string) => Promise<void>
+  'terminal-resize': (id: string, cols: number, rows: number) => Promise<void>
+  'terminal-kill': (id: string) => Promise<void>
 }

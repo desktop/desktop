@@ -1,0 +1,37 @@
+      <footer class="site-footer clearfix">
+        <nav>
+          <a href="/about/">About</a>
+          <a href="/terms-of-service/">Terms of Service</a>
+          {% github_edit_link "Help improve this page" %}
+        </nav>
+        <p>
+          The content of this site is licensed under the <a href="https://creativecommons.org/licenses/by/3.0/">
+          Creative Commons Attribution 3.0 Unported License</a>.
+        </p>
+        <div class="with-love">
+          Curated with ❤️ by <a href="https://github.com">GitHub, Inc.</a> and <a href="https://github.com/github/choosealicense.com">You!</a>
+        </div>
+      </footer>
+
+    </div> <!-- /container -->
+
+    {% if page.collection == "licenses" or page.class == "license-types" %}
+    <script src="{{ 'assets/vendor/jquery/jquery.min.js' | relative_url }}"></script>
+    <script src="{{ 'assets/vendor/clipboard/dist/clipboard.min.js' | relative_url }}"></script>
+    <script>
+      window.annotations = {{ site.data.rules | jsonify }};
+      {% if page.collection == "licenses" %}
+      window.licenses = [
+        {% for license in site.licenses %}
+          {
+            "title": "{{ license.title | escape  }}",
+            "spdx_id": "{{ license.spdx-id | escape  }}"
+          }{% unless forloop.last %},{% endunless %}
+        {% endfor %}
+      ];
+      {% endif %}
+    </script>
+    <script src="{{ 'assets/js/app.js' | relative_url }}"></script>
+    {% endif %}
+  </body>
+</html>

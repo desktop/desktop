@@ -5,6 +5,7 @@ import {
   BrowserWindow,
   autoUpdater,
   nativeTheme,
+  powerMonitor,
 } from 'electron'
 import { shell } from '../lib/app-shell'
 import { Emitter, Disposable } from 'event-kit'
@@ -33,6 +34,11 @@ import { CLIAction } from '../lib/cli-action'
 export class AppWindow {
   private window: Electron.BrowserWindow
   private emitter = new Emitter()
+
+  /** Get the underlying BrowserWindow instance */
+  public get browserWindow(): Electron.BrowserWindow {
+    return this.window
+  }
 
   private _loadTime: number | null = null
   private _rendererReadyTime: number | null = null
@@ -183,7 +189,10 @@ export class AppWindow {
     })
 
     this.window.webContents.on('did-fail-load', () => {
-      this.window.webContents.openDevTools()
+      // Only open DevTools in development mode
+      if (process.env.NODE_ENV === 'development') {
+        this.window.webContents.openDevTools()
+      }
       this.window.show()
     })
 
@@ -199,6 +208,16 @@ export class AppWindow {
     this.window.on('blur', () =>
       ipcWebContents.send(this.window.webContents, 'blur')
     )
+
+    // Handle system sleep/wake to gracefully manage connections and background tasks
+    powerMonitor.on('suspend', () => {
+      log.info('[AppWindow] System suspending, notifying renderer')
+      ipcWebContents.send(this.window.webContents, 'power-monitor-suspend')
+    })
+    powerMonitor.on('resume', () => {
+      log.info('[AppWindow] System resuming, notifying renderer')
+      ipcWebContents.send(this.window.webContents, 'power-monitor-resume')
+    })
 
     registerWindowStateChangedEvents(this.window)
     this.window.loadURL(encodePathAsUrl(__dirname, 'index.html'))

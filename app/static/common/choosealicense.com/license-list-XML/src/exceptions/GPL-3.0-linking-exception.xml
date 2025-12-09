@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+  <exception licenseId="GPL-3.0-linking-exception" name="GPL-3.0 Linking Exception" listVersionAdded="3.8">
+    <crossRefs>
+      <crossRef>https://www.gnu.org/licenses/gpl-faq.en.html#GPLIncompatibleLibs</crossRef>
+    </crossRefs>
+    <notes>
+      This exception is based on the suggested template from the Free Software Foundation's FAQ about the GPL. This variant does not include the second optional sentence regarding Corresponding Source. For a variant with that sentence, please see GPL-3.0-linking-source-exception.
+    </notes>
+    <text>
+      <titleText>
+	<optional>
+	<p>
+	  Additional permission under GNU GPL version 3 section 7
+	</p>
+	</optional>
+      </titleText>
+      <p>
+	If you modify this Program, or any covered work, by linking or combining it with <alt match=".+" name="library1">[name of library]</alt> (or a modified version of that library), containing parts covered by the terms of <alt match=".+" name="libraryLicense1">[name of library's license]</alt>, the licensors of this Program grant you additional permission to convey the resulting work.
+      </p>
+    </text>
+  </exception>
+</SPDXLicenseCollection>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="true" licenseId="Fair" name="Fair License">
+      <crossRefs>
+         <crossRef>http://fairlicense.org/</crossRef>
+         <crossRef>https://opensource.org/licenses/Fair</crossRef>
+      </crossRefs>
+    <text>
+      <titleText>
+         <p>Fair License</p>
+      </titleText>
+      <copyrightText>
+         <p>&lt;Copyright Information&gt;</p>
+      </copyrightText>
+
+      <p>Usage of the works is permitted provided that this instrument is retained with the works, so that any
+         entity that uses the works is notified of this instrument.</p>
+      <p>DISCLAIMER: THE WORKS ARE WITHOUT WARRANTY.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

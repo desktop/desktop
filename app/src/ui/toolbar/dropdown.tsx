@@ -269,6 +269,15 @@ export class ToolbarDropdown extends React.Component<
     return this.props.dropdownState === 'open'
   }
 
+  /** Whether the arrow should render inside the main button vs as a separate button */
+  private get shouldRenderArrowInside(): boolean {
+    if (this.props.dropdownStyle !== ToolbarDropdownStyle.MultiOption) {
+      return true
+    }
+    // For MultiOption, render inside if no onClick handler (single unified button)
+    return !this.props.onClick
+  }
+
   private dropdownIcon(state: DropdownState): OcticonSymbol {
     // @TODO: Remake triangle octicon in a 12px version,
     // right now it's scaled badly on normal dpi monitors.
@@ -291,19 +300,25 @@ export class ToolbarDropdown extends React.Component<
       <Octicon symbol={this.dropdownIcon(state)} className="dropdownArrow" />
     )
 
-    return this.props.dropdownStyle === ToolbarDropdownStyle.MultiOption ? (
-      <ToolbarButton
-        className="toolbar-dropdown-arrow-button"
-        onClick={this.onToggleDropdownClick}
-        ariaExpanded={this.isOpen}
-        ariaHaspopup={true}
-        ariaLabel={this.props.ariaLabel}
-      >
-        {dropdownIcon}
-      </ToolbarButton>
-    ) : (
-      dropdownIcon
-    )
+    // Render as separate button only for MultiOption with an onClick handler
+    if (
+      this.props.dropdownStyle === ToolbarDropdownStyle.MultiOption &&
+      this.props.onClick
+    ) {
+      return (
+        <ToolbarButton
+          className="toolbar-dropdown-arrow-button"
+          onClick={this.onToggleDropdownClick}
+          ariaExpanded={this.isOpen}
+          ariaHaspopup={true}
+          ariaLabel={this.props.ariaLabel}
+        >
+          {dropdownIcon}
+        </ToolbarButton>
+      )
+    }
+
+    return dropdownIcon
   }
 
   private onToggleDropdownClick = (
@@ -327,8 +342,11 @@ export class ToolbarDropdown extends React.Component<
 
   private onMainButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (this.props.dropdownStyle === ToolbarDropdownStyle.MultiOption) {
-      this.props.onClick?.(event)
-      return
+      if (this.props.onClick) {
+        this.props.onClick(event)
+        return
+      }
+      // If no onClick handler, fall through to toggle dropdown
     }
 
     this.onToggleDropdownClick(event)
@@ -495,19 +513,13 @@ export class ToolbarDropdown extends React.Component<
             this.props.onlyShowTooltipWhenOverflowed
           }
           isOverflowed={this.props.isOverflowed}
-          ariaExpanded={
-            this.props.dropdownStyle === ToolbarDropdownStyle.MultiOption
-              ? undefined
-              : this.isOpen
-          }
+          ariaExpanded={this.shouldRenderArrowInside ? this.isOpen : undefined}
           ariaHaspopup={this.props.buttonAriaHaspopup}
         >
           {this.props.children}
-          {this.props.dropdownStyle !== ToolbarDropdownStyle.MultiOption &&
-            this.renderDropdownArrow()}
+          {this.shouldRenderArrowInside && this.renderDropdownArrow()}
         </ToolbarButton>
-        {this.props.dropdownStyle === ToolbarDropdownStyle.MultiOption &&
-          this.renderDropdownArrow()}
+        {!this.shouldRenderArrowInside && this.renderDropdownArrow()}
       </div>
     )
   }

@@ -22,6 +22,7 @@
 
   &.open {
     &.foldout-style > .toolbar-button > button,
+    &.multi-option-style > .toolbar-button > button,
     &.multi-option-style > .toolbar-dropdown-arrow-button > button {
       color: var(--toolbar-button-active-color);
       background-color: var(--toolbar-button-active-background-color);

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="BSD-Source-Code"
+            name="BSD Source Code Attribution">
+      <crossRefs>
+         <crossRef>https://github.com/robbiehanson/CocoaHTTPServer/blob/master/LICENSE.txt</crossRef>
+      </crossRefs>
+    <text>
+      <copyrightText>
+         <p>Copyright (c) 2011, Deusty, LLC
+            <br/>All rights reserved.
+      </p>
+      </copyrightText>
+
+      <p>Redistribution and use of this software in source and binary
+         forms, with or without modification, are permitted provided
+         that the following conditions are met:</p>
+      <list>
+        <item>
+            <bullet>*</bullet>
+          Redistributions of source code must retain the above
+             copyright notice, this list of conditions and the
+             following disclaimer.
+        </item>
+        <item>
+            <bullet>*</bullet>
+          Neither the name of
+            <alt match=".+" name="organizationClause3">
+            Deusty</alt> nor the names of its contributors may be
+            used to endorse or promote products derived from this
+            software without specific prior written permission of
+            <alt match=".+" name="organizationClause2">Deusty, LLC.
+            </alt>
+
+        </item>
+      </list>
+      <p>THIS SOFTWARE IS PROVIDED BY
+        <alt match=".+" name="copyrightHolderAsIs">THE COPYRIGHT HOLDERS
+        AND CONTRIBUTORS</alt> "AS IS" AND ANY EXPRESS OR IMPLIED
+        WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+        WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+        PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+        <alt match=".+" name="copyrightHolderLiability">THE COPYRIGHT
+        HOLDER OR CONTRIBUTORS</alt> BE LIABLE FOR ANY DIRECT, INDIRECT,
+        INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+        (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+        OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+        INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+        WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+        NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+        THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+        DAMAGE.
+      </p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

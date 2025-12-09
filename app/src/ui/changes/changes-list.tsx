@@ -167,6 +167,13 @@ interface IChangesListProps {
   readonly onOpenItemInExternalEditor: (path: string) => void
 
   /**
+   * Called to open a file in the Code tab
+   *
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenItemInCodeTab?: (path: string) => void
+
+  /**
    * The currently checked out branch (null if no branch is checked out).
    */
   readonly branch: string | null
@@ -980,7 +987,11 @@ export class ChangesList extends React.Component<
   private onRowDoubleClick = (row: number) => {
     const file = this.props.workingDirectory.files[row]
 
-    this.props.onOpenItemInExternalEditor(file.path)
+    if (this.props.onOpenItemInCodeTab) {
+      this.props.onOpenItemInCodeTab(file.path)
+    } else {
+      this.props.onOpenItemInExternalEditor(file.path)
+    }
   }
 
   private onRowKeyDown = (

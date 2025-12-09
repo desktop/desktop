@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+  <license isOsiApproved="false" licenseId="Parity-6.0.0" name="The Parity Public License 6.0.0" listVersionAdded="3.6">
+    <crossRefs>
+      <crossRef>https://paritylicense.com/versions/6.0.0.html</crossRef>
+    </crossRefs>
+    <text>
+      <titleText>
+        <p>The Parity Public License 6.0.0</p>
+      </titleText>
+      <p>Contributor: <alt match=".+" name="copyright">contributor name</alt></p>
+      <p>Source Code: <alt match=".+" name="source">source</alt></p>
+      <p>This license lets you use and share this software for free, as long as you contribute software you make with it. Specifically:</p>
+      <p>If you follow the rules below, you may do everything with this software that would otherwise infringe either the contributor's copyright in it, any patent claim the contributor can license, or both.</p>
+      <list>
+        <item><bullet>1.</bullet> Contribute changes and additions you make to this software.
+          </item>
+        <item><bullet>2.</bullet> If you combine this software with other software, contribute that other software.
+          </item>
+        <item><bullet>3.</bullet> Contribute software you develop, deploy, monitor, or run with this software.
+          </item>
+        <item><bullet>4.</bullet> Ensure everyone who gets a copy of this software from you, in source code or any other form, gets the text of this license and the contributor and source code lines above.
+          </item>
+        <item><bullet>5.</bullet> Do not make any legal claim against anyone accusing this software, with or without changes, alone or with other software, of infringing any patent claim. </item>
+      </list>
+      <p>To contribute software, publish all its source code, in the preferred form for making changes, through a freely accessible distribution system widely used for similar source code, and license contributions not already licensed to the public on terms as permissive as this license accordingly.</p>
+      <p>You are excused for unknowingly breaking 1, 2, or 3 if you contribute as required, or stop doing anything requiring this license, within 30 days of learning you broke the rule.</p>
+      <p>**As far as the law allows, this software comes as is, without any warranty, and the contributor will not be liable to anyone for any damages related to this software or this license, for any kind of legal claim.**</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

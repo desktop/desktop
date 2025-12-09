@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+
+if [ -z "$1" ] || [ -z "$2" ]; then
+  echo "Usage: <Old Identifier> <New Identifier>"
+  exit 1
+fi
+
+if [ ! -f "src/$1.xml" ]; then
+  echo "No source file for \"$1\" found."
+  exit 1
+fi
+
+# Copy the source file and update identifier.
+sed "s/licenseId=\"$1\"/licenseId=\"$2\"/g" "src/$1.xml" > "src/$2.xml"
+# Remove the old source file.
+rm "src/$1.xml"
+
+# Rename the test file, if there is one.
+tests="test/simpleTestForGenerator"
+if [ -f "$tests/$1.txt" ]; then
+  mv "$tests/$1.txt" "$tests/$2.txt"
+else
+  echo "No test file found."
+fi

@@ -1,0 +1,39 @@
+{% unless page.hide_breadcrumbs == true %}
+  <ol>
+    <li>
+      {% if page.layout == "license" %}
+        <a href="/">Home</a> / <a href="/licenses/">Licenses</a>
+      {% else %}
+        <a href="/">Home</a>
+      {% endif %}
+    </li>
+  </ol>
+  <script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [{
+      "@type": "ListItem",
+      "position": 1,
+      "item": {
+        "@id": "{{ site.github.url }}/",
+        "name": "Home"
+      }
+    },{% if page.layout == "license" %}{
+      "@type": "ListItem",
+      "position": 2,
+      "item": {
+        "@id": "{{ site.github.url }}/licenses",
+        "name": "Licenses"
+      }
+    },{% endif %}{
+      "@type": "ListItem",
+      "position": {% if page.layout == "license" %}3{% else %}2{% endif %},
+      "item": {
+        "@id": "{{ site.github.url }}{{ page.url }}",
+        "name": {{ page.title | jsonify }}
+      }
+    }]
+  }
+  </script>
+{% endunless %}

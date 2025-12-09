@@ -150,6 +150,13 @@ interface IFilterChangesListProps {
   readonly onOpenItemInExternalEditor: (path: string) => void
 
   /**
+   * Called to open a file in the Code tab
+   *
+   * @param path The path of the file relative to the root of the repository
+   */
+  readonly onOpenItemInCodeTab?: (path: string) => void
+
+  /**
    * The currently checked out branch (null if no branch is checked out).
    */
   readonly branch: string | null
@@ -1088,7 +1095,12 @@ export class FilterChangesList extends React.Component<
   }
 
   private onChangedFileDoubleClick = (item: IChangesListItem) => {
-    this.props.onOpenItemInExternalEditor(item.change.path)
+    // Open in Code tab if available, otherwise fall back to external editor
+    if (this.props.onOpenItemInCodeTab) {
+      this.props.onOpenItemInCodeTab(item.change.path)
+    } else {
+      this.props.onOpenItemInExternalEditor(item.change.path)
+    }
   }
 
   private onItemKeyDown = (

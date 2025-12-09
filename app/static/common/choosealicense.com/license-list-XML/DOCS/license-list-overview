@@ -1,0 +1,134 @@
+<!--this is the HTML for the webpage at https://spdx.org/spdx-license-list/license-list-overview - this is here to enable tracking of changes on that page -->
+
+<p>The SPDX License List is a list of commonly found&nbsp;licenses and exceptions used in free and open source and other collaborative software or documentation. The&nbsp;purpose of the SPDX License List is to enable&nbsp;easy and efficient&nbsp;identification of such licenses and exceptions in an SPDX document, in source files&nbsp;or elsewhere. The SPDX License List includes a standardized short identifier, full name, vetted license text including matching guidelines markup as appropriate,&nbsp;and a canonical permanent URL for each license and exception.&nbsp;</p>
+
+<p>By including a license or exception on this list, the SPDX workgroup makes no judgment about its suitability or desirability. The list is meant only to standardize references to commonly used, free and open source licenses and exceptions, not to promote or discourage the use of any license or exception. A license not on the SPDX License List can be included in an SPDX document by using a License Ref and including the full license text as per the specification.</p>
+
+<p>This page describes the current principles for the inclusion of a license on the SPDX License List, as well as an&nbsp;<a href="#fields">explanation of the fields</a>&nbsp;contained on the list.</p>
+
+<h2>SPDX License List links:</h2>
+
+<ul>
+	<li><strong><a href="/licenses/">SPDX License List:</a></strong>&nbsp;The list of commonly found open source licenses for the purposes of being able to easily and efficiently identify such licenses.</li>
+	<li><strong><a href="/licenses/exceptions-index.html">License Exceptions:</a></strong>&nbsp;The list of commonly found exceptions to free and open source licenses, which can be used with the&nbsp;<a href="/specifications/">License Expression</a>&nbsp;operator, &quot;WITH&quot; to create a license with an exception operator.</li>
+	<li><strong><a href="https://github.com/spdx/license-list-XML">Master Files:</a></strong>&nbsp;The HTML pages you see at&nbsp;<a href="/licenses/">http://spdx.org/licenses/</a>&nbsp;are generated from the master files for the SPDX License List. &nbsp;</li>
+	<li><strong><a href="/spdx-license-list/matching-guidelines">Matching Guidelines:</a></strong>&nbsp;Guidelines for what constitutes a license match to the SPDX License List. The license text on the HTML pages at&nbsp;<a href="/licenses/">http://spdx.org/licenses/</a>&nbsp;will display omitable text in blue and replaceable text in red (see Guideline #2 for more information).</li>
+	<li><strong><a href="https://github.com/spdx/license-list-XML/blob/master/CONTRIBUTING.md">Request New License:</a></strong>&nbsp;Instructions for proposing a&nbsp;license&nbsp;or exception&nbsp;be added to the SPDX License List.</li>
+</ul>
+
+<h2>License Inclusion Principles</h2>
+
+<p><strong>Background Principles&nbsp;</strong><br />
+	The Software Package Data Exchange&reg; (SPDX&reg;) specification is a standard format for communicating, among other things, the components, licenses, and copyrights associated with open source software packages. Use of this standard streamlines license identification across the supply chain while reducing redundant work.</p>
+
+<p>The goal of SPDX is not to evaluate licensing information or to provide legal interpretations. The only goal is to reliably and consistently communicate and share objective factual information so that organizations using software components will have the information necessary to conduct their independent analysis and evaluation. Establishing a consistent, reliable, and reusable way to communicate license information for software components will facilitate open source license compliance along the supply chain.</p>
+
+<p>Although SPDX has traditionally focused on open source licensing, software may contain a mix of open-source licensed, commercially-licensed, freeware licensed, and other varieties of licensed software. Thus, it is feasible that a future version of the standard may develop a standardized method of identifying non-open source licenses contained within software packages.</p>
+
+<p>Because the present focus of SPDX is the collection and presentation of the open-source software licenses contained in a software package, any license that is a candidate for inclusion on the SPDX License List must have the general attributes of an &quot;open source&quot; license.</p>
+
+<p><strong>Open Source Definition&nbsp;</strong><br />
+	The terms &quot;free software,&quot; &quot;open source software,&quot; or their variants (FOSS, FLOSS, libre software, etc.) are defined differently by different organizations. At a minimum, all definitions of open source or free software include the characteristic that the source code be made available for inspection and modification and that the source code may be freely distributed. However, there are a number of other characteristics that vary depending on the policy focus of the defining organization. Even though the various definitions of open source software differ in some respects, there are certain fundamental characteristics commonly incorporated in all these definitions.</p>
+
+<p>The SPDX Legal Team uses the definition promulgated by the Open Source Initiative (OSI) as the basis for analyzing candidate licenses for inclusion on the SPDX License List. That definition provides as follows:</p>
+
+<div style="color: #008000; margin-left: 30px; margin-right: 30px; background-color: #eee; border: 1px solid #555555; padding: 5px;"><strong>Introduction</strong>
+
+	<p>&nbsp;</p>
+
+	<p>Open source doesn&#39;t just mean access to the source code. The distribution terms of open-source software must comply with the following criteria:</p>
+
+	<ol>
+		<li>Free Redistribution. The license shall not restrict any party from selling or giving away the software as a component of an aggregate software distribution containing programs from several different sources. The license shall not require a royalty or other fee for such sale.</li>
+		<li>Source Code. The program must include source code, and must allow distribution in source code as well as compiled form. Where some form of a product is not distributed with source code, there must be a well-publicized means of obtaining the source code for no more than a reasonable reproduction cost preferably, downloading via the Internet without charge. The source code must be the preferred form in which a programmer would modify the program. Deliberately obfuscated source code is not allowed. Intermediate forms such as the output of a preprocessor or translator are not allowed.</li>
+		<li>Derived Works. The license must allow modifications and derived works, and must allow them to be distributed under the same terms as the license of the original software.</li>
+		<li>Integrity of The Author&#39;s Source Code. The license may restrict source-code from being distributed in modified form only if the license allows the distribution of &quot;patch files&quot; with the source code for the purpose of modifying the program at build time. The license must explicitly permit distribution of software built from modified source code. The license may require derived works to carry a different name or version number from the original software.</li>
+		<li>No Discrimination Against Persons or Groups. The license must not discriminate against any person or group of persons.</li>
+		<li>No Discrimination Against Fields of Endeavor. The license must not restrict anyone from making use of the program in a specific field of endeavor. For example, it may not restrict the program from being used in a business, or from being used for genetic research.</li>
+		<li>Distribution of License. The rights attached to the program must apply to all to whom the program is redistributed without the need for execution of an additional license by those parties.</li>
+		<li>License Must Not Be Specific to a Product. The rights attached to the program must not depend on the program&#39;s being part of a particular software distribution. If the program is extracted from that distribution and used or distributed within the terms of the program&#39;s license, all parties to whom the program is redistributed should have the same rights as those that are granted in conjunction with the original software distribution.</li>
+		<li>License Must Not Restrict Other Software. The license must not place restrictions on other software that is distributed along with the licensed software. For example, the license must not insist that all other programs distributed on the same medium must be open-source software.</li>
+		<li>License Must Be Technology-Neutral. No provision of the license may be predicated on any individual technology or style of interface.</li>
+	</ol>
+</div>
+
+<p><em>Available at&nbsp;<a href="http://opensource.org/osd">http://opensource.org/osd</a>&nbsp;(March 14, 2013).</em></p>
+
+<p><strong>Candidate License Analysis&nbsp;</strong><br />
+	Determining whether a candidate license is deemed to be open source for purpose of inclusion on the SPDX License List requires the SPDX Legal Team to engage in a case-by-case evaluation of each candidate license. Candidate licenses that substantially comply with the open source definition will be added to the SPDX License List. Nevertheless, the SPDX Legal Team does not require (1) strict compliance with all elements of the OSI Definition; or (2) strict compliance with any particular element of the OSI Definition. Rather, it treats each element of the definition as a factor to be balanced in light of the totality of the candidate license and SPDX&#39;s goals and objectives. The SPDX Legal Team may also analyze &ldquo;environmental&rdquo; factors outside the open source definition, such as whether a candidate license is already included on the OSI license list or other such lists, whether the candidate license is in common use, or whether a commonly used open source project uses it (particularly where such open source project is a dependency on which other projects rely).</p>
+
+<p>The SPDX Legal Team endeavors to explain its reasoning, analysis, and conclusions with respect to a candidate license as a means of developing precedent.</p>
+
+<h2><a name="fields">Explanation of SPDX License List Fields</a></h2>
+
+<p>The following information describes how each field on the license and exception list is treated.</p>
+
+<p><strong>A) Full Name</strong></p>
+
+<ul>
+	<li>The full name may omit certain word, such as &quot;the,&quot; for alphabetical sorting purposes</li>
+	<li>No commas in full name of license or exception</li>
+	<li>The word &quot;version&quot; is not spelled out; &quot;v&quot; or nothing is used to indicate license version (for space reasons)</li>
+	<li>For version, use lower case v and no period or space between v and the number</li>
+	<li>No abbreviations are included (in parenthesis) after the full name</li>
+</ul>
+
+<p><strong>B) Short Identifier</strong></p>
+
+<ul>
+	<li>Short identifier to be used to identify a license or exception match to licenses or exceptions&nbsp;in the context of an SPDX file, a source file, or elsewhere</li>
+	<li>Short identifiers consist of ASCII letters (A-Za-z), digits (0-9), full stops (.) and hyphen or minus signs (-)</li>
+	<li>Short identifiers consist of an abbreviation based on a common short name or acronym for the license or exception</li>
+	<li>Where applicable, the abbreviation will be followed by a dash and then the version number, in X.Y format</li>
+	<li>Where applicable, and if possible, the short identifier should be harmonized with other well-known open source naming sources (i.e., OSI, Fedora, etc.)</li>
+	<li>Short identifiers should be as short in length as possible while staying consistent with all other naming criteria</li>
+</ul>
+
+<p><strong>C) Other web pages for license/exception</strong></p>
+
+<ul>
+	<li>Include URL for the official text of the license or exception</li>
+	<li>If the license is OSI approved, also include URL for OSI license page</li>
+	<li>Include another URL that has text version of license, if neither of the first two options are available</li>
+	<li>Note that the source URL may refer to an original URL for the license which is no longer active. We don&#39;t remove inactive URLs. New or best available URLs may be added.</li>
+	<li>Link to the license or exception in its native language is used where specified (e.g. French for CeCILL). Link to English version where multiple, equivalent official translations (e.g. EUPL)</li>
+</ul>
+
+<p><strong>D) Notes</strong></p>
+
+<ul>
+	<li>Include date of release, if found, for licenses with multiple versions, using European date format: day - month - year</li>
+	<li>Only factual information is included here&nbsp;</li>
+	<li>Does not contain information (or links to information) that includes any kind of interpretation or comment about the license (even if written by the license author)</li>
+	<li>Links to other official language translations of the license</li>
+	<li>For exceptions, includes a reference to the license(s) to which this exception typically applies</li>
+</ul>
+
+<p><strong>E) OSI Approved?</strong></p>
+
+<ul>
+	<li>If the license is OSI-approved, this field will indicate &quot;Y&quot; and otherwise left blank</li>
+</ul>
+
+<p><strong>F) FSF Free/Libre?</strong></p>
+
+<ul>
+	<li>If the license is <a href="https://www.gnu.org/licenses/license-list.en.html">considered free by the FSF</a>, this field will indicate &quot;Y&quot; and otherwise left blank</li>
+</ul>
+
+<p><strong>G) Text</strong></p>
+
+<ul>
+	<li>Full license text of the license or exception</li>
+</ul>
+
+<p><strong>H)&nbsp;</strong><strong style="font-size: 13.008px;">Standard License Header</strong></p>
+
+<ul style="font-size: 13.008px;">
+	<li>Should only include text intended to be put in the header of source files or other files as specified in the license or license appendix when specifically delineated</li>
+	<li>Indicate if there is any variation in the header (i.e. for files developed by a contributor versus when applying license to original work)</li>
+	<li>Do not include NOTICE info intended for a separate notice file</li>
+	<li>Leave this field blank if there is no standard header as specifically defined in the license</li>
+</ul>
+
+<p>&nbsp;</p>

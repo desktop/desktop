@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+  <license isOsiApproved="false" licenseId="BlueOak-1.0.0" name="Blue Oak Model License 1.0.0" listVersionAdded="3.6">
+    <crossRefs>
+      <crossRef>https://blueoakcouncil.org/license/1.0.0</crossRef>
+    </crossRefs>
+    <notes>This license was released on March 6, 2019.</notes>
+    <text>
+      <titleText>
+        <p><optional># </optional>Blue Oak Model License</p>
+      </titleText>
+      <p>Version 1.0.0</p>
+      <p><optional>## </optional>Purpose</p>
+      <p>This license gives everyone as much permission to work with this software as possible, while protecting contributors from liability.</p>
+      <p><optional>## </optional>Acceptance</p>
+      <p>In order to receive this license, you must agree to its rules. The rules of this license are both obligations under that agreement and conditions to your license. You must not do anything with this software that triggers a rule that you cannot or will not follow.</p>
+      <p><optional>## </optional>Copyright</p>
+      <p>Each contributor licenses you to do everything with this software that would otherwise infringe that contributor's copyright in it.</p>
+      <p><optional>## </optional>Notices</p>
+      <p>You must ensure that everyone who gets a copy of any part of this software from you, with or without changes, also gets the text of this license or a link to &lt;https://blueoakcouncil.org/license/1.0.0&gt;.</p>
+      <p><optional>## </optional>Excuse</p>
+      <p>If anyone notifies you in writing that you have not complied with <alt name="noticesRef" match="\[Notices\]\(\#notices\)|Notices">[Notices](#notices)</alt>, you can keep your license by taking all practical steps to comply within 30 days after the notice. If you do not do so, your license ends immediately.</p>
+      <p><optional>## </optional>Patent</p>
+      <p>Each contributor licenses you to do everything with this software that would otherwise infringe any patent claims they can license or become able to license.</p>
+      <p><optional>## </optional>Reliability</p>
+      <p>No contributor can revoke this license.</p>
+      <p><optional>## </optional>No Liability</p>
+      <p>***As far as the law allows, this software comes as is, without any warranty or condition, and no contributor will be liable to anyone for any damages related to this software or this license, under any kind of legal claim.***</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

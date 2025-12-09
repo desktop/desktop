@@ -10,6 +10,26 @@
     border-top: var(--base-border);
   }
 
+  // Style the list-item wrapper when it contains a group header
+  .list-item:has(.filter-list-group-header) {
+    background-color: var(--box-alt-background-color);
+    border-top: 1px solid var(--box-border-color);
+    border-bottom: 1px solid var(--box-border-color);
+
+    &:hover {
+      background-color: var(--box-alt-background-color);
+    }
+  }
+
+  .filter-list-group-header {
+    font-weight: var(--font-weight-semibold);
+    padding: var(--spacing-half) var(--spacing);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
   .branches-list {
     width: 365px;
     min-height: 0;

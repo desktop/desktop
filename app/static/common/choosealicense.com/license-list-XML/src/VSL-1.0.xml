@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="true" licenseId="VSL-1.0" name="Vovida Software License v1.0">
+      <crossRefs>
+         <crossRef>https://opensource.org/licenses/VSL-1.0</crossRef>
+      </crossRefs>
+    <text>
+      <titleText>
+         <p>Vovida Software License v. 1.0</p>
+      </titleText>
+      <optional>
+         <p>This license applies to all software incorporated in the "Vovida Open Communication Application Library"
+         except for those portions incorporating third party software specifically identified as being licensed
+         under separate license.</p>
+      </optional>
+      <titleText>
+         <p>The Vovida Software License, Version 1.0</p>
+      </titleText>
+      <copyrightText>
+         <p>Copyright (c) 2000 Vovida Networks, Inc. All rights reserved.</p>
+      </copyrightText>
+
+      <p>Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+         the following conditions are met:</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          Redistributions of source code must retain the above copyright notice, this list of conditions and
+             the following disclaimer.
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+             the following disclaimer in the documentation and/or other materials provided with the
+             distribution.
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          The names "VOCAL", "Vovida Open Communication Application Library", and "Vovida Open Communication
+             Application Library (VOCAL)" must not be used to endorse or promote products derived from this
+             software without prior written permission. For written permission, please contact
+             vocal@vovida.org.
+        </item>
+        <item>
+            <bullet>4.</bullet>
+          Products derived from this software may not be called "VOCAL", nor may "VOCAL" appear in their name,
+             without prior written permission.
+        </item>
+      </list>
+      <p>THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+         IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT ARE
+         DISCLAIMED. IN NO EVENT SHALL VOVIDA NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DAMAGES IN
+         EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+         (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+         PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+         STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+         SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

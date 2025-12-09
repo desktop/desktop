@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="MIT-CMU" name="CMU License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing:MIT?rd=Licensing/MIT#CMU_Style</crossRef>
+         <crossRef>https://github.com/python-pillow/Pillow/blob/fffb426092c8db24a5f4b6df243a8a3c01fb63cd/LICENSE</crossRef>
+      </crossRefs>
+    <text>
+      <copyrightText>
+         <p>&lt;copyright notice&gt;</p>
+      </copyrightText>
+
+      <optional>By obtaining, using, and/or copying this software and/or its associated documentation, you agree that
+      you have read, understood, and will comply with the following terms and conditions:</optional>
+
+      <p>Permission to use, copy, modify<optional spacing="after">,</optional> and distribute this software and its <optional>associated</optional> documentation for any purpose and
+         without fee is hereby granted, provided that the above copyright notice appears in all copies<optional spacing="after">,</optional> and that
+         both that copyright notice and this permission notice appear in supporting documentation, and that the
+         name of <alt match=".+" name="copyrightHolder1">the copyright holder</alt> not be used in advertising or publicity
+         pertaining to distribution of the software without specific<optional spacing="after">,</optional> written permission.</p>
+      <p><alt match=".+" name="copyrightHolder2">THE COPYRIGHT HOLDER</alt> <alt match="DISCLAIM(S)?" name="disclaim">DISCLAIM</alt> ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+         INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL <alt match=".+" name="copyrightHolder3">THE COPYRIGHT HOLDER</alt> BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY
+         DAMAGES WHATSOEVER RESULTING FROM <optional>THE</optional> LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+         NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+         THIS SOFTWARE.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="eGenix" name="eGenix.com Public License 1.1.0">
+      <crossRefs>
+         <crossRef>http://www.egenix.com/products/eGenix.com-Public-License-1.1.0.pdf</crossRef>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/eGenix.com_Public_License_1.1.0</crossRef>
+      </crossRefs>
+    <text>
+      <titleText>
+         <p>EGENIX.COM PUBLIC LICENSE AGREEMENT
+        <br/>Version 1.1.0
+      </p>
+      </titleText>
+      <optional>
+         <p>This license agreement is based on the Python CNRI License Agreement, a widely accepted open- source
+         license.</p>
+      </optional>
+
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          Introduction
+            <br/>This "License Agreement" is between eGenix.com Software, Skills and Services GmbH
+                 ("eGenix.com"), having an office at Pastor-Loeh-Str. 48, D-40764 Langenfeld, Germany,
+                 and the Individual or Organization ("Licensee") accessing and otherwise using this
+                 software in source or binary form and its associated documentation ("the Software").
+
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          License
+            <br/>Subject to the terms and conditions of this eGenix.com Public License Agreement, eGenix.com
+                 hereby grants Licensee a non-exclusive, royalty-free, world-wide license to reproduce,
+                 analyze, test, perform and/or display publicly, prepare derivative works, distribute,
+                 and otherwise use the Software alone or in any derivative version, provided, however,
+                 that the eGenix.com Public License Agreement is retained in the Software, or in any
+                 derivative version of the Software prepared by Licensee.
+
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          NO WARRANTY
+            <br/>eGenix.com is making the Software available to Licensee on an "AS IS" basis. SUBJECT TO ANY
+                 STATUTORY WARRANTIES WHICH CAN NOT BE EXCLUDED, EGENIX.COM MAKES NO REPRESENTATIONS OR
+                 WARRANTIES, EXPRESS OR IMPLIED. BY WAY OF EXAMPLE, BUT NOT LIMITATION, EGENIX.COM
+                 MAKES NO AND DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS
+                 FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF THE SOFTWARE WILL NOT INFRINGE ANY THIRD
+                 PARTY RIGHTS.
+
+        </item>
+        <item>
+            <bullet>4.</bullet>
+          LIMITATION OF LIABILITY
+            <br/>EGENIX.COM SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF THE SOFTWARE FOR ANY
+                 INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS (INCLUDING, WITHOUT LIMITATION,
+                 DAMAGES FOR LOSS OF BUSINESS PROFITS, BUSINESS INTERRUPTION, LOSS OF BUSINESS
+                 INFORMATION, OR OTHER PECUNIARY LOSS) AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
+                 THE SOFTWARE, OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+                 SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OR LIMITATION OF INCIDENTAL OR
+                 CONSEQUENTIAL DAMAGES, SO THE ABOVE EXCLUSION OR LIMITATION MAY NOT APPLY TO LICENSEE.
+
+
+        </item>
+        <item>
+            <bullet>5.</bullet>
+          Termination
+            <br/>This License Agreement will automatically terminate upon a material breach of its terms and
+                 conditions.
+
+        </item>
+        <item>
+            <bullet>6.</bullet>
+          Third Party Rights
+            <br/>Any software or documentation in source or binary form provided along with the Software
+                 that is associated with a separate license agreement is licensed to Licensee under the
+                 terms of that license agreement. This License Agreement does not apply to those
+                 portions of the Software. Copies of the third party licenses are included in the
+                 Software Distribution.
+
+        </item>
+        <item>
+            <bullet>7.</bullet>
+          General
+            <br/>Nothing in this License Agreement affects any statutory rights of consumers that cannot be
+                 waived or limited by contract.
+
+          <p>Nothing in this License Agreement shall be deemed to create any relationship of agency,
+             partnership, or joint venture between eGenix.com and Licensee.</p>
+            <p>If any provision of this License Agreement shall be unlawful, void, or for any reason
+             unenforceable, such provision shall be modified to the extent necessary to render it
+             enforceable without losing its intent, or, if no such modification is possible, be severed
+             from this License Agreement and shall not affect the validity and enforceability of the
+             remaining provisions of this License Agreement.</p>
+            <p>This License Agreement shall be governed by and interpreted in all respects by the law of
+             Germany, excluding conflict of law provisions. It shall not be governed by the United Nations
+             Convention on Contracts for International Sale of Goods. This License Agreement does not grant
+             permission to use eGenix.com trademarks or trade names in a trademark sense to endorse or
+             promote products or services of Licensee, or any third party.</p>
+            <p>The controlling language of this License Agreement is English. If Licensee has received a
+             translation into another language, it has been provided for Licensee's convenience only.</p>
+        </item>
+        <item>
+            <bullet>8.</bullet>
+          Agreement
+        </item>
+      </list>
+      <p>By downloading, copying, installing or otherwise using the Software, Licensee agrees to be bound by the
+         terms and conditions of this License Agreement. For question regarding this License Agreement, please
+         write to:
+        <br/>eGenix.com Software, Skills and Services GmbH
+        <br/>Pastor-Loeh-Str. 48
+        <br/>D-40764 Langenfeld
+        <br/>Germany
+      </p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

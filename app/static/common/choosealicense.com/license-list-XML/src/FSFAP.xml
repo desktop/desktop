@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="FSFAP" name="FSF All Permissive License">
+      <crossRefs>
+         <crossRef>https://www.gnu.org/prep/maintain/html_node/License-Notices-for-Other-Files.html</crossRef>
+      </crossRefs>
+    <text>
+      <p>Copying and distribution of this file, with or without
+         modification, are permitted in any medium without royalty
+         provided the copyright notice and this notice are preserved.
+         This file is offered as-is, without any warranty.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

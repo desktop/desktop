@@ -1,0 +1,22 @@
+#!/bin/bash
+if [ -z "$1" ]; then
+  echo "Usage: <License Identifier, e.g. 'MIT'>"
+  exit 1
+fi
+
+SKIP_SUFFIX=".skip"
+
+# Add the skip suffix to the XML files for all licenses,
+# except the one we want to test.
+while IFS= read -d '' -r file; do
+  mv "$file" "$file$SKIP_SUFFIX"
+done < <(find src -type f -not -name "$1.xml" -print0)
+
+# Run the test suite with just the XML file for the license
+# we want to test reamining.
+make | tee "test.log"
+
+# Remove the skip suffix from all XML files.
+while IFS= read -d '' -r file; do
+  mv "$file" "$(dirname "$file")/$(basename "$file" "$SKIP_SUFFIX")"
+done < <(find src -type f -name "*$SKIP_SUFFIX" -print0)

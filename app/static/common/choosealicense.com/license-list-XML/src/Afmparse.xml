@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="Afmparse" name="Afmparse License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/Afmparse</crossRef>
+      </crossRefs>
+    <text>
+      <copyrightText>
+         <p>(C) 1988, 1989 by Adobe Systems Incorporated. All rights reserved.</p>
+      </copyrightText>
+
+      <p>This file may be freely copied and redistributed as long as:</p>
+      <list>
+        <item>
+            <bullet>1)</bullet>
+          This entire notice continues to be included in the file,
+        </item>
+        <item>
+            <bullet>2)</bullet>
+          If the file has been modified in any way, a notice of such modification is conspicuously indicated.
+        </item>
+      </list>
+      <p>PostScript, Display PostScript, and Adobe are registered trademarks of Adobe Systems Incorporated.</p>
+      <p>THE INFORMATION BELOW IS FURNISHED AS IS, IS SUBJECT TO CHANGE WITHOUT NOTICE, AND SHOULD NOT BE
+         CONSTRUED AS A COMMITMENT BY ADOBE SYSTEMS INCORPORATED. ADOBE SYSTEMS INCORPORATED ASSUMES NO
+         RESPONSIBILITY OR LIABILITY FOR ANY ERRORS OR INACCURACIES, MAKES NO WARRANTY OF ANY KIND (EXPRESS,
+         IMPLIED OR STATUTORY) WITH RESPECT TO THIS INFORMATION, AND EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES
+         OF MERCHANTABILITY, FITNESS FOR PARTICULAR PURPOSES AND NONINFRINGEMENT OF THIRD PARTY RIGHTS.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

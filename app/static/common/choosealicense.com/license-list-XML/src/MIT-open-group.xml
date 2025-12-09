@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+    <license isOsiApproved="false" licenseId="MIT-open-group"
+             name="MIT Open Group variant" listVersionAdded="3.11">
+        <crossRefs>
+            <crossRef>https://gitlab.freedesktop.org/xorg/app/iceauth/-/blob/master/COPYING</crossRef>
+            <crossRef>https://gitlab.freedesktop.org/xorg/app/xvinfo/-/blob/master/COPYING</crossRef>
+            <crossRef>https://gitlab.freedesktop.org/xorg/app/xsetroot/-/blob/master/COPYING</crossRef>
+            <crossRef>https://gitlab.freedesktop.org/xorg/app/xauth/-/blob/master/COPYING</crossRef>
+        </crossRefs>
+        <text>
+            <copyrightText>
+                <p>Copyright &lt;yyyy, yyyy&gt; The Open Group</p>
+            </copyrightText>
+            <p>Permission to use, copy, modify, distribute, and sell this
+                software and its documentation for any purpose is hereby granted
+                without fee, provided that the above copyright notice appear in
+                all copies and that both that copyright notice and this
+                permission notice appear in supporting documentation.
+            </p>
+            <p>The above copyright notice and this permission notice shall be
+                included in all copies or substantial portions of the Software.
+            </p>
+            <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+                EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+                OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+                NONINFRINGEMENT. IN NO EVENT SHALL BE LIABLE FOR ANY CLAIM,
+                DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+                TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
+                THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+            </p>
+            <p>Except as contained in this notice, the name of <alt match=".+" name="name1"> The Open Group</alt>
+                shall not be used in advertising or otherwise to promote the
+                sale, use or other dealings in this Software without prior
+                written authorization from <alt match=".+" name="name2">The Open Group</alt>.
+            </p>
+        </text>
+    </license>
+</SPDXLicenseCollection>

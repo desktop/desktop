@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="Ruby" name="Ruby License">
+      <crossRefs>
+         <crossRef>http://www.ruby-lang.org/en/LICENSE.txt</crossRef>
+      </crossRefs>
+      <notes>Ruby is disjunctively licensed project that allows the choice of this license and another. The other license
+         choice has changed over time (from GPL originally, to BSD-2-Clause currently), so one needs to be
+         aware of that change. The Ruby License itself is un-versioned, but has varied a bit over the years,
+         the last substantive variation being in 2002.</notes>
+    <text>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          You may make and give away verbatim copies of the source form of the software without
+             restriction, provided that you duplicate all of the original copyright notices and associated
+             disclaimers.
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          You may modify your copy of the software in any way, provided that you do at least ONE of the
+             following:
+        </item>
+      </list>
+      <list>
+        <item>
+            <bullet>a)</bullet>
+          place your modifications in the Public Domain or otherwise make them Freely Available, such as by
+             posting said modifications to Usenet or an equivalent medium, or by allowing the author to
+             include your modifications in the software.
+        </item>
+        <item>
+            <bullet>b)</bullet>
+          use the modified software only within your corporation or organization.
+        </item>
+        <item>
+            <bullet>c)</bullet>
+          give non-standard binaries non-standard names, with instructions on where to get the original
+             software distribution.
+        </item>
+        <item>
+            <bullet>d)</bullet>
+          make other distribution arrangements with the author.
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          You may distribute the software in object code or binary form, provided that you do at least ONE
+             of the following:
+        </item>
+      </list>
+      <list>
+        <item>
+            <bullet>a)</bullet>
+          distribute the binaries and library files of the software, together with instructions (in the
+             manual page or equivalent) on where to get the original distribution.
+        </item>
+        <item>
+            <bullet>b)</bullet>
+          accompany the distribution with the machine-readable source of the software.
+        </item>
+        <item>
+            <bullet>c)</bullet>
+          give non-standard binaries non-standard names, with instructions on where to get the original
+             software distribution.
+        </item>
+        <item>
+            <bullet>d)</bullet>
+          make other distribution arrangements with the author.
+        </item>
+        <item>
+            <bullet>4.</bullet>
+          You may modify and include the part of the software into any other software (possibly
+             commercial). But some files in the distribution are not written by the author, so that they
+             are not under these terms.
+          <p>For the list of those files and their copying conditions, see the file LEGAL.</p>
+        </item>
+        <item>
+            <bullet>5.</bullet>
+          The scripts and library files supplied as input to or produced as output from the software do not
+             automatically fall under the copyright of the software, but belong to whomever generated them,
+             and may be sold commercially, and may be aggregated with this software.
+        </item>
+        <item>
+            <bullet>6.</bullet>
+          THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+             WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+             PURPOSE.
+        </item>
+      </list>
+    </text>
+  </license>
+</SPDXLicenseCollection>

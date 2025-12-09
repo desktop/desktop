@@ -1,0 +1,8 @@
+matrix:
+  include:
+    - language: java
+      script:
+        - if [[ "$TRAVIS_PULL_REQUEST" = "false" && ("master" = "$TRAVIS_BRANCH" || "$TRAVIS_TAG" = "$TRAVIS_BRANCH") ]]; then make deploy-license-data; else make validate-canonical-match; fi
+    - language: node_js
+      node_js:
+      - "9"

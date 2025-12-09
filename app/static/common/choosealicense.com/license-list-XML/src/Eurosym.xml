@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="Eurosym" name="Eurosym License">
+      <crossRefs>
+         <crossRef>https://fedoraproject.org/wiki/Licensing/Eurosym</crossRef>
+      </crossRefs>
+    <text>
+      <copyrightText>
+         <p>Copyright (c) 1999-2002 Henrik Theiling</p>
+      </copyrightText>
+      <titleText>
+         <br/>Licence Version 2
+      <br/>
+      </titleText>
+
+      <p>This software is provided 'as-is', without warranty of any kind, express or implied. In no
+         event will the authors or copyright holders be held liable for any damages arising from the use of
+         this software.</p>
+      <p>Permission is granted to anyone to use this software for any purpose, including commercial applications,
+         and to alter it and redistribute it freely, subject to the following restrictions:</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          The origin of this software must not be misrepresented; you must not claim that you wrote the
+             original software. If you use this software in a product, an acknowledgment in the product
+             documentation would be appreciated.
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          Altered source versions must be plainly marked as such, and must not be misrepresented as
+             being the original software.
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          You must not use any of the names of the authors or copyright holders of the original
+             software for advertising or publicity pertaining to distribution without specific, written
+             prior permission.
+        </item>
+        <item>
+            <bullet>4.</bullet>
+          If you change this software and redistribute parts or all of it in any form, you must make
+             the source code of the altered version of this software available.
+        </item>
+        <item>
+            <bullet>5.</bullet>
+          This notice may not be removed or altered from any source distribution.
+        </item>
+      </list>
+      <p>This licence is governed by the Laws of Germany. Disputes shall be settled by Saarbruecken City Court.</p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

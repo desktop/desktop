@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SPDXLicenseCollection xmlns="http://www.spdx.org/license">
+   <license isOsiApproved="false" licenseId="OLDAP-2.2"
+            name="Open LDAP Public License v2.2">
+      <crossRefs>
+         <crossRef>http://www.openldap.org/devel/gitweb.cgi?p=openldap.git;a=blob;f=LICENSE;hb=470b0c18ec67621c85881b2733057fecf4a1acc3</crossRef>
+      </crossRefs>
+      <notes>This license was released 1 March 2000.</notes>
+    <text>
+      <titleText>
+         <p>The OpenLDAP Public License
+        <br/>Version 2.2, 1 March 2000
+      </p>
+      </titleText>
+
+      <p>Redistribution and use of this software and associated documentation ("Software"), with or without
+         modification, are permitted provided that the following conditions are met:</p>
+      <list>
+        <item>
+            <bullet>1.</bullet>
+          Redistributions of source code must retain copyright statements and notices. Redistributions must
+             also contain a copy of this document.
+        </item>
+        <item>
+            <bullet>2.</bullet>
+          Redistributions in binary form must reproduce the above copyright notice, this list of conditions
+             and the following disclaimer in the documentation and/or other materials provided with the
+             distribution.
+        </item>
+        <item>
+            <bullet>3.</bullet>
+          The name "OpenLDAP" must not be used to endorse or promote products derived from this Software
+             without prior written permission of the OpenLDAP Foundation.
+        </item>
+        <item>
+            <bullet>4.</bullet>
+          Products derived from this Software may not be called "OpenLDAP" nor may "OpenLDAP" appear in
+             their names without prior written permission of the OpenLDAP Foundation.
+        </item>
+        <item>
+            <bullet>5.</bullet>
+          Due credit should be given to the OpenLDAP Project (http://www.openldap.org/).
+        </item>
+        <item>
+            <bullet>6.</bullet>
+          The OpenLDAP Foundation may revise this license from time to time. Each revision is distinguished
+             by a version number. You may use the Software under terms of this license revision or under
+             the terms of any subsequent the license.
+        </item>
+      </list>
+      <p>THIS SOFTWARE IS PROVIDED BY THE OPENLDAP FOUNDATION AND CONTRIBUTORS ``AS IS'' AND ANY EXPRESSED OR
+         IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+         FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE OPENLDAP FOUNDATION OR ITS
+         CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+         DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+         DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+         CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+         USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+      <p>OpenLDAP is a trademark of the OpenLDAP Foundation.</p>
+      <p>
+        <copyrightText>
+          Copyright 1999-2000, The OpenLDAP Foundation, Redwood City, California, USA. All Rights Reserved.
+        </copyrightText>
+        Permission to copy and distributed verbatim copies of this document is granted.
+      </p>
+    </text>
+  </license>
+</SPDXLicenseCollection>

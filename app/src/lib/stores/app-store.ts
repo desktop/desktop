@@ -10,6 +10,9 @@ import {
   SignInResult,
   SignInStore,
   UpstreamRemoteName,
+  TasksStore,
+  TaskSortOrder,
+  TaskViewMode,
 } from '.'
 import { Account, isDotComAccount } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
@@ -81,6 +84,12 @@ import {
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
 import {
+  getPersistedEditorSettings,
+  setPersistedEditorSettings,
+} from '../../ui/lib/editor-settings'
+import { IEditorSettings, defaultEditorSettings } from '../../models/preferences'
+import { findCurrentIterationTitle } from '../../ui/project-view/filter-utils'
+import {
   getAppMenu,
   getCurrentWindowState,
   getCurrentWindowZoomFactor,
@@ -95,13 +104,16 @@ import {
 import {
   API,
   getAccountForEndpoint,
-  IAPIOrganization,
   getEndpointForRepository,
+  getDotComAPIEndpoint,
   IAPIFullRepository,
   IAPIComment,
   IAPIRepoRuleset,
   deleteToken,
   IAPICreatePushProtectionBypassResponse,
+  IAPIOrganization,
+  IAPIProjectV2,
+  IAPIRepository,
 } from '../api'
 import { shell } from '../app-shell'
 import {
@@ -409,6 +421,12 @@ const externalEditorKey: string = 'externalEditor'
 const imageDiffTypeDefault = ImageDiffType.TwoUp
 const imageDiffTypeKey = 'image-diff-type'
 
+const selectedOwnerKey = 'selected-owner'
+const selectedProjectIdKey = 'selected-project-id'
+const cachedProjectsKey = 'cached-owner-projects'
+const cachedRepositoriesKey = 'cached-owner-repositories'
+const selectedSectionTabKey = 'selected-section-tab'
+
 const hideWhitespaceInChangesDiffDefault = false
 const hideWhitespaceInChangesDiffKey = 'hide-whitespace-in-changes-diff'
 const hideWhitespaceInHistoryDiffDefault = false
@@ -579,6 +597,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedTheme = ApplicationTheme.System
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
   private selectedTabSize = tabSizeDefault
+  private editorSettings: IEditorSettings = defaultEditorSettings
 
   private useWindowsOpenSSH: boolean = false
 
@@ -621,10 +640,44 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private showChangesFilter: boolean = false
 
+  /** The currently selected owner/organization for repository filtering */
+  private selectedOwner: string | null = null
+
+  /** Filter text for the owner dropdown */
+  private ownerFilterText: string = ''
+
+  /** The organizations available to the user */
+  private organizations: ReadonlyArray<IAPIOrganization> = []
+
+  /** The currently selected project for task filtering */
+  private selectedProject: IAPIProjectV2 | null = null
+
+  /** Whether the project view is open */
+  private projectViewOpen: boolean = false
+
+  /** Filter text for the project dropdown */
+  private projectFilterText: string = ''
+
+  /** The projects available for the selected owner */
+  private ownerProjects: ReadonlyArray<IAPIProjectV2> = []
+
+  /** All remote repositories available to the selected owner */
+  private ownerRepositories: ReadonlyArray<IAPIRepository> = []
+
+  /** Whether owner repositories are currently being loaded */
+  private loadingOwnerRepos: boolean = false
+
+  /** Repository names that have items in the selected project */
+  private projectRepoNames: ReadonlySet<string> = new Set()
+
+  /** The currently selected API repository (for browsing remote repos) */
+  private selectedAPIRepository: IAPIRepository | null = null
+
   public constructor(
     private readonly gitHubUserStore: GitHubUserStore,
     private readonly cloningRepositoriesStore: CloningRepositoriesStore,
     private readonly issuesStore: IssuesStore,
+    private readonly tasksStore: TasksStore,
     private readonly statsStore: StatsStore,
     private readonly signInStore: SignInStore,
     private readonly accountsStore: AccountsStore,
@@ -898,6 +951,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
+    this.tasksStore.onDidUpdate(() => {
+      this.emitUpdate()
+    })
+
     this.signInStore.onDidAuthenticate(account => this._addAccount(account))
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this.emitError(error))
@@ -1094,6 +1151,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedTheme: this.selectedTheme,
       currentTheme: this.currentTheme,
       selectedTabSize: this.selectedTabSize,
+      editorSettings: this.editorSettings,
       apiRepositories: this.apiRepositoriesStore.getState(),
       useWindowsOpenSSH: this.useWindowsOpenSSH,
       showCommitLengthWarning: this.showCommitLengthWarning,
@@ -1120,6 +1178,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitMessageGenerationButtonClicked:
         this.commitMessageGenerationButtonClicked,
       showChangesFilter: this.showChangesFilter,
+      tasksState: this.tasksStore.getState(),
+      selectedOwner: this.selectedOwner,
+      ownerFilterText: this.ownerFilterText,
+      organizations: this.organizations,
+      selectedProject: this.selectedProject,
+      projectViewOpen: this.projectViewOpen,
+      projectFilterText: this.projectFilterText,
+      ownerProjects: this.ownerProjects,
+      ownerRepositories: this.ownerRepositories,
+      loadingOwnerRepos: this.loadingOwnerRepos,
+      projectRepoNames: this.projectRepoNames,
+      selectedAPIRepository: this.selectedAPIRepository,
     }
   }
 
@@ -1978,6 +2048,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.pullRequestCoordinator.getAllPullRequests(repository).then(prs => {
         this.onPullRequestChanged(repository, prs)
       })
+
+      // Auto-refresh tasks when repository is selected
+      this._refreshTasks(repository).catch(e => {
+        log.warn(`Unable to auto-refresh tasks for ${repository.name}`, e)
+      })
+
+      // Also fetch projects for the project status dropdown
+      this._fetchProjects(repository).catch(e => {
+        log.warn(`Unable to fetch projects for ${repository.name}`, e)
+      })
     }
 
     // The selected repository could have changed while we were refreshing.
@@ -1998,6 +2078,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.startBackgroundPruner(repository)
 
     this.addUpstreamRemoteIfNeeded(repository)
+
+    // Restore the saved section tab on repository selection
+    const savedTabStr = localStorage.getItem(selectedSectionTabKey)
+    if (savedTabStr !== null) {
+      const savedTab = parseInt(savedTabStr, 10)
+      if (!isNaN(savedTab) && savedTab in RepositorySectionTab) {
+        this.repositoryStateCache.update(repository, () => ({
+          selectedSection: savedTab as RepositorySectionTab,
+        }))
+        this.emitUpdate()
+      }
+    }
 
     return this.repositoryWithRefreshedGitHubRepository(repository)
   }
@@ -2309,6 +2401,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.currentTheme = await getCurrentlyAppliedTheme()
 
     this.selectedTabSize = getNumber(tabSizeKey, tabSizeDefault)
+    this.editorSettings = getPersistedEditorSettings()
 
     themeChangeMonitor.onThemeChanged(theme => {
       this.currentTheme = theme
@@ -2363,6 +2456,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       showChangesFilterKey,
       showChangesFilterDefault
     )
+
+    // Restore selected owner from localStorage and load repos
+    const savedOwner = localStorage.getItem(selectedOwnerKey)
+    if (savedOwner !== null || this.accounts.length > 0) {
+      // Restore saved owner, or default to null (All owners) if accounts exist
+      this._setSelectedOwner(savedOwner)
+    }
 
     this.emitUpdateNow()
 
@@ -2969,6 +3069,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
       return { selectedSection }
     })
+
+    // Persist the selected tab for restoring on app restart
+    localStorage.setItem(selectedSectionTabKey, selectedSection.toString())
+
     this.emitUpdate()
 
     if (selectedSection === RepositorySectionTab.History) {
@@ -3594,6 +3698,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
         includingStatus: false,
         clearPartialState: false,
       })
+    } else if (section === RepositorySectionTab.Tasks) {
+      // Tasks are refreshed separately via TasksStore
+      refreshSectionPromise = Promise.resolve()
+    } else if (section === RepositorySectionTab.Issues) {
+      // Issues are refreshed separately via TasksStore
+      refreshSectionPromise = Promise.resolve()
+    } else if (section === RepositorySectionTab.Code) {
+      // Code view is a static file browser, no refresh needed
+      refreshSectionPromise = Promise.resolve()
     } else {
       return assertNever(section, `Unknown section: ${section}`)
     }
@@ -6949,6 +7062,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
+  /**
+   * Set the code editor settings
+   */
+  public _setEditorSettings(settings: IEditorSettings) {
+    this.editorSettings = settings
+    setPersistedEditorSettings(settings)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
   public async _resolveCurrentEditor() {
     const match = await findEditorOrDefault(this.selectedExternalEditor)
     const resolvedExternalEditor = match != null ? match.editor : null
@@ -8450,6 +8574,476 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.showChangesFilter = !this.showChangesFilter
     setBoolean(showChangesFilterKey, this.showChangesFilter)
     this.updateMenuLabelsForSelectedRepository()
+    this.emitUpdate()
+  }
+
+  // === Tasks ===
+
+  /** Refresh tasks from the GitHub API for the given repository or selected project */
+  public async _refreshTasks(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    const account = getAccountForRepository(this.accounts, repository)
+    if (account === null) {
+      return
+    }
+
+    // Set the current repository for filtering
+    this.tasksStore.setCurrentRepository(repository.gitHubRepository.dbID)
+
+    const taskSource = this.tasksStore.getTaskSource()
+
+    // If task source is project and a project is selected, fetch from project
+    if (taskSource === 'project' && this.selectedProject) {
+      const api = API.fromAccount(account)
+      const projectDetails = await api.fetchProjectDetails(this.selectedProject.id)
+
+      if (projectDetails) {
+        await this.tasksStore.refreshTasksFromProject(projectDetails)
+
+        // Set default iteration filter to current iteration if not already set
+        const currentIteration = findCurrentIterationTitle(projectDetails.fields)
+        if (currentIteration && this.tasksStore.getState().iterationFilter === null) {
+          await this.tasksStore.setIterationFilter(currentIteration)
+        }
+
+        this.emitUpdate()
+        return
+      }
+    }
+
+    // Fetch assigned issues for the repository
+    const gitHubRepository = repository.gitHubRepository
+    await this.tasksStore.refreshTasks(account, gitHubRepository)
+    this.emitUpdate()
+  }
+
+  /** Set the task source (repo or project) */
+  public async _setTaskSource(
+    source: 'repo' | 'project',
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    this.tasksStore.setTaskSource(source)
+    await this._refreshTasks(repository)
+  }
+
+  /** Pin or unpin a task */
+  public async _pinTask(taskId: number, pinned: boolean): Promise<void> {
+    await this.tasksStore.pinTask(taskId, pinned)
+    this.emitUpdate()
+  }
+
+  /** Set a task as the currently active task */
+  public async _setActiveTask(taskId: number | null): Promise<void> {
+    await this.tasksStore.setActiveTask(taskId)
+    this.emitUpdate()
+  }
+
+  /** Update notes for a task */
+  public async _updateTaskNotes(taskId: number, notes: string): Promise<void> {
+    await this.tasksStore.updateTaskNotes(taskId, notes)
+    this.emitUpdate()
+  }
+
+  /** Set the task view mode */
+  public async _setTaskViewMode(mode: TaskViewMode): Promise<void> {
+    await this.tasksStore.setViewMode(mode)
+    this.emitUpdate()
+  }
+
+  /** Set the task sort order */
+  public async _setTaskSortOrder(order: TaskSortOrder): Promise<void> {
+    await this.tasksStore.setSortOrder(order)
+    this.emitUpdate()
+  }
+
+  /** Reorder a task (for custom sort order) */
+  public async _reorderTask(taskId: number, newOrder: number): Promise<void> {
+    await this.tasksStore.reorderTask(taskId, newOrder)
+    this.emitUpdate()
+  }
+
+  /** Create a new task (GitHub issue) */
+  public async _createTask(
+    repository: RepositoryWithGitHubRepository,
+    title: string,
+    body: string,
+    assignees: ReadonlyArray<string>,
+    labels: ReadonlyArray<string>,
+    milestone: number | undefined,
+    projectId: string | undefined,
+    statusOptionId: string | undefined
+  ): Promise<void> {
+    const account = getAccountForRepository(this.accounts, repository)
+    if (account === null) {
+      return
+    }
+
+    const api = API.fromAccount(account)
+    const gitHubRepository = repository.gitHubRepository
+
+    const issue = await api.createIssue(
+      gitHubRepository.owner.login,
+      gitHubRepository.name,
+      title,
+      body,
+      assignees,
+      labels,
+      milestone
+    )
+
+    // If a project was selected, add the issue to the project
+    if (projectId && issue) {
+      // Get the node ID for the issue (required for GraphQL mutations)
+      const issueNodeId = await api.fetchIssueNodeId(
+        gitHubRepository.owner.login,
+        gitHubRepository.name,
+        issue.number
+      )
+
+      if (issueNodeId) {
+        // Add issue to project - returns the project item ID
+        const projectItemId = await api.addIssueToProject(projectId, issueNodeId)
+
+        // If a status was selected, update the project item's status
+        if (projectItemId && statusOptionId) {
+          // Find the Status field in the project
+          const projects = this.tasksStore.getState().projects
+          const project = projects.find(p => p.id === projectId)
+          if (project) {
+            const statusField = project.fields.find(
+              f => f.name === 'Status' && f.dataType === 'SINGLE_SELECT'
+            )
+            if (statusField) {
+              await api.updateProjectItemField(
+                projectId,
+                projectItemId,
+                statusField.id,
+                'SINGLE_SELECT',
+                statusOptionId
+              )
+            }
+          }
+        }
+      }
+    }
+
+    // Refresh tasks to include the new one
+    await this._refreshTasks(repository)
+  }
+
+  /** Fetch collaborators for a repository */
+  public async _fetchCollaborators(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    const account = getAccountForRepository(this.accounts, repository)
+    if (account === null) {
+      return
+    }
+
+    const api = API.fromAccount(account)
+    const gitHubRepository = repository.gitHubRepository
+
+    const collaborators = await api.fetchCollaborators(
+      gitHubRepository.owner.login,
+      gitHubRepository.name
+    )
+
+    this.tasksStore.setCollaborators(collaborators)
+    this.emitUpdate()
+  }
+
+  /** Fetch labels for a repository */
+  public async _fetchLabels(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    const account = getAccountForRepository(this.accounts, repository)
+    if (account === null) {
+      return
+    }
+
+    const api = API.fromAccount(account)
+    const gitHubRepository = repository.gitHubRepository
+
+    const labels = await api.fetchLabels(
+      gitHubRepository.owner.login,
+      gitHubRepository.name
+    )
+
+    this.tasksStore.setLabels(labels)
+    this.emitUpdate()
+  }
+
+  /** Fetch milestones for a repository */
+  public async _fetchMilestones(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    const account = getAccountForRepository(this.accounts, repository)
+    if (account === null) {
+      return
+    }
+
+    const api = API.fromAccount(account)
+    const gitHubRepository = repository.gitHubRepository
+
+    const milestones = await api.fetchMilestones(
+      gitHubRepository.owner.login,
+      gitHubRepository.name
+    )
+
+    this.tasksStore.setMilestones(milestones)
+    this.emitUpdate()
+  }
+
+  /** Fetch GitHub Projects V2 for a repository */
+  public async _fetchProjects(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    const account = getAccountForRepository(this.accounts, repository)
+    if (account === null) {
+      return
+    }
+
+    const api = API.fromAccount(account)
+    const gitHubRepository = repository.gitHubRepository
+
+    const projects = await api.fetchRepositoryProjects(
+      gitHubRepository.owner.login,
+      gitHubRepository.name
+    )
+
+    this.tasksStore.setProjects(projects)
+    this.emitUpdate()
+  }
+
+  /** Set the task project filter */
+  public async _setTaskProjectFilter(project: string | null): Promise<void> {
+    await this.tasksStore.setProjectFilter(project)
+    this.emitUpdate()
+  }
+
+  /** Set the task status filter */
+  public async _setTaskStatusFilter(status: string | null): Promise<void> {
+    await this.tasksStore.setStatusFilter(status)
+    this.emitUpdate()
+  }
+
+  /** Set the task iteration filter */
+  public async _setTaskIterationFilter(iteration: string | null): Promise<void> {
+    await this.tasksStore.setIterationFilter(iteration)
+    this.emitUpdate()
+  }
+
+  /** Refresh repository issues for the Issues tab */
+  public async _refreshRepositoryIssues(
+    repository: RepositoryWithGitHubRepository
+  ): Promise<void> {
+    const account = getAccountForRepository(this.accounts, repository)
+    if (!account) {
+      return
+    }
+
+    await this.tasksStore.refreshIssues(account, repository.gitHubRepository)
+    this.emitUpdate()
+  }
+
+  /** Set the issue state filter */
+  public _setIssueStateFilter(state: 'open' | 'closed' | 'all'): void {
+    this.tasksStore.setIssueStateFilter(state)
+    this.emitUpdate()
+  }
+
+  /** Set the selected owner (user or org) for filtering */
+  public async _setSelectedOwner(owner: string | null): Promise<void> {
+    // eslint-disable-next-line no-console
+    console.log(`[_setSelectedOwner] Setting owner to: ${owner}`)
+    log.info(`[_setSelectedOwner] Setting owner to: ${owner}`)
+    this.selectedOwner = owner
+    // Clear project selection when owner changes (will restore from localStorage after fetching)
+    this.selectedProject = null
+    this.projectRepoNames = new Set()
+    this.loadingOwnerRepos = true
+
+    // Persist the selected owner
+    if (owner) {
+      localStorage.setItem(selectedOwnerKey, owner)
+    } else {
+      localStorage.removeItem(selectedOwnerKey)
+    }
+
+    // Try to restore cached projects and repos for immediate display (only for "All Owners" mode)
+    if (!owner) {
+      try {
+        const cachedProjects = localStorage.getItem(cachedProjectsKey)
+        const cachedRepos = localStorage.getItem(cachedRepositoriesKey)
+        if (cachedProjects) {
+          this.ownerProjects = JSON.parse(cachedProjects)
+          log.info(`[_setSelectedOwner] Restored ${this.ownerProjects.length} cached projects`)
+        } else {
+          this.ownerProjects = []
+        }
+        if (cachedRepos) {
+          this.ownerRepositories = JSON.parse(cachedRepos)
+          log.info(`[_setSelectedOwner] Restored ${this.ownerRepositories.length} cached repositories`)
+        } else {
+          this.ownerRepositories = []
+        }
+      } catch (e) {
+        log.error(`[_setSelectedOwner] Error restoring cache:`, e)
+        this.ownerProjects = []
+        this.ownerRepositories = []
+      }
+    } else {
+      this.ownerProjects = []
+      this.ownerRepositories = []
+    }
+
+    // Emit immediately so UI shows cached data or loading state
+    this.emitUpdate()
+
+    // Find a GitHub.com account to use for API calls
+    const account = this.accounts.find(
+      a => a.endpoint === getDotComAPIEndpoint()
+    )
+    // eslint-disable-next-line no-console
+    console.log(`[_setSelectedOwner] Found account: ${account?.login}`)
+    log.info(`[_setSelectedOwner] Found account: ${account?.login}`)
+    if (account) {
+      try {
+        const api = API.fromAccount(account)
+        if (owner) {
+          // Fetch projects for the owner
+          this.ownerProjects = await api.fetchOwnerProjects(owner)
+          // eslint-disable-next-line no-console
+          console.log(`[_setSelectedOwner] Fetched ${this.ownerProjects.length} projects`, this.ownerProjects)
+          log.info(`[_setSelectedOwner] Fetched ${this.ownerProjects.length} projects`)
+
+          // Fetch repositories for the owner
+          if (owner === account.login) {
+            log.info(`[_setSelectedOwner] Fetching user repos for ${owner}`)
+            this.ownerRepositories = await api.fetchUserRepos()
+          } else {
+            log.info(`[_setSelectedOwner] Fetching org repos for ${owner}`)
+            this.ownerRepositories = await api.fetchOrgRepos(owner)
+          }
+        } else {
+          // "All owners" - fetch projects and repos from all owners
+          log.info(`[_setSelectedOwner] Fetching all projects and repos for all owners`)
+
+          // Ensure organizations are loaded first
+          if (this.organizations.length === 0) {
+            log.info(`[_setSelectedOwner] Loading organizations first...`)
+            this.organizations = await api.fetchOrgs()
+            log.info(`[_setSelectedOwner] Loaded ${this.organizations.length} organizations`)
+          }
+
+          // Fetch projects from user and all organizations in parallel
+          const projectPromises: Promise<ReadonlyArray<IAPIProjectV2>>[] = [
+            api.fetchOwnerProjects(account.login).catch(() => []),
+          ]
+          for (const org of this.organizations) {
+            projectPromises.push(api.fetchOwnerProjects(org.login).catch(() => []))
+          }
+          const allProjectArrays = await Promise.all(projectPromises)
+          this.ownerProjects = allProjectArrays.flat()
+          // eslint-disable-next-line no-console
+          console.log(`[_setSelectedOwner] Fetched ${this.ownerProjects.length} total projects from all owners`)
+          log.info(`[_setSelectedOwner] Fetched ${this.ownerProjects.length} total projects from all owners`)
+
+          // Fetch all repos accessible by the user
+          this.ownerRepositories = await api.fetchUserRepos()
+        }
+
+        // Cache the fetched projects and repos for faster startup (only for "All Owners" mode)
+        if (!owner) {
+          try {
+            localStorage.setItem(cachedProjectsKey, JSON.stringify(this.ownerProjects))
+            localStorage.setItem(cachedRepositoriesKey, JSON.stringify(this.ownerRepositories))
+            log.info(`[_setSelectedOwner] Cached ${this.ownerProjects.length} projects and ${this.ownerRepositories.length} repositories`)
+          } catch (e) {
+            log.error(`[_setSelectedOwner] Error caching data:`, e)
+          }
+        }
+
+        // Restore saved project selection if it exists in the fetched projects
+        const savedProjectId = localStorage.getItem(selectedProjectIdKey)
+        if (savedProjectId && this.ownerProjects.length > 0) {
+          const savedProject = this.ownerProjects.find(p => p.id === savedProjectId)
+          if (savedProject) {
+            log.info(`[_setSelectedOwner] Restoring saved project: ${savedProject.title}`)
+            await this._setSelectedProject(savedProject)
+
+            // Fetch project details to set default iteration filter
+            const projectDetails = await api.fetchProjectDetails(savedProject.id)
+            if (projectDetails) {
+              const currentIteration = findCurrentIterationTitle(projectDetails.fields)
+              if (currentIteration) {
+                log.info(`[_setSelectedOwner] Setting default iteration to: ${currentIteration}`)
+                await this.tasksStore.setIterationFilter(currentIteration)
+              }
+            }
+          }
+        }
+        log.info(`[_setSelectedOwner] Fetched ${this.ownerRepositories.length} repositories`)
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(`[_setSelectedOwner] Error fetching repos:`, e)
+        log.error(`[_setSelectedOwner] Error fetching repos:`, e)
+      } finally {
+        this.loadingOwnerRepos = false
+      }
+    } else {
+      log.info(`[_setSelectedOwner] No account found`)
+      this.loadingOwnerRepos = false
+    }
+
+    this.emitUpdate()
+  }
+
+  /** Set the selected project for filtering */
+  public async _setSelectedProject(
+    project: IAPIProjectV2 | null
+  ): Promise<void> {
+    this.selectedProject = project
+    // TODO: Fetch project items and build projectRepoNames when we add repo highlighting
+    this.projectRepoNames = new Set()
+
+    // Persist the selected project ID
+    if (project) {
+      localStorage.setItem(selectedProjectIdKey, project.id)
+    } else {
+      localStorage.removeItem(selectedProjectIdKey)
+    }
+
+    // Sync the project filter to the tasks store
+    await this.tasksStore.setProjectFilter(project?.title ?? null)
+
+    this.emitUpdate()
+  }
+
+  /** Set whether the project view is open */
+  public _setProjectViewOpen(open: boolean): void {
+    this.projectViewOpen = open
+    this.emitUpdate()
+  }
+
+  /** Load organizations for the current account */
+  public async _loadOrganizations(): Promise<void> {
+    const account = this.accounts.find(
+      a => a.endpoint === getDotComAPIEndpoint()
+    )
+    if (!account) {
+      return
+    }
+
+    const api = API.fromAccount(account)
+    this.organizations = await api.fetchOrgs()
+    this.emitUpdate()
+  }
+
+  /** Set the selected API repository (for browsing remote repos) */
+  public _setSelectedAPIRepository(repo: IAPIRepository | null): void {
+    this.selectedAPIRepository = repo
     this.emitUpdate()
   }
 }

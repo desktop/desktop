@@ -33,8 +33,9 @@ import {
   TokenStore,
   AccountsStore,
   PullRequestStore,
+  TasksStore,
 } from '../lib/stores'
-import { GitHubUserDatabase } from '../lib/databases'
+import { GitHubUserDatabase, TasksDatabase } from '../lib/databases'
 import { SelectionType, IAppState } from '../lib/app-state'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import {
@@ -249,6 +250,7 @@ const gitHubUserStore = new GitHubUserStore(
 )
 const cloningRepositoriesStore = new CloningRepositoriesStore()
 const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
+const tasksStore = new TasksStore(new TasksDatabase('TasksDatabase'))
 const statsStore = new StatsStore(
   new StatsDatabase('StatsDatabase'),
   new UiActivityMonitor()
@@ -308,6 +310,7 @@ const appStore = new AppStore(
   gitHubUserStore,
   cloningRepositoriesStore,
   issuesStore,
+  tasksStore,
   statsStore,
   signInStore,
   accountsStore,
@@ -376,6 +379,23 @@ ipcRenderer.on('blur', () => {
   // get the onKeyUp event for the Alt key in that case.
   dispatcher.setAccessKeyHighlightState(false)
   dispatcher.setAppFocusState(false)
+})
+
+// Handle system sleep/wake events to gracefully manage connections
+ipcRenderer.on('power-monitor-suspend', () => {
+  log.info('[ui] System suspending, pausing background tasks and connections')
+  // Disable Alive WebSocket connections before sleep
+  aliveStore.setEnabled(false)
+  // Pause background tasks (same as losing focus)
+  dispatcher.setAppFocusState(false)
+})
+
+ipcRenderer.on('power-monitor-resume', () => {
+  log.info('[ui] System resuming, restoring background tasks and connections')
+  // Re-enable Alive WebSocket connections after wake
+  aliveStore.setEnabled(true)
+  // Resume background tasks (same as gaining focus)
+  dispatcher.setAppFocusState(true)
 })
 
 ipcRenderer.on('url-action', (_, action) =>
