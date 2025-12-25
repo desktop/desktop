@@ -17,6 +17,17 @@ interface IDiffHeaderProps {
   /** Called when the user changes the side by side diffs setting. */
   readonly onShowSideBySideDiffChanged: (checked: boolean) => void
 
+  /**
+   * Whether we should always show a unified diff when viewing added or deleted
+   * files.
+   */
+  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+
+  /** Called when the user toggles forcing unified diffs for added/deleted files */
+  readonly onUseUnifiedDiffForAdditionsAndDeletionsChanged: (
+    checked: boolean
+  ) => void
+
   /** Whether we should hide whitespace in diffs. */
   readonly hideWhitespaceInDiff: boolean
 
@@ -62,6 +73,12 @@ export class DiffHeader extends React.Component<IDiffHeaderProps, {}> {
         hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
         onShowSideBySideDiffChanged={this.props.onShowSideBySideDiffChanged}
         showSideBySideDiff={this.props.showSideBySideDiff}
+        useUnifiedDiffForAdditionsAndDeletions={
+          this.props.useUnifiedDiffForAdditionsAndDeletions
+        }
+        onUseUnifiedDiffForAdditionsAndDeletionsChanged={
+          this.props.onUseUnifiedDiffForAdditionsAndDeletionsChanged
+        }
         onDiffOptionsOpened={this.props.onDiffOptionsOpened}
       />
     )

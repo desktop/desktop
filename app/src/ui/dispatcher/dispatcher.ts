@@ -2232,6 +2232,11 @@ export class Dispatcher {
     return this.appStore._setShowSideBySideDiff(showSideBySideDiff)
   }
 
+  /** Change the setting to force unified diffs for added/deleted files */
+  public onUseUnifiedDiffForAdditionsAndDeletionsChanged(value: boolean) {
+    return this.appStore._setUseUnifiedDiffForAdditionsAndDeletions(value)
+  }
+
   /** Install the global Git LFS filters. */
   public installGlobalLFSFilters(force: boolean): Promise<void> {
     return this.appStore._installGlobalLFSFilters(force)

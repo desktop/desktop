@@ -21,6 +21,15 @@ interface IDiffOptionsProps {
   readonly showSideBySideDiff: boolean
   readonly onShowSideBySideDiffChanged: (showSideBySideDiff: boolean) => void
 
+  /**
+   * Whether we should always show a unified diff when viewing added or deleted
+   * files.
+   */
+  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+  readonly onUseUnifiedDiffForAdditionsAndDeletionsChanged: (
+    useUnifiedDiffForAdditionsAndDeletions: boolean
+  ) => void
+
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
 }
@@ -153,9 +162,25 @@ export class DiffOptions extends React.Component<
           }
           onSelected={this.onSideBySideSelected}
         />
+        <Checkbox
+          value={
+            this.props.useUnifiedDiffForAdditionsAndDeletions
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onUseUnifiedDiffForAdditionsAndDeletionsChanged}
+          label="Use unified view for added and deleted files"
+        />
       </fieldset>
     )
   }
+
+  private onUseUnifiedDiffForAdditionsAndDeletionsChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) =>
+    this.props.onUseUnifiedDiffForAdditionsAndDeletionsChanged(
+      event.currentTarget.checked
+    )
 
   private renderHideWhitespaceChanges() {
     return (

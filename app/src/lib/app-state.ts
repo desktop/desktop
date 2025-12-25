@@ -278,6 +278,12 @@ export interface IAppState {
   /** Whether we should show side by side diffs */
   readonly showSideBySideDiff: boolean
 
+  /**
+   * Whether we should always use a unified diff when viewing files that are
+   * added or deleted.
+   */
+  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+
   /** The user's preferred shell. */
   readonly selectedShell: Shell
 

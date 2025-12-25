@@ -55,6 +55,12 @@ interface IOpenPullRequestDialogProps {
   /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
 
+  /**
+   * Whether we should always use a unified diff when viewing added or deleted
+   * files.
+   */
+  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+
   /** Whether we should hide whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
 
@@ -186,6 +192,9 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         nonLocalCommitSHA={nonLocalCommitSHA}
         selectedFile={file}
         showSideBySideDiff={this.props.showSideBySideDiff}
+        useUnifiedDiffForAdditionsAndDeletions={
+          this.props.useUnifiedDiffForAdditionsAndDeletions
+        }
         repository={repository}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
       />

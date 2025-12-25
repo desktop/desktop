@@ -63,6 +63,14 @@ interface ISeamlessDiffSwitcherProps {
   // eslint-disable-next-line react/no-unused-prop-types
   readonly hideWhitespaceInDiff: boolean
 
+  /**
+   * Whether we should always use a unified diff when viewing added or deleted
+   * files.
+   */
+  // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
+  // eslint-disable-next-line react/no-unused-prop-types
+  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+
   /** Whether we should display side by side diffs. */
   // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
   // eslint-disable-next-line react/no-unused-prop-types
@@ -331,6 +339,7 @@ export class SeamlessDiffSwitcher extends React.Component<
       imageDiffType,
       readOnly,
       hideWhitespaceInDiff,
+      useUnifiedDiffForAdditionsAndDeletions,
       showSideBySideDiff,
       showDiffCheckMarks,
       onIncludeChanged,
@@ -365,6 +374,9 @@ export class SeamlessDiffSwitcher extends React.Component<
             fileContents={fileContents}
             readOnly={readOnly}
             hideWhitespaceInDiff={hideWhitespaceInDiff}
+            useUnifiedDiffForAdditionsAndDeletions={
+              useUnifiedDiffForAdditionsAndDeletions
+            }
             showSideBySideDiff={showSideBySideDiff}
             askForConfirmationOnDiscardChanges={
               this.props.askForConfirmationOnDiscardChanges

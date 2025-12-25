@@ -48,6 +48,12 @@ interface IPullRequestFilesChangedProps {
   /** Whether we should hide whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
 
+  /**
+   * Whether we should always use a unified diff when viewing added or deleted
+   * files.
+   */
+  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+
   /** Label for selected external editor */
   readonly externalEditorLabel?: string
 
@@ -68,6 +74,7 @@ interface IPullRequestFilesChangedProps {
 
 interface IPullRequestFilesChangedState {
   readonly showSideBySideDiff: boolean
+  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
 }
 
 /**
@@ -80,7 +87,11 @@ export class PullRequestFilesChanged extends React.Component<
   public constructor(props: IPullRequestFilesChangedProps) {
     super(props)
 
-    this.state = { showSideBySideDiff: props.showSideBySideDiff }
+    this.state = {
+      showSideBySideDiff: props.showSideBySideDiff,
+      useUnifiedDiffForAdditionsAndDeletions:
+        props.useUnifiedDiffForAdditionsAndDeletions,
+    }
   }
 
   private onOpenFile = (path: string) => {
@@ -108,6 +119,15 @@ export class PullRequestFilesChanged extends React.Component<
 
   private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
     this.setState({ showSideBySideDiff })
+  }
+
+  private onUseUnifiedDiffForAdditionsAndDeletionsChanged = (
+    value: boolean
+  ) => {
+    this.setState({ useUnifiedDiffForAdditionsAndDeletions: value })
+    this.props.dispatcher.onUseUnifiedDiffForAdditionsAndDeletionsChanged(
+      value
+    )
   }
 
   private onDiffOptionsOpened = () => {
@@ -240,7 +260,8 @@ export class PullRequestFilesChanged extends React.Component<
 
   private renderHeader() {
     const { hideWhitespaceInDiff } = this.props
-    const { showSideBySideDiff } = this.state
+    const { showSideBySideDiff, useUnifiedDiffForAdditionsAndDeletions } =
+      this.state
     return (
       <div className="files-changed-header">
         <div className="commits-displayed">
@@ -252,6 +273,12 @@ export class PullRequestFilesChanged extends React.Component<
           onHideWhitespaceChangesChanged={this.onHideWhitespaceInDiffChanged}
           showSideBySideDiff={showSideBySideDiff}
           onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+          useUnifiedDiffForAdditionsAndDeletions={
+            useUnifiedDiffForAdditionsAndDeletions
+          }
+          onUseUnifiedDiffForAdditionsAndDeletionsChanged={
+            this.onUseUnifiedDiffForAdditionsAndDeletionsChanged
+          }
           onDiffOptionsOpened={this.onDiffOptionsOpened}
         />
       </div>
@@ -291,7 +318,8 @@ export class PullRequestFilesChanged extends React.Component<
 
     const { diff, repository, imageDiffType, hideWhitespaceInDiff } = this.props
 
-    const { showSideBySideDiff } = this.state
+    const { showSideBySideDiff, useUnifiedDiffForAdditionsAndDeletions } =
+      this.state
 
     return (
       <SeamlessDiffSwitcher
@@ -302,6 +330,9 @@ export class PullRequestFilesChanged extends React.Component<
         readOnly={true}
         hideWhitespaceInDiff={hideWhitespaceInDiff}
         showSideBySideDiff={showSideBySideDiff}
+        useUnifiedDiffForAdditionsAndDeletions={
+          useUnifiedDiffForAdditionsAndDeletions
+        }
         showDiffCheckMarks={false}
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}

@@ -48,6 +48,10 @@ interface IChangesProps {
    * Whether we should display side by side diffs.
    */
   readonly showSideBySideDiff: boolean
+  /**
+   * Whether we should always use unified view for added and deleted files.
+   */
+  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
 
   /** Whether or not to show the diff check marks indicating inclusion in a commit */
   readonly showDiffCheckMarks: boolean
@@ -107,7 +111,13 @@ export class Changes extends React.Component<IChangesProps, {}> {
           status={this.props.file.status}
           diff={this.props.diff}
           showSideBySideDiff={this.props.showSideBySideDiff}
+          useUnifiedDiffForAdditionsAndDeletions={
+            this.props.useUnifiedDiffForAdditionsAndDeletions
+          }
           onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
+          onUseUnifiedDiffForAdditionsAndDeletionsChanged={
+            this.onUseUnifiedDiffForAdditionsAndDeletionsChanged
+          }
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
           onDiffOptionsOpened={this.props.onDiffOptionsOpened}
@@ -123,6 +133,9 @@ export class Changes extends React.Component<IChangesProps, {}> {
           diff={this.props.diff}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
+          useUnifiedDiffForAdditionsAndDeletions={
+            this.props.useUnifiedDiffForAdditionsAndDeletions
+          }
           showDiffCheckMarks={this.props.showDiffCheckMarks}
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
@@ -138,6 +151,14 @@ export class Changes extends React.Component<IChangesProps, {}> {
 
   private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
     this.props.dispatcher.onShowSideBySideDiffChanged(showSideBySideDiff)
+  }
+
+  private onUseUnifiedDiffForAdditionsAndDeletionsChanged = (
+    value: boolean
+  ) => {
+    this.props.dispatcher.onUseUnifiedDiffForAdditionsAndDeletionsChanged(
+      value
+    )
   }
 
   private onHideWhitespaceInDiffChanged = (hideWhitespaceInDiff: boolean) => {

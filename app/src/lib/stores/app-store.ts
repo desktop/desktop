@@ -297,6 +297,9 @@ import {
   ShowSideBySideDiffDefault,
   getShowSideBySideDiff,
   setShowSideBySideDiff,
+  getUseUnifiedDiffForAdditionsAndDeletions,
+  setUseUnifiedDiffForAdditionsAndDeletions,
+  UseUnifiedDiffForAdditionsAndDeletionsDefault,
 } from '../../ui/lib/diff-mode'
 import {
   abortCherryPick,
@@ -553,6 +556,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** Whether or not the spellchecker is enabled for commit summary and description */
   private commitSpellcheckEnabled: boolean = commitSpellcheckEnabledDefault
   private showSideBySideDiff: boolean = ShowSideBySideDiffDefault
+  private useUnifiedDiffForAdditionsAndDeletions: boolean =
+    UseUnifiedDiffForAdditionsAndDeletionsDefault
 
   private uncommittedChangesStrategy = defaultUncommittedChangesStrategy
 
@@ -1088,6 +1093,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hideWhitespaceInHistoryDiff: this.hideWhitespaceInHistoryDiff,
       hideWhitespaceInPullRequestDiff: this.hideWhitespaceInPullRequestDiff,
       showSideBySideDiff: this.showSideBySideDiff,
+      useUnifiedDiffForAdditionsAndDeletions:
+        this.useUnifiedDiffForAdditionsAndDeletions,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
       resolvedExternalEditor: this.resolvedExternalEditor,
@@ -2319,6 +2326,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSpellcheckEnabledDefault
     )
     this.showSideBySideDiff = getShowSideBySideDiff()
+    this.useUnifiedDiffForAdditionsAndDeletions =
+      getUseUnifiedDiffForAdditionsAndDeletions()
 
     this.selectedTheme = getPersistedThemeName()
     // Make sure the persisted theme is applied
@@ -6138,6 +6147,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  public _setUseUnifiedDiffForAdditionsAndDeletions(value: boolean) {
+    if (value !== this.useUnifiedDiffForAdditionsAndDeletions) {
+      setUseUnifiedDiffForAdditionsAndDeletions(value)
+      this.useUnifiedDiffForAdditionsAndDeletions = value
+      this.emitUpdate()
+    }
+  }
+
   public _setUpdateBannerVisibility(visibility: boolean) {
     this.isUpdateAvailableBannerVisible = visibility
 
@@ -8185,8 +8202,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const prRecentBaseBranches = recentBranches.filter(
       b => b.upstreamRemoteName === remote || b.remoteName === remote
     )
-    const { imageDiffType, selectedExternalEditor, showSideBySideDiff } =
-      this.getState()
+    const {
+      imageDiffType,
+      selectedExternalEditor,
+      showSideBySideDiff,
+      useUnifiedDiffForAdditionsAndDeletions,
+    } = this.getState()
 
     const nonLocalCommitSHA =
       commitSHAs.length > 0 && !localCommitSHAs.includes(commitSHAs[0])
@@ -8204,6 +8225,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       externalEditorLabel: selectedExternalEditor ?? undefined,
       nonLocalCommitSHA,
       showSideBySideDiff,
+      useUnifiedDiffForAdditionsAndDeletions,
       currentBranchHasPullRequest: currentPullRequest !== null,
     })
   }

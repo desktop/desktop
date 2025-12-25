@@ -402,6 +402,7 @@ export type PopupDetail =
       repository: Repository
       nonLocalCommitSHA: string | null
       showSideBySideDiff: boolean
+      useUnifiedDiffForAdditionsAndDeletions: boolean
       currentBranchHasPullRequest: boolean
     }
   | {

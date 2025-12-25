@@ -34,6 +34,12 @@ interface IStashDiffViewerProps {
   readonly showSideBySideDiff: boolean
 
   /**
+   * Whether we should always use a unified diff when viewing added or deleted
+   * files.
+   */
+  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+
+  /**
    * Called when the user requests to open a binary file in an the
    * system-assigned application for said file type.
    */
@@ -114,6 +120,9 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
           hideWhitespaceInDiff={false}
           showDiffCheckMarks={false}
           showSideBySideDiff={this.props.showSideBySideDiff}
+          useUnifiedDiffForAdditionsAndDeletions={
+            this.props.useUnifiedDiffForAdditionsAndDeletions
+          }
           onOpenBinaryFile={onOpenBinaryFile}
           onChangeImageDiffType={onChangeImageDiffType}
           onHideWhitespaceInDiffChanged={

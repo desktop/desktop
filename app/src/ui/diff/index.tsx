@@ -73,6 +73,12 @@ interface IDiffProps {
   /** Whether we should display side by side diffs. */
   readonly showSideBySideDiff: boolean
 
+  /**
+   * Whether we should always use a unified diff when viewing added or deleted
+   * files.
+   */
+  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+
   /** Whether we should show a confirmation dialog when the user discards changes */
   readonly askForConfirmationOnDiscardChanges?: boolean
 
@@ -284,13 +290,15 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private renderTextDiff(diff: ITextDiff) {
+    const showSideBySideDiff = this.getShowSideBySideDiffForFile()
+
     return (
       <SideBySideDiff
         file={this.props.file}
         diff={diff}
         fileContents={this.props.fileContents}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-        showSideBySideDiff={this.props.showSideBySideDiff}
+        showSideBySideDiff={showSideBySideDiff}
         onIncludeChanged={this.props.onIncludeChanged}
         onDiscardChanges={this.props.onDiscardChanges}
         askForConfirmationOnDiscardChanges={
@@ -304,5 +312,27 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private showLargeDiff = () => {
     this.setState({ forceShowLargeDiff: true })
+  }
+
+  private getShowSideBySideDiffForFile() {
+    const {
+      showSideBySideDiff,
+      useUnifiedDiffForAdditionsAndDeletions,
+      file,
+    } = this.props
+
+    if (!useUnifiedDiffForAdditionsAndDeletions) {
+      return showSideBySideDiff
+    }
+
+    if (
+      file.status.kind === AppFileStatusKind.New ||
+      file.status.kind === AppFileStatusKind.Deleted ||
+      file.status.kind === AppFileStatusKind.Untracked
+    ) {
+      return false
+    }
+
+    return showSideBySideDiff
   }
 }
