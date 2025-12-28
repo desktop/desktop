@@ -1037,8 +1037,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ...this.cloningRepositoriesStore.repositories,
     ]
 
+    // Get active GitHub.com account ID from AccountsStore
+    const activeAccount = this.accountsStore.getActiveDotComAccount()
+    const activeDotComAccountId = activeAccount ? activeAccount.id : null
+
     return {
       accounts: this.accounts,
+      activeDotComAccountId: activeDotComAccountId,
       repositories,
       recentRepositories: this.recentRepositories,
       localRepositoryStateLookup: this.localRepositoryStateLookup,
@@ -6300,6 +6305,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (this.showWelcomeFlow && storedAccount !== null) {
       this.apiRepositoriesStore.loadRepositories(storedAccount)
     }
+  }
+
+  /**
+   * Switch the active GitHub.com account and update git author configuration.
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _switchActiveDotComAccount(accountId: number): Promise<void> {
+    await this.accountsStore.setActiveDotComAccount(accountId)
+    
+    const activeAccount = this.accountsStore.getActiveDotComAccount()
+    const selectedRepository = this.selectedRepository
+    
+    if (activeAccount && selectedRepository instanceof Repository) {
+      const { updateGitAuthorForAccount } = await import('../git/author')
+      await updateGitAuthorForAccount(selectedRepository, activeAccount)
+      
+      // Refresh the author in the commit panel to reflect the new git config
+      await this._refreshAuthor(selectedRepository)
+    }
+    
+    this.emitUpdate()
   }
 
   public _updateRepositoryMissing(

@@ -1101,6 +1101,11 @@ export class Dispatcher {
     return this.appStore._removeAccount(account)
   }
 
+  /** Switch the active GitHub.com account */
+  public switchActiveDotComAccount(accountId: number): Promise<void> {
+    return this.appStore._switchActiveDotComAccount(accountId)
+  }
+
   /**
    * Ask the dispatcher to apply a transformation function to the current
    * state of the application menu.

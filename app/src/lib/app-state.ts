@@ -74,6 +74,12 @@ export type PossibleSelections =
 /** All of the shared app state. */
 export interface IAppState {
   readonly accounts: ReadonlyArray<Account>
+  
+  /**
+   * The ID of the currently active GitHub.com account for multi-account switching.
+   */
+  readonly activeDotComAccountId: number | null
+  
   /**
    * The current list of repositories tracked in the application
    */
@@ -392,6 +398,7 @@ export enum FoldoutType {
   AppMenu,
   AddMenu,
   PushPull,
+  Account,
 }
 
 export type AppMenuFoldout = {
@@ -415,6 +422,7 @@ export type Foldout =
   | BranchFoldout
   | AppMenuFoldout
   | { type: FoldoutType.PushPull }
+  | { type: FoldoutType.Account }
 
 export enum RepositorySectionTab {
   Changes,

@@ -1,0 +1,84 @@
+// Account dropdown styles
+.account-button {
+  .foldout-container {
+    min-width: 300px;
+  }
+}
+
+.account-list-container {
+  padding: var(--spacing-double);
+  
+  .account-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-half);
+    
+    .account-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing) var(--spacing-double);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      transition: all 0.15s ease;
+      min-height: 56px;
+      
+      &:hover {
+        background: var(--box-alt-background-color);
+        border-color: var(--box-border-color);
+      }
+      
+      &:focus {
+        outline: none;
+        background: var(--box-alt-background-color);
+        border-color: var(--focus-color);
+      }
+      
+      &.selected {
+        background: var(--box-selected-background-color);
+        border-color: var(--box-selected-border-color);
+        
+        .account-name {
+          font-weight: 700;
+        }
+      }
+      
+      .account-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        
+        .account-name {
+          font-size: var(--font-size);
+          font-weight: 600;
+          color: var(--text-color);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        
+        .account-login {
+          font-size: var(--font-size-sm);
+          color: var(--text-secondary-color);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+      
+      .checkmark {
+        color: var(--accent-color);
+        font-weight: bold;
+        font-size: var(--font-size-lg);
+        flex-shrink: 0;
+        margin-left: var(--spacing-double);
+      }
+    }
+  }
+}

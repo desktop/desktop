@@ -1,0 +1,105 @@
+// Account switcher styles
+.account-switcher {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--spacing);
+
+  .switcher-button {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-half);
+    padding: var(--spacing-half) var(--spacing);
+    background: transparent;
+    border: 1px solid var(--button-border-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    color: var(--text-color);
+    font-size: var(--font-size-sm);
+    
+    &:hover {
+      background: var(--button-hover-background);
+      border-color: var(--button-hover-border-color);
+    }
+
+    .account-label {
+      color: var(--text-secondary-color);
+      font-weight: 400;
+    }
+
+    .account-login {
+      font-weight: 600;
+    }
+
+    .dropdown-arrow {
+      font-size: 8px;
+      color: var(--text-secondary-color);
+      margin-left: 2px;
+    }
+  }
+
+  .account-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 250px;
+    background: var(--box-background-color);
+    border: 1px solid var(--box-border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--base-box-shadow);
+    z-index: 1000;
+    overflow: hidden;
+
+    .account-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing);
+      padding: var(--spacing);
+      cursor: pointer;
+      transition: background 0.15s ease;
+      border-bottom: 1px solid var(--box-border-color);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: var(--box-alt-background-color);
+      }
+
+      &.active {
+        background: var(--box-selected-background-color);
+      }
+
+      .account-info {
+        flex: 1;
+        min-width: 0;
+
+        .account-name {
+          font-size: var(--font-size-sm);
+          font-weight: 500;
+          color: var(--text-color);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .account-login {
+          font-size: var(--font-size-xs);
+          color: var(--text-secondary-color);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .active-indicator {
+        color: var(--accent-color);
+        font-weight: bold;
+        font-size: var(--font-size);
+        flex-shrink: 0;
+      }
+    }
+  }
+}

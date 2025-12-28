@@ -68,6 +68,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   private secureStore: ISecureStore
 
   private accounts: ReadonlyArray<Account> = []
+  private activeDotComAccountId: number | null = null
 
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
@@ -113,13 +114,20 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return null
     }
 
-    const accountsByEndpoint = this.accounts.reduce(
-      (map, x) => map.set(x.endpoint, x),
-      new Map<string, Account>()
+    // Use user ID for deduplication instead of endpoint to allow multiple GitHub.com accounts
+    const existingIndex = this.accounts.findIndex(
+      a => a.endpoint === account.endpoint && a.id === account.id
     )
-    accountsByEndpoint.set(account.endpoint, account)
-
-    this.accounts = sortAccounts([...accountsByEndpoint.values()])
+    
+    if (existingIndex >= 0) {
+      // Update existing account
+      const updatedAccounts = [...this.accounts]
+      updatedAccounts[existingIndex] = account
+      this.accounts = sortAccounts(updatedAccounts)
+    } else {
+      // Add new account
+      this.accounts = sortAccounts([...this.accounts, account])
+    }
 
     this.save()
     return account
@@ -177,6 +185,32 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     )
 
     this.save()
+  }
+
+  /**
+   * Get the currently active GitHub.com account.
+   * Returns the account matching activeDotComAccountId, or the first GitHub.com account if none set.
+   */
+  public getActiveDotComAccount(): Account | null {
+    return (
+      this.accounts.find(
+        a => isDotComAccount(a) && a.id === this.activeDotComAccountId
+      ) ??
+      this.accounts.find(isDotComAccount) ??
+      null
+    )
+  }
+
+
+  /**
+   * Set the active GitHub.com account by account ID.
+   */
+  public async setActiveDotComAccount(accountId: number): Promise<void> {
+    await this.loadingPromise
+
+    this.activeDotComAccountId = accountId
+    this.dataStore.setItem('activeDotComAccountId', String(accountId))
+    this.emitUpdate(this.accounts)
   }
 
   private getMigratedGHEAccounts(
@@ -240,6 +274,13 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     }
 
     this.accounts = sortAccounts(accountsWithTokens)
+    
+    // Load active account ID from storage
+    const savedActiveId = this.dataStore.getItem('activeDotComAccountId')
+    if (savedActiveId) {
+      this.activeDotComAccountId = parseInt(savedActiveId, 10)
+    }
+    
     // If any account was migrated, make sure to persist the new value
     if (migratedAccounts !== null) {
       this.save() // Save already emits an update

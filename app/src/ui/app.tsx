@@ -88,6 +88,7 @@ import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { NoRepositoriesView } from './no-repositories'
+import { AccountDropdown } from './toolbar/account-dropdown'
 import { ConfirmRemoveRepository } from './remove-repository'
 import { TermsAndConditions } from './terms-and-conditions'
 import { PushBranchCommits } from './branches'
@@ -3335,6 +3336,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const width = clamp(this.state.sidebarWidth)
+    const currentFoldout = this.state.currentFoldout
+    const accountDropdownOpen =
+      currentFoldout !== null && currentFoldout.type === FoldoutType.Account
+
+    // Get active account ID from state (now exposed properly)
+    const activeAccountId = this.state.activeDotComAccountId
 
     return (
       <Toolbar id="desktop-app-toolbar">
@@ -3343,8 +3350,28 @@ export class App extends React.Component<IAppProps, IAppState> {
         </div>
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
+        <AccountDropdown
+          accounts={this.state.accounts}
+          activeAccountId={activeAccountId}
+          isOpen={accountDropdownOpen}
+          onDropdownStateChanged={this.onAccountDropdownStateChanged}
+          onSwitchAccount={this.onSwitchAccount}
+        />
       </Toolbar>
     )
+  }
+
+  private onAccountDropdownStateChanged = (state: DropdownState) => {
+    if (state === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Account })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.Account)
+    }
+  }
+
+  private onSwitchAccount = (account: Account) => {
+    this.props.dispatcher.switchActiveDotComAccount(account.id)
+    this.props.dispatcher.closeFoldout(FoldoutType.Account)
   }
 
   private renderRepository() {
