@@ -395,7 +395,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     const isShowingStashEntry = selection.kind === ChangesSelectionKind.Stash
     const repositoryAccount = getAccountForRepository(
       this.props.accounts,
-      this.props.repository
+      this.props.repository,
+      (this.props.dispatcher as any).appStore?.accountsStore
     )
 
     const ChangesListComponent = enableFilteredChangesList()
