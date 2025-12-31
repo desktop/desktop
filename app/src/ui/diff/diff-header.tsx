@@ -5,28 +5,15 @@ import { IDiff, DiffType } from '../../models/diff'
 import { Octicon, iconForStatus } from '../octicons'
 import { mapStatus } from '../../lib/status'
 import { DiffOptions } from './diff-options'
+import { DiffViewMode } from '../lib/diff-mode'
 
 interface IDiffHeaderProps {
   readonly path: string
   readonly status: AppFileStatus
   readonly diff: IDiff | null
 
-  /** Whether we should display side by side diffs. */
-  readonly showSideBySideDiff: boolean
-
-  /** Called when the user changes the side by side diffs setting. */
-  readonly onShowSideBySideDiffChanged: (checked: boolean) => void
-
-  /**
-   * Whether we should always show a unified diff when viewing added or deleted
-   * files.
-   */
-  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
-
-  /** Called when the user toggles forcing unified diffs for added/deleted files */
-  readonly onUseUnifiedDiffForAdditionsAndDeletionsChanged: (
-    checked: boolean
-  ) => void
+  readonly diffViewMode: DiffViewMode
+  readonly onDiffViewModeChanged: (mode: DiffViewMode) => void
 
   /** Whether we should hide whitespace in diffs. */
   readonly hideWhitespaceInDiff: boolean
@@ -71,14 +58,8 @@ export class DiffHeader extends React.Component<IDiffHeaderProps, {}> {
           this.props.onHideWhitespaceInDiffChanged
         }
         hideWhitespaceChanges={this.props.hideWhitespaceInDiff}
-        onShowSideBySideDiffChanged={this.props.onShowSideBySideDiffChanged}
-        showSideBySideDiff={this.props.showSideBySideDiff}
-        useUnifiedDiffForAdditionsAndDeletions={
-          this.props.useUnifiedDiffForAdditionsAndDeletions
-        }
-        onUseUnifiedDiffForAdditionsAndDeletionsChanged={
-          this.props.onUseUnifiedDiffForAdditionsAndDeletionsChanged
-        }
+        diffViewMode={this.props.diffViewMode}
+        onDiffViewModeChanged={this.props.onDiffViewModeChanged}
         onDiffOptionsOpened={this.props.onDiffOptionsOpened}
       />
     )

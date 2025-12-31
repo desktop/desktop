@@ -10,6 +10,7 @@ import {
 } from '../lib/popover'
 import { Tooltip, TooltipDirection } from '../lib/tooltip'
 import { createObservableRef } from '../lib/observable-ref'
+import { DiffViewMode } from '../lib/diff-mode'
 
 interface IDiffOptionsProps {
   readonly isInteractiveDiff: boolean
@@ -18,17 +19,8 @@ interface IDiffOptionsProps {
     hideWhitespaceChanges: boolean
   ) => void
 
-  readonly showSideBySideDiff: boolean
-  readonly onShowSideBySideDiffChanged: (showSideBySideDiff: boolean) => void
-
-  /**
-   * Whether we should always show a unified diff when viewing added or deleted
-   * files.
-   */
-  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
-  readonly onUseUnifiedDiffForAdditionsAndDeletionsChanged: (
-    useUnifiedDiffForAdditionsAndDeletions: boolean
-  ) => void
+  readonly diffViewMode: DiffViewMode
+  readonly onDiffViewModeChanged: (mode: DiffViewMode) => void
 
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
@@ -130,31 +122,34 @@ export class DiffOptions extends React.Component<
       >
         <h3 id="diff-options-popover-header">{header}</h3>
         {this.renderHideWhitespaceChanges()}
-        {this.renderShowSideBySide()}
+        {this.renderDiffMode()}
       </Popover>
     )
   }
 
   private onUnifiedSelected = () => {
-    this.props.onShowSideBySideDiffChanged(false)
+    this.props.onDiffViewModeChanged(DiffViewMode.Unified)
   }
   private onSideBySideSelected = () => {
-    this.props.onShowSideBySideDiffChanged(true)
+    this.props.onDiffViewModeChanged(DiffViewMode.Split)
+  }
+  private onMixedSelected = () => {
+    this.props.onDiffViewModeChanged(DiffViewMode.Mixed)
   }
 
-  private renderShowSideBySide() {
+  private renderDiffMode() {
     return (
       <fieldset role="radiogroup">
         <legend>Diff display</legend>
         <RadioButton
           value="Unified"
-          checked={!this.props.showSideBySideDiff}
+          checked={this.props.diffViewMode === DiffViewMode.Unified}
           label="Unified"
           onSelected={this.onUnifiedSelected}
         />
         <RadioButton
           value="Split"
-          checked={this.props.showSideBySideDiff}
+          checked={this.props.diffViewMode === DiffViewMode.Split}
           label={
             <>
               <div>Split</div>
@@ -162,25 +157,23 @@ export class DiffOptions extends React.Component<
           }
           onSelected={this.onSideBySideSelected}
         />
-        <Checkbox
-          value={
-            this.props.useUnifiedDiffForAdditionsAndDeletions
-              ? CheckboxValue.On
-              : CheckboxValue.Off
+        <RadioButton
+          value="Mixed"
+          checked={this.props.diffViewMode === DiffViewMode.Mixed}
+          label={
+            <>
+              <div>Mixed</div>
+            </>
           }
-          onChange={this.onUseUnifiedDiffForAdditionsAndDeletionsChanged}
-          label="Use unified view for added and deleted files"
+          onSelected={this.onMixedSelected}
         />
+        <p className="secondary-text">
+          Mixed mode uses Unified for added and deleted files,
+          and Split view for modified or moved files.
+        </p>
       </fieldset>
     )
   }
-
-  private onUseUnifiedDiffForAdditionsAndDeletionsChanged = (
-    event: React.FormEvent<HTMLInputElement>
-  ) =>
-    this.props.onUseUnifiedDiffForAdditionsAndDeletionsChanged(
-      event.currentTarget.checked
-    )
 
   private renderHideWhitespaceChanges() {
     return (

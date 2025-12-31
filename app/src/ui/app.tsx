@@ -2415,8 +2415,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           nonLocalCommitSHA,
           prRecentBaseBranches,
           repository,
-          showSideBySideDiff,
-          useUnifiedDiffForAdditionsAndDeletions,
+          diffViewMode,
           currentBranchHasPullRequest,
         } = popup
 
@@ -2435,10 +2434,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             prRecentBaseBranches={prRecentBaseBranches}
             repository={repository}
             externalEditorLabel={externalEditorLabel}
-            showSideBySideDiff={showSideBySideDiff}
-            useUnifiedDiffForAdditionsAndDeletions={
-              useUnifiedDiffForAdditionsAndDeletions
-            }
+            diffViewMode={diffViewMode}
             currentBranchHasPullRequest={currentBranchHasPullRequest}
             onDismissed={onPopupDismissedFn}
             onOpenInExternalEditor={this.onOpenInExternalEditor}
@@ -3399,11 +3395,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           imageDiffType={state.imageDiffType}
           hideWhitespaceInChangesDiff={state.hideWhitespaceInChangesDiff}
           hideWhitespaceInHistoryDiff={state.hideWhitespaceInHistoryDiff}
-          useUnifiedDiffForAdditionsAndDeletions={
-            state.useUnifiedDiffForAdditionsAndDeletions
-          }
+          diffViewMode={state.diffViewMode}
           showDiffCheckMarks={state.showDiffCheckMarks}
-          showSideBySideDiff={state.showSideBySideDiff}
           focusCommitMessage={state.focusCommitMessage}
           askForConfirmationOnDiscardChanges={
             state.askForConfirmationOnDiscardChanges

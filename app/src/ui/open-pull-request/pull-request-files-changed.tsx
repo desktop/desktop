@@ -25,6 +25,7 @@ import { clamp } from '../../lib/clamp'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { createCommitURL } from '../../lib/commit-url'
 import { DiffOptions } from '../diff/diff-options'
+import { DiffViewMode } from '../lib/diff-mode'
 
 interface IPullRequestFilesChangedProps {
   readonly repository: Repository
@@ -42,17 +43,10 @@ interface IPullRequestFilesChangedProps {
   /** The type of image diff to display. */
   readonly imageDiffType: ImageDiffType
 
-  /** Whether we should display side by side diffs. */
-  readonly showSideBySideDiff: boolean
+  readonly diffViewMode: DiffViewMode
 
   /** Whether we should hide whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
-
-  /**
-   * Whether we should always use a unified diff when viewing added or deleted
-   * files.
-   */
-  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
 
   /** Label for selected external editor */
   readonly externalEditorLabel?: string
@@ -73,8 +67,7 @@ interface IPullRequestFilesChangedProps {
 }
 
 interface IPullRequestFilesChangedState {
-  readonly showSideBySideDiff: boolean
-  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+  readonly diffViewMode: DiffViewMode
 }
 
 /**
@@ -88,9 +81,7 @@ export class PullRequestFilesChanged extends React.Component<
     super(props)
 
     this.state = {
-      showSideBySideDiff: props.showSideBySideDiff,
-      useUnifiedDiffForAdditionsAndDeletions:
-        props.useUnifiedDiffForAdditionsAndDeletions,
+      diffViewMode: props.diffViewMode,
     }
   }
 
@@ -117,17 +108,9 @@ export class PullRequestFilesChanged extends React.Component<
     )
   }
 
-  private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
-    this.setState({ showSideBySideDiff })
-  }
-
-  private onUseUnifiedDiffForAdditionsAndDeletionsChanged = (
-    value: boolean
-  ) => {
-    this.setState({ useUnifiedDiffForAdditionsAndDeletions: value })
-    this.props.dispatcher.onUseUnifiedDiffForAdditionsAndDeletionsChanged(
-      value
-    )
+  private onDiffViewModeChanged = (diffViewMode: DiffViewMode) => {
+    this.setState({ diffViewMode })
+    this.props.dispatcher.onDiffViewModeChanged(diffViewMode)
   }
 
   private onDiffOptionsOpened = () => {
@@ -260,8 +243,7 @@ export class PullRequestFilesChanged extends React.Component<
 
   private renderHeader() {
     const { hideWhitespaceInDiff } = this.props
-    const { showSideBySideDiff, useUnifiedDiffForAdditionsAndDeletions } =
-      this.state
+    const { diffViewMode } = this.state
     return (
       <div className="files-changed-header">
         <div className="commits-displayed">
@@ -271,14 +253,8 @@ export class PullRequestFilesChanged extends React.Component<
           isInteractiveDiff={false}
           hideWhitespaceChanges={hideWhitespaceInDiff}
           onHideWhitespaceChangesChanged={this.onHideWhitespaceInDiffChanged}
-          showSideBySideDiff={showSideBySideDiff}
-          onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
-          useUnifiedDiffForAdditionsAndDeletions={
-            useUnifiedDiffForAdditionsAndDeletions
-          }
-          onUseUnifiedDiffForAdditionsAndDeletionsChanged={
-            this.onUseUnifiedDiffForAdditionsAndDeletionsChanged
-          }
+          diffViewMode={diffViewMode}
+          onDiffViewModeChanged={this.onDiffViewModeChanged}
           onDiffOptionsOpened={this.onDiffOptionsOpened}
         />
       </div>
@@ -318,8 +294,7 @@ export class PullRequestFilesChanged extends React.Component<
 
     const { diff, repository, imageDiffType, hideWhitespaceInDiff } = this.props
 
-    const { showSideBySideDiff, useUnifiedDiffForAdditionsAndDeletions } =
-      this.state
+    const { diffViewMode } = this.state
 
     return (
       <SeamlessDiffSwitcher
@@ -329,10 +304,7 @@ export class PullRequestFilesChanged extends React.Component<
         diff={diff}
         readOnly={true}
         hideWhitespaceInDiff={hideWhitespaceInDiff}
-        showSideBySideDiff={showSideBySideDiff}
-        useUnifiedDiffForAdditionsAndDeletions={
-          useUnifiedDiffForAdditionsAndDeletions
-        }
+        diffViewMode={diffViewMode}
         showDiffCheckMarks={false}
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}

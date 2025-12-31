@@ -81,6 +81,11 @@ import {
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
 import {
+  DiffViewMode,
+  getDiffViewMode,
+  setDiffViewMode,
+} from '../../ui/lib/diff-mode'
+import {
   getAppMenu,
   getCurrentWindowState,
   getCurrentWindowZoomFactor,
@@ -293,14 +298,6 @@ import {
   CheckoutError,
   DiscardChangesError,
 } from '../error-with-metadata'
-import {
-  ShowSideBySideDiffDefault,
-  getShowSideBySideDiff,
-  setShowSideBySideDiff,
-  getUseUnifiedDiffForAdditionsAndDeletions,
-  setUseUnifiedDiffForAdditionsAndDeletions,
-  UseUnifiedDiffForAdditionsAndDeletionsDefault,
-} from '../../ui/lib/diff-mode'
 import {
   abortCherryPick,
   cherryPick,
@@ -555,9 +552,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     hideWhitespaceInPullRequestDiffDefault
   /** Whether or not the spellchecker is enabled for commit summary and description */
   private commitSpellcheckEnabled: boolean = commitSpellcheckEnabledDefault
-  private showSideBySideDiff: boolean = ShowSideBySideDiffDefault
-  private useUnifiedDiffForAdditionsAndDeletions: boolean =
-    UseUnifiedDiffForAdditionsAndDeletionsDefault
+  private diffViewMode: DiffViewMode = DiffViewMode.Unified
 
   private uncommittedChangesStrategy = defaultUncommittedChangesStrategy
 
@@ -1092,9 +1087,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hideWhitespaceInChangesDiff: this.hideWhitespaceInChangesDiff,
       hideWhitespaceInHistoryDiff: this.hideWhitespaceInHistoryDiff,
       hideWhitespaceInPullRequestDiff: this.hideWhitespaceInPullRequestDiff,
-      showSideBySideDiff: this.showSideBySideDiff,
-      useUnifiedDiffForAdditionsAndDeletions:
-        this.useUnifiedDiffForAdditionsAndDeletions,
+      diffViewMode: this.diffViewMode,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
       resolvedExternalEditor: this.resolvedExternalEditor,
@@ -2325,9 +2318,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitSpellcheckEnabledKey,
       commitSpellcheckEnabledDefault
     )
-    this.showSideBySideDiff = getShowSideBySideDiff()
-    this.useUnifiedDiffForAdditionsAndDeletions =
-      getUseUnifiedDiffForAdditionsAndDeletions()
+    this.diffViewMode = getDiffViewMode()
 
     this.selectedTheme = getPersistedThemeName()
     // Make sure the persisted theme is applied
@@ -6138,19 +6129,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  public _setShowSideBySideDiff(showSideBySideDiff: boolean) {
-    if (showSideBySideDiff !== this.showSideBySideDiff) {
-      setShowSideBySideDiff(showSideBySideDiff)
-      this.showSideBySideDiff = showSideBySideDiff
+  public _setDiffViewMode(mode: DiffViewMode) {
+    if (mode !== this.diffViewMode) {
+      setDiffViewMode(mode)
+      this.diffViewMode = mode
       this.statsStore.increment('diffModeChangeCount')
-      this.emitUpdate()
-    }
-  }
-
-  public _setUseUnifiedDiffForAdditionsAndDeletions(value: boolean) {
-    if (value !== this.useUnifiedDiffForAdditionsAndDeletions) {
-      setUseUnifiedDiffForAdditionsAndDeletions(value)
-      this.useUnifiedDiffForAdditionsAndDeletions = value
       this.emitUpdate()
     }
   }
@@ -8205,8 +8188,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const {
       imageDiffType,
       selectedExternalEditor,
-      showSideBySideDiff,
-      useUnifiedDiffForAdditionsAndDeletions,
+      diffViewMode,
     } = this.getState()
 
     const nonLocalCommitSHA =
@@ -8224,8 +8206,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       externalEditorLabel: selectedExternalEditor ?? undefined,
       nonLocalCommitSHA,
-      showSideBySideDiff,
-      useUnifiedDiffForAdditionsAndDeletions,
+      diffViewMode,
       currentBranchHasPullRequest: currentPullRequest !== null,
     })
   }

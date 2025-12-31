@@ -11,6 +11,7 @@ import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { PopupType } from '../../models/popup'
+import { DiffViewMode } from '../lib/diff-mode'
 
 interface IChangesProps {
   readonly repository: Repository
@@ -44,14 +45,7 @@ interface IChangesProps {
    */
   readonly askForConfirmationOnDiscardChanges: boolean
 
-  /**
-   * Whether we should display side by side diffs.
-   */
-  readonly showSideBySideDiff: boolean
-  /**
-   * Whether we should always use unified view for added and deleted files.
-   */
-  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+  readonly diffViewMode: DiffViewMode
 
   /** Whether or not to show the diff check marks indicating inclusion in a commit */
   readonly showDiffCheckMarks: boolean
@@ -110,14 +104,8 @@ export class Changes extends React.Component<IChangesProps, {}> {
           path={this.props.file.path}
           status={this.props.file.status}
           diff={this.props.diff}
-          showSideBySideDiff={this.props.showSideBySideDiff}
-          useUnifiedDiffForAdditionsAndDeletions={
-            this.props.useUnifiedDiffForAdditionsAndDeletions
-          }
-          onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
-          onUseUnifiedDiffForAdditionsAndDeletionsChanged={
-            this.onUseUnifiedDiffForAdditionsAndDeletionsChanged
-          }
+          diffViewMode={this.props.diffViewMode}
+          onDiffViewModeChanged={this.onDiffViewModeChanged}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
           onDiffOptionsOpened={this.props.onDiffOptionsOpened}
@@ -132,33 +120,22 @@ export class Changes extends React.Component<IChangesProps, {}> {
           onDiscardChanges={this.onDiscardChanges}
           diff={this.props.diff}
           hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-          showSideBySideDiff={this.props.showSideBySideDiff}
-          useUnifiedDiffForAdditionsAndDeletions={
-            this.props.useUnifiedDiffForAdditionsAndDeletions
-          }
-          showDiffCheckMarks={this.props.showDiffCheckMarks}
+          diffViewMode={this.props.diffViewMode}
+          showDiffCheckMarks={true}
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
           }
           onOpenBinaryFile={this.props.onOpenBinaryFile}
-          onOpenSubmodule={this.props.onOpenSubmodule}
           onChangeImageDiffType={this.props.onChangeImageDiffType}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+          onOpenSubmodule={this.props.onOpenSubmodule}
         />
       </div>
     )
   }
 
-  private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
-    this.props.dispatcher.onShowSideBySideDiffChanged(showSideBySideDiff)
-  }
-
-  private onUseUnifiedDiffForAdditionsAndDeletionsChanged = (
-    value: boolean
-  ) => {
-    this.props.dispatcher.onUseUnifiedDiffForAdditionsAndDeletionsChanged(
-      value
-    )
+  private onDiffViewModeChanged = (mode: DiffViewMode) => {
+    this.props.dispatcher.onDiffViewModeChanged(mode)
   }
 
   private onHideWhitespaceInDiffChanged = (hideWhitespaceInDiff: boolean) => {

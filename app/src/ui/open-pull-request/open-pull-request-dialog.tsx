@@ -16,6 +16,7 @@ import {
 import { PullRequestFilesChanged } from './pull-request-files-changed'
 import { PullRequestMergeStatus } from './pull-request-merge-status'
 import { ComputedAction } from '../../models/computed-action'
+import { DiffViewMode } from '../lib/diff-mode'
 
 interface IOpenPullRequestDialogProps {
   readonly repository: Repository
@@ -52,14 +53,7 @@ interface IOpenPullRequestDialogProps {
    */
   readonly prRecentBaseBranches: ReadonlyArray<Branch>
 
-  /** Whether we should display side by side diffs. */
-  readonly showSideBySideDiff: boolean
-
-  /**
-   * Whether we should always use a unified diff when viewing added or deleted
-   * files.
-   */
-  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+  readonly diffViewMode: DiffViewMode
 
   /** Whether we should hide whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
@@ -191,10 +185,7 @@ export class OpenPullRequestDialog extends React.Component<IOpenPullRequestDialo
         imageDiffType={imageDiffType}
         nonLocalCommitSHA={nonLocalCommitSHA}
         selectedFile={file}
-        showSideBySideDiff={this.props.showSideBySideDiff}
-        useUnifiedDiffForAdditionsAndDeletions={
-          this.props.useUnifiedDiffForAdditionsAndDeletions
-        }
+        diffViewMode={this.props.diffViewMode}
         repository={repository}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
       />

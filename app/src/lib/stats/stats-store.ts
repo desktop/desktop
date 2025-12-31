@@ -32,7 +32,7 @@ import {
   setNumberArray,
 } from '../local-storage'
 import { PushOptions } from '../git'
-import { getShowSideBySideDiff } from '../../ui/lib/diff-mode'
+import { DiffViewMode, getDiffViewMode } from '../../ui/lib/diff-mode'
 import { getAppArchitecture } from '../../ui/main-process-proxy'
 import { Architecture } from '../get-architecture'
 import { MultiCommitOperationKind } from '../../models/multi-commit-operation'
@@ -398,10 +398,9 @@ interface ICalculatedStats {
   readonly repositoriesCommittedInWithoutWriteAccess: number
 
   /**
-   * whether not to the user has chosent to view diffs in split, or unified (the
-   * default) diff view mode
+   * The user's chosen diff view mode.
    */
-  readonly diffMode: 'split' | 'unified'
+  readonly diffMode: DiffViewMode
 
   /**
    * Whether the app was launched from the Applications folder or not. This is
@@ -601,7 +600,7 @@ export class StatsStore implements IStatsStore {
     const repositoriesCommittedInWithoutWriteAccess = getNumberArray(
       RepositoriesCommittedInWithoutWriteAccessKey
     ).length
-    const diffMode = getShowSideBySideDiff() ? 'split' : 'unified'
+    const diffMode = getDiffViewMode()
     const linkUnderlinesVisible = getBoolean(
       underlineLinksKey,
       underlineLinksDefault

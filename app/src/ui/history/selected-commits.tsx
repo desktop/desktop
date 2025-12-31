@@ -38,6 +38,7 @@ import { ExpandableCommitSummary } from './expandable-commit-summary'
 import { DiffHeader } from '../diff/diff-header'
 import { Account } from '../../models/account'
 import { Emoji } from '../../lib/emoji'
+import { DiffViewMode } from '../lib/diff-mode'
 
 interface ISelectedCommitsProps {
   readonly repository: Repository
@@ -62,10 +63,7 @@ interface ISelectedCommitsProps {
   readonly onOpenInExternalEditor: (path: string) => void
   readonly onViewCommitOnGitHub: (SHA: string, filePath?: string) => void
   readonly hideWhitespaceInDiff: boolean
-  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
-
-  /** Whether we should display side by side diffs. */
-  readonly showSideBySideDiff: boolean
+  readonly diffViewMode: DiffViewMode
 
   /**
    * Called when the user requests to open a binary file in an the
@@ -164,13 +162,10 @@ export class SelectedCommits extends React.Component<
           imageDiffType={this.props.selectedDiffType}
           file={file}
           diff={diff}
-        readOnly={true}
-        hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
-        useUnifiedDiffForAdditionsAndDeletions={
-          this.props.useUnifiedDiffForAdditionsAndDeletions
-        }
-        showDiffCheckMarks={false}
-        showSideBySideDiff={this.props.showSideBySideDiff}
+          readOnly={true}
+          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          diffViewMode={this.props.diffViewMode}
+          showDiffCheckMarks={false}
           onOpenBinaryFile={this.props.onOpenBinaryFile}
           onChangeImageDiffType={this.props.onChangeImageDiffType}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
@@ -193,14 +188,8 @@ export class SelectedCommits extends React.Component<
         diff={this.props.currentDiff}
         path={path}
         status={status}
-        showSideBySideDiff={this.props.showSideBySideDiff}
-        useUnifiedDiffForAdditionsAndDeletions={
-          this.props.useUnifiedDiffForAdditionsAndDeletions
-        }
-        onShowSideBySideDiffChanged={this.onShowSideBySideDiffChanged}
-        onUseUnifiedDiffForAdditionsAndDeletionsChanged={
-          this.onUseUnifiedDiffForAdditionsAndDeletionsChanged
-        }
+        diffViewMode={this.props.diffViewMode}
+        onDiffViewModeChanged={this.onDiffViewModeChanged}
         hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
         onDiffOptionsOpened={this.props.onDiffOptionsOpened}
@@ -248,16 +237,8 @@ export class SelectedCommits extends React.Component<
     )
   }
 
-  private onShowSideBySideDiffChanged = (showSideBySideDiff: boolean) => {
-    this.props.dispatcher.onShowSideBySideDiffChanged(showSideBySideDiff)
-  }
-
-  private onUseUnifiedDiffForAdditionsAndDeletionsChanged = (
-    value: boolean
-  ) => {
-    this.props.dispatcher.onUseUnifiedDiffForAdditionsAndDeletionsChanged(
-      value
-    )
+  private onDiffViewModeChanged = (mode: DiffViewMode) => {
+    this.props.dispatcher.onDiffViewModeChanged(mode)
   }
 
   private onCommitSummaryReset = () => {

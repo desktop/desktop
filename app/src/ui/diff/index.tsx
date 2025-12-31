@@ -28,6 +28,7 @@ import {
   DeletedImageDiff,
 } from './image-diffs'
 import { BinaryFile } from './binary-file'
+import { DiffViewMode } from '../lib/diff-mode'
 import { SideBySideDiff } from './side-by-side-diff'
 import { IFileContents } from './syntax-highlighting'
 import { SubmoduleDiff } from './submodule-diff'
@@ -70,14 +71,8 @@ interface IDiffProps {
   /** Hiding whitespace in diff. */
   readonly hideWhitespaceInDiff: boolean
 
-  /** Whether we should display side by side diffs. */
-  readonly showSideBySideDiff: boolean
-
-  /**
-   * Whether we should always use a unified diff when viewing added or deleted
-   * files.
-   */
-  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+  /** The current diff view mode. */
+  readonly diffViewMode: DiffViewMode
 
   /** Whether we should show a confirmation dialog when the user discards changes */
   readonly askForConfirmationOnDiscardChanges?: boolean
@@ -315,14 +310,14 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private getShowSideBySideDiffForFile() {
-    const {
-      showSideBySideDiff,
-      useUnifiedDiffForAdditionsAndDeletions,
-      file,
-    } = this.props
+    const { diffViewMode, file } = this.props
 
-    if (!useUnifiedDiffForAdditionsAndDeletions) {
-      return showSideBySideDiff
+    if (diffViewMode === DiffViewMode.Unified) {
+      return false
+    }
+
+    if (diffViewMode === DiffViewMode.Split) {
+      return true
     }
 
     if (
@@ -333,6 +328,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       return false
     }
 
-    return showSideBySideDiff
+    return true
   }
 }

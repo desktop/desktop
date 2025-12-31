@@ -34,6 +34,7 @@ import { DragType } from '../models/drag-drop'
 import { PullRequestSuggestedNextAction } from '../models/pull-request'
 import { clamp } from '../lib/clamp'
 import { Emoji } from '../lib/emoji'
+import { DiffViewMode } from './lib/diff-mode'
 
 interface IRepositoryViewProps {
   readonly repository: Repository
@@ -49,8 +50,7 @@ interface IRepositoryViewProps {
   readonly imageDiffType: ImageDiffType
   readonly hideWhitespaceInChangesDiff: boolean
   readonly hideWhitespaceInHistoryDiff: boolean
-  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
-  readonly showSideBySideDiff: boolean
+  readonly diffViewMode: DiffViewMode
   readonly showDiffCheckMarks: boolean
   readonly askForConfirmationOnDiscardChanges: boolean
   readonly askForConfirmationOnCommitFilteredChanges: boolean
@@ -406,10 +406,7 @@ export class RepositoryView extends React.Component<
           askForConfirmationOnDiscardStash={
             this.props.askForConfirmationOnDiscardStash
           }
-          showSideBySideDiff={this.props.showSideBySideDiff}
-          useUnifiedDiffForAdditionsAndDeletions={
-            this.props.useUnifiedDiffForAdditionsAndDeletions
-          }
+          diffViewMode={this.props.diffViewMode}
           onOpenBinaryFile={this.onOpenBinaryFile}
           onOpenSubmodule={this.onOpenSubmodule}
           onChangeImageDiffType={this.onChangeImageDiffType}
@@ -464,10 +461,7 @@ export class RepositoryView extends React.Component<
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
         onViewCommitOnGitHub={this.props.onViewCommitOnGitHub}
         hideWhitespaceInDiff={this.props.hideWhitespaceInHistoryDiff}
-        useUnifiedDiffForAdditionsAndDeletions={
-          this.props.useUnifiedDiffForAdditionsAndDeletions
-        }
-        showSideBySideDiff={this.props.showSideBySideDiff}
+        diffViewMode={this.props.diffViewMode}
         onOpenBinaryFile={this.onOpenBinaryFile}
         onOpenSubmodule={this.onOpenSubmodule}
         onChangeImageDiffType={this.onChangeImageDiffType}
@@ -561,10 +555,7 @@ export class RepositoryView extends React.Component<
           isCommitting={this.props.state.isCommitting}
           imageDiffType={this.props.imageDiffType}
           hideWhitespaceInDiff={this.props.hideWhitespaceInChangesDiff}
-          useUnifiedDiffForAdditionsAndDeletions={
-            this.props.useUnifiedDiffForAdditionsAndDeletions
-          }
-          showSideBySideDiff={this.props.showSideBySideDiff}
+          diffViewMode={this.props.diffViewMode}
           showDiffCheckMarks={this.props.showDiffCheckMarks}
           onOpenBinaryFile={this.onOpenBinaryFile}
           onOpenSubmodule={this.onOpenSubmodule}

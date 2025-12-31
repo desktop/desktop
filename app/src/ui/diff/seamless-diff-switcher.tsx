@@ -21,6 +21,7 @@ import { getFileContents, IFileContents } from './syntax-highlighting'
 import { getTextDiffWithBottomDummyHunk } from './text-diff-expansion'
 import { textDiffEquals } from './diff-helpers'
 import noop from 'lodash/noop'
+import { DiffViewMode } from '../lib/diff-mode'
 
 /**
  * The time (in milliseconds) we allow when loading a diff before
@@ -63,18 +64,10 @@ interface ISeamlessDiffSwitcherProps {
   // eslint-disable-next-line react/no-unused-prop-types
   readonly hideWhitespaceInDiff: boolean
 
-  /**
-   * Whether we should always use a unified diff when viewing added or deleted
-   * files.
-   */
+  /** The current diff view mode. */
   // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
   // eslint-disable-next-line react/no-unused-prop-types
-  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
-
-  /** Whether we should display side by side diffs. */
-  // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
-  // eslint-disable-next-line react/no-unused-prop-types
-  readonly showSideBySideDiff: boolean
+  readonly diffViewMode: DiffViewMode
 
   /** Whether or not to show the diff check marks indicating inclusion in a commit */
   // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
@@ -339,8 +332,7 @@ export class SeamlessDiffSwitcher extends React.Component<
       imageDiffType,
       readOnly,
       hideWhitespaceInDiff,
-      useUnifiedDiffForAdditionsAndDeletions,
-      showSideBySideDiff,
+      diffViewMode,
       showDiffCheckMarks,
       onIncludeChanged,
       onDiscardChanges,
@@ -374,10 +366,7 @@ export class SeamlessDiffSwitcher extends React.Component<
             fileContents={fileContents}
             readOnly={readOnly}
             hideWhitespaceInDiff={hideWhitespaceInDiff}
-            useUnifiedDiffForAdditionsAndDeletions={
-              useUnifiedDiffForAdditionsAndDeletions
-            }
-            showSideBySideDiff={showSideBySideDiff}
+            diffViewMode={diffViewMode}
             askForConfirmationOnDiscardChanges={
               this.props.askForConfirmationOnDiscardChanges
             }

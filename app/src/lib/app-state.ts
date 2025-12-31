@@ -32,6 +32,7 @@ import { WindowState } from './window-state'
 import { Shell } from './shells'
 
 import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
+import { DiffViewMode } from '../ui/lib/diff-mode'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
 import { Banner } from '../models/banner'
@@ -275,14 +276,7 @@ export interface IAppState {
   /** Whether we should hide white space changes in the pull request diff */
   readonly hideWhitespaceInPullRequestDiff: boolean
 
-  /** Whether we should show side by side diffs */
-  readonly showSideBySideDiff: boolean
-
-  /**
-   * Whether we should always use a unified diff when viewing files that are
-   * added or deleted.
-   */
-  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+  readonly diffViewMode: DiffViewMode
 
   /** The user's preferred shell. */
   readonly selectedShell: Shell

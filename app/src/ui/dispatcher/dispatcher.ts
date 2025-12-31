@@ -126,6 +126,7 @@ import { ICustomIntegration } from '../../lib/custom-integration'
 import { isAbsolute } from 'path'
 import { CLIAction } from '../../lib/cli-action'
 import { BypassReasonType } from '../secret-scanning/bypass-push-protection-dialog'
+import { DiffViewMode } from '../lib/diff-mode'
 
 /**
  * An error handler function.
@@ -2227,14 +2228,9 @@ export class Dispatcher {
     )
   }
 
-  /** Change the side by side diff setting */
-  public onShowSideBySideDiffChanged(showSideBySideDiff: boolean) {
-    return this.appStore._setShowSideBySideDiff(showSideBySideDiff)
-  }
-
-  /** Change the setting to force unified diffs for added/deleted files */
-  public onUseUnifiedDiffForAdditionsAndDeletionsChanged(value: boolean) {
-    return this.appStore._setUseUnifiedDiffForAdditionsAndDeletions(value)
+  /** Change the diff view mode */
+  public onDiffViewModeChanged(mode: DiffViewMode) {
+    return this.appStore._setDiffViewMode(mode)
   }
 
   /** Install the global Git LFS filters. */

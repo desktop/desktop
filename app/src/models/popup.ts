@@ -25,6 +25,7 @@ import { UnreachableCommitsTab } from '../ui/history/unreachable-commits-dialog'
 import { IAPIComment } from '../lib/api'
 import { ISecretScanResult } from '../ui/secret-scanning/push-protection-error-dialog'
 import { BypassReasonType } from '../ui/secret-scanning/bypass-push-protection-dialog'
+import { DiffViewMode } from '../ui/lib/diff-mode'
 
 export enum PopupType {
   RenameBranch = 'RenameBranch',
@@ -401,8 +402,7 @@ export type PopupDetail =
       prRecentBaseBranches: ReadonlyArray<Branch>
       repository: Repository
       nonLocalCommitSHA: string | null
-      showSideBySideDiff: boolean
-      useUnifiedDiffForAdditionsAndDeletions: boolean
+      diffViewMode: DiffViewMode
       currentBranchHasPullRequest: boolean
     }
   | {

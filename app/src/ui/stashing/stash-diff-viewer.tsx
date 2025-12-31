@@ -10,6 +10,7 @@ import { StashDiffHeader } from './stash-diff-header'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { IConstrainedValue } from '../../lib/app-state'
 import { clamp } from '../../lib/clamp'
+import { DiffViewMode } from '../lib/diff-mode'
 
 interface IStashDiffViewerProps {
   /** The stash in question. */
@@ -30,14 +31,7 @@ interface IStashDiffViewerProps {
   /** Should the app propt the user to confirm a discard stash */
   readonly askForConfirmationOnDiscardStash: boolean
 
-  /** Whether we should display side by side diffs. */
-  readonly showSideBySideDiff: boolean
-
-  /**
-   * Whether we should always use a unified diff when viewing added or deleted
-   * files.
-   */
-  readonly useUnifiedDiffForAdditionsAndDeletions: boolean
+  readonly diffViewMode: DiffViewMode
 
   /**
    * Called when the user requests to open a binary file in an the
@@ -119,10 +113,7 @@ export class StashDiffViewer extends React.PureComponent<IStashDiffViewerProps> 
           imageDiffType={imageDiffType}
           hideWhitespaceInDiff={false}
           showDiffCheckMarks={false}
-          showSideBySideDiff={this.props.showSideBySideDiff}
-          useUnifiedDiffForAdditionsAndDeletions={
-            this.props.useUnifiedDiffForAdditionsAndDeletions
-          }
+          diffViewMode={this.props.diffViewMode}
           onOpenBinaryFile={onOpenBinaryFile}
           onChangeImageDiffType={onChangeImageDiffType}
           onHideWhitespaceInDiffChanged={
