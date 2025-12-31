@@ -169,7 +169,7 @@ export class DiffOptions extends React.Component<
         />
         <p className="secondary-text">
           Mixed mode uses Unified for added and deleted files,
-          and Split view for modified or moved files.
+          and Split view for modified and moved files.
         </p>
       </fieldset>
     )
