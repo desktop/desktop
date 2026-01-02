@@ -28,6 +28,10 @@ const editors: IDarwinExternalEditor[] = [
     bundleIdentifiers: ['aptana.studio'],
   },
   {
+    name: 'Antigravity',
+    bundleIdentifiers: ['com.google.antigravity'],
+  },
+  {
     name: 'Eclipse IDE for Java Developers',
     bundleIdentifiers: ['epp.package.java'],
   },
