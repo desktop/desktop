@@ -606,6 +606,19 @@ export class SectionList extends React.Component<
         this.moveSelection(direction, source)
       }
       event.preventDefault()
+    } else if (
+      __DARWIN__ &&
+      event.ctrlKey &&
+      (event.key === 'p' || event.key === 'n')
+    ) {
+      // Support Ctrl+P (up) and Ctrl+N (down) on macOS without wrapping
+      const direction = event.key === 'p' ? 'up' : 'down'
+      if (isRangeSelection) {
+        this.addSelection(direction, source, false)
+      } else {
+        this.moveSelection(direction, source, false)
+      }
+      event.preventDefault()
     } else if (!__DARWIN__ && event.key === 'a' && event.ctrlKey) {
       // On Windows Chromium will steal the Ctrl+A shortcut before
       // Electron gets its hands on it meaning that the Select all
@@ -850,9 +863,13 @@ export class SectionList extends React.Component<
     return null
   }
 
-  private addSelection(direction: SelectionDirection, source: SelectionSource) {
+  private addSelection(
+    direction: SelectionDirection,
+    source: SelectionSource,
+    wrap: boolean = true
+  ) {
     if (this.props.selectedRows.length === 0) {
-      return this.moveSelection(direction, source)
+      return this.moveSelection(direction, source, wrap)
     }
 
     const lastSelection =
@@ -867,7 +884,7 @@ export class SectionList extends React.Component<
 
     const newRow = findNextSelectableRow(
       this.props.rowCount,
-      { direction, row: lastSelection, wrap: false },
+      { direction, row: lastSelection, wrap },
       this.canSelectRow
     )
 
@@ -894,7 +911,8 @@ export class SectionList extends React.Component<
 
   private moveSelection(
     direction: SelectionDirection,
-    source: SelectionSource
+    source: SelectionSource,
+    wrap: boolean = true
   ) {
     const lastSelection =
       this.props.selectedRows.length > 0
@@ -903,7 +921,7 @@ export class SectionList extends React.Component<
 
     const newRow = findNextSelectableRow(
       this.props.rowCount,
-      { direction, row: lastSelection },
+      { direction, row: lastSelection, wrap },
       this.canSelectRow
     )
 

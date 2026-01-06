@@ -710,6 +710,21 @@ export class AugmentedSectionFilterList<
       rowIndexPathEquals(indexPath, lastSelectableRow)
     ) {
       shouldFocus = true
+    } else if (__DARWIN__ && event.ctrlKey) {
+      // Support Ctrl+P/N on macOS - return to filter at boundaries
+      if (
+        event.key === 'p' &&
+        firstSelectableRow &&
+        rowIndexPathEquals(indexPath, firstSelectableRow)
+      ) {
+        shouldFocus = true
+      } else if (
+        event.key === 'n' &&
+        lastSelectableRow &&
+        rowIndexPathEquals(indexPath, lastSelectableRow)
+      ) {
+        shouldFocus = true
+      }
     }
 
     if (shouldFocus) {
@@ -775,6 +790,28 @@ export class AugmentedSectionFilterList<
         }
       }
 
+      event.preventDefault()
+    } else if (__DARWIN__ && event.ctrlKey && (key === 'p' || key === 'n')) {
+      // Support Ctrl+P/N on macOS - same behavior as arrow keys in filter
+      if (rowCount.length > 0) {
+        const direction = key === 'n' ? 'down' : 'up'
+        const selectedRow = findNextSelectableRow(
+          rowCount,
+          {
+            direction,
+            row:
+              direction === 'down'
+                ? InvalidRowIndexPath
+                : { section: 0, row: 0 },
+          },
+          this.canSelectRow
+        )
+        if (selectedRow != null) {
+          this.setState({ selectedRows: [selectedRow] }, () => {
+            list.focus()
+          })
+        }
+      }
       event.preventDefault()
     } else if (key === 'Enter') {
       // no repositories currently displayed, bail out
