@@ -1,7 +1,7 @@
 import { Emoji } from '../lib/emoji'
 import { Popup } from './popup'
 
-export enum BannerType {
+export enum ToastType {
   SuccessfulMerge = 'SuccessfulMerge',
   MergeConflictsFound = 'MergeConflictsFound',
   SuccessfulRebase = 'SuccessfulRebase',
@@ -19,97 +19,97 @@ export enum BannerType {
   OSVersionNoLongerSupported = 'OSVersionNoLongerSupported',
 }
 
-export type Banner =
+export type Toast =
   | {
-      readonly type: BannerType.SuccessfulMerge
+      readonly type: ToastType.SuccessfulMerge
       /** name of the branch that was merged into */
       readonly ourBranch: string
       /** name of the branch we merged into `ourBranch` */
       readonly theirBranch?: string
     }
   | {
-      readonly type: BannerType.MergeConflictsFound
+      readonly type: ToastType.MergeConflictsFound
       /** name of the branch that is being merged into */
       readonly ourBranch: string
-      /** popup to be shown from the banner */
+      /** popup to be shown from the toast */
       readonly popup: Popup
     }
   | {
-      readonly type: BannerType.SuccessfulRebase
+      readonly type: ToastType.SuccessfulRebase
       /** name of the branch that was used to rebase */
       readonly targetBranch: string
       /** the branch that the current branch was rebased onto (if known) */
       readonly baseBranch?: string
     }
   | {
-      readonly type: BannerType.RebaseConflictsFound
+      readonly type: ToastType.RebaseConflictsFound
       /** name of the branch that was used to rebase */
       readonly targetBranch: string
-      /** callback to run when user clicks on link in banner text */
+      /** callback to run when user clicks on link in toast text */
       readonly onOpenDialog: () => void
     }
   | {
-      readonly type: BannerType.BranchAlreadyUpToDate
+      readonly type: ToastType.BranchAlreadyUpToDate
       /** name of the branch that was merged into */
       readonly ourBranch: string
       /** name of the branch we merged into `ourBranch` */
       readonly theirBranch?: string
     }
   | {
-      readonly type: BannerType.SuccessfulCherryPick
+      readonly type: ToastType.SuccessfulCherryPick
       /** name of the branch that was cherry picked to */
       readonly targetBranchName: string
       /** number of commits cherry picked */
       readonly count: number
-      /** callback to run when user clicks undo link in banner */
+      /** callback to run when user clicks undo link in toast */
       readonly onUndo: () => void
     }
   | {
-      readonly type: BannerType.CherryPickConflictsFound
+      readonly type: ToastType.CherryPickConflictsFound
       /** name of the branch that the commits are being cherry picked onto */
       readonly targetBranchName: string
-      /** callback to run when user clicks on link in banner text */
+      /** callback to run when user clicks on link in toast text */
       readonly onOpenConflictsDialog: () => void
     }
   | {
-      readonly type: BannerType.CherryPickUndone
+      readonly type: ToastType.CherryPickUndone
       /** name of the branch that the commits were cherry picked onto */
       readonly targetBranchName: string
       /** number of commits cherry picked */
       readonly countCherryPicked: number
     }
   | {
-      readonly type: BannerType.OpenThankYouCard
+      readonly type: ToastType.OpenThankYouCard
       readonly emoji: Map<string, Emoji>
       readonly onOpenCard: () => void
       readonly onThrowCardAway: () => void
     }
   | {
-      readonly type: BannerType.SuccessfulSquash
+      readonly type: ToastType.SuccessfulSquash
       /** number of commits squashed */
       readonly count: number
-      /** callback to run when user clicks undo link in banner */
+      /** callback to run when user clicks undo link in toast */
       readonly onUndo: () => void
     }
   | {
-      readonly type: BannerType.SquashUndone
+      readonly type: ToastType.SquashUndone
       /** number of commits squashed */
       readonly commitsCount: number
     }
   | {
-      readonly type: BannerType.SuccessfulReorder
+      readonly type: ToastType.SuccessfulReorder
       /** number of commits reordered */
       readonly count: number
-      /** callback to run when user clicks undo link in banner */
+      /** callback to run when user clicks undo link in toast */
       readonly onUndo: () => void
     }
   | {
-      readonly type: BannerType.ReorderUndone
+      readonly type: ToastType.ReorderUndone
       /** number of commits reordered */
       readonly commitsCount: number
     }
   | {
-      readonly type: BannerType.ConflictsFound
+      readonly type: ToastType.ConflictsFound
       /**
        * Description of the operation to continue
        * Examples:
@@ -118,7 +118,7 @@ export type Banner =
        *  - squashing commits on <strong>target-branch-name</strong>
        */
       readonly operationDescription: string | JSX.Element
-      /** callback to run when user clicks on link in banner text */
+      /** callback to run when user clicks on link in toast text */
       readonly onOpenConflictsDialog: () => void
     }
-  | { readonly type: BannerType.OSVersionNoLongerSupported }
+  | { readonly type: ToastType.OSVersionNoLongerSupported }

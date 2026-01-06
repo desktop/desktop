@@ -249,7 +249,7 @@ import {
   enableCommitMessageGeneration,
   enableCustomIntegration,
 } from '../feature-flag'
-import { Banner, BannerType } from '../../models/banner'
+import { Toast, ToastType } from '../../models/toast'
 import { ComputedAction } from '../../models/computed-action'
 import {
   createDesktopStashEntry,
@@ -483,7 +483,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private showWelcomeFlow = false
   private focusCommitMessage = false
   private currentFoldout: Foldout | null = null
-  private currentBanner: Banner | null = null
+  private currentToast: Toast | null = null
   private emitQueued = false
 
   private readonly localRepositoryStateLookup = new Map<
@@ -523,7 +523,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
   private resizablePaneActive = false
-  private isUpdateAvailableBannerVisible: boolean = false
+  private isUpdateAvailableToastVisible: boolean = false
   private isUpdateShowcaseVisible: boolean = false
 
   private askToMoveToApplicationsFolderSetting: boolean =
@@ -1062,9 +1062,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       pullRequestFilesListWidth: this.pullRequestFileListWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       highlightAccessKeys: this.highlightAccessKeys,
-      isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
+      isUpdateAvailableToastVisible: this.isUpdateAvailableToastVisible,
       isUpdateShowcaseVisible: this.isUpdateShowcaseVisible,
-      currentBanner: this.currentBanner,
+      currentToast: this.currentToast,
       askToMoveToApplicationsFolderSetting:
         this.askToMoveToApplicationsFolderSetting,
       useExternalCredentialHelper: this.useExternalCredentialHelper,
@@ -1906,7 +1906,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
     this.stopBackgroundFetching()
     this.stopPullRequestUpdater()
-    this._clearBanner()
+    this._clearToast()
     this.stopBackgroundPruner()
 
     if (repository == null) {
@@ -2862,12 +2862,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    const displayingBanner =
-      this.currentBanner !== null &&
-      this.currentBanner.type === BannerType.ConflictsFound
+    const displayingToast =
+      this.currentToast !== null &&
+      this.currentToast.type === ToastType.ConflictsFound
 
     if (
-      displayingBanner ||
+      displayingToast ||
       isConflictsFlow(
         this.popupManager.areTherePopupsOfType(PopupType.MultiCommitOperation),
         multiCommitOperationState
@@ -2971,8 +2971,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this._closePopup(PopupType.MultiCommitOperation)
-    this._clearBanner(BannerType.ConflictsFound)
-    this._clearBanner(BannerType.MergeConflictsFound)
+    this._clearToast(ToastType.ConflictsFound)
+    this._clearToast(ToastType.MergeConflictsFound)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -5677,8 +5677,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { tip } = gitStore
 
     if (mergeResult === MergeResult.Success && tip.kind === TipState.Valid) {
-      this._setBanner({
-        type: BannerType.SuccessfulMerge,
+      this._setToast({
+        type: ToastType.SuccessfulMerge,
         ourBranch: tip.branch.name,
         theirBranch: sourceBranch.name,
       })
@@ -5693,8 +5693,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       mergeResult === MergeResult.AlreadyUpToDate &&
       tip.kind === TipState.Valid
     ) {
-      this._setBanner({
-        type: BannerType.BranchAlreadyUpToDate,
+      this._setToast({
+        type: ToastType.BranchAlreadyUpToDate,
         ourBranch: tip.branch.name,
         theirBranch: sourceBranch.name,
       })
@@ -6138,8 +6138,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  public _setUpdateBannerVisibility(visibility: boolean) {
-    this.isUpdateAvailableBannerVisible = visibility
+  public _setUpdateToastVisibility(visibility: boolean) {
+    this.isUpdateAvailableToastVisible = visibility
 
     this.emitUpdate()
   }
@@ -6150,23 +6150,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _setBanner(state: Banner) {
-    this.currentBanner = state
+  public _setToast(state: Toast) {
+    this.currentToast = state
     this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clearBanner(bannerType?: BannerType) {
-    const { currentBanner } = this
-    if (currentBanner === null) {
+  public _clearToast(toastType?: ToastType) {
+    const { currentToast } = this
+    if (currentToast === null) {
       return
     }
 
-    if (bannerType !== undefined && currentBanner.type !== bannerType) {
+    if (toastType !== undefined && currentToast.type !== toastType) {
       return
     }
 
-    this.currentBanner = null
+    this.currentToast = null
     this.emitUpdate()
   }
 
@@ -7716,18 +7716,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return false
     }
 
-    let banner: Banner
+    let toast: Toast
 
     switch (kind) {
       case MultiCommitOperationKind.Squash:
-        banner = {
-          type: BannerType.SquashUndone,
+        toast = {
+          type: ToastType.SquashUndone,
           commitsCount,
         }
         break
       case MultiCommitOperationKind.Reorder:
-        banner = {
-          type: BannerType.ReorderUndone,
+        toast = {
+          type: ToastType.ReorderUndone,
           commitsCount,
         }
         break
@@ -7737,8 +7737,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
             ? operationDetail.sourceBranch
             : null
         await this.checkoutBranchIfNotNull(repository, sourceBranch)
-        banner = {
-          type: BannerType.CherryPickUndone,
+        toast = {
+          type: ToastType.CherryPickUndone,
           targetBranchName: branchName,
           countCherryPicked: commitsCount,
         }
@@ -7752,7 +7752,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         assertNever(kind, `Unsupported multi operation kind to undo ${kind}`)
     }
 
-    this._setBanner(banner)
+    this._setToast(toast)
 
     await this._loadStatus(repository)
 

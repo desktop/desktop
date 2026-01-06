@@ -1,25 +1,25 @@
 import * as React from 'react'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
-import { Banner } from './banner'
+import { ToastNotification } from './toast-notification'
 import { LinkButton } from '../lib/link-button'
 import { setNumber } from '../../lib/local-storage'
 
-export const UnsupportedOSBannerDismissedAtKey =
-  'unsupported-os-banner-dismissed-at'
+export const UnsupportedOSToastDismissedAtKey =
+  'unsupported-os-toast-dismissed-at'
 
-export class OSVersionNoLongerSupportedBanner extends React.Component<{
+export class OSVersionNoLongerSupportedToast extends React.Component<{
   onDismissed: () => void
 }> {
   private onDismissed = () => {
-    setNumber(UnsupportedOSBannerDismissedAtKey, Date.now())
+    setNumber(UnsupportedOSToastDismissedAtKey, Date.now())
     this.props.onDismissed()
   }
 
   public render() {
     return (
-      <Banner
-        id="os-not-supported-banner"
+      <ToastNotification
+        id="os-not-supported-toast"
         dismissable={true}
         onDismissed={this.onDismissed}
       >
@@ -29,7 +29,7 @@ export class OSVersionNoLongerSupportedBanner extends React.Component<{
         <LinkButton uri="https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/overview/supported-operating-systems">
           Support details
         </LinkButton>
-      </Banner>
+      </ToastNotification>
     )
   }
 }

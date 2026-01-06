@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { SuccessBanner } from './success-banner'
+import { SuccessToast } from './success-toast'
 
-interface ISuccessfulCherryPickBannerProps {
+interface ISuccessfulCherryPickToastProps {
   readonly targetBranchName: string
   readonly countCherryPicked: number
   readonly onDismissed: () => void
@@ -9,7 +9,7 @@ interface ISuccessfulCherryPickBannerProps {
 }
 
 export class SuccessfulCherryPick extends React.Component<
-  ISuccessfulCherryPickBannerProps,
+  ISuccessfulCherryPickToastProps,
   {}
 > {
   public render() {
@@ -19,12 +19,12 @@ export class SuccessfulCherryPick extends React.Component<
     const pluralized = countCherryPicked === 1 ? 'commit' : 'commits'
 
     return (
-      <SuccessBanner timeout={15000} onDismissed={onDismissed} onUndo={onUndo}>
+      <SuccessToast timeout={15000} onDismissed={onDismissed} onUndo={onUndo}>
         <span>
           Successfully copied {countCherryPicked} {pluralized} to{' '}
           <strong>{targetBranchName}</strong>.
         </span>
-      </SuccessBanner>
+      </SuccessToast>
     )
   }
 }

@@ -37,8 +37,8 @@ const toastTransitionTimeout = {
 
 /**
  * A container for toast notifications positioned in the bottom-right
- * corner of the window. Unlike banners, toasts overlay content rather
- * than pushing it down, avoiding layout shifts.
+ * corner of the window. Toasts overlay content rather than pushing it
+ * down, avoiding layout shifts.
  */
 export class ToastContainer extends React.Component<
   IToastContainerProps,

@@ -36,7 +36,7 @@ export class CommitConflictsWarning extends React.Component<
       this.props.repository,
       this.props.context
     )
-    this.props.dispatcher.clearBanner()
+    this.props.dispatcher.clearToast()
     this.props.dispatcher.setCommitMessage(
       this.props.repository,
       DefaultCommitMessage

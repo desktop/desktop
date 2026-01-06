@@ -482,11 +482,11 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red};
 
-  /** Banner */
-  --banner-warning-background: #{$yellow-100};
-  --banner-warning-text-color: var(--text-color);
-  --banner-warning-link-color: #046ee7;
-  --banner-warning-icon-color: #{darken($yellow-700, 10%)};
+  /** Toast */
+  --toast-warning-background: #{$yellow-100};
+  --toast-warning-text-color: var(--text-color);
+  --toast-warning-link-color: #046ee7;
+  --toast-warning-icon-color: #{darken($yellow-700, 10%)};
 
   /** File warning */
   --file-warning-background-color: #{$yellow-100};

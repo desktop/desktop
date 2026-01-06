@@ -1,5 +1,5 @@
 // Toast notification container - positioned in bottom-right corner
-// Unlike banners, toasts overlay content rather than pushing it down
+// Toasts overlay content rather than pushing it down
 
 .toast-container {
   position: absolute;
@@ -49,8 +49,8 @@
     }
   }
 
-  // Override banner styles when inside toast container
-  .banner {
+  // Toast notification styles when inside toast container
+  .toast-notification {
     height: auto;
     min-height: 36px;
     padding: var(--spacing);
@@ -59,26 +59,28 @@
     background-color: var(--box-background-color);
     border: var(--base-border);
 
-    // Remove the height-based animations since we use transform instead
-    &.banner-enter,
-    &.banner-enter-active,
-    &.banner-exit,
-    &.banner-exit-active {
-      height: auto;
-      opacity: 1;
-      transition: none;
-    }
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 
     .contents {
       flex: 1;
       flex-wrap: wrap;
     }
 
-    // Allow text to wrap in toasts (override truncation from banner styles)
-    .banner-message span {
+    // Allow text to wrap in toasts
+    .toast-message span {
       white-space: normal;
       overflow: visible;
       text-overflow: clip;
+    }
+
+    .close button {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: var(--spacing-half);
+      margin-left: var(--spacing-half);
     }
   }
 }

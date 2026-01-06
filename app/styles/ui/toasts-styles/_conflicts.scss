@@ -1,8 +1,8 @@
-#merge-conflicts-banner,
-#rebase-conflicts-banner,
-#cherry-pick-conflicts-banner,
-#conflicts-found-banner {
-  .banner-message {
+#merge-conflicts-toast,
+#rebase-conflicts-toast,
+#cherry-pick-conflicts-toast,
+#conflicts-found-toast {
+  .toast-message {
     span {
       max-width: 100%;
       text-overflow: ellipsis;

@@ -106,7 +106,7 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
     )
 
     this.props.dispatcher.closePopup(PopupType.MultiCommitOperation)
-    return dispatcher.onConflictsFoundBanner(
+    return dispatcher.onConflictsFoundToast(
       repository,
       operationDescription,
       conflictState

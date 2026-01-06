@@ -12,7 +12,7 @@ import {
 } from '../../../lib/editors/shared'
 import { updateStore } from '../update-store'
 import { enableTestMenuItems } from '../../../lib/feature-flag'
-import { Banner, BannerType } from '../../../models/banner'
+import { Toast, ToastType } from '../../../models/toast'
 import { PopupType } from '../../../models/popup'
 import { CloningRepository } from '../../../models/cloning-repository'
 import { generateDevReleaseSummary } from '../../../lib/release-notes'
@@ -44,12 +44,12 @@ export function showTestUI(
       return boomtown()
     case 'test-app-error':
       return testAppError()
-    case 'test-arm64-banner':
-      return showFakeUpdateBanner({ isArm64: true })
+    case 'test-arm64-toast':
+      return showFakeUpdateToast({ isArm64: true })
     case 'test-confirm-committing-conflicted-files':
       return showFakeConfirmCommittingConflictedFiles()
-    case 'test-cherry-pick-conflicts-banner':
-      return showFakeCherryPickConflictBanner()
+    case 'test-cherry-pick-conflicts-toast':
+      return showFakeCherryPickConflictsToast()
     case 'test-discarded-changes-will-be-unrecoverable':
       return showFakeDiscardedChangesWillBeUnrecoverable()
     case 'test-do-you-want-fork-this-repository':
@@ -70,8 +70,8 @@ export function showTestUI(
         type: PopupType.InvalidatedToken,
         account: Account.anonymous(),
       })
-    case 'test-merge-successful-banner':
-      return showFakeMergeSuccessfulBanner()
+    case 'test-merge-successful-toast':
+      return showFakeMergeSuccessfulToast()
     case 'test-move-to-application-folder':
       return dispatcher.showPopup({ type: PopupType.MoveToApplicationsFolder })
     case 'test-newer-commits-on-remote':
@@ -81,8 +81,8 @@ export function showTestUI(
     case 'test-notification':
       return testShowNotification()
     case 'test-os-version-no-longer-supported':
-      return dispatcher.setBanner({
-        type: BannerType.OSVersionNoLongerSupported,
+      return dispatcher.setToast({
+        type: ToastType.OSVersionNoLongerSupported,
       })
     case 'test-prune-branches':
       return testPruneBranches()
@@ -96,12 +96,12 @@ export function showTestUI(
       })
     case 'test-release-notes-popup':
       return showFakeReleaseNotesPopup()
-    case 'test-reorder-banner':
-      return showFakeReorderBanner()
-    case 'test-showcase-update-banner':
-      return showFakeUpdateBanner({ isShowcase: true })
-    case 'test-thank-you-banner':
-      return showFakeThankYouBanner()
+    case 'test-reorder-toast':
+      return showFakeReorderToast()
+    case 'test-showcase-update-toast':
+      return showFakeUpdateToast({ isShowcase: true })
+    case 'test-thank-you-toast':
+      return showFakeThankYouToast()
     case 'test-thank-you-popup':
       return showFakeThankYouPopup()
     case 'test-unable-to-locate-git':
@@ -119,8 +119,8 @@ export function showTestUI(
           } and select an available shell.`
         )
       )
-    case 'test-undone-banner':
-      return showFakeUndoneBanner()
+    case 'test-undone-toast':
+      return showFakeUndoneToast()
     case 'test-untrusted-server':
       const mockIssuer = {
         commonName: 'asdf',
@@ -149,10 +149,10 @@ export function showTestUI(
         certificate: mockCert,
         url: `https://www.github.com`,
       })
-    case 'test-update-banner':
-      return showFakeUpdateBanner({})
-    case 'test-prioritized-update-banner':
-      return showFakeUpdateBanner({
+    case 'test-update-toast':
+      return showFakeUpdateToast({})
+    case 'test-prioritized-update-toast':
+      return showFakeUpdateToast({
         isPriority: true,
         priorityInfoUrl: 'https://desktop.github.com',
       })
@@ -178,7 +178,7 @@ export function showTestUI(
     )
   }
 
-  function showFakeUpdateBanner(options: {
+  function showFakeUpdateToast(options: {
     isArm64?: boolean
     isShowcase?: boolean
     isPriority?: boolean
@@ -197,7 +197,7 @@ export function showTestUI(
 
     updateStore.setPrioritizeUpdateInfoUrl(options.priorityInfoUrl)
 
-    dispatcher.setUpdateBannerVisibility(true)
+    dispatcher.setUpdateToastVisibility(true)
   }
 
   function showFakeConfirmCommittingConflictedFiles() {
@@ -231,9 +231,9 @@ export function showTestUI(
     })
   }
 
-  function showFakeCherryPickConflictBanner() {
-    dispatcher.setBanner({
-      type: BannerType.CherryPickConflictsFound,
+  function showFakeCherryPickConflictsToast() {
+    dispatcher.setToast({
+      type: ToastType.CherryPickConflictsFound,
       targetBranchName: 'fake-branch',
       onOpenConflictsDialog: () => {},
     })
@@ -319,9 +319,9 @@ export function showTestUI(
     })
   }
 
-  function showFakeMergeSuccessfulBanner() {
-    dispatcher.setBanner({
-      type: BannerType.SuccessfulMerge,
+  function showFakeMergeSuccessfulToast() {
+    dispatcher.setToast({
+      type: ToastType.SuccessfulMerge,
       ourBranch: 'fake-branch',
     })
   }
@@ -389,20 +389,20 @@ export function showTestUI(
     })
   }
 
-  function showFakeReorderBanner() {
-    dispatcher.setBanner({
-      type: BannerType.SuccessfulReorder,
+  function showFakeReorderToast() {
+    dispatcher.setToast({
+      type: ToastType.SuccessfulReorder,
       count: 1,
       onUndo: () => {
-        dispatcher.setBanner({
-          type: BannerType.ReorderUndone,
+        dispatcher.setToast({
+          type: ToastType.ReorderUndone,
           commitsCount: 1,
         })
       },
     })
   }
 
-  function showFakeThankYouBanner() {
+  function showFakeThankYouToast() {
     const userContributions: ReadonlyArray<ReleaseNote> = [
       {
         kind: 'fixed',
@@ -415,8 +415,8 @@ export function showTestUI(
       },
     ]
 
-    const banner: Banner = {
-      type: BannerType.OpenThankYouCard,
+    const toast: Toast = {
+      type: ToastType.OpenThankYouCard,
       // Grab emoji's by reference because we could still be loading emoji's
       emoji,
       onOpenCard: () =>
@@ -430,7 +430,7 @@ export function showTestUI(
         console.log('Thrown away :(....')
       },
     }
-    dispatcher.setBanner(banner)
+    dispatcher.setToast(toast)
   }
 
   function showFakeThankYouPopup() {
@@ -447,9 +447,9 @@ export function showTestUI(
     })
   }
 
-  function showFakeUndoneBanner() {
-    dispatcher.setBanner({
-      type: BannerType.ReorderUndone,
+  function showFakeUndoneToast() {
+    dispatcher.setToast({
+      type: ToastType.ReorderUndone,
       commitsCount: 1,
     })
   }

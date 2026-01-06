@@ -3,7 +3,7 @@ import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import classNames from 'classnames'
 
-interface IBannerProps {
+interface IToastNotificationProps {
   readonly id?: string
   readonly timeout?: number
   readonly dismissable?: boolean
@@ -11,19 +11,22 @@ interface IBannerProps {
   readonly onDismissed: () => void
 }
 
-export class Banner extends React.Component<IBannerProps, {}> {
-  private banner = React.createRef<HTMLDivElement>()
+export class ToastNotification extends React.Component<
+  IToastNotificationProps,
+  {}
+> {
+  private toastRef = React.createRef<HTMLDivElement>()
 
   // Timeout ID for manual focus placement after mounting
   private focusTimeoutId: number | null = null
 
-  // Timeout ID for auto-dismissal of the banner after focus is lost
+  // Timeout ID for auto-dismissal of the toast after focus is lost
   private dismissalTimeoutId: number | null = null
 
   public render() {
-    const cn = classNames('banner', this.props.className)
+    const cn = classNames('toast-notification', this.props.className)
     return (
-      <div id={this.props.id} className={cn} ref={this.banner}>
+      <div id={this.props.id} className={cn} ref={this.toastRef}>
         <div className="contents">{this.props.children}</div>
         {this.renderCloseButton()}
       </div>
@@ -64,19 +67,19 @@ export class Banner extends React.Component<IBannerProps, {}> {
 
   private focusOnFirstSuitableElement = () => {
     const target =
-      this.banner.current?.querySelector('a') ||
-      this.banner.current?.querySelector('button')
+      this.toastRef.current?.querySelector('a') ||
+      this.toastRef.current?.querySelector('button')
     target?.focus()
   }
 
   private addDismissalFocusListeners() {
-    this.banner.current?.addEventListener('focusin', this.onFocusIn)
-    this.banner.current?.addEventListener('focusout', this.onFocusOut)
+    this.toastRef.current?.addEventListener('focusin', this.onFocusIn)
+    this.toastRef.current?.addEventListener('focusout', this.onFocusOut)
   }
 
   private removeDismissalFocusListeners() {
-    this.banner.current?.removeEventListener('focusout', this.onFocusOut)
-    this.banner.current?.removeEventListener('focusin', this.onFocusIn)
+    this.toastRef.current?.removeEventListener('focusout', this.onFocusOut)
+    this.toastRef.current?.removeEventListener('focusin', this.onFocusIn)
   }
 
   private onFocusIn = () => {
@@ -91,7 +94,7 @@ export class Banner extends React.Component<IBannerProps, {}> {
 
     if (
       event.relatedTarget &&
-      this.banner.current?.contains(event.relatedTarget as Node)
+      this.toastRef.current?.contains(event.relatedTarget as Node)
     ) {
       return
     }

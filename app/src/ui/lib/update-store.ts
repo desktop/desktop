@@ -334,8 +334,8 @@ class UpdateStore {
       .some(r => r.pretext.length > 0)
   }
 
-  /** This method has only been added for ease of testing the update banner in
-   * this state and as such is limite to dev and test environments */
+  /** This method has only been added for ease of testing the update toast in
+   * this state and as such is limited to dev and test environments */
   public setIsx64ToARM64ImmediateAutoUpdate(value: boolean) {
     if (
       __RELEASE_CHANNEL__ !== 'development' &&
@@ -347,8 +347,8 @@ class UpdateStore {
     this.isX64ToARM64ImmediateAutoUpdate = value
   }
 
-  /** This method has only been added for ease of testing the update banner in
-   * this state and as such is limite to dev and test environments */
+  /** This method has only been added for ease of testing the update toast in
+   * this state and as such is limited to dev and test environments */
   public setPrioritizeUpdate(value: boolean) {
     if (
       __RELEASE_CHANNEL__ !== 'development' &&
@@ -360,8 +360,8 @@ class UpdateStore {
     this._prioritizeUpdate = value
   }
 
-  /** This method has only been added for ease of testing the update banner in
-   * this state and as such is limite to dev and test environments */
+  /** This method has only been added for ease of testing the update toast in
+   * this state and as such is limited to dev and test environments */
   public setPrioritizeUpdateInfoUrl(value: string | undefined) {
     if (
       __RELEASE_CHANNEL__ !== 'development' &&

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { RichText } from '../lib/rich-text'
-import { Banner } from './banner'
+import { ToastNotification } from './toast-notification'
 import { Emoji } from '../../lib/emoji'
 
 interface IOpenThankYouCardProps {
@@ -20,14 +20,17 @@ export class OpenThankYouCard extends React.Component<
 > {
   public render() {
     return (
-      <Banner id="open-thank-you-card" onDismissed={this.props.onDismissed}>
+      <ToastNotification
+        id="open-thank-you-card"
+        onDismissed={this.props.onDismissed}
+      >
         <form onSubmit={this.props.onOpenCard}>
           The Desktop team would like to thank you for your contributions.{' '}
           <LinkButton onClick={this.props.onOpenCard}>
             Open Your Card
           </LinkButton>{' '}
           <RichText
-            className="thank-you-banner-emoji"
+            className="thank-you-toast-emoji"
             text={':tada:'}
             emoji={this.props.emoji}
             renderUrlsAsLinks={true}
@@ -35,13 +38,13 @@ export class OpenThankYouCard extends React.Component<
           or{' '}
           <LinkButton onClick={this.onThrowCardAway}>Throw It Away</LinkButton>{' '}
           <RichText
-            className="thank-you-banner-emoji"
+            className="thank-you-toast-emoji"
             text={':sob:'}
             emoji={this.props.emoji}
             renderUrlsAsLinks={true}
           />
         </form>
-      </Banner>
+      </ToastNotification>
     )
   }
 

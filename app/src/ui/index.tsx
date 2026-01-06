@@ -136,8 +136,8 @@ const sendErrorWithContext = (
 
     try {
       if (currentState) {
-        if (currentState.currentBanner !== null) {
-          extra.currentBanner = currentState.currentBanner.type
+        if (currentState.currentToast !== null) {
+          extra.currentToast = currentState.currentToast.type
         }
 
         if (currentState.currentPopup !== null) {

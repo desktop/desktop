@@ -85,7 +85,7 @@ import {
   WorkingDirectoryStatus,
 } from '../../models/status'
 import { TipState, IValidBranch } from '../../models/tip'
-import { Banner, BannerType } from '../../models/banner'
+import { Toast, ToastType } from '../../models/toast'
 
 import { ApplicationTheme } from '../lib/application-theme'
 import { installCLI } from '../lib/install-cli'
@@ -993,10 +993,10 @@ export class Dispatcher {
   }
 
   /**
-   * Set the update banner's visibility
+   * Set the update toast's visibility
    */
-  public setUpdateBannerVisibility(isVisible: boolean) {
-    return this.appStore._setUpdateBannerVisibility(isVisible)
+  public setUpdateToastVisibility(isVisible: boolean) {
+    return this.appStore._setUpdateToastVisibility(isVisible)
   }
 
   /**
@@ -1007,19 +1007,19 @@ export class Dispatcher {
   }
 
   /**
-   * Set the banner state for the application
+   * Set the toast state for the application
    */
-  public setBanner(state: Banner) {
-    return this.appStore._setBanner(state)
+  public setToast(state: Toast) {
+    return this.appStore._setToast(state)
   }
 
   /**
-   * Close the current banner, if found.
+   * Close the current toast, if found.
    *
-   * @param bannerType only close the banner if it matches this `BannerType`
+   * @param toastType only close the toast if it matches this `ToastType`
    */
-  public clearBanner(bannerType?: BannerType) {
-    return this.appStore._clearBanner(bannerType)
+  public clearToast(toastType?: ToastType) {
+    return this.appStore._clearToast(toastType)
   }
 
   /**
@@ -1271,15 +1271,15 @@ export class Dispatcher {
       const ourBranch = targetBranch !== null ? targetBranch.name : ''
       const theirBranch = sourceBranch !== null ? sourceBranch.name : ''
 
-      const banner: Banner = {
-        type: BannerType.BranchAlreadyUpToDate,
+      const toast: Toast = {
+        type: ToastType.BranchAlreadyUpToDate,
         ourBranch,
         theirBranch,
       }
 
       this.statsStore.increment('rebaseWithBranchAlreadyUpToDateCount')
 
-      this.setBanner(banner)
+      this.setToast(toast)
       this.endMultiCommitOperation(repository)
       await this.refreshRepository(repository)
     } else if (result === RebaseResult.CompletedWithoutError) {
@@ -1365,16 +1365,16 @@ export class Dispatcher {
   }
 
   /**
-   * commits an in-flight merge and shows a banner if successful
+   * commits an in-flight merge and shows a toast if successful
    *
    * @param repository
    * @param workingDirectory
-   * @param successfulMergeBannerState information for banner to be displayed if merge is successful
+   * @param successfulMergeToast information for toast to be displayed if merge is successful
    */
   public async finishConflictedMerge(
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus,
-    successfulMergeBanner: Banner,
+    successfulMergeToast: Toast,
     isSquash: boolean
   ) {
     // get manual resolutions in case there are manual conflicts
@@ -1393,7 +1393,7 @@ export class Dispatcher {
       conflictState.manualResolutions
     )
     if (result !== undefined) {
-      this.setBanner(successfulMergeBanner)
+      this.setToast(successfulMergeToast)
       if (isSquash) {
         // Squash merge will not hit the normal recording of successful merge in
         // app-store._mergeBranch because it only records there when there are
@@ -3107,7 +3107,7 @@ export class Dispatcher {
 
   /**
    * Processes the cherry pick result.
-   *  1. Completes the cherry pick with banner if successful.
+   *  1. Completes the cherry pick with toast if successful.
    *  2. Moves cherry pick flow if conflicts.
    *  3. Handles errors.
    */
@@ -3507,7 +3507,7 @@ export class Dispatcher {
 
   /**
    * Processes the multi commit operation result
-   *  1. Completes the operation with banner if successful.
+   *  1. Completes the operation with toast if successful.
    *  2. Moves operation flow to conflicts handler.
    *  3. Handles errors.
    *
@@ -3614,7 +3614,7 @@ export class Dispatcher {
    * Wrap multi commit operation actions
    * - closes popups
    * - refreshes repo (so changes appear in history)
-   * - sets success banner
+   * - sets success toast
    * - end operation state
    */
   private async completeMultiCommitOperation(
@@ -3637,13 +3637,13 @@ export class Dispatcher {
 
     const { operationDetail, originalBranchTip } = mcos
     const { kind } = operationDetail
-    const banner = this.getMultiCommitOperationSuccessBanner(
+    const toast = this.getMultiCommitOperationSuccessToast(
       repository,
       count,
       mcos
     )
 
-    this.setBanner(banner)
+    this.setToast(toast)
 
     if (
       tip.kind === TipState.Valid &&
@@ -3659,40 +3659,40 @@ export class Dispatcher {
     await this.refreshRepository(repository)
   }
 
-  private getMultiCommitOperationSuccessBanner(
+  private getMultiCommitOperationSuccessToast(
     repository: Repository,
     count: number,
     mcos: IMultiCommitOperationState
-  ): Banner {
+  ): Toast {
     const { operationDetail, targetBranch } = mcos
     const { kind } = operationDetail
 
-    const bannerBase = {
+    const toastBase = {
       count,
       onUndo: () => {
         this.undoMultiCommitOperation(mcos, repository, count)
       },
     }
 
-    let banner: Banner
+    let toast: Toast
     switch (kind) {
       case MultiCommitOperationKind.Squash:
-        banner = { ...bannerBase, type: BannerType.SuccessfulSquash }
+        toast = { ...toastBase, type: ToastType.SuccessfulSquash }
         break
       case MultiCommitOperationKind.Reorder:
-        banner = { ...bannerBase, type: BannerType.SuccessfulReorder }
+        toast = { ...toastBase, type: ToastType.SuccessfulReorder }
         break
       case MultiCommitOperationKind.CherryPick:
-        banner = {
-          ...bannerBase,
-          type: BannerType.SuccessfulCherryPick,
+        toast = {
+          ...toastBase,
+          type: ToastType.SuccessfulCherryPick,
           targetBranchName: targetBranch !== null ? targetBranch.name : '',
         }
         break
       case MultiCommitOperationKind.Rebase:
         const { sourceBranch } = operationDetail
-        banner = {
-          type: BannerType.SuccessfulRebase,
+        toast = {
+          type: ToastType.SuccessfulRebase,
           targetBranch: targetBranch !== null ? targetBranch.name : '',
           baseBranch: sourceBranch !== null ? sourceBranch.name : undefined,
         }
@@ -3703,7 +3703,7 @@ export class Dispatcher {
         assertNever(kind, `Unsupported multi operation kind ${kind}`)
     }
 
-    return banner
+    return toast
   }
 
   /**
@@ -3756,14 +3756,14 @@ export class Dispatcher {
     this.appStore._endMultiCommitOperation(repository)
   }
 
-  /** Opens conflicts found banner for part of multi commit operation */
-  public onConflictsFoundBanner = (
+  /** Opens conflicts found toast for part of multi commit operation */
+  public onConflictsFoundToast = (
     repository: Repository,
     operationDescription: string | JSX.Element,
     multiCommitOperationConflictState: MultiCommitOperationConflictState
   ) => {
-    this.setBanner({
-      type: BannerType.ConflictsFound,
+    this.setToast({
+      type: ToastType.ConflictsFound,
       operationDescription,
       onOpenConflictsDialog: async () => {
         const { changesState, multiCommitOperationState } =
@@ -3772,7 +3772,7 @@ export class Dispatcher {
 
         if (conflictState == null) {
           log.error(
-            '[onConflictsFoundBanner] App is in invalid state to so conflicts dialog.'
+            '[onConflictsFoundToast] App is in invalid state to show conflicts dialog.'
           )
           return
         }

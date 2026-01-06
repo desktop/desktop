@@ -381,11 +381,11 @@ body.theme-dark {
   --dialog-information-color: #{$blue-400};
   --dialog-error-color: #{$red-600};
 
-  /** Banner */
-  --banner-warning-background: #272216;
-  --banner-warning-text-color: var(--text-color);
-  --banner-warning-link-color: #6682ff;
-  --banner-warning-icon-color: #{$yellow-700};
+  /** Toast */
+  --toast-warning-background: #272216;
+  --toast-warning-text-color: var(--text-color);
+  --toast-warning-link-color: #6682ff;
+  --toast-warning-icon-color: #{$yellow-700};
 
   /** File warning */
   --file-warning-background-color: #{rgba($yellow-900, 0.4)};

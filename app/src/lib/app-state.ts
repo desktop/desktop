@@ -34,7 +34,7 @@ import { Shell } from './shells'
 import { ApplicableTheme, ApplicationTheme } from '../ui/lib/application-theme'
 import { IAccountRepositories } from './stores/api-repositories-store'
 import { ManualConflictResolution } from '../models/manual-conflict-resolution'
-import { Banner } from '../models/banner'
+import { Toast } from '../models/toast'
 import { IStashEntry } from '../models/stash-entry'
 import { TutorialStep } from '../models/tutorial-step'
 import { UncommittedChangesStrategy } from '../models/uncommitted-changes-strategy'
@@ -132,7 +132,7 @@ export interface IAppState {
   readonly currentPopup: Popup | null
   readonly allPopups: ReadonlyArray<Popup>
   readonly currentFoldout: Foldout | null
-  readonly currentBanner: Banner | null
+  readonly currentToast: Toast | null
 
   /**
    * The shape of the drag element rendered in the `app.renderDragElement`. It
@@ -200,8 +200,8 @@ export interface IAppState {
    */
   readonly highlightAccessKeys: boolean
 
-  /** Whether we should show the update banner */
-  readonly isUpdateAvailableBannerVisible: boolean
+  /** Whether we should show the update toast */
+  readonly isUpdateAvailableToastVisible: boolean
 
   /** Whether there is an update to showcase */
   readonly isUpdateShowcaseVisible: boolean

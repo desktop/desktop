@@ -73,7 +73,7 @@ import {
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
 import { AppMenuBar } from './app-menu'
-import { UpdateAvailable, renderBanner } from './banners'
+import { UpdateAvailable, renderToast } from './toasts'
 import { Preferences } from './preferences'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
@@ -107,7 +107,7 @@ import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { getCurrentBranchForcePushState } from '../lib/rebase'
-import { Banner, BannerType } from '../models/banner'
+import { Toast, ToastType } from '../models/toast'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
 import { OverwriteStash } from './stash-changes/overwrite-stashed-changes-dialog'
 import { ConfirmDiscardStashDialog } from './stashing/confirm-discard-stash'
@@ -177,7 +177,7 @@ import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
 import { PullRequestComment } from './notifications/pull-request-comment'
 import { UnknownAuthors } from './unknown-authors/unknown-authors-dialog'
-import { UnsupportedOSBannerDismissedAtKey } from './banners/os-version-no-longer-supported-banner'
+import { UnsupportedOSToastDismissedAtKey } from './toasts/os-version-no-longer-supported-toast'
 import { offsetFromNow } from '../lib/offset-from'
 import { getNumber } from '../lib/local-storage'
 import { IconPreviewDialog } from './octicons/icon-preview-dialog'
@@ -315,7 +315,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         !(__RELEASE_CHANNEL__ === 'development') &&
         status === UpdateStatus.UpdateReady
       ) {
-        this.props.dispatcher.setUpdateBannerVisibility(true)
+        this.props.dispatcher.setUpdateToastVisibility(true)
       }
 
       if (
@@ -400,27 +400,27 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.showPopup({ type: PopupType.MoveToApplicationsFolder })
     }
 
-    this.setOnOpenBanner()
+    this.setOnOpenToast()
   }
 
   /**
-   * This method sets the app banner on opening the app. The last banner set in
-   * this method will be the one shown as only one banner is shown at a time.
-   * The only exception is the update available banner is always
-   * prioritized over other banners.
+   * This method sets the app toast on opening the app. The last toast set in
+   * this method will be the one shown as only one toast is shown at a time.
+   * The only exception is the update available toast is always
+   * prioritized over other toasts.
    *
    * Priority:
    * 1. OS Not Supported by Electron
-   * 2. Accessibility Settings Banner
-   * 3. Thank you banner
+   * 2. Accessibility Settings Toast
+   * 3. Thank you toast
    */
-  private setOnOpenBanner() {
+  private setOnOpenToast() {
     if (isOSNoLongerSupportedByElectron()) {
-      const dismissedAt = getNumber(UnsupportedOSBannerDismissedAtKey, 0)
+      const dismissedAt = getNumber(UnsupportedOSToastDismissedAtKey, 0)
 
       // Remind the user that they're running an unsupported OS every 90 days
       if (dismissedAt < offsetFromNow(-90, 'days')) {
-        this.setBanner({ type: BannerType.OSVersionNoLongerSupported })
+        this.setToast({ type: ToastType.OSVersionNoLongerSupported })
         return
       }
     }
@@ -1439,7 +1439,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onUpdateAvailableDismissed = () =>
-    this.props.dispatcher.setUpdateBannerVisibility(false)
+    this.props.dispatcher.setUpdateToastVisibility(false)
 
   private allPopupContent(): JSX.Element | null {
     const { allPopups } = this.state
@@ -2836,8 +2836,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup(popup)
   }
 
-  private setBanner = (banner: Banner) =>
-    this.props.dispatcher.setBanner(banner)
+  private setToast = (toast: Toast) => this.props.dispatcher.setToast(toast)
 
   private getDesktopAppContentsClassNames = (): string => {
     const { currentDragElement } = this.state
@@ -3278,63 +3277,63 @@ export class App extends React.Component<IAppProps, IAppState> {
     let toastKey: string | undefined = undefined
     let timeout: number | undefined = undefined
 
-    if (this.state.currentBanner !== null) {
-      content = renderBanner(
-        this.state.currentBanner,
+    if (this.state.currentToast !== null) {
+      content = renderToast(
+        this.state.currentToast,
         this.props.dispatcher,
-        this.onBannerDismissed
+        this.onToastDismissed
       )
-      toastKey = this.state.currentBanner.type
-      timeout = this.getToastTimeout(this.state.currentBanner.type)
+      toastKey = this.state.currentToast.type
+      timeout = this.getToastTimeout(this.state.currentToast.type)
     } else if (
-      this.state.isUpdateAvailableBannerVisible ||
+      this.state.isUpdateAvailableToastVisible ||
       this.state.isUpdateShowcaseVisible
     ) {
-      content = this.renderUpdateBanner()
+      content = this.renderUpdateToast()
       toastKey = 'update-available'
-      // Update banner has no auto-dismiss - user must take action
+      // Update toast has no auto-dismiss - user must take action
     }
 
     return (
       <ToastContainer
         toastKey={toastKey}
         timeout={timeout}
-        onDismissed={this.onBannerDismissed}
+        onDismissed={this.onToastDismissed}
       >
         {content}
       </ToastContainer>
     )
   }
 
-  private getToastTimeout(bannerType: BannerType): number | undefined {
-    switch (bannerType) {
-      // Success banners with undo option - longer timeout
-      case BannerType.SuccessfulMerge:
-      case BannerType.SuccessfulRebase:
-      case BannerType.SuccessfulCherryPick:
-      case BannerType.SuccessfulSquash:
-      case BannerType.SuccessfulReorder:
-      case BannerType.BranchAlreadyUpToDate:
+  private getToastTimeout(toastType: ToastType): number | undefined {
+    switch (toastType) {
+      // Success toasts with undo option - longer timeout
+      case ToastType.SuccessfulMerge:
+      case ToastType.SuccessfulRebase:
+      case ToastType.SuccessfulCherryPick:
+      case ToastType.SuccessfulSquash:
+      case ToastType.SuccessfulReorder:
+      case ToastType.BranchAlreadyUpToDate:
         return 15000
 
-      // Undo confirmation banners - shorter timeout
-      case BannerType.SquashUndone:
-      case BannerType.ReorderUndone:
-      case BannerType.CherryPickUndone:
+      // Undo confirmation toasts - shorter timeout
+      case ToastType.SquashUndone:
+      case ToastType.ReorderUndone:
+      case ToastType.CherryPickUndone:
         return 5000
 
-      // Conflict banners and others - no auto-dismiss, user must take action
-      case BannerType.MergeConflictsFound:
-      case BannerType.RebaseConflictsFound:
-      case BannerType.CherryPickConflictsFound:
-      case BannerType.ConflictsFound:
-      case BannerType.OpenThankYouCard:
-      case BannerType.OSVersionNoLongerSupported:
+      // Conflict toasts and others - no auto-dismiss, user must take action
+      case ToastType.MergeConflictsFound:
+      case ToastType.RebaseConflictsFound:
+      case ToastType.CherryPickConflictsFound:
+      case ToastType.ConflictsFound:
+      case ToastType.OpenThankYouCard:
+      case ToastType.OSVersionNoLongerSupported:
         return undefined
     }
   }
 
-  private renderUpdateBanner() {
+  private renderUpdateToast() {
     return (
       <UpdateAvailable
         dispatcher={this.props.dispatcher}
@@ -3352,8 +3351,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onBannerDismissed = () => {
-    this.props.dispatcher.clearBanner()
+  private onToastDismissed = () => {
+    this.props.dispatcher.clearToast()
   }
 
   private renderToolbar() {
@@ -3674,8 +3673,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     // for all previous versions. Thus, only specify current version if they
     // have been thanked before.
     const displayVersion = isOnlyLastRelease ? getVersion() : null
-    const banner: Banner = {
-      type: BannerType.OpenThankYouCard,
+    const toast: Toast = {
+      type: ToastType.OpenThankYouCard,
       // Grab emoji's by reference because we could still be loading emoji's
       emoji: this.state.emoji,
       onOpenCard: () =>
@@ -3689,7 +3688,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       },
     }
-    this.setBanner(banner)
+    this.setToast(toast)
   }
 
   private openThankYouCard = (

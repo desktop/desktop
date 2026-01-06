@@ -1,14 +1,14 @@
 import * as React from 'react'
-import { SuccessBanner } from './success-banner'
+import { SuccessToast } from './success-toast'
 
-interface ISuccessfulSquashedBannerProps {
+interface ISuccessfulSquashedToastProps {
   readonly count: number
   readonly onDismissed: () => void
   readonly onUndo: () => void
 }
 
 export class SuccessfulSquash extends React.Component<
-  ISuccessfulSquashedBannerProps,
+  ISuccessfulSquashedToastProps,
   {}
 > {
   public render() {
@@ -17,11 +17,11 @@ export class SuccessfulSquash extends React.Component<
     const pluralized = count === 1 ? 'commit' : 'commits'
 
     return (
-      <SuccessBanner timeout={15000} onDismissed={onDismissed} onUndo={onUndo}>
+      <SuccessToast timeout={15000} onDismissed={onDismissed} onUndo={onUndo}>
         <span>
           Successfully squashed {count} {pluralized}.
         </span>
-      </SuccessBanner>
+      </SuccessToast>
     )
   }
 }

@@ -144,43 +144,43 @@ export function buildTestMenu() {
       ],
     },
     {
-      label: 'Show banner',
+      label: 'Show toast',
       submenu: [
         {
-          label: 'Update banner',
-          click: emit('test-update-banner'),
+          label: 'Update toast',
+          click: emit('test-update-toast'),
         },
         {
-          label: 'Update banner (priority)',
-          click: emit('test-prioritized-update-banner'),
+          label: 'Update toast (priority)',
+          click: emit('test-prioritized-update-toast'),
         },
         {
-          label: `Showcase Update banner`,
-          click: emit('test-showcase-update-banner'),
+          label: `Showcase Update toast`,
+          click: emit('test-showcase-update-toast'),
         },
         {
-          label: `${__DARWIN__ ? 'Apple silicon' : 'Arm64'} banner`,
-          click: emit('test-arm64-banner'),
+          label: `${__DARWIN__ ? 'Apple silicon' : 'Arm64'} toast`,
+          click: emit('test-arm64-toast'),
         },
         {
           label: 'Thank you',
-          click: emit('test-thank-you-banner'),
+          click: emit('test-thank-you-toast'),
         },
         {
           label: 'Reorder Successful',
-          click: emit('test-reorder-banner'),
+          click: emit('test-reorder-toast'),
         },
         {
           label: 'Reorder Undone',
-          click: emit('test-undone-banner'),
+          click: emit('test-undone-toast'),
         },
         {
           label: 'Cherry Pick Conflicts',
-          click: emit('test-cherry-pick-conflicts-banner'),
+          click: emit('test-cherry-pick-conflicts-toast'),
         },
         {
           label: 'Merge Successful',
-          click: emit('test-merge-successful-banner'),
+          click: emit('test-merge-successful-toast'),
         },
         {
           label: 'OS Version No Longer Supported',

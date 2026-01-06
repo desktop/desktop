@@ -2,15 +2,15 @@ import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
-import { Banner } from './banner'
+import { ToastNotification } from './toast-notification'
 
-interface ISuccessBannerProps {
+interface ISuccessToastProps {
   readonly timeout: number
   readonly onDismissed: () => void
   readonly onUndo?: () => void
 }
 
-export class SuccessBanner extends React.Component<ISuccessBannerProps, {}> {
+export class SuccessToast extends React.Component<ISuccessToastProps, {}> {
   private undo = () => {
     this.props.onDismissed()
 
@@ -30,7 +30,7 @@ export class SuccessBanner extends React.Component<ISuccessBannerProps, {}> {
 
   public render() {
     return (
-      <Banner
+      <ToastNotification
         id="successful"
         timeout={this.props.timeout}
         onDismissed={this.props.onDismissed}
@@ -38,11 +38,11 @@ export class SuccessBanner extends React.Component<ISuccessBannerProps, {}> {
         <div className="green-circle">
           <Octicon className="check-icon" symbol={octicons.checkCircleFill} />
         </div>
-        <div className="banner-message">
+        <div className="toast-message">
           <span className="success-contents">{this.props.children}</span>
           {this.renderUndo()}
         </div>
-      </Banner>
+      </ToastNotification>
     )
   }
 }

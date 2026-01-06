@@ -12,7 +12,7 @@ import { PopupType } from '../../models/popup'
 import { shell } from '../../lib/app-shell'
 
 import { ReleaseSummary } from '../../models/release-notes'
-import { Banner } from './banner'
+import { ToastNotification } from './toast-notification'
 import { ReleaseNotesUri } from '../lib/releases'
 import { RichText } from '../lib/rich-text'
 import { Emoji } from '../../lib/emoji'
@@ -35,7 +35,7 @@ interface IUpdateAvailableProps {
 export class UpdateAvailable extends React.Component<IUpdateAvailableProps> {
   public render() {
     return (
-      <Banner
+      <ToastNotification
         id="update-available"
         className={this.props.prioritizeUpdate ? 'priority' : undefined}
         dismissable={!this.props.prioritizeUpdate}
@@ -43,7 +43,7 @@ export class UpdateAvailable extends React.Component<IUpdateAvailableProps> {
       >
         {this.renderIcon()}
         {this.renderMessage()}
-      </Banner>
+      </ToastNotification>
     )
   }
 
@@ -94,7 +94,7 @@ export class UpdateAvailable extends React.Component<IUpdateAvailableProps> {
         <span>
           <span aria-hidden="true">
             <RichText
-              className="banner-emoji"
+              className="toast-emoji"
               text={':tada:'}
               emoji={this.props.emoji}
             />
@@ -143,7 +143,7 @@ export class UpdateAvailable extends React.Component<IUpdateAvailableProps> {
   private dismissUpdateShowCaseVisibility = () => {
     // Note: under that scenario that this is being dismissed due to clicking
     // what's new on a pending release and for some reason we don't have the
-    // releases. We will end up showing the showcase banner after restart. This
+    // releases. We will end up showing the showcase toast after restart. This
     // shouldn't happen but even if it did it would just be a minor annoyance as
     // user would need to dismiss it again.
     const versionSeen =

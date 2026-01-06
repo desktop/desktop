@@ -1,7 +1,7 @@
 import React from 'react'
 import { isMergeConflictState, RepositorySectionTab } from '../../lib/app-state'
 import { getConflictedFiles } from '../../lib/status'
-import { BannerType } from '../../models/banner'
+import { ToastType } from '../../models/toast'
 import { DefaultCommitMessage } from '../../models/commit-message'
 import {
   MultiCommitOperationKind,
@@ -37,7 +37,7 @@ export abstract class Merge extends BaseMultiCommitOperation {
       repository,
       workingDirectory,
       {
-        type: BannerType.SuccessfulMerge,
+        type: ToastType.SuccessfulMerge,
         ourBranch,
         theirBranch,
       },

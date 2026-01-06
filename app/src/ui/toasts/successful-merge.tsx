@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { SuccessBanner } from './success-banner'
+import { SuccessToast } from './success-toast'
 
 export function SuccessfulMerge({
   ourBranch,
@@ -26,8 +26,8 @@ export function SuccessfulMerge({
     )
 
   return (
-    <SuccessBanner timeout={5000} onDismissed={onDismissed}>
-      <div className="banner-message">{message}</div>
-    </SuccessBanner>
+    <SuccessToast timeout={5000} onDismissed={onDismissed}>
+      <div className="toast-message">{message}</div>
+    </SuccessToast>
   )
 }
