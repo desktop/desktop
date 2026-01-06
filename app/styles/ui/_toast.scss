@@ -1,0 +1,84 @@
+// Toast notification container - positioned in bottom-right corner
+// Unlike banners, toasts overlay content rather than pushing it down
+
+.toast-container {
+  position: absolute;
+  z-index: var(--foldout-z-index);
+  right: var(--spacing);
+  bottom: var(--spacing);
+  pointer-events: none;
+
+  // Enable pointer events on the actual toast content
+  .toast-content {
+    pointer-events: auto;
+    max-width: 350px;
+    min-width: 200px;
+  }
+
+  // Slide up + fade in animation
+  .toast-enter {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+
+  .toast-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 250ms ease-out, transform 250ms ease-out;
+  }
+
+  .toast-exit {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .toast-exit-active {
+    opacity: 0;
+    transform: translateY(20%);
+    transition: opacity 200ms ease-in, transform 200ms ease-in;
+  }
+
+  // Respect user preference for reduced motion
+  @media (prefers-reduced-motion: reduce) {
+    .toast-enter,
+    .toast-enter-active,
+    .toast-exit,
+    .toast-exit-active {
+      transition: opacity 0.01ms;
+      transform: none;
+    }
+  }
+
+  // Override banner styles when inside toast container
+  .banner {
+    height: auto;
+    min-height: 36px;
+    padding: var(--spacing);
+    border-radius: var(--border-radius);
+    box-shadow: var(--base-box-shadow);
+    background-color: var(--box-background-color);
+    border: var(--base-border);
+
+    // Remove the height-based animations since we use transform instead
+    &.banner-enter,
+    &.banner-enter-active,
+    &.banner-exit,
+    &.banner-exit-active {
+      height: auto;
+      opacity: 1;
+      transition: none;
+    }
+
+    .contents {
+      flex: 1;
+      flex-wrap: wrap;
+    }
+
+    // Allow text to wrap in toasts (override truncation from banner styles)
+    .banner-message span {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+  }
+}

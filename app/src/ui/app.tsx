@@ -45,6 +45,7 @@ import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { CloningRepository } from '../models/cloning-repository'
 
 import { TitleBar, ZoomInfo, FullScreenInfo } from './window'
+import { ToastContainer } from './toast'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
@@ -227,8 +228,6 @@ export const dialogTransitionTimeout = {
   enter: 250,
   exit: 100,
 }
-
-export const bannerTransitionTimeout = { enter: 500, exit: 400 }
 
 /**
  * The time to delay (in ms) from when we've loaded the initial state to showing
@@ -2856,10 +2855,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         className={this.getDesktopAppContentsClassNames()}
       >
         {this.renderToolbar()}
-        {this.renderBanner()}
         {this.renderRepository()}
         {this.renderPopups()}
         {this.renderDragElement()}
+        {this.renderToast()}
       </div>
     )
   }
@@ -3265,43 +3264,35 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  // we currently only render one banner at a time
-  private renderBanner(): JSX.Element | null {
+  // we currently only render one toast notification at a time
+  private renderToast(): JSX.Element | null {
     // The inset light title bar style without the toolbar
-    // can't support banners at the moment. So for the
+    // can't support toasts at the moment. So for the
     // no-repositories blank slate we'll have to live without
     // them.
     if (this.inNoRepositoriesViewState()) {
       return null
     }
 
-    let banner = null
+    let content = null
+    let toastKey: string | undefined = undefined
+
     if (this.state.currentBanner !== null) {
-      banner = renderBanner(
+      content = renderBanner(
         this.state.currentBanner,
         this.props.dispatcher,
         this.onBannerDismissed
       )
+      toastKey = this.state.currentBanner.type
     } else if (
       this.state.isUpdateAvailableBannerVisible ||
       this.state.isUpdateShowcaseVisible
     ) {
-      banner = this.renderUpdateBanner()
+      content = this.renderUpdateBanner()
+      toastKey = 'update-available'
     }
-    return (
-      <div role="alert" aria-atomic="false">
-        <TransitionGroup>
-          {banner && (
-            <CSSTransition
-              classNames="banner"
-              timeout={bannerTransitionTimeout}
-            >
-              {banner}
-            </CSSTransition>
-          )}
-        </TransitionGroup>
-      </div>
-    )
+
+    return <ToastContainer toastKey={toastKey}>{content}</ToastContainer>
   }
 
   private renderUpdateBanner() {
