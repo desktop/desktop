@@ -11,31 +11,32 @@
   // Enable pointer events on the actual toast content
   .toast-content {
     pointer-events: auto;
-    max-width: 350px;
-    min-width: 200px;
+    max-width: 350px; // Prevent overly wide toasts
   }
 
-  // Slide up + fade in animation
+  // Simple crossfade - exiting toast fades out in place,
+  // entering toast fades in on top of it
   .toast-enter {
     opacity: 0;
-    transform: translateY(100%);
   }
 
   .toast-enter-active {
     opacity: 1;
-    transform: translateY(0);
-    transition: opacity 250ms ease-out, transform 250ms ease-out;
+    transition: opacity 300ms ease-out;
   }
 
   .toast-exit {
     opacity: 1;
-    transform: translateY(0);
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: max-content; // Preserve width when becoming absolute
+    max-width: 350px;
   }
 
   .toast-exit-active {
     opacity: 0;
-    transform: translateY(20%);
-    transition: opacity 200ms ease-in, transform 200ms ease-in;
+    transition: opacity 250ms ease-out;
   }
 
   // Respect user preference for reduced motion
@@ -44,8 +45,7 @@
     .toast-enter-active,
     .toast-exit,
     .toast-exit-active {
-      transition: opacity 0.01ms;
-      transform: none;
+      transition: none;
     }
   }
 

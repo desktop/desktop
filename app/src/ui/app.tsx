@@ -3276,6 +3276,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     let content = null
     let toastKey: string | undefined = undefined
+    let timeout: number | undefined = undefined
 
     if (this.state.currentBanner !== null) {
       content = renderBanner(
@@ -3284,15 +3285,53 @@ export class App extends React.Component<IAppProps, IAppState> {
         this.onBannerDismissed
       )
       toastKey = this.state.currentBanner.type
+      timeout = this.getToastTimeout(this.state.currentBanner.type)
     } else if (
       this.state.isUpdateAvailableBannerVisible ||
       this.state.isUpdateShowcaseVisible
     ) {
       content = this.renderUpdateBanner()
       toastKey = 'update-available'
+      // Update banner has no auto-dismiss - user must take action
     }
 
-    return <ToastContainer toastKey={toastKey}>{content}</ToastContainer>
+    return (
+      <ToastContainer
+        toastKey={toastKey}
+        timeout={timeout}
+        onDismissed={this.onBannerDismissed}
+      >
+        {content}
+      </ToastContainer>
+    )
+  }
+
+  private getToastTimeout(bannerType: BannerType): number | undefined {
+    switch (bannerType) {
+      // Success banners with undo option - longer timeout
+      case BannerType.SuccessfulMerge:
+      case BannerType.SuccessfulRebase:
+      case BannerType.SuccessfulCherryPick:
+      case BannerType.SuccessfulSquash:
+      case BannerType.SuccessfulReorder:
+      case BannerType.BranchAlreadyUpToDate:
+        return 15000
+
+      // Undo confirmation banners - shorter timeout
+      case BannerType.SquashUndone:
+      case BannerType.ReorderUndone:
+      case BannerType.CherryPickUndone:
+        return 5000
+
+      // Conflict banners and others - no auto-dismiss, user must take action
+      case BannerType.MergeConflictsFound:
+      case BannerType.RebaseConflictsFound:
+      case BannerType.CherryPickConflictsFound:
+      case BannerType.ConflictsFound:
+      case BannerType.OpenThankYouCard:
+      case BannerType.OSVersionNoLongerSupported:
+        return undefined
+    }
   }
 
   private renderUpdateBanner() {
