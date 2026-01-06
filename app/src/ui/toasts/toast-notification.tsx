@@ -62,6 +62,11 @@ export class ToastNotification extends React.Component<
       this.focusTimeoutId = null
     }
 
+    if (this.dismissalTimeoutId !== null) {
+      window.clearTimeout(this.dismissalTimeoutId)
+      this.dismissalTimeoutId = null
+    }
+
     this.removeDismissalFocusListeners()
   }
 
