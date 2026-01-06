@@ -1,13 +1,11 @@
 #update-available {
   .download-icon,
   .warning-icon {
-    margin-right: var(--spacing);
     color: var(--toast-warning-icon-color);
   }
 
   .toast-emoji {
     display: inline-block;
-    margin-right: var(--spacing-half);
   }
 
   &.priority {

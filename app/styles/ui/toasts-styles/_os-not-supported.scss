@@ -1,12 +1,5 @@
 #os-not-supported-toast {
-  .contents {
-    .link-button-component {
-      padding: 0 var(--spacing-half);
-    }
-
-    .alert-icon {
-      fill: var(--color-conflicted);
-      margin-right: var(--spacing);
-    }
+  .alert-icon {
+    fill: var(--color-conflicted);
   }
 }

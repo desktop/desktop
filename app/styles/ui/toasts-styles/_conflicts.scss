@@ -2,16 +2,6 @@
 #rebase-conflicts-toast,
 #cherry-pick-conflicts-toast,
 #conflicts-found-toast {
-  .toast-message {
-    span {
-      max-width: 100%;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      margin: 0 1ex;
-    }
-    display: flex;
-    flex: 1 1 auto;
-  }
   .alert-icon {
     fill: var(--color-conflicted);
   }

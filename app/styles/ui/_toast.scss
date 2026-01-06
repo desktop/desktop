@@ -11,7 +11,6 @@
   // Enable pointer events on the actual toast content
   .toast-content {
     pointer-events: auto;
-    max-width: 350px; // Prevent overly wide toasts
   }
 
   // Simple crossfade - exiting toast fades out in place,
@@ -31,7 +30,6 @@
     bottom: 0;
     right: 0;
     width: max-content; // Preserve width when becoming absolute
-    max-width: 350px;
   }
 
   .toast-exit-active {
@@ -62,25 +60,52 @@
     display: flex;
     flex-direction: row;
     align-items: center;
+    gap: var(--spacing-half);
 
     .contents {
-      flex: 1;
-      flex-wrap: wrap;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing);
+
+      // Icon wrappers (e.g., .green-circle) and direct icons
+      > div:first-child,
+      > .octicon {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+      }
+
+      // Message area
+      .toast-message {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing);
+
+        span {
+          white-space: normal;
+          max-width: 350px;
+        }
+
+        // Links stay at the end, don't shrink
+        a {
+          flex-shrink: 0;
+          white-space: nowrap;
+        }
+      }
     }
 
-    // Allow text to wrap in toasts
-    .toast-message span {
-      white-space: normal;
-      overflow: visible;
-      text-overflow: clip;
-    }
+    > .close {
+      display: flex;
+      align-items: center;
 
-    .close button {
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      padding: var(--spacing-half);
-      margin-left: var(--spacing-half);
+      button {
+        @include close-button-interactive;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-half);
+      }
     }
   }
 }
