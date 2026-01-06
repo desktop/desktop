@@ -2970,6 +2970,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
+    // Don't clear the toast if the user dismissed the conflict dialog to
+    // work on conflicts externally (e.g., in their editor)
+    if (
+      multiCommitOperationState?.step.kind ===
+      MultiCommitOperationStepKind.HideConflicts
+    ) {
+      return
+    }
+
     this._closePopup(PopupType.MultiCommitOperation)
     this._clearToast(ToastType.ConflictsFound)
     this._clearToast(ToastType.MergeConflictsFound)
