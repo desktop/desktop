@@ -83,6 +83,7 @@
     "klaw-sync": "^3.0.0",
     "legal-eagle": "0.16.0",
     "mini-css-extract-plugin": "^2.9.1",
+    "node-gyp": "^11.0.0",
     "parallel-webpack": "^2.6.0",
     "parse-dds": "^1.2.1",
     "prettier": "^2.6.0",
@@ -99,7 +100,10 @@
     "webpack-bundle-analyzer": "^4.5.0",
     "webpack-dev-middleware": "^5.3.4",
     "webpack-hot-middleware": "^2.25.1",
-    "webpack-merge": "^6.0.1"
+    "webpack-merge": "^6.0.1",
+    "xml2js": "^0.5.0",
+    "xvfb-maybe": "^0.2.1",
+    "yaml": "^2.5.0"
   },
   "devDependencies": {
     "@github/markdownlint-github": "^0.1.0",
@@ -149,15 +153,25 @@
     "@types/webpack": "^5.28.5",
     "@types/webpack-bundle-analyzer": "^4.7.0",
     "@types/webpack-hot-middleware": "^2.25.9",
+    "@types/webpack-merge": "^5.0.0",
+    "@types/xml2js": "^0.4.11",
     "diff": "^7.0.0",
     "electron": "38.2.0",
-    "electron-packager": "^17.1.1",
-    "electron-winstaller": "^5.0.0",
+    "electron-builder": "^24.13.3",
+    "electron-packager": "^17.1.2",
     "eslint-plugin-github": "^5.1.5",
     "markdownlint-cli": "^0.32.2",
     "node-test-github-reporter": "^1.2.0",
+    "patch-package": "^8.0.0",
+    "postinstall-postinstall": "^2.1.0",
     "reserved-words": "^0.1.2",
     "tsconfig-paths": "^3.9.0",
     "tsx": "^4.19.3"
-  }
+  },
+  "optionalDependencies": {
+    "electron-installer-debian": "3.2.0",
+    "electron-installer-redhat": "3.4.0",
+    "electron-winstaller": "^5.0.0"
+  },
+  "packageManager": "yarn@1.22.19+sha1.4ba7fc5c6e704fce2066ecbfb0b0d8976fe62447"
 }

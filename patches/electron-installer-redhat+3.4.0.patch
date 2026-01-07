@@ -1,0 +1,10 @@
+diff --git a/node_modules/electron-installer-redhat/resources/spec.ejs b/node_modules/electron-installer-redhat/resources/spec.ejs
+index e07a8a3..486f59e 100644
+--- a/node_modules/electron-installer-redhat/resources/spec.ejs
++++ b/node_modules/electron-installer-redhat/resources/spec.ejs
+@@ -1,4 +1,5 @@
+ %define _binary_payload w<%= compressionLevel %>.xzdio
++%define _build_id_links none
+ 
+ %if "%{_host_cpu}" != "%{_target_cpu}"
+ %global __strip /bin/true

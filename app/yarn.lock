@@ -476,13 +476,13 @@ focus-trap@^6.1.0:
   dependencies:
     tabbable "^5.1.0"
 
-fs-admin@^0.19.0:
-  version "0.19.0"
-  resolved "https://registry.yarnpkg.com/fs-admin/-/fs-admin-0.19.0.tgz#c2b077b21607ca1982bf9bc8c3fc096be7a1186e"
-  integrity sha512-GtJUlSqX95Daw1zlH9PtqMIpr+yQqUnCRKxupuwdlPGy4ds+ICNT3apyQlnT1yXiXvAdnTK06ag/4jMS/jzhXQ==
+fs-admin-forked@^0.23.0:
+  version "0.23.0"
+  resolved "https://registry.yarnpkg.com/fs-admin-forked/-/fs-admin-forked-0.23.0.tgz#4fcdf64a2d7758a52c67bbc87b1ff7a592ff6803"
+  integrity sha512-1sFLqKsArQPtzEcMys8vsxDod0hVi5Q2Vsev2h+UZ7vXTQz++mUe01uHkS+r9Yj0zjLT0Dwefv3c5a1dCAW7xg==
   dependencies:
-    node-addon-api "^3.1.0"
-    prebuild-install "^6.0.0"
+    node-addon-api "^8.3.0"
+    prebuild-install "^7.1.3"
 
 fs-constants@^1.0.0:
   version "1.0.0"
@@ -624,13 +624,13 @@ jszip@^3.1.0:
     readable-stream "~2.3.6"
     setimmediate "^1.0.5"
 
-keytar@^7.8.0:
-  version "7.8.0"
-  resolved "https://registry.yarnpkg.com/keytar/-/keytar-7.8.0.tgz#28cf5ceeb1275350888870022869b8b4fe6a87f9"
-  integrity sha512-mR+BqtAOIW8j+T5FtLVyckCbvROWQD+4FzPeFMuk5njEZkXLpVPCGF26Y3mTyxMAAL1XCfswR7S6kIf+THSRFA==
+keytar-forked@^7.10.0:
+  version "7.10.0"
+  resolved "https://registry.yarnpkg.com/keytar-forked/-/keytar-forked-7.10.0.tgz#dbb78e16b18a40fc61df58124228855a7e8c912d"
+  integrity sha512-MrH3Id3Bjf4av3zGihBK62NucgBOVbTzchnSRPtA14sWRj9xu7roFa9NddlxC6Nt98EdrQpu04MZXnuusV+b5w==
   dependencies:
-    node-addon-api "^4.3.0"
-    prebuild-install "^7.0.1"
+    node-addon-api "^8.3.0"
+    prebuild-install "^7.1.3"
 
 kuler@^2.0.0:
   version "2.0.0"
@@ -764,6 +764,11 @@ napi-build-utils@^1.0.1:
   resolved "https://registry.yarnpkg.com/napi-build-utils/-/napi-build-utils-1.0.1.tgz#1381a0f92c39d66bf19852e7873432fc2123e508"
   integrity sha512-boQj1WFgQH3v4clhu3mTNfP+vOBxorDlE8EKiMjUlLG3C4qAESnn9AxIOkFgTR2c9LtzNjPrjS60cT27ZKBhaA==
 
+napi-build-utils@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/napi-build-utils/-/napi-build-utils-2.0.0.tgz#13c22c0187fcfccce1461844136372a47ddc027e"
+  integrity sha512-GEbrYkbfF7MoNaoh2iGG84Mnf/WZfB0GdGEsM8wz7Expx/LlWf5U8t9nvJKXSp3qr5IsEbK04cBGhol/KwOsWA==
+
 nice-try@^1.0.4:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
@@ -797,6 +802,11 @@ node-addon-api@^7.0.0:
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-7.1.1.tgz#1aba6693b0f255258a049d621329329322aad558"
   integrity sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==
+
+node-addon-api@^8.3.0:
+  version "8.3.0"
+  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-8.3.0.tgz#ec3763f18befc1cdf66d11e157ce44d5eddc0603"
+  integrity sha512-8VOpLHFrOQlAH+qA0ZzuGRlALRA6/LVh8QJldbrC4DY0hXoMP0l4Acq8TzFC018HztWiRqyCEj2aTWY2UvnJUg==
 
 noop-logger@^0.1.1:
   version "0.1.1"
@@ -910,27 +920,6 @@ prebuild-install@^5.3.5:
     tunnel-agent "^0.6.0"
     which-pm-runs "^1.0.0"
 
-prebuild-install@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-6.0.0.tgz#669022bcde57c710a869e39c5ca6bf9cd207f316"
-  integrity sha512-h2ZJ1PXHKWZpp1caLw0oX9sagVpL2YTk+ZwInQbQ3QqNd4J03O6MpFNmMTJlkfgPENWqe5kP0WjQLqz5OjLfsw==
-  dependencies:
-    detect-libc "^1.0.3"
-    expand-template "^2.0.3"
-    github-from-package "0.0.0"
-    minimist "^1.2.3"
-    mkdirp-classic "^0.5.3"
-    napi-build-utils "^1.0.1"
-    node-abi "^2.7.0"
-    noop-logger "^0.1.1"
-    npmlog "^4.0.1"
-    pump "^3.0.0"
-    rc "^1.2.7"
-    simple-get "^3.0.3"
-    tar-fs "^2.0.0"
-    tunnel-agent "^0.6.0"
-    which-pm-runs "^1.0.0"
-
 prebuild-install@^7.0.1:
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-7.0.1.tgz#c10075727c318efe72412f333e0ef625beaf3870"
@@ -961,6 +950,24 @@ prebuild-install@^7.1.2:
     minimist "^1.2.3"
     mkdirp-classic "^0.5.3"
     napi-build-utils "^1.0.1"
+    node-abi "^3.3.0"
+    pump "^3.0.0"
+    rc "^1.2.7"
+    simple-get "^4.0.0"
+    tar-fs "^2.0.0"
+    tunnel-agent "^0.6.0"
+
+prebuild-install@^7.1.3:
+  version "7.1.3"
+  resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-7.1.3.tgz#d630abad2b147443f20a212917beae68b8092eec"
+  integrity sha512-8Mf2cbV7x1cXPUILADGI3wuhfqWvtiLA1iclTDbFRZkgRQS0NqsPZphna9V+HyTEadheuPmjaJMsbzKQFOzLug==
+  dependencies:
+    detect-libc "^2.0.0"
+    expand-template "^2.0.3"
+    github-from-package "0.0.0"
+    minimist "^1.2.3"
+    mkdirp-classic "^0.5.3"
+    napi-build-utils "^2.0.0"
     node-abi "^3.3.0"
     pump "^3.0.0"
     rc "^1.2.7"

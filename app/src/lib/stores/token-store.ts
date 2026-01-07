@@ -1,4 +1,4 @@
-import * as keytar from 'keytar'
+import * as keytar from 'keytar-forked'
 
 function setItem(key: string, login: string, value: string) {
   return keytar.setPassword(key, login, value)
