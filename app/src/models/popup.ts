@@ -131,6 +131,7 @@ export type PopupDetail =
       files: ReadonlyArray<WorkingDirectoryFileChange>
       showDiscardChangesSetting?: boolean
       discardingAllChanges?: boolean
+      confirmOnEnter?: boolean
     }
   | {
       type: PopupType.ConfirmDiscardSelection

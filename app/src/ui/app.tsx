@@ -8,6 +8,7 @@ import {
   FoldoutType,
   SelectionType,
   HistoryTabMode,
+  ChangesSelectionKind,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -464,6 +465,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.renameBranch()
       case 'delete-branch':
         return this.deleteBranch()
+      case 'discard-selected-changes':
+        return this.discardSelectedChanges()
       case 'discard-all-changes':
         return this.discardAllChanges()
       case 'stash-all-changes':
@@ -795,6 +798,40 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (repository !== null && repository instanceof Repository) {
       this.props.dispatcher.createStashForCurrentBranch(repository)
     }
+  }
+
+  private discardSelectedChanges() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    const changesState = state.state.changesState
+    const selection = changesState.selection
+    if (selection.kind !== ChangesSelectionKind.WorkingDirectory) {
+      return
+    }
+
+    const selectedIDs = new Set(selection.selectedFileIDs)
+    if (selectedIDs.size === 0) {
+      return
+    }
+
+    const allFiles = changesState.workingDirectory.files
+    const selectedFiles = allFiles.filter(f => selectedIDs.has(f.id))
+    if (selectedFiles.length === 0) {
+      return
+    }
+
+    const discardingAllChanges = selectedFiles.length === allFiles.length
+    this.props.dispatcher.showPopup({
+      type: PopupType.ConfirmDiscardChanges,
+      repository: state.repository,
+      files: selectedFiles,
+      showDiscardChangesSetting: false,
+      discardingAllChanges,
+      confirmOnEnter: true,
+    })
   }
 
   private showAddLocalRepo = () => {
@@ -1530,6 +1567,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmDiscardChanges={
               this.state.askForConfirmationOnDiscardChanges
             }
+            confirmOnEnter={popup.confirmOnEnter}
             showDiscardChangesSetting={showSetting}
             discardingAllChanges={discardingAllChanges}
             onDismissed={onPopupDismissedFn}

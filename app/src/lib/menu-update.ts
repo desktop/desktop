@@ -1,6 +1,10 @@
 import { MenuIDs } from '../models/menu-ids'
 import { merge } from './merge'
-import { IAppState, SelectionType } from '../lib/app-state'
+import {
+  IAppState,
+  SelectionType,
+  ChangesSelectionKind,
+} from '../lib/app-state'
 import {
   Repository,
   isRepositoryWithGitHubRepository,
@@ -105,6 +109,7 @@ function menuItemStateEqual(state: IMenuItemState, menuItem: MenuItem) {
 const allMenuIds: ReadonlyArray<MenuIDs> = [
   'rename-branch',
   'delete-branch',
+  'discard-selected-changes',
   'discard-all-changes',
   'stash-all-changes',
   'preferences',
@@ -314,6 +319,21 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.setEnabled(
       'discard-all-changes',
       repositoryActive && hasChangedFiles && !rebaseInProgress
+    )
+
+    let hasSelectedWorkingDirectoryFiles = false
+    if (selectedState && selectedState.type === SelectionType.Repository) {
+      const sel = selectedState.state.changesState.selection
+      if (sel.kind === ChangesSelectionKind.WorkingDirectory) {
+        if (sel.selectedFileIDs.length > 0) {
+          hasSelectedWorkingDirectoryFiles = true
+        }
+      }
+    }
+
+    menuStateBuilder.setEnabled(
+      'discard-selected-changes',
+      repositoryActive && hasSelectedWorkingDirectoryFiles && !rebaseInProgress
     )
 
     menuStateBuilder.setEnabled(
