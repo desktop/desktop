@@ -153,6 +153,7 @@ import { InvalidatedToken } from './invalidated-token/invalidated-token'
 import { MultiCommitOperationKind } from '../models/multi-commit-operation'
 import { AddSSHHost } from './ssh/add-ssh-host'
 import { SSHKeyPassphrase } from './ssh/ssh-key-passphrase'
+import { GPGPassphrase } from './gpg/gpg-passphrase'
 import { getMultiCommitOperationChooseBranchStep } from '../lib/multi-commit-operation'
 import { ConfirmForcePush } from './rebase/confirm-force-push'
 import { PullRequestChecksFailed } from './notifications/pull-request-checks-failed'
@@ -2271,6 +2272,16 @@ export class App extends React.Component<IAppProps, IAppState> {
           <SSHKeyPassphrase
             key="ssh-key-passphrase"
             keyPath={popup.keyPath}
+            onSubmit={popup.onSubmit}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.GPGPassphrase: {
+        return (
+          <GPGPassphrase
+            key="gpg-passphrase"
+            keyId={popup.keyId}
             onSubmit={popup.onSubmit}
             onDismissed={onPopupDismissedFn}
           />

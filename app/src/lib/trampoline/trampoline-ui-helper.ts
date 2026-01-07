@@ -48,6 +48,17 @@ class TrampolineUIHelper {
     })
   }
 
+  public promptGPGPassphrase(keyId: string): Promise<PromptSSHSecretResponse> {
+    return new Promise(resolve => {
+      this.dispatcher.showPopup({
+        type: PopupType.GPGPassphrase,
+        keyId,
+        onSubmit: (passphrase, storePassphrase) =>
+          resolve({ secret: passphrase, storeSecret: storePassphrase }),
+      })
+    })
+  }
+
   public promptSSHUserPassword(
     username: string
   ): Promise<PromptSSHSecretResponse> {

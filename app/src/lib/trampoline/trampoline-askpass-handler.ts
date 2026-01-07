@@ -14,6 +14,11 @@ import {
 } from '../ssh/ssh-user-password'
 import { removeMostRecentSSHCredential } from '../ssh/ssh-credential-storage'
 import { getIsBackgroundTaskEnvironment } from './trampoline-environment'
+import {
+  getGPGPassphrase,
+  setMostRecentGPGPassphrase,
+  setGPGPassphrase,
+} from '../gpg/gpg-passphrase'
 
 async function handleSSHHostAuthenticity(
   operationGUID: string,
@@ -145,6 +150,69 @@ async function handleSSHUserPassword(operationGUID: string, prompt: string) {
   return password ?? ''
 }
 
+async function handleGPGPassphrase(
+  operationGUID: string,
+  prompt: string
+): Promise<string | undefined> {
+  // GPG can present different prompts for passphrase, such as:
+  // "Enter passphrase for key 0x1234567890ABCDEF: "
+  // "Enter passphrase: "
+  // "Please enter the passphrase to unlock the OpenPGP secret key:"
+  const keyIdRegex = /Enter passphrase for key (0x[0-9A-Fa-f]+): $/
+  const genericPassphraseRegex = /Enter passphrase: $/
+  const unlockKeyRegex =
+    /Please enter the passphrase to unlock the OpenPGP secret key:/
+
+  let keyId: string | undefined
+
+  const keyIdMatches = keyIdRegex.exec(prompt)
+  if (keyIdMatches && keyIdMatches.length >= 2) {
+    keyId = keyIdMatches[1]
+  } else if (
+    genericPassphraseRegex.test(prompt) ||
+    unlockKeyRegex.test(prompt)
+  ) {
+    // For generic prompts, we'll use a default key ID
+    // This isn't ideal but GPG doesn't always provide the key ID in the prompt
+    keyId = 'default'
+  } else {
+    return undefined
+  }
+
+  // First check for a passphrase from temp retry token (used during commit retry)
+  let storedPassphrase = await getGPGPassphrase('temp-retry-token', keyId)
+
+  // If no temp passphrase, check regular storage
+  if (storedPassphrase === null) {
+    storedPassphrase = await getGPGPassphrase(keyId)
+  }
+
+  if (storedPassphrase !== null) {
+    // Keep this stored passphrase around in case it's not valid and we need to
+    // delete it if the git operation fails to authenticate.
+    await setMostRecentGPGPassphrase(operationGUID, keyId)
+    return storedPassphrase
+  }
+
+  if (getIsBackgroundTaskEnvironment(operationGUID)) {
+    log.debug(
+      'handleGPGPassphrase: background task environment, skipping prompt'
+    )
+    return undefined
+  }
+
+  const { secret: passphrase, storeSecret: storePassphrase } =
+    await trampolineUIHelper.promptGPGPassphrase(keyId)
+
+  if (passphrase !== undefined && storePassphrase) {
+    setGPGPassphrase(operationGUID, keyId, passphrase)
+  } else {
+    removeMostRecentSSHCredential(operationGUID)
+  }
+
+  return passphrase ?? ''
+}
+
 export const createAskpassTrampolineHandler: (
   accountsStore: AccountsStore
 ) => TrampolineCommandHandler =
@@ -160,11 +228,29 @@ export const createAskpassTrampolineHandler: (
     }
 
     if (firstParameter.startsWith('Enter passphrase for key ')) {
-      return handleSSHKeyPassphrase(command.trampolineToken, firstParameter)
+      // This could be either SSH or GPG, check which one
+      if (
+        firstParameter.includes('.ssh') ||
+        firstParameter.includes('\\ssh\\')
+      ) {
+        return handleSSHKeyPassphrase(command.trampolineToken, firstParameter)
+      } else {
+        return handleGPGPassphrase(command.trampolineToken, firstParameter)
+      }
     }
 
     if (firstParameter.endsWith("'s password: ")) {
       return handleSSHUserPassword(command.trampolineToken, firstParameter)
+    }
+
+    // Handle generic GPG prompts
+    if (
+      firstParameter === 'Enter passphrase: ' ||
+      firstParameter.startsWith(
+        'Please enter the passphrase to unlock the OpenPGP secret key'
+      )
+    ) {
+      return handleGPGPassphrase(command.trampolineToken, firstParameter)
     }
 
     return undefined

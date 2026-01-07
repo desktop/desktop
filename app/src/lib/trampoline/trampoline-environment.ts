@@ -123,7 +123,16 @@ export async function withTrampolineEnv<T>(
       return await fn({
         DESKTOP_PORT: await trampolineServer.getPort(),
         DESKTOP_TRAMPOLINE_TOKEN: token,
-        GIT_ASKPASS: '',
+        GIT_ASKPASS: getDesktopAskpassTrampolinePath(),
+        // Configure GPG to use our askpass trampoline for passphrase prompts
+        // Setting GPG_TTY to empty forces GPG to use alternative prompt methods
+        GPG_TTY: '',
+        // Force GPG to use ASKPASS instead of pinentry
+        GPG_ASKPASS: getDesktopAskpassTrampolinePath(),
+        // Disable pinentry entirely - GPG will fall back to askpass
+        PINENTRY_DISABLE: '1',
+        // Set GPG to use our trampoline as the pinentry program
+        PINENTRY_USER_DATA: token,
         // This warrants some explanation. We're configuring the
         // credential helper using environment variables rather than
         // arguments (i.e. -c credential.helper=) because we want commands
@@ -140,7 +149,7 @@ export async function withTrampolineEnv<T>(
         //
         // See https://github.com/desktop/desktop/issues/18945
         // See https://github.com/git/git/blob/ed155187b429a/config.c#L664
-        GIT_CONFIG_PARAMETERS: `${gitEnvConfigPrefix}'credential.helper=' 'credential.helper=desktop'`,
+        GIT_CONFIG_PARAMETERS: `${gitEnvConfigPrefix}'credential.helper=' 'credential.helper=desktop' 'gpg.program=gpg --pinentry-mode loopback --passphrase-fd 0'`,
 
         GIT_USER_AGENT: await GitUserAgent(),
         ...sshEnv,
@@ -153,6 +162,13 @@ export async function withTrampolineEnv<T>(
         // practical purposes, it's as good as we can get with the information we
         // have. We're limited by the ASKPASS flow here.
         if (isSSHAuthFailure(e)) {
+          deleteMostRecentSSHCredential(token)
+        }
+
+        // If the operation fails with a GPG signing error, we assume that
+        // it's because the passphrase we provided was rejected or we don't
+        // have the passphrase stored.
+        if (isGPGSigningFailure(e)) {
           deleteMostRecentSSHCredential(token)
         }
       }
@@ -205,6 +221,9 @@ const isSSHAuthFailure = (e: unknown): e is GitError =>
   e instanceof GitError &&
   (e.result.gitError === DugiteError.SSHAuthenticationFailed ||
     e.result.gitError === DugiteError.SSHPermissionDenied)
+
+const isGPGSigningFailure = (e: unknown): e is GitError =>
+  e instanceof GitError && e.result.gitError === DugiteError.GPGFailedToSignData
 
 /** Returns the path of the desktop-askpass-trampoline binary. */
 export function getDesktopAskpassTrampolinePath(): string {

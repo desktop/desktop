@@ -83,6 +83,7 @@ export enum PopupType {
   InvalidatedToken = 'InvalidatedToken',
   AddSSHHost = 'AddSSHHost',
   SSHKeyPassphrase = 'SSHKeyPassphrase',
+  GPGPassphrase = 'GPGPassphrase',
   SSHUserPassword = 'SSHUserPassword',
   PullRequestChecksFailed = 'PullRequestChecksFailed',
   CICheckRunRerun = 'CICheckRunRerun',
@@ -350,6 +351,14 @@ export type PopupDetail =
   | {
       type: PopupType.SSHKeyPassphrase
       keyPath: string
+      onSubmit: (
+        passphrase: string | undefined,
+        storePassphrase: boolean
+      ) => void
+    }
+  | {
+      type: PopupType.GPGPassphrase
+      keyId: string
       onSubmit: (
         passphrase: string | undefined,
         storePassphrase: boolean
