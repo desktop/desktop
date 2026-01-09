@@ -82,6 +82,7 @@ export class CompareSidebar extends React.Component<
   ICompareSidebarState
 > {
   private textbox: TextBox | null = null
+  private commitTextBox: TextBox | null = null
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
   private branchList: BranchList | null = null
   private commitListRef = React.createRef<CommitList>()
@@ -159,8 +160,9 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const { branches, filterText, showBranchList } = this.props.compareState
+    const { branches, commitSHAs, filterText, commitFilterText, showBranchList } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
+    const commitPlaceHolderText = 'Search last ' + commitSHAs.length.toString() + ' commits'
 
     return (
       <div id="compare-view" role="tabpanel" aria-labelledby="history-tab">
@@ -177,6 +179,20 @@ export class CompareSidebar extends React.Component<
             onValueChanged={this.onBranchFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
             onSearchCleared={this.handleEscape}
+          />
+        </div>
+
+          <div className="search-commit">
+          <FancyTextBox
+            ariaLabel="Commit filter"
+            symbol={octicons.search}
+            displayClearButton={true}
+            placeholder={commitPlaceHolderText}
+            onFocus={this.onCommitTextBoxFocused}
+            value={commitFilterText}
+            onRef={this.onCommitTextBoxRef}
+            onValueChanged={this.onCommitFilterTextChanged}
+            onKeyDown={this.onCommitFilterKeyDown}
           />
         </div>
 
@@ -215,8 +231,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderCommitList() {
-    const { formState, commitSHAs } = this.props.compareState
-
+    const { formState, commitSHAs, commitFilterText } = this.props.compareState
     let emptyListMessage: string | JSX.Element
     if (formState.kind === HistoryTabMode.History) {
       emptyListMessage = 'No history'
@@ -285,6 +300,7 @@ export class CompareSidebar extends React.Component<
         }
         keyboardReorderData={this.state.keyboardReorderData}
         accounts={this.props.accounts}
+        filterText={commitFilterText}
       />
     )
   }
@@ -445,6 +461,25 @@ export class CompareSidebar extends React.Component<
     return item.branch.name
   }
 
+  private onCommitFilterKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    const key = event.key
+    const {commitFilterText} = this.props.compareState
+
+    if (key === 'Enter') {
+      this.props.dispatcher.updateCompareForm(this.props.repository, {
+          commitFilterText: commitFilterText,
+      })
+      if (this.commitTextBox) {
+        this.commitTextBox.blur()
+      }
+
+    }
+
+
+  }
+
   private onBranchFilterKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>
   ) => {
@@ -552,6 +587,15 @@ export class CompareSidebar extends React.Component<
     })
   }
 
+    private onCommitFilterTextChanged = (commitFilterText: string) => {
+    if (commitFilterText.length === 0) {
+      this.setState({ focusedBranch: null })
+    }
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      commitFilterText,
+    })
+  }
+
   private clearFilterState = () => {
     this.setState({
       focusedBranch: null,
@@ -596,8 +640,18 @@ export class CompareSidebar extends React.Component<
     })
   }
 
+  private onCommitTextBoxFocused = () => {
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      showBranchList: false,
+    })
+  }
+
   private onTextBoxRef = (textbox: TextBox) => {
     this.textbox = textbox
+  }
+
+  private onCommitTextBoxRef = (textbox: TextBox) => {
+    this.commitTextBox = textbox
   }
 
   private onCreateTag = (targetCommitSha: string) => {
