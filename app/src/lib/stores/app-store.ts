@@ -1131,7 +1131,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateBranchesState(repository, state => {
       let { currentPullRequest } = state
       const { tip, currentRemote: remote } = gitStore
-
+      
       // If the tip has changed we need to re-evaluate whether or not the
       // current pull request is still valid. Note that we're not using
       // updateCurrentPullRequest here because we know for certain that
@@ -1715,6 +1715,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
   }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _filterCommitList(repository: Repository, commitFilterText: string) {
+      const gitStore = this.gitStoreCache.get(repository)
+      const commits = Array.from(gitStore.commitLookup.values())
+      const state = this.repositoryStateCache.get(repository)
+      const { shas } = state.commitSelection
+
+      let filteredSHAs = commits.filter(commit => 
+        !commitFilterText|| commit == undefined ||
+        commit.summary.toLowerCase().includes(commitFilterText.toLowerCase())
+      ).map(c=>c.sha)
+
+      const filteredSelected = shas.filter(sha =>
+        filteredSHAs.includes(sha)
+      )
+      // Clear selected SHAs not in the filtered commits
+      this.repositoryStateCache.updateCommitSelection(repository, () => ({
+        shas: filteredSelected
+      }))
+
+      // Update commit-list with filtered commits
+      this.repositoryStateCache.updateCompareState(repository, () => ({
+        commitSHAs: filteredSHAs, 
+      }))
+      this.emitUpdate()
+  }
+
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadNextCommitBatch(repository: Repository): Promise<void> {

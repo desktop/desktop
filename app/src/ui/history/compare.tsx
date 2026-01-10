@@ -187,6 +187,7 @@ export class CompareSidebar extends React.Component<
             ariaLabel="Commit filter"
             symbol={octicons.search}
             displayClearButton={true}
+            onSearchCleared={this.commitFilterCleared}
             placeholder={commitPlaceHolderText}
             onFocus={this.onCommitTextBoxFocused}
             value={commitFilterText}
@@ -231,7 +232,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderCommitList() {
-    const { formState, commitSHAs, commitFilterText } = this.props.compareState
+    const { formState, commitSHAs } = this.props.compareState
     let emptyListMessage: string | JSX.Element
     if (formState.kind === HistoryTabMode.History) {
       emptyListMessage = 'No history'
@@ -300,7 +301,6 @@ export class CompareSidebar extends React.Component<
         }
         keyboardReorderData={this.state.keyboardReorderData}
         accounts={this.props.accounts}
-        filterText={commitFilterText}
       />
     )
   }
@@ -465,18 +465,12 @@ export class CompareSidebar extends React.Component<
     event: React.KeyboardEvent<HTMLInputElement>
   ) => {
     const key = event.key
-    const {commitFilterText} = this.props.compareState
 
     if (key === 'Enter') {
-      this.props.dispatcher.updateCompareForm(this.props.repository, {
-          commitFilterText: commitFilterText,
-      })
       if (this.commitTextBox) {
         this.commitTextBox.blur()
       }
-
     }
-
 
   }
 
@@ -587,14 +581,22 @@ export class CompareSidebar extends React.Component<
     })
   }
 
-    private onCommitFilterTextChanged = (commitFilterText: string) => {
-    if (commitFilterText.length === 0) {
-      this.setState({ focusedBranch: null })
-    }
+  private onCommitFilterTextChanged = (commitFilterText: string) => {
     this.props.dispatcher.updateCompareForm(this.props.repository, {
       commitFilterText,
     })
+
+    this.props.dispatcher.filterCommitList(this.props.repository, commitFilterText)
   }
+
+
+  private commitFilterCleared = () => {
+    this.props.dispatcher.filterCommitList(this.props.repository, '')
+    if (this.commitTextBox) {
+      this.commitTextBox.blur()
+    }
+  }
+
 
   private clearFilterState = () => {
     this.setState({

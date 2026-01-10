@@ -4056,4 +4056,9 @@ export class Dispatcher {
   public toggleChangesFilterVisibility() {
     this.appStore._toggleChangesFilterVisibility()
   }
+
+  public filterCommitList(repository: Repository, commitFilterText: string) {
+    this.appStore._filterCommitList(repository, commitFilterText)
+  }
+
 }

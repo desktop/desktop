@@ -186,8 +186,6 @@ interface ICommitListProps {
 
   /** This will make the list semantics friendly to screen reader users in browse mode. */
   readonly isInformationalView?: boolean
-  /** Text to filter the commit list on */
-  readonly filterText? : string
 }
 
 interface ICommitListState {
@@ -273,8 +271,8 @@ export class CommitList extends React.Component<
   private isLocalCommit = (sha: string) =>
     this.props.localCommitSHAs.includes(sha)
 
-  private renderCommit = (row: number, shas: ReadonlyArray<string>) => {
-    const sha = shas[row]
+  private renderCommit = (row: number) => {
+    const sha = this.props.commitSHAs[row]
     const commit = this.props.commitLookup.get(sha)
 
     if (commit == null) {
@@ -286,10 +284,7 @@ export class CommitList extends React.Component<
       return null
     }
     
-    
-    if(this.props.filterText != undefined && !commit.summary.toLowerCase().includes(this.props.filterText.toLowerCase())){
-      return null
-    }
+  
 
     const isLocal = this.isLocalCommit(commit.sha)
     const unpushedTags = this.getUnpushedTags(commit)
@@ -585,15 +580,6 @@ export class CommitList extends React.Component<
         shasToHighlight !== undefined && shasToHighlight.length > 0,
     })
 
-    let filteredSHAs = [...commitSHAs]
-
-    filteredSHAs = filteredSHAs.filter(sha => {
-      const commit = this.props.commitLookup.get(sha)
-      return (
-        !this.props.filterText || commit == undefined ||
-        commit.summary.toLowerCase().includes(this.props.filterText.toLowerCase())
-      )
-    })
 
     const selectedRows = selectedSHAs
       .map(sha => this.rowForSHA(sha))
@@ -606,10 +592,10 @@ export class CommitList extends React.Component<
           ariaLabel="Commits"
           role={this.props.isInformationalView === true ? 'list' : 'listbox'}
           ref={this.listRef}
-          rowCount={filteredSHAs.length}
+          rowCount={commitSHAs.length}
           rowHeight={RowHeight}
           selectedRows={selectedRows}
-          rowRenderer={(row: number) => this.renderCommit(row, filteredSHAs)}
+          rowRenderer={this.renderCommit}
           onDropDataInsertion={this.onDropDataInsertion}
           onSelectionChanged={this.onSelectionChanged}
           onSelectedRowChanged={this.onSelectedRowChanged}
