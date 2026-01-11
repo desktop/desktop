@@ -262,7 +262,7 @@ export class CommitList extends React.Component<
       const commitMaybe = this.props.commitLookup.get(sha)
       // this should never be undefined, but just in case
       if (commitMaybe !== undefined) {
-            commits.push(commitMaybe)
+        commits.push(commitMaybe)
       }
     }
     return commits
@@ -283,8 +283,6 @@ export class CommitList extends React.Component<
       }
       return null
     }
-    
-  
 
     const isLocal = this.isLocalCommit(commit.sha)
     const unpushedTags = this.getUnpushedTags(commit)
@@ -579,7 +577,6 @@ export class CommitList extends React.Component<
       'has-highlighted-commits':
         shasToHighlight !== undefined && shasToHighlight.length > 0,
     })
-
 
     const selectedRows = selectedSHAs
       .map(sha => this.rowForSHA(sha))

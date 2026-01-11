@@ -1749,7 +1749,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const gitStore = this.gitStoreCache.get(repository)
 
     const state = this.repositoryStateCache.get(repository)
-    const { formState } = state.compareState
+    const { formState, commitFilterText } = state.compareState
     if (formState.kind === HistoryTabMode.History) {
       const commits = state.compareState.commitSHAs
 
@@ -1773,6 +1773,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (!newCommits) {
         return
       }
+
+      newCommits = newCommits.filter(sha => {
+        const commit = gitStore.commitLookup.get(sha)
+        return (!commitFilterText || commit == undefined ||
+        commit.summary.toLowerCase().includes(commitFilterText.toLowerCase()))
+      })
 
       this.repositoryStateCache.updateCompareState(repository, () => ({
         commitSHAs: commits.concat(newCommits),
