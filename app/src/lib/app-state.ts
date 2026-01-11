@@ -862,6 +862,9 @@ export interface ICompareState {
     /** The text entered into commit filter text box */
   readonly commitFilterText: string
 
+    /** The SHAs of commits to render in the compare list */
+  readonly allCommitSHAs: ReadonlyArray<string>
+
   /** The SHA associated with the most recent history state */
   readonly tip: string | null
 

@@ -1585,6 +1585,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         commitSHAs: commits,
         filterText: '',
         commitFilterText: '',
+        allCommitSHAs: commits,
         showBranchList: false,
       }))
       this.updateOrSelectFirstCommit(repository, commits)
@@ -1641,6 +1642,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       formState: newState,
       filterText: comparisonBranch.name,
       commitFilterText: '',
+      allCommitSHAs: commitSHAs,
       commitSHAs,
     }))
 
@@ -1720,34 +1722,46 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _filterCommitList(repository: Repository, commitFilterText: string) {
-      const gitStore = this.gitStoreCache.get(repository)
-      const commits = await gitStore.loadCommitBatch('HEAD', 0)
-      const state = this.repositoryStateCache.get(repository)
-      const { shas } = state.commitSelection
-      
-      if (!commits) {
-        return
-      }
+    const gitStore = this.gitStoreCache.get(repository)
+    const state = this.repositoryStateCache.get(repository)
+    const { shas } = state.commitSelection
+    let commits = state.compareState.allCommitSHAs 
 
-      let filteredSHAs = commits.filter(sha => {
-        const commit = gitStore.commitLookup.get(sha)
-        return (!commitFilterText|| commit == undefined ||
-        commit.summary.toLowerCase().includes(commitFilterText.toLowerCase()))
-      })
-
-      const filteredSelected = shas.filter(sha =>
-        filteredSHAs.includes(sha)
-      )
-      // Clear selected SHAs not in the filtered commits
-      this.repositoryStateCache.updateCommitSelection(repository, () => ({
-        shas: filteredSelected
-      }))
-
-      // Update commit-list with filtered commits
+    //Set all commits on initial search
+    if (!commits) {
+      commits = state.compareState.commitSHAs 
       this.repositoryStateCache.updateCompareState(repository, () => ({
-        commitSHAs: filteredSHAs, 
+        allCommitSHAs: commits, 
       }))
-      this.emitUpdate()
+    }
+
+    //Reset commitSHAs after clear search
+    if(!commitFilterText){
+      this.repositoryStateCache.updateCompareState(repository, () => ({
+        commitSHAs: commits
+      }))
+      return
+    }
+
+    let filteredSHAs = commits.filter(sha => {
+      const commit = gitStore.commitLookup.get(sha)
+      return (!commitFilterText|| commit == undefined ||
+      commit.summary.toLowerCase().includes(commitFilterText.toLowerCase()))
+    })
+
+    const filteredSelected = shas.filter(sha =>
+      filteredSHAs.includes(sha)
+    )
+    // Clear selected SHAs not in the filtered commits
+    this.repositoryStateCache.updateCommitSelection(repository, () => ({
+      shas: filteredSelected
+    }))
+
+    // Update commit-list with filtered commits
+    this.repositoryStateCache.updateCompareState(repository, () => ({
+      commitSHAs: filteredSHAs, 
+    }))
+    this.emitUpdate()
   }
 
 
@@ -1789,6 +1803,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       this.repositoryStateCache.updateCompareState(repository, () => ({
         commitSHAs: commits.concat(newCommits),
+        allCommitSHAs: commits.concat(newCommits)
       }))
       this.emitUpdate()
     }
