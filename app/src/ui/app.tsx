@@ -885,6 +885,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     await this.props.dispatcher.updateCompareForm(state.repository, {
       filterText: '',
+      commitFilterText: '',
       showBranchList,
     })
 

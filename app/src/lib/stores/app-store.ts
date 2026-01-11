@@ -1584,6 +1584,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         formState: newState,
         commitSHAs: commits,
         filterText: '',
+        commitFilterText: '',
         showBranchList: false,
       }))
       this.updateOrSelectFirstCommit(repository, commits)
@@ -1639,6 +1640,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateCompareState(repository, () => ({
       formState: newState,
       filterText: comparisonBranch.name,
+      commitFilterText: '',
       commitSHAs,
     }))
 
@@ -1717,16 +1719,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _filterCommitList(repository: Repository, commitFilterText: string) {
+  public async _filterCommitList(repository: Repository, commitFilterText: string) {
       const gitStore = this.gitStoreCache.get(repository)
-      const commits = Array.from(gitStore.commitLookup.values())
+      const commits = await gitStore.loadCommitBatch('HEAD', 0)
       const state = this.repositoryStateCache.get(repository)
       const { shas } = state.commitSelection
+      
+      if (!commits) {
+        return
+      }
 
-      let filteredSHAs = commits.filter(commit => 
-        !commitFilterText|| commit == undefined ||
-        commit.summary.toLowerCase().includes(commitFilterText.toLowerCase())
-      ).map(c=>c.sha)
+      let filteredSHAs = commits.filter(sha => {
+        const commit = gitStore.commitLookup.get(sha)
+        return (!commitFilterText|| commit == undefined ||
+        commit.summary.toLowerCase().includes(commitFilterText.toLowerCase()))
+      })
 
       const filteredSelected = shas.filter(sha =>
         filteredSHAs.includes(sha)
@@ -1750,6 +1757,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const state = this.repositoryStateCache.get(repository)
     const { formState, commitFilterText } = state.compareState
+
+    //Do not load new commits if active search
+    if(commitFilterText){
+      return
+    }
+
     if (formState.kind === HistoryTabMode.History) {
       const commits = state.compareState.commitSHAs
 
@@ -1773,12 +1786,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (!newCommits) {
         return
       }
-
-      newCommits = newCommits.filter(sha => {
-        const commit = gitStore.commitLookup.get(sha)
-        return (!commitFilterText || commit == undefined ||
-        commit.summary.toLowerCase().includes(commitFilterText.toLowerCase()))
-      })
 
       this.repositoryStateCache.updateCompareState(repository, () => ({
         commitSHAs: commits.concat(newCommits),
