@@ -2889,7 +2889,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePush,
     } = this
 
-    let editorLabel: string | null = useCustomEditor ? null : selectedExternalEditor
+    let editorLabel: string | null = useCustomEditor
+      ? null
+      : selectedExternalEditor
 
     if (selectedRepository instanceof Repository) {
       if (selectedRepository.preferredCustomEditor) {

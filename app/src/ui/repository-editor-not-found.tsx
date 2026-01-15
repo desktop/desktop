@@ -14,9 +14,7 @@ interface IRepositoryEditorNotFoundProps {
   readonly onOpenRepositorySettings: (repository: Repository) => void
 }
 
-export class RepositoryEditorNotFound extends React.Component<
-  IRepositoryEditorNotFoundProps
-> {
+export class RepositoryEditorNotFound extends React.Component<IRepositoryEditorNotFoundProps> {
   private onUseGlobalDefault = () => {
     this.props.onUseGlobalDefault(this.props.repository)
     this.props.onDismissed()
