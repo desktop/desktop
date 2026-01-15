@@ -1325,6 +1325,17 @@ export class App extends React.Component<IAppProps, IAppState> {
    * `undefined` if the user has selected a custom editor.
    */
   private get externalEditorLabel() {
+    const repository = this.getRepository()
+    if (repository instanceof Repository) {
+      if (repository.preferredCustomEditor) {
+        return undefined
+      }
+
+      if (repository.preferredExternalEditor != null) {
+        return repository.preferredExternalEditor
+      }
+    }
+
     return this.state.useCustomEditor
       ? undefined
       : this.state.selectedExternalEditor ?? undefined

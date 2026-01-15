@@ -921,6 +921,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoriesStore.onDidUpdate(updateRepositories => {
       this.repositories = updateRepositories
       this.updateRepositorySelectionAfterRepositoriesChanged()
+      this.updateMenuLabelsForSelectedRepository()
       this.emitUpdate()
     })
 
@@ -2568,9 +2569,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePush,
     } = this
 
+    let editorLabel: string | null = useCustomEditor ? null : selectedExternalEditor
+
+    if (selectedRepository instanceof Repository) {
+      if (selectedRepository.preferredCustomEditor) {
+        editorLabel = null
+      } else if (selectedRepository.preferredExternalEditor != null) {
+        editorLabel = selectedRepository.preferredExternalEditor
+      }
+    }
+
     const labels: MenuLabelsEvent = {
       selectedShell: useCustomShell ? null : selectedShell,
-      selectedExternalEditor: useCustomEditor ? null : selectedExternalEditor,
+      selectedExternalEditor: editorLabel,
       askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush,
     }
