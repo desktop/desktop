@@ -6,6 +6,7 @@ import {
   findNextSelectableRow,
   SelectionDirection,
 } from '../lib/list/section-list-selection'
+import { isUpKeyEvent, isDownKeyEvent } from '../lib/list/selection'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
@@ -699,32 +700,17 @@ export class AugmentedSectionFilterList<
     let shouldFocus = false
 
     if (
-      event.key === 'ArrowUp' &&
+      isUpKeyEvent(event) &&
       firstSelectableRow &&
       rowIndexPathEquals(indexPath, firstSelectableRow)
     ) {
       shouldFocus = true
     } else if (
-      event.key === 'ArrowDown' &&
+      isDownKeyEvent(event) &&
       lastSelectableRow &&
       rowIndexPathEquals(indexPath, lastSelectableRow)
     ) {
       shouldFocus = true
-    } else if (__DARWIN__ && event.ctrlKey) {
-      // Support Ctrl+P/N on macOS - return to filter at boundaries
-      if (
-        event.key === 'p' &&
-        firstSelectableRow &&
-        rowIndexPathEquals(indexPath, firstSelectableRow)
-      ) {
-        shouldFocus = true
-      } else if (
-        event.key === 'n' &&
-        lastSelectableRow &&
-        rowIndexPathEquals(indexPath, lastSelectableRow)
-      ) {
-        shouldFocus = true
-      }
     }
 
     if (shouldFocus) {
@@ -755,46 +741,9 @@ export class AugmentedSectionFilterList<
 
     const rowCount = this.state.rows.map(r => r.length)
 
-    if (key === 'ArrowDown') {
+    if (isDownKeyEvent(event) || isUpKeyEvent(event)) {
       if (rowCount.length > 0) {
-        const selectedRow = findNextSelectableRow(
-          rowCount,
-          { direction: 'down', row: InvalidRowIndexPath },
-          this.canSelectRow
-        )
-        if (selectedRow != null) {
-          this.setState({ selectedRows: [selectedRow] }, () => {
-            list.focus()
-          })
-        }
-      }
-
-      event.preventDefault()
-    } else if (key === 'ArrowUp') {
-      if (rowCount.length > 0) {
-        const selectedRow = findNextSelectableRow(
-          rowCount,
-          {
-            direction: 'up',
-            row: {
-              section: 0,
-              row: 0,
-            },
-          },
-          this.canSelectRow
-        )
-        if (selectedRow != null) {
-          this.setState({ selectedRows: [selectedRow] }, () => {
-            list.focus()
-          })
-        }
-      }
-
-      event.preventDefault()
-    } else if (__DARWIN__ && event.ctrlKey && (key === 'p' || key === 'n')) {
-      // Support Ctrl+P/N on macOS - same behavior as arrow keys in filter
-      if (rowCount.length > 0) {
-        const direction = key === 'n' ? 'down' : 'up'
+        const direction = isDownKeyEvent(event) ? 'down' : 'up'
         const selectedRow = findNextSelectableRow(
           rowCount,
           {
@@ -812,6 +761,7 @@ export class AugmentedSectionFilterList<
           })
         }
       }
+
       event.preventDefault()
     } else if (key === 'Enter') {
       // no repositories currently displayed, bail out

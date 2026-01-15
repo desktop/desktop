@@ -7,6 +7,8 @@ import {
   findNextSelectableRow,
   ClickSource,
   SelectionDirection,
+  isUpKeyEvent,
+  isDownKeyEvent,
 } from '../lib/list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
@@ -502,17 +504,10 @@ export class FilterList<
 
     let shouldFocus = false
 
-    if (event.key === 'ArrowUp' && row === firstSelectableRow) {
+    if (isUpKeyEvent(event) && row === firstSelectableRow) {
       shouldFocus = true
-    } else if (event.key === 'ArrowDown' && row === lastSelectableRow) {
+    } else if (isDownKeyEvent(event) && row === lastSelectableRow) {
       shouldFocus = true
-    } else if (__DARWIN__ && event.ctrlKey) {
-      // Support Ctrl+P/N on macOS - return to filter at boundaries
-      if (event.key === 'p' && row === firstSelectableRow) {
-        shouldFocus = true
-      } else if (event.key === 'n' && row === lastSelectableRow) {
-        shouldFocus = true
-      }
     }
 
     if (shouldFocus) {
@@ -543,40 +538,9 @@ export class FilterList<
 
     const rowCount = this.state.rows.length
 
-    if (key === 'ArrowDown') {
+    if (isDownKeyEvent(event) || isUpKeyEvent(event)) {
       if (rowCount > 0) {
-        const selectedRow = findNextSelectableRow(
-          rowCount,
-          { direction: 'down', row: -1 },
-          this.canSelectRow
-        )
-        if (selectedRow != null) {
-          this.setState({ selectedRow }, () => {
-            list.focus()
-          })
-        }
-      }
-
-      event.preventDefault()
-    } else if (key === 'ArrowUp') {
-      if (rowCount > 0) {
-        const selectedRow = findNextSelectableRow(
-          rowCount,
-          { direction: 'up', row: 0 },
-          this.canSelectRow
-        )
-        if (selectedRow != null) {
-          this.setState({ selectedRow }, () => {
-            list.focus()
-          })
-        }
-      }
-
-      event.preventDefault()
-    } else if (__DARWIN__ && event.ctrlKey && (key === 'p' || key === 'n')) {
-      // Support Ctrl+P/N on macOS - same behavior as arrow keys in filter
-      if (rowCount > 0) {
-        const direction = key === 'n' ? 'down' : 'up'
+        const direction = isDownKeyEvent(event) ? 'down' : 'up'
         const selectedRow = findNextSelectableRow(
           rowCount,
           { direction, row: direction === 'down' ? -1 : 0 },
@@ -588,6 +552,7 @@ export class FilterList<
           })
         }
       }
+
       event.preventDefault()
     } else if (key === 'Enter') {
       // no repositories currently displayed, bail out

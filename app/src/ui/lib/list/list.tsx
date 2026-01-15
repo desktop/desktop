@@ -12,6 +12,8 @@ import {
   IKeyboardSource,
   ISelectAllSource,
   findLastSelectableRow,
+  isUpKeyEvent,
+  isDownKeyEvent,
 } from './selection'
 import { createUniqueId, releaseUniqueId } from '../../lib/id-pool'
 import { range } from '../../../lib/range'
@@ -626,25 +628,12 @@ export class List extends React.Component<IListProps, IListState> {
         this.moveSelectionToLastSelectableRow(direction, source)
       }
       event.preventDefault()
-    } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-      const direction = event.key === 'ArrowUp' ? 'up' : 'down'
+    } else if (isUpKeyEvent(event) || isDownKeyEvent(event)) {
+      const direction = isUpKeyEvent(event) ? 'up' : 'down'
       if (isRangeSelection) {
         this.addSelection(direction, source)
       } else {
         this.moveSelection(direction, source)
-      }
-      event.preventDefault()
-    } else if (
-      __DARWIN__ &&
-      event.ctrlKey &&
-      (event.key === 'p' || event.key === 'n')
-    ) {
-      // Support Ctrl+P (up) and Ctrl+N (down) on macOS without wrapping
-      const direction = event.key === 'p' ? 'up' : 'down'
-      if (isRangeSelection) {
-        this.addSelection(direction, source, false)
-      } else {
-        this.moveSelection(direction, source, false)
       }
       event.preventDefault()
     } else if (!__DARWIN__ && event.key === 'a' && event.ctrlKey) {
@@ -883,13 +872,9 @@ export class List extends React.Component<IListProps, IListState> {
     return null
   }
 
-  private addSelection(
-    direction: SelectionDirection,
-    source: SelectionSource,
-    wrap: boolean = true
-  ) {
+  private addSelection(direction: SelectionDirection, source: SelectionSource) {
     if (this.props.selectedRows.length === 0) {
-      return this.moveSelection(direction, source, wrap)
+      return this.moveSelection(direction, source)
     }
 
     const lastSelection =
@@ -899,7 +884,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     const newRow = findNextSelectableRow(
       this.props.rowCount,
-      { direction, row: lastSelection, wrap },
+      { direction, row: lastSelection, wrap: false },
       this.canSelectRow
     )
 
@@ -920,11 +905,7 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private moveSelection(
-    direction: SelectionDirection,
-    source: SelectionSource,
-    wrap: boolean = true
-  ) {
+  private moveSelection(direction: SelectionDirection, source: SelectionSource) {
     const lastSelection =
       this.props.selectedRows.length > 0
         ? this.props.selectedRows[this.props.selectedRows.length - 1]
@@ -932,7 +913,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     const newRow = findNextSelectableRow(
       this.props.rowCount,
-      { direction, row: lastSelection, wrap },
+      { direction, row: lastSelection },
       this.canSelectRow
     )
 
