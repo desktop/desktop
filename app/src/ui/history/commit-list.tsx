@@ -43,6 +43,9 @@ interface ICommitListProps {
   /** The list of commits SHAs to display, in order. */
   readonly commitSHAs: ReadonlyArray<string>
 
+    /** Complete list of all commits that have been loaded for this branch, even when filtered */
+  readonly allCommitSHAs: ReadonlyArray<string>
+
   /** The commits loaded, keyed by their full SHA. */
   readonly commitLookup: Map<string, Commit>
 
@@ -379,7 +382,19 @@ export class CommitList extends React.Component<
   private onSelectionChanged = (rows: ReadonlyArray<number>) => {
     const selectedShas = rows.map(r => this.props.commitSHAs[r])
     const selectedCommits = this.lookupCommits(selectedShas)
-    this.props.onCommitsSelected?.(selectedCommits, this.isContiguous(rows))
+    const filteredRows = this.getFilteredRows(rows)
+    this.props.onCommitsSelected?.(selectedCommits, this.isContiguous(filteredRows))
+  }
+
+    /**
+   * Takes an array of row indices and maps them from the possibly filtered view
+   * commitSHAs to the unfiltered view allCommitSHAs
+   */
+  private getFilteredRows(rows: ReadonlyArray<number>): ReadonlyArray<number>{
+    return rows.map(x=> {
+      let sha = this.props.commitSHAs[x]
+      return this.props.allCommitSHAs.indexOf(sha)
+    }).filter(x=> x !== -1)
   }
 
   /**

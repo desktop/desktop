@@ -232,7 +232,7 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderCommitList() {
-    const { formState, commitSHAs } = this.props.compareState
+    const { formState, commitSHAs, allCommitSHAs } = this.props.compareState
 
     let emptyListMessage: string | JSX.Element
     if (formState.kind === HistoryTabMode.History) {
@@ -302,6 +302,7 @@ export class CompareSidebar extends React.Component<
         }
         keyboardReorderData={this.state.keyboardReorderData}
         accounts={this.props.accounts}
+        allCommitSHAs={allCommitSHAs}
       />
     )
   }
