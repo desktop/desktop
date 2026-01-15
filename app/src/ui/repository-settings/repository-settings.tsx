@@ -18,6 +18,8 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { ForkSettings } from './fork-settings'
 import { ForkContributionTarget } from '../../models/workflow-preferences'
 import { GitConfigLocation, GitConfig } from './git-config'
+import { getAvailableEditors } from '../../lib/editors/lookup'
+import { ICustomIntegration } from '../../lib/custom-integration'
 import {
   getConfigValue,
   getGlobalConfigValue,
@@ -31,6 +33,7 @@ import {
 import { Account } from '../../models/account'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
+import { EditorSettings } from './editor-settings'
 
 interface IRepositorySettingsProps {
   readonly initialSelectedTab?: RepositorySettingsTab
@@ -39,12 +42,18 @@ interface IRepositorySettingsProps {
   readonly repository: Repository
   readonly repositoryAccount: Account | null
   readonly onDismissed: () => void
+  readonly globalExternalEditor: string | null
+  readonly onEditorPreferenceChanged: (
+    editor: string | null,
+    customEditor: ICustomIntegration | null
+  ) => void
 }
 
 export enum RepositorySettingsTab {
   Remote = 0,
   IgnoredFiles,
   GitConfig,
+  Editor,
   ForkSettings,
 }
 
@@ -55,6 +64,7 @@ interface IRepositorySettingsState {
   readonly ignoreTextHasChanged: boolean
   readonly disabled: boolean
   readonly saveDisabled: boolean
+  readonly availableEditors: ReadonlyArray<string>
   readonly gitConfigLocation: GitConfigLocation
   readonly committerName: string
   readonly committerEmail: string
@@ -84,6 +94,7 @@ export class RepositorySettings extends React.Component<
       disabled: false,
       forkContributionTarget: getForkContributionTarget(props.repository),
       saveDisabled: false,
+      availableEditors: [],
       gitConfigLocation: GitConfigLocation.Global,
       committerName: '',
       committerEmail: '',
@@ -147,6 +158,9 @@ export class RepositorySettings extends React.Component<
       initialCommitterEmail: localCommitterEmail,
       isLoadingGitConfig: false,
     })
+
+    const editors = await getAvailableEditors()
+    this.setState({ availableEditors: editors.map(editor => editor.editor) })
   }
 
   private renderErrors(): JSX.Element[] | null {
@@ -195,6 +209,10 @@ export class RepositorySettings extends React.Component<
               <Octicon className="icon" symbol={octicons.gitCommit} />
               {__DARWIN__ ? 'Git Config' : 'Git config'}
             </span>
+            <span>
+              <Octicon className="icon" symbol={octicons.pencil} />
+              Editor
+            </span>
             {showForkSettings && (
               <span>
                 <Octicon className="icon" symbol={octicons.repoForked} />
@@ -237,6 +255,16 @@ export class RepositorySettings extends React.Component<
             text={this.state.ignoreText}
             onIgnoreTextChanged={this.onIgnoreTextChanged}
             onShowExamples={this.onShowGitIgnoreExamples}
+          />
+        )
+      }
+      case RepositorySettingsTab.Editor: {
+        return (
+          <EditorSettings
+            repository={this.props.repository}
+            availableEditors={this.state.availableEditors}
+            globalEditor={this.props.globalExternalEditor}
+            onPreferenceChanged={this.props.onEditorPreferenceChanged}
           />
         )
       }

@@ -190,7 +190,7 @@ export class PullRequestFilesChanged extends React.Component<
       },
       {
         label: openInExternalEditor,
-        action: () => dispatcher.openInExternalEditor(fullPath),
+        action: () => dispatcher.openInExternalEditor(fullPath, repository),
         enabled: fileExistsOnDisk,
       },
       {
