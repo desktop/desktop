@@ -19,6 +19,17 @@ describe('SignInStore', () => {
     describe('beginDotComSignIn', () => {
         it('starts authentication flow even if accounts exist (multi-account support)', async () => {
             // Setup: Add an existing .com account
+            // 
+            // Account constructor parameters:
+            //   login     - GitHub username ('existing-user')
+            //   endpoint  - API endpoint ('https://api.github.com' for GitHub.com)
+            //   token     - OAuth access token
+            //   emails    - Array of IAPIEmail (empty for this test - not needed for flow testing)
+            //   avatarURL - Profile avatar URL (empty - not needed for flow testing)
+            //   id        - GitHub database ID for this user (unique identifier)
+            //   name      - Display name (empty - will fall back to login)
+            //   plan      - Account plan type ('free', 'pro', etc.)
+            //
             const existingAccount = new Account(
                 'existing-user',
                 'https://api.github.com',
