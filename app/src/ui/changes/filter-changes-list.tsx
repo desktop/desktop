@@ -878,7 +878,12 @@ export class FilterChangesList extends React.Component<
     this.props.onChangesListScrolled(scrollTop)
   }
 
+  private onSetRepositoryAccount = (account: Account) => {
+    this.props.dispatcher.setRepositoryAccount(this.props.repository, account)
+  }
+
   private renderCommitMessageForm = (): JSX.Element => {
+
     const {
       rebaseConflictState,
       workingDirectory,
@@ -1006,6 +1011,7 @@ export class FilterChangesList extends React.Component<
         hasCommitHooks={this.props.hasCommitHooks}
         skipCommitHooks={this.props.skipCommitHooks}
         onUpdateCommitOptions={this.props.onUpdateCommitOptions}
+        onSetRepositoryAccount={this.onSetRepositoryAccount}
       />
     )
   }

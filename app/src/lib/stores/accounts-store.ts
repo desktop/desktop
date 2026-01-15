@@ -91,11 +91,25 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   /**
    * Add the account to the store.
+   *
+   * This method supports multiple accounts per endpoint. For example, users
+   * can have both personal and work accounts on GitHub.com signed in
+   * simultaneously.
+   *
+   * If an account with the same endpoint AND id already exists, it will be
+   * updated (e.g., if the user's profile information changed). This ensures
+   * we don't accumulate duplicate entries while still allowing multiple
+   * distinct accounts.
+   *
+   * @param account The account to add or update
+   * @returns The added/updated account, or null if token storage failed
    */
   public async addAccount(account: Account): Promise<Account | null> {
     await this.loadingPromise
 
     try {
+      // Store the token in secure storage using a unique key per account
+      // The key includes both endpoint and login to support multi-account
       const key = getKeyForAccount(account)
       await this.secureStore.setItem(key, account.login, account.token)
     } catch (e) {
@@ -113,13 +127,22 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return null
     }
 
-    const accountsByEndpoint = this.accounts.reduce(
-      (map, x) => map.set(x.endpoint, x),
+    // Use endpoint+id as the key to allow multiple accounts per endpoint
+    // This is the key change that enables multi-account support:
+    // - Previously: endpoint was the key, so only one account per endpoint
+    // - Now: endpoint:id is the key, allowing multiple accounts per endpoint
+    //
+    // The id is used (not login) because:
+    // 1. ID is guaranteed unique per endpoint by GitHub
+    // 2. Login can theoretically change (user rename), id cannot
+    // 3. This matches how removeAccount identifies accounts
+    const accountsById = this.accounts.reduce(
+      (map, x) => map.set(`${x.endpoint}:${x.id}`, x),
       new Map<string, Account>()
     )
-    accountsByEndpoint.set(account.endpoint, account)
+    accountsById.set(`${account.endpoint}:${account.id}`, account)
 
-    this.accounts = sortAccounts([...accountsByEndpoint.values()])
+    this.accounts = sortAccounts([...accountsById.values()])
 
     this.save()
     return account

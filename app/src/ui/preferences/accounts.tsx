@@ -29,15 +29,22 @@ enum SignInType {
 }
 
 export class Accounts extends React.Component<IAccountsProps, {}> {
+  /**
+   * Renders the accounts preferences tab content.
+   *
+   * With multi-account support, this will display all GitHub.com accounts
+   * with individual sign-out buttons, plus an "Add Another Account" button.
+   */
   public render() {
     const { accounts } = this.props
-    const dotComAccount = accounts.find(isDotComAccount)
+    // Get all GitHub.com accounts (multi-account support)
+    const dotComAccounts = accounts.filter(isDotComAccount)
 
     return (
       <DialogContent className="accounts-tab">
         <h2>GitHub.com</h2>
-        {dotComAccount
-          ? this.renderAccount(dotComAccount, SignInType.DotCom)
+        {dotComAccounts.length > 0
+          ? this.renderDotComAccounts(dotComAccounts)
           : this.renderSignIn(SignInType.DotCom)}
 
         <h2>GitHub Enterprise</h2>
@@ -45,6 +52,29 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
           ? this.renderMultipleEnterpriseAccounts()
           : this.renderSingleEnterpriseAccount()}
       </DialogContent>
+    )
+  }
+
+  /**
+   * Renders all GitHub.com accounts with an "Add Another Account" button.
+   *
+   * This enables multi-account support where users can have multiple
+   * GitHub.com accounts signed in simultaneously (e.g., personal and work).
+   *
+   * @param accounts All GitHub.com accounts to display
+   */
+  private renderDotComAccounts(accounts: ReadonlyArray<Account>) {
+    return (
+      <>
+        {accounts.map((account, index) => (
+          <React.Fragment key={`${account.endpoint}:${account.id}`}>
+            {this.renderAccount(account, SignInType.DotCom, index === 0)}
+          </React.Fragment>
+        ))}
+        <Button onClick={this.onDotComSignIn}>
+          {__DARWIN__ ? 'Add Another GitHub.com Account' : 'Add another GitHub.com account'}
+        </Button>
+      </>
     )
   }
 
@@ -75,7 +105,18 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
     )
   }
 
-  private renderAccount(account: Account, type: SignInType) {
+  /**
+   * Renders a single account row with avatar, info, and sign-out button.
+   *
+   * @param account The account to render
+   * @param type The type of account (DotCom or Enterprise)
+   * @param isFirst Whether this is the first account (for focus handling)
+   */
+  private renderAccount(
+    account: Account,
+    type: SignInType,
+    isFirst: boolean = true
+  ) {
     const avatarUser: IAvatarUser = {
       name: account.name,
       email: lookupPreferredEmail(account),
@@ -83,10 +124,12 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
       endpoint: account.endpoint,
     }
 
-    // The DotCom account is shown first, so its sign in/out button should be
+    // The first DotCom account is shown first, so its sign out button should be
     // focused initially when the dialog is opened.
     const className =
-      type === SignInType.DotCom ? DialogPreferredFocusClassName : undefined
+      type === SignInType.DotCom && isFirst
+        ? DialogPreferredFocusClassName
+        : undefined
 
     return (
       <Row className="account-info">

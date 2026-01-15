@@ -19,6 +19,7 @@ import classNames from 'classnames'
 import { RepoRulesMetadataFailures } from '../../models/repo-rules'
 import { RepoRulesMetadataFailureList } from '../repository-rules/repo-rules-failure-list'
 import { Account } from '../../models/account'
+import { getAccountsForEndpoint, getAccountByLogin } from '../../lib/api'
 
 export type CommitMessageAvatarWarningType =
   | 'none'
@@ -92,6 +93,12 @@ interface ICommitMessageAvatarProps {
   readonly onOpenGitSettings: () => void
 
   readonly accounts: ReadonlyArray<Account>
+
+  /** The currently associated GitHub account (if any) */
+  readonly repositoryAccount?: Account
+
+  /** Callback to change the associated account */
+  readonly onSetAccount?: (account: Account) => void
 }
 
 /**
@@ -234,7 +241,7 @@ export class CommitMessageAvatar extends React.Component<
   }
 
   private renderGitConfigPopover() {
-    const { user } = this.props
+    const { user, repository, accounts, repositoryAccount } = this.props
     const { isGitConfigLocal } = this.state
 
     const location = isGitConfigLocal ? 'local' : 'global'
@@ -245,9 +252,30 @@ export class CommitMessageAvatar extends React.Component<
       : `git ${settingsName}`
     const buttonText = __DARWIN__ ? 'Open Git Settings' : 'Open git settings'
 
+    const endpoint = repository.gitHubRepository?.endpoint
+    const availableAccounts = endpoint
+      ? getAccountsForEndpoint(accounts, endpoint)
+      : []
+
     return (
       <>
         <p>{user && user.name && `Email: ${user.email}`}</p>
+
+        {availableAccounts.length > 1 && this.props.onSetAccount && (
+          <Row>
+            <Select
+              label="Account"
+              value={repositoryAccount?.login ?? ''}
+              onChange={this.onAccountChange}
+            >
+              {availableAccounts.map(a => (
+                <option key={a.id} value={a.login}>
+                  {a.login}
+                </option>
+              ))}
+            </Select>
+          </Row>
+        )}
 
         <p>
           You can update your {location} git configuration {locationDesc} in
@@ -272,6 +300,19 @@ export class CommitMessageAvatar extends React.Component<
         </Row>
       </>
     )
+  }
+
+  private onAccountChange = (event: React.FormEvent<HTMLSelectElement>) => {
+    const login = event.currentTarget.value
+    const { repository, accounts } = this.props
+    const endpoint = repository.gitHubRepository?.endpoint
+
+    if (endpoint && this.props.onSetAccount) {
+      const account = getAccountByLogin(accounts, endpoint, login)
+      if (account) {
+        this.props.onSetAccount(account)
+      }
+    }
   }
 
   private renderWarningPopover() {

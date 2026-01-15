@@ -2336,12 +2336,61 @@ export function getDotComAPIEndpoint(): string {
   return 'https://api.github.com'
 }
 
-/** Get the account for the endpoint. */
+/**
+ * Get the first account for the endpoint.
+ *
+ * For backward compatibility, this returns the first matching account.
+ * When multiple accounts exist for the same endpoint, use
+ * getAccountsForEndpoint() or getAccountByLogin() for more precise control.
+ *
+ * @param accounts All available accounts
+ * @param endpoint The API endpoint to match
+ * @returns The first matching account, or null if none found
+ */
 export function getAccountForEndpoint(
   accounts: ReadonlyArray<Account>,
   endpoint: string
 ): Account | null {
   return accounts.find(a => a.endpoint === endpoint) || null
+}
+
+/**
+ * Get all accounts for the given endpoint.
+ *
+ * This is useful for multi-account support where users may have multiple
+ * accounts on the same endpoint (e.g., personal and work accounts on
+ * GitHub.com).
+ *
+ * @param accounts All available accounts
+ * @param endpoint The API endpoint to match
+ * @returns Array of all accounts matching the endpoint (may be empty)
+ */
+export function getAccountsForEndpoint(
+  accounts: ReadonlyArray<Account>,
+  endpoint: string
+): ReadonlyArray<Account> {
+  return accounts.filter(a => a.endpoint === endpoint)
+}
+
+/**
+ * Get a specific account by endpoint and login.
+ *
+ * This is the most precise way to look up an account when you know both
+ * the endpoint and the username. Useful for:
+ * - Looking up a preferred account for a repository
+ * - Finding a specific account when multiple accounts exist on same endpoint
+ *
+ * @param accounts All available accounts
+ * @param endpoint The API endpoint to match
+ * @param login The username/login to match
+ * @returns The matching account, or null if not found
+ */
+export function getAccountByLogin(
+  accounts: ReadonlyArray<Account>,
+  endpoint: string,
+  login: string
+): Account | null {
+  return accounts.find(a => a.endpoint === endpoint && a.login === login) || null
 }
 
 export function getOAuthAuthorizationURL(

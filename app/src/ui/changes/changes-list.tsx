@@ -782,6 +782,10 @@ export class ChangesList extends React.Component<
     this.props.onChangesListScrolled(scrollTop)
   }
 
+  private onSetRepositoryAccount = (account: Account) => {
+    this.props.dispatcher.setRepositoryAccount(this.props.repository, account)
+  }
+
   private renderCommitMessageForm = (): JSX.Element => {
     const {
       rebaseConflictState,
@@ -797,6 +801,7 @@ export class ChangesList extends React.Component<
       currentRepoRulesInfo: currentRepoRulesInfo,
       shouldShowGenerateCommitMessageCallOut,
     } = this.props
+
 
     if (rebaseConflictState !== null) {
       const hasUntrackedChanges = workingDirectory.files.some(
@@ -902,6 +907,7 @@ export class ChangesList extends React.Component<
         hasCommitHooks={this.props.hasCommitHooks}
         skipCommitHooks={this.props.skipCommitHooks}
         onUpdateCommitOptions={this.props.onUpdateCommitOptions}
+        onSetRepositoryAccount={this.onSetRepositoryAccount}
       />
     )
   }

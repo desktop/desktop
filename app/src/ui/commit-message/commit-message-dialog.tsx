@@ -188,6 +188,7 @@ export class CommitMessageDialog extends React.Component<
             hasCommitHooks={this.props.hasCommitHooks}
             skipCommitHooks={this.props.skipCommitHooks}
             onUpdateCommitOptions={this.props.onUpdateCommitOptions}
+            onSetRepositoryAccount={this.onSetRepositoryAccount}
           />
         </DialogContent>
       </Dialog>
@@ -197,7 +198,12 @@ export class CommitMessageDialog extends React.Component<
   private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<Author>) =>
     this.setState({ coAuthors })
 
+  private onSetRepositoryAccount = (account: Account) => {
+    this.props.dispatcher.setRepositoryAccount(this.props.repository, account)
+  }
+
   private onShowCoAuthorsChanged = (showCoAuthoredBy: boolean) =>
+
     this.setState({ showCoAuthoredBy })
 
   private onConfirmCommitWithUnknownCoAuthors = (

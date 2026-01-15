@@ -11,6 +11,7 @@ import {
   SignInStore,
   UpstreamRemoteName,
 } from '.'
+import { repositoryAccountStore } from './repository-account-store'
 import { Account, isDotComAccount } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { Author } from '../../models/author'
@@ -711,6 +712,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     onShowInstallingUpdate(this.onShowInstallingUpdate)
+  }
+
+  /**
+   * Sets the preferred account for the given repository and updates the app state.
+   */
+  public setRepositoryAccount(repository: Repository, account: Account) {
+    repositoryAccountStore.setPreferredAccount(repository, account)
+    this.emitUpdate()
   }
 
   private initializeWindowState = async () => {

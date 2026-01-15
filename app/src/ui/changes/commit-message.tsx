@@ -219,6 +219,9 @@ interface ICommitMessageProps {
     repository: Repository,
     options: CommitOptions
   ) => void
+
+  /** Callback to set the preferred account for the repository */
+  readonly onSetRepositoryAccount: (account: Account) => void
 }
 
 interface ICommitMessageState {
@@ -769,6 +772,8 @@ export class CommitMessage extends React.Component<
         onOpenGitSettings={this.onOpenGitSettings}
         repository={repository}
         accounts={this.props.accounts}
+        repositoryAccount={repositoryAccount ?? undefined}
+        onSetAccount={this.props.onSetRepositoryAccount}
       />
     )
   }

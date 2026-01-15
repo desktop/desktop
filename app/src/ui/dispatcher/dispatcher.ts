@@ -226,6 +226,11 @@ export class Dispatcher {
     this.appStore._updateCommitOptions(repository, options)
   }
 
+  /** Sets the preferred account for the given repository. */
+  public setRepositoryAccount(repository: Repository, account: Account) {
+    this.appStore.setRepositoryAccount(repository, account)
+  }
+
   /** Load the next batch of history for the repository. */
   public loadNextCommitBatch(repository: Repository): Promise<void> {
     return this.appStore._loadNextCommitBatch(repository)

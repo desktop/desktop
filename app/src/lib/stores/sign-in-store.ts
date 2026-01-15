@@ -1,5 +1,5 @@
 import { Disposable } from 'event-kit'
-import { Account, isDotComAccount } from '../../models/account'
+import { Account } from '../../models/account'
 import { fatalError } from '../fatal-error'
 import {
   validateURL,
@@ -223,6 +223,12 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   /**
    * Initiate a sign in flow for github.com. This will put the store
    * in the Authentication step ready to receive user credentials.
+   *
+   * With multi-account support, this method allows users to add additional
+   * GitHub.com accounts without requiring them to sign out of existing ones.
+   * The OAuth flow will add the new account alongside existing accounts.
+   *
+   * @param resultCallback Optional callback invoked with the sign-in result
    */
   public beginDotComSignIn(resultCallback?: (result: SignInResult) => void) {
     const endpoint = getDotComAPIEndpoint()
@@ -231,26 +237,17 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       this.reset()
     }
 
-    const existingAccount = this.accounts.find(isDotComAccount)
-
-    if (existingAccount) {
-      this.setState({
-        kind: SignInStep.ExistingAccountWarning,
-        endpoint,
-        existingAccount,
-        error: null,
-        loading: false,
-        resultCallback: resultCallback ?? noop,
-      })
-    } else {
-      this.setState({
-        kind: SignInStep.Authentication,
-        endpoint,
-        error: null,
-        loading: false,
-        resultCallback: resultCallback ?? noop,
-      })
-    }
+    // Multi-account support: Always allow adding accounts
+    // Previously, we would show ExistingAccountWarning if an account existed,
+    // which forced users to sign out before adding another account.
+    // Now we go directly to authentication to support multiple accounts.
+    this.setState({
+      kind: SignInStep.Authentication,
+      endpoint,
+      error: null,
+      loading: false,
+      resultCallback: resultCallback ?? noop,
+    })
   }
 
   /**
