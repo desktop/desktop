@@ -3,6 +3,7 @@ import { BaseDatabase } from './base-database'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { assertNonNullable } from '../fatal-error'
 import { GitHubAccountType } from '../api'
+import { ICustomIntegration } from '../custom-integration'
 
 export interface IDatabaseOwner {
   readonly id?: number
@@ -65,6 +66,12 @@ export interface IDatabaseRepository {
    * of Git and GitHub.
    */
   readonly isTutorialRepository?: boolean
+
+  /** The preferred external editor for this repository (null = use global default) */
+  readonly preferredExternalEditor?: string | null
+
+  /** Custom editor configuration for this repository (null = not using custom) */
+  readonly preferredCustomEditor?: ICustomIntegration | null
 }
 
 /**

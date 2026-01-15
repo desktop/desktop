@@ -50,6 +50,7 @@ export enum PopupType {
   CLIInstalled = 'CLIInstalled',
   GenericGitAuthentication = 'GenericGitAuthentication',
   ExternalEditorFailed = 'ExternalEditorFailed',
+  RepositoryEditorNotFound = 'RepositoryEditorNotFound',
   OpenWithExternalEditor = 'OpenWithExternalEditor',
   OpenShellFailed = 'OpenShellFailed',
   InitializeLFS = 'InitializeLFS',
@@ -197,6 +198,11 @@ export type PopupDetail =
       message: string
       suggestDefaultEditor?: boolean
       openPreferences?: boolean
+    }
+  | {
+      type: PopupType.RepositoryEditorNotFound
+      message: string
+      repository: Repository
     }
   | { type: PopupType.OpenShellFailed; message: string }
   | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
