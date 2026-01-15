@@ -157,7 +157,7 @@ export class EditorSettings extends React.Component<
                 onPathChanged={this.onCustomEditorPathChanged}
                 onArgumentsChanged={this.onCustomEditorArgumentsChanged}
               />
-              <Row>
+              <Row className="editor-settings-save-row">
                 <Button
                   onClick={this.onSaveCustomEditor}
                   disabled={!customEditor.path}
