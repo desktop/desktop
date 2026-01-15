@@ -893,7 +893,10 @@ export class SectionList extends React.Component<
     }
   }
 
-  private moveSelection(direction: SelectionDirection, source: SelectionSource) {
+  private moveSelection(
+    direction: SelectionDirection,
+    source: SelectionSource
+  ) {
     const lastSelection =
       this.props.selectedRows.length > 0
         ? this.props.selectedRows[this.props.selectedRows.length - 1]
