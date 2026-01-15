@@ -72,10 +72,7 @@ export class EditorSettings extends React.Component<
     }
   }
 
-  private onCustomEditorPathChanged = (
-    path: string,
-    bundleID?: string
-  ) => {
+  private onCustomEditorPathChanged = (path: string, bundleID?: string) => {
     const customEditor: ICustomIntegration = {
       path,
       arguments: this.state.customEditor.arguments,
