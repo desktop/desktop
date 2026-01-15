@@ -1644,13 +1644,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             repositoryAccount={repositoryAccount}
             onDismissed={onPopupDismissedFn}
             globalExternalEditor={this.state.selectedExternalEditor}
-            onEditorPreferenceChanged={(editor, customEditor) =>
-              this.props.dispatcher.updateRepositoryEditorPreference(
-                repository,
-                editor,
-                customEditor
-              )
-            }
+            onEditorPreferenceChanged={this.saveRepositoryEditorPreference}
           />
         )
       }
@@ -1863,26 +1857,25 @@ export class App extends React.Component<IAppProps, IAppState> {
             onOpenRepositorySettings={this.showRepositoryEditorSettings}
           />
         )
-      case PopupType.OpenWithExternalEditor:
-        {
-          const repositoryForEditor = this.getRepository()
-          const isRepository = repositoryForEditor instanceof Repository
-          const repositoryName = isRepository
-            ? repositoryForEditor.alias || repositoryForEditor.name
-            : undefined
+      case PopupType.OpenWithExternalEditor: {
+        const repositoryForEditor = this.getRepository()
+        const isRepository = repositoryForEditor instanceof Repository
+        const repositoryName = isRepository
+          ? repositoryForEditor.alias || repositoryForEditor.name
+          : undefined
 
-          return (
-            <OpenWithExternalEditor
-              key="open-with-external-editor"
-              onDismissed={onPopupDismissedFn}
-              onOpenWithEditor={this.openRepositoryInSelectedEditor}
-              onSavePreference={
-                isRepository ? this.saveRepositoryEditorPreference : undefined
-              }
-              repositoryName={repositoryName}
-            />
-          )
-        }
+        return (
+          <OpenWithExternalEditor
+            key="open-with-external-editor"
+            onDismissed={onPopupDismissedFn}
+            onOpenWithEditor={this.openRepositoryInSelectedEditor}
+            onSavePreference={
+              isRepository ? this.saveRepositoryEditorPreference : undefined
+            }
+            repositoryName={repositoryName}
+          />
+        )
+      }
       case PopupType.OpenShellFailed:
         return (
           <ShellError

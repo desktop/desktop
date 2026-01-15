@@ -1,1 +1,4 @@
-export { RepositorySettings, RepositorySettingsTab } from './repository-settings'
+export {
+  RepositorySettings,
+  RepositorySettingsTab,
+} from './repository-settings'
