@@ -45,4 +45,20 @@
   textarea.gitignore {
     height: 130px;
   }
+
+  .editor-settings {
+    .editor-settings-save-row {
+      margin-top: var(--spacing);
+    }
+
+    .custom-integration-form-path-container {
+      align-items: flex-end;
+    }
+  }
+
+  .advanced-section {
+    .custom-integration-form-container {
+      margin-bottom: var(--spacing);
+    }
+  }
 }
