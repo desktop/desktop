@@ -8,7 +8,8 @@ export type SelectionDirection = 'up' | 'down'
  */
 export function isUpKeyEvent(event: React.KeyboardEvent<any>): boolean {
   return (
-    event.key === 'ArrowUp' || (__DARWIN__ && event.ctrlKey && event.key === 'p')
+    event.key === 'ArrowUp' ||
+    (__DARWIN__ && event.ctrlKey && event.key === 'p')
   )
 }
 

@@ -905,7 +905,10 @@ export class List extends React.Component<IListProps, IListState> {
     }
   }
 
-  private moveSelection(direction: SelectionDirection, source: SelectionSource) {
+  private moveSelection(
+    direction: SelectionDirection,
+    source: SelectionSource
+  ) {
     const lastSelection =
       this.props.selectedRows.length > 0
         ? this.props.selectedRows[this.props.selectedRows.length - 1]
