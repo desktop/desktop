@@ -8,6 +8,7 @@ import {
 } from './workflow-preferences'
 import { assertNever, fatalError } from '../lib/fatal-error'
 import { createEqualityHash } from './equality-hash'
+import { ICustomIntegration } from '../lib/custom-integration'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -65,7 +66,11 @@ export class Repository {
      * it, so the worktree set is not always discoverable after the fact. This
      * records the main worktree while it is still known.
      */
-    public readonly mainWorktreePath: string | undefined = undefined
+    public readonly mainWorktreePath: string | undefined = undefined,
+    /** The preferred external editor for this repository, or null to use global default */
+    public readonly preferredExternalEditor: string | null = null,
+    /** Custom editor configuration for this repository, or null if not using custom */
+    public readonly preferredCustomEditor: ICustomIntegration | null = null
   ) {
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
 
@@ -76,7 +81,9 @@ export class Repository {
       this.missing,
       this.alias,
       this.workflowPreferences.forkContributionTarget,
-      this.isTutorialRepository
+      this.isTutorialRepository,
+      this.preferredExternalEditor,
+      this.preferredCustomEditor?.path
     )
   }
 
