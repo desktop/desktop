@@ -430,7 +430,7 @@ export class CreateBranch extends React.Component<
     for (const id of toCheck) {
       const rs = this.props.cachedRepoRulesets.get(id)
 
-      if (rs?.current_user_can_bypass !== 'always') {
+      if (rs?.current_user_can_bypass !== 'always' && rs?.current_user_can_bypass !== 'exempt') {
         // the user cannot bypass, so stop checking
         cannotBypass = true
         break
