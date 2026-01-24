@@ -15,8 +15,8 @@
     "postinstall": "ts-node -P script/tsconfig.json script/post-install.ts",
     "start": "cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/start.ts",
     "start:prod": "cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/start.ts",
-    "compile:dev": "cross-env NODE_ENV=development TS_NODE_PROJECT=script/tsconfig.json parallel-webpack --config app/webpack.development.ts",
-    "compile:prod": "cross-env NODE_ENV=production TS_NODE_PROJECT=script/tsconfig.json NODE_OPTIONS='--max_old_space_size=4096' parallel-webpack --config app/webpack.production.ts",
+    "compile:dev": "cross-env NODE_ENV=development TS_NODE_PROJECT=script/tsconfig.json webpack --config app/webpack.development.ts",
+    "compile:prod": "cross-env NODE_ENV=production TS_NODE_PROJECT=script/tsconfig.json NODE_OPTIONS='--max_old_space_size=4096' webpack --config app/webpack.production.ts",
     "build:dev": "yarn compile:dev && cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/build.ts",
     "build:prod": "yarn compile:prod && cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/build.ts",
     "package": "ts-node -P script/tsconfig.json script/package.ts",
@@ -50,9 +50,6 @@
     "node": ">= 10",
     "yarn": ">= 1.9"
   },
-  "resolutions": {
-    "@types/react-css-transition-replace/@types/react": "^16.14.62"
-  },
   "dependencies": {
     "@azure/storage-blob": "^12.25.0",
     "@babel/core": "^7.25.2",
@@ -81,7 +78,6 @@
     "jsdom": "^26.0.0",
     "legal-eagle": "0.16.0",
     "mini-css-extract-plugin": "^2.9.1",
-    "parallel-webpack": "^2.6.0",
     "parse-dds": "^1.2.1",
     "prettier": "^2.6.0",
     "printenvz": "file:./vendor/printenvz",
@@ -130,7 +126,6 @@
     "@types/react-dom": "^16.8.2",
     "@types/react-transition-group": "^4.4.0",
     "@types/react-virtualized": "^9.7.12",
-    "@types/request": "^2.0.9",
     "@types/reserved-words": "^0.1.0",
     "@types/semver": "^5.5.0",
     "@types/source-map-support": "^0.5.2",
@@ -156,6 +151,7 @@
     "node-test-github-reporter": "^1.2.0",
     "reserved-words": "^0.1.2",
     "tsconfig-paths": "^3.9.0",
-    "tsx": "^4.19.3"
+    "tsx": "^4.19.3",
+    "webpack-cli": "^6.0.1"
   }
 }
