@@ -562,6 +562,9 @@
 
     .image-container {
       position: relative;
+      // Fix for Issue #21392: Force GPU rendering to prevent sub-pixel misalignment
+      // on non-Retina displays when using mix-blend-mode: difference
+      transform: translate3d(0, 0, 0);
 
       .image-diff-previous,
       .image-diff-current {
@@ -572,6 +575,11 @@
         img {
           border: 0;
           background: transparent;
+          // Fix for Issue #21392: Ensure pixel-aligned rendering for sharp edges
+          transform: translate3d(0, 0, 0);
+          image-rendering: pixelated; // Modern browsers, best for pixel art
+          image-rendering: -moz-crisp-edges; // Firefox fallback
+          image-rendering: crisp-edges; // Standard fallback
         }
       }
     }
