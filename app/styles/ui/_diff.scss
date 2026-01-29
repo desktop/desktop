@@ -562,8 +562,8 @@
 
     .image-container {
       position: relative;
-      // Fix for Issue #21392: Force GPU rendering to prevent sub-pixel misalignment
-      // on non-Retina displays when using mix-blend-mode: difference
+      // Fix for issue #21392: Force GPU compositing to ensure both
+      // image layers are rasterized consistently for mix-blend-mode
       transform: translate3d(0, 0, 0);
 
       .image-diff-previous,
@@ -575,11 +575,6 @@
         img {
           border: 0;
           background: transparent;
-          // Fix for Issue #21392: Ensure pixel-aligned rendering for sharp edges
-          transform: translate3d(0, 0, 0);
-          image-rendering: pixelated; // Modern browsers, best for pixel art
-          image-rendering: -moz-crisp-edges; // Firefox fallback
-          image-rendering: crisp-edges; // Standard fallback
         }
       }
     }
