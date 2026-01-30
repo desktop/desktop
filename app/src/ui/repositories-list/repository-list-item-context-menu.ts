@@ -1,4 +1,8 @@
-import { Repository } from '../../models/repository'
+import {
+  isRepositoryWithGitHubRepository,
+  hasDefaultRemoteUrl,
+  Repository,
+} from '../../models/repository'
 import { IMenuItem } from '../../lib/menu-item'
 import { Repositoryish } from './group-repositories'
 import { clipboard } from 'electron'
@@ -13,7 +17,7 @@ interface IRepositoryListItemContextMenuConfig {
   shellLabel: string | undefined
   externalEditorLabel: string | undefined
   askForConfirmationOnRemoveRepository: boolean
-  onViewOnGitHub: (repository: Repositoryish) => void
+  onViewInBrowser: (repository: Repositoryish) => void
   onOpenInShell: (repository: Repositoryish) => void
   onShowRepository: (repository: Repositoryish) => void
   onOpenInExternalEditor: (repository: Repositoryish) => void
@@ -27,8 +31,11 @@ export const generateRepositoryListContextMenu = (
 ) => {
   const { repository } = config
   const missing = repository instanceof Repository && repository.missing
-  const github =
-    repository instanceof Repository && repository.gitHubRepository != null
+  const isGitHub =
+    repository instanceof Repository &&
+    isRepositoryWithGitHubRepository(repository)
+  const hasOriginUrl =
+    repository instanceof Repository && hasDefaultRemoteUrl(repository)
   const openInExternalEditor = config.externalEditorLabel
     ? `Open in ${config.externalEditorLabel}`
     : DefaultEditorLabel
@@ -48,9 +55,9 @@ export const generateRepositoryListContextMenu = (
     },
     { type: 'separator' },
     {
-      label: 'View on GitHub',
-      action: () => config.onViewOnGitHub(repository),
-      enabled: github,
+      label: `View ${isGitHub ? 'on GitHub' : 'in your Browser'}`,
+      action: () => config.onViewInBrowser(repository),
+      enabled: isGitHub || hasOriginUrl,
     },
     {
       label: openInShell,

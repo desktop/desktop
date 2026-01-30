@@ -75,6 +75,7 @@ import {
   createBranch,
   updateRemoteHEAD,
   getRemoteHEAD,
+  memoizedGetRemotesFromPath,
 } from '../git'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
@@ -1521,6 +1522,11 @@ export class GitStore extends BaseStore {
       (await this.performFailableOperation(() =>
         setRemoteURL(this.repository, name, url)
       )) === true
+
+    // Reset memoization of getRemotes.
+    if (wasSuccessful) {
+      await memoizedGetRemotesFromPath.apply({}, [''])
+    }
     await this.loadRemotes()
 
     this.emitUpdate()

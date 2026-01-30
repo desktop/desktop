@@ -1,7 +1,11 @@
 import * as React from 'react'
 
 import { encodePathAsUrl } from '../../lib/path'
-import { Repository } from '../../models/repository'
+import {
+  hasDefaultRemoteUrl,
+  isRepositoryWithGitHubRepository,
+  Repository,
+} from '../../models/repository'
 import { LinkButton } from '../lib/link-button'
 import { MenuIDs } from '../../models/menu-ids'
 import { IMenu, MenuItem } from '../../models/app-menu'
@@ -276,23 +280,27 @@ export class NoChanges extends React.Component<
   private onShowInFileManagerClicked = () =>
     this.props.dispatcher.incrementMetric('suggestedStepOpenWorkingDirectory')
 
-  private renderViewOnGitHub() {
-    const isGitHub = this.props.repository.gitHubRepository !== null
+  private renderViewInBrowser() {
+    const isGitHub = isRepositoryWithGitHubRepository(this.props.repository)
+    const hasOriginUrl = hasDefaultRemoteUrl(this.props.repository)
 
-    if (!isGitHub) {
+    // early exit if not a GitHub repository and no default remote URL set
+    if (!isGitHub && !hasOriginUrl) {
       return null
     }
 
+    const browserTarget = isGitHub ? 'on Github ' : ''
+
     return this.renderMenuBackedAction(
-      'view-repository-on-github',
-      `Open the repository page on GitHub in your browser`,
+      'view-repository-in-browser',
+      'Open the repository page ' + browserTarget + 'in your Browser',
       undefined,
-      this.onViewOnGitHubClicked
+      this.onViewInBrowserClicked
     )
   }
 
-  private onViewOnGitHubClicked = () =>
-    this.props.dispatcher.incrementMetric('suggestedStepViewOnGitHub')
+  private onViewInBrowserClicked = () =>
+    this.props.dispatcher.incrementMetric('suggestedStepViewInBrowser')
 
   private openIntegrationPreferences = () => {
     this.props.dispatcher.showPopup({
@@ -741,7 +749,7 @@ export class NoChanges extends React.Component<
         <SuggestedActionGroup>
           {this.renderOpenInExternalEditor()}
           {this.renderShowInFileManager()}
-          {this.renderViewOnGitHub()}
+          {this.renderViewInBrowser()}
         </SuggestedActionGroup>
       </>
     )

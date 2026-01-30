@@ -62,6 +62,11 @@ export type MenuLabelsEvent = {
   readonly askForConfirmationWhenStashingAllChanges?: boolean
 
   /**
+   * Whether or not the current repository is a GitHub repository.
+   */
+  readonly isGitHub?: boolean
+
+  /**
    * Whether or not the changes filter is visible in the current view.
    * This is used to determine whether the toggle changes filter menu item
    * says "Show changes filter" or "Hide changes filter".

@@ -2603,6 +2603,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const askForConfirmationWhenStashingAllChanges =
       changesState.stashEntry !== null
 
+    const isGitHub =
+      selectedRepository instanceof Repository &&
+      isRepositoryWithGitHubRepository(selectedRepository)
+
     updatePreferredAppMenuItemLabels({
       ...labels,
       contributionTargetDefaultBranch,
@@ -2610,6 +2614,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       isStashedChangesVisible,
       hasCurrentPullRequest: currentPullRequest !== null,
       askForConfirmationWhenStashingAllChanges,
+      isGitHub,
       isChangesFilterVisible: this.showChangesFilter,
     })
   }

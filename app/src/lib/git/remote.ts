@@ -5,14 +5,23 @@ import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
 import { getSymbolicRef } from './refs'
-
+import memoizeOne from 'memoize-one'
 /**
  * List the remotes, sorted alphabetically by `name`, for a repository.
  */
 export async function getRemotes(
   repository: Repository
 ): Promise<ReadonlyArray<IRemote>> {
-  const result = await git(['remote', '-v'], repository.path, 'getRemotes', {
+  return memoizedGetRemotesFromPath(repository.path)
+}
+
+/**
+ * List the remotes, sorted alphabetically by `name`, for a repository path.
+ */
+export async function getRemotesFromPath(
+  path: string
+): Promise<ReadonlyArray<IRemote>> {
+  const result = await git(['remote', '-v'], path, 'getRemotes', {
     expectedErrors: new Set([GitError.NotAGitRepository]),
   })
 
@@ -24,6 +33,7 @@ export async function getRemotes(
     ([, name, url]) => ({ name, url })
   )
 }
+export const memoizedGetRemotesFromPath = memoizeOne(getRemotesFromPath)
 
 /** Add a new remote with the given URL. */
 export async function addRemote(

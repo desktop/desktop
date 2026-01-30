@@ -52,8 +52,8 @@ interface IRepositoriesListProps {
   /** Called when the repository should be shown in Finder/Explorer/File Manager. */
   readonly onShowRepository: (repository: Repositoryish) => void
 
-  /** Called when the repository should be opened on GitHub in the default web browser. */
-  readonly onViewOnGitHub: (repository: Repositoryish) => void
+  /** Called when the repository should be opened in the default web browser. */
+  readonly onViewInBrowser: (repository: Repositoryish) => void
 
   /** Called when the repository should be shown in the shell. */
   readonly onOpenInShell: (repository: Repositoryish) => void
@@ -296,7 +296,7 @@ export class RepositoriesList extends React.Component<
       externalEditorLabel: this.props.externalEditorLabel,
       onChangeRepositoryAlias: this.onChangeRepositoryAlias,
       onRemoveRepositoryAlias: this.onRemoveRepositoryAlias,
-      onViewOnGitHub: this.props.onViewOnGitHub,
+      onViewInBrowser: this.props.onViewInBrowser,
       repository: item.repository,
       shellLabel: this.props.shellLabel,
     })
