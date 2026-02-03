@@ -13,14 +13,17 @@ export function renderDefaultBranch(
   currentBranch: Branch | null,
   authorDate: Date | undefined,
   onDropOntoBranch?: (branchName: string) => void,
-  onDropOntoCurrentBranch?: () => void
+  onDropOntoCurrentBranch?: () => void,
+  staleBranchNames?: ReadonlySet<string>
 ): JSX.Element {
   const branch = item.branch
   const currentBranchName = currentBranch ? currentBranch.name : null
+  const isStale = staleBranchNames?.has(branch.name) ?? false
   return (
     <BranchListItem
       name={branch.name}
       isCurrentBranch={branch.name === currentBranchName}
+      isStale={isStale}
       authorDate={authorDate}
       matches={matches}
       onDropOntoBranch={onDropOntoBranch}

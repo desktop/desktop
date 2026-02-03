@@ -61,6 +61,9 @@ interface IBranchesContainerProps {
   readonly emoji: Map<string, Emoji>
 
   readonly underlineLinks: boolean
+
+  /** Names of branches whose upstream tracking branch no longer exists */
+  readonly staleBranchNames: ReadonlySet<string>
 }
 
 interface IBranchesContainerState {
@@ -228,7 +231,8 @@ export class BranchesContainer extends React.Component<
       this.props.currentBranch,
       authorDate,
       this.onDropOntoBranch,
-      this.onDropOntoCurrentBranch
+      this.onDropOntoCurrentBranch,
+      this.props.staleBranchNames
     )
   }
 

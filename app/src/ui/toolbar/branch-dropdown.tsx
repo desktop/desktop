@@ -98,6 +98,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
 
     const tip = repositoryState.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
+
     return (
       <BranchesContainer
         allBranches={branchesState.allBranches}
@@ -114,6 +115,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         onDeleteBranch={this.onDeleteBranch}
         onRenameBranch={this.onRenameBranch}
         underlineLinks={this.props.underlineLinks}
+        staleBranchNames={branchesState.staleBranchNames}
       />
     )
   }

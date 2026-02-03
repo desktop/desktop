@@ -211,6 +211,21 @@
       text-align: right;
       white-space: nowrap;
     }
+
+    .icon-container {
+      display: flex;
+      align-items: center;
+    }
+
+    &.stale {
+      .name {
+        color: var(--text-secondary-color);
+      }
+
+      .icon {
+        color: var(--text-secondary-color);
+      }
+    }
   }
 }
 

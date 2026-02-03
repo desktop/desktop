@@ -333,6 +333,7 @@ function getInitialRepositoryState(): IRepositoryState {
       defaultBranch: null,
       upstreamDefaultBranch: null,
       allBranches: new Array<Branch>(),
+      staleBranchNames: new Set<string>(),
       recentBranches: new Array<Branch>(),
       openPullRequests: new Array<PullRequest>(),
       currentPullRequest: null,

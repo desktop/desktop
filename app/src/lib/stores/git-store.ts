@@ -131,6 +131,8 @@ export class GitStore extends BaseStore {
 
   private _allBranches: ReadonlyArray<Branch> = []
 
+  private _staleBranchNames: ReadonlySet<string> = new Set()
+
   private _recentBranches: ReadonlyArray<Branch> = []
 
   private _localCommitSHAs: ReadonlyArray<string> = []
@@ -399,6 +401,8 @@ export class GitStore extends BaseStore {
       return
     }
 
+    this._staleBranchNames =
+      this.computeStaleBranchNames(localAndRemoteBranches)
     this._allBranches = this.mergeRemoteAndLocalBranches(localAndRemoteBranches)
 
     // refreshRecentBranches is dependent on having a default branch
@@ -408,6 +412,36 @@ export class GitStore extends BaseStore {
     await this.checkPullWithRebase()
 
     this.emitUpdate()
+  }
+
+  /**
+   * Computes the set of local branch names whose upstream tracking branch
+   * no longer exists on the remote.
+   */
+  private computeStaleBranchNames(
+    branches: ReadonlyArray<Branch>
+  ): ReadonlySet<string> {
+    // Build a set of all remote branch names
+    const remoteBranchNames = new Set<string>()
+    for (const branch of branches) {
+      if (branch.type === BranchType.Remote) {
+        remoteBranchNames.add(branch.name)
+      }
+    }
+
+    // Find local branches whose upstream no longer exists
+    const staleBranchNames = new Set<string>()
+    for (const branch of branches) {
+      if (
+        branch.type === BranchType.Local &&
+        branch.upstream !== null &&
+        !remoteBranchNames.has(branch.upstream)
+      ) {
+        staleBranchNames.add(branch.name)
+      }
+    }
+
+    return staleBranchNames
   }
 
   /**
@@ -587,6 +621,14 @@ export class GitStore extends BaseStore {
   /** All branches, including the current branch and the default branch. */
   public get allBranches(): ReadonlyArray<Branch> {
     return this._allBranches
+  }
+
+  /**
+   * Names of local branches whose upstream tracking branch no longer exists.
+   * These are branches that were tracking a remote branch that has been deleted.
+   */
+  public get staleBranchNames(): ReadonlySet<string> {
+    return this._staleBranchNames
   }
 
   /** The most recently checked out branches. */

@@ -19,6 +19,9 @@ interface IBranchListItemProps {
   /** Specifies whether this item is currently selected */
   readonly isCurrentBranch: boolean
 
+  /** Specifies whether the branch's upstream tracking branch no longer exists */
+  readonly isStale?: boolean
+
   /** The characters in the branch name to highlight */
   readonly matches: IMatches
 
@@ -91,11 +94,16 @@ export class BranchListItem extends React.Component<
   }
 
   public render() {
-    const { authorDate, isCurrentBranch, name } = this.props
+    const { authorDate, isCurrentBranch, isStale, name } = this.props
 
-    const icon = isCurrentBranch ? octicons.check : octicons.gitBranch
+    const icon = isCurrentBranch
+      ? octicons.check
+      : isStale
+        ? octicons.unlink
+        : octicons.gitBranch
     const className = classNames('branches-list-item', {
       'drop-target': this.state.isDragInProgress,
+      stale: isStale,
     })
 
     return (
@@ -110,7 +118,13 @@ export class BranchListItem extends React.Component<
         onMouseLeave={this.onMouseLeave}
         onMouseUp={this.onMouseUp}
       >
-        <Octicon className="icon" symbol={icon} />
+        <TooltippedContent
+          className="icon-container"
+          tooltip={isStale ? "Remote tracking branch no longer exists" : undefined}
+          tagName="span"
+        >
+          <Octicon className="icon" symbol={icon} />
+        </TooltippedContent>
         <TooltippedContent
           className="name"
           tooltip={name}

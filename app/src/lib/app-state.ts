@@ -638,6 +638,12 @@ export interface IBranchesState {
   readonly allBranches: ReadonlyArray<Branch>
 
   /**
+   * Names of local branches whose upstream tracking branch no longer exists.
+   * These are branches that were tracking a remote branch that has been deleted.
+   */
+  readonly staleBranchNames: ReadonlySet<string>
+
+  /**
    * A list of zero to a few (at time of writing 5 but check loadRecentBranches
    * in git-store for definitive answer) branches that have been checked out
    * recently. This list is compiled by reading the reflog and tracking branch
