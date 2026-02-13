@@ -1,0 +1,31 @@
+{
+  "fill": "automatic",
+  "groups": [
+    {
+      "layers": [
+        {
+          "name": "icon-logo",
+          "image-name-specializations": [
+            {
+              "value": "icon-logo.png"
+            },
+            {
+              "appearance": "dark",
+              "value": "icon-logo-dark.png"
+            }
+          ],
+          "blend-mode-specializations": [
+            {
+              "appearance": "dark",
+              "value": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "supported-platforms": {
+    "circles": ["watchOS"],
+    "squares": "shared"
+  }
+}

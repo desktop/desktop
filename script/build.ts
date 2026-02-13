@@ -24,6 +24,11 @@ export interface ILicense {
   readonly hidden: boolean
 }
 
+interface IIconComposerAssets {
+  readonly assetsCarPath: string
+  readonly tempDir: string
+}
+
 import {
   getBundleID,
   getCompanyName,
@@ -43,6 +48,7 @@ import {
 import {
   cpSync,
   existsSync,
+  mkdtempSync,
   mkdirSync,
   readdirSync,
   readFileSync,
@@ -60,6 +66,7 @@ const projectRoot = path.join(__dirname, '..')
 const entitlementsSuffix = isDevelopmentBuild ? '-dev' : ''
 const entitlementsPath = `${projectRoot}/script/entitlements${entitlementsSuffix}.plist`
 const extendInfoPath = `${projectRoot}/script/info.plist`
+const iconComposerExtendInfoPath = `${projectRoot}/script/info-icon-composer.plist`
 const outRoot = path.join(projectRoot, 'out')
 
 console.log(`Building for ${getChannel()}…`)
@@ -162,13 +169,29 @@ function packageApp() {
     )
   }
 
+  const iconBasePath = path.join(
+    projectRoot,
+    'app',
+    'static',
+    'logos',
+    getIconFileName()
+  )
+  const iconComposerAssets =
+    process.platform === 'darwin' && !isDevelopmentBuild
+      ? buildIconComposerAssets(iconBasePath)
+      : undefined
+
   return packager({
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
     arch: toPackageArch(process.env.TARGET_ARCH),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
-    icon: path.join(projectRoot, 'app', 'static', 'logos', getIconFileName()),
+    icon: iconBasePath,
+    extraResource:
+      iconComposerAssets !== undefined
+        ? [iconComposerAssets.assetsCarPath]
+        : undefined,
     dir: outRoot,
     overwrite: true,
     tmpdir: false,
@@ -212,7 +235,10 @@ function packageApp() {
         ],
       },
     ],
-    extendInfo: extendInfoPath,
+    extendInfo:
+      iconComposerAssets !== undefined
+        ? iconComposerExtendInfoPath
+        : extendInfoPath,
 
     // Windows
     win32metadata: {
@@ -222,7 +248,80 @@ function packageApp() {
       ProductName: getProductName(),
       InternalName: getProductName(),
     },
+  }).finally(() => {
+    if (iconComposerAssets !== undefined) {
+      rmSync(iconComposerAssets.tempDir, { recursive: true, force: true })
+    }
   })
+}
+
+function buildIconComposerAssets(
+  iconBasePath: string
+): IIconComposerAssets | undefined {
+  const iconComposerDocumentPath = `${iconBasePath}.icon`
+  if (!existsSync(iconComposerDocumentPath)) {
+    return undefined
+  }
+  const iconComposerName = path.basename(iconComposerDocumentPath, '.icon')
+
+  console.log('Compiling Icon Composer asset catalog…')
+
+  const tempDir = mkdtempSync(path.join(os.tmpdir(), 'icon-composer-'))
+  const outputDir = path.join(tempDir, 'out')
+  const partialInfoPath = path.join(
+    outputDir,
+    'assetcatalog_generated_info.plist'
+  )
+  mkdirSync(outputDir, { recursive: true })
+
+  try {
+    cp.execFileSync(
+      'xcrun',
+      [
+        'actool',
+        iconComposerDocumentPath,
+        '--compile',
+        outputDir,
+        '--output-format',
+        'human-readable-text',
+        '--notices',
+        '--warnings',
+        '--output-partial-info-plist',
+        partialInfoPath,
+        '--app-icon',
+        iconComposerName,
+        '--include-all-app-icons',
+        '--enable-on-demand-resources',
+        'NO',
+        '--development-region',
+        'en',
+        '--target-device',
+        'mac',
+        '--minimum-deployment-target',
+        '26.0',
+        '--platform',
+        'macosx',
+      ],
+      { stdio: 'pipe' }
+    )
+  } catch {
+    console.warn(
+      `Unable to compile Icon Composer document at ${iconComposerDocumentPath}; falling back to .icns icon`
+    )
+    rmSync(tempDir, { recursive: true, force: true })
+    return undefined
+  }
+
+  const assetsCarPath = path.join(outputDir, 'Assets.car')
+  if (!existsSync(assetsCarPath)) {
+    console.warn(
+      `Icon Composer compile did not output Assets.car for ${iconComposerDocumentPath}; falling back to .icns icon`
+    )
+    rmSync(tempDir, { recursive: true, force: true })
+    return undefined
+  }
+
+  return { assetsCarPath, tempDir }
 }
 
 function removeAndCopy(source: string, destination: string) {
