@@ -107,6 +107,8 @@ interface IPreferencesProps {
   readonly customEditor: ICustomIntegration | null
   readonly useCustomShell: boolean
   readonly customShell: ICustomIntegration | null
+  readonly branchPresetScript: ICustomIntegration | null
+  readonly showWorktrees: boolean
   readonly repositoryIndicatorsEnabled: boolean
   readonly onEditGlobalGitConfig: () => void
   readonly underlineLinks: boolean
@@ -148,7 +150,7 @@ interface IPreferencesState {
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
-
+  readonly showWorktrees: boolean
   /**
    * If unable to save Git configuration values (name, email)
    * due to an existing configuration lock file this property
@@ -232,6 +234,7 @@ export class Preferences extends React.Component<
       selectedExternalEditor: this.props.selectedExternalEditor,
       availableShells: [],
       selectedShell: this.props.selectedShell,
+      showWorktrees: this.props.showWorktrees,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
       initiallySelectedTheme: this.props.selectedTheme,
       initiallySelectedTabSize: this.props.selectedTabSize,
@@ -586,6 +589,8 @@ export class Preferences extends React.Component<
               this.state.preferAbsoluteDates ?? getPreferAbsoluteDates()
             }
             onPreferAbsoluteDatesChanged={this.onPreferAbsoluteDatesChanged}
+            showWorktrees={this.state.showWorktrees}
+            onShowWorktreesChanged={this.onShowWorktreesChanged}
           />
         )
         break
@@ -856,6 +861,9 @@ export class Preferences extends React.Component<
     this.props.dispatcher.setSelectedTabSize(tabSize)
   }
 
+  private onShowWorktreesChanged = (showWorktrees: boolean) => {
+    this.setState({ showWorktrees })
+  }
   private renderFooter() {
     const hasDisabledError = this.state.disallowedCharactersMessage != null
 
@@ -912,6 +920,9 @@ export class Preferences extends React.Component<
         )
       }
 
+      if (this.state.showWorktrees !== this.props.showWorktrees) {
+        dispatcher.setShowWorktrees(this.state.showWorktrees)
+      }
       if (this.state.hooksPreferencesDirty) {
         if (this.state.enableGitHookEnv !== undefined) {
           setHooksEnvEnabled(this.state.enableGitHookEnv)

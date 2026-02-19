@@ -1,0 +1,71 @@
+@import '../mixins';
+
+.worktree-list {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+
+  .worktrees-list-item {
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    flex-grow: 1;
+    padding: 0 var(--spacing);
+
+    .icon {
+      margin-right: var(--spacing-half);
+      width: 16px; // Force a consistent width
+      flex-shrink: 0;
+      color: var(--text-secondary-color);
+    }
+
+    &.current-worktree .icon {
+      color: var(--text-color);
+    }
+
+    .name {
+      flex-grow: 2;
+      @include ellipsis;
+      max-width: 65%;
+      margin-right: var(--spacing-half);
+
+      /* Used to highlight substring matches in filtered lists */
+      mark {
+        font-weight: bold;
+        /* Reset browser defaults */
+        background-color: inherit;
+        color: currentColor;
+      }
+    }
+
+    .description {
+      margin-right: var(--spacing-half);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+      flex-grow: 1;
+      text-align: right;
+      white-space: nowrap;
+      @include ellipsis;
+    }
+  }
+
+  .new-worktree-button {
+    flex-shrink: 0;
+  }
+
+  .no-items-found {
+    padding: var(--spacing);
+    text-align: center;
+    color: var(--text-secondary-color);
+  }
+
+  .filter-list-group-header {
+    @include ellipsis;
+    padding: 0 var(--spacing);
+    font-weight: var(--font-weight-semibold);
+  }
+}

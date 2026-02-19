@@ -36,11 +36,15 @@ interface IAppearanceProps {
   readonly onSelectedNumberFormatChanged: (format: INumberFormat) => void
   readonly preferAbsoluteDates: boolean
   readonly onPreferAbsoluteDatesChanged: (value: boolean) => void
+  readonly showWorktrees: boolean
+  readonly onShowWorktreesChanged: (show: boolean) => void
 }
 
 interface IAppearanceState {
   readonly selectedTheme: ApplicationTheme | null
   readonly selectedTabSize: number
+  readonly showWorktrees: boolean
+}
 }
 
 export class Appearance extends React.Component<
@@ -57,6 +61,7 @@ export class Appearance extends React.Component<
     this.state = {
       selectedTheme: usePropTheme ? props.selectedTheme : null,
       selectedTabSize: props.selectedTabSize,
+      showWorktrees: props.showWorktrees,
     }
 
     if (!usePropTheme) {
@@ -90,6 +95,14 @@ export class Appearance extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.onSelectedThemeChanged(theme)
+  }
+
+  private onShowWorktreesChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const show = event.currentTarget.checked
+    this.setState({ showWorktrees: show })
+    this.props.onShowWorktreesChanged(show)
   }
 
   private onSelectedTabSizeChanged = (
@@ -261,6 +274,22 @@ export class Appearance extends React.Component<
     )
   }
 
+  private renderWorktreeVisibility() {
+    return (
+      <div className="advanced-section">
+        <h2 id="worktree-heading">{'Worktrees'}</h2>
+
+        <Checkbox
+          label="Show worktrees dropdown in toolbar"
+          value={
+            this.state.showWorktrees ? CheckboxValue.On : CheckboxValue.Off
+          }
+          onChange={this.onShowWorktreesChanged}
+        />
+      </div>
+    )
+  }
+
   private renderSelectedTabSize() {
     const availableTabSizes: number[] = [1, 2, 3, 4, 5, 6, 8, 10, 12]
 
@@ -288,6 +317,7 @@ export class Appearance extends React.Component<
       <DialogContent>
         {this.renderSelectedTheme()}
         {this.renderFormatting()}
+        {this.renderWorktreeVisibility()}
         {this.renderSelectedTabSize()}
       </DialogContent>
     )

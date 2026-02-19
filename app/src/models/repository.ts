@@ -8,6 +8,7 @@ import {
 } from './workflow-preferences'
 import { assertNever, fatalError } from '../lib/fatal-error'
 import { createEqualityHash } from './equality-hash'
+import { isLinkedWorktreeSync } from '../lib/git/worktree'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -41,6 +42,8 @@ export class Repository {
    * Objects with the same hash are guaranteed to be structurally equal.
    */
   public hash: string
+
+  private _isLinkedWorktree: boolean | undefined = undefined
 
   /**
    * @param path The working directory of this repository
@@ -76,6 +79,13 @@ export class Repository {
 
   public get path(): string {
     return this.mainWorkTree.path
+  }
+
+  public get isLinkedWorktree(): boolean {
+    if (this._isLinkedWorktree === undefined) {
+      this._isLinkedWorktree = isLinkedWorktreeSync(this.path)
+    }
+    return this._isLinkedWorktree
   }
 }
 

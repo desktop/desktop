@@ -107,6 +107,9 @@ export enum PopupType {
   GenerateCommitMessageDisclaimer = 'GenerateCommitMessageDisclaimer',
   HookFailed = 'HookFailed',
   CommitProgress = 'CommitProgress',
+  AddWorktree = 'AddWorktree',
+  RenameWorktree = 'RenameWorktree',
+  DeleteWorktree = 'DeleteWorktree',
 }
 
 interface IBasePopup {
@@ -478,5 +481,19 @@ export type PopupDetail =
   | {
       type: PopupType.CommitProgress
       subscribeToCommitOutput: TerminalOutputListener
+    }
+  | {
+      type: PopupType.AddWorktree
+      repository: Repository
+    }
+  | {
+      type: PopupType.RenameWorktree
+      repository: Repository
+      worktreePath: string
+    }
+  | {
+      type: PopupType.DeleteWorktree
+      repository: Repository
+      worktreePath: string
     }
 export type Popup = IBasePopup & PopupDetail

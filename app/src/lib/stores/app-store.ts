@@ -391,6 +391,9 @@ const pullRequestFileListConfigKey: string = 'pull-request-files-width'
 const defaultBranchDropdownWidth: number = 230
 const branchDropdownWidthConfigKey: string = 'branch-dropdown-width'
 
+const defaultWorktreeDropdownWidth: number = 230
+const worktreeDropdownWidthConfigKey: string = 'worktree-dropdown-width'
+
 const defaultPushPullButtonWidth: number = 230
 const pushPullButtonWidthConfigKey: string = 'push-pull-button-width'
 
@@ -442,6 +445,7 @@ const tabSizeKey: string = 'tab-size'
 
 const shellKey = 'shell'
 
+const showWorktreesKey = 'show-worktrees'
 const repositoryIndicatorsEnabledKey = 'enable-repository-indicators'
 
 // background fetching should occur hourly when Desktop is active, but this
@@ -537,6 +541,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private stashedFilesWidth = constrain(defaultStashedFilesWidth)
   private pullRequestFileListWidth = constrain(defaultPullRequestFileListWidth)
   private branchDropdownWidth = constrain(defaultBranchDropdownWidth)
+  private worktreeDropdownWidth = constrain(defaultWorktreeDropdownWidth)
   private pushPullButtonWidth = constrain(defaultPushPullButtonWidth)
 
   private windowState: WindowState | null = null
@@ -598,6 +603,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedTheme = ApplicationTheme.System
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
   private selectedTabSize = tabSizeDefault
+  private showWorktrees: boolean = false
 
   private useWindowsOpenSSH: boolean = false
 
@@ -708,6 +714,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryIndicatorsEnabled =
       getBoolean(repositoryIndicatorsEnabledKey) ?? true
 
+    this.showWorktrees = getBoolean(showWorktreesKey) ?? false
     this.repositoryIndicatorUpdater = new RepositoryIndicatorUpdater(
       this.getRepositoriesForIndicatorRefresh,
       this.refreshIndicatorForRepository
@@ -1088,6 +1095,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       emoji: this.emoji,
       sidebarWidth: this.sidebarWidth,
       branchDropdownWidth: this.branchDropdownWidth,
+      worktreeDropdownWidth: this.worktreeDropdownWidth,
       pushPullButtonWidth: this.pushPullButtonWidth,
       commitSummaryWidth: this.commitSummaryWidth,
       stashedFilesWidth: this.stashedFilesWidth,
@@ -1128,6 +1136,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedTheme: this.selectedTheme,
       currentTheme: this.currentTheme,
       selectedTabSize: this.selectedTabSize,
+      showWorktrees: this.showWorktrees,
       apiRepositories: this.apiRepositoriesStore.getState(),
       useWindowsOpenSSH: this.useWindowsOpenSSH,
       showCommitLengthWarning: this.showCommitLengthWarning,
@@ -2246,6 +2255,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.branchDropdownWidth = constrain(
       getNumber(branchDropdownWidthConfigKey, defaultBranchDropdownWidth)
     )
+    this.worktreeDropdownWidth = constrain(
+      getNumber(worktreeDropdownWidthConfigKey, defaultWorktreeDropdownWidth)
+    )
     this.pushPullButtonWidth = constrain(
       getNumber(pushPullButtonWidthConfigKey, defaultPushPullButtonWidth)
     )
@@ -2434,12 +2446,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * dimensions change.
    */
   private updateResizableConstraints() {
-    // The combined width of the branch dropdown and the push/pull/fetch button
+    // The combined width of the toolbar buttons (worktree, branch, push/pull).
     // Since the repository list toolbar button width is tied to the width of
-    // the sidebar we can't let it push the branch, and push/pull/fetch button
-    // off screen.
+    // the sidebar we can't let it push these buttons off screen.
     const toolbarButtonsMinWidth =
-      defaultPushPullButtonWidth + defaultBranchDropdownWidth
+      defaultPushPullButtonWidth +
+      defaultBranchDropdownWidth +
+      defaultWorktreeDropdownWidth
 
     // Start with all the available width
     let available = window.innerWidth
@@ -2476,16 +2489,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.commitSummaryWidth = constrain(this.commitSummaryWidth, 100, filesMax)
     this.stashedFilesWidth = constrain(this.stashedFilesWidth, 100, filesMax)
 
-    // Update the maximum width available for the branch dropdown resizable.
-    // The branch dropdown can only be as wide as the available space after
-    // taking the sidebar and pull/push/fetch button widths. If the room
-    // available is less than the default width, we will split the difference
-    // between the branch dropdown and the push/pull/fetch button so they stay
-    // visible on the most zoomed view.
-    const branchDropdownMax = available - defaultPushPullButtonWidth
+    // Allocate branch first (highest priority), then worktree, then
+    // push-pull. Each subsequent allocation uses the clamped value of the
+    // previous to prevent the total from exceeding the available space.
+    const branchDropdownMax =
+      available - defaultWorktreeDropdownWidth - defaultPushPullButtonWidth
     const minimumBranchDropdownWidth =
-      defaultBranchDropdownWidth > available / 2
-        ? available / 2 - 10 // 10 is to give a little bit of space to see the fetch dropdown button
+      defaultBranchDropdownWidth > available / 3
+        ? available / 3 - 10
         : defaultBranchDropdownWidth
     this.branchDropdownWidth = constrain(
       this.branchDropdownWidth,
@@ -2493,10 +2504,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
       branchDropdownMax
     )
 
-    const pushPullButtonMaxWidth = available - this.branchDropdownWidth.value
+    const worktreeDropdownMax =
+      available - clamp(this.branchDropdownWidth) - defaultPushPullButtonWidth
+    const minimumWorktreeDropdownWidth =
+      defaultWorktreeDropdownWidth > available / 3
+        ? available / 3 - 10
+        : defaultWorktreeDropdownWidth
+    this.worktreeDropdownWidth = constrain(
+      this.worktreeDropdownWidth,
+      minimumWorktreeDropdownWidth,
+      worktreeDropdownMax
+    )
+
+    const pushPullButtonMaxWidth =
+      available -
+      clamp(this.branchDropdownWidth) -
+      clamp(this.worktreeDropdownWidth)
     const minimumPushPullToolBarWidth =
-      defaultPushPullButtonWidth > available / 2
-        ? available / 2 + 30 // 30 to clip the fetch dropdown button in favor of seeing more of the words on the toolbar buttons
+      defaultPushPullButtonWidth > available / 3
+        ? available / 3
         : defaultPushPullButtonWidth
     this.pushPullButtonWidth = constrain(
       this.pushPullButtonWidth,
@@ -3855,7 +3881,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
   }
-
+  public _setShowWorktrees(showWorktrees: boolean) {
+    if (this.showWorktrees === showWorktrees) {
+      return
+    }
+    setBoolean(showWorktreesKey, showWorktrees)
+    this.showWorktrees = showWorktrees
+    this.emitUpdate()
+  }
   public _setCommitSpellcheckEnabled(commitSpellcheckEnabled: boolean) {
     if (this.commitSpellcheckEnabled === commitSpellcheckEnabled) {
       return
@@ -5558,6 +5591,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
       value: defaultBranchDropdownWidth,
     }
     localStorage.removeItem(branchDropdownWidthConfigKey)
+    this.updateResizableConstraints()
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setWorktreeDropdownWidth(width: number): Promise<void> {
+    this.worktreeDropdownWidth = {
+      ...this.worktreeDropdownWidth,
+      value: width,
+    }
+    setNumber(worktreeDropdownWidthConfigKey, width)
+    this.updateResizableConstraints()
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _resetWorktreeDropdownWidth(): Promise<void> {
+    this.worktreeDropdownWidth = {
+      ...this.worktreeDropdownWidth,
+      value: defaultWorktreeDropdownWidth,
+    }
+    localStorage.removeItem(worktreeDropdownWidthConfigKey)
     this.updateResizableConstraints()
     this.emitUpdate()
 

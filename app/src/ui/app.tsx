@@ -54,6 +54,7 @@ import {
   DropdownState,
   PushPullButton,
   BranchDropdown,
+  WorktreeDropdown,
   RevertProgress,
 } from './toolbar'
 import { iconForRepository, OcticonSymbol } from './octicons'
@@ -202,6 +203,9 @@ import {
 } from './secret-scanning/bypass-push-protection-dialog'
 import { HookFailed } from './hook-failed/hook-failed'
 import { CommitProgress } from './commit-progress/commit-progress'
+import { AddWorktreeDialog } from './worktrees/add-worktree-dialog'
+import { RenameWorktreeDialog } from './worktrees/rename-worktree-dialog'
+import { DeleteWorktreeDialog } from './worktrees/delete-worktree-dialog'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -449,6 +453,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showCreateBranch()
       case 'show-branches':
         return this.showBranches()
+      case 'show-worktrees':
+        return this.showWorktrees()
       case 'remove-repository':
         return this.removeRepository(this.getRepository())
       case 'create-repository':
@@ -933,6 +939,22 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     return this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+  }
+
+  private showWorktrees() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    if (
+      this.state.currentFoldout &&
+      this.state.currentFoldout.type === FoldoutType.Worktree
+    ) {
+      return this.props.dispatcher.closeFoldout(FoldoutType.Worktree)
+    }
+
+    return this.props.dispatcher.showFoldout({ type: FoldoutType.Worktree })
   }
 
   private push(options?: { forceWithLease: boolean }) {
@@ -1595,6 +1617,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             customEditor={this.state.customEditor}
             useCustomShell={this.state.useCustomShell}
             customShell={this.state.customShell}
+            branchPresetScript={this.state.branchPresetScript}
+            showWorktrees={this.state.showWorktrees}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             onEditGlobalGitConfig={this.editGlobalGitConfig}
             underlineLinks={this.state.underlineLinks}
@@ -2617,6 +2641,38 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.AddWorktree: {
+        return (
+          <AddWorktreeDialog
+            key="add-worktree"
+            repository={popup.repository}
+            dispatcher={this.props.dispatcher}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.RenameWorktree: {
+        return (
+          <RenameWorktreeDialog
+            key="rename-worktree"
+            repository={popup.repository}
+            worktreePath={popup.worktreePath}
+            dispatcher={this.props.dispatcher}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.DeleteWorktree: {
+        return (
+          <DeleteWorktreeDialog
+            key="delete-worktree"
+            repository={popup.repository}
+            worktreePath={popup.worktreePath}
+            dispatcher={this.props.dispatcher}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -2926,13 +2982,16 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const { useCustomShell, selectedShell } = this.state
     const filterText = this.state.repositoryFilterText
+    const repositories = this.state.repositories.filter(
+      r => !(r instanceof Repository && r.isLinkedWorktree)
+    )
     return (
       <RepositoriesList
         filterText={filterText}
         onFilterTextChanged={this.onRepositoryFilterTextChanged}
         selectedRepository={selectedRepository}
         onSelectionChanged={this.onSelectionChanged}
-        repositories={this.state.repositories}
+        repositories={repositories}
         recentRepositories={this.state.recentRepositories}
         localRepositoryStateLookup={this.state.localRepositoryStateLookup}
         askForConfirmationOnRemoveRepository={
@@ -3293,6 +3352,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private onWorktreeDropdownStateChanged = (newState: DropdownState) => {
+    if (newState === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Worktree })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.Worktree)
+    }
+  }
+
   private renderBranchToolbarButton(): JSX.Element | null {
     const selection = this.state.selectedState
 
@@ -3332,6 +3399,39 @@ export class App extends React.Component<IAppProps, IAppState> {
         emoji={this.state.emoji}
         enableFocusTrap={enableFocusTrap}
         underlineLinks={this.state.underlineLinks}
+      />
+    )
+  }
+
+  private renderWorktreeToolbarButton(): JSX.Element | null {
+    const selection = this.state.selectedState
+
+    if (selection == null || selection.type !== SelectionType.Repository) {
+      return null
+    }
+
+    if (!this.state.showWorktrees) {
+      return null
+    }
+
+    const currentFoldout = this.state.currentFoldout
+
+    const isOpen =
+      currentFoldout !== null && currentFoldout.type === FoldoutType.Worktree
+
+    const repository = selection.repository
+
+    const enableFocusTrap = this.state.currentPopup === null
+
+    return (
+      <WorktreeDropdown
+        dispatcher={this.props.dispatcher}
+        repository={repository}
+        isOpen={isOpen}
+        onDropDownStateChanged={this.onWorktreeDropdownStateChanged}
+        enableFocusTrap={enableFocusTrap}
+        repositories={this.state.repositories}
+        worktreeDropdownWidth={this.state.worktreeDropdownWidth}
       />
     )
   }
@@ -3413,6 +3513,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}
+        {this.renderWorktreeToolbarButton()}
         {this.renderPushPullToolbarButton()}
       </Toolbar>
     )

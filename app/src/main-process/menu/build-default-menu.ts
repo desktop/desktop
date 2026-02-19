@@ -198,6 +198,12 @@ export function buildDefaultMenu({
         accelerator: 'CmdOrCtrl+B',
         click: emit('show-branches'),
       },
+      {
+        label: __DARWIN__ ? 'Show Worktrees List' : '&Worktrees list',
+        id: 'show-worktrees-list',
+        accelerator: 'CmdOrCtrl+E',
+        click: emit('show-worktrees'),
+      },
       separator,
       {
         label: __DARWIN__ ? 'Go to Summary' : 'Go to &Summary',
@@ -614,7 +620,7 @@ function getStashedChangesLabel(isStashedChangesVisible: boolean): string {
     return __DARWIN__ ? 'Hide Stashed Changes' : 'H&ide stashed changes'
   }
 
-  return __DARWIN__ ? 'Show Stashed Changes' : 'Sho&w stashed changes'
+  return __DARWIN__ ? 'Show Stashed Changes' : 'Show stashed changes'
 }
 
 type ClickHandler = (
