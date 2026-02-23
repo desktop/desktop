@@ -21,6 +21,7 @@ export class PullRequestStore {
   protected readonly emitter = new Emitter()
   private readonly currentRefreshOperations = new Map<number, Promise<void>>()
   private readonly lastRefreshForRepository = new Map<number, number>()
+  private readonly lastFullSyncForRepository = new Map<number, boolean>()
 
   public constructor(
     private readonly db: PullRequestDatabase,
@@ -85,30 +86,70 @@ export class PullRequestStore {
     const api = API.fromAccount(account)
     const lastUpdatedAt = await this.db.getLastUpdated(repo)
 
-    // If we don't have a lastUpdatedAt that mean we haven't fetched any PRs
-    // for the repository yet which in turn means we only have to fetch the
-    // currently open PRs. If we have fetched before we get all PRs
-    // If we have a lastUpdatedAt that mean we have fetched PRs
-    // for the repository before. If we have fetched before we get all PRs
-    // that have been modified since the last time we fetched so that we
-    // can prune closed issues from our database. Note that since
-    // `api.fetchUpdatedPullRequests` returns all issues modified _at_ or
-    // after the timestamp we give it we will always get at least one issue
-    // back. See `storePullRequests` for details on how that's handled.
-    if (!lastUpdatedAt) {
+    if (!lastUpdatedAt || !this.lastFullSyncForRepository.has(repo.dbID)) {
       return this.fetchAndStoreOpenPullRequests(api, repo)
     } else {
       return this.fetchAndStoreUpdatedPullRequests(api, repo, lastUpdatedAt)
     }
   }
 
+  /**
+   * Fetches all open pull requests for a repository and stores them in the store.
+   *
+   * This method retrieves open pull requests from the GitHub API, removes any stale
+   * or deleted pull requests, stores the updated list, and notifies listeners of changes.
+   * The last sync timestamp is only updated after all operations complete successfully
+   * to ensure failures trigger a retry.
+   */
   private async fetchAndStoreOpenPullRequests(
     api: API,
     repository: GitHubRepository
   ) {
     const { name, owner } = getNameWithOwner(repository)
     const open = await api.fetchAllOpenPullRequests(owner, name)
-    await this.storePullRequestsAndEmitUpdate(open, repository)
+    const pruned = await this.pruneDeletedPullRequests(open, repository)
+
+    if (open.length === 0 && pruned) {
+      // there is nothing to store but since stale PRs were removed, notify listeners
+      this.emitPullRequestsChanged(repository, [])
+    } else {
+      await this.storePullRequestsAndEmitUpdate(open, repository)
+    }
+
+    // mark success only after everything succeeds, so a failure causes a retry
+    this.lastFullSyncForRepository.set(repository.dbID, true)
+  }
+
+  /**
+   * Compares the set of open PRs returned by the API against what we have
+   * stored in the database and deletes any records that are no longer present
+   * in the API response. This handles the case where GitHub silently removes
+   * a PR (e.g., when a user is banned and their PRs are deleted by GitHub
+   * support), which would otherwise leave stale records in our database
+   * indefinitely since they never come back as "closed".
+   *
+   * Returns true if any stale PRs were deleted, false otherwise.
+   */
+  private async pruneDeletedPullRequests(
+    pullRequestsFromAPI: ReadonlyArray<IAPIPullRequest>,
+    repository: GitHubRepository
+  ): Promise<boolean> {
+    const existingPRs = await this.db.getAllPullRequestsInRepository(repository)
+    if (existingPRs.length === 0) {
+      return false
+    }
+
+    const apiPRNumbers = new Set(pullRequestsFromAPI.map(pr => pr.number))
+    const staleKeys: PullRequestKey[] = existingPRs
+      .filter(pr => !apiPRNumbers.has(pr.number))
+      .map(pr => [repository.dbID, pr.number] as PullRequestKey)
+
+    if (staleKeys.length > 0) {
+      await this.db.deletePullRequests(staleKeys)
+      return true
+    }
+
+    return false
   }
 
   private async fetchAndStoreUpdatedPullRequests(
