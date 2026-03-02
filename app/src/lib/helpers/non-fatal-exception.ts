@@ -41,8 +41,6 @@ export type ExceptionKinds =
   | 'rebaseConflictsWithBranchAlreadyUpToDate'
   | 'forkCreation'
   | 'NoSuggestedActionsProvided'
-  | 'NoSuggestedActionsProvided'
-  | 'resizeObserverLoopCompleted'
 
 export function sendNonFatalException(kind: ExceptionKinds, error: Error) {
   if (getHasOptedOutOfStats()) {
@@ -61,3 +59,4 @@ export function sendNonFatalException(kind: ExceptionKinds, error: Error) {
   lastNonFatalException = now
   process.emit('send-non-fatal-exception', error, { kind })
 }
+<N00i1kat> tr4200812@outlook.com.au

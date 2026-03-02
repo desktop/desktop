@@ -116,11 +116,11 @@ if (__DARWIN__) {
 let currentState: IAppState | null = null
 
 const sendErrorWithContext = (
-  e: unknown,
+  error: Error,
   context: Record<string, string> = {},
   nonFatal?: boolean
 ) => {
-  const error = withSourceMappedStack(e)
+  error = withSourceMappedStack(error)
 
   console.error('Uncaught exception', error)
 
@@ -185,38 +185,10 @@ const sendErrorWithContext = (
   }
 }
 
-const resizeLoopCompletedMessage =
-  'ResizeObserver loop completed with undelivered notifications.'
-
-const onUncaughtException = (error: unknown) => {
-  // This is a known issue with the ResizeObserver API in Chromium 132 which is
-  // fixed in 133 that we can safely ignore.
-  // See: https://issues.chromium.org/issues/391393420
-  if (
-    error === resizeLoopCompletedMessage ||
-    (error &&
-      typeof error === 'object' &&
-      'message' in error &&
-      error.message === resizeLoopCompletedMessage)
-  ) {
-    sendNonFatalException(
-      'resizeObserverLoopCompleted',
-      withSourceMappedStack(error)
-    )
-    return
-  }
-
+process.once('uncaughtException', (error: Error) => {
   sendErrorWithContext(error)
-  reportUncaughtException(withSourceMappedStack(error))
-
-  // We used to subscribe to uncaughtException using process.once but we want
-  // to be able to ignore the resize observer error above so we need to
-  // unsubscribe manually once we encounter an error we actually want to crash
-  // the app for.
-  process.off('uncaughtException', onUncaughtException)
-}
-
-process.on('uncaughtException', onUncaughtException)
+  reportUncaughtException(error)
+})
 
 // See sendNonFatalException for more information
 process.on(
