@@ -1149,9 +1149,16 @@ export class Dispatcher {
     repository: Repository,
     branch: Branch,
     mergeStatus: MergeTreeResult | null,
-    isSquash: boolean = false
+    isSquash: boolean = false,
+    commitContext?: ICommitContext
   ): Promise<void> {
-    return this.appStore._mergeBranch(repository, branch, mergeStatus, isSquash)
+    return this.appStore._mergeBranch(
+      repository,
+      branch,
+      mergeStatus,
+      isSquash,
+      commitContext
+    )
   }
 
   /**

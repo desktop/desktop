@@ -13,6 +13,7 @@ import {
   canStartOperation,
 } from './base-choose-branch-dialog'
 import { truncateWithEllipsis } from '../../../lib/truncate-with-ellipsis'
+import { ICommitContext } from '../../../models/commit'
 
 interface IMergeChooseBranchDialogState {
   readonly commitCount: number
@@ -45,13 +46,33 @@ export class MergeChooseBranchDialog extends React.Component<
       return
     }
 
-    dispatcher.mergeBranch(
-      repository,
-      selectedBranch,
-      mergeStatus,
-      operation === MultiCommitOperationKind.Squash
-    )
+    const isSquash = operation === MultiCommitOperationKind.Squash
 
+    if (isSquash) {
+      dispatcher.closePopup(PopupType.MultiCommitOperation)
+      dispatcher.showPopup({
+        type: PopupType.CommitMessage,
+        repository,
+        coAuthors: [],
+        showCoAuthoredBy: false,
+        commitMessage: {
+          summary: `Squash merge ${selectedBranch.name}`,
+          description: null,
+          timestamp: Date.now(),
+        },
+        dialogTitle: __DARWIN__ ? 'Squash and Merge' : 'Squash and merge',
+        dialogButtonText: __DARWIN__ ? 'Squash and Merge' : 'Squash and merge',
+        prepopulateCommitSummary: true,
+        onSubmitCommitMessage: async (context: ICommitContext) => {
+          dispatcher.closePopup(PopupType.CommitMessage)
+          dispatcher.mergeBranch(repository, selectedBranch, mergeStatus, true, context)
+          return true
+        },
+      })
+      return
+    }
+
+    dispatcher.mergeBranch(repository, selectedBranch, mergeStatus, false)
     dispatcher.closePopup(PopupType.MultiCommitOperation)
   }
 

@@ -5737,7 +5737,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     sourceBranch: Branch,
     mergeStatus: MergeTreeResult | null,
-    isSquash: boolean = false
+    isSquash: boolean = false,
+    commitContext?: ICommitContext
   ): Promise<void> {
     const { multiCommitOperationState: opState } =
       this.repositoryStateCache.get(repository)
@@ -5774,8 +5775,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     let aborted = false
+    const commitMessage =
+      isSquash && commitContext
+        ? commitContext.description
+          ? `${commitContext.summary}\n\n${commitContext.description}`
+          : commitContext.summary
+        : undefined
     const mergeResult = await gitStore.merge(sourceBranch, {
       squash: isSquash,
+      commitMessage,
       onHookFailure: this.onHookFailure(() => (aborted = true)),
     })
 

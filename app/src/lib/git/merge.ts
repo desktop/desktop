@@ -25,6 +25,8 @@ export type MergeOptions = {
   readonly squash?: boolean
   /** Whether to bypass pre-merge and post-merge hooks */
   readonly noVerify?: boolean
+  /** Optional commit message to use for the squash merge commit */
+  readonly commitMessage?: string
 } & HookCallbackOptions
 
 /** Merge the named branch into the current branch. */
@@ -64,8 +66,11 @@ export async function merge(
   }
 
   if (options?.squash) {
+    const commitArgs = options?.commitMessage
+      ? ['commit', '-m', options.commitMessage]
+      : ['commit', '--no-edit']
     const { exitCode } = await git(
-      ['commit', '--no-edit'],
+      commitArgs,
       repository.path,
       'createSquashMergeCommit',
       {
