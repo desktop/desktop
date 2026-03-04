@@ -296,12 +296,13 @@
         .octicon {
           height: 10px;
           flex-shrink: 0;
+          opacity: 0.6;
         }
       }
     }
   }
 
-  // ── Action bar ──
+  // ── Action bar ────────────────────────────
   .suggested-commit-list-actions {
     display: flex;
     gap: var(--spacing-half);
