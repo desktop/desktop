@@ -17,7 +17,10 @@ import {
   isGHES,
   updateEndpointVersion,
 } from './endpoint-capabilities'
-import { buildSmartSplitSystemPrompt } from './smart-commit-prompt'
+import {
+  buildSmartSplitSystemPrompt,
+  ICommitFormatConfig,
+} from './smart-commit-prompt'
 import {
   clearCertificateErrorSuppressionFor,
   suppressCertificateErrorFor,
@@ -2241,7 +2244,8 @@ export class API {
    */
   public async getDiffSmartCommitSuggestions(
     diff: string,
-    filePaths: ReadonlyArray<string>
+    filePaths: ReadonlyArray<string>,
+    formatConfig?: ICommitFormatConfig
   ): Promise<
     ReadonlyArray<{
       readonly summary: string
@@ -2249,7 +2253,7 @@ export class API {
       readonly files: ReadonlyArray<string>
     }>
   > {
-    const instructions = buildSmartSplitSystemPrompt(filePaths)
+    const instructions = buildSmartSplitSystemPrompt(filePaths, formatConfig)
     try {
       const response = await this.copilotChatRequest(
         instructions,

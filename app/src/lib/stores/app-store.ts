@@ -67,6 +67,7 @@ import {
   ICommitMessage,
 } from '../../models/commit-message'
 import { ICommitSuggestion } from '../../models/commit-suggestion'
+import { ICommitFormatConfig } from '../smart-commit-prompt'
 import {
   Progress,
   ICheckoutProgress,
@@ -5684,7 +5685,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See 'Dispatcher'. */
   public async _generateSmartCommitSuggestions(
     repository: Repository,
-    filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
+    filesSelected: ReadonlyArray<WorkingDirectoryFileChange>,
+    formatConfig?: ICommitFormatConfig
   ): Promise<boolean> {
     const repositoryAccount = getAccountForRepository(this.accounts, repository)
     const account =
@@ -5735,7 +5737,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       try {
         const suggestions = await api.getDiffSmartCommitSuggestions(
           diff,
-          filePaths
+          filePaths,
+          formatConfig
         )
 
         const mapped = suggestions.map(s => ({
