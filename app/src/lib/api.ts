@@ -2000,6 +2000,7 @@ export class API {
             },
           ],
           model: 'gpt-4o',
+          temperature: 0.1,
           stream: false,
           response_format: {
             type: 'json_object',
