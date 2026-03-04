@@ -99,37 +99,9 @@
   // ── Format configuration panel ──
   .smart-split-format-panel {
     .format-template-input {
+      @include textboxish;
       width: 100%;
-      font-size: var(--font-size-sm);
-      font-family: var(--font-family-monospace);
-      padding: var(--spacing-half);
-      border: var(--base-border);
-      border-radius: var(--border-radius);
-      background-color: var(--box-alt-background-color);
-      color: var(--text-color);
-      resize: none;
-      min-height: 28px;
-      line-height: 1.4;
       box-sizing: border-box;
-
-      &::placeholder {
-        color: var(--text-secondary-color);
-        opacity: 0.6;
-        font-family: var(--font-family-sans-serif);
-        font-style: italic;
-        font-size: var(--font-size-xs, 11px);
-      }
-
-      &:focus {
-        border-color: var(--focus-color);
-        outline: none;
-        background-color: var(--box-background-color);
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: default;
-      }
     }
   }
 

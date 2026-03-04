@@ -195,7 +195,7 @@ export class SuggestedCommitList extends React.Component<
   }
 
   private onFormatTemplateChanged = (
-    e: React.ChangeEvent<HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = e.currentTarget.value
     this.setState({ formatTemplate: value })
@@ -221,13 +221,13 @@ export class SuggestedCommitList extends React.Component<
 
     return (
       <div className="smart-split-format-panel">
-        <textarea
+        <input
           className="format-template-input"
+          type="text"
           value={this.state.formatTemplate}
           onChange={this.onFormatTemplateChanged}
           disabled={isBusy}
-          placeholder="type(scope) : description"
-          rows={1}
+          placeholder="Commit format"
           spellCheck={false}
         />
       </div>
