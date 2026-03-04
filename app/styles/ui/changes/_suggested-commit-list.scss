@@ -159,14 +159,33 @@
         input {
           width: 100%;
           font-weight: 600;
+          border-color: transparent;
+          background: transparent;
+
+          &:hover:not(:disabled):not(:focus) {
+            border-color: var(--box-border-color);
+          }
+
+          &:focus {
+            border-color: var(--focus-color);
+            background: var(--box-background-color);
+            box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+          }
+
+          &:disabled {
+            cursor: default;
+          }
         }
       }
 
+      // Reorder arrows — appear on card hover
       .suggested-commit-reorder {
         display: flex;
         flex-direction: column;
         flex-shrink: 0;
         gap: 1px;
+        opacity: 0;
+        transition: opacity 0.15s ease;
 
         .reorder-btn {
           display: flex;
