@@ -6,6 +6,7 @@ import { Loading } from '../lib/loading'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import { Repository } from '../../models/repository'
+import { TextBox } from '../lib/text-box'
 
 const FormatStorageKeyPrefix = 'smart-split-format-'
 
@@ -194,10 +195,7 @@ export class SuggestedCommitList extends React.Component<
     this.setState(prev => ({ formatPanelOpen: !prev.formatPanelOpen }))
   }
 
-  private onFormatTemplateChanged = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = e.currentTarget.value
+  private onFormatTemplateChanged = (value: string) => {
     this.setState({ formatTemplate: value })
     saveFormat(this.props.repository, {
       template: value,
@@ -221,14 +219,12 @@ export class SuggestedCommitList extends React.Component<
 
     return (
       <div className="smart-split-format-panel">
-        <input
+        <TextBox
           className="format-template-input"
-          type="text"
           value={this.state.formatTemplate}
-          onChange={this.onFormatTemplateChanged}
+          onValueChanged={this.onFormatTemplateChanged}
           disabled={isBusy}
           placeholder="Commit format"
-          spellCheck={false}
         />
       </div>
     )
