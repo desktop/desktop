@@ -29,7 +29,11 @@ export class SuggestedCommitList extends React.Component<
 > {
   public constructor(props: ISuggestedCommitListProps) {
     super(props)
-    this.state = { expandedIndex: -1 }
+    this.state = {
+      expandedIndex: -1,
+      editingSummaries: new Map(),
+      editingDescriptions: new Map(),
+    }
   }
 
   private onToggleEnabled = (index: number) => {
@@ -40,17 +44,65 @@ export class SuggestedCommitList extends React.Component<
   }
 
   private onSummaryChanged = (index: number, value: string) => {
-    const updated = this.props.suggestions.map((s, i) =>
-      i === index ? { ...s, summary: value } : s
-    )
-    this.props.onSuggestionsUpdated(updated)
+    this.setState(prev => {
+      const next = new Map(prev.editingSummaries)
+      next.set(index, value)
+      return { editingSummaries: next }
+    })
+  }
+
+  private onSummaryBlur = (index: number) => {
+    const localValue = this.state.editingSummaries.get(index)
+    if (localValue === undefined) {
+      return
+    }
+
+    // Clear local state first
+    this.setState(prev => {
+      const next = new Map(prev.editingSummaries)
+      next.delete(index)
+      return { editingSummaries: next }
+    })
+
+    // Flush to store
+    const suggestion = this.props.suggestions[index]
+    if (suggestion && suggestion.summary !== localValue) {
+      const updated = this.props.suggestions.map((s, i) =>
+        i === index ? { ...s, summary: localValue } : s
+      )
+      this.props.onSuggestionsUpdated(updated)
+    }
   }
 
   private onDescriptionChanged = (index: number, value: string) => {
-    const updated = this.props.suggestions.map((s, i) =>
-      i === index ? { ...s, description: value } : s
-    )
-    this.props.onSuggestionsUpdated(updated)
+    this.setState(prev => {
+      const next = new Map(prev.editingDescriptions)
+      next.set(index, value)
+      return { editingDescriptions: next }
+    })
+  }
+
+  private onDescriptionBlur = (index: number) => {
+    const localValue = this.state.editingDescriptions.get(index)
+    if (localValue === undefined) {
+      return
+    }
+
+    // Clear local state first
+    this.setState(prev => {
+      const next = new Map(prev.editingDescriptions)
+      next.delete(index)
+      return { editingDescriptions: next }
+    })
+
+    // Flush to store
+    const suggestion = this.props.suggestions[index]
+    if (suggestion && suggestion.description !== localValue) {
+      const updated = this.props.suggestions.map((s, i) =>
+        i === index ? { ...s, description: localValue } : s
+      )
+      this.props.onSuggestionsUpdated(updated)
+    }
   }
 
   private onMoveUp = (index: number) => {
