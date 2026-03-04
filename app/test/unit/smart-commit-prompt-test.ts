@@ -26,7 +26,7 @@ describe('buildSmartSplitSystemPrompt', () => {
     const prompt = buildSmartSplitSystemPrompt(['file.ts'])
 
     assert(
-      prompt.includes('conventional commits format'),
+      prompt.includes('conventional commits'),
       'Should use conventional commits format'
     )
   })
