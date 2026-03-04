@@ -3,13 +3,17 @@ import assert from 'node:assert'
 import { buildSmartSplitSystemPrompt } from '../../src/lib/smart-commit-prompt'
 
 describe('buildSmartSplitSystemPrompt', () => {
-  it('includes conventional commits format in the prompt', () => {
+  it('includes conventional commits format by default', () => {
     const files = ['src/app.ts', 'src/utils.ts']
     const prompt = buildSmartSplitSystemPrompt(files)
 
     assert(
-      prompt.includes('type(scope): description'),
+      prompt.includes('conventional commits'),
       'Prompt should contain conventional commits format'
+    )
+    assert(
+      prompt.includes('type(scope): description'),
+      'Prompt should contain format example'
     )
   })
 
@@ -20,15 +24,6 @@ describe('buildSmartSplitSystemPrompt', () => {
     for (const file of files) {
       assert(prompt.includes(file), `Prompt should contain file: ${file}`)
     }
-  })
-
-  it('uses conventional commits format', () => {
-    const prompt = buildSmartSplitSystemPrompt(['file.ts'])
-
-    assert(
-      prompt.includes('conventional commits'),
-      'Should use conventional commits format'
-    )
   })
 
   it('instructs the AI to return JSON with suggestions array', () => {
@@ -61,6 +56,59 @@ describe('buildSmartSplitSystemPrompt', () => {
     assert(
       prompt.includes('72 characters'),
       'Prompt should mention 72-char limit'
+    )
+  })
+
+  it('uses custom format when provided', () => {
+    const prompt = buildSmartSplitSystemPrompt(['a.ts'], {
+      template: 'dev/fix/chore(feature) : description',
+    })
+
+    assert(
+      prompt.includes('dev/fix/chore(feature) : description'),
+      'Prompt should contain the custom format template'
+    )
+    assert(
+      !prompt.includes('conventional commits'),
+      'Should NOT include conventional commits when custom format is provided'
+    )
+    assert(
+      prompt.includes('CUSTOM commit format'),
+      'Should instruct AI to follow custom format'
+    )
+    assert(
+      prompt.includes('dev/fix/chore'),
+      'Should analyze the options group'
+    )
+  })
+
+  it('analyzes bracket format correctly', () => {
+    const prompt = buildSmartSplitSystemPrompt(['a.ts'], {
+      template: '[type] [name] (scope) : description',
+    })
+
+    assert(
+      prompt.includes('[type]'),
+      'Should analyze bracketed segments'
+    )
+    assert(
+      prompt.includes('(scope)'),
+      'Should analyze parenthesized segments'
+    )
+    assert(
+      prompt.includes('keep the brackets'),
+      'Should instruct to keep brackets'
+    )
+  })
+
+  it('falls back to conventional commits when template is empty', () => {
+    const prompt = buildSmartSplitSystemPrompt(['a.ts'], {
+      template: '  ',
+    })
+
+    assert(
+      prompt.includes('conventional commits'),
+      'Should fall back to conventional commits for empty template'
     )
   })
 })
