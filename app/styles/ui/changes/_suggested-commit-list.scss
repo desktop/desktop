@@ -232,20 +232,12 @@
     }
 
     .suggested-commit-description {
-      font-size: var(--font-size-sm);
-      padding: var(--spacing-half);
-      border: var(--base-border);
-      border-radius: var(--border-radius);
-      background-color: var(--box-background-color);
-      color: var(--text-color);
-      font-family: var(--font-family-sans-serif);
+      @include textboxish;
+      height: auto;
       resize: vertical;
-      min-height: 50px;
-
-      &:focus {
-        border-color: var(--focus-color);
-        outline: none;
-      }
+      min-height: 60px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .suggested-commit-files {
