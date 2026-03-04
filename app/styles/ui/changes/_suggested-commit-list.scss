@@ -52,9 +52,7 @@
       color: var(--text-secondary-color);
       font-size: var(--font-size-sm);
       cursor: pointer;
-      transition:
-        border-color 0.15s ease,
-        color 0.15s ease;
+      transition: border-color 0.15s ease, color 0.15s ease;
 
       .octicon {
         height: 12px;
@@ -122,7 +120,8 @@
     background-color: var(--box-background-color);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    gap: var(--spacing-half);
+    padding: var(--spacing-half) var(--spacing) var(--spacing);
     transition: border-color 0.15s ease;
 
     &:hover:not(.disabled) {
@@ -138,7 +137,6 @@
       display: flex;
       align-items: center;
       gap: var(--spacing-half);
-      padding: var(--spacing-half);
 
       .suggested-commit-toggle {
         flex-shrink: 0;
@@ -233,9 +231,7 @@
       padding: 4px var(--spacing-half);
       color: var(--text-secondary-color);
       font-size: var(--font-size-sm);
-      transition:
-        color 0.1s ease,
-        background-color 0.1s ease;
+      transition: color 0.1s ease, background-color 0.1s ease;
 
       .octicon {
         height: 10px;
@@ -243,7 +239,6 @@
 
       &:hover:not(:disabled) {
         color: var(--text-color);
-        background: var(--box-alt-background-color);
       }
 
       &:disabled {
@@ -267,7 +262,7 @@
       height: auto;
       resize: vertical;
       min-height: 60px;
-      margin: 0 var(--spacing-half) var(--spacing-half);
+      width: 100%;
       box-sizing: border-box;
     }
 
@@ -276,7 +271,6 @@
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
-      padding: var(--spacing-third) var(--spacing-half) var(--spacing-half);
 
       .suggested-commit-file {
         display: inline-flex;
