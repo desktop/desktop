@@ -46,6 +46,12 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+    transition: opacity 0.2s ease;
+
+    &.busy {
+      opacity: 0.45;
+      pointer-events: none;
+    }
   }
 
   // ── Individual commit card ──

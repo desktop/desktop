@@ -1,11 +1,14 @@
 import * as React from 'react'
 import { ICommitSuggestion } from '../../models/commit-suggestion'
 import { Button } from '../lib/button'
+import { Loading } from '../lib/loading'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 interface ISuggestedCommitListProps {
   readonly suggestions: ReadonlyArray<ICommitSuggestion>
   readonly isCommitting: boolean
+  /** Whether new suggestions are currently being generated */
+  readonly isLoading: boolean
   readonly onSuggestionsUpdated: (
     suggestions: ReadonlyArray<ICommitSuggestion>
   ) => void
@@ -17,6 +20,13 @@ interface ISuggestedCommitListProps {
 interface ISuggestedCommitListState {
   /** Index of the suggestion whose description is expanded, or -1 */
   readonly expandedIndex: number
+  /**
+   * Local editing copies of summaries, keyed by index.
+   * While the user is typing, we store the value locally to avoid
+   * cursor-jump caused by the async store round-trip.
+   */
+  readonly editingSummaries: ReadonlyMap<number, string>
+  readonly editingDescriptions: ReadonlyMap<number, string>
 }
 
 /**
@@ -144,6 +154,7 @@ export class SuggestedCommitList extends React.Component<
     const isExpanded = this.state.expandedIndex === index
     const isFirst = index === 0
     const isLast = index === this.props.suggestions.length - 1
+    const isBusy = this.props.isCommitting || this.props.isLoading
     const cardClassName = `suggested-commit-card${
       suggestion.enabled ? '' : ' disabled'
     }`
@@ -230,8 +241,20 @@ export class SuggestedCommitList extends React.Component<
   }
 
   public render() {
-    const { suggestions, isCommitting } = this.props
+    const { suggestions, isCommitting, isLoading } = this.props
     const enabledCount = suggestions.filter(s => s.enabled).length
+    const isBusy = isCommitting || isLoading
+
+    const cardsClassName = ['suggested-commit-cards', isBusy ? 'busy' : '']
+      .filter(Boolean)
+      .join(' ')
+
+    const loading = isBusy ? <Loading /> : undefined
+    const buttonText = isCommitting
+      ? 'Committing…'
+      : isLoading
+      ? 'Generating…'
+      : `Commit ${enabledCount} change${enabledCount !== 1 ? 's' : ''}`
 
     return (
       <div className="suggested-commit-list">

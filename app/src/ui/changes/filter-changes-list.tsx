@@ -954,6 +954,7 @@ export class FilterChangesList extends React.Component<
         <SuggestedCommitList
           suggestions={commitSuggestions}
           isCommitting={isCommitting === true}
+          isLoading={isGeneratingCommitMessage === true}
           onSuggestionsUpdated={this.onSuggestionsUpdated}
           onCommitAll={this.onCommitAllSuggestions}
           onRegenerate={this.onRegenerateSmartSplit}
