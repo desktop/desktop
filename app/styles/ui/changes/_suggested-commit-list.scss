@@ -99,9 +99,7 @@
   // ── Format configuration panel ──
   .smart-split-format-panel {
     .format-template-input {
-      @include textboxish;
       width: 100%;
-      box-sizing: border-box;
     }
   }
 
