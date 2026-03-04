@@ -2,8 +2,9 @@
 
 // ──────────────────────────────────────────────
 // Smart Split suggestion panel
-// Matches the existing commit-message-component design
+// Mirrors commit-message-component's structure
 // ──────────────────────────────────────────────
+
 .suggested-commit-list {
   display: flex;
   flex-direction: column;
@@ -13,9 +14,8 @@
   margin-top: auto;
   padding: var(--spacing);
   gap: var(--spacing-half);
-  position: relative;
 
-  // ── Header ──
+  // ── Header ────────────────────────────────
   .suggested-commit-list-header {
     display: flex;
     align-items: center;
@@ -70,13 +70,11 @@
       &:hover:not(:disabled) {
         border-color: var(--text-secondary-color);
         color: var(--text-color);
-        background: var(--box-alt-background-color);
       }
 
       &.open {
         border-color: var(--focus-color);
         color: var(--text-color);
-        background: var(--box-alt-background-color);
       }
 
       &.has-format {
@@ -91,23 +89,23 @@
     }
 
     .suggestion-count {
-      font-size: var(--font-size-xs, 11px);
+      font-size: var(--font-size-sm);
       color: var(--text-secondary-color);
     }
   }
 
-  // ── Format configuration panel ──
+  // ── Format configuration panel ────────────
   .smart-split-format-panel {
     .format-template-input {
       width: 100%;
     }
   }
 
-  // ── Card list (auto-sized to content) ──
+  // ── Card list ─────────────────────────────
   .suggested-commit-cards {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--spacing-half);
     transition: opacity 0.2s ease;
 
     &.busy {
