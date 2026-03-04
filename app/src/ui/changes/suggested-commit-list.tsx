@@ -284,7 +284,9 @@ export class SuggestedCommitList extends React.Component<
         </div>
 
         <button
-          className={`suggested-commit-expand-toggle${isExpanded ? ' expanded' : ''}`}
+          className={`suggested-commit-expand-toggle${
+            isExpanded ? ' expanded' : ''
+          }`}
           onClick={() => this.onToggleExpanded(index)}
           disabled={isBusy}
           aria-label={
