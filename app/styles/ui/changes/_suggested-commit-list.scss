@@ -1,0 +1,243 @@
+@import '../../mixins';
+
+// ──────────────────────────────────────────────
+// Smart Split suggestion panel
+// Matches the existing commit-message-component design
+// ──────────────────────────────────────────────
+.suggested-commit-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--box-border-color);
+  background-color: var(--box-alt-background-color);
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: var(--spacing);
+  gap: var(--spacing-half);
+  position: relative;
+
+  // ── Header ──
+  .suggested-commit-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-half);
+      margin: 0;
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+
+      .octicon {
+        color: var(--text-secondary-color);
+        height: 14px;
+      }
+    }
+
+    .suggestion-count {
+      font-size: var(--font-size-xs, 11px);
+      color: var(--text-secondary-color);
+    }
+  }
+
+  // ── Card list (auto-sized to content) ──
+  .suggested-commit-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  // ── Individual commit card ──
+  .suggested-commit-card {
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-half);
+    background-color: var(--box-background-color);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: opacity 0.15s ease;
+
+    &.disabled {
+      opacity: 0.45;
+    }
+
+    .suggested-commit-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-half);
+      min-height: 24px;
+
+      .suggested-commit-toggle {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+
+        input[type='checkbox'] {
+          margin: 0;
+          cursor: pointer;
+        }
+      }
+
+      .suggested-commit-summary {
+        flex: 1;
+        min-width: 0;
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        padding: 2px var(--spacing-half);
+        border: 1px solid transparent;
+        border-radius: var(--border-radius);
+        background: transparent;
+        color: var(--text-color);
+        font-family: var(--font-family-sans-serif);
+
+        &:hover:not(:disabled) {
+          border-color: var(--box-border-color);
+          background: var(--box-alt-background-color);
+        }
+
+        &:focus {
+          border-color: var(--focus-color);
+          outline: none;
+          background: var(--box-background-color);
+        }
+
+        &:disabled {
+          cursor: default;
+        }
+      }
+
+      .suggested-commit-reorder {
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        gap: 1px;
+
+        .reorder-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 1px;
+          color: var(--text-secondary-color);
+          line-height: 1;
+          border-radius: var(--border-radius);
+
+          .octicon {
+            height: 10px;
+          }
+
+          &:hover:not(:disabled) {
+            color: var(--text-color);
+            background: var(--box-alt-background-color);
+          }
+
+          &:disabled {
+            opacity: 0.3;
+            cursor: default;
+          }
+        }
+      }
+    }
+
+    .suggested-commit-expand-toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-third);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-xs, 11px);
+
+      &:hover {
+        color: var(--text-color);
+      }
+
+      .octicon {
+        height: 10px;
+      }
+    }
+
+    .suggested-commit-description {
+      font-size: var(--font-size-sm);
+      padding: var(--spacing-half);
+      border: var(--base-border);
+      border-radius: var(--border-radius);
+      background-color: var(--box-background-color);
+      color: var(--text-color);
+      font-family: var(--font-family-sans-serif);
+      resize: vertical;
+      min-height: 50px;
+
+      &:focus {
+        border-color: var(--focus-color);
+        outline: none;
+      }
+    }
+
+    .suggested-commit-files {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+
+      .suggested-commit-file {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        font-size: var(--font-size-xs, 11px);
+        color: var(--text-secondary-color);
+        background-color: var(--box-alt-background-color);
+        padding: 1px 5px;
+        border-radius: var(--border-radius);
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        .octicon {
+          height: 10px;
+          flex-shrink: 0;
+        }
+      }
+    }
+  }
+
+  // ── Action bar ──
+  .suggested-commit-list-actions {
+    display: flex;
+    gap: var(--spacing-half);
+    align-items: center;
+    padding-top: var(--spacing-half);
+    border-top: 1px solid var(--box-border-color);
+
+    .commit-all-button {
+      flex: 1;
+
+      @include ellipsis;
+
+      .octicon {
+        flex-shrink: 0;
+        margin-right: var(--spacing-half);
+        height: 12px;
+        margin-bottom: 1px;
+      }
+    }
+
+    .regenerate-button,
+    .dismiss-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .dismiss-button {
+      color: var(--text-secondary-color);
+    }
+  }
+}

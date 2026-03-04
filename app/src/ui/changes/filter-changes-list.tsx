@@ -32,6 +32,8 @@ import {
   CopySelectedRelativePathsLabel,
 } from '../lib/context-menu'
 import { CommitMessage } from './commit-message'
+import { SuggestedCommitList } from './suggested-commit-list'
+import { ICommitSuggestion } from '../../models/commit-suggestion'
 import { ChangedFile } from './changed-file'
 import { IAutocompletionProvider } from '../autocompletion'
 import { showContextualMenu } from '../../lib/menu-item'
@@ -163,6 +165,9 @@ interface IFilterChangesListProps {
   readonly isGeneratingCommitMessage: boolean
   readonly shouldShowGenerateCommitMessageCallOut: boolean
   readonly commitToAmend: Commit | null
+  readonly commitSuggestions: ReadonlyArray<
+    import('../../models/commit-suggestion').ICommitSuggestion
+  > | null
   readonly currentBranchProtected: boolean
   readonly currentRepoRulesInfo: RepoRulesInfo
   readonly aheadBehind: IAheadBehind | null
@@ -892,6 +897,7 @@ export class FilterChangesList extends React.Component<
       currentBranchProtected,
       currentRepoRulesInfo: currentRepoRulesInfo,
       shouldShowGenerateCommitMessageCallOut,
+      commitSuggestions,
     } = this.props
 
     if (rebaseConflictState !== null) {
@@ -942,72 +948,135 @@ export class FilterChangesList extends React.Component<
         this.props.fileListFilter
       )
 
+    // If we have commit suggestions from smart split, render the suggestions UI
+    if (commitSuggestions !== null && commitSuggestions.length > 0) {
+      return (
+        <SuggestedCommitList
+          suggestions={commitSuggestions}
+          isCommitting={isCommitting === true}
+          onSuggestionsUpdated={this.onSuggestionsUpdated}
+          onCommitAll={this.onCommitAllSuggestions}
+          onRegenerate={this.onRegenerateSmartSplit}
+          onDismiss={this.onDismissSmartSplit}
+        />
+      )
+    }
+
     return (
-      <CommitMessage
-        onCreateCommit={this.props.onCreateCommit}
-        branch={this.props.branch}
-        mostRecentLocalCommit={this.props.mostRecentLocalCommit}
-        commitAuthor={this.props.commitAuthor}
-        isShowingModal={this.props.isShowingModal}
-        isShowingFoldout={this.props.isShowingFoldout}
-        anyFilesSelected={anyFilesSelected}
-        showPromptForCommittingFileHiddenByFilter={
-          showPromptForCommittingFileHiddenByFilter
-        }
-        anyFilesAvailable={fileCount > 0}
-        filesSelected={filesSelected}
-        filesToBeCommittedCount={filesSelected.length}
-        repository={repository}
-        repositoryAccount={repositoryAccount}
-        commitMessage={this.props.commitMessage}
-        focusCommitMessage={this.props.focusCommitMessage}
-        autocompletionProviders={this.props.autocompletionProviders}
-        isCommitting={isCommitting}
-        hookProgress={hookProgress}
-        onShowCommitProgress={this.props.onShowCommitProgress}
-        isGeneratingCommitMessage={isGeneratingCommitMessage}
-        shouldShowGenerateCommitMessageCallOut={
-          shouldShowGenerateCommitMessageCallOut
-        }
-        commitToAmend={commitToAmend}
-        showCoAuthoredBy={this.props.showCoAuthoredBy}
-        coAuthors={this.props.coAuthors}
-        placeholder={this.getPlaceholderMessage(
-          filesSelected,
-          prepopulateCommitSummary
-        )}
-        prepopulateCommitSummary={prepopulateCommitSummary}
-        key={repository.id}
-        showBranchProtected={fileCount > 0 && currentBranchProtected}
-        repoRulesInfo={currentRepoRulesInfo}
-        aheadBehind={this.props.aheadBehind}
-        showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
-        shouldNudge={this.props.shouldNudgeToCommit}
-        commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
-        showCommitLengthWarning={this.props.showCommitLengthWarning}
-        onCoAuthorsUpdated={this.onCoAuthorsUpdated}
-        onShowCoAuthoredByChanged={this.onShowCoAuthoredByChanged}
-        onConfirmCommitWithUnknownCoAuthors={
-          this.onConfirmCommitWithUnknownCoAuthors
-        }
-        onPersistCommitMessage={this.onPersistCommitMessage}
-        onGenerateCommitMessage={this.onGenerateCommitMessage}
-        onCommitMessageFocusSet={this.onCommitMessageFocusSet}
-        onRefreshAuthor={this.onRefreshAuthor}
-        onShowPopup={this.onShowPopup}
-        onShowFoldout={this.onShowFoldout}
-        onCommitSpellcheckEnabledChanged={this.onCommitSpellcheckEnabledChanged}
-        onStopAmending={this.onStopAmending}
-        onShowCreateForkDialog={this.onShowCreateForkDialog}
-        onFilesToCommitNotVisible={this.onFilesToCommitNotVisible}
-        accounts={this.props.accounts}
-        onSuccessfulCommitCreated={this.onSuccessfulCommitCreated}
-        submitButtonAriaDescribedBy={'hidden-changes-warning'}
-        hasCommitHooks={this.props.hasCommitHooks}
-        skipCommitHooks={this.props.skipCommitHooks}
-        onUpdateCommitOptions={this.props.onUpdateCommitOptions}
-      />
+      <>
+        <CommitMessage
+          onCreateCommit={this.props.onCreateCommit}
+          branch={this.props.branch}
+          mostRecentLocalCommit={this.props.mostRecentLocalCommit}
+          commitAuthor={this.props.commitAuthor}
+          isShowingModal={this.props.isShowingModal}
+          isShowingFoldout={this.props.isShowingFoldout}
+          anyFilesSelected={anyFilesSelected}
+          showPromptForCommittingFileHiddenByFilter={
+            showPromptForCommittingFileHiddenByFilter
+          }
+          anyFilesAvailable={fileCount > 0}
+          filesSelected={filesSelected}
+          filesToBeCommittedCount={filesSelected.length}
+          repository={repository}
+          repositoryAccount={repositoryAccount}
+          commitMessage={this.props.commitMessage}
+          focusCommitMessage={this.props.focusCommitMessage}
+          autocompletionProviders={this.props.autocompletionProviders}
+          isCommitting={isCommitting}
+          hookProgress={hookProgress}
+          onShowCommitProgress={this.props.onShowCommitProgress}
+          isGeneratingCommitMessage={isGeneratingCommitMessage}
+          shouldShowGenerateCommitMessageCallOut={
+            shouldShowGenerateCommitMessageCallOut
+          }
+          commitToAmend={commitToAmend}
+          showCoAuthoredBy={this.props.showCoAuthoredBy}
+          coAuthors={this.props.coAuthors}
+          placeholder={this.getPlaceholderMessage(
+            filesSelected,
+            prepopulateCommitSummary
+          )}
+          prepopulateCommitSummary={prepopulateCommitSummary}
+          key={repository.id}
+          showBranchProtected={fileCount > 0 && currentBranchProtected}
+          repoRulesInfo={currentRepoRulesInfo}
+          aheadBehind={this.props.aheadBehind}
+          showNoWriteAccess={fileCount > 0 && !hasWritePermissionForRepository}
+          shouldNudge={this.props.shouldNudgeToCommit}
+          commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
+          showCommitLengthWarning={this.props.showCommitLengthWarning}
+          onCoAuthorsUpdated={this.onCoAuthorsUpdated}
+          onShowCoAuthoredByChanged={this.onShowCoAuthoredByChanged}
+          onConfirmCommitWithUnknownCoAuthors={
+            this.onConfirmCommitWithUnknownCoAuthors
+          }
+          onPersistCommitMessage={this.onPersistCommitMessage}
+          onGenerateCommitMessage={this.onGenerateCommitMessage}
+          onSmartSplitCommits={this.onSmartSplitCommits}
+          onCommitMessageFocusSet={this.onCommitMessageFocusSet}
+          onRefreshAuthor={this.onRefreshAuthor}
+          onShowPopup={this.onShowPopup}
+          onShowFoldout={this.onShowFoldout}
+          onCommitSpellcheckEnabledChanged={
+            this.onCommitSpellcheckEnabledChanged
+          }
+          onStopAmending={this.onStopAmending}
+          onShowCreateForkDialog={this.onShowCreateForkDialog}
+          onFilesToCommitNotVisible={this.onFilesToCommitNotVisible}
+          accounts={this.props.accounts}
+          onSuccessfulCommitCreated={this.onSuccessfulCommitCreated}
+          submitButtonAriaDescribedBy={'hidden-changes-warning'}
+          hasCommitHooks={this.props.hasCommitHooks}
+          skipCommitHooks={this.props.skipCommitHooks}
+          onUpdateCommitOptions={this.props.onUpdateCommitOptions}
+        />
+      </>
     )
+  }
+
+  private onSmartSplitCommits = (
+    filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
+  ): void => {
+    this.props.dispatcher.incrementMetric(
+      'generateCommitMessageButtonClickCount'
+    )
+    this.props.dispatcher.generateSmartCommitSuggestions(
+      this.props.repository,
+      filesSelected
+    )
+  }
+
+  private onSuggestionsUpdated = (
+    suggestions: ReadonlyArray<ICommitSuggestion>
+  ): void => {
+    this.props.dispatcher.setCommitSuggestions(
+      this.props.repository,
+      suggestions
+    )
+  }
+
+  private onCommitAllSuggestions = (
+    suggestions: ReadonlyArray<ICommitSuggestion>
+  ): void => {
+    this.props.dispatcher.executeSmartCommitSuggestions(
+      this.props.repository,
+      suggestions
+    )
+  }
+
+  private onRegenerateSmartSplit = (): void => {
+    const filesSelected = this.props.workingDirectory.files.filter(
+      f => f.selection.getSelectionType() !== DiffSelectionType.None
+    )
+    this.props.dispatcher.generateSmartCommitSuggestions(
+      this.props.repository,
+      filesSelected
+    )
+  }
+
+  private onDismissSmartSplit = (): void => {
+    this.props.dispatcher.setCommitSuggestions(this.props.repository, null)
   }
 
   private onSuccessfulCommitCreated = () => {
