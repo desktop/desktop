@@ -295,6 +295,12 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
    * checkbox.
    */
   private onToggleInclude(row: number) {
+    // Block toggling file inclusion while Smart Split suggestions are active
+    const { commitSuggestions } = this.props
+    if (commitSuggestions !== null && commitSuggestions.length > 0) {
+      return
+    }
+
     const workingDirectory = this.props.changes.workingDirectory
     const file = workingDirectory.files[row]
 

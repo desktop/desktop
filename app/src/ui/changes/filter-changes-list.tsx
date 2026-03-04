@@ -418,6 +418,7 @@ export class FilterChangesList extends React.Component<
       isCommitting,
       onIncludeChanged,
       availableWidth,
+      commitSuggestions,
     } = this.props
 
     const file = changeListItem.change
@@ -448,10 +449,18 @@ export class FilterChangesList extends React.Component<
       ? file.status.kind !== AppFileStatusKind.Untracked
       : includeAll
 
-    const disableSelection =
-      isCommitting || rebaseConflictState !== null || isUncommittableSubmodule
+    const hasActiveSmartSplit =
+      commitSuggestions !== null && commitSuggestions.length > 0
 
-    const checkboxTooltip = isUncommittableSubmodule
+    const disableSelection =
+      isCommitting ||
+      rebaseConflictState !== null ||
+      isUncommittableSubmodule ||
+      hasActiveSmartSplit
+
+    const checkboxTooltip = hasActiveSmartSplit
+      ? 'File selection is locked while Smart Split suggestions are active. Dismiss the suggestions to change file selection.'
+      : isUncommittableSubmodule
       ? 'This submodule change cannot be added to a commit in this repository because it contains changes that have not been committed.'
       : isPartiallyCommittableSubmodule
       ? 'Only changes that have been committed within the submodule will be added to this repository. You need to commit any other modified or untracked changes in the submodule before including them in this repository.'
@@ -1306,7 +1315,12 @@ export class FilterChangesList extends React.Component<
   }
 
   private renderCheckBoxRow = () => {
-    const { workingDirectory, rebaseConflictState, isCommitting } = this.props
+    const {
+      workingDirectory,
+      rebaseConflictState,
+      isCommitting,
+      commitSuggestions,
+    } = this.props
     const { files } = workingDirectory
 
     const visibleFiles = this.state.filteredItems.size
@@ -1317,8 +1331,14 @@ export class FilterChangesList extends React.Component<
       this.state.filteredItems
     )
 
+    const hasActiveSmartSplit =
+      commitSuggestions !== null && commitSuggestions.length > 0
+
     const disableAllCheckbox =
-      files.length === 0 || isCommitting || rebaseConflictState !== null
+      files.length === 0 ||
+      isCommitting ||
+      rebaseConflictState !== null ||
+      hasActiveSmartSplit
 
     const checkAllLabel = `${
       visibleFiles !== files.length ? `${visibleFiles} of ` : ''
