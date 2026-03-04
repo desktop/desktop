@@ -167,22 +167,23 @@ export class SuggestedCommitList extends React.Component<
               type="checkbox"
               checked={suggestion.enabled}
               onChange={() => this.onToggleEnabled(index)}
-              disabled={this.props.isCommitting}
+              disabled={isBusy}
             />
           </label>
           <input
             className="suggested-commit-summary"
             type="text"
-            value={suggestion.summary}
+            value={this.state.editingSummaries.get(index) ?? suggestion.summary}
             onChange={e => this.onSummaryChanged(index, e.currentTarget.value)}
+            onBlur={() => this.onSummaryBlur(index)}
             placeholder="Commit summary"
-            disabled={!suggestion.enabled || this.props.isCommitting}
+            disabled={!suggestion.enabled || isBusy}
           />
           <div className="suggested-commit-reorder">
             <button
               className="reorder-btn"
               onClick={() => this.onMoveUp(index)}
-              disabled={isFirst || this.props.isCommitting}
+              disabled={isFirst || isBusy}
               aria-label="Move up"
               title="Move up"
             >
@@ -191,7 +192,7 @@ export class SuggestedCommitList extends React.Component<
             <button
               className="reorder-btn"
               onClick={() => this.onMoveDown(index)}
-              disabled={isLast || this.props.isCommitting}
+              disabled={isLast || isBusy}
               aria-label="Move down"
               title="Move down"
             >
@@ -203,6 +204,7 @@ export class SuggestedCommitList extends React.Component<
         <button
           className="suggested-commit-expand-toggle"
           onClick={() => this.onToggleExpanded(index)}
+          disabled={isBusy}
           aria-label={
             isExpanded ? 'Collapse description' : 'Expand description'
           }
@@ -218,12 +220,16 @@ export class SuggestedCommitList extends React.Component<
         {isExpanded && (
           <textarea
             className="suggested-commit-description"
-            value={suggestion.description}
+            value={
+              this.state.editingDescriptions.get(index) ??
+              suggestion.description
+            }
             onChange={e =>
               this.onDescriptionChanged(index, e.currentTarget.value)
             }
+            onBlur={() => this.onDescriptionBlur(index)}
             placeholder="Optional description"
-            disabled={!suggestion.enabled || this.props.isCommitting}
+            disabled={!suggestion.enabled || isBusy}
             rows={3}
           />
         )}
@@ -268,7 +274,7 @@ export class SuggestedCommitList extends React.Component<
           </span>
         </div>
 
-        <div className="suggested-commit-cards">
+        <div className={cardsClassName}>
           {suggestions.map((s, i) => this.renderSuggestionCard(s, i))}
         </div>
 
@@ -276,24 +282,25 @@ export class SuggestedCommitList extends React.Component<
           <Button
             className="commit-all-button"
             type="submit"
-            disabled={enabledCount === 0 || isCommitting}
+            disabled={enabledCount === 0 || isBusy}
             onClick={this.onCommitAll}
           >
-            {isCommitting
-              ? 'Committing…'
-              : `Commit ${enabledCount} change${enabledCount !== 1 ? 's' : ''}`}
+            <>
+              {loading}
+              {buttonText}
+            </>
           </Button>
           <Button
             className="regenerate-button"
-            disabled={isCommitting}
+            disabled={isBusy}
             onClick={this.props.onRegenerate}
-            tooltip="Regenerate suggestions with current format"
+            tooltip="Regenerate suggestions"
           >
             <Octicon symbol={octicons.sync} />
           </Button>
           <Button
             className="dismiss-button"
-            disabled={isCommitting}
+            disabled={isBusy}
             onClick={this.props.onDismiss}
             tooltip="Dismiss suggestions"
           >
