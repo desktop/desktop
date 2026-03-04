@@ -284,19 +284,18 @@ export class SuggestedCommitList extends React.Component<
         </div>
 
         <button
-          className="suggested-commit-expand-toggle"
+          className={`suggested-commit-expand-toggle${isExpanded ? ' expanded' : ''}`}
           onClick={() => this.onToggleExpanded(index)}
           disabled={isBusy}
           aria-label={
             isExpanded ? 'Collapse description' : 'Expand description'
           }
+          aria-expanded={isExpanded}
         >
           <Octicon
             symbol={isExpanded ? octicons.chevronDown : octicons.chevronRight}
           />
-          <span className="expand-label">
-            {isExpanded ? 'Hide description' : 'Show description'}
-          </span>
+          <span className="expand-label">Description</span>
         </button>
 
         {isExpanded && (

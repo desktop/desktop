@@ -194,7 +194,7 @@
           background: none;
           border: none;
           cursor: pointer;
-          padding: 1px;
+          padding: 2px;
           color: var(--text-secondary-color);
           line-height: 1;
           border-radius: var(--border-radius);
@@ -216,49 +216,78 @@
       }
     }
 
+    // Reveal reorder on card hover
+    &:hover .suggested-commit-reorder {
+      opacity: 1;
+    }
+
+    // ── Expand / collapse toggle (edge-to-edge) ──
     .suggested-commit-expand-toggle {
       display: flex;
       align-items: center;
-      gap: var(--spacing-third);
+      gap: 4px;
       background: none;
       border: none;
+      border-top: 1px solid var(--box-border-color);
       cursor: pointer;
-      padding: 0;
+      padding: 4px var(--spacing-half);
       color: var(--text-secondary-color);
-      font-size: var(--font-size-xs, 11px);
-
-      &:hover {
-        color: var(--text-color);
-      }
+      font-size: var(--font-size-sm);
+      transition:
+        color 0.1s ease,
+        background-color 0.1s ease;
 
       .octicon {
         height: 10px;
       }
+
+      &:hover:not(:disabled) {
+        color: var(--text-color);
+        background: var(--box-alt-background-color);
+      }
+
+      &:disabled {
+        cursor: default;
+        opacity: 0.5;
+      }
+
+      &:focus {
+        outline: none;
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--focus-color);
+        outline-offset: -2px;
+      }
     }
 
+    // ── Description textarea ──
     .suggested-commit-description {
       @include textboxish;
       height: auto;
       resize: vertical;
       min-height: 60px;
-      width: 100%;
+      margin: 0 var(--spacing-half) var(--spacing-half);
       box-sizing: border-box;
     }
 
+    // ── File badges ──
     .suggested-commit-files {
       display: flex;
       flex-wrap: wrap;
-      gap: 3px;
+      gap: 4px;
+      padding: var(--spacing-third) var(--spacing-half) var(--spacing-half);
 
       .suggested-commit-file {
         display: inline-flex;
         align-items: center;
-        gap: 2px;
-        font-size: var(--font-size-xs, 11px);
+        gap: 3px;
+        font-size: var(--font-size-sm);
         color: var(--text-secondary-color);
         background-color: var(--box-alt-background-color);
-        padding: 1px 5px;
-        border-radius: var(--border-radius);
+        padding: 1px 6px;
+        border-radius: 3px;
+        border: 1px solid var(--box-border-color);
         max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
