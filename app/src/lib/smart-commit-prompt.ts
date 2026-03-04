@@ -118,7 +118,9 @@ function analyzeTemplate(template: string): string {
     for (const opt of options) {
       const choices = opt.split('/')
       lines.push(
-        `- \`${opt}\` is a set of options — pick exactly ONE: ${choices.map(c => `\`${c}\``).join(', ')}`
+        `- \`${opt}\` is a set of options — pick exactly ONE: ${choices
+          .map(c => `\`${c}\``)
+          .join(', ')}`
       )
     }
   }
@@ -141,12 +143,16 @@ function analyzeTemplate(template: string): string {
 
   // Detect literal separators (: - — etc.)
   if (t.includes(' : ')) {
-    lines.push('- ` : ` (space-colon-space) is a literal separator — keep it exactly')
+    lines.push(
+      '- ` : ` (space-colon-space) is a literal separator — keep it exactly'
+    )
   } else if (t.includes(': ')) {
     lines.push('- `: ` (colon-space) is a literal separator — keep it exactly')
   }
   if (/ - /.test(t)) {
-    lines.push('- ` - ` (space-dash-space) is a literal separator — keep it exactly')
+    lines.push(
+      '- ` - ` (space-dash-space) is a literal separator — keep it exactly'
+    )
   }
 
   return lines.join('\n')

@@ -76,10 +76,7 @@ describe('buildSmartSplitSystemPrompt', () => {
       prompt.includes('CUSTOM commit format'),
       'Should instruct AI to follow custom format'
     )
-    assert(
-      prompt.includes('dev/fix/chore'),
-      'Should analyze the options group'
-    )
+    assert(prompt.includes('dev/fix/chore'), 'Should analyze the options group')
   })
 
   it('analyzes bracket format correctly', () => {
@@ -87,14 +84,8 @@ describe('buildSmartSplitSystemPrompt', () => {
       template: '[type] [name] (scope) : description',
     })
 
-    assert(
-      prompt.includes('[type]'),
-      'Should analyze bracketed segments'
-    )
-    assert(
-      prompt.includes('(scope)'),
-      'Should analyze parenthesized segments'
-    )
+    assert(prompt.includes('[type]'), 'Should analyze bracketed segments')
+    assert(prompt.includes('(scope)'), 'Should analyze parenthesized segments')
     assert(
       prompt.includes('keep the brackets'),
       'Should instruct to keep brackets'
