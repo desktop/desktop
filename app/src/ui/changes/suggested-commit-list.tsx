@@ -253,11 +253,10 @@ export class SuggestedCommitList extends React.Component<
               disabled={isBusy}
             />
           </label>
-          <input
+          <TextBox
             className="suggested-commit-summary"
-            type="text"
             value={this.state.editingSummaries.get(index) ?? suggestion.summary}
-            onChange={e => this.onSummaryChanged(index, e.currentTarget.value)}
+            onValueChanged={value => this.onSummaryChanged(index, value)}
             onBlur={() => this.onSummaryBlur(index)}
             placeholder="Commit summary"
             disabled={!suggestion.enabled || isBusy}

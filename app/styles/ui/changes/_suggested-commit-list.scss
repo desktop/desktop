@@ -151,28 +151,10 @@
       .suggested-commit-summary {
         flex: 1;
         min-width: 0;
-        font-size: var(--font-size-sm);
-        font-weight: 600;
-        padding: 2px var(--spacing-half);
-        border: 1px solid transparent;
-        border-radius: var(--border-radius);
-        background: transparent;
-        color: var(--text-color);
-        font-family: var(--font-family-sans-serif);
 
-        &:hover:not(:disabled) {
-          border-color: var(--box-border-color);
-          background: var(--box-alt-background-color);
-        }
-
-        &:focus {
-          border-color: var(--focus-color);
-          outline: none;
-          background: var(--box-background-color);
-        }
-
-        &:disabled {
-          cursor: default;
+        input {
+          width: 100%;
+          font-weight: 600;
         }
       }
 
