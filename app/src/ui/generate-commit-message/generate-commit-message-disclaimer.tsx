@@ -15,6 +15,9 @@ interface IGenerateCommitMessageDisclaimerProps {
   readonly repository: Repository
   readonly filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
 
+  /** If true, triggers smart split instead of single commit message */
+  readonly smartSplit?: boolean
+
   /**
    * Callback to use when the dialog gets closed.
    */
@@ -55,10 +58,19 @@ export class GenerateCommitMessageDisclaimer extends React.Component<IGenerateCo
 
   private onSubmit = async () => {
     this.props.dispatcher.updateCommitMessageGenerationDisclaimerLastSeen()
-    this.props.dispatcher.generateCommitMessage(
-      this.props.repository,
-      this.props.filesSelected
-    )
+
+    if (this.props.smartSplit) {
+      this.props.dispatcher.generateSmartCommitSuggestions(
+        this.props.repository,
+        this.props.filesSelected
+      )
+    } else {
+      this.props.dispatcher.generateCommitMessage(
+        this.props.repository,
+        this.props.filesSelected
+      )
+    }
+
     this.props.onDismissed()
   }
 }

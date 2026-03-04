@@ -66,6 +66,8 @@ import {
   DefaultCommitMessage,
   ICommitMessage,
 } from '../../models/commit-message'
+import { ICommitSuggestion } from '../../models/commit-suggestion'
+import { ICommitFormatConfig } from '../smart-commit-prompt'
 import {
   Progress,
   ICheckoutProgress,
@@ -625,7 +627,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private commitMessageGenerationDisclaimerLastSeen: number | null = null
   private commitMessageGenerationButtonClicked: boolean = false
-
   private showChangesFilter: boolean = false
 
   public constructor(
@@ -5619,6 +5620,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
         : this.accounts.find(enableCommitMessageGeneration)
 
     if (!account) {
+      if (__DEV__) {
+        this._beginDotComSignIn()
+        await this._showPopup({ type: PopupType.SignIn })
+      }
       return false
     }
 
@@ -5675,6 +5680,157 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       return true
     })
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _generateSmartCommitSuggestions(
+    repository: Repository,
+    filesSelected: ReadonlyArray<WorkingDirectoryFileChange>,
+    formatConfig?: ICommitFormatConfig
+  ): Promise<boolean> {
+    const repositoryAccount = getAccountForRepository(this.accounts, repository)
+    const account =
+      repositoryAccount && enableCommitMessageGeneration(repositoryAccount)
+        ? repositoryAccount
+        : this.accounts.find(enableCommitMessageGeneration)
+
+    if (!account) {
+      if (__DEV__) {
+        this._beginDotComSignIn()
+        await this._showPopup({ type: PopupType.SignIn })
+      }
+      return false
+    }
+
+    this._setCommitMessageGenerationButtonClicked()
+
+    if (
+      !this.commitMessageGenerationDisclaimerLastSeen ||
+      offsetFromNow(-30, 'days') >
+        this.commitMessageGenerationDisclaimerLastSeen
+    ) {
+      await this._showPopup({
+        type: PopupType.GenerateCommitMessageDisclaimer,
+        repository,
+        filesSelected,
+        smartSplit: true,
+      })
+      return false
+    }
+
+    return this.withIsGeneratingCommitMessage(repository, async () => {
+      const commitToAmend =
+        this.repositoryStateCache.get(repository)?.commitToAmend?.sha ??
+        undefined
+      const diff = await getFilesDiffText(
+        repository,
+        filesSelected,
+        commitToAmend ? `${commitToAmend}^` : undefined
+      )
+      if (!diff) {
+        return false
+      }
+
+      const filePaths = filesSelected.map(f => f.path)
+      const api = API.fromAccount(account)
+
+      try {
+        const suggestions = await api.getDiffSmartCommitSuggestions(
+          diff,
+          filePaths,
+          formatConfig
+        )
+
+        const mapped = suggestions.map(s => ({
+          summary: s.summary,
+          description: s.description,
+          files: s.files,
+          enabled: true,
+        }))
+
+        this.repositoryStateCache.update(repository, () => ({
+          commitSuggestions: mapped,
+        }))
+
+        this.statsStore.increment('generateCommitMessageCount')
+        this.emitUpdate()
+      } catch (e) {
+        this.emitError(
+          new ErrorWithMetadata(e, {
+            repository,
+          })
+        )
+        return false
+      }
+
+      return true
+    })
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public _setCommitSuggestions(
+    repository: Repository,
+    suggestions: ReadonlyArray<ICommitSuggestion> | null
+  ): void {
+    this.repositoryStateCache.update(repository, () => ({
+      commitSuggestions: suggestions,
+    }))
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _executeSmartCommitSuggestions(
+    repository: Repository,
+    suggestions: ReadonlyArray<ICommitSuggestion>
+  ): Promise<boolean> {
+    const enabledSuggestions = suggestions.filter(s => s.enabled)
+
+    if (enabledSuggestions.length === 0) {
+      return false
+    }
+
+    const changesState = this.repositoryStateCache.get(repository).changesState
+    const allFiles = changesState.workingDirectory.files
+
+    for (const suggestion of enabledSuggestions) {
+      const filesToCommit = allFiles.filter(f =>
+        suggestion.files.includes(f.path)
+      )
+
+      if (filesToCommit.length === 0) {
+        continue
+      }
+
+      const message = [
+        suggestion.summary,
+        suggestion.description ? `\n\n${suggestion.description}` : '',
+      ].join('')
+
+      try {
+        await createCommit(repository, message, filesToCommit)
+      } catch (e) {
+        this.emitError(
+          new ErrorWithMetadata(e, {
+            repository,
+          })
+        )
+        return false
+      }
+    }
+
+    // Remove committed suggestions, keep the rest
+    const remainingSuggestions = suggestions.filter(s => !s.enabled)
+
+    if (remainingSuggestions.length > 0) {
+      this._setCommitSuggestions(repository, remainingSuggestions)
+    } else {
+      this._setCommitSuggestions(repository, null)
+    }
+
+    // Refresh repository state
+    await this._refreshRepository(repository)
+
+    return true
   }
 
   /**

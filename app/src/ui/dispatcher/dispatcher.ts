@@ -62,6 +62,8 @@ import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
 import { ICommitMessage } from '../../models/commit-message'
+import { ICommitSuggestion } from '../../models/commit-suggestion'
+import { ICommitFormatConfig } from '../../lib/smart-commit-prompt'
 import { DiffSelection, ImageDiffType, ITextDiff } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
@@ -1099,6 +1101,35 @@ export class Dispatcher {
     filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
   ) {
     return this.appStore._generateCommitMessage(repository, filesSelected)
+  }
+
+  /** Generate smart commit split suggestions using AI */
+  public generateSmartCommitSuggestions(
+    repository: Repository,
+    filesSelected: ReadonlyArray<WorkingDirectoryFileChange>,
+    formatConfig?: ICommitFormatConfig
+  ) {
+    return this.appStore._generateSmartCommitSuggestions(
+      repository,
+      filesSelected,
+      formatConfig
+    )
+  }
+
+  /** Update the commit suggestions for a repository */
+  public setCommitSuggestions(
+    repository: Repository,
+    suggestions: ReadonlyArray<ICommitSuggestion> | null
+  ) {
+    return this.appStore._setCommitSuggestions(repository, suggestions)
+  }
+
+  /** Execute all enabled commit suggestions in order */
+  public executeSmartCommitSuggestions(
+    repository: Repository,
+    suggestions: ReadonlyArray<ICommitSuggestion>
+  ) {
+    return this.appStore._executeSmartCommitSuggestions(repository, suggestions)
   }
 
   /** Remove the given account from the app. */

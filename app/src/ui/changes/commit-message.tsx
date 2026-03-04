@@ -176,6 +176,11 @@ interface ICommitMessageProps {
     mustOverrideExistingMessage: boolean
   ) => void
 
+  /** Called when the user chooses Smart Split from the Copilot menu */
+  readonly onSmartSplitCommits?: (
+    filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
+  ) => void
+
   /**
    * Called when the component has given the commit message focus due to
    * `focusCommitMessage` being set. Used to reset the `focusCommitMessage`
@@ -861,7 +866,7 @@ export class CommitMessage extends React.Component<
     } = this.props
 
     if (
-      !accounts.some(enableCommitMessageGeneration) ||
+      (!__DEV__ && !accounts.some(enableCommitMessageGeneration)) ||
       onGenerateCommitMessage === undefined
     ) {
       return null
@@ -946,12 +951,66 @@ export class CommitMessage extends React.Component<
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault()
-    const { commitMessage } = this.state
 
-    this.props.onGenerateCommitMessage?.(
-      this.props.filesSelected,
-      !!commitMessage.summary || !!commitMessage.description
-    )
+    const items: IMenuItem[] = []
+
+    const {
+      filesSelected,
+      isCommitting,
+      isGeneratingCommitMessage,
+      commitToAmend,
+    } = this.props
+    const noFilesSelected = filesSelected.length === 0
+    const noChangesAvailable = !commitToAmend && noFilesSelected
+    const canAct =
+      isCommitting !== true && !isGeneratingCommitMessage && !noChangesAvailable
+
+    // Option 1: Generate single commit message (existing behavior)
+    if (this.props.onGenerateCommitMessage) {
+      const { commitMessage } = this.state
+      items.push({
+        label: __DARWIN__
+          ? 'Generate Commit Message'
+          : 'Generate commit message',
+        action: () => {
+          this.props.onGenerateCommitMessage?.(
+            filesSelected,
+            !!commitMessage.summary || !!commitMessage.description
+          )
+        },
+        enabled: canAct,
+      })
+    }
+
+    // Option 2: Smart Split (works even with 1 file — can split by logic/hunks)
+    if (this.props.onSmartSplitCommits && filesSelected.length >= 1) {
+      const label =
+        filesSelected.length === 1
+          ? __DARWIN__
+            ? 'Smart Split'
+            : 'Smart split'
+          : __DARWIN__
+          ? `Smart Split (${filesSelected.length} Files)`
+          : `Smart split (${filesSelected.length} files)`
+      items.push({
+        label,
+        action: () => {
+          this.props.onSmartSplitCommits?.(filesSelected)
+        },
+        enabled: canAct,
+      })
+    }
+
+    if (items.length === 0) {
+      return
+    }
+
+    // If only one option, execute directly. If multiple, show menu.
+    if (items.length === 1) {
+      items[0].action?.()
+    } else {
+      showContextualMenu(items)
+    }
   }
 
   private onCoAuthorToggleButtonClick = async (
@@ -1139,10 +1198,9 @@ export class CommitMessage extends React.Component<
    */
   private get isCopilotButtonEnabled() {
     const { accounts, onGenerateCommitMessage } = this.props
-    return (
-      accounts.some(enableCommitMessageGeneration) &&
-      onGenerateCommitMessage !== undefined
-    )
+    const hasEnabledAccount =
+      __DEV__ || accounts.some(enableCommitMessageGeneration)
+    return hasEnabledAccount && onGenerateCommitMessage !== undefined
   }
 
   private get isCommitOptionsButtonEnabled() {

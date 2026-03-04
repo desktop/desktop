@@ -291,6 +291,7 @@ export class RepositoryView extends React.Component<
           this.props.shouldShowGenerateCommitMessageCallOut
         }
         commitToAmend={this.props.state.commitToAmend}
+        commitSuggestions={this.props.state.commitSuggestions}
         isPushPullFetchInProgress={this.props.state.isPushPullFetchInProgress}
         focusCommitMessage={this.props.focusCommitMessage}
         askForConfirmationOnDiscardChanges={

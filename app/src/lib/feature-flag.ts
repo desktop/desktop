@@ -89,6 +89,11 @@ export const enableCustomIntegration = () => true
 export const enableResizingToolbarButtons = () => true
 
 export const enableCommitMessageGeneration = (account: Account) => {
+  // In dev mode, always enable to allow testing
+  if (__DEV__) {
+    return true
+  }
+
   return (
     (account.features ?? []).includes(
       'desktop_copilot_generate_commit_message'

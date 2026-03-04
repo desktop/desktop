@@ -468,6 +468,8 @@ export type PopupDetail =
       // from this popup we will trigger the commit message generation too.
       repository: Repository
       filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
+      /** If true, triggers smart split instead of single commit message */
+      smartSplit?: boolean
     }
   | {
       type: PopupType.HookFailed

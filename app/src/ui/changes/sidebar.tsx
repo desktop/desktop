@@ -61,6 +61,9 @@ interface IChangesSidebarProps {
   readonly isGeneratingCommitMessage: boolean
   readonly shouldShowGenerateCommitMessageCallOut: boolean
   readonly commitToAmend: Commit | null
+  readonly commitSuggestions: ReadonlyArray<
+    import('../../models/commit-suggestion').ICommitSuggestion
+  > | null
   readonly isPushPullFetchInProgress: boolean
   // Used in receiveProps, no-unused-prop-types doesn't know that
   // eslint-disable-next-line react/no-unused-prop-types
@@ -292,6 +295,12 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
    * checkbox.
    */
   private onToggleInclude(row: number) {
+    // Block toggling file inclusion while Smart Split suggestions are active
+    const { commitSuggestions } = this.props
+    if (commitSuggestions !== null && commitSuggestions.length > 0) {
+      return
+    }
+
     const workingDirectory = this.props.changes.workingDirectory
     const file = workingDirectory.files[row]
 
@@ -454,6 +463,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
             this.props.shouldShowGenerateCommitMessageCallOut
           }
           commitToAmend={this.props.commitToAmend}
+          commitSuggestions={this.props.commitSuggestions}
           showCoAuthoredBy={showCoAuthoredBy}
           coAuthors={coAuthors}
           externalEditorLabel={this.props.externalEditorLabel}

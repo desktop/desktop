@@ -1,0 +1,332 @@
+@import '../../mixins';
+
+// ──────────────────────────────────────────────
+// Smart Split suggestion panel
+// Mirrors commit-message-component's structure
+// ──────────────────────────────────────────────
+
+.suggested-commit-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--box-border-color);
+  background-color: var(--box-alt-background-color);
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: var(--spacing);
+  gap: var(--spacing-half);
+
+  // ── Header ────────────────────────────────
+  .suggested-commit-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      font-size: var(--font-size);
+      font-weight: 600;
+
+      .octicon {
+        color: var(--text-secondary-color);
+        height: 16px;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-half);
+    }
+
+    .format-toggle-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border: 1px solid var(--box-border-color);
+      border-radius: var(--border-radius);
+      background: transparent;
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+      transition: border-color 0.15s ease, color 0.15s ease;
+
+      .octicon {
+        height: 12px;
+      }
+
+      .format-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: var(--focus-color);
+        flex-shrink: 0;
+      }
+
+      &:hover:not(:disabled) {
+        border-color: var(--text-secondary-color);
+        color: var(--text-color);
+      }
+
+      &.open {
+        border-color: var(--focus-color);
+        color: var(--text-color);
+      }
+
+      &.has-format {
+        color: var(--text-color);
+        border-color: var(--focus-color);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+    }
+
+    .suggestion-count {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary-color);
+    }
+  }
+
+  // ── Format configuration panel ────────────
+  .smart-split-format-panel {
+    .format-template-input {
+      width: 100%;
+    }
+  }
+
+  // ── Card list ─────────────────────────────
+  .suggested-commit-cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-half);
+    transition: opacity 0.2s ease;
+
+    &.busy {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+  }
+
+  // ── Individual commit card ────────────────
+  .suggested-commit-card {
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+    background-color: var(--box-background-color);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-half);
+    padding: var(--spacing-half) var(--spacing) var(--spacing);
+    transition: border-color 0.15s ease;
+
+    &:hover:not(.disabled) {
+      border-color: var(--text-secondary-color);
+    }
+
+    &.disabled {
+      opacity: 0.5;
+    }
+
+    // ── Card header (summary row) ──
+    .suggested-commit-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-half);
+
+      .suggested-commit-toggle {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+
+        input[type='checkbox'] {
+          margin: 0;
+          cursor: pointer;
+        }
+      }
+
+      // Inline-edit summary — borderless by default
+      .suggested-commit-summary {
+        flex: 1;
+        min-width: 0;
+
+        input {
+          width: 100%;
+          font-weight: 600;
+          border-color: transparent;
+          background: transparent;
+
+          &:hover:not(:disabled):not(:focus) {
+            border-color: var(--box-border-color);
+          }
+
+          &:focus {
+            border-color: var(--focus-color);
+            background: var(--box-background-color);
+            box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+          }
+
+          &:disabled {
+            cursor: default;
+          }
+        }
+      }
+
+      // Reorder arrows — appear on card hover
+      .suggested-commit-reorder {
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        gap: 1px;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+
+        .reorder-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 2px;
+          color: var(--text-secondary-color);
+          line-height: 1;
+          border-radius: var(--border-radius);
+
+          .octicon {
+            height: 10px;
+          }
+
+          &:hover:not(:disabled) {
+            color: var(--text-color);
+            background: var(--box-alt-background-color);
+          }
+
+          &:disabled {
+            opacity: 0.3;
+            cursor: default;
+          }
+        }
+      }
+    }
+
+    // Reveal reorder on card hover
+    &:hover .suggested-commit-reorder {
+      opacity: 1;
+    }
+
+    // ── Expand / collapse toggle (edge-to-edge) ──
+    .suggested-commit-expand-toggle {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      border-top: 1px solid var(--box-border-color);
+      cursor: pointer;
+      padding: 4px var(--spacing-half);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+      transition: color 0.1s ease, background-color 0.1s ease;
+
+      .octicon {
+        height: 10px;
+      }
+
+      &:hover:not(:disabled) {
+        color: var(--text-color);
+      }
+
+      &:disabled {
+        cursor: default;
+        opacity: 0.5;
+      }
+
+      &:focus {
+        outline: none;
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--focus-color);
+        outline-offset: -2px;
+      }
+    }
+
+    // ── Description textarea ──
+    .suggested-commit-description {
+      @include textboxish;
+      height: auto;
+      resize: vertical;
+      min-height: 60px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    // ── File badges ──
+    .suggested-commit-files {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+
+      .suggested-commit-file {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary-color);
+        background-color: var(--box-alt-background-color);
+        padding: 1px 6px;
+        border-radius: 3px;
+        border: 1px solid var(--box-border-color);
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        .octicon {
+          height: 10px;
+          flex-shrink: 0;
+          opacity: 0.6;
+        }
+      }
+    }
+  }
+
+  // ── Action bar ────────────────────────────
+  .suggested-commit-list-actions {
+    display: flex;
+    gap: var(--spacing-half);
+    align-items: center;
+    padding-top: var(--spacing-half);
+    border-top: 1px solid var(--box-border-color);
+
+    .commit-all-button {
+      flex: 1;
+
+      @include ellipsis;
+
+      .octicon {
+        flex-shrink: 0;
+        margin-right: var(--spacing-half);
+        height: 12px;
+        margin-bottom: 1px;
+      }
+    }
+
+    .regenerate-button,
+    .dismiss-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .dismiss-button {
+      color: var(--text-secondary-color);
+    }
+  }
+}
