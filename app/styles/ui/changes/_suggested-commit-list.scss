@@ -24,14 +24,14 @@
     h3 {
       display: flex;
       align-items: center;
-      gap: var(--spacing-half);
+      gap: 6px;
       margin: 0;
-      font-size: var(--font-size-sm);
+      font-size: var(--font-size);
       font-weight: 600;
 
       .octicon {
         color: var(--text-secondary-color);
-        height: 14px;
+        height: 16px;
       }
     }
 
@@ -44,19 +44,20 @@
     .format-toggle-button {
       display: inline-flex;
       align-items: center;
-      gap: 3px;
-      padding: 2px 6px;
+      gap: 4px;
+      padding: 2px 8px;
       border: 1px solid var(--box-border-color);
       border-radius: var(--border-radius);
       background: transparent;
       color: var(--text-secondary-color);
-      font-size: var(--font-size-xs, 11px);
+      font-size: var(--font-size-sm);
       cursor: pointer;
-      position: relative;
-      transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+      transition:
+        border-color 0.15s ease,
+        color 0.15s ease;
 
       .octicon {
-        height: 10px;
+        height: 12px;
       }
 
       .format-dot {
@@ -114,26 +115,30 @@
     }
   }
 
-  // ── Individual commit card ──
+  // ── Individual commit card ────────────────
   .suggested-commit-card {
     border: var(--base-border);
     border-radius: var(--border-radius);
-    padding: var(--spacing-half);
     background-color: var(--box-background-color);
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    transition: opacity 0.15s ease;
+    overflow: hidden;
+    transition: border-color 0.15s ease;
 
-    &.disabled {
-      opacity: 0.45;
+    &:hover:not(.disabled) {
+      border-color: var(--text-secondary-color);
     }
 
+    &.disabled {
+      opacity: 0.5;
+    }
+
+    // ── Card header (summary row) ──
     .suggested-commit-card-header {
       display: flex;
       align-items: center;
       gap: var(--spacing-half);
-      min-height: 24px;
+      padding: var(--spacing-half);
 
       .suggested-commit-toggle {
         flex-shrink: 0;
@@ -146,6 +151,7 @@
         }
       }
 
+      // Inline-edit summary — borderless by default
       .suggested-commit-summary {
         flex: 1;
         min-width: 0;
