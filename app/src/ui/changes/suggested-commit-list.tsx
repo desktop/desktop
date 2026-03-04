@@ -1,19 +1,55 @@
 import * as React from 'react'
 import { ICommitSuggestion } from '../../models/commit-suggestion'
+import { ICommitFormatConfig } from '../../lib/smart-commit-prompt'
 import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
+import { Repository } from '../../models/repository'
+
+const FormatStorageKeyPrefix = 'smart-split-format-'
+
+function getFormatStorageKey(repository: Repository): string {
+  return `${FormatStorageKeyPrefix}${repository.id}`
+}
+
+function loadSavedFormat(repository: Repository): ICommitFormatConfig {
+  try {
+    const raw = localStorage.getItem(getFormatStorageKey(repository))
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      return {
+        template: typeof parsed.template === 'string' ? parsed.template : '',
+      }
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return { template: '' }
+}
+
+function saveFormat(repository: Repository, config: ICommitFormatConfig): void {
+  try {
+    localStorage.setItem(
+      getFormatStorageKey(repository),
+      JSON.stringify(config)
+    )
+  } catch {
+    // ignore quota errors
+  }
+}
+
 interface ISuggestedCommitListProps {
   readonly suggestions: ReadonlyArray<ICommitSuggestion>
   readonly isCommitting: boolean
   /** Whether new suggestions are currently being generated */
   readonly isLoading: boolean
+  readonly repository: Repository
   readonly onSuggestionsUpdated: (
     suggestions: ReadonlyArray<ICommitSuggestion>
   ) => void
   readonly onCommitAll: (suggestions: ReadonlyArray<ICommitSuggestion>) => void
-  readonly onRegenerate: () => void
+  readonly onRegenerate: (formatConfig?: ICommitFormatConfig) => void
   readonly onDismiss: () => void
 }
 
@@ -27,6 +63,10 @@ interface ISuggestedCommitListState {
    */
   readonly editingSummaries: ReadonlyMap<number, string>
   readonly editingDescriptions: ReadonlyMap<number, string>
+  /** Whether the format configuration panel is expanded */
+  readonly formatPanelOpen: boolean
+  /** The user's custom format template */
+  readonly formatTemplate: string
 }
 
 /**
@@ -39,10 +79,13 @@ export class SuggestedCommitList extends React.Component<
 > {
   public constructor(props: ISuggestedCommitListProps) {
     super(props)
+    const saved = loadSavedFormat(props.repository)
     this.state = {
       expandedIndex: -1,
       editingSummaries: new Map(),
       editingDescriptions: new Map(),
+      formatPanelOpen: false,
+      formatTemplate: saved.template,
     }
   }
 
@@ -145,6 +188,50 @@ export class SuggestedCommitList extends React.Component<
 
   private onCommitAll = () => {
     this.props.onCommitAll(this.props.suggestions)
+  }
+
+  private onToggleFormatPanel = () => {
+    this.setState(prev => ({ formatPanelOpen: !prev.formatPanelOpen }))
+  }
+
+  private onFormatTemplateChanged = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    const value = e.currentTarget.value
+    this.setState({ formatTemplate: value })
+    saveFormat(this.props.repository, {
+      template: value,
+    })
+  }
+
+  private onRegenerate = () => {
+    const { formatTemplate } = this.state
+    const hasCustomFormat = formatTemplate.trim().length > 0
+    this.props.onRegenerate(
+      hasCustomFormat ? { template: formatTemplate } : undefined
+    )
+  }
+
+  private renderFormatPanel(): JSX.Element | null {
+    if (!this.state.formatPanelOpen) {
+      return null
+    }
+
+    const isBusy = this.props.isCommitting || this.props.isLoading
+
+    return (
+      <div className="smart-split-format-panel">
+        <textarea
+          className="format-template-input"
+          value={this.state.formatTemplate}
+          onChange={this.onFormatTemplateChanged}
+          disabled={isBusy}
+          placeholder="type(scope) : description"
+          rows={1}
+          spellCheck={false}
+        />
+      </div>
+    )
   }
 
   private renderSuggestionCard(
@@ -250,6 +337,7 @@ export class SuggestedCommitList extends React.Component<
     const { suggestions, isCommitting, isLoading } = this.props
     const enabledCount = suggestions.filter(s => s.enabled).length
     const isBusy = isCommitting || isLoading
+    const hasCustomFormat = this.state.formatTemplate.trim().length > 0
 
     const cardsClassName = ['suggested-commit-cards', isBusy ? 'busy' : '']
       .filter(Boolean)
@@ -262,6 +350,14 @@ export class SuggestedCommitList extends React.Component<
       ? 'Generating…'
       : `Commit ${enabledCount} change${enabledCount !== 1 ? 's' : ''}`
 
+    const formatToggleClassName = [
+      'format-toggle-button',
+      this.state.formatPanelOpen ? 'open' : '',
+      hasCustomFormat ? 'has-format' : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
+
     return (
       <div className="suggested-commit-list">
         <div className="suggested-commit-list-header">
@@ -269,10 +365,28 @@ export class SuggestedCommitList extends React.Component<
             <Octicon symbol={octicons.copilot} />
             Smart Split
           </h3>
-          <span className="suggestion-count">
-            {enabledCount}/{suggestions.length} selected
-          </span>
+          <div className="header-actions">
+            <button
+              className={formatToggleClassName}
+              onClick={this.onToggleFormatPanel}
+              disabled={isBusy}
+              title={
+                hasCustomFormat
+                  ? 'Custom format active — click to edit'
+                  : 'Configure commit format'
+              }
+            >
+              <Octicon symbol={octicons.pencil} />
+              <span>Format</span>
+              {hasCustomFormat && <span className="format-dot" />}
+            </button>
+            <span className="suggestion-count">
+              {enabledCount}/{suggestions.length} selected
+            </span>
+          </div>
         </div>
+
+        {this.renderFormatPanel()}
 
         <div className={cardsClassName}>
           {suggestions.map((s, i) => this.renderSuggestionCard(s, i))}
@@ -293,7 +407,7 @@ export class SuggestedCommitList extends React.Component<
           <Button
             className="regenerate-button"
             disabled={isBusy}
-            onClick={this.props.onRegenerate}
+            onClick={this.onRegenerate}
             tooltip="Regenerate suggestions"
           >
             <Octicon symbol={octicons.sync} />

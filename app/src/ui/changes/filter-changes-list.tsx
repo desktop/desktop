@@ -34,6 +34,7 @@ import {
 import { CommitMessage } from './commit-message'
 import { SuggestedCommitList } from './suggested-commit-list'
 import { ICommitSuggestion } from '../../models/commit-suggestion'
+import { ICommitFormatConfig } from '../../lib/smart-commit-prompt'
 import { ChangedFile } from './changed-file'
 import { IAutocompletionProvider } from '../autocompletion'
 import { showContextualMenu } from '../../lib/menu-item'
@@ -959,6 +960,7 @@ export class FilterChangesList extends React.Component<
           onCommitAll={this.onCommitAllSuggestions}
           onRegenerate={this.onRegenerateSmartSplit}
           onDismiss={this.onDismissSmartSplit}
+          repository={this.props.repository}
         />
       )
     }
@@ -1066,13 +1068,16 @@ export class FilterChangesList extends React.Component<
     )
   }
 
-  private onRegenerateSmartSplit = (): void => {
+  private onRegenerateSmartSplit = (
+    formatConfig?: ICommitFormatConfig
+  ): void => {
     const filesSelected = this.props.workingDirectory.files.filter(
       f => f.selection.getSelectionType() !== DiffSelectionType.None
     )
     this.props.dispatcher.generateSmartCommitSuggestions(
       this.props.repository,
-      filesSelected
+      filesSelected,
+      formatConfig
     )
   }
 
