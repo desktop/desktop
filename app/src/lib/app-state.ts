@@ -1,5 +1,6 @@
 import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
+import { ICommitSuggestion } from '../models/commit-suggestion'
 import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
 import { Branch, IAheadBehind } from '../models/branch'
@@ -546,6 +547,9 @@ export interface IRepositoryState {
 
   /** Is generating a commit message? */
   readonly isGeneratingCommitMessage: boolean
+
+  /** Smart commit split suggestions from AI, or null if not active */
+  readonly commitSuggestions: ReadonlyArray<ICommitSuggestion> | null
 
   /** Commit being amended, or null if none. */
   readonly commitToAmend: Commit | null
