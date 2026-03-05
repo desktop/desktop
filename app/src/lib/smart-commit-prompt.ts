@@ -42,16 +42,13 @@ export function buildSmartSplitSystemPrompt(
 4. **Do not over-split.** If two hunks in the same file are part of the same logical change (e.g., adding a function + calling it elsewhere in the same file), keep them in one commit.
 5. **Do not under-split.** If a file has changes that serve clearly different purposes, split them into separate commits even if the file appears in both.
 
-## Single-file splitting
+## Single-file rule
 
-When there is only one file, you MUST still split if the diff contains multiple distinct logical changes. Analyze each hunk's purpose. For example, in one file:
-- Hunk A adds a new method → feat commit
-- Hunk B refactors an existing method → refactor commit  
-- Hunk C fixes a bug in error handling → fix commit
+Each file MUST appear in exactly ONE suggestion. Do NOT put the same file in multiple commits.
+If a file contains multiple logical changes, group them into the commit that best represents the dominant purpose of the changes in that file.
+Mention in the description which secondary changes are also included (e.g., "Also includes minor refactor of X").
 
-Each of these becomes its own commit, all referencing the same file.
-
-When describing which parts of the file belong to each commit, be specific: mention function names, line ranges, or what the code does.
+When there is only one file, return a single suggestion containing all changes to that file.
 
 ${commitFormatSection}
 
@@ -64,8 +61,8 @@ ${fileList}
 
 ## Output rules
 
-- Every staged file MUST appear in at least one suggestion.
-- A file CAN appear in multiple suggestions when it contains logically distinct changes.
+- Every staged file MUST appear in exactly one suggestion.
+- A file MUST NOT appear in multiple suggestions.
 - Only return a single suggestion if ALL changes in the diff are tightly related to one goal.
 - Be deterministic: given the same diff, the split should be the same. Focus on what the code does, not on arbitrary groupings.
 - Return valid JSON only, no markdown fences, no extra text.
