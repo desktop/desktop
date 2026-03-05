@@ -462,7 +462,7 @@ export const underlineLinksDefault = true
 export const showDiffCheckMarksDefault = true
 export const showDiffCheckMarksKey = 'diff-check-marks-visible'
 
-export const showBranchNameInRepoListDefault = true
+export const showBranchNameInRepoListDefault = false
 export const showBranchNameInRepoListKey = 'show-branch-name-in-repo-list'
 
 const commitMessageGenerationDisclaimerLastSeenKey =

@@ -177,7 +177,7 @@ export class Appearance extends React.Component<
 
   private renderRepositoryListOptions() {
     return (
-      <div className="appearance-section">
+      <div className="advanced-section">
         <h2 id="repo-list-heading">
           {__DARWIN__ ? 'Repository List' : 'Repository list'}
         </h2>
