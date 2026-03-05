@@ -5789,10 +5789,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return false
     }
 
-    const changesState = this.repositoryStateCache.get(repository).changesState
-    const allFiles = changesState.workingDirectory.files
-
     for (const suggestion of enabledSuggestions) {
+      // Refresh the working directory state before each commit so that we
+      // operate on up-to-date file objects (previous commits in the loop
+      // change what is still modified in the working directory).
+      await this.refreshChangesSection(repository, {
+        includingStatus: true,
+        clearPartialState: true,
+      })
+
+      const changesState =
+        this.repositoryStateCache.get(repository).changesState
+      const allFiles = changesState.workingDirectory.files
+
       const filesToCommit = allFiles.filter(f =>
         suggestion.files.includes(f.path)
       )
