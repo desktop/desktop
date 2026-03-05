@@ -45,7 +45,7 @@ describe('buildSmartSplitSystemPrompt', () => {
     const prompt = buildSmartSplitSystemPrompt(['a.ts', 'b.ts'])
 
     assert(
-      prompt.includes('MUST appear in at least one suggestion'),
+      prompt.includes('MUST appear in exactly one suggestion'),
       'Prompt should instruct no file omission'
     )
   })
