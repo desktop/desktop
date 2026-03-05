@@ -38,6 +38,12 @@
       padding-right: 0;
     }
 
+    .appearance-section {
+      &:not(:last-child) {
+        margin-bottom: var(--spacing);
+      }
+    }
+
     .advanced-section {
       &:not(:last-child) {
         margin-bottom: var(--spacing);
