@@ -5789,6 +5789,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return false
     }
 
+    // Track which files have already been committed to prevent
+    // the same file from being staged in multiple commits
+    // (since we stage entire files, not individual hunks).
+    const committedFiles = new Set<string>()
+
     for (const suggestion of enabledSuggestions) {
       // Refresh the working directory state before each commit so that we
       // operate on up-to-date file objects (previous commits in the loop
@@ -5802,8 +5807,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.repositoryStateCache.get(repository).changesState
       const allFiles = changesState.workingDirectory.files
 
-      const filesToCommit = allFiles.filter(f =>
-        suggestion.files.includes(f.path)
+      const filesToCommit = allFiles.filter(
+        f => suggestion.files.includes(f.path) && !committedFiles.has(f.path)
       )
 
       if (filesToCommit.length === 0) {
@@ -5817,6 +5822,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       try {
         await createCommit(repository, message, filesToCommit)
+        for (const f of filesToCommit) {
+          committedFiles.add(f.path)
+        }
       } catch (e) {
         this.emitError(
           new ErrorWithMetadata(e, {
