@@ -4015,6 +4015,12 @@ export class Dispatcher {
     return this.appStore._updateShowDiffCheckMarks(diffCheckMarks)
   }
 
+  public setShowBranchNameInRepoList(showBranchNameInRepoList: boolean) {
+    return this.appStore._updateShowBranchNameInRepoList(
+      showBranchNameInRepoList
+    )
+  }
+
   public testPruneBranches() {
     return this.appStore._testPruneBranches()
   }

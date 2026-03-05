@@ -88,6 +88,7 @@ interface IPreferencesProps {
   readonly useCustomShell: boolean
   readonly customShell: ICustomIntegration | null
   readonly repositoryIndicatorsEnabled: boolean
+  readonly showBranchNameInRepoList: boolean
   readonly onEditGlobalGitConfig: () => void
   readonly underlineLinks: boolean
   readonly showDiffCheckMarks: boolean
@@ -135,6 +136,7 @@ interface IPreferencesState {
    */
   readonly existingLockFilePath?: string
   readonly repositoryIndicatorsEnabled: boolean
+  readonly showBranchNameInRepoList: boolean
 
   readonly initiallySelectedTheme: ApplicationTheme
   readonly initiallySelectedTabSize: number
@@ -204,6 +206,7 @@ export class Preferences extends React.Component<
       availableShells: [],
       selectedShell: this.props.selectedShell,
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
+      showBranchNameInRepoList: this.props.showBranchNameInRepoList,
       initiallySelectedTheme: this.props.selectedTheme,
       initiallySelectedTabSize: this.props.selectedTabSize,
       isLoadingGitConfig: true,
@@ -512,6 +515,10 @@ export class Preferences extends React.Component<
             onSelectedThemeChanged={this.onSelectedThemeChanged}
             selectedTabSize={this.props.selectedTabSize}
             onSelectedTabSizeChanged={this.onSelectedTabSizeChanged}
+            showBranchNameInRepoList={this.state.showBranchNameInRepoList}
+            onShowBranchNameInRepoListChanged={
+              this.onShowBranchNameInRepoListChanged
+            }
           />
         )
         break
@@ -745,6 +752,12 @@ export class Preferences extends React.Component<
     this.setState({ showDiffCheckMarks })
   }
 
+  private onShowBranchNameInRepoListChanged = (
+    showBranchNameInRepoList: boolean
+  ) => {
+    this.setState({ showBranchNameInRepoList })
+  }
+
   private onSelectedTabSizeChanged = (tabSize: number) => {
     this.props.dispatcher.setSelectedTabSize(tabSize)
   }
@@ -908,6 +921,7 @@ export class Preferences extends React.Component<
     dispatcher.setUnderlineLinksSetting(this.state.underlineLinks)
 
     dispatcher.setDiffCheckMarksSetting(this.state.showDiffCheckMarks)
+    dispatcher.setShowBranchNameInRepoList(this.state.showBranchNameInRepoList)
 
     this.props.onDismissed()
   }

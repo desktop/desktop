@@ -372,6 +372,9 @@ export interface IAppState {
   /** Whether or not the user will see check marks indicating a line is included in the check in the diff */
   readonly showDiffCheckMarks: boolean
 
+  /** Whether or not to show the current branch name next to each repository in the repository list */
+  readonly showBranchNameInRepoList: boolean
+
   /**
    * Cached repo rulesets. Used to prevent repeatedly querying the same
    * rulesets to check their bypass status.

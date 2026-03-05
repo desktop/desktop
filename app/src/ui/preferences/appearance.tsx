@@ -7,6 +7,7 @@ import {
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import { RadioGroup } from '../lib/radio-group'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Select } from '../lib/select'
 import { encodePathAsUrl } from '../../lib/path'
 import { tabSizeDefault } from '../../lib/stores/app-store'
@@ -16,6 +17,8 @@ interface IAppearanceProps {
   readonly onSelectedThemeChanged: (theme: ApplicationTheme) => void
   readonly selectedTabSize: number
   readonly onSelectedTabSizeChanged: (tabSize: number) => void
+  readonly showBranchNameInRepoList: boolean
+  readonly onShowBranchNameInRepoListChanged: (value: boolean) => void
 }
 
 interface IAppearanceState {
@@ -166,11 +169,37 @@ export class Appearance extends React.Component<
     )
   }
 
+  private onShowBranchNameInRepoListChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onShowBranchNameInRepoListChanged(event.currentTarget.checked)
+  }
+
+  private renderRepositoryListOptions() {
+    return (
+      <div className="appearance-section">
+        <h2 id="repo-list-heading">
+          {__DARWIN__ ? 'Repository List' : 'Repository list'}
+        </h2>
+        <Checkbox
+          label="Show current branch name next to repository name"
+          value={
+            this.props.showBranchNameInRepoList
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onShowBranchNameInRepoListChanged}
+        />
+      </div>
+    )
+  }
+
   public render() {
     return (
       <DialogContent>
         {this.renderSelectedTheme()}
         {this.renderSelectedTabSize()}
+        {this.renderRepositoryListOptions()}
       </DialogContent>
     )
   }

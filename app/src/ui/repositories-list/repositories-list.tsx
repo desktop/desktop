@@ -74,6 +74,9 @@ interface IRepositoriesListProps {
   readonly filterText: string
 
   readonly dispatcher: Dispatcher
+
+  /** Whether to show the branch name next to each repository */
+  readonly showBranchNameInRepoList: boolean
 }
 
 interface IRepositoriesListState {
@@ -162,7 +165,9 @@ export class RepositoriesList extends React.Component<
         matches={matches}
         aheadBehind={item.aheadBehind}
         changedFilesCount={item.changedFilesCount}
-        branchName={item.branchName}
+        branchName={
+          this.props.showBranchNameInRepoList ? item.branchName : undefined
+        }
       />
     )
   }
@@ -190,7 +195,10 @@ export class RepositoriesList extends React.Component<
   private renderRowFocusTooltip = (
     item: IRepositoryListItem
   ): JSX.Element | string | null => {
-    const { repository, aheadBehind, changedFilesCount, branchName } = item
+    const { repository, aheadBehind, changedFilesCount } = item
+    const branchName = this.props.showBranchNameInRepoList
+      ? item.branchName
+      : undefined
     const gitHubRepo =
       repository instanceof Repository ? repository.gitHubRepository : null
     const alias = repository instanceof Repository ? repository.alias : null

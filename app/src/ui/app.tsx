@@ -1590,6 +1590,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             useCustomShell={this.state.useCustomShell}
             customShell={this.state.customShell}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
+            showBranchNameInRepoList={this.state.showBranchNameInRepoList}
             onEditGlobalGitConfig={this.editGlobalGitConfig}
             underlineLinks={this.state.underlineLinks}
             showDiffCheckMarks={this.state.showDiffCheckMarks}
@@ -2925,6 +2926,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         externalEditorLabel={this.externalEditorLabel}
         shellLabel={useCustomShell ? undefined : selectedShell}
         dispatcher={this.props.dispatcher}
+        showBranchNameInRepoList={this.state.showBranchNameInRepoList}
       />
     )
   }

@@ -462,6 +462,9 @@ export const underlineLinksDefault = true
 export const showDiffCheckMarksDefault = true
 export const showDiffCheckMarksKey = 'diff-check-marks-visible'
 
+export const showBranchNameInRepoListDefault = true
+export const showBranchNameInRepoListKey = 'show-branch-name-in-repo-list'
+
 const commitMessageGenerationDisclaimerLastSeenKey =
   'commit-message-generation-disclaimer-last-seen'
 
@@ -618,6 +621,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     | undefined = undefined
 
   private showDiffCheckMarks: boolean = showDiffCheckMarksDefault
+
+  private showBranchNameInRepoList: boolean = showBranchNameInRepoListDefault
 
   private cachedRepoRulesets = new Map<number, IAPIRepoRuleset>()
 
@@ -1123,6 +1128,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       cachedRepoRulesets: this.cachedRepoRulesets,
       underlineLinks: this.underlineLinks,
       showDiffCheckMarks: this.showDiffCheckMarks,
+      showBranchNameInRepoList: this.showBranchNameInRepoList,
       updateState: updateStore.state,
       commitMessageGenerationDisclaimerLastSeen:
         this.commitMessageGenerationDisclaimerLastSeen,
@@ -2374,6 +2380,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.showDiffCheckMarks = getBoolean(
       showDiffCheckMarksKey,
       showDiffCheckMarksDefault
+    )
+
+    this.showBranchNameInRepoList = getBoolean(
+      showBranchNameInRepoListKey,
+      showBranchNameInRepoListDefault
     )
 
     this.commitMessageGenerationDisclaimerLastSeen =
@@ -8549,6 +8560,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (showDiffCheckMarks !== this.showDiffCheckMarks) {
       this.showDiffCheckMarks = showDiffCheckMarks
       setBoolean(showDiffCheckMarksKey, showDiffCheckMarks)
+      this.emitUpdate()
+    }
+  }
+
+  public _updateShowBranchNameInRepoList(showBranchNameInRepoList: boolean) {
+    if (showBranchNameInRepoList !== this.showBranchNameInRepoList) {
+      this.showBranchNameInRepoList = showBranchNameInRepoList
+      setBoolean(showBranchNameInRepoListKey, showBranchNameInRepoList)
       this.emitUpdate()
     }
   }
