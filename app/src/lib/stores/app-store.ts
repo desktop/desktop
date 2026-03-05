@@ -3717,6 +3717,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     lookup.set(repository.id, {
       aheadBehind: status.branchAheadBehind || null,
       changedFilesCount: status.workingDirectory.files.length,
+      branchName: status.currentBranch,
     })
   }
   /**
@@ -3758,9 +3759,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const existing = lookup.get(repository.id)
       lookup.set(repository.id, {
         aheadBehind: aheadBehind,
-        // We don't need to update changedFilesCount here since it was already
-        // set when calling `updateSidebarIndicator()` with the status object.
+        // We don't need to update changedFilesCount or branchName here since
+        // they were already set when calling `updateSidebarIndicator()` with
+        // the status object.
         changedFilesCount: existing?.changedFilesCount ?? 0,
+        branchName: existing?.branchName,
       })
       this.emitUpdate()
     }

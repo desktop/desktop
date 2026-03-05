@@ -27,6 +27,9 @@ interface IRepositoryListItemProps {
 
   /** Number of uncommitted changes */
   readonly changedFilesCount: number
+
+  /** The name of the current branch, if available */
+  readonly branchName?: string
 }
 
 /** A repository item. */
@@ -74,6 +77,15 @@ export class RepositoryListItem extends React.Component<
             text={alias ?? repository.name}
             highlight={this.props.matches.title}
           />
+          {this.props.branchName && (
+            <span className="branch-name">
+              <Octicon
+                className="branch-icon"
+                symbol={octicons.gitBranch}
+              />
+              {this.props.branchName}
+            </span>
+          )}
         </div>
 
         {repository instanceof Repository &&
@@ -98,6 +110,7 @@ export class RepositoryListItem extends React.Component<
           {alias && <> ({alias})</>}
         </div>
         <div>{repo.path}</div>
+        {this.props.branchName && <div>Branch: {this.props.branchName}</div>}
       </>
     )
   }
@@ -109,7 +122,8 @@ export class RepositoryListItem extends React.Component<
     ) {
       return (
         nextProps.repository.id !== this.props.repository.id ||
-        nextProps.matches !== this.props.matches
+        nextProps.matches !== this.props.matches ||
+        nextProps.branchName !== this.props.branchName
       )
     } else {
       return true

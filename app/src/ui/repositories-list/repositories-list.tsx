@@ -162,6 +162,7 @@ export class RepositoriesList extends React.Component<
         matches={matches}
         aheadBehind={item.aheadBehind}
         changedFilesCount={item.changedFilesCount}
+        branchName={item.branchName}
       />
     )
   }
@@ -189,7 +190,7 @@ export class RepositoriesList extends React.Component<
   private renderRowFocusTooltip = (
     item: IRepositoryListItem
   ): JSX.Element | string | null => {
-    const { repository, aheadBehind, changedFilesCount } = item
+    const { repository, aheadBehind, changedFilesCount, branchName } = item
     const gitHubRepo =
       repository instanceof Repository ? repository.gitHubRepository : null
     const alias = repository instanceof Repository ? repository.alias : null
@@ -214,6 +215,12 @@ export class RepositoriesList extends React.Component<
           <div className="label">Path: </div>
           {repository.path}
         </div>
+        {branchName && (
+          <div>
+            <div className="label">Branch: </div>
+            {branchName}
+          </div>
+        )}
         {aheadBehindTooltip && (
           <div>
             <div className="label">

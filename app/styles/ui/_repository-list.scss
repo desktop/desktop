@@ -65,6 +65,21 @@
     .alias {
       font-style: italic;
     }
+
+    .branch-name {
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+      margin-left: var(--spacing-half);
+      @include ellipsis;
+      flex-shrink: 1;
+
+      .branch-icon {
+        height: 12px;
+        width: 12px;
+        margin-right: 2px;
+        vertical-align: text-bottom;
+      }
+    }
   }
 
   .filter-list-group-header {
