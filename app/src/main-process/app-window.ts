@@ -207,6 +207,10 @@ export class AppWindow {
       ipcWebContents.send(this.window.webContents, 'native-theme-updated')
     })
 
+    ipcMain.on('update-window-background-color', (_, color) => {
+      this.window.setBackgroundColor(color)
+    })
+
     this.setupAutoUpdater()
   }
 
