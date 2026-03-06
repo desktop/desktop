@@ -2278,6 +2278,27 @@ export class API {
         Array.isArray(parsed.suggestions) &&
         parsed.suggestions.length > 0
       ) {
+        // Validate that all staged files appear in the response.
+        // If any are missing, add them to the last suggestion.
+        const assignedFiles = new Set<string>()
+        for (const s of parsed.suggestions) {
+          if (Array.isArray(s.files)) {
+            for (const f of s.files) {
+              assignedFiles.add(f)
+            }
+          }
+        }
+        const missingFiles = filePaths.filter(f => !assignedFiles.has(f))
+        if (missingFiles.length > 0) {
+          const lastSuggestion =
+            parsed.suggestions[parsed.suggestions.length - 1]
+          lastSuggestion.files = [
+            ...(Array.isArray(lastSuggestion.files)
+              ? lastSuggestion.files
+              : []),
+            ...missingFiles,
+          ]
+        }
         return parsed.suggestions
       }
 
