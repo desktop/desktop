@@ -56,11 +56,12 @@ ${commitFormatSection}
 
 Order commits from most foundational to least — e.g., types/models first, then implementation, then tests, then docs.
 
-## Staged files
+## Staged files (${filePaths.length} files — ALL must appear)
 ${fileList}
 
 ## Output rules
 
+- **CRITICAL: You have ${filePaths.length} staged files. The union of ALL "files" arrays in your response MUST contain exactly these ${filePaths.length} files. No file may be omitted.**
 - Every staged file MUST appear in exactly one suggestion.
 - A file MUST NOT appear in multiple suggestions.
 - Only return a single suggestion if ALL changes in the diff are tightly related to one goal.
