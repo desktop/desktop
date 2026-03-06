@@ -14,7 +14,7 @@ function getFormatStorageKey(repository: Repository): string {
   return `${FormatStorageKeyPrefix}${repository.id}`
 }
 
-function loadSavedFormat(repository: Repository): ICommitFormatConfig {
+export function loadSavedFormat(repository: Repository): ICommitFormatConfig {
   try {
     const raw = localStorage.getItem(getFormatStorageKey(repository))
     if (raw) {
