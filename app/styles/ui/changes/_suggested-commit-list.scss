@@ -5,6 +5,41 @@
 // Mirrors commit-message-component's structure
 // ──────────────────────────────────────────────
 
+// ── Vertical resize handle ──────────────────
+// Follows the same invisible-handle pattern as .resize-handle
+// in the horizontal Resizable component (_resizable.scss)
+.vertical-resize-handle {
+  position: relative;
+  height: 0;
+  flex-shrink: 0;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -3px;
+    height: 6px;
+    z-index: var(--drag-overlay-z-index);
+    cursor: ns-resize;
+  }
+}
+
+// ── Resizable container for Smart Split panel ──
+.smart-split-resizable-container {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  min-height: 150px;
+  max-height: 600px;
+
+  .suggested-commit-list {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 0;
+  }
+}
+
 .suggested-commit-list {
   display: flex;
   flex-direction: column;
