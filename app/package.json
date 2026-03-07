@@ -59,7 +59,7 @@
     "react-transition-group": "^4.4.1",
     "react-virtualized": "^9.20.0",
     "registry-js": "^1.16.0",
-    "shescape": "^2.1.6",
+    "shescape": "^2.1.9",
     "source-map-support": "^0.4.15",
     "split2": "^4.2.0",
     "string-argv": "^0.3.2",
