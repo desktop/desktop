@@ -19,11 +19,14 @@ import {
   LineEndingsChange,
   parseLineEndingText,
   ILargeTextDiff,
+  ILFSTextDiff,
+  DiffLineType,
 } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 import { getOldPathOrDefault } from '../get-old-path'
-import { readFile, writeFile, unlink } from 'fs/promises'
+import { readFile, writeFile, unlink, mkdtemp, rm } from 'fs/promises'
+import { tmpdir } from 'os'
 import { getTempFilePath } from '../file-system'
 import { forceUnwrap } from '../fatal-error'
 import { git } from './core'
@@ -85,6 +88,47 @@ function isDiffTooLarge(diff: IRawDiff) {
     }
   }
 
+  return false
+}
+
+const LFSPointerSignature = 'version https://git-lfs.github.com/spec/v1'
+
+/** Number of bytes to sample when deciding whether a buffer is text. */
+const textCheckByteCount = 8000
+
+/**
+ * Determine whether a buffer contains text by inspecting the first bytes.
+ * Uses the same heuristic as Git: a file is considered binary if the
+ * sampled region contains a NUL byte (0x00).
+ */
+function isBufferText(buf: Buffer): boolean {
+  const len = Math.min(buf.length, textCheckByteCount)
+  for (let i = 0; i < len; i++) {
+    if (buf[i] === 0) {
+      return false
+    }
+  }
+  return true
+}
+
+/**
+ * Check whether a raw diff represents changes to a Git LFS pointer file
+ * by inspecting the first real content line (Add, Delete, or Context —
+ * skipping hunk headers) for the LFS signature.
+ */
+function isLFSPointerDiff(diff: IRawDiff): boolean {
+  for (const hunk of diff.hunks) {
+    for (const line of hunk.lines) {
+      if (line.type === DiffLineType.Hunk) {
+        continue
+      }
+      const content = line.content.trim()
+      if (content.length === 0) {
+        continue
+      }
+      return content === LFSPointerSignature
+    }
+  }
   return false
 }
 
@@ -694,8 +738,18 @@ export async function convertDiff(
 ): Promise<IDiff> {
   const extension = Path.extname(file.path).toLowerCase()
 
+  if (isLFSPointerDiff(diff)) {
+    return {
+      kind: DiffType.LFSText,
+      text: diff.contents,
+      hunks: diff.hunks,
+      lineEndingsChange,
+      maxLineNumber: diff.maxLineNumber,
+      hasHiddenBidiChars: diff.hasHiddenBidiChars,
+    } as ILFSTextDiff
+  }
+
   if (diff.isBinary) {
-    // some extension we don't know how to parse, never mind
     if (!imageFileExtensions.has(extension)) {
       return {
         kind: DiffType.Binary,
@@ -1002,3 +1056,196 @@ async function getFilesUsingBinaryMergeDriver(
 // https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-top
 const ensureRelativePath = (path: string) =>
   isAbsolute(path) ? `:(top,literal)${path}` : path
+
+/**
+ * Fetch the real content of an LFS blob by piping its pointer through
+ * `git lfs smudge`. Returns the raw bytes, or `null` on failure.
+ */
+async function smudgeLFSBlobToBuffer(
+  repository: Repository,
+  path: string,
+  commitish: string
+): Promise<Buffer | null> {
+  try {
+    const pointer = await getBlobContents(repository, commitish, path)
+    const result = await git(
+      ['lfs', 'smudge', path],
+      repository.path,
+      'smudgeLFSBlob',
+      {
+        stdin: pointer.toString('utf-8'),
+        encoding: 'buffer',
+      } as any
+    )
+    return result.stdout as unknown as Buffer
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Build an Image from LFS-smudged content for the given commitish.
+ */
+async function getLFSBlobImage(
+  repository: Repository,
+  path: string,
+  commitish: string
+): Promise<Image | undefined> {
+  const buf = await smudgeLFSBlobToBuffer(repository, path, commitish)
+  if (!buf || buf.length === 0) {
+    return undefined
+  }
+  const extension = Path.extname(path)
+  return new Image(
+    buf.buffer,
+    buf.toString('base64'),
+    getMediaType(extension),
+    buf.length
+  )
+}
+
+/**
+ * Build an IImageDiff for an LFS-tracked image file by smudging both sides.
+ */
+async function getLFSImageDiff(
+  repository: Repository,
+  file: FileChange,
+  newestCommitish: string,
+  oldestCommitish: string
+): Promise<IImageDiff> {
+  let current: Image | undefined = undefined
+  let previous: Image | undefined = undefined
+
+  if (file.status.kind !== AppFileStatusKind.Deleted) {
+    if (file instanceof WorkingDirectoryFileChange) {
+      const contents = await readFile(Path.join(repository.path, file.path))
+      const ext = Path.extname(file.path)
+      current = new Image(
+        contents.buffer,
+        contents.toString('base64'),
+        getMediaType(ext),
+        contents.length
+      )
+    } else {
+      current = await getLFSBlobImage(repository, file.path, newestCommitish)
+    }
+  }
+
+  if (
+    file.status.kind !== AppFileStatusKind.New &&
+    file.status.kind !== AppFileStatusKind.Untracked
+  ) {
+    const oldPath = getOldPathOrDefault(file)
+    if (file instanceof WorkingDirectoryFileChange) {
+      previous = await getLFSBlobImage(repository, oldPath, 'HEAD')
+    } else {
+      previous = await getLFSBlobImage(
+        repository,
+        oldPath,
+        `${oldestCommitish}^`
+      )
+    }
+  }
+
+  return { kind: DiffType.Image, previous, current }
+}
+
+/**
+ * Fetch the real LFS content and produce the appropriate diff (image, text,
+ * or binary). Called when the user explicitly opts in to downloading the
+ * LFS blob.
+ */
+export async function getLFSTextDiff(
+  repository: Repository,
+  file: FileChange,
+  oldestCommitish: string,
+  newestCommitish: string,
+  hideWhitespaceInDiff: boolean
+): Promise<IDiff | null> {
+  const extension = Path.extname(file.path).toLowerCase()
+
+  if (imageFileExtensions.has(extension)) {
+    return getLFSImageDiff(repository, file, newestCommitish, oldestCommitish)
+  }
+
+  let oldBuf: Buffer | null = null
+  let newBuf: Buffer | null = null
+
+  if (
+    file.status.kind !== AppFileStatusKind.New &&
+    file.status.kind !== AppFileStatusKind.Untracked
+  ) {
+    const oldPath = getOldPathOrDefault(file)
+    if (file instanceof WorkingDirectoryFileChange) {
+      oldBuf = await smudgeLFSBlobToBuffer(repository, oldPath, 'HEAD')
+    } else {
+      oldBuf = await smudgeLFSBlobToBuffer(
+        repository,
+        oldPath,
+        `${oldestCommitish}^`
+      )
+    }
+  }
+
+  if (file.status.kind !== AppFileStatusKind.Deleted) {
+    if (file instanceof WorkingDirectoryFileChange) {
+      newBuf = (await readFile(Path.join(repository.path, file.path))) as Buffer
+    } else {
+      newBuf = await smudgeLFSBlobToBuffer(
+        repository,
+        file.path,
+        newestCommitish
+      )
+    }
+  }
+
+  const contentIsText =
+    (oldBuf === null || isBufferText(oldBuf)) &&
+    (newBuf === null || isBufferText(newBuf))
+
+  if (!contentIsText) {
+    return { kind: DiffType.Binary }
+  }
+
+  const tmpDir = await mkdtemp(Path.join(tmpdir(), 'desktop-lfs-'))
+  try {
+    const oldFile = Path.join(tmpDir, 'old')
+    const newFile = Path.join(tmpDir, 'new')
+    await writeFile(oldFile, oldBuf ?? '')
+    await writeFile(newFile, newBuf ?? '')
+
+    const args = [
+      'diff',
+      '--no-index',
+      ...(hideWhitespaceInDiff ? ['-w'] : []),
+      '--patch-with-raw',
+      '-z',
+      '--no-color',
+      '--',
+      oldFile,
+      newFile,
+    ]
+
+    const { stdout } = await git(args, repository.path, 'getLFSTextDiff', {
+      encoding: 'buffer',
+      successExitCodes: new Set([0, 1]),
+    })
+
+    const result = stdout.toString('utf-8')
+    const pieces = result.split('\0')
+    const parser = new DiffParser()
+    const rawDiff = parser.parse(
+      forceUnwrap('Invalid diff output', pieces.at(-1))
+    )
+
+    return {
+      kind: DiffType.Text,
+      text: rawDiff.contents,
+      hunks: rawDiff.hunks,
+      maxLineNumber: rawDiff.maxLineNumber,
+      hasHiddenBidiChars: rawDiff.hasHiddenBidiChars,
+    }
+  } finally {
+    await rm(tmpDir, { recursive: true, force: true })
+  }
+}

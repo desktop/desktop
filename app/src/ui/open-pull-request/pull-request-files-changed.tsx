@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Path from 'path'
 import { IDiff, ImageDiffType } from '../../models/diff'
+import { getLFSTextDiff } from '../../lib/git'
 import { Repository } from '../../models/repository'
 import { CommittedFileChange } from '../../models/status'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
@@ -224,6 +225,21 @@ export class PullRequestFilesChanged extends React.Component<
     showContextualMenu(items)
   }
 
+  private onLoadLFSDiff = (): Promise<IDiff | null> => {
+    const file = this.props.selectedFile
+    if (file === null) {
+      return Promise.resolve(null)
+    }
+    const commitish = this.props.nonLocalCommitSHA ?? 'HEAD'
+    return getLFSTextDiff(
+      this.props.repository,
+      file,
+      commitish,
+      commitish,
+      this.props.hideWhitespaceInDiff
+    )
+  }
+
   private onFileSelected = (file: CommittedFileChange) => {
     this.props.dispatcher.changePullRequestFileSelection(
       this.props.repository,
@@ -306,6 +322,7 @@ export class PullRequestFilesChanged extends React.Component<
         onOpenBinaryFile={this.onOpenBinaryFile}
         onChangeImageDiffType={this.onChangeImageDiffType}
         onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+        onLoadLFSDiff={this.onLoadLFSDiff}
       />
     )
   }
