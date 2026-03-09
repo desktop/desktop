@@ -427,6 +427,14 @@ const hideWhitespaceInPullRequestDiffKey =
 const commitSpellcheckEnabledDefault = true
 const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
 
+function isAbortError(error: unknown): boolean {
+  if (error instanceof DOMException) {
+    return error.name === 'AbortError'
+  }
+
+  return error instanceof Error && error.name === 'AbortError'
+}
+
 export const tabSizeDefault: number = 4
 const tabSizeKey: string = 'tab-size'
 
@@ -496,6 +504,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private readonly localRepositoryStateLookup = new Map<
     number,
     ILocalRepositoryState
+  >()
+
+  private readonly commitMessageGenerationAbortControllers = new Map<
+    number,
+    AbortController
   >()
 
   /** Map from shortcut (e.g., :+1:) to on disk URL. */
@@ -5653,8 +5666,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
 
       const api = API.fromAccount(account)
+      const abortController = new AbortController()
+      this.commitMessageGenerationAbortControllers.set(
+        repository.id,
+        abortController
+      )
+
       try {
-        const response = await api.getDiffChangesCommitMessage(diff)
+        const response = await api.getDiffChangesCommitMessage(
+          diff,
+          abortController.signal
+        )
+
+        if (abortController.signal.aborted) {
+          return false
+        }
 
         this._setCommitMessage(repository, {
           summary: response.title,
@@ -5665,16 +5691,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
         this.statsStore.increment('generateCommitMessageCount')
       } catch (e) {
+        if (isAbortError(e)) {
+          return false
+        }
+
         this.emitError(
           new ErrorWithMetadata(e, {
             repository,
           })
         )
         return false
+      } finally {
+        const activeController = this.commitMessageGenerationAbortControllers.get(
+          repository.id
+        )
+
+        if (activeController === abortController) {
+          this.commitMessageGenerationAbortControllers.delete(repository.id)
+        }
       }
 
       return true
     })
+  }
+
+  public _cancelCommitMessageGeneration(repository: Repository): Promise<void> {
+    this.commitMessageGenerationAbortControllers.get(repository.id)?.abort()
+    return Promise.resolve()
   }
 
   /**

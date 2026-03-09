@@ -176,6 +176,8 @@ interface ICommitMessageProps {
     mustOverrideExistingMessage: boolean
   ) => void
 
+  readonly onCancelGenerateCommitMessage?: () => void
+
   /**
    * Called when the component has given the commit message focus due to
    * `focusCommitMessage` being set. Used to reset the `focusCommitMessage`
@@ -553,6 +555,16 @@ export class CommitMessage extends React.Component<
 
   private onSubmit = () => {
     this.createCommit()
+  }
+
+  private onSubmitButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (this.props.isGeneratingCommitMessage !== true) {
+      this.onSubmit()
+      return
+    }
+
+    event.preventDefault()
+    this.props.onCancelGenerateCommitMessage?.()
   }
 
   private getCoAuthorTrailers() {
@@ -1526,32 +1538,52 @@ export class CommitMessage extends React.Component<
   }
 
   private renderSubmitButton() {
-    const { isCommitting, isGeneratingCommitMessage } = this.props
+    const {
+      isCommitting,
+      isGeneratingCommitMessage,
+      onCancelGenerateCommitMessage,
+    } = this.props
     const isSummaryBlank = isEmptyOrWhitespace(this.summaryOrPlaceholder)
+    const canCancelCommitMessageGeneration =
+      isGeneratingCommitMessage === true &&
+      onCancelGenerateCommitMessage !== undefined
     const buttonEnabled =
-      (this.canCommit() || this.canAmend()) &&
-      !isCommitting &&
-      !isSummaryBlank &&
-      !isGeneratingCommitMessage
+      canCancelCommitMessageGeneration ||
+      ((this.canCommit() || this.canAmend()) &&
+        !isCommitting &&
+        !isSummaryBlank &&
+        !isGeneratingCommitMessage)
     const loading =
       isCommitting || isGeneratingCommitMessage ? <Loading /> : undefined
     const generatingCommitDetailsMessage = isGeneratingCommitMessage
       ? 'Generating commit details…'
       : null
-    const tooltip =
-      generatingCommitDetailsMessage ?? this.getButtonTooltip(buttonEnabled)
-    const commitButton = generatingCommitDetailsMessage ?? this.getButtonText()
+    const generatingCommitDetailsButtonText = isGeneratingCommitMessage
+      ? 'Generating commit details… Click to cancel'
+      : null
+    const tooltip = canCancelCommitMessageGeneration
+      ? 'Generating commit details… Click to cancel.'
+      : generatingCommitDetailsMessage ?? this.getButtonTooltip(buttonEnabled)
+    const commitButton =
+      generatingCommitDetailsButtonText ?? this.getButtonText()
+    const ariaLabel = canCancelCommitMessageGeneration
+      ? 'Generating commit details. Click to cancel.'
+      : undefined
+    const type = isGeneratingCommitMessage ? 'button' : 'submit'
 
     return (
       <Button
-        type="submit"
+        type={type}
         className="commit-button"
-        onClick={this.onSubmit}
+        onClick={this.onSubmitButtonClick}
         disabled={!buttonEnabled}
         tooltip={tooltip}
         tooltipDismissable={false}
-        onlyShowTooltipWhenOverflowed={buttonEnabled}
+        onlyShowTooltipWhenOverflowed={
+          buttonEnabled && !canCancelCommitMessageGeneration
+        }
         ariaDescribedBy={this.props.submitButtonAriaDescribedBy}
+        ariaLabel={ariaLabel}
       >
         <>
           {loading}

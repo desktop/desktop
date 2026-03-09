@@ -1101,6 +1101,10 @@ export class Dispatcher {
     return this.appStore._generateCommitMessage(repository, filesSelected)
   }
 
+  public cancelCommitMessageGeneration(repository: Repository) {
+    return this.appStore._cancelCommitMessageGeneration(repository)
+  }
+
   /** Remove the given account from the app. */
   public removeAccount(account: Account): Promise<void> {
     return this.appStore._removeAccount(account)

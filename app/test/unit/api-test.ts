@@ -1,6 +1,9 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { getNextPagePathWithIncreasingPageSize } from '../../src/lib/api'
+import {
+  API,
+  getNextPagePathWithIncreasingPageSize,
+} from '../../src/lib/api'
 import * as URL from 'url'
 
 interface IPageInfo {
@@ -126,6 +129,78 @@ describe('API', () => {
       assertNext({ per_page: 100, page: 8 }, { per_page: 100, page: 8 })
       assertNext({ per_page: 100, page: 9 }, { per_page: 100, page: 9 })
       assertNext({ per_page: 100, page: 10 }, { per_page: 100, page: 10 })
+    })
+  })
+
+  describe('getDiffChangesCommitMessage', () => {
+    it('forwards the abort signal to the Copilot request', async () => {
+      const api = new API(
+        'https://api.github.com',
+        'token',
+        'https://copilot.github.com'
+      )
+      const controller = new AbortController()
+      const originalFetch = globalThis.fetch
+      let receivedSignal: AbortSignal | null | undefined
+
+      globalThis.fetch = (async (_input, init) => {
+        receivedSignal = init?.signal
+
+        return new Response(
+          'data: {"choices":[{"message":{"content":"{\\"title\\":\\"Summary\\",\\"description\\":\\"Description\\"}"}}]}',
+          {
+            status: 200,
+          }
+        )
+      }) as typeof fetch
+
+      try {
+        const message = await api.getDiffChangesCommitMessage(
+          'diff --git a/file b/file',
+          controller.signal
+        )
+
+        assert.equal(receivedSignal, controller.signal)
+        assert.equal(message.title, 'Summary')
+        assert.equal(message.description, 'Description')
+      } finally {
+        globalThis.fetch = originalFetch
+      }
+    })
+
+    it('rejects when the request is aborted', async () => {
+      const api = new API(
+        'https://api.github.com',
+        'token',
+        'https://copilot.github.com'
+      )
+      const controller = new AbortController()
+      const originalFetch = globalThis.fetch
+
+      globalThis.fetch = ((_input, init) => {
+        return new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => {
+            reject(new DOMException('The operation was aborted.', 'AbortError'))
+          })
+        })
+      }) as typeof fetch
+
+      try {
+        const result = api.getDiffChangesCommitMessage(
+          'diff --git a/file b/file',
+          controller.signal
+        )
+
+        controller.abort()
+
+        await assert.rejects(result, error => {
+          assert(error instanceof DOMException)
+          assert.equal(error.name, 'AbortError')
+          return true
+        })
+      } finally {
+        globalThis.fetch = originalFetch
+      }
     })
   })
 })

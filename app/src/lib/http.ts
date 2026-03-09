@@ -120,7 +120,8 @@ export function request(
   path: string,
   jsonBody?: Object,
   customHeaders?: Object,
-  reloadCache: boolean = false
+  reloadCache: boolean = false,
+  signal?: AbortSignal
 ): Promise<Response> {
   const url = getAbsoluteUrl(endpoint, path)
 
@@ -143,6 +144,7 @@ export function request(
     headers,
     method,
     body: JSON.stringify(jsonBody),
+    signal,
   }
 
   if (reloadCache) {
