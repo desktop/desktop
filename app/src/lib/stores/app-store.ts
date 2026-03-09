@@ -5702,9 +5702,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         )
         return false
       } finally {
-        const activeController = this.commitMessageGenerationAbortControllers.get(
-          repository.id
-        )
+        const activeController =
+          this.commitMessageGenerationAbortControllers.get(repository.id)
 
         if (activeController === abortController) {
           this.commitMessageGenerationAbortControllers.delete(repository.id)

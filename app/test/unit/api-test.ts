@@ -1,9 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import {
-  API,
-  getNextPagePathWithIncreasingPageSize,
-} from '../../src/lib/api'
+import { API, getNextPagePathWithIncreasingPageSize } from '../../src/lib/api'
 import * as URL from 'url'
 
 interface IPageInfo {

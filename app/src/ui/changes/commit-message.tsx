@@ -557,7 +557,9 @@ export class CommitMessage extends React.Component<
     this.createCommit()
   }
 
-  private onSubmitButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  private onSubmitButtonClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
     if (this.props.isGeneratingCommitMessage !== true) {
       this.onSubmit()
       return
