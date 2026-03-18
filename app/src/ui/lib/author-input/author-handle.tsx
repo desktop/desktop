@@ -3,9 +3,9 @@ import React from 'react'
 import { Author, isKnownAuthor } from '../../../models/author'
 import { Octicon, syncClockwise } from '../../octicons'
 import * as octicons from '../../octicons/octicons.generated'
-import { getFullTextForAuthor, getDisplayTextForAuthor } from './author-text'
-import { Tooltip } from '../tooltip'
 import { createObservableRef } from '../observable-ref'
+import { Tooltip } from '../tooltip'
+import { getDisplayTextForAuthor, getFullTextForAuthor } from './author-text'
 
 interface IAuthorHandleProps {
   /** Author to render */
