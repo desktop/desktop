@@ -300,6 +300,7 @@ export class CommitMessage extends React.Component<
 
   private descriptionTextArea: HTMLTextAreaElement | null = null
   private descriptionTextAreaScrollDebounceId: number | null = null
+  private descriptionTextAreaPaddingBottomPx = 0
 
   private coAuthorInputRef = React.createRef<AuthorInput>()
 
@@ -1144,19 +1145,28 @@ export class CommitMessage extends React.Component<
       return
     }
 
-    const tolerance = 10
+    const bottomPaddingTolerancePx = this.descriptionTextAreaPaddingBottomPx * 2
 
     const distanceToBottom =
       elem.scrollHeight - elem.clientHeight - Math.ceil(elem.scrollTop)
-    const descriptionObscured = distanceToBottom > tolerance
+    const descriptionObscured = distanceToBottom > bottomPaddingTolerancePx
 
     if (this.state.descriptionObscured !== descriptionObscured) {
       this.setState({ descriptionObscured })
     }
   }
 
+  private getPaddingBottomPx(elem: HTMLTextAreaElement): number {
+    const paddingBottomValue = window.getComputedStyle(elem).paddingBottom
+    return paddingBottomValue.endsWith('px') === true
+      ? parseFloat(paddingBottomValue)
+      : 0
+  }
+
   private onDescriptionTextAreaRef = (elem: HTMLTextAreaElement | null) => {
     if (elem) {
+      this.descriptionTextAreaPaddingBottomPx = this.getPaddingBottomPx(elem)
+
       const checkDescriptionScrollState = () => {
         if (this.descriptionTextAreaScrollDebounceId !== null) {
           cancelAnimationFrame(this.descriptionTextAreaScrollDebounceId)
