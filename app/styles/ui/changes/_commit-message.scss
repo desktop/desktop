@@ -241,6 +241,7 @@
       padding: var(--spacing-half);
       resize: none;
       min-height: 100px;
+      overflow-anchor: none;
 
       &:focus {
         outline: 0;
