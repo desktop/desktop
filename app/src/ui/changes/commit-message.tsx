@@ -1140,8 +1140,15 @@ export class CommitMessage extends React.Component<
     this.descriptionTextAreaScrollDebounceId = null
 
     const elem = this.descriptionTextArea
-    const descriptionObscured =
-      elem !== null && elem.scrollTop + elem.offsetHeight < elem.scrollHeight
+    if (elem === null) {
+      return
+    }
+
+    const tolerance = 10
+
+    const distanceToBottom =
+      elem.scrollHeight - elem.clientHeight - Math.ceil(elem.scrollTop)
+    const descriptionObscured = distanceToBottom > tolerance
 
     if (this.state.descriptionObscured !== descriptionObscured) {
       this.setState({ descriptionObscured })
