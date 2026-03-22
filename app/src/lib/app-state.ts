@@ -538,6 +538,9 @@ export interface IRepositoryState {
   /** The tags that will get pushed if the user performs a push operation. */
   readonly tagsToPush: ReadonlyArray<string> | null
 
+  /** The remote tags that will be deleted when the user next pushes. */
+  readonly tagsToDeleteOnRemote: ReadonlyArray<string> | null
+
   /** Is a push/pull/fetch in progress? */
   readonly isPushPullFetchInProgress: boolean
 

@@ -23,7 +23,7 @@ export async function createTag(
 /**
  * Delete a tag.
  *
- * @param repository        - The repository in which to create the new tag.
+ * @param repository        - The repository in which to delete the tag.
  * @param name              - The name of the tag to delete.
  */
 export async function deleteTag(
@@ -33,6 +33,25 @@ export async function deleteTag(
   const args = ['tag', '-d', name]
 
   await git(args, repository.path, 'deleteTag')
+}
+
+/**
+ * Delete a tag from the specified remote.
+ *
+ * @param repository        - The repository in which to delete the remote tag.
+ * @param remote            - The remote from which to delete the tag.
+ * @param name              - The name of the tag to delete.
+ */
+export async function deleteRemoteTag(
+  repository: Repository,
+  remote: IRemote,
+  name: string
+): Promise<void> {
+  const args = ['push', remote.name, `:refs/tags/${name}`]
+
+  await git(args, repository.path, 'deleteRemoteTag', {
+    env: await envForRemoteOperation(remote.url),
+  })
 }
 
 /**

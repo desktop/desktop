@@ -666,8 +666,12 @@ export class Dispatcher {
   /**
    * Deletes the passed tag.
    */
-  public deleteTag(repository: Repository, name: string): Promise<void> {
-    return this.appStore._deleteTag(repository, name)
+  public deleteTag(
+    repository: Repository,
+    name: string,
+    options?: { removeFromRemote: boolean }
+  ): Promise<void> {
+    return this.appStore._deleteTag(repository, name, options)
   }
 
   /**
@@ -693,12 +697,14 @@ export class Dispatcher {
    */
   public showDeleteTagDialog(
     repository: Repository,
-    tagName: string
+    tagName: string,
+    canDeleteRemote: boolean
   ): Promise<void> {
     return this.showPopup({
       type: PopupType.DeleteTag,
       repository,
       tagName,
+      canDeleteRemote,
     })
   }
 

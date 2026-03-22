@@ -100,6 +100,27 @@ describe('git/tag', () => {
       const commit = await getCommit(repository, 'HEAD')
       assert.equal(commit?.tags.length, 0)
     })
+
+    it('deletes a remote tag when pushed as a delete refspec', async t => {
+      const path = await setupFixtureRepository(t, 'test-repo-with-tags')
+      const remoteRepository = new Repository(path, -1, null, false)
+      const repository = await setupLocalForkOfRepository(t, remoteRepository)
+      const remotes = await getRemotes(repository)
+      const originRemote = forceUnwrap(
+        "couldn't find origin remote",
+        findDefaultRemote(remotes)
+      )
+
+      await createTag(repository, 'my-new-tag', 'HEAD')
+      await push(repository, originRemote, 'master', null, ['my-new-tag'])
+
+      await push(repository, originRemote, 'master', null, null, {
+        tagsToDeleteOnRemote: ['my-new-tag'],
+      })
+
+      const remoteCommit = await getCommit(remoteRepository, 'HEAD')
+      assert.equal(remoteCommit?.tags.includes('my-new-tag'), false)
+    })
   })
 
   describe('getAllTags', () => {

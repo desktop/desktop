@@ -36,6 +36,29 @@ export function clearTagsToPush(repository: Repository) {
   localStorage.removeItem(getTagsToPushKey(repository))
 }
 
+export function storeTagsToDeleteOnRemote(
+  repository: Repository,
+  tagsToDeleteOnRemote: ReadonlyArray<string>
+) {
+  if (tagsToDeleteOnRemote.length === 0) {
+    clearTagsToDeleteOnRemote(repository)
+  } else {
+    setStringArray(getTagsToDeleteOnRemoteKey(repository), tagsToDeleteOnRemote)
+  }
+}
+
+export function getTagsToDeleteOnRemote(repository: Repository) {
+  return getStringArray(getTagsToDeleteOnRemoteKey(repository))
+}
+
+export function clearTagsToDeleteOnRemote(repository: Repository) {
+  localStorage.removeItem(getTagsToDeleteOnRemoteKey(repository))
+}
+
 function getTagsToPushKey(repository: Repository) {
   return `tags-to-push-${repository.id}`
+}
+
+function getTagsToDeleteOnRemoteKey(repository: Repository) {
+  return `tags-to-delete-on-remote-${repository.id}`
 }
