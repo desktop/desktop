@@ -192,6 +192,11 @@ dialog {
   &.warning,
   &.error {
     .dialog-content {
+      // Allow users to select and copy error/warning text
+      -webkit-user-select: text;
+      user-select: text;
+      cursor: auto;
+
       position: relative;
       margin-left: var(--spacing-double);
       // A zero padding would mean the icon and the text lines up so we
@@ -234,6 +239,16 @@ dialog {
       background-color: var(--dialog-error-color);
       -webkit-mask: var(--dialog-icon-stop);
     }
+  }
+
+  // Allow users to select and copy terminal output in any dialog.
+  // The wildcard overrides the global cursor: default from _globals.scss
+  // which applies directly to every non-input element.
+  .xterm,
+  .xterm * {
+    -webkit-user-select: text;
+    user-select: text;
+    cursor: text;
   }
 
   .dialog-content {
@@ -365,10 +380,6 @@ dialog {
 
     .dialog-content {
       p {
-        -webkit-user-select: text;
-        user-select: text;
-        cursor: auto;
-
         // Preserve newlines and other white space in error messages
         // but make sure we wrap if necessary.
         white-space: pre-wrap;
