@@ -1,0 +1,142 @@
+name: Build Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_windows_x64:
+        description: 'Build Windows x64'
+        type: boolean
+        default: true
+      build_windows_arm64:
+        description: 'Build Windows ARM64'
+        type: boolean
+        default: false
+      build_macos:
+        description: 'Build macOS'
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: 22.19.0
+
+jobs:
+  build-windows-x64:
+    if: ${{ inputs.build_windows_x64 }}
+    name: Windows x64
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+      - name: Install dependencies
+        run: yarn
+        env:
+          npm_config_arch: x64
+          TARGET_ARCH: x64
+      - name: Run unit tests
+        run: yarn test:unit
+      - name: Build production app
+        run: yarn build:prod
+        env:
+          npm_config_arch: x64
+          TARGET_ARCH: x64
+      - name: Package app
+        run: yarn package
+        env:
+          npm_config_arch: x64
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-x64
+          path: |
+            dist/GitHubDesktopSetup-x64.exe
+            dist/GitHubDesktopSetup-x64.msi
+          if-no-files-found: error
+
+  build-windows-arm64:
+    if: ${{ inputs.build_windows_arm64 }}
+    name: Windows ARM64
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+      - name: Install dependencies
+        run: yarn
+        env:
+          npm_config_arch: arm64
+          TARGET_ARCH: arm64
+      - name: Build production app
+        run: yarn build:prod
+        env:
+          npm_config_arch: arm64
+          TARGET_ARCH: arm64
+      - name: Package app
+        run: yarn package
+        env:
+          npm_config_arch: arm64
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-arm64
+          path: |
+            dist/GitHubDesktopSetup-arm64.exe
+            dist/GitHubDesktopSetup-arm64.msi
+          if-no-files-found: error
+
+  build-macos:
+    if: ${{ inputs.build_macos }}
+    name: macOS
+    runs-on: macos-14-xlarge
+    permissions:
+      contents: write
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+      - name: Install dependencies
+        run: yarn
+      - name: Run unit tests
+        run: yarn test:unit
+      - name: Build production app
+        run: yarn build:prod
+      - name: Package app
+        run: yarn package
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macOS
+          path: |
+            dist/GitHub Desktop-arm64.zip
+          if-no-files-found: error
