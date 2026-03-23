@@ -69,6 +69,12 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   private accounts: ReadonlyArray<Account> = []
 
+  /** True when syncing from another window's IPC data. */
+  private _isSyncing = false
+  public get isSyncing() {
+    return this._isSyncing
+  }
+
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
 
@@ -155,6 +161,36 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     }
   }
 
+  private async loadAccountsWithTokens(
+    rawAccounts: ReadonlyArray<IAccount>
+  ): Promise<ReadonlyArray<Account>> {
+    const accountsWithTokens = []
+    for (const account of rawAccounts) {
+      const accountWithoutToken = new Account(
+        account.login,
+        account.endpoint,
+        '',
+        account.emails,
+        account.avatarURL,
+        account.id,
+        account.name,
+        account.plan
+      )
+
+      const key = getKeyForAccount(accountWithoutToken)
+      try {
+        const token = await this.secureStore.getItem(key, account.login)
+        accountsWithTokens.push(accountWithoutToken.withToken(token || ''))
+      } catch (e) {
+        log.error(`Error getting token for '${key}'. Skipping.`, e)
+
+        this.emitError(e)
+      }
+    }
+
+    return sortAccounts(accountsWithTokens)
+  }
+
   /**
    * Remove the account from the store.
    */
@@ -215,36 +251,41 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     const migratedAccounts = this.getMigratedGHEAccounts(parsedAccounts)
     const rawAccounts = migratedAccounts ?? parsedAccounts
 
-    const accountsWithTokens = []
-    for (const account of rawAccounts) {
-      const accountWithoutToken = new Account(
-        account.login,
-        account.endpoint,
-        '',
-        account.emails,
-        account.avatarURL,
-        account.id,
-        account.name,
-        account.plan
-      )
-
-      const key = getKeyForAccount(accountWithoutToken)
-      try {
-        const token = await this.secureStore.getItem(key, account.login)
-        accountsWithTokens.push(accountWithoutToken.withToken(token || ''))
-      } catch (e) {
-        log.error(`Error getting token for '${key}'. Skipping.`, e)
-
-        this.emitError(e)
-      }
-    }
-
-    this.accounts = sortAccounts(accountsWithTokens)
+    this.accounts = await this.loadAccountsWithTokens(rawAccounts)
     // If any account was migrated, make sure to persist the new value
     if (migratedAccounts !== null) {
       this.save() // Save already emits an update
     } else {
       this.emitUpdate(this.accounts)
+    }
+  }
+
+  /**
+   * Sync accounts from serialized data received via IPC from another window.
+   */
+  public async syncFromIPC(serializedUsers: string): Promise<void> {
+    await this.loadingPromise
+
+    let parsedAccounts: ReadonlyArray<IAccount>
+    try {
+      const parsed = JSON.parse(serializedUsers)
+      if (!Array.isArray(parsed)) {
+        log.error('Invalid accounts IPC sync payload. Skipping.')
+        return
+      }
+
+      parsedAccounts = parsed
+    } catch (e) {
+      log.error('Error parsing accounts IPC sync payload. Skipping.', e)
+      return
+    }
+
+    this._isSyncing = true
+    try {
+      this.accounts = await this.loadAccountsWithTokens(parsedAccounts)
+      this.save()
+    } finally {
+      this._isSyncing = false
     }
   }
 
