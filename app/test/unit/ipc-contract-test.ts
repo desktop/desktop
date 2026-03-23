@@ -49,6 +49,7 @@ describe('IPC channel contract', () => {
     'focus',
     'blur',
     'update-accounts',
+    'accounts-changed',
     'quit-and-install-updates',
     'quit-app',
     'open-repository-in-new-window',

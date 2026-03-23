@@ -69,6 +69,12 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   private accounts: ReadonlyArray<Account> = []
 
+  /** True when syncing from another window's IPC data. */
+  private _isSyncing = false
+  public get isSyncing() {
+    return this._isSyncing
+  }
+
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
 
@@ -245,6 +251,48 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       this.save() // Save already emits an update
     } else {
       this.emitUpdate(this.accounts)
+    }
+  }
+
+  /**
+   * Sync accounts from serialized data received via IPC from another window.
+   * Bypasses localStorage (which is per-process) and reads tokens from the
+   * shared OS keychain.
+   */
+  public async syncFromIPC(serializedUsers: string): Promise<void> {
+    await this.loadingPromise
+
+    this._isSyncing = true
+    try {
+      const parsedAccounts: ReadonlyArray<IAccount> =
+        JSON.parse(serializedUsers)
+      const accountsWithTokens = []
+      for (const account of parsedAccounts) {
+        const accountWithoutToken = new Account(
+          account.login,
+          account.endpoint,
+          '',
+          account.emails,
+          account.avatarURL,
+          account.id,
+          account.name,
+          account.plan
+        )
+
+        const key = getKeyForAccount(accountWithoutToken)
+        try {
+          const token = await this.secureStore.getItem(key, account.login)
+          accountsWithTokens.push(accountWithoutToken.withToken(token || ''))
+        } catch (e) {
+          log.error(`Error getting token for '${key}'. Skipping.`, e)
+          this.emitError(e)
+        }
+      }
+
+      this.accounts = sortAccounts(accountsWithTokens)
+      this.save()
+    } finally {
+      this._isSyncing = false
     }
   }
 
