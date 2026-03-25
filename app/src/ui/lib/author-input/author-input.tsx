@@ -409,7 +409,7 @@ export class AuthorInput extends React.Component<
   }
 
   private onAutocompleteItemSelected = (item: UserHit) => {
-    const username = item.username
+    const username = item.username.trim().replace(/^@+/, '')
 
     if (this.props.autoCompleteProvider.isCurrentUser(username)) {
       this.rejectAuthorAddition(
@@ -432,7 +432,7 @@ export class AuthorInput extends React.Component<
         ? authorFromUserHit(item)
         : {
             kind: 'unknown',
-            username: item.username,
+            username: username,
             state: 'searching',
           }
 
