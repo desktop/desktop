@@ -221,11 +221,7 @@ export class AuthorInput extends React.Component<
     }
 
     return (
-      <div
-        className="co-author-input-validation-callout"
-        role="alert"
-        aria-live="polite"
-      >
+      <div className="co-author-input-validation-callout">
         {this.state.validationMessage}
       </div>
     )
