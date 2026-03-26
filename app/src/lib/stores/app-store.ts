@@ -2917,6 +2917,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.statsStore.increment('mergeConflictFromExplicitMergeCount')
+    this.statsStore.recordOperationConflictsEncounteredCount(
+      multiCommitOperationState.operationDetail.kind
+    )
 
     this._setMultiCommitOperationStep(repository, {
       kind: MultiCommitOperationStepKind.ShowConflicts,

@@ -412,6 +412,7 @@ export class BranchesContainer extends React.Component<
 
   private onMergeClick = () => {
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    this.props.dispatcher.incrementMetric('mergesInitiatedFromBranchesPanel')
     this.props.dispatcher.startMergeBranchOperation(this.props.repository)
   }
 
