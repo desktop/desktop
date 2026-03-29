@@ -8693,6 +8693,7 @@ function userIsStartingMultiCommitOperation(
 
   if (
     state.step.kind === MultiCommitOperationStepKind.ChooseBranch ||
+    state.step.kind === MultiCommitOperationStepKind.CreateBranch ||
     state.step.kind === MultiCommitOperationStepKind.WarnForcePush ||
     state.step.kind === MultiCommitOperationStepKind.ShowProgress
   ) {
