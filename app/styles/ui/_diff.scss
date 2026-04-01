@@ -938,5 +938,70 @@
     .open-merge-tool {
       margin-right: var(--spacing-half);
     }
+
+    .markdown-preview-toggle {
+      margin-right: var(--spacing-half);
+      flex-shrink: 0;
+    }
+  }
+
+  .changes-diff-and-markdown {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+
+    .resizable-component {
+      align-self: stretch;
+      min-height: 0;
+      min-width: 0;
+
+      .resize-handle {
+        right: -1.25px;
+        width: 2.5px;
+
+        &:hover,
+        &:active {
+          background-color: var(--diff-hover-background-color);
+        }
+      }
+    }
+  }
+
+  .changes-diff-pane {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+
+    .seamless-diff-switcher {
+      flex: 1;
+      min-height: 0;
+    }
+  }
+
+  .changes-markdown-pane {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-left: 1px solid var(--diff-border-color);
+    background: var(--background-color);
+  }
+
+  .changes-markdown-preview {
+    flex: 1;
+    overflow: auto;
+    padding: var(--spacing);
+    min-height: 0;
+
+    &--loading,
+    &--error {
+      color: var(--text-secondary-color);
+    }
   }
 }

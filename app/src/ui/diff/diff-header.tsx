@@ -3,8 +3,10 @@ import { PathLabel } from '../lib/path-label'
 import { AppFileStatus } from '../../models/status'
 import { IDiff, DiffType } from '../../models/diff'
 import { Octicon, iconForStatus } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 import { mapStatus } from '../../lib/status'
 import { DiffOptions } from './diff-options'
+import { Button } from '../lib/button'
 
 interface IDiffHeaderProps {
   readonly path: string
@@ -25,6 +27,11 @@ interface IDiffHeaderProps {
 
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
+
+  /** Markdown preview control (Changes, text diff on .md / .markdown paths). */
+  readonly showMarkdownPreviewToggle?: boolean
+  readonly markdownPreviewActive?: boolean
+  readonly onMarkdownPreviewToggle?: () => void
 }
 
 /** Displays information about a file */
@@ -37,6 +44,8 @@ export class DiffHeader extends React.Component<IDiffHeaderProps, {}> {
       <div className="header">
         <PathLabel path={this.props.path} status={this.props.status} />
 
+        {this.renderMarkdownPreviewToggle()}
+
         {this.renderDiffOptions()}
 
         <Octicon
@@ -45,6 +54,27 @@ export class DiffHeader extends React.Component<IDiffHeaderProps, {}> {
           title={fileStatus}
         />
       </div>
+    )
+  }
+
+  private renderMarkdownPreviewToggle() {
+    const { onMarkdownPreviewToggle, showMarkdownPreviewToggle } = this.props
+    if (!showMarkdownPreviewToggle || onMarkdownPreviewToggle === undefined) {
+      return null
+    }
+
+    const active = this.props.markdownPreviewActive === true
+    const label = active ? 'Hide Markdown preview' : 'Show Markdown preview'
+
+    return (
+      <Button
+        className="markdown-preview-toggle"
+        onClick={onMarkdownPreviewToggle}
+        ariaPressed={active}
+        tooltip={label}
+      >
+        <Octicon symbol={octicons.markdown} /> Preview
+      </Button>
     )
   }
 

@@ -3501,6 +3501,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           signOffCommits={selectedState.state.signOffCommits}
           allowEmptyCommit={selectedState.state.allowEmptyCommit}
           onUpdateCommitOptions={this.onUpdateCommitOptions}
+          underlineLinks={state.underlineLinks}
         />
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

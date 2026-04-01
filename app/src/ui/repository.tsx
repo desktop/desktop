@@ -141,6 +141,12 @@ interface IRepositoryViewProps {
    */
   readonly allowEmptyCommit: boolean
 
+  /**
+   * Underline links in rendered Markdown (commit form, release notes, Changes
+   * preview, etc.).
+   */
+  readonly underlineLinks: boolean
+
   /** Callback to set commit options for the given repository */
   readonly onUpdateCommitOptions: (
     repository: Repository,
@@ -618,6 +624,8 @@ export class RepositoryView extends React.Component<
             this.props.askForConfirmationOnDiscardChanges
           }
           onDiffOptionsOpened={this.onDiffOptionsOpened}
+          emoji={this.props.emoji}
+          underlineLinks={this.props.underlineLinks}
         />
       )
     }

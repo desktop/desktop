@@ -2,10 +2,36 @@ import { createTempDirectory } from './temp'
 import { Repository } from '../../src/models/repository'
 import { exec } from 'dugite'
 import { makeCommit, switchTo } from './repository-scaffolding'
-import { glob, writeFile, cp, mkdir, rename, rm } from 'fs/promises'
+import { readdir, writeFile, cp, mkdir, rename, rm } from 'fs/promises'
 import { DefaultGitDescription, git } from '../../src/lib/git'
 import { TestContext } from 'node:test'
 import { dirname, join } from 'path'
+
+/**
+ * Recursively finds files or directories named `name` under `absoluteRoot`.
+ * Submodule fixtures may use a `_git` file (gitdir pointer), not only `_git`
+ * directories. Replaces fs.promises.glob for Node compatibility.
+ */
+async function findDescendantPathsNamed(
+  absoluteRoot: string,
+  relativeBase: string,
+  name: string
+): Promise<string[]> {
+  const matches: string[] = []
+  const scanPath = join(absoluteRoot, relativeBase)
+  const entries = await readdir(scanPath, { withFileTypes: true })
+  for (const entry of entries) {
+    const rel = join(relativeBase, entry.name)
+    if (entry.name === name) {
+      matches.push(rel)
+      continue
+    }
+    if (entry.isDirectory()) {
+      matches.push(...(await findDescendantPathsNamed(absoluteRoot, rel, name)))
+    }
+  }
+  return matches
+}
 
 /**
  * Set up the named fixture repository to be used in a test.
@@ -20,8 +46,13 @@ export async function setupFixtureRepository(
   const testRepoPath = await createTempDirectory(t)
   await cp(fixturePath, testRepoPath, { recursive: true })
 
-  for await (const e of glob('**/_git', { cwd: testRepoPath })) {
-    await rename(join(testRepoPath, e), join(testRepoPath, dirname(e), '.git'))
+  const gitPaths = await findDescendantPathsNamed(testRepoPath, '', '_git')
+  gitPaths.sort((a, b) => b.length - a.length)
+  for (const rel of gitPaths) {
+    await rename(
+      join(testRepoPath, rel),
+      join(testRepoPath, dirname(rel), '.git')
+    )
   }
 
   return testRepoPath
