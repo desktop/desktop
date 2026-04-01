@@ -80,6 +80,35 @@
     }
   }
 
+  .commit-author-identity {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-half);
+    margin-bottom: var(--spacing-half);
+
+    .commit-author-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      line-height: 1.3;
+
+      .commit-author-name {
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        @include ellipsis;
+        cursor: default;
+      }
+
+      .commit-author-email {
+        font-size: var(--font-size-xs);
+        color: var(--text-secondary-color);
+        @include ellipsis;
+        cursor: default;
+      }
+    }
+  }
+
   .summary {
     position: relative;
     display: flex;

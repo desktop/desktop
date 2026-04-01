@@ -37,6 +37,13 @@ interface IGitProps {
   readonly enableGitHookEnv: boolean
   readonly cacheGitHookEnv: boolean
   readonly selectedShell: string
+
+  readonly showCommitAuthorInfo: boolean
+  readonly onShowCommitAuthorInfoChanged: (show: boolean) => void
+
+  readonly setGlobalAuthor: boolean
+  readonly globalAuthorWasSet: boolean
+  readonly onSetGlobalAuthorChanged: (value: boolean) => void
 }
 
 const windowsShells: ReadonlyArray<SupportedHooksEnvShell> = [
@@ -165,9 +172,37 @@ export class Git extends React.Component<IGitProps> {
     return null
   }
 
+  private onSetGlobalAuthorChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onSetGlobalAuthorChanged(event.currentTarget.checked)
+  }
+
+  private onShowCommitAuthorInfoChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onShowCommitAuthorInfoChanged(event.currentTarget.checked)
+  }
+
   private renderGitConfigAuthorInfo() {
     return (
       <>
+        <h2>Global Author</h2>
+        <Checkbox
+          label="Store author identity in global Git config"
+          value={
+            this.props.setGlobalAuthor ? CheckboxValue.On : CheckboxValue.Off
+          }
+          onChange={this.onSetGlobalAuthorChanged}
+        />
+        {!this.props.setGlobalAuthor && this.props.globalAuthorWasSet && (
+          <div className="git-email-not-found-warning">
+            <span className="warning-icon">⚠️</span>
+            Saving will remove user.name and user.email from your global Git
+            config. Make sure your repositories have local config or includeIf
+            rules set up, otherwise commits may fail.
+          </div>
+        )}
         <GitConfigUserForm
           email={this.props.email}
           name={this.props.name}
@@ -175,8 +210,27 @@ export class Git extends React.Component<IGitProps> {
           accounts={this.props.accounts}
           onEmailChanged={this.props.onEmailChanged}
           onNameChanged={this.props.onNameChanged}
+          disabled={!this.props.setGlobalAuthor}
         />
         {this.renderEditGlobalGitConfigInfo()}
+        <h2>Commit Identity Display</h2>
+        <Checkbox
+          label="Show effective identity and config scope above commit message"
+          value={
+            this.props.showCommitAuthorInfo
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onShowCommitAuthorInfoChanged}
+        />
+        <p className="git-settings-description">
+          Git resolves author identity from multiple config files with different
+          priorities.{' '}
+          <LinkButton uri="https://git-scm.com/docs/git-config#SCOPES">
+            Learn more about config scopes
+          </LinkButton>
+          .
+        </p>
       </>
     )
   }

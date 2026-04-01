@@ -1583,6 +1583,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedExternalEditor={this.state.selectedExternalEditor}
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
             showCommitLengthWarning={this.state.showCommitLengthWarning}
+            showCommitAuthorInfo={this.state.showCommitAuthorInfo}
             notificationsEnabled={this.state.notificationsEnabled}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             useExternalCredentialHelper={this.state.useExternalCredentialHelper}
@@ -3490,6 +3491,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           aheadBehindStore={this.props.aheadBehindStore}
           commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
           showCommitLengthWarning={this.state.showCommitLengthWarning}
+          showCommitAuthorInfo={this.state.showCommitAuthorInfo}
           onCherryPick={this.startCherryPickWithoutBranch}
           pullRequestSuggestedNextAction={state.pullRequestSuggestedNextAction}
           showChangesFilter={state.showChangesFilter}

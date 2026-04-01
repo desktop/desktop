@@ -1,5 +1,6 @@
 import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
+import { IConfigValueOrigin } from './git/config'
 import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
 import { Branch, IAheadBehind } from '../models/branch'
@@ -336,6 +337,8 @@ export interface IAppState {
    */
   readonly commitSpellcheckEnabled: boolean
 
+  readonly showCommitAuthorInfo: boolean
+
   /**
    * Record of what logged in users have been checked to see if thank you is in
    * order for external contributions in latest release.
@@ -517,6 +520,9 @@ export interface IRepositoryState {
    * (ie we don't currently use this value explicitly when committing)
    */
   readonly commitAuthor: CommitIdentity | null
+
+  readonly commitAuthorNameOrigin: IConfigValueOrigin | null
+  readonly commitAuthorEmailOrigin: IConfigValueOrigin | null
 
   readonly branchesState: IBranchesState
 

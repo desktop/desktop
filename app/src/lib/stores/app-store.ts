@@ -295,6 +295,7 @@ import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
+import { getConfigValueWithOrigin, IConfigValueOrigin } from '../git/config'
 import { isAttributableEmailFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
 import { GitError as DugiteError } from 'dugite'
@@ -431,6 +432,9 @@ const hideWhitespaceInPullRequestDiffKey =
 const commitSpellcheckEnabledDefault = true
 const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
 
+const showCommitAuthorInfoDefault = false
+const showCommitAuthorInfoKey = 'show-commit-author-info'
+
 export const tabSizeDefault: number = 4
 const tabSizeKey: string = 'tab-size'
 
@@ -563,6 +567,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     hideWhitespaceInPullRequestDiffDefault
   /** Whether or not the spellchecker is enabled for commit summary and description */
   private commitSpellcheckEnabled: boolean = commitSpellcheckEnabledDefault
+  private showCommitAuthorInfo: boolean = showCommitAuthorInfoDefault
   private showSideBySideDiff: boolean = ShowSideBySideDiffDefault
 
   private uncommittedChangesStrategy = defaultUncommittedChangesStrategy
@@ -1115,6 +1120,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
       commitSpellcheckEnabled: this.commitSpellcheckEnabled,
+      showCommitAuthorInfo: this.showCommitAuthorInfo,
       currentDragElement: this.currentDragElement,
       lastThankYou: this.lastThankYou,
       useCustomEditor: this.useCustomEditor,
@@ -2329,6 +2335,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.commitSpellcheckEnabled = getBoolean(
       commitSpellcheckEnabledKey,
       commitSpellcheckEnabledDefault
+    )
+    this.showCommitAuthorInfo = getBoolean(
+      showCommitAuthorInfoKey,
+      showCommitAuthorInfoDefault
     )
     this.showSideBySideDiff = getShowSideBySideDiff()
 
@@ -3839,6 +3849,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public _setShowCommitAuthorInfo(showCommitAuthorInfo: boolean) {
+    if (this.showCommitAuthorInfo === showCommitAuthorInfo) {
+      return
+    }
+
+    setBoolean(showCommitAuthorInfoKey, showCommitAuthorInfo)
+    this.showCommitAuthorInfo = showCommitAuthorInfo
+
+    this.emitUpdate()
+  }
+
   public _setUseWindowsOpenSSH(useWindowsOpenSSH: boolean) {
     setBoolean(UseWindowsOpenSSHKey, useWindowsOpenSSH)
     this.useWindowsOpenSSH = useWindowsOpenSSH
@@ -3911,8 +3932,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
         getAuthorIdentity(repository)
       )) || null
 
+    let commitAuthorNameOrigin: IConfigValueOrigin | null = null
+    let commitAuthorEmailOrigin: IConfigValueOrigin | null = null
+
+    try {
+      ;[commitAuthorNameOrigin, commitAuthorEmailOrigin] = await Promise.all([
+        getConfigValueWithOrigin(repository, 'user.name'),
+        getConfigValueWithOrigin(repository, 'user.email'),
+      ])
+    } catch (e) {
+      log.warn('Failed to get config value origins', e)
+    }
+
     this.repositoryStateCache.update(repository, () => ({
       commitAuthor,
+      commitAuthorNameOrigin,
+      commitAuthorEmailOrigin,
     }))
     this.emitUpdate()
   }

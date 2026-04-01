@@ -282,3 +282,111 @@ async function removeConfigValueInPath(
 
   await git(flags, path || __dirname, 'removeConfigValueInPath', options)
 }
+
+export interface IConfigValueOrigin {
+  readonly value: string
+  readonly scope: string
+  readonly origin: string
+}
+
+/**
+ * Look up a config value along with its source file and scope.
+ * Requires Git 2.26+ for --show-scope.
+ */
+export async function getConfigValueWithOrigin(
+  repository: Repository,
+  name: string
+): Promise<IConfigValueOrigin | null> {
+  const result = await git(
+    ['config', '--show-origin', '--show-scope', '-z', name],
+    repository.path,
+    'getConfigValueWithOrigin',
+    // 0 = found, 1 = key not set, 128 = not a git repo or git error
+    { successExitCodes: new Set([0, 1, 128]) }
+  )
+
+  if (result.exitCode !== 0) {
+    return null
+  }
+
+  const parts = result.stdout.split('\0')
+  if (parts.length >= 3) {
+    return {
+      scope: parts[0],
+      origin: parts[1],
+      value: parts[2],
+    }
+  }
+
+  return null
+}
+
+/**
+ * Extract the file path from a config value origin, stripping the `file:` prefix.
+ * When repositoryPath is provided, relative paths (e.g. `.git/config` for local
+ * scope) are resolved to absolute paths.
+ */
+export function getOriginFilePath(
+  origin: IConfigValueOrigin,
+  repositoryPath?: string
+): string {
+  const filePath = origin.origin.replace(/^file:/, '')
+  // Git returns relative paths for local/worktree scope (e.g. `.git/config`)
+  if (repositoryPath && !/^([a-zA-Z]:|[/\\])/.test(filePath)) {
+    const base = repositoryPath.replace(/[\\/]+$/, '')
+    return `${base}/${filePath}`
+  }
+  return filePath
+}
+
+/**
+ * Check whether a global-scoped config value comes from a conditionally
+ * included file (via includeIf directive) rather than a standard location.
+ */
+export function isConditionalInclude(origin: IConfigValueOrigin): boolean {
+  if (origin.scope !== 'global') {
+    return false
+  }
+  const filePath = getOriginFilePath(origin)
+  return (
+    !/[/\\]\.gitconfig$/i.test(filePath) &&
+    !/[/\\]\.config[/\\]git[/\\]config$/i.test(filePath)
+  )
+}
+
+/** Format a human-readable scope description for a config value origin. */
+export function formatConfigScope(origin: IConfigValueOrigin): string {
+  if (origin.scope === 'local') {
+    return 'local'
+  } else if (origin.scope === 'system') {
+    return 'system'
+  } else if (origin.scope === 'worktree') {
+    return 'worktree'
+  } else if (origin.scope === 'global') {
+    return isConditionalInclude(origin) ? 'global, via [includeIf]' : 'global'
+  }
+  return origin.scope
+}
+
+/**
+ * Format the file path for a config value origin.
+ * For local/worktree scope, displays the path with a `<repo>` prefix.
+ */
+export function formatConfigPath(
+  origin: IConfigValueOrigin,
+  repositoryPath: string
+): string {
+  const rawPath = origin.origin.replace(/^file:/, '')
+  if (origin.scope === 'local' || origin.scope === 'worktree') {
+    // Git returns relative paths for local scope (e.g. `.git/config`)
+    if (!/^([a-zA-Z]:|[/\\])/.test(rawPath)) {
+      return '<repo>/' + rawPath
+    }
+    // Absolute path — strip repo prefix
+    const normalized = repositoryPath.replace(/[\\/]+$/, '')
+    if (rawPath.toLowerCase().startsWith(normalized.toLowerCase())) {
+      return '<repo>' + rawPath.slice(normalized.length)
+    }
+  }
+  return rawPath
+}

@@ -2763,6 +2763,10 @@ export class Dispatcher {
     this.appStore._setCommitSpellcheckEnabled(commitSpellcheckEnabled)
   }
 
+  public setShowCommitAuthorInfo(showCommitAuthorInfo: boolean) {
+    this.appStore._setShowCommitAuthorInfo(showCommitAuthorInfo)
+  }
+
   public setUseWindowsOpenSSH(useWindowsOpenSSH: boolean) {
     this.appStore._setUseWindowsOpenSSH(useWindowsOpenSSH)
   }

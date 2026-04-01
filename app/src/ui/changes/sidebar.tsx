@@ -13,6 +13,7 @@ import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { IssuesStore, GitHubUserStore } from '../../lib/stores'
 import { CommitIdentity } from '../../models/commit-identity'
+import { IConfigValueOrigin } from '../../lib/git/config'
 import { Commit, ICommitContext } from '../../models/commit'
 import { UndoCommit } from './undo-commit'
 import {
@@ -48,6 +49,8 @@ interface IChangesSidebarProps {
   readonly aheadBehind: IAheadBehind | null
   readonly dispatcher: Dispatcher
   readonly commitAuthor: CommitIdentity | null
+  readonly commitAuthorNameOrigin?: IConfigValueOrigin | null
+  readonly commitAuthorEmailOrigin?: IConfigValueOrigin | null
   readonly branch: string | null
   readonly emoji: Map<string, Emoji>
   readonly mostRecentLocalCommit: Commit | null
@@ -92,6 +95,8 @@ interface IChangesSidebarProps {
   readonly commitSpellcheckEnabled: boolean
 
   readonly showCommitLengthWarning: boolean
+
+  readonly showCommitAuthorInfo: boolean
 
   /** Whether or not to show the changes filter */
   readonly showChangesFilter: boolean
@@ -450,6 +455,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onOpenItem={this.onOpenItem}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
+          commitAuthorNameOrigin={this.props.commitAuthorNameOrigin}
+          commitAuthorEmailOrigin={this.props.commitAuthorEmailOrigin}
+          showCommitAuthorInfo={this.props.showCommitAuthorInfo}
           branch={this.props.branch}
           commitMessage={commitMessage}
           focusCommitMessage={this.props.focusCommitMessage}

@@ -45,4 +45,26 @@
   textarea.gitignore {
     height: 130px;
   }
+
+  .config-origin-hint {
+    margin-top: var(--spacing);
+
+    .config-origin-card {
+      margin-top: var(--spacing-half);
+      padding: var(--spacing-half) var(--spacing);
+      background-color: var(--box-alt-background-color);
+      border-radius: var(--border-radius);
+
+      .config-origin-key {
+        font-family: var(--font-family-monospace);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-semibold);
+      }
+
+      .config-origin-detail {
+        font-size: var(--font-size-xs);
+        word-break: break-all;
+      }
+    }
+  }
 }

@@ -212,6 +212,19 @@ body > .tooltip,
     }
   }
 
+  &.config-origin {
+    .config-origin-tooltip {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      column-gap: var(--spacing-half);
+
+      .config-origin-tooltip-label {
+        font-weight: bold;
+        text-align: right;
+      }
+    }
+  }
+
   &.window-controls-tooltip {
     background-color: var(--toolbar-tooltip-background-color);
     box-shadow: 0 8px 24px var(--toolbar-tooltip-shadow-color);

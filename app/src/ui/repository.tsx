@@ -60,6 +60,7 @@ interface IRepositoryViewProps {
   readonly focusCommitMessage: boolean
   readonly commitSpellcheckEnabled: boolean
   readonly showCommitLengthWarning: boolean
+  readonly showCommitAuthorInfo: boolean
   readonly accounts: ReadonlyArray<Account>
   readonly shouldShowGenerateCommitMessageCallOut: boolean
 
@@ -287,6 +288,8 @@ export class RepositoryView extends React.Component<
         aheadBehind={this.props.state.aheadBehind}
         branch={branchName}
         commitAuthor={this.props.state.commitAuthor}
+        commitAuthorNameOrigin={this.props.state.commitAuthorNameOrigin}
+        commitAuthorEmailOrigin={this.props.state.commitAuthorEmailOrigin}
         emoji={this.props.emoji}
         mostRecentLocalCommit={mostRecentLocalCommit}
         issuesStore={this.props.issuesStore}
@@ -324,6 +327,7 @@ export class RepositoryView extends React.Component<
         }
         commitSpellcheckEnabled={this.props.commitSpellcheckEnabled}
         showCommitLengthWarning={this.props.showCommitLengthWarning}
+        showCommitAuthorInfo={this.props.showCommitAuthorInfo}
         showChangesFilter={this.props.showChangesFilter}
         hasCommitHooks={this.props.hasCommitHooks}
         skipCommitHooks={this.props.skipCommitHooks}

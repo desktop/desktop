@@ -11,6 +11,7 @@ import { Dialog, DialogFooter, DialogError } from '../dialog'
 import {
   getGlobalConfigValue,
   setGlobalConfigValue,
+  removeGlobalConfigValue,
 } from '../../lib/git/config'
 import { lookupPreferredEmail } from '../../lib/email'
 import { Shell, getAvailableShells } from '../../lib/shells'
@@ -65,6 +66,7 @@ interface IPreferencesProps {
   readonly onDismissed: () => void
   readonly useWindowsOpenSSH: boolean
   readonly showCommitLengthWarning: boolean
+  readonly showCommitAuthorInfo: boolean
   readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
   readonly useExternalCredentialHelper: boolean
@@ -101,9 +103,11 @@ interface IPreferencesState {
   readonly initialCommitterName: string | null
   readonly initialCommitterEmail: string | null
   readonly initialDefaultBranch: string | null
+  readonly setGlobalAuthor: boolean
   readonly disallowedCharactersMessage: string | null
   readonly useWindowsOpenSSH: boolean
   readonly showCommitLengthWarning: boolean
+  readonly showCommitAuthorInfo: boolean
   readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
   readonly useExternalCredentialHelper: boolean
@@ -179,6 +183,7 @@ export class Preferences extends React.Component<
       initialCommitterName: null,
       initialCommitterEmail: null,
       initialDefaultBranch: null,
+      setGlobalAuthor: false,
       disallowedCharactersMessage: null,
       availableEditors: [],
       useCustomEditor: this.props.useCustomEditor,
@@ -187,6 +192,7 @@ export class Preferences extends React.Component<
       customShell: this.props.customShell ?? DefaultCustomIntegration,
       useWindowsOpenSSH: false,
       showCommitLengthWarning: false,
+      showCommitAuthorInfo: false,
       notificationsEnabled: true,
       optOutOfUsageTracking: false,
       useExternalCredentialHelper: false,
@@ -257,8 +263,10 @@ export class Preferences extends React.Component<
       initialCommitterName,
       initialCommitterEmail,
       initialDefaultBranch,
+      setGlobalAuthor: !!initialCommitterName || !!initialCommitterEmail,
       useWindowsOpenSSH: this.props.useWindowsOpenSSH,
       showCommitLengthWarning: this.props.showCommitLengthWarning,
+      showCommitAuthorInfo: this.props.showCommitAuthorInfo,
       notificationsEnabled: this.props.notificationsEnabled,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       useExternalCredentialHelper: this.props.useExternalCredentialHelper,
@@ -500,6 +508,14 @@ export class Preferences extends React.Component<
               selectedShell={
                 this.state.selectedGitHookEnvShell ?? defaultGitHookEnvShell
               }
+              showCommitAuthorInfo={this.state.showCommitAuthorInfo}
+              onShowCommitAuthorInfoChanged={this.onShowCommitAuthorInfoChanged}
+              setGlobalAuthor={this.state.setGlobalAuthor}
+              globalAuthorWasSet={
+                !!this.state.initialCommitterName ||
+                !!this.state.initialCommitterEmail
+              }
+              onSetGlobalAuthorChanged={this.onSetGlobalAuthorChanged}
             />
           </>
         )
@@ -638,6 +654,14 @@ export class Preferences extends React.Component<
     this.setState({ showCommitLengthWarning })
   }
 
+  private onShowCommitAuthorInfoChanged = (showCommitAuthorInfo: boolean) => {
+    this.setState({ showCommitAuthorInfo })
+  }
+
+  private onSetGlobalAuthorChanged = (setGlobalAuthor: boolean) => {
+    this.setState({ setGlobalAuthor })
+  }
+
   private onNotificationsEnabledChanged = (notificationsEnabled: boolean) => {
     this.setState({ notificationsEnabled })
   }
@@ -768,13 +792,28 @@ export class Preferences extends React.Component<
     try {
       let shouldRefreshAuthor = false
 
-      if (this.state.committerName !== this.state.initialCommitterName) {
-        await setGlobalConfigValue('user.name', this.state.committerName)
-        shouldRefreshAuthor = true
-      }
+      if (this.state.setGlobalAuthor) {
+        if (this.state.committerName !== this.state.initialCommitterName) {
+          await setGlobalConfigValue('user.name', this.state.committerName)
+          shouldRefreshAuthor = true
+        }
 
-      if (this.state.committerEmail !== this.state.initialCommitterEmail) {
-        await setGlobalConfigValue('user.email', this.state.committerEmail)
+        if (this.state.committerEmail !== this.state.initialCommitterEmail) {
+          await setGlobalConfigValue('user.email', this.state.committerEmail)
+          shouldRefreshAuthor = true
+        }
+      } else if (
+        this.state.initialCommitterName ||
+        this.state.initialCommitterEmail
+      ) {
+        // User unchecked the box — remove identity from global config.
+        // Ignore errors if values are already absent.
+        try {
+          await removeGlobalConfigValue('user.name')
+        } catch {}
+        try {
+          await removeGlobalConfigValue('user.email')
+        } catch {}
         shouldRefreshAuthor = true
       }
 
@@ -838,6 +877,7 @@ export class Preferences extends React.Component<
 
     dispatcher.setUseWindowsOpenSSH(this.state.useWindowsOpenSSH)
     dispatcher.setShowCommitLengthWarning(this.state.showCommitLengthWarning)
+    dispatcher.setShowCommitAuthorInfo(this.state.showCommitAuthorInfo)
     dispatcher.setNotificationsEnabled(this.state.notificationsEnabled)
 
     await dispatcher.setStatsOptOut(this.state.optOutOfUsageTracking, false)

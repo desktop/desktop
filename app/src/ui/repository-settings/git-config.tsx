@@ -4,7 +4,15 @@ import { Account } from '../../models/account'
 import { GitConfigUserForm } from '../lib/git-config-user-form'
 import { Row } from '../lib/row'
 import { RadioGroup } from '../lib/radio-group'
+import { LinkButton } from '../lib/link-button'
 import { assertNever } from '../../lib/fatal-error'
+import {
+  IConfigValueOrigin,
+  getOriginFilePath,
+  formatConfigScope,
+  formatConfigPath,
+} from '../../lib/git/config'
+import { showItemInFolder } from '../main-process-proxy'
 import memoizeOne from 'memoize-one'
 
 interface IGitConfigProps {
@@ -16,6 +24,10 @@ interface IGitConfigProps {
   readonly globalName: string
   readonly globalEmail: string
   readonly isLoadingGitConfig: boolean
+
+  readonly nameOrigin?: IConfigValueOrigin | null
+  readonly emailOrigin?: IConfigValueOrigin | null
+  readonly repositoryPath: string
 
   readonly onGitConfigLocationChanged: (value: GitConfigLocation) => void
   readonly onNameChanged: (name: string) => void
@@ -85,7 +97,73 @@ export class GitConfig extends React.Component<IGitConfigProps> {
             isLoadingGitConfig={this.props.isLoadingGitConfig}
           />
         </div>
+        {this.renderConfigOrigin()}
       </DialogContent>
+    )
+  }
+
+  private onRevealNameConfigFile = () => {
+    if (this.props.nameOrigin) {
+      showItemInFolder(
+        getOriginFilePath(this.props.nameOrigin, this.props.repositoryPath)
+      )
+    }
+  }
+
+  private onRevealEmailConfigFile = () => {
+    if (this.props.emailOrigin) {
+      showItemInFolder(
+        getOriginFilePath(this.props.emailOrigin, this.props.repositoryPath)
+      )
+    }
+  }
+
+  private renderOriginEntry(
+    key: string,
+    origin: IConfigValueOrigin,
+    onReveal: () => void
+  ) {
+    const repoPath = this.props.repositoryPath
+    return (
+      <div className="config-origin-card">
+        <div className="config-origin-key">
+          {key} = {origin.value}
+        </div>
+        <div className="config-origin-detail">
+          Scope: {formatConfigScope(origin)}
+        </div>
+        <div className="config-origin-detail">
+          File:{' '}
+          <LinkButton onClick={onReveal}>
+            {formatConfigPath(origin, repoPath)}
+          </LinkButton>
+        </div>
+      </div>
+    )
+  }
+
+  private renderConfigOrigin() {
+    const { nameOrigin, emailOrigin } = this.props
+    if (!nameOrigin && !emailOrigin) {
+      return null
+    }
+
+    return (
+      <div className="config-origin-hint">
+        <h2>Resolved effective identity</h2>
+        {nameOrigin &&
+          this.renderOriginEntry(
+            'user.name',
+            nameOrigin,
+            this.onRevealNameConfigFile
+          )}
+        {emailOrigin &&
+          this.renderOriginEntry(
+            'user.email',
+            emailOrigin,
+            this.onRevealEmailConfigFile
+          )}
+      </div>
     )
   }
 }

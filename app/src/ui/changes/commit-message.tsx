@@ -37,7 +37,14 @@ import {
   isAttributableEmailFor,
   lookupPreferredEmail,
 } from '../../lib/email'
-import { setGlobalConfigValue } from '../../lib/git/config'
+import {
+  setGlobalConfigValue,
+  IConfigValueOrigin,
+  getOriginFilePath,
+  isConditionalInclude,
+  formatConfigScope,
+  formatConfigPath,
+} from '../../lib/git/config'
 import { Popup, PopupType } from '../../models/popup'
 import { RepositorySettingsTab } from '../repository-settings/repository-settings'
 import { IdealSummaryLength } from '../../lib/wrap-rich-text-commit-message'
@@ -67,8 +74,41 @@ import {
   enableHooksEnvironment,
 } from '../../lib/feature-flag'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
+import { TooltippedContent } from '../lib/tooltipped-content'
+import { showItemInFolder } from '../main-process-proxy'
 import { HookProgress } from '../../lib/git'
 import { assertNever } from '../../lib/fatal-error'
+
+function renderScopeValue(origin: IConfigValueOrigin): JSX.Element {
+  if (isConditionalInclude(origin)) {
+    return (
+      <span>
+        global, via <em>[includeIf]</em>
+      </span>
+    )
+  }
+  return <span>{formatConfigScope(origin)}</span>
+}
+
+function formatConfigOriginTooltip(
+  fieldName: string,
+  origin: IConfigValueOrigin,
+  repositoryPath: string,
+  onRevealFile: () => void
+): JSX.Element {
+  return (
+    <div className="config-origin-tooltip">
+      <span className="config-origin-tooltip-label">{fieldName}:</span>
+      <span>{origin.value}</span>
+      <span className="config-origin-tooltip-label">Scope:</span>
+      {renderScopeValue(origin)}
+      <span className="config-origin-tooltip-label">File:</span>
+      <LinkButton onClick={onRevealFile}>
+        {formatConfigPath(origin, repositoryPath)}
+      </LinkButton>
+    </div>
+  )
+}
 
 const addAuthorIcon: OcticonSymbolVariant = {
   w: 18,
@@ -240,6 +280,10 @@ interface ICommitMessageProps {
     repository: Repository,
     options: Partial<CommitOptions>
   ) => void
+
+  readonly commitAuthorNameOrigin?: IConfigValueOrigin | null
+  readonly commitAuthorEmailOrigin?: IConfigValueOrigin | null
+  readonly showCommitAuthorInfo?: boolean
 }
 
 interface ICommitMessageState {
@@ -770,7 +814,7 @@ export class CommitMessage extends React.Component<
       }
     }
 
-    return (
+    const avatar = (
       <CommitMessageAvatar
         user={avatarUser}
         email={commitAuthor?.email}
@@ -793,6 +837,71 @@ export class CommitMessage extends React.Component<
         accounts={this.props.accounts}
       />
     )
+
+    if (!this.props.showCommitAuthorInfo || !commitAuthor) {
+      return avatar
+    }
+
+    const { commitAuthorNameOrigin, commitAuthorEmailOrigin } = this.props
+    const repoPath = this.props.repository.path
+    const nameTooltip = commitAuthorNameOrigin
+      ? formatConfigOriginTooltip(
+          'Name',
+          commitAuthorNameOrigin,
+          repoPath,
+          this.onRevealNameConfigFile
+        )
+      : undefined
+    const emailTooltip = commitAuthorEmailOrigin
+      ? formatConfigOriginTooltip(
+          'Email',
+          commitAuthorEmailOrigin,
+          repoPath,
+          this.onRevealEmailConfigFile
+        )
+      : undefined
+
+    return (
+      <div className="commit-author-identity">
+        {avatar}
+        <div className="commit-author-info">
+          <TooltippedContent
+            className="commit-author-name"
+            tooltip={nameTooltip}
+            tooltipClassName="config-origin"
+            interactive={true}
+          >
+            {commitAuthor.name}
+          </TooltippedContent>
+          <TooltippedContent
+            className="commit-author-email"
+            tooltip={emailTooltip}
+            tooltipClassName="config-origin"
+            interactive={true}
+          >
+            {commitAuthor.email}
+          </TooltippedContent>
+        </div>
+      </div>
+    )
+  }
+
+  private onRevealNameConfigFile = () => {
+    const { commitAuthorNameOrigin } = this.props
+    if (commitAuthorNameOrigin) {
+      showItemInFolder(
+        getOriginFilePath(commitAuthorNameOrigin, this.props.repository.path)
+      )
+    }
+  }
+
+  private onRevealEmailConfigFile = () => {
+    const { commitAuthorEmailOrigin } = this.props
+    if (commitAuthorEmailOrigin) {
+      showItemInFolder(
+        getOriginFilePath(commitAuthorEmailOrigin, this.props.repository.path)
+      )
+    }
   }
 
   private onUpdateUserEmail = async (email: string) => {
@@ -1741,9 +1850,12 @@ export class CommitMessage extends React.Component<
         onContextMenu={this.onContextMenu}
         ref={this.wrapperRef}
       >
-        <div className={summaryClassName} ref={this.summaryGroupRef}>
-          {this.renderAvatar()}
+        {/* When showing author info, avatar is rendered above the summary
+            row as part of the identity block. Otherwise, inline in summary. */}
+        {this.props.showCommitAuthorInfo && this.renderAvatar()}
 
+        <div className={summaryClassName} ref={this.summaryGroupRef}>
+          {!this.props.showCommitAuthorInfo && this.renderAvatar()}
           <AutocompletingInput
             required={true}
             label={this.props.showInputLabels === true ? 'Summary' : undefined}
