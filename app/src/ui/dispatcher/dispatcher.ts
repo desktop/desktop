@@ -851,6 +851,10 @@ export class Dispatcher {
     return this.appStore._changeRepositoryAlias(repository, newAlias)
   }
 
+  public setRepositoryPinned(repository: Repository, pinned: boolean): void {
+    this.appStore._setRepositoryPinned(repository, pinned)
+  }
+
   /** Rename the branch to a new name. */
   public renameBranch(
     repository: Repository,

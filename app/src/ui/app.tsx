@@ -2930,6 +2930,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         onSelectionChanged={this.onSelectionChanged}
         repositories={this.state.repositories}
         recentRepositories={this.state.recentRepositories}
+        pinnedRepositories={this.state.pinnedRepositories}
         localRepositoryStateLookup={this.state.localRepositoryStateLookup}
         askForConfirmationOnRemoveRepository={
           this.state.askForConfirmationOnRepositoryRemoval
@@ -3131,6 +3132,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       shellLabel: this.state.useCustomShell
         ? undefined
         : this.state.selectedShell,
+      isPinned:
+        repository instanceof Repository &&
+        this.state.pinnedRepositories.includes(repository.id),
+      onSetRepositoryPinned: (repo, pinned) => {
+        this.props.dispatcher.setRepositoryPinned(repo, pinned)
+      },
     })
 
     showContextualMenu(items)

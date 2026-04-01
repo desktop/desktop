@@ -16,6 +16,9 @@ import { Owner } from '../../models/owner'
 
 export type RepositoryListGroup =
   | {
+      kind: 'pinned'
+    }
+  | {
       kind: 'recent' | 'other'
     }
   | {
@@ -35,6 +38,8 @@ export type RepositoryListGroup =
 export const getGroupKey = (group: RepositoryListGroup) => {
   const { kind } = group
   switch (kind) {
+    case 'pinned':
+      return `0:pinned`
     case 'recent':
       return `0:recent`
     case 'dotcom':
@@ -56,6 +61,7 @@ export interface IRepositoryListItem extends IFilterListItem {
   readonly needsDisambiguation: boolean
   readonly aheadBehind: IAheadBehind | null
   readonly changedFilesCount: number
+  readonly isPinned: boolean
 }
 
 const recentRepositoriesThreshold = 7
@@ -77,10 +83,15 @@ type RepoGroupItem = { group: RepositoryListGroup; repos: Repositoryish[] }
 export function groupRepositories(
   repositories: ReadonlyArray<Repositoryish>,
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-  recentRepositories: ReadonlyArray<number>
+  recentRepositories: ReadonlyArray<number>,
+  pinnedRepositories: ReadonlyArray<number> = []
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem, RepositoryListGroup>> {
   const includeRecentGroup = repositories.length > recentRepositoriesThreshold
   const recentSet = includeRecentGroup ? new Set(recentRepositories) : undefined
+  const pinnedOrder = new Map(
+    pinnedRepositories.map((id, index) => [id, index])
+  )
+  const pinnedSet = new Set(pinnedRepositories)
   const groups = new Map<string, RepoGroupItem>()
 
   const addToGroup = (group: RepositoryListGroup, repo: Repositoryish) => {
@@ -95,6 +106,14 @@ export function groupRepositories(
   }
 
   for (const repo of repositories) {
+    const isPinned =
+      repo instanceof Repository && pinnedSet.has(repo.id) && !repo.missing
+
+    if (isPinned) {
+      addToGroup({ kind: 'pinned' }, repo)
+      continue
+    }
+
     if (recentSet?.has(repo.id) && repo instanceof Repository) {
       addToGroup({ kind: 'recent' }, repo)
     }
@@ -110,7 +129,8 @@ export function groupRepositories(
         group,
         repos,
         localRepositoryStateLookup,
-        groups
+        groups,
+        pinnedOrder
       ),
     }))
 }
@@ -124,7 +144,8 @@ const toSortedListItems = (
   group: RepositoryListGroup,
   repositories: ReadonlyArray<Repositoryish>,
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-  groups: Map<string, RepoGroupItem>
+  groups: Map<string, RepoGroupItem>,
+  pinnedOrder: ReadonlyMap<number, number>
 ): IRepositoryListItem[] => {
   const groupNames = new Map<string, number>()
   const allNames = new Map<string, number>()
@@ -144,29 +165,40 @@ const toSortedListItems = (
     }
   }
 
-  return repositories
-    .map(r => {
-      const repoState = localRepositoryStateLookup.get(r.id)
-      const title = getDisplayTitle(r)
+  const items = repositories.map(r => {
+    const repoState = localRepositoryStateLookup.get(r.id)
+    const title = getDisplayTitle(r)
+    const isPinnedGroup = group.kind === 'pinned'
 
-      return {
-        text: r instanceof Repository ? [title, nameOf(r)] : [title],
-        id: r.id.toString(),
-        repository: r,
-        needsDisambiguation:
-          // If the repository is in the enterprise group and has a duplicate
-          // name in the group, we need to disambiguate it. We don't have to
-          // disambiguate repositories in the 'dotcom' group because they are
-          // already grouped by owner. If the repository is in the 'recent'
-          // group and has a duplicate name in any group, we need to
-          // disambiguate it.
-          ((groupNames.get(title) ?? 0) > 1 && group.kind === 'enterprise') ||
-          ((allNames.get(title) ?? 0) > 1 && group.kind === 'recent'),
-        aheadBehind: repoState?.aheadBehind ?? null,
-        changedFilesCount: repoState?.changedFilesCount ?? 0,
-      }
+    return {
+      text: r instanceof Repository ? [title, nameOf(r)] : [title],
+      id: r.id.toString(),
+      repository: r,
+      needsDisambiguation:
+        // If the repository is in the enterprise group and has a duplicate
+        // name in the group, we need to disambiguate it. We don't have to
+        // disambiguate repositories in the 'dotcom' group because they are
+        // already grouped by owner. If the repository is in the 'recent'
+        // group and has a duplicate name in any group, we need to
+        // disambiguate it.
+        ((groupNames.get(title) ?? 0) > 1 && group.kind === 'enterprise') ||
+        ((allNames.get(title) ?? 0) > 1 && group.kind === 'recent') ||
+        ((groupNames.get(title) ?? 0) > 1 && group.kind === 'pinned'),
+      aheadBehind: repoState?.aheadBehind ?? null,
+      changedFilesCount: repoState?.changedFilesCount ?? 0,
+      isPinned: isPinnedGroup,
+    }
+  })
+
+  if (group.kind === 'pinned') {
+    return items.sort((a, b) => {
+      const orderA = pinnedOrder.get(a.repository.id) ?? 0
+      const orderB = pinnedOrder.get(b.repository.id) ?? 0
+      return compare(orderA, orderB)
     })
-    .sort(({ repository: x }, { repository: y }) =>
-      caseInsensitiveCompare(getDisplayTitle(x), getDisplayTitle(y))
-    )
+  }
+
+  return items.sort(({ repository: x }, { repository: y }) =>
+    caseInsensitiveCompare(getDisplayTitle(x), getDisplayTitle(y))
+  )
 }

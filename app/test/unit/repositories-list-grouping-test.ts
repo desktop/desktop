@@ -29,7 +29,7 @@ describe('repository list grouping', () => {
   const cache = new Map<number, ILocalRepositoryState>()
 
   it('groups repositories by owners/Enterprise/Other', () => {
-    const grouped = groupRepositories(repositories, cache, [])
+    const grouped = groupRepositories(repositories, cache, [], [])
     assert.equal(grouped.length, 3)
 
     assert.equal(grouped[0].identifier.kind, 'dotcom')
@@ -72,6 +72,7 @@ describe('repository list grouping', () => {
     const grouped = groupRepositories(
       [repoC, repoB, repoZ, repoD, repoA],
       cache,
+      [],
       []
     )
     assert.equal(grouped.length, 2)
@@ -127,7 +128,12 @@ describe('repository list grouping', () => {
       false
     )
 
-    const grouped = groupRepositories([repoA, repoB, repoC, repoD], cache, [])
+    const grouped = groupRepositories(
+      [repoA, repoB, repoC, repoD],
+      cache,
+      [],
+      []
+    )
     assert.equal(grouped.length, 3)
 
     assert.equal(grouped[0].identifier.kind, 'dotcom')
@@ -152,5 +158,36 @@ describe('repository list grouping', () => {
 
     assert.equal(grouped[2].items[1].text[0], 'enterprise-repo')
     assert(grouped[2].items[1].needsDisambiguation)
+  })
+
+  it('groups pinned repositories under Pinned and omits them from other groups', () => {
+    const repoA = new Repository('local-a', 1, null, false)
+    const repoB = new Repository(
+      'local-b',
+      2,
+      gitHubRepoFixture({ owner: 'me', name: 'pinned-gh' }),
+      false
+    )
+    const grouped = groupRepositories([repoA, repoB], cache, [], [2])
+    assert.equal(grouped.length, 2)
+
+    assert.equal(grouped[0].identifier.kind, 'pinned')
+    assert.equal(grouped[0].items.length, 1)
+    assert.equal(grouped[0].items[0].repository.id, 2)
+    assert.equal(grouped[0].items[0].isPinned, true)
+
+    assert.equal(grouped[1].identifier.kind, 'other')
+    assert.equal(grouped[1].items.length, 1)
+    assert.equal(grouped[1].items[0].repository.id, 1)
+    assert.equal(grouped[1].items[0].isPinned, false)
+  })
+
+  it('orders pinned repositories by persisted pin order', () => {
+    const r1 = new Repository('one', 10, null, false)
+    const r2 = new Repository('two', 20, null, false)
+    const grouped = groupRepositories([r1, r2], cache, [], [20, 10])
+    assert.equal(grouped[0].identifier.kind, 'pinned')
+    assert.equal(grouped[0].items[0].repository.id, 20)
+    assert.equal(grouped[0].items[1].repository.id, 10)
   })
 })

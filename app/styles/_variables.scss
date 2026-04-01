@@ -50,6 +50,8 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --badge-icon-color: #{$white};
   --warning-badge-icon-color: #{$orange};
 
+  --repository-list-pin-icon-color: #{$orange-600};
+
   // Colors used for icons that are inside an input box
   --input-icon-warning-color: #{$yellow-800};
   --input-icon-error-color: #{$red-600};

@@ -48,6 +48,8 @@ body.theme-dark {
    */
   --badge-icon-color: #{$gray-300};
 
+  --repository-list-pin-icon-color: #{$orange-400};
+
   // Colors used for icons that are inside an input box
   --input-icon-warning-color: #{$yellow-600};
   --input-icon-error-color: #{$red-400};

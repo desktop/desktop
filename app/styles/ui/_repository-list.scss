@@ -45,6 +45,14 @@
       width: 16px;
     }
 
+    .repository-list-item-pin {
+      flex-shrink: 0;
+      margin-right: var(--spacing-half);
+      color: var(--repository-list-pin-icon-color);
+      fill: currentColor;
+      width: 14px;
+    }
+
     .name {
       // Long repository names truncate and ellipse
       @include ellipsis;

@@ -20,6 +20,8 @@ interface IRepositoryListItemContextMenuConfig {
   onRemoveRepository: (repository: Repositoryish) => void
   onChangeRepositoryAlias: (repository: Repository) => void
   onRemoveRepositoryAlias: (repository: Repository) => void
+  isPinned: boolean
+  onSetRepositoryPinned: (repository: Repository, pinned: boolean) => void
 }
 
 export const generateRepositoryListContextMenu = (
@@ -38,6 +40,7 @@ export const generateRepositoryListContextMenu = (
 
   const items: ReadonlyArray<IMenuItem> = [
     ...buildAliasMenuItems(config),
+    ...buildPinMenuItems(config),
     {
       label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
       action: () => clipboard.writeText(repository.name),
@@ -75,6 +78,23 @@ export const generateRepositoryListContextMenu = (
   ]
 
   return items
+}
+
+const buildPinMenuItems = (
+  config: IRepositoryListItemContextMenuConfig
+): ReadonlyArray<IMenuItem> => {
+  const { repository } = config
+  const missing = repository instanceof Repository && repository.missing
+  if (!(repository instanceof Repository) || missing) {
+    return []
+  }
+
+  return [
+    {
+      label: config.isPinned ? 'Unpin repository' : 'Pin repository',
+      action: () => config.onSetRepositoryPinned(repository, !config.isPinned),
+    },
+  ]
 }
 
 const buildAliasMenuItems = (

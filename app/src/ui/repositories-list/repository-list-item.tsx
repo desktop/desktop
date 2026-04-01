@@ -27,6 +27,7 @@ interface IRepositoryListItemProps {
 
   /** Number of uncommitted changes */
   readonly changedFilesCount: number
+  readonly isPinned: boolean
 }
 
 /** A repository item. */
@@ -67,6 +68,14 @@ export class RepositoryListItem extends React.Component<
           className="icon-for-repository"
           symbol={iconForRepository(repository)}
         />
+
+        {this.props.isPinned && (
+          <Octicon
+            className="repository-list-item-pin"
+            symbol={octicons.pin}
+            title="Pinned repository"
+          />
+        )}
 
         <div className={classNames(classNameList)}>
           {prefix ? <span className="prefix">{prefix}</span> : null}
@@ -109,7 +118,8 @@ export class RepositoryListItem extends React.Component<
     ) {
       return (
         nextProps.repository.id !== this.props.repository.id ||
-        nextProps.matches !== this.props.matches
+        nextProps.matches !== this.props.matches ||
+        nextProps.isPinned !== this.props.isPinned
       )
     } else {
       return true

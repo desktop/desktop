@@ -370,6 +370,8 @@ const RecentRepositoriesKey = 'recently-selected-repositories'
  */
 const RecentRepositoriesLength = 3
 
+const PinnedRepositoriesKey = 'pinned-repositories'
+
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
 
@@ -481,6 +483,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
   private recentRepositories: ReadonlyArray<number> = new Array<number>()
+  private pinnedRepositories: ReadonlyArray<number> = getNumberArray(
+    PinnedRepositoriesKey
+  )
 
   private selectedRepository: Repository | CloningRepository | null = null
 
@@ -930,6 +935,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.repositoriesStore.onDidUpdate(updateRepositories => {
       this.repositories = updateRepositories
+      this.prunePinnedRepositories()
       this.updateRepositorySelectionAfterRepositoriesChanged()
       this.emitUpdate()
     })
@@ -1053,6 +1059,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       accounts: this.accounts,
       repositories,
       recentRepositories: this.recentRepositories,
+      pinnedRepositories: this.pinnedRepositories,
       localRepositoryStateLookup: this.localRepositoryStateLookup,
       windowState: this.windowState,
       windowZoomFactor: this.windowZoomFactor,
@@ -1990,6 +1997,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  private prunePinnedRepositories() {
+    const existingIds = new Set(this.repositories.map(r => r.id))
+    const pruned = this.pinnedRepositories.filter(id => existingIds.has(id))
+    if (arrayEquals(pruned, this.pinnedRepositories)) {
+      return
+    }
+
+    this.pinnedRepositories = pruned
+    setNumberArray(PinnedRepositoriesKey, pruned)
+  }
+
+  public _setRepositoryPinned(repository: Repository, pinned: boolean) {
+    if (repository.missing) {
+      return
+    }
+
+    let next: ReadonlyArray<number>
+    if (pinned) {
+      const without = this.pinnedRepositories.filter(id => id !== repository.id)
+      next = [repository.id, ...without]
+    } else {
+      next = this.pinnedRepositories.filter(id => id !== repository.id)
+    }
+
+    if (arrayEquals(next, this.pinnedRepositories)) {
+      return
+    }
+
+    this.pinnedRepositories = next
+    setNumberArray(PinnedRepositoriesKey, next)
+    this.emitUpdate()
+  }
+
   // finish `_selectRepository`s refresh tasks
   private async _selectRepositoryRefreshTasks(
     repository: Repository,
@@ -2204,6 +2244,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accounts = accounts
     this.repositories = repositories
+    this.prunePinnedRepositories()
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
 
