@@ -1,0 +1,389 @@
+2026-04-02T15:01:07.854Z - info: [main] Using toast activator CLSID {27D44D0C-A542-5B90-BCDB-AC3126048BA2}
+2026-04-02T15:01:08.245Z - info: [ui] [AppStore] loading 3 repositories from store
+2026-04-02T15:01:08.246Z - info: [ui] [AppStore] found account: ChaseXOP (ChaseXOP)
+2026-04-02T15:01:08.540Z - info: [ui] launching: 3.5.6 (Windows 10.0.26200)
+2026-04-02T15:01:08.541Z - info: [ui] execPath: 'C:\Users\Student\AppData\Local\GitHubDesktop\app-3.5.6\GitHubDesktop.exe'
+2026-04-02T15:01:08.708Z - info: [ui] Subscribed 'ChaseXOP' to Alive channel
+2026-04-02T15:01:08.886Z - info: [ui] Stats reported.
+2026-04-02T15:01:14.774Z - info: [ui] [Timing] Action 'create commit' for 'squirreImancer/Fragment' took 1.091s
+2026-04-02T15:01:17.447Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:01:43.014Z - info: [ui] Executing push: git push origin main:main --progress (took 26.595s)
+2026-04-02T15:01:43.015Z - error: [ui] `git push origin main:main --progress` exited with an unexpected code: 1.
+14/759)        
+remote: Resolving deltas:  95% (722/759)        
+remote: Resolving deltas:  96% (729/759)        
+remote: Resolving deltas:  97% (737/759)        
+remote: Resolving deltas:  98% (744/759)        
+remote: Resolving deltas:  99% (752/759)        
+remote: Resolving deltas: 100% (759/759)        
+remote: Resolving deltas: 100% (759/759), completed with 36 local objects.        
+remote: error: Trace: e460837ae1893088cefcbf3f1853b06a4d4df19407364a80bb06f089ad7624bc        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
+2026-04-02T15:01:48.407Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:01:56.454Z - info: [main] Using toast activator CLSID {27D44D0C-A542-5B90-BCDB-AC3126048BA2}
+2026-04-02T15:02:08.630Z - info: [ui] Executing push: git push origin main:main --progress (took 20.552s)
+2026-04-02T15:02:08.631Z - error: [ui] `git push origin main:main --progress` exited with an unexpected code: 1.
+15/760)        
+remote: Resolving deltas:  95% (722/760)        
+remote: Resolving deltas:  96% (730/760)        
+remote: Resolving deltas:  97% (738/760)        
+remote: Resolving deltas:  98% (745/760)        
+remote: Resolving deltas:  99% (753/760)        
+remote: Resolving deltas: 100% (760/760)        
+remote: Resolving deltas: 100% (760/760), completed with 36 local objects.        
+remote: error: Trace: 5fc3368eb6f9342227389ed051d2c00ffcc769c199d04c5a883fe3d1b603d99f        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
+2026-04-02T15:02:12.259Z - info: [main] opening in browser: https://gh.io/lfs
+2026-04-02T15:02:34.119Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:03:01.054Z - info: [ui] Executing push: git push origin main:main --progress (took 27.502s)
+2026-04-02T15:03:01.054Z - error: [ui] `git push origin main:main --progress` exited with an unexpected code: 1.
+15/760)        
+remote: Resolving deltas:  95% (722/760)        
+remote: Resolving deltas:  96% (730/760)        
+remote: Resolving deltas:  97% (738/760)        
+remote: Resolving deltas:  98% (745/760)        
+remote: Resolving deltas:  99% (753/760)        
+remote: Resolving deltas: 100% (760/760)        
+remote: Resolving deltas: 100% (760/760), completed with 36 local objects.        
+remote: error: Trace: f295a88622c864b3fc48ad48f586b23dba9195e014a7954923c53209a42f1edd        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
+2026-04-02T15:03:15.253Z - info: [ui] [RepositoryIndicatorUpdater]: Refreshing sidebar indicators for 2 repositories took 0.2s of which 0.0s paused, total 0.2s
+2026-04-02T15:06:26.282Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:06:27.139Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:07:03.411Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:07:24.298Z - info: [ui] Executing push: git push origin main:main --progress (took 21.485s)
+2026-04-02T15:07:24.299Z - error: [ui] `git push origin main:main --progress` exited with an unexpected code: 1.
+15/760)        
+remote: Resolving deltas:  95% (722/760)        
+remote: Resolving deltas:  96% (730/760)        
+remote: Resolving deltas:  97% (738/760)        
+remote: Resolving deltas:  98% (745/760)        
+remote: Resolving deltas:  99% (753/760)        
+remote: Resolving deltas: 100% (760/760)        
+remote: Resolving deltas: 100% (760/760), completed with 36 local objects.        
+remote: error: Trace: 953a6384256021821c2423795d184c20d567eea441dda8b860bc35754a1b80c2        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
+2026-04-02T15:19:31.066Z - info: [ui] [RepositoryIndicatorUpdater]: Refreshing sidebar indicators for 2 repositories took 0.2s of which 0.0s paused, total 0.2s
+2026-04-02T15:19:41.972Z - info: [ui] [Timing] Action 'create commit' for 'squirreImancer/Fragment' took 0.705s
+2026-04-02T15:19:48.208Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:20:09.414Z - info: [ui] Executing push: git push origin main:main --progress (took 21.583s)
+2026-04-02T15:20:09.414Z - error: [ui] `git push origin main:main --progress` exited with an unexpected code: 1.
+20/765)        
+remote: Resolving deltas:  95% (727/765)        
+remote: Resolving deltas:  96% (735/765)        
+remote: Resolving deltas:  97% (743/765)        
+remote: Resolving deltas:  98% (750/765)        
+remote: Resolving deltas:  99% (758/765)        
+remote: Resolving deltas: 100% (765/765)        
+remote: Resolving deltas: 100% (765/765), completed with 36 local objects.        
+remote: error: Trace: d11d6241e79e1aca55e535f9a3aa79e5e06a0469d48db926378f4210c197eac7        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
+2026-04-02T15:20:29.834Z - info: [main] Using toast activator CLSID {27D44D0C-A542-5B90-BCDB-AC3126048BA2}
+2026-04-02T15:20:30.075Z - info: [ui] [AppStore] loading 3 repositories from store
+2026-04-02T15:20:30.076Z - info: [ui] [AppStore] found account: ChaseXOP (ChaseXOP)
+2026-04-02T15:20:30.089Z - info: [ui] [BranchPruner] Last prune took place 19 minutes ago - skipping
+2026-04-02T15:20:30.355Z - info: [ui] launching: 3.5.7 (Windows 10.0.26200)
+2026-04-02T15:20:30.356Z - info: [ui] execPath: 'C:\Users\Student\AppData\Local\GitHubDesktop\app-3.5.7\GitHubDesktop.exe'
+2026-04-02T15:20:30.374Z - info: [ui] Subscribed 'ChaseXOP' to Alive channel
+2026-04-02T15:20:34.184Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:20:54.078Z - info: [ui] Executing push: git push origin main:main --progress (took 20.334s)
+2026-04-02T15:20:54.079Z - error: [ui] `git push origin main:main --progress` exited with an unexpected code: 1.
+19/764)        
+remote: Resolving deltas:  95% (726/764)        
+remote: Resolving deltas:  96% (734/764)        
+remote: Resolving deltas:  97% (742/764)        
+remote: Resolving deltas:  98% (749/764)        
+remote: Resolving deltas:  99% (757/764)        
+remote: Resolving deltas: 100% (764/764)        
+remote: Resolving deltas: 100% (764/764), completed with 36 local objects.        
+remote: error: Trace: 83803552676dc975d6ecc581e4fbd050b34443d494661a280175ad3ca1667710        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
+2026-04-02T15:21:37.334Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:21:58.871Z - info: [ui] Executing push: git push origin main:main --progress (took 21.872s)
+2026-04-02T15:21:58.871Z - error: [ui] `git push origin main:main --progress` exited with an unexpected code: 1.
+19/764)        
+remote: Resolving deltas:  95% (726/764)        
+remote: Resolving deltas:  96% (734/764)        
+remote: Resolving deltas:  97% (742/764)        
+remote: Resolving deltas:  98% (749/764)        
+remote: Resolving deltas:  99% (757/764)        
+remote: Resolving deltas: 100% (764/764)        
+remote: Resolving deltas: 100% (764/764), completed with 36 local objects.        
+remote: error: Trace: aea6201c90b0945e835adaedfffce2fa5d805e89bf60f6b9ddb329ab0eac807e        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
+2026-04-02T15:22:57.935Z - info: [ui] [RepositoryIndicatorUpdater]: Refreshing sidebar indicators for 2 repositories took 0.3s of which 0.0s paused, total 0.3s
+2026-04-02T15:24:50.726Z - info: [main] Using toast activator CLSID {27D44D0C-A542-5B90-BCDB-AC3126048BA2}
+2026-04-02T15:24:51.324Z - info: [main] Using toast activator CLSID {27D44D0C-A542-5B90-BCDB-AC3126048BA2}
+2026-04-02T15:24:51.732Z - info: [ui] [AppStore] loading 3 repositories from store
+2026-04-02T15:24:51.733Z - info: [ui] [AppStore] found account: ChaseXOP (ChaseXOP)
+2026-04-02T15:24:51.746Z - info: [ui] [BranchPruner] Last prune took place 24 minutes ago - skipping
+2026-04-02T15:24:51.912Z - info: [ui] launching: 3.5.4 (Windows 10.0.26200)
+2026-04-02T15:24:51.912Z - info: [ui] execPath: 'C:\Users\Student\AppData\Local\GitHubDesktop\app-3.5.4\GitHubDesktop.exe'
+2026-04-02T15:24:52.029Z - info: [ui] Subscribed 'ChaseXOP' to Alive channel
+2026-04-02T15:25:38.770Z - info: [main] Using toast activator CLSID {27D44D0C-A542-5B90-BCDB-AC3126048BA2}
+2026-04-02T15:25:39.391Z - info: [main] Using toast activator CLSID {27D44D0C-A542-5B90-BCDB-AC3126048BA2}
+2026-04-02T15:25:39.780Z - info: [ui] [AppStore] loading 3 repositories from store
+2026-04-02T15:25:39.781Z - info: [ui] [AppStore] found account: ChaseXOP (ChaseXOP)
+2026-04-02T15:25:39.794Z - info: [ui] [BranchPruner] Last prune took place 25 minutes ago - skipping
+2026-04-02T15:25:39.842Z - info: [ui] Subscribed 'ChaseXOP' to Alive channel
+2026-04-02T15:25:40.043Z - info: [ui] launching: 3.5.4 (Windows 10.0.26200)
+2026-04-02T15:25:40.044Z - info: [ui] execPath: 'C:\Users\Student\AppData\Local\GitHubDesktop\app-3.5.4\GitHubDesktop.exe'
+2026-04-02T15:26:55.252Z - info: [main] Using toast activator CLSID {27D44D0C-A542-5B90-BCDB-AC3126048BA2}
+2026-04-02T15:26:55.921Z - info: [main] Using toast activator CLSID {27D44D0C-A542-5B90-BCDB-AC3126048BA2}
+2026-04-02T15:26:56.316Z - info: [ui] [AppStore] loading 3 repositories from store
+2026-04-02T15:26:56.317Z - info: [ui] [AppStore] found account: ChaseXOP (ChaseXOP)
+2026-04-02T15:26:56.375Z - info: [ui] [BranchPruner] Last prune took place 26 minutes ago - skipping
+2026-04-02T15:26:56.474Z - info: [ui] launching: 3.5.4 (Windows 10.0.26200)
+2026-04-02T15:26:56.475Z - info: [ui] execPath: 'C:\Users\Student\AppData\Local\GitHubDesktop\app-3.5.4\GitHubDesktop.exe'
+2026-04-02T15:26:56.582Z - info: [ui] Subscribed 'ChaseXOP' to Alive channel
+2026-04-02T15:27:53.024Z - info: [ui] Executing getChangesFiles: git log 2e03531e29316436bfc97dcdeceab088635dc745 -C -M -m -1 --no-show-signature --first-parent --raw --format=format: --numstat -z -- (took 1.381s)
+2026-04-02T15:28:20.864Z - info: [ui] Executing getChangesFiles: git log 1588c2ec2b1daee3a6b710076c9b2cdd157ff869 -C -M -m -1 --no-show-signature --first-parent --raw --format=format: --numstat -z -- (took 1.326s)
+2026-04-02T15:28:54.861Z - info: [ui] Executing getChangesFiles: git log e958fc47ab54f252a19b645ad0799a86e966f816 -C -M -m -1 --no-show-signature --first-parent --raw --format=format: --numstat -z -- (took 1.566s)
+2026-04-02T15:29:06.902Z - info: [ui] [RepositoryIndicatorUpdater]: Refreshing sidebar indicators for 2 repositories took 0.2s of which 0.0s paused, total 0.2s
+2026-04-02T15:29:30.169Z - info: [ui] Executing revert: git revert e958fc47ab54f252a19b645ad0799a86e966f816 (took 2.673s)
+2026-04-02T15:29:30.171Z - error: [ui] `git revert e958fc47ab54f252a19b645ad0799a86e966f816` exited with an unexpected code: 1.
+Auto-merging Assets/Scenes/THE_GOD_ROOM.unity
+CONFLICT (content): Merge conflict in Assets/Scenes/THE_GOD_ROOM.unity
+Auto-merging ProjectSettings/Packages/com.unity.probuilder/Settings.json
+CONFLICT (content): Merge conflict in ProjectSettings/Packages/com.unity.probuilder/Settings.json
+error: could not revert e958fc4... f
+hint: After resolving the conflicts, mark them with
+hint: "git add/rm <pathspec>", then run
+hint: "git revert --continue".
+hint: You can instead skip this commit with "git revert --skip".
+hint: To abort and get back to the state before "git revert",
+hint: run "git revert --abort".
+hint: Disable this message with "git config advice.mergeConflict false"
+
+(The error was parsed as 8: We found some conflicts while trying to merge. Please resolve the conflicts and commit the changes.)
+2026-04-02T15:29:33.176Z - info: [ui] Executing getBinaryPaths: git diff --numstat -z HEAD (took 2.014s)
+2026-04-02T15:29:46.812Z - info: [main] Using toast activator CLSID {27D44D0C-A542-5B90-BCDB-AC3126048BA2}
+2026-04-02T15:30:04.025Z - info: [ui] Executing getStatus: git --no-optional-locks status --untracked-files=all --branch --porcelain=2 -z (took 1.356s)
+2026-04-02T15:30:05.575Z - info: [ui] Executing getStatus: git --no-optional-locks status --untracked-files=all --branch --porcelain=2 -z (took 1.380s)
+2026-04-02T15:30:06.450Z - info: [ui] Executing getFilesWithConflictMarkers: git diff --check (took 2.423s)
+2026-04-02T15:30:08.028Z - info: [ui] Executing getFilesWithConflictMarkers: git diff --check (took 2.452s)
+2026-04-02T15:30:47.959Z - info: [ui] Executing getStatus: git --no-optional-locks status --untracked-files=all --branch --porcelain=2 -z (took 1.325s)
+2026-04-02T15:30:49.325Z - info: [main] Using toast activator CLSID {27D44D0C-A542-5B90-BCDB-AC3126048BA2}
+2026-04-02T15:30:49.629Z - info: [ui] [AppStore] loading 3 repositories from store
+2026-04-02T15:30:49.629Z - info: [ui] [AppStore] found account: ChaseXOP (ChaseXOP)
+2026-04-02T15:30:49.642Z - info: [ui] [BranchPruner] Last prune took place 30 minutes ago - skipping
+2026-04-02T15:30:49.795Z - info: [ui] launching: 3.5.7 (Windows 10.0.26200)
+2026-04-02T15:30:49.795Z - info: [ui] execPath: 'C:\Users\Student\AppData\Local\GitHubDesktop\app-3.5.7\GitHubDesktop.exe'
+2026-04-02T15:30:50.013Z - info: [ui] Subscribed 'ChaseXOP' to Alive channel
+2026-04-02T15:30:51.295Z - info: [ui] Executing getStatus: git --no-optional-locks status --untracked-files=all --branch --porcelain=2 -z (took 1.533s)
+2026-04-02T15:30:51.318Z - info: [ui] Executing getStatus: git --no-optional-locks status --untracked-files=all --branch --porcelain=2 -z (took 1.537s)
+2026-04-02T15:30:53.443Z - info: [ui] Executing getFilesWithConflictMarkers: git diff --check (took 2.124s)
+2026-04-02T15:30:53.455Z - info: [ui] Executing getFilesWithConflictMarkers: git diff --check (took 2.159s)
+2026-04-02T15:31:01.639Z - info: [ui] [RepositoryIndicatorUpdater]: Refreshing sidebar indicators for 2 repositories took 0.2s of which 0.8s paused, total 1.0s
+2026-04-02T15:31:02.909Z - info: [ui] Executing getStatus: git --no-optional-locks status --untracked-files=all --branch --porcelain=2 -z (took 1.269s)
+2026-04-02T15:31:05.093Z - info: [ui] Executing getFilesWithConflictMarkers: git diff --check (took 2.183s)
+2026-04-02T15:31:40.327Z - info: [ui] Executing getStatus: git --no-optional-locks status --untracked-files=all --branch --porcelain=2 -z (took 1.326s)
+2026-04-02T15:31:42.562Z - info: [ui] Executing getFilesWithConflictMarkers: git diff --check (took 2.233s)
+2026-04-02T15:31:44.637Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:32:04.315Z - info: [ui] Executing push: git push origin main:main --progress (took 20.231s)
+2026-04-02T15:32:04.316Z - error: [ui] `git push origin main:main --progress` exited with an unexpected code: 1.
+19/764)        
+remote: Resolving deltas:  95% (726/764)        
+remote: Resolving deltas:  96% (734/764)        
+remote: Resolving deltas:  97% (742/764)        
+remote: Resolving deltas:  98% (749/764)        
+remote: Resolving deltas:  99% (757/764)        
+remote: Resolving deltas: 100% (764/764)        
+remote: Resolving deltas: 100% (764/764), completed with 36 local objects.        
+remote: error: Trace: d9d8879ead999bcf570f18962fa7e673af814c5ea7ce1299bacae6e356dea1aa        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
+2026-04-02T15:32:07.574Z - info: [ui] [Timing] Action 'create commit' for 'squirreImancer/Fragment' took 0.012s
+2026-04-02T15:32:44.186Z - info: [ui] Executing getStatus: git --no-optional-locks status --untracked-files=all --branch --porcelain=2 -z (took 1.649s)
+2026-04-02T15:32:46.697Z - info: [ui] Executing getFilesWithConflictMarkers: git diff --check (took 2.510s)
+2026-04-02T15:32:50.823Z - info: [ui] [Timing] Action 'create commit' for 'squirreImancer/Fragment' took 0.012s
+2026-04-02T15:33:07.244Z - info: [ui] No submodules found. Skipping "git submodule status"
+2026-04-02T15:33:09.989Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:33:38.655Z - info: [ui] Executing push: git push origin main:main --progress (took 29.084s)
+2026-04-02T15:33:38.655Z - error: [ui] `git push origin main:main --progress` exited with an unexpected code: 1.
+25/771)        
+remote: Resolving deltas:  95% (733/771)        
+remote: Resolving deltas:  96% (741/771)        
+remote: Resolving deltas:  97% (748/771)        
+remote: Resolving deltas:  98% (756/771)        
+remote: Resolving deltas:  99% (764/771)        
+remote: Resolving deltas: 100% (771/771)        
+remote: Resolving deltas: 100% (771/771), completed with 35 local objects.        
+remote: error: Trace: dbffb5ee30e2a27afa1cc9d4b306b36b25ce554b666d770bb761a43ed956ed46        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
+2026-04-02T15:34:37.724Z - info: [ui] Executing getChangesFiles: git log bb5a23cb5a2272f9a6b67166415c73457af7becd -C -M -m -1 --no-show-signature --first-parent --raw --format=format: --numstat -z -- (took 1.840s)
+2026-04-02T15:36:48.923Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:36:49.420Z - info: [ui] Executing fetch: git fetch --progress --prune --recurse-submodules=on-demand origin (took 1.104s)
+2026-04-02T15:36:49.747Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:37:26.861Z - info: [ui] [Timing] Action 'create commit' for 'squirreImancer/Fragment' took 0.795s
+2026-04-02T15:37:28.530Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:37:52.198Z - info: [ui] Executing push: git push origin main:main --progress (took 23.969s)
+2026-04-02T15:37:52.199Z - error: [ui] `git push origin main:main --progress` exited with an unexpected code: 1.
+26/772)        
+remote: Resolving deltas:  95% (734/772)        
+remote: Resolving deltas:  96% (742/772)        
+remote: Resolving deltas:  97% (749/772)        
+remote: Resolving deltas:  98% (757/772)        
+remote: Resolving deltas:  99% (765/772)        
+remote: Resolving deltas: 100% (772/772)        
+remote: Resolving deltas: 100% (772/772), completed with 35 local objects.        
+remote: error: Trace: 9f15d23b7b989e93584faef64d7f4625830d596773f1f68aa206dba2bc2b676f        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
+2026-04-02T15:37:55.276Z - info: [main] opening in browser: https://gh.io/lfs
+2026-04-02T15:38:27.754Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:38:28.553Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:40:11.315Z - info: [ui] [Timing] Action 'create commit' for 'squirreImancer/Fragment' took 0.817s
+2026-04-02T15:40:13.383Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:40:35.779Z - info: [ui] Executing push: git push origin main:main --progress (took 22.773s)
+2026-04-02T15:40:35.780Z - error: [ui] `git push origin main:main --progress` exited with an unexpected code: 1.
+25/771)        
+remote: Resolving deltas:  95% (733/771)        
+remote: Resolving deltas:  96% (741/771)        
+remote: Resolving deltas:  97% (748/771)        
+remote: Resolving deltas:  98% (756/771)        
+remote: Resolving deltas:  99% (764/771)        
+remote: Resolving deltas: 100% (771/771)        
+remote: Resolving deltas: 100% (771/771), completed with 35 local objects.        
+remote: error: Trace: 6559a3c92fd197653768d05a3c8cb301a0cfd30d18b65a8dc4290c12102ca724        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
+2026-04-02T15:42:36.911Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:42:58.034Z - info: [ui] Executing push: git push origin main:main --progress (took 21.491s)
+2026-04-02T15:42:58.035Z - error: [ui] `git push origin main:main --progress` exited with an unexpected code: 1.
+30/776)        
+remote: Resolving deltas:  95% (738/776)        
+remote: Resolving deltas:  96% (745/776)        
+remote: Resolving deltas:  97% (753/776)        
+remote: Resolving deltas:  98% (761/776)        
+remote: Resolving deltas:  99% (769/776)        
+remote: Resolving deltas: 100% (776/776)        
+remote: Resolving deltas: 100% (776/776), completed with 35 local objects.        
+remote: error: Trace: 23fe4f5ce792c983428795d4aeb41470fac1ebdcad52d680886fbdc258ba6cfa        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
+2026-04-02T15:43:20.890Z - info: [ui] Executing checkoutBranch: git checkout --progress Lionsbranch -- (took 4.627s)
+2026-04-02T15:43:22.018Z - info: [ui] Executing updateSubmodules: git submodule update --init --recursive (took 1.126s)
+2026-04-02T15:43:22.765Z - info: [ui] [Timing] Action 'checkout branch from list' for 'squirreImancer/Fragment' took 6.507s
+2026-04-02T15:44:43.615Z - info: [ui] [Timing] Action 'create commit' for 'squirreImancer/Fragment' took 0.837s
+2026-04-02T15:44:47.731Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:45:08.901Z - info: [ui] Executing push: git push origin Lionsbranch:Lionsbranch --progress (took 21.862s)
+2026-04-02T15:45:08.902Z - error: [ui] `git push origin Lionsbranch:Lionsbranch --progress` exited with an unexpected code: 1.
+ 
+remote: Resolving deltas:  95% (687/723)        
+remote: Resolving deltas:  96% (695/723)        
+remote: Resolving deltas:  97% (702/723)        
+remote: Resolving deltas:  98% (709/723)        
+remote: Resolving deltas:  99% (716/723)        
+remote: Resolving deltas: 100% (723/723)        
+remote: Resolving deltas: 100% (723/723), completed with 11 local objects.        
+remote: error: Trace: 2eb2aa299a8e2641750b1ea6ff4500bd0ad0a7ee8d3b89144681972e61d19513        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] Lionsbranch -> Lionsbranch (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
+2026-04-02T15:46:43.694Z - info: [ui] [RepositoryIndicatorUpdater]: Refreshing sidebar indicators for 2 repositories took 0.2s of which 0.0s paused, total 0.2s
+2026-04-02T15:50:00.354Z - info: [ui] credential-helper: found GitHub credential for https://github.com/ in store
+2026-04-02T15:50:19.261Z - info: [ui] Executing push: git push origin Lionsbranch:Lionsbranch --progress (took 19.279s)
+2026-04-02T15:50:19.262Z - error: [ui] `git push origin Lionsbranch:Lionsbranch --progress` exited with an unexpected code: 1.
+ 
+remote: Resolving deltas:  95% (686/722)        
+remote: Resolving deltas:  96% (694/722)        
+remote: Resolving deltas:  97% (701/722)        
+remote: Resolving deltas:  98% (708/722)        
+remote: Resolving deltas:  99% (715/722)        
+remote: Resolving deltas: 100% (722/722)        
+remote: Resolving deltas: 100% (722/722), completed with 11 local objects.        
+remote: error: Trace: 05a4a88045cb3afa16690707dbc4b928e9829019bbf2d0bc69e86ee6aaf2bff1        
+remote: error: See https://gh.io/lfs for more information.        
+remote: error: File Assets/LoafbrrAssets/Interiors_A/Interiors_A_blend.zip is 130.51 MB; this exceeds GitHub's file size limit of 100.00 MB        
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        
+To https://github.com/squirreImancer/Fragment.git
+ ! [remote rejected] Lionsbranch -> Lionsbranch (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/squirreImancer/Fragment.git'
+
+(The error was parsed as 42: The push operation includes a file which exceeds GitHub's file size restriction of 100MB. Please remove the file from history and try again.)
