@@ -2717,6 +2717,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (conflictState === null) {
       this.clearConflictsFlowVisuals(state)
+
+      // If a multi-commit operation was in a conflict step but conflicts are
+      // now gone, the operation was completed or aborted externally (e.g. the
+      // user resolved conflicts and continued the rebase in another tool).
+      // Clear the stale operation state so the UI re-enables.
+      if (multiCommitOperationState !== null) {
+        const { kind } = multiCommitOperationState.step
+        if (
+          kind === MultiCommitOperationStepKind.ShowConflicts ||
+          kind === MultiCommitOperationStepKind.HideConflicts ||
+          kind === MultiCommitOperationStepKind.ConfirmAbort
+        ) {
+          this._endMultiCommitOperation(repository)
+        }
+      }
+
       return
     }
 
