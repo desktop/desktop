@@ -67,4 +67,22 @@ export type MenuLabelsEvent = {
    * says "Show changes filter" or "Hide changes filter".
    */
   readonly isChangesFilterVisible?: boolean
+
+  /**
+   * Whether the current repository is a fork. Used to determine
+   * whether to show the secondary "View Fork/Upstream on GitHub" menu item.
+   */
+  readonly isRepositoryFork?: boolean
+
+  /**
+   * The label for the primary "View on GitHub" menu item.
+   * Changes based on fork behavior setting when the repository is a fork.
+   */
+  readonly viewOnGitHubLabel?: string
+
+  /**
+   * The label for the secondary "View Fork/Upstream on GitHub" menu item.
+   * Shows the opposite of the primary view action.
+   */
+  readonly viewForkOnGitHubLabel?: string
 }

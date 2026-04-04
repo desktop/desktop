@@ -4,6 +4,7 @@ import { IAppState, SelectionType } from '../lib/app-state'
 import {
   Repository,
   isRepositoryWithGitHubRepository,
+  isRepositoryWithForkedGitHubRepository,
 } from '../models/repository'
 import { CloningRepository } from '../models/cloning-repository'
 import { TipState } from '../models/tip'
@@ -113,6 +114,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'merge-branch',
   'rebase-branch',
   'view-repository-on-github',
+  'view-fork-on-github',
   'compare-on-github',
   'branch-on-github',
   'open-in-shell',
@@ -291,6 +293,16 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
+
+    const selectedRepository = selectedState?.repository
+    const isFork =
+      selectedRepository instanceof Repository &&
+      isRepositoryWithForkedGitHubRepository(selectedRepository)
+    menuStateBuilder.setEnabled(
+      'view-fork-on-github',
+      isHostedOnGitHub && isFork
+    )
+
     menuStateBuilder.setEnabled(
       'create-issue-in-repository-on-github',
       repoIssuesEnabled
@@ -344,6 +356,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     }
 
     menuStateBuilder.disable('view-repository-on-github')
+    menuStateBuilder.disable('view-fork-on-github')
     menuStateBuilder.disable('create-pull-request')
     menuStateBuilder.disable('preview-pull-request')
     if (

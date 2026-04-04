@@ -46,6 +46,9 @@ export function buildDefaultMenu({
   isStashedChangesVisible = false,
   askForConfirmationWhenStashingAllChanges = true,
   isChangesFilterVisible = true,
+  isRepositoryFork = false,
+  viewOnGitHubLabel,
+  viewForkOnGitHubLabel,
 }: MenuLabelsEvent): Electron.Menu {
   contributionTargetDefaultBranch = truncateWithEllipsis(
     contributionTargetDefaultBranch,
@@ -330,9 +333,19 @@ export function buildDefaultMenu({
       separator,
       {
         id: 'view-repository-on-github',
-        label: __DARWIN__ ? 'View on GitHub' : '&View on GitHub',
+        label:
+          viewOnGitHubLabel ??
+          (__DARWIN__ ? 'View on GitHub' : '&View on GitHub'),
         accelerator: 'CmdOrCtrl+Shift+G',
         click: emit('view-repository-on-github'),
+      },
+      {
+        id: 'view-fork-on-github',
+        label:
+          viewForkOnGitHubLabel ??
+          (__DARWIN__ ? 'View Fork on GitHub' : 'View &Fork on GitHub'),
+        click: emit('view-fork-on-github'),
+        visible: isRepositoryFork,
       },
       {
         label: __DARWIN__

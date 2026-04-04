@@ -32,6 +32,8 @@ import {
   getGitHubHtmlUrl,
   getNonForkGitHubRepository,
   isRepositoryWithGitHubRepository,
+  isRepositoryWithForkedGitHubRepository,
+  getForkContributionTarget,
 } from '../models/repository'
 import { Branch } from '../models/branch'
 import { PreferencesTab } from '../models/preferences'
@@ -40,6 +42,7 @@ import { Account, isDotComAccount } from '../models/account'
 import { TipState } from '../models/tip'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { CloningRepository } from '../models/cloning-repository'
+import { ForkContributionTarget } from '../models/workflow-preferences'
 
 import { TitleBar, ZoomInfo, FullScreenInfo } from './window'
 
@@ -485,6 +488,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showRepositorySettings()
       case 'view-repository-on-github':
         return this.viewRepositoryOnGitHub()
+      case 'view-fork-on-github':
+        return this.viewForkOnGitHub()
       case 'compare-on-github':
         return this.openBranchOnGitHub('compare')
       case 'branch-on-github':
@@ -1278,6 +1283,29 @@ export class App extends React.Component<IAppProps, IAppState> {
     const repository = this.getRepository()
 
     this.viewOnGitHub(repository)
+  }
+
+  private viewForkOnGitHub() {
+    const repository = this.getRepository()
+
+    if (
+      !(repository instanceof Repository) ||
+      !isRepositoryWithForkedGitHubRepository(repository)
+    ) {
+      return
+    }
+
+    const target = getForkContributionTarget(repository)
+
+    // Open the opposite of what the primary "View on GitHub" opens
+    const url =
+      target === ForkContributionTarget.Parent
+        ? repository.gitHubRepository.htmlURL
+        : repository.gitHubRepository.parent?.htmlURL
+
+    if (url) {
+      this.props.dispatcher.openInBrowser(url)
+    }
   }
 
   /** Returns the URL to the current repository if hosted on GitHub */

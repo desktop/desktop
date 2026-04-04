@@ -52,8 +52,10 @@ import {
   nameOf,
   Repository,
   isRepositoryWithGitHubRepository,
+  isRepositoryWithForkedGitHubRepository,
   RepositoryWithGitHubRepository,
   getNonForkGitHubRepository,
+  getForkContributionTarget,
   isForkedRepositoryContributingToParent,
 } from '../../models/repository'
 import {
@@ -293,7 +295,10 @@ import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
-import { WorkflowPreferences } from '../../models/workflow-preferences'
+import {
+  ForkContributionTarget,
+  WorkflowPreferences,
+} from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { isAttributableEmailFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
@@ -2613,6 +2618,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const askForConfirmationWhenStashingAllChanges =
       changesState.stashEntry !== null
 
+    const isFork =
+      selectedRepository instanceof Repository &&
+      isRepositoryWithForkedGitHubRepository(selectedRepository)
+
+    let viewOnGitHubLabel: string | undefined
+    let viewForkOnGitHubLabel: string | undefined
+
+    if (isFork && selectedRepository instanceof Repository) {
+      const target = getForkContributionTarget(selectedRepository)
+      if (target === ForkContributionTarget.Parent) {
+        viewOnGitHubLabel = __DARWIN__
+          ? 'View Upstream on GitHub'
+          : '&View Upstream on GitHub'
+        viewForkOnGitHubLabel = __DARWIN__
+          ? 'View Fork on GitHub'
+          : 'View &Fork on GitHub'
+      } else {
+        viewOnGitHubLabel = __DARWIN__
+          ? 'View Fork on GitHub'
+          : '&View Fork on GitHub'
+        viewForkOnGitHubLabel = __DARWIN__
+          ? 'View Upstream on GitHub'
+          : 'View &Upstream on GitHub'
+      }
+    }
+
     updatePreferredAppMenuItemLabels({
       ...labels,
       contributionTargetDefaultBranch,
@@ -2621,6 +2652,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hasCurrentPullRequest: currentPullRequest !== null,
       askForConfirmationWhenStashingAllChanges,
       isChangesFilterVisible: this.showChangesFilter,
+      isRepositoryFork: isFork,
+      viewOnGitHubLabel,
+      viewForkOnGitHubLabel,
     })
   }
 
