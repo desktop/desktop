@@ -1,0 +1,173 @@
+name: 'Draft Release'
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Release channel'
+        required: true
+        type: choice
+        options:
+          - beta
+          - production
+      ref:
+        description:
+          'Branch or tag to release from (default: development for beta, latest
+          beta tag for production). Use for hotfixes.'
+        required: false
+        type: string
+      dry-run:
+        description: 'Generate notes without creating a release branch'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  draft-release:
+    name: Draft Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ inputs.ref || github.event.repository.default_branch }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+
+      - name: Determine previous and next versions
+        id: version
+        run: >
+          yarn ts-node -P script/tsconfig.json script/draft-release/ci.ts
+          version ${{ inputs.channel }}
+
+      - name: Generate release notes (beta only)
+        id: notes
+        if: ${{ inputs.channel == 'beta' }}
+        uses: github/copilot-release-notes@v1
+        with:
+          base-ref: release-${{ steps.version.outputs.previous }}
+          head-ref: ${{ inputs.ref || 'development' }}
+          instructions: .github/release-notes-instructions.md
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+
+      - name: Parse changelog entries
+        id: changelog
+        env:
+          CHANNEL: ${{ inputs.channel }}
+          RELEASE_NOTES: ${{ steps.notes.outputs.release-notes }}
+          UNCERTAIN: ${{ steps.notes.outputs.uncertain-entries }}
+          SKIPPED: ${{ steps.notes.outputs.skipped-prs }}
+          PREVIOUS: ${{ steps.version.outputs.previous }}
+          NEXT: ${{ steps.version.outputs.next }}
+        run: |
+          if [ "$CHANNEL" = "production" ]; then
+            # Production: aggregate existing beta entries via shared script
+            ENTRIES=$(yarn --silent ts-node -P script/tsconfig.json \
+              script/draft-release/ci.ts changelog-entries "$PREVIOUS")
+          else
+            # Beta: parse AI-generated notes, extracting [Tag] lines
+            ENTRIES=$(echo "$RELEASE_NOTES" | grep -E '^\[' || true)
+            ENTRIES=$(echo "$ENTRIES" | jq -c -R -s 'split("\n") | map(select(length > 0))')
+          fi
+
+          # Write entries as single-line JSON to output
+          echo "entries=$ENTRIES" >> "$GITHUB_OUTPUT"
+          COUNT=$(echo "$ENTRIES" | jq 'length')
+
+          # Step summary
+          if [ "$CHANNEL" = "production" ]; then
+            echo "## Production Release Notes — $NEXT" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Aggregated $COUNT entries from beta releases since $PREVIOUS:" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "$ENTRIES" | jq -r '.[]' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## Draft Release Notes — $NEXT" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "$RELEASE_NOTES" >> "$GITHUB_STEP_SUMMARY"
+
+            if [ -n "$UNCERTAIN" ] && [ "$UNCERTAIN" != "[]" ] && [ "$UNCERTAIN" != "" ]; then
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo "### ⚠️ Entries needing human review" >> "$GITHUB_STEP_SUMMARY"
+              echo "$UNCERTAIN" >> "$GITHUB_STEP_SUMMARY"
+            fi
+
+            if [ -n "$SKIPPED" ] && [ "$SKIPPED" != "[]" ] && [ "$SKIPPED" != "" ]; then
+              SKIPPED_COUNT=$(echo "$SKIPPED" | jq 'length' 2>/dev/null || echo 0)
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo "<details><summary>$SKIPPED_COUNT PRs excluded from notes</summary>" >> "$GITHUB_STEP_SUMMARY"
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo "$SKIPPED" >> "$GITHUB_STEP_SUMMARY"
+              echo "</details>" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+
+          echo "📝 Parsed $COUNT changelog entries"
+
+      - name: Create release branch and commit
+        if: ${{ inputs.dry-run == false }}
+        env:
+          CHANNEL: ${{ inputs.channel }}
+          NEXT_VERSION: ${{ steps.version.outputs.next }}
+          LATEST_BETA: ${{ steps.version.outputs.latest-beta }}
+          REF_OVERRIDE: ${{ inputs.ref }}
+          ENTRIES: ${{ steps.changelog.outputs.entries }}
+        run: |
+          BRANCH="releases/$NEXT_VERSION"
+
+          # Check if the release branch already exists
+          if git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
+            echo "::error::Branch $BRANCH already exists. Delete it first or use dry-run."
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ -n "$REF_OVERRIDE" ]; then
+            # Hotfix: already on the correct ref from checkout step
+            git checkout -b "$BRANCH"
+            echo "🔧 Hotfix: branched from $REF_OVERRIDE"
+          elif [ "$CHANNEL" = "production" ]; then
+            # Production: branch from the latest beta tag
+            if [ -z "$LATEST_BETA" ]; then
+              echo "::error::Cannot create a production release branch because no latest beta version was found."
+              exit 1
+            fi
+            git checkout -b "$BRANCH" "release-$LATEST_BETA"
+          else
+            # Beta: already on development from checkout step
+            git checkout -b "$BRANCH"
+          fi
+
+          # Bump app/package.json and update changelog.json
+          yarn --silent ts-node -P script/tsconfig.json \
+            script/draft-release/ci.ts prepare "$NEXT_VERSION" "$ENTRIES"
+
+          git add app/package.json changelog.json
+          git commit -m "Draft release $NEXT_VERSION"
+
+      - name: Push release branch
+        if: ${{ inputs.dry-run == false }}
+        env:
+          NEXT_VERSION: ${{ steps.version.outputs.next }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin "releases/$NEXT_VERSION"
+          echo "✅ Pushed releases/$NEXT_VERSION — release-pr.yml will create the draft PR"
