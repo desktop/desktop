@@ -6,43 +6,53 @@ import { mkdir, readlink, symlink, unlink } from 'fs/promises'
 /** The path for the installed command line tool. */
 export const InstalledCLIPath = '/usr/local/bin/github'
 
+/** Shorter alias for the CLI. */
+const InstalledCLIAliasPath = '/usr/local/bin/github-plus'
+
 /** The path to the packaged CLI. */
 const PackagedPath = Path.resolve(__dirname, 'static', 'github.sh')
 
 /** Install the command line tool on macOS. */
 export async function installCLI(): Promise<void> {
-  const installedPath = await getResolvedInstallPath()
-  if (installedPath === PackagedPath) {
+  await installCLIAt(InstalledCLIPath)
+  await installCLIAt(InstalledCLIAliasPath)
+}
+
+async function installCLIAt(installPath: string): Promise<void> {
+  const resolvedPath = await getResolvedInstallPath(installPath)
+  if (resolvedPath === PackagedPath) {
     return
   }
 
   try {
-    await symlinkCLI(false)
+    await symlinkCLI(installPath, false)
   } catch (e) {
     // If we error without running as an admin, try again as an admin.
-    await symlinkCLI(true)
+    await symlinkCLI(installPath, true)
   }
 }
 
-async function getResolvedInstallPath(): Promise<string | null> {
+async function getResolvedInstallPath(
+  installPath: string
+): Promise<string | null> {
   try {
-    return await readlink(InstalledCLIPath)
+    return await readlink(installPath)
   } catch {
     return null
   }
 }
 
-function removeExistingSymlink(asAdmin: boolean) {
+function removeExistingSymlink(installPath: string, asAdmin: boolean) {
   if (!asAdmin) {
-    return unlink(InstalledCLIPath)
+    return unlink(installPath)
   }
 
   return new Promise<void>((resolve, reject) => {
-    fsAdmin.unlink(InstalledCLIPath, error => {
+    fsAdmin.unlink(installPath, error => {
       if (error !== null) {
         reject(
           new Error(
-            `Failed to remove file at ${InstalledCLIPath}. Authorization of GitHub Desktop Helper is required.`
+            `Failed to remove file at ${installPath}. Authorization of GitHub Desktop Helper is required.`
           )
         )
         return
@@ -53,8 +63,8 @@ function removeExistingSymlink(asAdmin: boolean) {
   })
 }
 
-function createDirectories(asAdmin: boolean) {
-  const path = Path.dirname(InstalledCLIPath)
+function createDirectories(installPath: string, asAdmin: boolean) {
+  const path = Path.dirname(installPath)
 
   if (!asAdmin) {
     return mkdir(path, { recursive: true })
@@ -65,7 +75,7 @@ function createDirectories(asAdmin: boolean) {
       if (error !== null) {
         reject(
           new Error(
-            `Failed to create intermediate directories to ${InstalledCLIPath}`
+            `Failed to create intermediate directories to ${installPath}`
           )
         )
         return
@@ -76,16 +86,16 @@ function createDirectories(asAdmin: boolean) {
   })
 }
 
-function createNewSymlink(asAdmin: boolean) {
+function createNewSymlink(installPath: string, asAdmin: boolean) {
   if (!asAdmin) {
-    return symlink(PackagedPath, InstalledCLIPath)
+    return symlink(PackagedPath, installPath)
   }
 
   return new Promise<void>((resolve, reject) => {
-    fsAdmin.symlink(PackagedPath, InstalledCLIPath, error => {
+    fsAdmin.symlink(PackagedPath, installPath, error => {
       if (error !== null) {
         reject(
-          new Error(`Failed to symlink ${PackagedPath} to ${InstalledCLIPath}`)
+          new Error(`Failed to symlink ${PackagedPath} to ${installPath}`)
         )
         return
       }
@@ -95,8 +105,8 @@ function createNewSymlink(asAdmin: boolean) {
   })
 }
 
-async function symlinkCLI(asAdmin: boolean): Promise<void> {
-  await removeExistingSymlink(asAdmin)
-  await createDirectories(asAdmin)
-  await createNewSymlink(asAdmin)
+async function symlinkCLI(installPath: string, asAdmin: boolean): Promise<void> {
+  await removeExistingSymlink(installPath, asAdmin)
+  await createDirectories(installPath, asAdmin)
+  await createNewSymlink(installPath, asAdmin)
 }
