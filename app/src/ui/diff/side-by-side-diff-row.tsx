@@ -141,9 +141,9 @@ interface ISideBySideDiffRowProps {
   readonly hideWhitespaceInDiff: boolean
 
   /**
-   * The width (in pixels) of the diff gutter.
+   * The width expression of a single diff line number gutter.
    */
-  readonly lineNumberWidth: number
+  readonly lineNumberWidth: string
 
   /**
    * The index of the row in the displayed diff.
@@ -495,9 +495,10 @@ export class SideBySideDiffRow extends React.Component<
   }
 
   /**
-   * This method returns the width of a line gutter in pixels. For unified diffs
-   * the gutter contains the line number of both before and after sides, whereas
-   * for side-by-side diffs the gutter contains the line number of only one side.
+   * This method returns the width expression of a line gutter. For unified
+   * diffs the gutter contains the line number of both before and after sides,
+   * whereas for side-by-side diffs the gutter contains the line number of only
+   * one side.
    */
   private get lineGutterWidth() {
     const {
@@ -506,10 +507,13 @@ export class SideBySideDiffRow extends React.Component<
       isDiffSelectable,
       showDiffCheckMarks,
     } = this.props
-    return (
-      (showSideBySideDiff ? lineNumberWidth : lineNumberWidth * 2) +
-      (isDiffSelectable && showDiffCheckMarks ? 20 : 0)
-    )
+    const widthExpression = showSideBySideDiff
+      ? lineNumberWidth
+      : `${lineNumberWidth} + ${lineNumberWidth}`
+    const checkMarkWidth =
+      isDiffSelectable && showDiffCheckMarks ? ' + 20px' : ''
+
+    return `calc(${widthExpression}${checkMarkWidth})`
   }
 
   private renderHunkExpansionHandle(

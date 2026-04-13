@@ -83,6 +83,10 @@ interface IPreferencesProps {
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
   readonly selectedTabSize: number
+  readonly selectedDiffFontSize: number
+  readonly selectedDiffFontFamily: string
+  readonly selectedDiffFontWeight: string
+  readonly selectedDiffFontLigatures: string
   readonly useCustomEditor: boolean
   readonly customEditor: ICustomIntegration | null
   readonly useCustomShell: boolean
@@ -138,6 +142,10 @@ interface IPreferencesState {
 
   readonly initiallySelectedTheme: ApplicationTheme
   readonly initiallySelectedTabSize: number
+  readonly initiallySelectedDiffFontSize: number
+  readonly initiallySelectedDiffFontFamily: string
+  readonly initiallySelectedDiffFontWeight: string
+  readonly initiallySelectedDiffFontLigatures: string
 
   readonly isLoadingGitConfig: boolean
 
@@ -206,6 +214,10 @@ export class Preferences extends React.Component<
       repositoryIndicatorsEnabled: this.props.repositoryIndicatorsEnabled,
       initiallySelectedTheme: this.props.selectedTheme,
       initiallySelectedTabSize: this.props.selectedTabSize,
+      initiallySelectedDiffFontSize: this.props.selectedDiffFontSize,
+      initiallySelectedDiffFontFamily: this.props.selectedDiffFontFamily,
+      initiallySelectedDiffFontWeight: this.props.selectedDiffFontWeight,
+      initiallySelectedDiffFontLigatures: this.props.selectedDiffFontLigatures,
       isLoadingGitConfig: true,
       underlineLinks: this.props.underlineLinks,
       showDiffCheckMarks: this.props.showDiffCheckMarks,
@@ -290,6 +302,38 @@ export class Preferences extends React.Component<
     }
     if (this.state.initiallySelectedTabSize !== this.props.selectedTabSize) {
       this.onSelectedTabSizeChanged(this.state.initiallySelectedTabSize)
+    }
+    if (
+      this.state.initiallySelectedDiffFontSize !==
+      this.props.selectedDiffFontSize
+    ) {
+      this.onSelectedDiffFontSizeChanged(
+        this.state.initiallySelectedDiffFontSize
+      )
+    }
+    if (
+      this.state.initiallySelectedDiffFontFamily !==
+      this.props.selectedDiffFontFamily
+    ) {
+      this.onSelectedDiffFontFamilyChanged(
+        this.state.initiallySelectedDiffFontFamily
+      )
+    }
+    if (
+      this.state.initiallySelectedDiffFontWeight !==
+      this.props.selectedDiffFontWeight
+    ) {
+      this.onSelectedDiffFontWeightChanged(
+        this.state.initiallySelectedDiffFontWeight
+      )
+    }
+    if (
+      this.state.initiallySelectedDiffFontLigatures !==
+      this.props.selectedDiffFontLigatures
+    ) {
+      this.onSelectedDiffFontLigaturesChanged(
+        this.state.initiallySelectedDiffFontLigatures
+      )
     }
 
     this.props.onDismissed()
@@ -512,6 +556,20 @@ export class Preferences extends React.Component<
             onSelectedThemeChanged={this.onSelectedThemeChanged}
             selectedTabSize={this.props.selectedTabSize}
             onSelectedTabSizeChanged={this.onSelectedTabSizeChanged}
+            selectedDiffFontSize={this.props.selectedDiffFontSize}
+            onSelectedDiffFontSizeChanged={this.onSelectedDiffFontSizeChanged}
+            selectedDiffFontFamily={this.props.selectedDiffFontFamily}
+            onSelectedDiffFontFamilyChanged={
+              this.onSelectedDiffFontFamilyChanged
+            }
+            selectedDiffFontWeight={this.props.selectedDiffFontWeight}
+            onSelectedDiffFontWeightChanged={
+              this.onSelectedDiffFontWeightChanged
+            }
+            selectedDiffFontLigatures={this.props.selectedDiffFontLigatures}
+            onSelectedDiffFontLigaturesChanged={
+              this.onSelectedDiffFontLigaturesChanged
+            }
           />
         )
         break
@@ -749,6 +807,22 @@ export class Preferences extends React.Component<
     this.props.dispatcher.setSelectedTabSize(tabSize)
   }
 
+  private onSelectedDiffFontSizeChanged = (diffFontSize: number) => {
+    this.props.dispatcher.setSelectedDiffFontSize(diffFontSize)
+  }
+
+  private onSelectedDiffFontFamilyChanged = (diffFontFamily: string) => {
+    this.props.dispatcher.setSelectedDiffFontFamily(diffFontFamily)
+  }
+
+  private onSelectedDiffFontWeightChanged = (diffFontWeight: string) => {
+    this.props.dispatcher.setSelectedDiffFontWeight(diffFontWeight)
+  }
+
+  private onSelectedDiffFontLigaturesChanged = (diffFontLigatures: string) => {
+    this.props.dispatcher.setSelectedDiffFontLigatures(diffFontLigatures)
+  }
+  
   private renderFooter() {
     const hasDisabledError = this.state.disallowedCharactersMessage != null
 

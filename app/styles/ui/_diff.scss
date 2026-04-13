@@ -11,12 +11,15 @@
   height: 100%;
   color: var(--diff-text-color);
   background: var(--background-color);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-family-monospace);
+  font-size: var(--diff-font-size, var(--font-size-sm));
+  font-family: var(--diff-font-family, var(--font-family-monospace));
+  font-weight: var(--diff-font-weight, normal);
+  font-feature-settings: var(--diff-font-ligatures, "liga" off, "calt" off);
 
   span {
     // Force word breaks. This only matters when soft wrapping is on.
-    word-break: break-all;
+    word-break: var(--diff-word-break, break-all);
+    overflow-wrap: var(--diff-overflow-wrap, normal);
   }
 
   pre {

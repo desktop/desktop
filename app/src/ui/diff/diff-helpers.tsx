@@ -369,9 +369,13 @@ export function canSelect(
   return file instanceof WorkingDirectoryFileChange
 }
 
-/** Gets the width in pixels of the diff line number gutter based on the number of digits in the number */
-export function getLineWidthFromDigitCount(digitAmount: number): number {
-  return Math.max(digitAmount, 3) * 10 + 5
+/** Gets the width expression of a single diff line number gutter based on the number of digits in the number */
+export function getLineWidthFromDigitCount(digitAmount: number): string {
+  const digits = Math.max(digitAmount, 3)
+
+  // Use `ch` so the gutter tracks the active diff font size/family instead of
+  // assuming a fixed pixel width per digit.
+  return `${digits}ch + var(--spacing) + 5px`
 }
 
 /** Utility function for getting the digit count of the largest line number in an array of diff hunks */

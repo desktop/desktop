@@ -73,8 +73,10 @@
     flex-direction: column;
     flex-grow: 1;
     width: 100%;
-    font-family: var(--font-family-monospace);
-    font-size: var(--font-size-sm);
+    font-family: var(--diff-font-family, var(--font-family-monospace));
+    font-size: var(--diff-font-size, var(--font-size-sm));
+    font-weight: var(--diff-font-weight, normal);
+    font-feature-settings: var(--diff-font-ligatures, "liga" off, "calt" off);
     color: var(--diff-text-color);
     background: var(--background-color);
   }
@@ -90,7 +92,7 @@
   .row {
     display: flex;
     flex-direction: row;
-    line-height: 20px;
+    line-height: var(--diff-line-height, 20px);
     position: relative;
     height: 100%;
 
@@ -414,7 +416,8 @@
       white-space: pre-wrap;
       overflow-y: auto;
       flex-grow: 1;
-      word-break: break-all;
+      word-break: var(--diff-word-break, break-all);
+      overflow-wrap: var(--diff-overflow-wrap, normal);
 
       .prefix {
         user-select: none;

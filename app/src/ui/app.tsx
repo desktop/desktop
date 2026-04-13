@@ -34,6 +34,13 @@ import {
   isRepositoryWithGitHubRepository,
 } from '../models/repository'
 import { Branch } from '../models/branch'
+import {
+  getDiffFontFamilyCssValue,
+  getDiffFontLigaturesCssValue,
+  getDiffLineHeight,
+  getDiffFontWeightCssValue,
+  hasDiffCommonLigaturesEnabled,
+} from '../models/diff-font'
 import { PreferencesTab } from '../models/preferences'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { Account, isDotComAccount } from '../models/account'
@@ -1591,6 +1598,10 @@ export class App extends React.Component<IAppProps, IAppState> {
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
             selectedTabSize={this.state.selectedTabSize}
+            selectedDiffFontSize={this.state.selectedDiffFontSize}
+            selectedDiffFontFamily={this.state.selectedDiffFontFamily}
+            selectedDiffFontWeight={this.state.selectedDiffFontWeight}
+            selectedDiffFontLigatures={this.state.selectedDiffFontLigatures}
             useCustomEditor={this.state.useCustomEditor}
             customEditor={this.state.customEditor}
             useCustomShell={this.state.useCustomShell}
@@ -3549,12 +3560,35 @@ export class App extends React.Component<IAppProps, IAppState> {
       : this.state.currentTheme
 
     const currentTabSize = this.state.selectedTabSize
+    const hasCommonLigaturesEnabled = hasDiffCommonLigaturesEnabled(
+      this.state.selectedDiffFontLigatures
+    )
+    const appStyle = {
+      tabSize: currentTabSize,
+      '--diff-font-size': `${this.state.selectedDiffFontSize}px`,
+      '--diff-font-family': getDiffFontFamilyCssValue(
+        this.state.selectedDiffFontFamily
+      ),
+      '--diff-font-weight': getDiffFontWeightCssValue(
+        this.state.selectedDiffFontWeight
+      ),
+      '--diff-font-ligatures': getDiffFontLigaturesCssValue(
+        this.state.selectedDiffFontLigatures
+      ),
+      '--diff-word-break': hasCommonLigaturesEnabled ? 'normal' : 'break-all',
+      '--diff-overflow-wrap': hasCommonLigaturesEnabled
+        ? 'anywhere'
+        : 'normal',
+      '--diff-line-height': `${getDiffLineHeight(
+        this.state.selectedDiffFontSize
+      )}px`,
+    } as React.CSSProperties
 
     return (
       <div
         id="desktop-app-chrome"
         className={className}
-        style={{ tabSize: currentTabSize }}
+        style={appStyle}
       >
         <AppTheme theme={currentTheme} />
         {this.renderTitlebar()}

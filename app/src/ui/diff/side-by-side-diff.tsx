@@ -233,6 +233,7 @@ export class SideBySideDiff extends React.Component<
 > {
   private virtualListRef = React.createRef<List>()
   private diffContainer: HTMLDivElement | null = null
+  private lastDiffStyleKey = ''
 
   /** Diff to restore when "Collapse all expanded lines" option is used */
   private diffToRestore: ITextDiff | null = null
@@ -275,6 +276,7 @@ export class SideBySideDiff extends React.Component<
 
   public componentDidMount() {
     this.initDiffSyntaxMode()
+    this.lastDiffStyleKey = this.getCurrentDiffStyleKey()
 
     window.addEventListener('keydown', this.onWindowKeyDown)
 
@@ -428,6 +430,8 @@ export class SideBySideDiff extends React.Component<
     prevProps: ISideBySideDiffProps,
     prevState: ISideBySideDiffState
   ) {
+    this.invalidateMeasurementsIfDiffStyleChanged()
+
     if (
       !highlightParametersEqual(this.props, prevProps, this.state, prevState)
     ) {
@@ -569,6 +573,35 @@ export class SideBySideDiff extends React.Component<
       ref.addEventListener('select-all', this.onSelectAll)
     }
     this.diffContainer = ref
+  }
+
+  private getCurrentDiffStyleKey() {
+    if (this.diffContainer === null) {
+      return ''
+    }
+
+    const styles = getComputedStyle(this.diffContainer)
+    const diffFontSize = styles.getPropertyValue('--diff-font-size').trim()
+    const diffFontFamily = styles.getPropertyValue('--diff-font-family').trim()
+    const diffFontWeight = styles.getPropertyValue('--diff-font-weight').trim()
+    const diffFontLigatures = styles
+      .getPropertyValue('--diff-font-ligatures')
+      .trim()
+    const diffLineHeight = styles.getPropertyValue('--diff-line-height').trim()
+
+    return `${diffFontSize}|${diffFontFamily}|${diffFontWeight}|${diffFontLigatures}|${diffLineHeight}`
+  }
+
+  private invalidateMeasurementsIfDiffStyleChanged() {
+    const currentDiffStyleKey = this.getCurrentDiffStyleKey()
+    if (currentDiffStyleKey === this.lastDiffStyleKey) {
+      return
+    }
+
+    this.lastDiffStyleKey = currentDiffStyleKey
+    this.rowSelectableGroupStaticDataCache.clear()
+    this.clearListRowsHeightCache()
+    this.virtualListRef.current?.recomputeRowHeights()
   }
 
   private getCurrentDiffRows() {

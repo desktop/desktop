@@ -141,6 +141,14 @@ import {
 } from '../editors'
 import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
 
+import {
+  clampDiffFontSize,
+  defaultDiffFontFamily,
+  defaultDiffFontSize,
+  normalizeDiffFontFamily,
+  normalizeDiffFontLigatures,
+  normalizeDiffFontWeight,
+} from '../../models/diff-font'
 import { formatCommitMessage } from '../format-commit-message'
 import {
   getAccountForCommitMessageGeneration,
@@ -433,6 +441,10 @@ const commitSpellcheckEnabledKey = 'commit-spellcheck-enabled'
 
 export const tabSizeDefault: number = 4
 const tabSizeKey: string = 'tab-size'
+const diffFontSizeKey = 'diff-font-size'
+const diffFontFamilyKey = 'diff-font-family'
+const diffFontWeightKey = 'diff-font-weight'
+const diffFontLigaturesKey = 'diff-font-ligatures'
 
 const shellKey = 'shell'
 
@@ -590,6 +602,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedTheme = ApplicationTheme.System
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
   private selectedTabSize = tabSizeDefault
+  private selectedDiffFontSize = defaultDiffFontSize
+  private selectedDiffFontFamily = defaultDiffFontFamily
+  private selectedDiffFontWeight = ''
+  private selectedDiffFontLigatures = ''
 
   private useWindowsOpenSSH: boolean = false
 
@@ -1108,6 +1124,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedTheme: this.selectedTheme,
       currentTheme: this.currentTheme,
       selectedTabSize: this.selectedTabSize,
+      selectedDiffFontSize: this.selectedDiffFontSize,
+      selectedDiffFontFamily: this.selectedDiffFontFamily,
+      selectedDiffFontWeight: this.selectedDiffFontWeight,
+      selectedDiffFontLigatures: this.selectedDiffFontLigatures,
       apiRepositories: this.apiRepositoriesStore.getState(),
       useWindowsOpenSSH: this.useWindowsOpenSSH,
       showCommitLengthWarning: this.showCommitLengthWarning,
@@ -2339,6 +2359,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.currentTheme = await getCurrentlyAppliedTheme()
 
     this.selectedTabSize = getNumber(tabSizeKey, tabSizeDefault)
+    this.selectedDiffFontSize = clampDiffFontSize(
+      getNumber(diffFontSizeKey, defaultDiffFontSize)
+    )
+    this.selectedDiffFontFamily = normalizeDiffFontFamily(
+      localStorage.getItem(diffFontFamilyKey) ?? defaultDiffFontFamily
+    )
+    this.selectedDiffFontWeight =
+      localStorage.getItem(diffFontWeightKey) ?? ''
+    this.selectedDiffFontLigatures =
+      localStorage.getItem(diffFontLigaturesKey) ?? ''
 
     themeChangeMonitor.onThemeChanged(theme => {
       this.currentTheme = theme
@@ -7147,6 +7177,92 @@ export class AppStore extends TypedBaseStore<IAppState> {
       setNumber(tabSizeKey, tabSize)
       this.emitUpdate()
     }
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the application-wide diff font size
+   */
+  public _setSelectedDiffFontSize(diffFontSize: number) {
+    const normalized = clampDiffFontSize(diffFontSize)
+
+    if (this.selectedDiffFontSize === normalized) {
+      return Promise.resolve()
+    }
+
+    this.selectedDiffFontSize = normalized
+    setNumber(diffFontSizeKey, normalized)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the application-wide diff font family
+   */
+  public _setSelectedDiffFontFamily(diffFontFamily: string) {
+    const normalized = normalizeDiffFontFamily(diffFontFamily)
+
+    if (this.selectedDiffFontFamily === normalized) {
+      return Promise.resolve()
+    }
+
+    this.selectedDiffFontFamily = normalized
+    if (normalized === defaultDiffFontFamily) {
+      localStorage.removeItem(diffFontFamilyKey)
+    } else {
+      localStorage.setItem(diffFontFamilyKey, normalized)
+    }
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the application-wide diff font weight
+   */
+  public _setSelectedDiffFontWeight(diffFontWeight: string) {
+    const normalized =
+      diffFontWeight.trim().length === 0
+        ? ''
+        : normalizeDiffFontWeight(diffFontWeight)
+
+    if (this.selectedDiffFontWeight === normalized) {
+      return Promise.resolve()
+    }
+
+    this.selectedDiffFontWeight = normalized
+    if (normalized.length === 0) {
+      localStorage.removeItem(diffFontWeightKey)
+    } else {
+      localStorage.setItem(diffFontWeightKey, normalized)
+    }
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the application-wide diff font ligatures
+   */
+  public _setSelectedDiffFontLigatures(diffFontLigatures: string) {
+    const normalized =
+      diffFontLigatures.trim().length === 0
+        ? ''
+        : normalizeDiffFontLigatures(diffFontLigatures)
+
+    if (this.selectedDiffFontLigatures === normalized) {
+      return Promise.resolve()
+    }
+
+    this.selectedDiffFontLigatures = normalized
+    if (normalized.length === 0) {
+      localStorage.removeItem(diffFontLigaturesKey)
+    } else {
+      localStorage.setItem(diffFontLigaturesKey, normalized)
+    }
+    this.emitUpdate()
 
     return Promise.resolve()
   }
