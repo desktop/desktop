@@ -1,6 +1,7 @@
 {
   "releases": {
     "3.5.7": [
+      "[Improved] Update Git for Windows to v2.53.0.windows.3",
       "[Added] Rename branch dialog now validates branch names against repository rulesets - #21822",
       "[Added] Allow empty commits via the commit options menu - #21771",
       "[Added] Add option to include a Signed-off-by trailer on commits for Developer Certificate of Origin workflows - #21741",
