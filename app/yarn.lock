@@ -609,10 +609,10 @@ dompurify@^3.3.2:
   optionalDependencies:
     "@types/trusted-types" "^2.0.7"
 
-dugite@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/dugite/-/dugite-3.2.1.tgz#7fdab246449f8db5aa21b0284b78b140d0dbb2ca"
-  integrity sha512-x5RD8AO/9yHdbVOpCSMTWs0rPft8W2NZksTeDbSPoIS1zfzQIVniFlIA/KYv/j5NX6UhNRLvSigKAQ++ZZg7Og==
+dugite@^3.2.2:
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/dugite/-/dugite-3.2.2.tgz#a275e287f418f937b1dd7eb7218080c2b283f9bf"
+  integrity sha512-pGTVaxea0WqauGXF5A3GmpmPOim6oTnfYM6dS6s8nHyJxf4pRTjwtFHkqLkT5de87uUPhTI+LtlmcJQ2WkqeGA==
   dependencies:
     progress "^2.0.3"
     tar-stream "^3.1.7"
