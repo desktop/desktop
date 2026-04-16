@@ -421,6 +421,10 @@ export class Preferences extends React.Component<
     this.props.dispatcher.removeAccount(account)
   }
 
+  private onSetActiveAccount = (account: Account) => {
+    this.props.dispatcher.setActiveAccount(account)
+  }
+
   private renderDisallowedCharactersError() {
     const message = this.state.disallowedCharactersMessage
     if (message != null) {
@@ -459,6 +463,7 @@ export class Preferences extends React.Component<
             accounts={this.props.accounts}
             onDotComSignIn={this.onDotComSignIn}
             onEnterpriseSignIn={this.onEnterpriseSignIn}
+            onSetActiveAccount={this.onSetActiveAccount}
             onLogout={this.onLogout}
           />
         )

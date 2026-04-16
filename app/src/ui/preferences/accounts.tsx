@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {
   Account,
+  accountEquals,
   isDotComAccount,
   isEnterpriseAccount,
 } from '../../models/account'
@@ -19,6 +20,7 @@ interface IAccountsProps {
 
   readonly onDotComSignIn: () => void
   readonly onEnterpriseSignIn: () => void
+  readonly onSetActiveAccount: (account: Account) => void
   readonly onLogout: (account: Account) => void
 }
 
@@ -30,41 +32,57 @@ enum SignInType {
 export class Accounts extends React.Component<IAccountsProps, {}> {
   public render() {
     const { accounts } = this.props
-    const dotComAccount = accounts.find(isDotComAccount)
+    const dotComAccounts = accounts.filter(isDotComAccount)
 
     return (
       <DialogContent className="accounts-tab">
         <h2>GitHub.com</h2>
-        {dotComAccount
-          ? this.renderAccount(dotComAccount, SignInType.DotCom)
-          : this.renderSignIn(SignInType.DotCom)}
+        {this.renderAccountsSection(dotComAccounts, SignInType.DotCom)}
 
         <h2>GitHub Enterprise</h2>
-        {this.renderMultipleEnterpriseAccounts()}
+        {this.renderAccountsSection(
+          accounts.filter(isEnterpriseAccount),
+          SignInType.Enterprise
+        )}
       </DialogContent>
     )
   }
 
-  private renderMultipleEnterpriseAccounts() {
-    const enterpriseAccounts = this.props.accounts.filter(isEnterpriseAccount)
+  private renderAccountsSection(
+    accounts: ReadonlyArray<Account>,
+    type: SignInType
+  ) {
+    if (accounts.length === 0) {
+      return this.renderSignIn(type)
+    }
 
     return (
       <>
-        {enterpriseAccounts.map(account => {
-          return this.renderAccount(account, SignInType.Enterprise)
-        })}
-        {enterpriseAccounts.length === 0 ? (
-          this.renderSignIn(SignInType.Enterprise)
-        ) : (
-          <Button onClick={this.props.onEnterpriseSignIn}>
-            Add GitHub Enterprise account
-          </Button>
+        {accounts.map(account =>
+          this.renderAccount(
+            account,
+            type,
+            this.isActiveAccount(account, accounts)
+          )
         )}
+        <Button onClick={this.getAddAccountHandler(type)}>
+          {type === SignInType.DotCom
+            ? 'Add GitHub.com account'
+            : 'Add GitHub Enterprise account'}
+        </Button>
       </>
     )
   }
 
-  private renderAccount(account: Account, type: SignInType) {
+  private isActiveAccount(
+    account: Account,
+    accounts: ReadonlyArray<Account>
+  ): boolean {
+    const activeAccount = accounts.find(a => a.endpoint === account.endpoint)
+    return activeAccount !== undefined && accountEquals(activeAccount, account)
+  }
+
+  private renderAccount(account: Account, type: SignInType, isActive: boolean) {
     const avatarUser: IAvatarUser = {
       name: account.name,
       email: lookupPreferredEmail(account),
@@ -75,7 +93,9 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
     // The DotCom account is shown first, so its sign in/out button should be
     // focused initially when the dialog is opened.
     const className =
-      type === SignInType.DotCom ? DialogPreferredFocusClassName : undefined
+      type === SignInType.DotCom && isActive
+        ? DialogPreferredFocusClassName
+        : undefined
 
     return (
       <Row className="account-info">
@@ -90,18 +110,29 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
                     : `@${account.login} (${account.name})`}
                 </div>
                 <div className="endpoint">{getHTMLURL(account.endpoint)}</div>
+                {isActive ? (
+                  <div className="account-status">Active account</div>
+                ) : null}
               </>
             ) : (
               <>
                 <div className="name">{account.name}</div>
                 <div className="login">@{account.login}</div>
+                {isActive ? (
+                  <div className="account-status">Active account</div>
+                ) : null}
               </>
             )}
           </div>
         </div>
-        <Button onClick={this.logout(account)} className={className}>
-          {__DARWIN__ ? 'Sign Out' : 'Sign out'}
-        </Button>
+        <div className="account-actions">
+          {!isActive ? (
+            <Button onClick={this.activate(account)}>Set Active</Button>
+          ) : null}
+          <Button onClick={this.logout(account)} className={className}>
+            {__DARWIN__ ? 'Sign Out' : 'Sign out'}
+          </Button>
+        </div>
       </Row>
     )
   }
@@ -112,6 +143,12 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
 
   private onEnterpriseSignIn = () => {
     this.props.onEnterpriseSignIn()
+  }
+
+  private getAddAccountHandler(type: SignInType) {
+    return type === SignInType.DotCom
+      ? this.onDotComSignIn
+      : this.onEnterpriseSignIn
   }
 
   private renderSignIn(type: SignInType) {
@@ -152,6 +189,12 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
   private logout = (account: Account) => {
     return () => {
       this.props.onLogout(account)
+    }
+  }
+
+  private activate = (account: Account) => {
+    return () => {
+      this.props.onSetActiveAccount(account)
     }
   }
 }

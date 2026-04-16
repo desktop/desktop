@@ -1,8 +1,18 @@
 import { describe, it, beforeEach } from 'node:test'
 import assert from 'node:assert'
 import { Account } from '../../src/models/account'
+import { getDotComAPIEndpoint } from '../../src/lib/api'
 import { AccountsStore } from '../../src/lib/stores'
 import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
+
+function createAccount(
+  login: string,
+  endpoint: string,
+  id: number,
+  token: string = 'deadbeef'
+) {
+  return new Account(login, endpoint, token, [], '', id, login, 'free')
+}
 
 describe('AccountsStore', () => {
   let accountsStore: AccountsStore
@@ -17,12 +27,66 @@ describe('AccountsStore', () => {
   describe('adding a new user', () => {
     it('contains the added user', async () => {
       const newAccountLogin = 'joan'
-      await accountsStore.addAccount(
-        new Account(newAccountLogin, '', 'deadbeef', [], '', 1, '', 'free')
-      )
+      await accountsStore.addAccount(createAccount(newAccountLogin, '', 1))
 
       const users = await accountsStore.getAll()
       assert.equal(users[0].login, newAccountLogin)
+    })
+
+    it('keeps multiple accounts on the same endpoint and promotes the newest one', async () => {
+      const endpoint = getDotComAPIEndpoint()
+      await accountsStore.addAccount(createAccount('mona', endpoint, 1))
+      await accountsStore.addAccount(createAccount('hubot', endpoint, 2))
+
+      const users = await accountsStore.getAll()
+      assert.deepEqual(
+        users.map(account => account.login),
+        ['hubot', 'mona']
+      )
+    })
+
+    it('replaces the same account identity instead of duplicating it', async () => {
+      const endpoint = getDotComAPIEndpoint()
+      await accountsStore.addAccount(createAccount('mona', endpoint, 1, 'old'))
+      await accountsStore.addAccount(createAccount('mona', endpoint, 1, 'new'))
+
+      const users = await accountsStore.getAll()
+      assert.equal(users.length, 1)
+      assert.equal(users[0].token, 'new')
+    })
+  })
+
+  describe('active accounts', () => {
+    it('can promote an existing same-endpoint account to active', async () => {
+      const endpoint = getDotComAPIEndpoint()
+      const firstAccount = createAccount('mona', endpoint, 1)
+      const secondAccount = createAccount('hubot', endpoint, 2)
+
+      await accountsStore.addAccount(firstAccount)
+      await accountsStore.addAccount(secondAccount)
+      await accountsStore.setActiveAccount(firstAccount)
+
+      const users = await accountsStore.getAll()
+      assert.deepEqual(
+        users.map(account => account.login),
+        ['mona', 'hubot']
+      )
+    })
+
+    it('promotes the next account when the active one is removed', async () => {
+      const endpoint = getDotComAPIEndpoint()
+      const firstAccount = createAccount('mona', endpoint, 1)
+      const secondAccount = createAccount('hubot', endpoint, 2)
+
+      await accountsStore.addAccount(firstAccount)
+      await accountsStore.addAccount(secondAccount)
+      await accountsStore.removeAccount(secondAccount)
+
+      const users = await accountsStore.getAll()
+      assert.deepEqual(
+        users.map(account => account.login),
+        ['mona']
+      )
     })
   })
 

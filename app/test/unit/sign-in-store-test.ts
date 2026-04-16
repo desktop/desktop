@@ -74,7 +74,7 @@ describe('SignInStore', () => {
       }
     })
 
-    it('transitions to ExistingAccountWarning when a dotcom account exists', async () => {
+    it('transitions to Authentication when a dotcom account exists', async () => {
       const existingAccount = createDotComAccount()
       accountsStore = createAccountsStore()
       signInStore = new SignInStore(accountsStore)
@@ -84,7 +84,7 @@ describe('SignInStore', () => {
       signInStore.beginDotComSignIn()
       const state = signInStore.getState()
       assert.notEqual(state, null)
-      assert.equal(state?.kind, SignInStep.ExistingAccountWarning)
+      assert.equal(state?.kind, SignInStep.Authentication)
     })
 
     it('calls resultCallback when provided', async () => {
@@ -171,7 +171,7 @@ describe('SignInStore', () => {
       }
     })
 
-    it('shows ExistingAccountWarning if enterprise account exists', async () => {
+    it('transitions to Authentication if an enterprise account exists', async () => {
       const endpoint = 'https://github.example.com/api/v3'
       const existingAccount = createEnterpriseAccount('user', endpoint)
       accountsStore = createAccountsStore()
@@ -183,7 +183,7 @@ describe('SignInStore', () => {
       await signInStore.setEndpoint('https://github.example.com')
 
       const state = signInStore.getState()
-      assert.equal(state?.kind, SignInStep.ExistingAccountWarning)
+      assert.equal(state?.kind, SignInStep.Authentication)
     })
   })
 

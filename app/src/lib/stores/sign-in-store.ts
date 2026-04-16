@@ -1,5 +1,5 @@
 import { Disposable } from 'event-kit'
-import { Account, isDotComAccount } from '../../models/account'
+import { Account } from '../../models/account'
 import { fatalError } from '../fatal-error'
 import {
   validateURL,
@@ -27,7 +27,6 @@ import { AccountsStore } from './accounts-store'
  */
 export enum SignInStep {
   EndpointEntry = 'EndpointEntry',
-  ExistingAccountWarning = 'ExistingAccountWarning',
   Authentication = 'Authentication',
   TwoFactorAuthentication = 'TwoFactorAuthentication',
   Success = 'Success',
@@ -39,7 +38,6 @@ export enum SignInStep {
  */
 export type SignInState =
   | IEndpointEntryState
-  | IExistingAccountWarning
   | IAuthenticationState
   | ISuccessState
 
@@ -67,26 +65,6 @@ export interface ISignInState {
    * sign in process is ongoing.
    */
   readonly loading: boolean
-
-  readonly resultCallback: (result: SignInResult) => void
-}
-
-/**
- * State interface representing the endpoint entry step.
- * This is the initial step in the Enterprise sign in
- * flow and is not present when signing in to GitHub.com
- */
-export interface IExistingAccountWarning extends ISignInState {
-  readonly kind: SignInStep.ExistingAccountWarning
-  /**
-   * The URL to the host which we're currently authenticating
-   * against. This will be either https://api.github.com when
-   * signing in against GitHub.com or a user-specified
-   * URL when signing in against a GitHub Enterprise
-   * instance.
-   */
-  readonly existingAccount: Account
-  readonly endpoint: string
 
   readonly resultCallback: (result: SignInResult) => void
 }
@@ -156,17 +134,8 @@ export type SignInResult =
 export class SignInStore extends TypedBaseStore<SignInState | null> {
   private state: SignInState | null = null
 
-  private accounts: ReadonlyArray<Account> = []
-
-  public constructor(private readonly accountStore: AccountsStore) {
+  public constructor(_accountStore: AccountsStore) {
     super()
-
-    this.accountStore.getAll().then(accounts => {
-      this.accounts = accounts
-    })
-    this.accountStore.onDidUpdate(accounts => {
-      this.accounts = accounts
-    })
   }
 
   private emitAuthenticate(account: Account) {
@@ -230,26 +199,13 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       this.reset()
     }
 
-    const existingAccount = this.accounts.find(isDotComAccount)
-
-    if (existingAccount) {
-      this.setState({
-        kind: SignInStep.ExistingAccountWarning,
-        endpoint,
-        existingAccount,
-        error: null,
-        loading: false,
-        resultCallback: resultCallback ?? noop,
-      })
-    } else {
-      this.setState({
-        kind: SignInStep.Authentication,
-        endpoint,
-        error: null,
-        loading: false,
-        resultCallback: resultCallback ?? noop,
-      })
-    }
+    this.setState({
+      kind: SignInStep.Authentication,
+      endpoint,
+      error: null,
+      loading: false,
+      resultCallback: resultCallback ?? noop,
+    })
   }
 
   /**
@@ -260,10 +216,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   public async authenticateWithBrowser() {
     const currentState = this.state
 
-    if (
-      currentState?.kind !== SignInStep.Authentication &&
-      currentState?.kind !== SignInStep.ExistingAccountWarning
-    ) {
+    if (currentState?.kind !== SignInStep.Authentication) {
       const stepText = currentState ? currentState.kind : 'null'
       return fatalError(
         `Sign in step '${stepText}' not compatible with browser authentication`
@@ -271,15 +224,6 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
     }
 
     this.setState({ ...currentState, loading: true })
-
-    if (currentState.kind === SignInStep.ExistingAccountWarning) {
-      const { existingAccount } = currentState
-      // Try to avoid emitting an error out of AccountsStore if the account
-      // is already gone.
-      if (this.accounts.find(x => x.endpoint === existingAccount.endpoint)) {
-        await this.accountStore.removeAccount(existingAccount)
-      }
-    }
 
     const csrfToken = crypto.randomUUID()
 
@@ -394,10 +338,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   public async setEndpoint(url: string): Promise<void> {
     const currentState = this.state
 
-    if (
-      currentState?.kind !== SignInStep.EndpointEntry &&
-      currentState?.kind !== SignInStep.ExistingAccountWarning
-    ) {
+    if (currentState?.kind !== SignInStep.EndpointEntry) {
       const stepText = currentState ? currentState.kind : 'null'
       return fatalError(
         `Sign in step '${stepText}' not compatible with endpoint entry`
@@ -436,25 +377,12 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
     const endpoint = getEnterpriseAPIURL(validUrl)
 
-    const existingAccount = this.accounts.find(x => x.endpoint === endpoint)
-
-    if (existingAccount) {
-      this.setState({
-        kind: SignInStep.ExistingAccountWarning,
-        endpoint,
-        existingAccount,
-        error: null,
-        loading: false,
-        resultCallback: currentState.resultCallback,
-      })
-    } else {
-      this.setState({
-        kind: SignInStep.Authentication,
-        endpoint,
-        error: null,
-        loading: false,
-        resultCallback: currentState.resultCallback,
-      })
-    }
+    this.setState({
+      kind: SignInStep.Authentication,
+      endpoint,
+      error: null,
+      loading: false,
+      resultCallback: currentState.resultCallback,
+    })
   }
 }

@@ -2,11 +2,9 @@ import assert from 'node:assert'
 import { describe, it } from 'node:test'
 import * as React from 'react'
 
-import { Account } from '../../../src/models/account'
 import type {
   IAuthenticationState,
   IEndpointEntryState,
-  IExistingAccountWarning,
 } from '../../../src/lib/stores/sign-in-store'
 import { SignInStep } from '../../../src/lib/stores/sign-in-store'
 import type { Dispatcher } from '../../../src/ui/dispatcher'
@@ -53,25 +51,6 @@ function createAuthenticationState(endpoint: string): IAuthenticationState {
   }
 }
 
-function createExistingAccountWarningState(): IExistingAccountWarning {
-  return {
-    kind: SignInStep.ExistingAccountWarning,
-    endpoint: 'https://api.github.com',
-    existingAccount: new Account(
-      'mona',
-      'https://api.github.com',
-      'token',
-      [],
-      '',
-      1,
-      'Mona Lisa'
-    ),
-    error: null,
-    loading: false,
-    resultCallback: noopResultCallback,
-  }
-}
-
 describe('welcome and sign-in wrappers', () => {
   it('submits enterprise endpoints through the shared sign-in wrapper', () => {
     const dispatcher = new TestDispatcher()
@@ -99,20 +78,22 @@ describe('welcome and sign-in wrappers', () => {
     assert.ok(screen.getByRole('button', { name: 'Cancel' }))
   })
 
-  it('renders warning and browser-authentication states in the shared sign-in wrapper', () => {
+  it('renders the browser-authentication state in the shared sign-in wrapper', () => {
     const dispatcher = new TestDispatcher()
     const view = render(
       <SignIn
-        signInState={createExistingAccountWarningState()}
+        signInState={createAuthenticationState('https://api.github.com')}
         dispatcher={toDispatcher(dispatcher)}
       >
         <button type="button">Cancel</button>
       </SignIn>
     )
 
-    assert.ok(screen.getByText("You're already signed in to", { exact: false }))
-    assert.ok(screen.getByText('github.com', { exact: false }))
-    assert.ok(screen.getByText('mona'))
+    assert.ok(
+      screen.getByText('Your browser will redirect you back', {
+        exact: false,
+      })
+    )
 
     const browserLink = screen.getByRole('link', {
       name: 'Sign in using your browser',

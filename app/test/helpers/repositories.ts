@@ -2,10 +2,33 @@ import { createTempDirectory } from './temp'
 import { Repository } from '../../src/models/repository'
 import { exec } from 'dugite'
 import { makeCommit, switchTo } from './repository-scaffolding'
-import { glob, writeFile, cp, mkdir, rename, rm } from 'fs/promises'
+import { readdir, writeFile, cp, mkdir, rename, rm } from 'fs/promises'
 import { DefaultGitDescription, git } from '../../src/lib/git'
 import { TestContext } from 'node:test'
 import { dirname, join } from 'path'
+
+async function findGitPlaceholders(
+  root: string,
+  currentDirectory: string = ''
+): Promise<ReadonlyArray<string>> {
+  const absoluteDirectory = join(root, currentDirectory)
+  const entries = await readdir(absoluteDirectory, { withFileTypes: true })
+  const placeholders = new Array<string>()
+
+  for (const entry of entries) {
+    const relativePath = join(currentDirectory, entry.name)
+
+    if (entry.name === '_git') {
+      placeholders.push(relativePath)
+    }
+
+    if (entry.isDirectory()) {
+      placeholders.push(...(await findGitPlaceholders(root, relativePath)))
+    }
+  }
+
+  return placeholders.sort((x, y) => y.length - x.length)
+}
 
 /**
  * Set up the named fixture repository to be used in a test.
@@ -20,7 +43,7 @@ export async function setupFixtureRepository(
   const testRepoPath = await createTempDirectory(t)
   await cp(fixturePath, testRepoPath, { recursive: true })
 
-  for await (const e of glob('**/_git', { cwd: testRepoPath })) {
+  for (const e of await findGitPlaceholders(testRepoPath)) {
     await rename(join(testRepoPath, e), join(testRepoPath, dirname(e), '.git'))
   }
 

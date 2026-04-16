@@ -3,6 +3,7 @@ import { PublishRepository } from './publish-repository'
 import { Dispatcher } from '../dispatcher'
 import {
   Account,
+  accountEquals,
   isDotComAccount,
   isEnterpriseAccount,
 } from '../../models/account'
@@ -260,11 +261,11 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   private getAccountForTab(tab: PublishTab): Account | null {
     const tabState = this.getTabState(tab)
     const tabAccounts = this.getAccountsForTab(tab, this.props.accounts)
+    const storedSelectedAccount =
+      tabState.kind === 'enterprise' ? tabState.selectedAccount : null
     const selectedAccount =
-      (tabState.kind === 'enterprise'
-        ? tabAccounts.find(
-            a => a.endpoint === tabState.selectedAccount?.endpoint
-          )
+      (storedSelectedAccount !== null
+        ? tabAccounts.find(a => accountEquals(a, storedSelectedAccount))
         : undefined) ?? tabAccounts.at(0)
 
     return selectedAccount ?? null

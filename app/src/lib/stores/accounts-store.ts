@@ -1,25 +1,55 @@
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
-import { Account, isDotComAccount } from '../../models/account'
+import { Account, accountEquals, isDotComAccount } from '../../models/account'
 import { fetchUser, EmailVisibility, getEnterpriseAPIURL } from '../api'
 import { fatalError } from '../fatal-error'
 import { TypedBaseStore } from './base-store'
 import { isGHE } from '../endpoint-capabilities'
-import { compare, compareDescending } from '../compare'
 
-// Ensure that GitHub.com accounts appear first followed by Enterprise
-// accounts, sorted by the order in which they were added.
-const sortAccounts = (accounts: ReadonlyArray<Account>) =>
-  accounts
-    .map((account, ix) => [account, ix] as const)
-    .sort(
-      ([xAccount, xIx], [yAccount, yIx]) =>
-        compareDescending(
-          isDotComAccount(xAccount),
-          isDotComAccount(yAccount)
-        ) || compare(xIx, yIx)
+const partitionDotComAccounts = (accounts: ReadonlyArray<Account>) => {
+  const dotComAccounts = accounts.filter(isDotComAccount)
+  const enterpriseAccounts = accounts.filter(
+    account => !isDotComAccount(account)
+  )
+
+  return [...dotComAccounts, ...enterpriseAccounts]
+}
+
+const insertAccountAtActivePosition = (
+  accounts: ReadonlyArray<Account>,
+  account: Account
+) => {
+  const withoutAccount = accounts.filter(
+    existing => !accountEquals(existing, account)
+  )
+  const existingEndpointIndex = withoutAccount.findIndex(
+    existing => existing.endpoint === account.endpoint
+  )
+
+  if (existingEndpointIndex !== -1) {
+    return [
+      ...withoutAccount.slice(0, existingEndpointIndex),
+      account,
+      ...withoutAccount.slice(existingEndpointIndex),
+    ]
+  }
+
+  if (isDotComAccount(account)) {
+    const firstEnterpriseIndex = withoutAccount.findIndex(
+      existing => !isDotComAccount(existing)
     )
-    .map(([account]) => account)
+
+    if (firstEnterpriseIndex !== -1) {
+      return [
+        ...withoutAccount.slice(0, firstEnterpriseIndex),
+        account,
+        ...withoutAccount.slice(firstEnterpriseIndex),
+      ]
+    }
+  }
+
+  return [...withoutAccount, account]
+}
 
 /** The data-only interface for storage. */
 interface IEmail {
@@ -113,16 +143,29 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return null
     }
 
-    const accountsByEndpoint = this.accounts.reduce(
-      (map, x) => map.set(x.endpoint, x),
-      new Map<string, Account>()
-    )
-    accountsByEndpoint.set(account.endpoint, account)
-
-    this.accounts = sortAccounts([...accountsByEndpoint.values()])
+    this.accounts = insertAccountAtActivePosition(this.accounts, account)
 
     this.save()
     return account
+  }
+
+  /**
+   * Move the given account to the active position for its endpoint.
+   */
+  public async setActiveAccount(account: Account): Promise<Account | null> {
+    await this.loadingPromise
+
+    const existingAccount = this.accounts.find(a => accountEquals(a, account))
+    if (existingAccount === undefined) {
+      return null
+    }
+
+    this.accounts = insertAccountAtActivePosition(
+      this.accounts,
+      existingAccount
+    )
+    this.save()
+    return existingAccount
   }
 
   /** Refresh all accounts by fetching their latest info from the API. */
@@ -239,7 +282,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       }
     }
 
-    this.accounts = sortAccounts(accountsWithTokens)
+    this.accounts = partitionDotComAccounts(accountsWithTokens)
     // If any account was migrated, make sure to persist the new value
     if (migratedAccounts !== null) {
       this.save() // Save already emits an update

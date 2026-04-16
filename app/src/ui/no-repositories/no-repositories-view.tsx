@@ -141,7 +141,7 @@ export class NoRepositoriesView extends React.Component<
 
       if (currentlySelectedAccount !== newSelectedAccount) {
         this.setState({ selectedAccount: newSelectedAccount })
-        this.ensureRepositoriesForAccount(this.state.selectedAccount)
+        this.ensureRepositoriesForAccount(newSelectedAccount)
       }
     }
   }

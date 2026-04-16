@@ -5,7 +5,6 @@ import {
   SignInStep,
   IEndpointEntryState,
   IAuthenticationState,
-  IExistingAccountWarning,
 } from '../../lib/stores'
 import { assertNever } from '../../lib/fatal-error'
 import { Row } from '../lib/row'
@@ -14,7 +13,6 @@ import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Ref } from '../lib/ref'
-import { getHTMLURL } from '../../lib/api'
 
 interface ISignInProps {
   readonly dispatcher: Dispatcher
@@ -89,11 +87,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       case SignInStep.EndpointEntry:
         this.props.dispatcher.setSignInEndpoint(this.state.endpoint)
         break
-      case SignInStep.ExistingAccountWarning:
-        this.props.dispatcher
-          .removeAccount(state.existingAccount)
-          .then(() => this.props.dispatcher.setSignInEndpoint(state.endpoint))
-        break
       case SignInStep.Authentication:
         this.props.dispatcher.requestBrowserAuthentication()
         break
@@ -129,9 +122,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         disableSubmit = this.state.endpoint.length === 0
         primaryButtonText = 'Continue'
         break
-      case SignInStep.ExistingAccountWarning:
-        primaryButtonText = continueWithBrowserLabel
-        break
       case SignInStep.Authentication:
         primaryButtonText = continueWithBrowserLabel
         break
@@ -151,21 +141,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     )
   }
 
-  private renderExistingAccountWarningStep(state: IExistingAccountWarning) {
-    return (
-      <DialogContent>
-        <p className="existing-account-warning">
-          You're already signed in to{' '}
-          <Ref>{new URL(getHTMLURL(state.endpoint)).host}</Ref> with the account{' '}
-          <Ref>{state.existingAccount.login}</Ref>. If you continue, you will
-          first be signed out.
-        </p>
-        {browserSignInInfoContent}
-      </DialogContent>
-    )
-  }
-
-  private renderEndpointEntryStep(state: IEndpointEntryState) {
+  private renderEndpointEntryStep(_state: IEndpointEntryState) {
     return (
       <DialogContent>
         <Row>
@@ -180,7 +156,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     )
   }
 
-  private renderAuthenticationStep(state: IAuthenticationState) {
+  private renderAuthenticationStep(_state: IAuthenticationState) {
     const credentialHelperInfo =
       this.props.isCredentialHelperSignIn && this.props.credentialHelperUrl ? (
         <p>
@@ -209,8 +185,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     switch (state.kind) {
       case SignInStep.EndpointEntry:
         return this.renderEndpointEntryStep(state)
-      case SignInStep.ExistingAccountWarning:
-        return this.renderExistingAccountWarningStep(state)
       case SignInStep.Authentication:
         return this.renderAuthenticationStep(state)
       case SignInStep.Success:

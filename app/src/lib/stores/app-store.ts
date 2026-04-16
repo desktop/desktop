@@ -428,6 +428,24 @@ const hideWhitespaceInChangesDiffDefault = false
 const hideWhitespaceInChangesDiffKey = 'hide-whitespace-in-changes-diff'
 const hideWhitespaceInHistoryDiffDefault = false
 const hideWhitespaceInHistoryDiffKey = 'hide-whitespace-in-diff'
+
+const getActiveEndpointTokens = (
+  accounts: ReadonlyArray<Account>
+): ReadonlyArray<EndpointToken> => {
+  const seenEndpoints = new Set<string>()
+  const endpointTokens = new Array<EndpointToken>()
+
+  for (const { endpoint, token } of accounts) {
+    if (seenEndpoints.has(endpoint)) {
+      continue
+    }
+
+    seenEndpoints.add(endpoint)
+    endpointTokens.push({ endpoint, token })
+  }
+
+  return endpointTokens
+}
 const hideWhitespaceInPullRequestDiffDefault = false
 const hideWhitespaceInPullRequestDiffKey =
   'hide-whitespace-in-pull-request-diff'
@@ -922,9 +940,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accountsStore.onDidUpdate(accounts => {
       this.accounts = accounts
-      const endpointTokens = accounts.map<EndpointToken>(
-        ({ endpoint, token }) => ({ endpoint, token })
-      )
+      const endpointTokens = getActiveEndpointTokens(accounts)
 
       updateAccounts(endpointTokens)
 
@@ -5114,9 +5130,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private async fastForwardBranches(repository: Repository) {
     try {
-      const eligibleBranches = await getBranchesDifferingFromUpstream(
-        repository
-      )
+      const eligibleBranches =
+        await getBranchesDifferingFromUpstream(repository)
 
       await fastForwardBranches(repository, eligibleBranches)
     } catch (e) {
@@ -6456,6 +6471,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await deleteToken(account)
   }
 
+  public async _setActiveAccount(account: Account) {
+    log.info(
+      `[AppStore] setting active account ${account.login} (${account.name})`
+    )
+
+    const activeAccount = await this.accountsStore.setActiveAccount(account)
+
+    if (activeAccount !== null) {
+      this.apiRepositoriesStore.loadRepositories(activeAccount)
+    }
+  }
+
   private async _addAccount(account: Account): Promise<void> {
     log.info(
       `[AppStore] adding account ${account.login} (${account.name}) to store`
@@ -6560,9 +6587,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
           continue
         }
 
-        const addedRepo = await this.repositoriesStore.addRepository(
-          validatedPath
-        )
+        const addedRepo =
+          await this.repositoriesStore.addRepository(validatedPath)
 
         // initialize the remotes for this new repository to ensure it can fetch
         // it's GitHub-related details using the GitHub API (if applicable)
@@ -6687,9 +6713,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // association is out of date. So try again before we bail on providing an
     // authenticating user.
     if (!account) {
-      updatedRepository = await this.repositoryWithRefreshedGitHubRepository(
-        repository
-      )
+      updatedRepository =
+        await this.repositoryWithRefreshedGitHubRepository(repository)
     }
 
     return fn(updatedRepository)

@@ -1109,6 +1109,11 @@ export class Dispatcher {
     return this.appStore._removeAccount(account)
   }
 
+  /** Make the given account active for its endpoint. */
+  public setActiveAccount(account: Account): Promise<void> {
+    return this.appStore._setActiveAccount(account)
+  }
+
   /**
    * Ask the dispatcher to apply a transformation function to the current
    * state of the application menu.

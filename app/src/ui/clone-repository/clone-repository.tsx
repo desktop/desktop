@@ -4,6 +4,7 @@ import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import {
   Account,
+  accountEquals,
   isDotComAccount,
   isEnterpriseAccount,
 } from '../../models/account'
@@ -293,8 +294,8 @@ export class CloneRepository extends React.Component<
     return this.props.selectedTab === CloneRepositoryTab.DotCom
       ? 'dotcom-tab'
       : this.props.selectedTab === CloneRepositoryTab.Enterprise
-      ? 'enterprise-tab'
-      : 'url-tab'
+        ? 'enterprise-tab'
+        : 'url-tab'
   }
 
   private checkIfCloningDisabled = () => {
@@ -406,11 +407,10 @@ export class CloneRepository extends React.Component<
   private getAccountForTab(tab: CloneRepositoryTab): Account | null {
     const tabState = this.getTabState(tab)
     const tabAccounts = this.getAccountsForTab(tab, this.props.accounts)
+    const storedSelectedAccount = tabState.selectedAccount
     const selectedAccount =
-      (tabState.selectedAccount
-        ? tabAccounts.find(
-            a => a.endpoint === tabState.selectedAccount?.endpoint
-          )
+      (storedSelectedAccount
+        ? tabAccounts.find(a => accountEquals(a, storedSelectedAccount))
         : undefined) ?? tabAccounts.at(0)
 
     return selectedAccount ?? null
