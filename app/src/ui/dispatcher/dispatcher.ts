@@ -728,6 +728,14 @@ export class Dispatcher {
     return this.appStore._push(repository)
   }
 
+  /** Push the selected commit to the current branch. */
+  public pushCommit(
+    repository: Repository,
+    commit: CommitOneLine
+  ): Promise<void> {
+    return this.appStore._pushCommit(repository, commit)
+  }
+
   private pushWithOptions(repository: Repository, options?: PushOptions) {
     if (options !== undefined && options.forceWithLease) {
       this.dropCurrentBranchFromForcePushList(repository)
@@ -2141,6 +2149,13 @@ export class Dispatcher {
   public async performRetry(retryAction: RetryAction): Promise<void> {
     switch (retryAction.type) {
       case RetryActionType.Push:
+        if (retryAction.pushedCommit !== undefined) {
+          return this.pushCommit(
+            retryAction.repository,
+            retryAction.pushedCommit
+          )
+        }
+
         return this.push(retryAction.repository)
 
       case RetryActionType.Pull:
@@ -2465,8 +2480,47 @@ export class Dispatcher {
     }
   }
 
+  public async confirmOrForcePushCommit(
+    repository: Repository,
+    commit: CommitOneLine
+  ) {
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
+
+    const { branchesState } = this.repositoryStateManager.get(repository)
+    const { tip } = branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      log.warn(`Could not find a branch to perform force push`)
+      return
+    }
+
+    const upstreamBranch = tip.branch.upstream ?? tip.branch.name
+
+    if (askForConfirmationOnForcePush) {
+      this.showPopup({
+        type: PopupType.ConfirmForcePushCommit,
+        repository,
+        upstreamBranch,
+        commit,
+      })
+    } else {
+      await this.performForcePushCommit(repository, commit)
+    }
+  }
+
   public async performForcePush(repository: Repository) {
     await this.pushWithOptions(repository, {
+      forceWithLease: true,
+    })
+
+    await this.appStore._loadStatus(repository)
+  }
+
+  public async performForcePushCommit(
+    repository: Repository,
+    commit: CommitOneLine
+  ) {
+    await this.appStore._pushCommit(repository, commit, {
       forceWithLease: true,
     })
 

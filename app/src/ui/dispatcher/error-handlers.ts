@@ -216,6 +216,39 @@ export async function pushNeedsPullHandler(
   return null
 }
 
+export async function pushCommitNeedsForcePushHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const pushedCommit = e.metadata.pushedCommit
+  if (pushedCommit === undefined) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (dugiteError !== DugiteError.PushNotFastForward) {
+    return error
+  }
+
+  const repository = e.metadata.repository
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  await dispatcher.confirmOrForcePushCommit(repository, pushedCommit)
+  return null
+}
+
 /**
  * Handler for detecting when a merge conflict is reported to direct the user
  * to a different dialog than the generic Git error dialog.

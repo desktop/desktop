@@ -21,6 +21,11 @@ export type PushOptions = {
   readonly noVerify?: boolean
 } & HookCallbackOptions
 
+export type PushRefspecOptions = {
+  readonly forceWithLease?: boolean
+  readonly noVerify?: boolean
+} & HookCallbackOptions
+
 /**
  * Push from the remote to the branch, optionally setting the upstream.
  *
@@ -54,31 +59,52 @@ export async function push(
   options?: PushOptions,
   progressCallback?: (progress: IPushProgress) => void
 ): Promise<void> {
-  const args = [
-    'push',
-    remote.name,
-    remoteBranch ? `${localBranch}:${remoteBranch}` : localBranch,
-  ]
+  const refspec = remoteBranch ? `${localBranch}:${remoteBranch}` : localBranch
 
-  if (tagsToPush !== null) {
-    args.push(...tagsToPush)
+  return pushRefspecInternal(
+    repository,
+    remote,
+    refspec,
+    {
+      ...options,
+      setUpstream: remoteBranch === null,
+    },
+    progressCallback,
+    localBranch,
+    tagsToPush
+  )
+}
+
+async function pushRefspecInternal(
+  repository: Repository,
+  remote: IRemote,
+  refspec: string,
+  options: PushRefspecOptions & { readonly setUpstream?: boolean },
+  progressCallback: ((progress: IPushProgress) => void) | undefined,
+  progressBranchName: string,
+  additionalArgs?: ReadonlyArray<string> | null
+): Promise<void> {
+  const args = ['push', remote.name, refspec]
+
+  if (additionalArgs !== null && additionalArgs !== undefined) {
+    args.push(...additionalArgs)
   }
-  if (!remoteBranch) {
+  if (options.setUpstream) {
     args.push('--set-upstream')
-  } else if (options?.forceWithLease) {
+  } else if (options.forceWithLease) {
     args.push('--force-with-lease')
   }
 
-  if (options?.noVerify) {
+  if (options.noVerify) {
     args.push('--no-verify')
   }
 
   let opts: IGitStringExecutionOptions = {
     env: await envForRemoteOperation(remote.url),
     interceptHooks: ['pre-push'],
-    onHookProgress: options?.onHookProgress,
-    onHookFailure: options?.onHookFailure,
-    onTerminalOutputAvailable: options?.onTerminalOutputAvailable,
+    onHookProgress: options.onHookProgress,
+    onHookFailure: options.onHookFailure,
+    onTerminalOutputAvailable: options.onTerminalOutputAvailable,
   }
 
   if (progressCallback) {
@@ -100,7 +126,7 @@ export async function push(
           description,
           value,
           remote: remote.name,
-          branch: localBranch,
+          branch: progressBranchName,
         })
       }
     )
@@ -111,9 +137,28 @@ export async function push(
       title,
       value: 0,
       remote: remote.name,
-      branch: localBranch,
+      branch: progressBranchName,
     })
   }
 
   await git(args, repository.path, 'push', opts)
+}
+
+export async function pushRefspec(
+  repository: Repository,
+  remote: IRemote,
+  refspec: string,
+  options?: PushRefspecOptions,
+  progressCallback?: (progress: IPushProgress) => void
+): Promise<void> {
+  const branch = refspec.split(':', 2).at(-1) ?? refspec
+
+  return pushRefspecInternal(
+    repository,
+    remote,
+    refspec,
+    options ?? {},
+    progressCallback,
+    branch
+  )
 }

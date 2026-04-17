@@ -103,6 +103,7 @@ import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { PushNeedsPullWarning } from './push-needs-pull'
+import { ConfirmForcePushCommit } from './history/confirm-force-push-commit'
 import { getCurrentBranchForcePushState } from '../lib/rebase'
 import { Banner, BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
@@ -1927,6 +1928,21 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="confirm-force-push"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
+            upstreamBranch={popup.upstreamBranch}
+            askForConfirmationOnForcePush={askForConfirmationOnForcePush}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.ConfirmForcePushCommit: {
+        const { askForConfirmationOnForcePush } = this.state
+
+        return (
+          <ConfirmForcePushCommit
+            key="confirm-force-push-commit"
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            commit={popup.commit}
             upstreamBranch={popup.upstreamBranch}
             askForConfirmationOnForcePush={askForConfirmationOnForcePush}
             onDismissed={onPopupDismissedFn}

@@ -58,6 +58,7 @@ interface ICompareSidebarProps {
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
   readonly aheadBehindStore: AheadBehindStore
+  readonly isPushPullFetchInProgress: boolean
   readonly isMultiCommitOperationInProgress?: boolean
   readonly shasToHighlight: ReadonlyArray<string>
   readonly accounts: ReadonlyArray<Account>
@@ -268,6 +269,8 @@ export class CompareSidebar extends React.Component<
         onCheckoutCommit={this.onCheckoutCommit}
         onCreateTag={this.onCreateTag}
         onDeleteTag={this.onDeleteTag}
+        onPushCommit={this.onPushCommit}
+        canPushCommit={this.canPushCommit}
         onCherryPick={this.onCherryPick}
         onDropCommitInsertion={this.onDropCommitInsertion}
         onKeyboardReorder={this.onKeyboardReorder}
@@ -646,6 +649,23 @@ export class CompareSidebar extends React.Component<
 
   private onDeleteTag = (tagName: string) => {
     this.props.dispatcher.showDeleteTagDialog(this.props.repository, tagName)
+  }
+
+  private onPushCommit = (commit: CommitOneLine) => {
+    this.props.dispatcher.pushCommit(this.props.repository, commit)
+  }
+
+  private canPushCommit = (commit: CommitOneLine) => {
+    const { currentBranch, compareState } = this.props
+
+    return (
+      compareState.formState.kind === HistoryTabMode.History &&
+      currentBranch !== null &&
+      currentBranch.upstreamRemoteName !== null &&
+      this.props.isPushPullFetchInProgress === false &&
+      this.props.isMultiCommitOperationInProgress === false &&
+      this.props.localCommitSHAs.includes(commit.sha)
+    )
   }
 
   private onCherryPick = (commits: ReadonlyArray<CommitOneLine>) => {

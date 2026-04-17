@@ -22,7 +22,11 @@ export enum RetryActionType {
 
 /** The retriable actions and their associated data. */
 export type RetryAction =
-  | { type: RetryActionType.Push; repository: Repository }
+  | {
+      type: RetryActionType.Push
+      repository: Repository
+      pushedCommit?: CommitOneLine
+    }
   | { type: RetryActionType.Pull; repository: Repository }
   | { type: RetryActionType.Fetch; repository: Repository }
   | {

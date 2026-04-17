@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 
-import { push } from '../../../src/lib/git/push'
+import { push, pushRefspec } from '../../../src/lib/git/push'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import { makeCommit } from '../../helpers/repository-scaffolding'
 import { IRemote } from '../../../src/models/remote'
@@ -141,5 +141,73 @@ describe('git/push', () => {
     // At minimum we should get the initial progress event
     assert.ok(progressEvents.length > 0, 'Expected at least one progress event')
     assert.equal(progressEvents[0].kind, 'push')
+  })
+
+  it('pushes a specific commit refspec to the remote branch', async t => {
+    const repo = await setupEmptyRepository(t)
+    await makeCommit(repo, {
+      entries: [{ path: 'README.md', contents: 'initial' }],
+      commitMessage: 'initial commit',
+    })
+
+    const barePath = await createBareUpstream(t, repo)
+    await exec(['remote', 'add', 'origin', barePath], repo.path)
+
+    await makeCommit(repo, {
+      entries: [{ path: 'file-1.txt', contents: 'first' }],
+      commitMessage: 'first commit',
+    })
+
+    const firstCommit = (
+      await exec(['rev-parse', 'HEAD'], repo.path)
+    ).stdout.trim()
+
+    await makeCommit(repo, {
+      entries: [{ path: 'file-2.txt', contents: 'second' }],
+      commitMessage: 'second commit',
+    })
+
+    const remote: IRemote = { name: 'origin', url: barePath }
+    await pushRefspec(repo, remote, `${firstCommit}:master`)
+
+    const result = await exec(['rev-parse', 'master'], barePath)
+    assert.equal(result.stdout.trim(), firstCommit)
+  })
+
+  it('force pushes a specific commit refspec with force-with-lease', async t => {
+    const repo = await setupEmptyRepository(t)
+    await makeCommit(repo, {
+      entries: [{ path: 'README.md', contents: 'initial' }],
+      commitMessage: 'initial commit',
+    })
+
+    const barePath = await createBareUpstream(t, repo)
+    await exec(['remote', 'add', 'origin', barePath], repo.path)
+
+    await makeCommit(repo, {
+      entries: [{ path: 'file-1.txt', contents: 'first' }],
+      commitMessage: 'first commit',
+    })
+
+    const firstCommit = (
+      await exec(['rev-parse', 'HEAD'], repo.path)
+    ).stdout.trim()
+
+    await makeCommit(repo, {
+      entries: [{ path: 'file-2.txt', contents: 'second' }],
+      commitMessage: 'second commit',
+    })
+
+    const remote: IRemote = { name: 'origin', url: barePath }
+    await push(repo, remote, 'master', 'master', null)
+
+    await assert.rejects(pushRefspec(repo, remote, `${firstCommit}:master`))
+
+    await pushRefspec(repo, remote, `${firstCommit}:master`, {
+      forceWithLease: true,
+    })
+
+    const result = await exec(['rev-parse', 'master'], barePath)
+    assert.equal(result.stdout.trim(), firstCommit)
   })
 })
