@@ -110,6 +110,12 @@ interface ICommitListProps {
   /** Callback to fire to delete an unpushed tag */
   readonly onDeleteTag?: (tagName: string) => void
 
+  /** Callback to push a specific commit to the current branch. */
+  readonly onPushCommit?: (commit: CommitOneLine) => void
+
+  /** Determines whether a specific commit can be pushed from the context menu. */
+  readonly canPushCommit?: (commit: CommitOneLine) => boolean
+
   /**
    * A handler called whenever the user drops commits on the list to be inserted.
    *
@@ -818,6 +824,11 @@ export class CommitList extends React.Component<
             this.props.onCreateBranch(commit)
           }
         },
+      },
+      {
+        label: 'Push this commit',
+        action: () => this.props.onPushCommit?.(commit),
+        enabled: this.props.canPushCommit?.(commit) ?? false,
       },
       {
         label: 'Create Tag…',

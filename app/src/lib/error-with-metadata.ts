@@ -4,6 +4,7 @@ import { RetryAction, RetryActionType } from '../models/retry-actions'
 import { GitErrorContext } from './git-error-context'
 import { Branch } from '../models/branch'
 import { WorkingDirectoryFileChange } from '../models/status'
+import { CommitOneLine } from '../models/commit'
 
 export interface IErrorMetadata {
   /** Was the action which caused this error part of a background task? */
@@ -17,6 +18,9 @@ export interface IErrorMetadata {
 
   /** Additional context that specific actions can provide fields for */
   readonly gitContext?: GitErrorContext
+
+  /** The commit being pushed through the history commit context menu. */
+  readonly pushedCommit?: CommitOneLine
 }
 
 /** An error which contains additional metadata. */

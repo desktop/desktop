@@ -61,6 +61,7 @@ export enum PopupType {
   CommitConflictsWarning = 'CommitConflictsWarning',
   PushNeedsPull = 'PushNeedsPull',
   ConfirmForcePush = 'ConfirmForcePush',
+  ConfirmForcePushCommit = 'ConfirmForcePushCommit',
   StashAndSwitchBranch = 'StashAndSwitchBranch',
   ConfirmOverwriteStash = 'ConfirmOverwriteStash',
   ConfirmDiscardStash = 'ConfirmDiscardStash',
@@ -239,6 +240,12 @@ export type PopupDetail =
       type: PopupType.ConfirmForcePush
       repository: Repository
       upstreamBranch: string
+    }
+  | {
+      type: PopupType.ConfirmForcePushCommit
+      repository: Repository
+      upstreamBranch: string
+      commit: CommitOneLine
     }
   | {
       type: PopupType.StashAndSwitchBranch

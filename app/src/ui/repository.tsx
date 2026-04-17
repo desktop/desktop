@@ -381,6 +381,7 @@ export class RepositoryView extends React.Component<
         compareListScrollTop={scrollTop}
         tagsToPush={tagsToPush}
         aheadBehindStore={aheadBehindStore}
+        isPushPullFetchInProgress={state.isPushPullFetchInProgress}
         isMultiCommitOperationInProgress={mcos !== null}
         askForConfirmationOnCheckoutCommit={
           this.props.askForConfirmationOnCheckoutCommit

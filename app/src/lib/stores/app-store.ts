@@ -164,6 +164,7 @@ import {
   isCoAuthoredByTrailer,
   pull as pullRepo,
   push as pushRepo,
+  pushRefspec,
   renameBranch,
   saveGitIgnore,
   appendIgnoreRule,
@@ -4671,6 +4672,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  public async _pushCommit(
+    repository: Repository,
+    commit: CommitOneLine,
+    options?: PushOptions
+  ): Promise<void> {
+    return this.withRefreshedGitHubRepository(repository, repository => {
+      return this.performPushCommit(repository, commit, options)
+    })
+  }
+
   private getBranchToPush(
     repository: Repository,
     options?: PushOptions
@@ -4864,6 +4875,135 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // of the `account` instance we've got and that's because recordPush
       // needs to be able to differentiate between a GHES account and a
       // generic account and it can't do that only based on the endpoint.
+      this.statsStore.recordPush(
+        getAccountForRepository(this.accounts, repository),
+        options
+      )
+    })
+  }
+
+  private async performPushCommit(
+    repository: Repository,
+    commit: CommitOneLine,
+    options?: PushOptions
+  ): Promise<void> {
+    const state = this.repositoryStateCache.get(repository)
+    const { remote, branchesState } = state
+
+    if (remote === null) {
+      this._showPopup({
+        type: PopupType.PublishRepository,
+        repository,
+      })
+
+      return
+    }
+
+    if (branchesState.tip.kind !== TipState.Valid) {
+      throw new Error('The current repository is not on a branch.')
+    }
+
+    const branch = branchesState.tip.branch
+    const upstreamBranch = branch.upstreamWithoutRemote || branch.name
+
+    return this.withPushPullFetch(repository, async () => {
+      const remoteName = branch.upstreamRemoteName || remote.name
+      const pushTitle = `Pushing to ${remoteName}`
+      const refspec = `${commit.sha}:${upstreamBranch}`
+      this.updatePushPullFetchProgress(repository, {
+        kind: 'push',
+        title: pushTitle,
+        value: 0,
+        remote: remoteName,
+        branch: upstreamBranch,
+      })
+
+      let pushWeight = 2.5
+      let fetchWeight = 1
+      const refreshWeight = 0.1
+      const scale = (1 / (pushWeight + fetchWeight)) * (1 - refreshWeight)
+
+      pushWeight *= scale
+      fetchWeight *= scale
+
+      const retryAction: RetryAction = {
+        type: RetryActionType.Push,
+        repository,
+        pushedCommit: commit,
+      }
+
+      const safeRemote: IRemote = { name: remoteName, url: remote.url }
+
+      if (safeRemote.name !== remote.name) {
+        sendNonFatalException(
+          'remoteNameMismatch',
+          new Error('The current remote name differs from the branch remote')
+        )
+      }
+
+      const gitStore = this.gitStoreCache.get(repository)
+      await gitStore.performFailableOperation(
+        async () => {
+          let aborted = false
+          await pushRefspec(
+            repository,
+            safeRemote,
+            refspec,
+            {
+              onHookFailure: this.onHookFailure(() => (aborted = true)),
+              ...options,
+            },
+            progress => {
+              this.updatePushPullFetchProgress(repository, {
+                ...progress,
+                title: pushTitle,
+                value: pushWeight * progress.value,
+              })
+            }
+          ).catch(err => (aborted ? undefined : Promise.reject(err)))
+
+          if (aborted) {
+            return
+          }
+
+          await gitStore.fetchRemotes([safeRemote], false, fetchProgress => {
+            this.updatePushPullFetchProgress(repository, {
+              ...fetchProgress,
+              value: pushWeight + fetchProgress.value * fetchWeight,
+            })
+          })
+
+          const refreshTitle = __DARWIN__
+            ? 'Refreshing Repository'
+            : 'Refreshing repository'
+          const refreshStartProgress = pushWeight + fetchWeight
+
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: refreshTitle,
+            description: 'Fast-forwarding branches',
+            value: refreshStartProgress,
+          })
+
+          await this.fastForwardBranches(repository)
+
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: refreshTitle,
+            value: refreshStartProgress + refreshWeight * 0.5,
+          })
+
+          await this.refreshBranchProtectionState(repository)
+          await this._refreshRepository(repository)
+        },
+        {
+          pushedCommit: commit,
+          retryAction,
+        }
+      )
+
+      this.updatePushPullFetchProgress(repository, null)
+      this.updateMenuLabelsForSelectedRepository()
       this.statsStore.recordPush(
         getAccountForRepository(this.accounts, repository),
         options
