@@ -84,11 +84,7 @@ async function pushRefspecInternal(
   progressBranchName: string,
   additionalArgs?: ReadonlyArray<string> | null
 ): Promise<void> {
-  const args = [
-    'push',
-    remote.name,
-    refspec,
-  ]
+  const args = ['push', remote.name, refspec]
 
   if (additionalArgs !== null && additionalArgs !== undefined) {
     args.push(...additionalArgs)

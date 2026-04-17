@@ -2146,7 +2146,10 @@ export class Dispatcher {
     switch (retryAction.type) {
       case RetryActionType.Push:
         if (retryAction.pushedCommit !== undefined) {
-          return this.pushCommit(retryAction.repository, retryAction.pushedCommit)
+          return this.pushCommit(
+            retryAction.repository,
+            retryAction.pushedCommit
+          )
         }
 
         return this.push(retryAction.repository)
