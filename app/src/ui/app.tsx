@@ -63,6 +63,7 @@ import {
   sendReady,
   isInApplicationFolder,
   selectAllWindowContents,
+  getPath,
   installWindowsCLI,
   uninstallWindowsCLI,
 } from './main-process-proxy'
@@ -100,7 +101,11 @@ import { CommitConflictsWarning } from './merge-conflicts'
 import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
-import { PopupType, Popup } from '../models/popup'
+import {
+  IGitHubDesktopRepositoryImportResult,
+  PopupType,
+  Popup,
+} from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { getCurrentBranchForcePushState } from '../lib/rebase'
@@ -136,6 +141,11 @@ import { CommitDragElement } from './drag-elements/commit-drag-element'
 import classNames from 'classnames'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
 import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
+import {
+  CreateRepositoryFolderDialog,
+  ManageRepositoryFoldersDialog,
+} from './repositories-list/repository-folder-dialogs'
+import { GitHubDesktopRepositoryImportResultsDialog } from './github-desktop-repository-import-results-dialog'
 import { ThankYou } from './thank-you'
 import {
   getUserContributions,
@@ -189,6 +199,11 @@ import { ConfirmCommitFilteredChanges } from './changes/confirm-commit-filtered-
 import { AboutTestDialog } from './about/about-test-dialog'
 import { enableCopilotSdkCommitMessageGeneration } from '../lib/feature-flag'
 import {
+  getGitHubDesktopStorageDirectories,
+  getGitHubDesktopStorageDirectoriesForProfilePath,
+  readGitHubDesktopRepositoryPaths,
+} from '../lib/github-desktop-repository-import'
+import {
   ISecretScanResult,
   PushProtectionErrorDialog,
 } from './secret-scanning/push-protection-error-dialog'
@@ -202,6 +217,17 @@ import {
 } from './secret-scanning/bypass-push-protection-dialog'
 import { HookFailed } from './hook-failed/hook-failed'
 import { CommitProgress } from './commit-progress/commit-progress'
+import {
+  assignRepositoryToFolder,
+  createRepositoryFolder,
+  getRepositoryFolderId,
+  hasFolderName,
+  IRepositoryFolder,
+  IRepositoryFolderStore,
+  loadRepositoryFolderStore,
+  replaceRepositoryFolders,
+  saveRepositoryFolderStore,
+} from './repositories-list/repository-folder-store'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -227,6 +253,10 @@ interface IAppProps {
   readonly startTime: number
 }
 
+interface IAppWithRepositoryFoldersState extends IAppState {
+  readonly repositoryFolderStore: IRepositoryFolderStore
+}
+
 export const dialogTransitionTimeout = {
   enter: 250,
   exit: 100,
@@ -240,7 +270,10 @@ export const bannerTransitionTimeout = { enter: 500, exit: 400 }
  * changes. See https://github.com/desktop/desktop/issues/1398.
  */
 const ReadyDelay = 100
-export class App extends React.Component<IAppProps, IAppState> {
+export class App extends React.Component<
+  IAppProps,
+  IAppWithRepositoryFoldersState
+> {
   private loading = true
 
   /**
@@ -271,6 +304,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     return () => this.onPopupDismissed(popupId)
   })
 
+  private getCreateRepositoryFolderHandler = memoizeOne(
+    (repository: Repository | null) => (name: string) =>
+      this.onCreateRepositoryFolder(name, repository)
+  )
+
   public constructor(props: IAppProps) {
     super(props)
 
@@ -291,9 +329,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
     })
 
-    this.state = props.appStore.getState()
+    this.state = {
+      ...props.appStore.getState(),
+      repositoryFolderStore: loadRepositoryFolderStore(),
+    }
     props.appStore.onDidUpdate(state => {
-      this.setState(state)
+      this.setState(previousState => ({
+        ...state,
+        repositoryFolderStore: previousState.repositoryFolderStore,
+      }))
     })
 
     props.appStore.onDidError(error => {
@@ -445,6 +489,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.chooseRepository()
       case 'add-local-repository':
         return this.showAddLocalRepo()
+      case 'import-repositories-from-github-desktop':
+        return this.importRepositoriesFromGitHubDesktop()
       case 'create-branch':
         return this.showCreateBranch()
       case 'show-branches':
@@ -794,6 +840,182 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private showAddLocalRepo = () => {
     return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
+  }
+
+  private importRepositoriesFromGitHubDesktop = async () => {
+    try {
+      const [appDataPath, userDataPath] = await Promise.all([
+        getPath('appData'),
+        getPath('userData'),
+      ])
+
+      const currentStorageDirectories =
+        getGitHubDesktopStorageDirectoriesForProfilePath(userDataPath)
+      const sourceStorageDirectories =
+        getGitHubDesktopStorageDirectories(appDataPath)
+
+      if (
+        sourceStorageDirectories.every((directory, index) => {
+          const currentDirectory = currentStorageDirectories[index]
+          return (
+            currentDirectory !== undefined &&
+            Path.normalize(currentDirectory) === Path.normalize(directory)
+          )
+        })
+      ) {
+        throw new Error(
+          'This build is already using the GitHub Desktop profile data, so there is nothing to import.'
+        )
+      }
+
+      const importedPaths = await readGitHubDesktopRepositoryPaths(appDataPath)
+      if (importedPaths.length === 0) {
+        throw new Error(
+          'No repositories were found in the installed GitHub Desktop profile.'
+        )
+      }
+
+      const knownPaths = new Set(
+        this.state.repositories.map(repository =>
+          this.normalizeRepositoryMatchPath(repository.path)
+        )
+      )
+      const results = new Array<IGitHubDesktopRepositoryImportResult>()
+      let firstAddedRepository: Repository | null = null
+
+      for (const path of importedPaths) {
+        const outcome = await this.importRepositoryFromGitHubDesktopPath(
+          path,
+          knownPaths
+        )
+
+        results.push(outcome.result)
+
+        if (firstAddedRepository === null && outcome.repository !== null) {
+          firstAddedRepository = outcome.repository
+        }
+      }
+
+      if (results.some(result => result.outcome === 'imported')) {
+        this.props.dispatcher.recordAddExistingRepository()
+
+        if (firstAddedRepository !== null) {
+          await this.props.dispatcher.selectRepository(firstAddedRepository)
+        }
+      }
+
+      this.showPopup({
+        type: PopupType.ImportRepositoriesFromGitHubDesktopResults,
+        results,
+      })
+    } catch (error) {
+      await this.props.dispatcher.postError(
+        error instanceof Error ? error : new Error(String(error))
+      )
+    }
+  }
+
+  private importRepositoryFromGitHubDesktopPath = async (
+    path: string,
+    knownPaths: Set<string>
+  ): Promise<{
+    readonly result: IGitHubDesktopRepositoryImportResult
+    readonly repository: Repository | null
+  }> => {
+    const repositoryType = await getRepositoryType(path)
+
+    if (repositoryType.kind === 'bare') {
+      return {
+        result: {
+          path,
+          outcome: 'failed',
+          detail: 'Bare repositories cannot be added.',
+        },
+        repository: null,
+      }
+    }
+
+    if (repositoryType.kind === 'missing') {
+      return {
+        result: {
+          path,
+          outcome: 'failed',
+          detail: 'The path no longer exists or is not a Git repository.',
+        },
+        repository: null,
+      }
+    }
+
+    const repositoryPath =
+      repositoryType.kind === 'regular'
+        ? repositoryType.topLevelWorkingDirectory
+        : repositoryType.path
+    const normalizedPath = this.normalizeRepositoryMatchPath(repositoryPath)
+
+    if (knownPaths.has(normalizedPath)) {
+      return {
+        result: {
+          path: repositoryPath,
+          outcome: 'skipped',
+          detail: 'Already added in this app.',
+        },
+        repository: null,
+      }
+    }
+
+    try {
+      const addedRepositories = await this.props.dispatcher.addRepositories([
+        repositoryPath,
+      ])
+      const repository = addedRepositories[0] ?? null
+
+      if (repository === null) {
+        return {
+          result: {
+            path: repositoryPath,
+            outcome: 'failed',
+            detail: 'The repository could not be imported.',
+          },
+          repository: null,
+        }
+      }
+
+      knownPaths.add(normalizedPath)
+
+      return {
+        result: {
+          path: repository.path,
+          outcome: 'imported',
+          detail:
+            repositoryType.kind === 'unsafe'
+              ? 'Imported, but Git reported dubious ownership for this repository.'
+              : 'Imported successfully.',
+        },
+        repository,
+      }
+    } catch (error) {
+      return {
+        result: {
+          path: repositoryPath,
+          outcome: 'failed',
+          detail: this.getGitHubDesktopImportFailureDetail(error),
+        },
+        repository: null,
+      }
+    }
+  }
+
+  private getGitHubDesktopImportFailureDetail(error: unknown) {
+    if (!(error instanceof Error) || error.message.length === 0) {
+      return 'The repository could not be imported.'
+    }
+
+    return error.message
+  }
+
+  private normalizeRepositoryMatchPath(path: string) {
+    const normalizedPath = Path.normalize(path)
+    return __WIN32__ ? normalizedPath.toLowerCase() : normalizedPath
   }
 
   private showCreateRepository = () => {
@@ -2119,6 +2341,33 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.CreateRepositoryFolder: {
+        return (
+          <CreateRepositoryFolderDialog
+            targetRepositoryName={popup.repository?.name ?? null}
+            nameExists={this.doesRepositoryFolderNameExist}
+            onCreate={this.getCreateRepositoryFolderHandler(popup.repository)}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.ManageRepositoryFolders: {
+        return (
+          <ManageRepositoryFoldersDialog
+            folders={this.state.repositoryFolderStore.folders}
+            onDismissed={onPopupDismissedFn}
+            onSave={this.onSaveRepositoryFolders}
+          />
+        )
+      }
+      case PopupType.ImportRepositoriesFromGitHubDesktopResults: {
+        return (
+          <GitHubDesktopRepositoryImportResultsDialog
+            results={popup.results}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       case PopupType.ThankYou:
         return (
           <ThankYou
@@ -2892,6 +3141,72 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup(popup)
   }
 
+  private updateRepositoryFolderStore = (
+    folderStore: IRepositoryFolderStore
+  ) => {
+    saveRepositoryFolderStore(folderStore)
+    this.setState({ repositoryFolderStore: folderStore })
+  }
+
+  private onAssignRepositoryToFolder = (
+    repository: Repository,
+    folderId: string | null
+  ) => {
+    this.updateRepositoryFolderStore(
+      assignRepositoryToFolder(
+        this.state.repositoryFolderStore,
+        repository.id,
+        folderId
+      )
+    )
+  }
+
+  private onOpenCreateRepositoryFolderPopup = (
+    repository: Repository | null
+  ) => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.CreateRepositoryFolder,
+      repository,
+    })
+  }
+
+  private onOpenManageRepositoryFoldersPopup = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.ManageRepositoryFolders,
+    })
+  }
+
+  private onCreateRepositoryFolder = (
+    name: string,
+    repository: Repository | null
+  ) => {
+    if (hasFolderName(this.state.repositoryFolderStore, name)) {
+      return
+    }
+
+    const { folder, store } = createRepositoryFolder(
+      this.state.repositoryFolderStore,
+      name
+    )
+    const nextStore =
+      repository === null
+        ? store
+        : assignRepositoryToFolder(store, repository.id, folder.id)
+
+    this.updateRepositoryFolderStore(nextStore)
+  }
+
+  private doesRepositoryFolderNameExist = (name: string) =>
+    hasFolderName(this.state.repositoryFolderStore, name)
+
+  private onSaveRepositoryFolders = (
+    folders: ReadonlyArray<IRepositoryFolder>
+  ) => {
+    this.updateRepositoryFolderStore(
+      replaceRepositoryFolders(this.state.repositoryFolderStore, folders)
+    )
+  }
+
   private setBanner = (banner: Banner) =>
     this.props.dispatcher.setBanner(banner)
 
@@ -2945,6 +3260,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         onOpenInExternalEditor={this.openInExternalEditor}
         externalEditorLabel={this.externalEditorLabel}
         shellLabel={useCustomShell ? undefined : selectedShell}
+        folderStore={this.state.repositoryFolderStore}
+        onAssignRepositoryToFolder={this.onAssignRepositoryToFolder}
+        onCreateRepositoryFolder={this.onOpenCreateRepositoryFolderPopup}
+        onManageRepositoryFolders={this.onOpenManageRepositoryFoldersPopup}
         dispatcher={this.props.dispatcher}
       />
     )
@@ -3135,6 +3454,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       shellLabel: this.state.useCustomShell
         ? undefined
         : this.state.selectedShell,
+      repositoryFolders: this.state.repositoryFolderStore.folders,
+      currentFolderId:
+        repository instanceof Repository
+          ? getRepositoryFolderId(
+              this.state.repositoryFolderStore,
+              repository.id
+            )
+          : null,
+      onAssignRepositoryToFolder: this.onAssignRepositoryToFolder,
+      onCreateRepositoryFolder: this.onOpenCreateRepositoryFolderPopup,
+      onManageRepositoryFolders: this.onOpenManageRepositoryFoldersPopup,
     })
 
     showContextualMenu(items)

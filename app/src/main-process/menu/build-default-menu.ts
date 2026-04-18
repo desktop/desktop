@@ -116,6 +116,13 @@ export function buildDefaultMenu({
         click: emit('add-local-repository'),
       },
       {
+        label: __DARWIN__
+          ? 'Import Repositories from GitHub Desktop…'
+          : '&Import repositories from GitHub Desktop…',
+        id: 'import-repositories-from-github-desktop',
+        click: emit('import-repositories-from-github-desktop'),
+      },
+      {
         label: __DARWIN__ ? 'Clone Repository…' : 'Clo&ne repository…',
         id: 'clone-repository',
         accelerator: 'CmdOrCtrl+Shift+O',

@@ -82,6 +82,19 @@
     }
   }
 
+  .manage-repository-folders-dialog-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-half);
+  }
+
+  .manage-repository-folders-dialog-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    gap: var(--spacing-half);
+    align-items: center;
+  }
+
   .no-items {
     text-align: center;
     padding: var(--spacing);

@@ -26,6 +26,10 @@ import { generateRepositoryListContextMenu } from '../repositories-list/reposito
 import { SectionFilterList } from '../lib/section-filter-list'
 import { assertNever } from '../../lib/fatal-error'
 import { IAheadBehind } from '../../models/branch'
+import {
+  getRepositoryFolderId,
+  IRepositoryFolderStore,
+} from './repository-folder-store'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 
@@ -66,6 +70,14 @@ interface IRepositoriesListProps {
 
   /** The label for the user's preferred shell. */
   readonly shellLabel?: string
+
+  readonly folderStore: IRepositoryFolderStore
+  readonly onAssignRepositoryToFolder: (
+    repository: Repository,
+    folderId: string | null
+  ) => void
+  readonly onCreateRepositoryFolder: (repository: Repository | null) => void
+  readonly onManageRepositoryFolders: () => void
 
   /** The callback to fire when the filter text has changed */
   readonly onFilterTextChanged: (text: string) => void
@@ -121,14 +133,16 @@ export class RepositoriesList extends React.Component<
     (
       repositories: ReadonlyArray<Repositoryish> | null,
       localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-      recentRepositories: ReadonlyArray<number>
+      recentRepositories: ReadonlyArray<number>,
+      folderStore: IRepositoryFolderStore
     ) =>
       repositories === null
         ? []
         : groupRepositories(
             repositories,
             localRepositoryStateLookup,
-            recentRepositories
+            recentRepositories,
+            folderStore
           )
   )
 
@@ -247,6 +261,8 @@ export class RepositoriesList extends React.Component<
       return 'Other'
     } else if (kind === 'dotcom') {
       return group.owner.login
+    } else if (kind === 'folder') {
+      return group.name
     } else if (kind === 'recent') {
       return 'Recent'
     } else {
@@ -299,6 +315,14 @@ export class RepositoriesList extends React.Component<
       onViewOnGitHub: this.props.onViewOnGitHub,
       repository: item.repository,
       shellLabel: this.props.shellLabel,
+      repositoryFolders: this.props.folderStore.folders,
+      currentFolderId:
+        item.repository instanceof Repository
+          ? getRepositoryFolderId(this.props.folderStore, item.repository.id)
+          : null,
+      onAssignRepositoryToFolder: this.props.onAssignRepositoryToFolder,
+      onCreateRepositoryFolder: this.props.onCreateRepositoryFolder,
+      onManageRepositoryFolders: this.props.onManageRepositoryFolders,
     })
 
     showContextualMenu(items)
@@ -318,7 +342,8 @@ export class RepositoriesList extends React.Component<
     const groups = this.getRepositoryGroups(
       this.props.repositories,
       this.props.localRepositoryStateLookup,
-      this.props.recentRepositories
+      this.props.recentRepositories,
+      this.props.folderStore
     )
 
     // So there's two types of selection at play here. There's the repository
@@ -423,6 +448,17 @@ export class RepositoriesList extends React.Component<
           : 'Add existing repository…',
         action: this.onAddExistingRepository,
       },
+      { type: 'separator' },
+      {
+        label: __DARWIN__ ? 'New Repository Folder…' : 'New repository folder…',
+        action: this.onCreateRepositoryFolder,
+      },
+      {
+        label: __DARWIN__
+          ? 'Manage Repository Folders…'
+          : 'Manage repository folders…',
+        action: this.props.onManageRepositoryFolders,
+      },
     ]
 
     this.setState({ newRepositoryMenuExpanded: true })
@@ -455,5 +491,9 @@ export class RepositoriesList extends React.Component<
 
   private onRemoveRepositoryAlias = (repository: Repository) => {
     this.props.dispatcher.changeRepositoryAlias(repository, null)
+  }
+
+  private onCreateRepositoryFolder = () => {
+    this.props.onCreateRepositoryFolder(null)
   }
 }

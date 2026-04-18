@@ -1,0 +1,51 @@
+#github-desktop-repository-import-results {
+  .dialog-content {
+    width: 540px;
+  }
+
+  .github-desktop-repository-import-results-list {
+    max-height: 320px;
+    overflow-y: auto;
+
+    ul {
+      list-style: none;
+      margin: var(--spacing-double) 0 0;
+      padding: 0;
+    }
+
+    li {
+      display: flex;
+      gap: var(--spacing);
+      align-items: flex-start;
+      margin-bottom: var(--spacing);
+    }
+  }
+
+  .github-desktop-repository-import-results-status {
+    min-width: 72px;
+    font-weight: var(--font-weight-semibold);
+
+    &.imported {
+      color: var(--text-success-color);
+    }
+
+    &.skipped {
+      color: var(--text-secondary-color);
+    }
+
+    &.failed {
+      color: var(--text-danger-color);
+    }
+  }
+
+  .github-desktop-repository-import-results-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--half-spacing);
+    min-width: 0;
+  }
+
+  .path-text-component {
+    font-family: var(--font-family-monospace);
+  }
+}

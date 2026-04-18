@@ -7,6 +7,7 @@ import {
   DefaultEditorLabel,
   DefaultShellLabel,
 } from '../lib/context-menu'
+import { IRepositoryFolder } from './repository-folder-store'
 
 interface IRepositoryListItemContextMenuConfig {
   repository: Repositoryish
@@ -20,6 +21,14 @@ interface IRepositoryListItemContextMenuConfig {
   onRemoveRepository: (repository: Repositoryish) => void
   onChangeRepositoryAlias: (repository: Repository) => void
   onRemoveRepositoryAlias: (repository: Repository) => void
+  repositoryFolders?: ReadonlyArray<IRepositoryFolder>
+  currentFolderId?: string | null
+  onAssignRepositoryToFolder?: (
+    repository: Repository,
+    folderId: string | null
+  ) => void
+  onCreateRepositoryFolder?: (repository: Repository | null) => void
+  onManageRepositoryFolders?: () => void
 }
 
 export const generateRepositoryListContextMenu = (
@@ -37,6 +46,7 @@ export const generateRepositoryListContextMenu = (
     : DefaultShellLabel
 
   const items: ReadonlyArray<IMenuItem> = [
+    ...buildFolderMenuItems(config),
     ...buildAliasMenuItems(config),
     {
       label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
@@ -75,6 +85,61 @@ export const generateRepositoryListContextMenu = (
   ]
 
   return items
+}
+
+const buildFolderMenuItems = (
+  config: IRepositoryListItemContextMenuConfig
+): ReadonlyArray<IMenuItem> => {
+  const { repository } = config
+
+  if (
+    !(repository instanceof Repository) ||
+    config.onAssignRepositoryToFolder === undefined ||
+    config.onCreateRepositoryFolder === undefined ||
+    config.onManageRepositoryFolders === undefined
+  ) {
+    return []
+  }
+
+  const folderItems: Array<IMenuItem> = [
+    {
+      label: __DARWIN__ ? 'No Folder' : 'No folder',
+      type: 'checkbox',
+      checked: config.currentFolderId === null,
+      action: () => config.onAssignRepositoryToFolder?.(repository, null),
+    },
+  ]
+
+  for (const folder of config.repositoryFolders ?? []) {
+    folderItems.push({
+      label: folder.name,
+      type: 'checkbox',
+      checked: config.currentFolderId === folder.id,
+      action: () => config.onAssignRepositoryToFolder?.(repository, folder.id),
+    })
+  }
+
+  folderItems.push(
+    { type: 'separator' },
+    {
+      label: __DARWIN__ ? 'New Folder…' : 'New folder…',
+      action: () => config.onCreateRepositoryFolder?.(repository),
+    },
+    {
+      label: __DARWIN__
+        ? 'Manage Repository Folders…'
+        : 'Manage repository folders…',
+      action: () => config.onManageRepositoryFolders?.(),
+    },
+    { type: 'separator' }
+  )
+
+  return [
+    {
+      label: __DARWIN__ ? 'Move to Folder' : 'Move to folder',
+      submenu: folderItems,
+    },
+  ]
 }
 
 const buildAliasMenuItems = (

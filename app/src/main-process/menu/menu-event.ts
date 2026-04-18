@@ -6,6 +6,7 @@ export type MenuEvent =
   | 'show-changes'
   | 'show-history'
   | 'add-local-repository'
+  | 'import-repositories-from-github-desktop'
   | 'create-branch'
   | 'show-branches'
   | 'remove-repository'

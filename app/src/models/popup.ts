@@ -77,6 +77,9 @@ export enum PopupType {
   ConfirmDiscardSelection = 'ConfirmDiscardSelection',
   MoveToApplicationsFolder = 'MoveToApplicationsFolder',
   ChangeRepositoryAlias = 'ChangeRepositoryAlias',
+  CreateRepositoryFolder = 'CreateRepositoryFolder',
+  ManageRepositoryFolders = 'ManageRepositoryFolders',
+  ImportRepositoriesFromGitHubDesktopResults = 'ImportRepositoriesFromGitHubDesktopResults',
   ThankYou = 'ThankYou',
   CommitMessage = 'CommitMessage',
   MultiCommitOperation = 'MultiCommitOperation',
@@ -114,6 +117,17 @@ interface IBasePopup {
    * Unique id of the popup that it receives upon adding to the stack.
    */
   readonly id?: number
+}
+
+export type GitHubDesktopRepositoryImportOutcome =
+  | 'imported'
+  | 'skipped'
+  | 'failed'
+
+export interface IGitHubDesktopRepositoryImportResult {
+  readonly path: string
+  readonly outcome: GitHubDesktopRepositoryImportOutcome
+  readonly detail: string
 }
 
 export type PopupDetail =
@@ -308,6 +322,12 @@ export type PopupDetail =
     }
   | { type: PopupType.MoveToApplicationsFolder }
   | { type: PopupType.ChangeRepositoryAlias; repository: Repository }
+  | { type: PopupType.CreateRepositoryFolder; repository: Repository | null }
+  | { type: PopupType.ManageRepositoryFolders }
+  | {
+      type: PopupType.ImportRepositoriesFromGitHubDesktopResults
+      results: ReadonlyArray<IGitHubDesktopRepositoryImportResult>
+    }
   | {
       type: PopupType.ThankYou
       userContributions: ReadonlyArray<ReleaseNote>

@@ -13,8 +13,19 @@ import { IAheadBehind } from '../../models/branch'
 import { assertNever } from '../../lib/fatal-error'
 import { isDotCom } from '../../lib/endpoint-capabilities'
 import { Owner } from '../../models/owner'
+import { IRepositoryFolderStore } from './repository-folder-store'
+
+const emptyFolderStore: IRepositoryFolderStore = {
+  folders: [],
+  assignments: {},
+}
 
 export type RepositoryListGroup =
+  | {
+      kind: 'folder'
+      folderId: string
+      name: string
+    }
   | {
       kind: 'recent' | 'other'
     }
@@ -35,14 +46,16 @@ export type RepositoryListGroup =
 export const getGroupKey = (group: RepositoryListGroup) => {
   const { kind } = group
   switch (kind) {
+    case 'folder':
+      return `0:folder:${group.name.toLowerCase()}:${group.folderId}`
     case 'recent':
-      return `0:recent`
+      return `1:recent`
     case 'dotcom':
-      return `1:dotcom:${group.owner.login}`
+      return `2:dotcom:${group.owner.login}`
     case 'enterprise':
-      return `2:enterprise:${group.host}`
+      return `3:enterprise:${group.host}`
     case 'other':
-      return `3:other`
+      return `4:other`
     default:
       assertNever(group, `Unknown repository group kind ${kind}`)
   }
@@ -75,6 +88,60 @@ const getGroupForRepository = (repo: Repositoryish): RepositoryListGroup => {
 type RepoGroupItem = { group: RepositoryListGroup; repos: Repositoryish[] }
 
 export function groupRepositories(
+  repositories: ReadonlyArray<Repositoryish>,
+  localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
+  recentRepositories: ReadonlyArray<number>,
+  folderStore: IRepositoryFolderStore = emptyFolderStore
+): ReadonlyArray<IFilterListGroup<IRepositoryListItem, RepositoryListGroup>> {
+  const folderGroups = new Map<string, RepoGroupItem>()
+  const unassignedRepositories = new Array<Repositoryish>()
+
+  for (const folder of folderStore.folders) {
+    folderGroups.set(folder.id, {
+      group: { kind: 'folder', folderId: folder.id, name: folder.name },
+      repos: [],
+    })
+  }
+
+  for (const repo of repositories) {
+    if (!(repo instanceof Repository)) {
+      unassignedRepositories.push(repo)
+      continue
+    }
+
+    const folderId = folderStore.assignments[repo.id.toString()]
+    const folderGroup = folderId ? folderGroups.get(folderId) : undefined
+
+    if (folderGroup !== undefined) {
+      folderGroup.repos.push(repo)
+    } else {
+      unassignedRepositories.push(repo)
+    }
+  }
+
+  const sortedFolderGroups = Array.from(folderGroups.values())
+    .filter(group => group.repos.length > 0)
+    .map(({ group, repos }) => ({
+      identifier: group,
+      items: toSortedListItems(
+        group,
+        repos,
+        localRepositoryStateLookup,
+        folderGroups
+      ),
+    }))
+
+  return [
+    ...sortedFolderGroups,
+    ...groupUngroupedRepositories(
+      unassignedRepositories,
+      localRepositoryStateLookup,
+      recentRepositories
+    ),
+  ]
+}
+
+function groupUngroupedRepositories(
   repositories: ReadonlyArray<Repositoryish>,
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
   recentRepositories: ReadonlyArray<number>
@@ -161,7 +228,8 @@ const toSortedListItems = (
           // group and has a duplicate name in any group, we need to
           // disambiguate it.
           ((groupNames.get(title) ?? 0) > 1 && group.kind === 'enterprise') ||
-          ((allNames.get(title) ?? 0) > 1 && group.kind === 'recent'),
+          ((allNames.get(title) ?? 0) > 1 &&
+            (group.kind === 'recent' || group.kind === 'folder')),
         aheadBehind: repoState?.aheadBehind ?? null,
         changedFilesCount: repoState?.changedFilesCount ?? 0,
       }
