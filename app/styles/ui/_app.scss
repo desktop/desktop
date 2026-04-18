@@ -21,11 +21,33 @@
   // main non-window chrome wrapper
   &-contents {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     flex: 1 1 auto;
     height: 100%;
     min-height: 0;
   }
+}
+
+#repository-list-panel {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-right: 1px solid var(--box-border-color);
+  background-color: var(--box-background-color);
+  height: 100%;
+
+  .repository-list {
+    min-width: 0;
+  }
+}
+
+.main-app-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
 }
 
 #desktop-app-contents {

@@ -57,6 +57,7 @@ import { IAPIRepoRuleset } from './api'
 import { ICustomIntegration } from './custom-integration'
 import { Emoji } from './emoji'
 import { IUpdateState } from '../ui/lib/update-store'
+import { ICollectionWithChildren } from '../models/collection'
 
 export enum SelectionType {
   Repository,
@@ -89,6 +90,9 @@ export interface IAppState {
    * List of IDs of the most recently opened repositories (most recent first)
    */
   readonly recentRepositories: ReadonlyArray<number>
+
+  /** User-defined collection tree shown above auto-groups in the repositories list. */
+  readonly collections: ReadonlyArray<ICollectionWithChildren>
 
   /**
    * A cache of the latest repository state values, keyed by the repository id

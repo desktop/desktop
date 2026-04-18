@@ -153,4 +153,47 @@ describe('repository list grouping', () => {
     assert.equal(grouped[2].items[1].text[0], 'enterprise-repo')
     assert(grouped[2].items[1].needsDisambiguation)
   })
+
+  describe('foldered repositories', () => {
+    it('excludes foldered repos from dotcom auto-groups', () => {
+      const r1 = new Repository(
+        'repo1',
+        1,
+        gitHubRepoFixture({ owner: 'alice', name: 'repo1' }),
+        false
+      )
+      const r2 = new Repository(
+        'repo2',
+        2,
+        gitHubRepoFixture({ owner: 'alice', name: 'repo2' }),
+        false
+      )
+      const foldered = new Set<number>([r2.id])
+
+      const groups = groupRepositories([r1, r2], cache, [], foldered)
+
+      const dotcom = groups.find(g => g.identifier.kind === 'dotcom')!
+      assert.equal(dotcom.items.length, 1)
+      assert.equal(dotcom.items[0].repository.id, 1)
+    })
+
+    it('keeps foldered repos in Recent', () => {
+      const repos = Array.from(
+        { length: 8 },
+        (_, i) =>
+          new Repository(
+            `repo${i + 1}`,
+            i + 1,
+            gitHubRepoFixture({ owner: 'alice', name: `repo${i + 1}` }),
+            false
+          )
+      )
+      const foldered = new Set<number>([repos[0].id])
+      const groups = groupRepositories(repos, cache, [repos[0].id], foldered)
+
+      const recent = groups.find(g => g.identifier.kind === 'recent')!
+      assert.equal(recent.items.length, 1)
+      assert.equal(recent.items[0].repository.id, repos[0].id)
+    })
+  })
 })

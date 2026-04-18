@@ -7,6 +7,8 @@ import {
   DefaultEditorLabel,
   DefaultShellLabel,
 } from '../lib/context-menu'
+import { ICollectionWithChildren } from '../../models/collection'
+import { buildMoveToCollectionMenu } from './move-to-collection-menu'
 
 interface IRepositoryListItemContextMenuConfig {
   repository: Repositoryish
@@ -20,6 +22,11 @@ interface IRepositoryListItemContextMenuConfig {
   onRemoveRepository: (repository: Repositoryish) => void
   onChangeRepositoryAlias: (repository: Repository) => void
   onRemoveRepositoryAlias: (repository: Repository) => void
+  collections: ReadonlyArray<ICollectionWithChildren>
+  onMoveToCollection: (
+    repositoryId: number,
+    collectionId: number | null
+  ) => void
 }
 
 export const generateRepositoryListContextMenu = (
@@ -37,6 +44,14 @@ export const generateRepositoryListContextMenu = (
     : DefaultShellLabel
 
   const items: ReadonlyArray<IMenuItem> = [
+    ...(repository instanceof Repository
+      ? [
+          buildMoveToCollectionMenu(config.collections, collectionId =>
+            config.onMoveToCollection(repository.id, collectionId)
+          ),
+          { type: 'separator' as const },
+        ]
+      : []),
     ...buildAliasMenuItems(config),
     {
       label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',

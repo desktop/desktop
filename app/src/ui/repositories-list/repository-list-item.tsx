@@ -36,6 +36,15 @@ export class RepositoryListItem extends React.Component<
 > {
   private readonly listItemRef = createObservableRef<HTMLDivElement>()
 
+  private onDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    const { repository } = this.props
+    if (!(repository instanceof Repository)) {
+      return
+    }
+    e.dataTransfer.setData('application/x-repository-id', String(repository.id))
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
   public render() {
     const repository = this.props.repository
     const gitHubRepo =
@@ -55,7 +64,12 @@ export class RepositoryListItem extends React.Component<
     })
 
     return (
-      <div className="repository-list-item" ref={this.listItemRef}>
+      <div
+        className="repository-list-item"
+        ref={this.listItemRef}
+        draggable={repository instanceof Repository}
+        onDragStart={this.onDragStart}
+      >
         <Tooltip
           target={this.listItemRef}
           disabled={enableAccessibleListToolTips()}

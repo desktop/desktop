@@ -3,6 +3,7 @@ import {
   AccountsStore,
   CloningRepositoriesStore,
   CopilotStore,
+  CollectionsStore,
   GitHubUserStore,
   GitStore,
   IssuesStore,
@@ -13,6 +14,8 @@ import {
   UpstreamRemoteName,
 } from '.'
 import type { CopilotFeature, CopilotModelSelections } from './copilot-store'
+import { ICollection, ICollectionWithChildren } from '../../models/collection'
+import { buildCollectionTree } from '../../ui/repositories-list/build-collection-tree'
 import { Account, isDotComAccount } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { Author } from '../../models/author'
@@ -489,6 +492,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
   private recentRepositories: ReadonlyArray<number> = new Array<number>()
+  private collections: ReadonlyArray<ICollectionWithChildren> = []
 
   private selectedRepository: Repository | CloningRepository | null = null
 
@@ -657,7 +661,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     private readonly repositoryStateCache: RepositoryStateCache,
     private readonly apiRepositoriesStore: ApiRepositoriesStore,
     private readonly notificationsStore: NotificationsStore,
-    private readonly copilotStore: CopilotStore
+    private readonly copilotStore: CopilotStore,
+    private readonly collectionsStore: CollectionsStore
   ) {
     super()
 
@@ -760,6 +765,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * Thus, on every update, the users set zoom level gets reset as there is not
    * defined value for the current app version.
    * */
+  private async refreshFolders(): Promise<void> {
+    const flat = await this.collectionsStore.getAll()
+    const repoFolderStates =
+      await this.repositoriesStore.getAllRepositoryCollectionStates()
+    this.collections = buildCollectionTree(flat, repoFolderStates)
+    this.emitUpdate()
+  }
+
   private async getWindowZoomFactor() {
     const zoomFactor = await getCurrentWindowZoomFactor()
     // One is the default value, we only care about checking the locally stored
@@ -944,7 +957,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoriesStore.onDidUpdate(updateRepositories => {
       this.repositories = updateRepositories
       this.updateRepositorySelectionAfterRepositoriesChanged()
+      this.refreshFolders()
       this.emitUpdate()
+    })
+
+    this.collectionsStore.onDidUpdate(() => {
+      this.refreshFolders()
     })
 
     this.pullRequestCoordinator.onPullRequestsChanged((repo, pullRequests) =>
@@ -1073,6 +1091,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       accounts: this.accounts,
       repositories,
       recentRepositories: this.recentRepositories,
+      collections: this.collections,
       localRepositoryStateLookup: this.localRepositoryStateLookup,
       windowState: this.windowState,
       windowZoomFactor: this.windowZoomFactor,
@@ -1966,7 +1985,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (refreshedRepository.missing) {
       // as the repository is no longer found on disk, cleaning this up
       // ensures we don't accidentally run any Git operations against the
-      // wrong location if the user then relocates the `.git` folder elsewhere
+      // wrong location if the user then relocates the `.git` collection elsewhere
       this.gitStoreCache.remove(repository)
       return Promise.resolve(null)
     }
@@ -2230,6 +2249,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositories = repositories
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
+    await this.refreshFolders()
 
     this.sidebarWidth = constrain(
       getNumber(sidebarWidthConfigKey, defaultSidebarWidth)
@@ -6655,6 +6675,120 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this._closeFoldout(FoldoutType.Repository)
     } else {
       this._showFoldout({ type: FoldoutType.Repository })
+    }
+  }
+
+  /** Create a new collection. */
+  public _createCollection(
+    name: string,
+    parentId: number | null
+  ): Promise<ICollection> {
+    return this.collectionsStore.createCollection(name, parentId)
+  }
+
+  /** Rename a collection. */
+  public _renameCollection(id: number, name: string): Promise<void> {
+    return this.collectionsStore.renameCollection(id, name)
+  }
+
+  /**
+   * Delete a collection. Repositories inside are reset to collectionId=null (they
+   * return to auto-grouping). Subfolders are promoted to the deleted collection's
+   * parent level.
+   */
+  public async _deleteCollection(id: number): Promise<void> {
+    await this.repositoriesStore.clearCollectionForRepositoriesIn(id)
+    await this.collectionsStore.deleteCollectionPromoteChildren(id)
+  }
+
+  /** Move a collection under a new parent. */
+  public _moveCollection(
+    id: number,
+    newParentId: number | null
+  ): Promise<void> {
+    return this.collectionsStore.moveCollection(id, newParentId)
+  }
+
+  /** Reorder a collection within its current parent. */
+  public _reorderCollection(id: number, newIndex: number): Promise<void> {
+    return this.collectionsStore.reorderCollection(id, newIndex)
+  }
+
+  /** Toggle the persisted expand/collapse state of a collection. */
+  public _setCollectionExpanded(
+    id: number,
+    isExpanded: boolean
+  ): Promise<void> {
+    return this.collectionsStore.setExpanded(id, isExpanded)
+  }
+
+  /** Move a repository into a collection (or back to root if collectionId is null). */
+  public async _moveRepositoryToCollection(
+    repository: Repository,
+    collectionId: number | null
+  ): Promise<void> {
+    if (collectionId === null) {
+      await this.repositoriesStore.setRepositoryCollection(
+        repository,
+        null,
+        null
+      )
+      return
+    }
+
+    const states =
+      await this.repositoriesStore.getAllRepositoryCollectionStates()
+    const siblingOrders: number[] = []
+    for (const [repoId, s] of states) {
+      if (s.collectionId === collectionId && repoId !== repository.id) {
+        siblingOrders.push(s.collectionDisplayOrder ?? 0)
+      }
+    }
+    const nextOrder =
+      siblingOrders.length === 0 ? 0 : Math.max(...siblingOrders) + 1
+    await this.repositoriesStore.setRepositoryCollection(
+      repository,
+      collectionId,
+      nextOrder
+    )
+  }
+
+  /**
+   * Reorder a repository within its current collection. `newIndex` is clamped to
+   * [0, sibling count - 1]. Rebalances all siblings' displayOrder to be 0..n-1.
+   */
+  public async _reorderRepositoryInCollection(
+    repositoryId: number,
+    collectionId: number,
+    newIndex: number
+  ): Promise<void> {
+    const states =
+      await this.repositoriesStore.getAllRepositoryCollectionStates()
+    const siblings = Array.from(states.entries())
+      .filter(([, s]) => s.collectionId === collectionId)
+      .map(([id, s]) => ({ id, order: s.collectionDisplayOrder ?? 0 }))
+      .sort((a, b) => a.order - b.order)
+
+    const currentIndex = siblings.findIndex(s => s.id === repositoryId)
+    if (currentIndex === -1) {
+      return
+    }
+    const clamped = Math.max(0, Math.min(siblings.length - 1, newIndex))
+    if (clamped === currentIndex) {
+      return
+    }
+    const [moved] = siblings.splice(currentIndex, 1)
+    siblings.splice(clamped, 0, moved)
+
+    for (let i = 0; i < siblings.length; i++) {
+      const repo = this.repositories.find(r => r.id === siblings[i].id)
+      if (repo instanceof Repository) {
+        await this.repositoriesStore.setRepositoryCollection(
+          repo,
+          collectionId,
+          i
+        )
+      }
     }
   }
 

@@ -50,14 +50,11 @@ import { DeleteBranch, DeleteRemoteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import {
   Toolbar,
-  ToolbarDropdown,
   DropdownState,
   PushPullButton,
   BranchDropdown,
   RevertProgress,
 } from './toolbar'
-import { iconForRepository, OcticonSymbol } from './octicons'
-import * as octicons from './octicons/octicons.generated'
 import {
   showCertificateTrustDialog,
   sendReady,
@@ -135,6 +132,8 @@ import { CommitOneLine } from '../models/commit'
 import { CommitDragElement } from './drag-elements/commit-drag-element'
 import classNames from 'classnames'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
+import { ICollectionWithChildren } from '../models/collection'
+import { Resizable } from './resizable'
 import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
 import { ThankYou } from './thank-you'
 import {
@@ -159,14 +158,11 @@ import { ConfirmForcePush } from './rebase/confirm-force-push'
 import { PullRequestChecksFailed } from './notifications/pull-request-checks-failed'
 import { CICheckRunRerunDialog } from './check-runs/ci-check-run-rerun-dialog'
 import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-push-dialog'
-import { clamp } from '../lib/clamp'
-import { generateRepositoryListContextMenu } from './repositories-list/repository-list-item-context-menu'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
 import { PullRequestReview } from './notifications/pull-request-review'
 import { getRepositoryType } from '../lib/git'
 import { SSHUserPassword } from './ssh/ssh-user-password'
-import { showContextualMenu } from '../lib/menu-item'
 import { UnreachableCommitsDialog } from './history/unreachable-commits-dialog'
 import { OpenPullRequestDialog } from './open-pull-request/open-pull-request-dialog'
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
@@ -270,6 +266,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   private getOnPopupDismissedFn = memoizeOne((popupId: number) => {
     return () => this.onPopupDismissed(popupId)
   })
+
+  private repoPanelWidth: number =
+    Number(localStorage.getItem('repo-panel-width')) || 250
 
   public constructor(props: IAppProps) {
     super(props)
@@ -1178,7 +1177,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         await dispatcher.selectRepository(addedRepositories[0])
       }
     } else if (paths.length === 1) {
-      // user may accidentally provide a folder within the repository
+      // user may accidentally provide a collection within the repository
       // this ensures we use the repository root, if it is actually a repository
       // otherwise we consider it an untracked repository
       const path = await getRepositoryType(paths[0])
@@ -2910,13 +2909,44 @@ export class App extends React.Component<IAppProps, IAppState> {
         id="desktop-app-contents"
         className={this.getDesktopAppContentsClassNames()}
       >
-        {this.renderToolbar()}
-        {this.renderBanner()}
-        {this.renderRepository()}
-        {this.renderPopups()}
-        {this.renderDragElement()}
+        {this.renderRepositoryListPanel()}
+        <div className="main-app-content">
+          {this.renderToolbar()}
+          {this.renderBanner()}
+          {this.renderRepository()}
+          {this.renderPopups()}
+          {this.renderDragElement()}
+        </div>
       </div>
     )
+  }
+
+  private renderRepositoryListPanel(): JSX.Element {
+    return (
+      <Resizable
+        id="repository-list-panel"
+        width={this.repoPanelWidth}
+        minimumWidth={180}
+        maximumWidth={500}
+        onResize={this.onRepoPanelResize}
+        onReset={this.onRepoPanelReset}
+        description="Repository list panel"
+      >
+        {this.renderRepositoryList()}
+      </Resizable>
+    )
+  }
+
+  private onRepoPanelResize = (width: number) => {
+    this.repoPanelWidth = width
+    localStorage.setItem('repo-panel-width', String(width))
+    this.forceUpdate()
+  }
+
+  private onRepoPanelReset = () => {
+    this.repoPanelWidth = 250
+    localStorage.removeItem('repo-panel-width')
+    this.forceUpdate()
   }
 
   private renderRepositoryList = (): JSX.Element => {
@@ -2926,6 +2956,20 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const { useCustomShell, selectedShell } = this.state
     const filterText = this.state.repositoryFilterText
+
+    const collectedRepositoryIds = new Set<number>()
+    const collectIds = (
+      collections: ReadonlyArray<ICollectionWithChildren>
+    ) => {
+      for (const f of collections) {
+        for (const id of f.repositoryIds) {
+          collectedRepositoryIds.add(id)
+        }
+        collectIds(f.childCollections)
+      }
+    }
+    collectIds(this.state.collections)
+
     return (
       <RepositoriesList
         filterText={filterText}
@@ -2946,6 +2990,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         externalEditorLabel={this.externalEditorLabel}
         shellLabel={useCustomShell ? undefined : selectedShell}
         dispatcher={this.props.dispatcher}
+        collections={this.state.collections}
+        collectedRepositoryIds={collectedRepositoryIds}
       />
     )
   }
@@ -3042,102 +3088,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       // Otherwise pop open repositories panel
       this.onRepositoryDropdownStateChanged('open')
     }
-  }
-
-  private renderRepositoryToolbarButton() {
-    const selection = this.state.selectedState
-
-    const repository = selection ? selection.repository : null
-
-    let icon: OcticonSymbol
-    let title: string
-    if (repository) {
-      const alias = repository instanceof Repository ? repository.alias : null
-      icon = iconForRepository(repository)
-      title = alias ?? repository.name
-    } else if (this.state.repositories.length > 0) {
-      icon = octicons.repo
-      title = __DARWIN__ ? 'Select a Repository' : 'Select a repository'
-    } else {
-      icon = octicons.repo
-      title = __DARWIN__ ? 'No Repositories' : 'No repositories'
-    }
-
-    const isOpen =
-      this.state.currentFoldout &&
-      this.state.currentFoldout.type === FoldoutType.Repository
-
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-
-    const tooltip = repository && !isOpen ? repository.path : undefined
-
-    const foldoutWidth = clamp(this.state.sidebarWidth)
-
-    const foldoutStyle: React.CSSProperties = {
-      position: 'absolute',
-      marginLeft: 0,
-      width: foldoutWidth,
-      minWidth: foldoutWidth,
-      height: '100%',
-      top: 0,
-    }
-
-    /** The dropdown focus trap will stop focus event propagation we made need
-     * in some of our dialogs (noticed with Lists). Disabled this when dialogs
-     * are open */
-    const enableFocusTrap = this.state.currentPopup === null
-
-    return (
-      <ToolbarDropdown
-        icon={icon}
-        title={title}
-        description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
-        tooltip={tooltip}
-        foldoutStyle={foldoutStyle}
-        onContextMenu={this.onRepositoryToolbarButtonContextMenu}
-        onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
-        dropdownContentRenderer={this.renderRepositoryList}
-        dropdownState={currentState}
-        enableFocusTrap={enableFocusTrap}
-      />
-    )
-  }
-
-  private onRepositoryToolbarButtonContextMenu = () => {
-    const repository = this.state.selectedState?.repository
-    if (repository === undefined) {
-      return
-    }
-
-    const onChangeRepositoryAlias = (repository: Repository) => {
-      this.props.dispatcher.showPopup({
-        type: PopupType.ChangeRepositoryAlias,
-        repository,
-      })
-    }
-
-    const onRemoveRepositoryAlias = (repository: Repository) => {
-      this.props.dispatcher.changeRepositoryAlias(repository, null)
-    }
-
-    const items = generateRepositoryListContextMenu({
-      onRemoveRepository: this.removeRepository,
-      onShowRepository: this.showRepository,
-      onOpenInShell: this.openInShell,
-      onOpenInExternalEditor: this.openInExternalEditor,
-      askForConfirmationOnRemoveRepository:
-        this.state.askForConfirmationOnRepositoryRemoval,
-      externalEditorLabel: this.externalEditorLabel,
-      onChangeRepositoryAlias: onChangeRepositoryAlias,
-      onRemoveRepositoryAlias: onRemoveRepositoryAlias,
-      onViewOnGitHub: this.viewOnGitHub,
-      repository: repository,
-      shellLabel: this.state.useCustomShell
-        ? undefined
-        : this.state.selectedShell,
-    })
-
-    showContextualMenu(items)
   }
 
   private renderPushPullToolbarButton() {
@@ -3405,13 +3355,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const width = clamp(this.state.sidebarWidth)
-
     return (
       <Toolbar id="desktop-app-toolbar">
-        <div className="sidebar-section" style={{ width }}>
-          {this.renderRepositoryToolbarButton()}
-        </div>
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
       </Toolbar>

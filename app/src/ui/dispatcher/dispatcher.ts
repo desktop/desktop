@@ -54,6 +54,7 @@ import type {
   CopilotFeature,
   CopilotModelSelections,
 } from '../../lib/stores/copilot-store'
+import { ICollection } from '../../models/collection'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
 
@@ -1523,7 +1524,7 @@ export class Dispatcher {
     )
   }
 
-  /** Moves the app to the /Applications folder on macOS. */
+  /** Moves the app to the /Applications collection on macOS. */
   public moveToApplicationsFolder() {
     return moveToApplicationsFolder()
   }
@@ -1924,7 +1925,7 @@ export class Dispatcher {
         await this.openOrCloneRepository(url)
       }
     } else if (action.kind === 'open-repository') {
-      // user may accidentally provide a folder within the repository
+      // user may accidentally provide a collection within the repository
       // this ensures we use the repository root, if it is actually a repository
       // otherwise we consider it an untracked repository
       const path = await getRepositoryType(action.path)
@@ -4104,5 +4105,59 @@ export class Dispatcher {
   /** Fetch the list of available Copilot models from the SDK. */
   public fetchCopilotModels(): Promise<void> {
     return this.appStore._fetchCopilotModels()
+  }
+
+  /** Create a new collection under the given parent (null = root). */
+  public createCollection(
+    name: string,
+    parentId: number | null
+  ): Promise<ICollection> {
+    return this.appStore._createCollection(name, parentId)
+  }
+
+  /** Rename a collection. */
+  public renameCollection(id: number, name: string): Promise<void> {
+    return this.appStore._renameCollection(id, name)
+  }
+
+  /** Delete a collection, promoting contents to the parent level. */
+  public deleteCollection(id: number): Promise<void> {
+    return this.appStore._deleteCollection(id)
+  }
+
+  /** Move a collection under a new parent. */
+  public moveCollection(id: number, newParentId: number | null): Promise<void> {
+    return this.appStore._moveCollection(id, newParentId)
+  }
+
+  /** Reorder a collection within its current parent. */
+  public reorderCollection(id: number, newIndex: number): Promise<void> {
+    return this.appStore._reorderCollection(id, newIndex)
+  }
+
+  /** Toggle collection expand/collapse and persist. */
+  public setCollectionExpanded(id: number, isExpanded: boolean): Promise<void> {
+    return this.appStore._setCollectionExpanded(id, isExpanded)
+  }
+
+  /** Move a repository into a collection (null = root). */
+  public moveRepositoryToCollection(
+    repository: Repository,
+    collectionId: number | null
+  ): Promise<void> {
+    return this.appStore._moveRepositoryToCollection(repository, collectionId)
+  }
+
+  /** Reorder a repository within its current collection. */
+  public reorderRepositoryInCollection(
+    repositoryId: number,
+    collectionId: number,
+    newIndex: number
+  ): Promise<void> {
+    return this.appStore._reorderRepositoryInCollection(
+      repositoryId,
+      collectionId,
+      newIndex
+    )
   }
 }

@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { BaseDatabase } from '../../src/lib/databases/base-database'
+import { RepositoriesDatabase } from '../../src/lib/databases/repositories-database'
 
 let dbCounter = 0
 
@@ -52,6 +53,36 @@ describe('BaseDatabase', () => {
       assert.equal(indexes.includes('name'), false)
       assert.equal(indexes.includes('status'), false)
       db.close()
+    })
+
+    it('migrates from v9 to v11 preserving repositories and exposes the collections table', async () => {
+      const databaseName = 'DatabaseMigrationTest-v9-to-v11'
+
+      let db = new RepositoriesDatabase(databaseName, 9)
+      await db.open()
+
+      const repoId = await db.repositories.add({
+        gitHubRepositoryID: null,
+        path: '/some/cool/path',
+        alias: null,
+        missing: false,
+      })
+
+      db.close()
+
+      db = new RepositoriesDatabase(databaseName, 11)
+      await db.open()
+
+      const repo = await db.repositories.get(repoId)
+      assert.notEqual(repo, undefined)
+      assert.equal(repo!.path, '/some/cool/path')
+      assert.equal(repo!.collectionId ?? null, null)
+      assert.equal(repo!.collectionDisplayOrder ?? null, null)
+
+      const collections = await db.collections.toArray()
+      assert.equal(collections.length, 0)
+
+      await db.delete()
     })
   })
 })

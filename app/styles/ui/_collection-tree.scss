@@ -1,0 +1,137 @@
+@import '../mixins';
+
+.collection-tree-section {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.collection-tree-item {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 29px;
+  padding-right: var(--spacing);
+  padding-left: var(--spacing);
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background-color: var(--list-item-hover-background-color);
+  }
+
+  .collection-chevron {
+    background: transparent;
+    border: none;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin-right: var(--spacing-third);
+    cursor: pointer;
+    color: var(--text-color);
+
+    .octicon {
+      width: 10px;
+      height: 10px;
+    }
+  }
+
+  .collection-icon {
+    margin-right: var(--spacing-half);
+    flex-shrink: 0;
+    width: 16px;
+  }
+
+  .collection-name {
+    @include ellipsis;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .collection-name-input {
+    flex: 1;
+    min-width: 0;
+    background: var(--box-background-color);
+    border: 1px solid var(--box-selected-border-color);
+    border-radius: var(--border-radius);
+    color: var(--text-color);
+    font-size: inherit;
+    padding: 2px 4px;
+    height: 22px;
+    box-sizing: border-box;
+  }
+
+  &.drop-into {
+    background-color: var(--box-selected-active-background-color);
+  }
+
+  &.drop-before::before,
+  &.drop-after::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--box-selected-border-color);
+    pointer-events: none;
+  }
+
+  &.drop-before::before {
+    top: -1px;
+  }
+
+  &.drop-after::after {
+    bottom: -1px;
+  }
+}
+
+.collected-repository {
+  position: relative;
+  height: 29px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--list-item-hover-background-color);
+  }
+
+  &.selected {
+    background-color: var(--box-selected-background-color);
+    color: var(--box-selected-text-color);
+  }
+
+  .repository-list-item {
+    width: 100%;
+    height: 100%;
+  }
+
+  &.drop-before::before,
+  &.drop-after::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--box-selected-border-color);
+    pointer-events: none;
+  }
+
+  &.drop-before::before {
+    top: -1px;
+  }
+
+  &.drop-after::after {
+    bottom: -1px;
+  }
+}
+
+.collection-repositories-list,
+.collection-children {
+  display: flex;
+  flex-direction: column;
+}

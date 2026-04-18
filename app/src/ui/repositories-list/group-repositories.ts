@@ -77,7 +77,9 @@ type RepoGroupItem = { group: RepositoryListGroup; repos: Repositoryish[] }
 export function groupRepositories(
   repositories: ReadonlyArray<Repositoryish>,
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-  recentRepositories: ReadonlyArray<number>
+  recentRepositories: ReadonlyArray<number>,
+  /** Repositories that live in a user-defined collection — excluded from owner groups but kept in Recent. */
+  collected: ReadonlySet<number> = new Set()
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem, RepositoryListGroup>> {
   const includeRecentGroup = repositories.length > recentRepositoriesThreshold
   const recentSet = includeRecentGroup ? new Set(recentRepositories) : undefined
@@ -97,6 +99,10 @@ export function groupRepositories(
   for (const repo of repositories) {
     if (recentSet?.has(repo.id) && repo instanceof Repository) {
       addToGroup({ kind: 'recent' }, repo)
+    }
+
+    if (collected.has(repo.id)) {
+      continue
     }
 
     addToGroup(getGroupForRepository(repo), repo)

@@ -97,4 +97,68 @@ describe('RepositoriesStore', () => {
       )
     })
   })
+
+  describe('setRepositoryCollection', () => {
+    it('assigns a repository to a folder and persists collectionDisplayOrder', async () => {
+      const repo = await repositoriesStore.addRepository('/cool/path')
+      await repositoriesStore.setRepositoryCollection(repo, 42, 0)
+
+      const all = await repoDb.repositories.toArray()
+      assert.equal(all[0].collectionId, 42)
+      assert.equal(all[0].collectionDisplayOrder, 0)
+    })
+
+    it('clears folder assignment when collectionId is null', async () => {
+      const repo = await repositoriesStore.addRepository('/cool/path')
+      await repositoriesStore.setRepositoryCollection(repo, 42, 0)
+      await repositoriesStore.setRepositoryCollection(repo, null, null)
+
+      const all = await repoDb.repositories.toArray()
+      assert.equal(all[0].collectionId ?? null, null)
+    })
+  })
+
+  describe('getRepositoryCollectionState', () => {
+    it('returns the raw collectionId and collectionDisplayOrder', async () => {
+      const repo = await repositoriesStore.addRepository('/cool/path')
+      await repositoriesStore.setRepositoryCollection(repo, 7, 3)
+
+      const state = await repositoriesStore.getRepositoryCollectionState(
+        repo.id
+      )
+      assert.equal(state.collectionId, 7)
+      assert.equal(state.collectionDisplayOrder, 3)
+    })
+  })
+
+  describe('getAllRepositoryCollectionStates', () => {
+    it('returns a map of repoId -> {collectionId, collectionDisplayOrder}', async () => {
+      const a = await repositoriesStore.addRepository('/a')
+      const b = await repositoriesStore.addRepository('/b')
+      await repositoriesStore.setRepositoryCollection(a, 1, 0)
+      await repositoriesStore.setRepositoryCollection(b, 1, 1)
+
+      const map = await repositoriesStore.getAllRepositoryCollectionStates()
+      assert.equal(map.get(a.id)?.collectionId, 1)
+      assert.equal(map.get(b.id)?.collectionId, 1)
+    })
+  })
+
+  describe('clearCollectionForRepositoriesIn', () => {
+    it('sets collectionId to null for all repos in a given folder', async () => {
+      const a = await repositoriesStore.addRepository('/a')
+      const b = await repositoriesStore.addRepository('/b')
+      const c = await repositoriesStore.addRepository('/c')
+      await repositoriesStore.setRepositoryCollection(a, 5, 0)
+      await repositoriesStore.setRepositoryCollection(b, 5, 1)
+      await repositoriesStore.setRepositoryCollection(c, 6, 0)
+
+      await repositoriesStore.clearCollectionForRepositoriesIn(5)
+
+      const map = await repositoriesStore.getAllRepositoryCollectionStates()
+      assert.equal(map.get(a.id)?.collectionId ?? null, null)
+      assert.equal(map.get(b.id)?.collectionId ?? null, null)
+      assert.equal(map.get(c.id)?.collectionId, 6)
+    })
+  })
 })

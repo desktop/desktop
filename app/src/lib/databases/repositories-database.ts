@@ -65,6 +65,19 @@ export interface IDatabaseRepository {
    * of Git and GitHub.
    */
   readonly isTutorialRepository?: boolean
+
+  /** The collection containing this repository, or null if at the root. */
+  readonly collectionId?: number | null
+  /** Display order within the containing collection, or root if collectionId is null. */
+  readonly collectionDisplayOrder?: number | null
+}
+
+export interface IDatabaseCollection {
+  readonly id?: number
+  readonly parentId: number | null
+  readonly name: string
+  readonly displayOrder: number
+  readonly isExpanded: boolean
 }
 
 /**
@@ -92,6 +105,9 @@ export class RepositoriesDatabase extends BaseDatabase {
 
   /** The GitHub repository owners table. */
   public declare owners: Dexie.Table<IDatabaseOwner, number>
+
+  /** User-defined collections for organizing repositories. */
+  public declare collections: Dexie.Table<IDatabaseCollection, number>
 
   /**
    * Initialize a new repository database.
@@ -137,6 +153,48 @@ export class RepositoriesDatabase extends BaseDatabase {
 
     this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
     this.conditionalVersion(9, { owners: '++id, &key' }, createOwnerKey)
+
+    this.conditionalVersion(10, {
+      collections: '++id, parentId, [parentId+displayOrder]',
+      repositories: '++id, &path, folderId, [folderId+folderDisplayOrder]',
+    })
+
+    this.conditionalVersion(
+      11,
+      {
+        collections: '++id, parentId, [parentId+displayOrder]',
+        repositories:
+          '++id, &path, collectionId, [collectionId+collectionDisplayOrder]',
+      },
+      renameFoldersToCollections
+    )
+  }
+}
+
+async function renameFoldersToCollections(tx: Transaction) {
+  const collections = tx.table('collections')
+  const repositories = tx.table('repositories')
+
+  try {
+    const folders = tx.table('folders')
+    const existing = await folders.toArray()
+    if (existing.length > 0) {
+      await collections.bulkPut(existing)
+    }
+  } catch {
+    // folders table may not exist on fresh installs — that's fine
+  }
+
+  const repos = await repositories.toArray()
+  for (const r of repos) {
+    if (r.folderId != null || r.folderDisplayOrder != null) {
+      await repositories.update(r.id, {
+        collectionId: r.folderId ?? null,
+        collectionDisplayOrder: r.folderDisplayOrder ?? null,
+        folderId: null,
+        folderDisplayOrder: null,
+      })
+    }
   }
 }
 

@@ -342,6 +342,73 @@ export class RepositoriesStore extends TypedBaseStore<
   }
 
   /**
+   * Assign or remove a repository's folder placement.
+   * The Repository model is not changed — folder membership is purely metadata
+   * consumed by the repositories-list UI. collectionId=null means "root".
+   */
+  public async setRepositoryCollection(
+    repository: Repository,
+    collectionId: number | null,
+    collectionDisplayOrder: number | null
+  ): Promise<void> {
+    await this.db.repositories.update(repository.id, {
+      collectionId,
+      collectionDisplayOrder,
+    })
+    this.emitUpdatedRepositories()
+  }
+
+  /** Read a single repository's folder state. */
+  public async getRepositoryCollectionState(repositoryId: number): Promise<{
+    collectionId: number | null
+    collectionDisplayOrder: number | null
+  }> {
+    const row = await this.db.repositories.get(repositoryId)
+    return {
+      collectionId: row?.collectionId ?? null,
+      collectionDisplayOrder: row?.collectionDisplayOrder ?? null,
+    }
+  }
+
+  /** Read all repositories' folder state as a map keyed by repository id. */
+  public async getAllRepositoryCollectionStates(): Promise<
+    Map<
+      number,
+      { collectionId: number | null; collectionDisplayOrder: number | null }
+    >
+  > {
+    const rows = await this.db.repositories.toArray()
+    const result = new Map<
+      number,
+      { collectionId: number | null; collectionDisplayOrder: number | null }
+    >()
+    for (const row of rows) {
+      result.set(row.id!, {
+        collectionId: row.collectionId ?? null,
+        collectionDisplayOrder: row.collectionDisplayOrder ?? null,
+      })
+    }
+    return result
+  }
+
+  /** Clear collectionId on every repository currently in the given folder. */
+  public async clearCollectionForRepositoriesIn(
+    collectionId: number
+  ): Promise<void> {
+    const rows = await this.db.repositories.toArray()
+    const affected = rows.filter(r => r.collectionId === collectionId)
+    for (const row of affected) {
+      await this.db.repositories.update(row.id!, {
+        collectionId: null,
+        collectionDisplayOrder: null,
+      })
+    }
+    if (affected.length > 0) {
+      this.emitUpdatedRepositories()
+    }
+  }
+
+  /**
    * Sets the last time the repository was checked for stash entries
    *
    * @param repository The repository in which to update the last stash check date for
