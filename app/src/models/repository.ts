@@ -8,7 +8,7 @@ import {
 } from './workflow-preferences'
 import { assertNever, fatalError } from '../lib/fatal-error'
 import { createEqualityHash } from './equality-hash'
-import { isLinkedWorktreeSync } from '../lib/git/worktree'
+import { getWorktreePathInfoSync } from '../lib/git/worktree'
 
 function getBaseName(path: string): string {
   const baseName = Path.basename(path)
@@ -40,10 +40,12 @@ export class Repository {
    * A hash of the properties of the object.
    *
    * Objects with the same hash are guaranteed to be structurally equal.
-   */
+  */
   public hash: string
 
+  private _hasLoadedWorktreeInfo = false
   private _isLinkedWorktree: boolean | undefined = undefined
+  private _mainWorktreePath: string | undefined = undefined
 
   /**
    * @param path The working directory of this repository
@@ -81,11 +83,25 @@ export class Repository {
     return this.mainWorkTree.path
   }
 
-  public get isLinkedWorktree(): boolean {
-    if (this._isLinkedWorktree === undefined) {
-      this._isLinkedWorktree = isLinkedWorktreeSync(this.path)
+  private ensureWorktreeInfoLoaded() {
+    if (this._hasLoadedWorktreeInfo) {
+      return
     }
-    return this._isLinkedWorktree
+
+    const worktreeInfo = getWorktreePathInfoSync(this.path)
+    this._isLinkedWorktree = worktreeInfo?.isLinkedWorktree ?? false
+    this._mainWorktreePath = worktreeInfo?.mainWorktreePath ?? this.path
+    this._hasLoadedWorktreeInfo = true
+  }
+
+  public get isLinkedWorktree(): boolean {
+    this.ensureWorktreeInfoLoaded()
+    return this._isLinkedWorktree ?? false
+  }
+
+  public get mainWorktreePath(): string {
+    this.ensureWorktreeInfoLoaded()
+    return this._mainWorktreePath ?? this.path
   }
 }
 

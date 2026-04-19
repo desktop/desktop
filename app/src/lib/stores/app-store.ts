@@ -6640,9 +6640,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
           continue
         }
 
-        const addedRepo = await this.repositoriesStore.addRepository(
+        let addedRepo = await this.repositoriesStore.addRepository(
           validatedPath
         )
+
+        if (addedRepo.isLinkedWorktree) {
+          const mainWorktreeRepo = matchExistingRepository(
+            repositories,
+            addedRepo.mainWorktreePath
+          )
+
+          if (
+            mainWorktreeRepo !== undefined &&
+            isRepositoryWithGitHubRepository(mainWorktreeRepo)
+          ) {
+            addedRepo = await this.repositoriesStore.setGitHubRepository(
+              addedRepo,
+              mainWorktreeRepo.gitHubRepository
+            )
+          }
+        }
 
         // initialize the remotes for this new repository to ensure it can fetch
         // it's GitHub-related details using the GitHub API (if applicable)
