@@ -159,13 +159,9 @@ describe('git/reorder', () => {
     await writeFile(thirdMessagePath, 'third - fixed')
 
     // continue rebase
-    let continueResult = await continueRebase(
-      repository,
-      files,
-      undefined,
-      undefined,
-      `cat "${thirdMessagePath}" >`
-    )
+    let continueResult = await continueRebase(repository, files, undefined, {
+      gitEditor: `cat "${thirdMessagePath}" >`,
+    })
 
     // This will now conflict with the 'third' commit since it is going to now
     // apply the 'second' commit which now modifies the same lines in the
@@ -185,13 +181,9 @@ describe('git/reorder', () => {
     )
     await writeFile(secondMessagePath, 'second - fixed')
 
-    continueResult = await continueRebase(
-      repository,
-      files,
-      undefined,
-      undefined,
-      `cat "${secondMessagePath}" >`
-    )
+    continueResult = await continueRebase(repository, files, undefined, {
+      gitEditor: `cat "${secondMessagePath}" >`,
+    })
     assert.equal(continueResult, RebaseResult.CompletedWithoutError)
 
     const log = await getCommits(repository, 'HEAD', 5)

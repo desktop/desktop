@@ -8,14 +8,34 @@ import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import { RadioGroup } from '../lib/radio-group'
 import { Select } from '../lib/select'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { encodePathAsUrl } from '../../lib/path'
 import { tabSizeDefault } from '../../lib/stores/app-store'
+import { enableFormattingPreferences } from '../../lib/feature-flag'
+import {
+  DateFormat,
+  TimeFormat,
+  INumberFormat,
+  dateFormats,
+  timeFormats,
+  numberFormats,
+  numberFormatToKey,
+} from '../../models/formatting-preferences'
+import { formatNumber } from '../../lib/format-number'
 
 interface IAppearanceProps {
   readonly selectedTheme: ApplicationTheme
   readonly onSelectedThemeChanged: (theme: ApplicationTheme) => void
   readonly selectedTabSize: number
   readonly onSelectedTabSizeChanged: (tabSize: number) => void
+  readonly selectedDateFormat: DateFormat
+  readonly onSelectedDateFormatChanged: (format: DateFormat) => void
+  readonly selectedTimeFormat: TimeFormat
+  readonly onSelectedTimeFormatChanged: (format: TimeFormat) => void
+  readonly selectedNumberFormat: INumberFormat
+  readonly onSelectedNumberFormatChanged: (format: INumberFormat) => void
+  readonly preferAbsoluteDates: boolean
+  readonly onPreferAbsoluteDatesChanged: (value: boolean) => void
 }
 
 interface IAppearanceState {
@@ -76,6 +96,39 @@ export class Appearance extends React.Component<
     event: React.FormEvent<HTMLSelectElement>
   ) => {
     this.props.onSelectedTabSizeChanged(parseInt(event.currentTarget.value))
+  }
+
+  private onDateFormatChanged = (event: React.FormEvent<HTMLSelectElement>) => {
+    const value = event.currentTarget.value
+    const match = dateFormats.find(f => f.pattern === value)
+    if (match !== undefined) {
+      this.props.onSelectedDateFormatChanged(match.pattern)
+    }
+  }
+
+  private onTimeFormatChanged = (event: React.FormEvent<HTMLSelectElement>) => {
+    const value = event.currentTarget.value
+    const match = timeFormats.find(f => f.pattern === value)
+    if (match !== undefined) {
+      this.props.onSelectedTimeFormatChanged(match.pattern)
+    }
+  }
+
+  private onNumberFormatChanged = (
+    event: React.FormEvent<HTMLSelectElement>
+  ) => {
+    const match = numberFormats.find(
+      n => numberFormatToKey(n) === event.currentTarget.value
+    )
+    if (match) {
+      this.props.onSelectedNumberFormatChanged(match)
+    }
+  }
+
+  private onPreferAbsoluteDatesChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onPreferAbsoluteDatesChanged(event.currentTarget.checked)
   }
 
   public renderThemeSwatch = (theme: ApplicationTheme) => {
@@ -144,12 +197,76 @@ export class Appearance extends React.Component<
     )
   }
 
+  private renderFormatting() {
+    if (!enableFormattingPreferences()) {
+      return null
+    }
+
+    return (
+      <div className="appearance-section formatting-section">
+        <h2 id="formatting-heading">Formatting</h2>
+
+        <Row>
+          <Select
+            label={__DARWIN__ ? 'Date Format' : 'Date format'}
+            value={this.props.selectedDateFormat}
+            onChange={this.onDateFormatChanged}
+          >
+            {dateFormats.map(({ pattern, example }) => (
+              <option key={pattern} value={pattern}>
+                {example} ({pattern})
+              </option>
+            ))}
+          </Select>
+
+          <Select
+            label={__DARWIN__ ? 'Time Format' : 'Time format'}
+            value={this.props.selectedTimeFormat}
+            onChange={this.onTimeFormatChanged}
+          >
+            {timeFormats.map(({ pattern, example }) => (
+              <option key={pattern} value={pattern}>
+                {example} ({pattern})
+              </option>
+            ))}
+          </Select>
+        </Row>
+
+        <Select
+          label={__DARWIN__ ? 'Number Format' : 'Number format'}
+          value={numberFormatToKey(this.props.selectedNumberFormat)}
+          onChange={this.onNumberFormatChanged}
+        >
+          {numberFormats.map(format => (
+            <option
+              key={numberFormatToKey(format)}
+              value={numberFormatToKey(format)}
+            >
+              {formatNumber(1234567.89, format)}
+            </option>
+          ))}
+        </Select>
+
+        <Checkbox
+          className="prefer-absolute-dates"
+          label="Prefer absolute dates over relative"
+          value={
+            this.props.preferAbsoluteDates
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onPreferAbsoluteDatesChanged}
+        />
+      </div>
+    )
+  }
+
   private renderSelectedTabSize() {
     const availableTabSizes: number[] = [1, 2, 3, 4, 5, 6, 8, 10, 12]
 
     return (
       <div className="appearance-section">
-        <h2 id="diff-heading">{'Diff'}</h2>
+        <h2 id="diff-heading">Diff</h2>
 
         <Select
           value={this.state.selectedTabSize.toString()}
@@ -170,6 +287,7 @@ export class Appearance extends React.Component<
     return (
       <DialogContent>
         {this.renderSelectedTheme()}
+        {this.renderFormatting()}
         {this.renderSelectedTabSize()}
       </DialogContent>
     )

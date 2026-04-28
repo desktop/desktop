@@ -22,7 +22,6 @@ import { SectionFilterList } from '../lib/section-filter-list'
 import memoizeOne from 'memoize-one'
 import { getAuthors } from '../../lib/git/log'
 import { Repository } from '../../models/repository'
-import uuid from 'uuid'
 import { formatDate } from '../../lib/format-date'
 
 const RowHeight = 30
@@ -156,16 +155,22 @@ export class BranchList extends React.Component<
   )
 
   /**
-   * Generate an opaque value any time groups or commitAuthorDates changes
+   * Generate a new object any time groups or commitAuthorDates changes
    * in order to force the list to re-render.
    *
-   * Note, change is determined by reference equality
+   * Note, change is determined by reference equality. This opaque object
+   * will be passed down to the react-virtualized List component as a prop
+   * causing it to re-render whenever either of these inputs change.
+   *
+   * Note that the return value here can be anything as long as it's not
+   * considered equal (reference equality) to the previously returned value.
+   * Using a guid which we used to do works but is overkill.
    */
   private getInvalidationProp = memoizeOne(
     (
       _groups: ReturnType<typeof groupBranches>,
       _commitAuthorDates: IBranchListState['commitAuthorDates']
-    ) => uuid()
+    ) => ({})
   )
 
   private get invalidationProp() {

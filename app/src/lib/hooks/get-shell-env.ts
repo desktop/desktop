@@ -15,10 +15,11 @@ export type ShellEnvResult =
 
 export const getShellEnv = async (
   cwd?: string,
-  shellKind?: SupportedHooksEnvShell
+  shellKind?: SupportedHooksEnvShell,
+  printenvzPath?: string
 ): Promise<ShellEnvResult> => {
   const ext = __WIN32__ ? '.exe' : ''
-  const printenvzPath = join(__dirname, `printenvz${ext}`)
+  printenvzPath ??= join(__dirname, `printenvz${ext}`)
 
   const shellInfo = await getShell(shellKind)
 
@@ -47,20 +48,28 @@ export const getShellEnv = async (
         // It's possible that the user writes to stdout in their shell init
         // script which would get picked up here so we've added a marker to the
         // output of printenvz so we can be sure we're only parsing its output
-        const startMarker = '--printenvz--begin\n'
-        const endMarker = '\n--printenvz--end\n'
+        const startRe = /--printenvz--begin\r?\n/
+        const endRe = /\r?\n--printenvz--end\r?\n/g
 
-        const start = stdout.indexOf(startMarker)
-        const end = stdout.indexOf(endMarker)
+        const startMatch = stdout.match(startRe)
 
-        if (start === -1 || end === -1 || start >= end) {
+        if (!startMatch || startMatch.index === undefined) {
           return reject(
-            new Error('could not find environment variables in shell output')
+            new Error('could not find start marker in shell output')
           )
         }
 
+        const lastEndMatch = [...stdout.matchAll(endRe)].at(-1)
+
+        if (!lastEndMatch) {
+          return reject(new Error('could not find end marker in shell output'))
+        }
+
         const matches = stdout
-          .substring(start + startMarker.length, end)
+          .substring(
+            startMatch.index + startMatch[0].length,
+            lastEndMatch.index
+          )
           .matchAll(/([^=]+)=([^\0]*)\0/g)
 
         resolve({

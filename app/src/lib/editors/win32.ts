@@ -566,14 +566,24 @@ async function findApplication(editor: WindowsExternalEditor) {
 }
 
 const getJetBrainsToolboxEditors = memoizeOne(async () => {
-  const re = /^JetBrains Toolbox \((.*)\)/
+  const re = /^JetBrains Toolbox \(.*\)/
   const editors = new Array<WindowsExternalEditor>()
 
   for (const parent of [uninstallSubKey, wow64UninstallSubKey]) {
     for (const key of enumerateKeys(HKEY.HKEY_CURRENT_USER, parent)) {
       const m = re.exec(key)
       if (m) {
-        const [name, product] = m
+        // Get DisplayName value directly, since it doesn't always match what is between () in the /JetBrains Toolbox (...)/ regex
+        const displayName = getKeyOrEmpty(
+          enumerateValues(HKEY.HKEY_CURRENT_USER, `${parent}\\${key}`),
+          'DisplayName'
+        )
+        if (!displayName) {
+          log.debug(`Missing DisplayName for registry key ${parent}\\${key}`)
+          continue
+        }
+
+        const [name] = m
         editors.push({
           name,
           installLocationRegistryKey: 'DisplayIcon',
@@ -583,7 +593,7 @@ const getJetBrainsToolboxEditors = memoizeOne(async () => {
               subKey: `${parent}\\${key}`,
             },
           ],
-          displayNamePrefixes: [product],
+          displayNamePrefixes: [displayName],
           publishers: ['JetBrains s.r.o.'],
         })
       }

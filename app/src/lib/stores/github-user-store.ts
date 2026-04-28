@@ -10,6 +10,8 @@ import { compare } from '../compare'
 import { BaseStore } from './base-store'
 import { getStealthEmailForUser, getLegacyStealthEmailForUser } from '../email'
 import { DefaultMaxHits } from '../../ui/autocompletion/common'
+import { isDotCom } from '../endpoint-capabilities'
+import { copilotSweAgentBot } from '../../models/dot-com-bots'
 
 /** Don't fetch mentionables more often than every 10 minutes */
 const MaxFetchFrequency = 10 * 60 * 1000
@@ -125,7 +127,20 @@ export class GitHubUserStore extends BaseStore {
   public async getMentionableUsers(
     repository: GitHubRepository
   ): Promise<ReadonlyArray<IMentionableUser>> {
-    return this.database.getAllMentionablesForRepository(repository.dbID)
+    const mentionables = await this.database.getAllMentionablesForRepository(
+      repository.dbID
+    )
+
+    if (
+      isDotCom(repository.endpoint) &&
+      !mentionables.some(x => x.login === 'Copilot')
+    ) {
+      const { userId, login, avatarURL, endpoint } = copilotSweAgentBot
+      const email = getStealthEmailForUser(userId, login, endpoint)
+      return mentionables.concat({ login, name: login, email, avatarURL })
+    }
+
+    return mentionables
   }
 
   /**

@@ -42,6 +42,7 @@ import { getRendererGUID } from '../get-renderer-guid'
 import { ValidNotificationPullRequestReviewState } from '../valid-notification-pull-request-review'
 import { useExternalCredentialHelperKey } from '../trampoline/use-external-credential-helper'
 import { getUserAgent } from '../http'
+import { getHooksEnvEnabled } from '../hooks/config'
 
 type PullRequestReviewStatFieldInfix =
   | 'Approved'
@@ -428,6 +429,9 @@ interface ICalculatedStats {
    * Whether or not the user has the filtering changes enabled
    **/
   readonly filteringChangesEnabled: boolean
+
+  /** Whether or not the user has the git hooks environment enabled */
+  readonly gitHooksEnvEnabled: boolean
 }
 
 type DailyStats = ICalculatedStats &
@@ -646,6 +650,7 @@ export class StatsStore implements IStatsStore {
       diffCheckMarksVisible,
       useExternalCredentialHelper,
       filteringChangesEnabled,
+      gitHooksEnvEnabled: getHooksEnvEnabled(),
     }
   }
 

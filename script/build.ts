@@ -36,7 +36,7 @@ import {
   getDistArchitecture,
   getDistRoot,
   getExecutableName,
-  getIconFileName,
+  getIconDirectory,
   isPublishable,
 } from './dist-info'
 
@@ -52,9 +52,13 @@ import {
 } from 'fs'
 import { updateLicenseDump } from './licenses/update-license-dump'
 import { verifyInjectedSassVariables } from './validate-sass/validate-all'
+import { join } from 'path'
+import assert from 'assert'
 
 const isPublishableBuild = isPublishable()
+const isNonProductionRelease = getChannel() !== 'production'
 const isDevelopmentBuild = getChannel() === 'development'
+const shouldSkipPackaging = process.env.DESKTOP_SKIP_PACKAGE === '1'
 
 const projectRoot = path.join(__dirname, '..')
 const entitlementsSuffix = isDevelopmentBuild ? '-dev' : ''
@@ -110,6 +114,11 @@ verifyInjectedSassVariables(outRoot)
     })
   })
   .then(() => {
+    if (shouldSkipPackaging) {
+      console.log('Skipping packaging…')
+      return [outRoot]
+    }
+
     console.log('Packaging…')
     return packageApp()
   })
@@ -162,13 +171,21 @@ function packageApp() {
     )
   }
 
+  const iconPath = getIconDirectory()
+  const assetsCarPath = join(iconPath, 'Assets.car')
+  assert(
+    existsSync(assetsCarPath),
+    `Unable to find Assets.car at ${assetsCarPath}`
+  )
+
   return packager({
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
     arch: toPackageArch(process.env.TARGET_ARCH),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
-    icon: path.join(projectRoot, 'app', 'static', 'logos', getIconFileName()),
+    icon: join(iconPath, 'icon-logo'),
+    extraResource: [assetsCarPath],
     dir: outRoot,
     overwrite: true,
     tmpdir: false,
@@ -327,6 +344,57 @@ function copyDependencies() {
     path.resolve(desktopTrampolineDir, desktopAskpassTrampolineFile),
     { recursive: true, verbatimSymlinks: true }
   )
+
+  if (isNonProductionRelease) {
+    console.log('  Copying copilot…')
+    const copilotPkgDir = path.resolve(
+      projectRoot,
+      `app/node_modules/@github/copilot`
+    )
+
+    const copilotDestination = path.resolve(outRoot, 'copilot')
+    cpSync(copilotPkgDir, copilotDestination, {
+      recursive: true,
+    })
+
+    const nonValidPlatforms = ['darwin', 'linux', 'win32'].filter(
+      p => p !== process.platform
+    )
+    const nonValidArchitectures = ['x64', 'arm64'].filter(
+      a => a !== getDistArchitecture()
+    )
+
+    // Removing unnecessary prebuild binaries from the copilot package to reduce
+    // bundle size
+    const prebuildsDirs = [
+      path.join(copilotDestination, 'prebuilds'),
+      path.join(copilotDestination, 'ripgrep', 'bin'),
+      path.join(copilotDestination, 'clipboard', 'node_modules', '@teddyzhu'),
+    ]
+
+    for (const prebuildsDir of prebuildsDirs) {
+      const prebuilds = readdirSync(prebuildsDir)
+      for (const prebuild of prebuilds) {
+        for (const platform of nonValidPlatforms) {
+          if (prebuild.includes(platform)) {
+            rmSync(path.join(prebuildsDir, prebuild), {
+              recursive: true,
+              force: true,
+            })
+          }
+        }
+
+        for (const arch of nonValidArchitectures) {
+          if (prebuild.includes(arch)) {
+            rmSync(path.join(prebuildsDir, prebuild), {
+              recursive: true,
+              force: true,
+            })
+          }
+        }
+      }
+    }
+  }
 
   // Dev builds for macOS require a SSH wrapper to use SSH_ASKPASS
   if (process.platform === 'darwin' && isDevelopmentBuild) {

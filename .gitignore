@@ -19,3 +19,4 @@ vendor/desktop-trampoline/build/
 junit*.xml
 *.swp
 tslint-rules/
+playwright-videos/

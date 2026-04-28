@@ -1,4 +1,3 @@
-import uuid from 'uuid'
 import { TestMenuEvent } from '../../../main-process/menu'
 import {
   isRepositoryWithGitHubRepository,
@@ -174,7 +173,9 @@ export function showTestUI(
 
   function testAppError() {
     return dispatcher.postError(
-      new Error('Test Error - to use default error handler' + uuid())
+      new Error(
+        'Test Error - to use default error handler' + crypto.randomUUID()
+      )
     )
   }
 

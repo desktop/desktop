@@ -12,6 +12,8 @@ import { DropTargetType } from '../../models/drag-drop'
 import { getPullRequestCommitRef } from '../../models/pull-request'
 import { formatRelative } from '../../lib/format-relative'
 import { TooltippedContent } from '../lib/tooltipped-content'
+import { getPreferAbsoluteDates } from '../../models/formatting-preferences'
+import { formatDate } from '../../lib/format-date'
 
 export interface IPullRequestListItemProps {
   /** The title. */
@@ -77,8 +79,10 @@ export class PullRequestListItem extends React.Component<
       return undefined
     }
 
-    const timeAgo = formatRelative(this.props.created.getTime() - Date.now())
-    const subtitle = `#${this.props.number} opened ${timeAgo} by ${this.props.author}`
+    const dateText = getPreferAbsoluteDates()
+      ? formatDate(this.props.created)
+      : formatRelative(this.props.created.getTime() - Date.now())
+    const subtitle = `#${this.props.number} opened ${dateText} by ${this.props.author}`
 
     return this.props.draft ? `${subtitle} • Draft` : subtitle
   }

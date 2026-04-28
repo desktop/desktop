@@ -26,6 +26,7 @@
   "prettier.singleQuote": true,
   "prettier.trailingComma": "es5",
   "editor.formatOnSave": true,
+  "prettier.prettierPath": "./node_modules/prettier",
   "prettier.ignorePath": ".prettierignore",
   "eslint.options": {
     "overrideConfigFile": ".eslintrc.yml",

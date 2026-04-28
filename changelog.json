@@ -1,5 +1,111 @@
 {
   "releases": {
+    "3.5.9-beta2": [
+      "[Fixed] Add syntax highlighting for .astro files - #21987. Thanks @JunDev76!",
+      "[Fixed] Fix Windows scrollbar sync with react-virtualized Grid - #21940",
+      "[Fixed] Improve spacing on release notes dialog - #21962. Thanks @DylanDevelops!"
+    ],
+    "3.5.9-beta1": [
+      "[Added] Add date, time, and number formatting preferences to the Appearance settings - #21836",
+      "[Fixed] Fix a crash (Maximum update depth exceeded) that could occur while the conflicts dialog was open during a multi-commit operation - #21879",
+      "[Fixed] Remove discontinued GitHub AE references from the Enterprise sign-in screen - #21926. Thanks @toddmanion!",
+      "[Improved] Update Git for Windows to v2.53.0.windows.3 - #21957",
+      "[Improved] Update Copilot SDK to 0.2.1 and fix Copilot CLI process spawning issues on Windows - #21930",
+      "[Improved] Enable diff expansion and syntax highlighting for up to 1MB - #21876",
+      "[Improved] Update re2js regex engine to use optimized DFA path for improved performance - #21924. Thanks @le0pard!"
+    ],
+    "3.5.8": ["[Improved] Update Git for Windows to v2.53.0.windows.3"],
+    "3.5.7": [
+      "[Added] Rename branch dialog now validates branch names against repository rulesets - #21822",
+      "[Added] Allow empty commits via the commit options menu - #21771",
+      "[Added] Add option to include a Signed-off-by trailer on commits for Developer Certificate of Origin workflows - #21741",
+      "[Fixed] Discard Changes now completes even when the GitHub Desktop window is not focused - #21739",
+      "[Fixed] Allow origin fetch on empty repo - #4574 #4575. Thanks @jackfreem!",
+      "[Fixed] Fix window background color when resizing - #21548. Thanks @BaldrianSector!",
+      "[Fixed] Ignore Tab in terminal and keep textarea enabled - #21696",
+      "[Fixed] Clear commit message after a successful commit when switching to the History tab while the commit is in progress - #21721",
+      "[Improved] Liquid Glass icons for macOS Tahoe - #21010. Thanks @fabe and @caiofbpa!",
+      "[Improved] Update default tab size from 8 to 4 - #21705. Thanks @advaith1!",
+      "[Improved] Recognize Copilot CLI bot in commit attributions - #21727"
+    ],
+    "3.5.7-beta3": [
+      "[Added] Rename branch dialog now validates branch names against repository rulesets - #21822"
+    ],
+    "3.5.7-beta2": [
+      "[Added] Allow empty commits via the commit options menu - #21771"
+    ],
+    "3.5.7-beta1": [
+      "[Added] Add option to include a Signed-off-by trailer on commits for Developer Certificate of Origin workflows - #21741",
+      "[Fixed] Discard Changes now completes even when the GitHub Desktop window is not focused - #21739",
+      "[Fixed] Allow origin fetch on empty repo - #4574 #4575. Thanks @jackfreem!",
+      "[Fixed] Fix window background color when resizing - #21548. Thanks @BaldrianSector!",
+      "[Fixed] Ignore Tab in terminal and keep textarea enabled - #21696",
+      "[Fixed] Clear commit message after a successful commit when switching to the History tab while the commit is in progress - #21721",
+      "[Improved] Liquid Glass icons for macOS Tahoe - #21010. Thanks @fabe and @caiofbpa!",
+      "[Improved] Update default tab size from 8 to 4 - #21705. Thanks @advaith1!",
+      "[Improved] Recognize Copilot CLI bot in commit attributions - #21727"
+    ],
+    "3.5.6": [
+      "[New] Support adding Copilot as a co author and show avatars for mentionable users - #21634",
+      "[Fixed] Fix detection of IDEs installed from JetBrains Toolbox - #21498",
+      "[Fixed] Choose the best account for the current repository to generate commit messages - #21484",
+      "[Fixed] Remove trailing $ typo in hooks output - #21638",
+      "[Improved] Update Git to 2.53.0",
+      "[Improved] Update Git for Windows to 2.53.0.windows.2",
+      "[Improved] Update Git Credential Manager to 2.7.3"
+    ],
+    "3.5.6-beta1": [
+      "[New] Support adding Copilot as a co author and show avatars for mentionable users - #21634",
+      "[Fixed] Fix detection of IDEs installed from JetBrains Toolbox - #21498",
+      "[Fixed] Choose the best account for the current repository to generate commit messages - #21484",
+      "[Fixed] Remove trailing $ typo in hooks output - #21638",
+      "[Improved] Update Git to 2.53.0",
+      "[Improved] Update Git Credential Manager to 2.7.0"
+    ],
+    "3.5.5": [
+      "[New] Support running hooks in user's shell environment and allow bypassing commit hooks - #21319",
+      "[New] Enable one-time opening of a repository in an alternate editor - #21436. Thanks @jackfreem!",
+      "[Added] Add Warp terminal support for Windows - #21471. Thanks @Cocodrulo!",
+      "[Added] \"View Branch on GitHub\" option on branch list context menu - #21071. Thanks @DylanDevelops!",
+      "[Fixed] Fix bad repository state when switching between branches with submodules - #21188",
+      "[Fixed] Enterprise is spelled correctly in Account preferences - #21454",
+      "[Fixed] Commits made by Copilot now use the Copilot avatar - #21475",
+      "[Fixed] Prevent crashes when clicking on notifications - #21311 #20760",
+      "[Fixed] Enter key now creates new branches from the branch filter field - #7734. Thanks @jackfreem!",
+      "[Fixed] Fix the inability to move directories when creating a repository in a non-Git folder - #20991. Thanks @DylanDevelops!",
+      "[Fixed] Support showing the unpublished indicator when having more than 100 unpublished commits - #20882. Thanks @ashdawngary!",
+      "[Fixed] Repository write access warnings update immediately when switching accounts - #21329",
+      "[Fixed] Improve branch renaming to handle case-only changes - #21320",
+      "[Fixed] Refresh repository after commit failure - #21229",
+      "[Fixed] Check run list scrolls when they exceed available space - #20831. Thanks @iamarjunsuresh!",
+      "[Fixed] Only sanitize forbidden fs characters when creating repo - #20973",
+      "[Fixed] Remove extra apostrophe from \"Generating commit details\" aria-label - #21369. Thanks @say25!",
+      "[Improved] Update Electron to version 40.1.0 - #21537",
+      "[Improved] Updated \"push needs pull\" warning message for clarity - #21423. Thanks @movahhedi!",
+      "[Improved] Polish Changes tab Filter Options button and popover - #21412. Thanks @jpedroso!",
+      "[Improved] Stash Menu Item disabled on dialogs - #21435. Thanks @jackfreem!"
+    ],
+    "3.5.5-beta6": [
+      "[Improved] Locate Git for Windows via PATH and registry - #21621",
+      "[Improved] Include hook exit code in terminal output - #21620"
+    ],
+    "3.5.5-beta5": [
+      "[Fixed] Account for Windows EOL formatting when loading shell environment - #21619",
+      "[Fixed] It's now possible to disable loading of environment for Git hooks - #21617"
+    ],
+    "3.5.5-beta4": [
+      "[New] Enable hooks support by default - #21590",
+      "[Added] Support rebase hooks - #21586"
+    ],
+    "3.5.5-beta3": [
+      "[Added] Support merge hooks - #21502",
+      "[Added] Support pull hooks - #21486",
+      "[Added] Support pre-push hook - #21461",
+      "[Added] Add Warp terminal support for Windows - #21471. Thanks @Cocodrulo!",
+      "[Fixed] Fix bad repository state when switching between branches with submodules - #21188",
+      "[Improved] Remove mention of --no-verify - #21488",
+      "[Improved] Update Electron to version 40.1.0 - #21537"
+    ],
     "3.5.5-beta2": [
       "[New] Enable one-time opening of a repository in an alternate editor` - #21436. Thanks @jackfreem!",
       "[Fixed] Git output containing multibyte characters is handled correctly avoiding unexpected crashes - #21469",

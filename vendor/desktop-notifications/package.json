@@ -12,14 +12,12 @@
     "check-prettier": "prettier --check \"./**/*.{ts,tsx,js,json,jsx,scss,html,yaml,yml}\""
   },
   "devDependencies": {
-    "@types/uuid": "^8.3.4",
     "node-gyp": "^10.1.0",
     "prettier": "^2.0.5",
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "node-addon-api": "^7.0.0",
-    "uuid": "^8.3.2"
+    "node-addon-api": "^7.0.0"
   },
   "binary": {
     "napi_versions": [

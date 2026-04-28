@@ -133,6 +133,13 @@
       }
     }
 
+    .avatar {
+      flex-shrink: 0;
+      height: 16px;
+      width: 16px;
+      margin-right: var(--spacing-half);
+    }
+
     .username {
       @include ellipsis;
       font-weight: var(--font-weight-semibold);

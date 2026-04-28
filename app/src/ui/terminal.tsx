@@ -50,12 +50,18 @@ export class Terminal extends React.Component<TerminalProps> {
       cols: this.props.cols ?? 80,
     })
 
+    this.terminal.attachCustomKeyEventHandler((key: KeyboardEvent) => {
+      if (key.key === 'Tab') {
+        // We don't want to handle tab key events in the terminal as it
+        // breaks tab navigation in the app. The terminal is read only and
+        // doesn't support tab input, so we can safely ignore it.
+        return false
+      }
+      return true
+    })
+
     if (this.terminalRef.current) {
       this.terminal.open(this.terminalRef.current)
-
-      if (this.terminal.textarea) {
-        this.terminal.textarea.disabled = true
-      }
 
       if (hideCursor !== false) {
         this.terminal.write('\x1b[?25l') // hide cursor

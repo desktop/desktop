@@ -866,4 +866,49 @@ describe('git/commit', () => {
       )
     })
   })
+
+  describe('createCommit allowEmpty', () => {
+    it('creates an empty commit when allowEmpty is true', async t => {
+      const repo = await setupEmptyRepository(t)
+
+      // Create an initial commit so HEAD exists
+      await writeFile(path.join(repo.path, 'file.txt'), 'content\n')
+      const initialStatus = await getStatusOrThrow(repo)
+      await createCommit(
+        repo,
+        'initial commit',
+        initialStatus.workingDirectory.files
+      )
+
+      // Now create an empty commit with no file changes
+      const tipBefore = (await getStatusOrThrow(repo)).currentTip
+      const sha = await createCommit(repo, 'empty commit', [], {
+        allowEmpty: true,
+      })
+      assert.equal(sha.length, 7)
+
+      const tipAfter = (await getStatusOrThrow(repo)).currentTip
+      assert.notEqual(tipBefore, tipAfter)
+
+      const commit = await getCommit(repo, 'HEAD')
+      assert(commit !== null)
+      assert.equal(commit.summary, 'empty commit')
+    })
+
+    it('fails to create an empty commit when allowEmpty is not set', async t => {
+      const repo = await setupEmptyRepository(t)
+
+      // Create an initial commit so HEAD exists
+      await writeFile(path.join(repo.path, 'file.txt'), 'content\n')
+      const initialStatus = await getStatusOrThrow(repo)
+      await createCommit(
+        repo,
+        'initial commit',
+        initialStatus.workingDirectory.files
+      )
+
+      // Attempt to commit with no changes and no allowEmpty flag
+      await assert.rejects(() => createCommit(repo, 'should fail', []))
+    })
+  })
 })

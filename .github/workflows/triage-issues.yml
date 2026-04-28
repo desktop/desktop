@@ -1,34 +1,79 @@
-name: Label incoming issues
+# Place in .github/workflows/triage-issues.yml
+name: Issue Triaging
 on:
   issues:
-    types:
-      - reopened
-      - opened
-      - unlabeled
-
-permissions:
-  issues: write
+    types: [opened, reopened, labeled, unlabeled, closed]
 
 jobs:
-  label_incoming_issues:
-    runs-on: ubuntu-slim
-    if: github.event.action == 'opened' || github.event.action == 'reopened'
-    steps:
-      - run: gh issue edit "$NUMBER" --add-label "$LABELS"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          NUMBER: ${{ github.event.issue.number }}
-          LABELS: triage
-  label_more_info_issues:
+  label-incoming:
     if:
-      github.event.action == 'unlabeled' && github.event.label.name ==
-      'more-info-needed'
-    runs-on: ubuntu-slim
-    steps:
-      - run: gh issue edit "$NUMBER" --add-label "$LABELS"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          NUMBER: ${{ github.event.issue.number }}
-          LABELS: triage
+      github.event.action == 'opened' || github.event.action == 'reopened' ||
+      github.event.action == 'unlabeled'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-label-incoming.yml@main
+    permissions:
+      issues: write
+
+  close-invalid:
+    if: github.event.action == 'labeled'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-close-invalid.yml@main
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
+  close-suspected-spam:
+    if: github.event.action == 'labeled'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-close-suspected-spam.yml@main
+    permissions:
+      issues: write
+
+  close-single-word:
+    if: github.event.action == 'opened'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-close-single-word-issues.yml@main
+    permissions:
+      issues: write
+
+  close-off-topic:
+    if: github.event.action == 'labeled'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-close-off-topic.yml@main
+    permissions:
+      issues: write
+
+  enhancement-comment:
+    if: github.event.action == 'labeled'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-enhancement-comment.yml@main
+    permissions:
+      issues: write
+
+  unable-to-reproduce:
+    if: github.event.action == 'labeled'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-unable-to-reproduce-comment.yml@main
+    with:
+      additional_context:
+        '- a log file from the day you experienced the issue (access log files
+        via `Help` > `Show Logs in Finder/Explorer`).'
+    permissions:
+      issues: write
+
+  remove-needs-triage:
+    if: github.event.action == 'labeled'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-remove-needs-triage.yml@main
+    permissions:
+      issues: write
+
+  on-issue-close:
+    if: github.event.action == 'closed'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-on-issue-close.yml@main
+    with:
+      labels_to_remove: 'needs-triage,pitch'
+    permissions:
+      issues: write
+
+  # discuss:
+  #   if: github.event.action == 'labeled'
+  #   uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-discuss.yml@main
+  #   with:
+  #     target_repo: 'your-org/your-internal-repo'
+  #     cc_team: '@your-org/your-team'
+  #   secrets:
+  #     discussion_token: ${{ secrets.DISCUSSION_TRIAGE_TOKEN }}

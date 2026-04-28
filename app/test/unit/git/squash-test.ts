@@ -247,13 +247,9 @@ describe('git/cherry-pick', () => {
     await writeFile(messagePath, 'Test Summary\n\nTest Body')
 
     // continue rebase
-    let continueResult = await continueRebase(
-      repository,
-      files,
-      undefined,
-      undefined,
-      `cat "${messagePath}" >`
-    )
+    let continueResult = await continueRebase(repository, files, undefined, {
+      gitEditor: `cat "${messagePath}" >`,
+    })
 
     // This will now conflict with the 'second' commit since it is going to now
     // apply the second commit which now modifies the same lines in the
@@ -268,18 +264,14 @@ describe('git/cherry-pick', () => {
       '# resolve conflict from adding add after resolving squash'
     )
 
-    continueResult = await continueRebase(
-      repository,
-      files,
-      undefined,
-      undefined,
+    continueResult = await continueRebase(repository, files, undefined, {
       // Only reason I did this here is to show it does not cause harm.
       // In case of multiple commits being squashed/reordered before the squash
       // completes, we may not be able to tell which conflict the squash
       // message will need to go after so we will be sending it on all
       // continues.
-      `cat "${messagePath}" >`
-    )
+      gitEditor: `cat "${messagePath}" >`,
+    })
     assert.equal(continueResult, RebaseResult.CompletedWithoutError)
 
     const log = await getCommits(repository, 'HEAD', 5)

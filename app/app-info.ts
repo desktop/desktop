@@ -25,7 +25,7 @@ export function getReplacements() {
     __DEV__: isDevBuild,
     __DEV_SECRETS__: isDevBuild || !process.env.DESKTOP_OAUTH_CLIENT_SECRET,
     __RELEASE_CHANNEL__: s(channel),
-    __UPDATES_URL__: s(getUpdatesURL()),
+    __UPDATES_URL__: s(process.env.DESKTOP_E2E_UPDATES_URL ?? getUpdatesURL()),
     __SHA__: s(getSHA()),
     'process.platform': s(process.platform),
     'process.env.NODE_ENV': s(process.env.NODE_ENV || 'development'),

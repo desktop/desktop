@@ -183,11 +183,11 @@ yarn prettier --write
 
 ## Contributing
 
-- See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for detailed contribution guidelines
-- Follow the [Engineering Values](docs/contributing/engineering-values.md)
+- See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines
+- Follow the [Engineering Values](../docs/contributing/engineering-values.md)
 - Check [help wanted](https://github.com/desktop/desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22help%20wanted%22) label for good first issues
-- Review [Style Guide](docs/contributing/styleguide.md) before submitting code
-- Setup instructions: [docs/contributing/setup.md](docs/contributing/setup.md)
+- Review [Style Guide](../docs/contributing/styleguide.md) before submitting code
+- Setup instructions: [../docs/contributing/setup.md](../docs/contributing/setup.md)
 
 ## Code of Conduct
 
@@ -198,13 +198,13 @@ This project adheres to the Contributor Covenant [Code of Conduct](../CODE_OF_CO
 - [Official website](https://desktop.github.com)
 - [Getting started docs](https://docs.github.com/en/desktop/overview/getting-started-with-github-desktop)
 - [Release notes](https://desktop.github.com/release-notes/)
-- [Known issues](docs/known-issues.md)
+- [Known issues](../docs/known-issues.md)
 
 ## When Making Changes
 
 1. **Keep changes minimal**: Make the smallest possible changes to achieve the goal
 2. **Run tests frequently**: Test after each meaningful change
-3. **Lint before committing**: Ensure code passes all linting checks
+3. **Run `yarn lint:fix` after any code change**: This runs Prettier and ESLint with auto-fix to ensure formatting and lint rules are satisfied before committing
 4. **Update documentation**: Update docs if changes affect documented behavior
 5. **Follow existing patterns**: Match the style and patterns already in the codebase
 6. **Don't remove working code**: Only modify what's necessary for the task

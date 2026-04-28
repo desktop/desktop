@@ -1,7 +1,6 @@
 import { app } from 'electron'
 import { readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
-import { uuid } from './uuid'
 
 let cachedGUID: string | null = null
 
@@ -11,7 +10,7 @@ export async function getMainGUID(): Promise<string> {
     let guid = await readGUIDFile()
 
     if (guid === undefined) {
-      guid = uuid()
+      guid = crypto.randomUUID()
       await saveGUIDFile(guid).catch(e => {
         log.error(e)
       })

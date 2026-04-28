@@ -17,7 +17,9 @@ async function findTestFilesIn(paths) {
     }
 
     for (const file of await readdir(path, { recursive: true }).then(x =>
-      x.filter(f => /-test\.(ts|js|mts|mjs)$/.test(f)).map(f => join(path, f))
+      x
+        .filter(f => /-test\.(ts|tsx|js|jsx|mts|mjs)$/.test(f))
+        .map(f => join(path, f))
     )) {
       files.push(file)
     }
@@ -42,6 +44,9 @@ Object.entries(testEnv).forEach(([k, v]) => (process.env[k] = v))
 const args = [
   '--disable-warning=ExperimentalWarning',
   '--experimental-test-module-mocks',
+  // Allow CJS resolution to find ESM-only packages (e.g. @github/copilot-sdk)
+  // whose "exports" only declare an "import" condition with no "require" fallback.
+  '--conditions=import',
   ...['--import', 'tsx'],
   ...['--import', './app/test/globals.mts'],
   ...switchArgs,

@@ -94,7 +94,6 @@ describe('PopupManager', () => {
       assert.equal(popupsOfType.length, 1)
       assert(currentPopup !== null)
       assert.equal(currentPopup.type, PopupType.About)
-      assert.equal(currentPopup.id?.length, 36)
     })
 
     it('does not add multiple popups of the same kind to the stack', () => {
@@ -154,7 +153,6 @@ describe('PopupManager', () => {
       assert.equal(popupsOfType.length, 1)
       assert(currentPopup !== null)
       assert.equal(currentPopup?.type, PopupType.Error)
-      assert.equal(currentPopup.id?.length, 36)
     })
 
     it('adds multiple popups of type error to the stack', () => {
@@ -298,6 +296,46 @@ describe('PopupManager', () => {
 
       const signInPopups = popupManager.getPopupsOfType(PopupType.SignIn)
       assert.equal(signInPopups.length, 1)
+    })
+  })
+
+  describe('popup id increment', () => {
+    it('assigns id starting at 1 for first popup', () => {
+      const popupManager = new PopupManager()
+      const popup = popupManager.addPopup({ type: PopupType.About })
+      assert.equal(popup.id, 1)
+    })
+
+    it('increments ids sequentially for multiple popups', () => {
+      const popupManager = new PopupManager()
+      const popup1 = popupManager.addPopup({ type: PopupType.About })
+      const popup2 = popupManager.addPopup({ type: PopupType.SignIn })
+      const popup3 = popupManager.addPopup({
+        type: PopupType.TermsAndConditions,
+      })
+
+      assert.equal(popup1.id, 1)
+      assert.equal(popup2.id, 2)
+      assert.equal(popup3.id, 3)
+    })
+
+    it('increments ids for error popups', () => {
+      const popupManager = new PopupManager()
+      const popup1 = popupManager.addPopup({ type: PopupType.About })
+      const errorPopup = popupManager.addErrorPopup(new Error('test error'))
+
+      assert.equal(popup1.id, 1)
+      assert.equal(errorPopup.id, 2)
+    })
+
+    it('continues incrementing after popups are removed', () => {
+      const popupManager = new PopupManager()
+      const popup1 = popupManager.addPopup({ type: PopupType.About })
+      popupManager.removePopup(popup1)
+      const popup2 = popupManager.addPopup({ type: PopupType.SignIn })
+
+      assert.equal(popup1.id, 1)
+      assert.equal(popup2.id, 2)
     })
   })
 })

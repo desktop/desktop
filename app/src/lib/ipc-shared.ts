@@ -80,6 +80,7 @@ export type RequestChannels = {
   'auto-updater-update-downloaded': () => void
   'native-theme-updated': () => void
   'set-native-theme-source': (themeName: ThemeSource) => void
+  'update-window-background-color': (color: string) => void
   'focus-window': () => void
   'notification-event': NotificationCallback<DesktopAliveEvent>
   'set-window-zoom-factor': (zoomFactor: number) => void
@@ -100,6 +101,7 @@ export type RequestResponseChannels = {
   'get-path': (path: PathType) => Promise<string>
   'get-app-architecture': () => Promise<Architecture>
   'get-app-path': () => Promise<string>
+  'get-exec-path': () => Promise<string>
   'is-running-under-arm64-translation': () => Promise<boolean>
   'move-to-trash': (path: string) => Promise<void>
   'show-item-in-folder': (path: string) => Promise<void>

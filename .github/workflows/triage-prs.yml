@@ -1,0 +1,51 @@
+# Place in .github/workflows/triage-prs.yml
+name: PR Triaging
+on:
+  pull_request_target:
+    types: [opened, reopened, labeled, edited]
+
+jobs:
+  close-invalid:
+    if: github.event.action == 'labeled'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-close-invalid.yml@main
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
+  close-from-default-branch:
+    if: github.event.action == 'opened'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-close-from-default-branch.yml@main
+    with:
+      default_branch: 'development'
+    permissions:
+      pull-requests: write
+
+  label-external-pr:
+    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-label-external-pr.yml@main
+    permissions:
+      issues: write
+      pull-requests: write
+      repository-projects: read
+
+  pr-requirements:
+    if:
+      github.event.action == 'opened' || github.event.action == 'reopened' ||
+      github.event.action == 'edited'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-pr-requirements.yml@main
+    permissions:
+      issues: read
+      pull-requests: write
+
+  close-no-help-wanted:
+    if: github.event.action == 'labeled'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-close-no-help-wanted.yml@main
+    permissions:
+      pull-requests: write
+
+  ready-for-review:
+    if: github.event.action == 'labeled'
+    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-ready-for-review.yml@main
+    permissions:
+      pull-requests: write

@@ -1,0 +1,234 @@
+// Styling for the Copilot tab in Preferences (BYOK provider list) and the
+// Add/Edit Custom Provider dialog. Kept in its own partial so the dialog
+// styles don't have to live inside the `#preferences` scope.
+
+#preferences {
+  .copilot-section {
+    min-width: 0;
+
+    &:not(:last-child) {
+      margin-bottom: var(--spacing-double);
+    }
+
+    > h2 {
+      margin-top: 0;
+      margin-bottom: var(--spacing);
+    }
+
+    .copilot-byok-empty {
+      margin: 0 0 var(--spacing);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+
+    .copilot-byok-entry-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 var(--spacing);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-half);
+      min-width: 0;
+    }
+
+    .copilot-byok-entry {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing);
+      padding: var(--spacing-half) var(--spacing);
+      border: var(--base-border);
+      border-radius: var(--border-radius);
+      background: var(--box-alt-background-color);
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .copilot-byok-entry-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .copilot-byok-entry-title {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-half);
+      font-weight: var(--font-weight-semibold);
+      min-width: 0;
+
+      > span:first-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+      }
+    }
+
+    .copilot-byok-entry-meta {
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .copilot-byok-provider-badge {
+      display: inline-block;
+      padding: 0 var(--spacing-half);
+      border-radius: var(--border-radius);
+      background: var(--box-selected-background-color);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-normal);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
+
+    .copilot-byok-entry-actions {
+      display: flex;
+      gap: var(--spacing-half);
+      flex-shrink: 0;
+    }
+  }
+}
+
+#edit-copilot-byok-provider {
+  // Tighter than the default dialog so the four sections fit nicely.
+  --copilot-byok-section-gap: var(--spacing);
+
+  .copilot-byok-fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 var(--copilot-byok-section-gap);
+
+    > legend {
+      padding: 0;
+      margin-bottom: var(--spacing-half);
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .copilot-byok-section-hint {
+      margin: 0 0 var(--spacing-half);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+  }
+
+  .copilot-byok-models {
+    .copilot-byok-models-empty {
+      margin: 0 0 var(--spacing-half);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+
+    .copilot-byok-empty {
+      margin: 0 0 var(--spacing);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+
+    .copilot-byok-entry-list {
+      list-style: none;
+      padding: var(--spacing-half) var(--spacing-double);
+      margin: 0 calc(-1 * var(--spacing-double)) var(--spacing);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-half);
+      min-width: 0;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .copilot-byok-entry {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing);
+      padding: var(--spacing-half) var(--spacing);
+      border: var(--base-border);
+      border-radius: var(--border-radius);
+      background: var(--box-alt-background-color);
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .copilot-byok-entry-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .copilot-byok-entry-title {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-half);
+      font-weight: var(--font-weight-semibold);
+      min-width: 0;
+
+      > span:first-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+      }
+    }
+
+    .copilot-byok-entry-meta {
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .copilot-byok-entry-actions {
+      display: flex;
+      gap: var(--spacing-half);
+      flex-shrink: 0;
+    }
+  }
+
+  .copilot-byok-field-hint {
+    margin: 0;
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+
+    code {
+      font-family: var(--font-family-monospace);
+      font-size: 0.95em;
+      padding: 0 0.25em;
+      border-radius: var(--border-radius);
+      background: var(--box-selected-background-color);
+    }
+  }
+}
+
+#edit-copilot-byok-model {
+  // Stack the field, hint, etc. vertically inside each Row instead of
+  // laying them out side-by-side.
+  .copilot-byok-field {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-half);
+
+    > *:not(:last-child) {
+      margin-right: 0;
+    }
+  }
+
+  .copilot-byok-field-hint {
+    margin: 0;
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+
+    code {
+      font-family: var(--font-family-monospace);
+      font-size: 0.95em;
+      padding: 0 0.25em;
+      border-radius: var(--border-radius);
+      background: var(--box-selected-background-color);
+    }
+  }
+}

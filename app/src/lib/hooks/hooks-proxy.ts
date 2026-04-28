@@ -5,6 +5,7 @@ import type { HookCallbackOptions } from '../git'
 import { resolveGitBinary } from 'dugite'
 import { ShellEnvResult } from './get-shell-env'
 import { shellFriendlyNames } from './config'
+import { Writable } from 'stream'
 
 const ignoredOnFailureHooks = [
   'post-applypatch',
@@ -41,20 +42,24 @@ const debug = (message: string, error?: Error) => {
   log.debug(`hooks: ${message}`, error)
 }
 
-const exitWithMessage = (conn: Connection, msg: string, exitCode = 0) => {
-  return new Promise<void>(async resolve => {
-    conn.stderr.write(`${msg}\n`, () => {
-      conn.exit(exitCode).then(resolve, err => {
-        debug(
-          `failed to exit proxy: ${
-            err instanceof Error ? err.message : String(err)
-          }`
-        )
-        resolve()
-      })
-    })
+const writeline = (stream: Writable, msg: string) =>
+  new Promise<void>((resolve, reject) => {
+    stream.write(`${msg}\n`, err => (err ? reject(err) : resolve()))
   })
-}
+
+const tryExit = async (conn: Connection, exitCode = 0) =>
+  conn.exit(exitCode).catch(err => {
+    debug(
+      `failed to exit proxy: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    )
+  })
+
+const exitWithMessage = (conn: Connection, msg: string, exitCode = 0) =>
+  writeline(conn.stderr, msg)
+    .catch(() => {})
+    .then(() => tryExit(conn, exitCode))
 
 const exitWithError = (conn: Connection, msg: string, exitCode = 1) =>
   exitWithMessage(conn, msg, exitCode)
@@ -76,7 +81,7 @@ export const createHooksProxy = (
     const abortController = new AbortController()
     const abort = () => abortController.abort()
 
-    conn.stderr.write(`Running ${hookName} hook...\n`)
+    await writeline(conn.stderr, `Running ${hookName} hook...`)
     onHookProgress?.({ hookName, status: 'started', abort })
 
     // GIT_ vars are considered safe to pass to hooks unless explicitly excluded
@@ -155,34 +160,43 @@ export const createHooksProxy = (
       conn.stdin.pipe(child.stdin).on('error', reject)
     })
 
-    const elapsedSeconds = (Date.now() - startTime) / 1000
+    const dur = `after ${((Date.now() - startTime) / 1000).toFixed(2)}s`
+    const prefix = `${hookName} hook`
+    const terminationMessage = signal
+      ? `${prefix} killed by signal ${signal} ${dur}`
+      : `${prefix} ${code ? `failed with code ${code}` : 'done'} ${dur}`
 
-    if (signal !== null) {
-      debug(`${hookName}: killed by signal ${signal} after ${elapsedSeconds}s`)
-    } else {
-      debug(`${hookName}: exited with code ${code} after ${elapsedSeconds}s`)
-    }
+    debug(terminationMessage)
+
+    // If we were to write this to the proxy's stderr it wouldn't make it into the terminalOutput
+    // array in time for us to call onHookFailure with it, so we append it here to ensure it's
+    // included and then we'll write it to stderr to be included in the overall output later
+    const hookFailureTerminalOutput = terminalOutput.concat(
+      Buffer.from(`${terminationMessage}\n`)
+    )
 
     const ignoreError =
       code !== null &&
       code !== 0 &&
       !ignoredOnFailureHooks.includes(hookName) &&
       onHookFailure
-        ? (await onHookFailure(hookName, terminalOutput)) === 'ignore'
+        ? (await onHookFailure(hookName, hookFailureTerminalOutput)) ===
+          'ignore'
         : false
 
     if (ignoreError) {
       debug(`ignoring error from hook ${hookName} as per onHookFailure result`)
     }
 
-    const exitCode = ignoreError ? 0 : code ?? 1
-    const terminationReason = signal
-      ? `${hookName} hook killed by signal ${signal}`
-      : `${hookName} hook exited with code ${exitCode}${
-          ignoreError ? ' (ignored by user)' : ''
-        }`
+    await writeline(conn.stderr, terminationMessage)
 
-    await exitWithMessage(conn, terminationReason, exitCode)
+    if (ignoreError) {
+      await writeline(conn.stderr, `${hookName} hook failure ignored by user`)
+    }
+
+    const exitCode = ignoreError ? 0 : code ?? 1
+
+    await tryExit(conn, exitCode)
 
     onHookProgress?.({
       hookName,

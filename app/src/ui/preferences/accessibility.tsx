@@ -21,7 +21,7 @@ export class Accessibility extends React.Component<
   public render() {
     return (
       <DialogContent>
-        <div className="advanced-section">
+        <div className="accessibility-section">
           <h2>Accessibility</h2>
           <Checkbox
             label="Underline links"

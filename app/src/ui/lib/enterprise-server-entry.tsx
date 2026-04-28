@@ -54,11 +54,11 @@ export class EnterpriseServerEntry extends React.Component<
     return (
       <Form onSubmit={this.onSubmit}>
         <TextBox
-          label="Enterprise or AE address"
+          label="Enterprise address"
           autoFocus={true}
           disabled={disableEntry}
           onValueChanged={this.onServerAddressChanged}
-          placeholder="https://github.example.com"
+          placeholder="https://example.ghe.com"
         />
 
         {this.props.error ? <Errors>{this.props.error.message}</Errors> : null}

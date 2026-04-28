@@ -1,7 +1,7 @@
-import { enableHooksEnvironment } from '../feature-flag'
+import { enableHooksByDefault, enableHooksEnvironment } from '../feature-flag'
 import { getBoolean, setBoolean } from '../local-storage'
 
-export const defaultHooksEnvEnabledValue = false
+export const defaultHooksEnvEnabledValue = enableHooksByDefault()
 
 /**
  * Whether the hooks environment is enabled, takes into account the

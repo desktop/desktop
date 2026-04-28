@@ -35,18 +35,17 @@ export type TerminalOutputListener = (cb: (chunk: TerminalOutput) => void) => {
 
 export type TerminalOutputCallback = (subscribe: TerminalOutputListener) => void
 
-export type HookProgress =
+export type HookProgress = {
+  readonly hookName: string
+} & (
   | {
-      readonly hookName: string
-    } & (
-      | {
-          readonly status: 'started'
-          readonly abort: () => void
-        }
-      | {
-          readonly status: 'finished' | 'failed'
-        }
-    )
+      readonly status: 'started'
+      readonly abort: () => void
+    }
+  | {
+      readonly status: 'finished' | 'failed'
+    }
+)
 
 export type HookCallbackOptions = {
   readonly onHookProgress?: (progress: HookProgress) => void

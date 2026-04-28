@@ -19,6 +19,8 @@ export async function createCommit(
   options?: {
     amend?: boolean
     noVerify?: boolean
+    signOff?: boolean
+    allowEmpty?: boolean
   } & HookCallbackOptions
 ): Promise<string> {
   // Clear the staging area, our diffs reflect the difference between the
@@ -36,6 +38,14 @@ export async function createCommit(
 
   if (options?.noVerify) {
     args.push('--no-verify')
+  }
+
+  if (options?.signOff) {
+    args.push('--signoff')
+  }
+
+  if (options?.allowEmpty) {
+    args.push('--allow-empty')
   }
 
   const result = await git(

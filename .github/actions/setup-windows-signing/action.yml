@@ -1,0 +1,35 @@
+name: Setup Windows Signing
+description: Install Azure Code Signing prerequisites and authenticate.
+
+inputs:
+  enabled:
+    description: Whether Windows signing setup should run.
+    required: false
+    default: 'false'
+  azure-client-id:
+    description: Azure Code Signing client ID.
+    required: false
+  azure-tenant-id:
+    description: Azure Code Signing tenant ID.
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Install Azure Code Signing Client
+      if: ${{ runner.os == 'Windows' && inputs.enabled == 'true' }}
+      shell: pwsh
+      run: |
+        $acsZip = Join-Path $env:RUNNER_TEMP "acs.zip"
+        $acsDir = Join-Path $env:RUNNER_TEMP "acs"
+        Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Microsoft.Trusted.Signing.Client/1.0.95 -OutFile $acsZip -Verbose
+        Expand-Archive $acsZip -Destination $acsDir -Force -Verbose
+        Copy-Item -Path "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\*" -Include signtool.exe,signtool.exe.manifest,Microsoft.Windows.Build.Signing.mssign32.dll.manifest,mssign32.dll,Microsoft.Windows.Build.Signing.wintrust.dll.manifest,wintrust.dll,Microsoft.Windows.Build.Appx.AppxSip.dll.manifest,AppxSip.dll,Microsoft.Windows.Build.Appx.AppxPackaging.dll.manifest,AppxPackaging.dll,Microsoft.Windows.Build.Appx.OpcServices.dll.manifest,OpcServices.dll -Destination "node_modules\electron-winstaller\vendor" -Verbose
+
+    - name: Azure Login (OIDC)
+      if: ${{ runner.os == 'Windows' && inputs.enabled == 'true' }}
+      uses: azure/login@v2
+      with:
+        client-id: ${{ inputs.azure-client-id }}
+        tenant-id: ${{ inputs.azure-tenant-id }}
+        allow-no-subscriptions: true

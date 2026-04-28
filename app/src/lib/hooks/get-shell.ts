@@ -4,7 +4,7 @@ import which from 'which'
 import { bash, cmd, powershell } from './shell-escape'
 import { SupportedHooksEnvShell } from './config'
 import { assertNever } from '../fatal-error'
-import { findGitBash as findGitBashInRegistry } from '../shells/win32'
+import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
 
 type Shell = {
   shell: string
@@ -16,16 +16,26 @@ type Shell = {
 
 export const findGitBash = async () => {
   const gitPath = await which('git', { nothrow: true })
+  let bashPath: string | null = null
 
-  if (!gitPath) {
+  if (gitPath?.toLowerCase().endsWith('\\cmd\\git.exe')) {
+    bashPath = join(gitPath, '../../usr/bin/bash.exe')
+  } else if (gitPath?.toLowerCase().endsWith('\\mingw64\\bin\\git.exe')) {
+    bashPath = join(gitPath, '../../../usr/bin/bash.exe')
+  } else {
+    const HKLM = HKEY.HKEY_LOCAL_MACHINE
+    const values = enumerateValues(HKLM, 'SOFTWARE\\GitForWindows')
+    const installPath = values.find(v => v.name === 'InstallPath')
+
+    if (installPath?.type === RegistryValueType.REG_SZ) {
+      bashPath = join(installPath.data, 'usr/bin/bash.exe')
+    }
+  }
+
+  if (!bashPath) {
     return null
   }
 
-  if (!gitPath.toLowerCase().endsWith('\\cmd\\git.exe')) {
-    return null
-  }
-
-  const bashPath = join(gitPath, '../../usr/bin/bash.exe')
   return (await pathExists(bashPath)) ? bashPath : null
 }
 
@@ -35,7 +45,7 @@ const quoteArgMsys2 = (arg: string) => {
 }
 
 const findGitBashShell = async (): Promise<Shell | undefined> => {
-  const gitBashPath = (await findGitBash()) ?? (await findGitBashInRegistry())
+  const gitBashPath = await findGitBash()
 
   if (!gitBashPath) {
     return undefined
@@ -69,7 +79,7 @@ const findCmdShell = async (): Promise<Shell> => {
   const shell =
     COMSPEC && /^(?:.*\\)?cmd(?:\.exe)?$/i.test(COMSPEC) ? COMSPEC : 'cmd.exe'
   const { args, quoteCommand } = cmd
-  return { shell, args, quoteCommand }
+  return { shell, args, quoteCommand, windowsVerbatimArguments: true }
 }
 
 const findPowerShellShell = async (

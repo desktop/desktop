@@ -149,10 +149,12 @@ export async function squash(
       repository,
       todoPath,
       lastRetainedCommitRef,
-      MultiCommitOperationKind.Squash,
-      gitEditor,
-      progressCallback,
-      [...toSquash, squashOnto]
+      {
+        action: MultiCommitOperationKind.Squash,
+        gitEditor,
+        progressCallback,
+        commits: [...toSquash, squashOnto],
+      }
     )
   } catch (e) {
     log.error(e)

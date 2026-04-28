@@ -26,7 +26,7 @@ export async function applyPatchToIndex(
     // worst that could happen is that we re-stage a file already staged
     // by updateIndex.
     await git(
-      ['add', '--u', '--', file.status.oldPath],
+      ['add', '--update', '--', file.status.oldPath],
       repository.path,
       'applyPatchToIndex'
     )

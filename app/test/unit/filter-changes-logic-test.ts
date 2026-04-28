@@ -8,6 +8,8 @@ import {
   applyFilterOptions,
   isCommittingFileHiddenByFilter,
   getNoResultsMessage,
+  hasActiveFilters,
+  applyFilters,
 } from '../../src/ui/changes/filter-changes-logic'
 import { IFileListFilterState } from '../../src/lib/app-state'
 import { IChangesListItem } from '../../src/ui/changes/filter-changes-list'
@@ -144,6 +146,54 @@ describe('filter-changes-logic', () => {
         assert.equal(applyFilterOptions(stagedFile, filters), false)
         assert.equal(applyFilterOptions(unstagedFile, filters), false)
       })
+
+      it('should treat untracked files as new files', () => {
+        const filters: IFileListFilterState = {
+          filterText: '',
+          isIncludedInCommit: false,
+          isExcludedFromCommit: false,
+          isNewFile: true,
+          isModifiedFile: false,
+          isDeletedFile: false,
+        }
+
+        const untrackedFile = {
+          id: 'untracked.txt',
+          text: ['untracked.txt'],
+          change: new WorkingDirectoryFileChange(
+            'untracked.txt',
+            { kind: AppFileStatusKind.Untracked },
+            DiffSelection.fromInitialSelection(DiffSelectionType.None)
+          ),
+        }
+
+        assert.equal(applyFilterOptions(untrackedFile, filters), true)
+      })
+
+      it('should match excluded files when excluded filter is active', () => {
+        const filters: IFileListFilterState = {
+          filterText: '',
+          isIncludedInCommit: false,
+          isExcludedFromCommit: true,
+          isNewFile: false,
+          isModifiedFile: false,
+          isDeletedFile: false,
+        }
+
+        const excludedFile = createTestItem(
+          'excluded.txt',
+          AppFileStatusKind.Modified,
+          DiffSelectionType.None
+        )
+        const includedFile = createTestItem(
+          'included.txt',
+          AppFileStatusKind.Modified,
+          DiffSelectionType.All
+        )
+
+        assert.equal(applyFilterOptions(excludedFile, filters), true)
+        assert.equal(applyFilterOptions(includedFile, filters), false)
+      })
     })
   })
 
@@ -191,6 +241,28 @@ describe('filter-changes-logic', () => {
         true
       )
     })
+
+    it('should return false when all files remain visible after filtering', () => {
+      const filters: IFileListFilterState = {
+        filterText: 'src',
+        isIncludedInCommit: false,
+        isExcludedFromCommit: false,
+        isNewFile: false,
+        isModifiedFile: true,
+        isDeletedFile: false,
+      }
+
+      const fileIds = ['file1', 'file2']
+      const filteredItems = new Map([
+        ['file1', {} as IChangesListItem],
+        ['file2', {} as IChangesListItem],
+      ])
+
+      assert.equal(
+        isCommittingFileHiddenByFilter(fileIds, filteredItems, 2, filters),
+        false
+      )
+    })
   })
 
   describe('getNoResultsMessage', () => {
@@ -234,6 +306,85 @@ describe('filter-changes-logic', () => {
       const message = getNoResultsMessage(filters)
       assert(message?.includes('Included in commit'))
       assert(message?.includes('New files'))
+    })
+
+    it('should format three or more filters with commas and and', () => {
+      const filters: IFileListFilterState = {
+        filterText: 'src',
+        isIncludedInCommit: true,
+        isExcludedFromCommit: false,
+        isNewFile: false,
+        isModifiedFile: true,
+        isDeletedFile: true,
+      }
+
+      assert.equal(
+        getNoResultsMessage(filters),
+        `Sorry, I can't find any changed files matching the following filters: "src", Included in commit, Modified files, and Deleted files`
+      )
+    })
+  })
+
+  describe('hasActiveFilters', () => {
+    it('should return false when no text or filter options are active', () => {
+      const filters: IFileListFilterState = {
+        filterText: '',
+        isIncludedInCommit: false,
+        isExcludedFromCommit: false,
+        isNewFile: false,
+        isModifiedFile: false,
+        isDeletedFile: false,
+      }
+
+      assert.equal(hasActiveFilters(filters), false)
+    })
+
+    it('should return true when either text or filter options are active', () => {
+      assert.equal(
+        hasActiveFilters({
+          filterText: 'src',
+          isIncludedInCommit: false,
+          isExcludedFromCommit: false,
+          isNewFile: false,
+          isModifiedFile: false,
+          isDeletedFile: false,
+        }),
+        true
+      )
+
+      assert.equal(
+        hasActiveFilters({
+          filterText: '',
+          isIncludedInCommit: false,
+          isExcludedFromCommit: false,
+          isNewFile: false,
+          isModifiedFile: true,
+          isDeletedFile: false,
+        }),
+        true
+      )
+    })
+  })
+
+  describe('applyFilters', () => {
+    it('should bypass filter logic when the changes filter is hidden', () => {
+      const item = createTestItem(
+        'deleted.txt',
+        AppFileStatusKind.Deleted,
+        DiffSelectionType.All
+      )
+
+      const filters: IFileListFilterState = {
+        filterText: '',
+        isIncludedInCommit: false,
+        isExcludedFromCommit: false,
+        isNewFile: true,
+        isModifiedFile: false,
+        isDeletedFile: false,
+      }
+
+      assert.equal(applyFilters(item, false, filters), true)
+      assert.equal(applyFilters(item, true, filters), false)
     })
   })
 })

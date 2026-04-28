@@ -1511,14 +1511,19 @@ export class SectionList extends React.Component<
 
     this.lastScroll = 'fake'
 
-    if (this.rootGrid) {
-      const element = ReactDOM.findDOMNode(this.rootGrid)
-      if (element instanceof Element) {
-        element.scrollTop = e.currentTarget.scrollTop
-      }
-    }
+    const scrollTop = e.currentTarget.scrollTop
 
-    this.setState({ scrollTop: e.currentTarget.scrollTop })
+    // Use scrollToPosition instead of directly setting element.scrollTop.
+    // Direct DOM mutation doesn't properly update react-virtualized's internal
+    // state, which can cause rows to not render correctly after keyboard
+    // navigation followed by scrollbar dragging.
+    // See https://github.com/desktop/desktop/issues/21940
+    this.rootGrid?.scrollToPosition({
+      scrollLeft: 0,
+      scrollTop,
+    })
+
+    this.setState({ scrollTop })
 
     // Make sure the root grid re-renders its children
     this.rootGrid?.recomputeGridSize()

@@ -17,7 +17,7 @@ import { DiffHunk, DiffLineType, DiffLine } from '../../../models/diff'
 import { getOldPathOrDefault } from '../../../lib/get-old-path'
 
 /** The maximum number of bytes we'll process for highlighting. */
-const MaxHighlightContentLength = 256 * 1024
+const MaxHighlightContentLength = 1024 * 1024
 
 // There is no good way to get the actual length of the old/new contents,
 // since we're directly truncating the git output to up to MaxHighlightContentLength
