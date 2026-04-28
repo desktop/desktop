@@ -187,8 +187,8 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   }
 
   public componentDidMount() {
-    document.addEventListener('click', this.onDocumentClick)
-    document.addEventListener('mousedown', this.onDocumentMouseDown)
+    document.addEventListener('click', this.onDocumentClick, true)
+    document.addEventListener('mousedown', this.onDocumentMouseDown, true)
     this.setupPosition()
   }
 
@@ -199,8 +199,8 @@ export class Popover extends React.Component<IPopoverProps, IPopoverState> {
   }
 
   public componentWillUnmount() {
-    document.removeEventListener('click', this.onDocumentClick)
-    document.removeEventListener('mousedown', this.onDocumentMouseDown)
+    document.removeEventListener('click', this.onDocumentClick, true)
+    document.removeEventListener('mousedown', this.onDocumentMouseDown, true)
   }
 
   private onDocumentClick = (event: MouseEvent) => {
