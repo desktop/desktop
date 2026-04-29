@@ -28,6 +28,8 @@ import { getRebaseInternalState } from './rebase'
 import { RebaseInternalState } from '../../models/rebase'
 import { isCherryPickHeadFound } from './cherry-pick'
 import { git } from '.'
+import { isWSLPath } from '../is-wsl-path'
+import { enableWSLPerformanceOptimizations } from '../feature-flag'
 
 /** The encapsulation of the result from 'git status' */
 export interface IStatusResult {
@@ -209,10 +211,24 @@ export async function getStatus(
   includeUntracked = true,
   rejectOnError = false
 ): Promise<IStatusResult | null> {
+  const useWSLOptimizations =
+    __WIN32__ &&
+    enableWSLPerformanceOptimizations() &&
+    isWSLPath(repository.path)
+
+  // On WSL paths, --untracked-files=all forces a recursive readdir across the
+  // 9P boundary for every subdirectory. --untracked-files=normal only reports
+  // the top-level untracked directory, which is drastically cheaper.
+  const untrackedFlag = includeUntracked
+    ? useWSLOptimizations
+      ? '--untracked-files=normal'
+      : '--untracked-files=all'
+    : undefined
+
   const args = [
     '--no-optional-locks',
     'status',
-    ...(includeUntracked ? ['--untracked-files=all'] : []),
+    ...(untrackedFlag ? [untrackedFlag] : []),
     '--branch',
     '--porcelain=2',
     '-z',
@@ -234,11 +250,24 @@ export async function getStatus(
   const headers = parsed.filter(isStatusHeader)
   const entries = parsed.filter(isStatusEntry)
 
-  const mergeHeadFound = await isMergeHeadSet(repository)
   const conflictedFilesInIndex = entries.filter(e =>
     conflictStatusCodes.includes(e.statusCode)
   )
-  const rebaseInternalState = await getRebaseInternalState(repository)
+
+  // Run .git/ state file checks in parallel rather than sequentially.
+  // Each of these is a filesystem stat — on WSL2, every stat crosses the 9P
+  // boundary (~2-50ms each). Parallelizing saves 3x the per-stat latency.
+  const [
+    mergeHeadFound,
+    rebaseInternalState,
+    isCherryPickingHeadFound,
+    squashMsgFound,
+  ] = await Promise.all([
+    isMergeHeadSet(repository),
+    getRebaseInternalState(repository),
+    isCherryPickHeadFound(repository),
+    isSquashMsgSet(repository),
+  ])
 
   const conflictDetails = await getConflictDetails(
     repository,
@@ -247,7 +276,6 @@ export async function getStatus(
     rebaseInternalState
   )
 
-  // Map of files keyed on their paths.
   const files = entries.reduce(
     (files, entry) => buildStatusMap(files, entry, conflictDetails),
     new Map<string, WorkingDirectoryFileChange>()
@@ -267,10 +295,6 @@ export async function getStatus(
   })
 
   const workingDirectory = WorkingDirectoryStatus.fromFiles([...files.values()])
-
-  const isCherryPickingHeadFound = await isCherryPickHeadFound(repository)
-
-  const squashMsgFound = await isSquashMsgSet(repository)
 
   return {
     currentBranch,

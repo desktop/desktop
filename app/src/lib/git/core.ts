@@ -8,6 +8,8 @@ import {
   ExecError,
 } from 'dugite'
 
+import { canUseWSLGit, wslGitExec } from './wsl-git-exec'
+
 import { assertNever } from '../fatal-error'
 import * as GitPerf from '../../ui/lib/git-perf'
 import * as Path from 'path'
@@ -271,6 +273,57 @@ export async function git(
     process.stderr?.on('data', push)
 
     options?.processCallback?.(process)
+  }
+
+  // WSL fast path: for read-only operations on WSL repos, bypass the
+  // Windows git.exe + trampoline stack and run git natively inside WSL.
+  // This avoids the 9P protocol boundary (~10-50x speedup per operation).
+  if (canUseWSLGit(args, path)) {
+    const commandName = `${name}: wsl git ${args.join(' ')}`
+    const result = await GitPerf.measure(commandName, () =>
+      wslGitExec(args, path, {
+        encoding: opts.encoding as BufferEncoding | 'buffer',
+        maxBuffer: opts.maxBuffer,
+      })
+    )
+
+    const exitCode = result.exitCode
+    let gitError: DugiteError | null = null
+    const acceptableExitCode = opts.successExitCodes
+      ? opts.successExitCodes.has(exitCode)
+      : false
+
+    if (!acceptableExitCode) {
+      gitError = parseError(coerceToString(result.stderr))
+      if (gitError === null) {
+        gitError = parseError(coerceToString(result.stdout))
+      }
+    }
+
+    const gitErrorDescription =
+      gitError !== null
+        ? getDescriptionForError(gitError, coerceToString(result.stderr))
+        : null
+
+    const gitResult = {
+      ...result,
+      gitError,
+      gitErrorDescription,
+      path,
+    }
+
+    let acceptableError = true
+    if (gitError !== null && opts.expectedErrors) {
+      acceptableError = opts.expectedErrors.has(gitError)
+    }
+
+    if ((gitError !== null && acceptableError) || acceptableExitCode) {
+      return gitResult
+    }
+
+    const errorMessage = `\`wsl git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}.`
+    log.error(errorMessage)
+    throw new GitError(gitResult, args, coerceToString(result.stderr))
   }
 
   return withHooksEnv(

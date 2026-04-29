@@ -1,4 +1,6 @@
 import { Repository } from '../../../models/repository'
+import { isWSLPath } from '../../is-wsl-path'
+import { enableWSLPerformanceOptimizations } from '../../feature-flag'
 
 /**
  * Refresh repository indicators every 15 minutes.
@@ -90,7 +92,19 @@ export class RepositoryIndicatorUpdater {
     const startTime = Date.now()
     let pausedTime = 0
 
+    let skippedWSL = 0
+
     while (this.running && (repository = getNextRepository()) !== undefined) {
+      if (
+        __WIN32__ &&
+        enableWSLPerformanceOptimizations() &&
+        isWSLPath(repository.path)
+      ) {
+        skippedWSL++
+        done.add(repository.id)
+        continue
+      }
+
       await this.refreshRepositoryIndicators(repository)
 
       if (this.paused) {
@@ -116,7 +130,8 @@ export class RepositoryIndicatorUpdater {
       const totalTimeSeconds = (totalTime / 1000).toFixed(1)
 
       log.info(
-        `[RepositoryIndicatorUpdater]: Refreshing sidebar indicators for ${done.size} repositories took ${activeTimeSeconds}s of which ${pausedTimeSeconds}s paused, total ${totalTimeSeconds}s`
+        `[RepositoryIndicatorUpdater]: Refreshing sidebar indicators for ${done.size} repositories took ${activeTimeSeconds}s of which ${pausedTimeSeconds}s paused, total ${totalTimeSeconds}s` +
+          (skippedWSL > 0 ? ` (skipped ${skippedWSL} WSL repositories)` : '')
       )
     }
 

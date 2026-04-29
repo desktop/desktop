@@ -59,6 +59,7 @@ import { PullRequestCoordinator } from '../lib/stores/pull-request-coordinator'
 
 import { sendNonFatalException } from '../lib/helpers/non-fatal-exception'
 import { enableUnhandledRejectionReporting } from '../lib/feature-flag'
+import { isWSLPath } from '../lib/is-wsl-path'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import {
   ApplicationTheme,
@@ -359,6 +360,9 @@ initializeRendererNotificationHandler(notificationsStore)
 // The trampoline UI helper needs a reference to the dispatcher before it's used
 trampolineUIHelper.setDispatcher(dispatcher)
 
+const focusRefreshCooldownMs = 5000
+let lastFocusRefreshTimestamp = 0
+
 ipcRenderer.on('focus', () => {
   const { selectedState } = appStore.getState()
 
@@ -368,7 +372,19 @@ ipcRenderer.on('focus', () => {
     selectedState &&
     !(selectedState.type === SelectionType.CloningRepository)
   ) {
-    dispatcher.refreshRepository(selectedState.repository)
+    // Throttle focus-triggered refreshes: skip if the last refresh was less
+    // than 5 seconds ago. On WSL2 repos, an unbounced refresh triggers 8-12
+    // git subprocesses across the 9P boundary (~2-10s each). Rapid Alt-Tab
+    // cycles would otherwise queue multiple full refreshes.
+    const now = Date.now()
+    const elapsed = now - lastFocusRefreshTimestamp
+    const needsCooldown =
+      __WIN32__ && isWSLPath(selectedState.repository.path)
+
+    if (!needsCooldown || elapsed >= focusRefreshCooldownMs) {
+      lastFocusRefreshTimestamp = now
+      dispatcher.refreshRepository(selectedState.repository)
+    }
   }
 
   dispatcher.setAppFocusState(true)

@@ -50,6 +50,10 @@ export function enableWSLDetection(): boolean {
   return enableBetaFeatures()
 }
 
+export function enableWSLPerformanceOptimizations(): boolean {
+  return enableBetaFeatures()
+}
+
 /**
  * Should we allow reporting unhandled rejections as if they were crashes?
  */

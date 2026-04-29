@@ -170,7 +170,7 @@ function parseUnmergedEntry(field: string): IStatusEntry {
 }
 
 function parseUntrackedEntry(field: string): IStatusEntry {
-  const path = field.substring(2)
+  const path = field.substring(2).replace(/\/$/, '')
   return {
     kind: 'entry',
     // NOTE: We return ?? instead of ? here to play nice with mapStatus,
