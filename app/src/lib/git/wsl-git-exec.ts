@@ -109,22 +109,9 @@ const WSL_SAFE_SUBCOMMANDS = new Set([
   'reflog',
 ])
 
-export function canUseWSLGit(
-  args: ReadonlyArray<string>,
-  repositoryPath: string
+export function isWSLSafeGitSubcommand(
+  args: ReadonlyArray<string>
 ): boolean {
-  if (!__WIN32__) {
-    return false
-  }
-
-  if (!enableWSLPerformanceOptimizations()) {
-    return false
-  }
-
-  if (!isWSLPath(repositoryPath)) {
-    return false
-  }
-
   // Find the actual git subcommand (skip flags like --no-optional-locks
   // and -c key=value pairs)
   let skipNext = false
@@ -150,4 +137,23 @@ export function canUseWSLGit(
   }
 
   return WSL_SAFE_SUBCOMMANDS.has(subcommand)
+}
+
+export function canUseWSLGit(
+  args: ReadonlyArray<string>,
+  repositoryPath: string
+): boolean {
+  if (!__WIN32__) {
+    return false
+  }
+
+  if (!enableWSLPerformanceOptimizations()) {
+    return false
+  }
+
+  if (!isWSLPath(repositoryPath)) {
+    return false
+  }
+
+  return isWSLSafeGitSubcommand(args)
 }
