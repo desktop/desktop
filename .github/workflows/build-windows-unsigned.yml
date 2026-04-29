@@ -1,0 +1,63 @@
+name: Build Windows (unsigned)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/wsl-performance-optimizations
+
+env:
+  NODE_VERSION: 24.11.1
+
+jobs:
+  build-windows:
+    name: Windows x64
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    timeout-minutes: 60
+    env:
+      RELEASE_CHANNEL: development
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Run unit tests
+        run: yarn test:unit
+
+      - name: Build production app (unsigned)
+        run: yarn build:prod
+        env:
+          NODE_ENV: production
+          npm_config_arch: x64
+          TARGET_ARCH: x64
+
+      - name: Prepare test environment
+        run: yarn test:setup
+        env:
+          npm_config_arch: x64
+
+      - name: Package Windows installer (unsigned)
+        run: yarn package
+        env:
+          npm_config_arch: x64
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: GitHubDesktop-Windows-x64-unsigned
+          path: |
+            dist/GitHubDesktopSetup-*.exe
+            dist/GitHubDesktopSetup-*.msi
+            dist/GitHubDesktop-*.nupkg
+            dist/bundle-size.json
+          if-no-files-found: warn
