@@ -30,6 +30,28 @@ describe('wsl-git-exec', () => {
       assert.equal(isWSLSafeGitSubcommand(['rev-list', 'HEAD..origin/main']), true)
     })
 
+    it('returns true for checkout (local branch switch)', () => {
+      assert.equal(
+        isWSLSafeGitSubcommand(['checkout', '--progress', 'main', '--']),
+        true
+      )
+    })
+
+    it('returns true for switch', () => {
+      assert.equal(isWSLSafeGitSubcommand(['switch', 'feature-branch']), true)
+    })
+
+    it('returns true for reset', () => {
+      assert.equal(isWSLSafeGitSubcommand(['reset', '--mixed', 'HEAD']), true)
+    })
+
+    it('returns true for submodule', () => {
+      assert.equal(
+        isWSLSafeGitSubcommand(['submodule', 'update', '--init', '--recursive']),
+        true
+      )
+    })
+
     it('returns false for push', () => {
       assert.equal(isWSLSafeGitSubcommand(['push', 'origin', 'main']), false)
     })

@@ -82,7 +82,10 @@ export function wslGitExec(
 
 // Git subcommands safe to route through WSL-native git. These don't need
 // the trampoline credential helper or Desktop-intercepted hooks. Some
-// (stash, remote, config) can write, but are local-only operations.
+// (stash, remote, config, checkout) can write, but are local-only operations.
+// checkout/switch: no hooks are intercepted by Desktop during branch switch,
+// and credential helpers aren't needed for local checkout. LFS smudge filters
+// may need network access, but that's handled by git-lfs inside WSL.
 const WSL_SAFE_SUBCOMMANDS = new Set([
   'status',
   'log',
@@ -107,6 +110,10 @@ const WSL_SAFE_SUBCOMMANDS = new Set([
   'var',
   'symbolic-ref',
   'reflog',
+  'checkout',
+  'switch',
+  'reset',
+  'submodule',
 ])
 
 export function isWSLSafeGitSubcommand(
