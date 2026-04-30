@@ -60,8 +60,8 @@ describe('wsl-git-exec', () => {
       assert.equal(isWSLSafeGitSubcommand(['commit', '-m', 'test']), false)
     })
 
-    it('returns false for fetch', () => {
-      assert.equal(isWSLSafeGitSubcommand(['fetch', 'origin']), false)
+    it('returns true for fetch (SSH uses WSL keys)', () => {
+      assert.equal(isWSLSafeGitSubcommand(['fetch', 'origin']), true)
     })
 
     it('returns false for pull', () => {
