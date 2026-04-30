@@ -117,8 +117,14 @@ if (__DARWIN__) {
 
 // On Windows, in order to get notifications properly working for dev builds,
 // we'll want to set the right App User Model ID from production builds.
-if (__WIN32__ && __DEV__) {
-  app.setAppUserModelId('com.squirrel.GitHubDesktop.GitHubDesktop')
+// Use a distinct ID for dev/fork builds so they don't conflict with the
+// official GitHub Desktop install's single-instance lock.
+if (__WIN32__) {
+  if (__DEV__) {
+    app.setAppUserModelId('com.squirrel.GitHubDesktop.GitHubDesktopDev')
+  } else {
+    app.setAppUserModelId('com.squirrel.GitHubDesktop.GitHubDesktop')
+  }
 }
 
 app.on('window-all-closed', () => {
@@ -307,12 +313,17 @@ function handleCLIAction(action: CLIAction) {
  * custom prefix command line switches on Windows.
  */
 function setAsDefaultProtocolClient(protocol: string) {
+  let result: boolean
   if (__WIN32__) {
-    app.setAsDefaultProtocolClient(protocol, process.execPath, [
+    result = app.setAsDefaultProtocolClient(protocol, process.execPath, [
       protocolLauncherArg,
     ])
   } else {
-    app.setAsDefaultProtocolClient(protocol)
+    result = app.setAsDefaultProtocolClient(protocol)
+  }
+
+  if (!result) {
+    log.error(`Failed to register protocol handler for ${protocol}`)
   }
 }
 
