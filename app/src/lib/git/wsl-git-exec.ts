@@ -14,6 +14,8 @@ interface IWSLExecOptions {
   readonly env?: Record<string, string | undefined>
   readonly signal?: AbortSignal
   readonly killSignal?: NodeJS.Signals | number
+  readonly stdin?: string | Buffer
+  readonly stdinEncoding?: BufferEncoding
 }
 
 // Executes a git command inside WSL using `wsl.exe -d <distro> --cd <path> -e git ...`.
@@ -64,7 +66,7 @@ export function wslGitExec(
   }
 
   return new Promise<IWSLExecResult>((resolve, reject) => {
-    execFile('wsl.exe', wslArgs, opts, (err, stdout, stderr) => {
+    const cp = execFile('wsl.exe', wslArgs, opts, (err, stdout, stderr) => {
       if (!err || typeof err.code === 'number') {
         const exitCode = typeof err?.code === 'number' ? err.code : 0
         resolve({ stdout, stderr, exitCode })
@@ -77,15 +79,21 @@ export function wslGitExec(
         )
       )
     })
+
+    if (options?.stdin !== undefined && cp.stdin) {
+      if (options.stdinEncoding) {
+        cp.stdin.end(options.stdin, options.stdinEncoding)
+      } else {
+        cp.stdin.end(options.stdin)
+      }
+    }
   })
 }
 
 // Git subcommands safe to route through WSL-native git. These don't need
-// the trampoline credential helper or Desktop-intercepted hooks. Some
-// (stash, remote, config, checkout) can write, but are local-only operations.
-// checkout/switch: no hooks are intercepted by Desktop during branch switch,
-// and credential helpers aren't needed for local checkout. LFS smudge filters
-// may need network access, but that's handled by git-lfs inside WSL.
+// the trampoline credential helper or Desktop-intercepted hooks.
+// Only commit, push, pull, merge, fetch, clone, and credential MUST stay
+// on the Windows trampoline path (they use interceptHooks or need credentials).
 const WSL_SAFE_SUBCOMMANDS = new Set([
   'status',
   'log',
@@ -114,6 +122,18 @@ const WSL_SAFE_SUBCOMMANDS = new Set([
   'switch',
   'reset',
   'submodule',
+  'add',
+  'update-index',
+  'apply',
+  'rm',
+  'commit-tree',
+  'update-ref',
+  'cherry-pick',
+  'rebase',
+  'init',
+  'hash-object',
+  'write-tree',
+  'read-tree',
 ])
 
 export function isWSLSafeGitSubcommand(

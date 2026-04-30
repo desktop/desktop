@@ -3,13 +3,23 @@
 const wslUNCPattern =
   /^(?:\/\/|\\\\)wsl(?:\$|\.localhost)(?:\/|\\)([^/\\]+)(?:(?:\/|\\)(.*))?$/i
 
+const distroCache = new Map<string, string>()
+
 export function isWSLPath(repositoryPath: string): boolean {
   return wslUNCPattern.test(repositoryPath)
 }
 
 export function getWSLDistroName(repositoryPath: string): string | null {
+  const cached = distroCache.get(repositoryPath)
+  if (cached) {
+    return cached
+  }
   const match = repositoryPath.match(wslUNCPattern)
-  return match ? match[1] : null
+  if (!match) {
+    return null
+  }
+  distroCache.set(repositoryPath, match[1])
+  return match[1]
 }
 
 // Converts \\wsl$\Ubuntu\home\user\repo → /home/user/repo

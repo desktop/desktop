@@ -275,8 +275,9 @@ export async function git(
     options?.processCallback?.(process)
   }
 
-  // WSL fast path: for read-only operations on WSL repos, bypass the
-  // Windows git.exe + trampoline stack and run git natively inside WSL.
+  // WSL fast path: for operations on WSL repos that don't need the
+  // trampoline credential helper or hook interception, bypass Windows
+  // git.exe and run git natively inside WSL via wsl.exe.
   // This avoids the 9P protocol boundary (~10-50x speedup per operation).
   if (canUseWSLGit(args, path)) {
     const commandName = `${name}: wsl git ${args.join(' ')}`
@@ -284,6 +285,8 @@ export async function git(
       wslGitExec(args, path, {
         encoding: opts.encoding as BufferEncoding | 'buffer',
         maxBuffer: opts.maxBuffer,
+        stdin: opts.stdin,
+        stdinEncoding: opts.stdinEncoding,
       })
     )
 

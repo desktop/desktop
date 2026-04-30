@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build and release (e.g. v3.5.9-wsl.1)'
+        required: true
+        type: string
+
+env:
+  NODE_VERSION: 24.11.1
+
+jobs:
+  build:
+    name: Build ${{ matrix.friendlyName }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            friendlyName: Windows
+            arch: x64
+    timeout-minutes: 60
+    env:
+      RELEASE_CHANNEL: development
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Run unit tests
+        run: yarn test:unit
+
+      - name: Build production app
+        run: yarn build:prod
+        env:
+          NODE_ENV: production
+          npm_config_arch: ${{ matrix.arch }}
+          TARGET_ARCH: ${{ matrix.arch }}
+
+      - name: Prepare test environment
+        run: yarn test:setup
+        env:
+          npm_config_arch: ${{ matrix.arch }}
+
+      - name: Package installer
+        run: yarn package
+        env:
+          npm_config_arch: ${{ matrix.arch }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.friendlyName }}-${{ matrix.arch }}
+          path: |
+            dist/GitHubDesktopSetup-*.exe
+            dist/GitHubDesktopSetup-*.msi
+            dist/GitHubDesktop-*.nupkg
+            dist/bundle-size.json
+          if-no-files-found: error
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Determine tag
+        id: tag
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: GitHub Desktop WSL ${{ steps.tag.outputs.tag }}
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+          files: |
+            artifacts/**/*.exe
+            artifacts/**/*.msi
+            artifacts/**/*.nupkg
