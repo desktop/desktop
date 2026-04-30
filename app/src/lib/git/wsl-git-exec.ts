@@ -16,6 +16,7 @@ interface IWSLExecOptions {
   readonly killSignal?: NodeJS.Signals | number
   readonly stdin?: string | Buffer
   readonly stdinEncoding?: BufferEncoding
+  readonly timeout?: number
 }
 
 // Executes a git command inside WSL using `wsl.exe -d <distro> --cd <path> -e git ...`.
@@ -53,6 +54,9 @@ export function wslGitExec(
     maxBuffer: options?.maxBuffer ?? Infinity,
     signal: options?.signal,
     killSignal: options?.killSignal,
+    // 2 minute timeout prevents infinite hangs when SSH prompts for input
+    // in a non-interactive shell (e.g. passphrase, unknown host)
+    timeout: options?.timeout ?? 120_000,
     env: {
       ...process.env,
       // Strip Windows-specific trampoline vars — they reference Windows
@@ -92,8 +96,10 @@ export function wslGitExec(
 
 // Git subcommands safe to route through WSL-native git. These don't need
 // the trampoline credential helper or Desktop-intercepted hooks.
-// Only commit, push, pull, merge, fetch, clone, and credential MUST stay
-// on the Windows trampoline path (they use interceptHooks or need credentials).
+// Only commit, push, pull, merge, clone, and credential MUST stay on the
+// Windows trampoline path (they use interceptHooks or need credentials).
+// fetch: safe because SSH auth uses WSL ~/.ssh/ keys (no trampoline needed),
+// and HTTPS auth can use GCM or git credential store configured in WSL.
 const WSL_SAFE_SUBCOMMANDS = new Set([
   'status',
   'log',
@@ -134,6 +140,8 @@ const WSL_SAFE_SUBCOMMANDS = new Set([
   'hash-object',
   'write-tree',
   'read-tree',
+  'fetch',
+  'ls-remote',
 ])
 
 export function isWSLSafeGitSubcommand(
