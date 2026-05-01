@@ -109,6 +109,11 @@ export class TrampolineServer {
   private onNewConnection(socket: Socket) {
     const parser = new TrampolineCommandParser()
 
+    socket.setTimeout(120_000, () => {
+      log.error('Trampoline socket timed out after 120s — killing connection')
+      socket.destroy()
+    })
+
     // Messages coming from the trampoline client will be separated by \0
     socket.pipe(split2(/\0/)).on('data', data => {
       this.onDataReceived(socket, parser, data)

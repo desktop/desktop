@@ -5,16 +5,27 @@ import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
 import { IRemote } from '../../models/remote'
 import { ITrackingBranch } from '../../models/branch'
 import { envForRemoteOperation } from './environment'
+import { isWSLPath } from '../is-wsl-path'
 
 async function getFetchArgs(
   remote: string,
+  repositoryPath: string,
   progressCallback?: (progress: IFetchProgress) => void
 ) {
+  const wslRepo = __WIN32__ && isWSLPath(repositoryPath)
+
   return [
     'fetch',
     ...(progressCallback ? ['--progress'] : []),
     '--prune',
     '--recurse-submodules=on-demand',
+    // --no-write-fetch-head avoids writing FETCH_HEAD (saves an fsync).
+    // Protocol v2 reduces round-trips from O(refs) to O(1).
+    '--no-write-fetch-head',
+    '-c', 'protocol.version=2',
+    // On WSL repos, skip auto-gc since it's expensive across 9P.
+    // Users can still run gc manually.
+    ...(wslRepo ? ['--no-auto-gc'] : []),
     remote,
   ]
 }
@@ -83,7 +94,7 @@ export async function fetch(
     progressCallback({ kind, title, value: 0, remote: remote.name })
   }
 
-  const args = await getFetchArgs(remote.name, progressCallback)
+  const args = await getFetchArgs(remote.name, repository.path, progressCallback)
 
   await git(args, repository.path, 'fetch', opts)
 }
