@@ -23,6 +23,7 @@ async function getFetchArgs(
     // Protocol v2 reduces round-trips from O(refs) to O(1).
     '--no-write-fetch-head',
     '-c', 'protocol.version=2',
+    '-c', 'fetch.writeCommitGraph=true',
     // On WSL repos, skip auto-gc since it's expensive across 9P.
     // Users can still run gc manually.
     ...(wslRepo ? ['--no-auto-gc'] : []),

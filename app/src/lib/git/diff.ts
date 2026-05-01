@@ -267,26 +267,27 @@ export async function getBranchMergeBaseChangedFiles(
     '--',
   ]
 
-  const mergeBaseCommit = await getMergeBase(
+  const mergeBase = await getMergeBase(
     repository,
     baseBranchName,
     comparisonBranchName
   )
 
-  if (mergeBaseCommit === null) {
+  if (mergeBase === null) {
     return null
   }
 
   const result = await git(
     baseArgs,
     repository.path,
-    'getBranchMergeBaseChangedFiles'
+    'getBranchMergeBaseChangedFiles',
+    { env: { GIT_OPTIONAL_LOCKS: '0' } }
   )
 
   return parseRawLogWithNumstat(
     result.stdout,
     `${latestComparisonBranchCommitRef}`,
-    mergeBaseCommit
+    mergeBase
   )
 }
 
@@ -319,6 +320,7 @@ export async function getCommitRangeChangedFiles(
     'getCommitRangeChangedFiles',
     {
       expectedErrors: new Set([GitError.BadRevision]),
+      env: { GIT_OPTIONAL_LOCKS: '0' },
     }
   )
 

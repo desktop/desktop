@@ -165,6 +165,7 @@ export async function getCommits(
   const result = await git(args, repository.path, 'getCommits', {
     successExitCodes: new Set([0, 128]),
     encoding: 'buffer',
+    env: { GIT_OPTIONAL_LOCKS: '0' },
   })
 
   // if the repository has an unborn HEAD, return an empty history of commits
