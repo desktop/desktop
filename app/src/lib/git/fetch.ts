@@ -19,13 +19,8 @@ async function getFetchArgs(
     ...(progressCallback ? ['--progress'] : []),
     '--prune',
     '--recurse-submodules=on-demand',
-    // --no-write-fetch-head avoids writing FETCH_HEAD (saves an fsync).
-    // Protocol v2 reduces round-trips from O(refs) to O(1).
     '--no-write-fetch-head',
-    '-c', 'protocol.version=2',
-    '-c', 'fetch.writeCommitGraph=true',
-    // On WSL repos, skip auto-gc since it's expensive across 9P.
-    // Users can still run gc manually.
+    '--write-commit-graph',
     ...(wslRepo ? ['--no-auto-gc'] : []),
     remote,
   ]
@@ -56,7 +51,11 @@ export async function fetch(
 ): Promise<void> {
   let opts: IGitStringExecutionOptions = {
     successExitCodes: new Set([0]),
-    env: await envForRemoteOperation(remote.url),
+    env: {
+      ...(await envForRemoteOperation(remote.url)),
+      GIT_PROTOCOL_FROM_USER: '0',
+      GIT_PROTOCOL: 'version=2',
+    },
   }
 
   if (progressCallback) {
