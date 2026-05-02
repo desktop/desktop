@@ -267,16 +267,22 @@ export async function getBranchMergeBaseChangedFiles(
     '--',
   ]
 
-  const [mergeBase, result] = await Promise.all([
-    getMergeBase(repository, baseBranchName, comparisonBranchName),
-    git(baseArgs, repository.path, 'getBranchMergeBaseChangedFiles', {
-      env: { GIT_OPTIONAL_LOCKS: '0' },
-    }),
-  ])
+  const mergeBase = await getMergeBase(
+    repository,
+    baseBranchName,
+    comparisonBranchName
+  )
 
   if (mergeBase === null) {
     return null
   }
+
+  const result = await git(
+    baseArgs,
+    repository.path,
+    'getBranchMergeBaseChangedFiles',
+    { env: { GIT_OPTIONAL_LOCKS: '0' } }
+  )
 
   return parseRawLogWithNumstat(
     result.stdout,
