@@ -107,7 +107,11 @@ export async function fetchRefspec(
 ): Promise<void> {
   await git(['fetch', remote.name, refspec], repository.path, 'fetchRefspec', {
     successExitCodes: new Set([0, 128]),
-    env: await envForRemoteOperation(remote.url),
+    env: {
+      ...(await envForRemoteOperation(remote.url)),
+      GIT_PROTOCOL_FROM_USER: '0',
+      GIT_PROTOCOL: 'version=2',
+    },
   })
 }
 
