@@ -51,11 +51,7 @@ export async function fetch(
 ): Promise<void> {
   let opts: IGitStringExecutionOptions = {
     successExitCodes: new Set([0]),
-    env: {
-      ...(await envForRemoteOperation(remote.url)),
-      GIT_PROTOCOL_FROM_USER: '0',
-      GIT_PROTOCOL: 'version=2',
-    },
+    env: await envForRemoteOperation(remote.url),
   }
 
   if (progressCallback) {
@@ -107,11 +103,7 @@ export async function fetchRefspec(
 ): Promise<void> {
   await git(['fetch', remote.name, refspec], repository.path, 'fetchRefspec', {
     successExitCodes: new Set([0, 128]),
-    env: {
-      ...(await envForRemoteOperation(remote.url)),
-      GIT_PROTOCOL_FROM_USER: '0',
-      GIT_PROTOCOL: 'version=2',
-    },
+    env: await envForRemoteOperation(remote.url),
   })
 }
 

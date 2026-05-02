@@ -41,11 +41,7 @@ export async function pull(
   }
 ): Promise<void> {
   let opts: IGitStringExecutionOptions = {
-    env: {
-      ...(await envForRemoteOperation(remote.url)),
-      GIT_PROTOCOL_FROM_USER: '0',
-      GIT_PROTOCOL: 'version=2',
-    },
+    env: await envForRemoteOperation(remote.url),
     // git pull triggers merge or rebase hooks depending on config, instead of
     // trying to check pull.rebase and friends we'll just intercept all possible
     // hooks that could be run as part of a pull operation.

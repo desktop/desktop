@@ -74,11 +74,7 @@ export async function push(
   }
 
   let opts: IGitStringExecutionOptions = {
-    env: {
-      ...(await envForRemoteOperation(remote.url)),
-      GIT_PROTOCOL_FROM_USER: '0',
-      GIT_PROTOCOL: 'version=2',
-    },
+    env: await envForRemoteOperation(remote.url),
     interceptHooks: ['pre-push'],
     onHookProgress: options?.onHookProgress,
     onHookFailure: options?.onHookFailure,
