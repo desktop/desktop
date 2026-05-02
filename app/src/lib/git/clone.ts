@@ -33,6 +33,8 @@ export async function clone(
   const env = {
     ...(await envForRemoteOperation(url)),
     GIT_CLONE_PROTECTION_ACTIVE: 'false',
+    GIT_PROTOCOL_FROM_USER: '0',
+    GIT_PROTOCOL: 'version=2',
   }
 
   const defaultBranch = options.defaultBranch ?? (await getDefaultBranch())
@@ -40,6 +42,12 @@ export async function clone(
   const args = [
     '-c',
     `init.defaultBranch=${defaultBranch}`,
+    '-c',
+    'core.untrackedCache=true',
+    '-c',
+    'core.fsmonitor=true',
+    '-c',
+    'fetch.writeCommitGraph=true',
     'clone',
     '--recursive',
   ]

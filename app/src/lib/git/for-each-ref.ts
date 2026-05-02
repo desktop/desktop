@@ -30,10 +30,13 @@ export async function getBranches(
   // see https://github.com/desktop/desktop/pull/5299#discussion_r206603442 for
   // discussion about what needs to change
   const result = await git(
-    ['for-each-ref', ...formatArgs, ...prefixes],
+    ['for-each-ref', '--count=10000', ...formatArgs, ...prefixes],
     repository.path,
     'getBranches',
-    { expectedErrors: new Set([GitError.NotAGitRepository]) }
+    {
+      expectedErrors: new Set([GitError.NotAGitRepository]),
+      env: { GIT_OPTIONAL_LOCKS: '0' },
+    }
   )
 
   if (result.gitError === GitError.NotAGitRepository) {
@@ -85,10 +88,13 @@ export async function getBranchesDifferingFromUpstream(
   const prefixes = ['refs/heads', 'refs/remotes']
 
   const result = await git(
-    ['for-each-ref', ...formatArgs, ...prefixes],
+    ['for-each-ref', '--count=10000', ...formatArgs, ...prefixes],
     repository.path,
     'getBranchesDifferingFromUpstream',
-    { expectedErrors: new Set([GitError.NotAGitRepository]) }
+    {
+      expectedErrors: new Set([GitError.NotAGitRepository]),
+      env: { GIT_OPTIONAL_LOCKS: '0' },
+    }
   )
 
   if (result.gitError === GitError.NotAGitRepository) {
