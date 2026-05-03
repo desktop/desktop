@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yahiya Enterprise</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <img src="logo.png" alt="Yahiya Enterprise Logo" class="logo">
+        <div class="contact-info">
+            <p>Call Now: 9717412253</p>
+            <p>Karawal Nagar, Delhi - 94</p>
+        </div>
+    </header>
+
+    <section class="products">
+        <h2>Our Products</h2>
+        <ul>
+            <li>Smart TV</li>
+            <li>Fridge</li>
+            <li>Washing Machine</li>
+            <li>Cooler</li>
+            <li>Home Appliances</li>
+        </ul>
+        <h3>All Brands Available</h3>
+        <ul class="brands">
+            <li>LG</li>
+            <li>OnePlus</li>
+            <li>Motorola</li>
+            <li>Samsung</li>
+            <li>Xiaomi</li>
+        </ul>
+    </section>
+
+    <footer>
+        <p>© 2026 Yahiya Enterprise | Live Smart, Shop Smart</p>
+    </footer>
+</body>
+</html>
