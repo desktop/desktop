@@ -12,6 +12,7 @@ import { ConfirmAbortDialog } from './dialog/confirm-abort-dialog'
 import { ProgressDialog } from './dialog/progress-dialog'
 import { WarnForcePushDialog } from './dialog/warn-force-push-dialog'
 import { CopilotConflictsLoadingDialog } from './dialog/copilot-conflicts-loading-dialog'
+import { CopilotConflictsDialog } from './dialog/copilot-conflicts-dialog'
 import { PopupType } from '../../models/popup'
 import { Account } from '../../models/account'
 import { IAPIRepoRuleset } from '../../lib/api'
@@ -269,7 +270,17 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
           />
         )
       case MultiCommitOperationStepKind.ShowCopilotConflicts:
-        return null
+        return (
+          <CopilotConflictsDialog
+            repository={this.props.repository}
+            dispatcher={this.props.dispatcher}
+            conflictState={step.conflictState}
+            workingDirectory={this.props.workingDirectory}
+            operationKind={this.props.state.operationDetail.kind}
+            onContinueAfterConflicts={this.onContinueAfterConflicts}
+            onAbort={this.onAbort}
+          />
+        )
       default:
         return assertNever(
           step,
