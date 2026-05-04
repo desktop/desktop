@@ -48,6 +48,8 @@ export type MultiCommitOperationStep =
   | HideConflictsStep
   | ConfirmAbortStep
   | CreateBranchStep
+  | ShowCopilotConflictsLoadingStep
+  | ShowCopilotConflictsStep
 
 /**
  * Possible kinds of steps that may happen during a multi commit operation such
@@ -105,6 +107,18 @@ export const enum MultiCommitOperationStepKind {
    * Example: Cherry-picking to a new branch.
    */
   CreateBranch = 'CreateBranch',
+
+  /**
+   * Copilot is resolving conflicts. A loading interstitial is shown while
+   * the LLM generates resolutions.
+   */
+  ShowCopilotConflictsLoading = 'ShowCopilotConflictsLoading',
+
+  /**
+   * Copilot has generated resolutions. The user can review applied resolutions,
+   * open files in their editor, and continue the operation.
+   */
+  ShowCopilotConflicts = 'ShowCopilotConflicts',
 }
 
 export type ChooseBranchStep = {
@@ -150,6 +164,16 @@ export type CreateBranchStep = {
   upstreamGhRepo: GitHubRepository | null
   tip: IUnbornRepository | IDetachedHead | IValidBranch
   targetBranchName: string
+}
+
+export type ShowCopilotConflictsLoadingStep = {
+  readonly kind: MultiCommitOperationStepKind.ShowCopilotConflictsLoading
+  readonly conflictState: MultiCommitOperationConflictState
+}
+
+export type ShowCopilotConflictsStep = {
+  readonly kind: MultiCommitOperationStepKind.ShowCopilotConflicts
+  readonly conflictState: MultiCommitOperationConflictState
 }
 
 interface IBaseInteractiveRebaseDetails {
@@ -257,4 +281,6 @@ export function instanceOfIBaseRebaseDetails(
 export const conflictSteps = [
   MultiCommitOperationStepKind.ShowConflicts,
   MultiCommitOperationStepKind.ConfirmAbort,
+  MultiCommitOperationStepKind.ShowCopilotConflictsLoading,
+  MultiCommitOperationStepKind.ShowCopilotConflicts,
 ]

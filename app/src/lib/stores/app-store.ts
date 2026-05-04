@@ -8276,6 +8276,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         value: 0,
       },
       userHasResolvedConflicts: false,
+      useCopilotConflictResolution: false,
       originalBranchTip,
       targetBranch,
     })

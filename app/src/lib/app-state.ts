@@ -1050,6 +1050,13 @@ export interface IMultiCommitOperationState {
   readonly userHasResolvedConflicts: boolean
 
   /**
+   * Whether the user has opted into Copilot-powered conflict resolution for
+   * this operation. When true, subsequent conflict rounds will automatically
+   * route through ShowCopilotConflictsLoading instead of ShowConflicts.
+   */
+  readonly useCopilotConflictResolution: boolean
+
+  /**
    * The commit id of the tip of the branch user is modifying in the operation.
    *
    * Uses:

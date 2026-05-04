@@ -246,6 +246,10 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
         return this.renderCreateBranch()
       case MultiCommitOperationStepKind.HideConflicts:
         return null
+      case MultiCommitOperationStepKind.ShowCopilotConflictsLoading:
+        return null
+      case MultiCommitOperationStepKind.ShowCopilotConflicts:
+        return null
       default:
         return assertNever(
           step,
