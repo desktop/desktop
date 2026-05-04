@@ -8236,6 +8236,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setCopilotConflictResolution(
+    repository: Repository,
+    enabled: boolean
+  ): void {
+    this.repositoryStateCache.updateMultiCommitOperationState(
+      repository,
+      () => ({
+        useCopilotConflictResolution: enabled,
+      })
+    )
+
+    this.emitUpdate()
+  }
+
   public _setMultiCommitOperationTargetBranch(
     repository: Repository,
     targetBranch: Branch

@@ -3794,6 +3794,17 @@ export class Dispatcher {
     return this.appStore._setMultiCommitOperationStep(repository, step)
   }
 
+  /**
+   * Set whether Copilot conflict resolution is enabled for the current
+   * multi commit operation.
+   */
+  public setCopilotConflictResolution(
+    repository: Repository,
+    enabled: boolean
+  ): void {
+    this.appStore._setCopilotConflictResolution(repository, enabled)
+  }
+
   /** Method to clear multi commit operation state. */
   public endMultiCommitOperation(repository: Repository) {
     this.appStore._endMultiCommitOperation(repository)

@@ -11,6 +11,7 @@ import { ConflictsDialog } from './dialog/conflicts-dialog'
 import { ConfirmAbortDialog } from './dialog/confirm-abort-dialog'
 import { ProgressDialog } from './dialog/progress-dialog'
 import { WarnForcePushDialog } from './dialog/warn-force-push-dialog'
+import { CopilotConflictsLoadingDialog } from './dialog/copilot-conflicts-loading-dialog'
 import { PopupType } from '../../models/popup'
 import { Account } from '../../models/account'
 import { IAPIRepoRuleset } from '../../lib/api'
@@ -64,7 +65,20 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
 
   /** Initiate Copilot conflict resolution for the current operation. */
   protected onResolveWithCopilot = () => {
-    log.info('[BaseMultiCommitOperation] Resolve with Copilot clicked')
+    const { dispatcher, repository, state } = this.props
+    const { step } = state
+
+    if (step.kind !== MultiCommitOperationStepKind.ShowConflicts) {
+      this.endFlowInvalidState()
+      return
+    }
+
+    const { conflictState } = step
+    dispatcher.setCopilotConflictResolution(repository, true)
+    dispatcher.setMultiCommitOperationStep(repository, {
+      kind: MultiCommitOperationStepKind.ShowCopilotConflictsLoading,
+      conflictState,
+    })
   }
 
   protected onFlowEnded = () => {
@@ -247,7 +261,13 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
       case MultiCommitOperationStepKind.HideConflicts:
         return null
       case MultiCommitOperationStepKind.ShowCopilotConflictsLoading:
-        return null
+        return (
+          <CopilotConflictsLoadingDialog
+            repository={this.props.repository}
+            dispatcher={this.props.dispatcher}
+            conflictState={step.conflictState}
+          />
+        )
       case MultiCommitOperationStepKind.ShowCopilotConflicts:
         return null
       default:
