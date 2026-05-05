@@ -169,6 +169,19 @@ export class GitError extends Error {
       message = coerceToString(result.stderr)
     } else if (result.stdout.length) {
       message = coerceToString(result.stdout)
+    } else if (
+      __WIN32__ &&
+      (result.exitCode === 3221225478 || result.exitCode === -1073741818)
+    ) {
+      // 0xC0000046 = STATUS_SHARING_VIOLATION — another process has a file
+      // locked (commonly Windows Defender scanning .git/ on WSL paths).
+      // Node reports NTSTATUS as unsigned (3221225478) or signed (-1073741818).
+      message =
+        'A file in the repository is locked by another process ' +
+        '(Windows error: sharing violation). This is commonly caused by ' +
+        'antivirus software scanning repository files. Try excluding this ' +
+        'repository from real-time scanning, or retry in a moment.'
+      rawMessage = false
     } else {
       message = `Unknown error (exit code ${result.exitCode})`
       rawMessage = false
