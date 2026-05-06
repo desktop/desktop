@@ -1,10 +1,12 @@
 import {
   RepositoriesDatabase,
+  IDatabaseFavouriteGroup,
   IDatabaseGitHubRepository,
   IDatabaseProtectedBranch,
   IDatabaseRepository,
   getOwnerKey,
 } from '../databases/repositories-database'
+import { FavouriteGroup } from '../../models/favourite-group'
 import { Owner } from '../../models/owner'
 import {
   GitHubRepository,
@@ -152,7 +154,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.missing,
       repo.alias,
       repo.workflowPreferences,
-      repo.isTutorialRepository
+      repo.isTutorialRepository,
+      repo.favouriteGroupId ?? null
     )
   }
 
@@ -287,8 +290,100 @@ export class RepositoriesStore extends TypedBaseStore<
       missing,
       repository.alias,
       repository.workflowPreferences,
-      repository.isTutorialRepository
+      repository.isTutorialRepository,
+      repository.favouriteGroupId
     )
+  }
+
+  /** Move (or remove) a repository from a favourite group. */
+  public async setRepositoryFavouriteGroup(
+    repository: Repository,
+    favouriteGroupId: number | null
+  ): Promise<Repository> {
+    await this.db.repositories.update(repository.id, { favouriteGroupId })
+
+    this.emitUpdatedRepositories()
+
+    return new Repository(
+      repository.path,
+      repository.id,
+      repository.gitHubRepository,
+      repository.missing,
+      repository.alias,
+      repository.workflowPreferences,
+      repository.isTutorialRepository,
+      favouriteGroupId
+    )
+  }
+
+  /** Return all favourite groups, ordered by sortOrder then id. */
+  public async getAllFavouriteGroups(): Promise<ReadonlyArray<FavouriteGroup>> {
+    const rows = await this.db.favouriteGroups.toArray()
+    return rows
+      .slice()
+      .sort(byGroupOrder)
+      .map(toFavouriteGroup)
+  }
+
+  /**
+   * Add a new favourite group with the given name. Returns the created group.
+   * The new group is appended to the end (highest sortOrder + 1).
+   */
+  public async addFavouriteGroup(name: string): Promise<FavouriteGroup> {
+    const trimmed = name.trim()
+    assertNonNullable(trimmed.length > 0 || null, 'Group name cannot be empty')
+
+    const sortOrder = await this.db.transaction(
+      'rw',
+      this.db.favouriteGroups,
+      async () => {
+        const existing = await this.db.favouriteGroups.toArray()
+        const next = existing.reduce(
+          (max, g) => Math.max(max, g.sortOrder),
+          -1
+        )
+        return next + 1
+      }
+    )
+
+    const id = await this.db.favouriteGroups.add({
+      name: trimmed,
+      sortOrder,
+    })
+
+    this.emitUpdatedRepositories()
+    return new FavouriteGroup(id, trimmed, sortOrder)
+  }
+
+  /** Rename an existing favourite group. */
+  public async renameFavouriteGroup(
+    id: number,
+    name: string
+  ): Promise<void> {
+    const trimmed = name.trim()
+    assertNonNullable(trimmed.length > 0 || null, 'Group name cannot be empty')
+    await this.db.favouriteGroups.update(id, { name: trimmed })
+    this.emitUpdatedRepositories()
+  }
+
+  /**
+   * Delete a favourite group. Any repositories that were members are reset
+   * to `favouriteGroupId: null` so they stop appearing in the sidebar.
+   */
+  public async removeFavouriteGroup(id: number): Promise<void> {
+    await this.db.transaction(
+      'rw',
+      this.db.favouriteGroups,
+      this.db.repositories,
+      async () => {
+        await this.db.repositories
+          .where('favouriteGroupId')
+          .equals(id)
+          .modify({ favouriteGroupId: null })
+        await this.db.favouriteGroups.delete(id)
+      }
+    )
+    this.emitUpdatedRepositories()
   }
 
   /**
@@ -337,7 +432,8 @@ export class RepositoriesStore extends TypedBaseStore<
       false,
       repository.alias,
       repository.workflowPreferences,
-      repository.isTutorialRepository
+      repository.isTutorialRepository,
+      repository.favouriteGroupId
     )
   }
 
@@ -483,7 +579,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.missing,
       repo.alias,
       repo.workflowPreferences,
-      repo.isTutorialRepository
+      repo.isTutorialRepository,
+      repo.favouriteGroupId
     )
 
     assertIsRepositoryWithGitHubRepository(updatedRepo)
@@ -720,6 +817,18 @@ function getKey(dbID: number, branchName: string) {
 /** Compute the key prefix for the branch protection cache */
 function getKeyPrefix(dbID: number) {
   return `${dbID}-`
+}
+
+function byGroupOrder(a: IDatabaseFavouriteGroup, b: IDatabaseFavouriteGroup) {
+  if (a.sortOrder !== b.sortOrder) {
+    return a.sortOrder - b.sortOrder
+  }
+  return (a.id ?? 0) - (b.id ?? 0)
+}
+
+function toFavouriteGroup(row: IDatabaseFavouriteGroup): FavouriteGroup {
+  assertNonNullable(row.id, 'Missing favourite group id')
+  return new FavouriteGroup(row.id, row.name, row.sortOrder)
 }
 
 function getPermissionsString(
