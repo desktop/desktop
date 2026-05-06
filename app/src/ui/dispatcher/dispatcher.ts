@@ -860,6 +860,35 @@ export class Dispatcher {
     return this.appStore._changeRepositoryAlias(repository, newAlias)
   }
 
+  /**
+   * Move a repository into a favourites group, or remove it from any group
+   * by passing `null`.
+   */
+  public setRepositoryFavouriteGroup(
+    repository: Repository,
+    favouriteGroupId: number | null
+  ): Promise<void> {
+    return this.appStore._setRepositoryFavouriteGroup(
+      repository,
+      favouriteGroupId
+    )
+  }
+
+  /** Create a new favourites group. Returns the created group. */
+  public addFavouriteGroup(name: string) {
+    return this.appStore._addFavouriteGroup(name)
+  }
+
+  /** Rename an existing favourites group. */
+  public renameFavouriteGroup(id: number, name: string): Promise<void> {
+    return this.appStore._renameFavouriteGroup(id, name)
+  }
+
+  /** Delete a favourites group; member repos are no longer favourites. */
+  public deleteFavouriteGroup(id: number): Promise<void> {
+    return this.appStore._removeFavouriteGroup(id)
+  }
+
   /** Rename the branch to a new name. */
   public renameBranch(
     repository: Repository,
@@ -4132,6 +4161,10 @@ export class Dispatcher {
       placeholderId,
       bypassURL
     )
+  }
+
+  public toggleFavouritesSidebarVisibility() {
+    this.appStore._toggleFavouritesSidebarVisibility()
   }
 
   public toggleChangesFilterVisibility() {

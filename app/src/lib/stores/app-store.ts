@@ -75,6 +75,7 @@ import {
   getNonForkGitHubRepository,
   isForkedRepositoryContributingToParent,
 } from '../../models/repository'
+import { FavouriteGroup } from '../../models/favourite-group'
 import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
@@ -509,6 +510,9 @@ export const showChangesFilterKey = 'show-changes-filter'
 const selectedCopilotModelsKey = 'selected-copilot-models'
 export const showChangesFilterDefault = true
 
+export const showFavouritesSidebarKey = 'show-favourites-sidebar'
+export const showFavouritesSidebarDefault = true
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -667,6 +671,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private commitMessageGenerationButtonClicked: boolean = false
 
   private showChangesFilter: boolean = false
+  private showFavouritesSidebar: boolean = showFavouritesSidebarDefault
+  private favouriteGroups: ReadonlyArray<FavouriteGroup> = []
 
   private selectedCopilotModels: CopilotModelSelections = {}
   private copilotModels: ReadonlyArray<ModelInfo> | null = null
@@ -1182,6 +1188,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitMessageGenerationButtonClicked:
         this.commitMessageGenerationButtonClicked,
       showChangesFilter: this.showChangesFilter,
+      showFavouritesSidebar: this.showFavouritesSidebar,
+      favouriteGroups: this.favouriteGroups,
       selectedCopilotModels: this.selectedCopilotModels,
       copilotModels: this.copilotModels,
       copilotAvailable: this.copilotStore.isAvailable,
@@ -2242,9 +2250,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Load the initial state for the app. */
   public async loadInitialState() {
-    const [accounts, repositories] = await Promise.all([
+    const [accounts, repositories, favouriteGroups] = await Promise.all([
       this.accountsStore.getAll(),
       this.repositoriesStore.getAll(),
+      this.repositoriesStore.getAllFavouriteGroups(),
     ])
 
     log.info(
@@ -2256,6 +2265,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accounts = accounts
     this.repositories = repositories
+    this.favouriteGroups = favouriteGroups
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
 
@@ -2446,6 +2456,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.showChangesFilter = getBoolean(
       showChangesFilterKey,
       showChangesFilterDefault
+    )
+
+    this.showFavouritesSidebar = getBoolean(
+      showFavouritesSidebarKey,
+      showFavouritesSidebarDefault
     )
 
     this.selectedCopilotModels = this.loadCopilotModelSelections()
@@ -2678,6 +2693,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hasCurrentPullRequest: currentPullRequest !== null,
       askForConfirmationWhenStashingAllChanges,
       isChangesFilterVisible: this.showChangesFilter,
+      isFavouritesSidebarVisible: this.showFavouritesSidebar,
     })
   }
 
@@ -4548,6 +4564,45 @@ export class AppStore extends TypedBaseStore<IAppState> {
     newAlias: string | null
   ): Promise<void> {
     return this.repositoriesStore.updateRepositoryAlias(repository, newAlias)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setRepositoryFavouriteGroup(
+    repository: Repository,
+    favouriteGroupId: number | null
+  ): Promise<void> {
+    await this.repositoriesStore.setRepositoryFavouriteGroup(
+      repository,
+      favouriteGroupId
+    )
+    await this.refreshFavouriteGroups()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _addFavouriteGroup(name: string): Promise<FavouriteGroup> {
+    const group = await this.repositoriesStore.addFavouriteGroup(name)
+    await this.refreshFavouriteGroups()
+    return group
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _renameFavouriteGroup(
+    id: number,
+    name: string
+  ): Promise<void> {
+    await this.repositoriesStore.renameFavouriteGroup(id, name)
+    await this.refreshFavouriteGroups()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _removeFavouriteGroup(id: number): Promise<void> {
+    await this.repositoriesStore.removeFavouriteGroup(id)
+    await this.refreshFavouriteGroups()
+  }
+
+  private async refreshFavouriteGroups() {
+    this.favouriteGroups = await this.repositoriesStore.getAllFavouriteGroups()
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -9299,6 +9354,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _toggleChangesFilterVisibility() {
     this.showChangesFilter = !this.showChangesFilter
     setBoolean(showChangesFilterKey, this.showChangesFilter)
+    this.updateMenuLabelsForSelectedRepository()
+    this.emitUpdate()
+  }
+
+  public _toggleFavouritesSidebarVisibility() {
+    this.showFavouritesSidebar = !this.showFavouritesSidebar
+    setBoolean(showFavouritesSidebarKey, this.showFavouritesSidebar)
     this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
   }

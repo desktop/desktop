@@ -9,6 +9,7 @@ import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
+import { FavouriteGroup } from '../models/favourite-group'
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
@@ -398,6 +399,12 @@ export interface IAppState {
 
   /** Whether the changes filter is shown */
   readonly showChangesFilter: boolean
+
+  /** Whether the favourites sidebar is visible. */
+  readonly showFavouritesSidebar: boolean
+
+  /** All user-defined favourite groups, ordered by sortOrder. */
+  readonly favouriteGroups: ReadonlyArray<FavouriteGroup>
 
   /**
    * Per-feature Copilot model selections. An absent key means the default
