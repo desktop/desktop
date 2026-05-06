@@ -8,10 +8,17 @@ import { FavouriteGroup } from '../../models/favourite-group'
 
 interface IFavouritesToolbarSegmentProps {
   readonly dispatcher: Dispatcher
+  /** The currently active favourites group, or null when none exist. */
   readonly activeGroup: FavouriteGroup | null
+  /** Number of repositories in the active group. */
   readonly activeGroupCount: number
 }
 
+/**
+ * Header for the favourites column rendered inside the toolbar row. Mirrors
+ * the icon + two-row layout of the Current Repository / Current Branch
+ * toolbar buttons so all four toolbar items read consistently.
+ */
 export class FavouritesToolbarSegment extends React.Component<
   IFavouritesToolbarSegmentProps,
   {}

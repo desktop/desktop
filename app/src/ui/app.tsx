@@ -248,6 +248,11 @@ export const bannerTransitionTimeout = { enter: 500, exit: 400 }
  */
 const ReadyDelay = 100
 interface IAppLocalState {
+  /**
+   * The favourites group the user has currently selected in the sidebar.
+   * Local-only React state — not part of IAppState because it is purely
+   * transient view state for this component tree.
+   */
   readonly favouritesActiveGroupId: number | null
 }
 
@@ -3009,6 +3014,7 @@ export class App extends React.Component<
     )
   }
 
+  /** Resolve the user's chosen group id, falling back to the first group. */
   private resolveActiveFavouritesGroupId(): number | null {
     const { favouriteGroups, favouritesActiveGroupId } = this.state
     if (
