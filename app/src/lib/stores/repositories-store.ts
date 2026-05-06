@@ -319,10 +319,7 @@ export class RepositoriesStore extends TypedBaseStore<
   /** Return all favourite groups, ordered by sortOrder then id. */
   public async getAllFavouriteGroups(): Promise<ReadonlyArray<FavouriteGroup>> {
     const rows = await this.db.favouriteGroups.toArray()
-    return rows
-      .slice()
-      .sort(byGroupOrder)
-      .map(toFavouriteGroup)
+    return rows.slice().sort(byGroupOrder).map(toFavouriteGroup)
   }
 
   /**
@@ -338,10 +335,7 @@ export class RepositoriesStore extends TypedBaseStore<
       this.db.favouriteGroups,
       async () => {
         const existing = await this.db.favouriteGroups.toArray()
-        const next = existing.reduce(
-          (max, g) => Math.max(max, g.sortOrder),
-          -1
-        )
+        const next = existing.reduce((max, g) => Math.max(max, g.sortOrder), -1)
         return next + 1
       }
     )
@@ -356,10 +350,7 @@ export class RepositoriesStore extends TypedBaseStore<
   }
 
   /** Rename an existing favourite group. */
-  public async renameFavouriteGroup(
-    id: number,
-    name: string
-  ): Promise<void> {
+  public async renameFavouriteGroup(id: number, name: string): Promise<void> {
     const trimmed = name.trim()
     assertNonNullable(trimmed.length > 0 || null, 'Group name cannot be empty')
     await this.db.favouriteGroups.update(id, { name: trimmed })

@@ -248,10 +248,11 @@ async function migrateFavouritesToGroups(tx: Transaction) {
   await reposTable
     .toCollection()
     .filter(r => r.favouriteGroupId === undefined)
-    .modify((r: { isFavourite?: boolean; favouriteGroupId?: number | null }) => {
-      r.favouriteGroupId =
-        r.isFavourite === true ? defaultGroupId : null
-    })
+    .modify(
+      (r: { isFavourite?: boolean; favouriteGroupId?: number | null }) => {
+        r.favouriteGroupId = r.isFavourite === true ? defaultGroupId : null
+      }
+    )
 
   log.info(
     `migrateFavouritesToGroups: moved ${wasAFavourite.length} repos into a default group`

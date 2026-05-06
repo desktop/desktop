@@ -40,7 +40,16 @@ describe('Repository', () => {
     })
 
     it('produces a different hash when the favourite group changes', () => {
-      const a = new Repository('/some/path', 1, null, false, null, {}, false, null)
+      const a = new Repository(
+        '/some/path',
+        1,
+        null,
+        false,
+        null,
+        {},
+        false,
+        null
+      )
       const b = new Repository('/some/path', 1, null, false, null, {}, false, 1)
       const c = new Repository('/some/path', 1, null, false, null, {}, false, 2)
       assert.notEqual(a.hash, b.hash)

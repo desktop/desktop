@@ -103,9 +103,7 @@ export class RepositoryListItem extends React.Component<
       return null
     }
     const { isFavourite } = repo
-    const label = isFavourite
-      ? 'Manage favourite'
-      : 'Add to favourites'
+    const label = isFavourite ? 'Manage favourite' : 'Add to favourites'
     return (
       <button
         type="button"
@@ -113,7 +111,6 @@ export class RepositoryListItem extends React.Component<
         onClick={this.onFavouriteToggleClick}
         aria-label={label}
         aria-pressed={isFavourite}
-        title={label}
       >
         <Octicon symbol={isFavourite ? octicons.starFill : octicons.star} />
       </button>

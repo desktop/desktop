@@ -42,7 +42,6 @@ export class FavouritesToolbarSegment extends React.Component<
           className="favourites-toolbar-segment-add"
           onClick={this.onAddGroup}
           aria-label="New favourites group"
-          title="New group"
         >
           <Octicon symbol={octicons.plus} />
         </button>

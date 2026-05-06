@@ -1,12 +1,10 @@
 import * as React from 'react'
 import classNames from 'classnames'
 
-import {
-  ILocalRepositoryState,
-  Repository,
-} from '../../models/repository'
+import { ILocalRepositoryState, Repository } from '../../models/repository'
 import { CloningRepository } from '../../models/cloning-repository'
 import { FavouriteGroup } from '../../models/favourite-group'
+import { IAheadBehind } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
 import { Octicon, iconForRepository } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
@@ -19,8 +17,74 @@ import {
 import { Tooltip } from '../lib/tooltip'
 import { createObservableRef } from '../lib/observable-ref'
 
-// Header (label + add-group button) lives in the toolbar; see
-// FavouritesToolbarSegment.
+interface IFavouritesSidebarItemProps {
+  readonly repository: Repository
+  readonly isSelected: boolean
+  readonly aheadBehind: IAheadBehind | null
+  readonly changedFilesCount: number
+  readonly onSelect: (repository: Repository) => void
+  readonly onUnfavourite: (
+    event: React.MouseEvent<HTMLElement>,
+    repository: Repository
+  ) => void
+}
+
+class FavouritesSidebarItem extends React.Component<
+  IFavouritesSidebarItemProps,
+  {}
+> {
+  private readonly itemRef = createObservableRef<HTMLLIElement>()
+
+  public render() {
+    const { repository, isSelected, aheadBehind, changedFilesCount } =
+      this.props
+    const label = repository.alias ?? repository.name
+    const hasChanges = changedFilesCount > 0
+
+    return (
+      <li
+        ref={this.itemRef}
+        className={classNames('favourites-sidebar-item', {
+          selected: isSelected,
+        })}
+      >
+        <Tooltip target={this.itemRef}>
+          {renderRepositoryRowFocusTooltip({
+            repository,
+            aheadBehind,
+            changedFilesCount,
+          })}
+        </Tooltip>
+        <button
+          type="button"
+          className="favourites-sidebar-item-button"
+          onClick={this.onClick}
+          aria-current={isSelected ? 'true' : undefined}
+        >
+          <Octicon
+            className="icon-for-repository"
+            symbol={iconForRepository(repository)}
+          />
+          <span className="favourites-sidebar-item-name">{label}</span>
+        </button>
+        {renderRepoIndicators({ aheadBehind, hasChanges })}
+        <button
+          type="button"
+          className="favourites-sidebar-unfavourite"
+          onClick={this.onUnfavouriteClick}
+          aria-label={`Remove ${label} from favourites`}
+        >
+          <Octicon symbol={octicons.starFill} />
+        </button>
+      </li>
+    )
+  }
+
+  private onClick = () => this.props.onSelect(this.props.repository)
+
+  private onUnfavouriteClick = (event: React.MouseEvent<HTMLElement>) =>
+    this.props.onUnfavourite(event, this.props.repository)
+}
 
 interface IFavouritesSidebarProps {
   readonly repositories: ReadonlyArray<Repository>
@@ -62,12 +126,13 @@ export class FavouritesSidebar extends React.Component<
             key={g.id}
             role="tab"
             aria-selected={g.id === activeGroupId}
+            aria-label={g.name}
+            data-group-id={g.id}
             className={classNames('favourites-sidebar-tab', {
               active: g.id === activeGroupId,
             })}
-            onClick={() => this.props.onActiveGroupChanged(g.id)}
-            onContextMenu={event => this.onTabContextMenu(event, g)}
-            title={g.name}
+            onClick={this.onTabClick}
+            onContextMenu={this.onTabContextMenu}
           >
             {g.name}
           </button>
@@ -76,12 +141,26 @@ export class FavouritesSidebar extends React.Component<
     )
   }
 
+  private getGroupFromEvent(
+    event: React.SyntheticEvent<HTMLButtonElement>
+  ): FavouriteGroup | null {
+    const idStr = event.currentTarget.dataset.groupId
+    const id = idStr === undefined ? NaN : parseInt(idStr, 10)
+    return this.props.favouriteGroups.find(g => g.id === id) ?? null
+  }
+
+  private onTabClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const group = this.getGroupFromEvent(event)
+    if (group !== null) {
+      this.props.onActiveGroupChanged(group.id)
+    }
+  }
+
   private renderEmptyState() {
     return (
       <p className="favourites-sidebar-empty">
         Right-click a repository and choose <strong>Add to favourites</strong>{' '}
-        to pin it here. You can organise pins into groups (e.g. Work,
-        Personal).
+        to pin it here. You can organise pins into groups (e.g. Work, Personal).
       </p>
     )
   }
@@ -89,8 +168,7 @@ export class FavouritesSidebar extends React.Component<
   private renderActiveGroupList() {
     const { repositories, favouriteGroups, activeGroupId } = this.props
 
-    const effectiveGroupId =
-      activeGroupId ?? favouriteGroups[0]?.id ?? null
+    const effectiveGroupId = activeGroupId ?? favouriteGroups[0]?.id ?? null
 
     if (effectiveGroupId === null) {
       return this.renderEmptyState()
@@ -155,11 +233,12 @@ export class FavouritesSidebar extends React.Component<
     this.props.dispatcher.setRepositoryFavouriteGroup(repository, null)
   }
 
-  private onTabContextMenu = (
-    event: React.MouseEvent<HTMLButtonElement>,
-    group: FavouriteGroup
-  ) => {
+  private onTabContextMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
+    const group = this.getGroupFromEvent(event)
+    if (group === null) {
+      return
+    }
     const items: ReadonlyArray<IMenuItem> = [
       {
         label: __DARWIN__ ? 'Rename Group…' : 'Rename group…',
@@ -195,77 +274,4 @@ export class FavouritesSidebar extends React.Component<
       this.props.dispatcher.deleteFavouriteGroup(group.id)
     }
   }
-}
-
-interface IFavouritesSidebarItemProps {
-  readonly repository: Repository
-  readonly isSelected: boolean
-  readonly aheadBehind: import('../../models/branch').IAheadBehind | null
-  readonly changedFilesCount: number
-  readonly onSelect: (repository: Repository) => void
-  readonly onUnfavourite: (
-    event: React.MouseEvent<HTMLElement>,
-    repository: Repository
-  ) => void
-}
-
-class FavouritesSidebarItem extends React.Component<
-  IFavouritesSidebarItemProps,
-  {}
-> {
-  private readonly itemRef = createObservableRef<HTMLLIElement>()
-
-  public render() {
-    const {
-      repository,
-      isSelected,
-      aheadBehind,
-      changedFilesCount,
-    } = this.props
-    const label = repository.alias ?? repository.name
-    const hasChanges = changedFilesCount > 0
-
-    return (
-      <li
-        ref={this.itemRef}
-        className={classNames('favourites-sidebar-item', {
-          selected: isSelected,
-        })}
-      >
-        <Tooltip target={this.itemRef}>
-          {renderRepositoryRowFocusTooltip({
-            repository,
-            aheadBehind,
-            changedFilesCount,
-          })}
-        </Tooltip>
-        <button
-          type="button"
-          className="favourites-sidebar-item-button"
-          onClick={this.onClick}
-          aria-current={isSelected ? 'true' : undefined}
-        >
-          <Octicon
-            className="icon-for-repository"
-            symbol={iconForRepository(repository)}
-          />
-          <span className="favourites-sidebar-item-name">{label}</span>
-        </button>
-        {renderRepoIndicators({ aheadBehind, hasChanges })}
-        <button
-          type="button"
-          className="favourites-sidebar-unfavourite"
-          onClick={this.onUnfavouriteClick}
-          aria-label={`Remove ${label} from favourites`}
-        >
-          <Octicon symbol={octicons.starFill} />
-        </button>
-      </li>
-    )
-  }
-
-  private onClick = () => this.props.onSelect(this.props.repository)
-
-  private onUnfavouriteClick = (event: React.MouseEvent<HTMLElement>) =>
-    this.props.onUnfavourite(event, this.props.repository)
 }

@@ -4602,10 +4602,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _renameFavouriteGroup(
-    id: number,
-    name: string
-  ): Promise<void> {
+  public async _renameFavouriteGroup(id: number, name: string): Promise<void> {
     await this.repositoriesStore.renameFavouriteGroup(id, name)
     await this.refreshFavouriteGroups()
   }
