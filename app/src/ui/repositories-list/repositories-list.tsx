@@ -26,7 +26,10 @@ import { encodePathAsUrl } from '../../lib/path'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import memoizeOne from 'memoize-one'
 import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
-import { generateRepositoryListContextMenu } from '../repositories-list/repository-list-item-context-menu'
+import {
+  buildFavouriteAssignmentItems,
+  generateRepositoryListContextMenu,
+} from '../repositories-list/repository-list-item-context-menu'
 import { SectionFilterList } from '../lib/section-filter-list'
 import { assertNever } from '../../lib/fatal-error'
 
@@ -423,61 +426,27 @@ export class RepositoriesList extends React.Component<
   }
 
   private onManageFavourite = (repository: Repository) => {
-    const items = buildManageFavouriteMenu(
+    const { favouriteGroups } = this.props
+    const config = {
+      showCheckboxes: repository.isFavourite,
+      onSetRepositoryFavouriteGroup: this.onSetRepositoryFavouriteGroup,
+      onCreateFavouriteGroupForRepository:
+        this.onCreateFavouriteGroupForRepository,
+    }
+    const items: Array<IMenuItem> = buildFavouriteAssignmentItems(
       repository,
-      this.props.favouriteGroups,
-      this.onSetRepositoryFavouriteGroup,
-      this.onCreateFavouriteGroupForRepository
+      favouriteGroups,
+      config
     )
+
+    if (repository.isFavourite) {
+      items.push({ type: 'separator' })
+      items.push({
+        label: __DARWIN__ ? 'Remove from Favourites' : 'Remove from favourites',
+        action: () => this.onSetRepositoryFavouriteGroup(repository, null),
+      })
+    }
+
     showContextualMenu(items)
   }
-}
-
-function buildManageFavouriteMenu(
-  repository: Repository,
-  favouriteGroups: ReadonlyArray<FavouriteGroup>,
-  onSetRepositoryFavouriteGroup: (
-    repository: Repository,
-    favouriteGroupId: number | null
-  ) => void,
-  onCreateFavouriteGroupForRepository: (repository: Repository) => void
-): ReadonlyArray<IMenuItem> {
-  const newGroupItem: IMenuItem = {
-    label: __DARWIN__ ? 'New Group…' : 'New group…',
-    action: () => onCreateFavouriteGroupForRepository(repository),
-  }
-
-  if (repository.isFavourite) {
-    const items: Array<IMenuItem> = []
-    if (favouriteGroups.length > 0) {
-      for (const g of favouriteGroups) {
-        items.push({
-          label: g.name,
-          type: 'checkbox',
-          checked: g.id === repository.favouriteGroupId,
-          action: () => onSetRepositoryFavouriteGroup(repository, g.id),
-        })
-      }
-      items.push({ type: 'separator' })
-      items.push(newGroupItem)
-      items.push({ type: 'separator' })
-    }
-    items.push({
-      label: __DARWIN__ ? 'Remove from Favourites' : 'Remove from favourites',
-      action: () => onSetRepositoryFavouriteGroup(repository, null),
-    })
-    return items
-  }
-
-  if (favouriteGroups.length === 0) {
-    return [newGroupItem]
-  }
-
-  const items: Array<IMenuItem> = favouriteGroups.map(g => ({
-    label: g.name,
-    action: () => onSetRepositoryFavouriteGroup(repository, g.id),
-  }))
-  items.push({ type: 'separator' })
-  items.push(newGroupItem)
-  return items
 }

@@ -195,10 +195,7 @@ export function getAheadBehindTooltip(
 }
 
 interface IRepositoryRowFocusTooltipProps {
-  readonly repository: { readonly path: string; readonly name: string } & {
-    readonly gitHubRepository?: { readonly fullName: string } | null
-    readonly alias?: string | null
-  }
+  readonly repository: Repositoryish
   readonly aheadBehind: IAheadBehind | null
   readonly changedFilesCount: number
 }
@@ -257,18 +254,12 @@ export function renderRepositoryRowFocusTooltip(
 }
 
 const renderAheadBehindIndicator = (aheadBehind: IAheadBehind) => {
-  const { ahead, behind } = aheadBehind
-  if (ahead === 0 && behind === 0) {
+  const aheadBehindTooltip = getAheadBehindTooltip(aheadBehind)
+  if (aheadBehindTooltip === null) {
     return null
   }
 
-  const aheadBehindTooltip =
-    'The currently checked out branch is' +
-    (behind ? ` ${commitGrammar(behind)} behind ` : '') +
-    (behind && ahead ? 'and' : '') +
-    (ahead ? ` ${commitGrammar(ahead)} ahead of ` : '') +
-    'its tracked branch.'
-
+  const { ahead, behind } = aheadBehind
   return (
     <TooltippedContent
       className="ahead-behind"

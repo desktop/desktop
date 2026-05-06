@@ -42,22 +42,21 @@ export class FavouriteGroupNameDialog extends React.Component<IProps, IState> {
       : __DARWIN__
       ? 'New Favourites Group'
       : 'New favourites group'
-    const okText = isRename
-      ? __DARWIN__
-        ? 'Rename'
-        : 'Rename'
-      : __DARWIN__
-      ? 'Create'
-      : 'Create'
+    const okText = isRename ? 'Rename' : 'Create'
+    const description = isRename
+      ? 'Choose a new name for this favourites group.'
+      : 'Group your favourites under a name (e.g. Work, Personal).'
 
     return (
       <Dialog
         id="favourite-group-name-dialog"
         title={title}
+        ariaDescribedBy="favourite-group-name-description"
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
       >
         <DialogContent>
+          <p id="favourite-group-name-description">{description}</p>
           <p>
             <TextBox
               ariaLabel="Group name"
