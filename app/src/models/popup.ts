@@ -78,6 +78,8 @@ export enum PopupType {
   ConfirmDiscardSelection = 'ConfirmDiscardSelection',
   MoveToApplicationsFolder = 'MoveToApplicationsFolder',
   ChangeRepositoryAlias = 'ChangeRepositoryAlias',
+  NewFavouriteGroup = 'NewFavouriteGroup',
+  RenameFavouriteGroup = 'RenameFavouriteGroup',
   ThankYou = 'ThankYou',
   CommitMessage = 'CommitMessage',
   MultiCommitOperation = 'MultiCommitOperation',
@@ -326,6 +328,16 @@ export type PopupDetail =
     }
   | { type: PopupType.MoveToApplicationsFolder }
   | { type: PopupType.ChangeRepositoryAlias; repository: Repository }
+  | {
+      type: PopupType.NewFavouriteGroup
+      /** When set, the new group will immediately receive this repository. */
+      repository?: Repository
+    }
+  | {
+      type: PopupType.RenameFavouriteGroup
+      groupId: number
+      currentName: string
+    }
   | {
       type: PopupType.ThankYou
       userContributions: ReadonlyArray<ReleaseNote>

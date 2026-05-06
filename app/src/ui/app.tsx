@@ -140,6 +140,7 @@ import { CommitDragElement } from './drag-elements/commit-drag-element'
 import classNames from 'classnames'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
 import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
+import { FavouriteGroupNameDialog } from './favourites-sidebar/favourite-group-name-dialog'
 import { ThankYou } from './thank-you'
 import {
   getUserContributions,
@@ -165,6 +166,8 @@ import { CICheckRunRerunDialog } from './check-runs/ci-check-run-rerun-dialog'
 import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-push-dialog'
 import { clamp } from '../lib/clamp'
 import { generateRepositoryListContextMenu } from './repositories-list/repository-list-item-context-menu'
+import { FavouritesSidebar } from './favourites-sidebar/favourites-sidebar'
+import { FavouritesToolbarSegment } from './favourites-sidebar/favourites-toolbar-segment'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
 import { PullRequestReview } from './notifications/pull-request-review'
@@ -531,6 +534,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.resizeActiveResizable('decrease-active-resizable-width')
       case 'toggle-changes-filter':
         return this.toggleChangesFilterVisibility()
+      case 'toggle-favourites-sidebar':
+        return this.props.dispatcher.toggleFavouritesSidebarVisibility()
       default:
         if (isTestMenuEvent(name)) {
           return showTestUI(
@@ -2153,6 +2158,27 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.NewFavouriteGroup: {
+        return (
+          <FavouriteGroupNameDialog
+            mode="create"
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.RenameFavouriteGroup: {
+        return (
+          <FavouriteGroupNameDialog
+            mode="rename"
+            dispatcher={this.props.dispatcher}
+            groupId={popup.groupId}
+            currentName={popup.currentName}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       case PopupType.ThankYou:
         return (
           <ThankYou
@@ -2954,6 +2980,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderApp() {
+    const showFavourites =
+      this.state.showFavouritesSidebar && !this.inNoRepositoriesViewState()
     return (
       <div
         id="desktop-app-contents"
@@ -2961,10 +2989,28 @@ export class App extends React.Component<IAppProps, IAppState> {
       >
         {this.renderToolbar()}
         {this.renderBanner()}
-        {this.renderRepository()}
+        <div id="desktop-app-main">
+          {showFavourites && this.renderFavouritesSidebar()}
+          <div id="desktop-app-repository-pane">{this.renderRepository()}</div>
+        </div>
         {this.renderPopups()}
         {this.renderDragElement()}
       </div>
+    )
+  }
+
+  private renderFavouritesSidebar() {
+    const favourites = this.state.repositories.filter(
+      (r): r is Repository => r instanceof Repository && r.isFavourite
+    )
+    const selectedRepository = this.state.selectedState?.repository ?? null
+    return (
+      <FavouritesSidebar
+        repositories={favourites}
+        favouriteGroups={this.state.favouriteGroups}
+        selectedRepository={selectedRepository}
+        dispatcher={this.props.dispatcher}
+      />
     )
   }
 
@@ -2995,6 +3041,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         externalEditorLabel={this.externalEditorLabel}
         shellLabel={useCustomShell ? undefined : selectedShell}
         dispatcher={this.props.dispatcher}
+        favouriteGroups={this.state.favouriteGroups}
       />
     )
   }
@@ -3122,13 +3169,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const foldoutWidth = clamp(this.state.sidebarWidth)
 
-    const foldoutStyle: React.CSSProperties = {
-      position: 'absolute',
-      marginLeft: 0,
+    // Only override width — let ToolbarDropdown's default style anchor the
+    // foldout under the button (uses the button's clientRect.left). Using a
+    // full `foldoutStyle` would hardcode marginLeft: 0 and pop the foldout to
+    // the leftmost edge of the toolbar, which is wrong now that the
+    // favourites segment sits to the left of this button.
+    const foldoutStyleOverrides: React.CSSProperties = {
       width: foldoutWidth,
       minWidth: foldoutWidth,
-      height: '100%',
-      top: 0,
     }
 
     /** The dropdown focus trap will stop focus event propagation we made need
@@ -3142,7 +3190,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         title={title}
         description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
         tooltip={tooltip}
-        foldoutStyle={foldoutStyle}
+        foldoutStyleOverrides={foldoutStyleOverrides}
         onContextMenu={this.onRepositoryToolbarButtonContextMenu}
         onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
         dropdownContentRenderer={this.renderRepositoryList}
@@ -3169,6 +3217,23 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.changeRepositoryAlias(repository, null)
     }
 
+    const onSetRepositoryFavouriteGroup = (
+      repository: Repository,
+      favouriteGroupId: number | null
+    ) => {
+      this.props.dispatcher.setRepositoryFavouriteGroup(
+        repository,
+        favouriteGroupId
+      )
+    }
+
+    const onCreateFavouriteGroupForRepository = (repository: Repository) => {
+      this.props.dispatcher.showPopup({
+        type: PopupType.NewFavouriteGroup,
+        repository,
+      })
+    }
+
     const items = generateRepositoryListContextMenu({
       onRemoveRepository: this.removeRepository,
       onShowRepository: this.showRepository,
@@ -3179,11 +3244,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       externalEditorLabel: this.externalEditorLabel,
       onChangeRepositoryAlias: onChangeRepositoryAlias,
       onRemoveRepositoryAlias: onRemoveRepositoryAlias,
+      onSetRepositoryFavouriteGroup: onSetRepositoryFavouriteGroup,
+      onCreateFavouriteGroupForRepository: onCreateFavouriteGroupForRepository,
       onViewOnGitHub: this.viewOnGitHub,
       repository: repository,
       shellLabel: this.state.useCustomShell
         ? undefined
         : this.state.selectedShell,
+      favouriteGroups: this.state.favouriteGroups,
     })
 
     showContextualMenu(items)
@@ -3455,9 +3523,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const width = clamp(this.state.sidebarWidth)
+    const showFavourites = this.state.showFavouritesSidebar
 
     return (
       <Toolbar id="desktop-app-toolbar">
+        {showFavourites && (
+          <FavouritesToolbarSegment dispatcher={this.props.dispatcher} />
+        )}
         <div className="sidebar-section" style={{ width }}>
           {this.renderRepositoryToolbarButton()}
         </div>

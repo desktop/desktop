@@ -1,0 +1,176 @@
+.favourites-toolbar-segment {
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-half);
+  padding: 0 var(--spacing);
+  border-right: 1px solid var(--toolbar-button-border-color);
+
+  .favourites-toolbar-segment-label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .favourites-toolbar-segment-add {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary-color);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--border-radius);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--toolbar-text-color);
+      background: var(--toolbar-button-hover-background-color);
+    }
+  }
+}
+
+.favourites-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--toolbar-border-color);
+  background: var(--box-alt-background-color);
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  .favourites-sidebar-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    padding: var(--spacing-half);
+    gap: var(--spacing-quarter);
+    border-bottom: 1px solid var(--toolbar-border-color);
+
+    .favourites-sidebar-tab {
+      flex: 0 1 auto;
+      max-width: 100%;
+      padding: 2px var(--spacing-half);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--border-radius);
+      color: var(--text-secondary-color);
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      &:hover {
+        background: var(--box-hover-background-color);
+        color: var(--text-color);
+      }
+
+      &.active {
+        background: var(--box-selected-background-color);
+        color: var(--box-selected-text-color);
+        border-color: var(--toolbar-border-color);
+        font-weight: var(--font-weight-semibold);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--focus-color);
+        outline-offset: -2px;
+      }
+    }
+  }
+
+  .favourites-sidebar-empty {
+    margin: 0;
+    padding: var(--spacing);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
+    line-height: 1.4;
+  }
+
+  .favourites-sidebar-list {
+    list-style: none;
+    margin: 0;
+    padding: var(--spacing-half) 0;
+  }
+
+  .favourites-sidebar-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+
+    .favourites-sidebar-item-button {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-half);
+      padding: var(--spacing-half) var(--spacing);
+      background: transparent;
+      border: none;
+      color: var(--text-color);
+      cursor: pointer;
+      text-align: left;
+
+      .icon-for-repository {
+        flex-shrink: 0;
+      }
+
+      .favourites-sidebar-item-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1 1 auto;
+      }
+
+      &:hover {
+        background: var(--box-hover-background-color);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--focus-color);
+        outline-offset: -2px;
+      }
+    }
+
+    .favourites-sidebar-unfavourite {
+      flex-shrink: 0;
+      padding: 4px;
+      margin-right: var(--spacing-half);
+      background: transparent;
+      border: none;
+      color: var(--text-secondary-color);
+      opacity: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--border-radius);
+
+      &:hover,
+      &:focus-visible {
+        opacity: 1;
+        background: var(--box-hover-background-color);
+      }
+    }
+
+    &:hover .favourites-sidebar-unfavourite,
+    &.selected .favourites-sidebar-unfavourite {
+      opacity: 1;
+    }
+
+    &.selected .favourites-sidebar-item-button {
+      background: var(--box-selected-background-color);
+      color: var(--box-selected-text-color);
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+}
