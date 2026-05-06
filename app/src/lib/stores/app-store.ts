@@ -511,7 +511,7 @@ const selectedCopilotModelsKey = 'selected-copilot-models'
 export const showChangesFilterDefault = true
 
 export const showFavouritesSidebarKey = 'show-favourites-sidebar'
-export const showFavouritesSidebarDefault = true
+export const showFavouritesSidebarDefault = false
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
@@ -4571,11 +4571,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     favouriteGroupId: number | null
   ): Promise<void> {
+    const wasFirstFavourite =
+      favouriteGroupId !== null &&
+      !this.repositories.some(
+        r =>
+          r instanceof Repository &&
+          r.id !== repository.id &&
+          r.favouriteGroupId !== null
+      )
+
     await this.repositoriesStore.setRepositoryFavouriteGroup(
       repository,
       favouriteGroupId
     )
     await this.refreshFavouriteGroups()
+
+    if (wasFirstFavourite && !this.showFavouritesSidebar) {
+      this.showFavouritesSidebar = true
+      setBoolean(showFavouritesSidebarKey, true)
+      this.updateMenuLabelsForSelectedRepository()
+      this.emitUpdate()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
