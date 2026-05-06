@@ -97,4 +97,77 @@ describe('RepositoriesStore', () => {
       )
     })
   })
+
+  describe('favourites and groups', () => {
+    it('defaults favouriteGroupId to null on new repositories', async () => {
+      const repo = await repositoriesStore.addRepository('/path/a')
+      assert.equal(repo.favouriteGroupId, null)
+      assert.equal(repo.isFavourite, false)
+
+      const repos = await repositoriesStore.getAll()
+      assert.equal(repos[0].favouriteGroupId, null)
+    })
+
+    it('creates a group and assigns a repository to it', async () => {
+      const repo = await repositoriesStore.addRepository('/path/a')
+      const group = await repositoriesStore.addFavouriteGroup('Work')
+      assert.equal(group.name, 'Work')
+
+      const updated = await repositoriesStore.setRepositoryFavouriteGroup(
+        repo,
+        group.id
+      )
+      assert.equal(updated.favouriteGroupId, group.id)
+      assert.equal(updated.isFavourite, true)
+
+      const repos = await repositoriesStore.getAll()
+      assert.equal(repos[0].favouriteGroupId, group.id)
+    })
+
+    it('removes membership when groupId is null', async () => {
+      const repo = await repositoriesStore.addRepository('/path/a')
+      const group = await repositoriesStore.addFavouriteGroup('Work')
+      await repositoriesStore.setRepositoryFavouriteGroup(repo, group.id)
+      const cleared = await repositoriesStore.setRepositoryFavouriteGroup(
+        repo,
+        null
+      )
+      assert.equal(cleared.favouriteGroupId, null)
+      assert.equal(cleared.isFavourite, false)
+    })
+
+    it('renames a group', async () => {
+      const group = await repositoriesStore.addFavouriteGroup('Work')
+      await repositoriesStore.renameFavouriteGroup(group.id, 'Job')
+      const groups = await repositoriesStore.getAllFavouriteGroups()
+      assert.equal(groups.length, 1)
+      assert.equal(groups[0].name, 'Job')
+    })
+
+    it('clears member memberships when a group is deleted', async () => {
+      const repo = await repositoriesStore.addRepository('/path/a')
+      const group = await repositoriesStore.addFavouriteGroup('Work')
+      await repositoriesStore.setRepositoryFavouriteGroup(repo, group.id)
+
+      await repositoriesStore.removeFavouriteGroup(group.id)
+
+      const groups = await repositoriesStore.getAllFavouriteGroups()
+      assert.equal(groups.length, 0)
+
+      const repos = await repositoriesStore.getAll()
+      assert.equal(repos[0].favouriteGroupId, null)
+      assert.equal(repos[0].isFavourite, false)
+    })
+
+    it('orders groups by sortOrder ascending', async () => {
+      const a = await repositoriesStore.addFavouriteGroup('A')
+      const b = await repositoriesStore.addFavouriteGroup('B')
+      const c = await repositoriesStore.addFavouriteGroup('C')
+      const groups = await repositoriesStore.getAllFavouriteGroups()
+      assert.deepEqual(
+        groups.map(g => g.id),
+        [a.id, b.id, c.id]
+      )
+    })
+  })
 })

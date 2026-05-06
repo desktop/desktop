@@ -4,6 +4,7 @@ import {
   RepositoriesDatabase,
   IDatabaseGitHubRepository,
   IDatabaseOwner,
+  IDatabaseRepository,
   getOwnerKey,
 } from '../../src/lib/databases'
 
@@ -111,6 +112,109 @@ describe('RepositoriesDatabase', () => {
     assert.deepStrictEqual(migratedRepoA?.ownerID, migratedOwner?.id)
     assert.deepStrictEqual(migratedOwner?.endpoint, endpoint)
     assert.deepStrictEqual(migratedOwner?.key, getOwnerKey(endpoint, 'DeskTop'))
+
+    await db.delete()
+  })
+
+  it('migrates from version 9 to 10 by defaulting isFavourite to false', async () => {
+    const dbName = 'TestRepositoriesDatabase'
+    let db = new RepositoriesDatabase(dbName, 9)
+    await db.delete()
+    await db.open()
+
+    type RepoModelBeforeUpgrade = Omit<
+      IDatabaseRepository,
+      'isFavourite' | 'favouriteGroupId'
+    >
+    const repositoriesTable = db.table<RepoModelBeforeUpgrade, number>(
+      'repositories'
+    )
+
+    const repoId = await repositoriesTable.add({
+      gitHubRepositoryID: null,
+      path: '/some/path',
+      alias: null,
+      missing: false,
+    })
+
+    db.close()
+
+    db = new RepositoriesDatabase(dbName, 10)
+    await db.open()
+
+    const migrated = await db.repositories.get(repoId)
+    assert(migrated !== undefined)
+    assert.equal(migrated.isFavourite, false)
+
+    await db.delete()
+  })
+
+  it('migrates from version 10 to 11 by moving favourites into a default group', async () => {
+    const dbName = 'TestRepositoriesDatabase'
+    let db = new RepositoriesDatabase(dbName, 10)
+    await db.delete()
+    await db.open()
+
+    type RepoModelV10 = Omit<IDatabaseRepository, 'favouriteGroupId'>
+    const v10ReposTable = db.table<RepoModelV10, number>('repositories')
+
+    const favId = await v10ReposTable.add({
+      gitHubRepositoryID: null,
+      path: '/path/fav',
+      alias: null,
+      missing: false,
+      isFavourite: true,
+    })
+    const plainId = await v10ReposTable.add({
+      gitHubRepositoryID: null,
+      path: '/path/plain',
+      alias: null,
+      missing: false,
+      isFavourite: false,
+    })
+
+    db.close()
+
+    db = new RepositoriesDatabase(dbName, 11)
+    await db.open()
+
+    const groups = await db.favouriteGroups.toArray()
+    assert.equal(groups.length, 1)
+    assert.equal(groups[0].name, 'Favourites')
+
+    const fav = await db.repositories.get(favId)
+    const plain = await db.repositories.get(plainId)
+    assert(fav !== undefined && plain !== undefined)
+    assert.equal(fav.favouriteGroupId, groups[0].id)
+    assert.equal(plain.favouriteGroupId, null)
+
+    await db.delete()
+  })
+
+  it('does not create a default group when no v10 favourites exist', async () => {
+    const dbName = 'TestRepositoriesDatabase'
+    let db = new RepositoriesDatabase(dbName, 10)
+    await db.delete()
+    await db.open()
+
+    type RepoModelV10 = Omit<IDatabaseRepository, 'favouriteGroupId'>
+    const v10ReposTable = db.table<RepoModelV10, number>('repositories')
+
+    await v10ReposTable.add({
+      gitHubRepositoryID: null,
+      path: '/path/plain',
+      alias: null,
+      missing: false,
+      isFavourite: false,
+    })
+
+    db.close()
+
+    db = new RepositoriesDatabase(dbName, 11)
+    await db.open()
+
+    const groups = await db.favouriteGroups.toArray()
+    assert.equal(groups.length, 0)
 
     await db.delete()
   })
