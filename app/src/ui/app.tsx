@@ -141,6 +141,7 @@ import classNames from 'classnames'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
 import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
 import { FavouriteGroupNameDialog } from './favourites-sidebar/favourite-group-name-dialog'
+import { ConfirmDeleteFavouriteGroupDialog } from './favourites-sidebar/confirm-delete-favourite-group-dialog'
 import { ThankYou } from './thank-you'
 import {
   getUserContributions,
@@ -2190,6 +2191,17 @@ export class App extends React.Component<
             dispatcher={this.props.dispatcher}
             groupId={popup.groupId}
             currentName={popup.currentName}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.ConfirmDeleteFavouriteGroup: {
+        return (
+          <ConfirmDeleteFavouriteGroupDialog
+            dispatcher={this.props.dispatcher}
+            groupId={popup.groupId}
+            groupName={popup.groupName}
+            memberCount={popup.memberCount}
             onDismissed={onPopupDismissedFn}
           />
         )

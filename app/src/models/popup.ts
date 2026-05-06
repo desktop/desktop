@@ -80,6 +80,7 @@ export enum PopupType {
   ChangeRepositoryAlias = 'ChangeRepositoryAlias',
   NewFavouriteGroup = 'NewFavouriteGroup',
   RenameFavouriteGroup = 'RenameFavouriteGroup',
+  ConfirmDeleteFavouriteGroup = 'ConfirmDeleteFavouriteGroup',
   ThankYou = 'ThankYou',
   CommitMessage = 'CommitMessage',
   MultiCommitOperation = 'MultiCommitOperation',
@@ -337,6 +338,12 @@ export type PopupDetail =
       type: PopupType.RenameFavouriteGroup
       groupId: number
       currentName: string
+    }
+  | {
+      type: PopupType.ConfirmDeleteFavouriteGroup
+      groupId: number
+      groupName: string
+      memberCount: number
     }
   | {
       type: PopupType.ThankYou

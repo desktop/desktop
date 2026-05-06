@@ -263,15 +263,11 @@ export class FavouritesSidebar extends React.Component<
       r => r.favouriteGroupId === group.id
     ).length
 
-    const message =
-      memberCount === 0
-        ? `Delete the favourites group "${group.name}"?`
-        : `Delete "${group.name}"? Its ${memberCount} repositor${
-            memberCount === 1 ? 'y' : 'ies'
-          } will no longer be favourites.`
-
-    if (window.confirm(message)) {
-      this.props.dispatcher.deleteFavouriteGroup(group.id)
-    }
+    this.props.dispatcher.showPopup({
+      type: PopupType.ConfirmDeleteFavouriteGroup,
+      groupId: group.id,
+      groupName: group.name,
+      memberCount,
+    })
   }
 }
