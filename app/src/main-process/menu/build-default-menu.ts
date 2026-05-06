@@ -46,6 +46,7 @@ export function buildDefaultMenu({
   isStashedChangesVisible = false,
   askForConfirmationWhenStashingAllChanges = true,
   isChangesFilterVisible = true,
+  isFavouritesSidebarVisible = true,
 }: MenuLabelsEvent): Electron.Menu {
   contributionTargetDefaultBranch = truncateWithEllipsis(
     contributionTargetDefaultBranch,
@@ -222,6 +223,15 @@ export function buildDefaultMenu({
         id: 'toggle-changes-filter',
         accelerator: 'CmdOrCtrl+L',
         click: emit('toggle-changes-filter'),
+      },
+      {
+        label: __DARWIN__
+          ? `${isFavouritesSidebarVisible ? 'Hide' : 'Show'} Favourites Sidebar`
+          : `${
+              isFavouritesSidebarVisible ? 'Hide' : 'Show'
+            } &Favourites Sidebar`,
+        id: 'toggle-favourites-sidebar',
+        click: emit('toggle-favourites-sidebar'),
       },
       {
         label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',

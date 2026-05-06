@@ -67,4 +67,10 @@ export type MenuLabelsEvent = {
    * says "Show changes filter" or "Hide changes filter".
    */
   readonly isChangesFilterVisible?: boolean
+
+  /**
+   * Whether or not the favourites sidebar is currently visible. Drives the
+   * label of the toggle in the View menu ("Show" vs "Hide").
+   */
+  readonly isFavouritesSidebarVisible?: boolean
 }
