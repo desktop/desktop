@@ -3040,6 +3040,7 @@ export class App extends React.Component<
         repositories={favourites}
         favouriteGroups={this.state.favouriteGroups}
         selectedRepository={selectedRepository}
+        localRepositoryStateLookup={this.state.localRepositoryStateLookup}
         dispatcher={this.props.dispatcher}
         activeGroupId={this.resolveActiveFavouritesGroupId()}
         onActiveGroupChanged={this.onFavouritesActiveGroupChanged}

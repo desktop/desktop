@@ -165,7 +165,7 @@ export class RepositoryListItem extends React.Component<
   }
 }
 
-const renderRepoIndicators: React.FunctionComponent<{
+export const renderRepoIndicators: React.FunctionComponent<{
   aheadBehind: IAheadBehind | null
   hasChanges: boolean
 }> = props => {
@@ -173,6 +173,88 @@ const renderRepoIndicators: React.FunctionComponent<{
     <div className="repo-indicators">
       {props.aheadBehind && renderAheadBehindIndicator(props.aheadBehind)}
       {props.hasChanges && renderChangesIndicator()}
+    </div>
+  )
+}
+
+/** Build the multi-line ahead/behind sentence used in row tooltips. */
+export function getAheadBehindTooltip(
+  aheadBehind: IAheadBehind | null
+): string | null {
+  if (aheadBehind === null) {
+    return null
+  }
+  const { ahead, behind } = aheadBehind
+  if (behind === 0 && ahead === 0) {
+    return null
+  }
+  return (
+    'The currently checked out branch is' +
+    (behind ? ` ${commitGrammar(behind)} behind ` : '') +
+    (behind && ahead ? 'and' : '') +
+    (ahead ? ` ${commitGrammar(ahead)} ahead of ` : '') +
+    'its tracked branch.'
+  )
+}
+
+interface IRepositoryRowFocusTooltipProps {
+  readonly repository: { readonly path: string; readonly name: string } & {
+    readonly gitHubRepository?: { readonly fullName: string } | null
+    readonly alias?: string | null
+  }
+  readonly aheadBehind: IAheadBehind | null
+  readonly changedFilesCount: number
+}
+
+/**
+ * The rich row-focus tooltip used by the Current Repository dropdown rows.
+ * Re-exported so the favourites sidebar can render an identical popup.
+ */
+export function renderRepositoryRowFocusTooltip(
+  props: IRepositoryRowFocusTooltipProps
+): JSX.Element {
+  const { repository, aheadBehind, changedFilesCount } = props
+  const gitHubRepo =
+    repository instanceof Repository ? repository.gitHubRepository : null
+  const alias = repository instanceof Repository ? repository.alias : null
+  const realName = gitHubRepo ? gitHubRepo.fullName : repository.name
+  const aheadBehindTooltip = getAheadBehindTooltip(aheadBehind)
+  const hasChanges = changedFilesCount > 0
+  const ahead = aheadBehind?.ahead ?? 0
+  const behind = aheadBehind?.behind ?? 0
+
+  return (
+    <div className="repository-list-item-tooltip list-item-tooltip">
+      <div>
+        <div className="label">Full Name: </div>
+        {realName}
+        {alias && <> ({alias})</>}
+      </div>
+      <div>
+        <div className="label">Path: </div>
+        {repository.path}
+      </div>
+      {aheadBehindTooltip && (
+        <div>
+          <div className="label">
+            <div className="ahead-behind">
+              {ahead > 0 && <Octicon symbol={octicons.arrowUp} />}
+              {behind > 0 && <Octicon symbol={octicons.arrowDown} />}
+            </div>
+          </div>
+          {aheadBehindTooltip}
+        </div>
+      )}
+      {hasChanges && (
+        <div>
+          <div className="label">
+            <span className="change-indicator-wrapper">
+              <Octicon symbol={octicons.dotFill} />
+            </span>
+          </div>
+          There are uncommitted changes in this repository.
+        </div>
+      )}
     </div>
   )
 }
