@@ -41,4 +41,4 @@ export type MenuIDs =
   | 'decrease-active-resizable-width'
   | 'increase-active-resizable-width'
   | 'toggle-changes-filter'
-  | 'toggle-favourites-sidebar'
+  | 'toggle-favorites-sidebar'

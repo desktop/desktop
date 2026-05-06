@@ -66,7 +66,7 @@
       font-style: italic;
     }
 
-    .favourite-toggle {
+    .favorite-toggle {
       flex-shrink: 0;
       margin-left: var(--spacing-half);
       padding: 2px;
@@ -82,7 +82,7 @@
 
       &.active {
         opacity: 1;
-        color: var(--diff-modified-text-color, #d4a72c);
+        color: var(--favorite-active-color);
       }
 
       &:hover,
@@ -92,7 +92,7 @@
       }
     }
 
-    &:hover .favourite-toggle {
+    &:hover .favorite-toggle {
       opacity: 1;
     }
   }
@@ -195,7 +195,7 @@
 
 .repository-list,
 .repository-list-item-tooltip,
-.favourites-sidebar {
+.favorites-sidebar {
   .repo-indicators {
     margin-left: auto;
     display: flex;

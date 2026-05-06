@@ -14,7 +14,7 @@ import {
 import { IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { ILocalRepositoryState, Repository } from '../../models/repository'
-import { FavouriteGroup } from '../../models/favourite-group'
+import { FavoriteGroup } from '../../models/favorite-group'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { Octicon } from '../octicons'
@@ -27,7 +27,7 @@ import { TooltippedContent } from '../lib/tooltipped-content'
 import memoizeOne from 'memoize-one'
 import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 import {
-  buildFavouriteAssignmentItems,
+  buildFavoriteAssignmentItems,
   generateRepositoryListContextMenu,
 } from '../repositories-list/repository-list-item-context-menu'
 import { SectionFilterList } from '../lib/section-filter-list'
@@ -81,8 +81,8 @@ interface IRepositoriesListProps {
 
   readonly dispatcher: Dispatcher
 
-  /** All favourite groups (for the row context menu's "Add to" submenu). */
-  readonly favouriteGroups: ReadonlyArray<FavouriteGroup>
+  /** All favorite groups (for the row context menu's "Add to" submenu). */
+  readonly favoriteGroups: ReadonlyArray<FavoriteGroup>
 }
 
 interface IRepositoriesListState {
@@ -171,7 +171,7 @@ export class RepositoriesList extends React.Component<
         matches={matches}
         aheadBehind={item.aheadBehind}
         changedFilesCount={item.changedFilesCount}
-        onManageFavourite={this.onManageFavourite}
+        onManageFavorite={this.onManageFavorite}
       />
     )
   }
@@ -243,13 +243,13 @@ export class RepositoriesList extends React.Component<
       externalEditorLabel: this.props.externalEditorLabel,
       onChangeRepositoryAlias: this.onChangeRepositoryAlias,
       onRemoveRepositoryAlias: this.onRemoveRepositoryAlias,
-      onSetRepositoryFavouriteGroup: this.onSetRepositoryFavouriteGroup,
-      onCreateFavouriteGroupForRepository:
-        this.onCreateFavouriteGroupForRepository,
+      onSetRepositoryFavoriteGroup: this.onSetRepositoryFavoriteGroup,
+      onCreateFavoriteGroupForRepository:
+        this.onCreateFavoriteGroupForRepository,
       onViewOnGitHub: this.props.onViewOnGitHub,
       repository: item.repository,
       shellLabel: this.props.shellLabel,
-      favouriteGroups: this.props.favouriteGroups,
+      favoriteGroups: this.props.favoriteGroups,
     })
 
     showContextualMenu(items)
@@ -408,42 +408,42 @@ export class RepositoriesList extends React.Component<
     this.props.dispatcher.changeRepositoryAlias(repository, null)
   }
 
-  private onSetRepositoryFavouriteGroup = (
+  private onSetRepositoryFavoriteGroup = (
     repository: Repository,
-    favouriteGroupId: number | null
+    favoriteGroupId: number | null
   ) => {
-    this.props.dispatcher.setRepositoryFavouriteGroup(
+    this.props.dispatcher.setRepositoryFavoriteGroup(
       repository,
-      favouriteGroupId
+      favoriteGroupId
     )
   }
 
-  private onCreateFavouriteGroupForRepository = (repository: Repository) => {
+  private onCreateFavoriteGroupForRepository = (repository: Repository) => {
     this.props.dispatcher.showPopup({
-      type: PopupType.NewFavouriteGroup,
+      type: PopupType.NewFavoriteGroup,
       repository,
     })
   }
 
-  private onManageFavourite = (repository: Repository) => {
-    const { favouriteGroups } = this.props
+  private onManageFavorite = (repository: Repository) => {
+    const { favoriteGroups } = this.props
     const config = {
-      showCheckboxes: repository.isFavourite,
-      onSetRepositoryFavouriteGroup: this.onSetRepositoryFavouriteGroup,
-      onCreateFavouriteGroupForRepository:
-        this.onCreateFavouriteGroupForRepository,
+      showCheckboxes: repository.isFavorite,
+      onSetRepositoryFavoriteGroup: this.onSetRepositoryFavoriteGroup,
+      onCreateFavoriteGroupForRepository:
+        this.onCreateFavoriteGroupForRepository,
     }
-    const items: Array<IMenuItem> = buildFavouriteAssignmentItems(
+    const items: Array<IMenuItem> = buildFavoriteAssignmentItems(
       repository,
-      favouriteGroups,
+      favoriteGroups,
       config
     )
 
-    if (repository.isFavourite) {
+    if (repository.isFavorite) {
       items.push({ type: 'separator' })
       items.push({
-        label: __DARWIN__ ? 'Remove from Favourites' : 'Remove from favourites',
-        action: () => this.onSetRepositoryFavouriteGroup(repository, null),
+        label: __DARWIN__ ? 'Remove from Favorites' : 'Remove from favorites',
+        action: () => this.onSetRepositoryFavoriteGroup(repository, null),
       })
     }
 

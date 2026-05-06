@@ -67,14 +67,14 @@ export interface IDatabaseRepository {
   readonly isTutorialRepository?: boolean
 
   /**
-   * Identifier of the favourite group this repository belongs to, or null
+   * Identifier of the favorite group this repository belongs to, or null
    * when the repository is not in any group.
    */
-  readonly favouriteGroupId?: number | null
+  readonly favoriteGroupId?: number | null
 }
 
-/** A user-defined favourites group displayed as a tab in the sidebar. */
-export interface IDatabaseFavouriteGroup {
+/** A user-defined favorites group displayed as a tab in the sidebar. */
+export interface IDatabaseFavoriteGroup {
   readonly id?: number
   readonly name: string
   readonly sortOrder: number
@@ -106,8 +106,8 @@ export class RepositoriesDatabase extends BaseDatabase {
   /** The GitHub repository owners table. */
   public declare owners: Dexie.Table<IDatabaseOwner, number>
 
-  /** The user-defined favourites groups (tabs in the sidebar). */
-  public declare favouriteGroups: Dexie.Table<IDatabaseFavouriteGroup, number>
+  /** The user-defined favorites groups (tabs in the sidebar). */
+  public declare favoriteGroups: Dexie.Table<IDatabaseFavoriteGroup, number>
 
   /**
    * Initialize a new repository database.
@@ -154,8 +154,8 @@ export class RepositoriesDatabase extends BaseDatabase {
     this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
     this.conditionalVersion(9, { owners: '++id, &key' }, createOwnerKey)
     this.conditionalVersion(10, {
-      repositories: '++id, &path, favouriteGroupId',
-      favouriteGroups: '++id, &name, sortOrder',
+      repositories: '++id, &path, favoriteGroupId',
+      favoriteGroups: '++id, &name, sortOrder',
     })
   }
 }

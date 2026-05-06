@@ -3,11 +3,9 @@ import classNames from 'classnames'
 
 import { ILocalRepositoryState, Repository } from '../../models/repository'
 import { CloningRepository } from '../../models/cloning-repository'
-import { FavouriteGroup } from '../../models/favourite-group'
+import { FavoriteGroup } from '../../models/favorite-group'
 import { IAheadBehind } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
-import { Octicon, iconForRepository } from '../octicons'
-import * as octicons from '../octicons/octicons.generated'
 import { showContextualMenu, IMenuItem } from '../../lib/menu-item'
 import { PopupType } from '../../models/popup'
 import {
@@ -17,20 +15,17 @@ import {
 import { Tooltip } from '../lib/tooltip'
 import { createObservableRef } from '../lib/observable-ref'
 
-interface IFavouritesSidebarItemProps {
+interface IFavoritesSidebarItemProps {
   readonly repository: Repository
   readonly isSelected: boolean
   readonly aheadBehind: IAheadBehind | null
   readonly changedFilesCount: number
   readonly onSelect: (repository: Repository) => void
-  readonly onUnfavourite: (
-    event: React.MouseEvent<HTMLElement>,
-    repository: Repository
-  ) => void
+  readonly onShowContextMenu: (repository: Repository) => void
 }
 
-class FavouritesSidebarItem extends React.Component<
-  IFavouritesSidebarItemProps,
+class FavoritesSidebarItem extends React.Component<
+  IFavoritesSidebarItemProps,
   {}
 > {
   private readonly itemRef = createObservableRef<HTMLLIElement>()
@@ -44,9 +39,10 @@ class FavouritesSidebarItem extends React.Component<
     return (
       <li
         ref={this.itemRef}
-        className={classNames('favourites-sidebar-item', {
+        className={classNames('favorites-sidebar-item', {
           selected: isSelected,
         })}
+        onContextMenu={this.onContextMenu}
       >
         <Tooltip target={this.itemRef}>
           {renderRepositoryRowFocusTooltip({
@@ -57,38 +53,28 @@ class FavouritesSidebarItem extends React.Component<
         </Tooltip>
         <button
           type="button"
-          className="favourites-sidebar-item-button"
+          className="favorites-sidebar-item-button"
           onClick={this.onClick}
           aria-current={isSelected ? 'true' : undefined}
         >
-          <Octicon
-            className="icon-for-repository"
-            symbol={iconForRepository(repository)}
-          />
-          <span className="favourites-sidebar-item-name">{label}</span>
+          <span className="favorites-sidebar-item-name">{label}</span>
         </button>
         {renderRepoIndicators({ aheadBehind, hasChanges })}
-        <button
-          type="button"
-          className="favourites-sidebar-unfavourite"
-          onClick={this.onUnfavouriteClick}
-          aria-label={`Remove ${label} from favourites`}
-        >
-          <Octicon symbol={octicons.starFill} />
-        </button>
       </li>
     )
   }
 
   private onClick = () => this.props.onSelect(this.props.repository)
 
-  private onUnfavouriteClick = (event: React.MouseEvent<HTMLElement>) =>
-    this.props.onUnfavourite(event, this.props.repository)
+  private onContextMenu = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault()
+    this.props.onShowContextMenu(this.props.repository)
+  }
 }
 
-interface IFavouritesSidebarProps {
+interface IFavoritesSidebarProps {
   readonly repositories: ReadonlyArray<Repository>
-  readonly favouriteGroups: ReadonlyArray<FavouriteGroup>
+  readonly favoriteGroups: ReadonlyArray<FavoriteGroup>
   readonly selectedRepository: Repository | CloningRepository | null
   readonly localRepositoryStateLookup: ReadonlyMap<
     number,
@@ -97,20 +83,25 @@ interface IFavouritesSidebarProps {
   readonly dispatcher: Dispatcher
   readonly activeGroupId: number | null
   readonly onActiveGroupChanged: (id: number | null) => void
+  /**
+   * Show the row's right-click context menu (mirrors the menu shown when
+   * right-clicking the Current Repository toolbar button).
+   */
+  readonly onShowRepositoryContextMenu: (repository: Repository) => void
 }
 
-export class FavouritesSidebar extends React.Component<
-  IFavouritesSidebarProps,
+export class FavoritesSidebar extends React.Component<
+  IFavoritesSidebarProps,
   {}
 > {
   public render() {
-    const { favouriteGroups } = this.props
-    const showTabs = favouriteGroups.length >= 2
+    const { favoriteGroups } = this.props
+    const showTabs = favoriteGroups.length >= 2
 
     return (
-      <nav className="favourites-sidebar" aria-label="Favourite repositories">
+      <nav className="favorites-sidebar" aria-label="Favorite repositories">
         {showTabs && this.renderTabs()}
-        {favouriteGroups.length === 0
+        {favoriteGroups.length === 0
           ? this.renderEmptyState()
           : this.renderActiveGroupList()}
       </nav>
@@ -118,17 +109,17 @@ export class FavouritesSidebar extends React.Component<
   }
 
   private renderTabs() {
-    const { favouriteGroups, activeGroupId } = this.props
+    const { favoriteGroups, activeGroupId } = this.props
     return (
-      <div className="favourites-sidebar-tabs" role="tablist">
-        {favouriteGroups.map(g => (
+      <div className="favorites-sidebar-tabs" role="tablist">
+        {favoriteGroups.map(g => (
           <button
             key={g.id}
             role="tab"
             aria-selected={g.id === activeGroupId}
             aria-label={g.name}
             data-group-id={g.id}
-            className={classNames('favourites-sidebar-tab', {
+            className={classNames('favorites-sidebar-tab', {
               active: g.id === activeGroupId,
             })}
             onClick={this.onTabClick}
@@ -143,10 +134,9 @@ export class FavouritesSidebar extends React.Component<
 
   private getGroupFromEvent(
     event: React.SyntheticEvent<HTMLButtonElement>
-  ): FavouriteGroup | null {
-    const idStr = event.currentTarget.dataset.groupId
-    const id = idStr === undefined ? NaN : parseInt(idStr, 10)
-    return this.props.favouriteGroups.find(g => g.id === id) ?? null
+  ): FavoriteGroup | null {
+    const id = Number(event.currentTarget.dataset.groupId)
+    return this.props.favoriteGroups.find(g => g.id === id) ?? null
   }
 
   private onTabClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -158,24 +148,25 @@ export class FavouritesSidebar extends React.Component<
 
   private renderEmptyState() {
     return (
-      <p className="favourites-sidebar-empty">
-        Right-click a repository and choose <strong>Add to favourites</strong>{' '}
-        to pin it here. You can organise pins into groups (e.g. Work, Personal).
+      <p className="favorites-sidebar-empty">
+        Click the star next to a repository (or right-click for{' '}
+        <strong>Add to favorites</strong>) to pin it here. You can organize pins
+        into groups (e.g. Work, Personal).
       </p>
     )
   }
 
   private renderActiveGroupList() {
-    const { repositories, favouriteGroups, activeGroupId } = this.props
+    const { repositories, favoriteGroups, activeGroupId } = this.props
 
-    const effectiveGroupId = activeGroupId ?? favouriteGroups[0]?.id ?? null
+    const effectiveGroupId = activeGroupId ?? favoriteGroups[0]?.id ?? null
 
     if (effectiveGroupId === null) {
       return this.renderEmptyState()
     }
 
     const members = repositories
-      .filter(r => r.favouriteGroupId === effectiveGroupId)
+      .filter(r => r.favoriteGroupId === effectiveGroupId)
       .slice()
       .sort((a, b) =>
         (a.alias ?? a.name).localeCompare(b.alias ?? b.name, undefined, {
@@ -185,7 +176,7 @@ export class FavouritesSidebar extends React.Component<
 
     if (members.length === 0) {
       return (
-        <p className="favourites-sidebar-empty">
+        <p className="favorites-sidebar-empty">
           No repositories pinned to this group yet.
         </p>
       )
@@ -199,18 +190,18 @@ export class FavouritesSidebar extends React.Component<
     const stateLookup = this.props.localRepositoryStateLookup
 
     return (
-      <ul className="favourites-sidebar-list">
+      <ul className="favorites-sidebar-list">
         {repositories.map(repo => {
           const localState = stateLookup.get(repo.id)
           return (
-            <FavouritesSidebarItem
+            <FavoritesSidebarItem
               key={repo.id}
               repository={repo}
               isSelected={repo.id === selectedId}
               aheadBehind={localState?.aheadBehind ?? null}
               changedFilesCount={localState?.changedFilesCount ?? 0}
               onSelect={this.onSelect}
-              onUnfavourite={this.onUnfavourite}
+              onShowContextMenu={this.props.onShowRepositoryContextMenu}
             />
           )
         })}
@@ -224,15 +215,6 @@ export class FavouritesSidebar extends React.Component<
     dispatcher.selectRepository(repository)
   }
 
-  private onUnfavourite = (
-    event: React.MouseEvent<HTMLElement>,
-    repository: Repository
-  ) => {
-    event.stopPropagation()
-    event.preventDefault()
-    this.props.dispatcher.setRepositoryFavouriteGroup(repository, null)
-  }
-
   private onTabContextMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     const group = this.getGroupFromEvent(event)
@@ -244,7 +226,7 @@ export class FavouritesSidebar extends React.Component<
         label: __DARWIN__ ? 'Rename Group…' : 'Rename group…',
         action: () =>
           this.props.dispatcher.showPopup({
-            type: PopupType.RenameFavouriteGroup,
+            type: PopupType.RenameFavoriteGroup,
             groupId: group.id,
             currentName: group.name,
           }),
@@ -258,13 +240,13 @@ export class FavouritesSidebar extends React.Component<
     showContextualMenu(items)
   }
 
-  private confirmDeleteGroup = (group: FavouriteGroup) => {
+  private confirmDeleteGroup = (group: FavoriteGroup) => {
     const memberCount = this.props.repositories.filter(
-      r => r.favouriteGroupId === group.id
+      r => r.favoriteGroupId === group.id
     ).length
 
     this.props.dispatcher.showPopup({
-      type: PopupType.ConfirmDeleteFavouriteGroup,
+      type: PopupType.ConfirmDeleteFavoriteGroup,
       groupId: group.id,
       groupName: group.name,
       memberCount,

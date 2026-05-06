@@ -4,6 +4,7 @@ import { Dispatcher } from '../dispatcher'
 import { Repository } from '../../models/repository'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
 
 type IProps =
@@ -25,7 +26,7 @@ interface IState {
   readonly name: string
 }
 
-export class FavouriteGroupNameDialog extends React.Component<IProps, IState> {
+export class FavoriteGroupNameDialog extends React.Component<IProps, IState> {
   public constructor(props: IProps) {
     super(props)
     this.state = {
@@ -37,34 +38,34 @@ export class FavouriteGroupNameDialog extends React.Component<IProps, IState> {
     const isRename = this.props.mode === 'rename'
     const title = isRename
       ? __DARWIN__
-        ? 'Rename Favourites Group'
-        : 'Rename favourites group'
+        ? 'Rename Favorites Group'
+        : 'Rename favorites group'
       : __DARWIN__
-      ? 'New Favourites Group'
-      : 'New favourites group'
+      ? 'New Favorites Group'
+      : 'New favorites group'
     const okText = isRename ? 'Rename' : 'Create'
     const description = isRename
-      ? 'Choose a new name for this favourites group.'
-      : 'Group your favourites under a name (e.g. Work, Personal).'
+      ? 'Choose a new name for this favorites group.'
+      : 'Group your favorites under a name (e.g. Work, Personal).'
 
     return (
       <Dialog
-        id="favourite-group-name-dialog"
+        id="favorite-group-name-dialog"
         title={title}
-        ariaDescribedBy="favourite-group-name-description"
+        ariaDescribedBy="favorite-group-name-description"
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
       >
         <DialogContent>
-          <p id="favourite-group-name-description">{description}</p>
-          <p>
+          <p id="favorite-group-name-description">{description}</p>
+          <Row>
             <TextBox
               ariaLabel="Group name"
               placeholder="e.g. Work, Personal, OSS"
               value={this.state.name}
               onValueChanged={this.onNameChanged}
             />
-          </p>
+          </Row>
         </DialogContent>
         <DialogFooter>
           <OkCancelButtonGroup
@@ -85,14 +86,14 @@ export class FavouriteGroupNameDialog extends React.Component<IProps, IState> {
     }
 
     if (this.props.mode === 'rename') {
-      await this.props.dispatcher.renameFavouriteGroup(
+      await this.props.dispatcher.renameFavoriteGroup(
         this.props.groupId,
         trimmed
       )
     } else {
-      const group = await this.props.dispatcher.addFavouriteGroup(trimmed)
+      const group = await this.props.dispatcher.addFavoriteGroup(trimmed)
       if (this.props.repository !== undefined) {
-        await this.props.dispatcher.setRepositoryFavouriteGroup(
+        await this.props.dispatcher.setRepositoryFavoriteGroup(
           this.props.repository,
           group.id
         )

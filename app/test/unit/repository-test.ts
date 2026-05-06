@@ -17,14 +17,14 @@ describe('Repository', () => {
     })
   })
 
-  describe('favouriteGroupId', () => {
-    it('defaults to null and isFavourite false', () => {
+  describe('favoriteGroupId', () => {
+    it('defaults to null and isFavorite false', () => {
       const repository = new Repository('/some/path', 1, null, false)
-      assert.equal(repository.favouriteGroupId, null)
-      assert.equal(repository.isFavourite, false)
+      assert.equal(repository.favoriteGroupId, null)
+      assert.equal(repository.isFavorite, false)
     })
 
-    it('reports isFavourite=true when assigned to a group', () => {
+    it('reports isFavorite=true when assigned to a group', () => {
       const repository = new Repository(
         '/some/path',
         1,
@@ -35,11 +35,11 @@ describe('Repository', () => {
         false,
         7
       )
-      assert.equal(repository.isFavourite, true)
-      assert.equal(repository.favouriteGroupId, 7)
+      assert.equal(repository.isFavorite, true)
+      assert.equal(repository.favoriteGroupId, 7)
     })
 
-    it('produces a different hash when the favourite group changes', () => {
+    it('produces a different hash when the favorite group changes', () => {
       const a = new Repository(
         '/some/path',
         1,
@@ -57,7 +57,7 @@ describe('Repository', () => {
       assert.notEqual(a.hash, c.hash)
     })
 
-    it('treats undefined and null favouriteGroupId equivalently', () => {
+    it('treats undefined and null favoriteGroupId equivalently', () => {
       const a = new Repository('/some/path', 1, null, false)
       const b = new Repository(
         '/some/path',
@@ -69,10 +69,10 @@ describe('Repository', () => {
         false,
         null
       )
-      assert.equal(a.favouriteGroupId, null)
-      assert.equal(b.favouriteGroupId, null)
-      assert.equal(a.isFavourite, false)
-      assert.equal(b.isFavourite, false)
+      assert.equal(a.favoriteGroupId, null)
+      assert.equal(b.favoriteGroupId, null)
+      assert.equal(a.isFavorite, false)
+      assert.equal(b.isFavorite, false)
       assert.equal(a.hash, b.hash)
     })
   })

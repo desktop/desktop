@@ -1,5 +1,5 @@
 import { Repository } from '../../models/repository'
-import { FavouriteGroup } from '../../models/favourite-group'
+import { FavoriteGroup } from '../../models/favorite-group'
 import { IMenuItem } from '../../lib/menu-item'
 import { Repositoryish } from './group-repositories'
 import { clipboard } from 'electron'
@@ -14,7 +14,7 @@ interface IRepositoryListItemContextMenuConfig {
   shellLabel: string | undefined
   externalEditorLabel: string | undefined
   askForConfirmationOnRemoveRepository: boolean
-  favouriteGroups: ReadonlyArray<FavouriteGroup>
+  favoriteGroups: ReadonlyArray<FavoriteGroup>
   onViewOnGitHub: (repository: Repositoryish) => void
   onOpenInShell: (repository: Repositoryish) => void
   onShowRepository: (repository: Repositoryish) => void
@@ -22,11 +22,11 @@ interface IRepositoryListItemContextMenuConfig {
   onRemoveRepository: (repository: Repositoryish) => void
   onChangeRepositoryAlias: (repository: Repository) => void
   onRemoveRepositoryAlias: (repository: Repository) => void
-  onSetRepositoryFavouriteGroup: (
+  onSetRepositoryFavoriteGroup: (
     repository: Repository,
-    favouriteGroupId: number | null
+    favoriteGroupId: number | null
   ) => void
-  onCreateFavouriteGroupForRepository: (repository: Repository) => void
+  onCreateFavoriteGroupForRepository: (repository: Repository) => void
 }
 
 export const generateRepositoryListContextMenu = (
@@ -45,7 +45,7 @@ export const generateRepositoryListContextMenu = (
 
   const items: ReadonlyArray<IMenuItem> = [
     ...buildAliasMenuItems(config),
-    ...buildFavouriteMenuItems(config),
+    ...buildFavoriteMenuItems(config),
     {
       label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
       action: () => clipboard.writeText(repository.name),
@@ -112,18 +112,18 @@ const buildAliasMenuItems = (
   return items
 }
 
-interface IFavouriteAssignmentConfig {
+interface IFavoriteAssignmentConfig {
   /**
    * When true, render each group as a checkbox row checked when the
    * repository currently belongs to it. Used when the menu is presented
    * as the primary action target (e.g. the row's star-toggle picker).
    */
   readonly showCheckboxes: boolean
-  readonly onSetRepositoryFavouriteGroup: (
+  readonly onSetRepositoryFavoriteGroup: (
     repository: Repository,
-    favouriteGroupId: number | null
+    favoriteGroupId: number | null
   ) => void
-  readonly onCreateFavouriteGroupForRepository: (repository: Repository) => void
+  readonly onCreateFavoriteGroupForRepository: (repository: Repository) => void
 }
 
 /**
@@ -131,83 +131,83 @@ interface IFavouriteAssignmentConfig {
  * row-context-menu submenus and the star-toggle picker need. The order is
  * always: each group, separator, "New group...".
  */
-export function buildFavouriteAssignmentItems(
+export function buildFavoriteAssignmentItems(
   repository: Repository,
-  favouriteGroups: ReadonlyArray<FavouriteGroup>,
-  config: IFavouriteAssignmentConfig
+  favoriteGroups: ReadonlyArray<FavoriteGroup>,
+  config: IFavoriteAssignmentConfig
 ): Array<IMenuItem> {
-  const items: Array<IMenuItem> = favouriteGroups.map(g =>
+  const items: Array<IMenuItem> = favoriteGroups.map(g =>
     config.showCheckboxes
       ? {
           label: g.name,
           type: 'checkbox',
-          checked: g.id === repository.favouriteGroupId,
-          action: () => config.onSetRepositoryFavouriteGroup(repository, g.id),
+          checked: g.id === repository.favoriteGroupId,
+          action: () => config.onSetRepositoryFavoriteGroup(repository, g.id),
         }
       : {
           label: g.name,
-          action: () => config.onSetRepositoryFavouriteGroup(repository, g.id),
+          action: () => config.onSetRepositoryFavoriteGroup(repository, g.id),
         }
   )
 
-  if (favouriteGroups.length > 0) {
+  if (favoriteGroups.length > 0) {
     items.push({ type: 'separator' })
   }
 
   items.push({
     label: __DARWIN__ ? 'New Group…' : 'New group…',
-    action: () => config.onCreateFavouriteGroupForRepository(repository),
+    action: () => config.onCreateFavoriteGroupForRepository(repository),
   })
 
   return items
 }
 
-const buildFavouriteMenuItems = (
+const buildFavoriteMenuItems = (
   config: IRepositoryListItemContextMenuConfig
 ): ReadonlyArray<IMenuItem> => {
-  const { repository, favouriteGroups } = config
+  const { repository, favoriteGroups } = config
 
   if (!(repository instanceof Repository)) {
     return []
   }
 
-  if (repository.isFavourite) {
+  if (repository.isFavorite) {
     const items: Array<IMenuItem> = []
-    if (favouriteGroups.length > 0) {
+    if (favoriteGroups.length > 0) {
       items.push({
         label: __DARWIN__ ? 'Move to Group' : 'Move to group',
-        submenu: buildFavouriteAssignmentItems(repository, favouriteGroups, {
+        submenu: buildFavoriteAssignmentItems(repository, favoriteGroups, {
           showCheckboxes: true,
-          onSetRepositoryFavouriteGroup: config.onSetRepositoryFavouriteGroup,
-          onCreateFavouriteGroupForRepository:
-            config.onCreateFavouriteGroupForRepository,
+          onSetRepositoryFavoriteGroup: config.onSetRepositoryFavoriteGroup,
+          onCreateFavoriteGroupForRepository:
+            config.onCreateFavoriteGroupForRepository,
         }),
       })
     }
     items.push({
-      label: __DARWIN__ ? 'Remove from Favourites' : 'Remove from favourites',
-      action: () => config.onSetRepositoryFavouriteGroup(repository, null),
+      label: __DARWIN__ ? 'Remove from Favorites' : 'Remove from favorites',
+      action: () => config.onSetRepositoryFavoriteGroup(repository, null),
     })
     return items
   }
 
-  if (favouriteGroups.length === 0) {
+  if (favoriteGroups.length === 0) {
     return [
       {
-        label: __DARWIN__ ? 'Add to Favourites…' : 'Add to favourites…',
-        action: () => config.onCreateFavouriteGroupForRepository(repository),
+        label: __DARWIN__ ? 'Add to Favorites…' : 'Add to favorites…',
+        action: () => config.onCreateFavoriteGroupForRepository(repository),
       },
     ]
   }
 
   return [
     {
-      label: __DARWIN__ ? 'Add to Favourites' : 'Add to favourites',
-      submenu: buildFavouriteAssignmentItems(repository, favouriteGroups, {
+      label: __DARWIN__ ? 'Add to Favorites' : 'Add to favorites',
+      submenu: buildFavoriteAssignmentItems(repository, favoriteGroups, {
         showCheckboxes: false,
-        onSetRepositoryFavouriteGroup: config.onSetRepositoryFavouriteGroup,
-        onCreateFavouriteGroupForRepository:
-          config.onCreateFavouriteGroupForRepository,
+        onSetRepositoryFavoriteGroup: config.onSetRepositoryFavoriteGroup,
+        onCreateFavoriteGroupForRepository:
+          config.onCreateFavoriteGroupForRepository,
       }),
     },
   ]

@@ -861,32 +861,37 @@ export class Dispatcher {
   }
 
   /**
-   * Move a repository into a favourites group, or remove it from any group
+   * Move a repository into a favorites group, or remove it from any group
    * by passing `null`.
    */
-  public setRepositoryFavouriteGroup(
+  public setRepositoryFavoriteGroup(
     repository: Repository,
-    favouriteGroupId: number | null
+    favoriteGroupId: number | null
   ): Promise<void> {
-    return this.appStore._setRepositoryFavouriteGroup(
+    return this.appStore._setRepositoryFavoriteGroup(
       repository,
-      favouriteGroupId
+      favoriteGroupId
     )
   }
 
-  /** Create a new favourites group. Returns the created group. */
-  public addFavouriteGroup(name: string) {
-    return this.appStore._addFavouriteGroup(name)
+  /** Create a new favorites group. Returns the created group. */
+  public addFavoriteGroup(name: string) {
+    return this.appStore._addFavoriteGroup(name)
   }
 
-  /** Rename an existing favourites group. */
-  public renameFavouriteGroup(id: number, name: string): Promise<void> {
-    return this.appStore._renameFavouriteGroup(id, name)
+  /** Rename an existing favorites group. */
+  public renameFavoriteGroup(id: number, name: string): Promise<void> {
+    return this.appStore._renameFavoriteGroup(id, name)
   }
 
-  /** Delete a favourites group; member repos are no longer favourites. */
-  public deleteFavouriteGroup(id: number): Promise<void> {
-    return this.appStore._removeFavouriteGroup(id)
+  /** Remove a favorites group; member repos are no longer favorites. */
+  public removeFavoriteGroup(id: number): Promise<void> {
+    return this.appStore._removeFavoriteGroup(id)
+  }
+
+  /** Set which favorites group tab is currently active in the sidebar. */
+  public setFavoritesActiveGroupId(id: number | null): void {
+    this.appStore._setFavoritesActiveGroupId(id)
   }
 
   /** Rename the branch to a new name. */
@@ -4163,8 +4168,8 @@ export class Dispatcher {
     )
   }
 
-  public toggleFavouritesSidebarVisibility() {
-    this.appStore._toggleFavouritesSidebarVisibility()
+  public toggleFavoritesSidebarVisibility() {
+    this.appStore._toggleFavoritesSidebarVisibility()
   }
 
   public toggleChangesFilterVisibility() {

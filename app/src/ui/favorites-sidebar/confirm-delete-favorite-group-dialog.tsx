@@ -5,7 +5,7 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Ref } from '../lib/ref'
 import { Dispatcher } from '../dispatcher'
 
-interface IConfirmDeleteFavouriteGroupDialogProps {
+interface IConfirmDeleteFavoriteGroupDialogProps {
   readonly dispatcher: Dispatcher
   readonly groupId: number
   readonly groupName: string
@@ -14,32 +14,30 @@ interface IConfirmDeleteFavouriteGroupDialogProps {
 }
 
 /**
- * Confirmation prompt shown before deleting a favourites group. Member
- * repositories stay in the app but are no longer marked as favourites.
+ * Confirmation prompt shown before deleting a favorites group. Member
+ * repositories stay in the app but are no longer marked as favorites.
  */
-export class ConfirmDeleteFavouriteGroupDialog extends React.Component<IConfirmDeleteFavouriteGroupDialogProps> {
+export class ConfirmDeleteFavoriteGroupDialog extends React.Component<IConfirmDeleteFavoriteGroupDialogProps> {
   public render() {
     const { groupName, memberCount } = this.props
     return (
       <Dialog
-        id="confirm-delete-favourite-group"
-        title={
-          __DARWIN__ ? 'Delete Favourites Group' : 'Delete favourites group'
-        }
+        id="confirm-delete-favorite-group"
+        title={__DARWIN__ ? 'Delete Favorites Group' : 'Delete favorites group'}
         type="warning"
         role="alertdialog"
-        ariaDescribedBy="confirm-delete-favourite-group-message"
+        ariaDescribedBy="confirm-delete-favorite-group-message"
         onSubmit={this.onConfirm}
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
-          <p id="confirm-delete-favourite-group-message">
+          <p id="confirm-delete-favorite-group-message">
             Are you sure you want to delete <Ref>{groupName}</Ref>?{' '}
             {memberCount === 0
               ? 'The group is empty.'
               : `Its ${memberCount} ${
                   memberCount === 1 ? 'repository' : 'repositories'
-                } will no longer be favourites.`}
+                } will no longer be favorites.`}
           </p>
         </DialogContent>
         <DialogFooter>
@@ -50,7 +48,7 @@ export class ConfirmDeleteFavouriteGroupDialog extends React.Component<IConfirmD
   }
 
   private onConfirm = () => {
-    this.props.dispatcher.deleteFavouriteGroup(this.props.groupId)
+    this.props.dispatcher.removeFavoriteGroup(this.props.groupId)
     this.props.onDismissed()
   }
 }

@@ -29,14 +29,11 @@ interface IRepositoryListItemProps {
   readonly changedFilesCount: number
 
   /**
-   * Called when the user clicks the favourite star on this row. The host is
+   * Called when the user clicks the favorite star on this row. The host is
    * expected to open a small picker (group list + "New group…") or remove the
    * repo from its current group.
    */
-  readonly onManageFavourite: (
-    repository: Repository,
-    target: HTMLElement
-  ) => void
+  readonly onManageFavorite: (repository: Repository) => void
 }
 
 /** A repository item. */
@@ -92,39 +89,39 @@ export class RepositoryListItem extends React.Component<
             hasChanges: hasChanges,
           })}
 
-        {repository instanceof Repository && this.renderFavouriteToggle()}
+        {repository instanceof Repository && this.renderFavoriteToggle()}
       </div>
     )
   }
 
-  private renderFavouriteToggle() {
+  private renderFavoriteToggle() {
     const repo = this.props.repository
     if (!(repo instanceof Repository)) {
       return null
     }
-    const { isFavourite } = repo
-    const label = isFavourite ? 'Manage favourite' : 'Add to favourites'
+    const { isFavorite } = repo
+    const label = isFavorite ? 'Manage favorite' : 'Add to favorites'
     return (
       <button
         type="button"
-        className={classNames('favourite-toggle', { active: isFavourite })}
-        onClick={this.onFavouriteToggleClick}
+        className={classNames('favorite-toggle', { active: isFavorite })}
+        onClick={this.onFavoriteToggleClick}
         aria-label={label}
-        aria-pressed={isFavourite}
+        aria-pressed={isFavorite}
       >
-        <Octicon symbol={isFavourite ? octicons.starFill : octicons.star} />
+        <Octicon symbol={isFavorite ? octicons.starFill : octicons.star} />
       </button>
     )
   }
 
-  private onFavouriteToggleClick = (
+  private onFavoriteToggleClick = (
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
     event.stopPropagation()
     event.preventDefault()
     const repo = this.props.repository
     if (repo instanceof Repository) {
-      this.props.onManageFavourite(repo, event.currentTarget)
+      this.props.onManageFavorite(repo)
     }
   }
 
@@ -152,8 +149,8 @@ export class RepositoryListItem extends React.Component<
     ) {
       return (
         nextProps.repository.id !== this.props.repository.id ||
-        nextProps.repository.favouriteGroupId !==
-          this.props.repository.favouriteGroupId ||
+        nextProps.repository.favoriteGroupId !==
+          this.props.repository.favoriteGroupId ||
         nextProps.matches !== this.props.matches
       )
     } else {
@@ -202,7 +199,7 @@ interface IRepositoryRowFocusTooltipProps {
 
 /**
  * The rich row-focus tooltip used by the Current Repository dropdown rows.
- * Re-exported so the favourites sidebar can render an identical popup.
+ * Re-exported so the favorites sidebar can render an identical popup.
  */
 export function renderRepositoryRowFocusTooltip(
   props: IRepositoryRowFocusTooltipProps

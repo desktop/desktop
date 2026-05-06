@@ -116,13 +116,13 @@ describe('RepositoriesDatabase', () => {
     await db.delete()
   })
 
-  it('migrates from version 9 to 10 by adding the favouriteGroups table', async () => {
+  it('migrates from version 9 to 10 by adding the favoriteGroups table', async () => {
     const dbName = 'TestRepositoriesDatabase'
     let db = new RepositoriesDatabase(dbName, 9)
     await db.delete()
     await db.open()
 
-    type RepoModelV9 = Omit<IDatabaseRepository, 'favouriteGroupId'>
+    type RepoModelV9 = Omit<IDatabaseRepository, 'favoriteGroupId'>
     const v9ReposTable = db.table<RepoModelV9, number>('repositories')
 
     const repoId = await v9ReposTable.add({
@@ -139,21 +139,21 @@ describe('RepositoriesDatabase', () => {
 
     const migrated = await db.repositories.get(repoId)
     assert(migrated !== undefined)
-    assert.equal(migrated.favouriteGroupId, undefined)
+    assert.equal(migrated.favoriteGroupId, undefined)
 
-    const groups = await db.favouriteGroups.toArray()
+    const groups = await db.favoriteGroups.toArray()
     assert.equal(groups.length, 0)
 
     await db.delete()
   })
 
-  it('preserves an existing favouriteGroupId across re-opens at v10', async () => {
+  it('preserves an existing favoriteGroupId across re-opens at v10', async () => {
     const dbName = 'TestRepositoriesDatabase'
     let db = new RepositoriesDatabase(dbName, 10)
     await db.delete()
     await db.open()
 
-    const groupId = await db.favouriteGroups.add({
+    const groupId = await db.favoriteGroups.add({
       name: 'Existing',
       sortOrder: 0,
     })
@@ -162,7 +162,7 @@ describe('RepositoriesDatabase', () => {
       path: '/path/already-pinned',
       alias: null,
       missing: false,
-      favouriteGroupId: groupId,
+      favoriteGroupId: groupId,
     })
 
     db.close()
@@ -172,9 +172,9 @@ describe('RepositoriesDatabase', () => {
 
     const migrated = await db.repositories.get(repoId)
     assert(migrated !== undefined)
-    assert.equal(migrated.favouriteGroupId, groupId)
+    assert.equal(migrated.favoriteGroupId, groupId)
 
-    const groups = await db.favouriteGroups.toArray()
+    const groups = await db.favoriteGroups.toArray()
     assert.equal(groups.length, 1)
     assert.equal(groups[0].name, 'Existing')
 

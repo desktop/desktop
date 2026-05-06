@@ -140,8 +140,8 @@ import { CommitDragElement } from './drag-elements/commit-drag-element'
 import classNames from 'classnames'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
 import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
-import { FavouriteGroupNameDialog } from './favourites-sidebar/favourite-group-name-dialog'
-import { ConfirmDeleteFavouriteGroupDialog } from './favourites-sidebar/confirm-delete-favourite-group-dialog'
+import { FavoriteGroupNameDialog } from './favorites-sidebar/favorite-group-name-dialog'
+import { ConfirmDeleteFavoriteGroupDialog } from './favorites-sidebar/confirm-delete-favorite-group-dialog'
 import { ThankYou } from './thank-you'
 import {
   getUserContributions,
@@ -167,8 +167,8 @@ import { CICheckRunRerunDialog } from './check-runs/ci-check-run-rerun-dialog'
 import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-push-dialog'
 import { clamp } from '../lib/clamp'
 import { generateRepositoryListContextMenu } from './repositories-list/repository-list-item-context-menu'
-import { FavouritesSidebar } from './favourites-sidebar/favourites-sidebar'
-import { FavouritesToolbarSegment } from './favourites-sidebar/favourites-toolbar-segment'
+import { FavoritesSidebar } from './favorites-sidebar/favorites-sidebar'
+import { FavoritesToolbarSegment } from './favorites-sidebar/favorites-toolbar-segment'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { DiscardChangesRetryDialog } from './discard-changes/discard-changes-retry-dialog'
 import { PullRequestReview } from './notifications/pull-request-review'
@@ -248,19 +248,7 @@ export const bannerTransitionTimeout = { enter: 500, exit: 400 }
  * changes. See https://github.com/desktop/desktop/issues/1398.
  */
 const ReadyDelay = 100
-interface IAppLocalState {
-  /**
-   * The favourites group the user has currently selected in the sidebar.
-   * Local-only React state — not part of IAppState because it is purely
-   * transient view state for this component tree.
-   */
-  readonly favouritesActiveGroupId: number | null
-}
-
-export class App extends React.Component<
-  IAppProps,
-  IAppState & IAppLocalState
-> {
+export class App extends React.Component<IAppProps, IAppState> {
   private loading = true
 
   /**
@@ -311,10 +299,7 @@ export class App extends React.Component<
       )
     })
 
-    this.state = {
-      ...props.appStore.getState(),
-      favouritesActiveGroupId: null,
-    }
+    this.state = props.appStore.getState()
     props.appStore.onDidUpdate(state => {
       this.setState(state)
     })
@@ -550,8 +535,8 @@ export class App extends React.Component<
         return this.resizeActiveResizable('decrease-active-resizable-width')
       case 'toggle-changes-filter':
         return this.toggleChangesFilterVisibility()
-      case 'toggle-favourites-sidebar':
-        return this.props.dispatcher.toggleFavouritesSidebarVisibility()
+      case 'toggle-favorites-sidebar':
+        return this.props.dispatcher.toggleFavoritesSidebarVisibility()
       default:
         if (isTestMenuEvent(name)) {
           return showTestUI(
@@ -2174,9 +2159,9 @@ export class App extends React.Component<
           />
         )
       }
-      case PopupType.NewFavouriteGroup: {
+      case PopupType.NewFavoriteGroup: {
         return (
-          <FavouriteGroupNameDialog
+          <FavoriteGroupNameDialog
             mode="create"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
@@ -2184,9 +2169,9 @@ export class App extends React.Component<
           />
         )
       }
-      case PopupType.RenameFavouriteGroup: {
+      case PopupType.RenameFavoriteGroup: {
         return (
-          <FavouriteGroupNameDialog
+          <FavoriteGroupNameDialog
             mode="rename"
             dispatcher={this.props.dispatcher}
             groupId={popup.groupId}
@@ -2195,9 +2180,9 @@ export class App extends React.Component<
           />
         )
       }
-      case PopupType.ConfirmDeleteFavouriteGroup: {
+      case PopupType.ConfirmDeleteFavoriteGroup: {
         return (
-          <ConfirmDeleteFavouriteGroupDialog
+          <ConfirmDeleteFavoriteGroupDialog
             dispatcher={this.props.dispatcher}
             groupId={popup.groupId}
             groupName={popup.groupName}
@@ -3007,8 +2992,8 @@ export class App extends React.Component<
   }
 
   private renderApp() {
-    const showFavourites =
-      this.state.showFavouritesSidebar && !this.inNoRepositoriesViewState()
+    const showFavorites =
+      this.state.showFavoritesSidebar && !this.inNoRepositoriesViewState()
     return (
       <div
         id="desktop-app-contents"
@@ -3017,7 +3002,7 @@ export class App extends React.Component<
         {this.renderToolbar()}
         {this.renderBanner()}
         <div id="desktop-app-main">
-          {showFavourites && this.renderFavouritesSidebar()}
+          {showFavorites && this.renderFavoritesSidebar()}
           <div id="desktop-app-repository-pane">{this.renderRepository()}</div>
         </div>
         {this.renderPopups()}
@@ -3026,36 +3011,25 @@ export class App extends React.Component<
     )
   }
 
-  /** Resolve the user's chosen group id, falling back to the first group. */
-  private resolveActiveFavouritesGroupId(): number | null {
-    const { favouriteGroups, favouritesActiveGroupId } = this.state
-    if (
-      favouritesActiveGroupId !== null &&
-      favouriteGroups.some(g => g.id === favouritesActiveGroupId)
-    ) {
-      return favouritesActiveGroupId
-    }
-    return favouriteGroups[0]?.id ?? null
+  private onFavoritesActiveGroupChanged = (id: number | null) => {
+    this.props.dispatcher.setFavoritesActiveGroupId(id)
   }
 
-  private onFavouritesActiveGroupChanged = (id: number | null) => {
-    this.setState({ favouritesActiveGroupId: id })
-  }
-
-  private renderFavouritesSidebar() {
-    const favourites = this.state.repositories.filter(
-      (r): r is Repository => r instanceof Repository && r.isFavourite
+  private renderFavoritesSidebar() {
+    const favorites = this.state.repositories.filter(
+      (r): r is Repository => r instanceof Repository && r.isFavorite
     )
     const selectedRepository = this.state.selectedState?.repository ?? null
     return (
-      <FavouritesSidebar
-        repositories={favourites}
-        favouriteGroups={this.state.favouriteGroups}
+      <FavoritesSidebar
+        repositories={favorites}
+        favoriteGroups={this.state.favoriteGroups}
         selectedRepository={selectedRepository}
         localRepositoryStateLookup={this.state.localRepositoryStateLookup}
         dispatcher={this.props.dispatcher}
-        activeGroupId={this.resolveActiveFavouritesGroupId()}
-        onActiveGroupChanged={this.onFavouritesActiveGroupChanged}
+        activeGroupId={this.state.favoritesActiveGroupId}
+        onActiveGroupChanged={this.onFavoritesActiveGroupChanged}
+        onShowRepositoryContextMenu={this.onShowFavoriteRepositoryContextMenu}
       />
     )
   }
@@ -3087,7 +3061,7 @@ export class App extends React.Component<
         externalEditorLabel={this.externalEditorLabel}
         shellLabel={useCustomShell ? undefined : selectedShell}
         dispatcher={this.props.dispatcher}
-        favouriteGroups={this.state.favouriteGroups}
+        favoriteGroups={this.state.favoriteGroups}
       />
     )
   }
@@ -3219,7 +3193,7 @@ export class App extends React.Component<
     // foldout under the button (uses the button's clientRect.left). Using a
     // full `foldoutStyle` would hardcode marginLeft: 0 and pop the foldout to
     // the leftmost edge of the toolbar, which is wrong now that the
-    // favourites segment sits to the left of this button.
+    // favorites segment sits to the left of this button.
     const foldoutStyleOverrides: React.CSSProperties = {
       width: foldoutWidth,
       minWidth: foldoutWidth,
@@ -3251,7 +3225,16 @@ export class App extends React.Component<
     if (repository === undefined) {
       return
     }
+    showContextualMenu(this.buildRepositoryContextMenuItems(repository))
+  }
 
+  private onShowFavoriteRepositoryContextMenu = (repository: Repository) => {
+    showContextualMenu(this.buildRepositoryContextMenuItems(repository))
+  }
+
+  private buildRepositoryContextMenuItems(
+    repository: Repository | CloningRepository
+  ) {
     const onChangeRepositoryAlias = (repository: Repository) => {
       this.props.dispatcher.showPopup({
         type: PopupType.ChangeRepositoryAlias,
@@ -3263,24 +3246,24 @@ export class App extends React.Component<
       this.props.dispatcher.changeRepositoryAlias(repository, null)
     }
 
-    const onSetRepositoryFavouriteGroup = (
+    const onSetRepositoryFavoriteGroup = (
       repository: Repository,
-      favouriteGroupId: number | null
+      favoriteGroupId: number | null
     ) => {
-      this.props.dispatcher.setRepositoryFavouriteGroup(
+      this.props.dispatcher.setRepositoryFavoriteGroup(
         repository,
-        favouriteGroupId
+        favoriteGroupId
       )
     }
 
-    const onCreateFavouriteGroupForRepository = (repository: Repository) => {
+    const onCreateFavoriteGroupForRepository = (repository: Repository) => {
       this.props.dispatcher.showPopup({
-        type: PopupType.NewFavouriteGroup,
+        type: PopupType.NewFavoriteGroup,
         repository,
       })
     }
 
-    const items = generateRepositoryListContextMenu({
+    return generateRepositoryListContextMenu({
       onRemoveRepository: this.removeRepository,
       onShowRepository: this.showRepository,
       onOpenInShell: this.openInShell,
@@ -3290,17 +3273,15 @@ export class App extends React.Component<
       externalEditorLabel: this.externalEditorLabel,
       onChangeRepositoryAlias: onChangeRepositoryAlias,
       onRemoveRepositoryAlias: onRemoveRepositoryAlias,
-      onSetRepositoryFavouriteGroup: onSetRepositoryFavouriteGroup,
-      onCreateFavouriteGroupForRepository: onCreateFavouriteGroupForRepository,
+      onSetRepositoryFavoriteGroup: onSetRepositoryFavoriteGroup,
+      onCreateFavoriteGroupForRepository: onCreateFavoriteGroupForRepository,
       onViewOnGitHub: this.viewOnGitHub,
       repository: repository,
       shellLabel: this.state.useCustomShell
         ? undefined
         : this.state.selectedShell,
-      favouriteGroups: this.state.favouriteGroups,
+      favoriteGroups: this.state.favoriteGroups,
     })
-
-    showContextualMenu(items)
   }
 
   private renderPushPullToolbarButton() {
@@ -3569,17 +3550,17 @@ export class App extends React.Component<
     }
 
     const width = clamp(this.state.sidebarWidth)
-    const showFavourites = this.state.showFavouritesSidebar
+    const showFavorites = this.state.showFavoritesSidebar
 
-    const activeGroupId = this.resolveActiveFavouritesGroupId()
+    const activeGroupId = this.state.favoritesActiveGroupId
     const activeGroup =
-      this.state.favouriteGroups.find(g => g.id === activeGroupId) ?? null
+      this.state.favoriteGroups.find(g => g.id === activeGroupId) ?? null
     const activeGroupCount =
       activeGroupId === null
         ? 0
         : this.state.repositories.reduce(
             (n, r) =>
-              r instanceof Repository && r.favouriteGroupId === activeGroupId
+              r instanceof Repository && r.favoriteGroupId === activeGroupId
                 ? n + 1
                 : n,
             0
@@ -3587,8 +3568,8 @@ export class App extends React.Component<
 
     return (
       <Toolbar id="desktop-app-toolbar">
-        {showFavourites && (
-          <FavouritesToolbarSegment
+        {showFavorites && (
+          <FavoritesToolbarSegment
             dispatcher={this.props.dispatcher}
             activeGroup={activeGroup}
             activeGroupCount={activeGroupCount}

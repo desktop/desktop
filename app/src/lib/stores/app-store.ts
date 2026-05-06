@@ -75,7 +75,7 @@ import {
   getNonForkGitHubRepository,
   isForkedRepositoryContributingToParent,
 } from '../../models/repository'
-import { FavouriteGroup } from '../../models/favourite-group'
+import { FavoriteGroup } from '../../models/favorite-group'
 import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
@@ -510,8 +510,10 @@ export const showChangesFilterKey = 'show-changes-filter'
 const selectedCopilotModelsKey = 'selected-copilot-models'
 export const showChangesFilterDefault = true
 
-export const showFavouritesSidebarKey = 'show-favourites-sidebar'
-export const showFavouritesSidebarDefault = false
+export const showFavoritesSidebarKey = 'show-favorites-sidebar'
+export const showFavoritesSidebarDefault = false
+
+export const favoritesActiveGroupIdKey = 'favorites-active-group-id'
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
@@ -671,8 +673,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private commitMessageGenerationButtonClicked: boolean = false
 
   private showChangesFilter: boolean = false
-  private showFavouritesSidebar: boolean = showFavouritesSidebarDefault
-  private favouriteGroups: ReadonlyArray<FavouriteGroup> = []
+  private showFavoritesSidebar: boolean = showFavoritesSidebarDefault
+  private favoriteGroups: ReadonlyArray<FavoriteGroup> = []
+  private favoritesActiveGroupId: number | null = null
 
   private selectedCopilotModels: CopilotModelSelections = {}
   private copilotModels: ReadonlyArray<ModelInfo> | null = null
@@ -1188,8 +1191,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       commitMessageGenerationButtonClicked:
         this.commitMessageGenerationButtonClicked,
       showChangesFilter: this.showChangesFilter,
-      showFavouritesSidebar: this.showFavouritesSidebar,
-      favouriteGroups: this.favouriteGroups,
+      showFavoritesSidebar: this.showFavoritesSidebar,
+      favoriteGroups: this.favoriteGroups,
+      favoritesActiveGroupId: this.resolveActiveFavoritesGroupId(),
       selectedCopilotModels: this.selectedCopilotModels,
       copilotModels: this.copilotModels,
       copilotAvailable: this.copilotStore.isAvailable,
@@ -2250,10 +2254,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Load the initial state for the app. */
   public async loadInitialState() {
-    const [accounts, repositories, favouriteGroups] = await Promise.all([
+    const [accounts, repositories, favoriteGroups] = await Promise.all([
       this.accountsStore.getAll(),
       this.repositoriesStore.getAll(),
-      this.repositoriesStore.getAllFavouriteGroups(),
+      this.repositoriesStore.getAllFavoriteGroups(),
     ])
 
     log.info(
@@ -2265,7 +2269,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accounts = accounts
     this.repositories = repositories
-    this.favouriteGroups = favouriteGroups
+    this.favoriteGroups = favoriteGroups
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
 
@@ -2458,10 +2462,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       showChangesFilterDefault
     )
 
-    this.showFavouritesSidebar = getBoolean(
-      showFavouritesSidebarKey,
-      showFavouritesSidebarDefault
+    this.showFavoritesSidebar = getBoolean(
+      showFavoritesSidebarKey,
+      showFavoritesSidebarDefault
     )
+
+    this.favoritesActiveGroupId = getNumber(favoritesActiveGroupIdKey) ?? null
 
     this.selectedCopilotModels = this.loadCopilotModelSelections()
     this.byokProviders = loadBYOKProviders()
@@ -2693,7 +2699,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       hasCurrentPullRequest: currentPullRequest !== null,
       askForConfirmationWhenStashingAllChanges,
       isChangesFilterVisible: this.showChangesFilter,
-      isFavouritesSidebarVisible: this.showFavouritesSidebar,
+      isFavoritesSidebarVisible: this.showFavoritesSidebar,
     })
   }
 
@@ -4567,59 +4573,82 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _setRepositoryFavouriteGroup(
+  public async _setRepositoryFavoriteGroup(
     repository: Repository,
-    favouriteGroupId: number | null
+    favoriteGroupId: number | null
   ): Promise<void> {
-    // Reveal the sidebar the first time the user pins a repository so the
-    // feature is discoverable. After that, respect whatever they choose via
-    // the View menu — we only flip the flag when no other Repository (the
-    // `instanceof` filter excludes CloningRepository) currently belongs to
-    // a group.
-    const shouldRevealSidebar =
-      favouriteGroupId !== null &&
-      !this.repositories.some(
-        r =>
-          r instanceof Repository &&
-          r.id !== repository.id &&
-          r.favouriteGroupId !== null
-      )
+    // Reveal the sidebar on first pin only when the user has never expressed
+    // a visibility preference (no stored value yet). Once they have toggled
+    // it via the View menu — even to "off" — we honour that forever.
+    const userHasNeverToggled =
+      getBoolean(showFavoritesSidebarKey) === undefined
+    const shouldRevealSidebar = favoriteGroupId !== null && userHasNeverToggled
 
-    await this.repositoriesStore.setRepositoryFavouriteGroup(
+    await this.repositoriesStore.setRepositoryFavoriteGroup(
       repository,
-      favouriteGroupId
+      favoriteGroupId
     )
-    await this.refreshFavouriteGroups()
+    await this.refreshFavoriteGroups()
 
-    if (shouldRevealSidebar && !this.showFavouritesSidebar) {
-      this.showFavouritesSidebar = true
-      setBoolean(showFavouritesSidebarKey, true)
+    if (shouldRevealSidebar && !this.showFavoritesSidebar) {
+      this.showFavoritesSidebar = true
+      setBoolean(showFavoritesSidebarKey, true)
       this.updateMenuLabelsForSelectedRepository()
       this.emitUpdate()
     }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _addFavouriteGroup(name: string): Promise<FavouriteGroup> {
-    const group = await this.repositoriesStore.addFavouriteGroup(name)
-    await this.refreshFavouriteGroups()
+  public async _addFavoriteGroup(name: string): Promise<FavoriteGroup> {
+    const group = await this.repositoriesStore.addFavoriteGroup(name)
+    await this.refreshFavoriteGroups()
     return group
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _renameFavouriteGroup(id: number, name: string): Promise<void> {
-    await this.repositoriesStore.renameFavouriteGroup(id, name)
-    await this.refreshFavouriteGroups()
+  public async _renameFavoriteGroup(id: number, name: string): Promise<void> {
+    await this.repositoriesStore.renameFavoriteGroup(id, name)
+    await this.refreshFavoriteGroups()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _removeFavouriteGroup(id: number): Promise<void> {
-    await this.repositoriesStore.removeFavouriteGroup(id)
-    await this.refreshFavouriteGroups()
+  public async _removeFavoriteGroup(id: number): Promise<void> {
+    await this.repositoriesStore.removeFavoriteGroup(id)
+    await this.refreshFavoriteGroups()
   }
 
-  private async refreshFavouriteGroups() {
-    this.favouriteGroups = await this.repositoriesStore.getAllFavouriteGroups()
+  private async refreshFavoriteGroups() {
+    this.favoriteGroups = await this.repositoriesStore.getAllFavoriteGroups()
+    this.emitUpdate()
+  }
+
+  /**
+   * Resolve the active favorites group id, falling back to the first group
+   * if the persisted value no longer exists. Returns `null` when there are
+   * no groups.
+   */
+  private resolveActiveFavoritesGroupId(): number | null {
+    const { favoritesActiveGroupId, favoriteGroups } = this
+    if (
+      favoritesActiveGroupId !== null &&
+      favoriteGroups.some(g => g.id === favoritesActiveGroupId)
+    ) {
+      return favoritesActiveGroupId
+    }
+    return favoriteGroups[0]?.id ?? null
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setFavoritesActiveGroupId(id: number | null) {
+    if (id === this.favoritesActiveGroupId) {
+      return
+    }
+    this.favoritesActiveGroupId = id
+    if (id === null) {
+      localStorage.removeItem(favoritesActiveGroupIdKey)
+    } else {
+      setNumber(favoritesActiveGroupIdKey, id)
+    }
     this.emitUpdate()
   }
 
@@ -9376,9 +9405,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  public _toggleFavouritesSidebarVisibility() {
-    this.showFavouritesSidebar = !this.showFavouritesSidebar
-    setBoolean(showFavouritesSidebarKey, this.showFavouritesSidebar)
+  public _toggleFavoritesSidebarVisibility() {
+    this.showFavoritesSidebar = !this.showFavoritesSidebar
+    setBoolean(showFavoritesSidebarKey, this.showFavoritesSidebar)
     this.updateMenuLabelsForSelectedRepository()
     this.emitUpdate()
   }

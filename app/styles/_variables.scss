@@ -55,6 +55,10 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --input-icon-error-color: #{$red-600};
   --input-icon-hover-background-color: #{$gray-100};
 
+  // Color of the filled star icon shown when a repository belongs to a
+  // favorites group (row toggle and sidebar unfavorite button).
+  --favorite-active-color: #{$yellow-700};
+
   // Colors used for icons in the commit message warning/error area
   --commit-message-icon-warning-color: var(--input-icon-warning-color);
   --commit-message-icon-error-color: var(--input-icon-error-color);

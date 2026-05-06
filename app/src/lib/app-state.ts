@@ -9,7 +9,7 @@ import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
-import { FavouriteGroup } from '../models/favourite-group'
+import { FavoriteGroup } from '../models/favorite-group'
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
@@ -400,11 +400,18 @@ export interface IAppState {
   /** Whether the changes filter is shown */
   readonly showChangesFilter: boolean
 
-  /** Whether the favourites sidebar is visible. */
-  readonly showFavouritesSidebar: boolean
+  /** Whether the favorites sidebar is visible. */
+  readonly showFavoritesSidebar: boolean
 
-  /** All user-defined favourite groups, ordered by sortOrder. */
-  readonly favouriteGroups: ReadonlyArray<FavouriteGroup>
+  /** All user-defined favorite groups, ordered by sortOrder. */
+  readonly favoriteGroups: ReadonlyArray<FavoriteGroup>
+
+  /**
+   * Identifier of the favorites group currently active (selected as the tab
+   * in the sidebar), or `null` when no group is active. Persisted across
+   * window reloads so the user returns to the tab they last had open.
+   */
+  readonly favoritesActiveGroupId: number | null
 
   /**
    * Per-feature Copilot model selections. An absent key means the default
