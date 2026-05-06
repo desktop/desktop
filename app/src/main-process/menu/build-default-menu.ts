@@ -231,6 +231,7 @@ export function buildDefaultMenu({
               isFavouritesSidebarVisible ? 'Hide' : 'Show'
             } &Favourites Sidebar`,
         id: 'toggle-favourites-sidebar',
+        accelerator: 'CmdOrCtrl+Shift+L',
         click: emit('toggle-favourites-sidebar'),
       },
       {
