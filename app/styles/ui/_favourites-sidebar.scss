@@ -62,12 +62,13 @@
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  min-height: 0;
   border-right: 1px solid var(--box-border-color);
   background: var(--background-color);
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
 
   .favourites-sidebar-tabs {
+    flex-shrink: 0;
     display: flex;
     flex-direction: row;
     border-bottom: 1px solid var(--box-border-color);
@@ -118,6 +119,10 @@
     list-style: none;
     margin: 0;
     padding: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .favourites-sidebar-item {
