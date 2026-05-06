@@ -328,31 +328,35 @@ export class RepositoriesStore extends TypedBaseStore<
    */
   public async addFavouriteGroup(name: string): Promise<FavouriteGroup> {
     const trimmed = name.trim()
-    assertNonNullable(trimmed.length > 0 || null, 'Group name cannot be empty')
+    if (trimmed.length === 0) {
+      throw new Error('Favourite group name cannot be empty')
+    }
 
-    const sortOrder = await this.db.transaction(
+    const result = await this.db.transaction(
       'rw',
       this.db.favouriteGroups,
       async () => {
         const existing = await this.db.favouriteGroups.toArray()
-        const next = existing.reduce((max, g) => Math.max(max, g.sortOrder), -1)
-        return next + 1
+        const sortOrder =
+          existing.reduce((max, g) => Math.max(max, g.sortOrder), -1) + 1
+        const id = await this.db.favouriteGroups.add({
+          name: trimmed,
+          sortOrder,
+        })
+        return { id, sortOrder }
       }
     )
 
-    const id = await this.db.favouriteGroups.add({
-      name: trimmed,
-      sortOrder,
-    })
-
     this.emitUpdatedRepositories()
-    return new FavouriteGroup(id, trimmed, sortOrder)
+    return new FavouriteGroup(result.id, trimmed, result.sortOrder)
   }
 
   /** Rename an existing favourite group. */
   public async renameFavouriteGroup(id: number, name: string): Promise<void> {
     const trimmed = name.trim()
-    assertNonNullable(trimmed.length > 0 || null, 'Group name cannot be empty')
+    if (trimmed.length === 0) {
+      throw new Error('Favourite group name cannot be empty')
+    }
     await this.db.favouriteGroups.update(id, { name: trimmed })
     this.emitUpdatedRepositories()
   }

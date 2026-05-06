@@ -4571,7 +4571,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     favouriteGroupId: number | null
   ): Promise<void> {
-    const wasFirstFavourite =
+    // Reveal the sidebar the first time the user pins a repository so the
+    // feature is discoverable. After that, respect whatever they choose via
+    // the View menu — we only flip the flag when no other Repository (the
+    // `instanceof` filter excludes CloningRepository) currently belongs to
+    // a group.
+    const shouldRevealSidebar =
       favouriteGroupId !== null &&
       !this.repositories.some(
         r =>
@@ -4586,7 +4591,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
     await this.refreshFavouriteGroups()
 
-    if (wasFirstFavourite && !this.showFavouritesSidebar) {
+    if (shouldRevealSidebar && !this.showFavouritesSidebar) {
       this.showFavouritesSidebar = true
       setBoolean(showFavouritesSidebarKey, true)
       this.updateMenuLabelsForSelectedRepository()
