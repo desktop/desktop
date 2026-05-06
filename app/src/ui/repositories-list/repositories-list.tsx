@@ -11,6 +11,7 @@ import {
 import { IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { ILocalRepositoryState, Repository } from '../../models/repository'
+import { FavouriteGroup } from '../../models/favourite-group'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { Octicon } from '../octicons'
@@ -74,6 +75,9 @@ interface IRepositoriesListProps {
   readonly filterText: string
 
   readonly dispatcher: Dispatcher
+
+  /** All favourite groups (for the row context menu's "Add to" submenu). */
+  readonly favouriteGroups: ReadonlyArray<FavouriteGroup>
 }
 
 interface IRepositoriesListState {
@@ -162,6 +166,7 @@ export class RepositoriesList extends React.Component<
         matches={matches}
         aheadBehind={item.aheadBehind}
         changedFilesCount={item.changedFilesCount}
+        onManageFavourite={this.onManageFavourite}
       />
     )
   }
@@ -296,9 +301,13 @@ export class RepositoriesList extends React.Component<
       externalEditorLabel: this.props.externalEditorLabel,
       onChangeRepositoryAlias: this.onChangeRepositoryAlias,
       onRemoveRepositoryAlias: this.onRemoveRepositoryAlias,
+      onSetRepositoryFavouriteGroup: this.onSetRepositoryFavouriteGroup,
+      onCreateFavouriteGroupForRepository:
+        this.onCreateFavouriteGroupForRepository,
       onViewOnGitHub: this.props.onViewOnGitHub,
       repository: item.repository,
       shellLabel: this.props.shellLabel,
+      favouriteGroups: this.props.favouriteGroups,
     })
 
     showContextualMenu(items)
@@ -456,4 +465,80 @@ export class RepositoriesList extends React.Component<
   private onRemoveRepositoryAlias = (repository: Repository) => {
     this.props.dispatcher.changeRepositoryAlias(repository, null)
   }
+
+  private onSetRepositoryFavouriteGroup = (
+    repository: Repository,
+    favouriteGroupId: number | null
+  ) => {
+    this.props.dispatcher.setRepositoryFavouriteGroup(
+      repository,
+      favouriteGroupId
+    )
+  }
+
+  private onCreateFavouriteGroupForRepository = (repository: Repository) => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.NewFavouriteGroup,
+      repository,
+    })
+  }
+
+  private onManageFavourite = (repository: Repository) => {
+    const items = buildManageFavouriteMenu(
+      repository,
+      this.props.favouriteGroups,
+      this.onSetRepositoryFavouriteGroup,
+      this.onCreateFavouriteGroupForRepository
+    )
+    showContextualMenu(items)
+  }
+}
+
+function buildManageFavouriteMenu(
+  repository: Repository,
+  favouriteGroups: ReadonlyArray<FavouriteGroup>,
+  onSetRepositoryFavouriteGroup: (
+    repository: Repository,
+    favouriteGroupId: number | null
+  ) => void,
+  onCreateFavouriteGroupForRepository: (repository: Repository) => void
+): ReadonlyArray<IMenuItem> {
+  const newGroupItem: IMenuItem = {
+    label: __DARWIN__ ? 'New Group…' : 'New group…',
+    action: () => onCreateFavouriteGroupForRepository(repository),
+  }
+
+  if (repository.isFavourite) {
+    const items: Array<IMenuItem> = []
+    if (favouriteGroups.length > 0) {
+      for (const g of favouriteGroups) {
+        items.push({
+          label: g.name,
+          type: 'checkbox',
+          checked: g.id === repository.favouriteGroupId,
+          action: () => onSetRepositoryFavouriteGroup(repository, g.id),
+        })
+      }
+      items.push({ type: 'separator' })
+      items.push(newGroupItem)
+      items.push({ type: 'separator' })
+    }
+    items.push({
+      label: __DARWIN__ ? 'Remove from Favourites' : 'Remove from favourites',
+      action: () => onSetRepositoryFavouriteGroup(repository, null),
+    })
+    return items
+  }
+
+  if (favouriteGroups.length === 0) {
+    return [newGroupItem]
+  }
+
+  const items: Array<IMenuItem> = favouriteGroups.map(g => ({
+    label: g.name,
+    action: () => onSetRepositoryFavouriteGroup(repository, g.id),
+  }))
+  items.push({ type: 'separator' })
+  items.push(newGroupItem)
+  return items
 }

@@ -27,6 +27,16 @@ interface IRepositoryListItemProps {
 
   /** Number of uncommitted changes */
   readonly changedFilesCount: number
+
+  /**
+   * Called when the user clicks the favourite star on this row. The host is
+   * expected to open a small picker (group list + "New group…") or remove the
+   * repo from its current group.
+   */
+  readonly onManageFavourite: (
+    repository: Repository,
+    target: HTMLElement
+  ) => void
 }
 
 /** A repository item. */
@@ -81,8 +91,44 @@ export class RepositoryListItem extends React.Component<
             aheadBehind: this.props.aheadBehind,
             hasChanges: hasChanges,
           })}
+
+        {repository instanceof Repository && this.renderFavouriteToggle()}
       </div>
     )
+  }
+
+  private renderFavouriteToggle() {
+    const repo = this.props.repository
+    if (!(repo instanceof Repository)) {
+      return null
+    }
+    const { isFavourite } = repo
+    const label = isFavourite
+      ? 'Manage favourite'
+      : 'Add to favourites'
+    return (
+      <button
+        type="button"
+        className={classNames('favourite-toggle', { active: isFavourite })}
+        onClick={this.onFavouriteToggleClick}
+        aria-label={label}
+        aria-pressed={isFavourite}
+        title={label}
+      >
+        <Octicon symbol={isFavourite ? octicons.starFill : octicons.star} />
+      </button>
+    )
+  }
+
+  private onFavouriteToggleClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.stopPropagation()
+    event.preventDefault()
+    const repo = this.props.repository
+    if (repo instanceof Repository) {
+      this.props.onManageFavourite(repo, event.currentTarget)
+    }
   }
 
   private renderTooltip() {
@@ -109,6 +155,8 @@ export class RepositoryListItem extends React.Component<
     ) {
       return (
         nextProps.repository.id !== this.props.repository.id ||
+        nextProps.repository.favouriteGroupId !==
+          this.props.repository.favouriteGroupId ||
         nextProps.matches !== this.props.matches
       )
     } else {

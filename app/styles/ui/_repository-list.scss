@@ -65,6 +65,36 @@
     .alias {
       font-style: italic;
     }
+
+    .favourite-toggle {
+      flex-shrink: 0;
+      margin-left: var(--spacing-half);
+      padding: 2px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary-color);
+      opacity: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--border-radius);
+
+      &.active {
+        opacity: 1;
+        color: var(--diff-modified-text-color, #d4a72c);
+      }
+
+      &:hover,
+      &:focus-visible {
+        opacity: 1;
+        background: var(--box-hover-background-color);
+      }
+    }
+
+    &:hover .favourite-toggle {
+      opacity: 1;
+    }
   }
 
   .filter-list-group-header {
