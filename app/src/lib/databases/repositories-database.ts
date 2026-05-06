@@ -67,16 +67,6 @@ export interface IDatabaseRepository {
   readonly isTutorialRepository?: boolean
 
   /**
-   * True if the user has marked this repository as a favourite, in which
-   * case it should appear in the always-on favourites sidebar.
-   *
-   * Superseded by `favouriteGroupId` from schema v11 onwards. Kept around
-   * because Dexie does not drop unknown columns and the field may still
-   * be set on rows from older app builds.
-   */
-  readonly isFavourite?: boolean
-
-  /**
    * Identifier of the favourite group this repository belongs to, or null
    * when the repository is not in any group.
    */
@@ -163,19 +153,10 @@ export class RepositoriesDatabase extends BaseDatabase {
 
     this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
     this.conditionalVersion(9, { owners: '++id, &key' }, createOwnerKey)
-    this.conditionalVersion(
-      10,
-      { repositories: '++id, &path, isFavourite' },
-      backfillIsFavourite
-    )
-    this.conditionalVersion(
-      11,
-      {
-        repositories: '++id, &path, favouriteGroupId',
-        favouriteGroups: '++id, &name, sortOrder',
-      },
-      migrateFavouritesToGroups
-    )
+    this.conditionalVersion(10, {
+      repositories: '++id, &path, favouriteGroupId',
+      favouriteGroups: '++id, &name, sortOrder',
+    })
   }
 }
 
@@ -209,54 +190,6 @@ async function ensureNoUndefinedParentID(tx: Transaction) {
     .filter(ghRepo => ghRepo.parentID === undefined)
     .modify({ parentID: null })
     .then(modified => log.info(`ensureNoUndefinedParentID: ${modified}`))
-}
-
-/**
- * Default `isFavourite` to `false` for any pre-existing repository rows so
- * the new index is well-defined and lookups by the field are predictable.
- */
-async function backfillIsFavourite(tx: Transaction) {
-  return tx
-    .table<IDatabaseRepository, number>('repositories')
-    .toCollection()
-    .filter(repo => repo.isFavourite === undefined)
-    .modify({ isFavourite: false })
-    .then(modified => log.info(`backfillIsFavourite: ${modified}`))
-}
-
-/**
- * Move the v10 boolean favourite flag into a "Favourites" group so the user's
- * existing favourites are preserved when groups are introduced. Repositories
- * that were not favourites get `favouriteGroupId: null`.
- */
-async function migrateFavouritesToGroups(tx: Transaction) {
-  const reposTable = tx.table<IDatabaseRepository, number>('repositories')
-  const groupsTable = tx.table<IDatabaseFavouriteGroup, number>(
-    'favouriteGroups'
-  )
-
-  const wasAFavourite = await reposTable
-    .toCollection()
-    .filter(r => r.isFavourite === true)
-    .toArray()
-
-  let defaultGroupId: number | null = null
-  if (wasAFavourite.length > 0) {
-    defaultGroupId = await groupsTable.add({ name: 'Favourites', sortOrder: 0 })
-  }
-
-  await reposTable
-    .toCollection()
-    .filter(r => r.favouriteGroupId === undefined)
-    .modify(
-      (r: { isFavourite?: boolean; favouriteGroupId?: number | null }) => {
-        r.favouriteGroupId = r.isFavourite === true ? defaultGroupId : null
-      }
-    )
-
-  log.info(
-    `migrateFavouritesToGroups: moved ${wasAFavourite.length} repos into a default group`
-  )
 }
 
 /**

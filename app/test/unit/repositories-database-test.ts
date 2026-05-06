@@ -116,23 +116,18 @@ describe('RepositoriesDatabase', () => {
     await db.delete()
   })
 
-  it('migrates from version 9 to 10 by defaulting isFavourite to false', async () => {
+  it('migrates from version 9 to 10 by adding the favouriteGroups table', async () => {
     const dbName = 'TestRepositoriesDatabase'
     let db = new RepositoriesDatabase(dbName, 9)
     await db.delete()
     await db.open()
 
-    type RepoModelBeforeUpgrade = Omit<
-      IDatabaseRepository,
-      'isFavourite' | 'favouriteGroupId'
-    >
-    const repositoriesTable = db.table<RepoModelBeforeUpgrade, number>(
-      'repositories'
-    )
+    type RepoModelV9 = Omit<IDatabaseRepository, 'favouriteGroupId'>
+    const v9ReposTable = db.table<RepoModelV9, number>('repositories')
 
-    const repoId = await repositoriesTable.add({
+    const repoId = await v9ReposTable.add({
       gitHubRepositoryID: null,
-      path: '/some/path',
+      path: '/path/legacy',
       alias: null,
       missing: false,
     })
@@ -144,77 +139,44 @@ describe('RepositoriesDatabase', () => {
 
     const migrated = await db.repositories.get(repoId)
     assert(migrated !== undefined)
-    assert.equal(migrated.isFavourite, false)
-
-    await db.delete()
-  })
-
-  it('migrates from version 10 to 11 by moving favourites into a default group', async () => {
-    const dbName = 'TestRepositoriesDatabase'
-    let db = new RepositoriesDatabase(dbName, 10)
-    await db.delete()
-    await db.open()
-
-    type RepoModelV10 = Omit<IDatabaseRepository, 'favouriteGroupId'>
-    const v10ReposTable = db.table<RepoModelV10, number>('repositories')
-
-    const favId = await v10ReposTable.add({
-      gitHubRepositoryID: null,
-      path: '/path/fav',
-      alias: null,
-      missing: false,
-      isFavourite: true,
-    })
-    const plainId = await v10ReposTable.add({
-      gitHubRepositoryID: null,
-      path: '/path/plain',
-      alias: null,
-      missing: false,
-      isFavourite: false,
-    })
-
-    db.close()
-
-    db = new RepositoriesDatabase(dbName, 11)
-    await db.open()
-
-    const groups = await db.favouriteGroups.toArray()
-    assert.equal(groups.length, 1)
-    assert.equal(groups[0].name, 'Favourites')
-
-    const fav = await db.repositories.get(favId)
-    const plain = await db.repositories.get(plainId)
-    assert(fav !== undefined && plain !== undefined)
-    assert.equal(fav.favouriteGroupId, groups[0].id)
-    assert.equal(plain.favouriteGroupId, null)
-
-    await db.delete()
-  })
-
-  it('does not create a default group when no v10 favourites exist', async () => {
-    const dbName = 'TestRepositoriesDatabase'
-    let db = new RepositoriesDatabase(dbName, 10)
-    await db.delete()
-    await db.open()
-
-    type RepoModelV10 = Omit<IDatabaseRepository, 'favouriteGroupId'>
-    const v10ReposTable = db.table<RepoModelV10, number>('repositories')
-
-    await v10ReposTable.add({
-      gitHubRepositoryID: null,
-      path: '/path/plain',
-      alias: null,
-      missing: false,
-      isFavourite: false,
-    })
-
-    db.close()
-
-    db = new RepositoriesDatabase(dbName, 11)
-    await db.open()
+    assert.equal(migrated.favouriteGroupId, undefined)
 
     const groups = await db.favouriteGroups.toArray()
     assert.equal(groups.length, 0)
+
+    await db.delete()
+  })
+
+  it('preserves an existing favouriteGroupId across re-opens at v10', async () => {
+    const dbName = 'TestRepositoriesDatabase'
+    let db = new RepositoriesDatabase(dbName, 10)
+    await db.delete()
+    await db.open()
+
+    const groupId = await db.favouriteGroups.add({
+      name: 'Existing',
+      sortOrder: 0,
+    })
+    const repoId = await db.repositories.add({
+      gitHubRepositoryID: null,
+      path: '/path/already-pinned',
+      alias: null,
+      missing: false,
+      favouriteGroupId: groupId,
+    })
+
+    db.close()
+
+    db = new RepositoriesDatabase(dbName, 10)
+    await db.open()
+
+    const migrated = await db.repositories.get(repoId)
+    assert(migrated !== undefined)
+    assert.equal(migrated.favouriteGroupId, groupId)
+
+    const groups = await db.favouriteGroups.toArray()
+    assert.equal(groups.length, 1)
+    assert.equal(groups[0].name, 'Existing')
 
     await db.delete()
   })

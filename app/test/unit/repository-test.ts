@@ -54,6 +54,26 @@ describe('Repository', () => {
       const c = new Repository('/some/path', 1, null, false, null, {}, false, 2)
       assert.notEqual(a.hash, b.hash)
       assert.notEqual(b.hash, c.hash)
+      assert.notEqual(a.hash, c.hash)
+    })
+
+    it('treats undefined and null favouriteGroupId equivalently', () => {
+      const a = new Repository('/some/path', 1, null, false)
+      const b = new Repository(
+        '/some/path',
+        1,
+        null,
+        false,
+        null,
+        {},
+        false,
+        null
+      )
+      assert.equal(a.favouriteGroupId, null)
+      assert.equal(b.favouriteGroupId, null)
+      assert.equal(a.isFavourite, false)
+      assert.equal(b.isFavourite, false)
+      assert.equal(a.hash, b.hash)
     })
   })
 })
