@@ -18,39 +18,14 @@ interface IFavouritesSidebarProps {
   readonly favouriteGroups: ReadonlyArray<FavouriteGroup>
   readonly selectedRepository: Repository | CloningRepository | null
   readonly dispatcher: Dispatcher
-}
-
-interface IFavouritesSidebarState {
-  /** Active group's id, or null when no groups exist. */
   readonly activeGroupId: number | null
+  readonly onActiveGroupChanged: (id: number | null) => void
 }
 
 export class FavouritesSidebar extends React.Component<
   IFavouritesSidebarProps,
-  IFavouritesSidebarState
+  {}
 > {
-  public constructor(props: IFavouritesSidebarProps) {
-    super(props)
-    this.state = {
-      activeGroupId: props.favouriteGroups[0]?.id ?? null,
-    }
-  }
-
-  public componentDidUpdate(prevProps: IFavouritesSidebarProps) {
-    const { favouriteGroups } = this.props
-    const stillExists =
-      this.state.activeGroupId !== null &&
-      favouriteGroups.some(g => g.id === this.state.activeGroupId)
-    if (!stillExists) {
-      this.setState({ activeGroupId: favouriteGroups[0]?.id ?? null })
-    } else if (
-      prevProps.favouriteGroups.length === 0 &&
-      favouriteGroups.length > 0
-    ) {
-      this.setState({ activeGroupId: favouriteGroups[0].id })
-    }
-  }
-
   public render() {
     const { favouriteGroups } = this.props
     const showTabs = favouriteGroups.length >= 2
@@ -66,8 +41,7 @@ export class FavouritesSidebar extends React.Component<
   }
 
   private renderTabs() {
-    const { favouriteGroups } = this.props
-    const { activeGroupId } = this.state
+    const { favouriteGroups, activeGroupId } = this.props
     return (
       <div className="favourites-sidebar-tabs" role="tablist">
         {favouriteGroups.map(g => (
@@ -78,7 +52,7 @@ export class FavouritesSidebar extends React.Component<
             className={classNames('favourites-sidebar-tab', {
               active: g.id === activeGroupId,
             })}
-            onClick={() => this.setState({ activeGroupId: g.id })}
+            onClick={() => this.props.onActiveGroupChanged(g.id)}
             onContextMenu={event => this.onTabContextMenu(event, g)}
             title={g.name}
           >
@@ -100,8 +74,7 @@ export class FavouritesSidebar extends React.Component<
   }
 
   private renderActiveGroupList() {
-    const { repositories, favouriteGroups } = this.props
-    const { activeGroupId } = this.state
+    const { repositories, favouriteGroups, activeGroupId } = this.props
 
     const effectiveGroupId =
       activeGroupId ?? favouriteGroups[0]?.id ?? null

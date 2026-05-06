@@ -247,7 +247,14 @@ export const bannerTransitionTimeout = { enter: 500, exit: 400 }
  * changes. See https://github.com/desktop/desktop/issues/1398.
  */
 const ReadyDelay = 100
-export class App extends React.Component<IAppProps, IAppState> {
+interface IAppLocalState {
+  readonly favouritesActiveGroupId: number | null
+}
+
+export class App extends React.Component<
+  IAppProps,
+  IAppState & IAppLocalState
+> {
   private loading = true
 
   /**
@@ -298,7 +305,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
     })
 
-    this.state = props.appStore.getState()
+    this.state = {
+      ...props.appStore.getState(),
+      favouritesActiveGroupId: null,
+    }
     props.appStore.onDidUpdate(state => {
       this.setState(state)
     })
@@ -2999,6 +3009,21 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  private resolveActiveFavouritesGroupId(): number | null {
+    const { favouriteGroups, favouritesActiveGroupId } = this.state
+    if (
+      favouritesActiveGroupId !== null &&
+      favouriteGroups.some(g => g.id === favouritesActiveGroupId)
+    ) {
+      return favouritesActiveGroupId
+    }
+    return favouriteGroups[0]?.id ?? null
+  }
+
+  private onFavouritesActiveGroupChanged = (id: number | null) => {
+    this.setState({ favouritesActiveGroupId: id })
+  }
+
   private renderFavouritesSidebar() {
     const favourites = this.state.repositories.filter(
       (r): r is Repository => r instanceof Repository && r.isFavourite
@@ -3010,6 +3035,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         favouriteGroups={this.state.favouriteGroups}
         selectedRepository={selectedRepository}
         dispatcher={this.props.dispatcher}
+        activeGroupId={this.resolveActiveFavouritesGroupId()}
+        onActiveGroupChanged={this.onFavouritesActiveGroupChanged}
       />
     )
   }
@@ -3525,10 +3552,28 @@ export class App extends React.Component<IAppProps, IAppState> {
     const width = clamp(this.state.sidebarWidth)
     const showFavourites = this.state.showFavouritesSidebar
 
+    const activeGroupId = this.resolveActiveFavouritesGroupId()
+    const activeGroup =
+      this.state.favouriteGroups.find(g => g.id === activeGroupId) ?? null
+    const activeGroupCount =
+      activeGroupId === null
+        ? 0
+        : this.state.repositories.reduce(
+            (n, r) =>
+              r instanceof Repository && r.favouriteGroupId === activeGroupId
+                ? n + 1
+                : n,
+            0
+          )
+
     return (
       <Toolbar id="desktop-app-toolbar">
         {showFavourites && (
-          <FavouritesToolbarSegment dispatcher={this.props.dispatcher} />
+          <FavouritesToolbarSegment
+            dispatcher={this.props.dispatcher}
+            activeGroup={activeGroup}
+            activeGroupCount={activeGroupCount}
+          />
         )}
         <div className="sidebar-section" style={{ width }}>
           {this.renderRepositoryToolbarButton()}

@@ -4,24 +4,32 @@ import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import { Dispatcher } from '../dispatcher'
 import { PopupType } from '../../models/popup'
+import { FavouriteGroup } from '../../models/favourite-group'
 
 interface IFavouritesToolbarSegmentProps {
   readonly dispatcher: Dispatcher
+  readonly activeGroup: FavouriteGroup | null
+  readonly activeGroupCount: number
 }
 
-/**
- * Header for the favourites column rendered inside the toolbar row so the
- * column gets its own toolbar-level title and the existing repo dropdown
- * keeps its alignment with the changes sidebar below.
- */
 export class FavouritesToolbarSegment extends React.Component<
   IFavouritesToolbarSegmentProps,
   {}
 > {
   public render() {
+    const { activeGroup, activeGroupCount } = this.props
+    const title =
+      activeGroup === null
+        ? 'No groups'
+        : `${activeGroup.name} (${activeGroupCount})`
+
     return (
       <div className="favourites-toolbar-segment">
-        <span className="favourites-toolbar-segment-label">Favourites</span>
+        <Octicon className="icon" symbol={octicons.star} />
+        <div className="text">
+          <div className="description">Favourites</div>
+          <div className="title">{title}</div>
+        </div>
         <button
           type="button"
           className="favourites-toolbar-segment-add"
