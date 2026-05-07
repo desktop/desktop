@@ -15,6 +15,9 @@ import {
 import { Tooltip } from '../lib/tooltip'
 import { createObservableRef } from '../lib/observable-ref'
 
+const favoritesPanelId = 'favorites-sidebar-panel'
+const favoritesTabId = (groupId: number) => `favorites-sidebar-tab-${groupId}`
+
 interface IFavoritesSidebarItemProps {
   readonly repository: Repository
   readonly isSelected: boolean
@@ -97,39 +100,111 @@ export class FavoritesSidebar extends React.Component<
   public render() {
     const { favoriteGroups } = this.props
     const showTabs = favoriteGroups.length >= 2
+    const effectiveGroupId = this.resolveEffectiveGroupId()
 
     return (
       <nav className="favorites-sidebar" aria-label="Favorite repositories">
-        {showTabs && this.renderTabs()}
+        {showTabs && this.renderTabs(effectiveGroupId)}
         {favoriteGroups.length === 0
           ? this.renderEmptyState()
-          : this.renderActiveGroupList()}
+          : this.renderActiveGroupList(effectiveGroupId)}
       </nav>
     )
   }
 
-  private renderTabs() {
-    const { favoriteGroups, activeGroupId } = this.props
+  private renderTabs(effectiveGroupId: number | null) {
+    const { favoriteGroups } = this.props
     return (
-      <div className="favorites-sidebar-tabs" role="tablist">
-        {favoriteGroups.map(g => (
-          <button
-            key={g.id}
-            role="tab"
-            aria-selected={g.id === activeGroupId}
-            aria-label={g.name}
-            data-group-id={g.id}
-            className={classNames('favorites-sidebar-tab', {
-              active: g.id === activeGroupId,
-            })}
-            onClick={this.onTabClick}
-            onContextMenu={this.onTabContextMenu}
-          >
-            {g.name}
-          </button>
-        ))}
+      <div
+        className="favorites-sidebar-tabs"
+        role="tablist"
+        aria-label="Favorite groups"
+      >
+        {favoriteGroups.map(g => {
+          const selected = g.id === effectiveGroupId
+          return (
+            <button
+              key={g.id}
+              role="tab"
+              id={favoritesTabId(g.id)}
+              aria-selected={selected}
+              aria-controls={favoritesPanelId}
+              tabIndex={selected ? 0 : -1}
+              data-group-id={g.id}
+              className={classNames('favorites-sidebar-tab', {
+                active: selected,
+              })}
+              onClick={this.onTabClick}
+              onKeyDown={this.onTabKeyDown}
+              onContextMenu={this.onTabContextMenu}
+            >
+              {g.name}
+            </button>
+          )
+        })}
       </div>
     )
+  }
+
+  /**
+   * Mirror of the store's `resolveActiveFavoritesGroupId` so the sidebar can
+   * derive the same fallback (first group) without a separate prop. Kept
+   * private so the toolbar count etc. continue to use the upstream value.
+   */
+  private resolveEffectiveGroupId(): number | null {
+    const { activeGroupId, favoriteGroups } = this.props
+    if (activeGroupId !== null && favoriteGroups.some(g => g.id === activeGroupId)) {
+      return activeGroupId
+    }
+    return favoriteGroups[0]?.id ?? null
+  }
+
+  private onTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const { favoriteGroups } = this.props
+    if (favoriteGroups.length === 0) {
+      return
+    }
+
+    const currentId = Number(event.currentTarget.dataset.groupId)
+    const currentIndex = favoriteGroups.findIndex(g => g.id === currentId)
+    if (currentIndex < 0) {
+      return
+    }
+
+    let nextIndex: number | null = null
+    switch (event.key) {
+      case 'ArrowLeft':
+        nextIndex =
+          (currentIndex - 1 + favoriteGroups.length) % favoriteGroups.length
+        break
+      case 'ArrowRight':
+        nextIndex = (currentIndex + 1) % favoriteGroups.length
+        break
+      case 'Home':
+        nextIndex = 0
+        break
+      case 'End':
+        nextIndex = favoriteGroups.length - 1
+        break
+      default:
+        return
+    }
+
+    event.preventDefault()
+    const nextGroup = favoriteGroups[nextIndex]
+    this.props.onActiveGroupChanged(nextGroup.id)
+    this.focusTab(nextGroup.id)
+  }
+
+  private focusTab(groupId: number) {
+    // Defer focus to the next tick so the parent's render with the new
+    // tabIndex roving has landed before we move focus.
+    requestAnimationFrame(() => {
+      const el = document.getElementById(favoritesTabId(groupId))
+      if (el instanceof HTMLElement) {
+        el.focus()
+      }
+    })
   }
 
   private getGroupFromEvent(
@@ -156,10 +231,8 @@ export class FavoritesSidebar extends React.Component<
     )
   }
 
-  private renderActiveGroupList() {
-    const { repositories, favoriteGroups, activeGroupId } = this.props
-
-    const effectiveGroupId = activeGroupId ?? favoriteGroups[0]?.id ?? null
+  private renderActiveGroupList(effectiveGroupId: number | null) {
+    const { repositories } = this.props
 
     if (effectiveGroupId === null) {
       return this.renderEmptyState()
@@ -174,23 +247,43 @@ export class FavoritesSidebar extends React.Component<
         })
       )
 
+    const labelledBy = this.props.favoriteGroups.length >= 2
+      ? favoritesTabId(effectiveGroupId)
+      : undefined
+
     if (members.length === 0) {
       return (
-        <p className="favorites-sidebar-empty">
+        <p
+          id={favoritesPanelId}
+          role="tabpanel"
+          aria-labelledby={labelledBy}
+          className="favorites-sidebar-empty"
+        >
           No repositories pinned to this group yet.
         </p>
       )
     }
 
-    return this.renderList(members)
+    return this.renderList(members, effectiveGroupId)
   }
 
-  private renderList(repositories: ReadonlyArray<Repository>) {
+  private renderList(
+    repositories: ReadonlyArray<Repository>,
+    effectiveGroupId: number
+  ) {
     const selectedId = this.props.selectedRepository?.id ?? null
     const stateLookup = this.props.localRepositoryStateLookup
+    const labelledBy = this.props.favoriteGroups.length >= 2
+      ? favoritesTabId(effectiveGroupId)
+      : undefined
 
     return (
-      <ul className="favorites-sidebar-list">
+      <ul
+        id={favoritesPanelId}
+        role="tabpanel"
+        aria-labelledby={labelledBy}
+        className="favorites-sidebar-list"
+      >
         {repositories.map(repo => {
           const localState = stateLookup.get(repo.id)
           return (

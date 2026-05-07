@@ -77,6 +77,12 @@ export interface IDatabaseRepository {
 export interface IDatabaseFavoriteGroup {
   readonly id?: number
   readonly name: string
+  /**
+   * Lower-cased derivation of `name` indexed with a uniqueness constraint.
+   * Lets the DB enforce the same case-insensitive policy as the create/rename
+   * dialog without forcing the display name to lose its original casing.
+   */
+  readonly nameKey?: string
   readonly sortOrder: number
 }
 
@@ -157,6 +163,48 @@ export class RepositoriesDatabase extends BaseDatabase {
       repositories: '++id, &path, favoriteGroupId',
       favoriteGroups: '++id, &name, sortOrder',
     })
+    this.conditionalVersion(
+      11,
+      { favoriteGroups: '++id, name, &nameKey, sortOrder' },
+      createFavoriteGroupNameKey
+    )
+  }
+}
+
+/** `name.toLowerCase()` is the case-insensitive identity for a group name. */
+export function getFavoriteGroupNameKey(name: string): string {
+  return name.trim().toLowerCase()
+}
+
+/**
+ * Backfill `nameKey` for groups added at v10 (where the unique index lived on
+ * `name`). Mirrors createOwnerKey: keep the first row per case-insensitive
+ * key, drop later duplicates so the new `&nameKey` index doesn't reject the
+ * upgrade.
+ */
+async function createFavoriteGroupNameKey(tx: Transaction) {
+  const table = tx.table<IDatabaseFavoriteGroup, number>('favoriteGroups')
+  const all = await table.toArray()
+
+  const seen = new Map<string, IDatabaseFavoriteGroup>()
+  const toDelete = new Array<number>()
+
+  for (const group of all) {
+    assertNonNullable(group.id, 'Missing favorite group id')
+    const key = getFavoriteGroupNameKey(group.name)
+    if (seen.has(key)) {
+      log.warn(
+        `createFavoriteGroupNameKey: dropping duplicate group ${group.id} (${group.name})`
+      )
+      toDelete.push(group.id)
+    } else {
+      seen.set(key, { ...group, nameKey: key })
+    }
+  }
+
+  await table.bulkPut([...seen.values()])
+  if (toDelete.length > 0) {
+    await table.bulkDelete(toDelete)
   }
 }
 

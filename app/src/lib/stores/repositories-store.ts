@@ -4,6 +4,7 @@ import {
   IDatabaseGitHubRepository,
   IDatabaseProtectedBranch,
   IDatabaseRepository,
+  getFavoriteGroupNameKey,
   getOwnerKey,
 } from '../databases/repositories-database'
 import { FavoriteGroup } from '../../models/favorite-group'
@@ -26,6 +27,35 @@ import {
   GitHubAccountType,
 } from '../api'
 import { TypedBaseStore } from './base-store'
+
+/**
+ * Hard cap on favorite groups (sidebar tabs). Defined here so it can be
+ * enforced inside the same Dexie transaction that performs the insert,
+ * which is the only place that's safe under multi-window racing. UI and
+ * AppStore re-export / consult this value for pre-checks.
+ */
+export const MaxFavoriteTabs = 5
+
+export class FavoriteGroupCapError extends Error {
+  public constructor() {
+    super(`You can have at most ${MaxFavoriteTabs} favorites groups.`)
+    this.name = 'FavoriteGroupCapError'
+  }
+}
+
+export class FavoriteGroupNameTakenError extends Error {
+  public constructor(name: string) {
+    super(`A favorites group named "${name}" already exists.`)
+    this.name = 'FavoriteGroupNameTakenError'
+  }
+}
+
+export class UnknownFavoriteGroupError extends Error {
+  public constructor(id: number) {
+    super(`Unknown favorites group ${id}`)
+    this.name = 'UnknownFavoriteGroupError'
+  }
+}
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
@@ -300,7 +330,20 @@ export class RepositoriesStore extends TypedBaseStore<
     repository: Repository,
     favoriteGroupId: number | null
   ): Promise<Repository> {
-    await this.db.repositories.update(repository.id, { favoriteGroupId })
+    await this.db.transaction(
+      'rw',
+      this.db.repositories,
+      this.db.favoriteGroups,
+      async () => {
+        if (favoriteGroupId !== null) {
+          const group = await this.db.favoriteGroups.get(favoriteGroupId)
+          if (group === undefined) {
+            throw new UnknownFavoriteGroupError(favoriteGroupId)
+          }
+        }
+        await this.db.repositories.update(repository.id, { favoriteGroupId })
+      }
+    )
 
     this.emitUpdatedRepositories()
 
@@ -325,22 +368,34 @@ export class RepositoriesStore extends TypedBaseStore<
   /**
    * Add a new favorite group with the given name. Returns the created group.
    * The new group is appended to the end (highest sortOrder + 1).
+   *
+   * Atomic against the cap and case-insensitive name-uniqueness: both checks
+   * run inside the same transaction as the insert so concurrent windows
+   * can't bypass them.
    */
   public async addFavoriteGroup(name: string): Promise<FavoriteGroup> {
     const trimmed = name.trim()
     if (trimmed.length === 0) {
       throw new Error('Favorite group name cannot be empty')
     }
+    const nameKey = getFavoriteGroupNameKey(trimmed)
 
     const result = await this.db.transaction(
       'rw',
       this.db.favoriteGroups,
       async () => {
         const existing = await this.db.favoriteGroups.toArray()
+        if (existing.length >= MaxFavoriteTabs) {
+          throw new FavoriteGroupCapError()
+        }
+        if (existing.some(g => g.nameKey === nameKey)) {
+          throw new FavoriteGroupNameTakenError(trimmed)
+        }
         const sortOrder =
           existing.reduce((max, g) => Math.max(max, g.sortOrder), -1) + 1
         const id = await this.db.favoriteGroups.add({
           name: trimmed,
+          nameKey,
           sortOrder,
         })
         return { id, sortOrder }
@@ -357,7 +412,23 @@ export class RepositoriesStore extends TypedBaseStore<
     if (trimmed.length === 0) {
       throw new Error('Favorite group name cannot be empty')
     }
-    await this.db.favoriteGroups.update(id, { name: trimmed })
+    const nameKey = getFavoriteGroupNameKey(trimmed)
+
+    await this.db.transaction(
+      'rw',
+      this.db.favoriteGroups,
+      async () => {
+        const existing = await this.db.favoriteGroups.toArray()
+        const target = existing.find(g => g.id === id)
+        if (target === undefined) {
+          throw new UnknownFavoriteGroupError(id)
+        }
+        if (existing.some(g => g.id !== id && g.nameKey === nameKey)) {
+          throw new FavoriteGroupNameTakenError(trimmed)
+        }
+        await this.db.favoriteGroups.update(id, { name: trimmed, nameKey })
+      }
+    )
     this.emitUpdatedRepositories()
   }
 

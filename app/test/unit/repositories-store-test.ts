@@ -1,6 +1,12 @@
 import { describe, it, beforeEach } from 'node:test'
 import assert from 'node:assert'
-import { RepositoriesStore } from '../../src/lib/stores/repositories-store'
+import {
+  FavoriteGroupCapError,
+  FavoriteGroupNameTakenError,
+  MaxFavoriteTabs,
+  RepositoriesStore,
+  UnknownFavoriteGroupError,
+} from '../../src/lib/stores/repositories-store'
 import { TestRepositoriesDatabase } from '../helpers/databases'
 import { IAPIFullRepository, getDotComAPIEndpoint } from '../../src/lib/api'
 import { assertIsRepositoryWithGitHubRepository } from '../../src/models/repository'
@@ -184,6 +190,54 @@ describe('RepositoriesStore', () => {
       assert.equal(moved.favoriteGroupId, personal.id)
       const repos = await repositoriesStore.getAll()
       assert.equal(repos[0].favoriteGroupId, personal.id)
+    })
+
+    it('rejects creating a group beyond the cap', async () => {
+      for (let i = 0; i < MaxFavoriteTabs; i++) {
+        await repositoriesStore.addFavoriteGroup(`G${i}`)
+      }
+      await assert.rejects(
+        repositoriesStore.addFavoriteGroup('one too many'),
+        FavoriteGroupCapError
+      )
+      const groups = await repositoriesStore.getAllFavoriteGroups()
+      assert.equal(groups.length, MaxFavoriteTabs)
+    })
+
+    it('rejects creating a group whose name only differs in case', async () => {
+      await repositoriesStore.addFavoriteGroup('Work')
+      await assert.rejects(
+        repositoriesStore.addFavoriteGroup('WORK'),
+        FavoriteGroupNameTakenError
+      )
+      const groups = await repositoriesStore.getAllFavoriteGroups()
+      assert.equal(groups.length, 1)
+    })
+
+    it('rejects renaming a group onto another existing case-equivalent name', async () => {
+      await repositoriesStore.addFavoriteGroup('Work')
+      const personal = await repositoriesStore.addFavoriteGroup('Personal')
+      await assert.rejects(
+        repositoriesStore.renameFavoriteGroup(personal.id, 'work'),
+        FavoriteGroupNameTakenError
+      )
+    })
+
+    it('allows renaming a group to a different casing of its own name', async () => {
+      const work = await repositoriesStore.addFavoriteGroup('Work')
+      await repositoriesStore.renameFavoriteGroup(work.id, 'WORK')
+      const groups = await repositoriesStore.getAllFavoriteGroups()
+      assert.equal(groups[0].name, 'WORK')
+    })
+
+    it('rejects assigning a repository to a non-existent group', async () => {
+      const repo = await repositoriesStore.addRepository('/path/a')
+      await assert.rejects(
+        repositoriesStore.setRepositoryFavoriteGroup(repo, 9999),
+        UnknownFavoriteGroupError
+      )
+      const repos = await repositoriesStore.getAll()
+      assert.equal(repos[0].favoriteGroupId, null)
     })
   })
 })

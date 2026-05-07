@@ -36,6 +36,19 @@ interface IRepositoryListItemProps {
   readonly onManageFavorite: (repository: Repository) => void
 }
 
+function aheadBehindEqual(
+  a: IAheadBehind | null,
+  b: IAheadBehind | null
+): boolean {
+  if (a === b) {
+    return true
+  }
+  if (a === null || b === null) {
+    return false
+  }
+  return a.ahead === b.ahead && a.behind === b.behind
+}
+
 /** A repository item. */
 export class RepositoryListItem extends React.Component<
   IRepositoryListItemProps,
@@ -151,7 +164,9 @@ export class RepositoryListItem extends React.Component<
         nextProps.repository.id !== this.props.repository.id ||
         nextProps.repository.favoriteGroupId !==
           this.props.repository.favoriteGroupId ||
-        nextProps.matches !== this.props.matches
+        nextProps.matches !== this.props.matches ||
+        nextProps.changedFilesCount !== this.props.changedFilesCount ||
+        !aheadBehindEqual(nextProps.aheadBehind, this.props.aheadBehind)
       )
     } else {
       return true

@@ -180,4 +180,31 @@ describe('RepositoriesDatabase', () => {
 
     await db.delete()
   })
+
+  it('migrates from version 10 to 11 by backfilling nameKey and pruning case-collisions', async () => {
+    const dbName = 'TestRepositoriesDatabase'
+    let db = new RepositoriesDatabase(dbName, 10)
+    await db.delete()
+    await db.open()
+
+    // Two rows that only differ by case — only one should survive at v11
+    // because the new index is case-insensitive.
+    await db.favoriteGroups.add({ name: 'Work', sortOrder: 0 })
+    await db.favoriteGroups.add({ name: 'WORK', sortOrder: 1 })
+    await db.favoriteGroups.add({ name: 'Personal', sortOrder: 2 })
+
+    db.close()
+
+    db = new RepositoriesDatabase(dbName, 11)
+    await db.open()
+
+    const groups = await db.favoriteGroups.toArray()
+    const names = groups.map(g => g.name).sort()
+    assert.deepEqual(names, ['Personal', 'Work'])
+    for (const g of groups) {
+      assert.equal(g.nameKey, g.name.toLowerCase())
+    }
+
+    await db.delete()
+  })
 })

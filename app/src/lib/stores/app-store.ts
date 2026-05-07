@@ -516,11 +516,11 @@ export const showFavoritesSidebarDefault = false
 export const favoritesActiveGroupIdKey = 'favorites-active-group-id'
 
 /**
- * Hard cap on favorite groups (sidebar tabs). The toolbar segment, context
- * menus and the create-group dialog all consult this; the repositories store
- * enforces it as a final safety net.
+ * Hard cap on favorite groups (sidebar tabs). Source of truth lives next to
+ * the Dexie transaction that enforces it; re-exported here so UI imports
+ * keep working without reaching into the store module directly.
  */
-export const MaxFavoriteTabs = 5
+export { MaxFavoriteTabs } from './repositories-store'
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
@@ -4607,11 +4607,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _addFavoriteGroup(name: string): Promise<FavoriteGroup> {
-    if (this.favoriteGroups.length >= MaxFavoriteTabs) {
-      throw new Error(
-        `You can have at most ${MaxFavoriteTabs} favorites groups.`
-      )
-    }
+    // Cap and case-insensitive uniqueness are enforced by the store inside
+    // the same Dexie transaction as the insert — that's the only safe spot
+    // when multiple windows can race.
     const group = await this.repositoriesStore.addFavoriteGroup(name)
     await this.refreshFavoriteGroups()
     // Activate the freshly created group so the sidebar tab follows the
@@ -4630,6 +4628,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _removeFavoriteGroup(id: number): Promise<void> {
     await this.repositoriesStore.removeFavoriteGroup(id)
+    // If the deleted group was the active one, clear the persisted pointer
+    // so `resolveActiveFavoritesGroupId` doesn't keep papering over a stale
+    // localStorage value on every render.
+    if (this.favoritesActiveGroupId === id) {
+      this._setFavoritesActiveGroupId(null)
+    }
     await this.refreshFavoriteGroups()
   }
 
