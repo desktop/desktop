@@ -4595,7 +4595,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       favoriteGroupId
     )
-    await this.refreshFavoriteGroups()
+    // The set of favorite groups doesn't change when a repo moves between
+    // them, so don't refreshFavoriteGroups here — the store's own
+    // `emitUpdatedRepositories` (queued by the call above) is what carries
+    // the repo's new favoriteGroupId into the next render.
 
     if (shouldRevealSidebar && !this.showFavoritesSidebar) {
       this.showFavoritesSidebar = true

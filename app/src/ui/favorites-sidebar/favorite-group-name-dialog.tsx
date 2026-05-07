@@ -30,6 +30,12 @@ type IProps =
 interface IState {
   readonly name: string
   /**
+   * True while the dispatcher call from `onSubmit` is in flight. Disables
+   * the dialog so repeated Enter presses or in-flight name edits can't
+   * trigger duplicate creates.
+   */
+  readonly submitting: boolean
+  /**
    * Set when the underlying dispatcher call rejects (e.g. a race against
    * another window). Cleared on the next keystroke. The case-insensitive
    * precheck on `existingGroups` covers the common duplicate-name path
@@ -43,6 +49,7 @@ export class FavoriteGroupNameDialog extends React.Component<IProps, IState> {
     super(props)
     this.state = {
       name: props.mode === 'rename' ? props.currentName : '',
+      submitting: false,
       submitError: null,
     }
   }
@@ -76,6 +83,8 @@ export class FavoriteGroupNameDialog extends React.Component<IProps, IState> {
         ariaDescribedBy="favorite-group-name-description"
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
+        disabled={this.state.submitting}
+        loading={this.state.submitting}
       >
         {error && <DialogError>{error}</DialogError>}
         <DialogContent>
@@ -137,11 +146,15 @@ export class FavoriteGroupNameDialog extends React.Component<IProps, IState> {
     this.setState({ name, submitError: null })
 
   private onSubmit = async () => {
+    if (this.state.submitting) {
+      return
+    }
     const trimmed = this.state.name.trim()
     if (trimmed.length === 0 || this.isNameTaken(trimmed)) {
       return
     }
 
+    this.setState({ submitting: true, submitError: null })
     try {
       if (this.props.mode === 'rename') {
         await this.props.dispatcher.renameFavoriteGroup(
@@ -159,6 +172,7 @@ export class FavoriteGroupNameDialog extends React.Component<IProps, IState> {
       }
     } catch (e) {
       this.setState({
+        submitting: false,
         submitError:
           e instanceof Error
             ? e.message

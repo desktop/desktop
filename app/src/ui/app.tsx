@@ -279,6 +279,28 @@ export class App extends React.Component<IAppProps, IAppState> {
     return () => this.onPopupDismissed(popupId)
   })
 
+  /**
+   * Count repos in the active favorites group. Cached on
+   * `(repositories, activeGroupId)` so unrelated re-renders skip the reduce.
+   */
+  private getActiveFavoriteGroupCount = memoizeOne(
+    (
+      repositories: ReadonlyArray<Repository | CloningRepository>,
+      activeGroupId: number | null
+    ): number => {
+      if (activeGroupId === null) {
+        return 0
+      }
+      return repositories.reduce(
+        (n, r) =>
+          r instanceof Repository && r.favoriteGroupId === activeGroupId
+            ? n + 1
+            : n,
+        0
+      )
+    }
+  )
+
   public constructor(props: IAppProps) {
     super(props)
 
@@ -3557,16 +3579,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     const activeGroupId = this.state.favoritesActiveGroupId
     const activeGroup =
       this.state.favoriteGroups.find(g => g.id === activeGroupId) ?? null
-    const activeGroupCount =
-      activeGroupId === null
-        ? 0
-        : this.state.repositories.reduce(
-            (n, r) =>
-              r instanceof Repository && r.favoriteGroupId === activeGroupId
-                ? n + 1
-                : n,
-            0
-          )
+    const activeGroupCount = this.getActiveFavoriteGroupCount(
+      this.state.repositories,
+      activeGroupId
+    )
 
     return (
       <Toolbar id="desktop-app-toolbar">

@@ -6,6 +6,7 @@ import { Dispatcher } from '../dispatcher'
 import { PopupType } from '../../models/popup'
 import { FavoriteGroup } from '../../models/favorite-group'
 import { MaxFavoriteTabs } from '../../lib/stores/app-store'
+import { TooltippedContent } from '../lib/tooltipped-content'
 
 interface IFavoritesToolbarSegmentProps {
   readonly dispatcher: Dispatcher
@@ -45,16 +46,17 @@ export class FavoritesToolbarSegment extends React.Component<
           <div className="description">Favorites</div>
           <div className="title">{title}</div>
         </div>
-        <button
-          type="button"
-          className="favorites-toolbar-segment-add"
-          onClick={this.onAddGroup}
-          aria-label={addLabel}
-          title={addLabel}
-          disabled={atLimit}
-        >
-          <Octicon symbol={octicons.plus} />
-        </button>
+        <TooltippedContent tooltip={atLimit ? addLabel : undefined}>
+          <button
+            type="button"
+            className="favorites-toolbar-segment-add"
+            onClick={this.onAddGroup}
+            aria-label={addLabel}
+            disabled={atLimit}
+          >
+            <Octicon symbol={octicons.plus} />
+          </button>
+        </TooltippedContent>
       </div>
     )
   }

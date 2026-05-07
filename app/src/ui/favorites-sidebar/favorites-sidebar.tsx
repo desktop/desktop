@@ -1,5 +1,6 @@
 import * as React from 'react'
 import classNames from 'classnames'
+import memoizeOne from 'memoize-one'
 
 import { ILocalRepositoryState, Repository } from '../../models/repository'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -97,6 +98,26 @@ export class FavoritesSidebar extends React.Component<
   IFavoritesSidebarProps,
   {}
 > {
+  /**
+   * Filter+sort the active group's members. Cached on
+   * `(repositories, effectiveGroupId)` so unrelated re-renders (e.g.
+   * keystrokes in the global filter) skip the work.
+   */
+  private readonly getMembers = memoizeOne(
+    (
+      repositories: ReadonlyArray<Repository>,
+      effectiveGroupId: number
+    ): ReadonlyArray<Repository> =>
+      repositories
+        .filter(r => r.favoriteGroupId === effectiveGroupId)
+        .slice()
+        .sort((a, b) =>
+          (a.alias ?? a.name).localeCompare(b.alias ?? b.name, undefined, {
+            sensitivity: 'base',
+          })
+        )
+  )
+
   public render() {
     const { favoriteGroups } = this.props
     const showTabs = favoriteGroups.length >= 2
@@ -232,20 +253,11 @@ export class FavoritesSidebar extends React.Component<
   }
 
   private renderActiveGroupList(effectiveGroupId: number | null) {
-    const { repositories } = this.props
-
     if (effectiveGroupId === null) {
       return this.renderEmptyState()
     }
 
-    const members = repositories
-      .filter(r => r.favoriteGroupId === effectiveGroupId)
-      .slice()
-      .sort((a, b) =>
-        (a.alias ?? a.name).localeCompare(b.alias ?? b.name, undefined, {
-          sensitivity: 'base',
-        })
-      )
+    const members = this.getMembers(this.props.repositories, effectiveGroupId)
 
     const labelledBy = this.props.favoriteGroups.length >= 2
       ? favoritesTabId(effectiveGroupId)
