@@ -47,8 +47,8 @@ export class ConfirmDeleteFavoriteGroupDialog extends React.Component<IConfirmDe
     )
   }
 
-  private onConfirm = () => {
-    this.props.dispatcher.removeFavoriteGroup(this.props.groupId)
+  private onConfirm = async () => {
+    await this.props.dispatcher.removeFavoriteGroup(this.props.groupId)
     this.props.onDismissed()
   }
 }
