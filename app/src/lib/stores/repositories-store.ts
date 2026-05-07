@@ -27,6 +27,10 @@ import {
   GitHubAccountType,
 } from '../api'
 import { TypedBaseStore } from './base-store'
+import { WorkflowPreferences } from '../../models/workflow-preferences'
+import { clearTagsToPush } from './helpers/tags-to-push-storage'
+import { IMatchedGitHubRepository } from '../repository-matching'
+import { shallowEquals } from '../equality'
 
 /**
  * Hard cap on favorite groups (sidebar tabs). Defined here so it can be
@@ -56,10 +60,6 @@ export class UnknownFavoriteGroupError extends Error {
     this.name = 'UnknownFavoriteGroupError'
   }
 }
-import { WorkflowPreferences } from '../../models/workflow-preferences'
-import { clearTagsToPush } from './helpers/tags-to-push-storage'
-import { IMatchedGitHubRepository } from '../repository-matching'
-import { shallowEquals } from '../equality'
 
 type AddRepositoryOptions = {
   missing?: boolean
@@ -414,21 +414,17 @@ export class RepositoriesStore extends TypedBaseStore<
     }
     const nameKey = getFavoriteGroupNameKey(trimmed)
 
-    await this.db.transaction(
-      'rw',
-      this.db.favoriteGroups,
-      async () => {
-        const existing = await this.db.favoriteGroups.toArray()
-        const target = existing.find(g => g.id === id)
-        if (target === undefined) {
-          throw new UnknownFavoriteGroupError(id)
-        }
-        if (existing.some(g => g.id !== id && g.nameKey === nameKey)) {
-          throw new FavoriteGroupNameTakenError(trimmed)
-        }
-        await this.db.favoriteGroups.update(id, { name: trimmed, nameKey })
+    await this.db.transaction('rw', this.db.favoriteGroups, async () => {
+      const existing = await this.db.favoriteGroups.toArray()
+      const target = existing.find(g => g.id === id)
+      if (target === undefined) {
+        throw new UnknownFavoriteGroupError(id)
       }
-    )
+      if (existing.some(g => g.id !== id && g.nameKey === nameKey)) {
+        throw new FavoriteGroupNameTakenError(trimmed)
+      }
+      await this.db.favoriteGroups.update(id, { name: trimmed, nameKey })
+    })
     this.emitUpdatedRepositories()
   }
 

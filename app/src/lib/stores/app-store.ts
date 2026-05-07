@@ -506,14 +506,13 @@ const commitMessageGenerationButtonClickedKey =
   'commit-message-generation-button-clicked'
 
 export const showChangesFilterKey = 'show-changes-filter'
-
-const selectedCopilotModelsKey = 'selected-copilot-models'
 export const showChangesFilterDefault = true
 
 export const showFavoritesSidebarKey = 'show-favorites-sidebar'
 export const showFavoritesSidebarDefault = false
-
 export const favoritesActiveGroupIdKey = 'favorites-active-group-id'
+
+const selectedCopilotModelsKey = 'selected-copilot-models'
 
 /**
  * Hard cap on favorite groups (sidebar tabs). Source of truth lives next to

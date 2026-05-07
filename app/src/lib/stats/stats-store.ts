@@ -17,6 +17,8 @@ import {
   showChangesFilterKey,
   showDiffCheckMarksDefault,
   showDiffCheckMarksKey,
+  showFavoritesSidebarDefault,
+  showFavoritesSidebarKey,
   underlineLinksDefault,
   underlineLinksKey,
   useCustomEditorKey,
@@ -430,6 +432,9 @@ interface ICalculatedStats {
    **/
   readonly filteringChangesEnabled: boolean
 
+  /** Whether or not the user has the favorites sidebar enabled */
+  readonly favoritesSidebarEnabled: boolean
+
   /** Whether or not the user has the git hooks environment enabled */
   readonly gitHooksEnvEnabled: boolean
 }
@@ -621,6 +626,10 @@ export class StatsStore implements IStatsStore {
       showChangesFilterKey,
       showChangesFilterDefault
     )
+    const favoritesSidebarEnabled = getBoolean(
+      showFavoritesSidebarKey,
+      showFavoritesSidebarDefault
+    )
 
     // isInApplicationsFolder is undefined when not running on Darwin
     const launchedFromApplicationsFolder = __DARWIN__
@@ -650,6 +659,7 @@ export class StatsStore implements IStatsStore {
       diffCheckMarksVisible,
       useExternalCredentialHelper,
       filteringChangesEnabled,
+      favoritesSidebarEnabled,
       gitHooksEnvEnabled: getHooksEnvEnabled(),
     }
   }

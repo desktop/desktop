@@ -128,7 +128,7 @@ export class FavoritesSidebar extends React.Component<
         {showTabs && this.renderTabs(effectiveGroupId)}
         {favoriteGroups.length === 0
           ? this.renderEmptyState()
-          : this.renderActiveGroupList(effectiveGroupId)}
+          : this.renderActiveGroupList(effectiveGroupId, showTabs)}
       </nav>
     )
   }
@@ -174,7 +174,10 @@ export class FavoritesSidebar extends React.Component<
    */
   private resolveEffectiveGroupId(): number | null {
     const { activeGroupId, favoriteGroups } = this.props
-    if (activeGroupId !== null && favoriteGroups.some(g => g.id === activeGroupId)) {
+    if (
+      activeGroupId !== null &&
+      favoriteGroups.some(g => g.id === activeGroupId)
+    ) {
       return activeGroupId
     }
     return favoriteGroups[0]?.id ?? null
@@ -252,50 +255,51 @@ export class FavoritesSidebar extends React.Component<
     )
   }
 
-  private renderActiveGroupList(effectiveGroupId: number | null) {
+  private renderActiveGroupList(
+    effectiveGroupId: number | null,
+    showTabs: boolean
+  ) {
     if (effectiveGroupId === null) {
       return this.renderEmptyState()
     }
 
     const members = this.getMembers(this.props.repositories, effectiveGroupId)
-
-    const labelledBy = this.props.favoriteGroups.length >= 2
-      ? favoritesTabId(effectiveGroupId)
-      : undefined
+    const panelProps = showTabs
+      ? {
+          id: favoritesPanelId,
+          role: 'tabpanel',
+          'aria-labelledby': favoritesTabId(effectiveGroupId),
+        }
+      : {}
 
     if (members.length === 0) {
       return (
-        <p
-          id={favoritesPanelId}
-          role="tabpanel"
-          aria-labelledby={labelledBy}
-          className="favorites-sidebar-empty"
-        >
+        <p {...panelProps} className="favorites-sidebar-empty">
           No repositories pinned to this group yet.
         </p>
       )
     }
 
-    return this.renderList(members, effectiveGroupId)
+    return this.renderList(members, effectiveGroupId, showTabs)
   }
 
   private renderList(
     repositories: ReadonlyArray<Repository>,
-    effectiveGroupId: number
+    effectiveGroupId: number,
+    showTabs: boolean
   ) {
     const selectedId = this.props.selectedRepository?.id ?? null
     const stateLookup = this.props.localRepositoryStateLookup
-    const labelledBy = this.props.favoriteGroups.length >= 2
-      ? favoritesTabId(effectiveGroupId)
-      : undefined
+    const panelProps = showTabs
+      ? {
+          id: favoritesPanelId,
+          role: 'tabpanel',
+          'aria-labelledby': favoritesTabId(effectiveGroupId),
+        }
+      : {}
 
     return (
-      <ul
-        id={favoritesPanelId}
-        role="tabpanel"
-        aria-labelledby={labelledBy}
-        className="favorites-sidebar-list"
-      >
+      <ul {...panelProps} className="favorites-sidebar-list">
         {repositories.map(repo => {
           const localState = stateLookup.get(repo.id)
           return (

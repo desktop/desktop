@@ -68,6 +68,7 @@ import { CloningRepository } from '../../models/cloning-repository'
 import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
 import { ICommitMessage } from '../../models/commit-message'
 import { DiffSelection, ImageDiffType, ITextDiff } from '../../models/diff'
+import { FavoriteGroup } from '../../models/favorite-group'
 import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
@@ -875,7 +876,7 @@ export class Dispatcher {
   }
 
   /** Create a new favorites group. Returns the created group. */
-  public addFavoriteGroup(name: string) {
+  public addFavoriteGroup(name: string): Promise<FavoriteGroup> {
     return this.appStore._addFavoriteGroup(name)
   }
 

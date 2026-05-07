@@ -1,11 +1,6 @@
 import * as React from 'react'
 
-import {
-  Dialog,
-  DialogContent,
-  DialogError,
-  DialogFooter,
-} from '../dialog'
+import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Ref } from '../lib/ref'
 import { Dispatcher } from '../dispatcher'

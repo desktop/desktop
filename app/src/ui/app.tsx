@@ -558,7 +558,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'toggle-changes-filter':
         return this.toggleChangesFilterVisibility()
       case 'toggle-favorites-sidebar':
-        return this.props.dispatcher.toggleFavoritesSidebarVisibility()
+        return this.toggleFavoritesSidebarVisibility()
       default:
         if (isTestMenuEvent(name)) {
           return showTestUI(
@@ -577,6 +577,14 @@ export class App extends React.Component<IAppProps, IAppState> {
    */
   private toggleChangesFilterVisibility() {
     this.props.dispatcher.toggleChangesFilterVisibility()
+  }
+
+  /**
+   * This method dispatches an action to update the favorites sidebar
+   * visibility.
+   */
+  private toggleFavoritesSidebarVisibility() {
+    this.props.dispatcher.toggleFavoritesSidebarVisibility()
   }
 
   /**
