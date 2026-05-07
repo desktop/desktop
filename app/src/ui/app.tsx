@@ -2164,6 +2164,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <FavoriteGroupNameDialog
             mode="create"
             dispatcher={this.props.dispatcher}
+            existingGroups={this.state.favoriteGroups}
             repository={popup.repository}
             onDismissed={onPopupDismissedFn}
           />
@@ -2174,6 +2175,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <FavoriteGroupNameDialog
             mode="rename"
             dispatcher={this.props.dispatcher}
+            existingGroups={this.state.favoriteGroups}
             groupId={popup.groupId}
             currentName={popup.currentName}
             onDismissed={onPopupDismissedFn}
@@ -3573,6 +3575,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             activeGroup={activeGroup}
             activeGroupCount={activeGroupCount}
+            groupCount={this.state.favoriteGroups.length}
           />
         )}
         <div className="sidebar-section" style={{ width }}>

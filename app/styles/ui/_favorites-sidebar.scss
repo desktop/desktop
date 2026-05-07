@@ -49,10 +49,15 @@
     align-items: center;
     justify-content: center;
 
-    &:hover,
-    &:focus-visible {
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
       color: var(--toolbar-button-color);
       background: var(--toolbar-button-hover-background-color);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
   }
 }

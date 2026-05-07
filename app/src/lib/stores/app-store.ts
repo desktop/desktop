@@ -515,6 +515,13 @@ export const showFavoritesSidebarDefault = false
 
 export const favoritesActiveGroupIdKey = 'favorites-active-group-id'
 
+/**
+ * Hard cap on favorite groups (sidebar tabs). The toolbar segment, context
+ * menus and the create-group dialog all consult this; the repositories store
+ * enforces it as a final safety net.
+ */
+export const MaxFavoriteTabs = 5
+
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
@@ -4600,8 +4607,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _addFavoriteGroup(name: string): Promise<FavoriteGroup> {
+    if (this.favoriteGroups.length >= MaxFavoriteTabs) {
+      throw new Error(
+        `You can have at most ${MaxFavoriteTabs} favorites groups.`
+      )
+    }
     const group = await this.repositoriesStore.addFavoriteGroup(name)
     await this.refreshFavoriteGroups()
+    // Activate the freshly created group so the sidebar tab follows the
+    // user's intent — especially in the "create + assign" flow where a repo
+    // is being moved into the new group.
+    this._setFavoritesActiveGroupId(group.id)
     return group
   }
 

@@ -8,6 +8,7 @@ import {
   DefaultEditorLabel,
   DefaultShellLabel,
 } from '../lib/context-menu'
+import { MaxFavoriteTabs } from '../../lib/stores/app-store'
 
 interface IRepositoryListItemContextMenuConfig {
   repository: Repositoryish
@@ -149,6 +150,12 @@ export function buildFavoriteAssignmentItems(
           action: () => config.onSetRepositoryFavoriteGroup(repository, g.id),
         }
   )
+
+  // Once the cap is reached, omit "New Group…" entirely — the user already
+  // has groups to pick from, so a disabled item would be noise.
+  if (favoriteGroups.length >= MaxFavoriteTabs) {
+    return items
+  }
 
   if (favoriteGroups.length > 0) {
     items.push({ type: 'separator' })

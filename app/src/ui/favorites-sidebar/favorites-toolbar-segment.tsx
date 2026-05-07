@@ -5,6 +5,7 @@ import * as octicons from '../octicons/octicons.generated'
 import { Dispatcher } from '../dispatcher'
 import { PopupType } from '../../models/popup'
 import { FavoriteGroup } from '../../models/favorite-group'
+import { MaxFavoriteTabs } from '../../lib/stores/app-store'
 
 interface IFavoritesToolbarSegmentProps {
   readonly dispatcher: Dispatcher
@@ -12,6 +13,8 @@ interface IFavoritesToolbarSegmentProps {
   readonly activeGroup: FavoriteGroup | null
   /** Number of repositories in the active group. */
   readonly activeGroupCount: number
+  /** Total number of favorites groups (used to gate the + button). */
+  readonly groupCount: number
 }
 
 /**
@@ -24,11 +27,16 @@ export class FavoritesToolbarSegment extends React.Component<
   {}
 > {
   public render() {
-    const { activeGroup, activeGroupCount } = this.props
+    const { activeGroup, activeGroupCount, groupCount } = this.props
     const title =
       activeGroup === null
         ? 'No groups'
         : `${activeGroup.name} (${activeGroupCount})`
+
+    const atLimit = groupCount >= MaxFavoriteTabs
+    const addLabel = atLimit
+      ? `Maximum ${MaxFavoriteTabs} favorites groups reached`
+      : 'New favorites group'
 
     return (
       <div className="favorites-toolbar-segment">
@@ -41,7 +49,9 @@ export class FavoritesToolbarSegment extends React.Component<
           type="button"
           className="favorites-toolbar-segment-add"
           onClick={this.onAddGroup}
-          aria-label="New favorites group"
+          aria-label={addLabel}
+          title={addLabel}
+          disabled={atLimit}
         >
           <Octicon symbol={octicons.plus} />
         </button>
