@@ -18,7 +18,7 @@
   @include win32 {
     height: var(--win32-title-bar-height);
     background: var(--win32-title-bar-background-color);
-    border-bottom: 1px solid #000;
+    border-bottom: 1px solid var(--toolbar-border-color);
 
     .app-icon {
       color: var(--toolbar-button-secondary-color);
@@ -71,7 +71,7 @@
       box-shadow: none;
       border-radius: 0;
 
-      color: #a0a0a0;
+      color: var(--toolbar-text-secondary-color);
       background-color: transparent;
       transition: background-color 0.25s ease;
 
@@ -84,15 +84,15 @@
       }
 
       &:hover {
-        background-color: #888;
-        color: #fff;
+        background-color: var(--toolbar-button-hover-background-color);
+        color: var(--toolbar-button-hover-color);
 
         // Doing :hover:active as oposed to just :active is
         // a conscious choice to match how the real Windows
         // controls behave when someone hovers, clicks and then
         // moves away from the hitbox.
         &:active {
-          background-color: #666;
+          background-color: var(--toolbar-button-focus-background-color);
 
           // Immediate feedback when clicking
           transition: none;

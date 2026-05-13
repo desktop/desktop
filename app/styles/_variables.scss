@@ -228,7 +228,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
    * If changed, update titleBarHeight in 'app/src/ui/dialog/dialog.tsx'
   */
   --win32-title-bar-height: 28px;
-  --win32-title-bar-background-color: #{$gray-900};
+  --win32-title-bar-background-color: #{$gray-100};
 
   /**
    * The height of the title bar area on darwin platforms
@@ -257,29 +257,29 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   --toolbar-height: 50px;
 
-  --toolbar-background-color: #{$gray-900};
-  --toolbar-border-color: #{$gray-900};
-  --toolbar-text-color: #{$white};
-  --toolbar-text-secondary-color: #{$gray-300};
+  --toolbar-background-color: #{$gray-100};
+  --toolbar-border-color: var(--box-border-color);
+  --toolbar-text-color: var(--text-color);
+  --toolbar-text-secondary-color: #{$gray-600};
 
   --toolbar-button-color: var(--toolbar-text-color);
   --toolbar-button-background-color: transparent;
-  --toolbar-button-border-color: black;
+  --toolbar-button-border-color: var(--box-border-color);
   --toolbar-button-secondary-color: var(--toolbar-text-secondary-color);
 
-  --toolbar-button-hover-color: #{$white};
-  --toolbar-button-hover-background-color: #{$gray-800};
+  --toolbar-button-hover-color: var(--toolbar-text-color);
+  --toolbar-button-hover-background-color: #{$gray-300};
   --toolbar-button-hover-border-color: var(--toolbar-button-border-color);
 
-  --toolbar-button-focus-background-color: #{$gray-800};
+  --toolbar-button-focus-background-color: #{$gray-300};
 
   --toolbar-button-active-color: var(--text-color);
   --toolbar-button-active-background-color: var(--background-color);
   --toolbar-button-active-border-color: var(--background-color);
 
-  --toolbar-button-progress-color: #{$gray-800};
-  --toolbar-button-focus-progress-color: #{$gray-700};
-  --toolbar-button-hover-progress-color: #{$gray-700};
+  --toolbar-button-progress-color: #{$gray-200};
+  --toolbar-button-focus-progress-color: #{$gray-300};
+  --toolbar-button-hover-progress-color: #{$gray-300};
   --toolbar-dropdown-open-progress-color: #{$gray-200};
   --toolbar-dropdown-text-warning-color: #{$orange-800};
   --toolbar-dropdown-text-hover-color: var(--box-hover-text-color);

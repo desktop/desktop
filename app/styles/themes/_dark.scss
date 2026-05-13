@@ -190,6 +190,8 @@ body.theme-dark {
   --shadow-color: #{rgba(black, 0.5)};
   --base-box-shadow: 0 2px 7px var(--shadow-color);
 
+  --win32-title-bar-background-color: #{darken($gray-900, 3%)};
+
   --toolbar-background-color: #{darken($gray-900, 3%)};
   --toolbar-border-color: var(--box-border-color);
   --toolbar-text-color: var(--text-color);
