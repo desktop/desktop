@@ -209,18 +209,19 @@ export function computeGraphLayout(
     // Route parents into lanes.
     const parents = commit.parentSHAs
     if (parents.length > 0) {
+      // Always continue the commit's lane down to its first parent. If
+      // another lane already carries that parent the two lanes will
+      // converge when we reach it, but in the meantime the side branch
+      // stays visually anchored to the commit it started from. Promote
+      // any pre-existing entry for the same SHA to first-parent so it
+      // wins commitLane preference at the convergence row.
       const firstParent = parents[0]
       const existingForFirst = indexOfSha(firstParent)
-      if (existingForFirst === -1) {
-        activeLanes[commitLane] = {
-          sha: firstParent,
-          isFirstParent: true,
-        }
-      } else {
-        // Another lane is already carrying the first parent. Upgrade it to
-        // first-parent status so it wins commitLane preference when we
-        // reach the parent, and let this commit's lane die (it merges into
-        // that lane via the bottom-half edge emitted below).
+      activeLanes[commitLane] = {
+        sha: firstParent,
+        isFirstParent: true,
+      }
+      if (existingForFirst !== -1 && existingForFirst !== commitLane) {
         const existing = activeLanes[existingForFirst]
         if (existing !== null && !existing.isFirstParent) {
           activeLanes[existingForFirst] = {
@@ -248,14 +249,21 @@ export function computeGraphLayout(
 
     // Pass-through lanes: existed before AND after this row, but aren't
     // this commit's lane (which is handled by top/bottom-half edges below).
+    // Prefer staying in the same column when the same lane still carries
+    // the same SHA — otherwise multi-lane duplicates of one SHA would all
+    // collapse into bogus diagonals into the leftmost match.
     for (let i = 0; i < topLanes.length; i++) {
       const top = topLanes[i]
       if (top === null || top.sha === commit.sha) {
         continue
       }
-      const newLane = bottomLanes.findIndex(
-        b => b !== null && b.sha === top.sha
-      )
+      let newLane: number
+      const sameLane = bottomLanes[i]
+      if (sameLane !== null && sameLane.sha === top.sha) {
+        newLane = i
+      } else {
+        newLane = bottomLanes.findIndex(b => b !== null && b.sha === top.sha)
+      }
       if (newLane !== -1) {
         edges.push({
           fromLane: i,
@@ -277,11 +285,22 @@ export function computeGraphLayout(
       })
     }
 
-    // Bottom-half edges: from the dot down to each parent's lane.
-    for (const parent of parents) {
-      const parentLane = bottomLanes.findIndex(
-        b => b !== null && b.sha === parent
-      )
+    // Bottom-half edges: from the dot down to each parent's lane. The
+    // first parent is always placed on commitLane (so its line continues
+    // straight down through the dot); other parents go wherever their
+    // lane was allocated.
+    for (let p = 0; p < parents.length; p++) {
+      const parent = parents[p]
+      let parentLane: number
+      if (
+        p === 0 &&
+        bottomLanes[commitLane] !== null &&
+        bottomLanes[commitLane]!.sha === parent
+      ) {
+        parentLane = commitLane
+      } else {
+        parentLane = bottomLanes.findIndex(b => b !== null && b.sha === parent)
+      }
       if (parentLane === -1) {
         continue
       }
