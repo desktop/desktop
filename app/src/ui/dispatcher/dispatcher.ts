@@ -310,6 +310,22 @@ export class Dispatcher {
     return this.appStore._changeRepositorySection(repository, section)
   }
 
+  /** Reload the commits powering the branch graph view. */
+  public loadGraphCommits(repository: Repository): Promise<void> {
+    return this.appStore._loadGraphCommits(repository)
+  }
+
+  /**
+   * Switch the branch the graph view is showing. Pass `null` to follow HEAD
+   * (the currently checked-out branch).
+   */
+  public setGraphBranch(
+    repository: Repository,
+    branchName: string | null
+  ): Promise<void> {
+    return this.appStore._setGraphBranch(repository, branchName)
+  }
+
   /**
    * Changes the selection in the changes view to the working directory and
    * optionally selects one or more files from the working directory.

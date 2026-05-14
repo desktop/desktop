@@ -8,6 +8,7 @@ import { NoChanges } from './changes/no-changes'
 import { MultipleSelection } from './changes/multiple-selection'
 import { FilesChangedBadge } from './changes/files-changed-badge'
 import { SelectedCommits, CompareSidebar } from './history'
+import { GraphSidebar } from './graph/graph-sidebar'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import {
@@ -157,6 +158,7 @@ interface IRepositoryViewState {
 const enum Tab {
   Changes = 0,
   History = 1,
+  Graph = 2,
 }
 
 export class RepositoryView extends React.Component<
@@ -221,10 +223,13 @@ export class RepositoryView extends React.Component<
   }
 
   private renderTabs(): JSX.Element {
+    const { selectedSection } = this.props.state
     const selectedTab =
-      this.props.state.selectedSection === RepositorySectionTab.Changes
+      selectedSection === RepositorySectionTab.Changes
         ? Tab.Changes
-        : Tab.History
+        : selectedSection === RepositorySectionTab.History
+        ? Tab.History
+        : Tab.Graph
 
     return (
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
@@ -235,6 +240,10 @@ export class RepositoryView extends React.Component<
 
         <div className="with-indicator" id="history-tab">
           <span>History</span>
+        </div>
+
+        <div className="with-indicator" id="graph-tab">
+          <span>Graph</span>
         </div>
       </TabBar>
     )
@@ -398,9 +407,36 @@ export class RepositoryView extends React.Component<
       return this.renderChangesSidebar()
     } else if (selectedSection === RepositorySectionTab.History) {
       return this.renderCompareSidebar()
+    } else if (selectedSection === RepositorySectionTab.Graph) {
+      return this.renderGraphSidebar()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
+  }
+
+  private renderGraphSidebar(): JSX.Element {
+    const { commitSelection, branchesState } = this.props.state
+    const selectedSHA =
+      commitSelection.shas.length > 0 ? commitSelection.shas[0] : null
+
+    const currentBranch =
+      branchesState.tip.kind === TipState.Valid
+        ? branchesState.tip.branch
+        : null
+
+    return (
+      <GraphSidebar
+        repository={this.props.repository}
+        dispatcher={this.props.dispatcher}
+        graphState={this.props.state.graphState}
+        selectedSHA={selectedSHA}
+        emoji={this.props.emoji}
+        currentBranch={currentBranch}
+        defaultBranch={branchesState.defaultBranch}
+        allBranches={branchesState.allBranches}
+        recentBranches={branchesState.recentBranches}
+      />
+    )
   }
 
   private handleSidebarWidthReset = () => {
@@ -644,6 +680,8 @@ export class RepositoryView extends React.Component<
       return this.renderContentForChanges()
     } else if (selectedSection === RepositorySectionTab.History) {
       return this.renderContentForHistory()
+    } else if (selectedSection === RepositorySectionTab.Graph) {
+      return this.renderContentForHistory()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
@@ -722,16 +760,24 @@ export class RepositoryView extends React.Component<
   }
 
   private onTabClicked = (tab: Tab) => {
-    const section =
-      tab === Tab.History
-        ? RepositorySectionTab.History
-        : RepositorySectionTab.Changes
+    let section: RepositorySectionTab
+    switch (tab) {
+      case Tab.Changes:
+        section = RepositorySectionTab.Changes
+        break
+      case Tab.History:
+        section = RepositorySectionTab.History
+        break
+      case Tab.Graph:
+        section = RepositorySectionTab.Graph
+        break
+    }
 
     this.props.dispatcher.changeRepositorySection(
       this.props.repository,
       section
     )
-    if (!!section) {
+    if (section !== RepositorySectionTab.Changes) {
       this.props.dispatcher.updateCompareForm(this.props.repository, {
         showBranchList: false,
       })

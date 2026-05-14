@@ -454,6 +454,28 @@ export type Foldout =
 export enum RepositorySectionTab {
   Changes,
   History,
+  Graph,
+}
+
+/**
+ * State backing the branch graph view (SourceTree-style commit graph
+ * across all local and remote branches).
+ */
+export interface IGraphState {
+  /** The commits loaded for the graph, in topological order (newest first). */
+  readonly commits: ReadonlyArray<Commit>
+
+  /** Are we currently loading the commit list? */
+  readonly isLoading: boolean
+
+  /** The most recent error encountered while loading, if any. */
+  readonly errorMessage: string | null
+
+  /**
+   * Branch whose history is shown in the graph. `null` means HEAD (the
+   * currently-checked-out branch).
+   */
+  readonly selectedBranchName: string | null
 }
 
 /**
@@ -529,6 +551,7 @@ export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
   readonly changesState: IChangesState
   readonly compareState: ICompareState
+  readonly graphState: IGraphState
   readonly selectedSection: RepositorySectionTab
 
   /**

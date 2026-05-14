@@ -12,6 +12,7 @@ import {
   IBranchesState,
   IChangesState,
   ICompareState,
+  IGraphState,
   IRepositoryState,
   RepositorySectionTab,
   ICommitSelection,
@@ -79,6 +80,18 @@ export class RepositoryStateCache {
       const newValues = fn(compareState)
 
       return { compareState: merge(compareState, newValues) }
+    })
+  }
+
+  public updateGraphState<K extends keyof IGraphState>(
+    repository: Repository,
+    fn: (state: IGraphState) => Pick<IGraphState, K>
+  ) {
+    this.update(repository, state => {
+      const graphState = state.graphState
+      const newValues = fn(graphState)
+
+      return { graphState: merge(graphState, newValues) }
     })
   }
 
@@ -338,6 +351,12 @@ function getInitialRepositoryState(): IRepositoryState {
       currentPullRequest: null,
       isLoadingPullRequests: false,
       forcePushBranches: new Map<string, string>(),
+    },
+    graphState: {
+      commits: new Array<Commit>(),
+      isLoading: false,
+      errorMessage: null,
+      selectedBranchName: null,
     },
     compareState: {
       formState: {

@@ -1,0 +1,164 @@
+@import '../mixins';
+
+.graph-sidebar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+
+  .list {
+    flex: 1;
+  }
+
+  .filter-list .filter-field-row {
+    margin: 0;
+  }
+
+  .compare-form {
+    background: var(--box-alt-background-color);
+    flex: initial;
+    padding: var(--spacing-half);
+    border-bottom: var(--base-border);
+  }
+}
+
+.graph-empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary-color);
+  padding: var(--spacing-double);
+  font-size: var(--font-size-sm);
+}
+
+.graph-row {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  .graph-lanes {
+    flex-shrink: 0;
+    overflow: visible;
+  }
+
+  .graph-row-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--spacing-half) var(--spacing);
+    gap: 2px;
+  }
+
+  .graph-row-summary {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-half);
+    min-width: 0;
+  }
+
+  .graph-row-message {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    color: var(--text-color);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .graph-row-refs {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .graph-row-ref {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+    white-space: nowrap;
+    background: var(--list-item-badge-background-color);
+    color: var(--list-item-badge-color);
+  }
+
+  .graph-row-ref-tag {
+    background: var(--tag-badge-background-color, #6e7681);
+    color: #fff;
+  }
+
+  .graph-row-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing);
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-xs);
+  }
+
+  .graph-row-author {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 50%;
+  }
+
+  .graph-row-sha {
+    font-family: var(--font-family-monospace);
+  }
+}
+
+// Selected row uses the same selection styling as other lists.
+.list-item.selected .graph-row {
+  background-color: var(--box-selected-background-color);
+
+  .graph-row-message,
+  .graph-row-author,
+  .graph-row-sha {
+    color: var(--box-selected-text-color);
+  }
+}
+
+// Lane palette. Eight distinct colors that cycle for branches/edges.
+$graph-palette: (
+  #58a6ff,
+  // blue
+  #f778ba,
+  // pink
+  #d2a8ff,
+  // purple
+  #7ee787,
+  // green
+  #ffa657,
+  // orange
+  #f0883e,
+  // amber
+  #79c0ff,
+  // light blue
+  #ff7b72 // red
+);
+
+@for $i from 0 through 7 {
+  .graph-color-#{$i} {
+    stroke: nth($graph-palette, $i + 1);
+    fill: nth($graph-palette, $i + 1);
+  }
+}
+
+.graph-edge {
+  fill: none;
+}
+
+.graph-dot {
+  stroke-width: 2;
+}
+
+.graph-toolbar-button.active {
+  background-color: var(--toolbar-button-active-background-color);
+  color: var(--toolbar-button-active-color);
+}

@@ -663,6 +663,29 @@ export class GitStore extends BaseStore {
     return this._localCommitSHAs
   }
 
+  /**
+   * Load commits reachable from the given branch (or HEAD if none) for the
+   * branch graph view. Date-order — still topologically valid (parents follow
+   * children) but breaks ties by committer date so merged-in branches stay
+   * grouped chronologically with their merge commits.
+   */
+  public async loadGraphCommits(
+    branchRef: string | null = null,
+    limit: number = 5000
+  ): Promise<ReadonlyArray<Commit> | null> {
+    const ref = branchRef ?? 'HEAD'
+    const commits = await this.performFailableOperation(() =>
+      getCommits(this.repository, ref, limit, undefined, ['--date-order'])
+    )
+
+    if (!commits) {
+      return null
+    }
+
+    this.storeCommits(commits)
+    return commits
+  }
+
   /** Store the given commits. */
   private storeCommits(commits: ReadonlyArray<Commit>) {
     for (const commit of commits) {

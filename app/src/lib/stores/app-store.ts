@@ -3083,6 +3083,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         includingStatus: true,
         clearPartialState: false,
       })
+    } else if (selectedSection === RepositorySectionTab.Graph) {
+      await this._loadGraphCommits(repository)
     }
 
     if (forceButtonFocus) {
@@ -3728,6 +3730,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         includingStatus: false,
         clearPartialState: false,
       })
+    } else if (section === RepositorySectionTab.Graph) {
+      refreshSectionPromise = this._loadGraphCommits(repository)
     } else {
       return assertNever(section, `Unknown section: ${section}`)
     }
@@ -3964,6 +3968,49 @@ export class AppStore extends TypedBaseStore<IAppState> {
    *
    * This will be called automatically when appropriate.
    */
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _loadGraphCommits(repository: Repository): Promise<void> {
+    this.repositoryStateCache.updateGraphState(repository, () => ({
+      isLoading: true,
+      errorMessage: null,
+    }))
+    this.emitUpdate()
+
+    const gitStore = this.gitStoreCache.get(repository)
+    const state = this.repositoryStateCache.get(repository)
+    const branchRef = state.graphState.selectedBranchName
+
+    try {
+      const commits = await gitStore.loadGraphCommits(branchRef)
+      this.repositoryStateCache.updateGraphState(repository, () => ({
+        commits: commits ?? [],
+        isLoading: false,
+        errorMessage: commits === null ? 'Failed to load commits' : null,
+      }))
+    } catch (e) {
+      this.repositoryStateCache.updateGraphState(repository, () => ({
+        commits: [],
+        isLoading: false,
+        errorMessage: e instanceof Error ? e.message : String(e),
+      }))
+    }
+
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setGraphBranch(
+    repository: Repository,
+    branchName: string | null
+  ): Promise<void> {
+    this.repositoryStateCache.updateGraphState(repository, () => ({
+      selectedBranchName: branchName,
+    }))
+    this.emitUpdate()
+
+    await this._loadGraphCommits(repository)
+  }
+
   private async refreshHistorySection(repository: Repository): Promise<void> {
     const gitStore = this.gitStoreCache.get(repository)
     const state = this.repositoryStateCache.get(repository)
