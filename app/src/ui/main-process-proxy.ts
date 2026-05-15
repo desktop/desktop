@@ -4,6 +4,7 @@ import * as ipcRenderer from '../lib/ipc-renderer'
 import { stat } from 'fs/promises'
 import { isApplicationBundle } from '../lib/is-application-bundle'
 import { pathExists } from './lib/path-exists'
+import { UNSAFE_openDirectory } from '../main-process/shell'
 
 /**
  * Creates a strongly typed proxy method for sending a duplex IPC message to the
@@ -89,15 +90,57 @@ export const isWindowFocused = invokeProxy('is-window-focused', 0)
 export const focusWindow = sendProxy('focus-window', 0)
 
 const _showItemInFolder = invokeProxy('show-item-in-folder', 1)
+const _openFile = invokeProxy('open-file', 1)
+const _openUrl = invokeProxy('open-url', 1)
 
+/**
+ * Reveal a file or folder in the system file explorer.
+ * This shows the item's parent folder with the item selected.
+ */
 export const showItemInFolder = (path: string) =>
   pathExists(path)
     .then(() => _showItemInFolder(path))
-    .catch(err => log.error(`Unable show item in folder '${path}'`, err))
+    .catch(err => log.error(`Unable to show item in folder '${path}'`, err))
 
-const UNSAFE_openDirectory = sendProxy('unsafe-open-directory', 1)
+/**
+ * Open a URL in the default browser.
+ */
+export async function openUrl(url: string): Promise<boolean> {
+  try {
+    return await _openUrl(url)
+  } catch (err) {
+    log.error(`Unable to open URL '${url}'`, err)
+    return false
+  }
+}
 
-export async function showFolderContents(path: string) {
+/**
+ * Open a file with its default application.
+ */
+export async function openFile(path: string): Promise<boolean> {
+  const exists = await pathExists(path).catch(err => {
+    log.error(`Unable to check if file exists '${path}'`, err)
+    return false
+  })
+
+  if (!exists) {
+    log.error(`File does not exist: '${path}'`)
+    return false
+  }
+
+  try {
+    return await _openFile(path)
+  } catch (err) {
+    log.error(`Unable to open file '${path}'`, err)
+    return false
+  }
+}
+
+/**
+ * Open a folder in the system file explorer.
+ * Handles the complexity of app bundles on macOS.
+ */
+export async function openFolder(path: string): Promise<void> {
   const stats = await stat(path).catch(err => {
     log.error(`Unable to retrieve file information for ${path}`, err)
     return null
@@ -108,42 +151,37 @@ export async function showFolderContents(path: string) {
   }
 
   if (!stats.isDirectory()) {
-    log.error(`Trying to get the folder contents of a non-folder at '${path}'`)
+    log.error(`Cannot open non-folder as folder: '${path}'`)
+    // Fall back to showing the item in its parent folder
     await _showItemInFolder(path)
     return
   }
 
-  // On Windows and Linux we can count on a directory being just a
-  // directory.
-  if (!__DARWIN__) {
-    UNSAFE_openDirectory(path)
-    return
+  // On macOS, check if the directory is an app bundle to prevent accidentally
+  // launching applications when we just want to show the folder contents
+  if (__DARWIN__) {
+    const isBundle = await isApplicationBundle(path).catch(err => {
+      log.error(`Failed to check if path is app bundle '${path}'`, err)
+      // Assume it's a bundle out of caution
+      return true
+    })
+
+    if (isBundle) {
+      log.info(
+        `Preventing direct open of '${path}' as it appears to be an application bundle`
+      )
+      // Show the app bundle in its parent folder instead
+      await _showItemInFolder(path)
+      return
+    }
   }
 
-  // On macOS a directory might also be an app bundle and if it is
-  // and we attempt to open it we're gonna execute that app which
-  // it far from ideal so we'll look up the metadata for the path
-  // and attempt to determine whether it's an app bundle or not.
-  //
-  // If we fail loading the metadata we'll assume it's an app bundle
-  // out of an abundance of caution.
-  const isBundle = await isApplicationBundle(path).catch(err => {
-    log.error(`Failed to load metadata for path '${path}'`, err)
-    return true
-  })
-
-  if (isBundle) {
-    log.info(
-      `Preventing direct open of path '${path}' as it appears to be an application bundle`
-    )
-
-    await _showItemInFolder(path)
-  } else {
-    UNSAFE_openDirectory(path)
-  }
+  // Safe to open the folder directly
+  // Use UNSAFE_openDirectory which includes Windows protection against
+  // accidentally opening executables with the same name as a folder
+  UNSAFE_openDirectory(path)
 }
 
-export const openExternal = invokeProxy('open-external', 1)
 export const moveItemToTrash = invokeProxy('move-to-trash', 1)
 
 /** Tell the main process to obtain the current window state */

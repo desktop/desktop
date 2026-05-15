@@ -82,7 +82,7 @@ export class LinkButton extends React.Component<ILinkButtonProps, {}> {
 
     const uri = this.props.uri
     if (uri) {
-      shell.openExternal(uri)
+      shell.openUrl(uri)
     }
 
     const onClick = this.props.onClick

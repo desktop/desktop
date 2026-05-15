@@ -37,7 +37,7 @@ export class InstallGit extends React.Component<IInstallGitProps, {}> {
 
   private onExternalLink = (e: React.MouseEvent<HTMLButtonElement>) => {
     const url = `https://help.github.com/articles/set-up-git/#setting-up-git`
-    shell.openExternal(url)
+    shell.openUrl(url)
   }
 
   public render() {

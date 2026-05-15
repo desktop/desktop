@@ -299,7 +299,7 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
           onAuthError: reject,
         },
       })
-      shell.openExternal(getOAuthAuthorizationURL(endpoint, csrfToken))
+      shell.openUrl(getOAuthAuthorizationURL(endpoint, csrfToken))
     })
       .then(account => {
         if (!this.state || this.state.kind !== SignInStep.Authentication) {

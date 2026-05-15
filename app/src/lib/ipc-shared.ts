@@ -110,7 +110,8 @@ export type RequestResponseChannels = {
     addSpellCheckMenu: boolean
   ) => Promise<ReadonlyArray<number> | null>
   'is-window-focused': () => Promise<boolean>
-  'open-external': (path: string) => Promise<boolean>
+  'open-url': (url: string) => Promise<boolean>
+  'open-file': (path: string) => Promise<boolean>
   'is-in-application-folder': () => Promise<boolean | null>
   'move-to-applications-folder': () => Promise<void>
   'check-for-updates': (url: string) => Promise<Error | undefined>

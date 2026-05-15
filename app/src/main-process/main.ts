@@ -578,20 +578,32 @@ app.on('ready', () => {
     reportError(error, { ...getExtraErrorContext(), ...extra }, nonFatal)
   })
 
-  ipcMain.handle('open-external', async (_, path: string) => {
-    const pathLowerCase = path.toLowerCase()
-    if (
-      pathLowerCase.startsWith('http://') ||
-      pathLowerCase.startsWith('https://')
-    ) {
-      log.info(`opening in browser: ${path}`)
-    }
+  /**
+   * An event sent by the renderer asking to open a URL in the default browser
+   */
+  ipcMain.handle('open-url', async (_, url: string) => {
+    log.info(`Opening URL in browser: ${url}`)
 
     try {
-      await shell.openExternal(path)
+      await shell.openExternal(url)
       return true
     } catch (e) {
-      log.error(`Call to openExternal failed: '${e}'`)
+      log.error(`Failed to open URL '${url}': ${e}`)
+      return false
+    }
+  })
+
+  /**
+   * An event sent by the renderer asking to open a file with its default application
+   */
+  ipcMain.handle('open-file', async (_, path: string) => {
+    log.info(`Opening file with default application: ${path}`)
+
+    try {
+      await shell.openExternal(`file://${path}`)
+      return true
+    } catch (e) {
+      log.error(`Failed to open file '${path}': ${e}`)
       return false
     }
   })

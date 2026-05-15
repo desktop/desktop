@@ -44,7 +44,7 @@ export class EditorError extends React.Component<IEditorErrorProps, {}> {
   }
 
   private onExternalLink = () => {
-    shell.openExternal(suggestedExternalEditor.url)
+    shell.openUrl(suggestedExternalEditor.url)
   }
 
   private onShowPreferencesDialog = (

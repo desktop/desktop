@@ -159,7 +159,7 @@ export class UpdateAvailable extends React.Component<IUpdateAvailableProps> {
     if (this.props.newReleases == null) {
       // if, for some reason we're not able to render the release notes we
       // should redirect the user to the website so we do _something_
-      shell.openExternal(ReleaseNotesUri)
+      shell.openUrl(ReleaseNotesUri)
     } else {
       this.props.dispatcher.showPopup({
         type: PopupType.ReleaseNotes,
