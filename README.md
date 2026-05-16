@@ -88,6 +88,52 @@ If you're looking for something to work on, check out the [help wanted](https://
 
 To setup your development environment for building Desktop, check out: [`setup.md`](./docs/contributing/setup.md).
 
+## Custom AI Commit Prompt Example
+
+The custom AI commit prompt setting in **Settings > Prompts** can be used to
+guide generated commit titles and descriptions. For example:
+
+```text
+Generate a Conventional Commit for the current changes.
+
+Title rules:
+- Keep the full title under 50 characters when possible.
+- Hard max is 72 characters.
+- Use: type(optional-scope): short imperative summary.
+- Type describes the kind of change. Scope describes the area changed.
+- Pick the dominant change type.
+- Do not list every topic in the title.
+- Do not end the title with a period.
+
+Type selection:
+- feat: user-visible behavior or capability
+- fix: broken behavior fixed
+- docs: documentation prose/content only
+- refactor: code structure change with no behavior change
+- perf: performance improvement
+- test: tests only
+- build: build tooling, dependencies, package config
+- ci: CI workflow changes
+- style: formatting or CSS-only changes with no behavior change
+- chore: maintenance or dev-only plumbing
+- revert: revert a prior commit
+
+Decision rules:
+- Do not choose docs just because files are under docs/.
+- Use feat(docs) when the docs app gains visible behavior.
+- Use docs only for documentation content changes.
+- If multiple types apply, choose the dominant user-visible effect.
+
+Description style:
+- Write a structured body when the change spans multiple areas.
+- Use short section headings and bullets.
+- Group by feature area, not by file list.
+- Mention file paths only when they clarify an important detail.
+- Include rationale for non-obvious fixes or workarounds.
+- Keep lines near 72 characters.
+- Do not include Co-authored-by unless explicitly requested.
+```
+
 ## More Resources
 
 See [desktop.github.com](https://desktop.github.com) for more product-oriented

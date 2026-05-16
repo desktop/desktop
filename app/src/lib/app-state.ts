@@ -262,6 +262,11 @@ export interface IAppState {
   /** Whether or not the app should show the commit length warning */
   readonly showCommitLengthWarning: boolean
 
+  /**
+   * Optional custom instructions to prepend when generating AI commit messages.
+   */
+  readonly commitMessageGenerationCustomPrompt: string | null
+
   /** The current setting for whether the user has disable usage reports */
   readonly optOutOfUsageTracking: boolean
   /**

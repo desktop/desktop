@@ -3,6 +3,7 @@ import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-str
 import { DialogContent } from '../dialog'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { RadioGroup } from '../lib/radio-group'
+import { TextArea } from '../lib/text-area'
 import { assertNever } from '../../lib/fatal-error'
 
 interface IPromptsPreferencesProps {
@@ -16,6 +17,7 @@ interface IPromptsPreferencesProps {
   readonly askForConfirmationOnCommitFilteredChanges: boolean
   readonly confirmCommitMessageOverride: boolean
   readonly showCommitLengthWarning: boolean
+  readonly commitMessageGenerationCustomPrompt: string
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
   readonly onConfirmDiscardChangesPermanentlyChanged: (checked: boolean) => void
@@ -30,6 +32,9 @@ interface IPromptsPreferencesProps {
   ) => void
   readonly onAskForConfirmationOnCommitFilteredChanges: (value: boolean) => void
   readonly onConfirmCommitMessageOverrideChanged: (checked: boolean) => void
+  readonly onCommitMessageGenerationCustomPromptChanged: (
+    prompt: string
+  ) => void
 }
 
 interface IPromptsPreferencesState {
@@ -42,6 +47,7 @@ interface IPromptsPreferencesState {
   readonly confirmUndoCommit: boolean
   readonly askForConfirmationOnCommitFilteredChanges: boolean
   readonly confirmCommitMessageOverride: boolean
+  readonly commitMessageGenerationCustomPrompt: string
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
 }
 
@@ -65,6 +71,8 @@ export class Prompts extends React.Component<
       askForConfirmationOnCommitFilteredChanges:
         this.props.askForConfirmationOnCommitFilteredChanges,
       confirmCommitMessageOverride: this.props.confirmCommitMessageOverride,
+      commitMessageGenerationCustomPrompt:
+        this.props.commitMessageGenerationCustomPrompt,
     }
   }
 
@@ -160,6 +168,15 @@ export class Prompts extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     this.props.onShowCommitLengthWarningChanged(event.currentTarget.checked)
+  }
+
+  private onCommitMessageGenerationCustomPromptChanged = (
+    commitMessageGenerationCustomPrompt: string
+  ) => {
+    this.setState({ commitMessageGenerationCustomPrompt })
+    this.props.onCommitMessageGenerationCustomPromptChanged(
+      commitMessageGenerationCustomPrompt
+    )
   }
 
   private renderSwitchBranchOptionLabel = (key: UncommittedChangesStrategy) => {
@@ -311,6 +328,23 @@ export class Prompts extends React.Component<
                 : CheckboxValue.Off
             }
             onChange={this.onShowCommitLengthWarningChanged}
+          />
+        </div>
+        <div className="advanced-section">
+          <h2 id="custom-commit-message-prompt-heading">
+            Custom Commit Message Prompt
+          </h2>
+          <p id="custom-commit-message-prompt-description">
+            Add global instructions to guide AI commit message generation. Leave
+            empty to use only the default prompt.
+          </p>
+          <TextArea
+            ariaLabel="Custom commit message prompt"
+            ariaDescribedBy="custom-commit-message-prompt-description"
+            rows={5}
+            placeholder="Example: Use Conventional Commits and mention breaking changes."
+            value={this.state.commitMessageGenerationCustomPrompt}
+            onValueChanged={this.onCommitMessageGenerationCustomPromptChanged}
           />
         </div>
       </DialogContent>

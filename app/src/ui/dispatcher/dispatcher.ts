@@ -2809,6 +2809,14 @@ export class Dispatcher {
     this.appStore._setShowCommitLengthWarning(showCommitLengthWarning)
   }
 
+  public setCommitMessageGenerationCustomPrompt(
+    commitMessageGenerationCustomPrompt: string
+  ) {
+    this.appStore._setCommitMessageGenerationCustomPrompt(
+      commitMessageGenerationCustomPrompt
+    )
+  }
+
   public setNotificationsEnabled(notificationsEnabled: boolean) {
     this.appStore._setNotificationsEnabled(notificationsEnabled)
   }

@@ -54,6 +54,49 @@ describe('buildCommitMessageSystemPrompt', () => {
     assert.equal(base, withoutTags)
   })
 
+  it('prepends custom prompt instructions before built-in instructions', () => {
+    const custom = 'Use Conventional Commits. Mention ticket IDs.'
+    const prompt = buildCommitMessageSystemPrompt(false, undefined, custom)
+
+    assert.ok(prompt.startsWith(`${custom}\n\n`))
+    assert.ok(
+      prompt.includes('Your response must be a JSON object'),
+      'built-in output-format instructions should remain present'
+    )
+  })
+
+  it('frames custom instructions for Desktop title and description fields', () => {
+    const custom = 'Output only the commit message.'
+    const prompt = buildCommitMessageSystemPrompt(false, undefined, custom)
+
+    assert.match(
+      prompt,
+      /Apply the custom instructions above to the generated commit title and description fields/
+    )
+    assert.ok(
+      prompt.indexOf(custom) <
+        prompt.indexOf(
+          'Apply the custom instructions above to the generated commit title and description fields'
+        )
+    )
+    assert.ok(
+      prompt.indexOf(
+        'Apply the custom instructions above to the generated commit title and description fields'
+      ) < prompt.indexOf("You're an AI assistant")
+    )
+  })
+
+  it('ignores whitespace-only custom prompt values', () => {
+    const base = buildCommitMessageSystemPrompt()
+    const withWhitespaceOnly = buildCommitMessageSystemPrompt(
+      false,
+      undefined,
+      '   \n\t  '
+    )
+
+    assert.equal(base, withWhitespaceOnly)
+  })
+
   it('augments the system prompt with a fixed blurb naming the per-request tags', () => {
     const base = buildCommitMessageSystemPrompt()
     const augmented = buildCommitMessageSystemPrompt(true, fixedTags)

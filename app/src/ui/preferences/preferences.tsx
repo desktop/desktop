@@ -87,6 +87,7 @@ interface IPreferencesProps {
   readonly onDismissed: () => void
   readonly useWindowsOpenSSH: boolean
   readonly showCommitLengthWarning: boolean
+  readonly commitMessageGenerationCustomPrompt: string | null
   readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
   readonly useExternalCredentialHelper: boolean
@@ -130,6 +131,7 @@ interface IPreferencesState {
   readonly disallowedCharactersMessage: string | null
   readonly useWindowsOpenSSH: boolean
   readonly showCommitLengthWarning: boolean
+  readonly commitMessageGenerationCustomPrompt: string
   readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
   readonly useExternalCredentialHelper: boolean
@@ -219,6 +221,7 @@ export class Preferences extends React.Component<
       customShell: this.props.customShell ?? DefaultCustomIntegration,
       useWindowsOpenSSH: false,
       showCommitLengthWarning: false,
+      commitMessageGenerationCustomPrompt: '',
       notificationsEnabled: true,
       optOutOfUsageTracking: false,
       useExternalCredentialHelper: false,
@@ -301,6 +304,8 @@ export class Preferences extends React.Component<
       initialDefaultBranch,
       useWindowsOpenSSH: this.props.useWindowsOpenSSH,
       showCommitLengthWarning: this.props.showCommitLengthWarning,
+      commitMessageGenerationCustomPrompt:
+        this.props.commitMessageGenerationCustomPrompt ?? '',
       notificationsEnabled: this.props.notificationsEnabled,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       useExternalCredentialHelper: this.props.useExternalCredentialHelper,
@@ -648,6 +653,12 @@ export class Preferences extends React.Component<
             onShowCommitLengthWarningChanged={
               this.onShowCommitLengthWarningChanged
             }
+            commitMessageGenerationCustomPrompt={
+              this.state.commitMessageGenerationCustomPrompt
+            }
+            onCommitMessageGenerationCustomPromptChanged={
+              this.onCommitMessageGenerationCustomPromptChanged
+            }
           />
         )
         break
@@ -718,6 +729,12 @@ export class Preferences extends React.Component<
     showCommitLengthWarning: boolean
   ) => {
     this.setState({ showCommitLengthWarning })
+  }
+
+  private onCommitMessageGenerationCustomPromptChanged = (
+    commitMessageGenerationCustomPrompt: string
+  ) => {
+    this.setState({ commitMessageGenerationCustomPrompt })
   }
 
   private onNotificationsEnabledChanged = (notificationsEnabled: boolean) => {
@@ -1051,6 +1068,9 @@ export class Preferences extends React.Component<
     dispatcher.setDiffCheckMarksSetting(this.state.showDiffCheckMarks)
 
     dispatcher.setSelectedCopilotModels(this.state.selectedCopilotModels)
+    dispatcher.setCommitMessageGenerationCustomPrompt(
+      this.state.commitMessageGenerationCustomPrompt
+    )
 
     if (enableFormattingPreferences()) {
       if (this.state.selectedDateFormat !== undefined) {

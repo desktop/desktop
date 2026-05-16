@@ -503,6 +503,8 @@ const commitMessageGenerationDisclaimerLastSeenKey =
 
 const commitMessageGenerationButtonClickedKey =
   'commit-message-generation-button-clicked'
+const commitMessageGenerationCustomPromptKey =
+  'commit-message-generation-custom-prompt'
 
 export const showChangesFilterKey = 'show-changes-filter'
 
@@ -628,6 +630,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private useWindowsOpenSSH: boolean = false
 
   private showCommitLengthWarning: boolean = showCommitLengthWarningDefault
+  private commitMessageGenerationCustomPrompt: string | null = null
 
   private hasUserViewedStash = false
 
@@ -1158,6 +1161,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       apiRepositories: this.apiRepositoriesStore.getState(),
       useWindowsOpenSSH: this.useWindowsOpenSSH,
       showCommitLengthWarning: this.showCommitLengthWarning,
+      commitMessageGenerationCustomPrompt:
+        this.commitMessageGenerationCustomPrompt,
       optOutOfUsageTracking: this.statsStore.getOptOut(),
       currentOnboardingTutorialStep: this.currentOnboardingTutorialStep,
       repositoryIndicatorsEnabled: this.repositoryIndicatorsEnabled,
@@ -2305,6 +2310,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.showCommitLengthWarning = getBoolean(
       showCommitLengthWarningKey,
       showCommitLengthWarningDefault
+    )
+    this.commitMessageGenerationCustomPrompt = localStorage.getItem(
+      commitMessageGenerationCustomPromptKey
     )
 
     this.confirmDiscardChanges = getBoolean(
@@ -3924,6 +3932,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setShowCommitLengthWarning(showCommitLengthWarning: boolean) {
     setBoolean(showCommitLengthWarningKey, showCommitLengthWarning)
     this.showCommitLengthWarning = showCommitLengthWarning
+    this.emitUpdate()
+  }
+
+  public _setCommitMessageGenerationCustomPrompt(
+    commitMessageGenerationCustomPrompt: string
+  ) {
+    if (commitMessageGenerationCustomPrompt.trim().length === 0) {
+      localStorage.removeItem(commitMessageGenerationCustomPromptKey)
+      this.commitMessageGenerationCustomPrompt = null
+    } else {
+      localStorage.setItem(
+        commitMessageGenerationCustomPromptKey,
+        commitMessageGenerationCustomPrompt
+      )
+      this.commitMessageGenerationCustomPrompt =
+        commitMessageGenerationCustomPrompt
+    }
+
     this.emitUpdate()
   }
 
@@ -5746,10 +5772,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
               await this.resolveCopilotModelRequest(
                 this.selectedCopilotModels['commit-message-generation'] ?? null
               ),
-              this.repositoryStateCache
-                .get(repository)
-                ?.changesState.currentRepoRulesInfo?.commitMessagePatterns.getRules() ??
-                []
+              {
+                commitMessageRules:
+                  this.repositoryStateCache
+                    .get(repository)
+                    ?.changesState.currentRepoRulesInfo?.commitMessagePatterns.getRules() ??
+                  [],
+                customCommitMessagePrompt:
+                  this.commitMessageGenerationCustomPrompt,
+              }
             )
           : await API.fromAccount(account).getDiffChangesCommitMessage(diff)
 
