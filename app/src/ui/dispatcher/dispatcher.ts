@@ -1128,8 +1128,11 @@ export class Dispatcher {
    * Start the full Copilot conflict resolution flow: call the API and
    * transition to the result dialog.
    */
-  public startCopilotConflictResolution(repository: Repository): Promise<void> {
-    return this.appStore._startCopilotConflictResolution(repository)
+  public startCopilotConflictResolution(
+    repository: Repository,
+    onProgress?: (progress: IConflictResolutionProgress) => void
+  ): Promise<void> {
+    return this.appStore._startCopilotConflictResolution(repository, onProgress)
   }
 
   /**

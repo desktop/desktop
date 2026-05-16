@@ -83,6 +83,17 @@ export function hasUnresolvedConflicts(
   return true
 }
 
+/** Returns true when a file status represents an unresolved conflict. */
+export function isUnresolvedConflictStatus(
+  status: AppFileStatus,
+  manualResolution?: ManualConflictResolution
+): status is ConflictedFileStatus {
+  return (
+    isConflictedFileStatus(status) &&
+    hasUnresolvedConflicts(status, manualResolution)
+  )
+}
+
 /** the possible git status entries for a manually conflicted file status
  * only intended for use in this file, but could evolve into an official type someday
  */
@@ -170,4 +181,22 @@ export function getConflictedFiles(
       isConflictedFileStatus(f.status) &&
       hasUnresolvedConflicts(f.status, manualResolutions.get(f.path))
   )
+}
+
+/** Filter working directory changes for unresolved conflicted files. */
+export function getUnresolvedConflictFiles(
+  status: WorkingDirectoryStatus,
+  manualResolutions: Map<string, ManualConflictResolution> = new Map()
+) {
+  return status.files.filter(f =>
+    isUnresolvedConflictStatus(f.status, manualResolutions.get(f.path))
+  )
+}
+
+/** Returns true when unresolved conflicted files are present. */
+export function hasUnresolvedConflictFiles(
+  status: WorkingDirectoryStatus,
+  manualResolutions: Map<string, ManualConflictResolution> = new Map()
+) {
+  return getUnresolvedConflictFiles(status, manualResolutions).length > 0
 }

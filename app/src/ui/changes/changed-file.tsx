@@ -2,13 +2,15 @@ import * as React from 'react'
 
 import { PathLabel } from '../lib/path-label'
 import { Octicon, iconForStatus } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { mapStatus } from '../../lib/status'
+import { isUnresolvedConflictStatus, mapStatus } from '../../lib/status'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { TooltipDirection } from '../lib/tooltip'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 import { IMatches } from '../../lib/fuzzy-find'
+import { Button } from '../lib/button'
 
 interface IChangedFileProps {
   readonly file: WorkingDirectoryFileChange
@@ -22,6 +24,10 @@ interface IChangedFileProps {
   readonly onIncludeChanged: (
     file: WorkingDirectoryFileChange,
     include: boolean
+  ) => void
+  readonly canResolveConflictsWithCopilot?: boolean
+  readonly onResolveConflictsWithCopilot?: (
+    file: WorkingDirectoryFileChange
   ) => void
 }
 
@@ -42,6 +48,36 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
     }
   }
 
+  private onResolveConflictsWithCopilot = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault()
+    event.stopPropagation()
+    this.props.onResolveConflictsWithCopilot?.(this.props.file)
+  }
+
+  private renderCopilotConflictButton() {
+    const { file, canResolveConflictsWithCopilot } = this.props
+
+    if (
+      !canResolveConflictsWithCopilot ||
+      !isUnresolvedConflictStatus(file.status)
+    ) {
+      return null
+    }
+
+    return (
+      <Button
+        className="copilot-conflict-button"
+        ariaLabel="Resolve conflicts with Copilot"
+        tooltip="Resolve conflicts with Copilot"
+        onClick={this.onResolveConflictsWithCopilot}
+      >
+        <Octicon symbol={octicons.copilot} />
+      </Button>
+    )
+  }
+
   public render() {
     const {
       file,
@@ -57,6 +93,11 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
     const listItemPadding = 10 * 2
     const checkboxWidth = 20
     const statusWidth = 16
+    const copilotConflictButtonWidth =
+      this.props.canResolveConflictsWithCopilot &&
+      isUnresolvedConflictStatus(file.status)
+        ? 22
+        : 0
     const filePadding = 5
 
     const availablePathWidth =
@@ -64,7 +105,8 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
       listItemPadding -
       checkboxWidth -
       filePadding -
-      statusWidth
+      statusWidth -
+      copilotConflictButtonWidth
 
     const includedText =
       this.props.include === true
@@ -104,6 +146,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, {}> {
         />
 
         <AriaLiveContainer message={pathScreenReaderMessage} />
+        {this.renderCopilotConflictButton()}
         <TooltippedContent
           ancestorFocused={focused}
           openOnFocus={true}

@@ -4,6 +4,8 @@ import {
   mapStatus,
   isConflictedFile,
   hasConflictedFiles,
+  getUnresolvedConflictFiles,
+  hasUnresolvedConflictFiles,
 } from '../../src/lib/status'
 import {
   AppFileStatusKind,
@@ -126,6 +128,38 @@ describe('lib/status', () => {
       ]
       const wd = WorkingDirectoryStatus.fromFiles(files)
       assert.equal(hasConflictedFiles(wd), true)
+    })
+  })
+
+  describe('getUnresolvedConflictFiles', () => {
+    it('returns conflicted files with conflict markers', () => {
+      const files = [
+        makeFile('a.txt', AppFileStatusKind.Modified),
+        makeFile('b.txt', AppFileStatusKind.Conflicted),
+      ]
+      const wd = WorkingDirectoryStatus.fromFiles(files)
+
+      assert.deepEqual(
+        getUnresolvedConflictFiles(wd).map(f => f.path),
+        ['b.txt']
+      )
+      assert.equal(hasUnresolvedConflictFiles(wd), true)
+    })
+
+    it('does not return conflicted files whose markers have been resolved', () => {
+      const unresolved = makeFile('b.txt', AppFileStatusKind.Conflicted)
+      const resolved = new WorkingDirectoryFileChange(
+        unresolved.path,
+        {
+          ...(unresolved.status as any),
+          conflictMarkerCount: 0,
+        },
+        unresolved.selection
+      )
+      const wd = WorkingDirectoryStatus.fromFiles([resolved])
+
+      assert.deepEqual(getUnresolvedConflictFiles(wd), [])
+      assert.equal(hasUnresolvedConflictFiles(wd), false)
     })
   })
 })

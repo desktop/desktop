@@ -37,8 +37,22 @@
     }
 
     input,
-    .status {
+    .status,
+    .copilot-conflict-button {
       flex-shrink: 0;
+    }
+
+    .copilot-conflict-button {
+      width: 20px;
+      height: 20px;
+      min-width: 0;
+      padding: 2px;
+      margin-right: 2px;
+      color: var(--text-secondary-color);
+
+      &:hover {
+        color: var(--text-color);
+      }
     }
 
     .octicon {

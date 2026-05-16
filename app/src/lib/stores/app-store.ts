@@ -306,7 +306,11 @@ import {
   isValidTutorialStep,
 } from '../../models/tutorial-step'
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
-import { getConflictedFiles, getUntrackedFiles } from '../status'
+import {
+  getConflictedFiles,
+  getUnresolvedConflictFiles,
+  getUntrackedFiles,
+} from '../status'
 import { isBranchPushable } from '../helpers/push-control'
 import {
   findAssociatedPullRequest,
@@ -385,11 +389,13 @@ import { BypassReasonType } from '../../ui/secret-scanning/bypass-push-protectio
 import { getRepoHooks } from '../hooks/get-repo-hooks'
 import {
   ICopilotConflictResolutionResponse,
+  IFileResolution,
   IConflictResolutionProgress,
 } from '../copilot-conflict-resolution'
 import {
   buildConflictContext,
   gatherCommitContext,
+  ICopilotConflictOperationContext,
 } from '../copilot-conflict-context'
 import { resolveWithin } from '../path'
 
@@ -667,6 +673,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private commitMessageGenerationButtonClicked: boolean = false
 
   private showChangesFilter: boolean = false
+
+  private readonly pendingStashRestoreEntries = new Map<string, IStashEntry>()
 
   private selectedCopilotModels: CopilotModelSelections = {}
   private copilotModels: ReadonlyArray<ModelInfo> | null = null
@@ -5665,6 +5673,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<void> {
+    if (this.showResolveConflictsWithCopilotPopup(repository)) {
+      return
+    }
+
     if (!this.confirmCommitMessageOverride) {
       // If user has disabled the confirmation, directly generate commit message
       await this._generateCommitMessage(repository, filesSelected)
@@ -5699,6 +5711,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<boolean> {
+    if (this.showResolveConflictsWithCopilotPopup(repository)) {
+      return false
+    }
+
     const account = getAccountForCommitMessageGeneration(
       this.accounts,
       repository
@@ -5774,6 +5790,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
   }
 
+  private showResolveConflictsWithCopilotPopup(
+    repository: Repository
+  ): boolean {
+    const state = this.repositoryStateCache.get(repository)
+    const { conflictState, workingDirectory } = state.changesState
+    const manualResolutions = conflictState?.manualResolutions ?? new Map()
+    const conflictedFiles = getUnresolvedConflictFiles(
+      workingDirectory,
+      manualResolutions
+    )
+
+    if (conflictedFiles.length === 0) {
+      this.pendingStashRestoreEntries.delete(repository.path)
+      return false
+    }
+
+    this._showPopup({
+      type: PopupType.ResolveConflictsWithCopilot,
+      repository,
+      conflictedFiles,
+      canResolveWithCopilot: enableCopilotConflictResolution(),
+    })
+
+    return true
+  }
+
   /**
    * Extract display labels and git refs for both sides of a conflict.
    */
@@ -5830,6 +5872,73 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return assertNever(conflictState, 'Unsupported conflict kind')
   }
 
+  private async getConflictOperationContext(
+    repository: Repository,
+    conflictState: ConflictState,
+    labels: {
+      readonly ourRef: string | undefined
+      readonly theirRef: string | undefined
+    }
+  ): Promise<ICopilotConflictOperationContext> {
+    const state = this.repositoryStateCache.get(repository)
+    const { tip } = state.branchesState
+    const currentBranch =
+      tip.kind === TipState.Valid ? tip.branch.name : undefined
+    const currentTip =
+      tip.kind === TipState.Valid
+        ? tip.branch.tip.sha
+        : tip.kind === TipState.Detached
+        ? tip.currentSha
+        : undefined
+
+    let mergeBase: string | undefined
+    if (labels.ourRef !== undefined && labels.theirRef !== undefined) {
+      mergeBase =
+        (await getMergeBase(repository, labels.ourRef, labels.theirRef).catch(
+          () => null
+        )) ?? undefined
+    }
+
+    if (isMergeConflictState(conflictState)) {
+      const incomingRef = labels.theirRef
+      const isPullMerge =
+        tip.kind === TipState.Valid &&
+        tip.branch.upstream !== null &&
+        incomingRef === tip.branch.upstream
+
+      return {
+        kind: isPullMerge ? 'pull-merge' : 'merge',
+        currentBranch: conflictState.currentBranch || currentBranch,
+        incomingRef,
+        currentTip: conflictState.currentTip || currentTip,
+        mergeBase,
+      }
+    }
+
+    if (isRebaseConflictState(conflictState)) {
+      return {
+        kind: 'rebase',
+        currentBranch: conflictState.targetBranch || currentBranch,
+        currentTip: conflictState.currentTip || currentTip,
+        mergeBase,
+        baseBranch: conflictState.baseBranch,
+        targetBranch: conflictState.targetBranch,
+      }
+    }
+
+    if (isCherryPickConflictState(conflictState)) {
+      return {
+        kind: 'cherry-pick',
+        currentBranch: conflictState.targetBranchName || currentBranch,
+        incomingRef: labels.theirRef,
+        currentTip,
+        mergeBase,
+      }
+    }
+
+    return assertNever(conflictState, 'Unsupported conflict kind')
+  }
+
   /** This shouldn't be called directly. See 'Dispatcher'. */
   public async _resolveConflictsWithCopilot(
     repository: Repository,
@@ -5868,11 +5977,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
         return null
       }
 
+      const operation = await this.getConflictOperationContext(
+        repository,
+        conflictState,
+        labels
+      )
+
       const context = await buildConflictContext(
         labels.ourLabel,
         labels.theirLabel,
         repository.path,
-        conflictedFiles
+        conflictedFiles,
+        operation
       )
 
       // Best-effort enrichment — never block resolution on these
@@ -5910,15 +6026,51 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * This shouldn't be called directly. See `Dispatcher`.
    */
   public async _startCopilotConflictResolution(
-    repository: Repository
+    repository: Repository,
+    onProgress?: (progress: IConflictResolutionProgress) => void
   ): Promise<void> {
     const state = this.repositoryStateCache.get(repository)
     const { multiCommitOperationState } = state
     if (multiCommitOperationState === null) {
+      await this._resolveWorkingDirectoryConflictsWithCopilot(
+        repository,
+        onProgress
+      )
       return
     }
 
-    const { step } = multiCommitOperationState
+    let { step } = multiCommitOperationState
+    if (
+      step.kind === MultiCommitOperationStepKind.ShowConflicts ||
+      step.kind === MultiCommitOperationStepKind.HideConflicts ||
+      step.kind === MultiCommitOperationStepKind.ShowCopilotConflicts
+    ) {
+      const { conflictState } = step
+      this.repositoryStateCache.updateMultiCommitOperationState(
+        repository,
+        () => ({
+          step: {
+            kind: MultiCommitOperationStepKind.ShowCopilotConflictsLoading,
+            conflictState,
+          },
+          useCopilotConflictResolution: true,
+          copilotResolutions: null,
+          copilotResolutionProgress: null,
+        })
+      )
+      this.emitUpdate()
+
+      this._showPopup({
+        type: PopupType.MultiCommitOperation,
+        repository,
+      })
+
+      step = {
+        kind: MultiCommitOperationStepKind.ShowCopilotConflictsLoading,
+        conflictState,
+      }
+    }
+
     if (
       step.kind !== MultiCommitOperationStepKind.ShowCopilotConflictsLoading
     ) {
@@ -5931,6 +6083,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const result = await this._resolveConflictsWithCopilot(
         repository,
         progress => {
+          onProgress?.(progress)
+
           // Bail if user cancelled while the request was in-flight
           const current = this.repositoryStateCache.get(repository)
           const mcoState = current.multiCommitOperationState
@@ -6001,6 +6155,106 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  private async _resolveWorkingDirectoryConflictsWithCopilot(
+    repository: Repository,
+    onProgress?: (progress: IConflictResolutionProgress) => void
+  ): Promise<void> {
+    if (!enableCopilotConflictResolution()) {
+      return
+    }
+
+    try {
+      const state = this.repositoryStateCache.get(repository)
+      const { workingDirectory, stashEntry } = state.changesState
+      const conflictedFiles = getUnresolvedConflictFiles(workingDirectory)
+
+      if (conflictedFiles.length === 0) {
+        this.pendingStashRestoreEntries.delete(repository.path)
+        return
+      }
+
+      const pendingStashEntry =
+        this.pendingStashRestoreEntries.get(repository.path) ?? stashEntry
+      const operation = this.getWorkingDirectoryConflictOperationContext(
+        repository,
+        pendingStashEntry
+      )
+
+      const ourLabel = operation.currentBranch ?? 'current working tree'
+      const theirLabel =
+        operation.kind === 'stash-restore'
+          ? 'stashed changes'
+          : 'incoming changes'
+
+      const context = await buildConflictContext(
+        ourLabel,
+        theirLabel,
+        repository.path,
+        conflictedFiles,
+        operation
+      )
+      const currentPullRequest = state.branchesState.currentPullRequest ?? null
+      const result = await this.copilotStore.resolveConflicts(
+        context,
+        null,
+        currentPullRequest,
+        repository.path,
+        onProgress
+      )
+
+      await this.applyCopilotConflictResolutions(
+        repository,
+        result.resolutions,
+        new Map<string, ManualConflictResolution>()
+      )
+      this.pendingStashRestoreEntries.delete(repository.path)
+      await this._refreshRepository(repository)
+    } catch (e) {
+      log.warn(
+        'AppStore: Copilot working directory conflict resolution failed',
+        e
+      )
+      this.emitError(
+        new ErrorWithMetadata(e, {
+          repository,
+        })
+      )
+    }
+  }
+
+  private getWorkingDirectoryConflictOperationContext(
+    repository: Repository,
+    stashEntry: IStashEntry | null
+  ): ICopilotConflictOperationContext {
+    const state = this.repositoryStateCache.get(repository)
+    const { tip } = state.branchesState
+    const currentBranch =
+      tip.kind === TipState.Valid ? tip.branch.name : undefined
+    const currentTip =
+      tip.kind === TipState.Valid
+        ? tip.branch.tip.sha
+        : tip.kind === TipState.Detached
+        ? tip.currentSha
+        : undefined
+
+    if (stashEntry !== null) {
+      return {
+        kind: 'stash-restore',
+        currentBranch,
+        currentTip,
+        stashName: stashEntry.name,
+        stashSha: stashEntry.stashSha,
+        stashBranch: stashEntry.branchName,
+      }
+    }
+
+    return {
+      kind: 'working-directory',
+      currentBranch,
+      currentTip,
+    }
+  }
+
   /**
    * Write Copilot-resolved file contents to disk and stage them.
    * Called when the user clicks "Continue Merge" from the Copilot conflicts
@@ -6028,6 +6282,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
         ? step.conflictState.manualResolutions
         : new Map<string, ManualConflictResolution>()
 
+    await this.applyCopilotConflictResolutions(
+      repository,
+      copilotResolutions,
+      manualResolutions
+    )
+  }
+
+  private async applyCopilotConflictResolutions(
+    repository: Repository,
+    copilotResolutions: ReadonlyArray<IFileResolution>,
+    manualResolutions: ReadonlyMap<string, ManualConflictResolution>
+  ): Promise<void> {
     const pathsToStage: string[] = []
 
     for (const resolution of copilotResolutions) {
@@ -7640,6 +7906,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _popStashEntry(repository: Repository, stashEntry: IStashEntry) {
+    this.pendingStashRestoreEntries.set(repository.path, stashEntry)
     await popStashEntry(repository, stashEntry.stashSha)
     log.info(
       `[AppStore. _popStashEntry] popped stash with commit id ${stashEntry.stashSha}`
@@ -7647,6 +7914,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.statsStore.increment('stashRestoreCount')
     await this._refreshRepository(repository)
+
+    const { workingDirectory } =
+      this.repositoryStateCache.get(repository).changesState
+    if (getUnresolvedConflictFiles(workingDirectory).length === 0) {
+      this.pendingStashRestoreEntries.delete(repository.path)
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

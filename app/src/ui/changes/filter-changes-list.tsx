@@ -50,7 +50,10 @@ import * as octicons from '../octicons/octicons.generated'
 import { IStashEntry } from '../../models/stash-entry'
 import classNames from 'classnames'
 import { hasWritePermission } from '../../models/github-repository'
-import { hasConflictedFiles } from '../../lib/status'
+import {
+  getUnresolvedConflictFiles,
+  hasConflictedFiles,
+} from '../../lib/status'
 import { createObservableRef } from '../lib/observable-ref'
 import { Popup, PopupType } from '../../models/popup'
 import { EOL } from 'os'
@@ -75,6 +78,7 @@ import {
 import { ChangesListFilterOptions } from './changes-list-filter-options'
 import { HookProgress } from '../../lib/git'
 import { formatNumber } from '../../lib/format-number'
+import { enableCopilotConflictResolution } from '../../lib/feature-flag'
 
 export interface IChangesListItem extends IFilterListItem {
   readonly id: string
@@ -476,8 +480,32 @@ export class FilterChangesList extends React.Component<
         checkboxTooltip={checkboxTooltip}
         focused={this.state.focusedRow === changeListItem.id}
         matches={matches}
+        canResolveConflictsWithCopilot={enableCopilotConflictResolution()}
+        onResolveConflictsWithCopilot={this.onResolveConflictsWithCopilot}
       />
     )
+  }
+
+  private onResolveConflictsWithCopilot = () => {
+    this.showResolveConflictsWithCopilotPopup()
+  }
+
+  private showResolveConflictsWithCopilotPopup() {
+    const conflictedFiles = getUnresolvedConflictFiles(
+      this.props.workingDirectory,
+      this.props.conflictState?.manualResolutions
+    )
+
+    if (conflictedFiles.length === 0) {
+      return
+    }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.ResolveConflictsWithCopilot,
+      repository: this.props.repository,
+      conflictedFiles,
+      canResolveWithCopilot: enableCopilotConflictResolution(),
+    })
   }
 
   private onDiscardAllChanges = () => {

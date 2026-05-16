@@ -29,6 +29,23 @@ function makeCommit(shortSha: string, summary: string): Commit {
 
 describe('copilot-conflict-context', () => {
   describe('extractConflictHunks', () => {
+    it('captures marker labels from stash conflicts', () => {
+      const content = [
+        'const value =',
+        '<<<<<<< Updated upstream',
+        '  "upstream"',
+        '=======',
+        '  "stashed"',
+        '>>>>>>> Stashed changes',
+      ].join('\n')
+
+      const hunks = extractConflictHunks(content)
+
+      assert.equal(hunks.length, 1)
+      assert.equal(hunks[0].oursMarkerLabel, 'Updated upstream')
+      assert.equal(hunks[0].theirsMarkerLabel, 'Stashed changes')
+    })
+
     it('handles CRLF line endings (Windows)', () => {
       const content = [
         'line before',
@@ -336,6 +353,84 @@ describe('copilot-conflict-context', () => {
   })
 
   describe('formatConflictContextForPrompt', () => {
+    it('includes merge operation metadata and conflict marker labels', () => {
+      const context: ICopilotConflictContext = {
+        ourLabel: 'main',
+        theirLabel: 'origin/main',
+        operation: {
+          kind: 'pull-merge',
+          currentBranch: 'main',
+          incomingRef: 'origin/main',
+          currentTip: 'abc123',
+          mergeBase: 'def456',
+        },
+        files: [
+          {
+            path: 'src/conflict.ts',
+            hunks: [
+              {
+                oursContent: 'ours',
+                theirsContent: 'theirs',
+                baseContent: null,
+                contextBefore: 'before',
+                contextAfter: 'after',
+                oursMarkerLabel: 'Updated upstream',
+                theirsMarkerLabel: 'Stashed changes',
+              },
+            ],
+          },
+        ],
+      }
+
+      const prompt = formatConflictContextForPrompt(context)
+
+      assert.match(prompt, /Operation: pull merge/)
+      assert.match(prompt, /Current branch: main/)
+      assert.match(prompt, /Incoming ref: origin\/main/)
+      assert.match(prompt, /Current tip: abc123/)
+      assert.match(prompt, /Merge base: def456/)
+      assert.match(prompt, /Ours marker label: Updated upstream/)
+      assert.match(prompt, /Theirs marker label: Stashed changes/)
+    })
+
+    it('includes stash metadata for stash restore conflicts', () => {
+      const context: ICopilotConflictContext = {
+        ourLabel: 'main',
+        theirLabel: 'stashed changes',
+        operation: {
+          kind: 'stash-restore',
+          currentBranch: 'main',
+          currentTip: 'abc123',
+          stashSha: 'stashsha',
+          stashName: 'refs/stash@{0}',
+          stashBranch: 'main',
+        },
+        files: [
+          {
+            path: 'src/stash.ts',
+            hunks: [
+              {
+                oursContent: 'upstream',
+                theirsContent: 'stashed',
+                baseContent: null,
+                contextBefore: '',
+                contextAfter: '',
+                oursMarkerLabel: 'Updated upstream',
+                theirsMarkerLabel: 'Stashed changes',
+              },
+            ],
+          },
+        ],
+      }
+
+      const prompt = formatConflictContextForPrompt(context)
+
+      assert.match(prompt, /Operation: stash restore/)
+      assert.match(prompt, /Stash ref: refs\/stash@\{0\}/)
+      assert.match(prompt, /Stash SHA: stashsha/)
+      assert.match(prompt, /Stash branch: main/)
+    })
+
     it('formats a single file with one conflict', () => {
       const context: ICopilotConflictContext = {
         ourLabel: 'main',

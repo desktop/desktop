@@ -198,6 +198,7 @@ import {
 } from './secret-scanning/push-protection-error-dialog'
 import { GenerateCommitMessageOverrideWarning } from './generate-commit-message/generate-commit-message-override-warning'
 import { GenerateCommitMessageDisclaimer } from './generate-commit-message/generate-commit-message-disclaimer'
+import { ResolveConflictsWithCopilotDialog } from './resolve-conflicts-with-copilot'
 import { IAPICreatePushProtectionBypassResponse } from '../lib/api'
 import {
   BypassPushProtectionDialog,
@@ -2627,6 +2628,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             filesSelected={popup.filesSelected}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
+      case PopupType.ResolveConflictsWithCopilot: {
+        return (
+          <ResolveConflictsWithCopilotDialog
+            key="resolve-conflicts-with-copilot"
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            conflictedFiles={popup.conflictedFiles}
+            canResolveWithCopilot={popup.canResolveWithCopilot}
             onDismissed={onPopupDismissedFn}
           />
         )

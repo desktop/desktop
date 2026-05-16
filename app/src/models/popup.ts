@@ -81,6 +81,7 @@ export enum PopupType {
   ThankYou = 'ThankYou',
   CommitMessage = 'CommitMessage',
   MultiCommitOperation = 'MultiCommitOperation',
+  ResolveConflictsWithCopilot = 'ResolveConflictsWithCopilot',
   WarnLocalChangesBeforeUndo = 'WarnLocalChangesBeforeUndo',
   WarningBeforeReset = 'WarningBeforeReset',
   InvalidatedToken = 'InvalidatedToken',
@@ -346,6 +347,12 @@ export type PopupDetail =
   | {
       type: PopupType.MultiCommitOperation
       repository: Repository
+    }
+  | {
+      type: PopupType.ResolveConflictsWithCopilot
+      repository: Repository
+      conflictedFiles: ReadonlyArray<WorkingDirectoryFileChange>
+      canResolveWithCopilot: boolean
     }
   | {
       type: PopupType.WarnLocalChangesBeforeUndo

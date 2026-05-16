@@ -634,18 +634,30 @@ export class CopilotStore extends BaseStore {
   ): Promise<ICopilotConflictResolutionResponse> {
     const resolvableFiles = context.files.filter(f => !f.skippedReason)
     const filesTotal = resolvableFiles.length
+    const resolvedFilePaths = new Set<string>()
+
+    const reportProgress = (
+      activeFiles: ReadonlyArray<IFileConflictContext> = []
+    ) => {
+      onProgress?.({
+        filesResolved: resolvedFilePaths.size,
+        filesTotal,
+        resolvedFilePaths: Array.from(resolvedFilePaths),
+        activeFilePaths: activeFiles.map(f => f.path),
+      })
+    }
 
     if (filesTotal === 0) {
       throw new Error('No resolvable conflicted files')
     }
 
-    onProgress?.({ filesResolved: 0, filesTotal })
-
     const client = await this.createClient(repositoryPath)
 
     try {
       if (filesTotal <= SinglePromptFileLimit) {
+        reportProgress(resolvableFiles)
         const filteredContext: ICopilotConflictContext = {
+          operation: context.operation,
           ourLabel: context.ourLabel,
           theirLabel: context.theirLabel,
           files: resolvableFiles,
@@ -660,7 +672,10 @@ export class CopilotStore extends BaseStore {
           prompt,
           resolvableFiles
         )
-        onProgress?.({ filesResolved: filesTotal, filesTotal })
+        for (const resolution of resolutions) {
+          resolvedFilePaths.add(resolution.path)
+        }
+        reportProgress()
         return { resolutions }
       }
 
@@ -669,14 +684,15 @@ export class CopilotStore extends BaseStore {
       const chunkSize = filesTotal > 100 ? 15 : 20
       const chunks = createDependencyAwareChunks(resolvableFiles, chunkSize)
       const allResolutions: Array<IFileResolution> = []
-      let filesResolved = 0
 
       // Process chunks with bounded concurrency
       for (let i = 0; i < chunks.length; i += MaxConcurrentChunks) {
         const batch = chunks.slice(i, i + MaxConcurrentChunks)
+        reportProgress(batch.flat())
         const batchSettled = await Promise.allSettled(
           batch.map(chunkFiles => {
             const chunkContext: ICopilotConflictContext = {
+              operation: context.operation,
               ourLabel: context.ourLabel,
               theirLabel: context.theirLabel,
               files: chunkFiles,
@@ -695,11 +711,10 @@ export class CopilotStore extends BaseStore {
         for (const result of batchSettled) {
           if (result.status === 'fulfilled') {
             allResolutions.push(...result.value)
-            filesResolved += result.value.length
-            onProgress?.({
-              filesResolved,
-              filesTotal,
-            })
+            for (const resolution of result.value) {
+              resolvedFilePaths.add(resolution.path)
+            }
+            reportProgress(batch.flat())
           } else if (firstError === undefined) {
             firstError =
               result.reason instanceof Error
@@ -713,7 +728,7 @@ export class CopilotStore extends BaseStore {
         }
       }
 
-      onProgress?.({ filesResolved: filesTotal, filesTotal })
+      reportProgress()
       return { resolutions: allResolutions }
     } finally {
       await this.stopClient(client)

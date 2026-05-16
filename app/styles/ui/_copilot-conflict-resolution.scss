@@ -123,3 +123,57 @@ dialog#copilot-conflicts-dialog {
     width: 100%;
   }
 }
+
+dialog#resolve-conflicts-with-copilot {
+  width: 520px;
+
+  .copilot-conflict-progress-list {
+    list-style: none;
+    margin: var(--spacing) 0 0;
+    padding: 0;
+    max-height: 220px;
+    overflow-y: auto;
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+  }
+
+  .copilot-conflict-progress-file {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+    gap: var(--spacing-half);
+    align-items: center;
+    padding: var(--spacing-half) var(--spacing);
+
+    &:not(:last-child) {
+      border-bottom: var(--base-border);
+    }
+
+    .path-text-component {
+      min-width: 0;
+    }
+
+    .copilot-conflict-progress-icon {
+      color: var(--text-secondary-color);
+    }
+
+    .copilot-conflict-progress-status {
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+      white-space: nowrap;
+    }
+
+    &.resolving {
+      .copilot-conflict-progress-icon,
+      .copilot-conflict-progress-status {
+        color: var(--text-color);
+      }
+    }
+
+    &.done {
+      .copilot-conflict-progress-icon,
+      .copilot-conflict-progress-status {
+        color: var(--color-new);
+      }
+    }
+  }
+}
