@@ -300,6 +300,8 @@ import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { updateRemoteUrl } from './updates/update-remote-url'
+import { systemGit } from '../git/oauth-app-access-restriction-fallback'
+import { isOAuthAppAccessRestrictionAPIError } from '../oauth-app-access-restrictions'
 import {
   TutorialStep,
   orderedTutorialSteps,
@@ -5020,6 +5022,47 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.withRefreshedGitHubRepository(repository, repository => {
       return this.performPull(repository)
     })
+  }
+
+  public async _isRepositoryBlockedByOAuthAppAccessRestrictions(
+    repository: Repository
+  ): Promise<boolean> {
+    const gitHubRepository = repository.gitHubRepository
+    if (gitHubRepository === null) {
+      return false
+    }
+
+    const account = getAccountForRepository(this.accounts, repository)
+    if (account === null) {
+      return false
+    }
+
+    try {
+      await API.fromAccount(account).fetchRepositoryCloneInfo(
+        gitHubRepository.owner.login,
+        gitHubRepository.name,
+        undefined
+      )
+      return false
+    } catch (error) {
+      return isOAuthAppAccessRestrictionAPIError(error)
+    }
+  }
+
+  public async _runSystemGitCommandForOAuthAppAccessRestriction(
+    repository: Repository,
+    gitArgs: ReadonlyArray<string>,
+    operation: 'pull' | 'push' | 'fetch'
+  ): Promise<void> {
+    log.info(
+      `Running system git ${operation} after OAuth App access restriction confirmation.`
+    )
+    await systemGit(
+      [...gitArgs],
+      repository.path,
+      `oauthAppAccessRestriction:${operation}`
+    )
+    await this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

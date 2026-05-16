@@ -1,0 +1,14 @@
+.oauth-app-access-restriction-command {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: var(--spacing-half);
+  user-select: text;
+  white-space: pre;
+  background: var(--box-alt-background-color);
+  border: var(--base-border);
+  border-radius: var(--border-radius);
+
+  code {
+    user-select: text;
+  }
+}

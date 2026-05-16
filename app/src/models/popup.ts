@@ -27,6 +27,7 @@ import { ISecretScanResult } from '../ui/secret-scanning/push-protection-error-d
 import { BypassReasonType } from '../ui/secret-scanning/bypass-push-protection-dialog'
 import { TerminalOutput, TerminalOutputListener } from '../lib/git'
 import type { IBYOKModel, IBYOKProvider } from '../lib/copilot/byok'
+import { GitErrorContext } from '../lib/git-error-context'
 
 export enum PopupType {
   RenameBranch = 'RenameBranch',
@@ -61,6 +62,7 @@ export enum PopupType {
   OversizedFiles = 'OversizedFiles',
   CommitConflictsWarning = 'CommitConflictsWarning',
   PushNeedsPull = 'PushNeedsPull',
+  OAuthAppAccessRestriction = 'OAuthAppAccessRestriction',
   ConfirmForcePush = 'ConfirmForcePush',
   StashAndSwitchBranch = 'StashAndSwitchBranch',
   ConfirmOverwriteStash = 'ConfirmOverwriteStash',
@@ -252,6 +254,13 @@ export type PopupDetail =
   | {
       type: PopupType.PushNeedsPull
       repository: Repository
+    }
+  | {
+      type: PopupType.OAuthAppAccessRestriction
+      repository: Repository
+      operation: 'pull' | 'push' | 'fetch'
+      gitArgs: ReadonlyArray<string>
+      gitContext?: GitErrorContext
     }
   | {
       type: PopupType.ConfirmForcePush

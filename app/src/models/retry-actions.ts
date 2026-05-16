@@ -3,6 +3,7 @@ import { CloneOptions } from './clone-options'
 import { Branch } from './branch'
 import { Commit, CommitOneLine, ICommitContext } from './commit'
 import { WorkingDirectoryFileChange } from './status'
+import { GitErrorContext } from '../lib/git-error-context'
 
 /** The types of actions that can be retried. */
 export enum RetryActionType {
@@ -18,6 +19,7 @@ export enum RetryActionType {
   Squash,
   Reorder,
   DiscardChanges,
+  SystemGitCommand,
 }
 
 /** The retriable actions and their associated data. */
@@ -84,4 +86,11 @@ export type RetryAction =
       type: RetryActionType.DiscardChanges
       repository: Repository
       files: ReadonlyArray<WorkingDirectoryFileChange>
+    }
+  | {
+      type: RetryActionType.SystemGitCommand
+      repository: Repository
+      gitArgs: ReadonlyArray<string>
+      operation: 'pull' | 'push' | 'fetch'
+      gitContext?: GitErrorContext
     }

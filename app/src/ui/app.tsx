@@ -107,6 +107,7 @@ import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { PopupType, Popup } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { PushNeedsPullWarning } from './push-needs-pull'
+import { OAuthAppAccessRestrictionDialog } from './oauth-app-access-restriction'
 import { getCurrentBranchForcePushState } from '../lib/rebase'
 import { Banner, BannerType } from '../models/banner'
 import { StashAndSwitchBranch } from './stash-changes/stash-and-switch-branch-dialog'
@@ -1950,6 +1951,18 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="push-needs-pull"
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      case PopupType.OAuthAppAccessRestriction:
+        return (
+          <OAuthAppAccessRestrictionDialog
+            key="oauth-app-access-restriction"
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            operation={popup.operation}
+            gitArgs={popup.gitArgs}
+            gitContext={popup.gitContext}
             onDismissed={onPopupDismissedFn}
           />
         )

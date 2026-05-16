@@ -67,6 +67,10 @@ import {
 } from '../../lib/hooks/config'
 import { enableCopilotSdkCommitMessageGeneration } from '../../lib/feature-flag'
 import {
+  getAutomaticallyUseSystemGitForOAuthAppAccessRestrictions,
+  setAutomaticallyUseSystemGitForOAuthAppAccessRestrictions,
+} from '../../lib/oauth-app-access-restrictions'
+import {
   DateFormat,
   TimeFormat,
   INumberFormat,
@@ -133,6 +137,7 @@ interface IPreferencesState {
   readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
   readonly useExternalCredentialHelper: boolean
+  readonly automaticallyUseSystemGitForOAuthAppAccessRestrictions: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
@@ -222,6 +227,8 @@ export class Preferences extends React.Component<
       notificationsEnabled: true,
       optOutOfUsageTracking: false,
       useExternalCredentialHelper: false,
+      automaticallyUseSystemGitForOAuthAppAccessRestrictions:
+        getAutomaticallyUseSystemGitForOAuthAppAccessRestrictions(),
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
       confirmDiscardChangesPermanently: false,
@@ -304,6 +311,8 @@ export class Preferences extends React.Component<
       notificationsEnabled: this.props.notificationsEnabled,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       useExternalCredentialHelper: this.props.useExternalCredentialHelper,
+      automaticallyUseSystemGitForOAuthAppAccessRestrictions:
+        getAutomaticallyUseSystemGitForOAuthAppAccessRestrictions(),
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmDiscardChangesPermanently:
@@ -658,11 +667,18 @@ export class Preferences extends React.Component<
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             useExternalCredentialHelper={this.state.useExternalCredentialHelper}
+            automaticallyUseSystemGitForOAuthAppAccessRestrictions={
+              this.state.automaticallyUseSystemGitForOAuthAppAccessRestrictions
+            }
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
             onOptOutofReportingChanged={this.onOptOutofReportingChanged}
             onUseExternalCredentialHelperChanged={
               this.onUseExternalCredentialHelperChanged
+            }
+            onAutomaticallyUseSystemGitForOAuthAppAccessRestrictionsChanged={
+              this
+                .onAutomaticallyUseSystemGitForOAuthAppAccessRestrictionsChanged
             }
             onRepositoryIndicatorsEnabledChanged={
               this.onRepositoryIndicatorsEnabledChanged
@@ -730,6 +746,12 @@ export class Preferences extends React.Component<
 
   private onUseExternalCredentialHelperChanged = (value: boolean) => {
     this.setState({ useExternalCredentialHelper: value })
+  }
+
+  private onAutomaticallyUseSystemGitForOAuthAppAccessRestrictionsChanged = (
+    automaticallyUseSystemGitForOAuthAppAccessRestrictions: boolean
+  ) => {
+    this.setState({ automaticallyUseSystemGitForOAuthAppAccessRestrictions })
   }
 
   private onConfirmRepositoryRemovalChanged = (value: boolean) => {
@@ -1008,6 +1030,10 @@ export class Preferences extends React.Component<
         this.state.useExternalCredentialHelper
       )
     }
+
+    setAutomaticallyUseSystemGitForOAuthAppAccessRestrictions(
+      this.state.automaticallyUseSystemGitForOAuthAppAccessRestrictions
+    )
 
     await dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepositoryRemoval

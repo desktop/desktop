@@ -24,6 +24,7 @@ import {
   ISecretScanResult,
 } from '../secret-scanning/push-protection-error-dialog'
 import { coerceToString } from '../../lib/git/coerce-to-string'
+import { getAutomaticallyUseSystemGitForOAuthAppAccessRestrictions } from '../../lib/oauth-app-access-restrictions'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {
@@ -212,6 +213,71 @@ export async function pushNeedsPullHandler(
   }
 
   dispatcher.showPopup({ type: PopupType.PushNeedsPull, repository })
+
+  return null
+}
+
+export async function oauthAppAccessRestrictionHandler(
+  error: Error,
+  dispatcher: Dispatcher
+): Promise<Error | null> {
+  const e = asErrorWithMetadata(error)
+  if (!e) {
+    return error
+  }
+
+  const gitError = asGitError(e.underlyingError)
+  if (!gitError) {
+    return error
+  }
+
+  const dugiteError = gitError.result.gitError
+  if (dugiteError !== DugiteError.HTTPSRepositoryNotFound) {
+    return error
+  }
+
+  const repository = e.metadata.repository
+  if (!(repository instanceof Repository)) {
+    return error
+  }
+
+  const retryAction = e.metadata.retryAction
+  const operation =
+    retryAction?.type === RetryActionType.Pull
+      ? 'pull'
+      : retryAction?.type === RetryActionType.Push
+      ? 'push'
+      : retryAction?.type === RetryActionType.Fetch
+      ? 'fetch'
+      : null
+
+  if (operation === null) {
+    return error
+  }
+
+  const isBlocked =
+    await dispatcher.isRepositoryBlockedByOAuthAppAccessRestrictions(repository)
+  if (!isBlocked) {
+    return error
+  }
+
+  if (getAutomaticallyUseSystemGitForOAuthAppAccessRestrictions()) {
+    await dispatcher.runSystemGitCommandForOAuthAppAccessRestriction(
+      repository,
+      gitError.args,
+      operation,
+      e.metadata.gitContext
+    )
+    return null
+  }
+
+  dispatcher.showPopup({
+    type: PopupType.OAuthAppAccessRestriction,
+    repository,
+    operation,
+    gitArgs: gitError.args,
+    gitContext: e.metadata.gitContext,
+  })
 
   return null
 }

@@ -6,10 +6,11 @@ export function parseFilesToBeOverwritten(errorMessage: string) {
 
   for (const line of lines) {
     if (inFilesList) {
-      if (!line.startsWith('\t')) {
+      const fileLine = /^\s+(.+)$/.exec(line)
+      if (fileLine === null) {
         break
       } else {
-        files.push(line.trimLeft())
+        files.push(fileLine[1].trimEnd())
       }
     } else {
       if (

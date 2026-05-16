@@ -29,6 +29,8 @@ import {
   setGenericPassword,
   setGenericUsername,
 } from '../../lib/generic-git-auth'
+import { ErrorWithMetadata } from '../../lib/error-with-metadata'
+import { GitErrorContext } from '../../lib/git-error-context'
 import {
   RebaseResult,
   PushOptions,
@@ -744,6 +746,48 @@ export class Dispatcher {
   /** Pull the current branch. */
   public pull(repository: Repository): Promise<void> {
     return this.appStore._pull(repository)
+  }
+
+  public isRepositoryBlockedByOAuthAppAccessRestrictions(
+    repository: Repository
+  ): Promise<boolean> {
+    return this.appStore._isRepositoryBlockedByOAuthAppAccessRestrictions(
+      repository
+    )
+  }
+
+  public async runSystemGitCommandForOAuthAppAccessRestriction(
+    repository: Repository,
+    gitArgs: ReadonlyArray<string>,
+    operation: 'pull' | 'push' | 'fetch',
+    gitContext?: GitErrorContext
+  ): Promise<void> {
+    const retryAction = {
+      type: RetryActionType.SystemGitCommand,
+      repository,
+      gitArgs,
+      operation,
+      gitContext,
+    } as const
+
+    try {
+      return await this.appStore._runSystemGitCommandForOAuthAppAccessRestriction(
+        repository,
+        gitArgs,
+        operation
+      )
+    } catch (error) {
+      const normalizedError =
+        error instanceof Error ? error : new Error(String(error))
+
+      await this.postError(
+        new ErrorWithMetadata(normalizedError, {
+          repository,
+          retryAction,
+          gitContext,
+        })
+      )
+    }
   }
 
   /** Fetch a specific refspec for the repository. */
@@ -2240,6 +2284,13 @@ export class Dispatcher {
           retryAction.repository,
           retryAction.files,
           false
+        )
+      case RetryActionType.SystemGitCommand:
+        return this.runSystemGitCommandForOAuthAppAccessRestriction(
+          retryAction.repository,
+          retryAction.gitArgs,
+          retryAction.operation,
+          retryAction.gitContext
         )
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)

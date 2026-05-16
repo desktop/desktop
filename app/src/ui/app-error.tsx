@@ -19,6 +19,10 @@ import { getFileFromExceedsError } from '../lib/helpers/regex'
 import { CopilotError, getCopilotErrorDisplayInfo } from '../lib/copilot-error'
 import { Terminal } from './terminal'
 import { coerceToString } from '../lib/git/coerce-to-string'
+import {
+  getOAuthAppAccessRestrictionOrganization,
+  isOAuthAppAccessRestrictionAPIError,
+} from '../lib/oauth-app-access-restrictions'
 
 interface IAppErrorProps {
   /** The error to be displayed  */
@@ -127,6 +131,23 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       )
     }
 
+    if (isOAuthAppAccessRestrictionAPIError(e)) {
+      const organization = getOAuthAppAccessRestrictionOrganization(e)
+      return (
+        <>
+          <p>
+            {organization !== null
+              ? `The ${organization} organization blocks GitHub Desktop's OAuth app.`
+              : "This organization blocks GitHub Desktop's OAuth app."}
+          </p>
+          <p>
+            An organization owner needs to approve GitHub Desktop before the app
+            can access this repository with your signed-in GitHub account.
+          </p>
+        </>
+      )
+    }
+
     if (e instanceof CopilotError) {
       const displayInfo = getCopilotErrorDisplayInfo(e)
       if (displayInfo !== null) {
@@ -165,6 +186,10 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     switch (getDugiteError(error)) {
       case DugiteError.PushWithFileSizeExceedingLimit:
         return 'File size limit exceeded'
+    }
+
+    if (isOAuthAppAccessRestrictionAPIError(underlyingError)) {
+      return 'Organization Blocks GitHub Desktop'
     }
 
     switch (getRetryActionType(error)) {

@@ -10,10 +10,14 @@ interface IAdvancedPreferencesProps {
   readonly optOutOfUsageTracking: boolean
   readonly useExternalCredentialHelper: boolean
   readonly repositoryIndicatorsEnabled: boolean
+  readonly automaticallyUseSystemGitForOAuthAppAccessRestrictions: boolean
   readonly onUseWindowsOpenSSHChanged: (checked: boolean) => void
   readonly onOptOutofReportingChanged: (checked: boolean) => void
   readonly onUseExternalCredentialHelperChanged: (checked: boolean) => void
   readonly onRepositoryIndicatorsEnabledChanged: (enabled: boolean) => void
+  readonly onAutomaticallyUseSystemGitForOAuthAppAccessRestrictionsChanged: (
+    enabled: boolean
+  ) => void
 }
 
 interface IAdvancedPreferencesState {
@@ -60,6 +64,14 @@ export class Advanced extends React.Component<
 
     this.setState({ useExternalCredentialHelper: value })
     this.props.onUseExternalCredentialHelperChanged(value)
+  }
+
+  private onAutomaticallyUseSystemGitForOAuthAppAccessRestrictionsChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onAutomaticallyUseSystemGitForOAuthAppAccessRestrictionsChanged(
+      event.currentTarget.checked
+    )
   }
 
   private onRepositoryIndicatorsEnabledChanged = (
@@ -125,6 +137,32 @@ export class Advanced extends React.Component<
         </div>
         <h2>Network and credentials</h2>
         {this.renderSSHSettings()}
+        <div className="advanced-section">
+          <Checkbox
+            label="Automatically use system Git when GitHub Desktop is blocked"
+            value={
+              this.props.automaticallyUseSystemGitForOAuthAppAccessRestrictions
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={
+              this
+                .onAutomaticallyUseSystemGitForOAuthAppAccessRestrictionsChanged
+            }
+            ariaDescribedBy="oauth-app-access-restriction-system-git-description"
+          />
+          <div
+            id="oauth-app-access-restriction-system-git-description"
+            className="settings-description"
+          >
+            <p>
+              If a GitHub organization blocks Desktop's OAuth app, run the
+              equivalent system Git fetch, pull, or push without asking first.
+              Desktop will still show follow-up errors, merge conflicts, and
+              stash options in the GUI.
+            </p>
+          </div>
+        </div>
         <div className="advanced-section">
           <Checkbox
             label={'Use Git Credential Manager'}
