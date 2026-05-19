@@ -51,6 +51,7 @@ import {
 import { initializeDesktopNotifications } from './notifications'
 import parseCommandLineArgs from 'minimist'
 import { CLIAction } from '../lib/cli-action'
+import { getCLIActionFromCommandLineArgs } from './cli-actions'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -279,15 +280,10 @@ async function handleCommandLineArguments(argv: string[]) {
     return
   }
 
-  if (typeof args['cli-open'] === 'string') {
-    handleCLIAction({ kind: 'open-repository', path: args['cli-open'] })
-  } else if (typeof args['cli-clone'] === 'string') {
-    handleCLIAction({
-      kind: 'clone-url',
-      url: args['cli-clone'],
-      branch:
-        typeof args['cli-branch'] === 'string' ? args['cli-branch'] : undefined,
-    })
+  const cliAction = getCLIActionFromCommandLineArgs(args)
+
+  if (cliAction !== null) {
+    handleCLIAction(cliAction)
   }
 
   return

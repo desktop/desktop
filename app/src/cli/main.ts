@@ -1,6 +1,6 @@
-import { join, resolve } from 'path'
-import parse from 'minimist'
+import { join } from 'path'
 import { execFile, spawn } from 'child_process'
+import { parseDesktopCLICommand } from './commands'
 
 const run = (...args: Array<string>) => {
   function cb(e: unknown | null, stderr?: string) {
@@ -31,16 +31,12 @@ const run = (...args: Array<string>) => {
   }
 }
 
-const args = parse(process.argv.slice(2), {
-  alias: { help: 'h', branch: 'b' },
-  boolean: ['help'],
-})
-
 const usage = (exitCode = 1): never => {
   process.stderr.write(
     'GitHub Desktop CLI usage: \n' +
       '  github                            Open the current directory\n' +
       '  github open [path]                Open the provided path\n' +
+      '  github add-local <path...>        Add existing local repositories\n' +
       '  github clone [-b branch] <url>    Clone the repository by url or name/owner\n' +
       '                                    (ex torvalds/linux), optionally checking out\n' +
       '                                    the branch\n'
@@ -50,26 +46,18 @@ const usage = (exitCode = 1): never => {
 
 delete process.env.ELECTRON_RUN_AS_NODE
 
-if (args.help || args._.at(0) === 'help') {
-  usage(0)
-} else if (args._.at(0) === 'clone') {
-  const urlArg = args._.at(1)
-  // Assume name with owner slug if it looks like it
-  const url =
-    urlArg && /^[^\/]+\/[^\/]+$/.test(urlArg)
-      ? `https://github.com/${urlArg}`
-      : urlArg
+const command = parseDesktopCLICommand(process.argv.slice(2))
 
-  if (!url) {
-    usage(1)
-  } else if (typeof args.branch === 'string') {
-    run(`--cli-clone=${url}`, `--cli-branch=${args.branch}`)
+if (command.kind === 'usage') {
+  usage(command.exitCode)
+} else if (command.kind === 'clone') {
+  if (command.branch) {
+    run(`--cli-clone=${command.url}`, `--cli-branch=${command.branch}`)
   } else {
-    run(`--cli-clone=${url}`)
+    run(`--cli-clone=${command.url}`)
   }
+} else if (command.kind === 'add-local') {
+  run(...command.paths.map(path => `--cli-add-local=${path}`))
 } else {
-  const [firstArg, secondArg] = args._
-  const pathArg = firstArg === 'open' ? secondArg : firstArg
-  const path = resolve(pathArg ?? '.')
-  run(`--cli-open=${path}`)
+  run(`--cli-open=${command.path}`)
 }

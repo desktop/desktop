@@ -1978,6 +1978,8 @@ export class Dispatcher {
       } else {
         await this.showPopup({ type: PopupType.AddRepository, path })
       }
+    } else if (action.kind === 'add-local-repositories') {
+      await this.addRepositories(action.paths)
     }
   }
 
