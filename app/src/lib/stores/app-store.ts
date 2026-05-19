@@ -971,6 +971,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoriesStore.onDidUpdate(updateRepositories => {
       this.repositories = updateRepositories
       this.updateRepositorySelectionAfterRepositoriesChanged()
+      this.updateMenuLabelsForSelectedRepository()
       this.emitUpdate()
     })
 
@@ -2635,9 +2636,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askForConfirmationOnForcePush,
     } = this
 
+    let editorLabel: string | null = useCustomEditor
+      ? null
+      : selectedExternalEditor
+
+    if (selectedRepository instanceof Repository) {
+      if (selectedRepository.preferredCustomEditor) {
+        editorLabel = null
+      } else if (selectedRepository.preferredExternalEditor != null) {
+        editorLabel = selectedRepository.preferredExternalEditor
+      }
+    }
+
     const labels: MenuLabelsEvent = {
       selectedShell: useCustomShell ? null : selectedShell,
-      selectedExternalEditor: useCustomEditor ? null : selectedExternalEditor,
+      selectedExternalEditor: editorLabel,
       askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnForcePush,
     }
@@ -6390,12 +6403,49 @@ export class AppStore extends TypedBaseStore<IAppState> {
       .catch(e => log.error('Could not open global Git config for editing', e))
   }
 
-  /** Open a path to a repository or file using the user's configured editor */
-  public async _openInExternalEditor(fullPath: string): Promise<void> {
+  /**
+   * Open a path to a repository or file using the user's configured editor.
+   * If a repository is provided and has a per-repo preference, use that.
+   */
+  public async _openInExternalEditor(
+    fullPath: string,
+    repository?: Repository
+  ): Promise<void> {
     const { selectedExternalEditor, useCustomEditor, customEditor } =
       this.getState()
 
     try {
+      if (repository?.preferredCustomEditor) {
+        const repoCustomEditor = repository.preferredCustomEditor
+        if (repoCustomEditor.path) {
+          try {
+            await launchCustomExternalEditor(fullPath, repoCustomEditor)
+            return
+          } catch (error) {
+            throw new ExternalEditorError(
+              `The custom editor configured for this repository could not be launched. The path '${repoCustomEditor.path}' may no longer be valid.`,
+              { openRepositorySettings: true, repository }
+            )
+          }
+        }
+      }
+
+      if (repository?.preferredExternalEditor) {
+        const editorName = repository.preferredExternalEditor
+        const editors = await getAvailableEditors()
+        const match = editors.find(editor => editor.editor === editorName)
+
+        if (!match) {
+          throw new ExternalEditorError(
+            `The editor '${editorName}' configured for this repository could not be found. It may have been uninstalled.`,
+            { openRepositorySettings: true, repository }
+          )
+        }
+
+        await launchExternalEditor(fullPath, match)
+        return
+      }
+
       if (useCustomEditor && customEditor) {
         await launchCustomExternalEditor(fullPath, customEditor)
       } else {
@@ -6834,6 +6884,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
     missing: boolean
   ): Promise<Repository> {
     return this.repositoriesStore.updateRepositoryMissing(repository, missing)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _updateRepositoryEditorPreference(
+    repository: Repository,
+    preferredExternalEditor: string | null,
+    preferredCustomEditor: ICustomIntegration | null
+  ): Promise<Repository> {
+    return this.repositoriesStore.updateRepositoryEditorPreference(
+      repository,
+      preferredExternalEditor,
+      preferredCustomEditor
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

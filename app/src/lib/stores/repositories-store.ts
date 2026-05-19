@@ -28,6 +28,7 @@ import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
+import { ICustomIntegration } from '../custom-integration'
 
 type AddRepositoryOptions = {
   missing?: boolean
@@ -152,7 +153,9 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.missing,
       repo.alias,
       repo.workflowPreferences,
-      repo.isTutorialRepository
+      repo.isTutorialRepository,
+      repo.preferredExternalEditor ?? null,
+      repo.preferredCustomEditor ?? null
     )
   }
 
@@ -319,6 +322,39 @@ export class RepositoriesStore extends TypedBaseStore<
     await this.db.repositories.update(repository.id, { workflowPreferences })
 
     this.emitUpdatedRepositories()
+  }
+
+  /**
+   * Update the preferred external editor for a repository.
+   * Pass null for both parameters to clear the preference and use global default.
+   *
+   * @param repository              The repository to update.
+   * @param preferredExternalEditor The editor name, or null if using custom/global.
+   * @param preferredCustomEditor   The custom editor config, or null if not custom.
+   */
+  public async updateRepositoryEditorPreference(
+    repository: Repository,
+    preferredExternalEditor: string | null,
+    preferredCustomEditor: ICustomIntegration | null
+  ): Promise<Repository> {
+    await this.db.repositories.update(repository.id, {
+      preferredExternalEditor,
+      preferredCustomEditor,
+    })
+
+    this.emitUpdatedRepositories()
+
+    return new Repository(
+      repository.path,
+      repository.id,
+      repository.gitHubRepository,
+      repository.missing,
+      repository.alias,
+      repository.workflowPreferences,
+      repository.isTutorialRepository,
+      preferredExternalEditor,
+      preferredCustomEditor
+    )
   }
 
   /** Update the repository's path. */
