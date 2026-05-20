@@ -350,6 +350,10 @@ export class RepositoriesList extends React.Component<
             category,
           }),
       },
+      {
+        label: __DARWIN__ ? 'Delete Category' : 'Delete category',
+        action: () => this.props.dispatcher.deleteCategory(category),
+      },
     ]
 
     showContextualMenu(items)
