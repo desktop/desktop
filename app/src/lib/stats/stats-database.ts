@@ -71,6 +71,18 @@ export interface IDailyMeasures {
   /** The numbers of times a repo without indicators is clicked on repo list view */
   readonly repoWithoutIndicatorClicked: number
 
+  /** Number of user-defined repository categories created. */
+  readonly categoryCreatedCount: number
+
+  /** Number of times a repository's category assignment changed (assign, reassign, or clear-to-null). */
+  readonly categoryAssignedCount: number
+
+  /** Number of user-defined repository categories renamed. */
+  readonly categoryRenamedCount: number
+
+  /** Number of user-defined repository categories deleted. */
+  readonly categoryDeletedCount: number
+
   /** The number of times the user pushes to GitHub.com */
   readonly dotcomPushCount: number
 

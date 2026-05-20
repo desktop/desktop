@@ -4592,10 +4592,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     categoryId: number | null
   ): Promise<void> {
-    return this.repositoriesStore.updateRepositoryCategoryId(
+    await this.repositoriesStore.updateRepositoryCategoryId(
       repository,
       categoryId
     )
+    this.statsStore.recordCategoryAssigned()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -4607,10 +4608,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (created === null) {
       return
     }
+    this.statsStore.recordCategoryCreated()
     await this.repositoriesStore.updateRepositoryCategoryId(
       repository,
       created.id
     )
+    this.statsStore.recordCategoryAssigned()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -4618,12 +4621,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     category: Category,
     name: string
   ): Promise<void> {
-    await this.categoriesStore.rename(category.id, name)
+    const renamed = await this.categoriesStore.rename(category.id, name)
+    if (renamed) {
+      this.statsStore.recordCategoryRenamed()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _deleteCategory(category: Category): Promise<void> {
     await this.categoriesStore.delete(category.id)
+    this.statsStore.recordCategoryDeleted()
     // CategoriesStore clears `categoryId` on affected repositories directly in
     // Dexie, which bypasses RepositoriesStore's own write path. Nudge it to
     // re-emit so the sidebar regroups those repos back to their default
