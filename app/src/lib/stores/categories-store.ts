@@ -101,6 +101,29 @@ export class CategoriesStore extends TypedBaseStore<ReadonlyArray<Category>> {
     return result
   }
 
+  /**
+   * Delete a category. Any repositories currently assigned to it have their
+   * `categoryId` cleared so they fall back to their default sidebar group.
+   * Runs in a single transaction so the unassign and the delete either both
+   * succeed or both roll back.
+   */
+  public async delete(id: number): Promise<void> {
+    await this.db.transaction(
+      'rw',
+      this.db.categories,
+      this.db.repositories,
+      async () => {
+        await this.db.repositories
+          .where('categoryId')
+          .equals(id)
+          .modify({ categoryId: null })
+        await this.db.categories.delete(id)
+      }
+    )
+
+    this.emitUpdatedCategories()
+  }
+
   private async findByNameCaseInsensitive(
     name: string
   ): Promise<IDatabaseCategory | undefined> {

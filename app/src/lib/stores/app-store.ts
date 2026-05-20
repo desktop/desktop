@@ -4622,6 +4622,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _deleteCategory(category: Category): Promise<void> {
+    await this.categoriesStore.delete(category.id)
+    // CategoriesStore clears `categoryId` on affected repositories directly in
+    // Dexie, which bypasses RepositoriesStore's own write path. Nudge it to
+    // re-emit so the sidebar regroups those repos back to their default
+    // bucket immediately.
+    this.repositoriesStore.refresh()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _renameBranch(
     repository: Repository,
     branch: Branch,

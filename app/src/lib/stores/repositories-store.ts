@@ -749,6 +749,16 @@ export class RepositoriesStore extends TypedBaseStore<
   }
 
   /**
+   * Re-emit the current list of repositories. Useful when the underlying
+   * Dexie table was mutated by a different store (e.g. CategoriesStore
+   * clearing `categoryId` on cascade) and we need consumers to pick up the
+   * change.
+   */
+  public refresh(): void {
+    this.emitUpdatedRepositories()
+  }
+
+  /**
    * Helper method to emit updates consistently
    * (This is the only way we emit updates from this store.)
    */

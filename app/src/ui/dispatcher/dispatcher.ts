@@ -892,6 +892,14 @@ export class Dispatcher {
     return this.appStore._renameCategory(category, name)
   }
 
+  /**
+   * Delete a category. Any repositories currently assigned to it are
+   * unassigned and fall back to their default sidebar group.
+   */
+  public deleteCategory(category: Category): Promise<void> {
+    return this.appStore._deleteCategory(category)
+  }
+
   /** Rename the branch to a new name. */
   public renameBranch(
     repository: Repository,
