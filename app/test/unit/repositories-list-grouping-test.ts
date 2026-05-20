@@ -3,7 +3,30 @@ import assert from 'node:assert'
 import { groupRepositories } from '../../src/ui/repositories-list/group-repositories'
 import { Repository, ILocalRepositoryState } from '../../src/models/repository'
 import { CloningRepository } from '../../src/models/cloning-repository'
+import { Category } from '../../src/models/category'
 import { gitHubRepoFixture } from '../helpers/github-repo-builder'
+
+/** Build a repository with the given categoryId without listing every default arg. */
+function repoWithCategory(
+  path: string,
+  id: number,
+  categoryId: number | null,
+  ghOwner?: string
+) {
+  return new Repository(
+    path,
+    id,
+    ghOwner !== undefined
+      ? gitHubRepoFixture({ owner: ghOwner, name: path })
+      : null,
+    false,
+    null,
+    {},
+    false,
+    undefined,
+    categoryId
+  )
+}
 
 describe('repository list grouping', () => {
   const repositories: Array<Repository | CloningRepository> = [
@@ -152,5 +175,83 @@ describe('repository list grouping', () => {
 
     assert.equal(grouped[2].items[1].text[0], 'enterprise-repo')
     assert(grouped[2].items[1].needsDisambiguation)
+  })
+
+  describe('categories', () => {
+    const work = new Category(10, 'Work')
+    const personal = new Category(20, 'Personal')
+
+    it('puts a categorized repo under its category group, not its default bucket', () => {
+      const dotcomNoCat = repoWithCategory('alpha', 1, null, 'me')
+      const dotcomWithCat = repoWithCategory('beta', 2, work.id, 'me')
+
+      const grouped = groupRepositories(
+        [dotcomNoCat, dotcomWithCat],
+        cache,
+        [],
+        [work]
+      )
+
+      const category = grouped.find(g => g.identifier.kind === 'category')
+      const dotcom = grouped.find(g => g.identifier.kind === 'dotcom')
+
+      assert.ok(category, 'expected a category group')
+      assert.equal(category!.items.length, 1)
+      assert.equal(category!.items[0].repository.path, 'beta')
+
+      assert.ok(dotcom, 'expected a dotcom group for the uncategorized repo')
+      assert.equal(dotcom!.items.length, 1)
+      assert.equal(dotcom!.items[0].repository.path, 'alpha')
+    })
+
+    it('orders groups Recent → Category → dotcom → enterprise → Other', () => {
+      // Need > 7 repos for the Recent group to materialize.
+      const repos = [
+        repoWithCategory('a', 1, work.id, 'me'),
+        repoWithCategory('b', 2, null, 'me'),
+        repoWithCategory('c', 3, null, 'me'),
+        repoWithCategory('d', 4, null, 'me'),
+        repoWithCategory('e', 5, null, 'me'),
+        repoWithCategory('f', 6, null, 'me'),
+        repoWithCategory('g', 7, null, 'me'),
+        repoWithCategory('h', 8, null),
+      ]
+
+      const grouped = groupRepositories(repos, cache, [1], [work])
+      const kinds = grouped.map(g => g.identifier.kind)
+      assert.deepEqual(kinds, ['recent', 'category', 'dotcom', 'other'])
+    })
+
+    it('keeps duplicating categorized repos into Recent', () => {
+      const repos = Array.from({ length: 8 }, (_, i) =>
+        repoWithCategory(`r${i + 1}`, i + 1, i === 0 ? work.id : null, 'me')
+      )
+      const grouped = groupRepositories(repos, cache, [1], [work])
+
+      const recent = grouped.find(g => g.identifier.kind === 'recent')
+      const category = grouped.find(g => g.identifier.kind === 'category')
+      assert.ok(recent && category)
+      assert.equal(recent!.items.length, 1)
+      assert.equal(recent!.items[0].repository.path, 'r1')
+      assert.equal(category!.items[0].repository.path, 'r1')
+    })
+
+    it('renders an empty category group when no repos are assigned to it', () => {
+      const grouped = groupRepositories([], cache, [], [work, personal])
+      const categoryGroups = grouped.filter(
+        g => g.identifier.kind === 'category'
+      )
+      assert.equal(categoryGroups.length, 2)
+      for (const g of categoryGroups) {
+        assert.equal(g.items.length, 0)
+      }
+    })
+
+    it('falls back to the default bucket when categoryId references a missing category', () => {
+      const orphaned = repoWithCategory('orphan', 1, 999, 'me')
+      const grouped = groupRepositories([orphaned], cache, [], [])
+      assert.equal(grouped.length, 1)
+      assert.equal(grouped[0].identifier.kind, 'dotcom')
+    })
   })
 })
