@@ -25,6 +25,7 @@ import {
 } from './dispatcher'
 import {
   AppStore,
+  CategoriesStore,
   GitHubUserStore,
   CloningRepositoriesStore,
   CopilotStore,
@@ -269,9 +270,9 @@ trampolineServer.registerCommandHandler(
   createCredentialHelperTrampolineHandler(accountsStore)
 )
 
-const repositoriesStore = new RepositoriesStore(
-  new RepositoriesDatabase('Database')
-)
+const repositoriesDatabase = new RepositoriesDatabase('Database')
+const repositoriesStore = new RepositoriesStore(repositoriesDatabase)
+const categoriesStore = new CategoriesStore(repositoriesDatabase)
 
 const pullRequestStore = new PullRequestStore(
   new PullRequestDatabase('PullRequestDatabase'),
@@ -315,6 +316,7 @@ const appStore = new AppStore(
   signInStore,
   accountsStore,
   repositoriesStore,
+  categoriesStore,
   pullRequestCoordinator,
   repositoryStateManager,
   apiRepositoriesStore,

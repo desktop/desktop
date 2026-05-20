@@ -859,6 +859,29 @@ export class Dispatcher {
     return this.appStore._changeRepositoryAlias(repository, newAlias)
   }
 
+  /**
+   * Assign the repository to a user-defined category, or pass null to clear
+   * the assignment (uncategorize).
+   */
+  public setRepositoryCategoryId(
+    repository: Repository,
+    categoryId: number | null
+  ): Promise<void> {
+    return this.appStore._setRepositoryCategoryId(repository, categoryId)
+  }
+
+  /**
+   * Create a new category with the given name and immediately assign the
+   * given repository to it. The category name must be non-empty and
+   * case-insensitively unique among existing categories.
+   */
+  public createCategoryAndAssign(
+    repository: Repository,
+    name: string
+  ): Promise<void> {
+    return this.appStore._createCategoryAndAssign(repository, name)
+  }
+
   /** Rename the branch to a new name. */
   public renameBranch(
     repository: Repository,

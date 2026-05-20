@@ -2,6 +2,7 @@ import * as Path from 'path'
 import { writeFile } from 'fs/promises'
 import {
   AccountsStore,
+  CategoriesStore,
   CloningRepositoriesStore,
   CopilotStore,
   GitHubUserStore,
@@ -75,6 +76,7 @@ import {
   getNonForkGitHubRepository,
   isForkedRepositoryContributingToParent,
 } from '../../models/repository'
+import { Category } from '../../models/category'
 import {
   CommittedFileChange,
   WorkingDirectoryFileChange,
@@ -514,6 +516,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
+  private categories: ReadonlyArray<Category> = new Array<Category>()
   private recentRepositories: ReadonlyArray<number> = new Array<number>()
 
   private selectedRepository: Repository | CloningRepository | null = null
@@ -680,6 +683,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     private readonly signInStore: SignInStore,
     private readonly accountsStore: AccountsStore,
     private readonly repositoriesStore: RepositoriesStore,
+    private readonly categoriesStore: CategoriesStore,
     private readonly pullRequestCoordinator: PullRequestCoordinator,
     private readonly repositoryStateCache: RepositoryStateCache,
     private readonly apiRepositoriesStore: ApiRepositoriesStore,
@@ -974,6 +978,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.emitUpdate()
     })
 
+    this.categoriesStore.onDidUpdate(categories => {
+      this.categories = categories
+      this.emitUpdate()
+    })
+    this.categoriesStore.onDidError(error => this.emitError(error))
+
     this.pullRequestCoordinator.onPullRequestsChanged((repo, pullRequests) =>
       this.onPullRequestChanged(repo, pullRequests)
     )
@@ -1099,6 +1109,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return {
       accounts: this.accounts,
       repositories,
+      categories: this.categories,
       recentRepositories: this.recentRepositories,
       localRepositoryStateLookup: this.localRepositoryStateLookup,
       windowState: this.windowState,
@@ -2242,9 +2253,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Load the initial state for the app. */
   public async loadInitialState() {
-    const [accounts, repositories] = await Promise.all([
+    const [accounts, repositories, categories] = await Promise.all([
       this.accountsStore.getAll(),
       this.repositoriesStore.getAll(),
+      this.categoriesStore.getAll(),
     ])
 
     log.info(
@@ -2256,6 +2268,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.accounts = accounts
     this.repositories = repositories
+    this.categories = categories
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
 
@@ -4572,6 +4585,32 @@ export class AppStore extends TypedBaseStore<IAppState> {
     newAlias: string | null
   ): Promise<void> {
     return this.repositoriesStore.updateRepositoryAlias(repository, newAlias)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setRepositoryCategoryId(
+    repository: Repository,
+    categoryId: number | null
+  ): Promise<void> {
+    return this.repositoriesStore.updateRepositoryCategoryId(
+      repository,
+      categoryId
+    )
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _createCategoryAndAssign(
+    repository: Repository,
+    name: string
+  ): Promise<void> {
+    const created = await this.categoriesStore.create(name)
+    if (created === null) {
+      return
+    }
+    await this.repositoriesStore.updateRepositoryCategoryId(
+      repository,
+      created.id
+    )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
