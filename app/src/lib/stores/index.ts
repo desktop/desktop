@@ -1,5 +1,6 @@
 export * from './accounts-store'
 export * from './app-store'
+export * from './categories-store'
 export * from './cloning-repositories-store'
 export * from './copilot-store'
 export * from './git-store'

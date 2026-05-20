@@ -68,6 +68,17 @@ export interface IDatabaseRepository {
    * of Git and GitHub.
    */
   readonly isTutorialRepository?: boolean
+
+  /** The id of the user-defined category this repository is assigned to. */
+  readonly categoryId?: number | null
+}
+
+/** A user-defined category for grouping repositories in the sidebar. */
+export interface IDatabaseCategory {
+  readonly id?: number
+  readonly name: string
+  readonly color?: string | null
+  readonly sortOrder?: number | null
 }
 
 /**
@@ -95,6 +106,9 @@ export class RepositoriesDatabase extends BaseDatabase {
 
   /** The GitHub repository owners table. */
   public declare owners: Dexie.Table<IDatabaseOwner, number>
+
+  /** The user-defined categories table. */
+  public declare categories: Dexie.Table<IDatabaseCategory, number>
 
   /**
    * Initialize a new repository database.
@@ -140,6 +154,15 @@ export class RepositoriesDatabase extends BaseDatabase {
 
     this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
     this.conditionalVersion(9, { owners: '++id, &key' }, createOwnerKey)
+
+    // v10: introduce user-defined categories for sidebar grouping. Adds a new
+    // `categories` table and a `categoryId` index on the `repositories` table.
+    // Pure additive — existing rows have an undefined `categoryId` which the
+    // application treats as null (uncategorized).
+    this.conditionalVersion(10, {
+      repositories: '++id, &path, categoryId',
+      categories: '++id, &name',
+    })
   }
 }
 

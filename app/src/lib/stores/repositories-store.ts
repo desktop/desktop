@@ -153,7 +153,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.alias,
       repo.workflowPreferences,
       repo.isTutorialRepository,
-      repo.gitDir
+      repo.gitDir,
+      repo.categoryId ?? null
     )
   }
 
@@ -293,7 +294,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository,
-      repository.gitDir
+      repository.gitDir,
+      repository.categoryId
     )
   }
 
@@ -314,7 +316,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository,
-      gitDir
+      gitDir,
+      repository.categoryId
     )
   }
 
@@ -348,6 +351,19 @@ export class RepositoriesStore extends TypedBaseStore<
     this.emitUpdatedRepositories()
   }
 
+  /**
+   * Assign the repository to a user-defined category, or pass null to clear
+   * the assignment.
+   */
+  public async updateRepositoryCategoryId(
+    repository: Repository,
+    categoryId: number | null
+  ): Promise<void> {
+    await this.db.repositories.update(repository.id, { categoryId })
+
+    this.emitUpdatedRepositories()
+  }
+
   /** Update the repository's path. */
   public async updateRepositoryPath(
     repository: Repository,
@@ -371,7 +387,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository,
-      gitDir
+      gitDir,
+      repository.categoryId
     )
   }
 
@@ -518,7 +535,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.alias,
       repo.workflowPreferences,
       repo.isTutorialRepository,
-      repo.gitDir
+      repo.gitDir,
+      repo.categoryId
     )
 
     assertIsRepositoryWithGitHubRepository(updatedRepo)
