@@ -62,6 +62,7 @@ import { Account } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { Author, UnknownAuthor } from '../../models/author'
 import { Branch, IAheadBehind } from '../../models/branch'
+import { Category } from '../../models/category'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -880,6 +881,15 @@ export class Dispatcher {
     name: string
   ): Promise<void> {
     return this.appStore._createCategoryAndAssign(repository, name)
+  }
+
+  /**
+   * Rename an existing category. No-ops when the name is unchanged
+   * (case-insensitive); ignores the request when another category already
+   * uses the same name.
+   */
+  public renameCategory(category: Category, name: string): Promise<void> {
+    return this.appStore._renameCategory(category, name)
   }
 
   /** Rename the branch to a new name. */

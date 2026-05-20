@@ -4614,6 +4614,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _renameCategory(
+    category: Category,
+    name: string
+  ): Promise<void> {
+    await this.categoriesStore.rename(category.id, name)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _renameBranch(
     repository: Repository,
     branch: Branch,

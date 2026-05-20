@@ -62,6 +62,45 @@ export class CategoriesStore extends TypedBaseStore<ReadonlyArray<Category>> {
     return created
   }
 
+  /**
+   * Rename an existing category. No-ops when the trimmed name is empty or
+   * matches the existing name case-insensitively. Rejects (returns false)
+   * when another category already uses the same case-insensitive name.
+   */
+  public async rename(id: number, name: string): Promise<boolean> {
+    const trimmed = name.trim()
+    if (trimmed.length === 0) {
+      return false
+    }
+
+    const result = await this.db.transaction(
+      'rw',
+      this.db.categories,
+      async () => {
+        const existing = await this.db.categories.get(id)
+        if (existing === undefined) {
+          return false
+        }
+        if (existing.name.toLowerCase() === trimmed.toLowerCase()) {
+          // Same name (case-insensitive) — quietly succeed without writing.
+          return true
+        }
+        const conflict = await this.findByNameCaseInsensitive(trimmed)
+        if (conflict !== undefined && conflict.id !== id) {
+          return false
+        }
+        await this.db.categories.update(id, { name: trimmed })
+        return true
+      }
+    )
+
+    if (result) {
+      this.emitUpdatedCategories()
+    }
+
+    return result
+  }
+
   private async findByNameCaseInsensitive(
     name: string
   ): Promise<IDatabaseCategory | undefined> {
