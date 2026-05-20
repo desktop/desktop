@@ -140,6 +140,7 @@ import { CommitDragElement } from './drag-elements/commit-drag-element'
 import classNames from 'classnames'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
 import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
+import { CreateCategory } from './categories/create-category-dialog'
 import { ThankYou } from './thank-you'
 import {
   getUserContributions,
@@ -2153,6 +2154,16 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.CreateCategory: {
+        return (
+          <CreateCategory
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            categories={this.state.categories}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       case PopupType.ThankYou:
         return (
           <ThankYou
@@ -2981,6 +2992,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         selectedRepository={selectedRepository}
         onSelectionChanged={this.onSelectionChanged}
         repositories={this.state.repositories}
+        categories={this.state.categories}
         recentRepositories={this.state.recentRepositories}
         localRepositoryStateLookup={this.state.localRepositoryStateLookup}
         askForConfirmationOnRemoveRepository={
@@ -3168,6 +3180,20 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.changeRepositoryAlias(repository, null)
     }
 
+    const onAssignCategory = (
+      repository: Repository,
+      categoryId: number | null
+    ) => {
+      this.props.dispatcher.setRepositoryCategoryId(repository, categoryId)
+    }
+
+    const onCreateCategory = (repository: Repository) => {
+      this.props.dispatcher.showPopup({
+        type: PopupType.CreateCategory,
+        repository,
+      })
+    }
+
     const items = generateRepositoryListContextMenu({
       onRemoveRepository: this.removeRepository,
       onShowRepository: this.showRepository,
@@ -3179,6 +3205,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       onChangeRepositoryAlias: onChangeRepositoryAlias,
       onRemoveRepositoryAlias: onRemoveRepositoryAlias,
       onViewOnGitHub: this.viewOnGitHub,
+      categories: this.state.categories,
+      onAssignCategory: onAssignCategory,
+      onCreateCategory: onCreateCategory,
       repository: repository,
       shellLabel: this.state.useCustomShell
         ? undefined

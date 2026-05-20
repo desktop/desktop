@@ -6,6 +6,7 @@ import {
   RepositoryWithGitHubRepository,
 } from '../../models/repository'
 import { CloningRepository } from '../../models/cloning-repository'
+import { Category } from '../../models/category'
 import { getHTMLURL } from '../../lib/api'
 import { caseInsensitiveCompare, compare } from '../../lib/compare'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
@@ -17,6 +18,11 @@ import { Owner } from '../../models/owner'
 export type RepositoryListGroup =
   | {
       kind: 'recent' | 'other'
+    }
+  | {
+      kind: 'category'
+      id: number
+      name: string
     }
   | {
       kind: 'dotcom'
@@ -37,12 +43,17 @@ export const getGroupKey = (group: RepositoryListGroup) => {
   switch (kind) {
     case 'recent':
       return `0:recent`
+    case 'category':
+      // Use the lowercased name as the sort key so categories render in
+      // case-insensitive alphabetical order regardless of how the user typed
+      // them.
+      return `1:category:${group.name.toLowerCase()}:${group.id}`
     case 'dotcom':
-      return `1:dotcom:${group.owner.login}`
+      return `2:dotcom:${group.owner.login}`
     case 'enterprise':
-      return `2:enterprise:${group.host}`
+      return `3:enterprise:${group.host}`
     case 'other':
-      return `3:other`
+      return `4:other`
     default:
       assertNever(group, `Unknown repository group kind ${kind}`)
   }
@@ -63,7 +74,18 @@ const recentRepositoriesThreshold = 7
 const getHostForRepository = (repo: RepositoryWithGitHubRepository) =>
   new URL(getHTMLURL(repo.gitHubRepository.endpoint)).host
 
-const getGroupForRepository = (repo: Repositoryish): RepositoryListGroup => {
+const getGroupForRepository = (
+  repo: Repositoryish,
+  categoriesById: ReadonlyMap<number, Category>
+): RepositoryListGroup => {
+  if (repo instanceof Repository && repo.categoryId !== null) {
+    const category = categoriesById.get(repo.categoryId)
+    if (category !== undefined) {
+      return { kind: 'category', id: category.id, name: category.name }
+    }
+    // Category was deleted while the repo still referenced it — fall through to
+    // the default grouping rather than dropping the repo.
+  }
   if (repo instanceof Repository && isRepositoryWithGitHubRepository(repo)) {
     return isDotCom(repo.gitHubRepository.endpoint)
       ? { kind: 'dotcom', owner: repo.gitHubRepository.owner }
@@ -77,10 +99,14 @@ type RepoGroupItem = { group: RepositoryListGroup; repos: Repositoryish[] }
 export function groupRepositories(
   repositories: ReadonlyArray<Repositoryish>,
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-  recentRepositories: ReadonlyArray<number>
+  recentRepositories: ReadonlyArray<number>,
+  categories: ReadonlyArray<Category> = []
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem, RepositoryListGroup>> {
   const includeRecentGroup = repositories.length > recentRepositoriesThreshold
   const recentSet = includeRecentGroup ? new Set(recentRepositories) : undefined
+  const categoriesById = new Map<number, Category>(
+    categories.map(c => [c.id, c])
+  )
   const groups = new Map<string, RepoGroupItem>()
 
   const addToGroup = (group: RepositoryListGroup, repo: Repositoryish) => {
@@ -94,12 +120,26 @@ export function groupRepositories(
     rg.repos.push(repo)
   }
 
+  // Seed an empty bucket for every known category so they remain visible even
+  // when no repos are assigned to them yet.
+  for (const category of categories) {
+    const key = getGroupKey({
+      kind: 'category',
+      id: category.id,
+      name: category.name,
+    })
+    groups.set(key, {
+      group: { kind: 'category', id: category.id, name: category.name },
+      repos: [],
+    })
+  }
+
   for (const repo of repositories) {
     if (recentSet?.has(repo.id) && repo instanceof Repository) {
       addToGroup({ kind: 'recent' }, repo)
     }
 
-    addToGroup(getGroupForRepository(repo), repo)
+    addToGroup(getGroupForRepository(repo, categoriesById), repo)
   }
 
   return Array.from(groups)
