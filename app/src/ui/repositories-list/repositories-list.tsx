@@ -3,6 +3,7 @@ import * as React from 'react'
 import { commitGrammar, RepositoryListItem } from './repository-list-item'
 import {
   groupRepositories,
+  hasRepositoryListItemIndicator,
   IRepositoryListItem,
   Repositoryish,
   RepositoryListGroup,
@@ -11,13 +12,13 @@ import {
 import { IFilterListGroup } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { ILocalRepositoryState, Repository } from '../../models/repository'
-import { Dispatcher } from '../dispatcher'
+import { PopupType } from '../../models/popup'
+import type { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import { showContextualMenu } from '../../lib/menu-item'
-import { IMenuItem } from '../../lib/menu-item'
-import { PopupType } from '../../models/popup'
+import type { IMenuItem } from '../../lib/menu-item'
 import { encodePathAsUrl } from '../../lib/path'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import memoizeOne from 'memoize-one'
@@ -73,6 +74,14 @@ interface IRepositoriesListProps {
   /** The text entered by the user to filter their repository list */
   readonly filterText: string
 
+  /** Whether the list should only show repositories with status indicators. */
+  readonly showOnlyRepositoriesWithIndicators: boolean
+
+  /** Called when the status-indicator filter has changed. */
+  readonly onShowOnlyRepositoriesWithIndicatorsChanged: (
+    showOnlyRepositoriesWithIndicators: boolean
+  ) => void
+
   readonly dispatcher: Dispatcher
 }
 
@@ -82,6 +91,8 @@ interface IRepositoriesListState {
 }
 
 const RowHeight = 29
+const RepositoryStatusFilterLabel =
+  'Filter repositories with changes, pushes, or pulls'
 
 /**
  * Iterate over all groups until a list item is found that matches
@@ -121,14 +132,16 @@ export class RepositoriesList extends React.Component<
     (
       repositories: ReadonlyArray<Repositoryish> | null,
       localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-      recentRepositories: ReadonlyArray<number>
+      recentRepositories: ReadonlyArray<number>,
+      showOnlyRepositoriesWithIndicators: boolean
     ) =>
       repositories === null
         ? []
         : groupRepositories(
             repositories,
             localRepositoryStateLookup,
-            recentRepositories
+            recentRepositories,
+            showOnlyRepositoriesWithIndicators
           )
   )
 
@@ -271,12 +284,9 @@ export class RepositoriesList extends React.Component<
   }
 
   private onItemClick = (item: IRepositoryListItem) => {
-    const hasIndicator =
-      item.changedFilesCount > 0 ||
-      (item.aheadBehind !== null
-        ? item.aheadBehind.ahead > 0 || item.aheadBehind.behind > 0
-        : false)
-    this.props.dispatcher.recordRepoClicked(hasIndicator)
+    this.props.dispatcher.recordRepoClicked(
+      hasRepositoryListItemIndicator(item)
+    )
     this.props.onSelectionChanged(item.repository)
   }
 
@@ -318,7 +328,8 @@ export class RepositoriesList extends React.Component<
     const groups = this.getRepositoryGroups(
       this.props.repositories,
       this.props.localRepositoryStateLookup,
-      this.props.recentRepositories
+      this.props.recentRepositories,
+      this.props.showOnlyRepositoriesWithIndicators
     )
 
     // So there's two types of selection at play here. There's the repository
@@ -347,6 +358,8 @@ export class RepositoriesList extends React.Component<
           invalidationProps={{
             repositories: this.props.repositories,
             filterText: this.props.filterText,
+            showOnlyRepositoriesWithIndicators:
+              this.props.showOnlyRepositoriesWithIndicators,
           }}
           onItemContextMenu={this.onItemContextMenu}
           getGroupAriaLabel={this.getGroupAriaLabelGetter(groups)}
@@ -363,15 +376,37 @@ export class RepositoriesList extends React.Component<
 
   private renderPostFilter = () => {
     return (
-      <Button
-        className="new-repository-button"
-        onClick={this.onNewRepositoryButtonClick}
-        ariaExpanded={this.state.newRepositoryMenuExpanded}
-        onKeyDown={this.onNewRepositoryButtonKeyDown}
-      >
-        Add
-        <Octicon symbol={octicons.triangleDown} />
-      </Button>
+      <>
+        <Button
+          className="repository-list-status-filter-button"
+          onClick={this.onStatusFilterButtonClick}
+          ariaLabel={RepositoryStatusFilterLabel}
+          ariaPressed={this.props.showOnlyRepositoriesWithIndicators}
+          tooltip={
+            this.props.showOnlyRepositoriesWithIndicators
+              ? 'Show all repositories'
+              : 'Show only repositories with changes, pushes, or pulls'
+          }
+        >
+          <Octicon symbol={octicons.filter} />
+        </Button>
+        <Button
+          className="new-repository-button"
+          onClick={this.onNewRepositoryButtonClick}
+          ariaExpanded={this.state.newRepositoryMenuExpanded}
+          onKeyDown={this.onNewRepositoryButtonKeyDown}
+        >
+          Add
+          <Octicon symbol={octicons.triangleDown} />
+        </Button>
+      </>
+    )
+  }
+
+  private onStatusFilterButtonClick = () => {
+    this.setState({ selectedItem: null })
+    this.props.onShowOnlyRepositoriesWithIndicatorsChanged(
+      !this.props.showOnlyRepositoriesWithIndicators
     )
   }
 
@@ -384,6 +419,19 @@ export class RepositoriesList extends React.Component<
   }
 
   private renderNoItems = () => {
+    if (this.props.showOnlyRepositoriesWithIndicators) {
+      const title = this.props.filterText
+        ? 'No repositories with changes, pushes, or pulls match your filter'
+        : 'No repositories with changes, pushes, or pulls'
+
+      return (
+        <div className="no-items no-results-found">
+          <img src={BlankSlateImage} className="blankslate-image" alt="" />
+          <div className="title">{title}</div>
+        </div>
+      )
+    }
+
     return (
       <div className="no-items no-results-found">
         <img src={BlankSlateImage} className="blankslate-image" alt="" />
@@ -439,11 +487,15 @@ export class RepositoriesList extends React.Component<
   }
 
   private onAddExistingRepository = () => {
-    this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
+    this.props.dispatcher.showPopup({
+      type: PopupType.AddRepository,
+    })
   }
 
   private onCreateNewRepository = () => {
-    this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
+    this.props.dispatcher.showPopup({
+      type: PopupType.CreateRepository,
+    })
   }
 
   private onChangeRepositoryAlias = (repository: Repository) => {

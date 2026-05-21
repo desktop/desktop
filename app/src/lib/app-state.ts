@@ -295,6 +295,9 @@ export interface IAppState {
   /** The current repository filter text. */
   readonly repositoryFilterText: string
 
+  /** Whether the repository picker should only show repositories with status indicators. */
+  readonly showOnlyRepositoriesWithIndicators: boolean
+
   /** The currently selected tab for Clone Repository. */
   readonly selectedCloneRepositoryTab: CloneRepositoryTab
 

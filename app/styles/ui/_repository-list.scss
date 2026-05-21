@@ -82,6 +82,25 @@
     }
   }
 
+  .repository-list-status-filter-button {
+    align-items: center;
+    display: inline-flex;
+    flex-shrink: 0;
+    justify-content: center;
+    padding: 0;
+    width: var(--button-height);
+
+    &[aria-pressed='true'] {
+      background: var(--button-background);
+      border-color: var(--button-background);
+      color: var(--button-text-color);
+    }
+
+    .octicon {
+      margin-right: 0;
+    }
+  }
+
   .no-items {
     text-align: center;
     padding: var(--spacing);

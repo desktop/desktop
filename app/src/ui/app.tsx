@@ -2978,6 +2978,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       <RepositoriesList
         filterText={filterText}
         onFilterTextChanged={this.onRepositoryFilterTextChanged}
+        showOnlyRepositoriesWithIndicators={
+          this.state.showOnlyRepositoriesWithIndicators
+        }
+        onShowOnlyRepositoriesWithIndicatorsChanged={
+          this.onShowOnlyRepositoriesWithIndicatorsChanged
+        }
         selectedRepository={selectedRepository}
         onSelectionChanged={this.onSelectionChanged}
         repositories={this.state.repositories}
@@ -3621,6 +3627,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onRepositoryFilterTextChanged = (text: string) => {
     this.props.dispatcher.setRepositoryFilterText(text)
+  }
+
+  private onShowOnlyRepositoriesWithIndicatorsChanged = (
+    showOnlyRepositoriesWithIndicators: boolean
+  ) => {
+    this.props.dispatcher.setShowOnlyRepositoriesWithIndicators(
+      showOnlyRepositoriesWithIndicators
+    )
   }
 
   private onSelectionChanged = (repository: Repository | CloningRepository) => {

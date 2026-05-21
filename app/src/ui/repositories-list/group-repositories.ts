@@ -60,6 +60,13 @@ export interface IRepositoryListItem extends IFilterListItem {
 
 const recentRepositoriesThreshold = 7
 
+export const hasRepositoryListItemIndicator = (
+  item: Pick<IRepositoryListItem, 'aheadBehind' | 'changedFilesCount'>
+) =>
+  item.changedFilesCount > 0 ||
+  (item.aheadBehind !== null &&
+    (item.aheadBehind.ahead > 0 || item.aheadBehind.behind > 0))
+
 const getHostForRepository = (repo: RepositoryWithGitHubRepository) =>
   new URL(getHTMLURL(repo.gitHubRepository.endpoint)).host
 
@@ -77,7 +84,8 @@ type RepoGroupItem = { group: RepositoryListGroup; repos: Repositoryish[] }
 export function groupRepositories(
   repositories: ReadonlyArray<Repositoryish>,
   localRepositoryStateLookup: ReadonlyMap<number, ILocalRepositoryState>,
-  recentRepositories: ReadonlyArray<number>
+  recentRepositories: ReadonlyArray<number>,
+  showOnlyRepositoriesWithIndicators: boolean = false
 ): ReadonlyArray<IFilterListGroup<IRepositoryListItem, RepositoryListGroup>> {
   const includeRecentGroup = repositories.length > recentRepositoriesThreshold
   const recentSet = includeRecentGroup ? new Set(recentRepositories) : undefined
@@ -104,15 +112,21 @@ export function groupRepositories(
 
   return Array.from(groups)
     .sort(([xKey], [yKey]) => compare(xKey, yKey))
-    .map(([, { group, repos }]) => ({
-      identifier: group,
-      items: toSortedListItems(
+    .map(([, { group, repos }]) => {
+      const items = toSortedListItems(
         group,
         repos,
         localRepositoryStateLookup,
         groups
-      ),
-    }))
+      ).filter(
+        item =>
+          !showOnlyRepositoriesWithIndicators ||
+          hasRepositoryListItemIndicator(item)
+      )
+
+      return { identifier: group, items }
+    })
+    .filter(group => group.items.length > 0)
 }
 
 // Returns the display title for a repository, which is either the alias

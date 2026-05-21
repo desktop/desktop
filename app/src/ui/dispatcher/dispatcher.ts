@@ -294,6 +294,15 @@ export class Dispatcher {
     return this.appStore._setRepositoryFilterText(text)
   }
 
+  /** Set whether the repository picker shows only repositories with status indicators. */
+  public setShowOnlyRepositoriesWithIndicators(
+    showOnlyRepositoriesWithIndicators: boolean
+  ): Promise<void> {
+    return this.appStore._setShowOnlyRepositoriesWithIndicators(
+      showOnlyRepositoriesWithIndicators
+    )
+  }
+
   /** Select the repository. */
   public selectRepository(
     repository: Repository | CloningRepository

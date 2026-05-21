@@ -1,6 +1,9 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { groupRepositories } from '../../src/ui/repositories-list/group-repositories'
+import {
+  groupRepositories,
+  hasRepositoryListItemIndicator,
+} from '../../src/ui/repositories-list/group-repositories'
 import { Repository, ILocalRepositoryState } from '../../src/models/repository'
 import { CloningRepository } from '../../src/models/cloning-repository'
 import { gitHubRepoFixture } from '../helpers/github-repo-builder'
@@ -152,5 +155,65 @@ describe('repository list grouping', () => {
 
     assert.equal(grouped[2].items[1].text[0], 'enterprise-repo')
     assert(grouped[2].items[1].needsDisambiguation)
+  })
+
+  it('filters to repositories with local changes or ahead/behind commits', () => {
+    const cleanRepo = new Repository('clean', 1, null, false)
+    const changedRepo = new Repository('changed', 2, null, false)
+    const aheadRepo = new Repository('ahead', 3, null, false)
+    const behindRepo = new Repository('behind', 4, null, false)
+    const divergedRepo = new Repository('diverged', 5, null, false)
+
+    const repositoryStates = new Map<number, ILocalRepositoryState>([
+      [1, { aheadBehind: { ahead: 0, behind: 0 }, changedFilesCount: 0 }],
+      [2, { aheadBehind: { ahead: 0, behind: 0 }, changedFilesCount: 3 }],
+      [3, { aheadBehind: { ahead: 2, behind: 0 }, changedFilesCount: 0 }],
+      [4, { aheadBehind: { ahead: 0, behind: 1 }, changedFilesCount: 0 }],
+      [5, { aheadBehind: { ahead: 1, behind: 1 }, changedFilesCount: 0 }],
+    ])
+
+    const grouped = groupRepositories(
+      [cleanRepo, changedRepo, aheadRepo, behindRepo, divergedRepo],
+      repositoryStates,
+      [],
+      true
+    )
+
+    assert.equal(grouped.length, 1)
+    assert.deepStrictEqual(
+      grouped[0].items.map(item => item.repository.path),
+      ['ahead', 'behind', 'changed', 'diverged']
+    )
+  })
+
+  it('uses the same status signal as repository list indicators', () => {
+    assert.equal(
+      hasRepositoryListItemIndicator({
+        aheadBehind: { ahead: 0, behind: 0 },
+        changedFilesCount: 0,
+      }),
+      false
+    )
+    assert.equal(
+      hasRepositoryListItemIndicator({
+        aheadBehind: null,
+        changedFilesCount: 1,
+      }),
+      true
+    )
+    assert.equal(
+      hasRepositoryListItemIndicator({
+        aheadBehind: { ahead: 1, behind: 0 },
+        changedFilesCount: 0,
+      }),
+      true
+    )
+    assert.equal(
+      hasRepositoryListItemIndicator({
+        aheadBehind: { ahead: 0, behind: 1 },
+        changedFilesCount: 0,
+      }),
+      true
+    )
   })
 })

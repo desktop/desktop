@@ -611,6 +611,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** The current repository filter text */
   private repositoryFilterText: string = ''
 
+  /** Whether the repository picker should only show repositories with status indicators. */
+  private showOnlyRepositoriesWithIndicators: boolean = false
+
   private currentMergeTreePromise: Promise<void> | null = null
 
   /** The function to resolve the current Open in Desktop flow. */
@@ -1149,6 +1152,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       showSideBySideDiff: this.showSideBySideDiff,
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
+      showOnlyRepositoriesWithIndicators:
+        this.showOnlyRepositoriesWithIndicators,
       resolvedExternalEditor: this.resolvedExternalEditor,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
@@ -1877,6 +1882,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _setRepositoryFilterText(text: string): Promise<void> {
     this.repositoryFilterText = text
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setShowOnlyRepositoriesWithIndicators(
+    showOnlyRepositoriesWithIndicators: boolean
+  ): Promise<void> {
+    this.showOnlyRepositoriesWithIndicators = showOnlyRepositoriesWithIndicators
     this.emitUpdate()
   }
 
