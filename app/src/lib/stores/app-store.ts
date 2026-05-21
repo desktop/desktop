@@ -475,11 +475,6 @@ const repositoryIndicatorsEnabledKey = 'enable-repository-indicators'
 // switching between apps does not result in excessive fetching in the app
 const BackgroundFetchMinimumInterval = 30 * 60 * 1000
 
-/**
- * Wait 2 minutes before refreshing repository indicators
- */
-const InitialRepositoryIndicatorTimeout = 2 * 60 * 1000
-
 const MaxInvalidFoldersToDisplay = 3
 
 const lastThankYouKey = 'version-and-users-of-last-thank-you'
@@ -739,12 +734,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.getRepositoriesForIndicatorRefresh,
       this.refreshIndicatorForRepository
     )
-
-    window.setTimeout(() => {
-      if (this.repositoryIndicatorsEnabled) {
-        this.repositoryIndicatorUpdater.start()
-      }
-    }, InitialRepositoryIndicatorTimeout)
 
     API.onTokenInvalidated(this.onTokenInvalidated)
 
@@ -2258,6 +2247,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositories = repositories
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
+    this.requestRepositoryIndicatorRefresh()
 
     this.sidebarWidth = constrain(
       getNumber(sidebarWidthConfigKey, defaultSidebarWidth)
@@ -3878,6 +3868,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this.repositories.filter(x => x !== this.selectedRepository)
   }
 
+  private requestRepositoryIndicatorRefresh() {
+    if (this.repositoryIndicatorsEnabled) {
+      this.repositoryIndicatorUpdater.requestRefresh()
+    }
+  }
+
   /**
    * A slimmed down version of performFetch which is only used when fetching
    * the repository in order to compute the repository indicator status.
@@ -3912,7 +3908,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     setBoolean(repositoryIndicatorsEnabledKey, repositoryIndicatorsEnabled)
     this.repositoryIndicatorsEnabled = repositoryIndicatorsEnabled
     if (repositoryIndicatorsEnabled) {
-      this.repositoryIndicatorUpdater.start()
+      this.requestRepositoryIndicatorRefresh()
     } else {
       this.repositoryIndicatorUpdater.stop()
     }
@@ -4077,9 +4073,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       foldout.type === FoldoutType.Repository &&
       this.repositoryIndicatorsEnabled
     ) {
-      // N.B: RepositoryIndicatorUpdater.prototype.start is
-      // idempotent.
-      this.repositoryIndicatorUpdater.start()
+      this.requestRepositoryIndicatorRefresh()
     }
   }
 

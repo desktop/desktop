@@ -19,6 +19,8 @@ const skew = Math.ceil(Math.random() * SkewUpperBound)
 export class RepositoryIndicatorUpdater {
   private running = false
   private refreshTimeoutId: number | null = null
+  private refreshInProgress = false
+  private queuedRefresh = false
   private paused = false
   private pausePromise: Promise<void> = Promise.resolve()
   private resolvePausePromise: (() => void) | null = null
@@ -40,14 +42,30 @@ export class RepositoryIndicatorUpdater {
     }
   }
 
-  private scheduleRefresh() {
+  public requestRefresh() {
+    if (!this.running) {
+      log.debug('[RepositoryIndicatorUpdater] Starting for requested refresh')
+      this.running = true
+    }
+
+    if (this.refreshInProgress) {
+      this.queuedRefresh = true
+      return
+    }
+
+    this.clearRefreshTimeout()
+    this.scheduleRefresh(0)
+  }
+
+  private scheduleRefresh(delay: number | null = null) {
     if (this.running && this.refreshTimeoutId === null) {
       const timeSinceLastRefresh =
         this.lastRefreshStartedAt === null
           ? Infinity
           : Date.now() - this.lastRefreshStartedAt
 
-      const timeout = Math.max(RefreshInterval - timeSinceLastRefresh, 0) + skew
+      const timeout =
+        delay ?? Math.max(RefreshInterval - timeSinceLastRefresh, 0) + skew
       const lastRefreshText = isFinite(timeSinceLastRefresh)
         ? `${(timeSinceLastRefresh / 1000).toFixed(3)}s ago`
         : 'never'
@@ -69,58 +87,70 @@ export class RepositoryIndicatorUpdater {
     // this without calling clearTimeout
     this.refreshTimeoutId = null
     log.debug('[RepositoryIndicatorUpdater] Running refreshAllRepositories')
-    if (this.paused) {
-      log.debug(
-        '[RepositoryIndicatorUpdater] Paused before starting refreshAllRepositories'
-      )
-      await this.pausePromise
 
-      if (!this.running) {
-        return
-      }
-    }
-
-    this.lastRefreshStartedAt = Date.now()
-
-    let repository
-    const done = new Set<number>()
-    const getNextRepository = () =>
-      this.getRepositories().find(x => !done.has(x.id))
-
-    const startTime = Date.now()
-    let pausedTime = 0
-
-    while (this.running && (repository = getNextRepository()) !== undefined) {
-      await this.refreshRepositoryIndicators(repository)
+    try {
+      this.refreshInProgress = true
 
       if (this.paused) {
         log.debug(
-          `[RepositoryIndicatorUpdater] Pausing after ${done.size} repositories`
+          '[RepositoryIndicatorUpdater] Paused before starting refreshAllRepositories'
         )
-        const pauseTimeStart = Date.now()
         await this.pausePromise
-        pausedTime += Date.now() - pauseTimeStart
-        log.debug(
-          `[RepositoryIndicatorUpdater] Resuming after ${pausedTime / 1000}s`
+
+        if (!this.running) {
+          return
+        }
+      }
+
+      this.lastRefreshStartedAt = Date.now()
+
+      let repository
+      const done = new Set<number>()
+      const getNextRepository = () =>
+        this.getRepositories().find(x => !done.has(x.id))
+
+      const startTime = Date.now()
+      let pausedTime = 0
+
+      while (this.running && (repository = getNextRepository()) !== undefined) {
+        await this.refreshRepositoryIndicators(repository)
+
+        if (this.paused) {
+          log.debug(
+            `[RepositoryIndicatorUpdater] Pausing after ${done.size} repositories`
+          )
+          const pauseTimeStart = Date.now()
+          await this.pausePromise
+          pausedTime += Date.now() - pauseTimeStart
+          log.debug(
+            `[RepositoryIndicatorUpdater] Resuming after ${pausedTime / 1000}s`
+          )
+        }
+
+        done.add(repository.id)
+      }
+
+      if (done.size >= 1) {
+        const totalTime = Date.now() - startTime
+        const activeTime = totalTime - pausedTime
+        const activeTimeSeconds = (activeTime / 1000).toFixed(1)
+        const pausedTimeSeconds = (pausedTime / 1000).toFixed(1)
+        const totalTimeSeconds = (totalTime / 1000).toFixed(1)
+
+        log.info(
+          `[RepositoryIndicatorUpdater]: Refreshing sidebar indicators for ${done.size} repositories took ${activeTimeSeconds}s of which ${pausedTimeSeconds}s paused, total ${totalTimeSeconds}s`
         )
       }
 
-      done.add(repository.id)
+      if (this.queuedRefresh) {
+        this.queuedRefresh = false
+        this.scheduleRefresh(0)
+      } else {
+        this.scheduleRefresh()
+      }
+    } finally {
+      this.refreshInProgress = false
     }
-
-    if (done.size >= 1) {
-      const totalTime = Date.now() - startTime
-      const activeTime = totalTime - pausedTime
-      const activeTimeSeconds = (activeTime / 1000).toFixed(1)
-      const pausedTimeSeconds = (pausedTime / 1000).toFixed(1)
-      const totalTimeSeconds = (totalTime / 1000).toFixed(1)
-
-      log.info(
-        `[RepositoryIndicatorUpdater]: Refreshing sidebar indicators for ${done.size} repositories took ${activeTimeSeconds}s of which ${pausedTimeSeconds}s paused, total ${totalTimeSeconds}s`
-      )
-    }
-
-    this.scheduleRefresh()
   }
 
   private clearRefreshTimeout() {
@@ -134,6 +164,7 @@ export class RepositoryIndicatorUpdater {
     if (this.running) {
       log.debug('[RepositoryIndicatorUpdater] Stopping')
       this.running = false
+      this.queuedRefresh = false
       this.clearRefreshTimeout()
     }
   }
