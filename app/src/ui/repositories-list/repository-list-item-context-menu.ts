@@ -1,4 +1,5 @@
 import { Repository } from '../../models/repository'
+import { Category } from '../../models/category'
 import { IMenuItem } from '../../lib/menu-item'
 import { Repositoryish } from './group-repositories'
 import { clipboard } from 'electron'
@@ -13,6 +14,7 @@ interface IRepositoryListItemContextMenuConfig {
   shellLabel: string | undefined
   externalEditorLabel: string | undefined
   askForConfirmationOnRemoveRepository: boolean
+  categories: ReadonlyArray<Category>
   onViewOnGitHub: (repository: Repositoryish) => void
   onOpenInShell: (repository: Repositoryish) => void
   onShowRepository: (repository: Repositoryish) => void
@@ -20,6 +22,8 @@ interface IRepositoryListItemContextMenuConfig {
   onRemoveRepository: (repository: Repositoryish) => void
   onChangeRepositoryAlias: (repository: Repository) => void
   onRemoveRepositoryAlias: (repository: Repository) => void
+  onAssignCategory: (repository: Repository, categoryId: number | null) => void
+  onCreateCategory: (repository: Repository) => void
 }
 
 export const generateRepositoryListContextMenu = (
@@ -38,6 +42,7 @@ export const generateRepositoryListContextMenu = (
 
   const items: ReadonlyArray<IMenuItem> = [
     ...buildAliasMenuItems(config),
+    ...buildCategoryMenuItems(config),
     {
       label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
       action: () => clipboard.writeText(repository.name),
@@ -102,4 +107,48 @@ const buildAliasMenuItems = (
   }
 
   return items
+}
+
+const buildCategoryMenuItems = (
+  config: IRepositoryListItemContextMenuConfig
+): ReadonlyArray<IMenuItem> => {
+  const { repository, categories } = config
+
+  // Cloning repositories aren't persisted yet — categorization only makes
+  // sense once they've materialized into a Repository.
+  if (!(repository instanceof Repository)) {
+    return []
+  }
+
+  const submenu: Array<IMenuItem> = categories.map(category => ({
+    label: category.name,
+    type: 'checkbox',
+    checked: repository.categoryId === category.id,
+    action: () => config.onAssignCategory(repository, category.id),
+  }))
+
+  if (categories.length > 0) {
+    submenu.push({ type: 'separator' })
+  }
+
+  submenu.push({
+    label: 'None',
+    type: 'checkbox',
+    checked: repository.categoryId === null,
+    enabled: repository.categoryId !== null,
+    action: () => config.onAssignCategory(repository, null),
+  })
+
+  submenu.push({ type: 'separator' })
+  submenu.push({
+    label: __DARWIN__ ? 'New Category…' : 'New category…',
+    action: () => config.onCreateCategory(repository),
+  })
+
+  return [
+    {
+      label: __DARWIN__ ? 'Category' : 'Category',
+      submenu,
+    },
+  ]
 }

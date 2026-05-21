@@ -3,6 +3,7 @@ import {
   RepositoryWithGitHubRepository,
   RepositoryWithForkedGitHubRepository,
 } from './repository'
+import { Category } from './category'
 import { PullRequest } from './pull-request'
 import { Branch } from './branch'
 import { ReleaseNote, ReleaseSummary } from './release-notes'
@@ -78,6 +79,8 @@ export enum PopupType {
   ConfirmDiscardSelection = 'ConfirmDiscardSelection',
   MoveToApplicationsFolder = 'MoveToApplicationsFolder',
   ChangeRepositoryAlias = 'ChangeRepositoryAlias',
+  CreateCategory = 'CreateCategory',
+  RenameCategory = 'RenameCategory',
   ThankYou = 'ThankYou',
   CommitMessage = 'CommitMessage',
   MultiCommitOperation = 'MultiCommitOperation',
@@ -326,6 +329,8 @@ export type PopupDetail =
     }
   | { type: PopupType.MoveToApplicationsFolder }
   | { type: PopupType.ChangeRepositoryAlias; repository: Repository }
+  | { type: PopupType.CreateCategory; repository: Repository }
+  | { type: PopupType.RenameCategory; category: Category }
   | {
       type: PopupType.ThankYou
       userContributions: ReadonlyArray<ReleaseNote>

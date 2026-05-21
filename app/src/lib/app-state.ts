@@ -9,6 +9,7 @@ import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
+import { Category } from '../models/category'
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
@@ -89,6 +90,9 @@ export interface IAppState {
    * The current list of repositories tracked in the application
    */
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
+
+  /** All user-defined repository categories, alphabetical. */
+  readonly categories: ReadonlyArray<Category>
 
   /**
    * List of IDs of the most recently opened repositories (most recent first)

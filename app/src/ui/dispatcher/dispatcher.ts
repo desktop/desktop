@@ -62,6 +62,7 @@ import { Account } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { Author, UnknownAuthor } from '../../models/author'
 import { Branch, IAheadBehind } from '../../models/branch'
+import { Category } from '../../models/category'
 import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
@@ -857,6 +858,46 @@ export class Dispatcher {
     newAlias: string | null
   ): Promise<void> {
     return this.appStore._changeRepositoryAlias(repository, newAlias)
+  }
+
+  /**
+   * Assign the repository to a user-defined category, or pass null to clear
+   * the assignment (uncategorize).
+   */
+  public setRepositoryCategoryId(
+    repository: Repository,
+    categoryId: number | null
+  ): Promise<void> {
+    return this.appStore._setRepositoryCategoryId(repository, categoryId)
+  }
+
+  /**
+   * Create a new category with the given name and immediately assign the
+   * given repository to it. The category name must be non-empty and
+   * case-insensitively unique among existing categories.
+   */
+  public createCategoryAndAssign(
+    repository: Repository,
+    name: string
+  ): Promise<void> {
+    return this.appStore._createCategoryAndAssign(repository, name)
+  }
+
+  /**
+   * Rename an existing category. No-ops when the name is unchanged
+   * (case-insensitive); ignores the request when another category already
+   * uses the same name.
+   */
+  public renameCategory(category: Category, name: string): Promise<void> {
+    return this.appStore._renameCategory(category, name)
+  }
+
+  /**
+   * Delete a category. Any repositories currently assigned to it are
+   * unassigned and fall back to their default sidebar group.
+   */
+  public deleteCategory(category: Category): Promise<void> {
+    return this.appStore._deleteCategory(category)
   }
 
   /** Rename the branch to a new name. */

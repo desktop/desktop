@@ -180,6 +180,16 @@ interface ISectionFilterListProps<T extends IFilterListItem, GroupIdentifier> {
     item: T,
     event: React.MouseEvent<HTMLDivElement>
   ) => void
+
+  /**
+   * A handler called whenever a context menu event is received on a group
+   * header row. Optional — when omitted, group headers do nothing on
+   * right-click (which matches the historical behavior).
+   */
+  readonly onGroupHeaderContextMenu?: (
+    identifier: GroupIdentifier,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => void
 }
 
 interface IFilterListState<T extends IFilterListItem, GroupIdentifier> {
@@ -522,17 +532,14 @@ export class SectionFilterList<
     index: RowIndexPath,
     source: React.MouseEvent<HTMLDivElement>
   ) => {
-    if (!this.props.onItemContextMenu) {
-      return
-    }
-
     const row = this.state.rows[index.section][index.row]
 
-    if (row.kind !== 'item') {
+    if (row.kind === 'group') {
+      this.props.onGroupHeaderContextMenu?.(row.identifier, source)
       return
     }
 
-    this.props.onItemContextMenu(row.item, source)
+    this.props.onItemContextMenu?.(row.item, source)
   }
 
   private onRowKeyDown = (

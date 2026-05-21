@@ -103,6 +103,10 @@ const DefaultDailyMeasures: IDailyMeasures = {
   prBranchCheckouts: 0,
   repoWithIndicatorClicked: 0,
   repoWithoutIndicatorClicked: 0,
+  categoryCreatedCount: 0,
+  categoryAssignedCount: 0,
+  categoryRenamedCount: 0,
+  categoryDeletedCount: 0,
   dotcomPushCount: 0,
   dotcomForcePushCount: 0,
   enterprisePushCount: 0,
@@ -812,6 +816,11 @@ export class StatsStore implements IStatsStore {
         ? 'repoWithIndicatorClicked'
         : 'repoWithoutIndicatorClicked'
     )
+
+  public recordCategoryCreated = () => this.increment('categoryCreatedCount')
+  public recordCategoryAssigned = () => this.increment('categoryAssignedCount')
+  public recordCategoryRenamed = () => this.increment('categoryRenamedCount')
+  public recordCategoryDeleted = () => this.increment('categoryDeletedCount')
 
   /** Set whether the user has opted out of stats reporting. */
   public async setOptOut(
