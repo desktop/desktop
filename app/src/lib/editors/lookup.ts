@@ -7,6 +7,16 @@ import { getAvailableEditors as getAvailableEditorsLinux } from './linux'
 let editorCache: ReadonlyArray<IFoundEditor<string>> | null = null
 
 /**
+ * Clears the cached list of available editors, forcing a fresh scan on the
+ * next call to `getAvailableEditors`. Should be called whenever the app
+ * regains focus so that newly installed (or uninstalled) editors are picked up
+ * without requiring a restart.
+ */
+export function invalidateEditorCache() {
+  editorCache = null
+}
+
+/**
  * Resolve a list of installed editors on the user's machine, using the known
  * install identifiers that each OS supports.
  */

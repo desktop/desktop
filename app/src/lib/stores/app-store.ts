@@ -158,9 +158,11 @@ import type { ModelInfo } from '@github/copilot-sdk'
 import {
   findEditorOrDefault,
   getAvailableEditors,
+  invalidateEditorCache,
   launchCustomExternalEditor,
   launchExternalEditor,
 } from '../editors'
+import { IFoundEditor } from '../editors/found-editor'
 import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
 
 import { formatCommitMessage } from '../format-commit-message'
@@ -6762,12 +6764,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     if (this.appIsFocused) {
       this.repositoryIndicatorUpdater.resume()
+      // Invalidate the editor cache on every focus so that editors installed or
+      // uninstalled while Desktop was in the background are picked up immediately
+      // without requiring a restart.
+      invalidateEditorCache()
+      await this._resolveCurrentEditor()
       if (this.selectedRepository instanceof Repository) {
         this.startPullRequestUpdater(this.selectedRepository)
-        // if we're in the tutorial and we don't have an editor yet, check for one!
-        if (this.currentOnboardingTutorialStep === TutorialStep.PickEditor) {
-          await this._resolveCurrentEditor()
-        }
       }
     } else {
       this.repositoryIndicatorUpdater.pause()
@@ -7549,7 +7552,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _resolveCurrentEditor() {
-    const match = await findEditorOrDefault(this.selectedExternalEditor)
+    let match: IFoundEditor<string> | null = null
+    try {
+      match = await findEditorOrDefault(this.selectedExternalEditor)
+    } catch (e) {
+      log.warn(
+        'Failed to resolve current editor',
+        e instanceof Error ? e : undefined
+      )
+    }
     const resolvedExternalEditor = match != null ? match.editor : null
     if (this.resolvedExternalEditor !== resolvedExternalEditor) {
       this.resolvedExternalEditor = resolvedExternalEditor
