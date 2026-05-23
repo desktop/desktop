@@ -1231,10 +1231,6 @@ export async function getLFSTextDiff(
       successExitCodes: new Set([0, 1]),
     })
 
-    if (stdout.length > MaxDiffBufferSize) {
-      return { kind: DiffType.LargeText }
-    }
-
     if (!isValidBuffer(stdout)) {
       return { kind: DiffType.Unrenderable }
     }
@@ -1245,6 +1241,16 @@ export async function getLFSTextDiff(
     const rawDiff = parser.parse(
       forceUnwrap('Invalid diff output', pieces.at(-1))
     )
+
+    if (isDiffTooLarge(rawDiff)) {
+      return {
+        kind: DiffType.LargeText,
+        text: rawDiff.contents,
+        hunks: rawDiff.hunks,
+        maxLineNumber: rawDiff.maxLineNumber,
+        hasHiddenBidiChars: rawDiff.hasHiddenBidiChars,
+      }
+    }
 
     return {
       kind: DiffType.Text,
