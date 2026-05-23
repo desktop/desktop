@@ -1231,6 +1231,14 @@ export async function getLFSTextDiff(
       successExitCodes: new Set([0, 1]),
     })
 
+    if (stdout.length > MaxDiffBufferSize) {
+      return { kind: DiffType.LargeText }
+    }
+
+    if (!isValidBuffer(stdout)) {
+      return { kind: DiffType.Unrenderable }
+    }
+
     const result = stdout.toString('utf-8')
     const pieces = result.split('\0')
     const parser = new DiffParser()
