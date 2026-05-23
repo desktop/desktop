@@ -59,6 +59,9 @@ interface IPullRequestFilesChangedProps {
    * it's SHA  */
   readonly nonLocalCommitSHA: string | null
 
+  /** SHA of the oldest commit in the pull request (used for LFS diff base) */
+  readonly oldestCommitSHA: string | null
+
   /**
    * Callback to open a selected file using the configured external editor
    *
@@ -230,12 +233,13 @@ export class PullRequestFilesChanged extends React.Component<
     if (file === null) {
       return Promise.resolve(null)
     }
-    const commitish = this.props.nonLocalCommitSHA ?? 'HEAD'
+    const oldestCommitish = this.props.oldestCommitSHA ?? 'HEAD'
+    const newestCommitish = this.props.nonLocalCommitSHA ?? 'HEAD'
     return getLFSTextDiff(
       this.props.repository,
       file,
-      commitish,
-      commitish,
+      oldestCommitish,
+      newestCommitish,
       this.props.hideWhitespaceInDiff
     )
   }
