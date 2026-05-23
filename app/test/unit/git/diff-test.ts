@@ -735,4 +735,48 @@ describe('git/diff', () => {
       assert(diff.text.includes('feature'))
     })
   })
+
+  describe('LFS diff detection', () => {
+    it('returns DiffType.LFSText when diff contains LFS pointer', async t => {
+      const repository = await setupEmptyRepository(t)
+
+      const lfsPointerContent = [
+        'version https://git-lfs.github.com/spec/v1',
+        'oid sha256:abc123',
+        'size 12345',
+      ].join('\n')
+
+      const filePath = join(repository.path, 'large-file.bin')
+      await writeFile(filePath, lfsPointerContent)
+      await git(['add', '.'], repository.path, 'add')
+      await git(['commit', '-m', 'add lfs pointer'], repository.path, 'commit')
+
+      await writeFile(filePath, lfsPointerContent.replace('abc123', 'def456'))
+
+      const status = await getStatusOrThrow(repository)
+      const files = status.workingDirectory.files
+      assert(files.length > 0)
+
+      const diff = await getWorkingDirectoryDiff(repository, files[0])
+      assert.equal(diff.kind, DiffType.LFSText)
+    })
+
+    it('returns DiffType.Text for non-LFS pointer diff', async t => {
+      const repository = await setupEmptyRepository(t)
+
+      const filePath = join(repository.path, 'normal.txt')
+      await writeFile(filePath, 'hello\n')
+      await git(['add', '.'], repository.path, 'add')
+      await git(['commit', '-m', 'add normal file'], repository.path, 'commit')
+
+      await appendFile(filePath, 'world\n')
+
+      const status = await getStatusOrThrow(repository)
+      const files = status.workingDirectory.files
+      assert(files.length > 0)
+
+      const diff = await getWorkingDirectoryDiff(repository, files[0])
+      assert.equal(diff.kind, DiffType.Text)
+    })
+  })
 })
