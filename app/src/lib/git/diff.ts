@@ -94,7 +94,7 @@ function isDiffTooLarge(diff: IRawDiff) {
 const LFSPointerSignature = 'version https://git-lfs.github.com/spec/v1'
 
 /** Number of bytes to sample when deciding whether a buffer is text. */
-const textCheckByteCount = 8000
+const TextCheckByteCount = 8000
 
 /**
  * Determine whether a buffer contains text by inspecting the first bytes.
@@ -102,7 +102,7 @@ const textCheckByteCount = 8000
  * sampled region contains a NUL byte (0x00).
  */
 function isBufferText(buf: Buffer): boolean {
-  const len = Math.min(buf.length, textCheckByteCount)
+  const len = Math.min(buf.length, TextCheckByteCount)
   for (let i = 0; i < len; i++) {
     if (buf[i] === 0) {
       return false
