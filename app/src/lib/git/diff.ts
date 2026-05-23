@@ -1069,7 +1069,7 @@ async function smudgeLFSBlobToBuffer(
   try {
     const pointer = await getBlobContents(repository, commitish, path)
     const result = await git(
-      ['lfs', 'smudge', path],
+      ['lfs', 'smudge', '--', path],
       repository.path,
       'smudgeLFSBlob',
       {
