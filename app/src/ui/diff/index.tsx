@@ -325,7 +325,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     )
   }
 
-  private renderLFSTextDiff(diff: ILFSTextDiff) {
+  private renderLFSTextDiff(_diff: ILFSTextDiff) {
     const resolved = this.state.resolvedLFSDiff
 
     if (resolved) {
