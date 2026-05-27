@@ -376,14 +376,17 @@ export async function getWorkingDirectoryDiff(
     successExitCodes.add(1)
     args.push('--no-index', '--', '/dev/null', file.path)
   } else if (file.status.kind === AppFileStatusKind.Renamed) {
-    // NB: Technically this is incorrect, the best kind of incorrect.
-    // In order to show exactly what will end up in the commit we should
-    // perform a diff between the new file and the old file as it appears
-    // in HEAD. By diffing against the index we won't show any changes
-    // already staged to the renamed file which differs from our other diffs.
-    // The closest I got to that was running hash-object and then using
-    // git diff <blob> <blob> but that seems a bit excessive.
-    args.push('--', ensureRelativePath(file.path))
+    // Diff the renamed file against HEAD with rename detection so a file that
+    // was both moved and edited shows its content changes. Diffing only the new
+    // path against the index (the previous behavior) showed an empty diff once
+    // the rename was staged, since index and working tree then match.
+    args.push(
+      '-M',
+      'HEAD',
+      '--',
+      ensureRelativePath(file.status.oldPath),
+      ensureRelativePath(file.path)
+    )
   } else {
     args.push('HEAD', '--', ensureRelativePath(file.path))
   }

@@ -320,13 +320,13 @@ describe('git/diff', () => {
     it('only shows modifications after move for a renamed and modified file', async t => {
       const repo = await setupEmptyRepository(t)
 
-      await writeFile(path.join(repo.path, 'foo'), 'foo\n')
+      await writeFile(path.join(repo.path, 'foo'), 'line1\nline2\nline3\n')
 
       await exec(['add', 'foo'], repo.path)
       await exec(['commit', '-m', 'Initial commit'], repo.path)
       await exec(['mv', 'foo', 'bar'], repo.path)
 
-      await writeFile(path.join(repo.path, 'bar'), 'bar\n')
+      await writeFile(path.join(repo.path, 'bar'), 'line1\nchanged\nline3\n')
 
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
@@ -337,10 +337,39 @@ describe('git/diff', () => {
 
       assert.equal(diff.hunks.length, 1)
 
-      const first = diff.hunks[0]
-      assert.equal(first.lines.length, 3)
-      assert.equal(first.lines[1].text, '-foo')
-      assert.equal(first.lines[2].text, '+bar')
+      const lines = diff.hunks[0].lines.map(l => l.text)
+      assert.ok(lines.includes('-line2'))
+      assert.ok(lines.includes('+changed'))
+    })
+
+    // The modifications can be staged (e.g. `git add` after editing, which is
+    // what editors like VS Code do). Diffing the new path against the index
+    // would then show nothing since index and working tree match, hiding the
+    // changes behind a "renamed but not changed" message.
+    it('shows modifications for a renamed file whose changes are staged', async t => {
+      const repo = await setupEmptyRepository(t)
+
+      await writeFile(path.join(repo.path, 'foo'), 'line1\nline2\nline3\n')
+
+      await exec(['add', 'foo'], repo.path)
+      await exec(['commit', '-m', 'Initial commit'], repo.path)
+      await exec(['mv', 'foo', 'bar'], repo.path)
+
+      await writeFile(path.join(repo.path, 'bar'), 'line1\nchanged\nline3\n')
+      await exec(['add', '-A'], repo.path)
+
+      const status = await getStatusOrThrow(repo)
+      const files = status.workingDirectory.files
+
+      assert.equal(files.length, 1)
+
+      const diff = await getTextDiff(repo, files[0])
+
+      assert.equal(diff.hunks.length, 1)
+
+      const lines = diff.hunks[0].lines.map(l => l.text)
+      assert.ok(lines.includes('-line2'))
+      assert.ok(lines.includes('+changed'))
     })
 
     it('handles unborn repository with mixed state', async t => {
