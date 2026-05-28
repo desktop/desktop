@@ -1,5 +1,6 @@
 import assert from 'node:assert'
 import { afterEach, beforeEach, describe, it } from 'node:test'
+import * as Path from 'path'
 import * as React from 'react'
 
 import { Repository } from '../../../src/models/repository'
@@ -130,7 +131,10 @@ describe('RepositoryListItem', () => {
   })
 
   it('uses the main repository folder name for non-GitHub worktrees', () => {
-    const repository = createWorkTreeRepository('/tmp/foo-worktree', '/tmp/foo')
+    const repository = createWorkTreeRepository(
+      Path.join('/tmp', 'foo-worktree'),
+      Path.join('/tmp', 'foo')
+    )
 
     const view = render(
       <RepositoryListItem

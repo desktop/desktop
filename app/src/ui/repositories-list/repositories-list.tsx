@@ -199,11 +199,10 @@ export class RepositoriesList extends React.Component<
       repository instanceof Repository ? repository.gitHubRepository : null
     const alias = repository instanceof Repository ? repository.alias : null
     const realName = gitHubRepo ? gitHubRepo.fullName : repository.name
-    const isWorkTree =
+    const workTreeFolderName =
       repository instanceof Repository && isWorkTreeRepository(repository)
-    const workTreeFolderName = isWorkTree
-      ? getWorkTreeFolderName(repository as Repository)
-      : null
+        ? getWorkTreeFolderName(repository)
+        : null
     const aheadBehindTooltip = this.getAheadBehindTooltip(aheadBehind)
     const hasChanges = changedFilesCount > 0
     const uncommittedChangesTooltip = hasChanges
@@ -221,12 +220,6 @@ export class RepositoriesList extends React.Component<
           {alias && <> ({alias})</>}
           {workTreeFolderName !== null && <> ({workTreeFolderName})</>}
         </div>
-        {isWorkTree && (
-          <div>
-            <div className="label">Worktree: </div>
-            Linked worktree
-          </div>
-        )}
         <div>
           <div className="label">Path: </div>
           {repository.path}

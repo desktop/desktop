@@ -44,12 +44,12 @@ export class RepositoryListItem extends React.Component<
 
   public render() {
     const repository = this.props.repository
-    const gitHubRepo =
-      repository instanceof Repository ? repository.gitHubRepository : null
+    const localRepo: Repository | null =
+      repository instanceof Repository ? repository : null
+    const gitHubRepo = localRepo?.gitHubRepository ?? null
     const hasChanges = this.props.changedFilesCount > 0
 
-    const alias: string | null =
-      repository instanceof Repository ? repository.alias : null
+    const alias: string | null = localRepo?.alias ?? null
 
     let prefix: string | null = null
     if (this.props.needsDisambiguation && gitHubRepo) {
@@ -58,12 +58,10 @@ export class RepositoryListItem extends React.Component<
 
     // If this repository is a linked worktree we want to make that visible in
     // the list by displaying "<repo name> (<worktree folder name>)".
-    const isWorkTree =
-      repository instanceof Repository && isWorkTreeRepository(repository)
-
-    const workTreeFolderName = isWorkTree
-      ? getWorkTreeFolderName(repository as Repository)
-      : null
+    const workTreeFolderName =
+      localRepo !== null && isWorkTreeRepository(localRepo)
+        ? getWorkTreeFolderName(localRepo)
+        : null
 
     // For non-GitHub worktrees `repository.name` is just the basename of the
     // worktree's working directory, which would result in a redundant display
@@ -71,8 +69,13 @@ export class RepositoryListItem extends React.Component<
     // name in that case so the user can see which repo the worktree belongs
     // to.
     let displayName = alias ?? repository.name
-    if (isWorkTree && alias === null && !gitHubRepo) {
-      const mainPath = getWorkTreeMainRepositoryPath(repository as Repository)
+    if (
+      workTreeFolderName !== null &&
+      alias === null &&
+      !gitHubRepo &&
+      localRepo !== null
+    ) {
+      const mainPath = getWorkTreeMainRepositoryPath(localRepo)
       if (mainPath !== null) {
         displayName = Path.basename(mainPath)
       }
@@ -107,7 +110,7 @@ export class RepositoryListItem extends React.Component<
           )}
         </div>
 
-        {repository instanceof Repository &&
+        {localRepo !== null &&
           renderRepoIndicators({
             aheadBehind: this.props.aheadBehind,
             hasChanges: hasChanges,
@@ -118,13 +121,15 @@ export class RepositoryListItem extends React.Component<
 
   private renderTooltip() {
     const repo = this.props.repository
-    const gitHubRepo = repo instanceof Repository ? repo.gitHubRepository : null
-    const alias = repo instanceof Repository ? repo.alias : null
+    const localRepo: Repository | null =
+      repo instanceof Repository ? repo : null
+    const gitHubRepo = localRepo?.gitHubRepository ?? null
+    const alias = localRepo?.alias ?? null
     const realName = gitHubRepo ? gitHubRepo.fullName : repo.name
-    const isWorkTree = repo instanceof Repository && isWorkTreeRepository(repo)
-    const workTreeFolderName = isWorkTree
-      ? getWorkTreeFolderName(repo as Repository)
-      : null
+    const workTreeFolderName =
+      localRepo !== null && isWorkTreeRepository(localRepo)
+        ? getWorkTreeFolderName(localRepo)
+        : null
 
     return (
       <>
@@ -133,7 +138,6 @@ export class RepositoryListItem extends React.Component<
           {alias && <> ({alias})</>}
           {workTreeFolderName !== null && <> ({workTreeFolderName})</>}
         </div>
-        {isWorkTree && <div>Linked worktree</div>}
         <div>{repo.path}</div>
       </>
     )
