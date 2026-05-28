@@ -53,6 +53,10 @@
         color: var(--text-secondary-color);
       }
 
+      .worktree-suffix {
+        color: var(--text-secondary-color);
+      }
+
       /* Used to highlight substring matches in filtered lists */
       mark {
         font-weight: bold;

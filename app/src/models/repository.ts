@@ -101,6 +101,62 @@ export type LinkedWorkTree = WorkingTree & {
   readonly head: string
 }
 
+/**
+ * Returns true if the repository looks like a linked git worktree (i.e. its
+ * resolved `.git` directory lives under another repository's
+ * `.git/worktrees/<name>` folder).
+ *
+ * Note: This relies on `repository.gitDir` having been resolved. For
+ * repositories that haven't yet had their gitDir resolved this will return
+ * `false`.
+ */
+export function isWorkTreeRepository(repository: Repository): boolean {
+  const { gitDir } = repository
+
+  if (gitDir === undefined) {
+    return false
+  }
+
+  // Linked worktrees have a gitDir of the form
+  //   <mainRepoPath>/.git/worktrees/<worktreeName>
+  const parent = Path.dirname(gitDir)
+  const grandparent = Path.dirname(parent)
+
+  return (
+    Path.basename(parent) === 'worktrees' &&
+    Path.basename(grandparent) === '.git'
+  )
+}
+
+/**
+ * If `repository` is a linked worktree, returns the filesystem path of the
+ * main working tree (the repository that owns the worktree). Returns `null`
+ * otherwise.
+ */
+export function getWorkTreeMainRepositoryPath(
+  repository: Repository
+): string | null {
+  if (!isWorkTreeRepository(repository) || repository.gitDir === undefined) {
+    return null
+  }
+
+  // gitDir = <mainRepoPath>/.git/worktrees/<worktreeName>
+  return Path.dirname(Path.dirname(Path.dirname(repository.gitDir)))
+}
+
+/**
+ * Returns the folder name of the worktree's working directory, suitable for
+ * disambiguating worktrees from their main repository in the UI. Returns
+ * `null` if the repository is not a worktree.
+ */
+export function getWorkTreeFolderName(repository: Repository): string | null {
+  if (!isWorkTreeRepository(repository)) {
+    return null
+  }
+
+  return getBaseName(repository.path)
+}
+
 /** Identical to `Repository`, except it **must** have a `gitHubRepository` */
 export type RepositoryWithGitHubRepository = Repository & {
   readonly gitHubRepository: GitHubRepository

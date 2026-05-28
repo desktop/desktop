@@ -30,6 +30,27 @@ function createRepository(alias: string | null = null) {
   )
 }
 
+function createWorkTreeRepository(
+  path: string,
+  mainRepoPath: string,
+  gitHubRepository: GitHubRepository | null = null,
+  alias: string | null = null
+) {
+  const worktreeName = path.split('/').pop() ?? 'wt'
+  const gitDir = `${mainRepoPath}/.git/worktrees/${worktreeName}`
+
+  return new Repository(
+    path,
+    456,
+    gitHubRepository,
+    false,
+    alias,
+    {},
+    false,
+    gitDir
+  )
+}
+
 describe('RepositoryListItem', () => {
   beforeEach(() => {
     enableTestTimers(['setTimeout'])
@@ -80,6 +101,65 @@ describe('RepositoryListItem', () => {
 
     assert.equal(prefix?.textContent, 'octocat/')
     assert.equal(name?.textContent, 'octocat/desktop-app')
+  })
+
+  it('appends the worktree folder name to a GitHub worktree repository', () => {
+    const owner = new Owner('octocat', 'https://api.github.com', 1)
+    const gitHubRepository = new GitHubRepository('foo', owner, 99)
+    const repository = createWorkTreeRepository(
+      '/tmp/foo-worktree',
+      '/tmp/foo',
+      gitHubRepository
+    )
+
+    const view = render(
+      <RepositoryListItem
+        repository={repository}
+        needsDisambiguation={false}
+        matches={noMatches}
+        aheadBehind={null}
+        changedFilesCount={0}
+      />
+    )
+
+    const name = view.container.querySelector('.name')
+    const suffix = view.container.querySelector('.worktree-suffix')
+
+    assert.equal(name?.textContent, 'foo (foo-worktree)')
+    assert.equal(suffix?.textContent, ' (foo-worktree)')
+  })
+
+  it('uses the main repository folder name for non-GitHub worktrees', () => {
+    const repository = createWorkTreeRepository('/tmp/foo-worktree', '/tmp/foo')
+
+    const view = render(
+      <RepositoryListItem
+        repository={repository}
+        needsDisambiguation={false}
+        matches={noMatches}
+        aheadBehind={null}
+        changedFilesCount={0}
+      />
+    )
+
+    const name = view.container.querySelector('.name')
+    assert.equal(name?.textContent, 'foo (foo-worktree)')
+  })
+
+  it('does not append a worktree suffix for normal repositories', () => {
+    const repository = createRepository()
+    const view = render(
+      <RepositoryListItem
+        repository={repository}
+        needsDisambiguation={false}
+        matches={noMatches}
+        aheadBehind={null}
+        changedFilesCount={0}
+      />
+    )
+
+    const suffix = view.container.querySelector('.worktree-suffix')
+    assert.equal(suffix, null)
   })
 
   it('shows tooltip content for the repository full name, alias, and path', async () => {

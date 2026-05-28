@@ -1,6 +1,12 @@
 import * as React from 'react'
+import * as Path from 'path'
 
-import { Repository } from '../../models/repository'
+import {
+  Repository,
+  getWorkTreeFolderName,
+  getWorkTreeMainRepositoryPath,
+  isWorkTreeRepository,
+} from '../../models/repository'
 import { Octicon, iconForRepository } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import { Repositoryish } from './group-repositories'
@@ -50,6 +56,28 @@ export class RepositoryListItem extends React.Component<
       prefix = `${gitHubRepo.owner.login}/`
     }
 
+    // If this repository is a linked worktree we want to make that visible in
+    // the list by displaying "<repo name> (<worktree folder name>)".
+    const isWorkTree =
+      repository instanceof Repository && isWorkTreeRepository(repository)
+
+    const workTreeFolderName = isWorkTree
+      ? getWorkTreeFolderName(repository as Repository)
+      : null
+
+    // For non-GitHub worktrees `repository.name` is just the basename of the
+    // worktree's working directory, which would result in a redundant display
+    // like "foo-worktree (foo-worktree)". Prefer the main repository's folder
+    // name in that case so the user can see which repo the worktree belongs
+    // to.
+    let displayName = alias ?? repository.name
+    if (isWorkTree && alias === null && !gitHubRepo) {
+      const mainPath = getWorkTreeMainRepositoryPath(repository as Repository)
+      if (mainPath !== null) {
+        displayName = Path.basename(mainPath)
+      }
+    }
+
     const classNameList = classNames('name', {
       alias: alias !== null,
     })
@@ -68,12 +96,15 @@ export class RepositoryListItem extends React.Component<
           symbol={iconForRepository(repository)}
         />
 
-        <div className={classNames(classNameList)}>
+        <div className={classNameList}>
           {prefix ? <span className="prefix">{prefix}</span> : null}
           <HighlightText
-            text={alias ?? repository.name}
+            text={displayName}
             highlight={this.props.matches.title}
           />
+          {workTreeFolderName !== null && (
+            <span className="worktree-suffix"> ({workTreeFolderName})</span>
+          )}
         </div>
 
         {repository instanceof Repository &&
@@ -90,13 +121,19 @@ export class RepositoryListItem extends React.Component<
     const gitHubRepo = repo instanceof Repository ? repo.gitHubRepository : null
     const alias = repo instanceof Repository ? repo.alias : null
     const realName = gitHubRepo ? gitHubRepo.fullName : repo.name
+    const isWorkTree = repo instanceof Repository && isWorkTreeRepository(repo)
+    const workTreeFolderName = isWorkTree
+      ? getWorkTreeFolderName(repo as Repository)
+      : null
 
     return (
       <>
         <div>
           <strong>{realName}</strong>
           {alias && <> ({alias})</>}
+          {workTreeFolderName !== null && <> ({workTreeFolderName})</>}
         </div>
+        {isWorkTree && <div>Linked worktree</div>}
         <div>{repo.path}</div>
       </>
     )
