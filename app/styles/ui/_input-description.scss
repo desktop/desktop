@@ -28,4 +28,9 @@
       fill: var(--input-error-text-color);
     }
   }
+
+  // Special styling for info icons in warning-styled containers
+  &.input-description-warning .octicon.info-icon {
+    fill: var(--dialog-information-color);
+  }
 }
