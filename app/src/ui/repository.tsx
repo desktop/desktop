@@ -165,7 +165,9 @@ export class RepositoryView extends React.Component<
   private forceCompareListScrollTop: boolean = false
 
   private readonly changesSidebarRef = React.createRef<ChangesSidebar>()
+  private readonly changesRef = React.createRef<Changes>()
   private readonly compareSidebarRef = React.createRef<CompareSidebar>()
+  private readonly selectedCommitsRef = React.createRef<SelectedCommits>()
 
   private focusHistoryNeeded: boolean = false
   private focusChangesNeeded: boolean = false
@@ -247,6 +249,10 @@ export class RepositoryView extends React.Component<
 
   private renderChangesSidebar(): JSX.Element {
     const tip = this.props.state.branchesState.tip
+    const { selection } = this.props.state.changesState
+    const canMoveToDiff =
+      selection.kind === ChangesSelectionKind.WorkingDirectory &&
+      selection.selectedFileIDs.length === 1
 
     let branchName: string | null = null
 
@@ -324,8 +330,21 @@ export class RepositoryView extends React.Component<
         signOffCommits={this.props.signOffCommits}
         allowEmptyCommit={this.props.allowEmptyCommit}
         onUpdateCommitOptions={this.props.onUpdateCommitOptions}
+        onMoveToDiff={canMoveToDiff ? this.onMoveToChangesDiff : undefined}
       />
     )
+  }
+
+  private onMoveToChangesDiff = () => {
+    // changesRef is only set when a working-directory file is selected;
+    // it's null for stash and empty-state views.
+    if (this.changesRef.current !== null) {
+      this.changesRef.current.focus()
+    }
+  }
+
+  private onMoveToChangesFileList = () => {
+    this.changesSidebarRef.current?.focus()
   }
 
   private renderCompareSidebar(): JSX.Element {
@@ -380,6 +399,7 @@ export class RepositoryView extends React.Component<
         }
         accounts={this.props.accounts}
         preferAbsoluteDates={this.props.preferAbsoluteDates}
+        onMoveToFiles={this.onMoveToFiles}
       />
     )
   }
@@ -494,6 +514,7 @@ export class RepositoryView extends React.Component<
 
     return (
       <SelectedCommits
+        ref={this.selectedCommitsRef}
         repository={this.props.repository}
         dispatcher={this.props.dispatcher}
         selectedCommits={selectedCommits}
@@ -517,8 +538,17 @@ export class RepositoryView extends React.Component<
         onDiffOptionsOpened={this.onDiffOptionsOpened}
         showDragOverlay={showDragOverlay}
         accounts={this.props.accounts}
+        onMoveToCommitList={this.onMoveToCommitList}
       />
     )
+  }
+
+  private onMoveToCommitList = () => {
+    this.compareSidebarRef.current?.focusHistory()
+  }
+
+  private onMoveToFiles = () => {
+    this.selectedCommitsRef.current?.focusFileList()
   }
 
   private onDiffOptionsOpened = () => {
@@ -597,6 +627,7 @@ export class RepositoryView extends React.Component<
 
       return (
         <Changes
+          ref={this.changesRef}
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           file={selectedFile}
@@ -613,6 +644,7 @@ export class RepositoryView extends React.Component<
             this.props.askForConfirmationOnDiscardChanges
           }
           onDiffOptionsOpened={this.onDiffOptionsOpened}
+          onMoveToFileList={this.onMoveToChangesFileList}
         />
       )
     }

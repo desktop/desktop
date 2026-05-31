@@ -471,6 +471,10 @@ export class SideBySideDiff extends React.Component<
     }
   }
 
+  public focus() {
+    this.focusListElement()
+  }
+
   private focusListElement = () => {
     const diffNode = findDOMNode(this.virtualListRef.current)
     const diff = diffNode instanceof HTMLElement ? diffNode : null

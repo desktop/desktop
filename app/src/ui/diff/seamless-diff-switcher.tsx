@@ -112,6 +112,9 @@ interface ISeamlessDiffSwitcherProps {
   // Used in getDerivedStateFromProps, no-unused-prop-types doesn't know that
   // eslint-disable-next-line react/no-unused-prop-types
   readonly onHideWhitespaceInDiffChanged: (checked: boolean) => void
+
+  /** Called when ArrowLeft is pressed to move focus to the previous panel. */
+  readonly onMoveLeft?: () => void
 }
 
 interface ISeamlessDiffSwitcherState {
@@ -197,6 +200,9 @@ export class SeamlessDiffSwitcher extends React.Component<
     }
   }
 
+  private diffRef = React.createRef<Diff>()
+  private containerRef = React.createRef<HTMLDivElement>()
+
   private slowLoadingTimeoutId: number | null = null
 
   /** File whose (old & new files) contents are being loaded. */
@@ -216,6 +222,24 @@ export class SeamlessDiffSwitcher extends React.Component<
       propSnapshot: props,
       diff: props.diff,
       fileContents: null,
+    }
+  }
+
+  public focus() {
+    if (this.diffRef.current) {
+      this.diffRef.current.focus()
+    } else {
+      this.containerRef.current?.focus()
+    }
+  }
+
+  private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+      return
+    }
+    if (event.key === 'ArrowLeft') {
+      this.props.onMoveLeft?.()
+      event.preventDefault()
     }
   }
 
@@ -355,9 +379,15 @@ export class SeamlessDiffSwitcher extends React.Component<
     ) : null
 
     return (
-      <div className={className}>
+      <div
+        className={className}
+        onKeyDown={this.onKeyDown}
+        ref={this.containerRef}
+        tabIndex={-1}
+      >
         {diff !== null ? (
           <Diff
+            ref={this.diffRef}
             repository={repository}
             imageDiffType={imageDiffType}
             file={file}

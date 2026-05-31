@@ -91,6 +91,9 @@ interface ISelectedCommitsProps {
   readonly isContiguous: boolean
 
   readonly accounts: ReadonlyArray<Account>
+
+  /** Called when the user presses 'h' in the file list to move focus back to the commit list. */
+  readonly onMoveToCommitList?: () => void
 }
 
 interface ISelectedCommitsState {
@@ -103,6 +106,16 @@ export class SelectedCommits extends React.Component<
   ISelectedCommitsState
 > {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
+  private fileListRef = React.createRef<FileList>()
+  private diffRef = React.createRef<SeamlessDiffSwitcher>()
+
+  public focusFileList() {
+    this.fileListRef.current?.focus()
+  }
+
+  public focusDiff = () => {
+    this.diffRef.current?.focus()
+  }
 
   public constructor(props: ISelectedCommitsProps) {
     super(props)
@@ -159,6 +172,7 @@ export class SelectedCommits extends React.Component<
       <div className="diff-container">
         {this.renderDiffHeader()}
         <SeamlessDiffSwitcher
+          ref={this.diffRef}
           repository={this.props.repository}
           imageDiffType={this.props.selectedDiffType}
           file={file}
@@ -171,6 +185,7 @@ export class SelectedCommits extends React.Component<
           onChangeImageDiffType={this.props.onChangeImageDiffType}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
           onOpenSubmodule={this.props.onOpenSubmodule}
+          onMoveLeft={() => this.fileListRef.current?.focus()}
         />
       </div>
     )
@@ -263,12 +278,15 @@ export class SelectedCommits extends React.Component<
       <>
         {this.renderFileHeader()}
         <FileList
+          ref={this.fileListRef}
           files={files}
           onSelectedFileChanged={this.onFileSelected}
           selectedFile={this.props.selectedFile}
           availableWidth={availableWidth}
           onContextMenu={this.onContextMenu}
           onRowDoubleClick={this.onRowDoubleClick}
+          onMoveToCommitList={this.props.onMoveToCommitList}
+          onMoveToDiff={this.focusDiff}
         />
       </>
     )

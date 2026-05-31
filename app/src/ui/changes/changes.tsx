@@ -54,9 +54,18 @@ interface IChangesProps {
 
   /** Called when the user opens the diff options popover */
   readonly onDiffOptionsOpened: () => void
+
+  /** Called when ArrowLeft is pressed in the diff to move focus back to the file list. */
+  readonly onMoveToFileList?: () => void
 }
 
 export class Changes extends React.Component<IChangesProps, {}> {
+  private diffRef = React.createRef<SeamlessDiffSwitcher>()
+
+  public focus() {
+    this.diffRef.current?.focus()
+  }
+
   /**
    * Whether or not it's currently possible to change the line selection
    * of a diff. Changing selection is not possible while a commit is in
@@ -114,6 +123,8 @@ export class Changes extends React.Component<IChangesProps, {}> {
         />
 
         <SeamlessDiffSwitcher
+          ref={this.diffRef}
+          onMoveLeft={this.props.onMoveToFileList}
           repository={this.props.repository}
           imageDiffType={this.props.imageDiffType}
           file={this.props.file}

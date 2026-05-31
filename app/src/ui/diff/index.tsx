@@ -113,12 +113,18 @@ interface IDiffState {
 
 /** A component which renders a diff for a file. */
 export class Diff extends React.Component<IDiffProps, IDiffState> {
+  private sideBySideDiffRef = React.createRef<SideBySideDiff>()
+
   public constructor(props: IDiffProps) {
     super(props)
 
     this.state = {
       forceShowLargeDiff: false,
     }
+  }
+
+  public focus() {
+    this.sideBySideDiffRef.current?.focus()
   }
 
   public render() {
@@ -286,6 +292,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   private renderTextDiff(diff: ITextDiff) {
     return (
       <SideBySideDiff
+        ref={this.sideBySideDiffRef}
         file={this.props.file}
         diff={diff}
         fileContents={this.props.fileContents}

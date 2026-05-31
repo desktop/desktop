@@ -15,6 +15,10 @@ interface IFileListProps {
     file: CommittedFileChange,
     event: React.MouseEvent<HTMLDivElement>
   ) => void
+  /** Called when the user presses 'h' to move focus back to the commit list. */
+  readonly onMoveToCommitList?: () => void
+  /** Called when the user presses 'l' to move focus into the diff panel. */
+  readonly onMoveToDiff?: () => void
 }
 
 interface IFileListState {
@@ -25,12 +29,18 @@ interface IFileListState {
  * Display a list of changed files as part of a commit or stash
  */
 export class FileList extends React.Component<IFileListProps, IFileListState> {
+  private listRef = React.createRef<List>()
+
   public constructor(props: IFileListProps) {
     super(props)
 
     this.state = {
       focusedRow: null,
     }
+  }
+
+  public focus() {
+    this.listRef.current?.focus()
   }
 
   private onSelectedRowChanged = (row: number) => {
@@ -68,10 +78,30 @@ export class FileList extends React.Component<IFileListProps, IFileListState> {
     return `${path} ${fileStatus}`
   }
 
+  private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (
+      event.defaultPrevented ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey
+    ) {
+      return
+    }
+    if (event.key === 'ArrowLeft') {
+      this.props.onMoveToCommitList?.()
+      event.preventDefault()
+    } else if (event.key === 'ArrowRight') {
+      this.props.onMoveToDiff?.()
+      event.preventDefault()
+    }
+  }
+
   public render() {
     return (
-      <div className="file-list">
+      <div className="file-list" onKeyDown={this.onKeyDown}>
         <List
+          ref={this.listRef}
           rowRenderer={this.renderFile}
           rowCount={this.props.files.length}
           rowHeight={29}

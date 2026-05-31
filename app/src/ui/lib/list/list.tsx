@@ -914,7 +914,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     const newRow = findNextSelectableRow(
       this.props.rowCount,
-      { direction, row: lastSelection },
+      { direction, row: lastSelection, wrap: false },
       this.canSelectRow
     )
 

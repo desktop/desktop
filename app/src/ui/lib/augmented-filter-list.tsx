@@ -402,6 +402,10 @@ export class AugmentedSectionFilterList<
     )
   }
 
+  public focus() {
+    this.list?.focus()
+  }
+
   public selectNextItem(
     focus: boolean = false,
     inDirection: SelectionDirection = 'down'

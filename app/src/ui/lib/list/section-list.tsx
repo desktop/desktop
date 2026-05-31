@@ -903,7 +903,7 @@ export class SectionList extends React.Component<
 
     const newRow = findNextSelectableRow(
       this.props.rowCount,
-      { direction, row: lastSelection },
+      { direction, row: lastSelection, wrap: false },
       this.canSelectRow
     )
 

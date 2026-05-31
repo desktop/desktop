@@ -120,6 +120,9 @@ interface IChangesSidebarProps {
     repository: Repository,
     options: Partial<CommitOptions>
   ) => void
+
+  /** Called when the user presses ArrowRight to move focus to the diff panel. */
+  readonly onMoveToDiff?: () => void
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
@@ -389,6 +392,30 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     this.changesListRef.current?.focus()
   }
 
+  private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (
+      event.defaultPrevented ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey
+    ) {
+      return
+    }
+    const target = event.target
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      (target instanceof HTMLElement && target.isContentEditable)
+    ) {
+      return
+    }
+    if (event.key === 'ArrowRight' && this.props.onMoveToDiff !== undefined) {
+      this.props.onMoveToDiff()
+      event.preventDefault()
+    }
+  }
+
   public render() {
     const {
       workingDirectory,
@@ -419,7 +446,12 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     )
 
     return (
-      <div className="panel" role="tabpanel" aria-labelledby="changes-tab">
+      <div
+        className="panel"
+        role="tabpanel"
+        aria-labelledby="changes-tab"
+        onKeyDown={this.onKeyDown}
+      >
         <FilterChangesList
           ref={this.changesListRef}
           dispatcher={this.props.dispatcher}

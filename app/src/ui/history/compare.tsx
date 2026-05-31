@@ -62,6 +62,8 @@ interface ICompareSidebarProps {
   readonly shasToHighlight: ReadonlyArray<string>
   readonly accounts: ReadonlyArray<Account>
   readonly preferAbsoluteDates: boolean
+  /** Called when the user presses 'l' in the commit list to move focus to the files panel. */
+  readonly onMoveToFiles?: () => void
 }
 interface ICompareSidebarState {
   /**
@@ -287,6 +289,7 @@ export class CompareSidebar extends React.Component<
         keyboardReorderData={this.state.keyboardReorderData}
         accounts={this.props.accounts}
         preferAbsoluteDates={this.props.preferAbsoluteDates}
+        onMoveToFiles={this.props.onMoveToFiles}
       />
     )
   }

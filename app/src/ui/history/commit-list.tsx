@@ -184,6 +184,9 @@ interface ICommitListProps {
 
   /** This will make the list semantics friendly to screen reader users in browse mode. */
   readonly isInformationalView?: boolean
+
+  /** Called when the user presses 'l' to move focus to the files panel. */
+  readonly onMoveToFiles?: () => void
 }
 
 interface ICommitListState {
@@ -555,6 +558,22 @@ export class CommitList extends React.Component<
     this.listRef.current?.focus()
   }
 
+  private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (
+      event.defaultPrevented ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey
+    ) {
+      return
+    }
+    if (event.key === 'ArrowRight') {
+      this.props.onMoveToFiles?.()
+      event.preventDefault()
+    }
+  }
+
   public render() {
     const {
       commitSHAs,
@@ -582,7 +601,12 @@ export class CommitList extends React.Component<
       .filter(r => r !== -1)
 
     return (
-      <div id="commit-list" className={classes} ref={this.containerRef}>
+      <div
+        id="commit-list"
+        className={classes}
+        ref={this.containerRef}
+        onKeyDown={this.onKeyDown}
+      >
         {this.renderReorderCommitsHint()}
         <List
           ariaLabel="Commits"
