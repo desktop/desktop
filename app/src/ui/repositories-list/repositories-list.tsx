@@ -59,6 +59,9 @@ interface IRepositoriesListProps {
   /** Called when the repository should be shown in the shell. */
   readonly onOpenInShell: (repository: Repositoryish) => void
 
+  /** Called when the repository should be opened in a new window. */
+  readonly onOpenInNewWindow: (repository: Repositoryish) => void
+
   /** Called when the repository should be opened in an external editor */
   readonly onOpenInExternalEditor: (repository: Repositoryish) => void
 
@@ -290,6 +293,7 @@ export class RepositoriesList extends React.Component<
     const items = generateRepositoryListContextMenu({
       onRemoveRepository: this.props.onRemoveRepository,
       onShowRepository: this.props.onShowRepository,
+      onOpenInNewWindow: this.props.onOpenInNewWindow,
       onOpenInShell: this.props.onOpenInShell,
       onOpenInExternalEditor: this.props.onOpenInExternalEditor,
       askForConfirmationOnRemoveRepository:

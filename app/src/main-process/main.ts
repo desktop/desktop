@@ -8,6 +8,7 @@ import {
   session,
   systemPreferences,
   nativeTheme,
+  WebContents,
 } from 'electron'
 import * as Fs from 'fs'
 
@@ -48,23 +49,28 @@ import {
   requestNotificationsPermission,
   showNotification,
 } from 'desktop-notifications'
-import { initializeDesktopNotifications } from './notifications'
+import {
+  initializeDesktopNotifications,
+  terminateDesktopNotifications,
+  associateNotificationWithWindow,
+} from './notifications'
 import parseCommandLineArgs from 'minimist'
 import { CLIAction } from '../lib/cli-action'
+import { routeOpenRepositoryWindow } from './open-repository-window-router'
 
 app.setAppLogsPath()
 enableSourceMaps()
 
-let mainWindow: AppWindow | null = null
+const windows = new Map<number, AppWindow>()
 
 const launchTime = now()
 
 let preventQuit = false
 let readyTime: number | null = null
+let pendingRepositoryPathForNextWindow: string | null = null
 
 type OnDidLoadFn = (window: AppWindow) => void
-/** See the `onDidLoad` function. */
-let onDidLoadFns: Array<OnDidLoadFn> | null = []
+const pendingOnDidLoadFns = new Array<OnDidLoadFn>()
 
 function handleUncaughtException(error: Error) {
   preventQuit = true
@@ -75,12 +81,12 @@ function handleUncaughtException(error: Error) {
   // exception on shutdown but that's less likely and since
   // this only affects the presentation of the crash dialog
   // it's a safe assumption to make.
-  const isLaunchError = mainWindow === null
+  const isLaunchError = windows.size === 0
 
-  if (mainWindow) {
-    mainWindow.destroy()
-    mainWindow = null
+  for (const window of windows.values()) {
+    window.destroy()
   }
+  windows.clear()
 
   showUncaughtException(isLaunchError, error)
 }
@@ -124,7 +130,7 @@ if (__WIN32__ && __DEV__) {
 app.on('window-all-closed', () => {
   // If we don't subscribe to this event and all windows are closed, the default
   // behavior is to quit the app. We don't want that though, we control that
-  // behavior through the mainWindow onClose event such that on macOS we only
+  // behavior through the window onClose event such that on macOS we only
   // hide the main window when a user attempts to close it.
   //
   // If we don't subscribe to this and change the default behavior we break
@@ -155,16 +161,90 @@ if (!handlingSquirrelEvent) {
 }
 
 initializeDesktopNotifications()
+app.on('before-quit', () => {
+  terminateDesktopNotifications()
+
+  const windowToKeep = getTargetWindow()
+  for (const window of getAppWindows()) {
+    if (window !== windowToKeep) {
+      window.destroy()
+    }
+  }
+})
+
+function getAppWindows() {
+  return [...windows.values()]
+}
+
+function getAppWindowFromBrowserWindow(
+  browserWindow: BrowserWindow | null | undefined
+) {
+  return browserWindow ? windows.get(browserWindow.id) ?? null : null
+}
+
+function getAppWindowFromWebContents(webContents: WebContents) {
+  return getAppWindowFromBrowserWindow(
+    BrowserWindow.fromWebContents(webContents) ?? null
+  )
+}
+
+function getTargetWindow() {
+  const focusedWindow = BrowserWindow.getFocusedWindow()
+  const focusedAppWindow = getAppWindowFromBrowserWindow(focusedWindow)
+
+  if (focusedAppWindow !== null) {
+    return focusedAppWindow
+  }
+
+  return getAppWindows()[0] ?? null
+}
+
+function getLoadedTargetWindow() {
+  const targetWindow = getTargetWindow()
+
+  if (targetWindow !== null && targetWindow.isLoaded) {
+    return targetWindow
+  }
+
+  return getAppWindows().find(window => window.isLoaded) ?? null
+}
+
+function shouldHandleMenuUpdate(webContents: WebContents) {
+  const sourceWindow = getAppWindowFromWebContents(webContents)
+  if (sourceWindow === null) {
+    return false
+  }
+
+  const focusedWindow = BrowserWindow.getFocusedWindow()
+  return focusedWindow === null || focusedWindow.id === sourceWindow.id
+}
+
+function sendAppMenuToAllWindows() {
+  for (const window of getAppWindows()) {
+    window.sendAppMenu()
+  }
+}
 
 function handleAppURL(url: string) {
   log.info('Processing protocol url')
   const action = parseAppURL(url)
-  onDidLoad(window => {
-    // This manual focus call _shouldn't_ be necessary, but is for Chrome on
-    // macOS. See https://github.com/desktop/desktop/issues/973.
-    window.focus()
+  if (action.name === 'oauth') {
+    onDidLoad(() => broadcastOAuthAction(action))
+  } else {
+    onDidLoad(window => {
+      // This manual focus call _shouldn't_ be necessary, but is for Chrome on
+      // macOS. See https://github.com/desktop/desktop/issues/973.
+      window.focus()
+      window.sendURLAction(action)
+    })
+  }
+}
+
+function broadcastOAuthAction(action: ReturnType<typeof parseAppURL>) {
+  // Any window could have initiated the OAuth flow, so broadcast to all.
+  for (const window of getAppWindows()) {
     window.sendURLAction(action)
-  })
+  }
 }
 
 let isDuplicateInstance = false
@@ -177,16 +257,17 @@ if (!handlingSquirrelEvent) {
 
   app.on('second-instance', (event, args, workingDirectory) => {
     // Someone tried to run a second instance, we should focus our window.
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) {
-        mainWindow.restore()
+    const targetWindow = getTargetWindow()
+    if (targetWindow) {
+      if (targetWindow.isMinimized()) {
+        targetWindow.restore()
       }
 
-      if (!mainWindow.isVisible()) {
-        mainWindow.show()
+      if (!targetWindow.isVisible()) {
+        targetWindow.show()
       }
 
-      mainWindow.focus()
+      targetWindow.focus()
     }
 
     handleCommandLineArguments(args)
@@ -235,7 +316,7 @@ if (__DARWIN__) {
   })
 }
 
-async function handleCommandLineArguments(argv: string[]) {
+function handleCommandLineArguments(argv: string[]) {
   const args = parseCommandLineArgs(argv, {
     boolean: ['protocol-launcher'],
   })
@@ -294,6 +375,18 @@ async function handleCommandLineArguments(argv: string[]) {
 }
 
 function handleCLIAction(action: CLIAction) {
+  if (action.kind === 'open-repository') {
+    routeOpenRepositoryWindow(action, {
+      getWindows: getAppWindows,
+      onDidLoad,
+      createWindow,
+      setPendingRepositoryPathForNextWindow: path => {
+        pendingRepositoryPathForNextWindow = path
+      },
+    })
+    return
+  }
+
   onDidLoad(window => {
     // This manual focus call _shouldn't_ be necessary, but is for Chrome on
     // macOS. See https://github.com/desktop/desktop/issues/973.
@@ -358,9 +451,22 @@ app.on('ready', () => {
     })
   )
 
-  ipcMain.on('update-accounts', (_, accounts) => updateAccounts(accounts))
+  ipcMain.on('update-accounts', (event, accounts, serializedUsers) => {
+    updateAccounts(accounts)
+    // Forward account data to other windows since localStorage is per-process.
+    const sender = getAppWindowFromWebContents(event.sender)
+    for (const window of getAppWindows()) {
+      if (window !== sender) {
+        window.sendAccountsChanged(serializedUsers)
+      }
+    }
+  })
 
-  ipcMain.on('update-preferred-app-menu-item-labels', (_, labels) => {
+  ipcMain.on('update-preferred-app-menu-item-labels', (event, labels) => {
+    if (!shouldHandleMenuUpdate(event.sender)) {
+      return
+    }
+
     // The current application menu is mutable and we frequently
     // change whether particular items are enabled or not through
     // the update-menu-state IPC event. This menu that we're creating
@@ -378,10 +484,7 @@ app.on('ready', () => {
     if (currentMenu === null) {
       // https://github.com/electron/electron/issues/2717
       Menu.setApplicationMenu(newMenu)
-
-      if (mainWindow !== null) {
-        mainWindow.sendAppMenu()
-      }
+      sendAppMenuToAllWindows()
 
       return
     }
@@ -425,10 +528,10 @@ app.on('ready', () => {
       }
     }
 
-    if (menuHasChanged && mainWindow) {
+    if (menuHasChanged) {
       // https://github.com/electron/electron/issues/2717
       Menu.setApplicationMenu(newMenu)
-      mainWindow.sendAppMenu()
+      sendAppMenuToAllWindows()
     }
   })
 
@@ -451,7 +554,11 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('update-menu-state', (_, items) => {
+  ipcMain.on('update-menu-state', (event, items) => {
+    if (!shouldHandleMenuUpdate(event.sender)) {
+      return
+    }
+
     let sendMenuChangedEvent = false
 
     const currentMenu = Menu.getApplicationMenu()
@@ -479,9 +586,9 @@ app.on('ready', () => {
       }
     }
 
-    if (sendMenuChangedEvent && mainWindow) {
+    if (sendMenuChangedEvent) {
       Menu.setApplicationMenu(currentMenu)
-      mainWindow.sendAppMenu()
+      sendAppMenuToAllWindows()
     }
   })
 
@@ -511,43 +618,74 @@ app.on('ready', () => {
     })
   })
 
-  ipcMain.handle('check-for-updates', async (_, url) =>
-    mainWindow?.checkForUpdates(url)
+  ipcMain.handle('check-for-updates', async (event, url) =>
+    getAppWindowFromWebContents(event.sender)?.checkForUpdates(url)
   )
 
-  ipcMain.on('quit-and-install-updates', () =>
-    mainWindow?.quitAndInstallUpdate()
+  ipcMain.on('quit-and-install-updates', event =>
+    getAppWindowFromWebContents(event.sender)?.quitAndInstallUpdate()
   )
 
   ipcMain.on('quit-app', () => app.quit())
 
-  ipcMain.on('minimize-window', () => mainWindow?.minimizeWindow())
+  ipcMain.on('open-repository-in-new-window', (_, path: string) => {
+    const window = createWindow(loadedWindow => {
+      loadedWindow.sendCLIAction({
+        kind: 'open-repository',
+        path,
+        persistSelection: false,
+      })
+    })
+    window.repositoryPath = path
+  })
 
-  ipcMain.on('maximize-window', () => mainWindow?.maximizeWindow())
+  ipcMain.on('set-window-title', (event, title: string) =>
+    getAppWindowFromWebContents(event.sender)?.setTitle(title)
+  )
 
-  ipcMain.on('unmaximize-window', () => mainWindow?.unmaximizeWindow())
+  ipcMain.on('set-repository-path', (event, path: string | null) => {
+    const window = getAppWindowFromWebContents(event.sender)
+    if (window) {
+      window.repositoryPath = path
+    }
+  })
 
-  ipcMain.on('close-window', () => mainWindow?.closeWindow())
+  ipcMain.on('minimize-window', event =>
+    getAppWindowFromWebContents(event.sender)?.minimizeWindow()
+  )
+
+  ipcMain.on('maximize-window', event =>
+    getAppWindowFromWebContents(event.sender)?.maximizeWindow()
+  )
+
+  ipcMain.on('unmaximize-window', event =>
+    getAppWindowFromWebContents(event.sender)?.unmaximizeWindow()
+  )
+
+  ipcMain.on('close-window', event =>
+    getAppWindowFromWebContents(event.sender)?.closeWindow()
+  )
 
   ipcMain.handle(
     'is-window-maximized',
-    async () => mainWindow?.isMaximized() ?? false
+    async event =>
+      getAppWindowFromWebContents(event.sender)?.isMaximized() ?? false
   )
 
   ipcMain.handle('get-apple-action-on-double-click', async () =>
     systemPreferences.getUserDefault('AppleActionOnDoubleClick', 'string')
   )
 
-  ipcMain.handle('get-current-window-state', async () =>
-    mainWindow?.getCurrentWindowState()
+  ipcMain.handle('get-current-window-state', async event =>
+    getAppWindowFromWebContents(event.sender)?.getCurrentWindowState()
   )
 
-  ipcMain.handle('get-current-window-zoom-factor', async () =>
-    mainWindow?.getCurrentWindowZoomFactor()
+  ipcMain.handle('get-current-window-zoom-factor', async event =>
+    getAppWindowFromWebContents(event.sender)?.getCurrentWindowZoomFactor()
   )
 
-  ipcMain.on('set-window-zoom-factor', (_, zoomFactor: number) =>
-    mainWindow?.setWindowZoomFactor(zoomFactor)
+  ipcMain.on('set-window-zoom-factor', (event, zoomFactor: number) =>
+    getAppWindowFromWebContents(event.sender)?.setWindowZoomFactor(zoomFactor)
   )
 
   if (__WIN32__) {
@@ -559,14 +697,21 @@ app.on('ready', () => {
    * An event sent by the renderer asking for a copy of the current
    * application menu.
    */
-  ipcMain.on('get-app-menu', () => mainWindow?.sendAppMenu())
+  ipcMain.on('get-app-menu', event =>
+    getAppWindowFromWebContents(event.sender)?.sendAppMenu()
+  )
 
-  ipcMain.on('show-certificate-trust-dialog', (_, certificate, message) => {
+  ipcMain.on('show-certificate-trust-dialog', (event, certificate, message) => {
     // This API is only implemented for macOS and Windows right now.
     if (__DARWIN__ || __WIN32__) {
-      onDidLoad(window => {
-        window.showCertificateTrustDialog(certificate, message)
-      })
+      const targetWindow = getAppWindowFromWebContents(event.sender)
+      if (targetWindow !== null) {
+        targetWindow.showCertificateTrustDialog(certificate, message)
+      } else {
+        onDidLoad(window => {
+          window.showCertificateTrustDialog(certificate, message)
+        })
+      }
     }
   })
 
@@ -642,12 +787,14 @@ app.on('ready', () => {
   )
 
   /** An event sent by the renderer asking to select all of the window's contents */
-  ipcMain.on('select-all-window-contents', () =>
-    mainWindow?.selectAllWindowContents()
+  ipcMain.on('select-all-window-contents', event =>
+    getAppWindowFromWebContents(event.sender)?.selectAllWindowContents()
   )
 
   /** An event sent by the renderer indicating a modal dialog is opened */
-  ipcMain.on('dialog-did-open', () => mainWindow?.dialogDidOpen())
+  ipcMain.on('dialog-did-open', event =>
+    getAppWindowFromWebContents(event.sender)?.dialogDidOpen()
+  )
 
   /**
    * An event sent by the renderer asking whether the Desktop is in the
@@ -675,7 +822,8 @@ app.on('ready', () => {
    */
   ipcMain.handle(
     'show-save-dialog',
-    async (_, options) => mainWindow?.showSaveDialog(options) ?? null
+    async (event, options) =>
+      getAppWindowFromWebContents(event.sender)?.showSaveDialog(options) ?? null
   )
 
   /**
@@ -683,7 +831,8 @@ app.on('ready', () => {
    */
   ipcMain.handle(
     'show-open-dialog',
-    async (_, options) => mainWindow?.showOpenDialog(options) ?? null
+    async (event, options) =>
+      getAppWindowFromWebContents(event.sender)?.showOpenDialog(options) ?? null
   )
 
   /**
@@ -691,12 +840,13 @@ app.on('ready', () => {
    */
   ipcMain.handle(
     'is-window-focused',
-    async () => mainWindow?.isFocused() ?? false
+    async event =>
+      getAppWindowFromWebContents(event.sender)?.isFocused() ?? false
   )
 
   /** An event sent by the renderer asking to focus the main window. */
-  ipcMain.on('focus-window', () => {
-    mainWindow?.focus()
+  ipcMain.on('focus-window', event => {
+    getAppWindowFromWebContents(event.sender)?.revealAndFocus()
   })
 
   ipcMain.on('set-native-theme-source', (_, themeName) => {
@@ -712,9 +862,16 @@ app.on('ready', () => {
 
   ipcMain.handle('save-guid', (_, guid) => saveGUIDFile(guid))
 
-  ipcMain.handle('show-notification', async (_, title, body, userInfo) =>
-    showNotification(title, body, userInfo)
-  )
+  ipcMain.handle('show-notification', async (event, title, body, userInfo) => {
+    const notificationId = await showNotification(title, body, userInfo)
+    const sourceWindow = BrowserWindow.fromWebContents(event.sender)
+
+    if (notificationId !== null && sourceWindow !== null) {
+      associateNotificationWithWindow(notificationId, sourceWindow)
+    }
+
+    return notificationId
+  })
 
   ipcMain.handle('get-notifications-permission', async () =>
     getNotificationsPermission()
@@ -722,12 +879,36 @@ app.on('ready', () => {
   ipcMain.handle('request-notifications-permission', async () =>
     requestNotificationsPermission()
   )
+
+  ipcMain.on('will-quit', event => {
+    for (const window of getAppWindows()) {
+      window.markWillQuit()
+    }
+    event.returnValue = true
+  })
+
+  ipcMain.on('will-quit-even-if-updating', event => {
+    for (const window of getAppWindows()) {
+      window.markWillQuitEvenIfUpdating()
+    }
+    event.returnValue = true
+  })
+
+  ipcMain.on('cancel-quitting', event => {
+    for (const window of getAppWindows()) {
+      window.cancelQuitting()
+    }
+    event.returnValue = true
+  })
 })
 
 app.on('activate', () => {
-  onDidLoad(window => {
-    window.show()
-  })
+  if (windows.size === 0) {
+    createWindow()
+    return
+  }
+
+  getTargetWindow()?.show()
 })
 
 app.on('web-contents-created', (event, contents) => {
@@ -755,8 +936,9 @@ app.on(
   }
 )
 
-function createWindow() {
+function createWindow(onWindowDidLoad?: OnDidLoadFn) {
   const window = new AppWindow()
+  windows.set(window.id, window)
 
   if (__DEV__) {
     const {
@@ -781,8 +963,8 @@ function createWindow() {
   }
 
   window.onClosed(() => {
-    mainWindow = null
-    if (!__DARWIN__ && !preventQuit) {
+    windows.delete(window.id)
+    if (!__DARWIN__ && windows.size === 0 && !preventQuit) {
       app.quit()
     }
   })
@@ -795,16 +977,24 @@ function createWindow() {
       rendererReadyTime: window.rendererReadyTime!,
     })
 
-    const fns = onDidLoadFns!
-    onDidLoadFns = null
+    const fns = pendingOnDidLoadFns.splice(0, pendingOnDidLoadFns.length)
     for (const fn of fns) {
       fn(window)
     }
   })
 
+  if (onWindowDidLoad !== undefined) {
+    window.onDidLoad(() => onWindowDidLoad(window))
+  }
+
+  if (pendingRepositoryPathForNextWindow !== null) {
+    window.repositoryPath = pendingRepositoryPathForNextWindow
+    pendingRepositoryPathForNextWindow = null
+  }
+
   window.load()
 
-  mainWindow = window
+  return window
 }
 
 /**
@@ -812,11 +1002,11 @@ function createWindow() {
  * window has already been loaded, the function will be called immediately.
  */
 function onDidLoad(fn: OnDidLoadFn) {
-  if (onDidLoadFns) {
-    onDidLoadFns.push(fn)
-  } else {
-    if (mainWindow) {
-      fn(mainWindow)
-    }
+  const loadedWindow = getLoadedTargetWindow()
+  if (loadedWindow !== null) {
+    fn(loadedWindow)
+    return
   }
+
+  pendingOnDidLoadFns.push(fn)
 }

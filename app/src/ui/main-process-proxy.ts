@@ -170,6 +170,18 @@ export const quitAndInstallUpdate = sendProxy('quit-and-install-updates', 0)
 /** Tell the main process to quit the app */
 export const quitApp = sendProxy('quit-app', 0)
 
+/** Tell the main process to open a repository in a new application window */
+export const openRepositoryInNewWindow = sendProxy(
+  'open-repository-in-new-window',
+  1
+)
+
+/** Tell the main process to update the current window title */
+export const setWindowTitle = sendProxy('set-window-title', 1)
+
+/** Tell the main process the current repository path for this window */
+export const setRepositoryPath = sendProxy('set-repository-path', 1)
+
 /** Subscribes to auto updater error events originating from the main process */
 export function onAutoUpdaterError(
   errorHandler: (evt: Electron.IpcRendererEvent, error: Error) => void

@@ -9,6 +9,9 @@ import { DesktopAliveEvent } from '../lib/stores/alive-store'
 import * as ipcWebContents from './ipc-webcontents'
 
 let windowsToastActivatorClsid: string | undefined = undefined
+const notificationWindows = new Set<BrowserWindow>()
+const notificationWindowOwners = new Map<string, BrowserWindow>()
+let notificationCallbackInstalled = false
 
 export function initializeDesktopNotifications() {
   if (__LINUX__) {
@@ -42,17 +45,81 @@ export function initializeDesktopNotifications() {
 }
 
 export function terminateDesktopNotifications() {
+  notificationWindows.clear()
+  notificationWindowOwners.clear()
+  onNotificationEvent(null)
+  notificationCallbackInstalled = false
   terminateNotifications()
 }
 
-export function installNotificationCallback(window: BrowserWindow) {
+function getFallbackNotificationWindow() {
+  const focusedWindow = BrowserWindow.getFocusedWindow()
+  if (
+    focusedWindow !== null &&
+    notificationWindows.has(focusedWindow) &&
+    !focusedWindow.isDestroyed()
+  ) {
+    return focusedWindow
+  }
+
+  for (const window of notificationWindows) {
+    if (!window.isDestroyed()) {
+      return window
+    }
+  }
+
+  return null
+}
+
+function installGlobalNotificationCallback() {
+  if (notificationCallbackInstalled) {
+    return
+  }
+
   onNotificationEvent<DesktopAliveEvent>((event, id, userInfo) => {
-    ipcWebContents.send(
-      window.webContents,
-      'notification-event',
-      event,
-      id,
-      userInfo
-    )
+    let window =
+      notificationWindowOwners.get(id) ?? getFallbackNotificationWindow()
+
+    if (window !== null && window.isDestroyed()) {
+      notificationWindows.delete(window)
+      window = getFallbackNotificationWindow()
+    }
+
+    if (window !== null) {
+      ipcWebContents.send(
+        window.webContents,
+        'notification-event',
+        event,
+        id,
+        userInfo
+      )
+    }
+
+    notificationWindowOwners.delete(id)
   })
+
+  notificationCallbackInstalled = true
+}
+
+export function installNotificationCallback(window: BrowserWindow) {
+  notificationWindows.add(window)
+  installGlobalNotificationCallback()
+
+  return () => {
+    notificationWindows.delete(window)
+
+    for (const [id, owner] of notificationWindowOwners) {
+      if (owner === window) {
+        notificationWindowOwners.delete(id)
+      }
+    }
+  }
+}
+
+export function associateNotificationWithWindow(
+  notificationId: string,
+  window: BrowserWindow
+) {
+  notificationWindows.add(window)
+  notificationWindowOwners.set(notificationId, window)
 }

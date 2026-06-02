@@ -2,6 +2,7 @@ export type CLIAction =
   | {
       readonly kind: 'open-repository'
       readonly path: string
+      readonly persistSelection?: boolean
     }
   | {
       readonly kind: 'clone-url'
