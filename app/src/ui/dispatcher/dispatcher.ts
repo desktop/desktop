@@ -1519,6 +1519,13 @@ export class Dispatcher {
   }
 
   /**
+   * Opens the repository in Visual Studio IDE.
+   */
+  public async openInVisualStudio(repository: Repository): Promise<void> {
+    return this.appStore._openInVisualStudio(repository)
+  }
+
+  /**
    * Opens a path in a selected external editor without changing preferences.
    */
   public async openInSelectedExternalEditor(

@@ -344,6 +344,18 @@ export class NoChanges extends React.Component<
   private onOpenInExternalEditorClicked = () =>
     this.props.dispatcher.incrementMetric('suggestedStepOpenInExternalEditor')
 
+  private renderOpenInVisualStudio() {
+    if (!__WIN32__) {
+      return null
+    }
+
+    return this.renderMenuBackedAction(
+      'open-in-visual-studio',
+      'Open the repository in Visual Studio IDE',
+      'Open the solution or C# project in Visual Studio.'
+    )
+  }
+
   private renderRemoteAction() {
     const { remote, aheadBehind, branchesState, tagsToPush } =
       this.props.repositoryState
@@ -743,6 +755,7 @@ export class NoChanges extends React.Component<
         </SuggestedActionGroup>
         <SuggestedActionGroup>
           {this.renderOpenInExternalEditor()}
+          {this.renderOpenInVisualStudio()}
           {this.renderShowInFileManager()}
           {this.renderViewOnGitHub()}
         </SuggestedActionGroup>

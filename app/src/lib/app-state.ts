@@ -102,6 +102,9 @@ export interface IAppState {
 
   readonly selectedState: PossibleSelections | null
 
+  /** Whether Visual Studio IDE can open the currently selected repository. */
+  readonly isVisualStudioAvailable: boolean
+
   /**
    * The state of the ongoing (if any) sign in process. See SignInState
    * and SignInStore for more details. Null if no current sign in flow
@@ -274,6 +277,9 @@ export interface IAppState {
    */
   readonly resolvedExternalEditor: string | null
 
+  /** Whether Visual Studio Code is installed on the user's machine. */
+  readonly isVisualStudioCodeAvailable: boolean
+
   /** What type of visual diff mode we should use to compare images */
   readonly imageDiffType: ImageDiffType
 
@@ -427,6 +433,7 @@ export enum FoldoutType {
   AppMenu,
   AddMenu,
   PushPull,
+  OpenRepository,
 }
 
 export type AppMenuFoldout = {
@@ -450,6 +457,7 @@ export type Foldout =
   | BranchFoldout
   | AppMenuFoldout
   | { type: FoldoutType.PushPull }
+  | { type: FoldoutType.OpenRepository }
 
 export enum RepositorySectionTab {
   Changes,

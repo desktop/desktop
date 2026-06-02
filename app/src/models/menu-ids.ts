@@ -25,6 +25,7 @@ export type MenuIDs =
   | 'show-repository-list'
   | 'show-branches-list'
   | 'open-working-directory'
+  | 'open-in-visual-studio'
   | 'show-repository-settings'
   | 'open-external-editor'
   | 'open-with-external-editor'

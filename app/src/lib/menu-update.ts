@@ -128,6 +128,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'show-repository-list',
   'show-branches-list',
   'open-working-directory',
+  'open-in-visual-studio',
   'show-repository-settings',
   'open-external-editor',
   'open-with-external-editor',
@@ -239,6 +240,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     'remove-repository',
     'open-in-shell',
     'open-working-directory',
+    'open-in-visual-studio',
     'show-repository-settings',
     'go-to-commit-message',
     'show-changes',
@@ -291,6 +293,10 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     )
 
     menuStateBuilder.setEnabled('view-repository-on-github', isHostedOnGitHub)
+    menuStateBuilder.setEnabled(
+      'open-in-visual-studio',
+      state.isVisualStudioAvailable
+    )
     menuStateBuilder.setEnabled(
       'create-issue-in-repository-on-github',
       repoIssuesEnabled

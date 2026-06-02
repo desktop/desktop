@@ -17,6 +17,7 @@ export type MenuEvent =
   | 'show-preferences'
   | 'choose-repository'
   | 'open-working-directory'
+  | 'open-in-visual-studio'
   | 'update-branch-with-contribution-target-branch'
   | 'compare-to-branch'
   | 'merge-branch'

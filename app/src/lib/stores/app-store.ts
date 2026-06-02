@@ -269,6 +269,7 @@ import {
   getFloatNumber,
 } from '../local-storage'
 import { ExternalEditorError, suggestedExternalEditor } from '../editors/shared'
+import { isVisualStudioAvailable, launchVisualStudio } from '../visual-studio'
 import { ApiRepositoriesStore } from './api-repositories-store'
 import {
   updateChangedFiles,
@@ -518,6 +519,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private selectedRepository: Repository | CloningRepository | null = null
 
+  private visualStudioAvailabilityRequest = 0
+  private isVisualStudioAvailable = false
+
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
 
@@ -604,6 +608,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedExternalEditor: string | null = null
 
   private resolvedExternalEditor: string | null = null
+  private isVisualStudioCodeAvailable = false
 
   /** The user's preferred shell. */
   private selectedShell: Shell = DefaultShell
@@ -1105,6 +1110,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       windowZoomFactor: this.windowZoomFactor,
       appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
+      isVisualStudioAvailable: this.isVisualStudioAvailable,
       signInState: this.signInStore.getState(),
       currentPopup: this.popupManager.currentPopup,
       allPopups: this.popupManager.allPopups,
@@ -1150,6 +1156,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedShell: this.selectedShell,
       repositoryFilterText: this.repositoryFilterText,
       resolvedExternalEditor: this.resolvedExternalEditor,
+      isVisualStudioCodeAvailable: this.isVisualStudioCodeAvailable,
       selectedCloneRepositoryTab: this.selectedCloneRepositoryTab,
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
@@ -1966,6 +1973,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.selectedRepository = repository
+    this.isVisualStudioAvailable = false
+    this.visualStudioAvailabilityRequest++
 
     this.emitUpdate()
     this.stopBackgroundFetching()
@@ -1980,6 +1989,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (!(repository instanceof Repository)) {
       return Promise.resolve(null)
     }
+
+    this.refreshVisualStudioAvailability(repository)
 
     setNumber(LastSelectedRepositoryIDKey, repository.id)
 
@@ -2010,6 +2021,35 @@ export class AppStore extends TypedBaseStore<IAppState> {
       refreshedRepository,
       previouslySelectedRepository
     )
+  }
+
+  private async refreshVisualStudioAvailability(repository: Repository) {
+    if (this.selectedRepository !== repository) {
+      return
+    }
+
+    const request = ++this.visualStudioAvailabilityRequest
+    const available = await isVisualStudioAvailable(repository.path).catch(
+      e => {
+        log.warn(
+          `Unable to determine Visual Studio availability for '${repository.path}'`,
+          e
+        )
+        return false
+      }
+    )
+
+    if (
+      request !== this.visualStudioAvailabilityRequest ||
+      this.selectedRepository !== repository
+    ) {
+      return
+    }
+
+    if (this.isVisualStudioAvailable !== available) {
+      this.isVisualStudioAvailable = available
+      this.emitUpdate()
+    }
   }
 
   // update the stored list of recently opened repositories
@@ -3738,6 +3778,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this._initializeCompare(repository)
 
     this.updateCurrentTutorialStep(repository)
+    this.refreshVisualStudioAvailability(repository)
   }
 
   private async updateStashEntryCountMetric(
@@ -6389,6 +6430,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  /** Open the repository in Visual Studio IDE. */
+  public async _openInVisualStudio(repository: Repository): Promise<void> {
+    try {
+      await launchVisualStudio(repository.path)
+    } catch (error) {
+      this.emitError(error)
+    }
+  }
+
   /** Open a path using a selected editor without changing preferences. */
   public async _openInSelectedExternalEditor(
     fullPath: string,
@@ -7491,10 +7541,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   public async _resolveCurrentEditor() {
+    const editors = await getAvailableEditors()
     const match = await findEditorOrDefault(this.selectedExternalEditor)
     const resolvedExternalEditor = match != null ? match.editor : null
-    if (this.resolvedExternalEditor !== resolvedExternalEditor) {
+    const isVisualStudioCodeAvailable = editors.some(
+      editor => editor.editor === 'Visual Studio Code'
+    )
+
+    if (
+      this.resolvedExternalEditor !== resolvedExternalEditor ||
+      this.isVisualStudioCodeAvailable !== isVisualStudioCodeAvailable
+    ) {
       this.resolvedExternalEditor = resolvedExternalEditor
+      this.isVisualStudioCodeAvailable = isVisualStudioCodeAvailable
 
       // Make sure we let the tutorial assessor know that we have a new editor
       // in case it's stuck waiting for one to be selected.

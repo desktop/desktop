@@ -53,6 +53,7 @@ import {
   ToolbarDropdown,
   DropdownState,
   PushPullButton,
+  OpenRepositoryButton,
   BranchDropdown,
   RevertProgress,
 } from './toolbar'
@@ -469,6 +470,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'open-working-directory':
         return this.openCurrentRepositoryWorkingDirectory()
+      case 'open-in-visual-studio':
+        return this.openCurrentRepositoryInVisualStudio()
       case 'update-branch-with-contribution-target-branch':
         this.props.dispatcher.incrementMetric(
           'updateFromDefaultBranchMenuCount'
@@ -722,6 +725,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.showRepository(state.repository)
+  }
+
+  private openCurrentRepositoryInVisualStudio() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.openInVisualStudio(state.repository)
   }
 
   private renameBranch() {
@@ -3334,6 +3346,46 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private onOpenRepositoryDropdownStateChanged = (newState: DropdownState) => {
+    if (newState === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.OpenRepository })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.OpenRepository)
+    }
+  }
+
+  private renderOpenRepositoryToolbarButton() {
+    if (!__WIN32__) {
+      return null
+    }
+
+    const selection = this.state.selectedState
+    if (selection == null || selection.type !== SelectionType.Repository) {
+      return null
+    }
+
+    const currentFoldout = this.state.currentFoldout
+    const isDropdownOpen =
+      currentFoldout !== null &&
+      currentFoldout.type === FoldoutType.OpenRepository
+
+    return (
+      <OpenRepositoryButton
+        dispatcher={this.props.dispatcher}
+        repository={selection.repository}
+        selectedExternalEditor={this.state.resolvedExternalEditor}
+        isVisualStudioCodeAvailable={this.state.isVisualStudioCodeAvailable}
+        isVisualStudioAvailable={this.state.isVisualStudioAvailable}
+        shellLabel={
+          this.state.useCustomShell ? 'shell' : this.state.selectedShell
+        }
+        isDropdownOpen={isDropdownOpen}
+        enableFocusTrap={this.state.currentPopup === null}
+        onDropdownStateChanged={this.onOpenRepositoryDropdownStateChanged}
+      />
+    )
+  }
+
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
     if (newState === 'open') {
       this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
@@ -3463,6 +3515,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         </div>
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
+        {this.renderOpenRepositoryToolbarButton()}
       </Toolbar>
     )
   }
