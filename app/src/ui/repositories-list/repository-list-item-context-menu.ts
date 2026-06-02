@@ -14,6 +14,7 @@ interface IRepositoryListItemContextMenuConfig {
   externalEditorLabel: string | undefined
   askForConfirmationOnRemoveRepository: boolean
   onViewOnGitHub: (repository: Repositoryish) => void
+  onOpenInNewWindow?: (repository: Repositoryish) => void
   onOpenInShell: (repository: Repositoryish) => void
   onShowRepository: (repository: Repositoryish) => void
   onOpenInExternalEditor: (repository: Repositoryish) => void
@@ -31,6 +32,8 @@ export const generateRepositoryListContextMenu = (
   const missing = repository instanceof Repository && repository.missing
   const github =
     repository instanceof Repository && repository.gitHubRepository != null
+  const canOpenInNewWindow =
+    repository instanceof Repository && !repository.missing
   const openInExternalEditor = config.externalEditorLabel
     ? `Open in ${config.externalEditorLabel}`
     : DefaultEditorLabel
@@ -55,6 +58,16 @@ export const generateRepositoryListContextMenu = (
       action: () => config.onViewOnGitHub(repository),
       enabled: github,
     },
+    ...(config.onOpenInNewWindow && canOpenInNewWindow
+      ? [
+          {
+            label: __DARWIN__
+              ? 'Open Repository in New Window'
+              : 'Open repository in new window',
+            action: () => config.onOpenInNewWindow?.(repository),
+          },
+        ]
+      : []),
     {
       label: openInShell,
       action: () => config.onOpenInShell(repository),

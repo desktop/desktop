@@ -359,15 +359,19 @@ initializeRendererNotificationHandler(notificationsStore)
 // The trampoline UI helper needs a reference to the dispatcher before it's used
 trampolineUIHelper.setDispatcher(dispatcher)
 
+let lastFocusRefreshAt = 0
+const FocusRefreshThrottleMs = 15_000
+
 ipcRenderer.on('focus', () => {
   const { selectedState } = appStore.getState()
 
-  // Refresh the currently selected repository on focus (if
-  // we have a selected repository, that is not cloning).
+  const now = Date.now()
   if (
+    now - lastFocusRefreshAt > FocusRefreshThrottleMs &&
     selectedState &&
     !(selectedState.type === SelectionType.CloningRepository)
   ) {
+    lastFocusRefreshAt = now
     dispatcher.refreshRepository(selectedState.repository)
   }
 

@@ -12,6 +12,7 @@ import { generateWorktreeContextMenuItems } from '../worktrees/worktree-list-ite
 import { PopupType } from '../../models/popup'
 import { Resizable } from '../resizable'
 import { enableResizingToolbarButtons } from '../../lib/feature-flag'
+import { openRepositoryInNewWindow } from '../main-process-proxy'
 
 interface IWorktreeDropdownProps {
   readonly dispatcher: Dispatcher
@@ -57,9 +58,15 @@ export class WorktreeDropdown extends React.Component<
       isLocked: worktree.isLocked,
       onRenameWorktree: this.onRenameWorktree,
       onRemoveWorktree: this.onRemoveWorktree,
+      onOpenInNewWindow: this.onOpenWorktreeInNewWindow,
     })
 
     showContextualMenu(items)
+  }
+
+  private onOpenWorktreeInNewWindow = (path: string) => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Worktree)
+    openRepositoryInNewWindow(path)
   }
 
   private onRenameWorktree = (path: string) => {

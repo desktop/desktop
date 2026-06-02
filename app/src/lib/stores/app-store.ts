@@ -566,6 +566,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private readonly repositoryIndicatorUpdater: RepositoryIndicatorUpdater
 
+  private isSecondaryWindow = false
+
   private showWelcomeFlow = false
   private focusCommitMessage = false
   private currentFoldout: Foldout | null = null
@@ -789,7 +791,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     window.setTimeout(() => {
-      if (this.repositoryIndicatorsEnabled) {
+      if (this.shouldRunRepositoryIndicatorUpdater()) {
         this.repositoryIndicatorUpdater.start()
       }
     }, InitialRepositoryIndicatorTimeout)
@@ -2042,7 +2044,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _selectRepository(
-    repository: Repository | CloningRepository | null
+    repository: Repository | CloningRepository | null,
+    persistSelection: boolean = true
   ): Promise<Repository | null> {
     const previouslySelectedRepository = this.selectedRepository
 
@@ -2074,7 +2077,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return Promise.resolve(null)
     }
 
-    setNumber(LastSelectedRepositoryIDKey, repository.id)
+    if (persistSelection) {
+      setNumber(LastSelectedRepositoryIDKey, repository.id)
+    }
 
     const previousRepositoryId = previouslySelectedRepository
       ? previouslySelectedRepository.id
@@ -4109,13 +4114,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     setBoolean(repositoryIndicatorsEnabledKey, repositoryIndicatorsEnabled)
     this.repositoryIndicatorsEnabled = repositoryIndicatorsEnabled
-    if (repositoryIndicatorsEnabled) {
+    if (this.shouldRunRepositoryIndicatorUpdater()) {
       this.repositoryIndicatorUpdater.start()
     } else {
       this.repositoryIndicatorUpdater.stop()
     }
 
     this.emitUpdate()
+  }
+
+  /** Mark as secondary window — disables sidebar indicator refresh. */
+  public _setSecondaryWindow() {
+    this.isSecondaryWindow = true
+    this.repositoryIndicatorUpdater.stop()
+  }
+
+  private shouldRunRepositoryIndicatorUpdater() {
+    return this.repositoryIndicatorsEnabled && !this.isSecondaryWindow
   }
 
   public _setCommitSpellcheckEnabled(commitSpellcheckEnabled: boolean) {
@@ -4297,7 +4312,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // started to refresh the repository indicators let's do so.
     if (
       foldout.type === FoldoutType.Repository &&
-      this.repositoryIndicatorsEnabled
+      this.shouldRunRepositoryIndicatorUpdater()
     ) {
       // N.B: RepositoryIndicatorUpdater.prototype.start is
       // idempotent.
@@ -7705,7 +7720,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     if (this.appIsFocused) {
-      this.repositoryIndicatorUpdater.resume()
+      this.updateMenuLabelsForSelectedRepository()
+      if (this.shouldRunRepositoryIndicatorUpdater()) {
+        this.repositoryIndicatorUpdater.resume()
+      } else {
+        this.repositoryIndicatorUpdater.stop()
+      }
       if (this.selectedRepository instanceof Repository) {
         this.startPullRequestUpdater(this.selectedRepository)
         // if we're in the tutorial and we don't have an editor yet, check for one!
@@ -7714,7 +7734,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
       }
     } else {
-      this.repositoryIndicatorUpdater.pause()
+      if (this.shouldRunRepositoryIndicatorUpdater()) {
+        this.repositoryIndicatorUpdater.pause()
+      }
       this.stopPullRequestUpdater()
     }
   }
