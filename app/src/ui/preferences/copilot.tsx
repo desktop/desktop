@@ -180,6 +180,9 @@ export class CopilotPreferences extends React.Component<
               __DARWIN__ ? 'Conflict Resolution' : 'Conflict resolution',
               this.onConflictResolutionModelChanged
             )}
+            <p className="settings-description">
+              Model changes apply to future conflict resolutions.
+            </p>
             <Checkbox
               label={
                 __DARWIN__

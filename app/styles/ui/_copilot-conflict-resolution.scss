@@ -39,11 +39,29 @@
       width: auto;
     }
 
-    .copilot-conflicts-dialog-model {
+    .copilot-conflicts-dialog-model-row {
       flex-basis: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .copilot-conflicts-dialog-model {
       font-size: var(--font-size-sm);
       color: var(--text-secondary-color);
       font-weight: var(--font-weight-normal);
+    }
+
+    .copilot-conflicts-dialog-settings-button {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary-color);
+      padding: 0 var(--spacing-half);
+      min-width: auto;
+      margin-left: var(--spacing-half);
+
+      &:hover {
+        color: var(--text-color);
+      }
     }
   }
 

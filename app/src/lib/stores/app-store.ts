@@ -23,6 +23,7 @@ import {
   getBYOKSecret,
   parseModelKey,
 } from '../copilot/byok'
+import { getConflictResolutionModelDisplay } from '../copilot/conflict-resolution-model'
 import type {
   CopilotModelRequest,
   CopilotProviderConfig,
@@ -3072,8 +3073,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const useCopilot = multiCommitOperationState.useCopilotConflictResolution
     const autoRoute =
-      !useCopilot &&
-      this.shouldAutoRouteToCopilotConflictResolution(repository)
+      !useCopilot && this.shouldAutoRouteToCopilotConflictResolution(repository)
 
     if (autoRoute && this.isCopilotConflictDisclaimerFresh()) {
       // Global pref is on and disclaimer is fresh — go straight to Copilot.
@@ -6531,9 +6531,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // Controller used to actually cancel the in-flight SDK turn when the user
     // clicks "Stop" (see _abortCopilotConflictResolution).
     const abortController = new AbortController()
+    const copilotResolutionModel = getConflictResolutionModelDisplay(
+      this.selectedCopilotModels['conflict-resolution'] ?? null,
+      this.copilotModels,
+      this.byokProviders
+    )
     this.repositoryStateCache.updateMultiCommitOperationState(
       repository,
-      () => ({ copilotResolutionAbortController: abortController })
+      () => ({
+        copilotResolutionAbortController: abortController,
+        copilotResolutionModel,
+      })
     )
 
     // Only the run that owns this controller may mutate Copilot resolution
@@ -9255,6 +9263,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       copilotResolutionSummary: null,
       copilotResolutionProgress: null,
       copilotResolutionAbortController: null,
+      copilotResolutionModel: null,
       originalBranchTip,
       targetBranch,
     })

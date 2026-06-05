@@ -33,6 +33,8 @@ import {
 import { openFile } from '../../lib/open-file'
 import { revealInFileManager } from '../../../lib/app-shell'
 import { CopilotConflictsResolutionSummary } from './copilot-conflicts-resolution-summary'
+import { PopupType } from '../../../models/popup'
+import { PreferencesTab } from '../../../models/preferences'
 import { MultiCommitOperationKind } from '../../../models/multi-commit-operation'
 
 /**
@@ -96,6 +98,13 @@ export class CopilotConflictsDialog extends React.Component<
       },
       false
     )
+  }
+
+  private onOpenCopilotSettings = () => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.Preferences,
+      initialSelectedTab: PreferencesTab.Copilot,
+    })
   }
 
   private onContinue = async () => {
@@ -421,7 +430,16 @@ export class CopilotConflictsDialog extends React.Component<
           onCloseButtonClick={this.props.onDismissed}
           loading={isContinuing}
         >
-          <span className="copilot-conflicts-dialog-model">{modelLabel}</span>
+          <div className="copilot-conflicts-dialog-model-row">
+            <span className="copilot-conflicts-dialog-model">{modelLabel}</span>
+            <Button
+              className="copilot-conflicts-dialog-settings-button"
+              tooltip="Configure Copilot in app settings"
+              onClick={this.onOpenCopilotSettings}
+            >
+              <Octicon symbol={octicons.sliders} />
+            </Button>
+          </div>
         </DialogHeader>
         <DialogContent>
           {this.renderResolutionSummary()}
