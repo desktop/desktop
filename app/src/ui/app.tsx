@@ -203,6 +203,7 @@ import {
 } from './secret-scanning/push-protection-error-dialog'
 import { GenerateCommitMessageOverrideWarning } from './generate-commit-message/generate-commit-message-override-warning'
 import { CopilotDisclaimer } from './copilot/copilot-disclaimer'
+import { CopilotConflictResolutionAlwaysNudge } from './multi-commit-operation/dialog/copilot-conflict-resolution-always-nudge'
 import { IAPICreatePushProtectionBypassResponse } from '../lib/api'
 import {
   BypassPushProtectionDialog,
@@ -2752,6 +2753,33 @@ export class App extends React.Component<IAppProps, IAppState> {
             Review the suggested resolutions carefully before applying them to
             your files.
           </CopilotDisclaimer>
+        )
+      }
+      case PopupType.CopilotConflictResolutionAlwaysNudge: {
+        const { repository } = popup
+        const onAlwaysUseCopilot = () => {
+          this.props.dispatcher.setAlwaysUseCopilotForConflictResolution(true)
+          this.props.dispatcher.closePopup(
+            PopupType.CopilotConflictResolutionAlwaysNudge
+          )
+          this.props.dispatcher.attemptCopilotConflictResolution(repository)
+        }
+        const onDecline = () => {
+          this.props.dispatcher.dismissCopilotConflictResolutionAlwaysNudge()
+          this.props.dispatcher.closePopup(
+            PopupType.CopilotConflictResolutionAlwaysNudge
+          )
+          this.props.dispatcher.attemptCopilotConflictResolution(repository)
+        }
+        return (
+          <CopilotConflictResolutionAlwaysNudge
+            key="copilot-conflict-resolution-always-nudge"
+            // eslint-disable-next-line react/jsx-no-bind
+            onAlwaysUseCopilot={onAlwaysUseCopilot}
+            // eslint-disable-next-line react/jsx-no-bind
+            onDecline={onDecline}
+            onDismissed={onPopupDismissedFn}
+          />
         )
       }
       case PopupType.HookFailed: {

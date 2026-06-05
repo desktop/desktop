@@ -541,6 +541,12 @@ const copilotConflictResolutionButtonClickedKey =
 const alwaysUseCopilotForConflictResolutionKey =
   'always-use-copilot-for-conflict-resolution'
 
+const copilotConflictResolutionUseCountKey =
+  'copilot-conflict-resolution-use-count'
+
+const copilotConflictResolutionNudgeDismissedKey =
+  'copilot-conflict-resolution-nudge-dismissed'
+
 export const showChangesFilterKey = 'show-changes-filter'
 
 const selectedCopilotModelsKey = 'selected-copilot-models'
@@ -6012,6 +6018,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
   }
 
+  public _dismissCopilotConflictResolutionAlwaysNudge(): void {
+    setBoolean(copilotConflictResolutionNudgeDismissedKey, true)
+  }
+
   public async _generateCommitMessage(
     repository: Repository,
     filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
@@ -6484,6 +6494,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
         repository,
       })
       return
+    }
+
+    // Track consecutive manual uses and nudge the user to enable "always use
+    // Copilot" after 5 uses if they haven't already enabled or dismissed it.
+    if (!this.alwaysUseCopilotForConflictResolution) {
+      const count = (getNumber(copilotConflictResolutionUseCountKey) ?? 0) + 1
+      setNumber(copilotConflictResolutionUseCountKey, count)
+
+      if (
+        count >= 5 &&
+        !getBoolean(copilotConflictResolutionNudgeDismissedKey, false)
+      ) {
+        await this._showPopup({
+          type: PopupType.CopilotConflictResolutionAlwaysNudge,
+          repository,
+        })
+        return
+      }
     }
 
     // Transition to the loading interstitial and start the resolution.
