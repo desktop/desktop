@@ -408,6 +408,8 @@ export interface IAppState {
 
   readonly copilotConflictResolutionButtonClicked: boolean
 
+  readonly alwaysUseCopilotForConflictResolution: boolean
+
   /** Whether the changes filter is shown */
   readonly showChangesFilter: boolean
 

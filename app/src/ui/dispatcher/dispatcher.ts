@@ -4229,6 +4229,10 @@ export class Dispatcher {
     return this.appStore._setSelectedCopilotModels(models)
   }
 
+  public setAlwaysUseCopilotForConflictResolution(value: boolean): void {
+    this.appStore._setAlwaysUseCopilotForConflictResolution(value)
+  }
+
   /** Fetch the list of available Copilot models from the SDK. */
   public fetchCopilotModels(): Promise<void> {
     return this.appStore._fetchCopilotModels()

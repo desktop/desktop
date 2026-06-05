@@ -537,6 +537,9 @@ const copilotConflictResolutionDisclaimerLastSeenKey =
 const copilotConflictResolutionButtonClickedKey =
   'copilot-conflict-resolution-button-clicked'
 
+const alwaysUseCopilotForConflictResolutionKey =
+  'always-use-copilot-for-conflict-resolution'
+
 export const showChangesFilterKey = 'show-changes-filter'
 
 const selectedCopilotModelsKey = 'selected-copilot-models'
@@ -703,6 +706,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private copilotConflictResolutionDisclaimerLastSeen: number | null = null
   private copilotConflictResolutionButtonClicked: boolean = false
+
+  private alwaysUseCopilotForConflictResolution: boolean = false
 
   private showChangesFilter: boolean = false
 
@@ -1225,6 +1230,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.copilotConflictResolutionDisclaimerLastSeen,
       copilotConflictResolutionButtonClicked:
         this.copilotConflictResolutionButtonClicked,
+      alwaysUseCopilotForConflictResolution:
+        this.alwaysUseCopilotForConflictResolution,
       showChangesFilter: this.showChangesFilter,
       selectedCopilotModels: this.selectedCopilotModels,
       copilotModels: this.copilotModels,
@@ -2503,6 +2510,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       false
     )
 
+    this.alwaysUseCopilotForConflictResolution = getBoolean(
+      alwaysUseCopilotForConflictResolutionKey,
+      false
+    )
+
     this.showChangesFilter = getBoolean(
       showChangesFilterKey,
       showChangesFilterDefault
@@ -3059,23 +3071,57 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const useCopilot = multiCommitOperationState.useCopilotConflictResolution
+    const autoRoute =
+      !useCopilot &&
+      this.shouldAutoRouteToCopilotConflictResolution(repository)
 
-    this._setMultiCommitOperationStep(repository, {
-      kind: useCopilot
-        ? MultiCommitOperationStepKind.ShowCopilotConflictsLoading
-        : MultiCommitOperationStepKind.ShowConflicts,
-      conflictState: mcoConflictState,
-    })
+    if (autoRoute && this.isCopilotConflictDisclaimerFresh()) {
+      // Global pref is on and disclaimer is fresh — go straight to Copilot.
+      this._setMultiCommitOperationStepWithCopilotResolution(
+        repository,
+        {
+          kind: MultiCommitOperationStepKind.ShowCopilotConflictsLoading,
+          conflictState: mcoConflictState,
+        },
+        true
+      )
 
-    this._showPopup({
-      type: PopupType.MultiCommitOperation,
-      repository,
-    })
+      this._showPopup({
+        type: PopupType.MultiCommitOperation,
+        repository,
+      })
 
-    if (useCopilot) {
+      await this._startCopilotConflictResolution(repository)
+    } else if (useCopilot) {
+      this._setMultiCommitOperationStep(repository, {
+        kind: MultiCommitOperationStepKind.ShowCopilotConflictsLoading,
+        conflictState: mcoConflictState,
+      })
+
+      this._showPopup({
+        type: PopupType.MultiCommitOperation,
+        repository,
+      })
+
       // Auto-route to Copilot: the user previously opted into Copilot
       // resolution during this operation, so skip the manual dialog.
       await this._startCopilotConflictResolution(repository)
+    } else {
+      this._setMultiCommitOperationStep(repository, {
+        kind: MultiCommitOperationStepKind.ShowConflicts,
+        conflictState: mcoConflictState,
+      })
+
+      this._showPopup({
+        type: PopupType.MultiCommitOperation,
+        repository,
+      })
+
+      if (autoRoute) {
+        // Global pref is on but disclaimer is stale — show conflicts first
+        // and then trigger the attempt which will show the disclaimer popup.
+        await this._attemptCopilotConflictResolution(repository)
+      }
     }
   }
 
@@ -5940,6 +5986,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
       setBoolean(copilotConflictResolutionButtonClickedKey, true)
       this.emitUpdate()
     }
+  }
+
+  public _setAlwaysUseCopilotForConflictResolution(value: boolean): void {
+    this.alwaysUseCopilotForConflictResolution = value
+    setBoolean(alwaysUseCopilotForConflictResolutionKey, value)
+    this.emitUpdate()
+  }
+
+  private shouldAutoRouteToCopilotConflictResolution(
+    repository: Repository
+  ): boolean {
+    return (
+      this.alwaysUseCopilotForConflictResolution &&
+      enableCopilotConflictResolution() &&
+      getAccountForCopilotConflictResolution(this.accounts, repository) !== null
+    )
+  }
+
+  private isCopilotConflictDisclaimerFresh(): boolean {
+    return (
+      this.copilotConflictResolutionDisclaimerLastSeen !== null &&
+      offsetFromNow(-30, 'days') <=
+        this.copilotConflictResolutionDisclaimerLastSeen
+    )
   }
 
   public async _generateCommitMessage(

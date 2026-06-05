@@ -4,6 +4,7 @@ import { Row } from '../lib/row'
 import { Select } from '../lib/select'
 import { Button } from '../lib/button'
 import { LinkButton } from '../lib/link-button'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import { TabBar } from '../tab-bar'
@@ -27,9 +28,13 @@ interface ICopilotPreferencesProps {
   readonly copilotAvailable: boolean
   readonly byokProviders: ReadonlyArray<IBYOKProvider>
   readonly showBYOKSettings: boolean
+  readonly alwaysUseCopilotForConflictResolution: boolean
   readonly onSelectedCopilotModelChanged: (
     feature: CopilotFeature,
     model: string | null
+  ) => void
+  readonly onAlwaysUseCopilotForConflictResolutionChanged: (
+    checked: boolean
   ) => void
   readonly onAddBYOKProvider: () => void
   readonly onEditBYOKProvider: (provider: IBYOKProvider) => void
@@ -68,6 +73,14 @@ export class CopilotPreferences extends React.Component<
     this.props.onSelectedCopilotModelChanged(
       'conflict-resolution',
       event.currentTarget.value
+    )
+  }
+
+  private onAlwaysUseCopilotForConflictResolutionChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onAlwaysUseCopilotForConflictResolutionChanged(
+      event.currentTarget.checked
     )
   }
 
@@ -159,13 +172,29 @@ export class CopilotPreferences extends React.Component<
             Learn more about generating commit messages.
           </LinkButton>
         </p>
-        {enableCopilotConflictResolution() &&
-          this.renderFeatureModelPicker(
-            copilotModels,
-            'conflict-resolution',
-            __DARWIN__ ? 'Conflict Resolution' : 'Conflict resolution',
-            this.onConflictResolutionModelChanged
-          )}
+        {enableCopilotConflictResolution() && (
+          <>
+            {this.renderFeatureModelPicker(
+              copilotModels,
+              'conflict-resolution',
+              __DARWIN__ ? 'Conflict Resolution' : 'Conflict resolution',
+              this.onConflictResolutionModelChanged
+            )}
+            <Checkbox
+              label={
+                __DARWIN__
+                  ? 'Always Use Copilot When Conflicts Are Detected'
+                  : 'Always use Copilot when conflicts are detected'
+              }
+              value={
+                this.props.alwaysUseCopilotForConflictResolution
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onAlwaysUseCopilotForConflictResolutionChanged}
+            />
+          </>
+        )}
       </>
     )
   }

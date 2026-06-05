@@ -1696,6 +1696,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             copilotModels={this.state.copilotModels}
             copilotAvailable={this.state.copilotAvailable}
             byokProviders={this.state.byokProviders}
+            alwaysUseCopilotForConflictResolution={
+              this.state.alwaysUseCopilotForConflictResolution
+            }
           />
         )
       case PopupType.RepositorySettings: {
