@@ -126,6 +126,10 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       return
     }
 
+    if (this.props.showCIStatusPopover) {
+      this.closePopover()
+    }
+
     this.props.onDropDownStateChanged(state)
   }
 
