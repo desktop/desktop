@@ -43,6 +43,7 @@ import { ValidNotificationPullRequestReviewState } from '../valid-notification-p
 import { useExternalCredentialHelperKey } from '../trampoline/use-external-credential-helper'
 import { getUserAgent } from '../http'
 import { getHooksEnvEnabled } from '../hooks/config'
+import { enableNewStatsEndpoint } from '../feature-flag'
 
 type PullRequestReviewStatFieldInfix =
   | 'Approved'
@@ -57,7 +58,10 @@ type PullRequestReviewStatFieldSuffix =
 type PullRequestReviewStatField =
   `pullRequestReview${PullRequestReviewStatFieldInfix}${PullRequestReviewStatFieldSuffix}`
 
-const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
+const LegacyStatsEndpoint = 'https://central.github.com/api/usage/desktop'
+
+const StatsEndpoint =
+  'https://desktop.github.com/twirp/clientappsfe.observability.v1.TelemetryAPI/RecordEvents'
 
 /** The URL to the stats samples page. */
 export const SamplesURL = 'https://desktop.github.com/usage-data/'
@@ -454,8 +458,103 @@ export interface IStatsStore {
   increment: (k: keyof NumericMeasures, n?: number) => Promise<void>
 }
 
-const defaultPostImplementation = (body: Record<string, any>) =>
-  fetch(StatsEndpoint, {
+/** Dimensions sent to the telemetry endpoint (string-valued fields). */
+interface ITelemetryDimensions {
+  readonly version: string
+  readonly osVersion: string
+  readonly platform: string
+  readonly architecture: string
+  readonly guid: string
+  readonly theme: string
+  readonly selectedTerminalEmulator: string
+  readonly selectedTextEditor: string
+  readonly diffMode: string
+  readonly dotComAccount: string
+  readonly enterpriseAccount: string
+  readonly notificationsEnabled: string
+  readonly launchedFromApplicationsFolder: string
+  readonly linkUnderlinesVisible: string
+  readonly diffCheckMarksVisible: string
+  readonly useExternalCredentialHelper: string
+  readonly filteringChangesEnabled: string
+  readonly gitHooksEnvEnabled: string
+  readonly active: string
+  readonly tutorialStarted: string
+  readonly tutorialRepoCreated: string
+  readonly tutorialEditorInstalled: string
+  readonly tutorialBranchCreated: string
+  readonly tutorialFileEdited: string
+  readonly tutorialCommitCreated: string
+  readonly tutorialBranchPushed: string
+  readonly tutorialPrCreated: string
+  readonly tutorialCompleted: string
+}
+
+/** Measures sent to the telemetry endpoint (numeric-valued fields). */
+type ITelemetryMeasures = ILaunchStats &
+  NumericMeasures &
+  IOnboardingStats & {
+    readonly repositoryCount: number
+    readonly gitHubRepositoryCount: number
+    readonly repositoriesCommittedInWithoutWriteAccess: number
+    readonly enterpriseAccountCount: number
+    readonly highestTutorialStepCompleted: number
+  }
+
+/** The structured telemetry event sent to the stats endpoint. */
+interface ITelemetryEvent {
+  readonly event_type: 'usage' | 'ping'
+  readonly dimensions: ITelemetryDimensions
+  readonly measures?: ITelemetryMeasures
+}
+
+/**
+ * Transform a flat stats payload into the structured telemetry format.
+ *
+ * Extracts `eventType` for the envelope's `event_type` field, then splits
+ * remaining fields into dimensions (string/boolean values) and measures
+ * (numeric values).
+ */
+function buildStatsPayload(body: Record<string, any>): object {
+  const { eventType, ...rest } = body
+
+  const dimensions: Record<string, string> = {}
+  const measures: Record<string, number> = {}
+
+  for (const [key, value] of Object.entries(rest)) {
+    if (value === undefined) {
+      continue
+    } else if (typeof value === 'number') {
+      measures[key] = value
+    } else {
+      dimensions[key] = String(value)
+    }
+  }
+
+  const event: ITelemetryEvent = {
+    event_type: eventType ?? 'usage',
+    dimensions: dimensions as unknown as ITelemetryDimensions,
+    measures: measures as unknown as Partial<ITelemetryMeasures>,
+  }
+
+  return {
+    events: [{ app: 'desktop', ...event }],
+  }
+}
+
+const defaultPostImplementation = (body: Record<string, any>) => {
+  if (enableNewStatsEndpoint()) {
+    return fetch(StatsEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'user-agent': getUserAgent(),
+      },
+      body: JSON.stringify(buildStatsPayload(body)),
+    })
+  }
+
+  return fetch(LegacyStatsEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -463,6 +562,7 @@ const defaultPostImplementation = (body: Record<string, any>) =>
     },
     body: JSON.stringify(body),
   })
+}
 
 /** The store for the app's stats. */
 export class StatsStore implements IStatsStore {

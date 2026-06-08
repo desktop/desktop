@@ -134,3 +134,8 @@ export const enableFormattingPreferences = () => true
 export function enableWorktreeSupport(): boolean {
   return enableBetaFeatures()
 }
+
+/** Should stats be sent to the new telemetry endpoint? */
+export function enableNewStatsEndpoint(): boolean {
+  return enableBetaFeatures()
+}
