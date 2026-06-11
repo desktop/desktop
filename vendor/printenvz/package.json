@@ -11,11 +11,8 @@
     "rebuild": "node-gyp rebuild"
   },
   "gypfile": true,
-  "dependencies": {
-    "node-gyp": "^10.0.1"
-  },
   "devDependencies": {
-    "node-gyp": "^10.0.1"
+    "node-gyp": "^12.4.0"
   },
   "keywords": ["native", "environment", "variables", "executable"],
   "author": "",
