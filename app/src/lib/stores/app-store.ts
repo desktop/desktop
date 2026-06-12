@@ -2230,6 +2230,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return true
     }
 
+    if (lastPush !== null && lastFetched < lastPush) {
+      return true
+    }
+
     const now = new Date()
     const timeSinceFetch = now.getTime() - lastFetched.getTime()
     const repoName = nameOf(repository)
@@ -2242,17 +2246,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return false
     }
 
-    if (lastPush === null) {
-      return true
-    }
-
-    // we should fetch if the last push happened after the last fetch
-    if (lastFetched < lastPush) {
-      return true
-    }
-
     log.debug(
-      `Skipping background fetch since nothing has been pushed to '${repoName}' since the last fetch at ${lastFetched}`
+      `Skipping background fetch for '${repoName}', last fetched at ${lastFetched}`
     )
 
     return false
