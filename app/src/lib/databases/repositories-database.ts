@@ -68,6 +68,11 @@ export interface IDatabaseRepository {
    * of Git and GitHub.
    */
   readonly isTutorialRepository?: boolean
+
+  /**
+   * True if the repository is pinned in the repository list.
+   */
+  readonly pinned?: boolean
 }
 
 /**
@@ -140,7 +145,16 @@ export class RepositoriesDatabase extends BaseDatabase {
 
     this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
     this.conditionalVersion(9, { owners: '++id, &key' }, createOwnerKey)
+    this.conditionalVersion(10, {}, ensurePinnedIsDefined)
   }
+}
+
+async function ensurePinnedIsDefined(tx: Transaction) {
+  return tx
+    .table<IDatabaseRepository, number>('repositories')
+    .toCollection()
+    .modify({ pinned: false })
+    .then(modified => log.info(`ensurePinnedIsDefined: ${modified}`))
 }
 
 /**

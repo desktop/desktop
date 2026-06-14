@@ -20,6 +20,8 @@ interface IRepositoryListItemContextMenuConfig {
   onRemoveRepository: (repository: Repositoryish) => void
   onChangeRepositoryAlias: (repository: Repository) => void
   onRemoveRepositoryAlias: (repository: Repository) => void
+  onPinRepository: (repository: Repository) => void
+  onUnpinRepository: (repository: Repository) => void
   onCreateWorktree?: (repository: Repository) => void
   onShowWorktrees?: (repository: Repository) => void
 }
@@ -39,6 +41,7 @@ export const generateRepositoryListContextMenu = (
     : DefaultShellLabel
 
   const items: ReadonlyArray<IMenuItem> = [
+    ...buildPinMenuItems(config),
     ...buildAliasMenuItems(config),
     ...buildWorktreeMenuItems(config),
     {
@@ -76,6 +79,32 @@ export const generateRepositoryListContextMenu = (
       action: () => config.onRemoveRepository(repository),
     },
   ]
+
+  return items
+}
+
+const buildPinMenuItems = (
+  config: IRepositoryListItemContextMenuConfig
+): ReadonlyArray<IMenuItem> => {
+  const { repository } = config
+
+  if (!(repository instanceof Repository)) {
+    return []
+  }
+
+  const items: Array<IMenuItem> = []
+
+  if (repository.pinned) {
+    items.push({
+      label: __DARWIN__ ? 'Unpin Repository' : 'Unpin repository',
+      action: () => config.onUnpinRepository(repository),
+    })
+  } else {
+    items.push({
+      label: __DARWIN__ ? 'Pin Repository' : 'Pin repository',
+      action: () => config.onPinRepository(repository),
+    })
+  }
 
   return items
 }

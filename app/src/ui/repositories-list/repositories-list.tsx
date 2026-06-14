@@ -250,6 +250,8 @@ export class RepositoriesList extends React.Component<
       return group.owner.login
     } else if (kind === 'recent') {
       return 'Recent'
+    } else if (kind === 'pinned') {
+      return 'Pinned'
     } else {
       assertNever(kind, `Unknown repository group kind ${kind}`)
     }
@@ -297,6 +299,8 @@ export class RepositoriesList extends React.Component<
       externalEditorLabel: this.props.externalEditorLabel,
       onChangeRepositoryAlias: this.onChangeRepositoryAlias,
       onRemoveRepositoryAlias: this.onRemoveRepositoryAlias,
+      onPinRepository: this.onPinRepository,
+      onUnpinRepository: this.onUnpinRepository,
       onViewOnGitHub: this.props.onViewOnGitHub,
       onCreateWorktree: enableWorktreeSupport()
         ? this.onCreateWorktree
@@ -462,6 +466,14 @@ export class RepositoriesList extends React.Component<
 
   private onRemoveRepositoryAlias = (repository: Repository) => {
     this.props.dispatcher.changeRepositoryAlias(repository, null)
+  }
+
+  private onPinRepository = (repository: Repository) => {
+    this.props.dispatcher.updateRepositoryPinned(repository, true)
+  }
+
+  private onUnpinRepository = (repository: Repository) => {
+    this.props.dispatcher.updateRepositoryPinned(repository, false)
   }
 
   private onCreateWorktree = (repository: Repository) => {

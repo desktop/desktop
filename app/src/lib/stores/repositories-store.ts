@@ -153,7 +153,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.alias,
       repo.workflowPreferences,
       repo.isTutorialRepository,
-      repo.gitDir
+      repo.gitDir,
+      repo.pinned ?? false
     )
   }
 
@@ -371,8 +372,19 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository,
-      gitDir
+      gitDir,
+      repository.pinned
     )
+  }
+
+  /** Update the repository's 'pinned' status. */
+  public async updateRepositoryPinned(
+    repository: Repository,
+    pinned: boolean
+  ): Promise<void> {
+    await this.db.repositories.update(repository.id, { pinned })
+
+    this.emitUpdatedRepositories()
   }
 
   /**
