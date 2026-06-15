@@ -1,13 +1,13 @@
 {
   "name": "desktop",
-  "productName": "GitHub Desktop",
-  "bundleID": "com.github.GitHubClient",
-  "companyName": "GitHub, Inc.",
+  "productName": "GitHub Desktop Multi",
+  "bundleID": "com.yorkemartin.GitHubDesktopMulti",
+  "companyName": "Yorkemartin",
   "version": "3.5.13-beta1",
   "main": "./main.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/desktop/desktop.git"
+    "url": "https://github.com/Yorkemartin/github-desktop-multi.git"
   },
   "description": "Simple collaboration from your desktop",
   "author": {
