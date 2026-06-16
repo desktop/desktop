@@ -11,6 +11,9 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
   isConflictWithMarkers,
+  isConflictedFileStatus,
+  isManualConflict,
+  UnmergedEntrySummary,
 } from '../../../models/status'
 import { getUnmergedFiles, isConflictedFile } from '../../../lib/status'
 import { assertNever } from '../../../lib/fatal-error'
@@ -43,8 +46,79 @@ import { CopilotConflictsChanges } from './copilot-conflicts-changes'
 import {
   CopilotFileResolutionChoice,
   getResolutionChoiceForFile,
+  isDeleteModifyConflict,
   resolutionChoices,
 } from './copilot-resolution-helpers'
+import { GitStatusEntry, ConflictedFileStatus } from '../../../models/status'
+
+/**
+ * Return a dropdown context-menu label for one side of a delete-vs-modify
+ * conflict (e.g. "Keep file (modified on main)" or "Do not include this
+ * file (deleted on feature)").
+ */
+function getDeleteModifyLabel(
+  entry: GitStatusEntry,
+  branch: string | undefined,
+  _side: 'ours' | 'theirs'
+): string {
+  if (entry === GitStatusEntry.Deleted) {
+    const suffix = branch ? ` (deleted on ${branch})` : ''
+    return `Do not include this file${suffix}`
+  }
+  const suffix = branch ? ` (modified on ${branch})` : ''
+  return `Keep file${suffix}`
+}
+
+/**
+ * Return a human-readable explanation for a delete-vs-modify conflict,
+ * displayed as the secondary text under the file path.
+ */
+function getDeleteModifyExplanation(
+  status: ConflictedFileStatus,
+  ourBranch: string | undefined,
+  theirBranch: string | undefined
+): string {
+  if (!isManualConflict(status)) {
+    return ''
+  }
+  switch (status.entry.action) {
+    case UnmergedEntrySummary.DeletedByThem:
+      return `Modified on ${ourBranch ?? 'current branch'} · Deleted on ${
+        theirBranch ?? 'incoming branch'
+      }`
+    case UnmergedEntrySummary.DeletedByUs:
+      return `Deleted on ${ourBranch ?? 'current branch'} · Modified on ${
+        theirBranch ?? 'incoming branch'
+      }`
+    case UnmergedEntrySummary.BothDeleted:
+      return 'Deleted on both branches'
+    default:
+      return ''
+  }
+}
+
+/**
+ * Return a short button label for the dropdown trigger of a delete-vs-modify
+ * file: either "Keep file" or "Delete file".
+ */
+function getDeleteModifyButtonLabel(
+  choice: CopilotFileResolutionChoice,
+  status: ConflictedFileStatus
+): string {
+  if (!isManualConflict(status)) {
+    return resolutionChoices[choice].label
+  }
+
+  const { us, them } = status.entry
+
+  if (choice === 'ours') {
+    return us === GitStatusEntry.Deleted ? 'Delete file' : 'Keep file'
+  }
+  if (choice === 'theirs') {
+    return them === GitStatusEntry.Deleted ? 'Delete file' : 'Keep file'
+  }
+  return resolutionChoices[choice].label
+}
 
 interface ICopilotConflictsDialogProps {
   readonly repository: Repository
@@ -137,16 +211,60 @@ export class CopilotConflictsDialog extends React.Component<
     await this.props.onAbort()
   }
 
-  private getResolutionForFile(path: string): CopilotFileResolutionChoice {
+  private getResolutionForFile(
+    path: string,
+    file?: WorkingDirectoryFileChange
+  ): CopilotFileResolutionChoice {
+    const fileStatus =
+      file !== undefined && isConflictedFileStatus(file.status)
+        ? file.status
+        : undefined
+
     return getResolutionChoiceForFile(
       path,
-      this.props.conflictState.manualResolutions
+      this.props.conflictState.manualResolutions,
+      fileStatus
     )
   }
 
-  private onResolutionDropdownClick = (path: string) => {
-    const currentChoice = this.getResolutionForFile(path)
+  private onResolutionDropdownClick = (
+    path: string,
+    file?: WorkingDirectoryFileChange
+  ) => {
+    const currentChoice = this.getResolutionForFile(path, file)
     const { ourBranch, theirBranch } = this.props.conflictState
+
+    // For delete-vs-modify conflicts, show context-aware labels and
+    // omit the "Copilot" choice (there's no AI resolution for these).
+    const isDeleteModify =
+      file !== undefined &&
+      isConflictedFileStatus(file.status) &&
+      isDeleteModifyConflict(file.status)
+
+    if (isDeleteModify && isManualConflict(file.status)) {
+      const { us, them } = file.status.entry
+
+      const oursLabel = getDeleteModifyLabel(us, ourBranch, 'ours')
+      const theirsLabel = getDeleteModifyLabel(them, theirBranch, 'theirs')
+
+      const items: ReadonlyArray<IMenuItem> = [
+        {
+          label: oursLabel,
+          type: 'checkbox',
+          checked: currentChoice === 'ours',
+          action: () => this.setResolution(path, 'ours'),
+        },
+        {
+          label: theirsLabel,
+          type: 'checkbox',
+          checked: currentChoice === 'theirs',
+          action: () => this.setResolution(path, 'theirs'),
+        },
+      ]
+
+      showContextualMenu(items)
+      return
+    }
 
     const oursLabel = ourBranch
       ? `Use current file from ${ourBranch}`
@@ -229,11 +347,13 @@ export class CopilotConflictsDialog extends React.Component<
     showContextualMenu(items)
   }
 
-  private getResolutionDropdownClickHandler(path: string): () => void {
-    let handler = this.dropdownHandlers.get(path)
+  private getResolutionDropdownClickHandler(
+    file: WorkingDirectoryFileChange
+  ): () => void {
+    let handler = this.dropdownHandlers.get(file.path)
     if (handler === undefined) {
-      handler = () => this.onResolutionDropdownClick(path)
-      this.dropdownHandlers.set(path, handler)
+      handler = () => this.onResolutionDropdownClick(file.path, file)
+      this.dropdownHandlers.set(file.path, handler)
     }
     return handler
   }
@@ -287,24 +407,32 @@ export class CopilotConflictsDialog extends React.Component<
 
   private renderConflictedFile(file: WorkingDirectoryFileChange): JSX.Element {
     const resolution = this.getResolutionForPath(file.path)
-    const choice = this.getResolutionForFile(file.path)
-    const { label: choiceLabel, icon: choiceIcon } = resolutionChoices[choice]
+    const choice = this.getResolutionForFile(file.path, file)
+    const { ourBranch, theirBranch } = this.props.conflictState
+
+    const isDeleteModify =
+      isConflictedFileStatus(file.status) && isDeleteModifyConflict(file.status)
+
+    // For delete-vs-modify conflicts, use "Keep file" / "Delete file" as
+    // the dropdown button label instead of "Current" / "Incoming".
+    const choiceLabel = isDeleteModify
+      ? getDeleteModifyButtonLabel(choice, file.status)
+      : resolutionChoices[choice].label
+    const choiceIcon = resolutionChoices[choice].icon
+
     const reasoning = resolution?.reasoning
 
-    const reasoningText =
-      choice === 'copilot' && reasoning
-        ? reasoning
-        : choice === 'ours'
-        ? `Using changes from ${
-            this.props.conflictState.ourBranch ?? 'current branch'
-          }`
-        : choice === 'theirs'
-        ? `Using changes from ${
-            this.props.conflictState.theirBranch ?? 'incoming branch'
-          }`
-        : undefined
+    const reasoningText = isDeleteModify
+      ? getDeleteModifyExplanation(file.status, ourBranch, theirBranch)
+      : choice === 'copilot' && reasoning
+      ? reasoning
+      : choice === 'ours'
+      ? `Using changes from ${ourBranch ?? 'current branch'}`
+      : choice === 'theirs'
+      ? `Using changes from ${theirBranch ?? 'incoming branch'}`
+      : undefined
 
-    const onDropdownClick = this.getResolutionDropdownClickHandler(file.path)
+    const onDropdownClick = this.getResolutionDropdownClickHandler(file)
     const onOverflowClick = this.getOverflowMenuClickHandler(file.path)
 
     return (

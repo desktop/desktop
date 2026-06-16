@@ -32,6 +32,7 @@ import {
   IConflictResolutionContext,
   IFileConflictContext,
   formatConflictContextForPrompt,
+  isDeleteModifyAction,
 } from '../copilot-conflict-context'
 import * as ipcRenderer from '../ipc-renderer'
 import { startTimer } from '../../ui/lib/timing'
@@ -1006,6 +1007,14 @@ export class CopilotStore extends BaseStore {
       throw new Error('No resolvable conflicted files')
     }
 
+    // Delete-vs-modify files have no text markers for Copilot to resolve,
+    // but including them as context helps the model account for structural
+    // changes (e.g. a deleted file's imports in other conflicted files).
+    const deleteModifyFiles = context.files.filter(
+      f =>
+        f.conflictAction !== undefined && isDeleteModifyAction(f.conflictAction)
+    )
+
     onProgress?.({ filesResolved: 0, filesTotal })
 
     const modelConfig = this.resolveConflictModelConfig(account, request)
@@ -1018,7 +1027,7 @@ export class CopilotStore extends BaseStore {
       if (filesTotal <= SinglePromptFileLimit) {
         const filteredContext: IConflictResolutionContext = {
           ...context,
-          files: resolvableFiles,
+          files: [...resolvableFiles, ...deleteModifyFiles],
         }
         const prompt = formatConflictContextForPrompt(filteredContext)
         const chunkResult = await this.resolveChunk(
@@ -1065,7 +1074,7 @@ export class CopilotStore extends BaseStore {
           batch.map(chunkFiles => {
             const chunkContext: IConflictResolutionContext = {
               ...context,
-              files: chunkFiles,
+              files: [...chunkFiles, ...deleteModifyFiles],
             }
             const prompt = formatConflictContextForPrompt(chunkContext)
             return this.resolveChunk(

@@ -2,7 +2,10 @@ import * as React from 'react'
 import * as Path from 'path'
 import { AppFileStatusKind, CommittedFileChange } from '../../../models/status'
 import { IDiff, ImageDiffType } from '../../../models/diff'
-import { WorkingDirectoryFileChange } from '../../../models/status'
+import {
+  WorkingDirectoryFileChange,
+  isConflictedFileStatus,
+} from '../../../models/status'
 import { IFileResolution } from '../../../lib/copilot-conflict-resolution'
 import { ManualConflictResolution } from '../../../models/manual-conflict-resolution'
 import { FileList } from '../../history/file-list'
@@ -18,6 +21,7 @@ import * as octicons from '../../octicons/octicons.generated'
 import {
   CopilotFileResolutionChoice,
   getResolutionChoiceForFile,
+  isDeleteModifyConflict,
   resolutionChoices,
 } from './copilot-resolution-helpers'
 
@@ -29,7 +33,10 @@ interface ICopilotConflictsChangesProps {
   readonly manualResolutions: Map<string, ManualConflictResolution>
   readonly ourBranch: string | undefined
   readonly theirBranch: string | undefined
-  readonly onResolutionDropdownClick: (path: string) => void
+  readonly onResolutionDropdownClick: (
+    path: string,
+    file?: WorkingDirectoryFileChange
+  ) => void
 }
 
 interface ICopilotConflictsChangesState {
@@ -144,10 +151,29 @@ export class CopilotConflictsChanges extends React.Component<
 
   private async loadDiffForFile(file: CommittedFileChange) {
     const requestId = ++this.diffRequestId
+
+    // Look up the source file to get the conflict status
+    const sourceFile = this.props.conflictedFiles.find(
+      f => f.path === file.path
+    )
+    const fileStatus =
+      sourceFile !== undefined && isConflictedFileStatus(sourceFile.status)
+        ? sourceFile.status
+        : undefined
+
     const choice = getResolutionChoiceForFile(
       file.path,
-      this.props.manualResolutions
+      this.props.manualResolutions,
+      fileStatus
     )
+
+    // Delete-vs-modify conflicts have no text content to diff against.
+    if (fileStatus !== undefined && isDeleteModifyConflict(fileStatus)) {
+      if (this.mounted && requestId === this.diffRequestId) {
+        this.setState({ diff: null, noResolution: true })
+      }
+      return
+    }
 
     if (choice === 'ours' || choice === 'theirs') {
       this.setState({ diff: null, noResolution: false })
@@ -236,7 +262,10 @@ export class CopilotConflictsChanges extends React.Component<
   private onDropdownClick = () => {
     const { selectedFile } = this.state
     if (selectedFile !== null) {
-      this.props.onResolutionDropdownClick(selectedFile.path)
+      const sourceFile = this.props.conflictedFiles.find(
+        f => f.path === selectedFile.path
+      )
+      this.props.onResolutionDropdownClick(selectedFile.path, sourceFile)
     }
   }
 
@@ -277,6 +306,18 @@ export class CopilotConflictsChanges extends React.Component<
     choice: CopilotFileResolutionChoice,
     path: string
   ): string | undefined {
+    // Check if this is a delete-vs-modify conflict
+    const sourceFile = this.props.conflictedFiles.find(f => f.path === path)
+    if (
+      sourceFile !== undefined &&
+      isConflictedFileStatus(sourceFile.status) &&
+      isDeleteModifyConflict(sourceFile.status)
+    ) {
+      return choice === 'ours' || choice === 'theirs'
+        ? `Choose whether to keep or delete this file`
+        : 'This file has a delete-vs-modify conflict'
+    }
+
     if (choice === 'ours') {
       return `Using changes from ${this.props.ourBranch ?? 'current branch'}`
     }
@@ -300,14 +341,32 @@ export class CopilotConflictsChanges extends React.Component<
       hideWhitespaceInDiff,
     } = this.state
 
+    const sourceFile =
+      selectedFile !== null
+        ? this.props.conflictedFiles.find(f => f.path === selectedFile.path)
+        : undefined
+    const fileStatus =
+      sourceFile !== undefined && isConflictedFileStatus(sourceFile.status)
+        ? sourceFile.status
+        : undefined
+
     const choice =
       selectedFile !== null
         ? getResolutionChoiceForFile(
             selectedFile.path,
-            this.props.manualResolutions
+            this.props.manualResolutions,
+            fileStatus
           )
         : 'copilot'
-    const { label: choiceLabel, icon: choiceIcon } = resolutionChoices[choice]
+
+    const isDeleteModify =
+      fileStatus !== undefined && isDeleteModifyConflict(fileStatus)
+    const { label: defaultLabel, icon: choiceIcon } = resolutionChoices[choice]
+    const choiceLabel = isDeleteModify
+      ? choice === 'ours' || choice === 'theirs'
+        ? 'Keep file'
+        : defaultLabel
+      : defaultLabel
     const subheaderText =
       selectedFile !== null
         ? this.getSubheaderText(choice, selectedFile.path)
@@ -409,7 +468,11 @@ export class CopilotConflictsChanges extends React.Component<
             )}
             {selectedFile !== null && noResolution && (
               <div className="copilot-changes-no-diff">
-                No Copilot resolution available for this file.
+                {sourceFile !== undefined &&
+                isConflictedFileStatus(sourceFile.status) &&
+                isDeleteModifyConflict(sourceFile.status)
+                  ? 'This file was deleted on one branch and modified on the other. Use the dropdown above to choose whether to keep or delete it.'
+                  : 'No Copilot resolution available for this file.'}
               </div>
             )}
           </div>

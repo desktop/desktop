@@ -8,7 +8,9 @@ import {
   IConflictResolutionContext,
   IConflictContextCommit,
   IConflictContextPullRequest,
+  isDeleteModifyAction,
 } from '../../src/lib/copilot-conflict-context'
+import { UnmergedEntrySummary } from '../../src/models/status'
 
 /**
  * Promote a file-level context into the unified resolution context the
@@ -835,6 +837,166 @@ describe('copilot-conflict-context', () => {
       assert.ok(result.includes('Fix type error'))
       // Their side heading should still appear but with no commits listed
       assert.ok(result.includes('(theirs)'))
+    })
+  })
+
+  describe('isDeleteModifyAction', () => {
+    it('returns true for DeletedByUs', () => {
+      assert.strictEqual(
+        isDeleteModifyAction(UnmergedEntrySummary.DeletedByUs),
+        true
+      )
+    })
+
+    it('returns true for DeletedByThem', () => {
+      assert.strictEqual(
+        isDeleteModifyAction(UnmergedEntrySummary.DeletedByThem),
+        true
+      )
+    })
+
+    it('returns true for BothDeleted', () => {
+      assert.strictEqual(
+        isDeleteModifyAction(UnmergedEntrySummary.BothDeleted),
+        true
+      )
+    })
+
+    it('returns false for BothModified', () => {
+      assert.strictEqual(
+        isDeleteModifyAction(UnmergedEntrySummary.BothModified),
+        false
+      )
+    })
+
+    it('returns false for BothAdded', () => {
+      assert.strictEqual(
+        isDeleteModifyAction(UnmergedEntrySummary.BothAdded),
+        false
+      )
+    })
+
+    it('returns false for AddedByUs', () => {
+      assert.strictEqual(
+        isDeleteModifyAction(UnmergedEntrySummary.AddedByUs),
+        false
+      )
+    })
+  })
+
+  describe('formatConflictContextForPrompt with delete-vs-modify', () => {
+    it('formats DeletedByThem file with informative context', () => {
+      const context = toResolutionContext({
+        ourLabel: 'main',
+        theirLabel: 'feature',
+        files: [
+          {
+            path: 'utils.ts',
+            hunks: [],
+            skippedReason: 'Delete-vs-modify conflict',
+            conflictAction: UnmergedEntrySummary.DeletedByThem,
+          },
+        ],
+      })
+
+      const result = formatConflictContextForPrompt(context)
+      assert.ok(result.includes('DELETE-VS-MODIFY CONFLICT'))
+      assert.ok(result.includes('modified on `main`'))
+      assert.ok(result.includes('deleted on `feature`'))
+      assert.ok(result.includes('imports or references'))
+    })
+
+    it('formats DeletedByUs file correctly', () => {
+      const context = toResolutionContext({
+        ourLabel: 'main',
+        theirLabel: 'feature',
+        files: [
+          {
+            path: 'old-module.ts',
+            hunks: [],
+            skippedReason: 'Delete-vs-modify conflict',
+            conflictAction: UnmergedEntrySummary.DeletedByUs,
+          },
+        ],
+      })
+
+      const result = formatConflictContextForPrompt(context)
+      assert.ok(result.includes('DELETE-VS-MODIFY CONFLICT'))
+      assert.ok(result.includes('deleted on `main`'))
+      assert.ok(result.includes('modified on `feature`'))
+    })
+
+    it('formats BothDeleted file correctly', () => {
+      const context = toResolutionContext({
+        ourLabel: 'main',
+        theirLabel: 'feature',
+        files: [
+          {
+            path: 'removed.ts',
+            hunks: [],
+            skippedReason: 'Delete-vs-modify conflict',
+            conflictAction: UnmergedEntrySummary.BothDeleted,
+          },
+        ],
+      })
+
+      const result = formatConflictContextForPrompt(context)
+      assert.ok(result.includes('DELETE-VS-MODIFY CONFLICT'))
+      assert.ok(result.includes('deleted on both'))
+    })
+
+    it('includes both text conflicts and delete-vs-modify context', () => {
+      const context = toResolutionContext({
+        ourLabel: 'main',
+        theirLabel: 'feature',
+        files: [
+          {
+            path: 'app.ts',
+            hunks: [
+              {
+                oursContent: 'our code',
+                theirsContent: 'their code',
+                baseContent: null,
+                contextBefore: '',
+                contextAfter: '',
+              },
+            ],
+          },
+          {
+            path: 'utils.ts',
+            hunks: [],
+            skippedReason: 'Delete-vs-modify conflict',
+            conflictAction: UnmergedEntrySummary.DeletedByThem,
+          },
+        ],
+      })
+
+      const result = formatConflictContextForPrompt(context)
+      // Text conflict file should have its content
+      assert.ok(result.includes('## File: app.ts'))
+      assert.ok(result.includes('our code'))
+      // Delete-vs-modify file should have informative context
+      assert.ok(
+        result.includes('## File: utils.ts (DELETE-VS-MODIFY CONFLICT)')
+      )
+    })
+
+    it('falls back to generic skip message for non-delete-modify skipped files', () => {
+      const context = toResolutionContext({
+        ourLabel: 'main',
+        theirLabel: 'feature',
+        files: [
+          {
+            path: 'big-file.bin',
+            hunks: [],
+            skippedReason: 'File exceeds 1MB size limit',
+          },
+        ],
+      })
+
+      const result = formatConflictContextForPrompt(context)
+      assert.ok(result.includes('⚠️ Skipped: File exceeds 1MB size limit'))
+      assert.ok(!result.includes('DELETE-VS-MODIFY'))
     })
   })
 })

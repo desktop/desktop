@@ -81,6 +81,10 @@ import {
   WorkingDirectoryFileChange,
   WorkingDirectoryStatus,
   AppFileStatusKind,
+  isConflictedFileStatus,
+  isConflictWithMarkers,
+  isManualConflict,
+  UnmergedEntrySummary,
 } from '../../models/status'
 import { TipState, tipEquals, IValidBranch } from '../../models/tip'
 import {
@@ -6333,15 +6337,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
       readonly ourRef: string | undefined
       readonly theirRef: string | undefined
     },
-    conflictedFiles: ReadonlyArray<{ readonly path: string }>,
+    conflictedFiles: ReadonlyArray<WorkingDirectoryFileChange>,
     state: IRepositoryState
   ): Promise<IConflictResolutionContext> {
     const contextTimer = startTimer('build conflict context', repository)
+
+    // Thread the unmerged entry action through so buildConflictContext can
+    // distinguish delete-vs-modify conflicts from text conflicts and skip
+    // the disk read for files that have no markers to extract.
+    const filesWithAction = conflictedFiles.map(f => ({
+      path: f.path,
+      conflictAction:
+        f.status.kind === AppFileStatusKind.Conflicted
+          ? f.status.entry.action
+          : undefined,
+    }))
+
     const fileContext = await buildConflictContext(
       labels.ourLabel,
       labels.theirLabel,
       repository.path,
-      conflictedFiles
+      filesWithAction
     )
     contextTimer.done()
 
@@ -6596,6 +6612,77 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     const { conflictState } = step
+
+    // When every conflict is a delete-vs-modify (or similar manual conflict
+    // with no text markers), there is nothing for the Copilot model to
+    // resolve. Skip the API call and go straight to the result dialog so the
+    // user can pick ours/theirs per file.
+    const allConflictedFiles = getConflictedFiles(
+      state.changesState.workingDirectory,
+      conflictState.manualResolutions
+    )
+    const hasTextConflicts = allConflictedFiles.some(
+      f => isConflictedFileStatus(f.status) && isConflictWithMarkers(f.status)
+    )
+
+    if (!hasTextConflicts) {
+      log.info(
+        'AppStore: all conflicts are manual (no text markers) — skipping Copilot API call'
+      )
+
+      // Pre-populate default resolutions for delete-vs-modify files so that
+      // the merge can proceed even if the user clicks Continue without
+      // changing anything.
+      const defaults = new Map(conflictState.manualResolutions)
+      for (const f of allConflictedFiles) {
+        if (
+          defaults.has(f.path) ||
+          !isConflictedFileStatus(f.status) ||
+          !isManualConflict(f.status)
+        ) {
+          continue
+        }
+        const action = f.status.entry.action
+        if (action === UnmergedEntrySummary.DeletedByThem) {
+          defaults.set(f.path, ManualConflictResolution.ours)
+        } else if (action === UnmergedEntrySummary.DeletedByUs) {
+          defaults.set(f.path, ManualConflictResolution.theirs)
+        } else if (action === UnmergedEntrySummary.BothDeleted) {
+          defaults.set(f.path, ManualConflictResolution.ours)
+        }
+      }
+
+      // Apply the defaults
+      for (const [path, resolution] of defaults) {
+        if (!conflictState.manualResolutions.has(path)) {
+          this._updateManualConflictResolution(repository, path, resolution)
+        }
+      }
+
+      this.repositoryStateCache.updateMultiCommitOperationState(
+        repository,
+        () => ({
+          step: {
+            kind: MultiCommitOperationStepKind.ShowCopilotConflicts,
+            conflictState,
+          },
+          copilotResolutions: [],
+          copilotResolutionSummary: {
+            markdown:
+              '### Delete-vs-modify conflicts\n\n' +
+              'All conflicts in this operation involve files that were deleted on one branch ' +
+              'and modified on the other. Choose whether to keep or delete each file below.',
+            ourLabel: conflictState.ourBranch ?? 'current branch',
+            theirLabel: conflictState.theirBranch ?? 'incoming branch',
+            references: [],
+          },
+          copilotResolutionProgress: null,
+          copilotResolutionAbortController: null,
+        })
+      )
+      this.emitUpdate()
+      return
+    }
 
     // Controller used to actually cancel the in-flight SDK turn when the user
     // clicks "Stop" (see _abortCopilotConflictResolution).

@@ -3,6 +3,7 @@ import { extname } from 'path'
 
 import { Repository } from '../models/repository'
 import { Commit } from '../models/commit'
+import { UnmergedEntrySummary } from '../models/status'
 import { getMergeBase } from './git/merge'
 import { getCommits } from './git/log'
 import { resolveWithin } from './path'
@@ -29,6 +30,14 @@ export interface IFileConflictContext {
   readonly hunks: ReadonlyArray<IConflictHunk>
   /** If the file was skipped, the reason why (shown in prompt so Copilot knows) */
   readonly skippedReason?: string
+  /**
+   * The unmerged entry action for this file, when available.
+   *
+   * Set for delete-vs-modify and similar manual conflicts so that:
+   * 1. The Copilot prompt can describe the structural change.
+   * 2. The dialog can show appropriate labels and defaults.
+   */
+  readonly conflictAction?: UnmergedEntrySummary
 }
 
 /**
@@ -281,17 +290,34 @@ export async function gatherCommitContext(
  * @param theirLabel - Label for the incoming side (e.g., branch name
  *                     or commit summary for rebase/cherry-pick)
  * @param workingDirectory - Absolute path to the repository working directory
- * @param files - List of conflicted file paths (repository-relative)
+ * @param files - List of conflicted file paths with optional conflict metadata
  * @returns The assembled conflict context
  */
 export async function buildConflictContext(
   ourLabel: string,
   theirLabel: string,
   workingDirectory: string,
-  files: ReadonlyArray<{ readonly path: string }>
+  files: ReadonlyArray<{
+    readonly path: string
+    readonly conflictAction?: UnmergedEntrySummary
+  }>
 ): Promise<ICopilotConflictContext> {
   const results = await Promise.all(
     files.map(async (file): Promise<IFileConflictContext> => {
+      // Delete-vs-modify conflicts have no text markers to extract.
+      // Record the action so the prompt can describe the structural change,
+      // and skip the disk read entirely.
+      if (
+        file.conflictAction !== undefined &&
+        isDeleteModifyAction(file.conflictAction)
+      ) {
+        return {
+          path: file.path,
+          hunks: [],
+          skippedReason: 'Delete-vs-modify conflict',
+          conflictAction: file.conflictAction,
+        }
+      }
       // Guard against path traversal and symlink escapes (cross-platform)
       let absolutePath: string | null
       try {
@@ -415,6 +441,24 @@ export function formatConflictContextForPrompt(
 
   for (const file of context.files) {
     const safePath = sanitizeForMarkdown(file.path)
+
+    if (file.conflictAction && isDeleteModifyAction(file.conflictAction)) {
+      parts.push(`## File: ${safePath} (DELETE-VS-MODIFY CONFLICT)`)
+      parts.push('')
+      parts.push(
+        describeDeleteModifyConflict(
+          file.conflictAction,
+          context.ourLabel,
+          context.theirLabel
+        )
+      )
+      parts.push(
+        'The user will choose whether to keep or delete this file. Consider this when resolving other files — imports or references to this file may need updating.'
+      )
+      parts.push('')
+      continue
+    }
+
     parts.push(`## File: ${safePath}`)
     parts.push('')
 
@@ -515,4 +559,35 @@ function makeFencedBlock(content: string, lang: string = ''): string {
 /** Strip characters that could break markdown structure when used in headings/labels. */
 function sanitizeForMarkdown(text: string): string {
   return text.replace(/[\r\n`]/g, '')
+}
+
+/**
+ * Whether an {@link UnmergedEntrySummary} represents a delete-vs-modify (or
+ * both-deleted) conflict — one that has no text conflict markers and requires
+ * the user to choose between keeping or deleting the file.
+ */
+export function isDeleteModifyAction(action: UnmergedEntrySummary): boolean {
+  return (
+    action === UnmergedEntrySummary.DeletedByUs ||
+    action === UnmergedEntrySummary.DeletedByThem ||
+    action === UnmergedEntrySummary.BothDeleted
+  )
+}
+
+/** Build a human-readable description of a delete-vs-modify conflict for the prompt. */
+function describeDeleteModifyConflict(
+  action: UnmergedEntrySummary,
+  ourLabel: string,
+  theirLabel: string
+): string {
+  switch (action) {
+    case UnmergedEntrySummary.DeletedByThem:
+      return `This file was modified on \`${ourLabel}\` but deleted on \`${theirLabel}\`.`
+    case UnmergedEntrySummary.DeletedByUs:
+      return `This file was deleted on \`${ourLabel}\` but modified on \`${theirLabel}\`.`
+    case UnmergedEntrySummary.BothDeleted:
+      return `This file was deleted on both \`${ourLabel}\` and \`${theirLabel}\`.`
+    default:
+      return 'This file has a structural conflict.'
+  }
 }
