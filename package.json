@@ -64,7 +64,7 @@
   },
   "dependencies": {
     "@azure/storage-blob": "^12.25.0",
-    "@babel/core": "^7.25.2",
+    "@babel/core": "^7.29.6",
     "@babel/plugin-transform-modules-commonjs": "^7.24.8",
     "@primer/octicons": "^19.28.1",
     "@types/which": "^3.0.4",
