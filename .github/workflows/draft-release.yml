@@ -25,6 +25,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  copilot-requests: write
 
 jobs:
   draft-release:
