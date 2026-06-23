@@ -126,6 +126,4 @@ export const enableHooksByDefault = enableBetaFeatures
 export const enableFormattingPreferences = () => true
 
 /** Should the app enable worktree support? */
-export function enableWorktreeSupport(): boolean {
-  return enableBetaFeatures()
-}
+export const enableWorktreeSupport = () => true
