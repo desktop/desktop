@@ -495,16 +495,20 @@ function getNotarizationOptions(): OsxNotarizeOptions | undefined {
 }
 
 function copyCopilotDependency() {
+  const currentPlatform = process.platform
+  const currentArch = getDistArchitecture()
+
+  // The @github/copilot package now uses platform-specific optional
+  // dependencies (e.g. @github/copilot-darwin-arm64) that already contain only
+  // the binaries for the target platform, so we copy the appropriate one
+  // directly instead of the base @github/copilot package.
   const copilotPkgDir = path.resolve(
     projectRoot,
-    `app/node_modules/@github/copilot`
+    `app/node_modules/@github/copilot-${currentPlatform}-${currentArch}`
   )
 
   const copilotDestination = path.resolve(outRoot, 'copilot')
   removeAndCopy(copilotPkgDir, copilotDestination)
-
-  const currentPlatform = process.platform
-  const currentArch = getDistArchitecture()
 
   // Platforms and architectures to remove from prebuild directories. This is
   // an exhaustive list of all non-current platforms rather than an allowlist,
