@@ -8,7 +8,7 @@ import {
 import { IBYOKProvider, parseModelKey } from './byok'
 
 /** Fallback name shown before the Copilot model list has loaded. */
-const DefaultCopilotModelName = 'GPT-5 mini'
+const DefaultCopilotModelName = 'Auto'
 
 /** The model name and reasoning effort to display for conflict resolution. */
 export interface IConflictResolutionModelDisplay {
@@ -44,7 +44,7 @@ export function getConflictResolutionModelDisplay(
     key?.kind === 'copilot' && key.modelId !== '' ? key.modelId : null
   const models = copilotModels ?? []
   const resolvedModel = requestedModelId
-    ? models.find(m => m.id === requestedModelId) ?? null
+    ? (models.find(m => m.id === requestedModelId) ?? null)
     : getPreferredDefaultModel(models)
 
   if (resolvedModel !== null) {
