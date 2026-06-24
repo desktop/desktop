@@ -48,7 +48,7 @@ import type {
 import { isGHE } from '../endpoint-capabilities'
 
 /** The default model ID used for Copilot commit message generation. */
-export const DefaultCopilotModel = 'gpt-5-mini'
+export const DefaultCopilotModel = 'auto'
 const DefaultReasoningEffort: ReasoningEffort = 'low'
 
 /**
@@ -346,7 +346,7 @@ ${diffBlock}`
 /** Ordered reasoning effort levels from lowest to highest. */
 export const ReasoningEffortOrder = ['low', 'medium', 'high', 'xhigh'] as const
 
-export type ReasoningEffort = typeof ReasoningEffortOrder[number]
+export type ReasoningEffort = (typeof ReasoningEffortOrder)[number]
 
 /** Formats a reasoning effort for display, e.g. 'xhigh' → 'Extra high'. */
 export function formatReasoningEffort(effort: ReasoningEffort): string {
@@ -960,7 +960,7 @@ export class CopilotStore extends BaseStore {
       const cachedModels = await this.getCachedModels(account)
       throwIfCancelled()
       const resolvedModel = requestedModelId
-        ? cachedModels.find(m => m.id === requestedModelId) ?? null
+        ? (cachedModels.find(m => m.id === requestedModelId) ?? null)
         : getPreferredDefaultModel(cachedModels)
 
       // Use the resolved model's ID, the raw string ID the caller passed, or
@@ -1083,7 +1083,7 @@ export class CopilotStore extends BaseStore {
     // cache is treated as "metadata unavailable" (raw id, no effort).
     const cachedModels = this.getCachedModelList(account) ?? []
     const resolvedModel = requestedModelId
-      ? cachedModels.find(m => m.id === requestedModelId) ?? null
+      ? (cachedModels.find(m => m.id === requestedModelId) ?? null)
       : getPreferredDefaultModel(cachedModels)
 
     return {
