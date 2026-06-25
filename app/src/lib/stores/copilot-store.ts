@@ -48,7 +48,7 @@ import type {
 import { isGHE } from '../endpoint-capabilities'
 
 /** The default model ID used for Copilot commit message generation. */
-export const DefaultCopilotModel = 'gpt-5-mini'
+export const DefaultCopilotModel = 'auto'
 const DefaultReasoningEffort: ReasoningEffort = 'low'
 
 /**

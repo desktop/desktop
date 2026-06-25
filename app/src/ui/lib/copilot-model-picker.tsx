@@ -201,9 +201,13 @@ export const getCopilotModelPickerSelectionInfo = (
 }
 
 const getCopilotModelTitle = (item: ICopilotModelListItem) => {
-  const billingLabel = getPremiumRequestsBillingLabel(item.billing)
+  // The "auto" model routes to different models with varying multipliers, so
+  // showing a single multiplier label would be misleading.
+  const billingLabel = item.isDefault
+    ? ''
+    : getPremiumRequestsBillingLabel(item.billing)
   return item.isDefault
-    ? `${item.name}${billingLabel} (default)`
+    ? `${item.name} (default)`
     : `${item.name}${billingLabel}`
 }
 
