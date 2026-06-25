@@ -65,7 +65,7 @@ const copilotCLILicenseEntries: LicenseLookup = {
   [`@github/copilot@${copilotCLIVersion}`]: copilotCLILicenseEntry,
 }
 
-const platforms = ['darwin', 'linux', 'win32']
+const platforms = ['darwin', 'linux', 'linuxmusl', 'win32']
 const architectures = ['arm64', 'x64']
 
 for (const platform of platforms) {
