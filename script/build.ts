@@ -527,7 +527,7 @@ function copyCopilotDependency() {
       `  Installing ${platformPkgName}@${version} for cross-compilation…`
     )
     cp.execSync(
-      `yarn add --no-lockfile --ignore-scripts ${platformPkgName}@${version}`,
+      `yarn add --no-lockfile --ignore-scripts --ignore-platform ${platformPkgName}@${version}`,
       { cwd: path.resolve(projectRoot, 'app'), stdio: 'inherit' }
     )
   }
