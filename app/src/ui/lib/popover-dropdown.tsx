@@ -21,6 +21,13 @@ interface IPopoverDropdownProps {
    * should receive focus ahead of a dialog's default focus target
    */
   readonly openButtonClassName?: string
+
+  /**
+   * The maximum height of the popover content in pixels. Defaults to
+   * `maxPopoverContentHeight` (500px). Pass a smaller value to constrain the
+   * popover to fit its contents when there are only a few items.
+   **/
+  readonly maxHeight?: number
 }
 
 interface IPopoverDropdownState {
@@ -96,7 +103,7 @@ export class PopoverDropdown extends React.Component<
         className="popover-dropdown-popover"
         anchor={this.invokeButtonRef}
         anchorPosition={PopoverAnchorPosition.BottomLeft}
-        maxHeight={maxPopoverContentHeight}
+        maxHeight={this.props.maxHeight ?? maxPopoverContentHeight}
         decoration={decoration}
         onClickOutside={this.closePopover}
         ariaLabelledby={this.dropdownHeaderId}

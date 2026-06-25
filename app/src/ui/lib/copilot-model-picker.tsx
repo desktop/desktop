@@ -19,6 +19,7 @@ interface ICopilotModelPickerProps {
   readonly byokProviders: ReadonlyArray<IBYOKProvider>
   readonly value: string
   readonly onChange: (value: string) => void
+  readonly maxHeight?: number
 }
 
 interface ICopilotModelPickerState {
@@ -464,6 +465,7 @@ export class CopilotModelPicker extends React.Component<
         buttonAriaLabel={buttonAriaLabel}
         decoration={PopoverDecoration.Bordered}
         label={this.props.label}
+        maxHeight={this.props.maxHeight}
         ref={this.popoverRef}
       >
         <SectionFilterList<ICopilotModelListItem>
