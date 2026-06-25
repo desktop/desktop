@@ -174,4 +174,76 @@ describe('API', () => {
       )
     })
   })
+
+  describe('fetchUserCopilotInfo', () => {
+    it('returns undefined and logs when the GraphQL response is not ok', async () => {
+      const api = new API('https://api.github.com', 'token')
+      Reflect.set(
+        api,
+        'request',
+        async () => new Response('', { status: 500, statusText: 'Nope' })
+      )
+
+      const originalWarn = log.warn
+      const warningMessages = new Array<string>()
+      log.warn = (message: string) => {
+        warningMessages.push(message)
+      }
+
+      try {
+        const result = await api.fetchUserCopilotInfo()
+
+        assert.equal(result, undefined)
+      } finally {
+        log.warn = originalWarn
+      }
+
+      assert.equal(warningMessages.length, 1)
+      assert.ok(warningMessages[0].includes('status 500'))
+    })
+
+    it('returns undefined and logs GraphQL errors', async () => {
+      const api = new API('https://api.github.com', 'token')
+      const graphqlErrorMessage =
+        'Expected NAME, actual: UNKNOWN_CHAR ("\\n") at [8, 17]'
+
+      Reflect.set(
+        api,
+        'request',
+        async () =>
+          new Response(
+            JSON.stringify({
+              errors: [
+                {
+                  message: graphqlErrorMessage,
+                  locations: [
+                    {
+                      line: 8,
+                      column: 17,
+                    },
+                  ],
+                },
+              ],
+            })
+          )
+      )
+
+      const originalWarn = log.warn
+      const warningMessages = new Array<string>()
+      log.warn = (message: string) => {
+        warningMessages.push(message)
+      }
+
+      try {
+        const result = await api.fetchUserCopilotInfo()
+
+        assert.equal(result, undefined)
+      } finally {
+        log.warn = originalWarn
+      }
+
+      assert.equal(warningMessages.length, 1)
+      assert.ok(warningMessages[0].includes(graphqlErrorMessage))
+    })
+  })
 })

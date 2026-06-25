@@ -48,8 +48,16 @@ type AffiliationFilter =
   | 'owner,collaborator,organization_member'
 
 /** Response type of GraphQL query of Copilot-related info */
+type ViewerCopilotError = {
+  readonly message: string
+  readonly locations?: ReadonlyArray<{
+    readonly line: number
+    readonly column: number
+  }>
+}
+
 type ViewerCopilotResponse = {
-  readonly data: {
+  readonly data?: {
     readonly viewer: {
       readonly copilotEndpoints: {
         readonly api: string
@@ -58,6 +66,7 @@ type ViewerCopilotResponse = {
       readonly isCopilotDesktopEnabled: boolean
     }
   }
+  readonly errors?: ReadonlyArray<ViewerCopilotError>
 }
 
 /** Copilot-related info relevant to Desktop */
@@ -2140,9 +2149,31 @@ export class API {
         return undefined
       }
 
+      if (!response.ok) {
+        log.warn(
+          `fetchUserCopilotInfo: failed with endpoint ${this.endpoint}, status ${response.status}`
+        )
+        return undefined
+      }
+
       const json: ViewerCopilotResponse =
         (await response.json()) as ViewerCopilotResponse
-      const { viewer } = json.data
+      if (json.errors !== undefined) {
+        const errors = json.errors.map(error => error.message).join(', ')
+        log.warn(
+          `fetchUserCopilotInfo: failed with GraphQL errors from endpoint ${this.endpoint}: ${errors}`
+        )
+        return undefined
+      }
+
+      const viewer = json.data?.viewer
+      if (viewer === undefined) {
+        log.warn(
+          `fetchUserCopilotInfo: response missing viewer data from endpoint ${this.endpoint}`
+        )
+        return undefined
+      }
+
       return {
         copilotEndpoint: viewer.copilotEndpoints.api,
         isCopilotDesktopEnabled: viewer.isCopilotDesktopEnabled,
