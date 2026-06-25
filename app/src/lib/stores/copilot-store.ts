@@ -768,13 +768,16 @@ export class CopilotStore extends BaseStore {
 
   /**
    * Stops the given Copilot client.
+   *
+   * Deliberately "fire-and-forget" because the SDK's `stop()` can take a while
+   * to complete, and we don't want to block the UI or any other Copilot
+   * operations while waiting for it. Any errors during stopping are logged but
+   * not propagated.
    */
-  private async stopClient(client: CopilotClient): Promise<void> {
-    try {
-      await client.stop()
-    } catch (error) {
+  private stopClient(client: CopilotClient): void {
+    client.stop().catch(error => {
       log.error('CopilotStore: Error stopping client', error)
-    }
+    })
   }
 
   private async createCancellableSession(
@@ -1049,7 +1052,7 @@ export class CopilotStore extends BaseStore {
 
       // Stop the client after use
       if (client !== null) {
-        await this.stopClient(client)
+        this.stopClient(client)
       }
     }
   }
@@ -1252,7 +1255,7 @@ export class CopilotStore extends BaseStore {
         references: firstReferences,
       }
     } finally {
-      await this.stopClient(client)
+      this.stopClient(client)
     }
   }
 
@@ -1479,7 +1482,7 @@ export class CopilotStore extends BaseStore {
       // We can switch back to `ModelInfo` once the SDK updates its types.
       return await client.listModels()
     } finally {
-      await this.stopClient(client)
+      this.stopClient(client)
     }
   }
 }
