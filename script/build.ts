@@ -502,45 +502,10 @@ function copyCopilotDependency() {
   // dependencies (e.g. @github/copilot-darwin-arm64) that already contain only
   // the binaries for the target platform, so we copy the appropriate one
   // directly instead of the base @github/copilot package.
-  const platformPkgName = `@github/copilot-${currentPlatform}-${currentArch}`
   const copilotPkgDir = path.resolve(
     projectRoot,
-    `app/node_modules/${platformPkgName}`
+    `app/node_modules/@github/copilot-${currentPlatform}-${currentArch}`
   )
-
-  // When cross-compiling (e.g. building x64 on arm64), the target platform's
-  // optional dependency won't be installed automatically. Fetch and extract it
-  // without modifying package.json or yarn.lock.
-  if (!existsSync(copilotPkgDir)) {
-    const copilotPkgJson = JSON.parse(
-      readFileSync(
-        path.resolve(
-          projectRoot,
-          'app/node_modules/@github/copilot/package.json'
-        ),
-        'utf8'
-      )
-    )
-    const version =
-      copilotPkgJson.optionalDependencies?.[platformPkgName] ??
-      copilotPkgJson.version
-    console.log(
-      `  Installing ${platformPkgName}@${version} for cross-compilation…`
-    )
-    const scopeDir = path.resolve(projectRoot, 'app/node_modules/@github')
-    const tarball = cp
-      .execSync(`npm pack ${platformPkgName}@${version} --pack-destination .`, {
-        cwd: scopeDir,
-        encoding: 'utf8',
-      })
-      .trim()
-    const tarballPath = path.resolve(scopeDir, tarball)
-    mkdirSync(copilotPkgDir, { recursive: true })
-    cp.execSync(
-      `tar -xzf "${tarballPath}" --strip-components=1 -C "${copilotPkgDir}"`
-    )
-    unlinkSync(tarballPath)
-  }
 
   const copilotDestination = path.resolve(outRoot, 'copilot')
   removeAndCopy(copilotPkgDir, copilotDestination)

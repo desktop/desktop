@@ -37,3 +37,20 @@ runs:
       env:
         npm_config_arch: ${{ inputs.arch }}
         TARGET_ARCH: ${{ inputs.arch }}
+
+    - name: Install cross-compilation copilot package
+      shell: bash
+      run: |
+        # Map runner.os to Node's process.platform naming
+        case "$RUNNER_OS" in
+          macOS)   PLATFORM=darwin ;;
+          Windows) PLATFORM=win32 ;;
+          Linux)   PLATFORM=linux ;;
+        esac
+
+        PKG="@github/copilot-${PLATFORM}-${{ inputs.arch }}"
+
+        if [ ! -d "app/node_modules/@github/copilot-${PLATFORM}-${{ inputs.arch }}" ]; then
+          echo "Installing ${PKG} for cross-compilation…"
+          cd app && yarn add --optional --ignore-platform --ignore-scripts ${PKG}
+        fi
