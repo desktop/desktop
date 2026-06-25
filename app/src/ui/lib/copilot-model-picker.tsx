@@ -56,6 +56,17 @@ export interface ICopilotModelPickerSelectionInfo {
 const ModelPickerCompactRowHeight = 30
 const ModelPickerSubtitleRowHeight = 46
 
+/**
+ * Height (px) of the fixed chrome surrounding the list content in the model
+ * picker popover. Accounts for:
+ *   - Popover header (padding-top:10 + h3:18 + padding-bottom:10 + border:1 = 39)
+ *   - Filter input row (margin-top:10 + text-field:25 + margin-bottom:5 = 40)
+ */
+const ModelPickerPopoverOverheadHeight = 79
+
+/** Maximum height for the model picker popover. */
+const MaxModelPickerPopoverHeight = 500
+
 const getPremiumRequestsBillingLabel = (billing: ModelBilling | undefined) => {
   const multiplier = billing?.multiplier
   return multiplier === undefined ? '' : ` (${multiplier}x)`
@@ -385,6 +396,36 @@ export class CopilotModelPicker extends React.Component<
       ? ModelPickerSubtitleRowHeight
       : ModelPickerCompactRowHeight
 
+  /**
+   * Computes the ideal maximum height for the popover so it shrinks to fit
+   * its contents rather than always rendering at the full 500px default.
+   *
+   * Sums the heights of all rows (group headers + items) and adds a fixed
+   * overhead for the popover title bar and filter input row, then caps the
+   * result at MaxModelPickerPopoverHeight.
+   */
+  private getIdealPopoverMaxHeight(
+    groups: ReadonlyArray<IFilterListGroup<ICopilotModelListItem>>
+  ) {
+    let listHeight = 0
+    for (const group of groups) {
+      // Group header row is shown unless showHeader is explicitly false
+      if (group.showHeader !== false) {
+        listHeight += ModelPickerCompactRowHeight
+      }
+      for (const item of group.items) {
+        listHeight +=
+          getListItemSubtitle(item) !== null
+            ? ModelPickerSubtitleRowHeight
+            : ModelPickerCompactRowHeight
+      }
+    }
+    return Math.min(
+      listHeight + ModelPickerPopoverOverheadHeight,
+      MaxModelPickerPopoverHeight
+    )
+  }
+
   private renderModel = (item: ICopilotModelListItem) => {
     const subtitle = getListItemSubtitle(item)
 
@@ -461,6 +502,7 @@ export class CopilotModelPicker extends React.Component<
         decoration={PopoverDecoration.Bordered}
         label={this.props.label}
         ref={this.popoverRef}
+        maxHeight={this.getIdealPopoverMaxHeight(groups)}
       >
         <SectionFilterList<ICopilotModelListItem>
           className="copilot-model-list"
