@@ -6,7 +6,8 @@ import * as octicons from '../octicons/octicons.generated'
 import classNames from 'classnames'
 import { createUniqueId, releaseUniqueId } from './id-pool'
 
-const maxPopoverContentHeight = 500
+const defaultPopoverHeight = 500
+const defaultPopoverMinHeight = 200
 
 interface IPopoverDropdownProps {
   readonly className?: string
@@ -15,6 +16,8 @@ interface IPopoverDropdownProps {
   readonly buttonAriaLabel?: string
   readonly decoration?: PopoverDecoration
   readonly label?: string
+  readonly popoverHeight?: number
+  readonly popoverMinHeight?: number
   /**
    * The class name to apply to the open button. This is useful for
    * applying the dialog-preferred-focus class to the button when it
@@ -87,7 +90,12 @@ export class PopoverDropdown extends React.Component<
       return
     }
 
-    const { contentTitle, decoration = PopoverDecoration.Balloon } = this.props
+    const {
+      contentTitle,
+      decoration = PopoverDecoration.Balloon,
+      popoverHeight = defaultPopoverHeight,
+      popoverMinHeight = defaultPopoverMinHeight,
+    } = this.props
     this.dropdownHeaderId ??= createUniqueId('popover-dropdown-header')
     const dropdownContentId = this.getDropdownContentId()
 
@@ -96,7 +104,8 @@ export class PopoverDropdown extends React.Component<
         className="popover-dropdown-popover"
         anchor={this.invokeButtonRef}
         anchorPosition={PopoverAnchorPosition.BottomLeft}
-        maxHeight={maxPopoverContentHeight}
+        maxHeight={popoverHeight}
+        style={{ minHeight: `${popoverMinHeight}px` }}
         decoration={decoration}
         onClickOutside={this.closePopover}
         ariaLabelledby={this.dropdownHeaderId}

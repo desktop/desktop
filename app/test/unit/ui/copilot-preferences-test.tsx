@@ -565,6 +565,26 @@ describe('CopilotPreferences', () => {
     )
   })
 
+  it('sizes the model picker popover to its contents when one model is available', async () => {
+    const view = render(
+      <CopilotPreferences {...defaults()} copilotModels={[defaultModel]} />
+    )
+
+    fireEvent.click(getModelPickerButton(view.container))
+
+    const popover = await waitFor(() => {
+      const element = document.querySelector('.popover-component')
+      assert.ok(element instanceof HTMLElement)
+      return element
+    })
+
+    const popoverContent = popover.querySelector('.popover-content')
+    assert.ok(popoverContent instanceof HTMLElement)
+
+    assert.strictEqual(popover.style.minHeight, '0px')
+    assert.ok(Number.parseInt(popoverContent.style.height, 10) < 200)
+  })
+
   it('renders a BYOK group per provider', async () => {
     const view = render(
       <CopilotPreferences {...defaults()} byokProviders={[ollamaProvider]} />

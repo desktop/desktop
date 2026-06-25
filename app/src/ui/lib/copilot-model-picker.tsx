@@ -55,6 +55,8 @@ export interface ICopilotModelPickerSelectionInfo {
 
 const ModelPickerCompactRowHeight = 30
 const ModelPickerSubtitleRowHeight = 46
+const ModelPickerPopoverChromeHeight = 86
+const ModelPickerPopoverMaxHeight = 500
 
 const getPremiumRequestsBillingLabel = (billing: ModelBilling | undefined) => {
   const multiplier = billing?.multiplier
@@ -385,6 +387,27 @@ export class CopilotModelPicker extends React.Component<
       ? ModelPickerSubtitleRowHeight
       : ModelPickerCompactRowHeight
 
+  private getPopoverHeight = (
+    groups: ReadonlyArray<IFilterListGroup<ICopilotModelListItem>>
+  ) => {
+    const listHeight = groups.reduce(
+      (totalHeight, group) =>
+        totalHeight +
+        (group.showHeader === false ? 0 : ModelPickerCompactRowHeight) +
+        group.items.reduce(
+          (groupHeight, item) =>
+            groupHeight + this.getRowHeight({ item }),
+          0
+        ),
+      0
+    )
+
+    return Math.min(
+      ModelPickerPopoverChromeHeight + listHeight,
+      ModelPickerPopoverMaxHeight
+    )
+  }
+
   private renderModel = (item: ICopilotModelListItem) => {
     const subtitle = getListItemSubtitle(item)
 
@@ -460,6 +483,8 @@ export class CopilotModelPicker extends React.Component<
         buttonAriaLabel={buttonAriaLabel}
         decoration={PopoverDecoration.Bordered}
         label={this.props.label}
+        popoverHeight={this.getPopoverHeight(groups)}
+        popoverMinHeight={0}
         ref={this.popoverRef}
       >
         <SectionFilterList<ICopilotModelListItem>
