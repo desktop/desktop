@@ -441,7 +441,7 @@ export class RepositoriesList extends React.Component<
   private onCloneRepository = () => {
     this.props.dispatcher.showPopup({
       type: PopupType.CloneRepository,
-      initialURL: null,
+      cloneURLRequest: null,
     })
   }
 

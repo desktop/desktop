@@ -30,6 +30,7 @@ import { showOpenDialog, showSaveDialog } from '../main-process-proxy'
 import { readdir } from 'fs/promises'
 import { isTopMostDialog } from '../dialog/is-top-most'
 import memoizeOne from 'memoize-one'
+import type { ICloneRepositoryURLRequest } from '../../models/popup'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -37,8 +38,8 @@ interface ICloneRepositoryProps {
 
   readonly accounts: ReadonlyArray<Account>
 
-  /** The initial URL or `owner/name` shortcut to use. */
-  readonly initialURL: string | null
+  /** The clone URL request to consume, if this popup was opened from a URL. */
+  readonly cloneURLRequest: ICloneRepositoryURLRequest | null
 
   /** The currently select tab. */
   readonly selectedTab: CloneRepositoryTab
@@ -180,12 +181,13 @@ export class CloneRepository extends React.Component<
     super(props)
 
     const defaultDirectory = null
+    const requestedURL = this.props.cloneURLRequest?.url ?? ''
 
     const initialBaseTabState: IBaseTabState = {
       error: null,
       lastParsedIdentifier: null,
       path: defaultDirectory,
-      url: this.props.initialURL || '',
+      url: requestedURL,
       selectedAccount: null,
     }
 
@@ -218,17 +220,17 @@ export class CloneRepository extends React.Component<
       this.validatePath()
     }
 
-    if (prevProps.initialURL !== this.props.initialURL) {
-      this.updateUrl(this.props.initialURL || '')
+    if (prevProps.cloneURLRequest !== this.props.cloneURLRequest) {
+      this.updateUrlFromCloneURLRequest(this.props.cloneURLRequest?.url ?? '')
     }
 
     this.checkIsTopMostDialog(this.props.isTopMost)
   }
 
   public componentDidMount() {
-    const initialURL = this.props.initialURL
-    if (initialURL) {
-      this.updateUrl(initialURL)
+    const requestedURL = this.props.cloneURLRequest?.url
+    if (requestedURL) {
+      this.updateUrlFromCloneURLRequest(requestedURL)
     }
 
     this.checkIsTopMostDialog(this.props.isTopMost)
@@ -643,7 +645,18 @@ export class CloneRepository extends React.Component<
     return path
   }
 
-  private updateUrl = async (url: string) => {
+  private updateUrlFromCloneURLRequest = async (url: string) => {
+    const tabState = this.getSelectedTabState()
+    const defaultPath =
+      url.length > 0 && tabState.path === '' ? this.state.initialPath : null
+
+    return this.updateUrl(url, defaultPath)
+  }
+
+  private updateUrl = async (
+    url: string,
+    defaultPathWhenEmpty?: string | null
+  ) => {
     const parsed = parseRepositoryIdentifier(url)
     const tabState = this.getSelectedTabState()
     const lastParsedIdentifier = tabState.lastParsedIdentifier
@@ -656,8 +669,11 @@ export class CloneRepository extends React.Component<
 
     let newPath: string
 
-    const dirPath = tabState.path
-    if (lastParsedIdentifier) {
+    const shouldUseDefaultPath =
+      tabState.path.length === 0 && defaultPathWhenEmpty != null
+    const dirPath = shouldUseDefaultPath ? defaultPathWhenEmpty : tabState.path
+
+    if (lastParsedIdentifier && !shouldUseDefaultPath) {
       if (parsed) {
         newPath = Path.join(Path.dirname(dirPath), parsed.name)
       } else {

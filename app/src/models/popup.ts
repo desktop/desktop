@@ -127,6 +127,10 @@ interface IBasePopup {
   readonly id?: number
 }
 
+export interface ICloneRepositoryURLRequest {
+  readonly url: string
+}
+
 export type PopupDetail =
   | { type: PopupType.RenameBranch; repository: Repository; branch: Branch }
   | {
@@ -178,7 +182,7 @@ export type PopupDetail =
   | { type: PopupType.CreateRepository; path?: string }
   | {
       type: PopupType.CloneRepository
-      initialURL: string | null
+      cloneURLRequest: ICloneRepositoryURLRequest | null
     }
   | {
       type: PopupType.CreateBranch

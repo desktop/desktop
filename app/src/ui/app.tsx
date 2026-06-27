@@ -107,6 +107,7 @@ import { AppTheme } from './app-theme'
 import { ApplicationTheme } from './lib/application-theme'
 import { RepositoryStateCache } from '../lib/stores/repository-state-cache'
 import { PopupType, Popup } from '../models/popup'
+import type { ICloneRepositoryURLRequest } from '../models/popup'
 import { OversizedFiles } from './changes/oversized-files-warning'
 import { PushNeedsPullWarning } from './push-needs-pull'
 import { getCurrentBranchForcePushState } from '../lib/rebase'
@@ -822,18 +823,18 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private showCloneRepo = (cloneUrl?: string) => {
-    let initialURL: string | null = null
+    let cloneURLRequest: ICloneRepositoryURLRequest | null = null
 
     if (cloneUrl !== undefined) {
       this.props.dispatcher.changeCloneRepositoriesTab(
         CloneRepositoryTab.Generic
       )
-      initialURL = cloneUrl
+      cloneURLRequest = { url: cloneUrl }
     }
 
     return this.props.dispatcher.showPopup({
       type: PopupType.CloneRepository,
-      initialURL,
+      cloneURLRequest,
     })
   }
 
@@ -1756,7 +1757,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <CloneRepository
             key="clone-repository"
             accounts={this.state.accounts}
-            initialURL={popup.initialURL}
+            cloneURLRequest={popup.cloneURLRequest}
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}
             selectedTab={this.state.selectedCloneRepositoryTab}

@@ -109,6 +109,33 @@ export class PopupManager {
     return popup
   }
 
+  /**
+   * Adds or replaces a singleton popup in the stack.
+   * - If no popup of the same type exists, it behaves like addPopup.
+   * - If a popup of the same type exists, it keeps the popup id and stack
+   *   position while replacing the popup payload.
+   * - Error popups remain repeatable by design.
+   */
+  public upsertPopup(popupToUpsert: Popup): Popup {
+    if (popupToUpsert.type === PopupType.Error) {
+      return this.addErrorPopup(popupToUpsert.error)
+    }
+
+    const existingPopup = this.getPopupsOfType(popupToUpsert.type).at(0)
+
+    if (existingPopup === undefined) {
+      return this.addPopup(popupToUpsert)
+    }
+
+    const popup = { ...popupToUpsert, id: existingPopup.id }
+
+    this.popupStack = this.popupStack.map(p =>
+      p.id === existingPopup.id ? popup : p
+    )
+
+    return popup
+  }
+
   /** Adds a non-Error type popup before any error popups. */
   private insertBeforeErrorPopups(popup: Popup) {
     if (this.popupStack.at(-1)?.type !== PopupType.Error) {

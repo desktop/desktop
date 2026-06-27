@@ -177,6 +177,75 @@ describe('PopupManager', () => {
     })
   })
 
+  describe('upsertPopup', () => {
+    it('adds the popup when no popup of that type exists', () => {
+      const popupManager = new PopupManager()
+      const popup = popupManager.upsertPopup({
+        type: PopupType.AddRepository,
+        path: '/tmp/first',
+      })
+
+      const popupsOfType = popupManager.getPopupsOfType(
+        PopupType.AddRepository
+      )
+
+      assert.equal(popupsOfType.length, 1)
+      assert.equal(popup.id, 1)
+      assert.equal(popupsOfType.at(0)?.id, popup.id)
+    })
+
+    it('updates an existing popup payload without changing id or stack position', () => {
+      const popupManager = new PopupManager()
+      popupManager.addPopup({ type: PopupType.About })
+      const originalPopup = popupManager.addPopup({
+        type: PopupType.AddRepository,
+        path: '/tmp/first',
+      })
+      popupManager.addErrorPopup(new Error('an error'))
+
+      const updatedPopup = popupManager.upsertPopup({
+        type: PopupType.AddRepository,
+        path: '/tmp/second',
+      })
+
+      const addRepositoryPopups = popupManager.getPopupsOfType(
+        PopupType.AddRepository
+      )
+      assert.equal(addRepositoryPopups.length, 1)
+      assert.equal(updatedPopup.id, originalPopup.id)
+      assert.equal(addRepositoryPopups.at(0)?.id, originalPopup.id)
+
+      const popup = addRepositoryPopups.at(0)
+      assert(popup !== undefined)
+      assert.equal(popup.type, PopupType.AddRepository)
+      if (popup.type !== PopupType.AddRepository) {
+        return
+      }
+      assert.equal(popup.path, '/tmp/second')
+
+      assert.deepEqual(
+        popupManager.allPopups.map(p => p.type),
+        [PopupType.About, PopupType.AddRepository, PopupType.Error]
+      )
+    })
+
+    it('preserves error popup repeatability', () => {
+      const popupManager = new PopupManager()
+
+      popupManager.upsertPopup({
+        type: PopupType.Error,
+        error: new Error('first error'),
+      })
+      popupManager.upsertPopup({
+        type: PopupType.Error,
+        error: new Error('second error'),
+      })
+
+      const errorPopups = popupManager.getPopupsOfType(PopupType.Error)
+      assert.equal(errorPopups.length, 2)
+    })
+  })
+
   describe('updatePopup', () => {
     it('updates the given popup', () => {
       const mockAccount = new Account(

@@ -4247,6 +4247,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _upsertPopup(popup: Popup): Promise<void> {
+    // Always close the app menu when showing a pop up. This is only
+    // applicable on Windows where we draw a custom app menu.
+    this._closeFoldout(FoldoutType.AppMenu)
+
+    this.popupManager.upsertPopup(popup)
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _closePopup(popupType?: PopupType) {
     const currentPopup = this.popupManager.currentPopup
     if (currentPopup === null) {
@@ -7724,6 +7734,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * resolve when `_completeOpenInDesktop` is called.
    */
   public _startOpenInDesktop(fn: () => void): Promise<Repository | null> {
+    this.resolveOpenInDesktop?.(null)
+
     const p = new Promise<Repository | null>(
       resolve => (this.resolveOpenInDesktop = resolve)
     )

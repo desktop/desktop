@@ -405,6 +405,11 @@ export class Dispatcher {
     return this.appStore._showPopup(popup)
   }
 
+  /** Add the popup, or update the existing popup of the same type. */
+  public upsertPopup(popup: Popup): Promise<void> {
+    return this.appStore._upsertPopup(popup)
+  }
+
   /**
    * Close the current popup, if found
    *
@@ -2207,9 +2212,9 @@ export class Dispatcher {
 
     return this.appStore._startOpenInDesktop(() => {
       this.changeCloneRepositoriesTab(CloneRepositoryTab.Generic)
-      this.showPopup({
+      this.upsertPopup({
         type: PopupType.CloneRepository,
-        initialURL: url,
+        cloneURLRequest: { url },
       })
     })
   }
