@@ -185,9 +185,7 @@ describe('PopupManager', () => {
         path: '/tmp/first',
       })
 
-      const popupsOfType = popupManager.getPopupsOfType(
-        PopupType.AddRepository
-      )
+      const popupsOfType = popupManager.getPopupsOfType(PopupType.AddRepository)
 
       assert.equal(popupsOfType.length, 1)
       assert.equal(popup.id, 1)
