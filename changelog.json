@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.6.2-test1": ["[New] Tests"],
     "3.6.1": [
       "[Fixed] Copilot Max plan users are recognized correctly - #22400",
       "[Fixed] The default Copilot model is Auto",
