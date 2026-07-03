@@ -211,6 +211,7 @@ import {
   getRepositoryType,
   RepositoryType,
   listWorktrees,
+  getMainWorktree,
   removeWorktree,
   moveWorktree,
   getCommitRangeDiff,
@@ -3887,6 +3888,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
       return recovered
     }
+
+    // The original path is still gone. If it was a linked worktree that has
+    // been removed, fall back to the main worktree. Persist the switch without
+    // selecting here — the caller refreshes and selects the returned repository.
+    const mainWorktree = await this.findRemovedWorktreeFallback(repository)
+    if (mainWorktree !== null) {
+      const switched = await this.persistWorktreeSwitch(
+        repository,
+        mainWorktree
+      )
+      if (switched !== null) {
+        return switched
+      }
+    }
+
     return repository
   }
 
@@ -3900,6 +3916,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // set the flag and don't try anything Git-related
     const exists = await pathExists(repository.path)
     if (!exists) {
+      // If this was a linked worktree that has been removed, switch to the
+      // main worktree (which selects and refreshes it) rather than treating
+      // the repository as missing.
+      const mainWorktree = await this.findRemovedWorktreeFallback(repository)
+      if (mainWorktree !== null) {
+        await this._switchWorktree(repository, mainWorktree)
+        return
+      }
+
       this._updateRepositoryMissing(repository, true)
       return
     }
@@ -5873,25 +5898,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Switch the repository to a different worktree. This shouldn't be called
-   * directly. See `Dispatcher`.
+   * Persist a switch of the repository to a different worktree and seed the new
+   * identity's cached state, without changing the current selection.
    *
-   * If the target worktree path is already registered as a separate repository,
-   * that repository is selected instead of modifying the current one.
+   * Returns the repository at its new path, or `null` if the target worktree
+   * doesn't appear to be a valid Git repository.
    */
-  public async _switchWorktree(
+  private async persistWorktreeSwitch(
     repository: Repository,
     worktree: WorktreeEntry
-  ): Promise<Repository> {
+  ): Promise<Repository | null> {
     const { kind } = await getRepositoryType(worktree.path).catch(e => {
       log.error('Could not determine repository type', e)
       return { kind: 'missing' } as RepositoryType
     })
 
     if (kind !== 'regular' && kind !== 'unsafe') {
-      throw new Error(
-        `The worktree path '${worktree.path}' does not appear to be a valid Git repository.`
-      )
+      return null
     }
 
     // If the repository path isn't trusted we'll mark the repository as
@@ -5911,11 +5934,46 @@ export class AppStore extends TypedBaseStore<IAppState> {
       worktree
     )
 
-    await this._selectRepository(result.repository)
+    return result.repository
+  }
+
+  /**
+   * Switch the repository to a different worktree. This shouldn't be called
+   * directly. See `Dispatcher`.
+   *
+   * If the target worktree path is already registered as a separate repository,
+   * that repository is selected instead of modifying the current one.
+   */
+  public async _switchWorktree(
+    repository: Repository,
+    worktree: WorktreeEntry
+  ): Promise<Repository> {
+    const switched = await this.persistWorktreeSwitch(repository, worktree)
+
+    if (switched === null) {
+      throw new Error(
+        `The worktree path '${worktree.path}' does not appear to be a valid Git repository.`
+      )
+    }
+
+    await this._selectRepository(switched)
 
     this.statsStore.increment('worktreeSwitchCount')
 
-    return result.repository
+    return switched
+  }
+
+  /**
+   * If `repository.path` no longer exists on disk because it was a linked
+   * worktree that has been removed, return the main worktree of the same
+   * repository so callers can fall back to it instead of treating the
+   * repository as missing. Returns `null` when there's nothing to recover to.
+   */
+  private async findRemovedWorktreeFallback(
+    repository: Repository
+  ): Promise<WorktreeEntry | null> {
+    const main = await getMainWorktree(repository)
+    return main !== null && main.path !== repository.path ? main : null
   }
 
   /** This shouldn't be called directly. See 'Dispatcher'. */

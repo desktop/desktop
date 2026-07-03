@@ -2,6 +2,7 @@ import * as Path from 'path'
 import type { Repository } from '../../models/repository'
 import type { WorktreeEntry, WorktreeType } from '../../models/worktree'
 import { git } from './core'
+import { pathExists } from '../path-exists'
 
 export function parseWorktreePorcelainOutput(
   stdout: string
@@ -64,6 +65,40 @@ export async function listWorktrees(
   )
 
   return parseWorktreePorcelainOutput(result.stdout)
+}
+
+/**
+ * When a repository's working directory no longer exists on disk (for example a
+ * linked worktree that has been removed by an external tool), resolve the *main*
+ * worktree of the same repository so the app can fall back to it instead of
+ * treating the repository as missing.
+ *
+ * A linked worktree's administrative git dir (`.git/worktrees/<name>`, i.e.
+ * `repository.resolvedGitDir`) survives deletion of the working directory, so
+ * the set of worktrees — including the still-present main worktree — can still
+ * be enumerated from it even once `repository.path` is gone.
+ *
+ * Returns `null` when no main worktree can be resolved, e.g. a regular,
+ * non-worktree repository that has genuinely been deleted (its git dir is gone
+ * too) or a repository that is itself the main worktree.
+ */
+export async function getMainWorktree(
+  repository: Repository
+): Promise<WorktreeEntry | null> {
+  const gitDir = repository.resolvedGitDir
+
+  if (!(await pathExists(gitDir))) {
+    return null
+  }
+
+  try {
+    const main = (await listWorktrees(gitDir)).find(w => w.type === 'main')
+    return main !== undefined && (await pathExists(main.path)) ? main : null
+  } catch {
+    // Degrade to the existing "missing" behaviour rather than crashing a
+    // refresh if git is unable to enumerate the worktrees for some reason.
+    return null
+  }
 }
 
 export async function addWorktree(
