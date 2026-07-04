@@ -108,3 +108,33 @@ folder: [logos](app/static/logos).
 GitHub® and its stylized versions and the Invertocat mark are GitHub's
 Trademarks or registered Trademarks. When using GitHub's logos, be sure to
 follow the GitHub [logo guidelines](https://github.com/logos).
+This screenshot is showing a GitHub repository page on mobile. It appears to be the repository for GitHub Desktop on the development branch.
+
+Visible details include:
+
+Around 21.7k stars
+
+Around 10.4k forks
+
+Around 2k watching
+
+182 branches
+
+827 tags
+
+Folders such as .github, .vscode, app, docs, script, vendor
+
+The README section beginning with GitHub Desktop
+
+
+If you want help with this page, I can help you:
+
+clone/download the repository
+
+explain what the folders do
+
+build/run the project
+
+find specific files
+
+teach basic GitHub usage
