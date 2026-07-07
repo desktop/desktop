@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.6.3-test2": ["[New] build hashes with upload to central"],
     "3.6.3-beta1": [
       "[Fixed] Repository list scrolling no longer gets stuck or jitters when scrolling over tall groups (e.g. large organizations) - #22438. Thanks @peteski22!",
       "[Improved] Clarify the line-ending conversion warning to explain that Git will automatically convert the file's line endings on next checkout, with a link to learn more - #21446. Thanks @Whitebrim!"
