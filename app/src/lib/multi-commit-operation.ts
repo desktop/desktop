@@ -4,6 +4,8 @@ import {
   conflictSteps,
   MultiCommitOperationStepKind,
 } from '../models/multi-commit-operation'
+import { Popup, PopupType } from '../models/popup'
+import { Repository } from '../models/repository'
 import { TipState } from '../models/tip'
 import { IMultiCommitOperationState, IRepositoryState } from './app-state'
 
@@ -45,5 +47,26 @@ export function isConflictsFlow(
     isMultiCommitOperationPopupOpen &&
     multiCommitOperationState !== null &&
     conflictSteps.includes(multiCommitOperationState.step.kind)
+  )
+}
+
+/**
+ * Returns whether the currently displayed popup is a multi commit operation
+ * popup (e.g. the conflict resolution dialog) that belongs to a repository
+ * other than the one provided.
+ *
+ * Each linked worktree is tracked as its own repository and is polled for
+ * status independently, so a status refresh for one repository must not
+ * assume that the current popup (if any) belongs to it — otherwise it could
+ * tear down another repository's in-progress conflict resolution UI.
+ */
+export function isMultiCommitOperationPopupForAnotherRepository(
+  currentPopup: Popup | null,
+  repository: Repository
+): boolean {
+  return (
+    currentPopup !== null &&
+    currentPopup.type === PopupType.MultiCommitOperation &&
+    currentPopup.repository.hash !== repository.hash
   )
 }

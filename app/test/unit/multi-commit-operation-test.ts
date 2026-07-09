@@ -9,8 +9,11 @@ import {
 import {
   isConflictsFlow,
   getMultiCommitOperationChooseBranchStep,
+  isMultiCommitOperationPopupForAnotherRepository,
 } from '../../src/lib/multi-commit-operation'
 import { TipState } from '../../src/models/tip'
+import { PopupType } from '../../src/models/popup'
+import { Repository } from '../../src/models/repository'
 
 describe('multi-commit-operation', () => {
   describe('isIdMultiCommitOperation', () => {
@@ -148,6 +151,61 @@ describe('multi-commit-operation', () => {
       assert.equal(step.currentBranch, currentBranch)
       assert.equal(step.defaultBranch, defaultBranch)
       assert.equal(step.allBranches.length, 2)
+    })
+  })
+
+  describe('isMultiCommitOperationPopupForAnotherRepository', () => {
+    const repository = new Repository('/path/to/repo', 1, null, false)
+    const worktreeRepository = new Repository(
+      '/path/to/repo-worktree',
+      1,
+      null,
+      false
+    )
+
+    it('returns false when there is no popup', () => {
+      assert.equal(
+        isMultiCommitOperationPopupForAnotherRepository(null, repository),
+        false
+      )
+    })
+
+    it('returns false when the popup is not a multi commit operation popup', () => {
+      const popup = {
+        id: '1',
+        type: PopupType.CloneRepository,
+      } as any
+
+      assert.equal(
+        isMultiCommitOperationPopupForAnotherRepository(popup, repository),
+        false
+      )
+    })
+
+    it('returns false when the popup belongs to the same repository', () => {
+      const popup = {
+        id: '1',
+        type: PopupType.MultiCommitOperation,
+        repository,
+      } as any
+
+      assert.equal(
+        isMultiCommitOperationPopupForAnotherRepository(popup, repository),
+        false
+      )
+    })
+
+    it('returns true when the popup belongs to a different repository (e.g. a linked worktree)', () => {
+      const popup = {
+        id: '1',
+        type: PopupType.MultiCommitOperation,
+        repository: worktreeRepository,
+      } as any
+
+      assert.equal(
+        isMultiCommitOperationPopupForAnotherRepository(popup, repository),
+        true
+      )
     })
   })
 })

@@ -360,7 +360,10 @@ import {
 } from '../../models/multi-commit-operation'
 import { reorder } from '../git/reorder'
 import { UseWindowsOpenSSHKey } from '../ssh/ssh'
-import { isConflictsFlow } from '../multi-commit-operation'
+import {
+  isConflictsFlow,
+  isMultiCommitOperationPopupForAnotherRepository,
+} from '../multi-commit-operation'
 import { clamp } from '../clamp'
 import { EndpointToken } from '../endpoint-token'
 import { IRefCheck } from '../ci-checks/ci-checks'
@@ -2938,7 +2941,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } = state
 
     if (conflictState === null) {
-      this.clearConflictsFlowVisuals(state)
+      this.clearConflictsFlowVisuals(repository, state)
       return
     }
 
@@ -3050,7 +3053,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const { conflictState } = changesState
 
     if (conflictState === null || multiCommitOperationState === null) {
-      this.clearConflictsFlowVisuals(state)
+      this.clearConflictsFlowVisuals(repository, state)
       return
     }
 
@@ -3094,7 +3097,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } = state
 
     if (conflictState === null) {
-      this.clearConflictsFlowVisuals(state)
+      this.clearConflictsFlowVisuals(repository, state)
       return
     }
 
@@ -3244,7 +3247,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /**
    * Cleanup any related UI related to conflicts if still in use.
    */
-  private clearConflictsFlowVisuals(state: IRepositoryState) {
+  private clearConflictsFlowVisuals(
+    repository: Repository,
+    state: IRepositoryState
+  ) {
     const { multiCommitOperationState } = state
     if (
       userIsStartingMultiCommitOperation(
@@ -3255,7 +3261,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    this._closePopup(PopupType.MultiCommitOperation)
+    if (
+      !isMultiCommitOperationPopupForAnotherRepository(
+        this.popupManager.currentPopup,
+        repository
+      )
+    ) {
+      this._closePopup(PopupType.MultiCommitOperation)
+    }
     this._clearBanner(BannerType.ConflictsFound)
     this._clearBanner(BannerType.MergeConflictsFound)
   }
