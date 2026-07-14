@@ -5,6 +5,12 @@ import { AriaLiveContainer } from '../accessibility/aria-live-container'
 export const DefaultMaxWidth = 350
 export const DefaultMinWidth = 200
 
+/**
+ * How far past the minimum width a drag has to go before it counts as an
+ * intent to collapse the panel (see onResizePastMinimum).
+ */
+export const CollapsePastMinimumThreshold = 40
+
 /** This class is assigned to the containing div of the element and used in
  * determining whether the resizable is focused. */
 export const resizableComponentClass = 'resizable-component'
@@ -88,7 +94,8 @@ export class Resizable extends React.Component<
     const { onResizePastMinimum, minimumWidth } = this.props
     if (
       onResizePastMinimum !== undefined &&
-      newWidth < (minimumWidth ?? DefaultMinWidth) - 40
+      newWidth <
+        (minimumWidth ?? DefaultMinWidth) - CollapsePastMinimumThreshold
     ) {
       this.unsubscribeFromGlobalEvents()
       onResizePastMinimum()

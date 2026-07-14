@@ -8,7 +8,7 @@ import { NoChanges } from './changes/no-changes'
 import { MultipleSelection } from './changes/multiple-selection'
 import { FilesChangedBadge } from './changes/files-changed-badge'
 import { SelectedCommits, CompareSidebar } from './history'
-import { Resizable } from './resizable'
+import { CollapsePastMinimumThreshold, Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import {
   IRepositoryState,
@@ -180,6 +180,13 @@ export class RepositoryView extends React.Component<
 
   private focusHistoryNeeded: boolean = false
   private focusChangesNeeded: boolean = false
+
+  /**
+   * Whether the pointer has moved during a drag that started on (or
+   * collapsed down to) the collapsed sidebar rail. Used to suppress the
+   * click-to-expand handler right after a drag gesture.
+   */
+  private collapsedDragDidMove: boolean = false
 
   public constructor(props: IRepositoryViewProps) {
     super(props)
@@ -470,16 +477,13 @@ export class RepositoryView extends React.Component<
     // The collapse happens mid-drag, so keep following the pointer until
     // the button is released: dragging back out snaps the sidebar open
     // again without requiring a new grab of the (now hidden) handle.
+    this.subscribeToCollapsedDragEvents()
+  }
+
+  private subscribeToCollapsedDragEvents() {
     document.addEventListener('mousemove', this.onCollapsedDragMove)
     document.addEventListener('mouseup', this.onCollapsedDragEnd)
   }
-
-  /**
-   * Whether the pointer has moved during a drag that started on (or
-   * collapsed down to) the collapsed sidebar rail. Used to suppress the
-   * click-to-expand handler right after a drag gesture.
-   */
-  private collapsedDragDidMove = false
 
   private onCollapsedRailMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) {
@@ -487,8 +491,7 @@ export class RepositoryView extends React.Component<
     }
 
     this.collapsedDragDidMove = false
-    document.addEventListener('mousemove', this.onCollapsedDragMove)
-    document.addEventListener('mouseup', this.onCollapsedDragEnd)
+    this.subscribeToCollapsedDragEvents()
     e.preventDefault()
   }
 
@@ -496,7 +499,7 @@ export class RepositoryView extends React.Component<
     this.collapsedDragDidMove = true
 
     const { min, max } = this.props.sidebarWidth
-    const collapseThreshold = min - 40
+    const collapseThreshold = min - CollapsePastMinimumThreshold
 
     if (this.state.sidebarHidden) {
       if (e.clientX >= collapseThreshold) {
