@@ -466,6 +466,36 @@ export class RepositoryView extends React.Component<
 
   private collapseSidebar = () => {
     this.setState({ sidebarHidden: true })
+
+    // The collapse happens mid-drag, so keep following the pointer until
+    // the button is released: dragging back out snaps the sidebar open
+    // again without requiring a new grab of the (now hidden) handle.
+    document.addEventListener('mousemove', this.onCollapsedDragMove)
+    document.addEventListener('mouseup', this.onCollapsedDragEnd)
+  }
+
+  private onCollapsedDragMove = (e: MouseEvent) => {
+    const { min, max } = this.props.sidebarWidth
+    const collapseThreshold = min - 40
+
+    if (this.state.sidebarHidden) {
+      if (e.clientX >= collapseThreshold) {
+        this.setState({ sidebarHidden: false })
+      }
+    } else if (e.clientX < collapseThreshold) {
+      this.setState({ sidebarHidden: true })
+    } else {
+      // The sidebar starts at the window's left edge so the pointer's x
+      // position is effectively the desired width.
+      this.props.dispatcher.setSidebarWidth(clamp(e.clientX, min, max))
+    }
+
+    e.preventDefault()
+  }
+
+  private onCollapsedDragEnd = () => {
+    document.removeEventListener('mousemove', this.onCollapsedDragMove)
+    document.removeEventListener('mouseup', this.onCollapsedDragEnd)
   }
 
   private expandSidebar = () => {
@@ -756,6 +786,7 @@ export class RepositoryView extends React.Component<
 
   public componentWillUnmount() {
     window.removeEventListener('keydown', this.onGlobalKeyDown)
+    this.onCollapsedDragEnd()
   }
 
   public componentDidUpdate(): void {
