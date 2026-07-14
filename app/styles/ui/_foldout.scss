@@ -1,0 +1,23 @@
+#foldout-container {
+  z-index: var(--foldout-z-index);
+
+  .overlay {
+    // No focus styles whatsovever for the overlay.
+    // The overlay has a tab index of -1 so that clicking on it
+    // won't immediately trigger the lost focus event on the app
+    // menu bar.
+    &:focus {
+      outline: none;
+      border: none;
+      box-shadow: none;
+    }
+
+    background: var(--overlay-background-color);
+    height: 100%;
+  }
+
+  .foldout {
+    background: var(--background-color);
+    color: var(--text-color);
+  }
+}

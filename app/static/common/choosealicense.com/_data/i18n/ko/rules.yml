@@ -1,0 +1,61 @@
+# 규칙(허용 / 조건 / 제한)의 한국어 라벨과 설명.
+# 진실의 원천은 _data/rules.yml(영어)입니다. 순서와 식별자는 거기서 가져오며,
+# 여기에 없는 항목은 영어로 대체됩니다.
+# 구조: <그룹> → <tag> → { label, description }.
+
+permissions:
+  commercial-use:
+    label: "상업적 이용"
+    description: "라이선스가 부여된 자료와 그 파생물을 상업적 목적으로 사용할 수 있습니다."
+  modifications:
+    label: "수정"
+    description: "라이선스가 부여된 자료를 수정할 수 있습니다."
+  distribution:
+    label: "배포"
+    description: "라이선스가 부여된 자료를 배포할 수 있습니다."
+  private-use:
+    label: "사적 이용"
+    description: "라이선스가 부여된 자료를 사적으로 사용하고 수정할 수 있습니다."
+  patent-use:
+    label: "특허 이용"
+    description: "이 라이선스는 기여자로부터 명시적인 특허권 부여를 제공합니다."
+
+conditions:
+  include-copyright:
+    label: "라이선스·저작권 표시"
+    description: "라이선스와 저작권 표시의 사본을 라이선스가 부여된 자료와 함께 포함해야 합니다."
+  include-copyright--source:
+    label: "라이선스·저작권 표시(소스)"
+    description: "라이선스와 저작권 표시의 사본을 소스 형태의 라이선스 자료와 함께 포함해야 하지만, 바이너리에는 요구되지 않습니다."
+  document-changes:
+    label: "변경 사항 명시"
+    description: "라이선스가 부여된 자료에 가한 변경 사항을 문서로 남겨야 합니다."
+  disclose-source:
+    label: "소스 공개"
+    description: "라이선스가 부여된 자료를 배포할 때 소스 코드를 제공해야 합니다."
+  network-use-disclose:
+    label: "네트워크 이용은 배포"
+    description: "네트워크를 통해 라이선스가 부여된 자료와 상호작용하는 사용자에게 소스 코드 사본을 받을 권리가 주어집니다."
+  same-license:
+    label: "동일 라이선스"
+    description: "라이선스가 부여된 자료를 배포할 때 수정 사항을 동일한 라이선스로 공개해야 합니다. 경우에 따라 유사하거나 관련된 라이선스를 사용할 수 있습니다."
+  same-license--file:
+    label: "동일 라이선스(파일)"
+    description: "라이선스가 부여된 자료를 배포할 때 기존 파일의 수정 사항을 동일한 라이선스로 공개해야 합니다. 경우에 따라 유사하거나 관련된 라이선스를 사용할 수 있습니다."
+  same-license--library:
+    label: "동일 라이선스(라이브러리)"
+    description: "라이선스가 부여된 자료를 배포할 때 수정 사항을 동일한 라이선스로 공개해야 합니다. 경우에 따라 유사하거나 관련된 라이선스를 사용할 수 있으며, 라이선스 자료를 라이브러리로 사용하는 저작물에는 이 조건이 적용되지 않을 수도 있습니다."
+
+limitations:
+  trademark-use:
+    label: "상표 이용"
+    description: "이 라이선스는 상표권을 부여하지 않음을 명시적으로 밝힙니다. 다만 그러한 명시가 없는 라이선스도 묵시적인 상표권을 부여하지 않는 것이 보통입니다."
+  liability:
+    label: "책임"
+    description: "이 라이선스에는 책임의 제한이 포함되어 있습니다."
+  patent-use:
+    label: "특허 이용"
+    description: "이 라이선스는 기여자의 특허에 대한 어떠한 권리도 부여하지 않음을 명시적으로 밝힙니다."
+  warranty:
+    label: "보증"
+    description: "이 라이선스는 어떠한 보증도 제공하지 않음을 명시적으로 밝힙니다."

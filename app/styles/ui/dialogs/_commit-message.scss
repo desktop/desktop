@@ -1,0 +1,28 @@
+dialog#commit-message-dialog {
+  .dialog-content {
+    padding: 0;
+  }
+
+  .commit-message-component,
+  .commit-warning-component {
+    background-color: inherit;
+  }
+
+  .commit-warning-component {
+    .warning-icon-container {
+      .warning-icon,
+      .information-icon {
+        background-color: var(--background-color);
+      }
+    }
+  }
+
+  .commit-message-avatar-component {
+    height: 50px;
+    width: 50px;
+  }
+
+  label {
+    margin-bottom: var(--spacing-third);
+  }
+}

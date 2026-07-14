@@ -1,0 +1,135 @@
+# Traducción al español de las cadenas de interfaz y la prosa de las páginas.
+# Cualquier clave ausente aquí recae automáticamente en el inglés (_data/i18n/en/ui.yml).
+# Las claves _html contienen HTML en bruto; los demás valores multilínea son
+# Markdown. Los resúmenes de licencias están en licenses.yml y las etiquetas de
+# reglas en rules.yml. Los textos legales de las licencias nunca se traducen.
+
+# --- Metadatos de idioma -----------------------------------------------------
+language_name: "Español"
+language_selector_label: "Idioma"
+
+# --- Navegación y pie de página ----------------------------------------------
+nav_about: "Acerca de"
+nav_terms: "Condiciones del servicio"
+nav_improve: "Ayuda a mejorar esta página"
+footer_license_notice_html: |-
+  El contenido de este sitio está disponible bajo la <a href="https://creativecommons.org/licenses/by/3.0/">Licencia Creative Commons Atribución 3.0 No portada</a>.
+footer_curated_html: |-
+  Cuidado con ❤️ por <a href="https://github.com">GitHub, Inc.</a> y <a href="https://github.com/github/choosealicense.com">¡tú!</a>
+
+# --- Migas de pan ------------------------------------------------------------
+breadcrumb_home: "Inicio"
+breadcrumb_licenses: "Licencias"
+
+# --- Encabezados de los grupos de reglas -------------------------------------
+rules_permissions: "Permisos"
+rules_conditions: "Condiciones"
+rules_limitations: "Limitaciones"
+
+# --- Información sobre las reglas (ensamblada en assets/js/app.js) ------------
+# Plantilla reordenable: %label%, %category% y %description% se rellenan para cada
+# regla. El orden en español coloca la categoría al principio: «Permiso Título: descripción».
+tooltip_format: "%category% %label%: %description%"
+tooltip_cat_permissions: "Permiso"
+tooltip_cat_conditions: "Condición"
+tooltip_cat_limitations: "Limitación"
+
+# --- Barra lateral de las páginas de licencia --------------------------------
+sidebar_copy: "Copiar el texto de la licencia al portapapeles"
+sidebar_copied: "¡Copiado!"
+sidebar_suggest_heading: "Sugerir esta licencia"
+sidebar_suggest_body_md: |-
+  Abre una pull request para sugerir esta licencia a un proyecto que [no tenga licencia](/no-permission/). Sé cortés: comprueba si ya se ha sugerido una licencia, intenta proponer una adecuada para la [comunidad](/community/) del proyecto y mantén una comunicación amable con los mantenedores.
+sidebar_repo_placeholder: "Introduce la URL del repositorio de GitHub"
+sidebar_how_heading: "Cómo aplicar esta licencia"
+sidebar_optional_heading: "Pasos opcionales"
+sidebar_source: "Fuente"
+sidebar_using_heading: "¿Quién usa esta licencia?"
+# Nota para los gestores de paquetes. %id% (identificador SPDX en <code>),
+# %languages% (enlaces de lenguajes) y %clauses% se rellenan y no se traducen;
+# solo se traduce la prosa que los rodea.
+sidebar_pkg_html: |-
+  Añade %id%%clauses% a la descripción del paquete de tu proyecto, si procede (por ejemplo, %languages%). Así la licencia se mostrará en los directorios de paquetes.
+sidebar_pkg_only_html: " (o %id% para no permitir versiones futuras)"
+sidebar_pkg_ofl_html: " (o %id% si se especifica un Nombre de Fuente Reservado después de la declaración de copyright)"
+sidebar_gplcc_html: |-
+  Si quieres que tu proyecto adopte la cláusula de subsanación de la GPL-3.0, añade el <a href="https://github.com/gplcc/gplcc/blob/master/Project/COMMITMENT">texto</a> del <a href="https://gplcc.github.io/gplcc/">GPL Cooperation Commitment</a> a un archivo llamado <code>COMMITMENT</code> en el mismo directorio que tu archivo de licencia %id%.
+
+# --- Tarjetas de presentación de las licencias (/licenses/) ------------------
+overview_view_full: "Ver %title% completa »"
+
+# --- Frase «quién la usa» (página de inicio) ---------------------------------
+# Separadores de la lista de proyectos; en español no se usa coma antes de «y».
+using_separator: ", "
+using_last_separator: " y "
+using_sentence_plural: "%projects% usan la %license%."
+using_sentence_singular: "%projects% usa la %license%."
+
+# --- Títulos de página -------------------------------------------------------
+page_title_home: "Elige una licencia de código abierto"
+page_title_licenses: "Licencias"
+page_title_appendix: "Apéndice"
+page_title_404: "404 — Página no encontrada"
+
+# --- Página de inicio --------------------------------------------------------
+home_intro: |-
+  Una licencia de código abierto protege a quienes contribuyen y a quienes usan el proyecto. Las empresas y las personas desarrolladoras experimentadas no tocarán un proyecto que carezca de esta protección.
+home_situations_question: "¿Cuál de las siguientes situaciones describe mejor la tuya?"
+home_community_title: "Necesito trabajar dentro de una comunidad."
+home_community_content: |-
+  Usa la [licencia preferida por la comunidad](community/) a la que contribuyes o de la que dependes. Tu proyecto encajará a la perfección.
+
+  Si tienes una dependencia que no tiene licencia, pide a sus mantenedores que [añadan una licencia](no-permission/#for-users).
+home_permissive_title: "La quiero simple y permisiva."
+home_permissive_content: |-
+  La [licencia MIT](licenses/mit/) es breve y va al grano. Permite que cualquiera haga casi cualquier cosa con tu proyecto, como crear y distribuir versiones de código cerrado.
+home_copyleft_title: "Me importa compartir las mejoras."
+home_copyleft_content: |-
+  La [GNU GPLv3](licenses/gpl-3.0/) también permite que cualquiera haga casi cualquier cosa con tu proyecto, *excepto* distribuir versiones de código cerrado.
+home_more_question: "¿Y si ninguna de estas me sirve?"
+home_nonsoftware_title: "Mi proyecto no es software."
+home_nonsoftware_content: |-
+  [Hay licencias para eso](non-software/).
+home_morechoices_title: "Quiero más opciones."
+home_morechoices_content: |-
+  [Hay más licencias disponibles](licenses/).
+home_nolicense_title: "No quiero elegir una licencia."
+home_nolicense_content: |-
+  [Esto es lo que pasa si no lo haces](no-permission/).
+
+# --- Página de licencias (/licenses/) ----------------------------------------
+licenses_intro_html: |-
+  Las licencias de código abierto conceden permiso a cualquiera para usar, modificar y compartir el software licenciado con cualquier fin, sujeto a condiciones que preservan la procedencia y la apertura del software. Las siguientes licencias se ordenan por número de condiciones, de la que más tiene (GNU AGPLv3) a ninguna (Unlicense). Observa que las licencias populares destacadas en la <a href="/">página de inicio</a> (GNU GPLv3 y MIT) se sitúan dentro de este espectro.
+licenses_appendix_note_html: |-
+  Si buscas una tabla de referencia con todas las licencias de choosealicense.com, consulta el <a href="/appendix">apéndice</a>.
+licenses_outro_html: |-
+  Las licencias anteriores representan todo el espectro de las licencias de código abierto, desde las muy protectoras hasta las incondicionales. Alguna de ellas debería servir para la mayoría de los nuevos proyectos de código abierto. Existen muchas otras licencias de código abierto, incluidas versiones anteriores y equivalentes cercanos de algunas de las anteriores. Consulta los recursos enumerados en nuestra <a href="/about/">página «acerca de»</a> si quieres leer más.
+
+  Si ya sabes lo que haces y tienes una licencia que prefieres usar, ¡estupendo! No estamos aquí para hacerte cambiar de idea. Pero si el gran número de opciones te abruma, quizá podamos ayudarte.
+
+# --- Apéndice (/appendix/) ---------------------------------------------------
+appendix_intro: |-
+  A modo de referencia, aquí tienes una tabla de todas las licencias descritas en el [repositorio de choosealicense.com](https://github.com/github/choosealicense.com).
+
+  Si estás aquí para elegir una licencia, **[empieza por la página de inicio](/)** para ver algunas licencias que servirán en la mayoría de los casos.
+appendix_col_license: "Licencia"
+appendix_legend_heading: "Leyenda"
+appendix_legend_permissions_html: |-
+  Las licencias de código abierto conceden al público <span class="license-permissions"><span class="license-marker">✓</span></span> <b>permisos</b> para hacer con las obras licenciadas cosas que el copyright u otras leyes de «propiedad intelectual» podrían, de otro modo, prohibir.
+appendix_legend_conditions_html: |-
+  En la mayoría de las licencias de código abierto, la concesión de permisos está supeditada al cumplimiento de unas <span class="license-conditions"><span class="license-marker">ⓘ</span></span> <b>condiciones</b>.
+appendix_legend_limitations_html: |-
+  La mayoría de las licencias de código abierto también tienen <span class="license-limitations"><span class="license-marker">✕</span></span> <b>limitaciones</b> que normalmente excluyen la garantía y la responsabilidad, y a veces excluyen expresamente las patentes o las marcas de la concesión de la licencia.
+
+# --- Página 404 --------------------------------------------------------------
+notfound_p1: |-
+  ¡Lo sentimos! No hemos podido encontrar la página que buscabas.
+notfound_p2: |-
+  Si querías consultar una licencia, ve a [licencias](/licenses).
+
+# --- Banner de sugerencia de idioma en JavaScript (assets/js/i18n.js) --------
+# %language% (banner_switch) = nombre del idioma sugerido; banner_suggest incorpora
+# directamente el nombre para respetar la gramática y las mayúsculas de cada idioma.
+banner_suggest: "Esta página también está disponible en **español**."
+banner_switch: "Cambiar a **español**"
+banner_dismiss: "Descartar"

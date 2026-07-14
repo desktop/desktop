@@ -1,0 +1,39 @@
+.popup {
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+  min-width: 260px;
+  margin: var(--spacing-triple) var(--spacing);
+  background-color: var(--box-alt-background-color);
+  z-index: var(--popup-z-index);
+}
+
+.popup-content {
+  padding: var(--spacing);
+}
+
+// This is used for group lists such as the branch picker
+.popup-inner-content {
+  border: var(--base-border);
+  border-radius: var(--border-radius);
+  background: var(--background-color);
+}
+
+.popup-actions {
+  margin-top: var(--spacing);
+}
+
+.popup-error-output {
+  font-family: var(--font-family-monospace);
+  font-size: var(--font-size-sm);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.popup-overlay {
+  z-index: var(--popup-overlay-z-index);
+
+  background: black;
+  opacity: 0.4;
+  height: 100%;
+}

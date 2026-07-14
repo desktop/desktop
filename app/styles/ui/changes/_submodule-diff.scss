@@ -1,0 +1,57 @@
+.submodule-diff {
+  .item {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
+    font-size: var(--font-size-md);
+    gap: 0.25em;
+    margin-bottom: 1em;
+
+    .content {
+      flex: 1;
+    }
+
+    .octicon {
+      margin-top: 0.2em;
+
+      &.info-icon {
+        color: var(--dialog-information-color);
+      }
+
+      &.modified-icon {
+        color: var(--color-modified);
+      }
+
+      &.added-icon {
+        color: var(--color-new);
+      }
+
+      &.deleted-icon {
+        color: var(--color-deleted);
+      }
+
+      &.untracked-icon {
+        color: var(--color-deleted);
+      }
+    }
+  }
+
+  .copy-button {
+    // Removing default button styles
+    background: transparent;
+    border: none;
+    padding: 0;
+    height: auto;
+    min-width: 16px;
+
+    .octicon {
+      // Reverting margin-top change from .item .octicon
+      margin-top: revert;
+    }
+
+    :hover {
+      color: var(--text-secondary-color);
+    }
+  }
+}

@@ -1,0 +1,90 @@
+.popover-component {
+  font-size: var(--font-size);
+  font-family: var(--font-family-sans-serif);
+
+  background: var(--background-color);
+  color: var(--text-color);
+  border-radius: var(--border-radius);
+  border: var(--base-border);
+
+  box-shadow: var(--base-box-shadow);
+
+  .popover-content {
+    padding: var(--spacing-double);
+    border-radius: var(--border-radius);
+    max-height: var(--available-height);
+    max-width: var(--available-width);
+  }
+
+  & > p:first-of-type,
+  & > h3:first-of-type {
+    margin-top: 0;
+  }
+
+  .popover-footer {
+    .button-group {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+
+    button {
+      @include ellipsis;
+      margin-right: var(--spacing-half);
+      min-width: 60px;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+
+  &.appear-shake {
+    animation: popover-shake 0.15s both;
+    transform: translate3d(0, 0, 0);
+
+    // This is a fairly jarring animation so let's make sure we don't
+    // run it for people who don't want excess motion.
+    @media (prefers-reduced-motion) {
+      animation: none;
+    }
+  }
+
+  // animate.css more or less
+  @keyframes popover-shake {
+    from,
+    to {
+      transform: translate3d(0, 0, 0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+      transform: translate3d(-5px, 0, 0);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+      transform: translate3d(5px, 0, 0);
+    }
+  }
+}
+
+.popover-tip {
+  * {
+    border-style: solid;
+    border-color: transparent;
+  }
+
+  .popover-tip-background {
+    border-right-color: var(--background-color);
+  }
+
+  .popover-tip-border {
+    border-right-color: var(--box-border-color);
+  }
+}

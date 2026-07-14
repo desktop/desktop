@@ -1,0 +1,123 @@
+@import '../mixins';
+
+#desktop-app {
+  // This is just a dummy wrapper needed because react doesn't like
+  // being installed into <body>, see https://github.com/facebook/react/issues/3207
+  &-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  // The main react component div
+  &-chrome {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    height: 100%;
+  }
+
+  // main non-window chrome wrapper
+  &-contents {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+  }
+}
+
+#desktop-app-contents {
+  &.commit-being-dragged {
+    :not(input):not(textarea),
+    :not(input):not(textarea)::after,
+    :not(input):not(textarea)::before {
+      cursor: not-allowed;
+    }
+
+    #desktop-app-toolbar {
+      .toolbar-dropdown {
+        &.branch-button {
+          :not(input):not(textarea),
+          :not(input):not(textarea)::after,
+          :not(input):not(textarea)::before {
+            cursor: default;
+          }
+
+          .branches-list-item {
+            div {
+              pointer-events: none;
+            }
+          }
+
+          .list-item:not(.selected) {
+            .branches-list-item:hover,
+            .pull-request-item:hover {
+              --text-color: var(--box-selected-active-text-color);
+              --text-secondary-color: var(--box-selected-active-text-color);
+
+              color: var(--text-color);
+              background-color: var(--box-selected-active-background-color);
+              cursor: copy;
+            }
+          }
+
+          .branches-list-item.new-branch-drop:hover {
+            --text-color: var(--box-selected-active-text-color);
+            --text-secondary-color: var(--box-selected-active-text-color);
+
+            color: var(--text-color);
+            background-color: var(--box-selected-active-background-color);
+            cursor: copy;
+          }
+        }
+      }
+    }
+
+    #commit-list {
+      :not(input):not(textarea),
+      :not(input):not(textarea)::after,
+      :not(input):not(textarea)::before {
+        cursor: default;
+      }
+    }
+
+    // When NOT comparing a branch, the #commit-list is a direct child of
+    // .compare-commit-list which is a direct child of #compare-view and we
+    // only want this highlighting to take effect when not comparing branches.
+    // Note: there is another .compare-commit-list higher up when comparing so
+    // the direct child selector is important.
+    #compare-view {
+      > .compare-commit-list {
+        > #commit-list {
+          .list-item:not(.selected) {
+            .commit:hover {
+              --text-color: var(--box-selected-active-text-color);
+              --text-secondary-color: var(--box-selected-active-text-color);
+
+              color: var(--text-color);
+              background-color: var(--box-selected-active-background-color);
+            }
+
+            .commit {
+              div {
+                pointer-events: none;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.sr-only {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}

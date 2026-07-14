@@ -1,0 +1,28 @@
+{% assign i18n_lang = site.active_lang | default: site.default_lang %}
+{% assign id = "/licenses/" | append: include.license-id %}
+{% assign licenses = site.licenses | where:"id", id %}
+{% for license in licenses %}
+{% assign spdx_key = license.spdx-id | downcase %}
+{% assign loc = site.data.i18n[i18n_lang].licenses[spdx_key] %}
+<div class="license-overview clearfix" id="{{ include.license-id | slugify }}">
+  <div class="license-overview-heading">
+    <h3 class="license-overview-name">
+      <a href="{{ license.url }}">
+          {% if license.nickname %}
+            {{ loc.nickname | default: license.nickname }}
+          {% else %}
+            {{ license.title }}
+          {% endif %}
+      </a>
+    </h3>
+
+    <p class="license-overview-description">{{ loc.description | default: license.description }}</p>
+  </div>
+
+  <div class="license-details">
+      {% include rules-table.html license=license %}
+      {% capture view_full %}{% include t.html key="overview_view_full" %}{% endcapture %}
+      <p class="small"><a href="{{ license.url }}">{{ view_full | replace: '%title%', license.title }}</a></p>
+  </div>
+</div>
+{% endfor %}

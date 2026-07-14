@@ -1,0 +1,61 @@
+# 规则（许可 / 条件 / 限制）的简体中文标签与描述。
+# 真正的来源仍是 _data/rules.yml（英文）：顺序与标识符均源于此，
+# 此处缺失的任意条目都会回退到英文。
+# 结构：<分组> → <tag> → { label, description }。
+
+permissions:
+  commercial-use:
+    label: "商业使用"
+    description: "被许可的材料及其衍生物可用于商业目的。"
+  modifications:
+    label: "修改"
+    description: "被许可的材料可以被修改。"
+  distribution:
+    label: "分发"
+    description: "被许可的材料可以被分发。"
+  private-use:
+    label: "私人使用"
+    description: "被许可的材料可以私下使用和修改。"
+  patent-use:
+    label: "专利使用"
+    description: "本许可证明确授予来自贡献者的专利权。"
+
+conditions:
+  include-copyright:
+    label: "保留版权与许可声明"
+    description: "分发被许可的材料时，必须随附一份许可证和版权声明的副本。"
+  include-copyright--source:
+    label: "保留声明（源代码）"
+    description: "以源代码形式分发被许可的材料时，必须随附一份许可证和版权声明的副本，但二进制形式无此要求。"
+  document-changes:
+    label: "声明改动"
+    description: "对被许可材料所做的改动必须予以记录。"
+  disclose-source:
+    label: "公开源代码"
+    description: "分发被许可的材料时，必须提供其源代码。"
+  network-use-disclose:
+    label: "网络使用即分发"
+    description: "通过网络与被许可材料交互的用户有权获得一份源代码副本。"
+  same-license:
+    label: "相同许可证"
+    description: "分发被许可的材料时，修改必须以相同的许可证发布。在某些情况下，可使用相似或相关的许可证。"
+  same-license--file:
+    label: "相同许可证（文件）"
+    description: "分发被许可的材料时，对现有文件的修改必须以相同的许可证发布。在某些情况下，可使用相似或相关的许可证。"
+  same-license--library:
+    label: "相同许可证（库）"
+    description: "分发被许可的材料时，修改必须以相同的许可证发布。在某些情况下，可使用相似或相关的许可证，或者此条件可能不适用于将被许可材料作为库使用的作品。"
+
+limitations:
+  trademark-use:
+    label: "商标使用"
+    description: "本许可证明确声明其不授予商标权，尽管没有此类声明的许可证可能也不会授予任何隐含的商标权。"
+  liability:
+    label: "责任"
+    description: "本许可证包含责任限制条款。"
+  patent-use:
+    label: "专利使用"
+    description: "本许可证明确声明其不授予对贡献者专利的任何权利。"
+  warranty:
+    label: "担保"
+    description: "本许可证明确声明其不提供任何担保。"

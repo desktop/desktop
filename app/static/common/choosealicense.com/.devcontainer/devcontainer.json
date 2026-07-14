@@ -1,0 +1,8 @@
+{
+  "name": "choosealicense.com",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "remoteEnv": {
+    "PATH": "/home/vscode/.rbenv/shims:/home/vscode/.rbenv/bin:${containerEnv:PATH}"
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh"
+}

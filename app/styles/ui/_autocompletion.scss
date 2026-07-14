@@ -1,0 +1,172 @@
+@import '../mixins';
+
+.autocompletion-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  // Overflow must be hidden to prevent the "invisible caret" to generate an
+  // horizontal scrollbar when, due to scrolling, that caret is outside the
+  // visible area.
+  overflow: hidden;
+}
+
+.autocompletion-popup {
+  overflow: hidden; // To get those sweet rounded corners
+}
+
+.autocompletion-popup {
+  display: flex;
+  width: 250px;
+
+  border-radius: var(--border-radius);
+
+  &.emoji {
+    width: 200px;
+  }
+  &.user {
+    width: 220px;
+  }
+  &.issue {
+    width: 300px;
+  }
+
+  background-color: var(--background-color);
+
+  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+
+  .list-item,
+  li {
+    border-bottom: none;
+
+    &:not(:first-child) {
+      border-top: var(--base-border);
+    }
+
+    &.selected {
+      --text-color: var(--box-selected-active-text-color);
+      --text-secondary-color: var(--box-selected-active-text-color);
+
+      color: var(--text-color);
+      background-color: var(--box-selected-active-background-color);
+      border-top-color: var(--box-selected-active-background-color);
+
+      & + .list-item {
+        border-top-color: var(--box-selected-active-background-color);
+      }
+    }
+  }
+}
+
+.autocompletion-item {
+  flex-grow: 1;
+  height: 100%;
+  min-width: 0;
+  padding: 0 var(--spacing);
+
+  /* Used to highlight substring matches in autocompletion texts */
+  mark {
+    font-weight: bold;
+    /* Reset browser defaults */
+    background-color: inherit;
+    color: currentColor;
+  }
+
+  .emoji {
+    display: flex;
+    flex-grow: 1;
+
+    height: 100%;
+    width: 100%;
+    align-items: center;
+
+    .icon {
+      flex-shrink: 0;
+      height: 20px;
+      width: 20px;
+      font-size: 15px;
+      margin-right: var(--spacing-half);
+    }
+
+    .title {
+      @include ellipsis;
+      max-width: 100%;
+    }
+  }
+
+  .issue {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+
+    height: 100%;
+    width: 100%;
+
+    .number {
+      color: var(--text-secondary-color);
+    }
+
+    .title {
+      @include ellipsis;
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+
+  .branch {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+
+    height: 100%;
+    width: 100%;
+
+    .icon {
+      flex-shrink: 0;
+      margin-right: var(--spacing-half);
+    }
+
+    .title {
+      @include ellipsis;
+    }
+  }
+
+  .user {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+
+    height: 100%;
+    width: 100%;
+
+    &.unknown {
+      .username {
+        font-style: italic;
+      }
+
+      .description {
+        @include ellipsis;
+        color: var(--text-secondary-color);
+        font-style: italic;
+        font-size: var(--font-size-sm);
+      }
+    }
+
+    .avatar {
+      flex-shrink: 0;
+      height: 16px;
+      width: 16px;
+      margin-right: var(--spacing-half);
+    }
+
+    .username {
+      @include ellipsis;
+      font-weight: var(--font-weight-semibold);
+      margin-right: var(--spacing-half);
+    }
+
+    .name {
+      @include ellipsis;
+      color: var(--text-secondary-color);
+    }
+  }
+}

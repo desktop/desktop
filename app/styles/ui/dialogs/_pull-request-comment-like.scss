@@ -1,0 +1,187 @@
+#pull-request-review,
+#pull-request-comment {
+  --avatar-size: 40px;
+  min-width: 500px;
+
+  .dialog-header {
+    height: unset;
+  }
+
+  .pull-request-comment-like-dialog-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    > .octicon {
+      width: 16px;
+      height: 16px;
+      margin-right: var(--spacing-half);
+      color: var(--pr-open-icon-color);
+
+      &.draft {
+        color: var(--pr-draft-icon-color);
+      }
+    }
+
+    .pr-title {
+      display: inline-block;
+      white-space: normal;
+
+      .pr-number {
+        font-weight: normal;
+        color: var(--text-secondary-color);
+      }
+    }
+  }
+
+  .footer-links {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+  }
+
+  .dialog-content {
+    max-height: 300px;
+    overflow: auto;
+
+    .comment-container {
+      .timeline-line {
+        width: 1px;
+        height: 24px;
+
+        line {
+          stroke: var(--pr-timeline-line-color);
+          stroke-width: 1px;
+        }
+
+        &.top line {
+          stroke-dasharray: 1 1 2 1 3 1 15;
+        }
+
+        &.bottom line {
+          stroke-dasharray: 15 1 3 1 2 1 1;
+        }
+      }
+
+      .timeline-item-container {
+        margin: -18px 0px;
+
+        .timeline-line {
+          position: relative;
+          left: 64px;
+
+          &.top {
+            top: 9px;
+          }
+
+          &.bottom {
+            top: -4px;
+          }
+        }
+
+        .timeline-item {
+          position: relative;
+          display: flex;
+          align-items: center;
+
+          &.with-comment::after {
+            top: 36px;
+            left: 64px;
+            display: block;
+            width: 1px;
+            height: 12px;
+            content: '';
+            background-color: var(--pr-timeline-line-color);
+            position: absolute;
+          }
+
+          .avatar {
+            width: var(--avatar-size);
+            height: var(--avatar-size);
+          }
+
+          .link-button-component {
+            &.author {
+              font-weight: bold;
+            }
+          }
+
+          .review-icon-container {
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            margin: 0 var(--spacing);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            .octicon {
+              width: 16px;
+              height: 16px;
+              text-align: center;
+            }
+
+            &.pr-review-approved {
+              color: var(--pr-approved-icon-color);
+              background-color: var(--pr-approved-icon-background-color);
+            }
+            &.pr-review-changes-requested {
+              color: var(--pr-changes-requested-icon-color);
+              background-color: var(--pr-changes-requested-icon-background-color);
+            }
+            &.pr-review-commented {
+              color: var(--pr-commented-icon-color);
+              background-color: var(--pr-commented-icon-background-color);
+            }
+          }
+        }
+      }
+
+      .comment-bubble-container {
+        position: relative;
+        margin-top: 33px;
+        margin-left: calc(var(--spacing) + 40px);
+        margin-bottom: -14px;
+
+        .comment-bubble {
+          &::before,
+          &::after {
+            position: absolute;
+            display: inline-block;
+            content: '';
+            pointer-events: none;
+            border: 8px solid transparent;
+            left: 6px;
+          }
+
+          &::before {
+            top: -15px;
+            border-bottom-color: var(--pr-timeline-line-color);
+          }
+
+          &::after {
+            top: -14px;
+            border-bottom-color: var(--background-color);
+          }
+
+          border: 1px solid var(--pr-timeline-line-color);
+          border-radius: 6px;
+          padding: var(--spacing);
+        }
+
+        .timeline-line.bottom {
+          margin-left: 14px;
+        }
+      }
+
+      .button-component {
+        margin-left: var(--spacing);
+      }
+      .sandboxed-markdown-iframe-container {
+        padding-left: 15px;
+        border-left: 2px solid var(--border-color);
+        width: 100%;
+      }
+    }
+  }
+}

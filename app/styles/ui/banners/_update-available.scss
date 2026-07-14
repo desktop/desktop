@@ -1,0 +1,21 @@
+#update-available {
+  .download-icon,
+  .warning-icon {
+    margin-right: var(--spacing);
+    color: var(--banner-warning-icon-color);
+  }
+
+  .banner-emoji {
+    display: inline-block;
+    margin-right: var(--spacing-half);
+  }
+
+  &.priority {
+    background-color: var(--banner-warning-background);
+    color: var(--banner-warning-text-color);
+
+    a {
+      color: var(--banner-warning-link-color);
+    }
+  }
+}

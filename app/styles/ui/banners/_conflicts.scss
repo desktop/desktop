@@ -1,0 +1,18 @@
+#merge-conflicts-banner,
+#rebase-conflicts-banner,
+#cherry-pick-conflicts-banner,
+#conflicts-found-banner {
+  .banner-message {
+    span {
+      max-width: 100%;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin: 0 1ex;
+    }
+    display: flex;
+    flex: 1 1 auto;
+  }
+  .alert-icon {
+    fill: var(--color-conflicted);
+  }
+}

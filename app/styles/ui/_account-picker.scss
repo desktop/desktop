@@ -1,0 +1,76 @@
+.account-picker {
+  > .button-component .button-content {
+    .account {
+      font-weight: normal;
+
+      .login {
+        font-weight: var(--font-weight-semibold);
+      }
+    }
+  }
+
+  .account-list {
+    height: 100%;
+    width: 100%;
+
+    &.filter-list .filter-field-row {
+      // The rows have built-in margin to their content so
+      // we only need half a spacer here
+      margin-bottom: var(--spacing-half);
+      margin-top: var(--spacing);
+      margin-left: var(--spacing);
+      margin-right: var(--spacing);
+    }
+
+    .account-list-item {
+      padding: 0 var(--spacing);
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      min-width: 0;
+      flex-grow: 1;
+      height: 100%;
+
+      .avatar {
+        width: 32px;
+        height: 32px;
+      }
+
+      .icon {
+        margin-left: var(--spacing-half);
+        margin-right: var(--spacing);
+        flex-shrink: 0;
+
+        // Align the icon baseline with the title text
+        align-self: flex-start;
+        margin-top: 2px;
+      }
+
+      .info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        flex-grow: 1;
+        margin: 0 var(--spacing);
+
+        .title {
+          @include ellipsis;
+          min-width: 0;
+          font-weight: var(--font-weight-semibold);
+        }
+
+        .subtitle {
+          @include ellipsis;
+          min-width: 0;
+          font-weight: var(--font-weight-light);
+          font-size: var(--font-size-sm);
+          color: var(--text-secondary-color);
+        }
+      }
+    }
+
+    .filter-list-group-header {
+      @include ellipsis;
+    }
+  }
+}

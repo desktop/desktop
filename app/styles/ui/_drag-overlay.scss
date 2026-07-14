@@ -1,0 +1,9 @@
+#drag-overlay-background {
+  position: absolute;
+  top: 72px;
+  background: var(--overlay-background-color);
+  height: 100%;
+  width: 100%;
+  cursor: not-allowed;
+  z-index: var(--drag-overlay-z-index);
+}

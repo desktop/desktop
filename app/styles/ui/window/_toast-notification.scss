@@ -1,0 +1,50 @@
+.toast-notification-container {
+  pointer-events: none;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+
+  .toast-notification {
+    padding: var(--spacing) var(--spacing-double);
+    min-width: 100px;
+    background: var(--toast-notification-background-color);
+    color: var(--toast-notification-color);
+    text-align: center;
+    border-radius: 100px;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+
+    // This is so sad but CodeMirror uses z-indexes like crazy
+    // and we need to make sure we stay above all of that.
+    z-index: 20;
+  }
+
+  kbd {
+    padding: var(--spacing-half);
+    border-color: $gray-300;
+  }
+}
+
+.toast-animation {
+  &-appear {
+    transform: scale(0.25);
+    opacity: 0.1;
+  }
+  &-appear-active {
+    transform: scale(1);
+    opacity: 1;
+    transition: all 100ms ease-out;
+  }
+
+  &-exit-active {
+    opacity: 0;
+    transition: all 250ms ease-out;
+  }
+}

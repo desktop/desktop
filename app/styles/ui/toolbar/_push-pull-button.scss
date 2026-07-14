@@ -1,0 +1,67 @@
+.push-pull-dropdown {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1px;
+  z-index: 0;
+  max-width: 100%;
+
+  .push-pull-dropdown-item {
+    display: flex;
+    flex-direction: row;
+    height: fit-content;
+    padding: 10px;
+    gap: 10px;
+    color: var(--text-color);
+    background-color: var(--box-background-color);
+    white-space: normal;
+
+    // Unset styles from Button component
+    text-align: unset;
+    border: unset;
+    border-radius: unset;
+    box-shadow: unset !important;
+
+    .octicon {
+      height: 16px;
+      width: 16px;
+    }
+
+    // Override background on focus to keep the default color
+    &:focus {
+      background-color: var(--box-background-color);
+    }
+
+    &:hover {
+      background-color: var(--box-hover-background-color) !important;
+      color: var(--toolbar-dropdown-text-hover-color) !important;
+    }
+
+    &:not(:last-child) {
+      // Enforce this bottom border style even in focused state
+      border-bottom: 1px solid var(--box-border-color) !important;
+    }
+
+    .text-container {
+      display: flex;
+      flex-direction: column;
+      row-gap: 3px;
+
+      .title {
+        font-weight: 600;
+      }
+
+      .detail {
+        color: var(--text-secondary-color);
+
+        .warning {
+          color: var(--toolbar-dropdown-text-warning-color);
+          margin-top: var(--spacing);
+
+          .warning-title {
+            font-weight: 600;
+          }
+        }
+      }
+    }
+  }
+}

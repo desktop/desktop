@@ -1,0 +1,31 @@
+.input-description {
+  font-size: var(--font-size-sm);
+  display: flex;
+  flex-direction: row;
+
+  .input-description-content p {
+    margin: 0;
+  }
+
+  .octicon {
+    margin-right: var(--spacing-half);
+  }
+
+  &.input-description-warning {
+    color: var(--text-secondary-color);
+  }
+
+  &.input-description-warning {
+    .octicon {
+      fill: var(--input-warning-text-color);
+    }
+  }
+
+  &.input-description-error {
+    color: var(--input-error-text-color);
+
+    .octicon {
+      fill: var(--input-error-text-color);
+    }
+  }
+}

@@ -1,0 +1,135 @@
+# الترجمة العربية لنصوص الواجهة ونصوص الصفحات.
+# أي مفتاح غائب هنا يرجع تلقائيًا إلى الإنجليزية (_data/i18n/en/ui.yml).
+# المفاتيح المنتهية بـ _html تحتوي على HTML خام؛ أما القيم متعددة الأسطر الأخرى فهي
+# بصيغة Markdown. ملخصات التراخيص في licenses.yml وتسميات القواعد في rules.yml.
+# النصوص القانونية للتراخيص لا تُترجم أبدًا.
+
+# --- بيانات اللغة ------------------------------------------------------------
+language_name: "العربية"
+language_selector_label: "اللغة"
+# اتجاه الكتابة: "rtl" (من اليمين إلى اليسار، مثل العربية).
+text_direction: "rtl"
+
+# --- التنقل وتذييل الصفحة -----------------------------------------------------
+nav_about: "حول"
+nav_terms: "شروط الخدمة"
+nav_improve: "ساعد في تحسين هذه الصفحة"
+footer_license_notice_html: |-
+  محتوى هذا الموقع مرخّص بموجب <a href="https://creativecommons.org/licenses/by/3.0/">رخصة المشاع الإبداعي نَسب المُصنَّف 3.0 غير المنقولة</a>.
+footer_curated_html: |-
+  أُعِدّ بكل ❤️ من قِبل <a href="https://github.com">GitHub, Inc.</a> و<a href="https://github.com/github/choosealicense.com">أنت!</a>
+
+# --- مسار التنقل -------------------------------------------------------------
+breadcrumb_home: "الرئيسية"
+breadcrumb_licenses: "التراخيص"
+
+# --- عناوين مجموعات القواعد ---------------------------------------------------
+rules_permissions: "الأذونات"
+rules_conditions: "الشروط"
+rules_limitations: "القيود"
+
+# --- تلميحات القواعد (تُجمَّع في assets/js/app.js) ----------------------------
+# قالب قابل لإعادة الترتيب: %label% و%category% و%description% تُملأ لكل قاعدة.
+tooltip_format: "%label% (%category%): %description%"
+tooltip_cat_permissions: "إذن"
+tooltip_cat_conditions: "شرط"
+tooltip_cat_limitations: "قيد"
+
+# --- الشريط الجانبي لصفحة الترخيص --------------------------------------------
+sidebar_copy: "نسخ نص الترخيص إلى الحافظة"
+sidebar_copied: "تم النسخ!"
+sidebar_suggest_heading: "اقترح هذا الترخيص"
+sidebar_suggest_body_md: |-
+  افتح طلب سحب (pull request) لاقتراح هذا الترخيص لمشروع [غير مرخّص](/no-permission/). كن لطيفًا: تحقق مما إذا كان قد سبق اقتراح ترخيص، وحاول اقتراح ترخيص يناسب [مجتمع](/community/) المشروع، وحافظ على تواصل ودّي مع القائمين على المشروع.
+sidebar_repo_placeholder: "أدخل رابط مستودع GitHub"
+sidebar_how_heading: "كيفية تطبيق هذا الترخيص"
+sidebar_optional_heading: "خطوات اختيارية"
+sidebar_source: "المصدر"
+sidebar_using_heading: "من يستخدم هذا الترخيص؟"
+# ملاحظة لمديري الحزم. %id% (معرّف SPDX داخل <code>) و%languages% (روابط اللغات)
+# و%clauses% تبقى دون ترجمة؛ يُترجَم النص المحيط فقط.
+sidebar_pkg_html: |-
+  أضف %id%%clauses% إلى وصف حزمة مشروعك، إن أمكن (مثل %languages%). سيضمن ذلك عرض الترخيص في أدلّة الحزم.
+sidebar_pkg_only_html: " (أو %id% لمنع الإصدارات المستقبلية)"
+sidebar_pkg_ofl_html: " (أو %id% إذا تم تحديد اسم خط محجوز بعد بيان حقوق النشر)"
+sidebar_gplcc_html: |-
+  إذا كنت ترغب في أن يتبنّى مشروعك بند المعالجة الخاص بترخيص GPL-3.0، فأضف <a href="https://github.com/gplcc/gplcc/blob/master/Project/COMMITMENT">نص</a> <a href="https://gplcc.github.io/gplcc/">GPL Cooperation Commitment</a> إلى ملف باسم <code>COMMITMENT</code> في المجلد نفسه الذي يضم ملف ترخيص %id%.
+
+# --- بطاقات عرض التراخيص (/licenses/) ----------------------------------------
+overview_view_full: "عرض %title% كاملاً »"
+
+# --- جملة «من يستخدمه» (الصفحة الرئيسية) -------------------------------------
+# فواصل قائمة المشاريع؛ الفاصل قبل العنصر الأخير يستخدم «و» العربية.
+using_separator: "، "
+using_last_separator: " و"
+using_sentence_plural: "يستخدم %projects% ترخيص %license%."
+using_sentence_singular: "يستخدم %projects% ترخيص %license%."
+
+# --- عناوين الصفحات ----------------------------------------------------------
+page_title_home: "اختر ترخيصًا مفتوح المصدر"
+page_title_licenses: "التراخيص"
+page_title_appendix: "الملحق"
+page_title_404: "404 الصفحة غير موجودة"
+
+# --- الصفحة الرئيسية ----------------------------------------------------------
+home_intro: |-
+  يحمي الترخيص مفتوح المصدر المساهمين والمستخدمين. ولن تقترب الشركات والمطوّرون المتمرّسون من مشروع يفتقر إلى هذه الحماية.
+home_situations_question: "أيٌّ مما يلي يصف وضعك على أفضل وجه؟"
+home_community_title: "أحتاج إلى العمل ضمن مجتمع."
+home_community_content: |-
+  استخدم [الترخيص الذي يفضّله المجتمع](community/) الذي تساهم فيه أو تعتمد عليه. سيندمج مشروعك معه تمامًا.
+
+  إذا كانت لديك تبعية بلا ترخيص، فاطلب من القائمين عليها [إضافة ترخيص](no-permission/#for-users).
+home_permissive_title: "أريده بسيطًا ومتساهلًا."
+home_permissive_content: |-
+  [ترخيص MIT](licenses/mit/) قصير ومباشر. يتيح للناس فعل أي شيء تقريبًا بمشروعك، مثل إنشاء نسخ مغلقة المصدر وتوزيعها.
+home_copyleft_title: "يهمّني مشاركة التحسينات."
+home_copyleft_content: |-
+  يتيح [GNU GPLv3](licenses/gpl-3.0/) أيضًا للناس فعل أي شيء تقريبًا بمشروعك، *باستثناء* توزيع نسخ مغلقة المصدر.
+home_more_question: "ماذا لو لم يناسبني أيٌّ من هذه الخيارات؟"
+home_nonsoftware_title: "مشروعي ليس برمجيات."
+home_nonsoftware_content: |-
+  [توجد تراخيص لذلك](non-software/).
+home_morechoices_title: "أريد المزيد من الخيارات."
+home_morechoices_content: |-
+  [تتوفر تراخيص أخرى](licenses/).
+home_nolicense_title: "لا أريد اختيار ترخيص."
+home_nolicense_content: |-
+  [إليك ما يحدث إن لم تفعل](no-permission/).
+
+# --- صفحة التراخيص (/licenses/) ----------------------------------------------
+licenses_intro_html: |-
+  تمنح التراخيص مفتوحة المصدر أي شخص الإذن باستخدام البرمجيات المرخّصة وتعديلها ومشاركتها لأي غرض، رهنًا بشروط تحفظ مصدر البرمجيات وانفتاحها. التراخيص التالية مرتّبة بحسب عدد الشروط، من الأكثر (GNU AGPLv3) إلى اللاشرط (Unlicense). لاحظ أن التراخيص الشائعة المعروضة في <a href="/">الصفحة الرئيسية</a> (GNU GPLv3 وMIT) تقع ضمن هذا الطيف.
+licenses_appendix_note_html: |-
+  إذا كنت تبحث عن جدول مرجعي بكل ترخيص على choosealicense.com، فراجع <a href="/appendix">الملحق</a>.
+licenses_outro_html: |-
+  تمثّل التراخيص أعلاه الطيف الكامل للتراخيص مفتوحة المصدر، من الأشد حمايةً إلى غير المشروطة. ومن المفترض أن يناسب أحدها معظم المشاريع الجديدة مفتوحة المصدر. وتوجد تراخيص أخرى كثيرة مفتوحة المصدر، بما في ذلك إصدارات أقدم وبدائل قريبة من بعض ما سبق. راجع المصادر المدرجة في <a href="/about/">صفحة «حول»</a> إن أردت قراءة المزيد.
+
+  إذا كنت تعرف بالفعل ما تفعله ولديك ترخيص تفضّل استخدامه، فهذا رائع! لسنا هنا لتغيير رأيك. لكن إذا حيّرك العدد الكبير من الخيارات، فربما يمكننا مساعدتك.
+
+# --- الملحق (/appendix/) -----------------------------------------------------
+appendix_intro: |-
+  للرجوع إليه، إليك جدولًا بكل ترخيص موصوف في [مستودع choosealicense.com](https://github.com/github/choosealicense.com).
+
+  إذا كنت هنا لاختيار ترخيص، **[فابدأ من الصفحة الرئيسية](/)** لمعاينة بضعة تراخيص تناسب معظم الحالات.
+appendix_col_license: "الترخيص"
+appendix_legend_heading: "مفتاح الرموز"
+appendix_legend_permissions_html: |-
+  تمنح التراخيص مفتوحة المصدر للعموم <span class="license-permissions"><span class="license-marker">✓</span></span> <b>أذونات</b> للقيام بأمور مع الأعمال المرخّصة قد تمنعها لولا ذلك قوانين حقوق النشر أو غيرها من قوانين «الملكية الفكرية».
+appendix_legend_conditions_html: |-
+  يخضع منح الأذونات في معظم التراخيص مفتوحة المصدر للالتزام بـ<span class="license-conditions"><span class="license-marker">ⓘ</span></span> <b>شروط</b>.
+appendix_legend_limitations_html: |-
+  كما تحمل معظم التراخيص مفتوحة المصدر <span class="license-limitations"><span class="license-marker">✕</span></span> <b>قيودًا</b> تُخلي عادةً المسؤولية وتُسقط الضمان، وتستثني أحيانًا براءات الاختراع أو العلامات التجارية صراحةً من منح الترخيص.
+
+# --- صفحة 404 ----------------------------------------------------------------
+notfound_p1: |-
+  عذرًا! لم نتمكّن من العثور على الصفحة التي تبحث عنها.
+notfound_p2: |-
+  إذا كنت تحاول الاطّلاع على ترخيص، فاذهب إلى [التراخيص](/licenses).
+
+# --- شريط اقتراح اللغة بـ JavaScript (assets/js/i18n.js) ---------------------
+# %language% (في banner_switch) = اسم اللغة المقترحة؛ أما banner_suggest فيضمّن
+# الاسم مباشرةً لتراعي كل لغة قواعدها وصياغتها.
+banner_suggest: "هذه الصفحة متوفرة أيضًا **بالعربية**."
+banner_switch: "التبديل إلى **العربية**"
+banner_dismiss: "تجاهل"

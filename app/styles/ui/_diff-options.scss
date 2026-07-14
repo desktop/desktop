@@ -1,0 +1,79 @@
+.diff-options-component {
+  position: relative;
+  display: flex;
+
+  > button {
+    -webkit-appearance: none;
+    font-family: inherit;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+
+    color: var(--text-color);
+
+    &:hover {
+      color: var(--text-secondary-color);
+    }
+
+    &:focus {
+      outline-offset: 3px;
+    }
+
+    .octicon {
+      margin-right: 0;
+    }
+  }
+
+  label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .secondary-text {
+    color: var(--text-secondary-color);
+  }
+
+  h3 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  legend {
+    margin-top: 0px;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    padding: 0px;
+  }
+
+  fieldset {
+    border: none;
+    margin: 0px;
+    padding: 0px;
+
+    margin-top: 0.5em;
+    &:not(:last-child) {
+      margin-bottom: 0.5em;
+    }
+  }
+
+  fieldset.button-group {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .secondary-text {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+
+  .popover-component {
+    width: 250px;
+  }
+}

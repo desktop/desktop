@@ -1,0 +1,31 @@
+.pull-request-merge-status {
+  flex-grow: 1;
+  color: var(--text-secondary-color);
+
+  .octicon {
+    vertical-align: text-bottom;
+  }
+
+  strong {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .pr-merge-status-loading {
+    strong {
+      color: var(--file-warning-color);
+    }
+  }
+
+  .pr-merge-status-invalid,
+  .pr-merge-status-conflicts {
+    strong {
+      color: var(--status-error-color);
+    }
+  }
+
+  .pr-merge-status-clean {
+    strong {
+      color: var(--status-success-color);
+    }
+  }
+}

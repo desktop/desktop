@@ -1,0 +1,942 @@
+@import '../mixins';
+
+/** The container for the CodeMirror element. */
+.diff-code-mirror {
+  flex-grow: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.diff-code-mirror .CodeMirror {
+  height: 100%;
+  color: var(--diff-text-color);
+  background: var(--background-color);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-monospace);
+
+  span {
+    // Force word breaks. This only matters when soft wrapping is on.
+    word-break: break-all;
+  }
+
+  pre {
+    border: none;
+  }
+
+  // Remove blank space at the top of the diff
+  &-lines {
+    padding: 0;
+  }
+
+  pre.CodeMirror-line,
+  pre.CodeMirror-line-like {
+    padding: 2px 0 2px var(--spacing-half);
+
+    &.diff-hunk-expandable-both {
+      padding-top: 14px;
+      padding-bottom: 14px;
+    }
+
+    &.diff-hunk:not(.diff-hunk-expandable-both) {
+      padding-top: 5px;
+      padding-bottom: 5px;
+    }
+
+    svg.no-newline {
+      height: 8px;
+      fill: var(--error-color);
+      display: inline-block;
+      margin-left: 3px;
+      margin-bottom: -1px;
+    }
+  }
+
+  .CodeMirror-code {
+    // Add a border to the end of the diff
+    border-bottom: var(--base-border);
+  }
+
+  .CodeMirror-gutters {
+    background: transparent;
+    border: none;
+  }
+
+  .CodeMirror-gutter-wrapper {
+    top: 0;
+    bottom: 0;
+  }
+
+  .CodeMirror-gutter-elt {
+    height: 100%;
+  }
+
+  .diff-gutter {
+    width: 125px;
+  }
+
+  .CodeMirror-search-dialog {
+    left: auto;
+    border: var(--base-border);
+    border-top: 0;
+    right: var(--spacing);
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    padding: var(--spacing-half) var(--spacing);
+    box-shadow: var(--base-box-shadow);
+
+    .CodeMirror-search-label,
+    .CodeMirror-search-hint {
+      display: none;
+    }
+
+    input.CodeMirror-search-field {
+      background: var(--box-background-color);
+      color: var(--text-color);
+      font-size: var(--font-size);
+      font-family: var(--font-family-sans-serif);
+      height: var(--text-field-height);
+      padding: 0;
+      width: 180px;
+    }
+
+    .buttons {
+      display: inline-block;
+    }
+  }
+
+  .popover-component.whitespace-hint {
+    width: 225px;
+  }
+}
+
+// The container element which holds the before and after
+// diff-line-number spans.
+.CodeMirror-lines .diff-line-gutter {
+  display: flex;
+  height: 100%;
+  background: var(--diff-gutter-background-color);
+  box-sizing: border-box;
+  position: relative;
+  cursor: default;
+
+  * {
+    cursor: default;
+  }
+
+  .hunk-handle {
+    position: absolute;
+    height: 100%;
+    width: 20px;
+    right: -8px;
+    top: 0;
+  }
+
+  .hunk-expander {
+    overflow: inherit;
+    text-overflow: inherit;
+    white-space: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    padding: inherit;
+    border: none;
+    height: inherit;
+    color: inherit;
+    background-color: inherit;
+
+    position: absolute;
+    right: 0;
+    width: 100%;
+    text-align: center;
+
+    &.hunk-expand-up-handle {
+      height: 50%;
+      bottom: 0;
+    }
+
+    &.hunk-expand-down-handle {
+      height: 50%;
+      top: 0;
+    }
+
+    &.hunk-expand-whole-handle {
+      height: 100%;
+      bottom: 0;
+    }
+  }
+
+  &:not(.includeable) {
+    .hunk-handle {
+      display: none;
+    }
+  }
+
+  &.expandable-both,
+  &:not(.diff-hunk) {
+    .hunk-expand-whole-handle {
+      display: none;
+    }
+  }
+
+  &:not(.expandable-both),
+  &:not(.diff-hunk) {
+    .hunk-expand-up-handle,
+    .hunk-expand-down-handle {
+      display: none;
+    }
+  }
+
+  &.diff-add {
+    background: var(--diff-add-gutter-background-color);
+  }
+
+  &.diff-delete {
+    background: var(--diff-delete-gutter-background-color);
+  }
+
+  &.diff-hunk {
+    background: var(--diff-hunk-gutter-background-color);
+
+    .hunk-expand-up-handle,
+    .hunk-expand-down-handle,
+    .hunk-expand-whole-handle {
+      background: var(--diff-hunk-gutter-background-color);
+    }
+
+    .hunk-expand-icon {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &:not(.expandable-up) {
+      .hunk-expand-whole-handle #hunk-expand-up-icon {
+        display: none;
+      }
+    }
+
+    &:not(.expandable-down) {
+      .hunk-expand-whole-handle #hunk-expand-down-icon {
+        display: none;
+      }
+    }
+
+    &:not(.expandable-short) {
+      .hunk-expand-whole-handle #hunk-expand-short-icon {
+        display: none;
+      }
+    }
+
+    // Allow hover effect when it's expandable in any way
+    &.expandable-up,
+    &.expandable-down,
+    &.expandable-short,
+    &.expandable-both {
+      :hover {
+        cursor: pointer;
+
+        background: var(--diff-hover-background-color);
+        border-color: var(--diff-hover-border-color);
+        color: var(--diff-hover-text-color);
+
+        &:last-child {
+          border-color: var(--diff-hover-gutter-color);
+        }
+      }
+    }
+  }
+
+  .before {
+    border-right: 1px solid var(--diff-border-color);
+  }
+
+  .after {
+    border-right: 4px solid var(--diff-border-color);
+  }
+
+  .diff-line-number {
+    width: 50%;
+    padding: 0 var(--spacing-half);
+  }
+
+  &.diff-add,
+  &.diff-delete {
+    &:not(.read-only) * {
+      cursor: pointer;
+    }
+  }
+
+  &.read-only .after {
+    border-right-width: 1px;
+  }
+}
+
+.diff-line-number {
+  display: inline-block;
+  color: var(--diff-line-number-color);
+  text-align: right;
+}
+
+.CodeMirror-linebackground {
+  &.diff-add {
+    background: var(--diff-add-background-color);
+  }
+
+  &.diff-delete {
+    background: var(--diff-delete-background-color);
+  }
+
+  &.diff-context {
+    background: var(--background-color);
+  }
+
+  &.diff-hunk {
+    background: var(--diff-hunk-background-color);
+  }
+}
+
+.CodeMirror .diff-line-gutter.diff-add {
+  color: var(--diff-add-text-color);
+
+  .diff-line-number {
+    border-color: var(--diff-add-border-color);
+
+    &:last-child {
+      border-color: var(--diff-add-gutter-color);
+    }
+  }
+}
+
+.CodeMirror .diff-line-gutter.diff-delete {
+  color: var(--diff-delete-text-color);
+
+  .diff-line-number {
+    border-color: var(--diff-delete-border-color);
+
+    &:last-child {
+      border-color: var(--diff-delete-gutter-color);
+    }
+  }
+}
+
+.CodeMirror .diff-line-gutter.diff-context {
+  color: var(--diff-text-color);
+
+  .diff-line-number {
+    border-color: var(--diff-border-color);
+
+    &:last-child {
+      border-color: var(--diff-gutter-color);
+    }
+  }
+}
+
+// The cm- prefix means it's styling the line content.
+.CodeMirror-line {
+  &.diff-hunk {
+    color: var(--diff-hunk-text-color);
+  }
+  &.diff-delete {
+    color: var(--diff-delete-text-color);
+  }
+  &.diff-add {
+    color: var(--diff-add-text-color);
+  }
+  &.diff-context {
+    color: var(--diff-text-color);
+  }
+}
+
+.cm-diff-delete-inner {
+  background: var(--diff-delete-inner-background-color);
+}
+
+.cm-diff-add-inner {
+  background: var(--diff-add-inner-background-color);
+}
+
+.CodeMirror .diff-line-gutter.diff-hunk {
+  color: var(--diff-hunk-text-color);
+
+  .diff-line-number {
+    border-color: var(--diff-hunk-border-color);
+
+    &:last-child {
+      border-color: var(--diff-hunk-gutter-color);
+    }
+  }
+
+  &.expandable-up:hover,
+  &.expandable-down:hover,
+  &.expandable-short:hover {
+    cursor: pointer;
+
+    background: var(--diff-hover-background-color);
+    border-color: var(--diff-hover-border-color);
+    color: var(--diff-hover-text-color);
+
+    &:last-child {
+      border-color: var(--diff-hover-gutter-color);
+    }
+  }
+}
+
+.CodeMirror .diff-line-gutter.diff-line-selected {
+  .diff-line-number {
+    background: var(--diff-selected-background-color);
+    border-color: var(--diff-selected-border-color);
+    color: var(--diff-selected-text-color);
+
+    &:last-child {
+      border-color: var(--diff-selected-gutter-color);
+    }
+  }
+}
+
+.CodeMirror .diff-line-gutter.diff-line-hover,
+.CodeMirror .diff-line-gutter.includeable:hover {
+  .diff-line-number {
+    background: var(--diff-hover-background-color);
+    border-color: var(--diff-hover-border-color);
+    color: var(--diff-hover-text-color);
+
+    &:last-child {
+      border-color: var(--diff-hover-gutter-color);
+    }
+  }
+
+  &:not(.diff-line-selected) {
+    &.diff-add {
+      .diff-line-number {
+        background: var(--diff-add-hover-background-color);
+        border-color: var(--diff-add-hover-border-color);
+        color: var(--diff-add-hover-text-color);
+
+        &:last-child {
+          border-color: var(--diff-add-hover-gutter-color);
+        }
+      }
+    }
+
+    &.diff-delete {
+      .diff-line-number {
+        background: var(--diff-delete-hover-background-color);
+        border-color: var(--diff-delete-hover-border-color);
+        color: var(--diff-delete-hover-text-color);
+
+        &:last-child {
+          border-color: var(--diff-delete-hover-gutter-color);
+        }
+      }
+    }
+  }
+}
+
+#diff .panel {
+  padding-top: var(--spacing);
+}
+
+#diff .image-header {
+  padding: var(--spacing) 0 var(--spacing-half) 0;
+  margin-left: auto;
+  margin-right: auto;
+  flex-shrink: 0;
+}
+
+#diff img {
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: contain;
+  padding: 0;
+}
+// ***************************************************************************************************************************
+.panel.image {
+  display: flex;
+  flex: 1;
+  padding: var(--spacing);
+  min-width: 0;
+  min-height: 0;
+
+  .tab-bar {
+    width: 350px;
+    margin: var(--spacing) auto 0;
+  }
+
+  // https://stackoverflow.com/a/30792956/2114
+  .image-wrapper {
+    min-width: 0;
+    min-height: 0;
+    text-align: center;
+  }
+
+  .image-diff-previous {
+    color: var(--color-deleted);
+  }
+  .image-diff-current {
+    color: var(--color-new);
+  }
+
+  .image-diff-previous,
+  .image-diff-current {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    min-width: 0;
+
+    img {
+      @include checkboard-background;
+      border: 1px solid currentColor;
+    }
+  }
+
+  .image-diff-header {
+    font-weight: var(--font-weight-semibold);
+    padding-bottom: 10px;
+  }
+
+  .image-diff-footer {
+    color: var(--text-secondary-color);
+    .strong {
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+}
+
+.image-diff-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+  min-width: 0;
+
+  .image-diff-two-up {
+    display: flex;
+    max-height: 100%;
+    min-height: 0;
+    min-width: 0;
+    padding: 0 var(--spacing-double);
+
+    .image-diff-previous {
+      margin-right: var(--spacing-half);
+      margin-bottom: var(--spacing-half);
+    }
+    .image-diff-current {
+      margin-left: var(--spacing-half);
+      margin-bottom: var(--spacing-half);
+    }
+  }
+
+  .image-diff-summary {
+    color: var(--text-secondary-color);
+    font-weight: var(--font-weight-semibold);
+    .added {
+      color: var(--color-new);
+    }
+    .removed {
+      color: var(--color-deleted);
+    }
+  }
+}
+
+.image-diff-difference {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+
+  .sizing-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
+    min-width: 0;
+
+    .image-container {
+      position: relative;
+
+      .image-diff-previous,
+      .image-diff-current {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+
+        img {
+          border: 0;
+          background: transparent;
+        }
+      }
+    }
+  }
+}
+
+.image-diff-onion-skin {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+
+  .slider {
+    align-self: center;
+  }
+
+  .sizing-container {
+    margin: 0;
+    margin-bottom: var(--spacing-half);
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
+    min-width: 0;
+
+    .image-diff-previous,
+    .image-diff-current {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+
+      img {
+        background: transparent;
+      }
+    }
+
+    .image-container {
+      @include checkboard-background;
+      position: relative;
+    }
+  }
+}
+
+.image-diff-swipe {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+
+  .slider {
+    align-self: center;
+  }
+
+  .sizing-container {
+    margin: 0;
+    margin-bottom: var(--spacing-half);
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
+    min-width: 0;
+
+    .image-container {
+      position: relative;
+      @include checkboard-background;
+
+      .image-diff-previous,
+      .image-diff-current {
+        position: absolute;
+
+        img {
+          background: transparent;
+        }
+      }
+
+      .swiper {
+        margin: 0;
+        overflow: hidden;
+        position: absolute;
+        right: 0;
+      }
+    }
+  }
+}
+
+// Syntax higlighting. Adapted from
+// https://github.com/primer/github-syntax-light/blob/5aeffad2559647286080328436156c4904a9785b/lib/github-light.css
+.cm-s-default {
+  .cm-variable {
+    color: var(--syntax-variable-color);
+  }
+
+  .cm-keyword {
+    color: var(--syntax-keyword-color);
+  }
+
+  .cm-atom {
+    color: var(--syntax-atom-color);
+  }
+  .cm-number {
+    color: inherit;
+  }
+
+  .cm-def {
+    color: inherit;
+  }
+
+  .cm-quote {
+    color: var(--syntax-quote-color);
+  }
+
+  .cm-variable-2,
+  .cm-variable-3 {
+    color: var(--syntax-alt-variable-color);
+  }
+  .cm-comment,
+  .cm-meta {
+    color: var(--syntax-comment-color);
+  }
+  .cm-string,
+  .cm-string-2 {
+    color: var(--syntax-string-color);
+
+    &.cm-property {
+      color: inherit;
+    }
+  }
+  .cm-qualifier {
+    color: var(--syntax-qualifier-color);
+  }
+  .cm-type {
+    color: var(--syntax-type-color);
+  }
+  .cm-builtin {
+    color: inherit;
+  }
+  .cm-bracket {
+    color: inherit;
+  }
+  .cm-tag {
+    color: var(--syntax-tag-color);
+  }
+  .cm-attribute {
+    color: var(--syntax-attribute-color);
+  }
+  .cm-hr {
+    color: inherit;
+  }
+  .cm-link {
+    text-decoration: underline;
+    color: var(--syntax-link-color);
+  }
+  .cm-header {
+    color: var(--syntax-header-color);
+  }
+
+  .cm-m-cmake {
+    &.cm-def {
+      color: var(--syntax-atom-color);
+    }
+  }
+
+  .cm-m-css {
+    &.cm-property {
+      color: var(--syntax-atom-color);
+    }
+  }
+
+  .cm-m-shell {
+    &.cm-builtin {
+      color: var(--syntax-atom-color);
+    }
+  }
+
+  .cm-m-javascript {
+    &.cm-type {
+      color: var(--syntax-variable-color);
+    }
+  }
+
+  .cm-m-toml {
+    &.cm-string.cm-property {
+      color: var(--syntax-string-color);
+    }
+  }
+
+  // Intra line markings takes precedence over syntax highlighting.
+  .cm-diff-delete-inner {
+    color: var(--diff-delete-text-color) !important;
+  }
+
+  .cm-diff-add-inner {
+    color: var(--diff-add-text-color) !important;
+  }
+}
+
+.seamless-diff-switcher {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+
+  .panel {
+    padding-top: var(--spacing);
+
+    display: flex;
+    flex: 1;
+
+    &.empty,
+    &.renamed,
+    &.binary {
+      justify-content: center;
+      align-items: center;
+    }
+    &.large-diff {
+      margin: var(--spacing-double);
+      text-align: center;
+      justify-content: initial;
+
+      .blankslate-image {
+        max-height: 150px;
+      }
+
+      .description {
+        margin-top: var(--spacing);
+        margin-bottom: var(--spacing);
+
+        p {
+          margin: 0;
+        }
+      }
+    }
+  }
+
+  .loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .diff-contents-warning-container {
+    background-color: var(--file-warning-background-color);
+    padding: var(--spacing) var(--spacing-double);
+    border-bottom: var(--file-warning-border-color) solid 1px;
+
+    .octicon {
+      margin-right: var(--spacing);
+      color: var(--file-warning-color);
+      vertical-align: text-bottom;
+    }
+
+    a.link-button-component {
+      display: unset;
+    }
+
+    // Separate warning items
+    .diff-contents-warning:not(:last-child) {
+      margin-bottom: var(--spacing);
+      border-bottom: var(--file-warning-border-color) solid 1px;
+      padding-bottom: var(--spacing);
+    }
+  }
+
+  // When loading a diff
+  &.loading {
+    // Get ready to fade out the diff if it takes too long to load it
+    & > * {
+      transition: opacity 100ms ease-in;
+    }
+
+    .loading-indicator {
+      display: block;
+    }
+
+    // When there's no previous diff (i.e. first time the component mounts)
+    // we'll show the loading indicator immediately
+    &:not(.has-diff) {
+      .loading-indicator {
+        display: block;
+        opacity: 1;
+      }
+    }
+
+    // When there is a previous diff available we'll wait for a little bit
+    // (defined in the component tsx) until we risk the user becoming aware
+    // of our little trick and noticing that the diff hasn't changed. When
+    // we hit that threshold we...
+    &.has-diff.slow {
+      // ...fade in the loading indicator...
+      & > .loading-indicator {
+        display: block;
+        opacity: 1;
+      }
+
+      // ...and fade everything else out
+      & > :not(.loading-indicator) {
+        opacity: 0.2;
+      }
+    }
+  }
+
+  // When focus moves to the virtualized grid, we want to show a focus ring.
+  &:has(.ReactVirtualized__Grid:focus-visible) {
+    outline: 2px solid var(--focus-color);
+    border-radius: var(--border-radius);
+
+    // Move the content over to make room for the focus ring
+    margin-right: 2px;
+    margin-bottom: 2px;
+  }
+}
+
+.diff-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+  max-height: 100%;
+
+  .header {
+    span {
+      user-select: text;
+    }
+
+    background: var(--box-alt-background-color);
+    border-bottom: 1px solid var(--diff-border-color);
+
+    display: flex;
+    flex-direction: row;
+    flex-shrink: 0;
+    flex-grow: 0;
+    align-items: center;
+
+    padding: var(--spacing-half) var(--spacing);
+
+    @include octicon-status;
+
+    .diff-options-component {
+      margin-right: var(--spacing-half);
+      flex-shrink: 0;
+    }
+
+    .octicon.status {
+      flex-shrink: 0;
+      vertical-align: text-bottom;
+      position: relative;
+      align-self: center;
+      flex-shrink: 0;
+    }
+
+    .line-endings {
+      margin-right: var(--spacing-half);
+    }
+
+    .open-merge-tool {
+      margin-right: var(--spacing-half);
+    }
+  }
+}

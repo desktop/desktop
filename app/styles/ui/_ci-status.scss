@@ -1,0 +1,25 @@
+.ci-status {
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.ci-status-pending {
+  color: $yellow-700;
+}
+
+.ci-status-timed-out,
+.ci-status-action-required,
+.ci-status-failure {
+  color: $red-500;
+}
+
+.ci-status-cancelled,
+.ci-status-stale,
+.ci-status-skipped,
+.ci-status-neutral {
+  color: $gray-400;
+}
+
+.ci-status-success {
+  color: $green-500;
+}

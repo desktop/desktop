@@ -1,0 +1,393 @@
+// Copilot conflict resolution - entry point button layout
+.conflicts-footer-with-copilot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+
+  .copilot-resolve-button {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-half);
+  }
+
+  .copilot-resolve-button-with-call-out {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-half);
+
+    .call-to-action-bubble {
+      font-size: var(--font-size);
+      margin-left: 0;
+    }
+  }
+}
+
+// Copilot conflicts result dialog
+#copilot-conflicts-dialog {
+  width: 100%;
+  height: 100%;
+  max-width: calc(100% - var(--spacing-double) * 4);
+  max-height: calc(100% - var(--spacing-double) * 4);
+
+  .tab-bar.tabs {
+    flex-shrink: 0;
+  }
+
+  .copilot-resolution-dropdown {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-third);
+    font-size: var(--font-size-sm);
+    line-height: 18px;
+    min-width: 110px;
+    justify-content: center;
+  }
+
+  .copilot-changes-tab {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex-grow: 1;
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+    margin: var(--spacing);
+
+    .copilot-changes-header {
+      padding: var(--spacing);
+      border-bottom: var(--base-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .copilot-changes-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+
+      .copilot-changes-file-list {
+        border-right: var(--base-border);
+        width: 200px;
+        min-width: 200px;
+      }
+
+      .copilot-changes-diff-header {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--spacing);
+        padding: var(--spacing);
+        border-bottom: var(--base-border);
+        flex-shrink: 0;
+
+        .copilot-changes-diff-subheader {
+          font-size: var(--font-size-sm);
+          line-height: 1.3;
+          flex: 1;
+          min-width: 0;
+
+          // Show up to 2 lines before truncating
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+
+          &.expanded {
+            display: block;
+            overflow-y: auto;
+            max-height: 100px;
+          }
+        }
+
+        .copilot-changes-diff-header-actions {
+          display: flex;
+          align-items: center;
+          gap: var(--spacing-half);
+          flex-shrink: 0;
+        }
+
+        .copilot-changes-diff-subheader-toggle {
+          flex-shrink: 0;
+          border: none;
+          background: transparent;
+          color: var(--text-color);
+          padding: var(--spacing-half);
+          min-width: auto;
+
+          &:hover {
+            color: var(--text-secondary-color);
+          }
+        }
+      }
+
+      .copilot-changes-diff-area {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .copilot-changes-no-diff {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        padding: var(--spacing-double);
+        color: var(--text-secondary-color);
+        text-align: center;
+      }
+    }
+  }
+
+  .dialog-header {
+    flex-shrink: 0;
+    height: auto;
+    flex-wrap: wrap;
+    padding-bottom: var(--spacing);
+
+    h1 {
+      width: auto;
+    }
+
+    .copilot-conflicts-dialog-model-row {
+      flex-basis: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .copilot-conflicts-dialog-model {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary-color);
+      font-weight: var(--font-weight-normal);
+    }
+
+    .copilot-conflicts-dialog-settings-button {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary-color);
+      padding: 0 var(--spacing-half);
+      min-width: auto;
+      margin-left: var(--spacing-half);
+
+      &:hover {
+        color: var(--text-color);
+      }
+    }
+  }
+
+  .dialog-content {
+    padding: 0;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .copilot-conflicts-summary-content {
+    padding: var(--spacing-double);
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .copilot-conflicts-file-heading {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-half);
+    margin: var(--spacing-double) 0 var(--spacing-half);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .copilot-conflicts-file-list {
+    list-style: none;
+    padding: 0 var(--spacing-double);
+    margin: 0 calc(-1 * var(--spacing-double));
+
+    .copilot-conflicts-file-item {
+      display: flex;
+      align-items: flex-start;
+      padding: var(--spacing-half) 0;
+      padding-left: calc(16px + var(--spacing-half));
+
+      .green-circle {
+        background-color: var(--color-new);
+        color: var(--background-color);
+        border-radius: 50%;
+        height: 20px;
+        width: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-left: auto;
+        flex-shrink: 0;
+      }
+
+      .copilot-file-details {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        flex: 1;
+
+        .path-text-component {
+          max-width: 100%;
+        }
+
+        .copilot-file-explanation {
+          font-size: var(--font-size-sm);
+          color: var(--text-color);
+          margin-top: var(--spacing-half);
+          line-height: 1.3;
+
+          &.resolved-text {
+            color: var(--color-new);
+          }
+        }
+      }
+
+      .copilot-file-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-half);
+        margin-left: var(--spacing);
+        flex-shrink: 0;
+
+        .octicon {
+          pointer-events: none;
+        }
+
+        .copilot-overflow-menu {
+          min-width: 0;
+          padding: 4px 6px;
+        }
+      }
+    }
+  }
+
+  .dialog-footer {
+    flex-shrink: 0;
+  }
+
+  .copilot-conflicts-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+// Resolution summary — "Copilot chatty" pattern matching the loading dialog.
+.copilot-conflicts-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-half);
+
+  .copilot-conflicts-summary-theme {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-half);
+    margin: 0;
+    font-size: var(--font-size-md);
+    color: var(--text-color);
+    font-weight: var(--font-weight-semibold);
+
+    .copilot-conflicts-summary-copilot-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+  }
+
+  .copilot-conflicts-summary-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing);
+    // Indent under the theme label — icon (16px) + gap (spacing-half)
+    padding-left: calc(16px + var(--spacing-half));
+  }
+
+  .copilot-conflicts-summary-operation {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
+  }
+
+  .copilot-conflicts-summary-references {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-third);
+
+    .copilot-conflicts-summary-references-title {
+      margin: 0;
+      font-size: var(--font-size);
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .copilot-conflicts-summary-reference-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-third);
+    }
+
+    .copilot-conflicts-summary-reference-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-half);
+      min-width: 0;
+
+      .copilot-conflicts-summary-reference-icon {
+        flex-shrink: 0;
+      }
+
+      .copilot-conflicts-summary-reference-title {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .copilot-conflicts-summary-reference-id {
+        flex-shrink: 0;
+      }
+
+      .copilot-conflicts-summary-reference-commit-ref {
+        display: inline-flex;
+        align-items: center;
+        flex-shrink: 0;
+
+        .ref {
+          padding-left: var(--spacing-half);
+        }
+
+        .copy-button {
+          display: inline-flex;
+          align-items: center;
+          margin-left: var(--spacing-half);
+          background: transparent;
+          border: none;
+          padding: 0;
+          height: auto;
+          min-width: 16px;
+
+          :hover {
+            color: var(--text-secondary-color);
+          }
+        }
+      }
+
+      .copilot-conflicts-summary-reference-tag {
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary-color);
+        padding: 0 var(--spacing-half);
+        border: var(--base-border);
+        border-radius: var(--border-radius);
+        flex-shrink: 0;
+      }
+    }
+  }
+}

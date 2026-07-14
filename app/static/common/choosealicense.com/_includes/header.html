@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+{%- assign text_dir = site.data.i18n[site.active_lang].ui.text_direction | default: site.data.i18n[site.default_lang].ui.text_direction | default: 'ltr' -%}
+<html lang="{{ site.active_lang | default: site.default_lang | default: 'en' }}" dir="{{ text_dir }}">
+  <head itemscope itemtype="http://schema.org/WebSite">
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Chivo:900">
+    <link rel="stylesheet" href="{{ 'assets/css/application.css' | relative_url }}?v={{ site.github.build_revision }}">
+    <link rel="shortcut icon" href="{{ 'favicon.ico' | relative_url }}" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    {% comment %}
+      Tell search engines about every language version of this page. static_href
+      stops polyglot from re-prefixing the URLs we build explicitly here, and also
+      feeds the JavaScript language suggestion (assets/js/i18n.js).
+    {% endcomment %}
+    {% comment %}
+      href is placed before hreflang on purpose: polyglot's URL corrector skips a
+      link matching `hreflang="<default_lang>" href=…`, so the default language's
+      alternate would keep static_href's placeholder if the order were reversed.
+    {% endcomment %}
+    {% for lang in site.languages %}
+      {% if lang == site.default_lang %}{% capture alt_href %}{{ site.url }}{{ site.baseurl }}{{ page.url }}{% endcapture %}{% else %}{% capture alt_href %}{{ site.url }}{{ site.baseurl }}/{{ lang }}{{ page.url }}{% endcapture %}{% endif %}
+      <link rel="alternate" {% static_href %}href="{{ alt_href }}"{% endstatic_href %} hreflang="{{ lang }}">
+    {% endfor %}
+    <link rel="alternate" {% static_href %}href="{{ site.url }}{{ site.baseurl }}{{ page.url }}"{% endstatic_href %} hreflang="x-default">
+
+    {% seo %}
+  </head>
+  <body class="{{ page.layout }}{% if page.class %} {{ page.class }}{% endif %}">
+    <div class="container">
+
+      <div class="topbar">
+        {% include breadcrumbs.html %}
+        {% include language-selector.html %}
+      </div>
+
+      {% if page.title %}
+        <h1>{% if page.title_key %}{% include t.html key=page.title_key %}{% else %}{{ page.title | markdownify | strip_html | strip_newlines }}{% endif %}</h1>
+      {% endif %}

@@ -1,0 +1,127 @@
+@import '../mixins';
+
+.button-component {
+  @include ellipsis;
+  // Chrome on Windows ignores the body element
+  // font-family and uses Arial so we redefine
+  // it here
+  font-family: var(--font-family-sans-serif);
+  font-size: var(--font-size);
+
+  padding: 0 var(--spacing);
+
+  border: 1px solid var(--secondary-button-border-color);
+  height: var(--button-height);
+
+  color: var(--secondary-button-text-color);
+  background-color: var(--secondary-button-background);
+
+  border-radius: var(--button-border-radius);
+
+  &:not([aria-disabled='true']):hover {
+    border-color: var(--secondary-button-hover-border-color);
+    background-color: var(--secondary-button-hover-background);
+  }
+
+  &:focus {
+    outline-offset: 4px;
+  }
+
+  &[aria-disabled='true'] {
+    opacity: 0.6;
+  }
+
+  .octicon {
+    vertical-align: middle;
+  }
+
+  &.button-with-icon .octicon {
+    margin-left: var(--spacing);
+  }
+}
+
+.button-component[type='submit'],
+.button-component-primary {
+  background-color: var(--button-background);
+  color: var(--button-text-color);
+  border: 1px solid var(--button-background);
+
+  &:not([aria-disabled='true']):hover {
+    border-color: var(--button-background);
+    background-color: var(--button-hover-background);
+  }
+
+  &:focus {
+    background-color: var(--button-hover-background);
+    border-color: var(--button-background);
+    outline-offset: 4px;
+  }
+}
+
+.link-button-component {
+  color: var(--link-button-color);
+  text-decoration: none;
+  cursor: pointer !important;
+
+  display: inline-flex;
+  align-items: center;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &[aria-disabled='true'] {
+    opacity: 0.6;
+    cursor: default;
+    text-decoration: none;
+  }
+
+  &.link-with-icon .octicon {
+    margin-left: var(--spacing-half);
+  }
+}
+
+.small-button {
+  font-size: var(--font-size-sm);
+  padding: 0 var(--spacing-half);
+  height: 21px;
+}
+
+.button-group-item {
+  border-right-width: 0;
+  border-radius: 0;
+
+  &:first-child {
+    border-top-left-radius: var(--button-border-radius);
+    border-bottom-left-radius: var(--button-border-radius);
+  }
+
+  &:last-child {
+    border-right-width: 1px;
+    border-top-right-radius: var(--button-border-radius);
+    border-bottom-right-radius: var(--button-border-radius);
+  }
+
+  &.selected,
+  &:focus,
+  &:active,
+  &:hover {
+    border-right-width: 1px;
+
+    + .button-group-item {
+      border-left-width: 0;
+    }
+  }
+}
+
+.button-group-item {
+  &:focus,
+  &:active {
+    z-index: 1;
+  }
+}
+
+.button-component.copy-button .octicon {
+  height: 12px;
+  width: 12px;
+}

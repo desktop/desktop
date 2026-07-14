@@ -1,0 +1,34 @@
+{%- comment -%}
+  Language selector — a native <details> disclosure dropdown. It needs no
+  JavaScript (works when JS is disabled) and scales to many languages: each entry
+  is a real link to that language's version of the current page. static_href keeps
+  polyglot from re-prefixing the URLs we build here. assets/js/i18n.js only adds
+  conveniences (remembering the choice, the suggestion banner) on top.
+{%- endcomment -%}
+{%- assign current_lang = site.active_lang | default: site.default_lang -%}
+{%- if site.languages.size > 1 -%}
+{%- assign current_name = site.data.i18n[current_lang].ui.language_name | default: current_lang -%}
+<div class="lang-cluster">
+<div class="language-suggestion" hidden aria-live="polite"></div>
+<details class="language-selector">
+  <summary aria-label="{% include t.html key='language_selector_label' %}" title="{% include t.html key='language_selector_label' %}">
+    <span class="language-selector-icon" aria-hidden="true">{% include language-icon.svg %}</span>
+    <span class="language-selector-current">{{ current_name }}</span>
+    <span class="language-selector-caret" aria-hidden="true">▾</span>
+  </summary>
+  <ul class="language-menu">
+    {%- for lang in site.languages -%}
+      {%- if lang == site.default_lang -%}{%- capture lang_href -%}{{ site.baseurl }}{{ page.url }}{%- endcapture -%}{%- else -%}{%- capture lang_href -%}{{ site.baseurl }}/{{ lang }}{{ page.url }}{%- endcapture -%}{%- endif -%}
+      {%- assign lang_name = site.data.i18n[lang].ui.language_name | default: lang -%}
+      <li>
+        {%- if lang == current_lang -%}
+        <a {% static_href %}href="{{ lang_href }}"{% endstatic_href %} lang="{{ lang }}" hreflang="{{ lang }}" rel="alternate" aria-current="true">{{ lang_name }}<span class="checkmark" aria-hidden="true">✓</span></a>
+        {%- else -%}
+        <a {% static_href %}href="{{ lang_href }}"{% endstatic_href %} lang="{{ lang }}" hreflang="{{ lang }}" rel="alternate">{{ lang_name }}</a>
+        {%- endif -%}
+      </li>
+    {%- endfor -%}
+  </ul>
+</details>
+</div>
+{%- endif -%}

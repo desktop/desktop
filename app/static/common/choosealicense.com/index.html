@@ -1,0 +1,64 @@
+---
+layout: default
+class: home
+hide_breadcrumbs: true
+title: Choose an open source license
+title_key: page_title_home
+permalink: /
+---
+
+{% include tmd.html key="home_intro" %}
+
+<h2>
+  <span>{</span>
+  {% include t.html key="home_situations_question" %}
+  <span>}</span>
+</h2>
+<ul class="triptych situations clearfix">
+  <li class="existing">
+    <a href="community/">
+      <span class="triptych-sprite community"></span>
+      <h3>{% include t.html key="home_community_title" %}</h3>
+    </a>
+    {% include tmd.html key="home_community_content" %}
+  </li>
+  <li class="whatever">
+    <a href="licenses/mit/">
+      <span class="triptych-sprite three-arrows"></span>
+      <h3>{% include t.html key="home_permissive_title" %}</h3>
+    </a>
+    {% include tmd.html key="home_permissive_content" %}
+    <p>
+      {% include using-sentence.html license-id="mit" %}
+    </p>
+  </li>
+  <li class="copyleft">
+    <a href="licenses/gpl-3.0/">
+      <span class="triptych-sprite circular"></span>
+      <h3>{% include t.html key="home_copyleft_title" %}</h3>
+    </a>
+    {% include tmd.html key="home_copyleft_content" %}
+    <p>
+      {% include using-sentence.html license-id="gpl-3.0" %}
+    </p>
+  </li>
+</ul>
+<h2>
+  <span>{</span>
+  {% include t.html key="home_more_question" %}
+  <span>}</span>
+</h2>
+<ul class="triptych see-more clearfix">
+  <li>
+    <h3>{% include t.html key="home_nonsoftware_title" %}</h3>
+    {% include tmd.html key="home_nonsoftware_content" %}
+  </li>
+  <li>
+    <h3>{% include t.html key="home_morechoices_title" %}</h3>
+    {% include tmd.html key="home_morechoices_content" %}
+  </li>
+  <li>
+    <h3>{% include t.html key="home_nolicense_title" %}</h3>
+    {% include tmd.html key="home_nolicense_content" %}
+  </li>
+</ul>

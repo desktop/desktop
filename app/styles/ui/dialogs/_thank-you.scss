@@ -1,0 +1,62 @@
+@import '../../../styles/variables';
+
+#thank-you-notes {
+  max-height: 450px;
+  padding-top: var(--spacing-half);
+
+  .dialog-content {
+    // we'll own the layout inside here
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .dialog-header {
+    height: 88px;
+    position: relative;
+    text-align: center;
+
+    background: url('../static/common/release-note-header-left.svg') no-repeat left var(--spacing-double) top var(--spacing-half) / auto 78px,
+      url('../static/common/release-note-header-right.svg') no-repeat right var(--spacing-double) top var(--spacing-half) / auto 78px;
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+
+    li {
+      padding-left: 0;
+    }
+  }
+
+  a.close {
+    align-self: flex-start;
+    z-index: 1;
+    margin-top: calc(var(--spacing) * -1);
+  }
+
+  .container {
+    padding: var(--spacing-triple) 72px;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    .section {
+      padding-bottom: var(--spacing-triple);
+    }
+
+    .thank-you-note {
+      padding-bottom: var(--spacing-triple);
+    }
+
+    .contributions-heading {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .contributions {
+      max-height: 150px;
+    }
+
+    .section {
+      padding-bottom: var(--spacing-triple);
+    }
+  }
+}

@@ -1,0 +1,11 @@
+.call-to-action {
+  justify-content: space-between;
+
+  button.action-button {
+    flex-shrink: 0;
+    flex-grow: 0;
+    min-width: 120px;
+    align-self: center;
+    margin-left: var(--spacing);
+  }
+}

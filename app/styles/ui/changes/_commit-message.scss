@@ -1,0 +1,336 @@
+@import '../../mixins';
+
+/** A React component holding the commit message entry */
+.commit-message-component {
+  border-top: 1px solid var(--box-border-color);
+  flex-direction: column;
+  flex-shrink: 0;
+  margin-top: auto;
+
+  display: flex;
+  background-color: var(--box-alt-background-color);
+
+  padding: var(--spacing);
+
+  .commit-progress {
+    display: flex;
+    align-items: center;
+    margin-top: var(--spacing-half);
+
+    .description {
+      flex-grow: 1;
+      @include ellipsis;
+      padding: var(--spacing-half) var(--spacing);
+
+      border: var(--base-border);
+      border-radius: var(--button-border-radius);
+      border-color: var(--secondary-button-border-color);
+    }
+
+    &.with-button {
+      .description {
+        border-right: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+    }
+
+    button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      padding: 0;
+
+      flex-shrink: 0;
+      height: 100%;
+      border-left-width: 1px;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      padding: 0 var(--spacing-half);
+      > svg.octicon {
+        height: 12px;
+        pointer-events: none;
+      }
+
+      &:hover {
+        background-color: var(--secondary-button-hover-background);
+      }
+    }
+
+    > svg.octicon {
+      margin-right: 3px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+  }
+
+  .copilot-disclaimer-popover-header {
+    display: flex;
+
+    h3 {
+      margin-bottom: 0;
+      font-size: var(--font-size);
+    }
+
+    @include close-button;
+
+    .close {
+      margin-right: 0;
+    }
+  }
+
+  .summary {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    column-gap: var(--spacing-half);
+
+    .summary-field {
+      flex: 1;
+      margin-bottom: var(--spacing);
+
+      input {
+        width: 100%;
+      }
+    }
+
+    &.with-trailing-icon input {
+      padding-right: 20px;
+    }
+
+    .length-hint,
+    .commit-message-failure-hint {
+      $distanceFromEdge: 2px;
+
+      position: absolute;
+      top: $distanceFromEdge;
+      right: 0;
+      width: 16px;
+      margin-right: $distanceFromEdge;
+      height: calc(var(--text-field-height) - #{2 * $distanceFromEdge});
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .octicon {
+        height: 12px;
+      }
+    }
+
+    .commit-message-failure-hint {
+      border: none;
+      background: none;
+
+      &:hover {
+        background: var(--input-icon-hover-background-color);
+      }
+
+      .warning-icon {
+        color: var(--input-icon-warning-color);
+      }
+
+      .error-icon {
+        color: var(--input-icon-error-color);
+      }
+    }
+  }
+
+  .popover-component {
+    // a width of 300px causes more jarring movement when going from 2
+    // failed rules to 1 and the user can bypass, so use a slightly smaller amount
+    width: 298px;
+  }
+
+  &.with-co-authors .description-focus-container {
+    .action-bar,
+    & {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+  .copilot-button {
+    color: var(--text-secondary-color);
+
+    &:not([aria-disabled='true']):hover {
+      color: var(--text-color);
+    }
+
+    &:focus {
+      outline-offset: 2px;
+    }
+
+    // Override default button width for as long as we have the call-to-action
+    // bubble in the button. DELETE AFTER THE CALL-TO-ACTION BUBBLE IS REMOVED
+    width: auto !important;
+  }
+
+  .co-authors-toggle,
+  .commit-options-button {
+    color: var(--text-secondary-color);
+
+    &.default-options {
+      color: var(--text-secondary-color);
+    }
+    &:not([aria-disabled='true']):hover {
+      color: var(--text-color);
+    }
+
+    &:focus {
+      outline-offset: 2px;
+    }
+  }
+
+  &.with-co-authors .co-authors-toggle {
+    color: var(--link-button-color);
+
+    &:hover {
+      color: var(--link-button-hover-color);
+    }
+  }
+
+  // When we have an action bar we steal most of that
+  // space from the description field and a little from the
+  // changes list
+  &.with-action-bar {
+    .description-field textarea {
+      min-height: 80px;
+
+      @media (max-height: 500px) {
+        min-height: 10px;
+      }
+
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+  .description-focus-container {
+    border: var(--contrast-border);
+    border-radius: var(--border-radius);
+    background: var(--background-color);
+    // Fake that we're a text-box
+    cursor: text;
+
+    &.focus-within {
+      outline: none;
+      border-color: var(--focus-color);
+      box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+    }
+
+    .description-field.with-overflow {
+      position: relative;
+
+      &:after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        bottom: 0px;
+        height: 5px;
+        background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+        border-bottom: var(--base-border);
+      }
+    }
+
+    textarea {
+      border: none;
+      color: currentColor;
+      font-size: var(--font-size);
+      font-family: var(--font-family-sans-serif);
+      padding: var(--spacing-half);
+      resize: none;
+      min-height: 100px;
+
+      &:focus {
+        outline: 0;
+        border: none;
+        box-shadow: none;
+      }
+    }
+
+    .action-bar {
+      display: flex;
+
+      padding: var(--spacing);
+      background: var(--box-background-color);
+
+      border-bottom-left-radius: var(--border-radius);
+      border-bottom-right-radius: var(--border-radius);
+
+      // We're not faking being a textbox any more
+      cursor: default;
+
+      // This gets rid of the padding for the action bar
+      // when there's no buttons showing.
+      &:empty {
+        display: none;
+      }
+
+      &.disabled {
+        background: var(--box-alt-background-color);
+      }
+
+      .separator {
+        width: 1px;
+        margin-left: var(--spacing-half);
+        margin-right: var(--spacing-half);
+        margin-top: 1px;
+        margin-bottom: 1px;
+        background: var(--commit-message-action-button-separator-color);
+      }
+    }
+
+    .co-authors-toggle,
+    .copilot-button,
+    .commit-options-button {
+      // button reset styles
+      border: none;
+      border-radius: 0px;
+      -webkit-appearance: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      text-align: left;
+      align-items: center;
+      display: block;
+
+      height: 17px;
+      width: 18px;
+      cursor: pointer;
+
+      &:disabled {
+        pointer-events: none;
+      }
+
+      &:hover,
+      &:focus-visible {
+        &:after {
+          opacity: 1;
+        }
+      }
+
+      svg {
+        height: 13px;
+        width: 18px;
+        pointer-events: none;
+      }
+    }
+  }
+
+  .commit-button {
+    max-width: 100%;
+    margin-top: var(--spacing);
+
+    @include ellipsis;
+
+    .octicon {
+      flex-shrink: 0;
+      flex-grow: 0;
+      margin-right: var(--spacing-half);
+      height: 12px;
+      // In order to center it vertically in the button
+      margin-bottom: 1px;
+    }
+  }
+}

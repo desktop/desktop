@@ -1,0 +1,43 @@
+{% include header.html %}
+
+{% comment %}
+  Localized summary overlay for this license. The legal text (rendered untouched
+  from the .txt body below) is never translated; only the human-readable summary
+  fields (nickname/description/how/note) are, via _data/i18n/<lang>/licenses.yml,
+  falling back to the canonical English front matter.
+{% endcomment %}
+{% assign i18n_lang = site.active_lang | default: site.default_lang %}
+{% assign spdx_key = page.spdx-id | downcase %}
+{% assign loc = site.data.i18n[i18n_lang].licenses[spdx_key] %}
+{% comment %}Prefix root-relative links in summaries with baseurl (no-op when empty).{% endcomment %}
+{% assign bu_href = 'href="' | append: site.baseurl | append: '/' %}
+
+      <div class="clearfix">
+
+        <div class="license-body">
+
+            {% if page.nickname %}
+            <p class="license-nickname">
+                {{ loc.nickname | default: page.nickname }}
+            </p>
+            {% endif %}
+
+            <p>
+                {{ loc.description | default: page.description | replace: 'href="/', bu_href }}
+            </p>
+
+            <div class="license-page-details">
+
+              {% include rules-table.html license=page %}
+
+            </div>
+
+            <pre id="license-text" dir="ltr">{{ content | replace:"<", "&lt;" | replace:">", "&gt;" }}</pre>
+
+        </div> <!-- /license-body -->
+
+{% include sidebar.html %}
+
+      </div> <!-- /clearfix -->
+
+{% include footer.html %}

@@ -1,0 +1,17 @@
+dialog#create-tutorial-repository-dialog {
+  width: 450px;
+
+  progress {
+    width: 100%;
+  }
+
+  .progress-container {
+    margin-top: var(--spacing);
+
+    .description {
+      font-family: var(--font-family-monospace);
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary-color);
+    }
+  }
+}

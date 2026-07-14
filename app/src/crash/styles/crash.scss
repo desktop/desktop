@@ -1,0 +1,105 @@
+@import '../../../styles/variables';
+@import '../../../styles/ui/window/title-bar';
+@import '../../../styles/ui/octicons';
+@import '../../../styles/globals';
+@import '../../../styles/ui/button';
+@import '../../../styles/ui/scroll';
+
+#desktop-crash-container,
+#crash-app {
+  height: 100%;
+}
+
+#crash-app {
+  display: flex;
+  flex-direction: column;
+}
+
+pre.error {
+  flex-shrink: 1;
+  flex-grow: 1;
+
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  font-family: var(--font-family-monospace);
+  background: rgba($blue-100, 0.3);
+  color: $gray-900;
+  padding: var(--spacing);
+  border-radius: var(--border-radius);
+
+  user-select: text;
+  cursor: text;
+
+  overflow: auto;
+
+  margin: 0 0 var(--spacing-double) 0;
+}
+
+header {
+  margin-bottom: var(--spacing-double);
+  display: flex;
+  flex: none;
+  align-items: center;
+
+  h1 {
+    margin: 0;
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .octicon.error-icon {
+    flex: none;
+    color: $red-700;
+    height: 32px;
+    margin-right: var(--spacing);
+    // In case the title wraps we should render the icon up top
+    align-self: flex-start;
+    // Add a little margin so it looks like it's centered if
+    // the title doesn't wrap
+    margin-top: 3px;
+  }
+}
+
+p {
+  margin: 0 0 var(--spacing-double) 0;
+  max-width: 500px;
+  flex-shrink: 0;
+}
+
+main {
+  margin: var(--spacing-quad);
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: 0;
+
+  .footer {
+    flex: none;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+
+    button {
+      min-width: 150px;
+    }
+  }
+}
+
+.background-graphic-bottom {
+  position: absolute;
+  right: var(--spacing);
+  bottom: var(--spacing);
+
+  height: 45%;
+  // I hate this but we'll have to live with it for beta.
+  z-index: -1;
+}
+
+.background-graphic-top {
+  position: absolute;
+  right: 80px;
+  top: 40px;
+
+  height: 20%;
+  // I hate this but we'll have to live with it for beta.
+  z-index: -1;
+}

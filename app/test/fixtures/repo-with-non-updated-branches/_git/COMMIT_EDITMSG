@@ -1,0 +1,8 @@
+Another commit, but we're diverging now...
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch branch-ahead-and-behind
+# Changes to be committed:
+#	modified:   my-file.txt
+#

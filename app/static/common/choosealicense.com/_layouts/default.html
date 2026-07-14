@@ -1,0 +1,12 @@
+{% include header.html %}
+
+{% comment %}
+  Prefix root-relative links in the page body with site.baseurl so every page
+  works when the site is served under a subpath (e.g. a project page). polyglot
+  then adds the language prefix for non-default languages. A no-op at a site root
+  (baseurl empty). Single injection point — content sources keep plain "/…" links.
+{% endcomment %}
+{% assign bu_href = 'href="' | append: site.baseurl | append: '/' %}
+{{ content | replace: 'href="/', bu_href }}
+
+{% include footer.html %}

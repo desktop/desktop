@@ -1,0 +1,112 @@
+# Resúmenes en español de las licencias (valor NO jurídico). Clave = identificador
+# SPDX en minúsculas. Solo se traducen los campos descriptivos; cualquier campo
+# ausente recae en el front matter inglés del archivo _licenses/<id>.txt, y el TEXTO
+# LEGAL de la licencia nunca se traduce.
+#
+# Este conjunto cubre las licencias del «espectro» de la página /licenses/. Las demás
+# licencias mostrarán su resumen en inglés hasta que se traduzcan.
+
+agpl-3.0:
+  description: |-
+    Los permisos de esta licencia copyleft, la más fuerte, están condicionados a poner a disposición el código fuente completo de las obras licenciadas y de sus modificaciones —incluidas las obras más amplias que usen una obra licenciada— bajo la misma licencia. Los avisos de copyright y de licencia deben conservarse. Quienes contribuyen conceden expresamente derechos de patente. Cuando se usa una versión modificada para prestar un servicio a través de una red, debe ponerse a disposición el código fuente completo de esa versión modificada.
+  how: |-
+    Crea un archivo de texto (normalmente llamado LICENSE o LICENSE.txt) en la raíz de tu código fuente y copia en él el texto de la licencia.
+  note: |-
+    La Free Software Foundation recomienda dar el paso adicional de añadir un aviso modelo al principio de cada archivo. Ese aviso modelo se encuentra al final de la licencia.
+
+apache-2.0:
+  description: |-
+    Una licencia permisiva cuyas principales condiciones exigen conservar los avisos de copyright y de licencia. Quienes contribuyen conceden expresamente derechos de patente. Las obras licenciadas, sus modificaciones y las obras más amplias pueden distribuirse bajo condiciones distintas y sin código fuente.
+  how: |-
+    Crea un archivo de texto (normalmente llamado LICENSE o LICENSE.txt) en la raíz de tu código fuente y copia en él el texto de la licencia.
+  note: |-
+    La Apache Software Foundation <a href="https://apache.org/foundation/license-faq.html#Apply-My-Software">recomienda</a> dar el paso adicional de añadir un aviso modelo a la cabecera de cada archivo fuente. Encontrarás ese aviso en el apéndice, justo al final del texto de la licencia.
+
+bsd-2-clause:
+  description: |-
+    Una licencia permisiva que existe en dos variantes, la <a href="/licenses/bsd-2-clause/">BSD 2-Clause</a> y la <a href="/licenses/bsd-3-clause/">BSD 3-Clause</a>. Ambas presentan diferencias mínimas respecto a la licencia MIT.
+  how: |-
+    Crea un archivo de texto (normalmente llamado LICENSE o LICENSE.txt) en la raíz de tu código fuente y copia en él el texto de la licencia. Sustituye [year] por el año en curso y [fullname] por el nombre (o los nombres) de quienes ostentan el copyright.
+
+bsd-3-clause:
+  nickname: |-
+    Licencia BSD modificada
+  description: |-
+    Una licencia permisiva similar a la <a href="/licenses/bsd-2-clause/">licencia BSD 2-Clause</a>, pero con una 3.ª cláusula que prohíbe a terceros usar el nombre de quien ostenta el copyright o de quienes contribuyen para promocionar productos derivados sin consentimiento por escrito.
+  how: |-
+    Crea un archivo de texto (normalmente llamado LICENSE o LICENSE.txt) en la raíz de tu código fuente y copia en él el texto de la licencia. Sustituye [year] por el año en curso y [fullname] por el nombre (o los nombres) de quienes ostentan el copyright.
+
+bsl-1.0:
+  description: |-
+    Una licencia permisiva simple que solo exige conservar los avisos de copyright y de licencia en la distribución en forma de código fuente (y no en forma binaria). Las obras licenciadas, sus modificaciones y las obras más amplias pueden distribuirse bajo condiciones distintas y sin código fuente.
+  how: |-
+    Crea un archivo de texto (normalmente llamado LICENSE o LICENSE.txt) en la raíz de tu código fuente y copia en él el texto de la licencia.
+  note: |-
+    Boost recomienda dar el paso adicional de añadir un aviso modelo al principio de cada archivo. Ese aviso modelo se encuentra en la <a href="https://www.boost.org/users/license.html#FAQ">FAQ de la Boost Software License</a>.
+
+cc0-1.0:
+  description: |-
+    La <a href="https://creativecommons.org/publicdomain/zero/1.0/">dedicación al dominio público Creative Commons CC0</a> renuncia a todo interés de copyright sobre una obra que hayas creado y la dedica al dominio público de todo el mundo. Usa CC0 para renunciar por completo al copyright y asegurar que tu obra tenga el mayor alcance posible. Al igual que la Unlicense y las licencias de software habituales, CC0 excluye toda garantía. CC0 es muy similar a la Unlicense.
+  how: |-
+    Crea un archivo de texto (normalmente llamado LICENSE o LICENSE.txt) en la raíz de tu código fuente y copia en él el texto de la licencia.
+  note: |-
+    Creative Commons recomienda dar el paso adicional de añadir un aviso modelo al principio de cada archivo. Ese aviso modelo se puede <a href="https://wiki.creativecommons.org/wiki/CC0_FAQ#May_I_apply_CC0_to_computer_software.3F_If_so.2C_is_there_a_recommended_implementation.3F">encontrar en su sitio web</a>.
+
+epl-2.0:
+  description: |-
+    Esta licencia copyleft, favorable al ámbito comercial, ofrece la posibilidad de licenciar binarios comercialmente, una concesión de patente moderna y libre de regalías, y la posibilidad de que las obras enlazadas usen otras licencias, incluidas las comerciales.
+  how: |-
+    Crea un archivo de texto (normalmente llamado LICENSE o LICENSE.txt) en la raíz de tu código fuente y copia en él el texto de la licencia.
+
+gpl-2.0:
+  nickname: |-
+    GNU GPLv2
+  description: |-
+    La GNU GPL es la licencia de software libre más utilizada e impone un copyleft fuerte. Al distribuir obras derivadas, el código fuente de la obra debe ponerse a disposición bajo la misma licencia. Existen varias variantes de la GNU GPL, cada una con requisitos distintos.
+  how: |-
+    Crea un archivo de texto (normalmente llamado LICENSE o LICENSE.txt) en la raíz de tu código fuente y copia en él el texto de la licencia.
+  note: |-
+    La Free Software Foundation recomienda dar el paso adicional de añadir un aviso modelo al principio de cada archivo. Ese aviso modelo se encuentra al final de la licencia.
+
+gpl-3.0:
+  nickname: |-
+    GNU GPLv3
+  description: |-
+    Los permisos de esta licencia copyleft fuerte están condicionados a poner a disposición el código fuente completo de las obras licenciadas y de sus modificaciones —incluidas las obras más amplias que usen una obra licenciada— bajo la misma licencia. Los avisos de copyright y de licencia deben conservarse. Quienes contribuyen conceden expresamente derechos de patente.
+  how: |-
+    Crea un archivo de texto (normalmente llamado COPYING, según las convenciones de GNU) en la raíz de tu código fuente y copia en él el texto de la licencia.
+  note: |-
+    La Free Software Foundation recomienda dar el paso adicional de añadir un aviso modelo al principio de cada archivo. Ese aviso modelo se encuentra al final de la licencia.
+
+lgpl-2.1:
+  nickname: |-
+    GNU LGPLv2.1
+  description: |-
+    Usada principalmente para bibliotecas de software, la GNU LGPL exige que las obras derivadas se licencien bajo la misma licencia, pero las obras que solo se enlazan a ella no quedan sujetas a esta restricción. Existen dos versiones de la GNU LGPL de uso común.
+  how: |-
+    Crea un archivo de texto (normalmente llamado LICENSE o LICENSE.txt) en la raíz de tu código fuente y copia en él el texto de la licencia.
+  note: |-
+    La Free Software Foundation recomienda dar el paso adicional de añadir un aviso modelo al principio de cada archivo. Ese aviso modelo se encuentra al final de la licencia.
+
+mit:
+  # Nombre corto usado en la frase «quién la usa» de la página de inicio («la MIT»).
+  # Solo esa frase lee loc.nickname; el título de la licencia sigue siendo "MIT License" en el resto.
+  nickname: "MIT"
+  description: |-
+    Una licencia permisiva, corta y simple, con condiciones que solo exigen conservar los avisos de copyright y de licencia. Las obras licenciadas, sus modificaciones y las obras más amplias pueden distribuirse bajo condiciones distintas y sin código fuente.
+  how: |-
+    Crea un archivo de texto (normalmente llamado LICENSE o LICENSE.txt) en la raíz de tu código fuente y copia en él el texto de la licencia. Sustituye [year] por el año en curso y [fullname] por el nombre (o los nombres) de quienes ostentan el copyright.
+
+mpl-2.0:
+  description: |-
+    Los permisos de esta licencia copyleft débil están condicionados a poner a disposición el código fuente de los archivos licenciados y de las modificaciones de esos archivos bajo la misma licencia (o, en ciertos casos, una de las licencias GNU). Los avisos de copyright y de licencia deben conservarse. Quienes contribuyen conceden expresamente derechos de patente. No obstante, una obra más amplia que use la obra licenciada puede distribuirse bajo condiciones distintas y sin el código fuente de los archivos añadidos en la obra más amplia.
+  how: |-
+    Crea un archivo de texto (normalmente llamado LICENSE o LICENSE.txt) en la raíz de tu código fuente y copia en él el texto de la licencia.
+  note: |-
+    La Mozilla Foundation recomienda dar el paso adicional de añadir un aviso modelo al principio de cada archivo. Ese aviso modelo se encuentra al final de la licencia (Exhibit A).
+
+unlicense:
+  description: |-
+    Una licencia sin condición alguna que dedica las obras al dominio público. Las obras así liberadas, sus modificaciones y las obras más amplias pueden distribuirse bajo condiciones distintas y sin código fuente.
+  how: |-
+    Crea un archivo de texto (normalmente llamado UNLICENSE o UNLICENSE.txt) en la raíz de tu código fuente y copia en él el texto de la declaración de la licencia.

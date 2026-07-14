@@ -1,0 +1,100 @@
+# 许可证摘要的简体中文翻译（非法律文本）。键 = 小写的 SPDX 标识。
+# 仅翻译描述性字段；缺失的字段会回退到 _licenses/<id>.txt 的英文 front matter，
+# 而许可证的法律正文永不翻译。
+
+agpl-3.0:
+  description: |-
+    这一最强的 copyleft 许可证，其授予的许可以如下条件为前提：必须以相同的许可证提供被许可作品及其修改（包括使用了被许可作品的更大作品）的完整源代码。必须保留版权和许可声明。贡献者明确授予专利权。当某个修改版本被用于通过网络提供服务时，必须提供该修改版本的完整源代码。
+  how: |-
+    在源代码的根目录下创建一个文本文件（通常命名为 LICENSE 或 LICENSE.txt），并将许可证文本复制到该文件中。
+  note: |-
+    自由软件基金会建议额外采取一个步骤：在每个文件的顶部添加一段样板声明。该样板可在许可证末尾找到。
+
+apache-2.0:
+  description: |-
+    一种宽松的许可证，其主要条件要求保留版权和许可声明。贡献者明确授予专利权。被许可作品、修改及更大的作品可以在不同的条款下分发，且无需提供源代码。
+  how: |-
+    在源代码的根目录下创建一个文本文件（通常命名为 LICENSE 或 LICENSE.txt），并将许可证文本复制到该文件中。
+  note: |-
+    Apache Software Foundation <a href="https://apache.org/foundation/license-faq.html#Apply-My-Software">建议</a>额外采取一个步骤：在每个源文件的文件头添加一段样板声明。你可以在许可证文本最末尾的附录中找到该声明。
+
+bsd-2-clause:
+  description: |-
+    一种宽松的许可证，有两种变体：<a href="/licenses/bsd-2-clause/">BSD 2-Clause</a> 和 <a href="/licenses/bsd-3-clause/">BSD 3-Clause</a>。二者与 MIT 许可证都只有极其细微的差别。
+  how: |-
+    在源代码的根目录下创建一个文本文件（通常命名为 LICENSE 或 LICENSE.txt），并将许可证文本复制到该文件中。将 [year] 替换为当前年份，将 [fullname] 替换为版权持有者的姓名（或多个姓名）。
+
+bsd-3-clause:
+  description: |-
+    一种宽松的许可证，与 <a href="/licenses/bsd-2-clause/">BSD 2-Clause 许可证</a>类似，但增加了第三条条款，禁止他人未经书面同意使用版权持有者或其贡献者的名义来推广衍生产品。
+  how: |-
+    在源代码的根目录下创建一个文本文件（通常命名为 LICENSE 或 LICENSE.txt），并将许可证文本复制到该文件中。将 [year] 替换为当前年份，将 [fullname] 替换为版权持有者的姓名（或多个姓名）。
+
+bsl-1.0:
+  description: |-
+    一种简单的宽松许可证，仅要求在以源代码形式（而非二进制形式）分发时保留版权和许可声明。被许可作品、修改及更大的作品可以在不同的条款下分发，且无需提供源代码。
+  how: |-
+    在源代码的根目录下创建一个文本文件（通常命名为 LICENSE 或 LICENSE.txt），并将许可证文本复制到该文件中。
+  note: |-
+    Boost 建议额外采取一个步骤：在每个文件的顶部添加一段样板声明。该样板可在 <a href="https://www.boost.org/users/license.html#FAQ">Boost Software License 常见问题解答</a>中找到。
+
+cc0-1.0:
+  description: |-
+    <a href="https://creativecommons.org/publicdomain/zero/1.0/">知识共享 CC0 公共领域贡献声明</a>放弃对你所创作作品的版权权益，并将其贡献给全球公共领域。使用 CC0 可彻底放弃版权，确保你的作品拥有最广泛的传播范围。与 Unlicense 及常见的软件许可证一样，CC0 免除担保。CC0 与 Unlicense 非常相似。
+  how: |-
+    在源代码的根目录下创建一个文本文件（通常命名为 LICENSE 或 LICENSE.txt），并将许可证文本复制到该文件中。
+  note: |-
+    知识共享组织建议额外采取一个步骤：在每个文件的顶部添加一段样板声明。该样板可<a href="https://wiki.creativecommons.org/wiki/CC0_FAQ#May_I_apply_CC0_to_computer_software.3F_If_so.2C_is_there_a_recommended_implementation.3F">在其网站上找到</a>。
+
+epl-2.0:
+  description: |-
+    这一对商业友好的 copyleft 许可证提供以下能力：对二进制文件进行商业授权；现代化的免版税专利授权；以及让被链接的作品使用其他许可证（包括商业许可证）的能力。
+  how: |-
+    在源代码的根目录下创建一个文本文件（通常命名为 LICENSE 或 LICENSE.txt），并将许可证文本复制到该文件中。
+
+gpl-2.0:
+  description: |-
+    GNU GPL 是使用最为广泛的自由软件许可证，具有强 copyleft 要求。分发衍生作品时，必须以相同的许可证提供该作品的源代码。GNU GPL 有多个变体，各有不同的要求。
+  how: |-
+    在源代码的根目录下创建一个文本文件（通常命名为 LICENSE 或 LICENSE.txt），并将许可证文本复制到该文件中。
+  note: |-
+    自由软件基金会建议额外采取一个步骤：在每个文件的顶部添加一段样板声明。该样板可在许可证末尾找到。
+
+gpl-3.0:
+  description: |-
+    这一强 copyleft 许可证，其授予的许可以如下条件为前提：必须以相同的许可证提供被许可作品及其修改（包括使用了被许可作品的更大作品）的完整源代码。必须保留版权和许可声明。贡献者明确授予专利权。
+  how: |-
+    在源代码的根目录下创建一个文本文件（按照 GNU 惯例通常命名为 COPYING），并将许可证文本复制到该文件中。
+  note: |-
+    自由软件基金会建议额外采取一个步骤：在每个文件的顶部添加一段样板声明。该样板可在许可证末尾找到。
+
+lgpl-2.1:
+  description: |-
+    GNU LGPL 主要用于软件库，它要求衍生作品以相同的许可证授权，但仅与其链接的作品不受此限制。GNU LGPL 有两个常用的版本。
+  how: |-
+    在源代码的根目录下创建一个文本文件（通常命名为 LICENSE 或 LICENSE.txt），并将许可证文本复制到该文件中。
+  note: |-
+    自由软件基金会建议额外采取一个步骤：在每个文件的顶部添加一段样板声明。该样板可在许可证末尾找到。
+
+mit:
+  # 首页「谁在使用」句子中使用的简短显示名称（「使用 MIT」）。
+  # 仅该句子读取 loc.nickname；其他位置标题仍为「MIT License」。
+  nickname: "MIT"
+  description: |-
+    一种简短而简单的宽松许可证，其条件仅要求保留版权和许可声明。被许可作品、修改及更大的作品可以在不同的条款下分发，且无需提供源代码。
+  how: |-
+    在源代码的根目录下创建一个文本文件（通常命名为 LICENSE 或 LICENSE.txt），并将许可证文本复制到该文件中。将 [year] 替换为当前年份，将 [fullname] 替换为版权持有者的姓名（或多个姓名）。
+
+mpl-2.0:
+  description: |-
+    这一弱 copyleft 许可证，其授予的许可以如下条件为前提：必须以相同的许可证（或在某些情况下使用 GNU 许可证之一）提供被许可文件及其修改的源代码。必须保留版权和许可声明。贡献者明确授予专利权。不过，使用了被许可作品的更大作品可以在不同的条款下分发，且无需为更大作品中新增的文件提供源代码。
+  how: |-
+    在源代码的根目录下创建一个文本文件（通常命名为 LICENSE 或 LICENSE.txt），并将许可证文本复制到该文件中。
+  note: |-
+    Mozilla Foundation 建议额外采取一个步骤：在每个文件的顶部添加一段样板声明。该样板可在许可证末尾（Exhibit A）找到。
+
+unlicense:
+  description: |-
+    一种不带任何条件的许可证，它将作品贡献给公共领域。已解除许可的作品、修改及更大的作品可以在不同的条款下分发，且无需提供源代码。
+  how: |-
+    在源代码的根目录下创建一个文本文件（通常命名为 UNLICENSE 或 UNLICENSE.txt），并将许可证免责声明的文本复制到该文件中。

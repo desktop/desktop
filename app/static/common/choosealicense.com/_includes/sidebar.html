@@ -1,0 +1,75 @@
+<div class="sidebar">
+
+  {% comment %} Localized summary overlay (also set by the license layout; re-derived here to be self-contained). {% endcomment %}
+  {% assign i18n_lang = site.active_lang | default: site.default_lang %}
+  {% assign spdx_key = page.spdx-id | downcase %}
+  {% assign loc = site.data.i18n[i18n_lang].licenses[spdx_key] %}
+  {% assign bu_href = 'href="' | append: site.baseurl | append: '/' %}
+
+  <a href="#" data-clipboard-target="#license-text" data-proofer-ignore="true" data-copied-label="{% include t.html key='sidebar_copied' %}" class="js-clipboard-button button">{% include t.html key="sidebar_copy" %}</a>
+  {% unless page.spdx-id == 'LGPL-3.0' %}
+  <h3 id="suggest-this-license">{% include t.html key="sidebar_suggest_heading" %}</h3>
+  <div class="repository-suggestion">
+    {% capture suggest_body %}{% include tmd.html key="sidebar_suggest_body_md" %}{% endcapture %}{{ suggest_body | replace: 'href="/', bu_href }}
+    <div class="input-wrapper">
+      <input type="text" data-license-id="{{ page.spdx-id }}" placeholder="{% include t.html key='sidebar_repo_placeholder' %}" id="repository-url" title="status" />
+      <div class="status-indicator"></div>
+    </div>
+  </div>
+  {% endunless %}
+
+  <div class="how-to-apply">
+    <h3 id="how-to-apply">{% include t.html key="sidebar_how_heading" %}</h3>
+    <p>
+      {{ loc.how | default: page.how | replace: 'href="/', bu_href }}
+    </p>
+    <div class="note">
+    <h4 id="optional-steps">{% include t.html key="sidebar_optional_heading" %}</h4>
+    {% if page.note %}
+    <p>
+      {{ loc.note | default: page.note | replace: 'href="/', bu_href }}
+    </p>
+    {% endif %}
+    {% assign lateronly = false %}
+    {% if page.spdx-id contains 'GPL' %}{% assign lateronly = true %}
+    {% elsif page.spdx-id contains 'GFDL' %}{% assign lateronly = true %}{% endif %}
+    {% assign ofl = false %}
+    {% if page.spdx-id contains 'OFL-1' %}{% assign ofl = true %}{% endif %}
+    {% comment %}
+      Package-manager note. The bold tokens stay untranslated: the SPDX ids
+      (built here as <code>) and the language names/links. Only the prose comes
+      from the translations, via %id% / %clauses% / %languages% placeholders.
+    {% endcomment %}
+    {%- capture pkg_id -%}<strong><code>{{ page.spdx-id }}{% if lateronly %}-or-later{% endif %}{% if ofl %}-no-RFN{% endif %}</code></strong>{%- endcapture -%}
+    {%- capture pkg_only -%}{% if lateronly %}{% capture pkg_only_id %}<strong><code>{{ page.spdx-id }}-only</code></strong>{% endcapture %}{% capture pkg_only_tpl %}{% include t.html key="sidebar_pkg_only_html" %}{% endcapture %}{{ pkg_only_tpl | replace: '%id%', pkg_only_id }}{% endif %}{%- endcapture -%}
+    {%- capture pkg_ofl -%}{% if ofl %}{% capture pkg_ofl_id %}<strong><code>{{ page.spdx-id }}-RFN</code></strong>{% endcapture %}{% capture pkg_ofl_tpl %}{% include t.html key="sidebar_pkg_ofl_html" %}{% endcapture %}{{ pkg_ofl_tpl | replace: '%id%', pkg_ofl_id }}{% endif %}{%- endcapture -%}
+    {%- assign pkg_clauses = pkg_only | append: pkg_ofl -%}
+    {%- capture pkg_langs -%}<a href="https://docs.npmjs.com/cli/v7/configuring-npm/package-json#license">Node.js</a>{% include t.html key="using_separator" %}<a href="https://guides.rubygems.org/specification-reference/#license=">Ruby</a>{% include t.html key="using_last_separator" %}<a href="https://doc.rust-lang.org/cargo/reference/manifest.html#the-license-and-license-file-fields">Rust</a>{%- endcapture -%}
+    {%- capture pkg_html -%}{% include t.html key="sidebar_pkg_html" %}{%- endcapture -%}
+    <p id="package-metadata">{{ pkg_html | replace: '%id%', pkg_id | replace: '%clauses%', pkg_clauses | replace: '%languages%', pkg_langs }}</p>
+    {% if page.spdx-id contains 'GPL-2' %}
+    {%- capture gplcc_html -%}{% include t.html key="sidebar_gplcc_html" %}{%- endcapture -%}
+    <p id="gplcc">{{ gplcc_html | replace: '%id%', page.spdx-id }}</p>
+    {% endif %}
+    </div>
+  </div>
+
+  <div class="source">
+    <a href="https://spdx.org/licenses/{{ page.spdx-id }}{% if lateronly %}-or-later{% endif %}.html">
+      <span class="source-marker" aria-hidden="true">↗</span>
+      {% include t.html key="sidebar_source" %}
+    </a>
+  </div>
+
+  {% if page.using %}
+  <div class="projects-with-license">
+    <h3>{% include t.html key="sidebar_using_heading" %}</h3>
+    <ul>
+      {% for using in page.using %}
+        <li><a href="{{ using[1] }}" target="_blank">{{ using[0] }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+</div> <!-- /sidebar -->

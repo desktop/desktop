@@ -1,0 +1,23 @@
+.resizable-component {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+
+  // This is for the absolutely positioned resize handle
+  position: relative;
+
+  .resize-handle {
+    position: absolute;
+    right: -3px;
+    top: 0px;
+    height: 100%;
+    width: 6px;
+    padding: 0;
+    z-index: var(--drag-overlay-z-index);
+    cursor: ew-resize;
+
+    // remove button styles
+    background: none;
+    border: none;
+  }
+}

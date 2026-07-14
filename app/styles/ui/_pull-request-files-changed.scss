@@ -1,0 +1,29 @@
+.pull-request-files-changed {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex-grow: 1;
+
+  border: var(--base-border);
+  border-radius: var(--border-radius);
+
+  .files-changed-header {
+    padding: var(--spacing);
+    border-bottom: var(--base-border);
+    display: flex;
+
+    .commits-displayed {
+      flex-grow: 1;
+    }
+  }
+
+  .files-diff-viewer {
+    display: flex;
+    min-height: 0;
+    flex-grow: 1;
+  }
+
+  .file-list {
+    border-right: var(--base-border);
+  }
+}

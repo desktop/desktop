@@ -1,0 +1,48 @@
+#repository-settings {
+  width: 600px;
+
+  .dialog-content {
+    min-height: 305px;
+  }
+
+  .no-remote {
+    justify-content: space-between;
+
+    button {
+      flex-shrink: 0;
+      flex-grow: 0;
+      min-width: 120px;
+      align-self: center;
+    }
+  }
+
+  .tab-container {
+    display: flex;
+
+    .active-tab {
+      border-left: var(--base-border);
+      flex: 1;
+    }
+  }
+
+  .fork-settings-description {
+    margin-top: var(--spacing-double);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
+
+    li {
+      padding: 0;
+      margin-bottom: 0;
+    }
+  }
+
+  .no-remote-publish-message {
+    .link-button-component {
+      display: inline;
+    }
+  }
+
+  textarea.gitignore {
+    height: 130px;
+  }
+}

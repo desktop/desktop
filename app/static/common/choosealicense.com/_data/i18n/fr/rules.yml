@@ -1,0 +1,61 @@
+# Libellés et descriptions français des règles (permissions / conditions /
+# limitations). La source de vérité reste _data/rules.yml (anglais) : l’ordre et
+# les identifiants en viennent, et toute entrée absente ici retombe sur l’anglais.
+# Structure : <groupe> → <tag> → { label, description }.
+
+permissions:
+  commercial-use:
+    label: "Usage commercial"
+    description: "Le contenu sous licence et ses dérivés peuvent être utilisés à des fins commerciales."
+  modifications:
+    label: "Modification"
+    description: "Le contenu sous licence peut être modifié."
+  distribution:
+    label: "Distribution"
+    description: "Le contenu sous licence peut être distribué."
+  private-use:
+    label: "Usage privé"
+    description: "Le contenu sous licence peut être utilisé et modifié de façon privée."
+  patent-use:
+    label: "Usage des brevets"
+    description: "Cette licence accorde expressément des droits de brevet de la part des contributeurs."
+
+conditions:
+  include-copyright:
+    label: "Citer auteur et licence"
+    description: "Une copie de la licence et de la mention de droit d’auteur doit être incluse avec le contenu sous licence."
+  include-copyright--source:
+    label: "Citer auteur et licence (source)"
+    description: "Une copie de la licence et de la mention de droit d’auteur doit être incluse avec le contenu sous licence sous forme de code source, mais n’est pas requise pour les binaires."
+  document-changes:
+    label: "Indiquer les modifications"
+    description: "Les modifications apportées au contenu sous licence doivent être documentées."
+  disclose-source:
+    label: "Fournir le code source"
+    description: "Le code source doit être rendu disponible lors de la distribution du contenu sous licence."
+  network-use-disclose:
+    label: "L’usage réseau vaut distribution"
+    description: "Les utilisateurs qui interagissent avec le contenu sous licence via un réseau ont le droit d’en recevoir le code source."
+  same-license:
+    label: "Même licence"
+    description: "Les modifications doivent être publiées sous la même licence lors de la distribution du contenu sous licence. Dans certains cas, une licence similaire ou apparentée peut être utilisée."
+  same-license--file:
+    label: "Même licence (fichier)"
+    description: "Les modifications des fichiers existants doivent être publiées sous la même licence lors de la distribution du contenu sous licence. Dans certains cas, une licence similaire ou apparentée peut être utilisée."
+  same-license--library:
+    label: "Même licence (bibliothèque)"
+    description: "Les modifications doivent être publiées sous la même licence lors de la distribution du contenu sous licence. Dans certains cas, une licence similaire ou apparentée peut être utilisée, ou cette condition peut ne pas s’appliquer aux œuvres qui utilisent le contenu sous licence comme bibliothèque."
+
+limitations:
+  trademark-use:
+    label: "Usage des marques"
+    description: "Cette licence déclare explicitement qu’elle n’accorde PAS de droits sur les marques, même si les licences dépourvues d’une telle mention n’accordent probablement aucun droit implicite sur les marques."
+  liability:
+    label: "Responsabilité"
+    description: "Cette licence comporte une limitation de responsabilité."
+  patent-use:
+    label: "Usage des brevets"
+    description: "Cette licence déclare explicitement qu’elle n’accorde aucun droit sur les brevets des contributeurs."
+  warranty:
+    label: "Garantie"
+    description: "Cette licence déclare explicitement qu’elle ne fournit aucune garantie."

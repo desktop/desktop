@@ -1,0 +1,28 @@
+name: Build and Test
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [gh-pages]
+  pull_request:
+    branches: [gh-pages]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      with:
+        submodules: true
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@d45b1a4e94b71acab930e56e79c6aa188764e7f9 # v1.316.0
+      with:
+        ruby-version: 4.0.5
+        bundler-cache: true
+
+    - name: Run tests
+      run: ./script/cibuild

@@ -1,0 +1,162 @@
+@import '../../mixins';
+
+#desktop-app-title-bar {
+  -webkit-app-region: drag;
+  flex-grow: 0;
+  flex-shrink: 0;
+  width: 100%;
+
+  display: flex;
+  flex-direction: row;
+
+  @include darwin {
+    height: var(--darwin-title-bar-height);
+    background: linear-gradient(to bottom, #3b3f46 0%, #2b2e33 100%);
+    border-bottom: 1px solid #000;
+  }
+
+  @include win32 {
+    height: var(--win32-title-bar-height);
+    background: var(--win32-title-bar-background-color);
+    border-bottom: 1px solid #000;
+
+    .app-icon {
+      color: var(--toolbar-button-secondary-color);
+      margin: 0 var(--spacing);
+      align-self: center;
+    }
+  }
+
+  .resize-handle {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    -webkit-app-region: no-drag;
+
+    &.top {
+      width: 100%;
+      height: 3px;
+    }
+
+    &.left {
+      width: 3px;
+      height: var(--win32-title-bar-height);
+    }
+  }
+
+  // Window controls is the container for the three buttons minimize,
+  // maximize/restore and close. On macOS the controls are added
+  // automatically even for borderless window so we only render
+  // controls on Windows.
+  .window-controls {
+    flex-grow: 0;
+    flex-shrink: 0;
+    margin-left: auto;
+
+    // Each button contains a single SVG element with a Windows 10-replica
+    // icon for the function it represents
+    button {
+      -webkit-app-region: no-drag;
+
+      display: inline-block;
+      position: relative;
+      width: 45px;
+      height: 100%;
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+
+      // Reset styles from global buttons
+      border: none;
+      box-shadow: none;
+      border-radius: 0;
+
+      color: #a0a0a0;
+      background-color: transparent;
+      transition: background-color 0.25s ease;
+
+      // Explicitly setting the line height to the height
+      // of the SVG illustrations helps with vertical alignment.
+      line-height: 10px;
+
+      &:focus {
+        outline: none;
+      }
+
+      &:hover {
+        background-color: #888;
+        color: #fff;
+
+        // Doing :hover:active as oposed to just :active is
+        // a conscious choice to match how the real Windows
+        // controls behave when someone hovers, clicks and then
+        // moves away from the hitbox.
+        &:active {
+          background-color: #666;
+
+          // Immediate feedback when clicking
+          transition: none;
+        }
+      }
+
+      // Close button is a special case, it needs to be red
+      // on hover and slightly lighter red on active.
+      &.close:hover {
+        background-color: #e81123;
+        color: #fff;
+
+        &:active {
+          background-color: #bf0f1d;
+
+          // Immediate feedback when clicking
+          transition: none;
+        }
+      }
+
+      /* https://css-tricks.com/cascading-svg-fill-color/ */
+      svg {
+        fill: currentColor;
+      }
+    }
+  }
+}
+
+#desktop-app-title-bar.light-title-bar {
+  @include darwin {
+    background: transparent;
+    border-bottom: none;
+  }
+
+  @include win32 {
+    background: transparent;
+    border-bottom: none;
+  }
+
+  position: fixed;
+  z-index: 1;
+
+  .window-controls {
+    button {
+      &:hover {
+        background-color: #e5e5e5;
+        color: #000;
+
+        &:active {
+          background-color: #cccccc;
+        }
+      }
+
+      &.close:hover {
+        background-color: #e81123;
+
+        svg {
+          fill: #fff;
+        }
+
+        &:active {
+          background-color: #f1707a;
+        }
+      }
+    }
+  }
+}

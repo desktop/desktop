@@ -1,0 +1,61 @@
+# Rótulos e descrições em português das regras (permissões / condições /
+# limitações). A fonte da verdade continua sendo _data/rules.yml (inglês): a ordem
+# e os identificadores vêm de lá, e qualquer entrada ausente aqui recai no inglês.
+# Estrutura: <grupo> → <tag> → { label, description }.
+
+permissions:
+  commercial-use:
+    label: "Uso comercial"
+    description: "O material licenciado e seus derivados podem ser usados para fins comerciais."
+  modifications:
+    label: "Modificação"
+    description: "O material licenciado pode ser modificado."
+  distribution:
+    label: "Distribuição"
+    description: "O material licenciado pode ser distribuído."
+  private-use:
+    label: "Uso privado"
+    description: "O material licenciado pode ser usado e modificado de forma privada."
+  patent-use:
+    label: "Uso de patentes"
+    description: "Esta licença concede expressamente direitos de patente de quem contribui."
+
+conditions:
+  include-copyright:
+    label: "Citar autoria e licença"
+    description: "Uma cópia da licença e do aviso de direitos autorais deve ser incluída com o material licenciado."
+  include-copyright--source:
+    label: "Citar autoria e licença (fonte)"
+    description: "Uma cópia da licença e do aviso de direitos autorais deve ser incluída com o material licenciado na forma de código-fonte, mas não é exigida para os binários."
+  document-changes:
+    label: "Indicar as alterações"
+    description: "As alterações feitas no material licenciado devem ser documentadas."
+  disclose-source:
+    label: "Disponibilizar o código-fonte"
+    description: "O código-fonte deve ser disponibilizado quando o material licenciado for distribuído."
+  network-use-disclose:
+    label: "Uso em rede equivale a distribuição"
+    description: "Quem interage com o material licenciado por meio de uma rede tem o direito de receber uma cópia do código-fonte."
+  same-license:
+    label: "Mesma licença"
+    description: "As modificações devem ser publicadas sob a mesma licença ao distribuir o material licenciado. Em alguns casos, uma licença similar ou relacionada pode ser usada."
+  same-license--file:
+    label: "Mesma licença (arquivo)"
+    description: "As modificações de arquivos existentes devem ser publicadas sob a mesma licença ao distribuir o material licenciado. Em alguns casos, uma licença similar ou relacionada pode ser usada."
+  same-license--library:
+    label: "Mesma licença (biblioteca)"
+    description: "As modificações devem ser publicadas sob a mesma licença ao distribuir o material licenciado. Em alguns casos, uma licença similar ou relacionada pode ser usada, ou esta condição pode não se aplicar a obras que usam o material licenciado como biblioteca."
+
+limitations:
+  trademark-use:
+    label: "Uso de marcas"
+    description: "Esta licença declara explicitamente que NÃO concede direitos sobre marcas, ainda que licenças sem tal declaração provavelmente não concedam nenhum direito implícito sobre marcas."
+  liability:
+    label: "Responsabilidade"
+    description: "Esta licença inclui uma limitação de responsabilidade."
+  patent-use:
+    label: "Uso de patentes"
+    description: "Esta licença declara explicitamente que NÃO concede nenhum direito sobre as patentes de quem contribui."
+  warranty:
+    label: "Garantia"
+    description: "Esta licença declara explicitamente que NÃO fornece nenhuma garantia."

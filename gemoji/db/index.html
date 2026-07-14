@@ -1,0 +1,113 @@
+<!doctype html>
+<title>Emoji preview</title>
+
+<style type="text/css">
+body {
+  font: 14px/18px Verdana, Arial, sans-serif;
+  padding: 2em;
+}
+ol {
+  list-style: none;
+  padding-left: 0;
+}
+li {
+  margin-left: 0;
+  margin-top: 5px;
+  clear: left;
+}
+li:first-child { display: none; }
+li > span {
+  display: block;
+}
+.emoji {
+  font-size: 50px;
+  line-height: 50px;
+  float: left;
+  margin-right: 20px;
+}
+.description {
+  font-style: italic;
+  color: gray;
+}
+.aliases span:before, .aliases span:after {
+  content: ":";
+  color: gray;
+}
+.tags {
+  font-size: 11px;
+}
+.tags span {
+  display: inline-block;
+  padding: 1px 5px 2px;
+  border-radius: 3px;
+  background: #dadada;
+  line-height: 11px;
+}
+</style>
+
+<p><input type=search placeholder="Search..."></p>
+
+<ol>
+  <li>
+    <span class="emoji"></span>
+    <span class="description"></span>
+    <span class="aliases"></span>
+    <span class="tags"></span>
+  </li>
+</ol>
+
+<script>
+  function renderEmoji(emojis) {
+    var item, els, template = document.querySelector('li')
+    for (var emoji, i=0; i < emojis.length; i++) {
+      emoji = emojis[i]
+      item = template.cloneNode(true)
+      els = item.querySelectorAll('span')
+      if (emoji.emoji) els[0].textContent = emoji.emoji
+      else {
+        var img = document.createElement('img')
+        img.src = "../images/emoji/" + emoji.aliases[0] + ".png"
+        els[0].appendChild(img)
+      }
+      els[1].textContent = emoji.description || ''
+      els[2].innerHTML = emoji.aliases.map(function(n){ return '<span>'+n+'</span>' }).join(' ')
+      els[3].innerHTML = emoji.tags.map(function(n){ return '<span>'+n+'</span>' }).join(' ')
+      template.parentNode.appendChild(item)
+
+      item._emojiText = (els[2].textContent + ' ' + els[3].textContent).replace(/_/g, '-')
+    }
+  }
+
+  xhr = new XMLHttpRequest
+  xhr.onreadystatechange = function() {
+    if (this.readyState == 4) {
+      json = JSON.parse(this.responseText)
+      renderEmoji(json)
+    }
+  }
+  xhr.open('GET', 'emoji.json', false)
+  xhr.send(null)
+
+  function searchEmoji(query) {
+    var el,
+        re = new RegExp('\\b' + query),
+        els = document.querySelectorAll('li')
+
+    for (var i=1; i < els.length; i++) {
+      el = els[i]
+      if ( !query || re.test(el._emojiText) ) {
+        el.style.display = 'list-item'
+      } else {
+        el.style.display = 'none'
+      }
+    }
+  }
+
+  var timeout, search = document.querySelector('input[type=search]')
+  search.addEventListener('input', function() {
+    var $this = this
+    if (timeout) clearTimeout(timeout)
+    timeout = setTimeout(function(){ searchEmoji($this.value) }, 200)
+  }, false)
+  search.focus()
+</script>

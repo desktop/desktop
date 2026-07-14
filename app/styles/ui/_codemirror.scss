@@ -1,0 +1,67 @@
+// Use the platform default background color for text
+// selection when the editor has a selection _and_ is
+// focused.
+// Unfortunately CodeMirror-focused isn't set when we
+// have a dialog open (which, at time of writing, only
+// happens when searching) so we'll apply the same styles
+// there as well.
+.CodeMirror-focused,
+.CodeMirror.dialog-opened {
+  .CodeMirror-selected {
+    background: Highlight;
+  }
+
+  .CodeMirror-selectedtext {
+    color: HighlightText !important;
+  }
+}
+
+.CodeMirror-lines * {
+  cursor: text;
+}
+
+// If the editor isn't focused then we should hide
+// any trace of the selection to match native input
+// control behavior.
+.CodeMirror-selectedtext {
+  color: inherit;
+}
+.CodeMirror-selected {
+  background: inherit;
+}
+
+.CodeMirror-simplescroll-horizontal,
+.CodeMirror-simplescroll-vertical {
+  background: var(--box-alt-background-color);
+  div {
+    background: var(--scroll-bar-thumb-background-color);
+    border: none;
+  }
+}
+
+// Windows has custom scroll bars, see _scroll.scss
+@include win32-context {
+  .CodeMirror {
+    // Mirror the behavior of other scroll bars in desktop on Windows
+    // and only show them while hovering over the scroll container.
+    // We can't use display here since that's set as an inline style
+    // by CodeMirror so we'll resort to the old opacity hack.
+    &-vscrollbar,
+    &-hscrollbar {
+      opacity: 0;
+    }
+
+    &:hover {
+      .CodeMirror-vscrollbar,
+      .CodeMirror-hscrollbar {
+        opacity: 1;
+      }
+    }
+
+    // This is a div that sits in the corner between the horizontal
+    // and vertical scroll bar and has an opaque background by default.
+    &-scrollbar-filler {
+      background: transparent;
+    }
+  }
+}

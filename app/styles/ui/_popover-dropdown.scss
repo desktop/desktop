@@ -1,0 +1,69 @@
+@import '../mixins';
+
+.popover-dropdown-component {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 0;
+
+  > label {
+    margin-bottom: var(--spacing-third);
+  }
+
+  .button-component {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    padding: 0 var(--spacing-half);
+    align-self: unset;
+  }
+
+  .button-content {
+    flex-grow: 1;
+    font-weight: var(--font-weight-semibold);
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .popover-dropdown-button-label {
+    color: var(--text-secondary-color);
+    margin: 0;
+    margin-right: var(--spacing-half);
+  }
+
+  .popover-dropdown-popover {
+    min-height: 200px;
+    width: 365px;
+
+    .popover-content {
+      padding: 0;
+    }
+
+    .popover-dropdown-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .popover-dropdown-header {
+      padding: var(--spacing);
+      display: flex;
+      border-bottom: var(--base-border);
+
+      h3 {
+        margin-bottom: 0;
+        font-size: var(--font-size);
+      }
+
+      @include close-button;
+      .close {
+        margin-right: 0;
+      }
+    }
+
+    .popover-dropdown-content {
+      display: flex;
+      flex-grow: 1;
+      min-height: 0;
+    }
+  }
+}

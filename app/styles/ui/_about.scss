@@ -1,0 +1,75 @@
+dialog#about {
+  .dialog-content {
+    .row-component {
+      justify-content: center;
+    }
+
+    p,
+    h1 {
+      text-align: center;
+    }
+
+    h1 {
+      font-size: var(--font-size-md);
+    }
+
+    // The version, EULA link, and acknowledgements are conceptually two lines
+    // in a paragraph but we don't have a great way of modelling that now
+    // (and don't you say <br/>) so we'll just kill off the bottom margin.
+    p.no-padding {
+      margin-bottom: 0;
+    }
+
+    p.terms-and-license {
+      // A11y: WCAG SC 2.58 states that "The size of the target for pointer
+      // inputs is at least 24 by 24 CSS pixels, except, if target is in a
+      // sentence or its size is otherwise constrained by the line-height of
+      // non-target text." Our links typically are in a sentence and therefore are
+      // 18px due to our text line-height. In this case, the links are stand
+      // alone and therefore do not meet this exception criteria. This adds the 3px top and bottom
+      // to give us that required 24px height.
+      .link-button-component {
+        padding: 3px;
+      }
+    }
+
+    .terms-and-license-container {
+      margin-top: var(--spacing);
+    }
+
+    .version-text {
+      cursor: pointer;
+      .octicon {
+        color: transparentize(black, 0.5);
+        height: 12px;
+        margin-bottom: -1px;
+        transition: color 0.4s;
+        cursor: pointer;
+      }
+      &:hover .octicon {
+        color: black;
+      }
+    }
+  }
+
+  .logo {
+    justify-content: center;
+    svg {
+      width: 64px;
+      height: 64px;
+    }
+  }
+
+  .update-status {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: var(--spacing);
+    .octicon.spin {
+      // Make sure the spinner is aligned with the text.
+      align-self: center;
+      margin-right: 3px;
+    }
+  }
+}

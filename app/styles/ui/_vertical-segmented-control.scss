@@ -1,0 +1,70 @@
+@import '../mixins';
+
+fieldset.vertical-segmented-control {
+  // Reset styles for fieldset
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+
+  legend {
+    margin-bottom: var(--spacing-third);
+    padding: 0 0 5px 0;
+    @include ellipsis;
+  }
+
+  // Make the component use the whole width of its container.
+  width: 100%;
+
+  .radio-button-component {
+    margin: 0;
+    border: var(--base-border);
+    // Last child to have a border-bottom
+    border-bottom: 0;
+
+    &:first-child {
+      border-top-left-radius: var(--border-radius);
+      border-top-right-radius: var(--border-radius);
+    }
+
+    &:last-child {
+      border-bottom: var(--base-border);
+      border-bottom-left-radius: var(--border-radius);
+      border-bottom-right-radius: var(--border-radius);
+    }
+
+    label > span {
+      min-width: 0;
+    }
+
+    .title {
+      font-weight: var(--font-weight-semibold);
+      @include ellipsis;
+    }
+
+    p {
+      color: var(--text-secondary-color);
+    }
+
+    input[type='radio'] {
+      margin-right: var(--spacing-half);
+      margin-left: var(--spacing-half);
+      align-self: flex-start;
+      margin-top: 4px;
+    }
+    &:has(input[type='radio']:focus),
+    &:hover {
+      background: var(--box-hover-background-color);
+      color: var(--box-hover-text-color);
+
+      p {
+        color: var(--box-hover-text-color);
+      }
+    }
+
+    > label {
+      min-width: 100%;
+      padding: var(--spacing);
+    }
+  }
+}

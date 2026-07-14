@@ -1,0 +1,10 @@
+{%- comment -%}
+  Block UI string lookup, rendered as Markdown.
+  Usage: {% include tmd.html key="home_intro" %}
+  Same active-language → default-language → key fallback as t.html.
+{%- endcomment -%}
+{%- assign i18n_lang = site.active_lang | default: site.default_lang | default: "en" -%}
+{%- assign i18n_md = site.data.i18n[i18n_lang].ui[include.key] -%}
+{%- if i18n_md == nil or i18n_md == "" -%}{%- assign i18n_md = site.data.i18n[site.default_lang].ui[include.key] -%}{%- endif -%}
+{%- if i18n_md == nil -%}{%- assign i18n_md = include.key -%}{%- endif -%}
+{{ i18n_md | markdownify }}

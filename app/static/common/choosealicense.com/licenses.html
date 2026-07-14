@@ -1,0 +1,21 @@
+---
+layout: default
+permalink: licenses/
+class: license-types
+title: Licenses
+title_key: page_title_licenses
+---
+
+<p>{% include t.html key="licenses_intro_html" %}</p>
+<p style="font-size:small; margin-bottom: 40px">{% include t.html key="licenses_appendix_note_html" %}</p>
+
+{% include license-overview.html license-id="agpl-3.0" %}
+{% include license-overview.html license-id="gpl-3.0" %}
+{% include license-overview.html license-id="lgpl-3.0" %}
+{% include license-overview.html license-id="mpl-2.0" %}
+{% include license-overview.html license-id="apache-2.0" %}
+{% include license-overview.html license-id="mit" %}
+{% include license-overview.html license-id="bsl-1.0" %}
+{% include license-overview.html license-id="unlicense" %}
+
+{% include t.html key="licenses_outro_html" %}

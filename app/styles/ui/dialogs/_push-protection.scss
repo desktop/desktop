@@ -1,0 +1,127 @@
+dialog.push-protection-error-dialog {
+  .dialog-content {
+    ul {
+      li {
+        margin: 0;
+        padding: 0;
+      }
+    }
+
+    ul.secret-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      margin-top: var(--spacing);
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid var(--box-border-color);
+
+      li.secret-list-item {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        border-top: 1px solid var(--box-border-color);
+
+        padding: var(--spacing) var(--spacing);
+
+        &:first-child {
+          border-top: 1px solid var(--box-border-color);
+        }
+
+        &.selected {
+          --text-color: var(--box-selected-text-color);
+          --text-secondary-color: var(--box-selected-text-color);
+
+          color: var(--text-color);
+          background-color: var(--box-selected-background-color);
+        }
+
+        &:focus {
+          outline: none;
+        }
+
+        &:not(.not-selectable):hover {
+          background: var(--list-item-hover-background-color);
+        }
+
+        .secret-list-item-header {
+          display: flex;
+          flex-direction: row;
+          margin-bottom: var(--spacing-half);
+
+          span:first-child {
+            font-weight: var(--font-weight-semibold);
+            flex-grow: 1;
+          }
+
+          .bypass-success {
+            display: flex;
+
+            .octicon {
+              margin-left: var(--spacing-half);
+            }
+          }
+        }
+
+        .secret-location {
+          display: flex;
+          flex-direction: column;
+
+          .first-location,
+          .secret-location-details {
+            display: flex;
+            flex-direction: row;
+            flex-grow: 1;
+
+            button {
+              font-size: 10;
+              padding: 0 var(--spacing-half);
+              height: auto;
+            }
+          }
+
+          .ref {
+            flex-grow: 1;
+            display: flex;
+          }
+
+          .secret-path {
+            display: flex;
+            align-items: center;
+
+            .path-text-component {
+              display: inline-block;
+              margin-right: var(--spacing-half);
+            }
+          }
+
+          .commit-sha {
+            display: flex;
+            margin-right: var(--spacing);
+            align-items: center;
+            min-width: 95px;
+
+            .ref {
+              padding-left: var(--spacing-half);
+            }
+
+            .copy-button {
+              margin-left: var(--spacing-half);
+
+              // Removing default button styles
+              background: transparent;
+              border: none;
+              padding: 0;
+              height: auto;
+              min-width: 16px;
+
+              :hover {
+                color: var(--text-secondary-color);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+.ui-view {
+  /* Layout children top to bottom by default */
+  display: flex;
+  flex-direction: column;
+
+  /* Expand to take the remaining app width after the sidebar */
+  flex-grow: 1;
+
+  /* See https://css-tricks.com/flexbox-truncated-text/
+   * We need to do this "hack" or else the container will
+   * always grow to fit the intrinsic width of its children
+   * and thus killing our text truncation in the title.
+   */
+  min-width: 0;
+}

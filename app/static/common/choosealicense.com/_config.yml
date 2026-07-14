@@ -1,0 +1,60 @@
+---
+title: Choose a License
+description: Non-judgmental guidance on choosing a license for your open source project
+relative_permalinks: false
+markdown: kramdown
+url: "https://choosealicense.com"
+
+# Internationalization, powered by jekyll-polyglot.
+# The default language stays at the site root (e.g. /licenses/mit/); every other
+# language is generated under its own prefix (e.g. /fr/licenses/mit/) from the
+# same single source files — no per-language duplication of pages or license texts.
+# Adding a language = add its code below and a _data/i18n/<code>/ directory.
+languages: ["en", "fr", "es", "pt", "zh", "ko", "ar"]
+default_lang: "en"
+# Paths served once at the site root and never prefixed per language (assets, etc.),
+# so links to them keep working on translated pages.
+exclude_from_localization: ["assets", "favicon.ico", "robots.txt", "CNAME", ".nojekyll"]
+
+collections:
+  licenses:
+    output: true
+    permalink: /licenses/:path/
+
+defaults:
+  -
+    scope:
+      path: ""
+      type: "licenses"
+    values:
+      hidden: true
+      layout: license
+
+exclude:
+  - CNAME
+  - CONTRIBUTING.md
+  - Gemfile
+  - Gemfile.lock
+  - LICENSE.md
+  - Rakefile
+  - README.md
+  - i18n/README.md
+  - script
+  - vendor/bundle
+  - spec
+  - assets/vendor/selectivizr/tests
+  - assets/vendor/*/README.*
+  - license-list-XML
+
+plugins:
+  - jekyll-sitemap
+  - jekyll-redirect-from
+  - jekyll-seo-tag
+  - jekyll-github-metadata # For 'Improve this page' links
+  - jekyll-polyglot # Internationalization (built via GitHub Actions, see .github/workflows/deploy.yml)
+
+sass:
+    style: :compressed
+
+twitter:
+  username: "@github"

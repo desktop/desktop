@@ -1,0 +1,14 @@
+{
+  "name": "choosealicense.com",
+  "version": "0.0.1",
+  "homepage": "choosealicense.com",
+  "authors": [
+    "GitHub Inc."
+  ],
+  "description": "A site to provide non-judgmental guidance on choosing a license for your open source project",
+  "main": "index.html",
+  "license": "MIT",
+  "dependencies": {
+    "hint.css": "^2.7.0"
+  }
+}

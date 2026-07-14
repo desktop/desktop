@@ -1,0 +1,11 @@
+{%- comment -%}
+  Inline UI string lookup.
+  Usage: {% include t.html key="nav_about" %}
+  Resolves against the active language, falling back to the default language and
+  finally to the key itself (so a missing translation is visible, never blank).
+{%- endcomment -%}
+{%- assign i18n_lang = site.active_lang | default: site.default_lang | default: "en" -%}
+{%- assign i18n_val = site.data.i18n[i18n_lang].ui[include.key] -%}
+{%- if i18n_val == nil or i18n_val == "" -%}{%- assign i18n_val = site.data.i18n[site.default_lang].ui[include.key] -%}{%- endif -%}
+{%- if i18n_val == nil -%}{%- assign i18n_val = include.key -%}{%- endif -%}
+{{- i18n_val -}}

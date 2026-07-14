@@ -1,0 +1,790 @@
+---
+---
+
+/* Minimal base reset to replace normalize.css */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+button, input, optgroup, select, textarea {
+  font: inherit;
+}
+
+img {
+  border: 0;
+}
+
+@import "../vendor/hint.css/hint.min.css";
+
+body {
+  background: #fafafa;
+  --backgroundColor: #fafafa;
+  color: #5c5855;
+  font: 0.875rem/1.4 "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #212121;
+    --backgroundColor: #212121;
+    color: #d0c8c1;
+  }
+
+  h1, h2, h3, h5 {
+    color: #dadada !important;
+  }
+
+  .license-overview-description, .site-footer {
+    color: #ccc !important;
+  }
+
+  .license-rules li:hover, .site-footer a {
+    color: #ddd !important;
+  }
+
+  .home h2 {
+    color: #c7cdce !important;
+  }
+
+  .license-body pre {
+    background-color: #131313 !important;
+    border: 1px solid #3e3e3e !important;
+  }
+
+  .note {
+    color: #9fa5a6 !important;
+  }
+
+  strong {
+    color: #bdbdbd !important;
+  }
+
+  button, input, optgroup, select, textarea {
+    color: black !important;
+  }
+}
+
+a {
+  color: #149ad4;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1, h2, h3, h5 {
+  color: #444;
+  font-family: Chivo, "Helvetica Neue", Helvetica, Arial, serif;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+h1 {
+  font-size: 2.1875rem;
+  margin-bottom: 25px;
+}
+
+.license h1 {
+  max-width: 700px;
+}
+
+h2 {
+  opacity: 0.8;
+  font-size: 1.5rem;
+  margin-top: 24px;
+  margin-bottom: 10px;
+}
+
+h3 {
+  font-size: 0.9375rem;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+h5 {
+  font-size: 0.875rem;
+  margin-bottom: 15px;
+}
+
+p {
+  margin-bottom: 1em;
+}
+
+ol, ul { padding: 0; margin: 0; list-style-type: none; }
+
+th, td { text-align: left; font-weight: normal; }
+
+strong {
+  color: #444;
+}
+
+:target {
+  background-color: yellow;
+  color: #444 !important;
+}
+
+.container {
+  margin: 40px auto;
+  width: 940px;
+}
+
+.home {
+  text-align: center;
+}
+
+.home h1 {
+  font-size: 3.75rem;
+  /* Drop below the floated language selector so the home title stays full-width
+     and centered (the selector sits above it, top-right) instead of being crowded. */
+  clear: both;
+}
+
+.home h2 {
+  color: #687072;
+  font-size: 1.6875rem;
+  line-height: 70px;
+  margin-bottom: 45px;
+  vertical-align: middle;
+  opacity: 1;
+}
+
+.home h2 span {
+  color: rgba(127,127,127,10%);
+  font-size: 4.375rem;
+  padding: 0 5px;
+  position: relative;
+  top: 10px;
+}
+
+.triptych {
+  width: 900px;
+  margin: 0 auto 20px;
+}
+
+.triptych li {
+  width: 280px;
+  float: left;
+  margin-left: 27px;
+}
+
+.triptych li:first-child {
+  margin-left: 0;
+}
+
+.triptych li > a {
+  text-decoration: none;
+}
+
+.triptych h3 {
+  font-size: 1.375rem;
+  margin: 0 auto 20px auto;
+  width: 220px;
+}
+
+.situations .existing {
+  margin-top: 16px;
+}
+
+.situations .whatever {
+  margin-top: 16px;
+}
+
+.situations .copyleft {
+  margin-top: 3px;
+}
+
+.situations .button {
+  margin-top: 20px;
+}
+
+.triptych-sprite {
+  background-image: url(../img/home-sprite.png);
+  background-repeat: no-repeat;
+  display: inline-block;
+}
+
+.three-arrows { background-position: 0 0;      width: 72px; height: 56px; }
+.community    { background-position: 0 -57px;  width: 72px; height: 56px; }
+.circular     { background-position: 0 -115px; width: 72px; height: 68px; }
+
+
+.license-overview {
+  clear: both;
+  margin-bottom: 40px;
+}
+
+.license-overview-heading {
+  float: left;
+  width: 35%;
+}
+
+.license-details {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  float: left;
+  width: 55%;
+  padding-left: 20px;
+}
+
+.license-page-details {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.license-overview-name {
+  font-size: 1.75rem;
+  margin-top: 5px;
+}
+
+.license-overview-description {
+  color: #555;
+}
+
+.license-rules {
+  border-bottom: solid 1px #ddd;
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.license-rules th,
+.license-rules td {
+  width: 33%;
+}
+
+.license-rules th {
+  font-size: 0.9375rem;
+  padding: 5px 10px 5px 0;
+  vertical-align: bottom;
+}
+
+.license-rules th.summary {
+  line-height: 1.4;
+}
+
+.license-rules .name {
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  border-right: solid 1px #ddd;
+  padding-left: 0;
+  width: 280px;
+}
+
+.license-rules .name a {
+  font-size: 1.75rem;
+}
+
+.license-rules .name small a {
+  font-size: 1rem;
+}
+
+.license-rules td {
+  padding: 4px 0 12px 0;
+  vertical-align: top;
+}
+
+.license-rules .label {
+  font-weight: bold;
+}
+
+.license-rules li {
+  position: relative;
+  padding-left: 18px;
+  margin-right: 15px;
+  margin-bottom: 5px;
+}
+
+.license-rules li:hover {
+  color: #444;
+}
+
+.source-marker {
+  display: inline-block;
+  width: 16px;
+  text-align: center;
+  margin-right: 4px;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.license-marker {
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.license-rules li .license-marker {
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+}
+.license-types td .license-marker { display: block; margin: 0 auto; }
+.license-types td .license-marker,
+.license-types dd .license-marker { font-size: 0.8125rem; }
+
+.license-permissions .license-marker { color: #298625; }
+.license-conditions .license-marker { color: #0d648a; }
+.license-limitations .license-marker { color: #812a28; }
+
+.license-permissions .lite .license-marker { color: rgba(41, 134, 37, 0.5); }
+.license-conditions .lite .license-marker { color: rgba(13, 100, 138, 0.5); }
+.license-limitations .lite .license-marker { color: rgba(129, 42, 40, 0.5); }
+
+.license-rules-sidebar li {
+  float: none;
+  padding-bottom: 3px;
+}
+
+.license-body {
+  font-size: 0.9375rem;
+  float: left;
+  width: 700px;
+}
+
+.license-body pre {
+  font-family: Consolas, Monaco, Courier, monospace;
+  font-size: 0.875rem;
+  background-color: #fff;
+  border: 1px solid #eee;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  -ms-border-radius: 3px;
+  -o-border-radius: 3px;
+  border-radius: 3px;
+  padding: 20px;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.license-nickname {
+  margin-top: 0;
+}
+
+.sidebar {
+  float: right;
+  width: 220px;
+  font-size: 0.75rem;
+}
+
+.sidebar a.button {
+  margin-top: -110px;
+  width: 100%;
+}
+
+.sidebar input#repository-url {
+  width: 100%;
+  padding: 5px 20px 5px 10px;
+  box-sizing: border-box;
+  margin-right: 12px;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-wrapper .status-indicator {
+  position: absolute;
+  right: 5px;
+  top: 6px;
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  background: #fff;
+  animation: none;
+  border: 4px solid #ddd;
+}
+
+.input-wrapper .status-indicator.fetching {
+  border-right-color: transparent;
+  animation: rotate 0.8s infinite linear;
+}
+
+.input-wrapper .status-indicator.error {
+  border: 4px solid #c6403d;
+}
+
+@keyframes rotate {
+  0%    { transform: rotate(0deg); }
+  100%  { transform: rotate(360deg); }
+}
+
+.note {
+  color: #687072;
+}
+
+.button {
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  -ms-border-radius: 3px;
+  -o-border-radius: 3px;
+  border-radius: 3px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  border-color: #ccc #bbb #aaa #bbb;
+  border-style: solid;
+  border-width: 1px;
+  color: #444;
+  -webkit-box-shadow: rgba(0, 0, 0, 0.1) 0 2px 4px, rgba(255, 255, 255, 0.8) 0 1px 0 0 inset;
+  -moz-box-shadow: rgba(0, 0, 0, 0.1) 0 2px 4px, rgba(255, 255, 255, 0.8) 0 1px 0 0 inset;
+  box-shadow: rgba(0, 0, 0, 0.1) 0 2px 4px, rgba(255, 255, 255, 0.8) 0 1px 0 0 inset;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #eee), color-stop(100%, #ddd));
+  background-image: -webkit-linear-gradient(#eee, #ddd);
+  background-image: -moz-linear-gradient(#eee, #ddd);
+  background-image: -o-linear-gradient(#eee, #ddd);
+  background-image: linear-gradient(#eee, #ddd);
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: normal;
+  padding: 5px 10px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.button:hover {
+  text-decoration: none;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #eee), color-stop(100%, #ccc));
+  background-image: -webkit-linear-gradient(#eee, #ccc);
+  background-image: -moz-linear-gradient(#eee, #ccc);
+  background-image: -o-linear-gradient(#eee, #ccc);
+  background-image: linear-gradient(#eee, #ccc);
+}
+
+.projects-with-license li {
+  padding-bottom: 3px;
+}
+
+.site-footer {
+  border-top: 1px solid #eee;
+  margin-top: 30px;
+  padding-top: 20px;
+  color: #555;
+  font-size: 0.75rem;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.site-footer a {
+  color: #444;
+  font-weight: normal;
+}
+
+.site-footer p {
+  float: left;
+  margin-top: 0;
+}
+
+.site-footer nav {
+  float: right;
+}
+
+.site-footer nav a {
+  display: inline-block;
+  margin-left: 20px;
+}
+
+.bullets {
+  list-style-type: disc;
+}
+
+.bullets > li {
+  margin-left: 2em;
+}
+
+.small {
+  font-size: 90%;
+}
+
+
+/* Hint.css Overide */
+.override-hint-inline {
+  display: block;
+}
+
+// Selecting all the tooltip bodies to increase their font-size
+[class*="hint--"][aria-label]:after {
+  font-size: 0.80rem;
+  font-weight: 400;
+  text-shadow: none;
+}
+
+// Tooltips
+.tooltip--permissions.hint--bottom:before{
+  border-bottom-color: #298625;
+}
+
+.tooltip--conditions.hint--bottom:before{
+  border-bottom-color: #0d648a;
+}
+
+.tooltip--error.hint--bottom:before,
+.tooltip--limitations.hint--bottom:before{
+  border-bottom-color: #812a28;
+}
+
+.tooltip--permissions:after{
+  background-color: #d8f4d7;
+  color: #1a5818;
+  border-color: #3dc637;
+}
+
+.tooltip--conditions:after{
+  background-color: #d0ebf6;
+  border-color: #149ad4;
+  color: #0d648a;
+}
+
+.tooltip--error:after,
+.tooltip--limitations:after{
+  background-color: #f4d9d8;
+  border-color: #c6403d;
+  color: #812a28;
+}
+
+/* For modern browsers */
+.clearfix:before,
+.clearfix:after {
+    content: "";
+    display: table;
+}
+
+.clearfix:after {
+    clear: both;
+}
+
+.with-love { float: right; clear: right; }
+
+@media only screen and (-webkit-min-device-pixel-ratio: 2.0),
+ only screen and (min--moz-device-pixel-ratio: 2.0),
+ only screen and (-o-min-device-pixel-ratio: 200/100),
+ only screen and (min-device-pixel-ratio: 2.0) {
+  .three-arrows,
+  .community,
+  .circular {
+    background-image: url(../img/home-sprite@2x.png);
+    -webkit-background-size: 72px 182px;
+    -moz-background-size: 72px 182px;
+    background-size: 72px 182px;
+  }
+
+}
+
+/* Top bar: breadcrumb on the leading side, the language cluster (suggestion +
+   selector) on the trailing side, all vertically centered on one row. */
+.topbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-bottom: 12px;
+}
+
+.topbar > ol { margin: 0; }
+
+/* The cluster sits at the trailing edge (right in LTR, left in RTL) and keeps the
+   suggestion and the selector on a single, vertically centered row, so the
+   suggestion arrow lines up with the middle of the selector button. */
+.lang-cluster {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Language selector — native <details> dropdown (works without JavaScript) */
+.language-selector {
+  position: relative;
+  font-size: 0.75rem;
+}
+
+.language-selector > summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  color: #444;
+  user-select: none;
+}
+
+.language-selector > summary::-webkit-details-marker { display: none; }
+.language-selector > summary::marker { content: ""; }
+
+.language-selector-icon svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.language-selector-caret { font-size: 0.7rem; }
+
+.language-menu {
+  position: absolute;
+  right: 0;
+  margin-top: 4px;
+  min-width: 170px;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  z-index: 1000003;
+  padding: 4px 0;
+}
+
+.language-menu li {
+  display: block;
+  margin: 0;
+}
+
+.language-menu a {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 12px;
+  color: #444;
+  font-weight: normal;
+  white-space: nowrap;
+}
+
+.language-menu a:hover,
+.language-menu a:focus {
+  background: #f0f0f0;
+  text-decoration: none;
+}
+
+.language-menu a[aria-current="true"] { font-weight: bold; }
+.language-menu .checkmark { color: #149ad4; }
+
+/* Language suggestion: a plain blue "switch to <lang>" text link shown beside the
+   selector by assets/js/i18n.js, followed by an arrow pointing at the selector,
+   when the browser's preferred language differs from the displayed one and no
+   choice has been stored yet. Floats just to the left of the selector (same row). */
+.language-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+/* The class rule above outweighs the [hidden] UA rule, so the empty placeholder
+   would show before the script fills it; keep it hidden until then. */
+.language-suggestion[hidden] { display: none; }
+
+/* Mobile-first: show the short label by default and swap to the long sentence
+   once the viewport is wide enough. Both are in the link; CSS picks one. */
+.language-suggestion-long { display: none; }
+
+@media (min-width: 48rem) {
+  .language-suggestion-short { display: none; }
+  .language-suggestion-long { display: inline; }
+}
+
+/* Site links are bold by default, so bolding the language name alone would not
+   stand out. Drop the bold on this link only (without touching other links) and
+   keep just the language name bold, in the link colour, for contrast. */
+.language-suggestion-link { font-weight: normal; }
+.language-suggestion-link strong { color: inherit; font-weight: bold; }
+
+/* The link inherits the site's blue, hover-underlined link style. The arrow is a
+   separate element (outside the link) so the underline stays under the text only.
+   Its direction follows the page: → in LTR, ← in RTL (selector on the left). */
+.language-suggestion-arrow {
+  color: #149ad4;
+  font-weight: bold;
+}
+
+.language-suggestion-arrow::after { content: "→"; }
+[dir="rtl"] .language-suggestion-arrow::after { content: "←"; }
+
+@media (prefers-color-scheme: dark) {
+  .language-selector > summary {
+    background: #2a2a2a;
+    border-color: #555;
+    color: #dadada;
+  }
+
+  .language-menu {
+    background: #2a2a2a;
+    border-color: #555;
+  }
+
+  .language-menu a {
+    color: #dadada;
+  }
+
+  .language-menu a:hover,
+  .language-menu a:focus {
+    background: #3a3a3a;
+  }
+}
+
+/* Right-to-left languages (e.g. Arabic): mirror the floated layout. The default
+   layout uses physical floats/margins, so flip the main structural pieces here. */
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="rtl"] .sidebar { float: left; }
+[dir="rtl"] .license-body { float: right; }
+[dir="rtl"] .license-overview-heading,
+[dir="rtl"] .license-details { float: right; }
+[dir="rtl"] .license-details { padding-left: 0; padding-right: 20px; }
+
+[dir="rtl"] .triptych li { float: right; margin-left: 0; margin-right: 27px; }
+[dir="rtl"] .triptych li:first-child { margin-right: 0; }
+
+[dir="rtl"] .site-footer nav { float: left; }
+[dir="rtl"] .site-footer p { float: right; }
+[dir="rtl"] .site-footer nav a { margin-left: 0; margin-right: 20px; }
+[dir="rtl"] .with-love { float: left; clear: left; }
+
+[dir="rtl"] .language-menu { right: auto; left: 0; }
+
+[dir="rtl"] th,
+[dir="rtl"] td { text-align: right; }
+
+[dir="rtl"] .license-rules li {
+  padding-left: 0;
+  padding-right: 18px;
+  margin-right: 0;
+  margin-left: 15px;
+}
+[dir="rtl"] .license-rules li .license-marker { left: auto; right: 0; }
+[dir="rtl"] .bullets > li { margin-left: 0; margin-right: 2em; }
+[dir="rtl"] .source-marker { margin-right: 0; margin-left: 4px; }
+
+[dir="rtl"] .home { text-align: center; }
+
+/* English / code / legal text stays left-to-right inside an RTL page. */
+[dir="rtl"] #license-text,
+[dir="rtl"] pre,
+[dir="rtl"] code {
+  direction: ltr;
+  text-align: left;
+}
+
+{% include css/responsive.css %}

@@ -1,0 +1,332 @@
+@import '../../mixins';
+
+#changes-list {
+  min-height: 0;
+}
+
+/** A React component holding the currently selected repository's changes */
+.changes-list-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 100px;
+
+  .header {
+    background: var(--box-alt-background-color);
+    border-bottom: 1px solid var(--box-border-color);
+    padding: 0 var(--spacing);
+    height: 29px;
+    flex: 0 0 auto;
+  }
+
+  .changes-list-check-all {
+    align-items: center;
+    height: 100%;
+    position: relative;
+
+    // We want the label to be positioned center with regards to the entire
+    // header so we position it absolute in relation to the checkbox component
+    // and give it a 100% width with padding on each side as to balance it out
+    // while still providing enough space for the checkbox.
+    label {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      padding: 0 30px;
+      text-align: center;
+
+      @include ellipsis;
+    }
+
+    input[type='checkbox'] {
+      flex-grow: 0;
+      flex-shrink: 0;
+    }
+  }
+
+  &.filtered-changes-list {
+    .filter-popover {
+      text-align: right;
+      min-width: 200px;
+
+      .filter-popover-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        h3 {
+          margin: 0;
+        }
+      }
+
+      .filter-options {
+        margin: var(--spacing) 0;
+      }
+
+      .filter-options-footer {
+        padding: var(--spacing-half) 0 var(--spacing) 0;
+        margin-top: var(--spacing-quarter);
+        text-align: left;
+      }
+      .popover-content {
+        padding: var(--spacing) var(--spacing) 0 var(--spacing);
+      }
+
+      @include close-button;
+
+      .close {
+        margin: 0;
+      }
+    }
+
+    .header {
+      display: flex;
+      height: auto;
+      flex-direction: column;
+      padding: var(--spacing-half) var(--spacing);
+      margin: 0;
+
+      .filter-box-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: var(--spacing-half);
+        transition: all 0.3s ease-out;
+
+        input {
+          border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+
+        .filter-button {
+          border-radius: var(--border-radius) 0 0 var(--border-radius);
+          border-right: none;
+          font-weight: var(--font-weight-semibold);
+          color: var(--text-color);
+          justify-content: space-between;
+          display: inline-flex;
+          align-items: center;
+          padding-right: var(--spacing-half);
+          position: relative;
+
+          &.active {
+            span:first-child {
+              color: var(--box-selected-active-background-color);
+            }
+          }
+
+          .active-badge {
+            position: absolute;
+            right: 18px;
+            top: 4px;
+
+            .badge-bg {
+              padding: 1px;
+              border-radius: 50%;
+              background-color: var(--secondary-button-background);
+
+              .badge {
+                width: 5px;
+                height: 5px;
+                background-color: var(--box-selected-active-background-color);
+                border-radius: 50%;
+              }
+            }
+          }
+
+          &:hover {
+            color: var(--text-secondary-color);
+            background-color: inherit;
+
+            .badge-bg {
+              background-color: var(--secondary-button-background);
+            }
+          }
+        }
+      }
+
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+
+        .spacer {
+          flex-grow: 1;
+        }
+      }
+
+      .changes-list-check-all {
+        flex-grow: 1;
+
+        input {
+          margin-right: 7px;
+        }
+
+        label {
+          position: static;
+          padding: 0;
+          text-align: left;
+        }
+      }
+    }
+  }
+
+  .filter-list {
+    // This is important when app is zoomed in. Otherwise, the filter list
+    // will be overlapped by the commit message form.
+    min-height: 0;
+  }
+}
+
+.stashed-changes-button {
+  @include ellipsis;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 29px;
+  padding: 0 var(--spacing);
+
+  // Chrome on Windows ignores the body element
+  // font-family and uses Arial so we redefine
+  // it here
+  font-family: var(--font-family-sans-serif);
+  font-size: var(--font-size);
+
+  color: var(--secondary-button-text-color);
+  background-color: var(--secondary-button-background);
+
+  border: none;
+  border-top: var(--base-border);
+  box-shadow: none;
+  z-index: 0;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+
+  &:hover,
+  &:focus {
+    background-color: var(--box-selected-background-color);
+  }
+
+  &.selected,
+  &.selected:hover {
+    color: var(--box-selected-active-text-color);
+    background-color: var(--box-selected-active-background-color);
+
+    .stack-icon {
+      fill: var(--box-selected-active-text-color);
+    }
+  }
+
+  .stack-icon {
+    fill: var(--color-modified);
+  }
+
+  .text {
+    flex-grow: 1;
+    margin: 0 var(--spacing-half);
+    text-align: start;
+  }
+
+  .octicon {
+    flex-shrink: 0;
+  }
+}
+
+.undo-enter {
+  max-height: 0;
+  overflow: hidden;
+}
+
+.undo-enter.undo-enter-active {
+  // It doesn't really matter what `maxHeight` we set here so long as it's
+  // greater than or equal to the height that `UndoCommit` will want.
+  max-height: 200px;
+
+  transition: max-height var(--undo-animation-duration) ease-in;
+}
+
+.undo-exit {
+  max-height: 200px;
+}
+
+.undo-exit.undo-exit-active {
+  max-height: 0;
+
+  transition: max-height var(--undo-animation-duration) ease-out;
+}
+
+.hidden-changes-warning {
+  background-color: var(--file-warning-background-color);
+  padding: var(--spacing-half) var(--spacing);
+  border-bottom: var(--file-warning-border-color) solid 1px;
+  border-top: var(--file-warning-border-color) solid 1px;
+
+  // To overlap the commit message form border
+  margin-bottom: -1px;
+  z-index: 1;
+
+  .octicon {
+    color: var(--file-warning-color);
+    margin-right: var(--spacing-half);
+    vertical-align: text-bottom;
+  }
+
+  .link-button-component {
+    display: inline;
+  }
+}
+
+.no-changes-filtered {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  max-width: 365px;
+  min-width: 180px;
+  width: 100%;
+  margin: var(--spacing-half) auto;
+  padding: var(--spacing);
+  text-align: center;
+  box-sizing: border-box;
+  container-type: size;
+  overflow: hidden;
+
+  .blankslate-image {
+    width: 100%;
+    max-width: 80px;
+    height: auto;
+    margin-bottom: var(--spacing);
+    opacity: 0.8;
+    object-fit: contain;
+    flex-shrink: 0;
+
+    // Hide image in small containers
+    @container (max-height: 310px) {
+      display: none;
+    }
+  }
+
+  .title {
+    margin-bottom: var(--spacing-half);
+    font-size: var(--font-size);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.3;
+    color: var(--text-color);
+    flex-shrink: 0;
+  }
+
+  .subtitle {
+    max-height: 100px;
+    margin: 0 var(--spacing-half) var(--spacing) var(--spacing-half);
+    font-size: var(--font-size-sm);
+    line-height: 1.4;
+    color: var(--text-secondary-color);
+    white-space: pre-line;
+    flex-shrink: 1;
+  }
+
+  .clear-filters-button {
+    min-width: 120px;
+    margin-top: var(--spacing-half);
+    flex-shrink: 0;
+  }
+}

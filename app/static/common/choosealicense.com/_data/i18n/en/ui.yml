@@ -1,0 +1,141 @@
+# Canonical English UI / prose strings — the source of truth and the base file
+# translators (and Weblate) work from. Every other language overrides these in
+# _data/i18n/<lang>/ui.yml; anything missing falls back here automatically.
+#
+# Keys ending in _html hold raw HTML and are emitted as-is; all other multi-line
+# values are Markdown. This file only covers the *interface* and page prose —
+# license summaries live in _data/i18n/<lang>/licenses.yml and rule labels in
+# _data/i18n/<lang>/rules.yml. License legal texts are never translated.
+
+# --- Language metadata -------------------------------------------------------
+language_name: "English"
+language_selector_label: "Language"
+# Writing direction: "ltr" (default) or "rtl" (right-to-left, e.g. Arabic).
+# Other languages inherit this "ltr"; only RTL languages override it.
+text_direction: "ltr"
+
+# --- Chrome: navigation & footer --------------------------------------------
+nav_about: "About"
+nav_terms: "Terms of Service"
+nav_improve: "Help improve this page"
+footer_license_notice_html: |-
+  The content of this site is licensed under the <a href="https://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>.
+footer_curated_html: |-
+  Curated with ❤️ by <a href="https://github.com">GitHub, Inc.</a> and <a href="https://github.com/github/choosealicense.com">You!</a>
+
+# --- Breadcrumbs -------------------------------------------------------------
+breadcrumb_home: "Home"
+breadcrumb_licenses: "Licenses"
+
+# --- Rule group headings (also used as appendix legend section titles) -------
+rules_permissions: "Permissions"
+rules_conditions: "Conditions"
+rules_limitations: "Limitations"
+
+# --- Rule tooltips (assembled in assets/js/app.js) ---------------------------
+# Reorderable template: %label%, %category% and %description% are filled per rule.
+# Each language can reorder them (e.g. French leads with the category).
+tooltip_format: "%label% %category%: %description%"
+tooltip_cat_permissions: "permission"
+tooltip_cat_conditions: "condition"
+tooltip_cat_limitations: "limitation"
+
+# --- License page sidebar ----------------------------------------------------
+sidebar_copy: "Copy license text to clipboard"
+sidebar_copied: "Copied!"
+sidebar_suggest_heading: "Suggest this license"
+sidebar_suggest_body_md: |-
+  Make a pull request to suggest this license for a project that is [not licensed](/no-permission/). Please be polite: see if a license has already been suggested, try to suggest a license fitting for the project’s [community](/community/), and keep your communication with project maintainers friendly.
+sidebar_repo_placeholder: "Enter GitHub repository URL"
+sidebar_how_heading: "How to apply this license"
+sidebar_optional_heading: "Optional steps"
+sidebar_source: "Source"
+sidebar_using_heading: "Who’s using this license?"
+# Package-manager note. Placeholders are filled in and left untranslated: %id% is
+# the SPDX id (as <code>), %languages% the language links, %clauses% the optional
+# parenthetical(s). Only the surrounding prose here is translated.
+sidebar_pkg_html: |-
+  Add %id%%clauses% to your project’s package description, if applicable (e.g., %languages%). This will ensure the license is displayed in package directories.
+sidebar_pkg_only_html: " (or %id% to disallow future versions)"
+sidebar_pkg_ofl_html: " (or %id% if a Reserved Font Name is specified after the copyright statement)"
+sidebar_gplcc_html: |-
+  If you would like your project to adopt the GPL-3.0’s cure provision, add the <a href="https://github.com/gplcc/gplcc/blob/master/Project/COMMITMENT">text</a> of the <a href="https://gplcc.github.io/gplcc/">GPL Cooperation Commitment</a> to a file named <code>COMMITMENT</code> in the same directory as your %id% license file.
+
+# --- License overview cards (/licenses/) ------------------------------------
+overview_view_full: "View full %title% »"
+
+# --- "Who uses it" sentence (home page) -------------------------------------
+# Project-list separators; the one before the last item can keep a serial comma.
+using_separator: ", "
+using_last_separator: ", and "
+using_sentence_plural: "%projects% use the %license%."
+using_sentence_singular: "%projects% uses the %license%."
+
+# --- Page titles (rendered as <h1> and used in <title>/breadcrumbs) ----------
+page_title_home: "Choose an open source license"
+page_title_licenses: "Licenses"
+page_title_appendix: "Appendix"
+page_title_404: "404 Not Found"
+
+# --- Home page ---------------------------------------------------------------
+home_intro: |-
+  An open source license protects contributors and users. Businesses and savvy developers won’t touch a project without this protection.
+home_situations_question: "Which of the following best describes your situation?"
+home_community_title: "I need to work in a community."
+home_community_content: |-
+  Use the [license preferred by the community](community/) you’re contributing to or depending on. Your project will fit right in.
+
+  If you have a dependency that doesn’t have a license, ask its maintainers to [add a license](no-permission/#for-users).
+home_permissive_title: "I want it simple and permissive."
+home_permissive_content: |-
+  The [MIT License](licenses/mit/) is short and to the point. It lets people do almost anything they want with your project, like making and distributing closed source versions.
+home_copyleft_title: "I care about sharing improvements."
+home_copyleft_content: |-
+  The [GNU GPLv3](licenses/gpl-3.0/) also lets people do almost anything they want with your project, *except* distributing closed source versions.
+home_more_question: "What if none of these work for me?"
+home_nonsoftware_title: "My project isn’t software."
+home_nonsoftware_content: |-
+  [There are licenses for that](non-software/).
+home_morechoices_title: "I want more choices."
+home_morechoices_content: |-
+  [More licenses are available](licenses/).
+home_nolicense_title: "I don’t want to choose a license."
+home_nolicense_content: |-
+  [Here’s what happens if you don’t](no-permission/).
+
+# --- Licenses page (/licenses/) ---------------------------------------------
+licenses_intro_html: |-
+  Open source licenses grant permission for anybody to use, modify, and share licensed software for any purpose, subject to conditions preserving the provenance and openness of the software. The following licenses are sorted by the number of conditions, from most (GNU AGPLv3) to none (Unlicense). Notice that the popular licenses featured on the <a href="/">home page</a> (GNU GPLv3 and MIT) fall within this spectrum.
+licenses_appendix_note_html: |-
+  If you’re looking for a reference table of every license on choosealicense.com, see the <a href="/appendix">appendix</a>.
+licenses_outro_html: |-
+  The above licenses represent the entire spectrum of open source licenses, from highly protective to unconditional. One of these should work for most new open source projects. Many other open source licenses exist, including older versions of and close substitutes for some of the above. See the resources listed on our <a href="/about/">about page</a> if you’d like to read more.
+
+  If you already know what you’re doing and have a license you prefer to use, that’s great! We’re not here to change your mind. But if you are bewildered by the large number of choices, maybe we can help.
+
+# --- Appendix (/appendix/) ---------------------------------------------------
+appendix_intro: |-
+  For reference, here is a table of every license described in the [choosealicense.com repository](https://github.com/github/choosealicense.com).
+
+  If you're here to choose a license, **[start from the home page](/)** to see a few licenses that will work for most cases.
+appendix_col_license: "License"
+appendix_legend_heading: "Legend"
+appendix_legend_permissions_html: |-
+  Open source licenses grant to the public <span class="license-permissions"><span class="license-marker">✓</span></span> <b>permissions</b> to do things with licensed works which copyright or other "intellectual property" laws might otherwise disallow.
+appendix_legend_conditions_html: |-
+  Most open source licenses' grants of permissions are subject to compliance with <span class="license-conditions"><span class="license-marker">ⓘ</span></span> <b>conditions</b>.
+appendix_legend_limitations_html: |-
+  Most open source licenses also have <span class="license-limitations"><span class="license-marker">✕</span></span> <b>limitations</b> that usually disclaim warranty and liability, and sometimes expressly exclude patents or trademarks from licenses' grants.
+
+# --- 404 page ----------------------------------------------------------------
+notfound_p1: |-
+  Sorry! We could not find the page you were looking for.
+notfound_p2: |-
+  If you were trying to see a license, go to [licenses](/licenses).
+
+# --- JavaScript language-suggestion banner (assets/js/i18n.js) --------------
+# banner_switch's %language% is the suggested language's name; banner_suggest
+# embeds the name directly so each language controls its grammar and casing.
+banner_suggest: "This page is also available in **English**."
+banner_switch: "Switch to **English**"
+banner_dismiss: "Dismiss"

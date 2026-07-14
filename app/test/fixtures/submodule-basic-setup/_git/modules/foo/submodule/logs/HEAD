@@ -1,0 +1,12 @@
+0000000000000000000000000000000000000000 c59617b65080863c4ca72c1f191fa1b423b92223 Brendan Forster <github@brendanforster.com> 1515174897 -0400	clone: from https://github.com/shiftkey/submodule-test-case
+c59617b65080863c4ca72c1f191fa1b423b92223 c59617b65080863c4ca72c1f191fa1b423b92223 Brendan Forster <github@brendanforster.com> 1515174939 -0400	checkout: moving from master to branch-with-tag
+c59617b65080863c4ca72c1f191fa1b423b92223 6d87eaeccc9e60b64daeb0b5d0d926215a8d5339 Brendan Forster <github@brendanforster.com> 1515174996 -0400	commit: added blank gitattributes
+6d87eaeccc9e60b64daeb0b5d0d926215a8d5339 c59617b65080863c4ca72c1f191fa1b423b92223 Brendan Forster <github@brendanforster.com> 1515175079 -0400	checkout: moving from branch-with-tag to master
+c59617b65080863c4ca72c1f191fa1b423b92223 6d87eaeccc9e60b64daeb0b5d0d926215a8d5339 Brendan Forster <github@brendanforster.com> 1515175238 -0400	checkout: moving from master to branch-with-tag
+6d87eaeccc9e60b64daeb0b5d0d926215a8d5339 c59617b65080863c4ca72c1f191fa1b423b92223 Brendan Forster <github@brendanforster.com> 1515175290 -0400	checkout: moving from branch-with-tag to master
+c59617b65080863c4ca72c1f191fa1b423b92223 6d87eaeccc9e60b64daeb0b5d0d926215a8d5339 Brendan Forster <github@brendanforster.com> 1515175302 -0400	checkout: moving from master to branch-with-tag
+6d87eaeccc9e60b64daeb0b5d0d926215a8d5339 6d87eaeccc9e60b64daeb0b5d0d926215a8d5339 Brendan Forster <github@brendanforster.com> 1515175435 -0400	rebase: checkout branch-with-tag
+6d87eaeccc9e60b64daeb0b5d0d926215a8d5339 6d87eaeccc9e60b64daeb0b5d0d926215a8d5339 Brendan Forster <github@brendanforster.com> 1515175467 -0400	checkout: moving from branch-with-tag to branch-with-tag
+6d87eaeccc9e60b64daeb0b5d0d926215a8d5339 8d9c9eb4fd82333c408fc815b131c2591fd1d987 Brendan Forster <github@brendanforster.com> 1515175521 -0400	commit: add some words
+8d9c9eb4fd82333c408fc815b131c2591fd1d987 bf6e39f9c91424cbea232b32a6c1da3483825ede Brendan Forster <github@brendanforster.com> 1515175545 -0400	commit: then some more
+bf6e39f9c91424cbea232b32a6c1da3483825ede c59617b65080863c4ca72c1f191fa1b423b92223 Brendan Forster <github@brendanforster.com> 1515175570 -0400	checkout: moving from branch-with-tag to master

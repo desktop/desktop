@@ -1,0 +1,18 @@
+.ci-check-run-no-steps {
+  display: flex;
+  padding: var(--spacing-double);
+  align-items: center;
+  height: 100%;
+
+  img {
+    height: 125%;
+    margin-left: var(--spacing-double);
+    flex: 1;
+  }
+
+  .button-component {
+    margin-top: var(--spacing);
+    display: flex;
+    align-items: center;
+  }
+}

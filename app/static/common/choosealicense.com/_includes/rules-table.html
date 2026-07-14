@@ -1,0 +1,40 @@
+{%- comment -%}
+  Renders the permissions / conditions / limitations table for a single license.
+  Parameter: include.license — the license document (the page itself on a license
+  page, or a collection item in overviews).
+
+  Rule order and tags come from the canonical English _data/rules.yml; the visible
+  labels are localized via _data/i18n/<lang>/rules.yml, falling back to English.
+  Factored out of _layouts/license.html and _includes/license-overview.html so the
+  table lives in one place.
+{%- endcomment -%}
+{%- assign i18n_lang = site.active_lang | default: site.default_lang | default: "en" -%}
+{%- assign loc_rules = site.data.i18n[i18n_lang].rules -%}
+<table class="license-rules">
+  <tr>
+  {% assign types = "permissions|conditions|limitations" | split: "|" %}
+  {% for type in types %}
+    {% capture type_key %}rules_{{ type }}{% endcapture %}
+    <th class="label">{% include t.html key=type_key %}</th>
+  {% endfor %}
+  </tr>
+  <tr>
+    {% for type in types %}
+      <td>
+        <ul class="license-{{ type }}">
+          {% assign rules = site.data.rules[type] | sort: "label" %}
+          {% for rule_obj in rules %}
+            {% assign req = rule_obj.tag %}
+            {% if include.license[type] contains req %}
+              {% assign loc = loc_rules[type][req] %}
+              <li class="{{ req }}">
+                <span class="license-marker">{% if type == "permissions" %}✓{% elsif type == "conditions" %}ⓘ{% else %}✕{% endif %}</span>
+                {{ loc.label | default: rule_obj.label }}
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </td>
+    {% endfor %}
+  </tr>
+</table>

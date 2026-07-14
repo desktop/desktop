@@ -1,0 +1,9 @@
+0000000000000000000000000000000000000000 85349ad98020363d853e1b0579d332ebfb91fd9b Brendan Forster <github@brendanforster.com> 1541012226 -0300	commit (initial): added the first image
+85349ad98020363d853e1b0579d332ebfb91fd9b 85349ad98020363d853e1b0579d332ebfb91fd9b Brendan Forster <github@brendanforster.com> 1541012231 -0300	checkout: moving from master to make-a-change
+85349ad98020363d853e1b0579d332ebfb91fd9b f9b55b3f29827034d56ee8cf275de9e22bd49a99 Brendan Forster <github@brendanforster.com> 1541012260 -0300	commit: changed the image in a branch
+f9b55b3f29827034d56ee8cf275de9e22bd49a99 85349ad98020363d853e1b0579d332ebfb91fd9b Brendan Forster <github@brendanforster.com> 1541012264 -0300	checkout: moving from make-a-change to master
+85349ad98020363d853e1b0579d332ebfb91fd9b 807b13f4c677f3bba1a6a16cfe45a43a4324616a Brendan Forster <github@brendanforster.com> 1541012288 -0300	commit: change the image on master
+807b13f4c677f3bba1a6a16cfe45a43a4324616a 807b13f4c677f3bba1a6a16cfe45a43a4324616a Brendan Forster <github@brendanforster.com> 1541012296 -0300	checkout: moving from master to another-branch
+807b13f4c677f3bba1a6a16cfe45a43a4324616a 951d91c33efeacee3cf6ba54b57afd6a3ad4f18a Brendan Forster <github@brendanforster.com> 1541012311 -0300	commit: one more change
+951d91c33efeacee3cf6ba54b57afd6a3ad4f18a f9b55b3f29827034d56ee8cf275de9e22bd49a99 Brendan Forster <github@brendanforster.com> 1541012329 -0300	checkout: moving from another-branch to make-a-change
+f9b55b3f29827034d56ee8cf275de9e22bd49a99 f9b55b3f29827034d56ee8cf275de9e22bd49a99 Brendan Forster <github@brendanforster.com> 1541012578 -0300	reset: moving to HEAD

@@ -1,0 +1,6 @@
+0000000000000000000000000000000000000000 b9ccfc3307240b86447bca2bd6c51a4bb4ade493 Brendan Forster <brendan@github.com> 1476768097 +1100	commit (initial): stubbed a README
+b9ccfc3307240b86447bca2bd6c51a4bb4ade493 b9ccfc3307240b86447bca2bd6c51a4bb4ade493 Brendan Forster <brendan@github.com> 1476768125 +1100	checkout: moving from master to commit-with-no-body
+b9ccfc3307240b86447bca2bd6c51a4bb4ade493 49ec1e05f39eef8d1ab6200331a028fb3dd96828 Brendan Forster <brendan@github.com> 1476768153 +1100	commit: this is a commit title
+49ec1e05f39eef8d1ab6200331a028fb3dd96828 b9ccfc3307240b86447bca2bd6c51a4bb4ade493 Brendan Forster <brendan@github.com> 1476768169 +1100	checkout: moving from commit-with-no-body to master
+b9ccfc3307240b86447bca2bd6c51a4bb4ade493 b9ccfc3307240b86447bca2bd6c51a4bb4ade493 Brendan Forster <brendan@github.com> 1476768179 +1100	checkout: moving from master to commit-with-long-description
+b9ccfc3307240b86447bca2bd6c51a4bb4ade493 dfa96676b65e1c0ed43ca25492252a5e384c8efd Brendan Forster <brendan@github.com> 1476768222 +1100	commit: this is a commit title

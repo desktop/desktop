@@ -1,0 +1,24 @@
+{%- assign i18n_lang = site.active_lang | default: site.default_lang -%}
+{%- assign id = "/licenses/" | append: include.license-id -%}
+{%- assign licenses = site.licenses | where:"id", id -%}
+{%- for license in licenses -%}
+  {%- assign using = license.using -%}
+  {%- if using.size > 0 -%}
+    {%- comment -%}
+      Join the project names with a localized separator. The separator before the
+      LAST item differs per language (English keeps a serial comma, "X, Y, and Z";
+      French drops it, "X, Y et Z").
+    {%- endcomment -%}
+    {%- capture projects -%}
+      {%- for used in using limit: 3 -%}
+        {%- unless forloop.first -%}{%- if forloop.last -%}{% include t.html key="using_last_separator" %}{%- else -%}{% include t.html key="using_separator" %}{%- endif -%}{%- endunless -%}
+        <a href="{{ used[1] }}">{{ used[0] }}</a>
+      {%- endfor -%}
+    {%- endcapture -%}
+    {%- assign spdx_key = license.spdx-id | downcase -%}
+    {%- assign loc = site.data.i18n[i18n_lang].licenses[spdx_key] -%}
+    {%- assign lic_name = loc.nickname | default: license.nickname | default: license.title -%}
+    {%- if using.size == 1 -%}{%- capture sentence -%}{% include t.html key="using_sentence_singular" %}{%- endcapture -%}{%- else -%}{%- capture sentence -%}{% include t.html key="using_sentence_plural" %}{%- endcapture -%}{%- endif -%}
+    {{ sentence | replace: '%projects%', projects | replace: '%license%', lic_name | strip }}
+  {%- endif -%}
+{%- endfor -%}

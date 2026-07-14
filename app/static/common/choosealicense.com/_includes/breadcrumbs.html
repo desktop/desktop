@@ -1,0 +1,42 @@
+{% unless page.hide_breadcrumbs == true %}
+  {% capture bc_home %}{% include t.html key="breadcrumb_home" %}{% endcapture %}
+  {% capture bc_licenses %}{% include t.html key="breadcrumb_licenses" %}{% endcapture %}
+  {% if page.title_key %}{% capture bc_page %}{% include t.html key=page.title_key %}{% endcapture %}{% else %}{% assign bc_page = page.title %}{% endif %}
+  <ol>
+    <li>
+      {% if page.layout == "license" %}
+        <a href="{{ '/' | relative_url }}">{{ bc_home }}</a> / <a href="{{ '/licenses/' | relative_url }}">{{ bc_licenses }}</a>
+      {% else %}
+        <a href="{{ '/' | relative_url }}">{{ bc_home }}</a>
+      {% endif %}
+    </li>
+  </ol>
+  <script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [{
+      "@type": "ListItem",
+      "position": 1,
+      "item": {
+        "@id": "{{ site.github.url }}/",
+        "name": {{ bc_home | strip | jsonify }}
+      }
+    },{% if page.layout == "license" %}{
+      "@type": "ListItem",
+      "position": 2,
+      "item": {
+        "@id": "{{ site.github.url }}/licenses",
+        "name": {{ bc_licenses | strip | jsonify }}
+      }
+    },{% endif %}{
+      "@type": "ListItem",
+      "position": {% if page.layout == "license" %}3{% else %}2{% endif %},
+      "item": {
+        "@id": "{{ site.github.url }}{{ page.url }}",
+        "name": {{ bc_page | strip | jsonify }}
+      }
+    }]
+  }
+  </script>
+{% endunless %}

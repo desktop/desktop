@@ -1,0 +1,264 @@
+@import '../../mixins';
+
+#expandable-commit-summary {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-bottom: var(--base-border);
+
+  .beneath-summary {
+    overflow-y: auto;
+    padding: var(--spacing);
+    padding-top: 0;
+    padding-bottom: var(--spacing-half);
+  }
+
+  .ecs-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    line-height: 16px;
+    word-wrap: break-word;
+    display: flex;
+    padding: var(--spacing);
+    padding-bottom: var(--spacing-half);
+
+    .commits-in-diff {
+      margin-left: var(--spacing-half);
+    }
+
+    &.empty-summary {
+      color: var(--text-secondary-color);
+    }
+
+    .expander {
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: var(--text-color);
+      font-size: inherit;
+      font-weight: normal;
+      font-family: inherit;
+      margin-left: var(--spacing);
+      height: auto;
+
+      svg {
+        vertical-align: text-top;
+      }
+    }
+  }
+
+  .ecs-description {
+    display: flex;
+    position: relative;
+    min-height: 10px;
+    padding-bottom: var(--spacing-half);
+
+    .ecs-description-scroll-view {
+      overflow: hidden;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .ecs-description-text {
+      font-family: var(--font-family-monospace);
+      font-size: var(--font-size-sm);
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      min-height: 0;
+    }
+  }
+
+  .ecs-meta {
+    display: flex;
+    flex-wrap: wrap;
+
+    .ecs-meta-item {
+      display: flex;
+      margin-right: var(--spacing);
+      font-size: var(--font-size-sm);
+      align-items: center;
+
+      &.authors {
+        margin-left: 0;
+
+        .avatar {
+          width: 16px;
+          height: 16px;
+        }
+
+        .author {
+          .avatar-container {
+            margin-right: 4px;
+          }
+        }
+      }
+
+      &.commit-ref {
+        .ref {
+          padding-left: var(--spacing-half);
+        }
+
+        .copy-button {
+          margin-left: var(--spacing-half);
+
+          // Removing default button styles
+          background: transparent;
+          border: none;
+          padding: 0;
+          height: auto;
+          min-width: 16px;
+
+          :hover {
+            color: var(--text-secondary-color);
+          }
+        }
+      }
+
+      &.lines-added-deleted {
+        div {
+          padding-right: var(--spacing-half);
+        }
+
+        .lines-added {
+          color: var(--color-new);
+        }
+
+        .lines-deleted {
+          color: var(--color-deleted);
+        }
+      }
+
+      &.tags {
+        flex-shrink: 1;
+        min-width: 0;
+
+        .octicon {
+          padding-right: var(--spacing-half);
+        }
+
+        span {
+          @include ellipsis;
+        }
+      }
+    }
+  }
+
+  .beneath-summary {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ecs-description-text {
+    background: var(--box-alt-background-color);
+    padding: var(--spacing-half);
+  }
+
+  &:not(.expanded) {
+    .ecs-description-scroll-view {
+      max-height: 80px;
+      min-height: 30px;
+    }
+  }
+
+  &.expanded {
+    .beneath-summary {
+      background: var(--box-overflow-shadow-background-two);
+      background-repeat: no-repeat;
+      background-size: 100% 20px, 100% 20px, 100% 10px, 100% 10px;
+      background-attachment: local, local, scroll, scroll;
+    }
+
+    .ecs-meta {
+      display: block;
+
+      .ecs-meta-item {
+        margin-bottom: var(--spacing-half);
+        align-items: unset;
+        margin-right: 0;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        &.authors {
+          display: block;
+
+          .author {
+            margin-bottom: 2px;
+            display: flex;
+
+            div {
+              &:last-child {
+                overflow-wrap: anywhere;
+              }
+            }
+          }
+        }
+
+        &.commit-ref {
+          .ref {
+            overflow-wrap: anywhere;
+          }
+        }
+
+        &.lines-added-deleted {
+          .lines-added {
+            padding-left: var(--spacing-half);
+          }
+        }
+
+        &.tags {
+          span {
+            white-space: normal;
+          }
+        }
+      }
+    }
+  }
+
+  .commit-unreachable-info {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing);
+    padding-top: 0;
+
+    .octicon {
+      margin-right: var(--spacing-half);
+    }
+
+    .link-button-component {
+      margin-right: var(--spacing-half);
+    }
+  }
+
+  .selectable {
+    user-select: text;
+    cursor: text;
+
+    * {
+      user-select: unset;
+      pointer-events: unset;
+      cursor: text;
+    }
+  }
+}
+
+// This make it so there is not a double scroll bar when zoomed in on a very
+// small screen.
+@media (max-width: 650px) {
+  #expandable-commit-summary {
+    &.expanded {
+      .beneath-summary {
+        display: block;
+      }
+
+      .ecs-description {
+        height: auto;
+
+        .ecs-description-text {
+          background: rgba(#959da5, 0.1);
+        }
+      }
+    }
+  }
+}

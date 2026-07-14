@@ -1,0 +1,135 @@
+# 인터페이스 문자열과 페이지 본문의 한국어 번역.
+# 여기에 없는 키는 자동으로 영어(_data/i18n/en/ui.yml)로 대체됩니다.
+# _html로 끝나는 키는 원시 HTML을 담으며, 그 외 여러 줄 값은 Markdown입니다.
+# 라이선스 요약은 licenses.yml에, 규칙 라벨은 rules.yml에 있습니다.
+# 라이선스의 법률 원문은 절대 번역하지 않습니다.
+
+# --- 언어 메타데이터 ---------------------------------------------------------
+language_name: "한국어"
+language_selector_label: "언어"
+
+# --- 내비게이션 및 푸터 ------------------------------------------------------
+nav_about: "소개"
+nav_terms: "서비스 약관"
+nav_improve: "이 페이지 개선에 참여하기"
+footer_license_notice_html: |-
+  이 사이트의 콘텐츠는 <a href="https://creativecommons.org/licenses/by/3.0/">크리에이티브 커먼즈 저작자표시 3.0 비이식 라이선스</a>에 따라 이용이 허락됩니다.
+footer_curated_html: |-
+  <a href="https://github.com">GitHub, Inc.</a>와 <a href="https://github.com/github/choosealicense.com">여러분!</a>이 ❤️을 담아 정리했습니다.
+
+# --- 이동 경로 ---------------------------------------------------------------
+breadcrumb_home: "홈"
+breadcrumb_licenses: "라이선스"
+
+# --- 규칙 그룹 제목 ----------------------------------------------------------
+rules_permissions: "허용"
+rules_conditions: "조건"
+rules_limitations: "제한"
+
+# --- 규칙 툴팁(assets/js/app.js에서 조합됨) ----------------------------------
+# 재배치 가능한 서식: %label%, %category%, %description%가 규칙별로 채워집니다.
+# 한국어는 범주를 앞에 둡니다: "허용 제목: 설명".
+tooltip_format: "%category% %label%: %description%"
+tooltip_cat_permissions: "허용"
+tooltip_cat_conditions: "조건"
+tooltip_cat_limitations: "제한"
+
+# --- 라이선스 페이지 사이드바 ------------------------------------------------
+sidebar_copy: "라이선스 텍스트를 클립보드에 복사"
+sidebar_copied: "복사됨!"
+sidebar_suggest_heading: "이 라이선스 제안하기"
+sidebar_suggest_body_md: |-
+  [라이선스가 없는](/no-permission/) 프로젝트에 이 라이선스를 제안하려면 풀 리퀘스트를 보내세요. 정중하게 진행해 주세요. 이미 라이선스가 제안되었는지 확인하고, 프로젝트의 [커뮤니티](/community/)에 맞는 라이선스를 제안하려고 노력하며, 프로젝트 메인테이너와 우호적으로 소통하세요.
+sidebar_repo_placeholder: "GitHub 저장소 URL을 입력하세요"
+sidebar_how_heading: "이 라이선스를 적용하는 방법"
+sidebar_optional_heading: "선택 단계"
+sidebar_source: "출처"
+sidebar_using_heading: "누가 이 라이선스를 사용하나요?"
+# 패키지 관리자 안내. %id%(SPDX 식별자, <code>), %languages%(언어 링크),
+# %clauses%(선택적 괄호 문구)는 번역하지 않고 그대로 채워집니다.
+# 아래의 주변 문장만 번역합니다.
+sidebar_pkg_html: |-
+  해당되는 경우 프로젝트의 패키지 설명에 %id%%clauses%을(를) 추가하세요(예: %languages%). 이렇게 하면 패키지 디렉터리에 라이선스가 표시됩니다.
+sidebar_pkg_only_html: " (또는 향후 버전을 허용하지 않으려면 %id%)"
+sidebar_pkg_ofl_html: " (또는 저작권 표시 뒤에 예약 글꼴 이름이 지정된 경우 %id%)"
+sidebar_gplcc_html: |-
+  프로젝트에 GPL-3.0의 치유 조항을 채택하려면 <a href="https://gplcc.github.io/gplcc/">GPL Cooperation Commitment</a>의 <a href="https://github.com/gplcc/gplcc/blob/master/Project/COMMITMENT">텍스트</a>를 %id% 라이선스 파일과 같은 디렉터리에 있는 <code>COMMITMENT</code>라는 이름의 파일에 추가하세요.
+
+# --- 라이선스 개요 카드(/licenses/) ------------------------------------------
+overview_view_full: "%title% 전문 보기 »"
+
+# --- "누가 사용하나" 문장(홈페이지) ------------------------------------------
+# 프로젝트 목록 구분자. 한국어는 항목 사이에 쉼표를 쓰고 마지막 항목은 "및"으로 잇습니다.
+using_separator: ", "
+using_last_separator: " 및 "
+using_sentence_plural: "%projects%이(가) %license%을(를) 사용합니다."
+using_sentence_singular: "%projects%이(가) %license%을(를) 사용합니다."
+
+# --- 페이지 제목 -------------------------------------------------------------
+page_title_home: "오픈 소스 라이선스 선택하기"
+page_title_licenses: "라이선스"
+page_title_appendix: "부록"
+page_title_404: "404 페이지를 찾을 수 없음"
+
+# --- 홈페이지 ----------------------------------------------------------------
+home_intro: |-
+  오픈 소스 라이선스는 기여자와 사용자를 보호합니다. 기업과 노련한 개발자는 이러한 보호가 없는 프로젝트에는 손대지 않습니다.
+home_situations_question: "다음 중 당신의 상황을 가장 잘 설명하는 것은 무엇인가요?"
+home_community_title: "저는 커뮤니티 안에서 작업해야 합니다."
+home_community_content: |-
+  당신이 기여하거나 의존하는 [커뮤니티가 선호하는 라이선스](community/)를 사용하세요. 당신의 프로젝트가 자연스럽게 어울릴 것입니다.
+
+  라이선스가 없는 의존성이 있다면, 그 메인테이너에게 [라이선스를 추가](no-permission/#for-users)해 달라고 요청하세요.
+home_permissive_title: "간단하고 관대한 라이선스를 원합니다."
+home_permissive_content: |-
+  [MIT 라이선스](licenses/mit/)는 짧고 명료합니다. 비공개 소스 버전을 만들고 배포하는 것을 포함해, 사람들이 당신의 프로젝트로 거의 무엇이든 할 수 있게 해 줍니다.
+home_copyleft_title: "개선 사항을 공유하는 것이 중요합니다."
+home_copyleft_content: |-
+  [GNU GPLv3](licenses/gpl-3.0/) 역시 사람들이 당신의 프로젝트로 거의 무엇이든 할 수 있게 해 주지만, 비공개 소스 버전을 배포하는 것은 *예외*입니다.
+home_more_question: "이 중 어느 것도 제게 맞지 않으면 어떻게 하나요?"
+home_nonsoftware_title: "제 프로젝트는 소프트웨어가 아닙니다."
+home_nonsoftware_content: |-
+  [그런 경우를 위한 라이선스가 있습니다](non-software/).
+home_morechoices_title: "더 많은 선택지를 원합니다."
+home_morechoices_content: |-
+  [더 많은 라이선스가 있습니다](licenses/).
+home_nolicense_title: "라이선스를 선택하고 싶지 않습니다."
+home_nolicense_content: |-
+  [선택하지 않으면 어떻게 되는지 알려드립니다](no-permission/).
+
+# --- 라이선스 페이지(/licenses/) ---------------------------------------------
+licenses_intro_html: |-
+  오픈 소스 라이선스는 소프트웨어의 출처와 개방성을 보존하는 조건을 전제로, 누구나 라이선스가 부여된 소프트웨어를 어떤 목적으로든 사용, 수정, 공유할 수 있도록 허용합니다. 아래 라이선스는 조건의 수에 따라 가장 많은 것(GNU AGPLv3)부터 전혀 없는 것(Unlicense)까지 정렬되어 있습니다. <a href="/">홈페이지</a>에서 소개하는 인기 라이선스(GNU GPLv3와 MIT)도 이 범위 안에 들어 있다는 점에 유의하세요.
+licenses_appendix_note_html: |-
+  choosealicense.com의 모든 라이선스 참조 표를 찾고 있다면 <a href="/appendix">부록</a>을 참고하세요.
+licenses_outro_html: |-
+  위 라이선스들은 매우 보호적인 것부터 무조건적인 것까지 오픈 소스 라이선스의 전체 범위를 나타냅니다. 이 중 하나면 대부분의 새 오픈 소스 프로젝트에 적합할 것입니다. 위 라이선스의 이전 버전이나 가까운 대체 라이선스를 포함해, 다른 많은 오픈 소스 라이선스가 존재합니다. 더 자세히 알고 싶다면 <a href="/about/">소개 페이지</a>에 나열된 자료를 참고하세요.
+
+  이미 잘 알고 있고 선호하는 라이선스가 있다면 더할 나위 없이 좋습니다! 우리는 당신의 생각을 바꾸려는 것이 아닙니다. 하지만 너무 많은 선택지에 어리둥절하다면, 우리가 도움이 될 수 있을지도 모릅니다.
+
+# --- 부록(/appendix/) --------------------------------------------------------
+appendix_intro: |-
+  참고를 위해, [choosealicense.com 저장소](https://github.com/github/choosealicense.com)에 설명된 모든 라이선스의 표를 아래에 정리했습니다.
+
+  라이선스를 선택하려고 오셨다면, **[홈페이지에서 시작하세요](/)**. 대부분의 경우에 적합한 몇 가지 라이선스를 볼 수 있습니다.
+appendix_col_license: "라이선스"
+appendix_legend_heading: "범례"
+appendix_legend_permissions_html: |-
+  오픈 소스 라이선스는, 저작권법이나 그 밖의 "지식 재산권" 법이 금지할 수도 있는 일을 라이선스가 부여된 저작물로 할 수 있도록 대중에게 <span class="license-permissions"><span class="license-marker">✓</span></span> <b>허용</b>을 부여합니다.
+appendix_legend_conditions_html: |-
+  대부분의 오픈 소스 라이선스가 부여하는 허용은 <span class="license-conditions"><span class="license-marker">ⓘ</span></span> <b>조건</b>의 준수를 전제로 합니다.
+appendix_legend_limitations_html: |-
+  대부분의 오픈 소스 라이선스에는 보통 보증과 책임을 부인하고, 때로는 라이선스의 부여 대상에서 특허나 상표를 명시적으로 제외하는 <span class="license-limitations"><span class="license-marker">✕</span></span> <b>제한</b>도 있습니다.
+
+# --- 404 페이지 --------------------------------------------------------------
+notfound_p1: |-
+  죄송합니다! 찾고 계신 페이지를 찾을 수 없었습니다.
+notfound_p2: |-
+  라이선스를 보려던 것이라면 [라이선스](/licenses)로 이동하세요.
+
+# --- 자바스크립트 언어 제안 배너(assets/js/i18n.js) --------------------------
+# banner_switch의 %language%는 제안된 언어의 이름입니다. banner_suggest는 이름을
+# 직접 포함하므로 언어마다 문법과 표기를 스스로 제어합니다.
+banner_suggest: "이 페이지는 **한국어**로도 제공됩니다."
+banner_switch: "**한국어**로 전환"
+banner_dismiss: "닫기"

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+echo "spinning up the server..."
+bundle exec jekyll serve --watch --incremental --trace
+
+echo "cleaning up..."
+rm -Rf _site

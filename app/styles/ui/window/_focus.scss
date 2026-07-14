@@ -1,0 +1,13 @@
+// On Windows we want a subtle change in the appeareance of the
+// title bar when the app looses focus.
+body.platform-win32 #desktop-app-chrome.blurred {
+  #desktop-app-title-bar {
+    // Drop the opacity of the app icon, non-hovered
+    // window controls and toolbar buttons (top level menu items)
+    .app-icon,
+    .window-controls > button:not(:hover),
+    .toolbar-dropdown:not(.open) .menu-item .label {
+      opacity: 0.6;
+    }
+  }
+}

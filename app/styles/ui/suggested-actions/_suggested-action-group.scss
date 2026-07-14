@@ -1,0 +1,34 @@
+.suggested-action-group {
+  display: flex;
+  flex-direction: column;
+
+  &.primary {
+    margin-bottom: var(--spacing);
+  }
+
+  // 'replace' animation styles
+  .replace-leave {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  .replace-leave.replace-leave-active {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0);
+    transition: opacity 200ms ease-in, transform 250ms var(--easing-ease-in-back);
+  }
+
+  .replace-enter {
+    opacity: 0;
+    transform: translate3d(-100%, 0, 0);
+  }
+
+  .replace-enter.replace-enter-active {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    transition: opacity 200ms ease-in 500ms, transform 250ms var(--easing-ease-out-back) 500ms;
+  }
+
+  &.replace-height {
+    transition: height 250ms ease-out 250ms;
+  }
+}

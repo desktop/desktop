@@ -1,0 +1,9 @@
+@import '../mixins';
+
+.path-text-component {
+  @include ellipsis;
+
+  .dirname {
+    color: var(--text-secondary-color);
+  }
+}
