@@ -38,6 +38,8 @@ import { Emoji } from '../lib/emoji'
 import { PopupType } from '../models/popup'
 import { PopoverDropdown } from './lib/popover-dropdown'
 import { Button } from './lib/button'
+import { Octicon } from './octicons'
+import * as octicons from './octicons/octicons.generated'
 
 interface IRepositoryViewProps {
   readonly repository: Repository
@@ -148,6 +150,12 @@ interface IRepositoryViewProps {
 interface IRepositoryViewState {
   readonly changesListScrollTop: number
   readonly compareListScrollTop: number
+
+  /**
+   * Whether the sidebar has been collapsed entirely by dragging it past
+   * its minimum width, leaving all the space to the diff.
+   */
+  readonly sidebarHidden: boolean
 }
 
 const enum Tab {
@@ -179,6 +187,7 @@ export class RepositoryView extends React.Component<
     this.state = {
       changesListScrollTop: 0,
       compareListScrollTop: 0,
+      sidebarHidden: false,
     }
   }
 
@@ -225,7 +234,7 @@ export class RepositoryView extends React.Component<
 
     // When the sidebar is narrower than the two tabs can comfortably fit,
     // collapse them into a single dropdown switcher.
-    if (clamp(this.props.sidebarWidth) < 180) {
+    if (clamp(this.props.sidebarWidth) < 160) {
       return this.renderCompactTabSwitcher(selectedTab)
     }
 
@@ -455,7 +464,32 @@ export class RepositoryView extends React.Component<
     this.props.dispatcher.setSidebarWidth(width)
   }
 
+  private collapseSidebar = () => {
+    this.setState({ sidebarHidden: true })
+  }
+
+  private expandSidebar = () => {
+    this.setState({ sidebarHidden: false })
+  }
+
   private renderSidebar(): JSX.Element {
+    // The sidebar was collapsed by dragging it past its minimum width.
+    // Render a slim rail that expands it again when clicked.
+    if (this.state.sidebarHidden) {
+      return (
+        <div id="repository-sidebar" className="sidebar-collapsed">
+          <button
+            type="button"
+            className="expand-sidebar-button"
+            onClick={this.expandSidebar}
+            aria-label="Show sidebar"
+          >
+            <Octicon symbol={octicons.chevronRight} />
+          </button>
+        </div>
+      )
+    }
+
     return (
       <FocusContainer onFocusWithinChanged={this.onSidebarFocusWithinChanged}>
         <Resizable
@@ -465,6 +499,7 @@ export class RepositoryView extends React.Component<
           minimumWidth={this.props.sidebarWidth.min}
           onReset={this.handleSidebarWidthReset}
           onResize={this.handleSidebarResize}
+          onResizePastMinimum={this.collapseSidebar}
           description="Repository sidebar"
         >
           {this.renderTabs()}

@@ -22,6 +22,30 @@
     flex-direction: column;
     border-right: 1px solid var(--box-border-color);
 
+    // Slim rail shown when the sidebar has been collapsed by dragging it
+    // past its minimum width; clicking it brings the sidebar back.
+    &.sidebar-collapsed {
+      flex-shrink: 0;
+      width: 12px;
+
+      .expand-sidebar-button {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary-color);
+        cursor: pointer;
+
+        &:hover {
+          background: var(--box-selected-background-color);
+          color: var(--text-color);
+        }
+      }
+    }
+
     .tab-bar {
       flex-shrink: 0;
     }

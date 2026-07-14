@@ -83,6 +83,19 @@ export class Resizable extends React.Component<
     const deltaX = e.clientX - this.startX
     const newWidth = this.startWidth + deltaX
 
+    // When the consumer supports collapsing, dragging well past the
+    // minimum width snaps the panel closed.
+    const { onResizePastMinimum, minimumWidth } = this.props
+    if (
+      onResizePastMinimum !== undefined &&
+      newWidth < (minimumWidth ?? DefaultMinWidth) - 40
+    ) {
+      this.unsubscribeFromGlobalEvents()
+      onResizePastMinimum()
+      e.preventDefault()
+      return
+    }
+
     this.updateResizeMessage(
       deltaX > 0 ? ResizeDirection.Increase : ResizeDirection.Decrease
     )
@@ -93,6 +106,10 @@ export class Resizable extends React.Component<
   private unsubscribeFromGlobalEvents() {
     document.removeEventListener('mousemove', this.handleDragMove)
     document.removeEventListener('mouseup', this.handleDragStop)
+  }
+
+  public componentWillUnmount() {
+    this.unsubscribeFromGlobalEvents()
   }
 
   /**
@@ -253,4 +270,11 @@ export interface IResizableProps {
    * on the resize handle).
    */
   readonly onReset: () => void
+
+  /**
+   * Optional handler called when the user drags the resize handle well
+   * past the minimum width, indicating they want to collapse the panel
+   * entirely. When omitted, drags are simply clamped at the minimum.
+   */
+  readonly onResizePastMinimum?: () => void
 }
