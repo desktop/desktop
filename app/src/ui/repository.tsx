@@ -36,6 +36,8 @@ import { PullRequestSuggestedNextAction } from '../models/pull-request'
 import { clamp } from '../lib/clamp'
 import { Emoji } from '../lib/emoji'
 import { PopupType } from '../models/popup'
+import { PopoverDropdown } from './lib/popover-dropdown'
+import { Button } from './lib/button'
 
 interface IRepositoryViewProps {
   readonly repository: Repository
@@ -166,6 +168,7 @@ export class RepositoryView extends React.Component<
 
   private readonly changesSidebarRef = React.createRef<ChangesSidebar>()
   private readonly compareSidebarRef = React.createRef<CompareSidebar>()
+  private readonly tabSwitcherRef = React.createRef<PopoverDropdown>()
 
   private focusHistoryNeeded: boolean = false
   private focusChangesNeeded: boolean = false
@@ -220,6 +223,12 @@ export class RepositoryView extends React.Component<
         ? Tab.Changes
         : Tab.History
 
+    // When the sidebar is narrower than the two tabs can comfortably fit,
+    // collapse them into a single dropdown switcher.
+    if (clamp(this.props.sidebarWidth) < 180) {
+      return this.renderCompactTabSwitcher(selectedTab)
+    }
+
     return (
       <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
         <span className="with-indicator" id="changes-tab">
@@ -231,6 +240,48 @@ export class RepositoryView extends React.Component<
           <span>History</span>
         </div>
       </TabBar>
+    )
+  }
+
+  private selectChangesTab = () => {
+    this.onTabClicked(Tab.Changes)
+    this.tabSwitcherRef.current?.closePopover()
+  }
+
+  private selectHistoryTab = () => {
+    this.onTabClicked(Tab.History)
+    this.tabSwitcherRef.current?.closePopover()
+  }
+
+  private renderCompactTabSwitcher(selectedTab: Tab): JSX.Element {
+    const label = selectedTab === Tab.Changes ? 'Changes' : 'History'
+
+    return (
+      <PopoverDropdown
+        className="sidebar-tab-switcher"
+        contentTitle="Switch view"
+        buttonContent={
+          <span className="with-indicator">
+            <span>{label}</span>
+            {selectedTab === Tab.Changes ? this.renderChangesBadge() : null}
+          </span>
+        }
+        buttonAriaLabel={`Current view: ${label}`}
+        maxHeight={110}
+        ref={this.tabSwitcherRef}
+      >
+        <div className="sidebar-tab-switcher-items">
+          <Button onClick={this.selectChangesTab}>
+            <span className="with-indicator">
+              <span>Changes</span>
+              {this.renderChangesBadge()}
+            </span>
+          </Button>
+          <Button onClick={this.selectHistoryTab}>
+            <span>History</span>
+          </Button>
+        </div>
+      </PopoverDropdown>
     )
   }
 

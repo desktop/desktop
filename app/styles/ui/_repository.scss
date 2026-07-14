@@ -26,11 +26,91 @@
       flex-shrink: 0;
     }
 
+    // Compact Changes/History switcher shown when the sidebar is too
+    // narrow to fit both tabs.
+    .sidebar-tab-switcher {
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--box-border-color);
+
+      // The default dropdown popover is far too large for a two-item
+      // switcher; size it to its content.
+      .popover-dropdown-popover {
+        min-height: 0;
+        width: 160px;
+      }
+
+      > .button-component {
+        width: 100%;
+        height: var(--tab-bar-height);
+        border: none;
+        border-radius: 0;
+        // Match the selected tab's blue underline from the regular tab bar
+        box-shadow: inset 0 -3px 0px var(--tab-bar-active-color);
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        .with-indicator {
+          display: flex;
+          align-items: center;
+        }
+
+        .counter {
+          color: var(--tab-bar-count-color);
+          background-color: var(--tab-bar-count-background-color);
+          margin-left: 4px;
+          padding: 2px 5px;
+          font-size: var(--font-size-xs);
+          font-weight: var(--font-weight-semibold);
+          border-radius: 20px;
+          line-height: 1;
+        }
+      }
+    }
+
     .panel {
       height: 100%;
       flex: 1 1 auto;
       min-height: 0;
       overflow-y: auto;
+    }
+  }
+}
+
+// Popover contents for the compact Changes/History switcher
+.sidebar-tab-switcher-items {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-half);
+
+  .button-component {
+    flex: none;
+    height: auto;
+    padding: var(--spacing-half) var(--spacing);
+    justify-content: flex-start;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+
+    &:hover {
+      background: var(--box-selected-background-color);
+    }
+
+    .with-indicator {
+      display: flex;
+      align-items: center;
+    }
+
+    .counter {
+      color: var(--tab-bar-count-color);
+      background-color: var(--tab-bar-count-background-color);
+      margin-left: 4px;
+      padding: 2px 5px;
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      border-radius: 20px;
+      line-height: 1;
     }
   }
 }

@@ -279,6 +279,17 @@
         margin-bottom: 1px;
         background: var(--commit-message-action-button-separator-color);
       }
+
+      // When the sidebar is narrow, drop the separators and the "New"
+      // call-to-action bubble so just the icons fit.
+      container-type: inline-size;
+
+      @container (max-width: 179px) {
+        .separator,
+        .call-to-action-bubble {
+          display: none;
+        }
+      }
     }
 
     .co-authors-toggle,

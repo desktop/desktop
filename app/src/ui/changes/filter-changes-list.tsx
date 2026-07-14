@@ -20,6 +20,7 @@ import {
 import { Account } from '../../models/account'
 import { Author, UnknownAuthor } from '../../models/author'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { PathText } from '../lib/path-text'
 import { CommitOptions, IFileListFilterState } from '../../lib/app-state'
 import {
   isSafeFileExtension,
@@ -1262,8 +1263,14 @@ export class FilterChangesList extends React.Component<
 
     const checkAllLabel = `${
       visibleFiles !== files.length ? `${formatNumber(visibleFiles)} of ` : ''
-    }
-    ${formatNumber(files.length)} changed file${plural(files.length)}`
+    }${formatNumber(files.length)} changed file${plural(files.length)}`
+
+    // Truncate the label with a middle ellipsis (like file rows do) when
+    // the sidebar is too narrow to fit it.
+    const checkboxContainerPadding = 10 * 2
+    const checkboxWidth = 20
+    const availableLabelWidth =
+      this.props.availableWidth - checkboxContainerPadding - checkboxWidth
 
     return (
       <div className="checkbox-container">
@@ -1274,7 +1281,12 @@ export class FilterChangesList extends React.Component<
           disabled={disableAllCheckbox}
           ariaLabelledBy="changes-list-check-all-label"
           className="changes-list-check-all"
-          label={checkAllLabel}
+          label={
+            <PathText
+              path={checkAllLabel}
+              availableWidth={availableLabelWidth}
+            />
+          }
         />
       </div>
     )
