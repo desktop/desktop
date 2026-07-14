@@ -80,7 +80,21 @@
         align-items: center;
         justify-content: space-between;
 
-        @include tab-count-badge;
+        .with-indicator {
+          display: flex;
+          align-items: center;
+        }
+
+        .counter {
+          color: var(--tab-bar-count-color);
+          background-color: var(--tab-bar-count-background-color);
+          margin-left: 4px;
+          padding: 2px 5px;
+          font-size: var(--font-size-xs);
+          font-weight: var(--font-weight-semibold);
+          border-radius: 20px;
+          line-height: 1;
+        }
       }
     }
 
@@ -112,6 +126,20 @@
       background: var(--box-selected-background-color);
     }
 
-    @include tab-count-badge;
+    .with-indicator {
+      display: flex;
+      align-items: center;
+    }
+
+    .counter {
+      color: var(--tab-bar-count-color);
+      background-color: var(--tab-bar-count-background-color);
+      margin-left: 4px;
+      padding: 2px 5px;
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      border-radius: 20px;
+      line-height: 1;
+    }
   }
 }
