@@ -474,7 +474,27 @@ export class RepositoryView extends React.Component<
     document.addEventListener('mouseup', this.onCollapsedDragEnd)
   }
 
+  /**
+   * Whether the pointer has moved during a drag that started on (or
+   * collapsed down to) the collapsed sidebar rail. Used to suppress the
+   * click-to-expand handler right after a drag gesture.
+   */
+  private collapsedDragDidMove = false
+
+  private onCollapsedRailMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) {
+      return
+    }
+
+    this.collapsedDragDidMove = false
+    document.addEventListener('mousemove', this.onCollapsedDragMove)
+    document.addEventListener('mouseup', this.onCollapsedDragEnd)
+    e.preventDefault()
+  }
+
   private onCollapsedDragMove = (e: MouseEvent) => {
+    this.collapsedDragDidMove = true
+
     const { min, max } = this.props.sidebarWidth
     const collapseThreshold = min - 40
 
@@ -499,6 +519,13 @@ export class RepositoryView extends React.Component<
   }
 
   private expandSidebar = () => {
+    // A drag gesture on the rail fires a click on mouseup; only treat it
+    // as click-to-expand when the pointer never moved.
+    if (this.collapsedDragDidMove) {
+      this.collapsedDragDidMove = false
+      return
+    }
+
     this.setState({ sidebarHidden: false })
   }
 
@@ -512,6 +539,7 @@ export class RepositoryView extends React.Component<
             type="button"
             className="expand-sidebar-button"
             onClick={this.expandSidebar}
+            onMouseDown={this.onCollapsedRailMouseDown}
             aria-label="Show sidebar"
           >
             <Octicon symbol={octicons.chevronRight} />
