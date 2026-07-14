@@ -3,7 +3,7 @@
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
   },
-  "description": "GitHub Desktop build dependencies",
+  "description": "GITmaxed build dependencies",
   "scripts": {
     "cli": "ts-node app/src/cli/main.ts",
     "check:eslint": "tsc -P eslint-rules/",

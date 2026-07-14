@@ -103,6 +103,7 @@ const GitIgnoreFileName = '.gitignore'
 interface IFilterChangesListProps {
   readonly repository: Repository
   readonly repositoryAccount: Account | null
+  readonly onAccountChanged: (accountLogin: string | null) => void
   readonly workingDirectory: WorkingDirectoryStatus
   readonly mostRecentLocalCommit: Commit | null
   /**
@@ -967,6 +968,7 @@ export class FilterChangesList extends React.Component<
         filesToBeCommittedCount={filesSelected.length}
         repository={repository}
         repositoryAccount={repositoryAccount}
+        onAccountChanged={this.props.onAccountChanged}
         commitMessage={this.props.commitMessage}
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}

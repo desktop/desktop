@@ -25,6 +25,8 @@ export type CommitMessageAvatarWarningType =
   | 'misattribution'
   | 'disallowedEmail'
 
+type AvatarPopoverTab = 'details' | 'account'
+
 interface ICommitMessageAvatarState {
   readonly isPopoverOpen: boolean
 
@@ -33,6 +35,9 @@ interface ICommitMessageAvatarState {
 
   /** Whether the git configuration is local to the repository or global  */
   readonly isGitConfigLocal: boolean
+
+  /** The active tab in the popover */
+  readonly activeTab: AvatarPopoverTab
 }
 
 interface ICommitMessageAvatarProps {
@@ -92,6 +97,12 @@ interface ICommitMessageAvatarProps {
   readonly onOpenGitSettings: () => void
 
   readonly accounts: ReadonlyArray<Account>
+
+  /** The currently assigned account for this repository. */
+  readonly currentAccount: Account | null
+
+  /** Called when the user switches the assigned account for this repository. */
+  readonly onAccountChanged: (accountLogin: string | null) => void
 }
 
 /**
@@ -112,6 +123,7 @@ export class CommitMessageAvatar extends React.Component<
       isPopoverOpen: false,
       accountEmail: this.props.preferredAccountEmail,
       isGitConfigLocal: false,
+      activeTab: 'details',
     }
     this.determineGitConfigLocation()
   }
@@ -189,8 +201,6 @@ export class CommitMessageAvatar extends React.Component<
   private renderWarningBadge() {
     const { warningType, emailRuleFailures } = this.props
 
-    // the parent component only renders this one if an error/warning is present, so we
-    // only need to check which of the two it is here
     const isError =
       warningType === 'disallowedEmail' && emailRuleFailures?.status === 'fail'
     const classes = classNames('warning-badge', {
@@ -209,7 +219,7 @@ export class CommitMessageAvatar extends React.Component<
   private openPopover = () => {
     this.setState(prevState => {
       if (prevState.isPopoverOpen === false) {
-        return { isPopoverOpen: true }
+        return { isPopoverOpen: true, activeTab: 'details' }
       }
       return null
     })
@@ -231,6 +241,83 @@ export class CommitMessageAvatar extends React.Component<
     } else {
       this.openPopover()
     }
+  }
+
+  private onTabClick = (tab: AvatarPopoverTab) => {
+    this.setState({ activeTab: tab })
+  }
+
+  private renderTabBar() {
+    const { activeTab } = this.state
+
+    return (
+      <div className="commit-avatar-tab-bar">
+        <button
+          className={classNames('tab-button', { selected: activeTab === 'details' })}
+          onClick={() => this.onTabClick('details')}
+        >
+          Details
+        </button>
+        <button
+          className={classNames('tab-button', { selected: activeTab === 'account' })}
+          onClick={() => this.onTabClick('account')}
+        >
+          Switch Account
+        </button>
+      </div>
+    )
+  }
+
+  private renderDetailsTab() {
+    const { warningType } = this.props
+
+    if (warningType !== 'none') {
+      return this.renderWarningPopover()
+    }
+    return this.renderGitConfigPopover()
+  }
+
+  private renderAccountTab() {
+    const { currentAccount, accounts } = this.props
+
+    // Get accounts sharing the same endpoint as the current account
+    const sameEndpointAccounts =
+      currentAccount !== null
+        ? accounts.filter(a => a.endpoint === currentAccount.endpoint)
+        : []
+
+    if (sameEndpointAccounts.length <= 1) {
+      return (
+        <p className="secondary-text">
+          Only one account is available for this endpoint.
+        </p>
+      )
+    }
+
+    return (
+      <>
+        <p>
+          Select which account to associate with this repository.
+        </p>
+        <Row>
+          <Select
+            label="Account"
+            value={currentAccount?.login ?? ''}
+            onChange={this.onAccountChange}
+          >
+            {sameEndpointAccounts.map(a => (
+              <option key={a.login} value={a.login}>
+                {a.login}
+              </option>
+            ))}
+          </Select>
+        </Row>
+        <p className="secondary-text">
+          This changes which account is used for push/pull operations and commit
+          attribution for this repository.
+        </p>
+      </>
+    )
   }
 
   private renderGitConfigPopover() {
@@ -399,20 +486,25 @@ export class CommitMessageAvatar extends React.Component<
 
   private renderPopover() {
     const { warningType } = this.props
+    const { activeTab } = this.state
 
     let header: string | JSX.Element | undefined = ''
-    switch (this.props.warningType) {
-      case 'misattribution':
-        header = 'This commit will be misattributed'
-        break
+    if (activeTab === 'account') {
+      header = 'Switch Account'
+    } else {
+      switch (warningType) {
+        case 'misattribution':
+          header = 'This commit will be misattributed'
+          break
 
-      case 'disallowedEmail':
-        header = 'This email address is disallowed'
-        break
+        case 'disallowedEmail':
+          header = 'This email address is disallowed'
+          break
 
-      default:
-        header = this.getCommittingAsTitle()
-        break
+        default:
+          header = this.getCommittingAsTitle()
+          break
+      }
     }
 
     return (
@@ -428,11 +520,12 @@ export class CommitMessageAvatar extends React.Component<
         onClickOutside={this.closePopover}
         ariaLabelledby="commit-avatar-popover-header"
       >
+        {this.renderTabBar()}
         <h3 id="commit-avatar-popover-header">{header}</h3>
 
-        {warningType !== 'none'
-          ? this.renderWarningPopover()
-          : this.renderGitConfigPopover()}
+        {activeTab === 'account'
+          ? this.renderAccountTab()
+          : this.renderDetailsTab()}
       </Popover>
     )
   }
@@ -449,6 +542,11 @@ export class CommitMessageAvatar extends React.Component<
     } else {
       this.props.onOpenGitSettings()
     }
+  }
+
+  private onAccountChange = (event: React.FormEvent<HTMLSelectElement>) => {
+    const login = event.currentTarget.value
+    this.props.onAccountChanged(login || null)
   }
 
   private onIgnoreClick = (event: React.MouseEvent<HTMLButtonElement>) => {

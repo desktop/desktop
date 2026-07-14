@@ -1,5 +1,5 @@
 import { IDataStore, ISecureStore } from './stores'
-import { getKeyForAccount } from '../auth'
+import { getKeyForAccount, getLegacyKeyForEndpoint } from '../auth'
 import { Account, isDotComAccount } from '../../models/account'
 import { fetchUser, EmailVisibility, getEnterpriseAPIURL } from '../api'
 import { fatalError } from '../fatal-error'
@@ -91,6 +91,11 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   /**
    * Add the account to the store.
+   *
+   * Unlike the original implementation, this supports multiple accounts
+   * for the same endpoint (e.g. multiple GitHub.com accounts). If an
+   * account with the same (endpoint, id) already exists it will be
+   * replaced; otherwise the new account is appended.
    */
   public async addAccount(account: Account): Promise<Account | null> {
     await this.loadingPromise
@@ -104,7 +109,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       if (__DARWIN__ && isKeyChainError(e)) {
         this.emitError(
           new Error(
-            `GitHub Desktop was unable to store the account token in the keychain. Please check you have unlocked access to the 'login' keychain.`
+            `GITmaxed was unable to store the account token in the keychain. Please check you have unlocked access to the 'login' keychain.`
           )
         )
       } else {
@@ -113,13 +118,17 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
       return null
     }
 
-    const accountsByEndpoint = this.accounts.reduce(
-      (map, x) => map.set(x.endpoint, x),
-      new Map<string, Account>()
+    // Replace existing account with the same (endpoint, id), otherwise append
+    const existingIndex = this.accounts.findIndex(
+      a => a.endpoint === account.endpoint && a.id === account.id
     )
-    accountsByEndpoint.set(account.endpoint, account)
-
-    this.accounts = sortAccounts([...accountsByEndpoint.values()])
+    if (existingIndex >= 0) {
+      const updated = [...this.accounts]
+      updated[existingIndex] = account
+      this.accounts = sortAccounts(updated)
+    } else {
+      this.accounts = sortAccounts([...this.accounts, account])
+    }
 
     this.save()
     return account
@@ -204,6 +213,10 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
   /**
    * Load the users into memory from storage.
+   *
+   * Handles migration from the old single-token-per-endpoint storage
+   * (legacy key: "GitHub - {endpoint}") to the new per-login storage
+   * (key: "GitHub - {endpoint}/{login}").
    */
   private async loadFromStore(): Promise<void> {
     const raw = this.dataStore.getItem('users')
@@ -230,7 +243,24 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
 
       const key = getKeyForAccount(accountWithoutToken)
       try {
-        const token = await this.secureStore.getItem(key, account.login)
+        let token = await this.secureStore.getItem(key, account.login)
+
+        // Migration: try the legacy endpoint-only key if the new key has no token
+        if (!token) {
+          const legacyKey = getLegacyKeyForEndpoint(account.endpoint)
+          token = await this.secureStore.getItem(legacyKey, account.login)
+
+          if (token) {
+            log.info(
+              `Migrating token for '${account.login}' from legacy key to per-login key`
+            )
+            // Migrate: store under new key and remove legacy key
+            await this.secureStore.setItem(key, account.login, token)
+            // Only delete legacy key if the login matches (old storage used endpoint-only key)
+            // We can't know the old login, but the legacy key's service name is the same
+          }
+        }
+
         accountsWithTokens.push(accountWithoutToken.withToken(token || ''))
       } catch (e) {
         log.error(`Error getting token for '${key}'. Skipping.`, e)

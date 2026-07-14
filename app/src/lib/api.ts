@@ -2340,12 +2340,20 @@ export function getDotComAPIEndpoint(): string {
   return 'https://api.github.com'
 }
 
-/** Get the account for the endpoint. */
+/** Get the account for the endpoint (first match, for backward compatibility). */
 export function getAccountForEndpoint(
   accounts: ReadonlyArray<Account>,
   endpoint: string
 ): Account | null {
   return accounts.find(a => a.endpoint === endpoint) || null
+}
+
+/** Get all accounts for the given endpoint. */
+export function getAccountsForEndpoint(
+  accounts: ReadonlyArray<Account>,
+  endpoint: string
+): ReadonlyArray<Account> {
+  return accounts.filter(a => a.endpoint === endpoint)
 }
 
 export function getOAuthAuthorizationURL(

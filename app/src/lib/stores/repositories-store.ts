@@ -153,7 +153,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.alias,
       repo.workflowPreferences,
       repo.isTutorialRepository,
-      repo.gitDir
+      repo.gitDir,
+      repo.assignedAccountLogin ?? null
     )
   }
 
@@ -293,7 +294,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository,
-      repository.gitDir
+      repository.gitDir,
+      repository.assignedAccountLogin
     )
   }
 
@@ -314,7 +316,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository,
-      gitDir
+      gitDir,
+      repository.assignedAccountLogin
     )
   }
 
@@ -329,6 +332,23 @@ export class RepositoriesStore extends TypedBaseStore<
     alias: string | null
   ): Promise<void> {
     await this.db.repositories.update(repository.id, { alias })
+
+    this.emitUpdatedRepositories()
+  }
+
+  /**
+   * Set the assigned GitHub account for the specified repository.
+   *
+   * @param repository          The repository to update.
+   * @param accountLogin        The GitHub account login to assign, or null to clear.
+   */
+  public async setAccountForRepository(
+    repository: Repository,
+    accountLogin: string | null
+  ): Promise<void> {
+    await this.db.repositories.update(repository.id, {
+      assignedAccountLogin: accountLogin,
+    })
 
     this.emitUpdatedRepositories()
   }
@@ -371,7 +391,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository,
-      gitDir
+      gitDir,
+      repository.assignedAccountLogin
     )
   }
 
@@ -418,7 +439,8 @@ export class RepositoriesStore extends TypedBaseStore<
         repository.alias,
         repository.workflowPreferences,
         repository.isTutorialRepository,
-        gitDir
+        gitDir,
+        repository.assignedAccountLogin
       ),
       existingRepository: false,
     }
@@ -567,7 +589,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.alias,
       repo.workflowPreferences,
       repo.isTutorialRepository,
-      repo.gitDir
+      repo.gitDir,
+      repo.assignedAccountLogin
     )
 
     assertIsRepositoryWithGitHubRepository(updatedRepo)

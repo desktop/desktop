@@ -23,12 +23,12 @@ export function parseError(error: Error): Error | null {
   }
   if (squirrelDNSRegex.test(error.message)) {
     return new Error(
-      'GitHub Desktop was not able to contact the update server. Ensure you have internet connectivity and try again.'
+      'GITmaxed was not able to contact the update server. Ensure you have internet connectivity and try again.'
     )
   }
   if (squirrelTimeoutRegex.test(error.message)) {
     return new Error(
-      'GitHub Desktop was not able to check for updates due to a timeout. Ensure you have internet connectivity and try again.'
+      'GITmaxed was not able to check for updates due to a timeout. Ensure you have internet connectivity and try again.'
     )
   }
 

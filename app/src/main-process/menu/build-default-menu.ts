@@ -69,10 +69,10 @@ export function buildDefaultMenuTemplate({
 
   if (__DARWIN__) {
     template.push({
-      label: 'GitHub Desktop',
+      label: 'GITmaxed',
       submenu: [
         {
-          label: 'About GitHub Desktop',
+          label: 'About GITmaxed',
           click: emit('show-about'),
           id: 'about',
         },
@@ -601,7 +601,7 @@ export function buildDefaultMenuTemplate({
         ...helpItems,
         separator,
         {
-          label: '&About GitHub Desktop',
+          label: '&About GITmaxed',
           click: emit('show-about'),
           id: 'about',
         },

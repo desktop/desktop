@@ -103,4 +103,33 @@
   .link-button-component {
     display: inline;
   }
+
+  .commit-avatar-tab-bar {
+    display: flex;
+    border-bottom: 1px solid var(--box-border-color);
+    margin-bottom: var(--spacing);
+
+    .tab-button {
+      flex: 1;
+      padding: var(--spacing-half) var(--spacing);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary-color);
+      text-align: center;
+      transition: color 0.15s, border-color 0.15s;
+
+      &:hover {
+        color: var(--text-color);
+      }
+
+      &.selected {
+        color: var(--text-color);
+        border-bottom-color: var(--accent-fgColor);
+        font-weight: 600;
+      }
+    }
+  }
 }

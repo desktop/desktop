@@ -339,7 +339,7 @@ export function showTestUI(
   function showTestNoExternalEditor() {
     dispatcher.postError(
       new ExternalEditorError(
-        `No suitable editors installed for GitHub Desktop to launch. Install ${suggestedExternalEditor.name} for your platform and restart GitHub Desktop to try again.`,
+        `No suitable editors installed for GITmaxed to launch. Install ${suggestedExternalEditor.name} for your platform and restart GITmaxed to try again.`,
         { suggestDefaultEditor: true }
       )
     )

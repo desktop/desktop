@@ -21,12 +21,10 @@ export function getDistPath() {
 }
 
 export function getExecutableName() {
-  const suffix = process.env.NODE_ENV === 'development' ? '-dev' : ''
-
   if (process.platform === 'win32') {
-    return `${getWindowsIdentifierName()}${suffix}`
+    return getWindowsIdentifierName()
   } else if (process.platform === 'linux') {
-    return 'desktop'
+    return 'gitmaxed'
   } else {
     return productName
   }
@@ -95,7 +93,7 @@ export function getWindowsDeltaNugetPackagePath() {
 }
 
 export function getWindowsIdentifierName() {
-  return 'GitHubDesktop'
+  return 'GITmaxed'
 }
 
 export function getBundleSizes() {

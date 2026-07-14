@@ -194,6 +194,7 @@ export class CommitMessageDialog extends React.Component<
               this.onCommitSpellcheckEnabledChanged
             }
             repositoryAccount={this.props.repositoryAccount}
+            onAccountChanged={this.onAccountChanged}
             onStopAmending={this.onStopAmending}
             onShowCreateForkDialog={this.onShowCreateForkDialog}
             accounts={this.props.accounts}
@@ -215,6 +216,10 @@ export class CommitMessageDialog extends React.Component<
 
   private onCoAuthorsUpdated = (coAuthors: ReadonlyArray<Author>) =>
     this.setState({ coAuthors })
+
+  private onAccountChanged = (_accountLogin: string | null) => {
+    // No-op in the amend dialog context
+  }
 
   private onShowCoAuthorsChanged = (showCoAuthoredBy: boolean) =>
     this.setState({ showCoAuthoredBy })

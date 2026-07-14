@@ -68,6 +68,13 @@ export interface IDatabaseRepository {
    * of Git and GitHub.
    */
   readonly isTutorialRepository?: boolean
+
+  /**
+   * The GitHub account login explicitly assigned to this repository.
+   * When set, this account is used for API operations and credential
+   * selection instead of auto-detection. Null means auto-detect.
+   */
+  readonly assignedAccountLogin?: string | null
 }
 
 /**
@@ -140,6 +147,7 @@ export class RepositoriesDatabase extends BaseDatabase {
 
     this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
     this.conditionalVersion(9, { owners: '++id, &key' }, createOwnerKey)
+    this.conditionalVersion(10, {})
   }
 }
 

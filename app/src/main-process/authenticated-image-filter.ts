@@ -22,6 +22,11 @@ function isGitHubRepoAssetPath(pathname: string) {
  *
  * Returns a method that can be used to update the list of signed-in accounts
  * which is used to resolve which token to use.
+ *
+ * With multi-account support, when multiple accounts share the same endpoint
+ * (e.g. multiple GitHub.com accounts), we use the first token found for that
+ * origin. This is sufficient for avatar/asset loading since any valid token
+ * will work for reading public or authorized content.
  */
 export function installAuthenticatedImageFilter(
   orderedWebRequest: OrderedWebRequest
@@ -48,9 +53,15 @@ export function installAuthenticatedImageFilter(
   })
 
   return (accounts: ReadonlyArray<EndpointToken>) => {
-    originTokens = new Map(
-      accounts.map(({ endpoint, token }) => [new URL(endpoint).origin, token])
-    )
+    // Build origin -> token map. When multiple accounts share an origin,
+    // keep the first one (any valid token works for avatar/asset loading).
+    originTokens = new Map<string, string>()
+    for (const { endpoint, token } of accounts) {
+      const origin = new URL(endpoint).origin
+      if (!originTokens.has(origin)) {
+        originTokens.set(origin, token)
+      }
+    }
 
     // If we have a token for api.github.com, add another entry in our
     // tokens-by-origin map with the same token for github.com. This is

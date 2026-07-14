@@ -112,6 +112,7 @@ interface ICommitMessageProps {
   readonly commitMessage: ICommitMessage | null
   readonly repository: Repository
   readonly repositoryAccount: Account | null
+  readonly onAccountChanged?: (accountLogin: string | null) => void
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting?: boolean
   readonly hookProgress: HookProgress | null
@@ -789,6 +790,8 @@ export class CommitMessage extends React.Component<
         onOpenGitSettings={this.onOpenGitSettings}
         repository={repository}
         accounts={this.props.accounts}
+        currentAccount={repositoryAccount}
+        onAccountChanged={this.props.onAccountChanged ?? (() => {})}
       />
     )
   }

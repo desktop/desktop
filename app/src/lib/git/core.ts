@@ -450,7 +450,7 @@ export function getDescriptionForError(
 ): string | null {
   if (isAuthFailureError(error)) {
     const menuHint = __DARWIN__
-      ? 'GitHub Desktop > Settings.'
+      ? 'GITmaxed > Settings.'
       : 'File > Options.'
     return `Authentication failed. Some common reasons include:
 
@@ -535,7 +535,7 @@ export function getDescriptionForError(
     case DugiteError.CannotMergeUnrelatedHistories:
       return 'Unable to merge unrelated histories in this repository.'
     case DugiteError.PushWithPrivateEmail:
-      return 'Cannot push these commits as they contain an email address marked as private on GitHub. To push anyway, visit https://github.com/settings/emails, uncheck "Keep my email address private", then switch back to GitHub Desktop to push your commits. You can then enable the setting again.'
+      return 'Cannot push these commits as they contain an email address marked as private on GitHub. To push anyway, visit https://github.com/settings/emails, uncheck "Keep my email address private", then switch back to GITmaxed to push your commits. You can then enable the setting again.'
     case DugiteError.LFSAttributeDoesNotMatch:
       return 'Git LFS attribute found in global Git configuration does not match expected value.'
     case DugiteError.ProtectedBranchDeleteRejected:

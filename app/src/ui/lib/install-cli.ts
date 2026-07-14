@@ -42,7 +42,7 @@ function removeExistingSymlink(asAdmin: boolean) {
       if (error !== null) {
         reject(
           new Error(
-            `Failed to remove file at ${InstalledCLIPath}. Authorization of GitHub Desktop Helper is required.`
+            `Failed to remove file at ${InstalledCLIPath}. Authorization of GITmaxed Helper is required.`
           )
         )
         return

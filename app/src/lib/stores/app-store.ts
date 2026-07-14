@@ -169,6 +169,7 @@ import {
   getAccountForCommitMessageGeneration,
   getAccountForCopilotConflictResolution,
   getAccountForRepository,
+  detectAccountFromFolder,
 } from '../get-account-for-repository'
 import {
   abortMerge,
@@ -237,7 +238,7 @@ import { updateMenuState } from '../menu-update'
 import { merge } from '../merge'
 import {
   IMatchedGitHubRepository,
-  matchGitHubRepository,
+  matchGitHubRepositoryForRepo,
   matchExistingRepository,
   urlMatchesRemote,
 } from '../repository-matching'
@@ -327,7 +328,9 @@ import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
-import { isAttributableEmailFor } from '../email'
+import { isAttributableEmailFor, lookupPreferredEmail } from '../email'
+import { setConfigValue } from '../git/config'
+import { setAssignedAccountForRepoPath } from '../trampoline/trampoline-environment'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
 import { GitError as DugiteError } from 'dugite'
 import {
@@ -1014,6 +1017,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       updateAccounts(endpointTokens)
 
       this.refreshSelectedRepositoryAfterAccountChange()
+
+      // Auto-assign accounts to repos based on folder structure
+      // when the account list changes
+      this.autoAssignAccountsByFolder()
 
       this.emitUpdate()
     })
@@ -2576,6 +2583,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdateNow()
 
     this.accountsStore.refresh()
+
+    // Auto-assign accounts to repositories based on folder structure
+    // after initial state is loaded (non-blocking)
+    this.autoAssignAccountsByFolder().catch(e =>
+      log.error('Failed auto-assigning accounts by folder', e)
+    )
 
     this.updateMenuLabelsForSelectedRepository()
   }
@@ -4831,6 +4844,51 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.repositoryWithRefreshedGitHubRepository(repository)
   }
 
+  /**
+   * Auto-assign accounts to repositories based on folder structure.
+   *
+   * Convention: repositories under `GitHub/{account-login}/repo-name`
+   * are automatically assigned to that account. Only repos without an
+   * explicit assignment are scanned.
+   */
+  private async autoAssignAccountsByFolder(): Promise<void> {
+    if (this.accounts.length <= 1) {
+      return
+    }
+
+    for (const repository of this.repositories) {
+      if (repository instanceof CloningRepository) {
+        continue
+      }
+
+      // Skip repos that already have an explicit account assignment
+      if (repository.assignedAccountLogin) {
+        continue
+      }
+
+      const detectedAccount = detectAccountFromFolder(this.accounts, repository)
+      if (detectedAccount) {
+        await this.repositoriesStore.setAccountForRepository(
+          repository,
+          detectedAccount.login
+        )
+      }
+    }
+
+    // Populate the path→account mapping for the credential helper
+    for (const repository of this.repositories) {
+      if (repository instanceof CloningRepository) {
+        continue
+      }
+      if (repository.assignedAccountLogin) {
+        setAssignedAccountForRepoPath(
+          repository.path,
+          repository.assignedAccountLogin
+        )
+      }
+    }
+  }
+
   private async updateBranchProtectionsFromAPI(repository: Repository) {
     if (repository.gitHubRepository === null) {
       return
@@ -4868,7 +4926,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const remote = gitStore.defaultRemote
     return remote !== null
-      ? matchGitHubRepository(this.accounts, remote.url)
+      ? matchGitHubRepositoryForRepo(
+          this.accounts,
+          remote.url,
+          repository.path
+        )
       : null
   }
 
@@ -4886,6 +4948,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
     newAlias: string | null
   ): Promise<void> {
     return this.repositoriesStore.updateRepositoryAlias(repository, newAlias)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setRepositoryAccount(
+    repository: Repository,
+    accountLogin: string | null
+  ): Promise<void> {
+    await this.repositoriesStore.setAccountForRepository(
+      repository,
+      accountLogin
+    )
+
+    // Update the mapping used by the credential helper
+    setAssignedAccountForRepoPath(repository.path, accountLogin)
+
+    // Update local git config to match the assigned account
+    if (accountLogin) {
+      const account = this.accounts.find(
+        a => a.login.toLowerCase() === accountLogin.toLowerCase()
+      )
+      if (account) {
+        const email = lookupPreferredEmail(account)
+        await setConfigValue(
+          repository,
+          'user.name',
+          account.name || account.login
+        )
+        await setConfigValue(repository, 'user.email', email)
+      }
+    }
+
+    // Refresh the author to update avatar and warning UI
+    await this._refreshAuthor(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -7414,7 +7509,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         if (match === null) {
           this.emitError(
             new ExternalEditorError(
-              `No suitable editors installed for GitHub Desktop to launch. Install ${suggestedExternalEditor.name} for your platform and restart GitHub Desktop to try again.`,
+              `No suitable editors installed for GITmaxed to launch. Install ${suggestedExternalEditor.name} for your platform and restart GITmaxed to try again.`,
               { suggestDefaultEditor: true }
             )
           )

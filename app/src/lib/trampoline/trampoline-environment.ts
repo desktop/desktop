@@ -37,6 +37,31 @@ export const getHasRejectedCredentialsForEndpoint = (
 const isBackgroundTaskEnvironment = new Map<string, boolean>()
 const trampolineEnvironmentPath = new Map<string, string>()
 
+/**
+ * A mapping from repository path (lowercase) to the explicitly assigned
+ * account login. Used by the credential helper to select the correct
+ * credentials when multiple accounts share the same endpoint.
+ */
+const repoPathToAssignedAccount = new Map<string, string | null>()
+
+export function setAssignedAccountForRepoPath(
+  repoPath: string,
+  login: string | null
+) {
+  const key = repoPath.toLowerCase()
+  if (login) {
+    repoPathToAssignedAccount.set(key, login)
+  } else {
+    repoPathToAssignedAccount.delete(key)
+  }
+}
+
+export function getAssignedAccountForRepoPath(
+  repoPath: string
+): string | undefined {
+  return repoPathToAssignedAccount.get(repoPath.toLowerCase()) ?? undefined
+}
+
 export const getTrampolineEnvironmentPath = (trampolineToken: string) =>
   trampolineEnvironmentPath.get(trampolineToken) ?? process.cwd()
 
@@ -69,7 +94,7 @@ export const GitUserAgent = memoizeOne(() =>
     })
     .then(v => {
       const suffix = __DEV__ ? `-${__SHA__.substring(0, 10)}` : ''
-      const ghdVersion = `GitHub Desktop/${__APP_VERSION__}${suffix}`
+      const ghdVersion = `GITmaxed/${__APP_VERSION__}${suffix}`
       const { platform, arch } = process
 
       return `git/${v} (${ghdVersion}; ${platform} ${arch})`

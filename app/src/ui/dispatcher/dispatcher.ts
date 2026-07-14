@@ -872,6 +872,14 @@ export class Dispatcher {
     return this.appStore._changeRepositoryAlias(repository, newAlias)
   }
 
+  /** Sets the assigned GitHub account for a repository. */
+  public setRepositoryAccount(
+    repository: Repository,
+    accountLogin: string | null
+  ): Promise<void> {
+    return this.appStore._setRepositoryAccount(repository, accountLogin)
+  }
+
   /** Rename the branch to a new name. */
   public renameBranch(
     repository: Repository,

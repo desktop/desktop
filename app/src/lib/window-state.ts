@@ -60,5 +60,11 @@ function sendWindowStateEvent(
   window: Electron.BrowserWindow,
   state: WindowState
 ) {
-  ipcWebContents.send(window.webContents, 'window-state-changed', state)
+  try {
+    if (!window.isDestroyed() && !window.webContents.isDestroyed()) {
+      ipcWebContents.send(window.webContents, 'window-state-changed', state)
+    }
+  } catch {
+    // Window or webContents destroyed during close — ignore
+  }
 }

@@ -29,19 +29,33 @@ enum SignInType {
 
 export class Accounts extends React.Component<IAccountsProps, {}> {
   public render() {
-    const { accounts } = this.props
-    const dotComAccount = accounts.find(isDotComAccount)
-
     return (
       <DialogContent className="accounts-tab">
         <h2>GitHub.com</h2>
-        {dotComAccount
-          ? this.renderAccount(dotComAccount, SignInType.DotCom)
-          : this.renderSignIn(SignInType.DotCom)}
+        {this.renderMultipleDotComAccounts()}
 
         <h2>GitHub Enterprise</h2>
         {this.renderMultipleEnterpriseAccounts()}
       </DialogContent>
+    )
+  }
+
+  private renderMultipleDotComAccounts() {
+    const dotComAccounts = this.props.accounts.filter(isDotComAccount)
+
+    return (
+      <>
+        {dotComAccounts.map(account => {
+          return this.renderAccount(account, SignInType.DotCom)
+        })}
+        {dotComAccounts.length === 0 ? (
+          this.renderSignIn(SignInType.DotCom)
+        ) : (
+          <Button onClick={this.props.onDotComSignIn}>
+            Add GitHub.com account
+          </Button>
+        )}
+      </>
     )
   }
 

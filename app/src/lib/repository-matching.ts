@@ -46,6 +46,44 @@ export function matchGitHubRepository(
 }
 
 /**
+ * Try to match a remote URL to a specific account, considering folder-based
+ * assignment. When multiple accounts share an endpoint, prefer the one whose
+ * login matches the parent folder of the repository path.
+ */
+export function matchGitHubRepositoryForRepo(
+  accounts: ReadonlyArray<Account>,
+  remote: string,
+  repositoryPath?: string
+): IMatchedGitHubRepository | null {
+  // First, try the basic matching
+  const basicMatch = matchGitHubRepository(accounts, remote)
+  if (basicMatch === null) {
+    return null
+  }
+
+  // If there are multiple accounts for the same endpoint, try folder matching
+  const sameEndpointAccounts = accounts.filter(
+    a => a.endpoint === basicMatch.account.endpoint
+  )
+
+  if (sameEndpointAccounts.length <= 1 || !repositoryPath) {
+    return basicMatch
+  }
+
+  // Try to match by folder name
+  const parentDir = Path.basename(Path.dirname(repositoryPath))
+  const folderMatch = sameEndpointAccounts.find(
+    a => a.login.toLowerCase() === parentDir.toLowerCase()
+  )
+
+  if (folderMatch) {
+    return { name: basicMatch.name, owner: basicMatch.owner, account: folderMatch }
+  }
+
+  return basicMatch
+}
+
+/**
  * Find an existing repository associated with this path
  *
  * @param repos The list of repositories tracked in the app

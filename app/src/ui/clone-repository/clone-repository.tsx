@@ -1,9 +1,10 @@
 import * as Path from 'path'
 import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
-import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
+import { getDefaultDir, setDefaultDir, getDefaultDirForAccount, setDefaultDirForAccount } from '../lib/default-dir'
 import {
   Account,
+  accountEquals,
   isDotComAccount,
   isEnterpriseAccount,
 } from '../../models/account'
@@ -239,7 +240,14 @@ export class CloneRepository extends React.Component<
   }
 
   private initializePath = async () => {
-    const initialPath = await getDefaultDir()
+    const basePath = await getDefaultDir()
+
+    // If an account is selected, use per-account directory
+    const account = this.getAccountForTab(this.props.selectedTab)
+    const initialPath = account
+      ? await getDefaultDirForAccount(account.login)
+      : basePath
+
     const dotComTabState = { ...this.state.dotComTabState, path: initialPath }
     const enterpriseTabState = {
       ...this.state.enterpriseTabState,
@@ -394,12 +402,22 @@ export class CloneRepository extends React.Component<
     }
   }
 
-  private onSelectedAccountChanged = (account: Account) => {
+  private onSelectedAccountChanged = async (account: Account) => {
     if (this.props.selectedTab !== CloneRepositoryTab.Generic) {
       this.setGitHubTabState(
         { selectedAccount: account },
         this.props.selectedTab
       )
+
+      // Update path to include account-specific directory
+      const accountDir = await getDefaultDirForAccount(account.login)
+      const tabState = this.getGitHubTabState(this.props.selectedTab)
+      const lastParsedIdentifier = tabState.lastParsedIdentifier
+      const newPath = lastParsedIdentifier
+        ? Path.join(accountDir, lastParsedIdentifier.name)
+        : accountDir
+
+      this.setGitHubTabState({ path: newPath }, this.props.selectedTab)
     }
   }
 
@@ -408,8 +426,8 @@ export class CloneRepository extends React.Component<
     const tabAccounts = this.getAccountsForTab(tab, this.props.accounts)
     const selectedAccount =
       (tabState.selectedAccount
-        ? tabAccounts.find(
-            a => a.endpoint === tabState.selectedAccount?.endpoint
+        ? tabAccounts.find(a =>
+            accountEquals(a, tabState.selectedAccount!)
           )
         : undefined) ?? tabAccounts.at(0)
 
@@ -657,11 +675,17 @@ export class CloneRepository extends React.Component<
     let newPath: string
 
     const dirPath = tabState.path
+    // Compute the account-specific base directory so we never strip it
+    const account = this.getAccountForTab(this.props.selectedTab)
+    const accountBase = account
+      ? await getDefaultDirForAccount(account.login)
+      : await getDefaultDir()
+
     if (lastParsedIdentifier) {
       if (parsed) {
-        newPath = Path.join(Path.dirname(dirPath), parsed.name)
+        newPath = Path.join(accountBase, parsed.name)
       } else {
-        newPath = Path.dirname(dirPath)
+        newPath = accountBase
       }
     } else if (parsed) {
       newPath = Path.join(dirPath, parsed.name)
@@ -732,7 +756,11 @@ export class CloneRepository extends React.Component<
       return { url }
     }
 
-    const account = await findAccountForRemoteURL(url, this.props.accounts)
+    // Prefer the account explicitly selected by the user in the clone dialog
+    const selectedAccount = this.getAccountForTab(this.props.selectedTab)
+    const account =
+      selectedAccount ??
+      (await findAccountForRemoteURL(url, this.props.accounts))
     if (lastParsedIdentifier !== null && account !== null) {
       const api = API.fromAccount(account)
       const { owner, name } = lastParsedIdentifier
@@ -794,7 +822,12 @@ export class CloneRepository extends React.Component<
     this.props.dispatcher.clone(url, path, { defaultBranch })
     this.props.onDismissed()
 
-    setDefaultDir(Path.resolve(path, '..'))
+    const account = this.getAccountForTab(this.props.selectedTab)
+    if (account) {
+      setDefaultDirForAccount(account.login, Path.resolve(path, '..'))
+    } else {
+      setDefaultDir(Path.resolve(path, '..'))
+    }
   }
 
   private onWindowFocus = () => {

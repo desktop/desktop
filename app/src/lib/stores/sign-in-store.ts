@@ -1,5 +1,5 @@
 import { Disposable } from 'event-kit'
-import { Account, isDotComAccount } from '../../models/account'
+import { Account } from '../../models/account'
 import { fatalError } from '../fatal-error'
 import {
   validateURL,
@@ -222,6 +222,9 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   /**
    * Initiate a sign in flow for github.com. This will put the store
    * in the Authentication step ready to receive user credentials.
+   *
+   * Unlike the original, this allows adding multiple GitHub.com accounts
+   * without requiring sign-out of the existing one first.
    */
   public beginDotComSignIn(resultCallback?: (result: SignInResult) => void) {
     const endpoint = getDotComAPIEndpoint()
@@ -230,26 +233,15 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       this.reset()
     }
 
-    const existingAccount = this.accounts.find(isDotComAccount)
-
-    if (existingAccount) {
-      this.setState({
-        kind: SignInStep.ExistingAccountWarning,
-        endpoint,
-        existingAccount,
-        error: null,
-        loading: false,
-        resultCallback: resultCallback ?? noop,
-      })
-    } else {
-      this.setState({
-        kind: SignInStep.Authentication,
-        endpoint,
-        error: null,
-        loading: false,
-        resultCallback: resultCallback ?? noop,
-      })
-    }
+    // Always go directly to Authentication — no ExistingAccountWarning
+    // for DotCom since we support multiple accounts on the same endpoint.
+    this.setState({
+      kind: SignInStep.Authentication,
+      endpoint,
+      error: null,
+      loading: false,
+      resultCallback: resultCallback ?? noop,
+    })
   }
 
   /**
@@ -272,14 +264,9 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
 
     this.setState({ ...currentState, loading: true })
 
-    if (currentState.kind === SignInStep.ExistingAccountWarning) {
-      const { existingAccount } = currentState
-      // Try to avoid emitting an error out of AccountsStore if the account
-      // is already gone.
-      if (this.accounts.find(x => x.endpoint === existingAccount.endpoint)) {
-        await this.accountStore.removeAccount(existingAccount)
-      }
-    }
+    // NOTE: In multi-account mode, we no longer remove existing accounts
+    // before signing in. The AccountsStore.addAccount() method handles
+    // both adding new accounts and updating existing ones.
 
     const csrfToken = crypto.randomUUID()
 

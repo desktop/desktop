@@ -18,6 +18,7 @@ import { useExternalCredentialHelper } from './use-external-credential-helper'
 import {
   findGenericTrampolineAccount,
   findGitHubTrampolineAccount,
+  findGitHubTrampolineAccountForRepo,
 } from './find-account'
 import { IGitAccount } from '../../models/git-account'
 import {
@@ -47,11 +48,20 @@ const error = (msg: string, e: any) => log.error(`credential-helper: ${msg}`, e)
 const credWithAccount = (c: Credential, a: IGitAccount | undefined) =>
   a && new Map(c).set('username', a.login).set('password', a.token)
 
-async function getGitHubCredential(cred: Credential, store: AccountsStore) {
+async function getGitHubCredential(
+  cred: Credential,
+  store: AccountsStore,
+  token: string
+) {
   const endpoint = `${getCredentialUrl(cred)}`
-  const account = await findGitHubTrampolineAccount(store, endpoint)
+  const repoPath = getTrampolineEnvironmentPath(token)
+  const account = await findGitHubTrampolineAccountForRepo(
+    store,
+    endpoint,
+    repoPath
+  )
   if (account) {
-    info(`found GitHub credential for ${endpoint} in store`)
+    info(`found GitHub credential for ${endpoint} in store (account: ${account.login})`)
   }
   return credWithAccount(cred, account)
 }
@@ -92,7 +102,7 @@ async function getExternalCredential(input: Credential, token: string) {
 
 /** Implementation of the 'get' git credential helper command */
 async function getCredential(cred: Credential, store: Store, token: string) {
-  const ghCred = await getGitHubCredential(cred, store)
+  const ghCred = await getGitHubCredential(cred, store, token)
 
   if (ghCred) {
     return ghCred

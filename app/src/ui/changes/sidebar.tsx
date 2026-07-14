@@ -28,7 +28,7 @@ import { PopupType } from '../../models/popup'
 import { filesNotTrackedByLFS } from '../../lib/git/lfs'
 import { getLargeFilePaths } from '../../lib/large-files'
 import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
-import { getAccountForRepository } from '../../lib/get-account-for-repository'
+import { getBestAccountForRepository } from '../../lib/get-account-for-repository'
 import { IAheadBehind } from '../../models/branch'
 import { Emoji } from '../../lib/emoji'
 import { FilterChangesList } from './filter-changes-list'
@@ -228,6 +228,13 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     )
   }
 
+  private onAccountChanged = (accountLogin: string | null) => {
+    this.props.dispatcher.setRepositoryAccount(
+      this.props.repository,
+      accountLogin
+    )
+  }
+
   private onIncludeChanged = (
     file:
       | WorkingDirectoryFileChange
@@ -413,7 +420,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
         : []
 
     const isShowingStashEntry = selection.kind === ChangesSelectionKind.Stash
-    const repositoryAccount = getAccountForRepository(
+    const repositoryAccount = getBestAccountForRepository(
       this.props.accounts,
       this.props.repository
     )
@@ -425,6 +432,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           repositoryAccount={repositoryAccount}
+          onAccountChanged={this.onAccountChanged}
           workingDirectory={workingDirectory}
           conflictState={conflictState}
           mostRecentLocalCommit={this.props.mostRecentLocalCommit}

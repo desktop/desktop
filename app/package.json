@@ -1,19 +1,17 @@
 {
-  "name": "desktop",
-  "productName": "GitHub Desktop",
-  "bundleID": "com.github.GitHubClient",
-  "companyName": "GitHub, Inc.",
-  "version": "3.6.3-beta3",
+  "name": "gitmaxed",
+  "productName": "GITmaxed",
+  "bundleID": "com.gitmaxed.app",
+  "companyName": "GITmaxed",
+  "version": "1.0.0",
   "main": "./main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
   },
-  "description": "Simple collaboration from your desktop",
+  "description": "Multi-account Git client — manage multiple GitHub accounts in one app",
   "author": {
-    "name": "GitHub, Inc.",
-    "email": "opensource+desktop@github.com",
-    "url": "https://desktop.github.com/"
+    "name": "GITmaxed"
   },
   "license": "MIT",
   "dependencies": {
