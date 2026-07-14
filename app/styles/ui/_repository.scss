@@ -39,6 +39,11 @@
         color: var(--text-secondary-color);
         cursor: pointer;
 
+        .octicon {
+          position: relative;
+          left: -1px;
+        }
+
         &:hover {
           background: var(--box-selected-background-color);
           color: var(--text-color);
