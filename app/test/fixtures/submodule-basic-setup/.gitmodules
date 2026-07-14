@@ -1,3 +1,0 @@
-[submodule "foo/submodule"]
-	path = foo/submodule
-	url = https://github.com/shiftkey/submodule-test-case
