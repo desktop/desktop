@@ -31,6 +31,19 @@
     flex: initial;
     padding: var(--spacing-half);
     border-bottom: var(--base-border);
+
+    // The input's intrinsic (default) width would otherwise act as a
+    // floor and make the form overflow the sidebar when it's narrower
+    // than the "Select Branch to Compare…" placeholder.
+    .text-box-component {
+      min-width: 0;
+
+      input {
+        min-width: 0;
+        width: 100%;
+        text-overflow: ellipsis;
+      }
+    }
   }
 
   .compare-commit-list {
