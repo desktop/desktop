@@ -310,6 +310,7 @@ import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { arrayEquals } from '../equality'
 import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
+import { findBranchToCheckoutAfterDelete } from './helpers/find-branch-to-checkout-after-delete'
 import { updateRemoteUrl } from './updates/update-remote-url'
 import {
   TutorialStep,
@@ -4964,9 +4965,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
         toCheckout ?? this.getBranchToCheckoutAfterDelete(branch, repository)
 
       if (branchToCheckout !== null) {
-        await gitStore.performFailableOperation(() =>
+        const checkoutResult = await gitStore.performFailableOperation(() =>
           checkoutBranch(repository, branchToCheckout, gitStore.currentRemote)
         )
+
+        // If we needed to switch off of the branch being deleted (because
+        // it's checked out here) and that checkout failed - for example
+        // because the fallback branch is already checked out in another
+        // worktree - bail out instead of attempting the delete. The branch
+        // is still checked out at this point so the delete is guaranteed to
+        // fail too, and would otherwise surface a second, more confusing
+        // error on top of the one `performFailableOperation` already
+        // reported for the failed checkout.
+        if (checkoutResult === undefined) {
+          return this._refreshRepository(repository)
+        }
       }
 
       await gitStore.performFailableOperation(() => {
@@ -5019,28 +5032,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     branchToDelete: Branch,
     repository: Repository
   ): Branch | null {
-    const { branchesState } = this.repositoryStateCache.get(repository)
+    const { branchesState, worktrees } = this.repositoryStateCache.get(
+      repository
+    )
     const tip = branchesState.tip
     const currentBranch = tip.kind === TipState.Valid ? tip.branch : null
-    // if current branch is not the branch being deleted, no need to switch
-    // branches
-    if (currentBranch !== null && branchToDelete.name !== currentBranch.name) {
-      return null
-    }
 
-    // If the default branch is null, use the most recent branch excluding the branch
-    // the branch to delete as the branch to checkout.
-    const branchToCheckout =
-      branchesState.defaultBranch ??
-      branchesState.recentBranches.find(x => x.name !== branchToDelete.name)
-
-    if (branchToCheckout === undefined) {
-      throw new Error(
-        `It's not possible to delete the only existing branch in a repository.`
-      )
-    }
-
-    return branchToCheckout
+    return findBranchToCheckoutAfterDelete(
+      branchToDelete,
+      currentBranch,
+      branchesState.defaultBranch,
+      branchesState.recentBranches,
+      worktrees,
+      repository.path
+    )
   }
 
   private updatePushPullFetchProgress(
