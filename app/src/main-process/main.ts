@@ -11,6 +11,7 @@ import {
   nativeTheme,
 } from 'electron'
 import * as Fs from 'fs'
+import * as Path from 'path'
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, getAllMenuItems } from './menu'
@@ -52,6 +53,18 @@ import {
 import { initializeDesktopNotifications } from './notifications'
 import parseCommandLineArgs from 'minimist'
 import { CLIAction } from '../lib/cli-action'
+
+// Keep the personal build's Git identity fully separate from the official
+// GitHub Desktop app. The isolated global config makes Settings changes local
+// to this app, while the author/committer variables ensure repository-local
+// config cannot accidentally switch commits back to the other account.
+if (__APP_NAME__ === 'GitHub Desktop-dev') {
+  process.env.GIT_CONFIG_GLOBAL = Path.join(app.getPath('userData'), 'gitconfig')
+  process.env.GIT_AUTHOR_NAME = 'iwbinb'
+  process.env.GIT_AUTHOR_EMAIL = 'iwbinb@gmail.com'
+  process.env.GIT_COMMITTER_NAME = 'iwbinb'
+  process.env.GIT_COMMITTER_EMAIL = 'iwbinb@gmail.com'
+}
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -779,7 +792,7 @@ app.on(
 function createWindow() {
   const window = new AppWindow()
 
-  if (__DEV__) {
+  if (__DEV__ && process.env.DESKTOP_ENABLE_DEVTOOLS === '1') {
     const {
       default: installExtension,
       REACT_DEVELOPER_TOOLS,

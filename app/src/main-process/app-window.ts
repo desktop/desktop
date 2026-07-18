@@ -169,7 +169,10 @@ export class AppWindow {
     })
 
     this.window.webContents.once('did-finish-load', () => {
-      if (process.env.NODE_ENV === 'development') {
+      if (
+        process.env.NODE_ENV === 'development' &&
+        process.env.DESKTOP_ENABLE_DEVTOOLS === '1'
+      ) {
         this.window.webContents.openDevTools()
       }
 
