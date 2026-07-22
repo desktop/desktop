@@ -1,5 +1,15 @@
 {
   "releases": {
+    "3.6.4-beta1": [
+      "[Added] Add Copilot usage info, moving custom provider configuration into a link from the Copilot model picker and adding better support for accounts with multiple Copilot licenses",
+      "[Fixed] Disable Continue in the Copilot conflict resolution dialog until every file skipped by Copilot (e.g. minified or oversized conflicts) has been resolved, and list those files separately for manual resolution",
+      "[Fixed] Stop Copilot from overwriting a conflicted file's manual resolution when the user already removed the conflict markers themselves before clicking Continue",
+      "[Fixed] Copilot conflict resolution now surfaces the underlying error (sign-in, network, rate limit, timeout) instead of a generic \"returned no results\" message",
+      "[Fixed] Show correct expanded context and syntax highlighting for resolved lines in the Copilot conflicts Changes tab instead of unrelated content",
+      "[Fixed] Screen readers now announce the group label ('Main Worktree' / 'Linked Worktrees') for items in the worktree list",
+      "[Fixed] Show an error message instead of an endless loading spinner when a file's diff fails to load in the Copilot conflicts Changes tab",
+      "[Improved] Copilot conflict resolution now handles delete-vs-modify conflicts, suggesting \"keep\" or \"delete\" for files deleted on one branch and modified on the other"
+    ],
     "3.6.3": [
       "[Fixed] Resolve error that prevented Copilot-based features from working correctly on Windows - #22509",
       "[Fixed] Keep commit message @-mention autocomplete from surfacing users without a profile name when typing queries like \"@null\" - #22414. Thanks @sukanth!",
