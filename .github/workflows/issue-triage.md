@@ -46,6 +46,7 @@ safe-outputs:
     private-key: ${{ secrets.DESKTOP_TRIAGE_APP_PRIVATE_KEY }}
   add-labels:
     max: 3
+    issue-intent: true
     allowed:
       - bug
       - priority-1
