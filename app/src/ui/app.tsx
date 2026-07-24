@@ -225,7 +225,7 @@ import { AddWorktreeDialog } from './worktrees/add-worktree-dialog'
 import { RenameWorktreeDialog } from './worktrees/rename-worktree-dialog'
 import { DeleteWorktreeDialog } from './worktrees/delete-worktree-dialog'
 import { DeleteWorktreeFailedDialog } from './worktrees/delete-worktree-failed-dialog'
-import { WorktreeEntry } from '../models/worktree'
+import { WorktreeEntry, getSwitchableWorktrees } from '../models/worktree'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -3792,7 +3792,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const { worktrees } = selection.state
+    const worktrees = getSwitchableWorktrees(selection.state.worktrees)
 
     const currentFoldout = this.state.currentFoldout
 

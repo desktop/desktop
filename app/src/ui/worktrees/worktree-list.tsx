@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {
   WorktreeEntry,
+  getSwitchableWorktrees,
   getWorktreeDescription,
   getWorktreeDisplayName,
 } from '../../models/worktree'
@@ -46,8 +47,9 @@ export class WorktreeList extends React.Component<IWorktreeListProps> {
       IFilterListGroup<IWorktreeListItem, WorktreeGroupIdentifier>
     > = []
 
-    const mainWorktree = worktrees.find(w => w.type === 'main')
-    const linkedWorktrees = worktrees.filter(w => w.type === 'linked')
+    const switchable = getSwitchableWorktrees(worktrees)
+    const mainWorktree = switchable.find(w => w.type === 'main')
+    const linkedWorktrees = switchable.filter(w => w.type === 'linked')
 
     if (mainWorktree) {
       groups.push({
