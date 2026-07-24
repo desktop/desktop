@@ -117,4 +117,56 @@ describe('RepositoriesStore', () => {
       )
     })
   })
+
+  describe('switching worktrees', () => {
+    const mainPath = '/some/cool/path'
+    const worktreePath = '/some/cool/path-wt-a'
+    const worktreeGitDir = join(mainPath, '.git/worktrees/path-wt-a')
+
+    it('persists the main worktree path', async () => {
+      const repository = await repositoriesStore.addRepository(
+        mainPath,
+        join(mainPath, '.git')
+      )
+
+      await repositoriesStore.switchWorktree(
+        repository,
+        worktreePath,
+        false,
+        worktreeGitDir,
+        mainPath
+      )
+
+      const [reloaded] = await repositoriesStore.getAll()
+      assert.equal(reloaded.path, worktreePath)
+      assert.equal(reloaded.mainWorktreePath, mainPath)
+    })
+
+    it('keeps the main worktree path when switching between worktrees', async () => {
+      const repository = await repositoriesStore.addRepository(
+        mainPath,
+        join(mainPath, '.git')
+      )
+
+      const { repository: onWorktree } = await repositoriesStore.switchWorktree(
+        repository,
+        worktreePath,
+        false,
+        worktreeGitDir,
+        mainPath
+      )
+
+      // Switching on to a second worktree doesn't re-resolve the main worktree,
+      // so it has to survive without being passed again.
+      await repositoriesStore.switchWorktree(
+        onWorktree,
+        '/some/cool/path-wt-b',
+        false,
+        join(mainPath, '.git/worktrees/path-wt-b')
+      )
+
+      const [reloaded] = await repositoriesStore.getAll()
+      assert.equal(reloaded.mainWorktreePath, mainPath)
+    })
+  })
 })

@@ -54,7 +54,18 @@ export class Repository {
      * hasn't been resolved yet (e.g. for repositories added before this
      * property was introduced).
      */
-    public readonly gitDir: string | undefined = undefined
+    public readonly gitDir: string | undefined = undefined,
+    /**
+     * The path to the main worktree of this repository, recorded when Desktop
+     * switches onto one of its linked worktrees, or undefined if it hasn't been
+     * resolved yet (e.g. for repositories added before this property was
+     * introduced).
+     *
+     * Deleting a linked worktree can take its administrative git metadata with
+     * it, so the worktree set is not always discoverable after the fact. This
+     * records the main worktree while it is still known.
+     */
+    public readonly mainWorktreePath: string | undefined = undefined
   ) {
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
 
