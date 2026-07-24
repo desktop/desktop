@@ -30,7 +30,11 @@ import {
   CopyRelativeFilePathLabel,
   CopySelectedPathsLabel,
   CopySelectedRelativePathsLabel,
+  CopyFileDiffLabel,
+  CopySelectedFileDiffsLabel,
 } from '../lib/context-menu'
+import { getWorkingDirectoryDiff } from '../../lib/git'
+import { formatDiffsForClipboard } from '../../lib/format-diff-for-clipboard'
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
 import { IAutocompletionProvider } from '../autocompletion'
@@ -625,6 +629,37 @@ export class FilterChangesList extends React.Component<
     }
   }
 
+  private getCopyFileDiffMenuItem = (
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ): IMenuItem => {
+    return {
+      label: files.length === 1 ? CopyFileDiffLabel : CopySelectedFileDiffsLabel,
+      action: () => {
+        this.onCopyFileDiffs(files)
+      },
+    }
+  }
+
+  private onCopyFileDiffs = async (
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ) => {
+    try {
+      const diffs = await Promise.all(
+        files.map(async file => ({
+          path: file.path,
+          diff: await getWorkingDirectoryDiff(this.props.repository, file),
+        }))
+      )
+
+      const text = formatDiffsForClipboard(diffs)
+      if (text !== null) {
+        clipboard.writeText(text)
+      }
+    } catch (error) {
+      log.error('Failed to copy file diff to clipboard', error)
+    }
+  }
+
   private getRevealInFileManagerMenuItem = (
     file: WorkingDirectoryFileChange
   ): IMenuItem => {
@@ -777,13 +812,15 @@ export class FilterChangesList extends React.Component<
         },
         { type: 'separator' },
         this.getCopySelectedPathsMenuItem(selectedFiles),
-        this.getCopySelectedRelativePathsMenuItem(selectedFiles)
+        this.getCopySelectedRelativePathsMenuItem(selectedFiles),
+        this.getCopyFileDiffMenuItem(selectedFiles)
       )
     } else {
       items.push(
         { type: 'separator' },
         this.getCopyPathMenuItem(file),
-        this.getCopyRelativePathMenuItem(file)
+        this.getCopyRelativePathMenuItem(file),
+        this.getCopyFileDiffMenuItem([file])
       )
     }
 
@@ -823,6 +860,7 @@ export class FilterChangesList extends React.Component<
     items.push(
       this.getCopyPathMenuItem(file),
       this.getCopyRelativePathMenuItem(file),
+      this.getCopyFileDiffMenuItem([file]),
       { type: 'separator' },
       this.getRevealInFileManagerMenuItem(file),
       this.getOpenInExternalEditorMenuItem(file, enabled),

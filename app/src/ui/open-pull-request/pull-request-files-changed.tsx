@@ -13,6 +13,7 @@ import { pathExists } from '../../lib/path-exists'
 import {
   CopyFilePathLabel,
   CopyRelativeFilePathLabel,
+  CopyFileDiffLabel,
   DefaultEditorLabel,
   isSafeFileExtension,
   OpenWithDefaultProgramLabel,
@@ -25,6 +26,8 @@ import { clamp } from '../../lib/clamp'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { createCommitURL } from '../../lib/commit-url'
 import { DiffOptions } from '../diff/diff-options'
+import { formatDiffForClipboard } from '../../lib/format-diff-for-clipboard'
+import { getCommitDiff } from '../../lib/git'
 
 interface IPullRequestFilesChangedProps {
   readonly repository: Repository
@@ -207,6 +210,12 @@ export class PullRequestFilesChanged extends React.Component<
         label: CopyRelativeFilePathLabel,
         action: () => clipboard.writeText(Path.normalize(file.path)),
       },
+      {
+        label: CopyFileDiffLabel,
+        action: () => {
+          this.onCopyFileDiff(file)
+        },
+      },
       { type: 'separator' },
     ]
 
@@ -222,6 +231,32 @@ export class PullRequestFilesChanged extends React.Component<
     })
 
     showContextualMenu(items)
+  }
+
+  private onCopyFileDiff = async (file: CommittedFileChange) => {
+    try {
+      let diff = this.props.diff
+
+      if (
+        this.props.selectedFile === null ||
+        this.props.selectedFile.id !== file.id ||
+        diff === null
+      ) {
+        diff = await getCommitDiff(
+          this.props.repository,
+          file,
+          file.commitish,
+          this.props.hideWhitespaceInDiff
+        )
+      }
+
+      const text = formatDiffForClipboard(file.path, diff)
+      if (text !== null) {
+        clipboard.writeText(text)
+      }
+    } catch (error) {
+      log.error('Failed to copy file diff to clipboard', error)
+    }
   }
 
   private onFileSelected = (file: CommittedFileChange) => {

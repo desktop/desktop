@@ -72,6 +72,9 @@ import { findDOMNode } from 'react-dom'
 import escapeRegExp from 'lodash/escapeRegExp'
 import ReactDOM from 'react-dom'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
+import { clipboard } from 'electron'
+import { formatDiffForClipboard } from '../../lib/format-diff-for-clipboard'
+import { CopyFileDiffLabel } from '../lib/context-menu'
 
 const DefaultRowHeight = 20
 
@@ -1428,6 +1431,10 @@ export class SideBySideDiff extends React.Component<
         label: __DARWIN__ ? 'Select All' : 'Select all',
         action: () => this.onSelectAll(),
       },
+      {
+        label: CopyFileDiffLabel,
+        action: () => this.onCopyFileDiff(),
+      },
     ]
 
     const expandMenuItem = this.buildExpandMenuItem()
@@ -1436,6 +1443,16 @@ export class SideBySideDiff extends React.Component<
     }
 
     showContextualMenu(items)
+  }
+
+  /**
+   * Copy all removed and added lines from the current file diff to the clipboard.
+   */
+  private onCopyFileDiff = () => {
+    const text = formatDiffForClipboard(this.props.file.path, this.state.diff)
+    if (text !== null) {
+      clipboard.writeText(text)
+    }
   }
 
   /**

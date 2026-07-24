@@ -18,7 +18,10 @@ import {
   RevealInFileManagerLabel,
   OpenWithDefaultProgramLabel,
   CopyRelativeFilePathLabel,
+  CopyFileDiffLabel,
 } from '../lib/context-menu'
+import { formatDiffForClipboard } from '../../lib/format-diff-for-clipboard'
+import { getCommitDiff, getCommitRangeDiff } from '../../lib/git'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
 import { Dispatcher } from '../dispatcher'
@@ -427,6 +430,12 @@ export class SelectedCommits extends React.Component<
         label: CopyRelativeFilePathLabel,
         action: () => clipboard.writeText(Path.normalize(file.path)),
       },
+      {
+        label: CopyFileDiffLabel,
+        action: () => {
+          this.onCopyFileDiff(file)
+        },
+      },
       { type: 'separator' },
     ]
 
@@ -455,6 +464,49 @@ export class SelectedCommits extends React.Component<
 
   private onViewOnGitHub = (sha: string, file: CommittedFileChange) => {
     this.props.onViewCommitOnGitHub(sha, file.path)
+  }
+
+  private onCopyFileDiff = async (file: CommittedFileChange) => {
+    try {
+      let diff = this.props.currentDiff
+
+      // Reuse the already-loaded diff when the user right-clicked the
+      // currently selected file; otherwise fetch it on demand.
+      if (
+        this.props.selectedFile === null ||
+        this.props.selectedFile.id !== file.id ||
+        diff === null
+      ) {
+        const { repository, selectedCommits, shasInDiff, hideWhitespaceInDiff } =
+          this.props
+
+        if (selectedCommits.length > 1) {
+          if (shasInDiff.length === 0) {
+            return
+          }
+          diff = await getCommitRangeDiff(
+            repository,
+            file,
+            shasInDiff,
+            hideWhitespaceInDiff
+          )
+        } else {
+          diff = await getCommitDiff(
+            repository,
+            file,
+            file.commitish,
+            hideWhitespaceInDiff
+          )
+        }
+      }
+
+      const text = formatDiffForClipboard(file.path, diff)
+      if (text !== null) {
+        clipboard.writeText(text)
+      }
+    } catch (error) {
+      log.error('Failed to copy file diff to clipboard', error)
+    }
   }
 }
 
