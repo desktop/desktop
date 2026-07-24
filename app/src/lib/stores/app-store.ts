@@ -437,7 +437,7 @@ import {
   findPullRequestsByNumbers,
 } from '../pull-request-refs'
 import { resolveWithin } from '../path'
-import { WorktreeEntry } from '../../models/worktree'
+import { WorktreeEntry, getSwitchableWorktrees } from '../../models/worktree'
 import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -2686,7 +2686,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const repository = this.selectedRepository
     const worktreeCount =
       repository instanceof Repository
-        ? this.repositoryStateCache.get(repository).worktrees.length
+        ? getSwitchableWorktrees(
+            this.repositoryStateCache.get(repository).worktrees
+          ).length
         : 0
     return worktreeCount > 1
   }
