@@ -351,17 +351,25 @@ export class RepositoriesStore extends TypedBaseStore<
     this.emitUpdatedRepositories()
   }
 
-  /** Update the repository's path. */
+  /**
+   * Update the repository's path.
+   *
+   * Unlike `switchWorktree` this doesn't default `mainWorktreePath` to the
+   * recorded one. Moving a repository invalidates it, so callers say what it is
+   * now, or `undefined` when it can't be resolved.
+   */
   public async updateRepositoryPath(
     repository: Repository,
     path: string,
     gitDir: string | undefined,
+    mainWorktreePath: string | undefined,
     missing: boolean = false
   ): Promise<Repository> {
     await this.db.repositories.update(repository.id, {
       missing,
       path,
       gitDir,
+      mainWorktreePath,
     })
 
     this.emitUpdatedRepositories()
@@ -375,7 +383,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.workflowPreferences,
       repository.isTutorialRepository,
       gitDir,
-      repository.mainWorktreePath
+      mainWorktreePath
     )
   }
 
