@@ -12,6 +12,7 @@ import {
   type CopilotQuotaSnapshots,
 } from '../../lib/stores/copilot-store'
 import {
+  CopilotLicenseTypeNoAccess,
   isDotComAccount,
   isEnterpriseAccount,
   type Account,
@@ -51,7 +52,6 @@ type CopilotAccessState =
   | 'no-license'
   | 'desktop-disabled'
 
-const CopilotLicenseTypeNoAccess = 'NO_ACCESS'
 export class CopilotPreferences extends React.Component<ICopilotPreferencesProps> {
   public render() {
     const accounts = this.getCopilotSettingsAccounts()
