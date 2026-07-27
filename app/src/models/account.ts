@@ -1,5 +1,7 @@
 import { getDotComAPIEndpoint, getHTMLURL, IAPIEmail } from '../lib/api'
 
+export const CopilotLicenseTypeNoAccess = 'NO_ACCESS'
+
 /**
  * Returns a value indicating whether two account instances
  * can be considered equal. Equality is determined by comparing
