@@ -415,6 +415,27 @@ describe('git/worktree', () => {
       assert.strictEqual(await resolveMainWorktreePath(selected), null)
     })
 
+    it('falls back to the git dir when the persisted path is stale', async t => {
+      const { mainPath, worktreePath, gitDir } = await setupWorktree(t)
+
+      // A persisted path can outlive the location it names — a repository moved
+      // outside Desktop, say. It shouldn't stop us resolving the main worktree
+      // by the means that still work.
+      const selected = new Repository(
+        worktreePath,
+        1,
+        null,
+        false,
+        null,
+        {},
+        false,
+        gitDir,
+        Path.join(mainPath, 'no', 'longer', 'here')
+      )
+
+      assert.strictEqual(await resolveMainWorktreePath(selected), mainPath)
+    })
+
     it('returns null when neither a persisted path nor a git dir is available', async t => {
       const { worktreePath } = await setupWorktree(t)
 
