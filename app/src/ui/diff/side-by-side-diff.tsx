@@ -61,6 +61,7 @@ import {
 import { showContextualMenu } from '../../lib/menu-item'
 import { getTokens } from './get-tokens'
 import { DiffSearchInput } from './diff-search-input'
+import { findLiteralMatches } from './diff-search'
 import {
   expandTextDiffHunk,
   DiffExpansionKind,
@@ -69,7 +70,6 @@ import {
 import { IMenuItem } from '../../lib/menu-item'
 import { DiffContentsWarning } from './diff-contents-warning'
 import { findDOMNode } from 'react-dom'
-import escapeRegExp from 'lodash/escapeRegExp'
 import ReactDOM from 'react-dom'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 
@@ -2065,7 +2065,6 @@ function calcSearchTokens(
   }
 
   const hits = new SearchResults()
-  const searchRe = new RegExp(escapeRegExp(searchQuery), 'gi')
   const rows = getDiffRows(diff, showSideBySideDiffs, enableDiffExpansion)
 
   for (const [rowNumber, row] of rows.entries()) {
@@ -2074,10 +2073,8 @@ function calcSearchTokens(
     }
 
     for (const column of enumerateColumnContents(row, showSideBySideDiffs)) {
-      for (const match of column.content.matchAll(searchRe)) {
-        if (match.index !== undefined) {
-          hits.add(rowNumber, column.type, match.index, match[0].length)
-        }
+      for (const match of findLiteralMatches(column.content, searchQuery)) {
+        hits.add(rowNumber, column.type, match.index, match.length)
       }
     }
   }
