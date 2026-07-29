@@ -106,7 +106,7 @@ describe('Dialog focus', () => {
       view.rerender(renderDialog(false, true))
       view.rerender(renderDialog(true, true))
 
-      assert.strictEqual(document.activeElement === firstAction, true)
+      assert.strictEqual(document.activeElement, firstAction)
     } finally {
       view.unmount()
     }

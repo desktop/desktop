@@ -429,6 +429,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       // disabled or removed from the DOM) then we should move focus to the
       // first suitable child.
       if (document.activeElement !== this.lastFocusedElement) {
+        this.lastFocusedElement = null
         this.focusFirstSuitableChild()
       }
     } else {
