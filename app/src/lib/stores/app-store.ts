@@ -228,7 +228,7 @@ import {
   getRepositoryType,
   RepositoryType,
   listWorktrees,
-  listWorktreesFromGitDir,
+  resolveMainWorktreePath,
   removeWorktree,
   moveWorktree,
   getCommitRangeDiff,
@@ -3978,26 +3978,34 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return repository
   }
 
+  /**
+   * Ask a worktree that exists on disk which worktree is the main one, or
+   * undefined if git can't tell us.
+   */
+  private findMainWorktreePath(path: string): Promise<string | undefined> {
+    return listWorktrees(path)
+      .then(worktrees => worktrees.find(wt => wt.type === 'main')?.path)
+      .catch(e => {
+        log.error(`Could not list worktrees in '${path}'`, e)
+        return undefined
+      })
+  }
+
   private async recoverMissingWorktree(
     repository: Repository
   ): Promise<Repository | null> {
-    if (repository.gitDir === undefined) {
-      return null
-    }
-
-    const worktrees = await listWorktreesFromGitDir(repository.gitDir).catch(
+    const mainWorktreePath = await resolveMainWorktreePath(repository).catch(
       e => {
-        log.error('Could not list worktrees from git dir', e)
-        return []
+        log.error('Could not resolve the main worktree path', e)
+        return null
       }
     )
-    const mainWorktree = worktrees.find(wt => wt.type === 'main')
 
-    if (mainWorktree === undefined || mainWorktree.path === repository.path) {
+    if (mainWorktreePath === null) {
       return null
     }
 
-    const type = await getRepositoryType(mainWorktree.path).catch(e => {
+    const type = await getRepositoryType(mainWorktreePath).catch(e => {
       log.error('Could not determine main worktree repository type', e)
       return { kind: 'missing' } as RepositoryType
     })
@@ -4010,15 +4018,27 @@ export class AppStore extends TypedBaseStore<IAppState> {
       repository,
       type.topLevelWorkingDirectory,
       false,
-      type.gitDir
+      type.gitDir,
+      type.topLevelWorkingDirectory
     )
 
     if (!result.existingRepository) {
-      this.repositoryStateCache.seedFromWorktree(
-        result.repository,
-        repository,
-        mainWorktree
-      )
+      // The main worktree exists, so its own worktree list is readable even
+      // when the metadata belonging to the removed worktree isn't.
+      const mainWorktree = await listWorktrees(type.topLevelWorkingDirectory)
+        .then(worktrees => worktrees.find(wt => wt.type === 'main'))
+        .catch(e => {
+          log.error('Could not list worktrees from the main worktree', e)
+          return undefined
+        })
+
+      if (mainWorktree !== undefined) {
+        this.repositoryStateCache.seedFromWorktree(
+          result.repository,
+          repository,
+          mainWorktree
+        )
+      }
     }
 
     return result.repository
@@ -6049,11 +6069,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const missing = type.kind === 'unsafe'
     const gitDir = type.kind === 'regular' ? type.gitDir : undefined
 
+    // Record the main worktree while the worktree set is still readable.
+    // Removing a worktree can take its git metadata with it, leaving nothing to
+    // resolve it from afterwards. Only attempted for a regular repository —
+    // git won't run at all in one it considers unsafe — and `switchWorktree`
+    // keeps the previously recorded path when this is undefined.
+    const mainWorktreePath =
+      type.kind === 'regular'
+        ? await this.findMainWorktreePath(worktree.path)
+        : undefined
+
     const result = await this.repositoriesStore.switchWorktree(
       repository,
       worktree.path,
       missing,
-      gitDir
+      gitDir,
+      mainWorktreePath
     )
 
     this.repositoryStateCache.seedFromWorktree(
@@ -8149,15 +8180,22 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const rt = await getRepositoryType(path)
 
     if (rt.kind === 'regular') {
+      // The repository has moved, so any main worktree we recorded before now
+      // points at where it used to be. Resolve it again from the new location.
       await this.repositoriesStore.updateRepositoryPath(
         repository,
         rt.topLevelWorkingDirectory,
-        rt.gitDir
+        rt.gitDir,
+        await this.findMainWorktreePath(rt.topLevelWorkingDirectory)
       )
     } else if (rt.kind === 'unsafe') {
+      // Git refuses to run in a repository it considers unsafe, so there's no
+      // resolving the main worktree here. Drop the recorded path rather than
+      // keep one we know is stale.
       await this.repositoriesStore.updateRepositoryPath(
         repository,
         path,
+        undefined,
         undefined,
         true
       )
