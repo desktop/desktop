@@ -265,6 +265,14 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
   private dialogElement: HTMLDialogElement | null = null
   private dismissGraceTimeoutId?: number
 
+  /**
+   * The element within this dialog that last had keyboard focus while the
+   * dialog was the top-most one. Used to restore focus to the element that
+   * triggered a nested dialog once that nested dialog is dismissed (rather than
+   * moving focus back to the first suitable child).
+   */
+  private lastFocusedElement: HTMLElement | null = null
+
   private disableClickDismissalTimeoutId: number | null = null
   private disableClickDismissal = false
 
@@ -407,15 +415,29 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     this.setState({ isAppearing: true })
     this.scheduleDismissGraceTimeout()
 
-    this.focusFirstSuitableChild()
+    // If we're regaining top-most status after a nested dialog was dismissed,
+    // restore focus to the element that previously had it (typically the
+    // control that opened the nested dialog) rather than moving focus back to
+    // the first suitable child.
+    if (
+      this.lastFocusedElement !== null &&
+      this.dialogElement.contains(this.lastFocusedElement)
+    ) {
+      this.lastFocusedElement.focus()
+    } else {
+      this.focusFirstSuitableChild()
+    }
 
     window.addEventListener('focus', this.onWindowFocus)
+    this.dialogElement.addEventListener('focusin', this.onDialogFocusIn)
 
     this.resizeObserver.observe(this.dialogElement)
     window.addEventListener('resize', this.scheduleResizeEvent)
   }
 
   protected onDialogIsNotTopMost() {
+    this.dialogElement?.removeEventListener('focusin', this.onDialogFocusIn)
+
     if (this.dialogElement !== null && this.dialogElement.open) {
       this.dialogElement?.close()
     }
@@ -427,6 +449,19 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
 
     this.resizeObserver.disconnect()
     window.removeEventListener('resize', this.scheduleResizeEvent)
+  }
+
+  /**
+   * Keeps track of the element within this dialog that most recently had
+   * keyboard focus. See `lastFocusedElement` for how this is used.
+   */
+  private onDialogFocusIn = (e: FocusEvent) => {
+    if (
+      e.target instanceof HTMLElement &&
+      this.dialogElement?.contains(e.target)
+    ) {
+      this.lastFocusedElement = e.target
+    }
   }
 
   /**
