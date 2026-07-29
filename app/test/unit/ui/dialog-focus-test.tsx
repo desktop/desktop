@@ -1,0 +1,85 @@
+import assert from 'node:assert'
+import { afterEach, beforeEach, describe, it } from 'node:test'
+import * as React from 'react'
+
+import { Dialog, DialogStackContext } from '../../../src/ui/dialog/dialog'
+import { render, screen } from '../../helpers/ui/render'
+
+const showModalDescriptor = Object.getOwnPropertyDescriptor(
+  HTMLDialogElement.prototype,
+  'showModal'
+)
+const closeDescriptor = Object.getOwnPropertyDescriptor(
+  HTMLDialogElement.prototype,
+  'close'
+)
+let restoreIpcSend: (() => void) | null = null
+
+describe('Dialog focus', () => {
+  beforeEach(async () => {
+    const electron = await import('electron')
+    const previousSend = electron.ipcRenderer.send
+    electron.ipcRenderer.send = () => {}
+    restoreIpcSend = () => {
+      electron.ipcRenderer.send = previousSend
+      restoreIpcSend = null
+    }
+
+    HTMLDialogElement.prototype.showModal = function () {
+      this.open = true
+    }
+    HTMLDialogElement.prototype.close = function () {
+      this.open = false
+    }
+  })
+
+  afterEach(() => {
+    restoreIpcSend?.()
+
+    if (showModalDescriptor === undefined) {
+      delete HTMLDialogElement.prototype.showModal
+    } else {
+      Object.defineProperty(
+        HTMLDialogElement.prototype,
+        'showModal',
+        showModalDescriptor
+      )
+    }
+
+    if (closeDescriptor === undefined) {
+      delete HTMLDialogElement.prototype.close
+    } else {
+      Object.defineProperty(
+        HTMLDialogElement.prototype,
+        'close',
+        closeDescriptor
+      )
+    }
+  })
+
+  it('does not restore focus to the dialog element', () => {
+    const renderDialog = (isTopMost: boolean) => (
+      <DialogStackContext.Provider value={{ isTopMost }}>
+        <Dialog title="Configure provider">
+          <button>First action</button>
+          <button>Open nested dialog</button>
+        </Dialog>
+      </DialogStackContext.Provider>
+    )
+
+    const view = render(renderDialog(true))
+    const dialog = screen.getByRole('dialog')
+    const trigger = screen.getByRole('button', {
+      name: 'Open nested dialog',
+    })
+
+    trigger.focus()
+    dialog.focus()
+
+    view.rerender(renderDialog(false))
+    view.rerender(renderDialog(true))
+
+    assert.strictEqual(document.activeElement, trigger)
+    view.unmount()
+  })
+})

@@ -458,6 +458,7 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
   private onDialogFocusIn = (e: FocusEvent) => {
     if (
       e.target instanceof HTMLElement &&
+      e.target !== this.dialogElement &&
       this.dialogElement?.contains(e.target)
     ) {
       this.lastFocusedElement = e.target
