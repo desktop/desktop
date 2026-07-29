@@ -38,7 +38,7 @@ describe('Dialog focus', () => {
     restoreIpcSend?.()
 
     if (showModalDescriptor === undefined) {
-      delete HTMLDialogElement.prototype.showModal
+      Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal')
     } else {
       Object.defineProperty(
         HTMLDialogElement.prototype,
@@ -48,7 +48,7 @@ describe('Dialog focus', () => {
     }
 
     if (closeDescriptor === undefined) {
-      delete HTMLDialogElement.prototype.close
+      Reflect.deleteProperty(HTMLDialogElement.prototype, 'close')
     } else {
       Object.defineProperty(
         HTMLDialogElement.prototype,
