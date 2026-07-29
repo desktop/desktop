@@ -424,6 +424,13 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       this.dialogElement.contains(this.lastFocusedElement)
     ) {
       this.lastFocusedElement.focus()
+
+      // If focusing the last focused element didn't work (it may have been
+      // disabled or removed from the DOM) then we should move focus to the
+      // first suitable child.
+      if (document.activeElement !== this.lastFocusedElement) {
+        this.focusFirstSuitableChild()
+      }
     } else {
       this.focusFirstSuitableChild()
     }

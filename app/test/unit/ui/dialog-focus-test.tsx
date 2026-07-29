@@ -27,6 +27,7 @@ describe('Dialog focus', () => {
 
     HTMLDialogElement.prototype.showModal = function () {
       this.open = true
+      this.focus()
     }
     HTMLDialogElement.prototype.close = function () {
       this.open = false
@@ -81,5 +82,33 @@ describe('Dialog focus', () => {
 
     assert.strictEqual(document.activeElement, trigger)
     view.unmount()
+  })
+
+  it('falls back when the previously focused element cannot be focused', () => {
+    const renderDialog = (isTopMost: boolean, triggerDisabled: boolean) => (
+      <DialogStackContext.Provider value={{ isTopMost }}>
+        <Dialog title="Configure provider">
+          <button>First action</button>
+          <button disabled={triggerDisabled}>Open nested dialog</button>
+        </Dialog>
+      </DialogStackContext.Provider>
+    )
+
+    const view = render(renderDialog(true, false))
+    try {
+      const firstAction = screen.getByRole('button', { name: 'First action' })
+      const trigger = screen.getByRole('button', {
+        name: 'Open nested dialog',
+      })
+
+      trigger.focus()
+
+      view.rerender(renderDialog(false, true))
+      view.rerender(renderDialog(true, true))
+
+      assert.strictEqual(document.activeElement === firstAction, true)
+    } finally {
+      view.unmount()
+    }
   })
 })
