@@ -403,6 +403,8 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
       this.dialogElement.showModal()
     }
 
+    this.dialogElement.addEventListener('focusin', this.onDialogFocusIn)
+
     // Provide an event that components can subscribe to in order to perform
     // tasks such as re-layout after the dialog is visible
     this.dialogElement.dispatchEvent(
@@ -437,7 +439,6 @@ export class Dialog extends React.Component<DialogProps, IDialogState> {
     }
 
     window.addEventListener('focus', this.onWindowFocus)
-    this.dialogElement.addEventListener('focusin', this.onDialogFocusIn)
 
     this.resizeObserver.observe(this.dialogElement)
     window.addEventListener('resize', this.scheduleResizeEvent)

@@ -111,4 +111,31 @@ describe('Dialog focus', () => {
       view.unmount()
     }
   })
+
+  it('restores initial focus when dialog contents change while nested', () => {
+    const renderDialog = (isTopMost: boolean, showNewFirstAction: boolean) => (
+      <DialogStackContext.Provider value={{ isTopMost }}>
+        <Dialog title="Configure provider">
+          {showNewFirstAction ? <button>New first action</button> : null}
+          <button>Open nested dialog</button>
+        </Dialog>
+      </DialogStackContext.Provider>
+    )
+
+    const view = render(renderDialog(true, false))
+    try {
+      const trigger = screen.getByRole('button', {
+        name: 'Open nested dialog',
+      })
+
+      assert.strictEqual(document.activeElement, trigger)
+
+      view.rerender(renderDialog(false, true))
+      view.rerender(renderDialog(true, true))
+
+      assert.strictEqual(document.activeElement, trigger)
+    } finally {
+      view.unmount()
+    }
+  })
 })
