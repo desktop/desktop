@@ -732,7 +732,7 @@ function createStateUpdate<T extends IFilterListItem, GroupIdentifier>(
           item,
         }))
 
-    if (!items.length) {
+    if (!items.length && (!group.showWhenEmpty || filter.length > 0)) {
       continue
     }
 

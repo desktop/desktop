@@ -34,6 +34,9 @@ export interface IFilterListGroup<
   /** Whether to render this group's header. Defaults to true. */
   readonly showHeader?: boolean
 
+  /** Whether to render the group header when it has no items. */
+  readonly showWhenEmpty?: boolean
+
   /** The items in the group. */
   readonly items: ReadonlyArray<Item>
 }

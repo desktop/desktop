@@ -8,15 +8,21 @@ import { WorkingDirectoryFileChange } from '../../models/status'
  * @param repository the repository to update
  */
 export async function unstageAllFiles(repository: Repository): Promise<void> {
+  await git(['read-tree', '--empty'], repository.path, 'unstageAllFiles')
+}
+
+export async function unstageFilesFromUnbornRepository(
+  repository: Repository,
+  paths: ReadonlyArray<string>
+): Promise<void> {
+  if (paths.length === 0) {
+    return
+  }
+
   await git(
-    // these flags are important:
-    // --cached to only remove files from the index
-    // -r       to recursively remove files, in case files are in folders
-    // -f       to ignore differences between working directory and index
-    //          which will block this
-    ['rm', '--cached', '-r', '-f', '.'],
+    ['rm', '--cached', '-r', '-f', '--', ...paths],
     repository.path,
-    'unstageAllFiles'
+    'unstageFilesFromUnbornRepository'
   )
 }
 

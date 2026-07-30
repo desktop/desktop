@@ -1,6 +1,9 @@
 import { git, IGitStringExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
-import { SubmoduleEntry } from '../../models/submodule'
+import {
+  SubmoduleEntry,
+  SubmoduleWorkingTreeState,
+} from '../../models/submodule'
 import { pathExists } from '../path-exists'
 import { executionOptionsWithProgress, IGitOutput } from '../progress'
 import {
@@ -187,13 +190,43 @@ export async function listSubmodules(
   // about it if you want to learn more:
   //
   // https://git-scm.com/docs/git-describe
-  const statusRe = /^.([^ ]+) (.+) \((.+?)\)$/gm
+  const statusRe = /^(.)([^ ]+) (.+?)(?: \((.+?)\))?$/gm
 
-  for (const [, sha, path, describe] of stdout.matchAll(statusRe)) {
-    submodules.push(new SubmoduleEntry(sha, path, describe))
+  for (const [, prefix, sha, path, describe] of stdout.matchAll(statusRe)) {
+    const workingTreeState =
+      prefix === '-'
+        ? SubmoduleWorkingTreeState.Uninitialized
+        : prefix === '+'
+        ? SubmoduleWorkingTreeState.CommitChanged
+        : prefix === 'U'
+        ? SubmoduleWorkingTreeState.Conflicted
+        : SubmoduleWorkingTreeState.Clean
+
+    submodules.push(
+      new SubmoduleEntry(sha, path, describe ?? '', workingTreeState)
+    )
   }
 
   return submodules
+}
+
+export async function initializeSubmodule(
+  repository: Repository,
+  path: string
+): Promise<void> {
+  const opts: IGitStringExecutionOptions = {
+    env: await envForRemoteOperation(
+      getFallbackUrlForProxyResolve(repository, null)
+    ),
+    expectedErrors: AuthenticationErrors,
+  }
+
+  await git(
+    ['submodule', 'update', '--init', '--recursive', '--', path],
+    repository.path,
+    'initializeSubmodule',
+    opts
+  )
 }
 
 export async function resetSubmodulePaths(

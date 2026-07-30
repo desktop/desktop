@@ -79,6 +79,7 @@ export enum PopupType {
   ConfirmDiscardSelection = 'ConfirmDiscardSelection',
   MoveToApplicationsFolder = 'MoveToApplicationsFolder',
   ChangeRepositoryAlias = 'ChangeRepositoryAlias',
+  RepositoryFolder = 'RepositoryFolder',
   ThankYou = 'ThankYou',
   CommitMessage = 'CommitMessage',
   MultiCommitOperation = 'MultiCommitOperation',
@@ -342,6 +343,13 @@ export type PopupDetail =
     }
   | { type: PopupType.MoveToApplicationsFolder }
   | { type: PopupType.ChangeRepositoryAlias; repository: Repository }
+  | {
+      type: PopupType.RepositoryFolder
+      initialName?: string
+      existingNames: ReadonlyArray<string>
+      repositoryName?: string
+      onSubmit: (name: string) => void
+    }
   | {
       type: PopupType.ThankYou
       userContributions: ReadonlyArray<ReleaseNote>

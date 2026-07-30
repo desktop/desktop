@@ -128,6 +128,10 @@ interface IAugmentedSectionFilterListProps<T extends IFilterListItem> {
   // eslint-disable-next-line react/no-unused-prop-types
   readonly filterMethod?: (item: T) => boolean
 
+  /** Whether filtering should select the first result when no row is selected. */
+  // eslint-disable-next-line react/no-unused-prop-types
+  readonly selectFirstItemOnFilter?: boolean
+
   /** Called when the filter text is changed by the user */
   readonly onFilterTextChanged?: (text: string) => void
 
@@ -879,7 +883,11 @@ function createStateUpdate<T extends IFilterListItem>(
     section++
   }
 
-  if (selectedRows.length === 0 && filter.length) {
+  if (
+    selectedRows.length === 0 &&
+    filter.length &&
+    props.selectFirstItemOnFilter !== false
+  ) {
     // If the selected item isn't in the list (e.g., filtered out), then
     // select the first visible item.
     selectedRows.push(getFirstVisibleRow(rows))

@@ -6,6 +6,7 @@ import { Repository } from '../../models/repository'
 import {
   WorkingDirectoryFileChange,
   FileChange,
+  AppFileStatus,
   AppFileStatusKind,
   SubmoduleStatus,
   CommittedFileChange,
@@ -19,6 +20,7 @@ import {
   LineEndingsChange,
   parseLineEndingText,
   ILargeTextDiff,
+  WorkingDirectoryDiffKind,
 } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
@@ -36,7 +38,11 @@ import { IStatusEntry } from '../status-parser'
 import { createLogParser } from './git-delimiter-parser'
 import { enableImagePreviewsForDDSFiles } from '../feature-flag'
 import { unstageAll } from './reset'
-import { stageFiles } from './update-index'
+import {
+  createIndexSnapshot,
+  restoreIndexSnapshot,
+  stageFiles,
+} from './update-index'
 import { isAbsolute } from 'path'
 
 /**
@@ -342,7 +348,8 @@ export async function getCommitRangeChangedFiles(
 export async function getWorkingDirectoryDiff(
   repository: Repository,
   file: WorkingDirectoryFileChange,
-  hideWhitespaceInDiff: boolean = false
+  hideWhitespaceInDiff: boolean = false,
+  diffKind: WorkingDirectoryDiffKind = WorkingDirectoryDiffKind.Combined
 ): Promise<IDiff> {
   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
   // diff.external program configured by the user is ignored
@@ -356,13 +363,27 @@ export async function getWorkingDirectoryDiff(
   ]
   const successExitCodes = new Set([0])
   const isSubmodule = file.status.submoduleStatus !== undefined
+  const sectionStatus =
+    diffKind === WorkingDirectoryDiffKind.Staged
+      ? file.stagedStatus
+      : diffKind === WorkingDirectoryDiffKind.Unstaged
+      ? file.unstagedStatus
+      : file.status
 
   // For added submodules, we'll use the "default" parameters, which are able
   // to output the submodule commit.
-  if (
+  if (diffKind === WorkingDirectoryDiffKind.Staged) {
+    args.push(
+      '--cached',
+      '--',
+      ...getStatusPathspecs(file.path, file.stagedStatus ?? file.status)
+    )
+  } else if (
     !isSubmodule &&
-    (file.status.kind === AppFileStatusKind.New ||
-      file.status.kind === AppFileStatusKind.Untracked)
+    sectionStatus !== null &&
+    (sectionStatus.kind === AppFileStatusKind.New ||
+      sectionStatus.kind === AppFileStatusKind.Untracked) &&
+    (diffKind === WorkingDirectoryDiffKind.Unstaged || !file.hasStagedChanges)
   ) {
     // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
     // whether you set --exit-code
@@ -376,7 +397,15 @@ export async function getWorkingDirectoryDiff(
     // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
     successExitCodes.add(1)
     args.push('--no-index', '--', '/dev/null', file.path)
-  } else if (file.status.kind === AppFileStatusKind.Renamed) {
+  } else if (diffKind === WorkingDirectoryDiffKind.Unstaged) {
+    args.push(
+      '--',
+      ...getStatusPathspecs(file.path, file.unstagedStatus ?? file.status)
+    )
+  } else if (
+    diffKind === WorkingDirectoryDiffKind.Combined &&
+    file.status.kind === AppFileStatusKind.Renamed
+  ) {
     // NB: Technically this is incorrect, the best kind of incorrect.
     // In order to show exactly what will end up in the commit we should
     // perform a diff between the new file and the old file as it appears
@@ -397,7 +426,29 @@ export async function getWorkingDirectoryDiff(
   )
   const lineEndingsChange = parseLineEndingsWarning(stderr)
 
-  return buildDiff(stdout, repository, file, 'HEAD', 'HEAD', lineEndingsChange)
+  return buildDiff(
+    stdout,
+    repository,
+    file,
+    'HEAD',
+    'HEAD',
+    lineEndingsChange,
+    diffKind
+  )
+}
+
+function getStatusPathspecs(
+  path: string,
+  status: AppFileStatus
+): ReadonlyArray<string> {
+  if (
+    status.kind === AppFileStatusKind.Renamed ||
+    status.kind === AppFileStatusKind.Copied
+  ) {
+    return [ensureRelativePath(status.oldPath), ensureRelativePath(path)]
+  }
+
+  return [ensureRelativePath(path)]
 }
 
 /**
@@ -569,14 +620,17 @@ export async function getResolutionDiff(
 export async function getFilesDiffText(
   repository: Repository,
   files: ReadonlyArray<WorkingDirectoryFileChange>,
-  commitish?: string
+  commitish?: string,
+  preserveIndex: boolean = false
 ): Promise<string> {
-  // Clear the staging area, our diffs reflect the difference between the
-  // working directory and the last commit (if any) so our commits should
-  // do the same thing.
-  await unstageAll(repository)
+  let indexSnapshot: Awaited<ReturnType<typeof createIndexSnapshot>> | null =
+    null
 
-  await stageFiles(repository, files)
+  if (!preserveIndex) {
+    // Classic mode models commit inclusion in memory, so materialize that
+    // selection in the index for the duration of this operation.
+    indexSnapshot = await createIndexSnapshot(repository)
+  }
 
   // `--no-ext-diff` should be provided wherever we invoke `git diff` so that any
   // diff.external program configured by the user is ignored
@@ -590,12 +644,23 @@ export async function getFilesDiffText(
   ]
   const successExitCodes = new Set([0])
 
-  const { stdout } = await git(args, repository.path, 'getFilesDiffText', {
-    successExitCodes,
-    encoding: 'buffer',
-  })
+  let stdout: Buffer
+  try {
+    if (!preserveIndex) {
+      await unstageAll(repository)
+      await stageFiles(repository, files)
+    }
 
-  await unstageAll(repository)
+    const result = await git(args, repository.path, 'getFilesDiffText', {
+      successExitCodes,
+      encoding: 'buffer',
+    })
+    stdout = result.stdout
+  } finally {
+    if (indexSnapshot !== null) {
+      await restoreIndexSnapshot(indexSnapshot)
+    }
+  }
 
   // No more than 10MB
   if (stdout.length > 10 * 1024 * 1024) {
@@ -611,36 +676,74 @@ async function getImageDiff(
   repository: Repository,
   file: FileChange,
   newestCommitish: string,
-  oldestCommitish: string
+  oldestCommitish: string,
+  workingDirectoryDiffKind: WorkingDirectoryDiffKind = WorkingDirectoryDiffKind.Combined
 ): Promise<IImageDiff> {
   let current: Image | undefined = undefined
   let previous: Image | undefined = undefined
 
   // Are we looking at a file in the working directory or a file in a commit?
   if (file instanceof WorkingDirectoryFileChange) {
+    const sectionStatus =
+      workingDirectoryDiffKind === WorkingDirectoryDiffKind.Staged
+        ? file.stagedStatus
+        : workingDirectoryDiffKind === WorkingDirectoryDiffKind.Unstaged
+        ? file.unstagedStatus
+        : file.status
+
+    if (sectionStatus === null) {
+      return { kind: DiffType.Image }
+    }
+    const workingTreeStatus =
+      workingDirectoryDiffKind === WorkingDirectoryDiffKind.Combined
+        ? file.unstagedStatus ?? sectionStatus
+        : sectionStatus
+
     // No idea what to do about this, a conflicted binary (presumably) file.
     // Ideally we'd show all three versions and let the user pick but that's
     // a bit out of scope for now.
-    if (file.status.kind === AppFileStatusKind.Conflicted) {
+    if (sectionStatus.kind === AppFileStatusKind.Conflicted) {
       return { kind: DiffType.Image }
     }
 
-    // Does it even exist in the working directory?
-    if (file.status.kind !== AppFileStatusKind.Deleted) {
-      current = await getWorkingDirectoryImage(repository, file)
-    }
+    if (workingDirectoryDiffKind === WorkingDirectoryDiffKind.Staged) {
+      if (sectionStatus.kind !== AppFileStatusKind.Deleted) {
+        current = await getIndexImage(repository, file.path)
+      }
 
-    if (
-      file.status.kind !== AppFileStatusKind.New &&
-      file.status.kind !== AppFileStatusKind.Untracked
-    ) {
-      // If we have file.oldPath that means it's a rename so we'll
-      // look for that file.
-      previous = await getBlobImage(
-        repository,
-        getOldPathOrDefault(file),
-        'HEAD'
-      )
+      if (
+        sectionStatus.kind !== AppFileStatusKind.New &&
+        sectionStatus.kind !== AppFileStatusKind.Untracked
+      ) {
+        previous = await getBlobImage(
+          repository,
+          getOldPathOrDefaultStatus(file.path, sectionStatus),
+          'HEAD'
+        )
+      }
+    } else {
+      if (workingTreeStatus.kind !== AppFileStatusKind.Deleted) {
+        current = await getWorkingDirectoryImage(repository, file)
+      }
+
+      if (
+        workingDirectoryDiffKind === WorkingDirectoryDiffKind.Unstaged &&
+        file.hasStagedChanges &&
+        file.stagedStatus?.kind !== AppFileStatusKind.Deleted
+      ) {
+        previous = await getIndexImage(repository, file.path)
+      } else if (
+        sectionStatus.kind !== AppFileStatusKind.New &&
+        sectionStatus.kind !== AppFileStatusKind.Untracked
+      ) {
+        // If we have file.oldPath that means it's a rename so we'll
+        // look for that file.
+        previous = await getBlobImage(
+          repository,
+          getOldPathOrDefaultStatus(file.path, sectionStatus),
+          'HEAD'
+        )
+      }
     }
   } else {
     // File status can't be conflicted for a file in a commit
@@ -684,13 +787,32 @@ async function getImageDiff(
   }
 }
 
+function getOldPathOrDefaultStatus(
+  path: string,
+  status: AppFileStatus
+): string {
+  return status.kind === AppFileStatusKind.Renamed ||
+    status.kind === AppFileStatusKind.Copied
+    ? status.oldPath
+    : path
+}
+
+async function getIndexImage(
+  repository: Repository,
+  path: string
+): Promise<Image | undefined> {
+  const image = await getBlobImage(repository, path, '')
+  return image.bytes === 0 ? undefined : image
+}
+
 export async function convertDiff(
   repository: Repository,
   file: FileChange,
   diff: IRawDiff,
   newestCommitish: string,
   oldestCommitish: string,
-  lineEndingsChange?: LineEndingsChange
+  lineEndingsChange?: LineEndingsChange,
+  workingDirectoryDiffKind?: WorkingDirectoryDiffKind
 ): Promise<IDiff> {
   const extension = Path.extname(file.path).toLowerCase()
 
@@ -701,7 +823,13 @@ export async function convertDiff(
         kind: DiffType.Binary,
       }
     } else {
-      return getImageDiff(repository, file, newestCommitish, oldestCommitish)
+      return getImageDiff(
+        repository,
+        file,
+        newestCommitish,
+        oldestCommitish,
+        workingDirectoryDiffKind
+      )
     }
   }
 
@@ -847,15 +975,20 @@ async function buildDiff(
   file: FileChange,
   newestCommitish: string,
   oldestCommitish: string,
-  lineEndingsChange?: LineEndingsChange
+  lineEndingsChange?: LineEndingsChange,
+  workingDirectoryDiffKind?: WorkingDirectoryDiffKind
 ): Promise<IDiff> {
-  if (file.status.submoduleStatus !== undefined) {
-    return buildSubmoduleDiff(
-      buffer,
-      repository,
-      file,
-      file.status.submoduleStatus
-    )
+  const status =
+    file instanceof WorkingDirectoryFileChange
+      ? workingDirectoryDiffKind === WorkingDirectoryDiffKind.Staged
+        ? file.stagedStatus ?? file.status
+        : workingDirectoryDiffKind === WorkingDirectoryDiffKind.Unstaged
+        ? file.unstagedStatus ?? file.status
+        : file.status
+      : file.status
+
+  if (status.submoduleStatus !== undefined) {
+    return buildSubmoduleDiff(buffer, repository, file, status.submoduleStatus)
   }
 
   if (!isValidBuffer(buffer)) {
@@ -887,7 +1020,8 @@ async function buildDiff(
     diff,
     newestCommitish,
     oldestCommitish,
-    lineEndingsChange
+    lineEndingsChange,
+    workingDirectoryDiffKind
   )
 }
 

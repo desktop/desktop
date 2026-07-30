@@ -4,6 +4,7 @@ import { Commit, CommitOneLine } from '../models/commit'
 import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
+import { ChangesListScrollKind } from './changes/filter-changes-list'
 import { NoChanges } from './changes/no-changes'
 import { MultipleSelection } from './changes/multiple-selection'
 import { FilesChangedBadge } from './changes/files-changed-badge'
@@ -22,7 +23,7 @@ import { IssuesStore, GitHubUserStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
 import { Account } from '../models/account'
 import { FocusContainer } from './lib/focus-container'
-import { ImageDiffType } from '../models/diff'
+import { ImageDiffType, WorkingDirectoryDiffKind } from '../models/diff'
 import { IMenu } from '../models/app-menu'
 import { StashDiffViewer } from './stashing'
 import { StashedChangesLoadStates } from '../models/stash-entry'
@@ -145,6 +146,8 @@ interface IRepositoryViewProps {
 
 interface IRepositoryViewState {
   readonly changesListScrollTop: number
+  readonly stagedChangesListScrollTop: number
+  readonly unstagedChangesListScrollTop: number
   readonly compareListScrollTop: number
 }
 
@@ -175,6 +178,8 @@ export class RepositoryView extends React.Component<
 
     this.state = {
       changesListScrollTop: 0,
+      stagedChangesListScrollTop: 0,
+      unstagedChangesListScrollTop: 0,
       compareListScrollTop: 0,
     }
   }
@@ -195,8 +200,17 @@ export class RepositoryView extends React.Component<
     })
   }
 
-  private onChangesListScrolled = (scrollTop: number) => {
-    this.setState({ changesListScrollTop: scrollTop })
+  private onChangesListScrolled = (
+    scrollTop: number,
+    kind: ChangesListScrollKind
+  ) => {
+    if (kind === 'staged') {
+      this.setState({ stagedChangesListScrollTop: scrollTop })
+    } else if (kind === 'unstaged') {
+      this.setState({ unstagedChangesListScrollTop: scrollTop })
+    } else {
+      this.setState({ changesListScrollTop: scrollTop })
+    }
   }
 
   private onCompareListScrolled = (scrollTop: number) => {
@@ -271,6 +285,14 @@ export class RepositoryView extends React.Component<
       this.previousSection === RepositorySectionTab.History
         ? this.state.changesListScrollTop
         : undefined
+    const stagedScrollTop =
+      this.previousSection === RepositorySectionTab.History
+        ? this.state.stagedChangesListScrollTop
+        : undefined
+    const unstagedScrollTop =
+      this.previousSection === RepositorySectionTab.History
+        ? this.state.unstagedChangesListScrollTop
+        : undefined
     this.previousSection = RepositorySectionTab.Changes
 
     return (
@@ -312,8 +334,11 @@ export class RepositoryView extends React.Component<
         isShowingFoldout={this.props.isShowingFoldout}
         externalEditorLabel={this.props.externalEditorLabel}
         onOpenInExternalEditor={this.props.onOpenInExternalEditor}
+        onOpenSubmodule={this.onOpenSubmoduleFromList}
         onChangesListScrolled={this.onChangesListScrolled}
         changesListScrollTop={scrollTop}
+        stagedChangesListScrollTop={stagedScrollTop}
+        unstagedChangesListScrollTop={unstagedScrollTop}
         shouldNudgeToCommit={
           this.props.currentTutorialStep === TutorialStep.MakeCommit
         }
@@ -605,7 +630,11 @@ export class RepositoryView extends React.Component<
           imageDiffType={this.props.imageDiffType}
           hideWhitespaceInDiff={this.props.hideWhitespaceInChangesDiff}
           showSideBySideDiff={this.props.showSideBySideDiff}
-          showDiffCheckMarks={this.props.showDiffCheckMarks}
+          showDiffCheckMarks={
+            this.props.showDiffCheckMarks &&
+            (selection.diffKind ?? WorkingDirectoryDiffKind.Combined) ===
+              WorkingDirectoryDiffKind.Combined
+          }
           onOpenBinaryFile={this.onOpenBinaryFile}
           onOpenSubmodule={this.onOpenSubmodule}
           onChangeImageDiffType={this.onChangeImageDiffType}
@@ -624,6 +653,10 @@ export class RepositoryView extends React.Component<
 
   private onOpenSubmodule = (fullPath: string) => {
     this.props.dispatcher.incrementMetric('openSubmoduleFromDiffCount')
+    this.props.dispatcher.openOrAddRepository(fullPath)
+  }
+
+  private onOpenSubmoduleFromList = (fullPath: string) => {
     this.props.dispatcher.openOrAddRepository(fullPath)
   }
 

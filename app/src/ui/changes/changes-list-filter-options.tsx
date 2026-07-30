@@ -6,6 +6,7 @@ import {
 } from '../lib/popover'
 import {
   countActiveFilterOptions,
+  getItemCommitState,
   hasActiveFilters,
 } from './filter-changes-logic'
 import { Octicon } from '../octicons'
@@ -16,12 +17,11 @@ import memoizeOne from 'memoize-one'
 import { Button } from '../lib/button'
 import classNames from 'classnames'
 import { IChangesListItem } from './filter-changes-list'
-import { WorkingDirectoryStatus } from '../../models/status'
+import { AppFileStatusKind } from '../../models/status'
 
 interface IChangesListFilterOptionsProps {
   readonly fileListFilter: IFileListFilterState
   readonly filteredItems: Map<string, IChangesListItem>
-  readonly workingDirectory: WorkingDirectoryStatus
   readonly onFilterToIncludedInCommit: () => void
   readonly onFilterExcludedFiles: () => void
   readonly onFilterDeletedFiles: () => void
@@ -45,10 +45,7 @@ export class ChangesListFilterOptions extends React.Component<
   IChangesListFilterOptionsState
 > {
   private getFilterCounts = memoizeOne(
-    (
-      wd: WorkingDirectoryStatus,
-      filteredItems: Map<string, IChangesListItem>
-    ) => {
+    (filteredItems: Map<string, IChangesListItem>) => {
       const counts = {
         newFilesCount: 0,
         modifiedFilesCount: 0,
@@ -57,26 +54,31 @@ export class ChangesListFilterOptions extends React.Component<
         excludedFilesCount: 0,
       }
 
-      Array.from(filteredItems.values()).forEach(v => {
-        const file = wd.findFileWithID(v.id)
-        if (file) {
-          if (file.isNew() || file.isUntracked()) {
-            counts.newFilesCount++
-          }
-          if (file.isModified()) {
-            counts.modifiedFilesCount++
-          }
-          if (file.isDeleted()) {
-            counts.deletedFilesCount++
-          }
-          if (file.isIncludedInCommit()) {
-            counts.includedFilesCount++
-          }
-          if (file.isExcludedFromCommit()) {
-            counts.excludedFilesCount++
-          }
+      for (const item of filteredItems.values()) {
+        const status = item.status ?? item.change.status
+        if (
+          status.kind === AppFileStatusKind.New ||
+          status.kind === AppFileStatusKind.Untracked
+        ) {
+          counts.newFilesCount++
         }
-      })
+        if (status.kind === AppFileStatusKind.Modified) {
+          counts.modifiedFilesCount++
+        }
+        if (status.kind === AppFileStatusKind.Deleted) {
+          counts.deletedFilesCount++
+        }
+
+        const { isIncludedInCommit, isExcludedFromCommit } =
+          getItemCommitState(item)
+        if (isIncludedInCommit) {
+          counts.includedFilesCount++
+        }
+
+        if (isExcludedFromCommit) {
+          counts.excludedFilesCount++
+        }
+      }
 
       return counts
     }
@@ -143,10 +145,7 @@ export class ChangesListFilterOptions extends React.Component<
       deletedFilesCount,
       excludedFilesCount,
       includedFilesCount,
-    } = this.getFilterCounts(
-      this.props.workingDirectory,
-      this.props.filteredItems
-    )
+    } = this.getFilterCounts(this.props.filteredItems)
 
     return (
       <Popover

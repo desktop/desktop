@@ -26,6 +26,7 @@ import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { IStatsStore } from '../stats'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import { WorktreeEntry } from '../../models/worktree'
+import { WorkingDirectoryDiffKind } from '../../models/diff'
 
 export class RepositoryStateCache {
   private readonly repositoryState = new Map<string, IRepositoryState>()
@@ -372,11 +373,14 @@ function getInitialRepositoryState(): IRepositoryState {
       workingDirectory: WorkingDirectoryStatus.fromFiles(
         new Array<WorkingDirectoryFileChange>()
       ),
+      submodules: [],
       selection: {
         kind: ChangesSelectionKind.WorkingDirectory,
         selectedFileIDs: [],
+        diffKind: WorkingDirectoryDiffKind.Staged,
         diff: null,
       },
+      isUsingStagingWorkflow: true,
       commitMessage: DefaultCommitMessage,
       coAuthors: [],
       showCoAuthoredBy: false,

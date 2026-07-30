@@ -27,6 +27,12 @@ interface IRepositoryListItemProps {
 
   /** Number of uncommitted changes */
   readonly changedFilesCount: number
+
+  /** Whether the repository is checked out as a submodule of another repository in the list */
+  readonly isSubmodule?: boolean
+
+  /** Whether the repository is rendered inside a user-defined repository folder */
+  readonly isInRepositoryFolder?: boolean
 }
 
 /** A repository item. */
@@ -55,7 +61,16 @@ export class RepositoryListItem extends React.Component<
     })
 
     return (
-      <div className="repository-list-item" ref={this.listItemRef}>
+      <div
+        className={classNames('repository-list-item', {
+          submodule: this.props.isSubmodule,
+          'repository-folder-root':
+            this.props.isInRepositoryFolder && !this.props.isSubmodule,
+          'repository-folder-submodule':
+            this.props.isInRepositoryFolder && this.props.isSubmodule,
+        })}
+        ref={this.listItemRef}
+      >
         <Tooltip
           target={this.listItemRef}
           disabled={enableAccessibleListToolTips()}
@@ -65,7 +80,11 @@ export class RepositoryListItem extends React.Component<
 
         <Octicon
           className="icon-for-repository"
-          symbol={iconForRepository(repository)}
+          symbol={
+            this.props.isSubmodule
+              ? octicons.fileSubmodule
+              : iconForRepository(repository)
+          }
         />
 
         <div className={classNames(classNameList)}>
@@ -98,6 +117,7 @@ export class RepositoryListItem extends React.Component<
           {alias && <> ({alias})</>}
         </div>
         <div>{repo.path}</div>
+        {this.props.isSubmodule && <div>Submodule</div>}
       </>
     )
   }
@@ -109,7 +129,9 @@ export class RepositoryListItem extends React.Component<
     ) {
       return (
         nextProps.repository.id !== this.props.repository.id ||
-        nextProps.matches !== this.props.matches
+        nextProps.matches !== this.props.matches ||
+        nextProps.isSubmodule !== this.props.isSubmodule ||
+        nextProps.isInRepositoryFolder !== this.props.isInRepositoryFolder
       )
     } else {
       return true

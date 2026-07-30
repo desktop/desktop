@@ -45,6 +45,25 @@
       width: 16px;
     }
 
+    &.submodule .icon-for-repository {
+      color: var(--text-secondary-color);
+    }
+
+    &.repository-folder-root .name {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    &.repository-folder-submodule {
+      padding-left: calc(var(--spacing) + 20px);
+      color: var(--text-secondary-color);
+    }
+
+    .direct-submodule-open {
+      flex-shrink: 0;
+      margin-left: auto;
+      color: var(--text-secondary-color);
+    }
+
     .name {
       // Long repository names truncate and ellipse
       @include ellipsis;
@@ -72,6 +91,40 @@
     text-overflow: ellipsis;
     overflow-x: hidden;
     white-space: nowrap;
+  }
+
+  .repository-folder-header {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    align-items: center;
+    gap: var(--spacing-half);
+    padding: 0 var(--spacing);
+    border: 0;
+    background: transparent;
+    color: var(--text-secondary-color);
+    font: inherit;
+    font-weight: var(--font-weight-semibold);
+    text-align: left;
+
+    &:hover {
+      color: var(--text-color);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--focus-color);
+      outline-offset: -2px;
+    }
+
+    .repository-folder-chevron {
+      width: 12px;
+      flex-shrink: 0;
+    }
+
+    span {
+      @include ellipsis;
+    }
   }
 
   .new-repository-button {

@@ -13,7 +13,10 @@ import {
   ChangesSelection,
   ChangesSelectionKind,
 } from '../../app-state'
-import { DiffSelectionType } from '../../../models/diff'
+import {
+  DiffSelectionType,
+  WorkingDirectoryDiffKind,
+} from '../../../models/diff'
 import { caseInsensitiveCompare } from '../../compare'
 import { IStatsStore } from '../../stats/stats-store'
 import { ManualConflictResolution } from '../../../models/manual-conflict-resolution'
@@ -27,6 +30,47 @@ import { assertNever } from '../../fatal-error'
 type ChangedFilesResult = {
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selection: ChangesSelection
+}
+
+function getWorkingDirectoryDiffKind(
+  state: IChangesState,
+  selectedFile: WorkingDirectoryFileChange | null | undefined,
+  requestedDiffKind?: WorkingDirectoryDiffKind
+): WorkingDirectoryDiffKind {
+  let diffKind =
+    requestedDiffKind ??
+    (state.selection.kind === ChangesSelectionKind.WorkingDirectory
+      ? state.selection.diffKind
+      : undefined) ??
+    (state.isUsingStagingWorkflow === true
+      ? WorkingDirectoryDiffKind.Staged
+      : WorkingDirectoryDiffKind.Combined)
+
+  if (state.isUsingStagingWorkflow !== true || selectedFile == null) {
+    return diffKind
+  }
+
+  if (diffKind === WorkingDirectoryDiffKind.Combined) {
+    return selectedFile.hasStagedChanges
+      ? WorkingDirectoryDiffKind.Staged
+      : WorkingDirectoryDiffKind.Unstaged
+  }
+
+  if (
+    diffKind === WorkingDirectoryDiffKind.Staged &&
+    !selectedFile.hasStagedChanges &&
+    selectedFile.hasUnstagedChanges
+  ) {
+    diffKind = WorkingDirectoryDiffKind.Unstaged
+  } else if (
+    diffKind === WorkingDirectoryDiffKind.Unstaged &&
+    !selectedFile.hasUnstagedChanges &&
+    selectedFile.hasStagedChanges
+  ) {
+    diffKind = WorkingDirectoryDiffKind.Staged
+  }
+
+  return diffKind
 }
 
 export function updateChangedFiles(
@@ -87,10 +131,22 @@ export function updateChangedFiles(
       selectedFileIDs = [mergedFiles[0].id]
     }
 
+    const selectedFile =
+      selectedFileIDs.length === 1
+        ? mergedFiles.find(file => file.id === selectedFileIDs[0])
+        : undefined
+    const diffKind = getWorkingDirectoryDiffKind(
+      state,
+      selectedFile,
+      state.selection.diffKind
+    )
+
     const diff =
       selectedFileIDs.length === 1 &&
       state.selection.selectedFileIDs.length === 1 &&
-      state.selection.selectedFileIDs[0] === selectedFileIDs[0]
+      state.selection.selectedFileIDs[0] === selectedFileIDs[0] &&
+      (state.selection.diffKind ?? WorkingDirectoryDiffKind.Combined) ===
+        diffKind
         ? state.selection.diff
         : null
 
@@ -99,6 +155,7 @@ export function updateChangedFiles(
       selection: {
         kind: ChangesSelectionKind.WorkingDirectory,
         selectedFileIDs,
+        diffKind,
         diff,
       },
     }
@@ -321,7 +378,8 @@ export function updateConflictState(
  */
 export function selectWorkingDirectoryFiles(
   state: IChangesState,
-  files?: ReadonlyArray<WorkingDirectoryFileChange>
+  files?: ReadonlyArray<WorkingDirectoryFileChange>,
+  requestedDiffKind?: WorkingDirectoryDiffKind
 ): Pick<IChangesState, 'selection'> {
   let selectedFileIDs: Array<string>
 
@@ -343,10 +401,21 @@ export function selectWorkingDirectoryFiles(
     selectedFileIDs = files.map(x => x.id)
   }
 
+  const selectedFile =
+    selectedFileIDs.length === 1
+      ? state.workingDirectory.findFileWithID(selectedFileIDs[0])
+      : null
+  const diffKind = getWorkingDirectoryDiffKind(
+    state,
+    selectedFile,
+    requestedDiffKind
+  )
+
   return {
     selection: {
       kind: ChangesSelectionKind.WorkingDirectory as ChangesSelectionKind.WorkingDirectory,
       selectedFileIDs,
+      diffKind,
       diff: null,
     },
   }

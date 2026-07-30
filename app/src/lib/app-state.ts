@@ -13,7 +13,7 @@ import type {
 } from './copilot-conflict-resolution'
 import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
-import { IDiff, ImageDiffType } from '../models/diff'
+import { IDiff, ImageDiffType, WorkingDirectoryDiffKind } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
 import { Branch, IAheadBehind } from '../models/branch'
 import { Tip } from '../models/tip'
@@ -21,6 +21,7 @@ import { Commit } from '../models/commit'
 import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { WorktreeEntry } from '../models/worktree'
 import { CloningRepository } from '../models/cloning-repository'
+import { SubmoduleEntry } from '../models/submodule'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
@@ -790,6 +791,7 @@ export type ChangesWorkingDirectorySelection = {
    * the `workingDirectory` property in `IChangesState`.
    */
   readonly selectedFileIDs: ReadonlyArray<string>
+  readonly diffKind?: WorkingDirectoryDiffKind
   readonly diff: IDiff | null
 }
 
@@ -809,6 +811,8 @@ export type ChangesSelection =
 
 export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
+  readonly submodules?: ReadonlyArray<SubmoduleEntry>
+  readonly isUsingStagingWorkflow?: boolean
 
   /** The commit message for a work-in-progress commit in the changes view. */
   readonly commitMessage: ICommitMessage

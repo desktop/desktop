@@ -18,6 +18,7 @@ import { Tip, TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
 import { IFetchProgress, IRevertProgress } from '../../models/progress'
+import { SubmoduleEntry } from '../../models/submodule'
 import {
   ICommitMessage,
   DefaultCommitMessage,
@@ -53,8 +54,10 @@ import {
   resetPaths,
   revertCommit,
   unstageAllFiles,
+  unstageFilesFromUnbornRepository,
   addRemote,
   listSubmodules,
+  initializeSubmodule,
   resetSubmodulePaths,
   parseTrailers,
   mergeTrailers,
@@ -75,6 +78,11 @@ import {
   getRemoteHEAD,
   MergeOptions,
 } from '../git'
+import {
+  createIndexSnapshot,
+  restoreIndexSnapshot,
+  stageFiles,
+} from '../git/update-index'
 import { GitError as DugiteError } from '../../lib/git'
 import { GitError } from 'dugite'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
@@ -107,6 +115,7 @@ const LoadingHistoryRequestKey = 'history'
 
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
+const SubmoduleCacheDuration = 30 * 1000
 
 /** The store for a repository's git data. */
 export class GitStore extends BaseStore {
@@ -152,6 +161,11 @@ export class GitStore extends BaseStore {
   private _upstreamRemote: IRemote | null = null
 
   private _lastFetched: Date | null = null
+
+  private _submodules: ReadonlyArray<SubmoduleEntry> = []
+
+  private submoduleRequestId = 0
+  private submodulesLoadedAt = 0
 
   private _desktopStashEntries = new Map<string, IStashEntry>()
 
@@ -1127,6 +1141,12 @@ export class GitStore extends BaseStore {
   }
 
   public async loadStatus(): Promise<IStatusResult | null> {
+    const previousTip =
+      this._tip.kind === TipState.Valid
+        ? this._tip.branch.tip.sha
+        : this._tip.kind === TipState.Detached
+        ? this._tip.currentSha
+        : null
     const status = await this.performFailableOperation(() =>
       getStatus(this.repository)
     )
@@ -1160,9 +1180,124 @@ export class GitStore extends BaseStore {
       this._tip = { kind: TipState.Unknown }
     }
 
+    if ((currentTip ?? null) !== previousTip) {
+      this.submodulesLoadedAt = 0
+    }
+
     this.emitUpdate()
 
     return status
+  }
+
+  public async loadSubmodules(
+    force: boolean = false
+  ): Promise<ReadonlyArray<SubmoduleEntry>> {
+    if (
+      !force &&
+      this.submodulesLoadedAt > 0 &&
+      Date.now() - this.submodulesLoadedAt < SubmoduleCacheDuration
+    ) {
+      return this._submodules
+    }
+
+    const requestId = ++this.submoduleRequestId
+    const submodules = await this.performFailableOperation(() =>
+      listSubmodules(this.repository)
+    )
+
+    if (submodules === undefined || requestId !== this.submoduleRequestId) {
+      return this._submodules
+    }
+
+    this.submodulesLoadedAt = Date.now()
+
+    if (
+      submodules.length === this._submodules.length &&
+      submodules.every((submodule, index) =>
+        submodule.isEqualTo(this._submodules[index])
+      )
+    ) {
+      return this._submodules
+    }
+
+    this._submodules = submodules
+    return submodules
+  }
+
+  public async initializeSubmodule(path: string): Promise<boolean> {
+    const result = await this.performFailableOperation(async () => {
+      await initializeSubmodule(this.repository, path)
+      return true
+    })
+
+    if (result === true) {
+      this.submodulesLoadedAt = 0
+      return true
+    }
+
+    return false
+  }
+
+  public async changeFileStaged(
+    files: ReadonlyArray<WorkingDirectoryFileChange>,
+    staged: boolean
+  ): Promise<boolean> {
+    const paths = files.flatMap(file =>
+      file.status.kind === AppFileStatusKind.Renamed
+        ? [file.path, file.status.oldPath]
+        : [file.path]
+    )
+    return this.performIndexOperation(async () => {
+      if (staged) {
+        await stageFiles(
+          this.repository,
+          files.map(file => file.withIncludeAll(true))
+        )
+      } else if (this.tip.kind === TipState.Unborn) {
+        await unstageFilesFromUnbornRepository(this.repository, paths)
+      } else {
+        await resetPaths(this.repository, GitResetMode.Mixed, 'HEAD', paths)
+      }
+    })
+  }
+
+  public async replaceStagedFiles(
+    files: ReadonlyArray<WorkingDirectoryFileChange>
+  ): Promise<boolean> {
+    return this.performIndexOperation(async () => {
+      if (this.tip.kind === TipState.Unborn) {
+        await unstageAllFiles(this.repository)
+      } else {
+        await reset(this.repository, GitResetMode.Mixed, 'HEAD')
+      }
+
+      await stageFiles(this.repository, files)
+    })
+  }
+
+  private async performIndexOperation(
+    operation: () => Promise<void>
+  ): Promise<boolean> {
+    const result = await this.performFailableOperation(async () => {
+      const indexSnapshot = await createIndexSnapshot(this.repository)
+
+      try {
+        await operation()
+        return true
+      } catch (error) {
+        try {
+          await restoreIndexSnapshot(indexSnapshot)
+        } catch (restoreError) {
+          log.error(
+            'Failed to restore the index after an index operation error',
+            restoreError
+          )
+        }
+        throw error
+      }
+    })
+
+    return result === true
   }
 
   /**

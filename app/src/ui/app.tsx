@@ -145,6 +145,7 @@ import { CommitDragElement } from './drag-elements/commit-drag-element'
 import classNames from 'classnames'
 import { MoveToApplicationsFolder } from './move-to-applications-folder'
 import { ChangeRepositoryAlias } from './change-repository-alias/change-repository-alias-dialog'
+import { RepositoryFolderDialog } from './repository-folder/repository-folder-dialog'
 import { ThankYou } from './thank-you'
 import {
   getUserContributions,
@@ -2362,6 +2363,17 @@ export class App extends React.Component<IAppProps, IAppState> {
           />
         )
       }
+      case PopupType.RepositoryFolder: {
+        return (
+          <RepositoryFolderDialog
+            initialName={popup.initialName}
+            existingNames={popup.existingNames}
+            repositoryName={popup.repositoryName}
+            onSubmit={popup.onSubmit}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      }
       case PopupType.ThankYou:
         return (
           <ThankYou
@@ -3350,6 +3362,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     const { useCustomShell, selectedShell } = this.state
     const filterText = this.state.repositoryFilterText
     const repositories = this.state.repositories
+    const submodules =
+      this.state.selectedState?.type === SelectionType.Repository
+        ? this.state.selectedState.state.changesState.submodules ?? []
+        : []
     return (
       <RepositoriesList
         filterText={filterText}
@@ -3357,6 +3373,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         selectedRepository={selectedRepository}
         onSelectionChanged={this.onSelectionChanged}
         repositories={repositories}
+        submodules={submodules}
         recentRepositories={this.state.recentRepositories}
         localRepositoryStateLookup={this.state.localRepositoryStateLookup}
         askForConfirmationOnRemoveRepository={

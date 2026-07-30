@@ -421,6 +421,12 @@ export function mapStatus(
   return {
     kind: 'ordinary',
     type: 'modified',
+    index: mapGitStatusEntry(statusCode[0]),
+    workingTree: mapGitStatusEntry(statusCode[1]),
     submoduleStatus,
   }
+}
+
+function mapGitStatusEntry(status: string): GitStatusEntry | undefined {
+  return status === '.' ? GitStatusEntry.Unchanged : (status as GitStatusEntry)
 }

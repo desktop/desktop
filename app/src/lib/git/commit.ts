@@ -1,5 +1,9 @@
 import { git, HookCallbackOptions, parseCommitSHA } from './core'
-import { stageFiles } from './update-index'
+import {
+  createIndexSnapshot,
+  restoreIndexSnapshot,
+  stageFiles,
+} from './update-index'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { unstageAll } from './reset'
@@ -18,17 +22,18 @@ export async function createCommit(
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   options?: {
     amend?: boolean
+    preserveIndex?: boolean
     noVerify?: boolean
     signOff?: boolean
     allowEmpty?: boolean
   } & HookCallbackOptions
 ): Promise<string> {
-  // Clear the staging area, our diffs reflect the difference between the
-  // working directory and the last commit (if any) so our commits should
-  // do the same thing.
-  await unstageAll(repository)
+  let indexSnapshot: Awaited<ReturnType<typeof createIndexSnapshot>> | null =
+    null
 
-  await stageFiles(repository, files)
+  if (options?.preserveIndex !== true) {
+    indexSnapshot = await createIndexSnapshot(repository)
+  }
 
   const args = ['-F', '-']
 
@@ -48,27 +53,49 @@ export async function createCommit(
     args.push('--allow-empty')
   }
 
-  const result = await git(
-    ['commit', ...args],
-    repository.path,
-    'createCommit',
-    {
-      stdin: message,
-      // https://git-scm.com/docs/githooks/2.46.1
-      interceptHooks: [
-        'pre-commit',
-        'prepare-commit-msg',
-        'commit-msg',
-        'post-commit',
-        ...(options?.amend ? ['post-rewrite'] : []),
-        'pre-auto-gc',
-      ],
-      onHookProgress: options?.onHookProgress,
-      onHookFailure: options?.onHookFailure,
-      onTerminalOutputAvailable: options?.onTerminalOutputAvailable,
+  try {
+    // Clear the staging area, our diffs reflect the difference between the
+    // working directory and the last commit (if any) so our commits should
+    // do the same thing.
+    if (options?.preserveIndex !== true) {
+      await unstageAll(repository)
+      await stageFiles(repository, files)
     }
-  )
-  return parseCommitSHA(result)
+
+    const result = await git(
+      ['commit', ...args],
+      repository.path,
+      'createCommit',
+      {
+        stdin: message,
+        // https://git-scm.com/docs/githooks/2.46.1
+        interceptHooks: [
+          'pre-commit',
+          'prepare-commit-msg',
+          'commit-msg',
+          'post-commit',
+          ...(options?.amend ? ['post-rewrite'] : []),
+          'pre-auto-gc',
+        ],
+        onHookProgress: options?.onHookProgress,
+        onHookFailure: options?.onHookFailure,
+        onTerminalOutputAvailable: options?.onTerminalOutputAvailable,
+      }
+    )
+    return parseCommitSHA(result)
+  } catch (error) {
+    if (indexSnapshot !== null) {
+      try {
+        await restoreIndexSnapshot(indexSnapshot)
+      } catch (restoreError) {
+        log.error(
+          'Failed to restore the index after a commit error',
+          restoreError
+        )
+      }
+    }
+    throw error
+  }
 }
 
 /**

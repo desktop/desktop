@@ -22,6 +22,12 @@ export enum DiffType {
   Unrenderable,
 }
 
+export enum WorkingDirectoryDiffKind {
+  Combined = 'combined',
+  Staged = 'staged',
+  Unstaged = 'unstaged',
+}
+
 type LineEnding = 'CR' | 'LF' | 'CRLF'
 
 export type LineEndingsChange = {

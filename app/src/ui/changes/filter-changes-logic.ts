@@ -1,6 +1,21 @@
 import { IFileListFilterState } from '../../lib/app-state'
 import { IChangesListItem } from './filter-changes-list'
 import memoizeOne from 'memoize-one'
+import { AppFileStatusKind } from '../../models/status'
+
+export function getItemCommitState(item: IChangesListItem) {
+  if (item.section !== undefined) {
+    return {
+      isIncludedInCommit: item.section === 'staged',
+      isExcludedFromCommit: item.section === 'unstaged',
+    }
+  }
+
+  return {
+    isIncludedInCommit: item.change.isIncludedInCommit(),
+    isExcludedFromCommit: item.change.isExcludedFromCommit(),
+  }
+}
 
 /**
  * Apply filter options to determine if a file should be shown
@@ -17,24 +32,30 @@ export function applyFilterOptions(
   }
 
   const { change } = item
+  const status = item.status ?? change.status
+  const { isIncludedInCommit, isExcludedFromCommit } = getItemCommitState(item)
 
-  if (filters.isIncludedInCommit && !change.isIncludedInCommit()) {
+  if (filters.isIncludedInCommit && !isIncludedInCommit) {
     return false
   }
 
-  if (filters.isExcludedFromCommit && !change.isExcludedFromCommit()) {
+  if (filters.isExcludedFromCommit && !isExcludedFromCommit) {
     return false
   }
 
-  if (filters.isNewFile && !change.isNew() && !change.isUntracked()) {
+  if (
+    filters.isNewFile &&
+    status.kind !== AppFileStatusKind.New &&
+    status.kind !== AppFileStatusKind.Untracked
+  ) {
     return false
   }
 
-  if (filters.isModifiedFile && !change.isModified()) {
+  if (filters.isModifiedFile && status.kind !== AppFileStatusKind.Modified) {
     return false
   }
 
-  if (filters.isDeletedFile && !change.isDeleted()) {
+  if (filters.isDeletedFile && status.kind !== AppFileStatusKind.Deleted) {
     return false
   }
 
@@ -50,24 +71,31 @@ export const isCommittingFileHiddenByFilter = memoizeOne(
   (
     fileIdsIncludedInCommit: ReadonlyArray<string>,
     filteredItems: Map<string, IChangesListItem>,
-    fileCount: number,
+    _fileCount: number,
     filters: IFileListFilterState
   ): boolean => {
-    // All possible files are present in the list (no active filters or all files match active filters)
-    if (!hasActiveFilters(filters) || filteredItems.size === fileCount) {
+    const visibleFileIds = new Set<string>()
+
+    for (const [id, item] of filteredItems) {
+      if (item.section !== 'unstaged') {
+        visibleFileIds.add(item.change?.id ?? id)
+      }
+    }
+
+    if (!hasActiveFilters(filters)) {
       return false
     }
 
     // If filtered rows count is 1 and included for commit rows count is 2,
     // there is no way the included for commit rows are visible regardless of
     // what they are.
-    if (fileIdsIncludedInCommit.length > filteredItems.size) {
+    if (fileIdsIncludedInCommit.length > visibleFileIds.size) {
       return true
     }
 
     // If we can find a file id included in the commit that does not exist in
     // the filtered items, then we are committing a hidden file.
-    return fileIdsIncludedInCommit.some(fId => !filteredItems.get(fId))
+    return fileIdsIncludedInCommit.some(fId => !visibleFileIds.has(fId))
   }
 )
 

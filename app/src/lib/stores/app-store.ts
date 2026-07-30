@@ -67,6 +67,7 @@ import {
   DiffType,
   ImageDiffType,
   ITextDiff,
+  WorkingDirectoryDiffKind,
 } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import {
@@ -578,6 +579,8 @@ export const showChangesFilterDefault = true
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
+  private readonly stagedFileOperations = new Map<string, Promise<void>>()
+  private readonly statusRequestIds = new Map<string, number>()
 
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
@@ -2972,10 +2975,30 @@ export class AppStore extends TypedBaseStore<IAppState> {
     clearPartialState: boolean = false
   ): Promise<IStatusResult | null> {
     const gitStore = this.gitStoreCache.get(repository)
+    const requestId = (this.statusRequestIds.get(repository.hash) ?? 0) + 1
+    this.statusRequestIds.set(repository.hash, requestId)
     const status = await gitStore.loadStatus()
 
     if (status === null) {
       return null
+    }
+
+    if (this.statusRequestIds.get(repository.hash) !== requestId) {
+      return status
+    }
+
+    const hasPartiallyStagedFiles = status.workingDirectory.files.some(
+      file => file.hasStagedChanges && file.hasUnstagedChanges
+    )
+
+    if (
+      hasPartiallyStagedFiles &&
+      this.repositoryStateCache.get(repository).changesState
+        .isUsingStagingWorkflow === false
+    ) {
+      this.repositoryStateCache.updateChangesState(repository, () => ({
+        isUsingStagingWorkflow: true,
+      }))
     }
 
     this.repositoryStateCache.updateChangesState(repository, state =>
@@ -2992,6 +3015,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       status
     )
 
+    if (this.statusRequestIds.get(repository.hash) !== requestId) {
+      return status
+    }
+
     if (this.selectedRepository === repository) {
       this._triggerConflictsFlow(repository, status)
     }
@@ -2999,6 +3026,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
 
     this.updateChangesWorkingDirectoryDiff(repository)
+
+    const shouldRefreshSubmodules = status.workingDirectory.files.some(
+      file =>
+        file.path === '.gitmodules' || file.status.submoduleStatus !== undefined
+    )
+    const submodules = await gitStore.loadSubmodules(shouldRefreshSubmodules)
+
+    if (this.statusRequestIds.get(repository.hash) !== requestId) {
+      return status
+    }
+
+    const changesState = this.repositoryStateCache.get(repository).changesState
+
+    if (changesState.submodules !== submodules) {
+      this.repositoryStateCache.updateChangesState(repository, () => ({
+        submodules,
+      }))
+      this.emitUpdate()
+    }
 
     return status
   }
@@ -3385,10 +3431,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public async _selectWorkingDirectoryFiles(
     repository: Repository,
-    files?: ReadonlyArray<WorkingDirectoryFileChange>
+    files?: ReadonlyArray<WorkingDirectoryFileChange>,
+    diffKind?: WorkingDirectoryDiffKind
   ): Promise<void> {
     this.repositoryStateCache.updateChangesState(repository, state =>
-      selectWorkingDirectoryFiles(state, files)
+      selectWorkingDirectoryFiles(state, files, diffKind)
     )
 
     this.updateMenuLabelsForSelectedRepository()
@@ -3416,6 +3463,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     const selectionBeforeLoad = changesStateBeforeLoad.selection
     const selectedFileIDsBeforeLoad = selectionBeforeLoad.selectedFileIDs
+    const diffKindBeforeLoad =
+      selectionBeforeLoad.diffKind ??
+      (changesStateBeforeLoad.isUsingStagingWorkflow
+        ? WorkingDirectoryDiffKind.Staged
+        : WorkingDirectoryDiffKind.Combined)
 
     // We only render diffs when a single file is selected.
     if (selectedFileIDsBeforeLoad.length !== 1) {
@@ -3444,7 +3496,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const diff = await getWorkingDirectoryDiff(
       repository,
       selectedFileBeforeLoad,
-      this.hideWhitespaceInChangesDiff
+      this.hideWhitespaceInChangesDiff,
+      diffKindBeforeLoad
     )
 
     const stateAfterLoad = this.repositoryStateCache.get(repository)
@@ -3455,6 +3508,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     // just loaded.
     if (
       changesState.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
+      (changesState.selection.diffKind ?? WorkingDirectoryDiffKind.Combined) !==
+        diffKindBeforeLoad ||
       !arrayEquals(
         changesState.selection.selectedFileIDs,
         selectedFileIDsBeforeLoad
@@ -3523,7 +3578,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.repositoryStateCache.updateChangesState(repository, state => {
       const files = state.workingDirectory.files
       const selectedFileIds = files
-        .filter(f => f.selection.getSelectionType() !== DiffSelectionType.None)
+        .filter(file =>
+          state.isUsingStagingWorkflow === true
+            ? file.hasStagedChanges
+            : file.selection.getSelectionType() !== DiffSelectionType.None
+        )
         .map(f => f.id)
 
       return {
@@ -3531,6 +3590,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
           kind: ChangesSelectionKind.WorkingDirectory,
           diff: null,
           selectedFileIDs: selectedFileIds,
+          diffKind:
+            state.isUsingStagingWorkflow === true
+              ? WorkingDirectoryDiffKind.Staged
+              : WorkingDirectoryDiffKind.Combined,
         },
       }
     })
@@ -3684,9 +3747,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   ): Promise<boolean> {
     const state = this.repositoryStateCache.get(repository)
     const files = state.changesState.workingDirectory.files
-    const selectedFiles = files.filter(file => {
-      return file.selection.getSelectionType() !== DiffSelectionType.None
-    })
+    const selectedFiles =
+      state.changesState.isUsingStagingWorkflow === true
+        ? files.filter(file => file.hasStagedChanges)
+        : files.filter(
+            file => file.selection.getSelectionType() !== DiffSelectionType.None
+          )
 
     const gitStore = this.gitStoreCache.get(repository)
 
@@ -3697,6 +3763,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
           let aborted = false
           return createCommit(repository, message, selectedFiles, {
             amend: context.amend,
+            preserveIndex: state.changesState.isUsingStagingWorkflow === true,
             onHookProgress: this.onHookProgress(repository),
             onHookFailure: this.onHookFailure(() => (aborted = true)),
             onTerminalOutputAvailable: subscribeToCommitOutput => {
@@ -3881,6 +3948,121 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     this.emitUpdate()
     return Promise.resolve()
+  }
+
+  public async _changeFileStaged(
+    repository: Repository,
+    file:
+      | WorkingDirectoryFileChange
+      | ReadonlyArray<WorkingDirectoryFileChange>,
+    staged: boolean
+  ): Promise<void> {
+    const key = repository.hash
+    const previousOperation =
+      this.stagedFileOperations.get(key) ?? Promise.resolve()
+    const operation = previousOperation
+      .catch(() => {})
+      .then(() => this.changeFileStaged(repository, file, staged))
+
+    this.stagedFileOperations.set(key, operation)
+    try {
+      await operation
+    } finally {
+      if (this.stagedFileOperations.get(key) === operation) {
+        this.stagedFileOperations.delete(key)
+      }
+    }
+  }
+
+  private async changeFileStaged(
+    repository: Repository,
+    file:
+      | WorkingDirectoryFileChange
+      | ReadonlyArray<WorkingDirectoryFileChange>,
+    staged: boolean
+  ): Promise<void> {
+    const files = Array.isArray(file) ? file : [file]
+    const gitStore = this.gitStoreCache.get(repository)
+
+    if (!(await gitStore.changeFileStaged(files, staged))) {
+      return
+    }
+
+    const changedFileIds = new Set(files.map(currentFile => currentFile.id))
+    this.repositoryStateCache.updateChangesState(repository, state => {
+      if (
+        state.selection.kind !== ChangesSelectionKind.WorkingDirectory ||
+        !state.selection.selectedFileIDs.some(id => changedFileIds.has(id))
+      ) {
+        return { selection: state.selection }
+      }
+
+      return {
+        selection: {
+          ...state.selection,
+          diff: null,
+          diffKind: staged
+            ? WorkingDirectoryDiffKind.Staged
+            : WorkingDirectoryDiffKind.Unstaged,
+        },
+      }
+    })
+
+    await this._loadStatus(repository)
+  }
+
+  public async _setChangesStagingWorkflow(
+    repository: Repository,
+    enabled: boolean
+  ): Promise<boolean> {
+    const state = this.repositoryStateCache.get(repository).changesState
+
+    if (state.isUsingStagingWorkflow === enabled) {
+      return true
+    }
+
+    if (enabled) {
+      const files = state.workingDirectory.files.filter(
+        file => file.selection.getSelectionType() !== DiffSelectionType.None
+      )
+      const gitStore = this.gitStoreCache.get(repository)
+
+      if (!(await gitStore.replaceStagedFiles(files))) {
+        return false
+      }
+
+      this.repositoryStateCache.updateChangesState(repository, () => ({
+        isUsingStagingWorkflow: true,
+      }))
+      await this._loadStatus(repository)
+      return true
+    }
+
+    this.repositoryStateCache.updateChangesState(repository, currentState => ({
+      isUsingStagingWorkflow: false,
+      workingDirectory: WorkingDirectoryStatus.fromFiles(
+        currentState.workingDirectory.files.map(file =>
+          file.withIncludeAll(file.hasStagedChanges)
+        )
+      ),
+    }))
+    this.emitUpdate()
+    return true
+  }
+
+  public async _initializeSubmodule(
+    repository: Repository,
+    path: string
+  ): Promise<boolean> {
+    const initialized = await this.gitStoreCache
+      .get(repository)
+      .initializeSubmodule(path)
+
+    if (initialized) {
+      await this._loadStatus(repository)
+    }
+
+    return initialized
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -6381,7 +6563,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
         const diff = await getFilesDiffText(
           repository,
           filesSelected,
-          commitToAmend ? `${commitToAmend}^` : undefined
+          commitToAmend ? `${commitToAmend}^` : undefined,
+          this.repositoryStateCache.get(repository).changesState
+            .isUsingStagingWorkflow === true
         )
         if (!diff) {
           return false

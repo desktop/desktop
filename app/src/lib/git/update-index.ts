@@ -2,10 +2,19 @@ import { git } from './core'
 import { Repository } from '../../models/repository'
 import { DiffSelectionType } from '../../models/diff'
 import { applyPatchToIndex } from './apply'
+import { readFile, rename, unlink, writeFile } from 'fs/promises'
+import { isAbsolute, resolve } from 'path'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
 } from '../../models/status'
+
+interface IIndexSnapshot {
+  readonly path: string
+  readonly contents: Buffer | null
+}
+
+let indexRestoreId = 0
 
 interface IUpdateIndexOptions {
   /**
@@ -165,5 +174,52 @@ export async function stageFiles(
   // has logic to support that scenario.
   for (const file of partial) {
     await applyPatchToIndex(repository, file)
+  }
+}
+
+export async function createIndexSnapshot(
+  repository: Repository
+): Promise<IIndexSnapshot> {
+  const { stdout } = await git(
+    ['rev-parse', '--git-path', 'index'],
+    repository.path,
+    'createIndexSnapshot'
+  )
+  const gitIndexPath = stdout.trim()
+  const indexPath = isAbsolute(gitIndexPath)
+    ? gitIndexPath
+    : resolve(repository.path, gitIndexPath)
+
+  try {
+    return { path: indexPath, contents: await readFile(indexPath) }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return { path: indexPath, contents: null }
+    }
+    throw error
+  }
+}
+
+export async function restoreIndexSnapshot(
+  snapshot: IIndexSnapshot
+): Promise<void> {
+  if (snapshot.contents === null) {
+    await unlink(snapshot.path).catch(error => {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error
+      }
+    })
+    return
+  }
+
+  const restorePath = `${snapshot.path}.desktop-restore-${
+    process.pid
+  }-${indexRestoreId++}`
+
+  try {
+    await writeFile(restorePath, snapshot.contents)
+    await rename(restorePath, snapshot.path)
+  } finally {
+    await unlink(restorePath).catch(() => {})
   }
 }

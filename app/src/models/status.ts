@@ -302,7 +302,17 @@ export class WorkingDirectoryFileChange extends FileChange {
   public constructor(
     path: string,
     status: AppFileStatus,
-    public readonly selection: DiffSelection
+    public readonly selection: DiffSelection,
+    public readonly hasStagedChanges: boolean = selection.getSelectionType() !==
+      DiffSelectionType.None,
+    public readonly hasUnstagedChanges: boolean = selection.getSelectionType() !==
+      DiffSelectionType.All,
+    public readonly stagedStatus: AppFileStatus | null = hasStagedChanges
+      ? status
+      : null,
+    public readonly unstagedStatus: AppFileStatus | null = hasUnstagedChanges
+      ? status
+      : null
   ) {
     super(path, status)
   }
@@ -318,7 +328,15 @@ export class WorkingDirectoryFileChange extends FileChange {
 
   /** Create a new WorkingDirectoryFileChange with the given diff selection. */
   public withSelection(selection: DiffSelection): WorkingDirectoryFileChange {
-    return new WorkingDirectoryFileChange(this.path, this.status, selection)
+    return new WorkingDirectoryFileChange(
+      this.path,
+      this.status,
+      selection,
+      this.hasStagedChanges,
+      this.hasUnstagedChanges,
+      this.stagedStatus,
+      this.unstagedStatus
+    )
   }
 
   public isIncludedInCommit(): boolean {

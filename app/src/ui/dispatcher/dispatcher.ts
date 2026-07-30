@@ -68,7 +68,12 @@ import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
 import { Commit, ICommitContext, CommitOneLine } from '../../models/commit'
 import { ICommitMessage } from '../../models/commit-message'
-import { DiffSelection, ImageDiffType, ITextDiff } from '../../models/diff'
+import {
+  DiffSelection,
+  ImageDiffType,
+  ITextDiff,
+  WorkingDirectoryDiffKind,
+} from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import { GitHubRepository } from '../../models/github-repository'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
@@ -322,9 +327,14 @@ export class Dispatcher {
    */
   public selectWorkingDirectoryFiles(
     repository: Repository,
-    selectedFiles?: WorkingDirectoryFileChange[]
+    selectedFiles?: WorkingDirectoryFileChange[],
+    diffKind?: WorkingDirectoryDiffKind
   ): Promise<void> {
-    return this.appStore._selectWorkingDirectoryFiles(repository, selectedFiles)
+    return this.appStore._selectWorkingDirectoryFiles(
+      repository,
+      selectedFiles,
+      diffKind
+    )
   }
 
   /**
@@ -363,6 +373,30 @@ export class Dispatcher {
     include: boolean
   ): Promise<void> {
     return this.appStore._changeFileIncluded(repository, file, include)
+  }
+
+  public changeFileStaged(
+    repository: Repository,
+    file:
+      | WorkingDirectoryFileChange
+      | ReadonlyArray<WorkingDirectoryFileChange>,
+    staged: boolean
+  ): Promise<void> {
+    return this.appStore._changeFileStaged(repository, file, staged)
+  }
+
+  public setChangesStagingWorkflow(
+    repository: Repository,
+    enabled: boolean
+  ): Promise<boolean> {
+    return this.appStore._setChangesStagingWorkflow(repository, enabled)
+  }
+
+  public initializeSubmodule(
+    repository: Repository,
+    path: string
+  ): Promise<boolean> {
+    return this.appStore._initializeSubmodule(repository, path)
   }
 
   /** Change the file's line selection state. */
