@@ -1,4 +1,5 @@
 import * as React from 'react'
+import classNames from 'classnames'
 import { Repository } from '../models/repository'
 import { Commit, CommitOneLine } from '../models/commit'
 import { TipState } from '../models/tip'
@@ -63,6 +64,18 @@ interface IRepositoryViewProps {
   readonly showCommitLengthWarning: boolean
   readonly accounts: ReadonlyArray<Account>
   readonly shouldShowGenerateCommitMessageCallOut: boolean
+
+  /**
+   * Optional DOM id for the root view element. Defaults to `repository`.
+   * Useful when multiple repository views are mounted (split view).
+   */
+  readonly viewId?: string
+
+  /**
+   * When true the repository is rendered inside a split pane and should use
+   * a more compact layout (narrower sidebar, denser chrome).
+   */
+  readonly isInSplitView?: boolean
 
   /**
    * A value indicating whether or not the application is currently presenting
@@ -405,10 +418,12 @@ export class RepositoryView extends React.Component<
   }
 
   private renderSidebar(): JSX.Element {
+    const viewId = this.props.viewId ?? 'repository'
     return (
       <FocusContainer onFocusWithinChanged={this.onSidebarFocusWithinChanged}>
         <Resizable
-          id="repository-sidebar"
+          id={`${viewId}-sidebar`}
+          className="repository-sidebar"
           width={this.props.sidebarWidth.value}
           maximumWidth={this.props.sidebarWidth.max}
           minimumWidth={this.props.sidebarWidth.min}
@@ -644,7 +659,12 @@ export class RepositoryView extends React.Component<
 
   public render() {
     return (
-      <UiView id="repository">
+      <UiView
+        id={this.props.viewId ?? 'repository'}
+        className={classNames('repository-view', {
+          'in-split-view': this.props.isInSplitView === true,
+        })}
+      >
         {this.renderSidebar()}
         {this.renderContent()}
         {this.maybeRenderTutorialPanel()}
