@@ -9,7 +9,9 @@ import {
   SelectionType,
   HistoryTabMode,
   CommitOptions,
+  IRepositoryState,
 } from '../lib/app-state'
+import { SplitPane, SplitToolbarMode } from '../models/split-view'
 import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
 import { assertNever } from '../lib/fatal-error'
@@ -45,6 +47,7 @@ import { TitleBar, ZoomInfo, FullScreenInfo } from './window'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
+import { SplitRepositoryView } from './split-repository-view'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch, DeleteRemoteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
@@ -201,6 +204,7 @@ import { TestCopilotSnapshotCardDialog } from './preferences/test-copilot-snapsh
 import {
   enableCopilotSdkCommitMessageGeneration,
   enableWorktreeSupport,
+  enableRepositorySplitView,
 } from '../lib/feature-flag'
 import {
   getCopilotAccountCacheKey,
@@ -1778,6 +1782,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             alwaysUseCopilotForConflictResolution={
               this.state.alwaysUseCopilotForConflictResolution
             }
+            splitToolbarMode={this.state.splitToolbarMode}
           />
         )
       case PopupType.CopilotUserSettings:
@@ -3367,6 +3372,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         onOpenInShell={this.openInShell}
         onShowRepository={this.showRepository}
         onOpenInExternalEditor={this.openInExternalEditor}
+        onOpenInSplitView={
+          enableRepositorySplitView() ? this.openInSplitView : undefined
+        }
         externalEditorLabel={this.externalEditorLabel}
         shellLabel={useCustomShell ? undefined : selectedShell}
         dispatcher={this.props.dispatcher}
@@ -3408,6 +3416,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.props.dispatcher.openInExternalEditor(repository.path)
+  }
+
+  private openInSplitView = (repository: Repository) => {
+    this.props.dispatcher.openRepositoryInSplit(repository)
+    this.props.dispatcher.closeFoldout(FoldoutType.Repository)
   }
 
   private openRepositoryInSelectedEditor = async (
@@ -3568,6 +3581,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       onViewOnGitHub: this.viewOnGitHub,
       onCreateWorktree: enableWorktreeSupport() ? onCreateWorktree : undefined,
       onShowWorktrees: enableWorktreeSupport() ? onShowWorktrees : undefined,
+      onOpenInSplitView: enableRepositorySplitView()
+        ? this.openInSplitView
+        : undefined,
       repository: repository,
       shellLabel: this.state.useCustomShell
         ? undefined
@@ -3651,6 +3667,175 @@ export class App extends React.Component<IAppProps, IAppState> {
         onDropdownStateChanged={this.onPushPullDropdownStateChanged}
         enableFocusTrap={enableFocusTrap}
         pushPullButtonWidth={this.state.pushPullButtonWidth}
+      />
+    )
+  }
+
+  private renderSplitPaneToolbar = (
+    pane: SplitPane,
+    repository: Repository,
+    state: IRepositoryState
+  ): JSX.Element => {
+    const isFocused = this.state.focusedSplitPane === pane
+    const currentFoldout = this.state.currentFoldout
+    const enableFocusTrap = this.state.currentPopup === null
+    const { branchesState } = state
+
+    const onBranchDropdownStateChanged = async (newState: DropdownState) => {
+      if (!isFocused) {
+        await this.props.dispatcher.setFocusedSplitPane(pane)
+      }
+      this.onBranchDropdownStateChanged(newState)
+    }
+
+    const onPushPullDropdownStateChanged = async (newState: DropdownState) => {
+      if (!isFocused) {
+        await this.props.dispatcher.setFocusedSplitPane(pane)
+      }
+      this.onPushPullDropdownStateChanged(newState)
+    }
+
+    const isBranchOpen =
+      isFocused &&
+      currentFoldout !== null &&
+      currentFoldout.type === FoldoutType.Branch
+
+    const isPushPullOpen =
+      isFocused &&
+      currentFoldout !== null &&
+      currentFoldout.type === FoldoutType.PushPull
+
+    let remoteName = state.remote ? state.remote.name : null
+    const { tip, pullWithRebase } = branchesState
+    if (tip.kind === TipState.Valid && tip.branch.upstreamRemoteName !== null) {
+      remoteName = tip.branch.upstreamRemoteName
+      if (tip.branch.upstreamWithoutRemote !== tip.branch.name) {
+        remoteName = tip.branch.upstream
+      }
+    }
+
+    const { conflictState } = state.changesState
+    const rebaseInProgress =
+      conflictState !== null && conflictState.kind === 'rebase'
+    const forcePushBranchState = getCurrentBranchForcePushState(
+      branchesState,
+      state.aheadBehind
+    )
+
+    // Prefer a compact width inside each split pane.
+    const compactWidth = {
+      ...this.state.branchDropdownWidth,
+      value: Math.min(this.state.branchDropdownWidth.value, 180),
+      max: Math.min(this.state.branchDropdownWidth.max, 220),
+    }
+
+    const compactPushPullWidth = {
+      ...this.state.pushPullButtonWidth,
+      value: Math.min(this.state.pushPullButtonWidth.value, 180),
+      max: Math.min(this.state.pushPullButtonWidth.max, 220),
+    }
+
+    return (
+      <>
+        {this.renderSplitPaneRepositoryButton(pane, repository, isFocused)}
+        <BranchDropdown
+          dispatcher={this.props.dispatcher}
+          isOpen={isBranchOpen}
+          branchDropdownWidth={compactWidth}
+          onDropDownStateChanged={onBranchDropdownStateChanged}
+          repository={repository}
+          repositoryState={state}
+          selectedTab={this.state.selectedBranchesTab}
+          pullRequests={branchesState.openPullRequests}
+          currentPullRequest={branchesState.currentPullRequest}
+          isLoadingPullRequests={branchesState.isLoadingPullRequests}
+          shouldNudge={false}
+          showCIStatusPopover={isFocused && this.state.showCIStatusPopover}
+          emoji={this.state.emoji}
+          enableFocusTrap={enableFocusTrap}
+          underlineLinks={this.state.underlineLinks}
+        />
+        {state.revertProgress ? (
+          <RevertProgress
+            progress={state.revertProgress}
+            width={compactPushPullWidth}
+            dispatcher={this.props.dispatcher}
+          />
+        ) : (
+          <PushPullButton
+            dispatcher={this.props.dispatcher}
+            repository={repository}
+            aheadBehind={state.aheadBehind}
+            numTagsToPush={
+              state.tagsToPush !== null ? state.tagsToPush.length : 0
+            }
+            remoteName={remoteName}
+            lastFetched={state.lastFetched}
+            networkActionInProgress={state.isPushPullFetchInProgress}
+            progress={state.pushPullFetchProgress}
+            tipState={tip.kind}
+            pullWithRebase={pullWithRebase}
+            rebaseInProgress={rebaseInProgress}
+            forcePushBranchState={forcePushBranchState}
+            shouldNudge={false}
+            isDropdownOpen={isPushPullOpen}
+            askForConfirmationOnForcePush={
+              this.state.askForConfirmationOnForcePush
+            }
+            onDropdownStateChanged={onPushPullDropdownStateChanged}
+            enableFocusTrap={enableFocusTrap}
+            pushPullButtonWidth={compactPushPullWidth}
+          />
+        )}
+      </>
+    )
+  }
+
+  /**
+   * Repository picker rendered inside a split pane toolbar. Opening it focuses
+   * the owning pane first so the (global) repository foldout targets it.
+   */
+  private renderSplitPaneRepositoryButton(
+    pane: SplitPane,
+    repository: Repository,
+    isFocused: boolean
+  ) {
+    const { currentFoldout, currentPopup } = this.state
+
+    const isOpen =
+      isFocused &&
+      currentFoldout !== null &&
+      currentFoldout.type === FoldoutType.Repository
+
+    const foldoutWidth = clamp(this.state.sidebarWidth)
+    const foldoutStyle: React.CSSProperties = {
+      position: 'absolute',
+      marginLeft: 0,
+      width: foldoutWidth,
+      minWidth: foldoutWidth,
+      height: '100%',
+      top: 0,
+    }
+
+    const onDropdownStateChanged = async (newState: DropdownState) => {
+      if (!isFocused) {
+        await this.props.dispatcher.setFocusedSplitPane(pane)
+      }
+      this.onRepositoryDropdownStateChanged(newState)
+    }
+
+    return (
+      <ToolbarDropdown
+        icon={iconForRepository(repository)}
+        title={repository.alias ?? repository.name}
+        description={__DARWIN__ ? 'Current Repository' : 'Current repository'}
+        tooltip={isOpen ? undefined : repository.path}
+        foldoutStyle={foldoutStyle}
+        onContextMenu={this.onRepositoryToolbarButtonContextMenu}
+        onDropdownStateChanged={onDropdownStateChanged}
+        dropdownContentRenderer={this.renderRepositoryList}
+        dropdownState={isOpen ? 'open' : 'closed'}
+        enableFocusTrap={currentPopup === null}
       />
     )
   }
@@ -3892,6 +4077,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
+    // In per-pane split view every pane carries a complete toolbar of its own,
+    // so a global one would only duplicate (and contradict) them.
+    if (
+      this.isInSplitView() &&
+      this.state.splitToolbarMode === SplitToolbarMode.PerPane
+    ) {
+      return null
+    }
+
     const width = clamp(this.state.sidebarWidth)
 
     return (
@@ -3903,6 +4097,21 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
       </Toolbar>
+    )
+  }
+
+  private isInSplitView(): boolean {
+    if (!enableRepositorySplitView()) {
+      return false
+    }
+
+    const primary = this.state.primaryRepositoryState
+    const secondary = this.state.splitRepositoryState
+    return (
+      primary !== null &&
+      primary.type === SelectionType.Repository &&
+      secondary !== null &&
+      secondary.type === SelectionType.Repository
     )
   }
 
@@ -3925,75 +4134,39 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
     }
 
-    const state = this.state
+    const primaryState = this.state.primaryRepositoryState
+    const splitState = this.state.splitRepositoryState
 
-    const selectedState = state.selectedState
+    if (
+      enableRepositorySplitView() &&
+      primaryState !== null &&
+      primaryState.type === SelectionType.Repository &&
+      splitState !== null &&
+      splitState.type === SelectionType.Repository
+    ) {
+      return (
+        <SplitRepositoryView
+          primary={primaryState}
+          secondary={splitState}
+          focusedPane={this.state.focusedSplitPane}
+          toolbarMode={this.state.splitToolbarMode}
+          splitPaneWidth={this.state.splitPaneWidth}
+          dispatcher={this.props.dispatcher}
+          renderRepository={this.renderRepositoryView}
+          renderPaneToolbar={this.renderSplitPaneToolbar}
+        />
+      )
+    }
+
+    const selectedState = this.state.selectedState
     if (!selectedState) {
       return <NoRepositorySelected />
     }
 
     if (selectedState.type === SelectionType.Repository) {
-      return (
-        <RepositoryView
-          ref={this.repositoryViewRef}
-          // When switching repositories we want to remount the RepositoryView
-          // component to reset the scroll positions.
-          key={selectedState.repository.hash}
-          repository={selectedState.repository}
-          state={selectedState.state}
-          dispatcher={this.props.dispatcher}
-          emoji={state.emoji}
-          sidebarWidth={state.sidebarWidth}
-          commitSummaryWidth={state.commitSummaryWidth}
-          stashedFilesWidth={state.stashedFilesWidth}
-          issuesStore={this.props.issuesStore}
-          gitHubUserStore={this.props.gitHubUserStore}
-          onViewCommitOnGitHub={this.onViewCommitOnGitHub}
-          imageDiffType={state.imageDiffType}
-          hideWhitespaceInChangesDiff={state.hideWhitespaceInChangesDiff}
-          hideWhitespaceInHistoryDiff={state.hideWhitespaceInHistoryDiff}
-          showDiffCheckMarks={state.showDiffCheckMarks}
-          preferAbsoluteDates={state.preferAbsoluteDates}
-          showSideBySideDiff={state.showSideBySideDiff}
-          focusCommitMessage={state.focusCommitMessage}
-          askForConfirmationOnDiscardChanges={
-            state.askForConfirmationOnDiscardChanges
-          }
-          askForConfirmationOnDiscardStash={
-            state.askForConfirmationOnDiscardStash
-          }
-          askForConfirmationOnCheckoutCommit={
-            state.askForConfirmationOnCheckoutCommit
-          }
-          askForConfirmationOnCommitFilteredChanges={
-            state.askForConfirmationOnCommitFilteredChanges
-          }
-          accounts={state.accounts}
-          isExternalEditorAvailable={
-            state.useCustomEditor || state.selectedExternalEditor !== null
-          }
-          externalEditorLabel={this.externalEditorLabel}
-          resolvedExternalEditor={state.resolvedExternalEditor}
-          onOpenInExternalEditor={this.onOpenInExternalEditor}
-          appMenu={state.appMenuState[0]}
-          currentTutorialStep={state.currentOnboardingTutorialStep}
-          onExitTutorial={this.onExitTutorial}
-          isShowingModal={this.isShowingModal}
-          isShowingFoldout={this.state.currentFoldout !== null}
-          aheadBehindStore={this.props.aheadBehindStore}
-          commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
-          showCommitLengthWarning={this.state.showCommitLengthWarning}
-          onCherryPick={this.startCherryPickWithoutBranch}
-          pullRequestSuggestedNextAction={state.pullRequestSuggestedNextAction}
-          showChangesFilter={state.showChangesFilter}
-          shouldShowGenerateCommitMessageCallOut={
-            !this.state.commitMessageGenerationButtonClicked
-          }
-          skipCommitHooks={selectedState.state.skipCommitHooks}
-          signOffCommits={selectedState.state.signOffCommits}
-          allowEmptyCommit={selectedState.state.allowEmptyCommit}
-          onUpdateCommitOptions={this.onUpdateCommitOptions}
-        />
+      return this.renderRepositoryView(
+        selectedState.repository,
+        selectedState.state
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
       return (
@@ -4012,6 +4185,105 @@ export class App extends React.Component<IAppProps, IAppState> {
     } else {
       return assertNever(selectedState, `Unknown state: ${selectedState}`)
     }
+  }
+
+  private renderRepositoryView = (
+    repository: Repository,
+    repositoryState: IRepositoryState,
+    viewId?: string
+  ) => {
+    const state = this.state
+    const inSplitView = this.isInSplitView()
+    const isFocusedPane =
+      this.state.splitRepositoryState === null ||
+      (this.state.focusedSplitPane === SplitPane.Primary &&
+        this.state.primaryRepositoryState?.type === SelectionType.Repository &&
+        this.state.primaryRepositoryState.repository.hash === repository.hash) ||
+      (this.state.focusedSplitPane === SplitPane.Secondary &&
+        this.state.splitRepositoryState?.type === SelectionType.Repository &&
+        this.state.splitRepositoryState.repository.hash === repository.hash)
+
+    // Cap (but never shrink below the regular minimum) the sidebar in a split
+    // pane so the diff column is still usable at half the window width.
+    const sidebarWidth = inSplitView
+      ? {
+          ...state.sidebarWidth,
+          value: Math.min(state.sidebarWidth.value, 250),
+          max: Math.min(state.sidebarWidth.max, 300),
+        }
+      : state.sidebarWidth
+
+    return (
+      <RepositoryView
+        ref={isFocusedPane ? this.repositoryViewRef : undefined}
+        // When switching repositories we want to remount the RepositoryView
+        // component to reset the scroll positions.
+        key={repository.hash}
+        viewId={
+          viewId ??
+          (inSplitView ? `repository-${repository.hash}` : 'repository')
+        }
+        repository={repository}
+        state={repositoryState}
+        dispatcher={this.props.dispatcher}
+        emoji={state.emoji}
+        sidebarWidth={sidebarWidth}
+        commitSummaryWidth={state.commitSummaryWidth}
+        stashedFilesWidth={state.stashedFilesWidth}
+        issuesStore={this.props.issuesStore}
+        gitHubUserStore={this.props.gitHubUserStore}
+        onViewCommitOnGitHub={this.onViewCommitOnGitHub}
+        imageDiffType={state.imageDiffType}
+        hideWhitespaceInChangesDiff={state.hideWhitespaceInChangesDiff}
+        hideWhitespaceInHistoryDiff={state.hideWhitespaceInHistoryDiff}
+        showDiffCheckMarks={state.showDiffCheckMarks}
+        preferAbsoluteDates={state.preferAbsoluteDates}
+        showSideBySideDiff={state.showSideBySideDiff}
+        focusCommitMessage={isFocusedPane && state.focusCommitMessage}
+        askForConfirmationOnDiscardChanges={
+          state.askForConfirmationOnDiscardChanges
+        }
+        askForConfirmationOnDiscardStash={
+          state.askForConfirmationOnDiscardStash
+        }
+        askForConfirmationOnCheckoutCommit={
+          state.askForConfirmationOnCheckoutCommit
+        }
+        askForConfirmationOnCommitFilteredChanges={
+          state.askForConfirmationOnCommitFilteredChanges
+        }
+        accounts={state.accounts}
+        isExternalEditorAvailable={
+          state.useCustomEditor || state.selectedExternalEditor !== null
+        }
+        externalEditorLabel={this.externalEditorLabel}
+        resolvedExternalEditor={state.resolvedExternalEditor}
+        onOpenInExternalEditor={this.onOpenInExternalEditor}
+        appMenu={state.appMenuState[0]}
+        currentTutorialStep={
+          isFocusedPane
+            ? state.currentOnboardingTutorialStep
+            : TutorialStep.NotApplicable
+        }
+        onExitTutorial={this.onExitTutorial}
+        isShowingModal={this.isShowingModal}
+        isShowingFoldout={this.state.currentFoldout !== null}
+        aheadBehindStore={this.props.aheadBehindStore}
+        commitSpellcheckEnabled={this.state.commitSpellcheckEnabled}
+        showCommitLengthWarning={this.state.showCommitLengthWarning}
+        onCherryPick={this.startCherryPickWithoutBranch}
+        pullRequestSuggestedNextAction={state.pullRequestSuggestedNextAction}
+        showChangesFilter={state.showChangesFilter}
+        shouldShowGenerateCommitMessageCallOut={
+          !inSplitView && !this.state.commitMessageGenerationButtonClicked
+        }
+        skipCommitHooks={repositoryState.skipCommitHooks}
+        signOffCommits={repositoryState.signOffCommits}
+        allowEmptyCommit={repositoryState.allowEmptyCommit}
+        onUpdateCommitOptions={this.onUpdateCommitOptions}
+        isInSplitView={inSplitView}
+      />
+    )
   }
 
   private renderWelcomeFlow() {
@@ -4064,7 +4336,14 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onSelectionChanged = (repository: Repository | CloningRepository) => {
-    this.props.dispatcher.selectRepository(repository)
+    if (
+      enableRepositorySplitView() &&
+      this.state.splitRepositoryState !== null
+    ) {
+      this.props.dispatcher.selectRepositoryInFocusedPane(repository)
+    } else {
+      this.props.dispatcher.selectRepository(repository)
+    }
     this.props.dispatcher.closeFoldout(FoldoutType.Repository)
   }
 
