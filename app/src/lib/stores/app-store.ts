@@ -78,6 +78,7 @@ import {
   PullRequest,
   PullRequestSuggestedNextAction,
 } from '../../models/pull-request'
+import { SplitPane, SplitToolbarMode } from '../../models/split-view'
 import {
   forkPullRequestRemoteName,
   IRemote,
@@ -306,6 +307,7 @@ import {
   enableCopilotSdkCommitMessageGeneration,
   enableCustomIntegration,
   enableWorktreeSupport,
+  enableRepositorySplitView,
 } from '../feature-flag'
 import { isGHES } from '../endpoint-capabilities'
 import { Banner, BannerType } from '../../models/banner'
@@ -473,6 +475,10 @@ const worktreeDropdownWidthConfigKey: string = 'worktree-dropdown-width'
 const defaultPushPullButtonWidth: number = 230
 const pushPullButtonWidthConfigKey: string = 'push-pull-button-width'
 
+const defaultSplitPaneWidth: number = 50
+const splitPaneWidthConfigKey: string = 'split-pane-width'
+const splitToolbarModeKey: string = 'split-toolbar-mode'
+
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
 const showCommitLengthWarningDefault: boolean = false
@@ -584,6 +590,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private recentRepositories: ReadonlyArray<number> = new Array<number>()
 
   private selectedRepository: Repository | CloningRepository | null = null
+
+  /** Repository shown in the secondary (right) split pane, if any. */
+  private splitRepository: Repository | CloningRepository | null = null
+
+  private focusedSplitPane: SplitPane = SplitPane.Primary
+  private splitToolbarMode: SplitToolbarMode = SplitToolbarMode.PerPane
+  private splitPaneWidth = constrain(defaultSplitPaneWidth, 25, 75)
 
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
@@ -1224,8 +1237,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
-  private getSelectedState(): PossibleSelections | null {
-    const repository = this.selectedRepository
+  private getRepositorySelectionState(
+    repository: Repository | CloningRepository | null
+  ): PossibleSelections | null {
     if (!repository) {
       return null
     }
@@ -1255,6 +1269,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
   }
 
+  private getFocusedRepository(): Repository | CloningRepository | null {
+    if (
+      this.focusedSplitPane === SplitPane.Secondary &&
+      this.splitRepository !== null
+    ) {
+      return this.splitRepository
+    }
+
+    return this.selectedRepository
+  }
+
+  private getSelectedState(): PossibleSelections | null {
+    return this.getRepositorySelectionState(this.getFocusedRepository())
+  }
+
+  private getSplitRepositoryState(): PossibleSelections | null {
+    return this.getRepositorySelectionState(this.splitRepository)
+  }
+
   public getState(): IAppState {
     const repositories = [
       ...this.repositories,
@@ -1270,6 +1303,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       windowZoomFactor: this.windowZoomFactor,
       appIsFocused: this.appIsFocused,
       selectedState: this.getSelectedState(),
+      primaryRepositoryState: this.getRepositorySelectionState(
+        this.selectedRepository
+      ),
+      splitRepositoryState: this.getSplitRepositoryState(),
+      focusedSplitPane: this.focusedSplitPane,
+      splitToolbarMode: this.splitToolbarMode,
+      splitPaneWidth: this.splitPaneWidth,
       signInState: this.signInStore.getState(),
       currentPopup: this.popupManager.currentPopup,
       allPopups: this.popupManager.allPopups,
@@ -2139,6 +2179,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.selectedRepository = repository
+    this.focusedSplitPane = SplitPane.Primary
+
+    // Selecting the same repository into the primary pane closes the split.
+    if (
+      repository !== null &&
+      this.splitRepository !== null &&
+      repository.id === this.splitRepository.id &&
+      repository.constructor === this.splitRepository.constructor
+    ) {
+      this.splitRepository = null
+    }
 
     this.emitUpdate()
     this.stopBackgroundFetching()
@@ -2147,6 +2198,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.stopBackgroundPruner()
 
     if (repository == null) {
+      this.splitRepository = null
       return Promise.resolve(null)
     }
 
@@ -2182,6 +2234,165 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return this._selectRepositoryRefreshTasks(
       refreshedRepository,
       previouslySelectedRepository
+    )
+  }
+
+  /**
+   * Select a repository into whichever split pane currently has focus.
+   * When split view is inactive this is identical to `_selectRepository`.
+   */
+  public async _selectRepositoryInFocusedPane(
+    repository: Repository | CloningRepository
+  ): Promise<Repository | null> {
+    if (
+      enableRepositorySplitView() &&
+      this.splitRepository !== null &&
+      this.focusedSplitPane === SplitPane.Secondary
+    ) {
+      return this._setSplitRepository(repository)
+    }
+
+    return this._selectRepository(repository)
+  }
+
+  /** Open `repository` in the secondary split pane. */
+  public async _openRepositoryInSplit(
+    repository: Repository
+  ): Promise<Repository | null> {
+    if (!enableRepositorySplitView()) {
+      return this._selectRepository(repository)
+    }
+
+    if (repository.missing) {
+      return null
+    }
+
+    const primary = this.selectedRepository
+    if (!(primary instanceof Repository) || primary.missing) {
+      return this._selectRepository(repository)
+    }
+
+    if (primary.id === repository.id) {
+      // Already showing this repository as primary; nothing to split.
+      this.focusedSplitPane = SplitPane.Primary
+      this.emitUpdate()
+      return repository
+    }
+
+    return this._setSplitRepository(repository)
+  }
+
+  /** Close the secondary split pane and focus the primary repository. */
+  public async _closeSplitView(): Promise<void> {
+    if (this.splitRepository === null) {
+      return
+    }
+
+    this.splitRepository = null
+    this.focusedSplitPane = SplitPane.Primary
+    this.emitUpdate()
+
+    if (this.selectedRepository instanceof Repository) {
+      this.stopBackgroundFetching()
+      this.stopPullRequestUpdater()
+      this.stopBackgroundPruner()
+      await this._selectRepositoryRefreshTasks(
+        this.selectedRepository,
+        this.selectedRepository
+      )
+    }
+  }
+
+  /** Change which split pane owns focus (and therefore the toolbar). */
+  public async _setFocusedSplitPane(pane: SplitPane): Promise<void> {
+    if (pane === this.focusedSplitPane) {
+      return
+    }
+
+    if (pane === SplitPane.Secondary && this.splitRepository === null) {
+      return
+    }
+
+    const previouslyFocused = this.getFocusedRepository()
+    this.focusedSplitPane = pane
+    this.emitUpdate()
+
+    const focused = this.getFocusedRepository()
+    if (!(focused instanceof Repository)) {
+      return
+    }
+
+    this.stopBackgroundFetching()
+    this.stopPullRequestUpdater()
+    this.stopBackgroundPruner()
+
+    setNumber(LastSelectedRepositoryIDKey, focused.id)
+    this.notificationsStore.selectRepository(focused)
+
+    await this._selectRepositoryRefreshTasks(focused, previouslyFocused)
+  }
+
+  public _setSplitToolbarMode(mode: SplitToolbarMode): Promise<void> {
+    this.splitToolbarMode = mode
+    localStorage.setItem(splitToolbarModeKey, mode)
+    this.emitUpdate()
+    return Promise.resolve()
+  }
+
+  public _setSplitPaneWidth(width: number): Promise<void> {
+    this.splitPaneWidth = { ...this.splitPaneWidth, value: width }
+    setNumber(splitPaneWidthConfigKey, width)
+    this.emitUpdate()
+    return Promise.resolve()
+  }
+
+  public _resetSplitPaneWidth(): Promise<void> {
+    this.splitPaneWidth = {
+      ...this.splitPaneWidth,
+      value: defaultSplitPaneWidth,
+    }
+    localStorage.removeItem(splitPaneWidthConfigKey)
+    this.emitUpdate()
+    return Promise.resolve()
+  }
+
+  private async _setSplitRepository(
+    repository: Repository | CloningRepository
+  ): Promise<Repository | null> {
+    const previouslyFocused = this.getFocusedRepository()
+    this.splitRepository = repository
+    this.focusedSplitPane = SplitPane.Secondary
+    this.emitUpdate()
+
+    if (!(repository instanceof Repository)) {
+      return null
+    }
+
+    setNumber(LastSelectedRepositoryIDKey, repository.id)
+    this.updateRecentRepositories(
+      previouslyFocused ? previouslyFocused.id : null,
+      repository.id
+    )
+
+    const refreshedRepository = await this.recoverMissingRepository(repository)
+    if (refreshedRepository.missing) {
+      this.gitStoreCache.remove(repository)
+      this.splitRepository = null
+      this.focusedSplitPane = SplitPane.Primary
+      this.emitUpdate()
+      return null
+    }
+
+    this.splitRepository = refreshedRepository
+    this.notificationsStore.selectRepository(refreshedRepository)
+
+    this.stopBackgroundFetching()
+    this.stopPullRequestUpdater()
+    this.stopBackgroundPruner()
+
+    return this._selectRepositoryRefreshTasks(
+      refreshedRepository,
+      previouslyFocused
     )
   }
 
@@ -2606,6 +2817,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
         PullRequestSuggestedNextAction
       ) ?? defaultPullRequestSuggestedNextAction
 
+    this.splitToolbarMode =
+      getEnum(splitToolbarModeKey, SplitToolbarMode) ??
+      SplitToolbarMode.PerPane
+
+    this.splitPaneWidth = constrain(
+      getNumber(splitPaneWidthConfigKey, defaultSplitPaneWidth),
+      25,
+      75
+    )
+
     // Always false if the feature flag is disabled.
     this.underlineLinks = getBoolean(underlineLinksKey, underlineLinksDefault)
 
@@ -2942,6 +3163,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
       newSelectedRepository = r
     }
 
+    let splitChanged = false
+    if (this.splitRepository !== null) {
+      const matchingSplit =
+        this.repositories.find(
+          r =>
+            r.constructor === this.splitRepository!.constructor &&
+            r.id === this.splitRepository!.id
+        ) || null
+
+      if (matchingSplit === null) {
+        this.splitRepository = null
+        this.focusedSplitPane = SplitPane.Primary
+        splitChanged = true
+      } else if (matchingSplit !== this.splitRepository) {
+        this.splitRepository = matchingSplit
+        splitChanged = true
+      }
+    }
+
     if (newSelectedRepository === null && this.repositories.length > 0) {
       const lastSelectedID = getNumber(LastSelectedRepositoryIDKey, 0)
       if (lastSelectedID > 0) {
@@ -2962,6 +3202,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       (!selectedRepository && newSelectedRepository)
     if (repositoryChanged) {
       this._selectRepository(newSelectedRepository)
+      this.emitUpdate()
+    } else if (splitChanged) {
       this.emitUpdate()
     }
   }
