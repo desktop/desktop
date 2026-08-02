@@ -331,7 +331,7 @@ export class Appearance extends React.Component<
       case SplitToolbarMode.Focused:
         return 'Single top toolbar (follows focused pane)'
       case SplitToolbarMode.PerPane:
-        return 'Branch and push/pull controls in each pane'
+        return 'A separate toolbar in each pane'
       default:
         return assertNever(mode, `Unknown split toolbar mode: ${mode}`)
     }
