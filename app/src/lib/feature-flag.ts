@@ -125,3 +125,6 @@ export const enableFormattingPreferences = () => true
 
 /** Should the app enable worktree support? */
 export const enableWorktreeSupport = () => true
+
+/** Should the app allow viewing two repositories side by side? */
+export const enableRepositorySplitView = () => enableBetaFeatures()
