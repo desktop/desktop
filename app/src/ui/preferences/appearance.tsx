@@ -11,7 +11,10 @@ import { Select } from '../lib/select'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { encodePathAsUrl } from '../../lib/path'
 import { tabSizeDefault } from '../../lib/stores/app-store'
-import { enableFormattingPreferences } from '../../lib/feature-flag'
+import {
+  enableFormattingPreferences,
+  enableRepositorySplitView,
+} from '../../lib/feature-flag'
 import {
   DateFormat,
   TimeFormat,
@@ -22,6 +25,8 @@ import {
   numberFormatToKey,
 } from '../../models/formatting-preferences'
 import { formatNumber } from '../../lib/format-number'
+import { SplitToolbarMode } from '../../models/split-view'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IAppearanceProps {
   readonly selectedTheme: ApplicationTheme
@@ -36,6 +41,8 @@ interface IAppearanceProps {
   readonly onSelectedNumberFormatChanged: (format: INumberFormat) => void
   readonly preferAbsoluteDates: boolean
   readonly onPreferAbsoluteDatesChanged: (value: boolean) => void
+  readonly splitToolbarMode: SplitToolbarMode
+  readonly onSplitToolbarModeChanged: (mode: SplitToolbarMode) => void
 }
 
 interface IAppearanceState {
@@ -283,12 +290,60 @@ export class Appearance extends React.Component<
     )
   }
 
+  private onSplitToolbarModeChanged = (mode: SplitToolbarMode) => {
+    this.props.onSplitToolbarModeChanged(mode)
+  }
+
+  private renderSplitView() {
+    if (!enableRepositorySplitView()) {
+      return null
+    }
+
+    const options = [SplitToolbarMode.Focused, SplitToolbarMode.PerPane]
+    const selectedValue =
+      this.props.splitToolbarMode === SplitToolbarMode.Focused
+        ? SplitToolbarMode.Focused
+        : SplitToolbarMode.PerPane
+
+    return (
+      <div className="appearance-section">
+        <h2 id="split-view-heading">
+          {__DARWIN__ ? 'Split View' : 'Split view'}
+        </h2>
+        <p className="settings-description">
+          Choose how toolbars work when two repositories are open side by side.
+          Open a second repository from the repository list context menu with
+          “Open in Split View”.
+        </p>
+        <RadioGroup
+          ariaLabelledBy="split-view-heading"
+          selectedKey={selectedValue}
+          radioButtonKeys={options}
+          onSelectionChanged={this.onSplitToolbarModeChanged}
+          renderRadioButtonLabelContents={this.renderSplitToolbarModeLabel}
+        />
+      </div>
+    )
+  }
+
+  private renderSplitToolbarModeLabel = (mode: SplitToolbarMode) => {
+    switch (mode) {
+      case SplitToolbarMode.Focused:
+        return 'Single top toolbar (follows focused pane)'
+      case SplitToolbarMode.PerPane:
+        return 'Branch and push/pull controls in each pane'
+      default:
+        return assertNever(mode, `Unknown split toolbar mode: ${mode}`)
+    }
+  }
+
   public render() {
     return (
       <DialogContent>
         {this.renderSelectedTheme()}
         {this.renderFormatting()}
         {this.renderSelectedTabSize()}
+        {this.renderSplitView()}
       </DialogContent>
     )
   }
