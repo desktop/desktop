@@ -24,6 +24,7 @@ import {
   IMultiCommitOperationState,
   CommitOptions,
 } from '../../lib/app-state'
+import { SplitPane, SplitToolbarMode } from '../../models/split-view'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import {
   setGenericPassword,
@@ -302,6 +303,45 @@ export class Dispatcher {
     repository: Repository | CloningRepository
   ): Promise<Repository | null> {
     return this.appStore._selectRepository(repository)
+  }
+
+  /**
+   * Select a repository into the currently focused split pane.
+   * Falls back to `selectRepository` when split view is inactive.
+   */
+  public selectRepositoryInFocusedPane(
+    repository: Repository | CloningRepository
+  ): Promise<Repository | null> {
+    return this.appStore._selectRepositoryInFocusedPane(repository)
+  }
+
+  /** Open a repository in the secondary split pane. */
+  public openRepositoryInSplit(
+    repository: Repository
+  ): Promise<Repository | null> {
+    return this.appStore._openRepositoryInSplit(repository)
+  }
+
+  /** Close the secondary split pane. */
+  public closeSplitView(): Promise<void> {
+    return this.appStore._closeSplitView()
+  }
+
+  /** Focus a split pane (updates toolbar target). */
+  public setFocusedSplitPane(pane: SplitPane): Promise<void> {
+    return this.appStore._setFocusedSplitPane(pane)
+  }
+
+  public setSplitToolbarMode(mode: SplitToolbarMode): Promise<void> {
+    return this.appStore._setSplitToolbarMode(mode)
+  }
+
+  public setSplitPaneWidth(width: number): Promise<void> {
+    return this.appStore._setSplitPaneWidth(width)
+  }
+
+  public resetSplitPaneWidth(): Promise<void> {
+    return this.appStore._resetSplitPaneWidth()
   }
 
   /** Change the selected section in the repository. */
