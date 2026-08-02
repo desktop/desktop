@@ -1,7 +1,16 @@
 @import '../mixins';
 
-/** A React component holding the currently selected repository */
-#repository {
+/**
+ * A React component holding the currently selected repository.
+ *
+ * The class selectors mirror the id selectors so that more than one repository
+ * view can be mounted at a time (see the split view).
+ */
+#repository,
+// `.ui-view` is qualified purely to win over its `flex-direction: column`,
+// which is declared later in the bundle and would otherwise stack the sidebar
+// on top of the diff.
+.repository-view.ui-view {
   display: flex;
   flex-direction: row;
   flex: 1 1 auto;
@@ -16,21 +25,22 @@
   #no-changes {
     gap: var(--spacing);
   }
+}
 
-  &-sidebar {
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid var(--box-border-color);
+#repository-sidebar,
+.repository-sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--box-border-color);
 
-    .tab-bar {
-      flex-shrink: 0;
-    }
+  .tab-bar {
+    flex-shrink: 0;
+  }
 
-    .panel {
-      height: 100%;
-      flex: 1 1 auto;
-      min-height: 0;
-      overflow-y: auto;
-    }
+  .panel {
+    height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
   }
 }
