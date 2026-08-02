@@ -1,0 +1,178 @@
+@import '../mixins';
+
+// Keep in sync with `SplitRepositoryView.dividerWidth`.
+$split-divider-width: 6px;
+
+/**
+ * Two repository views side by side.
+ *
+ * The panes are deliberately "dumb" containers: everything below
+ * `.split-repository-pane-content` is a stock repository view and must keep
+ * behaving exactly as it does when a single repository is open. The only job
+ * of the rules below is to hand each pane a correctly sized box.
+ */
+#split-repository.split-repository-view {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.split-repository-panes {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+
+  // While dragging the divider we don't want the cursor to flicker as it
+  // passes over the panes, nor do we want to select text.
+  &.dragging {
+    cursor: col-resize;
+    user-select: none;
+  }
+}
+
+.split-repository-primary {
+  // flex-basis is supplied inline from the persisted split width.
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+.split-repository-secondary {
+  flex: 1 1 0;
+}
+
+.split-repository-primary,
+.split-repository-secondary {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.split-repository-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+
+  // The focus ring is drawn as an inset shadow rather than a border so that
+  // focusing a pane never changes its size and both panes stay identical.
+  position: relative;
+
+  &.focused::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px var(--focus-color);
+    z-index: 1;
+  }
+}
+
+.split-repository-divider {
+  flex: 0 0 $split-divider-width;
+  width: $split-divider-width;
+  cursor: col-resize;
+  background-color: var(--box-border-color);
+  // Keep the visible line hairline thin while retaining a comfortable hit area.
+  background-clip: content-box;
+  border-left: ($split-divider-width - 1px) * 0.5 solid var(--background-color);
+  border-right: ($split-divider-width - 1px) * 0.5 solid var(--background-color);
+
+  &:hover,
+  &:focus {
+    background-color: var(--focus-color);
+    outline: none;
+  }
+}
+
+/**
+ * Per-pane toolbar. Mirrors `#desktop-app-toolbar` so the controls inside it
+ * (repository picker, branch dropdown, push/pull button) render identically to
+ * the global toolbar they replace.
+ */
+.split-repository-pane-toolbar {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 0;
+  flex-shrink: 0;
+  min-width: 0;
+
+  height: var(--toolbar-height);
+  border-bottom: 1px solid var(--toolbar-border-color);
+  color: var(--toolbar-text-color);
+  background-color: var(--toolbar-background-color);
+
+  // Give every control an equal share of the (narrow) pane width.
+  > .toolbar-dropdown,
+  > .toolbar-button {
+    flex: 1 1 0;
+    min-width: 0;
+    max-height: var(--toolbar-height);
+  }
+
+  > .toolbar-button.push-pull-button,
+  > .toolbar-button.branch-toolbar-button,
+  > .toolbar-button.revert-progress {
+    width: auto;
+  }
+}
+
+/** Compact header used when the toolbar follows the focused pane instead. */
+.split-repository-pane-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-grow: 0;
+  flex-shrink: 0;
+  min-width: 0;
+  gap: var(--spacing-half);
+  padding: 0 var(--spacing-half);
+
+  height: var(--tab-bar-height);
+  border-bottom: 1px solid var(--toolbar-border-color);
+  background-color: var(--toolbar-background-color);
+  color: var(--toolbar-text-color);
+}
+
+.split-repository-pane-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-half);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.split-repository-pane-title {
+  @include ellipsis;
+  font-weight: var(--font-weight-semibold);
+}
+
+.split-repository-close-button {
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 0 var(--spacing-half);
+}
+
+.split-repository-pane-content {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+
+  // The repository view keeps all of its own styling; it only needs to be told
+  // to fill the pane instead of the window.
+  > .repository-view {
+    border-top: none;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+  }
+}
