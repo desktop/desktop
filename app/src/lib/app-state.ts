@@ -1,3 +1,4 @@
+import { SplitPane, SplitToolbarMode } from '../models/split-view'
 import type {
   CopilotModelsByAccount,
   CopilotModelSelectionsByAccount,
@@ -108,6 +109,32 @@ export interface IAppState {
   readonly localRepositoryStateLookup: Map<number, ILocalRepositoryState>
 
   readonly selectedState: PossibleSelections | null
+
+  /**
+   * State for the primary (left) repository pane. Differs from
+   * `selectedState` when split view is active and the secondary pane is
+   * focused — `selectedState` always follows the focused pane.
+   */
+  readonly primaryRepositoryState: PossibleSelections | null
+
+  /**
+   * When non-null, a second repository is shown beside the primary selection
+   * in a split view. This is independent of `selectedState`, which always
+   * reflects the focused pane.
+   */
+  readonly splitRepositoryState: PossibleSelections | null
+
+  /** Which split pane currently owns keyboard focus and the toolbar. */
+  readonly focusedSplitPane: SplitPane
+
+  /** How the toolbar is presented while split view is active. */
+  readonly splitToolbarMode: SplitToolbarMode
+
+  /**
+   * Width of the primary (left) pane in split view, as a percentage of the
+   * available content width (0–100).
+   */
+  readonly splitPaneWidth: IConstrainedValue
 
   /**
    * The state of the ongoing (if any) sign in process. See SignInState
