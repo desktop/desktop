@@ -22,6 +22,7 @@ interface IRepositoryListItemContextMenuConfig {
   onRemoveRepositoryAlias: (repository: Repository) => void
   onCreateWorktree?: (repository: Repository) => void
   onShowWorktrees?: (repository: Repository) => void
+  onOpenInSplitView?: (repository: Repository) => void
 }
 
 export const generateRepositoryListContextMenu = (
@@ -41,6 +42,7 @@ export const generateRepositoryListContextMenu = (
   const items: ReadonlyArray<IMenuItem> = [
     ...buildAliasMenuItems(config),
     ...buildWorktreeMenuItems(config),
+    ...buildSplitViewMenuItems(config),
     {
       label: __DARWIN__ ? 'Copy Repo Name' : 'Copy repo name',
       action: () => clipboard.writeText(repository.name),
@@ -137,4 +139,25 @@ const buildWorktreeMenuItems = (
   }
 
   return items
+}
+
+const buildSplitViewMenuItems = (
+  config: IRepositoryListItemContextMenuConfig
+): ReadonlyArray<IMenuItem> => {
+  const { repository, onOpenInSplitView } = config
+
+  if (
+    onOpenInSplitView === undefined ||
+    !(repository instanceof Repository) ||
+    repository.missing
+  ) {
+    return []
+  }
+
+  return [
+    {
+      label: __DARWIN__ ? 'Open in Split View' : 'Open in split view',
+      action: () => onOpenInSplitView(repository),
+    },
+  ]
 }
