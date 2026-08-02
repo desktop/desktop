@@ -81,6 +81,7 @@ import {
   setNumberFormatPreference,
 } from '../../models/formatting-preferences'
 import { enableFormattingPreferences } from '../../lib/feature-flag'
+import { SplitToolbarMode } from '../../models/split-view'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -121,6 +122,7 @@ interface IPreferencesProps {
   readonly copilotQuotaSnapshotsByAccount: CopilotQuotaSnapshotsByAccount
   readonly byokProviders: ReadonlyArray<IBYOKProvider>
   readonly alwaysUseCopilotForConflictResolution: boolean
+  readonly splitToolbarMode: SplitToolbarMode
 }
 
 interface IPreferencesState {
@@ -189,6 +191,7 @@ interface IPreferencesState {
   readonly selectedTimeFormat?: TimeFormat
   readonly selectedNumberFormat?: INumberFormat
   readonly preferAbsoluteDates?: boolean
+  readonly splitToolbarMode: SplitToolbarMode
 }
 
 /**
@@ -259,6 +262,7 @@ export class Preferences extends React.Component<
       selectedTimeFormat: getTimeFormatPreference(),
       selectedNumberFormat: getNumberFormatPreference(),
       preferAbsoluteDates: getPreferAbsoluteDates(),
+      splitToolbarMode: this.props.splitToolbarMode,
     }
   }
 
@@ -656,6 +660,8 @@ export class Preferences extends React.Component<
               this.state.preferAbsoluteDates ?? getPreferAbsoluteDates()
             }
             onPreferAbsoluteDatesChanged={this.onPreferAbsoluteDatesChanged}
+            splitToolbarMode={this.state.splitToolbarMode}
+            onSplitToolbarModeChanged={this.onSplitToolbarModeChanged}
           />
         )
         break
@@ -885,6 +891,10 @@ export class Preferences extends React.Component<
 
   private onPreferAbsoluteDatesChanged = (preferAbsoluteDates: boolean) => {
     this.setState({ preferAbsoluteDates })
+  }
+
+  private onSplitToolbarModeChanged = (splitToolbarMode: SplitToolbarMode) => {
+    this.setState({ splitToolbarMode })
   }
 
   private onUseCustomEditorChanged = (useCustomEditor: boolean) => {
@@ -1133,6 +1143,8 @@ export class Preferences extends React.Component<
     dispatcher.setUnderlineLinksSetting(this.state.underlineLinks)
 
     dispatcher.setDiffCheckMarksSetting(this.state.showDiffCheckMarks)
+
+    dispatcher.setSplitToolbarMode(this.state.splitToolbarMode)
 
     dispatcher.setSelectedCopilotModelsByAccount(
       this.state.selectedCopilotModelsByAccount
