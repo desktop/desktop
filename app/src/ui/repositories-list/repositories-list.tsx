@@ -62,6 +62,9 @@ interface IRepositoriesListProps {
   /** Called when the repository should be opened in an external editor */
   readonly onOpenInExternalEditor: (repository: Repositoryish) => void
 
+  /** Called when the repository should be opened in the secondary split pane */
+  readonly onOpenInSplitView?: (repository: Repository) => void
+
   /** The current external editor selected by the user */
   readonly externalEditorLabel?: string
 
@@ -304,6 +307,7 @@ export class RepositoriesList extends React.Component<
       onShowWorktrees: enableWorktreeSupport()
         ? this.onShowWorktrees
         : undefined,
+      onOpenInSplitView: this.props.onOpenInSplitView,
       repository: item.repository,
       shellLabel: this.props.shellLabel,
     })
