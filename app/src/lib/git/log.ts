@@ -204,6 +204,75 @@ export async function getCommits(
   })
 }
 
+/**
+ * How many commits a single filtered history query returns. Searching runs one
+ * git query for the whole history instead of the scroll-driven batches used by
+ * the unfiltered list, so this is the ceiling for one search.
+ */
+export const CommitSearchLimit = 500
+
+/** Matches a text that is usable as an abbreviated or full commit SHA. */
+const shaPrefixRe = /^[0-9a-f]{4,40}$/i
+
+/**
+ * Find commits anywhere in `revisionRange` whose summary, body or author match
+ * `searchText`, plus the commit that text names if it reads as a SHA prefix.
+ *
+ * Git combines `--grep` and `--author` with AND, so matching *either* one takes
+ * a query per field. The results keep git's own ordering: message matches
+ * first, then author-only matches, then a SHA hit that neither query returned.
+ */
+export async function searchCommits(
+  repository: Repository,
+  revisionRange: string,
+  searchText: string
+): Promise<ReadonlyArray<Commit>> {
+  const text = searchText.trim()
+
+  if (text.length === 0) {
+    return new Array<Commit>()
+  }
+
+  // --grep and --author are POSIX basic regular expressions. --fixed-strings
+  // turns --grep into a literal match; --author has no such option, so the
+  // regex metacharacters are escaped by hand.
+  const authorPattern = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+  const queries = [
+    getCommits(repository, revisionRange, CommitSearchLimit, undefined, [
+      `--grep=${text}`,
+      '--regexp-ignore-case',
+      '--fixed-strings',
+    ]),
+    getCommits(repository, revisionRange, CommitSearchLimit, undefined, [
+      `--author=${authorPattern}`,
+      '--regexp-ignore-case',
+    ]),
+  ]
+
+  if (shaPrefixRe.test(text)) {
+    // A revision range of the SHA itself returns that commit and its ancestors,
+    // so the count is pinned to one.
+    queries.push(getCommits(repository, text, 1))
+  }
+
+  const results = await Promise.all(queries)
+
+  const seen = new Set<string>()
+  const merged = new Array<Commit>()
+
+  for (const commits of results) {
+    for (const commit of commits) {
+      if (!seen.has(commit.sha)) {
+        seen.add(commit.sha)
+        merged.push(commit)
+      }
+    }
+  }
+
+  return merged
+}
+
 /** This interface contains information of a changeset. */
 export interface IChangesetData {
   /** Files changed in the changeset. */

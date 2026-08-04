@@ -942,6 +942,18 @@ export interface ICompareState {
   /** The text entered into the compare branch filter text box */
   readonly filterText: string
 
+  /**
+   * Whether the text box filters commits instead of branches. Toggled by the
+   * button inside the text box; `false` keeps the original branch behaviour.
+   */
+  readonly isCommitSearch: boolean
+
+  /** The text the commit search is filtering the history by */
+  readonly commitFilterText: string
+
+  /** Whether a commit search git query is currently in flight */
+  readonly isSearchingCommits: boolean
+
   /** The SHA associated with the most recent history state */
   readonly tip: string | null
 
@@ -984,6 +996,12 @@ export interface ICompareFormUpdate {
 
   /** Thew new state of the branches list */
   readonly showBranchList: boolean
+
+  /** Whether the text box filters commits instead of branches */
+  readonly isCommitSearch: boolean
+
+  /** The updated commit search text to set */
+  readonly commitFilterText: string
 }
 
 export interface IViewHistory {
