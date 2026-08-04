@@ -47,7 +47,9 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  readlinkSync,
   rmSync,
+  symlinkSync,
   unlinkSync,
   writeFileSync,
 } from 'fs'
@@ -205,6 +207,9 @@ async function packageApp() {
       overwrite: true,
       tmpdir: false,
       derefSymlinks: false,
+      afterCopy: [
+        ({ buildPath }) => restoreRelativeSymlinks(outRoot, buildPath),
+      ],
       prune: false, // We'll prune them ourselves below.
       ignore: [
         new RegExp('/node_modules/electron($|/)'),
@@ -258,6 +263,20 @@ async function packageApp() {
   } finally {
     if (temporaryIconDirectory !== undefined) {
       rmSync(temporaryIconDirectory, { recursive: true, force: true })
+    }
+  }
+}
+
+function restoreRelativeSymlinks(source: string, destination: string) {
+  for (const entry of readdirSync(source, { withFileTypes: true })) {
+    const sourcePath = join(source, entry.name)
+    const destinationPath = join(destination, entry.name)
+
+    if (entry.isSymbolicLink()) {
+      rmSync(destinationPath, { recursive: true, force: true })
+      symlinkSync(readlinkSync(sourcePath), destinationPath)
+    } else if (entry.isDirectory()) {
+      restoreRelativeSymlinks(sourcePath, destinationPath)
     }
   }
 }
