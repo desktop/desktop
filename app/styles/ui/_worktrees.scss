@@ -27,6 +27,15 @@
       color: var(--text-color);
     }
 
+    // Deliberately kept out of .name, which ellipsizes, so that a long folder
+    // name can't truncate away the fact that the worktree is unavailable.
+    .missing-indicator {
+      flex-shrink: 0;
+      margin-right: var(--spacing-half);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+
     .name {
       flex-grow: 2;
       @include ellipsis;
