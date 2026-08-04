@@ -58,7 +58,8 @@ interface ICompareSidebarProps {
   readonly localTags: Map<string, string> | null
   readonly tagsToPush: ReadonlyArray<string> | null
   readonly aheadBehindStore: AheadBehindStore
-  readonly isMultiCommitOperationInProgress?: boolean
+  readonly hasConflicts: boolean
+  readonly isMultiCommitOperationInProgress: boolean
   readonly shasToHighlight: ReadonlyArray<string>
   readonly accounts: ReadonlyArray<Account>
   readonly preferAbsoluteDates: boolean
@@ -391,6 +392,10 @@ export class CompareSidebar extends React.Component<
         currentBranch={this.props.currentBranch}
         comparisonBranch={formState.comparisonBranch}
         commitsBehind={formState.aheadBehind.behind}
+        hasConflicts={this.props.hasConflicts}
+        isMultiCommitOperationInProgress={
+          this.props.isMultiCommitOperationInProgress
+        }
       />
     )
   }
