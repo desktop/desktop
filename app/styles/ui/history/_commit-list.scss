@@ -129,6 +129,16 @@
       &.empty-summary {
         color: var(--text-secondary-color);
       }
+
+      /* Marks the part of the title the commit search matched. The branch and
+         repository lists reset mark the same way; the summary is already
+         semibold, so an underline carries the emphasis instead of weight. */
+      mark {
+        background-color: inherit;
+        color: currentColor;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
     }
 
     .summary,

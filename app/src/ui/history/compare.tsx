@@ -329,6 +329,7 @@ export class CompareSidebar extends React.Component<
         isLocalRepository={this.props.isLocalRepository}
         commitLookup={this.props.commitLookup}
         commitSHAs={commitSHAs}
+        searchText={isCommitSearch ? commitFilterText : undefined}
         selectedSHAs={this.props.selectedCommitShas}
         shasToHighlight={this.props.shasToHighlight}
         localCommitSHAs={this.props.localCommitSHAs}
@@ -861,9 +862,7 @@ function getPlaceholderText(state: ICompareState) {
   const { branches, formState, isCommitSearch } = state
 
   if (isCommitSearch) {
-    return __DARWIN__
-      ? 'Search Commits by Message, Author or SHA…'
-      : 'Search commits by message, author or SHA…'
+    return __DARWIN__ ? 'Search Commit Titles…' : 'Search commit titles…'
   }
 
   if (!branches.some(b => !b.isDesktopForkRemoteBranch)) {

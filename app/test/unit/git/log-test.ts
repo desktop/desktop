@@ -107,17 +107,23 @@ describe('git/log', () => {
       assert.equal(commits.length, 0)
     })
 
-    it('finds a commit by its SHA prefix', async t => {
+    it('skips a commit whose body matches but whose summary does not', async t => {
       const path = await setupFixtureRepository(t, 'test-repo-with-tags')
       const repository = new Repository(path, -1, null, false)
 
-      const commits = await searchCommits(repository, 'HEAD', '7cd6640')
+      // Every returned commit has to carry the text in its summary, never only
+      // in the description.
+      const commits = await searchCommits(repository, 'HEAD', 'e')
 
-      assert.equal(commits.length, 1)
-      assert.equal(commits[0].sha, '7cd6640e5b6ca8dbfd0b33d0281ebe702127079c')
+      for (const commit of commits) {
+        assert.ok(
+          commit.summary.toLowerCase().includes('e'),
+          `${commit.summary} matched without the text in its summary`
+        )
+      }
     })
 
-    it('returns each commit once when several queries match it', async t => {
+    it('returns each commit once', async t => {
       const path = await setupFixtureRepository(t, 'test-repo-with-tags')
       const repository = new Repository(path, -1, null, false)
 
