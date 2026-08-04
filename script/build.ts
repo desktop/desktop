@@ -43,6 +43,7 @@ import {
 import {
   cpSync,
   existsSync,
+  mkdtempSync,
   mkdirSync,
   readdirSync,
   readFileSync,
@@ -129,7 +130,7 @@ verifyInjectedSassVariables(outRoot)
     console.log(`Built to ${appPaths}`)
   })
 
-function packageApp() {
+async function packageApp() {
   // not sure if this is needed anywhere, so I'm just going to inline it here
   // for now and see what the future brings...
   const toPackagePlatform = (platform: NodeJS.Platform) => {
@@ -170,6 +171,7 @@ function packageApp() {
     )
   }
 
+  const platform = toPackagePlatform(process.platform)
   const iconPath = getIconDirectory()
   const assetsCarPath = join(iconPath, 'Assets.car')
   assert(
@@ -177,68 +179,87 @@ function packageApp() {
     `Unable to find Assets.car at ${assetsCarPath}`
   )
 
-  return packager({
-    name: getExecutableName(),
-    platform: toPackagePlatform(process.platform),
-    arch: toPackageArch(process.env.TARGET_ARCH),
-    asar: false, // TODO: Probably wanna enable this down the road.
-    out: getDistRoot(),
-    icon: join(iconPath, 'icon-logo'),
-    extraResource: [assetsCarPath],
-    dir: outRoot,
-    overwrite: true,
-    tmpdir: false,
-    derefSymlinks: false,
-    prune: false, // We'll prune them ourselves below.
-    ignore: [
-      new RegExp('/node_modules/electron($|/)'),
-      new RegExp('/node_modules/@electron/packager($|/)'),
-      new RegExp('/\\.git($|/)'),
-      new RegExp('/node_modules/\\.bin($|/)'),
-    ],
-    appCopyright: `Copyright © ${new Date().getFullYear()} GitHub, Inc.`,
+  const temporaryIconDirectory =
+    platform === 'darwin'
+      ? mkdtempSync(join(os.tmpdir(), 'github-desktop-icon-'))
+      : undefined
+  const packagerIconPath =
+    temporaryIconDirectory === undefined
+      ? join(iconPath, 'icon-logo')
+      : join(temporaryIconDirectory, 'icon-logo.icns')
 
-    // macOS
-    appBundleId: getBundleID(),
-    appCategoryType: 'public.app-category.developer-tools',
-    darwinDarkModeSupport: true,
-    osxSign: {
-      optionsForFile: (path: string) => ({
-        hardenedRuntime: true,
-        entitlements: entitlementsPath,
-      }),
-      type: isPublishableBuild ? 'distribution' : 'development',
-      // For development, we will use '-' as the identifier so that codesign
-      // will sign the app to run locally. We need to disable 'identity-validation'
-      // or otherwise it will replace '-' with one of the regular codesigning
-      // identities in our system.
-      identity: isDevelopmentBuild ? '-' : undefined,
-      identityValidation: !isDevelopmentBuild,
-    },
-    osxNotarize,
-    protocols: [
-      {
-        name: getBundleID(),
-        schemes: [
-          !isDevelopmentBuild
-            ? 'x-github-desktop-auth'
-            : 'x-github-desktop-dev-auth',
-          'x-github-client',
-          'github-mac',
-        ],
+  if (temporaryIconDirectory !== undefined) {
+    cpSync(join(iconPath, 'icon-logo.icns'), packagerIconPath)
+  }
+
+  try {
+    return await packager({
+      name: getExecutableName(),
+      platform,
+      arch: toPackageArch(process.env.TARGET_ARCH),
+      asar: false, // TODO: Probably wanna enable this down the road.
+      out: getDistRoot(),
+      icon: packagerIconPath,
+      extraResource: [assetsCarPath],
+      dir: outRoot,
+      overwrite: true,
+      tmpdir: false,
+      derefSymlinks: false,
+      prune: false, // We'll prune them ourselves below.
+      ignore: [
+        new RegExp('/node_modules/electron($|/)'),
+        new RegExp('/node_modules/@electron/packager($|/)'),
+        new RegExp('/\\.git($|/)'),
+        new RegExp('/node_modules/\\.bin($|/)'),
+      ],
+      appCopyright: `Copyright © ${new Date().getFullYear()} GitHub, Inc.`,
+
+      // macOS
+      appBundleId: getBundleID(),
+      appCategoryType: 'public.app-category.developer-tools',
+      darwinDarkModeSupport: true,
+      osxSign: {
+        optionsForFile: (path: string) => ({
+          hardenedRuntime: true,
+          entitlements: entitlementsPath,
+        }),
+        type: isPublishableBuild ? 'distribution' : 'development',
+        // For development, we will use '-' as the identifier so that codesign
+        // will sign the app to run locally. We need to disable 'identity-validation'
+        // or otherwise it will replace '-' with one of the regular codesigning
+        // identities in our system.
+        identity: isDevelopmentBuild ? '-' : undefined,
+        identityValidation: !isDevelopmentBuild,
       },
-    ],
-    extendInfo: extendInfoPath,
+      osxNotarize,
+      protocols: [
+        {
+          name: getBundleID(),
+          schemes: [
+            !isDevelopmentBuild
+              ? 'x-github-desktop-auth'
+              : 'x-github-desktop-dev-auth',
+            'x-github-client',
+            'github-mac',
+          ],
+        },
+      ],
+      extendInfo: extendInfoPath,
 
-    // Windows
-    win32metadata: {
-      CompanyName: getCompanyName(),
-      FileDescription: '',
-      OriginalFilename: '',
-      ProductName: getProductName(),
-      InternalName: getProductName(),
-    },
-  })
+      // Windows
+      win32metadata: {
+        CompanyName: getCompanyName(),
+        FileDescription: '',
+        OriginalFilename: '',
+        ProductName: getProductName(),
+        InternalName: getProductName(),
+      },
+    })
+  } finally {
+    if (temporaryIconDirectory !== undefined) {
+      rmSync(temporaryIconDirectory, { recursive: true, force: true })
+    }
+  }
 }
 
 function removeAndCopy(source: string, destination: string) {
