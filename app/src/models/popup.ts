@@ -542,6 +542,13 @@ export type PopupDetail =
       type: PopupType.DeleteWorktree
       repository: Repository
       worktreePath: string
+      /**
+       * Whether the worktree's folder is already gone, in which case removing
+       * it only clears the repository's record of it.
+       */
+      isMissing?: boolean
+      /** Branch to check out once the worktree has been removed, if any. */
+      branchToCheckout?: Branch
     }
   | {
       type: PopupType.DeleteWorktreeFailed
