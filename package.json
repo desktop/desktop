@@ -155,7 +155,7 @@
     "@types/webpack-hot-middleware": "^2.25.9",
     "diff": "^8.0.3",
     "electron": "42.0.1",
-    "electron-packager": "^17.1.1",
+    "@electron/packager": "^19.0.4",
     "electron-winstaller": "^5.0.0",
     "eslint-plugin-github": "^5.1.5",
     "markdownlint-cli": "^0.32.2",
