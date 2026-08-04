@@ -2574,6 +2574,14 @@ export class Dispatcher {
   }
 
   /**
+   * Filter the history list down to the commits matching `searchText`. An empty
+   * text brings the unfiltered history back.
+   */
+  public searchCommits(repository: Repository, searchText: string) {
+    return this.appStore._searchCommits(repository, searchText)
+  }
+
+  /**
    *  update the manual resolution method for a file
    */
   public updateManualConflictResolution(

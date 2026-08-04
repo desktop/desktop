@@ -27,12 +27,19 @@ import { Emoji } from '../../lib/emoji'
 import { enableAccessibleListToolTips } from '../../lib/feature-flag'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { formatDate } from '../../lib/format-date'
+import { HighlightText } from '../lib/highlight-text'
+import { getSubstringMatchIndices } from '../../lib/substring-match'
 
 interface ICommitProps {
   readonly gitHubRepository: GitHubRepository | null
   readonly commit: Commit
   readonly selectedCommits: ReadonlyArray<Commit>
   readonly emoji: Map<string, Emoji>
+  /**
+   * The active commit search text. When it matches part of the summary, that
+   * part is marked so the reason this row is in the list is obvious.
+   */
+  readonly searchText?: string
   readonly onRenderCommitDragElement?: (commit: Commit) => void
   readonly onRemoveDragElement?: () => void
   readonly onSquash?: (
@@ -117,6 +124,31 @@ export class CommitListItem extends React.PureComponent<
     }
   }
 
+  /**
+   * The summary normally goes through RichText so emoji shortcodes render. When
+   * a search is filtering the list, the matching characters are marked instead,
+   * which takes the raw string rather than RichText's parsed output.
+   */
+  private renderSummary(summary: string, className: string) {
+    const matches = getSubstringMatchIndices(
+      summary,
+      this.props.searchText ?? ''
+    )
+
+    return matches.length > 0 ? (
+      <div className={className}>
+        <HighlightText text={summary} highlight={matches} />
+      </div>
+    ) : (
+      <RichText
+        className={className}
+        emoji={this.props.emoji}
+        text={summary}
+        renderUrlsAsLinks={false}
+      />
+    )
+  }
+
   public render() {
     const { commit } = this.props
     const {
@@ -153,12 +185,7 @@ export class CommitListItem extends React.PureComponent<
           onMouseUp={this.onMouseUp}
         >
           <div className="info">
-            <RichText
-              className={summaryClassNames}
-              emoji={this.props.emoji}
-              text={commitSummary}
-              renderUrlsAsLinks={false}
-            />
+            {this.renderSummary(commitSummary, summaryClassNames)}
             <div className="description">
               <AvatarStack
                 users={this.state.avatarUsers}

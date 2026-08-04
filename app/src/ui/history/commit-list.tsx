@@ -63,6 +63,12 @@ interface ICommitListProps {
   /** The message to display inside the list when no results are displayed */
   readonly emptyListMessage?: JSX.Element | string
 
+  /**
+   * The active commit search text, so each row can mark the matching part of
+   * its summary. Absent or empty when the list is not filtered.
+   */
+  readonly searchText?: string
+
   /** Data to be reordered via keyboard */
   readonly keyboardReorderData?: KeyboardInsertionData
 
@@ -300,6 +306,7 @@ export class CommitList extends React.Component<
         )}
         commit={commit}
         emoji={this.props.emoji}
+        searchText={this.props.searchText}
         isDraggable={
           this.props.isMultiCommitOperationInProgress === false &&
           !this.inKeyboardReorderMode

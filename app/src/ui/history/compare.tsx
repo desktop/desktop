@@ -20,6 +20,8 @@ import { TabBar } from '../tab-bar'
 import { CompareBranchListItem } from './compare-branch-list-item'
 import { FancyTextBox } from '../lib/fancy-text-box'
 import * as octicons from '../octicons/octicons.generated'
+import { Octicon } from '../octicons'
+import { Button } from '../lib/button'
 import { SelectionSource } from '../lib/filter-list'
 import { IMatches } from '../../lib/fuzzy-find'
 import { Ref } from '../lib/ref'
@@ -89,6 +91,12 @@ export class CompareSidebar extends React.Component<
   private loadingMoreCommitsPromise: Promise<void> | null = null
   private resultCount = 0
 
+  /**
+   * Keystrokes are debounced before the commit search runs, so holding a key
+   * down spawns one git query rather than one per character.
+   */
+  private readonly commitSearchScheduler = new ThrottledScheduler(250)
+
   public constructor(props: ICompareSidebarProps) {
     super(props)
 
@@ -151,6 +159,7 @@ export class CompareSidebar extends React.Component<
 
   public componentWillUnmount() {
     this.textbox = null
+    this.commitSearchScheduler.clear()
 
     // by hiding the branch list here when the component is torn down
     // we ensure any ahead/behind computation work is discarded
@@ -160,22 +169,41 @@ export class CompareSidebar extends React.Component<
   }
 
   public render() {
-    const { branches, filterText, showBranchList } = this.props.compareState
+    const { branches, showBranchList, isCommitSearch } = this.props.compareState
     const placeholderText = getPlaceholderText(this.props.compareState)
+
+    const hasComparableBranches = branches.some(
+      b => !b.isDesktopForkRemoteBranch
+    )
 
     return (
       <div id="compare-view" role="tabpanel" aria-labelledby="history-tab">
         <div className="compare-form">
+          <Button
+            className="search-mode-toggle"
+            onClick={this.onSearchModeToggled}
+            ariaPressed={isCommitSearch}
+            ariaLabel={
+              isCommitSearch
+                ? 'Searching commits, switch to comparing branches'
+                : 'Comparing branches, switch to searching commits'
+            }
+            tooltip={isCommitSearch ? 'Search commits' : 'Compare to a branch'}
+          >
+            <Octicon
+              symbol={isCommitSearch ? octicons.gitCommit : octicons.gitBranch}
+            />
+          </Button>
           <FancyTextBox
-            ariaLabel="Branch filter"
-            symbol={octicons.gitBranch}
+            ariaLabel={isCommitSearch ? 'Commit filter' : 'Branch filter'}
+            symbol={isCommitSearch ? octicons.search : octicons.gitBranch}
             displayClearButton={true}
             placeholder={placeholderText}
             onFocus={this.onTextBoxFocused}
-            value={filterText}
-            disabled={!branches.some(b => !b.isDesktopForkRemoteBranch)}
+            value={this.textBoxValue}
+            disabled={!isCommitSearch && !hasComparableBranches}
             onRef={this.onTextBoxRef}
-            onValueChanged={this.onBranchFilterTextChanged}
+            onValueChanged={this.onFilterTextChanged}
             onKeyDown={this.onBranchFilterKeyDown}
             onSearchCleared={this.handleEscape}
           />
@@ -184,6 +212,48 @@ export class CompareSidebar extends React.Component<
         {showBranchList ? this.renderFilterList() : this.renderCommits()}
       </div>
     )
+  }
+
+  private get textBoxValue() {
+    const { isCommitSearch, filterText, commitFilterText } =
+      this.props.compareState
+
+    return isCommitSearch ? commitFilterText : filterText
+  }
+
+  /**
+   * Flip the text box between filtering branches and searching commits. Leaving
+   * commit search puts the unfiltered history back; leaving branch mode drops
+   * the branch list so the commit list is what the box filters.
+   */
+  private onSearchModeToggled = () => {
+    const { isCommitSearch } = this.props.compareState
+
+    this.commitSearchScheduler.clear()
+
+    if (isCommitSearch) {
+      this.props.dispatcher.searchCommits(this.props.repository, '')
+      this.props.dispatcher.updateCompareForm(this.props.repository, {
+        isCommitSearch: false,
+      })
+    } else {
+      // Commit search only applies to the history list, so a branch comparison
+      // in progress goes back to plain history first.
+      if (this.props.compareState.formState.kind === HistoryTabMode.Compare) {
+        this.viewHistoryForBranch()
+      }
+
+      this.props.dispatcher.updateCompareForm(this.props.repository, {
+        isCommitSearch: true,
+        filterText: '',
+        commitFilterText: '',
+        showBranchList: false,
+      })
+    }
+
+    if (this.textbox !== null) {
+      this.textbox.focus()
+    }
   }
 
   private onBranchesListRef = (branchList: BranchList | null) => {
@@ -216,10 +286,24 @@ export class CompareSidebar extends React.Component<
   }
 
   private renderCommitList() {
-    const { formState, commitSHAs } = this.props.compareState
+    const {
+      formState,
+      commitSHAs,
+      isCommitSearch,
+      commitFilterText,
+      isSearchingCommits,
+    } = this.props.compareState
 
     let emptyListMessage: string | JSX.Element
-    if (formState.kind === HistoryTabMode.History) {
+    if (isCommitSearch && commitFilterText.trim().length > 0) {
+      emptyListMessage = isSearchingCommits ? (
+        <p>Searching…</p>
+      ) : (
+        <p>
+          No commits match <Ref>{commitFilterText}</Ref>
+        </p>
+      )
+    } else if (formState.kind === HistoryTabMode.History) {
       emptyListMessage = 'No history'
     } else {
       const currentlyComparedBranchName = formState.comparisonBranch.name
@@ -245,6 +329,7 @@ export class CompareSidebar extends React.Component<
         isLocalRepository={this.props.isLocalRepository}
         commitLookup={this.props.commitLookup}
         commitSHAs={commitSHAs}
+        searchText={isCommitSearch ? commitFilterText : undefined}
         selectedSHAs={this.props.selectedCommitShas}
         shasToHighlight={this.props.shasToHighlight}
         localCommitSHAs={this.props.localCommitSHAs}
@@ -454,6 +539,15 @@ export class CompareSidebar extends React.Component<
   ) => {
     const key = event.key
 
+    // Commit search has no branch list to walk, and Enter picks nothing — only
+    // Escape still means something.
+    if (this.props.compareState.isCommitSearch) {
+      if (key === 'Escape') {
+        this.handleEscape()
+      }
+      return
+    }
+
     if (key === 'Enter') {
       if (this.resultCount === 0) {
         event.preventDefault()
@@ -546,6 +640,30 @@ export class CompareSidebar extends React.Component<
     }
   }
 
+  /** Routes typing to whichever list the text box is filtering right now. */
+  private onFilterTextChanged = (text: string) => {
+    if (this.props.compareState.isCommitSearch) {
+      this.onCommitFilterTextChanged(text)
+    } else {
+      this.onBranchFilterTextChanged(text)
+    }
+  }
+
+  private onCommitFilterTextChanged = (commitFilterText: string) => {
+    // Show the typed text straight away, then run the git query once the user
+    // stops typing.
+    this.props.dispatcher.updateCompareForm(this.props.repository, {
+      commitFilterText,
+    })
+
+    this.commitSearchScheduler.queue(() => {
+      this.props.dispatcher.searchCommits(
+        this.props.repository,
+        commitFilterText
+      )
+    })
+  }
+
   private onBranchFilterTextChanged = (filterText: string) => {
     if (filterText.length === 0) {
       this.setState({ focusedBranch: null })
@@ -557,6 +675,12 @@ export class CompareSidebar extends React.Component<
   }
 
   private clearFilterState = () => {
+    if (this.props.compareState.isCommitSearch) {
+      this.commitSearchScheduler.clear()
+      this.props.dispatcher.searchCommits(this.props.repository, '')
+      return
+    }
+
     this.setState({
       focusedBranch: null,
     })
@@ -595,6 +719,12 @@ export class CompareSidebar extends React.Component<
   }
 
   private onTextBoxFocused = () => {
+    // In commit search the box filters the commit list, so swapping in the
+    // branch list here would hide the very results being typed against.
+    if (this.props.compareState.isCommitSearch) {
+      return
+    }
+
     this.props.dispatcher.updateCompareForm(this.props.repository, {
       showBranchList: true,
     })
@@ -729,7 +859,11 @@ export class CompareSidebar extends React.Component<
 }
 
 function getPlaceholderText(state: ICompareState) {
-  const { branches, formState } = state
+  const { branches, formState, isCommitSearch } = state
+
+  if (isCommitSearch) {
+    return __DARWIN__ ? 'Search Commit Titles…' : 'Search commit titles…'
+  }
 
   if (!branches.some(b => !b.isDesktopForkRemoteBranch)) {
     return __DARWIN__ ? 'No Branches to Compare' : 'No branches to compare'

@@ -31,6 +31,45 @@
     flex: initial;
     padding: var(--spacing-half);
     border-bottom: var(--base-border);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-half);
+
+    .fancy-text-box-component {
+      flex: 1;
+      min-width: 0;
+    }
+
+    // Flips the text box between filtering branches and searching commits.
+    .search-mode-toggle {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--spacing-double);
+      height: var(--spacing-double);
+      padding: 0;
+      border: var(--base-border);
+      border-radius: var(--border-radius);
+      background: var(--box-background-color);
+      color: var(--text-secondary-color);
+      cursor: pointer;
+
+      &:hover {
+        color: var(--text-color);
+      }
+
+      &:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--focus-color);
+      }
+
+      &[aria-pressed='true'] {
+        background: var(--box-selected-background-color);
+        border-color: var(--focus-color);
+        color: var(--text-color);
+      }
+    }
   }
 
   .compare-commit-list {

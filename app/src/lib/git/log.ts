@@ -204,6 +204,48 @@ export async function getCommits(
   })
 }
 
+/**
+ * How many commits a single filtered history query returns. Searching runs one
+ * git query for the whole history instead of the scroll-driven batches used by
+ * the unfiltered list, so this is the ceiling for one search.
+ */
+export const CommitSearchLimit = 500
+
+/**
+ * Find commits anywhere in `revisionRange` whose **summary** contains
+ * `searchText`, ignoring case. The body is deliberately not matched: a long
+ * description mentioning a word buries the commits actually titled with it.
+ *
+ * Git has no subject-only equivalent of `--grep`, which tests the whole message.
+ * Every summary match is therefore also a `--grep` match, so git narrows the
+ * history first and the summary check runs over that much smaller result.
+ */
+export async function searchCommits(
+  repository: Repository,
+  revisionRange: string,
+  searchText: string
+): Promise<ReadonlyArray<Commit>> {
+  const text = searchText.trim()
+
+  if (text.length === 0) {
+    return new Array<Commit>()
+  }
+
+  // --grep is a POSIX basic regular expression by default, so a summary holding
+  // "(" or "?" would be an invalid pattern. --fixed-strings makes it literal.
+  const commits = await getCommits(
+    repository,
+    revisionRange,
+    CommitSearchLimit,
+    undefined,
+    [`--grep=${text}`, '--regexp-ignore-case', '--fixed-strings']
+  )
+
+  const needle = text.toLowerCase()
+
+  return commits.filter(c => c.summary.toLowerCase().includes(needle))
+}
+
 /** This interface contains information of a changeset. */
 export interface IChangesetData {
   /** Files changed in the changeset. */
