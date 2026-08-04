@@ -33,6 +33,7 @@ export class WorktreeListItem extends React.Component<IWorktreeListItemProps> {
       : octicons.fileDirectory
     const className = classNames('worktrees-list-item', {
       'current-worktree': isCurrentWorktree,
+      'missing-worktree': isMissing,
     })
 
     return (
