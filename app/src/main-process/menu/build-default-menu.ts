@@ -260,15 +260,17 @@ export function buildDefaultMenuTemplate({
         label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
         accelerator: 'CmdOrCtrl+=',
         click: zoom(ZoomDirection.In),
+      },
+      {
         label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
         accelerator: 'CmdOrCtrl+Plus',
         click: zoom(ZoomDirection.In),
         visible: false,
       },
-{
-label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
-accelerator: 'CmdOrCtrl+=',
-click: zoom(ZoomDirection.In),
+      {
+        label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
+        accelerator: 'CmdOrCtrl+=',
+        click: zoom(ZoomDirection.In),
       },
       {
         label: __DARWIN__ ? 'Zoom In' : 'Zoom in',
@@ -723,16 +725,19 @@ function zoom(direction: ZoomDirection): ClickHandler {
     }
     const { webContents } = window
 
-    performZoom(webContents, direction);
+    performZoom(webContents, direction)
   }
 }
 
 /**
- * Perform the zoom based on the input WebContents and direction. 
+ * Perform the zoom based on the input WebContents and direction.
  * This logic is disjoint from the regular zoom function to handle non-click-specific
  * zooming logic (e.g., Ctrl/Cmd + Mouse Wheel Scroll Up/Down).
-*/
-export function performZoom(webContents: WebContents, direction: ZoomDirection) {
+ */
+export function performZoom(
+  webContents: WebContents,
+  direction: ZoomDirection
+) {
   if (direction === ZoomDirection.Reset) {
     webContents.zoomFactor = 1
     ipcWebContents.send(webContents, 'zoom-factor-changed', 1)
@@ -742,7 +747,6 @@ export function performZoom(webContents: WebContents, direction: ZoomDirection) 
   const rawZoom = webContents.zoomFactor
   const zoomFactors =
     direction === ZoomDirection.In ? ZoomInFactors : ZoomOutFactors
-
 
   // So the values that we get from zoomFactor property are floating point
   // precision numbers from chromium, that don't always round nicely, so
