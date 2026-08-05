@@ -2,7 +2,7 @@
 /// <reference path="./globals.d.ts" />
 
 import * as cp from 'child_process'
-import packager, { OfficialArch, OsxNotarizeOptions } from 'electron-packager'
+import packager, { OfficialArch, Options } from '@electron/packager'
 import frontMatter from 'front-matter'
 import * as os from 'os'
 import * as path from 'path'
@@ -192,7 +192,7 @@ function packageApp() {
     prune: false, // We'll prune them ourselves below.
     ignore: [
       new RegExp('/node_modules/electron($|/)'),
-      new RegExp('/node_modules/electron-packager($|/)'),
+      new RegExp('/node_modules/@electron/packager($|/)'),
       new RegExp('/\\.git($|/)'),
       new RegExp('/node_modules/\\.bin($|/)'),
     ],
@@ -482,7 +482,7 @@ ${licenseText}`
   rmSync(chooseALicense, { recursive: true, force: true })
 }
 
-function getNotarizationOptions(): OsxNotarizeOptions | undefined {
+function getNotarizationOptions(): Options['osxNotarize'] {
   const {
     APPLE_ID: appleId,
     APPLE_ID_PASSWORD: appleIdPassword,
@@ -490,7 +490,7 @@ function getNotarizationOptions(): OsxNotarizeOptions | undefined {
   } = process.env
 
   return appleId && appleIdPassword && teamId
-    ? { tool: 'notarytool', appleId, appleIdPassword, teamId }
+    ? { appleId, appleIdPassword, teamId }
     : undefined
 }
 
