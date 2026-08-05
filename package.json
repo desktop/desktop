@@ -107,6 +107,7 @@
     "webpack-merge": "^6.0.1"
   },
   "devDependencies": {
+    "@electron/packager": "^18.4.4",
     "@github/markdownlint-github": "^0.1.0",
     "@playwright/test": "^1.58.2",
     "@types/byline": "^4.2.31",
@@ -155,7 +156,6 @@
     "@types/webpack-hot-middleware": "^2.25.9",
     "diff": "^8.0.3",
     "electron": "42.0.1",
-    "electron-packager": "^17.1.1",
     "electron-winstaller": "^5.0.0",
     "eslint-plugin-github": "^5.1.5",
     "markdownlint-cli": "^0.32.2",
