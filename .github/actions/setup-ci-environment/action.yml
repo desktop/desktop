@@ -49,8 +49,9 @@ runs:
         esac
 
         PKG="@github/copilot-${PLATFORM}-${{ inputs.arch }}"
+        VERSION=$(node -p "require('./app/node_modules/@github/copilot/package.json').optionalDependencies['${PKG}']")
 
         if [ ! -d "app/node_modules/@github/copilot-${PLATFORM}-${{ inputs.arch }}" ]; then
-          echo "Installing ${PKG} for cross-compilation…"
-          cd app && yarn add --optional --ignore-platform --ignore-scripts ${PKG}
+          echo "Installing ${PKG}@${VERSION} for cross-compilation…"
+          cd app && yarn add --optional --ignore-platform --ignore-scripts "${PKG}@${VERSION}"
         fi
