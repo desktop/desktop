@@ -1,24 +1,11 @@
-import { Commit } from '../../models/commit'
 import * as React from 'react'
-import { CommitIdentity } from '../../models/commit-identity'
-import { GitAuthor } from '../../models/git-author'
-import { GitHubRepository } from '../../models/github-repository'
-import { isWebFlowCommitter } from '../../lib/web-flow-committer'
+import { IAvatarUser } from '../../models/avatar'
 
 interface ICommitAttributionProps {
   /**
-   * The commit or commits from where to extract the author, committer
-   * and co-authors from.
+   * The authors attributable to this commit
    */
-  readonly commits: ReadonlyArray<Commit>
-
-  /**
-   * The GitHub hosted repository that the given commit is
-   * associated with or null if repository is local or
-   * not associated with a GitHub account. Used to determine
-   * whether a commit is a special GitHub web flow user.
-   */
-  readonly gitHubRepository: GitHubRepository | null
+  readonly avatarUsers: ReadonlyArray<IAvatarUser>
 }
 
 /**
@@ -30,11 +17,11 @@ export class CommitAttribution extends React.Component<
   ICommitAttributionProps,
   {}
 > {
-  private renderAuthorInline(author: CommitIdentity | GitAuthor) {
+  private renderAuthorInline(author: IAvatarUser) {
     return <span className="author">{author.name}</span>
   }
 
-  private renderAuthors(authors: ReadonlyArray<CommitIdentity | GitAuthor>) {
+  private renderAuthors(authors: ReadonlyArray<IAvatarUser>) {
     if (authors.length === 1) {
       return (
         <span className="authors">{this.renderAuthorInline(authors[0])}</span>
@@ -53,34 +40,9 @@ export class CommitAttribution extends React.Component<
   }
 
   public render() {
-    const { commits } = this.props
-
-    const allAuthors = new Map<string, CommitIdentity | GitAuthor>()
-    for (const commit of commits) {
-      const { author, committer, coAuthors } = commit
-
-      // do we need to attribute the committer separately from the author?
-      const committerAttribution =
-        !commit.authoredByCommitter &&
-        !(
-          this.props.gitHubRepository !== null &&
-          isWebFlowCommitter(commit, this.props.gitHubRepository)
-        )
-
-      const authors: Array<CommitIdentity | GitAuthor> = committerAttribution
-        ? [author, committer, ...coAuthors]
-        : [author, ...coAuthors]
-
-      for (const a of authors) {
-        if (!allAuthors.has(a.toString())) {
-          allAuthors.set(a.toString(), a)
-        }
-      }
-    }
-
     return (
       <span className="commit-attribution-component">
-        {this.renderAuthors(Array.from(allAuthors.values()))}
+        {this.renderAuthors(this.props.avatarUsers)}
       </span>
     )
   }

@@ -3,7 +3,7 @@ import { RequestResponseChannels, RequestChannels } from '../lib/ipc-shared'
 import * as ipcRenderer from '../lib/ipc-renderer'
 import { stat } from 'fs/promises'
 import { isApplicationBundle } from '../lib/is-application-bundle'
-import { pathExists } from './lib/path-exists'
+import { pathExists } from '../lib/path-exists'
 
 /**
  * Creates a strongly typed proxy method for sending a duplex IPC message to the

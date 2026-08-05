@@ -1,11 +1,13 @@
 /* eslint-disable no-sync */
 /// <reference path="./globals.d.ts" />
 
-import * as path from 'path'
 import * as cp from 'child_process'
-import * as os from 'os'
 import packager, { OfficialArch, OsxNotarizeOptions } from 'electron-packager'
 import frontMatter from 'front-matter'
+import * as os from 'os'
+import * as path from 'path'
+import { getPrintenvzPath } from 'printenvz'
+import { getProxyCommandPath } from 'process-proxy'
 import { externals } from '../app/webpack.common'
 
 interface IChooseALicense {
@@ -28,19 +30,18 @@ import {
   getProductName,
 } from '../app/package-info'
 
+import { isGitHubActions } from './build-platforms'
 import {
   getChannel,
+  getDistArchitecture,
   getDistRoot,
   getExecutableName,
+  getIconDirectory,
   isPublishable,
-  getIconFileName,
-  getDistArchitecture,
 } from './dist-info'
-import { isGitHubActions } from './build-platforms'
 
-import { updateLicenseDump } from './licenses/update-license-dump'
-import { verifyInjectedSassVariables } from './validate-sass/validate-all'
 import {
+  cpSync,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -49,10 +50,14 @@ import {
   unlinkSync,
   writeFileSync,
 } from 'fs'
-import { copySync } from 'fs-extra'
+import { updateLicenseDump } from './licenses/update-license-dump'
+import { verifyInjectedSassVariables } from './validate-sass/validate-all'
+import { join } from 'path'
+import assert from 'assert'
 
 const isPublishableBuild = isPublishable()
 const isDevelopmentBuild = getChannel() === 'development'
+const shouldSkipPackaging = process.env.DESKTOP_SKIP_PACKAGE === '1'
 
 const projectRoot = path.join(__dirname, '..')
 const entitlementsSuffix = isDevelopmentBuild ? '-dev' : ''
@@ -108,6 +113,11 @@ verifyInjectedSassVariables(outRoot)
     })
   })
   .then(() => {
+    if (shouldSkipPackaging) {
+      console.log('Skipping packaging…')
+      return [outRoot]
+    }
+
     console.log('Packaging…')
     return packageApp()
   })
@@ -160,13 +170,21 @@ function packageApp() {
     )
   }
 
+  const iconPath = getIconDirectory()
+  const assetsCarPath = join(iconPath, 'Assets.car')
+  assert(
+    existsSync(assetsCarPath),
+    `Unable to find Assets.car at ${assetsCarPath}`
+  )
+
   return packager({
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
     arch: toPackageArch(process.env.TARGET_ARCH),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
-    icon: path.join(projectRoot, 'app', 'static', 'logos', getIconFileName()),
+    icon: join(iconPath, 'icon-logo'),
+    extraResource: [assetsCarPath],
     dir: outRoot,
     overwrite: true,
     tmpdir: false,
@@ -225,7 +243,7 @@ function packageApp() {
 
 function removeAndCopy(source: string, destination: string) {
   rmSync(destination, { recursive: true, force: true })
-  copySync(source, destination)
+  cpSync(source, destination, { recursive: true, verbatimSymlinks: true })
 }
 
 function copyEmoji() {
@@ -249,9 +267,16 @@ function copyStaticResources() {
   const destination = path.join(outRoot, 'static')
   rmSync(destination, { recursive: true, force: true })
   if (existsSync(platformSpecific)) {
-    copySync(platformSpecific, destination)
+    cpSync(platformSpecific, destination, {
+      recursive: true,
+      verbatimSymlinks: true,
+    })
   }
-  copySync(common, destination, { overwrite: false })
+  cpSync(common, destination, {
+    recursive: true,
+    force: false,
+    verbatimSymlinks: true,
+  })
 }
 
 function moveAnalysisFiles() {
@@ -265,7 +290,11 @@ function moveAnalysisFiles() {
     //
     // unlinkSync below ensures that the analysis file isn't bundled into
     // the app by accident
-    copySync(analysisSource, destination, { overwrite: true })
+    cpSync(analysisSource, destination, {
+      recursive: true,
+      force: true,
+      verbatimSymlinks: true,
+    })
     unlinkSync(analysisSource)
   }
 }
@@ -309,22 +338,27 @@ function copyDependencies() {
 
   rmSync(desktopTrampolineDir, { recursive: true, force: true })
   mkdirSync(desktopTrampolineDir, { recursive: true })
-  copySync(
+  cpSync(
     path.resolve(trampolineSource, desktopAskpassTrampolineFile),
-    path.resolve(desktopTrampolineDir, desktopAskpassTrampolineFile)
+    path.resolve(desktopTrampolineDir, desktopAskpassTrampolineFile),
+    { recursive: true, verbatimSymlinks: true }
   )
+
+  console.log('  Copying copilot…')
+  copyCopilotDependency()
 
   // Dev builds for macOS require a SSH wrapper to use SSH_ASKPASS
   if (process.platform === 'darwin' && isDevelopmentBuild) {
     console.log('  Copying ssh-wrapper')
     const sshWrapperFile = 'ssh-wrapper'
-    copySync(
+    cpSync(
       path.resolve(
         projectRoot,
         'app/node_modules/desktop-trampoline/build/Release',
         sshWrapperFile
       ),
-      path.resolve(desktopTrampolineDir, sshWrapperFile)
+      path.resolve(desktopTrampolineDir, sshWrapperFile),
+      { recursive: true, verbatimSymlinks: true }
     )
   }
 
@@ -332,7 +366,10 @@ function copyDependencies() {
   const gitDir = path.resolve(outRoot, 'git')
   rmSync(gitDir, { recursive: true, force: true })
   mkdirSync(gitDir, { recursive: true })
-  copySync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir)
+  cpSync(path.resolve(projectRoot, 'app/node_modules/dugite/git'), gitDir, {
+    recursive: true,
+    verbatimSymlinks: true,
+  })
 
   console.log('  Copying desktop credential helper…')
   const mingw = getDistArchitecture() === 'x64' ? 'mingw64' : 'clangarm64'
@@ -350,20 +387,42 @@ function copyDependencies() {
     process.platform === 'win32' ? '.exe' : ''
   }`
 
-  copySync(
+  cpSync(
     path.resolve(trampolineSource, desktopCredentialHelperTrampolineFile),
-    path.resolve(gitCoreDir, desktopCredentialHelperFile)
+    path.resolve(gitCoreDir, desktopCredentialHelperFile),
+    { recursive: true, verbatimSymlinks: true }
   )
 
   if (process.platform === 'darwin') {
     console.log('  Copying app-path binary…')
     const appPathMain = path.resolve(outRoot, 'main')
     rmSync(appPathMain, { recursive: true, force: true })
-    copySync(
+    cpSync(
       path.resolve(projectRoot, 'app/node_modules/app-path/main'),
-      appPathMain
+      appPathMain,
+      { recursive: true, verbatimSymlinks: true }
     )
   }
+
+  console.log('  Copying process-proxy binary')
+  cpSync(
+    getProxyCommandPath(),
+    path.resolve(
+      outRoot,
+      process.platform === 'win32' ? 'process-proxy.exe' : 'process-proxy'
+    ),
+    { recursive: true, verbatimSymlinks: true }
+  )
+
+  console.log('  Copying printenvz binary')
+  cpSync(
+    getPrintenvzPath(),
+    path.resolve(
+      outRoot,
+      process.platform === 'win32' ? 'printenvz.exe' : 'printenvz'
+    ),
+    { recursive: true, verbatimSymlinks: true }
+  )
 }
 
 function generateLicenseMetadata(outRoot: string) {
@@ -433,4 +492,152 @@ function getNotarizationOptions(): OsxNotarizeOptions | undefined {
   return appleId && appleIdPassword && teamId
     ? { tool: 'notarytool', appleId, appleIdPassword, teamId }
     : undefined
+}
+
+function copyCopilotDependency() {
+  const currentPlatform = process.platform
+  const currentArch = getDistArchitecture()
+
+  // The @github/copilot package now uses platform-specific optional
+  // dependencies (e.g. @github/copilot-darwin-arm64) that already contain only
+  // the binaries for the target platform, so we copy the appropriate one
+  // directly instead of the base @github/copilot package.
+  const copilotPkgDir = path.resolve(
+    projectRoot,
+    `app/node_modules/@github/copilot-${currentPlatform}-${currentArch}`
+  )
+
+  const copilotDestination = path.resolve(outRoot, 'copilot')
+  removeAndCopy(copilotPkgDir, copilotDestination)
+
+  // Platforms and architectures to remove from prebuild directories. This is
+  // an exhaustive list of all non-current platforms rather than an allowlist,
+  // because some packages (clipboard, pvrecorder) have entries without
+  // standard platform identifiers that we must preserve.
+  const nonValidPlatforms = [
+    'darwin',
+    'linux',
+    'win32',
+    'freebsd',
+    'openbsd',
+    'musl',
+  ].filter(p => p !== currentPlatform)
+  const nonValidArchitectures = [
+    'x64',
+    'arm64',
+    'ia32',
+    'armhf',
+    'riscv64',
+    'loong64',
+  ].filter(a => a !== currentArch)
+
+  // Also map platform names for packages that use non-standard naming
+  // (e.g., pvrecorder uses "mac" and "windows" instead of "darwin"/"win32")
+  const platformAliases: Record<string, string> = {
+    darwin: 'mac',
+    win32: 'windows',
+  }
+  const currentPlatformAlias = platformAliases[currentPlatform]
+  const nonValidPlatformAliases = Object.values(platformAliases).filter(
+    a => a !== currentPlatformAlias
+  )
+
+  // Removing unnecessary prebuild binaries from the copilot package to reduce
+  // bundle size and prevent signing failures on Windows (signtool can't sign
+  // non-PE binaries from other platforms).
+  const prebuildsDirs = [
+    path.join(copilotDestination, 'prebuilds'),
+    path.join(copilotDestination, 'ripgrep', 'bin'),
+    path.join(copilotDestination, 'clipboard', 'node_modules', '@teddyzhu'),
+    path.join(
+      copilotDestination,
+      'clipboard',
+      'node_modules',
+      '@teddyzhu',
+      'clipboard'
+    ),
+    path.join(
+      copilotDestination,
+      'foundry-local-sdk',
+      'node_modules',
+      'foundry-local-sdk',
+      'prebuilds'
+    ),
+    path.join(
+      copilotDestination,
+      'pvrecorder',
+      'node_modules',
+      '@picovoice',
+      'pvrecorder-node',
+      'lib'
+    ),
+  ]
+
+  for (const prebuildsDir of prebuildsDirs) {
+    if (!existsSync(prebuildsDir)) {
+      continue
+    }
+
+    const prebuilds = readdirSync(prebuildsDir)
+    for (const prebuild of prebuilds) {
+      const shouldRemove =
+        nonValidPlatforms.some(p => prebuild.includes(p)) ||
+        nonValidArchitectures.some(a => prebuild.includes(a)) ||
+        nonValidPlatformAliases.some(a => prebuild === a)
+
+      if (shouldRemove) {
+        rmSync(path.join(prebuildsDir, prebuild), {
+          recursive: true,
+          force: true,
+        })
+      }
+    }
+  }
+
+  // mxc cleanup (only if the mxc-bin directory exists in this copilot version)
+  const mxcDir = path.join(copilotDestination, 'mxc-bin')
+  if (!existsSync(mxcDir)) {
+    return
+  }
+  // Read subdirs, delete the one that has a name that is not a valid architecture
+  const mxcSubdirs = readdirSync(mxcDir)
+  for (const subdir of mxcSubdirs) {
+    if (nonValidArchitectures.some(a => subdir.includes(a))) {
+      rmSync(path.join(mxcDir, subdir), {
+        recursive: true,
+        force: true,
+      })
+    }
+  }
+  // Then, read the subdir with the valid architecture and:
+  // - leave only exe and dll files for Windows platforms
+  // - on macOS, delete exe and dll files and also linux-test-proxy and lxc-exec
+  // - on Linux, delete exe and dll files and also mxc-exec-mac
+  const mxcArchSubdirPath = path.join(mxcDir, currentArch)
+  if (!existsSync(mxcArchSubdirPath)) {
+    return
+  }
+  const mxcFiles = readdirSync(mxcArchSubdirPath)
+  const isWindowsBinary = (file: string) =>
+    file.endsWith('.exe') || file.endsWith('.dll')
+  const isMacOSBinary = (file: string) => file === 'mxc-exec-mac'
+  const isLinuxBinary = (file: string) =>
+    file === 'linux-test-proxy' || file === 'lxc-exec'
+
+  for (const file of mxcFiles) {
+    const shouldRemove =
+      (currentPlatform === 'win32' &&
+        (isMacOSBinary(file) || isLinuxBinary(file))) ||
+      (currentPlatform === 'darwin' &&
+        (isWindowsBinary(file) || isLinuxBinary(file))) ||
+      (currentPlatform === 'linux' &&
+        (isWindowsBinary(file) || isMacOSBinary(file)))
+
+    if (shouldRemove) {
+      rmSync(path.join(mxcArchSubdirPath, file), {
+        recursive: true,
+        force: true,
+      })
+    }
+  }
 }

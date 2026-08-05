@@ -4,7 +4,6 @@ import { DialogContent } from '../dialog'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { RadioGroup } from '../lib/radio-group'
 import { assertNever } from '../../lib/fatal-error'
-import { enableFilteredChangesList } from '../../lib/feature-flag'
 
 interface IPromptsPreferencesProps {
   readonly confirmRepositoryRemoval: boolean
@@ -15,6 +14,8 @@ interface IPromptsPreferencesProps {
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
   readonly askForConfirmationOnCommitFilteredChanges: boolean
+  readonly confirmCommitMessageOverride: boolean
+  readonly confirmWorktreeRemoval: boolean
   readonly showCommitLengthWarning: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
   readonly onConfirmDiscardChangesChanged: (checked: boolean) => void
@@ -29,6 +30,8 @@ interface IPromptsPreferencesProps {
     value: UncommittedChangesStrategy
   ) => void
   readonly onAskForConfirmationOnCommitFilteredChanges: (value: boolean) => void
+  readonly onConfirmCommitMessageOverrideChanged: (checked: boolean) => void
+  readonly onConfirmWorktreeRemovalChanged: (checked: boolean) => void
 }
 
 interface IPromptsPreferencesState {
@@ -40,6 +43,8 @@ interface IPromptsPreferencesState {
   readonly confirmForcePush: boolean
   readonly confirmUndoCommit: boolean
   readonly askForConfirmationOnCommitFilteredChanges: boolean
+  readonly confirmCommitMessageOverride: boolean
+  readonly confirmWorktreeRemoval: boolean
   readonly uncommittedChangesStrategy: UncommittedChangesStrategy
 }
 
@@ -62,6 +67,8 @@ export class Prompts extends React.Component<
       uncommittedChangesStrategy: this.props.uncommittedChangesStrategy,
       askForConfirmationOnCommitFilteredChanges:
         this.props.askForConfirmationOnCommitFilteredChanges,
+      confirmCommitMessageOverride: this.props.confirmCommitMessageOverride,
+      confirmWorktreeRemoval: this.props.confirmWorktreeRemoval,
     }
   }
 
@@ -128,6 +135,24 @@ export class Prompts extends React.Component<
     this.props.onAskForConfirmationOnCommitFilteredChanges(value)
   }
 
+  private onConfirmCommitMessageOverrideChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ confirmCommitMessageOverride: value })
+    this.props.onConfirmCommitMessageOverrideChanged(value)
+  }
+
+  private onConfirmWorktreeRemovalChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ confirmWorktreeRemoval: value })
+    this.props.onConfirmWorktreeRemovalChanged(value)
+  }
+
   private onConfirmRepositoryRemovalChanged = (
     event: React.FormEvent<HTMLInputElement>
   ) => {
@@ -192,10 +217,6 @@ export class Prompts extends React.Component<
   }
 
   private renderCommittingFilteredChangesPrompt = () => {
-    if (!enableFilteredChangesList()) {
-      return
-    }
-
     return (
       <Checkbox
         label="Committing changes hidden by filter"
@@ -279,6 +300,24 @@ export class Prompts extends React.Component<
                   : CheckboxValue.Off
               }
               onChange={this.onConfirmUndoCommitChanged}
+            />
+            <Checkbox
+              label="Overriding commit message with generated message"
+              value={
+                this.state.confirmCommitMessageOverride
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onConfirmCommitMessageOverrideChanged}
+            />
+            <Checkbox
+              label="Removing worktrees"
+              value={
+                this.state.confirmWorktreeRemoval
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onConfirmWorktreeRemovalChanged}
             />
             {this.renderCommittingFilteredChangesPrompt()}
           </div>

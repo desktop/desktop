@@ -213,6 +213,7 @@ overrides:
   - files: 'app/test/**/*'
     rules:
       '@typescript-eslint/no-non-null-assertion': off
+      react/jsx-no-bind: off
   - files: 'script/**/*'
     rules:
       '@typescript-eslint/no-non-null-assertion': off

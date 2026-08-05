@@ -47,6 +47,7 @@
   &.filtered-changes-list {
     .filter-popover {
       text-align: right;
+      min-width: 200px;
 
       .filter-popover-header {
         display: flex;
@@ -54,7 +55,7 @@
         align-items: center;
 
         h3 {
-          margin-bottom: var(--spacing-half);
+          margin: 0;
         }
       }
 

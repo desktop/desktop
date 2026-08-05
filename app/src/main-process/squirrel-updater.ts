@@ -3,7 +3,7 @@ import * as Os from 'os'
 
 import { mkdir, writeFile } from 'fs/promises'
 import { spawn, getPathSegments, setPathSegments } from '../lib/process/win32'
-import { pathExists } from '../ui/lib/path-exists'
+import { pathExists } from '../lib/path-exists'
 
 const appFolder = Path.resolve(process.execPath, '..')
 const rootAppDir = Path.resolve(appFolder, '..')

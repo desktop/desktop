@@ -143,7 +143,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       <DialogFooter>
         <OkCancelButtonGroup
           okButtonText={primaryButtonText}
-          okButtonDisabled={disableSubmit}
+          okButtonDisabled={disableSubmit || state.loading}
+          cancelButtonDisabled={false}
           onCancelButtonClick={this.onDismissed}
         />
       </DialogFooter>
@@ -172,7 +173,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             label="Enterprise address"
             value={this.state.endpoint}
             onValueChanged={this.onEndpointChanged}
-            placeholder="https://github.example.com"
+            placeholder="https://example.ghe.com"
           />
         </Row>
       </DialogContent>
@@ -226,8 +227,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       return null
     }
 
-    const disabled = state.loading
-
     const errors = state.error ? (
       <DialogError>{state.error.message}</DialogError>
     ) : null
@@ -241,7 +240,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       <Dialog
         id="sign-in"
         title={title}
-        disabled={disabled}
+        disabled={false}
         onDismissed={this.onDismissed}
         onSubmit={this.onSubmit}
         loading={state.loading}

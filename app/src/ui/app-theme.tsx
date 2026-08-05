@@ -4,6 +4,7 @@ import {
   getThemeName,
   getCurrentlyAppliedTheme,
 } from './lib/application-theme'
+import * as ipcRenderer from '../lib/ipc-renderer'
 
 interface IAppThemeProps {
   readonly theme: ApplicationTheme
@@ -55,6 +56,14 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
     const rootStyle = document.documentElement.style
 
     rootStyle.colorScheme = isDarkTheme ? 'dark' : 'light'
+
+    // Update the window's background color to match the CSS value
+    const backgroundColor = getComputedStyle(document.body).getPropertyValue(
+      '--background-color'
+    )
+    if (backgroundColor) {
+      ipcRenderer.send('update-window-background-color', backgroundColor.trim())
+    }
   }
 
   private clearThemes() {

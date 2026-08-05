@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { assertNever } from '../../lib/fatal-error'
+import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { Dispatcher } from '../dispatcher'
-import { getResolvedFiles } from '../../lib/status'
+import { getResolvedFiles, getConflictedFiles } from '../../lib/status'
 import { ConflictState, IMultiCommitOperationState } from '../../lib/app-state'
 import { Branch } from '../../models/branch'
 import { MultiCommitOperationStepKind } from '../../models/multi-commit-operation'
@@ -11,10 +12,14 @@ import { ConflictsDialog } from './dialog/conflicts-dialog'
 import { ConfirmAbortDialog } from './dialog/confirm-abort-dialog'
 import { ProgressDialog } from './dialog/progress-dialog'
 import { WarnForcePushDialog } from './dialog/warn-force-push-dialog'
+import { CopilotConflictsLoadingDialog } from './dialog/copilot-conflicts-loading-dialog'
+import { CopilotConflictsDialog } from './dialog/copilot-conflicts-dialog'
 import { PopupType } from '../../models/popup'
+import { BannerType } from '../../models/banner'
 import { Account } from '../../models/account'
 import { IAPIRepoRuleset } from '../../lib/api'
 import { Emoji } from '../../lib/emoji'
+import { IConflictResolutionModelDisplay } from '../../lib/copilot/conflict-resolution-model'
 
 export interface IMultiCommitOperationProps {
   readonly repository: Repository
@@ -44,6 +49,19 @@ export interface IMultiCommitOperationProps {
   readonly cachedRepoRulesets: ReadonlyMap<number, IAPIRepoRuleset>
 
   /**
+   * Whether to show the "New" call-to-action bubble on the
+   * "Resolve with Copilot" entry button. False after the user has
+   * clicked the button at least once.
+   */
+  readonly shouldShowCopilotConflictResolutionCallOut: boolean
+
+  /**
+   * The model name and reasoning effort to display while Copilot resolves
+   * conflicts, reflecting the user's `conflict-resolution` model selection.
+   */
+  readonly copilotConflictResolutionModel: IConflictResolutionModelDisplay
+
+  /**
    * Callbacks for the conflict selection components to let the user jump out
    * to their preferred editor.
    */
@@ -62,41 +80,53 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
   protected abstract renderChooseBranch: () => JSX.Element | null
   protected abstract renderCreateBranch: () => JSX.Element | null
 
-  protected onFlowEnded = () => {
-    this.props.dispatcher.closePopup(PopupType.MultiCommitOperation)
-    this.props.dispatcher.endMultiCommitOperation(this.props.repository)
-  }
-
-  /**
-   * Method to call anytime we do state type checking that should pass but is
-   * needed for typing purposes. Thus it should never happen, so throw error if
-   * does.
-   */
-  protected endFlowInvalidState(isSilent: boolean = false): void {
-    const { step, operationDetail } = this.props.state
-    const errorMessage = `[${operationDetail.kind}] - Invalid state - ${operationDetail.kind} ended during ${step.kind}.`
-    if (isSilent) {
-      this.onFlowEnded()
-      log.error(errorMessage)
-      return
-    }
-    throw new Error(errorMessage)
-  }
-
-  protected onInvokeConflictsDialogDismissed = (operationPrefix: string) => {
-    const { repository, dispatcher, state } = this.props
-    const { targetBranch, step } = state
+  /** Initiate Copilot conflict resolution for the current operation. */
+  protected onResolveWithCopilot = () => {
+    const { dispatcher, repository, state } = this.props
+    const { step } = state
 
     if (step.kind !== MultiCommitOperationStepKind.ShowConflicts) {
       this.endFlowInvalidState()
       return
     }
 
+    // Pre-flight handles account check, first-click tracking, and the
+    // AI-tool disclaimer (shown on first use + every 30 days). On clean
+    // pass it transitions to the loading step and runs the resolution.
+    dispatcher.attemptCopilotConflictResolution(repository)
+  }
+
+  protected onFlowEnded = () => {
+    this.props.dispatcher.closePopup(PopupType.MultiCommitOperation)
+    this.props.dispatcher.endMultiCommitOperation(this.props.repository)
+  }
+
+  /**
+   * Method to call anytime we reach an unexpected state during a multi-commit
+   * operation. Closes the dialog, logs the error, and reports to telemetry.
+   */
+  protected endFlowInvalidState(): void {
+    const { step, operationDetail } = this.props.state
+    const errorMessage = `[${operationDetail.kind}] - Invalid state - ${operationDetail.kind} ended during ${step.kind}.`
+    this.onFlowEnded()
+    log.error(errorMessage)
+    sendNonFatalException('multiCommitOperation', new Error(errorMessage))
+  }
+
+  protected onInvokeConflictsDialogDismissed = (operationPrefix: string) => {
+    const { repository, dispatcher, state } = this.props
+    const { targetBranch, step } = state
+
+    if (
+      step.kind !== MultiCommitOperationStepKind.ShowConflicts &&
+      step.kind !== MultiCommitOperationStepKind.ShowCopilotConflicts &&
+      step.kind !== MultiCommitOperationStepKind.ShowCopilotConflictsLoading
+    ) {
+      this.endFlowInvalidState()
+      return
+    }
+
     const { conflictState } = step
-    dispatcher.setMultiCommitOperationStep(repository, {
-      kind: MultiCommitOperationStepKind.HideConflicts,
-      conflictState,
-    })
 
     const operationDescription = (
       <>
@@ -104,6 +134,32 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
         {targetBranch !== null ? <strong>{targetBranch.name}</strong> : null}
       </>
     )
+
+    // For Copilot steps, just close the popup and show a banner that
+    // reopens it. Don't change the step — resolution continues in the
+    // background and the step updates naturally when it finishes.
+    if (
+      step.kind === MultiCommitOperationStepKind.ShowCopilotConflictsLoading ||
+      step.kind === MultiCommitOperationStepKind.ShowCopilotConflicts
+    ) {
+      dispatcher.closePopup(PopupType.MultiCommitOperation)
+      dispatcher.setBanner({
+        type: BannerType.ConflictsFound,
+        operationDescription,
+        onOpenConflictsDialog: () => {
+          dispatcher.showPopup({
+            type: PopupType.MultiCommitOperation,
+            repository,
+          })
+        },
+      })
+      return
+    }
+
+    dispatcher.setMultiCommitOperationStep(repository, {
+      kind: MultiCommitOperationStepKind.HideConflicts,
+      conflictState,
+    })
 
     this.props.dispatcher.closePopup(PopupType.MultiCommitOperation)
     return dispatcher.onConflictsFoundBanner(
@@ -117,7 +173,11 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
     const { repository, dispatcher, workingDirectory, state } = this.props
     const { userHasResolvedConflicts, step } = state
 
-    if (step.kind !== MultiCommitOperationStepKind.ShowConflicts) {
+    if (
+      step.kind !== MultiCommitOperationStepKind.ShowConflicts &&
+      step.kind !== MultiCommitOperationStepKind.ShowCopilotConflicts &&
+      step.kind !== MultiCommitOperationStepKind.ShowCopilotConflictsLoading
+    ) {
       this.endFlowInvalidState()
       return
     }
@@ -132,6 +192,7 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
       dispatcher.setMultiCommitOperationStep(repository, {
         kind: MultiCommitOperationStepKind.ConfirmAbort,
         conflictState,
+        returnToStepKind: step.kind,
       })
       return
     }
@@ -147,9 +208,18 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
       return
     }
 
-    const { conflictState } = step
+    const { conflictState, returnToStepKind } = step
+    // Honor the step the user was on when they entered ConfirmAbort so
+    // that returning from "Abort" doesn't strand an in-flight Copilot
+    // resolution by routing them to ShowCopilotConflicts before the
+    // result has landed in state.
+    const stepKind =
+      returnToStepKind ??
+      (state.useCopilotConflictResolution
+        ? MultiCommitOperationStepKind.ShowCopilotConflicts
+        : MultiCommitOperationStepKind.ShowConflicts)
     return dispatcher.setMultiCommitOperationStep(repository, {
-      kind: MultiCommitOperationStepKind.ShowConflicts,
+      kind: stepKind,
       conflictState,
     })
   }
@@ -199,6 +269,10 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
           <ConflictsDialog
             dispatcher={dispatcher}
             repository={repository}
+            accounts={this.props.accounts}
+            shouldShowCopilotConflictResolutionCallOut={
+              this.props.shouldShowCopilotConflictResolutionCallOut
+            }
             workingDirectory={workingDirectory}
             userHasResolvedConflicts={userHasResolvedConflicts}
             resolvedExternalEditor={resolvedExternalEditor}
@@ -214,6 +288,7 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
             openFileInExternalEditor={openFileInExternalEditor}
             openRepositoryInShell={openRepositoryInShell}
             someConflictsHaveBeenResolved={this.setConflictsHaveBeenResolved}
+            onResolveWithCopilot={this.onResolveWithCopilot}
           />
         )
       }
@@ -240,6 +315,48 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
         return this.renderCreateBranch()
       case MultiCommitOperationStepKind.HideConflicts:
         return null
+      case MultiCommitOperationStepKind.ShowCopilotConflictsLoading: {
+        const conflictedFiles = getConflictedFiles(
+          this.props.workingDirectory,
+          step.conflictState.manualResolutions
+        )
+        return (
+          <CopilotConflictsLoadingDialog
+            repository={this.props.repository}
+            dispatcher={this.props.dispatcher}
+            conflictState={step.conflictState}
+            conflictedFilePaths={conflictedFiles.map(f => f.path)}
+            progress={this.props.state.copilotResolutionProgress}
+            operationKind={this.props.state.operationDetail.kind}
+            model={this.props.copilotConflictResolutionModel}
+            onAbort={this.onConfirmingAbort}
+            onDismissed={this.onConflictsDialogDismissed}
+          />
+        )
+      }
+      case MultiCommitOperationStepKind.ShowCopilotConflicts:
+        return (
+          <CopilotConflictsDialog
+            repository={this.props.repository}
+            dispatcher={this.props.dispatcher}
+            conflictState={step.conflictState}
+            workingDirectory={this.props.workingDirectory}
+            operationKind={this.props.state.operationDetail.kind}
+            copilotResolutions={this.props.state.copilotResolutions}
+            copilotResolutionSummary={this.props.state.copilotResolutionSummary}
+            copilotSkippedFiles={this.props.state.copilotSkippedFiles}
+            model={
+              this.props.state.copilotResolutionModel ??
+              this.props.copilotConflictResolutionModel
+            }
+            resolvedExternalEditor={this.props.resolvedExternalEditor}
+            openFileInExternalEditor={this.props.openFileInExternalEditor}
+            onContinueAfterConflicts={this.onContinueAfterConflicts}
+            onAbort={this.onConfirmingAbort}
+            onDismissed={this.onConflictsDialogDismissed}
+            emoji={this.props.emoji}
+          />
+        )
       default:
         return assertNever(
           step,

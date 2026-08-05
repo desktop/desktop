@@ -126,8 +126,11 @@ export class ChangesListFilterOptions extends React.Component<
     this.closeFilterOptions()
   }
 
-  private openFilterOptions = () => {
-    this.setState({ isFilterOptionsOpen: true })
+  // Opens the filter options popover, or closes it if it's already open.
+  private toggleFilterOptionsOpen = () => {
+    this.setState(prevState => ({
+      isFilterOptionsOpen: !prevState.isFilterOptionsOpen,
+    }))
   }
 
   private renderFilterOptions() {
@@ -240,7 +243,7 @@ export class ChangesListFilterOptions extends React.Component<
           className={classNames('filter-button', {
             active: hasActiveFilters,
           })}
-          onClick={this.openFilterOptions}
+          onClick={this.toggleFilterOptionsOpen}
           ariaExpanded={this.state.isFilterOptionsOpen}
           onButtonRef={this.onFilterOptionsButtonRef}
           tooltip={buttonTextLabel}

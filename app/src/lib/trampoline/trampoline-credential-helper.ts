@@ -169,6 +169,12 @@ const getEndpointKind = async (cred: Credential, store: Store) => {
     return isDotCom(existingAccount.endpoint) ? 'github.com' : 'enterprise'
   }
 
+  // All GitHub hosts use HTTPS, so if the protocol is not HTTPS we can
+  // assume that this is not a GitHub host.
+  if (credentialUrl.protocol !== 'https:') {
+    return 'generic'
+  }
+
   return (await isGitHubHost(endpoint)) ? 'enterprise' : 'generic'
 }
 

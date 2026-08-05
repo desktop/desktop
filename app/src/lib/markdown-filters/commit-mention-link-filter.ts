@@ -2,6 +2,7 @@ import escapeRegExp from 'lodash/escapeRegExp'
 import { GitHubRepository } from '../../models/github-repository'
 import { getHTMLURL } from '../api'
 import { INodeFilter } from './node-filter'
+import { isElement } from './is-element'
 
 /**
  * The Commit mention Link filter matches the target and text of an anchor element that
@@ -99,11 +100,11 @@ export class CommitMentionLinkFilter implements INodeFilter {
    *  - Pull Request Commit: https://github.com/desktop/desktop/pull/14239/commits/6fd7945
    */
   public createFilterTreeWalker(doc: Document): TreeWalker {
-    return doc.createTreeWalker(doc, NodeFilter.SHOW_ELEMENT, {
+    return doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, {
       acceptNode: (el: Element) => {
         return (el.parentNode !== null &&
           ['CODE', 'PRE', 'A'].includes(el.parentNode.nodeName)) ||
-          !(el instanceof HTMLAnchorElement) ||
+          !isElement(el, 'a') ||
           el.href !== el.innerText ||
           !this.commitMentionUrl.test(el.href)
           ? NodeFilter.FILTER_SKIP
@@ -124,7 +125,7 @@ export class CommitMentionLinkFilter implements INodeFilter {
   public async filter(node: Node): Promise<ReadonlyArray<Node> | null> {
     const newNode = node.cloneNode(true)
     const { textContent: text } = newNode
-    if (!(newNode instanceof HTMLAnchorElement) || text === null) {
+    if (!isElement(newNode, 'a') || text === null) {
       return null
     }
 

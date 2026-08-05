@@ -1,5 +1,6 @@
-import { describe, it, TestContext } from 'node:test'
+import { afterEach, describe, it, TestContext } from 'node:test'
 import assert from 'node:assert'
+import { join } from 'path'
 import { GitStore, RepositoriesStore } from '../../../../src/lib/stores'
 import { TestRepositoriesDatabase } from '../../../helpers/databases'
 import {
@@ -36,19 +37,20 @@ describe('Update remote url', () => {
   const endpoint = getDotComAPIEndpoint()
 
   let gitStore: GitStore
+  let db: TestRepositoriesDatabase
 
   const createRepository = async (
     t: TestContext,
     apiRepo: IAPIFullRepository,
     remoteUrl: string | null = null
   ) => {
-    const db = new TestRepositoriesDatabase()
+    db = new TestRepositoriesDatabase()
     await db.reset()
     const repositoriesStore = new RepositoriesStore(db)
 
     const repoPath = await setupFixtureRepository(t, 'test-repo')
     const repository = await repositoriesStore.setGitHubRepository(
-      await repositoriesStore.addRepository(repoPath),
+      await repositoriesStore.addRepository(repoPath, join(repoPath, '.git')),
       await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
     )
     await addRemote(repository, 'origin', remoteUrl || apiRepo.clone_url)
@@ -58,6 +60,10 @@ describe('Update remote url', () => {
 
     return { gitHubRepository, gitStore }
   }
+
+  afterEach(() => {
+    db.close()
+  })
 
   it("updates the repository's remote url when the github url changes", async t => {
     const { gitHubRepository, gitStore } = await createRepository(

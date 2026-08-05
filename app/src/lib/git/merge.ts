@@ -1,9 +1,9 @@
-import * as Path from 'path'
-
-import { git } from './core'
+import { join } from 'path'
+import { git, HookCallbackOptions } from './core'
 import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
-import { pathExists } from '../../ui/lib/path-exists'
+import { pathExists } from '../path-exists'
+import { createMultiOperationTerminalOutputCallback } from './multi-operation-terminal-output'
 
 export enum MergeResult {
   /** The merge completed successfully */
@@ -19,33 +19,66 @@ export enum MergeResult {
   Failed,
 }
 
+export type MergeOptions = {
+  /** Whether to perform a squash merge */
+  readonly squash?: boolean
+  /** Whether to bypass pre-merge and post-merge hooks */
+  readonly noVerify?: boolean
+} & HookCallbackOptions
+
 /** Merge the named branch into the current branch. */
 export async function merge(
   repository: Repository,
   branch: string,
-  isSquash: boolean = false
+  options?: MergeOptions
 ): Promise<MergeResult> {
+  const onTerminalOutputAvailable = options?.onTerminalOutputAvailable
+    ? createMultiOperationTerminalOutputCallback(
+        options?.onTerminalOutputAvailable
+      )
+    : undefined
+
   const args = ['merge']
 
-  if (isSquash) {
+  if (options?.squash) {
     args.push('--squash')
+  }
+
+  if (options?.noVerify) {
+    args.push('--no-verify')
   }
 
   args.push(branch)
 
   const { exitCode, stdout } = await git(args, repository.path, 'merge', {
     expectedErrors: new Set([GitError.MergeConflicts]),
+    interceptHooks: ['pre-merge-commit', 'post-merge', 'commit-msg'],
+    onHookProgress: options?.onHookProgress,
+    onHookFailure: options?.onHookFailure,
+    onTerminalOutputAvailable,
   })
 
   if (exitCode !== 0) {
     return MergeResult.Failed
   }
 
-  if (isSquash) {
+  if (options?.squash) {
     const { exitCode } = await git(
       ['commit', '--no-edit'],
       repository.path,
-      'createSquashMergeCommit'
+      'createSquashMergeCommit',
+      {
+        interceptHooks: [
+          'pre-merge-commit',
+          'prepare-commit-msg',
+          'commit-msg',
+          'post-commit',
+          'pre-auto-gc',
+        ],
+        onHookProgress: options?.onHookProgress,
+        onHookFailure: options?.onHookFailure,
+        onTerminalOutputAvailable,
+      }
     )
     if (exitCode !== 0) {
       return MergeResult.Failed
@@ -103,7 +136,7 @@ export async function abortMerge(repository: Repository): Promise<void> {
  * that it is in a conflicted state.
  */
 export async function isMergeHeadSet(repository: Repository): Promise<boolean> {
-  const path = Path.join(repository.path, '.git', 'MERGE_HEAD')
+  const path = join(repository.resolvedGitDir, 'MERGE_HEAD')
   return await pathExists(path)
 }
 
@@ -116,6 +149,6 @@ export async function isMergeHeadSet(repository: Repository): Promise<boolean> {
  * could lead to this being erroneously available in a non merge --squashing scenario.
  */
 export async function isSquashMsgSet(repository: Repository): Promise<boolean> {
-  const path = Path.join(repository.path, '.git', 'SQUASH_MSG')
+  const path = join(repository.resolvedGitDir, 'SQUASH_MSG')
   return await pathExists(path)
 }

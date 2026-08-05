@@ -1,3 +1,4 @@
+import { isElement } from './is-element'
 import { INodeFilter } from './node-filter'
 import { githubAssetVideoRegex } from './video-url-regex'
 
@@ -19,7 +20,7 @@ export class VideoLinkFilter implements INodeFilter {
    * user asset.
    */
   public createFilterTreeWalker(doc: Document): TreeWalker {
-    return doc.createTreeWalker(doc, NodeFilter.SHOW_ELEMENT, {
+    return doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, {
       acceptNode: (el: Element) =>
         this.getGithubVideoLink(el) === null
           ? NodeFilter.FILTER_SKIP
@@ -66,9 +67,10 @@ export class VideoLinkFilter implements INodeFilter {
    * */
   private getGithubVideoLink(node: Node): string | null {
     if (
-      node instanceof HTMLParagraphElement &&
+      isElement(node, 'p') &&
       node.childElementCount === 1 &&
-      node.firstChild instanceof HTMLAnchorElement &&
+      node.firstChild &&
+      isElement(node.firstChild, 'a') &&
       githubAssetVideoRegex.test(node.firstChild.href)
     ) {
       return node.firstChild.href

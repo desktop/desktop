@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import * as Path from 'path'
-import { writeFile } from 'fs-extra'
+import { writeFile } from 'fs/promises'
 
 import {
   setupFixtureRepository,
@@ -29,6 +29,37 @@ describe('git-lfs', () => {
       const path = await setupFixtureRepository(t, 'test-repo')
       const repository = new Repository(path, -1, null, false)
 
+      await exec(['lfs', 'track', '*.psd'], repository.path)
+
+      const usingLFS = await isUsingLFS(repository)
+      assert(usingLFS)
+    })
+
+    it('returns false if a non-LFS Git filter is configured', async t => {
+      const repository = await setupEmptyRepository(t)
+      const attributesPath = Path.join(
+        repository.path,
+        '.git',
+        'info',
+        'attributes'
+      )
+
+      await writeFile(attributesPath, '* filter=annex\n')
+
+      const usingLFS = await isUsingLFS(repository)
+      assert(!usingLFS)
+    })
+
+    it('returns true if LFS tracks a path alongside a non-LFS Git filter', async t => {
+      const repository = await setupEmptyRepository(t)
+      const attributesPath = Path.join(
+        repository.path,
+        '.git',
+        'info',
+        'attributes'
+      )
+
+      await writeFile(attributesPath, '* filter=annex\n')
       await exec(['lfs', 'track', '*.psd'], repository.path)
 
       const usingLFS = await isUsingLFS(repository)

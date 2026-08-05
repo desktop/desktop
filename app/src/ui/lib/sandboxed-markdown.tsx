@@ -1,21 +1,22 @@
 import * as React from 'react'
 import * as Path from 'path'
-import { MarkdownContext } from '../../lib/markdown-filters/node-filter'
+import {
+  buildCustomMarkDownNodeFilterPipe,
+  MarkdownContext,
+} from '../../lib/markdown-filters/node-filter'
 import { GitHubRepository } from '../../models/github-repository'
 import { readFile } from 'fs/promises'
 import { Tooltip } from './tooltip'
 import { createObservableRef } from './observable-ref'
 import { getObjectId } from './object-id'
 import debounce from 'lodash/debounce'
-import {
-  MarkdownEmitter,
-  parseMarkdown,
-} from '../../lib/markdown-filters/markdown-filter'
 import { Emoji } from '../../lib/emoji'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 
 interface ISandboxedMarkdownProps {
   /** A string of unparsed markdown to display */
-  readonly markdown: string | MarkdownEmitter
+  readonly markdown: string
 
   /** The baseHref of the markdown content for when the markdown has relative links */
   readonly baseHref?: string
@@ -47,6 +48,13 @@ interface ISandboxedMarkdownProps {
   /** An area label to explain to screen reader users what the contents of the
    * iframe are before they navigate into them. */
   readonly ariaLabel: string
+
+  /**
+   * Optional additional CSS injected after the base markdown stylesheet
+   * inside the sandboxed iframe. Use this to override heading sizes, margins,
+   * or other typographic styles without breaking iframe isolation.
+   */
+  readonly customCSS?: string
 }
 
 interface ISandboxedMarkdownState {
@@ -63,109 +71,144 @@ export class SandboxedMarkdown extends React.PureComponent<
   ISandboxedMarkdownState
 > {
   private frameRef: HTMLIFrameElement | null = null
-  private frameContainingDivRef: HTMLDivElement | null = null
-  private contentDivRef: HTMLDivElement | null = null
-  private markdownEmitter?: MarkdownEmitter
-
-  /**
-   * Resize observer used for tracking height changes in the markdown
-   * content and update the size of the iframe container.
-   */
-  private readonly resizeObserver: ResizeObserver
-  private resizeDebounceId: number | null = null
+  private currentDocument: Document | null = null
+  private frameContainingDivRef = React.createRef<HTMLDivElement>()
 
   private onDocumentScroll = debounce(() => {
+    if (this.frameRef == null) {
+      return
+    }
     this.setState({
       tooltipOffset: this.frameRef?.getBoundingClientRect() ?? new DOMRect(),
     })
   }, 100)
 
-  /**
-   * We debounce the markdown updating because it is updated on each custom
-   * markdown filter. Leading is true so that users will at a minimum see the
-   * markdown parsed by markedjs while the custom filters are being applied.
-   * (So instead of being updated, 10+ times it is updated 1 or 2 times.)
-   */
-  private onMarkdownUpdated = debounce(
-    markdown => this.mountIframeContents(markdown),
-    10,
-    { leading: true }
-  )
+  private lastContainerHeight = -Infinity
 
   public constructor(props: ISandboxedMarkdownProps) {
     super(props)
 
-    this.resizeObserver = new ResizeObserver(this.scheduleResizeEvent)
     this.state = { tooltipElements: [] }
   }
 
-  private scheduleResizeEvent = () => {
-    if (this.resizeDebounceId !== null) {
-      cancelAnimationFrame(this.resizeDebounceId)
-      this.resizeDebounceId = null
-    }
-    this.resizeDebounceId = requestAnimationFrame(this.onContentResized)
-  }
-
-  private onContentResized = () => {
-    if (this.frameRef === null) {
+  /**
+   * Iframes without much styling help will act like a block element that has a
+   * predetermiend height and width and scrolling. We want our iframe to feel a
+   * bit more like a div. Thus, we want to capture the scroll height, and set
+   * the container div to that height and with some additional css we can
+   * achieve a inline feel.
+   */
+  private refreshHeight = () => {
+    if (this.frameRef === null || this.frameContainingDivRef.current === null) {
       return
     }
 
-    this.setFrameContainerHeight(this.frameRef)
+    const newHeight =
+      this.frameRef.contentDocument?.firstElementChild?.clientHeight ?? 400
+
+    if (newHeight !== this.lastContainerHeight) {
+      this.lastContainerHeight = newHeight
+      this.frameContainingDivRef.current.style.height = `${newHeight}px`
+    }
   }
 
   private onFrameRef = (frameRef: HTMLIFrameElement | null) => {
     this.frameRef = frameRef
   }
 
-  private onFrameContainingDivRef = (
-    frameContainingDivRef: HTMLIFrameElement | null
-  ) => {
-    this.frameContainingDivRef = frameContainingDivRef
-  }
-
-  private initializeMarkdownEmitter = () => {
-    if (this.markdownEmitter !== undefined) {
-      this.markdownEmitter.dispose()
-    }
-    const { emoji, repository, markdownContext } = this.props
-    this.markdownEmitter =
-      typeof this.props.markdown !== 'string'
-        ? this.props.markdown
-        : parseMarkdown(this.props.markdown, {
-            emoji,
-            repository,
-            markdownContext,
-          })
-
-    this.markdownEmitter.onMarkdownUpdated((markdown: string) => {
-      this.onMarkdownUpdated(markdown)
-    })
-  }
-
   public async componentDidMount() {
-    this.initializeMarkdownEmitter()
-
-    if (this.frameRef !== null) {
-      this.setupFrameLoadListeners(this.frameRef)
-    }
+    this.renderMarkdown()
 
     document.addEventListener('scroll', this.onDocumentScroll, {
       capture: true,
     })
   }
 
+  public renderMarkdown = async () => {
+    const { markdown } = this.props
+
+    const body = DOMPurify.sanitize(
+      marked(markdown, {
+        // https://marked.js.org/using_advanced  If true, use approved GitHub
+        // Flavored Markdown (GFM) specification.
+        gfm: true,
+        // https://marked.js.org/using_advanced, If true, add <br> on a single
+        // line break (copies GitHub behavior on comments, but not on rendered
+        // markdown files). Requires gfm be true.
+        breaks: true,
+      })
+    )
+
+    const styleSheet = await this.getInlineStyleSheet()
+
+    // If component got unmounted while we were loading the style sheet
+    // frameref will be null.
+    if (this.frameRef === null) {
+      return
+    }
+
+    const src = `
+      <html>
+        <head>
+          ${this.getBaseTag(this.props.baseHref)}
+          ${styleSheet}
+        </head>
+        <body class="markdown-body">
+          <div id="content">
+          ${body}
+          </div>
+        </body>
+      </html>
+    `
+
+    // We used this `Buffer.toString('base64')` approach because `btoa` could not
+    // convert non-latin strings that existed in the markedjs.
+    const b64src = Buffer.from(src, 'utf8').toString('base64')
+
+    // We are using `src` and data uri as opposed to an html string in the
+    // `srcdoc` property because the `srcdoc` property renders the html in the
+    // parent dom and we want all rendering to be isolated to our sandboxed iframe.
+    // -- https://csplite.com/csp/test188/
+    const oldDocument = this.frameRef.contentDocument
+    this.currentDocument = null
+    this.frameRef.src = `data:text/html;charset=utf-8;base64,${b64src}`
+
+    const waitForNewDocument = () => {
+      if (!this.frameRef) {
+        return
+      }
+      const doc = this.frameRef.contentDocument
+      if (doc === oldDocument) {
+        requestAnimationFrame(waitForNewDocument)
+      } else if (doc !== null) {
+        this.currentDocument = doc
+        if (doc.readyState === 'loading') {
+          doc.addEventListener('DOMContentLoaded', () =>
+            this.onDocumentDOMContentLoaded(doc)
+          )
+        } else {
+          this.onDocumentDOMContentLoaded(doc)
+        }
+        return
+      }
+    }
+
+    requestAnimationFrame(waitForNewDocument)
+  }
+
   public async componentDidUpdate(prevProps: ISandboxedMarkdownProps) {
     // rerender iframe contents if provided markdown changes
-    if (prevProps.markdown !== this.props.markdown) {
-      this.initializeMarkdownEmitter()
+    if (
+      prevProps.markdown !== this.props.markdown ||
+      this.props.emoji !== prevProps.emoji ||
+      this.props.repository?.hash !== prevProps.repository?.hash ||
+      this.props.markdownContext !== prevProps.markdownContext
+    ) {
+      this.renderMarkdown()
     }
   }
 
   public componentWillUnmount() {
-    this.markdownEmitter?.dispose()
-    this.resizeObserver.disconnect()
     document.removeEventListener('scroll', this.onDocumentScroll)
   }
 
@@ -215,32 +258,22 @@ export class SandboxedMarkdown extends React.PureComponent<
       .markdown-body a {
         text-decoration: ${this.props.underlineLinks ? 'underline' : 'inherit'};
       }
+
+      img {
+        max-width: 100%;
+        height: auto;
+      }
+
+      ${this.props.customCSS ?? ''}
     </style>`
   }
 
-  /**
-   * We still want to be able to navigate to links provided in the markdown.
-   * However, we want to intercept them an verify they are valid links first.
-   */
-  private setupFrameLoadListeners(frameRef: HTMLIFrameElement): void {
-    frameRef.addEventListener('load', () => {
-      this.setupContentDivRef(frameRef)
-      this.setupLinkInterceptor(frameRef)
-      this.setupTooltips(frameRef)
-      this.setFrameContainerHeight(frameRef)
-    })
-  }
-
-  private setupTooltips(frameRef: HTMLIFrameElement) {
-    if (frameRef.contentDocument === null) {
-      return
-    }
-
+  private setupTooltips(doc: Document) {
     const tooltipElements = new Array<HTMLElement>()
 
-    for (const e of frameRef.contentDocument.querySelectorAll('[aria-label]')) {
-      if (frameRef.contentWindow?.HTMLElement) {
-        if (e instanceof frameRef.contentWindow.HTMLElement) {
+    for (const e of doc.querySelectorAll('[aria-label]')) {
+      if (doc.defaultView?.HTMLElement) {
+        if (e instanceof doc.defaultView.HTMLElement) {
           tooltipElements.push(e)
         }
       }
@@ -248,65 +281,17 @@ export class SandboxedMarkdown extends React.PureComponent<
 
     this.setState({
       tooltipElements,
-      tooltipOffset: frameRef.getBoundingClientRect(),
+      tooltipOffset: this.frameRef?.getBoundingClientRect(),
     })
-  }
-
-  private setupContentDivRef(frameRef: HTMLIFrameElement): void {
-    if (frameRef.contentDocument === null) {
-      return
-    }
-
-    /*
-     * We added an additional wrapper div#content around the markdown to
-     * determine a more accurate scroll height as the iframe's document or body
-     * element was not adjusting it's height dynamically when new content was
-     * provided.
-     */
-    this.contentDivRef = frameRef.contentDocument.documentElement.querySelector(
-      '#content'
-    ) as HTMLDivElement
-
-    if (this.contentDivRef !== null) {
-      this.resizeObserver.disconnect()
-      this.resizeObserver.observe(this.contentDivRef)
-    }
-  }
-
-  /**
-   * Iframes without much styling help will act like a block element that has a
-   * predetermiend height and width and scrolling. We want our iframe to feel a
-   * bit more like a div. Thus, we want to capture the scroll height, and set
-   * the container div to that height and with some additional css we can
-   * achieve a inline feel.
-   */
-  private setFrameContainerHeight(frameRef: HTMLIFrameElement): void {
-    if (
-      frameRef.contentDocument === null ||
-      this.frameContainingDivRef === null ||
-      this.contentDivRef === null
-    ) {
-      return
-    }
-
-    // Not sure why the content height != body height exactly. But we need to
-    // set the height explicitly to prevent scrollbar/content cut off.
-    // HACK: Add 1 to the new height to avoid UI glitches like the one shown
-    // in https://github.com/desktop/desktop/pull/18596
-    const divHeight = this.contentDivRef.clientHeight
-    this.frameContainingDivRef.style.height = `${divHeight + 1}px`
-    this.props.onMarkdownParsed?.()
   }
 
   /**
    * We still want to be able to navigate to links provided in the markdown.
    * However, we want to intercept them an verify they are valid links first.
    */
-  private setupLinkInterceptor(frameRef: HTMLIFrameElement): void {
-    frameRef.contentDocument?.addEventListener('click', ev => {
-      const { contentWindow } = frameRef
-
-      if (contentWindow && ev.target instanceof contentWindow.Element) {
+  private setupLinkInterceptor(doc: Document): void {
+    doc.addEventListener('click', ev => {
+      if (doc.defaultView && ev.target instanceof doc.defaultView.Element) {
         const a = ev.target.closest('a')
         if (a !== null) {
           ev.preventDefault()
@@ -332,49 +317,68 @@ export class SandboxedMarkdown extends React.PureComponent<
     return base.outerHTML
   }
 
-  /**
-   * Populates the mounted iframe with HTML generated from the provided markdown
-   */
-  private async mountIframeContents(markdown: string) {
-    if (this.frameRef === null) {
+  private onDocumentDOMContentLoaded = (doc: Document) => {
+    if (this.currentDocument !== doc) {
       return
     }
 
-    const styleSheet = await this.getInlineStyleSheet()
+    this.refreshHeight()
 
-    const src = `
-      <html>
-        <head>
-          ${this.getBaseTag(this.props.baseHref)}
-          ${styleSheet}
-        </head>
-        <body class="markdown-body">
-          <div id="content">
-          ${markdown}
-          </div>
-        </body>
-      </html>
-    `
+    Array.from(doc.querySelectorAll('img')).forEach(img =>
+      img.addEventListener('load', this.refreshHeight)
+    )
 
-    // We used this `Buffer.toString('base64')` approach because `btoa` could not
-    // convert non-latin strings that existed in the markedjs.
-    const b64src = Buffer.from(src, 'utf8').toString('base64')
+    Array.from(doc.querySelectorAll('details')).forEach(detail =>
+      detail.addEventListener('toggle', this.refreshHeight)
+    )
 
-    // HACK OR NOT? This prevents a crash since Electron 34 where the layout
-    // changes during the ResizeObserver callback. See:
-    // https://github.com/desktop/desktop/issues/20760
-    requestAnimationFrame(() => {
-      if (this.frameRef === null) {
-        // If frame is destroyed before markdown parsing completes, frameref will be null.
-        return
+    this.applyFilters(doc)
+    this.setupLinkInterceptor(doc)
+    this.setupTooltips(doc)
+
+    this.props.onMarkdownParsed?.()
+  }
+
+  private async applyFilters(doc: Document) {
+    const { emoji, repository, markdownContext } = this.props
+    const filters = buildCustomMarkDownNodeFilterPipe({
+      emoji,
+      repository,
+      markdownContext,
+    })
+
+    for (const nodeFilter of filters) {
+      let docMutated = false
+      const walker = nodeFilter.createFilterTreeWalker(doc)
+
+      let node = walker.nextNode()
+      while (node !== null) {
+        const replacementNodes = await nodeFilter.filter(node)
+
+        if (this.currentDocument !== doc) {
+          // Abort, the document has changed
+          return
+        }
+
+        const currentNode = node
+        node = walker.nextNode()
+
+        if (replacementNodes === null) {
+          continue
+        }
+
+        docMutated = true
+
+        for (const replacementNode of replacementNodes) {
+          currentNode.parentNode?.insertBefore(replacementNode, currentNode)
+        }
+        currentNode.parentNode?.removeChild(currentNode)
       }
 
-      // We are using `src` and data uri as opposed to an html string in the
-      // `srcdoc` property because the `srcdoc` property renders the html in the
-      // parent dom and we want all rendering to be isolated to our sandboxed iframe.
-      // -- https://csplite.com/csp/test188/
-      this.frameRef.src = `data:text/html;charset=utf-8;base64,${b64src}`
-    })
+      if (docMutated) {
+        this.refreshHeight()
+      }
+    }
   }
 
   public render() {
@@ -383,13 +387,14 @@ export class SandboxedMarkdown extends React.PureComponent<
     return (
       <div
         className="sandboxed-markdown-iframe-container"
-        ref={this.onFrameContainingDivRef}
+        ref={this.frameContainingDivRef}
       >
         <iframe
           title="sandboxed-markdown-component"
           className="sandboxed-markdown-component"
           sandbox="allow-same-origin"
           ref={this.onFrameRef}
+          onLoad={this.refreshHeight}
           aria-label={this.props.ariaLabel}
         />
         {tooltipElements.map(e => (

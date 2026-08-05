@@ -1,2 +1,4 @@
 /app/test/fixtures/** -text
 /app/static/win32/github.sh eol=lf
+
+.github/workflows/*.lock.yml linguist-generated=true merge=ours

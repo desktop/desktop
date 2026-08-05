@@ -1,4 +1,5 @@
 import { GitHubRepository } from '../../models/github-repository'
+import { isElement } from './is-element'
 import { issueUrl } from './issue-link-filter'
 import { IssueReference } from './issue-mention-filter'
 import { INodeFilter, MarkdownContext } from './node-filter'
@@ -83,7 +84,7 @@ export class CloseKeywordFilter implements INodeFilter {
    *  code, or anchor tag.
    */
   public createFilterTreeWalker(doc: Document): TreeWalker {
-    return doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT, {
+    return doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
       acceptNode: node => {
         return (node.parentNode !== null &&
           ['CODE', 'PRE', 'A'].includes(node.parentNode.nodeName)) ||
@@ -160,7 +161,7 @@ export class CloseKeywordFilter implements INodeFilter {
   private getIssueReferenceFromSibling(siblingNode: ChildNode | null) {
     if (
       siblingNode === null ||
-      !(siblingNode instanceof HTMLAnchorElement) ||
+      !isElement(siblingNode, 'a') ||
       siblingNode.href !== siblingNode.innerText
     ) {
       return

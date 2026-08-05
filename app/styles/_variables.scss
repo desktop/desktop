@@ -16,7 +16,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --color-deleted: #{$red-600};
   --color-modified: #{darken($yellow-700, 10%)};
   --color-renamed: #{$blue};
-  --color-conflicted: #{$orange-600};
+  --color-conflicted: #{$orange-800};
 
   --text-color: #{$gray-900};
   --text-secondary-color: #{$gray-500};
@@ -367,6 +367,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
 
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: #{$blue};
+  --accent-color: #{$blue-400};
   --diff-linenumber-focus-color: #{$blue-600};
 
   /**
@@ -389,6 +390,7 @@ $overlay-background-color: rgba(0, 0, 0, 0.4);
   --diff-line-padding-y: 2px;
 
   --diff-text-color: #{$gray-900};
+  --diff-alt-text-color: #{$gray-700};
   --diff-border-color: #{$gray-200};
   --diff-gutter-color: #{$gray-200};
   --diff-gutter-background-color: var(--background-color);

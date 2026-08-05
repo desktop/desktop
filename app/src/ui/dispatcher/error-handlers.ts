@@ -6,11 +6,7 @@ import {
   DiscardChangesError,
   ErrorWithMetadata,
 } from '../../lib/error-with-metadata'
-import {
-  coerceToString,
-  GitError,
-  isAuthFailureError,
-} from '../../lib/git/core'
+import { GitError, isAuthFailureError } from '../../lib/git/core'
 import { ShellError } from '../../lib/shells'
 import { UpstreamAlreadyExistsError } from '../../lib/stores/upstream-already-exists-error'
 
@@ -22,11 +18,12 @@ import {
 import { hasWritePermission } from '../../models/github-repository'
 import { RetryActionType } from '../../models/retry-actions'
 import { parseFilesToBeOverwritten } from '../lib/parse-files-to-be-overwritten'
-import { pathExists } from '../lib/path-exists'
+import { pathExists } from '../../lib/path-exists'
 import {
   ISecretLocation,
   ISecretScanResult,
 } from '../secret-scanning/push-protection-error-dialog'
+import { coerceToString } from '../../lib/git/coerce-to-string'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {

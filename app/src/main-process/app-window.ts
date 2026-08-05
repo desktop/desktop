@@ -201,10 +201,23 @@ export class AppWindow {
     )
 
     registerWindowStateChangedEvents(this.window)
-    this.window.loadURL(encodePathAsUrl(__dirname, 'index.html'))
+
+    // We want to have the locale country code available in the renderer on load
+    // so that it can be used to try to deduce some sane date/time/number
+    // formatting defaults. This is a bit of a hack but it avoids the need to
+    // have an IPC round trip to get that information from the main process.
+    const localeCountryCode = app.getLocaleCountryCode() ?? ''
+    this.window.loadURL(
+      encodePathAsUrl(__dirname, 'index.html') +
+        `#lc=${encodeURIComponent(localeCountryCode)}`
+    )
 
     nativeTheme.addListener('updated', () => {
       ipcWebContents.send(this.window.webContents, 'native-theme-updated')
+    })
+
+    ipcMain.on('update-window-background-color', (_, color) => {
+      this.window.setBackgroundColor(color)
     })
 
     this.setupAutoUpdater()

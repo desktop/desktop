@@ -20,7 +20,7 @@ import {
 import { Account } from '../../models/account'
 import { Author, UnknownAuthor } from '../../models/author'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
-import { IFileListFilterState } from '../../lib/app-state'
+import { CommitOptions, IFileListFilterState } from '../../lib/app-state'
 import {
   isSafeFileExtension,
   DefaultEditorLabel,
@@ -73,6 +73,8 @@ import {
   applyFilters,
 } from './filter-changes-logic'
 import { ChangesListFilterOptions } from './changes-list-filter-options'
+import { HookProgress } from '../../lib/git'
+import { formatNumber } from '../../lib/format-number'
 
 export interface IChangesListItem extends IFilterListItem {
   readonly id: string
@@ -157,6 +159,8 @@ interface IFilterChangesListProps {
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly hookProgress: HookProgress | null
+  readonly onShowCommitProgress?: (() => void) | undefined
   readonly isGeneratingCommitMessage: boolean
   readonly shouldShowGenerateCommitMessageCallOut: boolean
   readonly commitToAmend: Commit | null
@@ -219,6 +223,31 @@ interface IFilterChangesListProps {
 
   /** Whether or not to show the changes filter */
   readonly showChangesFilter: boolean
+
+  /**
+   * Whether or not to skip blocking commit hooks when creating commits
+   * by means of passing the `--no-verify` flag to git commit
+   */
+  readonly skipCommitHooks: boolean
+
+  /**
+   * Whether or not to add a `Signed-off-by` trailer to commit messages
+   * by means of passing the `--signoff` flag to git commit
+   */
+  readonly signOffCommits: boolean
+
+  /**
+   * Whether or not to allow creating a commit without any file changes
+   * by means of passing the `--allow-empty` flag to git commit.
+   * This option resets to false after each commit.
+   */
+  readonly allowEmptyCommit: boolean
+
+  /** Callback to set commit options for the given repository */
+  readonly onUpdateCommitOptions: (
+    repository: Repository,
+    options: Partial<CommitOptions>
+  ) => void
 }
 
 interface IFilterChangesListState {
@@ -865,6 +894,7 @@ export class FilterChangesList extends React.Component<
       repositoryAccount,
       dispatcher,
       isCommitting,
+      hookProgress,
       isGeneratingCommitMessage,
       commitToAmend,
       currentBranchProtected,
@@ -941,6 +971,8 @@ export class FilterChangesList extends React.Component<
         focusCommitMessage={this.props.focusCommitMessage}
         autocompletionProviders={this.props.autocompletionProviders}
         isCommitting={isCommitting}
+        hookProgress={hookProgress}
+        onShowCommitProgress={this.props.onShowCommitProgress}
         isGeneratingCommitMessage={isGeneratingCommitMessage}
         shouldShowGenerateCommitMessageCallOut={
           shouldShowGenerateCommitMessageCallOut
@@ -968,6 +1000,7 @@ export class FilterChangesList extends React.Component<
         }
         onPersistCommitMessage={this.onPersistCommitMessage}
         onGenerateCommitMessage={this.onGenerateCommitMessage}
+        onCancelGenerateCommitMessage={this.onCancelGenerateCommitMessage}
         onCommitMessageFocusSet={this.onCommitMessageFocusSet}
         onRefreshAuthor={this.onRefreshAuthor}
         onShowPopup={this.onShowPopup}
@@ -979,6 +1012,11 @@ export class FilterChangesList extends React.Component<
         accounts={this.props.accounts}
         onSuccessfulCommitCreated={this.onSuccessfulCommitCreated}
         submitButtonAriaDescribedBy={'hidden-changes-warning'}
+        skipCommitHooks={this.props.skipCommitHooks}
+        signOffCommits={this.props.signOffCommits}
+        allowEmptyCommit={this.props.allowEmptyCommit}
+        showAllowEmptyCommitOption={true}
+        onUpdateCommitOptions={this.props.onUpdateCommitOptions}
       />
     )
   }
@@ -1029,6 +1067,10 @@ export class FilterChangesList extends React.Component<
           this.props.repository,
           filesSelected
         )
+  }
+
+  private onCancelGenerateCommitMessage = () => {
+    this.props.dispatcher.cancelGenerateCommitMessage(this.props.repository)
   }
 
   private onShowPopup = (p: Popup) => this.props.dispatcher.showPopup(p)
@@ -1219,9 +1261,9 @@ export class FilterChangesList extends React.Component<
       files.length === 0 || isCommitting || rebaseConflictState !== null
 
     const checkAllLabel = `${
-      visibleFiles !== files.length ? `${visibleFiles} of ` : ''
+      visibleFiles !== files.length ? `${formatNumber(visibleFiles)} of ` : ''
     }
-    ${files.length} changed file${plural(files.length)}`
+    ${formatNumber(files.length)} changed file${plural(files.length)}`
 
     return (
       <div className="checkbox-container">
@@ -1281,7 +1323,7 @@ export class FilterChangesList extends React.Component<
 
   private getListAriaLabel = () => {
     const { files } = this.props.workingDirectory
-    return `${files.length} changed file${plural(files.length)}`
+    return `${formatNumber(files.length)} changed file${plural(files.length)}`
   }
 
   public render() {
@@ -1372,7 +1414,8 @@ export class FilterChangesList extends React.Component<
         <span className="sr-only">Warning:</span>
         <span>Hidden changes will be committed. </span>
         <LinkButton onClick={this.showFilesToBeCommitted}>
-          Adjust the filters to see all {filesSelected.length} changes
+          Adjust the filters to see all {formatNumber(filesSelected.length)}{' '}
+          changes
         </LinkButton>
       </div>
     )

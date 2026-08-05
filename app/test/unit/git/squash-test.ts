@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import * as FSE from 'fs-extra'
+import { writeFile } from 'fs/promises'
 import * as Path from 'path'
 import {
   continueRebase,
@@ -244,16 +244,12 @@ describe('git/cherry-pick', () => {
     // If there are conflicts, we need to resend in git editor for changing the
     // git message on continue
     const messagePath = await getTempFilePath('squashCommitMessage')
-    await FSE.writeFile(messagePath, 'Test Summary\n\nTest Body')
+    await writeFile(messagePath, 'Test Summary\n\nTest Body')
 
     // continue rebase
-    let continueResult = await continueRebase(
-      repository,
-      files,
-      undefined,
-      undefined,
-      `cat "${messagePath}" >`
-    )
+    let continueResult = await continueRebase(repository, files, undefined, {
+      gitEditor: `cat "${messagePath}" >`,
+    })
 
     // This will now conflict with the 'second' commit since it is going to now
     // apply the second commit which now modifies the same lines in the
@@ -263,23 +259,19 @@ describe('git/cherry-pick', () => {
     status = await getStatusOrThrow(repository)
     files = status.workingDirectory.files
 
-    await FSE.writeFile(
+    await writeFile(
       Path.join(repository.path, 'second.md'),
       '# resolve conflict from adding add after resolving squash'
     )
 
-    continueResult = await continueRebase(
-      repository,
-      files,
-      undefined,
-      undefined,
+    continueResult = await continueRebase(repository, files, undefined, {
       // Only reason I did this here is to show it does not cause harm.
       // In case of multiple commits being squashed/reordered before the squash
       // completes, we may not be able to tell which conflict the squash
       // message will need to go after so we will be sending it on all
       // continues.
-      `cat "${messagePath}" >`
-    )
+      gitEditor: `cat "${messagePath}" >`,
+    })
     assert.equal(continueResult, RebaseResult.CompletedWithoutError)
 
     const log = await getCommits(repository, 'HEAD', 5)

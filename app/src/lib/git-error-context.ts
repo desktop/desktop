@@ -23,8 +23,14 @@ type CreateRepositoryErrorContext = {
   readonly kind: 'create-repository'
 }
 
+type CommitErrorContext = {
+  /** The Git operation that triggered the error */
+  readonly kind: 'commit'
+}
+
 /** A custom shape of data for actions to provide to help with error handling */
 export type GitErrorContext =
   | MergeOrPullConflictsErrorContext
   | CheckoutBranchErrorContext
   | CreateRepositoryErrorContext
+  | CommitErrorContext

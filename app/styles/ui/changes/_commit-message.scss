@@ -12,6 +12,59 @@
 
   padding: var(--spacing);
 
+  .commit-progress {
+    display: flex;
+    align-items: center;
+    margin-top: var(--spacing-half);
+
+    .description {
+      flex-grow: 1;
+      @include ellipsis;
+      padding: var(--spacing-half) var(--spacing);
+
+      border: var(--base-border);
+      border-radius: var(--button-border-radius);
+      border-color: var(--secondary-button-border-color);
+    }
+
+    &.with-button {
+      .description {
+        border-right: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+    }
+
+    button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      padding: 0;
+
+      flex-shrink: 0;
+      height: 100%;
+      border-left-width: 1px;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      padding: 0 var(--spacing-half);
+      > svg.octicon {
+        height: 12px;
+        pointer-events: none;
+      }
+
+      &:hover {
+        background-color: var(--secondary-button-hover-background);
+      }
+    }
+
+    > svg.octicon {
+      margin-right: 3px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+  }
+
   .copilot-disclaimer-popover-header {
     display: flex;
 
@@ -100,7 +153,7 @@
   .copilot-button {
     color: var(--text-secondary-color);
 
-    &:hover {
+    &:not([aria-disabled='true']):hover {
       color: var(--text-color);
     }
 
@@ -113,22 +166,14 @@
     width: auto !important;
   }
 
-  .call-to-action-bubble {
-    font-weight: var(--font-weight-semibold);
-    display: inline-block;
-    font-size: var(--font-size-xs);
-    border: 1px solid var(--call-to-action-bubble-border-color);
-    color: var(--call-to-action-bubble-color);
-    padding: 1px 5px;
-    border-radius: var(--border-radius);
-    margin-left: var(--spacing-third);
-    cursor: pointer;
-  }
-
-  .co-authors-toggle {
+  .co-authors-toggle,
+  .commit-options-button {
     color: var(--text-secondary-color);
 
-    &:hover {
+    &.default-options {
+      color: var(--text-secondary-color);
+    }
+    &:not([aria-disabled='true']):hover {
       color: var(--text-color);
     }
 
@@ -237,7 +282,8 @@
     }
 
     .co-authors-toggle,
-    .copilot-button {
+    .copilot-button,
+    .commit-options-button {
       // button reset styles
       border: none;
       border-radius: 0px;

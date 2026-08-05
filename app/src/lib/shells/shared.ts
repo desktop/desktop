@@ -4,7 +4,7 @@ import * as Darwin from './darwin'
 import * as Win32 from './win32'
 import * as Linux from './linux'
 import { ShellError } from './error'
-import { pathExists } from '../../ui/lib/path-exists'
+import { pathExists } from '../path-exists'
 import { ICustomIntegration } from '../custom-integration'
 
 export type Shell = Darwin.Shell | Win32.Shell | Linux.Shell

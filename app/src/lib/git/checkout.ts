@@ -1,13 +1,12 @@
 import { git, IGitStringExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
-import { ICheckoutProgress } from '../../models/progress'
+import { clampProgress, ICheckoutProgress } from '../../models/progress'
 import {
   CheckoutProgressParser,
   executionOptionsWithProgress,
 } from '../progress'
 import { AuthenticationErrors } from './authentication'
-import { enableRecurseSubmodulesFlag } from '../feature-flag'
 import {
   envForRemoteOperation,
   getFallbackUrlForProxyResolve,
@@ -16,8 +15,11 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { CommitOneLine, shortenSHA } from '../../models/commit'
 import { IRemote } from '../../models/remote'
+import { updateSubmodulesAfterOperation } from './submodule'
 
 export type ProgressCallback = (progress: ICheckoutProgress) => void
+
+const CheckoutStepWeight = 0.9
 
 function getCheckoutArgs(progressCallback?: ProgressCallback) {
   return ['checkout', ...(progressCallback ? ['--progress'] : [])]
@@ -29,7 +31,6 @@ async function getBranchCheckoutArgs(branch: Branch) {
     ...(branch.type === BranchType.Remote
       ? ['-b', branch.nameWithoutRemote]
       : []),
-    ...(enableRecurseSubmodulesFlag() ? ['--recurse-submodules'] : []),
     '--',
   ]
 }
@@ -102,14 +103,18 @@ export async function checkoutBranch(
   repository: Repository,
   branch: Branch,
   currentRemote: IRemote | null,
-  progressCallback?: ProgressCallback
+  progressCallback?: ProgressCallback,
+  allowFileProtocol: boolean = false
 ): Promise<true> {
+  const title = `Checking out branch ${branch.name}`
   const opts = await getCheckoutOpts(
     repository,
-    `Checking out branch ${branch.name}`,
+    title,
     branch.name,
     currentRemote,
-    progressCallback,
+    progressCallback
+      ? clampProgress(0, CheckoutStepWeight, progressCallback)
+      : undefined,
     `Switching to ${__DARWIN__ ? 'Branch' : 'branch'}`
   )
 
@@ -117,6 +122,23 @@ export async function checkoutBranch(
   const args = [...baseArgs, ...(await getBranchCheckoutArgs(branch))]
 
   await git(args, repository.path, 'checkoutBranch', opts)
+
+  // Update submodules after checkout
+  await updateSubmodulesAfterOperation(
+    repository,
+    currentRemote,
+    progressCallback
+      ? clampProgress<ICheckoutProgress>(
+          CheckoutStepWeight,
+          1,
+          progressCallback
+        )
+      : undefined,
+    'checkout',
+    title,
+    branch.name,
+    allowFileProtocol
+  )
 
   // we return `true` here so `GitStore.performFailableGitOperation`
   // will return _something_ differentiable from `undefined` if this succeeds
@@ -142,21 +164,42 @@ export async function checkoutCommit(
   repository: Repository,
   commit: CommitOneLine,
   currentRemote: IRemote | null,
-  progressCallback?: ProgressCallback
+  progressCallback?: ProgressCallback,
+  allowFileProtocol: boolean = false
 ): Promise<true> {
   const title = `Checking out ${__DARWIN__ ? 'Commit' : 'commit'}`
+  const target = shortenSHA(commit.sha)
   const opts = await getCheckoutOpts(
     repository,
     title,
-    shortenSHA(commit.sha),
+    target,
     currentRemote,
     progressCallback
+      ? clampProgress(0, CheckoutStepWeight, progressCallback)
+      : undefined
   )
 
   const baseArgs = getCheckoutArgs(progressCallback)
   const args = [...baseArgs, commit.sha]
 
   await git(args, repository.path, 'checkoutCommit', opts)
+
+  // Update submodules after checkout
+  await updateSubmodulesAfterOperation(
+    repository,
+    currentRemote,
+    progressCallback
+      ? clampProgress<ICheckoutProgress>(
+          CheckoutStepWeight,
+          1,
+          progressCallback
+        )
+      : undefined,
+    'checkout',
+    title,
+    target,
+    allowFileProtocol
+  )
 
   // we return `true` here so `GitStore.performFailableGitOperation`
   // will return _something_ differentiable from `undefined` if this succeeds

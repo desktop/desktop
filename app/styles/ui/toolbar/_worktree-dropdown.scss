@@ -1,0 +1,17 @@
+.worktree-button {
+  max-width: 250px;
+
+  &.resizable {
+    max-width: none;
+    width: 100%;
+  }
+
+  .toolbar-dropdown-button {
+    max-width: 100%;
+  }
+
+  .title,
+  .description {
+    @include ellipsis;
+  }
+}

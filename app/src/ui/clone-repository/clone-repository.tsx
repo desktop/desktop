@@ -12,6 +12,7 @@ import {
   IRepositoryIdentifier,
   parseRepositoryIdentifier,
   parseRemote,
+  sanitizeCloneName,
 } from '../../lib/remote-parsing'
 import { findAccountForRemoteURL } from '../../lib/find-account'
 import { API, IAPIRepository, IAPIRepositoryCloneInfo } from '../../lib/api'
@@ -611,9 +612,10 @@ export class CloneRepository extends React.Component<
 
     const tabState = this.getSelectedTabState()
     const lastParsedIdentifier = tabState.lastParsedIdentifier
-    const directory = lastParsedIdentifier
-      ? Path.join(path, lastParsedIdentifier.name)
-      : path
+    const safeName = lastParsedIdentifier
+      ? sanitizeCloneName(lastParsedIdentifier.name)
+      : null
+    const directory = safeName ? Path.join(path, safeName) : path
 
     this.setSelectedTabState(
       { path: directory, error: null },
@@ -654,17 +656,19 @@ export class CloneRepository extends React.Component<
       return
     }
 
+    const safeName = parsed ? sanitizeCloneName(parsed.name) : null
+
     let newPath: string
 
     const dirPath = tabState.path
     if (lastParsedIdentifier) {
-      if (parsed) {
-        newPath = Path.join(Path.dirname(dirPath), parsed.name)
+      if (safeName) {
+        newPath = Path.join(Path.dirname(dirPath), safeName)
       } else {
         newPath = Path.dirname(dirPath)
       }
-    } else if (parsed) {
-      newPath = Path.join(dirPath, parsed.name)
+    } else if (safeName) {
+      newPath = Path.join(dirPath, safeName)
     } else {
       newPath = dirPath
     }

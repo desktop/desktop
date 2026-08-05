@@ -25,6 +25,9 @@
 @import 'dialogs/unknown-authors';
 @import 'dialogs/icon_preview';
 @import 'dialogs/push-protection';
+@import 'dialogs/hook-failed';
+@import 'dialogs/commit_progress';
+@import 'dialogs/copilot-conflicts-loading';
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -350,11 +353,23 @@ dialog {
     }
   }
 
+  &#delete-worktree-failed {
+    max-width: 750px;
+    .xterm {
+      padding: var(--spacing);
+      margin-bottom: var(--spacing);
+    }
+  }
+
   &#app-error {
     // Use wider dialogs for raw git errors, to make sure we can display lines
     // up to 80 characters long without wrapping them.
     &.raw-git-error {
-      max-width: 700px;
+      max-width: 750px;
+
+      .xterm {
+        padding: var(--spacing);
+      }
     }
 
     .dialog-content {
@@ -513,12 +528,22 @@ dialog {
     width: 600px;
 
     .dialog-content {
-      $default-tab-height: 430px;
+      $default-tab-height: 440px;
       min-height: $default-tab-height;
 
       &.accounts-tab {
         max-height: $default-tab-height;
         overflow: auto;
+      }
+
+      &.copilot-tab {
+        padding: 0;
+
+        .copilot-tab-content {
+          padding: 0;
+          max-height: $default-tab-height;
+          overflow: hidden;
+        }
       }
     }
   }
@@ -541,6 +566,9 @@ dialog {
     .link-button-component {
       display: inline;
     }
+  }
+  &#rename-branch {
+    width: 400px;
   }
   &#push-branch-commits {
     width: 450px;

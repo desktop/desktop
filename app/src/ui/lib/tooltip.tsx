@@ -157,6 +157,14 @@ export interface ITooltipProps<T> {
    * Default: true
    * */
   readonly applyAriaDescribedBy?: boolean
+
+  /** Usually the position of the tooltip is relative to the mouse pointer, this
+   * forces it to be relative to the target's position. Useful for tooltips
+   * rendered by keyboard focus of the item. */
+  readonly positionRelativeToTarget?: boolean
+
+  /** Whether to show the tooltip when the target is focused */
+  readonly disabled?: boolean
 }
 
 interface ITooltipState {
@@ -523,6 +531,10 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
   }
 
   private beginShowTooltip() {
+    if (this.props.disabled === true) {
+      return
+    }
+
     this.cancelShowTooltip()
     this.showTooltipTimeout = window.setTimeout(
       this.showTooltip,
@@ -574,7 +586,9 @@ export class Tooltip<T extends TooltipTarget> extends React.Component<
     const { direction, tooltipOffset } = this.props
 
     return offsetRect(
-      direction === undefined ? this.mouseRect : target.getBoundingClientRect(),
+      direction === undefined && this.props.positionRelativeToTarget !== true
+        ? this.mouseRect
+        : target.getBoundingClientRect(),
       tooltipOffset?.x ?? 0,
       tooltipOffset?.y ?? 0
     )

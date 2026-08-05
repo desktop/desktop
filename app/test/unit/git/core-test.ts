@@ -8,7 +8,7 @@ import {
 } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../helpers/repositories'
 import { join, resolve } from 'path'
-import { copy } from 'fs-extra'
+import { cp } from 'fs/promises'
 
 describe('git/core', () => {
   describe('error handling', () => {
@@ -60,7 +60,7 @@ describe('git/core', () => {
       const configFilePath = join(repoPath, '.git', 'config')
       const configLockFilePath = `${configFilePath}.lock`
 
-      await copy(configFilePath, configLockFilePath)
+      await cp(configFilePath, configLockFilePath)
 
       const args = ['config', '--local', 'user.name', 'niik']
       const result = await git(args, repoPath, 'test', {

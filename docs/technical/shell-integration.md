@@ -235,6 +235,7 @@ The source for the Linux shell integration is found in [`app/src/lib/shells/linu
 These shells are currently supported:
 
  - [GNOME Terminal](https://help.gnome.org/users/gnome-terminal/stable/)
+ - [Ptyxis](https://gitlab.gnome.org/chergert/ptyxis/)
  - [MATE Terminal](https://github.com/mate-desktop/mate-terminal)
  - [Tilix](https://github.com/gnunn1/tilix)
  - [Terminator](https://gnometerminator.blogspot.com)

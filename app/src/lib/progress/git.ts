@@ -1,3 +1,5 @@
+import { stripVTControlCharacters } from 'util'
+
 /**
  * Identifies a particular subset of progress events from Git by
  * title.
@@ -138,6 +140,24 @@ export interface IGitProgressInfo {
 }
 
 /**
+ * Interface for classes interpreting progress output from `git`
+ * and turning that into a percentage value estimating the overall progress
+ * of the an operation. An operation could be something like `git fetch`
+ * which contains multiple steps, each individually reported by Git as
+ * progress events between 0 and 100%.
+ */
+export interface IGitProgressParser {
+  /**
+   * Parse the given line of output from Git, returns either an `IGitProgress`
+   * instance if the line could successfully be parsed as a Git progress
+   * event whose title was registered with this parser or an `IGitOutput`
+   * instance if the line couldn't be parsed or if the title wasn't
+   * registered with the parser.
+   */
+  parse(line: string): IGitProgress | IGitOutput
+}
+
+/**
  * A utility class for interpreting progress output from `git`
  * and turning that into a percentage value estimating the overall progress
  * of the an operation. An operation could be something like `git fetch`
@@ -147,7 +167,7 @@ export interface IGitProgressInfo {
  * A parser cannot be reused, it's mean to parse a single stderr stream
  * for Git.
  */
-export class GitProgressParser {
+export class GitProgressParser implements IGitProgressParser {
   private readonly steps: ReadonlyArray<IProgressStep>
 
   /* The provided steps should always occur in order but some
@@ -193,10 +213,14 @@ export class GitProgressParser {
    * registered with the parser.
    */
   public parse(line: string): IGitProgress | IGitOutput {
-    const progress = parse(line)
+    // In case we're parsing hook output or similar we want to
+    // strip out any control characters that may be present. IGitProgress
+    // is supposed to be readable text that can be used in tooltips and such.
+    const text = stripVTControlCharacters(line)
+    const progress = parse(text)
 
     if (!progress) {
-      return { kind: 'context', text: line, percent: this.lastPercent }
+      return { kind: 'context', text, percent: this.lastPercent }
     }
 
     let percent = 0
@@ -218,7 +242,7 @@ export class GitProgressParser {
       }
     }
 
-    return { kind: 'context', text: line, percent: this.lastPercent }
+    return { kind: 'context', text, percent: this.lastPercent }
   }
 }
 

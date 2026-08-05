@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import * as path from 'path'
-import { readFile, writeFile } from 'fs-extra'
+import { readFile, writeFile } from 'fs/promises'
 
 import { Repository } from '../../../src/models/repository'
 import {

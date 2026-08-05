@@ -1,13 +1,13 @@
 import * as Path from 'path'
 import * as React from 'react'
 
-import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
 import {
   IChangesState,
   RebaseConflictState,
   isRebaseConflictState,
   ChangesSelectionKind,
+  CommitOptions,
 } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
@@ -31,8 +31,8 @@ import { isConflictedFile, hasUnresolvedConflicts } from '../../lib/status'
 import { getAccountForRepository } from '../../lib/get-account-for-repository'
 import { IAheadBehind } from '../../models/branch'
 import { Emoji } from '../../lib/emoji'
-import { enableFilteredChangesList } from '../../lib/feature-flag'
 import { FilterChangesList } from './filter-changes-list'
+import { HookProgress } from '../../lib/git'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -56,6 +56,8 @@ interface IChangesSidebarProps {
   readonly issuesStore: IssuesStore
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly hookProgress: HookProgress | null
+  readonly onShowCommitProgress: (() => void) | undefined
   readonly isGeneratingCommitMessage: boolean
   readonly shouldShowGenerateCommitMessageCallOut: boolean
   readonly commitToAmend: Commit | null
@@ -93,13 +95,38 @@ interface IChangesSidebarProps {
 
   /** Whether or not to show the changes filter */
   readonly showChangesFilter: boolean
+
+  /**
+   * Whether or not to skip blocking commit hooks when creating commits
+   * by means of passing the `--no-verify` flag to git commit
+   */
+  readonly skipCommitHooks: boolean
+
+  /**
+   * Whether or not to add a `Signed-off-by` trailer to commit messages
+   * by means of passing the `--signoff` flag to git commit
+   */
+  readonly signOffCommits: boolean
+
+  /**
+   * Whether or not to allow creating a commit without any file changes
+   * by means of passing the `--allow-empty` flag to git commit.
+   * This option resets to false after each commit.
+   */
+  readonly allowEmptyCommit: boolean
+
+  /** Callback to set commit options for the given repository */
+  readonly onUpdateCommitOptions: (
+    repository: Repository,
+    options: Partial<CommitOptions>
+  ) => void
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
   private autocompletionProviders: ReadonlyArray<
     IAutocompletionProvider<any>
   > | null = null
-  private changesListRef = React.createRef<ChangesList>()
+  private changesListRef = React.createRef<FilterChangesList>()
 
   public constructor(props: IChangesSidebarProps) {
     super(props)
@@ -211,13 +238,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       this.props.repository,
       file,
       include
-    )
-  }
-
-  private onSelectAll = (selectAll: boolean) => {
-    this.props.dispatcher.changeIncludeAllFiles(
-      this.props.repository,
-      selectAll
     )
   }
 
@@ -398,13 +418,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
       this.props.repository
     )
 
-    const ChangesListComponent = enableFilteredChangesList()
-      ? FilterChangesList
-      : ChangesList
-
     return (
       <div className="panel" role="tabpanel" aria-labelledby="changes-tab">
-        <ChangesListComponent
+        <FilterChangesList
           ref={this.changesListRef}
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
@@ -417,7 +433,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onFileSelectionChanged={this.onFileSelectionChanged}
           onCreateCommit={this.onCreateCommit}
           onIncludeChanged={this.onIncludeChanged}
-          onSelectAll={this.onSelectAll}
           onDiscardChanges={this.onDiscardChanges}
           askForConfirmationOnDiscardChanges={
             this.props.askForConfirmationOnDiscardChanges
@@ -439,6 +454,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           onIgnoreFile={this.onIgnoreFile}
           onIgnorePattern={this.onIgnorePattern}
           isCommitting={this.props.isCommitting}
+          hookProgress={this.props.hookProgress}
+          onShowCommitProgress={this.props.onShowCommitProgress}
           isGeneratingCommitMessage={this.props.isGeneratingCommitMessage}
           shouldShowGenerateCommitMessageCallOut={
             this.props.shouldShowGenerateCommitMessageCallOut
@@ -461,6 +478,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           accounts={this.props.accounts}
           fileListFilter={this.props.changes.fileListFilter}
           showChangesFilter={this.props.showChangesFilter}
+          skipCommitHooks={this.props.skipCommitHooks}
+          signOffCommits={this.props.signOffCommits}
+          allowEmptyCommit={this.props.allowEmptyCommit}
+          onUpdateCommitOptions={this.props.onUpdateCommitOptions}
         />
         {this.renderUndoCommit(rebaseConflictState)}
       </div>

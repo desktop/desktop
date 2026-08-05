@@ -1,4 +1,4 @@
-import { git } from './core'
+import { git, isGitError } from './core'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { formatAsLocalRef } from './refs'
@@ -7,6 +7,7 @@ import { GitError as DugiteError } from 'dugite'
 import { envForRemoteOperation } from './environment'
 import { createForEachRefParser } from './git-delimiter-parser'
 import { IRemote } from '../../models/remote'
+import { coerceToString } from './coerce-to-string'
 
 /**
  * Create a new branch from the given start point.
@@ -36,17 +37,62 @@ export async function createBranch(
   await git(args, repository.path, 'createBranch')
 }
 
+export const getBranchNames = ({ path }: Repository): Promise<string[]> => {
+  const parser = createForEachRefParser({ name: '%(refname:short)' })
+  return git(['branch', ...parser.formatArgs], path, 'getBranchNames').then(x =>
+    parser.parse(x.stdout).map(b => b.name)
+  )
+}
+
 /** Rename the given branch to a new name. */
 export async function renameBranch(
   repository: Repository,
   branch: Branch,
-  newName: string
+  newName: string,
+  force?: boolean
 ): Promise<void> {
-  await git(
-    ['branch', '-m', branch.nameWithoutRemote, newName],
-    repository.path,
-    'renameBranch'
-  )
+  try {
+    await git(
+      ['branch', force ? '-M' : '-m', branch.nameWithoutRemote, newName],
+      repository.path,
+      'renameBranch'
+    )
+  } catch (error) {
+    // If we failed to rename and the branch name only differs by case, we
+    // we'll try again with the -M flag to force the rename. See
+    // https://github.com/desktop/desktop/issues/21320
+    if (
+      // Only retry if the caller hasn't explicitly asked us to force the rename
+      force === undefined &&
+      isGitError(error) &&
+      error.result.gitError === DugiteError.BranchAlreadyExists
+    ) {
+      const stderr = coerceToString(error.result.stderr)
+      const m = /fatal: a branch named '(.+?)' already exists/.exec(stderr)
+
+      if (m && m[1].toLowerCase() === newName.toLowerCase()) {
+        // At this point we're almost certain that we are dealing with a
+        // case-only rename on a case insensitive filesystem, but we can't
+        // be 100% sure, NTFS can be configured to be case sensitive and macOS
+        // might have case sensitive file systems mounted so we have to list
+        // all branches and check the names.
+        return (
+          getBranchNames(repository)
+            // Throw the original error if we fail to get the branch names
+            .catch(() => Promise.reject(error))
+            .then(names =>
+              // If we find the new name in the list of branches we can't
+              // safely assume it's a case-only rename and have to
+              // propagate the original error, otherwise try again with -M
+              names.includes(newName)
+                ? Promise.reject(error)
+                : renameBranch(repository, branch, newName, true)
+            )
+        )
+      }
+    }
+    throw error
+  }
 }
 
 /**

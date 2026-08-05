@@ -407,16 +407,13 @@ export class ExpandableCommitSummary extends React.Component<
   }
 
   private renderAuthorStack = () => {
-    const { selectedCommits, repository, accounts } = this.props
+    const { accounts } = this.props
     const { avatarUsers } = this.state
 
     return (
       <>
         <AvatarStack users={avatarUsers} accounts={accounts} />
-        <CommitAttribution
-          gitHubRepository={repository.gitHubRepository}
-          commits={selectedCommits}
-        />
+        <CommitAttribution avatarUsers={avatarUsers} />
       </>
     )
   }

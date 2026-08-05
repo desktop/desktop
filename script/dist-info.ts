@@ -2,6 +2,7 @@ import * as Path from 'path'
 import * as Fs from 'fs'
 
 import { getProductName, getVersion } from '../app/package-info'
+import { join } from 'path'
 
 const productName = getProductName()
 const version = getVersion()
@@ -149,9 +150,12 @@ export function shouldMakeDelta() {
   return ['production', 'beta'].includes(getChannel())
 }
 
-export function getIconFileName(): string {
-  const baseName = 'icon-logo'
-  return getChannel() === 'development' ? `${baseName}-yellow` : baseName
+/**
+ * Path to the directory containing all icon assets for the current release channel.
+ */
+export function getIconDirectory() {
+  const devOrProd = getChannel() === 'development' ? 'dev' : 'prod'
+  return join(projectRoot, 'app', 'static', 'logos', devOrProd)
 }
 
 export function getChannelFromReleaseBranch(): string {

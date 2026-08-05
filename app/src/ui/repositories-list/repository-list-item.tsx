@@ -10,6 +10,7 @@ import { IAheadBehind } from '../../models/branch'
 import classNames from 'classnames'
 import { createObservableRef } from '../lib/observable-ref'
 import { Tooltip } from '../lib/tooltip'
+import { enableAccessibleListToolTips } from '../../lib/feature-flag'
 import { TooltippedContent } from '../lib/tooltipped-content'
 
 interface IRepositoryListItemProps {
@@ -55,7 +56,12 @@ export class RepositoryListItem extends React.Component<
 
     return (
       <div className="repository-list-item" ref={this.listItemRef}>
-        <Tooltip target={this.listItemRef}>{this.renderTooltip()}</Tooltip>
+        <Tooltip
+          target={this.listItemRef}
+          disabled={enableAccessibleListToolTips()}
+        >
+          {this.renderTooltip()}
+        </Tooltip>
 
         <Octicon
           className="icon-for-repository"
@@ -78,6 +84,7 @@ export class RepositoryListItem extends React.Component<
       </div>
     )
   }
+
   private renderTooltip() {
     const repo = this.props.repository
     const gitHubRepo = repo instanceof Repository ? repo.gitHubRepository : null
@@ -140,6 +147,7 @@ const renderAheadBehindIndicator = (aheadBehind: IAheadBehind) => {
       className="ahead-behind"
       tagName="div"
       tooltip={aheadBehindTooltip}
+      disabled={enableAccessibleListToolTips()}
     >
       {ahead > 0 && <Octicon symbol={octicons.arrowUp} />}
       {behind > 0 && <Octicon symbol={octicons.arrowDown} />}
@@ -152,11 +160,12 @@ const renderChangesIndicator = () => {
     <TooltippedContent
       className="change-indicator-wrapper"
       tooltip="There are uncommitted changes in this repository"
+      disabled={enableAccessibleListToolTips()}
     >
       <Octicon symbol={octicons.dotFill} />
     </TooltippedContent>
   )
 }
 
-const commitGrammar = (commitNum: number) =>
+export const commitGrammar = (commitNum: number) =>
   `${commitNum} commit${commitNum > 1 ? 's' : ''}` // english is hard

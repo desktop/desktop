@@ -1,5 +1,328 @@
 {
   "releases": {
+    "3.6.4-beta1": [
+      "[Added] Add Copilot usage info, moving custom provider configuration into a link from the Copilot model picker and adding better support for accounts with multiple Copilot licenses",
+      "[Fixed] Disable Continue in the Copilot conflict resolution dialog until every file skipped by Copilot (e.g. minified or oversized conflicts) has been resolved, and list those files separately for manual resolution",
+      "[Fixed] Stop Copilot from overwriting a conflicted file's manual resolution when the user already removed the conflict markers themselves before clicking Continue",
+      "[Fixed] Copilot conflict resolution now surfaces the underlying error (sign-in, network, rate limit, timeout) instead of a generic \"returned no results\" message",
+      "[Fixed] Show correct expanded context and syntax highlighting for resolved lines in the Copilot conflicts Changes tab instead of unrelated content",
+      "[Fixed] Screen readers now announce the group label ('Main Worktree' / 'Linked Worktrees') for items in the worktree list",
+      "[Fixed] Show an error message instead of an endless loading spinner when a file's diff fails to load in the Copilot conflicts Changes tab",
+      "[Improved] Copilot conflict resolution now handles delete-vs-modify conflicts, suggesting \"keep\" or \"delete\" for files deleted on one branch and modified on the other"
+    ],
+    "3.6.3": [
+      "[Fixed] Resolve error that prevented Copilot-based features from working correctly on Windows - #22509",
+      "[Fixed] Keep commit message @-mention autocomplete from surfacing users without a profile name when typing queries like \"@null\" - #22414. Thanks @sukanth!",
+      "[Fixed] Resolve a crash where the truncated repository path text could enter an infinite re-render loop - #22458",
+      "[Fixed] Fall back to the main worktree so a repository no longer appears as missing when its linked worktree folder was deleted outside Desktop - #22474",
+      "[Fixed] Keep files visible in the Changes list after Desktop returns from being backgrounded - #22497",
+      "[Fixed] Show an error dialog instead of silently doing nothing when Copilot fails to generate a commit message due to a Git error - #22496",
+      "[Fixed] Copilot sessions from generating commit messages or resolving conflicts do not show up in VS Code - #22443",
+      "[Fixed] Repository list scrolling no longer gets stuck or jitters when scrolling over tall groups (e.g. large organizations) - #22438. Thanks @peteski22!",
+      "[Improved] Clarify the line-ending conversion warning to explain that Git will automatically convert the file's line endings on next checkout, with a link to learn more - #21446. Thanks @Whitebrim!"
+    ],
+    "3.6.3-beta3": [
+      "[Fixed] Resolve error that prevented Copilot-based features from working correctly on Windows - #22509",
+      "[Fixed] Keep commit message @-mention autocomplete from surfacing users without a profile name when typing queries like \"@null\" - #22414. Thanks @sukanth!"
+    ],
+    "3.6.3-beta2": [
+      "[Fixed] Resolve a crash where the truncated repository path text could enter an infinite re-render loop - #22458",
+      "[Fixed] Fall back to the main worktree so a repository no longer appears as missing when its linked worktree folder was deleted outside Desktop - #22474",
+      "[Fixed] Keep files visible in the Changes list after Desktop returns from being backgrounded - #22497",
+      "[Fixed] Show an error dialog instead of silently doing nothing when Copilot fails to generate a commit message due to a git error - #22496",
+      "[Fixed] Copilot sessions from generating commit messages or resolving conflicts do not show up in VS Code - #22443"
+    ],
+    "3.6.3-beta1": [
+      "[Fixed] Repository list scrolling no longer gets stuck or jitters when scrolling over tall groups (e.g. large organizations) - #22438. Thanks @peteski22!",
+      "[Improved] Clarify the line-ending conversion warning to explain that Git will automatically convert the file's line endings on next checkout, with a link to learn more - #21446. Thanks @Whitebrim!"
+    ],
+    "3.6.2": [
+      "[Fixed] Invoking Desktop from the command line inside a worktree now opens the existing repository with the worktree selected instead of prompting to add a new repository - #22378",
+      "[Fixed] Scrolling no longer gets stuck when the pointer is over a tall group in the repository list - #22387. Thanks @peteski22!"
+    ],
+    "3.6.2-beta1": [
+      "[Fixed] Middle-clicking a diff hunk gutter does not select or deselect lines - #22432",
+      "[Fixed] Invoking Desktop from the command line inside a worktree now opens the existing repository with the worktree selected instead of prompting to add a new repository - #22416",
+      "[Fixed] Copilot sessions from generating commit messages or resolving conflicts do not show up in VS Code - #22410",
+      "[Fixed] Resolve issue where git hooks that shell out to git could break due to an incorrect GIT_EXEC_PATH on macOS - #22411"
+    ],
+    "3.6.1": [
+      "[Fixed] Copilot Max plan users are recognized correctly - #22400",
+      "[Fixed] The default Copilot model is Auto",
+      "[Fixed] Improved loading times for Copilot features - #22394",
+      "[Fixed] Copilot model picker no longer extends beyond window dimensions in small window sizes - #22391"
+    ],
+    "3.6.1-beta2": [
+      "[Fixed] Copilot Max plan users are recognized correctly - #22400"
+    ],
+    "3.6.1-beta1": [
+      "[Fixed] The default Copilot model is Auto",
+      "[Fixed] Improved loading times for Copilot features - #22394",
+      "[Fixed] Copilot model picker no longer extends beyond window dimensions in small window sizes - #22391"
+    ],
+    "3.6.0": [
+      "[New] Git worktree support for managing multiple working directories of the same repository - #22102. Thanks @devxoul!",
+      "[New] Resolve merge conflicts with Copilot - #22265",
+      "[Added] Allow users to stop an ongoing request to generate a commit message with Copilot - #22324. Thanks @say25!",
+      "[Fixed] Recover conflict dialog from permanently frozen state when conflict state becomes invalid, preventing users from needing to restart the app - #22348",
+      "[Fixed] Fix Warp terminal detection on Windows to support the new Warp registry path with fallback to the legacy path - #22264. Thanks @Cocodrulo!",
+      "[Fixed] Items in lists such as branches and changed files are properly announced by screen readers on Windows - #22219",
+      "[Fixed] No longer prompts to initialize Git LFS for repositories that use non-LFS Git filters - #22180. Thanks @RonanLB!",
+      "[Fixed] Remove misleading pointer cursor from the example link preview in Accessibility preferences - #22244",
+      "[Improved] Update Electron to version 42.0.1 - #22104"
+    ],
+    "3.5.13-beta4": [
+      "[Fixed] Worktree list is updated after after renaming or deleting worktrees - #22335 Thanks @pol-rivero!",
+      "[Fixed] The toolbar correctly calculates available space when worktree dropdown isn't visible - #22356. Thanks @pol-rivero!",
+      "[Fixed] Toolbar space allocation calculates available space based on order of toolbar buttons - #22364. Thanks @pol-rivero!",
+      "[Fixed] Resolve issue where error messages in the Preferences dialog were not displayed correctly - #22363"
+    ],
+    "3.5.13-beta3": [
+      "[Fixed] Recover conflict dialog from permanently frozen state when conflict state becomes invalid, preventing users from needing to restart the app - #22348",
+      "[Fixed] Resolve Copilot conflict resolution data loss where file content outside conflicted regions was overwritten when using AI-assisted conflict resolution - #22349"
+    ],
+    "3.5.13-beta2": [
+      "[Added] Add 'Always use Copilot when conflicts are detected' setting and a nudge dialog that appears after five manual uses to encourage enabling it - #22285",
+      "[Added] Add the Copilot conflict resolution Changes tab, allowing users to see a diff of Copilot's suggested resolution - #22333",
+      "[Added] Allow users to stop an ongoing request to generate a commit message with Copilot - #22324. Thanks @say25!",
+      "[Fixed] Fix Warp terminal detection on Windows to support the new Warp registry path with fallback to the legacy path - #22264. Thanks @Cocodrulo!"
+    ],
+    "3.5.13-beta1": [
+      "[New] Resolve merge conflicts with Copilot - #22265",
+      "[New] Git worktree support for managing multiple working directories of the same repository - #22102",
+      "[Fixed] Items in lists such as branches and changed files are properly announced by screen readers on Windows - #22219",
+      "[Fixed] No longer prompts to initialize Git LFS for repositories that use non-LFS Git filters - #22180. Thanks @RonanLB!",
+      "[Fixed] Remove misleading pointer cursor from the example link preview in Accessibility preferences - #22244"
+    ],
+    "3.5.12": [
+      "[Fixed] Items in lists such as branches and changed files are properly announced by screen readers on Windows - #22219"
+    ],
+    "3.5.12-beta2": [
+      "[Improved] Show \"No newline at end of file\" as visible text in the diff view instead of requiring a tooltip hover - #22204",
+      "[Improved] Show a descriptive error dialog when restoring stashed changes fails due to conflicting changes in the working directory - #22205",
+      "[Fixed] Screen reader now correctly announces added and removed line counts in the pull request preview dialog - #22202"
+    ],
+    "3.5.12-beta1": [
+      "[Fixed] Fix launching custom shells - #22186",
+      "[Fixed] Fix crash trying to run a non-existent script - #22167",
+      "[Fixed] Restore keyboard focus to the commit button after the commit progress dialog closes - #22192",
+      "[Added] Add model selection for Copilot - #21745",
+      "[Added] Add support for custom model providers for Copilot - #22000",
+      "[Added] Use repo rules to guide commit messages generation by Copilot - #22007"
+    ],
+    "3.5.11": ["[Fixed] Fix launching custom shells"],
+    "3.5.10": [
+      "[Fixed] Intermittent crash trying to load Copilot models",
+      "[Added] Add date, time, and number formatting preferences to the Appearance settings - #21836"
+    ],
+    "3.5.9": [
+      "[Fixed] Skip branches checked out in linked worktrees during pruning - #8043. Thanks @KRRT7!",
+      "[Fixed] Fix styling of buttons in the commit message area - #22075",
+      "[Fixed] Fix rendering long lists of changed files - #21630",
+      "[Fixed] Add syntax highlighting for .astro files - #21987. Thanks @JunDev76!",
+      "[Fixed] Fix Windows scrollbar sync with react-virtualized Grid - #21940",
+      "[Fixed] Improve spacing on release notes dialog - #21962. Thanks @DylanDevelops!",
+      "[Fixed] Fix a crash (Maximum update depth exceeded) that could occur while the conflicts dialog was open during a multi-commit operation - #21879",
+      "[Fixed] Remove discontinued GitHub AE references from the Enterprise sign-in screen - #21926. Thanks @toddmanion!",
+      "[Improved] Enable diff expansion and syntax highlighting for up to 1MB - #21876",
+      "[Improved] Update re2js regex engine to use optimized DFA path for improved performance - #21924. Thanks @le0pard!"
+    ],
+    "3.5.9-beta3": [
+      "[Fixed] Skip branches checked out in linked worktrees during pruning - #8043. Thanks @KRRT7!",
+      "[Fixed] Fix styling of buttons in the commit message area - #22075",
+      "[Fixed] Fix rendering long lists of changed files - #21630",
+      "[Improved] Update Electron to version 42.0.1 - #22104"
+    ],
+    "3.5.9-beta2": [
+      "[Fixed] Add syntax highlighting for .astro files - #21987. Thanks @JunDev76!",
+      "[Fixed] Fix Windows scrollbar sync with react-virtualized Grid - #21940",
+      "[Fixed] Improve spacing on release notes dialog - #21962. Thanks @DylanDevelops!"
+    ],
+    "3.5.9-beta1": [
+      "[Added] Add date, time, and number formatting preferences to the Appearance settings - #21836",
+      "[Fixed] Fix a crash (Maximum update depth exceeded) that could occur while the conflicts dialog was open during a multi-commit operation - #21879",
+      "[Fixed] Remove discontinued GitHub AE references from the Enterprise sign-in screen - #21926. Thanks @toddmanion!",
+      "[Improved] Update Git for Windows to v2.53.0.windows.3 - #21957",
+      "[Improved] Update Copilot SDK to 0.2.1 and fix Copilot CLI process spawning issues on Windows - #21930",
+      "[Improved] Enable diff expansion and syntax highlighting for up to 1MB - #21876",
+      "[Improved] Update re2js regex engine to use optimized DFA path for improved performance - #21924. Thanks @le0pard!"
+    ],
+    "3.5.8": ["[Improved] Update Git for Windows to v2.53.0.windows.3"],
+    "3.5.7": [
+      "[Added] Rename branch dialog now validates branch names against repository rulesets - #21822",
+      "[Added] Allow empty commits via the commit options menu - #21771",
+      "[Added] Add option to include a Signed-off-by trailer on commits for Developer Certificate of Origin workflows - #21741",
+      "[Fixed] Discard Changes now completes even when the GitHub Desktop window is not focused - #21739",
+      "[Fixed] Allow origin fetch on empty repo - #4574 #4575. Thanks @jackfreem!",
+      "[Fixed] Fix window background color when resizing - #21548. Thanks @BaldrianSector!",
+      "[Fixed] Ignore Tab in terminal and keep textarea enabled - #21696",
+      "[Fixed] Clear commit message after a successful commit when switching to the History tab while the commit is in progress - #21721",
+      "[Improved] Liquid Glass icons for macOS Tahoe - #21010. Thanks @fabe and @caiofbpa!",
+      "[Improved] Update default tab size from 8 to 4 - #21705. Thanks @advaith1!",
+      "[Improved] Recognize Copilot CLI bot in commit attributions - #21727"
+    ],
+    "3.5.7-beta3": [
+      "[Added] Rename branch dialog now validates branch names against repository rulesets - #21822"
+    ],
+    "3.5.7-beta2": [
+      "[Added] Allow empty commits via the commit options menu - #21771"
+    ],
+    "3.5.7-beta1": [
+      "[Added] Add option to include a Signed-off-by trailer on commits for Developer Certificate of Origin workflows - #21741",
+      "[Fixed] Discard Changes now completes even when the GitHub Desktop window is not focused - #21739",
+      "[Fixed] Allow origin fetch on empty repo - #4574 #4575. Thanks @jackfreem!",
+      "[Fixed] Fix window background color when resizing - #21548. Thanks @BaldrianSector!",
+      "[Fixed] Ignore Tab in terminal and keep textarea enabled - #21696",
+      "[Fixed] Clear commit message after a successful commit when switching to the History tab while the commit is in progress - #21721",
+      "[Improved] Liquid Glass icons for macOS Tahoe - #21010. Thanks @fabe and @caiofbpa!",
+      "[Improved] Update default tab size from 8 to 4 - #21705. Thanks @advaith1!",
+      "[Improved] Recognize Copilot CLI bot in commit attributions - #21727"
+    ],
+    "3.5.6": [
+      "[New] Support adding Copilot as a co author and show avatars for mentionable users - #21634",
+      "[Fixed] Fix detection of IDEs installed from JetBrains Toolbox - #21498",
+      "[Fixed] Choose the best account for the current repository to generate commit messages - #21484",
+      "[Fixed] Remove trailing $ typo in hooks output - #21638",
+      "[Improved] Update Git to 2.53.0",
+      "[Improved] Update Git for Windows to 2.53.0.windows.2",
+      "[Improved] Update Git Credential Manager to 2.7.3"
+    ],
+    "3.5.6-beta1": [
+      "[New] Support adding Copilot as a co author and show avatars for mentionable users - #21634",
+      "[Fixed] Fix detection of IDEs installed from JetBrains Toolbox - #21498",
+      "[Fixed] Choose the best account for the current repository to generate commit messages - #21484",
+      "[Fixed] Remove trailing $ typo in hooks output - #21638",
+      "[Improved] Update Git to 2.53.0",
+      "[Improved] Update Git Credential Manager to 2.7.0"
+    ],
+    "3.5.5": [
+      "[New] Support running hooks in user's shell environment and allow bypassing commit hooks - #21319",
+      "[New] Enable one-time opening of a repository in an alternate editor - #21436. Thanks @jackfreem!",
+      "[Added] Add Warp terminal support for Windows - #21471. Thanks @Cocodrulo!",
+      "[Added] \"View Branch on GitHub\" option on branch list context menu - #21071. Thanks @DylanDevelops!",
+      "[Fixed] Fix bad repository state when switching between branches with submodules - #21188",
+      "[Fixed] Enterprise is spelled correctly in Account preferences - #21454",
+      "[Fixed] Commits made by Copilot now use the Copilot avatar - #21475",
+      "[Fixed] Prevent crashes when clicking on notifications - #21311 #20760",
+      "[Fixed] Enter key now creates new branches from the branch filter field - #7734. Thanks @jackfreem!",
+      "[Fixed] Fix the inability to move directories when creating a repository in a non-Git folder - #20991. Thanks @DylanDevelops!",
+      "[Fixed] Support showing the unpublished indicator when having more than 100 unpublished commits - #20882. Thanks @ashdawngary!",
+      "[Fixed] Repository write access warnings update immediately when switching accounts - #21329",
+      "[Fixed] Improve branch renaming to handle case-only changes - #21320",
+      "[Fixed] Refresh repository after commit failure - #21229",
+      "[Fixed] Check run list scrolls when they exceed available space - #20831. Thanks @iamarjunsuresh!",
+      "[Fixed] Only sanitize forbidden fs characters when creating repo - #20973",
+      "[Fixed] Remove extra apostrophe from \"Generating commit details\" aria-label - #21369. Thanks @say25!",
+      "[Improved] Update Electron to version 40.1.0 - #21537",
+      "[Improved] Updated \"push needs pull\" warning message for clarity - #21423. Thanks @movahhedi!",
+      "[Improved] Polish Changes tab Filter Options button and popover - #21412. Thanks @jpedroso!",
+      "[Improved] Stash Menu Item disabled on dialogs - #21435. Thanks @jackfreem!"
+    ],
+    "3.5.5-beta6": [
+      "[Improved] Locate Git for Windows via PATH and registry - #21621",
+      "[Improved] Include hook exit code in terminal output - #21620"
+    ],
+    "3.5.5-beta5": [
+      "[Fixed] Account for Windows EOL formatting when loading shell environment - #21619",
+      "[Fixed] It's now possible to disable loading of environment for Git hooks - #21617"
+    ],
+    "3.5.5-beta4": [
+      "[New] Enable hooks support by default - #21590",
+      "[Added] Support rebase hooks - #21586"
+    ],
+    "3.5.5-beta3": [
+      "[Added] Support merge hooks - #21502",
+      "[Added] Support pull hooks - #21486",
+      "[Added] Support pre-push hook - #21461",
+      "[Added] Add Warp terminal support for Windows - #21471. Thanks @Cocodrulo!",
+      "[Fixed] Fix bad repository state when switching between branches with submodules - #21188",
+      "[Improved] Remove mention of --no-verify - #21488",
+      "[Improved] Update Electron to version 40.1.0 - #21537"
+    ],
+    "3.5.5-beta2": [
+      "[New] Enable one-time opening of a repository in an alternate editor` - #21436. Thanks @jackfreem!",
+      "[Fixed] Git output containing multibyte characters is handled correctly avoiding unexpected crashes - #21469",
+      "[Fixed] Enterprise is spelled correctly in Account preferences - #21454",
+      "[Fixed] Commits made by Copilot now use the Copilot avatar - #21475",
+      "[Improved] Updated \"push needs pull\" warning message for clarity - #21423. Thanks @movahhedi!"
+    ],
+    "3.5.5-beta1": [
+      "[New] Run hooks in user's shell environment and allow bypassing commit hooks - #21319",
+      "[Added] \"View Branch on GitHub\" option on branch list context menu - #21071. Thanks @DylanDevelops!",
+      "[Fixed] Resize without observing - #21311 #20760",
+      "[Fixed] Enter key now creates new branches from the branch filter field - #7734. Thanks @jackfreem!",
+      "[Fixed] Fix the inability to move directories when creating a repository in a non-Git folder - #20991. Thanks @DylanDevelops!",
+      "[Fixed] Pull from paginated local vs head-n based on last commit - #20882. Thanks @ashdawngary!",
+      "[Fixed] Repository write access warnings update immediately when switching accounts - #21329",
+      "[Fixed] Improve branch renaming to handle case-only changes - #21320",
+      "[Fixed] Refresh repository after commit failure - #21229",
+      "[Fixed] Check run list scrolls when they exceed available space - #20831. Thanks @iamarjunsuresh!",
+      "[Fixed] Only sanitize forbidden fs characters when creating repo - #20973",
+      "[Fixed] Remove extra apostrophe from \"Generating commit details\" aria-label - #21369. Thanks @say25!",
+      "[Improved] Polish Changes tab Filter Options button and popover - #21412. Thanks @jpedroso!",
+      "[Improved] Stash Menu Item disabled on dialogs - #21435. Thanks @jackfreem!"
+    ],
+    "3.5.4": [
+      "[Fixed] Update Git LFS to 3.7.1 to address CVE-2025-26625",
+      "[Fixed] Check run status icons in the re-run checks dialog have a status tooltip that is accessible by screenreaders - #21191",
+      "[Fixed] The Whitespace hint popover appears when right-clicking diff lines while \"Hide whitespace changes\" is enabled - #20848. Thanks @zekariasasaminew!",
+      "[Fixed] The cancel button in the sign-in dialog is enabled after sign-in attempt - #21144. Thanks @zekariasasaminew!",
+      "[Fixed] The \"Update Email\" button in the \"Misattributed Commit\" popover works after login from a different account - #21176",
+      "[Fixed] Improve host discovery when using authenticating proxies - #19039 #19120",
+      "[Fixed] Fix diff search results highlights not visible on addition hunks - #21134",
+      "[Fixed] Add Copilot commit message generation to context menu - #21000. Thanks @zekariasasaminew!",
+      "[Fixed] Override system accent color for checkboxes and radio buttons - #21088",
+      "[Improved] The icon contrast on the pull request check run button meets minimum 3:1 contrast requirements - #21189",
+      "[Improved] Increased title bar height on macOS Tahoe - #21135. Thanks @berkcebi!",
+      "[Improved] Display line change count in PR Preview Dialog - #21126. Thanks @iammola!",
+      "[Improved] Allow users to skip commit message override confirmation - #21025. Thanks @ilyassesalama!",
+      "[Improved] Allow generating commits with Copilot in non-GitHub repositories - #20698. Thanks @schroedermarius!"
+    ],
+    "3.5.4-beta3": [
+      "[Fixed] Updated Git LFS to 3.7.1 to address CVE-2025-26625 - #21223",
+      "[Fixed] Menu bar does not flicker when profile modal is open - #21150. Thanks @zekariasasaminew!"
+    ],
+    "3.5.4-beta2": [
+      "[Fixed] Check run status icons in the re-run checks dialog have a status tooltip that is accessible by screenreaders - #21191",
+      "[Fixed] The Whitespace hint popover appears when right-clicking diff lines while \"Hide whitespace changes\" is enabled - #20848. Thanks @zekariasasaminew!",
+      "[Fixed] The cancel button in the sign-in dialog is enabled after sign-in attempt - #21144. Thanks @zekariasasaminew!",
+      "[Fixed] The \"Update Email\" button in the \"Misattributed Commit\" popover works after login from a different account - #21176",
+      "[Improved] The icon contrast on the pull request check run button meets minimum 3:1 contrast requirements - #21189"
+    ],
+    "3.5.4-beta1": [
+      "[Added] Display line change count in PR Preview Dialog - #21126. Thanks @iammola!",
+      "[Added] Allow users to skip commit message override confirmation - #21025. Thanks @ilyassesalama!",
+      "[Added] Allow generating commits with Copilot in non-GitHub repositories - #20698. Thanks @schroedermarius!",
+      "[Fixed] Improve host discovery when using authenticating proxies - #19039 #19120",
+      "[Fixed] Fix diff search results highlights not visible on addition hunks - #21134",
+      "[Fixed] Add Copilot commit message generation to context menu - #21000. Thanks @zekariasasaminew!",
+      "[Fixed] Override system accent color for checkboxes and radio buttons - #21088",
+      "[Improved] Increased title bar height on macOS Tahoe - #21135. Thanks @berkcebi!"
+    ],
+    "3.5.3": [
+      "[Added] Add Ptyxis shell integration - #20963. Thanks @logonoff!",
+      "[Fixed] Copilot message generation in progress message is announced to screen readers - #21008",
+      "[Fixed] Fix: Improve spacing between graphic and text - #7500. Thanks @robbierotman!",
+      "[Fixed] Focus lands on first interactive control instead of 'Continue' button in the conflict resolution dialog - #20880",
+      "[Improved] Upgrade Electron to v38.2.0 - #21060",
+      "[Improved] The text color of the 'File does not exist' merge conflict warning meets 4.5:1 contrast requirements - #20902",
+      "[Improved] Provides the tooltips for list items in a single condensed tooltip that allows keyboard users and screen reader users access upon navigation of a list item - #20804",
+      "[Removed] Remove support for macOS 11 - #21060"
+    ],
+    "3.5.3-beta4": ["[Improved] Upgrade Electron to v38.2.0 - #21060"],
+    "3.5.3-beta3": [
+      "[Fixed] Copilot message generation in progress message is announced to screen readers - #21008",
+      "[Fixed] Add Ptyxis shell integration - #20963. Thanks @logonoff!",
+      "[Fixed] Fix: Improve spacing between graphic and text - #7500. Thanks @robbierotman!",
+      "[Improved] Upgrade Electron to v38.1.0 - #21012"
+    ],
+    "3.5.3-beta2": [
+      "[Improved] The text color of the 'File does not exist' merge conflict warning meets 4.5:1 contrast requirements - #20902"
+    ],
+    "3.5.3-beta1": [
+      "[Improved] Provides the tooltips for list items in a single condensed tooltip that allows keyboard users and screen reader users access upon navigation of a list item - #20804",
+      "[Fixed] Focus lands on first interactive control instead of 'Continue' button in the conflict resolution dialog - #20880"
+    ],
     "3.5.2": [
       "[Fixed] Fix the crash that sometimes occurs when opening Pull Request-related notifications - #20761",
       "[Fixed] Ensure the cursor type on links is pointer - #20766. Thanks @huanfe1!",

@@ -1,7 +1,8 @@
 import { describe, it, TestContext } from 'node:test'
 import assert from 'node:assert'
 import * as path from 'path'
-import * as FSE from 'fs-extra'
+import { readFile, unlink, writeFile } from 'fs/promises'
+import { pathExists } from '../../../src/lib/path-exists'
 
 import { Repository } from '../../../src/models/repository'
 import {
@@ -52,7 +53,7 @@ describe('git/commit', () => {
     it('commits the given files', async t => {
       const testRepoPath = await setupFixtureRepository(t, 'test-repo')
       const repository = new Repository(testRepoPath, -1, null, false)
-      await FSE.writeFile(path.join(repository.path, 'README.md'), 'Hi world\n')
+      await writeFile(path.join(repository.path, 'README.md'), 'Hi world\n')
 
       let status = await getStatusOrThrow(repository)
       let files = status.workingDirectory.files
@@ -75,7 +76,7 @@ describe('git/commit', () => {
       const testRepoPath = await setupFixtureRepository(t, 'test-repo')
       const repository = new Repository(testRepoPath, -1, null, false)
 
-      await FSE.writeFile(path.join(repository.path, 'README.md'), 'Hi world\n')
+      await writeFile(path.join(repository.path, 'README.md'), 'Hi world\n')
 
       const status = await getStatusOrThrow(repository)
       const files = status.workingDirectory.files
@@ -98,8 +99,8 @@ describe('git/commit', () => {
     it('can commit for empty repository', async t => {
       const repo = await setupEmptyRepository(t)
 
-      await FSE.writeFile(path.join(repo.path, 'foo'), 'foo\n')
-      await FSE.writeFile(path.join(repo.path, 'bar'), 'bar\n')
+      await writeFile(path.join(repo.path, 'foo'), 'foo\n')
+      await writeFile(path.join(repo.path, 'bar'), 'bar\n')
 
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
@@ -132,7 +133,7 @@ describe('git/commit', () => {
     it('can commit renames', async t => {
       const repo = await setupEmptyRepository(t)
 
-      await FSE.writeFile(path.join(repo.path, 'foo'), 'foo\n')
+      await writeFile(path.join(repo.path, 'foo'), 'foo\n')
 
       await exec(['add', 'foo'], repo.path)
       await exec(['commit', '-m', 'Initial commit'], repo.path)
@@ -411,13 +412,13 @@ describe('git/commit', () => {
     it('can commit renames with modifications', async t => {
       const repo = await setupEmptyRepository(t)
 
-      await FSE.writeFile(path.join(repo.path, 'foo'), 'foo\n')
+      await writeFile(path.join(repo.path, 'foo'), 'foo\n')
 
       await exec(['add', 'foo'], repo.path)
       await exec(['commit', '-m', 'Initial commit'], repo.path)
       await exec(['mv', 'foo', 'bar'], repo.path)
 
-      await FSE.writeFile(path.join(repo.path, 'bar'), 'bar\n')
+      await writeFile(path.join(repo.path, 'bar'), 'bar\n')
 
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
@@ -442,13 +443,13 @@ describe('git/commit', () => {
     it('can commit renames with partially selected modifications', async t => {
       const repo = await setupEmptyRepository(t)
 
-      await FSE.writeFile(path.join(repo.path, 'foo'), 'line1\n')
+      await writeFile(path.join(repo.path, 'foo'), 'line1\n')
 
       await exec(['add', 'foo'], repo.path)
       await exec(['commit', '-m', 'Initial commit'], repo.path)
       await exec(['mv', 'foo', 'bar'], repo.path)
 
-      await FSE.writeFile(path.join(repo.path, 'bar'), 'line1\nline2\nline3\n')
+      await writeFile(path.join(repo.path, 'bar'), 'line1\nline2\nline3\n')
 
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
@@ -488,12 +489,12 @@ describe('git/commit', () => {
       const repo = await setupConflictedRepo(t)
       const filePath = path.join(repo.path, 'foo')
 
-      const inMerge = await FSE.pathExists(
+      const inMerge = await pathExists(
         path.join(repo.path, '.git', 'MERGE_HEAD')
       )
       assert(inMerge)
 
-      await FSE.writeFile(filePath, 'b1b2')
+      await writeFile(filePath, 'b1b2')
 
       const status = await getStatusOrThrow(repo)
       const files = status.workingDirectory.files
@@ -558,10 +559,7 @@ describe('git/commit', () => {
           trackedFiles,
           manualResolutions
         )
-        assert.equal(
-          await FSE.pathExists(path.join(repository.path, 'bar')),
-          true
-        )
+        assert.equal(await pathExists(path.join(repository.path, 'bar')), true)
         const newStatus = await getStatusOrThrow(repository)
         assert.equal(sha.length, 7)
         assert.equal(newStatus.workingDirectory.files.length, 1)
@@ -582,10 +580,7 @@ describe('git/commit', () => {
           trackedFiles,
           manualResolutions
         )
-        assert.equal(
-          await FSE.pathExists(path.join(repository.path, 'bar')),
-          false
-        )
+        assert.equal(await pathExists(path.join(repository.path, 'bar')), false)
         const newStatus = await getStatusOrThrow(repository)
         assert.equal(sha.length, 7)
         assert.equal(newStatus.workingDirectory.files.length, 1)
@@ -607,7 +602,7 @@ describe('git/commit', () => {
           manualResolutions
         )
         assert.equal(
-          await FSE.readFile(path.join(repository.path, 'baz'), 'utf8'),
+          await readFile(path.join(repository.path, 'baz'), 'utf8'),
           'b2'
         )
         const newStatus = await getStatusOrThrow(repository)
@@ -631,7 +626,7 @@ describe('git/commit', () => {
           manualResolutions
         )
         assert.equal(
-          await FSE.readFile(path.join(repository.path, 'baz'), 'utf8'),
+          await readFile(path.join(repository.path, 'baz'), 'utf8'),
           'b1'
         )
         const newStatus = await getStatusOrThrow(repository)
@@ -650,14 +645,14 @@ describe('git/commit', () => {
 
           await exec(['checkout', 'master'], repoPath)
 
-          const fileContentsTheirs = await FSE.readFile(
+          const fileContentsTheirs = await readFile(
             path.join(repoPath, fileName),
             'utf8'
           )
 
           await exec(['checkout', 'make-a-change'], repoPath)
 
-          const fileContentsOurs = await FSE.readFile(
+          const fileContentsOurs = await readFile(
             path.join(repoPath, fileName),
             'utf8'
           )
@@ -691,7 +686,7 @@ describe('git/commit', () => {
           ])
           await createMergeCommit(repository, trackedFiles, manualResolutions)
 
-          const fileContents = await FSE.readFile(
+          const fileContents = await readFile(
             path.join(repository.path, file.path),
             'utf8'
           )
@@ -725,7 +720,7 @@ describe('git/commit', () => {
           ])
           await createMergeCommit(repository, trackedFiles, manualResolutions)
 
-          const fileContents = await FSE.readFile(
+          const fileContents = await readFile(
             path.join(repository.path, file.path),
             'utf8'
           )
@@ -762,12 +757,12 @@ describe('git/commit', () => {
       const firstPath = path.join(repo.path, 'first')
       const secondPath = path.join(repo.path, 'second')
 
-      await FSE.writeFile(firstPath, 'line1\n')
-      await FSE.writeFile(secondPath, 'line2\n')
+      await writeFile(firstPath, 'line1\n')
+      await writeFile(secondPath, 'line2\n')
 
       await exec(['add', '.'], repo.path)
 
-      await FSE.unlink(firstPath)
+      await unlink(firstPath)
 
       status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
@@ -797,14 +792,14 @@ describe('git/commit', () => {
       const repo = await setupEmptyRepository(t)
 
       const firstPath = path.join(repo.path, 'first')
-      await FSE.writeFile(firstPath, 'line1\n')
+      await writeFile(firstPath, 'line1\n')
 
       await exec(['add', 'first'], repo.path)
       await exec(['commit', '-am', 'commit first file'], repo.path)
       await exec(['rm', '--cached', 'first'], repo.path)
 
       // if the text is now different, everything is fine
-      await FSE.writeFile(firstPath, 'line2\n')
+      await writeFile(firstPath, 'line2\n')
 
       status = await getStatusOrThrow(repo)
       files = status.workingDirectory.files
@@ -830,18 +825,18 @@ describe('git/commit', () => {
 
     it('file is deleted in index', async t => {
       const repo = await setupEmptyRepository(t)
-      await FSE.writeFile(path.join(repo.path, 'secret'), 'contents\n')
-      await FSE.writeFile(path.join(repo.path, '.gitignore'), '')
+      await writeFile(path.join(repo.path, 'secret'), 'contents\n')
+      await writeFile(path.join(repo.path, '.gitignore'), '')
 
       // Setup repo to reproduce bug
       await exec(['add', '.'], repo.path)
       await exec(['commit', '-m', 'Initial commit'], repo.path)
 
       // Make changes that should remain secret
-      await FSE.writeFile(path.join(repo.path, 'secret'), 'Somethign secret\n')
+      await writeFile(path.join(repo.path, 'secret'), 'Somethign secret\n')
 
       // Ignore it
-      await FSE.writeFile(path.join(repo.path, '.gitignore'), 'secret')
+      await writeFile(path.join(repo.path, '.gitignore'), 'secret')
 
       // Remove from index to mark as deleted
       await exec(['rm', '--cached', 'secret'], repo.path)
@@ -869,6 +864,51 @@ describe('git/commit', () => {
         changesetData.files[1].status.kind,
         AppFileStatusKind.Deleted
       )
+    })
+  })
+
+  describe('createCommit allowEmpty', () => {
+    it('creates an empty commit when allowEmpty is true', async t => {
+      const repo = await setupEmptyRepository(t)
+
+      // Create an initial commit so HEAD exists
+      await writeFile(path.join(repo.path, 'file.txt'), 'content\n')
+      const initialStatus = await getStatusOrThrow(repo)
+      await createCommit(
+        repo,
+        'initial commit',
+        initialStatus.workingDirectory.files
+      )
+
+      // Now create an empty commit with no file changes
+      const tipBefore = (await getStatusOrThrow(repo)).currentTip
+      const sha = await createCommit(repo, 'empty commit', [], {
+        allowEmpty: true,
+      })
+      assert.equal(sha.length, 7)
+
+      const tipAfter = (await getStatusOrThrow(repo)).currentTip
+      assert.notEqual(tipBefore, tipAfter)
+
+      const commit = await getCommit(repo, 'HEAD')
+      assert(commit !== null)
+      assert.equal(commit.summary, 'empty commit')
+    })
+
+    it('fails to create an empty commit when allowEmpty is not set', async t => {
+      const repo = await setupEmptyRepository(t)
+
+      // Create an initial commit so HEAD exists
+      await writeFile(path.join(repo.path, 'file.txt'), 'content\n')
+      const initialStatus = await getStatusOrThrow(repo)
+      await createCommit(
+        repo,
+        'initial commit',
+        initialStatus.workingDirectory.files
+      )
+
+      // Attempt to commit with no changes and no allowEmpty flag
+      await assert.rejects(() => createCommit(repo, 'should fail', []))
     })
   })
 })

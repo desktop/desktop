@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import * as FSE from 'fs-extra'
+import { readFile } from 'fs/promises'
 import * as Path from 'path'
 
 import { setupEmptyRepository } from '../../helpers/repositories'
@@ -12,7 +12,7 @@ describe('git/git-attributes', () => {
       const repo = await setupEmptyRepository(t)
       await writeGitAttributes(repo.path)
       const expectedPath = Path.join(repo.path, '.gitattributes')
-      const contents = await FSE.readFile(expectedPath, 'utf8')
+      const contents = await readFile(expectedPath, 'utf8')
       assert(contents.includes('* text=auto'))
     })
   })

@@ -51,7 +51,7 @@ export class TeamMentionFilter implements INodeFilter {
    * include the @ symbol.
    */
   public createFilterTreeWalker(doc: Document): TreeWalker {
-    return doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT, {
+    return doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
       acceptNode: node => {
         return (node.parentNode !== null &&
           ['CODE', 'PRE', 'A'].includes(node.parentNode.nodeName)) ||

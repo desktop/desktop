@@ -100,7 +100,7 @@ export class IssueMentionFilter implements INodeFilter {
    * pre, code, or anchor tag.
    */
   public createFilterTreeWalker(doc: Document): TreeWalker {
-    return doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT, {
+    return doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
       acceptNode: function (node) {
         return node.parentNode !== null &&
           ['CODE', 'PRE', 'A'].includes(node.parentNode.nodeName)

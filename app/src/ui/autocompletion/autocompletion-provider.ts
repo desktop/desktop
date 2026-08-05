@@ -21,7 +21,7 @@ export interface IAutocompletionProvider<T> {
    * The type of auto completion provided this instance implements. Used
    * for variable width auto completion popups depending on type.
    */
-  kind: 'emoji' | 'user' | 'issue'
+  kind: 'emoji' | 'user' | 'issue' | 'branch'
 
   /**
    * Get the regex which it used to capture text for the provider. The text

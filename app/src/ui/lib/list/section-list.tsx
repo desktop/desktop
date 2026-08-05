@@ -58,6 +58,26 @@ export interface IRowRendererParams {
 
 export type ClickSource = IMouseClickSource | IKeyboardSource
 
+export type SectionListRowHeight =
+  | number
+  | ((info: { readonly index: RowIndexPath }) => number)
+
+/** Exported for testing. */
+export function getRowOffsetInSection(
+  rowHeight: SectionListRowHeight,
+  indexPath: RowIndexPath
+) {
+  if (typeof rowHeight === 'number') {
+    return indexPath.row * rowHeight
+  }
+
+  let offset = 0
+  for (let row = 0; row < indexPath.row; row++) {
+    offset += rowHeight({ index: { section: indexPath.section, row } })
+  }
+  return offset
+}
+
 interface ISectionListProps {
   /**
    * Mandatory callback for rendering the contents of a particular
@@ -66,6 +86,18 @@ interface ISectionListProps {
    * that will result in an empty list item.
    */
   readonly rowRenderer: (indexPath: RowIndexPath) => JSX.Element | null
+
+  /**
+   * Optional render function for the keyboard focus tooltip
+   *
+   * This is used to render a tooltip when the row is focused via keyboard
+   * navigation. This should be provided if the row has tooltip content that is
+   * only accessible via the mouse. The content in the mouse tooltip(s) will
+   * need to be in the keyboard focus tooltip as well.
+   */
+  readonly renderRowFocusTooltip?: (
+    indexPath: RowIndexPath
+  ) => JSX.Element | string | null
 
   /**
    * Whether or not a given section has a header row at the beginning. When
@@ -89,7 +121,7 @@ interface ISectionListProps {
    * are of equal height, or, a function that, given a row index returns
    * the height of that particular row.
    */
-  readonly rowHeight: number | ((info: { index: RowIndexPath }) => number)
+  readonly rowHeight: SectionListRowHeight
 
   /**
    * Function that generates an ID for a given row. This will allow the
@@ -967,7 +999,10 @@ export class SectionList extends React.Component<
 
     const rowHeight = this.getHeightForRowAtIndexPath(indexPath)
     const sectionOffset = this.getSectionScrollOffset(indexPath.section)
-    const rowOffsetInSection = this.getRowOffsetInSection(indexPath)
+    const rowOffsetInSection = getRowOffsetInSection(
+      this.props.rowHeight,
+      indexPath
+    )
 
     const grid = ReactDOM.findDOMNode(this.rootGrid)
     if (!(grid instanceof HTMLElement)) {
@@ -1045,11 +1080,18 @@ export class SectionList extends React.Component<
         this.state.width !== prevState.width ||
         this.state.height !== prevState.height
 
-      // If the number of groups doesn't change, but the size of them does, we
-      // need to recompute the grid size to ensure that the rows are laid out
-      // correctly.
+      // When rowCount changes (sections added/removed or rows within sections
+      // change), recompute the root grid layout and force section grids to
+      // re-render. The section grids' PureComponent optimization may skip
+      // re-rendering cell content when the render cascade from the root grid
+      // doesn't fully propagate (e.g. when files change while the app is
+      // backgrounded and Chromium throttles rendering).
+      // See https://github.com/desktop/desktop/issues/20566
       if (!hasEqualRowCount) {
         this.rootGrid?.recomputeGridSize()
+        for (const grid of this.grids.values()) {
+          grid.forceUpdate()
+        }
       }
 
       if (!gridHasUpdatedAlready) {
@@ -1200,6 +1242,7 @@ export class SectionList extends React.Component<
         <ListRow
           key={params.key}
           id={id}
+          role="option"
           ariaLabel={ariaLabel}
           sectionHasHeader={sectionHasHeader}
           onRowRef={this.onRowRef}
@@ -1221,6 +1264,12 @@ export class SectionList extends React.Component<
           children={element}
           selectable={selectable}
           className={customClasses}
+          renderRowFocusTooltip={this.props.renderRowFocusTooltip}
+          hasKeyboardFocus={
+            this.focusRow !== InvalidRowIndexPath &&
+            this.focusRow.section === section &&
+            this.focusRow.row === indexPath.row
+          }
         />
       )
     }
@@ -1348,24 +1397,24 @@ export class SectionList extends React.Component<
           )}
           scrollTop={relativeScrollTop}
           overscanRowCount={4}
-          style={{ ...params.style, width: '100%' }}
+          // The per-section grids are passive windows whose scroll position is
+          // driven entirely by the parent grid via the scrollTop prop above.
+          // They must never scroll on their own; react-virtualized would
+          // otherwise give a section taller than its allotted height an
+          // overflow-y of 'auto', letting it capture the mouse wheel and snap
+          // back to the controlled scrollTop instead of scrolling the list.
+          // See https://github.com/desktop/desktop/issues/22387.
+          style={{
+            ...params.style,
+            width: '100%',
+            overflowX: 'hidden',
+            overflowY: 'hidden',
+          }}
           tabIndex={-1}
           aria-label={this.props.getSectionAriaLabel?.(section)}
         />
       )
     }
-
-  private getRowOffsetInSection(indexPath: RowIndexPath) {
-    if (typeof this.props.rowHeight === 'number') {
-      return indexPath.row * this.props.rowHeight
-    }
-
-    let offset = 0
-    for (let i = 0; i < indexPath.row; i++) {
-      offset += this.props.rowHeight({ index: indexPath })
-    }
-    return offset
-  }
 
   private getSectionHeight(section: number) {
     if (typeof this.props.rowHeight === 'number') {
@@ -1493,14 +1542,19 @@ export class SectionList extends React.Component<
 
     this.lastScroll = 'fake'
 
-    if (this.rootGrid) {
-      const element = ReactDOM.findDOMNode(this.rootGrid)
-      if (element instanceof Element) {
-        element.scrollTop = e.currentTarget.scrollTop
-      }
-    }
+    const scrollTop = e.currentTarget.scrollTop
 
-    this.setState({ scrollTop: e.currentTarget.scrollTop })
+    // Use scrollToPosition instead of directly setting element.scrollTop.
+    // Direct DOM mutation doesn't properly update react-virtualized's internal
+    // state, which can cause rows to not render correctly after keyboard
+    // navigation followed by scrollbar dragging.
+    // See https://github.com/desktop/desktop/issues/21940
+    this.rootGrid?.scrollToPosition({
+      scrollLeft: 0,
+      scrollTop,
+    })
+
+    this.setState({ scrollTop })
 
     // Make sure the root grid re-renders its children
     this.rootGrid?.recomputeGridSize()

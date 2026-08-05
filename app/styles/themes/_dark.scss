@@ -273,6 +273,7 @@ body.theme-dark {
 
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: #{$blue};
+  --accent-color: #{$blue-200};
   --diff-linenumber-focus-color: #{$blue-200};
 
   /**
@@ -292,6 +293,7 @@ body.theme-dark {
    */
 
   --diff-text-color: var(--text-color);
+  --diff-alt-text-color: #{darken($gray-100, 20%)};
   --diff-border-color: #{$gray-800};
   --diff-gutter-color: #{$gray-800};
   --diff-gutter-background-color: #{darken($gray-900, 3%)};

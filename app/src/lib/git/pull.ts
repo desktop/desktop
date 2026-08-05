@@ -1,26 +1,17 @@
-import { git, gitRebaseArguments, IGitStringExecutionOptions } from './core'
+import {
+  git,
+  gitRebaseArguments,
+  HookProgress,
+  IGitStringExecutionOptions,
+  TerminalOutput,
+  TerminalOutputCallback,
+} from './core'
 import { Repository } from '../../models/repository'
 import { IPullProgress } from '../../models/progress'
 import { PullProgressParser, executionOptionsWithProgress } from '../progress'
-import { enableRecurseSubmodulesFlag } from '../feature-flag'
 import { IRemote } from '../../models/remote'
 import { envForRemoteOperation } from './environment'
 import { getConfigValue } from './config'
-
-async function getPullArgs(
-  repository: Repository,
-  remote: string,
-  progressCallback?: (progress: IPullProgress) => void
-) {
-  return [
-    ...gitRebaseArguments(),
-    'pull',
-    ...(await getDefaultPullDivergentBranchArguments(repository)),
-    ...(enableRecurseSubmodulesFlag() ? ['--recurse-submodules'] : []),
-    ...(progressCallback ? ['--progress'] : []),
-    remote,
-  ]
-}
 
 /**
  * Pull from the specified remote.
@@ -38,13 +29,34 @@ async function getPullArgs(
 export async function pull(
   repository: Repository,
   remote: IRemote,
-  progressCallback?: (progress: IPullProgress) => void
+  options?: {
+    progressCallback?: (progress: IPullProgress) => void
+    onHookProgress?: (progress: HookProgress) => void
+    onHookFailure?: (
+      hookName: string,
+      terminalOutput: TerminalOutput
+    ) => Promise<'abort' | 'ignore'>
+    onTerminalOutputAvailable?: TerminalOutputCallback
+    noVerify?: boolean
+  }
 ): Promise<void> {
   let opts: IGitStringExecutionOptions = {
     env: await envForRemoteOperation(remote.url),
+    // git pull triggers merge or rebase hooks depending on config, instead of
+    // trying to check pull.rebase and friends we'll just intercept all possible
+    // hooks that could be run as part of a pull operation.
+    interceptHooks: [
+      'pre-merge-commit',
+      'prepare-commit-msg',
+      'commit-msg',
+      'post-merge',
+      'pre-rebase',
+      'pre-commit',
+      'post-rewrite',
+    ],
   }
 
-  if (progressCallback) {
+  if (options?.progressCallback) {
     const title = `Pulling ${remote.name}`
     const kind = 'pull'
 
@@ -67,7 +79,7 @@ export async function pull(
 
         const value = progress.percent
 
-        progressCallback({
+        options?.progressCallback?.({
           kind,
           title,
           description,
@@ -78,10 +90,19 @@ export async function pull(
     )
 
     // Initial progress
-    progressCallback({ kind, title, value: 0, remote: remote.name })
+    options.progressCallback({ kind, title, value: 0, remote: remote.name })
   }
 
-  const args = await getPullArgs(repository, remote.name, progressCallback)
+  const args = [
+    ...gitRebaseArguments(),
+    'pull',
+    ...(await getDefaultPullDivergentBranchArguments(repository)),
+    '--recurse-submodules',
+    ...(options?.progressCallback ? ['--progress'] : []),
+    ...(options?.noVerify ? ['--no-verify'] : []),
+    remote.name,
+  ]
+
   await git(args, repository.path, 'pull', opts)
 }
 

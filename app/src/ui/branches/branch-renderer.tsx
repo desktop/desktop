@@ -6,6 +6,7 @@ import { IBranchListItem } from './group-branches'
 import { BranchListItem } from './branch-list-item'
 import { IMatches } from '../../lib/fuzzy-find'
 import { getRelativeTimeInfoFromDate } from '../relative-time'
+import { getPreferAbsoluteDates } from '../../models/formatting-preferences'
 
 export function renderDefaultBranch(
   item: IBranchListItem,
@@ -39,6 +40,12 @@ export function getDefaultAriaLabelForBranch(
     return branch.name
   }
 
-  const { relativeText } = getRelativeTimeInfoFromDate(authorDate, true)
-  return `${item.branch.name} ${relativeText}`
+  const { relativeText, absoluteText } = getRelativeTimeInfoFromDate(
+    authorDate,
+    true
+  )
+
+  return `${item.branch.name} ${
+    getPreferAbsoluteDates() ? absoluteText : relativeText
+  }`
 }

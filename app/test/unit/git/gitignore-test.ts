@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import * as FSE from 'fs-extra'
+import { readFile, writeFile } from 'fs/promises'
+import { pathExists } from '../../../src/lib/path-exists'
 import * as Path from 'path'
 import { exec } from 'dugite'
 
@@ -32,7 +33,7 @@ describe('gitignore', () => {
       const expected = 'node_modules\nyarn-error.log\n'
 
       const ignoreFile = `${path}/.gitignore`
-      await FSE.writeFile(ignoreFile, expected)
+      await writeFile(ignoreFile, expected)
 
       const gitignore = await readGitIgnoreAtRoot(repo)
 
@@ -96,7 +97,7 @@ describe('gitignore', () => {
 
       await saveGitIgnore(repo, 'node_modules\n')
 
-      const exists = await FSE.pathExists(`${repo.path}/.gitignore`)
+      const exists = await pathExists(`${repo.path}/.gitignore`)
 
       assert(exists)
     })
@@ -106,12 +107,12 @@ describe('gitignore', () => {
       const path = repo.path
 
       const ignoreFile = `${path}/.gitignore`
-      await FSE.writeFile(ignoreFile, 'node_modules\n')
+      await writeFile(ignoreFile, 'node_modules\n')
 
       // update gitignore file to be empty
       await saveGitIgnore(repo, '')
 
-      const exists = await FSE.pathExists(ignoreFile)
+      const exists = await pathExists(ignoreFile)
       assert(!exists)
     })
 
@@ -127,7 +128,7 @@ describe('gitignore', () => {
       // Create a txt file
       const file = Path.join(repo.path, 'a.txt')
 
-      await FSE.writeFile(file, 'thrvbnmerkl;,iuw')
+      await writeFile(file, 'thrvbnmerkl;,iuw')
 
       // Check status of repo
       const status = await getStatusOrThrow(repo)
@@ -154,11 +155,11 @@ describe('gitignore', () => {
       const { path } = repo
 
       const ignoreFile = `${path}/.gitignore`
-      await FSE.writeFile(ignoreFile, 'node_modules\n')
+      await writeFile(ignoreFile, 'node_modules\n')
 
       await appendIgnoreRule(repo, ['yarn-error.log'])
 
-      const gitignore = await FSE.readFile(ignoreFile)
+      const gitignore = await readFile(ignoreFile)
 
       const expected = 'node_modules\nyarn-error.log\n'
       assert.equal(gitignore.toString('utf8'), expected)
@@ -172,11 +173,11 @@ describe('gitignore', () => {
       const { path } = repo
 
       const ignoreFile = `${path}/.gitignore`
-      await FSE.writeFile(ignoreFile, 'node_modules\n')
+      await writeFile(ignoreFile, 'node_modules\n')
 
       await appendIgnoreRule(repo, ['yarn-error.log', '.eslintcache', 'dist/'])
 
-      const gitignore = await FSE.readFile(ignoreFile)
+      const gitignore = await readFile(ignoreFile)
 
       const expected = 'node_modules\nyarn-error.log\n.eslintcache\ndist/\n'
       assert.equal(gitignore.toString('utf8'), expected)
@@ -190,12 +191,12 @@ describe('gitignore', () => {
       const { path } = repo
 
       const ignoreFile = `${path}/.gitignore`
-      await FSE.writeFile(ignoreFile, 'node_modules\n')
+      await writeFile(ignoreFile, 'node_modules\n')
 
       const fileToIgnore = '[never]!gonna*give#you?_.up'
       await appendIgnoreFile(repo, [fileToIgnore])
 
-      const gitignore = await FSE.readFile(ignoreFile)
+      const gitignore = await readFile(ignoreFile)
 
       const expected =
         'node_modules\n' + '\\[never\\]\\!gonna\\*give\\#you\\?_.up\n'

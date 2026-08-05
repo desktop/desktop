@@ -65,53 +65,6 @@
     .alias {
       font-style: italic;
     }
-
-    .repo-indicators {
-      margin-left: auto;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      margin-right: var(--spacing-half);
-    }
-
-    .change-indicator-wrapper {
-      display: flex;
-      min-width: 12px;
-      justify-content: center;
-      align-items: center;
-      margin-left: var(--spacing-half);
-
-      .octicon {
-        color: var(--tab-bar-active-color);
-        width: auto;
-      }
-    }
-
-    .ahead-behind {
-      height: 16px;
-      background: var(--list-item-badge-background-color);
-      color: var(--list-item-badge-color);
-      align-items: center;
-      margin-left: auto;
-
-      // Perfectly round semi circle ends with real tight
-      // padding on either side. Now in two flavors!
-      @include darwin {
-        height: 12px;
-        line-height: 12px;
-      }
-
-      @include win32 {
-        height: 13px;
-        line-height: 13px;
-      }
-
-      .octicon {
-        margin: 0;
-        height: 20px;
-        width: 12px;
-      }
-    }
   }
 
   .filter-list-group-header {
@@ -177,7 +130,8 @@
 .list-focus-container {
   /** Ahead/behind badge colors when list item is selected but not focused */
   .list-item.selected {
-    .repository-list-item {
+    .repository-list-item,
+    .repository-list-item-tooltip {
       .ahead-behind {
         background: var(--list-item-selected-badge-background-color);
         color: var(--list-item-selected-badge-color);
@@ -188,7 +142,8 @@
   &.focus-within {
     /** Ahead/behind badge colors when list item is selected and focused */
     .list-item.selected {
-      .repository-list-item {
+      .repository-list-item,
+      .repository-list-item-tooltip {
         .ahead-behind {
           background: var(--list-item-selected-active-badge-background-color);
           color: var(--list-item-selected-active-badge-color);
@@ -205,5 +160,66 @@
     .change-indicator {
       color: var(--text-color);
     }
+  }
+}
+
+.repository-list,
+.repository-list-item-tooltip {
+  .repo-indicators {
+    margin-left: auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-right: var(--spacing-half);
+  }
+
+  .change-indicator-wrapper {
+    display: flex;
+    min-width: 12px;
+    justify-content: center;
+    align-items: center;
+    margin-left: var(--spacing-half);
+
+    .octicon {
+      color: var(--tab-bar-active-color);
+      width: auto;
+    }
+  }
+
+  .ahead-behind {
+    height: 16px;
+    background: var(--list-item-badge-background-color);
+    color: var(--list-item-badge-color);
+    align-items: center;
+    margin-left: auto;
+
+    // Perfectly round semi circle ends with real tight
+    // padding on either side. Now in two flavors!
+    @include darwin {
+      height: 12px;
+      line-height: 12px;
+    }
+
+    @include win32 {
+      height: 13px;
+      line-height: 13px;
+    }
+
+    .octicon {
+      margin: 0;
+      height: 20px;
+      width: 12px;
+    }
+  }
+}
+
+.repository-list-item-tooltip {
+  .ahead-behind {
+    display: inline-flex;
+    margin: unset;
+  }
+
+  .change-indicator-wrapper {
+    justify-content: unset;
   }
 }

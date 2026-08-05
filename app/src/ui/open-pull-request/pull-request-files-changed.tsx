@@ -9,7 +9,7 @@ import { openFile } from '../lib/open-file'
 import { Resizable } from '../resizable'
 import { FileList } from '../history/file-list'
 import { IMenuItem, showContextualMenu } from '../../lib/menu-item'
-import { pathExists } from '../lib/path-exists'
+import { pathExists } from '../../lib/path-exists'
 import {
   CopyFilePathLabel,
   CopyRelativeFilePathLabel,

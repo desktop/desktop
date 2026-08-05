@@ -47,9 +47,12 @@
     .popover-dropdown-header {
       padding: var(--spacing);
       display: flex;
+      align-items: center;
+      gap: var(--spacing);
       border-bottom: var(--base-border);
 
       h3 {
+        flex: 1;
         margin-bottom: 0;
         font-size: var(--font-size);
       }

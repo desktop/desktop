@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import * as Path from 'path'
-import * as FSE from 'fs-extra'
+import { writeFile } from 'fs/promises'
 
 import { Repository } from '../../src/models/repository'
 import {
@@ -172,7 +172,7 @@ describe('patch formatting', () => {
       const repository = new Repository(testRepoPath, -1, null, false)
 
       const modifiedFile = 'modified-file.md'
-      await FSE.writeFile(Path.join(repository.path, modifiedFile), 'line 1\n')
+      await writeFile(Path.join(repository.path, modifiedFile), 'line 1\n')
 
       const unselectedFile = DiffSelection.fromInitialSelection(
         DiffSelectionType.None

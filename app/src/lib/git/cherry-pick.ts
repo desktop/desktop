@@ -1,4 +1,3 @@
-import * as Path from 'path'
 import { GitError } from 'dugite'
 import { Repository } from '../../models/repository'
 import {
@@ -24,8 +23,9 @@ import { ManualConflictResolution } from '../../models/manual-conflict-resolutio
 import { stageManualConflictResolution } from './stage'
 import { getCommit } from '.'
 import { IMultiCommitOperationProgress } from '../../models/progress'
+import { join } from 'path'
 import { readFile } from 'fs/promises'
-import { pathExists } from '../../ui/lib/path-exists'
+import { pathExists } from '../path-exists'
 
 /** The app-specific results from attempting to cherry pick commits*/
 export enum CherryPickResult {
@@ -241,7 +241,7 @@ export async function getCherryPickSnapshot(
   try {
     abortSafetySha = (
       await readFile(
-        Path.join(repository.path, '.git', 'sequencer', 'abort-safety'),
+        join(repository.resolvedGitDir, 'sequencer', 'abort-safety'),
         'utf8'
       )
     ).trim()
@@ -254,7 +254,7 @@ export async function getCherryPickSnapshot(
 
     headSha = (
       await readFile(
-        Path.join(repository.path, '.git', 'sequencer', 'head'),
+        join(repository.resolvedGitDir, 'sequencer', 'head'),
         'utf8'
       )
     ).trim()
@@ -267,7 +267,7 @@ export async function getCherryPickSnapshot(
 
     const remainingPicks = (
       await readFile(
-        Path.join(repository.path, '.git', 'sequencer', 'todo'),
+        join(repository.resolvedGitDir, 'sequencer', 'todo'),
         'utf8'
       )
     ).trim()
@@ -308,7 +308,7 @@ export async function getCherryPickSnapshot(
     // thus sequencer files were not used.
     const cherryPickHeadSha = (
       await readFile(
-        Path.join(repository.path, '.git', 'CHERRY_PICK_HEAD'),
+        join(repository.resolvedGitDir, 'CHERRY_PICK_HEAD'),
         'utf8'
       )
     ).trim()
@@ -487,12 +487,7 @@ export async function isCherryPickHeadFound(
   repository: Repository
 ): Promise<boolean> {
   try {
-    const cherryPickHeadPath = Path.join(
-      repository.path,
-      '.git',
-      'CHERRY_PICK_HEAD'
-    )
-    return pathExists(cherryPickHeadPath)
+    return pathExists(join(repository.resolvedGitDir, 'CHERRY_PICK_HEAD'))
   } catch (err) {
     log.warn(
       `[cherryPick] a problem was encountered reading .git/CHERRY_PICK_HEAD,

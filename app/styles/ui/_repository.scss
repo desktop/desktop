@@ -13,6 +13,10 @@
     display: flex;
   }
 
+  #no-changes {
+    gap: var(--spacing);
+  }
+
   &-sidebar {
     display: flex;
     flex-direction: column;

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { GitHubRepository } from '../../models/github-repository'
-import { DisposableLike } from 'event-kit'
+import type { Disposable } from 'event-kit'
 import { Dispatcher } from '../dispatcher'
 import {
   getCheckRunConclusionAdjective,
@@ -84,7 +84,7 @@ export class CICheckRunPopover extends React.PureComponent<
   ICICheckRunPopoverProps,
   ICICheckRunPopoverState
 > {
-  private statusSubscription: DisposableLike | null = null
+  private statusSubscription: Disposable | null = null
 
   public constructor(props: ICICheckRunPopoverProps) {
     super(props)

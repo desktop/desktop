@@ -2092,8 +2092,7 @@ function* enumerateColumnContents(
   if (row.type === DiffRowType.Hunk) {
     yield { type: DiffColumn.Before, content: row.content }
   } else if (row.type === DiffRowType.Added) {
-    const type = showSideBySideDiffs ? DiffColumn.After : DiffColumn.Before
-    yield { type, content: row.data.content }
+    yield { type: DiffColumn.After, content: row.data.content }
   } else if (row.type === DiffRowType.Deleted) {
     yield { type: DiffColumn.Before, content: row.data.content }
   } else if (row.type === DiffRowType.Context) {

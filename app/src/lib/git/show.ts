@@ -1,7 +1,8 @@
-import { coerceToBuffer, git, isMaxBufferExceededError } from './core'
+import { git, isMaxBufferExceededError } from './core'
 
 import { Repository } from '../../models/repository'
 import { GitError } from 'dugite'
+import { coerceToBuffer } from './coerce-to-buffer'
 
 /**
  * Retrieve the binary contents of a blob from the repository at a given

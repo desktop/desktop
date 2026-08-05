@@ -1,13 +1,18 @@
-.toolbar-dropdown.open .pr-badge {
-  background: var(--toolbar-badge-active-background-color);
+.toolbar-dropdown .pr-badge {
+  border: 1px solid var(--toolbar-badge-background-color);
+  background: var(--toolbar-background-color);
+
+  &:hover {
+    background-color: var(--toolbar-button-hover-background-color);
+  }
 }
 
-.toolbar-dropdown:not(.open) .pr-badge {
-  background: var(--toolbar-badge-background-color);
+.toolbar-dropdown.open .pr-badge {
+  background: none;
 }
 
 .pr-badge {
-  --height: 18px;
+  --height: 22px;
 
   display: flex;
   flex-direction: row;

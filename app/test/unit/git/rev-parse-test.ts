@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import * as path from 'path'
-import * as FSE from 'fs-extra'
+import { mkdir, realpath, writeFile } from 'fs/promises'
 
 import { Repository } from '../../../src/models/repository'
 import { getRepositoryType } from '../../../src/lib/git/rev-parse'
@@ -11,7 +11,6 @@ import {
   setupEmptyRepository,
 } from '../../helpers/repositories'
 import { exec } from 'dugite'
-import { writeFile } from 'fs-extra'
 import { createTempDirectory } from '../../helpers/temp'
 
 describe('git/rev-parse', () => {
@@ -20,18 +19,26 @@ describe('git/rev-parse', () => {
       const testRepoPath = await setupFixtureRepository(t, 'test-repo')
       const repository = new Repository(testRepoPath, -1, null, false)
 
-      assert.deepEqual(await getRepositoryType(repository.path), {
-        kind: 'regular',
-        topLevelWorkingDirectory: repository.path,
-      })
+      const result = await getRepositoryType(repository.path)
+      assert.equal(result.kind, 'regular')
+      assert(result.kind === 'regular')
+      assert.equal(result.topLevelWorkingDirectory, repository.path)
+      assert.equal(
+        await realpath(result.gitDir),
+        await realpath(path.join(repository.path, '.git'))
+      )
 
       const subdirPath = path.join(repository.path, 'subdir')
-      await FSE.mkdir(subdirPath)
+      await mkdir(subdirPath)
 
-      assert.deepEqual(await getRepositoryType(subdirPath), {
-        kind: 'regular',
-        topLevelWorkingDirectory: repository.path,
-      })
+      const subdirResult = await getRepositoryType(subdirPath)
+      assert.equal(subdirResult.kind, 'regular')
+      assert(subdirResult.kind === 'regular')
+      assert.equal(subdirResult.topLevelWorkingDirectory, repository.path)
+      assert.equal(
+        await realpath(subdirResult.gitDir),
+        await realpath(path.join(repository.path, '.git'))
+      )
     })
 
     it('should return missing when not run inside a working directory', async t => {
@@ -65,24 +72,36 @@ describe('git/rev-parse', () => {
         ''
       )
 
-      assert.deepEqual(await getRepositoryType(firstRepoPath), {
-        kind: 'regular',
-        topLevelWorkingDirectory: firstRepoPath,
-      })
+      const firstResult = await getRepositoryType(firstRepoPath)
+      assert.equal(firstResult.kind, 'regular')
+      assert(firstResult.kind === 'regular')
+      assert.equal(firstResult.topLevelWorkingDirectory, firstRepoPath)
+      assert.equal(
+        await realpath(firstResult.gitDir),
+        await realpath(path.join(firstRepoPath, '.git'))
+      )
 
       const subModulePath = path.join(firstRepoPath, 'repo2')
-      assert.deepEqual(await getRepositoryType(subModulePath), {
-        kind: 'regular',
-        topLevelWorkingDirectory: subModulePath,
-      })
+      const subResult = await getRepositoryType(subModulePath)
+      assert.equal(subResult.kind, 'regular')
+      assert(subResult.kind === 'regular')
+      assert.equal(subResult.topLevelWorkingDirectory, subModulePath)
+      assert.equal(
+        await realpath(subResult.gitDir),
+        await realpath(path.join(firstRepoPath, '.git', 'modules', 'repo2'))
+      )
     })
 
     it('returns regular for default initialized repository', async t => {
       const repository = await setupEmptyRepository(t)
-      assert.deepEqual(await getRepositoryType(repository.path), {
-        kind: 'regular',
-        topLevelWorkingDirectory: repository.path,
-      })
+      const result = await getRepositoryType(repository.path)
+      assert.equal(result.kind, 'regular')
+      assert(result.kind === 'regular')
+      assert.equal(result.topLevelWorkingDirectory, repository.path)
+      assert.equal(
+        await realpath(result.gitDir),
+        await realpath(path.join(repository.path, '.git'))
+      )
     })
 
     it('returns bare for initialized bare repository', async t => {

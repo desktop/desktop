@@ -612,6 +612,11 @@ app.on('ready', () => {
   ipcMain.handle('get-app-path', async () => app.getAppPath())
 
   /**
+   * An event sent by the renderer asking for the executable path
+   */
+  ipcMain.handle('get-exec-path', async () => process.execPath)
+
+  /**
    * An event sent by the renderer asking for whether the app is running under
    * rosetta translation
    */

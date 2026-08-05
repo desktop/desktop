@@ -1,5 +1,8 @@
 import * as React from 'react'
-import { IRefCheck } from '../../lib/ci-checks/ci-checks'
+import {
+  getCheckRunConclusionAdjective,
+  IRefCheck,
+} from '../../lib/ci-checks/ci-checks'
 import { Octicon } from '../octicons'
 import { getClassNameForCheck, getSymbolForCheck } from '../branches/ci-status'
 import classNames from 'classnames'
@@ -38,6 +41,9 @@ interface ICICheckRunListItemProps {
    * Default: true
    **/
   readonly isHeader?: false
+
+  /** Whether the check run status has a tooltip */
+  readonly hasStatusTooltip?: boolean
 
   /** Callback for when a check run is clicked */
   readonly onCheckRunExpansionToggleClick: (checkRun: IRefCheck) => void
@@ -78,7 +84,7 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
   }
 
   private renderCheckStatusSymbol = (): JSX.Element => {
-    const { checkRun } = this.props
+    const { checkRun, hasStatusTooltip } = this.props
 
     return (
       <div className="ci-check-status-symbol">
@@ -88,6 +94,11 @@ export class CICheckRunListItem extends React.PureComponent<ICICheckRunListItemP
             `ci-status-${getClassNameForCheck(checkRun)}`
           )}
           symbol={getSymbolForCheck(checkRun)}
+          title={
+            hasStatusTooltip
+              ? getCheckRunConclusionAdjective(checkRun.conclusion)
+              : undefined
+          }
         />
       </div>
     )

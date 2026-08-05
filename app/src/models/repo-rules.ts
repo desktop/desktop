@@ -74,6 +74,17 @@ export class RepoRulesMetadataRules {
 
     return failures
   }
+
+  /**
+   * Returns a shallow copy of the underlying rules. Intended for callers
+   * that need to inspect or filter rules beyond the matching logic provided
+   * by `getFailedRules`. Returning a copy preserves the encapsulation
+   * established by `push` so callers can't mutate the cached rule list via
+   * a `ReadonlyArray` cast.
+   */
+  public getRules(): ReadonlyArray<IRepoRulesMetadataRule> {
+    return [...this.rules]
+  }
 }
 
 /**

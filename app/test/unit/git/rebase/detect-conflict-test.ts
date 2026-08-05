@@ -1,7 +1,7 @@
 import { describe, it, TestContext } from 'node:test'
 import assert from 'node:assert'
 import { exec } from 'dugite'
-import * as FSE from 'fs-extra'
+import { writeFile } from 'fs/promises'
 import * as Path from 'path'
 
 import { getChangedFiles } from '../../../../src/lib/git'
@@ -195,12 +195,12 @@ describe('git/rebase', () => {
       assert(diffCheckBefore.exitCode > 0)
 
       // resolve conflicts by writing files to disk
-      await FSE.writeFile(
+      await writeFile(
         Path.join(repository.path, 'THING.md'),
         '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
       )
 
-      await FSE.writeFile(
+      await writeFile(
         Path.join(repository.path, 'OTHER.md'),
         '# HELLO WORLD! \nTHINGS GO HERE\nALSO FEATURE BRANCH UNDERWAY\n'
       )
@@ -262,24 +262,24 @@ describe('git/rebase', () => {
       await rebase(repository, baseBranch, featureBranch)
 
       // resolve conflicts by writing files to disk
-      await FSE.writeFile(
+      await writeFile(
         Path.join(repository.path, 'THING.md'),
         '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
       )
 
-      await FSE.writeFile(
+      await writeFile(
         Path.join(repository.path, 'OTHER.md'),
         '# HELLO WORLD! \nTHINGS GO HERE\nALSO FEATURE BRANCH UNDERWAY\n'
       )
 
       // change unrelated tracked while rebasing changes
-      await FSE.writeFile(
+      await writeFile(
         Path.join(repository.path, 'THIRD.md'),
         'this change should be included in the latest commit'
       )
 
       // add untracked file before continuing rebase
-      await FSE.writeFile(
+      await writeFile(
         Path.join(repository.path, 'UNTRACKED-FILE.md'),
         'this file should remain in the working directory'
       )
@@ -350,18 +350,18 @@ describe('git/rebase', () => {
       await rebase(repository, baseBranch, featureBranch)
 
       // resolve conflicts by writing files to disk
-      await FSE.writeFile(
+      await writeFile(
         Path.join(repository.path, 'THING.md'),
         '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
       )
 
-      await FSE.writeFile(
+      await writeFile(
         Path.join(repository.path, 'OTHER.md'),
         '# HELLO WORLD! \nTHINGS GO HERE\nALSO FEATURE BRANCH UNDERWAY\n'
       )
 
       // change unrelated tracked while rebasing changes
-      await FSE.writeFile(
+      await writeFile(
         Path.join(repository.path, 'THIRD.md'),
         'this change should be included in the latest commit'
       )

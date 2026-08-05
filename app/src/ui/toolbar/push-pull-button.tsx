@@ -30,6 +30,7 @@ import { ForcePushBranchState } from '../../lib/rebase'
 import { PushPullButtonDropDown } from './push-pull-button-dropdown'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 import { enableResizingToolbarButtons } from '../../lib/feature-flag'
+import { formatCompactNumber } from '../../lib/format-number'
 
 export const DropdownItemClassName = 'push-pull-dropdown-item'
 
@@ -138,7 +139,7 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
   if (ahead > 0 || numTagsToPush > 0) {
     content.push(
       <span key="ahead">
-        {ahead + numTagsToPush}
+        {formatCompactNumber(ahead + numTagsToPush)}
         <Octicon symbol={octicons.arrowUp} />
       </span>
     )
@@ -147,7 +148,7 @@ function renderAheadBehind(aheadBehind: IAheadBehind, numTagsToPush: number) {
   if (behind > 0) {
     content.push(
       <span key="behind">
-        {behind}
+        {formatCompactNumber(behind)}
         <Octicon symbol={octicons.arrowDown} />
       </span>
     )
@@ -455,7 +456,7 @@ export class PushPullButton extends React.Component<
     }
 
     if (tipState === TipState.Unborn) {
-      return this.unbornRepositoryButton()
+      return this.fetchButton(remoteName, lastFetched, this.fetch)
     }
 
     if (tipState === TipState.Detached) {
@@ -533,18 +534,6 @@ export class PushPullButton extends React.Component<
         icon={octicons.upload}
         style={ToolbarButtonStyle.Subtitle}
         onClick={onClick}
-      />
-    )
-  }
-
-  private unbornRepositoryButton() {
-    return (
-      <ToolbarButton
-        {...this.defaultButtonProps()}
-        title="Publish branch"
-        description="Cannot publish: no commits"
-        icon={octicons.upload}
-        disabled={true}
       />
     )
   }

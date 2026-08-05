@@ -12,7 +12,7 @@ import { git } from '../../git'
 import { IRemote } from '../../../models/remote'
 import { getDefaultBranch } from '../../helpers/default-branch'
 import { envForRemoteOperation } from '../../git/environment'
-import { pathExists } from '../../../ui/lib/path-exists'
+import { pathExists } from '../../path-exists'
 
 const nl = __WIN32__ ? '\r\n' : '\n'
 const InitialReadmeContents =

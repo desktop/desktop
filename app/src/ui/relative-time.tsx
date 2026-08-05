@@ -18,6 +18,9 @@ interface IRelativeTimeProps {
   readonly onlyRelative?: boolean
 
   readonly className?: string
+
+  /** Whether to show a tooltip with the absolute date on hover - Default = true */
+  readonly tooltip?: boolean
 }
 
 interface IRelativeTimeState {
@@ -85,7 +88,7 @@ export function getRelativeTimeInfoFromDate(
       // More than a week ago, just the date will suffice
       return {
         absoluteText,
-        relativeText: formatDate(then, { dateStyle: 'medium' }),
+        relativeText: formatDate(then, { time: false, dateStyle: 'medium' }),
       }
     }
   }
@@ -177,6 +180,12 @@ export class RelativeTime extends React.Component<
   }
 
   public render() {
+    if (this.props.tooltip === false) {
+      return (
+        <span className={this.props.className}>{this.state.relativeText}</span>
+      )
+    }
+
     return (
       <TooltippedContent
         className={this.props.className}

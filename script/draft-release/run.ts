@@ -1,5 +1,3 @@
-import { sort as semverSort, SemVer } from 'semver'
-
 import { getLogLines } from '../changelog/git'
 import {
   convertToChangelogFormat,
@@ -13,43 +11,13 @@ import { execSync } from 'child_process'
 import { writeFileSync } from 'fs'
 import { join } from 'path'
 import { format } from 'prettier'
-import { assertNever, forceUnwrap } from '../../app/src/lib/fatal-error'
+import { assertNever } from '../../app/src/lib/fatal-error'
 import { sh } from '../sh'
 import { readFile } from 'fs/promises'
 
+import { getLatestRelease } from './tags'
+
 const changelogPath = join(__dirname, '..', '..', 'changelog.json')
-
-/**
- * Returns the latest release tag, according to git and semver
- * (ignores test releases)
- *
- * @param options there's only one option `excludeBetaReleases`,
- *                which is a boolean
- */
-async function getLatestRelease(options: {
-  excludeBetaReleases: boolean
-  excludeTestReleases: boolean
-}): Promise<string> {
-  let releaseTags = (await sh('git', 'tag'))
-    .split('\n')
-    .filter(tag => tag.startsWith('release-'))
-    .filter(tag => !tag.includes('-linux'))
-
-  if (options.excludeBetaReleases) {
-    releaseTags = releaseTags.filter(tag => !tag.includes('-beta'))
-  }
-
-  if (options.excludeTestReleases) {
-    releaseTags = releaseTags.filter(tag => !tag.includes('-test'))
-  }
-
-  const releaseVersions = releaseTags.map(tag => tag.substring(8))
-
-  const sortedTags = semverSort(releaseVersions)
-  const latestTag = forceUnwrap(`No tags`, sortedTags.at(-1))
-
-  return latestTag instanceof SemVer ? latestTag.raw : latestTag
-}
 
 async function createReleaseBranch(version: string): Promise<void> {
   try {

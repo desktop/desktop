@@ -1,5 +1,5 @@
 import memoizeOne from 'memoize-one'
-import { pathExists } from '../../ui/lib/path-exists'
+import { pathExists } from '../path-exists'
 import { getBoolean } from '../local-storage'
 import {
   getDesktopAskpassTrampolinePath,

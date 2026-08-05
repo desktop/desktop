@@ -61,7 +61,7 @@ export class Notifications extends React.Component<
             }
             onChange={this.onNotificationsEnabledChanged}
           />
-          <p className="git-settings-description">
+          <p className="settings-description">
             Allows the display of notifications when high-signal events take
             place in the current repository.{this.renderNotificationHint()}
           </p>

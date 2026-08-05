@@ -98,10 +98,7 @@ export class Advanced extends React.Component<
             onChange={this.onRepositoryIndicatorsEnabledChanged}
             ariaDescribedBy="periodic-fetch-description"
           />
-          <div
-            id="periodic-fetch-description"
-            className="git-settings-description"
-          >
+          <div id="periodic-fetch-description" className="settings-description">
             <p>
               These icons indicate which repositories have local or remote
               changes, and require the periodic fetching of repositories that
@@ -141,7 +138,7 @@ export class Advanced extends React.Component<
           />
           <div
             id="use-external-credential-helper-description"
-            className="git-settings-description"
+            className="settings-description"
           >
             <p>
               Use{' '}

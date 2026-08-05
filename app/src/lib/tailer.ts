@@ -1,5 +1,5 @@
-import * as Fs from 'fs'
-import { Emitter, Disposable } from 'event-kit'
+import * as Fs from 'node:fs'
+import { Emitter, type Disposable } from 'event-kit'
 
 interface ICurrentFileTailState {
   /** The current read position in the file. */
@@ -40,6 +40,7 @@ export class Tailer {
   }
 
   private handleError(error: Error) {
+    this.state?.watcher.close()
     this.state = null
     this.emitter.emit('error', error)
   }

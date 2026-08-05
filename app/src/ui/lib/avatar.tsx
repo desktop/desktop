@@ -10,11 +10,16 @@ import {
   supportsAvatarsAPI,
 } from '../../lib/endpoint-capabilities'
 import { Account } from '../../models/account'
-import { parseStealthEmail } from '../../lib/email'
+import {
+  getLegacyStealthEmailForUser,
+  getStealthEmailForUser,
+  parseStealthEmail,
+} from '../../lib/email'
 import noop from 'lodash/noop'
 import { offsetFrom } from '../../lib/offset-from'
 import { ExpiringOperationCache } from './expiring-operation-cache'
 import { forceUnwrap } from '../../lib/fatal-error'
+import { IKnownBot, knownDotComBots } from '../../models/dot-com-bots'
 
 const avatarTokenCache = new ExpiringOperationCache<
   { endpoint: string; accounts: ReadonlyArray<Account> },
@@ -88,26 +93,14 @@ const botAvatarCache = new ExpiringOperationCache<
       : Infinity
 )
 
-const dotComBot = (login: string, id: number, integrationId: number) => {
-  const avatarURL = `https://avatars.githubusercontent.com/in/${integrationId}?v=4`
-  const endpoint = getDotComAPIEndpoint()
-  const stealthHost = 'users.noreply.github.com'
-  return [
-    {
-      email: `${id}+${login}@${stealthHost}`,
-      name: login,
-      avatarURL,
-      endpoint,
-    },
-    { email: `${login}@${stealthHost}`, name: login, avatarURL, endpoint },
-  ]
-}
-
-const knownAvatars: ReadonlyArray<IAvatarUser> = [
-  ...dotComBot('dependabot[bot]', 49699333, 29110),
-  ...dotComBot('github-actions[bot]', 41898282, 15368),
-  ...dotComBot('github-pages[bot]', 52472962, 34598),
-]
+const knownAvatars: ReadonlyArray<IAvatarUser> = knownDotComBots
+  .flatMap<[IKnownBot, string]>(bot => [
+    [bot, getStealthEmailForUser(bot.userId, bot.login, bot.endpoint)],
+    [bot, getLegacyStealthEmailForUser(bot.login, bot.endpoint)],
+  ])
+  .map(([{ login: name, avatarURL, endpoint }, email]) => {
+    return { name, avatarURL, endpoint, email }
+  })
 
 // Preload some of the more popular bot avatars so we don't have to hit the API
 knownAvatars.forEach(user =>
@@ -168,6 +161,11 @@ interface IAvatarProps {
   readonly size?: number
 
   readonly accounts: ReadonlyArray<Account>
+
+  /** Defaults true */
+  readonly tooltip?: boolean
+
+  readonly 'aria-hidden'?: React.AriaAttributes['aria-hidden']
 }
 
 interface IAvatarState {
@@ -371,16 +369,10 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
 
   public render() {
     const title = this.getTitle()
-    const { imageError, user } = this.state
-    const alt = user
-      ? `Avatar for ${user.name || user.email}`
-      : `Avatar for unknown user`
 
-    const now = Date.now()
-    const src = this.state.candidates.find(c => {
-      const lastFailed = FailingAvatars.get(c)
-      return lastFailed === undefined || now - lastFailed > RetryLimit
-    })
+    if (this.props.tooltip === false) {
+      return <div className="avatar-container">{this.renderAvatar()}</div>
+    }
 
     return (
       <TooltippedContent
@@ -390,6 +382,24 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
         direction={TooltipDirection.NORTH}
         tagName="div"
       >
+        {this.renderAvatar()}
+      </TooltippedContent>
+    )
+  }
+
+  private renderAvatar = () => {
+    const { imageError, user } = this.state
+    const alt = user
+      ? `Avatar for ${user.name || user.email}`
+      : `Avatar for unknown user`
+    const now = Date.now()
+    const src = this.state.candidates.find(c => {
+      const lastFailed = FailingAvatars.get(c)
+      return lastFailed === undefined || now - lastFailed > RetryLimit
+    })
+
+    return (
+      <>
         {(!src || imageError) && (
           <Octicon symbol={DefaultAvatarSymbol} className="avatar" />
         )}
@@ -405,9 +415,10 @@ export class Avatar extends React.Component<IAvatarProps, IAvatarState> {
             onLoad={this.onImageLoad}
             onError={this.onImageError}
             style={{ display: imageError ? 'none' : undefined }}
+            aria-hidden={this.props['aria-hidden']}
           />
         )}
-      </TooltippedContent>
+      </>
     )
   }
 

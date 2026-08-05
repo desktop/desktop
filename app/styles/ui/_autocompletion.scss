@@ -112,6 +112,24 @@
     }
   }
 
+  .branch {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+
+    height: 100%;
+    width: 100%;
+
+    .icon {
+      flex-shrink: 0;
+      margin-right: var(--spacing-half);
+    }
+
+    .title {
+      @include ellipsis;
+    }
+  }
+
   .user {
     display: flex;
     flex-grow: 1;
@@ -131,6 +149,13 @@
         font-style: italic;
         font-size: var(--font-size-sm);
       }
+    }
+
+    .avatar {
+      flex-shrink: 0;
+      height: 16px;
+      width: 16px;
+      margin-right: var(--spacing-half);
     }
 
     .username {

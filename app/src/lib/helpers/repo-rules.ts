@@ -212,9 +212,9 @@ function toMatcher(
 
   if (regex) {
     if (rule.negate) {
-      return (toMatch: string) => !regex.matcher(toMatch).find()
+      return (toMatch: string) => !regex.test(toMatch)
     } else {
-      return (toMatch: string) => regex.matcher(toMatch).find()
+      return (toMatch: string) => regex.test(toMatch)
     }
   } else {
     return () => false

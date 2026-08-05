@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { setupEmptyRepository } from '../helpers/repositories'
-import { writeFile } from 'fs-extra'
+import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { git } from '../../src/lib/git'
 import { cloneLocalRepository } from '../helpers/repository-scaffolding'

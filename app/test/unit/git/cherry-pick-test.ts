@@ -1,7 +1,7 @@
 import { describe, it, TestContext } from 'node:test'
 import assert from 'node:assert'
 import { exec } from 'dugite'
-import * as FSE from 'fs-extra'
+import { writeFile } from 'fs/promises'
 import * as Path from 'path'
 import {
   getCommit,
@@ -78,7 +78,7 @@ describe('git/cherry-pick', () => {
     // add a commit with no message
     await switchTo(repository, featureBranchName)
     const filePath = Path.join(repository.path, 'EMPTY_MESSAGE.md')
-    await FSE.writeFile(filePath, '# HELLO WORLD! \nTHINGS GO HERE\n')
+    await writeFile(filePath, '# HELLO WORLD! \nTHINGS GO HERE\n')
     await exec(['add', filePath], repository.path)
     await exec(['commit', '--allow-empty-message', '-m', ''], repository.path)
 
@@ -224,7 +224,7 @@ describe('git/cherry-pick', () => {
   it('fails to cherry-pick when working tree is not clean', async t => {
     const { repository, featureBranch } = await setup(t)
 
-    await FSE.writeFile(
+    await writeFile(
       Path.join(repository.path, 'THING.md'),
       '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
     )
@@ -339,7 +339,7 @@ describe('git/cherry-pick', () => {
     assert.equal(result, CherryPickResult.ConflictsEncountered)
 
     // resolve conflicts by writing files to disk
-    await FSE.writeFile(
+    await writeFile(
       Path.join(repository.path, 'THING.md'),
       '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
     )
@@ -408,7 +408,7 @@ describe('git/cherry-pick', () => {
       assert(diffCheckBefore.exitCode > 0)
 
       // resolve conflicts by writing files to disk
-      await FSE.writeFile(
+      await writeFile(
         Path.join(repository.path, 'THING.md'),
         '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
       )
@@ -519,13 +519,13 @@ describe('git/cherry-pick', () => {
       assert.equal(result, CherryPickResult.ConflictsEncountered)
 
       // resolve conflicts by writing files to disk
-      await FSE.writeFile(
+      await writeFile(
         Path.join(repository.path, 'THING.md'),
         '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
       )
 
       // changes to untracked file
-      await FSE.writeFile(
+      await writeFile(
         Path.join(repository.path, 'UNTRACKED_FILE.md'),
         '# HELLO WORLD! \nUNTRACKED FILE STUFF IN HERE\n'
       )
@@ -654,7 +654,7 @@ describe('git/cherry-pick', () => {
       // resolve conflicts and continue
       const statusAfterConflictedCherryPick = await getStatusOrThrow(repository)
       const { files } = statusAfterConflictedCherryPick.workingDirectory
-      await FSE.writeFile(
+      await writeFile(
         Path.join(repository.path, 'THING_THREE.md'),
         '# Resolve conflicts!'
       )

@@ -1,4 +1,3 @@
-import uuid from 'uuid'
 import { TestMenuEvent } from '../../../main-process/menu'
 import {
   isRepositoryWithGitHubRepository,
@@ -50,6 +49,10 @@ export function showTestUI(
       return showFakeConfirmCommittingConflictedFiles()
     case 'test-cherry-pick-conflicts-banner':
       return showFakeCherryPickConflictBanner()
+    case 'test-copilot-snapshot-card':
+      return dispatcher.showPopup({
+        type: PopupType.TestCopilotSnapshotCard,
+      })
     case 'test-discarded-changes-will-be-unrecoverable':
       return showFakeDiscardedChangesWillBeUnrecoverable()
     case 'test-do-you-want-fork-this-repository':
@@ -162,6 +165,8 @@ export function showTestUI(
       return showFakeUpstreamAlreadyExists()
     case 'test-about-dialog':
       return dispatcher.showPopup({ type: PopupType.TestAbout })
+    case 'test-cli-action':
+      return dispatcher.showPopup({ type: PopupType.TestCLIAction })
     default:
       return assertNever(name, `Unknown menu event name: ${name}`)
   }
@@ -174,7 +179,9 @@ export function showTestUI(
 
   function testAppError() {
     return dispatcher.postError(
-      new Error('Test Error - to use default error handler' + uuid())
+      new Error(
+        'Test Error - to use default error handler' + crypto.randomUUID()
+      )
     )
   }
 

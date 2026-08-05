@@ -13,7 +13,6 @@ import { IAheadBehind } from '../../models/branch'
 import { assertNever } from '../../lib/fatal-error'
 import { isDotCom } from '../../lib/endpoint-capabilities'
 import { Owner } from '../../models/owner'
-import { enableMultipleEnterpriseAccounts } from '../../lib/feature-flag'
 
 export type RepositoryListGroup =
   | {
@@ -41,9 +40,7 @@ export const getGroupKey = (group: RepositoryListGroup) => {
     case 'dotcom':
       return `1:dotcom:${group.owner.login}`
     case 'enterprise':
-      return enableMultipleEnterpriseAccounts()
-        ? `2:enterprise:${group.host}`
-        : `2:enterprise`
+      return `2:enterprise:${group.host}`
     case 'other':
       return `3:other`
     default:

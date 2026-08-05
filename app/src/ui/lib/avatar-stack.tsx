@@ -14,6 +14,8 @@ const MaxDisplayedAvatars = 3
 interface IAvatarStackProps {
   readonly users: ReadonlyArray<IAvatarUser>
   readonly accounts: ReadonlyArray<Account>
+  /** Defaults: true */
+  readonly tooltip?: boolean
 }
 
 /**
@@ -24,7 +26,7 @@ interface IAvatarStackProps {
 export class AvatarStack extends React.Component<IAvatarStackProps, {}> {
   public render() {
     const elems = []
-    const { users, accounts } = this.props
+    const { users, accounts, tooltip } = this.props
 
     for (let i = 0; i < this.props.users.length; i++) {
       if (
@@ -34,7 +36,14 @@ export class AvatarStack extends React.Component<IAvatarStackProps, {}> {
         elems.push(<div key="more" className="avatar-more avatar" />)
       }
 
-      elems.push(<Avatar key={`${i}`} user={users[i]} accounts={accounts} />)
+      elems.push(
+        <Avatar
+          key={`${i}`}
+          user={users[i]}
+          accounts={accounts}
+          tooltip={tooltip}
+        />
+      )
     }
 
     const className = classNames('AvatarStack', {

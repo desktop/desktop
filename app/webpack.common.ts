@@ -84,12 +84,25 @@ export const renderer = merge({}, commonConfig, {
       template: path.join(__dirname, 'static', 'index.html'),
       chunks: ['renderer'],
     }),
+    new webpack.NormalModuleReplacementPlugin(/^vscode-jsonrpc$/, resource => {
+      resource.request = 'vscode-jsonrpc/lib/node/main.js'
+    }),
+    new webpack.NormalModuleReplacementPlugin(
+      /vscode-jsonrpc[\\/]node(\.js)?$/,
+      resource => {
+        resource.request = 'vscode-jsonrpc/lib/node/main.js'
+      }
+    ),
     new webpack.DefinePlugin(
       Object.assign({}, replacements, {
         __PROCESS_KIND__: JSON.stringify('ui'),
       })
     ),
   ],
+  resolve: {
+    // Prevent the renderer from using browser-specific versions of modules
+    aliasFields: [],
+  },
 })
 
 export const crash = merge({}, commonConfig, {

@@ -9,7 +9,6 @@ import * as fs from 'fs'
 import * as Path from 'path'
 import * as cp from 'child_process'
 import { check } from 'reserved-words'
-import toCamelCase from 'to-camel-case'
 
 // Basic type for the @primer/octicons package.
 type OcticonsLib = Record<
@@ -47,6 +46,10 @@ interface IOcticon {
 
   /** Size variants of the icon. */
   readonly variants: Record<PropertyKey, IOcticonVariant>
+}
+
+function toCamelCase(str: string): string {
+  return str.replace(/-([a-z])/g, (_, char) => char.toUpperCase())
 }
 
 function getJsFriendlyName(name: string) {

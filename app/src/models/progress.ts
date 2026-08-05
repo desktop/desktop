@@ -122,3 +122,19 @@ export type Progress =
   | IPushProgress
   | IRevertProgress
   | IMultiCommitOperationProgress
+
+/**
+ * Clamps progress values between minimum and maximum.
+ * Useful for reserving portions of progress reporting for different stages.
+ */
+export function clampProgress<T extends Progress>(
+  minimum: number,
+  maximum: number,
+  progressCallback: (progress: T) => void
+): (progress: T) => void {
+  return (progress: T) =>
+    progressCallback({
+      ...progress,
+      value: minimum + progress.value * (maximum - minimum),
+    })
+}

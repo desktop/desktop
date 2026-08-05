@@ -84,6 +84,11 @@ export const isMacOSBigSurOrLater = memoizeOne(
   () => __DARWIN__ && systemVersionGreaterThanOrEqualTo('10.16')
 )
 
+/** We're currently running macOS and it is at least Tahoe. */
+export const isMacOSTahoeOrLater = memoizeOne(
+  () => __DARWIN__ && systemVersionGreaterThanOrEqualTo('26')
+)
+
 /** We're currently running Windows 10 and it is at least 1809 Preview Build 17666. */
 export const isWindows10And1809Preview17666OrLater = memoizeOne(
   () => __WIN32__ && systemVersionGreaterThanOrEqualTo('10.0.17666')
@@ -94,7 +99,7 @@ export const isWindowsAndNoLongerSupportedByElectron = memoizeOne(
 )
 
 export const isMacOSAndNoLongerSupportedByElectron = memoizeOne(
-  () => __DARWIN__ && systemVersionLessThan('11.0')
+  () => __DARWIN__ && systemVersionLessThan('12.0')
 )
 
 export const isOSNoLongerSupportedByElectron = memoizeOne(

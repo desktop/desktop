@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import * as FSE from 'fs-extra'
+import { readFile } from 'fs/promises'
 import * as path from 'path'
 
 import { writeDefaultReadme } from '../../src/ui/add-repository/write-default-readme'
@@ -14,7 +14,7 @@ describe('repository setup', () => {
 
       await writeDefaultReadme(directory, 'some-repository')
 
-      const text = await FSE.readFile(file, 'utf8')
+      const text = await readFile(file, 'utf8')
       assert.equal(text, '# some-repository\n')
     })
 
@@ -28,7 +28,7 @@ describe('repository setup', () => {
         'description goes here'
       )
 
-      const text = await FSE.readFile(file, 'utf8')
+      const text = await readFile(file, 'utf8')
       assert.equal(text, '# some-repository\ndescription goes here\n')
     })
   })

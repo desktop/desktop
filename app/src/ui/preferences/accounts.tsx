@@ -12,7 +12,6 @@ import { Row } from '../lib/row'
 import { DialogContent, DialogPreferredFocusClassName } from '../dialog'
 import { Avatar } from '../lib/avatar'
 import { CallToAction } from '../lib/call-to-action'
-import { enableMultipleEnterpriseAccounts } from '../../lib/feature-flag'
 import { getHTMLURL } from '../../lib/api'
 
 interface IAccountsProps {
@@ -41,19 +40,9 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
           : this.renderSignIn(SignInType.DotCom)}
 
         <h2>GitHub Enterprise</h2>
-        {enableMultipleEnterpriseAccounts()
-          ? this.renderMultipleEnterpriseAccounts()
-          : this.renderSingleEnterpriseAccount()}
+        {this.renderMultipleEnterpriseAccounts()}
       </DialogContent>
     )
-  }
-
-  private renderSingleEnterpriseAccount() {
-    const enterpriseAccount = this.props.accounts.find(isEnterpriseAccount)
-
-    return enterpriseAccount
-      ? this.renderAccount(enterpriseAccount, SignInType.Enterprise)
-      : this.renderSignIn(SignInType.Enterprise)
   }
 
   private renderMultipleEnterpriseAccounts() {
@@ -68,7 +57,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
           this.renderSignIn(SignInType.Enterprise)
         ) : (
           <Button onClick={this.props.onEnterpriseSignIn}>
-            Add GitHub Enteprise account
+            Add GitHub Enterprise account
           </Button>
         )}
       </>
@@ -93,8 +82,7 @@ export class Accounts extends React.Component<IAccountsProps, {}> {
         <div className="user-info-container">
           <Avatar accounts={this.props.accounts} user={avatarUser} />
           <div className="user-info">
-            {enableMultipleEnterpriseAccounts() &&
-            isEnterpriseAccount(account) ? (
+            {isEnterpriseAccount(account) ? (
               <>
                 <div className="account-title">
                   {account.name === account.login

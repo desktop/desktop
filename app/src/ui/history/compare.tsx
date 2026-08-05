@@ -33,6 +33,7 @@ import { doMergeCommitsExistAfterCommit } from '../../lib/git'
 import { KeyboardInsertionData } from '../lib/list'
 import { Account } from '../../models/account'
 import { Emoji } from '../../lib/emoji'
+import { formatNumber } from '../../lib/format-number'
 
 interface ICompareSidebarProps {
   readonly repository: Repository
@@ -60,8 +61,8 @@ interface ICompareSidebarProps {
   readonly isMultiCommitOperationInProgress?: boolean
   readonly shasToHighlight: ReadonlyArray<string>
   readonly accounts: ReadonlyArray<Account>
+  readonly preferAbsoluteDates: boolean
 }
-
 interface ICompareSidebarState {
   /**
    * This branch should only be used when tracking interactions that the user is performing.
@@ -285,6 +286,7 @@ export class CompareSidebar extends React.Component<
         }
         keyboardReorderData={this.state.keyboardReorderData}
         accounts={this.props.accounts}
+        preferAbsoluteDates={this.props.preferAbsoluteDates}
       />
     )
   }
@@ -418,8 +420,10 @@ export class CompareSidebar extends React.Component<
     return (
       <div className="compare-content">
         <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
-          <span>{`Behind (${formState.aheadBehind.behind})`}</span>
-          <span>{`Ahead (${formState.aheadBehind.ahead})`}</span>
+          <span>{`Behind (${formatNumber(
+            formState.aheadBehind.behind
+          )})`}</span>
+          <span>{`Ahead (${formatNumber(formState.aheadBehind.ahead)})`}</span>
         </TabBar>
         {this.renderActiveTab(formState)}
       </div>

@@ -1,7 +1,7 @@
 import * as path from 'path'
 import { promisify } from 'util'
 
-import { licenseOverrides } from './license-overrides'
+import { copilotCLILicenseName, licenseOverrides } from './license-overrides'
 
 import _legalEagle from 'legal-eagle'
 const legalEagle = promisify(_legalEagle)
@@ -12,7 +12,11 @@ import { readFile, writeFile } from 'fs/promises'
 const assertValidLicensesIn = async (dir: string) => {
   const summary = await legalEagle({
     path: dir,
-    overrides: licenseOverrides,
+    // Make sure we pass a copy of the overrides to legal-eagle so that we don't
+    // mutate the original object later when we `delete summary[key]`.
+    // This is because legal-eagle returns the overrides object:
+    // https://github.com/atom/legal-eagle/blob/b78443856a964f38c543c66b3b4feff5411c1167/src/legal-eagle.coffee#L11
+    overrides: structuredClone(licenseOverrides),
     omitPermissive: true,
   })
 
@@ -23,6 +27,7 @@ const assertValidLicensesIn = async (dir: string) => {
     'Python-2.0',
     'MPL-2.0',
     'CC0-1.0',
+    copilotCLILicenseName,
   ]
 
   for (const key in summary) {
@@ -58,7 +63,7 @@ export async function updateLicenseDump(
 
   const summary = await legalEagle({
     path: appRoot,
-    overrides: licenseOverrides,
+    overrides: structuredClone(licenseOverrides),
   })
 
   // legal-eagle still chooses to ignore the LICENSE at the root

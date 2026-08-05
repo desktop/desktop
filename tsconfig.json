@@ -16,7 +16,7 @@
     "strict": true,
     "outDir": "./out",
     "useUnknownInCatchVariables": false,
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable", "ESNext.Array"],
     "types": ["node"]
   },
   "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],

@@ -23,6 +23,9 @@ interface ICICheckRunListProps {
   /** Showing a condensed view */
   readonly isCondensedView?: boolean
 
+  /** Whether the check run status has a tooltip */
+  readonly hasStatusTooltip?: boolean
+
   /** Callback to opens check runs target url (maybe GitHub, maybe third party) */
   readonly onViewCheckDetails?: (checkRun: IRefCheck) => void
 
@@ -167,6 +170,7 @@ export class CICheckRunList extends React.PureComponent<
           onRerunJob={this.props.onRerunJob}
           isCondensedView={this.props.isCondensedView}
           isHeader={false}
+          hasStatusTooltip={this.props.hasStatusTooltip}
         />
       )
     })

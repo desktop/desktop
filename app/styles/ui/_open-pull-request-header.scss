@@ -1,0 +1,12 @@
+.lines-added-deleted {
+  margin-left: auto;
+  font-size: var(--font-size-sm);
+
+  .lines-added {
+    color: var(--color-new);
+  }
+
+  .lines-deleted {
+    color: var(--color-deleted);
+  }
+}

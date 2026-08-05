@@ -2,7 +2,10 @@ import * as React from 'react'
 import { Dispatcher } from '../dispatcher'
 import * as octicons from '../octicons/octicons.generated'
 import { OcticonSymbol, syncClockwise } from '../octicons'
-import { Repository } from '../../models/repository'
+import {
+  isRepositoryWithGitHubRepository,
+  Repository,
+} from '../../models/repository'
 import { Resizable } from '../resizable'
 import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
@@ -110,6 +113,8 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
         emoji={this.props.emoji}
         onDeleteBranch={this.onDeleteBranch}
         onRenameBranch={this.onRenameBranch}
+        onCheckoutInNewWorktree={this.onCheckoutInNewWorktree}
+        onCheckoutPRInNewWorktree={this.onCheckoutPRInNewWorktree}
         underlineLinks={this.props.underlineLinks}
       />
     )
@@ -305,10 +310,16 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       return
     }
 
+    const { branch } = tip
+
     const items = generateBranchContextMenuItems({
-      name: tip.branch.name,
-      isLocal: tip.branch.type === BranchType.Local,
+      branch,
       onRenameBranch: this.onRenameBranch,
+      onViewBranchOnGitHub:
+        isRepositoryWithGitHubRepository(this.props.repository) &&
+        tip.branch.upstreamRemoteName
+          ? this.onViewBranchOnGitHub
+          : undefined,
       onViewPullRequestOnGitHub: this.props.currentPullRequest
         ? this.onViewPullRequestOnGithub
         : undefined,
@@ -336,6 +347,29 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       repository: this.props.repository,
       branch,
     })
+  }
+
+  private onViewBranchOnGitHub = () => {
+    const tip = this.props.repositoryState.branchesState.tip
+    const gitHubRepository = this.props.repository.gitHubRepository
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    if (!gitHubRepository || gitHubRepository.htmlURL === null) {
+      return
+    }
+
+    if (!tip.branch.upstreamWithoutRemote) {
+      return
+    }
+
+    const url = `${gitHubRepository.htmlURL}/tree/${encodeURIComponent(
+      tip.branch.upstreamWithoutRemote
+    )}`
+
+    this.props.dispatcher.openInBrowser(url)
   }
 
   private onViewPullRequestOnGithub = () => {
@@ -374,6 +408,26 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       repository,
       branch,
       existsOnRemote: aheadBehind !== null,
+    })
+  }
+
+  private onCheckoutInNewWorktree = (branch: Branch) => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    this.props.dispatcher.showPopup({
+      type: PopupType.AddWorktree,
+      repository: this.props.repository,
+      initialBranchName: branch.name,
+      initialWorktreeName: `${this.props.repository.name}-${branch.nameWithoutRemote}`,
+    })
+  }
+
+  private onCheckoutPRInNewWorktree = (pullRequest: PullRequest) => {
+    this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+    this.props.dispatcher.showPopup({
+      type: PopupType.AddWorktree,
+      repository: this.props.repository,
+      initialBranchName: pullRequest.head.ref,
+      initialWorktreeName: `${this.props.repository.name}-${pullRequest.pullRequestNumber}`,
     })
   }
 

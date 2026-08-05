@@ -5,6 +5,7 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { Dispatcher } from '../dispatcher'
 import { Button } from '../lib/button'
+import { formatNumber } from '../../lib/format-number'
 
 interface IMergeCallToActionProps {
   readonly repository: Repository
@@ -52,7 +53,7 @@ export class MergeCallToAction extends React.Component<
       return (
         <div className="merge-message merge-message-legacy">
           This will merge
-          <strong>{` ${count} ${pluralized}`}</strong>
+          <strong>{` ${formatNumber(count)} ${pluralized}`}</strong>
           {` `}
           from
           {` `}

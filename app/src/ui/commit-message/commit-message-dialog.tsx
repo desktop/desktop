@@ -13,7 +13,7 @@ import { Author, UnknownAuthor } from '../../models/author'
 import { CommitMessage } from '../changes/commit-message'
 import noop from 'lodash/noop'
 import { Popup } from '../../models/popup'
-import { Foldout } from '../../lib/app-state'
+import { CommitOptions, Foldout } from '../../lib/app-state'
 import { Account } from '../../models/account'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
@@ -95,6 +95,39 @@ interface ICommitMessageDialogProps {
 
   readonly repositoryAccount: Account | null
   readonly accounts: ReadonlyArray<Account>
+
+  /**
+   * Whether or not to skip blocking commit hooks when creating commits
+   * by means of passing the `--no-verify` flag to git commit
+   */
+  readonly skipCommitHooks: boolean
+
+  /**
+   * Whether or not to add a `Signed-off-by` trailer to commit messages
+   * by means of passing the `--signoff` flag to git commit
+   */
+  readonly signOffCommits: boolean
+
+  /**
+   * Whether or not to allow creating a commit without any file changes
+   * by means of passing the `--allow-empty` flag to git commit.
+   * This option resets to false after each commit.
+   */
+  readonly allowEmptyCommit: boolean
+
+  /**
+   * Whether or not to show the "Allow empty commit" option in the commit
+   * options context menu. Defaults to false since CommitMessageDialog is
+   * currently only used for squash commits where empty commits are not
+   * applicable.
+   */
+  readonly showAllowEmptyCommitOption?: boolean
+
+  /** Callback to set commit options for the given repository */
+  readonly onUpdateCommitOptions: (
+    repository: Repository,
+    options: Partial<CommitOptions>
+  ) => void
 }
 
 interface ICommitMessageDialogState {
@@ -164,6 +197,16 @@ export class CommitMessageDialog extends React.Component<
             onStopAmending={this.onStopAmending}
             onShowCreateForkDialog={this.onShowCreateForkDialog}
             accounts={this.props.accounts}
+            isCommitting={false}
+            hookProgress={null}
+            onShowCommitProgress={undefined}
+            skipCommitHooks={this.props.skipCommitHooks}
+            signOffCommits={this.props.signOffCommits}
+            allowEmptyCommit={this.props.allowEmptyCommit}
+            showAllowEmptyCommitOption={
+              this.props.showAllowEmptyCommitOption ?? false
+            }
+            onUpdateCommitOptions={this.props.onUpdateCommitOptions}
           />
         </DialogContent>
       </Dialog>

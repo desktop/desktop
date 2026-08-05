@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { getNextPagePathWithIncreasingPageSize } from '../../src/lib/api'
+import { API, getNextPagePathWithIncreasingPageSize } from '../../src/lib/api'
+import { CopilotError } from '../../src/lib/copilot-error'
 import * as URL from 'url'
 
 interface IPageInfo {
@@ -126,6 +127,51 @@ describe('API', () => {
       assertNext({ per_page: 100, page: 8 }, { per_page: 100, page: 8 })
       assertNext({ per_page: 100, page: 9 }, { per_page: 100, page: 9 })
       assertNext({ per_page: 100, page: 10 }, { per_page: 100, page: 10 })
+    })
+  })
+
+  describe('getDiffChangesCommitMessage', () => {
+    it('preserves structured payment required errors for the legacy Copilot API path', async () => {
+      const api = new API(
+        'https://api.github.com',
+        'token',
+        'https://copilot.example.com'
+      )
+
+      Reflect.set(
+        api,
+        'request',
+        async () =>
+          new Response(
+            JSON.stringify({
+              error: {
+                code: 'quota_exceeded',
+                message:
+                  'You have used all available Copilot premium requests.',
+              },
+            }),
+            {
+              status: 402,
+              headers: {
+                'Retry-After': '300',
+              },
+            }
+          )
+      )
+
+      await assert.rejects(
+        () => api.getDiffChangesCommitMessage('diff --git a/file b/file'),
+        error => {
+          assert(error instanceof CopilotError)
+          assert.equal(error.code, 'quota_exceeded')
+          assert.equal(
+            error.message,
+            'You have used all available Copilot premium requests.'
+          )
+          assert.equal(error.retryAfter, '300')
+          return true
+        }
+      )
     })
   })
 })

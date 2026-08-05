@@ -8,7 +8,7 @@ import { getStatusOrThrow } from '../../helpers/status'
 import { setupFixtureRepository } from '../../helpers/repositories'
 import { exec } from 'dugite'
 
-import * as FSE from 'fs-extra'
+import { unlink, writeFile } from 'fs/promises'
 
 describe('git/reset', () => {
   describe('reset', () => {
@@ -20,7 +20,7 @@ describe('git/reset', () => {
       const fileName = 'README.md'
       const filePath = path.join(repoPath, fileName)
 
-      await FSE.writeFile(filePath, 'Hi world\n')
+      await writeFile(filePath, 'Hi world\n')
 
       await reset(repository, GitResetMode.Hard, 'HEAD')
 
@@ -39,11 +39,11 @@ describe('git/reset', () => {
       const filePath = path.join(repoPath, fileName)
 
       // modify the file
-      await FSE.writeFile(filePath, 'Hi world\n')
+      await writeFile(filePath, 'Hi world\n')
 
       // stage the file, then delete it to mimic discarding
       exec(['add', fileName], repoPath)
-      await FSE.unlink(filePath)
+      await unlink(filePath)
 
       await resetPaths(repository, GitResetMode.Mixed, 'HEAD', [filePath])
 

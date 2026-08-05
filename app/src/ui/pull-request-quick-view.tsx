@@ -41,6 +41,7 @@ interface IPullRequestQuickViewProps {
 
 interface IPullRequestQuickViewState {
   readonly top: number
+  readonly visibility: 'visible' | 'hidden'
 }
 
 export class PullRequestQuickView extends React.Component<
@@ -61,6 +62,7 @@ export class PullRequestQuickView extends React.Component<
         props.pullRequestItemTop,
         this.quickViewHeight
       ),
+      visibility: 'hidden',
     }
   }
 
@@ -86,6 +88,7 @@ export class PullRequestQuickView extends React.Component<
 
   private onMarkdownParsed = () => {
     this.updateQuickViewPosition()
+    this.setState({ visibility: 'visible' })
   }
 
   private onViewOnGitHub = () => {
@@ -224,13 +227,13 @@ export class PullRequestQuickView extends React.Component<
   }
 
   public render() {
-    const { top } = this.state
+    const { top, visibility } = this.state
     return (
       <div
         className="pull-request-quick-view"
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
-        style={{ top }}
+        style={{ top, visibility }}
         ref={this.quickViewRef}
       >
         <div className="pull-request-quick-view-contents">

@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test'
+import { afterEach, describe, it } from 'node:test'
 import assert from 'node:assert'
 import { TestStatsDatabase } from '../helpers/databases'
 
@@ -12,9 +12,14 @@ describe('StatsStore', () => {
     await statsDb.reset()
     return statsDb
   }
+  let statsDb: TestStatsDatabase
+
+  afterEach(() => {
+    statsDb.close()
+  })
 
   it("unsubscribes from the activity monitor when it's no longer needed", async () => {
-    const statsDb = await createStatsDb()
+    statsDb = await createStatsDb()
     const activityMonitor = new TestActivityMonitor()
 
     new StatsStore(statsDb, activityMonitor, fakePost)
@@ -34,7 +39,7 @@ describe('StatsStore', () => {
   })
 
   it('resubscribes to the activity monitor after submitting', async () => {
-    const statsDb = await createStatsDb()
+    statsDb = await createStatsDb()
     const activityMonitor = new TestActivityMonitor()
 
     const store = new StatsStore(statsDb, activityMonitor, fakePost)

@@ -1,3 +1,4 @@
+import * as Path from 'path'
 import { setupEmptyRepository } from './repositories'
 import { makeCommit, switchTo } from './repository-scaffolding'
 import { exec } from 'dugite'
@@ -68,7 +69,10 @@ export async function setupRepository(
   defaultBranchName: string,
   lastPruneDate?: Date
 ) {
-  let repository = await repositoriesStore.addRepository(path)
+  let repository = await repositoriesStore.addRepository(
+    path,
+    Path.join(path, '.git')
+  )
   if (includesGhRepo) {
     const apiRepo: IAPIFullRepository = {
       clone_url: 'string',

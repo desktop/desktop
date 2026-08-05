@@ -1,0 +1,56 @@
+name: Setup CI Environment
+description: Set up Python, Node.js, optional ffmpeg, and install dependencies.
+
+inputs:
+  node-version:
+    description: Node.js version to use.
+    required: true
+  arch:
+    description: Target architecture for dependency installation.
+    required: true
+  install-ffmpeg:
+    description: Whether to install ffmpeg on Windows.
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.11'
+
+    - name: Use Node.js ${{ inputs.node-version }}
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: yarn
+
+    - name: Install ffmpeg
+      if: ${{ runner.os == 'Windows' && inputs.install-ffmpeg == 'true' }}
+      shell: bash
+      run: choco install ffmpeg --yes --no-progress
+
+    - name: Install and build dependencies
+      shell: bash
+      run: yarn
+      env:
+        npm_config_arch: ${{ inputs.arch }}
+        TARGET_ARCH: ${{ inputs.arch }}
+
+    - name: Install cross-compilation copilot package
+      shell: bash
+      run: |
+        # Map runner.os to Node's process.platform naming
+        case "$RUNNER_OS" in
+          macOS)   PLATFORM=darwin ;;
+          Windows) PLATFORM=win32 ;;
+          Linux)   PLATFORM=linux ;;
+        esac
+
+        PKG="@github/copilot-${PLATFORM}-${{ inputs.arch }}"
+
+        if [ ! -d "app/node_modules/@github/copilot-${PLATFORM}-${{ inputs.arch }}" ]; then
+          echo "Installing ${PKG} for cross-compilation…"
+          cd app && yarn add --optional --ignore-platform --ignore-scripts ${PKG}
+        fi

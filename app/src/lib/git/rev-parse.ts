@@ -4,7 +4,7 @@ import { resolve } from 'path'
 
 export type RepositoryType =
   | { kind: 'bare' }
-  | { kind: 'regular'; topLevelWorkingDirectory: string }
+  | { kind: 'regular'; topLevelWorkingDirectory: string; gitDir: string }
   | { kind: 'missing' }
   | { kind: 'unsafe'; path: string }
 
@@ -22,18 +22,36 @@ export async function getRepositoryType(path: string): Promise<RepositoryType> {
 
   try {
     const result = await git(
-      ['rev-parse', '--is-bare-repository', '--show-cdup'],
+      ['rev-parse', '--is-bare-repository', '--show-cdup', '--git-dir'],
       path,
       'getRepositoryType',
       { successExitCodes: new Set([0, 128]) }
     )
 
     if (result.exitCode === 0) {
-      const [isBare, cdup] = result.stdout.split('\n', 2)
+      // Bare repositories will not include gitdir so we handle that separately
+      if (result.stdout.startsWith('true\n')) {
+        return { kind: 'bare' }
+      }
 
-      return isBare === 'true'
-        ? { kind: 'bare' }
-        : { kind: 'regular', topLevelWorkingDirectory: resolve(path, cdup) }
+      // --is-bare-repository and --show-cdup each produce a single line but
+      // --git-dir could theoretically contain newlines so we parse the known
+      // fields first and treat the remainder as the git dir. We use [\s\S]*
+      // instead of .* for the git dir capture group because .* doesn't match
+      // newlines whereas [\s\S]* matches any character including newlines.
+      const match = result.stdout.match(/^(true|false)\n(.*)\n([\s\S]*)\n$/)
+
+      if (match) {
+        const [, isBare, cdup, gitDir] = match
+
+        return isBare === 'true'
+          ? { kind: 'bare' }
+          : {
+              kind: 'regular',
+              topLevelWorkingDirectory: resolve(path, cdup),
+              gitDir: resolve(path, gitDir),
+            }
+      }
     }
 
     const unsafeMatch =

@@ -1,7 +1,7 @@
 import { describe, it, TestContext } from 'node:test'
 import assert from 'node:assert'
 import * as path from 'path'
-import * as FSE from 'fs-extra'
+import { writeFile } from 'fs/promises'
 import { Repository } from '../../../src/models/repository'
 import {
   getCommit,
@@ -185,7 +185,7 @@ describe('git/tag', () => {
       ).at(0)
       assertNonNullable(branch, `Could not create branch ${branchName}`)
 
-      await FSE.writeFile(path.join(repository.path, 'README.md'), 'Hi world\n')
+      await writeFile(path.join(repository.path, 'README.md'), 'Hi world\n')
       const status = await getStatusOrThrow(repository)
       const files = status.workingDirectory.files
 
@@ -203,7 +203,7 @@ describe('git/tag', () => {
       // Create a new commit on the remote repository so the `git push` command
       // that fetchUnpushedTags() does fails.
       const { repository, originRemote, remoteRepository } = await setup(t)
-      await FSE.writeFile(
+      await writeFile(
         path.join(remoteRepository.path, 'README.md'),
         'Hi world\n'
       )

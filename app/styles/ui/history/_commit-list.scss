@@ -187,3 +187,31 @@
     display: none;
   }
 }
+
+.commit-list-item-tooltip {
+  &.list-item-tooltip {
+    .label {
+      min-width: 35px !important;
+    }
+
+    .author {
+      align-items: center;
+
+      .avatar {
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    .unpushed-indicator {
+      display: inline-flex;
+      flex: 0 0 auto;
+      border-radius: 8px;
+      padding: 0 var(--spacing-half);
+      color: var(--list-item-badge-color);
+      align-items: center;
+      background: var(--list-item-selected-badge-background-color);
+      margin-top: 3px;
+    }
+  }
+}

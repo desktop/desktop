@@ -12,6 +12,7 @@ import {
   RepoRulesMetadataStatus,
 } from '../../src/models/repo-rules'
 import { Repository } from '../../src/models/repository'
+import { getEnforcedRuleDescriptions } from '../../src/lib/stores/copilot-store'
 
 const creationRule: IAPIRepoRule = {
   ruleset_id: 1,
@@ -332,5 +333,69 @@ describe('repo metadata rules', () => {
         'must match the regular expression "(?m)^foo"'
       )
     })
+  })
+})
+
+describe('getEnforcedRuleDescriptions', () => {
+  it('returns an empty array when no rules are configured', async () => {
+    const repoRulesInfo = await parseRepoRules([], rulesets, repo)
+    assert.deepEqual(
+      getEnforcedRuleDescriptions(
+        repoRulesInfo.commitMessagePatterns.getRules()
+      ),
+      []
+    )
+  })
+
+  it('returns descriptions for enforced rules', async () => {
+    // Ruleset 1 has bypass 'never' -> enforced === true
+    const repoRulesInfo = await parseRepoRules(
+      [commitMessagePatternStartsWithRule],
+      rulesets,
+      repo
+    )
+    assert.deepEqual(
+      getEnforcedRuleDescriptions(
+        repoRulesInfo.commitMessagePatterns.getRules()
+      ),
+      ['must start with "abc"']
+    )
+  })
+
+  it('returns descriptions for bypass-able rules (still evaluated by github.com)', async () => {
+    // Ruleset 2 has bypass 'always' -> enforced === 'bypass'
+    const repoRulesInfo = await parseRepoRules(
+      [commitMessagePatternStartsWithBypassRule],
+      rulesets,
+      repo
+    )
+    assert.deepEqual(
+      getEnforcedRuleDescriptions(
+        repoRulesInfo.commitMessagePatterns.getRules()
+      ),
+      ['must start with "abc"']
+    )
+  })
+
+  it('returns descriptions for both enforced and bypass-able rules together', async () => {
+    const repoRulesInfo = await parseRepoRules(
+      [
+        commitMessagePatternStartsWithRule,
+        commitMessagePatternStartsWithBypassRule,
+        commitMessagePatternEndsWithRule,
+      ],
+      rulesets,
+      repo
+    )
+    assert.deepEqual(
+      getEnforcedRuleDescriptions(
+        repoRulesInfo.commitMessagePatterns.getRules()
+      ),
+      [
+        'must start with "abc"',
+        'must start with "abc"',
+        'must not end with "end"',
+      ]
+    )
   })
 })

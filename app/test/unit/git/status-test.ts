@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import * as path from 'path'
-import * as FSE from 'fs-extra'
+import { appendFile, writeFile } from 'fs/promises'
 import { exec } from 'dugite'
 
 import { Repository } from '../../../src/models/repository'
@@ -110,16 +110,16 @@ describe('git/status', () => {
       it('parses conflicted files resulting from popping a stash', async t => {
         const repository = await setupEmptyRepository(t)
         const readme = path.join(repository.path, 'README.md')
-        await FSE.writeFile(readme, '')
+        await writeFile(readme, '')
         await exec(['add', 'README.md'], repository.path)
         await exec(['commit', '-m', 'initial commit'], repository.path)
 
         // write a change to the readme into the stash
-        await FSE.appendFile(readme, generateString())
+        await appendFile(readme, generateString())
         await exec(['stash'], repository.path)
 
         // write a different change to the README and commit it
-        await FSE.appendFile(readme, generateString())
+        await appendFile(readme, generateString())
         await exec(['commit', '-am', 'later commit'], repository.path)
 
         // pop the stash to introduce a conflict into the index
@@ -139,7 +139,7 @@ describe('git/status', () => {
         const repository = await setupConflictedRepoWithMultipleFiles(t)
         const filePath = path.join(repository.path, 'foo')
 
-        await FSE.writeFile(filePath, 'b1b2')
+        await writeFile(filePath, 'b1b2')
         const status = await getStatusOrThrow(repository)
         const files = status.workingDirectory.files
 
@@ -221,10 +221,7 @@ describe('git/status', () => {
         const testRepoPath = await setupFixtureRepository(t, 'test-repo')
         const repository = new Repository(testRepoPath, -1, null, false)
 
-        await FSE.writeFile(
-          path.join(repository.path, 'README.md'),
-          'Hi world\n'
-        )
+        await writeFile(path.join(repository.path, 'README.md'), 'Hi world\n')
 
         const status = await getStatusOrThrow(repository)
         const files = status.workingDirectory.files
@@ -247,7 +244,7 @@ describe('git/status', () => {
       it('reflects renames', async t => {
         const repo = await setupEmptyRepository(t)
 
-        await FSE.writeFile(path.join(repo.path, 'foo'), 'foo\n')
+        await writeFile(path.join(repo.path, 'foo'), 'foo\n')
 
         await exec(['add', 'foo'], repo.path)
         await exec(['commit', '-m', 'Initial commit'], repo.path)
@@ -339,10 +336,7 @@ describe('git/status', () => {
         }
 
         // Modify README.md file. Now the submodule has modified changes.
-        await FSE.writeFile(
-          path.join(submodulePath, 'README.md'),
-          'hello world\n'
-        )
+        await writeFile(path.join(submodulePath, 'README.md'), 'hello world\n')
         await checkSubmoduleChanges({
           modifiedChanges: true,
           untrackedChanges: false,
@@ -351,7 +345,7 @@ describe('git/status', () => {
 
         // Create untracked file in submodule. Now the submodule has both
         // modified and untracked changes.
-        await FSE.writeFile(path.join(submodulePath, 'test'), 'test\n')
+        await writeFile(path.join(submodulePath, 'test'), 'test\n')
         await checkSubmoduleChanges({
           modifiedChanges: true,
           untrackedChanges: true,

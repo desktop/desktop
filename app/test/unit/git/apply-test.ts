@@ -1,20 +1,11 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { exec } from 'dugite'
-import {
-  setupTwoCommitRepo,
-  setupFixtureRepository,
-} from '../../helpers/repositories'
+import { setupFixtureRepository } from '../../helpers/repositories'
 import { Repository } from '../../../src/models/repository'
 import {
-  checkPatch,
   getWorkingDirectoryDiff,
   discardChangesFromSelection,
 } from '../../../src/lib/git'
-import {
-  cloneLocalRepository,
-  makeCommit,
-} from '../../helpers/repository-scaffolding'
 import {
   WorkingDirectoryFileChange,
   AppFileStatusKind,
@@ -25,45 +16,11 @@ import {
   ITextDiff,
 } from '../../../src/models/diff'
 import { findInteractiveDiffRange } from '../../../src/ui/diff/diff-explorer'
-import * as FSE from 'fs-extra'
+import { readFile } from 'fs/promises'
 import * as Path from 'path'
 import { structuredPatch } from 'diff'
 
 describe('git/apply', () => {
-  describe('checkPatch()', () => {
-    describe('on related repository without conflicts', () => {
-      it('returns true', async t => {
-        const originalRepo = await setupTwoCommitRepo(t)
-        const repository = await cloneLocalRepository(t, originalRepo)
-        await makeCommit(originalRepo, {
-          entries: [{ path: 'just-okay-file', contents: 'okay' }],
-        })
-        const result = await exec(
-          ['format-patch', '--stdout', 'HEAD~'],
-          originalRepo.path
-        )
-        const patch = result.stdout
-        assert.equal(await checkPatch(repository, patch), true)
-      })
-    })
-    describe('on a related repo with conflicts', () => {
-      it('returns false', async t => {
-        const originalRepo = await setupTwoCommitRepo(t)
-        const result = await exec(
-          ['format-patch', '--stdout', 'HEAD~'],
-          originalRepo.path
-        )
-        const patch = result.stdout
-        const repository = await cloneLocalRepository(t, originalRepo)
-        await makeCommit(repository, {
-          entries: [{ path: 'good-file', contents: 'okay' }],
-        })
-
-        assert.equal(await checkPatch(repository, patch), false)
-      })
-    })
-  })
-
   describe('discardChangesFromSelection()', () => {
     async function getDiff(repository: Repository, filePath: string) {
       const file = new WorkingDirectoryFileChange(
@@ -121,7 +78,7 @@ describe('git/apply', () => {
         DiffSelectionType.None
       ).withLineSelection(4, true)
 
-      const previousContents = await FSE.readFile(
+      const previousContents = await readFile(
         Path.join(repository.path, filePath),
         'utf8'
       )
@@ -133,7 +90,7 @@ describe('git/apply', () => {
         selection
       )
 
-      const fileContents = await FSE.readFile(
+      const fileContents = await readFile(
         Path.join(repository.path, filePath),
         'utf8'
       )
@@ -162,14 +119,14 @@ describe('git/apply', () => {
         true
       )
 
-      const previousContents = await FSE.readFile(
+      const previousContents = await readFile(
         Path.join(repository.path, filePath),
         'utf8'
       )
 
       await discardChangesFromSelection(repository, filePath, diff, selection)
 
-      const fileContents = await FSE.readFile(
+      const fileContents = await readFile(
         Path.join(repository.path, filePath),
         'utf8'
       )
@@ -193,7 +150,7 @@ describe('git/apply', () => {
         DiffSelectionType.None
       ).withLineSelection(16, true)
 
-      const previousContents = await FSE.readFile(
+      const previousContents = await readFile(
         Path.join(repository.path, filePath),
         'utf8'
       )
@@ -205,7 +162,7 @@ describe('git/apply', () => {
         selection
       )
 
-      const fileContents = await FSE.readFile(
+      const fileContents = await readFile(
         Path.join(repository.path, filePath),
         'utf8'
       )
@@ -233,7 +190,7 @@ describe('git/apply', () => {
         true
       )
 
-      const previousContents = await FSE.readFile(
+      const previousContents = await readFile(
         Path.join(repository.path, filePath),
         'utf8'
       )
@@ -245,7 +202,7 @@ describe('git/apply', () => {
         selection
       )
 
-      const fileContents = await FSE.readFile(
+      const fileContents = await readFile(
         Path.join(repository.path, filePath),
         'utf8'
       )

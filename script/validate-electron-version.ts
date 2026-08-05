@@ -1,7 +1,7 @@
 /* eslint-disable no-sync */
 /// <reference path="./globals.d.ts" />
 
-import { readFileSync } from 'fs-extra'
+import { readFileSync } from 'fs'
 import { dirname, join } from 'path'
 
 import * as distInfo from './dist-info'
@@ -18,8 +18,8 @@ type ChannelToValidate = 'production' | 'beta'
  * to a previous version of GitHub Desktop without losing all settings.
  */
 const ValidElectronVersions: Record<ChannelToValidate, string> = {
-  production: '36.1.0',
-  beta: '36.1.0',
+  production: '42.0.1',
+  beta: '42.0.1',
 }
 
 // Only when we get a RELEASE_CHANNEL we know we're in the middle of a deployment.

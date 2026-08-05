@@ -1,100 +1,41 @@
-# Pull Request Triage
+# Pull Request Review Process
 
-This document outlines how the Desktop team handles pull requests, to ensure
-a consistent process for contributions from the core team and the community.
+This document describes how pull requests are handled in [desktop/desktop](https://github.com/desktop/desktop).
 
-## The Review Process
+## Review Team
 
-1. **Contributor** opens a pull request. If the pull request is still in progress
-   it should be created in draft mode.
-1. When a pull request in progress is ready, the **contributor** should mark it
-   as ready for review.
-1. A member of the reviewer team will give it a quick look over and
-   add the `ready-for-review` label and add it to any relevant release board.
-1. A **reviewer** with bandwidth will appear.
-1. **Reviewer** assigns the PR to themselves.
-1. **Reviewer** leaves line comments with suggestions or questions.
-1. When the **reviewer** is done they comment on the PR with an emoji, meme,
-   pokémon, or words to that effect.
-1. The **contributor** responds to feedback, makes changes, etc.
-1. When the **contributor** is ready for the **reviewer** to re-review, they
-   comment on the PR with an emoji, meme, pokémon or words to that effect.
-1. Goto 6 until both parties are happy with the PR.
-1. The **reviewer** hits the big green merge button and deletes the branch (if
-    applicable).
+Desktop pull requests are reviewed by the `desktop/code-reviewers` team. Reviews are distributed via GitHub's **load-balanced code review assignment**, which considers each member's recent review requests and outstanding reviews.
 
-Merged contributions are first published to the beta channel (we aim to publish
-new versions weekly if contributions are available) before then being
-published to the production channel (we aim to publish new versions on a monthly
-cadence).
+## Review Ownership
 
-### When The Review Is Done
+The **Assignee** field indicates who owns the review process for a contribution. While others are welcome to add reviews, the assignee is responsible for seeing the PR through to completion. Assignees can request additional reviews from engineers with relevant domain expertise.
 
-We're using GitHub's review tools to co-ordinate feedback, and we like to be
-methodical with our reviews, so you'll probably end up with one of two results:
+## Internal Pull Requests
 
- - **Approved**: nothing else to do; the contribution is great! :gem:
- - **Request Changes**: there are things to address; reviewer provides details :memo:
-
-Reviews can take a few iterations, especially for large contributions. Don't
-be disheartened if you feel it takes time - we just want to ensure each
-contribution is high-quality and that any outstanding questions are resolved,
-captured or documented for posterity.
-
-### Assignees
-
-The reviewers team uses the **Assignee** field to indicate who "owns" the review
-process for a contribution. While others can add their reviews to a pull request -
-and large features will likely have multiple reviewers - it's up to the assignee
-to take charge of the process and see it through to the end.
-
-If a reviewer is feeling overloaded, or if a review has stalled, the reviewer may
-remove themselves from a pull request. This helps others know where they can help
-out to share the load.
-
-### Everyone Reviews
-
-While everyone has their own domain expertise around the codebase, we encourage
-people to share the load of reviews and reviewing areas of the codebase that
-aren't as familiar. This spreads knowledge across the team
-
-### 24 Hours Cooling Off
-
-After being approved, most contributions will remain in this state for at least
-24 hours before merging. The review team does this to ensure everyone on the team,
-who are normally spread around the world, has a chance to provide feedback about
-the changes.
+1. **Contributor** opens a pull request (use draft mode if still in progress).
+2. When ready, the contributor marks it ready for review.
+3. A reviewer is **auto-assigned** via load-balanced code review assignment.
+4. **Reviewer** leaves feedback; contributor responds and iterates.
+5. Once approved, follow the [24-hour cooling-off period](#24-hour-cooling-off-period) before merging.
 
 ### No Self-Merges Without Review
 
-We encourage a strong review culture, and contributors should not merge their
-own PRs unless there are exceptional reasons.
+Contributors should not merge their own PRs unless there are exceptional reasons (e.g., urgent CI fixes or packaging hotfixes). These should be called out with an explanation for bypassing the review process.
 
-Examples of exceptional situations:
+## External Pull Requests
 
-- [#2733](https://github.com/desktop/desktop/pull/2733) was pinning a dependency
-  that affected our continuous integration tests by installing the incorrect
-  version
+External PRs follow this workflow:
 
-- [#4319](https://github.com/desktop/desktop/pull/4319) was a minor packaging
-  change introduced unexpectedly on `development` but would affect everyone when they
-  updated their local repositories.
+1. **Initial triage** — PR receives the `external` and `needs-triage` labels. The First Responder performs a quick validity check:
+   - Spam or AI sludge → Add `invalid` (auto-closes)
+   - Not linked to a help-wanted issue → Add `no-help-wanted-issue` (auto-closes with comment)
+   - Tiny fix (e.g., typo) → Review, test, and merge directly
+   - Valid → Add `ready-for-review` and run CI (auto-removes `needs-triage`, auto-posts acknowledging comment)
+2. **Review assignment** — The auto-assigned reviewer does not act until `ready-for-review` is applied.
+3. **Requesting changes** — If changes are requested, the `contributor-input-needed` label is auto-added (removes `ready-for-review`). When the contributor responds, `ready-for-review` is re-applied automatically.
+4. **Stale PR handling** — If no activity for 7 days, an automated message asks if the contributor is still interested. After another 7 days of inactivity, the PR auto-closes.
 
-These should be called out by the merging person with an explanation for why they are bypassing the review process.
+## 24-Hour Cooling-Off Period
 
-### Stale Pull Requests
+After approval, most contributions remain in this state for at least 24 hours before merging. This ensures all team members across time zones have a chance to provide feedback.
 
-A reviewer will return to an **open and reviewed** pull request if, after 14
-days:
-
- - no response has been received from the contributor, or
- - no new commits have been made to the pull request
-
-This is done to ensure we keep the number of reviews under control.
-
-The reviewer should ask if the contributor is still interested in working on
-this, and indicate that they are welcome to open a fresh pull request later if
-they lack the time currently to continue on.
-
-If it's agreed to put this contribution on hold, or if no feedback is
-received after 3 days, the pull request will be closed.

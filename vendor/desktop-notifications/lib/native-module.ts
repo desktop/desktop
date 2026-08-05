@@ -2,7 +2,6 @@ import { supportsNotifications } from './notification-support'
 import { notificationCallback } from './notification-callback'
 import { DesktopNotificationPermission } from './notification-permission'
 import { INotificationOptions } from './notification-options'
-import { v4 as uuidv4 } from 'uuid'
 
 // The native binary will be loaded lazily to avoid any possible crash at start
 // time, which are harder to trace.
@@ -53,7 +52,7 @@ export const showNotification: (
   body: string,
   userInfo?: Record<string, any>
 ) => Promise<string | null> = async (...args) => {
-  const id = uuidv4()
+  const id = crypto.randomUUID()
   try {
     await getNativeModule()?.showNotification(id, ...args)
   } catch (e) {

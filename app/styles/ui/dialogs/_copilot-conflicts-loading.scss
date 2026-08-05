@@ -1,0 +1,97 @@
+dialog#copilot-conflicts-loading {
+  width: 560px;
+
+  div.dialog-header {
+    height: auto;
+    flex-wrap: wrap;
+    padding-bottom: var(--spacing);
+
+    h1 {
+      width: auto;
+    }
+
+    .copilot-conflicts-loading-model {
+      flex-basis: 100%;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary-color);
+      font-weight: var(--font-weight-normal);
+    }
+  }
+
+  .copilot-conflicts-loading-footer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+
+    .copilot-conflicts-loading-stop {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-half);
+      // The icon-plus-label is much narrower than the dialog's default
+      // 120px footer button width, which left a lot of dead space to
+      // the right of the label. Let it size to its content instead.
+      min-width: 0;
+
+      .copilot-conflicts-loading-stop-icon {
+        color: var(--error-color);
+        width: 12px;
+        height: 12px;
+      }
+    }
+  }
+
+  .copilot-conflicts-loading-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-half);
+    padding: 0;
+
+    .copilot-conflicts-loading-theme {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: var(--spacing-half);
+      color: var(--text-color);
+      font-weight: var(--font-weight-semibold);
+
+      .copilot-conflicts-loading-theme-icon {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+      }
+    }
+
+    .copilot-conflicts-loading-log {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: var(--spacing-half);
+      // Indent under the theme text so messages appear to belong to the
+      // current theme. The icon (16px) plus the spacing-half gap equals
+      // the offset of the theme label from the left edge.
+      padding-left: calc(16px + var(--spacing-half));
+      height: 130px;
+      overflow: hidden;
+      // A very subtle fade on the top edge so older messages soften
+      // as they roll off, but only once the log fills up enough to
+      // actually scroll.
+      &.is-scrolling {
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0, rgba(0, 0, 0, 1) 24px);
+        -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0, rgba(0, 0, 0, 1) 24px);
+      }
+
+      .copilot-conflicts-loading-log-line {
+        color: var(--text-secondary-color);
+        margin: 0;
+        line-height: 1.4em;
+        flex-shrink: 0;
+        // Latest entry pops to full color so it's clearly the live one.
+        &:last-child {
+          color: var(--text-color);
+        }
+      }
+    }
+  }
+}

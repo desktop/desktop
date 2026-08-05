@@ -33,7 +33,7 @@ export class EmojiFilter implements INodeFilter {
    * Emoji filter iterates on all text nodes that are not inside a pre or code tag.
    */
   public createFilterTreeWalker(doc: Document): TreeWalker {
-    return doc.createTreeWalker(doc, NodeFilter.SHOW_TEXT, {
+    return doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
       acceptNode: function (node) {
         return node.parentNode !== null &&
           ['CODE', 'PRE'].includes(node.parentNode.nodeName)
