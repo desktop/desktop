@@ -414,7 +414,7 @@ function getInitialRepositoryState(): IRepositoryState {
       mergeStatus: null,
       showBranchList: false,
       filterText: '',
-      isCommitSearch: false,
+      isCommitSearch: true,
       commitFilterText: '',
       isSearchingCommits: false,
       commitSHAs: [],
