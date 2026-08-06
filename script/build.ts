@@ -185,7 +185,10 @@ function packageApp() {
     out: getDistRoot(),
     // Packager probes for a sibling .icon file and requires macOS 26 to compile
     // it. Use a distinct basename so older build hosts use the prebuilt ICNS.
-    icon: join(iconPath, 'icon-logo-legacy.icns'),
+    icon: join(
+      iconPath,
+      process.platform === 'darwin' ? 'icon-logo-legacy.icns' : 'icon-logo'
+    ),
     extraResource: [assetsCarPath],
     dir: outRoot,
     overwrite: true,
