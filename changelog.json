@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.6.4-beta2": [
+      "[Fixed] Restore keyboard focus to the control that opened a nested dialog after that nested dialog is dismissed, fixing an accessibility focus-order issue",
+      "[Fixed] Persist the main worktree path so Desktop can recover a repository after a linked worktree is removed, even after git prunes its worktree metadata. Thanks @francisrath!"
+    ],
     "3.6.4-beta1": [
       "[Added] Add Copilot usage info, moving custom provider configuration into a link from the Copilot model picker and adding better support for accounts with multiple Copilot licenses",
       "[Fixed] Disable Continue in the Copilot conflict resolution dialog until every file skipped by Copilot (e.g. minified or oversized conflicts) has been resolved, and list those files separately for manual resolution",
