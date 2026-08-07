@@ -1,7 +1,6 @@
 {
   "releases": {
     "3.6.4-beta2": [
-      "[Fixed] Fix Apple notarization failures that were blocking new app releases by migrating from the deprecated electron-packager to @electron/packager",
       "[Fixed] Restore keyboard focus to the control that opened a nested dialog after that nested dialog is dismissed, fixing an accessibility focus-order issue",
       "[Fixed] Persist the main worktree path so Desktop can recover a repository after a linked worktree is removed, even after git prunes its worktree metadata. Thanks @francisrath!"
     ],
