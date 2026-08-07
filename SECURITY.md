@@ -1,5 +1,4 @@
-GitHub takes the security of our software products and services seriously, including the open source code repositories managed through our GitHub organizations, such as [GitHub](https://github.com/GitHub).
-
+Github takes the security of our software products and services seriously, including the open source code repositories managed through our GitHub directly
 If you believe you have found a security vulnerability in this GitHub-owned open source repository, you can report it to us in one of two ways.
 
 If the vulnerability you have found is *not* [in scope for the GitHub Bug Bounty Program](https://bounty.github.com/#scope) or if you do not wish to be considered for a bounty reward, please report the issue to us directly using [private vulnerability reporting](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability).
