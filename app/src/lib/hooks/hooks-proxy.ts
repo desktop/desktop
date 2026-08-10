@@ -179,6 +179,8 @@ export const createHooksProxy = (
       return
     }
 
+    // Git for Windows treats --to-stdin as a file path and can't open
+    // /dev/stdin, so use a named pipe to stream stdin instead.
     const stdinPath = __WIN32__
       ? `\\\\.\\pipe\\desktop-stdin-${randomUUID()}`
       : '/dev/stdin'
