@@ -224,9 +224,22 @@ export const createHooksProxy = (
     }
 
     if (hasStdin && stdinPath) {
-      await pipeline(conn.stdin, createWriteStream(stdinPath), {
-        signal: abortController.signal,
-      })
+      try {
+        await pipeline(conn.stdin, createWriteStream(stdinPath), {
+          signal: abortController.signal,
+        })
+      } catch (error) {
+        const message = abortController.signal.aborted
+          ? `hook ${hookName} aborted`
+          : `Failed to buffer stdin for ${hookName} hook: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+
+        debug(message, error instanceof Error ? error : undefined)
+        await exitWithError(conn, message)
+        onHookProgress?.({ hookName, status: 'failed' })
+        return
+      }
     }
 
     const { code, signal } = await new Promise<{
