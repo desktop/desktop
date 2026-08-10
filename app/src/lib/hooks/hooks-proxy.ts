@@ -257,7 +257,7 @@ export const createHooksProxy = (
       } else if (stdinServer) {
         stdinSocket?.then(socket => {
           conn.stdin.pipe(socket).on('error', reject)
-        })
+        }, reject)
       }
     }).finally(() => {
       stdinServer?.close()
