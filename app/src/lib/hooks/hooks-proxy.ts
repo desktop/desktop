@@ -182,7 +182,10 @@ export const createHooksProxy = (
     }
 
     const stdinPath = hasStdin
-      ? join(tmpHooksDir, `${hookName}.stdin`)
+      ? join(
+          tmpHooksDir,
+          `${hookName}-${crypto.randomUUID().slice(0, 8)}.stdin`
+        )
       : undefined
 
     const args = [
