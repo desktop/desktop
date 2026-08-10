@@ -220,6 +220,7 @@ export const createHooksProxy = (
 
     let stdinServer: Server | undefined = undefined
     let stdinSocket: Promise<Socket> | undefined = undefined
+    let connectedStdinSocket: Socket | undefined = undefined
 
     if (__WIN32__ && hasStdin) {
       debug(`creating stdin server for hook ${hookName} at ${stdinPath}`)
@@ -256,10 +257,15 @@ export const createHooksProxy = (
         conn.stdin.pipe(child.stdin).on('error', reject)
       } else if (stdinServer) {
         stdinSocket?.then(socket => {
+          connectedStdinSocket = socket
           conn.stdin.pipe(socket).on('error', reject)
         }, reject)
       }
     }).finally(() => {
+      if (connectedStdinSocket) {
+        conn.stdin.unpipe(connectedStdinSocket)
+        connectedStdinSocket.destroy()
+      }
       stdinServer?.close()
     })
 
