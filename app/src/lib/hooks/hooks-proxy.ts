@@ -6,6 +6,7 @@ import { resolveGitBinary } from 'dugite'
 import { ShellEnvResult } from './get-shell-env'
 import { shellFriendlyNames } from './config'
 import { Writable } from 'stream'
+import { pipeline } from 'stream/promises'
 import { promisify } from 'util'
 import memoizeOne from 'memoize-one'
 import which from 'which'
@@ -157,6 +158,7 @@ export const createHooksProxy = (
 
     const abortController = new AbortController()
     const abort = () => abortController.abort()
+    conn.on('close', abort)
 
     await writeline(conn.stderr, `Running ${hookName} hook...`)
     onHookProgress?.({ hookName, status: 'started', abort })
@@ -219,14 +221,8 @@ export const createHooksProxy = (
     }
 
     if (hasStdin && stdinPath) {
-      await new Promise<void>((resolve, reject) => {
-        conn.stdin
-          .pipe(
-            createWriteStream(stdinPath, 'binary')
-              .on('finish', resolve)
-              .on('error', reject)
-          )
-          .on('error', reject)
+      await pipeline(conn.stdin, createWriteStream(stdinPath), {
+        signal: abortController.signal,
       })
     }
 
@@ -234,8 +230,6 @@ export const createHooksProxy = (
       code: number | null
       signal: NodeJS.Signals | null
     }>((resolve, reject) => {
-      conn.on('close', abort)
-
       const child = spawn(gitPath, args, {
         cwd: proxyCwd,
         // GITHUB_DESKTOP lets hooks know they're run from GitHub Desktop.
