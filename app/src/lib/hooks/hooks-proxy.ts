@@ -1,5 +1,5 @@
 import { execFile, spawn } from 'child_process'
-import { basename, resolve } from 'path'
+import { basename, join, resolve } from 'path'
 import { ProcessProxyConnection as Connection } from 'process-proxy'
 import type { HookCallbackOptions } from '../git'
 import { resolveGitBinary } from 'dugite'
@@ -9,6 +9,7 @@ import { Writable } from 'stream'
 import { promisify } from 'util'
 import memoizeOne from 'memoize-one'
 import which from 'which'
+import { createWriteStream } from 'fs'
 
 const execFileAsync = promisify(execFile)
 
@@ -141,6 +142,7 @@ const ensureGitExecPathEnv = async (shellEnv: ShellEnvResult) => {
 
 export const createHooksProxy = (
   getShellEnv: (cwd: string) => Promise<ShellEnvResult>,
+  tmpHooksDir: string,
   onHookProgress?: HookCallbackOptions['onHookProgress'],
   onHookFailure?: HookCallbackOptions['onHookFailure']
 ) => {
@@ -177,6 +179,10 @@ export const createHooksProxy = (
       return
     }
 
+    const stdinPath = hasStdin
+      ? join(tmpHooksDir, `${hookName}.stdin`)
+      : undefined
+
     const args = [
       ...['hook', 'run', hookName],
       // We always copy our pre-auto-gc hook in order to be able to tell the
@@ -185,7 +191,7 @@ export const createHooksProxy = (
       // pre-auto-gc hook configured themselves, so we tell Git to ignore
       // missing hooks here.
       ...(hookName === 'pre-auto-gc' ? ['--ignore-missing'] : []),
-      ...(hasStdin ? ['--to-stdin=/dev/stdin'] : []),
+      ...(hasStdin ? [`--to-stdin=${stdinPath}`] : []),
       '--',
       ...proxyArgs.slice(1),
     ]
@@ -210,6 +216,18 @@ export const createHooksProxy = (
       errMsg += '\n\nConfigure the shell to use in Preferences > Git > Hooks.'
 
       return exitWithError(conn, errMsg)
+    }
+
+    if (hasStdin && stdinPath) {
+      await new Promise<void>((resolve, reject) => {
+        conn.stdin
+          .pipe(
+            createWriteStream(stdinPath, 'binary')
+              .on('finish', resolve)
+              .on('error', reject)
+          )
+          .on('error', reject)
+      })
     }
 
     const { code, signal } = await new Promise<{
