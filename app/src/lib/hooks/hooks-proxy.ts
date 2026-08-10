@@ -9,6 +9,8 @@ import { Writable } from 'stream'
 import { promisify } from 'util'
 import memoizeOne from 'memoize-one'
 import which from 'which'
+import { randomUUID } from 'crypto'
+import { createServer, Server, Socket } from 'net'
 
 const execFileAsync = promisify(execFile)
 
@@ -177,6 +179,10 @@ export const createHooksProxy = (
       return
     }
 
+    const stdinPath = __WIN32__
+      ? `\\\\.\\pipe\\desktop-stdin-${randomUUID()}`
+      : '/dev/stdin'
+
     const args = [
       ...['hook', 'run', hookName],
       // We always copy our pre-auto-gc hook in order to be able to tell the
@@ -185,7 +191,7 @@ export const createHooksProxy = (
       // pre-auto-gc hook configured themselves, so we tell Git to ignore
       // missing hooks here.
       ...(hookName === 'pre-auto-gc' ? ['--ignore-missing'] : []),
-      ...(hasStdin ? ['--to-stdin=/dev/stdin'] : []),
+      ...(hasStdin ? [`--to-stdin=${stdinPath}`] : []),
       '--',
       ...proxyArgs.slice(1),
     ]
@@ -212,6 +218,19 @@ export const createHooksProxy = (
       return exitWithError(conn, errMsg)
     }
 
+    let stdinServer: Server | undefined = undefined
+    let stdinSocket: Promise<Socket> | undefined = undefined
+
+    if (__WIN32__ && hasStdin) {
+      debug(`creating stdin server for hook ${hookName} at ${stdinPath}`)
+      stdinSocket = new Promise<Socket>((resolve, reject) => {
+        stdinServer = createServer()
+          .on('connection', resolve)
+          .on('error', reject)
+          .listen(stdinPath, () => debug(`waiting for hook connection`))
+      })
+    }
+
     const { code, signal } = await new Promise<{
       code: number | null
       signal: NodeJS.Signals | null
@@ -232,7 +251,16 @@ export const createHooksProxy = (
       // https://github.com/git/git/blob/4cf919bd7b946477798af5414a371b23fd68bf93/hook.c#L73C6-L73C22
       child.stderr.pipe(conn.stderr, { end: false }).on('error', reject)
       child.stderr.on('data', data => terminalOutput.push(data))
-      conn.stdin.pipe(child.stdin).on('error', reject)
+
+      if (!__WIN32__) {
+        conn.stdin.pipe(child.stdin).on('error', reject)
+      } else if (stdinServer) {
+        stdinSocket?.then(socket => {
+          conn.stdin.pipe(socket).on('error', reject)
+        })
+      }
+    }).finally(() => {
+      stdinServer?.close()
     })
 
     const dur = `after ${((Date.now() - startTime) / 1000).toFixed(2)}s`
