@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.6.4": [],
     "3.6.3": [
       "[Fixed] Resolve error that prevented Copilot-based features from working correctly on Windows - #22509",
       "[Fixed] Keep commit message @-mention autocomplete from surfacing users without a profile name when typing queries like \"@null\" - #22414. Thanks @sukanth!",
