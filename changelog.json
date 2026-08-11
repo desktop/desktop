@@ -1,6 +1,10 @@
 {
   "releases": {
-    "3.6.4": [],
+    "3.6.4": [
+      "[Fixed] Update Git for Windows to 2.53.0.windows.4 to address CVE-2026-62960",
+      "[Fixed] Link bundled Git on Linux against OpenSSL-backed libcurl instead of GnuTLS",
+      "[Improved] Update Git Credential Manager to 2.9.0"
+    ],
     "3.6.3": [
       "[Fixed] Resolve error that prevented Copilot-based features from working correctly on Windows - #22509",
       "[Fixed] Keep commit message @-mention autocomplete from surfacing users without a profile name when typing queries like \"@null\" - #22414. Thanks @sukanth!",
