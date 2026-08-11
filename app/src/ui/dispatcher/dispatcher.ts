@@ -2145,6 +2145,11 @@ export class Dispatcher {
     return this.appStore._setConfirmRepositoryRemovalSetting(value)
   }
 
+  /** Sets whether removing repositories from the app or disk is blocked. */
+  public setPreventRepositoryRemovalSetting(value: boolean): Promise<void> {
+    return this.appStore._setPreventRepositoryRemovalSetting(value)
+  }
+
   /**
    * Sets the user's preference so that confirmation to discard changes is not asked
    */

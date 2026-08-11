@@ -47,6 +47,9 @@ interface IRepositoriesListProps {
   /** Whether the user has enabled the setting to confirm removing a repository from the app */
   readonly askForConfirmationOnRemoveRepository: boolean
 
+  /** Whether removing repositories from the app or disk is blocked. */
+  readonly preventRepositoryRemoval: boolean
+
   /** Called when the repository should be removed. */
   readonly onRemoveRepository: (repository: Repositoryish) => void
 
@@ -294,6 +297,7 @@ export class RepositoriesList extends React.Component<
       onOpenInExternalEditor: this.props.onOpenInExternalEditor,
       askForConfirmationOnRemoveRepository:
         this.props.askForConfirmationOnRemoveRepository,
+      preventRepositoryRemoval: this.props.preventRepositoryRemoval,
       externalEditorLabel: this.props.externalEditorLabel,
       onChangeRepositoryAlias: this.onChangeRepositoryAlias,
       onRemoveRepositoryAlias: this.onRemoveRepositoryAlias,

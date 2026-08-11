@@ -385,6 +385,10 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     menuStateBuilder.disable('toggle-stashed-changes')
   }
 
+  if (state.preventRepositoryRemoval) {
+    menuStateBuilder.disable('remove-repository')
+  }
+
   return menuStateBuilder
 }
 

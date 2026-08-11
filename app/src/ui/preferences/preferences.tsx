@@ -42,6 +42,7 @@ import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
 import { Notifications } from './notifications'
 import { Accessibility } from './accessibility'
+import { Restrictions } from './restrictions'
 import { CopilotPreferences } from './copilot'
 import type {
   CopilotFeature,
@@ -94,6 +95,7 @@ interface IPreferencesProps {
   readonly useExternalCredentialHelper: boolean
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
+  readonly preventRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmDiscardStash: boolean
@@ -138,6 +140,7 @@ interface IPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly useExternalCredentialHelper: boolean
   readonly confirmRepositoryRemoval: boolean
+  readonly preventRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
   readonly confirmDiscardStash: boolean
@@ -229,6 +232,7 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: false,
       useExternalCredentialHelper: false,
       confirmRepositoryRemoval: false,
+      preventRepositoryRemoval: false,
       confirmDiscardChanges: false,
       confirmDiscardChangesPermanently: false,
       confirmDiscardStash: false,
@@ -315,6 +319,7 @@ export class Preferences extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       useExternalCredentialHelper: this.props.useExternalCredentialHelper,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
+      preventRepositoryRemoval: this.props.preventRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmDiscardChangesPermanently:
         this.props.confirmDiscardChangesPermanently,
@@ -423,6 +428,10 @@ export class Preferences extends React.Component<
               <Octicon className="icon" symbol={octicons.accessibility} />
               Accessibility
             </span>
+            <span id={this.getTabId(PreferencesTab.Restrictions)}>
+              <Octicon className="icon" symbol={octicons.shieldLock} />
+              Restrictions
+            </span>
           </TabBar>
 
           {this.renderActiveTab()}
@@ -461,6 +470,9 @@ export class Preferences extends React.Component<
         break
       case PreferencesTab.Accessibility:
         suffix = 'accessibility'
+        break
+      case PreferencesTab.Restrictions:
+        suffix = 'restrictions'
         break
       default:
         return assertNever(tab, `Unknown tab type: ${tab}`)
@@ -747,6 +759,16 @@ export class Preferences extends React.Component<
           />
         )
         break
+      case PreferencesTab.Restrictions:
+        View = (
+          <Restrictions
+            preventRepositoryRemoval={this.state.preventRepositoryRemoval}
+            onPreventRepositoryRemovalChanged={
+              this.onPreventRepositoryRemovalChanged
+            }
+          />
+        )
+        break
       default:
         return assertNever(index, `Unknown tab index: ${index}`)
     }
@@ -766,6 +788,10 @@ export class Preferences extends React.Component<
     repositoryIndicatorsEnabled: boolean
   ) => {
     this.setState({ repositoryIndicatorsEnabled })
+  }
+
+  private onPreventRepositoryRemovalChanged = (value: boolean) => {
+    this.setState({ preventRepositoryRemoval: value })
   }
 
   private onLockFileDeleted = () => {
@@ -1092,6 +1118,10 @@ export class Preferences extends React.Component<
 
     await dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepositoryRemoval
+    )
+
+    await dispatcher.setPreventRepositoryRemovalSetting(
+      this.state.preventRepositoryRemoval
     )
 
     await dispatcher.setConfirmForcePushSetting(this.state.confirmForcePush)

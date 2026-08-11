@@ -475,6 +475,7 @@ const pushPullButtonWidthConfigKey: string = 'push-pull-button-width'
 
 const askToMoveToApplicationsFolderDefault: boolean = true
 const confirmRepoRemovalDefault: boolean = true
+const preventRepositoryRemovalDefault: boolean = false
 const showCommitLengthWarningDefault: boolean = false
 const confirmDiscardChangesDefault: boolean = true
 const confirmDiscardChangesPermanentlyDefault: boolean = true
@@ -487,6 +488,7 @@ const confirmCommitMessageOverrideDefault: boolean = true
 const confirmWorktreeRemovalDefault: boolean = true
 const askToMoveToApplicationsFolderKey: string = 'askToMoveToApplicationsFolder'
 const confirmRepoRemovalKey: string = 'confirmRepoRemoval'
+const preventRepositoryRemovalKey: string = 'preventRepositoryRemoval'
 const showCommitLengthWarningKey: string = 'showCommitLengthWarning'
 const confirmDiscardChangesKey: string = 'confirmDiscardChanges'
 const confirmDiscardStashKey: string = 'confirmDiscardStash'
@@ -645,6 +647,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     useExternalCredentialHelperDefault
   private askForConfirmationOnRepositoryRemoval: boolean =
     confirmRepoRemovalDefault
+  private preventRepositoryRemoval: boolean = preventRepositoryRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
   private confirmDiscardChangesPermanently: boolean =
     confirmDiscardChangesPermanentlyDefault
@@ -1295,6 +1298,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       useExternalCredentialHelper: this.useExternalCredentialHelper,
       askForConfirmationOnRepositoryRemoval:
         this.askForConfirmationOnRepositoryRemoval,
+      preventRepositoryRemoval: this.preventRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
       askForConfirmationOnDiscardChangesPermanently:
         this.confirmDiscardChangesPermanently,
@@ -2468,6 +2472,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.askForConfirmationOnRepositoryRemoval = getBoolean(
       confirmRepoRemovalKey,
       confirmRepoRemovalDefault
+    )
+
+    this.preventRepositoryRemoval = getBoolean(
+      preventRepositoryRemovalKey,
+      preventRepositoryRemovalDefault
     )
 
     // We're planning to flip the default value to false. As such we'll
@@ -7708,6 +7717,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return Promise.resolve()
   }
 
+  public _setPreventRepositoryRemovalSetting(value: boolean): Promise<void> {
+    this.preventRepositoryRemoval = value
+    setBoolean(preventRepositoryRemovalKey, value)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
   public _setConfirmDiscardChangesSetting(value: boolean): Promise<void> {
     this.confirmDiscardChanges = value
 
@@ -8208,6 +8225,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository | CloningRepository,
     moveToTrash: boolean
   ): Promise<void> {
+    if (this.preventRepositoryRemoval) {
+      this.emitError(
+        new Error(
+          'Repository removal is disabled in Settings. Turn off “Prevent repository removal” under Restrictions to remove a repository.'
+        )
+      )
+      return
+    }
+
     try {
       if (moveToTrash) {
         try {

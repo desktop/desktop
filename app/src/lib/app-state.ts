@@ -236,6 +236,9 @@ export interface IAppState {
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
 
+  /** Whether repository removal and deletion are blocked */
+  readonly preventRepositoryRemoval: boolean
+
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnDiscardChanges: boolean
 

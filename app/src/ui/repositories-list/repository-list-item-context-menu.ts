@@ -13,6 +13,7 @@ interface IRepositoryListItemContextMenuConfig {
   shellLabel: string | undefined
   externalEditorLabel: string | undefined
   askForConfirmationOnRemoveRepository: boolean
+  preventRepositoryRemoval: boolean
   onViewOnGitHub: (repository: Repositoryish) => void
   onOpenInShell: (repository: Repositoryish) => void
   onShowRepository: (repository: Repositoryish) => void
@@ -74,6 +75,7 @@ export const generateRepositoryListContextMenu = (
     {
       label: config.askForConfirmationOnRemoveRepository ? 'Remove…' : 'Remove',
       action: () => config.onRemoveRepository(repository),
+      enabled: !config.preventRepositoryRemoval,
     },
   ]
 

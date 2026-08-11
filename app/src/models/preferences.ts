@@ -8,4 +8,5 @@ export enum PreferencesTab {
   Prompts,
   Advanced,
   Accessibility,
+  Restrictions,
 }

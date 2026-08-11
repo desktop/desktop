@@ -1272,6 +1272,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
+    if (this.state.preventRepositoryRemoval) {
+      this.props.dispatcher.removeRepository(repository, false)
+      return
+    }
+
     if (repository instanceof CloningRepository || repository.missing) {
       this.props.dispatcher.removeRepository(repository, false)
       return
@@ -1726,6 +1731,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             confirmRepositoryRemoval={
               this.state.askForConfirmationOnRepositoryRemoval
             }
+            preventRepositoryRemoval={this.state.preventRepositoryRemoval}
             confirmDiscardChanges={
               this.state.askForConfirmationOnDiscardChanges
             }
@@ -3362,6 +3368,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         askForConfirmationOnRemoveRepository={
           this.state.askForConfirmationOnRepositoryRemoval
         }
+        preventRepositoryRemoval={this.state.preventRepositoryRemoval}
         onRemoveRepository={this.removeRepository}
         onViewOnGitHub={this.viewOnGitHub}
         onOpenInShell={this.openInShell}
@@ -3562,6 +3569,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       onOpenInExternalEditor: this.openInExternalEditor,
       askForConfirmationOnRemoveRepository:
         this.state.askForConfirmationOnRepositoryRemoval,
+      preventRepositoryRemoval: this.state.preventRepositoryRemoval,
       externalEditorLabel: this.externalEditorLabel,
       onChangeRepositoryAlias: onChangeRepositoryAlias,
       onRemoveRepositoryAlias: onRemoveRepositoryAlias,
