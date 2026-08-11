@@ -1,8 +1,7 @@
 {
   "releases": {
     "3.6.4": [
-      "[Fixed] Update Git for Windows to 2.53.0.windows.4 to address CVE-2026-62960",
-      "[Fixed] Link bundled Git on Linux against OpenSSL-backed libcurl instead of GnuTLS",
+      "[Improved] Update Git for Windows to v2.53.0.windows.4",
       "[Improved] Update Git Credential Manager to 2.9.0"
     ],
     "3.6.3": [
