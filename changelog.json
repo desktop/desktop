@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.6.5-test1": [
+      "[Fixed] Fix generating commit messages when list of supported models can't be loaded"
+    ],
     "3.6.4-beta2": [
       "[Fixed] Restore keyboard focus to the control that opened a nested dialog after that nested dialog is dismissed, fixing an accessibility focus-order issue",
       "[Fixed] Persist the main worktree path so Desktop can recover a repository after a linked worktree is removed, even after git prunes its worktree metadata. Thanks @francisrath!"
