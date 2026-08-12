@@ -1,5 +1,8 @@
 {
   "releases": {
+    "3.6.5-beta1": [
+      "Resolve pre-push hooks failing on Windows when reading from stdin"
+    ],
     "3.6.4": [
       "[Improved] Update Git for Windows to v2.53.0.windows.4",
       "[Improved] Update Git Credential Manager to 2.9.0"
