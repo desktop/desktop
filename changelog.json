@@ -1,5 +1,9 @@
 {
   "releases": {
+    "3.6.4": [
+      "[Improved] Update Git for Windows to v2.53.0.windows.4",
+      "[Improved] Update Git Credential Manager to 2.9.0"
+    ],
     "3.6.4-beta2": [
       "[Fixed] Restore keyboard focus to the control that opened a nested dialog after that nested dialog is dismissed, fixing an accessibility focus-order issue",
       "[Fixed] Persist the main worktree path so Desktop can recover a repository after a linked worktree is removed, even after git prunes its worktree metadata. Thanks @francisrath!"
