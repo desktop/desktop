@@ -54,7 +54,6 @@ import { isGHE } from '../endpoint-capabilities'
 
 /** The default model ID used for Copilot commit message generation. */
 export const DefaultCopilotModel = 'auto'
-const DefaultReasoningEffort: ReasoningEffort = 'low'
 
 /**
  * The reasoning effort used for Copilot conflict resolution when the selected
@@ -449,6 +448,18 @@ export function getLowestReasoningEffort(
     return undefined
   }
   return ReasoningEffortOrder.find(e => supported.includes(e))
+}
+
+function getDefaultReasoningEffortForModel(
+  modelId: string
+): ReasoningEffort | undefined {
+  // The 'auto' model is a special case that doesn't support reasoning effort
+  // and would result in API errors.
+  if (modelId === 'auto') {
+    return undefined
+  }
+
+  return 'low'
 }
 
 /**
@@ -1075,7 +1086,7 @@ export class CopilotStore extends BaseStore {
       modelId = resolvedModel?.id ?? requestedModelId ?? DefaultCopilotModel
       reasoningEffort = resolvedModel
         ? getLowestReasoningEffort(resolvedModel)
-        : DefaultReasoningEffort
+        : getDefaultReasoningEffortForModel(modelId)
     }
 
     let client: CopilotClient | null = null
