@@ -2,7 +2,32 @@
 // Add/Edit Custom Provider dialog. Kept in its own partial so the dialog
 // styles don't have to live inside the `#preferences` scope.
 
-#preferences {
+.copilot-settings-dialog {
+  .dialog-content.copilot-tab {
+    $default-tab-height: 440px;
+
+    display: flex;
+    flex-direction: column;
+    min-height: $default-tab-height;
+    max-height: $default-tab-height;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .copilot-tab-content {
+    min-height: 0;
+  }
+}
+
+#preferences .dialog-content.copilot-tab {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#preferences,
+.copilot-settings-dialog,
+#test-copilot-snapshot-card {
   .copilot-section {
     min-width: 0;
 
@@ -97,6 +122,154 @@
     p {
       margin: 0;
     }
+  }
+
+  .copilot-usage-section {
+    min-width: 0;
+    margin-bottom: var(--spacing-double);
+  }
+
+  .copilot-tab-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .copilot-settings-scroll {
+    flex: 1;
+    min-height: 0;
+    padding: var(--spacing-double);
+    overflow-y: auto;
+  }
+
+  .copilot-usage-empty {
+    margin: 0;
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+  }
+
+  .copilot-snapshot-card-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing);
+    min-width: 0;
+
+    &:not(:last-child) {
+      margin-bottom: var(--spacing-half);
+    }
+  }
+
+  .copilot-account-snapshot-card-list {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--spacing);
+  }
+
+  .copilot-account-snapshot-card-group:not(:last-child) {
+    margin-bottom: var(--spacing);
+  }
+
+  .copilot-snapshot-card {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--spacing);
+  }
+
+  .copilot-snapshot-account {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing);
+
+    .button-component {
+      flex-shrink: 0;
+    }
+  }
+
+  .copilot-snapshot-account-identity {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--spacing);
+
+    .avatar-container,
+    .avatar {
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+    }
+  }
+
+  .copilot-snapshot-account-info {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+
+    .account-title,
+    .name {
+      margin-top: -2px;
+      margin-bottom: -2px;
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+
+  .copilot-snapshot-item {
+    display: flex;
+    flex: 1 1 180px;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--spacing-half);
+  }
+
+  .copilot-snapshot-header {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--spacing-half);
+  }
+
+  .copilot-snapshot-title {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    gap: var(--spacing-third);
+  }
+
+  .copilot-snapshot-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .copilot-snapshot-reset,
+  .copilot-snapshot-usage {
+    flex-shrink: 0;
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+  }
+
+  .copilot-snapshot-progress {
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--box-selected-background-color);
+
+    &.disabled {
+      opacity: 0.5;
+    }
+  }
+
+  .copilot-snapshot-progress-value {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--text-secondary-color);
   }
 
   .copilot-access-call-to-action {
@@ -206,6 +379,72 @@
     .copilot-model-picker-cost-details-row:not(:last-child) {
       margin-bottom: var(--spacing-third);
     }
+  }
+}
+
+#copilot-custom-providers-dialog {
+  width: 500px;
+
+  .dialog-content {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+}
+
+#test-copilot-snapshot-card {
+  .dialog-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 200px);
+    overflow: hidden;
+  }
+
+  .test-copilot-snapshot-card-preview {
+    flex-shrink: 0;
+    margin-bottom: var(--spacing-double);
+  }
+
+  .test-copilot-snapshot-card-controls {
+    min-height: 0;
+    padding: 0 var(--spacing-double) 0;
+    margin: 0 calc(-1 * var(--spacing-double));
+    overflow-y: auto;
+  }
+
+  .test-copilot-snapshot-card-footer-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-half);
+    padding: 0 0 var(--spacing) 0;
+
+    .button-component {
+      margin-right: 0;
+    }
+  }
+
+  .test-copilot-snapshot-card-fieldset {
+    padding: 0;
+    margin: 0 0 var(--spacing-double);
+    border: none;
+
+    > legend {
+      padding: 0;
+      margin-bottom: var(--spacing-half);
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+
+  .test-copilot-snapshot-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing);
+  }
+
+  .test-copilot-snapshot-card-checkbox-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing);
   }
 }
 

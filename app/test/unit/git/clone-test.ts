@@ -111,4 +111,52 @@ describe('git/clone', () => {
     const result = await exec(['symbolic-ref', 'HEAD'], clonePath)
     assert.equal(result.stdout.trim(), 'refs/heads/trunk')
   })
+
+  it('rejects cloning into ~/.ssh', async () => {
+    const os = await import('os')
+    const sshPath = path.join(os.homedir(), '.ssh', 'malicious-clone')
+
+    await assert.rejects(
+      () => clone('https://example.com/repo.git', sshPath, {}),
+      (err: Error) => {
+        assert(
+          err.message.includes('sensitive system location'),
+          `Expected sensitive location error, got: ${err.message}`
+        )
+        return true
+      }
+    )
+  })
+
+  it('rejects cloning into home directory root', async () => {
+    const os = await import('os')
+    const homePath = os.homedir()
+
+    await assert.rejects(
+      () => clone('https://example.com/repo.git', homePath, {}),
+      (err: Error) => {
+        assert(
+          err.message.includes('sensitive system location'),
+          `Expected sensitive location error, got: ${err.message}`
+        )
+        return true
+      }
+    )
+  })
+
+  it('rejects cloning into ~/.config/git', async () => {
+    const os = await import('os')
+    const gitConfigPath = path.join(os.homedir(), '.config', 'git')
+
+    await assert.rejects(
+      () => clone('https://example.com/repo.git', gitConfigPath, {}),
+      (err: Error) => {
+        assert(
+          err.message.includes('sensitive system location'),
+          `Expected sensitive location error, got: ${err.message}`
+        )
+        return true
+      }
+    )
+  })
 })

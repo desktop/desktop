@@ -4,7 +4,9 @@ import assert from 'node:assert'
 import {
   extractConflictHunks,
   formatConflictContextForPrompt,
+  getHunkSkipReason,
   ICopilotConflictContext,
+  IConflictHunk,
   IConflictResolutionContext,
   IConflictContextCommit,
   IConflictContextPullRequest,
@@ -882,6 +884,178 @@ describe('copilot-conflict-context', () => {
       // Should still include hunk breakdown
       assert.ok(result.includes('Conflict 1 of 1'))
       assert.ok(result.includes('const b = 2'))
+    })
+  })
+
+  describe('formatConflictContextForPrompt with delete-vs-modify', () => {
+    it('renders delete-vs-modify conflict with scenario description', () => {
+      const context: ICopilotConflictContext = {
+        ourLabel: 'main',
+        theirLabel: 'feature',
+        files: [
+          {
+            path: 'utils.ts',
+            hunks: [],
+            deleteConflict: { deletedSide: 'theirs' },
+          },
+        ],
+      }
+
+      const result = formatConflictContextForPrompt(
+        toResolutionContext(context)
+      )
+
+      assert.ok(result.includes('File: utils.ts (delete-vs-modify conflict)'))
+      assert.ok(
+        result.includes(
+          'Deleted on "feature" (theirs), modified on "main" (ours)'
+        )
+      )
+      assert.ok(result.includes('"action": "keep"'))
+      assert.ok(result.includes('"action": "delete"'))
+    })
+
+    it('renders ours-deleted scenario correctly', () => {
+      const context: ICopilotConflictContext = {
+        ourLabel: 'main',
+        theirLabel: 'feature',
+        files: [
+          {
+            path: 'old-file.ts',
+            hunks: [],
+            deleteConflict: { deletedSide: 'ours' },
+          },
+        ],
+      }
+
+      const result = formatConflictContextForPrompt(
+        toResolutionContext(context)
+      )
+
+      assert.ok(
+        result.includes(
+          'Deleted on "main" (ours), modified on "feature" (theirs)'
+        )
+      )
+    })
+
+    it('renders mixed text and delete-vs-modify files', () => {
+      const context: ICopilotConflictContext = {
+        ourLabel: 'main',
+        theirLabel: 'feature',
+        files: [
+          {
+            path: 'text.ts',
+            hunks: [
+              {
+                oursContent: 'const a = 1',
+                theirsContent: 'const a = 2',
+                baseContent: null,
+                contextBefore: '',
+                contextAfter: '',
+              },
+            ],
+          },
+          {
+            path: 'deleted.ts',
+            hunks: [],
+            deleteConflict: { deletedSide: 'theirs' },
+          },
+        ],
+      }
+
+      const result = formatConflictContextForPrompt(
+        toResolutionContext(context)
+      )
+
+      // Text conflict rendered normally
+      assert.ok(result.includes('File: text.ts'))
+      assert.ok(result.includes('const a = 1'))
+      assert.ok(result.includes('const a = 2'))
+
+      // Delete conflict rendered with scenario
+      assert.ok(result.includes('File: deleted.ts (delete-vs-modify conflict)'))
+      assert.ok(result.includes('Deleted on "feature"'))
+    })
+  })
+
+  describe('getHunkSkipReason', () => {
+    function makeHunk(
+      oursContent: string,
+      theirsContent: string,
+      baseContent: string | null = null
+    ): IConflictHunk {
+      return {
+        oursContent,
+        theirsContent,
+        baseContent,
+        contextBefore: '',
+        contextAfter: '',
+      }
+    }
+
+    it('returns null for a small, resolvable conflict', () => {
+      const hunks = [makeHunk('our change\n', 'their change\n')]
+      assert.strictEqual(getHunkSkipReason(hunks), null)
+    })
+
+    it('returns null for no hunks', () => {
+      assert.strictEqual(getHunkSkipReason([]), null)
+    })
+
+    it('skips when a single line exceeds the max line length', () => {
+      const longLine = 'a'.repeat(5001)
+      const hunks = [makeHunk(`${longLine}\n`, 'their change\n')]
+      assert.strictEqual(
+        getHunkSkipReason(hunks),
+        'Conflict contains lines too long to resolve automatically'
+      )
+    })
+
+    it('does not skip a line exactly at the max line length', () => {
+      const atLimit = 'a'.repeat(5000)
+      const hunks = [makeHunk(`${atLimit}\n`, 'their change\n')]
+      assert.strictEqual(getHunkSkipReason(hunks), null)
+    })
+
+    it('detects a long line on the incoming (theirs) side', () => {
+      const longLine = 'b'.repeat(6000)
+      const hunks = [makeHunk('our change\n', `${longLine}\n`)]
+      assert.strictEqual(
+        getHunkSkipReason(hunks),
+        'Conflict contains lines too long to resolve automatically'
+      )
+    })
+
+    it('detects a long line in diff3 base content', () => {
+      const longLine = 'c'.repeat(6000)
+      const hunks = [makeHunk('ours\n', 'theirs\n', `${longLine}\n`)]
+      assert.strictEqual(
+        getHunkSkipReason(hunks),
+        'Conflict contains lines too long to resolve automatically'
+      )
+    })
+
+    it('skips when total conflict content exceeds the max content size', () => {
+      // Many short lines whose combined length exceeds 256KB but where no single
+      // line is over the per-line limit.
+      const line = 'x'.repeat(100) + '\n'
+      const bigSide = line.repeat(3000) // ~300KB
+      const hunks = [makeHunk(bigSide, 'their change\n')]
+      assert.strictEqual(
+        getHunkSkipReason(hunks),
+        'Conflict region too large to resolve automatically'
+      )
+    })
+
+    it('accumulates content across multiple hunks', () => {
+      const line = 'y'.repeat(100) + '\n'
+      const chunk = line.repeat(1000) // ~100KB per side
+      const hunks = [makeHunk(chunk, chunk), makeHunk(chunk, chunk)]
+      assert.strictEqual(
+        getHunkSkipReason(hunks),
+        'Conflict region too large to resolve automatically'
+      )
     })
   })
 })

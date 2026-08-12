@@ -1,14 +1,16 @@
 import { execFile, spawn } from 'child_process'
-import { basename, resolve } from 'path'
+import { basename, join, resolve } from 'path'
 import { ProcessProxyConnection as Connection } from 'process-proxy'
 import type { HookCallbackOptions } from '../git'
 import { resolveGitBinary } from 'dugite'
 import { ShellEnvResult } from './get-shell-env'
 import { shellFriendlyNames } from './config'
 import { Writable } from 'stream'
+import { pipeline } from 'stream/promises'
 import { promisify } from 'util'
 import memoizeOne from 'memoize-one'
 import which from 'which'
+import { createWriteStream } from 'fs'
 
 const execFileAsync = promisify(execFile)
 
@@ -141,6 +143,7 @@ const ensureGitExecPathEnv = async (shellEnv: ShellEnvResult) => {
 
 export const createHooksProxy = (
   getShellEnv: (cwd: string) => Promise<ShellEnvResult>,
+  tmpHooksDir: string,
   onHookProgress?: HookCallbackOptions['onHookProgress'],
   onHookFailure?: HookCallbackOptions['onHookFailure']
 ) => {
@@ -155,6 +158,7 @@ export const createHooksProxy = (
 
     const abortController = new AbortController()
     const abort = () => abortController.abort()
+    conn.on('close', abort)
 
     await writeline(conn.stderr, `Running ${hookName} hook...`)
     onHookProgress?.({ hookName, status: 'started', abort })
@@ -177,6 +181,13 @@ export const createHooksProxy = (
       return
     }
 
+    const stdinPath = hasStdin
+      ? join(
+          tmpHooksDir,
+          `${hookName}-${crypto.randomUUID().slice(0, 8)}.stdin`
+        )
+      : undefined
+
     const args = [
       ...['hook', 'run', hookName],
       // We always copy our pre-auto-gc hook in order to be able to tell the
@@ -185,7 +196,7 @@ export const createHooksProxy = (
       // pre-auto-gc hook configured themselves, so we tell Git to ignore
       // missing hooks here.
       ...(hookName === 'pre-auto-gc' ? ['--ignore-missing'] : []),
-      ...(hasStdin ? ['--to-stdin=/dev/stdin'] : []),
+      ...(hasStdin ? [`--to-stdin=${stdinPath}`] : []),
       '--',
       ...proxyArgs.slice(1),
     ]
@@ -212,12 +223,29 @@ export const createHooksProxy = (
       return exitWithError(conn, errMsg)
     }
 
+    if (hasStdin && stdinPath) {
+      try {
+        await pipeline(conn.stdin, createWriteStream(stdinPath), {
+          signal: abortController.signal,
+        })
+      } catch (error) {
+        const message = abortController.signal.aborted
+          ? `hook ${hookName} aborted`
+          : `Failed to buffer stdin for ${hookName} hook: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+
+        debug(message, error instanceof Error ? error : undefined)
+        await exitWithError(conn, message)
+        onHookProgress?.({ hookName, status: 'failed' })
+        return
+      }
+    }
+
     const { code, signal } = await new Promise<{
       code: number | null
       signal: NodeJS.Signals | null
     }>((resolve, reject) => {
-      conn.on('close', abort)
-
       const child = spawn(gitPath, args, {
         cwd: proxyCwd,
         // GITHUB_DESKTOP lets hooks know they're run from GitHub Desktop.

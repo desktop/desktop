@@ -11,6 +11,7 @@ const maxPopoverContentHeight = 500
 interface IPopoverDropdownProps {
   readonly className?: string
   readonly contentTitle: string
+  readonly contentHeaderAccessory?: JSX.Element
   readonly buttonContent: JSX.Element | string
   readonly buttonAriaLabel?: string
   readonly decoration?: PopoverDecoration
@@ -111,6 +112,7 @@ export class PopoverDropdown extends React.Component<
         <div className="popover-dropdown-wrapper">
           <div className="popover-dropdown-header">
             <h3 id={this.dropdownHeaderId}>{contentTitle}</h3>
+            {this.props.contentHeaderAccessory}
 
             <button
               className="close"

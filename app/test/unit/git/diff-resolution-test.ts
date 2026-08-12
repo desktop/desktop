@@ -16,7 +16,7 @@ describe('git/diff/getResolutionDiff', () => {
     })
 
     const resolved = 'modified\n'
-    const diff = await getResolutionDiff(repo, 'file.txt', {
+    const { diff } = await getResolutionDiff(repo, 'file.txt', {
       content: resolved,
     })
 

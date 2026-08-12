@@ -46,6 +46,7 @@ import { IRepoRulesMetadataRule } from '../../models/repo-rules'
 import { pathExists } from '../path-exists'
 import { enableCopilotSdkCommitMessageGeneration } from '../feature-flag'
 import type {
+  AccountQuotaSnapshot,
   Model,
   ModelBillingTokenPrices,
 } from '@github/copilot-sdk/dist/generated/rpc'
@@ -120,11 +121,65 @@ interface ICopilotModelCacheEntry {
   readonly cachedAt: number
 }
 
+interface ICopilotQuotaCacheEntry {
+  readonly quotaSnapshots: CopilotQuotaSnapshots
+  readonly cachedAt: number
+}
+
 /**
  * Per-feature model selections. An absent key means the default model
  * will be used for that feature.
  */
 export type CopilotModelSelections = Partial<Record<CopilotFeature, string>>
+
+/** Per-feature Copilot model selections keyed by account cache key. */
+export type CopilotModelSelectionsByAccount = ReadonlyMap<
+  string,
+  CopilotModelSelections
+>
+
+/** Migrate legacy selections to each account, preserving existing overrides. */
+export function migrateCopilotModelSelectionsToAccounts(
+  legacySelections: CopilotModelSelections,
+  selectionsByAccount: CopilotModelSelectionsByAccount,
+  accounts: ReadonlyArray<Account>
+): CopilotModelSelectionsByAccount {
+  const migrated = new Map(selectionsByAccount)
+
+  for (const account of accounts) {
+    const accountKey = getCopilotAccountCacheKey(account)
+    migrated.set(accountKey, {
+      ...legacySelections,
+      ...migrated.get(accountKey),
+    })
+  }
+
+  return migrated
+}
+
+/**
+ * Quota snapshots type from SDK, expanding it with the tokenBasedBilling field.
+ * HACK: This shouldn't be necessary once the SDK is updated to include this
+ * field in the generated types.
+ */
+export interface ICopilotQuotaSnapshot extends AccountQuotaSnapshot {
+  readonly tokenBasedBilling: boolean
+}
+
+/** Quota snapshots returned by the Copilot SDK, keyed by quota type. */
+export type CopilotQuotaSnapshots = ReadonlyMap<string, ICopilotQuotaSnapshot>
+
+/** Copilot models keyed by account cache key. */
+export type CopilotModelsByAccount = ReadonlyMap<
+  string,
+  ReadonlyArray<Model> | null
+>
+
+/** Copilot quota snapshots keyed by account cache key. */
+export type CopilotQuotaSnapshotsByAccount = ReadonlyMap<
+  string,
+  CopilotQuotaSnapshots | null
+>
 
 /**
  * How long to cache the model list before re-fetching from the SDK.
@@ -132,9 +187,32 @@ export type CopilotModelSelections = Partial<Record<CopilotFeature, string>>
  */
 const ModelListCacheTTL = 10 * 60 * 1000
 
+const QuotaSnapshotsCacheTTL = 10 * 60 * 1000
+
+function normalizeCopilotQuotaSnapshot(
+  snapshot: AccountQuotaSnapshot | undefined
+): ICopilotQuotaSnapshot | null {
+  if (snapshot === undefined) {
+    return null
+  }
+
+  const tokenBasedBilling =
+    'tokenBasedBilling' in snapshot &&
+    typeof snapshot.tokenBasedBilling === 'boolean'
+      ? snapshot.tokenBasedBilling
+      : false
+
+  return { ...snapshot, tokenBasedBilling }
+}
+
+/** Returns the cache key used for account-scoped Copilot metadata. */
+export function getCopilotAccountCacheKey(account: Account): string {
+  return `${account.id}:${account.endpoint}`
+}
+
 /** Returns the cache key used for account-scoped Copilot model metadata. */
 export function getCopilotModelCacheKey(account: Account): string {
-  return `${account.id}:${account.endpoint}`
+  return getCopilotAccountCacheKey(account)
 }
 
 /** Returns the Copilot CLI host override for the account, if one is needed. */
@@ -673,6 +751,11 @@ export class CopilotStore extends BaseStore {
     string,
     Promise<ReadonlyArray<Model> | null>
   >()
+  private readonly quotaCaches = new Map<string, ICopilotQuotaCacheEntry>()
+  private readonly quotasInFlight = new Map<
+    string,
+    Promise<CopilotQuotaSnapshots | null>
+  >()
   private readonly signedInAccountKeys = new Set<string>()
 
   public constructor(private readonly accountsStore: AccountsStore) {
@@ -689,7 +772,7 @@ export class CopilotStore extends BaseStore {
 
   /** Prunes account-scoped model metadata when accounts are removed. */
   private onAccountsUpdated = (accounts: ReadonlyArray<Account>): void => {
-    const accountKeys = new Set(accounts.map(getCopilotModelCacheKey))
+    const accountKeys = new Set(accounts.map(getCopilotAccountCacheKey))
     let prunedCache = false
 
     for (const key of this.modelCaches.keys()) {
@@ -702,6 +785,19 @@ export class CopilotStore extends BaseStore {
     for (const key of this.modelsInFlight.keys()) {
       if (!accountKeys.has(key)) {
         this.modelsInFlight.delete(key)
+      }
+    }
+
+    for (const key of this.quotaCaches.keys()) {
+      if (!accountKeys.has(key)) {
+        this.quotaCaches.delete(key)
+        prunedCache = true
+      }
+    }
+
+    for (const key of this.quotasInFlight.keys()) {
+      if (!accountKeys.has(key)) {
+        this.quotasInFlight.delete(key)
       }
     }
 
@@ -1399,6 +1495,16 @@ export class CopilotStore extends BaseStore {
     )
   }
 
+  /** Returns cached quota snapshots for the account, if available. */
+  public getCachedQuotaSnapshots(
+    account: Account
+  ): CopilotQuotaSnapshots | null {
+    return (
+      this.quotaCaches.get(getCopilotAccountCacheKey(account))
+        ?.quotaSnapshots ?? null
+    )
+  }
+
   /**
    * Lists the available Copilot models for the account from the SDK, using a
    * cached result if it is less than {@link ModelListCacheTTL} old.
@@ -1428,6 +1534,32 @@ export class CopilotStore extends BaseStore {
     }
 
     return this.fetchAndCacheModels(account)
+  }
+
+  /**
+   * Gets Copilot quota snapshots for the account from the SDK, using a cached
+   * result if it is less than {@link QuotaSnapshotsCacheTTL} old.
+   */
+  public async getQuotaSnapshots(
+    account: Account
+  ): Promise<CopilotQuotaSnapshots | null> {
+    const key = getCopilotAccountCacheKey(account)
+    if (
+      !this.signedInAccountKeys.has(key) ||
+      !enableCopilotSdkCommitMessageGeneration(account)
+    ) {
+      return null
+    }
+
+    const cached = this.quotaCaches.get(key)
+    if (
+      cached !== undefined &&
+      Date.now() - cached.cachedAt < QuotaSnapshotsCacheTTL
+    ) {
+      return cached.quotaSnapshots
+    }
+
+    return this.fetchAndCacheQuotaSnapshots(account)
   }
 
   /**
@@ -1480,6 +1612,46 @@ export class CopilotStore extends BaseStore {
     }
   }
 
+  private async fetchAndCacheQuotaSnapshots(
+    account: Account
+  ): Promise<CopilotQuotaSnapshots | null> {
+    const key = getCopilotAccountCacheKey(account)
+
+    const inFlight = this.quotasInFlight.get(key)
+    if (inFlight !== undefined) {
+      return inFlight
+    }
+
+    const fetchPromise = this.fetchQuotaSnapshots(account)
+      .then(quotaSnapshots => {
+        if (
+          this.quotasInFlight.get(key) === fetchPromise &&
+          this.signedInAccountKeys.has(key)
+        ) {
+          this.quotaCaches.set(key, {
+            quotaSnapshots,
+            cachedAt: Date.now(),
+          })
+          this.emitUpdate()
+        }
+
+        return quotaSnapshots
+      })
+      .catch(e => {
+        log.warn('CopilotStore: Failed to fetch and cache quota snapshots', e)
+        return this.quotaCaches.get(key)?.quotaSnapshots ?? null
+      })
+    this.quotasInFlight.set(key, fetchPromise)
+
+    try {
+      return await fetchPromise
+    } finally {
+      if (this.quotasInFlight.get(key) === fetchPromise) {
+        this.quotasInFlight.delete(key)
+      }
+    }
+  }
+
   private async fetchModels(account: Account): Promise<ReadonlyArray<Model>> {
     const client = await this.createClient(account)
 
@@ -1493,6 +1665,32 @@ export class CopilotStore extends BaseStore {
       // and we just get more fields by using the RPC type directly.
       // We can switch back to `ModelInfo` once the SDK updates its types.
       return await client.listModels()
+    } finally {
+      this.stopClient(client)
+    }
+  }
+
+  private async fetchQuotaSnapshots(
+    account: Account
+  ): Promise<CopilotQuotaSnapshots> {
+    const client = await this.createClient(account)
+
+    try {
+      await client.start()
+      const result = await client.rpc.account.getQuota({
+        gitHubToken: account.token,
+      })
+
+      const quotaSnapshots = new Map<string, ICopilotQuotaSnapshot>()
+
+      for (const [key, snapshot] of Object.entries(result.quotaSnapshots)) {
+        const normalizedSnapshot = normalizeCopilotQuotaSnapshot(snapshot)
+        if (normalizedSnapshot !== null) {
+          quotaSnapshots.set(key, normalizedSnapshot)
+        }
+      }
+
+      return quotaSnapshots
     } finally {
       this.stopClient(client)
     }

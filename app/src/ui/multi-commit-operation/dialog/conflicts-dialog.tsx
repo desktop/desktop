@@ -267,6 +267,8 @@ export class ConflictsDialog extends React.Component<
    * - There is at least one signed-in account with Copilot for Desktop
    *   enabled (covers "no Copilot subscription" and "disabled by org policy")
    * - There are still conflicted files to resolve
+   * - At least one conflicted file can be handled by Copilot (has text
+   *   conflict markers or is a delete-vs-modify conflict)
    */
   private renderCopilotButton(
     conflictedFilesCount: number

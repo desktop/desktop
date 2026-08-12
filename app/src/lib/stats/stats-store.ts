@@ -681,16 +681,20 @@ export class StatsStore implements IStatsStore {
    */
   private getSelectedCopilotConflictResolutionModel(): string {
     try {
-      const raw = localStorage.getItem('selected-copilot-models')
+      const raw = localStorage.getItem('selected-copilot-models-by-account')
       if (raw !== null) {
         const parsed: unknown = JSON.parse(raw)
         if (typeof parsed === 'object' && parsed !== null) {
-          const selection = (parsed as Record<string, unknown>)[
-            'conflict-resolution'
-          ]
-          if (typeof selection === 'string' && selection.length > 0) {
-            const key = parseModelKey(selection)
-            return key.modelId || DefaultCopilotModel
+          for (const selections of Object.values(parsed)) {
+            if (typeof selections === 'object' && selections !== null) {
+              const selection = (selections as Record<string, unknown>)[
+                'conflict-resolution'
+              ]
+              if (typeof selection === 'string' && selection.length > 0) {
+                const key = parseModelKey(selection)
+                return key.modelId || DefaultCopilotModel
+              }
+            }
           }
         }
       }

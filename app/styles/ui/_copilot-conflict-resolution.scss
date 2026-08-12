@@ -199,6 +199,10 @@
     margin: var(--spacing-double) 0 var(--spacing-half);
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-semibold);
+
+    &.copilot-conflicts-skipped-heading .octicon {
+      color: var(--dialog-warning-color);
+    }
   }
 
   .copilot-conflicts-file-list {

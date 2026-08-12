@@ -11,6 +11,7 @@ import {
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
   isConflictWithMarkers,
+  isManualConflict,
 } from '../../../models/status'
 import { getUnmergedFiles, isConflictedFile } from '../../../lib/status'
 import { assertNever } from '../../../lib/fatal-error'
@@ -18,6 +19,7 @@ import { ManualConflictResolution } from '../../../models/manual-conflict-resolu
 import {
   IFileResolution,
   ICopilotResolutionSummary,
+  ICopilotSkippedFile,
 } from '../../../lib/copilot-conflict-resolution'
 import { IConflictResolutionModelDisplay } from '../../../lib/copilot/conflict-resolution-model'
 import { formatReasoningEffort } from '../../../lib/stores/copilot-store'
@@ -44,6 +46,10 @@ import {
   CopilotFileResolutionChoice,
   getResolutionChoiceForFile,
   resolutionChoices,
+  isDeleteConflictFile,
+  getDeletedSide,
+  getDeleteConflictChoiceLabel,
+  getOursTheirsLabels,
 } from './copilot-resolution-helpers'
 
 interface ICopilotConflictsDialogProps {
@@ -54,6 +60,7 @@ interface ICopilotConflictsDialogProps {
   readonly operationKind: MultiCommitOperationKind
   readonly copilotResolutions: ReadonlyArray<IFileResolution> | null
   readonly copilotResolutionSummary: ICopilotResolutionSummary | null
+  readonly copilotSkippedFiles: ReadonlyArray<ICopilotSkippedFile> | null
   readonly model: IConflictResolutionModelDisplay
   readonly resolvedExternalEditor: string | null
   readonly openFileInExternalEditor: (path: string) => void
@@ -88,6 +95,7 @@ export class CopilotConflictsDialog extends React.Component<
 > {
   private readonly dropdownHandlers = new Map<string, () => void>()
   private readonly overflowHandlers = new Map<string, () => void>()
+  private readonly skippedDropdownHandlers = new Map<string, () => void>()
 
   public constructor(props: ICopilotConflictsDialogProps) {
     super(props)
@@ -147,13 +155,12 @@ export class CopilotConflictsDialog extends React.Component<
   private onResolutionDropdownClick = (path: string) => {
     const currentChoice = this.getResolutionForFile(path)
     const { ourBranch, theirBranch } = this.props.conflictState
-
-    const oursLabel = ourBranch
-      ? `Use current file from ${ourBranch}`
-      : 'Use current file'
-    const theirsLabel = theirBranch
-      ? `Use incoming file from ${theirBranch}`
-      : 'Use incoming file'
+    const fileStatus = this.getConflictedFileStatus(path)
+    const { oursLabel, theirsLabel } = getOursTheirsLabels(
+      fileStatus,
+      ourBranch,
+      theirBranch
+    )
 
     const items: ReadonlyArray<IMenuItem> = [
       {
@@ -251,29 +258,125 @@ export class CopilotConflictsDialog extends React.Component<
     return this.props.copilotResolutions?.find(r => r.path === path)
   }
 
+  private get skippedFiles(): ReadonlyArray<ICopilotSkippedFile> {
+    return this.props.copilotSkippedFiles ?? []
+  }
+
+  private get skippedPaths(): ReadonlySet<string> {
+    return new Set(this.skippedFiles.map(f => f.path))
+  }
+
+  /**
+   * The manual (Current/Incoming) choice a user has picked for a skipped file,
+   * or undefined when they haven't chosen one yet. Skipped files have no
+   * Copilot resolution, so the choice starts unselected.
+   */
+  private getSkippedFileChoice(path: string): 'ours' | 'theirs' | undefined {
+    const manual = this.props.conflictState.manualResolutions.get(path)
+    if (manual === ManualConflictResolution.ours) {
+      return 'ours'
+    }
+    if (manual === ManualConflictResolution.theirs) {
+      return 'theirs'
+    }
+    return undefined
+  }
+
+  /**
+   * Whether a file Copilot skipped now counts as resolved. A skipped file is
+   * resolved when the user either picked a side from its dropdown or resolved
+   * it themselves in an editor (removing every conflict marker). The latter
+   * reuses `isFileResolvedExternally` so skipped files behave exactly like the
+   * files in the main conflicted list.
+   */
+  private isSkippedFileResolved(path: string): boolean {
+    if (this.getSkippedFileChoice(path) !== undefined) {
+      return true
+    }
+    const file = this.props.workingDirectory.files.find(f => f.path === path)
+    // Gone from the working directory, or no longer reported as conflicted,
+    // means the file was resolved/staged externally - there is nothing left to
+    // gate Continue on, so treat it as resolved.
+    if (file === undefined || !isConflictedFile(file.status)) {
+      return true
+    }
+    // Still conflicted: resolved only once the markers are removed in an editor.
+    return this.isFileResolvedExternally(file)
+  }
+
+  /**
+   * Whether any file Copilot skipped still lacks a resolution. Continue must
+   * stay disabled while this is true, otherwise the file would be committed
+   * with its conflict markers intact.
+   */
+  private hasUnresolvedSkippedFiles(): boolean {
+    return this.skippedFiles.some(f => !this.isSkippedFileResolved(f.path))
+  }
+
+  private onSkippedResolutionDropdownClick = (path: string) => {
+    const { ourBranch, theirBranch } = this.props.conflictState
+    const fileStatus = this.getConflictedFileStatus(path)
+    const { oursLabel, theirsLabel } = getOursTheirsLabels(
+      fileStatus,
+      ourBranch,
+      theirBranch
+    )
+    const currentChoice = this.getSkippedFileChoice(path)
+
+    const items: ReadonlyArray<IMenuItem> = [
+      {
+        label: oursLabel,
+        type: 'checkbox',
+        checked: currentChoice === 'ours',
+        action: () => this.setResolution(path, 'ours'),
+      },
+      {
+        label: theirsLabel,
+        type: 'checkbox',
+        checked: currentChoice === 'theirs',
+        action: () => this.setResolution(path, 'theirs'),
+      },
+    ]
+
+    showContextualMenu(items)
+  }
+
+  private getSkippedDropdownClickHandler(path: string): () => void {
+    let handler = this.skippedDropdownHandlers.get(path)
+    if (handler === undefined) {
+      handler = () => this.onSkippedResolutionDropdownClick(path)
+      this.skippedDropdownHandlers.set(path, handler)
+    }
+    return handler
+  }
+
+  private getConflictedFileStatus(path: string) {
+    const file = this.props.workingDirectory.files.find(f => f.path === path)
+    if (file === undefined || !isConflictedFile(file.status)) {
+      return undefined
+    }
+    return file.status
+  }
+
   private isFileResolvedExternally(file: WorkingDirectoryFileChange): boolean {
     if (!isConflictedFile(file.status)) {
       return false
     }
-    const manualResolution = this.props.conflictState.manualResolutions.get(
-      file.path
-    )
-    if (manualResolution !== undefined) {
-      return false
-    }
+    // A file with no remaining conflict markers has been resolved in an editor.
+    // This wins even when a Current/Incoming choice was previously picked from
+    // the dropdown — the on-disk edit is the source of truth, so we show the
+    // resolved state rather than the stale dropdown selection.
     if (isConflictWithMarkers(file.status)) {
       return file.status.conflictMarkerCount === 0
     }
     return false
   }
 
-  private renderResolvedExternally(
-    file: WorkingDirectoryFileChange
-  ): JSX.Element {
+  private renderResolvedFileRow(path: string): JSX.Element {
     return (
-      <li key={file.path} className="copilot-conflicts-file-item">
+      <li key={path} className="copilot-conflicts-file-item">
         <div className="copilot-file-details">
-          <PathText path={file.path} />
+          <PathText path={path} />
           <span className="copilot-file-explanation resolved-text">
             No conflicts remaining
           </span>
@@ -285,24 +388,63 @@ export class CopilotConflictsDialog extends React.Component<
     )
   }
 
+  private renderResolvedExternally(
+    file: WorkingDirectoryFileChange
+  ): JSX.Element {
+    return this.renderResolvedFileRow(file.path)
+  }
+
   private renderConflictedFile(file: WorkingDirectoryFileChange): JSX.Element {
     const resolution = this.getResolutionForPath(file.path)
     const choice = this.getResolutionForFile(file.path)
-    const { label: choiceLabel, icon: choiceIcon } = resolutionChoices[choice]
     const reasoning = resolution?.reasoning
+    const fileStatus = isConflictedFile(file.status) ? file.status : undefined
+    const isDeleteConflict =
+      fileStatus !== undefined && isDeleteConflictFile(fileStatus)
 
-    const reasoningText =
-      choice === 'copilot' && reasoning
-        ? reasoning
-        : choice === 'ours'
-        ? `Using changes from ${
-            this.props.conflictState.ourBranch ?? 'current branch'
-          }`
-        : choice === 'theirs'
-        ? `Using changes from ${
-            this.props.conflictState.theirBranch ?? 'incoming branch'
-          }`
+    // Use "Keep file" / "Delete file" labels for delete-vs-modify conflicts
+    let choiceLabel: string
+    let choiceIcon: typeof octicons.copilot
+    if (isDeleteConflict && isManualConflict(fileStatus)) {
+      choiceLabel = getDeleteConflictChoiceLabel(choice, fileStatus)
+      choiceIcon =
+        choice === 'copilot' ? octicons.copilot : resolutionChoices[choice].icon
+    } else {
+      const resolved = resolutionChoices[choice]
+      choiceLabel = resolved.label
+      choiceIcon = resolved.icon
+    }
+
+    let reasoningText: string | undefined
+    if (choice === 'copilot' && reasoning) {
+      reasoningText = reasoning
+    } else if (isDeleteConflict) {
+      const deletedSide = isManualConflict(fileStatus!)
+        ? getDeletedSide(fileStatus!)
         : undefined
+      const { ourBranch, theirBranch } = this.props.conflictState
+      if (deletedSide === 'ours') {
+        const branch = ourBranch ?? 'current branch'
+        reasoningText =
+          choice === 'ours'
+            ? `Deleting file (deleted on ${branch})`
+            : `Keeping modified file`
+      } else if (deletedSide === 'theirs') {
+        const branch = theirBranch ?? 'incoming branch'
+        reasoningText =
+          choice === 'theirs'
+            ? `Deleting file (deleted on ${branch})`
+            : `Keeping modified file`
+      }
+    } else if (choice === 'ours') {
+      reasoningText = `Using changes from ${
+        this.props.conflictState.ourBranch ?? 'current branch'
+      }`
+    } else if (choice === 'theirs') {
+      reasoningText = `Using changes from ${
+        this.props.conflictState.theirBranch ?? 'incoming branch'
+      }`
+    }
 
     const onDropdownClick = this.getResolutionDropdownClickHandler(file.path)
     const onOverflowClick = this.getOverflowMenuClickHandler(file.path)
@@ -362,7 +504,10 @@ export class CopilotConflictsDialog extends React.Component<
   private renderFileList(
     files: ReadonlyArray<WorkingDirectoryFileChange>
   ): JSX.Element {
-    const conflictedFiles = files.filter(f => isConflictedFile(f.status))
+    const skippedPaths = this.skippedPaths
+    const conflictedFiles = files.filter(
+      f => isConflictedFile(f.status) && !skippedPaths.has(f.path)
+    )
 
     return (
       <>
@@ -381,6 +526,92 @@ export class CopilotConflictsDialog extends React.Component<
     )
   }
 
+  private renderSkippedFile(skipped: ICopilotSkippedFile): JSX.Element {
+    const file = this.props.workingDirectory.files.find(
+      f => f.path === skipped.path
+    )
+
+    // If the user resolved the file themselves - by removing every marker in an
+    // editor, staging it, or otherwise making it no longer conflicted - show the
+    // same "resolved" treatment the main conflicted list uses instead of the
+    // resolution dropdown.
+    if (
+      file === undefined ||
+      !isConflictedFile(file.status) ||
+      this.isFileResolvedExternally(file)
+    ) {
+      return this.renderResolvedFileRow(skipped.path)
+    }
+
+    const { ourBranch, theirBranch } = this.props.conflictState
+    const fileStatus = this.getConflictedFileStatus(skipped.path)
+    const { oursLabel, theirsLabel } = getOursTheirsLabels(
+      fileStatus,
+      ourBranch,
+      theirBranch
+    )
+    const choice = this.getSkippedFileChoice(skipped.path)
+    const choiceLabel =
+      choice === 'ours'
+        ? oursLabel
+        : choice === 'theirs'
+        ? theirsLabel
+        : 'Choose a resolution'
+
+    const onDropdownClick = this.getSkippedDropdownClickHandler(skipped.path)
+    const onOverflowClick = this.getOverflowMenuClickHandler(skipped.path)
+
+    return (
+      <li key={skipped.path} className="copilot-conflicts-file-item">
+        <div className="copilot-file-details">
+          <PathText path={skipped.path} />
+          <span className="copilot-file-explanation">{skipped.reason}</span>
+        </div>
+        <div className="copilot-file-actions">
+          <Button
+            className="copilot-resolution-dropdown"
+            onClick={onDropdownClick}
+            disabled={this.state.isContinuing}
+            ariaLabel="Choose a resolution for this file"
+          >
+            <Octicon
+              symbol={choice === undefined ? octicons.alert : octicons.check}
+            />
+            {choiceLabel}
+            <Octicon symbol={octicons.triangleDown} />
+          </Button>
+          <Button
+            className="copilot-overflow-menu"
+            onClick={onOverflowClick}
+            disabled={this.state.isContinuing}
+            ariaLabel="File options"
+          >
+            <Octicon symbol={octicons.kebabHorizontal} />
+          </Button>
+        </div>
+      </li>
+    )
+  }
+
+  private renderSkippedFileList(): JSX.Element | null {
+    const skippedFiles = this.skippedFiles
+    if (skippedFiles.length === 0) {
+      return null
+    }
+
+    return (
+      <>
+        <h2 className="copilot-conflicts-file-heading copilot-conflicts-skipped-heading">
+          <Octicon symbol={octicons.alert} />
+          {skippedFiles.length} Skipped by Copilot
+        </h2>
+        <ul className="copilot-conflicts-file-list">
+          {skippedFiles.map(file => this.renderSkippedFile(file))}
+        </ul>
+      </>
+    )
+  }
+
   private onTabSelected = (index: CopilotConflictsTab) => {
     this.setState({ selectedTab: index })
   }
@@ -392,6 +623,7 @@ export class CopilotConflictsDialog extends React.Component<
       <div className="copilot-conflicts-summary-content">
         {this.renderResolutionSummary()}
         {this.renderFileList(unmergedFiles)}
+        {this.renderSkippedFileList()}
       </div>
     )
   }
@@ -433,6 +665,8 @@ export class CopilotConflictsDialog extends React.Component<
 
     const unmergedFiles = getUnmergedFiles(workingDirectory)
     const operation = __DARWIN__ ? operationKind : operationKind.toLowerCase()
+
+    const hasUnresolvedSkippedFiles = this.hasUnresolvedSkippedFiles()
 
     const modelLabel =
       model.reasoningEffort !== undefined
@@ -486,6 +720,12 @@ export class CopilotConflictsDialog extends React.Component<
             </Button>
             <OkCancelButtonGroup
               okButtonText={`Continue ${operation}`}
+              okButtonDisabled={hasUnresolvedSkippedFiles || isContinuing}
+              okButtonTitle={
+                hasUnresolvedSkippedFiles
+                  ? 'Some files were skipped by Copilot. Those need to be resolved manually.'
+                  : undefined
+              }
               cancelButtonText={`Abort ${operation}`}
               onCancelButtonClick={this.onAbort}
               cancelButtonDisabled={isContinuing}

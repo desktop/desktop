@@ -49,6 +49,10 @@ export function showTestUI(
       return showFakeConfirmCommittingConflictedFiles()
     case 'test-cherry-pick-conflicts-banner':
       return showFakeCherryPickConflictBanner()
+    case 'test-copilot-snapshot-card':
+      return dispatcher.showPopup({
+        type: PopupType.TestCopilotSnapshotCard,
+      })
     case 'test-discarded-changes-will-be-unrecoverable':
       return showFakeDiscardedChangesWillBeUnrecoverable()
     case 'test-do-you-want-fork-this-repository':

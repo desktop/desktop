@@ -11,6 +11,18 @@ import {
 // Types & interfaces
 // ---------------------------------------------------------------------------
 
+/**
+ * A conflicted file that Copilot did not resolve, along with the reason it was
+ * skipped (e.g. too large, unreadable, no parseable markers). Surfaced in the
+ * result dialog so the user can resolve it manually.
+ */
+export interface ICopilotSkippedFile {
+  /** Repository-relative file path that was skipped. */
+  readonly path: string
+  /** Human-readable reason the file was skipped. */
+  readonly reason: string
+}
+
 /** Resolution suggestion for a single conflicted file. */
 export interface IFileResolution {
   /** Repository-relative file path that was resolved. */
@@ -19,6 +31,13 @@ export interface IFileResolution {
   readonly resolvedContent: string
   /** Human-readable explanation of how and why conflicts were resolved this way. */
   readonly reasoning: string
+  /**
+   * For delete-vs-modify conflicts: the model's recommendation.
+   * When present, `resolvedContent` is not meaningful — the resolution
+   * is applied as a `ManualConflictResolution` (keep = non-deleted side,
+   * delete = deleted side).
+   */
+  readonly deleteConflictAction?: 'keep' | 'delete'
 }
 
 /** Resolution for a single conflict hunk as returned by the model. */
@@ -35,6 +54,11 @@ export interface IRawFileResolution {
   readonly hunks: ReadonlyArray<IHunkResolution>
   /** Human-readable explanation of the resolution strategy for this file. */
   readonly reasoning: string
+  /**
+   * For delete-vs-modify conflicts: `"keep"` to preserve the modified file
+   * or `"delete"` to accept the deletion. When present, `hunks` is empty.
+   */
+  readonly action?: 'keep' | 'delete'
 }
 
 /** A reference the model considered material to its decision. */
@@ -172,13 +196,15 @@ You will receive:
 - Labels for both sides (branch names or commit refs)
 - Conflict markers from each file (ours, theirs, optionally base)
 - Context lines surrounding each conflict
+- Delete-vs-modify conflicts where one side deleted a file and the other modified it
 - When available: recent commit messages and/or PR title/description for intent
 
 Your job:
 1. Understand the INTENT behind each side's changes
 2. Resolve each conflict by producing the correct merged content for each conflict hunk
-3. Explain your reasoning per file — terse but specific enough to verify the decision
-4. Produce a brief markdown summary orienting the user to the conflict and resolution
+3. For delete-vs-modify conflicts, recommend whether to keep or delete the file
+4. Explain your reasoning per file — terse but specific enough to verify the decision
+5. Produce a brief markdown summary orienting the user to the conflict and resolution
 
 Resolution guidelines:
 - Make MINIMAL changes — do not refactor, reformat, or alter code outside conflicted regions
@@ -204,13 +230,21 @@ Response format:
         { "resolvedContent": "merged content that replaces conflict 2" }
       ],
       "reasoning": "What each side changed in this file, what you kept, and what you dropped or overrode."
+    },
+    {
+      "path": "deleted-or-modified/file.ts",
+      "action": "keep",
+      "hunks": [],
+      "reasoning": "The file was modified with important changes; the deletion was part of an incomplete refactor."
     }
   ]
 }
 
 Field rules:
 
-hunks: An ordered array with one entry per conflict in the file, matching the "Conflict 1 of N", "Conflict 2 of N" order from the input. Each entry's resolvedContent is ONLY the merged content that replaces that specific conflict marker block (the region between <<<<<<< and >>>>>>>). Do NOT include surrounding non-conflicted code — the application splices each resolution into the original file automatically. If the resolution is to accept one side entirely, return that side's content verbatim. For an intentional deletion, use an empty string.
+hunks: An ordered array with one entry per conflict in the file, matching the "Conflict 1 of N", "Conflict 2 of N" order from the input. Each entry's resolvedContent is ONLY the merged content that replaces that specific conflict marker block (the region between <<<<<<< and >>>>>>>). Do NOT include surrounding non-conflicted code — the application splices each resolution into the original file automatically. If the resolution is to accept one side entirely, return that side's content verbatim. For an intentional deletion, use an empty string. For delete-vs-modify conflicts, hunks must be an empty array.
+
+action: Only for delete-vs-modify conflicts. Set to "keep" to preserve the modified file, or "delete" to accept the deletion. Use commit messages and PR context to determine intent — if the deletion was part of a refactoring that moved functionality elsewhere, prefer "delete"; if the modifications add important functionality that should be preserved, prefer "keep". Omit this field for regular text conflicts.
 
 reasoning: Terse, direct prose — enough detail to verify the decision, not a wall of text. State what each side did in this file, what you kept, and any trade-off. Typically 1-4 sentences depending on complexity.
 
@@ -352,7 +386,7 @@ export function parseCopilotConflictResolution(
     }
 
     const obj = entry as Record<string, unknown>
-    const { path, hunks: rawHunks, reasoning } = obj
+    const { path, hunks: rawHunks, reasoning, action: rawAction } = obj
 
     if (typeof path !== 'string' || path.trim().length === 0) {
       throw new CopilotValidationError(
@@ -364,6 +398,26 @@ export function parseCopilotConflictResolution(
       throw new CopilotValidationError(
         `Copilot returned an invalid conflict resolution payload: "hunks" at index ${i} must be an array`
       )
+    }
+
+    // Parse optional action for delete-vs-modify conflicts
+    const action =
+      rawAction === 'keep' || rawAction === 'delete' ? rawAction : undefined
+
+    // Delete-vs-modify resolutions use action instead of hunks
+    if (action !== undefined) {
+      if (typeof reasoning !== 'string' || reasoning.trim().length === 0) {
+        throw new CopilotValidationError(
+          `Copilot returned an invalid conflict resolution payload: "reasoning" at index ${i} must be a non-empty string`
+        )
+      }
+      validated.push({
+        path: normalizeLLMPath(path),
+        hunks: [],
+        reasoning,
+        action,
+      })
+      continue
     }
 
     if (rawHunks.length === 0) {
@@ -453,6 +507,10 @@ export function validateResolutionPaths(
   }
 
   for (const resolution of resolutions) {
+    // Delete-vs-modify resolutions use action instead of hunks — skip count check
+    if (resolution.action !== undefined) {
+      continue
+    }
     const expectedCount = expectedHunkCounts.get(resolution.path) ?? 0
     if (resolution.hunks.length !== expectedCount) {
       throw new CopilotValidationError(
@@ -555,6 +613,18 @@ export function reassembleResolutions(
   const contextByPath = new Map(fileContexts.map(f => [f.path, f]))
 
   return rawResolutions.map(raw => {
+    // Delete-vs-modify resolutions carry an action, not hunk content.
+    // Pass through without reassembly — the resolution is applied as a
+    // ManualConflictResolution, not a file write.
+    if (raw.action !== undefined) {
+      return {
+        path: raw.path,
+        resolvedContent: '',
+        reasoning: raw.reasoning,
+        deleteConflictAction: raw.action,
+      }
+    }
+
     const ctx = contextByPath.get(raw.path)
     if (ctx?.rawContent === undefined) {
       throw new CopilotValidationError(

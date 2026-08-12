@@ -1,5 +1,8 @@
 import type { CopilotClient, CopilotSession } from '@github/copilot-sdk'
-import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
+import type {
+  AccountQuotaSnapshot,
+  Model,
+} from '@github/copilot-sdk/dist/generated/rpc'
 import assert from 'node:assert'
 import { after, before, describe, it } from 'node:test'
 import { getDotComAPIEndpoint } from '../../../src/lib/api'
@@ -11,6 +14,8 @@ import {
   CopilotStore,
   DefaultCopilotModel,
   getCopilotGHHost,
+  getCopilotAccountCacheKey,
+  migrateCopilotModelSelectionsToAccounts,
   getCopilotModelCacheKey,
   getLowestReasoningEffort,
   getPreferredDefaultModel,
@@ -46,6 +51,14 @@ interface ITestableCommitMessageCopilotStore {
     account: Account,
     repositoryPath?: string
   ): Promise<CopilotClient>
+}
+
+interface ITestableQuotaCopilotStore {
+  createClient(account: Account): Promise<CopilotClient>
+}
+
+type TestQuotaSnapshot = AccountQuotaSnapshot & {
+  readonly tokenBasedBilling?: boolean
 }
 
 function makeAccount(overrides: IAccountOverrides = {}): Account {
@@ -119,6 +132,42 @@ function createCopilotStoreWithModels(
   }
 }
 
+function createCopilotStoreWithQuotaSnapshots(
+  quotaSnapshots: Readonly<Record<string, TestQuotaSnapshot | undefined>>
+): {
+  readonly accountsStore: AccountsStore
+  readonly store: CopilotStore
+} {
+  const accountsStore = createAccountsStore()
+  const store = new CopilotStore(accountsStore)
+  const testableStore = store as unknown as ITestableQuotaCopilotStore
+
+  testableStore.createClient = async () =>
+    ({
+      start: async () => {},
+      stop: async () => {},
+      rpc: {
+        account: {
+          getQuota: async () => ({ quotaSnapshots }),
+        },
+      },
+    } as unknown as CopilotClient)
+
+  return { accountsStore, store }
+}
+
+function makeQuotaSnapshot(): AccountQuotaSnapshot {
+  return {
+    isUnlimitedEntitlement: false,
+    entitlementRequests: 100,
+    usedRequests: 25,
+    usageAllowedWithExhaustedQuota: false,
+    remainingPercentage: 75,
+    overage: 0,
+    overageAllowedWithExhaustedQuota: false,
+  }
+}
+
 function makeModel(
   overrides: Partial<Model> & Pick<Model, 'id' | 'name'>
 ): Model {
@@ -175,6 +224,38 @@ describe('getCopilotModelCacheKey', () => {
     assert.notStrictEqual(
       getCopilotModelCacheKey(account),
       getCopilotModelCacheKey(sameIdDifferentEndpoint)
+    )
+  })
+})
+
+describe('migrateCopilotModelSelectionsToAccounts', () => {
+  it('copies legacy selections to every account and preserves overrides', () => {
+    const account = makeAccount({ id: 1 })
+    const otherAccount = makeAccount({ id: 2 })
+    const legacySelections = {
+      'commit-message-generation': 'legacy-commit',
+      'conflict-resolution': 'legacy-conflict',
+    } as const
+    const selectionsByAccount = new Map([
+      [
+        getCopilotAccountCacheKey(account),
+        { 'commit-message-generation': 'account-commit' },
+      ],
+    ])
+
+    const migrated = migrateCopilotModelSelectionsToAccounts(
+      legacySelections,
+      selectionsByAccount,
+      [account, otherAccount]
+    )
+
+    assert.deepStrictEqual(migrated.get(getCopilotAccountCacheKey(account)), {
+      'commit-message-generation': 'account-commit',
+      'conflict-resolution': 'legacy-conflict',
+    })
+    assert.deepStrictEqual(
+      migrated.get(getCopilotAccountCacheKey(otherAccount)),
+      legacySelections
     )
   })
 })
@@ -335,6 +416,45 @@ describe('CopilotStore model cache', () => {
     assert.strictEqual(store.getCachedModelList(account), null)
     assert.strictEqual(await store.listModels(account), freshModels)
     assert.strictEqual(store.getCachedModelList(account), freshModels)
+  })
+})
+
+describe('CopilotStore quota snapshots', () => {
+  let previousPreviewFeatures: string | undefined
+
+  before(() => {
+    previousPreviewFeatures = process.env[PreviewFeaturesEnv]
+    process.env[PreviewFeaturesEnv] = '1'
+  })
+
+  after(() => {
+    if (previousPreviewFeatures === undefined) {
+      delete process.env[PreviewFeaturesEnv]
+    } else {
+      process.env[PreviewFeaturesEnv] = previousPreviewFeatures
+    }
+  })
+
+  it('defaults missing token-based billing metadata without dropping snapshots', async () => {
+    const account = makeAccount()
+    const { accountsStore, store } = createCopilotStoreWithQuotaSnapshots({
+      chat: { ...makeQuotaSnapshot(), tokenBasedBilling: true },
+      completions: { ...makeQuotaSnapshot(), tokenBasedBilling: false },
+      premium_interactions: makeQuotaSnapshot(),
+      missing: undefined,
+    })
+
+    await accountsStore.addAccount(account)
+
+    const snapshots = await store.getQuotaSnapshots(account)
+    assert.strictEqual(snapshots?.size, 3)
+    assert.strictEqual(snapshots?.get('chat')?.tokenBasedBilling, true)
+    assert.strictEqual(snapshots?.get('completions')?.tokenBasedBilling, false)
+    assert.strictEqual(
+      snapshots?.get('premium_interactions')?.tokenBasedBilling,
+      false
+    )
+    assert.strictEqual(snapshots?.has('missing'), false)
   })
 })
 

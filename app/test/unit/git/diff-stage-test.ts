@@ -35,7 +35,9 @@ describe('git/diff/getResolutionDiff (stage mode)', () => {
     await exec(['merge', 'feature', '--no-commit'], repo.path)
 
     // Diff: on-disk (conflict markers) → :2 (master's version)
-    const diff = await getResolutionDiff(repo, 'file.txt', { stage: 'ours' })
+    const { diff } = await getResolutionDiff(repo, 'file.txt', {
+      stage: 'ours',
+    })
 
     assert.equal(diff.kind, DiffType.Text)
     const textDiff = diff as ITextDiff
@@ -74,7 +76,9 @@ describe('git/diff/getResolutionDiff (stage mode)', () => {
     await exec(['merge', 'feature', '--no-commit'], repo.path)
 
     // Diff: on-disk (conflict markers) → :3 (feature's version)
-    const diff = await getResolutionDiff(repo, 'file.txt', { stage: 'theirs' })
+    const { diff } = await getResolutionDiff(repo, 'file.txt', {
+      stage: 'theirs',
+    })
 
     assert.equal(diff.kind, DiffType.Text)
     const textDiff = diff as ITextDiff
@@ -109,7 +113,9 @@ describe('git/diff/getResolutionDiff (stage mode)', () => {
 
     // file.txt was deleted in feature (:3 doesn't exist) → empty target.
     // Diff should show the on-disk content being removed entirely.
-    const diff = await getResolutionDiff(repo, 'file.txt', { stage: 'theirs' })
+    const { diff } = await getResolutionDiff(repo, 'file.txt', {
+      stage: 'theirs',
+    })
 
     assert.equal(diff.kind, DiffType.Text)
     const textDiff = diff as ITextDiff
@@ -142,7 +148,7 @@ describe('git/diff/getResolutionDiff (stage mode)', () => {
     await exec(['merge', 'feature', '--no-commit'], repo.path)
 
     // With whitespace hidden, spacing-only changes should be suppressed
-    const diff = await getResolutionDiff(
+    const { diff } = await getResolutionDiff(
       repo,
       'file.txt',
       { stage: 'theirs' },

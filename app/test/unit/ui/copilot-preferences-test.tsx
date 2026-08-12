@@ -17,6 +17,10 @@ import { CopilotPreferences } from '../../../src/ui/preferences/copilot'
 import {
   DefaultCopilotModel,
   type CopilotFeature,
+  type CopilotModelSelections,
+  type CopilotQuotaSnapshots,
+  type ICopilotQuotaSnapshot,
+  getCopilotAccountCacheKey,
 } from '../../../src/lib/stores/copilot-store'
 import {
   encodeModelKey,
@@ -32,6 +36,9 @@ interface IAccountOptions {
   readonly endpoint?: string
   readonly id?: number
   readonly login?: string
+  readonly avatarURL?: string
+  readonly name?: string
+  readonly features?: ReadonlyArray<string>
 }
 
 function makeAccount(options: IAccountOptions = {}): Account {
@@ -49,13 +56,15 @@ function makeAccount(options: IAccountOptions = {}): Account {
     options.endpoint ?? 'https://api.github.com',
     'token',
     [],
-    '',
+    options.avatarURL ?? 'https://avatars.githubusercontent.com/u/1',
     options.id ?? 1,
-    'Mona Lisa',
+    options.name ?? 'Mona Lisa',
     'free',
     'https://copilot-proxy.githubusercontent.com',
     isCopilotDesktopEnabled,
-    [],
+    options.features ?? [
+      'desktop_enable_copilot_sdk_commit_message_generation',
+    ],
     copilotLicenseType
   )
 }
@@ -136,6 +145,34 @@ const models: ReadonlyArray<Model> = [
   otherModel,
   usageBilledModel,
 ]
+
+function makeQuotaSnapshot(
+  overrides: Partial<ICopilotQuotaSnapshot> = {}
+): ICopilotQuotaSnapshot {
+  return {
+    isUnlimitedEntitlement: false,
+    entitlementRequests: 100,
+    usedRequests: 25,
+    usageAllowedWithExhaustedQuota: false,
+    remainingPercentage: 75,
+    overage: 0,
+    overageAllowedWithExhaustedQuota: false,
+    tokenBasedBilling: false,
+    ...overrides,
+  }
+}
+
+const quotaSnapshots = new Map<string, ICopilotQuotaSnapshot>([
+  ['chat', makeQuotaSnapshot()],
+  [
+    'premium_interactions',
+    makeQuotaSnapshot({
+      entitlementRequests: 300,
+      usedRequests: 90,
+      remainingPercentage: 70,
+    }),
+  ],
+])
 
 const ollamaProvider: IBYOKProvider = {
   id: 'ollama-id',
@@ -231,8 +268,10 @@ afterEach(() => {
 
 function defaults() {
   return {
-    selectedCopilotModels: {},
-    copilotModels: models,
+    selectedCopilotModelsByAccount: new Map(),
+    copilotModelsByAccount: modelsForDefaultAccount(models),
+    copilotQuotaSnapshotsByAccount:
+      quotaSnapshotsForDefaultAccount(quotaSnapshots),
     accounts: [makeAccount()],
     byokProviders: [],
     showBYOKSettings: false,
@@ -242,10 +281,23 @@ function defaults() {
     alwaysUseCopilotForConflictResolution: false,
     onSelectedCopilotModelChanged: () => {},
     onAlwaysUseCopilotForConflictResolutionChanged: () => {},
-    onAddBYOKProvider: () => {},
-    onEditBYOKProvider: () => {},
-    onDeleteBYOKProvider: () => {},
+    onConfigureCustomProviders: () => {},
+    onConfigureModels: () => {},
   }
+}
+
+function selectionsForDefaultAccount(selections: CopilotModelSelections) {
+  return new Map([[getCopilotAccountCacheKey(makeAccount()), selections]])
+}
+
+function modelsForDefaultAccount(models: ReadonlyArray<Model> | null) {
+  return new Map([[getCopilotAccountCacheKey(makeAccount()), models]])
+}
+
+function quotaSnapshotsForDefaultAccount(
+  snapshots: CopilotQuotaSnapshots | null
+) {
+  return new Map([[getCopilotAccountCacheKey(makeAccount()), snapshots]])
 }
 
 function getModelPickerButton(container: HTMLElement): HTMLButtonElement {
@@ -309,7 +361,6 @@ describe('CopilotPreferences', () => {
     render(
       <CopilotPreferences
         {...defaults()}
-        copilotModels={null}
         accounts={[]}
         onSignIn={() => {
           called += 1
@@ -336,7 +387,6 @@ describe('CopilotPreferences', () => {
     render(
       <CopilotPreferences
         {...defaults()}
-        copilotModels={null}
         accounts={[
           makeAccount({
             endpoint: 'https://enterprise.example.com/api/v3',
@@ -457,16 +507,86 @@ describe('CopilotPreferences', () => {
   })
 
   it('uses Copilot when a GHE account has Copilot enabled', () => {
+    const account = makeAccount({
+      endpoint: 'https://api.octocorp.ghe.com',
+      id: 2,
+      login: 'octo',
+      name: 'Octo Cat',
+      isCopilotDesktopEnabled: true,
+      copilotLicenseType: 'COPILOT_BUSINESS',
+    })
+
+    render(
+      <CopilotPreferences
+        {...defaults()}
+        copilotModelsByAccount={
+          new Map([[getCopilotAccountCacheKey(account), models]])
+        }
+        copilotQuotaSnapshotsByAccount={
+          new Map([[getCopilotAccountCacheKey(account), quotaSnapshots]])
+        }
+        accounts={[makeAccount({ copilotLicenseType: 'NO_ACCESS' }), account]}
+      />
+    )
+
+    assert.ok(screen.getAllByRole('button', { name: /Auto/ }).length > 0)
+    assert.ok(screen.getByText('@octo (Octo Cat)'))
+    assert.ok(screen.getByText('https://octocorp.ghe.com/'))
+    assert.strictEqual(screen.queryByText('@mona'), null)
+    assert.strictEqual(screen.queryByText('View Copilot plans'), null)
+  })
+
+  it('renders Snapshot cards instead of model settings for multiple Copilot accounts', () => {
+    const mona = makeAccount()
+    const octo = makeAccount({
+      endpoint: 'https://api.octocorp.ghe.com',
+      id: 2,
+      login: 'octo',
+      name: 'Octo Cat',
+      copilotLicenseType: 'COPILOT_BUSINESS',
+    })
+
+    const view = render(
+      <CopilotPreferences
+        {...defaults()}
+        accounts={[mona, octo]}
+        copilotQuotaSnapshotsByAccount={
+          new Map([
+            [getCopilotAccountCacheKey(mona), quotaSnapshots],
+            [getCopilotAccountCacheKey(octo), quotaSnapshots],
+          ])
+        }
+      />
+    )
+
+    assert.ok(screen.getByRole('heading', { name: 'GitHub.com' }))
+    assert.ok(screen.getByRole('heading', { name: 'GitHub Enterprise' }))
+    assert.ok(screen.getByText('Mona Lisa'))
+    assert.ok(screen.getByText('@mona'))
+    assert.ok(screen.getByText('@octo (Octo Cat)'))
+    assert.ok(screen.getByText('https://octocorp.ghe.com/'))
+    assert.strictEqual(
+      view.container.querySelector('.copilot-model-picker'),
+      null
+    )
+    assert.strictEqual(
+      screen.getAllByRole('button', { name: /Configure…/i }).length,
+      2
+    )
+  })
+
+  it('excludes accounts without Copilot SDK access from settings', () => {
     render(
       <CopilotPreferences
         {...defaults()}
         accounts={[
-          makeAccount({ copilotLicenseType: 'NO_ACCESS' }),
+          makeAccount(),
           makeAccount({
             endpoint: 'https://api.octocorp.ghe.com',
             id: 2,
             login: 'octo',
-            isCopilotDesktopEnabled: true,
+            name: 'Octo Cat',
+            features: [],
             copilotLicenseType: 'COPILOT_BUSINESS',
           }),
         ]}
@@ -474,7 +594,83 @@ describe('CopilotPreferences', () => {
     )
 
     assert.ok(screen.getAllByRole('button', { name: /Auto/ }).length > 0)
-    assert.strictEqual(screen.queryByText('View Copilot plans'), null)
+    assert.ok(screen.getByText('Mona Lisa'))
+    assert.strictEqual(screen.queryByText('@octo (Octo Cat)'), null)
+    assert.strictEqual(
+      screen.queryByRole('heading', { name: 'GitHub Enterprise' }),
+      null
+    )
+  })
+
+  it('makes multiple account Snapshot cards scrollable', () => {
+    const view = render(
+      <CopilotPreferences
+        {...defaults()}
+        accounts={[
+          makeAccount(),
+          makeAccount({
+            endpoint: 'https://api.octocorp.ghe.com',
+            id: 2,
+            login: 'octo',
+            name: 'Octo Cat',
+            copilotLicenseType: 'COPILOT_BUSINESS',
+          }),
+        ]}
+      />
+    )
+
+    const settingsScroll = view.container.querySelector(
+      '.copilot-settings-scroll'
+    )
+    const snapshotGroups = view.container.querySelector(
+      '.copilot-account-snapshot-groups'
+    )
+    assert.ok(settingsScroll instanceof HTMLElement)
+    assert.ok(snapshotGroups instanceof HTMLElement)
+    assert.strictEqual(settingsScroll.contains(snapshotGroups), true)
+  })
+
+  it('requests account-specific Copilot settings from a Snapshot card', () => {
+    const mona = makeAccount()
+    const octo = makeAccount({
+      endpoint: 'https://api.octocorp.ghe.com',
+      id: 2,
+      login: 'octo',
+      name: 'Octo Cat',
+      copilotLicenseType: 'COPILOT_BUSINESS',
+    })
+    const configuredAccounts = new Array<Account>()
+
+    const view = render(
+      <CopilotPreferences
+        {...defaults()}
+        accounts={[mona, octo]}
+        copilotModelsByAccount={
+          new Map([
+            [getCopilotAccountCacheKey(mona), [defaultModel]],
+            [getCopilotAccountCacheKey(octo), models],
+          ])
+        }
+        copilotQuotaSnapshotsByAccount={
+          new Map([
+            [getCopilotAccountCacheKey(mona), quotaSnapshots],
+            [getCopilotAccountCacheKey(octo), quotaSnapshots],
+          ])
+        }
+        onConfigureModels={account => configuredAccounts.push(account)}
+      />
+    )
+
+    const cards = view.container.querySelectorAll('.copilot-snapshot-card')
+    assert.strictEqual(cards.length, 2)
+    const octoCard = cards[1]
+    assert.ok(octoCard instanceof HTMLElement)
+    fireEvent.click(
+      within(octoCard).getByRole('button', { name: /Configure…/i })
+    )
+
+    assert.deepStrictEqual(configuredAccounts, [octo])
+    assert.strictEqual(screen.queryByText('Copilot Settings: @octo'), null)
   })
 
   it('ignores GHES accounts while checking Copilot access', () => {
@@ -504,13 +700,173 @@ describe('CopilotPreferences', () => {
   })
 
   it('shows loading message when models not yet fetched', () => {
-    render(<CopilotPreferences {...defaults()} copilotModels={null} />)
+    render(
+      <CopilotPreferences
+        {...defaults()}
+        copilotModelsByAccount={modelsForDefaultAccount(null)}
+      />
+    )
     assert.ok(screen.getByText('Loading available models…'))
   })
 
   it('shows no-models message when fetch completed with empty result', () => {
-    render(<CopilotPreferences {...defaults()} copilotModels={[]} />)
+    render(
+      <CopilotPreferences
+        {...defaults()}
+        copilotModelsByAccount={modelsForDefaultAccount([])}
+      />
+    )
     assert.ok(screen.getByText('No Copilot models available.'))
+  })
+
+  it('shows a loading message when quota snapshots have not been fetched', () => {
+    render(
+      <CopilotPreferences
+        {...defaults()}
+        copilotQuotaSnapshotsByAccount={quotaSnapshotsForDefaultAccount(null)}
+      />
+    )
+
+    assert.ok(screen.getByText('Loading Copilot usage…'))
+  })
+
+  it('renders Copilot quota snapshot cards', () => {
+    const view = render(<CopilotPreferences {...defaults()} />)
+
+    assert.strictEqual(screen.queryByRole('heading', { name: 'Usage' }), null)
+    assert.ok(screen.getByAltText('Avatar for Mona Lisa'))
+    assert.ok(screen.getByText('Mona Lisa'))
+    assert.ok(screen.getByText('@mona'))
+    assert.ok(screen.getByText('Chat messages'))
+    assert.ok(screen.getByText('Premium requests'))
+
+    const modelPicker = view.container.querySelector('.copilot-model-picker')
+    const settingsScroll = view.container.querySelector(
+      '.copilot-settings-scroll'
+    )
+    const usageSection = view.container.querySelector('.copilot-usage-section')
+    assert.ok(modelPicker instanceof HTMLElement)
+    assert.ok(settingsScroll instanceof HTMLElement)
+    assert.ok(usageSection instanceof HTMLElement)
+    assert.strictEqual(settingsScroll.contains(modelPicker), true)
+    assert.strictEqual(settingsScroll.contains(usageSection), true)
+    assert.strictEqual(
+      usageSection.compareDocumentPosition(modelPicker) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      Node.DOCUMENT_POSITION_FOLLOWING
+    )
+
+    const progressBars = screen.getAllByRole('progressbar')
+    assert.strictEqual(progressBars.length, 2)
+    assert.strictEqual(progressBars[0].getAttribute('aria-valuenow'), '25')
+    assert.strictEqual(
+      progressBars[0].getAttribute('aria-label'),
+      '25% quota used'
+    )
+    assert.strictEqual(progressBars[1].getAttribute('aria-valuenow'), '30')
+    assert.ok(screen.getByText('25%'))
+    assert.ok(screen.getByText('30%'))
+  })
+
+  it('renders code completions quota snapshots', () => {
+    render(
+      <CopilotPreferences
+        {...defaults()}
+        copilotQuotaSnapshotsByAccount={quotaSnapshotsForDefaultAccount(
+          new Map<string, ICopilotQuotaSnapshot>([
+            [
+              'completions',
+              makeQuotaSnapshot({
+                entitlementRequests: 100,
+                usedRequests: 25,
+                remainingPercentage: 75,
+              }),
+            ],
+          ])
+        )}
+      />
+    )
+
+    assert.ok(screen.getByText('Code completions'))
+    assert.ok(screen.getByText('25%'))
+  })
+
+  it('describes unlimited quotas as determinate progress', () => {
+    render(
+      <CopilotPreferences
+        {...defaults()}
+        copilotQuotaSnapshotsByAccount={quotaSnapshotsForDefaultAccount(
+          new Map<string, ICopilotQuotaSnapshot>([
+            [
+              'chat',
+              makeQuotaSnapshot({
+                isUnlimitedEntitlement: true,
+                entitlementRequests: -1,
+                usedRequests: 0,
+                remainingPercentage: 100,
+              }),
+            ],
+          ])
+        )}
+      />
+    )
+
+    const progressBar = screen.getByRole('progressbar', {
+      name: 'No usage limit',
+    })
+    assert.strictEqual(progressBar.getAttribute('aria-valuenow'), '0')
+    assert.strictEqual(progressBar.getAttribute('aria-valuemin'), '0')
+    assert.strictEqual(progressBar.getAttribute('aria-valuemax'), '100')
+    assert.strictEqual(
+      progressBar.getAttribute('aria-valuetext'),
+      'No usage limit'
+    )
+  })
+
+  it('renders token-based billing quota snapshots as AI credits', () => {
+    render(
+      <CopilotPreferences
+        {...defaults()}
+        copilotQuotaSnapshotsByAccount={quotaSnapshotsForDefaultAccount(
+          new Map<string, ICopilotQuotaSnapshot>([
+            [
+              'chat',
+              makeQuotaSnapshot({
+                isUnlimitedEntitlement: true,
+                entitlementRequests: -1,
+                usedRequests: 0,
+                remainingPercentage: 100,
+                tokenBasedBilling: true,
+              }),
+            ],
+            [
+              'completions',
+              makeQuotaSnapshot({
+                isUnlimitedEntitlement: true,
+                entitlementRequests: -1,
+                usedRequests: 0,
+                remainingPercentage: 100,
+                tokenBasedBilling: true,
+              }),
+            ],
+            [
+              'premium_interactions',
+              makeQuotaSnapshot({
+                entitlementRequests: 12.5,
+                usedRequests: 2.5,
+                remainingPercentage: 80,
+                tokenBasedBilling: true,
+              }),
+            ],
+          ])
+        )}
+      />
+    )
+
+    assert.ok(screen.getByText('AI credits'))
+    assert.ok(screen.getByText('(resets monthly)'))
+    assert.strictEqual(screen.queryByText('Chat messages'), null)
+    assert.ok(screen.getByText('20%'))
   })
 
   it('renders a Copilot group with the available models', async () => {
@@ -606,12 +962,12 @@ describe('CopilotPreferences', () => {
     const view = render(
       <CopilotPreferences
         {...defaults()}
-        selectedCopilotModels={{
+        selectedCopilotModelsByAccount={selectionsForDefaultAccount({
           'commit-message-generation': encodeModelKey({
             kind: 'copilot',
             modelId: 'usage-billed-model',
           }),
-        }}
+        })}
       />
     )
 
@@ -619,14 +975,15 @@ describe('CopilotPreferences', () => {
 
     assert.ok(within(button).getByText('Usage Billed Model'))
     assert.strictEqual(within(button).queryByText(/Use of credits/), null)
-    assert.ok(screen.getByText('Lightweight model. Use of credits: low'))
+    assert.ok(
+      screen.getAllByText('Lightweight model. Use of credits: low').length > 0
+    )
     assert.strictEqual(screen.queryByText(/AI credits per/), null)
     assert.ok(!button.textContent?.includes('low cost'))
 
-    const costsButtons = screen.getAllByRole('button', {
+    const costsButton = screen.getByRole('button', {
       name: 'Show Copilot model credit costs',
     })
-    const costsButton = costsButtons[0]
 
     assert.strictEqual(costsButton.getAttribute('aria-expanded'), 'false')
     assert.strictEqual(costsButton.getAttribute('aria-controls'), null)
@@ -683,13 +1040,13 @@ describe('CopilotPreferences', () => {
     const view = render(
       <CopilotPreferences
         {...defaults()}
-        copilotModels={[partiallyPricedModel]}
-        selectedCopilotModels={{
+        copilotModelsByAccount={modelsForDefaultAccount([partiallyPricedModel])}
+        selectedCopilotModelsByAccount={selectionsForDefaultAccount({
           'commit-message-generation': encodeModelKey({
             kind: 'copilot',
             modelId: 'partially-priced-model',
           }),
-        }}
+        })}
       />
     )
 
@@ -697,10 +1054,10 @@ describe('CopilotPreferences', () => {
       screen.getAllByText('Lightweight model. Use of credits: low').length > 0
     )
 
-    const costsButtons = screen.getAllByRole('button', {
+    const costsButton = screen.getAllByRole('button', {
       name: 'Show Copilot model credit costs',
-    })
-    const costsButton = costsButtons[0]
+    })[0]
+    assert.ok(costsButton instanceof HTMLButtonElement)
     fireEvent.click(costsButton)
 
     const costsPopover = view.container.querySelector(
@@ -720,13 +1077,15 @@ describe('CopilotPreferences', () => {
     render(
       <CopilotPreferences
         {...defaults()}
-        copilotModels={[missingBatchSizeModel]}
-        selectedCopilotModels={{
+        copilotModelsByAccount={modelsForDefaultAccount([
+          missingBatchSizeModel,
+        ])}
+        selectedCopilotModelsByAccount={selectionsForDefaultAccount({
           'commit-message-generation': encodeModelKey({
             kind: 'copilot',
             modelId: 'missing-batch-size-model',
           }),
-        }}
+        })}
       />
     )
 
@@ -746,7 +1105,9 @@ describe('CopilotPreferences', () => {
     const view = render(
       <CopilotPreferences
         {...defaults()}
-        selectedCopilotModels={{ 'commit-message-generation': 'claude-sonnet' }}
+        selectedCopilotModelsByAccount={selectionsForDefaultAccount({
+          'commit-message-generation': 'claude-sonnet',
+        })}
       />
     )
 
@@ -760,13 +1121,13 @@ describe('CopilotPreferences', () => {
       <CopilotPreferences
         {...defaults()}
         byokProviders={[ollamaProvider]}
-        selectedCopilotModels={{
+        selectedCopilotModelsByAccount={selectionsForDefaultAccount({
           'commit-message-generation': encodeModelKey({
             kind: 'byok',
             providerId: ollamaProvider.id,
             modelId: 'llama3',
           }),
-        }}
+        })}
       />
     )
 
@@ -780,7 +1141,7 @@ describe('CopilotPreferences', () => {
     const view = render(
       <CopilotPreferences
         {...defaults()}
-        onSelectedCopilotModelChanged={(f, m) =>
+        onSelectedCopilotModelChanged={(_, f, m) =>
           changed.push({ feature: f, model: m })
         }
       />
@@ -803,8 +1164,10 @@ describe('CopilotPreferences', () => {
     const view = render(
       <CopilotPreferences
         {...defaults()}
-        selectedCopilotModels={{ 'commit-message-generation': 'claude-sonnet' }}
-        onSelectedCopilotModelChanged={(f, m) =>
+        selectedCopilotModelsByAccount={selectionsForDefaultAccount({
+          'commit-message-generation': 'claude-sonnet',
+        })}
+        onSelectedCopilotModelChanged={(_, f, m) =>
           changed.push({ feature: f, model: m })
         }
       />
@@ -835,9 +1198,9 @@ describe('CopilotPreferences', () => {
     const view = render(
       <CopilotPreferences
         {...defaults()}
-        selectedCopilotModels={{
+        selectedCopilotModelsByAccount={selectionsForDefaultAccount({
           'commit-message-generation': 'deleted-model',
-        }}
+        })}
       />
     )
 
@@ -850,13 +1213,13 @@ describe('CopilotPreferences', () => {
     const view = render(
       <CopilotPreferences
         {...defaults()}
-        selectedCopilotModels={{
+        selectedCopilotModelsByAccount={selectionsForDefaultAccount({
           'commit-message-generation': encodeModelKey({
             kind: 'byok',
             providerId: 'missing-provider',
             modelId: 'llama3',
           }),
-        }}
+        })}
       />
     )
 
@@ -870,10 +1233,10 @@ describe('CopilotPreferences', () => {
     const view = render(
       <CopilotPreferences
         {...defaults()}
-        copilotModels={onlyOtherModel}
-        selectedCopilotModels={{
+        copilotModelsByAccount={modelsForDefaultAccount(onlyOtherModel)}
+        selectedCopilotModelsByAccount={selectionsForDefaultAccount({
           'commit-message-generation': 'deleted-model',
-        }}
+        })}
       />
     )
 
@@ -886,11 +1249,11 @@ describe('CopilotPreferences', () => {
     const view = render(
       <CopilotPreferences
         {...defaults()}
-        copilotModels={[]}
+        copilotModelsByAccount={modelsForDefaultAccount([])}
         byokProviders={[ollamaProvider]}
-        selectedCopilotModels={{
+        selectedCopilotModelsByAccount={selectionsForDefaultAccount({
           'commit-message-generation': 'deleted-model',
-        }}
+        })}
       />
     )
 
@@ -899,51 +1262,46 @@ describe('CopilotPreferences', () => {
     assert.ok(!buttonText.includes('Ollama'))
   })
 
-  it('hides the Providers tab when showBYOKSettings is false', () => {
+  it('always shows models without settings tabs', () => {
     const view = render(<CopilotPreferences {...defaults()} />)
     const tabs = view.container.querySelectorAll('[role="tab"]')
     assert.strictEqual(tabs.length, 0)
+    assert.ok(getModelPickerButtons(view.container).length > 0)
   })
 
-  it('shows the Providers tab when enabled', () => {
+  it('hides custom provider configuration when BYOK settings are disabled', () => {
     const view = render(
-      <CopilotPreferences {...defaults()} showBYOKSettings={true} />
+      <CopilotPreferences {...defaults()} showBYOKSettings={false} />
     )
-    const tabs = view.container.querySelectorAll('[role="tab"]')
-    const providersTab = Array.from(tabs).find(t =>
-      (t.textContent ?? '').toLowerCase().includes('providers')
+    fireEvent.click(getModelPickerButton(view.container))
+    assert.strictEqual(
+      screen.queryByRole('button', { name: 'Configure custom providers…' }),
+      null
     )
-    assert.ok(providersTab)
   })
 
-  it('invokes onAddBYOKProvider when the Add button is clicked', () => {
+  it('opens custom provider configuration from the model picker', () => {
     let called = 0
     const view = render(
       <CopilotPreferences
         {...defaults()}
         showBYOKSettings={true}
-        onAddBYOKProvider={() => {
+        onConfigureCustomProviders={() => {
           called += 1
         }}
       />
     )
-    const tabs = view.container.querySelectorAll('[role="tab"]')
-    const providersTab = Array.from(tabs).find(t =>
-      (t.textContent ?? '').toLowerCase().includes('providers')
+
+    fireEvent.click(getModelPickerButton(view.container))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Configure custom providers…' })
     )
-    assert.ok(providersTab)
-    fireEvent.click(providersTab!)
-    const buttons = view.container.querySelectorAll('button')
-    const addButton = Array.from(buttons).find(b =>
-      (b.textContent ?? '').toLowerCase().includes('add provider')
-    )
-    assert.ok(addButton)
-    fireEvent.click(addButton!)
+
     assert.strictEqual(called, 1)
   })
 
   describe('conflict resolution model picker', () => {
-    it('renders both pickers', () => {
+    it('renders a second picker', () => {
       const view = render(<CopilotPreferences {...defaults()} />)
       assert.strictEqual(getModelPickerButtons(view.container).length, 2)
     })
@@ -956,7 +1314,7 @@ describe('CopilotPreferences', () => {
       const view = render(
         <CopilotPreferences
           {...defaults()}
-          onSelectedCopilotModelChanged={(f, m) =>
+          onSelectedCopilotModelChanged={(_, f, m) =>
             changed.push({ feature: f, model: m })
           }
         />

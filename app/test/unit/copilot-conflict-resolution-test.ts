@@ -4,6 +4,8 @@ import assert from 'node:assert'
 import {
   parseCopilotConflictResolution,
   reassembleResolvedFile,
+  reassembleResolutions,
+  validateResolutionPaths,
   extractSymbols,
   createDependencyAwareChunks,
   selectReferencedContext,
@@ -361,6 +363,84 @@ describe('parseCopilotConflictResolution', () => {
     const result = parseCopilotConflictResolution(json)
     assert.deepEqual(result.references, [{ type: 'commit', id: 'cafe1234' }])
   })
+
+  // -- Delete-vs-modify conflict action tests --
+
+  it('parses a delete-vs-modify resolution with action "keep"', () => {
+    const json = JSON.stringify({
+      resolutions: [
+        {
+          path: 'deleted.ts',
+          hunks: [],
+          reasoning: 'File has useful changes',
+          action: 'keep',
+        },
+      ],
+    })
+    const result = parseCopilotConflictResolution(json)
+    assert.equal(result.resolutions.length, 1)
+    assert.equal(result.resolutions[0].path, 'deleted.ts')
+    assert.equal(result.resolutions[0].action, 'keep')
+    assert.equal(result.resolutions[0].hunks.length, 0)
+    assert.equal(result.resolutions[0].reasoning, 'File has useful changes')
+  })
+
+  it('parses a delete-vs-modify resolution with action "delete"', () => {
+    const json = JSON.stringify({
+      resolutions: [
+        {
+          path: 'old.ts',
+          hunks: [],
+          reasoning: 'File was intentionally removed',
+          action: 'delete',
+        },
+      ],
+    })
+    const result = parseCopilotConflictResolution(json)
+    assert.equal(result.resolutions[0].action, 'delete')
+    assert.equal(result.resolutions[0].hunks.length, 0)
+  })
+
+  it('handles mixed text and delete-vs-modify resolutions', () => {
+    const json = JSON.stringify({
+      resolutions: [
+        makeResolution('text.ts', 'resolved content', 'merged both sides'),
+        { path: 'deleted.ts', hunks: [], reasoning: 'keep it', action: 'keep' },
+      ],
+    })
+    const result = parseCopilotConflictResolution(json)
+    assert.equal(result.resolutions.length, 2)
+    assert.equal(result.resolutions[0].action, undefined)
+    assert.equal(result.resolutions[0].hunks.length, 1)
+    assert.equal(result.resolutions[1].action, 'keep')
+    assert.equal(result.resolutions[1].hunks.length, 0)
+  })
+
+  it('ignores unknown action values and treats as regular resolution', () => {
+    const json = JSON.stringify({
+      resolutions: [
+        {
+          path: 'a.ts',
+          hunks: [{ resolvedContent: 'x' }],
+          reasoning: 'reason',
+          action: 'unknown',
+        },
+      ],
+    })
+    const result = parseCopilotConflictResolution(json)
+    assert.equal(result.resolutions[0].action, undefined)
+    assert.equal(result.resolutions[0].hunks.length, 1)
+  })
+
+  it('throws when action resolution has empty reasoning', () => {
+    const json = JSON.stringify({
+      resolutions: [{ path: 'a.ts', hunks: [], reasoning: '', action: 'keep' }],
+    })
+    assert.throws(
+      () => parseCopilotConflictResolution(json),
+      /reasoning.*must be a non-empty string/
+    )
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -522,6 +602,186 @@ describe('reassembleResolvedFile', () => {
     const result = reassembleResolvedFile(raw, [])
 
     assert.equal(result, raw)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// validateResolutionPaths — delete-vs-modify action files
+// ---------------------------------------------------------------------------
+
+describe('validateResolutionPaths', () => {
+  it('skips hunk count check for action-based resolutions', () => {
+    const resolutions = [
+      {
+        path: 'deleted.ts',
+        hunks: [],
+        reasoning: 'keep it',
+        action: 'keep' as const,
+      },
+    ]
+    const expectedFiles: ReadonlyArray<IFileConflictContext> = [
+      {
+        path: 'deleted.ts',
+        hunks: [],
+        deleteConflict: { deletedSide: 'ours' },
+      },
+    ]
+    // Should not throw — action resolutions have 0 hunks by design
+    assert.doesNotThrow(() =>
+      validateResolutionPaths(resolutions, expectedFiles)
+    )
+  })
+
+  it('validates hunk count for regular resolutions alongside action files', () => {
+    const resolutions = [
+      {
+        path: 'text.ts',
+        hunks: [{ resolvedContent: 'x' }],
+        reasoning: 'merged',
+      },
+      {
+        path: 'deleted.ts',
+        hunks: [],
+        reasoning: 'keep it',
+        action: 'keep' as const,
+      },
+    ]
+    const expectedFiles: ReadonlyArray<IFileConflictContext> = [
+      {
+        path: 'text.ts',
+        hunks: [
+          {
+            oursContent: 'a',
+            theirsContent: 'b',
+            baseContent: null,
+            contextBefore: '',
+            contextAfter: '',
+          },
+        ],
+      },
+      {
+        path: 'deleted.ts',
+        hunks: [],
+        deleteConflict: { deletedSide: 'theirs' },
+      },
+    ]
+    assert.doesNotThrow(() =>
+      validateResolutionPaths(resolutions, expectedFiles)
+    )
+  })
+
+  it('still catches wrong hunk count for non-action resolutions', () => {
+    const resolutions = [
+      {
+        path: 'text.ts',
+        hunks: [{ resolvedContent: 'x' }, { resolvedContent: 'y' }],
+        reasoning: 'merged',
+      },
+    ]
+    const expectedFiles: ReadonlyArray<IFileConflictContext> = [
+      {
+        path: 'text.ts',
+        hunks: [
+          {
+            oursContent: 'a',
+            theirsContent: 'b',
+            baseContent: null,
+            contextBefore: '',
+            contextAfter: '',
+          },
+        ],
+      },
+    ]
+    assert.throws(
+      () => validateResolutionPaths(resolutions, expectedFiles),
+      /2 hunk\(s\).*expected 1/
+    )
+  })
+})
+
+// ---------------------------------------------------------------------------
+// reassembleResolutions — delete-vs-modify action files
+// ---------------------------------------------------------------------------
+
+describe('reassembleResolutions', () => {
+  it('passes through action-based resolutions with deleteConflictAction', () => {
+    const rawResolutions = [
+      {
+        path: 'deleted.ts',
+        hunks: [],
+        reasoning: 'File is obsolete',
+        action: 'delete' as const,
+      },
+    ]
+    const fileContexts: ReadonlyArray<IFileConflictContext> = [
+      {
+        path: 'deleted.ts',
+        hunks: [],
+        deleteConflict: { deletedSide: 'theirs' },
+      },
+    ]
+    const result = reassembleResolutions(rawResolutions, fileContexts)
+    assert.equal(result.length, 1)
+    assert.equal(result[0].path, 'deleted.ts')
+    assert.equal(result[0].deleteConflictAction, 'delete')
+    assert.equal(result[0].resolvedContent, '')
+    assert.equal(result[0].reasoning, 'File is obsolete')
+  })
+
+  it('handles mixed action and text resolutions', () => {
+    const rawContent = [
+      'line 1',
+      '<<<<<<< HEAD',
+      'our change',
+      '=======',
+      'their change',
+      '>>>>>>> feature',
+      'line 2',
+    ].join('\n')
+
+    const rawResolutions = [
+      {
+        path: 'text.ts',
+        hunks: [{ resolvedContent: 'merged' }],
+        reasoning: 'combined both',
+      },
+      {
+        path: 'deleted.ts',
+        hunks: [],
+        reasoning: 'keep file',
+        action: 'keep' as const,
+      },
+    ]
+    const fileContexts: ReadonlyArray<IFileConflictContext> = [
+      {
+        path: 'text.ts',
+        hunks: [
+          {
+            oursContent: 'our change',
+            theirsContent: 'their change',
+            baseContent: null,
+            contextBefore: '',
+            contextAfter: '',
+          },
+        ],
+        rawContent,
+      },
+      {
+        path: 'deleted.ts',
+        hunks: [],
+        deleteConflict: { deletedSide: 'ours' },
+      },
+    ]
+    const result = reassembleResolutions(rawResolutions, fileContexts)
+    assert.equal(result.length, 2)
+
+    // Text resolution was reassembled
+    assert.equal(result[0].deleteConflictAction, undefined)
+    assert.ok(result[0].resolvedContent.includes('merged'))
+
+    // Action resolution was passed through
+    assert.equal(result[1].deleteConflictAction, 'keep')
+    assert.equal(result[1].resolvedContent, '')
   })
 })
 
