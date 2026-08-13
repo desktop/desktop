@@ -143,19 +143,6 @@ configuration of NPM:
 $ npm config set msvs_version 2017
 ```
 
-### Visual C++ Build Tools
-
-If you do not have an existing Visual Studio installation, there is a
-standalone [Visual C++ Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools)
-installer available.
-
-After installation open a shell and run this command to update the configuration
-of NPM:
-
-```shellsession
-$ npm config set msvs_version 2019
-```
-
 ## Troubleshooting
 
 If your local copy gets "stuck" try deleting the folder `C:\Users\[Your_User]\AppData\Roaming\GitHub Desktop-dev`.
