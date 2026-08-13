@@ -10,8 +10,15 @@ describe('getShellEnv', () => {
 
   for (const shellKind of shellKinds) {
     const label = shellKind ?? 'default shell'
-    it(`returns an env containing PATH (${label})`, async () => {
+    it(`returns an env containing PATH (${label})`, async t => {
       const result = await getShellEnv(undefined, shellKind, getPrintenvzPath())
+
+      // 'pwsh' might not be found on modern windows machines.
+      //  'powershell' should be used instead
+      if (shellKind === 'pwsh' && result.kind === 'failure') {
+        t.skip(`'pwsh' is not installed on this system`)
+        return
+      }
 
       assert.equal(result.kind, 'success')
 
