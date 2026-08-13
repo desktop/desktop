@@ -988,7 +988,15 @@ export class CopilotStore extends BaseStore {
       if (captured !== null) {
         paymentRequiredError = captured
       } else {
-        log.error(`CopilotStore: Session error: ${e.toString()}`)
+        const sessionError = new Error(e.data.message)
+        if (e.data.stack !== undefined) {
+          sessionError.stack = e.data.stack
+        }
+
+        log.error(
+          `CopilotStore: Session error (${e.data.errorType})`,
+          sessionError
+        )
       }
     })
 
