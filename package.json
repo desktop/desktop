@@ -104,7 +104,8 @@
     "webpack-bundle-analyzer": "^4.5.0",
     "webpack-dev-middleware": "^5.3.4",
     "webpack-hot-middleware": "^2.25.1",
-    "webpack-merge": "^6.0.1"
+    "webpack-merge": "^6.0.1",
+    "yauzl": "^2.10.0"
   },
   "devDependencies": {
     "@electron/packager": "^18.4.4",

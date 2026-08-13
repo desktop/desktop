@@ -104,6 +104,13 @@ Other things to note about the Windows packaging process:
    between this version and the previous version) to avoid downloading bytes
    that haven't changed. This has been enabled for Desktop, and requires
    downloading the previous version from Central to generate the delta package.
+ - The packaging script validates every generated full and delta package as a
+   readable ZIP archive before the artifacts can be uploaded. It requires the
+   application executable in the full package and rejects duplicate ZIP entries.
+   This catches malformed or incomplete artifacts before release, but it cannot
+   validate Squirrel's delta reconstruction against an installed Windows app.
+   That requires an upstream Squirrel.Windows/electron-winstaller integration
+   test using two real versions and a Windows update feed.
 
 ### Linux
 

@@ -25,6 +25,7 @@ import { computeBundleHashSync } from '../app/src/lib/compute-bundle-hash'
 import { rename } from 'fs/promises'
 import { join } from 'path'
 import { assertNonNullable } from '../app/src/lib/fatal-error'
+import { validateWindowsPackage } from './windows-package-validation'
 
 const distPath = getDistPath()
 const productName = getProductName()
@@ -152,6 +153,7 @@ function packageWindows() {
 
         console.log(`Renaming ${from} to ${to}`)
         await rename(from, to)
+        await validateWindowsPackage(to, `${nugetPkgName}.exe`, kind === 'full')
       }
     })
     .catch(e => {
