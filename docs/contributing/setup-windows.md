@@ -94,6 +94,19 @@ don't have Python installed. You can install Python 3.9 from the
 To build native Node modules, you will need a recent version of Visual C++ which
 can be obtained in several ways:
 
+### Visual Studio 2022
+
+If you have an existing installation of VS2022, run the **Visual Studio
+Installer** (Tools > Get Tools and Features...) and check that you have the **Desktop development with C++**
+workload included.
+
+(similar to VS2019)
+<img width="1265" src="https://user-images.githubusercontent.com/7467062/76693187-0fa21d00-662f-11ea-91ba-38326263d4b6.png">
+
+Once you've confirmed that, install `node-gyp`:
+
+https://github.com/nodejs/node-gyp/
+
 ### Visual Studio 2019
 
 If you have an existing installation of VS2019, run the **Visual Studio
