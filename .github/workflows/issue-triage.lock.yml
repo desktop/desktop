@@ -61,7 +61,7 @@
 #   - ghcr.io/github/gh-aw-node@sha256:0d9f1fb5fd6610c0ac1f5194a38e45a8a1e81f8a390d5142d8e4e6f26a4b3196
 #   - ghcr.io/github/github-mcp-server:v1.8.0@sha256:d5a18c04b92714c309eb46a2305087e91a4dbd80420f6e462656699f95093520
 
-name: "Issue Triage (skills-driven)"
+name: 'Issue Triage (skills-driven)'
 on:
   issues:
     types:
@@ -70,8 +70,9 @@ on:
   workflow_dispatch:
     inputs:
       aw_context:
-        default: ""
-        description: "Agent caller context (used internally by Agentic Workflows)."
+        default: ''
+        description:
+          'Agent caller context (used internally by Agentic Workflows).'
         required: false
         type: string
       issue_number:
@@ -82,9 +83,11 @@ on:
 permissions: {}
 
 concurrency:
-  group: "gh-aw-${{ github.workflow }}-${{ github.event.issue.number || github.run_id }}"
+  group:
+    'gh-aw-${{ github.workflow }}-${{ github.event.issue.number || github.run_id
+    }}'
 
-run-name: "Issue Triage (skills-driven)"
+run-name: 'Issue Triage (skills-driven)'
 
 env:
   GH_AW_RUNTIME_FEATURES: ${{ vars.GH_AW_RUNTIME_FEATURES }}
@@ -96,24 +99,42 @@ jobs:
       actions: read
       contents: read
     env:
-      GH_AW_MAX_DAILY_AI_CREDITS: ${{ vars.GH_AW_DEFAULT_MAX_DAILY_AI_CREDITS || '5000' }}
+      GH_AW_MAX_DAILY_AI_CREDITS:
+        ${{ vars.GH_AW_DEFAULT_MAX_DAILY_AI_CREDITS || '5000' }}
       GH_AW_RUNTIME_FEATURES: ${{ vars.GH_AW_RUNTIME_FEATURES }}
     outputs:
       body: ${{ steps.sanitized.outputs.body }}
-      comment_id: ""
-      comment_repo: ""
-      daily_ai_credits_exceeded: ${{ steps.daily-effective-workflow-guardrail.outputs.daily_ai_credits_exceeded == 'true' }}
-      daily_ai_credits_guardrail_status: ${{ steps.daily-effective-workflow-guardrail.outputs.daily_ai_credits_guardrail_status || '' }}
-      daily_ai_credits_threshold: ${{ steps.daily-effective-workflow-guardrail.outputs.daily_ai_credits_threshold || '' }}
-      daily_ai_credits_total_effective_tokens: ${{ steps.daily-effective-workflow-guardrail.outputs.daily_ai_credits_total_effective_tokens || '' }}
+      comment_id: ''
+      comment_repo: ''
+      daily_ai_credits_exceeded:
+        ${{
+        steps.daily-effective-workflow-guardrail.outputs.daily_ai_credits_exceeded
+        == 'true' }}
+      daily_ai_credits_guardrail_status:
+        ${{
+        steps.daily-effective-workflow-guardrail.outputs.daily_ai_credits_guardrail_status
+        || '' }}
+      daily_ai_credits_threshold:
+        ${{
+        steps.daily-effective-workflow-guardrail.outputs.daily_ai_credits_threshold
+        || '' }}
+      daily_ai_credits_total_effective_tokens:
+        ${{
+        steps.daily-effective-workflow-guardrail.outputs.daily_ai_credits_total_effective_tokens
+        || '' }}
       engine_id: ${{ steps.generate_aw_info.outputs.engine_id }}
-      lockdown_check_failed: ${{ steps.generate_aw_info.outputs.lockdown_check_failed == 'true' }}
+      lockdown_check_failed:
+        ${{ steps.generate_aw_info.outputs.lockdown_check_failed == 'true' }}
       model: ${{ steps.generate_aw_info.outputs.model }}
-      oauth_token_check_failed: ${{ steps.check-oauth-tokens.outputs.oauth_token_check_failed == 'true' }}
-      setup-parent-span-id: ${{ steps.setup.outputs.parent-span-id || steps.setup.outputs.span-id }}
+      oauth_token_check_failed:
+        ${{ steps.check-oauth-tokens.outputs.oauth_token_check_failed == 'true'
+        }}
+      setup-parent-span-id:
+        ${{ steps.setup.outputs.parent-span-id || steps.setup.outputs.span-id }}
       setup-span-id: ${{ steps.setup.outputs.span-id }}
       setup-trace-id: ${{ steps.setup.outputs.trace-id }}
-      stale_lock_file_failed: ${{ steps.check-lock-file.outputs.stale_lock_file_failed == 'true' }}
+      stale_lock_file_failed:
+        ${{ steps.check-lock-file.outputs.stale_lock_file_failed == 'true' }}
       text: ${{ steps.sanitized.outputs.text }}
       title: ${{ steps.sanitized.outputs.title }}
     steps:
@@ -123,32 +144,37 @@ jobs:
         with:
           destination: ${{ runner.temp }}/gh-aw/actions
           job-name: ${{ github.job }}
-          safe-output-artifact-client: ${{ env.GH_AW_MAX_DAILY_AI_CREDITS != '' }}
+          safe-output-artifact-client:
+            ${{ env.GH_AW_MAX_DAILY_AI_CREDITS != '' }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/issue-triage.lock.yml@${{ github.ref }}
-          GH_AW_INFO_VERSION: "1.0.78"
-          GH_AW_INFO_AWF_VERSION: "v0.27.44"
-          GH_AW_INFO_ENGINE_ID: "copilot"
+          GH_AW_SETUP_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          GH_AW_CURRENT_WORKFLOW_REF:
+            ${{ github.repository }}/.github/workflows/issue-triage.lock.yml@${{
+            github.ref }}
+          GH_AW_INFO_VERSION: '1.0.78'
+          GH_AW_INFO_AWF_VERSION: 'v0.27.44'
+          GH_AW_INFO_ENGINE_ID: 'copilot'
       - name: Generate agentic run info
         id: generate_aw_info
         env:
-          GH_AW_INFO_ENGINE_ID: "copilot"
-          GH_AW_INFO_ENGINE_NAME: "GitHub Copilot CLI"
-          GH_AW_INFO_MODEL: ${{ vars.GH_AW_MODEL_AGENT_COPILOT || vars.GH_AW_DEFAULT_MODEL_COPILOT || 'auto' }}
-          GH_AW_INFO_VERSION: "1.0.78"
-          GH_AW_INFO_AGENT_VERSION: "1.0.78"
-          GH_AW_INFO_CLI_VERSION: "v0.85.4"
-          GH_AW_INFO_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          GH_AW_INFO_EXPERIMENTAL: "false"
-          GH_AW_INFO_SUPPORTS_TOOLS_ALLOWLIST: "true"
-          GH_AW_INFO_STAGED: "false"
+          GH_AW_INFO_ENGINE_ID: 'copilot'
+          GH_AW_INFO_ENGINE_NAME: 'GitHub Copilot CLI'
+          GH_AW_INFO_MODEL:
+            ${{ vars.GH_AW_MODEL_AGENT_COPILOT ||
+            vars.GH_AW_DEFAULT_MODEL_COPILOT || 'auto' }}
+          GH_AW_INFO_VERSION: '1.0.78'
+          GH_AW_INFO_AGENT_VERSION: '1.0.78'
+          GH_AW_INFO_CLI_VERSION: 'v0.85.4'
+          GH_AW_INFO_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          GH_AW_INFO_EXPERIMENTAL: 'false'
+          GH_AW_INFO_SUPPORTS_TOOLS_ALLOWLIST: 'true'
+          GH_AW_INFO_STAGED: 'false'
           GH_AW_INFO_ALLOWED_DOMAINS: '["defaults"]'
-          GH_AW_INFO_FIREWALL_ENABLED: "true"
-          GH_AW_INFO_AWF_VERSION: "v0.27.44"
-          GH_AW_INFO_AWMG_VERSION: ""
-          GH_AW_INFO_FIREWALL_TYPE: "squid"
-          GH_AW_COMPILED_STRICT: "false"
+          GH_AW_INFO_FIREWALL_ENABLED: 'true'
+          GH_AW_INFO_AWF_VERSION: 'v0.27.44'
+          GH_AW_INFO_AWMG_VERSION: ''
+          GH_AW_INFO_FIREWALL_TYPE: 'squid'
+          GH_AW_COMPILED_STRICT: 'false'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
@@ -176,8 +202,10 @@ jobs:
         continue-on-error: true
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_RESTORE_DAILY_AIC_CACHE_HIT: ${{ steps.restore-daily-aic-cache.outputs.cache-hit }}
-          GH_AW_RESTORE_DAILY_AIC_CACHE_MATCHED_KEY: ${{ steps.restore-daily-aic-cache.outputs.cache-matched-key }}
+          GH_AW_RESTORE_DAILY_AIC_CACHE_HIT:
+            ${{ steps.restore-daily-aic-cache.outputs.cache-hit }}
+          GH_AW_RESTORE_DAILY_AIC_CACHE_MATCHED_KEY:
+            ${{ steps.restore-daily-aic-cache.outputs.cache-matched-key }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -190,14 +218,18 @@ jobs:
         if: ${{ env.GH_AW_MAX_DAILY_AI_CREDITS != '' }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          GH_AW_WORKFLOW_ID: "issue-triage"
-          GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          GH_AW_WORKFLOW_DISPATCH_AW_CONTEXT: ${{ github.event.inputs.aw_context || '' }}
-          GH_AW_HAS_SLASH_COMMAND: "false"
-          GH_AW_HAS_LABEL_COMMAND: "false"
+          GH_AW_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          GH_AW_WORKFLOW_ID: 'issue-triage'
+          GH_AW_RUN_URL:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{
+            github.run_id }}
+          GH_AW_WORKFLOW_DISPATCH_AW_CONTEXT:
+            ${{ github.event.inputs.aw_context || '' }}
+          GH_AW_HAS_SLASH_COMMAND: 'false'
+          GH_AW_HAS_LABEL_COMMAND: 'false'
           GH_AW_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_AW_MAX_DAILY_AI_CREDITS: ${{ vars.GH_AW_DEFAULT_MAX_DAILY_AI_CREDITS || '5000' }}
+          GH_AW_MAX_DAILY_AI_CREDITS:
+            ${{ vars.GH_AW_DEFAULT_MAX_DAILY_AI_CREDITS || '5000' }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -211,7 +243,8 @@ jobs:
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
           GH_AW_GITHUB_TOKEN: ${{ secrets.GH_AW_GITHUB_TOKEN }}
-          GH_AW_GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
+          GH_AW_GITHUB_MCP_SERVER_TOKEN:
+            ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
       - name: Checkout .github and .agents folders
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -227,16 +260,16 @@ jobs:
           fetch-depth: 1
       - name: Save agent config folders for base branch restoration
         env:
-          GH_AW_AGENT_FOLDERS: ".agents .github"
-          GH_AW_AGENT_FILES: "AGENTS.md"
+          GH_AW_AGENT_FOLDERS: '.agents .github'
+          GH_AW_AGENT_FILES: 'AGENTS.md'
         # poutine:ignore untrusted_checkout_exec
         run: bash "${RUNNER_TEMP}/gh-aw/actions/save_base_github_folders.sh"
       - name: Check workflow lock file
         id: check-lock-file
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_WORKFLOW_FILE: "issue-triage.lock.yml"
-          GH_AW_CONTEXT_WORKFLOW_REF: "${{ github.workflow_ref }}"
+          GH_AW_WORKFLOW_FILE: 'issue-triage.lock.yml'
+          GH_AW_CONTEXT_WORKFLOW_REF: '${{ github.workflow_ref }}'
         with:
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
@@ -246,7 +279,7 @@ jobs:
       - name: Check compile-agentic version
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_COMPILED_VERSION: "v0.85.4"
+          GH_AW_COMPILED_VERSION: 'v0.85.4'
         with:
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
@@ -257,7 +290,7 @@ jobs:
         id: sanitized
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_ALLOWED_DOMAINS: "api.business.githubcopilot.com,api.enterprise.githubcopilot.com,api.github.com,api.githubcopilot.com,api.individual.githubcopilot.com,api.snapcraft.io,archive.ubuntu.com,azure.archive.ubuntu.com,crl.geotrust.com,crl.globalsign.com,crl.identrust.com,crl.sectigo.com,crl.thawte.com,crl.usertrust.com,crl.verisign.com,crl3.digicert.com,crl4.digicert.com,crls.ssl.com,github.com,host.docker.internal,json-schema.org,json.schemastore.org,keyserver.ubuntu.com,ocsp.digicert.com,ocsp.geotrust.com,ocsp.globalsign.com,ocsp.identrust.com,ocsp.sectigo.com,ocsp.ssl.com,ocsp.thawte.com,ocsp.usertrust.com,ocsp.verisign.com,packagecloud.io,packages.cloud.google.com,packages.microsoft.com,ppa.launchpad.net,raw.githubusercontent.com,registry.npmjs.org,s.symcb.com,s.symcd.com,security.ubuntu.com,telemetry.enterprise.githubcopilot.com,ts-crl.ws.symantec.com,ts-ocsp.ws.symantec.com,www.googleapis.com"
+          GH_AW_ALLOWED_DOMAINS: 'api.business.githubcopilot.com,api.enterprise.githubcopilot.com,api.github.com,api.githubcopilot.com,api.individual.githubcopilot.com,api.snapcraft.io,archive.ubuntu.com,azure.archive.ubuntu.com,crl.geotrust.com,crl.globalsign.com,crl.identrust.com,crl.sectigo.com,crl.thawte.com,crl.usertrust.com,crl.verisign.com,crl3.digicert.com,crl4.digicert.com,crls.ssl.com,github.com,host.docker.internal,json-schema.org,json.schemastore.org,keyserver.ubuntu.com,ocsp.digicert.com,ocsp.geotrust.com,ocsp.globalsign.com,ocsp.identrust.com,ocsp.sectigo.com,ocsp.ssl.com,ocsp.thawte.com,ocsp.usertrust.com,ocsp.verisign.com,packagecloud.io,packages.cloud.google.com,packages.microsoft.com,ppa.launchpad.net,raw.githubusercontent.com,registry.npmjs.org,s.symcb.com,s.symcd.com,security.ubuntu.com,telemetry.enterprise.githubcopilot.com,ts-crl.ws.symantec.com,ts-ocsp.ws.symantec.com,www.googleapis.com'
         with:
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
@@ -271,11 +304,30 @@ jobs:
         env:
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
           GH_AW_SAFE_OUTPUTS: ${{ runner.temp }}/gh-aw/safeoutputs/outputs.jsonl
-          GH_AW_EXPR_1A3A194A: ${{ github.event.discussion.number || (fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_type == 'discussion' && fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_number) }}
-          GH_AW_EXPR_463A214A: ${{ github.event.pull_request.number || (fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_type == 'pull_request' && fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_number) }}
-          GH_AW_EXPR_54492A5B: ${{ github.event.issue.number || inputs.issue_number }}
-          GH_AW_EXPR_802A9F6A: ${{ github.event.issue.number || (fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_type == 'issue' && fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_number) }}
-          GH_AW_EXPR_FF1D34CE: ${{ github.event.comment.id || fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').comment_id }}
+          GH_AW_EXPR_1A3A194A:
+            ${{ github.event.discussion.number ||
+            (fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').item_type ==
+            'discussion' && fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').item_number) }}
+          GH_AW_EXPR_463A214A:
+            ${{ github.event.pull_request.number ||
+            (fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').item_type ==
+            'pull_request' && fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').item_number) }}
+          GH_AW_EXPR_54492A5B:
+            ${{ github.event.issue.number || inputs.issue_number }}
+          GH_AW_EXPR_802A9F6A:
+            ${{ github.event.issue.number ||
+            (fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').item_type == 'issue'
+            && fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').item_number) }}
+          GH_AW_EXPR_FF1D34CE:
+            ${{ github.event.comment.id ||
+            fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').comment_id }}
           GH_AW_GITHUB_ACTOR: ${{ github.actor }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
           GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
@@ -338,8 +390,9 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
-          GH_AW_ENGINE_ID: "copilot"
-          GH_AW_EXPR_54492A5B: ${{ github.event.issue.number || inputs.issue_number }}
+          GH_AW_ENGINE_ID: 'copilot'
+          GH_AW_EXPR_54492A5B:
+            ${{ github.event.issue.number || inputs.issue_number }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
           GH_AW_INPUTS_ISSUE_NUMBER: ${{ inputs.issue_number }}
         with:
@@ -352,17 +405,38 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
-          GH_AW_EXPR_1A3A194A: ${{ github.event.discussion.number || (fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_type == 'discussion' && fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_number) }}
-          GH_AW_EXPR_463A214A: ${{ github.event.pull_request.number || (fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_type == 'pull_request' && fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_number) }}
-          GH_AW_EXPR_54492A5B: ${{ github.event.issue.number || inputs.issue_number }}
-          GH_AW_EXPR_802A9F6A: ${{ github.event.issue.number || (fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_type == 'issue' && fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_number) }}
-          GH_AW_EXPR_FF1D34CE: ${{ github.event.comment.id || fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').comment_id }}
+          GH_AW_EXPR_1A3A194A:
+            ${{ github.event.discussion.number ||
+            (fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').item_type ==
+            'discussion' && fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').item_number) }}
+          GH_AW_EXPR_463A214A:
+            ${{ github.event.pull_request.number ||
+            (fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').item_type ==
+            'pull_request' && fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').item_number) }}
+          GH_AW_EXPR_54492A5B:
+            ${{ github.event.issue.number || inputs.issue_number }}
+          GH_AW_EXPR_802A9F6A:
+            ${{ github.event.issue.number ||
+            (fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').item_type == 'issue'
+            && fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').item_number) }}
+          GH_AW_EXPR_FF1D34CE:
+            ${{ github.event.comment.id ||
+            fromJSON(github.event.inputs.aw_context ||
+            github.event.client_payload.aw_context || '{}').comment_id }}
           GH_AW_GITHUB_ACTOR: ${{ github.actor }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
           GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
           GH_AW_GITHUB_WORKSPACE: ${{ github.workspace }}
           GH_AW_INPUTS_ISSUE_NUMBER: ${{ inputs.issue_number }}
-          GH_AW_MCP_CLI_SERVERS_LIST: "- `github` — run `github --help` to see available tools\n- `safeoutputs` — run `safeoutputs --help` to see available tools"
+          GH_AW_MCP_CLI_SERVERS_LIST:
+            "- `github` — run `github --help` to see available tools\n-
+            `safeoutputs` — run `safeoutputs --help` to see available tools"
         with:
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
@@ -426,35 +500,58 @@ jobs:
       issues: read
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-      GH_AW_ASSETS_ALLOWED_EXTS: ""
-      GH_AW_ASSETS_BRANCH: ""
+      GH_AW_ASSETS_ALLOWED_EXTS: ''
+      GH_AW_ASSETS_BRANCH: ''
       GH_AW_ASSETS_MAX_SIZE_KB: 0
       GH_AW_MCP_LOG_DIR: /tmp/gh-aw/mcp-logs/safeoutputs
       GH_AW_RUNTIME_FEATURES: ${{ vars.GH_AW_RUNTIME_FEATURES }}
       GH_AW_WORKFLOW_ID_SANITIZED: issuetriage
     outputs:
-      agentic_engine_timeout: ${{ steps.detect-agent-errors.outputs.agentic_engine_timeout || 'false' }}
-      ai_credits_rate_limit_error: ${{ steps.parse-mcp-gateway.outputs.ai_credits_rate_limit_error || 'false' }}
+      agentic_engine_timeout:
+        ${{ steps.detect-agent-errors.outputs.agentic_engine_timeout || 'false'
+        }}
+      ai_credits_rate_limit_error:
+        ${{ steps.parse-mcp-gateway.outputs.ai_credits_rate_limit_error ||
+        'false' }}
       aic: ${{ steps.parse-mcp-gateway.outputs.aic }}
       ambient_context: ${{ steps.parse-mcp-gateway.outputs.ambient_context }}
-      checkout_pr_success: ${{ steps.checkout-pr.outputs.checkout_pr_success || 'true' }}
+      checkout_pr_success:
+        ${{ steps.checkout-pr.outputs.checkout_pr_success || 'true' }}
       effective_tokens: ${{ steps.parse-mcp-gateway.outputs.effective_tokens }}
       has_patch: ${{ steps.collect_output.outputs.has_patch }}
-      http_400_response_error: ${{ steps.detect-agent-errors.outputs.http_400_response_error || 'false' }}
-      inference_access_error: ${{ steps.detect-agent-errors.outputs.inference_access_error || 'false' }}
-      invocation_cap_exceeded: ${{ steps.detect-agent-errors.outputs.invocation_cap_exceeded || 'false' }}
-      max_cache_misses_exceeded: ${{ steps.detect-agent-errors.outputs.max_cache_misses_exceeded || 'false' }}
-      mcp_policy_error: ${{ steps.detect-agent-errors.outputs.mcp_policy_error || 'false' }}
-      missing_model_pricing_error: ${{ steps.detect-agent-errors.outputs.missing_model_pricing_error || 'false' }}
-      missing_model_pricing_model_name: ${{ steps.detect-agent-errors.outputs.missing_model_pricing_model_name || '' }}
+      http_400_response_error:
+        ${{ steps.detect-agent-errors.outputs.http_400_response_error || 'false'
+        }}
+      inference_access_error:
+        ${{ steps.detect-agent-errors.outputs.inference_access_error || 'false'
+        }}
+      invocation_cap_exceeded:
+        ${{ steps.detect-agent-errors.outputs.invocation_cap_exceeded || 'false'
+        }}
+      max_cache_misses_exceeded:
+        ${{ steps.detect-agent-errors.outputs.max_cache_misses_exceeded ||
+        'false' }}
+      mcp_policy_error:
+        ${{ steps.detect-agent-errors.outputs.mcp_policy_error || 'false' }}
+      missing_model_pricing_error:
+        ${{ steps.detect-agent-errors.outputs.missing_model_pricing_error ||
+        'false' }}
+      missing_model_pricing_model_name:
+        ${{ steps.detect-agent-errors.outputs.missing_model_pricing_model_name
+        || '' }}
       model: ${{ needs.activation.outputs.model }}
-      model_not_supported_error: ${{ steps.detect-agent-errors.outputs.model_not_supported_error || 'false' }}
+      model_not_supported_error:
+        ${{ steps.detect-agent-errors.outputs.model_not_supported_error ||
+        'false' }}
       output: ${{ steps.collect_output.outputs.output }}
       output_types: ${{ steps.collect_output.outputs.output_types }}
-      setup-parent-span-id: ${{ steps.setup.outputs.parent-span-id || steps.setup.outputs.span-id }}
+      setup-parent-span-id:
+        ${{ steps.setup.outputs.parent-span-id || steps.setup.outputs.span-id }}
       setup-span-id: ${{ steps.setup.outputs.span-id }}
       setup-trace-id: ${{ steps.setup.outputs.trace-id }}
-      unknown_model_ai_credits: ${{ steps.parse-mcp-gateway.outputs.unknown_model_ai_credits || 'false' }}
+      unknown_model_ai_credits:
+        ${{ steps.parse-mcp-gateway.outputs.unknown_model_ai_credits || 'false'
+        }}
     steps:
       - name: Setup Scripts
         id: setup
@@ -463,13 +560,17 @@ jobs:
           destination: ${{ runner.temp }}/gh-aw/actions
           job-name: ${{ github.job }}
           trace-id: ${{ needs.activation.outputs.setup-trace-id }}
-          parent-span-id: ${{ needs.activation.outputs.setup-parent-span-id || needs.activation.outputs.setup-span-id }}
+          parent-span-id:
+            ${{ needs.activation.outputs.setup-parent-span-id ||
+            needs.activation.outputs.setup-span-id }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/issue-triage.lock.yml@${{ github.ref }}
-          GH_AW_INFO_VERSION: "1.0.78"
-          GH_AW_INFO_AWF_VERSION: "v0.27.44"
-          GH_AW_INFO_ENGINE_ID: "copilot"
+          GH_AW_SETUP_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          GH_AW_CURRENT_WORKFLOW_REF:
+            ${{ github.repository }}/.github/workflows/issue-triage.lock.yml@${{
+            github.ref }}
+          GH_AW_INFO_VERSION: '1.0.78'
+          GH_AW_INFO_AWF_VERSION: 'v0.27.44'
+          GH_AW_INFO_ENGINE_ID: 'copilot'
       - name: Set runtime paths
         id: set-runtime-paths
         run: |
@@ -505,9 +606,13 @@ jobs:
           github.event.pull_request || github.event.issue.pull_request || github.event_name == 'workflow_dispatch' && fromJSON(github.event.inputs.aw_context || '{}').item_type == 'pull_request'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN:
+            ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN ||
+            secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
         with:
-          github-token: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          github-token:
+            ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN ||
+            secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io, getOctokit);
@@ -519,13 +624,16 @@ jobs:
           GH_HOST: github.com
           GH_AW_COMPILED_VERSION: v0.85.4
       - name: Install AWF binary
-        run: bash "${RUNNER_TEMP}/gh-aw/actions/install_awf_binary.sh" v0.27.44 --rootless
+        run:
+          bash "${RUNNER_TEMP}/gh-aw/actions/install_awf_binary.sh" v0.27.44
+          --rootless
       - name: Determine automatic lockdown mode for GitHub MCP Server
         id: determine-automatic-lockdown
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 (source v9)
         env:
           GH_AW_GITHUB_TOKEN: ${{ secrets.GH_AW_GITHUB_TOKEN }}
-          GH_AW_GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
+          GH_AW_GITHUB_MCP_SERVER_TOKEN:
+            ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
           GH_AW_GITHUB_MIN_INTEGRITY: 'none'
           GH_AW_GITHUB_REPOS: '["desktop/gh-cli-and-desktop-shared-workflows","desktop/desktop"]'
         with:
@@ -537,25 +645,33 @@ jobs:
         env:
           GH_AW_BLOCKED_USERS_VAR: ${{ vars.GH_AW_GITHUB_BLOCKED_USERS || '' }}
           GH_AW_TRUSTED_USERS_VAR: ${{ vars.GH_AW_GITHUB_TRUSTED_USERS || '' }}
-          GH_AW_APPROVAL_LABELS_VAR: ${{ vars.GH_AW_GITHUB_APPROVAL_LABELS || '' }}
+          GH_AW_APPROVAL_LABELS_VAR:
+            ${{ vars.GH_AW_GITHUB_APPROVAL_LABELS || '' }}
         run: bash "${RUNNER_TEMP}/gh-aw/actions/parse_guard_list.sh"
       - name: Restore agent config folders from base branch
         if: steps.checkout-pr.outcome == 'success'
         env:
-          GH_AW_AGENT_FOLDERS: ".agents .github"
-          GH_AW_AGENT_FILES: "AGENTS.md"
+          GH_AW_AGENT_FOLDERS: '.agents .github'
+          GH_AW_AGENT_FILES: 'AGENTS.md'
         run: bash "${RUNNER_TEMP}/gh-aw/actions/restore_base_github_folders.sh"
       - name: Restore inline sub-agents from activation artifact
         env:
-          GH_AW_SUB_AGENT_DIR: ".github/agents"
-          GH_AW_SUB_AGENT_EXT: ".agent.md"
+          GH_AW_SUB_AGENT_DIR: '.github/agents'
+          GH_AW_SUB_AGENT_EXT: '.agent.md'
         run: bash "${RUNNER_TEMP}/gh-aw/actions/restore_inline_sub_agents.sh"
       - name: Restore inline skills from activation artifact
         env:
-          GH_AW_SKILL_DIR: ".github/skills"
+          GH_AW_SKILL_DIR: '.github/skills'
         run: bash "${RUNNER_TEMP}/gh-aw/actions/restore_inline_skills.sh"
       - name: Download container images
-        run: bash "${RUNNER_TEMP}/gh-aw/actions/download_docker_images.sh" ghcr.io/github/gh-aw-firewall/agent:0.27.44@sha256:0d727725c737b58c7bdf51f640cffb928385ec46517e0917c7f1a02f1bada8b4 ghcr.io/github/gh-aw-firewall/api-proxy:0.27.44@sha256:b50fbadba138f6e9aba94aca09711335c489bb3b15861220cb66f6092e042dc7 ghcr.io/github/gh-aw-firewall/squid:0.27.44@sha256:83e48bbe12c634be8c228a576832fe45f66c529ac3659db92bddbcf2eeb6d627 ghcr.io/github/gh-aw-mcpg:v0.4.8@sha256:38bbea36cdb46a3c9d04d1db05e672966f5239b431a2022eb35881688e5721d8 ghcr.io/github/gh-aw-node@sha256:0d9f1fb5fd6610c0ac1f5194a38e45a8a1e81f8a390d5142d8e4e6f26a4b3196 ghcr.io/github/github-mcp-server:v1.8.0@sha256:d5a18c04b92714c309eb46a2305087e91a4dbd80420f6e462656699f95093520
+        run:
+          bash "${RUNNER_TEMP}/gh-aw/actions/download_docker_images.sh"
+          ghcr.io/github/gh-aw-firewall/agent:0.27.44@sha256:0d727725c737b58c7bdf51f640cffb928385ec46517e0917c7f1a02f1bada8b4
+          ghcr.io/github/gh-aw-firewall/api-proxy:0.27.44@sha256:b50fbadba138f6e9aba94aca09711335c489bb3b15861220cb66f6092e042dc7
+          ghcr.io/github/gh-aw-firewall/squid:0.27.44@sha256:83e48bbe12c634be8c228a576832fe45f66c529ac3659db92bddbcf2eeb6d627
+          ghcr.io/github/gh-aw-mcpg:v0.4.8@sha256:38bbea36cdb46a3c9d04d1db05e672966f5239b431a2022eb35881688e5721d8
+          ghcr.io/github/gh-aw-node@sha256:0d9f1fb5fd6610c0ac1f5194a38e45a8a1e81f8a390d5142d8e4e6f26a4b3196
+          ghcr.io/github/github-mcp-server:v1.8.0@sha256:d5a18c04b92714c309eb46a2305087e91a4dbd80420f6e462656699f95093520
       - name: Generate Safe Outputs Config
         run: |
           mkdir -p "${RUNNER_TEMP}/gh-aw/safeoutputs"
@@ -699,12 +815,20 @@ jobs:
       - name: Start MCP Gateway
         id: start-mcp-gateway
         env:
-          GH_AW_POLICY_ALLOW_CREATE_PULL_REQUEST: ${{ vars.GH_AW_POLICY_ALLOW_CREATE_PULL_REQUEST || 'true' }}
-          GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
-          GH_AW_SAFE_OUTPUTS_CONFIG_PATH: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS_CONFIG_PATH }}
-          GH_AW_SAFE_OUTPUTS_TOOLS_PATH: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS_TOOLS_PATH }}
-          GH_AW_SINK_VISIBILITY: ${{ steps.determine-automatic-lockdown.outputs.visibility }}
-          GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_AW_POLICY_ALLOW_CREATE_PULL_REQUEST:
+            ${{ vars.GH_AW_POLICY_ALLOW_CREATE_PULL_REQUEST || 'true' }}
+          GH_AW_SAFE_OUTPUTS:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
+          GH_AW_SAFE_OUTPUTS_CONFIG_PATH:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS_CONFIG_PATH
+            }}
+          GH_AW_SAFE_OUTPUTS_TOOLS_PATH:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS_TOOLS_PATH }}
+          GH_AW_SINK_VISIBILITY:
+            ${{ steps.determine-automatic-lockdown.outputs.visibility }}
+          GITHUB_MCP_SERVER_TOKEN:
+            ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN ||
+            secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -eo pipefail
@@ -804,8 +928,10 @@ jobs:
         id: mount-mcp-clis
         continue-on-error: true
         env:
-          MCP_GATEWAY_API_KEY: ${{ steps.start-mcp-gateway.outputs.gateway-api-key }}
-          MCP_GATEWAY_DOMAIN: ${{ steps.start-mcp-gateway.outputs.gateway-domain }}
+          MCP_GATEWAY_API_KEY:
+            ${{ steps.start-mcp-gateway.outputs.gateway-api-key }}
+          MCP_GATEWAY_DOMAIN:
+            ${{ steps.start-mcp-gateway.outputs.gateway-domain }}
           MCP_GATEWAY_PORT: ${{ steps.start-mcp-gateway.outputs.gateway-port }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
@@ -864,20 +990,26 @@ jobs:
           COPILOT_AGENT_RUNNER_TYPE: STANDALONE
           COPILOT_DUMMY_BYOK: dummy-byok-key-for-offline-mode
           COPILOT_GITHUB_TOKEN: ${{ github.token }}
-          COPILOT_MODEL: ${{ vars.GH_AW_MODEL_AGENT_COPILOT || vars.GH_AW_DEFAULT_MODEL_COPILOT || 'auto' }}
+          COPILOT_MODEL:
+            ${{ vars.GH_AW_MODEL_AGENT_COPILOT ||
+            vars.GH_AW_DEFAULT_MODEL_COPILOT || 'auto' }}
           GH_AW_LLM_PROVIDER: github
-          GH_AW_MAX_AI_CREDITS: ${{ vars.GH_AW_DEFAULT_MAX_AI_CREDITS || '1000' }}
+          GH_AW_MAX_AI_CREDITS:
+            ${{ vars.GH_AW_DEFAULT_MAX_AI_CREDITS || '1000' }}
           GH_AW_MAX_TURNS: ${{ vars.GH_AW_DEFAULT_MAX_TURNS || '' }}
           GH_AW_PHASE: agent
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
-          GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
+          GH_AW_SAFE_OUTPUTS:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
           GH_AW_TIMEOUT_MINUTES: 10
           GH_AW_VERSION: v0.85.4
           GITHUB_API_URL: ${{ github.api_url }}
           GITHUB_AW: true
           GITHUB_COPILOT_INTEGRATION_ID: agentic-workflows
           GITHUB_HEAD_REF: ${{ github.head_ref }}
-          GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_MCP_SERVER_TOKEN:
+            ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN ||
+            secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_STEP_SUMMARY: /tmp/gh-aw/agent-step-summary.md
@@ -888,7 +1020,11 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           RUNNER_TEMP: ${{ runner.temp }}
           S2STOKENS: true
-          TRACEPARENT: ${{ env.GITHUB_AW_OTEL_TRACE_ID != '' && env.GITHUB_AW_OTEL_PARENT_SPAN_ID != '' && format('00-{0}-{1}-01', env.GITHUB_AW_OTEL_TRACE_ID, env.GITHUB_AW_OTEL_PARENT_SPAN_ID) || '' }}
+          TRACEPARENT:
+            ${{ env.GITHUB_AW_OTEL_TRACE_ID != '' &&
+            env.GITHUB_AW_OTEL_PARENT_SPAN_ID != '' && format('00-{0}-{1}-01',
+            env.GITHUB_AW_OTEL_TRACE_ID, env.GITHUB_AW_OTEL_PARENT_SPAN_ID) ||
+            '' }}
       - name: Detect agent errors
         if: always()
         id: detect-agent-errors
@@ -909,7 +1045,8 @@ jobs:
         continue-on-error: true
         env:
           MCP_GATEWAY_PORT: ${{ steps.start-mcp-gateway.outputs.gateway-port }}
-          MCP_GATEWAY_API_KEY: ${{ steps.start-mcp-gateway.outputs.gateway-api-key }}
+          MCP_GATEWAY_API_KEY:
+            ${{ steps.start-mcp-gateway.outputs.gateway-api-key }}
           GATEWAY_PID: ${{ steps.start-mcp-gateway.outputs.gateway-pid }}
         run: |
           bash "${RUNNER_TEMP}/gh-aw/actions/stop_mcp_gateway.sh" "$GATEWAY_PID"
@@ -924,7 +1061,8 @@ jobs:
             await main();
         env:
           GH_AW_SECRET_NAMES: 'GH_AW_GITHUB_MCP_SERVER_TOKEN,GH_AW_GITHUB_TOKEN,GITHUB_TOKEN'
-          SECRET_GH_AW_GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
+          SECRET_GH_AW_GITHUB_MCP_SERVER_TOKEN:
+            ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
           SECRET_GH_AW_GITHUB_TOKEN: ${{ secrets.GH_AW_GITHUB_TOKEN }}
           SECRET_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Append agent step summary
@@ -933,7 +1071,8 @@ jobs:
       - name: Copy Safe Outputs
         if: always()
         env:
-          GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
+          GH_AW_SAFE_OUTPUTS:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
         run: |
           mkdir -p /tmp/gh-aw
           cp "$GH_AW_SAFE_OUTPUTS" /tmp/gh-aw/safeoutputs.jsonl 2>/dev/null || true
@@ -942,8 +1081,9 @@ jobs:
         if: always()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
-          GH_AW_ALLOWED_DOMAINS: "api.business.githubcopilot.com,api.enterprise.githubcopilot.com,api.github.com,api.githubcopilot.com,api.individual.githubcopilot.com,api.snapcraft.io,archive.ubuntu.com,azure.archive.ubuntu.com,crl.geotrust.com,crl.globalsign.com,crl.identrust.com,crl.sectigo.com,crl.thawte.com,crl.usertrust.com,crl.verisign.com,crl3.digicert.com,crl4.digicert.com,crls.ssl.com,github.com,host.docker.internal,json-schema.org,json.schemastore.org,keyserver.ubuntu.com,ocsp.digicert.com,ocsp.geotrust.com,ocsp.globalsign.com,ocsp.identrust.com,ocsp.sectigo.com,ocsp.ssl.com,ocsp.thawte.com,ocsp.usertrust.com,ocsp.verisign.com,packagecloud.io,packages.cloud.google.com,packages.microsoft.com,ppa.launchpad.net,raw.githubusercontent.com,registry.npmjs.org,s.symcb.com,s.symcd.com,security.ubuntu.com,telemetry.enterprise.githubcopilot.com,ts-crl.ws.symantec.com,ts-ocsp.ws.symantec.com,www.googleapis.com"
+          GH_AW_SAFE_OUTPUTS:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
+          GH_AW_ALLOWED_DOMAINS: 'api.business.githubcopilot.com,api.enterprise.githubcopilot.com,api.github.com,api.githubcopilot.com,api.individual.githubcopilot.com,api.snapcraft.io,archive.ubuntu.com,azure.archive.ubuntu.com,crl.geotrust.com,crl.globalsign.com,crl.identrust.com,crl.sectigo.com,crl.thawte.com,crl.usertrust.com,crl.verisign.com,crl3.digicert.com,crl4.digicert.com,crls.ssl.com,github.com,host.docker.internal,json-schema.org,json.schemastore.org,keyserver.ubuntu.com,ocsp.digicert.com,ocsp.geotrust.com,ocsp.globalsign.com,ocsp.identrust.com,ocsp.sectigo.com,ocsp.ssl.com,ocsp.thawte.com,ocsp.usertrust.com,ocsp.verisign.com,packagecloud.io,packages.cloud.google.com,packages.microsoft.com,ppa.launchpad.net,raw.githubusercontent.com,registry.npmjs.org,s.symcb.com,s.symcd.com,security.ubuntu.com,telemetry.enterprise.githubcopilot.com,ts-crl.ws.symantec.com,ts-ocsp.ws.symantec.com,www.googleapis.com'
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_API_URL: ${{ github.api_url }}
         with:
@@ -957,7 +1097,8 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_AW_AGENT_OUTPUT: /tmp/gh-aw/sandbox/agent/logs/
-          GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
+          GH_AW_SAFE_OUTPUTS:
+            ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
         with:
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
@@ -979,7 +1120,8 @@ jobs:
         continue-on-error: true
         env:
           AWF_LOGS_DIR: /tmp/gh-aw/sandbox/firewall/logs
-        run: bash "${RUNNER_TEMP}/gh-aw/actions/print_firewall_logs.sh" --rootless
+        run:
+          bash "${RUNNER_TEMP}/gh-aw/actions/print_firewall_logs.sh" --rootless
       - name: Parse token usage for step summary
         if: always()
         continue-on-error: true
@@ -1041,8 +1183,10 @@ jobs:
       - detection
       - safe_outputs
     if: >
-      always() && (needs.agent.result != 'skipped' || needs.activation.outputs.lockdown_check_failed == 'true' ||
-      needs.activation.outputs.oauth_token_check_failed == 'true' || needs.activation.outputs.stale_lock_file_failed == 'true' ||
+      always() && (needs.agent.result != 'skipped' ||
+      needs.activation.outputs.lockdown_check_failed == 'true' ||
+      needs.activation.outputs.oauth_token_check_failed == 'true' ||
+      needs.activation.outputs.stale_lock_file_failed == 'true' ||
       needs.activation.outputs.daily_ai_credits_exceeded == 'true')
     runs-on: ubuntu-slim
     permissions:
@@ -1050,7 +1194,7 @@ jobs:
       issues: write
       pull-requests: write
     concurrency:
-      group: "gh-aw-conclusion-issue-triage"
+      group: 'gh-aw-conclusion-issue-triage'
       cancel-in-progress: false
       queue: max
     env:
@@ -1068,13 +1212,17 @@ jobs:
           destination: ${{ runner.temp }}/gh-aw/actions
           job-name: ${{ github.job }}
           trace-id: ${{ needs.activation.outputs.setup-trace-id }}
-          parent-span-id: ${{ needs.activation.outputs.setup-parent-span-id || needs.activation.outputs.setup-span-id }}
+          parent-span-id:
+            ${{ needs.activation.outputs.setup-parent-span-id ||
+            needs.activation.outputs.setup-span-id }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/issue-triage.lock.yml@${{ github.ref }}
-          GH_AW_INFO_VERSION: "1.0.78"
-          GH_AW_INFO_AWF_VERSION: "v0.27.44"
-          GH_AW_INFO_ENGINE_ID: "copilot"
+          GH_AW_SETUP_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          GH_AW_CURRENT_WORKFLOW_REF:
+            ${{ github.repository }}/.github/workflows/issue-triage.lock.yml@${{
+            github.ref }}
+          GH_AW_INFO_VERSION: '1.0.78'
+          GH_AW_INFO_AWF_VERSION: 'v0.27.44'
+          GH_AW_INFO_ENGINE_ID: 'copilot'
       - name: Generate GitHub App token
         id: safe-outputs-app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
@@ -1173,17 +1321,22 @@ jobs:
         id: noop
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
-          GH_AW_NOOP_MAX: "1"
-          GH_AW_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/issue-triage.md"
-          GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GH_AW_AGENT_OUTPUT:
+            ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
+          GH_AW_NOOP_MAX: '1'
+          GH_AW_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          GH_AW_WORKFLOW_SOURCE_URL:
+            '${{ github.server_url }}/${{ github.repository }}/blob/${{
+            github.ref_name }}/.github/workflows/issue-triage.md'
+          GH_AW_RUN_URL:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{
+            github.run_id }}
           GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
-          GH_AW_NOOP_REPORT_AS_ISSUE: "false"
+          GH_AW_NOOP_REPORT_AS_ISSUE: 'false'
           GH_AW_AIC: ${{ needs.agent.outputs.aic }}
           GH_AW_THREAT_DETECTION_AIC: ${{ needs.detection.outputs.aic }}
           GH_AW_AMBIENT_CONTEXT: ${{ needs.agent.outputs.ambient_context }}
-          GH_AW_WORKFLOW_ID: "issue-triage"
+          GH_AW_WORKFLOW_ID: 'issue-triage'
         with:
           github-token: ${{ steps.safe-outputs-app-token.outputs.token }}
           script: |
@@ -1195,12 +1348,19 @@ jobs:
         id: detection_runs
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
-          GH_AW_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/issue-triage.md"
-          GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          GH_AW_DETECTION_CONCLUSION: ${{ needs.detection.outputs.detection_conclusion }}
-          GH_AW_DETECTION_REASON: ${{ needs.detection.outputs.detection_reason }}
+          GH_AW_AGENT_OUTPUT:
+            ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
+          GH_AW_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          GH_AW_WORKFLOW_SOURCE_URL:
+            '${{ github.server_url }}/${{ github.repository }}/blob/${{
+            github.ref_name }}/.github/workflows/issue-triage.md'
+          GH_AW_RUN_URL:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{
+            github.run_id }}
+          GH_AW_DETECTION_CONCLUSION:
+            ${{ needs.detection.outputs.detection_conclusion }}
+          GH_AW_DETECTION_REASON:
+            ${{ needs.detection.outputs.detection_reason }}
         with:
           github-token: ${{ steps.safe-outputs-app-token.outputs.token }}
           script: |
@@ -1212,10 +1372,13 @@ jobs:
         id: missing_tool
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
-          GH_AW_MISSING_TOOL_CREATE_ISSUE: "true"
-          GH_AW_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/issue-triage.md"
+          GH_AW_AGENT_OUTPUT:
+            ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
+          GH_AW_MISSING_TOOL_CREATE_ISSUE: 'true'
+          GH_AW_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          GH_AW_WORKFLOW_SOURCE_URL:
+            '${{ github.server_url }}/${{ github.repository }}/blob/${{
+            github.ref_name }}/.github/workflows/issue-triage.md'
         with:
           github-token: ${{ steps.safe-outputs-app-token.outputs.token }}
           script: |
@@ -1227,10 +1390,13 @@ jobs:
         id: report_incomplete
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
-          GH_AW_REPORT_INCOMPLETE_CREATE_ISSUE: "true"
-          GH_AW_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/issue-triage.md"
+          GH_AW_AGENT_OUTPUT:
+            ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
+          GH_AW_REPORT_INCOMPLETE_CREATE_ISSUE: 'true'
+          GH_AW_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          GH_AW_WORKFLOW_SOURCE_URL:
+            '${{ github.server_url }}/${{ github.repository }}/blob/${{
+            github.ref_name }}/.github/workflows/issue-triage.md'
         with:
           github-token: ${{ steps.safe-outputs-app-token.outputs.token }}
           script: |
@@ -1243,43 +1409,69 @@ jobs:
         if: always()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
-          GH_AW_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/issue-triage.md"
-          GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GH_AW_AGENT_OUTPUT:
+            ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
+          GH_AW_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          GH_AW_WORKFLOW_SOURCE_URL:
+            '${{ github.server_url }}/${{ github.repository }}/blob/${{
+            github.ref_name }}/.github/workflows/issue-triage.md'
+          GH_AW_RUN_URL:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{
+            github.run_id }}
           GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
-          GH_AW_WORKFLOW_ID: "issue-triage"
-          GH_AW_ACTION_FAILURE_ISSUE_EXPIRES_HOURS: "168"
-          GH_AW_ENGINE_ID: "copilot"
-          GH_AW_CHECKOUT_PR_SUCCESS: ${{ needs.agent.outputs.checkout_pr_success }}
-          GH_AW_EFFECTIVE_TOKENS: ${{ needs.agent.outputs.effective_tokens || '' }}
-          GH_AW_AI_CREDITS_RATE_LIMIT_ERROR: ${{ needs.agent.outputs.ai_credits_rate_limit_error || 'false' }}
-          GH_AW_UNKNOWN_MODEL_AI_CREDITS: ${{ needs.agent.outputs.unknown_model_ai_credits || 'false' }}
+          GH_AW_WORKFLOW_ID: 'issue-triage'
+          GH_AW_ACTION_FAILURE_ISSUE_EXPIRES_HOURS: '168'
+          GH_AW_ENGINE_ID: 'copilot'
+          GH_AW_CHECKOUT_PR_SUCCESS:
+            ${{ needs.agent.outputs.checkout_pr_success }}
+          GH_AW_EFFECTIVE_TOKENS:
+            ${{ needs.agent.outputs.effective_tokens || '' }}
+          GH_AW_AI_CREDITS_RATE_LIMIT_ERROR:
+            ${{ needs.agent.outputs.ai_credits_rate_limit_error || 'false' }}
+          GH_AW_UNKNOWN_MODEL_AI_CREDITS:
+            ${{ needs.agent.outputs.unknown_model_ai_credits || 'false' }}
           GH_AW_AIC: ${{ needs.agent.outputs.aic }}
           GH_AW_THREAT_DETECTION_AIC: ${{ needs.detection.outputs.aic }}
-          GH_AW_MAX_AI_CREDITS: ${{ vars.GH_AW_DEFAULT_MAX_AI_CREDITS || '1000' }}
-          GH_AW_INFERENCE_ACCESS_ERROR: ${{ needs.agent.outputs.inference_access_error }}
+          GH_AW_MAX_AI_CREDITS:
+            ${{ vars.GH_AW_DEFAULT_MAX_AI_CREDITS || '1000' }}
+          GH_AW_INFERENCE_ACCESS_ERROR:
+            ${{ needs.agent.outputs.inference_access_error }}
           GH_AW_MCP_POLICY_ERROR: ${{ needs.agent.outputs.mcp_policy_error }}
-          GH_AW_AGENTIC_ENGINE_TIMEOUT: ${{ needs.agent.outputs.agentic_engine_timeout }}
-          GH_AW_MODEL_NOT_SUPPORTED_ERROR: ${{ needs.agent.outputs.model_not_supported_error }}
-          GH_AW_HTTP_400_RESPONSE_ERROR: ${{ needs.agent.outputs.http_400_response_error }}
-          GH_AW_MAX_CACHE_MISSES_EXCEEDED: ${{ needs.agent.outputs.max_cache_misses_exceeded }}
-          GH_AW_MISSING_MODEL_PRICING_ERROR: ${{ needs.agent.outputs.missing_model_pricing_error }}
-          GH_AW_MISSING_MODEL_PRICING_MODEL_NAME: ${{ needs.agent.outputs.missing_model_pricing_model_name }}
-          GH_AW_ENGINE_API_HOSTS: "api.enterprise.githubcopilot.com,api.githubcopilot.com,api.business.githubcopilot.com,api.individual.githubcopilot.com"
-          GH_AW_SAFE_OUTPUTS_APP_TOKEN_MINTING_FAILED: ${{ needs.safe_outputs.outputs.app_token_minting_failed }}
-          GH_AW_CONCLUSION_APP_TOKEN_MINTING_FAILED: ${{ steps.safe-outputs-app-token.outcome == 'failure' }}
-          GH_AW_LOCKDOWN_CHECK_FAILED: ${{ needs.activation.outputs.lockdown_check_failed }}
-          GH_AW_OAUTH_TOKEN_CHECK_FAILED: ${{ needs.activation.outputs.oauth_token_check_failed }}
-          GH_AW_STALE_LOCK_FILE_FAILED: ${{ needs.activation.outputs.stale_lock_file_failed }}
-          GH_AW_DAILY_AI_CREDITS_EXCEEDED: ${{ needs.activation.outputs.daily_ai_credits_exceeded }}
-          GH_AW_DAILY_AI_CREDITS_TOTAL_EFFECTIVE_TOKENS: ${{ needs.activation.outputs.daily_ai_credits_total_effective_tokens }}
-          GH_AW_DAILY_AI_CREDITS_THRESHOLD: ${{ needs.activation.outputs.daily_ai_credits_threshold }}
-          GH_AW_GROUP_REPORTS: "false"
-          GH_AW_FAILURE_REPORT_AS_ISSUE: "true"
-          GH_AW_MISSING_TOOL_REPORT_AS_FAILURE: "true"
-          GH_AW_MISSING_DATA_REPORT_AS_FAILURE: "true"
-          GH_AW_TIMEOUT_MINUTES: "10"
+          GH_AW_AGENTIC_ENGINE_TIMEOUT:
+            ${{ needs.agent.outputs.agentic_engine_timeout }}
+          GH_AW_MODEL_NOT_SUPPORTED_ERROR:
+            ${{ needs.agent.outputs.model_not_supported_error }}
+          GH_AW_HTTP_400_RESPONSE_ERROR:
+            ${{ needs.agent.outputs.http_400_response_error }}
+          GH_AW_MAX_CACHE_MISSES_EXCEEDED:
+            ${{ needs.agent.outputs.max_cache_misses_exceeded }}
+          GH_AW_MISSING_MODEL_PRICING_ERROR:
+            ${{ needs.agent.outputs.missing_model_pricing_error }}
+          GH_AW_MISSING_MODEL_PRICING_MODEL_NAME:
+            ${{ needs.agent.outputs.missing_model_pricing_model_name }}
+          GH_AW_ENGINE_API_HOSTS: 'api.enterprise.githubcopilot.com,api.githubcopilot.com,api.business.githubcopilot.com,api.individual.githubcopilot.com'
+          GH_AW_SAFE_OUTPUTS_APP_TOKEN_MINTING_FAILED:
+            ${{ needs.safe_outputs.outputs.app_token_minting_failed }}
+          GH_AW_CONCLUSION_APP_TOKEN_MINTING_FAILED:
+            ${{ steps.safe-outputs-app-token.outcome == 'failure' }}
+          GH_AW_LOCKDOWN_CHECK_FAILED:
+            ${{ needs.activation.outputs.lockdown_check_failed }}
+          GH_AW_OAUTH_TOKEN_CHECK_FAILED:
+            ${{ needs.activation.outputs.oauth_token_check_failed }}
+          GH_AW_STALE_LOCK_FILE_FAILED:
+            ${{ needs.activation.outputs.stale_lock_file_failed }}
+          GH_AW_DAILY_AI_CREDITS_EXCEEDED:
+            ${{ needs.activation.outputs.daily_ai_credits_exceeded }}
+          GH_AW_DAILY_AI_CREDITS_TOTAL_EFFECTIVE_TOKENS:
+            ${{ needs.activation.outputs.daily_ai_credits_total_effective_tokens
+            }}
+          GH_AW_DAILY_AI_CREDITS_THRESHOLD:
+            ${{ needs.activation.outputs.daily_ai_credits_threshold }}
+          GH_AW_GROUP_REPORTS: 'false'
+          GH_AW_FAILURE_REPORT_AS_ISSUE: 'true'
+          GH_AW_MISSING_TOOL_REPORT_AS_FAILURE: 'true'
+          GH_AW_MISSING_DATA_REPORT_AS_FAILURE: 'true'
+          GH_AW_TIMEOUT_MINUTES: '10'
         with:
           github-token: ${{ steps.safe-outputs-app-token.outputs.token }}
           script: |
@@ -1292,11 +1484,16 @@ jobs:
         if: always()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
-          GH_AW_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/issue-triage.md"
-          GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          GH_AW_REPORT_FAILED_JOBS: "true"
+          GH_AW_AGENT_OUTPUT:
+            ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
+          GH_AW_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          GH_AW_WORKFLOW_SOURCE_URL:
+            '${{ github.server_url }}/${{ github.repository }}/blob/${{
+            github.ref_name }}/.github/workflows/issue-triage.md'
+          GH_AW_RUN_URL:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{
+            github.run_id }}
+          GH_AW_REPORT_FAILED_JOBS: 'true'
         with:
           github-token: ${{ steps.safe-outputs-app-token.outputs.token }}
           script: |
@@ -1329,13 +1526,17 @@ jobs:
           destination: ${{ runner.temp }}/gh-aw/actions
           job-name: ${{ github.job }}
           trace-id: ${{ needs.activation.outputs.setup-trace-id }}
-          parent-span-id: ${{ needs.activation.outputs.setup-parent-span-id || needs.activation.outputs.setup-span-id }}
+          parent-span-id:
+            ${{ needs.activation.outputs.setup-parent-span-id ||
+            needs.activation.outputs.setup-span-id }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/issue-triage.lock.yml@${{ github.ref }}
-          GH_AW_INFO_VERSION: "1.0.78"
-          GH_AW_INFO_AWF_VERSION: "v0.27.44"
-          GH_AW_INFO_ENGINE_ID: "copilot"
+          GH_AW_SETUP_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          GH_AW_CURRENT_WORKFLOW_REF:
+            ${{ github.repository }}/.github/workflows/issue-triage.lock.yml@${{
+            github.ref }}
+          GH_AW_INFO_VERSION: '1.0.78'
+          GH_AW_INFO_AWF_VERSION: 'v0.27.44'
+          GH_AW_INFO_ENGINE_ID: 'copilot'
       - name: Download agent output artifact
         id: download-agent-output
         continue-on-error: true
@@ -1361,7 +1562,11 @@ jobs:
           rm -rf /tmp/gh-aw/sandbox/firewall/logs
           rm -rf /tmp/gh-aw/sandbox/firewall/audit
       - name: Download container images
-        run: bash "${RUNNER_TEMP}/gh-aw/actions/download_docker_images.sh" ghcr.io/github/gh-aw-firewall/agent:0.27.44@sha256:0d727725c737b58c7bdf51f640cffb928385ec46517e0917c7f1a02f1bada8b4 ghcr.io/github/gh-aw-firewall/api-proxy:0.27.44@sha256:b50fbadba138f6e9aba94aca09711335c489bb3b15861220cb66f6092e042dc7 ghcr.io/github/gh-aw-firewall/squid:0.27.44@sha256:83e48bbe12c634be8c228a576832fe45f66c529ac3659db92bddbcf2eeb6d627
+        run:
+          bash "${RUNNER_TEMP}/gh-aw/actions/download_docker_images.sh"
+          ghcr.io/github/gh-aw-firewall/agent:0.27.44@sha256:0d727725c737b58c7bdf51f640cffb928385ec46517e0917c7f1a02f1bada8b4
+          ghcr.io/github/gh-aw-firewall/api-proxy:0.27.44@sha256:b50fbadba138f6e9aba94aca09711335c489bb3b15861220cb66f6092e042dc7
+          ghcr.io/github/gh-aw-firewall/squid:0.27.44@sha256:83e48bbe12c634be8c228a576832fe45f66c529ac3659db92bddbcf2eeb6d627
       - name: Check if detection needed
         id: detection_guard
         if: always()
@@ -1408,10 +1613,18 @@ jobs:
         if: always() && steps.detection_guard.outputs.run_detection == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          WORKFLOW_DESCRIPTION: "Agentic issue-triage for GitHub Desktop. On newly opened issues it follows the\nteam's shared triage skills (hosted in desktop/gh-cli-and-desktop-shared-workflows)\nand suggests the minimal correct end-state labels (with issue-intents rationale and\nconfidence) so a maintainer can approve them, plus one short evidence-based\nrationale comment. The objective is to drive the issue to a state where the\nneeds-triage label is automatically removed."
+          WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          WORKFLOW_DESCRIPTION:
+            "Agentic issue-triage for GitHub Desktop. On newly opened issues it
+            follows the\nteam's shared triage skills (hosted in
+            desktop/gh-cli-and-desktop-shared-workflows)\nand suggests the
+            minimal correct end-state labels (with issue-intents rationale
+            and\nconfidence) so a maintainer can approve them, plus one short
+            evidence-based\nrationale comment. The objective is to drive the
+            issue to a state where the\nneeds-triage label is automatically
+            removed."
           HAS_PATCH: ${{ needs.agent.outputs.has_patch }}
-          GH_AW_DETECTION_CONTINUE_ON_ERROR: "true"
+          GH_AW_DETECTION_CONTINUE_ON_ERROR: 'true'
         with:
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
@@ -1485,7 +1698,8 @@ jobs:
           COPILOT_GITHUB_TOKEN: ${{ github.token }}
           COPILOT_MODEL: detection
           GH_AW_LLM_PROVIDER: github
-          GH_AW_MAX_AI_CREDITS: ${{ vars.GH_AW_DEFAULT_DETECTION_MAX_AI_CREDITS || '400' }}
+          GH_AW_MAX_AI_CREDITS:
+            ${{ vars.GH_AW_DEFAULT_DETECTION_MAX_AI_CREDITS || '400' }}
           GH_AW_MAX_TURNS: ${{ vars.GH_AW_DEFAULT_MAX_TURNS || '' }}
           GH_AW_PHASE: detection
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
@@ -1505,7 +1719,11 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           RUNNER_TEMP: ${{ runner.temp }}
           S2STOKENS: true
-          TRACEPARENT: ${{ env.GITHUB_AW_OTEL_TRACE_ID != '' && env.GITHUB_AW_OTEL_PARENT_SPAN_ID != '' && format('00-{0}-{1}-01', env.GITHUB_AW_OTEL_TRACE_ID, env.GITHUB_AW_OTEL_PARENT_SPAN_ID) || '' }}
+          TRACEPARENT:
+            ${{ env.GITHUB_AW_OTEL_TRACE_ID != '' &&
+            env.GITHUB_AW_OTEL_PARENT_SPAN_ID != '' && format('00-{0}-{1}-01',
+            env.GITHUB_AW_OTEL_TRACE_ID, env.GITHUB_AW_OTEL_PARENT_SPAN_ID) ||
+            '' }}
       - name: Parse threat detection token usage for step summary
         id: parse_detection_token_usage
         if: always()
@@ -1533,8 +1751,9 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           RUN_DETECTION: ${{ steps.detection_guard.outputs.run_detection }}
-          DETECTION_AGENTIC_EXECUTION_OUTCOME: ${{ steps.detection_agentic_execution.outcome }}
-          GH_AW_DETECTION_CONTINUE_ON_ERROR: "true"
+          DETECTION_AGENTIC_EXECUTION_OUTCOME:
+            ${{ steps.detection_agentic_execution.outcome }}
+          GH_AW_DETECTION_CONTINUE_ON_ERROR: 'true'
         with:
           script: |
             try {
@@ -1564,7 +1783,9 @@ jobs:
       - activation
       - agent
       - detection
-    if: (!cancelled()) && needs.agent.result != 'skipped' && needs.detection.result == 'success'
+    if:
+      (!cancelled()) && needs.agent.result != 'skipped' &&
+      needs.detection.result == 'success'
     runs-on: ubuntu-slim
     permissions:
       issues: write
@@ -1574,30 +1795,43 @@ jobs:
       GH_AW_AGENT_AIC: ${{ needs.agent.outputs.aic }}
       GH_AW_AIC: ${{ needs.agent.outputs.aic }}
       GH_AW_AMBIENT_CONTEXT: ${{ needs.agent.outputs.ambient_context }}
-      GH_AW_CALLER_WORKFLOW_ID: "${{ github.repository }}/issue-triage"
-      GH_AW_DETECTION_CONCLUSION: ${{ needs.detection.outputs.detection_conclusion }}
+      GH_AW_CALLER_WORKFLOW_ID: '${{ github.repository }}/issue-triage'
+      GH_AW_DETECTION_CONCLUSION:
+        ${{ needs.detection.outputs.detection_conclusion }}
       GH_AW_DETECTION_REASON: ${{ needs.detection.outputs.detection_reason }}
       GH_AW_EFFECTIVE_TOKENS: ${{ needs.agent.outputs.effective_tokens }}
-      GH_AW_ENGINE_ID: "copilot"
+      GH_AW_ENGINE_ID: 'copilot'
       GH_AW_ENGINE_MODEL: ${{ needs.agent.outputs.model }}
       GH_AW_RUNTIME_FEATURES: ${{ vars.GH_AW_RUNTIME_FEATURES }}
       GH_AW_THREAT_DETECTION_AIC: ${{ needs.detection.outputs.aic }}
-      GH_AW_WORKFLOW_ID: "issue-triage"
-      GH_AW_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-      GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/issue-triage.md"
+      GH_AW_WORKFLOW_ID: 'issue-triage'
+      GH_AW_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+      GH_AW_WORKFLOW_SOURCE_URL:
+        '${{ github.server_url }}/${{ github.repository }}/blob/${{
+        github.ref_name }}/.github/workflows/issue-triage.md'
     outputs:
-      app_token_minting_failed: ${{ steps.safe-outputs-app-token.outcome == 'failure' }}
-      code_push_failure_count: ${{ steps.process_safe_outputs.outputs.code_push_failure_count }}
-      code_push_failure_errors: ${{ steps.process_safe_outputs.outputs.code_push_failure_errors }}
+      app_token_minting_failed:
+        ${{ steps.safe-outputs-app-token.outcome == 'failure' }}
+      code_push_failure_count:
+        ${{ steps.process_safe_outputs.outputs.code_push_failure_count }}
+      code_push_failure_errors:
+        ${{ steps.process_safe_outputs.outputs.code_push_failure_errors }}
       comment_id: ${{ steps.process_safe_outputs.outputs.comment_id }}
       comment_url: ${{ steps.process_safe_outputs.outputs.comment_url }}
-      create_discussion_error_count: ${{ steps.process_safe_outputs.outputs.create_discussion_error_count }}
-      create_discussion_errors: ${{ steps.process_safe_outputs.outputs.create_discussion_errors }}
-      process_safe_outputs_items_failed: ${{ steps.process_safe_outputs.outputs.items_failed }}
-      process_safe_outputs_items_succeeded: ${{ steps.process_safe_outputs.outputs.items_succeeded }}
-      process_safe_outputs_processed_count: ${{ steps.process_safe_outputs.outputs.processed_count }}
-      process_safe_outputs_status: ${{ steps.process_safe_outputs.outputs.status }}
-      process_safe_outputs_temporary_id_map: ${{ steps.process_safe_outputs.outputs.temporary_id_map }}
+      create_discussion_error_count:
+        ${{ steps.process_safe_outputs.outputs.create_discussion_error_count }}
+      create_discussion_errors:
+        ${{ steps.process_safe_outputs.outputs.create_discussion_errors }}
+      process_safe_outputs_items_failed:
+        ${{ steps.process_safe_outputs.outputs.items_failed }}
+      process_safe_outputs_items_succeeded:
+        ${{ steps.process_safe_outputs.outputs.items_succeeded }}
+      process_safe_outputs_processed_count:
+        ${{ steps.process_safe_outputs.outputs.processed_count }}
+      process_safe_outputs_status:
+        ${{ steps.process_safe_outputs.outputs.status }}
+      process_safe_outputs_temporary_id_map:
+        ${{ steps.process_safe_outputs.outputs.temporary_id_map }}
     steps:
       - name: Setup Scripts
         id: setup
@@ -1606,13 +1840,17 @@ jobs:
           destination: ${{ runner.temp }}/gh-aw/actions
           job-name: ${{ github.job }}
           trace-id: ${{ needs.activation.outputs.setup-trace-id }}
-          parent-span-id: ${{ needs.activation.outputs.setup-parent-span-id || needs.activation.outputs.setup-span-id }}
+          parent-span-id:
+            ${{ needs.activation.outputs.setup-parent-span-id ||
+            needs.activation.outputs.setup-span-id }}
         env:
-          GH_AW_SETUP_WORKFLOW_NAME: "Issue Triage (skills-driven)"
-          GH_AW_CURRENT_WORKFLOW_REF: ${{ github.repository }}/.github/workflows/issue-triage.lock.yml@${{ github.ref }}
-          GH_AW_INFO_VERSION: "1.0.78"
-          GH_AW_INFO_AWF_VERSION: "v0.27.44"
-          GH_AW_INFO_ENGINE_ID: "copilot"
+          GH_AW_SETUP_WORKFLOW_NAME: 'Issue Triage (skills-driven)'
+          GH_AW_CURRENT_WORKFLOW_REF:
+            ${{ github.repository }}/.github/workflows/issue-triage.lock.yml@${{
+            github.ref }}
+          GH_AW_INFO_VERSION: '1.0.78'
+          GH_AW_INFO_AWF_VERSION: 'v0.27.44'
+          GH_AW_INFO_ENGINE_ID: 'copilot'
       - name: Download agent output artifact
         id: download-agent-output
         continue-on-error: true
@@ -1641,7 +1879,8 @@ jobs:
       - name: Configure GH_HOST for enterprise compatibility
         id: ghes-host-config
         shell: bash
-        run: | # zizmor: ignore[github-env] - GITHUB_SERVER_URL is set by GitHub Actions, not user input.
+        run:
+          | # zizmor: ignore[github-env] - GITHUB_SERVER_URL is set by GitHub Actions, not user input.
           # Derive GH_HOST from GITHUB_SERVER_URL so the gh CLI targets the correct
           # GitHub instance (GHES/GHEC). On github.com this is a harmless no-op.
           GH_HOST="${GITHUB_SERVER_URL#https://}"
@@ -1651,12 +1890,13 @@ jobs:
         id: process_safe_outputs
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
+          GH_AW_AGENT_OUTPUT:
+            ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
           GH_AW_COMMENT_ID: ${{ needs.activation.outputs.comment_id }}
-          GH_AW_ALLOWED_DOMAINS: "api.business.githubcopilot.com,api.enterprise.githubcopilot.com,api.github.com,api.githubcopilot.com,api.individual.githubcopilot.com,api.snapcraft.io,archive.ubuntu.com,azure.archive.ubuntu.com,crl.geotrust.com,crl.globalsign.com,crl.identrust.com,crl.sectigo.com,crl.thawte.com,crl.usertrust.com,crl.verisign.com,crl3.digicert.com,crl4.digicert.com,crls.ssl.com,github.com,host.docker.internal,json-schema.org,json.schemastore.org,keyserver.ubuntu.com,ocsp.digicert.com,ocsp.geotrust.com,ocsp.globalsign.com,ocsp.identrust.com,ocsp.sectigo.com,ocsp.ssl.com,ocsp.thawte.com,ocsp.usertrust.com,ocsp.verisign.com,packagecloud.io,packages.cloud.google.com,packages.microsoft.com,ppa.launchpad.net,raw.githubusercontent.com,registry.npmjs.org,s.symcb.com,s.symcd.com,security.ubuntu.com,telemetry.enterprise.githubcopilot.com,ts-crl.ws.symantec.com,ts-ocsp.ws.symantec.com,www.googleapis.com"
+          GH_AW_ALLOWED_DOMAINS: 'api.business.githubcopilot.com,api.enterprise.githubcopilot.com,api.github.com,api.githubcopilot.com,api.individual.githubcopilot.com,api.snapcraft.io,archive.ubuntu.com,azure.archive.ubuntu.com,crl.geotrust.com,crl.globalsign.com,crl.identrust.com,crl.sectigo.com,crl.thawte.com,crl.usertrust.com,crl.verisign.com,crl3.digicert.com,crl4.digicert.com,crls.ssl.com,github.com,host.docker.internal,json-schema.org,json.schemastore.org,keyserver.ubuntu.com,ocsp.digicert.com,ocsp.geotrust.com,ocsp.globalsign.com,ocsp.identrust.com,ocsp.sectigo.com,ocsp.ssl.com,ocsp.thawte.com,ocsp.usertrust.com,ocsp.verisign.com,packagecloud.io,packages.cloud.google.com,packages.microsoft.com,ppa.launchpad.net,raw.githubusercontent.com,registry.npmjs.org,s.symcb.com,s.symcd.com,security.ubuntu.com,telemetry.enterprise.githubcopilot.com,ts-crl.ws.symantec.com,ts-ocsp.ws.symantec.com,www.googleapis.com'
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_API_URL: ${{ github.api_url }}
-          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"add_comment\":{\"max\":1},\"add_labels\":{\"allowed\":[\"bug\",\"priority-1\",\"priority-2\",\"priority-3\",\"enhancement\",\"more-info-needed\",\"unable-to-reproduce\",\"off-topic\",\"no-help-wanted-issue\",\"invalid\",\"suspected-spam\"],\"issue_intent\":true,\"max\":3},\"create_report_incomplete_issue\":{},\"missing_data\":{},\"missing_tool\":{},\"noop\":{\"max\":1,\"report-as-issue\":\"false\"},\"report_incomplete\":{}}"
+          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: '{"add_comment":{"max":1},"add_labels":{"allowed":["bug","priority-1","priority-2","priority-3","enhancement","more-info-needed","unable-to-reproduce","off-topic","no-help-wanted-issue","invalid","suspected-spam"],"issue_intent":true,"max":3},"create_report_incomplete_issue":{},"missing_data":{},"missing_tool":{},"noop":{"max":1,"report-as-issue":"false"},"report_incomplete":{}}'
         with:
           github-token: ${{ steps.safe-outputs-app-token.outputs.token }}
           script: |
