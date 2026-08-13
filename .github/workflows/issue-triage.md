@@ -32,7 +32,10 @@ timeout-minutes: 10
 
 strict: false
 
-engine: copilot
+engine:
+  id: copilot
+  env:
+    COPILOT_GITHUB_TOKEN: ${{ github.token }}
 
 tools:
   github:
