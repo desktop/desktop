@@ -35,7 +35,7 @@
     "desktop-notifications": "file:../vendor/desktop-notifications",
     "desktop-trampoline": "file:../vendor/desktop-trampoline",
     "dexie": "^3.2.3",
-    "dompurify": "^3.4.11",
+    "dompurify": "^3.4.13",
     "dugite": "^3.2.3",
     "electron-window-state": "^5.0.3",
     "event-kit": "^2.0.0",
