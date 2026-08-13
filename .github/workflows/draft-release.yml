@@ -23,6 +23,7 @@ on:
         default: false
 
 permissions:
+  copilot-requests: write
   contents: write
   pull-requests: write
 
