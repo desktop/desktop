@@ -46,7 +46,6 @@ export async function updateSubmodulesAfterOperation<T extends Progress>(
     ...(allowFileProtocol ? ['-c', 'protocol.file.allow=always'] : []),
     'submodule',
     'update',
-  //  '--init',
     '--recursive',
   ]
 
