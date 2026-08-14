@@ -1,5 +1,10 @@
 {
   "releases": {
+    "3.6.5-beta1": [
+      "[Fixed] Hooks taking input via stdin no longer error on Windows - #22620",
+      "[Improved] Update Git for Windows to v2.53.0.windows.4",
+      "[Improved] Update Git Credential Manager to 2.9.0"
+    ],
     "3.6.4": [
       "[Improved] Update Git for Windows to v2.53.0.windows.4",
       "[Improved] Update Git Credential Manager to 2.9.0"
