@@ -1,0 +1,42 @@
+name: Package MSIX
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'msix-v*'
+
+env:
+  NODE_VERSION: 24.15.0
+
+jobs:
+  package-msix:
+    name: Package MSIX (x64)
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+      - run: yarn
+      - name: Build production app
+        run: yarn build:prod
+        env:
+          npm_config_arch: x64
+          TARGET_ARCH: x64
+      - name: Package MSIX
+        run: ts-node -P script/tsconfig.json script/package-msix.ts
+        env:
+          npm_config_arch: x64
+      - name: Upload MSIX artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: msix-x64
+          path: dist/GitHubDesktop-x64.msix
+          if-no-files-found: error

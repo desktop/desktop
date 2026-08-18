@@ -35,6 +35,7 @@ function packageMSIX() {
   const arch = getDistArchitecture()
   const executableName = getWindowsIdentifierName()
   const publisherDisplayName = getCompanyName()
+  const publisher = process.env.MSIX_PUBLISHER || 'CN=YOURNAME'
 
   console.log(`Packaging ${productName} ${version} (${arch}) as MSIX...`)
 
@@ -57,6 +58,7 @@ function packageMSIX() {
     .replace(/\{ExecutableName\}/g, executableName)
     .replace(/\{DisplayName\}/g, productName)
     .replace(/\{PublisherDisplayName\}/g, publisherDisplayName)
+    .replace(/\{Publisher\}/g, publisher)
 
   const manifestDest = path.join(distPath, 'AppxManifest.xml')
   fs.writeFileSync(manifestDest, manifest)
@@ -85,6 +87,12 @@ function packageMSIX() {
 
   console.log(`Running: "${makeAppx}" ${args.join(' ')}`)
   const result = cp.spawnSync(makeAppx, args, { stdio: 'inherit' })
+
+  // Clean up the manifest we injected into the dist folder so it does not
+  // leak into subsequent packaging steps (e.g. Squirrel).
+  if (fs.existsSync(manifestDest)) {
+    fs.unlinkSync(manifestDest)
+  }
 
   if (result.status !== 0) {
     console.error(`MakeAppx.exe exited with code ${result.status}`)
@@ -131,11 +139,11 @@ function findMakeAppx(): string | null {
   }
 
   // List version directories (e.g. "10.0.19041.0") and sort descending
+  // using numeric comparison so that e.g. 10.0.22621.0 sorts after 10.0.9999.0
   const versions = fs
     .readdirSync(sdkRoot)
     .filter(d => d.startsWith('10.'))
-    .sort()
-    .reverse()
+    .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
 
   for (const ver of versions) {
     const candidate = path.join(sdkRoot, ver, 'x64', 'MakeAppx.exe')

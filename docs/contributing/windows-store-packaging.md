@@ -33,21 +33,31 @@ $ ts-node -P script/tsconfig.json script/package-msix.ts
 The output `.msix` file is written to the `dist/` directory, named like
 `GitHubDesktop-x64.msix`.
 
+The publisher identity in the manifest defaults to `CN=YOURNAME`. To use a
+real publisher identity, set the `MSIX_PUBLISHER` environment variable before
+running the script:
+
+```shellsession
+$ $env:MSIX_PUBLISHER = "CN=Your Company, O=Your Company, L=City, S=State, C=US"
+$ ts-node -P script/tsconfig.json script/package-msix.ts
+```
+
 ## CI
 
-The GitHub Actions workflow in `.github/workflows/ci.yml` includes a
-`package-msix` job. It only runs on manual `workflow_dispatch` triggers or
-when a tag matching `msix-v*` is pushed. It does not run on regular PRs or
-pushes to `development`.
+The MSIX build has its own workflow at `.github/workflows/msix.yml`. It only
+runs on manual `workflow_dispatch` triggers or when a tag matching `msix-v*`
+is pushed. It does not run on regular PRs or pushes to `development`, and it
+does not affect the main CI workflow.
 
-To trigger it manually, go to the Actions tab, select the CI workflow, and
-click "Run workflow".
+To trigger it manually, go to the Actions tab, select the "Package MSIX"
+workflow, and click "Run workflow".
 
 ## What is still needed for a real Store submission
 
 The MSIX produced by this script is unsigned and uses a placeholder publisher
-identity (`CN=YOURNAME` in the AppxManifest). Before submitting to the
-Microsoft Store, the following manual steps are required:
+identity (`CN=YOURNAME`) by default. Set the `MSIX_PUBLISHER` environment
+variable to override this. Before submitting to the Microsoft Store, the
+following manual steps are required:
 
 1. **Signing certificate**: Obtain a code-signing certificate whose subject
    matches the publisher identity registered in Partner Center. Sign the MSIX
