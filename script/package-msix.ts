@@ -39,6 +39,18 @@ function packageMSIX() {
 
   console.log(`Packaging ${productName} ${version} (${arch}) as MSIX...`)
 
+  // Find MakeAppx.exe from the Windows SDK before injecting any files
+  // into the dist folder, so an early exit here leaves the folder clean.
+  const makeAppx = findMakeAppx()
+  if (makeAppx === null) {
+    console.error(
+      'Could not find MakeAppx.exe. ' +
+        'Install the Windows 10 SDK or set the MAKEAPPX_PATH environment variable.'
+    )
+    process.exit(1)
+  }
+  console.log(`Using MakeAppx.exe at ${makeAppx}`)
+
   // Write the resolved AppxManifest.xml into the dist folder
   const templatePath = path.join(
     __dirname,
@@ -52,13 +64,13 @@ function packageMSIX() {
 
   let manifest = fs.readFileSync(templatePath, 'utf8')
   manifest = manifest
-    .replace(/\{ProductName\}/g, executableName)
+    .replace(/\{ProductName\}/g, escapeXml(executableName))
     .replace(/\{Version\}/g, version)
     .replace(/\{Architecture\}/g, arch)
     .replace(/\{ExecutableName\}/g, executableName)
-    .replace(/\{DisplayName\}/g, productName)
-    .replace(/\{PublisherDisplayName\}/g, publisherDisplayName)
-    .replace(/\{Publisher\}/g, publisher)
+    .replace(/\{DisplayName\}/g, escapeXml(productName))
+    .replace(/\{PublisherDisplayName\}/g, escapeXml(publisherDisplayName))
+    .replace(/\{Publisher\}/g, escapeXml(publisher))
 
   const manifestDest = path.join(distPath, 'AppxManifest.xml')
   fs.writeFileSync(manifestDest, manifest)
@@ -78,17 +90,6 @@ function packageMSIX() {
   const logoDest = path.join(logoDir, 'StoreLogo.png')
   fs.copyFileSync(logoSrc, logoDest)
   console.log(`Copied placeholder logo to ${logoDest}`)
-
-  // Find MakeAppx.exe from the Windows SDK
-  const makeAppx = findMakeAppx()
-  if (makeAppx === null) {
-    console.error(
-      'Could not find MakeAppx.exe. ' +
-        'Install the Windows 10 SDK or set the MAKEAPPX_PATH environment variable.'
-    )
-    process.exit(1)
-  }
-  console.log(`Using MakeAppx.exe at ${makeAppx}`)
 
   const msixName = `${executableName}-${arch}.msix`
   const msixPath = path.join(outputDir, msixName)
@@ -120,6 +121,19 @@ function packageMSIX() {
   }
 
   console.log(`MSIX package created at ${msixPath}`)
+}
+
+/**
+ * Escape special XML characters in a string so it can be safely
+ * inserted into an XML attribute or element value.
+ */
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
 }
 
 /**
