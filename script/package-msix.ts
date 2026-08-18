@@ -1,0 +1,148 @@
+/* eslint-disable no-sync */
+
+import * as path from 'path'
+import * as cp from 'child_process'
+import * as fs from 'fs'
+import { getProductName, getVersion, getCompanyName } from '../app/package-info'
+import {
+  getDistPath,
+  getDistRoot,
+  getDistArchitecture,
+  getWindowsIdentifierName,
+} from './dist-info'
+
+if (process.platform !== 'win32') {
+  console.error('MSIX packaging is only supported on Windows.')
+  process.exit(1)
+}
+
+const distPath = getDistPath()
+const outputDir = getDistRoot()
+
+if (!fs.existsSync(distPath)) {
+  console.error(
+    `Could not find the built app at ${distPath}. ` +
+      'Run yarn build:prod before packaging.'
+  )
+  process.exit(1)
+}
+
+packageMSIX()
+
+function packageMSIX() {
+  const productName = getProductName()
+  const version = normalizeVersion(getVersion())
+  const arch = getDistArchitecture()
+  const executableName = getWindowsIdentifierName()
+  const publisherDisplayName = getCompanyName()
+
+  console.log(`Packaging ${productName} ${version} (${arch}) as MSIX...`)
+
+  // Write the resolved AppxManifest.xml into the dist folder
+  const templatePath = path.join(
+    __dirname,
+    'windows-store-assets',
+    'AppxManifest.xml'
+  )
+  if (!fs.existsSync(templatePath)) {
+    console.error(`AppxManifest template not found at ${templatePath}`)
+    process.exit(1)
+  }
+
+  let manifest = fs.readFileSync(templatePath, 'utf8')
+  manifest = manifest
+    .replace(/\{ProductName\}/g, executableName)
+    .replace(/\{Version\}/g, version)
+    .replace(/\{Architecture\}/g, arch)
+    .replace(/\{ExecutableName\}/g, executableName)
+    .replace(/\{DisplayName\}/g, productName)
+    .replace(/\{PublisherDisplayName\}/g, publisherDisplayName)
+
+  const manifestDest = path.join(distPath, 'AppxManifest.xml')
+  fs.writeFileSync(manifestDest, manifest)
+  console.log(`Wrote AppxManifest.xml to ${manifestDest}`)
+
+  // Find MakeAppx.exe from the Windows SDK
+  const makeAppx = findMakeAppx()
+  if (makeAppx === null) {
+    console.error(
+      'Could not find MakeAppx.exe. ' +
+        'Install the Windows 10 SDK or set the MAKEAPPX_PATH environment variable.'
+    )
+    process.exit(1)
+  }
+  console.log(`Using MakeAppx.exe at ${makeAppx}`)
+
+  const msixName = `${executableName}-${arch}.msix`
+  const msixPath = path.join(outputDir, msixName)
+
+  // Remove an existing .msix if present so MakeAppx /o doesn't prompt
+  if (fs.existsSync(msixPath)) {
+    fs.unlinkSync(msixPath)
+  }
+
+  const args = ['pack', '/d', distPath, '/p', msixPath, '/o']
+
+  console.log(`Running: "${makeAppx}" ${args.join(' ')}`)
+  const result = cp.spawnSync(makeAppx, args, { stdio: 'inherit' })
+
+  if (result.status !== 0) {
+    console.error(`MakeAppx.exe exited with code ${result.status}`)
+    process.exit(1)
+  }
+
+  console.log(`MSIX package created at ${msixPath}`)
+}
+
+/**
+ * Normalize a semver version string to the four-part format that MSIX
+ * requires (Major.Minor.Patch.Revision). Any pre-release suffix like
+ * "-beta1" is stripped, and ".0" is appended as the revision.
+ */
+function normalizeVersion(version: string): string {
+  // Strip everything after a hyphen (pre-release tag)
+  const base = version.split('-')[0]
+  const parts = base.split('.')
+
+  if (parts.length < 3) {
+    throw new Error(
+      `Version "${version}" does not have at least three numeric components.`
+    )
+  }
+
+  // MSIX requires exactly Major.Minor.Build.Revision
+  return `${parts[0]}.${parts[1]}.${parts[2]}.0`
+}
+
+/**
+ * Look for MakeAppx.exe in well-known Windows SDK locations, preferring
+ * the newest SDK version available. Callers can override this by setting
+ * the MAKEAPPX_PATH environment variable.
+ */
+function findMakeAppx(): string | null {
+  const envPath = process.env.MAKEAPPX_PATH
+  if (envPath && fs.existsSync(envPath)) {
+    return envPath
+  }
+
+  const sdkRoot = 'C:\\Program Files (x86)\\Windows Kits\\10\\bin'
+  if (!fs.existsSync(sdkRoot)) {
+    return null
+  }
+
+  // List version directories (e.g. "10.0.19041.0") and sort descending
+  const versions = fs
+    .readdirSync(sdkRoot)
+    .filter(d => d.startsWith('10.'))
+    .sort()
+    .reverse()
+
+  for (const ver of versions) {
+    const candidate = path.join(sdkRoot, ver, 'x64', 'MakeAppx.exe')
+    if (fs.existsSync(candidate)) {
+      return candidate
+    }
+  }
+
+  return null
+}
