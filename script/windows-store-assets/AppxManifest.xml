@@ -11,7 +11,7 @@
   <Properties>
     <DisplayName>{DisplayName}</DisplayName>
     <PublisherDisplayName>{PublisherDisplayName}</PublisherDisplayName>
-    <Logo>resources\app\static\logos\prod\icon-logo.png</Logo>
+    <Logo>StoreLogo\StoreLogo.png</Logo>
   </Properties>
 
   <Dependencies>
@@ -31,8 +31,8 @@
       <uap:VisualElements DisplayName="{DisplayName}"
                           Description="GitHub Desktop"
                           BackgroundColor="transparent"
-                          Square150x150Logo="resources\app\static\logos\prod\icon-logo.png"
-                          Square44x44Logo="resources\app\static\logos\prod\icon-logo.png" />
+                          Square150x150Logo="StoreLogo\StoreLogo.png"
+                          Square44x44Logo="StoreLogo\StoreLogo.png" />
     </Application>
   </Applications>
 

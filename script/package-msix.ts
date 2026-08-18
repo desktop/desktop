@@ -64,6 +64,21 @@ function packageMSIX() {
   fs.writeFileSync(manifestDest, manifest)
   console.log(`Wrote AppxManifest.xml to ${manifestDest}`)
 
+  // Copy a placeholder logo into the dist folder. The manifest references
+  // this path for Store tile images. A real submission should replace this
+  // with properly sized tile assets.
+  const logoSrc = path.resolve(
+    __dirname,
+    '../app/static/common/windows-logo-64x64@2x.png'
+  )
+  const logoDir = path.join(distPath, 'StoreLogo')
+  if (!fs.existsSync(logoDir)) {
+    fs.mkdirSync(logoDir, { recursive: true })
+  }
+  const logoDest = path.join(logoDir, 'StoreLogo.png')
+  fs.copyFileSync(logoSrc, logoDest)
+  console.log(`Copied placeholder logo to ${logoDest}`)
+
   // Find MakeAppx.exe from the Windows SDK
   const makeAppx = findMakeAppx()
   if (makeAppx === null) {
@@ -88,10 +103,15 @@ function packageMSIX() {
   console.log(`Running: "${makeAppx}" ${args.join(' ')}`)
   const result = cp.spawnSync(makeAppx, args, { stdio: 'inherit' })
 
-  // Clean up the manifest we injected into the dist folder so it does not
+  // Clean up files we injected into the dist folder so they do not
   // leak into subsequent packaging steps (e.g. Squirrel).
-  if (fs.existsSync(manifestDest)) {
-    fs.unlinkSync(manifestDest)
+  for (const injected of [manifestDest, logoDir]) {
+    fs.rmSync(injected, { recursive: true, force: true })
+  }
+
+  if (result.error) {
+    console.error(`Failed to start MakeAppx.exe: ${result.error.message}`)
+    process.exit(1)
   }
 
   if (result.status !== 0) {
