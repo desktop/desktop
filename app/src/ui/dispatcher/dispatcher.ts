@@ -1353,7 +1353,8 @@ export class Dispatcher {
   public async rebase(
     repository: Repository,
     baseBranch: Branch,
-    targetBranch: Branch
+    targetBranch: Branch,
+    shouldAutoUnstash: boolean = false
   ): Promise<void> {
     const { branchesState, multiCommitOperationState } =
       this.repositoryStateManager.get(repository)
@@ -1365,6 +1366,16 @@ export class Dispatcher {
     ) {
       return
     }
+
+    if (shouldAutoUnstash) {
+      this.repositoryStateManager.updateMultiCommitOperationState(
+        repository,
+        () => ({
+          shouldAutoUnstashAfterRebase: true,
+        })
+      )
+    }
+
     const { commits } = multiCommitOperationState.operationDetail
 
     const beforeSha = getTipSha(branchesState.tip)
@@ -2288,7 +2299,10 @@ export class Dispatcher {
   }
 
   /** Perform the given retry action. */
-  public async performRetry(retryAction: RetryAction): Promise<void> {
+  public async performRetry(
+    retryAction: RetryAction,
+    shouldAutoUnstash: boolean = false
+  ): Promise<void> {
     switch (retryAction.type) {
       case RetryActionType.Push:
         return this.push(retryAction.repository)
@@ -2318,14 +2332,16 @@ export class Dispatcher {
         return this.rebase(
           retryAction.repository,
           retryAction.baseBranch,
-          retryAction.targetBranch
+          retryAction.targetBranch,
+          shouldAutoUnstash
         )
       case RetryActionType.CherryPick:
         return this.cherryPick(
           retryAction.repository,
           retryAction.targetBranch,
           retryAction.commits,
-          retryAction.sourceBranch
+          retryAction.sourceBranch,
+          shouldAutoUnstash
         )
       case RetryActionType.CreateBranchForCherryPick:
         return this.startCherryPickWithBranchName(
@@ -2342,14 +2358,18 @@ export class Dispatcher {
           retryAction.toSquash,
           retryAction.squashOnto,
           retryAction.lastRetainedCommitRef,
-          retryAction.commitContext
+          retryAction.commitContext,
+          false,
+          shouldAutoUnstash
         )
       case RetryActionType.Reorder:
         return this.reorderCommits(
           retryAction.repository,
           retryAction.commitsToReorder,
           retryAction.beforeCommit,
-          retryAction.lastRetainedCommitRef
+          retryAction.lastRetainedCommitRef,
+          false,
+          shouldAutoUnstash
         )
       case RetryActionType.DiscardChanges:
         return this.discardChanges(
@@ -2982,7 +3002,8 @@ export class Dispatcher {
     repository: Repository,
     targetBranch: Branch,
     commits: ReadonlyArray<CommitOneLine>,
-    sourceBranch: Branch | null
+    sourceBranch: Branch | null,
+    shouldAutoUnstash: boolean = false
   ): Promise<void> {
     // If uncommitted changes are stashed, we had to clear the multi commit
     // operation in case user hit cancel. (This method only sets it, if it null)
@@ -2995,6 +3016,15 @@ export class Dispatcher {
 
     this.appStore._initializeCherryPickProgress(repository, commits)
     this.switchMultiCommitOperationToShowProgress(repository)
+
+    if (shouldAutoUnstash) {
+      this.repositoryStateManager.updateMultiCommitOperationState(
+        repository,
+        () => ({
+          shouldAutoUnstashAfterRebase: true,
+        })
+      )
+    }
 
     const retry: RetryAction = {
       type: RetryActionType.CherryPick,
@@ -3456,7 +3486,8 @@ export class Dispatcher {
     commitsToReorder: ReadonlyArray<Commit>,
     beforeCommit: Commit | null,
     lastRetainedCommitRef: string | null,
-    continueWithForcePush: boolean = false
+    continueWithForcePush: boolean = false,
+    shouldAutoUnstash: boolean = false
   ) {
     const retry: RetryAction = {
       type: RetryActionType.Reorder,
@@ -3502,6 +3533,15 @@ export class Dispatcher {
       type: PopupType.MultiCommitOperation,
       repository,
     })
+
+    if (shouldAutoUnstash) {
+      this.repositoryStateManager.updateMultiCommitOperationState(
+        repository,
+        () => ({
+          shouldAutoUnstashAfterRebase: true,
+        })
+      )
+    }
 
     this.appStore._setMultiCommitOperationUndoState(repository, tip)
 
@@ -3563,7 +3603,8 @@ export class Dispatcher {
     squashOnto: Commit,
     lastRetainedCommitRef: string | null,
     commitContext: ICommitContext,
-    continueWithForcePush: boolean = false
+    continueWithForcePush: boolean = false,
+    shouldAutoUnstash: boolean = false
   ): Promise<void> {
     const retry: RetryAction = {
       type: RetryActionType.Squash,
@@ -3610,6 +3651,15 @@ export class Dispatcher {
       type: PopupType.MultiCommitOperation,
       repository,
     })
+
+    if (shouldAutoUnstash) {
+      this.repositoryStateManager.updateMultiCommitOperationState(
+        repository,
+        () => ({
+          shouldAutoUnstashAfterRebase: true,
+        })
+      )
+    }
 
     this.appStore._setMultiCommitOperationUndoState(repository, tip)
 
@@ -3818,7 +3868,8 @@ export class Dispatcher {
       return
     }
 
-    const { operationDetail, originalBranchTip } = mcos
+    const { operationDetail, originalBranchTip, shouldAutoUnstashAfterRebase } =
+      mcos
     const { kind } = operationDetail
     const banner = this.getMultiCommitOperationSuccessBanner(
       repository,
@@ -3840,6 +3891,19 @@ export class Dispatcher {
 
     this.endMultiCommitOperation(repository)
     await this.refreshRepository(repository)
+
+    if (shouldAutoUnstashAfterRebase) {
+      const { changesState } = this.repositoryStateManager.get(repository)
+      const { stashEntry } = changesState
+
+      if (stashEntry !== null) {
+        try {
+          await this.popStash(repository, stashEntry)
+        } catch (err) {
+          log.error('[completeMultiCommitOperation] failed to auto-unstash', err)
+        }
+      }
+    }
   }
 
   private getMultiCommitOperationSuccessBanner(

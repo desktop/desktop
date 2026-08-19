@@ -11,6 +11,13 @@ import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import { Dispatcher } from '../dispatcher'
 import { PathText } from '../lib/path-text'
 import { assertNever } from '../../lib/fatal-error'
+import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
+import { Row } from '../lib/row'
+
+enum StashOption {
+  StashAndContinue,
+  StashTemporarilyForRebase,
+}
 
 interface ILocalChangesOverwrittenDialogProps {
   readonly repository: Repository
@@ -36,6 +43,7 @@ interface ILocalChangesOverwrittenDialogProps {
 }
 interface ILocalChangesOverwrittenDialogState {
   readonly stashing: boolean
+  readonly selectedStashOption: StashOption
 }
 
 export class LocalChangesOverwrittenDialog extends React.Component<
@@ -44,7 +52,10 @@ export class LocalChangesOverwrittenDialog extends React.Component<
 > {
   public constructor(props: ILocalChangesOverwrittenDialogProps) {
     super(props)
-    this.state = { stashing: false }
+    this.state = {
+      stashing: false,
+      selectedStashOption: StashOption.StashTemporarilyForRebase,
+    }
   }
 
   public render() {
@@ -112,7 +123,64 @@ export class LocalChangesOverwrittenDialog extends React.Component<
       return null
     }
 
-    return <p>You can stash your changes now and recover them afterwards.</p>
+    const isMultiCommitOperation =
+      this.props.retryAction.type === RetryActionType.Rebase ||
+      this.props.retryAction.type === RetryActionType.Squash ||
+      this.props.retryAction.type === RetryActionType.Reorder ||
+      this.props.retryAction.type === RetryActionType.CherryPick
+
+    if (!isMultiCommitOperation) {
+      return <p>You can stash your changes now and recover them afterwards.</p>
+    }
+
+    return this.renderStashOptions()
+  }
+
+  private renderStashOptions() {
+    const operationName = this.getOperationName()
+    const items = [
+      {
+        title: 'Stash and manually recover',
+        description: `Create a stash that you can restore manually after the ${operationName}`,
+        key: StashOption.StashAndContinue,
+      },
+      {
+        title: `Stash temporarily during ${operationName}`,
+        description: `Automatically unstash your changes after the ${operationName} completes`,
+        key: StashOption.StashTemporarilyForRebase,
+      },
+    ]
+
+    return (
+      <Row>
+        <VerticalSegmentedControl
+          label="What would you like to do with your changes?"
+          items={items}
+          selectedKey={this.state.selectedStashOption}
+          onSelectionChanged={this.onStashOptionChanged}
+        />
+      </Row>
+    )
+  }
+
+  private getOperationName(): string {
+    switch (this.props.retryAction.type) {
+      case RetryActionType.Rebase:
+        return 'rebase'
+      case RetryActionType.Squash:
+        return 'squash'
+      case RetryActionType.Reorder:
+        return 'reorder'
+      case RetryActionType.CherryPick:
+      case RetryActionType.CreateBranchForCherryPick:
+        return 'cherry-pick'
+      default:
+        return 'operation'
+    }
+  }
+
+  private onStashOptionChanged = (option: StashOption) => {
+    this.setState({ selectedStashOption: option })
   }
 
   private renderFooter() {
@@ -148,6 +216,16 @@ export class LocalChangesOverwrittenDialog extends React.Component<
 
     this.setState({ stashing: true })
 
+    const isMultiCommitOperation =
+      retryAction.type === RetryActionType.Rebase ||
+      retryAction.type === RetryActionType.Squash ||
+      retryAction.type === RetryActionType.Reorder ||
+      retryAction.type === RetryActionType.CherryPick
+
+    const shouldAutoUnstash =
+      isMultiCommitOperation &&
+      this.state.selectedStashOption === StashOption.StashTemporarilyForRebase
+
     // We know that there's no stash for the current branch so we can safely
     // tell createStashForCurrentBranch not to show a confirmation dialog which
     // would disrupt the async flow (since you can't await a dialog).
@@ -159,7 +237,7 @@ export class LocalChangesOverwrittenDialog extends React.Component<
     this.props.onDismissed()
 
     if (createdStash) {
-      await dispatcher.performRetry(retryAction)
+      await dispatcher.performRetry(retryAction, shouldAutoUnstash)
     }
   }
 
