@@ -6125,7 +6125,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     isMissing: boolean = false,
     branchToCheckout?: Branch
   ): void {
-    if (this.confirmWorktreeRemoval) {
+    if (this.confirmWorktreeRemoval || isMissing) {
       this._showPopup({
         type: PopupType.DeleteWorktree,
         repository,
