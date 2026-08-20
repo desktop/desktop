@@ -101,9 +101,11 @@ export class WorktreeList extends React.Component<IWorktreeListProps> {
 
   private getItemAriaLabel = (item: IWorktreeListItem) => {
     const { worktree } = item
-    return `${getWorktreeDisplayName(worktree)}, ${getWorktreeDescription(
+    const missing = worktree.isPrunable ? ', missing' : ''
+
+    return `${getWorktreeDisplayName(
       worktree
-    )}`
+    )}${missing}, ${getWorktreeDescription(worktree)}`
   }
 
   private renderGroupHeader = (identifier: WorktreeGroupIdentifier) => {
