@@ -562,6 +562,9 @@
 
     .image-container {
       position: relative;
+      // Fix for issue #21392: Force GPU compositing to ensure both
+      // image layers are rasterized consistently for mix-blend-mode
+      transform: translate3d(0, 0, 0);
 
       .image-diff-previous,
       .image-diff-current {
