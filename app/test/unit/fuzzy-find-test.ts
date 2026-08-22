@@ -39,6 +39,34 @@ describe('fuzzy find', () => {
     assert(results[0].item['text'].join('').includes('awesome feature'))
   })
 
+  it('should find items matching either side of a pipe', () => {
+    const results = match('4653|awesome feature', items, getText)
+
+    assert.equal(results.length, 2)
+    assert(results.some(r => r.item['text'].join('').includes('4653')))
+    assert(
+      results.some(r => r.item['text'].join('').includes('awesome feature'))
+    )
+  })
+
+  it('should find items matching any of several pipes', () => {
+    const results = match('bob|damaneice|awesome', items, getText)
+
+    assert.equal(results.length, 3)
+  })
+
+  it('should ignore whitespace around the pipe', () => {
+    const results = match(' 4653 | awesome feature ', items, getText)
+
+    assert.equal(results.length, 2)
+  })
+
+  it('should only return an item once when both queries match it', () => {
+    const results = match('add|awesome', items, getText)
+
+    assert.equal(results.length, 3)
+  })
+
   it('should find nothing', () => {
     const results = match('$%^', items, getText)
 
