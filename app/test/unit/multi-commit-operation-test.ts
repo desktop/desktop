@@ -7,6 +7,7 @@ import {
   conflictSteps,
 } from '../../src/models/multi-commit-operation'
 import {
+  hasExternalRebaseConflictFlowEnded,
   isConflictsFlow,
   getMultiCommitOperationChooseBranchStep,
 } from '../../src/lib/multi-commit-operation'
@@ -102,6 +103,73 @@ describe('multi-commit-operation', () => {
       } as any
 
       assert.equal(isConflictsFlow(true, state), true)
+    })
+  })
+
+  describe('hasExternalRebaseConflictFlowEnded', () => {
+    const createOperationState = (
+      operationKind: MultiCommitOperationKind,
+      stepKind: MultiCommitOperationStepKind
+    ) =>
+      ({
+        step: { kind: stepKind },
+        operationDetail: { kind: operationKind },
+      } as any)
+
+    it('returns true when an externally completed rebase was showing conflicts', () => {
+      const state = createOperationState(
+        MultiCommitOperationKind.Rebase,
+        MultiCommitOperationStepKind.ShowConflicts
+      )
+
+      assert.equal(hasExternalRebaseConflictFlowEnded(null, state), true)
+    })
+
+    it('returns true when an externally completed reorder had hidden conflicts', () => {
+      const state = createOperationState(
+        MultiCommitOperationKind.Reorder,
+        MultiCommitOperationStepKind.HideConflicts
+      )
+
+      assert.equal(hasExternalRebaseConflictFlowEnded(null, state), true)
+    })
+
+    it('returns false while rebase metadata still produces a conflict state', () => {
+      const state = createOperationState(
+        MultiCommitOperationKind.Rebase,
+        MultiCommitOperationStepKind.ShowConflicts
+      )
+      const conflictState = {
+        kind: 'rebase',
+        currentTip: 'current-tip',
+        targetBranch: 'feature',
+        originalBranchTip: 'original-tip',
+        baseBranchTip: 'base-tip',
+        manualResolutions: new Map(),
+      } as any
+
+      assert.equal(
+        hasExternalRebaseConflictFlowEnded(conflictState, state),
+        false
+      )
+    })
+
+    it('returns false for an internally continuing rebase', () => {
+      const state = createOperationState(
+        MultiCommitOperationKind.Rebase,
+        MultiCommitOperationStepKind.ShowProgress
+      )
+
+      assert.equal(hasExternalRebaseConflictFlowEnded(null, state), false)
+    })
+
+    it('returns false for a squash merge awaiting its merge commit', () => {
+      const state = createOperationState(
+        MultiCommitOperationKind.Merge,
+        MultiCommitOperationStepKind.ShowConflicts
+      )
+
+      assert.equal(hasExternalRebaseConflictFlowEnded(null, state), false)
     })
   })
 

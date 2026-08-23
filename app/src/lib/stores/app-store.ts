@@ -381,7 +381,10 @@ import {
 } from '../../models/multi-commit-operation'
 import { reorder } from '../git/reorder'
 import { UseWindowsOpenSSHKey } from '../ssh/ssh'
-import { isConflictsFlow } from '../multi-commit-operation'
+import {
+  hasExternalRebaseConflictFlowEnded,
+  isConflictsFlow,
+} from '../multi-commit-operation'
 import { clamp } from '../clamp'
 import { EndpointToken } from '../endpoint-token'
 import { IRefCheck } from '../ci-checks/ci-checks'
@@ -3126,9 +3129,19 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   private updateMultiCommitOperationConflictsIfFound(repository: Repository) {
     const state = this.repositoryStateCache.get(repository)
-    const { changesState, multiCommitOperationState } =
-      this.repositoryStateCache.get(repository)
+    const { changesState, multiCommitOperationState } = state
     const { conflictState } = changesState
+
+    if (
+      hasExternalRebaseConflictFlowEnded(
+        conflictState,
+        multiCommitOperationState
+      )
+    ) {
+      this.repositoryStateCache.clearMultiCommitOperationState(repository)
+      this.clearConflictsFlowVisuals(state)
+      return
+    }
 
     if (conflictState === null || multiCommitOperationState === null) {
       this.clearConflictsFlowVisuals(state)
