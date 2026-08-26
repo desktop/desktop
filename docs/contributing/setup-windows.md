@@ -97,9 +97,9 @@ don't have Python installed. You can install Python 3.9 from the
 
 ## Visual C++ Build Tools
 
-Desktop's native Node modules require the **Desktop development with C++**
-workload from the Visual Studio Build Tools. You do not need the Visual Studio
-IDE to develop Desktop.
+Desktop's native Node modules require the Visual C++ build tools provided by
+the **Desktop development with C++** workload in Visual Studio Build Tools. You
+do not need the Visual Studio IDE to develop Desktop.
 
 If you selected the option to automatically install the necessary tools in the
 Node.js installer, this workload should already be installed. Otherwise, use
@@ -109,8 +109,8 @@ one of these options:
    select **Modify** for your installation, and add the **Desktop development
    with C++** workload.
  - If you do not have Visual Studio, install the standalone [Visual Studio Build
-   Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)
-   and select the **Desktop development with C++** workload.
+   Tools](https://visualstudio.microsoft.com/downloads/) and select the
+   **Desktop development with C++** workload.
 
 Current versions of Node.js and `node-gyp` detect the installed build tools
 automatically, so no additional npm configuration is required.
