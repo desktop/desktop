@@ -3,7 +3,7 @@ import QuickLRU from 'quick-lru'
 
 import { Disposable } from 'event-kit'
 import xor from 'lodash/xor'
-import { Account } from '../../models/account'
+import { Account, accountEquals } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
 import { API, getAccountForEndpoint, IAPICheckSuite } from '../api'
 import {
@@ -128,6 +128,9 @@ export class CommitStatusStore {
   /** The list of signed-in accounts, kept in sync with the accounts store */
   private accounts: ReadonlyArray<Account> = []
 
+  /** Incremented whenever an active identity or credential changes. */
+  private accountsRevision = 0
+
   private backgroundRefreshHandle: number | null = null
   private refreshQueued = false
 
@@ -169,7 +172,38 @@ export class CommitStatusStore {
   }
 
   private readonly onAccountsUpdated = (accounts: ReadonlyArray<Account>) => {
+    const accountsChanged =
+      accounts.length !== this.accounts.length ||
+      accounts.some((account, index) => {
+        const previousAccount = this.accounts[index]
+        return (
+          previousAccount === undefined ||
+          !accountEquals(previousAccount, account) ||
+          previousAccount.token !== account.token
+        )
+      })
+
     this.accounts = accounts
+
+    if (accountsChanged) {
+      this.accountsRevision++
+      this.cache.clear()
+      this.subscriptions.forEach(subscription =>
+        subscription.callbacks.forEach(callback => callback(null))
+      )
+      this.queueRefresh()
+    }
+  }
+
+  private isCurrentAccount(account: Account, revision: number): boolean {
+    return (
+      revision === this.accountsRevision &&
+      this.accounts.some(
+        currentAccount =>
+          accountEquals(currentAccount, account) &&
+          currentAccount.token === account.token
+      )
+    )
   }
 
   /**
@@ -280,12 +314,19 @@ export class CommitStatusStore {
       return
     }
 
+    const accountsRevision = this.accountsRevision
+
     const api = API.fromAccount(account)
 
     const [statuses, checkRuns] = await Promise.all([
       api.fetchCombinedRefStatus(owner, name, ref),
       api.fetchRefCheckRuns(owner, name, ref),
     ])
+
+    if (!this.isCurrentAccount(account, accountsRevision)) {
+      this.queueRefresh()
+      return
+    }
 
     const checks = new Array<IRefCheck>()
 
@@ -321,6 +362,11 @@ export class CommitStatusStore {
         key,
         subscription.branchName
       )
+    }
+
+    if (!this.isCurrentAccount(account, accountsRevision)) {
+      this.queueRefresh()
+      return
     }
 
     const check = createCombinedCheckFromChecks(checksWithActions ?? checks)

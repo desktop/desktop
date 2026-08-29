@@ -14,7 +14,9 @@ import { isGHES } from './endpoint-capabilities'
  *
  * @param emails array of email addresses associated with an account
  */
-export function lookupPreferredEmail(account: Account): string {
+export function lookupPreferredEmail(
+  account: Pick<Account, 'emails' | 'id' | 'login' | 'endpoint'>
+): string {
   const emails = account.emails
 
   if (emails.length === 0) {

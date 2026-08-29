@@ -1,6 +1,11 @@
 import * as React from 'react'
 import { PopoverDropdown } from './lib/popover-dropdown'
-import { Account, accountEquals } from '../models/account'
+import {
+  Account,
+  accountEquals,
+  IAccountMetadata,
+  isDotComAccount,
+} from '../models/account'
 import { SectionFilterList } from './lib/section-filter-list'
 import {
   IFilterListGroup,
@@ -12,11 +17,13 @@ import { Avatar } from './lib/avatar'
 import { lookupPreferredEmail } from '../lib/email'
 import { IAvatarUser } from '../models/avatar'
 import memoizeOne from 'memoize-one'
+import { getHTMLURL } from '../lib/api'
 
-interface IAccountPickerProps {
-  readonly accounts: ReadonlyArray<Account>
-  readonly selectedAccount: Account
-  readonly onSelectedAccountChanged: (account: Account) => void
+interface IAccountPickerProps<TAccount extends IAccountMetadata> {
+  readonly accounts: ReadonlyArray<TAccount>
+  readonly activeAccounts: ReadonlyArray<Account>
+  readonly selectedAccount: TAccount
+  readonly onSelectedAccountChanged: (account: TAccount) => void
 
   /**
    * The class name to apply to the open button. This is useful for
@@ -31,25 +38,31 @@ interface IAccountPickerState {
   readonly selectedItemId: string | undefined
 }
 
-interface IAccountListItem extends IFilterListItem {
+interface IAccountListItem<TAccount extends IAccountMetadata>
+  extends IFilterListItem {
   readonly id: string
   readonly text: ReadonlyArray<string>
-  readonly account: Account
+  readonly account: TAccount
 }
 
-const getItemId = (account: Account) => `${account.login}@${account.endpoint}`
+const getItemId = (account: IAccountMetadata) =>
+  `${account.id}@${account.endpoint}`
+
+const getFriendlyEndpoint = (account: IAccountMetadata) =>
+  isDotComAccount(account)
+    ? 'GitHub.com'
+    : new URL(getHTMLURL(account.endpoint)).hostname
 
 /**
  * A select-like element for filter and selecting an account.
  */
-export class AccountPicker extends React.Component<
-  IAccountPickerProps,
-  IAccountPickerState
-> {
+export class AccountPicker<
+  TAccount extends IAccountMetadata
+> extends React.Component<IAccountPickerProps<TAccount>, IAccountPickerState> {
   private getFilterListGroups = memoizeOne(
     (
-      accounts: ReadonlyArray<Account>
-    ): ReadonlyArray<IFilterListGroup<IAccountListItem>> => [
+      accounts: ReadonlyArray<TAccount>
+    ): ReadonlyArray<IFilterListGroup<IAccountListItem<TAccount>>> => [
       {
         identifier: 'accounts',
         items: accounts.map(account => ({
@@ -63,9 +76,9 @@ export class AccountPicker extends React.Component<
 
   private getSelectedItem = memoizeOne(
     (
-      accounts: ReadonlyArray<Account>,
+      accounts: ReadonlyArray<TAccount>,
       selectedItemId: string | undefined,
-      selectedAccount: Account
+      selectedAccount: TAccount
     ) =>
       this.getFilterListGroups(accounts)
         .flatMap(x => x.items)
@@ -80,7 +93,7 @@ export class AccountPicker extends React.Component<
 
   private popoverRef = React.createRef<PopoverDropdown>()
 
-  public constructor(props: IAccountPickerProps) {
+  public constructor(props: IAccountPickerProps<TAccount>) {
     super(props)
 
     this.state = {
@@ -89,7 +102,7 @@ export class AccountPicker extends React.Component<
     }
   }
 
-  public componentDidUpdate(prevProps: IAccountPickerProps) {
+  public componentDidUpdate(prevProps: IAccountPickerProps<TAccount>) {
     if (prevProps.selectedAccount !== this.props.selectedAccount) {
       this.setState({ selectedItemId: undefined })
     }
@@ -99,7 +112,7 @@ export class AccountPicker extends React.Component<
     this.setState({ filterText: text })
   }
 
-  private getAvatarUser = (account: Account): IAvatarUser => {
+  private getAvatarUser = (account: IAccountMetadata): IAvatarUser => {
     return {
       name: account.name,
       email: lookupPreferredEmail(account),
@@ -108,24 +121,30 @@ export class AccountPicker extends React.Component<
     }
   }
 
-  private renderAccount = (item: IAccountListItem, matches: IMatches) => {
+  private renderAccount = (
+    item: IAccountListItem<TAccount>,
+    matches: IMatches
+  ) => {
     const account = item.account
 
     return (
       <div className="account-list-item">
         <Avatar
-          accounts={this.props.accounts}
+          accounts={this.props.activeAccounts}
           user={this.getAvatarUser(account)}
         />
         <div className="info">
           <div className="title">@{item.account.login}</div>
-          <div className="subtitle">{item.account.friendlyEndpoint}</div>
+          <div className="subtitle">{getFriendlyEndpoint(item.account)}</div>
         </div>
       </div>
     )
   }
 
-  private onItemClick = (item: IAccountListItem, source: SelectionSource) => {
+  private onItemClick = (
+    item: IAccountListItem<TAccount>,
+    source: SelectionSource
+  ) => {
     const account = item.account
     this.popoverRef.current?.closePopover()
 
@@ -133,11 +152,12 @@ export class AccountPicker extends React.Component<
     this.props.onSelectedAccountChanged(account)
   }
 
-  private onSelectionChanged = (selectedItem: IAccountListItem | null) =>
-    this.setState({ selectedItemId: selectedItem?.id })
+  private onSelectionChanged = (
+    selectedItem: IAccountListItem<TAccount> | null
+  ) => this.setState({ selectedItemId: selectedItem?.id })
 
-  private getItemAriaLabel = (item: IAccountListItem) =>
-    `@${item.account.login} ${item.account.friendlyEndpoint}`
+  private getItemAriaLabel = (item: IAccountListItem<TAccount>) =>
+    `@${item.account.login} ${getFriendlyEndpoint(item.account)}`
 
   public render() {
     const account = this.props.selectedAccount
@@ -150,7 +170,7 @@ export class AccountPicker extends React.Component<
           <div className="account">
             <span className="login">@{account.login}</span> -{' '}
             <span className="endpoint">
-              {this.props.selectedAccount.friendlyEndpoint}
+              {getFriendlyEndpoint(this.props.selectedAccount)}
             </span>
           </div>
         }
@@ -158,7 +178,7 @@ export class AccountPicker extends React.Component<
         ref={this.popoverRef}
         openButtonClassName={this.props.openButtonClassName}
       >
-        <SectionFilterList<IAccountListItem>
+        <SectionFilterList<IAccountListItem<TAccount>>
           className="account-list"
           rowHeight={47}
           groups={this.getFilterListGroups(this.props.accounts)}

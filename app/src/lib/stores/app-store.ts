@@ -42,7 +42,10 @@ import type {
 } from './copilot-store'
 import {
   Account,
+  accountRepositoryContextEquals,
   CopilotLicenseTypeNoAccess,
+  IAccountIdentity,
+  IAccountMetadata,
   isDotComAccount,
 } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
@@ -580,6 +583,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
   private accounts: ReadonlyArray<Account> = new Array<Account>()
+  private allAccounts: ReadonlyArray<IAccountMetadata> = []
+  private accountContextRevision = 0
+  private accountRepositoryRefresh: Promise<void> = Promise.resolve()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
   private recentRepositories: ReadonlyArray<number> = new Array<number>()
 
@@ -886,28 +892,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   private onTokenInvalidated = (endpoint: string, token: string) => {
-    const account = getAccountForEndpoint(this.accounts, endpoint)
+    this.removeInvalidatedAccount(endpoint, token).catch(error =>
+      this.emitError(error)
+    )
+  }
+
+  private async removeInvalidatedAccount(endpoint: string, token: string) {
+    const account = await this.accountsStore.removeAccountForToken(
+      endpoint,
+      token
+    )
 
     if (account === null) {
+      log.warn(`Ignoring invalidated token not owned by ${endpoint}`)
       return
     }
 
-    // If we have a token for the account but it doesn't match the token that
-    // was invalidated that likely means that someone held onto an account for
-    // longer than they should have which is bad but what's even worse is if we
-    // invalidate an active account.
-    if (account.token && account.token !== token) {
-      log.error(`Token for ${endpoint} invalidated but token mismatch`)
-      return
-    }
-
-    // If the token was invalidated for an account, sign out from that account
-    this._removeAccount(account)
-
-    this._showPopup({
-      type: PopupType.InvalidatedToken,
-      account,
-    })
+    this._showPopup({ type: PopupType.InvalidatedToken, account })
   }
 
   private onShowInstallingUpdate = () => {
@@ -1032,7 +1033,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.signInStore.onDidError(error => this.emitError(error))
 
     this.accountsStore.onDidUpdate(accounts => {
+      const repositoryAccountChanged =
+        accounts.length !== this.accounts.length ||
+        accounts.some((account, index) => {
+          const previousAccount = this.accounts[index]
+          return (
+            previousAccount === undefined ||
+            !accountRepositoryContextEquals(previousAccount, account)
+          )
+        })
+
       this.accounts = accounts
+      if (repositoryAccountChanged) {
+        this.accountContextRevision++
+        this.cachedRepoRulesets.clear()
+      }
       this.syncCopilotModelsFromCache()
       this.syncCopilotQuotaSnapshotsFromCache()
       this.updateCopilotModelsForCurrentAccount()
@@ -1043,8 +1058,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
       updateAccounts(endpointTokens)
 
-      this.refreshSelectedRepositoryAfterAccountChange()
+      if (repositoryAccountChanged) {
+        this.scheduleSelectedRepositoryRefreshAfterAccountChange(
+          this.accountContextRevision
+        )
+      }
 
+      this.emitUpdate()
+    })
+    this.accountsStore.onDidUpdateAllAccounts(accounts => {
+      this.allAccounts = accounts
       this.emitUpdate()
     })
     this.accountsStore.onDidError(error => this.emitError(error))
@@ -1263,6 +1286,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     return {
       accounts: this.accounts,
+      allAccounts: this.allAccounts,
       repositories,
       recentRepositories: this.recentRepositories,
       localRepositoryStateLookup: this.localRepositoryStateLookup,
@@ -1481,7 +1505,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
-  private async refreshBranchProtectionState(repository: Repository) {
+  private async refreshBranchProtectionState(
+    repository: Repository,
+    expectedAccountRevision?: number
+  ) {
+    const accountRevision =
+      expectedAccountRevision ?? this.accountContextRevision
     const { tip, currentRemote } = this.gitStoreCache.get(repository)
 
     if (tip.kind !== TipState.Valid || repository.gitHubRepository === null) {
@@ -1506,6 +1535,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
       // about write access before showing a branch protection
       // warning.
       if (!hasWritePermission(gitHubRepo)) {
+        if (!this.isAccountRevisionCurrent(accountRevision)) {
+          return
+        }
         this.repositoryStateCache.updateChangesState(repository, () => ({
           currentBranchProtected: false,
           currentRepoRulesInfo: new RepoRulesInfo(),
@@ -1519,11 +1551,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const api = API.fromAccount(account)
 
       const pushControl = await api.fetchPushControl(owner, name, branchName)
+      if (!this.isAccountRevisionCurrent(accountRevision)) {
+        return
+      }
       const currentBranchProtected = !isBranchPushable(pushControl)
 
       let currentRepoRulesInfo = new RepoRulesInfo()
       if (useRepoRulesLogic(account, repository)) {
         const slimRulesets = await api.fetchAllRepoRulesets(owner, name)
+        if (!this.isAccountRevisionCurrent(accountRevision)) {
+          return
+        }
 
         // ultimate goal here is to fetch all rulesets that apply to the repo
         // so they're already cached when needed later on
@@ -1540,6 +1578,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
           if (calls.length > 0) {
             const rulesets = await Promise.all(calls)
+            if (!this.isAccountRevisionCurrent(accountRevision)) {
+              return
+            }
             this._updateCachedRepoRulesets(rulesets)
           }
         }
@@ -1549,6 +1590,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
           name,
           branchName
         )
+        if (!this.isAccountRevisionCurrent(accountRevision)) {
+          return
+        }
 
         if (branchRules.length > 0) {
           currentRepoRulesInfo = await parseRepoRules(
@@ -1557,6 +1601,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
             repository
           )
         }
+      }
+
+      if (!this.isAccountRevisionCurrent(accountRevision)) {
+        return
       }
 
       this.repositoryStateCache.updateChangesState(repository, () => ({
@@ -2415,8 +2463,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** Load the initial state for the app. */
   public async loadInitialState() {
-    const [accounts, repositories] = await Promise.all([
+    const [accounts, allAccounts, repositories] = await Promise.all([
       this.accountsStore.getAll(),
+      this.accountsStore.getAllAccounts(),
       this.repositoriesStore.getAll(),
     ])
 
@@ -2428,6 +2477,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     })
 
     this.accounts = accounts
+    this.allAccounts = allAccounts
     this.repositories = repositories
 
     this.updateRepositorySelectionAfterRepositoriesChanged()
@@ -4872,10 +4922,18 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * @returns repository model (hopefully with fresh `gitHubRepository` info)
    */
   private async repositoryWithRefreshedGitHubRepository(
-    repository: Repository
+    repository: Repository,
+    expectedAccountRevision?: number,
+    updateRepositoryRemote = true
   ): Promise<Repository> {
+    const accountRevision =
+      expectedAccountRevision ?? this.accountContextRevision
     const repoStore = this.repositoriesStore
     const match = await this.matchGitHubRepository(repository)
+
+    if (!this.isAccountRevisionCurrent(accountRevision)) {
+      return repository
+    }
 
     // TODO: We currently never clear GitHub repository associations (see
     // https://github.com/desktop/desktop/issues/1144). So we can bail early at
@@ -4889,6 +4947,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const api = API.fromAccount(account)
     const apiRepo = await api.fetchRepository(owner, name)
 
+    if (!this.isAccountRevisionCurrent(accountRevision)) {
+      return repository
+    }
+
     if (apiRepo === null) {
       // If the request fails, we want to preserve the existing GitHub
       // repository info. But if we didn't have a GitHub repository already or
@@ -4901,16 +4963,46 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return repository
     }
 
-    if (repository.gitHubRepository) {
+    if (updateRepositoryRemote && repository.gitHubRepository) {
       const gitStore = this.gitStoreCache.get(repository)
       await updateRemoteUrl(gitStore, repository.gitHubRepository, apiRepo)
+      if (!this.isAccountRevisionCurrent(accountRevision)) {
+        return repository
+      }
     }
 
     const ghRepo = await repoStore.upsertGitHubRepository(endpoint, apiRepo)
+    if (!this.isAccountRevisionCurrent(accountRevision)) {
+      return repository
+    }
     const freshRepo = await repoStore.setGitHubRepository(repository, ghRepo)
+    if (!this.isAccountRevisionCurrent(accountRevision)) {
+      return repository
+    }
 
-    await this.refreshBranchProtectionState(freshRepo)
+    await this.refreshBranchProtectionState(freshRepo, accountRevision)
     return freshRepo
+  }
+
+  private isAccountRevisionCurrent(expectedRevision?: number): boolean {
+    return (
+      expectedRevision === undefined ||
+      expectedRevision === this.accountContextRevision
+    )
+  }
+
+  private scheduleSelectedRepositoryRefreshAfterAccountChange(
+    accountRevision: number
+  ) {
+    this.accountRepositoryRefresh = this.accountRepositoryRefresh
+      .then(async () => {
+        if (this.isAccountRevisionCurrent(accountRevision)) {
+          await this.refreshSelectedRepositoryAfterAccountChange(
+            accountRevision
+          )
+        }
+      })
+      .catch(error => this.emitError(error))
   }
 
   /**
@@ -4918,7 +5010,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
    * repository when the active account changes. This ensures that permission
    * information is updated after signing in/out.
    */
-  private async refreshSelectedRepositoryAfterAccountChange() {
+  private async refreshSelectedRepositoryAfterAccountChange(
+    accountRevision: number
+  ) {
     const repository = this.selectedRepository
 
     if (repository === null || repository instanceof CloningRepository) {
@@ -4929,7 +5023,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return
     }
 
-    await this.repositoryWithRefreshedGitHubRepository(repository)
+    this.clearBranchProtectionState(repository)
+    const gitHubRepository =
+      await this.repositoriesStore.updateGitHubRepositoryPermissions(
+        repository.gitHubRepository,
+        null
+      )
+    if (!this.isAccountRevisionCurrent(accountRevision)) {
+      return
+    }
+    const repositoryWithUnknownPermissions =
+      await this.repositoriesStore.setGitHubRepository(
+        repository,
+        gitHubRepository
+      )
+    if (!this.isAccountRevisionCurrent(accountRevision)) {
+      return
+    }
+    await this.repositoryWithRefreshedGitHubRepository(
+      repositoryWithUnknownPermissions,
+      accountRevision,
+      false
+    )
   }
 
   private async updateBranchProtectionsFromAPI(repository: Repository) {
@@ -8020,27 +8135,43 @@ export class AppStore extends TypedBaseStore<IAppState> {
     return result
   }
 
-  public async _removeAccount(account: Account) {
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _setActiveAccount(account: IAccountIdentity): Promise<void> {
     log.info(
-      `[AppStore] removing account ${account.login} (${account.name}) from store`
+      `[AppStore] setting active account ${account.id} for ${account.endpoint}`
     )
-    await this.accountsStore.removeAccount(account)
-    await deleteToken(account)
+
+    const activeAccount = await this.accountsStore.setActiveAccount(account)
+    if (activeAccount !== null) {
+      this.apiRepositoriesStore.loadRepositories(activeAccount)
+    }
   }
 
-  private async _addAccount(account: Account): Promise<void> {
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _removeAccount(account: IAccountIdentity) {
+    log.info(
+      `[AppStore] removing account ${account.id} for ${account.endpoint} from store`
+    )
+    const storedAccount = await this.accountsStore.removeAccount(account)
+    if (storedAccount !== null) {
+      await deleteToken(storedAccount)
+    }
+  }
+
+  private async _addAccount(account: Account): Promise<Account | null> {
     log.info(
       `[AppStore] adding account ${account.login} (${account.name}) to store`
     )
     const storedAccount = await this.accountsStore.addAccount(account)
 
-    // If we're in the welcome flow and a user signs in we want to trigger
-    // a refresh of the repositories available for cloning straight away
-    // in order to have the list of repositories ready for them when they
-    // get to the blankslate.
-    if (this.showWelcomeFlow && storedAccount !== null) {
+    // A newly signed-in account becomes active for its endpoint. Load its
+    // repositories immediately so the clone and blank-slate views don't show
+    // stale data from the previously active account.
+    if (storedAccount !== null) {
       this.apiRepositoriesStore.loadRepositories(storedAccount)
     }
+
+    return storedAccount
   }
 
   public _updateRepositoryMissing(

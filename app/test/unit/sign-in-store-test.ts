@@ -1,58 +1,31 @@
 import { describe, it, beforeEach } from 'node:test'
 import assert from 'node:assert'
 import { SignInStore, SignInStep } from '../../src/lib/stores/sign-in-store'
-import { AccountsStore } from '../../src/lib/stores'
-import { Account } from '../../src/models/account'
 import { getDotComAPIEndpoint } from '../../src/lib/api'
-import { InMemoryStore, AsyncInMemoryStore } from '../helpers/stores'
+import { Account } from '../../src/models/account'
 
-function createAccountsStore(
-  accounts: ReadonlyArray<Account> = []
-): AccountsStore {
-  const dataStore = new InMemoryStore()
-  if (accounts.length > 0) {
-    const serialized = accounts.map(a => ({
-      login: a.login,
-      endpoint: a.endpoint,
-      token: a.token,
-      emails: a.emails,
-      avatarURL: a.avatarURL,
-      id: a.id,
-      name: a.name,
-      plan: a.plan,
-    }))
-    dataStore.setItem('users', JSON.stringify(serialized))
-  }
-  return new AccountsStore(dataStore, new AsyncInMemoryStore())
+interface ITestableSignInStore {
+  readonly completeAuthentication: (account: Account) => Promise<void>
 }
 
-function createDotComAccount(login = 'octocat'): Account {
+function createAccount() {
   return new Account(
-    login,
+    'mona',
     getDotComAPIEndpoint(),
-    'test-token',
+    'token',
     [],
-    'https://avatars.githubusercontent.com/u/1',
+    '',
     1,
-    login,
+    'Mona Lisa',
     'free'
   )
 }
 
-function createEnterpriseAccount(
-  login = 'enterprise-user',
-  endpoint = 'https://github.example.com/api/v3'
-): Account {
-  return new Account(login, endpoint, 'ent-token', [], '', 2, login, 'free')
-}
-
 describe('SignInStore', () => {
-  let accountsStore: AccountsStore
   let signInStore: SignInStore
 
   beforeEach(() => {
-    accountsStore = createAccountsStore()
-    signInStore = new SignInStore(accountsStore)
+    signInStore = new SignInStore()
   })
 
   describe('initial state', () => {
@@ -74,19 +47,6 @@ describe('SignInStore', () => {
       }
     })
 
-    it('transitions to ExistingAccountWarning when a dotcom account exists', async () => {
-      const existingAccount = createDotComAccount()
-      accountsStore = createAccountsStore()
-      signInStore = new SignInStore(accountsStore)
-
-      await accountsStore.addAccount(existingAccount)
-
-      signInStore.beginDotComSignIn()
-      const state = signInStore.getState()
-      assert.notEqual(state, null)
-      assert.equal(state?.kind, SignInStep.ExistingAccountWarning)
-    })
-
     it('calls resultCallback when provided', async () => {
       let callbackCalled = false
       signInStore.beginDotComSignIn(() => {
@@ -96,6 +56,50 @@ describe('SignInStore', () => {
       // Reset triggers the callback with 'cancelled'
       signInStore.reset()
       assert.equal(callbackCalled, true)
+    })
+  })
+
+  describe('completeAuthentication', () => {
+    it('reports success only after the account is stored', async () => {
+      const account = createAccount()
+      let stored = false
+      let reportedResult: string | null = null
+      signInStore.onDidAuthenticate(async authenticatedAccount => {
+        assert.equal(authenticatedAccount, account)
+        stored = true
+        return authenticatedAccount
+      })
+      signInStore.beginDotComSignIn(result => {
+        assert.equal(stored, true)
+        reportedResult = result.kind
+      })
+
+      await (
+        signInStore as unknown as ITestableSignInStore
+      ).completeAuthentication(account)
+
+      assert.equal(reportedResult, 'success')
+      assert.equal(signInStore.getState()?.kind, SignInStep.Success)
+    })
+
+    it('keeps sign-in open when the account cannot be stored', async () => {
+      let reportedResult: string | null = null
+      signInStore.onDidAuthenticate(async () => null)
+      signInStore.beginDotComSignIn(result => {
+        reportedResult = result.kind
+      })
+
+      await (
+        signInStore as unknown as ITestableSignInStore
+      ).completeAuthentication(createAccount())
+
+      assert.equal(reportedResult, null)
+      const state = signInStore.getState()
+      assert.equal(state?.kind, SignInStep.Authentication)
+      if (state?.kind === SignInStep.Authentication) {
+        assert.notEqual(state.error, null)
+        assert.equal(state.loading, false)
+      }
     })
   })
 
@@ -169,21 +173,6 @@ describe('SignInStore', () => {
         assert.notEqual(state.error, null)
         assert.equal(state.loading, false)
       }
-    })
-
-    it('shows ExistingAccountWarning if enterprise account exists', async () => {
-      const endpoint = 'https://github.example.com/api/v3'
-      const existingAccount = createEnterpriseAccount('user', endpoint)
-      accountsStore = createAccountsStore()
-      signInStore = new SignInStore(accountsStore)
-
-      await accountsStore.addAccount(existingAccount)
-
-      signInStore.beginEnterpriseSignIn()
-      await signInStore.setEndpoint('https://github.example.com')
-
-      const state = signInStore.getState()
-      assert.equal(state?.kind, SignInStep.ExistingAccountWarning)
     })
   })
 

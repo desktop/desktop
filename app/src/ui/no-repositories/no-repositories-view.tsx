@@ -188,6 +188,7 @@ export class NoRepositoriesView extends React.Component<
     return (
       <AccountPicker
         accounts={accounts}
+        activeAccounts={accounts}
         selectedAccount={selectedAccount}
         onSelectedAccountChanged={this.onSelectedAccountChanged}
       />

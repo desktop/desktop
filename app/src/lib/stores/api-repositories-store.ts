@@ -85,6 +85,9 @@ export interface IAccountRepositories {
  * for a particular user.
  */
 export class ApiRepositoriesStore extends BaseStore {
+  /** The active account for each endpoint. */
+  private accounts: ReadonlyArray<Account> = []
+
   /**
    * The main internal state of the store. Note that
    * all state in this store should be treated as immutable such
@@ -98,6 +101,7 @@ export class ApiRepositoriesStore extends BaseStore {
 
   public constructor(accountsStore: AccountsStore) {
     super()
+    accountsStore.getAll().then(this.onAccountsChanged)
     accountsStore.onDidUpdate(this.onAccountsChanged)
   }
 
@@ -112,6 +116,7 @@ export class ApiRepositoriesStore extends BaseStore {
    * with the new accounts.
    */
   private onAccountsChanged = (accounts: ReadonlyArray<Account>) => {
+    this.accounts = accounts
     const newState = new Map<Account, IAccountRepositories>()
 
     for (const account of accounts) {
@@ -119,7 +124,7 @@ export class ApiRepositoriesStore extends BaseStore {
         // Check to see whether the accounts store only emitted an
         // updated Account for the same login and endpoint meaning
         // that we don't need to discard our cached data.
-        if (accountEquals(key, account)) {
+        if (accountEquals(key, account) && key.token === account.token) {
           newState.set(account, value)
           break
         }
@@ -130,17 +135,33 @@ export class ApiRepositoriesStore extends BaseStore {
     this.emitUpdate()
   }
 
+  /** Resolve only accounts which are still active with the same credential. */
+  private resolveActiveAccount(account: Account): Account | null {
+    return (
+      this.accounts.find(
+        activeAccount =>
+          accountEquals(activeAccount, account) &&
+          activeAccount.token === account.token
+      ) ?? null
+    )
+  }
+
   private updateAccount<K extends keyof IAccountRepositories>(
     account: Account,
     repositories: Pick<IAccountRepositories, K>
   ) {
+    const activeAccount = this.resolveActiveAccount(account)
+    if (activeAccount === null) {
+      return
+    }
+
     const newState = new Map<Account, IAccountRepositories>(this.accountState)
 
     // The account instance might have changed between the refresh and
     // the update so we'll need to look it up by endpoint and user id.
     // If we can't find it we're likely being asked to insert info for
     // an account for the first time.
-    const newOrExistingAccount = resolveAccount(account, newState)
+    const newOrExistingAccount = resolveAccount(activeAccount, newState)
     const existingRepositories = newState.get(newOrExistingAccount)
 
     const newRepositories =
@@ -163,13 +184,18 @@ export class ApiRepositoriesStore extends BaseStore {
    * the provided account has explicit permissions to access.
    */
   public async loadRepositories(account: Account) {
-    const currentState = this.getAccountState(account)
+    const activeAccount = this.resolveActiveAccount(account)
+    if (activeAccount === null) {
+      return
+    }
+
+    const currentState = this.getAccountState(activeAccount)
 
     if (currentState?.loading) {
       return
     }
 
-    this.updateAccount(account, { loading: true })
+    this.updateAccount(activeAccount, { loading: true })
 
     // We don't want to throw away the existing list of repositories if we're
     // refreshing the list of repositories but we'll need to keep track of
@@ -192,10 +218,12 @@ export class ApiRepositoriesStore extends BaseStore {
         repositories.set(r.clone_url, r)
         missing.delete(r.clone_url)
       })
-      this.updateAccount(account, { repositories: [...repositories.values()] })
+      this.updateAccount(activeAccount, {
+        repositories: [...repositories.values()],
+      })
     }
 
-    const api = API.fromAccount(resolveAccount(account, this.accountState))
+    const api = API.fromAccount(activeAccount)
 
     // The vast majority of users have few repositories and no org affiliations.
     // We'll start by making one request to load all repositories available to
@@ -226,10 +254,12 @@ export class ApiRepositoriesStore extends BaseStore {
 
     if (missing.size) {
       missing.forEach((_, clone_url) => repositories.delete(clone_url))
-      this.updateAccount(account, { repositories: [...repositories.values()] })
+      this.updateAccount(activeAccount, {
+        repositories: [...repositories.values()],
+      })
     }
 
-    this.updateAccount(account, { loading: false })
+    this.updateAccount(activeAccount, { loading: false })
   }
 
   public getState(): ReadonlyMap<Account, IAccountRepositories> {

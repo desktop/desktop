@@ -72,8 +72,7 @@ describe('app-store-test-harness', () => {
     it('creates stores with shared dependencies', () => {
       const stores = createTestStores()
 
-      // SignInStore should use the same AccountsStore
-      // This is a structural test — verifying wiring correctness
+      // This is a structural test — verifying wiring correctness.
       assert.notEqual(stores.signInStore, null)
       assert.notEqual(stores.commitStatusStore, null)
     })

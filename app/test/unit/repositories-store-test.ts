@@ -116,6 +116,26 @@ describe('RepositoriesStore', () => {
         secondRepo.gitHubRepository.dbID
       )
     })
+
+    it('clears account-dependent permissions while switching accounts', async () => {
+      const repository = await repositoriesStore.setGitHubRepository(
+        await repositoriesStore.addRepository(
+          '/some/cool/path',
+          '/some/cool/path/.git'
+        ),
+        await repositoriesStore.upsertGitHubRepository(endpoint, apiRepo)
+      )
+
+      assert.equal(repository.gitHubRepository.permissions, 'write')
+      await repositoriesStore.updateGitHubRepositoryPermissions(
+        repository.gitHubRepository,
+        null
+      )
+
+      const [reloadedRepository] = await repositoriesStore.getAll()
+      assertIsRepositoryWithGitHubRepository(reloadedRepository)
+      assert.equal(reloadedRepository.gitHubRepository.permissions, null)
+    })
   })
 
   describe('switching worktrees', () => {

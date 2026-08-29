@@ -1,5 +1,9 @@
 import * as React from 'react'
-import { Account, isDotComAccount } from '../../models/account'
+import {
+  Account,
+  IAccountMetadata,
+  isDotComAccount,
+} from '../../models/account'
 import { PreferencesTab } from '../../models/preferences'
 import { Dispatcher } from '../dispatcher'
 import { TabBar, TabBarType } from '../tab-bar'
@@ -85,6 +89,7 @@ import { enableFormattingPreferences } from '../../lib/feature-flag'
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
   readonly accounts: ReadonlyArray<Account>
+  readonly allAccounts: ReadonlyArray<IAccountMetadata>
   readonly repository: Repository | null
   readonly onDismissed: () => void
   readonly useWindowsOpenSSH: boolean
@@ -495,8 +500,12 @@ export class Preferences extends React.Component<
     )
   }
 
-  private onLogout = (account: Account) => {
+  private onLogout = (account: IAccountMetadata) => {
     this.props.dispatcher.removeAccount(account)
+  }
+
+  private onSetActiveAccount = (account: IAccountMetadata) => {
+    this.props.dispatcher.setActiveAccount(account)
   }
 
   private renderDisallowedCharactersError() {
@@ -534,9 +543,11 @@ export class Preferences extends React.Component<
       case PreferencesTab.Accounts:
         View = (
           <Accounts
-            accounts={this.props.accounts}
+            accounts={this.props.allAccounts}
+            activeAccounts={this.props.accounts}
             onDotComSignIn={this.onDotComSignIn}
             onEnterpriseSignIn={this.onEnterpriseSignIn}
+            onSetActiveAccount={this.onSetActiveAccount}
             onLogout={this.onLogout}
           />
         )

@@ -11,7 +11,7 @@ import type {
   ICopilotResolutionSummary,
   ICopilotSkippedFile,
 } from './copilot-conflict-resolution'
-import { Account } from '../models/account'
+import { Account, IAccountMetadata } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff, ImageDiffType } from '../models/diff'
 import { Repository, ILocalRepositoryState } from '../models/repository'
@@ -91,7 +91,11 @@ export type PossibleSelections =
 
 /** All of the shared app state. */
 export interface IAppState {
+  /** The active account for each GitHub endpoint. */
   readonly accounts: ReadonlyArray<Account>
+
+  /** Tokenless metadata for all stored accounts, including inactive accounts. */
+  readonly allAccounts: ReadonlyArray<IAccountMetadata>
   /**
    * The current list of repositories tracked in the application
    */

@@ -96,6 +96,32 @@ export class RepositoriesStore extends TypedBaseStore<
     )
   }
 
+  /** Update only the account-dependent permissions for a GitHub repository. */
+  public async updateGitHubRepositoryPermissions(
+    repository: GitHubRepository,
+    permissions: GitHubRepositoryPermission
+  ): Promise<GitHubRepository> {
+    if (repository.permissions === permissions) {
+      return repository
+    }
+
+    await this.db.gitHubRepositories.update(repository.dbID, { permissions })
+    this.emitUpdatedRepositories()
+
+    return new GitHubRepository(
+      repository.name,
+      repository.owner,
+      repository.dbID,
+      repository.isPrivate,
+      repository.htmlURL,
+      repository.cloneURL,
+      repository.issuesEnabled,
+      repository.isArchived,
+      permissions,
+      repository.parent
+    )
+  }
+
   private async toGitHubRepository(
     repo: IDatabaseGitHubRepository,
     owner?: Owner,

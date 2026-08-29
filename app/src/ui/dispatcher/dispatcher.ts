@@ -59,7 +59,7 @@ import type { IBYOKProvider } from '../../lib/copilot/byok'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
 import { getTipSha } from '../../lib/tip'
 
-import { Account } from '../../models/account'
+import { Account, IAccountIdentity } from '../../models/account'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { Author, UnknownAuthor } from '../../models/author'
 import { Branch, IAheadBehind } from '../../models/branch'
@@ -1256,8 +1256,13 @@ export class Dispatcher {
   }
 
   /** Remove the given account from the app. */
-  public removeAccount(account: Account): Promise<void> {
+  public removeAccount(account: IAccountIdentity): Promise<void> {
     return this.appStore._removeAccount(account)
+  }
+
+  /** Make the given account active for its GitHub endpoint. */
+  public setActiveAccount(account: IAccountIdentity): Promise<void> {
+    return this.appStore._setActiveAccount(account)
   }
 
   /**

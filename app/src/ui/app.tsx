@@ -1723,6 +1723,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             initialSelectedTab={popup.initialSelectedTab}
             dispatcher={this.props.dispatcher}
             accounts={this.state.accounts}
+            allAccounts={this.state.allAccounts}
             confirmRepositoryRemoval={
               this.state.askForConfirmationOnRepositoryRemoval
             }
@@ -1873,6 +1874,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <CloneRepository
             key="clone-repository"
             accounts={this.state.accounts}
+            allAccounts={this.state.allAccounts}
             initialURL={popup.initialURL}
             onDismissed={onPopupDismissedFn}
             dispatcher={this.props.dispatcher}

@@ -257,7 +257,7 @@ const statsStore = new StatsStore(
 
 const accountsStore = new AccountsStore(localStorage, TokenStore)
 
-const signInStore = new SignInStore(accountsStore)
+const signInStore = new SignInStore()
 
 trampolineServer.registerCommandHandler(
   TrampolineCommandIdentifier.AskPass,

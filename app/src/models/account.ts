@@ -10,8 +10,46 @@ export const CopilotLicenseTypeNoAccess = 'NO_ACCESS'
  * while still maintaining the association between repositories
  * and a particular account.
  */
-export function accountEquals(x: Account, y: Account) {
+export interface IAccountIdentity {
+  readonly endpoint: string
+  readonly id: number
+}
+
+/**
+ * Account information which is safe to expose to UI that doesn't perform
+ * authenticated operations.
+ */
+export interface IAccountMetadata extends IAccountIdentity {
+  readonly login: string
+  readonly emails: ReadonlyArray<IAPIEmail>
+  readonly avatarURL: string
+  readonly name: string
+  readonly plan?: string
+  readonly copilotEndpoint?: string
+  readonly isCopilotDesktopEnabled?: boolean
+  readonly features?: ReadonlyArray<string>
+  readonly copilotLicenseType?: string
+}
+
+export function accountEquals(x: IAccountIdentity, y: IAccountIdentity) {
   return x.endpoint === y.endpoint && x.id === y.id
+}
+
+/** Create the tokenless representation used by account-management UI. */
+export function getAccountMetadata(account: Account): IAccountMetadata {
+  return {
+    login: account.login,
+    endpoint: account.endpoint,
+    emails: account.emails,
+    avatarURL: account.avatarURL,
+    id: account.id,
+    name: account.name,
+    plan: account.plan,
+    copilotEndpoint: account.copilotEndpoint,
+    isCopilotDesktopEnabled: account.isCopilotDesktopEnabled,
+    features: account.features,
+    copilotLicenseType: account.copilotLicenseType,
+  }
 }
 
 /**
@@ -100,15 +138,28 @@ export class Account {
 }
 
 /**
+ * Whether two accounts have the same context for authenticated repository
+ * state. Login and plan affect whether GitHub repository rules apply.
+ */
+export function accountRepositoryContextEquals(x: Account, y: Account) {
+  return (
+    accountEquals(x, y) &&
+    x.token === y.token &&
+    x.login === y.login &&
+    x.plan === y.plan
+  )
+}
+
+/**
  * Whether or not the given account is a GitHub.com account as opposed to
  * a GitHub Enteprise account.
  */
-export const isDotComAccount = (account: Account) =>
+export const isDotComAccount = (account: { readonly endpoint: string }) =>
   account.endpoint === getDotComAPIEndpoint()
 
 /**
  * Whether or not the given account is a GitHub Enterprise account (as opposed to
  * a GitHub.com account)
  */
-export const isEnterpriseAccount = (account: Account) =>
+export const isEnterpriseAccount = (account: { readonly endpoint: string }) =>
   !isDotComAccount(account)

@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Account } from '../../models/account'
+import { Account, IAccountMetadata } from '../../models/account'
 import { DialogContent } from '../dialog'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
@@ -14,7 +14,9 @@ interface ICloneGithubRepositoryProps {
   /** The account to clone from. */
   readonly account: Account
 
-  readonly accounts: ReadonlyArray<Account>
+  readonly accounts: ReadonlyArray<IAccountMetadata>
+
+  readonly activeAccounts: ReadonlyArray<Account>
 
   /** The path to clone to. */
   readonly path: string
@@ -82,7 +84,7 @@ interface ICloneGithubRepositoryProps {
     source: ClickSource
   ) => void
 
-  readonly onSelectedAccountChanged: (account: Account) => void
+  readonly onSelectedAccountChanged: (account: IAccountMetadata) => void
 }
 
 export class CloneGithubRepository extends React.PureComponent<ICloneGithubRepositoryProps> {
@@ -90,6 +92,7 @@ export class CloneGithubRepository extends React.PureComponent<ICloneGithubRepos
     return (
       <AccountPicker
         accounts={this.props.accounts}
+        activeAccounts={this.props.activeAccounts}
         selectedAccount={this.props.account}
         onSelectedAccountChanged={this.props.onSelectedAccountChanged}
         openButtonClassName="dialog-preferred-focus"

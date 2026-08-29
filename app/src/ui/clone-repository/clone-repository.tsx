@@ -4,6 +4,8 @@ import { Dispatcher } from '../dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import {
   Account,
+  accountEquals,
+  IAccountMetadata,
   isDotComAccount,
   isEnterpriseAccount,
 } from '../../models/account'
@@ -30,13 +32,15 @@ import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { showOpenDialog, showSaveDialog } from '../main-process-proxy'
 import { readdir } from 'fs/promises'
 import { isTopMostDialog } from '../dialog/is-top-most'
-import memoizeOne from 'memoize-one'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
 
   readonly accounts: ReadonlyArray<Account>
+
+  /** Tokenless identities available for in-app account switching. */
+  readonly allAccounts: ReadonlyArray<IAccountMetadata>
 
   /** The initial URL or `owner/name` shortcut to use. */
   readonly initialURL: string | null
@@ -125,7 +129,7 @@ interface IBaseTabState {
   /** The user-entered URL or `owner/name` shortcut. */
   readonly url: string
 
-  readonly selectedAccount: Account | null
+  readonly selectedAccount: IAccountMetadata | null
 }
 
 interface IUrlTabState extends IBaseTabState {
@@ -164,17 +168,6 @@ export class CloneRepository extends React.Component<
     () => {
       window.removeEventListener('focus', this.onWindowFocus)
     }
-  )
-
-  private getAccountsForTab = memoizeOne(
-    (tab: CloneRepositoryTab, accounts: ReadonlyArray<Account>) =>
-      tab === CloneRepositoryTab.Generic
-        ? []
-        : accounts.filter(
-            tab === CloneRepositoryTab.DotCom
-              ? isDotComAccount
-              : isEnterpriseAccount
-          )
   )
 
   public constructor(props: ICloneRepositoryProps) {
@@ -237,6 +230,19 @@ export class CloneRepository extends React.Component<
 
   public componentWillUnmount(): void {
     this.checkIsTopMostDialog(false)
+  }
+
+  private getAccountsForTab<T extends IAccountMetadata>(
+    tab: CloneRepositoryTab,
+    accounts: ReadonlyArray<T>
+  ): ReadonlyArray<T> {
+    return tab === CloneRepositoryTab.Generic
+      ? []
+      : accounts.filter(
+          tab === CloneRepositoryTab.DotCom
+            ? isDotComAccount
+            : isEnterpriseAccount
+        )
   }
 
   private initializePath = async () => {
@@ -358,7 +364,7 @@ export class CloneRepository extends React.Component<
       case CloneRepositoryTab.DotCom:
       case CloneRepositoryTab.Enterprise: {
         const tabState = this.getGitHubTabState(tab)
-        const tabAccounts = this.getAccountsForTab(tab, this.props.accounts)
+        const tabAccounts = this.getAccountsForTab(tab, this.props.allAccounts)
         const selectedAccount = this.getAccountForTab(tab)
 
         if (!selectedAccount) {
@@ -375,6 +381,7 @@ export class CloneRepository extends React.Component<
               path={tabState.path ?? ''}
               account={selectedAccount}
               accounts={tabAccounts}
+              activeAccounts={this.props.accounts}
               selectedItem={tabState.selectedItem}
               onSelectionChanged={this.onSelectionChanged}
               onPathChanged={this.onPathChanged}
@@ -395,11 +402,27 @@ export class CloneRepository extends React.Component<
     }
   }
 
-  private onSelectedAccountChanged = (account: Account) => {
+  private onSelectedAccountChanged = async (account: IAccountMetadata) => {
     if (this.props.selectedTab !== CloneRepositoryTab.Generic) {
+      const tab = this.props.selectedTab
+      const tabState = this.getGitHubTabState(tab)
+      const path =
+        tabState.path !== null && tabState.lastParsedIdentifier !== null
+          ? Path.dirname(tabState.path)
+          : tabState.path
+
+      await this.props.dispatcher.setActiveAccount(account)
       this.setGitHubTabState(
-        { selectedAccount: account },
-        this.props.selectedTab
+        {
+          selectedAccount: account,
+          selectedItem: null,
+          filterText: '',
+          error: null,
+          lastParsedIdentifier: null,
+          path,
+          url: '',
+        },
+        tab
       )
     }
   }
@@ -407,11 +430,10 @@ export class CloneRepository extends React.Component<
   private getAccountForTab(tab: CloneRepositoryTab): Account | null {
     const tabState = this.getTabState(tab)
     const tabAccounts = this.getAccountsForTab(tab, this.props.accounts)
+    const preferredAccount = tabState.selectedAccount
     const selectedAccount =
-      (tabState.selectedAccount
-        ? tabAccounts.find(
-            a => a.endpoint === tabState.selectedAccount?.endpoint
-          )
+      (preferredAccount
+        ? tabAccounts.find(a => accountEquals(a, preferredAccount))
         : undefined) ?? tabAccounts.at(0)
 
     return selectedAccount ?? null

@@ -1,6 +1,13 @@
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../auth'
-import { Account, isDotComAccount } from '../../models/account'
+import {
+  Account,
+  accountEquals,
+  getAccountMetadata,
+  IAccountIdentity,
+  IAccountMetadata,
+  isDotComAccount,
+} from '../../models/account'
 import { fetchUser, EmailVisibility, getEnterpriseAPIURL } from '../api'
 import { fatalError } from '../fatal-error'
 import { TypedBaseStore } from './base-store'
@@ -20,6 +27,57 @@ const sortAccounts = (accounts: ReadonlyArray<Account>) =>
         ) || compare(xIx, yIx)
     )
     .map(([account]) => account)
+
+/** Return the first (active) account for each endpoint. */
+const getActiveAccounts = (accounts: ReadonlyArray<Account>) => {
+  const endpoints = new Set<string>()
+
+  return accounts.filter(account => {
+    if (endpoints.has(account.endpoint)) {
+      return false
+    }
+
+    endpoints.add(account.endpoint)
+    return true
+  })
+}
+
+/** Move an account to the active position for its endpoint. */
+const moveAccountToActivePosition = (
+  accounts: ReadonlyArray<Account>,
+  account: Account
+) => {
+  const withoutAccount = accounts.filter(
+    existingAccount => !accountEquals(existingAccount, account)
+  )
+  const endpointIndex = withoutAccount.findIndex(
+    existingAccount => existingAccount.endpoint === account.endpoint
+  )
+
+  if (endpointIndex !== -1) {
+    return [
+      ...withoutAccount.slice(0, endpointIndex),
+      account,
+      ...withoutAccount.slice(endpointIndex),
+    ]
+  }
+
+  if (isDotComAccount(account)) {
+    const enterpriseIndex = withoutAccount.findIndex(
+      existingAccount => !isDotComAccount(existingAccount)
+    )
+
+    if (enterpriseIndex !== -1) {
+      return [
+        ...withoutAccount.slice(0, enterpriseIndex),
+        account,
+        ...withoutAccount.slice(enterpriseIndex),
+      ]
+    }
+  }
+
+  return [...withoutAccount, account]
+}
 
 /** The data-only interface for storage. */
 interface IEmail {
@@ -72,21 +130,51 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   /** A promise that will resolve when the accounts have been loaded. */
   private loadingPromise: Promise<void>
 
-  public constructor(dataStore: IDataStore, secureStore: ISecureStore) {
+  /** Serializes secure-store and in-memory mutations for one identity. */
+  private readonly accountOperations = new Map<string, Promise<void>>()
+
+  /** Serializes mutations which target the same secure-store credential. */
+  private readonly credentialOperations = new Map<string, Promise<void>>()
+
+  private readonly accountUpdater: (account: Account) => Promise<Account>
+
+  public constructor(
+    dataStore: IDataStore,
+    secureStore: ISecureStore,
+    accountUpdater: (account: Account) => Promise<Account> = updatedAccount
+  ) {
     super()
 
     this.dataStore = dataStore
     this.secureStore = secureStore
+    this.accountUpdater = accountUpdater
     this.loadingPromise = this.loadFromStore()
   }
 
   /**
-   * Get the list of accounts in the cache.
+   * Get the active account for each endpoint.
+   *
+   * Consumers performing API or Git operations must use this method so that
+   * only one credential is selected for each GitHub host.
    */
   public async getAll(): Promise<ReadonlyArray<Account>> {
     await this.loadingPromise
 
-    return this.accounts.slice()
+    return getActiveAccounts(this.accounts)
+  }
+
+  /** Get all stored accounts, including inactive accounts. */
+  public async getAllAccounts(): Promise<ReadonlyArray<IAccountMetadata>> {
+    await this.loadingPromise
+
+    return this.accounts.map(getAccountMetadata)
+  }
+
+  /** Register a function called whenever the stored account list changes. */
+  public onDidUpdateAllAccounts(
+    fn: (accounts: ReadonlyArray<IAccountMetadata>) => void
+  ) {
+    return this.emitter.on('did-update-all-accounts', fn)
   }
 
   /**
@@ -95,44 +183,135 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   public async addAccount(account: Account): Promise<Account | null> {
     await this.loadingPromise
 
-    try {
-      const key = getKeyForAccount(account)
-      await this.secureStore.setItem(key, account.login, account.token)
-    } catch (e) {
-      log.error(`Error adding account '${account.login}'`, e)
+    return this.withAccountOperation(account, async () => {
+      const previousAccount = this.accounts.find(existingAccount =>
+        accountEquals(existingAccount, account)
+      )
 
-      if (__DARWIN__ && isKeyChainError(e)) {
-        this.emitError(
-          new Error(
-            `GitHub Desktop was unable to store the account token in the keychain. Please check you have unlocked access to the 'login' keychain.`
+      const credentialLogins =
+        previousAccount === undefined
+          ? [account.login]
+          : [account.login, previousAccount.login]
+
+      return this.withCredentialOperations(
+        account.endpoint,
+        credentialLogins,
+        async () => {
+          const credentialOwner = this.accounts.find(
+            existingAccount =>
+              existingAccount.endpoint === account.endpoint &&
+              existingAccount.login === account.login &&
+              !accountEquals(existingAccount, account)
           )
-        )
-      } else {
-        this.emitError(e)
-      }
+
+          if (credentialOwner !== undefined) {
+            const error = new Error(
+              `GitHub Desktop already has another '${account.login}' account for this host. Sign out of that account before adding this one.`
+            )
+            log.error(
+              `Refusing to overwrite credential for account '${credentialOwner.id}' with account '${account.id}'`,
+              error
+            )
+            this.emitError(error)
+            return null
+          }
+
+          try {
+            const key = getKeyForAccount(account)
+            await this.secureStore.setItem(key, account.login, account.token)
+          } catch (e) {
+            log.error(`Error adding account '${account.login}'`, e)
+
+            if (__DARWIN__ && isKeyChainError(e)) {
+              this.emitError(
+                new Error(
+                  `GitHub Desktop was unable to store the account token in the keychain. Please check you have unlocked access to the 'login' keychain.`
+                )
+              )
+            } else {
+              this.emitError(e)
+            }
+            return null
+          }
+
+          // Secure-store entries are keyed by endpoint and login while account
+          // identity is endpoint and user id. If the user renamed their login,
+          // remove the credential stored under the old login after the
+          // replacement credential has been written successfully.
+          if (
+            previousAccount !== undefined &&
+            previousAccount.login !== account.login
+          ) {
+            try {
+              await this.secureStore.deleteItem(
+                getKeyForAccount(previousAccount),
+                previousAccount.login
+              )
+            } catch (e) {
+              log.error(
+                `Error removing credential for renamed account '${previousAccount.login}'`,
+                e
+              )
+              this.emitError(e)
+            }
+          }
+
+          this.accounts = moveAccountToActivePosition(this.accounts, account)
+
+          this.save()
+          return account
+        }
+      )
+    })
+  }
+
+  /** Make an existing account active for its endpoint. */
+  public async setActiveAccount(
+    account: IAccountIdentity
+  ): Promise<Account | null> {
+    await this.loadingPromise
+
+    const storedAccount = this.accounts.find(existingAccount =>
+      accountEquals(existingAccount, account)
+    )
+
+    if (storedAccount === undefined) {
       return null
     }
 
-    const accountsByEndpoint = this.accounts.reduce(
-      (map, x) => map.set(x.endpoint, x),
-      new Map<string, Account>()
-    )
-    accountsByEndpoint.set(account.endpoint, account)
-
-    this.accounts = sortAccounts([...accountsByEndpoint.values()])
-
+    this.accounts = moveAccountToActivePosition(this.accounts, storedAccount)
     this.save()
-    return account
+    return storedAccount
   }
 
   /** Refresh all accounts by fetching their latest info from the API. */
   public async refresh(): Promise<void> {
-    this.accounts = await Promise.all(
-      this.accounts.map(acc => this.tryUpdateAccount(acc))
+    await this.loadingPromise
+
+    const accountsAtStart = this.accounts.slice()
+    const refreshedAccounts = await Promise.all(
+      accountsAtStart.map(acc => this.tryUpdateAccount(acc))
     )
 
+    // Account refreshes may overlap a switch, sign-in, reauthentication, or
+    // sign-out. Merge refreshed profile information into the current list so
+    // the completed request can't restore stale ordering, tokens, or accounts.
+    this.accounts = this.accounts.map(currentAccount => {
+      const originalIndex = accountsAtStart.findIndex(account =>
+        accountEquals(account, currentAccount)
+      )
+
+      if (originalIndex === -1) {
+        return currentAccount
+      }
+
+      const originalAccount = accountsAtStart[originalIndex]
+      return originalAccount.token === currentAccount.token
+        ? refreshedAccounts[originalIndex]
+        : currentAccount
+    })
+
     this.save()
-    this.emitUpdate(this.accounts)
   }
 
   /**
@@ -148,7 +327,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
    */
   private async tryUpdateAccount(account: Account): Promise<Account> {
     try {
-      return await updatedAccount(account)
+      return await this.accountUpdater(account)
     } catch (e) {
       log.warn(`Error refreshing account '${account.login}'`, e)
       return account
@@ -158,25 +337,144 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
   /**
    * Remove the account from the store.
    */
-  public async removeAccount(account: Account): Promise<void> {
+  public async removeAccount(
+    account: IAccountIdentity
+  ): Promise<Account | null> {
     await this.loadingPromise
 
-    try {
-      await this.secureStore.deleteItem(
-        getKeyForAccount(account),
-        account.login
-      )
-    } catch (e) {
-      log.error(`Error removing account '${account.login}'`, e)
-      this.emitError(e)
-      return
-    }
-
-    this.accounts = this.accounts.filter(
-      a => !(a.endpoint === account.endpoint && a.id === account.id)
+    const storedAccount = this.accounts.find(existingAccount =>
+      accountEquals(existingAccount, account)
     )
 
-    this.save()
+    if (storedAccount === undefined) {
+      return null
+    }
+
+    return this.removeStoredAccount(storedAccount)
+  }
+
+  /** Remove the stored account owning an invalidated endpoint/token pair. */
+  public async removeAccountForToken(
+    endpoint: string,
+    token: string
+  ): Promise<Account | null> {
+    await this.loadingPromise
+
+    const storedAccount = this.accounts.find(
+      account => account.endpoint === endpoint && account.token === token
+    )
+
+    if (storedAccount === undefined) {
+      return null
+    }
+
+    return this.removeStoredAccount(storedAccount)
+  }
+
+  private async removeStoredAccount(account: Account): Promise<Account | null> {
+    return this.withAccountOperation(account, async () => {
+      return this.withCredentialOperations(
+        account.endpoint,
+        [account.login],
+        async () => {
+          const currentAccount = this.accounts.find(
+            existingAccount =>
+              accountEquals(existingAccount, account) &&
+              existingAccount.token === account.token
+          )
+
+          if (currentAccount === undefined) {
+            return null
+          }
+
+          try {
+            await this.secureStore.deleteItem(
+              getKeyForAccount(currentAccount),
+              currentAccount.login
+            )
+          } catch (e) {
+            log.error(`Error removing account '${currentAccount.login}'`, e)
+            this.emitError(e)
+            return null
+          }
+
+          // The operation queues prevent add/remove races for this identity and
+          // credential, and this token check protects future mutation paths.
+          const accountStillCurrent = this.accounts.some(
+            existingAccount =>
+              accountEquals(existingAccount, currentAccount) &&
+              existingAccount.token === currentAccount.token
+          )
+          if (!accountStillCurrent) {
+            return null
+          }
+
+          this.accounts = this.accounts.filter(
+            existingAccount => !accountEquals(existingAccount, currentAccount)
+          )
+
+          this.save()
+          return currentAccount
+        }
+      )
+    })
+  }
+
+  private async withCredentialOperations<T>(
+    endpoint: string,
+    logins: ReadonlyArray<string>,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    const operationKeys = [
+      ...new Set(logins.map(login => JSON.stringify([endpoint, login]))),
+    ].sort()
+    const previousOperations = operationKeys.map(
+      key => this.credentialOperations.get(key) ?? Promise.resolve()
+    )
+    let finishOperation: (() => void) | undefined
+    const currentOperation = new Promise<void>(
+      resolve => (finishOperation = resolve)
+    )
+
+    for (const key of operationKeys) {
+      this.credentialOperations.set(key, currentOperation)
+    }
+
+    await Promise.all(previousOperations)
+    try {
+      return await operation()
+    } finally {
+      finishOperation?.()
+      for (const key of operationKeys) {
+        if (this.credentialOperations.get(key) === currentOperation) {
+          this.credentialOperations.delete(key)
+        }
+      }
+    }
+  }
+
+  private async withAccountOperation<T>(
+    account: IAccountIdentity,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    const operationKey = `${account.endpoint}:${account.id}`
+    const previousOperation =
+      this.accountOperations.get(operationKey) ?? Promise.resolve()
+    let finishOperation: (() => void) | undefined
+    const currentOperation = new Promise<void>(
+      resolve => (finishOperation = resolve)
+    )
+    this.accountOperations.set(operationKey, currentOperation)
+
+    await previousOperation
+    try {
+      return await operation()
+    } finally {
+      finishOperation?.()
+      if (this.accountOperations.get(operationKey) === currentOperation) {
+        this.accountOperations.delete(operationKey)
+      }
+    }
   }
 
   private getMigratedGHEAccounts(
@@ -244,7 +542,7 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     if (migratedAccounts !== null) {
       this.save() // Save already emits an update
     } else {
-      this.emitUpdate(this.accounts)
+      this.emitAccountsUpdate()
     }
   }
 
@@ -254,7 +552,15 @@ export class AccountsStore extends TypedBaseStore<ReadonlyArray<Account>> {
     )
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
 
-    this.emitUpdate(this.accounts)
+    this.emitAccountsUpdate()
+  }
+
+  private emitAccountsUpdate() {
+    this.emitUpdate(getActiveAccounts(this.accounts))
+    this.emitter.emit(
+      'did-update-all-accounts',
+      this.accounts.map(getAccountMetadata)
+    )
   }
 }
 

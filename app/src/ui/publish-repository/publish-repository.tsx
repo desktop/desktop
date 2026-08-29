@@ -152,6 +152,7 @@ export class PublishRepository extends React.Component<
           <Row>
             <AccountPicker
               accounts={this.props.accounts}
+              activeAccounts={this.props.accounts}
               openButtonClassName="dialog-preferred-focus"
               selectedAccount={this.props.account}
               onSelectedAccountChanged={this.props.onSelectedAccountChanged}

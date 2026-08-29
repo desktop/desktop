@@ -69,10 +69,18 @@
 
   .accounts-tab {
     .account-info {
+      align-items: center;
+
       .user-info-container {
         display: flex;
         flex-grow: 1;
         gap: var(--spacing);
+      }
+
+      .account-actions {
+        display: flex;
+        gap: var(--spacing-half);
+        margin-left: var(--spacing);
       }
 
       .avatar {
@@ -95,6 +103,12 @@
           margin-top: -2px;
           margin-bottom: -2px;
         }
+
+        .account-status {
+          color: var(--text-secondary-color);
+          font-size: var(--font-size-sm);
+          margin-top: var(--spacing-half);
+        }
       }
     }
 
@@ -104,6 +118,12 @@
 
         .user-info-container {
           margin-bottom: var(--spacing);
+        }
+
+        .account-actions {
+          align-self: normal;
+          flex-direction: column;
+          margin-left: 0;
         }
 
         .button-component {
