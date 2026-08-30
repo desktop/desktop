@@ -71,7 +71,13 @@ export interface ITextBoxProps {
   readonly onEnterPressed?: (text: string) => void
 
   /** The type of the input. Defaults to `text`. */
-  readonly type?: 'text' | 'search' | 'password' | 'email'
+  readonly type?: 'text' | 'search' | 'password' | 'email' | 'number'
+
+  /** The minimum value for input[type=number]. */
+  readonly min?: number
+
+  /** The maximum value for input[type=number]. */
+  readonly max?: number
 
   /** The tab index of the input element. */
   readonly tabIndex?: number
@@ -318,6 +324,8 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           disabled={this.props.disabled}
           readOnly={this.props.readOnly}
           type={this.props.type ?? 'text'}
+          min={this.props.min}
+          max={this.props.max}
           placeholder={this.props.placeholder}
           value={this.state.value}
           onChange={this.onChange}
