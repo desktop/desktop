@@ -10,7 +10,7 @@ export function captureClipboardWrites() {
       return
     }
 
-    return previousInvoke(channel, ...args)
+    return previousInvoke.call(ipcRenderer, channel, ...args)
   }
 
   return {
