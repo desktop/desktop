@@ -144,6 +144,8 @@ Keep this comment factual and specific:
 - If you mention a related issue, state exactly how it overlaps or differs.
 - Avoid hedging and fluff (for example: "clear", "well-described", "distinct enough",
   "stands on its own").
+- Keep the triage summary to 2-3 sentences maximum. The initial hypothesis can be
+  longer, but must also be concise and directly related to the evidence gathered.
 
 For a duplicate, name the likely original. If you are suggesting no label, say so and
 state what information would help a first responder finish triage.
