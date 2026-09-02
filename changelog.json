@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.6.5-test3": ["With Electron v44.1.1 (build 1)"],
     "3.6.5-beta1": [
       "[Fixed] Hooks taking input via stdin no longer error on Windows - #22620",
       "[Improved] Update Git for Windows to v2.53.0.windows.4",
