@@ -4,7 +4,7 @@ export function captureClipboardWrites() {
   const writes = new Array<string>()
   const previousWriteText = clipboard.writeText
 
-  clipboard.writeText = (text: string) => {
+  clipboard.writeText = async (text: string) => {
     writes.push(text)
   }
 
