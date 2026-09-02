@@ -100,7 +100,18 @@ potential duplicates of this issue. Note your findings for the next step.
 Follow the `issue-classifier` skill instructions. Use the `label-taxonomy` reference for
 valid labels. Incorporate your duplicate detection findings.
 
-## Step 5: Suggest labels via safe outputs
+## Step 5: Investigate the likely cause
+
+For a reported bug, perform a first-pass technical investigation before writing the
+comment. Trace the relevant behavior through the current `desktop/desktop` source and
+inspect recent changes when useful. Form a concise hypothesis that explains how the
+reported symptom could arise, grounded in issue evidence and specific code.
+
+Include this hypothesis in the comment so the first responder has a concrete starting
+point. If available evidence cannot support a useful hypothesis, say what remains
+unknown and name the specific diagnostic evidence needed next; do not invent a cause.
+
+## Step 6: Suggest labels via safe outputs
 
 Based on your classification, use `add-labels` to suggest the appropriate labels (max 3,
 only from the allowlist above). **Always emit labels as suggestions requiring maintainer
