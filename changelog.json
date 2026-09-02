@@ -3,7 +3,7 @@
     "3.6.5": [
       "[Fixed] Hooks taking input via stdin no longer error on Windows - #22620",
       "[Fixed] Preserve existing branch protection information when GitHub API requests fail - #7864. Thanks @agisilaos!",
-      "[Fixed] Cancelled rebase due to unstashed changes causing menu to keep disabled - #7991. Thanks @iamarjunsuresh!",
+      "[Fixed] Cancelled rebase due to unstashed changes causing the menu to remain disabled - #7991. Thanks @iamarjunsuresh!",
       "[Fixed] Fix image diff alignment issue in Difference mode that caused false change artifacts - #21392. Thanks @jackfreem!",
       "[Fixed] Detect current RStudio Windows installations - #22753",
       "[Improved] Prevent upgrading from macOS 12 and older as soon to be unsupported - #22800"
