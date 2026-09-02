@@ -1,5 +1,13 @@
 {
   "releases": {
+    "3.6.5": [
+      "[Fixed] Detect RStudio installations made by the new Windows installer that registers uninstall entries per-user or in the 64-bit machine-wide location - #22774",
+      "[Fixed] Keep the image diff \"Difference\" mode from showing false green artifacts caused by sub-pixel misalignment - #21535. Thanks @jackfreem!",
+      "[Fixed] Re-enable repository menu items after cancelling a rebase from the local changes overwritten dialog - #22536. Thanks @iamarjunsuresh!",
+      "[Fixed] Preserve existing branch protection information when GitHub API requests fail - #22655. Thanks @agisilaos!",
+      "[Fixed] Hooks taking input via stdin no longer error on Windows - #22620",
+      "[Improved] Prevent upgrading from macOS 12 and older ahead of an upcoming Electron update that drops support for it - #22800"
+    ],
     "3.6.5-beta2": [
       "[Fixed] Detect RStudio installations made by the new Windows installer that registers uninstall entries per-user or in the 64-bit machine-wide location - #22774",
       "[Fixed] Keep the image diff \"Difference\" mode from showing false green artifacts caused by sub-pixel misalignment - #21535. Thanks @jackfreem!",
