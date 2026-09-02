@@ -100,7 +100,27 @@ potential duplicates of this issue. Note your findings for the next step.
 Follow the `issue-classifier` skill instructions. Use the `label-taxonomy` reference for
 valid labels. Incorporate your duplicate detection findings.
 
-## Step 5: Suggest labels via safe outputs
+Assess the report independently. Treat the reporter's diagnosis, causal claims, and
+expected behavior as hypotheses rather than established facts. Separate direct
+observations from interpretations, check assumptions against available logs, screenshots,
+reproduction details, documentation, and source, and consider plausible alternative
+explanations before choosing a classification. An expected-vs-actual statement alone does
+not establish a product bug. Do not repeat the reporter's framing as your conclusion
+unless the evidence supports it.
+
+## Step 5: Investigate the likely cause
+
+For a reported bug, perform a first-pass technical investigation before writing the
+comment. Trace the relevant behavior through the current `desktop/desktop` source and
+inspect recent changes when useful. Form an evidence-based hypothesis that explains how
+the reported symptom could arise, grounded in issue evidence and specific code.
+
+Include this hypothesis in the comment's `Initial hypothesis` section so the first
+responder has a concrete starting point. If available evidence cannot support a useful
+hypothesis, say what remains unknown and name the specific diagnostic evidence needed
+next; do not invent a cause.
+
+## Step 6: Suggest labels via safe outputs
 
 Based on your classification, use `add-labels` to suggest the appropriate labels (max 3,
 only from the allowlist above). **Always emit labels as suggestions requiring maintainer
@@ -109,16 +129,23 @@ approval — never apply them directly.** Attach a clear rationale to each sugge
 ## Required comment
 
 After deciding, post **one** comment on issue
-#${{ github.event.issue.number || inputs.issue_number }} with a single short paragraph
-explaining which label(s) you are suggesting (if any) and why, in plain language.
+#${{ github.event.issue.number || inputs.issue_number }}. Start with a 2-3 sentence
+triage summary explaining which label(s) you are suggesting (if any) and why, in plain
+language. For a reported bug, follow it with an **Initial hypothesis** heading and one
+short paragraph containing the technical investigation from Step 5. The hypothesis
+paragraph is separate from the 2-3 sentence triage summary limit.
 
 Keep this comment factual and specific:
 - Cite concrete evidence from the issue (for example: error text, reproducible steps,
   expected vs actual behavior, or explicit "feature request" wording).
+- When referring to source code, link every file, symbol, or line claim to an immutable
+  GitHub permalink pinned to a full commit SHA and exact line range. Do not use branch
+  links, bare file paths, or unlinked code references.
 - If you mention a related issue, state exactly how it overlaps or differs.
 - Avoid hedging and fluff (for example: "clear", "well-described", "distinct enough",
   "stands on its own").
-- Keep it to 2-3 sentences maximum.
+- Keep the triage summary to 2-3 sentences maximum. The initial hypothesis can be
+  longer, but must also be concise and directly related to the evidence gathered.
 
 For a duplicate, name the likely original. If you are suggesting no label, say so and
 state what information would help a first responder finish triage.
