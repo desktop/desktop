@@ -115,6 +115,9 @@ explaining which label(s) you are suggesting (if any) and why, in plain language
 Keep this comment factual and specific:
 - Cite concrete evidence from the issue (for example: error text, reproducible steps,
   expected vs actual behavior, or explicit "feature request" wording).
+- When referring to source code, link every file, symbol, or line claim to an immutable
+  GitHub permalink pinned to a full commit SHA and exact line range. Do not use branch
+  links, bare file paths, or unlinked code references.
 - If you mention a related issue, state exactly how it overlaps or differs.
 - Avoid hedging and fluff (for example: "clear", "well-described", "distinct enough",
   "stands on its own").
