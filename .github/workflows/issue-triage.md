@@ -112,12 +112,13 @@ unless the evidence supports it.
 
 For a reported bug, perform a first-pass technical investigation before writing the
 comment. Trace the relevant behavior through the current `desktop/desktop` source and
-inspect recent changes when useful. Form a concise hypothesis that explains how the
-reported symptom could arise, grounded in issue evidence and specific code.
+inspect recent changes when useful. Form an evidence-based hypothesis that explains how
+the reported symptom could arise, grounded in issue evidence and specific code.
 
-Include this hypothesis in the comment so the first responder has a concrete starting
-point. If available evidence cannot support a useful hypothesis, say what remains
-unknown and name the specific diagnostic evidence needed next; do not invent a cause.
+Include this hypothesis in the comment's `Initial hypothesis` section so the first
+responder has a concrete starting point. If available evidence cannot support a useful
+hypothesis, say what remains unknown and name the specific diagnostic evidence needed
+next; do not invent a cause.
 
 ## Step 6: Suggest labels via safe outputs
 
@@ -128,8 +129,11 @@ approval — never apply them directly.** Attach a clear rationale to each sugge
 ## Required comment
 
 After deciding, post **one** comment on issue
-#${{ github.event.issue.number || inputs.issue_number }} with a single short paragraph
-explaining which label(s) you are suggesting (if any) and why, in plain language.
+#${{ github.event.issue.number || inputs.issue_number }}. Start with a 2-3 sentence
+triage summary explaining which label(s) you are suggesting (if any) and why, in plain
+language. For a reported bug, follow it with an **Initial hypothesis** heading and one
+short paragraph containing the technical investigation from Step 5. The hypothesis
+paragraph is separate from the 2-3 sentence triage summary limit.
 
 Keep this comment factual and specific:
 - Cite concrete evidence from the issue (for example: error text, reproducible steps,
@@ -140,7 +144,6 @@ Keep this comment factual and specific:
 - If you mention a related issue, state exactly how it overlaps or differs.
 - Avoid hedging and fluff (for example: "clear", "well-described", "distinct enough",
   "stands on its own").
-- Keep it to 2-3 sentences maximum.
 
 For a duplicate, name the likely original. If you are suggesting no label, say so and
 state what information would help a first responder finish triage.
