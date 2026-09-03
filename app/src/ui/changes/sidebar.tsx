@@ -266,12 +266,25 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
     })
   }
 
-  private onIgnoreFile = (file: string | string[]) => {
-    this.props.dispatcher.appendIgnoreFile(this.props.repository, file)
+  private onIgnoreFile = async (file: string | string[]) => {
+    try {
+      await this.props.dispatcher.appendIgnoreFile(this.props.repository, file)
+    } catch (error) {
+      log.error('Failed to ignore file(s)', error)
+      await this.props.dispatcher.postError(error)
+    }
   }
 
-  private onIgnorePattern = (pattern: string | string[]) => {
-    this.props.dispatcher.appendIgnoreRule(this.props.repository, pattern)
+  private onIgnorePattern = async (pattern: string | string[]) => {
+    try {
+      await this.props.dispatcher.appendIgnoreRule(
+        this.props.repository,
+        pattern
+      )
+    } catch (error) {
+      log.error('Failed to ignore pattern(s)', error)
+      await this.props.dispatcher.postError(error)
+    }
   }
 
   /**
