@@ -146,6 +146,18 @@ export async function showFolderContents(path: string) {
 export const openExternal = invokeProxy('open-external', 1)
 export const moveItemToTrash = invokeProxy('move-to-trash', 1)
 
+const writeClipboardTextProxy = invokeProxy('write-clipboard-text', 1)
+
+export async function writeClipboardText(text: string): Promise<boolean> {
+  try {
+    await writeClipboardTextProxy(text)
+    return true
+  } catch (error) {
+    log.error('Failed to write text to clipboard', error)
+    return false
+  }
+}
+
 /** Tell the main process to obtain the current window state */
 export const getCurrentWindowState = invokeProxy('get-current-window-state', 0)
 

@@ -154,7 +154,7 @@
     "@types/webpack-bundle-analyzer": "^4.7.0",
     "@types/webpack-hot-middleware": "^2.25.9",
     "diff": "^8.0.3",
-    "electron": "42.0.1",
+    "electron": "44.1.1",
     "electron-winstaller": "^5.0.0",
     "eslint-plugin-github": "^5.1.5",
     "markdownlint-cli": "^0.49.1",

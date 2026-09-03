@@ -79,6 +79,7 @@ describe('IPC channel contract', () => {
     'is-running-under-arm64-translation',
     'move-to-trash',
     'show-item-in-folder',
+    'write-clipboard-text',
     'show-contextual-menu',
     'is-window-focused',
     'open-external',
