@@ -89,7 +89,12 @@ export class AddExistingRepository extends React.Component<
       return false
     }
 
-    const type = await getRepositoryType(path)
+    // Resolve here rather than validating what was typed: a path like `~/repo`
+    // doesn't exist as far as the file system is concerned, so validating it
+    // verbatim reports every such repository as missing. Note that the state
+    // update below still compares against the unresolved path, since that's
+    // what the text box holds.
+    const type = await getRepositoryType(this.resolvedPath(path))
 
     const isRepository = type.kind !== 'missing' && type.kind !== 'unsafe'
     const isRepositoryUnsafe = type.kind === 'unsafe'
