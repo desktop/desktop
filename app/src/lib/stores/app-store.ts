@@ -3226,6 +3226,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     this.statsStore.increment('mergeConflictFromExplicitMergeCount')
+    this.statsStore.recordOperationConflictsEncounteredCount(
+      multiCommitOperationState.operationDetail.kind
+    )
 
     const mcoConflictState = {
       kind: 'multiCommitOperation' as const,

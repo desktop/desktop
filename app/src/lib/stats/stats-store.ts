@@ -102,6 +102,7 @@ const DefaultDailyMeasures: IDailyMeasures = {
   mergesInitiatedFromComparison: 0,
   updateFromDefaultBranchMenuCount: 0,
   mergeIntoCurrentBranchMenuCount: 0,
+  mergesInitiatedFromBranchesPanel: 0,
   prBranchCheckouts: 0,
   repoWithIndicatorClicked: 0,
   repoWithoutIndicatorClicked: 0,
@@ -182,6 +183,8 @@ const DefaultDailyMeasures: IDailyMeasures = {
   cherryPickViaDragAndDropCount: 0,
   cherryPickViaContextMenuCount: 0,
   dragStartedAndCanceledCount: 0,
+  mergeConflictsEncounteredCount: 0,
+  rebaseConflictsEncounteredCount: 0,
   cherryPickConflictsEncounteredCount: 0,
   cherryPickSuccessfulWithConflictsCount: 0,
   cherryPickMultipleCommitsCount: 0,
@@ -1069,19 +1072,16 @@ export class StatsStore implements IStatsStore {
     kind: MultiCommitOperationKind
   ): Promise<void> {
     switch (kind) {
+      case MultiCommitOperationKind.Merge:
+        return this.increment('mergeConflictsEncounteredCount')
+      case MultiCommitOperationKind.Rebase:
+        return this.increment('rebaseConflictsEncounteredCount')
+      case MultiCommitOperationKind.CherryPick:
+        return this.increment('cherryPickConflictsEncounteredCount')
       case MultiCommitOperationKind.Squash:
         return this.increment('squashConflictsEncounteredCount')
       case MultiCommitOperationKind.Reorder:
         return this.increment('reorderConflictsEncounteredCount')
-      case MultiCommitOperationKind.Rebase:
-        // ignored because rebase records different stats
-        return
-      case MultiCommitOperationKind.CherryPick:
-      case MultiCommitOperationKind.Merge:
-        log.error(
-          `[recordOperationConflictsEncounteredCount] - Operation not supported: ${kind}`
-        )
-        return
       default:
         return assertNever(kind, `Unknown operation kind of ${kind}.`)
     }
