@@ -126,6 +126,10 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
       return
     }
 
+    if (this.props.showCIStatusPopover) {
+      this.closePopover()
+    }
+
     this.props.onDropDownStateChanged(state)
   }
 
@@ -432,10 +436,13 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps> {
   }
 
   private onBadgeClick = () => {
-    // The badge can't be clicked while the CI status popover is shown, because
-    // in that case the Popover component will recognize the "click outside"
-    // event and close the popover.
     this.props.dispatcher.closeFoldout(FoldoutType.Branch)
+
+    if (this.props.showCIStatusPopover) {
+      this.closePopover()
+      return
+    }
+
     this.openPopover()
   }
 
