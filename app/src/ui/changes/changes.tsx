@@ -11,6 +11,7 @@ import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher'
 import { SeamlessDiffSwitcher } from '../diff/seamless-diff-switcher'
 import { PopupType } from '../../models/popup'
+import { getLFSTextDiff } from '../../lib/git'
 
 interface IChangesProps {
   readonly repository: Repository
@@ -131,8 +132,19 @@ export class Changes extends React.Component<IChangesProps, {}> {
           onOpenSubmodule={this.props.onOpenSubmodule}
           onChangeImageDiffType={this.props.onChangeImageDiffType}
           onHideWhitespaceInDiffChanged={this.onHideWhitespaceInDiffChanged}
+          onLoadLFSDiff={this.onLoadLFSDiff}
         />
       </div>
+    )
+  }
+
+  private onLoadLFSDiff = (): Promise<IDiff | null> => {
+    return getLFSTextDiff(
+      this.props.repository,
+      this.props.file,
+      'HEAD',
+      'HEAD',
+      this.props.hideWhitespaceInDiff
     )
   }
 
