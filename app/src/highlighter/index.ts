@@ -51,6 +51,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.mjs': 'text/javascript',
       '.cjs': 'text/javascript',
       '.json': 'application/json',
+      '.jsonc': 'application/json',
     },
   },
   {
@@ -125,6 +126,7 @@ const extensionModes: ReadonlyArray<IModeDefinition> = [
       '.fsproj': 'text/xml',
       '.vcxproj': 'text/xml',
       '.vbproj': 'text/xml',
+      '.slnx': 'text/xml',
       '.svg': 'text/xml',
       '.resx': 'text/xml',
       '.props': 'text/xml',
