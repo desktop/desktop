@@ -6,6 +6,7 @@ import {
   findNextSelectableRow,
   SelectionDirection,
 } from '../lib/list/section-list-selection'
+import { isUpKeyEvent, isDownKeyEvent } from '../lib/list/selection'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
@@ -699,13 +700,13 @@ export class AugmentedSectionFilterList<
     let shouldFocus = false
 
     if (
-      event.key === 'ArrowUp' &&
+      isUpKeyEvent(event) &&
       firstSelectableRow &&
       rowIndexPathEquals(indexPath, firstSelectableRow)
     ) {
       shouldFocus = true
     } else if (
-      event.key === 'ArrowDown' &&
+      isDownKeyEvent(event) &&
       lastSelectableRow &&
       rowIndexPathEquals(indexPath, lastSelectableRow)
     ) {
@@ -740,31 +741,17 @@ export class AugmentedSectionFilterList<
 
     const rowCount = this.state.rows.map(r => r.length)
 
-    if (key === 'ArrowDown') {
+    if (isDownKeyEvent(event) || isUpKeyEvent(event)) {
       if (rowCount.length > 0) {
-        const selectedRow = findNextSelectableRow(
-          rowCount,
-          { direction: 'down', row: InvalidRowIndexPath },
-          this.canSelectRow
-        )
-        if (selectedRow != null) {
-          this.setState({ selectedRows: [selectedRow] }, () => {
-            list.focus()
-          })
-        }
-      }
-
-      event.preventDefault()
-    } else if (key === 'ArrowUp') {
-      if (rowCount.length > 0) {
+        const direction = isDownKeyEvent(event) ? 'down' : 'up'
         const selectedRow = findNextSelectableRow(
           rowCount,
           {
-            direction: 'up',
-            row: {
-              section: 0,
-              row: 0,
-            },
+            direction,
+            row:
+              direction === 'down'
+                ? InvalidRowIndexPath
+                : { section: 0, row: 0 },
           },
           this.canSelectRow
         )
