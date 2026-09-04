@@ -1,4 +1,5 @@
 import { DiffLine } from './diff-line'
+import type { FileModeChange } from './diff-data'
 
 export enum DiffHunkExpansionType {
   /** The hunk header cannot be expanded at all. */
@@ -122,6 +123,9 @@ export interface IRawDiff {
 
   /** The largest line number in the diff */
   readonly maxLineNumber: number
+
+  /** The old and new Git modes when a file's mode changes */
+  readonly modeChange?: FileModeChange
 
   /** Whether or not the diff has invisible bidi characters */
   readonly hasHiddenBidiChars: boolean

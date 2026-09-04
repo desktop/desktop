@@ -335,6 +335,26 @@ Binary files /dev/null and b/IMG_2306.CR2 differ
     assert(diff.isBinary)
   })
 
+  it('parses file mode changes from mode-only diffs', () => {
+    // This test protects the empty-diff explanation introduced for
+    // permission-only changes: Git reports those changes through header-only
+    // `old mode` and `new mode` lines, so the renderer cannot recover the old
+    // and new modes unless the parser preserves them.
+    const diffText = `diff --git a/script.sh b/script.sh
+old mode 100644
+new mode 100755
+`
+
+    const parser = new DiffParser()
+    const diff = parser.parse(diffText)
+
+    assert.equal(diff.hunks.length, 0)
+    assert.deepEqual(diff.modeChange, {
+      from: '100644',
+      to: '100755',
+    })
+  })
+
   it('parses diff of empty file', () => {
     // To produce this output, do
     // touch foo
