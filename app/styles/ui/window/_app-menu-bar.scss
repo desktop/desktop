@@ -26,6 +26,16 @@
     }
   }
 
+  // Chromium 152 (Electron 44) made -webkit-app-region an inherited property
+  // (https://web.dev/blog/web-platform-08-2026?hl=en#the_window-drag_css_property),
+  // so the foldout now inherits the title bar's drag region and contributes its
+  // own box to it. Since the foldout covers the whole window below the title
+  // bar, without this the OS treats the entire menu as window caption and
+  // swallows every mouse event over it before it reaches the renderer.
+  #foldout-container {
+    -webkit-app-region: no-drag;
+  }
+
   #foldout-container .foldout {
     // Normaly the foldouts have an opaque background but we're
     // doing a little hack here to make it appear as if the menus
