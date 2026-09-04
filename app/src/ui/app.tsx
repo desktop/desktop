@@ -2981,6 +2981,8 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="delete-worktree"
             repository={popup.repository}
             worktreePath={popup.worktreePath}
+            isMissing={popup.isMissing ?? false}
+            branchToCheckout={popup.branchToCheckout}
             askForConfirmationOnWorktreeRemoval={
               this.state.askForConfirmationOnWorktreeRemoval
             }
@@ -3021,9 +3023,15 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onDeleteWorkTree = (
     repository: Repository,
     worktreePath: string,
-    force?: boolean
+    force?: boolean,
+    branchToCheckout?: Branch
   ) => {
-    return this.props.dispatcher.deleteWorktree(repository, worktreePath, force)
+    return this.props.dispatcher.deleteWorktree(
+      repository,
+      worktreePath,
+      force,
+      branchToCheckout
+    )
   }
 
   private onConfirmWorktreeRemovalChanged = (value: boolean) => {
