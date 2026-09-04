@@ -141,39 +141,61 @@ export class Tokenizer {
     index: number,
     repository: GitHubRepository
   ): LookupResult | null {
-    let nextIndex = this.scanForEndOfWord(text, index)
-    let maybeIssue = text.slice(index, nextIndex)
-
-    // handle situation where issue reference is wrapped in parentheses
-    // like the generated "squash and merge" commits on GitHub
-    if (maybeIssue.endsWith(')')) {
-      nextIndex -= 1
-      maybeIssue = text.slice(index, nextIndex)
+    let nextIndex = index + 1
+    while (nextIndex < text.length && /\d/.test(text[nextIndex])) {
+      nextIndex += 1
     }
-
-    // release notes may add a full stop as part of formatting the entry
-    if (maybeIssue.endsWith('.')) {
-      nextIndex -= 1
-      maybeIssue = text.slice(index, nextIndex)
-    }
-
-    // handle list of issues
-    if (maybeIssue.endsWith(',')) {
-      nextIndex -= 1
-      maybeIssue = text.slice(index, nextIndex)
-    }
-
-    if (!/^#\d+$/.test(maybeIssue)) {
+    if (nextIndex === index + 1) {
       return null
     }
 
-    this.flush()
+    const maybeIssue = text.slice(index, nextIndex)
+
     const id = parseInt(maybeIssue.substring(1), 10)
     if (isNaN(id)) {
       return null
     }
 
+    this.flush()
     const url = `${repository.htmlURL}/issues/${id}`
+    this._results.push({ kind: TokenType.Link, text: maybeIssue, url })
+    return { nextIndex }
+  }
+
+  private scanForExternalIssue(
+    text: string,
+    index: number,
+    repository: GitHubRepository
+  ): LookupResult | null {
+    let nextIndex = this.scanForEndOfWord(text, index)
+    let maybeIssue = text.slice(index, nextIndex)
+
+    // handle situations where issue reference touches ')', '.', ',' ...
+    while (!/\d$/.test(maybeIssue) && nextIndex > index + 1) {
+      nextIndex -= 1
+      maybeIssue = text.slice(index, nextIndex)
+    }
+
+    const parts = maybeIssue.match(/^(\w+\/\w+)#(\d+)$/)
+    if (!parts) {
+      return null
+    }
+
+    const id = parseInt(parts[2], 10)
+    if (isNaN(id)) {
+      return null
+    }
+
+    this.flush()
+    let repoUrl = repository.htmlURL
+    if (repoUrl) {
+      const repoDomain = repoUrl.match(/(https?:\/\/[^\/]+)\//)
+      if (repoDomain) {
+        repoUrl = `${repoDomain[1]}/${parts[1]}`
+      }
+    }
+
+    const url = `${repoUrl}/issues/${id}`
     this._results.push({ kind: TokenType.Link, text: maybeIssue, url })
     return { nextIndex }
   }
@@ -321,15 +343,20 @@ export class Tokenizer {
           )
           break
 
-        case 'h':
-          i = this.inspectAndMove(element, i, () =>
-            this.scanForHyperlink(text, i, repository)
-          )
-          break
-
         default:
-          this.append(element)
-          i++
+          const match = this.scanForExternalIssue(text, i, repository)
+          if (match) {
+            i = match.nextIndex
+          }
+          else if (element == 'h') {
+            i = this.inspectAndMove(element, i, () =>
+              this.scanForHyperlink(text, i, repository)
+            )
+          }
+          else {
+            this.append(element)
+            i++
+          }
           break
       }
     }
