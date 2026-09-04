@@ -257,7 +257,17 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         return <div className="panel empty">Only whitespace changes found</div>
       }
 
-      return <div className="panel empty">No content changes found</div>
+      return (
+        <div className="panel empty">
+          <p>No content changes found</p>
+          {diff.modeChange && (
+            <p>
+              File mode changed from {diff.modeChange.from} to{' '}
+              {diff.modeChange.to}
+            </p>
+          )}
+        </div>
+      )
     }
 
     return this.renderTextDiff(diff)
