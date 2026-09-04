@@ -115,6 +115,13 @@ comment. Trace the relevant behavior through the current `desktop/desktop` sourc
 inspect recent changes when useful. Form an evidence-based hypothesis that explains how
 the reported symptom could arise, grounded in issue evidence and specific code.
 
+When source evidence will appear in the comment, obtain the exact commit SHA from a
+GitHub tool response. Never invent, infer, abbreviate, or manually alter a SHA. Before
+constructing each permalink, fetch the cited file at that exact SHA and verify that the
+referenced code and line range exist in that revision. If you cannot obtain and verify
+the SHA and cited lines with the available tools, do not include that source-code claim
+or permalink.
+
 Include this hypothesis in the comment's `Initial hypothesis` section so the first
 responder has a concrete starting point. If available evidence cannot support a useful
 hypothesis, say what remains unknown and name the specific diagnostic evidence needed
@@ -139,8 +146,10 @@ Keep this comment factual and specific:
 - Cite concrete evidence from the issue (for example: error text, reproducible steps,
   expected vs actual behavior, or explicit "feature request" wording).
 - When referring to source code, link every file, symbol, or line claim to an immutable
-  GitHub permalink pinned to a full commit SHA and exact line range. Do not use branch
-  links, bare file paths, or unlinked code references.
+  GitHub permalink pinned to a verified full commit SHA and exact line range. Use only a
+  SHA returned by a GitHub tool and verify the cited file and lines at that SHA before
+  posting the link. Do not invent or guess a SHA, and do not use branch links, bare file
+  paths, or unlinked code references.
 - If you mention a related issue, state exactly how it overlaps or differs.
 - Avoid hedging and fluff (for example: "clear", "well-described", "distinct enough",
   "stands on its own").
