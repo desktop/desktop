@@ -2,8 +2,15 @@ import * as React from 'react'
 import { DialogContent } from '../dialog'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { LinkButton } from '../lib/link-button'
+import { TextBox } from '../lib/text-box'
 import { SamplesURL } from '../../lib/stats'
 import { isWindowsOpenSSHAvailable } from '../../lib/ssh/ssh'
+import {
+  DefaultRecentRepositoriesCount,
+  MaximumRecentRepositoriesCount,
+  getRecentRepositoriesCount,
+  setRecentRepositoriesCount,
+} from '../../lib/recent-repositories'
 
 interface IAdvancedPreferencesProps {
   readonly useWindowsOpenSSH: boolean
@@ -20,6 +27,7 @@ interface IAdvancedPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly canUseWindowsSSH: boolean
   readonly useExternalCredentialHelper: boolean
+  readonly recentRepositoriesCount: string
 }
 
 export class Advanced extends React.Component<
@@ -33,6 +41,7 @@ export class Advanced extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       canUseWindowsSSH: false,
       useExternalCredentialHelper: this.props.useExternalCredentialHelper,
+      recentRepositoriesCount: getRecentRepositoriesCount().toString(),
     }
   }
 
@@ -74,6 +83,18 @@ export class Advanced extends React.Component<
     this.props.onUseWindowsOpenSSHChanged(event.currentTarget.checked)
   }
 
+  private onRecentRepositoriesCountChanged = (value: string) => {
+    const parsedCount = parseInt(value, 10)
+    const recentRepositoriesCount = Number.isNaN(parsedCount)
+      ? 0
+      : Math.max(0, Math.min(MaximumRecentRepositoriesCount, parsedCount))
+
+    setRecentRepositoriesCount(recentRepositoriesCount)
+    this.setState({
+      recentRepositoriesCount: recentRepositoriesCount.toString(),
+    })
+  }
+
   private reportDesktopUsageLabel() {
     return (
       <span>
@@ -108,6 +129,23 @@ export class Advanced extends React.Component<
               Turning this off will not stop the periodic fetching of your
               currently selected repository, but may improve overall app
               performance for users with many repositories.
+            </p>
+          </div>
+        </div>
+        <div className="advanced-section">
+          <h2>Repository list</h2>
+          <TextBox
+            type="number"
+            label="Recent repositories"
+            value={this.state.recentRepositoriesCount}
+            onValueChanged={this.onRecentRepositoriesCountChanged}
+            min={0}
+            max={MaximumRecentRepositoriesCount}
+          />
+          <div className="settings-description">
+            <p>
+              Number of repositories shown in the Recent group. Set to 0 to
+              hide it. Default is {DefaultRecentRepositoriesCount}.
             </p>
           </div>
         </div>

@@ -27,6 +27,10 @@ import { enableWorktreeSupport } from '../../lib/feature-flag'
 import { SectionFilterList } from '../lib/section-filter-list'
 import { assertNever } from '../../lib/fatal-error'
 import { IAheadBehind } from '../../models/branch'
+import {
+  getRecentRepositoriesCount,
+  mergeRecentRepositories,
+} from '../../lib/recent-repositories'
 
 const BlankSlateImage = encodePathAsUrl(__dirname, 'static/empty-no-repo.svg')
 
@@ -80,6 +84,7 @@ interface IRepositoriesListProps {
 interface IRepositoriesListState {
   readonly newRepositoryMenuExpanded: boolean
   readonly selectedItem: IRepositoryListItem | null
+  readonly recentRepositories: ReadonlyArray<number>
 }
 
 const RowHeight = 29
@@ -150,6 +155,17 @@ export class RepositoriesList extends React.Component<
     this.state = {
       newRepositoryMenuExpanded: false,
       selectedItem: null,
+      recentRepositories: mergeRecentRepositories(props.recentRepositories),
+    }
+  }
+
+  public componentDidUpdate(prevProps: IRepositoriesListProps) {
+    if (prevProps.recentRepositories !== this.props.recentRepositories) {
+      this.setState({
+        recentRepositories: mergeRecentRepositories(
+          this.props.recentRepositories
+        ),
+      })
     }
   }
 
@@ -322,10 +338,14 @@ export class RepositoriesList extends React.Component<
       this.getGroupLabel(groups[group].identifier)
 
   public render() {
+    const recentRepositories = this.state.recentRepositories.slice(
+      0,
+      getRecentRepositoriesCount()
+    )
     const groups = this.getRepositoryGroups(
       this.props.repositories,
       this.props.localRepositoryStateLookup,
-      this.props.recentRepositories
+      recentRepositories
     )
 
     // So there's two types of selection at play here. There's the repository
