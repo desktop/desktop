@@ -31,6 +31,10 @@
     flex: initial;
     padding: var(--spacing-half);
     border-bottom: var(--base-border);
+
+    .text-box-component {
+      min-width: 0;
+    }
   }
 
   .compare-commit-list {
