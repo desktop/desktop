@@ -28,7 +28,7 @@ function renderEmptyDiff(modeChange?: FileModeChange) {
   render(
     <Diff
       repository={new Repository('/tmp/desktop-mode-diff-test', 1, null, false)}
-      readOnly
+      readOnly={true}
       file={file}
       diff={{
         kind: DiffType.Text,

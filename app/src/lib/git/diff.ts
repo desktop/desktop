@@ -706,13 +706,13 @@ export async function convertDiff(
   }
 
   return {
-      kind: DiffType.Text,
-      text: diff.contents,
-      hunks: diff.hunks,
-      lineEndingsChange,
-      modeChange: diff.modeChange,
-      maxLineNumber: diff.maxLineNumber,
-      hasHiddenBidiChars: diff.hasHiddenBidiChars,
+    kind: DiffType.Text,
+    text: diff.contents,
+    hunks: diff.hunks,
+    lineEndingsChange,
+    modeChange: diff.modeChange,
+    maxLineNumber: diff.maxLineNumber,
+    hasHiddenBidiChars: diff.hasHiddenBidiChars,
   }
 }
 

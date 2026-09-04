@@ -495,12 +495,12 @@ export class DiffParser {
         .replace(/\n\\ No newline at end of file/g, '')
 
       return {
-          header,
-          contents,
-          hunks,
-          isBinary: headerInfo.isBinary,
-          modeChange: headerInfo.modeChange,
-          maxLineNumber: getLargestLineNumber(hunks),
+        header,
+        contents,
+        hunks,
+        isBinary: headerInfo.isBinary,
+        modeChange: headerInfo.modeChange,
+        maxLineNumber: getLargestLineNumber(hunks),
         hasHiddenBidiChars: HiddenBidiCharsRegex.test(text),
       }
     } finally {
