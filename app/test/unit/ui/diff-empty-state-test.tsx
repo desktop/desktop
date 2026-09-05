@@ -18,14 +18,17 @@ import { WorkingDirectoryFileChange } from '../../../src/models/status'
 import { Diff } from '../../../src/ui/diff'
 import { render, screen } from '../../helpers/ui/render'
 
-function renderEmptyDiff(modeChange?: FileModeChange) {
+function renderEmptyDiff(
+  modeChange?: FileModeChange,
+  options?: { readonly hideWhitespaceInDiff?: boolean }
+) {
   const file = new WorkingDirectoryFileChange(
     'script.sh',
     { kind: AppFileStatusKind.Modified },
     DiffSelection.fromInitialSelection(DiffSelectionType.All)
   )
 
-  render(
+  const view = render(
     <Diff
       repository={new Repository('/tmp/desktop-mode-diff-test', 1, null, false)}
       readOnly={true}
@@ -40,7 +43,7 @@ function renderEmptyDiff(modeChange?: FileModeChange) {
       }}
       fileContents={null}
       imageDiffType={ImageDiffType.TwoUp}
-      hideWhitespaceInDiff={false}
+      hideWhitespaceInDiff={options?.hideWhitespaceInDiff ?? false}
       showSideBySideDiff={false}
       showDiffCheckMarks={false}
       onOpenBinaryFile={() => {}}
@@ -48,6 +51,8 @@ function renderEmptyDiff(modeChange?: FileModeChange) {
       onHideWhitespaceInDiffChanged={() => {}}
     />
   )
+
+  return view
 }
 
 describe('Diff empty state', () => {
@@ -63,5 +68,24 @@ describe('Diff empty state', () => {
 
     assert.ok(screen.getByText('No content changes found'))
     assert.ok(screen.queryByText(/File mode changed from/) === null)
+  })
+
+  it('keeps the mode-change explanation when whitespace is hidden', () => {
+    renderEmptyDiff(
+      { from: '100644', to: '100755' },
+      { hideWhitespaceInDiff: true }
+    )
+
+    assert.ok(screen.getByText('No content changes found'))
+    assert.ok(screen.getByText('File mode changed from 100644 to 100755'))
+  })
+
+  it('stacks empty-state messages inside one panel child', () => {
+    const view = renderEmptyDiff({ from: '100644', to: '100755' })
+    const panel = view.container.querySelector('.panel.empty')
+
+    assert.ok(panel)
+    assert.equal(panel.childElementCount, 1)
+    assert.equal(panel.firstElementChild?.childElementCount, 2)
   })
 })

@@ -452,8 +452,9 @@ export class DiffParser {
       }
 
       // Mode-only diffs have no hunks, so their header metadata is all the
-      // information available to explain the change.
-      if (headerInfo.modeChange) {
+      // information available to explain the change. Mode-plus-content diffs
+      // must continue through normal hunk parsing.
+      if (!headerInfo.isBinary && headerInfo.modeChange && !this.peek()) {
         return {
           header,
           contents: '',

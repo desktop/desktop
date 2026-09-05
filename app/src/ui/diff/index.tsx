@@ -253,19 +253,21 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         )
       }
 
-      if (this.props.hideWhitespaceInDiff) {
+      if (this.props.hideWhitespaceInDiff && !diff.modeChange) {
         return <div className="panel empty">Only whitespace changes found</div>
       }
 
       return (
         <div className="panel empty">
-          <p>No content changes found</p>
-          {diff.modeChange && (
-            <p>
-              File mode changed from {diff.modeChange.from} to{' '}
-              {diff.modeChange.to}
-            </p>
-          )}
+          <div>
+            <p>No content changes found</p>
+            {diff.modeChange && (
+              <p>
+                File mode changed from {diff.modeChange.from} to{' '}
+                {diff.modeChange.to}
+              </p>
+            )}
+          </div>
         </div>
       )
     }

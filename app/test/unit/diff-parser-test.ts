@@ -355,6 +355,31 @@ new mode 100755
     })
   })
 
+  it('preserves content hunks for diffs with both mode and content changes', () => {
+    // This test protects the mode-plus-content path: a mode change must add
+    // context without replacing the normal unified-diff parsing.
+    const diffText = `diff --git a/script.sh b/script.sh
+old mode 100644
+new mode 100755
+index e01362..ce0136 100755
+--- a/script.sh
++++ b/script.sh
+@@ -1 +1 @@
+-echo hello
++echo goodbye
+`
+
+    const parser = new DiffParser()
+    const diff = parser.parse(diffText)
+
+    assert.equal(diff.hunks.length, 1)
+    assert.deepEqual(diff.modeChange, {
+      from: '100644',
+      to: '100755',
+    })
+    assert.equal(diff.contents, '@@ -1 +1 @@\n-echo hello\n+echo goodbye')
+  })
+
   it('parses diff of empty file', () => {
     // To produce this output, do
     // touch foo
