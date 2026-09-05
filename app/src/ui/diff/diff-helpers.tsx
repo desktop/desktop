@@ -461,6 +461,8 @@ export function textDiffEquals(
     x.kind === y.kind &&
     x.hasHiddenBidiChars === y.hasHiddenBidiChars &&
     x.lineEndingsChange === y.lineEndingsChange &&
+    x.modeChange?.from === y.modeChange?.from &&
+    x.modeChange?.to === y.modeChange?.to &&
     x.hunks.length === y.hunks.length
   ) {
     // This is a performance optimization which lets us avoid iterating over all

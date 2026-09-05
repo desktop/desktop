@@ -4,6 +4,7 @@ import {
   DiffHunkHeader,
   DiffLine,
   DiffLineType,
+  FileModeChange,
 } from '../models/diff'
 import { assertNever } from '../lib/fatal-error'
 import { getHunkHeaderExpansionType } from '../ui/diff/text-diff-expansion'
@@ -53,6 +54,11 @@ interface IDiffHeaderInfo {
    * new and/or old file was binary.
    */
   readonly isBinary: boolean
+
+  /**
+   * The old and new Git modes when the header contains a mode-only change.
+   */
+  readonly modeChange?: FileModeChange
 }
 
 /**
@@ -172,20 +178,48 @@ export class DiffParser {
    * found (which is a valid state).
    */
   private parseDiffHeader(): IDiffHeaderInfo | null {
-    // TODO: There's information in here that we might want to
-    // capture, such as mode changes
+    let oldMode: string | undefined
+    let newMode: string | undefined
+
     while (this.nextLine()) {
+      const line = this.text.substring(this.ls, this.le)
+
       if (this.lineStartsWith('Binary files ') && this.lineEndsWith('differ')) {
-        return { isBinary: true }
+        return {
+          isBinary: true,
+          modeChange:
+            oldMode && newMode ? { from: oldMode, to: newMode } : undefined,
+        }
+      }
+
+      const oldModeMatch = /^old mode ([0-7]{6})$/.exec(line)
+      if (oldModeMatch) {
+        oldMode = oldModeMatch[1]
+      }
+
+      const newModeMatch = /^new mode ([0-7]{6})$/.exec(line)
+      if (newModeMatch) {
+        newMode = newModeMatch[1]
       }
 
       if (this.lineStartsWith('+++')) {
-        return { isBinary: false }
+        return {
+          isBinary: false,
+          modeChange:
+            oldMode && newMode ? { from: oldMode, to: newMode } : undefined,
+        }
       }
     }
 
-    // It's not an error to not find the +++ line, see the
-    // 'parses diff of empty file' test in diff-parser-tests.ts
+    // A mode-only change has no +++ line, while an empty-file diff also ends
+    // without one. Only the former has both header mode lines.
+    if (oldMode && newMode) {
+      return {
+        isBinary: false,
+        modeChange: { from: oldMode, to: newMode },
+      }
+    }
+
     return null
   }
 
@@ -417,6 +451,21 @@ export class DiffParser {
         }
       }
 
+      // Mode-only diffs have no hunks, so their header metadata is all the
+      // information available to explain the change. Mode-plus-content diffs
+      // must continue through normal hunk parsing.
+      if (!headerInfo.isBinary && headerInfo.modeChange && !this.peek()) {
+        return {
+          header,
+          contents: '',
+          hunks: [],
+          isBinary: headerInfo.isBinary,
+          modeChange: headerInfo.modeChange,
+          maxLineNumber: 0,
+          hasHiddenBidiChars: false,
+        }
+      }
+
       if (headerInfo.isBinary) {
         return {
           header,
@@ -451,6 +500,7 @@ export class DiffParser {
         contents,
         hunks,
         isBinary: headerInfo.isBinary,
+        modeChange: headerInfo.modeChange,
         maxLineNumber: getLargestLineNumber(hunks),
         hasHiddenBidiChars: HiddenBidiCharsRegex.test(text),
       }

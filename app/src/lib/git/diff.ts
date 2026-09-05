@@ -710,6 +710,7 @@ export async function convertDiff(
     text: diff.contents,
     hunks: diff.hunks,
     lineEndingsChange,
+    modeChange: diff.modeChange,
     maxLineNumber: diff.maxLineNumber,
     hasHiddenBidiChars: diff.hasHiddenBidiChars,
   }
@@ -874,6 +875,7 @@ async function buildDiff(
       text: diff.contents,
       hunks: diff.hunks,
       lineEndingsChange,
+      modeChange: diff.modeChange,
       maxLineNumber: diff.maxLineNumber,
       hasHiddenBidiChars: diff.hasHiddenBidiChars,
     }

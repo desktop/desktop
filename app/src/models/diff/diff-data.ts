@@ -24,6 +24,12 @@ export enum DiffType {
 
 type LineEnding = 'CR' | 'LF' | 'CRLF'
 
+/** Git modes reported when a file's mode changes. */
+export type FileModeChange = {
+  readonly from: string
+  readonly to: string
+}
+
 export type LineEndingsChange = {
   from: LineEnding
   to: LineEnding
@@ -54,6 +60,8 @@ interface ITextDiffData {
   readonly hunks: ReadonlyArray<DiffHunk>
   /** A warning from Git that the line endings have changed in this file and will affect the commit */
   readonly lineEndingsChange?: LineEndingsChange
+  /** The old and new Git modes when a file's mode changes */
+  readonly modeChange?: FileModeChange
   /** The largest line number in the diff  */
   readonly maxLineNumber: number
   /** Whether or not the diff has invisible bidi characters */
