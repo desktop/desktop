@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.6.6-test1": ["Bump Copilot SDK to v1.0.13"],
     "3.6.5": [
       "[Fixed] Detect RStudio installations made by the new Windows installer that registers uninstall entries per-user or in the 64-bit machine-wide location - #22774",
       "[Fixed] Keep the image diff \"Difference\" mode from showing false green artifacts caused by sub-pixel misalignment - #21535. Thanks @jackfreem!",
