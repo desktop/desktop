@@ -3,7 +3,8 @@
     "3.6.6-beta1": [
       "[Fixed] Fix Copilot error when models fail to load and the app falls back to the 'Auto' model - #22796",
       "[Improved] Update Electron to v44.1.1 and Node.js to v24.19.0 - #22799",
-      "[Improved] Update Copilot SDK to v1.0.13 - #22828"
+      "[Improved] Update Copilot SDK to v1.0.13 - #22828",
+      "[Removed] Remove support for macOS 12 - #22799"
     ],
     "3.6.5": [
       "[Fixed] Detect RStudio installations made by the new Windows installer that registers uninstall entries per-user or in the 64-bit machine-wide location - #22774",
