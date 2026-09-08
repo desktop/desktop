@@ -4,8 +4,10 @@
     "checkJs": true,
     "noEmit": true,
     "target": "ES2021",
+    "types": ["node"],
     "skipLibCheck": true,
-    "moduleResolution": "node"
+    "module": "Node16",
+    "moduleResolution": "Node16"
   },
-  "include": ["*.js", "test/*.js"]
+  "include": ["*.js", "tests/*.js"]
 }

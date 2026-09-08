@@ -1,15 +1,17 @@
 // @ts-check
 
 /**
- * @typedef {import('eslint').Rule.RuleModule} RuleModule
+ * @typedef {import('@typescript-eslint/utils').TSESLint.RuleModule<'mathRandomInsecure' | 'pseudoRandomBytesInsecure', []>} RuleModule
  */
 
 /** @type {RuleModule} */
 module.exports = {
+  defaultOptions: [],
   meta: {
+    type: 'problem',
+    schema: [],
     docs: {
       description: 'Do not use insecure sources for random bytes',
-      category: 'Best Practices',
     },
     // strings from https://github.com/Microsoft/tslint-microsoft-contrib/blob/b720cd9/src/insecureRandomRule.ts
     messages: {

@@ -60,8 +60,8 @@ jobs:
       - name: Determine previous and next versions
         id: version
         run: >
-          yarn ts-node -P script/tsconfig.json script/draft-release/ci.ts
-          version ${{ inputs.channel }}
+          node script/checked-run.mjs scripts script/draft-release/ci.ts version
+          ${{ inputs.channel }}
 
       - name: Generate release notes (beta only)
         id: notes
@@ -88,7 +88,7 @@ jobs:
         run: |
           if [ "$CHANNEL" = "production" ]; then
             # Production: aggregate existing beta entries via shared script
-            ENTRIES=$(yarn --silent ts-node -P script/tsconfig.json \
+            ENTRIES=$(node script/checked-run.mjs scripts \
               script/draft-release/ci.ts changelog-entries "$PREVIOUS")
           else
             # Beta: extract descriptions from structured JSON output
@@ -171,7 +171,7 @@ jobs:
           fi
 
           # Bump app/package.json and update changelog.json
-          yarn --silent ts-node -P script/tsconfig.json \
+          node script/checked-run.mjs scripts \
             script/draft-release/ci.ts prepare "$NEXT_VERSION" "$ENTRIES"
 
           # Ensure changelog.json passes Prettier (ci.ts writes with

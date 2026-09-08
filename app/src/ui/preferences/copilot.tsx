@@ -19,7 +19,7 @@ import {
 } from '../../models/account'
 import { DialogContent, DialogPreferredFocusClassName } from '../dialog'
 import { CallToAction } from '../lib/call-to-action'
-import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
+import type { Model } from '../../lib/copilot/sdk-types'
 import { CopilotUserSettings } from './copilot-user-settings'
 import { SnapshotCard } from './snapshot-card'
 

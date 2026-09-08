@@ -1,9 +1,11 @@
 // @ts-check
 
 const { describe, it } = require('node:test')
-const { ESLintUtils } = require('@typescript-eslint/experimental-utils')
+const { TSESLint } = require('@typescript-eslint/utils')
 
-const RuleTester = ESLintUtils.RuleTester
+const RuleTester = TSESLint.RuleTester
+RuleTester.describe = describe
+RuleTester.it = it
 const rule = require('../react-readonly-props-and-state')
 
 // ------------------------------------------------------------------------------
@@ -11,10 +13,10 @@ const rule = require('../react-readonly-props-and-state')
 // ------------------------------------------------------------------------------
 
 const ruleTester = new RuleTester({
-  parser: '@typescript-eslint/parser',
+  parser: require.resolve('@typescript-eslint/parser'),
 })
 describe('react-readonly-props-and-state', () => {
-  it("should complain about props and state that aren't readonly", () => {
+  describe("should complain about props and state that aren't readonly", () => {
     ruleTester.run('react-readonly-props-and-state', rule, {
       valid: [
         {

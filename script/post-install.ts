@@ -1,5 +1,3 @@
-#!/usr/bin/env ts-node
-
 import * as Path from 'path'
 import { spawnSync, SpawnSyncOptions } from 'child_process'
 
@@ -46,6 +44,21 @@ findYarnVersion(path => {
     'node',
     [path, '--cwd', 'app', 'install', '--force'],
     options
+  )
+
+  if (result.status !== 0) {
+    process.exit(result.status || 1)
+  }
+
+  result = spawnSync(
+    process.execPath,
+    [
+      require.resolve('patch-package'),
+      '--error-on-fail',
+      '--patch-dir',
+      '../patches',
+    ],
+    { ...options, cwd: Path.join(root, 'app') }
   )
 
   if (result.status !== 0) {

@@ -2,7 +2,7 @@ import type { CopilotClient, CopilotSession } from '@github/copilot-sdk'
 import type {
   AccountQuotaSnapshot,
   Model,
-} from '@github/copilot-sdk/dist/generated/rpc'
+} from '../../../src/lib/copilot/sdk-types'
 import assert from 'node:assert'
 import { after, before, describe, it } from 'node:test'
 import { getDotComAPIEndpoint } from '../../../src/lib/api'

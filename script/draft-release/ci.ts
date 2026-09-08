@@ -5,7 +5,7 @@
  * of truth for version computation, tag discovery, and changelog aggregation.
  *
  * Usage (from repo root):
- *   yarn ts-node -P script/tsconfig.json script/draft-release/ci.ts <command> [args]
+ *   node script/checked-run.mjs scripts script/draft-release/ci.ts <command> [args]
  *
  * Commands:
  *   version <channel>

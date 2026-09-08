@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true
+  },
+  "include": ["post-install.ts", "type-check.mjs", "checked-run.mjs"],
+  "exclude": []
+}

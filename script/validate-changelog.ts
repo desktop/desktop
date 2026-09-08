@@ -1,5 +1,3 @@
-#!/usr/bin/env ts-node
-
 import * as Path from 'path'
 import * as Fs from 'fs'
 

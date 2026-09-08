@@ -185,7 +185,7 @@ function drawToCanvas(
   triangle(gl)
 }
 
-export function convertDDSImage(contents: ArrayBufferLike) {
+export function convertDDSImage(contents: ArrayBuffer) {
   const ddsData = parseDDS(contents)
 
   // Get the first mipmap texture.

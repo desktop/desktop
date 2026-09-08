@@ -1,0 +1,43 @@
+# Preserve the TypeScript ESLint 6 recommended rules across compiler upgrades.
+# New recommended rules should be adopted separately, not silently added here.
+rules:
+  '@typescript-eslint/ban-ts-comment': error
+  no-array-constructor: off
+  '@typescript-eslint/no-array-constructor': error
+  '@typescript-eslint/no-duplicate-enum-values': error
+  '@typescript-eslint/no-extra-non-null-assertion': error
+  # TypeScript ESLint retired its extension in favor of the core rule.
+  no-loss-of-precision: error
+  '@typescript-eslint/no-misused-new': error
+  '@typescript-eslint/no-namespace': error
+  '@typescript-eslint/no-non-null-asserted-optional-chain': error
+  '@typescript-eslint/no-this-alias': error
+  '@typescript-eslint/no-unnecessary-type-constraint': error
+  '@typescript-eslint/no-unsafe-declaration-merging': error
+  no-unused-vars: off
+  '@typescript-eslint/no-unused-vars': error
+  '@typescript-eslint/prefer-as-const': error
+
+overrides:
+  - files: ['*.ts', '*.tsx', '*.mts', '*.cts']
+    rules:
+      constructor-super: off
+      getter-return: off
+      no-const-assign: off
+      no-dupe-args: off
+      no-dupe-class-members: off
+      no-dupe-keys: off
+      no-func-assign: off
+      no-import-assign: off
+      no-new-symbol: off
+      no-obj-calls: off
+      no-redeclare: off
+      no-setter-return: off
+      no-this-before-super: off
+      no-undef: off
+      no-unreachable: off
+      no-unsafe-negation: off
+      no-var: error
+      prefer-const: error
+      prefer-rest-params: error
+      prefer-spread: error

@@ -5,6 +5,7 @@ import {
   AssistantMessageEvent,
   MessageOptions,
   SessionConfig,
+  ModelBillingTokenPrices,
 } from '@github/copilot-sdk'
 import { AccountsStore } from './accounts-store'
 import { Account, isDotComAccount } from '../../models/account'
@@ -45,11 +46,7 @@ import { BaseStore } from './base-store'
 import { IRepoRulesMetadataRule } from '../../models/repo-rules'
 import { pathExists } from '../path-exists'
 import { enableCopilotSdkCommitMessageGeneration } from '../feature-flag'
-import type {
-  AccountQuotaSnapshot,
-  Model,
-  ModelBillingTokenPrices,
-} from '@github/copilot-sdk/dist/generated/rpc'
+import type { AccountQuotaSnapshot, Model } from '../copilot/sdk-types'
 import { isGHE } from '../endpoint-capabilities'
 
 /** The default model ID used for Copilot commit message generation. */

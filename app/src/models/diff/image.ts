@@ -8,7 +8,7 @@ export class Image {
    * @param bytes Size of the file in bytes.
    */
   public constructor(
-    public readonly rawContents: ArrayBufferLike,
+    public readonly rawContents: ArrayBuffer,
     public readonly contents: string,
     public readonly mediaType: string,
     public readonly bytes: number
