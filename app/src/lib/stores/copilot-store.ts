@@ -37,10 +37,9 @@ import {
   createCopilotInMemorySessionFsProvider,
   getCopilotInMemorySessionFsConfig,
 } from '../copilot-in-memory-session-fs-provider'
-import * as ipcRenderer from '../ipc-renderer'
+import { getCopilotRuntimePath } from '../copilot-runtime'
 import { startTimer } from '../../ui/lib/timing'
 import { join } from 'path'
-import { pathToFileURL } from 'url'
 import { randomBytes } from 'crypto'
 import { BaseStore } from './base-store'
 import { IRepoRulesMetadataRule } from '../../models/repo-rules'
@@ -218,20 +217,6 @@ export function getCopilotGHHost(account: Account): string | undefined {
     : new URL(account.endpoint).host
 
   return isGHE(account.endpoint) && host ? host.replace(/^api\./, '') : host
-}
-
-/**
- * Returns the path of the executable (Electron/Node) used to run the Copilot CLI.
- *
- * This corresponds to the value of `process.execPath` used when launching the
- * Copilot CLI via an eval-based entry point (for example, `--eval "import './index.js'"`).
- */
-export async function getCopilotCLIPath(): Promise<string> {
-  return ipcRenderer.invoke('get-exec-path')
-}
-
-function getCopilotCLIDir(): string {
-  return join(__dirname, 'copilot')
 }
 
 /**
@@ -832,38 +817,18 @@ export class CopilotStore extends BaseStore {
       throw new Error('Cannot create Copilot client: Account has no token')
     }
 
-    // This relies on the fact that Copilot CLI is bundled with the app, but not
-    // as a "single executable application", but the files from the npm package.
-    // That means Desktop will use its own executable to run as Copilot CLI's
-    // index.js as node.
-    // However, when trying to do this directly without the --eval flag, Copilot
-    // CLI fails to parse the arguments correctly, so we ended up using --eval
-    // and just importing the index.js from the CLI as a workaround.
-    const cliDir = getCopilotCLIDir()
-    const indexPath = join(cliDir, 'index.js')
-
-    // Make sure the import path exists before creating the client, so we don't
-    // end up with a half-broken client that can't start. We check the
-    // filesystem path here, before converting it to a file:// URL on Windows,
-    // because `fs.access` doesn't accept URL-form strings.
-    if (!(await pathExists(indexPath))) {
-      throw new Error('Cannot create Copilot client: CLI entry point not found')
+    const runtimePath = getCopilotRuntimePath(join(__dirname, 'copilot'))
+    if (!(await pathExists(runtimePath))) {
+      throw new Error(
+        'Cannot create Copilot client: Runtime entry point not found'
+      )
     }
-
-    // On Windows, `import` requires a valid file:// URL rather than a bare
-    // absolute path.
-    const importSpecifier = __WIN32__
-      ? pathToFileURL(indexPath).href
-      : indexPath
 
     return new CopilotClient({
       connection: RuntimeConnection.forStdio({
-        path: await getCopilotCLIPath(),
-        args: ['--eval', `import '${importSpecifier}'`, '--'],
+        path: runtimePath,
       }),
       env: {
-        ELECTRON_RUN_AS_NODE: '1',
-        COPILOT_RUN_APP: '1',
         GH_HOST: getCopilotGHHost(account),
         GITHUB_COPILOT_INTEGRATION_ID: `copilot-desktop${
           __DEV__ ? '-dev' : ''
