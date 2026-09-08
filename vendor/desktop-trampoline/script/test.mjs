@@ -2,6 +2,7 @@ import { spawn } from 'child_process'
 import { join } from 'path'
 import { readdir } from 'fs/promises'
 
+/** @param {string} r */
 function reporter(r) {
   return ['--test-reporter', r, '--test-reporter-destination', 'stdout']
 }
@@ -11,6 +12,7 @@ const files = await readdir('test', { recursive: true }).then(x =>
 )
 
 const args = [
+  '--no-experimental-strip-types',
   ...['--import', 'tsx'],
   '--test',
   ...reporter('spec'),
@@ -18,4 +20,14 @@ const args = [
   ...files,
 ]
 
-spawn('node', args, { stdio: 'inherit' }).on('exit', process.exit)
+spawn(process.execPath, args, { stdio: 'inherit' })
+  .on('error', error => {
+    console.error(error)
+    process.exitCode = 1
+  })
+  .on('exit', (code, signal) => {
+    process.exitCode = code ?? 1
+    if (signal !== null) {
+      process.kill(process.pid, signal)
+    }
+  })
