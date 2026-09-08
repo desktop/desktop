@@ -62,6 +62,31 @@ If you're still encountering issues with building, refer to our
 [troubleshooting](troubleshooting.md) guide for more common
 problems.
 
+### TypeScript checking
+
+Run `yarn typecheck` to check the application and tests, highlighter worker,
+scripts, custom ESLint rules, and vendored TypeScript packages with native
+TypeScript 7. Use `node script/type-check.mjs app` (or `scripts`, `highlighter`,
+`eslint`, `trampoline`, `trampoline-tests`, `notifications`, `argv`) to check one
+project.
+
+Webpack uses esbuild-loader for transpilation and runs native TypeScript checks
+before emitting each compilation, including development rebuilds. Script commands
+use `node script/checked-run.mjs <scope> <file> [arguments...]` to check before
+executing TypeScript with tsx. Neither esbuild nor tsx replaces type checking.
+
+The `@typescript/native` dependency supplies native `tsc`. The `typescript`
+dependency aliases Microsoft's stable TypeScript 6 compatibility package for
+ESLint's compiler API; it is not the project's type checker. Keep both packages
+until the lint ecosystem supports the native compiler without losing rules.
+
+Dexie remains pinned to 3.2.7 to avoid changing the database runtime during this
+migration. Root `yarn` applies `patches/dexie+3.2.7.patch` with patch-package after
+installing app dependencies. The patch only changes the obsolete `declare module`
+namespace spelling to `declare namespace`; it does not change JavaScript or hide
+diagnostics. Installation fails if the patch cannot be applied. Revalidate or
+remove this patch when updating Dexie.
+
 ## Running tests
 
 - `yarn test` - Alias for `yarn test:unit`
