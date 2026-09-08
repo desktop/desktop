@@ -99,6 +99,7 @@ describe('IPC channel contract', () => {
     'show-notification',
     'get-notifications-permission',
     'request-notifications-permission',
+    'zoom',
   ] as const
 
   describe('RequestChannels', () => {
