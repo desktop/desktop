@@ -24,7 +24,8 @@ export function getMergeOptions(): ReadonlyArray<IDropdownSelectButtonOption> {
     {
       label: 'Rebase',
       description:
-        'The commits from the selected branch will be rebased and added to the current branch.',
+        'The current branch will be updated by applying its commits on top of the selected branch. ' +
+        'Note that this operation rewrites the history of the current branch.',
       id: MultiCommitOperationKind.Rebase,
     },
   ]
