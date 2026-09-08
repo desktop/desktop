@@ -7,6 +7,8 @@ import {
   findNextSelectableRow,
   ClickSource,
   SelectionDirection,
+  isUpKeyEvent,
+  isDownKeyEvent,
 } from '../lib/list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
@@ -505,9 +507,9 @@ export class FilterList<
 
     let shouldFocus = false
 
-    if (event.key === 'ArrowUp' && row === firstSelectableRow) {
+    if (isUpKeyEvent(event) && row === firstSelectableRow) {
       shouldFocus = true
-    } else if (event.key === 'ArrowDown' && row === lastSelectableRow) {
+    } else if (isDownKeyEvent(event) && row === lastSelectableRow) {
       shouldFocus = true
     }
 
@@ -539,26 +541,12 @@ export class FilterList<
 
     const rowCount = this.state.rows.length
 
-    if (key === 'ArrowDown') {
+    if (isDownKeyEvent(event) || isUpKeyEvent(event)) {
       if (rowCount > 0) {
+        const direction = isDownKeyEvent(event) ? 'down' : 'up'
         const selectedRow = findNextSelectableRow(
           rowCount,
-          { direction: 'down', row: -1 },
-          this.canSelectRow
-        )
-        if (selectedRow != null) {
-          this.setState({ selectedRow }, () => {
-            list.focus()
-          })
-        }
-      }
-
-      event.preventDefault()
-    } else if (key === 'ArrowUp') {
-      if (rowCount > 0) {
-        const selectedRow = findNextSelectableRow(
-          rowCount,
-          { direction: 'up', row: 0 },
+          { direction, row: direction === 'down' ? -1 : 0 },
           this.canSelectRow
         )
         if (selectedRow != null) {
