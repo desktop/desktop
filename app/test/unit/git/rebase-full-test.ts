@@ -7,7 +7,7 @@ import {
   getRebaseInternalState,
   RebaseResult,
 } from '../../../src/lib/git/rebase'
-import { getCommits, getBranches } from '../../../src/lib/git'
+import { getCommits, getBranches, git } from '../../../src/lib/git'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import {
   makeCommit,
@@ -44,6 +44,66 @@ describe('git/rebase', () => {
   })
 
   describe('rebase', () => {
+    for (const { operand, baseName, targetName } of [
+      { operand: 'base', baseName: '-base', targetName: 'feature' },
+      { operand: 'target', baseName: 'master', targetName: '-feature' },
+    ]) {
+      it(`rebases with a leading hyphen in the ${operand} branch name`, async t => {
+        const repo = await setupEmptyRepository(t, baseName)
+        await makeCommit(repo, {
+          entries: [{ path: 'initial.txt', contents: 'initial' }],
+          commitMessage: 'initial commit',
+        })
+
+        const targetRef = `refs/heads/${targetName}`
+        // Imported refs can have names that git branch does not create.
+        await git(['update-ref', targetRef, 'HEAD'], repo.path, 'create target')
+        await makeCommit(repo, {
+          entries: [{ path: 'base.txt', contents: 'base' }],
+          commitMessage: 'base commit',
+        })
+
+        await git(
+          ['checkout', '--detach', targetRef],
+          repo.path,
+          'checkout target'
+        )
+        await git(
+          ['symbolic-ref', 'HEAD', targetRef],
+          repo.path,
+          'attach target'
+        )
+        await makeCommit(repo, {
+          entries: [{ path: 'feature.txt', contents: 'feature' }],
+          commitMessage: 'feature commit',
+        })
+
+        const baseBranch = await findBranch(repo, baseName)
+        const targetBranch = await findBranch(repo, targetName)
+        const result = await rebase(repo, baseBranch, targetBranch)
+
+        assert.strictEqual(result, RebaseResult.CompletedWithoutError)
+        const status = await getStatusOrThrow(repo)
+        assert.strictEqual(status.currentBranch, targetName)
+
+        const commits = await getCommits(repo, 'HEAD', 10)
+        assert.deepEqual(
+          commits.map(commit => commit.summary),
+          ['feature commit', 'base commit', 'initial commit']
+        )
+        assert.strictEqual(commits[1].sha, baseBranch.tip.sha)
+        assert.notStrictEqual(commits[0].sha, targetBranch.tip.sha)
+        assert.strictEqual(
+          (await findBranch(repo, targetName)).tip.sha,
+          commits[0].sha
+        )
+        assert.strictEqual(
+          (await findBranch(repo, baseName)).tip.sha,
+          baseBranch.tip.sha
+        )
+      })
+    }
+
     it('rebases a branch onto another', async t => {
       const repo = await setupEmptyRepository(t)
 
