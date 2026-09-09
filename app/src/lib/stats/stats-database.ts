@@ -675,6 +675,36 @@ export interface IDailyMeasures {
    * reporting period.
    */
   readonly worktreeMaxCount: number
+
+  /** The number of times the user initiated Copilot conflict resolution */
+  readonly initiateResolveConflictsWithCopilotCount: number
+
+  /** The number of times the user accepted Copilot conflict resolution suggestions */
+  readonly copilotConflictResolutionAcceptedCount: number
+
+  /** The number of accepted resolutions where the user overrode at least one file */
+  readonly copilotConflictResolutionWithOverridesCount: number
+
+  /** The number of times the user switched to manual resolution after seeing Copilot suggestions */
+  readonly copilotConflictResolutionSwitchToManualCount: number
+
+  /** The number of times the user stopped Copilot conflict resolution while loading */
+  readonly copilotConflictResolutionStoppedCount: number
+
+  /** The number of times Copilot conflict resolution failed with an error */
+  readonly copilotConflictResolutionErrorCount: number
+
+  /** The number of Copilot conflict resolutions that took over 15 seconds */
+  readonly copilotConflictResolutionOver15sCount: number
+
+  /** The number of Copilot conflict resolutions that took over 30 seconds */
+  readonly copilotConflictResolutionOver30sCount: number
+
+  /** The number of Copilot conflict resolutions that took over 60 seconds */
+  readonly copilotConflictResolutionOver60sCount: number
+
+  /** The number of Copilot conflict resolutions that took over 120 seconds */
+  readonly copilotConflictResolutionOver120sCount: number
 }
 
 export class StatsDatabase extends Dexie {

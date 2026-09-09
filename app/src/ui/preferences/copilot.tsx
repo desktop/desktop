@@ -1,347 +1,278 @@
 import * as React from 'react'
-import { DialogContent } from '../dialog'
-import { Row } from '../lib/row'
-import { Select } from '../lib/select'
-import { Button } from '../lib/button'
-import { LinkButton } from '../lib/link-button'
-import { Octicon } from '../octicons'
-import * as octicons from '../octicons/octicons.generated'
-import { TabBar } from '../tab-bar'
-import type { ModelInfo } from '@github/copilot-sdk'
+import type { IBYOKProvider } from '../../lib/copilot/byok'
+import { isGHES } from '../../lib/endpoint-capabilities'
+import { enableCopilotSdkCommitMessageGeneration } from '../../lib/feature-flag'
 import {
-  DefaultCopilotModel,
   type CopilotFeature,
+  getCopilotAccountCacheKey,
+  type CopilotModelsByAccount,
   type CopilotModelSelections,
+  type CopilotModelSelectionsByAccount,
+  type CopilotQuotaSnapshotsByAccount,
+  type CopilotQuotaSnapshots,
 } from '../../lib/stores/copilot-store'
 import {
-  IBYOKProvider,
-  encodeModelKey,
-  isLocalBaseUrl,
-  parseModelKey,
-} from '../../lib/copilot/byok'
-import { enableCopilotConflictResolution } from '../../lib/feature-flag'
+  CopilotLicenseTypeNoAccess,
+  isDotComAccount,
+  isEnterpriseAccount,
+  type Account,
+} from '../../models/account'
+import { DialogContent, DialogPreferredFocusClassName } from '../dialog'
+import { CallToAction } from '../lib/call-to-action'
+import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
+import { CopilotUserSettings } from './copilot-user-settings'
+import { SnapshotCard } from './snapshot-card'
 
 interface ICopilotPreferencesProps {
-  readonly selectedCopilotModels: CopilotModelSelections
-  readonly copilotModels: ReadonlyArray<ModelInfo> | null
-  readonly copilotAvailable: boolean
+  readonly selectedCopilotModelsByAccount: CopilotModelSelectionsByAccount
+  readonly copilotModelsByAccount: CopilotModelsByAccount
+  readonly copilotQuotaSnapshotsByAccount: CopilotQuotaSnapshotsByAccount
+  readonly accounts: ReadonlyArray<Account>
   readonly byokProviders: ReadonlyArray<IBYOKProvider>
   readonly showBYOKSettings: boolean
+  readonly onSignIn: () => void
+  readonly onOpenCopilotPlans: () => void
+  readonly onOpenCopilotFeatureSettings: () => void
+  readonly alwaysUseCopilotForConflictResolution: boolean
   readonly onSelectedCopilotModelChanged: (
+    account: Account,
     feature: CopilotFeature,
     model: string | null
   ) => void
-  readonly onAddBYOKProvider: () => void
-  readonly onEditBYOKProvider: (provider: IBYOKProvider) => void
-  readonly onDeleteBYOKProvider: (provider: IBYOKProvider) => void
+  readonly onAlwaysUseCopilotForConflictResolutionChanged: (
+    checked: boolean
+  ) => void
+  readonly onConfigureCustomProviders: () => void
+  readonly onConfigureModels: (account: Account) => void
 }
 
-interface ICopilotPreferencesState {
-  readonly selectedTabIndex: number
-}
+type CopilotAccessState =
+  | 'signed-out'
+  | 'checking'
+  | 'no-license'
+  | 'desktop-disabled'
 
-export class CopilotPreferences extends React.Component<
-  ICopilotPreferencesProps,
-  ICopilotPreferencesState
-> {
-  public constructor(props: ICopilotPreferencesProps) {
-    super(props)
-    this.state = { selectedTabIndex: 0 }
-  }
-
-  private onTabClicked = (index: number) => {
-    this.setState({ selectedTabIndex: index })
-  }
-
-  private onCommitMessageModelChanged = (
-    event: React.FormEvent<HTMLSelectElement>
-  ) => {
-    this.props.onSelectedCopilotModelChanged(
-      'commit-message-generation',
-      event.currentTarget.value
-    )
-  }
-
-  private onConflictResolutionModelChanged = (
-    event: React.FormEvent<HTMLSelectElement>
-  ) => {
-    this.props.onSelectedCopilotModelChanged(
-      'conflict-resolution',
-      event.currentTarget.value
-    )
-  }
-
-  private onAddBYOKProviderClick = () => this.props.onAddBYOKProvider()
-
-  private onEditBYOKProviderClick = (provider: IBYOKProvider) => () =>
-    this.props.onEditBYOKProvider(provider)
-
-  private onDeleteBYOKProviderClick = (provider: IBYOKProvider) => () =>
-    this.props.onDeleteBYOKProvider(provider)
-
+export class CopilotPreferences extends React.Component<ICopilotPreferencesProps> {
   public render() {
-    const showBYOK = this.props.showBYOKSettings && this.props.copilotAvailable
+    const accounts = this.getCopilotSettingsAccounts()
 
-    if (!showBYOK) {
+    if (accounts.length === 1) {
       return (
         <DialogContent className="copilot-tab">
-          <div className="copilot-tab-content">
-            <div className="copilot-section">{this.renderModelPicker()}</div>
-          </div>
+          {this.renderUserSettings(accounts[0])}
         </DialogContent>
       )
     }
 
+    if (accounts.length > 1) {
+      return (
+        <DialogContent className="copilot-tab">
+          {this.renderAccountSnapshotCards(accounts)}
+        </DialogContent>
+      )
+    }
+
+    const accessState = this.getCopilotAccessState()
+
     return (
       <DialogContent className="copilot-tab">
-        <TabBar
-          selectedIndex={this.state.selectedTabIndex}
-          onTabClicked={this.onTabClicked}
-        >
-          <span>Models</span>
-          <span>Providers</span>
-        </TabBar>
         <div className="copilot-tab-content">
-          <div className="copilot-section">{this.renderCurrentTab()}</div>
+          <div className="copilot-section">
+            {this.renderAccessState(accessState)}
+          </div>
         </div>
       </DialogContent>
     )
   }
 
-  private renderCurrentTab() {
-    if (this.state.selectedTabIndex === 1) {
-      return this.renderBYOKProviders()
-    }
-    return this.renderModelPicker()
-  }
-
-  private renderModelPicker() {
-    if (!this.props.copilotAvailable) {
-      return (
-        <p>
-          Sign in to a GitHub.com account in the Accounts tab to configure
-          Copilot settings.
-        </p>
-      )
-    }
-
-    const { copilotModels, byokProviders } = this.props
-
-    if (copilotModels === null) {
-      return <p>Loading available models…</p>
-    }
-
-    if (copilotModels.length === 0 && byokProviders.length === 0) {
-      return <p>No models available. Check your Copilot subscription.</p>
-    }
-
+  private renderUserSettings(account: Account): JSX.Element {
     return (
-      <>
-        <Row className="copilot-feature-hint">
-          <p>
-            Tailor how Copilot behaves by using{' '}
-            <LinkButton uri="https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions">
-              custom instructions
-            </LinkButton>
-            .
-          </p>
-        </Row>
-        {this.renderFeatureModelPicker(
-          copilotModels,
-          'commit-message-generation',
-          __DARWIN__
-            ? 'Commit Message Generation'
-            : 'Commit message generation',
-          this.onCommitMessageModelChanged
-        )}
-        <p className="settings-description">
-          <LinkButton uri="https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop#write-a-commit-message-and-push-your-changes">
-            Learn more about generating commit messages.
-          </LinkButton>
-        </p>
-        {enableCopilotConflictResolution() &&
-          this.renderFeatureModelPicker(
-            copilotModels,
-            'conflict-resolution',
-            __DARWIN__ ? 'Conflict Resolution' : 'Conflict resolution',
-            this.onConflictResolutionModelChanged
-          )}
-      </>
-    )
-  }
-
-  private renderFeatureModelPicker(
-    copilotModels: ReadonlyArray<ModelInfo>,
-    feature: CopilotFeature,
-    label: string,
-    onChange: (event: React.FormEvent<HTMLSelectElement>) => void
-  ): JSX.Element {
-    const { byokProviders, selectedCopilotModels } = this.props
-
-    const rawSelection = selectedCopilotModels[feature] ?? null
-    const value = this.resolveSelectionValue(
-      copilotModels,
-      byokProviders,
-      rawSelection
-    )
-
-    return (
-      <Select label={label} value={value} onChange={onChange}>
-        {copilotModels.length > 0 && (
-          <optgroup label="GitHub Copilot">
-            {copilotModels.map(m => (
-              <option
-                key={m.id}
-                value={encodeModelKey({ kind: 'copilot', modelId: m.id })}
-              >
-                {m.id === DefaultCopilotModel ? `${m.name} (default)` : m.name}
-              </option>
-            ))}
-          </optgroup>
-        )}
-        {byokProviders.map(p => (
-          <optgroup key={p.id} label={p.name}>
-            {p.models.map(m => (
-              <option
-                key={m.id}
-                value={encodeModelKey({
-                  kind: 'byok',
-                  providerId: p.id,
-                  modelId: m.id,
-                })}
-              >
-                {m.name}
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </Select>
-    )
-  }
-
-  private resolveSelectionValue(
-    copilotModels: ReadonlyArray<ModelInfo>,
-    byokProviders: ReadonlyArray<IBYOKProvider>,
-    raw: string | null
-  ): string {
-    if (raw !== null) {
-      const key = parseModelKey(raw)
-      if (key.kind === 'byok') {
-        const provider = byokProviders.find(p => p.id === key.providerId)
-        if (provider && provider.models.some(m => m.id === key.modelId)) {
-          return encodeModelKey(key)
+      <CopilotUserSettings
+        account={account}
+        selectedCopilotModels={this.getSelectedCopilotModels(account)}
+        copilotModels={this.getCopilotModels(account)}
+        copilotQuotaSnapshots={this.getCopilotQuotaSnapshots(account)}
+        byokProviders={this.props.byokProviders}
+        showBYOKSettings={this.props.showBYOKSettings}
+        alwaysUseCopilotForConflictResolution={
+          this.props.alwaysUseCopilotForConflictResolution
         }
-      } else if (
-        key.modelId !== '' &&
-        copilotModels.some(m => m.id === key.modelId)
+        onSelectedCopilotModelChanged={this.props.onSelectedCopilotModelChanged}
+        onAlwaysUseCopilotForConflictResolutionChanged={
+          this.props.onAlwaysUseCopilotForConflictResolutionChanged
+        }
+        onConfigureCustomProviders={this.props.onConfigureCustomProviders}
+      />
+    )
+  }
+
+  private renderAccountSnapshotCards(
+    accounts: ReadonlyArray<Account>
+  ): JSX.Element {
+    const dotComAccounts = accounts.filter(isDotComAccount)
+    const enterpriseAccounts = accounts.filter(isEnterpriseAccount)
+
+    return (
+      <div className="copilot-tab-content">
+        <div className="copilot-settings-scroll">
+          <div className="copilot-section copilot-account-snapshot-groups">
+            {this.renderAccountSnapshotCardGroup('GitHub.com', dotComAccounts)}
+            {this.renderAccountSnapshotCardGroup(
+              'GitHub Enterprise',
+              enterpriseAccounts
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  private renderAccountSnapshotCardGroup(
+    heading: string,
+    accounts: ReadonlyArray<Account>
+  ): JSX.Element | null {
+    if (accounts.length === 0) {
+      return null
+    }
+
+    return (
+      <div className="copilot-account-snapshot-card-group">
+        <h2>{heading}</h2>
+        <div className="copilot-account-snapshot-card-list">
+          {accounts.map(account => (
+            <SnapshotCard
+              key={getCopilotAccountCacheKey(account)}
+              account={account}
+              snapshots={this.getCopilotQuotaSnapshots(account)}
+              onConfigureModels={this.props.onConfigureModels}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  private getCopilotAccounts(): ReadonlyArray<Account> {
+    return this.props.accounts.filter(account => !isGHES(account.endpoint))
+  }
+
+  private getCopilotSettingsAccounts(): ReadonlyArray<Account> {
+    return this.getCopilotAccounts().filter(
+      account =>
+        enableCopilotSdkCommitMessageGeneration(account) &&
+        account.isCopilotDesktopEnabled === true &&
+        account.copilotLicenseType !== undefined &&
+        account.copilotLicenseType !== CopilotLicenseTypeNoAccess
+    )
+  }
+
+  private getCopilotModels(account: Account): ReadonlyArray<Model> | null {
+    return (
+      this.props.copilotModelsByAccount.get(
+        getCopilotAccountCacheKey(account)
+      ) ?? null
+    )
+  }
+
+  private getSelectedCopilotModels(account: Account): CopilotModelSelections {
+    return (
+      this.props.selectedCopilotModelsByAccount.get(
+        getCopilotAccountCacheKey(account)
+      ) ?? {}
+    )
+  }
+
+  private getCopilotQuotaSnapshots(
+    account: Account
+  ): CopilotQuotaSnapshots | null {
+    return (
+      this.props.copilotQuotaSnapshotsByAccount.get(
+        getCopilotAccountCacheKey(account)
+      ) ?? null
+    )
+  }
+
+  private getCopilotAccessState(): CopilotAccessState {
+    const accounts = this.getCopilotAccounts()
+
+    if (accounts.length === 0) {
+      return 'signed-out'
+    }
+
+    let hasCheckingAccount = false
+    let hasNoAccessAccount = false
+    let hasDesktopDisabledAccount = false
+
+    for (const account of accounts) {
+      if (
+        account.copilotLicenseType === undefined ||
+        account.isCopilotDesktopEnabled === undefined
       ) {
-        return encodeModelKey({ kind: 'copilot', modelId: key.modelId })
+        hasCheckingAccount = true
+      } else if (account.copilotLicenseType === CopilotLicenseTypeNoAccess) {
+        hasNoAccessAccount = true
+      } else if (account.isCopilotDesktopEnabled === false) {
+        hasDesktopDisabledAccount = true
       }
     }
 
-    return this.getFirstSelectableModelValue(copilotModels, byokProviders)
+    if (hasCheckingAccount) {
+      return 'checking'
+    }
+
+    if (hasDesktopDisabledAccount) {
+      return 'desktop-disabled'
+    }
+
+    if (hasNoAccessAccount) {
+      return 'no-license'
+    }
+
+    return 'checking'
   }
 
-  private getFirstSelectableModelValue(
-    copilotModels: ReadonlyArray<ModelInfo>,
-    byokProviders: ReadonlyArray<IBYOKProvider>
-  ): string {
-    if (copilotModels.length === 0 && byokProviders.length === 0) {
-      // This should not happen because we check for this case earlier, but let's
-      // make that assumption explicit and crash if it is violated rather than
-      // returning null.
-      throw new Error('No models available')
+  private renderAccessState(accessState: CopilotAccessState): JSX.Element {
+    switch (accessState) {
+      case 'signed-out':
+        return this.renderAccessCallToAction(
+          'Sign in to an account with a Copilot license to configure Copilot settings.',
+          'Sign In',
+          this.props.onSignIn,
+          DialogPreferredFocusClassName
+        )
+      case 'checking':
+        return <p>Checking Copilot access…</p>
+      case 'no-license':
+        return this.renderAccessCallToAction(
+          'Copilot features in GitHub Desktop require a GitHub Copilot license.',
+          'View Copilot plans',
+          this.props.onOpenCopilotPlans
+        )
+      case 'desktop-disabled':
+        return this.renderAccessCallToAction(
+          'A Copilot license is available for your account, but "Copilot in GitHub Desktop" is disabled in your Copilot feature settings.',
+          'Open Copilot feature settings',
+          this.props.onOpenCopilotFeatureSettings
+        )
     }
-
-    const preferredCopilotModel = copilotModels.find(
-      m => m.id === DefaultCopilotModel
-    )
-    if (preferredCopilotModel !== undefined) {
-      return encodeModelKey({
-        kind: 'copilot',
-        modelId: preferredCopilotModel.id,
-      })
-    }
-
-    const firstCopilotModel = copilotModels[0]
-    if (firstCopilotModel !== undefined) {
-      return encodeModelKey({ kind: 'copilot', modelId: firstCopilotModel.id })
-    }
-
-    const firstProvider = byokProviders[0]
-    const firstByokModel = firstProvider.models[0]
-    return encodeModelKey({
-      kind: 'byok',
-      providerId: firstProvider.id,
-      modelId: firstByokModel.id,
-    })
   }
 
-  private renderBYOKProviders() {
-    const { byokProviders } = this.props
+  private renderAccessCallToAction(
+    message: string,
+    actionTitle: string,
+    onAction: () => void,
+    buttonClassName?: string
+  ): JSX.Element {
     return (
-      <>
-        {byokProviders.length === 0 ? (
-          <p className="copilot-byok-empty">
-            Add a custom provider to use your own API keys with
-            OpenAI-compatible endpoints, Azure, Anthropic, or local providers
-            like Ollama.
-          </p>
-        ) : (
-          <ul className="copilot-byok-entry-list">
-            {byokProviders.map(this.renderBYOKProvider)}
-          </ul>
-        )}
-        <Button onClick={this.onAddBYOKProviderClick}>
-          {__DARWIN__ ? 'Add Provider…' : 'Add provider…'}
-        </Button>
-      </>
+      <div className="copilot-access-call-to-action">
+        <CallToAction
+          actionTitle={actionTitle}
+          onAction={onAction}
+          buttonClassName={buttonClassName}
+        >
+          <div>{message}</div>
+        </CallToAction>
+      </div>
     )
-  }
-
-  private renderBYOKProvider = (provider: IBYOKProvider) => {
-    const modelCount = provider.models.length
-    const modelLabel = modelCount === 1 ? '1 model' : `${modelCount} models`
-    const isLocal = isLocalBaseUrl(provider.baseUrl)
-    return (
-      <li key={provider.id} className="copilot-byok-entry">
-        <div className="copilot-byok-entry-info">
-          <div className="copilot-byok-entry-title">
-            <span>{provider.name}</span>
-            {isLocal && (
-              <span className="copilot-byok-provider-badge">Local</span>
-            )}
-          </div>
-          <span className="copilot-byok-entry-meta">
-            {this.formatProviderType(provider)} · {modelLabel}
-          </span>
-        </div>
-        <div className="copilot-byok-entry-actions">
-          <Button
-            onClick={this.onEditBYOKProviderClick(provider)}
-            ariaLabel={`Edit ${provider.name}`}
-          >
-            <Octicon symbol={octicons.pencil} />
-          </Button>
-          <Button
-            onClick={this.onDeleteBYOKProviderClick(provider)}
-            ariaLabel={`Remove ${provider.name}`}
-          >
-            <Octicon symbol={octicons.trash} />
-          </Button>
-        </div>
-      </li>
-    )
-  }
-
-  private formatProviderType(provider: IBYOKProvider): string {
-    switch (provider.type) {
-      case 'openai':
-        return 'OpenAI-compatible'
-      case 'azure':
-        return 'Azure'
-      case 'anthropic':
-        return 'Anthropic'
-    }
   }
 }

@@ -390,7 +390,11 @@ const editors: WindowsExternalEditor[] = [
   },
   {
     name: 'RStudio',
-    registryKeys: [Wow64LocalMachineUninstallKey('RStudio')],
+    registryKeys: [
+      CurrentUserUninstallKey('RStudio'),
+      LocalMachineUninstallKey('RStudio'),
+      Wow64LocalMachineUninstallKey('RStudio'),
+    ],
     installLocationRegistryKey: 'DisplayIcon',
     displayNamePrefixes: ['RStudio'],
     publishers: ['RStudio', 'Posit Software'],

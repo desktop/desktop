@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { assertNever } from '../../lib/fatal-error'
+import { sendNonFatalException } from '../../lib/helpers/non-fatal-exception'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { Dispatcher } from '../dispatcher'
@@ -101,19 +102,15 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
   }
 
   /**
-   * Method to call anytime we do state type checking that should pass but is
-   * needed for typing purposes. Thus it should never happen, so throw error if
-   * does.
+   * Method to call anytime we reach an unexpected state during a multi-commit
+   * operation. Closes the dialog, logs the error, and reports to telemetry.
    */
-  protected endFlowInvalidState(isSilent: boolean = false): void {
+  protected endFlowInvalidState(): void {
     const { step, operationDetail } = this.props.state
     const errorMessage = `[${operationDetail.kind}] - Invalid state - ${operationDetail.kind} ended during ${step.kind}.`
-    if (isSilent) {
-      this.onFlowEnded()
-      log.error(errorMessage)
-      return
-    }
-    throw new Error(errorMessage)
+    this.onFlowEnded()
+    log.error(errorMessage)
+    sendNonFatalException('multiCommitOperation', new Error(errorMessage))
   }
 
   protected onInvokeConflictsDialogDismissed = (operationPrefix: string) => {
@@ -347,7 +344,11 @@ export abstract class BaseMultiCommitOperation extends React.Component<IMultiCom
             operationKind={this.props.state.operationDetail.kind}
             copilotResolutions={this.props.state.copilotResolutions}
             copilotResolutionSummary={this.props.state.copilotResolutionSummary}
-            model={this.props.copilotConflictResolutionModel}
+            copilotSkippedFiles={this.props.state.copilotSkippedFiles}
+            model={
+              this.props.state.copilotResolutionModel ??
+              this.props.copilotConflictResolutionModel
+            }
             resolvedExternalEditor={this.props.resolvedExternalEditor}
             openFileInExternalEditor={this.props.openFileInExternalEditor}
             onContinueAfterConflicts={this.onContinueAfterConflicts}

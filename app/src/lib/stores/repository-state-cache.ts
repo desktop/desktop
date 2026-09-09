@@ -285,6 +285,29 @@ export class RepositoryStateCache {
     })
   }
 
+  /**
+   * Move the entire cached state for a repository from one identity to another.
+   *
+   * This is used when a worktree is renamed: the repository's path (and
+   * therefore its hash) changes, but it still refers to the same working
+   * directory, so all of the existing in-memory state (working directory
+   * changes, commit message, history, etc.) should be carried over to the new
+   * identity rather than reset to its initial values.
+   */
+  public transferState(source: Repository, target: Repository) {
+    if (source.hash === target.hash) {
+      return
+    }
+
+    const sourceState = this.repositoryState.get(source.hash)
+    if (sourceState === undefined) {
+      return
+    }
+
+    this.repositoryState.set(target.hash, sourceState)
+    this.repositoryState.delete(source.hash)
+  }
+
   private sendPullRequestStateNotExistsException() {
     sendNonFatalException(
       'PullRequestState',
@@ -410,6 +433,7 @@ function getInitialRepositoryState(): IRepositoryState {
     hookProgress: null,
     subscribeToCommitOutput: null,
     isGeneratingCommitMessage: false,
+    commitMessageGenerationAbortController: null,
     commitToAmend: null,
     lastFetched: null,
     checkoutProgress: null,

@@ -1,8 +1,6 @@
 import * as URL from 'url'
 import * as Path from 'path'
 
-import { CloningRepository } from '../models/cloning-repository'
-import { Repository } from '../models/repository'
 import { Account } from '../models/account'
 import { IRemote } from '../models/remote'
 import { getHTMLURL } from './api'
@@ -53,9 +51,10 @@ export function matchGitHubRepository(
  * @param repos The list of repositories tracked in the app
  * @param path The path on disk which might be a repository
  */
-export function matchExistingRepository<
-  T extends Repository | CloningRepository
->(repos: ReadonlyArray<T>, path: string): T | undefined {
+export function matchExistingRepository<T extends { readonly path: string }>(
+  repos: ReadonlyArray<T>,
+  path: string
+): T | undefined {
   // Windows is guaranteed to be case-insensitive so we can be a bit less strict
   const normalize = __WIN32__
     ? (p: string) => Path.normalize(p).toLowerCase()

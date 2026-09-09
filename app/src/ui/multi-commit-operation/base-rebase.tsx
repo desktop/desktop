@@ -14,8 +14,13 @@ export abstract class BaseRebase extends BaseMultiCommitOperation {
       this.props
     const { operationDetail, originalBranchTip } = state
 
+    // Conflicts were resolved externally — nothing left to continue.
+    if (conflictState === null) {
+      this.onFlowEnded()
+      return
+    }
+
     if (
-      conflictState === null ||
       originalBranchTip === null ||
       !isRebaseConflictState(conflictState) ||
       !instanceOfIBaseRebaseDetails(operationDetail)

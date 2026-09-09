@@ -21,6 +21,20 @@ afterEach(() => {
   mutableShell.openExternal = originalOpenExternal
 })
 
+function createDOMRect(width: number): DOMRect {
+  return {
+    x: 0,
+    y: 0,
+    width,
+    height: 0,
+    top: 0,
+    right: width,
+    bottom: 0,
+    left: 0,
+    toJSON: () => ({}),
+  }
+}
+
 describe('path text and link button surfaces', () => {
   it('truncates text and paths using the exported helpers', () => {
     assert.equal(truncateMid('abcdef', 4), 'a…ef')
@@ -64,6 +78,31 @@ describe('path text and link button surfaces', () => {
     )
     assert.equal(filename?.textContent, 'file.tsx')
     assert.equal(view.container.querySelector('[role="tooltip"]'), null)
+  })
+
+  it('does not exceed React update depth while looking for a fitting truncation', t => {
+    const originalGetBoundingClientRect =
+      window.Element.prototype.getBoundingClientRect
+
+    t.after(() => {
+      window.Element.prototype.getBoundingClientRect =
+        originalGetBoundingClientRect
+    })
+
+    window.Element.prototype.getBoundingClientRect = function () {
+      if (
+        this instanceof window.HTMLSpanElement &&
+        this.parentElement?.classList.contains('path-text-component')
+      ) {
+        return createDOMRect(this.textContent === '' ? 0 : 101)
+      }
+
+      return originalGetBoundingClientRect.call(this)
+    }
+
+    assert.doesNotThrow(() => {
+      render(<PathText path={'a'.repeat(1000)} availableWidth={100} />)
+    })
   })
 
   it('treats uri links as links and callback-only links as buttons', async () => {

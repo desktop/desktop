@@ -69,6 +69,52 @@ export interface IRepositoryIdentifier {
   readonly name: string
 }
 
+/**
+ * Extracts a safe single-component directory name from a URL-derived repo name.
+ *
+ * Mirrors the approach of git's `git_url_basename()` in `dir.c`: treat `/`,
+ * `\`, and `:` as path separators, take the last non-empty component, strip a
+ * trailing `.git` suffix, and reject traversal segments. This ensures the
+ * result is always a single path component that cannot escape the parent
+ * directory when passed to `Path.join()`.
+ *
+ * Examples:
+ *  - `"Hello-World"` → `"Hello-World"` (unchanged)
+ *  - `"desktop.git/../../otherdir"` → `"otherdir"` (last component, traversal segments skipped)
+ *  - `".."` → `null` (traversal-only name rejected)
+ *
+ * See: https://github.com/git/git/blob/master/dir.c (`git_url_basename`)
+ */
+export function sanitizeCloneName(name: string): string | null {
+  const components = name.split(/[/\\:]/)
+
+  let lastComponent = ''
+  for (let i = components.length - 1; i >= 0; i--) {
+    if (components[i].length > 0) {
+      lastComponent = components[i]
+      break
+    }
+  }
+
+  if (lastComponent.length === 0) {
+    return null
+  }
+
+  if (lastComponent.endsWith('.git')) {
+    lastComponent = lastComponent.slice(0, -4)
+  }
+
+  if (
+    lastComponent === '..' ||
+    lastComponent === '.' ||
+    lastComponent.length === 0
+  ) {
+    return null
+  }
+
+  return lastComponent
+}
+
 /** Try to parse an owner and name from a URL or owner/name shortcut. */
 export function parseRepositoryIdentifier(
   url: string

@@ -1,6 +1,9 @@
 import * as React from 'react'
-import * as Path from 'path'
-import { WorktreeEntry } from '../../models/worktree'
+import {
+  WorktreeEntry,
+  getWorktreeDescription,
+  getWorktreeDisplayName,
+} from '../../models/worktree'
 import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 import { SectionFilterList } from '../lib/section-filter-list'
 import { WorktreeListItem } from './worktree-list-item'
@@ -51,7 +54,7 @@ export class WorktreeList extends React.Component<IWorktreeListProps> {
         identifier: 'main',
         items: [
           {
-            text: [Path.basename(mainWorktree.path)],
+            text: [getWorktreeDisplayName(mainWorktree)],
             id: mainWorktree.path,
             worktree: mainWorktree,
           },
@@ -63,7 +66,7 @@ export class WorktreeList extends React.Component<IWorktreeListProps> {
       groups.push({
         identifier: 'linked',
         items: linkedWorktrees.map(w => ({
-          text: [Path.basename(w.path)],
+          text: [getWorktreeDisplayName(w)],
           id: w.path,
           worktree: w,
         })),
@@ -86,11 +89,29 @@ export class WorktreeList extends React.Component<IWorktreeListProps> {
     )
   }
 
-  private renderGroupHeader = (identifier: WorktreeGroupIdentifier) => {
+  private getGroupLabel(identifier: WorktreeGroupIdentifier) {
     const worktree = __DARWIN__ ? 'Worktree' : 'worktree'
-    const label =
-      identifier === 'main' ? `Main ${worktree}` : `Linked ${worktree}s`
-    return <div className="filter-list-group-header">{label}</div>
+    return identifier === 'main' ? `Main ${worktree}` : `Linked ${worktree}s`
+  }
+
+  private getGroupAriaLabel = (group: number) => {
+    const identifier = this.getGroups(this.props.worktrees)[group].identifier
+    return this.getGroupLabel(identifier)
+  }
+
+  private getItemAriaLabel = (item: IWorktreeListItem) => {
+    const { worktree } = item
+    return `${getWorktreeDisplayName(worktree)}, ${getWorktreeDescription(
+      worktree
+    )}`
+  }
+
+  private renderGroupHeader = (identifier: WorktreeGroupIdentifier) => {
+    return (
+      <div className="filter-list-group-header">
+        {this.getGroupLabel(identifier)}
+      </div>
+    )
   }
 
   private onRenderNewButton = () => {
@@ -138,6 +159,8 @@ export class WorktreeList extends React.Component<IWorktreeListProps> {
         selectedItem={null}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
+        getItemAriaLabel={this.getItemAriaLabel}
+        getGroupAriaLabel={this.getGroupAriaLabel}
         onItemClick={this.onItemClick}
         groups={groups}
         invalidationProps={this.props.worktrees}

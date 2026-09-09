@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Dialog, DialogContent, DialogFooter } from '../../dialog'
 import { Dispatcher } from '../../dispatcher'
+import { sendNonFatalException } from '../../../lib/helpers/non-fatal-exception'
 import { Repository } from '../../../models/repository'
 import {
   WorkingDirectoryStatus,
@@ -129,7 +130,14 @@ export class ConflictsDialog extends React.Component<
    */
   private onSubmit = async () => {
     this.setState({ isCommitting: true })
-    await this.props.onSubmit()
+    try {
+      await this.props.onSubmit()
+    } catch (e) {
+      this.setState({ isCommitting: false })
+      const error = e instanceof Error ? e : new Error(String(e))
+      log.error('ConflictsDialog: onSubmit failed', error)
+      sendNonFatalException('multiCommitOperation', error)
+    }
   }
 
   /**
@@ -139,8 +147,15 @@ export class ConflictsDialog extends React.Component<
     e.preventDefault()
 
     this.setState({ isAborting: true })
-    await this.props.onAbort()
-    this.setState({ isAborting: false })
+    try {
+      await this.props.onAbort()
+    } catch (e) {
+      const error = e instanceof Error ? e : new Error(String(e))
+      log.error('ConflictsDialog: onAbort failed', error)
+      sendNonFatalException('multiCommitOperation', error)
+    } finally {
+      this.setState({ isAborting: false })
+    }
   }
 
   private openThisRepositoryInShell = () =>
@@ -252,6 +267,8 @@ export class ConflictsDialog extends React.Component<
    * - There is at least one signed-in account with Copilot for Desktop
    *   enabled (covers "no Copilot subscription" and "disabled by org policy")
    * - There are still conflicted files to resolve
+   * - At least one conflicted file can be handled by Copilot (has text
+   *   conflict markers or is a delete-vs-modify conflict)
    */
   private renderCopilotButton(
     conflictedFilesCount: number

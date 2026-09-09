@@ -119,7 +119,7 @@ export function deleteBYOKSecret(providerId: string): Promise<boolean> {
 }
 
 /**
- * Composite model identifier persisted in `selectedCopilotModels`. Wraps
+ * Composite model identifier persisted in Copilot model selections. Wraps
  * either a built-in Copilot model or a BYOK provider+model pair so that
  * a single feature can pick from any source.
  */
@@ -136,7 +136,7 @@ const CopilotKeyPrefix = 'copilot:'
 
 /**
  * Encodes a {@link CopilotModelKey} to the string form that is persisted in
- * `selectedCopilotModels`.
+ * Copilot model selections.
  */
 export function encodeModelKey(key: CopilotModelKey): string {
   if (key.kind === 'byok') {

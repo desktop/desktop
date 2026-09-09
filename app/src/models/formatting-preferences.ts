@@ -189,6 +189,7 @@ export type TimeFormat =
 export interface INumberFormat {
   readonly thousandsSeparator: ',' | '.' | ' ' | ''
   readonly decimalSeparator: ',' | '.'
+  readonly maximumFractionDigits?: number
 }
 
 /**

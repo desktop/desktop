@@ -36,6 +36,7 @@ import {
   getBranches,
   getRebaseSnapshot,
   getRepositoryType,
+  listWorktrees,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
@@ -52,7 +53,7 @@ import { ILaunchStats, StatsStore } from '../../lib/stats'
 import { AppStore } from '../../lib/stores/app-store'
 import type {
   CopilotFeature,
-  CopilotModelSelections,
+  CopilotModelSelectionsByAccount,
 } from '../../lib/stores/copilot-store'
 import type { IBYOKProvider } from '../../lib/copilot/byok'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
@@ -1026,6 +1027,28 @@ export class Dispatcher {
   }
 
   /**
+   * Rename (move) a worktree to a new path and keep the worktree list in sync.
+   * If the worktree being renamed is the currently selected one, the repository
+   * is switched to its new path.
+   *
+   * Returns a value indicating whether the rename succeeded. On failure the
+   * error is surfaced to the user via `postError`.
+   */
+  public async moveWorktree(
+    repository: Repository,
+    worktreePath: string,
+    newPath: string
+  ): Promise<boolean> {
+    return this.appStore
+      ._moveWorktree(repository, worktreePath, newPath)
+      .then(() => true)
+      .catch(e => {
+        this.postError(e)
+        return false
+      })
+  }
+
+  /**
    * Delete a worktree. If the worktree being deleted is the currently selected
    * one, the repository is switched to the main worktree first.
    */
@@ -1170,6 +1193,10 @@ export class Dispatcher {
     filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
   ) {
     return this.appStore._generateCommitMessage(repository, filesSelected)
+  }
+
+  public cancelGenerateCommitMessage(repository: Repository) {
+    return this.appStore._cancelGenerateCommitMessage(repository)
   }
 
   /**
@@ -1545,6 +1572,11 @@ export class Dispatcher {
   /** Report any stats if needed. */
   public reportStats(): Promise<void> {
     return this.appStore._reportStats()
+  }
+
+  /** Send the current stats without affecting the daily reporting schedule. */
+  public sendStats(): Promise<boolean> {
+    return this.appStore._sendStats()
   }
 
   /** Changes the URL for the remote that matches the given name  */
@@ -2047,9 +2079,26 @@ export class Dispatcher {
 
       if (existingRepository) {
         await this.selectRepository(existingRepository)
-      } else {
-        await this.showPopup({ type: PopupType.AddRepository, path })
+        return
       }
+
+      // Try to locate a repository that has a shared main worktree with the
+      // provided path so that we can switch to the worktree instead of adding
+      // a new repository.
+      const worktrees = await listWorktrees(path).catch(e => {
+        log.error('Could not list worktrees', e)
+        return []
+      })
+      const worktree = matchExistingRepository(worktrees, path)
+      const sharedCommonDirRepository = repositories.find(
+        r => matchExistingRepository(worktrees, r.path) !== undefined
+      )
+      if (worktree && sharedCommonDirRepository instanceof Repository) {
+        await this.switchWorktree(sharedCommonDirRepository, worktree)
+        return
+      }
+
+      await this.showPopup({ type: PopupType.AddRepository, path })
     }
   }
 
@@ -4218,20 +4267,32 @@ export class Dispatcher {
 
   /** Set the selected Copilot model for a specific feature. */
   public setSelectedCopilotModel(
+    account: Account,
     feature: CopilotFeature,
     model: string | null
   ) {
-    return this.appStore._setSelectedCopilotModel(feature, model)
+    return this.appStore._setSelectedCopilotModel(account, feature, model)
   }
 
-  /** Replace all per-feature Copilot model selections at once. */
-  public setSelectedCopilotModels(models: CopilotModelSelections) {
-    return this.appStore._setSelectedCopilotModels(models)
+  /** Replace all account-scoped Copilot model selections at once. */
+  public setSelectedCopilotModelsByAccount(
+    modelsByAccount: CopilotModelSelectionsByAccount
+  ) {
+    return this.appStore._setSelectedCopilotModelsByAccount(modelsByAccount)
+  }
+
+  public setAlwaysUseCopilotForConflictResolution(value: boolean): void {
+    this.appStore._setAlwaysUseCopilotForConflictResolution(value)
   }
 
   /** Fetch the list of available Copilot models from the SDK. */
   public fetchCopilotModels(): Promise<void> {
     return this.appStore._fetchCopilotModels()
+  }
+
+  /** Fetch Copilot quota usage snapshots from the SDK. */
+  public fetchCopilotQuotaSnapshots(): Promise<void> {
+    return this.appStore._fetchCopilotQuotaSnapshots()
   }
 
   /**

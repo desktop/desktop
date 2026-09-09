@@ -1,6 +1,11 @@
 import { spawn, ChildProcess } from 'child_process'
 import * as Path from 'path'
-import { enumerateValues, HKEY, RegistryValueType } from 'registry-js'
+import {
+  enumerateValues,
+  HKEY,
+  RegistryValue,
+  RegistryValueType,
+} from 'registry-js'
 import { assertNever } from '../fatal-error'
 import { enableWSLDetection } from '../feature-flag'
 import { findGitOnPath } from '../is-git-on-path'
@@ -302,13 +307,10 @@ async function findCygwin(): Promise<string | null> {
   return null
 }
 
-async function findWarp(): Promise<string | null> {
-  const warpPresent = enumerateValues(
-    HKEY.HKEY_CURRENT_USER,
-    'Software\\Warp.dev\\Warp\\FontSize' // Get any warp data to check for installation
-  )
-
-  if (!warpPresent) {
+async function findOldWarp(
+  warpRegistry: readonly RegistryValue[]
+): Promise<string | null> {
+  if (!warpRegistry || warpRegistry.length === 0) {
     return null
   }
 
@@ -346,6 +348,34 @@ async function findWarp(): Promise<string | null> {
   }
 
   return null
+}
+
+async function findWarp(): Promise<string | null> {
+  const warpRegistry = enumerateValues(
+    HKEY.HKEY_CURRENT_USER,
+    'Software\\Warp.dev\\Warp' // Get warp installation path
+  )
+
+  if (!warpRegistry || warpRegistry.length === 0) {
+    return null
+  }
+
+  const warpInstallationPath = warpRegistry.find(
+    e => e.name === 'InstallationPath'
+  )
+  if (
+    !warpInstallationPath ||
+    warpInstallationPath.type !== RegistryValueType.REG_SZ
+  ) {
+    return await findOldWarp(warpRegistry)
+  }
+
+  // If any of the paths exist, return it
+  if (await pathExists(warpInstallationPath.data)) {
+    return warpInstallationPath.data
+  }
+
+  return await findOldWarp(warpRegistry)
 }
 
 async function findWSL(): Promise<string | null> {

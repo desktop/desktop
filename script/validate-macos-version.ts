@@ -18,7 +18,7 @@ type ChannelToValidate = 'production' | 'beta'
  */
 const ValidMacOSVersions: Record<ChannelToValidate, string> = {
   production: '12.0',
-  beta: '12.0',
+  beta: '13.0',
 }
 
 // Only when we get a RELEASE_CHANNEL we know we're in the middle of a deployment.

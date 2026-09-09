@@ -100,25 +100,18 @@ export const enableCommitMessageGeneration = (account: Account) => {
 }
 
 export const enableCopilotSdkCommitMessageGeneration = (account: Account) => {
-  return enableBetaFeatures()
-  // IMPORTANT: Leaving this here for now. When the feature is enabled in prod,
-  // we will rely on the `desktop_enable_copilot_sdk_commit_message_generation`
-  // feature flag to control the rollout, but we want to be able to enable it in
-  // beta and other non-production builds regardless of the feature flag.
-  // Remember to also update build.ts to get Copilot bundled in the production
-  // build when this happens.
-  // return (
-  //   enableBetaFeatures() &&
-  //   (account.features ?? []).includes(
-  //     'desktop_enable_copilot_sdk_commit_message_generation'
-  //   )
-  // )
+  // Enabled for all users in beta and development channels, and for users with
+  // the feature flag enabled in production.
+  return (
+    enableBetaFeatures() ||
+    (account.features ?? []).includes(
+      'desktop_enable_copilot_sdk_commit_message_generation'
+    )
+  )
 }
 
 /** Should we enable Copilot-powered merge conflict resolution? */
-export function enableCopilotConflictResolution(): boolean {
-  return enableBetaFeatures()
-}
+export const enableCopilotConflictResolution = () => true
 
 export function enableAccessibleListToolTips(): boolean {
   return enableBetaFeatures()
@@ -131,9 +124,7 @@ export const enableHooksByDefault = enableBetaFeatures
 export const enableFormattingPreferences = () => true
 
 /** Should the app enable worktree support? */
-export function enableWorktreeSupport(): boolean {
-  return enableBetaFeatures()
-}
+export const enableWorktreeSupport = () => true
 
 /** Should stats be sent to the new telemetry endpoint? */
 export function enableNewStatsEndpoint(): boolean {

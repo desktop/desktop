@@ -16,12 +16,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
         python-version: '3.11'
 
     - name: Use Node.js ${{ inputs.node-version }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: ${{ inputs.node-version }}
         cache: yarn
@@ -37,3 +37,17 @@ runs:
       env:
         npm_config_arch: ${{ inputs.arch }}
         TARGET_ARCH: ${{ inputs.arch }}
+
+    - name: Install cross-compilation Copilot SDK runtime
+      shell: bash
+      env:
+        TARGET_ARCH: ${{ inputs.arch }}
+      run: |
+        # Yarn 1 checks process.arch, not npm_config_arch, for optional packages.
+        PKG=$(node -p "'@github/copilot-sdk-' + process.platform + '-' + process.env.TARGET_ARCH")
+        VERSION=$(node -e "const pkg = require('./app/node_modules/@github/copilot-sdk/package.json'); const version = pkg.optionalDependencies[process.argv[1]]; if (!version) throw new Error('Unsupported Copilot SDK runtime: ' + process.argv[1]); console.log(version)" "$PKG")
+
+        if [ ! -d "app/node_modules/$PKG" ]; then
+          echo "Installing ${PKG}@${VERSION} for cross-compilation…"
+          cd app && yarn add --optional --ignore-platform --ignore-scripts "${PKG}@${VERSION}"
+        fi

@@ -153,7 +153,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.alias,
       repo.workflowPreferences,
       repo.isTutorialRepository,
-      repo.gitDir
+      repo.gitDir,
+      repo.mainWorktreePath
     )
   }
 
@@ -293,7 +294,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository,
-      repository.gitDir
+      repository.gitDir,
+      repository.mainWorktreePath
     )
   }
 
@@ -314,7 +316,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository,
-      gitDir
+      gitDir,
+      repository.mainWorktreePath
     )
   }
 
@@ -348,17 +351,25 @@ export class RepositoriesStore extends TypedBaseStore<
     this.emitUpdatedRepositories()
   }
 
-  /** Update the repository's path. */
+  /**
+   * Update the repository's path.
+   *
+   * Unlike `switchWorktree` this doesn't default `mainWorktreePath` to the
+   * recorded one. Moving a repository invalidates it, so callers say what it is
+   * now, or `undefined` when it can't be resolved.
+   */
   public async updateRepositoryPath(
     repository: Repository,
     path: string,
     gitDir: string | undefined,
+    mainWorktreePath: string | undefined,
     missing: boolean = false
   ): Promise<Repository> {
     await this.db.repositories.update(repository.id, {
       missing,
       path,
       gitDir,
+      mainWorktreePath,
     })
 
     this.emitUpdatedRepositories()
@@ -371,24 +382,31 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.alias,
       repository.workflowPreferences,
       repository.isTutorialRepository,
-      gitDir
+      gitDir,
+      mainWorktreePath
     )
   }
 
   /**
-   * Switch the repository to a different worktree path, persisting the main
-   * worktree path as a stable anchor for recovery.
+   * Switch the repository to a different worktree path, persisting the target
+   * git directory as a stable anchor for recovery.
    *
    * If another repository already exists at the target path, returns that
    * repository instead of modifying the current one.
    *
    * @param repository  The repository to switch
    * @param worktreePath The path of the worktree to switch to
+   * @param gitDir       The git directory for the target worktree
+   * @param mainWorktreePath The path of the repository's main worktree, which
+   *                         recovery relies on once the target worktree (and
+   *                         its git metadata) is gone
    */
   public async switchWorktree(
     repository: Repository,
     worktreePath: string,
-    missing = false
+    missing = false,
+    gitDir: string | undefined = repository.gitDir,
+    mainWorktreePath: string | undefined = repository.mainWorktreePath
   ): Promise<{ repository: Repository; existingRepository: boolean }> {
     const existing = await this.db.repositories.get({ path: worktreePath })
 
@@ -402,6 +420,8 @@ export class RepositoriesStore extends TypedBaseStore<
     await this.db.repositories.update(repository.id, {
       path: worktreePath,
       missing,
+      gitDir,
+      mainWorktreePath,
     })
 
     this.emitUpdatedRepositories()
@@ -414,7 +434,9 @@ export class RepositoriesStore extends TypedBaseStore<
         missing,
         repository.alias,
         repository.workflowPreferences,
-        repository.isTutorialRepository
+        repository.isTutorialRepository,
+        gitDir,
+        mainWorktreePath
       ),
       existingRepository: false,
     }
@@ -563,7 +585,8 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.alias,
       repo.workflowPreferences,
       repo.isTutorialRepository,
-      repo.gitDir
+      repo.gitDir,
+      repo.mainWorktreePath
     )
 
     assertIsRepositoryWithGitHubRepository(updatedRepo)

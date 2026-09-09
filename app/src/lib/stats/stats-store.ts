@@ -44,6 +44,8 @@ import { useExternalCredentialHelperKey } from '../trampoline/use-external-crede
 import { getUserAgent } from '../http'
 import { getHooksEnvEnabled } from '../hooks/config'
 import { enableNewStatsEndpoint } from '../feature-flag'
+import { parseModelKey } from '../copilot/byok'
+import { DefaultCopilotModel } from '../stores/copilot-store'
 
 type PullRequestReviewStatFieldInfix =
   | 'Approved'
@@ -61,7 +63,7 @@ type PullRequestReviewStatField =
 const LegacyStatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
 const StatsEndpoint =
-  'https://desktop.github.com/twirp/clientappsfe.observability.v1.TelemetryAPI/RecordEvents'
+  'https://cafe.github.com/twirp/clientappsfe.observability.v1.TelemetryAPI/RecordEvents'
 
 /** The URL to the stats samples page. */
 export const SamplesURL = 'https://desktop.github.com/usage-data/'
@@ -269,6 +271,16 @@ const DefaultDailyMeasures: IDailyMeasures = {
   worktreeCreatedCount: 0,
   worktreeDeletedCount: 0,
   worktreeMaxCount: 0,
+  initiateResolveConflictsWithCopilotCount: 0,
+  copilotConflictResolutionAcceptedCount: 0,
+  copilotConflictResolutionWithOverridesCount: 0,
+  copilotConflictResolutionSwitchToManualCount: 0,
+  copilotConflictResolutionStoppedCount: 0,
+  copilotConflictResolutionErrorCount: 0,
+  copilotConflictResolutionOver15sCount: 0,
+  copilotConflictResolutionOver30sCount: 0,
+  copilotConflictResolutionOver60sCount: 0,
+  copilotConflictResolutionOver120sCount: 0,
 }
 
 // A subtype of IDailyMeasures filtered to contain only its numeric properties
@@ -440,6 +452,9 @@ interface ICalculatedStats {
 
   /** Whether or not the user has the git hooks environment enabled */
   readonly gitHooksEnvEnabled: boolean
+
+  /** The resolved model ID for Copilot conflict resolution */
+  readonly copilotConflictResolutionModel: string
 }
 
 type DailyStats = ICalculatedStats &
@@ -478,6 +493,7 @@ interface ITelemetryDimensions {
   readonly useExternalCredentialHelper: string
   readonly filteringChangesEnabled: string
   readonly gitHooksEnvEnabled: string
+  readonly copilotConflictResolutionModel: string
   readonly active: string
   readonly tutorialStarted: string
   readonly tutorialRepoCreated: string
@@ -534,7 +550,7 @@ function buildStatsPayload(body: Record<string, any>): object {
   const event: ITelemetryEvent = {
     event_type: eventType ?? 'usage',
     dimensions: dimensions as unknown as ITelemetryDimensions,
-    measures: measures as unknown as Partial<ITelemetryMeasures>,
+    measures: measures as unknown as ITelemetryMeasures,
   }
 
   return {
@@ -629,6 +645,25 @@ export class StatsStore implements IStatsStore {
     }
 
     const now = Date.now()
+
+    if (await this.sendStats(accounts, repositories)) {
+      await this.clearDailyStats()
+      setNumber(LastDailyStatsReportKey, now)
+    }
+  }
+
+  /**
+   * Send the current stats immediately without clearing them or updating the
+   * daily reporting schedule.
+   */
+  public async sendStats(
+    accounts: ReadonlyArray<Account>,
+    repositories: ReadonlyArray<Repository>
+  ): Promise<boolean> {
+    if (this.optOut) {
+      return false
+    }
+
     const payload = await this.getDailyStats(accounts, repositories)
 
     try {
@@ -640,11 +675,10 @@ export class StatsStore implements IStatsStore {
       }
 
       log.info('Stats reported.')
-
-      await this.clearDailyStats()
-      setNumber(LastDailyStatsReportKey, now)
+      return true
     } catch (e) {
       log.error('Error reporting stats:', e)
+      return false
     }
   }
 
@@ -755,7 +789,38 @@ export class StatsStore implements IStatsStore {
       useExternalCredentialHelper,
       filteringChangesEnabled,
       gitHooksEnvEnabled: getHooksEnvEnabled(),
+      copilotConflictResolutionModel:
+        this.getSelectedCopilotConflictResolutionModel(),
     }
+  }
+
+  /**
+   * Reads the user's selected Copilot conflict resolution model from
+   * localStorage and resolves it to the actual model ID string.
+   */
+  private getSelectedCopilotConflictResolutionModel(): string {
+    try {
+      const raw = localStorage.getItem('selected-copilot-models-by-account')
+      if (raw !== null) {
+        const parsed: unknown = JSON.parse(raw)
+        if (typeof parsed === 'object' && parsed !== null) {
+          for (const selections of Object.values(parsed)) {
+            if (typeof selections === 'object' && selections !== null) {
+              const selection = (selections as Record<string, unknown>)[
+                'conflict-resolution'
+              ]
+              if (typeof selection === 'string' && selection.length > 0) {
+                const key = parseModelKey(selection)
+                return key.modelId || DefaultCopilotModel
+              }
+            }
+          }
+        }
+      }
+    } catch {
+      // Fall through to default
+    }
+    return DefaultCopilotModel
   }
 
   private getOnboardingStats(): IOnboardingStats {

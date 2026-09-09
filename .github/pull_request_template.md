@@ -22,6 +22,7 @@ If this PR touches the UI layer of the app, please include screenshots or animat
 <!--
 You can leave this blank if you're not sure.
 If you don't believe this PR needs to be mentioned in the release notes, write "Notes: no-notes".
+Rules for writing release notes can be found in the [Writing Release Notes](docs/process/writing-release-notes.md) document.
 -->
 
 Notes:

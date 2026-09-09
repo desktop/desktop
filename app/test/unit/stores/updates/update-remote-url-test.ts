@@ -1,4 +1,4 @@
-import { describe, it, TestContext } from 'node:test'
+import { afterEach, describe, it, TestContext } from 'node:test'
 import assert from 'node:assert'
 import { join } from 'path'
 import { GitStore, RepositoriesStore } from '../../../../src/lib/stores'
@@ -37,13 +37,14 @@ describe('Update remote url', () => {
   const endpoint = getDotComAPIEndpoint()
 
   let gitStore: GitStore
+  let db: TestRepositoriesDatabase
 
   const createRepository = async (
     t: TestContext,
     apiRepo: IAPIFullRepository,
     remoteUrl: string | null = null
   ) => {
-    const db = new TestRepositoriesDatabase()
+    db = new TestRepositoriesDatabase()
     await db.reset()
     const repositoriesStore = new RepositoriesStore(db)
 
@@ -59,6 +60,10 @@ describe('Update remote url', () => {
 
     return { gitHubRepository, gitStore }
   }
+
+  afterEach(() => {
+    db.close()
+  })
 
   it("updates the repository's remote url when the github url changes", async t => {
     const { gitHubRepository, gitStore } = await createRepository(

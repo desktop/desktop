@@ -105,6 +105,7 @@ export type RequestResponseChannels = {
   'is-running-under-arm64-translation': () => Promise<boolean>
   'move-to-trash': (path: string) => Promise<void>
   'show-item-in-folder': (path: string) => Promise<void>
+  'write-clipboard-text': (text: string) => Promise<void>
   'show-contextual-menu': (
     items: ReadonlyArray<ISerializableMenuItem>,
     addSpellCheckMenu: boolean

@@ -1,10 +1,15 @@
-import type { ModelInfo } from '@github/copilot-sdk'
-import type { CopilotModelSelections } from './stores/copilot-store'
+import type {
+  CopilotModelsByAccount,
+  CopilotModelSelectionsByAccount,
+  CopilotQuotaSnapshotsByAccount,
+} from './stores/copilot-store'
 import type { IBYOKProvider } from './copilot/byok'
+import type { IConflictResolutionModelDisplay } from './copilot/conflict-resolution-model'
 import type {
   IFileResolution,
   IConflictResolutionProgress,
   ICopilotResolutionSummary,
+  ICopilotSkippedFile,
 } from './copilot-conflict-resolution'
 import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
@@ -406,25 +411,21 @@ export interface IAppState {
 
   readonly copilotConflictResolutionDisclaimerLastSeen: number | null
 
-  readonly copilotConflictResolutionButtonClicked: boolean
+  readonly copilotConflictResolutionClickCount: number
+
+  readonly alwaysUseCopilotForConflictResolution: boolean
 
   /** Whether the changes filter is shown */
   readonly showChangesFilter: boolean
 
-  /**
-   * Per-feature Copilot model selections. An absent key means the default
-   * model will be used for that feature.
-   */
-  readonly selectedCopilotModels: CopilotModelSelections
+  /** Account-scoped Copilot model selections. */
+  readonly selectedCopilotModelsByAccount: CopilotModelSelectionsByAccount
 
-  /**
-   * The list of available Copilot models fetched from the SDK.
-   * Null when the list has not been fetched yet.
-   */
-  readonly copilotModels: ReadonlyArray<ModelInfo> | null
+  /** Account-scoped Copilot model lists, keyed by Copilot account cache key. */
+  readonly copilotModelsByAccount: CopilotModelsByAccount
 
-  /** Whether Copilot is available (i.e. a GitHub.com account is signed in). */
-  readonly copilotAvailable: boolean
+  /** Account-scoped Copilot quota snapshots, keyed by Copilot account cache key. */
+  readonly copilotQuotaSnapshotsByAccount: CopilotQuotaSnapshotsByAccount
 
   /**
    * The list of user-configured Copilot model providers (BYOK). Empty when
@@ -594,6 +595,9 @@ export interface IRepositoryState {
 
   /** Is generating a commit message? */
   readonly isGeneratingCommitMessage: boolean
+
+  /** Controller used to cancel an in-flight commit message generation. */
+  readonly commitMessageGenerationAbortController: AbortController | null
 
   /** Commit being amended, or null if none. */
   readonly commitToAmend: Commit | null
@@ -1079,6 +1083,14 @@ export interface IMultiCommitOperationState {
   readonly copilotResolutions: ReadonlyArray<IFileResolution> | null
 
   /**
+   * Conflicted files Copilot did not resolve, with the reason each was skipped
+   * (too large, unreadable, no parseable markers, etc.). Null when Copilot
+   * hasn't been invoked or hasn't yet completed. Surfaced in the result dialog
+   * so the user can resolve these manually before continuing.
+   */
+  readonly copilotSkippedFiles: ReadonlyArray<ICopilotSkippedFile> | null
+
+  /**
    * Progress of the in-flight Copilot conflict resolution request. Null when
    * no resolution is in progress.
    */
@@ -1099,6 +1111,13 @@ export interface IMultiCommitOperationState {
    * UI away). Null when no resolution is in progress.
    */
   readonly copilotResolutionAbortController: AbortController | null
+
+  /**
+   * The model display captured at the time Copilot conflict resolution was
+   * started. Shown in the result dialog header so that changing the model
+   * setting mid-operation doesn't confuse the user.
+   */
+  readonly copilotResolutionModel: IConflictResolutionModelDisplay | null
 
   /**
    * The commit id of the tip of the branch user is modifying in the operation.

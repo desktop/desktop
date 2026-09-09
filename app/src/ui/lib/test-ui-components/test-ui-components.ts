@@ -49,6 +49,10 @@ export function showTestUI(
       return showFakeConfirmCommittingConflictedFiles()
     case 'test-cherry-pick-conflicts-banner':
       return showFakeCherryPickConflictBanner()
+    case 'test-copilot-snapshot-card':
+      return dispatcher.showPopup({
+        type: PopupType.TestCopilotSnapshotCard,
+      })
     case 'test-discarded-changes-will-be-unrecoverable':
       return showFakeDiscardedChangesWillBeUnrecoverable()
     case 'test-do-you-want-fork-this-repository':
@@ -97,6 +101,8 @@ export function showTestUI(
       return showFakeReleaseNotesPopup()
     case 'test-reorder-banner':
       return showFakeReorderBanner()
+    case 'test-send-stats':
+      return dispatcher.sendStats()
     case 'test-showcase-update-banner':
       return showFakeUpdateBanner({ isShowcase: true })
     case 'test-thank-you-banner':
@@ -161,6 +167,8 @@ export function showTestUI(
       return showFakeUpstreamAlreadyExists()
     case 'test-about-dialog':
       return dispatcher.showPopup({ type: PopupType.TestAbout })
+    case 'test-cli-action':
+      return dispatcher.showPopup({ type: PopupType.TestCLIAction })
     default:
       return assertNever(name, `Unknown menu event name: ${name}`)
   }

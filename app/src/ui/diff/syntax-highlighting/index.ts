@@ -24,7 +24,7 @@ const MaxHighlightContentLength = 1024 * 1024
 // characters. Therefore, when we try to limit diff expansion, we can't know if
 // a file is exactly MaxHighlightContentLength characters long or longer, so
 // we'll look for exactly that amount of characters minus 1.
-const MaxDiffExpansionNewContentLength = MaxHighlightContentLength - 1
+export const MaxDiffExpansionNewContentLength = MaxHighlightContentLength - 1
 
 type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
 

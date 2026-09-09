@@ -23,6 +23,7 @@ on:
         default: false
 
 permissions:
+  copilot-requests: write
   contents: write
   pull-requests: write
 
@@ -34,13 +35,13 @@ jobs:
     steps:
       - name: Generate app token
         id: generate-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.DESKTOP_RELEASES_APP_ID }}
           private-key: ${{ secrets.DESKTOP_RELEASES_APP_PRIVATE_KEY }}
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -48,7 +49,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -72,7 +73,7 @@ jobs:
           instructions: .github/release-notes-instructions.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          COPILOT_GITHUB_TOKEN: ${{ github.token }}
 
       - name: Parse changelog entries
         id: changelog

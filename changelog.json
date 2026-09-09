@@ -1,5 +1,133 @@
 {
   "releases": {
+    "3.6.6-beta1": [
+      "[Fixed] Fix Copilot error when models fail to load and the app falls back to the 'Auto' model - #22796",
+      "[Improved] Update Electron to v44.1.1 and Node.js to v24.19.0 - #22799",
+      "[Improved] Update Copilot SDK to v1.0.13 - #22828",
+      "[Removed] Remove support for macOS 12 - #22799"
+    ],
+    "3.6.5": [
+      "[Fixed] Detect RStudio installations made by the new Windows installer that registers uninstall entries per-user or in the 64-bit machine-wide location - #22774",
+      "[Fixed] Keep the image diff \"Difference\" mode from showing false green artifacts caused by sub-pixel misalignment - #21535. Thanks @jackfreem!",
+      "[Fixed] Re-enable repository menu items after cancelling a rebase from the local changes overwritten dialog - #22536. Thanks @iamarjunsuresh!",
+      "[Fixed] Preserve existing branch protection information when GitHub API requests fail - #22655. Thanks @agisilaos!",
+      "[Fixed] Hooks taking input via stdin no longer error on Windows - #22620",
+      "[Improved] Prevent upgrading from macOS 12 and older ahead of an upcoming Electron update that drops support for it - #22800"
+    ],
+    "3.6.5-beta2": [
+      "[Fixed] Detect RStudio installations made by the new Windows installer that registers uninstall entries per-user or in the 64-bit machine-wide location - #22774",
+      "[Fixed] Keep the image diff \"Difference\" mode from showing false green artifacts caused by sub-pixel misalignment - #21535. Thanks @jackfreem!",
+      "[Fixed] Re-enable repository menu items after cancelling a rebase from the local changes overwritten dialog - #22536. Thanks @iamarjunsuresh!",
+      "[Fixed] Preserve existing branch protection information when GitHub API requests fail - #22655. Thanks @agisilaos!",
+      "[Improved] Prevent upgrading from macOS 12 and older ahead of an upcoming Electron update that drops support for it - #22800"
+    ],
+    "3.6.5-beta1": [
+      "[Fixed] Hooks taking input via stdin no longer error on Windows - #22620",
+      "[Improved] Update Git for Windows to v2.53.0.windows.4",
+      "[Improved] Update Git Credential Manager to 2.9.0"
+    ],
+    "3.6.4": [
+      "[Improved] Update Git for Windows to v2.53.0.windows.4",
+      "[Improved] Update Git Credential Manager to 2.9.0"
+    ],
+    "3.6.4-beta2": [
+      "[Fixed] Restore keyboard focus to the control that opened a nested dialog after that nested dialog is dismissed, fixing an accessibility focus-order issue",
+      "[Fixed] Persist the main worktree path so Desktop can recover a repository after a linked worktree is removed, even after git prunes its worktree metadata. Thanks @francisrath!"
+    ],
+    "3.6.4-beta1": [
+      "[Added] Add Copilot usage info, moving custom provider configuration into a link from the Copilot model picker and adding better support for accounts with multiple Copilot licenses",
+      "[Fixed] Disable Continue in the Copilot conflict resolution dialog until every file skipped by Copilot (e.g. minified or oversized conflicts) has been resolved, and list those files separately for manual resolution",
+      "[Fixed] Stop Copilot from overwriting a conflicted file's manual resolution when the user already removed the conflict markers themselves before clicking Continue",
+      "[Fixed] Copilot conflict resolution now surfaces the underlying error (sign-in, network, rate limit, timeout) instead of a generic \"returned no results\" message",
+      "[Fixed] Show correct expanded context and syntax highlighting for resolved lines in the Copilot conflicts Changes tab instead of unrelated content",
+      "[Fixed] Screen readers now announce the group label ('Main Worktree' / 'Linked Worktrees') for items in the worktree list",
+      "[Fixed] Show an error message instead of an endless loading spinner when a file's diff fails to load in the Copilot conflicts Changes tab",
+      "[Improved] Copilot conflict resolution now handles delete-vs-modify conflicts, suggesting \"keep\" or \"delete\" for files deleted on one branch and modified on the other"
+    ],
+    "3.6.3": [
+      "[Fixed] Resolve error that prevented Copilot-based features from working correctly on Windows - #22509",
+      "[Fixed] Keep commit message @-mention autocomplete from surfacing users without a profile name when typing queries like \"@null\" - #22414. Thanks @sukanth!",
+      "[Fixed] Resolve a crash where the truncated repository path text could enter an infinite re-render loop - #22458",
+      "[Fixed] Fall back to the main worktree so a repository no longer appears as missing when its linked worktree folder was deleted outside Desktop - #22474",
+      "[Fixed] Keep files visible in the Changes list after Desktop returns from being backgrounded - #22497",
+      "[Fixed] Show an error dialog instead of silently doing nothing when Copilot fails to generate a commit message due to a Git error - #22496",
+      "[Fixed] Copilot sessions from generating commit messages or resolving conflicts do not show up in VS Code - #22443",
+      "[Fixed] Repository list scrolling no longer gets stuck or jitters when scrolling over tall groups (e.g. large organizations) - #22438. Thanks @peteski22!",
+      "[Improved] Clarify the line-ending conversion warning to explain that Git will automatically convert the file's line endings on next checkout, with a link to learn more - #21446. Thanks @Whitebrim!"
+    ],
+    "3.6.3-beta3": [
+      "[Fixed] Resolve error that prevented Copilot-based features from working correctly on Windows - #22509",
+      "[Fixed] Keep commit message @-mention autocomplete from surfacing users without a profile name when typing queries like \"@null\" - #22414. Thanks @sukanth!"
+    ],
+    "3.6.3-beta2": [
+      "[Fixed] Resolve a crash where the truncated repository path text could enter an infinite re-render loop - #22458",
+      "[Fixed] Fall back to the main worktree so a repository no longer appears as missing when its linked worktree folder was deleted outside Desktop - #22474",
+      "[Fixed] Keep files visible in the Changes list after Desktop returns from being backgrounded - #22497",
+      "[Fixed] Show an error dialog instead of silently doing nothing when Copilot fails to generate a commit message due to a git error - #22496",
+      "[Fixed] Copilot sessions from generating commit messages or resolving conflicts do not show up in VS Code - #22443"
+    ],
+    "3.6.3-beta1": [
+      "[Fixed] Repository list scrolling no longer gets stuck or jitters when scrolling over tall groups (e.g. large organizations) - #22438. Thanks @peteski22!",
+      "[Improved] Clarify the line-ending conversion warning to explain that Git will automatically convert the file's line endings on next checkout, with a link to learn more - #21446. Thanks @Whitebrim!"
+    ],
+    "3.6.2": [
+      "[Fixed] Invoking Desktop from the command line inside a worktree now opens the existing repository with the worktree selected instead of prompting to add a new repository - #22378",
+      "[Fixed] Scrolling no longer gets stuck when the pointer is over a tall group in the repository list - #22387. Thanks @peteski22!"
+    ],
+    "3.6.2-beta1": [
+      "[Fixed] Middle-clicking a diff hunk gutter does not select or deselect lines - #22432",
+      "[Fixed] Invoking Desktop from the command line inside a worktree now opens the existing repository with the worktree selected instead of prompting to add a new repository - #22416",
+      "[Fixed] Copilot sessions from generating commit messages or resolving conflicts do not show up in VS Code - #22410",
+      "[Fixed] Resolve issue where git hooks that shell out to git could break due to an incorrect GIT_EXEC_PATH on macOS - #22411"
+    ],
+    "3.6.1": [
+      "[Fixed] Copilot Max plan users are recognized correctly - #22400",
+      "[Fixed] The default Copilot model is Auto",
+      "[Fixed] Improved loading times for Copilot features - #22394",
+      "[Fixed] Copilot model picker no longer extends beyond window dimensions in small window sizes - #22391"
+    ],
+    "3.6.1-beta2": [
+      "[Fixed] Copilot Max plan users are recognized correctly - #22400"
+    ],
+    "3.6.1-beta1": [
+      "[Fixed] The default Copilot model is Auto",
+      "[Fixed] Improved loading times for Copilot features - #22394",
+      "[Fixed] Copilot model picker no longer extends beyond window dimensions in small window sizes - #22391"
+    ],
+    "3.6.0": [
+      "[New] Git worktree support for managing multiple working directories of the same repository - #22102. Thanks @devxoul!",
+      "[New] Resolve merge conflicts with Copilot - #22265",
+      "[Added] Allow users to stop an ongoing request to generate a commit message with Copilot - #22324. Thanks @say25!",
+      "[Fixed] Recover conflict dialog from permanently frozen state when conflict state becomes invalid, preventing users from needing to restart the app - #22348",
+      "[Fixed] Fix Warp terminal detection on Windows to support the new Warp registry path with fallback to the legacy path - #22264. Thanks @Cocodrulo!",
+      "[Fixed] Items in lists such as branches and changed files are properly announced by screen readers on Windows - #22219",
+      "[Fixed] No longer prompts to initialize Git LFS for repositories that use non-LFS Git filters - #22180. Thanks @RonanLB!",
+      "[Fixed] Remove misleading pointer cursor from the example link preview in Accessibility preferences - #22244",
+      "[Improved] Update Electron to version 42.0.1 - #22104"
+    ],
+    "3.5.13-beta4": [
+      "[Fixed] Worktree list is updated after after renaming or deleting worktrees - #22335 Thanks @pol-rivero!",
+      "[Fixed] The toolbar correctly calculates available space when worktree dropdown isn't visible - #22356. Thanks @pol-rivero!",
+      "[Fixed] Toolbar space allocation calculates available space based on order of toolbar buttons - #22364. Thanks @pol-rivero!",
+      "[Fixed] Resolve issue where error messages in the Preferences dialog were not displayed correctly - #22363"
+    ],
+    "3.5.13-beta3": [
+      "[Fixed] Recover conflict dialog from permanently frozen state when conflict state becomes invalid, preventing users from needing to restart the app - #22348",
+      "[Fixed] Resolve Copilot conflict resolution data loss where file content outside conflicted regions was overwritten when using AI-assisted conflict resolution - #22349"
+    ],
+    "3.5.13-beta2": [
+      "[Added] Add 'Always use Copilot when conflicts are detected' setting and a nudge dialog that appears after five manual uses to encourage enabling it - #22285",
+      "[Added] Add the Copilot conflict resolution Changes tab, allowing users to see a diff of Copilot's suggested resolution - #22333",
+      "[Added] Allow users to stop an ongoing request to generate a commit message with Copilot - #22324. Thanks @say25!",
+      "[Fixed] Fix Warp terminal detection on Windows to support the new Warp registry path with fallback to the legacy path - #22264. Thanks @Cocodrulo!"
+    ],
+    "3.5.13-beta1": [
+      "[New] Resolve merge conflicts with Copilot - #22265",
+      "[New] Git worktree support for managing multiple working directories of the same repository - #22102",
+      "[Fixed] Items in lists such as branches and changed files are properly announced by screen readers on Windows - #22219",
+      "[Fixed] No longer prompts to initialize Git LFS for repositories that use non-LFS Git filters - #22180. Thanks @RonanLB!",
+      "[Fixed] Remove misleading pointer cursor from the example link preview in Accessibility preferences - #22244"
+    ],
     "3.5.12": [
       "[Fixed] Items in lists such as branches and changed files are properly announced by screen readers on Windows - #22219"
     ],

@@ -1,12 +1,12 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import type { ModelInfo } from '@github/copilot-sdk'
+import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
 import { getConflictResolutionModelDisplay } from '../../src/lib/copilot/conflict-resolution-model'
 import { encodeModelKey, IBYOKProvider } from '../../src/lib/copilot/byok'
 
 function makeModel(
-  overrides: Partial<ModelInfo> & Pick<ModelInfo, 'id' | 'name'>
-): ModelInfo {
+  overrides: Partial<Model> & Pick<Model, 'id' | 'name'>
+): Model {
   return {
     capabilities: {
       supports: { vision: false, reasoningEffort: false },
@@ -17,8 +17,8 @@ function makeModel(
 }
 
 const defaultModel = makeModel({
-  id: 'gpt-5-mini',
-  name: 'GPT-5 mini',
+  id: 'auto',
+  name: 'Auto',
   supportedReasoningEfforts: ['low', 'medium', 'high'],
 })
 
@@ -51,7 +51,7 @@ describe('getConflictResolutionModelDisplay', () => {
   it('falls back to the default model and effort when nothing is selected', () => {
     const result = getConflictResolutionModelDisplay(null, copilotModels, [])
     assert.deepStrictEqual(result, {
-      modelName: 'GPT-5 mini',
+      modelName: 'Auto',
       reasoningEffort: 'medium',
     })
   })
@@ -59,7 +59,7 @@ describe('getConflictResolutionModelDisplay', () => {
   it('omits the effort when the model list has not loaded', () => {
     const result = getConflictResolutionModelDisplay(null, null, [])
     assert.deepStrictEqual(result, {
-      modelName: 'GPT-5 mini',
+      modelName: 'Auto',
       reasoningEffort: undefined,
     })
   })
@@ -154,7 +154,7 @@ describe('getConflictResolutionModelDisplay', () => {
       []
     )
     assert.deepStrictEqual(result, {
-      modelName: 'GPT-5 mini',
+      modelName: 'Auto',
       reasoningEffort: 'medium',
     })
   })

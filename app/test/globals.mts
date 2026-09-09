@@ -42,8 +42,10 @@ Object.assign(globalThis, {
 
 mock.module('electron', {
   namedExports: {
-    clipboard: { writeText: () => {} },
     shell: {},
-    ipcRenderer: { on: mock.fn(x => {}) },
+    ipcRenderer: {
+      invoke: mock.fn(async () => {}),
+      on: mock.fn(x => {}),
+    },
   },
 })

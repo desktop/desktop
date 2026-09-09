@@ -29,6 +29,14 @@ export function formatNumber(value: number, fmt?: INumberFormat): string {
   const isNegative = value < 0
   const abs = Math.abs(value)
   const [intPart, decPart] = abs.toString().split('.')
+  let truncatedDecPart: string | undefined = decPart
+
+  if (fmt.maximumFractionDigits !== undefined && decPart !== undefined) {
+    truncatedDecPart = decPart.slice(0, fmt.maximumFractionDigits)
+    if (truncatedDecPart.length === 0) {
+      truncatedDecPart = undefined
+    }
+  }
 
   // Insert a placeholder character for thousands groupings, then replace with
   // the configured separator. The regex matches positions that are followed by
@@ -37,8 +45,8 @@ export function formatNumber(value: number, fmt?: INumberFormat): string {
   const formattedInt = grouped.replace(/\x00/g, fmt.thousandsSeparator)
 
   const result =
-    decPart !== undefined
-      ? `${formattedInt}${fmt.decimalSeparator}${decPart}`
+    truncatedDecPart !== undefined
+      ? `${formattedInt}${fmt.decimalSeparator}${truncatedDecPart}`
       : formattedInt
 
   return isNegative ? `-${result}` : result
