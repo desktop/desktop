@@ -541,7 +541,7 @@ function buildStatsPayload(body: Record<string, any>): object {
     if (value === undefined) {
       continue
     } else if (typeof value === 'number') {
-      measures[key] = value
+      measures[key] = Math.round(value)
     } else {
       dimensions[key] = String(value)
     }
@@ -767,7 +767,7 @@ export class StatsStore implements IStatsStore {
 
     return {
       eventType: 'usage',
-      version: getVersion(),
+      version: __RELEASE_CHANNEL__ === 'development' ? 'dev' : getVersion(),
       osVersion: getOS(),
       platform: process.platform,
       architecture: await getAppArchitecture(),

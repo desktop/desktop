@@ -110,6 +110,11 @@ describe('StatsStore', () => {
 
     const store = new StatsStore(statsDb, activityMonitor)
     await store.increment('commits')
+    await store.recordLaunchStats({
+      mainReadyTime: 112.29,
+      loadTime: 15481.89,
+      rendererReadyTime: 7216.25,
+    })
 
     assert.strictEqual(await store.sendStats([], []), true)
     assert.strictEqual(
@@ -122,6 +127,10 @@ describe('StatsStore', () => {
     assert.strictEqual(payload.events[0].app, 'desktop')
     assert.strictEqual(payload.events[0].event_type, 'usage')
     assert.strictEqual(payload.events[0].measures.commits, 1)
-    assert.strictEqual(typeof payload.events[0].dimensions.version, 'string')
+    assert.strictEqual(payload.events[0].measures.mainReadyTime, 112)
+    assert.strictEqual(payload.events[0].measures.loadTime, 15482)
+    assert.strictEqual(payload.events[0].measures.rendererReadyTime, 7216)
+    assert.strictEqual(payload.events[0].dimensions.version, 'dev')
+    assert.ok(Buffer.byteLength(requestBody ?? '') < 16 * 1024)
   })
 })
