@@ -20,6 +20,7 @@ import { IOAuthAction } from '../parse-app-url'
 import { shell } from '../app-shell'
 import noop from 'lodash/noop'
 import { AccountsStore } from './accounts-store'
+import { isGHES } from '../endpoint-capabilities'
 
 /**
  * An enumeration of the possible steps that the sign in
@@ -27,6 +28,7 @@ import { AccountsStore } from './accounts-store'
  */
 export enum SignInStep {
   EndpointEntry = 'EndpointEntry',
+  ConfirmEndpoint = 'ConfirmEndpoint',
   ExistingAccountWarning = 'ExistingAccountWarning',
   Authentication = 'Authentication',
   TwoFactorAuthentication = 'TwoFactorAuthentication',
@@ -39,6 +41,7 @@ export enum SignInStep {
  */
 export type SignInState =
   | IEndpointEntryState
+  | IConfirmEndpointState
   | IExistingAccountWarning
   | IAuthenticationState
   | ISuccessState
@@ -99,6 +102,12 @@ export interface IExistingAccountWarning extends ISignInState {
 export interface IEndpointEntryState extends ISignInState {
   readonly kind: SignInStep.EndpointEntry
   readonly resultCallback: (result: SignInResult) => void
+}
+
+/** A server requested by Git which the user must confirm before signing in. */
+export interface IConfirmEndpointState extends ISignInState {
+  readonly kind: SignInStep.ConfirmEndpoint
+  readonly endpoint: string
 }
 
 /**
@@ -379,23 +388,21 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   }
 
   /**
-   * Attempt to advance from the EndpointEntry step with the given endpoint
-   * url. This method must only be called when the store is in the authentication
-   * step or an error will be thrown.
+   * Select an endpoint from the entry, confirmation, or existing-account step.
    *
-   * The provided endpoint url will be validated for syntactic correctness as
-   * well as connectivity before the promise resolves. If the endpoint url is
-   * invalid or the host can't be reached the promise will be rejected and the
-   * sign in state updated with an error to be presented to the user.
-   *
-   * If validation is successful the store will advance to the authentication
-   * step.
+   * Invalid URLs leave the current step with an error. When requireConfirmation
+   * is true, a new Enterprise Server endpoint must be confirmed by the user
+   * before advancing to authentication.
    */
-  public async setEndpoint(url: string): Promise<void> {
+  public async setEndpoint(
+    url: string,
+    requireConfirmation = false
+  ): Promise<void> {
     const currentState = this.state
 
     if (
       currentState?.kind !== SignInStep.EndpointEntry &&
+      currentState?.kind !== SignInStep.ConfirmEndpoint &&
       currentState?.kind !== SignInStep.ExistingAccountWarning
     ) {
       const stepText = currentState ? currentState.kind : 'null'
@@ -449,7 +456,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       })
     } else {
       this.setState({
-        kind: SignInStep.Authentication,
+        kind:
+          requireConfirmation && isGHES(endpoint)
+            ? SignInStep.ConfirmEndpoint
+            : SignInStep.Authentication,
         endpoint,
         error: null,
         loading: false,

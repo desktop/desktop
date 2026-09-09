@@ -15,6 +15,10 @@ import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
 import { Ref } from '../lib/ref'
 import { getHTMLURL } from '../../lib/api'
+import {
+  EnterpriseServerConfirmation,
+  trustEnterpriseServerLabel,
+} from '../lib/enterprise-server-confirmation'
 
 interface ISignInProps {
   readonly dispatcher: Dispatcher
@@ -89,6 +93,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       case SignInStep.EndpointEntry:
         this.props.dispatcher.setSignInEndpoint(this.state.endpoint)
         break
+      case SignInStep.ConfirmEndpoint:
+        this.props.dispatcher.setSignInEndpoint(state.endpoint)
+        break
       case SignInStep.ExistingAccountWarning:
         this.props.dispatcher
           .removeAccount(state.existingAccount)
@@ -128,6 +135,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       case SignInStep.EndpointEntry:
         disableSubmit = this.state.endpoint.length === 0
         primaryButtonText = 'Continue'
+        break
+      case SignInStep.ConfirmEndpoint:
+        primaryButtonText = trustEnterpriseServerLabel
         break
       case SignInStep.ExistingAccountWarning:
         primaryButtonText = continueWithBrowserLabel
@@ -209,6 +219,12 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     switch (state.kind) {
       case SignInStep.EndpointEntry:
         return this.renderEndpointEntryStep(state)
+      case SignInStep.ConfirmEndpoint:
+        return (
+          <DialogContent>
+            <EnterpriseServerConfirmation endpoint={state.endpoint} />
+          </DialogContent>
+        )
       case SignInStep.ExistingAccountWarning:
         return this.renderExistingAccountWarningStep(state)
       case SignInStep.Authentication:
@@ -232,7 +248,11 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     ) : null
 
     const title =
-      this.props.signInState.kind === SignInStep.Authentication
+      state.kind === SignInStep.ConfirmEndpoint
+        ? __DARWIN__
+          ? 'Confirm Enterprise Server'
+          : 'Confirm enterprise server'
+        : state.kind === SignInStep.Authentication
         ? SignInWithBrowserTitle
         : DefaultTitle
 

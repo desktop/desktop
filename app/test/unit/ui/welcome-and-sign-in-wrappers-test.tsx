@@ -1,32 +1,70 @@
 import assert from 'node:assert'
-import { describe, it } from 'node:test'
+import { afterEach, beforeEach, describe, it } from 'node:test'
 import * as React from 'react'
 
 import { Account } from '../../../src/models/account'
 import type {
   IAuthenticationState,
+  IConfirmEndpointState,
   IEndpointEntryState,
   IExistingAccountWarning,
 } from '../../../src/lib/stores/sign-in-store'
-import { SignInStep } from '../../../src/lib/stores/sign-in-store'
+import {
+  SignInStep,
+  SignInStore,
+  SignInResult,
+} from '../../../src/lib/stores/sign-in-store'
 import type { Dispatcher } from '../../../src/ui/dispatcher'
 import { ConfigureGit } from '../../../src/ui/welcome/configure-git'
 import { SignInEnterprise } from '../../../src/ui/welcome/sign-in-enterprise'
 import { SignIn } from '../../../src/ui/lib/sign-in'
-import { fireEvent, render, screen } from '../../helpers/ui/render'
+import { SignIn as SignInDialog } from '../../../src/ui/sign-in/sign-in'
+import { trampolineUIHelper } from '../../../src/lib/trampoline/trampoline-ui-helper'
+import { Popup, PopupType } from '../../../src/models/popup'
+import { createTestSignInStore } from '../../helpers/app-store-test-harness'
+import { fireEvent, render, screen, waitFor } from '../../helpers/ui/render'
 
 function noopResultCallback() {}
 
 class TestDispatcher {
   public readonly enteredEndpoints = new Array<string>()
+  public readonly endpointConfirmations = new Array<boolean>()
+  public readonly popups = new Array<Popup>()
   public browserSignInCount = 0
+  public resetCount = 0
+  public closedPopupCount = 0
 
-  public setSignInEndpoint(url: string) {
+  public constructor(private readonly signInStore?: SignInStore) {}
+
+  public async setSignInEndpoint(url: string, requireConfirmation = false) {
     this.enteredEndpoints.push(url)
+    this.endpointConfirmations.push(requireConfirmation)
+    await this.signInStore?.setEndpoint(url, requireConfirmation)
   }
 
   public requestBrowserAuthentication() {
     this.browserSignInCount++
+  }
+
+  public beginEnterpriseSignIn(callback?: (result: SignInResult) => void) {
+    this.signInStore?.beginEnterpriseSignIn(callback)
+  }
+
+  public beginDotComSignIn(callback?: (result: SignInResult) => void) {
+    this.signInStore?.beginDotComSignIn(callback)
+  }
+
+  public resetSignInState() {
+    this.resetCount++
+    this.signInStore?.reset()
+  }
+
+  public showPopup(popup: Popup) {
+    this.popups.push(popup)
+  }
+
+  public closePopup() {
+    this.closedPopupCount++
   }
 }
 
@@ -53,6 +91,16 @@ function createAuthenticationState(endpoint: string): IAuthenticationState {
   }
 }
 
+function createConfirmationState(): IConfirmEndpointState {
+  return {
+    kind: SignInStep.ConfirmEndpoint,
+    endpoint: 'https://enterprise.example.com/api/v3',
+    error: null,
+    loading: false,
+    resultCallback: noopResultCallback,
+  }
+}
+
 function createExistingAccountWarningState(): IExistingAccountWarning {
   return {
     kind: SignInStep.ExistingAccountWarning,
@@ -73,6 +121,141 @@ function createExistingAccountWarningState(): IExistingAccountWarning {
 }
 
 describe('welcome and sign-in wrappers', () => {
+  let restoreIpcSend: (() => void) | undefined
+
+  beforeEach(async () => {
+    const electron = await import('electron')
+    const previousSend = electron.ipcRenderer.send
+    electron.ipcRenderer.send = () => {}
+    restoreIpcSend = () => {
+      electron.ipcRenderer.send = previousSend
+    }
+  })
+
+  afterEach(() => {
+    restoreIpcSend?.()
+  })
+
+  it('confirms the endpoint before offering browser sign-in in the shared wrapper', async () => {
+    const dispatcher = new TestDispatcher()
+    const state = createConfirmationState()
+    render(
+      <SignIn signInState={state} dispatcher={toDispatcher(dispatcher)}>
+        <button type="button">Cancel</button>
+      </SignIn>
+    )
+
+    assert.ok(screen.getByText('https://enterprise.example.com'))
+    assert.strictEqual(
+      screen.queryByRole('link', { name: /sign in using your browser/i }),
+      null
+    )
+    fireEvent.click(screen.getByRole('button', { name: /trust server/i }))
+
+    assert.deepStrictEqual(dispatcher.enteredEndpoints, [state.endpoint])
+    assert.deepStrictEqual(dispatcher.endpointConfirmations, [false])
+    assert.strictEqual(dispatcher.browserSignInCount, 0)
+  })
+
+  it('shows the Git-requested server before allowing browser sign-in', async () => {
+    const store = createTestSignInStore()
+    const dispatcher = new TestDispatcher(store)
+    trampolineUIHelper.setDispatcher(toDispatcher(dispatcher))
+    const result = trampolineUIHelper.promptForGitHubSignIn(
+      'https://enterprise.example.com/team/project.git'
+    )
+    await waitFor(() => assert.strictEqual(dispatcher.popups.length, 1))
+
+    assert.strictEqual(store.getState()?.kind, SignInStep.ConfirmEndpoint)
+    assert.deepStrictEqual(dispatcher.endpointConfirmations, [true])
+    assert.strictEqual(dispatcher.popups[0].type, PopupType.SignIn)
+
+    const view = render(
+      <SignInDialog
+        signInState={store.getState()}
+        dispatcher={toDispatcher(dispatcher)}
+        onDismissed={noopResultCallback}
+        isCredentialHelperSignIn={true}
+        credentialHelperUrl="https://enterprise.example.com/team/project.git"
+      />
+    )
+
+    assert.ok(screen.getByText('https://enterprise.example.com'))
+    assert.ok(screen.getByText(/Only continue if you recognize and trust it/))
+    assert.strictEqual(
+      screen.queryByRole('button', {
+        name: /continue with browser/i,
+        hidden: true,
+      }),
+      null
+    )
+    assert.strictEqual(dispatcher.browserSignInCount, 0)
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /trust server/i, hidden: true })
+    )
+    await waitFor(() =>
+      assert.strictEqual(store.getState()?.kind, SignInStep.Authentication)
+    )
+    assert.strictEqual(dispatcher.browserSignInCount, 0)
+    assert.deepStrictEqual(dispatcher.enteredEndpoints, [
+      'https://enterprise.example.com',
+      'https://enterprise.example.com/api/v3',
+    ])
+
+    view.rerender(
+      <SignInDialog
+        signInState={store.getState()}
+        dispatcher={toDispatcher(dispatcher)}
+        onDismissed={noopResultCallback}
+        isCredentialHelperSignIn={true}
+        credentialHelperUrl="https://enterprise.example.com/team/project.git"
+      />
+    )
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /continue with browser/i,
+        hidden: true,
+      })
+    )
+    assert.strictEqual(dispatcher.browserSignInCount, 1)
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Cancel', hidden: true })
+    )
+    assert.strictEqual(await result, undefined)
+    assert.strictEqual(dispatcher.closedPopupCount, 1)
+  })
+
+  it('cancels the Git credential request without opening the browser', async () => {
+    const store = createTestSignInStore()
+    const dispatcher = new TestDispatcher(store)
+    trampolineUIHelper.setDispatcher(toDispatcher(dispatcher))
+    const result = trampolineUIHelper.promptForGitHubSignIn(
+      'https://enterprise.example.com/team/project.git'
+    )
+    await waitFor(() => assert.strictEqual(dispatcher.popups.length, 1))
+    let dismissedCount = 0
+    render(
+      <SignInDialog
+        signInState={store.getState()}
+        dispatcher={toDispatcher(dispatcher)}
+        onDismissed={() => dismissedCount++}
+        isCredentialHelperSignIn={true}
+      />
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Cancel', hidden: true })
+    )
+
+    assert.strictEqual(await result, undefined)
+    assert.strictEqual(store.getState(), null)
+    assert.strictEqual(dispatcher.resetCount, 1)
+    assert.strictEqual(dismissedCount, 1)
+    assert.strictEqual(dispatcher.browserSignInCount, 0)
+  })
+
   it('submits enterprise endpoints through the shared sign-in wrapper', () => {
     const dispatcher = new TestDispatcher()
 

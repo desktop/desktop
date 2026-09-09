@@ -128,6 +128,115 @@ describe('SignInStore', () => {
   })
 
   describe('setEndpoint', () => {
+    it('requires confirmation for a new Enterprise server requested by Git', async () => {
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('https://github.example.com', true)
+
+      assert.strictEqual(
+        signInStore.getState()?.kind,
+        SignInStep.ConfirmEndpoint
+      )
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.ConfirmEndpoint)
+      assert.strictEqual(state.endpoint, 'https://github.example.com/api/v3')
+      await assert.rejects(
+        signInStore.authenticateWithBrowser(),
+        /not compatible with browser authentication/
+      )
+    })
+
+    it('does not resolve OAuth callbacks while awaiting endpoint confirmation', async () => {
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('https://github.example.com', true)
+      const state = signInStore.getState()
+
+      await signInStore.resolveOAuthRequest({
+        name: 'oauth',
+        code: 'test-code',
+        state: 'test-state',
+      })
+
+      assert.strictEqual(signInStore.getState(), state)
+    })
+
+    it('advances to authentication after confirming the Enterprise endpoint', async () => {
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('https://github.example.com', true)
+      await signInStore.setEndpoint('https://github.example.com/api/v3')
+
+      const state = signInStore.getState()
+      assert.strictEqual(state?.kind, SignInStep.Authentication)
+      assert.ok(state && 'endpoint' in state)
+      assert.strictEqual(state.endpoint, 'https://github.example.com/api/v3')
+    })
+
+    it('cancels the pending sign-in when endpoint confirmation is dismissed', async () => {
+      const results: string[] = []
+      signInStore.beginEnterpriseSignIn(result => results.push(result.kind))
+      await signInStore.setEndpoint('https://github.example.com', true)
+
+      assert.strictEqual(
+        signInStore.getState()?.kind,
+        SignInStep.ConfirmEndpoint
+      )
+      signInStore.reset()
+
+      assert.strictEqual(signInStore.getState(), null)
+      assert.deepStrictEqual(results, ['cancelled'])
+    })
+
+    it('requires confirmation again after cancelling and starting a new sign-in', async () => {
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('https://github.example.com', true)
+      await signInStore.setEndpoint('https://github.example.com/api/v3')
+      signInStore.reset()
+
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('https://github.example.com', true)
+
+      assert.strictEqual(
+        signInStore.getState()?.kind,
+        SignInStep.ConfirmEndpoint
+      )
+    })
+
+    it('validates Git-requested endpoints before asking for confirmation', async () => {
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('http://github.example.com', true)
+
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.EndpointEntry)
+      assert.ok(state.error)
+      assert.strictEqual(state.loading, false)
+    })
+
+    for (const url of [
+      'https://github.com',
+      'https://api.github.com',
+      'https://example.ghe.com',
+    ]) {
+      it(`does not require endpoint confirmation for ${url}`, async () => {
+        signInStore.beginEnterpriseSignIn()
+        await signInStore.setEndpoint(url, true)
+
+        assert.strictEqual(
+          signInStore.getState()?.kind,
+          SignInStep.Authentication
+        )
+      })
+    }
+
+    it('keeps the existing-account warning for a known Enterprise endpoint', async () => {
+      await accountsStore.addAccount(createEnterpriseAccount())
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('https://github.example.com', true)
+
+      assert.strictEqual(
+        signInStore.getState()?.kind,
+        SignInStep.ExistingAccountWarning
+      )
+    })
+
     it('transitions to Authentication step for valid enterprise URL', async () => {
       signInStore.beginEnterpriseSignIn()
       await signInStore.setEndpoint('https://github.example.com')
