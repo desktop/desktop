@@ -5,7 +5,6 @@ import * as React from 'react'
 import { Account } from '../../../src/models/account'
 import type {
   IAuthenticationState,
-  IConfirmEndpointState,
   IEndpointEntryState,
   IExistingAccountWarning,
 } from '../../../src/lib/stores/sign-in-store'
@@ -28,7 +27,7 @@ function noopResultCallback() {}
 
 class TestDispatcher {
   public readonly enteredEndpoints = new Array<string>()
-  public readonly endpointConfirmations = new Array<boolean>()
+  public readonly confirmationGuidanceRequests = new Array<boolean>()
   public readonly popups = new Array<Popup>()
   public browserSignInCount = 0
   public resetCount = 0
@@ -36,10 +35,10 @@ class TestDispatcher {
 
   public constructor(private readonly signInStore?: SignInStore) {}
 
-  public async setSignInEndpoint(url: string, requireConfirmation = false) {
+  public async setSignInEndpoint(url: string, isEndpointFromGit = false) {
     this.enteredEndpoints.push(url)
-    this.endpointConfirmations.push(requireConfirmation)
-    await this.signInStore?.setEndpoint(url, requireConfirmation)
+    this.confirmationGuidanceRequests.push(isEndpointFromGit)
+    await this.signInStore?.setEndpoint(url, isEndpointFromGit)
   }
 
   public requestBrowserAuthentication() {
@@ -91,10 +90,11 @@ function createAuthenticationState(endpoint: string): IAuthenticationState {
   }
 }
 
-function createConfirmationState(): IConfirmEndpointState {
+function createConfirmationState(): IAuthenticationState {
   return {
-    kind: SignInStep.ConfirmEndpoint,
+    kind: SignInStep.Authentication,
     endpoint: 'https://enterprise.example.com/api/v3',
+    isUnrecognizedEnterpriseServer: true,
     error: null,
     loading: false,
     resultCallback: noopResultCallback,
@@ -136,7 +136,7 @@ describe('welcome and sign-in wrappers', () => {
     restoreIpcSend?.()
   })
 
-  it('confirms the endpoint before offering browser sign-in in the shared wrapper', async () => {
+  it('shows server guidance alongside browser sign-in in the shared wrapper', async () => {
     const dispatcher = new TestDispatcher()
     const state = createConfirmationState()
     render(
@@ -157,15 +157,13 @@ describe('welcome and sign-in wrappers', () => {
       screen.getByText(/Your organization may use a separate sign-in provider/)
     )
     assert.ok(screen.getByText(/Not sure\? Cancel and check/))
-    assert.strictEqual(
-      screen.queryByRole('link', { name: /sign in using your browser/i }),
-      null
+    fireEvent.click(
+      screen.getByRole('link', { name: /sign in using your browser/i })
     )
-    fireEvent.click(screen.getByRole('button', { name: /trust server/i }))
 
-    assert.deepStrictEqual(dispatcher.enteredEndpoints, [state.endpoint])
-    assert.deepStrictEqual(dispatcher.endpointConfirmations, [false])
-    assert.strictEqual(dispatcher.browserSignInCount, 0)
+    assert.deepStrictEqual(dispatcher.enteredEndpoints, [])
+    assert.deepStrictEqual(dispatcher.confirmationGuidanceRequests, [])
+    assert.strictEqual(dispatcher.browserSignInCount, 1)
   })
 
   it('shows the Git-requested server before allowing browser sign-in', async () => {
@@ -177,11 +175,13 @@ describe('welcome and sign-in wrappers', () => {
     )
     await waitFor(() => assert.strictEqual(dispatcher.popups.length, 1))
 
-    assert.strictEqual(store.getState()?.kind, SignInStep.ConfirmEndpoint)
-    assert.deepStrictEqual(dispatcher.endpointConfirmations, [true])
+    const signInState = store.getState()
+    assert.ok(signInState?.kind === SignInStep.Authentication)
+    assert.strictEqual(signInState.isUnrecognizedEnterpriseServer, true)
+    assert.deepStrictEqual(dispatcher.confirmationGuidanceRequests, [true])
     assert.strictEqual(dispatcher.popups[0].type, PopupType.SignIn)
 
-    const view = render(
+    render(
       <SignInDialog
         signInState={store.getState()}
         dispatcher={toDispatcher(dispatcher)}
@@ -206,7 +206,7 @@ describe('welcome and sign-in wrappers', () => {
     assert.ok(screen.getByText(/Only continue if you trust it/))
     assert.strictEqual(
       screen.queryByRole('button', {
-        name: /continue with browser/i,
+        name: /trust server/i,
         hidden: true,
       }),
       null
@@ -214,34 +214,15 @@ describe('welcome and sign-in wrappers', () => {
     assert.strictEqual(dispatcher.browserSignInCount, 0)
 
     fireEvent.click(
-      screen.getByRole('button', { name: /trust server/i, hidden: true })
-    )
-    await waitFor(() =>
-      assert.strictEqual(store.getState()?.kind, SignInStep.Authentication)
-    )
-    assert.strictEqual(dispatcher.browserSignInCount, 0)
-    assert.deepStrictEqual(dispatcher.enteredEndpoints, [
-      'https://enterprise.example.com',
-      'https://enterprise.example.com/api/v3',
-    ])
-
-    view.rerender(
-      <SignInDialog
-        signInState={store.getState()}
-        dispatcher={toDispatcher(dispatcher)}
-        onDismissed={noopResultCallback}
-        isCredentialHelperSignIn={true}
-        credentialHelperUrl="https://enterprise.example.com/team/project.git"
-      />
-    )
-    assert.notStrictEqual(screen.getByRole('dialog', { hidden: true }), null)
-    fireEvent.click(
       screen.getByRole('button', {
         name: /continue with browser/i,
         hidden: true,
       })
     )
     assert.strictEqual(dispatcher.browserSignInCount, 1)
+    assert.deepStrictEqual(dispatcher.enteredEndpoints, [
+      'https://enterprise.example.com',
+    ])
 
     fireEvent.click(
       screen.getByRole('button', { name: 'Cancel', hidden: true })

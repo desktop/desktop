@@ -12,12 +12,7 @@ import {
 } from '../../lib/stores'
 import { Ref } from './ref'
 import { getHTMLURL } from '../../lib/api'
-import {
-  EnterpriseServerConfirmation,
-  trustEnterpriseServerLabel,
-} from './enterprise-server-confirmation'
-import { Form } from './form'
-import { Button } from './button'
+import { EnterpriseServerConfirmation } from './enterprise-server-confirmation'
 
 interface ISignInProps {
   readonly signInState: SignInState
@@ -36,13 +31,6 @@ export class SignIn extends React.Component<ISignInProps, {}> {
 
   private onBrowserSignInRequested = () => {
     this.props.dispatcher.requestBrowserAuthentication()
-  }
-
-  private onEndpointConfirmed = () => {
-    const state = this.props.signInState
-    if (state.kind === SignInStep.ConfirmEndpoint) {
-      this.props.dispatcher.setSignInEndpoint(state.endpoint)
-    }
   }
 
   private renderExistingAccountWarningStep(state: IExistingAccountWarning) {
@@ -77,12 +65,20 @@ export class SignIn extends React.Component<ISignInProps, {}> {
     state: IAuthenticationState | IExistingAccountWarning
   ) {
     const children = this.props.children as ReadonlyArray<JSX.Element>
+    const confirmation =
+      state.kind === SignInStep.Authentication &&
+      state.isUnrecognizedEnterpriseServer ? (
+        <EnterpriseServerConfirmation endpoint={state.endpoint} />
+      ) : null
 
     return (
-      <AuthenticationForm
-        additionalButtons={children}
-        onBrowserSignInRequested={this.onBrowserSignInRequested}
-      />
+      <>
+        {confirmation}
+        <AuthenticationForm
+          additionalButtons={children}
+          onBrowserSignInRequested={this.onBrowserSignInRequested}
+        />
+      </>
     )
   }
 
@@ -93,18 +89,6 @@ export class SignIn extends React.Component<ISignInProps, {}> {
     switch (state.kind) {
       case SignInStep.EndpointEntry:
         return this.renderEndpointEntryStep(state)
-      case SignInStep.ConfirmEndpoint:
-        return (
-          <Form onSubmit={this.onEndpointConfirmed}>
-            <EnterpriseServerConfirmation endpoint={state.endpoint} />
-            <div className="actions">
-              <Button type="submit" disabled={state.loading}>
-                {trustEnterpriseServerLabel}
-              </Button>
-              {this.props.children}
-            </div>
-          </Form>
-        )
       case SignInStep.ExistingAccountWarning:
         return this.renderExistingAccountWarningStep(state)
       case SignInStep.Authentication:

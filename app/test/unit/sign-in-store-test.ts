@@ -128,24 +128,30 @@ describe('SignInStore', () => {
   })
 
   describe('setEndpoint', () => {
-    it('requires confirmation for a new Enterprise server requested by Git', async () => {
+    it('marks a new Enterprise server requested by Git for confirmation', async () => {
       signInStore.beginEnterpriseSignIn()
       await signInStore.setEndpoint('https://github.example.com', true)
 
-      assert.strictEqual(
-        signInStore.getState()?.kind,
-        SignInStep.ConfirmEndpoint
-      )
       const state = signInStore.getState()
-      assert.ok(state?.kind === SignInStep.ConfirmEndpoint)
+      assert.ok(state?.kind === SignInStep.Authentication)
       assert.strictEqual(state.endpoint, 'https://github.example.com/api/v3')
-      await assert.rejects(
-        signInStore.authenticateWithBrowser(),
-        /not compatible with browser authentication/
-      )
+      assert.strictEqual(state.isUnrecognizedEnterpriseServer, true)
     })
 
-    it('does not resolve OAuth callbacks while awaiting endpoint confirmation', async () => {
+    it('retains server confirmation guidance while opening the browser', async () => {
+      signInStore.beginEnterpriseSignIn()
+      await signInStore.setEndpoint('https://github.example.com', true)
+
+      await signInStore.authenticateWithBrowser()
+
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      assert.strictEqual(state.isUnrecognizedEnterpriseServer, true)
+      assert.notStrictEqual(state.oauthState, undefined)
+      signInStore.reset()
+    })
+
+    it('does not resolve OAuth callbacks before browser authentication', async () => {
       signInStore.beginEnterpriseSignIn()
       await signInStore.setEndpoint('https://github.example.com', true)
       const state = signInStore.getState()
@@ -159,48 +165,31 @@ describe('SignInStore', () => {
       assert.strictEqual(signInStore.getState(), state)
     })
 
-    it('advances to authentication after confirming the Enterprise endpoint', async () => {
-      signInStore.beginEnterpriseSignIn()
-      await signInStore.setEndpoint('https://github.example.com', true)
-      await signInStore.setEndpoint('https://github.example.com/api/v3')
-
-      const state = signInStore.getState()
-      assert.strictEqual(state?.kind, SignInStep.Authentication)
-      assert.ok(state && 'endpoint' in state)
-      assert.strictEqual(state.endpoint, 'https://github.example.com/api/v3')
-    })
-
-    it('cancels the pending sign-in when endpoint confirmation is dismissed', async () => {
+    it('cancels a Git-requested sign-in before opening the browser', async () => {
       const results: string[] = []
       signInStore.beginEnterpriseSignIn(result => results.push(result.kind))
       await signInStore.setEndpoint('https://github.example.com', true)
 
-      assert.strictEqual(
-        signInStore.getState()?.kind,
-        SignInStep.ConfirmEndpoint
-      )
       signInStore.reset()
 
       assert.strictEqual(signInStore.getState(), null)
       assert.deepStrictEqual(results, ['cancelled'])
     })
 
-    it('requires confirmation again after cancelling and starting a new sign-in', async () => {
+    it('shows guidance again after cancelling and starting a new sign-in', async () => {
       signInStore.beginEnterpriseSignIn()
       await signInStore.setEndpoint('https://github.example.com', true)
-      await signInStore.setEndpoint('https://github.example.com/api/v3')
       signInStore.reset()
 
       signInStore.beginEnterpriseSignIn()
       await signInStore.setEndpoint('https://github.example.com', true)
 
-      assert.strictEqual(
-        signInStore.getState()?.kind,
-        SignInStep.ConfirmEndpoint
-      )
+      const state = signInStore.getState()
+      assert.ok(state?.kind === SignInStep.Authentication)
+      assert.strictEqual(state.isUnrecognizedEnterpriseServer, true)
     })
 
-    it('validates Git-requested endpoints before asking for confirmation', async () => {
+    it('validates Git-requested endpoints before showing confirmation guidance', async () => {
       signInStore.beginEnterpriseSignIn()
       await signInStore.setEndpoint('http://github.example.com', true)
 
@@ -215,14 +204,13 @@ describe('SignInStore', () => {
       'https://api.github.com',
       'https://example.ghe.com',
     ]) {
-      it(`does not require endpoint confirmation for ${url}`, async () => {
+      it(`does not show server confirmation guidance for ${url}`, async () => {
         signInStore.beginEnterpriseSignIn()
         await signInStore.setEndpoint(url, true)
 
-        assert.strictEqual(
-          signInStore.getState()?.kind,
-          SignInStep.Authentication
-        )
+        const state = signInStore.getState()
+        assert.ok(state?.kind === SignInStep.Authentication)
+        assert.notStrictEqual(state.isUnrecognizedEnterpriseServer, true)
       })
     }
 

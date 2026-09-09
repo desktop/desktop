@@ -1695,16 +1695,16 @@ export class Dispatcher {
   }
 
   /**
-   * Select an endpoint from the entry, confirmation, or existing-account step.
+   * Select an endpoint from the entry or existing-account step.
    *
-   * Set requireConfirmation for endpoints supplied by Git so that new
-   * Enterprise Server endpoints are confirmed before authentication.
+   * Set isEndpointFromGit for endpoints supplied by Git so that browser
+   * authentication explains how to verify unfamiliar servers.
    */
   public setSignInEndpoint(
     url: string,
-    requireConfirmation = false
+    isEndpointFromGit = false
   ): Promise<void> {
-    return this.appStore._setSignInEndpoint(url, requireConfirmation)
+    return this.appStore._setSignInEndpoint(url, isEndpointFromGit)
   }
 
   public beginDotComSignIn(resultCallback: (result: SignInResult) => void) {

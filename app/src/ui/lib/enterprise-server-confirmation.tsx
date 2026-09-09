@@ -9,10 +9,6 @@ interface IEnterpriseServerConfirmationProps {
 export const enterpriseServerConfirmationDescriptionId =
   'enterprise-server-confirmation-description'
 
-export const trustEnterpriseServerLabel = __DARWIN__
-  ? 'Trust Server'
-  : 'Trust server'
-
 /** Explains the destination of an Enterprise sign-in requested by Git. */
 export class EnterpriseServerConfirmation extends React.Component<IEnterpriseServerConfirmationProps> {
   public render() {

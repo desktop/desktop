@@ -28,7 +28,6 @@ import { isGHES } from '../endpoint-capabilities'
  */
 export enum SignInStep {
   EndpointEntry = 'EndpointEntry',
-  ConfirmEndpoint = 'ConfirmEndpoint',
   ExistingAccountWarning = 'ExistingAccountWarning',
   Authentication = 'Authentication',
   TwoFactorAuthentication = 'TwoFactorAuthentication',
@@ -41,7 +40,6 @@ export enum SignInStep {
  */
 export type SignInState =
   | IEndpointEntryState
-  | IConfirmEndpointState
   | IExistingAccountWarning
   | IAuthenticationState
   | ISuccessState
@@ -104,12 +102,6 @@ export interface IEndpointEntryState extends ISignInState {
   readonly resultCallback: (result: SignInResult) => void
 }
 
-/** A server requested by Git which the user must confirm before signing in. */
-export interface IConfirmEndpointState extends ISignInState {
-  readonly kind: SignInStep.ConfirmEndpoint
-  readonly endpoint: string
-}
-
 /**
  * State interface representing the Authentication step where
  * the user provides credentials and/or initiates a browser
@@ -128,6 +120,9 @@ export interface IAuthenticationState extends ISignInState {
    * instance.
    */
   readonly endpoint: string
+
+  /** Whether Git supplied this unfamiliar Enterprise Server endpoint. */
+  readonly isUnrecognizedEnterpriseServer?: boolean
 
   readonly resultCallback: (result: SignInResult) => void
 
@@ -298,6 +293,10 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       this.setState({
         kind: SignInStep.Authentication,
         endpoint,
+        isUnrecognizedEnterpriseServer:
+          currentState.kind === SignInStep.Authentication
+            ? currentState.isUnrecognizedEnterpriseServer
+            : undefined,
         resultCallback,
         error: null,
         loading: true,
@@ -388,21 +387,20 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
   }
 
   /**
-   * Select an endpoint from the entry, confirmation, or existing-account step.
+   * Select an endpoint from the entry or existing-account step.
    *
-   * Invalid URLs leave the current step with an error. When requireConfirmation
-   * is true, a new Enterprise Server endpoint must be confirmed by the user
-   * before advancing to authentication.
+   * Invalid URLs leave the current step with an error. When isEndpointFromGit
+   * is true, the authentication state records unfamiliar Enterprise Server
+   * endpoints so the UI can explain how to verify them.
    */
   public async setEndpoint(
     url: string,
-    requireConfirmation = false
+    isEndpointFromGit = false
   ): Promise<void> {
     const currentState = this.state
 
     if (
       currentState?.kind !== SignInStep.EndpointEntry &&
-      currentState?.kind !== SignInStep.ConfirmEndpoint &&
       currentState?.kind !== SignInStep.ExistingAccountWarning
     ) {
       const stepText = currentState ? currentState.kind : 'null'
@@ -456,11 +454,9 @@ export class SignInStore extends TypedBaseStore<SignInState | null> {
       })
     } else {
       this.setState({
-        kind:
-          requireConfirmation && isGHES(endpoint)
-            ? SignInStep.ConfirmEndpoint
-            : SignInStep.Authentication,
+        kind: SignInStep.Authentication,
         endpoint,
+        isUnrecognizedEnterpriseServer: isEndpointFromGit && isGHES(endpoint),
         error: null,
         loading: false,
         resultCallback: currentState.resultCallback,

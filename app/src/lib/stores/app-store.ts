@@ -7964,9 +7964,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See 'Dispatcher'. */
   public _setSignInEndpoint(
     url: string,
-    requireConfirmation = false
+    isEndpointFromGit = false
   ): Promise<void> {
-    return this.signInStore.setEndpoint(url, requireConfirmation)
+    return this.signInStore.setEndpoint(url, isEndpointFromGit)
   }
 
   public _requestBrowserAuthentication() {
