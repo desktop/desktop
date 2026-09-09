@@ -293,6 +293,12 @@ import {
   getFloatNumber,
 } from '../local-storage'
 import { ExternalEditorError, suggestedExternalEditor } from '../editors/shared'
+import {
+  CopilotAppError,
+  findCopilotApp,
+  openInCopilotApp,
+  validateCopilotAppPath,
+} from '../copilot-app'
 import { ApiRepositoriesStore } from './api-repositories-store'
 import {
   updateChangedFiles,
@@ -303,6 +309,7 @@ import { ManualConflictResolution } from '../../models/manual-conflict-resolutio
 import { BranchPruner } from './helpers/branch-pruner'
 import {
   enableCopilotConflictResolution,
+  enableCopilotAppHandoff,
   enableCopilotSdkCommitMessageGeneration,
   enableCustomIntegration,
   enableWorktreeSupport,
@@ -543,6 +550,7 @@ const pullRequestSuggestedNextActionKey =
 
 export const useCustomEditorKey = 'use-custom-editor'
 const customEditorKey = 'custom-editor'
+const copilotAppPathKey = 'copilot-app-path'
 
 export const useCustomShellKey = 'use-custom-shell'
 const customShellKey = 'custom-shell'
@@ -711,6 +719,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   private useCustomEditor: boolean = false
   private customEditor: ICustomIntegration | null = null
+  private openingCopilotApp = false
 
   private useCustomShell: boolean = false
   private customShell: ICustomIntegration | null = null
@@ -7626,6 +7635,54 @@ export class AppStore extends TypedBaseStore<IAppState> {
       }
     } catch (error) {
       this.emitError(error)
+    }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _openInCopilotApp(
+    repositoryPath: string,
+    selectedAppPath?: string
+  ): Promise<void> {
+    if (!enableCopilotAppHandoff() || this.openingCopilotApp) {
+      log.debug('Ignoring unavailable or already pending Copilot app handoff')
+      return
+    }
+
+    this.openingCopilotApp = true
+    let appPath = selectedAppPath
+    try {
+      const savedPath = localStorage.getItem(copilotAppPathKey)
+      appPath =
+        selectedAppPath ??
+        (savedPath !== null && (await validateCopilotAppPath(savedPath))
+          ? savedPath
+          : (await findCopilotApp()) ?? undefined)
+      if (appPath === undefined) {
+        throw new CopilotAppError(
+          'not-found',
+          "GitHub Desktop couldn't find GitHub Copilot. Choose the app's location or download it to get started."
+        )
+      }
+
+      await openInCopilotApp(appPath, repositoryPath)
+      // Remember only an explicitly chosen app which accepted the handoff.
+      if (selectedAppPath !== undefined) {
+        localStorage.setItem(copilotAppPathKey, selectedAppPath)
+      }
+    } catch (error) {
+      log.error('Could not hand off to GitHub Copilot', error)
+      if (error instanceof CopilotAppError) {
+        this._showPopup({
+          type: PopupType.CopilotAppFailed,
+          repositoryPath,
+          appPath,
+          message: error.message,
+        })
+      } else {
+        this.emitError(error)
+      }
+    } finally {
+      this.openingCopilotApp = false
     }
   }
 

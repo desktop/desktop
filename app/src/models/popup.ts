@@ -52,6 +52,7 @@ export enum PopupType {
   CLIInstalled = 'CLIInstalled',
   GenericGitAuthentication = 'GenericGitAuthentication',
   ExternalEditorFailed = 'ExternalEditorFailed',
+  CopilotAppFailed = 'CopilotAppFailed',
   OpenWithExternalEditor = 'OpenWithExternalEditor',
   OpenShellFailed = 'OpenShellFailed',
   InitializeLFS = 'InitializeLFS',
@@ -226,6 +227,12 @@ export type PopupDetail =
       onDismiss: () => void
     }
   | { type: PopupType.OpenWithExternalEditor }
+  | {
+      type: PopupType.CopilotAppFailed
+      repositoryPath: string
+      message: string
+      appPath?: string
+    }
   | {
       type: PopupType.ExternalEditorFailed
       message: string

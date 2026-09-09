@@ -1631,6 +1631,14 @@ export class Dispatcher {
     return this.appStore._openInExternalEditor(fullPath)
   }
 
+  /** Open the selected checkout in the GitHub Copilot app. */
+  public openInCopilotApp(
+    repositoryPath: string,
+    appPath?: string
+  ): Promise<void> {
+    return this.appStore._openInCopilotApp(repositoryPath, appPath)
+  }
+
   /**
    * Opens a path in a selected external editor without changing preferences.
    */
