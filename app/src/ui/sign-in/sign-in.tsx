@@ -17,6 +17,7 @@ import { Ref } from '../lib/ref'
 import { getHTMLURL } from '../../lib/api'
 import {
   EnterpriseServerConfirmation,
+  enterpriseServerConfirmationDescriptionId,
   trustEnterpriseServerLabel,
 } from '../lib/enterprise-server-confirmation'
 
@@ -256,6 +257,14 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         ? SignInWithBrowserTitle
         : DefaultTitle
 
+    const confirmationDialogProps =
+      state.kind === SignInStep.ConfirmEndpoint
+        ? {
+            role: 'alertdialog' as const,
+            ariaDescribedBy: enterpriseServerConfirmationDescriptionId,
+          }
+        : {}
+
     return (
       <Dialog
         id="sign-in"
@@ -265,6 +274,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         onSubmit={this.onSubmit}
         loading={state.loading}
         ref={this.dialogRef}
+        {...confirmationDialogProps}
       >
         {errors}
         {this.renderStep()}

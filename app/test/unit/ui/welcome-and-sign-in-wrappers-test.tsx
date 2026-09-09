@@ -191,6 +191,17 @@ describe('welcome and sign-in wrappers', () => {
       />
     )
 
+    const dialog = screen.getByRole('alertdialog', { hidden: true })
+    assert.strictEqual(
+      dialog.getAttribute('aria-describedby'),
+      'enterprise-server-confirmation-description'
+    )
+    assert.notStrictEqual(
+      document.getElementById(
+        dialog.getAttribute('aria-describedby') ?? 'missing-description'
+      ),
+      null
+    )
     assert.ok(screen.getByText('https://enterprise.example.com'))
     assert.ok(screen.getByText(/Only continue if you trust it/))
     assert.strictEqual(
@@ -223,6 +234,7 @@ describe('welcome and sign-in wrappers', () => {
         credentialHelperUrl="https://enterprise.example.com/team/project.git"
       />
     )
+    assert.notStrictEqual(screen.getByRole('dialog', { hidden: true }), null)
     fireEvent.click(
       screen.getByRole('button', {
         name: /continue with browser/i,
