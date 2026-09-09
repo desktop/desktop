@@ -146,6 +146,17 @@ describe('welcome and sign-in wrappers', () => {
     )
 
     assert.ok(screen.getByText('https://enterprise.example.com'))
+    const checks = screen.getAllByRole('listitem')
+    assert.strictEqual(checks.length, 2)
+    assert.match(checks[0].textContent ?? '', /Only continue if you trust it/)
+    assert.match(
+      checks[1].textContent ?? '',
+      /Before authorizing GitHub Desktop, make sure the page is on this server's domain/
+    )
+    assert.ok(
+      screen.getByText(/Your organization may use a separate sign-in provider/)
+    )
+    assert.ok(screen.getByText(/Not sure\? Cancel and check/))
     assert.strictEqual(
       screen.queryByRole('link', { name: /sign in using your browser/i }),
       null
@@ -181,7 +192,7 @@ describe('welcome and sign-in wrappers', () => {
     )
 
     assert.ok(screen.getByText('https://enterprise.example.com'))
-    assert.ok(screen.getByText(/Only continue if you recognize and trust it/))
+    assert.ok(screen.getByText(/Only continue if you trust it/))
     assert.strictEqual(
       screen.queryByRole('button', {
         name: /continue with browser/i,
