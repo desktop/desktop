@@ -42,6 +42,7 @@ describe('Copilot app not found dialog', () => {
     assert.ok(
       screen.getByText(/Couldn't find the GitHub Copilot App on your machine/)
     )
+    assert.ok(screen.getByText(/Already installed it\?/))
     assert.ok(
       screen.getByRole('link', {
         name: 'downloading GitHub Copilot',

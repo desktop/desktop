@@ -29,8 +29,11 @@ export class CopilotAppNotFoundDialog extends React.Component<ICopilotAppNotFoun
             agent-driven development built natively on GitHub by{' '}
             <LinkButton uri={copilotAppMarketingUrl}>
               downloading GitHub Copilot
-            </LinkButton>{' '}
-            now or, if you've already installed it, let us know where in{' '}
+            </LinkButton>
+            .
+          </p>
+          <p>
+            Already installed it? Let us know where in{' '}
             <LinkButton onClick={this.onShowPreferences}>
               Preferences
             </LinkButton>
