@@ -297,7 +297,6 @@ import {
   CopilotAppError,
   findCopilotApp,
   openInCopilotApp,
-  validateCopilotAppPath,
 } from '../copilot-app'
 import { ApiRepositoriesStore } from './api-repositories-store'
 import {
@@ -7653,27 +7652,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.openingCopilotApp = true
     try {
       const appPath =
-        this.copilotAppPath !== null &&
-        (await validateCopilotAppPath(this.copilotAppPath))
+        this.copilotAppPath !== null
           ? this.copilotAppPath
           : (await findCopilotApp()) ?? undefined
       if (appPath === undefined) {
         throw new CopilotAppError(
           'not-found',
-          "Couldn't find the GitHub Copilot App on your machine. Experience agent-driven development built natively on GitHub by downloading GitHub Copilot now or, if you've already installed it, tell us where to find it in Preferences."
+          'GitHub Copilot could not be found.'
         )
       }
 
       await openInCopilotApp(appPath, repositoryPath)
     } catch (error) {
       log.error('Could not hand off to GitHub Copilot', error)
-      if (error instanceof CopilotAppError) {
+      if (error instanceof CopilotAppError && error.kind === 'not-found') {
         this._showPopup({
-          type: PopupType.CopilotAppFailed,
-          message: error.message,
+          type: PopupType.CopilotAppNotFound,
         })
       } else {
-        this.emitError(error)
+        throw error
       }
     } finally {
       this.openingCopilotApp = false
@@ -7681,13 +7678,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _setCopilotAppPath(path: string | null): void {
+  public async _setCopilotAppPath(path: string | null): Promise<void> {
     if (path === null) {
       localStorage.removeItem(copilotAppPathKey)
+      this.copilotAppPath = await findCopilotApp()
     } else {
       localStorage.setItem(copilotAppPathKey, path)
+      this.copilotAppPath = path
     }
-    this.copilotAppPath = path
     this.emitUpdate()
   }
 

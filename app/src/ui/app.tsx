@@ -89,7 +89,7 @@ import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 import { InstallGit } from './install-git'
 import { EditorError } from './editor'
-import { CopilotAppDialog } from './copilot-app/copilot-app-dialog'
+import { CopilotAppNotFoundDialog } from './copilot-app/copilot-app-not-found-dialog'
 import { About } from './about'
 import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
@@ -2085,11 +2085,10 @@ export class App extends React.Component<IAppProps, IAppState> {
             onOpenWithEditor={this.openRepositoryInSelectedEditor}
           />
         )
-      case PopupType.CopilotAppFailed:
+      case PopupType.CopilotAppNotFound:
         return (
-          <CopilotAppDialog
+          <CopilotAppNotFoundDialog
             key="copilot-app"
-            message={popup.message}
             onDismissed={onPopupDismissedFn}
             showPreferencesDialog={this.onShowIntegrationsPreferences}
           />

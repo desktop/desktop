@@ -20,47 +20,55 @@ mock.module('../../../src/ui/main-process-proxy', {
 })
 
 async function getDialog() {
-  return (await import('../../../src/ui/copilot-app/copilot-app-dialog'))
-    .CopilotAppDialog
+  return (
+    await import('../../../src/ui/copilot-app/copilot-app-not-found-dialog')
+  ).CopilotAppNotFoundDialog
 }
 
 afterEach(() => {
   openedUrls.length = 0
 })
 
-describe('Copilot app dialog', () => {
-  it('offers download and preferences actions', async () => {
-    const CopilotAppDialog = await getDialog()
+describe('Copilot app not found dialog', () => {
+  it('offers inline download and preferences actions', async () => {
+    const CopilotAppNotFoundDialog = await getDialog()
     render(
-      <CopilotAppDialog
-        message="Couldn't find the GitHub Copilot App."
+      <CopilotAppNotFoundDialog
         onDismissed={() => {}}
         showPreferencesDialog={() => {}}
       />
     )
 
-    assert.ok(screen.getByText("Couldn't find the GitHub Copilot App."))
     assert.ok(
-      screen.getByRole('button', {
-        name: 'Download GitHub Copilot',
+      screen.getByText(/Couldn't find the GitHub Copilot App on your machine/)
+    )
+    assert.ok(
+      screen.getByRole('link', {
+        name: 'downloading GitHub Copilot',
         hidden: true,
       })
     )
     assert.ok(
       screen.getByRole('button', {
-        name: __DARWIN__ ? 'Open Preferences' : 'Open options',
+        name: 'Preferences',
         hidden: true,
       })
+    )
+    assert.strictEqual(
+      screen.getAllByRole('button', {
+        name: 'Close',
+        hidden: true,
+      }).length,
+      2
     )
     assert.strictEqual(screen.queryByRole('textbox', { hidden: true }), null)
   })
 
   it('opens the GitHub Copilot marketing page', async () => {
-    const CopilotAppDialog = await getDialog()
+    const CopilotAppNotFoundDialog = await getDialog()
     let dismissed = false
     render(
-      <CopilotAppDialog
-        message="Couldn't find the GitHub Copilot App."
+      <CopilotAppNotFoundDialog
         onDismissed={() => {
           dismissed = true
         }}
@@ -69,22 +77,21 @@ describe('Copilot app dialog', () => {
     )
 
     fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Download GitHub Copilot',
+      screen.getByRole('link', {
+        name: 'downloading GitHub Copilot',
         hidden: true,
       })
     )
 
     assert.deepStrictEqual(openedUrls, ['https://gh.io/app'])
-    assert.strictEqual(dismissed, true)
+    assert.strictEqual(dismissed, false)
   })
 
   it('dismisses before opening integrations preferences', async () => {
-    const CopilotAppDialog = await getDialog()
+    const CopilotAppNotFoundDialog = await getDialog()
     const calls: string[] = []
     render(
-      <CopilotAppDialog
-        message="Couldn't find the GitHub Copilot App."
+      <CopilotAppNotFoundDialog
         onDismissed={() => {
           calls.push('dismissed')
         }}
@@ -96,7 +103,7 @@ describe('Copilot app dialog', () => {
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: __DARWIN__ ? 'Open Preferences' : 'Open options',
+        name: 'Preferences',
         hidden: true,
       })
     )

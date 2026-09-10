@@ -1113,7 +1113,7 @@ export class Preferences extends React.Component<
     }
 
     if (enableCopilotAppHandoff()) {
-      dispatcher.setCopilotAppPath(
+      await dispatcher.setCopilotAppPath(
         copilotAppPath.length === 0 ? null : copilotAppPath
       )
     }

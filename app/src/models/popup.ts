@@ -52,7 +52,7 @@ export enum PopupType {
   CLIInstalled = 'CLIInstalled',
   GenericGitAuthentication = 'GenericGitAuthentication',
   ExternalEditorFailed = 'ExternalEditorFailed',
-  CopilotAppFailed = 'CopilotAppFailed',
+  CopilotAppNotFound = 'CopilotAppNotFound',
   OpenWithExternalEditor = 'OpenWithExternalEditor',
   OpenShellFailed = 'OpenShellFailed',
   InitializeLFS = 'InitializeLFS',
@@ -227,10 +227,7 @@ export type PopupDetail =
       onDismiss: () => void
     }
   | { type: PopupType.OpenWithExternalEditor }
-  | {
-      type: PopupType.CopilotAppFailed
-      message: string
-    }
+  | { type: PopupType.CopilotAppNotFound }
   | {
       type: PopupType.ExternalEditorFailed
       message: string
