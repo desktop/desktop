@@ -1,4 +1,4 @@
-import { ExecFileOptions } from 'child_process'
+import { ExecFileOptionsWithStringEncoding } from 'child_process'
 import { execFile } from './exec-file'
 import { isMacOSCatalinaOrEarlier } from './get-os'
 
@@ -48,7 +48,11 @@ export async function updateEnvironmentForProcess(): Promise<void> {
   // The timeout is a leftover from when the process was detached and the reason
   // we still have it is that if we happen to await this method it could block
   // app launch
-  const opts: ExecFileOptions = { timeout: 5000, maxBuffer: 10 * 1024 * 1024 }
+  const opts: ExecFileOptionsWithStringEncoding = {
+    encoding: 'utf8',
+    timeout: 5000,
+    maxBuffer: 10 * 1024 * 1024,
+  }
 
   // Deal with environment variables containing newlines by separating with \0
   // https://github.com/atom/atom/blob/d04abd683/src/update-process-env.js#L17

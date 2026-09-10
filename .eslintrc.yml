@@ -13,7 +13,7 @@ settings:
 extends:
   - prettier
   - prettier/react
-  - plugin:@typescript-eslint/recommended
+  - ./eslint-rules/typescript-eslint-compat.yml
   - prettier/@typescript-eslint
   - plugin:github/react
 
@@ -68,6 +68,8 @@ rules:
   '@typescript-eslint/no-unused-vars':
     - error
     - args: 'none'
+      # Preserve the TypeScript ESLint 6 default for unused catch bindings.
+      caughtErrors: 'none'
   '@typescript-eslint/no-use-before-define':
     - error
     - functions: false
@@ -83,14 +85,17 @@ rules:
         - constructor
         - method
   '@typescript-eslint/no-extraneous-class': error
-  '@typescript-eslint/no-empty-interface': error
+  '@typescript-eslint/no-empty-object-type':
+    - error
+    # Match the retired no-empty-interface rule, which did not check {} types.
+    - allowObjectTypes: always
   # Would love to be able to turn this on eventually
   '@typescript-eslint/no-non-null-assertion': off
 
   # This rule does a lot of good but right now it catches way
   # too many cases, we're gonna want to pay down this debt
   # incrementally if we want to enable it.
-  '@typescript-eslint/ban-types': off
+  '@typescript-eslint/no-restricted-types': off
 
   # It'd be nice to be able to turn this on eventually
   '@typescript-eslint/no-var-requires': off

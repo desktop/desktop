@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "rootDir": "..",
+    "isolatedModules": true,
+    "noEmitOnError": true,
     "target": "ES2021",
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

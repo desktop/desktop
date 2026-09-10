@@ -10,11 +10,11 @@
  */
 
 /**
- * @typedef {import('@typescript-eslint/typescript-estree').TSESTree.ClassDeclaration} ClassDeclaration
- * @typedef {import('@typescript-eslint/typescript-estree').TSESTree.Node} Node
- * @typedef {import('@typescript-eslint/typescript-estree').TSESTree.Parameter} Parameter
- * @typedef {import("@typescript-eslint/typescript-estree").TSESTree.MethodDefinition} MethodDefinition
- * @typedef {import('@typescript-eslint/experimental-utils').TSESLint.RuleModule} RuleModule
+ * @typedef {import('@typescript-eslint/utils').TSESTree.ClassDeclaration} ClassDeclaration
+ * @typedef {import('@typescript-eslint/utils').TSESTree.Node} Node
+ * @typedef {import('@typescript-eslint/utils').TSESTree.Parameter} Parameter
+ * @typedef {import("@typescript-eslint/utils").TSESTree.MethodDefinition} MethodDefinition
+ * @typedef {import('@typescript-eslint/utils').TSESLint.RuleModule<'emptyParametersExpected' | 'unknownParameter' | 'nameMismatch' | 'typeMismatch' | 'reservedMethodName', []>} RuleModule
  */
 
 /**
@@ -25,15 +25,15 @@
  * @returns {string|null} a `string` if the props type can be resolved, `null` otherwise
  */
 function getPropsType(node) {
-  if (!node.superTypeParameters) {
+  if (!node.superTypeArguments) {
     return null
   }
 
-  if (node.superTypeParameters.params.length <= 0) {
+  if (node.superTypeArguments.params.length <= 0) {
     return null
   }
 
-  const propsParam = node.superTypeParameters.params[0]
+  const propsParam = node.superTypeArguments.params[0]
   if (
     propsParam.type === 'TSTypeReference' &&
     propsParam.typeName.type === 'Identifier'
@@ -60,11 +60,11 @@ function getPropsType(node) {
  * @returns {string|null} a `string` if the props type can be resolved, `null` otherwise
  */
 function getStateType(node, getText) {
-  if (node.superTypeParameters.params.length <= 1) {
+  if (!node.superTypeArguments || node.superTypeArguments.params.length <= 1) {
     return null
   }
 
-  const propsParam = node.superTypeParameters.params[1]
+  const propsParam = node.superTypeArguments.params[1]
   if (
     propsParam.type === 'TSTypeReference' &&
     propsParam.typeName.type === 'Identifier'
@@ -184,6 +184,7 @@ function getParameterType(node) {
 
 /** @type {RuleModule} */
 module.exports = {
+  defaultOptions: [],
   meta: {
     type: 'problem',
     messages: {
@@ -213,7 +214,7 @@ module.exports = {
      *
      * @param {string} methodName
      * @param {Parameter} node
-     * @param {{ name: string, type: string }} expectedParameter
+     * @param {{ name: string, type: string | null }} expectedParameter
      *
      * @returns {boolean} false if a problem is reported, or true if no issues found with given parameter
      */
@@ -257,7 +258,7 @@ module.exports = {
      *
      * @param {string} methodName
      * @param {MethodDefinition} node
-     * @param {Array<{name:string,type:string}>} expectedParameters
+     * @param {Array<{name:string,type:string | null}>} expectedParameters
      * @returns
      */
     function verifyParameters(methodName, node, expectedParameters) {
@@ -286,7 +287,9 @@ module.exports = {
 
     let isValidComponent = false
 
+    /** @type {string | null} */
     let propsTypeName = '{}'
+    /** @type {string | null} */
     let stateTypeName = '{}'
 
     return {
@@ -297,7 +300,7 @@ module.exports = {
 
         isValidComponent = true
 
-        if (!node.superTypeParameters) {
+        if (!node.superTypeArguments) {
           return
         }
 

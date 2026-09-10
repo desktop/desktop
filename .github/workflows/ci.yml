@@ -67,6 +67,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: yarn
       - run: yarn
+      - run: yarn typecheck
+      - run: yarn test:eslint
       - run: yarn validate-electron-version
       - run: yarn lint
       - run: yarn validate-changelog
@@ -110,6 +112,8 @@ jobs:
           cd vendor/desktop-trampoline
           yarn install
           yarn test
+      - name: Check all TypeScript projects
+        run: yarn typecheck
       - name: Build production app
         run: yarn build:prod
         env:

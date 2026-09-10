@@ -1,7 +1,12 @@
 {
   "compilerOptions": {
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "rootDir": ".",
+    "isolatedModules": true,
+    "allowJs": true,
+    "checkJs": true,
+    "noEmitOnError": true,
     "target": "ES2022",
     "esModuleInterop": true,
     "resolveJsonModule": true,
@@ -19,7 +24,7 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable", "ESNext.Array"],
     "types": ["node"]
   },
-  "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.d.tsx"],
+  "include": ["app/**/*.ts", "app/**/*.tsx", "app/**/*.mts", "app/**/*.d.tsx"],
   "exclude": [
     "node_modules",
     "app/node_modules",

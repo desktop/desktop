@@ -18,6 +18,13 @@ In the interest of stability and caution we tend to stay a version (or more) beh
 | react-dom | >= 1 minor |
 | keytar | >= 1 minor |
 
+The TypeScript 7 migration is an approved exception to the one-minor-behind
+policy: it uses a stable 7.x release together with Microsoft's stable TypeScript 6
+compiler-API compatibility package for ESLint. Preview releases, suppressed
+diagnostics, reduced lint severities, and weaker compiler checks are not migration
+workarounds. Revalidate native compiler and lint-tool compatibility together when
+updating these packages.
+
 ## The Impact Of A Dependency
 
 We group the dependencies in `package.json` and `app/package.json` into three

@@ -26,6 +26,18 @@ describe('file-system', () => {
   })
 
   describe('readPartialFile', () => {
+    it('preserves binary bytes in a partial read', async t => {
+      const tempDir = await createTempDirectory(t)
+      const filePath = path.join(tempDir, 'partial-read-binary')
+      const contents = Buffer.from([0, 0xff, 0x80, 0xfe, 0])
+      await writeFile(filePath, contents)
+
+      assert.deepStrictEqual(
+        await readPartialFile(filePath, 1, 3),
+        contents.subarray(1, 4)
+      )
+    })
+
     it('reads a specific range from a file', async t => {
       const tempDir = await createTempDirectory(t)
       const filePath = path.join(tempDir, 'partial-read-test')

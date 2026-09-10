@@ -1,2 +1,2 @@
-export { StatsDatabase, ILaunchStats } from './stats-database'
-export { StatsStore, IStatsStore, SamplesURL } from './stats-store'
+export { StatsDatabase, type ILaunchStats } from './stats-database'
+export { StatsStore, type IStatsStore, SamplesURL } from './stats-store'

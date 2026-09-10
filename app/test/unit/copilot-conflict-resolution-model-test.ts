@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
+import type { Model } from '../../src/lib/copilot/sdk-types'
 import { getConflictResolutionModelDisplay } from '../../src/lib/copilot/conflict-resolution-model'
 import { encodeModelKey, IBYOKProvider } from '../../src/lib/copilot/byok'
 
