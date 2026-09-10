@@ -1,0 +1,15 @@
+.enterprise-server-confirmation {
+  ul {
+    margin: 0 0 var(--spacing-double);
+    padding-left: var(--spacing-double);
+
+    li {
+      margin-bottom: var(--spacing);
+      padding-left: var(--spacing-half);
+    }
+  }
+
+  .enterprise-sign-in-note {
+    color: var(--text-secondary-color);
+  }
+}

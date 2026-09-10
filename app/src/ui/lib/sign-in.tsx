@@ -12,6 +12,7 @@ import {
 } from '../../lib/stores'
 import { Ref } from './ref'
 import { getHTMLURL } from '../../lib/api'
+import { EnterpriseServerConfirmation } from './enterprise-server-confirmation'
 
 interface ISignInProps {
   readonly signInState: SignInState
@@ -64,12 +65,20 @@ export class SignIn extends React.Component<ISignInProps, {}> {
     state: IAuthenticationState | IExistingAccountWarning
   ) {
     const children = this.props.children as ReadonlyArray<JSX.Element>
+    const confirmation =
+      state.kind === SignInStep.Authentication &&
+      state.isUnrecognizedEnterpriseServer ? (
+        <EnterpriseServerConfirmation endpoint={state.endpoint} />
+      ) : null
 
     return (
-      <AuthenticationForm
-        additionalButtons={children}
-        onBrowserSignInRequested={this.onBrowserSignInRequested}
-      />
+      <>
+        {confirmation}
+        <AuthenticationForm
+          additionalButtons={children}
+          onBrowserSignInRequested={this.onBrowserSignInRequested}
+        />
+      </>
     )
   }
 

@@ -89,7 +89,7 @@ class TrampolineUIHelper {
         this.dispatcher.beginDotComSignIn(cb)
       } else {
         this.dispatcher.beginEnterpriseSignIn(cb)
-        await this.dispatcher.setSignInEndpoint(origin)
+        await this.dispatcher.setSignInEndpoint(origin, true)
       }
 
       this.dispatcher.showPopup({
