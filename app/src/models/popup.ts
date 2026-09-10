@@ -229,9 +229,7 @@ export type PopupDetail =
   | { type: PopupType.OpenWithExternalEditor }
   | {
       type: PopupType.CopilotAppFailed
-      repositoryPath: string
       message: string
-      appPath?: string
     }
   | {
       type: PopupType.ExternalEditorFailed

@@ -6,6 +6,8 @@ import * as Path from 'path'
 import { execFile } from '../exec-file'
 import { findWindowsCopilotAppCandidates } from './win32'
 
+export const copilotAppMarketingUrl = 'https://gh.io/app'
+
 type CopilotAppErrorKind = 'not-found' | 'unsupported-version' | 'launch-failed'
 
 /** A discoverable installation or CLI handoff failure. */

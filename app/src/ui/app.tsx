@@ -1775,6 +1775,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             customEditor={this.state.customEditor}
             useCustomShell={this.state.useCustomShell}
             customShell={this.state.customShell}
+            copilotAppPath={this.state.copilotAppPath}
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             onEditGlobalGitConfig={this.editGlobalGitConfig}
             underlineLinks={this.state.underlineLinks}
@@ -2088,11 +2089,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <CopilotAppDialog
             key="copilot-app"
-            repositoryPath={popup.repositoryPath}
-            appPath={popup.appPath}
             message={popup.message}
             onDismissed={onPopupDismissedFn}
-            onOpen={this.openInCopilotApp}
+            showPreferencesDialog={this.onShowIntegrationsPreferences}
           />
         )
       case PopupType.OpenShellFailed:
@@ -3421,10 +3420,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private openFileInExternalEditor = (fullPath: string) => {
     this.props.dispatcher.openInExternalEditor(fullPath)
-  }
-
-  private openInCopilotApp = (repositoryPath: string, appPath: string) => {
-    return this.props.dispatcher.openInCopilotApp(repositoryPath, appPath)
   }
 
   private openInExternalEditor = (

@@ -1632,11 +1632,13 @@ export class Dispatcher {
   }
 
   /** Open the selected checkout in the GitHub Copilot app. */
-  public openInCopilotApp(
-    repositoryPath: string,
-    appPath?: string
-  ): Promise<void> {
-    return this.appStore._openInCopilotApp(repositoryPath, appPath)
+  public openInCopilotApp(repositoryPath: string): Promise<void> {
+    return this.appStore._openInCopilotApp(repositoryPath)
+  }
+
+  /** Set the configured GitHub Copilot app path used for repository handoff. */
+  public setCopilotAppPath(path: string | null): void {
+    this.appStore._setCopilotAppPath(path)
   }
 
   /**

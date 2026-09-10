@@ -80,7 +80,11 @@ import {
   setTimeFormatPreference,
   setNumberFormatPreference,
 } from '../../models/formatting-preferences'
-import { enableFormattingPreferences } from '../../lib/feature-flag'
+import {
+  enableCopilotAppHandoff,
+  enableFormattingPreferences,
+} from '../../lib/feature-flag'
+import { validateCopilotAppPath } from '../../lib/copilot-app'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -112,6 +116,7 @@ interface IPreferencesProps {
   readonly customEditor: ICustomIntegration | null
   readonly useCustomShell: boolean
   readonly customShell: ICustomIntegration | null
+  readonly copilotAppPath: string | null
   readonly repositoryIndicatorsEnabled: boolean
   readonly onEditGlobalGitConfig: () => void
   readonly underlineLinks: boolean
@@ -153,6 +158,8 @@ interface IPreferencesState {
   readonly customEditor: ICustomIntegration
   readonly useCustomShell: boolean
   readonly customShell: ICustomIntegration
+  readonly copilotAppPath: string
+  readonly copilotAppPathError?: string
   readonly selectedExternalEditor: string | null
   readonly availableShells: ReadonlyArray<Shell>
   readonly selectedShell: Shell
@@ -223,6 +230,7 @@ export class Preferences extends React.Component<
       customEditor: this.props.customEditor ?? DefaultCustomIntegration,
       useCustomShell: this.props.useCustomShell,
       customShell: this.props.customShell ?? DefaultCustomIntegration,
+      copilotAppPath: this.props.copilotAppPath ?? '',
       useWindowsOpenSSH: false,
       showCommitLengthWarning: false,
       notificationsEnabled: true,
@@ -333,6 +341,7 @@ export class Preferences extends React.Component<
       customEditor: this.props.customEditor ?? DefaultCustomIntegration,
       useCustomShell: this.props.useCustomShell,
       customShell: this.props.customShell ?? DefaultCustomIntegration,
+      copilotAppPath: this.props.copilotAppPath ?? '',
       isLoadingGitConfig: false,
     })
   }
@@ -553,11 +562,14 @@ export class Preferences extends React.Component<
             customEditor={this.state.customEditor}
             useCustomShell={this.state.useCustomShell}
             customShell={this.state.customShell}
+            copilotAppPath={this.state.copilotAppPath}
+            copilotAppPathError={this.state.copilotAppPathError}
             onSelectedShellChanged={this.onSelectedShellChanged}
             onUseCustomEditorChanged={this.onUseCustomEditorChanged}
             onCustomEditorChanged={this.onCustomEditorChanged}
             onUseCustomShellChanged={this.onUseCustomShellChanged}
             onCustomShellChanged={this.onCustomShellChanged}
+            onCopilotAppPathChanged={this.onCopilotAppPathChanged}
           />
         )
         break
@@ -903,6 +915,10 @@ export class Preferences extends React.Component<
     this.setState({ customShell })
   }
 
+  private onCopilotAppPathChanged = (copilotAppPath: string) => {
+    this.setState({ copilotAppPath, copilotAppPathError: undefined })
+  }
+
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.dispatcher.setSelectedTheme(theme)
   }
@@ -986,6 +1002,21 @@ export class Preferences extends React.Component<
 
   private onSave = async () => {
     const { dispatcher } = this.props
+    const copilotAppPath = this.state.copilotAppPath.trim()
+
+    if (
+      enableCopilotAppHandoff() &&
+      copilotAppPath.length > 0 &&
+      !(await validateCopilotAppPath(copilotAppPath))
+    ) {
+      this.setState({
+        selectedIndex: PreferencesTab.Integrations,
+        copilotAppPathError: __DARWIN__
+          ? 'Choose the GitHub Copilot application (.app).'
+          : 'Choose the GitHub Copilot executable (github.exe).',
+      })
+      return
+    }
 
     try {
       let shouldRefreshAuthor = false
@@ -1079,6 +1110,12 @@ export class Preferences extends React.Component<
     dispatcher.setUseCustomShell(useCustomShell && isValidCustomShell)
     if (isValidCustomShell) {
       dispatcher.setCustomShell(customShell)
+    }
+
+    if (enableCopilotAppHandoff()) {
+      dispatcher.setCopilotAppPath(
+        copilotAppPath.length === 0 ? null : copilotAppPath
+      )
     }
 
     if (
