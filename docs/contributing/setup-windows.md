@@ -22,7 +22,13 @@ You can download Node from the [Node.js website](https://nodejs.org/), install t
 You can verify that your installed version matches the one currently used by GitHub Desktop by looking at [our .node-version file](https://github.com/desktop/desktop/blob/development/.node-version). Usually the same major version is enough but if you're running into problems building Desktop please try installing that exact version.
 
 **Node.js installation notes:**
- - make sure you allow the Node.js installer to add `node` to the `PATH`.
+
+ - Make sure you allow the Node.js installer to add `node` to the `PATH`.
+ - If you are installing Node.js for the first time, select the option to
+   automatically install the necessary tools. This installs Python and the
+   Visual C++ Build Tools required by Desktop's native Node modules. If you do
+   not select this option, install those dependencies manually as described
+   below.
 
 ### I need to use different versions of Node.js in different projects!
 
@@ -91,57 +97,23 @@ don't have Python installed. You can install Python 3.9 from the
 
 ## Visual C++ Build Tools
 
-To build native Node modules, you will need a recent version of Visual C++ which
-can be obtained in several ways:
+Desktop's native Node modules require the Visual C++ build tools provided by
+the **Desktop development with C++** workload in Visual Studio Build Tools. You
+do not need the Visual Studio IDE to develop Desktop.
 
-### Visual Studio 2019
+If you selected the option to automatically install the necessary tools in the
+Node.js installer, this workload should already be installed. Otherwise, use
+one of these options:
 
-If you have an existing installation of VS2019, run the **Visual Studio
-Installer** (Tools > Get Tools and Features...) and check that you have the **Desktop development with C++**
-workload included.
+ - If you already have Visual Studio, open the **Visual Studio Installer**,
+   select **Modify** for your installation, and add the **Desktop development
+   with C++** workload.
+ - If you do not have Visual Studio, install the standalone [Visual Studio Build
+   Tools](https://visualstudio.microsoft.com/downloads/) and select the
+   **Desktop development with C++** workload.
 
-<img width="1265" src="https://user-images.githubusercontent.com/7467062/76693187-0fa21d00-662f-11ea-91ba-38326263d4b6.png">
-
-Once you've confirmed that, open a shell and run this command to update the
-configuration of NPM:
-
-```shellsession
-$ npm config set msvs_version 2019
-```
-
-```shellsession
-$ npm config set msbuild_path "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\[VERSION]\\MSBuild\\Current\\Bin\\MSBuild.exe"
-```
-
-*Note:* VERSION will be Community, Professional or Enterprise depending on your install.
-
-### Visual Studio 2017
-
-If you have an existing installation of VS2017, run the **Visual Studio
-Installer** (Tools > Get Tools and Features...) and check that you have the **Desktop development with C++**
-workload included.
-
-<img width="1265" src="https://user-images.githubusercontent.com/359239/48849855-a2091800-ed7d-11e8-950b-93465eba7cd1.png">
-
-Once you've confirmed that, open a shell and run this command to update the
-configuration of NPM:
-
-```shellsession
-$ npm config set msvs_version 2017
-```
-
-### Visual C++ Build Tools
-
-If you do not have an existing Visual Studio installation, there is a
-standalone [Visual C++ Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools)
-installer available.
-
-After installation open a shell and run this command to update the configuration
-of NPM:
-
-```shellsession
-$ npm config set msvs_version 2019
-```
+Current versions of Node.js and `node-gyp` detect the installed build tools
+automatically, so no additional npm configuration is required.
 
 ## Troubleshooting
 
