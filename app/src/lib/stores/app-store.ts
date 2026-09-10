@@ -4592,10 +4592,21 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     // If the branch is checked out in another worktree, switch to that worktree
-    // instead of checking out the branch in the current worktree.
+    // instead of checking out the branch in the current worktree. Note that the
+    // search is deliberately over the unfiltered worktree list: git considers a
+    // branch held by a worktree whose folder has gone to still be in use, so it
+    // would refuse to check it out here.
     const wt = repositoryState.worktrees.find(wt => wt.branch === branch.ref)
 
     if (wt) {
+      // The folder is gone, so there's nothing to switch to and git won't let
+      // us check the branch out until the worktree is removed. Offer to do
+      // that and then carry on with the checkout the user asked for.
+      if (wt.isPrunable) {
+        this._requestDeleteWorktree(repository, wt.path, true, branch)
+        return repository
+      }
+
       return this._switchWorktree(repository, wt)
     }
 
@@ -6106,18 +6117,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
   /** This shouldn't be called directly. See 'Dispatcher'. */
   public _requestDeleteWorktree(
     repository: Repository,
-    worktreePath: string
+    worktreePath: string,
+    isMissing: boolean = false,
+    branchToCheckout?: Branch
   ): void {
-    if (this.confirmWorktreeRemoval) {
+    if (this.confirmWorktreeRemoval || isMissing) {
       this._showPopup({
         type: PopupType.DeleteWorktree,
         repository,
         worktreePath,
+        isMissing,
+        branchToCheckout,
       })
     } else {
-      this._deleteWorktree(repository, worktreePath).catch(e =>
-        this.emitError(e)
-      )
+      this._deleteWorktree(
+        repository,
+        worktreePath,
+        undefined,
+        branchToCheckout
+      ).catch(e => this.emitError(e))
     }
   }
 
@@ -6125,7 +6143,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _deleteWorktree(
     repository: Repository,
     worktreePath: string,
-    force?: boolean
+    force?: boolean,
+    branchToCheckout?: Branch
   ): Promise<void> {
     const isDeletingCurrentWorktree = repository.path === worktreePath
     let originalWorktree: WorktreeEntry | null = null
@@ -6164,6 +6183,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
     await this._refreshWorktrees(repository)
     this.statsStore.increment('worktreeDeletedCount')
+
+    // Removing the worktree releases whichever branch it was holding, so a
+    // checkout that was blocked by it can go ahead now.
+    if (branchToCheckout !== undefined) {
+      await this._checkoutBranch(repository, branchToCheckout)
+    }
   }
 
   /** This shouldn't be called directly. See 'Dispatcher'. */

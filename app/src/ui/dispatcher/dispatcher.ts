@@ -1055,10 +1055,11 @@ export class Dispatcher {
   public async deleteWorktree(
     repository: Repository,
     worktreePath: string,
-    force?: boolean
+    force?: boolean,
+    branchToCheckout?: Branch
   ): Promise<void> {
     await this.appStore
-      ._deleteWorktree(repository, worktreePath, force)
+      ._deleteWorktree(repository, worktreePath, force, branchToCheckout)
       .catch(e => this.postError(e))
   }
 
@@ -1068,9 +1069,16 @@ export class Dispatcher {
    */
   public requestDeleteWorktree(
     repository: Repository,
-    worktreePath: string
+    worktreePath: string,
+    isMissing?: boolean,
+    branchToCheckout?: Branch
   ): void {
-    this.appStore._requestDeleteWorktree(repository, worktreePath)
+    this.appStore._requestDeleteWorktree(
+      repository,
+      worktreePath,
+      isMissing,
+      branchToCheckout
+    )
   }
 
   /**
