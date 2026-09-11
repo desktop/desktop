@@ -1,39 +1,39 @@
-# Place in .github/workflows/triage-prs.yml
-name: PR Triaging
-on:
-  pull_request_target:
-    types: [opened, reopened, labeled, edited, ready_for_review]
+#ذِهْ في .github/workflows/triage-prs.yml
+'جاهز للمراجعة''جاهز للمراجعة'
+على:
+  هدف طلب السحب:
+    أنواع: [مفتوح, إعادة فتح, ملصق, محرر, جاهز للمراجعة]
 
-jobs:
-  close-invalid:
-    if: github.event.action == 'labeled'
-    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-close-invalid.yml@main
-    permissions:
-      contents: read
-      issues: write
-      pull-requests: write
+وظائف:
+  إغلاق غير صالح:
+    إذا: github.event.action == 'مُصنَّف'
+    الاستخدامات: سطح المكتب/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-close-invalid.yml@main
+    الأذونات:
+      محتويات: قراءة
+      قضايا: يكتب
+      طلبات السحب: يكتب
 
-  close-from-default-branch:
-    if: github.event.action == 'opened'
-    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-close-from-default-branch.yml@main
-    with:
-      default_branch: 'development'
-    permissions:
-      pull-requests: write
+  إغلاق من الفرع الافتراضي:
+    إذا: github.event.action == "مفتوح"
+    الاستخدامات: سطح المكتب/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-close-from-default-branch.yml@main
+    مع:
+      الفرع الافتراضي: "تطوير"
+    الأذونات:
+      طلبات السحب: يكتب
 
-  label-external-pr:
-    if: github.event.action == 'opened' || github.event.action == 'reopened'
-    uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-label-external-pr.yml@main
-    permissions:
-      issues: write
-      pull-requests: write
-      repository-projects: read
+  التسمية الخارجية-pr:
+    إذا: github.event.action == "مفتوح" || github.event.action == 'reopened'
+    الاستخدامات: سطح المكتب/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-label-external-pr.yml@main
+    الأذونات:
+      قضايا: يكتب
+      طلبات السحب: يكتب
+      مشاريع المستودع: قراءة
 
-  pr-requirements:
-    if:
-      github.event.action == 'opened' || github.event.action == 'reopened' ||
-      github.event.action == 'edited' || github.event.action ==
-      'ready_for_review'
+  متطلبات العلاقات العامة:
+    إذا:
+      github.event.action == "مفتوح" || github.event.action == 'reopened' ||
+      github.event.action == 'تم التعديل' || github.event.action ==
+      'جاهز للمراجعة'
     uses: desktop/gh-cli-and-desktop-shared-workflows/.github/workflows/triage-pr-requirements.yml@main
     with:
       enable_pr_screening: true
