@@ -1,5 +1,6 @@
 {
   "releases": {
+    "3.6.6-test2": ["[New] Automated test release"],
     "3.6.6-beta1": [
       "[Fixed] Fix Copilot error when models fail to load and the app falls back to the 'Auto' model - #22796",
       "[Improved] Update Electron to v44.1.1 and Node.js to v24.19.0 - #22799",
