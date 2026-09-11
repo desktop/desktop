@@ -101,6 +101,8 @@ export function showTestUI(
       return showFakeReleaseNotesPopup()
     case 'test-reorder-banner':
       return showFakeReorderBanner()
+    case 'test-send-stats':
+      return dispatcher.sendStats()
     case 'test-showcase-update-banner':
       return showFakeUpdateBanner({ isShowcase: true })
     case 'test-thank-you-banner':
