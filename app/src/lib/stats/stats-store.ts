@@ -525,13 +525,6 @@ type ITelemetryMeasures = ILaunchStats &
     readonly highestTutorialStepCompleted: number
   }
 
-/** The structured usage event sent to the stats endpoint. */
-interface ITelemetryUsageEvent {
-  readonly event_type: 'usage'
-  readonly dimensions: Readonly<Record<string, string>>
-  readonly measures: ITelemetryMeasures
-}
-
 function stringifyDimensions<
   T extends { readonly [K in keyof T]: string | boolean | null }
 >(dimensions: T): Readonly<Record<string, string>> {
@@ -645,14 +638,15 @@ function buildStatsPayload(body: StatsPayload): object {
     rendererReadyTime: Math.round(rendererReadyTime),
   }
 
-  const event: ITelemetryUsageEvent = {
-    event_type: eventType,
-    dimensions,
-    measures: telemetryMeasures,
-  }
-
   return {
-    events: [{ app: 'desktop', ...event }],
+    events: [
+      {
+        app: 'desktop',
+        event_type: eventType,
+        dimensions,
+        measures: telemetryMeasures,
+      },
+    ],
   }
 }
 
