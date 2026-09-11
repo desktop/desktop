@@ -632,8 +632,10 @@ function buildStatsPayload(body: StatsPayload): object {
     tutorialPrCreated,
     tutorialCompleted,
   }
+  // Central converted dimension values to strings for us.
   const dimensions = stringifyDimensions(collectedDimensions)
 
+  // Central rounded decimal measures to integers for us.
   const telemetryMeasures: ITelemetryMeasures = {
     ...measures,
     mainReadyTime: Math.round(mainReadyTime),
