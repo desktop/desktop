@@ -82,6 +82,54 @@ describe('StatsStore', () => {
     assert.strictEqual(await statsDb.dailyMeasures.count(), 1)
   })
 
+  it('posts flat stats to the legacy endpoint', async t => {
+    statsDb = await createStatsDb()
+    const activityMonitor = new TestActivityMonitor()
+    let requestUrl: string | undefined
+    let requestBody: string | undefined
+    const previousPreviewFeatures = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    localStorage.setItem('has-sent-stats-opt-in-ping', '1')
+    delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    t.after(() => {
+      if (previousPreviewFeatures !== undefined) {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previousPreviewFeatures
+      }
+    })
+
+    t.mock.method(
+      globalThis,
+      'fetch',
+      async (input: string | URL | Request, init?: RequestInit) => {
+        requestUrl = String(input)
+        requestBody = typeof init?.body === 'string' ? init.body : undefined
+        return new Response(null, { status: 200 })
+      }
+    )
+
+    const store = new StatsStore(statsDb, activityMonitor)
+    await store.increment('commits')
+    await store.recordLaunchStats({
+      mainReadyTime: 112.29,
+      loadTime: 15481.89,
+      rendererReadyTime: 7216.25,
+    })
+
+    assert.strictEqual(await store.sendStats([], []), true)
+    assert.strictEqual(
+      requestUrl,
+      'https://central.github.com/api/usage/desktop'
+    )
+    assert.notStrictEqual(requestBody, undefined)
+
+    const payload = JSON.parse(requestBody ?? '')
+    assert.strictEqual(payload.eventType, 'usage')
+    assert.strictEqual(payload.commits, 1)
+    assert.strictEqual(payload.mainReadyTime, 112.29)
+    assert.strictEqual('events' in payload, false)
+    assert.strictEqual('dimensions' in payload, false)
+    assert.strictEqual('measures' in payload, false)
+  })
+
   it('posts structured stats to the new endpoint', async t => {
     statsDb = await createStatsDb()
     const activityMonitor = new TestActivityMonitor()
