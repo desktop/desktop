@@ -540,7 +540,14 @@ function stringifyDimensions<
   )
 }
 
-/** Transform a flat stats payload into the structured telemetry format. */
+/**
+ * Transform the flat payload accepted by Central into CAFE's TelemetryAPI
+ * event format. CAFE expects `eventType` as `event_type`, dimensions encoded
+ * as strings, and measures encoded as integers inside an `events` array.
+ *
+ * This conversion stays at the HTTP boundary so the legacy Central path can
+ * continue sending the original payload unchanged.
+ */
 function buildStatsPayload(body: StatsPayload): object {
   if (body.eventType === 'ping') {
     return {
