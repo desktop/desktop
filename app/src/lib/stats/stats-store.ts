@@ -544,6 +544,8 @@ function stringifyDimensions<
  * Transform the flat payload accepted by Central into CAFE's TelemetryAPI
  * event format. CAFE expects `eventType` as `event_type`, dimensions encoded
  * as strings, and measures encoded as integers inside an `events` array.
+ * Central previously performed the string conversion and integer rounding
+ * server-side, so the CAFE payload must perform those conversions here.
  *
  * This conversion stays at the HTTP boundary so the legacy Central path can
  * continue sending the original payload unchanged.
