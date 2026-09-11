@@ -51,6 +51,12 @@
     color: var(--text-secondary-color);
   }
 
+  .co-author-input-validation-callout {
+    color: var(--form-error-text-color);
+    font-size: var(--font-size-sm);
+    width: 100%;
+  }
+
   .handle {
     border-radius: var(--border-radius);
     border: 1px solid var(--co-author-tag-border-color);

@@ -1,16 +1,16 @@
 import * as React from 'react'
 
-import { IAutocompletionProvider } from './index'
-import { GitHubUserStore } from '../../lib/stores'
-import { GitHubRepository } from '../../models/github-repository'
-import { Account } from '../../models/account'
-import { IMentionableUser } from '../../lib/databases/index'
-import { Avatar } from '../lib/avatar'
-import { IAvatarUser } from '../../models/avatar'
 import memoizeOne from 'memoize-one'
-import { copilotSweAgentBot } from '../../models/dot-com-bots'
+import { IMentionableUser } from '../../lib/databases/index'
 import { getStealthEmailForUser } from '../../lib/email'
 import { isDotCom } from '../../lib/endpoint-capabilities'
+import { GitHubUserStore } from '../../lib/stores'
+import { Account } from '../../models/account'
+import { IAvatarUser } from '../../models/avatar'
+import { copilotSweAgentBot } from '../../models/dot-com-bots'
+import { GitHubRepository } from '../../models/github-repository'
+import { Avatar } from '../lib/avatar'
+import { IAutocompletionProvider } from './index'
 
 /** An autocompletion hit for a user. */
 export type KnownUserHit = {
@@ -166,6 +166,13 @@ export class UserAutocompletionProvider
     return `@${item.username}`
   }
 
+  public isCurrentUser(login: string): boolean {
+    const account = this.account
+    return (
+      account !== null && login.toLowerCase() === account.login.toLowerCase()
+    )
+  }
+
   /**
    * Retrieve a user based on the user login name, i.e their handle.
    *
@@ -178,6 +185,10 @@ export class UserAutocompletionProvider
    */
   public async exactMatch(login: string): Promise<UserHit | null> {
     if (this.account === null) {
+      return null
+    }
+
+    if (this.isCurrentUser(login)) {
       return null
     }
 
