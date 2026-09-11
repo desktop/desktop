@@ -459,8 +459,16 @@ interface ICalculatedStats {
 
 type DailyStats = ICalculatedStats &
   ILaunchStats &
-  IDailyMeasures &
+  Omit<IDailyMeasures, 'id'> &
   IOnboardingStats
+
+interface IOptInStatusPing {
+  readonly eventType: 'ping'
+  readonly optIn: boolean
+  readonly previousOptInValue: boolean | null
+}
+
+type StatsPayload = DailyStats | IOptInStatusPing
 
 /**
  * Testable interface for StatsStore
@@ -517,40 +525,110 @@ type ITelemetryMeasures = ILaunchStats &
     readonly highestTutorialStepCompleted: number
   }
 
-/** The structured telemetry event sent to the stats endpoint. */
-interface ITelemetryEvent {
-  readonly event_type: 'usage' | 'ping'
+/** The structured usage event sent to the stats endpoint. */
+interface ITelemetryUsageEvent {
+  readonly event_type: 'usage'
   readonly dimensions: ITelemetryDimensions
-  readonly measures?: ITelemetryMeasures
+  readonly measures: ITelemetryMeasures
 }
 
-/**
- * Transform a flat stats payload into the structured telemetry format.
- *
- * Extracts `eventType` for the envelope's `event_type` field, then splits
- * remaining fields into dimensions (string/boolean values) and measures
- * (numeric values).
- */
-function buildStatsPayload(body: Record<string, any>): object {
-  const { eventType, ...rest } = body
-
-  const dimensions: Record<string, string> = {}
-  const measures: Record<string, number> = {}
-
-  for (const [key, value] of Object.entries(rest)) {
-    if (value === undefined) {
-      continue
-    } else if (typeof value === 'number') {
-      measures[key] = Math.round(value)
-    } else {
-      dimensions[key] = String(value)
+/** Transform a flat stats payload into the structured telemetry format. */
+function buildStatsPayload(body: StatsPayload): object {
+  if (body.eventType === 'ping') {
+    return {
+      events: [
+        {
+          app: 'desktop',
+          event_type: body.eventType,
+          dimensions: {
+            optIn: String(body.optIn),
+            previousOptInValue: String(body.previousOptInValue),
+          },
+        },
+      ],
     }
   }
 
-  const event: ITelemetryEvent = {
-    event_type: eventType ?? 'usage',
-    dimensions: dimensions as unknown as ITelemetryDimensions,
-    measures: measures as unknown as ITelemetryMeasures,
+  const {
+    eventType,
+    version,
+    osVersion,
+    platform,
+    architecture,
+    guid,
+    theme,
+    selectedTerminalEmulator,
+    selectedTextEditor,
+    diffMode,
+    dotComAccount,
+    enterpriseAccount,
+    notificationsEnabled,
+    launchedFromApplicationsFolder,
+    linkUnderlinesVisible,
+    diffCheckMarksVisible,
+    useExternalCredentialHelper,
+    filteringChangesEnabled,
+    gitHooksEnvEnabled,
+    copilotConflictResolutionModel,
+    active,
+    tutorialStarted,
+    tutorialRepoCreated,
+    tutorialEditorInstalled,
+    tutorialBranchCreated,
+    tutorialFileEdited,
+    tutorialCommitCreated,
+    tutorialBranchPushed,
+    tutorialPrCreated,
+    tutorialCompleted,
+    mainReadyTime,
+    loadTime,
+    rendererReadyTime,
+    ...measures
+  } = body
+
+  const dimensions: ITelemetryDimensions = {
+    version,
+    osVersion,
+    platform,
+    architecture,
+    guid,
+    theme,
+    selectedTerminalEmulator,
+    selectedTextEditor,
+    diffMode,
+    dotComAccount: String(dotComAccount),
+    enterpriseAccount: String(enterpriseAccount),
+    notificationsEnabled: String(notificationsEnabled),
+    launchedFromApplicationsFolder: String(launchedFromApplicationsFolder),
+    linkUnderlinesVisible: String(linkUnderlinesVisible),
+    diffCheckMarksVisible: String(diffCheckMarksVisible),
+    useExternalCredentialHelper: String(useExternalCredentialHelper),
+    filteringChangesEnabled: String(filteringChangesEnabled),
+    gitHooksEnvEnabled: String(gitHooksEnvEnabled),
+    copilotConflictResolutionModel,
+    active: String(active),
+    tutorialStarted: String(tutorialStarted),
+    tutorialRepoCreated: String(tutorialRepoCreated),
+    tutorialEditorInstalled: String(tutorialEditorInstalled),
+    tutorialBranchCreated: String(tutorialBranchCreated),
+    tutorialFileEdited: String(tutorialFileEdited),
+    tutorialCommitCreated: String(tutorialCommitCreated),
+    tutorialBranchPushed: String(tutorialBranchPushed),
+    tutorialPrCreated: String(tutorialPrCreated),
+    tutorialCompleted: String(tutorialCompleted),
+  }
+
+  const telemetryMeasures: ITelemetryMeasures = {
+    ...measures,
+    mainReadyTime: Math.round(mainReadyTime),
+    loadTime: Math.round(loadTime),
+    rendererReadyTime: Math.round(rendererReadyTime),
+  }
+
+  const event: ITelemetryUsageEvent = {
+    event_type: eventType,
+    dimensions,
+    measures: telemetryMeasures,
   }
 
   return {
@@ -558,7 +636,7 @@ function buildStatsPayload(body: Record<string, any>): object {
   }
 }
 
-const defaultPostImplementation = (body: Record<string, any>) => {
+const defaultPostImplementation = (body: StatsPayload) => {
   if (enableNewStatsEndpoint()) {
     return fetch(StatsEndpoint, {
       method: 'POST',

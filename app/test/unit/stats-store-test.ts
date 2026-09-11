@@ -131,6 +131,57 @@ describe('StatsStore', () => {
     assert.strictEqual(payload.events[0].measures.loadTime, 15482)
     assert.strictEqual(payload.events[0].measures.rendererReadyTime, 7216)
     assert.strictEqual(payload.events[0].dimensions.version, 'dev')
+    assert.strictEqual(
+      typeof payload.events[0].dimensions.gitHooksEnvEnabled,
+      'string'
+    )
+    assert.strictEqual(typeof payload.events[0].dimensions.active, 'string')
+    assert.strictEqual(payload.events[0].measures.repositoryCount, 0)
     assert.ok(Buffer.byteLength(requestBody ?? '') < 16 * 1024)
+  })
+
+  it('posts structured opt-in pings to the new endpoint', async t => {
+    statsDb = await createStatsDb()
+    const activityMonitor = new TestActivityMonitor()
+    let requestBody: string | undefined
+    let resolveRequest: (() => void) | undefined
+    const requestReceived = new Promise<void>(resolve => {
+      resolveRequest = resolve
+    })
+    const previousPreviewFeatures = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+    process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
+    localStorage.removeItem('has-sent-stats-opt-in-ping')
+    localStorage.removeItem('stats-opt-out')
+    t.after(() => {
+      localStorage.removeItem('stats-opt-out')
+      if (previousPreviewFeatures === undefined) {
+        delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      } else {
+        process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = previousPreviewFeatures
+      }
+    })
+
+    t.mock.method(
+      globalThis,
+      'fetch',
+      async (_input: string | URL | Request, init?: RequestInit) => {
+        requestBody = typeof init?.body === 'string' ? init.body : undefined
+        resolveRequest?.()
+        return new Response(null, { status: 200 })
+      }
+    )
+
+    new StatsStore(statsDb, activityMonitor)
+    await requestReceived
+
+    const payload = JSON.parse(requestBody ?? '')
+    assert.deepStrictEqual(payload.events[0], {
+      app: 'desktop',
+      event_type: 'ping',
+      dimensions: {
+        optIn: 'true',
+        previousOptInValue: 'null',
+      },
+    })
   })
 })
