@@ -443,7 +443,7 @@ interface ICalculatedStats {
    * Whether or not the user has enabled the external credential helper or null
    * if the user has not yet made an active decision
    **/
-  readonly useExternalCredentialHelper?: boolean | null
+  readonly useExternalCredentialHelper: boolean | null
 
   /**
    * Whether or not the user has the filtering changes enabled
@@ -481,7 +481,7 @@ export interface IStatsStore {
   increment: (k: keyof NumericMeasures, n?: number) => Promise<void>
 }
 
-/** Dimensions sent to the telemetry endpoint (string-valued fields). */
+/** Dimensions collected for the telemetry endpoint. */
 interface ITelemetryDimensions {
   readonly version: string
   readonly osVersion: string
@@ -492,26 +492,26 @@ interface ITelemetryDimensions {
   readonly selectedTerminalEmulator: string
   readonly selectedTextEditor: string
   readonly diffMode: string
-  readonly dotComAccount: string
-  readonly enterpriseAccount: string
-  readonly notificationsEnabled: string
-  readonly launchedFromApplicationsFolder: string
-  readonly linkUnderlinesVisible: string
-  readonly diffCheckMarksVisible: string
-  readonly useExternalCredentialHelper: string
-  readonly filteringChangesEnabled: string
-  readonly gitHooksEnvEnabled: string
+  readonly dotComAccount: boolean
+  readonly enterpriseAccount: boolean
+  readonly notificationsEnabled: boolean
+  readonly launchedFromApplicationsFolder: boolean | null
+  readonly linkUnderlinesVisible: boolean
+  readonly diffCheckMarksVisible: boolean
+  readonly useExternalCredentialHelper: boolean | null
+  readonly filteringChangesEnabled: boolean
+  readonly gitHooksEnvEnabled: boolean
   readonly copilotConflictResolutionModel: string
-  readonly active: string
-  readonly tutorialStarted: string
-  readonly tutorialRepoCreated: string
-  readonly tutorialEditorInstalled: string
-  readonly tutorialBranchCreated: string
-  readonly tutorialFileEdited: string
-  readonly tutorialCommitCreated: string
-  readonly tutorialBranchPushed: string
-  readonly tutorialPrCreated: string
-  readonly tutorialCompleted: string
+  readonly active: boolean
+  readonly tutorialStarted: boolean
+  readonly tutorialRepoCreated: boolean
+  readonly tutorialEditorInstalled: boolean
+  readonly tutorialBranchCreated: boolean
+  readonly tutorialFileEdited: boolean
+  readonly tutorialCommitCreated: boolean
+  readonly tutorialBranchPushed: boolean
+  readonly tutorialPrCreated: boolean
+  readonly tutorialCompleted: boolean
 }
 
 /** Measures sent to the telemetry endpoint (numeric-valued fields). */
@@ -528,8 +528,16 @@ type ITelemetryMeasures = ILaunchStats &
 /** The structured usage event sent to the stats endpoint. */
 interface ITelemetryUsageEvent {
   readonly event_type: 'usage'
-  readonly dimensions: ITelemetryDimensions
+  readonly dimensions: Readonly<Record<string, string>>
   readonly measures: ITelemetryMeasures
+}
+
+function stringifyDimensions<
+  T extends { readonly [K in keyof T]: string | boolean | null }
+>(dimensions: T): Readonly<Record<string, string>> {
+  return Object.fromEntries(
+    Object.entries(dimensions).map(([key, value]) => [key, String(value)])
+  )
 }
 
 /** Transform a flat stats payload into the structured telemetry format. */
@@ -540,10 +548,10 @@ function buildStatsPayload(body: StatsPayload): object {
         {
           app: 'desktop',
           event_type: body.eventType,
-          dimensions: {
-            optIn: String(body.optIn),
-            previousOptInValue: String(body.previousOptInValue),
-          },
+          dimensions: stringifyDimensions({
+            optIn: body.optIn,
+            previousOptInValue: body.previousOptInValue,
+          }),
         },
       ],
     }
@@ -586,7 +594,7 @@ function buildStatsPayload(body: StatsPayload): object {
     ...measures
   } = body
 
-  const dimensions: ITelemetryDimensions = {
+  const collectedDimensions: ITelemetryDimensions = {
     version,
     osVersion,
     platform,
@@ -596,27 +604,28 @@ function buildStatsPayload(body: StatsPayload): object {
     selectedTerminalEmulator,
     selectedTextEditor,
     diffMode,
-    dotComAccount: String(dotComAccount),
-    enterpriseAccount: String(enterpriseAccount),
-    notificationsEnabled: String(notificationsEnabled),
-    launchedFromApplicationsFolder: String(launchedFromApplicationsFolder),
-    linkUnderlinesVisible: String(linkUnderlinesVisible),
-    diffCheckMarksVisible: String(diffCheckMarksVisible),
-    useExternalCredentialHelper: String(useExternalCredentialHelper),
-    filteringChangesEnabled: String(filteringChangesEnabled),
-    gitHooksEnvEnabled: String(gitHooksEnvEnabled),
+    dotComAccount,
+    enterpriseAccount,
+    notificationsEnabled,
+    launchedFromApplicationsFolder,
+    linkUnderlinesVisible,
+    diffCheckMarksVisible,
+    useExternalCredentialHelper,
+    filteringChangesEnabled,
+    gitHooksEnvEnabled,
     copilotConflictResolutionModel,
-    active: String(active),
-    tutorialStarted: String(tutorialStarted),
-    tutorialRepoCreated: String(tutorialRepoCreated),
-    tutorialEditorInstalled: String(tutorialEditorInstalled),
-    tutorialBranchCreated: String(tutorialBranchCreated),
-    tutorialFileEdited: String(tutorialFileEdited),
-    tutorialCommitCreated: String(tutorialCommitCreated),
-    tutorialBranchPushed: String(tutorialBranchPushed),
-    tutorialPrCreated: String(tutorialPrCreated),
-    tutorialCompleted: String(tutorialCompleted),
+    active,
+    tutorialStarted,
+    tutorialRepoCreated,
+    tutorialEditorInstalled,
+    tutorialBranchCreated,
+    tutorialFileEdited,
+    tutorialCommitCreated,
+    tutorialBranchPushed,
+    tutorialPrCreated,
+    tutorialCompleted,
   }
+  const dimensions = stringifyDimensions(collectedDimensions)
 
   const telemetryMeasures: ITelemetryMeasures = {
     ...measures,
