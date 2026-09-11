@@ -470,6 +470,17 @@ interface IOptInStatusPing {
 
 type StatsPayload = DailyStats | IOptInStatusPing
 
+interface ITelemetryEvent {
+  readonly app: 'desktop'
+  readonly event_type: 'usage' | 'ping'
+  readonly dimensions: Readonly<Record<string, string>>
+  readonly measures?: Readonly<Record<string, number>>
+}
+
+interface ITelemetryPayload {
+  readonly events: ReadonlyArray<ITelemetryEvent>
+}
+
 /**
  * Testable interface for StatsStore
  *
@@ -481,9 +492,9 @@ export interface IStatsStore {
   increment: (k: keyof NumericMeasures, n?: number) => Promise<void>
 }
 
-function stringifyDimensions(
-  dimensions: Readonly<Record<string, string | boolean | null>>
-) {
+function stringifyDimensions<
+  T extends { readonly [K in keyof T]: string | boolean | null }
+>(dimensions: T): Readonly<Record<string, string>> {
   return Object.fromEntries(
     Object.entries(dimensions).map(([key, value]) => [key, String(value)])
   )
@@ -499,7 +510,7 @@ function stringifyDimensions(
  * This conversion stays at the HTTP boundary so the legacy Central path can
  * continue sending the original payload unchanged.
  */
-function buildStatsPayload(body: StatsPayload): object {
+function buildStatsPayload(body: StatsPayload): ITelemetryPayload {
   if (body.eventType === 'ping') {
     return {
       events: [
