@@ -481,53 +481,9 @@ export interface IStatsStore {
   increment: (k: keyof NumericMeasures, n?: number) => Promise<void>
 }
 
-/** Dimensions collected for the telemetry endpoint. */
-interface ITelemetryDimensions {
-  readonly version: string
-  readonly osVersion: string
-  readonly platform: string
-  readonly architecture: string
-  readonly guid: string
-  readonly theme: string
-  readonly selectedTerminalEmulator: string
-  readonly selectedTextEditor: string
-  readonly diffMode: string
-  readonly dotComAccount: boolean
-  readonly enterpriseAccount: boolean
-  readonly notificationsEnabled: boolean
-  readonly launchedFromApplicationsFolder: boolean | null
-  readonly linkUnderlinesVisible: boolean
-  readonly diffCheckMarksVisible: boolean
-  readonly useExternalCredentialHelper: boolean | null
-  readonly filteringChangesEnabled: boolean
-  readonly gitHooksEnvEnabled: boolean
-  readonly copilotConflictResolutionModel: string
-  readonly active: boolean
-  readonly tutorialStarted: boolean
-  readonly tutorialRepoCreated: boolean
-  readonly tutorialEditorInstalled: boolean
-  readonly tutorialBranchCreated: boolean
-  readonly tutorialFileEdited: boolean
-  readonly tutorialCommitCreated: boolean
-  readonly tutorialBranchPushed: boolean
-  readonly tutorialPrCreated: boolean
-  readonly tutorialCompleted: boolean
-}
-
-/** Measures sent to the telemetry endpoint (numeric-valued fields). */
-type ITelemetryMeasures = ILaunchStats &
-  NumericMeasures &
-  IOnboardingStats & {
-    readonly repositoryCount: number
-    readonly gitHubRepositoryCount: number
-    readonly repositoriesCommittedInWithoutWriteAccess: number
-    readonly enterpriseAccountCount: number
-    readonly highestTutorialStepCompleted: number
-  }
-
-function stringifyDimensions<
-  T extends { readonly [K in keyof T]: string | boolean | null }
->(dimensions: T): Readonly<Record<string, string>> {
+function stringifyDimensions(
+  dimensions: Readonly<Record<string, string | boolean | null>>
+) {
   return Object.fromEntries(
     Object.entries(dimensions).map(([key, value]) => [key, String(value)])
   )
@@ -593,10 +549,11 @@ function buildStatsPayload(body: StatsPayload): object {
     mainReadyTime,
     loadTime,
     rendererReadyTime,
-    ...measures
+    ...remainingMeasures
   } = body
 
-  const collectedDimensions: ITelemetryDimensions = {
+  // Central converted dimension values to strings for us.
+  const dimensions = stringifyDimensions({
     version,
     osVersion,
     platform,
@@ -626,13 +583,11 @@ function buildStatsPayload(body: StatsPayload): object {
     tutorialBranchPushed,
     tutorialPrCreated,
     tutorialCompleted,
-  }
-  // Central converted dimension values to strings for us.
-  const dimensions = stringifyDimensions(collectedDimensions)
+  })
 
   // Central rounded decimal measures to integers for us.
-  const telemetryMeasures: ITelemetryMeasures = {
-    ...measures,
+  const measures = {
+    ...remainingMeasures,
     mainReadyTime: Math.round(mainReadyTime),
     loadTime: Math.round(loadTime),
     rendererReadyTime: Math.round(rendererReadyTime),
@@ -644,7 +599,7 @@ function buildStatsPayload(body: StatsPayload): object {
         app: 'desktop',
         event_type: eventType,
         dimensions,
-        measures: telemetryMeasures,
+        measures,
       },
     ],
   }
