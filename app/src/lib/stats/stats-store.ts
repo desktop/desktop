@@ -443,7 +443,7 @@ interface ICalculatedStats {
    * Whether or not the user has enabled the external credential helper or null
    * if the user has not yet made an active decision
    **/
-  readonly useExternalCredentialHelper: boolean | null
+  readonly useExternalCredentialHelper?: boolean | null
 
   /**
    * Whether or not the user has the filtering changes enabled
@@ -610,7 +610,7 @@ function buildStatsPayload(body: StatsPayload): object {
     launchedFromApplicationsFolder,
     linkUnderlinesVisible,
     diffCheckMarksVisible,
-    useExternalCredentialHelper,
+    useExternalCredentialHelper: useExternalCredentialHelper ?? null,
     filteringChangesEnabled,
     gitHooksEnvEnabled,
     copilotConflictResolutionModel,
