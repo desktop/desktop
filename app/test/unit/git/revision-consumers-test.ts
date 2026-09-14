@@ -1,0 +1,63 @@
+import assert from 'node:assert'
+import { describe, it, TestContext } from 'node:test'
+import { exec } from 'dugite'
+import { Repository } from '../../../src/models/repository'
+import { getCommits } from '../../../src/lib/git/log'
+import { setupEmptyRepository } from '../../helpers/repositories'
+import { makeCommit } from '../../helpers/repository-scaffolding'
+
+async function runGit(repository: Repository, args: string[]) {
+  const result = await exec(args, repository.path)
+  assert.strictEqual(result.exitCode, 0, result.stderr)
+  return result.stdout.trim()
+}
+
+async function setupHistory(t: TestContext) {
+  const repository = await setupEmptyRepository(t)
+  await makeCommit(repository, {
+    entries: [{ path: 'file.txt', contents: 'base\n' }],
+    commitMessage: 'base',
+  })
+  const base = await runGit(repository, ['rev-parse', 'HEAD'])
+  await runGit(repository, ['update-ref', 'refs/remotes/--remote/base', base])
+  await makeCommit(repository, {
+    entries: [{ path: 'file.txt', contents: 'updated\n' }],
+    commitMessage: 'matching first',
+  })
+  const first = await runGit(repository, ['rev-parse', 'HEAD'])
+  await makeCommit(repository, {
+    entries: [{ path: 'other.txt', contents: 'other\n' }],
+    commitMessage: 'matching second',
+  })
+  const tip = await runGit(repository, ['rev-parse', 'HEAD'])
+  await runGit(repository, ['update-ref', 'refs/remotes/--remote/main', tip])
+  return { repository, base, first, tip }
+}
+
+describe('revision consumers with leading-dash refs', () => {
+  it('getCommits reads refs and ranges while preserving filters and pagination', async t => {
+    const { repository, base, first, tip } = await setupHistory(t)
+    const commits = await getCommits(repository, '--remote/main')
+    assert.deepStrictEqual(
+      commits.map(c => c.sha),
+      [tip, first, base]
+    )
+    const filtered = await getCommits(
+      repository,
+      '--remote/base..--remote/main',
+      1,
+      1,
+      ['--grep=matching']
+    )
+    assert.deepStrictEqual(
+      filtered.map(c => ({ sha: c.sha, summary: c.summary })),
+      [{ sha: first, summary: 'matching first' }]
+    )
+    assert.deepStrictEqual(
+      await getCommits(repository, '--remote/main', undefined, undefined, [
+        '--grep=absent',
+      ]),
+      []
+    )
+  })
+})
