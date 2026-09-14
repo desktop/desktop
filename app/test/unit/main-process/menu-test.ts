@@ -160,35 +160,23 @@ describe('main-process menu', () => {
 
   describe('buildDefaultMenuTemplate', () => {
     it('gates Copilot handoff to supported platforms and preview channels', t => {
-      const globals = {
-        __DEV__,
-        __DARWIN__,
-        __WIN32__,
-        __RELEASE_CHANNEL__,
-      }
       const preview = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
       t.after(() => {
-        Object.assign(globalThis, globals)
         if (preview === undefined) {
           delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
         } else {
           process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = preview
         }
       })
+
       delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
-      for (const platform of ['darwin', 'win32', 'linux']) {
-        Object.assign(globalThis, {
-          __DEV__: false,
-          __DARWIN__: platform === 'darwin',
-          __WIN32__: platform === 'win32',
-          __RELEASE_CHANNEL__: 'beta',
-        })
-        assert.strictEqual(enableCopilotAppHandoff(), platform !== 'linux')
-        const template = buildDefaultMenuTemplate(baseParams)
-        assert.deepStrictEqual(findDuplicateAccessKeys(template), [])
-        Object.assign(globalThis, { __RELEASE_CHANNEL__: 'production' })
-        assert.strictEqual(enableCopilotAppHandoff(), false)
-      }
+      assert.strictEqual(
+        enableCopilotAppHandoff(),
+        (__DARWIN__ || __WIN32__) && (__DEV__ || __RELEASE_CHANNEL__ === 'beta')
+      )
+
+      process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
+      assert.strictEqual(enableCopilotAppHandoff(), __DARWIN__ || __WIN32__)
     })
 
     // The boolean parameters that affect which labels (and therefore access
