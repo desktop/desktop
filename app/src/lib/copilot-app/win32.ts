@@ -2,10 +2,14 @@ import { basename, isAbsolute, join } from 'path'
 import { enumerateKeys, enumerateValues, HKEY } from 'registry-js'
 
 type Hive = 'HKEY_CURRENT_USER' | 'HKEY_LOCAL_MACHINE'
-type RegistryValues = ReadonlyArray<{
-  readonly name: string
-  readonly data: unknown
-}>
+type RegistryValues = ReadonlyArray<
+  | {
+      readonly name: string
+      readonly data: unknown
+    }
+  | null
+  | undefined
+>
 
 /** Registry access used to discover both NSIS and MSI installations. */
 export interface ICopilotAppRegistry {
@@ -32,7 +36,7 @@ function unquote(value: string): string {
 
 function getPaths(values: RegistryValues): ReadonlyArray<string> {
   const get = (name: string) => {
-    const value = values.find(v => v.name.toLowerCase() === name.toLowerCase())
+    const value = values.find(v => v?.name.toLowerCase() === name.toLowerCase())
     return typeof value?.data === 'string' ? value.data : ''
   }
 

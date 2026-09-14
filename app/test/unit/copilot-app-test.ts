@@ -226,6 +226,19 @@ if (__WIN32__) {
       }
     })
 
+    it('ignores missing entries returned for registry values', () => {
+      const registry: ICopilotAppRegistry = {
+        ...empty,
+        readValues: () => [
+          undefined,
+          ...record({ InstallLocation: 'E:\\Custom Copilot' }),
+        ],
+      }
+      assert.deepStrictEqual(getWindowsCopilotAppCandidates(registry, {}), [
+        'E:\\Custom Copilot\\github.exe',
+      ])
+    })
+
     it('rejects unrelated applications and malformed registry paths', () => {
       const invalidValues: ReadonlyArray<Record<string, string>> = [
         { Publisher: 'Other Publisher', InstallLocation: 'C:\\App' },
