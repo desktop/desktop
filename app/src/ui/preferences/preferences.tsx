@@ -1003,9 +1003,12 @@ export class Preferences extends React.Component<
   private onSave = async () => {
     const { dispatcher } = this.props
     const copilotAppPath = this.state.copilotAppPath.trim()
+    const initialCopilotAppPath = this.props.copilotAppPath?.trim() ?? ''
+    const copilotAppPathChanged = copilotAppPath !== initialCopilotAppPath
 
     if (
       enableCopilotAppHandoff() &&
+      copilotAppPathChanged &&
       copilotAppPath.length > 0 &&
       !(await validateCopilotAppPath(copilotAppPath))
     ) {
@@ -1112,7 +1115,7 @@ export class Preferences extends React.Component<
       dispatcher.setCustomShell(customShell)
     }
 
-    if (enableCopilotAppHandoff()) {
+    if (enableCopilotAppHandoff() && copilotAppPathChanged) {
       await dispatcher.setCopilotAppPath(
         copilotAppPath.length === 0 ? null : copilotAppPath
       )

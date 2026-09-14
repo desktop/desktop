@@ -381,15 +381,18 @@ export function buildDefaultMenuTemplate({
         accelerator: 'CmdOrCtrl+Shift+Alt+A',
         click: emit('open-with-external-editor'),
       },
-      {
-        label: __DARWIN__
-          ? 'Open in GitHub Copilot'
-          : 'Open in GitHub &Copilot',
-        id: 'open-in-copilot-app',
-        accelerator: 'CmdOrCtrl+Shift+J',
-        click: emit('open-in-copilot-app'),
-        visible: enableCopilotAppHandoff(),
-      },
+      ...(enableCopilotAppHandoff()
+        ? [
+            {
+              label: __DARWIN__
+                ? 'Open in GitHub Copilot'
+                : 'Open in GitHub &Copilot',
+              id: 'open-in-copilot-app',
+              accelerator: 'CmdOrCtrl+Shift+J',
+              click: emit('open-in-copilot-app'),
+            },
+          ]
+        : []),
       separator,
       {
         id: 'create-issue-in-repository-on-github',

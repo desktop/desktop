@@ -161,6 +161,15 @@ describe('main-process menu', () => {
   describe('buildDefaultMenuTemplate', () => {
     it('gates Copilot handoff to supported platforms and preview channels', t => {
       const preview = process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
+      const hasCopilotMenuItem = () => {
+        const template = buildDefaultMenuTemplate(baseParams)
+        const repository = template.find(item => item.id === 'repository')
+        assert.ok(Array.isArray(repository?.submenu))
+        return repository.submenu.some(
+          item => item.id === 'open-in-copilot-app'
+        )
+      }
+
       t.after(() => {
         if (preview === undefined) {
           delete process.env.GITHUB_DESKTOP_PREVIEW_FEATURES
@@ -174,9 +183,11 @@ describe('main-process menu', () => {
         enableCopilotAppHandoff(),
         (__DARWIN__ || __WIN32__) && (__DEV__ || __RELEASE_CHANNEL__ === 'beta')
       )
+      assert.strictEqual(hasCopilotMenuItem(), enableCopilotAppHandoff())
 
       process.env.GITHUB_DESKTOP_PREVIEW_FEATURES = '1'
       assert.strictEqual(enableCopilotAppHandoff(), __DARWIN__ || __WIN32__)
+      assert.strictEqual(hasCopilotMenuItem(), enableCopilotAppHandoff())
     })
 
     // The boolean parameters that affect which labels (and therefore access
@@ -208,9 +219,10 @@ describe('main-process menu', () => {
       const copilot = repository.submenu.find(
         item => item.id === 'open-in-copilot-app'
       )
-      assert.ok(copilot)
-      assert.strictEqual(copilot.accelerator, 'CmdOrCtrl+Shift+J')
-      assert.strictEqual(copilot.visible, enableCopilotAppHandoff())
+      assert.strictEqual(copilot !== undefined, enableCopilotAppHandoff())
+      if (copilot !== undefined) {
+        assert.strictEqual(copilot.accelerator, 'CmdOrCtrl+Shift+J')
+      }
       assert.ok(
         repository.submenu.some(item => item.id === 'open-external-editor')
       )

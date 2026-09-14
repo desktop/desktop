@@ -719,7 +719,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private useCustomEditor: boolean = false
   private customEditor: ICustomIntegration | null = null
   private copilotAppPath: string | null = null
-  private openingCopilotApp = false
 
   private useCustomShell: boolean = false
   private customShell: ICustomIntegration | null = null
@@ -2593,9 +2592,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.useCustomEditor =
       enableCustomIntegration() && getBoolean(useCustomEditorKey, false)
     this.customEditor = getObject<ICustomIntegration>(customEditorKey) ?? null
-    this.copilotAppPath =
-      localStorage.getItem(copilotAppPathKey) ??
-      (enableCopilotAppHandoff() ? await findCopilotApp() : null)
+    this.copilotAppPath = localStorage.getItem(copilotAppPathKey)
 
     this.useCustomShell =
       enableCustomIntegration() && getBoolean(useCustomShellKey, false)
@@ -7644,12 +7641,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _openInCopilotApp(repositoryPath: string): Promise<void> {
-    if (!enableCopilotAppHandoff() || this.openingCopilotApp) {
-      log.debug('Ignoring unavailable or already pending Copilot app handoff')
+    if (!enableCopilotAppHandoff()) {
+      log.debug('Ignoring unavailable Copilot app handoff')
       return
     }
 
-    this.openingCopilotApp = true
     try {
       const appPath =
         this.copilotAppPath !== null
@@ -7672,8 +7668,6 @@ export class AppStore extends TypedBaseStore<IAppState> {
       } else {
         throw error
       }
-    } finally {
-      this.openingCopilotApp = false
     }
   }
 
@@ -7681,11 +7675,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public async _setCopilotAppPath(path: string | null): Promise<void> {
     if (path === null) {
       localStorage.removeItem(copilotAppPathKey)
-      this.copilotAppPath = await findCopilotApp()
     } else {
       localStorage.setItem(copilotAppPathKey, path)
-      this.copilotAppPath = path
     }
+    this.copilotAppPath = path
     this.emitUpdate()
   }
 
