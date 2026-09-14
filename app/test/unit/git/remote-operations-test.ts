@@ -7,13 +7,18 @@ import { git } from '../../../src/lib/git/core'
 import { fetch, fetchRefspec } from '../../../src/lib/git/fetch'
 import { pull } from '../../../src/lib/git/pull'
 import { push } from '../../../src/lib/git/push'
+import { getMergeBase } from '../../../src/lib/git/merge'
 import { IRemote } from '../../../src/models/remote'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import {
   cloneRepository,
   makeCommit,
 } from '../../helpers/repository-scaffolding'
-import { getRefOrError, getTipOrError } from '../../helpers/git'
+import {
+  getBranchOrError,
+  getRefOrError,
+  getTipOrError,
+} from '../../helpers/git'
 
 async function setupRemote(t: TestContext, name: string) {
   const upstream = await setupEmptyRepository(t)
@@ -32,6 +37,20 @@ async function setupRemote(t: TestContext, name: string) {
       ['config', 'branch.master.remote', name],
       repository.path,
       'set upstream remote'
+    )
+    await git(
+      [
+        'config',
+        `remote.${name}.fetch`,
+        `+refs/heads/*:refs/remotes/${name}/*`,
+      ],
+      repository.path,
+      'set remote-tracking namespace'
+    )
+    await git(
+      ['fetch', '--', name],
+      repository.path,
+      'initialize remote-tracking refs'
     )
   }
 
@@ -58,7 +77,7 @@ describe('git/remote operations', () => {
 
           const actual = await getRefOrError(
             repository,
-            'refs/remotes/origin/master'
+            `refs/remotes/${remoteName}/master`
           )
           const expected = await getTipOrError(upstream)
           assert.strictEqual(actual.sha, expected.sha)
@@ -109,12 +128,12 @@ describe('git/remote operations', () => {
         await fetchRefspec(
           repository,
           remote,
-          'refs/heads/master:refs/remotes/origin/explicit'
+          `refs/heads/master:refs/remotes/${remoteName}/explicit`
         )
 
         const actual = await getRefOrError(
           repository,
-          'refs/remotes/origin/explicit'
+          `refs/remotes/${remoteName}/explicit`
         )
         const expected = await getTipOrError(upstream)
         assert.strictEqual(actual.sha, expected.sha)
@@ -144,6 +163,14 @@ describe('git/remote operations', () => {
       const { repository, remote } = await setupRemote(t, name)
       const before = await getTipOrError(repository)
       const progress = t.mock.fn()
+      const branch = await getBranchOrError(repository, 'master')
+      assert.strictEqual(branch.upstream, `${name}/master`)
+      assert(branch.upstream !== null)
+
+      assert.strictEqual(
+        await getMergeBase(repository, branch.name, branch.upstream),
+        before.sha
+      )
 
       await assert.rejects(
         pull(repository, remote, { progressCallback: progress }),

@@ -104,7 +104,7 @@ export async function getMergeBase(
   secondCommitish: string
 ): Promise<string | null> {
   const process = await git(
-    ['merge-base', firstCommitish, secondCommitish],
+    ['merge-base', '--', firstCommitish, secondCommitish],
     repository.path,
     'merge-base',
     {
