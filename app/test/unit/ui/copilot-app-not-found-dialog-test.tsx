@@ -84,7 +84,9 @@ describe('Copilot app not found dialog', () => {
       })
     )
 
-    assert.deepStrictEqual(openedUrls, ['https://gh.io/app'])
+    assert.deepStrictEqual(openedUrls, [
+      'https://gh.io/app?utm_source=github_desktop_app',
+    ])
     assert.strictEqual(dismissed, false)
   })
 

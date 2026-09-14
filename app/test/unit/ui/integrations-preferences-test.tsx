@@ -58,7 +58,7 @@ describe('Integrations preferences', () => {
           hidden: true,
         })
         .getAttribute('href'),
-      'https://gh.io/app'
+      'https://gh.io/app?utm_source=github_desktop_app'
     )
     assert.ok(
       screen.getByDisplayValue('/Applications/GitHub Copilot.app', {
