@@ -1,7 +1,6 @@
 import { basename, isAbsolute, join } from 'path'
-import { enumerateKeys, enumerateValues, HKEY } from 'registry-js'
+import { enumerateValues, HKEY } from 'registry-js'
 
-type Hive = 'HKEY_CURRENT_USER' | 'HKEY_LOCAL_MACHINE'
 type RegistryValues = ReadonlyArray<
   | {
       readonly name: string
@@ -11,15 +10,13 @@ type RegistryValues = ReadonlyArray<
   | undefined
 >
 
-/** Registry access used to discover both NSIS and MSI installations. */
+/** Registry access used to discover custom NSIS installations. */
 export interface ICopilotAppRegistry {
-  readonly readValues: (hive: Hive, key: string) => RegistryValues
-  readonly readKeys: (hive: Hive, key: string) => ReadonlyArray<string>
+  readonly readValues: (key: string) => RegistryValues
 }
 
 const uninstallKey = 'Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
-const wowUninstallKey =
-  'Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
+const copilotUninstallKey = `${uninstallKey}\\GitHub Copilot`
 
 /** Resolve a configured executable path to the GitHub CLI executable. */
 export function getCopilotAppExecutable(path: string): string | null {
@@ -77,39 +74,21 @@ export function getWindowsCopilotAppCandidates(
   env: NodeJS.ProcessEnv
 ): ReadonlyArray<string> {
   const paths = new Set<string>()
-  for (const hive of ['HKEY_CURRENT_USER', 'HKEY_LOCAL_MACHINE'] as const) {
-    for (const parent of [uninstallKey, wowUninstallKey]) {
-      const read = (key: string) => {
-        try {
-          getPaths(registry.readValues(hive, `${parent}\\${key}`)).forEach(p =>
-            paths.add(p)
-          )
-        } catch (error) {
-          log.debug(`Could not read ${hive}\\${parent}\\${key}`, error)
-        }
-      }
-      read('GitHub Copilot')
-      try {
-        registry.readKeys(hive, parent).forEach(read)
-      } catch (error) {
-        log.debug(`Could not enumerate ${hive}\\${parent}`, error)
-      }
-    }
+  try {
+    getPaths(registry.readValues(copilotUninstallKey)).forEach(path =>
+      paths.add(path)
+    )
+  } catch (error) {
+    log.debug(`Could not read HKEY_CURRENT_USER\\${copilotUninstallKey}`, error)
   }
 
-  for (const root of [
-    env.LOCALAPPDATA,
-    env.ProgramFiles,
-    env['ProgramFiles(x86)'],
-  ]) {
-    if (root && isAbsolute(root)) {
-      paths.add(join(root, 'GitHub Copilot', 'github.exe'))
-    }
-  }
   if (env.LOCALAPPDATA && isAbsolute(env.LOCALAPPDATA)) {
     paths.add(
       join(env.LOCALAPPDATA, 'Programs', 'GitHub Copilot', 'github.exe')
     )
+  }
+  if (env.ProgramFiles && isAbsolute(env.ProgramFiles)) {
+    paths.add(join(env.ProgramFiles, 'GitHub Copilot', 'github.exe'))
   }
   return [...paths]
 }
@@ -120,8 +99,7 @@ export async function findCopilotAppCandidates(): Promise<
 > {
   return getWindowsCopilotAppCandidates(
     {
-      readValues: (hive, key) => enumerateValues(HKEY[hive], key),
-      readKeys: (hive, key) => enumerateKeys(HKEY[hive], key),
+      readValues: key => enumerateValues(HKEY.HKEY_CURRENT_USER, key),
     },
     process.env
   )

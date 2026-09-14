@@ -164,25 +164,21 @@ describe('Copilot App discovery and validation', () => {
 if (__WIN32__) {
   describe('Copilot App Windows registry discovery', () => {
     const uninstall = 'Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
-    const wow =
-      'Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
     const record = (values: Record<string, string>) =>
       Object.entries({
         DisplayName: 'GitHub Copilot',
         Publisher: 'GitHub Inc.',
         ...values,
       }).map(([name, data]) => ({ name, data }))
-
     const empty: ICopilotAppRegistry = {
       readValues: () => [],
-      readKeys: () => [],
     }
 
     it('reads quoted NSIS InstallLocation and MainBinaryName under HKCU', () => {
       const registry: ICopilotAppRegistry = {
         ...empty,
-        readValues: (hive, key) =>
-          hive === 'HKEY_CURRENT_USER' && key === `${uninstall}\\GitHub Copilot`
+        readValues: key =>
+          key === `${uninstall}\\GitHub Copilot`
             ? record({
                 InstallLocation: '"D:\\Apps & Tools\\Copilot"',
                 MainBinaryName: 'github.exe',
@@ -206,22 +202,6 @@ if (__WIN32__) {
         }
         assert.deepStrictEqual(getWindowsCopilotAppCandidates(registry, {}), [
           'D:\\Apps, Tools\\github.exe',
-        ])
-      }
-    })
-
-    it('scans MSI display names under HKLM including WOW6432Node', () => {
-      for (const parent of [uninstall, wow]) {
-        const registry: ICopilotAppRegistry = {
-          readKeys: (hive, key) =>
-            hive === 'HKEY_LOCAL_MACHINE' && key === parent ? ['{MSI-ID}'] : [],
-          readValues: (hive, key) =>
-            hive === 'HKEY_LOCAL_MACHINE' && key === `${parent}\\{MSI-ID}`
-              ? record({ InstallLocation: 'E:\\Custom Copilot' })
-              : [],
-        }
-        assert.deepStrictEqual(getWindowsCopilotAppCandidates(registry, {}), [
-          'E:\\Custom Copilot\\github.exe',
         ])
       }
     })
@@ -264,16 +244,15 @@ if (__WIN32__) {
       }
       assert.deepStrictEqual(
         getWindowsCopilotAppCandidates(
-          { readKeys: fail, readValues: fail },
+          { readValues: fail },
           {
             LOCALAPPDATA: 'C:\\Users\\test\\AppData\\Local',
             ProgramFiles: 'C:\\Program Files',
           }
         ),
         [
-          'C:\\Users\\test\\AppData\\Local\\GitHub Copilot\\github.exe',
-          'C:\\Program Files\\GitHub Copilot\\github.exe',
           'C:\\Users\\test\\AppData\\Local\\Programs\\GitHub Copilot\\github.exe',
+          'C:\\Program Files\\GitHub Copilot\\github.exe',
         ]
       )
     })
