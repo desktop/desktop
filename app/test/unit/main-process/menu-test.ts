@@ -222,6 +222,12 @@ describe('main-process menu', () => {
       assert.strictEqual(copilot !== undefined, enableCopilotAppHandoff())
       if (copilot !== undefined) {
         assert.strictEqual(copilot.accelerator, 'CmdOrCtrl+Shift+J')
+        assert.ok(
+          repository.submenu.indexOf(copilot) <
+            repository.submenu.findIndex(
+              item => item.id === 'open-with-external-editor'
+            )
+        )
       }
       assert.ok(
         repository.submenu.some(item => item.id === 'open-external-editor')
