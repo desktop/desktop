@@ -1,10 +1,43 @@
 import assert from 'node:assert'
 import { describe, it } from 'node:test'
 import { git } from '../../../src/lib/git/core'
-import { addRemote, removeRemote } from '../../../src/lib/git/remote'
+import {
+  addRemote,
+  removeRemote,
+  setRemoteURL,
+} from '../../../src/lib/git/remote'
 import { setupEmptyRepository } from '../../helpers/repositories'
 
 describe('git/remote management', () => {
+  describe('setRemoteURL', () => {
+    for (const name of ['origin', '--remote']) {
+      for (const url of ['/path/with spaces/repository', '--push']) {
+        it(`sets ${name} to URL ${url} literally`, async t => {
+          const repository = await setupEmptyRepository(t)
+          await git(
+            ['remote', 'add', '--', name, '/original'],
+            repository.path,
+            'set up remote to update'
+          )
+
+          assert.strictEqual(await setRemoteURL(repository, name, url), true)
+
+          const result = await git(
+            ['config', '--get', `remote.${name}.url`],
+            repository.path,
+            'read updated remote URL'
+          )
+          assert.strictEqual(result.stdout.trim(), url)
+        })
+      }
+
+      it(`rejects missing remote ${name}`, async t => {
+        const repository = await setupEmptyRepository(t)
+        await assert.rejects(setRemoteURL(repository, name, '/replacement'))
+      })
+    }
+  })
+
   describe('removeRemote', () => {
     for (const name of ['origin', '--remote']) {
       it(`removes ${name} without changing other remotes`, async t => {

@@ -59,7 +59,11 @@ export async function setRemoteURL(
   name: string,
   url: string
 ): Promise<true> {
-  await git(['remote', 'set-url', name, url], repository.path, 'setRemoteURL')
+  await git(
+    ['remote', 'set-url', '--', name, url],
+    repository.path,
+    'setRemoteURL'
+  )
   return true
 }
 
