@@ -4,7 +4,10 @@ import { exec } from 'dugite'
 import { Repository } from '../../../src/models/repository'
 import { AppFileStatusKind, FileChange } from '../../../src/models/status'
 import { DiffType } from '../../../src/models/diff'
-import { getBranchMergeBaseDiff } from '../../../src/lib/git/diff'
+import {
+  getBranchMergeBaseChangedFiles,
+  getBranchMergeBaseDiff,
+} from '../../../src/lib/git/diff'
 import { getCommits } from '../../../src/lib/git/log'
 import {
   getBlobContents,
@@ -48,6 +51,72 @@ async function setupHistory(t: TestContext) {
 }
 
 describe('revision consumers with leading-dash refs', () => {
+  it('getBranchMergeBaseChangedFiles preserves file statuses, statistics, and revisions', async t => {
+    const { repository, base, tip } = await setupHistory(t)
+    for (const [from, to] of [
+      ['--remote/base', '--remote/main'],
+      [base, '--remote/main'],
+      ['--remote/base', tip],
+    ]) {
+      const changes = await getBranchMergeBaseChangedFiles(
+        repository,
+        from,
+        to,
+        tip
+      )
+      assert.ok(changes !== null)
+      assert.strictEqual(changes.linesAdded, 2)
+      assert.strictEqual(changes.linesDeleted, 1)
+      assert.deepStrictEqual(
+        changes.files.map(f => ({
+          path: f.path,
+          kind: f.status.kind,
+          commitish: f.commitish,
+          parentCommitish: f.parentCommitish,
+        })),
+        [
+          {
+            path: 'file.txt',
+            kind: AppFileStatusKind.Modified,
+            commitish: tip,
+            parentCommitish: base,
+          },
+          {
+            path: 'other.txt',
+            kind: AppFileStatusKind.New,
+            commitish: tip,
+            parentCommitish: base,
+          },
+        ]
+      )
+    }
+    await runGit(repository, ['mv', '--', 'file.txt', '-file.txt'])
+    await runGit(repository, ['commit', '-m', 'rename file'])
+    const renamed = await runGit(repository, ['rev-parse', 'HEAD'])
+    await runGit(repository, [
+      'update-ref',
+      'refs/remotes/--remote/renamed',
+      renamed,
+    ])
+    const changes = await getBranchMergeBaseChangedFiles(
+      repository,
+      '--remote/main',
+      '--remote/renamed',
+      renamed
+    )
+    assert.ok(changes !== null)
+    assert.strictEqual(changes.linesAdded, 0)
+    assert.strictEqual(changes.linesDeleted, 0)
+    assert.strictEqual(changes.files.length, 1)
+    assert.strictEqual(changes.files[0].path, '-file.txt')
+    assert.deepStrictEqual(changes.files[0].status, {
+      kind: AppFileStatusKind.Renamed,
+      oldPath: 'file.txt',
+      renameIncludesModifications: false,
+      submoduleStatus: undefined,
+    })
+  })
+
   it('getBranchMergeBaseDiff reads leading-dash refs and limits output to the requested file', async t => {
     const { repository, base, tip } = await setupHistory(t)
     const file = new FileChange('file.txt', {
