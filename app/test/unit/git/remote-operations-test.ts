@@ -8,7 +8,7 @@ import { fetch, fetchRefspec } from '../../../src/lib/git/fetch'
 import { pull } from '../../../src/lib/git/pull'
 import { push } from '../../../src/lib/git/push'
 import { getMergeBase } from '../../../src/lib/git/merge'
-import { deleteRemoteBranch } from '../../../src/lib/git/branch'
+import { createBranch, deleteRemoteBranch } from '../../../src/lib/git/branch'
 import { IRemote } from '../../../src/models/remote'
 import { setupEmptyRepository } from '../../helpers/repositories'
 import {
@@ -66,6 +66,28 @@ async function setupRemote(t: TestContext, name: string) {
 describe('git/remote operations', () => {
   for (const remoteName of ['origin', '--remote']) {
     describe(`remote named ${remoteName}`, () => {
+      for (const noTrack of [false, true]) {
+        it(`creates a branch from a remote ref with noTrack ${noTrack}`, async t => {
+          const { repository } = await setupRemote(t, remoteName)
+          await git(
+            ['config', 'branch.autoSetupMerge', 'true'],
+            repository.path,
+            'enable automatic upstream tracking'
+          )
+          const startPoint = `${remoteName}/master`
+          const expected = await getRefOrError(
+            repository,
+            `refs/remotes/${startPoint}`
+          )
+
+          await createBranch(repository, 'from-remote', startPoint, noTrack)
+
+          const branch = await getBranchOrError(repository, 'from-remote')
+          assert.strictEqual(branch.tip.sha, expected.sha)
+          assert.strictEqual(branch.upstream, noTrack ? null : startPoint)
+        })
+      }
+
       it('deletes a remote branch and its tracking ref', async t => {
         const { repository, upstream, remote } = await setupRemote(
           t,
