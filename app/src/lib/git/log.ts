@@ -153,9 +153,19 @@ export async function getCommits(
     ...formatArgs,
     '--no-show-signature',
     '--no-color',
-    ...additionalArgs,
-    '--end-of-options'
+    ...additionalArgs
   )
+
+  // The explicit revision originally preceded additionalArgs, so it must not
+  // inherit an exclusion toggle left active by options such as --not --remotes.
+  if (
+    revisionRange !== undefined &&
+    additionalArgs.filter(arg => arg === '--not').length % 2 !== 0
+  ) {
+    args.push('--not')
+  }
+
+  args.push('--end-of-options')
 
   if (revisionRange !== undefined) {
     args.push(revisionRange)
